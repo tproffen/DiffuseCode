@@ -11,7 +11,7 @@ INTEGER, PARAMETER :: val_fq     =  8
 INTEGER, PARAMETER :: val_f2aver =  9
 INTEGER, PARAMETER :: val_faver2 = 10
 INTEGER, PARAMETER :: val_faver  = 11
-INTEGER, PARAMETER :: val_norm   = 12
+!INTEGER, PARAMETER :: val_norm   = 12
 INTEGER, PARAMETER :: val_iq     = 13
 INTEGER, PARAMETER :: val_pdf    = 14
 INTEGER, PARAMETER :: val_3Dpdf  = 15
@@ -141,24 +141,6 @@ CONTAINS
          q2   = REAL(zpi**2*(REAL(2*istl(i),KIND=KIND(0.0D0))*CFINC)**2)
          qval = qval /faver2/ cr_n_real_atoms &
                 +1.0 - EXP(-q2*cr_u2aver)
-!
-!     Calculate E(Q) = I/<f^2>/N normalized intensity 
-!
-      ELSEIF (value == val_norm) THEN
-         IF (laver) THEN 
-            qval = REAL (f * CONJG (f),KIND=KIND(0.0E0) ) 
-         ELSE 
-            qval = REAL(dsi (i), KIND=KIND(0.0E0))
-         ENDIF 
-         DO k=1,cr_nscat
-!           f2aver = f2aver + REAL(cfact_pure(istl(i),k)**2,KIND=KIND(0.0E0))*cr_amount(k)
-            f2aver = f2aver +                                 &
-                      DBLE (       cfact_pure(istl(i), k)  *  &
-                             conjg (cfact_pure(istl(i), k)))  &
-                   *cr_amount(k)
-         ENDDO
-!        q2   = REAL(zpi**2*(REAL(2*istl(i),KIND=KIND(0.0E0))*CFINC)**2)
-         qval = qval /f2aver/ cr_n_real_atoms 
 !
 !     Calculate I(Q) = I/N normalized intensity 
 !

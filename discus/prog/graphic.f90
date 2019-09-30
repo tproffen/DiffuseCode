@@ -506,8 +506,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ELSEIF (cpara (1) (ix:ix + 4) == 'faver') THEN
                      value = val_faver
 !     ----Calculate S(Q)           'N(Q) = S(Q) without thermal part    '                          
-                  ELSEIF (cpara (1) (ix:ix + 3) == 'norm') THEN 
-                     value = val_norm
                   ELSEIF (cpara (1) (ix:ix + 2) == 'PDF' ) THEN 
                      value = val_pdf
                   ELSEIF (cpara (1) (ix:ix + 4) == '3DPDF' ) THEN 

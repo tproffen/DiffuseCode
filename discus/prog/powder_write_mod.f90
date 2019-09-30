@@ -12,6 +12,7 @@ SUBROUTINE powder_out (value)
 !-                                                                      
 !     Write the powder pattern                                          
 !+                                                                      
+USE crystal_mod
 USE discus_config_mod 
 USE debye_mod 
 USE diffuse_mod 
@@ -30,54 +31,51 @@ IMPLICIT none
 !                                                                       
 !     INTEGER, PARAMETER :: iff = 2 
 !                                                                       
-      INTEGER, INTENT(IN) :: value ! Type of output
+INTEGER, INTENT(IN) :: value ! Type of output
 !                                                                       
-      INTEGER ii, j , iii, jstart
-      INTEGER   :: all_status  ! Allocation status
-      INTEGER   :: npkt        ! number of points in powder pattern
-      INTEGER   :: npkt_equi   ! number of points in equidistant powder pattern
-      INTEGER   :: npkt_wrt    ! number of points in powder pattern ready to write
+INTEGER   :: ii, j , iii
+INTEGER   :: all_status  ! Allocation status
+INTEGER   :: npkt        ! number of points in powder pattern
+INTEGER   :: npkt_equi   ! number of points in equidistant powder pattern
+INTEGER   :: npkt_wrt    ! number of points in powder pattern ready to write
 INTEGER   :: npkt_fft    ! number of points in powder pattern for Fast Fourier
-      LOGICAL   :: lread 
+LOGICAL   :: lread 
 !!      LOGICAL   :: lconv = .FALSE.  ! Did convolution with profile
-      REAL, DIMENSION(:), ALLOCATABLE :: pow_tmp  ! Local temporary copy of intensities
-      REAL, DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
-      REAL, DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
-      REAL, DIMENSION(:), ALLOCATABLE :: y2a  ! y-values of splined    powder pattern
-      REAL, DIMENSION(:), ALLOCATABLE :: xwrt ! x-values of powder pattern ready for output
-      REAL, DIMENSION(:), ALLOCATABLE :: ywrt ! y-values of powder pattern ready for output
-      REAL :: ttheta, lp=1.0
-      REAL ss, st 
-      REAL :: q=0.0, stl=0.0, dstar=0.0
-      REAL      :: normalizer
-      REAL xmin, xmax, xdel , xpos
-      REAL (PREC_DP)     :: xstart  ! qmin  for sin Theta / lambda calculation
-      REAL (PREC_DP)     :: xdelta  ! qstep for sin Theta / lambda calculation
-      REAL      :: xequ    ! x-position of equdistant curve
-      REAL      :: yequ    ! y-value    of equdistant curve
-      REAL      :: tthmin  ! minimum for equdistant curve
-      REAL      :: tthmax  ! minimum for equdistant curve
-      REAL      ::   qmin  ! minimum for equdistant curve
-      REAL      ::   qmax  ! maximum for equdistant curve
-      REAL      :: arg
-!     REAL      :: scalef  ! Correct effect of convolution
-      REAL      :: pow_tmp_sum = 0.0
-      REAL      :: pow_uuu_sum = 0.0
-REAL(KIND=PREC_DP) :: rmin, rmax
+REAL, DIMENSION(:), ALLOCATABLE :: pow_tmp  ! Local temporary copy of intensities
+REAL, DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
+REAL, DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
+REAL, DIMENSION(:), ALLOCATABLE :: lpv  ! Values of LP correction versus Q/Theta 
+REAL, DIMENSION(:), ALLOCATABLE :: y2a  ! y-values of splined    powder pattern
+REAL, DIMENSION(:), ALLOCATABLE :: xwrt ! x-values of powder pattern ready for output
+REAL, DIMENSION(:), ALLOCATABLE :: ywrt ! y-values of powder pattern ready for output
+REAL :: ttheta, lp=1.0
+REAL :: lpscale      ! Scale factor introduced by LP correction
+REAL ss, st 
+REAL :: q=0.0, stl=0.0, dstar=0.0
+REAL      :: normalizer
+REAL xmin, xmax, xdel , xpos
+REAL (PREC_DP)     :: xstart  ! qmin  for sin Theta / lambda calculation
+REAL (PREC_DP)     :: xdelta  ! qstep for sin Theta / lambda calculation
+REAL      :: xequ    ! x-position of equdistant curve
+REAL      :: yequ    ! y-value    of equdistant curve
+REAL      :: tthmin  ! minimum for equdistant curve
+REAL      :: tthmax  ! minimum for equdistant curve
+REAL      ::   qmin  ! minimum for equdistant curve
+REAL      ::   qmax  ! maximum for equdistant curve
+REAL      :: arg
+!
+REAL(KIND=PREC_DP) :: rmin, rmax, rstep
 INTEGER            :: npkt_pdf
 REAL, DIMENSION(:), ALLOCATABLE :: xfour
 REAL, DIMENSION(:), ALLOCATABLE :: yfour
 !                                                                       
-!      REAL lorentz 
-!      REAL polarisation 
-!      REAL sind, asind 
 !
 npkt_fft = 2**16
 !
 IF(.NOT. (value == val_inten  .OR. value == val_sq      .OR. &
           value == val_fq     .OR. value == val_iq      .OR. &
           value == val_f2aver .OR. value == val_faver2  .OR. &
-          value == val_norm   .OR. value == val_pdf            )) THEN
+                                   value == val_pdf            )) THEN
    ier_msg(1) = ' Powder output is defined only for:'
    ier_msg(2) = ' Intensity, S(Q), F(Q), <f>^2, <f^2>'
    ier_msg(3) = ' Intensity/N, PDF'
@@ -89,12 +87,13 @@ ENDIF
 ALLOCATE(pow_tmp(0:POW_MAXPKT),stat = all_status)  ! Allocate array for powder pattern copy
 ALLOCATE(xpl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
 ALLOCATE(ypl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
+ALLOCATE(lpv(0:POW_MAXPKT),stat = all_status)  ! Allocate array for LP correction
 pow_tmp = 0.0
 xpl     = 0.0
 ypl     = 0.0
 xdel    = 0.0
 !                                                                       
-IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN 
+IF (pow_four_type.eq.POW_COMPL) THEN 
    IF (pow_axis.eq.POW_AXIS_Q) THEN 
       xmin = pow_qmin 
       xmax = pow_qmax 
@@ -112,10 +111,11 @@ IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN
       DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
       DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
       DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
       RETURN 
    ENDIF 
    npkt = MIN(NINT((xmax+xdel-xmin)/xdel) + 2, POW_MAXPKT)
-ELSEIF (pow_four_type.eq.POW_HIST ) THEN
+ELSEIF (pow_four_type.eq.POW_DEBYE) THEN
    IF (pow_axis.eq.POW_AXIS_Q) THEN 
       xmin = pow_qmin 
       xmax = pow_qmax 
@@ -133,6 +133,7 @@ ELSEIF (pow_four_type.eq.POW_HIST ) THEN
       DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
       DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
       DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
       RETURN 
    ENDIF 
    npkt = MIN(num(1), POW_MAXPKT)
@@ -141,9 +142,10 @@ ENDIF
 !     Prepare average form factors for S(Q) or F(Q), Normalized Intensity, PDF, or faver2, f2aver
 !
 IF(value == val_sq     .OR. value == val_fq     .OR. &
-   value == val_norm   .OR. value == val_pdf    .OR. &
+   value == val_iq     .OR. value == val_inten  .OR. &
+                            value == val_pdf    .OR. &
    value == val_f2aver .OR. value == val_faver2      ) THEN
-   IF (pow_axis.eq.POW_AXIS_Q) THEN 
+   IF (pow_axis.eq.POW_AXIS_Q .OR. (pow_axis.eq.POW_AXIS_TTH .AND.value == val_inten)) THEN 
       IF(.NOT.(pow_four_mode == POW_STACK)) THEN  ! Stack did its own faver2
          IF (pow_four_type.eq.POW_COMPL) THEN     ! Need to initialize pow_istl
             xstart = pow_qmin  /zpi
@@ -160,6 +162,7 @@ IF(value == val_sq     .OR. value == val_fq     .OR. &
       DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
       DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
       DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
       RETURN
   ENDIF
 ENDIF
@@ -169,6 +172,7 @@ IF (ier_num /= 0) THEN
    DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
    DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
    DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+   DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
    RETURN
 ENDIF
 IF(value == val_f2aver) THEN          ! Output is f^2 aver
@@ -183,224 +187,212 @@ ELSE                         ! All other output
    DO j = 1, npkt
       pow_tmp (j-1) = pow_conv(j)   ! copy from convoluted pattern
    ENDDO
-!        IF (pow_four_type.ne.POW_COMPL) THEN 
-!                                                                       
-!     This is a Debye calculation, copy rsf or csf into pow_tmp         
-!                                                                       
-!           IF (pow_four_type.eq.POW_DEBYE) THEN 
-!              IF (npkt    .le.POW_MAXPKT) THEN 
-!                 DO j = 1, npkt    
-!                    pow_tmp (j) = REAL(REAL(csf (j)))    ! Double precision no longer needed
-!                 ENDDO 
-!              ENDIF 
-!           ELSEIF(pow_four_type.eq.POW_FAST.or.pow_four_type.eq.POW_HIST) THEN
-!              IF (npkt    .le.POW_MAXPKT) THEN 
-!                 DO j = 1, npkt    
-!                    pow_tmp (j) = REAL(rsf (j) )     ! Double precision no longer needed
-!                 ENDDO 
-!              ENDIF 
-!           ENDIF 
-!        ELSE
-!           pow_tmp(:) = REAL(pow_qsp(:))   ! Double precision no longer needed
-!        ENDIF 
-!                                                                       
-!- -Does the powder pattern have to be convoluted by a profile function?
-!                                                                       
-!        Determine integral to scale after convolution
-!        pow_tmp_sum = 0.0
-!        DO j=1,npkt
-!           pow_tmp_sum = pow_tmp_sum + pow_tmp(j)
-!        ENDDO
-!        lconv = .FALSE.
-!        IF (pow_profile.eq.POW_PROFILE_GAUSS) THEN 
-!           IF (pow_delta.gt.0.0) THEN 
-!              xxmax = xmax + xdel
-!              CALL powder_conv_res (pow_tmp, xmin,xxmax, xdel,         &
-!              pow_delta, POW_MAXPKT)                                    
-!           ENDIF 
-!           lconv = .TRUE.
-!        ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) THEN 
-!          IF (pow_u.ne.0.0.or.pow_v.ne.0.0.or.pow_etax.ne.0.0.or.      &
-!              pow_p1.ne.0.0.or.pow_p2.ne.0.0.or.pow_p3.ne.0.0.or.      &
-!              pow_p4.ne.0.0                                      ) THEN       
-!              xxmax = xmax + xdel
-!              CALL powder_conv_psvgt_uvw (pow_tmp, xmin,xxmax, xdel,   &
-!              pow_eta, pow_etax, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
-!              pow_p3, pow_p4, pow_width, POW_MAXPKT)
-!           ELSE 
-!              xxmax = xmax + xdel
-!              CALL powder_conv_psvgt_fix (pow_tmp, xmin,xxmax, xdel,   &
-!              pow_eta, pow_w, pow_width, POW_MAXPKT)
-!           ENDIF 
-!           lconv = .TRUE.
-!        ENDIF 
-!        pow_uuu_sum = 0.0
-!        do j=1,npkt
-!           pow_uuu_sum = pow_uuu_sum + pow_tmp(j)
-!        enddo
-!        scalef = pow_tmp_sum/pow_uuu_sum
-!        pow_tmp(:) = pow_tmp(:) * scalef
-!        pow_tmp_sum = 0.0
-!        pow_uuu_sum = 0.0
 ENDIF           ! Output is if_block if(value==val_f2aver)
+!
 !------ copy the powder pattern into output array, if necessary this will be put on
 !       equidistant scale
 !                                                                       
-      IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN                                                           
-         DO ii = 0, npkt - 1
-            iii = ii + 1
-            xpos = ii * xdel + xmin 
-            IF (pow_axis.eq.POW_AXIS_Q) THEN 
-               q      = xpos
-               dstar  = q / REAL(zpi)
-               stl    = q / REAL(zpi) / 2.
-               ttheta = 2.*asind ( REAL(q / 2. /REAL(zpi) *rlambda ))
-            ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-               ttheta = xpos
-               stl    =                  sind (ttheta * 0.5) / rlambda 
-               dstar  = 2. *             sind (ttheta * 0.5) / rlambda 
-               q      = 2. * REAL(zpi) * sind (ttheta * 0.5) / rlambda 
-            ENDIF 
-            IF(value == val_sq .OR. value == val_fq .OR. value == val_pdf)  THEN
-               lp = lorentz(ttheta,1)
-            ELSEIF(value == val_f2aver .OR. value == val_faver2) THEN  ! f2aver or faver2
-               lp = 1
-            ELSE
-               lp     = lorentz (ttheta,0) * polarisation (ttheta) 
-            ENDIF 
-            IF (cpow_form.eq.'tth') THEN 
-               xpl(iii) = ttheta
-            ELSEIF (cpow_form.eq.'stl') THEN 
-               xpl(iii) = stl
-            ELSEIF (cpow_form.eq.'q  ') THEN 
-               xpl(iii) = q
-            ELSEIF (cpow_form.eq.'dst') THEN 
-               xpl(iii) = dstar
-            ELSEIF (cpow_form.eq.'lop') THEN 
-               xpl(iii) = ttheta
-            ENDIF 
-            ypl(iii) = pow_tmp(iii) * lp
-         ENDDO 
-      ELSEIF (pow_four_type.eq.POW_HIST) THEN 
-         IF (pow_axis.eq.POW_AXIS_DSTAR) THEN 
-         ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
-            xm(1)  = pow_qmin / REAL(zpi) 
-            ss     = pow_qmax / REAL(zpi) 
-            st     = (pow_qmax - pow_deltaq) / REAL(zpi) 
-            uin(1) = pow_deltaq / REAL(zpi) 
-         ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-            xm(1)  = 2 * sind (0.5 * pow_tthmin) / rlambda 
-            ss     = 2 * sind (0.5 * pow_tthmax) / rlambda 
-            st     = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda
-            uin(1) = (ss - st) / 2. 
-         ENDIF 
-         DO ii = 1, npkt    
-            dstar = REAL(xm (1) + (ii - 1) * uin (1) ) 
-            stl = REAL(0.5D0 * (xm (1) + (ii - 1) * uin (1) ) )
-            q = REAL(zpi) * REAL(xm (1) + (ii - 1) * uin (1) ) 
-            ttheta = 2. * asind (dstar * rlambda / 2.) 
+IF (pow_four_type.eq.POW_COMPL) THEN
+   pow_tmp = pow_tmp/(REAL(pow_nreal, KIND=PREC_DP))**2 * &
+                      REAL(cr_ncatoms, KIND=PREC_DP)/REAL(cr_v, KIND=PREC_DP) * &
+             20.00D0  ! Needs to be verified where this 20 comes from
+ENDIF
 !
-            IF(value == val_sq .or. value == val_fq .OR. value == val_pdf) THEN
-               lp = 1                     ! For S(Q) and F(Q) nor Polarisation corr.
-            ELSEIF(value == val_f2aver .or. value == val_faver2) THEN  ! f2aver or faver2
-               lp = 1
-            ELSE
-               lp = polarisation (ttheta) 
-            ENDIF
-            IF (cpow_form.eq.'tth') THEN 
-               xpl(ii) = ttheta
-            ELSEIF (cpow_form.eq.'stl') THEN 
-               xpl(ii) = stl
-            ELSEIF (cpow_form.eq.'q  ') THEN 
-               xpl(ii) = q
-            ELSEIF (cpow_form.eq.'dst') THEN 
-               xpl(ii) = dstar
-            ENDIF 
-            ypl(ii) = pow_tmp(ii) * lp
-         ENDDO 
+lpv    = 0.0
+lpv(0) = 1.0
+!
+copy: IF (pow_four_type.eq.POW_COMPL) THEN
+   DO ii = 0, npkt - 1
+      iii = ii + 1
+      xpos = ii * xdel + xmin 
+      IF (pow_axis.eq.POW_AXIS_Q) THEN 
+         q      = xpos
+         dstar  = q / REAL(zpi)
+         stl    = q / REAL(zpi) / 2.
+         ttheta = 2.*asind ( REAL(q / 2. /REAL(zpi) *rlambda ))
+      ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+         ttheta = xpos
+         stl    =                  sind (ttheta * 0.5) / rlambda 
+         dstar  = 2. *             sind (ttheta * 0.5) / rlambda 
+         q      = 2. * REAL(zpi) * sind (ttheta * 0.5) / rlambda 
       ENDIF 
+      IF(value == val_sq .OR. value == val_fq .OR. value == val_pdf)  THEN
+! WRONG!         lp = lorentz(ttheta,1)
+      lp = 1./q**2
+      ELSEIF(value == val_f2aver .OR. value == val_faver2) THEN  ! f2aver or faver2
+         lp = 1
+      ELSE
+!WRONG!         lp     = lorentz (ttheta,0) * polarisation (ttheta) 
+      lp = 1./q**2 * polarisation(ttheta)
+      ENDIF 
+      lpv(iii) = polarisation (ttheta)
+      IF (cpow_form.eq.'tth') THEN 
+         xpl(iii) = ttheta
+      ELSEIF (cpow_form.eq.'stl') THEN 
+         xpl(iii) = stl
+      ELSEIF (cpow_form.eq.'q  ') THEN 
+         xpl(iii) = q
+      ELSEIF (cpow_form.eq.'dst') THEN 
+         xpl(iii) = dstar
+      ELSEIF (cpow_form.eq.'lop') THEN 
+         xpl(iii) = ttheta
+      ENDIF 
+      ypl(iii) = pow_tmp(iii) * lp
+   ENDDO 
+ELSEIF (pow_four_type.eq.POW_DEBYE) THEN  copy
+   IF (pow_axis.eq.POW_AXIS_DSTAR) THEN 
+!     CONTINUE 
+   ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
+      xm(1)  = pow_qmin / REAL(zpi) 
+      ss     = pow_qmax / REAL(zpi) 
+      st     = (pow_qmax - pow_deltaq) / REAL(zpi) 
+      uin(1) = pow_deltaq / REAL(zpi) 
+   ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+      xm(1)  = 2 * sind (0.5 * pow_tthmin) / rlambda 
+      ss     = 2 * sind (0.5 * pow_tthmax) / rlambda 
+      st     = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda
+      uin(1) = (ss - st) / 2. 
+   ENDIF 
+   DO ii = 1, npkt    
+      dstar = REAL(xm (1) + (ii - 1) * uin (1) ) 
+      stl = REAL(0.5D0 * (xm (1) + (ii - 1) * uin (1) ) )
+      q = REAL(zpi) * REAL(xm (1) + (ii - 1) * uin (1) ) 
+      ttheta = 2. * asind (dstar * rlambda / 2.) 
+!
+      IF(value == val_sq .or. value == val_fq .OR. value == val_pdf) THEN
+         lp = 1                     ! For S(Q) and F(Q) nor Polarisation corr.
+      ELSEIF(value == val_f2aver .or. value == val_faver2) THEN  ! f2aver or faver2
+         lp = 1
+      ELSE
+         lp = polarisation (ttheta) 
+      ENDIF
+      lpv(ii ) = lp
+      IF (cpow_form.eq.'tth') THEN 
+         xpl(ii) = ttheta
+      ELSEIF (cpow_form.eq.'stl') THEN 
+         xpl(ii) = stl
+      ELSEIF (cpow_form.eq.'q  ') THEN 
+         xpl(ii) = q
+      ELSEIF (cpow_form.eq.'dst') THEN 
+         xpl(ii) = dstar
+      ENDIF 
+      ypl(ii) = pow_tmp(ii) * lp
+   ENDDO 
+ENDIF  copy
+!
+lpscale = 1.0
 !
 !     Prepare S(Q) or F(Q)
 !
-      IF(value == val_sq .or. value == val_fq   .OR. & 
-         value == val_iq .OR. value == val_norm .OR. value == val_pdf ) THEN
-         IF (pow_axis.eq.POW_AXIS_Q) THEN 
-!           IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW  .OR. lconv ) THEN
-            IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN
-            pow_tmp_sum = 0.0                           ! Determine normalizer, such that 
-            pow_uuu_sum = 0.0                           ! the average F(q) is 0.0
+normalizer = 1.0D0
+prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. & 
+         value == val_iq .OR.                        value == val_pdf         ) THEN
+   axq: IF (pow_axis.eq.POW_AXIS_Q .OR. (pow_axis.eq.POW_AXIS_TTH .AND.value == val_inten)) THEN 
+      IF (pow_four_type.eq.POW_COMPL) THEN
+!        pow_tmp_sum = 0.0                           ! Determine normalizer, such that 
+!        pow_uuu_sum = 0.0                           ! the average F(q) is 0.0
 !           jstart = MAX(1,2-int(xmin/xdel))            ! Exclude q = 0
-            jstart = MAX(1,int((1-xmin)/xdel)+1)        ! Exclude q < 1.0
-            DO j = jstart, npkt
+!        jstart = MAX(1,int((1-xmin)/xdel)+1)        ! Exclude q < 1.0
+!        DO j = jstart, npkt
+!           q = ((j-1)*xdel + xmin)
+!           pow_tmp_sum = pow_tmp_sum + ypl(j)/REAL(pow_faver2(j))* q
+!           pow_uuu_sum = pow_uuu_sum       + exp(-q**2*pow_u2aver)*q * &
+!                         pow_f2aver(j)/pow_faver2(j)
+!        ENDDO
+!        normalizer = pow_tmp_sum/pow_uuu_sum
+         normalizer = 1.0D0
+      ELSE
+         normalizer = REAL(pow_nreal)
+      ENDIF
+!
+      valq: IF(value == val_sq) THEN                   ! Calc S(Q)
+         IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
+            DO j = 1, npkt   
                q = ((j-1)*xdel + xmin)
-               pow_tmp_sum = pow_tmp_sum + ypl(j)/REAL(pow_faver2(j))* q
-               pow_uuu_sum = pow_uuu_sum       + exp(-q**2*pow_u2aver)*q * &
-                             pow_f2aver(j)/pow_faver2(j)
+               ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer    &
+                         + 1.0 - & !exp(-q**2*pow_u2aver*0.25)      * &
+                          pow_f2aver(j)/pow_faver2(j))
             ENDDO
-               normalizer = pow_tmp_sum/pow_uuu_sum
-            ELSE
-               normalizer = REAL(pow_nreal)
-            ENDIF
-!
-            IF(value == val_sq) THEN                         ! Calc S(Q)
-               IF(deb_conv) THEN                             ! DEBYE was done with convolution of ADP
-               DO j = 1, npkt   
-                  q = ((j-1)*xdel + xmin)
-                  ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer    &
-                            + 1.0 - & !exp(-q**2*pow_u2aver*0.25)      * &
-                             pow_f2aver(j)/pow_faver2(j))
-               ENDDO
-               ELSE
-               DO j = 1, npkt   
-                  q = ((j-1)*xdel + xmin)
-                  ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
-                            + 1.0 - exp(-q**2*pow_u2aver)   * &
-                             pow_f2aver(j)/pow_faver2(j))
-               ENDDO
-               ENDIF
-            ELSEIF(value == val_fq .OR. value == val_pdf) THEN  ! Calc F(Q)IF
-               IF(deb_conv) THEN                             ! DEBYE was done with convolution of ADP
-                  DO j = 1, npkt   
-                     q = ((j-1)*xdel + xmin)
-                     ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
-                                -pow_f2aver(j)/pow_faver2(j)) * q
-                  ENDDO
-               ELSE
-                  DO j = 1, npkt   
-                     q = ((j-1)*xdel + xmin)
-                     ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
-                                     - exp(-q**2*pow_u2aver)   *  &
-                                pow_f2aver(j)/pow_faver2(j)) * q
-                  ENDDO
-               ENDIF
-            ELSEIF(value == val_iq) THEN                ! Calc F(Q)IF
-               DO j = 1, npkt   
-                  q = ((j-1)*xdel + xmin)
-                  ypl(j) =  ypl(j)/normalizer
-               ENDDO
-            ELSEIF(value == val_norm) THEN                ! Calc F(Q)IF
-               DO j = 1, npkt   
-                  q = ((j-1)*xdel + xmin)
-                  ypl(j) =  ypl(j)/REAL(pow_faver2(j))/normalizer
-               ENDDO
-            ENDIF
-         ELSE                                           ! F(Q) works for Q-axis only
+         ELSE
+            DO j = 1, npkt   
+               q = ((j-1)*xdel + xmin)
+               ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+                         + 1.0 - exp(-q**2*pow_u2aver)   * &
+                          pow_f2aver(j)/pow_faver2(j))
+            ENDDO
+         ENDIF
+      ELSEIF(value == val_fq .OR. value == val_pdf) THEN  valq ! Calc F(Q)IF
+         IF(deb_conv .OR. .NOT.ldbw) THEN                      ! DEBYE was done with convolution of ADP
+            DO j = 1, npkt   
+               q = ((j-1)*xdel + xmin)
+               ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+                          -pow_f2aver(j)/pow_faver2(j)) * q
+            ENDDO
+         ELSE
+            DO j = 1, npkt   
+               q = ((j-1)*xdel + xmin)
+               ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+                               - exp(-q**2*pow_u2aver)   *  &
+                          pow_f2aver(j)/pow_faver2(j)) * q
+            ENDDO
+         ENDIF
+      ELSEIF(value == val_iq) THEN   valq              ! Calc F(Q)IF
+         lpscale = 1.0
+         IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
+            DO j = 1, npkt   
+               q = ((j-1)*xdel + xmin)
+               ypl(j) =  (ypl(j)                    /normalizer    &
+                         +         lpv(j) * (                      &
+                         + pow_faver2(j) - & !exp(-q**2*pow_u2aver*0.25)      * &
+                          pow_f2aver(j)              ) )
+            ENDDO
+         ELSE
+            DO j = 1, npkt   
+               q = ((j-1)*xdel + xmin)
+               ypl(j) =  (ypl(j)                    /normalizer   &
+                         +         lpv(j) * (                      &
+                         + pow_faver2(j) - exp(-q**2*pow_u2aver)   * &
+                          pow_f2aver(j)              ))
+            ENDDO
+         ENDIF
+      ELSEIF(value == val_inten) THEN   valq              ! Calc Intensity
+         IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
+            DO j = 1, npkt   
+               q = ((j-1)*xdel + xmin)
+               ypl(j) =  (ypl(j)                    /normalizer    &
+                         +         lpv(j) * (                      &
+                         + pow_faver2(j) - & !exp(-q**2*pow_u2aver*0.25)      * &
+                          pow_f2aver(j)              ) ) * REAL(pow_nreal)
+            ENDDO
+         ELSE
+            DO j = 1, npkt   
+               q = ((j-1)*xdel + xmin)
+               ypl(j) =  (ypl(j)                    /normalizer   &
+                         +         lpv(j) * (                      &
+                         + pow_faver2(j) - exp(-q**2*pow_u2aver)   * &
+                          pow_f2aver(j)              )) * REAL(pow_nreal)
+            ENDDO
+         ENDIF
+      ENDIF valq
+   ELSE axq                                       ! F(Q) works for Q-axis only
 !           Should never occur, as covered by "prepare S(Q)" section
-            ier_msg (1) = 'Use command ==> form, powder,q'
-            ier_msg (2) = 'within the output menu to define the axis' 
-            ier_num = -125
-            ier_typ = ER_APPL
-            DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
-            DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-            DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-            RETURN
-         ENDIF                   ! pow_axis      == ??
-      ENDIF   !Prepare S(Q), F(Q)
+      ier_msg (1) = 'Use command ==> form, powder,q'
+      ier_msg (2) = 'within the output menu to define the axis' 
+      ier_num = -125
+      ier_typ = ER_APPL
+      DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
+      DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      RETURN
+   ENDIF axq               ! pow_axis      == ??
+ENDIF prsq  !Prepare S(Q), F(Q)
 !
+rmax     = out_user_values(2)
 !
       IF( cpow_form == 'tth' ) THEN
          IF ( pow_axis      == POW_AXIS_Q  .or.  &        ! Non matching form, spline onto equidistant steps
-              pow_four_type == POW_HIST            ) THEN ! DEBYE, always spline
+              pow_four_type == POW_DEBYE            ) THEN ! DEBYE, always spline
             IF(out_user_limits .AND. value /= val_pdf) THEN ! User provided values, not for PDF
                pow_tthmin   = out_user_values(1)
                pow_tthmax   = out_user_values(2)
@@ -441,6 +433,7 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
                   DEALLOCATE( pow_tmp, stat = all_status)
                   DEALLOCATE( xpl, stat = all_status)
                   DEALLOCATE( ypl, stat = all_status)
+                  DEALLOCATE( lpv, stat = all_status)
                   DEALLOCATE( y2a, stat = all_status)
                   DEALLOCATE( xwrt, stat = all_status)
                   DEALLOCATE( ywrt, stat = all_status)
@@ -464,7 +457,8 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
          ENDIF                   ! pow_axis      == ??
       ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
          IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
-              pow_four_type == POW_HIST              ) THEN ! DEBYE, always spline
+             ((pow_four_type == POW_COMPL) .AND. value == val_pdf) .OR. &
+              pow_four_type == POW_DEBYE              ) THEN ! DEBYE, always spline
             IF(value == val_pdf) THEN                       ! Set limits for PDF
                IF(pow_axis      == POW_AXIS_TTH) THEN
                   pow_qmin   = REAL(zpi)*2/rlambda*sind(xmin)
@@ -518,6 +512,7 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
                   DEALLOCATE( pow_tmp, stat = all_status)
                   DEALLOCATE( xpl, stat = all_status)
                   DEALLOCATE( ypl, stat = all_status)
+                  DEALLOCATE( lpv, stat = all_status)
                   DEALLOCATE( y2a, stat = all_status)
                   DEALLOCATE( xwrt, stat = all_status)
                   DEALLOCATE( ywrt, stat = all_status)
@@ -568,16 +563,18 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
          IF(out_user_limits) THEN
             rmin     = out_user_values(1)
             rmax     = out_user_values(2)
+            rstep    = out_user_values(3)
             npkt_pdf = (NINT(out_user_values(2)-out_user_values(1))/out_user_values(3)) + 1
          ELSE
             rmin     = pdf_rminu
             rmax     = pdf_rmaxu
+            rstep    = pdf_deltaru
             npkt_pdf = (NINT(rmax-rmin)/pdf_deltaru) + 1
          ENDIF
          ALLOCATE(xfour(0:npkt_pdf))
          ALLOCATE(yfour(0:npkt_pdf))
-         CALL  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_fft, npkt_pdf, xfour, yfour)
-!        CALL four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
+         CALL four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
+         CALL  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
          DEALLOCATE(xwrt)
          DEALLOCATE(ywrt)
          ALLOCATE(xwrt(0:npkt_pdf))
@@ -590,19 +587,20 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
          DEALLOCATE(yfour)
          npkt_wrt = npkt_pdf
 
-      ENDIF
+ENDIF
 !
 !     Finally write the pattern
 !
-      CALL powder_do_write (outfile, npkt_wrt, xwrt, ywrt)
+CALL powder_do_write (outfile, npkt_wrt, xwrt, ywrt)
 !
-      DEALLOCATE( pow_tmp, stat = all_status)
-      DEALLOCATE( ypl, stat = all_status)
-      DEALLOCATE( xpl, stat = all_status)
-      DEALLOCATE( xwrt, stat = all_status)
-      DEALLOCATE( ywrt, stat = all_status)
+DEALLOCATE( pow_tmp, stat = all_status)
+DEALLOCATE( ypl, stat = all_status)
+DEALLOCATE( lpv, stat = all_status)
+DEALLOCATE( xpl, stat = all_status)
+DEALLOCATE( xwrt, stat = all_status)
+DEALLOCATE( ywrt, stat = all_status)
 !                                                                       
-      END SUBROUTINE powder_out                     
+END SUBROUTINE powder_out                     
 !
 !*******************************************************************************
 !
@@ -630,7 +628,7 @@ xmin  = 0.0
 xmax  = 0.0 
 xxmax = 0.0 
 xdel  = 0.0 
-IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN 
+IF (pow_four_type.eq.POW_COMPL) THEN 
    IF (pow_axis.eq.POW_AXIS_Q) THEN 
       xmin = pow_qmin 
       xmax = pow_qmax 
@@ -648,7 +646,7 @@ IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN
       RETURN 
    ENDIF 
    npkt = MIN(NINT((xmax+xdel-xmin)/xdel) + 2, POW_MAXPKT)
-ELSEIF (pow_four_type.eq.POW_HIST ) THEN
+ELSEIF (pow_four_type.eq.POW_DEBYE ) THEN
    IF (pow_axis.eq.POW_AXIS_Q) THEN 
       xmin = pow_qmin 
       xmax = pow_qmax 
@@ -672,21 +670,21 @@ IF (pow_four_type.ne.POW_COMPL) THEN
 !                                                              
 !     This is a Debye calculation, copy rsf or csf into pow_conv
 !                                                              
-   IF (pow_four_type.eq.POW_DEBYE) THEN 
-      IF (npkt    .le.POW_MAXPKT) THEN 
-         DO j = 1, npkt    
-            pow_conv (j) = REAL(REAL(csf (j)))    ! Double precision no longer needed
-         ENDDO 
-      ENDIF 
-   ELSEIF(pow_four_type.eq.POW_FAST.or.pow_four_type.eq.POW_HIST) THEN
+!  IF (pow_four_type.eq.POW_DEBYE) THEN 
+!     IF (npkt    .le.POW_MAXPKT) THEN 
+!        DO j = 1, npkt    
+!           pow_conv (j) = REAL(REAL(csf (j)))    ! Double precision no longer needed
+!        ENDDO 
+!     ENDIF 
+!  ELSEIF(pow_four_type.eq.POW_DEBYE) THEN
       IF (npkt    .le.POW_MAXPKT) THEN 
          DO j = 1, npkt    
             pow_conv (j) = REAL(rsf (j) )     ! Double precision no longer needed
          ENDDO 
       ENDIF 
-   ENDIF 
+!  ENDIF 
 ELSE
-   pow_conv(:) = REAL(pow_qsp(:))   ! Double precision no longer needed
+   pow_conv(:) = 2.0*REAL(pow_qsp(:))   ! Double precision no longer needed, Correct for half space
 ENDIF 
 !                                                              
 !- -Does the powder pattern have to be convoluted by a profile function?
@@ -723,10 +721,13 @@ pow_uuu_sum = 0.0
 DO j=1,npkt
    pow_uuu_sum = pow_uuu_sum + pow_conv(j)
 ENDDO
-scalef = pow_tmp_sum/pow_uuu_sum
+scalef = 1.0
+IF(pow_four_type.eq.POW_DEBYE) THEN
+   scalef = pow_tmp_sum/pow_uuu_sum
+ELSEIF(pow_four_type==POW_COMPL) THEN
+   scalef = 1./xdel
+ENDIF
 pow_conv(:) = pow_conv(:) * scalef
-pow_tmp_sum = 0.0
-pow_uuu_sum = 0.0
 !
 END SUBROUTINE powder_convolute                     
 !
@@ -793,15 +794,16 @@ END SUBROUTINE four_fq
 !
 !*******************************************************************************
 !
-SUBROUTINE  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_fft, npkt_pdf, xfour, yfour)
+SUBROUTINE  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
 !
 USE fast_fourier_mod
+USE spline_mod
 USE wink_mod
 !
 INTEGER                       , INTENT(IN)  :: npkt_wrt
 REAL   , DIMENSION(0:npkt_wrt), INTENT(IN)  :: xwrt
 REAL   , DIMENSION(0:npkt_wrt), INTENT(IN)  :: ywrt
-REAL(KIND=PREC_DP)            , INTENT(IN)  :: rmin, rmax
+REAL(KIND=PREC_DP)            , INTENT(IN)  :: rmin, rmax, rstep
 INTEGER                       , INTENT(IN)  :: npkt_fft !points in powder pattern for Fast Fourier = 2**16
 INTEGER                       , INTENT(IN)  :: npkt_pdf
 REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: xfour
@@ -813,19 +815,24 @@ INTEGER   :: lenwrk      ! Array size for w
 INTEGER   :: iqmin
 INTEGER   :: iqmax
 INTEGER   :: irmin
-REAL(KIND=PREC_DP) :: rstep
+!REAL(KIND=PREC_DP) :: rstep
 REAL(KIND=PREC_DP) :: dq
 !REAL(KIND=PREC_DP) :: qmin
 REAL(KIND=PREC_DP) :: qmax
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: temp   ! Temporary intensities for FFT
 INTEGER           , DIMENSION(:), ALLOCATABLE :: ip
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: w
+REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: xfft   ! Temporary array for FFT result
+REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: yfft   ! Temporary array for FFT result
 !
+!write(*,*) ' PDF OUT ', npkt_wrt, npkt_fft, npkt_pdf, rmin, rmax, (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
+!write(*,*) ' PDF OUT ', xwrt(1), xwrt(2), xwrt(npkt_wrt)
+!write(*,*) ' PDF OUT ', ywrt(1), ywrt(2), ywrt(npkt_wrt)
 xfour(0) = 0.0
 yfour(0) = 0.0
 !
 dq = (xwrt(npkt_wrt)-xwrt(1))/(npkt_wrt-1)
-rstep    = (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
+!rstep    = (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
 qmax     = PI/rstep
 !
 iqmin = NINT(xwrt(1       )/dq)
@@ -835,6 +842,8 @@ lenwrk= npkt_fft*5/4-1
 ALLOCATE(temp(0:npkt_fft-1))
 ALLOCATE(ip(0:lensav))
 ALLOCATE(w (0:lenwrk))
+ALLOCATE(xfft(1:npkt_pdf))
+ALLOCATE(yfft(1:npkt_pdf))
 temp = 0.0D0
 ip   = 0
 w    = 0.0D0
@@ -847,15 +856,27 @@ CALL ddst(npkt_fft, 1, temp, ip, w)
 xfour(0) = 0.0
 yfour(0) = 0.0
 !
+!write(*,*) 'PDF OUT ', rmin, rstep, irmin, npkt_pdf
+!write(*,*) 'PDF_OUT ', dq, qmax, (npkt_fft-1)*dq
+qmax = (npkt_fft-1)*dq
+!write(*,*) 'PDF_OUT ', qmax, rstep, PI/qmax
 irmin = nint(rmin/rstep)
+!open(77,file='POWDER/fft.PDF',status='unknown')
+!DO i=0,npkt_pdf+irmin
+!  write(77,'(2(2x,G17.7E3))') (-0.5+i)*PI/QMAX,temp(i)*2/PI*dq
+!enddo
+!close(77)
 DO i=1,npkt_pdf
-  xfour(i) = rmin+(i-1)*rstep
-  yfour(i) = temp(irmin-1+i)*2/PI*dq
+  xfft (i) = rmin+(i-0.5)*PI/qmax
+  yfft (i) = temp(irmin-1+i)*2/PI*dq
 ENDDO
+CALL spline_prep(npkt_pdf, xfft, yfft, REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, xfour, yfour)
 !
 DEALLOCATE(temp)
 DEALLOCATE(ip)
 DEALLOCATE(w)
+DEALLOCATE(xfft)
+DEALLOCATE(yfft)
 !
 END SUBROUTINE  fft_fq
 !*****7*****************************************************************
@@ -1032,10 +1053,13 @@ INTEGER                            :: max_ps
 fwhm = sqrt (abs (w) ) 
 max_ps = int( (pow_width * fwhm) / dtth )
 psvgt = 0.0
+open(77,file='pseudo.tth',status='unknown')
 DO i = 0, max_ps 
    tth = i * dtth 
-   psvgt (i) = pseudovoigt (tth, eta, fwhm) 
+   psvgt (i) = pseudovoigt (tth, eta, fwhm)
+write(77,'(2(2x,G17.7E3))') tth, psvgt(i) 
 ENDDO 
+close(77)
 !                                                                       
 !     DO i = max_ps + 1, 2 * POW_MAXPKT 
 !     psvgt (i) = 0.0 
@@ -1061,7 +1085,7 @@ DO i = 0, imax
 ENDDO 
 !                                                                       
 DO i = 0, imax 
-   dat (i) = dummy (i) !* dtth 
+   dat (i) = dummy (i) * dtth 
 ENDDO 
 !                                                                       
 END SUBROUTINE powder_conv_psvgt_fix          
@@ -1333,7 +1357,8 @@ natom = 0
 DO i=1,cr_natoms
    natom(cr_iscat(i)) = natom(cr_iscat(i)) + 1
 ENDDO
-pow_nreal = SUM(natom)  ! Add real atom numbers 
+pow_nreal = SUM(natom(1:))  ! Add real atom numbers 
+!write(*,*) ' IN POW_f2aver nreal, ', pow_nreal
 !
 DO iscat = 1, cr_nscat
    signum = 1.0D0

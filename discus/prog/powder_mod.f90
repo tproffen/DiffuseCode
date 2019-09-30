@@ -14,10 +14,10 @@ INTEGER, PARAMETER  :: POW_STACK           = 1
 !
 INTEGER, PARAMETER  :: POW_COMPL           = 0
 INTEGER, PARAMETER  :: POW_DEBYE           = 1
-INTEGER, PARAMETER  :: POW_LONG            = 2
-INTEGER, PARAMETER  :: POW_FAST            = 3
-INTEGER, PARAMETER  :: POW_HIST            = 4
-INTEGER, PARAMETER  :: POW_NEW             = 5
+!INTEGER, PARAMETER  :: POW_LONG            = 2
+!INTEGER, PARAMETER  :: POW_FAST            = 3
+!INTEGER, PARAMETER  :: POW_HIST            = 4
+!INTEGER, PARAMETER  :: POW_NEW             = 5
 !
 INTEGER, PARAMETER  :: POW_PREF_RIET       = 1
 INTEGER, PARAMETER  :: POW_PREF_MARCH      = 2
@@ -43,7 +43,7 @@ INTEGER                  :: pow_npkt       = 1           ! Actual number of powd
 !
 INTEGER                  :: pow_four_mode  = 0
 INTEGER                  :: pow_four_type  = POW_COMPL
-INTEGER                  :: pow_four_vers  = POW_HIST
+!INTEGER                  :: pow_four_vers  = POW_DEBYE
 !
 INTEGER                  :: pow_lp         = POW_LP_BRAGG
 !

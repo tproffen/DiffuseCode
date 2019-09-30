@@ -453,7 +453,7 @@ ENDDO
 !------ Multiply the partial structure factors with form factors,add    
 !     to total sum                                                      
 !                                                                       
-IF(.NOT.deb_conv) THEN
+IF(.NOT.deb_conv .AND. ldbw) THEN
    DO i = 1, cr_nscat 
       DO j = i, cr_nscat 
          DO k = 1, num (1) * num (2) 

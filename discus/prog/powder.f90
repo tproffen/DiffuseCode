@@ -147,7 +147,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_power) 
                   IF (ier_num.eq.0) then 
-                     IF(pow_four_type.eq.POW_HIST) then 
+                     IF(pow_four_type.eq.POW_DEBYE) then 
                         CALL pow_pdf_hist
                      ELSE
                         CALL powder_run 
@@ -155,7 +155,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF(ier_num == 0) THEN
                         four_was_run = .true.
                         CALL powder_convolute   ! convolute with profile
-                        IF (pow_four_type.eq.POW_HIST) THEN 
+                        IF (pow_four_type.eq.POW_DEBYE) THEN 
                            four_last = POWD_DY
                         ELSE
                            four_last = POWD_CO
@@ -453,7 +453,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          WRITE (output_io, 1530) pow_lp_fac, pow_lp_ang 
       ENDIF 
       WRITE (output_io, 1600) ccalc (pow_four_type) 
-!DBG_RBN write (output_io,*) ' Fourier Version ',ccalc(pow_four_vers)   
 !                                                                       
  1000 FORMAT    ( ' Settings for Powder Diffraction segment :') 
  1200 FORMAT    ( '   Radiation               : ',A,', wavelength = ',  &
@@ -931,16 +930,8 @@ IF (ier_num.eq.0) then
                IF (str_comp (cpara (2) , 'comp', 1, lpara (2) , 4) )    &
                then                                                     
                   pow_four_type = POW_COMPL 
-                  pow_four_vers = POW_NEW 
-!DBG_RBN              pow_four_vers = POW_COMPL                         
-!DBG_RBN                                                                
-!DBG_RBN        The new fourier mode seems to work fine for right now,  
-!DBG_RBN        make this the standard. Keep old for debugging...       
-!DBG_RBN            ELSEIF(str_comp(cpara(2),'new',1,lpara(2),3)) then  
-!DBG_RBN              pow_four_type = POW_COMPL                         
-!DBG_RBN              pow_four_vers = POW_NEW                           
                ELSEIF (str_comp (cpara (2) , 'debye', 1, lpara (2) , 5) ) THEN                                                   
-                     pow_four_type = POW_HIST 
+                     pow_four_type = POW_DEBYE 
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -1632,12 +1623,12 @@ END SUBROUTINE powder_run
                RETURN 
             ENDIF 
             IF (pow_four_mode.eq.POW_FOURIER) then 
-               IF (pow_four_vers.eq.POW_COMPL) then 
+!              IF (pow_four_type.eq.POW_COMPL) then 
 !DBG_RBN                                                                
-                  CALL four_run 
-               ELSE 
+!                 CALL four_run 
+!              ELSE 
                   CALL four_run_powder 
-               ENDIF 
+!              ENDIF 
             ELSEIF (pow_four_mode.eq.POW_STACK) then 
                CALL st_fourier(rept_f2aver)
                rept_f2aver = .false.   ! No further calculations needed
@@ -1737,12 +1728,12 @@ END SUBROUTINE powder_run
                   RETURN 
                ENDIF 
                IF (pow_four_mode.eq.POW_FOURIER) then 
-                  IF (pow_four_vers.eq.POW_COMPL) then 
+!                 IF (pow_four_type.eq.POW_COMPL) then 
 !DBG_RBN                                                                
-                     CALL four_run 
-                  ELSE 
+!                    CALL four_run 
+!                 ELSE 
                      CALL four_run_powder 
-                  ENDIF 
+!                 ENDIF 
                ELSEIF (pow_four_mode.eq.POW_STACK) then 
                   CALL st_fourier(rept_f2aver)
                   rept_f2aver = .false.   ! no further calculations needed
@@ -2323,7 +2314,6 @@ pow_npkt       = 1           ! Actual number of powder data points
 !
 pow_four_mode  = 0
 pow_four_type  = POW_COMPL
-pow_four_vers  = POW_HIST
 !
 pow_lp         = POW_LP_BRAGG
 !
