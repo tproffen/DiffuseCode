@@ -1,6 +1,60 @@
 MODULE spline_mod
 !
 CONTAINS
+!
+SUBROUTINE spline_prep(npkt, xpl, ypl, xmin, xmax, xstep, npkt_equi, xequi, yequi)
+!
+! Prepare and perform the spline operation on input arrays xpl, ypl
+!
+USE errlist_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER                              , INTENT(IN)  :: npkt
+REAL(KIND=PREC_SP), DIMENSION(1:npkt), INTENT(IN)  :: xpl
+REAL(KIND=PREC_SP), DIMENSION(1:npkt), INTENT(IN)  :: ypl
+REAL(KIND=PREC_SP)                   , INTENT(IN)  :: xmin
+REAL(KIND=PREC_SP)                   , INTENT(IN)  :: xmax
+REAL(KIND=PREC_SP)                   , INTENT(IN)  :: xstep
+INTEGER                              , INTENT(IN)  :: npkt_equi
+REAL(KIND=PREC_SP), DIMENSION(1:npkt_equi), INTENT(OUT) :: xequi
+REAL(KIND=PREC_SP), DIMENSION(1:npkt_equi), INTENT(OUT) :: yequi
+!
+REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: y2a
+REAL(KIND=PREC_SP) :: xequ
+REAL(KIND=PREC_SP) :: yequ
+!
+INTEGER :: ii
+INTEGER :: all_status
+!
+!npkt_equi =     NINT((xmax-xmin)/xstep) + 1             
+ALLOCATE(y2a (1:npkt),stat = all_status) ! Allocate array for calculated powder pattern
+!ALLOCATE(xequi(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+!ALLOCATE(yequi(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+xequi = 0.0
+yequi = 0.0
+y2a  = 0.0
+CALL spline (npkt, xpl, ypl, 1.e31, 1.e31, y2a)
+DO ii = 1, npkt_equi
+   xequ = xmin + (ii-1)*xstep
+   CALL splint (npkt, xpl, ypl, y2a, xequ, yequ, ier_num)
+   IF(ier_num/=0) THEN
+!      DEALLOCATE( pow_tmp, stat = all_status)
+!      DEALLOCATE( xpl, stat = all_status)
+!      DEALLOCATE( ypl, stat = all_status)
+      DEALLOCATE( y2a, stat = all_status)
+!     DEALLOCATE( xequi, stat = all_status)
+!     DEALLOCATE( yequi, stat = all_status)
+      RETURN
+   ENDIF
+   xequi(ii) = xequ
+   yequi(ii) = yequ
+ENDDO
+!npkt_equi = npkt_equi
+DEALLOCATE(y2a, stat = all_status)
+!
+END SUBROUTINE spline_prep
 !                                                                       
 SUBROUTINE spline (n, x, y, yp1, ypn, y2) 
 !
