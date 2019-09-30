@@ -26,7 +26,7 @@ CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !
 END SUBROUTINE suite_ersetz_para                    
 !*****7*****************************************************************
-SUBROUTINE suite_upd_para (ctype, ww, maxw, wert, ianz) 
+SUBROUTINE suite_upd_para (ctype, ww, maxw, wert, ianz, cstring) 
 !-                                                                      
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -44,8 +44,9 @@ INTEGER           , INTENT(IN   )    :: maxw
 INTEGER           , INTENT(IN   )    :: ianz 
 INTEGER           , INTENT(IN   )    :: ww (maxw)
 REAL(KIND=PREC_DP), INTENT(IN   )    :: wert 
+CHARACTER (LEN=* ), INTENT(IN   )    :: cstring
 !
-CALL lib_upd_para (ctype, ww, maxw, wert, ianz)
+CALL lib_upd_para (ctype, ww, maxw, wert, ianz, cstring)
 !
 END SUBROUTINE suite_upd_para                       
 !*****7***************************************************************  
