@@ -1053,13 +1053,10 @@ INTEGER                            :: max_ps
 fwhm = sqrt (abs (w) ) 
 max_ps = int( (pow_width * fwhm) / dtth )
 psvgt = 0.0
-open(77,file='pseudo.tth',status='unknown')
 DO i = 0, max_ps 
    tth = i * dtth 
    psvgt (i) = pseudovoigt (tth, eta, fwhm)
-write(77,'(2(2x,G17.7E3))') tth, psvgt(i) 
 ENDDO 
-close(77)
 !                                                                       
 !     DO i = max_ps + 1, 2 * POW_MAXPKT 
 !     psvgt (i) = 0.0 
