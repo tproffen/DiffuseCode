@@ -31,10 +31,13 @@ USE precision_mod
       INTEGER i, j, l, ianz, jj, jp 
       LOGICAL lnew 
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+LOGICAL  , DIMENSION(1024,0:1) :: lmask
+INTEGER :: omask
 !                                                                       
 !                                                                       
 !     ----Select which atoms are included in the wave                   
 !                                                                       
+lmask = .TRUE.
 !
 !     Attempt to replace a string from a variable
 !
@@ -42,7 +45,7 @@ USE precision_mod
          zeile = ' '
          zeile = cpara(i)(1:lpara(i))
          j     = lpara(1)
-         CALL ersetz_variable (zeile, j)
+         CALL ersetz_variable (zeile, j, lmask, omask)
          jj = LEN_TRIM(zeile)
          IF(ier_num == 0 .AND. jj>2 .AND. zeile(1:1)=='''' .AND. &
             zeile(jj:jj) == ''''                                ) THEN
