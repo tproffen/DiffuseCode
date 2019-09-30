@@ -140,7 +140,7 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
-   SUBROUTINE refine_upd_para (ctype, ww, maxw, wert, ianz)
+   SUBROUTINE refine_upd_para (ctype, ww, maxw, wert, ianz, cstring)
 !
    USE precision_mod
    CHARACTER (LEN=* ), INTENT(IN   )    :: ctype
@@ -148,6 +148,7 @@ INTERFACE
    INTEGER           , INTENT(IN   )    :: ianz
    INTEGER           , INTENT(IN   )    :: ww (maxw)
    REAL(KIND=PREC_DP), INTENT(IN   )    :: wert
+   CHARACTER (LEN=* ), INTENT(IN   )    :: cstring
 !
    END SUBROUTINE refine_upd_para
 END INTERFACE
