@@ -172,7 +172,7 @@ REAL(KIND=PREC_DP), EXTERNAL :: gasdev, gasskew
                   ier_num = - 36 
                   ier_typ = ER_FORT 
                   RETURN 
-               ENDIF 
+               ENDIF
                skew = ww2      
 !                                                                       
                IF (ianz.eq.2.or.cpara (3) .eq.'s') then 
@@ -256,7 +256,7 @@ REAL(KIND=PREC_DP), EXTERNAL :: gasdev, gasskew
                            ENDIF
                         ENDIF
                      ENDIF
-                  ELSE 
+                  ELSE
                      ier_num = - 6 
                      ier_typ = ER_FORT 
                      RETURN 

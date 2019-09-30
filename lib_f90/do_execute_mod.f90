@@ -228,12 +228,15 @@ USE precision_mod
       INTEGER istring1, istring2 
       INTEGER istring1_len 
       INTEGER istring2_len 
+      INTEGER :: omask, nmask
       LOGICAL lscr, lscr1 
       LOGICAL lstring1, lstring2 
       INTEGER :: ios
       REAL(KIND=PREC_DP) :: werte (MAXW) 
       REAL(KIND=PREC_DP) ::  w1, w2 
+      LOGICAL  , DIMENSION(1024,0:1) :: lmask
 !                                                                       
+      lmask = .TRUE.
       ier_num = 0 
       ier_typ = ER_NONE 
       oldstr = string 
@@ -241,7 +244,7 @@ USE precision_mod
       w2 = 0
       lstring1 = .FALSE.
       lstring2 = .FALSE.
-      CALL ersetz_variable(string, laenge)
+      CALL ersetz_variable(string, laenge, lmask, omask)
 !     CALL rem_bl (string, laenge) 
       if_test = .false. 
 !     IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
@@ -692,7 +695,7 @@ USE precision_mod
       PARAMETER (maxw = 3) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) zeile, cpara (maxw) 
+      CHARACTER(1024) zeile, cpara (maxw) , cdummy
       INTEGER lpara (maxw) 
       INTEGER ipos, ikp, ianz, level, laenge, lll 
       INTEGER ianz_d, i 
@@ -701,6 +704,7 @@ USE precision_mod
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP) :: wert
 !                                                                       
+cdummy = ' '
       ier_num = - 6 
       ier_typ = ER_FORT 
 !                                                                       
@@ -790,7 +794,7 @@ REAL(KIND=PREC_DP) :: wert
                CALL upd_variable (line (4:ipos - 1), ipos - 4, wert,    &
                cpara (1), lpara (1) )
             ELSE 
-               CALL p_upd_para (line (4:ikp - 1), do_kpara, 1, wert, ianz_d)
+               CALL p_upd_para (line (4:ikp - 1), do_kpara, 1, wert, ianz_d, cdummy)
             ENDIF 
             IF (ier_num.ne.0) then 
                RETURN 

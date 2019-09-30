@@ -235,6 +235,8 @@ IF(str_comp(cpara (1) , 'real', 3, lpara (1) , 4) .or.  &
                   var_field(place)%var_shape(2) = n2
                   IF(ALLOCATED(var_field(place)%var_value)) DEALLOCATE(var_field(place)%var_value)
                   ALLOCATE(var_field(place)%var_value(n1,n2))
+                  IF(ALLOCATED(var_field(place)%var_char)) DEALLOCATE(var_field(place)%var_char)
+                  ALLOCATE(var_field(place)%var_char(n1,n2))
                ELSE
                   var_entry(i) = 0
                ENDIF
@@ -256,6 +258,9 @@ IF(str_comp(cpara (1) , 'real', 3, lpara (1) , 4) .or.  &
                   var_type (i) =       IS_CHAR 
                   var_val  (i) = 0.0 
                   var_char (i) = c_init (1:len(var_char))
+                  IF(n_data>0) THEN             ! We have an array
+                      var_field(place)%var_char(:,:) = ' '
+                  ENDIF
                   var_diff (i) = is_diffev      ! true if refine param from diffev
                ENDIF 
             ELSE 

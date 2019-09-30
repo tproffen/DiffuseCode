@@ -9,7 +9,8 @@ SAVE
 !
 TYPE var_arrays
    INTEGER, DIMENSION(2  )              :: var_shape
-   REAL(KIND=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE :: var_value
+   REAL(KIND=PREC_DP) , DIMENSION(:,:), ALLOCATABLE :: var_value
+   CHARACTER (LEN=200), DIMENSION(:,:), ALLOCATABLE :: var_char        ! Character string if 'char' variable
 END TYPE var_arrays
 !
    INTEGER, PARAMETER :: VAR_MAX       = 999

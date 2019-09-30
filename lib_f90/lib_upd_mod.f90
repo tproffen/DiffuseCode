@@ -30,6 +30,7 @@ CHARACTER(LEN=1024) :: zeile
 !                                                                       
 INTEGER :: laenge, ltyp, kpara, kpara2
 INTEGER :: i
+INTEGER :: lstr
 INTEGER :: lcomm 
 INTEGER :: length_com 
 LOGICAL :: success = .FALSE.
@@ -68,6 +69,10 @@ search_var: DO i=var_sys+1, var_num
                   WRITE(zeile(ikl - lcomm:ikl + PREC_WIDTH-2),PREC_F_REAL)             &
                   var_field(var_entry(i))%var_value(kpara,kpara2)
                   zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
+               ELSEIF(var_type(i)==      IS_CHAR) THEN
+                  lstr = LEN_TRIM(var_field(var_entry(i))%var_char(kpara,kpara2))
+                  zeile(ikl - lcomm:ikl + lstr                                                    ) = &
+                        ''''//var_field(var_entry(i))%var_char(kpara,kpara2)(1:lstr)//''''
                ENDIF
                success = .TRUE.
 !write(*,*) 'PLACED ', zeile(1:50)
@@ -264,7 +269,7 @@ ENDIF
 !                                                                       
 END SUBROUTINE    lib_ersetz_para                    
 !*****7*****************************************************************
-SUBROUTINE    lib_upd_para (ctype, ww, maxw, wert, ianz) 
+SUBROUTINE    lib_upd_para (ctype, ww, maxw, wert, ianz, cstring) 
 !-                                                                      
 !       updates the parameter specified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -282,6 +287,7 @@ INTEGER,                    INTENT(IN) :: maxw
 INTEGER,                    INTENT(IN) :: ianz 
 INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
 REAL(KIND=PREC_DP)        , INTENT(IN) :: wert 
+CHARACTER (LEN=*),          INTENT(IN) :: cstring 
 !
 INTEGER :: i, ww2
 !
@@ -314,6 +320,9 @@ search_var: DO i=var_sys+1, var_num
                   var_field(var_entry(i))%var_value(ww(1),ww2) = INT(wert)
                ELSEIF(var_type(i)==      IS_REAL) THEN
                   var_field(var_entry(i))%var_value(ww(1),ww2) = wert
+               ELSEIF(var_type(i)==  IS_CHAR) THEN
+                  var_field(var_entry(i))%var_char(ww(1),ww2) = cstring
+!write(*,*) ' SET ENTRY ', ww(1),ww2,' in ', var_name(i)(1:len_trim(var_name(i))) ,' TO ', cstring(1:len_trim(cstring))
                ENDIF
             RETURN
          ELSE

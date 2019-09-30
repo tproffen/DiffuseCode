@@ -136,7 +136,7 @@ REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
 !     ------------Store result in the variable                          
 !                                                                       
-                              CALL p_upd_para (line (1:ikk - 1), iii, ianz, wert, ianz)
+                              CALL p_upd_para (line (1:ikk - 1), iii, ianz, wert, ianz, string)
                            ENDIF 
                         ELSE 
                            ier_num = - 6 

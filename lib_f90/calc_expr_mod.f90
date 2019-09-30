@@ -28,7 +28,7 @@ CHARACTER (LEN=*), INTENT(INOUT) :: line
 INTEGER          , INTENT(IN   ) :: indxg
 INTEGER          , INTENT(INOUT) :: length
 !
-CHARACTER(LEN=1024)   :: zeile, cpara (maxw) 
+CHARACTER(LEN=1024)   :: zeile, cpara (maxw) , cdummy
 INTEGER, DIMENSION(3) :: var_is_type
 !                                                                       
 INTEGER, DIMENSION(MAXW) :: lpara
@@ -38,6 +38,7 @@ INTEGER :: indxb
 REAL(KIND=PREC_DP) ::  wert
 REAL(KIND=PREC_DP), DIMENSION(MAXW) ::  werte
 !
+cdummy = ' '
 lll = indxg -1
 indxb = INDEX(line(1:lll),'[')
 IF(indxb >0) lll = indxb - 1
@@ -119,7 +120,7 @@ IF(var_is_type(1)/=IS_CHAR) THEN     ! Variable on left side is numeric
 !                                                                       
 !     ------------Store result in the variable                          
 !                                                                       
-                              CALL p_upd_para (line (1:ikk - 1), iii,ianz, wert, ianz)
+                              CALL p_upd_para (line (1:ikk - 1), iii,ianz, wert, ianz, cdummy)
                            ENDIF 
                         ELSE 
                            ier_num = - 6 

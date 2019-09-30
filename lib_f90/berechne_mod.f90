@@ -30,9 +30,12 @@ INTEGER :: lpara (maxw)
 !INTEGER :: max 
 INTEGER :: ikla, iklz, ikla1, ikla2, ikl, ll, lll, ie 
 INTEGER :: ikpa, ikpa1, ikpa2, ikp, ikpz, lp, ianz, i, ikom 
+INTEGER :: omask, nmask
 REAL(KIND=PREC_DP)    :: werte (maxw) 
 REAL(KIND=PREC_DP)    :: r 
+LOGICAL  , DIMENSION(1024,0:1) :: lmask
 !                                                                       
+lmask = .TRUE.
 !                                                                       
 ier_num = 0 
 ier_typ = ER_NONE 
@@ -41,8 +44,7 @@ berechne = 0D0
 IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
    CONTINUE 
 ELSE 
-   CALL ersetz_variable (string, laenge) 
-!write(*,*) 'BERECHEN A ', string(1:len_trim(string)), ier_num, ier_typ
+   CALL ersetz_variable (string, laenge, lmask, omask) 
    DO ie=2,laenge-1  !while (ie.ne.0)
       IF(string(ie:ie)=='E') THEN
          c = IACHAR(string(ie-1:ie-1))
@@ -121,18 +123,15 @@ ELSE
                   IF (ier_num.eq.0) then 
                      DO i = 1, ianz 
                         CALL eval (cpara (i), lpara (i) ) 
-!!write(*,*) ' BERECHNE B ', cpara(i)(1:lpara(i)), ier_num, ier_typ
                         IF (ier_num.ne.0) then 
                            RETURN 
                         ENDIF 
                         werte (i) = do_read_number (cpara (i), lpara (i) ) 
-!!write(*,*) ' BERECHNE C ', cpara(i)(1:lpara(i)), ier_num, ier_typ
                         IF (ier_num.ne.0) then 
                            GOTO 999 
                         ENDIF 
                      ENDDO 
                      CALL p_ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
-!write(*,*) 'BERECHEN D ', line(1:len_trim(line)), ier_num, ier_typ
                      IF (ier_num.ne.0) then 
                         RETURN 
                      ENDIF 
@@ -219,21 +218,29 @@ USE precision_mod
       INTEGER icol 
       INTEGER iapo 
       INTEGER j (2) 
-      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+INTEGER :: omask, nmask   ! Current location in mask
+LOGICAL  , DIMENSION(1024,0:1) :: lmask
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
+lmask = .TRUE.
 !                                                                       
-      lll = 1
-      ier_num = 0 
-      ier_typ = ER_NONE 
-      IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
-         CONTINUE 
-      ELSE 
-         CALL ersetz_variable (string, laenge) 
-         ikla = INDEX (string, '(') 
-         DO while (ikla.ne.0) 
-         iklz = INDEX (string (ikla + 1:laenge) , ')') + ikla 
+lll = 1
+ier_num = 0 
+ier_typ = ER_NONE
+omask = 0
+nmask = 1 
+IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
+   CONTINUE 
+ELSE 
+!
+   CALL ersetz_variable (string, laenge, lmask, omask) 
+   nmask = MOD(omask+1,2)   ! Shift nmask one index up
+!
+   ikla = INDEX_MASK (string, '(', lmask(1:LEN_TRIM(string),omask)) 
+   parenth: DO while (ikla.ne.0) 
+         iklz = INDEX_MASK (string (ikla + 1:laenge) , ')', lmask(ikla + 1:laenge,omask)) + ikla 
          IF (iklz.gt.ikla + 1) then 
-            ikla2 = INDEX (string (ikla + 1:iklz) , '(') + ikla 
+            ikla2 = INDEX_MASK (string (ikla + 1:iklz) , '(', lmask(ikla + 1:iklz, omask)) + ikla 
          ELSE 
             ikla2 = ikla 
          ENDIF 
@@ -241,7 +248,7 @@ USE precision_mod
          DO while (ikla2.lt.iklz.and.ikla2.gt.ikla1) 
          ikla1 = ikla2 
          IF (iklz.gt.ikla + 1) then 
-            ikla2 = INDEX (string (ikla1 + 1:iklz) , '(') + ikla1 
+            ikla2 = INDEX_MASK (string (ikla1 + 1:iklz) , '(', lmask(ikla1 + 1:iklz, omask)) + ikla1 
          ELSE 
             ikla2 = ikla1 
          ENDIF 
@@ -340,6 +347,9 @@ USE precision_mod
 !           ENDIF 
             IF (ikl.ge.3.and.icol.eq.0) then 
                CALL calc_intr (string, line, ikl, iklz, laenge, ll) 
+               lmask(1:len_trim(string),nmask) = .FALSE.   ! NEEDS WORK 
+               omask=MOD(omask+1,2)
+               nmask=MOD(nmask+1,2)
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
@@ -412,12 +422,12 @@ USE precision_mod
                ENDIF 
             ENDIF 
          ENDIF 
-         ikla = INDEX (string, '(') 
-         ENDDO 
-      ENDIF 
-  999 CONTINUE 
+         ikla = INDEX_MASK (string, '(', lmask(1:len_trim(string), omask))
+   ENDDO  parenth
+ENDIF 
+999 CONTINUE 
 !                                                                       
-      END SUBROUTINE berechne_char                  
+END SUBROUTINE berechne_char                  
 !
 !*****7**************************************************************** 
 !

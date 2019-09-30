@@ -2,7 +2,7 @@ MODULE do_variable_mod
 !
 CONTAINS
 !*****7**************************************************************** 
-SUBROUTINE ersetz_variable (line, length) 
+SUBROUTINE ersetz_variable (line, length, lmask, amask) 
 !-                                                                      
 !       replaces a substring in an expression by the value of the       
 !       appropriate user defined variable.                              
@@ -24,11 +24,12 @@ IMPLICIT none
 !                                                                       
 CHARACTER (LEN=*), INTENT(INOUT) :: line 
 INTEGER          , INTENT(INOUT) :: length 
+LOGICAL  , DIMENSION(1024,0:1), INTENT(INOUT) :: lmask 
+INTEGER          , INTENT(INOUT) :: amask     ! active mask line
 CHARACTER(LEN=1024) :: string    = ' '
 CHARACTER(LEN=1024) :: substring = ' '
 CHARACTER(LEN=1024) :: zeile     = ' '
 CHARACTER(LEN=1024) :: dummy     = ' '
-LOGICAL  , DIMENSION(1024,0:1) :: lmask 
 !                                                                       
 INTEGER :: i, ianf, iend, ll
 INTEGER :: linsert 
@@ -164,6 +165,10 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
 !
 ENDDO main
 length = LEN_TRIM(line)
+amask  = omask
+!write(*,*) ' LINE  X>', line(1:len_trim(line)),'<'
+!write(*,'(1x,a,90L1)') ' MASK  X>', lmask    (1:len_trim(zeile),omask)
+!write(*,*) ' OMASK NMASK ', omask, nmask, amask
 !
 END SUBROUTINE ersetz_variable                
 !
@@ -185,7 +190,7 @@ index_mask = 0
 ls = LEN_TRIM(string)
 lf = LEN_TRIM(find)
 !
-main: DO i=1,ls-lf
+main: DO i=1,ls-lf + 1
    IF(string(i:i+lf-1)==find .AND. ALL(lmask(i:i+lf-1))) THEN
       index_mask = i
       EXIT main
@@ -285,6 +290,8 @@ DO i=var_sys+1, var_num
       IF(var_entry(i)/=0) THEN      ! GOT An array
          IF(ALLOCATED(var_field(var_entry(i))%var_value)) &
           DEALLOCATE(var_field(var_entry(i))%var_value)
+         IF(ALLOCATED(var_field(var_entry(i))%var_char)) &
+          DEALLOCATE(var_field(var_entry(i))%var_char)
          var_field(var_entry(i))%var_shape(:) = 0
          var_entry(i) = 0
       ENDIF
@@ -346,6 +353,8 @@ ELSE
                IF(var_entry(j)/=0) THEN      ! GOT An array
                   IF(ALLOCATED(var_field(var_entry(j))%var_value)) &
                     DEALLOCATE(var_field(var_entry(j))%var_value)
+                  IF(ALLOCATED(var_field(var_entry(j))%var_char )) &
+                    DEALLOCATE(var_field(var_entry(j))%var_char )
                   var_field(var_entry(j))%var_shape(:) = 0
                   var_entry(j) = 0
                ENDIF
