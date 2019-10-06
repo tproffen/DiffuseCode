@@ -450,6 +450,7 @@ USE precision_mod
                      INDEX (string, '==')   , INDEX (string, '/=')      &
                     )
          ENDDO 
+
          IF(laenge>3) THEN    ! String is long enough for a logical function
             CALL calc_intr_log(string,laenge)
             CALL p_calc_intr_log_spec(string,laenge)
@@ -620,12 +621,14 @@ USE precision_mod
          ENDIF 
          ikla = INDEX (string, '(') 
          ENDDO 
+         IF(string/=' ') THEN
          i = 1 
          DO while (string (i:i) .eq.' ') 
          i = i + 1 
          ENDDO 
          zeile = string (i:laenge) 
          string = zeile 
+         ENDIF
          IF (string.eq.'T'.or.string.eq.'t') then 
             if_test = .true. 
          ELSEIF (string.eq.'F'.or.string.eq.'f') then 
