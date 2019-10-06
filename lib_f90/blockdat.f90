@@ -2,21 +2,22 @@
 !     Application independent blockdat for command language and         
 !     fortran interpreter                                               
 !                                                                       
-      SUBROUTINE init_sysarrays 
+SUBROUTINE init_sysarrays 
 !                                                                       
-      USE charact_mod
-      USE debug_mod 
-      USE doloop_mod
-      USE learn_mod 
-      USE macro_mod 
-      USE param_mod 
-      USE prompt_mod 
-      USE variable_mod
-      USE iso_fortran_env
-      IMPLICIT none 
+USE charact_mod
+USE debug_mod 
+USE doloop_mod
+USE gauss_lorentz_pseudo_mod
+USE learn_mod 
+USE macro_mod 
+USE param_mod 
+USE prompt_mod 
+USE variable_mod
+USE iso_fortran_env
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      INTEGER i 
+INTEGER :: i 
 !                                                                       
 !                                                                       
 !     DATA statements for the various modules 
@@ -87,4 +88,7 @@
 !     Setup readline                                                    
 !                                                                       
 !      CALL cinit 
+! INIT GAUSS AND LORENTZ LOOKUP
+!
+CALL glp_setup
       END SUBROUTINE init_sysarrays                 
