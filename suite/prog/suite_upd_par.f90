@@ -110,8 +110,6 @@ SUBROUTINE suite_calc_intr_log_spec(string, length)
 IMPLICIT NONE
 CHARACTER(LEN=*) , INTENT(INOUT) :: string
 INTEGER          , INTENT(INOUT) :: length
-string= ' '
-length = 1
 !
 END SUBROUTINE suite_calc_intr_log_spec
 !*****7**************************************************************** 
