@@ -70,7 +70,7 @@ REAL, DIMENSION(:), ALLOCATABLE :: xfour
 REAL, DIMENSION(:), ALLOCATABLE :: yfour
 !                                                                       
 !
-npkt_fft = 2**16
+npkt_fft = 2**18
 !
 IF(.NOT. (value == val_inten  .OR. value == val_sq      .OR. &
           value == val_fq     .OR. value == val_iq      .OR. &
@@ -175,17 +175,25 @@ IF (ier_num /= 0) THEN
    DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
    RETURN
 ENDIF
+!open(77,file='POWDER/after_conv.FQ',status='unknown')
+!DO ii=0,npkt
+!  write(77,'(2(2x,G17.7E3))') pow_qmin+ii*pow_deltaq, pow_conv(ii)
+!enddo
+!close(77)
+!write(*,*) 'POW_CONV ', minval(pow_conv), maxval(pow_conv), lbound(pow_conv), ubound(pow_conv)
+!write(*,*) 'f2aver   ', minval(pow_f2aver), maxval(pow_f2aver), lbound(pow_f2aver), ubound(pow_f2aver)
+!write(*,*) 'faver2   ', minval(pow_faver2), maxval(pow_faver2), lbound(pow_faver2), ubound(pow_faver2)
 IF(value == val_f2aver) THEN          ! Output is f^2 aver
-   DO j = 1, npkt
-      pow_tmp (j-1) = REAL(pow_f2aver(j))
+   DO j = 0, npkt
+      pow_tmp (j) = REAL(pow_f2aver(j))
    ENDDO
 ELSEIF(value == val_faver2) THEN     ! Output is faver^2 
-   DO j = 1, npkt
-      pow_tmp (j-1) = REAL(pow_faver2(j))
+   DO j = 0, npkt
+      pow_tmp (j) = REAL(pow_faver2(j))
    ENDDO
 ELSE                         ! All other output
-   DO j = 1, npkt
-      pow_tmp (j-1) = pow_conv(j)   ! copy from convoluted pattern
+   DO j = 0, npkt
+      pow_tmp (j) = pow_conv(j)   ! copy from convoluted pattern
    ENDDO
 ENDIF           ! Output is if_block if(value==val_f2aver)
 !
@@ -200,10 +208,10 @@ ENDIF
 !
 lpv    = 0.0
 lpv(0) = 1.0
+ypl(0) = pow_tmp(0)
 !
 copy: IF (pow_four_type.eq.POW_COMPL) THEN
-   DO ii = 0, npkt - 1
-      iii = ii + 1
+   DO ii = 1, npkt
       xpos = ii * xdel + xmin 
       IF (pow_axis.eq.POW_AXIS_Q) THEN 
          q      = xpos
@@ -225,19 +233,19 @@ copy: IF (pow_four_type.eq.POW_COMPL) THEN
 !WRONG!         lp     = lorentz (ttheta,0) * polarisation (ttheta) 
       lp = 1./q**2 * polarisation(ttheta)
       ENDIF 
-      lpv(iii) = polarisation (ttheta)
+      lpv(ii) = polarisation (ttheta)
       IF (cpow_form.eq.'tth') THEN 
-         xpl(iii) = ttheta
+         xpl(ii) = ttheta
       ELSEIF (cpow_form.eq.'stl') THEN 
-         xpl(iii) = stl
+         xpl(ii) = stl
       ELSEIF (cpow_form.eq.'q  ') THEN 
-         xpl(iii) = q
+         xpl(ii) = q
       ELSEIF (cpow_form.eq.'dst') THEN 
-         xpl(iii) = dstar
+         xpl(ii) = dstar
       ELSEIF (cpow_form.eq.'lop') THEN 
-         xpl(iii) = ttheta
+         xpl(ii) = ttheta
       ENDIF 
-      ypl(iii) = pow_tmp(iii) * lp
+      ypl(ii) = pow_tmp(ii) * lp
    ENDDO 
 ELSEIF (pow_four_type.eq.POW_DEBYE) THEN  copy
    IF (pow_axis.eq.POW_AXIS_DSTAR) THEN 
@@ -279,6 +287,7 @@ ELSEIF (pow_four_type.eq.POW_DEBYE) THEN  copy
       ypl(ii) = pow_tmp(ii) * lp
    ENDDO 
 ENDIF  copy
+!write(*,*) 'POW_tmp  ', minval(pow_tmp), maxval(pow_tmp), lbound(pow_tmp), ubound(pow_tmp)
 !
 lpscale = 1.0
 !
@@ -420,8 +429,8 @@ rmax     = out_user_values(2)
             xmax = tthmax                                  ! off rounding errors
             npkt_equi =     INT((tthmax-tthmin)/pow_deltatth) + 1             
             ALLOCATE(y2a (1:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
-            ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
-            ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(xwrt(1:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(ywrt(1:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
             xwrt = 0.0
             ywrt = 0.0
             y2a  = 0.0
@@ -445,8 +454,8 @@ rmax     = out_user_values(2)
             npkt_wrt = npkt_equi
             DEALLOCATE(y2a, stat = all_status)
          ELSE                                              ! Matching form no spline needed
-            ALLOCATE(xwrt(0:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
-            ALLOCATE(ywrt(0:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(xwrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(ywrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
             xwrt = 0.0
             ywrt = 0.0
             DO ii = 1,npkt
@@ -465,13 +474,13 @@ rmax     = out_user_values(2)
                   pow_qmax   = REAL(zpi)*2/rlambda*sind(xmax)
                   pow_deltaq = xpl(npkt)-xpl(npkt-1)
                ENDIF
-               IF(out_user_limits) THEN                     ! User provided values
-                  pow_deltaq = PI/out_user_values(3)/npkt_fft
-               ELSE
-                  pow_deltaq = PI*100/npkt_fft
-               ENDIF
-               pow_qmin = (INT((pow_qmin+0.1*pow_deltaq)/pow_deltaq) + 1)*pow_deltaq
-               pow_qmax = (INT((pow_qmax-0.1*pow_deltaq)/pow_deltaq) - 1)*pow_deltaq
+!              IF(out_user_limits) THEN                     ! User provided values
+!                 pow_deltaq = PI/out_user_values(3)/npkt_fft
+!              ELSE
+!                 pow_deltaq = PI*100/npkt_fft
+!              ENDIF
+!              pow_qmin = (INT((pow_qmin+0.1*pow_deltaq)/pow_deltaq) + 1)*pow_deltaq
+!              pow_qmax = (INT((pow_qmax-0.1*pow_deltaq)/pow_deltaq) - 1)*pow_deltaq
             ELSE                                            ! Set limits for powder pattern
                IF(out_user_limits) THEN                     ! User provided values
                   pow_qmin   = out_user_values(1)
@@ -499,8 +508,8 @@ rmax     = out_user_values(2)
             xmax =   qmax                                  ! off rounding errors
             npkt_equi =     NINT((qmax-qmin)/pow_deltaq) + 1             
             ALLOCATE(y2a (1:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
-            ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
-            ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(xwrt(1:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(ywrt(1:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
             xwrt = 0.0
             ywrt = 0.0
             y2a  = 0.0
@@ -524,8 +533,8 @@ rmax     = out_user_values(2)
             npkt_wrt = npkt_equi
             DEALLOCATE(y2a, stat = all_status)
          ELSE                                              ! Matching form no spline needed
-            ALLOCATE(xwrt(0:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
-            ALLOCATE(ywrt(0:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(xwrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(ywrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
             DO ii = 1,npkt
                xwrt(ii) = xpl(ii)
                ywrt(ii) = ypl(ii)
@@ -571,15 +580,38 @@ rmax     = out_user_values(2)
             rstep    = pdf_deltaru
             npkt_pdf = (NINT(rmax-rmin)/pdf_deltaru) + 1
          ENDIF
-         ALLOCATE(xfour(0:npkt_pdf))
-         ALLOCATE(yfour(0:npkt_pdf))
-         CALL four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
+!write(*,*) 'PRAE FFT s', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf
+!write(*,*) 'PRAE min  ', REAL(NINT(rmin/rstep)*rstep, KIND=PREC_DP)
+!write(*,*) 'PRAE max  ', REAL(NINT(rmax/rstep)*rstep, KIND=PREC_DP)
+         rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
+!write(*,*) 'PRAE stp  ', REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
+!write(*,*) 'PRAE min  ', REAL(NINT(rmin/rstep)*rstep, KIND=PREC_DP)
+!write(*,*) 'PRAE max  ', REAL(NINT(rmax/rstep)*rstep, KIND=PREC_DP)
+!write(*,*) 'PRAE FFT s', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf
+         ALLOCATE(xfour(1:npkt_pdf))
+         ALLOCATE(yfour(1:npkt_pdf))
+!open(77,file='POWDER/prae_write.FQ',status='unknown')
+!DO ii=1,npkt_wrt
+!  write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
+!enddo
+!close(77)
+!         CALL four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
+!open(77,file='POWDER/prae.FQ',status='unknown')
+!DO ii=1,npkt_wrt
+!  write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
+!enddo
+!close(77)
+!open(77,file='POWDER/explcit.PDF',status='unknown')
+!DO ii=1,npkt_pdf
+!  write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
+!enddo
+!close(77)
          CALL  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
          DEALLOCATE(xwrt)
          DEALLOCATE(ywrt)
-         ALLOCATE(xwrt(0:npkt_pdf))
-         ALLOCATE(ywrt(0:npkt_pdf))
-         DO ii=0,npkt_pdf
+         ALLOCATE(xwrt(1:npkt_pdf))
+         ALLOCATE(ywrt(1:npkt_pdf))
+         DO ii=1,npkt_pdf
             xwrt(ii) =xfour(ii)
             ywrt(ii) =yfour(ii)
          ENDDO
@@ -606,23 +638,31 @@ END SUBROUTINE powder_out
 !
 SUBROUTINE powder_convolute                     
 !-
-!  Convoluts the powder pattern with profile function
+!  Convolutes the powder pattern with profile function
 !+
 USE debye_mod
 USE diffuse_mod
 USE powder_mod
 !
 USE precision_mod
+USE prompt_mod
 !
 IMPLICIT none 
 !                                                                       
 INTEGER :: npkt
 INTEGER :: j
+INTEGER :: nzero      ! number of zeros in intensity
 !
 REAL(KIND=PREC_SP) :: xmin, xmax, xdel, xxmax
 REAL(KIND=PREC_SP) :: scalef
 REAL(KIND=PREC_SP) :: pow_tmp_sum
 REAL(KIND=PREC_SP) :: pow_uuu_sum
+!
+REAL           :: ss       ! time
+REAL, EXTERNAL :: seknds
+!
+WRITE (output_io, * ) ' Starting convolution'
+ss = seknds (0.0)
 !
 xmin  = 0.0 
 xmax  = 0.0 
@@ -670,50 +710,55 @@ IF (pow_four_type.ne.POW_COMPL) THEN
 !                                                              
 !     This is a Debye calculation, copy rsf or csf into pow_conv
 !                                                              
-!  IF (pow_four_type.eq.POW_DEBYE) THEN 
-!     IF (npkt    .le.POW_MAXPKT) THEN 
-!        DO j = 1, npkt    
-!           pow_conv (j) = REAL(REAL(csf (j)))    ! Double precision no longer needed
-!        ENDDO 
-!     ENDIF 
-!  ELSEIF(pow_four_type.eq.POW_DEBYE) THEN
-      IF (npkt    .le.POW_MAXPKT) THEN 
-         DO j = 1, npkt    
-            pow_conv (j) = REAL(rsf (j) )     ! Double precision no longer needed
-         ENDDO 
-      ENDIF 
-!  ENDIF 
+   IF (npkt    .le.POW_MAXPKT) THEN 
+      DO j = 1, npkt    
+         pow_conv (j) = REAL(rsf (j) )     ! Double precision no longer needed
+      ENDDO 
+   ENDIF 
 ELSE
    pow_conv(:) = 2.0*REAL(pow_qsp(:))   ! Double precision no longer needed, Correct for half space
 ENDIF 
+!open(77,file='POWDER/prae_conv.FQ',status='unknown')
+!DO j=0,npkt
+!  write(77,'(2(2x,G17.7E3))')     xmin+j *xdel, pow_conv(j)
+!enddo
+!close(77)
 !                                                              
 !- -Does the powder pattern have to be convoluted by a profile function?
 !                                                              
 !        Determine integral to scale after convolution
 pow_tmp_sum = 0.0
+nzero = 0
 DO j=1,npkt
    pow_tmp_sum = pow_tmp_sum + pow_conv(j)
+   if(pow_conv(j) == 0.0) nzero = nzero + 1
 ENDDO
+write(*,*) ' CONV zero, total ', nzero, npkt
 !lconv = .FALSE.
-IF (pow_profile.eq.POW_PROFILE_GAUSS) THEN 
+IF (pow_profile == POW_PROFILE_GAUSS) THEN 
    IF (pow_delta.gt.0.0) THEN 
       xxmax = xmax + xdel
-      CALL powder_conv_res (pow_conv, xmin,xxmax, xdel,         &
-      pow_delta, POW_MAXPKT)                                    
+      CALL powder_conv_res(pow_conv, xmin,xxmax, xdel,         &
+                           pow_delta, POW_MAXPKT)
    ENDIF 
 !  lconv = .TRUE.
-ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) THEN 
-  IF (pow_u.ne.0.0.or.pow_v.ne.0.0.or.pow_etax.ne.0.0.or.      &
-      pow_p1.ne.0.0.or.pow_p2.ne.0.0.or.pow_p3.ne.0.0.or.      &
-      pow_p4.ne.0.0                                      ) THEN       
+ELSEIF (pow_profile == POW_PROFILE_PSVGT) THEN 
+   IF(pow_u/=0.0 .OR. pow_v/=0.0 .OR. pow_eta_l/=0.0 .OR. pow_eta_q/=0.0) THEN
       xxmax = xmax + xdel
-      CALL powder_conv_psvgt_uvw (pow_conv, xmin,xxmax, xdel,   &
-      pow_eta, pow_etax, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
-      pow_p3, pow_p4, pow_width, POW_MAXPKT)
+      IF(pow_p1/=0.0 .OR. pow_p2/=0.0 .OR.                 &
+         pow_p3/=0.0 .OR. pow_p4/=0.0            ) THEN       
+         CALL powder_conv_psvgt_uvw_asym(pow_conv, xmin,xxmax, xdel,   &
+         pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
+         pow_p3, pow_p4, pow_width, POW_MAXPKT, pow_four_type, pow_axis)
+      ELSE          ! Symmetric case
+         CALL powder_conv_psvgt_uvw(pow_conv, xmin,xxmax, xdel,   &
+         pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_width,  &
+         POW_MAXPKT, pow_four_type, pow_axis)
+      ENDIF
    ELSE 
       xxmax = xmax + xdel
       CALL powder_conv_psvgt_fix (pow_conv, xmin,xxmax, xdel,   &
-      pow_eta, pow_w, pow_width, POW_MAXPKT)
+      pow_eta, pow_w, pow_width, POW_MAXPKT, pow_four_type)
    ENDIF 
 !  lconv = .TRUE.
 ENDIF 
@@ -728,6 +773,8 @@ ELSEIF(pow_four_type==POW_COMPL) THEN
    scalef = 1./xdel
 ENDIF
 pow_conv(:) = pow_conv(:) * scalef
+ss = seknds (ss) 
+WRITE (output_io, '(/,'' Elapsed time    : '',G12.6,'' sec'')') ss
 !
 END SUBROUTINE powder_convolute                     
 !
@@ -738,12 +785,12 @@ SUBROUTINE four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
 USE wink_mod
 !
 INTEGER                       , INTENT(IN) :: npkt_wrt
-REAL   , DIMENSION(0:npkt_wrt), INTENT(IN) :: xwrt
-REAL   , DIMENSION(0:npkt_wrt), INTENT(IN) :: ywrt
+REAL   , DIMENSION(1:npkt_wrt), INTENT(IN) :: xwrt
+REAL   , DIMENSION(1:npkt_wrt), INTENT(IN) :: ywrt
 REAL(KIND=PREC_DP)            , INTENT(IN) :: rmin, rmax
 INTEGER                       , INTENT(IN) :: npkt_pdf
-REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: xfour
-REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: yfour
+REAL   , DIMENSION(1:npkt_pdf), INTENT(OUT) :: xfour
+REAL   , DIMENSION(1:npkt_pdf), INTENT(OUT) :: yfour
 !
 INTEGER :: i,j, k, kmax
 REAL(KIND=PREC_DP) :: rr, dr
@@ -756,8 +803,6 @@ qmin = xwrt(1)
 dr = (rmax-rmin)/(npkt_pdf-1)
 dq = (xwrt(npkt_wrt)-xwrt(1))/(npkt_wrt-1)
 iqmin = NINT(qmin/dq) - 1
-xfour(0) = 0.0
-yfour(0) = 0.0
 !
 ! Create SINE Lookup
 !
@@ -801,13 +846,13 @@ USE spline_mod
 USE wink_mod
 !
 INTEGER                       , INTENT(IN)  :: npkt_wrt
-REAL   , DIMENSION(0:npkt_wrt), INTENT(IN)  :: xwrt
-REAL   , DIMENSION(0:npkt_wrt), INTENT(IN)  :: ywrt
+REAL   , DIMENSION(1:npkt_wrt), INTENT(IN)  :: xwrt
+REAL   , DIMENSION(1:npkt_wrt), INTENT(IN)  :: ywrt
 REAL(KIND=PREC_DP)            , INTENT(IN)  :: rmin, rmax, rstep
 INTEGER                       , INTENT(IN)  :: npkt_fft !points in powder pattern for Fast Fourier = 2**16
 INTEGER                       , INTENT(IN)  :: npkt_pdf
-REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: xfour
-REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: yfour
+REAL   , DIMENSION(1:npkt_pdf), INTENT(OUT) :: xfour
+REAL   , DIMENSION(1:npkt_pdf), INTENT(OUT) :: yfour
 !
 INTEGER   :: i
 INTEGER   :: lensav      ! Array size for ip
@@ -826,14 +871,13 @@ REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: xfft   ! Temporary array for FF
 REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: yfft   ! Temporary array for FFT result
 !
 !write(*,*) ' PDF OUT ', npkt_wrt, npkt_fft, npkt_pdf, rmin, rmax, (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
+!write(*,*) ' PDF ste ', (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP), rstep
 !write(*,*) ' PDF OUT ', xwrt(1), xwrt(2), xwrt(npkt_wrt)
 !write(*,*) ' PDF OUT ', ywrt(1), ywrt(2), ywrt(npkt_wrt)
-xfour(0) = 0.0
-yfour(0) = 0.0
 !
 dq = (xwrt(npkt_wrt)-xwrt(1))/(npkt_wrt-1)
 !rstep    = (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
-qmax     = PI/rstep
+qmax     =  PI/rstep           ! by using 2*PI/rstep, the step size in direct space is halved
 !
 iqmin = NINT(xwrt(1       )/dq)
 iqmax = NINT(xwrt(npkt_wrt)/dq)
@@ -842,8 +886,8 @@ lenwrk= npkt_fft*5/4-1
 ALLOCATE(temp(0:npkt_fft-1))
 ALLOCATE(ip(0:lensav))
 ALLOCATE(w (0:lenwrk))
-ALLOCATE(xfft(1:npkt_pdf))
-ALLOCATE(yfft(1:npkt_pdf))
+ALLOCATE(xfft(1:npkt_fft+1))
+ALLOCATE(yfft(1:npkt_fft+1))
 temp = 0.0D0
 ip   = 0
 w    = 0.0D0
@@ -851,26 +895,35 @@ DO i=0,iqmin-1                       ! Augment straight line to q=0
    temp(i) = REAL(i,KIND=PREC_DP)*dq*ywrt(1)/xwrt(1)
 ENDDO
 temp(iqmin:iqmax) = ywrt(1:npkt_wrt) ! Add actual powder pattern
+!open(77,file='POWDER/prae_fft.FQ',status='unknown')
+!DO i=0,iqmax
+!  write(77,'(2(2x,G17.7E3))') (i)*dq,temp(i)
+!enddo
+!close(77)
 !
+!write(*,*) ' DO  FOURIER '
 CALL ddst(npkt_fft, 1, temp, ip, w)
-xfour(0) = 0.0
-yfour(0) = 0.0
+!write(*,*) ' DID FOURIER '
 !
+irmin = nint(rmin/rstep)
 !write(*,*) 'PDF OUT ', rmin, rstep, irmin, npkt_pdf
 !write(*,*) 'PDF_OUT ', dq, qmax, (npkt_fft-1)*dq
 qmax = (npkt_fft-1)*dq
 !write(*,*) 'PDF_OUT ', qmax, rstep, PI/qmax
-irmin = nint(rmin/rstep)
 !open(77,file='POWDER/fft.PDF',status='unknown')
 !DO i=0,npkt_pdf+irmin
-!  write(77,'(2(2x,G17.7E3))') (-0.5+i)*PI/QMAX,temp(i)*2/PI*dq
+!  write(77,'(2(2x,G17.7E3))') ( 0.5+i)*PI/QMAX,temp(i)*2/PI*dq  ! -0.5
 !enddo
 !close(77)
-DO i=1,npkt_pdf
-  xfft (i) = rmin+(i-0.5)*PI/qmax
-  yfft (i) = temp(irmin-1+i)*2/PI*dq
+!open(77,file='POWDER/fft_2.PDF',status='unknown')
+DO i=1,npkt_fft
+  xfft (i) = (i-0.50)*PI/qmax
+  yfft (i) = temp(i-1)*2/PI*dq
+!  write(77,'(2(2x,G17.7E3))') xfft(i), yfft(i)
 ENDDO
-CALL spline_prep(npkt_pdf, xfft, yfft, REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, xfour, yfour)
+!close(77)
+!write(*,*) 'DO SPLINE ', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf
+CALL spline_prep(npkt_fft, xfft, yfft, REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, xfour, yfour)
 !
 DEALLOCATE(temp)
 DEALLOCATE(ip)
@@ -1020,14 +1073,19 @@ END SUBROUTINE  fft_fq
       ENDDO 
 !                                                                       
       END SUBROUTINE powder_conv_res                
+!
 !*****7*****************************************************************
+!
 SUBROUTINE powder_conv_psvgt_fix (dat, tthmin, tthmax, dtth, eta, &
-      w, pow_width, POW_MAXPKT)
+      w, pow_width, POW_MAXPKT, pow_type)
 !-                                                                      
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
 !     Constant FWHM, Constant eta                                       
 !+                                                                      
 USE discus_config_mod 
+!
+USE gauss_lorentz_pseudo_mod
+USE precision_mod
 USE wink_mod
 IMPLICIT none 
 !                                                                       
@@ -1038,11 +1096,18 @@ REAL, DIMENSION(0:POW_MAXPKT), INTENT(INOUT) ::  dat !(0:POW_MAXPKT)
 REAL                         , INTENT(IN)    ::  tthmin, tthmax, dtth, eta
 REAL                         , INTENT(IN)    ::  w 
 REAL                         , INTENT(IN)    ::  pow_width 
+INTEGER                      , INTENT(IN)    ::  pow_type   ! = 0==COMPl =1==DEBYE
+!
+INTEGER, PARAMETER  :: POW_COMPL = 0
+INTEGER, PARAMETER  :: POW_DEBYE = 0
 !                                                                       
 REAL                               :: fwhm
 REAL, DIMENSION(0:POW_MAXPKT)      :: dummy
 REAL, DIMENSION(0:2 * POW_MAXPKT)  :: psvgt
-REAL                               :: tth
+!REAL                               :: tth
+!REAL(KIND=PREC_DP)                 :: tth_dp
+REAL(KIND=PREC_DP)                 :: eta_dp
+REAL(KIND=PREC_DP)                 :: fwhm_dp
 INTEGER                            :: imax, i, j, ii 
 INTEGER                            :: max_ps 
 !                                                                       
@@ -1053,33 +1118,48 @@ INTEGER                            :: max_ps
 fwhm = sqrt (abs (w) ) 
 max_ps = int( (pow_width * fwhm) / dtth )
 psvgt = 0.0
+eta_dp  = REAL(eta,KIND=PREC_DP)
+fwhm_dp = REAL(fwhm,KIND=PREC_DP)
+!open(77,file='pseudo.comp', status='unknown')
 DO i = 0, max_ps 
-   tth = i * dtth 
-   psvgt (i) = pseudovoigt (tth, eta, fwhm)
+   ii = MIN(INT(i*dtth/fwhm*GLP_NPT), GLP_MAX)
+   psvgt (i) = glp_pseud_indx(ii  , eta_dp, fwhm_dp)
 ENDDO 
-!                                                                       
-!     DO i = max_ps + 1, 2 * POW_MAXPKT 
-!     psvgt (i) = 0.0 
-!     ENDDO 
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-      imax = int( (tthmax - tthmin) / dtth )
-DO i = 0, imax 
-   dummy (i) = dat (i) * (psvgt (0) - psvgt (2 * i) ) 
-   ii = max (i - 1 - max_ps + 1, 0  ) 
-   DO j = ii, i - 1 
-      dummy (i) = dummy (i) + dat (j) * (psvgt (i - j) - psvgt (i + j) ) 
+imax = int( (tthmax - tthmin) / dtth )
+dummy = 0.0
+!
+!------ If COMPLETE, check for zeros, else do all points
+!
+IF(pow_type==POW_COMPL) THEN
+   DO i = 0, imax 
+      dummy (i) = dat (i) * (psvgt (0) - psvgt (2 * i) ) 
+      ii = max (i - 1 - max_ps + 1, 0  ) 
+      first: DO j = ii, i - 1 
+         IF(dat(j)==0.0) CYCLE first
+         dummy (i) = dummy (i) + dat (j) * (psvgt (i - j) - psvgt (i + j) ) 
+      ENDDO first
+      ii = min (i + 1 + max_ps - 1, imax) 
+      secnd: DO j = i + 1, ii 
+         IF(dat(j)==0.0) CYCLE secnd
+         dummy (i) = dummy (i) + dat (j) * (psvgt (j - i) - psvgt (j + i) ) 
+      ENDDO secnd
    ENDDO 
-   ii = min (i + 1 + max_ps - 1, imax) 
-   DO j = i + 1, ii 
-      dummy (i) = dummy (i) + dat (j) * (psvgt (j - i) - psvgt (j + i) ) 
+ELSEIF(pow_type==POW_DEBYE) THEN       ! Debye calculation no checks fro zeros in DAT
+   DO i = 0, imax 
+      dummy (i) = dat (i) * (psvgt (0) - psvgt (2 * i) ) 
+      ii = max (i - 1 - max_ps + 1, 0  ) 
+      DO j = ii, i - 1 
+         dummy (i) = dummy (i) + dat (j) * (psvgt (i - j) - psvgt (i + j) ) 
+      ENDDO
+      ii = min (i + 1 + max_ps - 1, imax) 
+      DO j = i + 1, ii 
+         dummy (i) = dummy (i) + dat (j) * (psvgt (j - i) - psvgt (j + i) ) 
+      ENDDO
    ENDDO 
-!      IF (i + ii.le.imax) THEN 
-!         WRITE ( * , * ) ' i,j, psvgt(j-i), psvgt(j+i)', i, ii, psvgt ( &
-!         ii - i) , psvgt (ii + i)                                       
-!      ENDIF 
-ENDDO 
+ENDIF
 !                                                                       
 DO i = 0, imax 
    dat (i) = dummy (i) * dtth 
@@ -1087,92 +1167,408 @@ ENDDO
 !                                                                       
 END SUBROUTINE powder_conv_psvgt_fix          
 !*****7*****************************************************************
-      SUBROUTINE powder_conv_psvgt_uvw (dat, tthmin, tthmax, dtth, eta0,&
-      etax, u, v, w, p1, p2, p3, p4, pow_width, POW_MAXPKT)
-!-                                                                      
+SUBROUTINE powder_conv_psvgt_uvw (dat, tthmin, tthmax, dtth, eta0,&
+      eta_l, eta_q, u, v, w, pow_width, POW_MAXPKT, pow_type, axis)
+!-
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
 !     FWHM according to caglioti equation, Constant eta                 
-!     FWHM = sqrt ( U*tan**2(Theta) + V*tan(Theta) + W)                 
-!+                                                                      
-      USE discus_config_mod 
-      USE trig_degree_mod
-      USE wink_mod
-      IMPLICIT none 
-!                                                                       
+!     FWHM = sqrt ( U*tan**2(Theta) + V*tan(Theta) + W)  IF 2Theta scale
+!     FWHM = sqrt ( U*Q^2  +  V*Q  +  W               )  IF Q      scale
+!     Symmetric case
+!+
+USE discus_config_mod 
 !
-      INTEGER, INTENT(IN) :: POW_MAXPKT
-!                                                                       
-      REAL dat (0:POW_MAXPKT) 
-      REAL tthmin, tthmax, dtth, fwhm, eta0, etax 
-      REAL u, v, w 
-      REAL p1, p2, p3, p4 
-      REAL pow_width 
-!                                                                       
-      REAL dummy (0:POW_MAXPKT) 
-      REAL tth
-      REAL tantth 
-      REAL tth1 
-      REAL tth2 
-      REAL atheta 
-      REAL atwoth 
-      REAL fwhm1 
-      REAL eta 
-      REAL pra1, pra2 
-      INTEGER imax, i, j, ii 
-      INTEGER max_ps 
-!                                                                       
-!      REAL pseudovoigt 
-!      REAL profile_asymmetry 
-!      REAL tand
+USE gauss_lorentz_pseudo_mod
+USE trig_degree_mod
+USE wink_mod
+!
+IMPLICIT none 
+!
+INTEGER, INTENT(IN) :: POW_MAXPKT
+REAL   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat   ! Data to be convoluted
+REAL                            , INTENT(IN)    :: tthmin ! 2Theta min
+REAL                            , INTENT(IN)    :: tthmax ! 2Theta max
+REAL                            , INTENT(IN)    :: dtth   ! 2Theta step
+REAL                            , INTENT(IN)    :: eta0   ! Lor/Gaus mix constant part
+REAL                            , INTENT(IN)    :: eta_l   ! Lor/Gaus mix variable part
+REAL                            , INTENT(IN)    :: eta_q   ! Lor/Gaus mix variable part
+REAL                            , INTENT(IN)    :: u      ! u*tan^2(Theta)
+REAL                            , INTENT(IN)    :: v      ! v*tan  (Theta)
+REAL                            , INTENT(IN)    :: w      ! w
+REAL                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
+INTEGER                         , INTENT(IN)    :: pow_type  ! == 0 for COMPLETE, ==1 for Debye
+INTEGER                         , INTENT(IN)    :: axis   ! == 2 for 2theta, == 1 for Q
+!
+INTEGER, PARAMETER  :: POW_COMPL = 0
+INTEGER, PARAMETER  :: POW_DEBYE = 0
+!
+REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
+REAL, DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
+REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
+REAL                          :: tantth   ! tan(Theta)
+REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
+INTEGER :: imax, i, j, ii  ! Dummy loop indices
+INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
+REAL    :: pseudo          ! scale factor for lookup table
+INTEGER :: max_ps 
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-      imax = int( (tthmax - tthmin) / dtth )
-      DO i = 0, imax 
+imax = INT( (tthmax - tthmin) / dtth )
+!
+dummy = 0.0   ! dummy(:)
+IF(pow_type==POW_COMPL) THEN     ! Complete, check for zeros in DAT
+   main_pts: DO i = 0, imax 
       tth = tthmin + i * dtth 
       tantth = tand (tth * 0.5) 
-      atheta = tth * 0.5 
-      atwoth = tth 
-      fwhm = sqrt (max (abs (u * tantth**2 + v * tantth + w), 0.00001) ) 
-      fwhm1 = fwhm 
-      max_ps = int( (pow_width * fwhm) / dtth )
-      eta = min (1.0, max (0.0, eta0 + etax * tth) ) 
+!
+      fwhm = 0.00001
+      IF(axis==2 ) THEN       ! 2Theta axis
+         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
+      ELSEif(axis==1) THEN
+         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001) )
+      ENDIF
+!
+      max_ps = INT((pow_width * fwhm) / dtth )
+      eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
+      pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
+      i1 = 0                               ! == 0 * dtth
+      i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
+      dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)  &
+                             -glp_pseud_indx(i2, eta, fwhm))                             
+!
+      ii = MAX (i - 1 - max_ps + 1, 0) 
+      first:DO j = ii, i - 1 
+         IF(dat(j)==0.0) CYCLE first
+         i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * dtth
+         i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * dtth
+         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
+                                        -glp_pseud_indx(i2, eta, fwhm))                    
+      ENDDO first
+!
+      ii = MIN(i + 1 + max_ps - 1, imax) 
+      secnd: DO j = i + 1, ii 
+         IF(dat(j)==0.0) CYCLE secnd
+         i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * dtth
+         i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * dtth
+         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
+                                        -glp_pseud_indx(i2, eta, fwhm))
+      ENDDO secnd
+   ENDDO main_pts
+ELSEIF(pow_type==POW_DEBYE) THEN     ! DEBYE, do not check for zeros in DAT
+   main_pts_deb: DO i = 0, imax 
+      tth = tthmin + i * dtth 
+      tantth = tand (tth * 0.5) 
+!
+      fwhm = 0.00001
+      IF(axis==2 ) THEN       ! 2Theta axis
+         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
+      ELSEif(axis==1) THEN
+         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001) )
+      ENDIF
+!
+      max_ps = INT((pow_width * fwhm) / dtth )
+      eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
+      pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
+      i1 = 0                               ! == 0 * dtth
+      i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
+      dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)  &
+                             -glp_pseud_indx(i2, eta, fwhm))                             
+!
+      ii = MAX (i - 1 - max_ps + 1, 0) 
+      first_deb:DO j = ii, i - 1 
+         i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * dtth
+         i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * dtth
+         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
+                                        -glp_pseud_indx(i2, eta, fwhm))                    
+      ENDDO first_deb
+!
+      ii = MIN(i + 1 + max_ps - 1, imax) 
+      secnd_deb: DO j = i + 1, ii 
+         i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * dtth
+         i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * dtth
+         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
+                                        -glp_pseud_indx(i2, eta, fwhm))
+      ENDDO secnd_deb
+   ENDDO main_pts_deb
+ENDIF
+!                                                                       
+DO i = 0, imax 
+   dat (i) = dummy (i) * dtth   ! scale with stepwidth
+ENDDO 
+!                                                                       
+END SUBROUTINE powder_conv_psvgt_uvw          
+!
+!*****7*****************************************************************
+!
+SUBROUTINE powder_conv_psvgt_uvw_asym (dat, tthmin, tthmax, dtth, eta0,&
+      eta_l, eta_q, u, v, w, p1, p2, p3, p4, pow_width, POW_MAXPKT,    &
+      pow_type, axis)
+!-
+!     Convolute powder pattern with resolution function (Pseudo-Voigt)  
+!     FWHM according to caglioti equation, Constant eta                 
+!     FWHM = sqrt ( U*tan**2(Theta) + V*tan(Theta) + W)                 
+!     Symmetric case
+!+
+USE discus_config_mod 
+!
+USE gauss_lorentz_pseudo_mod
+USE trig_degree_mod
+USE wink_mod
+!
+IMPLICIT none 
+!
+INTEGER, INTENT(IN) :: POW_MAXPKT
+REAL   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat   ! Data to be convoluted
+REAL                            , INTENT(IN)    :: tthmin ! 2Theta min
+REAL                            , INTENT(IN)    :: tthmax ! 2Theta max
+REAL                            , INTENT(IN)    :: dtth   ! 2Theta step
+REAL                            , INTENT(IN)    :: eta0   ! Lor/Gaus mix constant part
+REAL                            , INTENT(IN)    :: eta_l   ! Lor/Gaus mix variable part
+REAL                            , INTENT(IN)    :: eta_q   ! Lor/Gaus mix variable part
+REAL                            , INTENT(IN)    :: u      ! u*tan^2(Theta)
+REAL                            , INTENT(IN)    :: v      ! v*tan  (Theta)
+REAL                            , INTENT(IN)    :: w      ! w
+REAL                            , INTENT(IN)    :: p1     ! Asymmetry terms p1 to P4
+REAL                            , INTENT(IN)    :: p2     ! Asymmetry terms p1 to P4
+REAL                            , INTENT(IN)    :: p3     ! Asymmetry terms p1 to P4
+REAL                            , INTENT(IN)    :: p4     ! Asymmetry terms p1 to P4
+REAL                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
+INTEGER                         , INTENT(IN)    :: pow_type  ! == 0 for COMPLETE, ==1 for Debye
+INTEGER                         , INTENT(IN)    :: axis   ! == 2 for 2theta, == 1 for Q
+!
+INTEGER, PARAMETER            :: POW_COMPL = 0
+INTEGER, PARAMETER            :: POW_DEBYE = 0
+!
+REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
+REAL, DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
+REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
+REAL                          :: tantth   ! tan(Theta)
+REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
+REAL(KIND=PREC_DP)    :: tth1            ! Theta values for asymmetry
+REAL(KIND=PREC_DP)    :: tth2            ! Theta values for asymmetry
+INTEGER :: imax, i, j, ii  ! Dummy loop indices
+INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
+REAL    :: pseudo          ! scale factor for lookup table
+REAL    :: pra1, pra2      ! Asymmetry pre factors
+INTEGER :: max_ps 
+!                                                                       
+!------ Now convolute                                                   
+!                                                                       
+imax = INT( (tthmax - tthmin) / dtth )
+dummy = 0.0
+!
+IF(pow_type==POW_COMPL) THEN
+   main_compl: DO i = 0, imax 
+      tth = tthmin + i * dtth 
+      tantth = tand (tth * 0.5) 
+!
+      IF(axis==2 ) THEN       ! 2Theta axis
+         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
+      ELSEif(axis==1) THEN
+         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001) )
+      ENDIF
+!
+      max_ps = INT((pow_width * fwhm) / dtth )
+      eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
+      pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
+      i1 = 0                               ! == 0 * dtth
+      i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
       tth1 = 0 * dtth 
       tth2 = 2 * i * dtth 
       pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
       pra2 = profile_asymmetry (tth, tth2, fwhm, p1, p2, p3, p4) 
-      dummy (i) = dat (i) * (pseudovoigt (tth1, eta, fwhm) * pra1 -     &
-      pseudovoigt (tth2, eta, fwhm) * pra2)                             
-!       do j=0,i-1                                                      
-      ii = max (i - 1 - max_ps + 1, 0) 
-      DO j = ii, i - 1 
-      tth1 = (i - j) * dtth 
-      tth2 = (i + j) * dtth 
+      dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)*pra1  &
+                             -glp_pseud_indx(i2, eta, fwhm)*pra2)                             
+!
+      ii = MAX (i - 1 - max_ps + 1, 0) 
+      first_compl: DO j = ii, i - 1 
+         IF(dat(j)==0.0) CYCLE first_compl
+            i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * dtth
+         i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * dtth
+         tth1 = (i - j) * dtth 
+         tth2 = (i + j) * dtth 
+         pra1 = profile_asymmetry(tth, tth1, fwhm, p1, p2, p3, p4) 
+         pra2 = profile_asymmetry(tth, tth2, fwhm, p1, p2, p3, p4) 
+         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)*pra1  &
+                                        -glp_pseud_indx(i2, eta, fwhm)*pra2)                    
+      ENDDO first_compl
+!
+      ii = MIN(i + 1 + max_ps - 1, imax) 
+      secnd_compl: DO j = i + 1, ii 
+         IF(dat(j)==0.0) CYCLE secnd_compl
+         i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * dtth
+         i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * dtth
+         tth1 = (j - i) * dtth 
+         tth2 = (j + i) * dtth 
+         pra1 = profile_asymmetry (tth, - tth1, fwhm, p1, p2, p3, p4) 
+         pra2 = profile_asymmetry (tth, - tth2, fwhm, p1, p2, p3, p4) 
+         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)*pra1  &
+                                        -glp_pseud_indx(i2, eta, fwhm)*pra2)
+      ENDDO secnd_compl
+   ENDDO main_compl
+ELSEIF(pow_type==POW_DEBYE) THEN
+   main_debye: DO i = 0, imax 
+      tth = tthmin + i * dtth 
+      tantth = tand (tth * 0.5) 
+!
+      IF(axis==2 ) THEN       ! 2Theta axis
+         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
+      ELSEif(axis==1) THEN
+         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001) )
+      ENDIF
+!
+      max_ps = INT((pow_width * fwhm) / dtth )
+      eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
+      pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
+      i1 = 0                               ! == 0 * dtth
+      i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
+      tth1 = 0 * dtth 
+      tth2 = 2 * i * dtth 
       pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
       pra2 = profile_asymmetry (tth, tth2, fwhm, p1, p2, p3, p4) 
-      dummy (i) = dummy (i) + dat (j) * (pseudovoigt (tth1, eta, fwhm)  &
-      * pra1 - pseudovoigt (tth2, eta, fwhm) * pra2)                    
-      ENDDO 
+      dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)*pra1  &
+                             -glp_pseud_indx(i2, eta, fwhm)*pra2)                             
+!
+      ii = MAX (i - 1 - max_ps + 1, 0) 
+      first_debye: DO j = ii, i - 1 
+         i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * dtth
+         i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * dtth
+         tth1 = (i - j) * dtth 
+         tth2 = (i + j) * dtth 
+         pra1 = profile_asymmetry(tth, tth1, fwhm, p1, p2, p3, p4) 
+         pra2 = profile_asymmetry(tth, tth2, fwhm, p1, p2, p3, p4) 
+         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)*pra1  &
+                                        -glp_pseud_indx(i2, eta, fwhm)*pra2)                    
+      ENDDO first_debye
+!
+      ii = MIN(i + 1 + max_ps - 1, imax) 
+      secnd_debye: DO j = i + 1, ii 
+         i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * dtth
+         i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * dtth
+         tth1 = (j - i) * dtth 
+         tth2 = (j + i) * dtth 
+         pra1 = profile_asymmetry (tth, - tth1, fwhm, p1, p2, p3, p4) 
+         pra2 = profile_asymmetry (tth, - tth2, fwhm, p1, p2, p3, p4) 
+         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)*pra1  &
+                                        -glp_pseud_indx(i2, eta, fwhm)*pra2)
+      ENDDO secnd_debye
+   ENDDO main_debye
+ENDIF
+!                                                                       
+DO i = 0, imax 
+   dat (i) = dummy (i) * dtth   ! scale with stepwidth
+ENDDO 
+!                                                                       
+END SUBROUTINE powder_conv_psvgt_uvw_asym
+!*****7*****************************************************************
+SUBROUTINE powder_conv_psvgt_uvw_asymt(dat, tthmin, tthmax, dtth, eta0,&
+      eta_l, eta_q, u, v, w, p1, p2, p3, p4, pow_width, POW_MAXPKT)
+!-
+!     Convolute powder pattern with resolution function (Pseudo-Voigt)  
+!     FWHM according to caglioti equation, Constant eta                 
+!     FWHM = sqrt ( U*tan**2(Theta) + V*tan(Theta) + W)                 
+!+
+USE discus_config_mod 
+!
+USE gauss_lorentz_pseudo_mod
+USE trig_degree_mod
+USE wink_mod
+!
+IMPLICIT none 
+!
+INTEGER, INTENT(IN) :: POW_MAXPKT
+REAL   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat   ! Data to be convoluted
+REAL                            , INTENT(IN)    :: tthmin ! 2Theta min
+REAL                            , INTENT(IN)    :: tthmax ! 2Theta max
+REAL                            , INTENT(IN)    :: dtth   ! 2Theta step
+REAL                            , INTENT(IN)    :: eta0   ! Lor/Gaus mix constant part
+REAL                            , INTENT(IN)    :: eta_l   ! Lor/Gaus mix variable part
+REAL                            , INTENT(IN)    :: eta_q   ! Lor/Gaus mix variable part
+REAL                            , INTENT(IN)    :: u      ! u*tan^2(Theta)
+REAL                            , INTENT(IN)    :: v      ! v*tan  (Theta)
+REAL                            , INTENT(IN)    :: w      ! w
+REAL                            , INTENT(IN)    :: p1     ! Asymmetry terms p1 to P4
+REAL                            , INTENT(IN)    :: p2     ! Asymmetry terms p1 to P4
+REAL                            , INTENT(IN)    :: p3     ! Asymmetry terms p1 to P4
+REAL                            , INTENT(IN)    :: p4     ! Asymmetry terms p1 to P4
+REAL                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
+!
+REAL(KIND=PREC_DP)    :: fwhm            ! Current FWHM at Theta
+REAL, DIMENSION(0:POW_MAXPKT) :: dummy  ! temporary data (0:POW_MAXPKT) 
+REAL(KIND=PREC_DP)    :: tth             ! Theta within convolution, main data set
+REAL    :: tantth          ! tan(Theta)
+REAL(KIND=PREC_DP)    :: tth1            ! Theta values for asymmetry
+REAL(KIND=PREC_DP)    :: tth2            ! Theta values for asymmetry
+!REAL    :: atheta 
+!REAL    :: atwoth 
+!REAL    :: fwhm1 
+REAL(KIND=PREC_DP)    :: eta             ! actual eta at current 2Theta
+REAL    :: pra1, pra2      ! Asymmetry pre factors
+INTEGER :: imax, i, j, ii  ! Dummy loop indices
+INTEGER :: max_ps 
+!                                                                       
+!      REAL pseudovoigt 
+!      REAL profile_asymmetry 
+!      REAL tand
+!write(*,*) ' IN CONV_VARIABLE '
+pra1 = 1.0D0
+pra2 = 1.0D0
+!                                                                       
+!------ Now convolute                                                   
+!                                                                       
+imax = INT( (tthmax - tthmin) / dtth )
+DO i = 0, imax 
+   tth = tthmin + i * dtth 
+   tantth = tand (tth * 0.5) 
+!     atheta = tth * 0.5 
+!     atwoth = tth 
+   fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
+!      fwhm1 = fwhm 
+   max_ps = INT((pow_width * fwhm) / dtth )
+   eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
+   tth1 = 0 * dtth 
+   tth2 = 2 * i * dtth 
+   pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
+   pra2 = profile_asymmetry (tth, tth2, fwhm, p1, p2, p3, p4) 
+!  dummy (i) = dat (i) * (pseudovoigt (tth1, eta, fwhm) * pra1 -     &
+!                         pseudovoigt (tth2, eta, fwhm) * pra2)                             
+   dummy (i) = dat (i) * (glp_pseud   (tth1, eta, fwhm) * pra1 -     &
+                          glp_pseud   (tth2, eta, fwhm) * pra2)                             
+!       do j=0,i-1                                                      
+   ii = MAX (i - 1 - max_ps + 1, 0) 
+   DO j = ii, i - 1 
+      tth1 = (i - j) * dtth 
+      tth2 = (i + j) * dtth 
+      pra1 = profile_asymmetry(tth, tth1, fwhm, p1, p2, p3, p4) 
+      pra2 = profile_asymmetry(tth, tth2, fwhm, p1, p2, p3, p4) 
+!     dummy(i) = dummy(i) + dat(j) *( pseudovoigt(tth1, eta, fwhm) * pra1  &
+!                                    -pseudovoigt(tth2, eta, fwhm) * pra2)                    
+      dummy(i) = dummy(i) + dat(j) *( glp_pseud  (tth1, eta, fwhm) * pra1  &
+                                     -glp_pseud  (tth2, eta, fwhm) * pra2)                    
+   ENDDO 
 !       do j=i+1,imax                                                   
-      ii = min (i + 1 + max_ps - 1, imax) 
-      DO j = i + 1, ii 
+   ii = MIN(i + 1 + max_ps - 1, imax) 
+   DO j = i + 1, ii 
       tth1 = (j - i) * dtth 
       tth2 = (j + i) * dtth 
       pra1 = profile_asymmetry (tth, - tth1, fwhm, p1, p2, p3, p4) 
       pra2 = profile_asymmetry (tth, - tth2, fwhm, p1, p2, p3, p4) 
-      dummy (i) = dummy (i) + dat (j) * (pseudovoigt (tth1, eta, fwhm)  &
-      * pra1 - pseudovoigt (tth2, eta, fwhm) * pra2)                    
-      ENDDO 
-      ENDDO 
+!     dummy(i) = dummy(i) + dat(j) *( pseudovoigt(tth1, eta, fwhm) * pra1  &
+!                                    -pseudovoigt(tth2, eta, fwhm) * pra2)
+      dummy(i) = dummy(i) + dat(j) *( glp_pseud  (tth1, eta, fwhm) * pra1  &
+                                     -glp_pseud  (tth2, eta, fwhm) * pra2)
+   ENDDO 
+ENDDO 
 !                                                                       
-      DO i = 0, imax 
-      dat (i) = dummy (i) ! * dtth 
-      ENDDO 
+DO i = 0, imax 
+   dat (i) = dummy (i) * dtth   ! scale with stepwidth
+ENDDO 
 !                                                                       
-      END SUBROUTINE powder_conv_psvgt_uvw          
+END SUBROUTINE powder_conv_psvgt_uvw_asymt          
 !*****7*****************************************************************
       SUBROUTINE powder_conv_psvgt_uvw_Qscale (dat, tthmin, tthmax,     &
-      dtth, eta0, etax, u, v, w, p1, p2, p3, p4, pow_width, rlambda,    &
+      dtth, eta0, eta_l, eta_q, u, v, w, p1, p2, p3, p4, pow_width, rlambda,    &
       pow_axis, POW_AXIS_Q, POW_MAXPKT)                                             
 !-                                                                      
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
@@ -1181,6 +1577,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !+                                                                      
       USE discus_config_mod 
       USE trig_degree_mod
+      USE precision_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -1188,7 +1585,7 @@ END SUBROUTINE powder_conv_psvgt_fix
       INTEGER, INTENT(IN) :: POW_MAXPKT
 !                                                                       
       REAL dat (0:POW_MAXPKT) 
-      REAL tthmin, tthmax, dtth, fwhm, eta0, etax 
+      REAL tthmin, tthmax, dtth, eta0, eta_l, eta_q
       REAL u, v, w 
       REAL p1, p2, p3, p4 
       REAL pow_width 
@@ -1197,14 +1594,14 @@ END SUBROUTINE powder_conv_psvgt_fix
       INTEGER POW_AXIS_Q 
 !                                                                       
       REAL dummy (0:POW_MAXPKT) 
-      REAL tth
+      REAL(KIND=PREC_DP) tth
       REAL tantth 
-      REAL tth1 
-      REAL tth2 
+      REAL(KIND=PREC_DP) tth1 
+      REAL(KIND=PREC_DP) tth2 
       REAL atheta 
       REAL atwoth 
-      REAL fwhm1 
-      REAL eta 
+      REAL(KIND=PREC_DP) fwhm1 , fwhm
+      REAL(KIND=PREC_DP) eta 
       REAL pra1, pra2 
       INTEGER imax, i, j, ii 
       INTEGER max_ps 
@@ -1232,13 +1629,13 @@ END SUBROUTINE powder_conv_psvgt_fix
          REAL(fpi) * sind (atheta - 0.5 * fwhm1) / rlambda)                   
       ENDIF 
       max_ps = int( (pow_width * fwhm) / dtth )
-      eta = min (1.0, max (0.0, eta0 + etax * tth) ) 
+      eta = min (1.0D0, max (0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
       tth1 = 0 * dtth 
       tth2 = 2 * i * dtth 
       pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
       pra2 = profile_asymmetry (tth, tth2, fwhm, p1, p2, p3, p4) 
-      dummy (i) = dat (i) * (pseudovoigt (tth1, eta, fwhm) * pra1 -     &
-      pseudovoigt (tth2, eta, fwhm) * pra2)                             
+!     dummy (i) = dat (i) * (pseudovoigt (tth1, eta, fwhm) * pra1 -     &
+!     pseudovoigt (tth2, eta, fwhm) * pra2)                             
 !       do j=0,i-1                                                      
       ii = max (i - 1 - max_ps + 1, 0) 
       DO j = ii, i - 1 
@@ -1246,8 +1643,8 @@ END SUBROUTINE powder_conv_psvgt_fix
       tth2 = (i + j) * dtth 
       pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
       pra2 = profile_asymmetry (tth, tth2, fwhm, p1, p2, p3, p4) 
-      dummy (i) = dummy (i) + dat (j) * (pseudovoigt (tth1, eta, fwhm)  &
-      * pra1 - pseudovoigt (tth2, eta, fwhm) * pra2)                    
+!     dummy (i) = dummy (i) + dat (j) * (pseudovoigt (tth1, eta, fwhm)  &
+!     * pra1 - pseudovoigt (tth2, eta, fwhm) * pra2)                    
       ENDDO 
 !       do j=i+1,imax                                                   
       ii = min (i + 1 + max_ps - 1, imax) 
@@ -1256,8 +1653,8 @@ END SUBROUTINE powder_conv_psvgt_fix
       tth2 = (j + i) * dtth 
       pra1 = profile_asymmetry (tth, - tth1, fwhm, p1, p2, p3, p4) 
       pra2 = profile_asymmetry (tth, - tth2, fwhm, p1, p2, p3, p4) 
-      dummy (i) = dummy (i) + dat (j) * (pseudovoigt (tth1, eta, fwhm)  &
-      * pra1 - pseudovoigt (tth2, eta, fwhm) * pra2)                    
+!     dummy (i) = dummy (i) + dat (j) * (pseudovoigt (tth1, eta, fwhm)  &
+!     * pra1 - pseudovoigt (tth2, eta, fwhm) * pra2)                    
       ENDDO 
       ENDDO 
 !                                                                       
@@ -1292,32 +1689,35 @@ END SUBROUTINE powder_conv_psvgt_fix
 !                                                                       
       END FUNCTION pseudovoigt                      
 !*****7*****************************************************************
-      REAL function profile_asymmetry (tth, dtth, fwhm, p1, p2, p3, p4) 
+!
+REAL function profile_asymmetry (tth, dtth, fwhm, p1, p2, p3, p4) 
 !-                                                                      
 !     calculates the asymmetry parameter for the profile function       
 !                                                                       
-      USE trig_degree_mod
-      IMPLICIT none 
+USE trig_degree_mod
+USE precision_mod
+!
+IMPLICIT none 
 !                                                                       
-      REAL, INTENT(IN) :: tth 
-      REAL, INTENT(IN) :: dtth 
-      REAL, INTENT(IN) :: fwhm 
-      REAL, INTENT(IN) :: p1, p2, p3, p4 
+REAL(KIND=PREC_DP), INTENT(IN) :: tth 
+REAL(KIND=PREC_DP), INTENT(IN) :: dtth 
+REAL(KIND=PREC_DP), INTENT(IN) :: fwhm 
+REAL, INTENT(IN) :: p1, p2, p3, p4 
 !                                                                       
-      REAL :: zz 
-      REAL :: fa, fb 
+REAL :: zz 
+REAL :: fa, fb 
 !                                                                       
 !     REAL :: tand 
 !                                                                       
-      zz = dtth / fwhm 
+zz = dtth / fwhm 
 !                                                                       
-      fa = 2. * zz * exp ( - zz**2) 
-      fb = 2. * (2. * zz**2 - 3.) * fa 
+fa = 2. * zz * exp ( - zz**2) 
+fb = 2. * (2. * zz**2 - 3.) * fa 
 !                                                                       
-      profile_asymmetry = 1.0 + (p1 * fa + p2 * fb) / tand (0.5 * tth)  &
-      + (p3 * fa + p4 * fb) / tand (tth)                                
+profile_asymmetry = 1.0 + (p1 * fa + p2 * fb) / tand(0.5 * tth)  &
+                        + (p3 * fa + p4 * fb) / tand(tth)                                
 !                                                                       
-      END FUNCTION profile_asymmetry                
+END FUNCTION profile_asymmetry                
 !
 !*****7*****************************************************************
 !

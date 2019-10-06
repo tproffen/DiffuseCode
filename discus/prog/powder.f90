@@ -393,7 +393,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             WRITE (output_io, 2123) pow_width 
          ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) then 
             WRITE (output_io, 2120) pow_u, pow_v, pow_w 
-            WRITE (output_io, 2121) pow_eta, pow_etax 
+            WRITE (output_io, 2121) pow_eta, pow_eta_l , pow_eta_q
             WRITE (output_io, 2122) pow_p1, pow_p2, pow_p3, pow_p4 
             WRITE (output_io, 2123) pow_width 
          ENDIF 
@@ -409,7 +409,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             WRITE (output_io, 2123) pow_width 
          ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) then 
             WRITE (output_io, 2120) pow_u, pow_v, pow_w 
-            WRITE (output_io, 2121) pow_eta, pow_etax 
+            WRITE (output_io, 2121) pow_eta, pow_eta_l, pow_eta_q
             WRITE (output_io, 2122) pow_p1, pow_p2, pow_p3, pow_p4 
             WRITE (output_io, 2123) pow_width 
          ENDIF 
@@ -469,7 +469,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  1235 FORMAT( '   Instrument resolution   : ',f10.5,2x,'(0.0 = off)') 
  2120 FORMAT    ( '       Profile U,V,W       : ',f10.5,2x,f10.5,2x,    &
      &                                                   f10.5)         
- 2121 FORMAT    ( '       Profile Eta, X      : ',f10.5,2x,f10.5) 
+ 2121 FORMAT    ( '       Profile Eta, q, l   : ',f10.5,2x,f10.5, 2x,f10.5) 
  2122 FORMAT    ( '       Profile asymmetry   : ',4(f10.5,2x)) 
  2123 FORMAT    ( '       Profile width *FWHM : ',1(f10.5,2x)) 
  1240 FORMAT    ( '   dH, dK, dL              : ',3(f10.5,2x)) 
@@ -785,30 +785,32 @@ IF (ier_num.eq.0) then
             IF (ianz.ge.2) then 
                cpara (1) = '0' 
                lpara (1) = 1 
-               IF (str_comp (cpara (2) , 'off', 2, lpara (2) , 3) )     &
-               then                                                     
+               IF(str_comp(cpara(2), 'off', 2, lpara(2), 3)) THEN
                   pow_profile = 0 
                   pow_delta = 0.0 
                   pow_eta = 0.5 
-               ELSEIF (str_comp (cpara (2) , 'gauss', 2, lpara (2) , 5) &
-               ) then                                                   
+               ELSEIF(str_comp(cpara(2), 'gauss', 2, lpara(2), 5)) THEN
                   pow_profile = POW_PROFILE_GAUSS 
-               ELSEIF (str_comp (cpara (2) , 'pseudo', 2, lpara (2) , 6)&
-               ) then                                                   
+               ELSEIF(str_comp(cpara(2), 'pseudo', 2, lpara(2) , 6)) THEN
                   pow_profile = POW_PROFILE_PSVGT 
-               ELSEIF (str_comp (cpara (2) , 'eta', 2, lpara (2) , 3) ) &
-               then                                                     
+               ELSEIF(str_comp(cpara(2), 'eta', 2, lpara(2), 3)) THEN
                   cpara (1) = '0' 
                   lpara (1) = 1 
                   cpara (2) = '0' 
                   lpara (2) = 1 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  IF (ier_num.eq.0) then 
-                     pow_eta = werte (3) 
-                     IF (ianz.eq.4) then 
-                        pow_etax = werte (4) 
+                  IF (ier_num == 0) THEN 
+                     pow_eta = werte(3) 
+                     IF (ianz == 4) THEN 
+                        pow_eta_l = werte(4) 
+                        IF (ianz == 5) THEN 
+                           pow_eta_q = werte(5) 
+                        ELSE 
+                           pow_eta_q = 0.0 
+                        ENDIF 
                      ELSE 
-                        pow_etax = 0.0 
+                        pow_eta_l = 0.0 
+                        pow_eta_q = 0.0 
                      ENDIF 
                   ENDIF 
                ELSEIF (str_comp (cpara (2) , 'uvw', 2, lpara (2) , 3) ) &
@@ -1653,7 +1655,7 @@ END SUBROUTINE powder_run
                   ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
                   IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
                   then                                                  
-                     itth = int( (ttheta - pow_tthmin) / pow_deltatth )
+                     itth = nint( (ttheta - pow_tthmin) / pow_deltatth )
                      inten = DBLE (csf (i) * conjg (csf (i) ) ) 
                      IF (pow_pref) then 
 !write(*,'(a,3(f4.0,1x),1x,f5.2,1x,f10.2,1x,f10.2)') 'hkl',hkl,ttheta,   &
@@ -1672,7 +1674,7 @@ END SUBROUTINE powder_run
                   ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
                      q = REAL(zpi) * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
-                        itth = int( (q - pow_qmin) / pow_deltaq )
+                        itth = nint( (q - pow_qmin) / pow_deltaq )
                         inten = DBLE (csf (i) * conjg (csf (i) ) ) 
                         IF (pow_pref) then 
                            inten = inten * DBLE(calc_preferred (hkl,         &
@@ -1757,7 +1759,7 @@ END SUBROUTINE powder_run
                      ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
                      IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
                      then                                               
-                        itth = int( (ttheta - pow_tthmin) / pow_deltatth )
+                        itth = nint( (ttheta - pow_tthmin) / pow_deltatth )
                         inten = DBLE (csf (i) * conjg (csf (i) ) ) 
                         IF (pow_pref) then 
                            inten = inten * DBLE(calc_preferred (hkl,         &
@@ -1771,7 +1773,7 @@ END SUBROUTINE powder_run
                   ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
                      q = REAL(zpi) * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
-                        itth = int( (q - pow_qmin) / pow_deltaq )
+                        itth = nint( (q - pow_qmin) / pow_deltaq )
                         inten = DBLE (csf (i) * conjg (csf (i) ) ) 
                         IF (pow_pref) then 
                            inten = inten * DBLE(calc_preferred (hkl,         &
@@ -2350,7 +2352,8 @@ pow_profile    = POW_PROFILE_PSVGT
 pow_pr_par     =  0
 pow_fwhm       =  0.01
 pow_eta        =  0.5
-pow_etax       =  0.0
+pow_eta_l      =  0.0
+pow_eta_q      =  0.0
 pow_u          =  0.0
 pow_v          =  0.0
 pow_w          =  0.05

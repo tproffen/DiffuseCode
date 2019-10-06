@@ -9,8 +9,8 @@ IMPLICIT NONE
 !
 CHARACTER (LEN=*)                , INTENT(IN) :: outfile
 INTEGER                          , INTENT(IN) :: npkt_wrt
-REAL   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: xwrt
-REAL   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: ywrt
+REAL   , DIMENSION(1:npkt_wrt  ) , INTENT(IN) :: xwrt
+REAL   , DIMENSION(1:npkt_wrt  ) , INTENT(IN) :: ywrt
 !
 INTEGER, PARAMETER                            :: iff = 2
 INTEGER   :: ii
