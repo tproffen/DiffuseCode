@@ -51,7 +51,7 @@ DO ii = 1, npkt_equi
    xequi(ii) = xequ
    yequi(ii) = yequ
 ENDDO
-!npkt_equi = npkt_equi
+!
 DEALLOCATE(y2a, stat = all_status)
 !
 END SUBROUTINE spline_prep
