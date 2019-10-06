@@ -142,7 +142,7 @@
       CALL rem_bl (string, ll) 
       END SUBROUTINE mixscat_ersetz_para                    
 !*****7*****************************************************************
-      SUBROUTINE mixscat_upd_para (ctype, ww, maxw, wert, ianz) 
+      SUBROUTINE mixscat_upd_para (ctype, ww, maxw, wert, ianz, cstring) 
 !-                                                                      
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -158,6 +158,7 @@
       INTEGER,                    INTENT(IN) :: ianz 
       INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
       REAL   ,                    INTENT(IN) :: wert 
+      CHARACTER (LEN=*),          INTENT(IN) :: cstring
 !                                                                       
 !------ Setting i[n]                                                    
 !                                                                       
