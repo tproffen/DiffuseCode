@@ -265,7 +265,7 @@ ENDIF
 !
 !        run  a slave from diffev within discus_suite at NO MPI
 !
-         IF(pname=='diffev') THEN
+        IF(pname=='diffev' .OR. pname=='suite') THEN
 !
             opara  =  (/ '0.000000', '1.000000', 'none    ', 'parallel' /)   ! Always provide fresh default values
             lopara =  (/  8        ,  8        ,  8        ,  8         /)
@@ -345,6 +345,12 @@ ENDIF
                   length = 17 + prog_l + mac_l
                ENDIF
             ENDIF
+         ELSE
+            ier_num = -9
+            ier_typ = ER_COMM
+            ier_msg(4) = 'Found run_mpi command within a loop, NO MPI'
+            ier_msg(5) = 'Loop not started within DIFFEV or SUITE'
+            ier_msg(6) = 'Start loop with run_mpi in DIFFEV or SUITE'
          ENDIF
       ENDIF 
 !                                                                       
