@@ -71,23 +71,23 @@ ENDIF
      )
        END
 !*****7****************************************************************
-       SUBROUTINE no_error
+!
+SUBROUTINE no_error
 !+
 !       Resets error variables
 !-
-       USE errlist_mod 
-       USE class_macro_internal
-       IMPLICIT       NONE
+USE errlist_mod 
+USE class_macro_internal
 !
+IMPLICIT       NONE
 !
-       ier_num = 0
-       ier_typ = ER_NONE
+ier_num = 0
+ier_typ = ER_NONE
 !
-       ier_msg(1) = ' '
-       ier_msg(2) = ' '
-       ier_msg(3) = ' '
+ier_msg(:) = ' '
 !
-       END
+END
+!
 !*****7****************************************************************
        SUBROUTINE disp_error (typ,error,iu,io)
 !-
@@ -122,7 +122,7 @@ ENDIF
             IF(ier_mpi) &
             WRITE(output_io,1100)                 typ,error(ier_num),ier_num
 !           WRITE(ier_out,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)
-            DO i=1,3
+            DO i=1,UBOUND(ier_msg,1)
               IF (ier_msg(i) /= ' ')  &
      &                WRITE(*,1500) TRIM(color_err),typ,ier_msg(i),ier_num,TRIM(color_fg)
             ENDDO
