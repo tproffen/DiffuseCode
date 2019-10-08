@@ -808,7 +808,7 @@ USE precision_mod
    REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte      ! a string
 !
    INTEGER   :: ier_num_deco, ier_typ_deco
-   CHARACTER(LEN=LEN(ier_msg)), DIMENSION(1:3) :: ier_msg_deco
+   CHARACTER(LEN=LEN(ier_msg)), DIMENSION(LBOUND(ier_msg,1):UBOUND(ier_msg,1)) :: ier_msg_deco
 
    INTEGER   :: istatus          ! status
    INTEGER   :: i,j, k, i1  ! dummy index
