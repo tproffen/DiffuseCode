@@ -700,7 +700,8 @@ DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
          ENDDO 
       ENDIF 
       IF (sav_w_ncell) THEN 
-         WRITE (ist, 3030) cr_icc, cr_ncatoms , cr_natoms
+         WRITE (ist, 3030) cr_icc, cr_ncatoms , cr_natoms, cr_nscat, &
+         mole_num_mole, mole_num_type, mole_num_atom
       ENDIF 
       WRITE (ist, 3900) 
 !
@@ -830,7 +831,7 @@ DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
  3020 FORMAT    ('cell  ',5(f10.6,','),f10.6) 
  3021 FORMAT    ('gene  ',12(f9.6,','),i3) 
  3022 FORMAT    ('symm  ',12(f9.6,','),i3) 
- 3030 FORMAT    ('ncell ',3(i8,','),i10,',',i12) 
+ 3030 FORMAT    ('ncell ',3(i8,','),i10,5(',',i12)) 
  3110 FORMAT    (('scat  ', a4,6(',',5x,a4))) 
  3111 FORMAT    (('scat  ', a4)) 
  3120 FORMAT    (('adp   ', f9.6,6(',',5x,f9.6))) 

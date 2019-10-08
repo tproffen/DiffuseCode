@@ -9,11 +9,13 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-162,IO=7)
+      PARAMETER    (IU=-164,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -161) /                          &
+     &  'Values on ncell in header < 1 ',                & !-164 ! discus
+     &  'Error reading NCELL instruction',               & !-163 ! discus
      &  'NATOMS /= Unit_cells * atoms_per_unit_cell',    & !-162 ! discus
      &  'Unknown non-standard setting             '      & !-161 ! discus
      &  /

@@ -1313,9 +1313,9 @@ CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara   ! (maxw)
 CHARACTER(LEN=1024)                  :: string 
 INTEGER            , DIMENSION(MAXW) :: lpara   ! (maxw) 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: wwerte  ! (maxw) 
-INTEGER                              :: i, j ,isok
+INTEGER                              :: i, j ,isok, jj
 INTEGER                              :: ianz 
-INTEGER                              :: ios 
+INTEGER                              :: ios , ios_grand
 INTEGER                              :: laenge
 INTEGER, SAVE                        :: col_x      = 1 
 INTEGER, SAVE                        :: col_y      = 2 
@@ -1332,6 +1332,7 @@ INTEGER, SAVE                        :: col_surfl  = 0
 LOGICAL                              :: lcalc     ! Flag if calculation is needed
 !
 IF(line(1:1)=='!' .OR. line(1:1)=='#' .OR. IACHAR(line(1:1))==9 .OR. line==' ') RETURN
+!
 !
 ! Determine sequence of parameters on the atom line
 !
@@ -1428,12 +1429,18 @@ ELSE params
             cpara(col_surft) = '0'
          ENDIF
          IF(lcalc) THEN    ! We need to calculate the parameter value
+            ios = 0
+            ios_grand = 0
             DO j = 1, ianz 
+               READ(cpara(j),*,IOSTAT=ios ) wwerte(j)
+               ios_grand = MAX(ios_grand, ABS(ios))
                string = '(1.0*'//cpara (j) (1:lpara (j) ) //')' 
                cpara (j) = string 
                lpara (j) = lpara (j) + 6 
             ENDDO 
-            CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
+            IF(ios_grand/=0) THEN
+               CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
+            ENDIF
             IF (ier_num.ne.0) then 
                ier_msg (1) = 'Error calculating atom  ' 
                ier_msg (2) = 'coordinates for atom '//line (1:ibl) 
@@ -2294,7 +2301,7 @@ cr_occ(:) = 1.0   !! WORK OCC
          ELSEIF (str_comp (befehl, 'ncell', 1, lbef, 5) ) then 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ier_num.eq.0) then 
-               IF (ianz.eq.4 .or. ianz==5) then    ! allow for number of atoms on ncell command
+               IF (ianz.eq.4 .or. ianz==5 .OR. ianz==9) then    ! allow for number of atoms on ncell command
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.eq.0) then 
                      DO j = 1, 3 
@@ -2558,6 +2565,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
             cr_surf(:,cr_natoms+1) = 0
             CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
                  AT_MAXP, at_ianz, at_param, at_init)
+
             IF (ier_num.ne.0.and.ier_num.ne. - 49) then 
                GOTO 999 
             ENDIF 
@@ -5190,6 +5198,7 @@ USE precision_mod
       REAL                , DIMENSION(1024), SAVE :: occs
       INTEGER                               :: ios
       INTEGER                               :: i
+      INTEGER                               :: iblk
       INTEGER                               :: ianz   ! no of arguments
       INTEGER                               :: laenge ! length of input line
       INTEGER                               :: lp     ! length of parameter string
@@ -5221,6 +5230,7 @@ REAL                                 :: occ
       nscattypes = 0
       nadptypes  = 0
       nocctypes  = 0
+iblk = 0
       IF ( init == -1 ) then
         names(:)  = ' '
         bvals(:)  = 0.0
@@ -5249,10 +5259,12 @@ header: DO
         ENDIF
         IF (line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
             line == CHAR (13) )  CYCLE header
-        CALL do_cap (line(1:4))
-        laenge = len_str(line)
+        laenge = LEN_TRIM(LINE)
+        iblk = INDEX(line, ' ')
+        CALL do_cap (line(1:iblk))
+!        laenge = len_str(line)
         IF ( laenge .gt. 4 ) then
-           zeile = line(5:laenge)
+           zeile = line(iblk+1:laenge)
            lp    = laenge - 4
         ELSE
            zeile = ' '
@@ -5347,6 +5359,42 @@ header: DO
                   RETURN
                ENDIF
             ENDIF
+        ELSEIF (line(1:5) == 'NCELL' ) then 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF (ier_num.eq.0) then 
+               werte = 0.0
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.eq.0) then 
+                  DO i = 1,ianz
+                      IF(werte(i)<0.0 ) THEN
+                         ier_num = -164
+                         ier_typ = ER_APPL
+                         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+                         CLOSE(99)
+                         RETURN
+                      ENDIF
+                  ENDDO
+                  IF(ianz>=5) THEN
+                     natoms = werte(5)
+                  ENDIF
+                  ntypes = werte(6)
+                  n_mole = werte(7)
+                  n_type = werte(8)
+                  n_atom = werte(9)
+               ELSE
+                  ier_num = -163
+                  ier_typ = ER_APPL
+                  ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+                  CLOSE(99)
+                  RETURN
+               ENDIF
+            ELSE
+               ier_num = -163
+               ier_typ = ER_APPL
+               ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+               CLOSE(99)
+               RETURN
+            ENDIF
         ENDIF
         IF (line(1:4) == 'ATOM') THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -5377,6 +5425,18 @@ header: DO
       ENDIF
 !
       ntypes = MAX(ntypes,nscattypes)
+!
+IF(natoms>0) THEN
+   IF(ntypes>0) THEN
+      IF(n_mole>0) THEN
+         n_type = MAX(n_type,1)  ! Ensure values are NOT zero
+         n_atom = MAX(n_atom,1)
+      ENDIF
+      CLOSE(99)
+      RETURN
+   ENDIF
+ENDIF
+!
       l_type = .FALSE.
 !
 main: DO
