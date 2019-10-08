@@ -105,6 +105,21 @@ CHARACTER (LEN=*), INTENT(IN) :: zeile
    END SUBROUTINE suite_top
 END INTERFACE
 !
+INTERFACE
+   SUBROUTINE diffev_loop_mpi(prog_n, prog_l, mac_n, mac_l, out_n, out_l, repeat, nindiv)
+!
+CHARACTER (LEN=*), INTENT(IN) :: prog_n
+CHARACTER (LEN=*), INTENT(IN) :: mac_n
+CHARACTER (LEN=*), INTENT(IN) :: out_n
+INTEGER          , INTENT(IN) :: prog_l
+INTEGER          , INTENT(IN) :: mac_l
+INTEGER          , INTENT(IN) :: out_l
+LOGICAL          , INTENT(IN) :: repeat
+INTEGER          , INTENT(IN) :: nindiv
+!
+   END SUBROUTINE diffev_loop_mpi
+END INTERFACE
+!
 !
 p_mache_kdo         => suite_mache_kdo
 p_errlist_appl      => suite_errlist_appl
@@ -115,6 +130,7 @@ p_calc_intr_log_spec=> suite_calc_intr_log_spec
 p_validate_var_spec => suite_validate_var_spec
 p_top               => suite_top
 p_get_var_type      => suite_get_var_type
+p_loop_mpi          => diffev_loop_mpi
 !
 END SUBROUTINE suite_set_sub
 !
