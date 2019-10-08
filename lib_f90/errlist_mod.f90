@@ -42,7 +42,7 @@ MODULE errlist_mod
    INTEGER, PARAMETER :: ER_S_EXIT =  1
    INTEGER, PARAMETER :: ER_S_LIVE = -1
 !
-   CHARACTER(LEN= 80), DIMENSION(3) :: ier_msg
+   CHARACTER(LEN= 80), DIMENSION(6) :: ier_msg
    CHARACTER(LEN= 80) :: ier_out
    INTEGER            :: ier_num   = 0
    INTEGER            :: ier_typ   = ER_NONE
@@ -52,7 +52,7 @@ MODULE errlist_mod
    LOGICAL            :: ier_rep   = .FALSE.
    LOGICAL            :: ier_mpi   = .FALSE.
 !
-   CHARACTER(LEN= 80), DIMENSION(3) :: ier_msg_tmp
+   CHARACTER(LEN= 80), DIMENSION(6) :: ier_msg_tmp
    INTEGER            :: ier_num_tmp   = 0
    INTEGER            :: ier_typ_tmp   = ER_NONE
 !
