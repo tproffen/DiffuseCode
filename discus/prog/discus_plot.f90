@@ -576,6 +576,9 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         IF(operating=='Linux') THEN                      
                            tempfile = '/tmp/which_jmol'
                            line = 'which jmol > /tmp/which_jmol'
+                        ELSEIF(operating=='Linux_WSL') THEN                      
+                           tempfile = '/tmp/which_jmol'
+                           line = 'which jmol > /tmp/which_jmol'
                         ELSEIF(operating=='Windows') THEN                      
                            tempfile = '/tmp/which_jmol'
                            line = 'which java > /tmp/which_jmol'
@@ -1282,6 +1285,9 @@ IF(pl_prog=='jmol') THEN
       IF(operating=='Linux') THEN
          WRITE(line,'(a,i8,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2}'' >> /tmp/jmol.pid'
          CALL system(line)
+      ELSEIF(operating=='Linux_WSL') THEN
+         WRITE(line,'(a,i8,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2}'' >> /tmp/jmol.pid'
+         CALL system(line)
       ELSEIF(operating(1:6)=='darwin') THEN
          WRITE(line,'(a,i8,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2}'' >> /tmp/jmol.pid'
          CALL system(line)
@@ -1422,16 +1428,21 @@ IF(pl_prog=='jmol') THEN
 !
    IF(operating=='Linux') THEN
       tempfile = '/tmp/jmol.mol'
+   ELSEIF(operating=='Linux_WSL') THEN
+      tempfile = '/tmp/jmol.mol'
    ELSEIF(operating(1:6)=='darwin') THEN
       tempfile = '/tmp/jmol.mol'
    ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
       tempfile = '/opt/jmol/jmol.mol'
    ENDIF
    CALL oeffne( ITMP, tempfile, 'unknown')
-   IF(operating=='Linux'.OR.operating(1:6)=='darwin') THEN
+   IF(operating=='Linux'.OR.operating(1:6)=='darwin' .OR. &
+      operating=='Linux_WSL'                             ) THEN
 !
 !     Write load command, enclose file name in apostrophes to cover 
 !     blanks in filenemes
+      i=LEN_TRIM(current_dir)
+      IF(current_dir(i:i) /= '/') current_dir(i+1:i+1)='/'
       WRITE(ITMP,'(3a)') 'load ''',                  &
          current_dir(1:LEN_TRIM(current_dir))//      &
          pl_out(1:LEN_TRIM(pl_out)), ''' {1 1 1}'
@@ -1539,6 +1550,9 @@ IF(pl_prog=='jmol') THEN
    WRITE(ITMP,'(a,i3,a,i3,a,i3,a)') 'background [',pl_back(1),',' , pl_back(2),',', pl_back(3),']'
    CLOSE(ITMP)
    IF(operating=='Linux') THEN
+      WRITE(line,'(a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s ',&
+            tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
+   ELSEIF(operating=='Linux_WSL') THEN
       WRITE(line,'(a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
    ELSEIF(operating(1:6)=='darwin') THEN
