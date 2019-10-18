@@ -2450,7 +2450,7 @@ loop_plane: DO ip = 1, rmc_nplane
          lxray = rmc_lxray (ip) 
          ldbw = rmc_ldbw (ip) 
 !                                                                       
-         CALL four_formtab 
+         CALL four_formtab
          DO i = 1, cr_nscat 
          DO j = 0, CFPKT 
          rcfact (j, i, ip) = cfact (j, i) 

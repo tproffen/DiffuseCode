@@ -49,7 +49,7 @@ CONTAINS
       CALL four_cexpt 
       CALL four_stltab 
       IF (ier_num.ne.0) return 
-      CALL four_formtab 
+      CALL four_formtab
       CALL four_csize (cr_icc, csize, lperiod, ls_xyz) 
       CALL four_aver (ilots, fave, csize) 
 !                                                                       
@@ -652,34 +652,34 @@ CONTAINS
  1000 FORMAT     (' Computing sin(theta)/lambda table ...') 
       END SUBROUTINE four_stltab                    
 !*****7*****************************************************************
-      SUBROUTINE four_formtab 
+SUBROUTINE four_formtab
 !+                                                                      
 !     This routine sets up the complex formfactor lookup table          
 !     for all atom types. The range in sin(theta)/lambda is             
 !     0 -> 2 in steps of 0.001. These values can be changed             
 !     in the 'diffuse_mod.f90' file.                                        
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE diffuse_mod 
+USE discus_config_mod 
+USE crystal_mod 
+USE diffuse_mod 
 !                                                                       
-      USE prompt_mod 
-      USE precision_mod
-      IMPLICIT none 
-       
+USE prompt_mod 
+USE precision_mod
+!
+IMPLICIT none 
+!
 !                                                                       
-      REAL                :: q2
-      REAL (KIND=PREC_DP) :: sb, sf, sfp, sfpp 
-      INTEGER iq, iscat 
+REAL                :: q2
+REAL (KIND=PREC_DP) :: sb, sf, sfp, sfpp 
+REAL (KIND=PREC_DP) :: dw
+INTEGER iq, iscat 
 !                                                                       
-!     REAL form 
+IF (four_log) then 
+   WRITE (output_io, 1000) 
+ENDIF 
 !                                                                       
-      IF (four_log) then 
-         WRITE (output_io, 1000) 
-      ENDIF 
-!                                                                       
-      DO iscat = 1, cr_nscat 
-      DO iq = 0, CFPKT 
+DO iscat = 1, cr_nscat 
+   DO iq = 0, CFPKT 
       q2 = REAL((REAL (iq, KIND=KIND(0.0D0)) * CFINC) **2 , KIND=KIND(0.0E0))
       sf = DBLE(form (iscat, cr_scat, lxray, q2, diff_power) )
 !                                                                       
@@ -699,11 +699,11 @@ CONTAINS
 !                                                                       
       cfact     (iq, iscat) = cmplx (sb * (sf + sfp), sb * sfpp, KIND=KIND(0.0D0)) 
       cfact_pure(iq, iscat) = cmplx (     (sf + sfp),      sfpp, KIND=KIND(0.0D0)) 
-      ENDDO 
-      ENDDO 
+   ENDDO 
+ENDDO 
 !                                                                       
  1000 FORMAT     (' Computing formfactor lookup table ...') 
-      END SUBROUTINE four_formtab                   
+END SUBROUTINE four_formtab                   
 !*****7*****************************************************************
       SUBROUTINE four_qinfo 
 !+                                                                      

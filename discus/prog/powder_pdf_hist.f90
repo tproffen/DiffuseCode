@@ -273,7 +273,7 @@ IF (ier_num /= 0) THEN
    DEALLOCATE(histogram)
    RETURN
 ENDIF
-CALL four_formtab 
+CALL four_formtab
 !
 WRITE (output_io, * ) ' Starting histogram' 
 ss = seknds (0.0) 
@@ -730,7 +730,7 @@ ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN
    CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
 ENDIF
 IF (ier_num.ne.0) RETURN 
-CALL four_formtab 
+CALL four_formtab
 !
 WRITE (output_io, * ) ' Starting histogram'
 ss = seknds (0.0) 

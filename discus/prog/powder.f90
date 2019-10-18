@@ -535,7 +535,7 @@ LOGICAL, EXTERNAL :: str_comp
 !     REAL cosd 
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
-IF (ier_num.eq.0) then 
+err_para: IF (ier_num.eq.0) then 
          IF (str_comp (cpara (1) , 'axis', 2, lpara (1) , 4) ) then 
             IF (ianz.eq.2) then 
                IF (str_comp (cpara (2) , 'dstar', 1, lpara (2) , 5) )   &
@@ -1139,13 +1139,13 @@ IF (ier_num.eq.0) then
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSE 
-            ier_num = - 8 
-            ier_typ = ER_COMM 
-         ENDIF 
-      ENDIF 
+   ELSE 
+      ier_num = - 8 
+      ier_typ = ER_COMM 
+   ENDIF 
+ENDIF err_para
 !                                                                       
-      END SUBROUTINE do_pow_set                     
+END SUBROUTINE do_pow_set                     
 !*****7*****************************************************************
 SUBROUTINE powder_run 
 !-                                                                      
@@ -1356,7 +1356,7 @@ END SUBROUTINE powder_run
          rept_f2aver = .false.
       ENDIF
       CALL four_cexpt 
-      CALL four_formtab 
+      CALL four_formtab
       CALL powder_getatoms 
 !                                                                       
 !     calculate global limits along h                                   
@@ -2074,7 +2074,6 @@ END SUBROUTINE powder_run
 !------ preset some tables, calculate average structure                 
 !                                                                       
       CALL four_stltab 
-!DBG      call four_formtab                                             
       IF (ier_num.ne.0) return 
       lbeg (1) = 1 
       lbeg (2) = 1 

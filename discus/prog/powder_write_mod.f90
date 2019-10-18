@@ -68,6 +68,8 @@ REAL(KIND=PREC_DP) :: rmin, rmax, rstep
 INTEGER            :: npkt_pdf
 REAL, DIMENSION(:), ALLOCATABLE :: xfour
 REAL, DIMENSION(:), ALLOCATABLE :: yfour
+!
+REAL :: sigma   ! sigma for PDF COrrlin correction
 !                                                                       
 !
 npkt_fft = 2**18
@@ -175,14 +177,7 @@ IF (ier_num /= 0) THEN
    DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
    RETURN
 ENDIF
-!open(77,file='POWDER/after_conv.FQ',status='unknown')
-!DO ii=0,npkt
-!  write(77,'(2(2x,G17.7E3))') pow_qmin+ii*pow_deltaq, pow_conv(ii)
-!enddo
-!close(77)
-!write(*,*) 'POW_CONV ', minval(pow_conv), maxval(pow_conv), lbound(pow_conv), ubound(pow_conv)
-!write(*,*) 'f2aver   ', minval(pow_f2aver), maxval(pow_f2aver), lbound(pow_f2aver), ubound(pow_f2aver)
-!write(*,*) 'faver2   ', minval(pow_faver2), maxval(pow_faver2), lbound(pow_faver2), ubound(pow_faver2)
+!
 IF(value == val_f2aver) THEN          ! Output is f^2 aver
    DO j = 0, npkt
       pow_tmp (j) = REAL(pow_f2aver(j))
@@ -287,8 +282,16 @@ ELSEIF (pow_four_type.eq.POW_DEBYE) THEN  copy
       ypl(ii) = pow_tmp(ii) * lp
    ENDDO 
 ENDIF  copy
-!write(*,*) 'POW_tmp  ', minval(pow_tmp), maxval(pow_tmp), lbound(pow_tmp), ubound(pow_tmp)
 !
+IF(value == val_pdf) THEN   ! Divide by average Debye-Waller term
+   IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
+   IF(pow_axis.eq.POW_AXIS_Q) THEN
+      DO ii=1, npkt
+         ypl(ii) = ypl(ii)/EXP(-pow_u2aver*xpl(ii)**2)
+      ENDDO
+   ENDIF
+   ENDIF
+ENDIF        ! Output is if_block if(value==val_f2aver)
 lpscale = 1.0
 !
 !     Prepare S(Q) or F(Q)
@@ -330,7 +333,7 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
                           pow_f2aver(j)/pow_faver2(j))
             ENDDO
          ENDIF
-      ELSEIF(value == val_fq .OR. value == val_pdf) THEN  valq ! Calc F(Q)IF
+      ELSEIF(value == val_fq) THEN  valq                       ! Calc F(Q)IF
          IF(deb_conv .OR. .NOT.ldbw) THEN                      ! DEBYE was done with convolution of ADP
             DO j = 1, npkt   
                q = ((j-1)*xdel + xmin)
@@ -344,6 +347,31 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
                                - exp(-q**2*pow_u2aver)   *  &
                           pow_f2aver(j)/pow_faver2(j)) * q
             ENDDO
+         ENDIF
+      ELSEIF(value == val_pdf) THEN  valq                      ! Calc PDF IF
+         IF(deb_conv .OR. .NOT.ldbw) THEN                      ! DEBYE was done with convolution of ADP
+            DO j = 1, npkt   
+               q = ((j-1)*xdel + xmin)
+               ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+                          -pow_f2aver(j)/pow_faver2(j)) * q
+            ENDDO
+         ELSE
+            IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
+               DO j = 1, npkt   
+                  q = ((j-1)*xdel + xmin)
+                  ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+                             - 1.0 *                                 &
+                             pow_f2aver(j)/pow_faver2(j)) * q
+!                                 - exp(-q**2*pow_u2aver)   *  &
+               ENDDO
+            ELSE
+               DO j = 1, npkt   
+                  q = ((j-1)*xdel + xmin)
+                  ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+                             - exp(-q**2*pow_u2aver)   *  &
+                             pow_f2aver(j)/pow_faver2(j)) * q
+               ENDDO
+            ENDIF
          ENDIF
       ELSEIF(value == val_iq) THEN   valq              ! Calc F(Q)IF
          lpscale = 1.0
@@ -474,13 +502,6 @@ rmax     = out_user_values(2)
                   pow_qmax   = REAL(zpi)*2/rlambda*sind(xmax)
                   pow_deltaq = xpl(npkt)-xpl(npkt-1)
                ENDIF
-!              IF(out_user_limits) THEN                     ! User provided values
-!                 pow_deltaq = PI/out_user_values(3)/npkt_fft
-!              ELSE
-!                 pow_deltaq = PI*100/npkt_fft
-!              ENDIF
-!              pow_qmin = (INT((pow_qmin+0.1*pow_deltaq)/pow_deltaq) + 1)*pow_deltaq
-!              pow_qmax = (INT((pow_qmax-0.1*pow_deltaq)/pow_deltaq) - 1)*pow_deltaq
             ELSE                                            ! Set limits for powder pattern
                IF(out_user_limits) THEN                     ! User provided values
                   pow_qmin   = out_user_values(1)
@@ -580,33 +601,23 @@ rmax     = out_user_values(2)
             rstep    = pdf_deltaru
             npkt_pdf = (NINT(rmax-rmin)/pdf_deltaru) + 1
          ENDIF
-!write(*,*) 'PRAE FFT s', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf
-!write(*,*) 'PRAE min  ', REAL(NINT(rmin/rstep)*rstep, KIND=PREC_DP)
-!write(*,*) 'PRAE max  ', REAL(NINT(rmax/rstep)*rstep, KIND=PREC_DP)
          rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
-!write(*,*) 'PRAE stp  ', REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
-!write(*,*) 'PRAE min  ', REAL(NINT(rmin/rstep)*rstep, KIND=PREC_DP)
-!write(*,*) 'PRAE max  ', REAL(NINT(rmax/rstep)*rstep, KIND=PREC_DP)
-!write(*,*) 'PRAE FFT s', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf
+!
          ALLOCATE(xfour(1:npkt_pdf))
          ALLOCATE(yfour(1:npkt_pdf))
-!open(77,file='POWDER/prae_write.FQ',status='unknown')
-!DO ii=1,npkt_wrt
-!  write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
-!enddo
-!close(77)
-!         CALL four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
-!open(77,file='POWDER/prae.FQ',status='unknown')
-!DO ii=1,npkt_wrt
-!  write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
-!enddo
-!close(77)
-!open(77,file='POWDER/explcit.PDF',status='unknown')
+!
+         CALL  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
+!open(77,file='POWDER/prae_corrlin.PDF',status='unknown')
 !DO ii=1,npkt_pdf
 !  write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
 !enddo
 !close(77)
-         CALL  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
+         sigma = 2.0*pow_u2aver                    ! TO BE REPLACED BY ATOMIC B VALUE
+         IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
+            CALL powder_conv_corrlin(yfour, REAL(rmin),REAL(rmax), REAL(rstep),   &
+                                     sigma, pdf_clin_a, pdf_cquad_a, pow_width,   &
+                                     POW_MAXPKT)
+         ENDIF
          DEALLOCATE(xwrt)
          DEALLOCATE(ywrt)
          ALLOCATE(xwrt(1:npkt_pdf))
@@ -733,7 +744,6 @@ DO j=1,npkt
    pow_tmp_sum = pow_tmp_sum + pow_conv(j)
    if(pow_conv(j) == 0.0) nzero = nzero + 1
 ENDDO
-write(*,*) ' CONV zero, total ', nzero, npkt
 !lconv = .FALSE.
 IF (pow_profile == POW_PROFILE_GAUSS) THEN 
    IF (pow_delta.gt.0.0) THEN 
@@ -1663,7 +1673,102 @@ END SUBROUTINE powder_conv_psvgt_uvw_asymt
       ENDDO 
 !                                                                       
       END SUBROUTINE powder_conv_psvgt_uvw_Qscale   
+!
 !*****7*****************************************************************
+!
+SUBROUTINE powder_conv_corrlin   (dat, tthmin, tthmax, dtth, sigma2, &
+      corrlin, corrquad,     pow_width, POW_MAXPKT)
+!-
+!     Convolute PDF with Gaussian function 
+!     FWHM = (sigma**2 - corrlin/r)
+!+
+USE discus_config_mod 
+!
+USE gauss_lorentz_pseudo_mod
+USE trig_degree_mod
+USE wink_mod
+!
+IMPLICIT none 
+!
+INTEGER, INTENT(IN) :: POW_MAXPKT
+REAL   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat       ! Data to be convoluted
+REAL                            , INTENT(IN)    :: tthmin    ! 2Theta min
+REAL                            , INTENT(IN)    :: tthmax    ! 2Theta max
+REAL                            , INTENT(IN)    :: dtth      ! 2Theta step
+REAL                            , INTENT(IN)    :: sigma2    ! Gaussian Sigma^2
+REAL                            , INTENT(IN)    :: corrlin   ! 1/r deppendend width correction
+REAL                            , INTENT(IN)    :: corrquad  ! 1/r^2 deppendend width correction
+REAL                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
+!
+REAL(KIND=PREC_DP), PARAMETER :: four_ln2  = 2.772588722239781237669D0
+REAL(KIND=PREC_DP), PARAMETER :: eightln2  = 2.772588722239781237669D0 * 2.0D0
+!
+REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
+REAL, DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
+REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
+REAL                          :: tantth   ! tan(Theta)
+REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
+INTEGER :: imax, i, j, ii  ! Dummy loop indices
+INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
+REAL    :: pseudo          ! scale factor for lookup table
+INTEGER :: max_ps 
+!                                                                       
+!------ Now convolute                                                   
+!                                                                       
+imax = INT( (tthmax - tthmin) / dtth )
+!
+eta = 0.0     ! Gaussian function
+dummy = 0.0   ! dummy(:)
+tth = 2.5000
+!fwhm = SQRT(MAX(sigma2 - corrlin/tth - corrquad/tth**2, 0.00001))*SQRT(eightln2)
+!write(*,*) ' FWHM 2.500 ',tth, fwhm 
+!tth = 4.8000
+!fwhm = SQRT(MAX(sigma2 - corrlin/tth - corrquad/tth**2, 0.00001))*SQRT(eightln2)
+!write(*,*) ' FWHM 2.500 ',tth, fwhm 
+!tth = tthmax
+!fwhm = SQRT(MAX(sigma2 - corrlin/tth - corrquad/tth**2, 0.00001))*SQRT(eightln2)
+!write(*,*) ' FWHM FINAL ',tth, fwhm 
+main_pts: DO i = 0, imax 
+   tth = tthmin + i * dtth 
+   IF(tth<0.5) THEN
+      dummy(i) = dat(i)
+      cycle main_pts
+   ENDIF
+!
+   fwhm = SQRT(MAX(sigma2 - corrlin/tth -corrquad/tth**2, 0.00001))*SQRT(eightln2)
+!
+   max_ps = INT((pow_width * fwhm) / dtth )
+   pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
+   i1 = 0                               ! == 0 * dtth
+   i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
+   dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)  &
+                          -glp_pseud_indx(i2, eta, fwhm))                             
+!
+   ii = MAX (i - 1 - max_ps + 1, 1) 
+   first:DO j = ii, i - 1 
+      i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * dtth
+      i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * dtth
+      dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
+                                     -glp_pseud_indx(i2, eta, fwhm))                    
+   ENDDO first
+!
+   ii = MIN(i + 1 + max_ps - 1, imax) 
+   secnd: DO j = i + 1, ii 
+      i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * dtth
+      i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * dtth
+      dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
+                                     -glp_pseud_indx(i2, eta, fwhm))
+   ENDDO secnd
+ENDDO main_pts
+!                                                                       
+DO i = 0, imax 
+   dat (i) = dummy (i) * dtth   ! scale with stepwidth
+ENDDO 
+!                                                                       
+END SUBROUTINE powder_conv_corrlin          
+!
+!*****7*****************************************************************
+!
       REAL function pseudovoigt (dtth, eta, fwhm) 
 !-                                                                      
 !     calculates the value of a pseudo-voigt function at dtth off the   
@@ -1742,10 +1847,10 @@ INTEGER :: iscat
 INTEGER :: i
 REAL( KIND(0.0D0))             :: signum
 !!!
-pow_f2aver(:) = 0.0D0
-pow_faver2(:) = 0.0D0
-pow_u2aver    = 0.0
-pow_nreal     = 0
+pow_f2aver(:)    = 0.0D0
+pow_faver2(:)    = 0.0D0
+pow_u2aver       = 0.0
+pow_nreal        = 0
 !
 !     Prepare and calculate average atom numbers
 !
@@ -1771,7 +1876,7 @@ DO iscat = 1, cr_nscat
                * natom (iscat)/pow_nreal                           &
                * signum
    ENDDO
-   pow_u2aver = pow_u2aver + cr_dw(iscat) * natom (iscat)/pow_nreal
+   pow_u2aver = pow_u2aver + (cr_dw(iscat)) * natom (iscat)/pow_nreal
 ENDDO
 pow_faver2(:) = pow_faver2(:)**2
 pow_u2aver    = pow_u2aver /8./REAL(pi)**2

@@ -2170,7 +2170,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !------ ------Load form factor tables                                   
 !                                                                       
-            CALL four_formtab 
+            CALL four_formtab
 !                                                                       
 !------ ------zero some arrays                                          
 !                                                                       
@@ -2510,7 +2510,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !------ ------Load form factor tables                                   
 !                                                                       
-            CALL four_formtab 
+            CALL four_formtab
 !                                                                       
 !------ ------loop over all different atom types                        
 !                                                                       

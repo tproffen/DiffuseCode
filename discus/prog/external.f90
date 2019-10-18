@@ -44,7 +44,7 @@ CONTAINS
       CALL four_cexpt 
       CALL four_stltab 
       IF (ier_num.ne.0) return 
-      CALL four_formtab 
+      CALL four_formtab
 !                                                                       
 !     Loop over all molecules in the crystal                            
 !                                                                       
