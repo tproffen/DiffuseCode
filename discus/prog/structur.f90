@@ -1432,7 +1432,7 @@ ELSE params
             ios = 0
             ios_grand = 0
             DO j = 1, ianz 
-               READ(cpara(j),*,IOSTAT=ios ) wwerte(j)
+               READ(cpara(j),'(f8.6)',IOSTAT=ios ) wwerte(j)
                ios_grand = MAX(ios_grand, ABS(ios))
                string = '(1.0*'//cpara (j) (1:lpara (j) ) //')' 
                cpara (j) = string 
