@@ -5977,6 +5977,20 @@
    defined by ==> 'dh', 'dk', 'dl'. Alternatively, the switch "debye"
    will tell DISCUS to calculate the powder pattern by using the 
    Debye formula. For details see the user manual.
+4  corrlin
+!b set corrlin, <value>
+
+   Active for PDF calculations only. 
+   The parameter corrlin allows to sharpen the width of interatomic
+   distances at short values with an 1/r dependence.
+   sigma^2(thermal) - <value>/r
+4  corrquad
+!b set corrquad, <value>
+
+   Active for PDF calculations only. 
+   The parameter corrquad allows to sharpen the width of interatomic
+   distances at short values with an 1/r^2 dependence.
+   sigma^2(thermal) - <value>/r^2
 4  delta
 !b set delta,<res>
 
