@@ -188,6 +188,11 @@ ELSE  is_math
    ELSEIF (str_comp (befehl, 'newparam', 3, lbef, 8) ) THEN  is_befehl
       CALL refine_add_param(zeile, length)
 !                                                                 
+!     -- reset to system start 'reset'
+!                                                                 
+   ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5) ) THEN is_befehl
+      CALL refine_do_reset
+!                                                                 
 !     -- set the name of a refinement parameter                   
 !                                                                 
    ELSEIF (str_comp (befehl, 'run', 3, lbef, 3) ) THEN is_befehl
