@@ -301,7 +301,7 @@ USE precision_mod
             IF (ianz.eq.1) then 
                CALL rese_cr 
                sav_r_ncell = .false. 
-               strucfile = cpara (1)
+               strucfile = cpara (1)(1:lpara(1))
                CALL do_readstru(strucfile)
                IF(ier_num /= 0) THEN
                   IF(ier_msg(3) == ' ') THEN
@@ -436,7 +436,7 @@ LOGICAL :: str_comp
             IF (ianz.ge.1) then 
                cr_newtype = str_comp (befehl, 'cell', 1, lbef, 4) 
                CALL rese_cr 
-               strucfile = cpara (1) 
+               strucfile = cpara(1) (1:lpara(1))
                IF (ier_num.eq.0) then 
 !                                                                       
 !     --------if necessary get crystal size                             
@@ -1311,9 +1311,10 @@ LOGICAL                             , INTENT(INOUT) :: at_init
 !                                                                       
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara   ! (maxw) 
 CHARACTER(LEN=1024)                  :: string 
+CHARACTER(LEN=15)                    :: fff
 INTEGER            , DIMENSION(MAXW) :: lpara   ! (maxw) 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: wwerte  ! (maxw) 
-INTEGER                              :: i, j ,isok, jj
+INTEGER                              :: i, j ,isok, jj, k
 INTEGER                              :: ianz 
 INTEGER                              :: ios , ios_grand
 INTEGER                              :: laenge
@@ -1430,17 +1431,20 @@ ELSE params
          ENDIF
          IF(lcalc) THEN    ! We need to calculate the parameter value
             ios = 0
-            ios_grand = 0
-            DO j = 1, ianz 
-               READ(cpara(j),'(f8.6)',IOSTAT=ios ) wwerte(j)
-               ios_grand = MAX(ios_grand, ABS(ios))
-               string = '(1.0*'//cpara (j) (1:lpara (j) ) //')' 
-               cpara (j) = string 
-               lpara (j) = lpara (j) + 6 
-            ENDDO 
-            IF(ios_grand/=0) THEN
-               CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
-            ENDIF
+            calc: DO j = 1, ianz 
+               IF(j==col_prop .OR. j==col_moleno  .OR. j==col_moleat .OR. &
+                  j==col_surfh.OR. j==col_surfk   .OR. j==col_surfl ) THEN
+                  READ(cpara(j)(1:lpara(j)),*,err=1111, end=1111,IOSTAT=ios ) jj
+                  wwerte(j) = REAL(jj)
+               ELSE   
+                  READ(cpara(j),'(f8.5)',err=1111, end=1111,IOSTAT=ios ) wwerte(j)
+               ENDIF
+1111              CONTINUE
+               IF(ios/=0) THEN
+                  CALL ber_param  (j   , cpara, lpara, wwerte, maxw) 
+                  IF(ier_num/=0) EXIT calc
+               ENDIF
+            ENDDO  calc
             IF (ier_num.ne.0) then 
                ier_msg (1) = 'Error calculating atom  ' 
                ier_msg (2) = 'coordinates for atom '//line (1:ibl) 
