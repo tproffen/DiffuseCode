@@ -85,7 +85,7 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
 !write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(zeile),nmask)
 !write(*,*) '         123456789 123456789 1234567890'
 !write(*,'(1x,a,2i8)') '        ', ianf, var_l(i)
-      IF(var_entry(i)>0) CYCLE names        ! This is a variable field
+      IF(var_entry(i)>0) EXIT names        ! This is a variable field
       zeile = ' ' 
       iend = ianf + var_l (i) - 1 
       IF (ianf.gt.1) THEN
