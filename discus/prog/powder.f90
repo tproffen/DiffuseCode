@@ -23,6 +23,7 @@ CONTAINS
       USE powder_mod 
 USE powder_write_mod 
 USE powder_pdf_hist_mod
+USE pdf_mod
       USE discus_show_menu
 !
       USE calc_expr_mod
@@ -147,6 +148,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_power) 
                   IF (ier_num.eq.0) then 
+                     pow_qmin_u = pow_qmin   !! save user values
+                     pow_qmax_u = pow_qmax
+                     pow_deltaq_u=pow_deltaq
+!                     IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN  
+!                        pow_qmax   = MAX(30.0D0,pow_qmax*1.1D0)
+!                     ENDIF
                      IF(pow_four_type.eq.POW_DEBYE) then 
                         CALL pow_pdf_hist
                      ELSE
@@ -161,6 +168,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            four_last = POWD_CO
                         ENDIF 
                      ENDIF 
+                     pow_qmax = pow_qmax_u ! Restore user settings
                   ENDIF 
 !                                                                       
 !     ----show current parameters 'show'                                
@@ -515,6 +523,7 @@ USE get_params_mod
 USE precision_mod
 USE trig_degree_mod
 USE string_convert_mod
+USE take_param_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -523,6 +532,19 @@ INTEGER, PARAMETER :: MAXW = 7
 CHARACTER(LEN=*), INTENT(INOUT) :: zeile 
 INTEGER         , INTENT(INOUT) :: lcomm 
 !                                                                       
+INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: O_RCUT    = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+!
+DATA oname  / 'rcut' /
+DATA loname /  4     /
+!
 CHARACTER(LEN=1024)  :: cpara (MAXW) 
 CHARACTER(LEN=1024) :: symbol
 INTEGER :: lpara (MAXW) 
@@ -534,8 +556,15 @@ REAL(KIND=PREC_DP) :: werte (MAXW)
 LOGICAL, EXTERNAL :: str_comp 
 !     REAL cosd 
 !                                                                       
+opara  =  (/ '0.0000'/)   ! Always provide fresh default values
+lopara =  (/  6      /)
+owerte =  (/  1.0    /)
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
 err_para: IF (ier_num.eq.0) then 
+   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                     oname, loname, opara, lopara, lpresent, owerte)
+   err_opti: IF (ier_num.eq.0) then 
+!
          IF (str_comp (cpara (1) , 'axis', 2, lpara (1) , 4) ) then 
             IF (ianz.eq.2) then 
                IF (str_comp (cpara (2) , 'dstar', 1, lpara (2) , 5) )   &
@@ -610,6 +639,7 @@ err_para: IF (ier_num.eq.0) then
                CALL ber_params(ianz, cpara, lpara, werte, maxw) 
                IF(ier_num == 0) THEN 
                   pdf_clin_a = werte(2) 
+                  pdf_rcut   = owerte(O_RCUT)
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -622,6 +652,7 @@ err_para: IF (ier_num.eq.0) then
                CALL ber_params(ianz, cpara, lpara, werte, maxw) 
                IF(ier_num == 0) THEN 
                   pdf_cquad_a = werte(2) 
+                  pdf_rcut   = owerte(O_RCUT)
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -1143,6 +1174,7 @@ err_para: IF (ier_num.eq.0) then
       ier_num = - 8 
       ier_typ = ER_COMM 
    ENDIF 
+   ENDIF err_opti
 ENDIF err_para
 !                                                                       
 END SUBROUTINE do_pow_set                     

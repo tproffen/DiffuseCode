@@ -63,6 +63,10 @@ REAL      :: tthmax  ! minimum for equdistant curve
 REAL      ::   qmin  ! minimum for equdistant curve
 REAL      ::   qmax  ! maximum for equdistant curve
 REAL      :: arg
+REAL(KIND=PREC_DP) :: u2aver_scale = 2.00   ! Scale to multiply <u^2> if conversion
+!                     ! with corrlin_corrquad is needed. This increases the calculated
+!                     ! intensity actually by more than the damping by <u^2>, in oder
+!                     ! to sharpen the distances sufficiently for later broadening
 !
 REAL(KIND=PREC_DP) :: rmin, rmax, rstep
 INTEGER            :: npkt_pdf
@@ -97,9 +101,14 @@ xdel    = 0.0
 !                                                                       
 IF (pow_four_type.eq.POW_COMPL) THEN 
    IF (pow_axis.eq.POW_AXIS_Q) THEN 
-      xmin = pow_qmin 
-      xmax = pow_qmax 
-      xdel = pow_deltaq 
+      xmin = pow_qmin_u 
+      xmax = pow_qmax_u 
+!     IF(value == val_pdf) THEN
+!        IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
+!           xmax = MAX(30.0D0, pow_qmax_u*1.2D0)
+!        ENDIF
+!     ENDIF
+      xdel = pow_deltaq_u
    ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
       xmin = pow_tthmin 
       xmax = pow_tthmax 
@@ -140,6 +149,7 @@ ELSEIF (pow_four_type.eq.POW_DEBYE) THEN
    ENDIF 
    npkt = MIN(num(1), POW_MAXPKT)
 ENDIF 
+!CORR write(*,*) ' SET LIMITS ', xmin, xmax, xdel, npkt
 !
 !     Prepare average form factors for S(Q) or F(Q), Normalized Intensity, PDF, or faver2, f2aver
 !
@@ -191,6 +201,11 @@ ELSE                         ! All other output
       pow_tmp (j) = pow_conv(j)   ! copy from convoluted pattern
    ENDDO
 ENDIF           ! Output is if_block if(value==val_f2aver)
+!CORR open(77,file='POWDER/INITIAL.inte',status='unknown')
+!CORR DO ii=1,npkt
+!CORR   write(77,'(2(2x,G17.7E3))') xmin+(ii-1)*xdel, pow_tmp(ii)
+!CORR enddo
+!CORR close(77)
 !
 !------ copy the powder pattern into output array, if necessary this will be put on
 !       equidistant scale
@@ -285,12 +300,22 @@ ENDIF  copy
 !
 IF(value == val_pdf) THEN   ! Divide by average Debye-Waller term
    IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
+!open(77,file='POWDER/normal.inte',status='unknown')
+!DO ii=1,npkt
+!write(77,'(2(2x,G17.7E3))') xmin+(ii-1)*xdel, ypl(ii)
+!enddo
+!close(77)
    IF(pow_axis.eq.POW_AXIS_Q) THEN
       DO ii=1, npkt
-         ypl(ii) = ypl(ii)/EXP(-pow_u2aver*xpl(ii)**2)
+         ypl(ii) = ypl(ii)/EXP(-0.5*(pow_u2aver*u2aver_scale)*xpl(ii)**2)
       ENDDO
    ENDIF
-   ENDIF
+ENDIF
+!open(77,file='POWDER/divided.inte',status='unknown')
+!DO ii=1,npkt
+!write(77,'(2(2x,G17.7E3))') xmin+(ii-1)*xdel, ypl(ii)
+!enddo
+!close(77)
 ENDIF        ! Output is if_block if(value==val_f2aver)
 lpscale = 1.0
 !
@@ -360,9 +385,9 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
                DO j = 1, npkt   
                   q = ((j-1)*xdel + xmin)
                   ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
-                             - 1.0 *                                 &
+                             - exp(-0.00*q**2*(pow_u2aver/u2aver_scale))   *  &
                              pow_f2aver(j)/pow_faver2(j)) * q
-!                                 - exp(-q**2*pow_u2aver)   *  &
+!                            - 1.0 *                                 &
                ENDDO
             ELSE
                DO j = 1, npkt   
@@ -427,7 +452,7 @@ ENDIF prsq  !Prepare S(Q), F(Q)
 !
 rmax     = out_user_values(2)
 !
-      IF( cpow_form == 'tth' ) THEN
+IF( cpow_form == 'tth' ) THEN
          IF ( pow_axis      == POW_AXIS_Q  .or.  &        ! Non matching form, spline onto equidistant steps
               pow_four_type == POW_DEBYE            ) THEN ! DEBYE, always spline
             IF(out_user_limits .AND. value /= val_pdf) THEN ! User provided values, not for PDF
@@ -492,7 +517,7 @@ rmax     = out_user_values(2)
             ENDDO
             npkt_wrt = npkt
          ENDIF                   ! pow_axis      == ??
-      ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
+ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
          IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
              ((pow_four_type == POW_COMPL) .AND. value == val_pdf) .OR. &
               pow_four_type == POW_DEBYE              ) THEN ! DEBYE, always spline
@@ -524,6 +549,12 @@ rmax     = out_user_values(2)
                qmax =            (INT( (         xpl(npkt))/pow_deltaq) - 1)*pow_deltaq
             ELSE
                qmax = pow_qmax
+!     IF(value == val_pdf) THEN
+!        IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
+!           qmax = MAX(30.0D0, pow_qmax_u*1.2D0)
+!        ENDIF
+!CORR write(*,*) ' POINT QMAX ', qmax
+!     ENDIF
             ENDIF
             xmin =   qmin                                  ! Adjust limits needed later to cut 
             xmax =   qmax                                  ! off rounding errors
@@ -562,13 +593,13 @@ rmax     = out_user_values(2)
             ENDDO
             npkt_wrt = npkt
          ENDIF                   ! pow_axis      == ??
-      ELSE                    ! cpow_form == 
+ELSE                    ! cpow_form == 
          DO ii = 1,npkt
             xwrt(ii) = xpl(ii)
             ywrt(ii) = ypl(ii)
          ENDDO
          npkt_wrt = npkt
-      ENDIF                   ! cpow_form == 
+ENDIF                   ! cpow_form == 
 !
       cut: DO
          IF(xwrt(npkt_wrt) > xmax) THEN
@@ -582,54 +613,142 @@ rmax     = out_user_values(2)
 !
 !     Scale intensity and add a background
 !
-      IF(value==val_inten) THEN
+IF(value==val_inten) THEN
          DO ii=1,npkt_wrt
             ywrt(ii) = pow_scale*ywrt(ii)
             DO iii=0,pow_nback
                ywrt(ii) = ywrt(ii) + pow_back(iii)*xwrt(ii)**iii
             ENDDO
          ENDDO
-      ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
-         IF(out_user_limits) THEN
-            rmin     = out_user_values(1)
-            rmax     = out_user_values(2)
-            rstep    = out_user_values(3)
-            npkt_pdf = (NINT(out_user_values(2)-out_user_values(1))/out_user_values(3)) + 1
+ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
+!
+! treat for correlated motion effects
+!
+   corr_if: IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
+      IF(out_user_limits) THEN
+         rmin     = 0.50 ! out_user_values(1)
+         rmax     = out_user_values(2)*1.25
+         rstep    = out_user_values(3)
+         npkt_pdf = NINT((out_user_values(2)*1.25-0.5000000000000000)/out_user_values(3)) + 1
+!        npkt_pdf = NINT((out_user_values(2)*1.25-out_user_values(1))/out_user_values(3)) + 1
+      ELSE
+         rmin     = pdf_rminu
+         rmax     = pdf_rmaxu*1.25
+         rstep    = pdf_deltaru
+         npkt_pdf = NINT((rmax-rmin)/pdf_deltaru) + 1
+      ENDIF
+!write(*,*) 'PDF LIMITS ', rmin, rmax, rstep, npkt_pdf
+      rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
+      ALLOCATE(xfour(1:npkt_pdf))
+      ALLOCATE(yfour(1:npkt_pdf))
+      zero_last1: DO ii = npkt_wrt,2,-1
+         IF(ywrt(ii)*ywrt(ii-1)<0) THEN   ! Different signs , found zero point
+            ywrt(ii) = 0.0
+            EXIT zero_last1
+         ELSEIF(ywrt(ii)==0.0) THEN       ! Found exact zero point
+            EXIT zero_last1
          ELSE
-            rmin     = pdf_rminu
-            rmax     = pdf_rmaxu
-            rstep    = pdf_deltaru
-            npkt_pdf = (NINT(rmax-rmin)/pdf_deltaru) + 1
+            ywrt(ii) = 0.0
          ENDIF
-         rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
+      ENDDO zero_last1
+!     j = ii - 1
+!write(*,*) ' START PEAK at ', j, npkt_wrt
+!      peak_last1: DO ii = j,2, -1
+!         IF((ywrt(ii-1)-ywrt(ii))*(ywrt(ii-2)-ywrt(ii-1))<=0.0) EXIT peak_last1
+!      ENDDO peak_last1
+!      j = ii-1
+!      j = npkt_wrt - 600
+!      smooth: DO ii = j+1, npkt_wrt !+ (npkt_wrt-ii)
+!         ywrt(ii) = ywrt(j)*exp(-(REAL((ii-j))/(0.25*REAL((npkt_wrt-j )))))
+!      ENDDO smooth
+!write(*,*) 'found peak in FQ at ', xwrt(j), ywrt(j)
 !
-         ALLOCATE(xfour(1:npkt_pdf))
-         ALLOCATE(yfour(1:npkt_pdf))
-!
-         CALL  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
-!open(77,file='POWDER/prae_corrlin.PDF',status='unknown')
-!DO ii=1,npkt_pdf
-!  write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
+!open(77,file='POWDER/prae_corrlin.FQ',status='unknown')
+!DO ii=1,npkt_wrt
+!write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
 !enddo
 !close(77)
-         sigma = 2.0*pow_u2aver                    ! TO BE REPLACED BY ATOMIC B VALUE
-         IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
-            CALL powder_conv_corrlin(yfour, REAL(rmin),REAL(rmax), REAL(rstep),   &
-                                     sigma, pdf_clin_a, pdf_cquad_a, pow_width,   &
-                                     POW_MAXPKT)
+!CORR write(*,*) ' ABOUT TO DO 1st FFT INTO PDF ', npkt_fft, npkt_pdf
+      CALL fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
+!write(*,*) ' after       1st FFT INTO PDF ', npkt_pdf
+!open(77,file='POWDER/prae_corrlin.PDF',status='unknown')
+!DO ii=1,npkt_pdf
+!write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
+!enddo
+!close(77)
+!write(*,*) ' <u^2> , B', pow_u2aver, pow_u2aver*8.*3.1415**2
+      sigma = 2.0*(pow_u2aver*u2aver_scale)              ! TO BE REPLACED BY ATOMIC B VALUE
+      CALL powder_conv_corrlin(yfour, REAL(rmin),REAL(rmax), REAL(rstep),   &
+                               sigma, pdf_clin_a, pdf_cquad_a, pdf_rcut, pow_width,   &
+                               POW_MAXPKT)
+!open(77,file='POWDER/post_corrlin.PDF',status='unknown')
+!DO ii=1,npkt_pdf
+!write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
+!enddo
+!close(77)
+      CALL fft_fq(npkt_pdf, xfour, yfour, pow_qmin_u, pow_qmax_u, pow_deltaq_u, npkt_fft, npkt_wrt, xwrt, ywrt)
+!open(77,file='POWDER/post_corrlin.FQ',status='unknown')
+!DO ii=1,npkt_wrt
+!write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
+!enddo
+!close(77)
+!     CALL fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
+!      DEALLOCATE(xfour)
+!      DEALLOCATE(yfour)
+   ELSE corr_if       ! No correlated motion
+      IF(out_user_limits) THEN
+         rmin     = out_user_values(1)
+         rmax     = out_user_values(2)
+         rstep    = out_user_values(3)
+         npkt_pdf = NINT((out_user_values(2)-out_user_values(1))/out_user_values(3)) + 1
+      ELSE
+         rmin     = pdf_rminu
+         rmax     = pdf_rmaxu
+         rstep    = pdf_deltaru
+         npkt_pdf = NINT((rmax-rmin)/pdf_deltaru) + 1
+      ENDIF
+      rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
+!
+      ALLOCATE(xfour(1:npkt_pdf))
+      ALLOCATE(yfour(1:npkt_pdf))
+!
+      zero_last: DO ii = npkt_wrt,2,-1
+         IF(ywrt(ii)*ywrt(ii-1)<0) THEN   ! Different signs , found zero point
+            ywrt(ii) = 0.0
+            EXIT zero_last
+         ELSEIF(ywrt(ii)==0.0) THEN       ! Found exact zero point
+            EXIT zero_last
+         ELSE
+            ywrt(ii) = 0.0
          ENDIF
-         DEALLOCATE(xwrt)
-         DEALLOCATE(ywrt)
-         ALLOCATE(xwrt(1:npkt_pdf))
-         ALLOCATE(ywrt(1:npkt_pdf))
-         DO ii=1,npkt_pdf
-            xwrt(ii) =xfour(ii)
-            ywrt(ii) =yfour(ii)
-         ENDDO
-         DEALLOCATE(xfour)
-         DEALLOCATE(yfour)
-         npkt_wrt = npkt_pdf
-
+      ENDDO zero_last
+!
+      CALL  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
+!write(*,*) ' RLIMITS ', rmin, rmax, rstep, npkt_pdf
+open(77,file='POWDER/ende_corrlin.PDF',status='unknown')
+DO ii=1,npkt_pdf
+write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
+enddo
+close(77)
+!        sigma = 2.0*pow_u2aver                    ! TO BE REPLACED BY ATOMIC B VALUE
+!        IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
+!           CALL powder_conv_corrlin(yfour, REAL(rmin),REAL(rmax), REAL(rstep),   &
+!                                    sigma, pdf_clin_a, pdf_cquad_a, pow_width,   &
+!                                    POW_MAXPKT)
+!        ENDIF
+   ENDIF corr_if
+   DEALLOCATE(xwrt)
+   DEALLOCATE(ywrt)
+   ALLOCATE(xwrt(1:npkt_pdf))
+   ALLOCATE(ywrt(1:npkt_pdf))
+   DO ii=1,npkt_pdf
+      xwrt(ii) =xfour(ii)
+      ywrt(ii) =yfour(ii)
+   ENDDO
+   DEALLOCATE(xfour)
+   DEALLOCATE(yfour)
+   npkt_wrt = npkt_pdf
+!
 ENDIF
 !
 !     Finally write the pattern
@@ -772,6 +891,11 @@ ELSEIF (pow_profile == POW_PROFILE_PSVGT) THEN
    ENDIF 
 !  lconv = .TRUE.
 ENDIF 
+!open(77,file='POWDER/inte_conv.FQ',status='unknown')
+!DO j=0,npkt
+!  write(77,'(2(2x,G17.7E3))')     xmin+j *xdel, pow_conv(j)
+!enddo
+!close(77)
 pow_uuu_sum = 0.0
 DO j=1,npkt
    pow_uuu_sum = pow_uuu_sum + pow_conv(j)
@@ -785,6 +909,11 @@ ENDIF
 pow_conv(:) = pow_conv(:) * scalef
 ss = seknds (ss) 
 WRITE (output_io, '(/,'' Elapsed time    : '',G12.6,'' sec'')') ss
+!open(77,file='POWDER/post_conv.FQ',status='unknown')
+!DO j=0,npkt
+!  write(77,'(2(2x,G17.7E3))')     xmin+j *xdel, pow_conv(j)
+!enddo
+!close(77)
 !
 END SUBROUTINE powder_convolute                     
 !
@@ -884,7 +1013,7 @@ REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: yfft   ! Temporary array for FF
 !write(*,*) ' PDF ste ', (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP), rstep
 !write(*,*) ' PDF OUT ', xwrt(1), xwrt(2), xwrt(npkt_wrt)
 !write(*,*) ' PDF OUT ', ywrt(1), ywrt(2), ywrt(npkt_wrt)
-!
+!n
 dq = (xwrt(npkt_wrt)-xwrt(1))/(npkt_wrt-1)
 !rstep    = (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
 qmax     =  PI/rstep           ! by using 2*PI/rstep, the step size in direct space is halved
@@ -1109,7 +1238,7 @@ REAL                         , INTENT(IN)    ::  pow_width
 INTEGER                      , INTENT(IN)    ::  pow_type   ! = 0==COMPl =1==DEBYE
 !
 INTEGER, PARAMETER  :: POW_COMPL = 0
-INTEGER, PARAMETER  :: POW_DEBYE = 0
+INTEGER, PARAMETER  :: POW_DEBYE = 1
 !                                                                       
 REAL                               :: fwhm
 REAL, DIMENSION(0:POW_MAXPKT)      :: dummy
@@ -1140,6 +1269,8 @@ ENDDO
 !                                                                       
 imax = int( (tthmax - tthmin) / dtth )
 dummy = 0.0
+!write(*,*) ' IMAX ', imax, MINVAL(dat), maxval(dat)
+!write(*,*) ' TYPE ', pow_type, POW_COMPL, POW_DEBYE
 !
 !------ If COMPLETE, check for zeros, else do all points
 !
@@ -1170,6 +1301,7 @@ ELSEIF(pow_type==POW_DEBYE) THEN       ! Debye calculation no checks fro zeros i
       ENDDO
    ENDDO 
 ENDIF
+!write(*,*) ' IMAX ', imax, MINVAL(dummy), maxval(dummy)
 !                                                                       
 DO i = 0, imax 
    dat (i) = dummy (i) * dtth 
@@ -1210,7 +1342,7 @@ INTEGER                         , INTENT(IN)    :: pow_type  ! == 0 for COMPLETE
 INTEGER                         , INTENT(IN)    :: axis   ! == 2 for 2theta, == 1 for Q
 !
 INTEGER, PARAMETER  :: POW_COMPL = 0
-INTEGER, PARAMETER  :: POW_DEBYE = 0
+INTEGER, PARAMETER  :: POW_DEBYE = 1
 !
 REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
 REAL, DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
@@ -1236,7 +1368,7 @@ IF(pow_type==POW_COMPL) THEN     ! Complete, check for zeros in DAT
       IF(axis==2 ) THEN       ! 2Theta axis
          fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
       ELSEif(axis==1) THEN
-         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001) )
+         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
       ENDIF
 !
       max_ps = INT((pow_width * fwhm) / dtth )
@@ -1274,7 +1406,7 @@ ELSEIF(pow_type==POW_DEBYE) THEN     ! DEBYE, do not check for zeros in DAT
       IF(axis==2 ) THEN       ! 2Theta axis
          fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
       ELSEif(axis==1) THEN
-         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001) )
+         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
       ENDIF
 !
       max_ps = INT((pow_width * fwhm) / dtth )
@@ -1348,7 +1480,7 @@ INTEGER                         , INTENT(IN)    :: pow_type  ! == 0 for COMPLETE
 INTEGER                         , INTENT(IN)    :: axis   ! == 2 for 2theta, == 1 for Q
 !
 INTEGER, PARAMETER            :: POW_COMPL = 0
-INTEGER, PARAMETER            :: POW_DEBYE = 0
+INTEGER, PARAMETER            :: POW_DEBYE = 1
 !
 REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
 REAL, DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
@@ -1376,7 +1508,7 @@ IF(pow_type==POW_COMPL) THEN
       IF(axis==2 ) THEN       ! 2Theta axis
          fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
       ELSEif(axis==1) THEN
-         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001) )
+         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
       ENDIF
 !
       max_ps = INT((pow_width * fwhm) / dtth )
@@ -1425,7 +1557,7 @@ ELSEIF(pow_type==POW_DEBYE) THEN
       IF(axis==2 ) THEN       ! 2Theta axis
          fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
       ELSEif(axis==1) THEN
-         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001) )
+         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
       ENDIF
 !
       max_ps = INT((pow_width * fwhm) / dtth )
@@ -1677,7 +1809,7 @@ END SUBROUTINE powder_conv_psvgt_uvw_asymt
 !*****7*****************************************************************
 !
 SUBROUTINE powder_conv_corrlin   (dat, tthmin, tthmax, dtth, sigma2, &
-      corrlin, corrquad,     pow_width, POW_MAXPKT)
+      corrlin, corrquad, rcut, pow_width, POW_MAXPKT)
 !-
 !     Convolute PDF with Gaussian function 
 !     FWHM = (sigma**2 - corrlin/r)
@@ -1698,16 +1830,20 @@ REAL                            , INTENT(IN)    :: dtth      ! 2Theta step
 REAL                            , INTENT(IN)    :: sigma2    ! Gaussian Sigma^2
 REAL                            , INTENT(IN)    :: corrlin   ! 1/r deppendend width correction
 REAL                            , INTENT(IN)    :: corrquad  ! 1/r^2 deppendend width correction
+REAL(KIND=PREC_SP)              , INTENT(IN)    :: rcut      ! minimum  distance for clin/(r-rmin)
 REAL                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 !
-REAL(KIND=PREC_DP), PARAMETER :: four_ln2  = 2.772588722239781237669D0
+!REAL(KIND=PREC_DP), PARAMETER :: four_ln2  = 2.772588722239781237669D0
 REAL(KIND=PREC_DP), PARAMETER :: eightln2  = 2.772588722239781237669D0 * 2.0D0
 !
 REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
 REAL, DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
 REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
-REAL                          :: tantth   ! tan(Theta)
+!REAL                          :: tantth   ! tan(Theta)
+REAL(KIND=PREC_DP)    :: sigmasq          ! actual scaled local sigma**2
+REAL(KIND=PREC_DP)    :: sigmamin         ! minimum       local sigma**2
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
+REAL(KIND=PREC_SP)    :: dist_min  ! minimum  distance for clin/(r-rmin)
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
 INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
 REAL    :: pseudo          ! scale factor for lookup table
@@ -1716,26 +1852,43 @@ INTEGER :: max_ps
 !------ Now convolute                                                   
 !                                                                       
 imax = INT( (tthmax - tthmin) / dtth )
+sigmasq = sigma2*SQRT(eightln2)
+sigmamin = sigmasq * 0.20D0
+dist_min = REAL(rcut, KIND=PREC_DP)
 !
 eta = 0.0     ! Gaussian function
 dummy = 0.0   ! dummy(:)
-tth = 2.5000
-!fwhm = SQRT(MAX(sigma2 - corrlin/tth - corrquad/tth**2, 0.00001))*SQRT(eightln2)
-!write(*,*) ' FWHM 2.500 ',tth, fwhm 
+!tth = 1.810
+!fwhm = SQRT(MAX(sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin))
+!write(*,7777) ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin
+!7777 format(a,f5.1, f9.5, f9.5, f12.5, f9.5)
+!tth = 2.300
+!fwhm = SQRT(MAX(sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin))
+!write(*,7777) ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin
+!tth = 3.700
+!fwhm = SQRT(MAX(sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin))
+!write(*,7777) ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin
+!tth = 10.000
+!fwhm = SQRT(MAX(sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin))
+!write(*,7777) ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin
+!tth = 2.320
+!fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, 0.00001))
+!write(*,*) ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/tth - corrquad/tth**2
 !tth = 4.8000
-!fwhm = SQRT(MAX(sigma2 - corrlin/tth - corrquad/tth**2, 0.00001))*SQRT(eightln2)
+!fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, 0.00001))
 !write(*,*) ' FWHM 2.500 ',tth, fwhm 
 !tth = tthmax
-!fwhm = SQRT(MAX(sigma2 - corrlin/tth - corrquad/tth**2, 0.00001))*SQRT(eightln2)
+!fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, 0.00001))
 !write(*,*) ' FWHM FINAL ',tth, fwhm 
 main_pts: DO i = 0, imax 
    tth = tthmin + i * dtth 
-   IF(tth<0.5) THEN
+   IF(tth<0.50) THEN
       dummy(i) = dat(i)
       cycle main_pts
    ENDIF
 !
-   fwhm = SQRT(MAX(sigma2 - corrlin/tth -corrquad/tth**2, 0.00001))*SQRT(eightln2)
+!  fwhm = SQRT(MAX(sigmasq - corrlin/tth -corrquad/tth**2, 0.00001))
+   fwhm = SQRT(MAX(sigmasq - corrlin/(tth-dist_min) -corrquad/(tth-dist_min)**2, sigmamin))
 !
    max_ps = INT((pow_width * fwhm) / dtth )
    pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table

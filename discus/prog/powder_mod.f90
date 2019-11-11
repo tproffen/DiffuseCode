@@ -55,6 +55,9 @@ REAL(KIND=PREC_DP)       :: pow_deltatth   =  0.05D0
 REAL(KIND=PREC_DP)       :: pow_qmin       =  0.2D0
 REAL(KIND=PREC_DP)       :: pow_qmax       =  7.0D0
 REAL(KIND=PREC_DP)       :: pow_deltaq     =  0.0001D0
+REAL(KIND=PREC_DP)       :: pow_qmin_u     =  0.2D0    ! Temporary stored user limits in case of corrlin, corrquad
+REAL(KIND=PREC_DP)       :: pow_qmax_u     =  7.0D0    ! "         Actual calculation will proceed to 
+REAL(KIND=PREC_DP)       :: pow_deltaq_u   =  0.0001D0 ! "         qmax * 1.5
 REAL(KIND=PREC_DP)       :: pow_tthmax_buf =  1.0D0    ! additional buffer 
 REAL(KIND=PREC_DP)       :: pow_qmax_buf   =  0.5D0    ! for convolutions
 REAL                     :: pow_ds_max     =  0.0001
