@@ -49,6 +49,18 @@ IF(str_comp (cpara(1), 'cycles', 3, lpara(1), 6) ) THEN
    refine_cycles = NINT(werte(2))
 ELSEIF(str_comp (cpara(1), 'conver', 3, lpara(1), 6) ) THEN
    CALL refine_set_convergence(line, length)
+ELSEIF(str_comp (cpara(1), 'relax', 3, lpara(1), 5) ) THEN
+   cpara(1) = '0'
+   lpara(1) = 1
+   CALL ber_params(ianz, cpara, lpara, werte, MAXW)
+   IF(ier_num/= 0) RETURN
+   refine_lamda_s  = werte(2)
+   IF(ianz>=3) THEN
+      refine_lamda_u  = werte(3)
+      IF(ianz==4) THEN
+         refine_lamda_d  = werte(4)
+      ENDIF
+   ENDIF
 ENDIF
 !
 END SUBROUTINE refine_set
