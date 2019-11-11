@@ -111,9 +111,9 @@ add_dependencies (discus_all lib_f90 )
 
 set ( LIBS discus_all ${LIBS} discus_all ${LIBS_OPT} ) 
 
-add_executable (discus ${SOURCE_MAIN} ${SOURCES_LOCAL}) 
+#add_executable (discus ${SOURCE_MAIN} ${SOURCES_LOCAL}) 
 
-target_link_libraries (discus ${LIBS}) 
+#target_link_libraries (discus ${LIBS}) 
 
 
 add_custom_target(discushlp 
@@ -123,10 +123,10 @@ add_custom_target(discushlp
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
                ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp)
 
-add_dependencies(discus discushlp)
+#add_dependencies(discus discushlp)
 
-install (TARGETS discus DESTINATION bin)
-install (FILES ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp DESTINATION share)
+#install (TARGETS discus DESTINATION bin)
+#install (FILES ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp DESTINATION share)
 install (FILES ${DIFFUSE_SOURCE_DIR}/discus/prog/color.map DESTINATION share)
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/discus/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION share/discus)

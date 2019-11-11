@@ -58,8 +58,8 @@ add_dependencies (kuplot_all lib_f90)
 
 set (LIBS kuplot_all ${LIBS} kuplot_all ${LIBS_GRAPHIC} ${LIBS_OPT} )
 
-add_executable(kuplot ${SOURCE_MAIN})
-target_link_libraries (kuplot ${LIBS})
+#add_executable(kuplot ${SOURCE_MAIN})
+#target_link_libraries (kuplot ${LIBS})
 
 add_custom_target(kuplothlp 
   DEPENDS      ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp
@@ -68,10 +68,10 @@ add_custom_target(kuplothlp
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
                ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp)
 
-add_dependencies(kuplot kuplothlp)
+#add_dependencies(kuplot kuplothlp)
 
-install (TARGETS kuplot DESTINATION bin)
-install (FILES ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp DESTINATION share)
+#install (TARGETS kuplot DESTINATION bin)
+#install (FILES ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp DESTINATION share)
 install (FILES ${PGPLOT_DIR}/grfont.dat DESTINATION share)
 install (PROGRAMS ${PGSERVER} DESTINATION bin)
 

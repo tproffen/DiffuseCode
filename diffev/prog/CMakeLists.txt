@@ -39,8 +39,8 @@ add_dependencies ( diffev_all lib_f90)
 
 set (LIBS diffev_all ${LIBS} diffev_all ${LIBS_OPT})
 
-add_executable(diffev ${SOURCE_MAIN} )
-target_link_libraries (diffev ${LIBS})
+#add_executable(diffev ${SOURCE_MAIN} )
+#target_link_libraries (diffev ${LIBS})
 
 add_custom_target(diffevhlp 
   DEPENDS      ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
@@ -49,10 +49,10 @@ add_custom_target(diffevhlp
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
                ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp)
 
-add_dependencies(diffev diffevhlp)
+#add_dependencies(diffev diffevhlp)
 
-install (TARGETS diffev DESTINATION bin)
-install (FILES ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp DESTINATION share)
+#install (TARGETS diffev DESTINATION bin)
+#install (FILES ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp DESTINATION share)
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/diffev/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION share/diffev)
 

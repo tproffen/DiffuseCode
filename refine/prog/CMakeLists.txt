@@ -45,7 +45,6 @@ add_dependencies ( refine_all lib_f90 diffev_all)
 
 set (LIBS refine_all ${LIBS} refine_all ${LIBS_OPT})
 
-
 add_custom_target(refinehlp 
   DEPENDS      ${DIFFUSE_SOURCE_DIR}/refine/prog/appl_ref.hlp
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp
@@ -55,7 +54,8 @@ add_custom_target(refinehlp
 
 add_dependencies(refine_all refinehlp)
 
-install (FILES ${DIFFUSE_BINARY_DIR}/refine/prog/refine.hlp DESTINATION share)
+#install (TARGETS refine DESTINATION bin)
+#install (FILES ${DIFFUSE_BINARY_DIR}/refine/prog/refine.hlp DESTINATION share)
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/refine/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION share/refine)
 

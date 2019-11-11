@@ -5,6 +5,10 @@ find_package(NEXUS)
 find_package(PGPLOT REQUIRED)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
+include_directories(${DIFFUSE_SOURCE_DIR}/diffev/prog)
+include_directories(${DIFFUSE_SOURCE_DIR}/refine/prog)
+include_directories(${DIFFUSE_SOURCE_DIR}/kuplot/prog)
+include_directories(${DIFFUSE_SOURCE_DIR}/discus/prog)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/suite/prog)
 include_directories(${DIFFUSE_BINARY_DIR}/diffev/prog)
@@ -100,9 +104,18 @@ target_link_libraries (discus_suite ${LIBS})
 
 add_custom_target(suitehlp 
   DEPENDS      ${DIFFUSE_SOURCE_DIR}/suite/prog/appl_suite.hlp
+               ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp
+               ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
+               ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp
+               ${DIFFUSE_SOURCE_DIR}/refine/prog/appl_ref.hlp
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp
   COMMAND cat  ${DIFFUSE_SOURCE_DIR}/suite/prog/appl_suite.hlp 
-               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp   
+               ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
+               ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp
+               ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp
+               ${DIFFUSE_SOURCE_DIR}/refine/prog/appl_ref.hlp
+               >
                ${DIFFUSE_BINARY_DIR}/suite/prog/suite.hlp)
 
 install (TARGETS discus_suite DESTINATION bin)
