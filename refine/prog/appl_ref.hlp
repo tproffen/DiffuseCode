@@ -16,6 +16,11 @@
    help can be obtained by typing the corresponding command name at the
    help prompt.
 
+!p data     ! defines the data set 
+!p newparam ! defines the parameters to be refined
+!p fix      ! fixes a prameter, free with newparam
+!p set      ! sets control values like cycles, convergence criteria
+!p sigma    ! for 2D data defines a file that contains experimental uncertainties
 !p News          : Information on program updates
 2  Example
 
@@ -72,6 +77,13 @@
 !b newparam <parname> [,"value:"<start>] [,"status:"<flag>]
 !b                    [,"range:["<lower>,<upper>"]"]
 
+   The command performs three tasks:
+   - Defines a new parameter named <parname>
+   - Frees a parametere <pname> that had previously been fixed 
+     by the ==> 'fix' command
+   - Defines a constant <pname> that you may need to use in the 
+     user macro.
+
    Defines a new parameter name <parname>. This should be any valid
    user defined variable name, limited to a length of 16 characters.
    The user variable is allowed to have been defined previously, 
@@ -105,6 +117,10 @@
       In order to turn the boundaries off, simply state the 
       'newparam' command again for the refinement parameter 
       without the "range:" option.
+2  reset
+!p reset
+
+   Buts the REFINE section back into the state at system start.
 2  set
 !p set cycle,<maxc>
 !p set conver [,"dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
