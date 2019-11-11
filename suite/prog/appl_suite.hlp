@@ -30,6 +30,9 @@
    data are written directly into the next available KUPLOT 
    data set. This is available for Fourier output, powder, pdf.
 2  News
+3  2019_November
+
+   Added a global 'reset' command
 3  2019_June
 
    Added more stringent error controls on MPI initialization
@@ -125,6 +128,12 @@
  
    Within the kuplot section you can use the command
    'branch discus' to switch to the discus branch.
+2  refine
+
+   Switches to the "refine" section.
+
+   Within this section you can refine model parameters to 
+   a data set.
 2  parallel
 !b parallel {<numprocs>, },<macro.mac> {, <para_1...}
 
