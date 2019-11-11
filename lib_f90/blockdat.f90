@@ -26,58 +26,58 @@ INTEGER :: i
 !                                                                       
 !     /DEBUG/   DBG                                              
 !                                                                       
-      dbg = .false. 
+dbg = .false. 
 !                                                                       
 !     /DOLOOP/  ILOOP,NLOOP,GLOW,GHIGH,GINC,KPARA                
 !                                                                       
 !                                                                       
 !     /LEARN/   LLEARN                                           
 !                                                                       
-      llearn = .false. 
+llearn = .false. 
 !                                                                       
 !------ /MAKRO/     LMAKRO,MAC_LEVEL,MAC_LINE,MAC_NAME           
 !                                                                       
 !     lmakro = .false. 
 !     mac_level = 0 
 !                                                                       
-      DO i = 1, MAC_MAX_IO 
-      io_unit (i) = 86 + i 
-      io_open (i) = .false. 
-      io_eof (i) = .false. 
-      io_get_sub (i, 1) = 1 
-      io_get_sub (i, 2) = - 1 
-      ENDDO 
+DO i = 1, MAC_MAX_IO 
+   io_unit (i) = 86 + i 
+   io_open (i) = .false. 
+   io_eof (i) = .false. 
+   io_get_sub (i, 1) = 1 
+   io_get_sub (i, 2) = - 1 
+ENDDO 
 !                                                                       
-      DO i = 1, MAC_MAX_FORM 
-      io_out_format (i) = '(*)' 
-      ENDDO 
+DO i = 1, MAC_MAX_FORM 
+   io_out_format (i) = '(*)' 
+ENDDO 
 !                                                                       
-      lsocket = .false. 
-      lremote = .false. 
-      lconn = .false. 
+lsocket = .false. 
+lremote = .false. 
+lconn = .false. 
 !                                                                       
 !     /PARAMS/ INPARA,RPARA,RES_PARA                            
 !                                                                       
-      DO i = 0, MAXPAR 
-      inpara (i) = 0 
-      rpara (i) = 0. 
-      ENDDO 
+DO i = 0, MAXPAR 
+   inpara (i) = 0 
+   rpara (i) = 0. 
+ENDDO 
 !                                                                       
-      DO i = 0, MAXPAR_RES 
-      res_para (i) = 0. 
-      ENDDO 
+DO i = 0, MAXPAR_RES 
+   res_para (i) = 0. 
+ENDDO 
 !                                                                       
 !------ prompt_mod                                                      
 !                                                                       
-      output_status = OUTPUT_SCREEN 
-      output_status_old = OUTPUT_SCREEN 
-      output_io = OUTPUT_UNIT
-      error_io  = ERROR_UNIT
-      first_input = .TRUE. 
+output_status = OUTPUT_SCREEN 
+output_status_old = OUTPUT_SCREEN 
+output_io = OUTPUT_UNIT
+error_io  = ERROR_UNIT
+first_input = .TRUE. 
 !                                                                       
 !     variable.inc                                                      
 !                                                                       
-      CALL variable_init
+CALL variable_init
 !     var_num = 0 
 !     DO i = 1, VAR_MAX 
 !     var_name = ' ' 
@@ -91,4 +91,5 @@ INTEGER :: i
 ! INIT GAUSS AND LORENTZ LOOKUP
 !
 CALL glp_setup
-      END SUBROUTINE init_sysarrays                 
+!
+END SUBROUTINE init_sysarrays                 

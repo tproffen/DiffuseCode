@@ -9,9 +9,9 @@ CONTAINS
 !*******************************************************************************
 !
 SUBROUTINE arr_matmul(line, length)
-!
+!-
 ! Multiplies two user matrices, or a user matrix with a scalar
-!
+!+
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod

@@ -2,36 +2,39 @@ MODULE appl_env_mod
 !*****7***************************************************************  
 !                                                                       
 CONTAINS
-!                                                                       
+!
+!*******************************************************************************!
+!
 SUBROUTINE appl_env (standalone, local_mpi_myid)
 !-                                                                      
 !     Reads environment variables, sets path for helpfile               
 !     UNIX version ..                                                   
 !+                                                                      
-      USE errlist_mod
-      USE envir_mod 
-      USE terminal_mod
-      USE param_mod
-      USE prompt_mod 
-      USE string_convert_mod
-      IMPLICIT none 
-!                                                                       
-      LOGICAL, INTENT(IN) :: standalone
-      INTEGER, INTENT(IN) :: local_mpi_myid
-!                                                                       
-      INTEGER, PARAMETER :: idef = 68
+USE errlist_mod
+USE envir_mod 
+USE terminal_mod
+USE param_mod
+USE prompt_mod 
+USE string_convert_mod
 !
-      CHARACTER(255) cdummy
+IMPLICIT none 
+!                                                                       
+LOGICAL, INTENT(IN) :: standalone
+INTEGER, INTENT(IN) :: local_mpi_myid
+!                                                                       
+INTEGER, PARAMETER :: idef = 68
+!
+CHARACTER(255) cdummy
 CHARACTER(LEN=8), DIMENSION(6), PARAMETER :: tmp_test = (/'/tmp    ','/TMP    ', &
       '/var/tmp', '/Var/tmp', '/var/TMP', '/Var/TMP' /)
 CHARACTER(LEN=2048) :: line
 CHARACTER(LEN=2048) :: pathfile
-      INTEGER ico, ice, iii, i, j
+INTEGER ico, ice, iii, i, j
 INTEGER :: length
-      INTEGER :: ios ! I/O status
-      INTEGER len_str 
-      INTEGER pname_l 
-      LOGICAL lpresent
+INTEGER :: ios ! I/O status
+INTEGER len_str 
+INTEGER pname_l 
+LOGICAL lpresent
 INTEGER :: lib_f90_getpid
 !
 IF(envir_done) RETURN
@@ -399,12 +402,20 @@ ENDIF
 !
       CALL color_set_scheme (standalone, local_mpi_myid)
 !
+! Get Parent Process ID, required knowledge of operating
+!
+PPID = lib_f90_getppid(PID)
+!
 envir_done = .TRUE.
 !                                                                       
 END SUBROUTINE appl_env                       
 !
-SUBROUTINE write_appl_env (standalone, local_mpi_myid)
+!*******************************************************************************!
 !
+SUBROUTINE write_appl_env (standalone, local_mpi_myid)
+!-
+!  Writes the path for help manual etc to the welcome screen
+!+
 USE envir_mod
 USE terminal_mod
 IMPLICIT NONE
@@ -453,12 +464,16 @@ ENDIF
 !
 END SUBROUTINE write_appl_env                       
 !
-SUBROUTINE color_set_scheme (standalone, local_mpi_myid)
 !
+!*******************************************************************************!
+!
+SUBROUTINE color_set_scheme (standalone, local_mpi_myid)
+!-
 !  Set the terminal color scheme 
 !  If the file share/discus.term.scheme exists it is used
 !  Else we try a default color scheme according to the
 !  Operating system
+!+
 !
 USE blanks_mod
 USE terminal_mod
@@ -542,7 +557,13 @@ ENDIF
 !
 END SUBROUTINE color_set_scheme
 !
+!
+!*******************************************************************************!
+!
 SUBROUTINE color_set_fg(line,icolon,color_type , color_string, color_color)
+!-
+!  Sets colors for foreground
+!+
 !
 USE ber_params_mod
 USE errlist_mod
@@ -595,7 +616,13 @@ IF(line(1:icolon) == color_type) THEN
 ENDIF
 END SUBROUTINE color_set_fg
 !
+!
+!*******************************************************************************!
+!
 SUBROUTINE color_set_bg(line,icolon,color_type , color_string, color_color)
+!-
+!  Sets colors for background
+!+
 !
 USE ber_params_mod
 USE errlist_mod
@@ -647,86 +674,152 @@ ENDIF
 !
 END SUBROUTINE color_set_bg
 !
-      SUBROUTINE  program_files
+!*******************************************************************************!
+!
+SUBROUTINE  program_files
 !-                                                                      
 !     Sets path for helpfile , mac directories
 !     UNIX version ..                                                   
 !+                                                                      
-      USE envir_mod 
-      USE errlist_mod
-      USE prompt_mod 
-      IMPLICIT none 
-!                                                                       
-      INTEGER, PARAMETER :: ird = 34
+USE envir_mod 
+USE errlist_mod
+USE prompt_mod 
 !
-      CHARACTER(LEN=1024) :: line
-      INTEGER :: pname_l
-      INTEGER :: i
-      LOGICAL :: l_exist
+IMPLICIT none 
+!                                                                       
+INTEGER, PARAMETER :: ird = 34
 !
-      pname_l = LEN(TRIM(pname))
+CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=7)    :: progname
+INTEGER :: progname_l
+INTEGER :: i
+LOGICAL :: l_exist
 !
-      mac_dir = ' ' 
-      mac_dir (1:appl_dir_l) = appl_dir 
-      mac_dir (appl_dir_l + 1:appl_dir_l + pname_l + 10) = '../share/'//     &
-      pname (1:pname_l) //'/'                                           
-      mac_dir_l = LEN(TRIM (mac_dir) )
+IF(lstandalone) THEN
+  progname = pname
+ELSE
+  progname = 'suite'
+ENDIF
+!
+progname_l = LEN(TRIM(progname))
+!
+mac_dir = ' ' 
+mac_dir (1:appl_dir_l) = appl_dir 
+mac_dir (appl_dir_l + 1:appl_dir_l + progname_l + 10) = '../share/'//     &
+progname (1:progname_l) //'/'                                           
+mac_dir_l = LEN(TRIM (mac_dir) )
 !                                                                       
-      umac_dir = home_dir(1:home_dir_l)//'/mac/'//pname(1:pname_l) //'/'
-      umac_dir_l = LEN(TRIM (umac_dir) )
+umac_dir = home_dir(1:home_dir_l)//'/mac/'//progname(1:progname_l) //'/'
+umac_dir_l = LEN(TRIM (umac_dir) )
 !                                                                       
-      hlpfile = ' ' 
-      hlpdir  = ' ' 
-      hlpdir  (1:appl_dir_l+9) = appl_dir(1:appl_dir_l) //'../share/'
-      hlp_dir_l = appl_dir_l+9
-      hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:pname_l)//'.hlp'
-      hlpfile_l = LEN(TRIM (hlpfile) )
+hlpfile = ' ' 
+hlpdir  = ' ' 
+hlpdir  (1:appl_dir_l+9) = appl_dir(1:appl_dir_l) //'../share/'
+hlp_dir_l = appl_dir_l+9
+hlpfile   = hlpdir(1:hlp_dir_l)//progname(1:progname_l)//'.hlp'
+hlpfile_l = LEN(TRIM (hlpfile) )
 !                                                                       
-      colorfile = ' ' 
-      colorfile (1:appl_dir_l) = appl_dir 
-      colorfile (appl_dir_l + 1:appl_dir_l + 19) = '../share/color.map' 
-      colorfile_l = LEN(TRIM (colorfile) )
+colorfile = ' ' 
+colorfile (1:appl_dir_l) = appl_dir 
+colorfile (appl_dir_l + 1:appl_dir_l + 19) = '../share/color.map' 
+colorfile_l = LEN(TRIM (colorfile) )
 !
 !   Search for the Installation file "DiscusSuite.txt" to obtain paths
 !
-      man_dir = ' '
-      inst_file = appl_dir(1:LEN_TRIM(appl_dir)) // '../share/DiscusSuite.txt'
+man_dir = ' '
+inst_file = appl_dir(1:LEN_TRIM(appl_dir)) // '../share/DiscusSuite.txt'
+INQUIRE(FILE=inst_file,EXIST=l_exist)
+IF(.NOT.l_exist) THEN
+   inst_file = '/usr/local/share/DiscusSuite.txt'
+   INQUIRE(FILE=inst_file,EXIST=l_exist)
+   IF(.NOT.l_exist) THEN
+            inst_file = '/usr/share/DiscusSuite.txt'
       INQUIRE(FILE=inst_file,EXIST=l_exist)
       IF(.NOT.l_exist) THEN
-         inst_file = '/usr/local/share/DiscusSuite.txt'
-         INQUIRE(FILE=inst_file,EXIST=l_exist)
-         IF(.NOT.l_exist) THEN
-            inst_file = '/usr/share/DiscusSuite.txt'
-            INQUIRE(FILE=inst_file,EXIST=l_exist)
-            IF(.NOT.l_exist) THEN
-               inst_file = '/share/DiscusSuite.txt'
-            ENDIF
-         ENDIF
+         inst_file = '/share/DiscusSuite.txt'
       ENDIF
-      IF(l_exist) THEN
-         CALL oeffne(IRD, inst_file,'old')
-         IF(ier_num==0) THEN
-            READ(IRD,'(a)') line
-            READ(IRD,'(a)') line
-            READ(IRD,'(a)') line
-            IF(line(1:13)=='Manual      :') THEN
-               READ(line(15:LEN_TRIM(line)),'(a)') man_dir
-            ENDIF
-         ENDIF
-         CLOSE(IRD)
-      ELSE
-         man_dir = appl_dir(1:LEN_TRIM(appl_dir)) // '../share/'
+   ENDIF
+ENDIF
+IF(l_exist) THEN
+   CALL oeffne(IRD, inst_file,'old')
+   IF(ier_num==0) THEN
+      READ(IRD,'(a)') line
+      READ(IRD,'(a)') line
+      READ(IRD,'(a)') line
+      IF(line(1:13)=='Manual      :') THEN
+         READ(line(15:LEN_TRIM(line)),'(a)') man_dir
       ENDIF
-      i=LEN_TRIM(man_dir)
-      IF(operating(1:7)=='Windows') THEN
-         IF(man_dir(i:i) /='\') THEN
-            man_dir(i+1:i+1) = '\'
-         ENDIF
-      ELSE
-         IF(man_dir(i:i) /='/') THEN
-            man_dir(i+1:i+1) = '/'
-         ENDIF
-      ENDIF
+   ENDIF
+   CLOSE(IRD)
+ELSE
+   man_dir = appl_dir(1:LEN_TRIM(appl_dir)) // '../share/'
+ENDIF
+i=LEN_TRIM(man_dir)
+IF(operating(1:7)=='Windows') THEN
+   IF(man_dir(i:i) /='\') THEN
+      man_dir(i+1:i+1) = '\'
+   ENDIF
+ELSE
+   IF(man_dir(i:i) /='/') THEN
+      man_dir(i+1:i+1) = '/'
+   ENDIF
+ENDIF
 !
-      END SUBROUTINE  program_files
+END SUBROUTINE  program_files
+!
+!*******************************************************************************
+!
+INTEGER FUNCTION lib_f90_getppid(cpid)
+!-
+! Determine Parent Process ID for current PID cpid
+!+
+!
+USE envir_mod
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: cpid  ! current PID whose Parent Process ID is to be found
+!
+INTEGER, PARAMETER  :: ITMP     = 79  ! temporary unit number
+!
+CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=1024) :: temp_file
+INTEGER             :: tpid           ! temporary pid for current process for verification
+INTEGER             :: tppid          ! temporary ppid for current process for verification
+INTEGER             :: ios            ! I/O status 
+!
+tppid = 0   ! Default value 
+!
+!  Make a temp_file to write the system(ps) into
+WRITE(temp_file, '(a,I5.5)') '/tmp/getppid.', cpid
+!
+IF(operating(1:6)=='darwin') THEN
+   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep -v grep | awk ''{print $2, $3}'' >> ', &
+       temp_file(1:LEN_TRIM(temp_file))
+   CALL system(line)
+ELSE
+   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep -v grep | awk ''{print $2, $1}'' >> ', &
+       temp_file(1:LEN_TRIM(temp_file))
+   CALL system(line)
+ENDIF
+!
+CALL oeffne( ITMP, temp_file, 'old')
+IF(ier_num==0) THEN
+   READ(ITMP,*,IOSTAT=ios) tpid, tppid
+   loop: DO WHILE (.NOT.IS_IOSTAT_END(ios))
+      IF(tpid==cpid) EXIT LOOP        ! got the correct line with pid and then tppid
+      READ(ITMP,*,IOSTAT=ios) tpid, tppid
+   ENDDO loop
+ENDIF
+CLOSE(ITMP)
+line = 'rm -f ' // temp_file(1:len_trim(temp_file))
+CALL SYSTEM(line)                    ! remove temporary file
+!
+lib_f90_getppid = tppid
+!
+END FUNCTION lib_f90_getppid
+!
+!*******************************************************************************
+!
 END MODULE appl_env_mod

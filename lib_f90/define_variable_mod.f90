@@ -52,7 +52,7 @@ INTEGER :: n1, n2, n_data    ! Dimensions of arrays, total size
 INTEGER :: place             ! location of variable arrays
 LOGICAL :: l_init 
 !                                                                       
-      LOGICAL str_comp 
+LOGICAL :: str_comp 
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names

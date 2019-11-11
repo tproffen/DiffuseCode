@@ -189,35 +189,36 @@ END FUNCTION berechne
 !
 !****7***************************************************************** 
 !
-      SUBROUTINE berechne_char (string, laenge) 
+SUBROUTINE berechne_char (string, laenge) 
 !-                                                                      
 !     Calculates the value of the character expression stored in string 
 !+                                                                      
 !     USE calc_intr_mod
-      USE charact_mod
-      USE do_read_number_mod
-      USE do_variable_mod
-      USE errlist_mod 
-      USE get_params_mod
+USE charact_mod
+USE do_read_number_mod
+USE do_variable_mod
+USE errlist_mod 
+USE get_params_mod
 USE precision_mod
-      USE set_sub_generic_mod
-      IMPLICIT none 
+USE set_sub_generic_mod
+!
+IMPLICIT none 
 !                                                                       
-      INTEGER, PARAMETER :: maxw =3
+INTEGER, PARAMETER :: maxw =3
 !                                                                       
-      CHARACTER (LEN=*), INTENT(INOUT) :: string 
-      INTEGER          , INTENT(INOUT) :: laenge
+CHARACTER (LEN=*), INTENT(INOUT) :: string 
+INTEGER          , INTENT(INOUT) :: laenge
 !                                                                       
-      CHARACTER(LEN=1024) :: zeile, line, cpara (maxw) 
-      CHARACTER(LEN=1024) :: substring 
-      INTEGER lpara (maxw) 
-!     INTEGER max 
-      INTEGER ikla, iklz, ikla1, ikla2, ikl, ll, lll
-      INTEGER ikpa, ikpa1, ikpa2, ikp, ikpz, lp, ianz, i, ikom 
-      INTEGER lsub 
-      INTEGER icol 
-      INTEGER iapo 
-      INTEGER j (2) 
+CHARACTER(LEN=1024)                  :: zeile, line
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara !(maxw) 
+CHARACTER(LEN=1024)                  :: substring 
+INTEGER, DIMENSION(MAXW)             :: lpara !(maxw) 
+INTEGER :: ikla, iklz, ikla1, ikla2, ikl, ll, lll
+INTEGER :: ikpa, ikpa1, ikpa2, ikp, ikpz, lp, ianz, i, ikom 
+INTEGER :: lsub 
+INTEGER :: icol 
+INTEGER :: iapo 
+INTEGER, DIMENSION(2) ::  j! (2) 
 INTEGER :: omask, nmask   ! Current location in mask
 LOGICAL  , DIMENSION(1024,0:1) :: lmask
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte

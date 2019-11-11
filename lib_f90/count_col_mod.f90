@@ -17,15 +17,15 @@ INTEGER           , INTENT(INOUT) :: ianz
 INTEGER :: i 
 LOGICAL :: ein 
 !                                                                       
-INTEGER len_str 
+INTEGER :: len_str 
 !                                                                       
 ianz = 0 
 ein = .false. 
 !                                                                       
 DO i = 1, len_str (zeile) 
-   IF (zeile (i:i) .ne.' ') then 
+   IF (zeile (i:i) /=  ' ') THEN 
       ein = .true. 
-   ELSEIF (zeile (i:i) .eq.' '.and.ein) then 
+   ELSEIF (zeile (i:i) ==  ' '.AND.ein) THEN 
       ein = .false. 
       ianz = ianz + 1 
    ENDIF 

@@ -16,14 +16,13 @@ IMPLICIT none
 !                                                                       
 INTEGER, INTENT(IN) :: local_mpi_myid
 !                                                                       
-      INTEGER marg 
-      PARAMETER (marg = 20) 
+INTEGER, PARAMETER :: marg = 20 
 !                                                                       
-      CHARACTER(1024) arg (marg) 
-      CHARACTER(LEN=2048)  :: line = ' '
-      CHARACTER(40) str 
-      INTEGER iarg, i, ilen , ilena
-      INTEGER len_str 
+CHARACTER(LEN=1024), DIMENSION(MARG) :: arg ! (marg) 
+CHARACTER(LEN=2048)                  :: line = ' '
+CHARACTER(LEN=40)                    :: str 
+INTEGER :: iarg, i, ilen , ilena
+INTEGER :: len_str 
 !                                                                       
 CALL do_getargs (iarg, arg, marg) 
 IF (iarg.gt.0) THEN 
@@ -77,6 +76,7 @@ ENDIF
  1500 FORMAT     (' ------ > Running in debug mode ..') 
  2000 FORMAT     (' Usage: ',a,' [-remote] [-debug] [-port=p]',         &
      &                   ' [-access=ip]')                               
+!
 END SUBROUTINE cmdline_args                   
 !
 !*****7*****************************************************************
