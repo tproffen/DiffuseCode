@@ -47,7 +47,8 @@ MODULE envir_mod
    INTEGER             :: current_dir_l
    INTEGER             :: user_name_l
    INTEGER             :: lines
-   INTEGER             :: PID
+   INTEGER             :: PID             ! Process ID of discus_suite
+   INTEGER             :: PPID            ! Parent Process ID of discus_suite
    LOGICAL             :: term_scheme_exists = .FALSE.
    LOGICAL             :: envir_done         = .FALSE.
 !
