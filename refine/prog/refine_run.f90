@@ -79,7 +79,8 @@ ALLOCATE(refine_cl(refine_par_n, refine_par_n))
 CALL refine_mrq(REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,            &
                 refine_params, ref_dim, ref_data, ref_weight, ref_x, ref_y,     &
                 conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
-                refine_chisqr, refine_conf, refine_lamda, refine_rval,          &
+                refine_chisqr, refine_conf, refine_lamda, refine_lamda_s,       &
+                refine_lamda_d, refine_lamda_u, refine_rval,                    &
                 refine_rexp, refine_p, refine_range, refine_dp, refine_cl)
 IF(ier_num/=0) GOTO 10 
 !
@@ -484,7 +485,7 @@ END SUBROUTINE refine_load_calc
 SUBROUTINE refine_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
 data_data, data_weight, data_x, data_y, &
                 conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
-chisq, conf, lamda_fin, rval, rexp, p, prange, dp, cl)
+chisq, conf, lamda_fin, lamda_s, lamda_d, lamda_u,  rval, rexp, p, prange, dp, cl)
 !+                                                                      
 !   This routine runs the refinement cycles, interfaces with the 
 !   Levenberg-Marquardt routine modified after Numerical Recipes
@@ -519,7 +520,10 @@ REAL                                                 , INTENT(IN)  :: conv_conf 
 LOGICAL                                              , INTENT(INOUT) :: lconvergence ! Convergence criteria were reached
 REAL                                                 , INTENT(OUT) :: chisq       ! Chi^2 value
 REAL                                                 , INTENT(OUT) :: conf        ! Confidence test from Gamma function
-REAL                                                 , INTENT(OUT) :: lamda_fin   ! Final Marquardt lambda
+REAL                                                 , INTENT(OUT) :: lamda_fin   ! Final Marquardt lamda
+REAL                                                 , INTENT(IN)    :: lamda_s    ! Start value lamda
+REAL                                                 , INTENT(IN)    :: lamda_d    ! Multiplier_down
+REAL                                                 , INTENT(IN)    :: lamda_u    ! Multiplier_up
 REAL                                                 , INTENT(OUT) :: rval        ! Weighted R-value
 REAL                                                 , INTENT(OUT) :: rexp        ! Expected R-value
 !
@@ -542,6 +546,7 @@ CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE :: werte
 !
+LOGICAL                             :: lsuccess  ! Ture if cycle improved CHI^2
 REAL               , DIMENSION(0:3) :: last_chi
 REAL               , DIMENSION(0:3) :: last_shift
 REAL               , DIMENSION(0:3) :: last_conf 
@@ -588,16 +593,17 @@ icyc = 0
 cycles:DO
 !write(*,*) ' data_weight', data_weight(1,1), data_weight(data_dim(1),data_dim(2)), MINVAL(data_weight), MAXVAL(data_weight)
    CALL mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y, p, NPARA, &
-               par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda)
+               par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda,     &
+               lamda_s, lamda_d, lamda_u, lsuccess, dp)
    IF(ier_num/=0) EXIT cycles
-   CALL refine_rvalue(rval, rexp, NPARA)
+   IF(lsuccess .OR. rval == 0.0) CALL refine_rvalue(rval, rexp, NPARA)
    last_shift(:) = -1.0                                             ! Set parameter shift / sigma to negative
    DO k=1, NPARA
       CALL refine_set_param(NPARA, par_names(k), k, p(k))   ! Updata parameters
       IF(ier_num/=0) EXIT cycles
       last_p(last_i,:) = p(1:NPARA)
       IF(cl(k,k)/= 0.0) THEN
-         last_shift(last_i) = MAX(last_shift(last_i), ABS((p(k)-last_p(prev_i,k))/SQRT(cl(k,k))))
+         last_shift(last_i) = MAX(last_shift(last_i), ABS((p(k)-last_p(prev_i,k))/SQRT(cl(k,k)))) !/SQRT(cl(k,k))))
       ENDIF
    ENDDO
    conf = gammaq(REAL(data_dim(1)*data_dim(2)-2)*0.5, chisq*0.5)
@@ -605,7 +611,10 @@ cycles:DO
    last_conf(last_i) = conf
    WRITE(*,'(i3,6g13.5e2)') icyc,chisq/(data_dim(1)*data_dim(2)-NPARA), last_shift(last_i), conf, alamda, rval, rexp
 !
-   CALL refine_rvalue(rval, rexp, NPARA)
+!  CALL refine_rvalue(rval, rexp, NPARA)
+!  DO k = 1, NPARA
+!     dp(k) = SQRT(ABS(cl(k,k)))
+!  ENDDO
    CALL refine_best(rval)                                              ! Write best macro
    IF(ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
       last_shift(last_i) < conv_dp_sig                   .AND.   &
@@ -640,12 +649,13 @@ IF(ier_num==0) THEN
    alamda = 0.0
 !
    CALL mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y, p, NPARA, &
-               par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda)
+               par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda,     &
+               lamda_s, lamda_d, lamda_u, lsuccess, dp)
    CALL refine_rvalue(rval, rexp, NPARA)
+!   DO k = 1, NPARA
+!      dp(k) = SQRT(ABS(cl(k,k)))
+!   ENDDO
    CALL refine_best(rval)                                              ! Write best macro
-   DO k = 1, NPARA
-      dp(k) = SQRT(ABS(cl(k,k)))
-   ENDDO
 ENDIF
 !
 DEALLOCATE(cpara)
@@ -659,7 +669,8 @@ END SUBROUTINE refine_mrq
 !
 SUBROUTINE mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y, a, NPARA, &
     par_names, &
-    prange, kupl_last, covar, alpha, beta, chisq, alamda)
+    prange, kupl_last, covar, alpha, beta, chisq, alamda, lamda_s, lamda_d, lamda_u, &
+    lsuccess, dp)
 !
 !  Least squares routine adapted from Numerical Recipes Chapter 14
 !  p 526
@@ -685,6 +696,11 @@ REAL            , DIMENSION(NPARA, NPARA)           , INTENT(INOUT) :: alpha    
 REAL            , DIMENSION(NPARA     )             , INTENT(INOUT) :: beta        ! Temp arrays
 REAL                                                , INTENT(INOUT) :: chisq       ! Chi Squared
 REAL                                                , INTENT(INOUT) :: alamda      ! Levenberg parameter
+REAL                                                , INTENT(IN)    :: lamda_s    ! Start value for lamda
+REAL                                                , INTENT(IN)    :: lamda_d    ! Multiplier_down
+REAL                                                , INTENT(IN)    :: lamda_u    ! Multiplier_up
+LOGICAL                                             , INTENT(OUT)   :: lsuccess   ! True if improved
+REAL            , DIMENSION(MAXP)                   , INTENT(OUT)   :: dp          ! Parameter sigmas
 !
 INTEGER                         :: j     = 0
 INTEGER                         :: k     = 0
@@ -697,7 +713,7 @@ LOGICAL, PARAMETER              :: NDERIV = .FALSE.
 !
 ochisq = chisq
 IF(alamda < 0) THEN                   ! Initialization
-   alamda = 0.001
+   alamda = lamda_s
    CALL mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, a, &
                NPARA, par_names, prange, kupl_last, alpha, beta, &
                chisq, LDERIV) !, funcs)
@@ -727,11 +743,14 @@ IF(ier_num/=0) THEN
    RETURN
 ENDIF
 !
+cl(:,:) = covar(:,:)       ! Back up of covariance
+DO j=1,npara
+  dp(j) = SQRT(ABS(cl(j,j)))
+ENDDO
 IF(alamda==0) THEN
 !
 !  Last call to update the structure, no derivative is needed
 !
-   cl(:,:) = covar(:,:)       ! Back up of covariance
    CALL mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, a, &
                NPARA, par_names, prange, kupl_last, covar, da, chisq, NDERIV) !, funcs)
    IF(ier_num/=0) THEN
@@ -755,9 +774,13 @@ IF(ier_num/=0) THEN
    RETURN
 ENDIF
 !
+!do j=1, npara
+!write(*,'(a5,3(f20.8,2x))') 'ond ', a(j), atry(j), -(a(j)-atry(j))
+!enddo
 !
+!write(*,*) 'c, d, u', alamda, lamda_d, lamda_u
 IF(chisq < ochisq) THEN            ! Success, accept solution
-   alamda = 0.5*alamda
+   alamda = lamda_d*alamda         ! Decrease alamda by facror lamda_u (down)
    ochisq = chisq
    DO j=1,NPARA
       DO k=1,NPARA
@@ -766,10 +789,14 @@ IF(chisq < ochisq) THEN            ! Success, accept solution
       beta(j) = da(j)
       a(     (j)) = atry(     (j))
    ENDDO
+   lsuccess = .TRUE.
 ELSE                               ! Failure, reject, keep old params and 
-   alamda =  2.0*alamda            ! increment alamda
+   alamda =  lamda_u*alamda        ! increment alamda by factor lamda_u (up)
    chisq = ochisq                  ! Keep old chis squared
+   lsuccess = .FALSE.
 ENDIF
+!
+!covar(:,:) = cl(:,:)       ! Restore    covariance
 !
 END SUBROUTINE mrqmin
 !
@@ -1001,7 +1028,7 @@ ENDDO
 ! Write refined values
 !
 DO i=1, refine_par_n            ! Write values for all refined parametersWrite values for all refined parameters
-   WRITE(IWR,'(a,a,G20.8E3)') refine_params(i), ' = ', refine_p(i)
+   WRITE(IWR,'(a,a,G20.8E3,a, G20.8E3)') refine_params(i), ' = ', refine_p(i) , ' ! +- ', refine_dp(i)
 ENDDO
 !
 WRITE(IWR, '(a)') '#'
