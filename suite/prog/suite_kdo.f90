@@ -13,6 +13,9 @@ USE discus_setup_mod
 USE discus_loop_mod
 USE kuplot_setup_mod
 USE kuplot_loop_mod
+USE discus_reset_all_mod
+USE diffev_reset
+USE refine_reset
 USE refine_setup_mod
 USE refine_loop_mod
 USE suite_init_mod
@@ -257,6 +260,14 @@ ELSE
    ELSEIF (str_comp (befehl, 'parallel', 3, lbef, 8) ) then
          CALL suite_do_parallel (zeile, lcomm)
 !!!      CALL do_deallocate_appl (zeile, lcomm)
+!                                                                 
+!------   Reset the entire suite
+!                                                                 
+   ELSEIF(str_comp(befehl, 'reset', 3, lbef, 5)) THEN
+      CALL discus_reset_all
+      CALL do_rese
+      CALL diffev_do_reset
+      CALL refine_do_reset
 !                                                                 
 !------   Try general commands                                    
 !                                                                 
