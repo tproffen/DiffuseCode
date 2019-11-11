@@ -1,92 +1,93 @@
 MODULE discus_plot_menu
 !
+LOGICAL, SAVE :: pl_keep= .FALSE.
 CONTAINS
+!
 !*****7*****************************************************************
 !                                                                       
-      SUBROUTINE plot 
+SUBROUTINE plot 
 !-                                                                      
 !     Write the structure properly formatted for structure display      
 !     programs and KUPLOT                                               
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE metric_mod
-      USE modify_mod
-      USE molecule_mod
-      USE discus_plot_mod 
-      USE discus_show_menu
-      USE get_iscat_mod
-      USE prop_para_func
-      USE update_cr_dim_mod
-      USE trafo_mod
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE metric_mod
+USE modify_mod
+USE molecule_mod
+USE discus_plot_mod 
+USE discus_show_menu
+USE get_iscat_mod
+USE prop_para_func
+USE update_cr_dim_mod
+USE trafo_mod
 !
-      USE envir_mod
-      USE ber_params_mod
-      USE build_name_mod
-      USE calc_expr_mod
-      USE doact_mod 
-      USE do_wait_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE learn_mod 
-      USE class_macro_internal
-      USE prompt_mod 
-      USE string_convert_mod
-      USE sup_mod
+USE envir_mod
+USE ber_params_mod
+USE build_name_mod
+USE calc_expr_mod
+USE doact_mod 
+USE do_wait_mod
+USE errlist_mod 
+USE get_params_mod
+USE learn_mod 
+USE class_macro_internal
+USE prompt_mod 
+USE string_convert_mod
+USE sup_mod
 USE precision_mod
-      USE take_param_mod
-      IMPLICIT none 
+USE take_param_mod
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      INTEGER, PARAMETER :: ITMP     = 78  ! temporary unit number
-      INTEGER, PARAMETER :: MIN_PARA = 20  ! A command requires at leaset these no of parameters
-      INTEGER maxw 
-      LOGICAL lold 
-      PARAMETER (lold = .false.) 
+INTEGER, PARAMETER :: ITMP     = 78  ! temporary unit number
+INTEGER, PARAMETER :: MIN_PARA = 20  ! A command requires at leaset these no of parameters
+INTEGER maxw 
+LOGICAL lold 
+PARAMETER (lold = .false.) 
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAX(10,MAXSCAT)) 
-      REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAX(10,MAXSCAT)) 
-      INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAX(10,MAXSCAT))
-      CHARACTER(1024) line, zeile
-      CHARACTER(LEN=1024) :: tempfile
-      CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
-      CHARACTER(5) befehl 
-      CHARACTER(1) cdum 
-      REAL :: size, rr=0.0, rg=0.0, rb=0.0
-      INTEGER lp, length 
-      INTEGER :: ianz, i, j, is, it, ic, lbef 
+CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAX(10,MAXSCAT)) 
+REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAX(10,MAXSCAT)) 
+INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAX(10,MAXSCAT))
+CHARACTER(1024) line, zeile
+CHARACTER(LEN=1024) :: tempfile
+CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
+CHARACTER(5) befehl 
+CHARACTER(1) cdum 
+REAL :: size, rr=0.0, rg=0.0, rb=0.0
+INTEGER lp, length 
+INTEGER :: ianz, i, j, is, it, ic, lbef 
 !      INTEGER :: npoly     
-      INTEGER indxg 
-      INTEGER         :: nscat
-      INTEGER         :: ios
+INTEGER indxg 
+INTEGER         :: nscat
+INTEGER         :: ios
 
-      LOGICAL lend, l_select 
-      LOGICAL :: labs = .FALSE.
-      LOGICAL :: lord = .FALSE.
-      LOGICAL :: lnor = .FALSE.
+LOGICAL lend, l_select 
+LOGICAL :: labs = .FALSE.
+LOGICAL :: lord = .FALSE.
+LOGICAL :: lnor = .FALSE.
 !
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
+INTEGER len_str 
+LOGICAL str_comp 
 !                                                                       
-      INTEGER, PARAMETER :: NOPTIONAL = 9
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
-      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
-      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
-      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-      INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
+INTEGER, PARAMETER :: NOPTIONAL = 10
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
 !
-      DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', 'plot' , 'kill'  /
-      DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  4     ,  4     ,  4      /
+DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', 'plot' , 'kill'  , 'keep'/
+DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  4     ,  4     ,  4      ,  4    /
 !
-      ! Always provide fresh default values, Repeat for each command
-      opara  =   (/ '0.000', '0.000', '0    ', '0    ', 'flat ', 'solid', 'auto ', 'none ', 'none ' /)
-      lopara =   (/  5     ,  5     ,  1     ,  1     ,  4     ,  5     ,  4     ,  4     ,  4      /)
-      owerte =   (/  0.00  ,  0.00  ,  0.    ,  0.    ,  0.0   ,  0.0   ,  0.0   ,  0.0   ,  0.0    /)
+! Always provide fresh default values, Repeat for each command
+opara  =   (/ '0.000', '0.000', '0    ', '0    ', 'flat ', 'solid', 'auto ', 'none ', 'none ', 'no   '/)
+lopara =   (/  5     ,  5     ,  1     ,  1     ,  4     ,  5     ,  4     ,  4     ,  4     ,  2     /)
+owerte =   (/  0.00  ,  0.00  ,  0.    ,  0.    ,  0.0   ,  0.0   ,  0.0   ,  0.0   ,  0.0   ,  0.0   /)
 !
 IF(pl_init) THEN
    labs = .FALSE.
@@ -599,8 +600,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                                  ier_typ = ER_APPL
                                  pl_jmol = ' '
                               ELSE
-                                 IF(operating(1:6)=='cygwin' .OR.       &
-                                    operating(1:7)=='Windows'    ) THEN
+!                                IF(operating(1:6)=='cygwin' .OR.       &
+                                 IF(operating(1:7)=='Windows'    ) THEN
                                     i = LEN_TRIM(pl_jmol)
                                     IF(pl_jmol(i-3:i) == 'java') THEN
                                        pl_jmol = 'cd /opt/jmol && java -Xmx512m -jar ./Jmol.jar ' 
@@ -622,9 +623,9 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'run', 3, lbef, 3) ) then 
 !                 Always provide fresh default values, Repeat for each command
-                  opara (8:9) =   (/ 'none ', 'none ' /)
-                  lopara(8:9) =   (/  4     ,  4      /)
-                  owerte(8:9) =   (/  0.0   ,  0.0    /)
+                  opara (8:10) =   (/ 'none ', 'none ', 'no   '/)
+                  lopara(8:10) =   (/  4     ,  4     ,  2     /)
+                  owerte(8:10) =   (/  0.0   ,  0.0   ,  0.0   /)
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                                     oname, loname, opara, lopara, lpresent, owerte)
@@ -651,6 +652,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            CALL plot_test_aon(lnor, labs, lord)
                            IF(ier_num == 0) THEN
                               CALL do_plot 
+                              pl_keep = opara(10)(1:lopara(10))=='yes'
                               IF(ier_num == 0) THEN
                                  IF(opara(8)=='inter') THEN
                                     IF(pl_prog=='jmol') THEN
@@ -1223,8 +1225,8 @@ USE crystal_mod
 USE discus_plot_mod
 USE discus_plot_init_mod
 USE metric_mod
-   USE symm_mod
-   USE symm_sup_mod
+USE symm_mod
+USE symm_sup_mod
 USE tensors_mod
 USE trans_sup_mod
 USE trafo_mod
@@ -1254,10 +1256,10 @@ INTEGER             :: i,j,k
 INTEGER             :: length
 INTEGER             :: jmol_pid
 INTEGER             :: ios
-LOGICAL             :: did_kill = .false.
 LOGICAL             :: lpresent = .false.
 LOGICAL             :: lsecond  = .false.
 LOGICAL             :: lunit    = .false.
+INTEGER, SAVE       :: jmol_no  = 0   ! Jmol instance number
 REAL, DIMENSION(4)  :: hkl      !Normal in reciprocal space for augmented matrix
 REAL, DIMENSION(3)  :: n_hkl    !Normal in reciprocal space
 REAL, DIMENSION(3)  :: n_uvw    !Normal in direct space
@@ -1276,45 +1278,7 @@ REAL(KIND=PREC_DP)                :: beta
 !
 IF(pl_prog=='jmol') THEN
    IF(kill=='yes') THEN
-      INQUIRE(FILE='/tmp/jmol.pid', EXIST=lpresent)
-      IF(lpresent) THEN
-         line = 'rm -f /tmp/jmol.pid'
-         CALL system(line)
-      ENDIF
-      did_kill = .FALSE.
-      IF(operating=='Linux') THEN
-         WRITE(line,'(a,i8,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2}'' >> /tmp/jmol.pid'
-         CALL system(line)
-      ELSEIF(operating=='Linux_WSL') THEN
-         WRITE(line,'(a,i8,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2}'' >> /tmp/jmol.pid'
-         CALL system(line)
-      ELSEIF(operating(1:6)=='darwin') THEN
-         WRITE(line,'(a,i8,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2}'' >> /tmp/jmol.pid'
-         CALL system(line)
-!
-      ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
-         line = 'ps aux | grep ''jmol -s /tmp/jmol.mol'' | grep -v grep | awk ''{print $1}'' > /tmp/jmol.pid'
-         CALL system(line)
-         line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1}'' >> /tmp/jmol.pid'
-         CALL system(line)
-      ENDIF
-      tempfile = '/tmp/jmol.pid'
-      CALL oeffne( ITMP, tempfile, 'old')
-      IF(ier_num==0) THEN
-         READ(ITMP,*,IOSTAT=ios) jmol_pid
-         DO WHILE (.NOT.IS_IOSTAT_END(ios)) 
-            WRITE(line,'(a,i12,a)') 'kill -9 ',jmol_pid, ' > /dev/null'
-            CALL system(line)
-            did_kill = .TRUE.
-            READ(ITMP,*,IOSTAT=ios) jmol_pid
-         ENDDO
-         CLOSE(ITMP)
-         line = 'rm -f /tmp/jmol.pid'
-         CALL system(line)
-         IF(operating=='Linux') THEN
-            IF(did_kill) WRITE(output_io,*) ' Processes were killed, hit ENTER to retrieve prompt'
-         ENDIF
-      ENDIF
+      CALL jmol_kill(.TRUE., .FALSE.)
    ENDIF
 !
 ! Determine moveto command
@@ -1426,14 +1390,17 @@ IF(pl_prog=='jmol') THEN
         pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
         cr_gten, cr_rten, cr_eps)
 !
+   jmol_no = jmol_no + 1
    IF(operating=='Linux') THEN
-      tempfile = '/tmp/jmol.mol'
+      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating=='Linux_WSL') THEN
-      tempfile = '/tmp/jmol.mol'
+      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating(1:6)=='darwin') THEN
-      tempfile = '/tmp/jmol.mol'
-   ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
-      tempfile = '/opt/jmol/jmol.mol'
+      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
+   ELSEIF(operating(1:6)=='cygwin') THEN
+      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol/jmol.',PID,'.',jmol_no,'.mol'
+   ELSEIF(operating(1:7)=='Windows') THEN
+      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
    ENDIF
    CALL oeffne( ITMP, tempfile, 'unknown')
    IF(operating=='Linux'.OR.operating(1:6)=='darwin' .OR. &
@@ -1561,13 +1528,110 @@ IF(pl_prog=='jmol') THEN
    ELSEIF(operating(1:6)=='cygwin') THEN
       WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s jmol.mol > /dev/null &'
    ELSEIF(operating(1:7)=='Windows') THEN
-      WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s jmol.mol > /dev/null &'
+      WRITE(line,'(a,a,i5.5,a,i5.5,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
+            ' -s ../../tmp/jmol.', PID, '.',jmol_no, '.mol  > /dev/null &'
 !
    ENDIF
    WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
    CALL system(line)
 ENDIF
 END SUBROUTINE plot_inter
+!
+!*****7*****************************************************************
+!
+SUBROUTINE jmol_kill(lout, lfinal)
+!-
+! Kill jmol processes that were started by this discus_suite 
+!
+USE envir_mod
+USE errlist_mod
+USE prompt_mod
+!
+IMPLICIT NONE
+!
+LOGICAL, INTENT(IN) :: lout   ! Flag info on screen for Linux
+LOGICAL, INTENT(IN) :: lfinal ! Flag info on screen for all systems
+!
+INTEGER, PARAMETER  :: ITMP     = 78  ! temporary unit number
+!
+CHARACTER(LEN=1024) :: kill_file
+CHARACTER(LEN=1024) :: line
+!
+INTEGER             :: jmol_pid   ! jmol Process identifier
+INTEGER             :: jppid      ! jmol Parent Process identifier
+INTEGER             :: ios
+!
+LOGICAL :: lpresent
+LOGICAL :: did_kill
+!
+WRITE(kill_file, '(a,I5.5,a)') '/tmp/jmol.',PID,'.pid'
+INQUIRE(FILE=kill_file, EXIST=lpresent)
+IF(lpresent) THEN
+   WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
+   CALL system(line)
+ENDIF
+!
+IF(lfinal) THEN
+   IF(pl_keep) RETURN
+ENDIF
+!
+did_kill = .FALSE.
+IF(operating=='Linux') THEN
+   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $3}'' >> ', &
+         kill_file(1:LEN_TRIM(kill_file))
+   CALL system(line)
+ELSEIF(operating=='Linux_WSL') THEN
+   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $3}'' >> ', &
+         kill_file(1:LEN_TRIM(kill_file))
+   CALL system(line)
+ELSEIF(operating(1:6)=='darwin') THEN
+   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $4}'' >> ', &
+         kill_file(1:LEN_TRIM(kill_file))
+   CALL system(line)
+
+ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
+!  WRITE(line,'(a,I5.5,a,a)') 'ps aux | grep ''jmol -s /tmp/jmol.',PID, &
+!     '.mol'' | grep -v grep | awk ''{print $1, $3}''  '
+!  CALL system(line)
+!  WRITE(line,'(a,I5.5,a,a)') 'ps aux | grep ''jmol -s /tmp/jmol.',PID, &
+!     '.mol'' | grep -v grep | awk ''{print $1, $3}'' > ', kill_file(1:LEN_TRIM(kill_file))
+!  CALL system(line)
+!  line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1, $3}'' '
+!  CALL system(line)
+   line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1, $3}'' >> ' //  &
+         kill_file(1:LEN_TRIM(kill_file))
+   CALL system(line)
+ENDIF
+!
+CALL oeffne( ITMP, kill_file, 'old')
+IF(ier_num==0) THEN
+   READ(ITMP,*,IOSTAT=ios) jmol_pid, jppid
+   DO WHILE (.NOT.IS_IOSTAT_END(ios)) 
+      IF(jppid==PID .OR. jppid==PPID) THEN                    ! Current discus_suite has started jmol
+         WRITE(line,'(a,i12,a)') 'kill -9 ',jmol_pid, ' > /dev/null'
+         CALL system(line)
+         did_kill = .TRUE.
+      ENDIF
+      READ(ITMP,*,IOSTAT=ios) jmol_pid, jppid
+   ENDDO
+   CLOSE(ITMP)
+!!!RBN   WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
+!   CALL system(line)
+   IF(operating=='Linux' .AND. lout) THEN
+      IF(did_kill) WRITE(output_io,*) ' Processes were killed, hit ENTER to retrieve prompt'
+   ENDIF
+ENDIF
+!
+!WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
+!CALL system(line)
+!
+IF(did_kill .AND.lfinal) THEN
+   WRITE(output_io,*) ' Closed JMOL windows, ignore ''Killed'' messages '
+   WRITE(output_io,*) ' DISCUS_SUITE will terminate properly '
+ENDIF
+!
+END SUBROUTINE jmol_kill
+!
 !*****7*****************************************************************
 !
 SUBROUTINE plot_test_aon(lnor, labs, lord)
