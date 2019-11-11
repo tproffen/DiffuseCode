@@ -9,6 +9,7 @@ USE kuplot_setup_mod
 USE diffev_setup_mod
 USE diffev_loop_mod
 USE diffev_mpi_mod
+USE refine_setup_mod
 !
 USE appl_env_mod
 USE envir_mod
@@ -63,6 +64,7 @@ IF(gen_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    suite_discus_init = .TRUE.
    suite_kuplot_init = .TRUE.
    suite_diffev_init = .TRUE.
+   suite_refine_init = .TRUE.
    CALL diffev_set_sub ()
    CALL suite_set_sub_cost ()
    pname     = 'diffev'
@@ -81,9 +83,11 @@ ELSE
    CALL discus_setup(lstandalone)
    CALL kuplot_setup(lstandalone)
    CALL diffev_setup(lstandalone)
+   CALL refine_setup(lstandalone)
    suite_discus_init = .TRUE.
    suite_kuplot_init = .TRUE.
    suite_diffev_init = .TRUE.
+   suite_refine_init = .TRUE.
    pname     = 'suite'
    pname_cap = 'SUITE'
    prompt    = pname
