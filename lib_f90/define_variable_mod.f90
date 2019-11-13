@@ -70,9 +70,9 @@ opara  =  (/ 'scalar' /)   ! Always provide fresh default values
 lopara =  (/  6       /)
 owerte =  (/  0.0     /)
 !                                                                       
-      ccc_type = 0
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) RETURN 
+ccc_type = 0
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) RETURN 
 !
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                               oname, loname, opara, lopara, lpresent, owerte)
@@ -121,166 +121,166 @@ ELSEif(opara(1)(1:1) == '[' .AND. opara(1)(lopara(1):lopara(1)) == ']') THEN
    n_data = n1 * n2
 ENDIF
 !                                                                       
-IF(str_comp(cpara (1) , 'real', 3, lpara (1) , 4) .or.  &
+iftype: IF(str_comp(cpara (1) , 'real', 3, lpara (1) , 4) .or.  &
    str_comp(cpara (1) , 'inte', 2, lpara (1) , 4) .or.  &
    str_comp(cpara (1) , 'char', 2, lpara (1) , 4) ) THEN                                  
 !                                                                       
 !     --A new variable is being defined                                 
 !                                                                       
-         IF (ianz.eq.2.or.ianz.eq.3) THEN 
-            IF (var_num.lt.VAR_MAX) THEN 
+   ifianz: IF (ianz.eq.2.or.ianz.eq.3) THEN 
+      ifvarnum: IF (var_num.lt.VAR_MAX) THEN 
 !                                                                       
 !     ----- If a free slot is available validate the name against       
 !     ----- illegal names like "cos", "sin" etc.                        
 !                                                                       
-               CALL validate_variable (cpara (2), lpara (2) ) 
-               IF (ier_num.ne.0) RETURN 
+         CALL validate_variable (cpara (2), lpara (2) ) 
+         IF (ier_num.ne.0) RETURN 
 !                                                                       
 !     ----- temporarily store the variable type and name and evaluate   
 !     ----- the optional initialising parameter                         
 !                                                                       
-               c_type = cpara (1) 
-               l_type = lpara (1) 
-               c_temp (1:lpara (2) ) = cpara (2) (1:lpara (2) ) 
-               l_temp = lpara (2) 
-               werte (1) = 0.0 
-               IF (str_comp (c_type, 'real', 3, l_type, 4) ) THEN 
-                  ccc_type =       IS_REAL 
-               ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
-                  ccc_type = IS_INTE 
-               ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) THEN 
-                  ccc_type =       IS_CHAR 
-               ENDIF 
-               l_init = .false. 
-               c_init = ' ' 
-               IF (ianz.eq.3) THEN 
-                  CALL del_params (2, ianz, cpara, lpara, maxw) 
-                  IF (ier_num.ne.0) RETURN 
-                  IF (ccc_type.eq.      IS_CHAR) THEN 
-                     CALL do_build_name (ianz, cpara, lpara, werte,     &
-                     maxw, 1)                                           
-                     c_init = cpara (1) (1:lpara (1) ) 
-                  ELSE 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  ENDIF 
-                  l_init = .true. 
-                  IF (ier_num.ne.0) RETURN 
-               ENDIF 
+         c_type = cpara (1) 
+         l_type = lpara (1) 
+         c_temp (1:lpara (2) ) = cpara (2) (1:lpara (2) ) 
+         l_temp = lpara (2) 
+         werte (1) = 0.0 
+         IF (str_comp (c_type, 'real', 3, l_type, 4) ) THEN 
+            ccc_type =       IS_REAL 
+         ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
+            ccc_type = IS_INTE 
+         ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) THEN 
+            ccc_type =       IS_CHAR 
+         ENDIF 
+         l_init = .false. 
+         c_init = ' ' 
+         IF (ianz.eq.3) THEN 
+            CALL del_params (2, ianz, cpara, lpara, maxw) 
+            IF (ier_num.ne.0) RETURN 
+            IF (ccc_type.eq.      IS_CHAR) THEN 
+               CALL do_build_name (ianz, cpara, lpara, werte,     &
+               maxw, 1)                                           
+               c_init = cpara (1) (1:lpara (1) ) 
+            ELSE 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            ENDIF 
+            l_init = .true. 
+            IF (ier_num.ne.0) RETURN 
+         ENDIF 
 !                                                                       
 !     ----- Make sure the variable name has not yet been defined as     
 !           other variable type.                                        
 !           And initialisation value is not used on old variables       
 !                                                                       
-               ier_num = 0 
-               ier_typ = ER_NONE 
-               DO i = 1, var_num 
-               IF (c_temp (1:l_temp) .eq.var_name (i) ) THEN 
-                  IF (ccc_type.ne.var_type (i) ) THEN 
-                     ier_num = - 32 
+         ier_num = 0 
+         ier_typ = ER_NONE 
+         DO i = 1, var_num 
+            IF (c_temp (1:l_temp) .eq.var_name (i) ) THEN 
+               IF (ccc_type.ne.var_type (i) ) THEN 
+                  ier_num = - 32 
+                  ier_typ = ER_FORT 
+                  ier_msg(1) = c_temp(1:l_temp)
+               ELSE 
+                  IF (l_init) THEN 
+                     ier_num = - 33 
                      ier_typ = ER_FORT 
-                     ier_msg(1) = c_temp(1:l_temp)
                   ELSE 
-                     IF (l_init) THEN 
-                        ier_num = - 33 
-                        ier_typ = ER_FORT 
-                     ELSE 
-                        RETURN 
-                     ENDIF 
+                     RETURN 
                   ENDIF 
                ENDIF 
-               ENDDO 
-               IF (ier_num.ne.0) THEN 
-                  CALL errlist 
-                  RETURN 
-               ENDIF 
+            ENDIF 
+         ENDDO 
+         IF (ier_num.ne.0) THEN 
+            CALL errlist 
+            RETURN 
+         ENDIF 
 !                                                                       
 !     ----- sort the new variable name in descending length and         
 !           descending alphabetical order                               
 !                                                                       
-               i = var_sys + 1 
-               DO WHILE (l_temp.lt.var_l (i) .AND.i.le.var_num) 
-                  i = i + 1 
-               ENDDO 
-               DO  WHILE(l_temp.eq.var_l (i) .AND.LLT(c_temp, var_name(i))  &
-                  .AND.i.le.var_num)                                 
-                  i = i + 1 
-               ENDDO 
-               DO j = var_num, i, - 1 
-                  var_name (j+1) = var_name (j)    ! Shift fields by size of new variable
-                  var_l    (j+1) = var_l    (j) 
-                  var_entry(j+1) = var_entry(j)
-                  var_type (j+1) = var_type (j) 
-                  var_val  (j+1) = var_val  (j) 
-                  var_char (j+1) = var_char (j) 
-                  var_diff (j+1) = var_diff (j)    ! true if refine param from diffev
-               ENDDO 
+         i = var_sys + 1 
+         DO WHILE (l_temp.lt.var_l (i) .AND.i.le.var_num) 
+            i = i + 1 
+         ENDDO 
+         DO  WHILE(l_temp.eq.var_l (i) .AND.LLT(c_temp, var_name(i))  &
+                                       .AND.i.le.var_num)                                 
+            i = i + 1 
+         ENDDO 
+         DO j = var_num, i, - 1 
+            var_name (j+1) = var_name (j)    ! Shift fields by size of new variable
+            var_l    (j+1) = var_l    (j) 
+            var_entry(j+1) = var_entry(j)
+            var_type (j+1) = var_type (j) 
+            var_val  (j+1) = var_val  (j) 
+            var_char (j+1) = var_char (j) 
+            var_diff (j+1) = var_diff (j)    ! true if refine param from diffev
+         ENDDO 
 !                                                                       
 !     ----- found the proper slot, store value, name and type           
 !                                                                       
-               var_num = var_num + 1 
-               var_name (i) (1:l_temp) = c_temp 
-               var_l (i) = l_temp 
+         var_num = var_num + 1 
+         var_name (i) (1:l_temp) = c_temp 
+         var_l (i) = l_temp 
 !
-               place = 1
-               IF(n_data>0) THEN             ! We have an array
-                  search_entry: DO j=1,VAR_MAX
-                     IF(var_field(j)%var_shape(1)==0) THEN   !Found free entry
-                        place = j
-                        var_n_arr = MAX(var_n_arr, place)
-                        EXIT search_entry
-                     ENDIF
-                  ENDDO search_entry
-                  var_entry(i) = place       ! Keep track in which entry the array is stored
-                  var_field(place)%var_shape(1) = n1
-                  var_field(place)%var_shape(2) = n2
-                  IF(ALLOCATED(var_field(place)%var_value)) DEALLOCATE(var_field(place)%var_value)
-                  ALLOCATE(var_field(place)%var_value(n1,n2))
-                  IF(ALLOCATED(var_field(place)%var_char)) DEALLOCATE(var_field(place)%var_char)
-                  ALLOCATE(var_field(place)%var_char(n1,n2))
-               ELSE
-                  var_entry(i) = 0
+         place = 1
+         IF(n_data>0) THEN             ! We have an array
+            search_entry: DO j=1,VAR_MAX
+               IF(var_field(j)%var_shape(1)==0) THEN   !Found free entry
+                  place = j
+                  var_n_arr = MAX(var_n_arr, place)
+                  EXIT search_entry
                ENDIF
-               IF (str_comp (c_type, 'real', 3, l_type, 4) ) THEN 
-                  var_type (i) =       IS_REAL 
-                  var_val  (i) = werte (1) 
-                  IF(n_data>0) THEN             ! We have an array
-                      var_field(place)%var_value(:,:) = werte(1)
-                  ENDIF
-                  var_diff (i) = is_diffev      ! true if refine param from diffev
-               ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
-                  var_type (i) =       IS_INTE 
-                  var_val  (i) = NINT(werte (1) ) 
-                  IF(n_data>0) THEN             ! We have an array
-                      var_field(place)%var_value(:,:) = NINT(werte(1))
-                  ENDIF
-                  var_diff (i) = is_diffev      ! true if refine param from diffev
-               ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) THEN 
-                  var_type (i) =       IS_CHAR 
-                  var_val  (i) = 0.0 
-                  var_char (i) = c_init (1:len(var_char))
-                  IF(n_data>0) THEN             ! We have an array
-                      var_field(place)%var_char(:,:) = ' '
-                  ENDIF
-                  var_diff (i) = is_diffev      ! true if refine param from diffev
-               ENDIF 
-            ELSE 
-               ier_num = - 23 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
+            ENDDO search_entry
+            var_entry(i) = place       ! Keep track in which entry the array is stored
+            var_field(place)%var_shape(1) = n1
+            var_field(place)%var_shape(2) = n2
+            IF(ALLOCATED(var_field(place)%var_value)) DEALLOCATE(var_field(place)%var_value)
+            ALLOCATE(var_field(place)%var_value(n1,n2))
+            IF(ALLOCATED(var_field(place)%var_char)) DEALLOCATE(var_field(place)%var_char)
+            ALLOCATE(var_field(place)%var_char(n1,n2))
+         ELSE
+            var_entry(i) = 0
+         ENDIF
+         IF (str_comp (c_type, 'real', 3, l_type, 4) ) THEN 
+            var_type (i) =       IS_REAL 
+            var_val  (i) = werte (1) 
+            IF(n_data>0) THEN             ! We have an array
+                var_field(place)%var_value(:,:) = werte(1)
+            ENDIF
+            var_diff (i) = is_diffev      ! true if refine param from diffev
+         ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
+            var_type (i) =       IS_INTE 
+            var_val  (i) = NINT(werte (1) ) 
+            IF(n_data>0) THEN             ! We have an array
+                var_field(place)%var_value(:,:) = NINT(werte(1))
+            ENDIF
+            var_diff (i) = is_diffev      ! true if refine param from diffev
+         ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) THEN 
+            var_type (i) =       IS_CHAR 
+            var_val  (i) = 0.0 
+            var_char (i) = c_init (1:len(var_char))
+            IF(n_data>0) THEN             ! We have an array
+                var_field(place)%var_char(:,:) = ' '
+            ENDIF
+            var_diff (i) = is_diffev      ! true if refine param from diffev
          ENDIF 
-      ELSEIF (str_comp (cpara (1) , 'show', 2, lpara (1) , 4) ) THEN 
-         CALL show_variables 
-      ELSEIF (str_comp (cpara (1) , 'reset', 5, lpara (1) , 5) ) THEN 
-         CALL rese_variables (no_diffev)
-      ELSEIF (str_comp (cpara (1) , 'delete', 3, lpara (1) , 6) ) THEN 
-         CALL del_variables(MAXW, ianz, cpara, lpara, no_diffev)
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-      ENDIF 
+      ELSE  ifvarnum
+         ier_num = - 23 
+         ier_typ = ER_FORT 
+      ENDIF  ifvarnum
+   ELSE  ifianz
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF  ifianz
+ELSEIF (str_comp (cpara (1) , 'show', 2, lpara (1) , 4) ) THEN iftype
+   CALL show_variables 
+ELSEIF (str_comp (cpara (1) , 'reset', 5, lpara (1) , 5) ) THEN iftype
+   CALL rese_variables (no_diffev)
+ELSEIF (str_comp (cpara (1) , 'delete', 3, lpara (1) , 6) ) THEN iftype
+   CALL del_variables(MAXW, ianz, cpara, lpara, no_diffev)
+ELSE iftype
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF iftype
 !                                                                       
 END SUBROUTINE define_variable                
 !
