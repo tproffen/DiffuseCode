@@ -265,7 +265,7 @@ ELSE
 !                                                                 
    ELSEIF(str_comp(befehl, 'reset', 3, lbef, 5)) THEN
       CALL discus_reset_all
-      CALL do_rese
+      CALL do_rese( 'all' , 3)
       CALL diffev_do_reset
       CALL refine_do_reset
 !                                                                 
