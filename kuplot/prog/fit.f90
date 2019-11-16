@@ -4670,10 +4670,10 @@ END SUBROUTINE show_fit_erg
             CALL show_poly (idout) 
          ELSEIF (ftyp (1:2) .eq.'BA') THEN 
             CALL show_backpoly (idout) 
-         ELSEIF (ftyp (1:2) .eq.'GS') THEN 
-            CALL show_gsas (idout) 
-         ELSEIF (ftyp (1:2) .eq.'CH') THEN 
-            CALL show_poly_cheb (idout) 
+!        ELSEIF (ftyp (1:2) .eq.'GS') THEN 
+!           CALL show_gsas (idout) 
+!        ELSEIF (ftyp (1:2) .eq.'CH') THEN 
+!           CALL show_poly_cheb (idout) 
          ELSEIF (ftyp (1:2) .eq.'GA') THEN 
             IF (.not.lni (ikfit) ) THEN 
                CALL show_gauss (idout) 
@@ -5456,269 +5456,269 @@ END SUBROUTINE user_upd_params
 !*****7*****************************************************************
 !       GSAS profile functions                                          
 !*****7*****************************************************************
-      SUBROUTINE show_gsas (idout) 
+!     SUBROUTINE show_gsas (idout) 
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
+!     USE kuplot_config 
+!     USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      CHARACTER(40) cout (maxpara) 
-      INTEGER idout, i, j, k 
+!     CHARACTER(40) cout (maxpara) 
+!     INTEGER idout, i, j, k 
 !                                                                       
-      DO j = 1, np2 
-      cout ( (j - 1) * np3 + 1) = 'Peak position' 
-      cout ( (j - 1) * np3 + 2) = 'Intensity' 
-      DO i = 3, npara - 2 
-      WRITE (cout ( (j - 1) * np3 + i), 2000) i - 2 
-      ENDDO 
+!     DO j = 1, np2 
+!     cout ( (j - 1) * np3 + 1) = 'Peak position' 
+!     cout ( (j - 1) * np3 + 2) = 'Intensity' 
+!     DO i = 3, npara - 2 
+!     WRITE (cout ( (j - 1) * np3 + i), 2000) i - 2 
+!     ENDDO 
 !                                                                       
-      WRITE (idout, 1000) j, np1 
-      DO i = 1, np3 
-      k = (j - 1) * np3 + i 
-      WRITE (idout, 1100) k, cout (k), p (k), dp (k), pinc (k) 
-      ENDDO 
-      WRITE (idout, * ) ' ' 
-      ENDDO 
+!     WRITE (idout, 1000) j, np1 
+!     DO i = 1, np3 
+!     k = (j - 1) * np3 + i 
+!     WRITE (idout, 1100) k, cout (k), p (k), dp (k), pinc (k) 
+!     ENDDO 
+!     WRITE (idout, * ) ' ' 
+!     ENDDO 
 !                                                                       
-      WRITE (idout, 1200) 
-      cout (npara - 1) = 'Background const.' 
-      cout (npara) = 'Background slope' 
-      DO i = npara - 1, npara 
-      WRITE (idout, 1100) i, cout (i), p (i), dp (i), pinc (i) 
-      ENDDO 
+!     WRITE (idout, 1200) 
+!     cout (npara - 1) = 'Background const.' 
+!     cout (npara) = 'Background slope' 
+!     DO i = npara - 1, npara 
+!     WRITE (idout, 1100) i, cout (i), p (i), dp (i), pinc (i) 
+!     ENDDO 
 !                                                                       
- 1000 FORMAT   (1x,'GSAS profile ',i2,': Type ',i2,/) 
- 1100 FORMAT   (3x,'p(',i2,') : ',a20,' : ',                            &
-     &                       g12.6,' +- ',g12.6,4x,'pinc : ',f2.0)      
- 1200 FORMAT     (1x,'Global parameters:',/) 
- 2000 FORMAT     ('Profile Coeff. ',i2) 
+!1000 FORMAT   (1x,'GSAS profile ',i2,': Type ',i2,/) 
+!1100 FORMAT   (3x,'p(',i2,') : ',a20,' : ',                            &
+!    &                       g12.6,' +- ',g12.6,4x,'pinc : ',f2.0)      
+!1200 FORMAT     (1x,'Global parameters:',/) 
+!2000 FORMAT     ('Profile Coeff. ',i2) 
 !                                                                       
-      END SUBROUTINE show_gsas                      
+!     END SUBROUTINE show_gsas                      
 !*****7*****************************************************************
-      SUBROUTINE setup_gsas (ianz, werte, maxw, iname) 
+!     SUBROUTINE setup_gsas (ianz, werte, maxw, iname) 
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
-USE precision_mod
+!     USE kuplot_config 
+!     USE kuplot_mod 
+!USE precision_mod
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      INTEGER maxw, maxmax 
-      PARAMETER (maxmax = 50) 
+!     INTEGER maxw, maxmax 
+!     PARAMETER (maxmax = 50) 
 !                                                                       
-      CHARACTER ( * ) iname 
-      REAL(KIND=PREC_DP) werte (maxw) 
-      INTEGER ianz 
+!     CHARACTER ( * ) iname 
+!     REAL(KIND=PREC_DP) werte (maxw) 
+!     INTEGER ianz 
 !                                                                       
-      REAL pcoff (maxpara) 
-      REAL wmax (maxmax) 
-      REAL stheta, dspace, xpeak, inten, delt 
-      REAL x1, x2, y1, y2 
-      INTEGER ixm (maxmax) 
-      INTEGER ncoff, itype, ibank, ipeaks, ima, i, j 
+!     REAL pcoff (maxpara) 
+!     REAL wmax (maxmax) 
+!     REAL stheta, dspace, xpeak, inten, delt 
+!     REAL x1, x2, y1, y2 
+!     INTEGER ixm (maxmax) 
+!     INTEGER ncoff, itype, ibank, ipeaks, ima, i, j 
 !                                                                       
-      itype = nint (werte (1) ) 
-      ibank = nint (werte (2) ) 
-      IF (ianz.eq.4) THEN 
-         ipeaks = nint (werte (4) ) 
-      ELSE 
-         ipeaks = 1 
-      ENDIF 
+!     itype = nint (werte (1) ) 
+!     ibank = nint (werte (2) ) 
+!     IF (ianz.eq.4) THEN 
+!        ipeaks = nint (werte (4) ) 
+!     ELSE 
+!        ipeaks = 1 
+!     ENDIF 
 !                                                                       
-      ifen = fit_ifen 
-      CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
-      IF (ima.ge.1) THEN 
-         xpeak = x (offxy (ikfit - 1) + ixm (1) ) 
-      ELSE 
-         xpeak = x (offxy (ikfit - 1) + len (ikfit) / 2) 
-      ENDIF 
+!     ifen = fit_ifen 
+!     CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
+!     IF (ima.ge.1) THEN 
+!        xpeak = x (offxy (ikfit - 1) + ixm (1) ) 
+!     ELSE 
+!        xpeak = x (offxy (ikfit - 1) + len (ikfit) / 2) 
+!     ENDIF 
 !                                                                       
-      CALL read_prof (iname, ibank, itype, pcoff, ncoff, stheta, dspace,&
-      xpeak)                                                            
-      CALL cnvptp1 (itype, pcoff, ncoff, p, dspace, stheta, maxpara) 
+!     CALL read_prof (iname, ibank, itype, pcoff, ncoff, stheta, dspace,&
+!     xpeak)                                                            
+!     CALL cnvptp1 (itype, pcoff, ncoff, p, dspace, stheta, maxpara) 
 !                                                                       
-      inten = 0.0 
-      DO i = 1, len (ikfit) - 1 
-      delt = x (offxy (ikfit - 1) + i + 1) - x (offxy (ikfit - 1)       &
-      + i)                                                              
-      inten = inten + y (offxy (ikfit - 1) + i) * delt 
-      ENDDO 
+!     inten = 0.0 
+!     DO i = 1, len (ikfit) - 1 
+!     delt = x (offxy (ikfit - 1) + i + 1) - x (offxy (ikfit - 1)       &
+!     + i)                                                              
+!     inten = inten + y (offxy (ikfit - 1) + i) * delt 
+!     ENDDO 
 !                                                                       
-      np1 = itype 
-      np2 = ipeaks 
-      np3 = ncoff 
-      npara = ncoff * ipeaks + 2 
+!     np1 = itype 
+!     np2 = ipeaks 
+!     np3 = ncoff 
+!     npara = ncoff * ipeaks + 2 
 !                                                                       
-      DO i = 1, ipeaks 
-      IF (ima.ge.i) THEN 
-         p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + ixm (i) ) 
-      ELSE 
-         p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + len (ikfit)    &
-         / 2)                                                           
-      ENDIF 
-      p ( (i - 1) * np3 + 2) = inten 
-      DO j = 3, ncoff 
-      p ( (i - 1) * np3 + j) = p (j) 
-      ENDDO 
-      ENDDO 
+!     DO i = 1, ipeaks 
+!     IF (ima.ge.i) THEN 
+!        p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + ixm (i) ) 
+!     ELSE 
+!        p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + len (ikfit)    &
+!        / 2)                                                           
+!     ENDIF 
+!     p ( (i - 1) * np3 + 2) = inten 
+!     DO j = 3, ncoff 
+!     p ( (i - 1) * np3 + j) = p (j) 
+!     ENDDO 
+!     ENDDO 
 !                                                                       
-      y1 = y (offxy (ikfit - 1) + 1) 
-      y2 = y (offxy (ikfit - 1) + len (ikfit) ) 
-      x1 = x (offxy (ikfit - 1) + 1) 
-      x2 = x (offxy (ikfit - 1) + len (ikfit) ) 
-      p (npara - 1) = y1 
-      p (npara) = (y2 - y1) / (x2 - x1) 
+!     y1 = y (offxy (ikfit - 1) + 1) 
+!     y2 = y (offxy (ikfit - 1) + len (ikfit) ) 
+!     x1 = x (offxy (ikfit - 1) + 1) 
+!     x2 = x (offxy (ikfit - 1) + len (ikfit) ) 
+!     p (npara - 1) = y1 
+!     p (npara) = (y2 - y1) / (x2 - x1) 
 !                                                                       
-      END SUBROUTINE setup_gsas                     
+!     END SUBROUTINE setup_gsas                     
 !*****7*****************************************************************
-      SUBROUTINE read_prof (iname, ibank, itype, pcoff, ncoff, stheta,  &
-      dspace, tof)                                                      
+!     SUBROUTINE read_prof (iname, ibank, itype, pcoff, ncoff, stheta,  &
+!     dspace, tof)                                                      
 !                                                                       
-      USE debug_mod 
-      USE errlist_mod 
-      USE prompt_mod 
-      USE kuplot_config 
-      USE trig_degree_mod
-      IMPLICIT none 
+!     USE debug_mod 
+!     USE errlist_mod 
+!     USE prompt_mod 
+!     USE kuplot_config 
+!     USE trig_degree_mod
+!     IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER ( * ) iname 
-      REAL pcoff (maxpara) 
-      REAL stheta, dspace, tof 
-      INTEGER ibank, itype, ncoff 
+!     CHARACTER ( * ) iname 
+!     REAL pcoff (maxpara) 
+!     REAL stheta, dspace, tof 
+!     INTEGER ibank, itype, ncoff 
 !                                                                       
-      CHARACTER(80) line 
-      CHARACTER(6) search 
-      CHARACTER(5) key 
-      REAL tmp (4) 
-      REAL difc, difa, zero, tth, l2 
-      REAL secondterm 
-      INTEGER k, ib, itmp, ll 
+!     CHARACTER(80) line 
+!     CHARACTER(6) search 
+!     CHARACTER(5) key 
+!     REAL tmp (4) 
+!     REAL difc, difa, zero, tth, l2 
+!     REAL secondterm 
+!     INTEGER k, ib, itmp, ll 
 !                                                                       
-      INTEGER len_str 
+!     INTEGER len_str 
 !     REAL sind 
 !                                                                       
-      CALL oeffne (12, iname, 'old') 
-      IF (ier_num.ne.0) RETURN 
+!     CALL oeffne (12, iname, 'old') 
+!     IF (ier_num.ne.0) RETURN 
 !                                                                       
-      WRITE (key, 1000) itype 
- 1000 FORMAT    ('PRCF',i1) 
+!     WRITE (key, 1000) itype 
+!1000 FORMAT    ('PRCF',i1) 
 !                                                                       
 !------ Read instrument parameter file information                      
 !                                                                       
-   20 CONTINUE 
-      READ (12, '(a)', end = 40) line 
-      ll = len_str (line) 
-      IF (ll.eq.0) goto 20 
+!  20 CONTINUE 
+!     READ (12, '(a)', end = 40) line 
+!     ll = len_str (line) 
+!     IF (ll.eq.0) goto 20 
 !                                                                       
-      READ (line (1:ll) , '(4x,i2,a6)', err = 20) ib, search 
-      IF (ib.ne.ibank) goto 20 
+!     READ (line (1:ll) , '(4x,i2,a6)', err = 20) ib, search 
+!     IF (ib.ne.ibank) goto 20 
 !                                                                       
-      IF (search.eq.' ICONS') THEN 
-         READ (line (13:ll), *, err = 998, end = 998) difc, difa, zero 
-      ELSEIF (search.eq.'BNKPAR') THEN 
-         READ (line (13:ll), *, err = 998) l2, tth 
-      ELSEIF (search (1:5) .eq.key) THEN 
-         IF (search (6:6) .eq.' ') THEN 
-            READ (line (13:ll), *, err = 998) itmp, ncoff 
-         ELSE 
-            READ (search (6:6), * ) itmp 
-            READ (line (13:ll), *, err = 998) tmp 
-            DO k = 1, 4 
-            pcoff ( (itmp - 1) * 4 + k) = tmp (k) 
-            ENDDO 
-         ENDIF 
-      ENDIF 
-      GOTO 20 
+!     IF (search.eq.' ICONS') THEN 
+!        READ (line (13:ll), *, err = 998, end = 998) difc, difa, zero 
+!     ELSEIF (search.eq.'BNKPAR') THEN 
+!        READ (line (13:ll), *, err = 998) l2, tth 
+!     ELSEIF (search (1:5) .eq.key) THEN 
+!        IF (search (6:6) .eq.' ') THEN 
+!           READ (line (13:ll), *, err = 998) itmp, ncoff 
+!        ELSE 
+!           READ (search (6:6), * ) itmp 
+!           READ (line (13:ll), *, err = 998) tmp 
+!           DO k = 1, 4 
+!           pcoff ( (itmp - 1) * 4 + k) = tmp (k) 
+!           ENDDO 
+!        ENDIF 
+!     ENDIF 
+!     GOTO 20 
 !                                                                       
-   40 CONTINUE 
-      CLOSE (12) 
+!  40 CONTINUE 
+!     CLOSE (12) 
 !                                                                       
-      stheta = sind (0.5 * tth) 
-      IF (difa.ne.0.0) THEN 
-         secondterm = sqrt (4.0 * difa * (tof - zero) + difc * difc) 
-         dspace = ( - difc + secondterm) / 2. / difa 
-      ELSE 
-         dspace = (tof - zero) / difc 
-      ENDIF 
+!     stheta = sind (0.5 * tth) 
+!     IF (difa.ne.0.0) THEN 
+!        secondterm = sqrt (4.0 * difa * (tof - zero) + difc * difc) 
+!        dspace = ( - difc + secondterm) / 2. / difa 
+!     ELSE 
+!        dspace = (tof - zero) / difc 
+!     ENDIF 
 !                                                                       
-      RETURN 
+!     RETURN 
 !                                                                       
-      ier_num = - 46 
-      ier_typ = ER_APPL 
-      CLOSE (12) 
-      RETURN 
+!     ier_num = - 46 
+!     ier_typ = ER_APPL 
+!     CLOSE (12) 
+!     RETURN 
 !                                                                       
-  998 CONTINUE 
-      ier_num = - 47 
-      ier_typ = ER_APPL 
-      CLOSE (12) 
+! 998 CONTINUE 
+!     ier_num = - 47 
+!     ier_typ = ER_APPL 
+!     CLOSE (12) 
 !                                                                       
-      END SUBROUTINE read_prof                      
+!     END SUBROUTINE read_prof                      
 !*****7*****************************************************************
-      SUBROUTINE theory_gsas (xx, f, df, i) 
+!     SUBROUTINE theory_gsas (xx, f, df, i) 
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
+!     USE kuplot_config 
+!     USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      CHARACTER(4) htype 
-      REAL deriv (maxpara) 
-      REAL xx, f, df (maxpara) 
-      REAL pp (maxpara) 
-      REAL tth, c, dtof, delt 
-      REAL xnext 
-      INTEGER ind, ip, i, j, k, ptype 
+!     CHARACTER(4) htype 
+!     REAL deriv (maxpara) 
+!     REAL xx, f, df (maxpara) 
+!     REAL pp (maxpara) 
+!     REAL tth, c, dtof, delt 
+!     REAL xnext 
+!     INTEGER ind, ip, i, j, k, ptype 
 !                                                                       
-      DO ind = 1, maxpara 
-      df (ind) = 0.0 
-      deriv (ind) = 0.0 
-      ENDDO 
+!     DO ind = 1, maxpara 
+!     df (ind) = 0.0 
+!     deriv (ind) = 0.0 
+!     ENDDO 
 !                                                                       
-      j = abs (i) 
-      IF (j.ge.len (ikfit) ) RETURN 
+!     j = abs (i) 
+!     IF (j.ge.len (ikfit) ) RETURN 
 !                                                                       
-      tth = 0. 
-      ptype = np1 
-      htype = 'PNT ' 
+!     tth = 0. 
+!     ptype = np1 
+!     htype = 'PNT ' 
 !                                                                       
-      xnext = x (offxy (ikfit - 1) + j + 1) 
-      delt = xnext - xx 
-      f = p (npara - 1) + p (npara) * xx 
+!     xnext = x (offxy (ikfit - 1) + j + 1) 
+!     delt = xnext - xx 
+!     f = p (npara - 1) + p (npara) * xx 
 !                                                                       
-      DO ip = 1, np2 
-      DO k = 1, np3 
-      pp (k) = p ( (ip - 1) * np3 + k) 
-      ENDDO 
-      dtof = (xx - pp (1) ) / 1000. 
-      CALL prpcalc (htype, tth, ptype, pp, dtof, c, deriv, MAXPARA) 
-      f = f + pp (2) * c 
+!     DO ip = 1, np2 
+!     DO k = 1, np3 
+!     pp (k) = p ( (ip - 1) * np3 + k) 
+!     ENDDO 
+!     dtof = (xx - pp (1) ) / 1000. 
+!     CALL prpcalc (htype, tth, ptype, pp, dtof, c, deriv, MAXPARA) 
+!     f = f + pp (2) * c 
 !                                                                       
-      DO k = 1, np3 
-      p ( (ip - 1) * np3 + k) = pp (k) 
-      ENDDO 
+!     DO k = 1, np3 
+!     p ( (ip - 1) * np3 + k) = pp (k) 
+!     ENDDO 
 !                                                                       
-      IF (i.ge.1) THEN 
+!     IF (i.ge.1) THEN 
 !tep   write(*,'(5g15.6)') deriv(1),deriv(2),deriv(3),deriv(4),deriv(5) 
-         IF (pinc ( (ip - 1) * np3 + 1) .ne.0.0) df ( (ip - 1) * np3 +  &
-         1) = pp (2) * deriv (1) / 1000.                                
-         IF (pinc ( (ip - 1) * np3 + 2) .ne.0.0) df ( (ip - 1) * np3 +  &
-         2) = deriv (2)                                                 
-         DO k = 3, npara - 2 
-         IF (pinc ( (ip - 1) * np3 + k) .ne.0.0) df ( (ip - 1) * np3 +  &
-         k) = deriv (k) * pp (2)                                        
-         ENDDO 
-      ENDIF 
-      ENDDO 
+!        IF (pinc ( (ip - 1) * np3 + 1) .ne.0.0) df ( (ip - 1) * np3 +  &
+!        1) = pp (2) * deriv (1) / 1000.                                
+!        IF (pinc ( (ip - 1) * np3 + 2) .ne.0.0) df ( (ip - 1) * np3 +  &
+!        2) = deriv (2)                                                 
+!        DO k = 3, npara - 2 
+!        IF (pinc ( (ip - 1) * np3 + k) .ne.0.0) df ( (ip - 1) * np3 +  &
+!        k) = deriv (k) * pp (2)                                        
+!        ENDDO 
+!     ENDIF 
+!     ENDDO 
 !                                                                       
-      IF (i.ge.1) THEN 
-         IF (pinc (npara - 1) .ne.0.0) df (npara - 1) = 1.0 
-         IF (pinc (npara) .ne.0.0) df (npara) = xx 
-      ENDIF 
+!     IF (i.ge.1) THEN 
+!        IF (pinc (npara - 1) .ne.0.0) df (npara - 1) = 1.0 
+!        IF (pinc (npara) .ne.0.0) df (npara) = xx 
+!     ENDIF 
 !                                                                       
-      END SUBROUTINE theory_gsas                    
+!     END SUBROUTINE theory_gsas                    
 !*****7*****************************************************************
 !       Lorenzian                                                       
 !*****7*****************************************************************
@@ -6811,117 +6811,117 @@ END SUBROUTINE theory_gauss_2d
 !***7*******************************************************************
 !     Chebyshev polynom                                                 
 !***7*******************************************************************
-      SUBROUTINE show_poly_cheb (idout) 
+!     SUBROUTINE show_poly_cheb (idout) 
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
+!     USE kuplot_config 
+!     USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      INTEGER idout, i 
+!     INTEGER idout, i 
 !                                                                       
-      WRITE (idout, 1000) np1 
-      DO i = 0, np1 
-      WRITE (idout, 1100) i + 1, i, p (i + 1), dp (i + 1), pinc (i + 1) 
-      ENDDO 
-      WRITE (idout, * ) ' ' 
+!     WRITE (idout, 1000) np1 
+!     DO i = 0, np1 
+!     WRITE (idout, 1100) i + 1, i, p (i + 1), dp (i + 1), pinc (i + 1) 
+!     ENDDO 
+!     WRITE (idout, * ) ' ' 
 !                                                                       
- 1000 FORMAT     (1x,'Fitted Chebyshev polynom of order ',i2,' : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : coeff. A(',i2,') : ',g12.6,           &
-     &                   ' +- ',g12.6,4x,'pinc : ',f2.0)                
+!1000 FORMAT     (1x,'Fitted Chebyshev polynom of order ',i2,' : '/) 
+!1100 FORMAT     (3x,'p(',i2,') : coeff. A(',i2,') : ',g12.6,           &
+!    &                   ' +- ',g12.6,4x,'pinc : ',f2.0)                
 !                                                                       
-      END SUBROUTINE show_poly_cheb                 
+!     END SUBROUTINE show_poly_cheb                 
 !***7*******************************************************************
-      SUBROUTINE setup_poly_cheb (ianz, werte, maxw) 
+!     SUBROUTINE setup_poly_cheb (ianz, werte, maxw) 
 !                                                                       
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
-USE precision_mod
+!     USE errlist_mod 
+!     USE kuplot_config 
+!     USE kuplot_mod 
+!USE precision_mod
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      REAL(KIND=PREC_DP) werte (maxw) 
-      INTEGER ianz, ii, jj, i 
+!     INTEGER maxw 
+!     REAL(KIND=PREC_DP) werte (maxw) 
+!     INTEGER ianz, ii, jj, i 
 !                                                                       
-      IF (ianz.eq.0) THEN 
-         npara = 1 
-         np1 = 1 
-      ELSEIF (ianz.eq.1) THEN 
-         ii = nint (werte (1) ) 
-         IF (ii.ge.0.and. (1 + ii) .le.maxpara.and. (1 + ii) .le.5)     &
-         THEN                                                           
-            np1 = ii 
-            npara = ii + 1 
-         ELSE 
-            ier_num = - 31 
-            ier_typ = ER_APPL 
-            RETURN 
-         ENDIF 
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-         RETURN 
-      ENDIF 
+!     IF (ianz.eq.0) THEN 
+!        npara = 1 
+!        np1 = 1 
+!     ELSEIF (ianz.eq.1) THEN 
+!        ii = nint (werte (1) ) 
+!        IF (ii.ge.0.and. (1 + ii) .le.maxpara.and. (1 + ii) .le.5)     &
+!        THEN                                                           
+!           np1 = ii 
+!           npara = ii + 1 
+!        ELSE 
+!           ier_num = - 31 
+!           ier_typ = ER_APPL 
+!           RETURN 
+!        ENDIF 
+!     ELSE 
+!        ier_num = - 6 
+!        ier_typ = ER_COMM 
+!        RETURN 
+!     ENDIF 
 !                                                                       
-      ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit - 1) + len (ikfit) 
+!     ii = offxy (ikfit - 1) + 1 
+!     jj = offxy (ikfit - 1) + len (ikfit) 
 !                                                                       
-      p (1) = y (ii) 
-      pinc (1) = 1.0 
-      p (2) = (y (jj) - y (ii) ) / (x (jj) - x (ii) ) 
-      pinc (2) = 1.0 
-      DO i = 3, npara 
-      p (i) = 0.0 
-      pinc (i) = 1.0 
-      ENDDO 
+!     p (1) = y (ii) 
+!     pinc (1) = 1.0 
+!     p (2) = (y (jj) - y (ii) ) / (x (jj) - x (ii) ) 
+!     pinc (2) = 1.0 
+!     DO i = 3, npara 
+!     p (i) = 0.0 
+!     pinc (i) = 1.0 
+!     ENDDO 
 !                                                                       
-      DO i = 1, npara 
-      dp (i) = 0.0 
-      ENDDO 
+!     DO i = 1, npara 
+!     dp (i) = 0.0 
+!     ENDDO 
 !                                                                       
-      END SUBROUTINE setup_poly_cheb                
+!     END SUBROUTINE setup_poly_cheb                
 !***7*******************************************************************
-      SUBROUTINE theory_poly_cheb (xx, f, df, iwert) 
+!     SUBROUTINE theory_poly_cheb (xx, f, df, iwert) 
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
+!     USE kuplot_config 
+!     USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      REAL xx, f, df (maxpara) 
-      REAL xnew 
-      INTEGER iwert, ind 
+!     REAL xx, f, df (maxpara) 
+!     REAL xnew 
+!     INTEGER iwert, ind 
 !                                                                       
-      DO ind = 1, npara 
-      df (ind) = 0.0 
-      ENDDO 
+!     DO ind = 1, npara 
+!     df (ind) = 0.0 
+!     ENDDO 
 !                                                                       
 !------ Map x value on [-1,1] scale                                     
 !                                                                       
-      xnew = ( (xx - xmin (ikfit) ) - (xmax (ikfit) - xx) ) / (xmax (   &
-      ikfit) - xmin (ikfit) )                                           
+!     xnew = ( (xx - xmin (ikfit) ) - (xmax (ikfit) - xx) ) / (xmax (   &
+!     ikfit) - xmin (ikfit) )                                           
 !                                                                       
-      f = p (1) 
-      IF (np1.ge.1) f = f + p (2) * xnew 
-      IF (np1.ge.2) f = f + p (3) * (2 * xnew**2 - 1) 
-      IF (np1.ge.3) f = f + p (4) * (4 * xnew**3 - 3 * xnew) 
-      IF (np1.ge.4) f = f + p (5) * (8 * xnew**4 - 8 * xnew**2 + 1) 
+!     f = p (1) 
+!     IF (np1.ge.1) f = f + p (2) * xnew 
+!     IF (np1.ge.2) f = f + p (3) * (2 * xnew**2 - 1) 
+!     IF (np1.ge.3) f = f + p (4) * (4 * xnew**3 - 3 * xnew) 
+!     IF (np1.ge.4) f = f + p (5) * (8 * xnew**4 - 8 * xnew**2 + 1) 
 !                                                                       
 !-------Derivatives                                                     
 !                                                                       
-      IF (iwert.gt.0) THEN 
-         IF (pinc (1) .ne.0.0) df (1) = 1.0 
-         IF (pinc (2) .ne.0.0.and.np1.ge.1) df (2) = xnew 
-         IF (pinc (3) .ne.0.0.and.np1.ge.2) df (3) = 2 * xnew**2 - 1 
-         IF (pinc (4) .ne.0.0.and.np1.ge.3) df (4) = 4 * xnew**3 - 3 *  &
-         xnew                                                           
-         IF (pinc (5) .ne.0.0.and.np1.ge.4) df (5) = 8 * xnew**4 - 8 *  &
-         xnew**2 + 1                                                    
-      ENDIF 
+!     IF (iwert.gt.0) THEN 
+!        IF (pinc (1) .ne.0.0) df (1) = 1.0 
+!        IF (pinc (2) .ne.0.0.and.np1.ge.1) df (2) = xnew 
+!        IF (pinc (3) .ne.0.0.and.np1.ge.2) df (3) = 2 * xnew**2 - 1 
+!        IF (pinc (4) .ne.0.0.and.np1.ge.3) df (4) = 4 * xnew**3 - 3 *  &
+!        xnew                                                           
+!        IF (pinc (5) .ne.0.0.and.np1.ge.4) df (5) = 8 * xnew**4 - 8 *  &
+!        xnew**2 + 1                                                    
+!     ENDIF 
 !                                                                       
-      END SUBROUTINE theory_poly_cheb               
+!     END SUBROUTINE theory_poly_cheb               
 !***7*******************************************************************
 !     Polynom                                                           
 !***7*******************************************************************
