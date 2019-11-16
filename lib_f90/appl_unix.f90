@@ -798,6 +798,10 @@ IF(operating(1:6)=='darwin') THEN
    WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep -v grep | awk ''{print $2, $3}'' >> ', &
        temp_file(1:LEN_TRIM(temp_file))
    CALL system(line)
+ELSEIF(operating==OS_WINDOWS .OR. operating==OS_CYGWIN64 .OR. operating==OS_CYGWIN32) THEN
+   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep discus  | awk ''{print $1, $2}'' >> ', &
+       temp_file(1:LEN_TRIM(temp_file))
+   CALL system(line)
 ELSE
    WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep -v grep | awk ''{print $2, $1}'' >> ', &
        temp_file(1:LEN_TRIM(temp_file))
