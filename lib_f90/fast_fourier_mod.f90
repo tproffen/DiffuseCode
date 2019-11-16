@@ -272,8 +272,10 @@ CONTAINS
 !
 !
       subroutine cdft(n, isgn, a, ip, w)
+      USE precision_mod
       integer n, isgn, ip(0 : *)
-      real*8 a(0 : n - 1), w(0 : *)
+REAL(KIND=PREC_DP) :: a(0 : n - 1), w(0 : *)
+!     real*8 a(0 : n - 1), w(0 : *)
       if (n .gt. 4 * ip(0)) then
           call makewt(n / 4, ip, w)
       end if
@@ -291,8 +293,10 @@ CONTAINS
       end
 !
       subroutine rdft(n, isgn, a, ip, w)
+      USE precision_mod
       integer n, isgn, ip(0 : *), nw, nc
-      real*8 a(0 : n - 1), w(0 : *), xi
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), w(0 : *), xi
+!     real*8 a(0 : n - 1), w(0 : *), xi
       nw = ip(0)
       if (n .gt. 4 * nw) then
           nw = n / 4
@@ -328,8 +332,10 @@ CONTAINS
       end
 !
       subroutine ddct(n, isgn, a, ip, w)
+      USE precision_mod
       integer n, isgn, ip(0 : *), j, nw, nc
-      real*8 a(0 : n - 1), w(0 : *), xr
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), w(0 : *), xr
+!     real*8 a(0 : n - 1), w(0 : *), xr
       nw = ip(0)
       if (n .gt. 4 * nw) then
           nw = n / 4
@@ -376,8 +382,10 @@ CONTAINS
       end
 !
       subroutine ddst(n, isgn, a, ip, w)
+      USE precision_mod
       integer n, isgn, ip(0 : *), j, nw, nc
-      real*8 a(0 : n - 1), w(0 : *), xr
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), w(0 : *), xr
+!     real*8 a(0 : n - 1), w(0 : *), xr
       nw = ip(0)
       if (n .gt. 4 * nw) then
           nw = n / 4
@@ -424,8 +432,10 @@ CONTAINS
       end
 !
       subroutine dfct(n, a, t, ip, w)
+      USE precision_mod
       integer n, ip(0 : *), j, k, l, m, mh, nw, nc
-      real*8 a(0 : n), t(0 : n / 2), w(0 : *), xr, xi, yr, yi
+      REAL(KIND=PREC_DP) :: a(0 : n), t(0 : n / 2), w(0 : *), xr, xi, yr, yi
+!     real*8 a(0 : n), t(0 : n / 2), w(0 : *), xr, xi, yr, yi
       nw = ip(0)
       if (n .gt. 8 * nw) then
           nw = n / 8
@@ -511,8 +521,10 @@ CONTAINS
       end
 !
       subroutine dfst(n, a, t, ip, w)
+      USE precision_mod
       integer n, ip(0 : *), j, k, l, m, mh, nw, nc
-      real*8 a(0 : n - 1), t(0 : n / 2 - 1), w(0 : *), xr, xi, yr, yi
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), t(0 : n / 2 - 1), w(0 : *), xr, xi, yr, yi
+!     real*8 a(0 : n - 1), t(0 : n / 2 - 1), w(0 : *), xr, xi, yr, yi
       nw = ip(0)
       if (n .gt. 8 * nw) then
           nw = n / 8
@@ -591,8 +603,10 @@ CONTAINS
 ! -------- initializing routines --------
 !
       subroutine makewt(nw, ip, w)
+      USE precision_mod
       integer nw, ip(0 : *), j, nwh
-      real*8 w(0 : nw - 1), delta, x, y
+      REAL(KIND=PREC_DP) :: w(0 : nw - 1), delta, x, y
+!     real*8 w(0 : nw - 1), delta, x, y
       ip(0) = nw
       ip(1) = 1
       if (nw .gt. 2) then
@@ -617,8 +631,10 @@ CONTAINS
       end
 !
       subroutine makect(nc, ip, c)
+      USE precision_mod
       integer nc, ip(0 : *), j, nch
-      real*8 c(0 : nc - 1), delta
+      REAL(KIND=PREC_DP) :: c(0 : nc - 1), delta
+!     real*8 c(0 : nc - 1), delta
       ip(1) = nc
       if (nc .gt. 1) then
           nch = nc / 2
@@ -635,8 +651,10 @@ CONTAINS
 ! -------- child routines --------
 !
       subroutine bitrv2(n, ip, a)
+      USE precision_mod
       integer n, ip(0 : *), j, j1, k, k1, l, m, m2
-      real*8 a(0 : n - 1), xr, xi, yr, yi
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), xr, xi, yr, yi
+!     real*8 a(0 : n - 1), xr, xi, yr, yi
       ip(0) = 0
       l = n
       m = 1
@@ -732,8 +750,10 @@ CONTAINS
       end
 !
       subroutine bitrv2conj(n, ip, a)
+      USE precision_mod
       integer n, ip(0 : *), j, j1, k, k1, l, m, m2
-      real*8 a(0 : n - 1), xr, xi, yr, yi
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), xr, xi, yr, yi
+!     real*8 a(0 : n - 1), xr, xi, yr, yi
       ip(0) = 0
       l = n
       m = 1
@@ -838,9 +858,12 @@ CONTAINS
       end
 !
       subroutine cftfsub(n, a, w)
+      USE precision_mod
       integer n, j, j1, j2, j3, l
-      real*8 a(0 : n - 1), w(0 : *)
-      real*8 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), w(0 : *)
+      REAL(KIND=PREC_DP) :: x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
+!     real*8 a(0 : n - 1), w(0 : *)
+!     real*8 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
       l = 2
       if (n .gt. 8) then
           call cft1st(n, a, w)
@@ -886,9 +909,12 @@ CONTAINS
       end
 !
       subroutine cftbsub(n, a, w)
+      USE precision_mod
       integer n, j, j1, j2, j3, l
-      real*8 a(0 : n - 1), w(0 : *)
-      real*8 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), w(0 : *)
+      REAL(KIND=PREC_DP) :: x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
+!     real*8 a(0 : n - 1), w(0 : *)
+!     real*8 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
       l = 2
       if (n .gt. 8) then
           call cft1st(n, a, w)
@@ -934,10 +960,14 @@ CONTAINS
       end
 !
       subroutine cft1st(n, a, w)
+      USE precision_mod
       integer n, j, k1, k2
-      real*8 a(0 : n - 1), w(0 : *)
-      real*8 wk1r, wk1i, wk2r, wk2i, wk3r, wk3i
-      real*8 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), w(0 : *)
+      REAL(KIND=PREC_DP) :: wk1r, wk1i, wk2r, wk2i, wk3r, wk3i
+      REAL(KIND=PREC_DP) :: x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
+!     real*8 a(0 : n - 1), w(0 : *)
+!     real*8 wk1r, wk1i, wk2r, wk2i, wk3r, wk3i
+!     real*8 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
       x0r = a(0) + a(2)
       x0i = a(1) + a(3)
       x1r = a(0) - a(2)
@@ -1037,10 +1067,14 @@ CONTAINS
       end
 !
       subroutine cftmdl(n, l, a, w)
+      USE precision_mod
       integer n, l, j, j1, j2, j3, k, k1, k2, m, m2
-      real*8 a(0 : n - 1), w(0 : *)
-      real*8 wk1r, wk1i, wk2r, wk2i, wk3r, wk3i
-      real*8 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
+      REAL(KIND=PREC_DP) ::  a(0 : n - 1), w(0 : *)
+      REAL(KIND=PREC_DP) ::  wk1r, wk1i, wk2r, wk2i, wk3r, wk3i
+      REAL(KIND=PREC_DP) ::  x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
+!     real*8 a(0 : n - 1), w(0 : *)
+!     real*8 wk1r, wk1i, wk2r, wk2i, wk3r, wk3i
+!     real*8 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
       m = 4 * l
       do j = 0, l - 2, 2
           j1 = j + l
@@ -1162,8 +1196,10 @@ CONTAINS
       end
 !
       subroutine rftfsub(n, a, nc, c)
+      USE precision_mod
       integer n, nc, j, k, kk, ks, m
-      real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr, xi, yr, yi
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr, xi, yr, yi
+!     real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr, xi, yr, yi
       m = n / 2
       ks = 2 * nc / m
       kk = 0
@@ -1184,8 +1220,10 @@ CONTAINS
       end
 !
       subroutine rftbsub(n, a, nc, c)
+      USE precision_mod
       integer n, nc, j, k, kk, ks, m
-      real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr, xi, yr, yi
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr, xi, yr, yi
+!     real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr, xi, yr, yi
       a(1) = -a(1)
       m = n / 2
       ks = 2 * nc / m
@@ -1208,8 +1246,10 @@ CONTAINS
       end
 !
       subroutine dctsub(n, a, nc, c)
+      USE precision_mod
       integer n, nc, j, k, kk, ks, m
-      real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr
+      REAL(KIND=PREC_DP) :: a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr
+!     real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr
       m = n / 2
       ks = nc / n
       kk = 0
@@ -1226,8 +1266,10 @@ CONTAINS
       end
 !
       subroutine dstsub(n, a, nc, c)
+      USE precision_mod
       integer n, nc, j, k, kk, ks, m
-      real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr
+      REAL(KIND=PREC_DP) ::  a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr
+!     real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr
       m = n / 2
       ks = nc / n
       kk = 0

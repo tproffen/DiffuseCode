@@ -30,7 +30,7 @@ INTEGER :: lpara (maxw)
 !INTEGER :: max 
 INTEGER :: ikla, iklz, ikla1, ikla2, ikl, ll, lll, ie 
 INTEGER :: ikpa, ikpa1, ikpa2, ikp, ikpz, lp, ianz, i, ikom 
-INTEGER :: omask, nmask
+INTEGER :: omask ! , nmask might be needed later
 REAL(KIND=PREC_DP)    :: werte (maxw) 
 REAL(KIND=PREC_DP)    :: r 
 LOGICAL  , DIMENSION(1024,0:1) :: lmask

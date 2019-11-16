@@ -228,7 +228,7 @@ USE precision_mod
       INTEGER istring1, istring2 
       INTEGER istring1_len 
       INTEGER istring2_len 
-      INTEGER :: omask, nmask
+      INTEGER :: omask ! , nmask might be needed later
       LOGICAL lscr, lscr1 
       LOGICAL lstring1, lstring2 
       INTEGER :: ios
