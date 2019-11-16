@@ -564,7 +564,7 @@ USE precision_mod
          IF (str_comp (cpara (2) , 'all', 1, lpara (2) , 3) ) THEN 
             istart = 1 
             iend = mole_num_mole 
-         ELSEIF (str_comp (cpara (2) , 'last', 1, lpara (2) , 5) ) THEN 
+         ELSEIF (str_comp (cpara (2) , 'last', 1, lpara (2) , 4) ) THEN 
             istart = mole_num_mole 
             iend = mole_num_mole 
 !                                                                       
