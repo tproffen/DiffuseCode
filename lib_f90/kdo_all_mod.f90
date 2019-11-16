@@ -57,6 +57,11 @@ IMPLICIT none
       ELSEIF (str_comp (bef, 'echo', 2, lbef, 4) ) THEN 
          CALL echo (zei, lc) 
 !                                                                       
+!------ Echo a string to *
+!                                                                       
+      ELSEIF (str_comp (bef, 'flush', 3, lbef, 5) ) THEN 
+         CALL do_flush(zei, lc) 
+!                                                                       
 !     Evaluate an expression, just for interactive check 'eval'         
 !                                                                       
       ELSEIF (str_comp (bef, 'eval', 2, lbef, 4) ) THEN 

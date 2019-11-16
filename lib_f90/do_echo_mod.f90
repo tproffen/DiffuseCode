@@ -139,4 +139,20 @@ USE precision_mod
  2010 FORMAT    (1x,  a) 
 !                                                                       
       END SUBROUTINE echo                           
+!
+SUBROUTINE do_flush (zeile, lp) 
+!-
+! print simple message to * if error code is /= 0
+!
+USE errlist_mod
+!
+CHARACTER(LEN=*), INTENT(IN) :: zeile
+INTEGER         , INTENT(IN) :: lp
+!
+WRITE(*,'(a)') zeile(1:MIN(lp,LEN_TRIM(zeile)))
+IF(ier_num/=0) THEN
+WRITE(*,'(a, 2i4)' ) ' ERROR Number /TYP ', ier_num, ier_typ
+ENDIF
+!
+END SUBROUTINE do_flush
 !*****7**************************************************************** 
