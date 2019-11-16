@@ -465,8 +465,8 @@ REAL :: alpha_max2 =   0.0
 REAL :: alpha_min0 = 200.0
 REAL :: alpha_min1 = 200.0
 REAL :: alpha_min2 = 200.0
-REAL :: dstar
-REAL :: umax
+!REAL :: dstar
+!REAL :: umax
 !
 !
 fp(1) = .FALSE.

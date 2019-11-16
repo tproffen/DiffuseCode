@@ -1310,13 +1310,13 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP), INTENT(IN )   :: at_param
 LOGICAL                             , INTENT(INOUT) :: at_init
 !                                                                       
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara   ! (maxw) 
-CHARACTER(LEN=1024)                  :: string 
-CHARACTER(LEN=15)                    :: fff
+!CHARACTER(LEN=1024)                  :: string 
+!CHARACTER(LEN=15)                    :: fff
 INTEGER            , DIMENSION(MAXW) :: lpara   ! (maxw) 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: wwerte  ! (maxw) 
-INTEGER                              :: i, j ,isok, jj, k
+INTEGER                              :: i, j ,isok, jj! , k
 INTEGER                              :: ianz 
-INTEGER                              :: ios , ios_grand
+INTEGER                              :: ios !, ios_grand
 INTEGER                              :: laenge
 INTEGER, SAVE                        :: col_x      = 1 
 INTEGER, SAVE                        :: col_y      = 2 

@@ -397,8 +397,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                           ncalc, oname, loname, opara, lopara, lpresent, owerte)
                      IF (ier_num.eq.0) THEN 
                      IF (ianz.eq.1.or.ianz.eq.2) THEN 
-                        sym_occup  = opara(2) == 'empty'   ! Can target position by occupied or empty?
-                        sym_radius = owerte(1)             ! If empty, necessary free radius
+                        sym_occup  = opara(O_OCCUP) == 'empty'   ! Can target position by occupied or empty?
+                        sym_radius = owerte(O_RADIUS)             ! If empty, necessary free radius
                         IF (str_comp (cpara (1) , 'copy', 1, lpara (1) ,&
                         4) ) THEN                                       
                            sym_mode = .true. 

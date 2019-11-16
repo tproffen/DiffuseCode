@@ -1024,7 +1024,7 @@ INTEGER             :: ianz
 !
 CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
 INTEGER            , DIMENSION(maxw) :: lpara
-REAL(KIND=PREC_DP) , DIMENSION(maxw) :: werte
+!REAL(KIND=PREC_DP) , DIMENSION(maxw) :: werte
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
 INTEGER, PARAMETER :: O_TYPE    = 1

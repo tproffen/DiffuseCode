@@ -671,7 +671,7 @@ IMPLICIT none
 !                                                                       
 REAL                :: q2
 REAL (KIND=PREC_DP) :: sb, sf, sfp, sfpp 
-REAL (KIND=PREC_DP) :: dw
+!REAL (KIND=PREC_DP) :: dw
 INTEGER iq, iscat 
 !                                                                       
 IF (four_log) then 

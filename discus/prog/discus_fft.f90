@@ -28,13 +28,13 @@ REAL(KIND=PREC_SP), DIMENSION(3, 4)       , INTENT(IN) :: pdf3d_eck
 REAL(KIND=PREC_SP), DIMENSION(3, 3)       , INTENT(IN) :: pdf3d_vi
 INTEGER           , DIMENSION(3)          , INTENT(IN) :: pdf3d_inc
 !
-REAL(KIND=PREC_SP), DIMENSION(3,npkt1) :: hwrt
-REAL(KIND=PREC_SP), DIMENSION(3,npkt2) :: kwrt
+!REAL(KIND=PREC_SP), DIMENSION(3,npkt1) :: hwrt
+!REAL(KIND=PREC_SP), DIMENSION(3,npkt2) :: kwrt
 !
 INTEGER :: i,j, ih,ik
-REAL(KIND=PREC_DP) :: xstart, xstep, xx
-REAL(KIND=PREC_DP) :: ystart, ystep, yy
-REAL(KIND=PREC_DP) :: hh,kk,ll
+REAL(KIND=PREC_DP) :: xx
+REAL(KIND=PREC_DP) :: yy
+REAL(KIND=PREC_DP) :: hh,kk
 REAL(KIND=PREC_DP) :: arg
 !
 CALL set_cosine
@@ -48,7 +48,8 @@ DO j=0,nnew2-1
             hh = out_eck(1,1) + (ih-1)*out_vi(1,1) + (ik-1)*out_vi(1,2)
             kk = out_eck(2,1) + (ih-1)*out_vi(2,1) + (ik-1)*out_vi(2,2)
             arg = ABS(hh*xx + kk*yy)
-            znew(i+1,j+1) = znew(i+1,j+1) + zwrt(ih,ik)*cosine(MOD(INT( arg*ST_MASK     ), ST_MASK))
+            znew(i+1,j+1) = znew(i+1,j+1) +                              &
+                zwrt(ih,ik)*cosine(MOD(INT( arg*REAL(ST_MASK,KIND=PREC_DP), KIND=PREC_INT_LARGE), ST_MASK))
          ENDDO
       ENDDO
    ENDDO
