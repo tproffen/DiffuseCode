@@ -600,8 +600,16 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                                  ier_typ = ER_APPL
                                  pl_jmol = ' '
                               ELSE
-!                                IF(operating(1:6)=='cygwin' .OR.       &
-                                 IF(operating(1:7)=='Windows'    ) THEN
+                                 IF(operating(1:6)=='cygwin' ) THEN !   &
+                                    i = LEN_TRIM(pl_jmol)
+                                    IF(pl_jmol(i-3:i) == 'java') THEN
+                                       pl_jmol = 'cd /tmp      && java -Xmx512m -jar ./Jmol.jar ' 
+                                    ELSEIF(pl_jmol(1:14) == 'which: no java') THEN
+                                       ier_num = -152
+                                       ier_typ = ER_APPL
+                                       pl_jmol = ' '
+                                    ENDIF
+                                 ELSEIF(operating(1:7)=='Windows'    ) THEN
                                     i = LEN_TRIM(pl_jmol)
                                     IF(pl_jmol(i-3:i) == 'java') THEN
                                        pl_jmol = 'cd /opt/jmol && java -Xmx512m -jar ./Jmol.jar ' 
@@ -1254,9 +1262,6 @@ CHARACTER(LEN=1024) :: line
 CHARACTER(LEN=1024) :: line_move
 INTEGER             :: i,j,k
 INTEGER             :: length
-INTEGER             :: jmol_pid
-INTEGER             :: ios
-LOGICAL             :: lpresent = .false.
 LOGICAL             :: lsecond  = .false.
 LOGICAL             :: lunit    = .false.
 INTEGER, SAVE       :: jmol_no  = 0   ! Jmol instance number
@@ -1398,7 +1403,7 @@ IF(pl_prog=='jmol') THEN
    ELSEIF(operating(1:6)=='darwin') THEN
       WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating(1:6)=='cygwin') THEN
-      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol/jmol.',PID,'.',jmol_no,'.mol'
+      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating(1:7)=='Windows') THEN
       WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
    ENDIF
@@ -1414,10 +1419,19 @@ IF(pl_prog=='jmol') THEN
          current_dir(1:LEN_TRIM(current_dir))//      &
          pl_out(1:LEN_TRIM(pl_out)), ''' {1 1 1}'
    ELSEIF(operating(1:6)=='cygwin') THEN
+      IF(current_dir(1:5)=='/home') THEN
       WRITE(ITMP,'(3a)') 'load ''',                   &
          operat_top(1:LEN_TRIM(operat_top))//        &
          current_dir(1:LEN_TRIM(current_dir))//      &
-         pl_out(1:LEN_TRIM(pl_out)), ' {1 1 1}'
+         pl_out(1:LEN_TRIM(pl_out)), ''' {1 1 1}'
+      ELSEIF(current_dir(1:10)=='/cygdrive/') THEN
+      WRITE(ITMP,'(3a)') 'load ''',                   &
+         'C:\'//                                      &
+         current_dir(13:LEN_TRIM(current_dir))//      &
+         pl_out(1:LEN_TRIM(pl_out)), ''' {1 1 1}'
+      ELSE
+         WRITE(*,*) 'WRONG DRIVE ', current_dir(1:len_trim(current_dir))
+      ENDIF
    ELSEIF(operating(1:7)=='Windows') THEN
       WRITE(ITMP,'(3a)') 'load ''',                  &
          current_dir(11:11) // ':' //                &
@@ -1526,7 +1540,8 @@ IF(pl_prog=='jmol') THEN
       WRITE(line,'(a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
    ELSEIF(operating(1:6)=='cygwin') THEN
-      WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s jmol.mol > /dev/null &'
+      WRITE(line,'(a,a,i5.5,a,i5.5,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
+            ' -s jmol.', PID, '.',jmol_no, '.mol  > /dev/null &'
    ELSEIF(operating(1:7)=='Windows') THEN
       WRITE(line,'(a,a,i5.5,a,i5.5,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
             ' -s ../../tmp/jmol.', PID, '.',jmol_no, '.mol  > /dev/null &'
@@ -1622,8 +1637,8 @@ IF(ier_num==0) THEN
    ENDIF
 ENDIF
 !
-!WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
-!CALL system(line)
+WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
+CALL system(line)
 !
 IF(did_kill .AND.lfinal) THEN
    WRITE(output_io,*) ' Closed JMOL windows, ignore ''Killed'' messages '
