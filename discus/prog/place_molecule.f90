@@ -192,8 +192,11 @@ main_loop: DO
 !
               ELSEIF (str_comp (befehl, 'run', 3, lbef, 3)) THEN
                  IF(dcc_num > 0 ) THEN
-                     CALL deco_run
-                     if(ier_num == 0) ladd = .true.   ! allow new add command
+                     CALL deco_error_check
+                     IF(ier_num==0) THEN
+                        CALL deco_run
+                        if(ier_num == 0) ladd = .true.   ! allow new add command
+                     ENDIF
                  ELSE
                      ier_num = -129
                      ier_typ = ER_APPL
@@ -532,6 +535,12 @@ USE take_param_mod
          CALL ber_params (ianz, cpara, lpara, werte, maxw)
          IF(ier_num /= 0) RETURN
          dcc_dens (temp_num) = werte(1)
+         IF(dcc_dens(temp_num) <= 0.0) THEN
+            ier_num = -166
+            ier_typ = ER_APPL
+            ier_msg(1) = 'At zero density no molecules '
+            ier_msg(2) = 'can be placed onto surface   '
+         ENDIF
 !
       ELSE
          ier_num = -6
@@ -839,7 +848,7 @@ INTEGER  :: dc_temp_natoms   ! Number of atoms in the ligand molecule
    INTEGER   :: m_type_old             ! Molecule types in original crystal
    INTEGER   :: j_surf                 ! Surface atom type replaced by an achor
    INTEGER   :: temp_secnd             ! Second neighbor in the molecule
-INTEGER   :: ier_sta_temp          ! temporary error status
+!INTEGER   :: ier_sta_temp          ! temporary error status
    LOGICAL   :: l_correct              ! A dummy for logical comparisons
    LOGICAL   :: temp_lrestrict         ! Local copy of dcc_lrestict
    REAL      :: temp_angle             ! Local copy of dcc_angle
@@ -894,7 +903,6 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    CALL property_select(line, length,  cr_sel_prop)
 !
    corefile   = 'internal.decorate'             ! internal user files always start with 'internal'
-!!call save_show
    CALL save_internal(corefile)        !     thus this file name is unique
 !
    shellfile  = 'internal.decoshell'   
@@ -1431,7 +1439,7 @@ anchor(:,:) = 0
                                   dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
                                   dcc_tilt_atom(1:4,dc_temp_id),                     &
                                   dcc_tilt_is_atom(dc_temp_id),                      &
-                                  dcc_tilt_is_auto(dc_temp_id)      )
+                                  dcc_tilt_is_auto(dc_temp_id), natoms_prior      )
                              ELSE
                                 ier_num = -158
                                 ier_msg(1) = 'The normal connection requires one bond'
@@ -1458,7 +1466,7 @@ anchor(:,:) = 0
                                   dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
                                   dcc_tilt_atom(1:4,dc_temp_id),                     &
                                   dcc_tilt_is_atom(dc_temp_id) ,                     &
-                                  dcc_tilt_is_auto(dc_temp_id)      )
+                                  dcc_tilt_is_auto(dc_temp_id), natoms_prior      )
                              ELSE
                                 ier_num = -158
                                 ier_msg(1) = 'The bridge connection requires two bonds'
@@ -1484,7 +1492,7 @@ anchor(:,:) = 0
                                   dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
                                   dcc_tilt_atom(1:4,dc_temp_id),                     &
                                   dcc_tilt_is_atom(dc_temp_id) ,                     &
-                                  dcc_tilt_is_auto(dc_temp_id)      )
+                                  dcc_tilt_is_auto(dc_temp_id), natoms_prior      )
 CYCLE main_loop
                              ELSE
                                 ier_num = -158
@@ -1511,7 +1519,7 @@ CYCLE main_loop
                                   dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
                                   dcc_tilt_atom(1:4,dc_temp_id),                     &
                                   dcc_tilt_is_atom(dc_temp_id) ,                     &
-                                  dcc_tilt_is_auto(dc_temp_id)      )
+                                  dcc_tilt_is_auto(dc_temp_id) , natoms_prior     )
 CYCLE main_loop
                              ELSE
                                 ier_num = -158
@@ -1533,7 +1541,7 @@ CYCLE main_loop
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
                                   dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
-                                  temp_angle)
+                                  temp_angle, natoms_prior)
                              ELSE
                                 ier_num = -158
                                 ier_msg(1) = 'The acceptor connection requires one bond'
@@ -1554,7 +1562,7 @@ CYCLE main_loop
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
                                   dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
-                                  temp_angle)
+                                  temp_angle, natoms_prior)
                              ELSE
                                 ier_num = -158
                                 ier_msg(1) = 'The donor connection requires one bond'
@@ -1580,7 +1588,7 @@ CYCLE main_loop
                                   dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
                                   dcc_tilt_atom(1:4,dc_temp_id),                     &
                                   dcc_tilt_is_atom(dc_temp_id) ,                     &
-                                  dcc_tilt_is_auto(dc_temp_id)      )
+                                  dcc_tilt_is_auto(dc_temp_id) , natoms_prior     )
                                   IF(ier_num/=0) EXIT main_loop
                                   CYCLE main_loop
                              ELSE
@@ -2063,7 +2071,7 @@ END SUBROUTINE deco_reset
                             neig, dist, istart, iend, &
                             lrestrict, nhkl, rhkl   , &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-                            tilt_is_auto)
+                            tilt_is_auto, natoms_prior)
 !
 USE crystal_mod
    USE chem_mod
@@ -2111,6 +2119,7 @@ REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane 
 INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
+INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
 !
    REAL   , PARAMETER      :: EPS = 1.0E-6
 !
@@ -2242,6 +2251,13 @@ CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
          cr_prop (ia) = ibclr (cr_prop (ia), PROP_NORMAL)
       ENDIF
 !
+! Test for collisions, if so reset number of atoms and return
+!
+      IF(deco_collision(natoms_prior, nold))  THEN
+         cr_natoms = nold
+         RETURN
+      ENDIF
+!
       m_type_new = m_type_old  + temp_id 
       CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
       flagsurf: DO j=1,20
@@ -2274,7 +2290,7 @@ SUBROUTINE deco_place_bridge(temp_id, ia,                                       
                          nanch, anchor,                                         &
                          neig, dist, ncon, istart, iend, lrestrict, nhkl, rhkl, &
                          tilt, tilt_hkl, tilt_atom, tilt_is_atom,               &
-                         tilt_is_auto)
+                         tilt_is_auto, natoms_prior)
 !
 USE crystal_mod
 USE atom_env_mod
@@ -2325,6 +2341,7 @@ REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane 
 INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
+INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
 !
 INTEGER                                 :: surf_char      ! Surface character, plane, edge, corner, ...
 INTEGER, DIMENSION(3,6)                 :: surface_normal ! Set of local normals (:,1) is main normal
@@ -2522,6 +2539,14 @@ ENDIF
 CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
                tilt_is_auto,                                    &
                surf_normal, mole_natoms, 0, 0)
+!
+! Test for collisions, if so reset number of atoms and return
+!
+IF(deco_collision(natoms_prior, nold))  THEN
+   cr_natoms = nold
+   DEALLOCATE(all_surface)
+   RETURN
+ENDIF
 m_type_new = m_type_old  + temp_id
 !
 CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
@@ -2563,7 +2588,7 @@ END SUBROUTINE deco_place_bridge
                             nanch,anchor, neig, dist,ncon, &
                             istart, iend, lrestrict, nhkl, rhkl,   &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-                            tilt_is_auto)
+                            tilt_is_auto, natoms_prior)
 !
 !  The molecule is bound by two of its atoms to two different surfae atoms.
 !  The molecule is placed such that:
@@ -2624,6 +2649,7 @@ REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane 
 INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
+INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
 !
    INTEGER, PARAMETER                      :: MINPARA = 2
    INTEGER                                 :: MAXW = MINPARA
@@ -2842,6 +2868,14 @@ origin(1:3) = cr_pos(1:3, n1)
 !               tilt_is_auto,                                    &
 !               surf_normal, mole_natoms, n1, n2)
 !
+! Test for collisions, if so reset number of atoms and return
+!
+IF(deco_collision(natoms_prior, nold))  THEN
+   cr_natoms = n_atoms_orig
+   DEALLOCATE(all_surface)
+   RETURN
+ENDIF
+!
 m_type_new = m_type_old  + temp_id
 CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
 flagsurf: DO j=1,20
@@ -2886,7 +2920,7 @@ SUBROUTINE deco_place_chelate(temp_id, ia, &
                             nanch, anchor, &
                             neig, dist, ncon,istart, iend, lrestrict, nhkl, rhkl, &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-                            tilt_is_auto)
+                            tilt_is_auto, natoms_prior)
 !
 ! Place the ligand in a "chelate" bond. 
 ! The two connecting ligand atoms are placed along a line normal to the local surface normal.
@@ -2941,6 +2975,7 @@ REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane 
 INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
+INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
 !
 INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
 INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
@@ -3120,6 +3155,13 @@ CALL symm_op_single                           ! Perform the operation
 !               tilt_is_auto,                                    &
 !               surf_normal, mole_natoms, n1, n2)
 !
+! Test for collisions, if so reset number of atoms and return
+!
+IF(deco_collision(natoms_prior, nold))  THEN
+   cr_natoms = nold
+   RETURN
+ENDIF
+!
 m_type_new = m_type_old  + temp_id
 !
 CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
@@ -3157,7 +3199,7 @@ END SUBROUTINE deco_place_chelate
                             nsites,                                               &
                             neig, dist,ncon, istart, iend, lrestrict, nhkl, rhkl, &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-                            tilt_is_auto)
+                            tilt_is_auto, natoms_prior)
 !
 !  Places a molecule that has multiple bonds to the surface.
 !  The first bond should be the one that carries multiple connections to
@@ -3218,6 +3260,7 @@ REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane 
 INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
+INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
 !
    INTEGER, PARAMETER                      :: MINPARA = 2
    INTEGER                                 :: MAXW = MINPARA
@@ -3263,7 +3306,6 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
 !  REAL                :: r_m_fuzzy
 !  REAL                :: r_m_dens
 !
-!
 maxw     = MAX(MINPARA,nanch)
 vnull(:) = 0.00
 success = -1
@@ -3275,7 +3317,7 @@ nold = cr_natoms                           ! Remember original atom number
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
-surf_normal(1:3) = REAL(surface_normal(:,1))
+surf_normal_r(1:3) = REAL(surface_normal(:,1))
 hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
    test_nhkl =    nhkl
@@ -3471,6 +3513,10 @@ CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
                tilt_is_auto,                                    &
                surf_normal, mole_natoms, n1, n2)
 !
+IF(deco_collision(natoms_prior, nold)) THEN
+ GOTO 9999
+ENDIF
+!
 cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
 cr_prop (n1) = IBCLR (cr_prop (n1), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
 cr_prop (n2) = IBCLR (cr_prop (n2), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
@@ -3499,6 +3545,7 @@ success = 0                                   ! Clear error flag
 9999 CONTINUE                                 ! Jump here from errors to ensure dealloc
    IF(success /=0) THEN                       ! An error occurred, reset crystal
       cr_natoms = n_atoms_orig
+ELSE
    ENDIF
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
@@ -3514,7 +3561,7 @@ success = 0                                   ! Clear error flag
                             m_type_old, mole_name, mole_natoms, &
                             mole_nscat, mole_atom_name, &
                             mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
-                            neig, dist, temp_secnd, istart, iend, lrestrict, nhkl, rhkl, dha_angle)
+                            neig, dist, temp_secnd, istart, iend, lrestrict, nhkl, rhkl, dha_angle, natoms_prior)
 !
 !  Place molecules via a hydrogen bond onto the surface acceptor atom
 !
@@ -3561,6 +3608,7 @@ REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic cor
    INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
    INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl         ! actual faces for the restriction
    REAL   ,                 INTENT(IN) :: dha_angle       ! hydrogen-Bond angle in Hydrogen atom
+INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
 !
 !  REAL, PARAMETER         :: DIST_A_H     = 1.920   ! Average Acceptor Hydrogon distance
 !  REAL, PARAMETER         :: SIGMA_A_H    = 0.001   ! Sigma for Acceptor Hydrogon distance
@@ -3746,6 +3794,13 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    
 ENDIF
 !
+! Test for collisions, if so reset number of atoms and return
+!
+IF(deco_collision(natoms_prior, nold))  THEN
+   cr_natoms = nold
+   RETURN
+ENDIF
+!
    CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
    flagsurf: DO j=1,20
       IF(mole_surfnew(j)>0) THEN
@@ -3775,7 +3830,7 @@ SUBROUTINE deco_place_donor(temp_id, ia, &
                             m_type_old, mole_name, mole_natoms, &
                             mole_nscat, mole_atom_name, &
                             mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
-                            neig, dist, istart, iend, lrestrict, nhkl, rhkl, dha_angle)
+                            neig, dist, istart, iend, lrestrict, nhkl, rhkl, dha_angle, natoms_prior)
 !
 !  Place molecules via a hydrogn bond onto the surface donor atom
 !
@@ -3825,6 +3880,7 @@ LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surfac
 INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
 INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl         ! actual faces for the restriction
 REAL   ,                 INTENT(IN) :: dha_angle       ! hydrogen-Bond angle in Hydrogen atom
+INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
 !
 INTEGER, PARAMETER      :: MAXW = 2
 !  REAL, PARAMETER         :: DIST_A_H     = 1.920   ! Average Acceptor Hydrogon distance
@@ -4020,6 +4076,13 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    ENDIF
 ENDIF
 !
+!
+! Test for collisions, if so reset number of atoms and return
+!
+IF(deco_collision(natoms_prior, nold))  THEN
+   cr_natoms = nold
+   RETURN
+ENDIF
 !  Group molecule
    m_type_new = m_type_old  + temp_id
    CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
@@ -4053,56 +4116,57 @@ END SUBROUTINE deco_place_donor
 !
 !*****7*****************************************************************
 !
-   SUBROUTINE deco_find_anchor(MAXAT,MAXTYPE, surface, distance, ia, &
-                               normal, posit, is_good, &
-                               base, ierror)
+SUBROUTINE deco_find_anchor(MAXAT,MAXTYPE, surface, distance, ia, &
+                            normal, posit, is_good, &
+                            base, ierror)
 !-                                                                      
 !  Find a common point around MAXAT atom types in surface
 !  ia is the first surface atom number
 !
 USE crystal_mod
-   USE atom_env_mod
-   USE chem_mod
+USE atom_env_mod
+USE chem_mod
 USE do_find_mod
-   USE metric_mod
-   USE modify_mod
+USE metric_mod
+USE modify_mod
 USE prop_para_mod
 !
 USE errlist_mod
-   USE param_mod
+USE param_mod
 USE precision_mod
-   USE wink_mod
+USE wink_mod
 !
-   IMPLICIT NONE
-   INTEGER                    , INTENT(IN)  :: MAXAT
-   INTEGER                    , INTENT(IN)  :: MAXTYPE
-   INTEGER, DIMENSION(0:MAXTYPE), INTENT(IN)  :: surface
-   REAL                       , INTENT(IN)  :: distance
-   INTEGER                    , INTENT(IN)  :: ia
-   REAL   , DIMENSION(1:3)    , INTENT(IN)  :: normal
-   REAL   , DIMENSION(1:3)    , INTENT(OUT) :: posit
-   REAL   , DIMENSION(1:3)    , INTENT(OUT) :: base
-   INTEGER, DIMENSION(1:2)    , INTENT(OUT) :: is_good
-   INTEGER                    , INTENT(INOUT) :: ierror
+IMPLICIT NONE
+INTEGER                      , INTENT(IN)    :: MAXAT
+INTEGER                      , INTENT(IN)    :: MAXTYPE
+INTEGER, DIMENSION(0:MAXTYPE), INTENT(IN)    :: surface
+REAL                         , INTENT(IN)    :: distance
+INTEGER                      , INTENT(IN)    :: ia
+REAL   , DIMENSION(1:3)      , INTENT(IN)    :: normal     ! Surface normal in UVW
+REAL   , DIMENSION(1:3)      , INTENT(OUT)   :: posit
+REAL   , DIMENSION(1:3)      , INTENT(OUT)   :: base
+INTEGER, DIMENSION(1:2)      , INTENT(OUT)   :: is_good
+INTEGER                      , INTENT(INOUT) :: ierror
 !
-   LOGICAL, PARAMETER         :: lspace = .true. 
+LOGICAL, PARAMETER         :: lspace = .true. 
 !
-   CHARACTER (LEN=1024)                    :: line
-   INTEGER :: ianz, i, j, k, l, kgood, lgood
-   INTEGER :: good1, good2, good3
-   INTEGER :: laenge
-   INTEGER, DIMENSION(0:6,2:MAXAT) :: neig
-   LOGICAL, DIMENSION(1:3) :: fp
-   LOGICAL                 :: fq
-   REAL                    :: rmin, radius
-   REAL(KIND=PREC_DP)   , DIMENSION(1:MAXTYPE) :: werte
-   REAL   , DIMENSION(1:3)    :: x, u,v,w, e1,e2,e3
-   REAL                    :: u_l, v_l, w_l    ! length of vectors in triangle
-   REAL                    :: av, sig, av_min, sig_min ! average length  and sigma
-   REAL                    :: tx,ty, tz        ! Cartesion coordinates of target position
-   REAL                    :: g2x, g2y         ! Cartesion coordinates of atom 3
-   REAL                    :: arg
-   REAL     , DIMENSION(1:3)               :: vnull
+CHARACTER (LEN=1024)                    :: line
+INTEGER :: ianz, i, j, k, l, kgood, lgood
+INTEGER :: good1, good2, good3
+INTEGER :: laenge
+INTEGER, DIMENSION(0:6,2:MAXAT) :: neig
+LOGICAL, DIMENSION(1:3) :: fp
+LOGICAL                 :: fq
+REAL                    :: alpha
+REAL                    :: rmin, radius
+REAL(KIND=PREC_DP)   , DIMENSION(1:MAXTYPE) :: werte
+REAL   , DIMENSION(1:3)    :: x, u,v,w, e1,e2,e3, rnorm
+REAL                    :: u_l, v_l, w_l    ! length of vectors in triangle
+REAL                    :: av, sig, av_min, sig_min ! average length  and sigma
+REAL                    :: tx,ty, tz        ! Cartesion coordinates of target position
+REAL                    :: g2x, g2y         ! Cartesion coordinates of atom 3
+REAL                    :: arg
+REAL     , DIMENSION(1:3)               :: vnull
 !
    vnull(:) = 0.00
 !
@@ -4117,6 +4181,7 @@ USE precision_mod
    x(:)     = cr_pos(:, ia)        ! Seach around atom ia
    fp (:)   = chem_period (:)
    fq       = chem_quick
+   rnorm(:) = REAL(cr_surf(1:3,ia))   ! Surface normal at anchor ia in HKL
    find: DO l=2, MAXAT
       werte(1) = surface(l)           ! Find this atom type
       werte(1:MAXTYPE) = surface(1:MAXTYPE)           ! Find this atom type
@@ -4126,10 +4191,14 @@ USE precision_mod
         check_prop: DO i=1,atom_env(0)                               ! Check properties 
            IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
               IBITS(cr_prop(atom_env(i)),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
+               v(:) = REAL(cr_surf(1:3,atom_env(i)))   ! Surface normal at environment atom
+               alpha = do_bang (.FALSE., rnorm, vnull, v)
+               IF(alpha<50.0) THEN                                   ! Angle is small enough, similar surface
                j = j +1                                              ! Will use this neighbor
                neig(j,l) = atom_env(i)
                neig(0,l) = j
                IF(j==6) EXIT check_prop                              ! Found first six good neighbors
+               ENDIF
             ENDIF
          ENDDO check_prop
          IF(j==0) THEN                                      ! No suitable neighbor, quietly leave
@@ -4144,6 +4213,10 @@ USE precision_mod
       ENDIF  ! 
    ENDDO find
 !
+   IF(neig(0,2)<1 .OR. neig(0,3)<1) THEN
+      ierror = -3
+      RETURN
+   ENDIF
 !
    IF(maxat==3) THEN                        ! Find a suitable triangle
        av_min = 1.E10
@@ -4178,6 +4251,7 @@ USE precision_mod
    good1 = ia                             ! Atom is is 0,0,0 corner in cartesian space
    good2 = neig(lgood,2)                  ! Atom is along x-axis in cartesian space
    good3 = neig(kgood,3)                  ! Atoms definex x-y plane in cartesian space
+!
    u (:) = cr_pos(:,good2) - cr_pos(:,good1)  ! Cartesian x-axis
    u_l  = SQRT(skalpro(u ,u ,cr_gten))
    IF(u_l<=0) THEN                        ! Negative arg, no solution return with error status
@@ -4515,6 +4589,71 @@ ENDIF
 1100 FORMAT(6(G15.6E3,', '),'ddd')
 !
 END SUBROUTINE rotate_directly
+!
+!*******************************************************************************
+!
+LOGICAL FUNCTION deco_collision(natoms_prior, nold)
+!-
+! Tests the new atoms for collisions with previous atoms
+!+
+USE crystal_mod
+USE metric_mod
+!
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: natoms_prior
+INTEGER, INTENT(IN) :: nold
+!
+LOGICAL, PARAMETER :: LSPACE = .TRUE.
+REAL, PARAMETER    :: rcut   = 1.30
+!
+INTEGER                          :: i, j
+REAL(KIND=PREC_SP), DIMENSION(3) :: u
+REAL(KIND=PREC_SP), DIMENSION(3) :: w
+!REAL(KIND=PREC_SP), DIMENSION(3), PARAMETER :: vnull =(/0.0, 0.0, 0.0/)
+!
+deco_collision=.FALSE.            ! No Collision as default
+!
+main: DO i=natoms_prior+1, nold         ! Loop over previous atoms 
+   u = cr_pos(:,i)
+   DO j=nold+1, cr_natoms         ! Loop over new atoms
+      w = cr_pos(:,j)
+      IF(do_blen(LSPACE, u, w) < rcut) THEN
+         deco_collision = .TRUE.
+         EXIT main
+      ENDIF
+   ENDDO
+ENDDO main
+!
+END FUNCTION deco_collision
+!
+!*******************************************************************************
+!
+SUBROUTINE deco_error_check
+!-
+! Check parameters for consistency
+!+
+USE deco_mod
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+INTEGER :: i
+!
+DO i=1, dcc_num
+IF(dcc_axis(0,i)>0) THEN     !User specified 'set ...,axis' command
+   IF((dcc_axis(1,i)==dcc_neig(1,i).AND.dcc_axis(2,i)==dcc_neig(2,i)) .OR.  &
+      (dcc_axis(1,i)==dcc_neig(2,i).AND.dcc_axis(2,i)==dcc_neig(1,i)) ) THEN 
+      ier_num =  -165
+      ier_typ = ER_APPL
+   ENDIF
+ENDIF
+ENDDO
+!
+END SUBROUTINE deco_error_check
 !
 !*******************************************************************************
 !
