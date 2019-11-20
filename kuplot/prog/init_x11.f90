@@ -1,5 +1,5 @@
 !*****7***************************************************************  
-      SUBROUTINE init_devices 
+SUBROUTINE init_devices 
 !-                                                                      
 !       Platform specific defaults                                      
 !       X11 version ..                                                  
@@ -12,13 +12,22 @@
       CHARACTER(80) prn_name 
       INTEGER ll 
       INTEGER len_str 
-!                                                                       
+INTEGER :: i
+!
+DO i=MAXWIN, 1, -1
+   IF(dev_id(i,x11)>0) THEN
+      CALL PGSLCT (dev_id (i, x11) )
+      CALL PGCLOS
+   ENDIF
+ENDDO
+dev_ID(:,x11) = -1
+!
       CALL get_environment_variable ('KUPLOT_PRINTER', prn_name) 
       ll = len_str (prn_name) 
 !                                                                       
 !------ X11 device definitions for PGPLOT                               
 !                                                                       
-      dev_name (x11) = '/XSERVE' 
+      dev_name (x11) = '/XSERVE'
       dev_prn (x11) = ' ' 
       dev_name (ps) = '/CPS' 
       dev_name (vps) = '/VCPS' 

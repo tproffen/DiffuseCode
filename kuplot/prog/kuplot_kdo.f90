@@ -48,7 +48,7 @@ USE precision_mod
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       REAL dummy 
       INTEGER lpara (maxw) 
-      INTEGER lc, lbef, i
+      INTEGER lc, lbef, i, j
       INTEGER ianz, indxg, indxb , indxt
       LOGICAL ldummy 
 !                                                                       
@@ -157,6 +157,34 @@ USE precision_mod
             CALL do_merge (zei, lc) 
          ELSEIF (str_comp (bef, 'rebin', 3, lbef, 5) ) then 
             CALL do_rebin (zei, lc) 
+         ELSEIF(str_comp (bef, 'close', 3, lbef, 5)) THEN
+            CALL get_params (zei, ianz, cpara, lpara, maxw, lc) 
+            IF(ianz>= 1) THEN
+               CALL ber_params(ianz, cpara, lpara, werte, maxw)
+               IF(ier_num == 0 ) THEN
+                  DO j=1, ianz
+                     i = NINT(werte(j))
+                     IF(j<=MAXWIN) THEN
+                        IF(dev_id(i,x11)>0) THEN
+                           CALL PGSLCT (dev_id (i, x11) )
+                           CALL PGCLOS
+                           dev_id(i,x11) = -1
+                        ENDIF
+                     ELSE
+                        ier_num = -9999
+                        ier_typ = ER_APPL
+                     ENDIF
+                  ENDDO
+               ENDIF
+            ELSE
+               DO i=1, MAXWIN
+                  IF(dev_id(i,x11)>0) THEN
+                     CALL PGSLCT (dev_id (i, x11) )
+                     CALL PGCLOS
+                     dev_id(i,x11) = -1
+                  ENDIF
+               ENDDO
+            ENDIF
 !                                                                       
 !-------  Set colours                                                   
 !                                                                       
