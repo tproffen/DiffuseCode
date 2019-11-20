@@ -271,6 +271,7 @@ ELSEIF (pow_four_type.eq.POW_DEBYE) THEN  copy
       st     = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda
       uin(1) = (ss - st) / 2. 
    ENDIF 
+write(*,*) ' POINT  A ', npkt
    DO ii = 1, npkt    
       dstar = REAL(xm (1) + (ii - 1) * uin (1) ) 
       stl = REAL(0.5D0 * (xm (1) + (ii - 1) * uin (1) ) )

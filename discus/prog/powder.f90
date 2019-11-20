@@ -176,6 +176,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_power) 
+                  CALL pow_conv_limits
                   CALL pow_show 
 !                                                                       
 !------- -Set values 'set'                                              
@@ -296,8 +297,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       DATA cprofile / 'Profile function switched off', 'Gaussian        &
      &             ', 'Pseudo-Voigt                 ' /                 
 !                                                                       
+CALL pow_conv_limits
+!
       WRITE (output_io, 1000) 
-!                                                                       
 !     radiation = 'neutron' 
 !     IF (lxray) radiation = 'x-ray' 
       radiation = c_rad(diff_radiation)
@@ -409,6 +411,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
          WRITE (output_io, 1290) pow_qmin, pow_qmax 
          WRITE (output_io, 1291) pow_deltaq 
+         WRITE (output_io, 1220) pow_tthmin, pow_tthmax 
+         WRITE (output_io, 1230) pow_deltatth 
          WRITE (output_io, 2100) cprofile (pow_profile) 
          IF (pow_profile.eq.0) then 
             CONTINUE 
@@ -464,11 +468,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
  1000 FORMAT    ( ' Settings for Powder Diffraction segment :') 
  1200 FORMAT    ( '   Radiation               : ',A,', wavelength = ',  &
-     &          F7.4,' A == ', F8.4,'keV')                               
+     &          F7.4,' A == ', F9.4,' keV')                               
  1201 FORMAT    ( '   Radiation               : ',A,', wavelength = ',  &
-     &          F7.4,' A == ', F8.4,'meV')
+     &          F7.4,' A == ', F9.4,' meV')
  1210 FORMAT    ( '   Radiation               : ',A,', wavelength = ',A4,   &
-     &                    ' = ',F7.4,' A')                              
+     &                    ' = ',F8.4,' A')                              
  1211 FORMAT    ( '   Calculations for axis   : ',a) 
  1220 FORMAT    ( '   TTHmin, TTHmax          : ',f10.5,2x,f10.5) 
  1221 FORMAT    ( '   d* min, d* max          : ',f10.5,2x,f10.5) 
@@ -565,25 +569,26 @@ err_para: IF (ier_num.eq.0) then
                      oname, loname, opara, lopara, lpresent, owerte)
    err_opti: IF (ier_num.eq.0) then 
 !
-         IF (str_comp (cpara (1) , 'axis', 2, lpara (1) , 4) ) then 
-            IF (ianz.eq.2) then 
-               IF (str_comp (cpara (2) , 'dstar', 1, lpara (2) , 5) )   &
-               then                                                     
-                  pow_axis = POW_AXIS_Q 
-               ELSEIF (str_comp (cpara (2) , 'q', 1, lpara (2) , 1) )   &
-               then                                                     
-                  pow_axis = POW_AXIS_Q 
-               ELSEIF (str_comp (cpara (2) , 'tth', 1, lpara (2) , 3) ) &
-               then                                                     
-                  pow_axis = POW_AXIS_TTH 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
+         IF(str_comp(cpara(1), 'axis', 2, lpara(1), 4)) THEN 
+            pow_axis = POW_AXIS_Q 
+!           IF (ianz.eq.2) then 
+!              IF (str_comp (cpara (2) , 'dstar', 1, lpara (2) , 5) )   &
+!              then                                                     
+!                 pow_axis = POW_AXIS_Q 
+!              ELSEIF (str_comp (cpara (2) , 'q', 1, lpara (2) , 1) )   &
+!              then                                                     
+!                 pow_axis = POW_AXIS_Q 
+!              ELSEIF (str_comp (cpara (2) , 'tth', 1, lpara (2) , 3) ) &
+!              then                                                     
+!                 pow_axis = POW_AXIS_TTH 
+!              ELSE 
+!                 ier_num = - 6 
+!                 ier_typ = ER_COMM 
+!              ENDIF 
+!           ELSE 
+!              ier_num = - 6 
+!              ier_typ = ER_COMM 
+!           ENDIF 
          ELSEIF (str_comp (cpara (1) , 'back', 2, lpara (1) , 4) ) then 
             IF (ianz.ge.2) then 
                cpara (1) = '0' 
@@ -688,6 +693,7 @@ err_para: IF (ier_num.eq.0) then
                      ier_msg(1) = '2Theta step must be less than 180degrees'
                   ELSE
                      pow_deltatth = werte (2) 
+                     pow_deltaqtth = .FALSE.
                   ENDIF 
                ENDIF 
             ELSE 
@@ -701,6 +707,7 @@ err_para: IF (ier_num.eq.0) then
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) then 
                   pow_deltaq = NINT(werte(2)*1.D5)/1.D5
+                  pow_deltaqtth = .TRUE.
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -1072,8 +1079,7 @@ err_para: IF (ier_num.eq.0) then
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'tthmax', 5, lpara (1) , 6) )    &
-         then                                                           
+         ELSEIF(str_comp(cpara(1), 'tthmax', 5, lpara(1), 6)) THEN
             IF (ianz.eq.2) then 
                cpara (1) = '0' 
                lpara (1) = 1 
@@ -1089,14 +1095,14 @@ err_para: IF (ier_num.eq.0) then
                      ier_msg(1) = '2Theta max must be less than 180degrees'
                   ELSE
                      pow_tthmax = werte (2) 
+                     pow_qtthmax = .FALSE.
                   ENDIF 
                ENDIF 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'tthmin', 5, lpara (1) , 6) )    &
-         then                                                           
+         ELSEIF(str_comp(cpara(1), 'tthmin', 5, lpara(1), 6)) THEN
             IF (ianz.eq.2) then 
                cpara (1) = '0' 
                lpara (1) = 1 
@@ -1112,6 +1118,7 @@ err_para: IF (ier_num.eq.0) then
                      ier_msg(1) = '2Theta min must be less than 180degrees'
                   ELSE
                      pow_tthmin = werte (2) 
+                     pow_qtthmin = .FALSE.
                   ENDIF 
                ENDIF 
             ELSE 
@@ -1125,6 +1132,7 @@ err_para: IF (ier_num.eq.0) then
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) then 
                   pow_qmax = werte (2) 
+                  pow_qtthmax = .TRUE.
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -1137,6 +1145,7 @@ err_para: IF (ier_num.eq.0) then
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) then 
                   pow_qmin = werte (2) 
+                  pow_qtthmin = .TRUE.
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -2333,6 +2342,42 @@ END SUBROUTINE powder_run
 !
 !*******************************************************************************
 !
+SUBROUTINE pow_conv_limits
+!-
+! convert limits and steps
+!+
+USE powder_mod
+USE diffuse_mod
+!
+USE trig_degree_mod
+USE wink_mod
+!
+IMPLICIT NONE
+!
+IF(pow_qtthmin) THEN
+   pow_tthmin = 2.0D0*asind(pow_qmin*rlambda/fpi)
+ELSE
+   pow_qmin = fpi*sind(pow_tthmin*0.5D0)/rlambda
+ENDIF
+!
+IF(pow_qtthmax) THEN
+   pow_tthmax = 2.0D0*asind(pow_qmax*rlambda/fpi)
+ELSE
+   pow_qmax = fpi*sind(pow_tthmax*0.5D0)/rlambda
+ENDIF
+!
+IF(pow_deltaqtth) THEN
+   pow_deltatth = 2.0D0*asind((pow_qmin+pow_deltaq)*rlambda/fpi) - &
+                  2.0D0*asind((pow_qmin           )*rlambda/fpi)
+ELSE
+   pow_deltaq   = fpi*sind(0.5D0*(pow_tthmax             ))/rlambda     - &
+                  fpi*sind(0.5D0*(pow_tthmax-pow_deltatth))/rlambda
+ENDIF
+!
+END SUBROUTINE pow_conv_limits                 
+!
+!*******************************************************************************
+!
 SUBROUTINE powder_reset
 
 USE discus_allocate_appl_mod
@@ -2352,6 +2397,10 @@ pow_lp         = POW_LP_BRAGG
 !
 pow_l_all      = .true.
 !
+pow_qtthmin    = .TRUE.    ! User  provided Qmin(==true) TTHmin(=false)
+pow_qtthmax    = .TRUE.    ! User  provided Qmax(==true) TTHmax(=false)
+pow_deltaqtth  = .TRUE.    ! User  provided Qstp(==true) TTHstp(=false)
+
 pow_tthmin     =  0.1
 pow_tthmax     = 40.0
 pow_deltatth   =  0.05

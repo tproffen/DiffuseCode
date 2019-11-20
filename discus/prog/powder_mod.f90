@@ -48,6 +48,9 @@ INTEGER                  :: pow_four_type  = POW_COMPL
 INTEGER                  :: pow_lp         = POW_LP_BRAGG
 !
 LOGICAL                  :: pow_l_all      = .true.
+LOGICAL                  :: pow_qtthmin    = .TRUE.    ! User  provided Qmin(==true) TTHmin(=false)
+LOGICAL                  :: pow_qtthmax    = .TRUE.    ! User  provided Qmax(==true) TTHmax(=false)
+LOGICAL                  :: pow_deltaqtth  = .TRUE.    ! User  provided Qstp(==true) TTHstp(=false)
 !
 REAL(KIND=PREC_DP)       :: pow_tthmin     =  0.1D0
 REAL(KIND=PREC_DP)       :: pow_tthmax     = 40.0D0
