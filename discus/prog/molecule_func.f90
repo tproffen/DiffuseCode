@@ -94,6 +94,12 @@ IF(ier_num == 0) THEN
                ier_msg(2) = ' range, <from> , <to>, <type>, <biso>'
             ENDIF
          ENDIF
+      ELSE
+         ier_num = -6
+         ier_typ = ER_FORT
+         ier_msg(1) = 'Molecularize command needs parameters:'
+         ier_msg(2) = 'conn, <central> [, <exclude>...]'
+         ier_msg(3) = 'range, <from> , <to>, <type>, <biso>'
       ENDIF
    ELSE
       ier_num = -6
@@ -147,6 +153,11 @@ IF(.NOT. btest(cr_prop(jatom),1)) THEN      ! Atom is not yet inside a molecule
       ENDIF
    ENDDO
 !
+   IF(n_new == 1) THEN
+      DEALLOCATE(t_list)
+      RETURN
+   ENDIF
+!
    n_mole = mole_num_mole + 1   ! Reserve new molecule
    n_type = mole_num_type + 1   ! Reserve new molecule type
    n_atom = mole_off(mole_num_mole) + mole_len(mole_num_mole) + n_new
@@ -177,6 +188,7 @@ IF(.NOT. btest(cr_prop(jatom),1)) THEN      ! Atom is not yet inside a molecule
          j = j + 1
          mole_cont(mole_off(mole_num_mole)+j) = i
          cr_prop(i) = ibset(cr_prop(i),PROP_MOLECULE)
+         cr_mole(i) = mole_num_mole
       ENDIF
    ENDDO
 !
