@@ -97,6 +97,9 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2019_November
+
+   Added a ==> 'close' command that allows to deactivate plot windows
 3  2019_April
 
    Added "latex" option to ==> 'save' command
@@ -484,6 +487,12 @@
 !p   "wy" : y value of data set
 !p   "dy" : standard deviation of y
 !p   "wz" : z value of data set (for 3d data sets only)
+2  close
+!p close [<iwin> [, <iwin> ...}] ]
+
+   KUPLOT creates persistent Xwindow frames for the plots. During the 
+   run of the program these can usually not be closed. This command
+   deactivates the listed windows. You may then close them.  
 2  color
 !b color <ic>,<r>,<g>,<b>
 
