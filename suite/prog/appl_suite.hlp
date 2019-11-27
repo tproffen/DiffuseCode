@@ -135,7 +135,7 @@
    Within this section you can refine model parameters to 
    a data set.
 2  parallel
-!b parallel {<numprocs>, },<macro.mac> {, <para_1...}
+!p parallel {<numprocs>, },<macro.mac> {, <para_1...}
 
    Starts an MPI driven parallel calculation. See the diffev help
    on a full explanation of parallel processing.
@@ -153,9 +153,9 @@
    variable is not set, discus_suite will start 4 processes.
 
 2  manual
-!b manual ["section:"{"suite"  | "discus"  | "diffev" |
-!b                    "kuplot" | "package" | "mixscat"}
-!b        [,"viewer:"<name>]
+!p manual ["section:"{"suite"  | "discus"  | "diffev" |
+!p                    "kuplot" | "package" | "mixscat"}
+!p        [,"viewer:"<name>]
 
    Opens a PDF viewer for one of the Manuals
 
