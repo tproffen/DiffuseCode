@@ -105,8 +105,8 @@
    Gaussian distributed random number. The underlying distribution
    can be set to be is left or right skewed.
 3  Options
-!b program [-debug] [-remote] [-port=p] [-access=ip] [macro.mac]
-!b program -macro <macro.mac>[ <par1> [ <par2> ...]]
+!p program [-debug] [-remote] [-port=p] [-access=ip] [macro.mac]
+!p program -macro <macro.mac>[ <par1> [ <par2> ...]]
 
    All programs allow the following command line parameters. The flag
    "-debug" starts the program in debug mode. This is the same as using
@@ -140,11 +140,11 @@
    -macro test1.mac '1 + 2 + 3'
    This is the same as @test1.mac 1 + 2 + 3
 3  #
-!b #<comment>
+!p #<comment>
 
    Any line beginning with a "#" is regarded as comment.
 3  @
-!b @<filename> [<argument> ...]
+!p @<filename> [<argument> ...]
 
    Any list of valid commands can be written to an ASCII file and
    and indirectly by the command:
@@ -233,12 +233,12 @@
    implemented. Masking it through a macro parameter
    value(expression) gives you full control.
 3  =
-!b <variable> = <expression>
+!p <variable> = <expression>
 
    The expression on the right of the equal sign is evaluated and its result
    stored in variable <variable>.
 3  input
-!b Input editing functions
+!p Input editing functions
 
    If the program was compiled with -DREADLINE, the following basic
    editing functions are available at the program prompt:
@@ -258,14 +258,14 @@
 
    Furthermore you can move within the line using the arrow keys.
 
-!b NOTE:
+!p NOTE:
 
    If you redirect the input for executed PROG using 'prog < infile' you
    MUST use the command 'set prompt,off' or 'set prompt,redirect' in
    the first line to avoid that the program 'hangs' at the end of the
    file. (-> set prompt)
 3  break
-!b break <levels>
+!p break <levels>
 
    The 'break' command stops the execution of the current block structure
    and advances to the next command following the block structure.
@@ -273,7 +273,7 @@
    with any higher number the <levels> innermost block structures are
    interrupted. The 'break' command can be used only inside a block structure.
 3  cd
-!b cd [<directory>]
+!p cd [<directory>]
 
    This command allows one to change the current working directory
    (may not be available everywhere). If the command is called with
@@ -295,7 +295,7 @@
    window. This should copy the full pathinto the program window.
    Activate the window and hit the ENTER key.
 3  continue
-!b continue [ "prog" ]
+!p continue [ "prog" ]
 
    This command is effective only while PROG is in the interrupted
    macro mode or inside interrupted do-loop or if-statements, which serves
@@ -383,12 +383,12 @@
 !p echo ">%c<",'bla'          produces :  >bla<
 !p echo ">%5c<",'bla'         produces :  >bla  <
 3  eval
-!b eval <expr> [, <expr> ...]
+!p eval <expr> [, <expr> ...]
 
    Evaluates the expression(s) and displays the result(s). The result is not
    stored, this command is for interactive display only.
 3  exit
-!b exit
+!p exit
 
    Terminates the program and gets you back to your shell.
 3  expressions
@@ -537,13 +537,13 @@
 
    The output is written to the files "data1.calc" through "data11.calc"
 3  fclose
-!b fclose {<number>|"all"}
+!p fclose {<number>|"all"}
  
    This command closes a file that was opened with 'fopen <number>' or
    closes all open files. If this
    command is not used before exiting the program, data might be lost !
 3  fend
-!b fend <number>,{'continue'|'error'}
+!p fend <number>,{'continue'|'error'}
 
    This command determines the reaction to an unexpected end of file
    while reading data from input file <number>.
@@ -559,14 +559,14 @@
 
    The default condition at program start is "error"
 3  fexist
-!b fexist <file>
+!p fexist <file>
 
    This command checks the existence of the specified file <file>. The
    result is written on the screen and returned via the res[] variables.
    If the file exists, res[1] is 1, otherwise it is 0. The variable
    res[0] returns the number of parameters, here 1.
 3  fformat
-!b fformat <nc>,<format>
+!p fformat <nc>,<format>
 
    This command allows one to specify a FORTRAN style format string
    <format> to be used for column <nc>. The default is free format,
@@ -577,8 +577,8 @@
 
 !p Example: fform 1,F7.3
 3  fget
-!b fget <number>,<p1>,<p2>,..
-!b               [, form:'<string>'] 
+!p fget <number>,<p1>,<p2>,..
+!p               [, form:'<string>'] 
 
    This command allows the user to read data from a file that had been 
    opened with 'fopen <number>. If no parameters are given, a line is
@@ -624,7 +624,7 @@
    fget 1, str_b             , form:'a18'        ! whole string is read
    fclose 1
 3  fopen
-!b fopen <number>,<file> [,{"append" | "overwrite"}]
+!p fopen <number>,<file> [,{"append" | "overwrite"}]
 
    This command allows the user to open a file for reading and writing
    using the commands 'fget' and 'fput'. The first argument is the number
@@ -634,8 +634,8 @@
    files will be overwritten if 'fput' is used. Alternatively one can 
    append data to a file by specifying the optional parameter "append".
 3  fput
-!b fput <number>,<p1>,<p2>, ..
-!b               [, form:'<string>'] 
+!p fput <number>,<p1>,<p2>, ..
+!p               [, form:'<string>'] 
 
    This command allows one to write data to the file that had been opened
    by 'fopen <number>'. The parameters <pi> can either be variables and
@@ -665,7 +665,7 @@
 !p            fput 1, 1,2,3, form:'i3,i3,i3'
 !p            fput 1, 1,3.1415,3, form:'i3,f8.4,i3'
 3  fsub
-!b fsub <number>,[<left>,<right>]
+!p fsub <number>,[<left>,<right>]
 
    The command allows you to limit the string from which 'fget' reads the
    data from file <number>. Data will only be read columns <left> to <right>.
@@ -815,7 +815,7 @@
 !p                                   if(isexp('3+5.')) then
 !p                                   if(isexp('$1')) then
 3  help
-!b help [<command> [, <subcommand>] ]
+!p help [<command> [, <subcommand>] ]
 
    The 'help' command is used to display on-line help messages. They are
    short notes on the command <command>. The command may be abbreviated.
@@ -892,19 +892,19 @@
 
    Logical operations may be nested and grouped by brackets "(" and ")".
 3  learn
-!b learn [<name>]
+!p learn [<name>]
 
    Starts a learn sequence. All following commands are saved as typed
    in file <name>. defaults to "<prog>.mac". ==> lend finishes the
    learn sequence.
 3  lend
-!b lend
+!p lend
 
    Finishes the learn sequence started by ==> learn.
 3  manual
-!b manual ["section:"{"suite"  | "discus"  | "diffev" |
-!b                    "kuplot" | "package" | "mixscat"}
-!b        [,"viewer:"<name>]
+!p manual ["section:"{"suite"  | "discus"  | "diffev" |
+!p                    "kuplot" | "package" | "mixscat"}
+!p        [,"viewer:"<name>]
 
    Opens a PDF viewer for one of the Manuals
 
@@ -916,8 +916,8 @@
    a list of common PDF viewers. If none is found an error message
    points to the folder that contains the manuals.
 3  seed
-!b seed [ <value> ]
-!b seed [ <value_a>, <value_b> ] , group:<no>
+!p seed [ <value> ]
+!p seed [ <value_a>, <value_b> ] , group:<no>
 
    Reinitializes the pseudo random generator. The seed passed to the
    random generator is -abs(nint(value)). If the <value> is omitted,
@@ -944,18 +944,18 @@
    For the user defined 1-D and 2-D matrices several command are 
    available for the usual matrix arithmetics. These are:
 4  detmat
-!b detmat <matrix>
+!p detmat <matrix>
 
    Calculates the determinant of a [n x n] matrix. Currently limited
    to dimensions 1 to 4. The result is stored in res[1]
 4  invmat
-!b invmat <result>, <input>
+!p invmat <result>, <input>
 
    Calculates the inverse matrix for <input> and stores the result 
    in <result>. Both matrices must be square with identical 
    dimenstions 1 to 4.
 4  matmul
-!b matmul <result>, <a> [, <b>]
+!p matmul <result>, <a> [, <b>]
 
    A generic name for several calculations. Mainly, of course, the
    standard matrix multiplications of user defined variables 
@@ -989,7 +989,7 @@
    holds with
        Result[i,j] = A[i,k] * B[k,j]
 4  matadd
-!b matadd <result>, <a> [, <scalar>], <b>
+!p matadd <result>, <a> [, <scalar>], <b>
 
    Adds two user supplied matrix variables.
        Result[i,j] = A[i,j] + Scalar * B[i,j]
@@ -999,20 +999,20 @@
    The result matrix may be the same variable as any of the 
    two input matrices.
 4  mattrans
-!b mattrans <resul<, <input>
+!p mattrans <resul<, <input>
 
    Calculates the transposed matrix for <input> and stores this 
    in <result>
 
 3  set
-!b set <command>,..
+!p set <command>,..
 
    This command allows to alter various program independent setting.
    Allowed values for <command> are:
 
 4  prompt
-!b set prompt, {"on"|"off"|"redirect"},[{"on"|"off"|"file"}, ["save"]]
-!b set prompt, "old"
+!p set prompt, {"on"|"off"|"redirect"},[{"on"|"off"|"file"}, ["save"]]
+!p set prompt, "old"
 
    First parameter sets the status of the PROG prompt. The default is 
    "on", i.e. PROG prompts for the next command by writing "discus > "
@@ -1053,7 +1053,7 @@
    Make sure that you saveed the desired prompt by setting the last
    parameter to "save".
 4  error
-!b set error , {"cont" | "exit" | "live" | "old"} [ , "save"]
+!p set error , {"cont" | "exit" | "live" | "old"} [ , "save"]
 
    Sets the error status.
 
@@ -1077,11 +1077,11 @@
 !p "old"   Restore the last error status that was set and saved in a 
 !p         previous 'set error, <value>, save ' command. 
 4  debug
-!b set debug, {"on" | "off"}
+!p set debug, {"on" | "off"}
 
    This command allows the user to enable various DEBUG outputs ...
 4  wait
-!b set wait, {"on" | "off"}
+!p set wait, {"on" | "off"}
 
    This command allows the user to tailor the 'wait' comand.
    The default is 'set wait, on'.
@@ -1090,7 +1090,7 @@
    ignored and the programm continues execution as if the 
    'wait' command were absent.
 3  show
-!b show {"res" | "variables"}
+!p show {"res" | "variables"}
 
    The show command displays settings onto your screen. The individual
    programs discus, kuplot, diffev, mixscat all have specific parameters
@@ -1109,17 +1109,17 @@
    current values. The command is identical to the "variable show" 
    command.   
 3  sleep
-!b sleep <seconds>
+!p sleep <seconds>
 
    This command causes the program to sleep for <seconds> seconds
 3  socket
-!b socket "open",<host>,<port>
-!b socket "close"
-!b socket "exit"
-!b socket "send",<string>
-!b socket <string>
-!b socket "transfer",<slave_var>,<expression>
-!b socket "transfer",<slave_var>,<character expression>,<local_var>
+!p socket "open",<host>,<port>
+!p socket "close"
+!p socket "exit"
+!p socket "send",<string>
+!p socket <string>
+!p socket "transfer",<slave_var>,<expression>
+!p socket "transfer",<slave_var>,<character expression>,<local_var>
 
    These commands connect to a program that has been started with the 
    "-remote" option, sees ==> "Options" for further help. 
@@ -1127,32 +1127,32 @@
    executed as typed. 
 
 4  open
-!b socket "open",<host>,<port>
+!p socket "open",<host>,<port>
 
    Opens the connection to the program running on host <host> and 
    listening on port <port>. The server program  must have been 
    started beforehand with the "-remote" option
 4  close
-!b socket close
+!p socket close
 
    Temporarily closes the connection to the slave program, which keeps
    running. You can open to the same program with a new socket open,<pname>.
 4  exit
-!b socket exit
+!p socket exit
 
    Terminates the slave program and closes the connection. To communicate
    with the slave program again, you must first start this with the
    "-remote" option and then open the connection with 
    socket "open",<pname>.
 4  send
-!b socket send,<string>
-!b socket <string>
+!p socket send,<string>
+!p socket <string>
 
    The string is send to the slave program and executed as typed.
    Both forms are equivalent.
 4  transfer
-!b socket transfer,<slave_var>,<expression>
-!b socket transfer,<slave_var>,<character expression>,<local_var>
+!p socket transfer,<slave_var>,<expression>
+!p socket transfer,<slave_var>,<character expression>,<local_var>
 
    This command transverse the value of <expression> to the slave
    variable <slave_var>. You must define this slave variable prior
@@ -1172,7 +1172,7 @@
 !p socket send, plot                      ! plot again
 !p socket exit                            ! terminate kuplot, exit
 3  stop
-!b stop
+!p stop
 
    This command is active only while reading from a macro file or in
    interactive mode inside a block structure (do-loops and/or if's).
@@ -1195,9 +1195,9 @@
    To continue execution of the structure or to continue with the normal
    PROG mode, use the ==> 'continue' command.
 3  system
-!b system <com>
-!b system "string%dstring",<integer expression>
-!b system "string%fstring",<float expression>
+!p system <com>
+!p system "string%dstring",<integer expression>
+!p system "string%fstring",<float expression>
 
    Executes the single shell command <com>.
    If the command string is enclosed in "", you can place integer and
@@ -1213,7 +1213,7 @@
 
    This would list all files called 10.*
 3  wait
-!b wait [{"return" | "input" [,<prompt>] }]
+!p wait [{"return" | "input" [,<prompt>] }]
 
    This command waits for user input. 
    Without a parameter or with "return", the program waits for a 
@@ -1235,7 +1235,7 @@
    and tutorials.
 
    With the command 
-!b set wait, {"on" | "off"}
+!p set wait, {"on" | "off"}
    you can toggle the active state of the wait command on off.
 
    The default is 'set wait, on'.
