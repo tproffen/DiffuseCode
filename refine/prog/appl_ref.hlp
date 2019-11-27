@@ -52,8 +52,8 @@
 !p exit                         ! Back to REFINE
 !p finished                     ! Special keyword signals end of user macro
 2  data
-!b data "kuplot", <number>
-!b data <type>, <infile>
+!p data "kuplot", <number>
+!p data <type>, <infile>
 
 !p data "kuplot", <number>
    The calculation will refine parameters versus the observed data
@@ -67,15 +67,15 @@
 
    Refer to the KUPLOT section for instructions on loading data.
 2  fix
-!b fix <parname> [,"value:"<number>]
+!p fix <parname> [,"value:"<number>]
 
    Fixes a parameter. Its value will remain at its current value
    or at <number>, if the optional parameter "value:" is used.
 
    A fixed parameter can be freed with a ==> 'newparam' command.
 2  newparam
-!b newparam <parname> [,"value:"<start>] [,"status:"<flag>]
-!b                    [,"range:["<lower>,<upper>"]"]
+!p newparam <parname> [,"value:"<start>] [,"status:"<flag>]
+!p                    [,"range:["<lower>,<upper>"]"]
 
    The command performs three tasks:
    - Defines a new parameter named <parname>
@@ -123,13 +123,15 @@
    Buts the REFINE section back into the state at system start.
 2  set
 !p set cycle,<maxc>
-!p set conver [,"dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
-
-!b set cycle,<maxc>
+!p set conver ["dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
+!p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>] 
+!p            [,"success:"<lamda_g>]
+!p
+!p set cycle,<maxc>
    Sets the maximum number of refinement cycles
 
-!b set conver [,"dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
-!b            [,"chi2:"<level>]
+!p set conver [,"dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
+!p            [,"chi2:"<level>]
 
    Allows the user to define convergence criteria.
 
@@ -156,9 +158,25 @@
    or 
       chi2
    are met. 
+
+!p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>] 
+!p            [,"success:"<lamda_g>]
+
+   Allows to fine tune the relaxation behaviour. 
+   The initial Levenberg-Marquardt lamda parameter is defined
+   with ["start:"<lamda_s>]. Default is 0.001 
+
+   If a cycle was successful, the value of lamda is multiplied 
+   by <lamda_g>, default is 0.5.
+
+   If a cycle was not successful, the value of lamda is multiplied 
+   by <lamda_f>, default is 4.0.
+
+   A larger value of lambda implies smaller steps for the 
+   refinement parameters.
 2  sigma
-!b sigma "kuplot", <number> 
-!b sigma <type>,<infile>
+!p sigma "kuplot", <number> 
+!p sigma <type>,<infile>
 
 !p sigma "kuplot", <number> 
    The calculation will refine parameters versus the observed data
