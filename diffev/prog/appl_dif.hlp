@@ -567,11 +567,11 @@
 
    You may increase or decrease the population size as needed.
 2  allocate
-!b allocate
-!b allocate "default"
-!b allocate "constraint", <max_constr>
-!b allocate "population", <max_members>, <max_parameters>
-!b allocate "show"
+!p allocate
+!p allocate "default"
+!p allocate "constraint", <max_constr>
+!p allocate "population", <max_members>, <max_parameters>
+!p allocate "show"
 
    DIFFEV allows to to allocate memory for the arrays needed to store the
    population and the constraints. DIFFEV will dynamically allocate
@@ -585,25 +585,25 @@
    done. DIFFEV will perform the new allocation, but all old data are lost.
    A short warning will be printed.
 
-!b allocate
-!b allocate "show"
+!p allocate
+!p allocate "show"
 
    Without parameter or with the parameter "show", the allocate command
    shows the current memory allocations.
 
-!b allocate "default"
+!p allocate "default"
    Allocates all array sizes to default values.
 
-!b allocate "constraint", <max_constr>
+!p allocate "constraint", <max_constr>
 
    Allocates the maximum number of constraints that DIFFEV shall handle.
 
-!b allocate "population", <max_members>, <max_parameters>
+!p allocate "population", <max_members>, <max_parameters>
    Allocate the maximum population size and the maximum number of 
    parameters that can be refined. 
 2  adapt
-!b adapt "sigma" ,<parameter_number>,[,{"yes"|"no"|<value>}]
-!b adapt "lsigma",<parameter_number>,[,{"yes"|"no"|<value>}]
+!p adapt "sigma" ,<parameter_number>,[,{"yes"|"no"|<value>}]
+!p adapt "lsigma",<parameter_number>,[,{"yes"|"no"|<value>}]
 
    DIFFEV uses to "sigmas" to handle special situations.
 
@@ -632,8 +632,8 @@
    diff_lo[1]. This gives the probability, that a given member will be 
    modified by the local change instead of differential evolution.
 2  backup
-!b backup "NONE"
-!b backup <input> [,<extension] , <output>
+!p backup "NONE"
+!p backup <input> [,<extension] , <output>
 
    This command allows you to back up the current best solutions.
    Diffev expects that the current trial solutions are called
@@ -682,8 +682,8 @@
    involve random configurations it is faster not to run the backup
    during the refinements. 
 2  branch
-!b branch kuplot [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
-!b branch discus [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
+!p branch kuplot [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
+!p branch discus [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
 
    Active within the discus suite only!
 
@@ -700,7 +700,7 @@
    macro <macro_name> (with its optional parameters) before the 
    interactive session is started.
 2  compare
-!b compare ["silent"]
+!p compare ["silent"]
 
    This is the main part of the differential evolution section.
    This command reads the current results that the slave program stored
@@ -720,7 +720,7 @@
    This option will work only within the discus_suite, which is a
    collection of DIFFEV, DISCUS, and KUPLOT into a common program.
 2  constraint
-!b constraint <logical expression>
+!p constraint <logical expression>
 
    The parameter range may be restricted by defining one or several constraint
    conditions. Each condition must be a valid logical expression. For 
@@ -742,7 +742,7 @@
    until DIFFEV has tried so for MAX_CONSTR_TRIAL times. In this latter
    case the program stops.  
 2  deallocate
-!b deallocate {"all" | "constraint" | "population"}
+!p deallocate {"all" | "constraint" | "population"}
 
    This command allows to deallocate memory for the specified program
    segments. This helps to conserve memory, if program sections are no
@@ -762,7 +762,7 @@
       Free memory associated to the population size and maximum number
       of refineable parameters.
 2  dismiss
-!b dismiss {<n> | "all" }
+!p dismiss {<n> | "all" }
 
    Set the R-value of the worst <n> parents to a very high value.
    Thus <n> of the next children will definitely have a better R-value
@@ -774,7 +774,7 @@
    a better R-value than their parents, and as a consequence the 
    (re-)initialization of the trial values may get lost.
 2  donor
-!b donor {"best" | "random"}
+!p donor {"best" | "random"}
 
    The donor vector may be chosen in two different ways.
    "best" chooses the parent member that has the best parameter set.
@@ -787,8 +787,8 @@
    For diff_k[1] = 0  the effective donor is the parent vector, 
    for diff_k[1] = 1  the effective donor is the donor vector itself.
 2  fix
-!b fix <parameter_no>, {<value> | "best"}
-!b fix <parameter_name>, {<value> | "best"}
+!p fix <parameter_no>, {<value> | "best"}
+!p fix <parameter_name>, {<value> | "best"}
 
    This command fixes the value of parameter <parameter_no> or
    <parameter_name> to 
@@ -805,7 +805,7 @@
    of general intrinsic functions see help entry 'functions' in
    the 'Command language' section of the online help.
 
-!b par_number(<char_variable>)
+!p par_number(<char_variable>)
 
    Returns the number of the refinement parameter whose name is
    encoded in the character variable.
@@ -813,12 +813,12 @@
    line = 'P_length'
    eval par_number(line)
 
-!b par_name(<number>)
+!p par_name(<number>)
 
    Returns the name of the refinement variable number <number>
 2  initialize
-!b initialize [ <par_number1> [, <par_number2>]] [, "silent"]
-!b initialise "logfile"
+!p initialize [ <par_number1> [, <par_number2>]] [, "silent"]
+!p initialise "logfile"
 
    This command initializes the differential evolution sequence. 
 
@@ -875,7 +875,7 @@
    pop_gen[1] = 1
    initialise logfile
 2  lastfile
-!b lastfile <filename>
+!p lastfile <filename>
 
    This defines the short log file of the parameter evolution. 
 
@@ -887,7 +887,7 @@
    member number, the second the R-value and all further columns the 
    respective parameter values.
 2  logfile
-!b logfile <filename>
+!p logfile <filename>
 
    This defines the log file of the parameter evolution. 
 
@@ -899,7 +899,7 @@
    the second the R-value and all further columns the respective parameter 
    values.
 2  newparam
-!b newparam <name>, <xmin>, <xmax>,<smin>, <smax>  
+!p newparam <name>, <xmin>, <xmax>,<smin>, <smax>  
             [,init:{"keep"|"initialize"}
             [,real:{"real"|"integer"}
 
@@ -931,7 +931,7 @@
      type {"real"<"integer"}.<ipar>
      
 2  read
-!b read
+!p read
 
    This command has been removed.
    Activated again in version 5.29.0
@@ -954,8 +954,8 @@
    are defined. In this case, the 'run_mpi' command will
    automatically determine the refinement state from 'GENERATION'
 2  refine
-!b refine {"all"|"none"|<number> [,<number>...]}
-!b refine {"all"|"none"|<par_name> [,<par_name>...]}
+!p refine {"all"|"none"|<number> [,<number>...]}
+!p refine {"all"|"none"|<par_name> [,<par_name>...]}
 
    This command allows you to set, which of the variables are refined.
    If you give the parameter number as negative number, the corresponding
@@ -965,14 +965,14 @@
    one "refine" command line. If you need to specify the behavior
    for more than 20 variables, please use several "refine" commands.
 2  release
-!b release {<par_name>| <number>} , range:<sigma>
-!b   [value:<setpoint>]
-!b   [min:<pop_xmin>]
-!b   [max:<pop_xmax>]
-!b   [dismiss:<number>]
-!b   [dismiss:"all"]
-!b   [dismiss:"best"]
-!b   [dismiss:"none"]
+!p release {<par_name>| <number>} , range:<sigma>
+!p   [value:<setpoint>]
+!p   [min:<pop_xmin>]
+!p   [max:<pop_xmax>]
+!p   [dismiss:<number>]
+!p   [dismiss:"all"]
+!p   [dismiss:"best"]
+!p   [dismiss:"none"]
 
    This command will initialize a parameter named <par_name> 
    to a range around the current best value. Its intent is 
@@ -1021,7 +1021,7 @@
    "best"    : All but the best member are dismissed.
    "none"    : No member is dismissed. Same as <number>=0.
 2  reset
-!b reset
+!p reset
 
    Resets DIIFEV to the conditions at program start. The generation 
    number is set to zero, the population size, children size and the
@@ -1042,7 +1042,7 @@
    Keep in mind that the later cycles are irrevocably lost.
    If in doubt make a backup first.
 2  summary
-!b summary <filename>
+!p summary <filename>
 
    This defines the log file of the R-value/cost function evolution. 
 
@@ -1053,8 +1053,8 @@
    minimum value, the third the maximum value and the fourth the sigma of
    the parameter distribution.
 2  restrial
-!b restrial "silent" {,partial:<no>}
-!b restrial <result> {,partial:<no>}
+!p restrial "silent" {,partial:<no>}
+!p restrial <result> {,partial:<no>}
 
    Within the discus_suite always use the "silent" mode!
 
@@ -1083,7 +1083,7 @@
    program has to provide the properly weighted average R-value.
 
 2  run_mpi
-!b run_mpi <program_name>, <macro_name>, <no_repetitions>, <output_base> [,"socket"]
+!p run_mpi <program_name>, <macro_name>, <no_repetitions>, <output_base> [,"socket"]
 
    This command starts the processing of the slave program <program_name>.
    If the program has been compiled with MPI and started with mpiexec,
@@ -1191,7 +1191,7 @@
    201 + <parameters>. Then the calculation macro is started, which
    does of course not have to read the GENERATION and the trial file.
 2  selection
-!b selection {"compare" | "best","all"}
+!p selection {"compare" | "best","all"}
 
    This command governs the selection criterion that determines which 
    children and parents survive into the next generation.
@@ -1214,7 +1214,7 @@
 !p              speed up convergence, yet run a higher risk of getting stuck
 !p              in a local minimum.
 2  trialfile
-!b trialfile <filename>|"silent"
+!p trialfile <filename>|"silent"
 
    These temporary files are used to communicate the current set of parameters
    between DIFFEV and the slave program. 
@@ -1253,7 +1253,7 @@
    This option will work only within the discus_suite, which is a
    collection of DIFFEV, DISCUS, and KUPLOT into a common program.
 2  type
-!b type {"integer" | "real"},<number>
+!p type {"integer" | "real"},<number>
 
    Defines the number that the parameter <number> assumes. Valid options
    are:
@@ -1335,12 +1335,12 @@
 !p diff_lo[1]    Probability for local refinement of a population member
 !p diff_sel[1]   Selection mode for compare command, READ_ONLY
 2  write
-!b write {"children" | "generation"}
+!p write {"children" | "generation"}
 
-!b write "children"
+!p write "children"
    The write command will generate a new set of child values and update
    the corresponding trial files and the GENERATION file. The generation
    number is not changed.
 
-!b write "generation"
+!p write "generation"
    Writes the GENERATION file. No changes are done to the file.
