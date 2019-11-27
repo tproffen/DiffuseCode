@@ -654,8 +654,8 @@ SUBROUTINE do_readstru(strucfile)
 !
 USE crystal_mod 
 USE chem_mod 
-USE discus_allocate_appl_mod
-USE discus_save_mod 
+!USE discus_allocate_appl_mod
+!USE discus_save_mod 
 USE molecule_mod 
 USE read_internal_mod
 !
@@ -666,13 +666,13 @@ IMPLICIT NONE
 CHARACTER(LEN=*), INTENT(INOUT) :: strucfile
 !
 CHARACTER(LEN=1024) :: outfile 
-INTEGER             :: natoms
-INTEGER             :: nscats
-INTEGER             :: n_mole
-INTEGER             :: n_type
-INTEGER             :: n_atom
-INTEGER             :: i,l
-LOGICAL             :: need_alloc
+!INTEGER             :: natoms
+!INTEGER             :: nscats
+!INTEGER             :: n_mole
+!INTEGER             :: n_type
+!INTEGER             :: n_atom
+!INTEGER             :: i,l
+!LOGICAL             :: need_alloc
 !
 LOGICAL             :: str_comp
 !
@@ -688,6 +688,132 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   ELSE
                      RETURN
                   ENDIF
+               CALL do_readstru_disk(strucfile)
+!               CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
+!                             n_atom, -1 , .false.)
+!               IF (ier_num /= 0) THEN
+!                  RETURN                 ! Jump to handle error messages, amd macro conditions
+!               ENDIF
+!               need_alloc = .false.
+!               IF(natoms > NMAX) THEN
+!                  natoms = MAX(INT(natoms * 1.1), natoms + 10,NMAX)
+!                  need_alloc = .true.
+!               ENDIF
+!               IF(nscats > MAXSCAT) THEN
+!                  nscats = MAX(INT(nscats * 1.1), nscats + 2, MAXSCAT)
+!                  need_alloc = .true.
+!               ENDIF
+!               IF ( need_alloc ) THEN
+!                  CALL alloc_crystal (nscats, natoms)
+!                  IF ( ier_num /= 0 ) THEN
+!                     RETURN                 ! Jump to handle error messages, amd macro conditions
+!                  ENDIF
+!               ENDIF
+!               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
+!                  n_atom>MOLE_MAX_ATOM                          ) THEN
+!                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
+!                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
+!                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
+!                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
+!                  IF ( ier_num /= 0 )  THEN
+!                     RETURN                 ! Jump to handle error messages, amd macro conditions
+!                  ENDIF
+!               ENDIF
+!!
+!               CALL readstru (NMAX, MAXSCAT, strucfile, cr_name,        &
+!               cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,    &
+!               cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms, &
+!               as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
+!               sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
+!               IF (ier_num.ne.0) then 
+!                  RETURN                 ! Jump to handle error messages, amd macro conditions
+!               ENDIF 
+!               mole_num_atom = mole_off (mole_num_mole)  &  !Update number of atoms in molecules
+!                               + mole_len (mole_num_mole)                
+!!                                                                       
+!!     ------Define initial crystal size in fractional coordinates       
+!!                                                                       
+!               DO l = 1, 3 
+!               cr_dim0 (l, 1) = REAL(nint (cr_dim (l, 1) ) ) 
+!               cr_dim0 (l, 2) = REAL(nint (cr_dim (l, 2) ) ) 
+!               ENDDO 
+!!                                                                       
+!!     ------The crystal size was read from the structure file           
+!!                                                                       
+!               IF (sav_r_ncell) then 
+!                  DO i = 1, 3 
+!                     cr_icc (i) = sav_ncell (i) 
+!                  ENDDO 
+!                  cr_ncatoms = sav_ncatoms 
+!                  cr_ncreal  = sav_ncatoms 
+!               ELSE 
+!!                                                                       
+!!     ------Define initial crystal size in number of unit cells         
+!!                                                                       
+!                  DO i = 1, 3 
+!                     cr_icc(i) = MAX(1,INT(cr_dim(i,2) - cr_dim(i,1) + 1. ) )                                                
+!                  ENDDO 
+!!                                                                       
+!!     ------Define (average) number of atoms per unit cell              
+!!                                                                       
+!                  cr_ncatoms = MAX(1,cr_natoms / (cr_icc (1) * cr_icc (2)     &
+!                                                * cr_icc (3) ))
+!!                 cr_ncatoms = cr_ncatoms
+!!                              cr_ncatoms = cr_ncatoms
+!                  IF(cr_natoms /= cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms) THEN
+!                     chem_period(:) = .false.
+!                     chem_quick     = .false.
+!                  ENDIF
+!               ENDIF 
+               ENDIF internals
+!
+chem_purge = .FALSE.    ! No purge was done, period boundary is OK
+CALL test_mole_gap
+!
+END SUBROUTINE do_readstru
+!
+!*******************************************************************************
+!
+SUBROUTINE do_readstru_disk(strucfile)
+!
+! Do the readstru part for a file on disk
+!
+USE crystal_mod 
+USE chem_mod 
+USE discus_allocate_appl_mod
+USE discus_save_mod 
+USE molecule_mod 
+USE read_internal_mod
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: strucfile
+!
+!CHARACTER(LEN=1024) :: outfile 
+INTEGER             :: natoms
+INTEGER             :: nscats
+INTEGER             :: n_mole
+INTEGER             :: n_type
+INTEGER             :: n_atom
+INTEGER             :: i,l
+LOGICAL             :: need_alloc
+!
+!LOGICAL             :: str_comp
+!
+!CALL rese_cr
+!internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
+!                  CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
+!!                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
+!                  IF(ier_num/=0) RETURN
+!               ELSE internals
+!                  CALL import_test(0, strucfile, outfile)
+!                  IF(ier_num == 0) THEN
+!                     strucfile = outfile
+!                  ELSE
+!                    RETURN
+!                  ENDIF
                CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
                              n_atom, -1 , .false.)
                IF (ier_num /= 0) THEN
@@ -764,12 +890,12 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                      chem_quick     = .false.
                   ENDIF
                ENDIF 
-               ENDIF internals
+!               ENDIF internals
 !
-chem_purge = .FALSE.    ! No purge was done, period boundary is OK
-CALL test_mole_gap
+!chem_purge = .FALSE.    ! No purge was done, period boundary is OK
+!CALL test_mole_gap
 !
-END SUBROUTINE do_readstru
+END SUBROUTINE do_readstru_disk
 !
 !********************************************************************** 
 !
@@ -3023,80 +3149,239 @@ ENDIF
 !
 END SUBROUTINE import_test
 !*****7**************************************************************** 
-      SUBROUTINE do_import (zeile, lp) 
+!
+SUBROUTINE do_import(zeile, lp) 
 !-                                                                      
 !     imports a file into discus.cell format                            
 !+                                                                      
-      USE get_params_mod
-      IMPLICIT none 
+USE crystal_mod
+USE prop_para_func
+USE discus_save_mod
+USE read_internal_mod
+USE save_menu, ONLY: save_internal, save_store_setting, &
+                     save_restore_setting, save_default_setting, &
+                     save_struc, save_show, save_keyword
+USE spcgr_apply
+USE trafo_mod
+!
+USE build_name_mod
+USE get_params_mod
+USE precision_mod
+USE take_param_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (MAXW = 5) 
+CHARACTER(LEN=*), INTENT(INOUT) :: zeile 
+INTEGER         , INTENT(INOUT) :: lp 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+INTEGER, PARAMETER :: MAXW = 5 
 !                                                                       
-      CHARACTER(1024) cpara (MAXW) 
-      INTEGER lpara (MAXW) 
-      INTEGER ianz 
+CHARACTER(LEN=1024)                  ::  ofile
+CHARACTER(LEN=1024)                  ::  line
+CHARACTER(LEN=1024), DIMENSION(MAXW) ::  cpara !(MAXW) 
+INTEGER            , DIMENSION(MAXW) ::  lpara !(MAXW) 
+REAL(KIND=PREC_DP) , DIMENSION(MAXW) ::  werte !(MAXW) 
+INTEGER :: ianz 
+INTEGER :: length
+!
+CHARACTER(LEN= 200) :: hostfile  ! original structure file name
+!
+INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: O_METRIC  = 1
+INTEGER, PARAMETER :: O_SPACE   = 2
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+DATA oname  / 'metric', 'space'   /
+DATA loname /  6,        5        /
+!
+REAL, DIMENSION(1:3) :: host_a0
+REAL, DIMENSION(1:3) :: host_win
+REAL, DIMENSION(4,4) :: host_tran_fi
+INTEGER              :: host_syst
+INTEGER              :: host_spcgrno
+CHARACTER(LEN=16)    :: host_spcgr
+CHARACTER(LEN= 3)    :: host_set   = 'abc'
+INTEGER              :: host_iset  =  1
+CHARACTER(LEN=16)    :: host_spcgr_set = 'P1'
+REAL, DIMENSION(4)   :: posit4 ! atom position
+REAL, DIMENSION(4)   :: uvw4   ! atom position
+INTEGER              :: j
+!
+LOGICAL :: lout = .FALSE.
+!
+LOGICAL :: str_comp 
+!
+opara  =  (/ 'guest ', 'P1    ' /)   ! Always provide fresh default values
+lopara =  (/  6,        6       /)
+owerte =  (/  0.0,      0.0     /)
 !                                                                       
-      LOGICAL str_comp 
+CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
+IF (ier_num.ne.0) then 
+   RETURN
+ENDIF 
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
-      IF (ier_num.ne.0) then 
-         RETURN
-      ENDIF 
-!                                                                       
-      IF (ianz.ge.1) then 
-         IF (str_comp (cpara (1) , 'shelx', 2, lpara (1) , 5) ) then 
-            IF (ianz.eq.2) then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.ne.0) return 
-               CALL ins2discus (ianz, cpara, lpara, MAXW) 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'cif', 2, lpara (1) , 3) ) then 
-            IF (ianz.eq.2) then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.ne.0) return 
-               CALL cif2discus (ianz, cpara, lpara, MAXW) 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'cmaker', 2, lpara (1) , 6) ) then 
-            IF (ianz.eq.2) then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.ne.0) return 
-               CALL cmaker2discus (ianz, cpara, lpara, MAXW) 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'rmcprofile', 2, lpara (1) , 10) ) then 
-            IF (ianz >= 2) then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.ne.0) return 
-               CALL rmcprofile2discus (ianz, cpara, lpara, MAXW) 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSE 
-            ier_num = - 86 
-            ier_typ = ER_APPL 
-         ENDIF 
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF (ier_num.ne.0) then 
+   RETURN
+ENDIF 
+!
+IF (ianz.ge.1) then 
+   IF (str_comp (cpara (1) , 'shelx', 2, lpara (1) , 5) ) then 
+      IF (ianz.eq.2) then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         IF (ier_num.ne.0) return 
+         CALL ins2discus (ianz, cpara, lpara, MAXW, ofile) 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+   ELSEIF (str_comp (cpara (1) , 'cif', 2, lpara (1) , 3) ) then 
+      IF (ianz.eq.2) then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         IF (ier_num.ne.0) return 
+         CALL cif2discus (ianz, cpara, lpara, MAXW, ofile) 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+   ELSEIF (str_comp (cpara (1) , 'cmaker', 2, lpara (1) , 6) ) then 
+      IF (ianz.eq.2) then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         IF (ier_num.ne.0) return 
+         CALL cmaker2discus (ianz, cpara, lpara, MAXW, ofile) 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+   ELSEIF (str_comp (cpara (1) , 'rmcprofile', 2, lpara (1) , 10) ) then 
+      IF (ianz >= 2) then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         IF (ier_num.ne.0) return 
+         CALL rmcprofile2discus (ianz, cpara, lpara, MAXW, ofile) 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+   ELSEIF(str_comp(cpara(1), 'cell', 2, lpara(1), 4) .OR.          &      
+          str_comp(cpara(1), 'stru', 2, lpara(1), 4)     ) THEN
+      IF(opara(O_METRIC)=='host' ) THEN 
+         IF (ianz >= 2) then 
+            CALL del_params (1, ianz, cpara, lpara, maxw) 
+            IF (ier_num.ne.0) RETURN 
+            CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+            IF (ier_num.ne.0) then 
+               RETURN
+            ENDIF 
+            ofile = cpara(1)(1:lpara(1))
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ELSE 
+         ier_num = -167
+         ier_typ = ER_COMM 
+         ier_msg(1) = 'Provide the optional parameter'
+      ENDIF 
+   ELSE 
+      ier_num = - 86 
+      ier_typ = ER_APPL 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
+IF(ier_num==0) THEN
+  IF(opara(O_METRIC)=='host')  THEN  ! Transform into lattice parameter of host
+!
+   CALL save_store_setting             ! Backup user "save" setting
+   CALL save_default_setting           ! Default to full saving
+   line       = 'ignore, all'          ! Ignore all properties
+   length     = 11
+   CALL property_select(line, length, sav_sel_prop)
+   line       = 'ignore, all'          ! Ignore all properties for global as well
+   length     = 11
+   CALL property_select(line, length,  cr_sel_prop)
+   hostfile = 'internal.import'
+   CALL save_internal(hostfile)        !     thus this file name is unique
+!
+   host_a0        = cr_a0              ! Store host lattice parameters
+   host_win       = cr_win             ! same for angles
+   host_tran_fi   = cr_tran_fi
+   host_syst      = cr_syst
+   host_spcgr     = cr_spcgr
+   host_spcgrno   = cr_spcgrno
+   host_set       = cr_set
+   host_iset      = cr_iset
+   host_spcgr_set = cr_spcgr_set
+!
+   CALL rese_cr 
+   CALL do_readstru_disk(ofile)
+   CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
+        cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,  &
+        cr_fmat, cr_cartesian,                                 &
+        cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+   CALL get_symmetry_matrices 
+!
+! Transform molecule geometry into host geometry
+   DO j=1, cr_natoms
+      posit4(1:3) = cr_pos(1:3,j)
+      posit4(4)   = 1.0
+      CALL trans(posit4,cr_tran_f ,uvw4, 4)       ! Transform mol to cartesian
+      CALL trans(uvw4  ,host_tran_fi,posit4, 4)   ! Transform cartesian to host_crystal
+      cr_pos(1:3,j) = posit4(1:3)
+   ENDDO
+!
+   cr_a0(:)  = host_a0
+   cr_win(:) = host_win
+!
+   IF(opara(O_SPACE)=='host') THEN
+      cr_syst      = host_syst
+      cr_spcgr     = host_spcgr
+      cr_spcgrno   = host_spcgrno
+      cr_spcgr_set = host_spcgr_set
+      cr_iset      = host_iset
+   ELSE
+      cr_syst      = CR_TRICLINIC
+      cr_spcgr     = 'P1'
+      cr_spcgrno   = 1
+      cr_spcgr_set = 'abc'
+      cr_iset      = 1
+   ENDIF
+!
+   CALL save_default_setting           ! Default to full saving
+   sav_latom(0:cr_nscat) = .TRUE.
+   sav_w_scat  = .TRUE.
+   sav_w_adp   = .FALSE.
+   sav_w_occ   = .FALSE.
+   sav_w_surf  = .TRUE.
+   sav_r_ncell = .FALSE.
+   sav_w_ncell = .FALSE.
+   sav_w_gene  = .FALSE.
+   sav_w_symm  = .FALSE.
+   sav_w_mole  = .TRUE.
+   sav_w_obje  = .TRUE.
+   sav_w_doma  = .TRUE.
+   sav_w_prop  = .TRUE.
+   CALL save_keyword(ofile)
+!
+   CALL save_restore_setting
+   CALL no_error
+   CALL readstru_internal( hostfile)   ! Read  core file
+   CALL errlist_restore                ! Restore error status
+
+  ENDIF
+ENDIF
 !                                                                       
-      END SUBROUTINE do_import                      
+END SUBROUTINE do_import                      
 !*****7**************************************************************** 
-SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW) 
+SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, ofile) 
 !-                                                                      
 !     converts a SHELXL "ins" or "res" file to DISCUS                   
 !+                                                                      
@@ -3114,6 +3399,7 @@ INTEGER                             , INTENT(INOUT) :: ianz
 INTEGER                             , INTENT(IN)    :: MAXW 
 CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara ! (MAXW) 
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara ! (MAXW) 
+CHARACTER(LEN=1024)                 , INTENT(OUT)   :: ofile 
 !                                                                       
 INTEGER, PARAMETER :: NFV = 50 
 !                                                                       
@@ -3129,7 +3415,6 @@ CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE :: eadp_names
       CHARACTER(80) line2 
       CHARACTER(160) line 
       CHARACTER(1024) infile 
-      CHARACTER(1024) ofile 
       INTEGER ird, iwr 
       INTEGER i, j, jj 
       INTEGER ix, iy, iz, idot 
@@ -3561,7 +3846,7 @@ DEALLOCATE(eadp_values)
 !                                                                       
       END SUBROUTINE ins2discus                     
 !*****7**************************************************************** 
-      SUBROUTINE cmaker2discus (ianz, cpara, lpara, MAXW) 
+      SUBROUTINE cmaker2discus (ianz, cpara, lpara, MAXW, ofile) 
 !-                                                                      
 !     converts a CrystalMaker "xyz" file to DISCUS                   
 !+                                                                      
@@ -3575,13 +3860,13 @@ USE precision_mod
       INTEGER          , INTENT(IN)                       :: MAXW 
       CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
       INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
+CHARACTER(LEN=1024)                 , INTENT(OUT)   :: ofile 
 !                                                                       
 !                                                                       
       REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
 !                                                                       
       CHARACTER(LEN=87)     :: line 
       CHARACTER(LEN=1024)   :: infile 
-      CHARACTER(LEN=1024)   :: ofile 
       INTEGER               :: ird, iwr 
       INTEGER               :: i
       INTEGER               :: indx1, indx2
@@ -3708,7 +3993,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 !
 !*****7**************************************************************** 
 !
-      SUBROUTINE rmcprofile2discus (ianz, cpara, lpara, MAXW) 
+      SUBROUTINE rmcprofile2discus (ianz, cpara, lpara, MAXW, ofile) 
 !-                                                                      
 !     converts a RMCProfile "cssr" file to DISCUS                   
 !+                                                                      
@@ -3722,6 +4007,7 @@ USE take_param_mod
       INTEGER          , INTENT(IN)                    :: MAXW 
       CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
       INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
+CHARACTER(LEN=1024)                 , INTENT(OUT)   :: ofile 
 !                                                                       
       INTEGER, PARAMETER    :: RMC_CSSR  = 0
       INTEGER, PARAMETER    :: RMC_RMCF6 = 1
@@ -3729,7 +4015,6 @@ USE take_param_mod
       REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
 !                                                                       
       CHARACTER(LEN=1024)   :: infile = ' '
-      CHARACTER(LEN=1024)   :: ofile  = ' '
       INTEGER               :: ird, iwr 
       INTEGER               :: style
       LOGICAL               :: fileda
@@ -4216,7 +4501,7 @@ lattice(1:3) = lattice(1:3)/REAL(super(1:3))
 END SUBROUTINE rmc6f_period
 !
 !
-      SUBROUTINE cif2discus (ianz, cpara, lpara, MAXW) 
+      SUBROUTINE cif2discus (ianz, cpara, lpara, MAXW, ofile) 
 !-                                                                      
 !     converts a CIF file to DISCUS                   
 !+                                                                      
@@ -4236,6 +4521,7 @@ USE precision_mod
       INTEGER          , INTENT(IN)                    :: MAXW 
       CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
       INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
+      CHARACTER(LEN=1024)                 , INTENT(OUT)   :: ofile 
 !                                                                       
       REAL(KIND=PREC_DP), PARAMETER :: eightpi2 = 8.D0*3.1415926535897932384626433832795028841971693993751D0**2
       REAL, PARAMETER :: EPS = 0.00001
@@ -4249,7 +4535,6 @@ USE precision_mod
       CHARACTER(LEN=80)     :: aniso_label  = ' '
       CHARACTER(LEN=80)     :: aniso_symb   = ' '
       CHARACTER(LEN=1024)   :: infile = ' '
-      CHARACTER(LEN=1024)   :: ofile  = ' '
       CHARACTER(LEN=1024)   :: wfile  = ' '
       CHARACTER(LEN=1024)                              :: line
       CHARACTER(LEN=1024)                              :: line_cap
@@ -4598,7 +4883,10 @@ analyze_atom: DO
             ccpara = ' '
             nblank = 0
 atoms:      DO                                 ! Get all atoms information
-               IF(line(1:1)=='loop') EXIT atoms
+               IF(line(1:4)=='loop') THEN 
+                  is_loop = nline
+                  EXIT atoms
+               ENDIF
                IF(line(1:1)/='#' .and. line /= ' ') THEN
                   CALL get_params_blank(line,ianz, ccpara,llpara, nentries, length)
 !
@@ -4607,6 +4895,9 @@ atoms:      DO                                 ! Get all atoms information
 !
                   IF(nentries/=ianz) THEN         ! no more atom lines
                      nline = j_atom
+                     IF(line(1:4)=='loop') THEN 
+                        is_loop = nline
+                     ENDIF
                      EXIT atoms
                   ENDIF
                   DO i=1,ianz                     ! Replace all '.' by '0.0'
@@ -4700,6 +4991,7 @@ atoms:      DO                                 ! Get all atoms information
                ENDIF
                line   = rawline(j_atom + nblank)
                length = len_str(line)
+               nline = j_atom + nblank            ! We are now in line j_atom
             ENDDO atoms
             IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
             IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
@@ -4762,6 +5054,7 @@ analyze_anis: DO
          rlatt(3) = SQRT(rten(3,3))
          IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
          IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
+         zero_entries:IF(nentries>0) THEN
          IF(.NOT. ALLOCATED(CCPARA)) ALLOCATE(ccpara(nentries))
          IF(.NOT. ALLOCATED(LLPARA)) ALLOCATE(llpara(nentries))
          ccpara = ' '
@@ -4853,6 +5146,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
             line   = rawline(nline)
             length = len_str(line)
          ENDDO anis   
+         ENDIF zero_entries
          IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
          IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
       ENDIF
