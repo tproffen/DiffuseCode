@@ -212,7 +212,7 @@
    for further information. The process is described in the 
    package manual as well.
 2  2dm
-!b 2dm 
+!p 2dm 
 
    Branches into the '2dm' menu.
    This menu allows you to concatenate several 2D i.e. xy data
@@ -220,21 +220,21 @@
 
    Valid commands at this level are:
 3  reset
-!b reset
+!p reset
 
    Reset all numerical values back to system start.
 3  run
-!b run
+!p run
 
    Performs the actual calculation. The map will be 
    stored in the next free data set number.
 3  back
-!b back "off"
-!b back "csv",<filename>
-!b         ,skip:<nskip>, 
-!b         colx:<icolx>, coly:<icoly>, coldx:<icoldx>, coldy:<icoldy>,
-!b         separator:<name> 
-!b         scale:<factor>
+!p back "off"
+!p back "csv",<filename>
+!p         ,skip:<nskip>, 
+!p         colx:<icolx>, coly:<icoly>, coldx:<icoldx>, coldy:<icoldy>,
+!p         separator:<name> 
+!p         scale:<factor>
 
    Defines the name and type of a background file.
    The y-values will be subtracted from the corresponding
@@ -249,10 +249,10 @@
    The remaining optional parameters are identical to those
    of the == 'load csv' command at the main menu.
 3  load
-!b load "csv","filename_format", LOOP
-!b         ,skip:<nskip>, 
-!b         colx:<icolx>, coly:<icoly>, coldx:<icoldx>, coldy:<icoldy>,
-!b         separator:<name> 
+!p load "csv","filename_format", LOOP
+!p         ,skip:<nskip>, 
+!p         colx:<icolx>, coly:<icoly>, coldx:<icoldx>, coldy:<icoldy>,
+!p         separator:<name> 
 
    Defines the name and type of the 2D input files.
    The filename must be specified within double quotation marks
@@ -265,10 +265,10 @@
    The remaining optional parameters are identical to those
    of the == 'load csv' command at the main menu.
 3  loop
-!b loop "counter:"{"LOOP"|"SLOW"}, 
-!b      "start:"<start_number>, "end:"<end_number>
-!b      ,"step:"<step_number>
-!b      ,"miss:"{"error"|"ignore"|"blank"}
+!p loop "counter:"{"LOOP"|"SLOW"}, 
+!p      "start:"<start_number>, "end:"<end_number>
+!p      ,"step:"<step_number>
+!p      ,"miss:"{"error"|"ignore"|"blank"}
 
    Defines the range of input file numbers that will be used
    for the "LOOP"  or "SLOW" value on the ==> 'load' command. 
@@ -291,16 +291,16 @@
    identical status to describe the handling of missing
    files. 
 3  xrange
-!b xrange "xmin:"{"xmin"|<x_min>} , "xmax:"{"xmax"|<x_max>}
+!p xrange "xmin:"{"xmin"|<x_min>} , "xmax:"{"xmax"|<x_max>}
 
    Defines the x-range of the input files that is to be
    written into the 3D map.
    Both parameters default to "xmin" respectively "xmax" 
    the actual minimum and maximum values of the input files.
 3  yfunction
-!b yfunction loop:LOOP
-!b yfunction loop:inc
-!b yfunction loop:<expression>
+!p yfunction loop:LOOP
+!p yfunction loop:inc
+!p yfunction loop:<expression>
 
    Defines the function that will be used to calculate the
    y-axis values of the map. 
@@ -349,9 +349,9 @@
  
  
 2  achx/y/z
-!b achx {<string> |"OFF"} [, {"lin" | "log"}]
-!b achy {<string> |"OFF"} [, {"lin" | "log"}]
-!b achz {<string> |"OFF"} 
+!p achx {<string> |"OFF"} [, {"lin" | "log"}]
+!p achy {<string> |"OFF"} [, {"lin" | "log"}]
+!p achz {<string> |"OFF"} 
 
    This command sets the labels for the x- or y-axis. The label for
    the z-axis is only active when bitmaps are plotted and is used
@@ -373,8 +373,8 @@
 !p achx 2 Theta       : will label x-axis with '2 Theta'
 !p achy "PSD #%d",43  : will label y-axis with 'PSD #43'
 2  alloc
-!b alloc <name>,<len>
-!b alloc <name>,<x>,<y>
+!p alloc <name>,<len>
+!p alloc <name>,<x>,<y>
 
    This command allocates space for a new data set. This is e.g. required
    if a data set should be created using the FORTRAN interpreter of 
@@ -384,14 +384,14 @@
    <name> just specifies a name for the data set (also used as default
    filename if the data set is saved).
 2  angl
-!b angl [<angle>]
+!p angl [<angle>]
 
    This command allows to set the angle between the x- and y-axis for
    the currently active frame. Suitable angles are between 30 and 120
    degrees. If the command is entered without parameters, the value
    is set to 90.0 degrees.
 2  aver
-!b aver [<yx>]
+!p aver [<yx>]
 
    This command sets the aspect ratio between the y- and the x-axis.
    A value of <yx>=1.0 will force one unit on the x-axis to be as
@@ -399,8 +399,8 @@
    y/x of the length of a unit of both axis. Is the parameter <yx>
    omitted, the plot will fill the complete drawing area.
 2  bond
-!b bond
-!b bond <ib>,<dist> [,<sig> [,<it>,<ic>,<iw>]]
+!p bond
+!p bond <ib>,<dist> [,<sig> [,<it>,<ic>,<iw>]]
 
    This command enables the plotting of lines between points that
    have a given distance, e.g. to include bonds in a crystal file
@@ -420,8 +420,8 @@
    In order to disable the plotting of a defined bond, just specify
    a zero distance, i.e. 'bond <ic>,0.0'.
 2  branch
-!b branch discus [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
-!b branch diffev [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
+!p branch discus [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
+!p branch diffev [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
 
    Active within the discus suite only!
 
@@ -438,8 +438,8 @@
    macro <macro_name> (with its optional parameters) before the 
    interactive session is started.
 2  buff
-!b buff <all>
-!b buff <left>,<right>,<bottom>,<top>
+!p buff <all>
+!p buff <left>,<right>,<bottom>,<top>
 
    This command allows to alter the amount of drawing space KUPLOT
    reserves outside the plotting area for labels, titles etc.. The
@@ -448,7 +448,7 @@
    for axis numbers, labels etc. - note that if the reserved space
    is too small text might be wrapped around or cut off.
 2  branch
-!b branch discus
+!p branch discus
 
    Active within the discus suite only!
 
@@ -458,7 +458,7 @@
    given. The behavior of "discus" is essentially the same
    as in the stand alone version.
 2  ccal
-!b ccal <oper>,<field>,<ik> [,<value>]
+!p ccal <oper>,<field>,<ik> [,<value>]
 
    This command allows data manipulation. All functions could also
    be performed using the FORTRAN type interpreter, but especially
@@ -494,7 +494,7 @@
    run of the program these can usually not be closed. This command
    deactivates the listed windows. You may then close them.  
 2  color
-!b color <ic>,<r>,<g>,<b>
+!p color <ic>,<r>,<g>,<b>
 
    This command allows the user to change the color settings for
    the different pens. The parameter <ic> gives the pen number
@@ -502,13 +502,13 @@
    values to be uses ranging from 0.0 to 1.0. If no parameters are
    given, the current settings are displayed.
 2  conv
-!b conv <ik1>,<ik2>
+!p conv <ik1>,<ik2>
 
    This command calculates the convolution of data sets <ik1> and 
    <ik2> and creates a new data set with the result. Both data sets
    must be on the same equidistant grid ! 
 2  cost
-!b costvalue  <rvalue> [, <partial_rvalue1> ...]
+!p costvalue  <rvalue> [, <partial_rvalue1> ...]
 
    Set a value that is to be returned to DIFFEV as the overall
    R-value. It will overwrite the current weighted R-value
@@ -521,9 +521,9 @@
    If the partial R-values are provided as well, they will 
    overwrite the corresponding partial R-values.
 2  cmap
-!b cmap { "gray" | "fire" | "ice" | "kupl" |"thermal" }
-!b cmap { "read" | "write"}, <fname>
-!b cmap "invert"
+!p cmap { "gray" | "fire" | "ice" | "kupl" |"thermal" }
+!p cmap { "read" | "write"}, <fname>
+!p cmap "invert"
 
    This command allows to choose the color map to be used for printing
    bitmaps (see 'hart' command). The three build in color map are 
@@ -549,15 +549,15 @@
    command 'show color'. The color map entries can also be altered
    using the variable 'cmap [<ic>,3]'.
 2  deriv
-!b deriv <ik> [,<order>]
+!p deriv <ik> [,<order>]
 
    This command calculates the <order>th derivative of data set <ik>.
    The result is stored as new data set. If <order> is omitted, the
    first derivative is calculated.
 2  dsav
-!b dsav "gsas",<file> [,<iname>]
-!b dsav "xml",<file> [,<dtd-path>]
-!b dsav "merge",<file>
+!p dsav "gsas",<file> [,<iname>]
+!p dsav "xml",<file> [,<dtd-path>]
+!p dsav "merge",<file>
 
    The parameter "gsas"  allows one to save all loaded data sets
    in GSAS file format. NOTE THAT THE CURRENT IMPLEMENTATION ASSUMES
@@ -572,7 +572,7 @@
    loaded data sets with the following condition x=x, y=data set
    number and z=y. This can then be loaded using load zz, ..
 2  ecol
-!b ecol <ik>,<c>
+!p ecol <ik>,<c>
 
    This command sets the error bar color for the data set <ik>. 
    The colors are numbered like the pens on a HP7475 plotter. Allowed 
@@ -587,7 +587,7 @@
 !p   3 : blue      7 : dark red     11 : dark yellow    15 : white (!)
 !p   4 : magenta   8 : dark green   12 : gray
 2  etyp
-!b etyp <ik>,<p>
+!p etyp <ik>,<p>
 
    This command sets the type of error bars to be use for the data
    set number <ik>. Allowed values for <p> are:
@@ -597,7 +597,7 @@
 !p   2 :  "ybar"            : only error bars in y-direction
 !p   3 :  "cross"           : error bars in both directions
 2  excl
-!b excl <ik>,<left>,<right>
+!p excl <ik>,<left>,<right>
 
    This command allows the user to exclude the area between <left>
    and <right> from data set <ik>. The values within the range
@@ -607,7 +607,7 @@
    are removed. If <right> is outside the data range, all points
    from <left> onwards are removed.
 2  fill
-!b fill <ik>,<fc>,<ft> [,<xmin>,<xmax>] [,<ymin>,<ymax>]
+!p fill <ik>,<fc>,<ft> [,<xmin>,<xmax>] [,<ymin>,<ymax>]
 
    This command sets the filling style for data set <ik>. The data
    set is treated as a polygon and is filled between the data and 
@@ -627,7 +627,7 @@
 
 
 2  fit
-!b fit
+!p fit
    This command enters the fit sub level and data set <ik> is taken
    as target data set. For an easy start, select a fit function 
    with 'func' and start the fit using the 'run' command. The result
@@ -635,7 +635,7 @@
    detailed information see the list of commands below:
 
 3  commands
-!b Valid commands in this sub level are:
+!p Valid commands in this sub level are:
 
 !p @      : Executes a macro (see general help)
 !p =      : Algebra (see general help)
@@ -661,7 +661,7 @@
 !p wait   : Waits for user input (see general help)
 !p wic    : Sets weighting scheme
 3  cycle
-!b cycle <n>
+!p cycle <n>
 
    This command sets the maximum number of cycles to <n>. If a minimum
    is found in less cycles, the fit will stop before <n> cycles are
@@ -690,12 +690,12 @@
 
    Select a fit function from the list below for more information:
 4  poly
-!b func "poly" [,<par>]
+!p func "poly" [,<par>]
 
    A polynomial function p[1] + p[2]*r[0] + p[3]*r[0]**2 + ...
    is used. The parameter is the order of the polynomial.
 4  gaus
-!b func "gaus" [,<par>]
+!p func "gaus" [,<par>]
 
    xY data:
    The fit uses <par> Gaussian functions. Two parameters (no. 1 
@@ -726,7 +726,7 @@
 !p p[9] Asymmetry y
 
 4  lore
-!b func "lore" [,<par>]
+!p func "lore" [,<par>]
 
    The fit uses <par> Lorentzian functions. Two parameters (no. 1 and 2) 
    are refined for the background and each Lorentzian peak used four 
@@ -742,7 +742,7 @@
    Note that the peak height rather than the integral intensity
    is refined.
 4  pseudo
-!b func "pseudo" [,<par> [,<origin> [,<n_backgrd> ]]
+!p func "pseudo" [,<par> [,<origin> [,<n_backgrd> ]]
 
    The fit uses <par> Pseudo-Voigt functions. <n_backgrd> parameters 
    (no. 1, .. to <n_backgrd>) are refined for the background and each 
@@ -789,7 +789,7 @@
    parameters to be used. If it is omitted, the number of 
    background parameters is set to 2.
 4  fx
-!b func "fx",<ip>,<function>
+!p func "fx",<ip>,<function>
    KUPLOT allows the user to fit a user defined function to a given
    1D as well as 2D data set. The first parameter after "fx" specifies 
    the number of parameters. Refer to the parameters in the expression
@@ -805,7 +805,7 @@
    this command. If the parameter values p[i] are not set to proper
    start values, a error might occur, i.e. division by zero.
 4  ma
-!b func "ma",<ip>,<macro_name>
+!p func "ma",<ip>,<macro_name>
    KUPLOT allows the user to fit a user defined function inside a
    macro to a given 1D as well as 2D data set. The first parameter
    after "fx" specifies the number of parameters. Refer to the
@@ -884,7 +884,7 @@
    this command. If the parameter values p[i] are not set to proper
    start values, a error might occur, i.e. division by zero.
 4  gsas
-!b func "gsas",<ptype>,<bank>,<iparm-file>
+!p func "gsas",<ptype>,<bank>,<iparm-file>
 
    KUPLOT allows the refinement of a GSAS profile function for TOF
    data. For details about the parameters and definitions of these
@@ -894,7 +894,7 @@
    instrument parameter file. The starting values are read from this
    file. Please also note, that the x-values are expected to be TOF.
 4  back
-!b func "back",<icalc> [,<par>]
+!p func "back",<icalc> [,<par>]
    The fitting of a background is calculated as:
 
 !p y(dataset) = scale*y(dataset icalc) + SUM xx**parameter
@@ -917,31 +917,31 @@
 !p N      scale factor + background polynomial of order (N-2)
 
 3  help
-!b help <command>
+!p help <command>
 
    Displays this help text, for help for a certain command type help
    command. See help entry on main level for more details.
 3  macro
-!b macro <filename>
+!p macro <filename>
 
    This command saves the current parameters in a KUPLOT macro file.
    This allows to set the parameter values in a later session using
    @<filename> from the FIT sub level.
 3  mfen
-!b mfen <if>
+!p mfen <if>
 
    This command sets the 'window size' for maxima determination used
    to compute starting values for functions GAUS and LORE. For details 
    about the <if> value see command -> smax.
 3  output
-!b output { "on" | "off" }
+!p output { "on" | "off" }
 
    This command allows to specify if the progress of the fit should be
    displayed on the screen ("on") or not ("off").
 3  para
-!b para 
-!b para <ip>,<pinc> [,<value>]
-!b para { "save" | "load" }
+!p para 
+!p para <ip>,<pinc> [,<value>]
+!p para { "save" | "load" }
 
    This command allows to modify the fit parameters. If the command 
    is called alone, the current parameters are displayed. A single
@@ -954,12 +954,12 @@
    later back in the parameter array ('para load'). Each save command
    will overwrite previously stored values.
 3  plot
-!b plot
+!p plot
  
    This command displays the current fit result with the current plot
    settings (like the plot command in the main level).
 3  range
-!b range {"all" | "plot"}
+!p range {"all" | "plot"}
 
    This command allows one to select which part of the data are used
    for the refinement. If set to "all", all data are used. If set to
@@ -967,11 +967,11 @@
    This is useful if one wants to refine e.g. just a single Gaussian
    in a data set without having to manipulate the data set itself.
 3  run
-!b run
+!p run
 
    This command starts the fit.
 3  save
-!b save
+!p save
 
    This command saves the current fit results. The output filename
    is the filename of the input data set with the following extensions:
@@ -980,7 +980,7 @@
 !p   .fit  : calculated data set
 !p   .dif  : difference between observed and calculated data set
 3  show
-!b show [ { "general" | "fit" | "para" } ]
+!p show [ { "general" | "fit" | "para" } ]
 
    This command shows fit settings and results. If the command is called
    without parameters, all information is printed on the screen. The 
@@ -988,7 +988,7 @@
    fit' the fit results like R values and 'show para' will list the
    resulting parameters.
 3  urf
-!b urf <u>
+!p urf <u>
 
    This command sets the URF (some German: Unterer Relaxations Faktor)
    for the fit. This value determines who 'fast' the fit will move to
@@ -1002,7 +1002,7 @@
    Understood ? Well just try different values until your fit converges
    nicely to the global minimum.
 3  wic
-!b wic <w> [,<K>]
+!p wic <w> [,<K>]
 
    This command defines the weighting scheme to be used for the fit. The
    valid values for <w> are:
@@ -1015,13 +1015,13 @@
 
    The second parameter is only needed for the weighting scheme "bck".
 2  fnam
-!b fnam [ {"on" | "off"} ]
+!p fnam [ {"on" | "off"} ]
 
    This command determines weather the filename should be plotted for
    every data set in the upper right corner. Called without parameters, 
    filename plotting is switched off.
 2  font
-!b font <prop>,<value>,..
+!p font <prop>,<value>,..
 
    This command allows to set font attributes for the active frame.
    The settings can be displayed by entering the command 'font' 
@@ -1030,7 +1030,7 @@
    The available font properties <prop> are listed below:
 
 3  PGPLOT
-!b Special characters
+!p Special characters
 
    The use of the PGPLOT library allows KUPLOT users to use a variety
    of escape sequences and special characters in all text related
@@ -1050,7 +1050,7 @@
 !p \gx      : Greek character 'x' (e.g. \ga gives alpha, \gb beta, ..)
 !p \(nnnn)  : character (nnnn) from the Hershey character set
 3  color
-!b font "color",<id>,<icol>
+!p font "color",<id>,<icol>
 
    This command allows to alter the color of the font used to label the
    graph. The default is black for all fonts. The different types of
@@ -1075,8 +1075,8 @@
    This command sets the text justification for the two title lines and
    the text within a text frame. 
 3  size
-!b font "size",<id>,<size>
-!b font "size",<scale>
+!p font "size",<id>,<size>
+!p font "size",<scale>
 
    This command sets the font size for text type <id> to <size> points.
    If a specified font size is not available, a fixed font will be used
@@ -1090,7 +1090,7 @@
    will be scaled by the given factor <scale>, i.e. a value of 0.5 will
    set all font sizes to half their specified original size.
 3  typ
-!b font "typ",<id>,<typ>
+!p font "typ",<id>,<typ>
 
    This command sets the font of the text typ <id> to <typ>. Allowed
    values for the text typ parameter <id> are:
@@ -1106,7 +1106,7 @@
 !p   3 : Italics font
 !p   4 : Script font
 2  fset
-!b fset <typ>
+!p fset <typ>
 
    This commands allows to alter the frame and axis plotted around
    the view graph for the active frame. The allowed values for <typ>
@@ -1130,7 +1130,7 @@
    various details of the axes and frame (-> variables). Note that the
    values are given in character height units.
 2  four
-!b four <ik> [,<Qmin>, <Qmax>, <deltaQ>] [,<code>]
+!p four <ik> [,<Qmin>, <Qmax>, <deltaQ>] [,<code>]
 
    This function allows the user to calculate the discrete Fourier
    Transform of data set <ik>. The range of the Fourier transform is
@@ -1151,7 +1151,7 @@
    The default is to store the real part. If the parameter <code> 
    contains the letter 'H', the factor 2pi is used in the exponential.
 2  frames
-!b Using frames in KUPLOT
+!p Using frames in KUPLOT
 
    The program KUPLOT allows to divide the plotting space into smaller
    areas called FRAMES. Each frame can be individually positioned on the
@@ -1162,7 +1162,7 @@
    frames are listed below:
 
 3  commands
-!b List of commands:
+!p List of commands:
 
 !p afra : sets the active frame for user input
 !p bfra : sets background color for specified frame
@@ -1172,14 +1172,14 @@
 !p nfra : set number of frames (default = 1)
 !p sfra : define position and size of frame
 3  afra
-!b afra <if>
+!p afra <if>
 
    The active frame is set to <if>. All parameters like title, axis labels,
    plotting window etc. are entered for the active frame. Is 'afra' entered
    without parameters, the actual active frame is displayed. The setting
    of one frame can be copied to another frame with the 'cfra' command.
 3  bfra
-!b bfra <if>,<r>,<g>,<b>
+!p bfra <if>,<r>,<g>,<b>
 
    This command sets the background color for frame <if>. The color is
    given as RGB (red,green,blue) value ranging from 0.0 to 1.0. The
@@ -1190,46 +1190,46 @@
    To free the used colors reenter the command 'cmap' which will create 
    a new color map.
 3  cfra
-!b cfra <ifr>,<i1> [,<i2>,<i3>,...]
+!p cfra <ifr>,<i1> [,<i2>,<i3>,...]
 
    This command copies the settings of frame <ifr> (like title, contour
    line settings, plot window, ..) to frames <i1>, <i2>, ...
 3  fram
-!b fram [ {"on" | "off"} ]
+!p fram [ {"on" | "off"} ]
 
    This command determines weather a black border is plotted around the
    graph / each individual frame. Called without parameters, no border
    will be plotted.
 3  kfra
-!b kfra <if>,<ik1> [,<ik2>,...]
-!b kfra <if>,<fname>
-!b kfra <if>,{"para" | "fit"}
+!p kfra <if>,<ik1> [,<ik2>,...]
+!p kfra <if>,<fname>
+!p kfra <if>,{"para" | "fit"}
 
    This command sets the contents for frame <if>. A frame can either 
    contain the graphs of dataset(s) <ik1>,.. of the contents of a text
    file, specified by <fname>. Special text frames are "para" which
    prints data information and "fit" giving the fit results.
 3  nfra
-!b nfra <n>
+!p nfra <n>
 
    This command sets the total number of frames to be used. For most
    values of <n> KUPLOT defines a default layout. If no default layout
    is found, a warning is given. The layout can be changes using the
    command 'sfra'.
 3  sfra
-!b sfra <if>,<xmin>,<ymin>,<xmax>,<ymax>
+!p sfra <if>,<xmin>,<ymin>,<xmax>,<ymax>
 
    This command allows to define the layout of the frames on the plot space.
    The lower left corner of the plot space is 0,0, the upper right is 1,1.
    The lower left corner <xmin>,<ymin> and the upper right corner <xmax>,
    <ymax> for each frame <if> can be specified with the 'sfra' command.
 2  func
-!b func <f(r[0])>,     <iref>
-!b func <f(r[0])>,     <xmin>,<xmax>,<dx>
-!b func <f(r[0],r[1])>,<xmin>,<xmax>,<dx>,<ymin>,ymax>,<dy>
-!b func "fit",<iref>
-!b func "fit",<xmin>,<xmax>,<dx>
-!b func "fit",<xmin>,<xmax>,<dx>,<ymin>,ymax>,<dy>
+!p func <f(r[0])>,     <iref>
+!p func <f(r[0])>,     <xmin>,<xmax>,<dx>
+!p func <f(r[0],r[1])>,<xmin>,<xmax>,<dx>,<ymin>,ymax>,<dy>
+!p func "fit",<iref>
+!p func "fit",<xmin>,<xmax>,<dx>
+!p func "fit",<xmin>,<xmax>,<dx>,<ymin>,ymax>,<dy>
   
    This command allows to create a new data set from the function and
    range given as command parameters. Every call of 'func' will create
@@ -1253,7 +1253,7 @@
 !p func sin(r[0]),0.00,6.30,0.10             : sin(x) from 0->6.3, 64 pts
 !p func sin(r[0])*cos(r[1]),0,6,0.1,0,6,0.1  : sin(x)*cos(y) 0->6  61x61 pts.
 2  glat
-!b glat <ik>,<ip> [, {"x" | "y"}]
+!p glat <ik>,<ip> [, {"x" | "y"}]
 
    This command smoothes the data set number <ik> over <ip> points.
    The number <ip> should be a positive odd number. A normal sliding
@@ -1262,13 +1262,13 @@
    The user can restrict the smoothing to only one direction by adding the
    optional parameter "x" or "y".
 2  grid
-!b grid [ {"on" | "off"} ]
+!p grid [ {"on" | "off"} ]
 
    This command determines whether a dotted line parallel to the axis
    should be plotted at all major tick mark positions. Called without
    parameters, the grid plotting is switched off.
 2  hart
-!b hart <ik>,<p>
+!p hart <ik>,<p>
 
    This command controls the appearance of two dimensional plots. The
    data set is again specified by <ik>, the allowed values for <p> are:
@@ -1281,7 +1281,7 @@
    bitmap is determined by the setting of the first contour line range
    (see command hlin). The color map is defined by the 'cmap' command.
 2  hcol
-!b hcol <ik>,<ic>,<c>
+!p hcol <ik>,<ic>,<c>
 
    This command sets the color for contour line set <ic> for the data 
    set <ik>. The colors are numbered like the pens on a HP7475 plotter. 
@@ -1296,7 +1296,7 @@
 !p   3 : blue      7 : dark red     11 : dark yellow    15 : white (!)
 !p   4 : magenta   8 : dark green   12 : gray
 2  hlab
-!b hlab <ik>,<int>
+!p hlab <ik>,<int>
 
    This command controls optional labeling of the contour lines of
    data set <ik>. If the parameter <int> is set to zero (default), no
@@ -1304,7 +1304,7 @@
    the base level is labeled. The font characteristics of the axes
    labels are used, only the font size is reduced by 75%.
 2  hlin
-!b hlin <ic>,<min>,<inc>,<n> [, { "abs" | "%" }]
+!p hlin <ic>,<min>,<inc>,<n> [, { "abs" | "%" }]
 
    This command sets the contour line parameters. The first parameter
    <ic> specifies the contour line set, which is defined by the following
@@ -1317,13 +1317,13 @@
    Is the command given without parameters, the current settings of the
    contour parameters are displayed on the screen.
 2  hpak
-!b hpak <ip>
+!p hpak <ip>
 
    KUPLOT allows to define more than one set of contour lines (see 'hlin'
    command). The command 'hpak' allows to set the number of contour line
    sets <ip> to be used.
 2  htyp
-!b htyp <ik>,<ic>,<p>
+!p htyp <ik>,<ic>,<p>
 
    This command sets the line typ for contour line set <ic> for the data 
    set <ik>. The colors are numbered like the pens on a HP7475 plotter. 
@@ -1336,13 +1336,13 @@
 !p   4 :  "shortbroken"    : - - - - - - - - - - - - -
 !p   5 :  "shortdashed"    : - - - ---- - - - ---- - -
 2  ident
-!b ident [ {"on" | "off"} ]
+!p ident [ {"on" | "off"} ]
 
    This command determines whether user name, date and time of the plot
    are written on the bottom of the view graph.
 2  inte
-!b inte <ik> [,<xmin>,<xmax>]
-!b inte <ik> [,<xmin>,<xmax>,<ymin>,<ymax>]
+!p inte <ik> [,<xmin>,<xmax>]
+!p inte <ik> [,<xmin>,<xmax>,<ymin>,<ymax>]
 
    This command calculates the integral of data set <ik>. If the additional
    parameters are omitted, the complete actual plotting window is integrated.
@@ -1361,7 +1361,7 @@
 !p   res[6]   : Integration limit ymin (only for 3d data)
 !p   res[7]   : Integration limit ymax (only for 3d data)
 2  ksav
-!b ksav <ik>
+!p ksav <ik>
 
    This command enters the 'ksav' level of KUPLOT which allows to save
    the given data set <ik> in different formats to a file. The allowed
@@ -1380,7 +1380,7 @@
 !p thresh  : Sets threshold for PGM file output
 !p wait    : wait for user input (see main help)
 3  form
-!b form <ff> [,<p1>,<p2>,...]
+!p form <ff> [,<p1>,<p2>,...]
 
    This command determines the file format to be used when the file is
    saved. Some formats require additional parameters. If a parameter
@@ -1414,7 +1414,7 @@
 !p  xy    ,"four"   
 !p  xy    ,"two"   
 3  m999
-!b m999 "excl"|"data"
+!p m999 "excl"|"data"
 
    KUPLOT treats data points of value "-9999" as excluded data in a
    two dimensional data array. This command specifies the treatment of
@@ -1427,21 +1427,21 @@
    corresponding to the respective two dimensional dimension. The
    output file contains the data points with value -9999.
 3  outfile
-!b outfile <fname>
+!p outfile <fname>
 
    This command specifies the name of the output file. See entry 'filenames'
    for more information about the building of filenames.
 3  run
-!b run
+!p run
 
    This command save the file with the current settings and leaves the
    KSAV level.
 3  show
-!b show
+!p show
 
    This command shows the current settings.
 3  threshold
-!b thresh { "high"|"low"|"sigma"|"zmin"|"zmax"} <value>
+!p thresh { "high"|"low"|"sigma"|"zmin"|"zmax"} <value>
 
    This command sets the threshold that is used when writing BITMAP output.
    All values less than the minimum threshold are set to zero,
@@ -1458,7 +1458,7 @@
 !p "zmax"  : Sets maximum threshold for BITMAP
 !p "zmin"  : Sets minimum threshold for BITMAP
 2  kcal
-!b kcal {"add"|"sub"|"mul"|"div"},<ik1>,<ik2>[,{"excl"|"neut"|"igno"}][,"over"]
+!p kcal {"add"|"sub"|"mul"|"div"},<ik1>,<ik2>[,{"excl"|"neut"|"igno"}][,"over"]
 
    This command allows to multiply ("mul"), add ("add"), divide ("div")
    or subtract ("sub") the y- or z- values of the data sets <ik1> and <ik2>. 
@@ -1484,9 +1484,9 @@
 !p          the result is the corresponding operation between the two 
 !p          numbers.
 2  kpara
-!b kpara {<par_name> | <par_number>} 
-!b kpara { {"last"| "-1"} | <generation_no> } ,
-!b       {<par_name> | <par_number>} , {<par_name> | <par_number>} 
+!p kpara {<par_name> | <par_number>} 
+!p kpara { {"last"| "-1"} | <generation_no> } ,
+!p       {<par_name> | <par_number>} , {<par_name> | <par_number>} 
 
    This command serves to create a standardized plot of the parameters
    refined via DIFFEV. 
@@ -1503,8 +1503,8 @@
    kpara Rvalue    ! Show the R-value versus generations
    kpara P_one     ! Same for a parameter named "P_one"
 2  kpar_par
-!b kpar_par { {"last"| "-1"} | <generation_no> } ,
-!b       {<par_name> | <par_number>} , {<par_name> | <par_number>} 
+!p kpar_par { {"last"| "-1"} | <generation_no> } ,
+!p       {<par_name> | <par_number>} , {<par_name> | <par_number>} 
    This command serves to create a standardized plot of the parameters
    refined via DIFFEV. 
 
@@ -1524,7 +1524,7 @@
    kpar_par last, P_one, P_two   ! Display (possible) correlation 
                                  !  between these two parameters
 2  lart
-!b lart <ik>,<p>
+!p lart <ik>,<p>
 
    This command sets the who the points of data set <ik> are to be 
    connected. Allowed values for <p> are:
@@ -1533,7 +1533,7 @@
 !p    2 : histogram style plot
 !p    3 : connection via cubic splines
 2  lcol
-!b lcol <ik>,<c>
+!p lcol <ik>,<c>
 
    This command sets the line color for the data set <ik>. If <ik> is
    0 the color set is taken for the grid lines (-> grid "on" | "off").
@@ -1549,7 +1549,7 @@
 !p   3 : blue      7 : dark red     11 : dark yellow    15 : white (!)
 !p   4 : magenta   8 : dark green   12 : gray
 2  load
-!b load <form>,<fname>[,<par>,<par>,..]
+!p load <form>,<fname>[,<par>,<par>,..]
 
    Reads a data set from file <fname>. The format of the input file
    is given by the value of <form>. Some formats require additional
@@ -1562,7 +1562,7 @@
    Here is a list of the available formats:
 
 3  4d
-!b load 4d,<file>,<ix>,<iy>,<iz>,<ival>
+!p load 4d,<file>,<ix>,<iy>,<iz>,<ival>
 
    This command allows to read a section from a NIPL type 4D files
    (x y z value). The first two parameters after the filename define
@@ -1570,7 +1570,7 @@
    defined which index is used for cutting and <ival> specified the
    value at which the cut is performed.
 3  cr
-!b load cr,<file>
+!p load cr,<file>
 
    Reads a "crystal" file format which contains coordinates for
    the atoms and typ, color and size for the marker for the specific
@@ -1611,14 +1611,14 @@
               "space" Will take as separator a string of blank(s)
    If the error columns are omitted or set to zero no error data are read
 3  de
-!b load de,<file>,<gridx>,<gridy>
+!p load de,<file>,<gridx>,<gridy>
 
    This command works similar to the 'load zz,..' command but rather
    that reading a xyz-file, a histogram of a xy-file is calculated,
    i.e. z represents the number of points x,y which fall in a grid
    of the size <gridx> and <gridy>. 
 3  gs
-!b load gs,<file>,<ibank> [,<unit>] [,<ifile>] [,"norm"]
+!p load gs,<file>,<ibank> [,<unit>] [,<ifile>] [,"norm"]
 
    This command allows to read GSAS files. AT THIS TIME THIS FEATURE
    IS ONLY TESTED FOR TIME-OF-FLIGHT POWDER DIFFRACTION DATA. The value 
@@ -1639,18 +1639,18 @@
    will be normalized by the incident spectrum. A valid instrument parameter
    file is required in this case.
 3  ma
-!b load ma,<file>
+!p load ma,<file>
 
    This commands reads a "marker" file which is a normal xy-file, but
    the program will only use the x coordinate , y is set to zero. So
    tick marks at the x-axis can be drawn.
 3  mc
-!b load mc,<file>,<snumber>
+!p load mc,<file>,<snumber>
 
    This commands reads spectrum number <snumber> from MCA files 
    (e.g. those created at A2/CHESS). 
 3  ni
-!b load ni,<file>[,<white>]
+!p load ni,<file>[,<white>]
 
    This file format is also an old "Garching format" used by an even
    older plot program. It contains gridded 3d data in the following 
@@ -1660,17 +1660,17 @@
 !p line 2    : xmin xmax ymin ymax      ! Range in x and y
 !p line 3-xx : z z z z z z z            ! z-values increasing in x and y
 3  pg
-!b load pg,<file>
+!p load pg,<file>
 
    Here is finally a universal 3d data file format known by KUPLOT,
    PGM files (from netpbm library). The current KUPLOT version can
    only read ASCII PGM files which have the code P2 in the first
    line of the program.
 3  sc/st
-!b load sc,<file> [,<iscan>] [,<cx>,<cy>] [,<cN>] [,<cdx>] [,<cdy>]
-!b load st,<file> [,<iscan>] [,<cx>,<cy>] [,<cN>] [,<cdx>] [,<cdy>]
-!b load sc,<file>,<iscan>,"info"
-!b load smca,<file>,[<iscan> [,<iscan>, <ipoint> [,"kev",par1,par2,par3]]]
+!p load sc,<file> [,<iscan>] [,<cx>,<cy>] [,<cN>] [,<cdx>] [,<cdy>]
+!p load st,<file> [,<iscan>] [,<cx>,<cy>] [,<cN>] [,<cdx>] [,<cdy>]
+!p load sc,<file>,<iscan>,"info"
+!p load smca,<file>,[<iscan> [,<iscan>, <ipoint> [,"kev",par1,par2,par3]]]
 
    This command allows one to read SPEC scan files. The parameter
    <file> is as usual the filename. If no further parameters are 
@@ -1730,12 +1730,12 @@
 !p load sc,scan.dat,1>3,1,2         ! Read scans 1 to 3 column 1 vs. 2
 !p load sc,scan.dat,1,info          ! Get information for scan 1
 3  xx
-!b load xx,<file>
+!p load xx,<file>
 
    This command reads just the first column of a data file and takes
    the point number as x-value.
 3  xy
-!b load xy,<file> [,<cx>,<cy>] [,<cdx>,<cdy>] [,<header>]
+!p load xy,<file> [,<cx>,<cy>] [,<cdx>,<cdy>] [,<header>]
 
    Reads data from a multi column ASCII file. Blank lines and lines
    starting with # are ignored. If no parameters after <file> are given,
@@ -1748,8 +1748,8 @@
    final optional parameter <header> allows one to specify the number
    of header lines to be skipped. 
 3  zz
-!b load zz,<file>,<gridx>,<gridy> [,"mod"]
-!b load zz,<file>,<gridx>,<gridy> [,<xmin>,<xmax>,<ymin>,<ymax>]
+!p load zz,<file>,<gridx>,<gridy> [,"mod"]
+!p load zz,<file>,<gridx>,<gridy> [,<xmin>,<xmax>,<ymin>,<ymax>]
 
    This command reads a xyz-file, each xyz triplet on a single line.
    The data points are binned to a regular grid of the size <gridx>
@@ -1763,8 +1763,8 @@
    Alternatively, the desired boundaries can be given as additional
    parameters. All points outside these limits will be ignored.
 3  mp
-!b load mp,<file>,<gridx>,<gridy> [,"mod"]
-!b load mp,<file>,<gridx>,<gridy> [,<xmin>,<xmax>,<ymin>,<ymax>]
+!p load mp,<file>,<gridx>,<gridy> [,"mod"]
+!p load mp,<file>,<gridx>,<gridy> [,<xmin>,<xmax>,<ymin>,<ymax>]
 
    This command reads a binary xyz-file, each xyz triplet is given on a
    single 16 byte record. The first 4 bytes of the first record are
@@ -1784,11 +1784,11 @@
    Alternatively, the desired boundaries can be given as additional
    parameters. All points outside these limits will be ignored.
 2  sm
-!b load sm,<file>
+!p load sm,<file>
 
    Loads the SIMREF *.plt file.
 3  special
-!b load <form>,<file>
+!p load <form>,<file>
 
    KUPLOT can read certain special file formats produced by the program
    MAN2 and MAN1 used at the Institut fuer Kristallographie of the
@@ -1817,7 +1817,7 @@
 !p  DA     MP-Datei (binaer)          Flaechenzaehlerdatei
 !p  AS     MP-Datei (ascii)           Flaechenzaehlerdatei
 2  ltyp
-!b ltyp <ik>,<p>
+!p ltyp <ik>,<p>
 
    This command sets the line typ to be used for data set <ik>. The
    allowed values for <p> are (number or name):
@@ -1829,13 +1829,13 @@
 !p   4 : {"shortbroken"}   : - - - - - - - - - - - - -
 !p   5 : {"shortdashed"}   : - - - ---- - - - ---- - -
 2  lwid
-!b lwid <ik>,<width>
+!p lwid <ik>,<width>
 
    This command sets the line width <width> in cm for the data set <ik>.
    If <ik> is zero, the line width for the frame itself is set. The
    current settings can be displayed using the 'show style' command.
 2  mark
-!b mark [<inx>] [,<iny>]
+!p mark [<inx>] [,<iny>]
 
    This command sets the interval and starting point for the tick marks
    at the x- and y-axis. If all parameters are omitted, KUPLOT will do
@@ -1843,8 +1843,8 @@
    the interval of the major tick marks on the x- and y-axis. If only
    <inx> is given, <iny> remains unchanged.
 2  match
-!b match {"scal" | "offset" | "all"},<io>,<ic>
-!b match "mix",<io>,<i1>,<i2>
+!p match {"scal" | "offset" | "all"},<io>,<ic>
+!p match "mix",<io>,<i1>,<i2>
 
    This command calculates the scale factor and/or offset which gives
    the best match between of data set <ic> to <io>. The first command
@@ -1863,7 +1863,7 @@
    The scale factor and the offset are written into the result variable 
    as entries 1 and 2. res[0] is set to 2
 2  mcol
-!b mcol <ik>,<c>
+!p mcol <ik>,<c>
 
    This command sets the marker color for the data set <ik>. The colors
    are numbered like the pens on a HP7475 plotter. Allowed values for
@@ -1878,8 +1878,8 @@
 !p   3 : blue      7 : dark red     11 : dark yellow    15 : white (!)
 !p   4 : magenta   8 : dark green   12 : gray
 2  mean
-!b mean <ik> [,<xmin>,<xmax>]
-!b mean <ik> [,<xmin>,<xmax>,<ymin>,<ymax>]
+!p mean <ik> [,<xmin>,<xmax>]
+!p mean <ik> [,<xmin>,<xmax>,<ymin>,<ymax>]
 
    This command allows to calculate the average and standard deviation for data
    set <ik>. The area used for the calculation can be given by <xmin>,<xmax> for
@@ -1903,8 +1903,8 @@
 !p   res[10]           = used range : ymin
 !p   res[11]           = used range : ymax
 2  merge
-!b merge <i1>,<i2>,... [,"add"]
-!b merge {"-1"|"all"}  [,"add"]
+!p merge <i1>,<i2>,... [,"add"]
+!p merge {"-1"|"all"}  [,"add"]
 
    This command allows one to merge different data sets given by
    the parameters <i1>, <i2> and so on. 
@@ -1924,8 +1924,8 @@
    For 2D dat sets the grid is equivalently determined by the
    average grid size of the first data set.
 2  mouse
-!b mouse
-!b mouse {"point" | "line" | "rect" | "xrange" | "yrange" }
+!p mouse
+!p mouse {"point" | "line" | "rect" | "xrange" | "yrange" }
 
    When the command is given without an additional parameter, KUPLOT
    redraws the plot with a button area and enters the interactive 
@@ -1959,7 +1959,7 @@
 !p   res[5]     = Mouse button clicked when selecting 2nd point
                   or -1 if action was aborted.
 2  mtyp
-!b mtyp <ik>,<p>
+!p mtyp <ik>,<p>
 
    This command sets the marker type to be used for data set <ik>. The 
    allowed standard values for <p> are listed below. Additionally one
@@ -1978,7 +1978,7 @@
 
 !p  -1 : x_coordinate   -2 : y_coordinate     -3 : "xy": both
 2  msiz
-!b msiz <ik>,[<size> [, {"x" | "y" | "0" | <data_set>}]]
+!p msiz <ik>,[<size> [, {"x" | "y" | "0" | <data_set>}]]
 
    This command sets the marker size for data set <ik> to <size>.
    The marker size is given in cm (for our friends in the US:
@@ -1996,27 +1996,27 @@
    enable NeXus support when compiling KUPLOT. The commands are
 
 3  nxopen
-!b nxopen <file>
+!p nxopen <file>
 
    This command opens the NeXus file called <file>. The file stays
    open until the command 'nxclose' is issued.
 3  nxclose
-!b nxclose
+!p nxclose
 
    This command closes the current NeXus file.
 3  nxdir
-!b nxdir
+!p nxdir
 
    This command lists all NXdata entries in the currently open NeXus
    file. Note currently it will only list NXdata entries directly
    below the top NXentry level.
 3  nxload
-!b nxload <sdsname>
-!b nxload <sdsname>,<i>,<j>
-!b nxload <sdsname>,<cx>,<cy>
-!b nxload <sdsname>,<xmin>,<xmax>,<ymin>,<ymax>
-!b nxload <sdsname>,<i>,<j>,<k>,<cx>,<cy>
-!b nxload <sdsname>,<i>,<j>,<k>,<xmin>,<xmax>,<ymin>,<ymax>
+!p nxload <sdsname>
+!p nxload <sdsname>,<i>,<j>
+!p nxload <sdsname>,<cx>,<cy>
+!p nxload <sdsname>,<xmin>,<xmax>,<ymin>,<ymax>
+!p nxload <sdsname>,<i>,<j>,<k>,<cx>,<cy>
+!p nxload <sdsname>,<i>,<j>,<k>,<xmin>,<xmax>,<ymin>,<ymax>
 
    This command reads the content of an SDS (data set) of the NeXus
    file into a KUPLOT data set. The first parameter is always the
@@ -2030,17 +2030,17 @@
    reading. Finally, <xmin>,<xmax>,<ymin> and <ymax> allow one to
    extract only the specified subsection.
 2  orient
-!b orient [{ "landscape" | "portrait" }]
+!p orient [{ "landscape" | "portrait" }]
 
    This command sets the orientation of the resulting plot. The default
    is landscape orientation, which is set, if the command is given without
    parameters.
 2  plot
-!b plot
+!p plot
 
    This command is used to plot the graph on the screen.
 2  prin
-!b prin [<dev>], [<command>]
+!p prin [<dev>], [<command>]
 
    This command allows to print the current view graph. The output
    device type <dev> can be given as first parameter. The only 
@@ -2056,7 +2056,7 @@
 !p prin                  : Print to default device/printer
 !p prin ps,"lpr -drscgf" : Print Postscript using command lpr -drscgf ..
 2  ptyp
-!b ptyp <ik>,<p>
+!p ptyp <ik>,<p>
 
    This command sets the marker typ to be used for the found maxima of
    data set <ik>. The allowed values for <p> are listed below. 
@@ -2075,12 +2075,12 @@
 
 !p  -1 : x-coordinate   -2 : y-coordinate     -3 : both
 2  rdef
-!b rdef [<fname>]
+!p rdef [<fname>]
 
    This command reads the KUPLOT setting from a defaults file. If
    no filename <fname> is give, the setting are read from 'kuplot.def'.
 2  rebin
-!b rebin <ik>,<delta>
+!p rebin <ik>,<delta>
 
    This command allows one to rebin a 2D data set <ik> to a new 
    equi-distant grid with a spacing of <delta>. The command creates
@@ -2089,7 +2089,7 @@
    in GN format and reading them in via 'load zz,..' with the desired
    grid size.
 2  rese
-!b rese ["all"]
+!p rese ["all"]
 
    This command resets KUPLOT. The next data set will be loaded as set
    number 1. Values for aspect ratio, distance of tick marks etc. are
@@ -2097,7 +2097,7 @@
    will reset KUPLOT back to the initial state including titles, colors,
    labels and so on.
 2  rval
-!b rval <ik>,<ij>[,<weight>]  [, partial:<no>]
+!p rval <ik>,<ij>[,<weight>]  [, partial:<no>]
 
    Calculates the residual between curves <ik> and <ij>.
    The last parameter defines the weighting scheme to be used for 
@@ -2118,8 +2118,8 @@
    The R-values are also copied into the result variable as entries
    one and two (unweighted and weighted).
 2  sann
-!b sann <ia>,"OFF"
-!b sann <ia>,<text>,<x>,<y> [,{"l"|"c"|"r"}] [,<angle>] [,<xp>,<yp>]
+!p sann <ia>,"OFF"
+!p sann <ia>,<text>,<x>,<y> [,{"l"|"c"|"r"}] [,<angle>] [,<xp>,<yp>]
 
    This command allows to add annotations to a plot. The first 
    parameter <ia> is the annotation number. The text is given 
@@ -2141,7 +2141,7 @@
    or use 'show annotation' to get a list of the currently set
    annotations.
 2  save
-!b save <dev>, [<filename>]
+!p save <dev>, [<filename>]
 
    <dev> : "ps", "png", "pic", "pdf", "la"
    This command allows to save the current view graph. The output
@@ -2158,77 +2158,77 @@
    can be changed in the file 'blk_appl.f90' of the KUPLOT source code
    to any device that is supported by PGPLOT.
 2  sdef
-!b sdef [<fname>]
+!p sdef [<fname>]
 
    This command writes the current setting of KUPLOT in a file. If
    no filename <fname> is give, the setting are written to 'kuplot.def'.
 2  show
-!b show <sub> [,<par>]
+!p show <sub> [,<par>]
 
    This command displays various parameters and settings of KUPLOT.
    The current subcommands are:
 
 3  annotation
-!b show "annotation"
+!p show "annotation"
 
    Shows the currently set annotation for the active frame.
 3  color
-!b show "color"
+!p show "color"
 
    This commands shows the list of current color settings for the
    background and pens. These settings might be altered using the
    command 'col'.
 3  cmap
-!b show "cmap"
+!p show "cmap"
 
    This command shows the RGB values of the current color map used
    to print bitmaps (only POSTSCRIPT output and X11).
 3  config
-!b show config
+!p show config
 
    This command lists configuration information on the screen such 
    as the maximum number of data sets that can be read or the maximum
    allowed number of frames.
 3  data
-!b show "data" [,<ik>]
+!p show "data" [,<ik>]
 
    Shows information about the loaded data set <ik>. If the 
    parameter <ik> is omitted, information about all loaded
    data sets is printed.
 3  error
-!b show "error"
+!p show "error"
 
    The error status of KUPLOT is displayed.
 3  font
-!b show "font"
+!p show "font"
 
    This command shows the font settings for the active frame. 
 3  frames
-!b show "frames"
+!p show "frames"
 
    This command shows the actual frame settings. For more information
    who to use frames in KUPLOT see help entry 'frames'.
 3  hlin
-!b show "hlin"
+!p show "hlin"
 
    Shows the current contour line settings for the active frame.
 3  plot
-!b show "plot"
+!p show "plot"
 
    Shows plot information for the active frame. A value of -9999. means
    automatic setting of the corresponding parameter before the next plot.
 3  result
-!b show "result"
+!p show "result"
 
    This command shows the values currently stored in the res[i]
    variable array.
 3  style
-!b show "style"
+!p show "style"
 
    This command shows plotting style setting like line color, line
    style etc. are displayed on the screen.
 2  sleg
-!b sleg <ik>, ["off", <text>] [,<ox>, <oy>]
+!p sleg <ik>, ["off", <text>] [,<ox>, <oy>]
 
    This command sets a possible caption for data set <ik>. The text
    with a sample line, marker, .. will appear in the upper left corner
@@ -2239,7 +2239,7 @@
    the captions in data coordinates. If the parameters are omitted, 
    the upper right corner of the plot is used by default.
 2  smax
-!b smax <ik>,<ifen> [,<fname>]
+!p smax <ik>,<ifen> [,<fname>]
 
    This command searches for maxima within data set <ik>.  
    The parameter <ifen> determines how many points (in each 
@@ -2258,7 +2258,7 @@
    The actual values can be determined by e.g. x[ik,res[5]]. For more
    information, see variables entry.
 2  smooth
-!b smooth <ik>,<ip> [,<o>] [, {"x" | "y"}]
+!p smooth <ik>,<ip> [,<o>] [, {"x" | "y"}]
 
    This command smoothes the data set number <ik> over <ip> points.
    The number <ip> should be a positive odd number. KUPLOT uses the
@@ -2271,17 +2271,17 @@
    optional parameter "x" or "y". An normal gliding average smoothing 
    is available via the command -> glat.     
 2  sort
-!b sort <ik>
+!p sort <ik>
 
    This command sorts the data set <ik> increasing in its x-value.
 2  spline
-!b spline <ik>,<ig>
+!p spline <ik>,<ig>
 
    This command will interpolate data set <ik> for x-values given
    by data set <ig>. The result is stored as a new data set. The 
    interpolation is done using a spline.
 2  skal
-!b skal [<xmin>, <xmax>] [,<ymin>, <ymax>]
+!p skal [<xmin>, <xmax>] [,<ymin>, <ymax>]
 
    This command sets the plotting window to <xmin> to <xmax> and <ymin>
    to <ymax>. If the data exceed the given window, they will be clipped.
@@ -2290,8 +2290,8 @@
    pair <xmin> and <xmax> are given, the plotted y-range remains 
    at the current setting.
 2  tit1/2
-!b tit1 <string>
-!b tit2 <string>
+!p tit1 <string>
+!p tit2 <string>
 
    This command sets the text for the two title lines. Because KUPLOT
    treats the ',' as a parameter separator it can not be used within
@@ -2305,7 +2305,7 @@
 !p tit1 "Run #%d / Sample #%d",i[1],i[2]   : 'Run #1 / Sample #5'
 !p                                           (for i[1]=1 & i[2]=5)
 2  window
-!b window <id> [,<sf>]
+!p window <id> [,<sf>]
 
    This command allows the user to select a graphics output window.
    The first window has <id> of 1, the second window 2 and so on. 
@@ -2382,7 +2382,7 @@
 !p                       a command is applied that returns more than one 
 !p                       value. The old values are lost !
 2  errors
-!b Error messages
+!p Error messages
 
    The program has been written such that it should handle almost
    any typing error when giving commands and hopefully all errors
@@ -2398,14 +2398,14 @@
    Each error message is displayed together with the corresponding
    category <cccc> and the error number <numb> in the form:
 
-!b   ****CCCC**** Message                    **** numb ****
+!p   ****CCCC**** Message                    **** numb ****
 
    More information to a particular error message can be found by
    typing 'help <cccc> <numb>' where <cccc> is the category and 
    <numb> the error number.
 
 3  appl
-!b KUPLOT errors
+!p KUPLOT errors
 
    These messages describe application specific errors (here KUPLOT)
    in contrast to errors concerning the command language handling.
