@@ -75,6 +75,9 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2019_November
+
+   Added an optional parameter "metric:host" to the ==> import command.
 3  2019 September
 
    The powder calculation was thoroughly revised. Pattern calculated 
@@ -780,7 +783,7 @@
 
    pdf        ! Calculate a Pair distribution function
 2  Unit_cell
-!b !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!p !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
    Don't worry, the old data file format is still supported !
 
@@ -906,17 +909,17 @@
    Further help topics are:
 
 4  #
-!b #<comment>
+!p #<comment>
 
    You can provide commands for the data file by including lines that
    start with a "#". The content of these lines is ignored.
 
 4  title
-!b title <title string>
+!p title <title string>
    The string used as title can be any character string up to 80 characters
    long
 4  spcgrp
-!b spcgr {<symbol>, <no>} [,"2"]
+!p spcgr {<symbol>, <no>} [,"2"]
 
    The "spcgr" keyword defines the space group of the crystal. 
    The space group is used to generate all atoms within the unit
@@ -937,7 +940,7 @@
    The space group symbol is checked for contradictions with the lattice
    constants. In case of error, the unit cell is not read.
 4  scat
-!b scat <name> [,<name>...]
+!p scat <name> [,<name>...]
 
    By explicitly listing the atom names on a 'scat' command line, you
    can define a specific sequence of scattering curves that is independent
@@ -967,7 +970,7 @@
    'adp' command lines must be identical. Thus, both commands must be
    present.
 4  adp
-!b adp <B-value> [,<B-value>...]
+!p adp <B-value> [,<B-value>...]
 
    By explicitly listing the atomic displacement parameters (adp) on a
    'adp' command line, you can define a specific sequence of scattering
@@ -998,7 +1001,7 @@
    'adp' command lines must be identical. Thus, both commands must be
    present.
 4  generator
-!b generator g11,g12,g13,g14, g21,g22,g23,g24, g31,g32,g33,g34 [, power]
+!p generator g11,g12,g13,g14, g21,g22,g23,g24, g31,g32,g33,g34 [, power]
 
    You can define additional generators through the optional "generator"
    keyword. These generators act identical to the generators defined
@@ -1031,7 +1034,7 @@
 !p     0.5,0.0,0.5
 !p     0.0,0.5,0.5
 4  symmetry
-!b symmetry s11,s12,s13,s14, s21,s22,s23,s24, s31,s32,s33,s34 [, power]
+!p symmetry s11,s12,s13,s14, s21,s22,s23,s24, s31,s32,s33,s34 [, power]
 
    You can define additional symmetry operations through the optional
    "symmetry" keyword. These symmetry operations act different than the
@@ -1083,7 +1086,7 @@
    The space group symbol is checked for contradictions with the lattice
    constants. In case of error, the unit cell is not read.
 4  ncells
-!b ncells  nx, ny, nz, ncatoms
+!p ncells  nx, ny, nz, ncatoms
 
    This command tells DISCUS how large the crystal is in terms of unit cells
    along the x,y and z axis.
@@ -1122,7 +1125,7 @@
 
    Empty lines in the file are ignored.
 4  molecule
-!b molecule [parameter]
+!p molecule [parameter]
 
    This keyword is allowed anywhere between the atoms of the unit cell file.
    It marks the beginning of a group of atoms that are grouped to form a
@@ -1145,19 +1148,19 @@
    Valid parameters are:
 
 5  end
-!b molecule end
+!p molecule end
 
    The parameter "end" signals the end of a molecule. All atoms still listed
    in the unit cell file are treated as individual atoms.
 
 5  type
-!b molecule type,<type>
+!p molecule type,<type>
 
    The molecule is of type no. <type>. All molecules of the same type 
    can be handled together by several commands like the symmetry menu.
 
 5  generator
-!b molecule generator
+!p molecule generator
 
    This parameter has become obsolete!
 
@@ -1181,13 +1184,13 @@
    See the section on site symmetry in the
    International Tables for further details.
 5  symmetry
-!b molecule symmetry
+!p molecule symmetry
 
    This parameter has become obsolete!
 
 5  character
-!b molecule character,{"atoms"|"cube"|"cylinder"|"sphere"}
-!b molecule character,{"domain_cube"|"domain_cylinder"|"domain_sphere"}
+!p molecule character,{"atoms"|"cube"|"cylinder"|"sphere"}
+!p molecule character,{"domain_cube"|"domain_cylinder"|"domain_sphere"}
 
    A molecule may either represent a list of real atoms, or represent
    an extended object. The distinction is given through the molecule
@@ -1237,7 +1240,7 @@
    to deform an object, use the ==>'shear' menu.
    New objects can be added to the structure with the ==> 'insert' menu.
 5  content
-!b molecule content, <type> [,<number>]
+!p molecule content, <type> [,<number>]
 
    This keyword signals the beginning of a list of content for a molecule.
    The parameter <type> gives the type number of the molecule. All molecules
@@ -1251,20 +1254,20 @@
    and terminated by a 'molecule end' command.
 
 5  biso
-!b molecule biso, <value>
+!p molecule biso, <value>
 
    This keyword sets an isotropic displacement parameter for the molecule.
    All intra-molecular distances in a PDF and powder pattern only use
    the atomic displacement parameters, while intermolecular distances
    use this molecular isotropic displacement factor as well.
 5  density
-!b molecule density, <value>
+!p molecule density, <value>
 
    This keyword helps you to create objects of identical volume yet 
    different scattering power. The density is expressed in number of 
    atoms per unit volume within the object. 
 5  atoms
-!b molecule atoms [,<i> ...]
+!p molecule atoms [,<i> ...]
 
    The atom number <i> is part of the molecule. The number <i> refers to
    the number of the atom in the current crystal. Up to 20 atoms may be
@@ -1273,7 +1276,7 @@
    The molecule content must be terminated by a 'molecule end' command.
 
 3  old_format
-!b Format of unit cell data file
+!p Format of unit cell data file
 
    The old unit cell data file contains 3 initial lines and one line per
    atom in the unit cell. All lines are in free format, beginning in
@@ -1297,7 +1300,7 @@
 !p NA1+  0.0 0.0 0.0 0.1
 
 2  addf
-!b addf <resultfile> , <inputfile1> , <scale> , <inputfile2> [, <type>]
+!p addf <resultfile> , <inputfile1> , <scale> , <inputfile2> [, <type>]
 
    Adds two files. The intensity of the second inputfile is multiplied
    by the scale and added to the intensity read from inputfile 1.
@@ -1314,8 +1317,8 @@
    Any one of the two input files may be identical to the result file,
    while the two input files must be different files.
 2  append
-!b appe <name>, <x>,<y>,<z> ,<t>, <na>,<ne>, <delx> [,<dely> [,<delz>]]
-!b appe <name>, <x>,<y>,<z> ,<t>, <na>,<ne>, -<bondlength>
+!p appe <name>, <x>,<y>,<z> ,<t>, <na>,<ne>, <delx> [,<dely> [,<delz>]]
+!p appe <name>, <x>,<y>,<z> ,<t>, <na>,<ne>, -<bondlength>
 
    Conditionally inserts an atom of type <name> at the position <x,y,z>
    in crystal space. The temperature coefficient must be given.
@@ -1355,7 +1358,7 @@
    each new Al atom affects all Al atoms previously inserted within
    this loop.
 2  asym
-!b asym
+!p asym
 
    Shows the content of the asymmetric unit. The names of those atoms,
    a number that is used as index for its scattering type, their position
@@ -1374,8 +1377,8 @@
    further options beyond a simple removal of outside atoms are available
    through the 'surface' menu.
 2  branch
-!b branch kuplot [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
-!b branch diffev [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
+!p branch kuplot [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
+!p branch diffev [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
 
    Active within the discus suite only!
 
@@ -1392,18 +1395,18 @@
    macro <macro_name> (with its optional parameters) before the 
    interactive session is started.
 2  change
-!b change "object","character",<number>,{"atom"|"cube"|"cylinder"|"sphere"}
+!p change "object","character",<number>,{"atom"|"cube"|"cylinder"|"sphere"}
 
    The 'change' command allows you to change settings and characteristics.
    So far, it has only been applied to objects.
 
-!b change "object","character",<number>,{"atom"|"cube"|"cylinder"|"sphere"}
+!p change "object","character",<number>,{"atom"|"cube"|"cylinder"|"sphere"}
 
    This command allows you to change the character of an extended
    object. The character of the object Number <number> will be changed
    to one of {"atom"|"cube"|"cylinder"|"sphere"}.
 2  chemistry
-!b chemistry
+!p chemistry
 
    Enters the 'chem' sub level. Here all kind of statistics about the
    model crystal can be obtained like relative amount of elements,
@@ -1448,8 +1451,8 @@
 !p trans   ! Transforms between atom-index and unit-cell/site
 !p wait    ! Waits for user input (see main help level)
 3  angl
-!b angl { <name>|<number>|"all"},{<name>|<number>|"all" },
-!b      {<name>|<number>|"all" } [,<file>]
+!p angl { <name>|<number>|"all"},{<name>|<number>|"all" },
+!p      {<name>|<number>|"all" } [,<file>]
 
    This command calculates the average bond angles and sigmas for the
    specified triplets of atom types for the given neighbors. The neighbor
@@ -1459,7 +1462,7 @@
    parameters of the central atom (in lattice units) are written to the
    corresponding file for possible further analysis or plotting.
 3  apply_symmetry
-!b apply_symmetry [<output_file>]
+!p apply_symmetry [<output_file>]
 
    This command applies the space group symmetry to generate the 
    symmetrically equivalent vectors. You must have defined one or
@@ -1487,7 +1490,7 @@
    If the optional <output_file> is given, DISCUS will write the
    original "set vec, ..." and the generated ones into this file.
 3  aver
-!b aver [ "one" | "ind"]
+!p aver [ "one" | "ind"]
 
    This command allows to calculate the average structure of the current
    model crystal. The average position, the standard deviation and the
@@ -1509,9 +1512,9 @@
 !p          atoms are simply ignored ! However, using the PURGE command
 !p          is not recommended when using this commands !!!!
 3  bang
-!b bang { "all" | <name> | <number> }, 
-!b      { "all" | <name> | <number> }, 
-!b      { "all" | <name> | <number> }, [<filename>]
+!p bang { "all" | <name> | <number> }, 
+!p      { "all" | <name> | <number> }, 
+!p      { "all" | <name> | <number> }, [<filename>]
 
    This command calculates the bond angle distribution between the
    selected atoms (by <name>, <number> or "all"). The histogram
@@ -1531,8 +1534,8 @@
    within the suite only, a stand-alone DISCUS program will write a
    file that starts with the letters "kuplot".
 3  blen
-!b blen { "all" | <name> | <number> }, 
-!b      { "all" | <name> | <number> }, [<filename>]
+!p blen { "all" | <name> | <number> }, 
+!p      { "all" | <name> | <number> }, [<filename>]
 
    This command calculates the bond length distribution between the
    selected atoms (by <name>, <number> or "all"). The histogram
@@ -1553,8 +1556,8 @@
    within the suite only, a stand-alone DISCUS program will write a
    file that starts with the letters "kuplot".
 3  bval
-!b bval "atom",<ia>,<radius>
-!b bval "site",<nx>,<ny>,<nz>,<site>,<radius>
+!p bval "atom",<ia>,<radius>
+!p bval "site",<nx>,<ny>,<nz>,<site>,<radius>
 
    This command calculates the bond valence sum for a given atom. The
    parameters are identical to those of the command -> env. The atom
@@ -1568,8 +1571,8 @@
    taken from a list compiled by I.D. Brown, McMaster University, Canada.
    The resulting bond valence sum is stored in variable res[1].
 3  corr
-!b corr "occ", { <name>|<number>}, {<name>|<number>}
-!b corr "disp",{ <name>|<number>|"all"},{<name>|<number>|"all" }
+!p corr "occ", { <name>|<number>}, {<name>|<number>}
+!p corr "disp",{ <name>|<number>|"all"},{<name>|<number>|"all" }
 
    This command starts the calculation of occupational ("occ") or
    displacement ("dis") correlations within the crystal. The occ.
@@ -1602,7 +1605,7 @@
    neighboring distances or vectors. The variable res[0] contains as 
    usual the number of variables returned by the command.
 3  disp
-!b disp { <name>|<number>|"all"},{<name>|<number>|"all" } [,<file>]
+!p disp { <name>|<number>|"all"},{<name>|<number>|"all" } [,<file>]
 
    This command calculates the average distances and sigmas for the
    specified pairs of atom types for the given neighbors. The neighbor
@@ -1611,7 +1614,7 @@
    vectors (in lattice units) are written to the corresponding file
    for possible further analysis or plotting.
 3  elem
-!b elem [ { "on" | "off" } ]
+!p elem [ { "on" | "off" } ]
 
    Displays information about elements in the model crystal like 
    relative abundances of the elements. 'void' stands for a vacancy.
@@ -1622,9 +1625,9 @@
    The optional parameter "on" or "off" controls if screen 
    output is produced.
 3  env
-!b env "atom",<ia>,<radius>
-!b env "site",<nx>,<ny>,<nz>,<site>,<radius>
-!b env "pos", <x>,<y>,<z>,<radius>
+!p env "atom",<ia>,<radius>
+!p env "site",<nx>,<ny>,<nz>,<site>,<radius>
+!p env "pos", <x>,<y>,<z>,<radius>
 
    The command 'env' allows the user to print out all atoms within
    a distance of <radius> A around the given positions. This position
@@ -1636,7 +1639,7 @@
    stored in the variable res[i]. The variable res[0] contains the
    number of neighbors that were found.
 3  field
-!b field {"occ" | "disp"},<a1>,<a2>,<file>,<xmin>,<xmax> [,<ymin>,<ymax>]
+!p field {"occ" | "disp"},<a1>,<a2>,<file>,<xmin>,<xmax> [,<ymin>,<ymax>]
 
    This command allows the calculation of a correlation field. The
    first parameter determines the use of 'occupational' or 'displacement'
@@ -1655,8 +1658,8 @@
 !p discus/chem> set neig,vec,1
 !p discus/chem> field zr,void,corr.xy,0,20
 3  homo
-!b homo "occ",<atom>,<file>
-!b homo "cor",{"occ" | "dis"},<at1>,<at2>,<file>
+!p homo "occ",<atom>,<file>
+!p homo "cor",{"occ" | "dis"},<at1>,<at2>,<file>
 
    This command computes the concentration or correlation distribution
    within the crystal. The sampling volumes are set using the -> 'set
@@ -1676,7 +1679,7 @@
    written to the file. To get a specific correlation distribution 
    use a single neighbor definition.
 3  mode
-!b mode [ { "atom" | "mole" } ]
+!p mode [ { "atom" | "mole" } ]
 
    This command determines whether CHEM commands operate on atoms
    or on molecules. Note that when working with molecules the atom
@@ -1684,7 +1687,7 @@
    with molecule types. Note that not all commands are available
    in molecule mode (e.g. 'aver', 'blen').
 3  neig
-!b neig <index>,<ic>
+!p neig <index>,<ic>
 
    This command determines and displays the neighboring atoms or
    molecules around a given atom or molecule given by <index> for 
@@ -1695,7 +1698,7 @@
    neighbor. The variable res[0] contains the number of found
    neighbors.
 3  set
-!b set <subcommand>,...
+!p set <subcommand>,...
 
    This command sets various parameters within the 'chem' section of 
    the DISCUS program. Valid <subcommands> are:
@@ -1711,7 +1714,7 @@
 !p "neig"    : defines how correlations are calculated
 !p "vec"     : defines correlation vectors
 4  ang
-!b set "ang",<iv>,<is1>,<is2>,<dx2>,<dy2>,<dz2>,<is3>,<dx3>,<dy3>,<dz3>
+!p set "ang",<iv>,<is1>,<is2>,<dx2>,<dy2>,<dz2>,<is3>,<dx3>,<dy3>,<dz3>
 
    This command is used to define the neighbors for bond angle calculations.
    To group these neighbor definitions use the ==> 'set neig' command. The
@@ -1724,36 +1727,36 @@
    to define angles crossing the unit cell boundaries set <dx*>,<dy*> and
    <dy*> accordingly.
 4  bang
-!b set "bang",<min>,<max>
+!p set "bang",<min>,<max>
 
    This command sets the range <min> to <max> of the bond-angle to be
    calculated and binned to the histogram.
 4  blen
-!b set "blen",<min>,<max>
+!p set "blen",<min>,<max>
 
    This command sets the range <min> to <max> of the bond-length to be
    calculated and binned to the histogram.
 4  bin
-!b set "bin",<number>
+!p set "bin",<number>
 
    This command sets the number of points for the histograms created
    by 'chem'.
 4  cryst
-!b set "cryst",<nx>,<ny>,<nz>,<natoms>
+!p set "cryst",<nx>,<ny>,<nz>,<natoms>
 
    A bug in the current version of DISCUS sometimes causes wrong crystal-
    dimensions. This command allows to rewrite the values for the crystal-
    dimension <nx>,<ny>,<nz> and number of atoms in a unit cell <natoms>.
 4  lots
-!b lots "off"
-!b lots {"box" | "ellipsoid"},<lx>,<ly>,<lz>,<n>,{"yes" | "no"},[<fname>]
+!p lots "off"
+!p lots {"box" | "ellipsoid"},<lx>,<ly>,<lz>,<n>,{"yes" | "no"},[<fname>]
 
    This command allows the definition of 'small crystal volumes' to
    be used to check the homogeneity of the crystal (-> 'homo').
    For details about the command and its parameters see the help file
    entry for -> 'four lots'. 
 4  mode
-!b set "mode",{"quick"|"exact"} [, {"period" | "normal"}] [,<axes>]
+!p set "mode",{"quick"|"exact"} [, {"period" | "normal"}] [,<axes>]
 
    This command switches the calculation mode between "quick" and "exact".
    In the "quick" mode only the neighboring unit cells around a certain
@@ -1770,7 +1773,7 @@
    Note that this setting does not affect the calculation of correlations
    defined by vectors using the 'set vec' command.
 4  neig
-!b set "neig",<subcommand>
+!p set "neig",<subcommand>
 
    This command determines how DISCUS calculates the correlation value
    using the command 'corr'. These settings might be overwritten when
@@ -1784,8 +1787,8 @@
 !p "rese" : Resets list of defined neighbors
 !p "vec"  : Defines neighbors via given vectors
 5  ang
-!b set "neig","ang",<iv1> [,<iv2>,..]
-!b set "neig","ang",<iv1> ,<iv2>, "range"
+!p set "neig","ang",<iv1> [,<iv2>,..]
+!p set "neig","ang",<iv1> ,<iv2>, "range"
 
    "Ang" results in DISCUS using correlation angles <iv> to be used
    for the calculation. The parameters are the numbers <iv> of the 
@@ -1793,7 +1796,7 @@
    If the second command form is given, the correlation angles in the
    range <iv1> to <iv2> will be used for the calculation.
 5  add
-!b set "neig","add"
+!p set "neig","add"
    
    "Add" adds the current neighbor definition to the list of
    definitions executed later by the -> 'corr' command. Use 'show'
@@ -1801,7 +1804,7 @@
    actually a copy so that no "add" is needed after the last definition
    is entered.
 5  dis
-!b set "neig","dis",<u>,<v>,<w>,<fsig> [, <wsig>] [, {"sym" | "nosym"}]
+!p set "neig","dis",<u>,<v>,<w>,<fsig> [, <wsig>] [, {"sym" | "nosym"}]
 
    "Dis" causes DISCUS to determine the neighbors used for the 
    calculation of the correlations using the given distance and 
@@ -1815,8 +1818,8 @@
    <u>,<v>,<w> should be used as well. If this parameter is omitted ALL
    neighbors with the correct distance are valid.
 5  dir
-!b set "neig","dir",<x1>,<y1>,<z1> [,<x2>,<y2>,<z2>]
-!b set "neig","dir","all"
+!p set "neig","dir",<x1>,<y1>,<z1> [,<x2>,<y2>,<z2>]
+!p set "neig","dir","all"
 
    This command sets the displacement directions to be used for the
    calculation of displacement correlations. The parameter "all" will
@@ -1831,12 +1834,12 @@
    'set neig'. If <x2>,<y2>,<z2> are not given their values are set to 
    those of <x1>,<y1>,<z1>.
 5  rese
-!b set "neig","rese"
+!p set "neig","rese"
 
    "Rese" resets the list of correlation vector/distances definitions.
 5  vec
-!b set "neig","vec",<iv1> [,<iv2>,..]
-!b set "neig","ang",<iv1> ,<iv2>, "range"
+!p set "neig","vec",<iv1> [,<iv2>,..]
+!p set "neig","ang",<iv1> ,<iv2>, "range"
 
    "Vec" results in DISCUS using correlation vectors <iv> to be used
    for the calculation. The parameters are the numbers <iv> of the 
@@ -1845,7 +1848,7 @@
    If the second command form is given, the correlation vectors in the
    range <iv1> to <iv2> will be used for the calculation.
 4  vec
-!b set "vec",<iv>,<is1>,<is2>,<dx>,<dy>,<dz>
+!p set "vec",<iv>,<is1>,<is2>,<dx>,<dy>,<dz>
 
    This command is used to define correlation vectors that might be used
    to calculate correlations within the crystal (-> 'set neig'). The 
@@ -1856,13 +1859,13 @@
    and <dz> set to zero. If you want to define correlation vectors crossing
    the unit cell boundaries set <dx>,<dy> and <dy> accordingly.
 3  show
-!b show
+!p show
 
    This command lists the current settings and correlation vector
    definitions on the screen.
 3  trans
-!b trans <atomindex> or
-!b trans <x>,<y>,<z>,<site>
+!p trans <atomindex> or
+!p trans <x>,<y>,<z>,<site>
 
    This command allows to transform between a given index of the
    storage array <atomindex> and the corresponding unit cell <x>,<y>,<z>
@@ -1903,7 +1906,7 @@
 !p set     ! Sets an individual definition
 !p show    ! Shows the current definitions
 3  add
-!b add <central_atom_type>, <neigh types>, <rmin>, <rmax> 
+!p add <central_atom_type>, <neigh types>, <rmin>, <rmax> 
        [,<max_neig], <def_name>, 
        ["molescope:"{"ignore"|"within"|"outside"}]
 
@@ -1954,7 +1957,7 @@
    for a clear distinction.
    Alternatively read the structure with the "lcell" command
 3  create
-!b create {<central_atom_type>, {<def.no.>| <def_name>}}
+!p create {<central_atom_type>, {<def.no.>| <def_name>}}
 
    Creates the actual connectivity list. 
    The program performs a loop over all atoms and searches for neighbors
@@ -1977,8 +1980,8 @@
    This command for  is identical to a 
      recreate <central_atom_type>, {<def.no.>| <def_name>}
 3  delete
-!b delete
-!b delete <central_atom_type>, <def_name>
+!p delete
+!p delete <central_atom_type>, <def_name>
 
    Deletes the current connectivity list for all atom types.
 
@@ -1987,7 +1990,7 @@
    for the atom type. All connectivities for all other 
    atom types remain as well.
 3  recreate
-!b recreate <central_atom_type>, {<def.no.>| <def_name>}
+!p recreate <central_atom_type>, {<def.no.>| <def_name>}
 
    Recreates the connectivity list for the specified atom type and 
    connectivity definition.
@@ -1999,7 +2002,7 @@
 
    All other connectivities are not affected by this command.
 3  remove
-!b remove <central_atom_type>, {<def.no.>| <def_name>}
+!p remove <central_atom_type>, {<def.no.>| <def_name>}
 
    Removes the definition number <def.no.> or name <def_name> for 
    central atom type <central_atom_type>.
@@ -2010,7 +2013,7 @@
    Resets the connectivity to program start conditions.
    All definitions are removed and the connectivity list is deleted.
 3  set
-!b set <central_atom_type>, {<def.no.>| <def_name>}, <neigh types>, <rmin>, 
+!p set <central_atom_type>, {<def.no.>| <def_name>}, <neigh types>, <rmin>, 
                                                                     <rmax> 
 
    This command allows you to replace the settings for the definition 
@@ -2018,8 +2021,8 @@
    <central_atom_type>.
    The definition must have been created by a previous 'add' command.
 3  show
-!b show
-!b show "connectivity", <atom_no.>, <def.no.>
+!p show
+!p show "connectivity", <atom_no.>, <def.no.>
 
    Without arguments, the 'show' command shows a list of all 
    connectivity definitions that have been added.
@@ -2030,9 +2033,9 @@
    type of atom no. <atom_no.>
    The list of atom numbers is copied into the result variable "res".
 3  switch
-!b switch
-!b switch <is>, {<conn_number>|<conn_name>}
-!b switch <iatom>,<is>, {<conn_number>|<conn_name>}
+!p switch
+!p switch <is>, {<conn_number>|<conn_name>}
+!p switch <iatom>,<is>, {<conn_number>|<conn_name>}
 
    Switch the connectivity between a pair of atoms. 
    DISCUS will find a random atom A and randomly choose a neighbor
@@ -2056,19 +2059,19 @@
    scattering type <is> must match this atom, and the 
    connectivity must be specified.
 2  copy
-!b copy <s> , < n> , <x> , <y> , <z>
+!p copy <s> , < n> , <x> , <y> , <z>
 
    Copies an atom. If <s> is "a" the atom number <n> is copied to
    absolute positions <x>,<y>,<z> in crystal space, if <s> is "r", a
    relative motion copies the atom number <n> to the sum of present
    position and vector <x>,<y>,<z>.
 2  export
-!b export "cif",<file{".cif"]> [, "spcgr:original"]
-!b export "shelx",<file{".ins"]>
-!b export "rmcprofile",<file{".rmc6f"]>  [version:{"6"|"7"}]
-!b export "vasp",<file]>
-!b export "poscar",<file]>
-!b export "scatty",<file]>
+!p export "cif",<file{".cif"]> [, "spcgr:original"]
+!p export "shelx",<file{".ins"]>
+!p export "rmcprofile",<file{".rmc6f"]>  [version:{"6"|"7"}]
+!p export "vasp",<file]>
+!p export "poscar",<file]>
+!p export "scatty",<file]>
 
    cif
    Exports the atoms of the current structure as a minimal CIF
@@ -2096,7 +2099,7 @@
    Only the "*_atoms_01.txt" file is written. The user has to edit his
    "scatty_config.txt" file individually.
 2  d2r
-!b d2r <u>,<v>,<w>
+!p d2r <u>,<v>,<w>
 
    This command transforms direct space vector <uvw> into its corresponding
    reciprocal space coordinates. See "r2d" for the reverse transformation.
@@ -2140,7 +2143,7 @@
 !p show    ! Show all current definitions
 
 3  add
-!b add <name>, <type>
+!p add <name>, <type>
    Adds a new definition, called <name> of type <type>.
    The definition is referenced by its name in the details on the 'set' command.
    Valid types are:
@@ -2205,29 +2208,29 @@
               Exactly one 'set bond...' command is required.
 
 3  reset
-!b reset
+!p reset
 
    Reset all decoration definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
    Starts the decoration. 
 3  set
-!b set
-!b set <name>, "ligand", <file>, <density>
-!b set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, 
-!b                                                      <distance>
-!b                                  [, "angle:"<b_angle>]
-!b                                  [, "anchor:"<n_anchors>]
-!b                                  [,{"distri:even" ! "distri:fixed"} ]
-!b set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
-!b
-!b set <name>, "tilt", "angle", <value>
-!b set <name>, "tilt", "atoms", "auto"
-!b set <name>, "tilt", "atoms", <n1>, <n2>, <n3>, <n4>
-!b
-!b set <name>, {"hkl"| "form"}, {<h>, <k>, <l>| "none"}
-!b set <name>, "surface", <ligand atom no> [, <ligand atom no>...]
+!p set
+!p set <name>, "ligand", <file>, <density>
+!p set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, 
+!p                                                      <distance>
+!p                                  [, "angle:"<b_angle>]
+!p                                  [, "anchor:"<n_anchors>]
+!p                                  [,{"distri:even" ! "distri:fixed"} ]
+!p set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
+!p
+!p set <name>, "tilt", "angle", <value>
+!p set <name>, "tilt", "atoms", "auto"
+!p set <name>, "tilt", "atoms", <n1>, <n2>, <n3>, <n4>
+!p
+!p set <name>, {"hkl"| "form"}, {<h>, <k>, <l>| "none"}
+!p set <name>, "surface", <ligand atom no> [, <ligand atom no>...]
 
    This command allows to set the detailed definitions needed to decorate the
    surface.
@@ -2334,17 +2337,17 @@
        surface properties from the site to which this molecule as bonded
        to.  
 3  show
-!b show
+!p show
    Show all current definitions
 2  define
-!b define generator, {"center" | "symmetry"}
+!p define generator, {"center" | "symmetry"}
 
    The define commands sets a variety of parameters that are specific
    to the special program, here DISCUS. See the ==> "set" command at
    the "Command Language" help entry for information of general settings
    common to all programs within the DIFFUSE suite.
 
-!b define generator, {"center" | "symmetry"}
+!p define generator, {"center" | "symmetry"}
 
    In the original program development, all generators of a given space
    group were applied strictly in the sequence as printed in the header
@@ -2373,7 +2376,7 @@
 
    The "symmetry" mode now the default value.
 2  demolecularize
-!b demolecularize
+!p demolecularize
 
    Enters the menu to de-molecularize a molecule.
    The molecule entry is removed from internal list, and the 
@@ -2381,8 +2384,8 @@
    molecul(s) are cleared.
 
 3  deselect
-!b deselect moletype:{"all"|"none"| <number> | (<n1>, <n2>...}
-!b deselect atomtype:{"all"|"none"| <number> | (<n1>, <n2>...}
+!p deselect moletype:{"all"|"none"| <number> | (<n1>, <n2>...}
+!p deselect atomtype:{"all"|"none"| <number> | (<n1>, <n2>...}
 
    The optional parameter "moletype" deselects which molecule
    types are to be demolecularized.
@@ -2395,13 +2398,13 @@
    atom type needs to be present. A molecule may contain
    any atom type to be demolecularized.
 3  exit
-!b exit
+!p exit
 
    Leave the demolecularize menu, go back to the main
    DISCUS menu.
 3  include
-!b include molerange:{"none"|"all"| <number> | (<n1>, <n2>...)}
-!b include atomrange:{"none"|"all"| <number> | (<n1>, <n2>...)}
+!p include molerange:{"none"|"all"| <number> | (<n1>, <n2>...)}
+!p include atomrange:{"none"|"all"| <number> | (<n1>, <n2>...)}
 
    The optional parameter "molerange" selects which molecule
    range are to be demolecularized.
@@ -2415,7 +2418,7 @@
    specific atom range needs to be present. A molecule may
    contain any atom range to be demolecularized.
 3  prop
-!b prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
+!p prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
 
    Defines which properties all atoms in the molecule must have
    for the molecule to be demolecularized.
@@ -2457,8 +2460,8 @@
    to the boundary can be set within the ==> 'domain' menu through
    the ==> 'domain/fuzzy' command.
 3  select
-!b select moletype:{"none"|"all"| <number> | (<n1>, <n2>...)}
-!b select atomtype:{"none"|"all"| <number> | (<n1>, <n2>...)}
+!p select moletype:{"none"|"all"| <number> | (<n1>, <n2>...)}
+!p select atomtype:{"none"|"all"| <number> | (<n1>, <n2>...)}
 
    The optional parameter "moletype" selects which molecule
    types are to be demolecularized.
@@ -2484,7 +2487,7 @@
 
    Perform the actual calculation
 2  diff-four
-!b diff
+!p diff
 
    Switches to the difference Fourier level of DISCUS.
    All input parameters are identical to "inverse" see the help to
@@ -2494,7 +2497,7 @@
    file. The program calculates (Fobs-Fcalc) and then calculates the
    corresponding inverse Fourier.
 2  displacement
-!b displacement <iatom> [,out:{"no"|"yes"}] [,aver:{"no"|"yes"|"off"}]
+!p displacement <iatom> [,out:{"no"|"yes"}] [,aver:{"no"|"yes"|"off"}]
                         [,indi:{"no"|"yes"}]
 
    This command calculates the displacement vector of atom number
@@ -2649,11 +2652,11 @@
    position, orientation and shape of the domain and/or the atom transformation
    matrix. 
 3  assign
-!b assign "character",<pseudoatom name>,{"cube"|"cylinder"|"fuzzy"|"sphere"}
-!b assign "content",<pseudoatom name>,<contentfile>
-!b assign "fuzzy",<pseudoatom name>,<radius>
-!b assign "orient",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4>
-!b assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4> [, <sigma>]
+!p assign "character",<pseudoatom name>,{"cube"|"cylinder"|"fuzzy"|"sphere"}
+!p assign "content",<pseudoatom name>,<contentfile>
+!p assign "fuzzy",<pseudoatom name>,<radius>
+!p assign "orient",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4>
+!p assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4> [, <sigma>]
 
    These commands allow you to assign extended properties to the pseudo
    atoms. Since the pseudo atoms are identical to regular atoms, they can 
@@ -2661,7 +2664,7 @@
    orientation of the atoms with respect to the host structure may be 
    assigned via these commands.
 
-!b assign "character",<pseudoatom name>,{"cube"|"cylinder"|"fuzzy"|"sphere"}
+!p assign "character",<pseudoatom name>,{"cube"|"cylinder"|"fuzzy"|"sphere"}
 
    A domain may be any of four different principal shapes. 
    The "cube" domain is a domain consisting of the six {100} faces. 
@@ -2681,7 +2684,7 @@
    a predefined size or shape. Instead all atoms that are read from the 
    <contentfile> replace host atoms that are close to their position.
 
-!b assign "content",<pseudoatom name>,<contentfile>
+!p assign "content",<pseudoatom name>,<contentfile>
 
    The <contentfile> contains a DISCUS type structure file with all the
    atoms that are to be placed inside the host crystal. You need to make 
@@ -2690,7 +2693,7 @@
    The space group and unit cell dimensions of the domain structure and 
    the host crystal must be identical.
 
-!b assign "fuzzy",<pseudoatom name>,<radius>
+!p assign "fuzzy",<pseudoatom name>,<radius>
 
    All host atoms that are closer than this <radius> to any of the 
    domain atoms are removed from the original host structure. This holds 
@@ -2699,7 +2702,7 @@
    not performed for this domain type. Atoms of this domain type could
    thus be right on top of an atom of the host structure! 
 
-!b assign "orient",<pseudoatom name>,<row_i>,<ti1>,<ti2>,<ti3>,<ti4>
+!p assign "orient",<pseudoatom name>,<row_i>,<ti1>,<ti2>,<ti3>,<ti4>
 
    The orientation provides you a transformation matrix that is applied 
    to each domain atom prior to insertion into the host. 
@@ -2712,7 +2715,7 @@
    The translational part <ti4> is added to the position of the 
    pseudo atom.
 
-!b assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4> [, <sigma>]
+!p assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4> [, <sigma>]
 
    The shape transformation matrix is used to determine the size and shape
    of the domain. Default size at program start are +- one unit cell
@@ -2734,12 +2737,12 @@
    the matrix part is multiplied by a factor (1 + gran(sigma)). 
    Discus cuts the factor at 0.01, all large values are allowed.
 3  inputfile
-!b inputfile <inputfile>
+!p inputfile <inputfile>
 
    DISCUS read the domain positions from the file <inputfile>. See the
    ==> 'mode' command on how DISCUS interprets this file.
 3  mode
-!b mode {"domain" | "pseudoatoms"}
+!p mode {"domain" | "pseudoatoms"}
 
    This command tells DISCUS how to interpret the input file. 
    With the "pseudoatoms" option, DISCUS expects to find a standard
@@ -2752,29 +2755,29 @@
    domain descriptors as needed. Each domain descriptor is designed 
    similarly to the molecule and object descriptors:
 3  reset
-!b reset
+!p reset
 
    Reset all Fourier definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    This starts the actual incorporation of the domains into the host 
    crystal. The positions, characters etc. for each domain are read
    from file <inputfile>. The corresponding domain structure is used to
    replace part of the host structure.
 3  set
-!b set
+!p set
 
    Set various definitions
 
 4  distance
-!b set distance, {"external" | "internal" |"all" }, <at_list>, <distance>
+!p set distance, {"external" | "internal" |"all" }, <at_list>, <distance>
 
    Set the distances at which an atom from the atom list shall be 
    considered to be close to a surface.
 4  remove
-!b set remove {"strict" | "initial" | "trust" | "none"}
+!p set remove {"strict" | "initial" | "trust" | "none"}
 
    When DISCUS replaces (parts of) an old structure with the 
    content of domains. it needs to remove the old atoms. You have 
@@ -2816,24 +2819,24 @@
    know where the dummy atoms and the inserted atoms are. Otherwise you
    might end up with lots of strange overlapping atoms.
 3  show
-!b show
+!p show
 
    Shows the current settings.
 
 2  find
-!b find "env",{"all"|{<name>|<number>} [, ...]},x,y,z,min_radius,max_radius
-!b find "menv",{"all"|{<name>|<number>} [, ...]},x,y,z,min_radius,max_radius
+!p find "env",{"all"|{<name>|<number>} [, ...]},x,y,z,min_radius,max_radius
+!p find "menv",{"all"|{<name>|<number>} [, ...]},x,y,z,min_radius,max_radius
 
    This command serves to find something. The first parameter defines
    what DISCUS shall find.
 
-!b "env"
+!p "env"
    DISCUS finds the environment around a given position. This environment 
    consists of all atoms that are closer than a given radius. 
    Only those atoms are included that fulfill the global property
    selection rules ==> 'property'.
 
-!b "menv"
+!p "menv"
    DISCUS finds the environment around a given position. It consists
    of all molecules that are closer than the given distance.
 
@@ -2868,7 +2871,7 @@
    Finds all oxygen and nitrogen atoms that are between 2.0
    and 2.9 Angstrom from position 1.25,-5.25,3.34
 2  fourier
-!b fourier
+!p fourier
 
    This sub level of DISCUS calculates the Fourier transform of the given 
    crystal structure. The algorithm to speed up the explicit Fourier is 
@@ -2926,20 +2929,20 @@
 !p wvle    ! defines the wave length to be used
 !p xray    ! switches to X-ray calculation
 3  abs
-!b abs <switch>
+!p abs <switch>
 
    Defines which the component of the vector parallel to the abscissa
    is written to the output file.
 3  calc
-!b calc <h>,<k>,<l>
+!p calc <h>,<k>,<l>
    Calculates the structure factor at a single point h,k,l.
    The real value is stored in res[1], the imaginary value in res[2].
    The corresponding value normalized to one unit cell are stored in
    res[3] and res[4], respectively. res[0] is set to 4 to indicate 
    that 4 values may be found in res.
 3  delf
-!b delf { <name> | <number> } , <f'> , <f''>
-!b delf { <name> | <number> | "all" } , "internal"
+!p delf { <name> | <number> } , <f'> , <f''>
+!p delf { <name> | <number> | "all" } , "internal"
 
    Defines for the element <name> or the scattering curve number <number>
    the real <f'> and the imaginary <f''> correction terms for the 
@@ -2952,7 +2955,7 @@
    The correction terms are used only, if the dispersion is set to
    anomalous ==> 'disp'.
 
-!b delf { <name> | <number> | "all" } , "internal"
+!p delf { <name> | <number> | "all" } , "internal"
 
    The second command form allows you to set the values back to the
    internally tabulated values. Keep in mind that these only work with 
@@ -2961,42 +2964,42 @@
    The values are actually not changed, until the anomalous dispersion 
    is set on ==> 'disp'.
 3  disp
-!b disp [<switch>]
+!p disp [<switch>]
 
    Switches anomalous dispersion on /off. If <switch> is "anom" anomalous
    dispersion will be calculated, if the switch is omitted, no anomalous 
    dispersion is calculated.
 3  electron
-!b electron
+!p electron
 
    switches to electron calculation
 3  energy
-!b energy <value>
+!p energy <value>
 
    Defines the energy of the radiation. 
    For X-rays and electrons the value is to be given in units of keV,
    for neutrons in units of meV.
 3  hkl
-!b  hkl <infile>, <outputfile>, <scale>, "4"
+!p  hkl <infile>, <outputfile>, <scale>, "4"
 
    This command reads the SHELX HKLF4 file <infile> and calculates
    the intensity using the current structure. The data are written 
    in a SHELX hklf4 type format (3I4,2x, F8.2,F8.2). 
    The calculated intensities are multiplied by <scale>
 3  layer
-!b layer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
+!p layer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 
    Sets the lower left, lower right and upper left corner of the
    Fourier plane to be calculated and sets the number of data
    points along the horizontal and the vertical.
 3  ll
-!b ll <e11> , <e12> , <e13>
+!p ll <e11> , <e12> , <e13>
 
    Sets the lower left corner of the Fourier plane to be calculated.
 3  lots
-!b lots "off"
-!b lots {"box" | "ellipsoid"},<lx>,<ly>,<lz>,<n>,{"yes" | "no"}
-!b lots {"box" | "ellipsoid"},<lx>,<ly>,<lz>,"all",{"yes" | "no"}
+!p lots "off"
+!p lots {"box" | "ellipsoid"},<lx>,<ly>,<lz>,<n>,{"yes" | "no"}
+!p lots {"box" | "ellipsoid"},<lx>,<ly>,<lz>,"all",{"yes" | "no"}
 
    The program allows to Fourier transform large crystals by averaging
    the scattering from smaller volumes selected at random. This allows
@@ -3022,52 +3025,52 @@
    averaged should be set to a value that complete crystal will be
    covered once on average. 
 
-!b WARNING:
+!p WARNING:
    If the command 'purge' is performed or a structure is read where the 
    atoms are not listed in the DISCUS order this command should be set
    to 'lots off'.
 3  lr
-!b lr <e21> , <e22> , <e23>
+!p lr <e21> , <e22> , <e23>
 
    Sets the lower right corner of the Fourier plane to be calculated.
 3  nabs
-!b nabs <inc1>
+!p nabs <inc1>
 
    Sets the number of data points that will be calculated along the
    abscissa.
 3  neut
-!b neut
+!p neut
 
    Switches to neutron diffraction
 3  nord
-!b nord <inc2>
+!p nord <inc2>
 
    Sets the number of data points that will be calculated along the
    ordinate.
 3  ntop
-!b ntop <inc2>
+!p ntop <inc2>
 
    Sets the number of data points that will be calculated along the
    top axis.
 3  ord
-!b ord <switch>
+!p ord <switch>
 
    Defines which the component of the vector parallel to the ordinate
    is written to the output file.
 3  reset
-!b reset
+!p reset
 
    Reset all Fourier definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    Starts the Fourier calculation. The user is given a rough
    estimate of the time it will take.
 3  scat
-!b scat { <name> | <number> },<a1>,<b1>,<a2>,<b2>,<a3>,<b3>,<a4>,<b4>,<c>
-!b scat { <name> | <number> | "all" }, <name>
-!b scat { <name> | <number> | "all" }, "internal"
+!p scat { <name> | <number> },<a1>,<b1>,<a2>,<b2>,<a3>,<b3>,<a4>,<b4>,<c>
+!p scat { <name> | <number> | "all" }, <name>
+!p scat { <name> | <number> | "all" }, "internal"
 
    The first command form defines for the element <name> or the scattering 
    curve number <number> a new scattering factor in the exponential form.
@@ -3075,7 +3078,7 @@
    f(h) = a(i) * e**(b(i)/4*h**2) + c(i)
    For neutron scattering lengths, set a(i) and b(i) to zero.
 
-!b scat { <name> | <number> | "all" }, <name>
+!p scat { <name> | <number> | "all" }, <name>
 
    The second form of the command allows you to set the scattering factor
    of two elements to identical values. This comes in handy when you would
@@ -3086,15 +3089,15 @@
    second parameter must be a valid atom name. See the entry "atom names"
    for a list of valid names.
 
-!b scat { <name> | <number> | "all" }, "internal"
+!p scat { <name> | <number> | "all" }, "internal"
 
    The third form finally allows you to set the scattering factor back
    to the internally tabulated values.
 3  set
-!b set "aver" [, <per>]
-!b set {"external"|"internal"}
+!p set "aver" [, <per>]
+!p set {"external"|"internal"}
 
-!b set "aver" [, <per>]
+!p set "aver" [, <per>]
 
    The Fourier level of DISCUS allows to subtract the average structure
    factor <F> by setting the parameter <per> to a value not equals zero. 
@@ -3105,12 +3108,12 @@
    into a single unit cell which is Fourier transformed and multiplied 
    with the interference function of the lot shape.
 
-!b WARNING:
+!p WARNING:
    If the command 'purge' is performed or a structure is read where the 
    atoms are not listed in the DISCUS order the average structure will
    not be calculated correctly !
 
-!b set {"external"|"internal"}
+!p set {"external"|"internal"}
 
    Usually DISCUS will assume that all atoms in the crystal represent
    real atoms. In this case the internally tabulated atomic form factors
@@ -3121,35 +3124,35 @@
    using the appropriate analytical expression. In order to activate
    this state, you must set the Fourier to "external".
 3  show
-!b show
+!p show
 
    Shows the current settings for the Fourier transform file
 3  temp
-!b temp <switch>
+!p temp <switch>
 
    Sets whether temperature coefficients are to be used or not.
    Valid values for <switch> are "use" and "ignore". The first
    two letters of the switch are sufficient.
 3  tl
-!b tl <e41> , <e42> , <e43>
+!p tl <e41> , <e42> , <e43>
 
    Sets the top   left corner of the Fourier volume to be calculated.
 3  top
-!b top <switch>
+!p top <switch>
 
    Defines which the component of the vector parallel to the top axis
    is written to the output file.
 3  ul
-!b ul <e31> , <e32> , <e33>
+!p ul <e31> , <e32> , <e33>
 
    Sets the upper left corner of the Fourier plane to be calculated.
 3  wvle
-!b wvle { <name> | <value> }
+!p wvle { <name> | <value> }
 
    Defines the wave length to be used. Anomalous dispersion will only
    be calculated if the wave length is given as symbol.
 3  xray
-!b xray
+!p xray
 
    Switches to X-ray calculation
 2  functions
@@ -3248,16 +3251,30 @@
 !p                                   complex queries. 
 !p                                   
 2  import
-!b import "cif",<file{".cif"]>
-!b import "cmaker",<file{".xyz"]>
-!b import "shelx",<file{".ins"]>
-!b import "rmcprofile",<file{".cssr"]>
+!p import "cif",<file[".cif"]>
+!p import "cmaker",<file[".xyz"]>
+!p import "shelx",<file[".ins"]>
+!p import "rmcprofile",<file[".cssr"]>
+!p import "cell",<file>
+!p        [, "metric:host" [,"space:host"] ]
+!p
+!p import "stru",<file> , "metric:host" [,"space:host"] 
 
    This command converts other crystal structure formats into a DISCUS 
    unit cell.
 
+   The optional parameter "metric:host" instructs DISCUS to perform a
+   unit cell transformation of the input structure into the metric of the 
+   crystal structure that is currently present within DISCUS. As the 
+   two coordinates system will usually differ considerable, the space
+   group of the imported structure is set to P1 unless the optional
+   parameter space:host is used which changes the space group to that 
+   of the present strucure, the host.
+
+   In order to transform a DISCUS file format the "metric:host" 
+   parameter becomes mandatory.
 3  cif
-!b "cif", <file{".cif"]>
+!p "cif", <file{".cif"]>
 
    Imports a CIF file into the corresponding discus "stru" file.
 
@@ -3265,11 +3282,11 @@
    Entries 2 etc have the corresponding number appended to the 
    file name.
 3  cmaker
-!b "cmaker", <file{".xyz"]>
+!p "cmaker", <file{".xyz"]>
 
    Imports a CrystalMaker file into the corresponding discus "stru" file.
 3  shelx
-!b "shelx",<file{".ins"]>
+!p "shelx",<file{".ins"]>
 
    If the first parameter is "shelx" the input file is assumed to be a
    SHELX "*.ins" or "*.res" file. The extension ".ins" may be omitted.
@@ -3300,8 +3317,8 @@
    DISCUS will read a RMCProfile *.cssr file and write a corresponding
    structure file.
 2  index2cell
-!b index2cell <atomindex> or
-!b index2cell <x>,<y>,<z>,<site>
+!p index2cell <atomindex> or
+!p index2cell <x>,<y>,<z>,<site>
 
    This command allows to switch between a given index of the
    storage array <atomindex> and the corresponding unitcell <x>,<y>,<z>
@@ -3317,7 +3334,7 @@
    The command is identical to the ==> 'trans' command in the
    chemistry menu.
 2  ins
-!b ins <name>, <x>,<y>,<z> [,t>]
+!p ins <name>, <x>,<y>,<z> [,t>]
 
    Inserts an atom of type <name> at the position <x,y,z>
    in crystal space. Optionally the temperature coefficient may be
@@ -3326,7 +3343,7 @@
    This command will automatically turn off the periodic boundary
    conditions.
 2  insert
-!b insert {"domain"|"object"|"molecule"}
+!p insert {"domain"|"object"|"molecule"}
 
    Opens the menu to insert objects or molecules.
 
@@ -3362,9 +3379,9 @@
 !p zdim       ! Gives a deformation/scaling of the domain shape
 
 3  adp
-!b adp <value>
+!p adp <value>
 3  character
-!b character {"cube"|"cylinder"|"sphere"}[,<atom name>]
+!p character {"cube"|"cylinder"|"sphere"}[,<atom name>]
 
    Defines the character of the object, which may be one of 
    {"cube"|"cylinder"|"sphere"}. Depending on the character, 
@@ -3391,7 +3408,7 @@
    type, or at least that most of the atoms correspond to this type.
 3  cent
 3  density
-!b density <value>
+!p density <value>
 
    Defines the scattering density of the object type. The scattering
    factor calculated for objects of this type is multiplied by this
@@ -3401,13 +3418,13 @@
 3  file
 3  fuzzy
 3  origin
-!b origin <x>,<y>,<z>
+!p origin <x>,<y>,<z>
 
    The center of the object is placed at the vector <x>,<y>,<z>.
    DISCUS describes this position by the coordinates of the first
    of the atoms. It's name represents the 'character' of the object
 3  reset
-!b reset
+!p reset
 
    Reset all insert definitions back to the default values at 
    system start. 
@@ -3418,7 +3435,7 @@
 
    Shows the current settings
 3  type
-!b type {<number>|"new"}
+!p type {<number>|"new"}
 
    Each object/molecule is assigned a type number and you may use this
    to perform the same operation on objects/molecules of identical 
@@ -3430,7 +3447,7 @@
    If "new" is given, the object/molecule will receive the next higher
    unused type number.
 3  xaxis 
-!b xaxis  <x>,<y>,<z>
+!p xaxis  <x>,<y>,<z>
 
    Defines in crystal space the scaling /and/or deformation of the
    x-axis. A set of values like 2,0,0 would mean a doubling of the
@@ -3440,7 +3457,7 @@
    entered correspond to any special deformation tensor. The 
    ==> 'shear' menu provides elegant ways to deform an object.
 3  yaxis 
-!b yaxis  <x>,<y>,<z>
+!p yaxis  <x>,<y>,<z>
 
    Defines in crystal space the scaling /and/or deformation of the
    y-axis. A set of values like 2,0,0 would mean a doubling of the
@@ -3450,7 +3467,7 @@
    entered correspond to any special deformation tensor. The 
    ==> 'shear' menu provides elegant ways to deform an object.
 3  zaxis 
-!b zaxis  <x>,<y>,<z>
+!p zaxis  <x>,<y>,<z>
 
    Defines in crystal space the scaling /and/or deformation of the
    z-axis. A set of values like 2,0,0 would mean a doubling of the
@@ -3460,14 +3477,14 @@
    entered correspond to any special deformation tensor. The 
    ==> 'shear' menu provides elegant ways to deform an object.
 2  internal
-!b Internal storage of the structure
+!p Internal storage of the structure
 
    When reading a new cell, the program stores the content of each
    unit cell consecutively. The program always generates a block of
    nx * ny * nz unit cells. The innermost -fastest- loop is nx, the
    slowest nz.
 2  inverse
-!b inverse
+!p inverse
 
    Branches to the inverse Fourier transform level of DISCUS
    The inverse Fourier transform is calculated from two input files.
@@ -3525,12 +3542,12 @@
 !p wait    ! Waits for user input (see main help level)
 
 3  abs
-!b abs <switch>
+!p abs <switch>
 
    Defines which the component of the vector parallel to the abscissa
    is written to the output file.
 3  file
-!b file {"a"|"b"},<filename>
+!p file {"a"|"b"},<filename>
 
    Defines the filenames needed for the inverse Fourier.
 
@@ -3549,18 +3566,18 @@
    <h> <k> <l> <Fobs> <Fcalc> <phase angle in degree>
    The file is read as free format.
 3  format
-!b form {"gnu" | "stan" | "shelxl"}
+!p form {"gnu" | "stan" | "shelxl"}
 
    Defines the input format that will be used. 
    Valid parameters are:
 
-!b "gnu" 
+!p "gnu" 
    Sets the type of the output file to gnuplot. The intensities are
    written in blocks of intensities along the abscissa, with an empty
    line separating each block. Each line of each block contains:
    index along abscissa, index along ordinate, intensity, third index.
 
-!b "stan" 
+!p "stan" 
    Sets the output to standard file format, which is used by KUPL. 
    The output file contains two initial lines and then a block for each 
    data line separated by an empty line. The first line contains the 
@@ -3568,7 +3585,7 @@
    second line the minimum and maximum value of the indices in reciprocal
    space along the abscissa and ordinate respectively.
 
-!b "shelxl" [, {"fobs" | "fcalc"}]
+!p "shelxl" [, {"fobs" | "fcalc"}]
    Sets the input file format to SHELXL. DISCUS assumes the input file
    to be a SHLEXL List type 5 containing
    <h> <k> l> <Fobs> <Fcalc> <phase angle in degree>
@@ -3580,83 +3597,83 @@
    structure factor is used.
 
 3  layer
-!b layer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
+!p layer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 
    sets the lower left, lower right and upper left corner of the
    Fourier plane to be calculated and sets the number of data
    points along the horizontal and the vertical
 3  ll
-!b ll <e11> , <e12> , <e13>
+!p ll <e11> , <e12> , <e13>
 
    Sets the lower left corner of the Fourier plane to be calculated.
 3  lr
-!b lr <e21> , <e22> , <e23>
+!p lr <e21> , <e22> , <e23>
 
    Sets the lower right corner of the Fourier plane to be calculated.
 3  na
-!b na <inc1>
+!p na <inc1>
 
    Sets the number of data points that will be calculated along the
    abscissa.
 3  no
-!b no <inc2>
+!p no <inc2>
 
    Sets the number of data points that will be calculated along the
    ordinate.
 3  ord
-!b ord <switch>
+!p ord <switch>
 
    Defines which the component of the vector parallel to the ordinate
    is written to the output file.
 3  rhoabs
-!b rhoabs <switch>
+!p rhoabs <switch>
 
    Defines which the component of the vector parallel to the 
    real space abscissa is written to the output file.
 3  rholayer
-!b rholayer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
+!p rholayer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 
    Sets the lower left, lower right and upper left corner of the
    real space plane to be calculated and sets the number of data
    points along the horizontal and the vertical
 3  rholl
-!b rholl <e11> , <e12> , <e13>
+!p rholl <e11> , <e12> , <e13>
 
    Sets the lower left corner of the real space plane to be calculated.
 3  rholr
-!b rholr <e21> , <e22> , <e23>
+!p rholr <e21> , <e22> , <e23>
 
    Sets the lower right corner of the real space plane to be calculated.
 3  rhona
-!b rhona <inc1>
+!p rhona <inc1>
 
    Sets the number of data points that will be calculated along the
    real space abscissa.
 3  rhono
-!b rhono <inc2>
+!p rhono <inc2>
 
    Sets the number of data points that will be calculated along the
    real space ordinate.
 3  rhoord
-!b rhoord <switch>
+!p rhoord <switch>
 
    Defines which the component of the vector parallel to the
    real space ordinate is written to the output file.
 3  rhoul
-!b rhoul <e31> , <e32> , <e33>
+!p rhoul <e31> , <e32> , <e33>
 
    Sets the upper left corner of the real space plane to be calculated.
 3  reset
-!b reset
+!p reset
 
    Reset all Fourier definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    Starts the inverse Fourier calculation.
 3  scale
-!b scale <scale-factor>
+!p scale <scale-factor>
 
    Defines an overall scale factor. Together with the automatic scaling
    by 1/vol(unit cell), this scale factor serves to put the electron
@@ -3670,9 +3687,9 @@
    use experimental data, you MUST specify the scale factor every time you 
    enter the "inverse" sub menu.
 3  set
-!b set "accu",{"init"|"add"}
-!b set "excl",{none"|<value>}
-!b set "rsym",{appl"|"igno"}
+!p set "accu",{"init"|"add"}
+!p set "excl",{none"|<value>}
+!p set "rsym",{appl"|"igno"}
 
    Set defines various parameters.
 
@@ -3680,10 +3697,10 @@
 
    Sets the mode for the accumulation of inverse Fourier transforms.
 
-!b "init"  
+!p "init"  
    The electron density array is initialized, i.e. set to zero.
 
-!b "add"   
+!p "add"   
    The next inverse Fourier transform is added to the previous value.
    This way several inverse Fourier transforms will contribute to a single
    layer in direct space, which is necessary to create a inverse Fourier
@@ -3700,12 +3717,12 @@
 
    Signals whether certain data points should be ignored.
 
-!b "none"
+!p "none"
    All data points are treated as normal data points, regardless of their
    value.
    This is the default at program start.
 
-!b <value>
+!p <value>
    Data points that are equal to <value> are excluded from the inverse Fourier
    transform. You can use this option to mask out regions of the input
    data by setting their values to <value>.
@@ -3719,12 +3736,12 @@
    all reflections and the phases are transformed accordingly. This allows
    you to read a set of unique reflections and calculate the inverse Fourier.
 3  show
-!b show
+!p show
 
    Shows the current settings for the Fourier transform file
 3  type
-!b type {"a"|"b"},
-!b      {"intensity"|"amplitude"|"real"|"imaginary"|"phase"|"fobs"|"fcalc"}
+!p type {"a"|"b"},
+!p      {"intensity"|"amplitude"|"real"|"imaginary"|"phase"|"fobs"|"fcalc"}
 
    Defines the content of file "a" or "b".
 
@@ -3749,12 +3766,12 @@
 !p fcalc
 
 3  ul
-!b ul <e31> , <e32> , <e33>
+!p ul <e31> , <e32> , <e33>
 
    Sets the upper left corner of the Fourier plane to be calculated.
 2  kick
-!b kick <name>, <x>,<y>,<z> ,<t>, <na>,<ne>, <delx> [,<dely> [,<delz>]]
-!b kick <name>, <x>,<y>,<z> ,<t>, <na>,<ne>, -<bondlength>
+!p kick <name>, <x>,<y>,<z> ,<t>, <na>,<ne>, <delx> [,<dely> [,<delz>]]
+!p kick <name>, <x>,<y>,<z> ,<t>, <na>,<ne>, -<bondlength>
 
    Inserts an atom of type <name> at the position <x,y,z>
    in crystal space. The temperature coefficient must be given.
@@ -3790,7 +3807,7 @@
    each new al atom affects all al atoms previously inserted within
    this loop.
 2  mc
-!b mc
+!p mc
 
    NOTICE:
    The "mc" level has been depreciated and is no longer supported.
@@ -3830,12 +3847,12 @@
 !p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
 3  run
-!b run
+!p run
 
    This command starts the MC simulation for the given parameters and
    number of MC moves.
 3  set
-!b set <subcommand>
+!p set <subcommand>
 
    This command allows to define the wanted correlations and most other
    parameters for the MC simulation. The help entry 'commands' contains
@@ -3857,15 +3874,15 @@
 !p temp    : Setting of MC simulation temperature
 !p vec     : Definition of interaction vectors
 4  angle
-!b set "ang",<iv>,<is1>,<is2>,<dx1>,<dy1>,<dz1>,<is3>,<dx2>,<dy2>,<dz2>
+!p set "ang",<iv>,<is1>,<is2>,<dx1>,<dy1>,<dz1>,<is3>,<dx2>,<dy2>,<dz2>
 
    This command is used to define correlation angles that might be used
    to calculate correlations within the crystal (-> 'set corr'). The
    complete description is given in the CHEM section of the online
    help (-> set vec).
 4  atom
-!b set "atom",{ <name> | <number> }, { <name> | <number> }
-!b          [,{ <name> | <number> }]
+!p set "atom",{ <name> | <number> }, { <name> | <number> }
+!p          [,{ <name> | <number> }]
 
    This command allows the user to select the atoms types used for
    the MC simulation. They can either be specified by <name> (e.g. Zr)
@@ -3874,7 +3891,7 @@
    The angular distortions need three angles, while the other ones
    need just two.
 4  const
-!b set "const",<ic>,<const> [,<fac>]
+!p set "const",<ic>,<const> [,<fac>]
 
    The introduction of certain correlations depend on a given set of
    near neighbor interactions. These values are initially unknown and
@@ -3884,7 +3901,7 @@
    parameter <fac> is a factor used in the feedback process and controls
    how 'fast' the interactions are changed in each feedback cycle.
 4  cyc
-!b set "cyc",<number>
+!p set "cyc",<number>
 
    This command sets the number of MC moves (i.e. visited sites) to
    be executed by the 'run' command. The number <number> actually
@@ -3892,7 +3909,7 @@
    MC cycle as the number of moves needed to visit every crystal site
    once on average.
 4  energy
-!b set "energy",{"angle" | "cocc" | "cdis" | "disp"}
+!p set "energy",{"angle" | "cocc" | "cdis" | "disp"}
 
    This command selects the type of MC energy to be used for the
    simulation. The MC sub level of DISCUS currently allows to 
@@ -3903,7 +3920,7 @@
    angular distortions are expressed as the square of the deviation
    from the target value.
 4  feed
-!b set "feed",<number>
+!p set "feed",<number>
 
    The interaction values for the given correlation structure are
    determined by a feedback process. This command sets the number
@@ -3912,19 +3929,19 @@
    does not use the feedback mechanism and the value <number> given
    here only determines the output interval.
 4  mode
-!b set "mode",{ "shi[ft]" | "swc[hem]" | "swd[isp]" | "ext[ernal]" },
-!b           [{ "a[ll]"   | "l[ocal]"  | "sl[ocal]" | "si[te]"     }]
+!p set "mode",{ "shi[ft]" | "swc[hem]" | "swd[isp]" | "ext[ernal]" },
+!p           [{ "a[ll]"   | "l[ocal]"  | "sl[ocal]" | "si[te]"     }]
 
    This command determines the type of MC move used for modifying
    the crystal. The settings are explained in the RMC section under
    -> set mode.
 4  neig
-!b set "neig","add"
-!b set "neig","ang",<iv1> [,<iv2>,..]
-!b set "neig","dis",<u>,<v>,<w>,<fsig> [, <wsig>] [, {"sym" | "nosym"}]
-!b set "neig","dir",<x1>,<y1>,<z1> [,<x2>,<y2>,<z2>]
-!b set "neig","rese"
-!b set "neig","vec",<iv1> [,<iv2>,..]
+!p set "neig","add"
+!p set "neig","ang",<iv1> [,<iv2>,..]
+!p set "neig","dis",<u>,<v>,<w>,<fsig> [, <wsig>] [, {"sym" | "nosym"}]
+!p set "neig","dir",<x1>,<y1>,<z1> [,<x2>,<y2>,<z2>]
+!p set "neig","rese"
+!p set "neig","vec",<iv1> [,<iv2>,..]
 
    This command is used to define the neighbours used to determine the
    correlations. The subcommand 'dis' uses the distance as a criterion
@@ -3934,13 +3951,13 @@
    list of definitions. The details of these commands are given in the
    online help for the same command 'set neig' in the CHEM sub level.
 4  mole
-!b set "mole",<typ1>,<typ2>
+!p set "mole",<typ1>,<typ2>
 
    This command allows the user to select the molecule types used for
    the MC simulation. Not that different MC energy definitions have 
    different restrictions on the selection of the molecule types. 
 4  move
-!b set "move",{ "all" | <name> | <number> },<sx>,<sy>,<sz>
+!p set "move",{ "all" | <name> | <number> },<sx>,<sy>,<sz>
 
    Sets an user defined sigma for the generates moves. The created shifts
    are Gaussian distributed. The default is a sigma of 0.2 unit cell. Note
@@ -3950,9 +3967,9 @@
    <name>.
 4  range
 4  target
-!b set "target",<ic>,<value>
-!b set "target",<ic>,{<number> | <name> | "all"},
-!b                   {<number> | <name> | "all"}, <dist>
+!p set "target",<ic>,<value>
+!p set "target",<ic>,{<number> | <name> | "all"},
+!p                   {<number> | <name> | "all"}, <dist>
 
    The first  command sets the desired correlation value <value> for 
    modes "cocc" and "cdis" for the neighbor definition <ic>.
@@ -3962,7 +3979,7 @@
    for mode "disp". If <disp> is set to zero the corresponding 
    atom pair is not used in the MC simulation.
 4  temp
-!b set "temp",<kt>
+!p set "temp",<kt>
 
    This command sets the temperature <kt> used for the MC simulation.
    In order to be able to use the feedback procedure to determine the
@@ -3970,19 +3987,19 @@
    As a result the interaction energies will be in units of kT. If no
    feedback is used, <kT> can be set to the desired simulation temperature.
 4  vec
-!b set "vec",<iv>,<is1>,<is2>,<dx>,<dy>,<dz>
+!p set "vec",<iv>,<is1>,<is2>,<dx>,<dy>,<dz>
 
    This command is used to define correlation vectors that might be used
    to calculate correlations within the crystal (-> 'set corr'). The
    complete description is given in the CHEM section of the online
    help (-> set vec).
 3  show
-!b show
+!p show
 
    This command lists all current settings for the MC simulation part
    of DISCUS on the screen.
 2  mmc
-!b mmc
+!p mmc
 
    Enter "Multi Energy Monte Carlo" section of DISCUS. This sub level
    allows to create disordered structures with given correlations and/or
@@ -4026,7 +4043,7 @@
 !p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
 3  apply_symmetry
-!b apply_symmetry [<output_file>]
+!p apply_symmetry [<output_file>]
 
    This command applies the space group symmetry to generate the 
    symmetrically equivalent vectors. You must have defined one or
@@ -4054,22 +4071,22 @@
    If the optional <output_file> is given, DISCUS will write the
    original "set vec, ..." and the generated ones into this file.
 3  rese
-!b rese
+!p rese
 
    Resets the value of all internal variables, counters, etc to the 
    startup default values.
 3  reset
-!b reset
+!p reset
 
    Reset all mmc definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    This command starts the MMC simulation for the given parameters and
    number of MMC moves.
 3  set
-!b set <subcommand>
+!p set <subcommand>
 
    This command allows to define the wanted correlations and most other
    parameters for the MMC simulation. The help entry 'commands' contains
@@ -4094,7 +4111,7 @@
 !p valid   ! Sets maximum number of non_valid cycles
 !p vec     : Definition of interaction vectors
 4  allowed
-!b set "allowed", <is1> [,<is2]...]
+!p set "allowed", <is1> [,<is2]...]
 
    Usually mmc will automatically determine, which atom types play
    a role in the Monte-Carlo process. To do so mmc analyzes the
@@ -4112,14 +4129,14 @@
    crystal, you need to list these atoms on this "set allowed"
    command.
 4  angle
-!b set "ang",<iv>,<is1>,<is2>,<dx1>,<dy1>,<dz1>,<is3>,<dx2>,<dy2>,<dz2>
+!p set "ang",<iv>,<is1>,<is2>,<dx1>,<dy1>,<dz1>,<is3>,<dx2>,<dy2>,<dz2>
 
    This command is used to define correlation angles that might be used
    to calculate correlations within the crystal (-> 'set target'). The
    complete description is given in the CHEM section of the online
    help (-> set ang).
 4  con
-!b set "con",<iv>, {<is1>| <at_name>}, {<def.no>| <def.name>}
+!p set "con",<iv>, {<is1>| <at_name>}, {<def.no>| <def.name>}
 
    This commands is used to define correlations between atoms through
    their connectivity list. See main menu 'connectivity' for further
@@ -4138,7 +4155,7 @@
    <def.name> is the name of the definition that has been added/set
          within the connectivity menu.
 4  cyc
-!b set "cyc",<number>
+!p set "cyc",<number>
 
    This command sets the number of MMC moves (i.e. visited sites) to
    be executed by the 'run' command. The number <number> actually
@@ -4146,7 +4163,7 @@
    MMC cycle as the number of moves needed to visit every crystal site
    once on average.
 4  disallowed
-!b set "disallowed", <is1> [,<is2]...]
+!p set "disallowed", <is1> [,<is2]...]
 
    Usually mmc will automatically determine, which atom types play
    a role in the Monte-Carlo process. To do so mmc analyzes the
@@ -4168,10 +4185,10 @@
    to participate in a move, the 'set disallowed' command must be
    place after the last 'set target' instruction.
 4  environment
-!b set "env", 
+!p set "env", 
 
 4  feed
-!b set "feed",<number>
+!p set "feed",<number>
 
    The interaction values for the given correlation structure are
    determined by a feedback process. This command sets the number
@@ -4181,8 +4198,8 @@
    here only determines the output interval.
 
 4  limited
-!b set "limited", "OFF"
-!b set "limited", "atom", <nmin>, <nmax>
+!p set "limited", "OFF"
+!p set "limited", "atom", <nmin>, <nmax>
 
    Allows to limit the atom selection the interval [<nmin>:<nmax>].
    Atoms outside this interval are ignored and thus do not take part
@@ -4190,9 +4207,9 @@
 
    The "set limit, OFF" command switched the limitation off.
 4  mode
-!b set "mode",<prob>,{ "shi[ft]" | "swc[hem]" | "swd[isp]" | "ext[ernal]" },
-!b           [{ "a[ll]"   | "l[ocal]"  | "sl[ocal]" | "si[te]"     }
-!b            , [<atom_list>] ]
+!p set "mode",<prob>,{ "shi[ft]" | "swc[hem]" | "swd[isp]" | "ext[ernal]" },
+!p           [{ "a[ll]"   | "l[ocal]"  | "sl[ocal]" | "si[te]"     }
+!p            , [<atom_list>] ]
 
    This command determines the type of MMC move used for modifying
    the crystal. You can simultaneously use any of the moves. The 
@@ -4205,8 +4222,8 @@
    "exchange" atoms, even if they are not involved in any of the 
    target energies.
 4  move
-!b set "move",{ "all" | <name> | <number> },<sx>,<sy>,<sz>
-!b set "move",{ "all" | <name> | <number> },<u>,<v>,<w>,  <sig>
+!p set "move",{ "all" | <name> | <number> },<sx>,<sy>,<sz>
+!p set "move",{ "all" | <name> | <number> },<u>,<v>,<w>,  <sig>
 
    Sets an user defined sigma for the generates moves. The created shifts
    are Gaussian distributed. The default is a sigma of 0.2 unit cell. Note
@@ -4219,11 +4236,11 @@
    The movement of the atom is restricted along this vector. The last 
    parameter is a multiplicative sigma along this direction.
 4  neig
-!b set "neig","add"
-!b set "neig","ang",<iv1>,{ [<iv2>,..] | <iv2>, "range" }
-!b set "neig","env",<iv1>,{ [<iv2>,..] | <iv2>, "range" }
-!b set "neig","rese"
-!b set "neig","vec",<iv1>,{ [<iv2>,..] | <iv2>, "range" }
+!p set "neig","add"
+!p set "neig","ang",<iv1>,{ [<iv2>,..] | <iv2>, "range" }
+!p set "neig","env",<iv1>,{ [<iv2>,..] | <iv2>, "range" }
+!p set "neig","rese"
+!p set "neig","vec",<iv1>,{ [<iv2>,..] | <iv2>, "range" }
 
    This command is used to define the neighbours used to determine the
    correlations. The subcommand 'env' uses defined interaction 
@@ -4243,7 +4260,7 @@
    set neig, vec, 1,2,3,4,5,6
    set neig, vec, 1,6,range
 4  move
-!b set "move",{ "all" | <name> | <number> },<sx>,<sy>,<sz>
+!p set "move",{ "all" | <name> | <number> },<sx>,<sy>,<sz>
 
    Sets an user defined sigma for the generated moves. The created shifts
    are Gaussian distributed. The default is a sigma of 0.2 unit cell. Note
@@ -4252,37 +4269,37 @@
    the molecule type, otherwise atoms are addressed by their <number> or
    <name>.
 4  range
-!b set "range"
+!p set "range"
 
 4  target
-!b set "target",<ic>,"corr",     {<number> | <name> | "all"},
-!b                               {<number> | <name> | "all"},
-!b                               <correlation>, <energy>, {"CORR" | "ENER"}
-!b set "target",<ic>,"corr",    ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
-!b                              ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
-!b                               <correlation>, <energy>, {"CORR" | "ENER"}
-!b set "target",<ic>,"cd",       {<number> | <name> | "all"},
-!b                               {<number> | <name> | "all"},
-!b                               <correlation>, <energy>, {"CORR" | "ENER"}
-!b
-!b set "target",<ic>,"angle",    {<number> | <name> | "all"},
-!b                               {<number> | <name> | "all"}, 
-!b                               {<number> | <name> | "all"},
-!b                               <angle>,       <energy>
-!b
-!b set "target",<ic>,"spring",   {<number> | <name> | "all"},
-!b                               {<number> | <name> | "all"},
-!b                               <distance>,    <energy>
-!b set "target",<ic>,"lennard",  {<number> | <name> | "all"},
-!b                               {<number> | <name> | "all"}, 
-!b                               <distance>,    <energy> [, <pr>, <pa>] 
-!b set "target",<ic>,"bucking",  {<number> | <name> | "all"},
-!b                               {<number> | <name> | "all"}, 
-!b                               <a>, <rho>, <b>
-!b set "target",<ic>,"repulsive",{<number> | <name> | "all"},
-!b                               {<number> | <name> | "all"}, 
-!b                               <energy>,    <scale> [, <rmin> [, <pa>] ]
-!b
+!p set "target",<ic>,"corr",     {<number> | <name> | "all"},
+!p                               {<number> | <name> | "all"},
+!p                               <correlation>, <energy>, {"CORR" | "ENER"}
+!p set "target",<ic>,"corr",    ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+!p                              ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+!p                               <correlation>, <energy>, {"CORR" | "ENER"}
+!p set "target",<ic>,"cd",       {<number> | <name> | "all"},
+!p                               {<number> | <name> | "all"},
+!p                               <correlation>, <energy>, {"CORR" | "ENER"}
+!p
+!p set "target",<ic>,"angle",    {<number> | <name> | "all"},
+!p                               {<number> | <name> | "all"}, 
+!p                               {<number> | <name> | "all"},
+!p                               <angle>,       <energy>
+!p
+!p set "target",<ic>,"spring",   {<number> | <name> | "all"},
+!p                               {<number> | <name> | "all"},
+!p                               <distance>,    <energy>
+!p set "target",<ic>,"lennard",  {<number> | <name> | "all"},
+!p                               {<number> | <name> | "all"}, 
+!p                               <distance>,    <energy> [, <pr>, <pa>] 
+!p set "target",<ic>,"bucking",  {<number> | <name> | "all"},
+!p                               {<number> | <name> | "all"}, 
+!p                               <a>, <rho>, <b>
+!p set "target",<ic>,"repulsive",{<number> | <name> | "all"},
+!p                               {<number> | <name> | "all"}, 
+!p                               <energy>,    <scale> [, <rmin> [, <pa>] ]
+!p
 
    The target command sets the desired correlation values for each of
    the defined interaction neighborhoods <ic> (-> set neigh).
@@ -4385,7 +4402,7 @@
    <rmin>   defaults to zero
    <pr>     defaults to 1.0
 4  temp
-!b set "temp",<kt>
+!p set "temp",<kt>
 
    This command sets the temperature <kt> used for the MMC simulation.
    In order to be able to use the feedback procedure to determine the
@@ -4393,7 +4410,7 @@
    As a result the interaction energies will be in units of kT. If no
    feedback is used, <kT> can be set to the desired simulation temperature.
 4  valid
-!b valid <invalid_moves>
+!p valid <invalid_moves>
 
    MMC will pick an atom or an atom pair at random. If a pair of atoms
    has the same chemistry, a "switch chemistry" move will not change
@@ -4406,7 +4423,7 @@
    For large structures it might be helpful to increase this number,
    for example to a value around the number of atoms. 
 4  vec
-!b set "vec",<iv>,<is1>,<is2>,<dx>,<dy>,<dz>
+!p set "vec",<iv>,<is1>,<is2>,<dx>,<dy>,<dz>
 
    This command is used to define correlation vectors that might be used
    to calculate correlations within the crystal (-> 'set neig'). The 
@@ -4417,13 +4434,13 @@
    and <dz> set to zero. If you want to define correlation vectors crossing
    the unit cell boundaries set <dx>,<dy> and <dy> accordingly.
 3  show
-!b show
+!p show
 
    This command lists all current settings for the MMC simulation part
    of DISCUS on the screen.
 2  molecularize
-!b molecularize "conn", <central> [, <exclude> ...]
-!b molecularize "range", <from>, <to>, <molecule_type> , <molecule_Biso>
+!p molecularize "conn", <central> [, <exclude> ...]
+!p molecularize "range", <from>, <to>, <molecule_type> , <molecule_Biso>
 
    This command allows to group a set of atoms into a molecule.
 
@@ -4440,7 +4457,7 @@
    a molecule of type <molecule_type>. 
    DISCUS will not check how close these atoms are.
 2  output
-!b output
+!p output
 
    Switches to the output level of discus. All Fourier output is written 
    at this level. Several graphic formats are available.
@@ -4468,21 +4485,21 @@
 !p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
 3  format
-!b form {"gnu" | "pgm" | "ppm" | 
-!b       "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
-!b     | "post" | "shel" | "stan" | "hklf4" | "list5" | "nexus" |
-!b       "vtk" | "mrc"}
+!p form {"gnu" | "pgm" | "ppm" | 
+!p       "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
+!p     | "post" | "shel" | "stan" | "hklf4" | "list5" | "nexus" |
+!p       "vtk" | "mrc"}
 
    Defines the output format that will be used. 
    Valid parameters are:
 
-!b "gnu" 
+!p "gnu" 
    Sets the type of the output file to gnuplot. The intensities are
    written in blocks of intensities along the abscissa, with an empty
    line separating each block. Each line of each block contains:
    index along abscissa, index along ordinate, intensity, third index.
 
-!b "list5"
+!p "list5"
    Sets the output type to a SHELXL list 5. Each line of the output
    contains " h k l F F phase" in the format (3I4, 2F10.2,F2.2).
    The hkl are converted by an "int" command to integers. The
@@ -4493,28 +4510,28 @@
    DISCUS calculates the value of F(000) and scales the data such 
    that F(000) is less than 10**8 to fit into the format. 
 
-!b "mrc"
+!p "mrc"
    Set the output file format to the MRC file format. Applies to 
    2D and 3D data only. Images can be visualized for example with 
    Chimera.
 
-!b "nexus"
+!p "nexus"
    Sets the output to NeXuS file format.
 
-!b "pgm"
+!p "pgm"
    Sets the type of the output to portable grey map. A bitmap of the
    intensity is written in portable grey map style. All values below the
    minimum threshold are set to this value, all values above the maximum
    threshold are set to this maximum value.
 
-!b "ppm"
+!p "ppm"
    Sets the type of the output to portable any-map. A bitmap of the
    intensity is written in portable any-map style. The color scheme
    is read from file "color.map". All values below the
    minimum threshold are set to this value, all values above the maximum
    threshold are set to this maximum value.
 
-!b "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
+!p "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
    Sets the output format to powder. You must have calculated a 
    powder diffraction pattern using the ==> 'powder' menu of DISCUS.
    DISCUS writes a two column output, with the intensity
@@ -4541,15 +4558,15 @@
    that starts with "kuplot" is copied directly into the KUPLOT
    data array, and NOT written to disk.
 
-!b "post"
+!p "post"
    Sets the type of the output to color postscript. A bitmap of the
    intensity is written in color postscript. The color scheme is read
    from file "color.map". All values below the minimum threshold
    are set to this value, all values above the maximum threshold are
    set to this maximum value.
 
-!b "shel"
-!b "hklf4"
+!p "shel"
+!p "hklf4"
    Both commands sets the output format to SHELX type hklf4 data. The 
    data are written in format (3I4,2F8.2). 
    The hkl are converted by an "int" command to integers. The
@@ -4560,21 +4577,21 @@
    10**6 to fit into the format. The sigma is just the square root of the
    final intensity after scaling.
 
-!b "stan" 
+!p "stan" 
    Sets the output to standard file format, which is used by KUPLOT. 
    The output file contains two initial lines and then a block for each 
    data line separated by an empty line. The first line contains the 
    number of data points along the abscissa and the ordinate, the 
    second line the minimum and maximum value of the indices in reciprocal
    space along the abscissa and ordinate respectively.
-!b "vtk"
+!p "vtk"
    Sets the output to vtk.
 3  input
-!b input
+!p input
 
    Reads an old data file
 3  outfile
-!b outfile <filename>
+!p outfile <filename>
 
    Sets the name of the output file, to which the intensities are written.
 
@@ -4582,21 +4599,21 @@
    KUPLOT. Simply start the file name with the fixed string 'kuplot'.
    The data set number in kuplot will be incremented automatically.
 3  reset
-!b reset
+!p reset
 
    Reset all output definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    Starts writing the output file. Without this command the output file
    is not written!
 3  show
-!b show
+!p show
 
    Shows the current settings
 3  threshold
-!b thresh { "high"|"low"|"sigma"|"zmin"|"zmax"} <value>
+!p thresh { "high"|"low"|"sigma"|"zmin"|"zmax"} <value>
 
    This command sets the threshold that is used when writing BITMAP output.
    All values less than the minimum threshold are set to zero,
@@ -4616,13 +4633,13 @@
 !p "zmax"  : Sets maximum threshold for BITMAP
 !p "zmin"  : Sets minimum threshold for BITMAP
 3  value
-!b valu {  "int"  |  "amp"  |  "pha" [,"random"]  |  "real"  |  "imag" }
-!b valu { "<int>" | "<amp>" | "<pha>" [,"random"] | "<real>" | "<imag>" }
-!b
-!b valu { "S(Q)"  | "F(Q)" | "I(Q)"}
-!b valu { "S(Q)"  | "F(Q)" | "I(Q)"}
-!b
-!b valu { "f2aver"  | "faver2" }
+!p valu {  "int"  |  "amp"  |  "pha" [,"random"]  |  "real"  |  "imag" }
+!p valu { "<int>" | "<amp>" | "<pha>" [,"random"] | "<real>" | "<imag>" }
+!p
+!p valu { "S(Q)"  | "F(Q)" | "I(Q)"}
+!p valu { "S(Q)"  | "F(Q)" | "I(Q)"}
+!p
+!p valu { "f2aver"  | "faver2" }
 
    Sets what value is written to the output file. The keyword given in
    < > corresponds to the value of the average structure factor <F> whereas
@@ -4649,7 +4666,7 @@
 
    The file name is not adapted automatically!
 2  patterson
-!b patterson
+!p patterson
 
    Branches to the Patterson  transform level of DISCUS
    The Patterson transform is calculated from two input files.
@@ -4707,12 +4724,12 @@
 !p wilson  ! Calculates Wilson statistics
 !p wait    ! Waits for user input (see main help)
 3  abs
-!b abs <switch>
+!p abs <switch>
 
    Defines which the component of the vector parallel to the abscissa
    is written to the output file.
 3  file
-!b file {"a"|"b"},<filename>
+!p file {"a"|"b"},<filename>
 
    Defines the filenames needed for the patterson.
 
@@ -4731,18 +4748,18 @@
    <h> <k> l> <Fobs> <Fcalc> <phase angle in degree>
    The file is read as free format.
 3  format
-!b form {"gnu" | "stan" | "shelxl" | "hklf4" }
+!p form {"gnu" | "stan" | "shelxl" | "hklf4" }
 
    Defines the input format that will be used. 
    Valid parameters are:
 
-!b "gnu" 
+!p "gnu" 
    Sets the type of the output file to gnuplot. The intensities are
    written in blocks of intensities along the abscissa, with an empty
    line separating each block. Each line of each block contains:
    index along abscissa, index along ordinate, intensity, third index.
 
-!b "stan" 
+!p "stan" 
    Sets the output to standard file format, which is used by KUPL. 
    The output file contains two initial lines and then a block for each 
    data line separated by an empty line. The first line contains the 
@@ -4750,7 +4767,7 @@
    second line the minimum and maximum value of the indices in reciprocal
    space along the abscissa and ordinate respectively.
 
-!b "shelxl" [, {"fobs" | "fcalc"}]
+!p "shelxl" [, {"fobs" | "fcalc"}]
    Sets the input file format to SHELXL. DISCUS assumes the input file
    to be a SHLEXL List type 5 containing:
 
@@ -4763,7 +4780,7 @@
    used for the calculation, if the parameter is "fcalc", the calculated
    structure factor is used.
 
-!b "hklf4" [,"all"]
+!p "hklf4" [,"all"]
    Sets the input file format to the SHELX HKLF4 format. 
    Without the optional parameter, DISCUS assumes the input file to be
    a SHLEXL HKLF4 file AFTER merging symmetrically equivalent reflections
@@ -4782,83 +4799,83 @@
    If you use this option, DISCUS automatically assumes that a
    PATTERSON will be calculated.
 3  layer
-!b layer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
+!p layer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 
    sets the lower left, lower right and upper left corner of the
    Fourier plane to be calculated and sets the number of data
    points along the horizontal and the vertical
 3  ll
-!b ll <e11> , <e12> , <e13>
+!p ll <e11> , <e12> , <e13>
 
    Sets the lower left corner of the Fourier plane to be calculated.
 3  lr
-!b lr <e21> , <e22> , <e23>
+!p lr <e21> , <e22> , <e23>
 
    Sets the lower right corner of the Fourier plane to be calculated.
 3  na
-!b na <inc1>
+!p na <inc1>
 
    Sets the number of data points that will be calculated along the
    abscissa.
 3  no
-!b no <inc2>
+!p no <inc2>
 
    Sets the number of data points that will be calculated along the
    ordinate.
 3  ord
-!b ord <switch>
+!p ord <switch>
 
    Defines which the component of the vector parallel to the ordinate
    is written to the output file.
 3  rhoabs
-!b rhoabs <switch>
+!p rhoabs <switch>
 
    Defines which the component of the vector parallel to the 
    real space abscissa is written to the output file.
 3  rholayer
-!b rholayer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
+!p rholayer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 
    sets the lower left, lower right and upper left corner of the
    real space plane to be calculated and sets the number of data
    points along the horizontal and the vertical
 3  rholl
-!b rholl <e11> , <e12> , <e13>
+!p rholl <e11> , <e12> , <e13>
 
    Sets the lower left corner of the real space plane to be calculated.
 3  rholr
-!b rholr <e21> , <e22> , <e23>
+!p rholr <e21> , <e22> , <e23>
 
    Sets the lower right corner of the real space plane to be calculated.
 3  rhona
-!b rhona <inc1>
+!p rhona <inc1>
 
    Sets the number of data points that will be calculated along the
    real space abscissa.
 3  rhono
-!b rhono <inc2>
+!p rhono <inc2>
 
    Sets the number of data points that will be calculated along the
    real space ordinate.
 3  rhoord
-!b rhoord <switch>
+!p rhoord <switch>
 
    Defines which the component of the vector parallel to the
    real space ordinate is written to the output file.
 3  rhoul
-!b rhoul <e31> , <e32> , <e33>
+!p rhoul <e31> , <e32> , <e33>
 
    Sets the upper left corner of the real space plane to be calculated.
 3  reset
-!b reset
+!p reset
 
    Reset all Fourier definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    Starts the Patterson calculation.
 3  scale
-!b scale <scale-factor>
+!p scale <scale-factor>
 
    Defines an overall scale factor. Together with the automatic scaling
    by 1/vol(unit cell), this scale factor serves to put the electron
@@ -4872,23 +4889,23 @@
    use experimental data, you MUST specify the scale factor every time you 
    enter the "patterson" sub menu.
 3  set
-!b set "accu",{"init"|"add"}
-!b set "excl",{"none"|<value>}
-!b set "mode",{"normal"|"sharp"|"super"}
-!b set "origin",{"normal"|"subtract"}
-!b set "rsym",{appl"|"igno"}
+!p set "accu",{"init"|"add"}
+!p set "excl",{"none"|<value>}
+!p set "mode",{"normal"|"sharp"|"super"}
+!p set "origin",{"normal"|"subtract"}
+!p set "rsym",{appl"|"igno"}
 
    Set defines various parameters.
 
 4  accu
-!b "accu",{"init"|"add"}
+!p "accu",{"init"|"add"}
 
    Sets the mode for the accumulation of Patterson transforms.
 
-!b "init"  
+!p "init"  
    The electron density array is initialized, i.e. set to zero.
 
-!b "add"   
+!p "add"   
    The next Patterson transform is added to the previous value.  This way 
    several Patterson transforms will contribute to a single layer in direct 
    space, which is necessary to create a Patterson section rather than a 
@@ -4901,16 +4918,16 @@
    result will be unpredictable nonsense !
 
 4  excl
-!b set "excl",{"none"|<value>}
+!p set "excl",{"none"|<value>}
 
    Signals whether certain data points should be ignored.
 
-!b "none"
+!p "none"
    All data points are treated as normal data points, regardless of their
    value.
    This is the default at program start.
 
-!b <value>
+!p <value>
    Data points that are equal to <value> are excluded from the Patterson
    transform. You can use this option to mask out regions of the input
    data by setting their values to <value>.
@@ -4918,7 +4935,7 @@
    treated as excluded regions.
 
 4  mode
-!b set "mode",{"normal"|"sharp"|"super"}
+!p set "mode",{"normal"|"sharp"|"super"}
 
    Determines the calculation mode of the Patterson function. 
    This mode may be a:
@@ -4929,7 +4946,7 @@
    Currently the mode can only be used in combination with SHELX HKLF4 files.
 
 4  origin
-!b set "origin",{"normal"|"subtract"}
+!p set "origin",{"normal"|"subtract"}
 
    Determines whether the origin peak should be subtracted from the 
    Patterson function. Since this depends on the data to be on an absolute
@@ -4940,19 +4957,19 @@
    with SHELX HKLF4 files.
 
 4  rsym
-!b set "rsym",{"appl"|"igno"}
+!p set "rsym",{"appl"|"igno"}
 
    Determines whether the space group symmetry is applied to all reflections.
    If the second parameter is "appl", all symmetry elements are applied to
    all reflections and the phases are transformed accordingly. This allows
    you to read a set of unique reflections and calculate the Patterson.
 3  show
-!b show
+!p show
 
    shows the current settings for the Fourier transform file
 3  type
-!b type {"a"|"b"},
-!b      {"intensity"|"amplitude"|"real"|"imaginary"|"phase"|"fobs"|"fcalc"}
+!p type {"a"|"b"},
+!p      {"intensity"|"amplitude"|"real"|"imaginary"|"phase"|"fobs"|"fcalc"}
 
    Defines the content of file "a" or "b".
 
@@ -4977,7 +4994,7 @@
 !p fcalc
 
 3  stat
-!b stat {"screen" | <outputfile> }
+!p stat {"screen" | <outputfile> }
 
    This command calculates the normalized structure factor, and displays
    relevant statistical values like <|E**2 - 1|> for all reflections and
@@ -4995,11 +5012,11 @@
    For the statistics to be correct, the correct unit cell must have been
    defined. 
 3  ul
-!b ul <e31> , <e32> , <e33>
+!p ul <e31> , <e32> , <e33>
 
    Sets the upper left corner of the Fourier plane to be calculated.
 3  wilson
-!b wilson
+!p wilson
    This command reads a HKLF4 file and calculates Wilson statistics from
    a plot of ln(average(formfactor**2)/average(intensity)) versus 
    sin(theta)/lambda.
@@ -5016,7 +5033,7 @@
    amount of atoms should be equal to or at least close to the 
    composition of the actual substance to which the data set belongs.
 2  pdf
-!b pdf
+!p pdf
 
    This command switches to the PDF mode of DISCUS. PDF stands
    for Pair-Distribution-Function. The function actually used in
@@ -5061,13 +5078,13 @@
 !p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
 3  calc
-!b calc
+!p calc
 
    This command will calculate the PDF of the current structure.
    Note that the result is NOT automatically saved. This must be
    done using the command 'save' (-> save).
 3  data
-!b data <file>
+!p data <file>
 
    This command will read an observed PDF from the file <file>. 
    The file needs to be ASCII format with the following information
@@ -5078,16 +5095,16 @@
    NOTE: The data file must be in constant r steps and the first
    points MUST be equal to r=stepsize.
 3  i/jdese
-!b idese { "all" | <name> | <number> }, [ ... ]
-!b jdese { "all" | <name> | <number> }, [ ... ]
+!p idese { "all" | <name> | <number> }, [ ... ]
+!p jdese { "all" | <name> | <number> }, [ ... ]
 
    This command deselects atom types given either by <name> or <number>
    for the PDF calculation. The two commands allow one to deselect
    atom types for each atom in a pair 'ij' contributing to the PDF
    calculation.
 3  i/jsele
-!b isele { "all" | <name> | <number> }, [ ... ]
-!b jsele { "all" | <name> | <number> }, [ ... ]
+!p isele { "all" | <name> | <number> }, [ ... ]
+!p jsele { "all" | <name> | <number> }, [ ... ]
 
    This command selects atom types given either by <name> or <number>
    for the PDF calculation. All other atoms are ignored. This allows
@@ -5095,16 +5112,16 @@
    allow one to select atom types for each atom in a pair 'ij'
    contributing to the PDF calculation.
 3  rese
-!b rese
+!p rese
 
    This command resets most PDF module settings.
 3  run
-!b run
+!p run
 
    This command starts the RMC refinement to match the calculated
    PDF with the observed one. 
 3  save
-!b save {"pdf" | "stru" | "mark"}, <file>
+!p save {"pdf" | "stru" | "mark"}, <file>
 
    This command allows to save either the current PDF ("pdf") or
    the current structure ("stru") to the file named <file>. The
@@ -5116,7 +5133,7 @@
    that starts with "kuplot" is copied directly into the KUPLOT
    data array, and NOT written to disk.
 3  set
-!b set "subcommand"
+!p set "subcommand"
 
    This command allows to set most of the PDF parameters.  Some of
    the commands are explained in the RMC section (-> rmc). The following
@@ -5156,8 +5173,8 @@
 !p "therm"    : toggles the convolution with thermal Gaussian
 !p "weight"   : sets weight correction factor for finite objects
 4  bound
-!b set "bound","periodic" [,{"2D" | "3D"}]
-!b set "bound","crystal" [,{"quick" | "exact"}]
+!p set "bound","periodic" [,{"2D" | "3D"}]
+!p set "bound","crystal" [,{"quick" | "exact"}]
 
    This command allows the user to select whether periodic boundaries
    should be applied or not. In case of "periodic", periodic boundaries
@@ -5181,7 +5198,7 @@
    line -4 pi rho r should be corrected by parameters defined by
    ==> "set finite".
 4  corrlinear
-!b set "corrlinear",<g>
+!p set "corrlinear",<g>
 
    If the Gaussian convolution mode (-> set therm) is used, the PDF
    peak width will be modified by the term - g/r. This linear
@@ -5190,7 +5207,7 @@
 
    Identical to "gamma"
 4  corrquadratic
-!b set "corrquadratic",<d>
+!p set "corrquadratic",<d>
 
    If the Gaussian convolution mode (-> set therm) is used, the PDF
    peak width will be modified by the term - d/r**2. The quadratic
@@ -5199,7 +5216,7 @@
 
    Identical to "delta"
 4  delta
-!b set "delta",<d>
+!p set "delta",<d>
 
    If the Gaussian convolution mode (-> set therm) is used, the PDF
    peak width will be modified by the term - d/r**2. The quadratic
@@ -5208,8 +5225,8 @@
 
    Identical to "corrquadratic"
 4  density
-!b set "density", [<rho0> | "auto"]
-!b set "rdensity", [<rho0> | "auto"]
+!p set "density", [<rho0> | "auto"]
+!p set "rdensity", [<rho0> | "auto"]
 
    This commands allows to specify a user defined number density
    <rho0>, e.g. in cases where no unit cell is defined. To use the
@@ -5218,13 +5235,13 @@
    same way, except <rho0> is treated as a factor for the calculated
    rho0 value.
 4  diameter
-!b set "diameter",<diameter>
+!p set "diameter",<diameter>
 
    This commands allows to specify a user defined particle 
    diameter that is used in combination with the finite size
    treatment ==>"set finite,tanh"
 4  finite
-!b set "finite", {"periodic"| "poly",<diameter> | "sphere",<diameter> | "tanh"}
+!p set "finite", {"periodic"| "poly",<diameter> | "sphere",<diameter> | "tanh"}
 
    This commands defines how to deal with finite particles.
    Since their PDF does not contain distances beyond the diameter,
@@ -5262,13 +5279,13 @@
    The only settings that may be used if the boundaries are set to
    periodic, are "periodic" and "sphere".
 4  frange
-!b set "frange",<rmin>,<rmax>
+!p set "frange",<rmin>,<rmax>
 
    This command sets the range in "r" that will be used for the
    refinement. The range of the PDF that will be saved using the 
    command 'save' is also determined by these settings.
 4  gamma
-!b set "gamma",<g>
+!p set "gamma",<g>
 
    If the Gaussian convolution mode (-> set therm) is used, the PDF
    peak width will be modified by the term - g/r. This linear
@@ -5277,8 +5294,8 @@
 
    Identical to "corrlinear"
 4  partial
-!b set "partial","internal"
-!b set "partial",<a1>,<a2>,<w>
+!p set "partial","internal"
+!p set "partial",<a1>,<a2>,<w>
 
    This command allows one to specify the weight <w> for each partial
    from atoms <a1> and <a2>. This can be used in conjunction with the
@@ -5286,7 +5303,7 @@
    PDFs from a model. If the second parameter is "internal", the weights
    are calculated from the scattering lengths of the elements (default).
 4  poly
-!b set "poly",<p1> [,<p2>...]
+!p set "poly",<p1> [,<p2>...]
 
    This command allows to set the parameters of a polynomial
    function that is used in combination with the finite size
@@ -5299,7 +5316,7 @@
    Notice that the polynomial starts with the linear term and does
    not contain a term p0*r**0 !
 4  qalp
-!b set "qalpha",<alpha>
+!p set "qalpha",<alpha>
 
    PDF peaks are broadened at large values of r due to the instrument
    resolution of the measurement. This command sets the parameter
@@ -5307,7 +5324,7 @@
    <alp>**2 * r**2.
    Identical to "qbroad"
 4  qbroad
-!b set "qbroad",<qbroad>
+!p set "qbroad",<qbroad>
 
    PDF peaks are broadened at large values of r due to the instrument
    resolution of the measurement. This command sets the parameter
@@ -5315,7 +5332,7 @@
    <qbroad>**2 * r**2.
    Identical to "qalpha"
 4  qmax
-!b set "qmax",<qmax>
+!p set "qmax",<qmax>
 
    Since we can only measure the scattering up to a maximum value
    in Q, the resulting PDF will show termination ripples. In order to
@@ -5324,7 +5341,7 @@
    <qmax> in A**-1 must be entered. If the value is zero NO termination
    correction will be applied.
 4  qdamp
-!b set "qdamp",<qdamp>
+!p set "qdamp",<qdamp>
 
    This allows to enter a value <qdamp> for the correction of the
    limited resolution of the experiment. This results in a dampening
@@ -5332,7 +5349,7 @@
    entered value is zero, no correction will be applied.
    Identical to "qsigma"
 4  qsigma
-!b set "qsigma",<qsig>
+!p set "qsigma",<qsig>
 
    This allows to enter a value <qsig> for the correction of the
    limited resolution of the experiment. This results in a dampening
@@ -5340,9 +5357,9 @@
    entered value is zero, no correction will be applied.
    Identical to "qdamp"
 4  rad
-!b set "rad","neutron"
-!b set "rad","xray" [,<qx>]
-!b set "rad","electron" [,<qx>]
+!p set "rad","neutron"
+!p set "rad","xray" [,<qx>]
+!p set "rad","electron" [,<qx>]
 
    This command selects the radiation used to calculate the PDF.
    The weighting factor for each atom pair is B(i)*B(j)/<B**2>.
@@ -5356,26 +5373,26 @@
    number of electrons determines the weight. One other common
    way is to use the Q of the first peak in the diffraction pattern.
 4  range
-!b set "range",<rmax>,<dr>
+!p set "range",<rmax>,<dr>
 
    This command allows to set the maximum r and the step width used
    to calculate the PDF. Note that if observed data are used, these
    values are set to the corresponding values of the actual data file.
    All values are entered in units of A.
 4  shape
-!b set "shape",<shape>
+!p set "shape",<shape>
 
    This commands allows to specify a user defined particle 
    shape parameter that is used in combination with the finite size
    treatment ==>"set finite,tanh"
 4  srat
-!b set "srat",<rat>,<rcut>
+!p set "srat",<rat>,<rcut>
 
    This command allows the user to sharpen PDF peaks below a value
    of r=<rcut> by a factor of <srat> (usually < 1.0). Note that this
    will effect only calculations using the Gaussian mode (-> set therm).
 4  therm
-!b set "therm", {"off" | "gauss"}
+!p set "therm", {"off" | "gauss"}
 
    This command allows the user to select between two calculation
    modes. If the parameter "gauss" is given, the contribution of each
@@ -5383,14 +5400,14 @@
    this Gaussian is given by the individual thermal parameters B. 
    If "off" is used, the contribution is a single "delta" type function.
 4  weight
-!b set weight,<weight>
+!p set weight,<weight>
 
    Allows you to correct the weight factor used to multiply g(r) 
    before adding it to -4pi rho0 r. For infinite objects this should
    be left at the default value of one. For finite objects or in case
    of uncertainties in the chemical composition it may differ.
 3  show
-!b show [{"all" | "pdf" | "mode" | "atom"}]
+!p show [{"all" | "pdf" | "mode" | "atom"}]
 
    This command shows the various settings. If the command is entered
    without further parameters, the PDF settings are shown similar
@@ -5402,7 +5419,7 @@
    atom types. Finally the parameter "all" will cause all settings
    to be printed on the screen.
 2  plot
-!b plot
+!p plot
 
    Switches to the structure plotting sub menu. The structure can be 
    written in a format suitable for plotting by several structure plotting
@@ -5449,7 +5466,7 @@
 !p wait    ! Waits for user input (see main help)
 !p vec     ! Sets a point inside plot slice
 3  absc
-!b abscissa <x>,<y>,<z>
+!p abscissa <x>,<y>,<z>
 
    Defines the abscissa of the plot.
    Instead of using the atom coordinates with respect to the crystallographic
@@ -5458,7 +5475,7 @@
    Use these commands to plot the projection onto any plain other than the
    xy-, xz- or yz-plane.
 3  asym
-!b asym
+!p asym
 
    Shows the content of the asymmetric unit. The names of those atoms,
    a number that is used as index for its scattering type, their position
@@ -5471,13 +5488,13 @@
    unique and have a different temperature coefficient are included in
    the asymmetric unit.
 3  back
-!b back <r>, <g>, <b>
+!p back <r>, <g>, <b>
 
    Sets the background color for a JMOL plot.
    Valid RGB values are in the range [0:255]
 3  bonds
-!b bonds { "all" | <name> | <number> } ,{ "all" | <name> | <number> },
-!b       <rmin>, <rmax>, <diameter>, { <gray> | <r>,<g>,<b>}
+!p bonds { "all" | <name> | <number> } ,{ "all" | <name> | <number> },
+!p       <rmin>, <rmax>, <diameter>, { <gray> | <r>,<g>,<b>}
 
    Defines which bonds the plotting program JMOL / XBS will draw. This 
    command does not affect the other plotting programs.
@@ -5486,7 +5503,7 @@
    of the bond is set to <diameter>. You can specify the bond color
    as either a gray value in the range [0 - 1] or an RGB triplet.
 3  chem
-!b chem
+!p chem
 
    Shows the type of all atoms present in the crystal. For each
    different atom present, its identifying number, its name and its
@@ -5497,7 +5514,7 @@
    of atom is completely removed from the structure, it will remain in
    the list of different atoms, and will be displayed by 'chem'.
 3  col
-!b col { "xyz" | "yzx" | "zxy" | "zyx" | "yxz" | "xzy" }
+!p col { "xyz" | "yzx" | "zxy" | "zyx" | "yxz" | "xzy" }
 
    Defines the sequence in which the xy and z coordinates of the atoms
    are written.
@@ -5530,7 +5547,7 @@
    ==>'thick' command, the sequence 'xyz' would be the most useful one.
 
 3  des
-!b dese { "all" | <name> | <number> } [ , <name> | <number> } ... ]
+!p dese { "all" | <name> | <number> } [ , <name> | <number> } ... ]
 
    Deselects the atoms.
 
@@ -5541,7 +5558,7 @@
 
    More than one atom can be deselected by the command.
 3  ext
-!b ext { "all" | "x",<xmin>,<xmax> | "y",<ymin>,<ymax> | "z",<zmin>,<zmax> }
+!p ext { "all" | "x",<xmin>,<xmax> | "y",<ymin>,<ymax> | "z",<zmin>,<zmax> }
 
    Sets the extend of crystal space to be plotted.
 
@@ -5557,7 +5574,7 @@
    other directions is not changed, even if previously set with the "all"
    command.
 3  hkl
-!b hkl <h>,<k>,<l>
+!p hkl <h>,<k>,<l>
 
    Sets the reciprocal space direction normal to the plot slice. The
    corresponding direct space direction ==> 'uvw' is calculated 
@@ -5570,18 +5587,18 @@
    Further restrictions on the atoms to be included can be applied by
    the ==> 'sel' and the ==> 'exte' commands.
 3  mdes
-!b mdes { "all" | <number> } [ , <number> ...]
+!p mdes { "all" | <number> } [ , <number> ...]
 
    This command deselects all or individual molecule types used for
    the plotting output.
 3  mole
-!b mole { "all" | "origin" }
+!p mole { "all" | "origin" }
   
    This command allows the user to specify whether all ("all") atoms
    of a molecule should be used in the plot or only the origin 
    ("origin") of the molecule should be used.
 3  msel
-!b msel { "all" | <number> } [ , <number> ...]
+!p msel { "all" | <number> } [ , <number> ...]
 
    This command allows to select the molecule types to be used for
    the plotting output. By using 'msel' the atom selection becomes
@@ -5590,7 +5607,7 @@
    corresponding <number>. In order to use atoms again, use the 'sele'
    command.
 3  ordi
-!b ordinate <x>,<y>,<z>
+!p ordinate <x>,<y>,<z>
 
    Defines the ordinate of the plot.
    Instead of using the atom coordinates with respect to the crystallographic
@@ -5599,15 +5616,15 @@
    Use these commands to plot the projection onto any plain other than the
    xy-, xz- or yz-plane.
 3  outfile
-!b outfile <filename>
+!p outfile <filename>
 
    Sets the name of the output file to which the structure is written.
 3  poly
 !p poly "off"
-!b poly <center>, <neighbor> 
-!b      [, "nmin:"<nmin>], [, "nmax:"<nmax>]
-!b      [, "dmin:"<dmin>], [, "dmax:"<dmax>]
-!b      [, "face:"<style>], [, "hue:"<style>], [, "color:"<color>]
+!p poly <center>, <neighbor> 
+!p      [, "nmin:"<nmin>], [, "nmax:"<nmax>]
+!p      [, "dmin:"<dmin>], [, "dmax:"<dmax>]
+!p      [, "face:"<style>], [, "hue:"<style>], [, "color:"<color>]
 
   Sets the definitions for plotting polyhedra in an interactive plot.
   Currently only an interactive plot with JMOL is supported.
@@ -5646,10 +5663,10 @@
 !p          Plot the polyhedra with the color of the central 
 !p          atom =="auto" or a user defined JMOL color.
 3  prog
-!b prog { "gnuplot" | "kuplot" | "atoms" | 
-!b        "xbs" | "frames" [,"append" | "init"] |
-!b        "diamond" | "jmol" | "drawxtl" |
-!b        "cif" }
+!p prog { "gnuplot" | "kuplot" | "atoms" | 
+!p        "xbs" | "frames" [,"append" | "init"] |
+!p        "diamond" | "jmol" | "drawxtl" |
+!p        "cif" }
 
    Selects the plotting program for which the output is to be formatted.
 
@@ -5717,7 +5734,7 @@
 !p
 !p            Use this output format for Atoms, Diamond, or JMOL as well.
 3  prop
-!b prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
+!p prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
 
    Defines which properties an atom must have to be included in the plot.
 
@@ -5755,12 +5772,12 @@
    to the boundary can be set within the ==> 'domain' menu through
    the ==> 'domain/fuzzy' command.
 3  reset
-!b reset
+!p reset
 
    Reset all plot definitions back to the default values at 
    system start. 
 3  run
-!b run  ["plot:inter"] [, "kill:"["yes"|"no"}]
+!p run  ["plot:inter"] [, "kill:"["yes"|"no"}]
 
    Starts writing of the structure. If no output filename has been provided
    or no atoms been selected, an error message is given.
@@ -5777,7 +5794,7 @@
    java programs are active! The intention is to kill only processes
    started by DISCUS.
 3  sel
-!b sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    Defines which atoms are included in the output. Possible values
    for the first mandatory parameter are mutually exclusively:
@@ -5792,8 +5809,8 @@
 
    The selection made stay valid until explicitly deselected!
 3  set
-!b set { <name> | <number> }, <typ>,<col>,<size>
-!b set { <name> | <number> }, <typ>,<r>,<g>,<b>,<size>
+!p set { <name> | <number> }, <typ>,<col>,<size>
+!p set { <name> | <number> }, <typ>,<r>,<g>,<b>,<size>
 
    This command allows to set the marker type <typ>, its color <col>
    and size <size> for the given atom or molecule. In case of atoms, 
@@ -5834,11 +5851,11 @@
    as an RGB triplet. If you give one value only, it is interpreted
    as gray shade in the range [0-1].
 3  show
-!b show
+!p show
 
    Shows the settings for the plotting parameters.
 3  thick
-!b thic <value>
+!p thic <value>
 
    Sets the half thickness of the plot slice in Angstrom.
    All atoms are written to the output file, if they are within a slice
@@ -5852,7 +5869,7 @@
    A string is read, which is used as title for the current frame of an
    XBS ==> 'prog frame' frame series.
 3  uvw
-!b uvw <u>,<v>,<w>
+!p uvw <u>,<v>,<w>
 
    Sets the direct space direction normal to the plot slice. The 
    corresponding reciprocal space direction <hkl> is calculated 
@@ -5865,7 +5882,7 @@
    Further restrictions on the atoms to be included can be applied by
    the ==> 'sel' and the ==> 'exte' commands.
 3  type
-!b typ { "crystal" | "projection" }
+!p typ { "crystal" | "projection" }
 
    This command switches between to plot modes. The typ "crystal" will
    write the atom coordinates of the selected (-> 'sele') atoms on a 
@@ -5875,7 +5892,7 @@
    See the KUPLOT online help for more details on the different file
    formats.
 3  vector
-!b vec <v1>,<v1>,<v3>
+!p vec <v1>,<v1>,<v3>
 
    Sets the vector that represents the center of the plot slice.
    All atoms are written to the output file, if they are within a slice
@@ -5922,24 +5939,24 @@
 !p xray    ! Switches to electron calculation
 
 3  electron
-!b electron
+!p electron
 
    Switches to electron calculation
 3  neut
-!b neut
+!p neut
 
    Switches to neutron diffraction.
 3  reset
-!b reset
+!p reset
 
    Reset all powder definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    Starts the calculation of the powder diffraction pattern.
 3  show
-!b show
+!p show
 
    Shows the current settings relevant to the calculation of a
    powder pattern.
@@ -5948,7 +5965,7 @@
    Sets various parameters for powder diffraction. 
 
 4  axis
-!b set axis,{"q"|"tth"}
+!p set axis,{"q"|"tth"}
 
    Defines the units of the x-axis you intend to use. 
    "q"    The units are in q=2PI h = 2pi dstar = 2pi 2 sin(theta)/lambda
@@ -5959,18 +5976,18 @@
    <qmin>,   <qmax>,   <deltaq>  to a "q" axis
    <tthmin>, <tthmax>, <delatth> to a "tth" axis. 
 4  back
-!b set back, <p0> [, <p1> [,...]]
+!p set back, <p0> [, <p1> [,...]]
 
    Set parameters for a background polynomial.
 4  bragg
-!b set bragg, {"incl"|"excl"}
+!p set bragg, {"incl"|"excl"}
 
    This command applies to the full integration mode only. It 
    allows you to include (=default) the intensities of the Bragg
    reflections or to exclude these.
    Actually rarely used these days...
 4  calc
-!b set calc,{"compl"|"debye"}
+!p set calc,{"compl"|"debye"}
 
    Defines the calculation mode. By selecting "compl" DISCUS will
    calculate the Fourier transform on a complete reciprocal lattice
@@ -5978,21 +5995,21 @@
    will tell DISCUS to calculate the powder pattern by using the 
    Debye formula. For details see the user manual.
 4  corrlin
-!b set corrlin, <value>
+!p set corrlin, <value>
 
    Active for PDF calculations only. 
    The parameter corrlin allows to sharpen the width of interatomic
    distances at short values with an 1/r dependence.
    sigma^2(thermal) - <value>/r
 4  corrquad
-!b set corrquad, <value>
+!p set corrquad, <value>
 
    Active for PDF calculations only. 
    The parameter corrquad allows to sharpen the width of interatomic
    distances at short values with an 1/r^2 dependence.
    sigma^2(thermal) - <value>/r^2
 4  delta
-!b set delta,<res>
+!p set delta,<res>
 
    This command allows to specify the instrument resolution <res>. The
    calculated powder pattern is convoluted with a Gaussian of the width
@@ -6000,44 +6017,44 @@
 
    See ==>'set profile' for a convolution by full profile function.
 4  disp
-!b set disp,[<switch>]
+!p set disp,[<switch>]
 
    Switches anomalous dispersion on /off. If <switch> is "anom" anomalous
    dispersion will be calculated, if the switch is omitted, no anomalous 
    dispersion is calculated.
 4  dtth
-!b set dtth,<value>
+!p set dtth,<value>
 
    The powder pattern is printed at 2-Theta steps of <value>. All reciprocal
    points are binned to a grid along 2-Theta with intervals of <value>
 4  dq
-!b set dq,<value>
+!p set dq,<value>
 
    The powder pattern is printed at q steps of <value>. All reciprocal
    points are binned to a grid along q with intervals of <value>
 4  dh
-!b set dh,<value>
+!p set dh,<value>
 
    The calculation is carried out in reciprocal space intervals of
    <value> long the h00 direction.
 4  dk
-!b set dk,<value>
+!p set dk,<value>
 
    The calculation is carried out in reciprocal space intervals of
    <value> long the 0k0 direction.
 4  dl
-!b set dl,<value>
+!p set dl,<value>
 
    The calculation is carried out in reciprocal space intervals of
    <value> long the 00l direction.
 4  energy
-!b energy <value>
+!p energy <value>
 
    Defines the energy of the radiation. 
    For X-rays and electrons the value is to be given in units of keV,
    for neutrons in units of meV.
 4  four
-!b set four,{"four"|"stack"}
+!p set four,{"four"|"stack"}
 
    Sets the switch for the Fourier calculation mode. 
    For all normal crystals this should be set to "four".
@@ -6045,10 +6062,10 @@
    The Fourier calculation by setting the switch to "stack". See the
    stacking fault information regarding the details of this Fourier mode.
 4  lpcor
-!b set lpcor, "none"
-!b set lpcor, "bragg" [,<theta_mono>]
-!b set lpcor, "neutron"
-!b set lpcor, "synchrotron" ,<polarisation_fraction> [,<theta_mono>]
+!p set lpcor, "none"
+!p set lpcor, "bragg" [,<theta_mono>]
+!p set lpcor, "neutron"
+!p set lpcor, "synchrotron" ,<polarisation_fraction> [,<theta_mono>]
 
    This command defines how the powder menu of DISCUS calculates the 
    Lorentz-Polarisation correction.
@@ -6068,11 +6085,11 @@
    The polarisation fraction is required. 
    Optionally you can specify the monochromator angle.
 4  preferred
-!b set preferred, "off"
-!b set preferred, {"rietveld"|"march"}
-!b set preferred, {"g1"|"damping"}, <damping>
-!b set preferred, {"g2"|"portion"}, <portion>
-!b set preferred, {"hkl"}, <h>,<k>,<l>
+!p set preferred, "off"
+!p set preferred, {"rietveld"|"march"}
+!p set preferred, {"g1"|"damping"}, <damping>
+!p set preferred, {"g2"|"portion"}, <portion>
+!p set preferred, {"hkl"}, <h>,<k>,<l>
 
    This command enables to calculate preferred orientation effects.
    Currently they can only be used if the full integration of reciprocal
@@ -6102,11 +6119,11 @@
    alpha**2  is the square of the acute angle between the vector h and the
              preferred orientation axis hkl. alpha is measured in degrees
 4  profile
-!b set profile,{"off" | "gauss" | "pseudo"}
-!b set profile,"eta",<eta>
-!b set profile,"uvw",<u>,<v>,<w>
-!b set profile,"asym",<a1>,<b1>,<a2>,<b2>
-!b set profile,"width",<width>
+!p set profile,{"off" | "gauss" | "pseudo"}
+!p set profile,"eta",<eta>
+!p set profile,"uvw",<u>,<v>,<w>
+!p set profile,"asym",<a1>,<b1>,<a2>,<b2>
+!p set profile,"width",<width>
 
    Defines the instrumental profile function. 
 
@@ -6142,13 +6159,13 @@
    and computational time.
 
 4  scale
-!b set scale,<value>
+!p set scale,<value>
 
    Sets a scale factor. The calculated powder pattern will be 
    multiplied by this scale factor. Most useful in combination
    with the background mode ==>'set back'
 4  sh
-!b set sh,<shift_h>
+!p set sh,<shift_h>
 
    This command applies to the full integration mode only. 
    It sets a shift of the grid on which intensities are calculated by 
@@ -6161,7 +6178,7 @@
    shift_h = plus/minus small values can be used to cover this finite
    width, while dh can be set to 1.0
 4  sk
-!b set sk,<shift_k>
+!p set sk,<shift_k>
 
    This command applies to the full integration mode only. 
    It sets a shift of the grid on which intensities are calculated by 
@@ -6169,7 +6186,7 @@
 
    See ==> 'set sh' for further info.
 4  sl
-!b set sl,<shift_l>
+!p set sl,<shift_l>
 
    This command applies to the full integration mode only. 
    It sets a shift of the grid on which intensities are calculated by 
@@ -6177,7 +6194,7 @@
 
    See ==> 'set sh' for further info.
 4  stepr
-!b set stepr,<value>
+!p set stepr,<value>
 
    This command applies to the Debye mode only. 
    The interatomic distances are binned to a histogram with step width
@@ -6188,14 +6205,14 @@
    distance is then 
    Histogram size * stepr 
 4  qmin
-!b set qmin,<value>
+!p set qmin,<value>
 
    Sets the lower limit for q.
    This must be set, if you intend to use the "Q" axis. 
    You also need to set a 2Theta-range if you want to write the output
    on a 2Theta scale.
 4  qmax
-!b set qmax,<value>
+!p set qmax,<value>
 
    Sets the upper limit for q. The powder pattern is calculated
    up to this q value.
@@ -6203,14 +6220,14 @@
    You also need to set a 2Theta-range if you want to write the output
    on a 2Theta scale.
 4  tthmin
-!b set tthmin,<value>
+!p set tthmin,<value>
 
    Sets the lower limit for 2-Theta.
    This must be set, if you intend to use the "2Theta" axis. 
    You also need to set a Q-range if you want to write the output
    on a 2Theta scale.
 4  tthmax
-!b set tthmax,<value>
+!p set tthmax,<value>
 
    Sets the upper limit for 2-Theta. The powder pattern is calculated
    up to this 2-Theta value.
@@ -6218,22 +6235,22 @@
    You also need to set a Q-range if you want to write the output
    on a 2Theta scale.
 4  temp
-!b set temp,<switch>
+!p set temp,<switch>
 
    sets whether temperature coefficients are to be used or not.
    Valid values for <switch> are "use" and "ignore". The first
    two letters of the switch are sufficient.
 4  wvle
-!b set wvle,{ <name> | <value> }
+!p set wvle,{ <name> | <value> }
 
    Defines the wave length to be used. Anomalous dispersion will only
    be calculated if the wave length is given as symbol.
 3  xray
-!b xray
+!p xray
 
    Switches to X-ray calculation.
 2  project
-!b project <u1>,<v1>,<w1>,<u2>,<v2>,<w2> [ ,<flag> ]
+!p project <u1>,<v1>,<w1>,<u2>,<v2>,<w2> [ ,<flag> ]
 
    This command calculates the projection of vector <uvw 1> onto the second
    vector <uvw 2> and the projection of the first vector onto the plane normal
@@ -6262,7 +6279,7 @@
 !p                            vector 2
 !p "res[7]"                   angle between vector 1 and vector 2
 2  property
-!b property
+!p property
 
    Switches to the property menu of DISCUS.
    Here you can perform operations related to the properties of
@@ -6298,10 +6315,10 @@
 !p set/clear ! Set or clear flag for atoms
 !p show      ! Show current property related settings
 3  prop
-!b prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
-!b prop {"ignore"|"present"|"absent"} , atom:<type>, 
-!b      conn:{<number>|<name>}, nmin:<number>, nmax:<number>,
-!b      emin:<number>, emax:<number>, no:<entry>
+!p prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
+!p prop {"ignore"|"present"|"absent"} , atom:<type>, 
+!p      conn:{<number>|<name>}, nmin:<number>, nmax:<number>,
+!p      emin:<number>, emax:<number>, no:<entry>
 
    Defines which properties an atom must have to be included in 
    commands ==> 'remove' ; 'replace'
@@ -6374,17 +6391,17 @@
    specify the atom type number instead of the atom name as in: 
    prop present, atom:7,conn:1, nmin:0, nmax:3 !Apply to atom type 7
 3  set/clear
-!b set   <flag>, "types",  {"all" | <iscat> [, <iscat...]}
-!b set   <flag>, "atoms"}, {"all" | <start>,<end>}
-!b clear <flag>, "types",  {"all" | <iscat> [, <iscat...]}
-!b clear <flag>, "atoms"}, {"all" | <start>,<end>}
+!p set   <flag>, "types",  {"all" | <iscat> [, <iscat...]}
+!p set   <flag>, "atoms"}, {"all" | <start>,<end>}
+!p clear <flag>, "types",  {"all" | <iscat> [, <iscat...]}
+!p clear <flag>, "atoms"}, {"all" | <start>,<end>}
 
    Set or clear the property bit for atoms of selected type or 
    for a range of atom numbers.
 
    The flag can be any of "domain", "outside", "external", "internal"
 2  purge
-!b purge ["type:"{"no"|"yes"}]
+!p purge ["type:"{"no"|"yes"}]
 
    Deletes all vacancies in the structure array, thus speeds up Fourier
    calculation.
@@ -6405,7 +6422,7 @@
    The affects all atoms whose type number is larger than 
    the deleted atom type!
 2  r2d
-!b r2d <h>,<k>,<l>
+!p r2d <h>,<k>,<l>
 
    This command transforms reciprocal space vector <hkl> into its corresponding
    coordinates in direct space. See "r2d" for the reverse transformation.
@@ -6415,7 +6432,7 @@
    The parallel, equivalent vector, normalized to 1/(length of [h,k,l]) 
    is stored in "res[4]", "res[5]", "res[6]"
 2  read
-!b read
+!p read
 
    Branches to reading level of DISCUS. At this level a new unit cell
    or structure may be read. The old structure is lost ! If necessary
@@ -6440,7 +6457,7 @@
 !p stru    ! Reads a file containing a whole crystal
 !p wait    ! Waits for user input (see main help)
 3  cell
-!b cell <name> [,<nx> [,<ny> [,<nz>]]]
+!p cell <name> [,<nx> [,<ny> [,<nz>]]]
 !p       [,"identical:"{"tolerate"|"none"}]
 !p       [,"radius:"<value>]
 !p       [,"occupancy:"{"clear"|"apply"|"ignore"}]
@@ -6483,14 +6500,14 @@
            in the input file. The actual atom list will be that
            of a fully occupied crystal.
 3  lcell
-!b lcell <name> [,<nx> [,<ny> [,<nz>]]]
+!p lcell <name> [,<nx> [,<ny> [,<nz>]]]
 
    This command is similar to -> cell, however in contrast to 'cell'
    only those atoms are treated as new atom type that have a different
    name or B value. This allows one to read large asymmetric units
    (e.g. from a protein) without creating that many different atom types.
 3  free
-!b free [<a>,<b>,<c>,<alpha>,<beta>,<gamma> [,<name> | <number> [, "2"]]
+!p free [<a>,<b>,<c>,<alpha>,<beta>,<gamma> [,<name> | <number> [, "2"]]
 
    No structure is read. The space group is set to "P1". The lattice
    constants are set to the optional values on the command line. 
@@ -6507,7 +6524,7 @@
    the optional eighth parameter may be set to "2" to indicate the 
    alternative origin choice.
 3  stru
-!b stru <name>
+!p stru <name>
 
    Reads a whole structure from file <name>.
    The space group information is ignored, nor is a check for consistency
@@ -6519,13 +6536,13 @@
    If the file ends in 'txt', 'TXT', a CMAKER-file format is assumed.
    If the file ends in 'cssr', 'CSSR', a RMCprofile-file format is assumed.
 3  exit
-!b exit
+!p exit
 
    Exits the read menu, in case no 'cell', 'free', or 'stru' command 
    is used.
 2  remove
-!b remove <start> [, <end> ]
-!b remove <start> [, <end> ] , "mole" [ ,"type", <t_start> [, <t_end>]]
+!p remove <start> [, <end> ]
+!p remove <start> [, <end> ] , "mole" [ ,"type", <t_start> [, <t_end>]]
 
    The parameters <start> and <t_start> can take one of the following values:
         { <start> | "all" | "last" }
@@ -6555,10 +6572,10 @@
 
    For all atoms that are removed, the property NORMAL is turned off.
 2  replace
-!b replace <index>,<at> [,<dbw>]
-!b replace <at1>,<at2>,{ "all" | <site> },<prob>
-!b replace <mo1>,<mo2>,"mol"
-!b replace <mtyp>,<mol>,"mol",<prob>
+!p replace <index>,<at> [,<dbw>]
+!p replace <at1>,<at2>,{ "all" | <site> },<prob>
+!p replace <mo1>,<mo2>,"mol"
+!p replace <mtyp>,<mol>,"mol",<prob>
 
    This command allows to replace atoms and molecules. The first two 
    variations operate on atoms. The first variation replaces the 
@@ -6590,7 +6607,7 @@
    will be replaced with molecule <mol> with the given probability 
    of <prob>.
 2  rmc
-!b rmc
+!p rmc
 
    Enter "Reverse Monte Carlo" section of discus. This part of the 
    program allows to "fit" a model atom configuration to measured
@@ -6624,8 +6641,8 @@
 !p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
 3  data
-!b data {"x-ray"|"neutron"},{<name>|<value>},<file>,<wic>,
-!b      <e11>,<e12>,<e13>,<e21>,<e22>,<e23>,<e31>,<e32>,<e33>
+!p data {"x-ray"|"neutron"},{<name>|<value>},<file>,<wic>,
+!p      <e11>,<e12>,<e13>,<e21>,<e22>,<e23>,<e31>,<e32>,<e33>
 
    This command reads the experimental data stored in <file>. The parameter
    "x-ray" / "neutron" selects what kind of scattering data are stored
@@ -6655,13 +6672,13 @@
    By repeating the data command you can read several planes with exp.
    data for the RMC fit. To start again use the 'rese' command.
 3  dese
-!b dese { "all" | <name> | <number> }, [ ... ]
+!p dese { "all" | <name> | <number> }, [ ... ]
 
    This command deselects atom-types given either by <name> or <number> 
    for the RMC moves, i.e. 'dese' those atom-types which should not be
    moved or switched.
 3  msel
-!b msel { "all" | <number> } [ , <number> ...]
+!p msel { "all" | <number> } [ , <number> ...]
 
    This command allows to select the molecule types to be used for
    the RMC refinement. By using 'msel' the atom selection becomes
@@ -6670,18 +6687,18 @@
    corresponding <number>. In order to use atoms again, use the 'sele'
    command.
 3  mdes
-!b mdes { "all" | <number> } [ , <number> ...]
+!p mdes { "all" | <number> } [ , <number> ...]
 
    This command deselects all or individual molecule types used in
    the RMC refinement.
 3  rese
-!b rese { "all" }
+!p rese { "all" }
 
    This command resets the RMC parameters. In this version only the
    'plane counter' is reset and the 'data' command will start reading
    plane 1 again.
 3  run
-!b run
+!p run
 
    Start the RMC fit. After the run is finished, the following values
    are stored in the res[i] variables:
@@ -6695,44 +6712,44 @@
 !p res[7] : DELTA CHI2 maximum value during the last run
 !p res[8] : elapsed time / cycle in seconds
 3  save
-!b save <subcommand>
+!p save <subcommand>
 
    This command is for saving the calculated intensities or the 
    resulting structure. Valid subcommands are:
 
 4  lots
-!b save "lots",<name>
+!p save "lots",<name>
 
    This command saves the current set of lot origins to the file
    named <name>. These lot origins can be used as default in subsequent
    refinement rather than creating a new set of random lots
    (-> 'set lots,..').
 4  stru
-!b save "stru",<name>
+!p save "stru",<name>
 
    This command saves the current structure to the file named <name>.
    The format is identical to the unit cell or structure file. Each
    atom is written in format A4,3(2X,F11.6),5X,F6.4. The filename
    can be created by an format string and one or more numbers -> filenames.
 4  scat
-!b save "scat",<plane>,<name>
+!p save "scat",<plane>,<name>
 
    Save "scat" saves the current computed intensities of plane <plane> in
    the following format: h,k,l,skal*(a**2+b**2)+back (= intensity).
 4  sym
-!b save "sym",<plane>,<sym>,<name>
+!p save "sym",<plane>,<sym>,<name>
 
    Does the same as 'save scat,..', but the user can save also the resulting
    intensities of symmetric equivalent planes  by giving the number of the
    sym.-transformation (1=data corresponding to input data).
 3  sele
-!b sele { "all" | <name> | <number> }, [ ... ]
+!p sele { "all" | <name> | <number> }, [ ... ]
 
    This command selects atom-types given either by <name> or <number> 
    for the RMC moves, i.e. 'sele' those atom-types which should be
    moved or switched during the RMC cycles.
 3  set
-!b set "subcommand"
+!p set "subcommand"
 
    This command allows to set most of the RMC parameters. The following
    "subcommands" are valid:
@@ -6757,7 +6774,7 @@
 !p "sym"      ! Controls if symmetric equivalent planes of input data should
 !p              be used for RMC calculations.
 4  aver
-!b set "aver",<per>
+!p set "aver",<per>
 
    This command sets the portion of the crystal, that should be used to
    calculate <F>. The variable <per> is given in %. The average structure
@@ -6773,7 +6790,7 @@
    the average from time to time during the RMC refinement if the
    average structure is changing.
 4  back
-!b set "back",{"on"|"off"},[<value>], [<plane>]
+!p set "back",{"on"|"off"},[<value>], [<plane>]
 
    This command controls if a background parameter should be calculated and
    used for the RMC fits. If the calculation of the background parameter
@@ -6782,7 +6799,7 @@
    current value of <value> is set for. If the parameter <plane> is omitted,
    the value of <value> is set for ALL experimental data planes.
 4  const
-!b set "const",<p1>,<p2>
+!p set "const",<p1>,<p2>
 
    This command allows to constrain the scaling factor and background
    parameter of the two input data planes number <p1> and <p2>. If 
@@ -6800,7 +6817,7 @@
    To unconstrain the planes again type 'set const 1,1', 'set const,2,2'
    and 'set const,3,3'.
 4  cycl
-!b set "cycl",<icyc>
+!p set "cycl",<icyc>
 
    This command sets the number of RMC moves to be done after the 
    'run' command. Note that the number given is the actual number of
@@ -6808,7 +6825,7 @@
    is normally defined as the number of moves necessary to visit
    every crystal site once on average.
 4  data
-!b set "data",{ "nipl" | "pgm" }
+!p set "data",{ "nipl" | "pgm" }
 
    This commands sets the data type of the experimental data files used
    as input for RMC and the corresponding output files. There are currently
@@ -6825,25 +6842,25 @@
 !p          into the ASCII PGM version, use the 'pnmnoraw' program,
 !p          which is part of the 'pbmplus' package.
 4  disp
-!b set "disp",<id>
+!p set "disp",<id>
 
    This command sets the update interval of the output. 
 4  dbw
-!b set "dbw",{"on"|"off"} [,<plane>,...]
+!p set "dbw",{"on"|"off"} [,<plane>,...]
 
    This command controls whether the Debye-Waller factor is ignored or
    used when the scattering amplitude is calculated. If no parameter
    <plane> is given, the setting affects ALL read data planes.
 4  log
-!b set "log",{"on"|"off"}
+!p set "log",{"on"|"off"}
 
    This command controls if in the RMC main loop the screen output should
    also be logged to the file "rmc.log". This file contains only the last
    output and should give the possibility to watch the programs progress
    because cached output redirection might not update often enough.
 4  lots
-!b lots "off"
-!b lots {"box" | "ellipsoid"},<lx>,<ly>,<lz>,<n>,{"yes" | "no"},[<fname>]
+!p lots "off"
+!p lots {"box" | "ellipsoid"},<lx>,<ly>,<lz>,<n>,{"yes" | "no"},[<fname>]
 
    This command allows to use the 'lot' option during the RMC refinement.
    For details about the command and its parameters see the help file
@@ -6867,8 +6884,8 @@
    be subtracted as well as <F>. This can be done using the command
    'set aver ..'.
 4  mdis
-!b set "mdis",{ "all" | <name> | <number> },
-!b            { "all" | <name> | <number> },<dist>
+!p set "mdis",{ "all" | <name> | <number> },
+!p            { "all" | <name> | <number> },<dist>
 
    This command sets the minimal allowed distance between two atom types
    to the value of <dist> A. A generated move will only be accepted
@@ -6876,9 +6893,9 @@
    atom-types to be selected can be specified by either name or number or
    all atom-types can be selected by typing "all".
 4  mode
-!b set "mode",<prob>,
-!b            { "shi[ft]" | "swc[hem]" | "swd[isp]" | "ext[ernal]" },
-!b           [{ "a[ll]"   | "l[ocal]"  | "sl[ocal]" | "si[te]"     }]
+!p set "mode",<prob>,
+!p            { "shi[ft]" | "swc[hem]" | "swd[isp]" | "ext[ernal]" },
+!p           [{ "a[ll]"   | "l[ocal]"  | "sl[ocal]" | "si[te]"     }]
 
    This command allows to select one of the three RMC operation modes.
 
@@ -6917,7 +6934,7 @@
 !p              second atom.
 !p
 4  move
-!b set "move",{ "all" | <name> | <number> },<sx>,<sy>,<sz>
+!p set "move",{ "all" | <name> | <number> },<sx>,<sy>,<sz>
 
    Sets an user defined sigma for the generates moves. The created shifts
    are Gaussian distributed. The default is a sigma of 0.2 unit cell. Note
@@ -6926,9 +6943,9 @@
    the molecule type, otherwise atoms are addressed by their <number> or
    <name>.
 4  range
-!b set "range","all"
-!b set "range",<qmin>,<qmax>
-!b set "range",<hmin>,<kmin>,<lmin>,<hmax>,<kmax>,<lmax>
+!p set "range","all"
+!p set "range",<qmin>,<qmax>
+!p set "range",<hmin>,<kmin>,<lmin>,<hmax>,<kmax>,<lmax>
 
    This command allows to set a range in Q which will be used for the
    RMC refinements. This can be useful if e.g. occupational disorder
@@ -6940,7 +6957,7 @@
    input data set for the fit. The Q-range can be given as <qmin>, <qmax>
    ( in reciprocal A) or as hkl's (<hmin>,...,<lmax>).
 4  scal
-!b set "scal",{"on"|"off"},[<value>], [<plane>]
+!p set "scal",{"on"|"off"},[<value>], [<plane>]
 
    This command controls if a scaling factor should be calculated and
    used for the RMC fits. If the calculation of the scaling factor is
@@ -6950,11 +6967,11 @@
    parameter <plane> is omitted, the value of <value> is set for ALL
    experimental data planes.
 4  sigm
-!b set "sigm",<sigma>
+!p set "sigm",<sigma>
 
    This command sets the value for SIGMA. CHI2 is calculated by
 
-!b    CHI2 = SUM (Fobs-Fcalc)**2/SIGMA**2
+!p    CHI2 = SUM (Fobs-Fcalc)**2/SIGMA**2
 
    The value of SIGMA is important for the calculation. A too large
    value will allow nearly every move and a too small value will 
@@ -6965,14 +6982,14 @@
    For test and debug runs a setting of SIGMA to -9999. will result
    in the acceptance of ALL moves.
 4  sym
-!b set "sym",{"on"|"off"}
+!p set "sym",{"on"|"off"}
 
    This commands controls the use of symmetric equivalent planes to the
    read data-planes for the RMC calculations. If this flag is set to "off",
    only the experimental data are used for CHI2 calculation, if the flag
    is "on" the symmetry of the measured data is taken into account.
 3  show
-!b show [<subcommand>]
+!p show [<subcommand>]
 
    Shows the current parameter settings of the RMC subsection. The following
    subcommands allow to select certain parameters of interest. The allowed
@@ -6985,15 +7002,15 @@
 !p "rval" : show R-values for current refinement
 !p "sym"  : show information about using symmetry information of read planes
 2  reset
-!b reset
+!p reset
 
    Places DISCUS into the state at program start. 
 
    Version info:v.5.24.0 
         resets: crystal, connectivity, plot and internal storage 
 2  save
-!b save
-!b save <name>
+!p save
+!p save <name>
 
    Saves the current structure to file <name>
 
@@ -7039,7 +7056,7 @@
 !p write   ! Defines which information to write to the file
 
 3  asym
-!b asym
+!p asym
 
    Shows the content of the asymmetric unit. The names of those atoms,
    a number that is used as index for its scattering type, their position
@@ -7052,7 +7069,7 @@
    unique and have a different temperature coefficient are included in
    the asymmetric unit.
 3  chem
-!b chem
+!p chem
 
    Displays the type of atoms present in the crystal. For each type of
    atom, its scattering curve number, its name and its temperature
@@ -7061,7 +7078,7 @@
    scattering type will remain in the list. This list could therefore 
    include more types of atoms than are actually present in the crystal.
 3  des
-!b des { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p des { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    Deselects choices made by ==> 'sel' . Possible values
    for the parameter are mutually exclusively:
@@ -7074,11 +7091,11 @@
 
    More than one atom may be deselected at once.
 3  outfile
-!b outfile <filename>
+!p outfile <filename>
 
    Sets the name of the output file to which the structure is written.
 3  prop
-!b prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
+!p prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
 
    Defines which properties an atom must have to be included in the plot.
 
@@ -7116,7 +7133,7 @@
    to the boundary can be set within the ==> 'domain' menu through
    the ==> 'domain/fuzzy' command.
 3  format
-!b format {"keyword" | "nokeyword" }
+!p format {"keyword" | "nokeyword" }
 
    The keyword controlled format uses keywords analogous to the commands 
    of DISCUS to describe the information in the structure file. See the
@@ -7137,7 +7154,7 @@
 
 
 3  incl
-!b incl { <start>,<end> | "all" }
+!p incl { <start>,<end> | "all" }
 
    The unit cell transformation includes all atoms numbered <start> to <end>
    inclusively. All other atoms are ignored. 
@@ -7150,8 +7167,8 @@
    In addition you can define the atoms that are affected by the 
    save process with the ==>'sele' and 'dese' commands.
 3  omit
-!b omit { "all" | "generator" | "ncell" | "symmetry" | "molecule" |
-!b         "object" | "scat" | "adp" | "occ" }
+!p omit { "all" | "generator" | "ncell" | "symmetry" | "molecule" |
+!p         "object" | "scat" | "adp" | "occ" }
 
    The keyword controlled format includes the mandatory lines :
    title
@@ -7194,7 +7211,7 @@
                 content is not written to the end of the structure file.
                 WARNING: All information about objects is lost!
 3  outf
-!b outf <filename>
+!p outf <filename>
 
    Defines the output file name.
    If the filename starts with the string 'internal', the file is not
@@ -7203,11 +7220,11 @@
 
    Resets the save menu to program start conditions.
 3  run
-!b run
+!p run
 
    Starts the writing to the output file.
 3  sel
-!b sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    This command serves to select those atoms that will be included
    in the saving to the output file.
@@ -7227,12 +7244,12 @@
 
    The selection made stay valid until explicitly deselected!
 3  show
-!b show
+!p show
 
    Shows the current parameters of the save menu.
 3  write
-!b write { "all" | "generator" | "ncell" | "symmetry" | "molecule" |
-!b         "object" | "domain" | "scat" | "adp" | "occ" }
+!p write { "all" | "generator" | "ncell" | "symmetry" | "molecule" |
+!p         "object" | "domain" | "scat" | "adp" | "occ" }
 
    The keyword controlled format includes the mandatory  and 
    automatically included lines :
@@ -7282,7 +7299,7 @@
    "domain"     If the crystal contains domains their type, character,
                 and content is written to the end of the structure file.
 2  seed
-!b seed [ <value> ]
+!p seed [ <value> ]
 
    Reinitializes the pseudo random generator. The seed passed to the 
    random generator is -abs(nint(value)). If the <value> is omitted,
@@ -7290,7 +7307,7 @@
    seconds passed since midnight, essentially initializing the sequence
    at a unknown fairly random point.
 2  shear
-!b shear
+!p shear
 
    This command enters the deformation menu. The commands in this
    subsection allow you to apply a deformation tensor to an object 
@@ -7324,7 +7341,7 @@
 !p uvw     ! Define the deformation plane
 !p vector  ! Define the deformation vector
 3  calc
-!b calc <x>,<y>,<z> {,<flag>}
+!p calc <x>,<y>,<z> {,<flag>}
 
    Calculates the effect of the current shear on vector <x>,<y>,<z>.
    The flag is allowed to be either "d" or "r", specifying a direct
@@ -7332,7 +7349,7 @@
    The result is displayed on screen and stored in the result
    variable "res[]". 3 values are stored, <x'>,<y'>,and <z'>. 
 3  des
-!b des { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p des { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    Deselects choices made by ==> 'sel' . Possible values
    for the parameter are mutually exclusively:
@@ -7345,7 +7362,7 @@
 
    More than one atom may be deselected at once.
 3  eigen
-!b eigen <nr>, <x>,<y>,<z> {,<value>}
+!p eigen <nr>, <x>,<y>,<z> {,<value>}
 
    Define the direction of the eigenvector number <nr>. <x>,<y>,<z> are
    the coordinates of the eigenvector in direct space. 
@@ -7362,7 +7379,7 @@
    three eigenvectors. This allows you to verify that all three 
    vectors are normal to each other.
 3  hkl
-!b hkl <h>,<k>,<l> [,<length>]
+!p hkl <h>,<k>,<l> [,<length>]
 
    Defines the deformation by providing a plane ==> 'hkl', 'uvw' and
    a deformation vector ==> 'vector'.
@@ -7386,7 +7403,7 @@
    those twice as far away are shifted twice as much. Points on 
    opposite sides of the plane are shifted in opposite directions.
 3  incl
-!b incl {<start>,<end> | "all" | "envi" }
+!p incl {<start>,<end> | "all" | "envi" }
 
    The shear operation includes all atoms numbered <start> to <end>
    inclusively. All other atoms are ignored. 
@@ -7402,12 +7419,12 @@
    In addition you can define the atoms that are affected by the 
    shear operation with the ==>'sele' and 'dese' commands.
 3  matrix
-!b matrix <11>,<12>,<13>,<21>,<22>,<23>,<31>,<32>,<33>
+!p matrix <11>,<12>,<13>,<21>,<22>,<23>,<31>,<32>,<33>
 
    This command defines explicitly the deformation tensor. All
    nine elements must be given.
 3  mincl
-!b mincl {<start>,<end> | "all" }
+!p mincl {<start>,<end> | "all" }
 
    The shear operation includes all molecules numbered <start> to <end>
    inclusively. All other molecules are ignored. 
@@ -7420,7 +7437,7 @@
    In addition you can define the molecules that are affected by the 
    shear operation with the ==>'msele' and 'mdese' commands.
 3  mdes
-!b mdes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p mdes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    Deselects choices made by ==> 'msel' . Possible values
    for the parameter are mutually exclusively:
@@ -7431,7 +7448,7 @@
 
    More than one molecule type may be deselected at once.
 3  msel
-!b msel { "all" | <number> } [ , <number> ...]
+!p msel { "all" | <number> } [ , <number> ...]
 
    This command serves to select
    those molecules that will be modified by the symmetry operation.
@@ -7451,7 +7468,7 @@
    by 'sel' are mutually
    exclusive. The symmetry operation uses either atoms,objects  or molecules.
 3  mode
-!b mode {"eigen"|"matrix"|"plane"|"rmatrix"}
+!p mode {"eigen"|"matrix"|"plane"|"rmatrix"}
 
    You can tell DISCUS which input you intend to use for the 
    definition of the deformation tensor. The commands ==> 'uvw', 'hkl'
@@ -7459,7 +7476,7 @@
    this flag as well. The last of these commands type before the final
    ==> 'run' determines the actual input mode that is assumed.
 3  odes
-!b odes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p odes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    Deselects choices made by ==> 'osel' . Possible values
    for the parameter are mutually exclusively:
@@ -7470,7 +7487,7 @@
 
    More than one objects type may be deselected at once.
 3  oincl
-!b oincl {<start>,<end> | "all" }
+!p oincl {<start>,<end> | "all" }
 
    The shear operation includes all objects numbered <start> to <end>
    inclusively. All other objects are ignored. 
@@ -7483,7 +7500,7 @@
    In addition you can define the objects that are affected by the 
    shear operation with the ==>'osele' and 'odese' commands.
 3  origin
-!b origin <x>,<y>,<z> [,{"crystal"|"molecule"]
+!p origin <x>,<y>,<z> [,{"crystal"|"molecule"]
 
    This commands sets the origin to which the shear operation refers to.
 
@@ -7505,7 +7522,7 @@
    will shift all atoms or objects with the shear that is applied at their
    respective origin but will not apply a shear to the internal distances.
 3  osel
-!b osel { "all" | <number> } [ , <number> ...]
+!p osel { "all" | <number> } [ , <number> ...]
 
    This command serves to select
    those objects that will be modified by the symmetry operation.
@@ -7525,17 +7542,17 @@
    exclusive. The symmetry operation uses either atoms or molecules,
    or objects.
 3  reset
-!b reset
+!p reset
 
    Reset all shear definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    Performs the actual deformation operation on the selected
    atom, molecule or object types.
 3  sel
-!b sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    This command executes serves to select
    those atoms that will be modified by the symmetry operation.
@@ -7555,11 +7572,11 @@
 
    The selection made stay valid until explicitly deselected!
 3  show
-!b show
+!p show
 
    Shows the current settings.
 3  uvw
-!b uvw <u>,<v>,<w> [,<length>]
+!p uvw <u>,<v>,<w> [,<length>]
 
    Defines the deformation by providing a plane ==> 'hkl', 'uvw' and
    a deformation vector ==> 'vector'.
@@ -7583,7 +7600,7 @@
    those twice as far away are shifted twice as much. Points on 
    opposite sides of the plane are shifted in opposite directions.
 3  vector
-!b vector <x>,<y>,<z>
+!p vector <x>,<y>,<z>
 
    Defines the deformation by providing a plane ==> 'hkl', 'uvw' and
    a deformation vector ==> 'vector'.
@@ -7598,7 +7615,7 @@
    those twice as far away are shifted twice as much. Points on 
    opposite sides of the plane are shifted in opposite directions.
 2  show
-!b show <subcommand>,..
+!p show <subcommand>,..
 
    This command allows to obtain various information about the 
    model crystal, DISCUS settings etc.
@@ -7606,7 +7623,7 @@
    Valid subcommands are :
 
 3  asym
-!b show "asym"
+!p show "asym"
 
    Shows the content of the asymmetric unit. The names of those atoms,
    a number that is used as index for its scattering type, their position
@@ -7619,9 +7636,9 @@
    unique and have a different temperature coefficient are included in
    the asymmetric unit.
 3  atom
-!b show "atom",<number> [,<end>]
-!b show "atom","all"
-!b show "atom","last"
+!p show "atom",<number> [,<end>]
+!p show "atom","all"
+!p show "atom","last"
 
    The type, position and isotropic B of atom number <number> are shown.
    If the optional second parameter <end> is given, all atoms in the
@@ -7637,13 +7654,13 @@
    If <end> is higher than the number of atoms in the crystal, <end> is 
    reset to the last atom in the crystal.
 3  bval
-!b show "bval",<a1>,<a2>
+!p show "bval",<a1>,<a2>
 
    This command shows the bond valence parameters r0 and b for the 
    specified atom pair <a1> and <a2>. The parameters are taken from
    a table prepared by I.D. Brown, McMaster University, ON, Canada.
 3  chem
-!b show "chem"
+!p show "chem"
 
    Displays the type of atoms present in the crystal. For each type of
    atom, its scattering curve number, its name and its temperature
@@ -7653,38 +7670,38 @@
    include more types of atoms than are actually present in the crystal.
    A short information about the content of the asymmetric unit is printed.
 3  cdim
-!b show "cdim"
+!p show "cdim"
 
    Prints the current crystal dimensions. The smallest and largest
    coordinates of any atom along x,y and z are printed.
 3  config
-!b show "config"
+!p show "config"
 
    This command lists the current configuration of DISCUS such as the
    maximum number of atoms.
 3  connectivity
-!b show "connectivity", <atom_no.>, <def.no.>
+!p show "connectivity", <atom_no.>, <def.no.>
 
    Show the list of neighbors around atom no. <atom_no.>, which have
    been found using definition number <def.no.> for the scattering
    type of atom no. <atom_no.>
    The list of atom numbers is copied into the result variable "res".
 3  envi
-!b show "environment"
+!p show "environment"
 
    All atoms in the current environment ==> 'find env' are listed. 
 3  error
-!b show "error"
+!p show "error"
 
    The error status of DISCUS is displayed. 
 3  menv
-!b show "menvironment" [,"full"]
+!p show "menvironment" [,"full"]
 
    All molecules in the current environment ==> 'find env' are listed. 
    If the optional "full" parameter is given, all atoms within each
    molecule are printed.
 3  metric
-!b show metric
+!p show metric
 
    Displays the current unit cell dimensions, the unit cell volume, the
    metric tensor and the corresponding reciprocal space values. 
@@ -7692,8 +7709,8 @@
    unit cell dimensions with the assignment lat[<i>]=<value>. 
    <i>=1 through 3 are a,b,c and <i>=4 through 6 are alpha, beta, gamma.
 3  molecule
-!b show "molecule",{"all" | "last"}
-!b show "molecule",<number> [,<end>]
+!p show "molecule",{"all" | "last"}
+!p show "molecule",<number> [,<end>]
 
    For each molecule in the range <number> to <end> the type, number of the
    atom in the crystal, position and isotropic B of all atoms in the molecule
@@ -7709,8 +7726,8 @@
    If <end> is higher than the number of molecules in the crystal, <end> is 
    reset to the last atom in the crystal.
 3  object
-!b show "object",{"all" | "last"}
-!b show "object",<number> [,<end>]
+!p show "object",{"all" | "last"}
+!p show "object",<number> [,<end>]
 
    For each object in the range <number> to <end> the type, number of the
    atom in the crystal, position and isotropic B of all atoms in the object
@@ -7726,7 +7743,7 @@
    If <end> is higher than the number of objects in the crystal, <end> is 
    reset to the last atom in the crystal.
 3  result
-!b show "result"
+!p show "result"
 
    The result array is shown on screen. The number of values shown
    depends on the last calculation performed.
@@ -7734,7 +7751,7 @@
    Further information about the crystal, its composition etc can be obtained
    by evaluating the corresponding ==> variable.
 3  scat
-!b show "scat", {<name> | <number> } [, {<name> | <number> }...]
+!p show "scat", {<name> | <number> } [, {<name> | <number> }...]
 
    Shows the scattering curve of the selected atom types, which may be
    given as the scattering number of as the element name.
@@ -7743,7 +7760,7 @@
    variable in the order:
    a1, a2, a3, a4,  b1, b2, b3, b4, c
 3  symmetry
-!b show "symmetry" [,{"full" | "symbol" | "xzy" | "matrix" }
+!p show "symmetry" [,{"full" | "symbol" | "xzy" | "matrix" }
 
    Shows all symmetry operations for the current space group.
 
@@ -7774,7 +7791,7 @@
 
    This produces a list that consists of the (3x4) symmetry matrices.
 2  spacegroup
-!b spacegroup {<spacegroup_name>|<spacegroup_nummer>} [, <origin_choice>}
+!p spacegroup {<spacegroup_name>|<spacegroup_nummer>} [, <origin_choice>}
 
    Sets the space group for the current structure.
    Be careful with this command, as DISCUS will blindly set the space group!
@@ -7784,7 +7801,7 @@
    The command is mostly useful when you want to lower the symmetry to 
    a subgroup.
 2  stack
-!b stack
+!p stack
 
    Switches to the stacking fault sub menu of DISCUS. 
    At this sub menu you create a crystal containing stacking faults.
@@ -7859,24 +7876,24 @@
 !p trans   ! Reads the translation vectors
 !p wait    ! Waits for user input (see main help)
 3  aver
-!b aver <u>,<v>,<w>
+!p aver <u>,<v>,<w>
 
    Sets the intended average translation.
    If the modulus is switched on ==> 'set modulus', and the mode of the
    translation ==> 'set trans' is set to "fixed", this vector is used.
 3  ccol
-!b ccol <nr>,<c1nr>,<c2nr>,...,<cmdtypenr>
+!p ccol <nr>,<c1nr>,<c2nr>,...,<cmdtypenr>
 
    Read a single column <nr> of the correlation matrix. Following the
    index <nr>, as many parameters as there are layer types must follow.
    The sum of any column need not be equal to one.
 3  cele
-!b cele <i>,<j>,<value>
+!p cele <i>,<j>,<value>
 
    Reads the value <value> that is stored in element <i>,<j> of the
    correlation matrix.
 3  create
-!b create
+!p create
 
    Creates the list of layer origins. No changes are done to the 
    actual structure, this is performed by the command ==> 'run'.
@@ -7892,14 +7909,14 @@
    starting at 0,0,0 and incrementing with [0,0,1]. This 
    list facilitates correlation analysis.
 3  crow
-!b crow <nr>,<cnr>1,<cnr>2,...,<cnrmdtype>
+!p crow <nr>,<cnr>1,<cnr>2,...,<cnrmdtype>
 
    Read a single row <nr> of the correlation matrix. Following the
    index <nr>, as many parameters as there are layer types must follow.
    The sum of any row need not be equal to one, as long as the sum of all
    rows is identical.
 3  dist
-!b dist { "matrix" | "file", <inputfile> | "list", <inputfile> }
+!p dist { "matrix" | "file", <inputfile> | "list", <inputfile> }
 
    This commands allows you to define how the sequence of layer types
    is determined.
@@ -7930,7 +7947,7 @@
    fourier option, very fast Fourier transformations of molecular
    crystals can be calculated.
 3  first
-!b first {"random" | <type_number>}
+!p first {"random" | <type_number>}
 
    Determines the type of the first layer type. 
    with the parameter "random", the first layer type is determined by
@@ -7939,7 +7956,7 @@
    Alternatively a <type number> fixes the first layer type to this 
    particular type.
 3  four
-!b four
+!p four
 
    A crystal with stacking faults can be created in the following step wise
    manner:
@@ -7964,17 +7981,17 @@
    The user can then write any desired output value using the ==>'output'
    sub menu.
 
-!b Note:
+!p Note:
    In order to calculate the Fourier transform of each layer type the atoms
    in the corresponding file are read into the internal structure array.
    A previous structure is lost! If necessary save this structure to file
    by the ==> 'save' command.
 
-!b Note:
+!p Note:
    DISCUS does not compare the space group or lattice constants in the 
    different layer files. You must make sure that these are identical.
 3  layer
-!b layer <filename>
+!p layer <filename>
 
    Defines a new layer type.
    The file <filename> must be a standard DISCUS input file that contains
@@ -7982,7 +7999,7 @@
    atoms in the layer. You have to create the layer beforehand using the
    tools of DISCUS.
 3  modulus
-!b modulus <x1>,<y1>,<z1>, <x2>,<y2>,<z2>
+!p modulus <x1>,<y1>,<z1>, <x2>,<y2>,<z2>
 
    Sets the two modulo vectors that are used to restrict the origins to
    a finite volume around the average translation vector. The plane
@@ -8009,13 +8026,13 @@
    DISCUS does NOT check whether the modulo vectors are translation vectors
    of the current space group!
 3  number
-!b number <n>
+!p number <n>
 
    Reads the number of layers to be created.
 3  random
-!b random prob,<value>
-!b random offset,< u>,< v>,< w>
-!b random sigma ,<su>,<sv>,<sw>
+!p random prob,<value>
+!p random offset,< u>,< v>,< w>
+!p random sigma ,<su>,<sv>,<sw>
  
    This command sets values for the random stacking faults. The program
    selects the next layer type by weighted random choice. The weights
@@ -8025,41 +8042,41 @@
    two modulo vectors is added, which results in a random distribution
    of the next layer origin.
 
-!b random prob,<value>
+!p random prob,<value>
    Sets the probability for random stacking faults. <value> must be between
    zero and one. Set the probability to zero to exclude random stacking
    faults.
    
-!b random offset,< u>,< v>,< w>
+!p random offset,< u>,< v>,< w>
    If specified this vector is added to the translation vector. You can
    use this offset to force an increased layer separation for random
    faults compared to regular stacking faults.
 
-!b random sigma ,<su>,<sv>,<sw>
+!p random sigma ,<su>,<sv>,<sw>
    Specifies the sigma's for a Gaussian distribution applied to the 
    components of the offset.
 3  rese
-!b rese
+!p rese
 
    Sets the number of layers and layer types back to zero.
 3  rotate
-!b rotate axis,  "normal",<u>,<v>,<w> [ "d" | "r" ]
-!b rotate axis,  "mod1",  <u>,<v>,<w> [ "d" | "r" ]
-!b rotate axis,  "mod2",  <u>,<v>,<w> [ "d" | "r" ]
-!b rotate mode, [ "all" | "fault" ]
-!b rotate sigma, "normal",<snormal> 
-!b rotate sigma, "mod1",  <smod1>
-!b rotate sigma, "mod2",  <smod2>
-!b rotate status,  [ "on" | "off" ]
+!p rotate axis,  "normal",<u>,<v>,<w> [ "d" | "r" ]
+!p rotate axis,  "mod1",  <u>,<v>,<w> [ "d" | "r" ]
+!p rotate axis,  "mod2",  <u>,<v>,<w> [ "d" | "r" ]
+!p rotate mode, [ "all" | "fault" ]
+!p rotate sigma, "normal",<snormal> 
+!p rotate sigma, "mod1",  <smod1>
+!p rotate sigma, "mod2",  <smod2>
+!p rotate status,  [ "on" | "off" ]
 
    This command sets values for rotational disorder of the stacking faults.
    The layers are rotated around three axes, which are defined by the 
    'axis' command. The angle of rotation is Gaussian distributed with mean
    value zero and sigma defined by the 'sigma' command.
 
-!b rotate axis,  "normal",<u>,<v>,<w> [ "d" | "r" ]
-!b rotate axis,  "mod1",  <u>,<v>,<w> [ "d" | "r" ]
-!b rotate axis,  "mod2",  <u>,<v>,<w> [ "d" | "r" ]
+!p rotate axis,  "normal",<u>,<v>,<w> [ "d" | "r" ]
+!p rotate axis,  "mod1",  <u>,<v>,<w> [ "d" | "r" ]
+!p rotate axis,  "mod2",  <u>,<v>,<w> [ "d" | "r" ]
 
    The parameter "axis" defines the three axes around which you can rotate
    the layers. The axis can be given in real space coordinates "d" or
@@ -8073,7 +8090,7 @@
    If you tilt the layer around "mod1" or "mod2" the outer sections of the
    layer might overlap with the previous layer!
 
-!b rotate mode, [ "all" | "fault" ]
+!p rotate mode, [ "all" | "fault" ]
 
    The rotational disorder can affect all layers individually, regardless
    whether the previous layer was of the same type as the current layer or
@@ -8083,9 +8100,9 @@
    All following layers of identical type up to the next stacking fault are
    rotated by the same angle.
 
-!b rotate sigma, "normal",<snormal> 
-!b rotate sigma, "mod1",  <smod1>
-!b rotate sigma, "mod2",  <smod2>
+!p rotate sigma, "normal",<snormal> 
+!p rotate sigma, "mod1",  <smod1>
+!p rotate sigma, "mod2",  <smod2>
 
    The rotation is Gaussian distributed with individual sigma for each axis.
    The mean value of the distribution is zero. Each new angle is calculated
@@ -8094,25 +8111,25 @@
    throughout the crystal.
    A sigma of zero fixes the rotations around the respective axis to zero.
 
-!b rotate status,  [ "on" | "off" ]
+!p rotate status,  [ "on" | "off" ]
 
    The rotational disorder is only effective if its status is switched "on".
 3  reset
-!b reset
+!p reset
 
    Reset all stack definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    Decorates the origins with the corresponding atom distribution. Any
    previously existing structure is lost.
 3  set
-!b set "aver",<value>
-!b set "modulus" , { "off" | "on" }
-!b set "trans" , { "calculate" | "fixed" }
+!p set "aver",<value>
+!p set "modulus" , { "off" | "on" }
+!p set "trans" , { "calculate" | "fixed" }
 
-!b set "aver",<value>
+!p set "aver",<value>
    If the value of <value> is not equal to zero, the average <F> is
    subtracted from the actual structure factor F. 
    Otherwise the average <F> is calculated using the whole crystal
@@ -8121,7 +8138,7 @@
 !p ==> "four"
 !p ==> "discus four set aver"
 
-!b set "modulus" , { "off" | "on" }
+!p set "modulus" , { "off" | "on" }
    If the modulus is set "off", each origin is calculated by adding
    the corresponding translation vector to the previous origin. This
    way the crystal grows along the average translation vector. The 
@@ -8138,7 +8155,7 @@
    you can restrict the crystal to any arbitrary direction by defining
    the average vector ==> 'set trans', ==> 'aver'.
 
-!b set "trans" , { "calculate" | "fixed" }
+!p set "trans" , { "calculate" | "fixed" }
    You have two choices to restrict the crystal growth once the 
    modulus is set on.
    The average translation can be fixed to the value given by
@@ -8146,11 +8163,11 @@
    "fixed". Alternatively the average translation is computed using
    the array of the translation vectors and the correlation matrix.
 3  show
-!b show
+!p show
 
    Shows the current settings.
 3  sigma
-!b sigma <i>,<j>,<sx>,<sy>,<sz>
+!p sigma <i>,<j>,<sx>,<sy>,<sz>
 
    Read the sigmas of the translation vector between layer type <i> and <j>.
    The current origin of any layer is calculated by adding the translation
@@ -8158,7 +8175,7 @@
    If any sigma is non-zero, a Gaussian distributed value with mean value of
    zero is added to the corresponding vector component.
 3  trans
-!b trans <i>,<j>,<tx>,<ty>,<tz>
+!p trans <i>,<j>,<tx>,<ty>,<tz>
 
    Reads the components of the translation vector between layers <i> and <j>.
    The current origin of any layer is calculated by adding the translation
@@ -8214,12 +8231,14 @@
 !p set        ! Make settings related to surfaces
 !p show       ! Show the current surface related settings
 3  boundary
-!b boundary "hkl",h,k,l [,<distance>] [,{"inside"}|{"outside"}]
-!b boundary "form",h,k,l [,<distance>] [,{"inside"}|{"outside"}]
-!b boundary "form","cubeoct",<distance> [,{"inside"}|{"outside"}]
-!b boundary "sphere",<radius> [,{"inside"}|{"outside"}]
-!b boundary "ellipsoid",<diam_a>, <diam_b>, <diam_c> [,{"inside"}|{"outside"}]
-!b boundary "cylinder",<radius>,<half-height> [,{"inside"}|{"outside"}]
+!p boundary "hkl",h,k,l [,<distance>] [,{"inside"}|{"outside"}]
+!p boundary "form",h,k,l [,<distance>] [,{"inside"}|{"outside"}]
+!p boundary "form","cubeoct",<distance> [,{"inside"}|{"outside"}]
+!p boundary "sphere",<radius> [,{"inside"}|{"outside"}]
+!p boundary "ellipsoid",<diam_a>, <diam_b>, <diam_c> [,{"inside"}|{"outside"}]
+!p boundary "cylinder",<radius>,<half-height> [,{"inside"}|{"outside"}]
+!p boundary "local"
+
             Optional parameters for all forms are:
             "centx:"<center_x>   The central location for the 
             "centy:"<center_y>   boundary is at this point
@@ -8303,6 +8322,11 @@
           are inside the sphere.
           If the parameter is "outside", those atoms remain that are on 
           the outside of the sphere.
+   "local"  With this command version, no atoms are removed. The structure
+          is analyzed if any atom has a very one sided environment, 
+          meaning that all neighboring atoms are displaced in the same 
+          direction compared to the central atom. If this is the case the
+          central atom is flagged as a surface atom.
 
    The optional parameters "accum" and "exec" apply to planar surfaces
    only. Their main purpose is to create interior closed surfaces
@@ -8327,7 +8351,7 @@
    which the optional parameter "exec:run" is used. A warning message
    will be flagged otherwise.
 3  character
-!b char <atom_no> [,{"equal"}|{any}] [, "show"]
+!p char <atom_no> [,{"equal"}|{any}] [, "show"]
 
    Determines the surface character of atom number <atom_no>.
    The result can be:
@@ -8360,8 +8384,8 @@
 
    Make various setting related to surfaces
 
-!b set distance, {"external" | "internal" | "all"} , <atom_list>, <distance>
-!b set distance, {"external" | "internal" | "all"} , {"default" | "off"}
+!p set distance, {"external" | "internal" | "all"} , <atom_list>, <distance>
+!p set distance, {"external" | "internal" | "all"} , {"default" | "off"}
 
    Defines the distances between those atoms in <atom_list> and the
    specified surface. All atoms of the selected type that are closer
@@ -8396,12 +8420,12 @@
    "off"
    A value of zero Angstrom. No surface property flag will be set.
 3  show
-!b show
+!p show
 
    Show the current surface related settings.
 2  switch
-!b switch <atom1>,<atom2>
-!b switch <mole1>,<mole2>,"mol"
+!p switch <atom1>,<atom2>
+!p switch <mole1>,<mole2>,"mol"
 
    The atoms number <atom1> and <atom2> switch position. Internally, the
    chemistry of the two atoms is switched, while the positions remain
@@ -8412,7 +8436,7 @@
    are interchanged. The origin of the two molecules (position of atom 1)
    are unchanged.
 2  symmetry
-!b symmetry
+!p symmetry
 
    Switches to the symmetry sub menu of DISCUS. You can define a general 
    symmetry operation in triclinic space such as a rotation around a 
@@ -8468,12 +8492,12 @@
 !p use     ! Defines the space group symmetry matrix to be used
 !p wait    ! Waits for user input (see main help)
 3  angle
-!b angle <value>
+!p angle <value>
 
    Sets the angle of the symmetry operation. The angle must be given in
    degrees. No limit applies to the numerical value.
 3  asym
-!b asym
+!p asym
 
    Shows the content of the asymmetric unit. The names of those atoms,
    a number that is used as index for its scattering type, their position
@@ -8486,7 +8510,7 @@
    unique and have a different temperature coefficient are included in
    the asymmetric unit.
 3  calc
-!b calc x,y,z [,"d" | "r" ]
+!p calc x,y,z [,"d" | "r" ]
 
    Calculates the symmetry transformation for a single point <x,y,z>.
    The current settings for the symmetry operation are used to transform
@@ -8498,7 +8522,7 @@
    as a reciprocal space vector and the corresponding symmetry matrix in
    reciprocal space is used.
 3  chem
-!b chem
+!p chem
 
    Displays the type of atoms present in the crystal. For each type of
    atom, its scattering curve number, its name and its temperature
@@ -8507,7 +8531,7 @@
    scattering type will remain in the list. This list could therefore 
    include more types of atoms than are actually present in the crystal.
 3  des
-!b des { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p des { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    Deselects choices made by ==> 'sel' .
    Be sure to combine the 'des', 'sel' and 'incl' commands and
@@ -8525,7 +8549,7 @@
 
    More than one atom may be deselected at once.
 3  hkl
-!b hkl <h>,<k>,<l>
+!p hkl <h>,<k>,<l>
 
    Specifies the direction of the symmetry axis in reciprocal space
    coordinates. The corresponding direct space coordinates are calculated 
@@ -8533,7 +8557,7 @@
    Alternatively you may specify the direction in direct space by the
    ==> 'uvw" command.
 3  incl
-!b incl {<start>,<end> | "all" | "envi" }
+!p incl {<start>,<end> | "all" | "envi" }
 
    This command serves to choose wich actual atoms
    will be modified by the symmetry operation.
@@ -8559,7 +8583,7 @@
    In addition you can define the atoms that are affected by the 
    symmetry operation with the ==>'sele' and 'dese' commands.
 3  mdes
-!b mdes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p mdes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    Deselects choices made by ==> 'msel'.
 
@@ -8575,7 +8599,7 @@
 
    More than one molecule type may be deselected at once.
 3  mincl
-!b mincl {<start>,<end> | "all" } [ , "group", <first> [, <excl1>...]]
+!p mincl {<start>,<end> | "all" } [ , "group", <first> [, <excl1>...]]
 
    This command serves to select those actual molecule numbers 
    that will be modified by the symmetry operation.
@@ -8613,7 +8637,7 @@
    name and the ADP of two atoms in the cell file were identical. 
    
 3  mode
-!b mode { "copy" | "repl" } [ , { "new" | "old" } ]
+!p mode { "copy" | "repl" } [ , { "new" | "old" } ]
         [, "occupied:"{"any"|"empty"}]
         [, "radius:"<value>]
 
@@ -8642,7 +8666,7 @@
    With these defaults the new position may be occupied by 
    previous atoms. 
 3  msel
-!b msel { "all" | <number> } [ , <number> ...]
+!p msel { "all" | <number> } [ , <number> ...]
 
    This command serves to select those molecule types 
    that will be modified by the symmetry operation.
@@ -8671,7 +8695,7 @@
    same internal variable to store which atoms/molecules are selected.
    Be careful when switching between msel/sel mdes/des.
 3  odes
-!b odes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p odes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    Deselects choices made by ==> 'osel' . Possible values
    for the parameter are mutually exclusively:
@@ -8682,7 +8706,7 @@
 
    More than one object type may be deselected at once.
 3  oincl
-!b oincl {<start>,<end> | "all" }
+!p oincl {<start>,<end> | "all" }
 
    The symmetry operation includes all objects numbered <start> to <end>
    inclusively. All other objects are ignored. 
@@ -8695,8 +8719,8 @@
    In addition you can define the objects that are affected by the 
    symmetry operation with the ==>'osele' and 'odese' commands.
 3  origin
-!b origin <x>,<y>,<z> [, { "mol" | "cryst" } ]
-!b origin "atom", <number> [, { "molecule" | "crystal" } ]
+!p origin <x>,<y>,<z> [, { "mol" | "cryst" } ]
+!p origin "atom", <number> [, { "molecule" | "crystal" } ]
 
    Specifies the origin of the symmetry operation in direct space coordinates.
    The symmetry axis intersects this point and has the direction specified
@@ -8718,7 +8742,7 @@
    symmetry operation, the origin is adapted for each individual molecule.
 
 3  osel
-!b osel { "all" | <number> } [ , <number> ...]
+!p osel { "all" | <number> } [ , <number> ...]
 
    This command serves to select
    those objects that will be modified by the symmetry operation.
@@ -8737,7 +8761,7 @@
    The selection of objects by 'osel' and atoms by 'sel' are mutually
    exclusive. The symmetry operation uses either atoms or objects.
 3  power
-!b power <n> {, "multiple" | "single" }
+!p power <n> {, "multiple" | "single" }
 
    Sets the power of the symmetry operation. The symmetry operation is
    applied <n> times.
@@ -8757,16 +8781,16 @@
    application of the symmetry operation, the position of the second from
    a twofold application etc. 
 3  reset
-!b reset
+!p reset
 
    Reset all symmetry definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    Starts the symmetry operation.
 3  sel
-!b sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    This command serves to select those atom types 
    that will be modified by the symmetry operation.
@@ -8791,11 +8815,11 @@
 
    The selection made stay valid until explicitly deselected!
 3  show
-!b show
+!p show
 
    Shows the current parameters of the symmetry operation.
 3  trans
-!b trans <t1>,<t2>,<t3>
+!p trans <t1>,<t2>,<t3>
 
    Sets the translational part of the symmetry operation. 
    The translation is applied after the rotation according to the matrix
@@ -8806,15 +8830,15 @@
    Here, r is the original position, r' its image, S the symmetry matrix
    and t the translation vector.
 3  type
-!b type {"proper" | "improper" }
+!p type {"proper" | "improper" }
 
    A general rotation may be either a "proper" or an "improper" rotation. 
    An improper rotation is a normal rotation followed by an inversion. 
    To create, for example, a mirror operation specify a 180 degree angle
    and an improper rotation.
 3  uvw
-!b uvw <h>,<k>,<l>
-!b uvw "atoms", <from>, <to> [ ,{"crystal"|"molecule"}]
+!p uvw <h>,<k>,<l>
+!p uvw "atoms", <from>, <to> [ ,{"crystal"|"molecule"}]
 
    Specifies the direction of the symmetry axis in direct space
    coordinates. The corresponding reciprocal space coordinates are calculated 
@@ -8833,7 +8857,7 @@
    ==> 'hkl" command.
 
 3  use
-!b use <number>
+!p use <number>
 
    Define the space group symmetry matrix to be used. 
    The symmetry matrix is used as is, therefore this command is 
@@ -8842,7 +8866,7 @@
    The use of any of these commands will automatically switch off the
    space group symmetry matrix.
 2  transform
-!b tran
+!p tran
 
    Switches to the unit cell transformation sub menu of DISCUS. 
    At this sub level you can define the relationship between an old and a
@@ -8919,35 +8943,35 @@
 !p zold    ! Sets the old coordinate "z" in terms of the new x,y,z
 
 3  anew
-!b anew a,b,c
+!p anew a,b,c
 
    Defines the new base vector "a" in terms of multiples <a>, <b>, <c> of
    the old base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'anew','bnew' and 'cnew'.
 3  aold
-!b aold a,b,c
+!p aold a,b,c
 
    Defines the old base vector "a" in terms of multiples <a>, <b>, <c> of
    the new base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'aold','bold' and 'cold'.
 3  asnew
-!b asnew a,b,c
+!p asnew a,b,c
 
    Defines the new reciprocal base vector "a" in terms of 
    multiples <a>, <b>, <c> of the old reciprocal base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'asnew','bsnew' and 'csnew'.
 3  asold
-!b asold a,b,c
+!p asold a,b,c
 
    Defines the old reciprocal base vector "a" in terms of 
    multiples <a>, <b>, <c> of the new reciprocal base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'asold','bsold' and 'csold'.
 3  asym
-!b asym
+!p asym
 
    Shows the content of the asymmetric unit. The names of those atoms,
    a number that is used as index for its scattering type, their position
@@ -8960,35 +8984,35 @@
    unique and have a different temperature coefficient are included in
    the asymmetric unit.
 3  bnew
-!b bnew a,b,c
+!p bnew a,b,c
 
    Defines the new base vector "b" in terms of multiples <a>, <b>, <c> of
    the old base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'anew','bnew' and 'cnew'.
 3  bold
-!b bold a,b,c
+!p bold a,b,c
 
    Defines the old base vector "b" in terms of multiples <a>, <b>, <c> of
    the new base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'aold','bold' and 'cold'.
 3  bsnew
-!b bsnew a,b,c
+!p bsnew a,b,c
 
    Defines the new reciprocal base vector "b" in terms of 
    multiples <a>, <b>, <c> of the old reciprocal base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'asnew','bsnew' and 'csnew'.
 3  bsold
-!b bsold a,b,c
+!p bsold a,b,c
 
    Defines the old reciprocal base vector "b" in terms of 
    multiples <a>, <b>, <c> of the new reciprocal base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'asold','bsold' and 'csold'.
 3  c2new 
-!b c2new x,y,z [, ["d" | "r" } ]
+!p c2new x,y,z [, ["d" | "r" } ]
    Calculates the transformation from the old coordinate system to the new
    system for a single vector <x>,<y>,<z>. Default is a direct space vector,
    the fourth optional parameter allows you to define <x>,<y>,<z> as a
@@ -8996,7 +9020,7 @@
    on the screen and stored in the first three elements of the result array
    "res[i]".
 3  c2old
-!b c2old x,y,z [, ["d" | "r" } ]
+!p c2old x,y,z [, ["d" | "r" } ]
    Calculates the transformation from the new coordinate system to the old
    system for a single vector <x>,<y>,<z>. Default is a direct space vector,
    the fourth optional parameter allows you to define <x>,<y>,<z> as a
@@ -9004,21 +9028,21 @@
    on the screen and stored in the first three elements of the result array
    "res[i]".
 3  csnew
-!b csnew a,b,c
+!p csnew a,b,c
 
    Defines the new reciprocal base vector "c" in terms of 
    multiples <a>, <b>, <c> of the old reciprocal base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'asnew','bsnew' and 'csnew'.
 3  csold
-!b csold a,b,c
+!p csold a,b,c
 
    Defines the old reciprocal base vector "c" in terms of 
    multiples <a>, <b>, <c> of the new reciprocal base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'asold','bsold' and 'csold'.
 3  chem
-!b chem
+!p chem
 
    Displays the type of atoms present in the crystal. For each type of
    atom, its scattering curve number, its name and its temperature
@@ -9027,21 +9051,21 @@
    scattering type will remain in the list. This list could therefore 
    include more types of atoms than are actually present in the crystal.
 3  cnew
-!b cnew a,b,c
+!p cnew a,b,c
 
    Defines the new base vector "c" in terms of multiples <a>, <b>, <c> of
    the old base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'anew','bnew' and 'cnew'.
 3  cold
-!b cold a,b,c
+!p cold a,b,c
 
    Defines the old base vector "c" in terms of multiples <a>, <b>, <c> of
    the new base vectors.
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'aold','bold' and 'cold'.
 3  des
-!b des { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p des { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    Deselects choices made by ==> 'sel' . Possible values
    for the parameter are mutually exclusively:
@@ -9054,7 +9078,7 @@
 
    More than one atom may be deselected at once.
 3  h2new
-!b h2new <infile>
+!p h2new <infile>
 
    Transforms the reflections read from <infile> into reflections according
    to the new base system. The input format is the SHEXL format(3i4,2f8.2,i4).
@@ -9065,7 +9089,7 @@
    the file <infile>".rest" as hkl(new), intensity, sigma, batch, hkl(old).
    Here hkl(new) are real values.
 3  h2old
-!b h2old <infile>
+!p h2old <infile>
 
    Transforms the reflections read from <infile> into reflections according
    to the old base system. The input format is the SHEXL format(3i4,2f8.2,i4).
@@ -9076,7 +9100,7 @@
    the file <infile>".rest" as hkl(old), intensity, sigma, batch, hkl(new)
    Here hkl(old) are real values.
 3  incl
-!b incl { <start>,<end> | "all" }
+!p incl { <start>,<end> | "all" }
 
    The unit cell transformation includes all atoms numbered <start> to <end>
    inclusively. All other atoms are ignored. 
@@ -9089,26 +9113,26 @@
    In addition you can define the atoms that are affected by the 
    unit cell transformation operation with the ==>'sele' and 'dese' commands.
 3  onew
-!b onew a,b,c
+!p onew a,b,c
 
    Defines the position of the new origin in terms of multiples <a>,<b>,<c>
    of the old base vectors. The default at program startup is 0.0, 0.0, 0.0
 3  oold
-!b oold a,b,c
+!p oold a,b,c
 
    Defines the position of the old origin in terms of multiples <a>,<b>,<c>
    of the new base vectors. The default at program startup is 0.0, 0.0, 0.0
 3  reset
-!b reset
+!p reset
 
    Reset all transformation definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    Starts the transformation operation.
 3  sel
-!b sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    This command serves to select
    those atoms that will be modified by the unit cell transformation.
@@ -9129,18 +9153,18 @@
 
    The selection made stay valid until explicitly deselected!
 3  set
-!b set "deltahkl",<value>
+!p set "deltahkl",<value>
 
    Sets the value of deltahkl to <value>, as needed for ==> 'h2new' and
    'h2old'. When DISCUS transforms a list of reflections, it checks, 
    how close the transformed values are to integer values h,k,l. The 
    allowed deviation from integer numbers is set by this command.
 3  show
-!b show
+!p show
 
    Shows the current parameters of the transformation operation.
 3  xnew
-!b xnew a,b,c
+!p xnew a,b,c
 
    Defines the transformation through the relationship between the new 
    "x" coordinate of an atom in terms of multiples <x>, <y>, <z> of
@@ -9148,7 +9172,7 @@
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'xnew','ynew' and 'znew'.
 3  xold
-!b xold a,b,c
+!p xold a,b,c
 
    Defines the transformation through the relationship between the old 
    "x" coordinate of an atom in terms of multiples <x>, <y>, <z> of
@@ -9156,7 +9180,7 @@
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'xold','yold' and 'zold'.
 3  ynew
-!b ynew a,b,c
+!p ynew a,b,c
 
    Defines the transformation through the relationship between the new 
    "y" coordinate of an atom in terms of multiples <x>, <y>, <z> of
@@ -9164,7 +9188,7 @@
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'xnew','ynew' and 'znew'.
 3  yold
-!b yold a,b,c
+!p yold a,b,c
 
    Defines the transformation through the relationship between the old 
    "y" coordinate of an atom in terms of multiples <x>, <y>, <z> of
@@ -9172,7 +9196,7 @@
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'xold','yold' and 'zold'.
 3  znew
-!b znew a,b,c
+!p znew a,b,c
 
    Defines the transformation through the relationship between the new 
    "z" coordinate of an atom in terms of multiples <x>, <y>, <z> of
@@ -9180,7 +9204,7 @@
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'xnew','ynew' and 'znew'.
 3  zold
-!b zold a,b,c
+!p zold a,b,c
 
    Defines the transformation through the relationship between the old 
    "z" coordinate of an atom in terms of multiples <x>, <y>, <z> of
@@ -9188,8 +9212,8 @@
    If you choose this definition of the unit cell transformation, you MUST
    define all three ==> 'xold','yold' and 'zold'.
 2  ther
-!b ther [{"all" | "2d"}]
-!b ther "mol",[{"all" | "2d"}]
+!p ther [{"all" | "2d"}]
+!p ther "mol",[{"all" | "2d"}]
    Error notice: 
    Previous to Version 5.13.0
    the ==> 'therm' command erroneously used too large a displacement.
@@ -9316,7 +9340,7 @@
    As shown in the example above, arithmetic operations can be nested
    and grouped by brackets "(" and ")".
 2  vprod
-!b vprod <u1>,<v1>,<w1>,<u2>,<v2>,<w2> [ ,<flag> ]
+!p vprod <u1>,<v1>,<w1>,<u2>,<v2>,<w2> [ ,<flag> ]
 
    This command calculates the vector product <uvw 1> X <uvw 2>.
    The <flag> is a string of three characters that indicates whether the
@@ -9337,7 +9361,7 @@
    The output vector is stored in the result variable:
    "res[1]","res[2]","res[3]" vector product of vector 1 and vector 2
 2  waves
-!b wave
+!p wave
 
    Displaces the atoms along a wave. It generates sub level with prompt
    "discus/wave >".
@@ -9384,16 +9408,16 @@
 !p vect    ! Sets wave vector
 !p wait    ! Waits for user input (see main help)
 3  acco
-!b acco
+!p acco
 
    Sets the wave type to acoustic, atoms of opposite charge are
    displaced in the same direction.
 3  amp
-!b amp <value>
+!p amp <value>
 
    Sets the amplitude in Angstrom
 3  asym
-!b asym
+!p asym
 
    Shows the content of the asymmetric unit. The names of those atoms,
    a number that is used as index for its scattering type, their position
@@ -9406,7 +9430,7 @@
    unique and have a different temperature coefficient are included in
    the asymmetric unit.
 3  chem
-!b chem
+!p chem
 
    Displays the type of atoms present in the crystal. For each type of
    atom, its scattering curve number, its name and its temperature
@@ -9415,13 +9439,13 @@
    scattering type will remain in the list. This list could therefore 
    include more types of atoms than are actually present in the crystal.
 3  dens
-!b dens
+!p dens
 
    Sets the type of the wave to be a density wave. All atoms selected
    by 'sel' or 'repl' will be modulated by the wave. The probability
    with which an atom is present oscillates between 'plow' and 'phigh'.
 3  des
-!b des { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p des { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    Deselects choices made by ==> 'sel' or ==> 'repl'. Possible values
    for the parameter are mutually exclusively:
@@ -9434,9 +9458,9 @@
 
    More than one atom may be deselected at once.
 3  func
-!b func "box" [,<delta>]
-!b func "sinus"
-!b func "triang" 
+!p func "box" [,<delta>]
+!p func "sinus"
+!p func "triang" 
 
    Sets the type of wave function used. The parameter can be any of the 
    strings listed.
@@ -9478,20 +9502,20 @@
 !p           The point at 0/4 = 4/4 wave length has the occupation
 !p           probability of <plow>.
 3  len
-!b len <value>
+!p len <value>
 
    Sets the wave length in Angstrom
 3  long
-!b long
+!p long
 
    Sets the wave type to longitudinal
 3  mdes
-!b mdes { "all" | <number> } [ , <number> ...]
+!p mdes { "all" | <number> } [ , <number> ...]
 
    This command deselects all or individual molecule types used for
    the plotting output.
 3  msel
-!b msel { "all" | <number> } [ , <number> ...]
+!p msel { "all" | <number> } [ , <number> ...]
 
    This command allows to select the molecule types to be used for
    the plotting output. By using 'msel' the atom selection becomes
@@ -9500,7 +9524,7 @@
    corresponding <number>. In order to use atoms again, use the 'sele'
    command.
 3  mrep
-!b mrep <typ1>,<typ2> [,"viceversa"]
+!p mrep <typ1>,<typ2> [,"viceversa"]
 
    This command selects the molecules that will be replaced by a density 
    function. The parameter <typ1> specifies the molecule type to 
@@ -9519,7 +9543,7 @@
    Keep in mind that you should select only those molecules that you 
    want to exchange, and do not use the ==> msel all construction.
 3  rot
-!b rot <u>,<v>,<w> [,<x>,<y>,<z>]
+!p rot <u>,<v>,<w> [,<x>,<y>,<z>]
 
    This command selects the rotational wave mode which is only available
    when using molecules. The wave amplitude is here used as rotation angle
@@ -9529,33 +9553,33 @@
    an offset <x>,<y>,<z> for this origin can be specified as optional
    parameters.
 3  opti
-!b opti
+!p opti
 
    Sets the wave type to optical, atoms of opposite charge are
    displaced in opposite directions.
 3  osci
-!b osci <x,y,z>
+!p osci <x,y,z>
 
    Sets the direction of the oscillation vector for transverse
    waves.
 3  phase
-!b phase { <value> | "random" }
+!p phase { <value> | "random" }
 
    Sets the phase of the wave at 0,0,0 in direct space in degrees.
    The initial phase is zero. With phase = 0, a sine wave
    results, with phase = 90 a cosine wave.
 3  phigh
-!b phigh <value>
+!p phigh <value>
 
    Sets the upper probability limit, with which an atom is retained by a
    density wave. The maximum occupancy of the atom reaches <value>. 
 3  plow
-!b plow <value>
+!p plow <value>
 
    Sets the lower probability limit, with which an atom is retained by a
    density wave. The minimum occupancy of the atom reaches <value>.
 3  repl
-!b repl { "all" | <name> | <number> } , { <name> | <number> } [,"viceversa"]
+!p repl { "all" | <name> | <number> } , { <name> | <number> } [,"viceversa"]
 
    This command selects those atoms that will be replaced by a density 
    function. Possible values for the first mandatory parameter are mutually 
@@ -9587,16 +9611,16 @@
    want to exchange, and do not use the ==> sel all construction.
 
 3  reset
-!b reset
+!p reset
 
    Reset all wave definitions back to the default values at 
    system start. 
 3  run
-!b run
+!p run
 
    Starts the calculation of the wave
 3  sel
-!b sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
+!p sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
    This command serves to select
    those atoms that will be modified by a wave function.
@@ -9616,24 +9640,24 @@
 
    The selection made stay valid until explicitly deselected!
 3  shift
-!b shift <amount>
+!p shift <amount>
 
    A constant shift <amount> is added to the displacement of the atoms
 3  show
-!b show
+!p show
 
    Shows the current settings for the wave.
 3  tran
-!b tran
+!p tran
 
    Sets the wave type to transverse
 3  vect
-!b vect <x,y,z>
+!p vect <x,y,z>
 
    Sets the direction of the wave vector in units of the lattice
    constants. The wave length has to be set with ==> "len".
 2  wyckoff
-!b wyckoff <x>,<y>,<z> [,{"full" | "symbol" | "xzy" | "matrix" }
+!p wyckoff <x>,<y>,<z> [,{"full" | "symbol" | "xzy" | "matrix" }
 
    Shows all symmetry operations that copy an atom at position <x>,<y>,<z>
    onto itself. These are the symmetry operations of the current space group,
@@ -9677,7 +9701,7 @@
    This produces a list that consists of the (3x4) symmetry matrices.
 
 2  bugs
-!b Known bugs
+!p Known bugs
 
    Here is a list of known bugs of DISCUS which are on our 'repair
    list':
@@ -9709,7 +9733,7 @@
    Each error message is displayed together with the corresponding
    category <cccc> and the error number <numb> in the form:
 
-!b ****CCCC****message                    **** numb ****
+!p ****CCCC****message                    **** numb ****
 
    Type
    help error <cccc> <numb>
@@ -11277,7 +11301,7 @@
    The number of 'lots' (crystal volumes to be averaged) exceeds the 
    maximum number RMC_MAX_LOTS defined in 'config.inc'.
 2  space_groups
-!b List of allowed Space groups
+!p List of allowed Space groups
 
    a) Standard space groups settings
 
@@ -11516,7 +11540,7 @@
    instead of using the 'e' glide plane name. This choice 
    allows you to distinguish these settings.
 2  wavelength
-!b List of allowed wavelength symbols 
+!p List of allowed wavelength symbols 
 
 !p TIA1   2.748410    TIA2   2.752070     TIB    2.513810     TI     2.740000
 !p CRA1   2.28970     CRA2   2.29361      CRB    2.0848       CR     2.2909
@@ -11529,7 +11553,7 @@
 !p WA1    0.208992    WA2    0.213813     WB     0.184363,    W      0.560800
 !p AUA1   0.180185    AUA2   0.185064     AUB    0.158971,    AU     0.560800
 2  atom_names
-!b List of allowed atom names
+!p List of allowed atom names
 
 !p H    H.   H1-  D.   HE   LI   LI1  BE   BE2+ B    C    N    O    O1-  
 !p O2-  F    F1-  NE   NA   NA1+ MG   MG2+ AL   AL3+ SI   SI.  SI4+ S    
