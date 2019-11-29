@@ -966,6 +966,22 @@
    "plot" only the data shown on the current plot window are used.
    This is useful if one wants to refine e.g. just a single Gaussian
    in a data set without having to manipulate the data set itself.
+3  relax
+!p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>]
+!p            [,"success:"<lamda_g>]
+
+   Allows to fine tune the relaxation behaviour.
+   The initial Levenberg-Marquardt lamda parameter is defined
+   with ["start:"<lamda_s>]. Default is 0.001
+
+   If a cycle was successful, the value of lamda is multiplied
+   by <lamda_g>, default is 0.5.
+
+   If a cycle was not successful, the value of lamda is multiplied
+   by <lamda_f>, default is 4.0.
+
+   A larger value of lambda implies smaller steps for the
+   refinement parameters.
 3  run
 !p run
 
@@ -990,17 +1006,13 @@
 3  urf
 !p urf <u>
 
-   This command sets the URF (some German: Unterer Relaxations Faktor)
-   for the fit. This value determines who 'fast' the fit will move to
-   its minimum or how much the parameter values are changed in each
-   cycle depending on the deviations. A small value (e.g. 0.1) might
-   lead to a fast convergence but might also miss the minimum. A larger
-   value (e.g. 100.0) will give a slow convergence which more certain
-   finds the minimum, but might be caught in local minima rather than in
-   the global one. 
+   This command has become obsolete, please use the ==> 'relax' 
+   command instead.
+   the command urf will set the initial value of lamda for the 
+   Levenberg-Marquadt refinement a reasonable value is about 0.001
 
-   Understood ? Well just try different values until your fit converges
-   nicely to the global minimum.
+   The value is automatically adjusted to allow a smooth 
+   transition into the minimum.
 3  wic
 !p wic <w> [,<K>]
 
