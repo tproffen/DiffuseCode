@@ -13,6 +13,7 @@ SUBROUTINE do_func (zeile, lp)
       USE param_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_fit6
 USE precision_mod
 !                                                                       
       IMPLICIT none 

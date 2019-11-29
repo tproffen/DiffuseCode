@@ -9,9 +9,9 @@ INTEGER             :: nn_backgrd   = 0    ! number of background params for Pse
 !
 END MODULE kuplot_fit_const
 !
-!MODULE kuplot_fit_mod
+MODULE kuplot_fit_old_mod
 !
-!CONTAINS
+CONTAINS
 !*****7*****************************************************************
 !     This sublevel includes all commands and functions for the         
 !     least square fits in KUPLOT.                                      
@@ -1196,7 +1196,7 @@ IF(ier_num/=0) RETURN
       REAL a (maxarray) 
       INTEGER i, ii 
 !                                                                       
-      REAL calc_wic 
+!     REAL calc_wic 
 !                                                                       
       IF (lni (ikfit) ) then 
          ii = offz (ikfit - 1) 
@@ -1473,7 +1473,7 @@ REAL                   :: f
       INTEGER i, ix, iy, ind 
       INTEGER :: length
 !                                                                       
-      REAL dfridr 
+!     REAL dfridr 
 !                                                                       
       DO ind = 1, maxpara 
       df (ind) = 0.0 
@@ -3374,7 +3374,7 @@ END SUBROUTINE fit_kupl
 !***7*******************************************************************
       FUNCTION dfridr (x, h, err) 
       INTEGER ntab 
-      REAL dfridr, err, h, x, func, con, con2, big, safe 
+      REAL dfridr, err, h, x, con, con2, big, safe 
       PARAMETER (con = 1.4, con2 = con * con, big = 1.e30, ntab = 10,   &
       safe = 2.)                                                        
       INTEGER i, j 
@@ -3404,7 +3404,7 @@ END SUBROUTINE fit_kupl
       RETURN 
       END FUNCTION dfridr                           
 !
-!END MODULE kuplot_fit_mod
+END MODULE kuplot_fit_old_mod
 !
 !*****FIT6******FIT6******FIT6******FIT6******FIT6******FIT6******FIT6******
 !
@@ -3422,6 +3422,9 @@ INTEGER :: kup_fit6_ndata
 REAL    :: kup_fit6_chisq
 REAL    :: kup_fit6_conf
 REAL    :: kup_fit6_lamda
+REAL    :: kup_fit6_lamda_s = 0.001
+REAL    :: kup_fit6_lamda_u = 4.000
+REAL    :: kup_fit6_lamda_d = 0.500
 REAL    :: kup_fit6_r4
 REAL    :: kup_fit6_re
 CHARACTER(LEN=16), DIMENSION(:),   ALLOCATABLE :: kup_fit6_params
@@ -3501,6 +3504,31 @@ END MODULE kuplot_fit_para
 !
 !*******************************************************************************
 !
+MODULE kuplot_fit_basic
+!-
+! The basic arrays that are transferred to 
+! p_kuplot_theory
+! This basic definition is needed for the interface to
+! kupl_theory called in load ==> func
+!+
+!
+INTEGER           :: MAXP     ! Maximum number of parameters
+INTEGER           :: nparams  ! number of refined parameter, NPARA is para number from KUPLOT
+REAL             , DIMENSION(:)  , ALLOCATABLE :: par_value    ! Parameter values
+CHARACTER(LEN=60), DIMENSION(:)  , ALLOCATABLE :: par_names    ! Parameter names
+REAL             , DIMENSION(:,:), ALLOCATABLE :: prange       ! Allowed parameter range
+!LOGICAL          , DIMENSION(:,:), ALLOCATABLE :: l_do_deriv   ! Parameter needs derivative
+INTEGER          , DIMENSION(2)                :: data_dim     ! No of data points
+REAL             , DIMENSION(:,:), ALLOCATABLE :: data_data    ! The data
+REAL             , DIMENSION(:,:), ALLOCATABLE :: data_sigma   ! The sigma
+REAL             , DIMENSION(:)  , ALLOCATABLE :: data_x       ! X-coordinates
+REAL             , DIMENSION(:)  , ALLOCATABLE :: data_y       ! y-coordinates(for xyz data
+REAL             , DIMENSION(:,:), ALLOCATABLE :: data_calc    ! The calculated data
+
+END MODULE kuplot_fit_basic
+!
+!*******************************************************************************
+!
 MODULE kuplot_fit6_set_theory
 !
 ! MRQCOF uses a procedure pointer to call the theory function
@@ -3517,7 +3545,7 @@ MODULE kuplot_fit6_set_theory
 INTERFACE
    SUBROUTINE kuplot_theory(MAXP, ix, iy, xx, yy, NPARA, params, par_names,     &
                             prange, l_do_deriv, data_dim, data_data,  &
-                            data_weight, data_x, data_y, data_calc, kupl_last, &
+                            data_sigma, data_x, data_y, data_calc, kupl_last, &
                             ymod, dyda, LDERIV)
    INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
    INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
@@ -3531,7 +3559,7 @@ INTERFACE
    LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
    INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
    REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-   REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+   REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma   ! Data sigmas
    REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
    REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
    REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
@@ -3556,7 +3584,7 @@ MODULE kuplot_fit6
 !
 !
 PRIVATE
-PUBLIC do_f66
+PUBLIC do_f66, kupl_theory, write_fit
 !
 CONTAINS
 !MODULE kuplot_fit_mod
@@ -3582,6 +3610,7 @@ USE learn_mod
 USE class_macro_internal
 USE prompt_mod 
 USE kuplot_config 
+USE kuplot_fit_para
 USE kuplot_mod 
 USE string_convert_mod
 USE sup_mod
@@ -3848,6 +3877,11 @@ IF (ier_num.ne.0) RETURN
          ELSEIF (str_comp (befehl, 'plot', 2, lbef, 4) ) THEN 
             CALL do_plot (.false.) 
 !                                                                       
+!-------Set lamda  'relax'                                              
+!                                                                       
+         ELSEIF (str_comp (befehl, 'relax', 2, lbef, 5) ) THEN 
+            CALL kuplot_set_lamda(zeile, lp)
+!                                                                       
 !------ Set scale                                                       
 !                                                                       
          ELSEIF (str_comp (befehl, 'skal', 2, lbef, 4) ) THEN 
@@ -3931,6 +3965,7 @@ IF (ier_num.ne.0) RETURN
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.eq.0) THEN 
                      urf = werte (1) 
+                     kup_fit6_lamda_s = werte(1)
                   ENDIF 
                ELSE 
                   ier_num = - 6 
@@ -4706,6 +4741,7 @@ USE prompt_mod
 USE kuplot_config 
 USE kuplot_mod 
 USE kuplot_fit_para
+USE kuplot_fit_basic     ! The basic arrays for calls to kuplot_theory
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -4715,21 +4751,21 @@ INTEGER           :: i, ii, jj, kk
 INTEGER           :: j
 !INTEGER           :: len_str 
 !
-INTEGER           :: MAXP     ! Maximum number of parameters 
+!INTEGER           :: MAXP     ! Maximum number of parameters 
 INTEGER           :: MAXf     ! MAXIMUM number of fixed parameters 
-INTEGER           :: nparams  ! number of refined parameter, NPARA is para number from KUPLOT
+!INTEGER           :: nparams  ! number of refined parameter, NPARA is para number from KUPLOT
 INTEGER           :: nfixed   ! number of fixed parameter
 INTEGER           :: kupl_last! Last KUPLOT data that are needed
-CHARACTER(LEN=60), DIMENSION(:), ALLOCATABLE   :: par_names 
+!CHARACTER(LEN=60), DIMENSION(:), ALLOCATABLE   :: par_names 
 CHARACTER(LEN=60), DIMENSION(:), ALLOCATABLE   :: fixed
 INTEGER          , DIMENSION(:), ALLOCATABLE   :: par_ind      ! Index of refined parameter
 INTEGER          , DIMENSION(:), ALLOCATABLE   :: fixed_ind    ! Index of fixed parameter
-INTEGER          , DIMENSION(2)                :: data_dim     ! No of data points
-REAL             , DIMENSION(:,:), ALLOCATABLE :: data_data    ! The data
-REAL             , DIMENSION(:,:), ALLOCATABLE :: data_weight  ! The weights
-REAL             , DIMENSION(:)  , ALLOCATABLE :: data_x       ! X-coordinates
-REAL             , DIMENSION(:)  , ALLOCATABLE :: data_y       ! y-coordinates(for xyz data
-REAL             , DIMENSION(:,:), ALLOCATABLE :: data_calc    ! The calculated data
+!INTEGER          , DIMENSION(2)                :: data_dim     ! No of data points
+!REAL             , DIMENSION(:,:), ALLOCATABLE :: data_data    ! The data
+!REAL             , DIMENSION(:,:), ALLOCATABLE :: data_sigma  ! The sigma
+!REAL             , DIMENSION(:)  , ALLOCATABLE :: data_x       ! X-coordinates
+!REAL             , DIMENSION(:)  , ALLOCATABLE :: data_y       ! y-coordinates(for xyz data
+!REAL             , DIMENSION(:,:), ALLOCATABLE :: data_calc    ! The calculated data
 REAL                                           :: conv_dp_sig  ! Max Dp/sigma 
 REAL                                           :: conv_dchi2   ! Max DELTA Chi2
 REAL                                           :: conv_chi2    ! Max Chi2
@@ -4740,8 +4776,8 @@ REAL                                           :: conf         ! Final confidenc
 REAL                                           :: lamda_fin    ! Final LevenbergMarq Lamda
 REAL                                           :: rval         ! Final weighted rvalue
 REAL                                           :: rexp         ! R expected
-REAL             , DIMENSION(:,:), ALLOCATABLE :: prange       ! Allowed parameter range
-REAL             , DIMENSION(:)  , ALLOCATABLE :: par_value    ! Parameters
+!REAL             , DIMENSION(:,:), ALLOCATABLE :: prange       ! Allowed parameter range
+!REAL             , DIMENSION(:)  , ALLOCATABLE :: par_value    ! Parameters
 REAL             , DIMENSION(:)  , ALLOCATABLE :: dpp          ! Parameter uncertainty
 REAL             , DIMENSION(:,:), ALLOCATABLE :: covar        ! Covariance matrix
 REAL             , DIMENSION(:)  , ALLOCATABLE :: pf           ! Parameters fixed
@@ -4752,7 +4788,7 @@ IF(lni(ikfit)) THEN                               ! XY-Z data
    data_dim(1) = nx(ikfit)
    data_dim(2) = ny(ikfit)
 ELSE
-   CALL wichtung (y) 
+!  CALL wichtung (y) 
    CALL no_error
 !
    data_dim(1) = len(ikfit)                        ! Transfer KUPLOT Dimensions
@@ -4760,7 +4796,7 @@ ELSE
 ENDIF
 ALLOCATE(data_calc(  data_dim(1), data_dim(2)))   ! Allocate CALC  at proper dimensions
 ALLOCATE(data_data(  data_dim(1), data_dim(2)))   ! Allocate DATA  at proper dimensions
-ALLOCATE(data_weight(data_dim(1), data_dim(2)))   ! Allocate SIGMA at proper dimensions
+ALLOCATE(data_sigma(data_dim(1), data_dim(2)))   ! Allocate SIGMA at proper dimensions
 ALLOCATE(data_x     (data_dim(1))             )   ! Allocate x     at proper dimensions
 ALLOCATE(data_y     (data_dim(2))             )   ! Allocate y     at proper dimensions
 !
@@ -4774,18 +4810,19 @@ IF(lni(ikfit)) THEN                               !xy-Z data
    DO j=1,data_dim(2)
       DO i=1,data_dim(1)
          data_data(i,j)  = z (offz(ikfit - 1) + (i - 1)*ny(ikfit) + j)
-         data_weight(i,j) = 1.0000    ! dz(offxy(iz - 1) + ix) TEMPORARY unit weights
+         data_sigma(i,j) = 1.0000    ! dz(offxy(iz - 1) + ix) TEMPORARY unit sigma
       ENDDO
    ENDDO
 ELSE                                              ! xY data
    DO i=1, data_dim(1)
       data_x(i)       = x(offxy(ikfit-1) + i)
       data_data(i, 1) = y(offxy(ikfit-1) + i)
-      IF(dy(offxy(ikfit-1) + i) /= 0.0) THEN
-         data_weight(i,1) = dy(offxy(ikfit-1) + i)
-      ELSE
-         data_weight(i,1) = 1.0
-      ENDIF
+      data_sigma(i,1) = 1./SQRT(calc_wic(data_data(i,1), dy(offxy(ikfit-1) + i)))
+!     IF(dy(offxy(ikfit-1) + i) /= 0.0) THEN
+!        data_sigma(i,1) = dy(offxy(ikfit-1) + i)
+!     ELSE
+!        data_sigma(i,1) = 1.0
+!     ENDIF
    ENDDO
    data_y(1:data_dim(2)) = 1.0                       ! Set dummy y
 ENDIF
@@ -4838,13 +4875,11 @@ dpp(:)     = 0.0
 covar(:,:) = 0.0
 kupl_last  = iz-1
 CALL kuplot_mrq(MAXP, nparams, ncycle, kupl_last, par_names, par_ind,           &
-                MAXF, nfixed, fixed, fixed_ind, pf, &
-                data_dim, &
-                      data_data, data_weight, data_x, data_y,              &
-                      data_calc,                                           &
-                      conv_dp_sig, conv_dchi2, conv_chi2, conv_conf,       &
-                      lconvergence,                                        &
-                      chisq, conf, lamda_fin, rval, rexp, par_value, prange, dpp, covar)
+                MAXF, nfixed, fixed, fixed_ind, pf, data_dim, data_data,        &
+                data_sigma, data_x, data_y, data_calc, conv_dp_sig, conv_dchi2, &
+                conv_chi2, conv_conf, lconvergence, chisq, conf, lamda_fin,     &
+                kup_fit6_lamda_s, kup_fit6_lamda_d, kup_fit6_lamda_u,           &
+                rval, rexp, par_value, prange, dpp, covar)
 !OLD  IF (ncycle.gt.0) call fit_kupl (y) 
 !
 ! Copy values back into KUPLOT scheme
@@ -4922,7 +4957,7 @@ CALL do_fit_info (output_io, .false., .false., .true.)
 !
 DEALLOCATE(data_calc)
 DEALLOCATE(data_data)
-DEALLOCATE(data_weight)
+DEALLOCATE(data_sigma)
 DEALLOCATE(data_x)
 DEALLOCATE(data_y)
 DEALLOCATE(par_names)
@@ -4994,48 +5029,48 @@ END SUBROUTINE do_fit
 !      CALL do_fit_info (output_io, .false., .false., .true.) 
 !      END SUBROUTINE do_fit_z                       
 !*****7*****************************************************************
-      SUBROUTINE wichtung (a) 
+!     SUBROUTINE wichtung (a) 
 !+                                                                      
 !     Calculation of weights. Values outside plotting range are         
 !     set to zero if frall is .false.                                   
 !-                                                                      
-      USE kuplot_config 
-      USE kuplot_mod 
+!     USE kuplot_config 
+!     USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      REAL a (maxarray) 
-      INTEGER i, ii 
+!     REAL a (maxarray) 
+!     INTEGER i, ii 
 !                                                                       
-      REAL calc_wic 
+!     REAL calc_wic 
 !                                                                       
-      IF (lni (ikfit) ) THEN 
-         ii = offz (ikfit - 1) 
-         DO i = 1, nx (ikfit) * ny (ikfit) 
-         w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
-         ENDDO 
-      ELSE 
-         ii = offxy (ikfit - 1) 
-         DO i = 1, len (ikfit) 
-         IF (frall) THEN 
-            w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
-         ELSE 
-            IF (x (ii + i) .lt.ex (iwin, iframe, 1) .or.x (ii + i)      &
-            .gt.ex (iwin, iframe, 2) ) THEN                             
-               w (ii + i) = 0.0 
-            ELSE 
-               w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
-            ENDIF 
-         ENDIF 
-         ENDDO 
-      ENDIF 
+!     IF (lni (ikfit) ) THEN 
+!        ii = offz (ikfit - 1) 
+!        DO i = 1, nx (ikfit) * ny (ikfit) 
+!        w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
+!        ENDDO 
+!     ELSE 
+!        ii = offxy (ikfit - 1) 
+!        DO i = 1, len (ikfit) 
+!        IF (frall) THEN 
+!           w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
+!        ELSE 
+!           IF (x (ii + i) .lt.ex (iwin, iframe, 1) .or.x (ii + i)      &
+!           .gt.ex (iwin, iframe, 2) ) THEN                             
+!              w (ii + i) = 0.0 
+!           ELSE 
+!              w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
+!           ENDIF 
+!        ENDIF 
+!        ENDDO 
+!     ENDIF 
 !                                                                       
 !                                                                       
-      END SUBROUTINE wichtung                       
+!     END SUBROUTINE wichtung                       
 !*****7*****************************************************************
       REAL function calc_wic (val, sig) 
 !+                                                                      
-!     Calculation of weights.                                           
+!     Calculation of weights. == 1/sigma^2
 !-                                                                      
       USE kuplot_config 
       USE kuplot_mod 
@@ -5074,41 +5109,85 @@ END SUBROUTINE do_fit
 !                                                                       
       END FUNCTION calc_wic                         
 !*****7*****************************************************************
-!      SUBROUTINE kupl_theory (xx, f, df, iwert) 
+SUBROUTINE kupl_theory (xx, f, df, iwert) 
+!-
+! Interface to old kupl_theory as called in kuplot_load for 'func' command
+!+
 !!                                                                       
-!      USE kuplot_config 
-!      USE kuplot_mod 
+USE kuplot_mod
+USE kuplot_fit6_set_theory
+USE precision_mod
 !!                                                                       
-!      IMPLICIT none 
+IMPLICIT none 
 !!                                                                       
-!      REAL xx, f, df (maxpara) 
-!      INTEGER iwert 
-!!                                                                       
-!      IF (ftyp (1:2) .eq.'PO') THEN 
-!DONE     CALL theory_poly (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'BA') THEN 
-!         CALL theory_backpoly (xx, f, df, iwert) 
+REAL(KIND=PREC_SP), INTENT(IN)                    :: xx    ! Point number along x
+REAL(KIND=PREC_SP), INTENT(OUT)                   :: f     ! Function value at (ix,iy)
+REAL(KIND=PREC_SP), DIMENSION(npara), INTENT(out) :: df    ! Function derivatives at (ix,iy)
+INTEGER           , INTENT(IN)                    :: iwert ! Point number along x and DERIV FLAG
+! Dummy arrays for formal reasons
+CHARACTER(LEN=60), DIMENSION(npara) :: par_names    ! Parameter names
+INTEGER          , DIMENSION(2)     :: data_dim     ! No of data points
+REAL             , DIMENSION(1,1)   :: data_data    ! The data
+REAL             , DIMENSION(1,1)   :: data_sigma  ! The sigma
+REAL             , DIMENSION(1)     :: data_x       ! X-coordinates
+REAL             , DIMENSION(1)     :: data_y       ! y-coordinates(for xyz data
+REAL             , DIMENSION(1,1)   :: data_calc    ! The calculated data
+
+INTEGER                   :: ix             ! Point number along x
+INTEGER                   :: iy             ! Point number along y
+INTEGER                   :: kupl_last      ! Last KUPLOT DATA that are needed
+REAL(KIND=PREC_SP)        :: yy             ! Point value  along y
+REAL(KIND=PREC_SP)        :: ymod           ! Function value at (ix,iy)
+LOGICAL, DIMENSION(npara) :: l_do_deriv     ! Parameter needs derivative
+LOGICAL                   :: LDERIV=.FALSE. ! TRUE if derivative is needed
+REAL   , DIMENSION(npara) :: prange         ! Function derivatives at (ix,iy)
+REAL   , DIMENSION(npara) :: dyda           ! Function derivatives at (ix,iy)
+!
+data_dim(1) = 1
+data_dim(2) = 1
+ix = 1
+iy = 1
+yy = 1.0
+l_do_deriv = .FALSE.
+!
+IF (ftyp (1:2) .eq.'PO') THEN 
+   p_kuplot_theory => theory_poly
+ELSEIF (ftyp (1:2) .eq.'BA') THEN 
+   p_kuplot_theory => theory_backpoly
 !      ELSEIF (ftyp (1:2) .eq.'CH') THEN 
 !         CALL theory_poly_cheb (xx, f, df, iwert) 
 !      ELSEIF (ftyp (1:2) .eq.'GS') THEN 
 !         CALL theory_gsas (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'LO') THEN 
-!         CALL theory_lor (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'PS') THEN 
-!         CALL theory_psvgt (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'FX') THEN 
-!         CALL theory_user (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'GA') THEN 
-!         IF (.not.lni (ikfit) ) THEN 
-!            CALL theory_gauss (xx, f, df, iwert) 
-!         ELSE 
-!            CALL theory_gauss_2d (xx, f, df, iwert) 
-!         ENDIF 
-!      ELSEIF (ftyp (1:2) .eq.'MA') THEN 
-!         CALL theory_macro (xx, f, df, iwert) 
-!      ENDIF 
+ELSEIF (ftyp (1:2) .eq.'LO') THEN 
+   p_kuplot_theory => theory_lor
+ELSEIF (ftyp (1:2) .eq.'PS') THEN 
+   p_kuplot_theory => theory_psvgt
+ELSEIF (ftyp (1:2) .eq.'FX') THEN 
+   p_kuplot_theory => theory_user
+ELSEIF (ftyp (1:2) .eq.'GA') THEN 
+   p_kuplot_theory => theory_gauss
+   IF (.not.lni (ikfit) ) THEN 
+      p_kuplot_theory => theory_gauss
+   ELSE 
+      p_kuplot_theory => theory_gauss_2d
+   ENDIF 
+!ELSEIF (ftyp (1:2) .eq.'MA') THEN 
+!   p_kuplot_theory => theory_macro
+ENDIF 
+!
+kupl_last  = iz-1
+CALL p_kuplot_theory(npara, ix, iy, xx, yy, npara, p, par_names,   &
+                   prange, l_do_deriv, &
+                   data_dim, data_data, data_sigma, data_x, data_y, &
+                   data_calc, &
+                   kupl_last, &
+                   ymod, dyda, LDERIV)
+!
+f  = ymod
+df = 0.0
+!
 !!                                                                       
-!      END SUBROUTINE kupl_theory                    
+END SUBROUTINE kupl_theory                    
 !*****7*****************************************************************
 !       User defined fit function                                       
 !*****7*****************************************************************
@@ -5264,7 +5343,7 @@ USE kuplot_fit_const
 !
 SUBROUTINE theory_user(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
                        prange, l_do_deriv, data_dim, &
-                       data_data, data_weight, data_x, data_y, &
+                       data_data, data_sigma, data_x, data_y, &
                        data_calc, kupl_last,      &
                        ymod, dyda, LDERIV)
 !
@@ -5292,7 +5371,7 @@ REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange    
 LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
@@ -5862,7 +5941,7 @@ END SUBROUTINE setup_lor
 !
 SUBROUTINE theory_lor(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
                       prange, l_do_deriv, data_dim, &
-                       data_data, data_weight, data_x, data_y, &
+                       data_data, data_sigma, data_x, data_y, &
 data_calc, kupl_last,      &
                       ymod, dyda, LDERIV)
 !
@@ -5882,7 +5961,7 @@ REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange    
 LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
@@ -6093,7 +6172,7 @@ p_kuplot_theory => theory_gauss
 !*********************************************************************  
 SUBROUTINE theory_gauss(MAXP, ix, iy, xx, yy, NPARA, params, par_names,         &
                        prange, l_do_deriv, data_dim,  &
-                       data_data, data_weight, data_x, data_y, &
+                       data_data, data_sigma, data_x, data_y, &
                             data_calc, kupl_last,      &
                        ymod, dyda, LDERIV)
 !
@@ -6114,7 +6193,7 @@ REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange    
 LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
@@ -6355,7 +6434,7 @@ p_kuplot_theory => theory_psvgt
 !
 SUBROUTINE theory_psvgt(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
                        prange, l_do_deriv, data_dim, &
-                       data_data, data_weight, data_x, data_y, &
+                       data_data, data_sigma, data_x, data_y, &
  data_calc, kupl_last,      &
                        ymod, dyda, LDERIV)
 !
@@ -6380,7 +6459,7 @@ REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange    
 LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
@@ -6677,7 +6756,7 @@ END SUBROUTINE setup_gauss_2d
 !
 SUBROUTINE theory_gauss_2d(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
                           prange, l_do_deriv, data_dim, &
-                          data_data, data_weight, data_x, data_y, &
+                          data_data, data_sigma, data_x, data_y, &
                           data_calc, kupl_last,      &
                           ymod, dyda, LDERIV)
 !
@@ -6699,7 +6778,7 @@ REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange    
 LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
@@ -7006,7 +7085,7 @@ END SUBROUTINE setup_poly
 !
 SUBROUTINE theory_poly(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
                        prange, l_do_deriv, data_dim, &
-                       data_data, data_weight, data_x, data_y, &
+                       data_data, data_sigma, data_x, data_y, &
 data_calc, kupl_last,      &
                        ymod, dyda, LDERIV)
 !
@@ -7027,7 +7106,7 @@ REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange    
 LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
@@ -7181,7 +7260,7 @@ p_kuplot_theory => theory_backpoly
 !***7*******************************************************************
 SUBROUTINE theory_backpoly(MAXP, ix, iy, xx, yy, NPARA, params, par_names,      &
                        prange, l_do_deriv, data_dim,                            &
-                       data_data, data_weight, data_x, data_y,                  &
+                       data_data, data_sigma, data_x, data_y,                  &
                        data_calc, kupl_last,      &
                        ymod, dyda, LDERIV)
 !
@@ -7202,7 +7281,7 @@ REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange    
 LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
@@ -7269,11 +7348,13 @@ END SUBROUTINE theory_backpoly
 SUBROUTINE kuplot_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, par_ind,  &
                       MAXF, nfixed, fixed, fixed_ind, pf, &
                       data_dim, &
-                      data_data, data_weight, data_x, data_y,              &
+                      data_data, data_sigma, data_x, data_y,              &
                       data_calc,                                           &
                       conv_dp_sig, conv_dchi2, conv_chi2, conv_conf,       &
                       lconvergence,                                        &
-                      chisq, conf, lamda_fin, rval, rexp, p, prange, dp, cl)
+                      chisq, conf, lamda_fin,       &
+                lamda_s, lamda_d, lamda_u,          &
+rval, rexp, p, prange, dp, cl)
 !+                                                                      
 !   This routine runs the refinement cycles, interfaces with the 
 !   Levenberg-Marquardt routine modified after Numerical Recipes
@@ -7304,7 +7385,7 @@ INTEGER         , DIMENSION(MAXF)                    , INTENT(IN)  :: fixed_ind 
 REAL            , DIMENSION(MAXF)                    , INTENT(IN)  :: pf          ! Fixed Parameter array
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim    ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data   ! Data array
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight ! Data sigmas
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x      ! Data coordinates x
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y      ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc   ! Calculated
@@ -7316,6 +7397,9 @@ LOGICAL                                              , INTENT(INOUT) :: lconverg
 REAL                                                 , INTENT(OUT) :: chisq       ! Chi^2 value
 REAL                                                 , INTENT(OUT) :: conf        ! Confidence test from Gamma function
 REAL                                                 , INTENT(OUT) :: lamda_fin   ! Final Marquardt lambda
+REAL                                                 , INTENT(IN)  :: lamda_s     ! Start Marquardt lambda
+REAL                                                 , INTENT(IN)  :: lamda_d     ! Start Marquardt lambda
+REAL                                                 , INTENT(IN)  :: lamda_u     ! Start Marquardt lambda
 REAL                                                 , INTENT(OUT) :: rval        ! Weighted R-value
 REAL                                                 , INTENT(OUT) :: rexp        ! Expected R-value
 !
@@ -7338,13 +7422,14 @@ CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
 REAL(KIND=PREC_DP)               , DIMENSION(:), ALLOCATABLE :: werte
 !
+INTEGER :: last_ind
 REAL               , DIMENSION(0:3) :: last_chi
 REAL               , DIMENSION(0:3) :: last_shift
 REAL               , DIMENSION(0:3) :: last_conf 
 REAL               , DIMENSION(:,:), ALLOCATABLE :: last_p 
 !REAL :: shift
 !
-alamda     = -0.01    ! Negative lamda initializes MRQ routine
+alamda     = -0.001    ! Negative lamda initializes MRQ routine
 rval       = 0.0
 rexp       = 0.0
 cl(:,:)    = 0.0
@@ -7376,34 +7461,42 @@ ALLOCATE(last_p(0:2,NPARA))
 last_p(2,:) = p(1:NPARA)
 prev_i = 2
 !
-WRITE(output_io,'(a,10x,a,7x,a,6x,a)') 'Cyc Chi^2/(N-P)   MAX(dP/sig)   Conf',&
+WRITE(output_io,'(a,10x,a,7x,a,6x,a)') 'Cycle Chi^2/(N-P)   MAX(dP/sig) Par   Conf',&
                                        'Lambda', 'wRvalue', 'Rexp'
 !
 lconvergence = .FALSE.
 icyc = 0
 cycles:DO
-   CALL kuplot_mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y,  &
+   CALL kuplot_mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y,  &
                data_calc, p, NPARA, &
                par_names, par_ind, &
                MAXF, nfixed, fixed, fixed_ind, pf, &
-               prange, kupl_last, cl, alpha, beta, chisq, alamda)
+               prange, kupl_last, cl, alpha, beta, chisq, alamda, &
+               lamda_s, lamda_d, lamda_u)
    IF(ier_num/=0) EXIT cycles
-   CALL kuplot_rvalue(data_dim, data_data, data_weight, data_calc, rval, rexp, NPARA)
+   CALL kuplot_rvalue(data_dim, data_data, data_sigma, data_calc, rval, rexp, NPARA)
    last_shift(last_i) = 0.0
+   last_p(last_i,:) = p(1:NPARA)
+   last_ind = 0
    DO k=1, NPARA
 !     CALL kuplot_set_param(NPARA, par_names(k), k, p(k))   ! Updata parameters
+      last_p(last_i,k) = p(k)
       IF(ier_num/=0) EXIT cycles
-      last_p(last_i,:) = p(1:NPARA)
       IF(cl(k,k)/= 0.0) THEN
-         last_shift(last_i) = MAX(last_shift(last_i), ABS((p(k)-last_p(prev_i,k))/SQRT(cl(k,k))))
+!        last_shift(last_i) = MAX(last_shift(last_i), ABS((p(k)-last_p(prev_i,k))/SQRT(cl(k,k))))
+         IF(ABS((p(k)-last_p(prev_i,k))/SQRT(cl(k,k))) > last_shift(last_i)) THEN
+            last_ind = k
+            last_shift(last_i) = ABS((p(k)-last_p(prev_i,k))/SQRT(cl(k,k)))
+         ENDIF
       ENDIF
    ENDDO
    conf = gammaq(REAL(data_dim(1)*data_dim(2)-2)*0.5, chisq*0.5)
    last_chi( last_i) = chisq/(data_dim(1)*data_dim(2)-NPARA)        ! Store Chi^2/(NDATA-NPARA)
    last_conf(last_i) = conf
-   WRITE(output_io,'(i3,6g13.5e2)') icyc,chisq/(data_dim(1)*data_dim(2)-NPARA), last_shift(last_i), conf, alamda, rval, rexp
+   WRITE(output_io,'(i5,2g13.5e2,i4,4g13.5e2)') icyc,chisq/(data_dim(1)*data_dim(2)-NPARA),  &
+         last_shift(last_i), last_ind, conf, alamda, rval, rexp
 !
-   CALL kuplot_rvalue(data_dim, data_data, data_weight, data_calc, rval, rexp, NPARA)
+   CALL kuplot_rvalue(data_dim, data_data, data_sigma, data_calc, rval, rexp, NPARA)
 !  CALL kuplot_best(rval)                                              ! Write best macro
    IF(ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
       last_shift(last_i) < conv_dp_sig                   .AND.   &
@@ -7437,12 +7530,13 @@ IF(ier_num==0) THEN
    lamda_fin = alamda
    alamda = 0.0
 !
-   CALL kuplot_mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y,  &
+   CALL kuplot_mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y,  &
                data_calc, p, NPARA, &
                par_names, par_ind,  &
                MAXF, nfixed, fixed, fixed_ind, pf, &
-               prange, kupl_last, cl, alpha, beta, chisq, alamda)
-   CALL kuplot_rvalue(data_dim, data_data, data_weight, data_calc, rval, rexp, NPARA)
+               prange, kupl_last, cl, alpha, beta, chisq, alamda, &
+               lamda_s, lamda_d, lamda_u)
+   CALL kuplot_rvalue(data_dim, data_data, data_sigma, data_calc, rval, rexp, NPARA)
 !  CALL kuplot_best(rval)                                              ! Write best macro
    DO k = 1, NPARA
       dp(k) = SQRT(ABS(cl(k,k)))
@@ -7458,11 +7552,12 @@ END SUBROUTINE kuplot_mrq
 !
 !*******************************************************************************
 !
-SUBROUTINE kuplot_mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y, &
+SUBROUTINE kuplot_mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, &
                data_calc, a, NPARA, &
     par_names, par_ind, &
                       MAXF, nfixed, fixed, fixed_ind, pf, &
-    prange, kupl_last, covar, alpha, beta, chisq, alamda)
+    prange, kupl_last, covar, alpha, beta, chisq, alamda, &
+               lamda_s, lamda_d, lamda_u)
 !
 !  Least squares routine adapted from Numerical Recipes Chapter 14
 !  p 526
@@ -7475,7 +7570,7 @@ IMPLICIT NONE
 INTEGER                                             , INTENT(IN)    :: MAXP        ! Array size for parameters
 INTEGER         , DIMENSION(2)                      , INTENT(IN)    :: data_dim    ! no of ata points along x, y
 REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_data   ! Data values
-REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_weight ! Data sigmas
+REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_sigma ! Data sigmas
 REAL            , DIMENSION(data_dim(1)           ) , INTENT(IN)    :: data_x      ! Actual x-coordinates
 REAL            , DIMENSION(data_dim(2)           ) , INTENT(IN)    :: data_y      ! Actual y-coordinates
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT)  :: data_calc   ! Calculated
@@ -7495,6 +7590,9 @@ REAL            , DIMENSION(NPARA, NPARA)           , INTENT(INOUT) :: alpha    
 REAL            , DIMENSION(NPARA     )             , INTENT(INOUT) :: beta        ! Temp arrays
 REAL                                                , INTENT(INOUT) :: chisq       ! Chi Squared
 REAL                                                , INTENT(INOUT) :: alamda      ! Levenberg parameter
+REAL                                                 , INTENT(IN)  :: lamda_s     ! Start Marquardt lambda
+REAL                                                 , INTENT(IN)  :: lamda_d     ! Start Marquardt lambda
+REAL                                                 , INTENT(IN)  :: lamda_u     ! Start Marquardt lambda
 !
 INTEGER                         :: j     = 0
 INTEGER                         :: k     = 0
@@ -7507,8 +7605,8 @@ LOGICAL, PARAMETER              :: NDERIV = .FALSE.
 !
 ochisq = chisq
 IF(alamda < 0) THEN                   ! Initialization
-   alamda = 0.001
-   CALL kuplot_mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y,   &
+   alamda = lamda_s
+   CALL kuplot_mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y,   &
                data_calc, a, &
                NPARA, par_names, par_ind, prange, &
                       MAXF, nfixed, fixed, fixed_ind, pf, &
@@ -7545,7 +7643,7 @@ IF(alamda==0) THEN
 !  Last call to update the structure, no derivative is needed
 !
    cl(:,:) = covar(:,:)       ! Back up of covariance
-   CALL kuplot_mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y,   &
+   CALL kuplot_mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y,   &
                data_calc, a, &
                NPARA, par_names, par_ind, prange,  &
                MAXF, nfixed, fixed, fixed_ind, pf, &
@@ -7565,7 +7663,7 @@ DO j=1,NPARA
    ENDIF
 ENDDO
 !
-CALL kuplot_mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y,   &
+CALL kuplot_mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y,   &
                data_calc, atry, &
             NPARA, par_names, par_ind, prange, &
                MAXF, nfixed, fixed, fixed_ind, pf, &
@@ -7576,7 +7674,8 @@ ENDIF
 !
 !
 IF(chisq < ochisq) THEN            ! Success, accept solution
-   alamda = 0.5*alamda
+!  alamda = 0.5*alamda
+   alamda = lamda_d*alamda
    ochisq = chisq
    DO j=1,NPARA
       DO k=1,NPARA
@@ -7586,7 +7685,7 @@ IF(chisq < ochisq) THEN            ! Success, accept solution
       a(     (j)) = atry(     (j))
    ENDDO
 ELSE                               ! Failure, reject, keep old params and 
-   alamda =  2.0*alamda            ! increment alamda
+   alamda =  lamda_u*alamda            ! increment alamda
    chisq = ochisq                  ! Keep old chis squared
 ENDIF
 !
@@ -7594,7 +7693,7 @@ END SUBROUTINE kuplot_mrqmin
 !
 !*******************************************************************************
 !
-SUBROUTINE kuplot_mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y,   &
+SUBROUTINE kuplot_mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y,   &
                data_calc, &
                   params, NPARA, par_names, par_ind, prange, &
                MAXF, nfixed, fixed, fixed_ind, pf, &
@@ -7611,7 +7710,7 @@ IMPLICIT NONE
 INTEGER                                             , INTENT(IN)  :: MAXP        ! Maximum parameter number
 INTEGER         , DIMENSION(2)                      , INTENT(IN)  :: data_dim    ! Data dimensions
 REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)  :: data_data   ! Observables
-REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)  :: data_weight ! Observables
+REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigma
 REAL            , DIMENSION(data_dim(1)           ) , INTENT(IN)  :: data_x      ! x-coordinates
 REAL            , DIMENSION(data_dim(2)           ) , INTENT(IN)  :: data_y      ! y-coordinates
 REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(OUT) :: data_calc   ! Calculated data
@@ -7687,7 +7786,7 @@ loopix: do ix=1, data_dim(1)
 !
       CALL p_kuplot_theory(T_MAXP, ix, iy, xx, yy, t_npara, t_params, t_par_names,   &
                          t_prange, t_deriv, &
-                         data_dim, data_data, data_weight, data_x, data_y, &
+                         data_dim, data_data, data_sigma, data_x, data_y, &
                          data_calc, &
                          kupl_last, &
                          ymod, dyda, LDERIV)
@@ -7695,7 +7794,7 @@ loopix: do ix=1, data_dim(1)
          RETURN
       ENDIF
 !
-      sig2i =1./(data_weight(ix,iy)*data_weight(ix,iy))
+      sig2i =1./(data_sigma(ix,iy)*data_sigma(ix,iy))
       dy = data_data(ix,iy) - ymod
       DO j=1, NPARA
          jj = par_ind(j)          ! KUPLOT parameter jj is Fit parameter j
@@ -7726,13 +7825,13 @@ END SUBROUTINE kuplot_mrqcof
 !
 !*******************************************************************************
 !
-SUBROUTINE kuplot_rvalue(data_dim, data_data, data_weight, data_calc, rval, rexp, npar)
+SUBROUTINE kuplot_rvalue(data_dim, data_data, data_sigma, data_calc, rval, rexp, npar)
 !
 IMPLICIT NONE
 !
 INTEGER, DIMENSION(2), INTENT(IN) :: data_dim
 REAL   , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN) :: data_data
-REAL   , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN) :: data_weight
+REAL   , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN) :: data_sigma
 REAL   , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN) :: data_calc
 REAL   , INTENT(OUT) :: rval
 REAL   , INTENT(OUT) :: rexp
@@ -7748,8 +7847,8 @@ sumn = 0.0
 !
 DO iiy = 1, data_dim(2)
    DO iix = 1, data_dim(1)
-      IF(data_weight(iix,iiy)/=0.0) THEN
-         wght = 1./(data_weight(iix,iiy))**2
+      IF(data_sigma(iix,iiy)/=0.0) THEN
+         wght = 1./(data_sigma(iix,iiy))**2
       ELSE
          wght = 1.0
       ENDIF
@@ -7769,4 +7868,71 @@ END SUBROUTINE kuplot_rvalue
 !
 !*******************************************************************************
 !
+!
+!*******************************************************************************
+!
+SUBROUTINE kuplot_set_lamda(line, length)
+!
+USE kuplot_fit_para
+!
+USE errlist_mod
+USE ber_params_mod
+USE get_params_mod
+USE precision_mod
+USE take_param_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: length
+!
+INTEGER, PARAMETER :: MAXW = 20
+!
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+INTEGER            , DIMENSION(MAXW) :: lpara
+!REAL               , DIMENSION(MAXW) :: werte
+!
+INTEGER                              :: ianz
+!
+!
+LOGICAL, EXTERNAL :: str_comp
+!
+!
+INTEGER, PARAMETER :: NOPTIONAL = 3
+INTEGER, PARAMETER :: O_START   = 1
+INTEGER, PARAMETER :: O_FAIL    = 2
+INTEGER, PARAMETER :: O_SUCCESS = 3
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 3 ! Number of values to calculate
+!
+DATA oname  / 'start ' , 'fail  '  ,  'success' /
+DATA loname /  5       ,  4        ,   7      /
+opara  =  (/ '0.001000', '4.000000',  '0.500000'/)   ! Always provide fresh default values
+lopara =  (/  8        ,  8        ,   8        /)
+owerte =  (/  0.001000 ,  4.000000 ,   0.500000 /)
+!
+CALL get_params(line, ianz, cpara, lpara, MAXW, length)
+IF(ier_num/=0) RETURN
+!
+IF(IANZ>=1) THEN
+   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                     oname, loname, opara, lopara, lpresent, owerte)
+   IF(ier_num/=0) RETURN
+   kup_fit6_lamda_s = owerte(O_START)
+   kup_fit6_lamda_u = owerte(O_FAIL)
+   kup_fit6_lamda_d = owerte(O_SUCCESS)
+ELSE
+   ier_num = -6
+   ier_typ = ER_FORT
+   RETURN
+ENDIF
+!
+END SUBROUTINE kuplot_set_lamda
+!
+!*******************************************************************************
 END MODULE kuplot_fit6

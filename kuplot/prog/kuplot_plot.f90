@@ -532,6 +532,7 @@ ELSE main
       USE wink_mod
       USE kuplot_config 
       USE kuplot_mod 
+      USE kuplot_fit6
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 

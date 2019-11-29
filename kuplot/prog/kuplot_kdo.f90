@@ -234,7 +234,8 @@ USE precision_mod
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
                  str_comp (bef, 'fit', 3, lbef, 3)       ) THEN
-            CALL do_fit (zei, lc) !, previous) 
+            CALL do_f66 (zei, lc) !, previous) 
+!           CALL do_fit (zei, lc) !, previous) 
 !           previous(1) = 'fit 1'
 !           previous(2) = 'run'
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
