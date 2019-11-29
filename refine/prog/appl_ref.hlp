@@ -127,9 +127,11 @@
 !p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>] 
 !p            [,"success:"<lamda_g>]
 !p
+3  cycle
 !p set cycle,<maxc>
    Sets the maximum number of refinement cycles
 
+3  convergence
 !p set conver [,"dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
 !p            [,"chi2:"<level>]
 
@@ -159,6 +161,7 @@
       chi2
    are met. 
 
+3  relax
 !p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>] 
 !p            [,"success:"<lamda_g>]
 
