@@ -77,7 +77,7 @@ ALLOCATE(refine_cl(refine_par_n, refine_par_n))
 ! Call main refinement routine
 !
 CALL refine_mrq(REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,            &
-                refine_params, ref_dim, ref_data, ref_weight, ref_x, ref_y,     &
+                refine_params, ref_dim, ref_data, ref_sigma, ref_x, ref_y,      &
                 conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
                 refine_chisqr, refine_conf, refine_lamda, refine_lamda_s,       &
                 refine_lamda_d, refine_lamda_u, refine_rval,                    &
@@ -97,7 +97,7 @@ ENDDO
 ndata = ref_dim(1)*ref_dim(2)
 CALL show_fit_erg(output_io, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refine_fix_n,   &
                   ndata, refine_mac, refine_mac_l, ref_load, ref_kload,         &
-                  ref_sigma, ref_ksigma, .FALSE., refine_chisqr, refine_conf,            &
+                  ref_csigma, ref_ksigma, .FALSE., refine_chisqr, refine_conf,  &
                   refine_lamda, refine_rval, refine_rexp, refine_params,        &
                   refine_p, refine_dp, refine_range, refine_cl, refine_fixed,   &
                   refine_f)
@@ -115,7 +115,7 @@ END SUBROUTINE refine_run
 !
 SUBROUTINE refine_theory(MAXP, ix, iy, xx, yy, NPARA, p, par_names,  &
                          prange,  &
-                         data_dim, & !data_data, data_weight, data_x, data_y, &
+                         data_dim, & !data_data, data_sigma, data_x, data_y, &
                          kupl_last, &
                          f, df, LDERIV)
 !
@@ -142,7 +142,7 @@ CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names 
 REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
 !REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-!REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+!REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 !REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
 !REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
 INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
@@ -483,7 +483,7 @@ END SUBROUTINE refine_load_calc
 !*******************************************************************************
 !
 SUBROUTINE refine_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
-data_data, data_weight, data_x, data_y, &
+data_data, data_sigma, data_x, data_y, &
                 conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
 chisq, conf, lamda_fin, lamda_s, lamda_d, lamda_u,  rval, rexp, p, prange, dp, cl)
 !+                                                                      
@@ -510,7 +510,7 @@ INTEGER                                              , INTENT(IN)  :: kupl_last 
 CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names   ! Parameter names
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim    ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data   ! Data array
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight ! Data sigmas
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x      ! Data coordinates x
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y      ! Data coordinates y
 REAL                                                 , INTENT(IN)  :: conv_dp_sig ! Max parameter shift
@@ -551,6 +551,7 @@ REAL               , DIMENSION(0:3) :: last_chi
 REAL               , DIMENSION(0:3) :: last_shift
 REAL               , DIMENSION(0:3) :: last_conf 
 REAL               , DIMENSION(:,:), ALLOCATABLE :: last_p 
+INTEGER :: last_ind
 !REAL :: shift
 !
 alamda     = -0.01    ! Negative lamda initializes MRQ routine
@@ -585,14 +586,14 @@ ALLOCATE(last_p(0:2,NPARA))
 last_p(2,:) = p(1:NPARA)
 prev_i = 2
 !
-WRITE(output_io,'(a,10x,a,7x,a,6x,a)') 'Cyc Chi^2/(N-P)   MAX(dP/sig)   Conf',&
+WRITE(output_io,'(a,10x,a,7x,a,6x,a)') 'Cyc Chi^2/(N-P)   MAX(dP/sig) Par   Conf',&
                                        'Lambda', 'wRvalue', 'Rexp'
 !
 lconvergence = .FALSE.
 icyc = 0
 cycles:DO
-!write(*,*) ' data_weight', data_weight(1,1), data_weight(data_dim(1),data_dim(2)), MINVAL(data_weight), MAXVAL(data_weight)
-   CALL mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y, p, NPARA, &
+!write(*,*) ' data_sigma', data_sigma(1,1), data_sigma(data_dim(1),data_dim(2)), MINVAL(data_sigma), MAXVAL(data_sigma)
+   CALL mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, p, NPARA, &
                par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda,     &
                lamda_s, lamda_d, lamda_u, lsuccess, dp)
    IF(ier_num/=0) EXIT cycles
@@ -601,21 +602,27 @@ cycles:DO
    DO k=1, NPARA
       CALL refine_set_param(NPARA, par_names(k), k, p(k))   ! Updata parameters
       IF(ier_num/=0) EXIT cycles
-      last_p(last_i,:) = p(1:NPARA)
+      last_p(last_i,k) = p(k)
       IF(cl(k,k)/= 0.0) THEN
-         last_shift(last_i) = MAX(last_shift(last_i), ABS((p(k)-last_p(prev_i,k))/SQRT(cl(k,k)))) !/SQRT(cl(k,k))))
+!        last_shift(last_i) = MAX(last_shift(last_i), ABS((p(k)-last_p(prev_i,k))/SQRT(cl(k,k)))) !/SQRT(cl(k,k))))
+         IF(ABS((p(k)-last_p(prev_i,k))/SQRT(cl(k,k))) > last_shift(last_i)) THEN
+            last_ind = k
+            last_shift(last_i) = ABS((p(k)-last_p(prev_i,k))/SQRT(cl(k,k)))
+         ENDIF
       ENDIF
    ENDDO
    conf = gammaq(REAL(data_dim(1)*data_dim(2)-2)*0.5, chisq*0.5)
    last_chi( last_i) = chisq/(data_dim(1)*data_dim(2)-NPARA)        ! Store Chi^2/(NDATA-NPARA)
    last_conf(last_i) = conf
-   WRITE(*,'(i3,6g13.5e2)') icyc,chisq/(data_dim(1)*data_dim(2)-NPARA), last_shift(last_i), conf, alamda, rval, rexp
+   WRITE(*,'(i3,2g13.5e2,i4,4g13.5e2)') icyc,chisq/(data_dim(1)*data_dim(2)-NPARA), &
+         last_shift(last_i), last_ind, conf, alamda, rval, rexp
 !
 !  CALL refine_rvalue(rval, rexp, NPARA)
 !  DO k = 1, NPARA
 !     dp(k) = SQRT(ABS(cl(k,k)))
 !  ENDDO
    CALL refine_best(rval)                                              ! Write best macro
+write(*,*) 'MAX SHIFT ',last_shift(last_i)
    IF(ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
       last_shift(last_i) < conv_dp_sig                   .AND.   &
       last_conf(last_i)  > conv_conf                     .OR.    &
@@ -648,7 +655,7 @@ IF(ier_num==0) THEN
    lamda_fin = alamda
    alamda = 0.0
 !
-   CALL mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y, p, NPARA, &
+   CALL mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, p, NPARA, &
                par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda,     &
                lamda_s, lamda_d, lamda_u, lsuccess, dp)
    CALL refine_rvalue(rval, rexp, NPARA)
@@ -667,7 +674,7 @@ END SUBROUTINE refine_mrq
 !
 !*******************************************************************************
 !
-SUBROUTINE mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y, a, NPARA, &
+SUBROUTINE mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, a, NPARA, &
     par_names, &
     prange, kupl_last, covar, alpha, beta, chisq, alamda, lamda_s, lamda_d, lamda_u, &
     lsuccess, dp)
@@ -683,7 +690,7 @@ IMPLICIT NONE
 INTEGER                                             , INTENT(IN)    :: MAXP        ! Array size for parameters
 INTEGER         , DIMENSION(2)                      , INTENT(IN)    :: data_dim    ! no of ata points along x, y
 REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_data   ! Data values
-REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_weight ! Data sigmas
+REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_sigma ! Data sigmas
 REAL            , DIMENSION(data_dim(1)           ) , INTENT(IN)    :: data_x      ! Actual x-coordinates
 REAL            , DIMENSION(data_dim(2)           ) , INTENT(IN)    :: data_y      ! Actual y-coordinates
 INTEGER                                             , INTENT(IN)    :: NPARA       ! number of parameters
@@ -714,7 +721,7 @@ LOGICAL, PARAMETER              :: NDERIV = .FALSE.
 ochisq = chisq
 IF(alamda < 0) THEN                   ! Initialization
    alamda = lamda_s
-   CALL mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, a, &
+   CALL mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y, a, &
                NPARA, par_names, prange, kupl_last, alpha, beta, &
                chisq, LDERIV) !, funcs)
    IF(ier_num/=0) THEN
@@ -751,7 +758,7 @@ IF(alamda==0) THEN
 !
 !  Last call to update the structure, no derivative is needed
 !
-   CALL mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, a, &
+   CALL mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y, a, &
                NPARA, par_names, prange, kupl_last, covar, da, chisq, NDERIV) !, funcs)
    IF(ier_num/=0) THEN
       RETURN
@@ -768,7 +775,7 @@ DO j=1,NPARA
    ENDIF
 ENDDO
 !
-CALL mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, atry, &
+CALL mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y, atry, &
             NPARA, par_names, prange, kupl_last, covar, da, chisq, LDERIV) !, funcs)
 IF(ier_num/=0) THEN
    RETURN
@@ -802,7 +809,7 @@ END SUBROUTINE mrqmin
 !
 !*******************************************************************************
 !
-SUBROUTINE mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, &
+SUBROUTINE mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y, &
                   params, NPARA, par_names, prange, kupl_last, alpha, beta, chisq, LDERIV)
 !
 ! Modified after NumRec 14.4
@@ -815,7 +822,7 @@ IMPLICIT NONE
 INTEGER                                             , INTENT(IN)  :: MAXP        ! Maximum parameter number
 INTEGER         , DIMENSION(2)                      , INTENT(IN)  :: data_dim    ! Data dimensions
 REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)  :: data_data   ! Observables
-REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)  :: data_weight ! Observables
+REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)  :: data_sigma ! Observables
 REAL            , DIMENSION(data_dim(1)           ) , INTENT(IN)  :: data_x      ! x-coordinates
 REAL            , DIMENSION(data_dim(2)           ) , INTENT(IN)  :: data_y      ! y-coordinates
 INTEGER                                             , INTENT(IN)  :: NPARA       ! Number of refine parameters
@@ -852,14 +859,14 @@ loopix: do ix=1, data_dim(1)
 !
       CALL refine_theory(MAXP, ix, iy, xx, yy, NPARA, params, par_names,   &
                          prange, &
-                         data_dim, & ! data_data, data_weight, data_x, data_y, &
+                         data_dim, & ! data_data, data_sigma, data_x, data_y, &
                          kupl_last, &
                          ymod, dyda, LDERIV)
       IF(ier_num/=0) THEN
          RETURN
       ENDIF
 !
-      sig2i =1./(data_weight(ix,iy)*data_weight(ix,iy))
+      sig2i =1./(data_sigma(ix,iy)*data_sigma(ix,iy))
       dy = data_data(ix,iy) - ymod
       DO j=1, NPARA
          wt = dyda(j)*sig2i
@@ -902,8 +909,8 @@ sumn = 0.0
 !
 DO iiy = 1, ref_dim(2)
    DO iix = 1, ref_dim(1)
-      IF(ref_weight(iix,iiy)/=0.0) THEN
-         wght = 1./(ref_weight(iix,iiy))**2
+      IF(ref_sigma(iix,iiy)/=0.0) THEN
+         wght = 1./(ref_sigma(iix,iiy))**2
       ELSE
          wght = 1.0
       ENDIF
@@ -973,10 +980,10 @@ IF(ref_LOAD/= ' ') THEN           ! Data set was loaded
    WRITE(IWR, '(a)') '#'
 ENDIF
 !
-IF(ref_sigma/= ' ') THEN           ! sigma set was loaded 
+IF(ref_csigma/= ' ') THEN           ! sigma set was loaded 
    WRITE(IWR, '(a)') 'kuplot'
    WRITE(IWR, '(a)') 'rese'
-   WRITE(IWR, '(a,a)') 'load ',ref_sigma(1:LEN_TRIM(ref_sigma))
+   WRITE(IWR, '(a,a)') 'load ',ref_csigma(1:LEN_TRIM(ref_csigma))
    WRITE(IWR, '(a)') 'exit'
    WRITE(IWR, '(a)') '#'
 ENDIF

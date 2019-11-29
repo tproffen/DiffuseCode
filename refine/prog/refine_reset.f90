@@ -63,7 +63,7 @@ refine_lamda_d  = 0.500   ! MRQ lamda Decrease (down)
 ! refine_data_mod
 !
 ref_load    = ' '  ! Load string data
-ref_sigma   = ' '  ! Load string Sigma's
+ref_csigma  = ' '  ! Load string Sigma's
 ref_kload   = 0    ! Data set within KUPLOT
 ref_ksigma  = 0    ! Sigma set within KUPLOT
 ref_kupl    = 0    ! Data set within KUPLOT that needs to be kept

@@ -47,7 +47,7 @@ IF(line(1:6) == 'kuplot') THEN
       ref_load = ' '
       ref_kload = ndata
    ELSE
-      ref_sigma = ' '         ! Sigma loaded from KUPLOT
+      ref_csigma = ' '        ! Sigma loaded from KUPLOT
       ref_ksigma = ndata
    ENDIF
 ELSE                               ! Presume a "data xy, filename "
@@ -55,7 +55,7 @@ ELSE                               ! Presume a "data xy, filename "
       ref_load = line
       ref_kload = 0
    ELSE
-      ref_sigma = line
+      ref_csigma = line
       ref_ksigma = 0
    ENDIF
    CALL do_load(line, length,.TRUE.)
@@ -102,7 +102,7 @@ ENDIF
 !
 IF(LDATA) THEN                         ! This is the data set
    IF(ALLOCATED(ref_data))   DEALLOCATE(ref_data)
-   IF(ALLOCATED(ref_weight)) DEALLOCATE(ref_weight)
+   IF(ALLOCATED(ref_sigma )) DEALLOCATE(ref_sigma )
    IF(ALLOCATED(ref_x     )) DEALLOCATE(ref_x     )
    IF(ALLOCATED(ref_y     )) DEALLOCATE(ref_y     )
 ENDIF
@@ -112,14 +112,14 @@ IF(lni(ndata)) THEN                    ! 2D data set
       ref_dim(1) = nx(ndata )
       ref_dim(2) = ny(ndata )
       ALLOCATE(ref_data  (ref_dim(1),ref_dim(2)))
-      ALLOCATE(ref_weight(ref_dim(1),ref_dim(2)))
+      ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2)))
       ALLOCATE(ref_x     (ref_dim(1)))
       ALLOCATE(ref_y     (ref_dim(2)))
 !
       DO iy=1,ref_dim(2)
          DO ix=1,ref_dim(1)
             ref_data(ix,iy)  = z (offz(ndata - 1) + (ix - 1)*ny(ndata) + iy)
-            ref_weight(ix,iy) = 1.0000    ! dz(offxy(iz - 1) + ix) TEMPORARY unit weights
+            ref_sigma (ix,iy) = 1.0000    ! dz(offxy(iz - 1) + ix) TEMPORARY unit weights
          ENDDO
          ref_y(iy)      = y(offxy(ndata - 1) + iy)
       ENDDO
@@ -135,7 +135,7 @@ IF(lni(ndata)) THEN                    ! 2D data set
       step = (ref_y(ref_dim(2))-ref_y(1))/FLOAT(ref_dim(2)-1)
       CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
    ELSE
-      IF(.NOT.ALLOCATED(ref_weight)) THEN 
+      IF(.NOT.ALLOCATED(ref_sigma )) THEN 
          ier_num = -5
          ier_typ = ER_APPL
          RETURN
@@ -149,7 +149,7 @@ IF(lni(ndata)) THEN                    ! 2D data set
       ENDIF
       DO iy=1,ref_dim(2)
          DO ix=1,ref_dim(1)
-            ref_weight(ix,iy) = z (offz(ndata - 1) + (ix - 1)*ny(ndata) + iy)
+            ref_sigma (ix,iy) = z (offz(ndata - 1) + (ix - 1)*ny(ndata) + iy)
          ENDDO
       ENDDO
    ENDIF
@@ -158,15 +158,15 @@ ELSE                                     ! !D data set
       ref_dim(1) = len(ndata )
       ref_dim(2) = 1
       ALLOCATE(ref_data  (ref_dim(1),ref_dim(2)))
-      ALLOCATE(ref_weight(ref_dim(1),ref_dim(2)))
+      ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2)))
       ALLOCATE(ref_x     (ref_dim(1)))
       ALLOCATE(ref_y     (1         ))
       DO ix=1,ref_dim(1)
          ref_data(ix,1)   = y(offxy(ndata - 1) + ix)
-         ref_weight(ix,1) = ABS(dy(offxy(ndata - 1) + ix))
+         ref_sigma (ix,1) = ABS(dy(offxy(ndata - 1) + ix))
          ref_x(ix)        = x(offxy(ndata - 1) + ix)
       ENDDO
-      IF(MINVAL(ref_weight(:,1))==0.0) THEN
+      IF(MINVAL(ref_sigma (:,1))==0.0) THEN
          ier_num = -7
          ier_typ = ER_APPL
          ier_msg(1) = ' Check data and define non-zeo sigma'
@@ -182,7 +182,7 @@ ELSE                                     ! !D data set
       step = 1.0
       CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
    ELSE
-      IF(.NOT.ALLOCATED(ref_weight)) THEN 
+      IF(.NOT.ALLOCATED(ref_sigma )) THEN 
          ier_num = -5
          ier_typ = ER_APPL
          RETURN
@@ -196,7 +196,7 @@ ELSE                                     ! !D data set
       ENDIF
 !
       DO ix=1,ref_dim(1)
-         ref_weight(ix,1) = y (offxy(ndata - 1) + ix)
+         ref_sigma (ix,1) = y (offxy(ndata - 1) + ix)
       ENDDO
    ENDIF
 ENDIF

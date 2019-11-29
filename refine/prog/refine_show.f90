@@ -140,7 +140,7 @@ CALL show_fit_erg(iounit, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n,   &
            refine_fix_n, &
            ref_dim(1)*ref_dim(2),      &
            refine_mac, refine_mac_l,   &
-           ref_load, ref_kload, ref_sigma, ref_ksigma, lcovar,            &
+           ref_load, ref_kload, ref_csigma, ref_ksigma, lcovar,           &
            refine_chisqr, refine_conf, &
            refine_lamda, refine_rval, refine_rexp,                        &
            refine_params, refine_p, refine_dp, refine_range, refine_cl,   &
@@ -153,7 +153,7 @@ END SUBROUTINE refine_do_show
 !*******************************************************************************
 !
 SUBROUTINE show_fit_erg(iounit, MAXP, MAXF, npara, nfixed, ndata, mac, mac_l,   &
-           load, kload, sigma, ksigma, lcovar, chisq, conf, lamda,  &
+           load, kload, csigma, ksigma, lcovar, chisq, conf, lamda,  &
            r4, re, &
            params, pp, dpp, prange, cl, fixed, pf)
 !+                                                                      
@@ -173,7 +173,7 @@ CHARACTER(LEN=*), INTENT(IN) :: mac   ! Refinement macro name
 INTEGER, INTENT(IN)          :: mac_l ! Length of macro name
 CHARACTER(LEN=*), INTENT(IN) :: load  ! Data set loaded as:
 INTEGER, INTENT(IN)          :: kload ! Datas set in KUPLOT number
-CHARACTER(LEN=*), INTENT(IN) :: sigma ! Data set loaded as:
+CHARACTER(LEN=*), INTENT(IN) :: csigma ! Data set loaded as:
 INTEGER, INTENT(IN)          :: ksigma! Datas set in KUPLOT number
 LOGICAL, INTENT(IN)          :: lcovar! Display full covariance matrix
 REAL, INTENT(IN) :: chisq             ! Chi^2
@@ -202,14 +202,14 @@ ELSE
    WRITE(iounit, 3020) load(1:LEN_TRIM(load))
 ENDIF
 !
-IF(sigma==' ') THEN
+IF(csigma==' ') THEN
    IF(ksigma>0) THEN
       WRITE(iounit, 3100) ksigma
    ELSE
       WRITE(iounit, 3110)
    ENDIF
 ELSE
-   WRITE(iounit, 3120) sigma(1:LEN_TRIM(sigma))
+   WRITE(iounit, 3120) csigma(1:LEN_TRIM(csigma))
 ENDIF
 !
 WRITE(iounit, 2000) mac(1:mac_l)
