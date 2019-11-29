@@ -148,6 +148,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_power) 
                   IF (ier_num.eq.0) then 
+                     CALL pow_conv_limits
                      pow_qmin_u = pow_qmin   !! save user values
                      pow_qmax_u = pow_qmax
                      pow_deltaq_u=pow_deltaq
