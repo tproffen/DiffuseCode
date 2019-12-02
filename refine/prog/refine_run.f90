@@ -622,7 +622,6 @@ cycles:DO
 !     dp(k) = SQRT(ABS(cl(k,k)))
 !  ENDDO
    CALL refine_best(rval)                                              ! Write best macro
-write(*,*) 'MAX SHIFT ',last_shift(last_i)
    IF(ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
       last_shift(last_i) < conv_dp_sig                   .AND.   &
       last_conf(last_i)  > conv_conf                     .OR.    &
