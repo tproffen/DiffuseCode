@@ -97,6 +97,8 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2019_December
+   Changed the fit algorithm to a more stable routine
 3  2019_November
 
    Added a ==> 'close' command that allows to deactivate plot windows
