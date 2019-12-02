@@ -27,18 +27,18 @@ set (SOURCES_ALL refine_add_param.f90 refine_allocate_appl.f90 refine_blk_appl.f
 
 set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
 
-if (MPI_FOUND AND DIFFEV_MPI)
+if (MPI_Fortran_FOUND AND DIFFEV_MPI)
   message (status " building REFINE with MPI")
   set (SOURCES_ALL ${SOURCES_ALL} ${DIFFUSE_SOURCE_DIR}/diffev/prog/with_mpi.f90)
   set (LIBS_OPT ${MPI_Fortran_LIBRARIES})
   include_directories(${MPI_Fortran_INCLUDE_PATH})
   link_directories(${MPI_LIBARY_PATH})
 
-else (MPI_FOUND AND DIFFEV_MPI)
+else (MPI_Fortran_FOUND AND DIFFEV_MPI)
   message (status " building REFINE without MPI")
   set (SOURCES_ALL ${SOURCES_ALL} ${DIFFUSE_SOURCE_DIR}/diffev/prog/no_mpi.f90)
 
-endif (MPI_FOUND AND DIFFEV_MPI)
+endif (MPI_Fortran_FOUND AND DIFFEV_MPI)
 
 add_library (refine_all ${SOURCES_ALL})
 add_dependencies ( refine_all lib_f90 diffev_all)

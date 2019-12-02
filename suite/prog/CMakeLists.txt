@@ -48,16 +48,16 @@ else(DISCUS_OMP)
   message (status " building SUITE without openmp")
 endif(DISCUS_OMP)
 
-if (MPI_FOUND AND DIFFEV_MPI)
+if (MPI_Fortran_FOUND AND DIFFEV_MPI)
   message (status " building SUITE with MPI")
   set (LIBS_OPT ${MPI_Fortran_LIBRARIES})
   include_directories(${MPI_Fortran_INCLUDE_PATH})
   link_directories(${MPI_LIBARY_PATH})
 
-else (MPI_FOUND AND DIFFEV_MPI)
+else (MPI_Fortran_FOUND AND DIFFEV_MPI)
   message (status " building SUITE without MPI")
 
-endif (MPI_FOUND AND DIFFEV_MPI)
+endif (MPI_Fortran_FOUND AND DIFFEV_MPI)
 
 # NEXUS support ?
 

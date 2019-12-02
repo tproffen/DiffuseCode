@@ -21,18 +21,18 @@ set (SOURCES_ALL diffev_allocate_appl.f90 diffev_blk_appl.f90 compare.f90 diffev
 
 set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
 
-if (MPI_FOUND AND DIFFEV_MPI)
+if (MPI_Fortran_FOUND AND DIFFEV_MPI)
   message (status " building DIFFEV with MPI")
   set (SOURCES_ALL ${SOURCES_ALL} with_mpi.f90)
   set (LIBS_OPT ${MPI_Fortran_LIBRARIES})
   include_directories(${MPI_Fortran_INCLUDE_PATH})
   link_directories(${MPI_LIBARY_PATH})
 
-else (MPI_FOUND AND DIFFEV_MPI)
+else (MPI_Fortran_FOUND AND DIFFEV_MPI)
   message (status " building DIFFEV without MPI")
   set (SOURCES_ALL ${SOURCES_ALL} no_mpi.f90)
 
-endif (MPI_FOUND AND DIFFEV_MPI)
+endif (MPI_Fortran_FOUND AND DIFFEV_MPI)
 
 add_library (diffev_all ${SOURCES_ALL})
 add_dependencies ( diffev_all lib_f90)
