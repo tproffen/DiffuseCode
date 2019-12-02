@@ -1,6 +1,26 @@
 MODULE suite_setup_mod
 !
 CONTAINS
+SUBROUTINE setup_suite_start
+!-
+! This routine makes start up setup of DISCSU_SUITE
+!+
+USE appl_env_mod
+USE lib_f90_default_mod
+!
+!     Call initial default allocation
+!
+CALL lib_alloc_default
+!                                                                       
+!     Call initialization routine.                                      
+!                                                                       
+CALL init_sysarrays
+!                                                                       
+!     get envirmonment information                                      
+! 
+CALL appl_env (.TRUE.)
+!
+END SUBROUTINE setup_suite_start
 !
 !*****7*****************************************************************
 SUBROUTINE setup_suite
@@ -39,16 +59,20 @@ CALL ini_ran_ix (np, iwerte, 0)
 !
 !     Call initial default allocation
 !
-CALL lib_alloc_default
+!CALL lib_alloc_default
 !                                                                       
 !     Call initialization routine.                                      
 !                                                                       
 !CALL initarrays
-CALL init_sysarrays
+!CALL init_sysarrays
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
-CALL appl_env (.TRUE., gen_mpi_myid)
+!CALL appl_env (.TRUE., gen_mpi_myid)
+!
+!     Define terminal color scheme
+!
+CALL color_set_scheme (.TRUE.,   gen_mpi_myid)
 !
 IF(gen_mpi_myid==0) THEN
 !                                                                       

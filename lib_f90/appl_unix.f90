@@ -5,7 +5,7 @@ CONTAINS
 !
 !*******************************************************************************!
 !
-SUBROUTINE appl_env (standalone, local_mpi_myid)
+SUBROUTINE appl_env (standalone) !, local_mpi_myid)
 !-                                                                      
 !     Reads environment variables, sets path for helpfile               
 !     UNIX version ..                                                   
@@ -20,7 +20,7 @@ USE string_convert_mod
 IMPLICIT none 
 !                                                                       
 LOGICAL, INTENT(IN) :: standalone
-INTEGER, INTENT(IN) :: local_mpi_myid
+!INTEGER, INTENT(IN) :: local_mpi_myid
 !                                                                       
 INTEGER, PARAMETER :: idef = 68
 !
@@ -400,11 +400,13 @@ ENDIF
 !
 !     Define terminal color scheme
 !
-      CALL color_set_scheme (standalone, local_mpi_myid)
+!     CALL color_set_scheme (standalone, local_mpi_myid)
 !
+CALL lib_f90_getpname(PID,PID,process_name)
 ! Get Parent Process ID, required knowledge of operating
 !
 PPID = lib_f90_getppid(PID)
+CALL lib_f90_getpname(PID,PPID, parent_name)
 !
 envir_done = .TRUE.
 !                                                                       
@@ -823,6 +825,58 @@ CALL SYSTEM(line)                    ! remove temporary file
 lib_f90_getppid = tppid
 !
 END FUNCTION lib_f90_getppid
+!
+!*******************************************************************************
+!
+SUBROUTINE lib_f90_getpname(cpid, tpid,tpname)
+!-
+! Get the process name of the process with PID tpid
+!+
+USE envir_mod
+!
+IMPLICIT NONE
+!
+INTEGER         , INTENT(IN)  :: cpid  ! Current Process id
+INTEGER         , INTENT(IN)  :: tpid  ! Process id
+CHARACTER(LEN=*), INTENT(OUT) :: tpname  ! process name
+!
+INTEGER, PARAMETER  :: ITMP     = 79  ! temporary unit number
+!
+CHARACTER(LEN=1024) :: line           ! Dummy line
+CHARACTER(LEN=1024) :: temp_file      ! temporary file
+INTEGER             :: ios            ! I/O status 
+INTEGER             :: islash         ! I/O status 
+!
+!  Make a temp_file to write the system(ps) into
+WRITE(temp_file, '(a,I5.5)') '/tmp/getpname.', cpid
+!
+IF(operating(1:6)=='darwin') THEN
+   WRITE(line,'(a,I5,a,a)') 'ps -p ',tpid, ' -o comm= > ',temp_file(1:LEN_TRIM(temp_file))
+ELSEIF(operating==OS_WINDOWS .OR. operating==OS_CYGWIN64 .OR. operating==OS_CYGWIN32) THEN
+   WRITE(line,'(a,i5,a,i5,a,a)') 'ps -p ',tpid, ' | grep ', tpid, '| grep -v grep > ', &
+   temp_file(1:LEN_TRIM(temp_file))
+ELSEIF(operating==OS_LINUX) THEN
+   WRITE(line,'(a,I5,a,a)') 'ps -p ',tpid, ' -o comm= > ',temp_file(1:LEN_TRIM(temp_file))
+ELSEIF(operating==OS_LINUX_WSL) THEN
+   WRITE(line,'(a,I5,a,a)') 'ps -p ',tpid, ' -o comm= > ',temp_file(1:LEN_TRIM(temp_file))
+ENDIF
+CALL system(line)
+!
+tpname = ' '
+OPEN(UNIT=ITMP,FILE=temp_file,STATUS='old')
+IF(operating==OS_WINDOWS .OR. operating==OS_CYGWIN64 .OR. operating==OS_CYGWIN32) THEN
+   READ(ITMP,'(a)', IOSTAT=ios) line
+   READ(LINE(65:),'(a)', IOSTAT=ios) tpname
+   islash =INDEX(tpname,'/', .TRUE.)
+   READ(tpname(islash+1:),'(a)', IOSTAT=ios) tpname
+ELSE
+   READ(ITMP,'(a)', IOSTAT=ios) tpname
+ENDIF
+CLOSE(ITMP)
+line = 'rm -f ' // temp_file(1:len_trim(temp_file))
+CALL SYSTEM(line)                    ! remove temporary file
+
+END SUBROUTINE lib_f90_getpname
 !
 !*******************************************************************************
 !

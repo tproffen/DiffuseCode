@@ -53,7 +53,7 @@ IF(standalone) CALL init_sysarrays
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
-CALL appl_env (lstandalone, 0)
+CALL appl_env (lstandalone) !, 0)
 !                                                                       
 !     try to read default file                                          
 !                                                                       

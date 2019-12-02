@@ -37,6 +37,8 @@ gen_mpi_myid      = 0
 lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !lstandalone       = .true.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !
+CALL setup_suite_start           ! Do start up procedures
+!
 CALL run_mpi_init    ! Do the initial MPI configuration for slave DIFFEV
 IF(ier_num/=0) THEN
    IF(gen_mpi_myid == master) THEN   !  "DIFFEV" slave, directly go to diffev

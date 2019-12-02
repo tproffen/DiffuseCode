@@ -40,7 +40,7 @@ CONTAINS
       IF(standalone) CALL lib_alloc_default
       CALL kuplot_initarrays 
       IF(standalone) CALL init_sysarrays 
-      CALL appl_env (lstandalone,0)
+      CALL appl_env (lstandalone) ! ,0)
 !                                                                       
 !------ Write starting screen                                           
 !                                                                       

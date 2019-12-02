@@ -26,6 +26,8 @@ MODULE envir_mod
    CHARACTER(LEN= 256) :: user_profile
    CHARACTER(LEN= 256) :: term_scheme_file
    CHARACTER(LEN= 256) :: inst_file
+   CHARACTER(LEN= 256) :: process_name
+   CHARACTER(LEN= 256) :: parent_name
    CHARACTER(LEN= 80 ) :: deffile
    CHARACTER(LEN= 80 ) :: hlpfile
    CHARACTER(LEN= 80 ) :: manfile
