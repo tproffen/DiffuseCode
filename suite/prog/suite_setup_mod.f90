@@ -7,6 +7,13 @@ SUBROUTINE setup_suite_start
 !+
 USE appl_env_mod
 USE lib_f90_default_mod
+USE prompt_mod
+!
+pname             = 'suite'
+pname_cap         = 'SUITE'
+prompt            = pname
+prompt_status     = PROMPT_ON
+prompt_status_old = PROMPT_ON
 !
 !     Call initial default allocation
 !
