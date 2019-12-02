@@ -100,7 +100,7 @@ ypl     = 0.0
 xdel    = 0.0
 !                                                                       
 IF (pow_four_type.eq.POW_COMPL) THEN 
-   IF (pow_axis.eq.POW_AXIS_Q) THEN 
+!  IF (pow_axis.eq.POW_AXIS_Q) THEN 
       xmin = pow_qmin_u 
       xmax = pow_qmax_u 
 !     IF(value == val_pdf) THEN
@@ -109,47 +109,46 @@ IF (pow_four_type.eq.POW_COMPL) THEN
 !        ENDIF
 !     ENDIF
       xdel = pow_deltaq_u
-   ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-      xmin = pow_tthmin 
-      xmax = pow_tthmax 
-      xdel = pow_deltatth 
-   ELSE 
-      ier_num = - 104 
-      ier_typ = ER_APPL 
-      ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
-      ier_msg (2) = 'within the powder menu to define the axis' 
-      ier_msg (3) = ' ' 
-      DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
-      DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-      DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-      DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
-      RETURN 
-   ENDIF 
+!  ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+!     xmin = pow_tthmin 
+!     xmax = pow_tthmax 
+!     xdel = pow_deltatth 
+!  ELSE 
+!     ier_num = - 104 
+!     ier_typ = ER_APPL 
+!     ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
+!     ier_msg (2) = 'within the powder menu to define the axis' 
+!     ier_msg (3) = ' ' 
+!     DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
+!     DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+!     DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+!     DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
+!     RETURN 
+!  ENDIF 
    npkt = MIN(NINT((xmax+xdel-xmin)/xdel) + 2, POW_MAXPKT)
 ELSEIF (pow_four_type.eq.POW_DEBYE) THEN
-   IF (pow_axis.eq.POW_AXIS_Q) THEN 
+!  IF (pow_axis.eq.POW_AXIS_Q) THEN 
       xmin = pow_qmin 
       xmax = pow_qmax 
       xdel = (pow_qmax - pow_qmin) / (num (1) ) 
-   ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-      xmin = pow_tthmin 
-      xmax = pow_tthmax 
-      xdel = (pow_tthmax - pow_tthmin) / (num (1) ) 
-   ELSE 
-      ier_num = - 104 
-      ier_typ = ER_APPL 
-      ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
-      ier_msg (2) = 'within the powder menu to define the axis' 
-      ier_msg (3) = ' ' 
-      DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
-      DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-      DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-      DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
-      RETURN 
-   ENDIF 
+!  ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+!     xmin = pow_tthmin 
+!     xmax = pow_tthmax 
+!     xdel = (pow_tthmax - pow_tthmin) / (num (1) ) 
+!  ELSE 
+!     ier_num = - 104 
+!     ier_typ = ER_APPL 
+!     ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
+!     ier_msg (2) = 'within the powder menu to define the axis' 
+!     ier_msg (3) = ' ' 
+!     DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
+!     DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+!     DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+!     DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
+!     RETURN 
+!  ENDIF 
    npkt = MIN(num(1), POW_MAXPKT)
 ENDIF 
-!CORR write(*,*) ' SET LIMITS ', xmin, xmax, xdel, npkt
 !
 !     Prepare average form factors for S(Q) or F(Q), Normalized Intensity, PDF, or faver2, f2aver
 !
@@ -157,7 +156,7 @@ IF(value == val_sq     .OR. value == val_fq     .OR. &
    value == val_iq     .OR. value == val_inten  .OR. &
                             value == val_pdf    .OR. &
    value == val_f2aver .OR. value == val_faver2      ) THEN
-   IF (pow_axis.eq.POW_AXIS_Q .OR. (pow_axis.eq.POW_AXIS_TTH .AND.value == val_inten)) THEN 
+!  IF (pow_axis.eq.POW_AXIS_Q .OR. (pow_axis.eq.POW_AXIS_TTH .AND.value == val_inten)) THEN 
       IF(.NOT.(pow_four_mode == POW_STACK)) THEN  ! Stack did its own faver2
          IF (pow_four_type.eq.POW_COMPL) THEN     ! Need to initialize pow_istl
             xstart = pow_qmin  /zpi
@@ -166,17 +165,17 @@ IF(value == val_sq     .OR. value == val_fq     .OR. &
          ENDIF
          CALL powder_f2aver (npkt   )             ! Calculate average form factors <f>2 and <f^2>
       ENDIF
-   ELSE                                           ! F(Q) works for Q-axis only
-      ier_msg (1) = 'Use command ==> form, powder,q'
-      ier_msg (2) = 'within the output menu to define the axis' 
-      ier_num = -125
-      ier_typ = ER_APPL
-      DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
-      DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-      DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-      DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
-      RETURN
-  ENDIF
+!  ELSE                                           ! F(Q) works for Q-axis only
+!     ier_msg (1) = 'Use command ==> form, powder,q'
+!     ier_msg (2) = 'within the output menu to define the axis' 
+!     ier_num = -125
+!     ier_typ = ER_APPL
+!     DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
+!     DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+!     DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+!     DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for LP correction
+!     RETURN
+! ENDIF
 ENDIF
 !
 lread = .false. 
@@ -223,17 +222,17 @@ ypl(0) = pow_tmp(0)
 copy: IF (pow_four_type.eq.POW_COMPL) THEN
    DO ii = 1, npkt
       xpos = ii * xdel + xmin 
-      IF (pow_axis.eq.POW_AXIS_Q) THEN 
+!     IF (pow_axis.eq.POW_AXIS_Q) THEN 
          q      = xpos
          dstar  = q / REAL(zpi)
          stl    = q / REAL(zpi) / 2.
          ttheta = 2.*asind ( REAL(q / 2. /REAL(zpi) *rlambda ))
-      ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-         ttheta = xpos
-         stl    =                  sind (ttheta * 0.5) / rlambda 
-         dstar  = 2. *             sind (ttheta * 0.5) / rlambda 
-         q      = 2. * REAL(zpi) * sind (ttheta * 0.5) / rlambda 
-      ENDIF 
+!     ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+!        ttheta = xpos
+!        stl    =                  sind (ttheta * 0.5) / rlambda 
+!        dstar  = 2. *             sind (ttheta * 0.5) / rlambda 
+!        q      = 2. * REAL(zpi) * sind (ttheta * 0.5) / rlambda 
+!     ENDIF 
       IF(value == val_sq .OR. value == val_fq .OR. value == val_pdf)  THEN
 ! WRONG!         lp = lorentz(ttheta,1)
       lp = 1./q**2
@@ -258,19 +257,19 @@ copy: IF (pow_four_type.eq.POW_COMPL) THEN
       ypl(ii) = pow_tmp(ii) * lp
    ENDDO 
 ELSEIF (pow_four_type.eq.POW_DEBYE) THEN  copy
-   IF (pow_axis.eq.POW_AXIS_DSTAR) THEN 
+!  IF (pow_axis.eq.POW_AXIS_DSTAR) THEN 
 !     CONTINUE 
-   ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
+!  ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
       xm(1)  = pow_qmin / REAL(zpi) 
       ss     = pow_qmax / REAL(zpi) 
       st     = (pow_qmax - pow_deltaq) / REAL(zpi) 
       uin(1) = pow_deltaq / REAL(zpi) 
-   ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-      xm(1)  = 2 * sind (0.5 * pow_tthmin) / rlambda 
-      ss     = 2 * sind (0.5 * pow_tthmax) / rlambda 
-      st     = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda
-      uin(1) = (ss - st) / 2. 
-   ENDIF 
+!  ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+!     xm(1)  = 2 * sind (0.5 * pow_tthmin) / rlambda 
+!     ss     = 2 * sind (0.5 * pow_tthmax) / rlambda 
+!     st     = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda
+!     uin(1) = (ss - st) / 2. 
+!  ENDIF 
    DO ii = 1, npkt    
       dstar = REAL(xm (1) + (ii - 1) * uin (1) ) 
       stl = REAL(0.5D0 * (xm (1) + (ii - 1) * uin (1) ) )
@@ -305,11 +304,11 @@ IF(value == val_pdf) THEN   ! Divide by average Debye-Waller term
 !write(77,'(2(2x,G17.7E3))') xmin+(ii-1)*xdel, ypl(ii)
 !enddo
 !close(77)
-   IF(pow_axis.eq.POW_AXIS_Q) THEN
+!  IF(pow_axis.eq.POW_AXIS_Q) THEN
       DO ii=1, npkt
          ypl(ii) = ypl(ii)/EXP(-0.5*(pow_u2aver*u2aver_scale)*xpl(ii)**2)
       ENDDO
-   ENDIF
+!  ENDIF
 ENDIF
 !open(77,file='POWDER/divided.inte',status='unknown')
 !DO ii=1,npkt
@@ -324,7 +323,7 @@ lpscale = 1.0
 normalizer = 1.0D0
 prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. & 
          value == val_iq .OR.                        value == val_pdf         ) THEN
-   axq: IF (pow_axis.eq.POW_AXIS_Q .OR. (pow_axis.eq.POW_AXIS_TTH .AND.value == val_inten)) THEN 
+!  axq: IF (pow_axis.eq.POW_AXIS_Q .OR. (pow_axis.eq.POW_AXIS_TTH .AND.value == val_inten)) THEN 
       IF (pow_four_type.eq.POW_COMPL) THEN
 !        pow_tmp_sum = 0.0                           ! Determine normalizer, such that 
 !        pow_uuu_sum = 0.0                           ! the average F(q) is 0.0
@@ -421,60 +420,68 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
          IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
             DO j = 1, npkt   
                q = ((j-1)*xdel + xmin)
-               ypl(j) =  (ypl(j)                    /normalizer    &
-                         +         lpv(j) * (                      &
-                         + pow_faver2(j) - & !exp(-q**2*pow_u2aver*0.25)      * &
-                          pow_f2aver(j)              ) ) * REAL(pow_nreal)
+               ypl(j) =  (ypl(j)/normalizer    &
+                         ) 
+!              ypl(j) =  (ypl(j)                    /normalizer    &
+!                        +         lpv(j) * (                      &
+!                        + pow_faver2(j) - & !exp(-q**2*pow_u2aver*0.25)      * &
+!                         pow_f2aver(j)              ) ) * REAL(pow_nreal)
             ENDDO
          ELSE
             DO j = 1, npkt   
                q = ((j-1)*xdel + xmin)
-               ypl(j) =  (ypl(j)                    /normalizer   &
-                         +         lpv(j) * (                      &
-                         + pow_faver2(j) - exp(-q**2*pow_u2aver)   * &
-                          pow_f2aver(j)              )) * REAL(pow_nreal)
+               ypl(j) =   ypl(j)/normalizer +                 &
+                         (+ 1.0 - exp(-q**2*pow_u2aver))*pow_faver2(j) 
+                         !* REAL(pow_nreal)
+!              ypl(j) =  (ypl(j)                    /normalizer   &
+!                        +         lpv(j) * (                      &
+!                        + pow_faver2(j) - exp(-q**2*pow_u2aver)   * &
+!                         pow_f2aver(j)              )) * REAL(pow_nreal)
             ENDDO
          ENDIF
       ENDIF valq
-   ELSE axq                                       ! F(Q) works for Q-axis only
+!  ELSE axq                                       ! F(Q) works for Q-axis only
 !           Should never occur, as covered by "prepare S(Q)" section
-      ier_msg (1) = 'Use command ==> form, powder,q'
-      ier_msg (2) = 'within the output menu to define the axis' 
-      ier_num = -125
-      ier_typ = ER_APPL
-      DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
-      DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-      DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-      DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-      RETURN
-   ENDIF axq               ! pow_axis      == ??
+!     ier_msg (1) = 'Use command ==> form, powder,q'
+!     ier_msg (2) = 'within the output menu to define the axis' 
+!     ier_num = -125
+!     ier_typ = ER_APPL
+!     DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
+!     DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+!     DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+!     DEALLOCATE(lpv    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+!     RETURN
+!  ENDIF axq               ! pow_axis      == ??
 ENDIF prsq  !Prepare S(Q), F(Q)
 !
 rmax     = out_user_values(2)
 !
 IF( cpow_form == 'tth' ) THEN
-         IF ( pow_axis      == POW_AXIS_Q  .or.  &        ! Non matching form, spline onto equidistant steps
-              pow_four_type == POW_DEBYE            ) THEN ! DEBYE, always spline
+!        IF ( pow_axis      == POW_AXIS_Q  .or.  &        ! Non matching form, spline onto equidistant steps
+!             pow_four_type == POW_DEBYE            ) THEN ! DEBYE, always spline
             IF(out_user_limits .AND. value /= val_pdf) THEN ! User provided values, not for PDF
                pow_tthmin   = out_user_values(1)
                pow_tthmax   = out_user_values(2)
                pow_deltatth = out_user_values(3)
             ELSE                                          ! Convert q limits
-               IF ( pow_axis == POW_AXIS_Q) THEN             ! Convert q limits to 2Theta
+!              IF ( pow_axis == POW_AXIS_Q) THEN             ! Convert q limits to 2Theta
                   arg        = xmin/REAL(zpi) * rlambda / 2. ! Directly with arg in asind()
                   pow_tthmin = 2.*asind(arg)                 ! results in error ??????????
-                  arg        = xmax/REAL(zpi) * rlambda / 2.
+                  arg        = MIN(1.0D0,xmax/REAL(zpi) * rlambda / 2.)
                   pow_tthmax = 2.*asind(arg)
                   pow_deltatth = xpl(2)-xpl(1)
-               ENDIF
+!              ENDIF
             ENDIF
-            IF(pow_tthmin < xpl(1) ) THEN                 ! User lower limit too low!
-               tthmin =              (INT( (xpl(1)              )/pow_deltatth) + 1)*pow_deltatth
+            arg = 2.*asind(xpl(1)/REAL(zpi) * rlambda / 2.)
+            IF(pow_tthmin <          arg ) THEN           ! User lower limit too low!
+!           IF(pow_tthmin < xpl(1) ) THEN                 ! User lower limit too low!
+               tthmin =              (INT( (         arg        )/pow_deltatth) + 1)*pow_deltatth
             ELSE
                tthmin = pow_tthmin
             ENDIF
-            IF(pow_tthmax > xpl(npkt) ) THEN              ! User upper limit too high!
-               tthmax =              (INT( (           xpl(npkt))/pow_deltatth) - 1)*pow_deltatth
+            arg = 2.*asind((MIN(1.0, xpl(npkt)/REAL(zpi) * rlambda / 2.)))
+            IF(pow_tthmax > arg       ) THEN              ! User upper limit too high!
+               tthmax =              (INT( ( arg                )/pow_deltatth) - 1)*pow_deltatth
             ELSE
                tthmax = pow_tthmax
             ENDIF
@@ -506,38 +513,40 @@ IF( cpow_form == 'tth' ) THEN
             ENDDO
             npkt_wrt = npkt_equi
             DEALLOCATE(y2a, stat = all_status)
-         ELSE                                              ! Matching form no spline needed
-            ALLOCATE(xwrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
-            ALLOCATE(ywrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
-            xwrt = 0.0
-            ywrt = 0.0
-            DO ii = 1,npkt
-               xwrt(ii) = xpl(ii)
-               ywrt(ii) = ypl(ii)
-            ENDDO
-            npkt_wrt = npkt
-         ENDIF                   ! pow_axis      == ??
+!        ELSE                                              ! Matching form no spline needed
+!           ALLOCATE(xwrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+!           ALLOCATE(ywrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+!           xwrt = 0.0
+!           ywrt = 0.0
+!           DO ii = 1,npkt
+!              xwrt(ii) = xpl(ii)
+!              ywrt(ii) = ypl(ii)
+!           ENDDO
+!           npkt_wrt = npkt
+!        ENDIF                   ! pow_axis      == ??
 ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
-         IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
-             ((pow_four_type == POW_COMPL) .AND. value == val_pdf) .OR. &
-              pow_four_type == POW_DEBYE              ) THEN ! DEBYE, always spline
+!        IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
+!            ((pow_four_type == POW_COMPL) .AND. value == val_pdf) .OR. &
+!             pow_four_type == POW_DEBYE              ) THEN ! DEBYE, always spline
             IF(value == val_pdf) THEN                       ! Set limits for PDF
-               IF(pow_axis      == POW_AXIS_TTH) THEN
-                  pow_qmin   = REAL(zpi)*2/rlambda*sind(xmin)
-                  pow_qmax   = REAL(zpi)*2/rlambda*sind(xmax)
-                  pow_deltaq = xpl(npkt)-xpl(npkt-1)
-               ENDIF
+               CONTINUE
+!              IF(pow_axis      == POW_AXIS_TTH) THEN
+!                 pow_qmin   = REAL(zpi)*2/rlambda*sind(xmin)
+!                 pow_qmax   = REAL(zpi)*2/rlambda*sind(xmax)
+!                 pow_deltaq = xpl(npkt)-xpl(npkt-1)
+!              ENDIF
             ELSE                                            ! Set limits for powder pattern
                IF(out_user_limits) THEN                     ! User provided values
                   pow_qmin   = out_user_values(1)
                   pow_qmax   = out_user_values(2)
                   pow_deltaq = out_user_values(3)
                ELSE                                          ! Convert q limits
-                  IF(pow_axis      == POW_AXIS_TTH) THEN
-                     pow_qmin   = REAL(zpi)*2/rlambda*sind(xmin)
-                     pow_qmax   = REAL(zpi)*2/rlambda*sind(xmax)
-                     pow_deltaq = xpl(npkt)-xpl(npkt-1)
-                  ENDIF
+               CONTINUE
+!                 IF(pow_axis      == POW_AXIS_TTH) THEN
+!                    pow_qmin   = REAL(zpi)*2/rlambda*sind(xmin)
+!                    pow_qmax   = REAL(zpi)*2/rlambda*sind(xmax)
+!                    pow_deltaq = xpl(npkt)-xpl(npkt-1)
+!                 ENDIF
                ENDIF
             ENDIF
             IF(pow_qmin < xpl(1) ) THEN                     ! User lower limit too low!
@@ -553,7 +562,6 @@ ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
 !        IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
 !           qmax = MAX(30.0D0, pow_qmax_u*1.2D0)
 !        ENDIF
-!CORR write(*,*) ' POINT QMAX ', qmax
 !     ENDIF
             ENDIF
             xmin =   qmin                                  ! Adjust limits needed later to cut 
@@ -584,15 +592,15 @@ ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
             ENDDO
             npkt_wrt = npkt_equi
             DEALLOCATE(y2a, stat = all_status)
-         ELSE                                              ! Matching form no spline needed
-            ALLOCATE(xwrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
-            ALLOCATE(ywrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
-            DO ii = 1,npkt
-               xwrt(ii) = xpl(ii)
-               ywrt(ii) = ypl(ii)
-            ENDDO
-            npkt_wrt = npkt
-         ENDIF                   ! pow_axis      == ??
+!        ELSE                                              ! Matching form no spline needed
+!           ALLOCATE(xwrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+!           ALLOCATE(ywrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+!           DO ii = 1,npkt
+!              xwrt(ii) = xpl(ii)
+!              ywrt(ii) = ypl(ii)
+!           ENDDO
+!           npkt_wrt = npkt
+!        ENDIF                   ! pow_axis      == ??
 ELSE                    ! cpow_form == 
          DO ii = 1,npkt
             xwrt(ii) = xpl(ii)
@@ -637,7 +645,6 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
          rstep    = pdf_deltaru
          npkt_pdf = NINT((rmax-rmin)/pdf_deltaru) + 1
       ENDIF
-!write(*,*) 'PDF LIMITS ', rmin, rmax, rstep, npkt_pdf
       rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
       ALLOCATE(xfour(1:npkt_pdf))
       ALLOCATE(yfour(1:npkt_pdf))
@@ -652,7 +659,6 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
          ENDIF
       ENDDO zero_last1
 !     j = ii - 1
-!write(*,*) ' START PEAK at ', j, npkt_wrt
 !      peak_last1: DO ii = j,2, -1
 !         IF((ywrt(ii-1)-ywrt(ii))*(ywrt(ii-2)-ywrt(ii-1))<=0.0) EXIT peak_last1
 !      ENDDO peak_last1
@@ -725,11 +731,11 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
 !
       CALL  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
 !write(*,*) ' RLIMITS ', rmin, rmax, rstep, npkt_pdf
-open(77,file='POWDER/ende_corrlin.PDF',status='unknown')
-DO ii=1,npkt_pdf
-write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
-enddo
-close(77)
+!open(77,file='POWDER/ende_corrlin.PDF',status='unknown')
+!DO ii=1,npkt_pdf
+!write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
+!enddo
+!close(77)
 !        sigma = 2.0*pow_u2aver                    ! TO BE REPLACED BY ATOMIC B VALUE
 !        IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
 !           CALL powder_conv_corrlin(yfour, REAL(rmin),REAL(rmax), REAL(rstep),   &
@@ -799,40 +805,40 @@ xmax  = 0.0
 xxmax = 0.0 
 xdel  = 0.0 
 IF (pow_four_type.eq.POW_COMPL) THEN 
-   IF (pow_axis.eq.POW_AXIS_Q) THEN 
+!  IF (pow_axis.eq.POW_AXIS_Q) THEN 
       xmin = pow_qmin 
       xmax = pow_qmax 
       xdel = pow_deltaq 
-   ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-      xmin = pow_tthmin 
-      xmax = pow_tthmax 
-      xdel = pow_deltatth 
-   ELSE 
-      ier_num = - 104 
-      ier_typ = ER_APPL 
-      ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
-      ier_msg (2) = 'within the powder menu to define the axis' 
-      ier_msg (3) = ' ' 
-      RETURN 
-   ENDIF 
+!  ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+!     xmin = pow_tthmin 
+!     xmax = pow_tthmax 
+!     xdel = pow_deltatth 
+!  ELSE 
+!     ier_num = - 104 
+!     ier_typ = ER_APPL 
+!     ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
+!     ier_msg (2) = 'within the powder menu to define the axis' 
+!     ier_msg (3) = ' ' 
+!     RETURN 
+!  ENDIF 
    npkt = MIN(NINT((xmax+xdel-xmin)/xdel) + 2, POW_MAXPKT)
 ELSEIF (pow_four_type.eq.POW_DEBYE ) THEN
-   IF (pow_axis.eq.POW_AXIS_Q) THEN 
+!  IF (pow_axis.eq.POW_AXIS_Q) THEN 
       xmin = pow_qmin 
       xmax = pow_qmax 
       xdel = (pow_qmax - pow_qmin) / (num (1) ) 
-   ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-      xmin = pow_tthmin 
-      xmax = pow_tthmax 
-      xdel = (pow_tthmax - pow_tthmin) / (num (1) ) 
-   ELSE 
-      ier_num = - 104 
-      ier_typ = ER_APPL 
-      ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
-      ier_msg (2) = 'within the powder menu to define the axis' 
-      ier_msg (3) = ' ' 
-      RETURN 
-   ENDIF 
+!  ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+!     xmin = pow_tthmin 
+!     xmax = pow_tthmax 
+!     xdel = (pow_tthmax - pow_tthmin) / (num (1) ) 
+!  ELSE 
+!     ier_num = - 104 
+!     ier_typ = ER_APPL 
+!     ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
+!     ier_msg (2) = 'within the powder menu to define the axis' 
+!     ier_msg (3) = ' ' 
+!     RETURN 
+!  ENDIF 
    npkt = MIN(num(1), POW_MAXPKT)
 ENDIF 
 !

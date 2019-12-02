@@ -35,26 +35,26 @@ REAL   , DIMENSION(1:3) :: u
 !
 IF (rlambda.ne.0.0) THEN
 !
-   IF (pow_axis.eq.POW_AXIS_TTH) THEN 
-      IF (pow_tthmax.le.pow_tthmin.or.pow_deltatth.le.0.0) THEN 
-         ier_num = - 107 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-   ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
+!  IF (pow_axis.eq.POW_AXIS_TTH) THEN 
+!     IF (pow_tthmax.le.pow_tthmin.or.pow_deltatth.le.0.0) THEN 
+!        ier_num = - 107 
+!        ier_typ = ER_APPL 
+!        RETURN 
+!     ENDIF 
+!  ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
       IF (pow_qmax.le.pow_qmin.or.pow_deltaq.le.0.0) THEN 
          ier_num = - 108 
          ier_typ = ER_APPL 
          RETURN 
       ENDIF 
-   ENDIF 
+!  ENDIF 
 !
 !        Calculate hkl limits 
 !
-   IF(pow_axis.eq.POW_AXIS_TTH) THEN
-      pow_ds_max = 2. * sind ((pow_tthmax+pow_deltatth) * 0.5 + pow_tthmax_buf) / rlambda 
-      pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
-   ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
+!  IF(pow_axis.eq.POW_AXIS_TTH) THEN
+!     pow_ds_max = 2. * sind ((pow_tthmax+pow_deltatth) * 0.5 + pow_tthmax_buf) / rlambda 
+!     pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
+!  ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
       pow_ds_max = (pow_qmax+pow_deltaq + pow_qmax_buf)/REAL(zpi)
       pow_ds_min = pow_qmin/REAL(zpi)
       IF(pow_qmax*rlambda/2./zpi > 1.0) THEN
@@ -65,7 +65,7 @@ IF (rlambda.ne.0.0) THEN
          ier_msg(3) = 'Reduce Qmax or the wave length'
          RETURN
       ENDIF
-   ENDIF
+!  ENDIF
    pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
    pow_hkl_max (2) = cr_a0 (2) * pow_ds_max 
    pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
@@ -189,23 +189,23 @@ DO i = 1, 3
    uin (i) = 0.0 
    vin (i) = 0.0 
 ENDDO 
-IF (pow_axis == POW_AXIS_DSTAR) THEN 
-   CONTINUE 
-ELSEIF (pow_axis == POW_AXIS_Q) THEN 
+!IF (pow_axis == POW_AXIS_DSTAR) THEN 
+!   CONTINUE 
+!ELSEIF (pow_axis == POW_AXIS_Q) THEN 
    u (1) = 1.00 
    xm (1) = pow_qmin / REAL(zpi)
    ss = (pow_qmax+pow_qmax_buf) / REAL(zpi) 
    st = (pow_qmax - pow_deltaq) / REAL(zpi )
    uin (1) = pow_deltaq / REAL(zpi )
    num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
-ELSEIF (pow_axis == POW_AXIS_TTH) THEN 
-   u (1) = 1.00 
-   xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
-   ss = 2 * sind (0.5 *  pow_tthmax + pow_tthmax_buf) / rlambda 
-   st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda 
-   uin (1) = (ss - st) / 2. 
-   num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
-ENDIF 
+!ELSEIF (pow_axis == POW_AXIS_TTH) THEN 
+!   u (1) = 1.00 
+!   xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
+!   ss = 2 * sind (0.5 *  pow_tthmax + pow_tthmax_buf) / rlambda 
+!   st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda 
+!   uin (1) = (ss - st) / 2. 
+!   num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
+!ENDIF 
 !
 !    Allocate arrays
 !
@@ -260,13 +260,13 @@ natom            = 0
 !                                                                       
 pow_npkt = n_qxy    ! set actual number of powder data points
 CALL powder_sinet 
-IF(pow_axis == POW_AXIS_Q ) THEN
+!IF(pow_axis == POW_AXIS_Q ) THEN
    xstart = pow_qmin  /zpi
    xdelta = pow_deltaq/zpi
    CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
-ELSEIF (pow_axis == POW_AXIS_TTH) THEN 
-   CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
-ENDIF
+!ELSEIF (pow_axis == POW_AXIS_TTH) THEN 
+!   CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+!ENDIF
 IF (ier_num /= 0) THEN
    DEALLOCATE(look   )
    DEALLOCATE(partial)
@@ -604,23 +604,23 @@ xm    = 0.0
 uin   = 0.0 
 vin   = 0.0 
 !
-IF (pow_axis.eq.POW_AXIS_DSTAR) THEN 
-   CONTINUE 
-ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
+!IF (pow_axis.eq.POW_AXIS_DSTAR) THEN 
+!   CONTINUE 
+!ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
    u (1) = 1.00 
    xm (1) = pow_qmin / REAL(zpi) 
    ss = pow_qmax / REAL(zpi) 
    st = (pow_qmax - pow_deltaq) / REAL(zpi) 
    uin (1) = pow_deltaq / REAL(zpi) 
    num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
-ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-   u (1) = 1.00 
-   xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
-   ss = 2 * sind (0.5 *  pow_tthmax                 ) / rlambda 
-   st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda 
-   uin (1) = (ss - st) / 2. 
-   num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
-ENDIF 
+!ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+!   u (1) = 1.00 
+!   xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
+!   ss = 2 * sind (0.5 *  pow_tthmax                 ) / rlambda 
+!   st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda 
+!   uin (1) = (ss - st) / 2. 
+!   num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
+!ENDIF 
 !
 !     Lay out look_up table for molecule entries
 !
@@ -722,13 +722,13 @@ natom     = 0
 !                                                                       
 pow_npkt = n_qxy    ! set actual number of powder data points
 CALL powder_sinet 
-IF(pow_axis == POW_AXIS_Q ) THEN
+!IF(pow_axis == POW_AXIS_Q ) THEN
    xstart = pow_qmin  /zpi
    xdelta = pow_deltaq/zpi
    CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
-ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-   CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
-ENDIF
+!ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+!   CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+!ENDIF
 IF (ier_num.ne.0) RETURN 
 CALL four_formtab
 !

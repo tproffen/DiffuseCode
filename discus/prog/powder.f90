@@ -314,102 +314,102 @@ CALL pow_conv_limits
          WRITE (output_io, 1210) radiation, lambda, rlambda 
       ENDIF 
 !                                                                       
-      IF (pow_axis.eq.POW_AXIS_DSTAR) then 
-         WRITE (output_io, 1211) 'dstar=2 sin(Theta)/lambda' 
-      ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
-         WRITE (output_io, 1211) '2-Theta' 
-      ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
+!     IF (pow_axis.eq.POW_AXIS_DSTAR) then 
+!        WRITE (output_io, 1211) 'dstar=2 sin(Theta)/lambda' 
+!     ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
+!        WRITE (output_io, 1211) '2-Theta' 
+!     ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
          WRITE (output_io, 1211) 'Q=4pi sin(Theta)/lambda' 
-      ELSE 
-         WRITE (output_io, 1211) 'Has not been defined!' 
-      ENDIF 
-      IF (pow_axis.eq.POW_AXIS_DSTAR.or.pow_axis.eq.POW_AXIS_TTH) then 
-         IF (rlambda.ne.0.0) then 
-            pow_ds_max = 2. * sind (pow_tthmax * 0.5) / rlambda 
-            pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
-         ENDIF 
-         WRITE (output_io, 1220) pow_tthmin, pow_tthmax 
-         WRITE (output_io, 1221) pow_ds_min, pow_ds_max 
-         WRITE (output_io, 1230) pow_deltatth 
-         WRITE (output_io, 1240) pow_hkl_del 
+!     ELSE 
+!        WRITE (output_io, 1211) 'Has not been defined!' 
+!     ENDIF 
+!     IF (pow_axis.eq.POW_AXIS_DSTAR.or.pow_axis.eq.POW_AXIS_TTH) then 
+!        IF (rlambda.ne.0.0) then 
+!           pow_ds_max = 2. * sind (pow_tthmax * 0.5) / rlambda 
+!           pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
+!        ENDIF 
+!        WRITE (output_io, 1220) pow_tthmin, pow_tthmax 
+!        WRITE (output_io, 1221) pow_ds_min, pow_ds_max 
+!        WRITE (output_io, 1230) pow_deltatth 
+!        WRITE (output_io, 1240) pow_hkl_del 
 !                                                                       
-         hkl (1) = 1.0 
-         hkl (2) = 0.0 
-         hkl (3) = 0.0 
-         h1 = pow_ds_min / sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         h2 = h1 + pow_hkl_del (1) 
-         hkl (1) = h2 
-         dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
-         del_tth_min (1) = abs (ttheta - pow_tthmin) 
-         hkl (1) = 1.0 
-         hkl (2) = 0.0 
-         hkl (3) = 0.0 
-         h1 = pow_ds_max / sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         h2 = h1 - pow_hkl_del (1) 
-         hkl (1) = h2 
-         dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
-         del_tth_max (1) = abs (ttheta - pow_tthmax) 
+!        hkl (1) = 1.0 
+!        hkl (2) = 0.0 
+!        hkl (3) = 0.0 
+!        h1 = pow_ds_min / sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        h2 = h1 + pow_hkl_del (1) 
+!        hkl (1) = h2 
+!        dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
+!        del_tth_min (1) = abs (ttheta - pow_tthmin) 
+!        hkl (1) = 1.0 
+!        hkl (2) = 0.0 
+!        hkl (3) = 0.0 
+!        h1 = pow_ds_max / sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        h2 = h1 - pow_hkl_del (1) 
+!        hkl (1) = h2 
+!        dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
+!        del_tth_max (1) = abs (ttheta - pow_tthmax) 
 !                                                                       
-         hkl (2) = 1.0 
-         hkl (1) = 0.0 
-         hkl (3) = 0.0 
-         h1 = pow_ds_min / sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         h2 = h1 + pow_hkl_del (2) 
-         hkl (2) = h2 
-         dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
-         del_tth_min (2) = abs (ttheta - pow_tthmin) 
-         hkl (2) = 1.0 
-         hkl (1) = 0.0 
-         hkl (3) = 0.0 
-         h1 = pow_ds_max / sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         h2 = h1 - pow_hkl_del (2) 
-         hkl (2) = h2 
-         dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
-         del_tth_max (2) = abs (ttheta - pow_tthmax) 
+!        hkl (2) = 1.0 
+!        hkl (1) = 0.0 
+!        hkl (3) = 0.0 
+!        h1 = pow_ds_min / sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        h2 = h1 + pow_hkl_del (2) 
+!        hkl (2) = h2 
+!        dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
+!        del_tth_min (2) = abs (ttheta - pow_tthmin) 
+!        hkl (2) = 1.0 
+!        hkl (1) = 0.0 
+!        hkl (3) = 0.0 
+!        h1 = pow_ds_max / sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        h2 = h1 - pow_hkl_del (2) 
+!        hkl (2) = h2 
+!        dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
+!        del_tth_max (2) = abs (ttheta - pow_tthmax) 
 !                                                                       
-         hkl (3) = 1.0 
-         hkl (2) = 0.0 
-         hkl (1) = 0.0 
-         h1 = pow_ds_min / sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         h2 = h1 + pow_hkl_del (3) 
-         hkl (3) = h2 
-         dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
-         del_tth_min (3) = abs (ttheta - pow_tthmin) 
-         hkl (3) = 1.0 
-         hkl (2) = 0.0 
-         hkl (1) = 0.0 
-         h1 = pow_ds_max / sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         h2 = h1 - pow_hkl_del (3) 
-         hkl (3) = h2 
-         dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
-         ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
-         del_tth_max (3) = abs (ttheta - pow_tthmax) 
+!        hkl (3) = 1.0 
+!        hkl (2) = 0.0 
+!        hkl (1) = 0.0 
+!        h1 = pow_ds_min / sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        h2 = h1 + pow_hkl_del (3) 
+!        hkl (3) = h2 
+!        dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
+!        del_tth_min (3) = abs (ttheta - pow_tthmin) 
+!        hkl (3) = 1.0 
+!        hkl (2) = 0.0 
+!        hkl (1) = 0.0 
+!        h1 = pow_ds_max / sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        h2 = h1 - pow_hkl_del (3) 
+!        hkl (3) = h2 
+!        dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
+!        ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
+!        del_tth_max (3) = abs (ttheta - pow_tthmax) 
 !                                                                       
-         WRITE (output_io, 1245) 
-         WRITE (output_io, 1250) del_tth_min 
-         WRITE (output_io, 1260) del_tth_max 
-         WRITE (output_io, 1270) pow_hkl_shift 
-         WRITE (output_io, 1240) pow_hkl_del 
+!        WRITE (output_io, 1245) 
+!        WRITE (output_io, 1250) del_tth_min 
+!        WRITE (output_io, 1260) del_tth_max 
+!        WRITE (output_io, 1270) pow_hkl_shift 
+!        WRITE (output_io, 1240) pow_hkl_del 
 !                                                                       
-         WRITE (output_io, 2100) cprofile (pow_profile) 
-         IF (pow_profile.eq.0) then 
-            CONTINUE 
-         ELSEIF (pow_profile.eq.POW_PROFILE_GAUSS) then 
-            WRITE (output_io, 1235) pow_delta 
-            WRITE (output_io, 2123) pow_width 
-         ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) then 
-            WRITE (output_io, 2120) pow_u, pow_v, pow_w 
-            WRITE (output_io, 2121) pow_eta, pow_eta_l , pow_eta_q
-            WRITE (output_io, 2122) pow_p1, pow_p2, pow_p3, pow_p4 
-            WRITE (output_io, 2123) pow_width 
-         ENDIF 
+!        WRITE (output_io, 2100) cprofile (pow_profile) 
+!        IF (pow_profile.eq.0) then 
+!           CONTINUE 
+!        ELSEIF (pow_profile.eq.POW_PROFILE_GAUSS) then 
+!           WRITE (output_io, 1235) pow_delta 
+!           WRITE (output_io, 2123) pow_width 
+!        ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) then 
+!           WRITE (output_io, 2120) pow_u, pow_v, pow_w 
+!           WRITE (output_io, 2121) pow_eta, pow_eta_l , pow_eta_q
+!           WRITE (output_io, 2122) pow_p1, pow_p2, pow_p3, pow_p4 
+!           WRITE (output_io, 2123) pow_width 
+!        ENDIF 
 !                                                                       
-      ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
+!     ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
          WRITE (output_io, 1290) pow_qmin, pow_qmax 
          WRITE (output_io, 1291) pow_deltaq 
          WRITE (output_io, 1220) pow_tthmin, pow_tthmax 
@@ -426,7 +426,7 @@ CALL pow_conv_limits
             WRITE (output_io, 2122) pow_p1, pow_p2, pow_p3, pow_p4 
             WRITE (output_io, 2123) pow_width 
          ENDIF 
-      ENDIF 
+!     ENDIF 
 !                                                                       
       IF (ldbw) then 
          WRITE (output_io, 1300) 'used' 
@@ -1228,26 +1228,26 @@ IF (rlambda.ne.0.0) then
          RETURN 
       ENDIF 
 !  ENDIF 
-   IF (pow_axis.eq.POW_AXIS_TTH) then 
-      IF (pow_tthmax.le.pow_tthmin.or.pow_deltatth.le.0.0) then 
-         ier_num = - 107 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-   ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
+!  IF (pow_axis.eq.POW_AXIS_TTH) then 
+!     IF (pow_tthmax.le.pow_tthmin.or.pow_deltatth.le.0.0) then 
+!        ier_num = - 107 
+!        ier_typ = ER_APPL 
+!        RETURN 
+!     ENDIF 
+!  ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
       IF (pow_qmax.le.pow_qmin.or.pow_deltaq.le.0.0) then 
          ier_num = - 108 
          ier_typ = ER_APPL 
          RETURN 
       ENDIF 
-   ENDIF 
+!  ENDIF 
 !
 !        Calculate hkl limits 
 !
-   IF(pow_axis.eq.POW_AXIS_TTH) THEN
-      pow_ds_max = 2. * sind ((pow_tthmax+pow_deltatth) * 0.5) / rlambda 
-      pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
-   ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
+!  IF(pow_axis.eq.POW_AXIS_TTH) THEN
+!     pow_ds_max = 2. * sind ((pow_tthmax+pow_deltatth) * 0.5) / rlambda 
+!     pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
+!  ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
       pow_ds_max = (pow_qmax+pow_deltaq)/REAL(zpi)
       pow_ds_min = pow_qmin/REAL(zpi)
       IF(pow_qmax*rlambda/2./zpi > 1.0) THEN
@@ -1258,7 +1258,7 @@ IF (rlambda.ne.0.0) then
          ier_msg(3) = 'Reduce Qmax or the wave length'
          RETURN
       ENDIF
-   ENDIF
+!  ENDIF
    pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
    pow_hkl_max (2) = cr_a0 (2) * pow_ds_max 
    pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
@@ -1356,11 +1356,11 @@ END SUBROUTINE powder_run
       vi (3, 1) = pow_hkl_del (3) 
       four_log = .false. 
 !
-      IF(pow_axis == POW_AXIS_Q ) THEN
+!     IF(pow_axis == POW_AXIS_Q ) THEN
          n_pkt = NINT((pow_qmax+pow_deltaq  -pow_qmin  )/pow_deltaq  ) + 2
-      ELSEIF(pow_axis == POW_AXIS_TTH ) THEN
-         n_pkt = NINT((pow_tthmax+pow_deltatth-pow_tthmin)/pow_deltatth) + 2
-      ENDIF
+!     ELSEIF(pow_axis == POW_AXIS_TTH ) THEN
+!        n_pkt = NINT((pow_tthmax+pow_deltatth-pow_tthmin)/pow_deltatth) + 2
+!     ENDIF
       IF(n_pkt .gt. POW_MAXPKT) THEN
          CALL alloc_powder ( n_pkt )
       ENDIF
@@ -1389,14 +1389,14 @@ END SUBROUTINE powder_run
 !------ calculate complex exponent table, form factor table             
 !                                                                       
       pow_npkt = n_pkt            ! set actual number of powder data points
-      IF(pow_axis == POW_AXIS_Q ) THEN
+!     IF(pow_axis == POW_AXIS_Q ) THEN
          xstart = pow_qmin  /zpi
          xdelta = pow_deltaq/zpi
          CALL powder_stltab(n_pkt, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
-      ELSE
-         calc_f2aver = .false.
-         rept_f2aver = .false.
-      ENDIF
+!     ELSE
+!        calc_f2aver = .false.
+!        rept_f2aver = .false.
+!     ENDIF
       CALL four_cexpt 
       CALL four_formtab
       CALL powder_getatoms 
@@ -1692,28 +1692,28 @@ END SUBROUTINE powder_run
             l_hh_real.or.l_kk_real.or.l_ll_real) ) then                 
                dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
 !DBG_RBN                                                                
-                  IF(pow_axis==POW_AXIS_TTH) THEN
-               IF (rlambda * 0.5 * dstar.le.1.0) then 
-                  ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
-                  IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
-                  then                                                  
-                     itth = nint( (ttheta - pow_tthmin) / pow_deltatth )
-                     inten = DBLE (csf (i) * conjg (csf (i) ) ) 
-                     IF (pow_pref) then 
+!                 IF(pow_axis==POW_AXIS_TTH) THEN
+!              IF (rlambda * 0.5 * dstar.le.1.0) then 
+!                 ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
+!                 IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
+!                 then                                                  
+!                    itth = nint( (ttheta - pow_tthmin) / pow_deltatth )
+!                    inten = DBLE (csf (i) * conjg (csf (i) ) ) 
+!                    IF (pow_pref) then 
 !write(*,'(a,3(f4.0,1x),1x,f5.2,1x,f10.2,1x,f10.2)') 'hkl',hkl,ttheta,   &
 !                        inten , inten * calc_preferred (hkl,            &
 !                        pow_pref_type, pow_pref_hkl, pow_pref_g1,       &
 !                        pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)     
-                        inten = inten * DBLE(calc_preferred (hkl,            &
-                        pow_pref_type, pow_pref_hkl, pow_pref_g1,       &
-                        pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))     
-                     ENDIF 
-                     pow_qsp (itth) = pow_qsp (itth) + inten 
+!                       inten = inten * DBLE(calc_preferred (hkl,            &
+!                       pow_pref_type, pow_pref_hkl, pow_pref_g1,       &
+!                       pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))     
+!                    ENDIF 
+!                    pow_qsp (itth) = pow_qsp (itth) + inten 
 !DBG_RBN                                                                
 !DBG                write(16,'(2f12.4)') hkl(2),hkl(3)                  
-                  ENDIF 
-               ENDIF 
-                  ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
+!                 ENDIF 
+!              ENDIF 
+!                 ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
                      q = REAL(zpi) * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = nint( (q - pow_qmin) / pow_deltaq )
@@ -1725,7 +1725,7 @@ END SUBROUTINE powder_run
                         ENDIF 
                         pow_qsp (itth) = pow_qsp (itth) + inten 
                      ENDIF 
-                  ENDIF 
+!                 ENDIF 
             ENDIF 
 !DBG_RBN      write(13,4444) hkl,dstar,ttheta,csf(i),                   
 !DBG_RBN     &                 real(csf(i)*conjg(csf(i))),              
@@ -1796,23 +1796,23 @@ END SUBROUTINE powder_run
                IF (pow_l_all.or..not.pow_l_all.and. (                   &
                l_hh_real.or.l_kk_real.or.l_ll_real) ) then              
                   dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
-                  IF(pow_axis==POW_AXIS_TTH) THEN
-                  IF (rlambda * 0.5 * dstar.le.1.0) then 
-                     ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
-                     IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
-                     then                                               
-                        itth = nint( (ttheta - pow_tthmin) / pow_deltatth )
-                        inten = DBLE (csf (i) * conjg (csf (i) ) ) 
-                        IF (pow_pref) then 
-                           inten = inten * DBLE(calc_preferred (hkl,         &
-                           pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
-                           pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
-                        ENDIF 
-                        pow_qsp (itth) = pow_qsp (itth) + inten 
+!                 IF(pow_axis==POW_AXIS_TTH) THEN
+!                 IF (rlambda * 0.5 * dstar.le.1.0) then 
+!                    ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
+!                    IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
+!                    then                                               
+!                       itth = nint( (ttheta - pow_tthmin) / pow_deltatth )
+!                       inten = DBLE (csf (i) * conjg (csf (i) ) ) 
+!                       IF (pow_pref) then 
+!                          inten = inten * DBLE(calc_preferred (hkl,         &
+!                          pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
+!                          pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
+!                       ENDIF 
+!                       pow_qsp (itth) = pow_qsp (itth) + inten 
 !DBG      write(18,'(2f12.4)') hkl(2),hkl(3)                            
-                     ENDIF 
-                  ENDIF 
-                  ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
+!                    ENDIF 
+!                 ENDIF 
+!                 ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
                      q = REAL(zpi) * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = nint( (q - pow_qmin) / pow_deltaq )
@@ -1824,7 +1824,7 @@ END SUBROUTINE powder_run
                         ENDIF 
                         pow_qsp (itth) = pow_qsp (itth) + inten 
                      ENDIF 
-                  ENDIF 
+!                 ENDIF 
                ENDIF 
 !DBG_RBN      write(13,4444) hkl,dstar,ttheta,csf(i),                   
 !DBG_RBN     &        real(csf(i)*conjg(csf(i))),                       
