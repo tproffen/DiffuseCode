@@ -10,6 +10,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous)
       USE kuplot_diffev_mod
       USE kuplot_2dm
 !
+USE kuplot_fit_old_mod
 USE kuplot_fit6
 !
       USE ber_params_mod
@@ -232,6 +233,9 @@ USE precision_mod
 !                                                                       
 !-------  Enter fit sublevel                                            
 !                                                                       
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
+                 str_comp (bef, 'f55', 3, lbef, 3)       ) THEN
+            CALL do_fit (zei, lc) !, previous) 
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
                  str_comp (bef, 'fit', 3, lbef, 3)       ) THEN
             CALL do_f66 (zei, lc) !, previous) 
