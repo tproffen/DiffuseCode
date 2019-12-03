@@ -10,6 +10,7 @@ CONTAINS
 !
 SUBROUTINE refine_do_show(line, length)
 !
+USE refine_control_mod
 USE refine_fit_erg
 USE refine_data_mod
 USE refine_mac_mod
@@ -144,7 +145,9 @@ CALL show_fit_erg(iounit, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n,   &
            refine_chisqr, refine_conf, &
            refine_lamda, refine_rval, refine_rexp,                        &
            refine_params, refine_p, refine_dp, refine_range, refine_cl,   &
-           refine_fixed, refine_f)
+           refine_fixed, refine_f,                                        &
+           conv_dp_sig, conv_dchi2, conv_chi2, conv_conf                  &
+           )
 !
 IF(iounit/=output_io) CLOSE(iounit)
 !
@@ -153,9 +156,11 @@ END SUBROUTINE refine_do_show
 !*******************************************************************************
 !
 SUBROUTINE show_fit_erg(iounit, MAXP, MAXF, npara, nfixed, ndata, mac, mac_l,   &
-           load, kload, csigma, ksigma, lcovar, chisq, conf, lamda,  &
-           r4, re, &
-           params, pp, dpp, prange, cl, fixed, pf)
+           load, kload, csigma, ksigma, lcovar, chisq, conf, lamda,             &
+           r4, re,                                                              &
+           params, pp, dpp, prange, cl, fixed, pf,                              &
+           conv_dp_sig, conv_dchi2, conv_chi2, conv_conf                        &
+           )
 !+                                                                      
 !     Display fit results
 !-                                                                      
@@ -188,6 +193,10 @@ REAL            , DIMENSION(MAXP,2), INTENT(IN) :: prange  ! Parameter range
 REAL            , DIMENSION(NPARA,NPARA), INTENT(IN) :: cl ! Covariance matrix
 CHARACTER(LEN=*), DIMENSION(MAXF), INTENT(IN) :: fixed     ! Fixed parameter names
 REAL            , DIMENSION(MAXF), INTENT(IN) :: pf        ! Fixed parameter values
+REAL                             , INTENT(IN)  :: conv_dp_sig ! Max parameter shift
+REAL                             , INTENT(IN)  :: conv_dchi2  ! Max Chi^2     shift
+REAL                             , INTENT(IN)  :: conv_chi2   ! Min Chi^2     value 
+REAL                             , INTENT(IN)  :: conv_conf   ! Min confidence level
 !                                                                       
 INTEGER :: i, j 
 LOGICAL :: kor 
@@ -213,6 +222,10 @@ ELSE
 ENDIF
 !
 WRITE(iounit, 2000) mac(1:mac_l)
+!
+WRITE(iounit, 4000) conv_dp_sig, conv_conf , conv_dchi2
+WRITE(iounit, 4100) conv_dchi2
+WRITE(iounit, 4200) conv_chi2
 !
 IF(chisq>=0.0) THEN
    WRITE(iounit, 1040) chisq, chisq/ndata, conf, chisq/(ndata-npara),  &
@@ -260,6 +273,12 @@ WRITE(iounit, * ) ' '
 3110 FORMAT(' Sigma not defined  '   )
 3120 FORMAT(' Sigma loaded as    : ',a )
 2000 FORMAT(' Refinement macro   : ',a)
+4000 FORMAT('   Convergence 1    : dP/sigma < AND conf > AND      dChi^2 <',/, &
+            '                      ',2(G10.3E3,5x),G10.3E3)
+4100 FORMAT('   Convergence 2    : dChi^2 <   AND dP/simg > 0.0           ',/, &
+            '                      ',  G10.3E3            )
+4200 FORMAT('   Convergence 3    : Chi^2 <                                ',/, &
+            '                      ',  G10.3E3            )
  1040 FORMAT (/,                                                        &
               ' Information about the fit : ',/,                        &
               3x,'Chi^2      : ',g12.6, 5x,' Chi^2/N : ',g12.6 /,       &

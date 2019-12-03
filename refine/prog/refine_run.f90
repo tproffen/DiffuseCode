@@ -100,7 +100,8 @@ CALL show_fit_erg(output_io, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refin
                   ref_csigma, ref_ksigma, .FALSE., refine_chisqr, refine_conf,  &
                   refine_lamda, refine_rval, refine_rexp, refine_params,        &
                   refine_p, refine_dp, refine_range, refine_cl, refine_fixed,   &
-                  refine_f)
+                  refine_f,                                                     &
+                  conv_dp_sig, conv_dchi2, conv_chi2, conv_conf                )
 !
 10 CONTINUE                  ! Target for all errors as dealloc is needed
 DEALLOCATE(refine_calc)      ! Clean up temporary files
@@ -182,9 +183,9 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
          dvec(3) = 0.0
          dvec(1) = p(k)               ! Store parameter value
          IF(p(k)/=0.0) THEN
-            delta = p(k)*SCALEF       ! A multiplicative varition of the parameter seems best
+            delta = ABS(p(k)*SCALEF)  ! A multiplicative variation of the parameter seems best
          ELSE
-            delta = 0.010
+            delta = 1.0D-4
          ENDIF
 !                                     ! Test at P + DELTA
          IF(prange(k,1)<=prange(k,2)) THEN     ! User provided parameter range
@@ -716,6 +717,7 @@ REAL   , DIMENSION(NPARA,NPARA) :: cl != 0.0
 REAL                            :: ochisq = 0.0
 LOGICAL, PARAMETER              :: LDERIV = .TRUE.
 LOGICAL, PARAMETER              :: NDERIV = .FALSE.
+!integer, save :: icyy = 0
 !
 ochisq = chisq
 IF(alamda < 0) THEN                   ! Initialization
@@ -766,6 +768,11 @@ IF(alamda==0) THEN
    RETURN
 ENDIF
 !
+!open(78,file='shift.dat', status='unknown', position='append')
+!if(icyy==0) write(78, '(15a)') 'cyc', (par_names(j),j=1,npara)
+!icyy = icyy+1
+!write(78,'(i3,14g15.6e3)') icyy,da(1:npara)
+!close(78)
 DO j=1,NPARA
    IF(prange(j,1)<=prange(j,2)) THEN
       atry(j) = MIN(prange(j,2),MAX(prange(j,1),a(j)+da(j)))

@@ -95,23 +95,24 @@ INTEGER                              :: ianz
 LOGICAL, EXTERNAL :: str_comp
 !
 !
-INTEGER, PARAMETER :: NOPTIONAL = 3
+INTEGER, PARAMETER :: NOPTIONAL = 4
 INTEGER, PARAMETER :: O_DCHI    = 1
 INTEGER, PARAMETER :: O_PSHIFT  = 2
 INTEGER, PARAMETER :: O_CONF    = 3
+INTEGER, PARAMETER :: O_CHI     = 4
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 3 ! Number of values to calculate
+INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate
 !
-DATA oname  / 'dchi  ' , 'pshift'  ,  'conf ' /
-DATA loname /  4       ,  6        ,   4      /
-opara  =  (/ '0.500000', '0.005000',  '0.010000'/)   ! Always provide fresh default values
-lopara =  (/  8        ,  8        ,   8        /)
-owerte =  (/  0.500000 ,  0.005000 ,   0.010000 /)
+DATA oname  / 'dchi  ' , 'pshift'  ,  'conf '   ,  'chi   ' /
+DATA loname /  4       ,  6        ,   4        ,  3        /
+opara  =  (/ '0.500000', '0.005000',  '0.010000', '0.500000'/)   ! Always provide fresh default values
+lopara =  (/  8        ,  8        ,   8        ,  8        /)
+owerte =  (/  0.500000 ,  0.005000 ,   0.010000 ,  0.005000 /)
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 IF(ier_num/=0) RETURN
@@ -123,6 +124,7 @@ IF(IANZ>=1) THEN
    conv_dchi2    = owerte(O_DCHI)
    conv_dp_sig   = owerte(O_PSHIFT)
    conv_conf     = owerte(O_CONF)
+   conv_chi2     = owerte(O_CHI)
 ELSE
    ier_num = -6
    ier_typ = ER_FORT
