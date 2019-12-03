@@ -442,7 +442,7 @@ real :: f, df(maxpara)
       prompt = orig_prompt
 !                                                                       
  2100 FORMAT     (1x,'Refinement mode: ',a) 
-      END SUBROUTINE do_fit                         
+      END SUBROUTINE do_fit
 !*****7*****************************************************************
       SUBROUTINE do_fit_fkt (zeile, lp) 
 !+                                                                      
@@ -3425,6 +3425,10 @@ REAL    :: kup_fit6_lamda
 REAL    :: kup_fit6_lamda_s = 0.001
 REAL    :: kup_fit6_lamda_u = 4.000
 REAL    :: kup_fit6_lamda_d = 0.500
+REAL    :: kup_fit6_conv_chi2   = 1.0E-6
+REAL    :: kup_fit6_conv_dchi2  = 1.0E-5
+REAL    :: kup_fit6_conv_dp_sig = 0.005
+REAL    :: kup_fit6_conv_conf   = 2.00
 REAL    :: kup_fit6_r4
 REAL    :: kup_fit6_re
 CHARACTER(LEN=16), DIMENSION(:),   ALLOCATABLE :: kup_fit6_params
@@ -3881,6 +3885,11 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
          ELSEIF (str_comp (befehl, 'relax', 2, lbef, 5) ) THEN 
             CALL kuplot_set_lamda(zeile, lp)
+!                                                                       
+!-------Set convergence criteria 'conv'
+!                                                                       
+         ELSEIF (str_comp (befehl, 'conv', 2, lbef, 5) ) THEN 
+            CALL kuplot_set_convergence(zeile, lp)
 !                                                                       
 !------ Set scale                                                       
 !                                                                       
@@ -4439,12 +4448,13 @@ USE precision_mod
      &                   '  pinc = ',f4.1)                              
       END SUBROUTINE do_fit_par                     
 !*****7*****************************************************************
-      SUBROUTINE show_fit_para (idout) 
+SUBROUTINE show_fit_para (idout) 
 !+                                                                      
 !     anzeigen der fit-parameter                                        
 !-                                                                      
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_fit_para
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -4513,7 +4523,14 @@ USE precision_mod
 !                                                                       
       WRITE (idout, 1000) titel (iwin, iframe, 1) (1:lt1), titel (iwin, &
       iframe, 2) (1:lt2), fitfkt (1:lf), fname (ikfit) (1:lfn), ipkt,   &
-      npara, urf, ncycle, fit_ifen, wictyp (1:lw)                       
+      npara, kup_fit6_lamda_s, kup_fit6_lamda_d, kup_fit6_lamda_u,      &
+      ncycle, fit_ifen, wictyp (1:lw)                       
+WRITE(idout, 2000) kup_fit6_conv_dp_sig, kup_fit6_conv_conf , kup_fit6_conv_dchi2
+WRITE(idout, 3000) kup_fit6_conv_dchi2
+WRITE(idout, 4000) kup_fit6_conv_chi2
+!   kup_fit6_conv_dchi2    = owerte(O_DCHI)
+!   kup_fit6_conv_dp_sig   = owerte(O_PSHIFT)
+!   kup_fit6_conv_conf     = owerte(O_CONF)
 !                                                                       
  1000 FORMAT (1x,'General fit parameter settings : ',/,                 &
      &        3x,'Title            : ',a,/11x,a,/,                      &
@@ -4521,10 +4538,17 @@ USE precision_mod
      &        3x,'Data file name   : ',a,/                              &
      &        3x,'# of data pts.   : ',i6,/                             &
      &        3x,'# of parameters  : ',i6,/                             &
-     &        3x,'Urf              : ',f9.4,/                           &
+     &        3x,'lamda: s,d,u     : ',2(f9.4,1x),F9.4,/,               &
      &        3x,'Max. cycle       : ',i6,/                             &
      &        3x,'MFEN for maxima  : ',i6,/                             &
      &        3x,'Weighting scheme : ',a,/)                             
+!
+2000 FORMAT('   Convergence 1    : dP/sigma < AND conf > AND      dChi^2 <',/, &
+            '                      ',2(G10.3E3,5x),G10.3E3)
+3000 FORMAT('   Convergence 2    : dChi^2 <   AND dP/simg > 0.0           ',/, &
+            '                      ',  G10.3E3            )
+4000 FORMAT('   Convergence 3    : Chi^2 <                                ',/, &
+            '                      ',  G10.3E3            )
       END SUBROUTINE show_fit_para                  
 !*****7*****************************************************************
 SUBROUTINE show_fit_erg(idout)
@@ -4766,10 +4790,10 @@ INTEGER          , DIMENSION(:), ALLOCATABLE   :: fixed_ind    ! Index of fixed 
 !REAL             , DIMENSION(:)  , ALLOCATABLE :: data_x       ! X-coordinates
 !REAL             , DIMENSION(:)  , ALLOCATABLE :: data_y       ! y-coordinates(for xyz data
 !REAL             , DIMENSION(:,:), ALLOCATABLE :: data_calc    ! The calculated data
-REAL                                           :: conv_dp_sig  ! Max Dp/sigma 
-REAL                                           :: conv_dchi2   ! Max DELTA Chi2
-REAL                                           :: conv_chi2    ! Max Chi2
-REAL                                           :: conv_conf    ! Min confidence level
+!REAL                                           :: conv_dp_sig  ! Max Dp/sigma 
+!REAL                                           :: conv_dchi2   ! Max DELTA Chi2
+!REAL                                           :: conv_chi2    ! Max Chi2
+!REAL                                           :: conv_conf    ! Min confidence level
 LOGICAL                                        :: lconvergence ! Convergence was reached
 REAL                                           :: chisq        ! Final Chi2
 REAL                                           :: conf         ! Final confidence level
@@ -4827,10 +4851,10 @@ ELSE                                              ! xY data
    data_y(1:data_dim(2)) = 1.0                       ! Set dummy y
 ENDIF
 
-conv_dp_sig   = 0.005
-conv_dchi2    = 0.5
-conv_chi2     = 0.5
-conv_conf     = 0.001
+!conv_dp_sig   = 0.005
+!conv_dchi2    = 0.5
+!conv_chi2     = 0.5E-5
+!conv_conf     = 2.000
 lconvergence = .FALSE.
 !
 ! Determine and sort refined/fixed parameters
@@ -4876,8 +4900,8 @@ covar(:,:) = 0.0
 kupl_last  = iz-1
 CALL kuplot_mrq(MAXP, nparams, ncycle, kupl_last, par_names, par_ind,           &
                 MAXF, nfixed, fixed, fixed_ind, pf, data_dim, data_data,        &
-                data_sigma, data_x, data_y, data_calc, conv_dp_sig, conv_dchi2, &
-                conv_chi2, conv_conf, lconvergence, chisq, conf, lamda_fin,     &
+                data_sigma, data_x, data_y, data_calc, kup_fit6_conv_dp_sig, kup_fit6_conv_dchi2, &
+                kup_fit6_conv_chi2, kup_fit6_conv_conf, lconvergence, chisq, conf, lamda_fin,     &
                 kup_fit6_lamda_s, kup_fit6_lamda_d, kup_fit6_lamda_u,           &
                 rval, rexp, par_value, prange, dpp, covar)
 !OLD  IF (ncycle.gt.0) call fit_kupl (y) 
@@ -7422,6 +7446,7 @@ CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
 REAL(KIND=PREC_DP)               , DIMENSION(:), ALLOCATABLE :: werte
 !
+LOGICAL,DIMENSION(3) :: lconv
 INTEGER :: last_ind
 REAL               , DIMENSION(0:3) :: last_chi
 REAL               , DIMENSION(0:3) :: last_shift
@@ -7429,6 +7454,7 @@ REAL               , DIMENSION(0:3) :: last_conf
 REAL               , DIMENSION(:,:), ALLOCATABLE :: last_p 
 !REAL :: shift
 !
+lconv      = .FALSE.
 alamda     = -0.001    ! Negative lamda initializes MRQ routine
 rval       = 0.0
 rexp       = 0.0
@@ -7498,11 +7524,20 @@ cycles:DO
 !
    CALL kuplot_rvalue(data_dim, data_data, data_sigma, data_calc, rval, rexp, NPARA)
 !  CALL kuplot_best(rval)                                              ! Write best macro
-   IF(ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
-      last_shift(last_i) < conv_dp_sig                   .AND.   &
-      last_conf(last_i)  > conv_conf                     .OR.    &
-      last_chi( last_i)  < conv_chi2                   ) THEN
-      WRITE(output_io, '(/,a)') 'Convergence reached '        
+!  IF(ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
+!     last_shift(last_i) < conv_dp_sig                   .AND.   &
+!     last_conf(last_i)  > conv_conf                     .OR.    &
+!     (last_shift(last_i)>0.0 .AND.                              &
+!      ABS(last_chi( last_i)-last_chi(prev_i))<1.E-5)    .OR.    &
+!     last_chi( last_i)  < conv_chi2                   ) THEN
+      lconv(1) = (ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
+                  last_shift(last_i) < conv_dp_sig                   .AND.   &
+                  last_conf(last_i)  > conv_conf )
+      lconv(2) = (last_shift(last_i)>0.0 .AND.                            &
+                  ABS(last_chi(last_i)-last_chi(prev_i))<conv_dchi2)
+      lconv(3) = last_chi(last_i)  < conv_chi2
+   IF(lconv(1) .OR. lconv(2) .OR. lconv(3)) THEN
+      WRITE(output_io, '(/,a,3L2)') 'Convergence reached ', lconv
       lconvergence = .TRUE.
       EXIT cycles
    ENDIF
@@ -7519,7 +7554,7 @@ ENDDO cycles
 IF(.NOT. lconvergence) THEN
    IF(icyc==ncycle) THEN
       WRITE(output_io,'(/,a)') ' Maximum cycle is reached without convergence'
-   ELSEIF(alamda > 0.5*HUGE(0.0)) THEN
+   ELSEIF(alamda > HUGE(0.0)/lamda_u) THEN
       WRITE(output_io,'(/,a)') ' MRQ Parameter reached infinity'
    ENDIF
 ENDIF
@@ -7933,6 +7968,73 @@ ELSE
 ENDIF
 !
 END SUBROUTINE kuplot_set_lamda
+!
+!*******************************************************************************
+!
+SUBROUTINE kuplot_set_convergence(line, length)
+!
+USE kuplot_fit_para
+!
+USE errlist_mod
+USE ber_params_mod
+USE get_params_mod
+USE precision_mod
+USE take_param_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: length
+!
+INTEGER, PARAMETER :: MAXW = 20
+!
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+INTEGER            , DIMENSION(MAXW) :: lpara
+!REAL               , DIMENSION(MAXW) :: werte
+!
+INTEGER                              :: ianz
+!
+!
+LOGICAL, EXTERNAL :: str_comp
+!
+!
+INTEGER, PARAMETER :: NOPTIONAL = 4
+INTEGER, PARAMETER :: O_DCHI    = 1
+INTEGER, PARAMETER :: O_PSHIFT  = 2
+INTEGER, PARAMETER :: O_CONF    = 3
+INTEGER, PARAMETER :: O_CHI     = 4
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate
+!
+DATA oname  / 'dchi  ' , 'pshift'  ,  'conf '   ,  'chi'   /
+DATA loname /  4       ,  6        ,   4        ,   3      /
+opara  =  (/ '0.100e-4', '0.005000',  '2.000000','0.100e-4'/)   ! Always provide fresh default values
+lopara =  (/  8        ,  8        ,   8        , 8        /)
+owerte =  (/  0.100e-4 ,  0.005000 ,   2.000000 , 0.100e-4 /)
+!
+CALL get_params(line, ianz, cpara, lpara, MAXW, length)
+IF(ier_num/=0) RETURN
+!
+IF(IANZ>=1) THEN
+   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                     oname, loname, opara, lopara, lpresent, owerte)
+   IF(ier_num/=0) RETURN
+   kup_fit6_conv_dchi2    = owerte(O_DCHI)
+   kup_fit6_conv_dp_sig   = owerte(O_PSHIFT)
+   kup_fit6_conv_conf     = owerte(O_CONF)
+   kup_fit6_conv_chi2     = owerte(O_CHI)
+ELSE
+   ier_num = -6
+   ier_typ = ER_FORT
+   RETURN
+ENDIF
+!
+END SUBROUTINE kuplot_set_convergence
 !
 !*******************************************************************************
 END MODULE kuplot_fit6
