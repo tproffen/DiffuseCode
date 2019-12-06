@@ -454,6 +454,7 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
 !  ENDIF axq               ! pow_axis      == ??
 ENDIF prsq  !Prepare S(Q), F(Q)
 !
+CALL pow_k12(npkt, POW_MAXPKT, pow_ka21, pow_ka21_u, xpl, ypl)
 rmax     = out_user_values(2)
 !
 IF( cpow_form == 'tth' ) THEN
@@ -2043,6 +2044,55 @@ DEALLOCATE(natom)
 !
 !
 END SUBROUTINE powder_f2aver
+!
+!*******************************************************************************
+!
+SUBROUTINE pow_k12(npkt, POW_MAXPKT, pow_ka21, pow_ka21_u, xpl, ypl)
+!-
+! Add Kalpha1/2
+! at this point xpl is on Q-scale
+!+
+USE diffuse_mod
+USE element_data_mod
+!
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER                                    , INTENT(IN)    :: npkt
+INTEGER                                    , INTENT(IN)    :: POW_MAXPKT
+REAL                                       , INTENT(IN)    :: pow_ka21
+LOGICAL                                    , INTENT(IN)    :: pow_ka21_u
+REAL(KIND=PREC_SP), DIMENSION(0:POW_MAXPKT), INTENT(IN)    :: xpl
+REAL(KIND=PREC_SP), DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: ypl
+!
+CHARACTER(LEN=4) :: local
+INTEGER :: i,j,l
+REAl    :: int_ratio   ! Ka2/Ka1 intensity ratio
+REAl    :: len_ratio   ! Ka2/Ka1 intensity ratio
+!
+IF(lambda(3:4)=='12' .OR. lambda=='W12 ') THEN    ! Only for explicit a12
+   l = get_wave_number(lambda)
+   IF(l==0) RETURN             ! Not a listed wave length
+!
+   IF(pow_ka21_u) THEN
+      int_ratio = pow_ka21
+   ELSE
+      int_ratio = get_ka21_inte(l)
+   ENDIF
+   len_ratio = get_ka12_len(l)
+!
+   DO i=npkt,1,-1
+      j = NINT(i*len_ratio)
+      IF(j > 0) THEN
+         ypl(i) = ypl(i) + int_ratio*ypl(j)
+      ENDIF
+   ENDDO
+ENDIF
+!
+ypl = ypl / (1.+int_ratio)
+!
+END SUBROUTINE pow_k12
 !
 !*******************************************************************************
 !

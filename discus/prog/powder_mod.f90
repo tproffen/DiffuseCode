@@ -99,6 +99,9 @@ REAL                     :: pow_p3         =  0.0
 REAL                     :: pow_p4         =  0.0
 REAL                     :: pow_width      = 20.0
 !
+REAL                     :: pow_ka21       =  0.0
+LOGICAL                  :: pow_ka21_u     =  .FALSE.
+!
 !
 !
 REAL   (KIND=PREC_DP)    , DIMENSION(:), ALLOCATABLE :: pow_qsp     !  (0:POW_MAXPKT)

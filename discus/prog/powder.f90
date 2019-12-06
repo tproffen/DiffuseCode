@@ -765,6 +765,20 @@ err_para: IF (ier_num.eq.0) then
                ier_num = -6 
                ier_typ = ER_COMM 
             ENDIF 
+!                                                                       
+!     set the Ka2/Ka1 ratio 'ka21' ~ 0.50
+!                                                                       
+         ELSEIF (str_comp (cpara(1), 'ka21', 4, lpara(1), 4) ) then 
+            IF (ianz.eq.2) then 
+               cpara (1) = '0' 
+               lpara (1) = 1 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               pow_ka21   = werte (2) 
+               pow_ka21_u = .TRUE.
+            ELSE 
+               ier_num = -6 
+               ier_typ = ER_COMM 
+            ENDIF 
 !
          ELSEIF (str_comp (cpara (1) , 'pref', 2, lpara (1) , 4) ) then 
             IF (ianz.ge.2) then 
@@ -2444,6 +2458,8 @@ pow_p3         =  0.0
 pow_p4         =  0.0
 pow_width      = 20.0
 !
+pow_ka21       =  0.0
+pow_ka21_u     =  .FALSE.
 !
 IF(ALLOCATED(pow_qsp))    pow_qsp   (:) = 0.0D0  !  (0:POW_MAXPKT)
 IF(ALLOCATED(pow_f2aver)) pow_f2aver(:) = 0.0D0  !  (0:POW_MAXPKT)

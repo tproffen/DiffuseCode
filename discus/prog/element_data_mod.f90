@@ -12,10 +12,13 @@ MODULE element_data_mod
    PUBLIC get_scat_ano   ! Get anomalous parameters for special wave lengths
    PUBLIC get_scat_neut  ! Get neutron scattering parameters
    PUBLIC get_scat_elec  ! Get Electron scattering parameters
+   PUBLIC get_ka21_inte  ! Get Ka2/Ka1 intensity ratio
+   PUBLIC get_ka12_len   ! Get Ka2/Ka1 wave length ratio
+   PUBLIC get_wave_number! Get Wave length entry number
    PUBLIC PER_RAD_POWER  ! Number of Termins in f(sin(THETA)/lambda) = sum_i=1^N a(i) exp(-b(i)*s^2)
 !
    INTEGER, PARAMETER :: PER_MAXELEMENT = 225
-   INTEGER, PARAMETER :: PER_MAX_WAVE   =  40
+   INTEGER, PARAMETER :: PER_MAX_WAVE   =  50
    INTEGER, DIMENSION(1:3), PARAMETER :: PER_RAD_POWER = (/ 4, 0, 5 /)
 !
    CHARACTER  (LEN=4), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_name = (/ &
@@ -1084,31 +1087,45 @@ MODULE element_data_mod
             0.0000,    0.0000,    0.0000,    0.0000,    0.0000 &
         /)
    CHARACTER  (LEN=4), DIMENSION(1:PER_MAX_WAVE), PARAMETER :: per_symwl = (/ &
-        'TIA1','TIA2','TIB ','TI  ',&
-        'CRA1','CRA2','CRB ','CR  ',&
-        'FEA1','FEA2','FEB ','FE  ',&
-        'COA1','COA2','COB ','CO  ',&
-        'CUA1','CUA2','CUB ','CU  ',&
-        'MOA1','MOA2','MOB ','MO  ',&
-        'AGA1','AGA2','AGB ','AG  ',&
-        'TAA1','TAA2','TAB ','TA  ',&
-        'WA1 ','WA2 ','WB  ','W   ',&
-        'AUA1','AUA2','AUB ','AU  ' & 
+        'TIA1','TIA2','TIB ','TI  ','TI12',&
+        'CRA1','CRA2','CRB ','CR  ','CR12',&
+        'FEA1','FEA2','FEB ','FE  ','FE12',&
+        'COA1','COA2','COB ','CO  ','CO12',&
+        'CUA1','CUA2','CUB ','CU  ','CU12',&
+        'MOA1','MOA2','MOB ','MO  ','MO12',&
+        'AGA1','AGA2','AGB ','AG  ','AG12',&
+        'TAA1','TAA2','TAB ','TA  ','TA12',&
+        'WA1 ','WA2 ','WB  ','W   ','W12 ',&
+        'AUA1','AUA2','AUB ','AU  ','AU12' & 
         /)
    REAL              , DIMENSION(1:PER_MAX_WAVE), PARAMETER :: per_wavel = (/ &
-          2.748410,  2.752070,  2.513810,  2.740000,&  ! Ti
-          2.289620,  2.293510,  2.084800,  2.290900,&  ! Cr
-          1.935970,  1.939910,  1.756530,  1.937300,&  ! Fe
-          1.788920,  1.792780,  1.620750,  1.780000,&  ! Co
-          1.540510,  1.544330,  1.392170,  1.541800,&  ! Cu
-          0.709260,  0.713543,  0.632253,  0.710700,&  ! Mo
-          0.559363,  0.563775,  0.497010,  0.560800,&  ! Ag
-          0.215484,  0.220290,  0.190076,  0.217090,&  ! Ta
-          0.208992,  0.213813,  0.184363,  0.210600,&  ! W 
-          0.180185,  0.185064,  0.158971,  0.181800 &  ! Au
+          2.748410,  2.752070,  2.513810,  2.740000,  2.748410,&  ! Ti
+          2.289620,  2.293510,  2.084800,  2.290900,  2.289620,&  ! Cr
+          1.935970,  1.939910,  1.756530,  1.937300,  1.935970,&  ! Fe
+          1.788920,  1.792780,  1.620750,  1.780000,  1.788920,&  ! Co
+          1.540510,  1.544330,  1.392170,  1.541800,  1.540510,&  ! Cu
+          0.709260,  0.713543,  0.632253,  0.710700,  0.709260,&  ! Mo
+          0.559363,  0.563775,  0.497010,  0.560800,  0.559363,&  ! Ag
+          0.215484,  0.220290,  0.190076,  0.217090,  0.215484,&  ! Ta
+          0.208992,  0.213813,  0.184363,  0.210600,  0.208992,&  ! W 
+          0.180185,  0.185064,  0.158971,  0.181800,  0.180185 &  ! Au
         /)
+   REAL              , DIMENSION(1:PER_MAX_WAVE/5), PARAMETER :: per_ratio = (/ &
+          0.500000, &
+          0.500000, &
+          0.500000, &
+          0.500000, &
+          0.500000, &
+          0.500000, &
+          0.500000, &
+          0.500000, &
+          0.500000, &
+          0.500000  &
+         /)
 !
    CONTAINS
+!
+!*******************************************************************************
 !
       SUBROUTINE symbf(el_name,el_number)
 !
@@ -1126,6 +1143,8 @@ MODULE element_data_mod
       ENDDO element1
 
       END SUBROUTINE symbf
+!
+!*******************************************************************************
 !
       SUBROUTINE get_wave ( lambda , rlambda, energy, l_energy, &
                             diff_radiation,ier_num, ier_typ )
@@ -1192,6 +1211,8 @@ MODULE element_data_mod
       ENDIF
       END SUBROUTINE get_wave
 !
+!*******************************************************************************
+!
       SUBROUTINE get_sym_length(i, symbols, wavelengths)
 !
       IMPLICIT NONE
@@ -1203,6 +1224,64 @@ MODULE element_data_mod
       wavelengths = per_wavel(i)
 !
       END SUBROUTINE get_sym_length
+!
+!*******************************************************************************
+!
+      INTEGER FUNCTION get_wave_number(lambda)
+!
+!     Returns wave length number for wavelength symbol lambda
+!
+      IMPLICIT NONE
+      CHARACTER (LEN=*), INTENT(IN)    :: lambda
+!
+      INTEGER :: i
+!
+      get_wave_number = 0
+      wave: do i=1, PER_MAX_WAVE
+          IF ( lambda == per_symwl(i)) THEN
+             get_wave_number = i
+             EXIT wave
+         ENDIF
+      ENDDO wave
+!
+      END FUNCTION get_wave_number
+!
+!
+!*******************************************************************************
+!
+      REAL PURE FUNCTION get_ka21_inte(el_number)
+!
+!     Return Ka2/ka1 intensity ratio == ~ 0.5
+!
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
+!
+      get_ka21_inte = 0.0
+      IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
+         MOD(el_number, 5)==0) THEN
+         get_ka21_inte = per_ratio(el_number/5)
+      ENDIF
+!
+      END FUNCTION get_ka21_inte
+!
+!*******************************************************************************
+!
+      REAL PURE FUNCTION get_ka12_len(el_number)
+!
+!     Return Ka1/ka2 wave length ratio == < 1.0
+!
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
+!
+      get_ka12_len = 0.0
+      IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
+         MOD(el_number, 5)==0) THEN
+         get_ka12_len = per_wavel(el_number)/ per_wavel(el_number-3)
+      ENDIF
+!
+      END FUNCTION get_ka12_len
+!
+!*******************************************************************************
 !
       SUBROUTINE get_scat_xray ( j,temp_scat )
 !
@@ -1225,6 +1304,8 @@ MODULE element_data_mod
 !
       END SUBROUTINE get_scat_xray
 !
+!*******************************************************************************
+!
       SUBROUTINE get_scat_neut ( j, temp_bcoh )
 !
       IMPLICIT NONE
@@ -1235,6 +1316,8 @@ MODULE element_data_mod
       temp_bcoh    = per_bcoh (j)
 !
       END SUBROUTINE get_scat_neut
+!
+!*******************************************************************************
 !
       SUBROUTINE get_scat_ano ( j, lambda, temp_delf )
 !
@@ -1279,6 +1362,8 @@ MODULE element_data_mod
 !
       END SUBROUTINE get_scat_ano
 !
+!*******************************************************************************
+!
       SUBROUTINE get_scat_elec ( j, temp_scat )
 !
       IMPLICIT NONE
@@ -1299,4 +1384,6 @@ MODULE element_data_mod
       temp_scat(11)= per_eb5  (j)
 !
       END SUBROUTINE get_scat_elec
+!
+!*******************************************************************************
 END MODULE element_data_mod
