@@ -75,6 +75,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2019_December
+
+   Added wave length symbols 'CU12' etc that enable Kalpha1/Kalpha2
+   profile functions
 3  2019_November
 
    Added an optional parameter "metric:host" to the ==> import command.
@@ -6061,6 +6065,14 @@
    If you created a crystal using the ==>'stack" menu, you can speed up
    The Fourier calculation by setting the switch to "stack". See the
    stacking fault information regarding the details of this Fourier mode.
+4  ka21
+!p ka21 <ratio>
+
+   Sets the ratio of the intensities Kalpha2/Kalpha1, which is
+   set by default to 0.500.
+   This has an effect only if the corresponding wave length is
+   defined with names like "CU12", "MO12", i.e. with the last 
+   two characters equal to "12".
 4  lpcor
 !p set lpcor, "none"
 !p set lpcor, "bragg" [,<theta_mono>]
@@ -11552,6 +11564,9 @@
 !p TAA1   0.215484    TAA2   0.220290     TAB    0.190076     TA     0.560800
 !p WA1    0.208992    WA2    0.213813     WB     0.184363,    W      0.560800
 !p AUA1   0.180185    AUA2   0.185064     AUB    0.158971,    AU     0.560800
+
+   If the last two characters of the wave length symbol are "12", the 
+   powder pattern are calculated as the sum of Kalpha1 + Kalpha2
 2  atom_names
 !p List of allowed atom names
 
