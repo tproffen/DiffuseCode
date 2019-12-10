@@ -55,23 +55,24 @@ CHARACTER(LEN=1024), DIMENSION(MAXF) :: ccpara
 INTEGER            , DIMENSION(MAXF) :: llpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXF) :: wwerte
 !
-INTEGER, PARAMETER :: NOPTIONAL = 3
-INTEGER, PARAMETER :: OVALUE    = 1
-INTEGER, PARAMETER :: OSTATUS   = 2
-INTEGER, PARAMETER :: ORANGE    = 3
+INTEGER, PARAMETER :: NOPTIONAL = 4
+INTEGER, PARAMETER :: OSHIFT    = 1
+INTEGER, PARAMETER :: OVALUE    = 2
+INTEGER, PARAMETER :: OSTATUS   = 3
+INTEGER, PARAMETER :: ORANGE    = 4
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate
 !
-DATA oname  / 'value ' , 'status'  ,  'range' /
-DATA loname /  5       ,  6        ,   5      /
-opara  =  (/ '-1.00000', '0.000000',  '0.000000'/)   ! Always provide fresh default values
-lopara =  (/  8        ,  8        ,   8        /)
-owerte =  (/  -1.0     ,  0.0      ,   0.0      /)
+DATA oname  / 'shift'  , 'value ' , 'status'  ,  'range' /
+DATA loname /  5       ,  5       ,  6        ,   5      /
+opara  =  (/ '0.005000', '-1.00000', '0.000000',  '0.000000'/)   ! Always provide fresh default values
+lopara =  (/  8        ,  8        ,  8        ,   8        /)
+owerte =  (/  0.00500  ,  -1.0     ,  0.0      ,   0.0      /)
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 !
@@ -154,7 +155,7 @@ ENDIF
 ! A parameter is added to the list of refined parameters only if
 ! the status is set to 'refine' or 'free'. Otherwise it is omited
 ! from the list of parameters.
-! Fixed parameters are addedc to the list refine_fixed instead.
+! Fixed parameters are added to the list refine_fixed instead.
 !
 lrefine = .TRUE.
 IF(lpresent(OSTATUS)) THEN
@@ -194,14 +195,20 @@ IF(lrefine) THEN
    ENDIF
    refine_range(ipar,1) = range_low
    refine_range(ipar,2) = range_high
+   refine_shift(ipar)   = owerte(OSHIFT)
 !
    fixed: DO i=1, refine_fix_n                 ! Remove from fixed list
       IF(pname == refine_fixed(i)) THEN        ! Found old parameter name
-         DO j=i+1, refine_fix_n
-            refine_fixed(j-1) = refine_fixed(j)
-         ENDDO
-         refine_fix_n = refine_fix_n - 1
-         EXIT fixed
+         IF(i==refine_fix_n) THEN              ! This is the last parameter
+            refine_fixed(i) = ' '
+            refine_fix_n = refine_fix_n - 1
+         ELSE                                  ! This is not the last parameter
+            DO j=i+1, refine_fix_n
+               refine_fixed(j-1) = refine_fixed(j)
+            ENDDO
+            refine_fix_n = refine_fix_n - 1
+            EXIT fixed
+         ENDIF
       ENDIF
    ENDDO fixed
 ELSE

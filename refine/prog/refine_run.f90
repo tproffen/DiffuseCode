@@ -81,7 +81,7 @@ CALL refine_mrq(REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,            
                 conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
                 refine_chisqr, refine_conf, refine_lamda, refine_lamda_s,       &
                 refine_lamda_d, refine_lamda_u, refine_rval,                    &
-                refine_rexp, refine_p, refine_range, refine_dp, refine_cl)
+                refine_rexp, refine_p, refine_range, refine_shift, refine_dp, refine_cl)
 IF(ier_num/=0) GOTO 10 
 !
 ! Copy fixed parameters for output
@@ -115,7 +115,7 @@ END SUBROUTINE refine_run
 !*******************************************************************************
 !
 SUBROUTINE refine_theory(MAXP, ix, iy, xx, yy, NPARA, p, par_names,  &
-                         prange,  &
+                         prange,  p_shift, &
                          data_dim, & !data_data, data_sigma, data_x, data_y, &
                          kupl_last, &
                          f, df, LDERIV)
@@ -141,6 +141,7 @@ INTEGER                                              , INTENT(IN)  :: NPARA   ! 
 REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: p       ! Parameter values
 CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
 REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: p_shift   ! Parameter shift for deriv
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
 !REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
 !REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
@@ -183,7 +184,7 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
          dvec(3) = 0.0
          dvec(1) = p(k)               ! Store parameter value
          IF(p(k)/=0.0) THEN
-            delta = ABS(p(k)*SCALEF)  ! A multiplicative variation of the parameter seems best
+            delta = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
          ELSE
             delta = 1.0D-4
          ENDIF
@@ -486,7 +487,7 @@ END SUBROUTINE refine_load_calc
 SUBROUTINE refine_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
 data_data, data_sigma, data_x, data_y, &
                 conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
-chisq, conf, lamda_fin, lamda_s, lamda_d, lamda_u,  rval, rexp, p, prange, dp, cl)
+chisq, conf, lamda_fin, lamda_s, lamda_d, lamda_u,  rval, rexp, p, prange, p_shift, dp, cl)
 !+                                                                      
 !   This routine runs the refinement cycles, interfaces with the 
 !   Levenberg-Marquardt routine modified after Numerical Recipes
@@ -530,6 +531,7 @@ REAL                                                 , INTENT(OUT) :: rexp      
 !
 REAL            , DIMENSION(MAXP)                    , INTENT(INOUT) :: p         ! Parameter array
 REAL            , DIMENSION(MAXP,2)                  , INTENT(INOUT) :: prange    ! Parameter range
+REAL            , DIMENSION(MAXP )                   , INTENT(IN)    :: p_shift   ! Parameter shift for deriv
 REAL            , DIMENSION(MAXP)                    , INTENT(INOUT) :: dp        ! Parameter sigmas
 REAL            , DIMENSION(NPARA, NPARA)            , INTENT(INOUT) :: cl        ! Covariance matrix
 !
@@ -595,7 +597,7 @@ icyc = 0
 cycles:DO
 !write(*,*) ' data_sigma', data_sigma(1,1), data_sigma(data_dim(1),data_dim(2)), MINVAL(data_sigma), MAXVAL(data_sigma)
    CALL mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, p, NPARA, &
-               par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda,     &
+               par_names, prange, p_shift, kupl_last, cl, alpha, beta, chisq, alamda,     &
                lamda_s, lamda_d, lamda_u, lsuccess, dp)
    IF(ier_num/=0) EXIT cycles
    IF(lsuccess .OR. rval == 0.0) CALL refine_rvalue(rval, rexp, NPARA)
@@ -656,7 +658,7 @@ IF(ier_num==0) THEN
    alamda = 0.0
 !
    CALL mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, p, NPARA, &
-               par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda,     &
+               par_names, prange, p_shift, kupl_last, cl, alpha, beta, chisq, alamda,     &
                lamda_s, lamda_d, lamda_u, lsuccess, dp)
    CALL refine_rvalue(rval, rexp, NPARA)
 !   DO k = 1, NPARA
@@ -676,7 +678,7 @@ END SUBROUTINE refine_mrq
 !
 SUBROUTINE mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, a, NPARA, &
     par_names, &
-    prange, kupl_last, covar, alpha, beta, chisq, alamda, lamda_s, lamda_d, lamda_u, &
+    prange, p_shift, kupl_last, covar, alpha, beta, chisq, alamda, lamda_s, lamda_d, lamda_u, &
     lsuccess, dp)
 !
 !  Least squares routine adapted from Numerical Recipes Chapter 14
@@ -695,6 +697,7 @@ REAL            , DIMENSION(data_dim(1)           ) , INTENT(IN)    :: data_x   
 REAL            , DIMENSION(data_dim(2)           ) , INTENT(IN)    :: data_y      ! Actual y-coordinates
 INTEGER                                             , INTENT(IN)    :: NPARA       ! number of parameters
 REAL            , DIMENSION(MAXP, 2              )  , INTENT(IN)    :: prange      ! Allowed parameter range
+REAL            , DIMENSION(MAXP )                  , INTENT(IN)    :: p_shift   ! Parameter shift for deriv
 INTEGER                                             , INTENT(IN)    :: kupl_last   ! Last KUPLOT DATA that are needed
 REAL            , DIMENSION(MAXP)                   , INTENT(INOUT) :: a           ! Parameter values
 CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)    :: par_names   ! Parameter names
@@ -723,7 +726,7 @@ ochisq = chisq
 IF(alamda < 0) THEN                   ! Initialization
    alamda = lamda_s
    CALL mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y, a, &
-               NPARA, par_names, prange, kupl_last, alpha, beta, &
+               NPARA, par_names, prange, p_shift, kupl_last, alpha, beta, &
                chisq, LDERIV) !, funcs)
    IF(ier_num/=0) THEN
       RETURN
@@ -760,7 +763,7 @@ IF(alamda==0) THEN
 !  Last call to update the structure, no derivative is needed
 !
    CALL mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y, a, &
-               NPARA, par_names, prange, kupl_last, covar, da, chisq, NDERIV) !, funcs)
+               NPARA, par_names, prange, p_shift, kupl_last, covar, da, chisq, NDERIV) !, funcs)
    IF(ier_num/=0) THEN
       RETURN
    ENDIF
@@ -782,7 +785,7 @@ DO j=1,NPARA
 ENDDO
 !
 CALL mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y, atry, &
-            NPARA, par_names, prange, kupl_last, covar, da, chisq, LDERIV) !, funcs)
+            NPARA, par_names, prange, p_shift, kupl_last, covar, da, chisq, LDERIV) !, funcs)
 IF(ier_num/=0) THEN
    RETURN
 ENDIF
@@ -816,7 +819,8 @@ END SUBROUTINE mrqmin
 !*******************************************************************************
 !
 SUBROUTINE mrqcof(MAXP, data_dim, data_data, data_sigma, data_x, data_y, &
-                  params, NPARA, par_names, prange, kupl_last, alpha, beta, chisq, LDERIV)
+                  params, NPARA, par_names, prange, p_shift, kupl_last,  &
+                  alpha, beta, chisq, LDERIV)
 !
 ! Modified after NumRec 14.4
 ! Version for 2-d data
@@ -835,6 +839,7 @@ INTEGER                                             , INTENT(IN)  :: NPARA      
 REAL            , DIMENSION(MAXP)                   , INTENT(IN)  :: params      ! Current parameter values
 CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)  :: par_names   ! Parameter names
 REAL            , DIMENSION(MAXP, 2              )  , INTENT(IN)  :: prange      ! Allowed parameter range
+REAL            , DIMENSION(MAXP )                  , INTENT(IN)  :: p_shift   ! Parameter shift for deriv
 INTEGER                                             , INTENT(IN)  :: kupl_last   ! Last KUPLOT DATA that are needed
 REAL            , DIMENSION(NPARA, NPARA)           , INTENT(OUT) :: alpha
 REAL            , DIMENSION(NPARA)                  , INTENT(OUT) :: beta
@@ -864,7 +869,7 @@ loopix: do ix=1, data_dim(1)
       yy = data_y(iy)
 !
       CALL refine_theory(MAXP, ix, iy, xx, yy, NPARA, params, par_names,   &
-                         prange, &
+                         prange, p_shift, &
                          data_dim, & ! data_data, data_sigma, data_x, data_y, &
                          kupl_last, &
                          ymod, dyda, LDERIV)

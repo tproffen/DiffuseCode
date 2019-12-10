@@ -110,11 +110,17 @@ IF(ianz==1) THEN
    ENDIF
 !
          DO j=i+1, refine_par_n
-            refine_params(j-1) = refine_params(j)
-            refine_p(j-1)      = refine_p(j)
-            refine_range(j-1,1)= refine_range(j,1)
-            refine_range(j-1,2)= refine_range(j,2)
+            refine_params(j-1)   = refine_params(j)
+            refine_p     (j-1)   = refine_p     (j)
+            refine_range (j-1,1) = refine_range (j,1)
+            refine_range (j-1,2) = refine_range (j,2)
+            refine_shift (j-1)   = refine_shift (j)
          ENDDO
+         refine_params(refine_par_n)   =  ' '      ! Clear last parameter
+         refine_p     (refine_par_n)   =  0.0
+         refine_range (refine_par_n,1) =  1.0
+         refine_range (refine_par_n,2) = -1.0
+         refine_shift (refine_par_n)   =  0.005
          EXIT params
       ENDIF
    ENDDO params   

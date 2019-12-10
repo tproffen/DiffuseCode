@@ -183,6 +183,9 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 CALL alloc_arr ( refine_dp      ,1,n_params, all_status, 0.00000, size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
+CALL alloc_arr ( refine_shift   ,1,n_params, all_status, 0.00500, size_of)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!!
 IF( lstat ) THEN                        ! Success
    REF_MAXPARAM    = n_params
    ier_typ       = 0
