@@ -76,6 +76,7 @@
 2  newparam
 !p newparam <parname> [,"value:"<start>] [,"status:"<flag>]
 !p                    [,"range:["<lower>,<upper>"]"]
+!p                    [,"shift:"<value>] [,"points:"<nderiv>]
 
    The command performs three tasks:
    - Defines a new parameter named <parname>
@@ -117,6 +118,27 @@
       In order to turn the boundaries off, simply state the 
       'newparam' command again for the refinement parameter 
       without the "range:" option.
+
+   shift:<value>
+      To calculate the numerical derivatives REFINE needs to calculate
+      the cost function at the current parameter value and at points 
+      at slightly smaller and slightly larger values. REFINE calculates
+      the shift of the original parameter values as par*<value>. It is
+      not straighhtforward to recommend good values. For parameters that
+      can be expected to give a smooth variation of the cost function
+      like scale factors a value of 0.003 seems to be good. For
+      parameters like nano particle diameters larger values like 0.1 to
+      0.01 seem to be better. 
+      Default: shift:0.003
+
+   points:<nderiv>
+      REFINE estimates the derivative by calculting the cost function
+      at either:
+      the 3 points        p-h; p; p+h          or at 
+      the 5 points  p-2h; p-h; p; h+h; p+2h.
+      The five point estimate is more accurate and is reccommended 
+      for parameters like nanoparticle diameters. 
+      Defalut: points:3
 2  reset
 !p reset
 
