@@ -9,12 +9,13 @@ SUBROUTINE refine_errlist_appl
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU= -7,IO=0)
+      PARAMETER    (IU= -8,IO=0)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
 !
       DATA ERROR ( IU:  0) /                                       &
+     &  'points is limited to 3 or 5                 ',            & ! -8  ! refine
      &  'Sigma in data set are zero                  ',            & ! -7  ! refine
      &  'An error occurred in the user macro         ',            & ! -6  ! refine
      &  'Data set must be loaded prior to sigma      ',            & ! -5  ! refine

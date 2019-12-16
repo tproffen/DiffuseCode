@@ -55,24 +55,25 @@ CHARACTER(LEN=1024), DIMENSION(MAXF) :: ccpara
 INTEGER            , DIMENSION(MAXF) :: llpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXF) :: wwerte
 !
-INTEGER, PARAMETER :: NOPTIONAL = 4
+INTEGER, PARAMETER :: NOPTIONAL = 5
 INTEGER, PARAMETER :: OSHIFT    = 1
-INTEGER, PARAMETER :: OVALUE    = 2
-INTEGER, PARAMETER :: OSTATUS   = 3
-INTEGER, PARAMETER :: ORANGE    = 4
+INTEGER, PARAMETER :: ONDERIV   = 2
+INTEGER, PARAMETER :: OVALUE    = 3
+INTEGER, PARAMETER :: OSTATUS   = 4
+INTEGER, PARAMETER :: ORANGE    = 5
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate
+INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate
 !
-DATA oname  / 'shift'  , 'value ' , 'status'  ,  'range' /
-DATA loname /  5       ,  5       ,  6        ,   5      /
-opara  =  (/ '0.005000', '-1.00000', '0.000000',  '0.000000'/)   ! Always provide fresh default values
-lopara =  (/  8        ,  8        ,  8        ,   8        /)
-owerte =  (/  0.00500  ,  -1.0     ,  0.0      ,   0.0      /)
+DATA oname  / 'shift'  , 'points' ,  'value ' , 'status'  ,  'range' /
+DATA loname /  5       ,  6       ,   5       ,  6        ,   5      /
+opara  =  (/ '0.005000', '2.000000', '-1.00000', '0.000000',  '0.000000'/)   ! Always provide fresh default values
+lopara =  (/  8        ,  8        ,  8        ,  8        ,   8        /)
+owerte =  (/  0.00500  ,  3.0      ,  -1.0     ,  0.0      ,   0.0      /)
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 !
@@ -111,6 +112,17 @@ IF(lpresent(OVALUE)) THEN
          ier_msg(1) = 'Could not set parameter value'
          RETURN
       ENDIF
+   ENDIF
+ENDIF
+!
+! Check number of derivative points
+!
+IF(lpresent(ONDERIV)) THEN
+   IF(.NOT. (NINT(owerte(ONDERIV))==3 .OR.         &
+             NINT(owerte(ONDERIV))==5     ) ) THEN
+      ier_num = -8
+      ier_typ = ER_APPL
+      RETURN
    ENDIF
 ENDIF
 !
@@ -196,6 +208,7 @@ IF(lrefine) THEN
    refine_range(ipar,1) = range_low
    refine_range(ipar,2) = range_high
    refine_shift(ipar)   = owerte(OSHIFT)
+   refine_nderiv(ipar)  = owerte(ONDERIV)
 !
    fixed: DO i=1, refine_fix_n                 ! Remove from fixed list
       IF(pname == refine_fixed(i)) THEN        ! Found old parameter name
