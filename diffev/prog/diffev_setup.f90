@@ -57,7 +57,7 @@ IF(standalone) CALL init_sysarrays
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
-CALL appl_env (lstandalone) !, gen_mpi_myid)
+IF(standalone) CALL appl_env (lstandalone) !, gen_mpi_myid)
 !                                                                       
 !------ Write starting screen                                           
 !                                                                       
