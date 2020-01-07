@@ -281,9 +281,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       CHARACTER(21) cpref (1:2) 
       CHARACTER(29) cprofile (0:2) 
 !                                                                       
-      REAL hkl (3), h1, h2, dstar, ttheta 
-      REAL del_tth_min (3) 
-      REAL del_tth_max (3) 
+!     REAL hkl (3), h1, h2, dstar, ttheta 
+!     REAL del_tth_min (3) 
+!     REAL del_tth_max (3) 
 !                                                                       
 !     REAL skalpro 
 !     REAL asind 
@@ -1335,7 +1335,7 @@ END SUBROUTINE powder_run
       REAL hh, kk, ll 
       REAL rr, rrr, rtm 
       REAL hkl (3) 
-      REAL ttheta, dstar , q
+      REAL :: dstar , q !, ttheta
       REAL (KIND=PREC_DP)  :: inten 
       REAL u (3), v (3), w_min (3), w_max (3) 
       REAL u2, vv, ww 

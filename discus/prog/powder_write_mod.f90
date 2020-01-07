@@ -99,6 +99,10 @@ xpl     = 0.0
 ypl     = 0.0
 xdel    = 0.0
 !                                                                       
+xmin = pow_qmin 
+xmax = pow_qmax 
+xdel = (pow_qmax - pow_qmin) / (num (1) ) 
+!
 IF (pow_four_type.eq.POW_COMPL) THEN 
 !  IF (pow_axis.eq.POW_AXIS_Q) THEN 
       xmin = pow_qmin_u 
@@ -468,7 +472,7 @@ IF( cpow_form == 'tth' ) THEN
 !              IF ( pow_axis == POW_AXIS_Q) THEN             ! Convert q limits to 2Theta
                   arg        = xmin/REAL(zpi) * rlambda / 2. ! Directly with arg in asind()
                   pow_tthmin = 2.*asind(arg)                 ! results in error ??????????
-                  arg        = MIN(1.0D0,xmax/REAL(zpi) * rlambda / 2.)
+                  arg        = MIN(1.0E0,xmax/REAL(zpi) * rlambda / 2.)
                   pow_tthmax = 2.*asind(arg)
                   pow_deltatth = xpl(2)-xpl(1)
 !              ENDIF
@@ -603,6 +607,8 @@ ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
 !           npkt_wrt = npkt
 !        ENDIF                   ! pow_axis      == ??
 ELSE                    ! cpow_form == 
+   ALLOCATE(xwrt(1:npkt),stat = all_status)  ! Allocate array for powder pattern ready to write
+   ALLOCATE(ywrt(1:npkt),stat = all_status)  ! Allocate array for powder pattern ready to write
          DO ii = 1,npkt
             xwrt(ii) = xpl(ii)
             ywrt(ii) = ypl(ii)
@@ -2066,11 +2072,13 @@ LOGICAL                                    , INTENT(IN)    :: pow_ka21_u
 REAL(KIND=PREC_SP), DIMENSION(0:POW_MAXPKT), INTENT(IN)    :: xpl
 REAL(KIND=PREC_SP), DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: ypl
 !
-CHARACTER(LEN=4) :: local
+!CHARACTER(LEN=4) :: local
 INTEGER :: i,j,l
-REAl    :: int_ratio   ! Ka2/Ka1 intensity ratio
-REAl    :: len_ratio   ! Ka2/Ka1 intensity ratio
+REAL    :: int_ratio   ! Ka2/Ka1 intensity ratio
+REAL    :: len_ratio   ! Ka2/Ka1 intensity ratio
 !
+int_ratio = 0.0
+len_ratio = 1.0
 IF(lambda(3:4)=='12' .OR. lambda=='W12 ') THEN    ! Only for explicit a12
    l = get_wave_number(lambda)
    IF(l==0) RETURN             ! Not a listed wave length
