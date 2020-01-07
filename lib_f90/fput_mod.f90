@@ -293,7 +293,7 @@ IF (ier_num.ne.0) RETURN
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 IF(opara(1)/='*') THEN
-   line= opara(1)(2:lopara(1)-1)
+   line(1:lopara(1)-2) = opara(1)(2:lopara(1)-1)
    lp = lopara(1) - 2
    CALL get_params (line, ianzz, fpara, lpara, MAXW, lp)
    DO i=1,ianz
@@ -615,7 +615,8 @@ IF (ier_num.ne.0) RETURN
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 IF(opara(1)/='*') THEN
-   line= opara(1)(2:lopara(1)-1)
+   line = ' '
+   line(1:lopara(1)-2) = opara(1)(2:lopara(1)-1)
    lp = lopara(1) - 2
    CALL get_params (line, ianzz, fpara, lpara, MAXW, lp)
    DO i=1,ianz

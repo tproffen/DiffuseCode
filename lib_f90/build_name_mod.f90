@@ -324,7 +324,8 @@ main: DO while (ind_d.ge.pos)
                line (ll:ll) = ')' 
                CALL berechne_char (line, ll) 
                IF (line (1:1) .eq.''''.and.line (ll:ll) .eq.'''') THEN
-                  cpara (npara) = line (2:ll) 
+                  cpara(npara) = ' '
+                  cpara(npara)(1:ll-1) = line (2:ll) 
                   ll = ll - 2 
                ELSE 
                   cpara (npara) = line (1:ll) 
@@ -347,7 +348,8 @@ main: DO while (ind_d.ge.pos)
             ll = ll + 2 
             CALL berechne_char (line, ll) 
             IF (line (1:1) .eq.''''.and.line (ll:ll) .eq.'''') THEN 
-               cpara (npara) = line (2:ll) 
+               cpara(npara) = ' '
+               cpara(npara)(1:ll-1) = line (2:ll) 
                ll = ll - 2 
             ELSE 
                cpara (npara) = line (1:ll) 

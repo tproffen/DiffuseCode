@@ -85,7 +85,8 @@ IF(opara(1) == 'scalar') THEN
    n2 = 0
    n_data = 0
 ELSEif(opara(1)(1:1) == '[' .AND. opara(1)(lopara(1):lopara(1)) == ']') THEN
-   string = opara(1)(2:lopara(1)-1)
+   string = ' '
+   string(1:lopara(1)-2) = opara(1)(2:lopara(1)-1)
    length = lopara(1)-2
    ccpara(:) = ' '
    llpara(:) = 0
