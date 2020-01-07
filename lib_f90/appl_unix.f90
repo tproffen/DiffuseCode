@@ -29,6 +29,7 @@ CHARACTER(LEN=8), DIMENSION(6), PARAMETER :: tmp_test = (/'/tmp    ','/TMP    ',
       '/var/tmp', '/Var/tmp', '/var/TMP', '/Var/TMP' /)
 CHARACTER(LEN=2048) :: line
 CHARACTER(LEN=2048) :: pathfile
+CHARACTER(LEN=2048) :: ufile
 INTEGER ico, ice, iii, i, j
 INTEGER :: length
 INTEGER :: ios ! I/O status
@@ -129,9 +130,15 @@ IF(lpresent) THEN               ! /proc/version exists, Linux type OS
    ENDIF
 ELSE   !  /proc/version does not exist , likely a MAC OS X 
 !  Read OS from uname
-   line = 'uname -av > '//tmp_dir(1:tmp_dir_l)//'/DISCUS_SUITE_UNAME'
+   WRITE(ufile,'(a,a,i6.6)') tmp_dir(1:tmp_dir_l), '/DISCUS_SUITE_UNAME.' , PID
+   WRITE(line,'(a,a)') 'uname -av > ', ufile(1:LEN_TRIM(ufile))
+!   line = 'uname -av > '//tmp_dir(1:tmp_dir_l)//'/DISCUS_SUITE_UNAME'
    CALL do_operating_comm(line)
-   OPEN(UNIT=idef, FILE='/tmp/DISCUS_SUITE_UNAME')
+   line = ' '
+!  WRITE(line,'(a,a,i6.6)')                                           &
+!         tmp_dir(1:tmp_dir_l), '/DISCUS_SUITE_UNAME' , PID
+!  INQUIRE(FILE=line                     ,EXIST=lpresent)
+   OPEN(UNIT=idef, FILE=ufile)
    READ(IDEF,'(a)') line
    CLOSE(IDEF)
    CALL do_cap(line)
@@ -145,6 +152,9 @@ ELSE   !  /proc/version does not exist , likely a MAC OS X
       ENDIF
       home_dir_l = len_str (home_dir) 
    ENDIF
+!  Remove temporary file
+   WRITE(line,'(a,a)') 'rm -f ', ufile(1:LEN_TRIM(ufile))
+   CALL do_operating_comm(line)
 ENDIF
 !
 ! All remaining test for OS should be obsolete
@@ -301,7 +311,8 @@ ENDIF
                i   = INDEX(cdummy,'/',.TRUE.)
                j   = INDEX(cdummy,'\',.TRUE.)
                iii = MAX(i,j)
-               appl_dir   = cdummy(1:iii  )
+               appl_dir = ' '
+               appl_dir(1:MAX(1,MIN(LEN(cdummy),iii)))   = cdummy(1:iii  )
                appl_dir_l = len_str (appl_dir) 
                hlpdir    = ' ' 
                hlpdir(1:appl_dir_l+9) = appl_dir(1:appl_dir_l)//'../share/'
@@ -722,7 +733,7 @@ hlpfile   = hlpdir(1:hlp_dir_l)//progname(1:progname_l)//'.hlp'
 hlpfile_l = LEN(TRIM (hlpfile) )
 !                                                                       
 colorfile = ' ' 
-colorfile (1:appl_dir_l) = appl_dir 
+colorfile (1:MIN(LEN(colorfile),appl_dir_l)) = appl_dir(1:MAX(1,MIN((LEN(colorfile)),appl_dir_l))) 
 colorfile (appl_dir_l + 1:appl_dir_l + 19) = '../share/color.map' 
 colorfile_l = LEN(TRIM (colorfile) )
 !
