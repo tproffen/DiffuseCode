@@ -132,7 +132,8 @@ range_low  = +1.0
 range_high = -1.0
 IF(lpresent(ORANGE)) THEN
    IF(opara(ORANGE)(1:1) == '[' .AND. opara(ORANGE)(lopara(ORANGE):lopara(ORANGE)) == ']') THEN
-      string = opara(ORANGE)(2:lopara(ORANGE)-1)
+      string = ' '
+      string(1:lopara(ORANGE)-2) = opara(ORANGE)(2:lopara(ORANGE)-1)
       length = lopara(ORANGE)-2
       ccpara(:) = ' '
       llpara(:) = 0

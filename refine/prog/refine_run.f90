@@ -154,7 +154,7 @@ REAL                                                 , INTENT(OUT) :: f       ! 
 REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: df      ! Function derivatives at (ix,iy)
 LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
 !
-REAL, PARAMETER      :: SCALEF = 0.005! Scalefactor for parameter modification 0.01 is good?
+!REAL, PARAMETER      :: SCALEF = 0.005! Scalefactor for parameter modification 0.01 is good?
 !
 INTEGER              :: k, iix, iiy   ! Dummy loop variable
 INTEGER              :: nder          ! Numper of points for derivative
