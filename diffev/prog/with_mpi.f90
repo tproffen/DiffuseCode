@@ -66,9 +66,9 @@ INTEGER               :: length
 INTEGER               :: ierr
 LOGICAL               :: success
 !
-INTEGER, PARAMETER :: IDEF=69
-CHARACTER(LEN=1024) :: line
-CHARACTER(LEN=1024) :: string
+!INTEGER, PARAMETER :: IDEF=69
+!CHARACTER(LEN=1024) :: line
+!CHARACTER(LEN=1024) :: string
 !INTEGER :: PID
 !INTEGER :: ind_pid
 !INTEGER :: ind_mpi
@@ -253,7 +253,9 @@ IF(gen_mpi_myid==0)  THEN  !   MASTER
       ENDDO search
       IF(.NOT.success) THEN
          NUM_NODE = NUM_NODE + 1
-         node_names(NUM_NODE) = gen_mpi_senddata%node_name(1:gen_mpi_senddata%node_l)
+         node_names(NUM_NODE) = ' '
+         node_names(NUM_NODE)(1:gen_mpi_senddata%node_l) = &
+              gen_mpi_senddata%node_name(1:gen_mpi_senddata%node_l)
          slave_is_node(sender) = NUM_NODE
       ENDIF
    ENDDO
