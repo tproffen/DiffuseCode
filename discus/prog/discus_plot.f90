@@ -505,8 +505,9 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            pl_poly_c(-1) = .FALSE.
                         ENDIF 
                         i = LEN_TRIM(line)
+                        zeile = ' '
                         IF(line(1:1)=='''' .AND. line(i:i)=='''') THEN
-                           zeile = line(2:i-1)
+                           zeile(1:i-2) = line(2:i-1)
                         ELSE
                            zeile = line(1:i)
                         ENDIF

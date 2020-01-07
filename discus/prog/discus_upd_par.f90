@@ -1507,7 +1507,8 @@ iatom = NINT(werte(1))
 CALL del_params(iianz, ianz, cpara, lpara, MAXW)
 !
 IF(opara(2)/=' ') THEN     ! or is present
-   opara(2)  = opara(2)(2:lopara(2)-1)
+   opara(2)  = ' '
+   opara(2)(1:lopara(2)-2)  = opara(2)(2:lopara(2)-1)
    lopara(2) = lopara(2) - 2
    ianz = 2
 ELSE
