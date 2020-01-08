@@ -7,7 +7,7 @@ The website can be found at http://tproffen.github.io/DiffuseCode
 Depending on the package you have downloaded you will find one or all of the
 following program directories after unpacking the archive.
 
-DISCUS_SUITE :  The Main program for DISCUS/KUPLOT/DIFFEV
+DISCUS_SUITE :  The Main program for DISCUS/KUPLOT/DIFFEV/REFINE
                 This is the standard program that should be used
                 and includes all other sections under a common roof top
 AUTHOR  : R.B. Neder  (reinhard.neder@fau.de)
