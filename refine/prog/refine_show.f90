@@ -253,7 +253,13 @@ WRITE(iounit, * ) ' '
 WRITE(iounit,'(a)') ' Refined parameters' 
 DO i=1, npara
    IF(prange(i,1)<=prange(i,2)) THEN
-      WRITE(iounit,1110) params(i), pp(i), dpp(i), prange(i,1), prange(i,2)
+      IF(prange(i,1)< -0.5*HUGE(0)) THEN
+         WRITE(iounit,1110) params(i), pp(i), dpp(i)             , prange(i,2)
+      ELSEIF(prange(i,2)> 0.5*HUGE(0)) THEN
+         WRITE(iounit,1111) params(i), pp(i), dpp(i), prange(i,1)
+      ELSE
+         WRITE(iounit,1112) params(i), pp(i), dpp(i), prange(i,1), prange(i,2)
+      ENDIF
    ELSE
       WRITE(iounit,1100) params(i), pp(i), dpp(i)
    ENDIF
@@ -273,9 +279,9 @@ WRITE(iounit, * ) ' '
 3110 FORMAT(' Sigma not defined  '   )
 3120 FORMAT(' Sigma loaded as    : ',a )
 2000 FORMAT(' Refinement macro   : ',a)
-4000 FORMAT('   Convergence 1    : dP/sigma < AND conf > AND      dChi^2 <',/, &
+4000 FORMAT('   Convergence 1    : dP/sigma < AND conf >     AND dChi^2 <',/, &
             '                      ',2(G10.3E3,5x),G10.3E3)
-4100 FORMAT('   Convergence 2    : dChi^2 <   AND dP/simg > 0.0           ',/, &
+4100 FORMAT('   Convergence 2    : dChi^2 <   AND dP/sigma > 0.0          ',/, &
             '                      ',  G10.3E3            )
 4200 FORMAT('   Convergence 3    : Chi^2 <                                ',/, &
             '                      ',  G10.3E3            )
@@ -291,7 +297,9 @@ WRITE(iounit, * ) ' '
  1070 FORMAT (3x,'Between p(',i2,') - p(',i2,') : ',f6.3) 
  5000 FORMAT (3x,a16,' : ',10g11.3e2)
  1100 FORMAT (3x,a16,' : ',g15.6E3, ' +- ',g15.6,4x)
- 1110 FORMAT (3x,a16,' : ',g15.6E3, ' +- ',g15.6,4x, '[',g15.6E3,',',g15.6E3,']')
+ 1110 FORMAT (3x,a16,' : ',g15.6E3, ' +- ',g15.6,4x, '[', 15x   ,',',g15.6E3,']')
+ 1111 FORMAT (3x,a16,' : ',g15.6E3, ' +- ',g15.6,4x, '[',g15.6E3,',', 15x   ,']')
+ 1112 FORMAT (3x,a16,' : ',g15.6E3, ' +- ',g15.6,4x, '[',g15.6E3,',',g15.6E3,']')
  1200 FORMAT (3x,a16,' : ',g15.6E3)
 !                                                                       
 END SUBROUTINE show_fit_erg                   

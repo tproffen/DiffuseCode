@@ -9,12 +9,13 @@ SUBROUTINE refine_errlist_appl
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU= -8,IO=0)
+      PARAMETER    (IU= -9,IO=0)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
 !
       DATA ERROR ( IU:  0) /                                       &
+     &  'Calculation of derivatives failed           ',            & ! -9  ! refine
      &  'points is limited to 3 or 5                 ',            & ! -8  ! refine
      &  'Sigma in data set are zero                  ',            & ! -7  ! refine
      &  'An error occurred in the user macro         ',            & ! -6  ! refine

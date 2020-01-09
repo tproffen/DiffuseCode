@@ -112,7 +112,10 @@
    range:[<lower>, upper>]
       Defines a lower and upper boundary for the parameter. The 
       fit will ensure that the parameter does not move outside the
-      specified range. 
+      specified range.  <lower> must be less than <upper>.
+      If either <lower> or <upper> is absent, but the comma is present:
+          [,<upper>] or [<lower>,]
+         the missing side is not constrained. 
       If the "range:" parameter is omitted, the default behavior
       is to assume no boundaries. 
       In order to turn the boundaries off, simply state the 

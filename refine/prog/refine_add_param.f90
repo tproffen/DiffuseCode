@@ -49,6 +49,7 @@ LOGICAL                              :: lrefine
 !
 REAL                                 :: range_low    ! template for parameter
 REAL                                 :: range_high   ! ranges 
+LOGICAL, DIMENSION(2)                :: lrange       ! Range is provided
 !
 INTEGER, PARAMETER :: MAXF=2
 CHARACTER(LEN=1024), DIMENSION(MAXF) :: ccpara
@@ -131,7 +132,8 @@ ENDIF
 range_low  = +1.0
 range_high = -1.0
 IF(lpresent(ORANGE)) THEN
-   IF(opara(ORANGE)(1:1) == '[' .AND. opara(ORANGE)(lopara(ORANGE):lopara(ORANGE)) == ']') THEN
+   IF(opara(ORANGE)(1:1) == '[' .AND. opara(ORANGE)(lopara(ORANGE):lopara(ORANGE)) == ']' .AND. &
+      INDEX(opara(ORANGE)(2:lopara(ORANGE)-1),',')>0) THEN
       string = ' '
       string(1:lopara(ORANGE)-2) = opara(ORANGE)(2:lopara(ORANGE)-1)
       length = lopara(ORANGE)-2
@@ -139,7 +141,21 @@ IF(lpresent(ORANGE)) THEN
       llpara(:) = 0
       wwerte(:) = 0.0
       CALL get_params (string, iianz, ccpara, llpara, MAXF, length)
-      IF(ier_num /= 0) THEN
+      lrange = .TRUE.
+      IF(llpara(1)==0 .AND. ier_num==-2 .AND. ier_typ==ER_COMM) THEN
+         lrange(1) = .FALSE.
+         CALL no_error
+         ccpara(1) = '0'
+         llpara(1) = 1
+         iianz = 2
+      ELSEIF(llpara(2)==0 .AND. ier_num==-2 .AND. ier_typ==ER_COMM) THEN
+         lrange(2) = .FALSE.
+         CALL no_error
+         ccpara(2) = '0'
+         llpara(2) = 1
+         iianz = 2
+      ELSEIf(ier_num/=0) THEN
+!     IF(ier_num /= 0) THEN
          ier_msg(1) = 'Incorrect ''range:[]'' parameter'
          RETURN
       ENDIF
@@ -153,6 +169,14 @@ IF(lpresent(ORANGE)) THEN
       IF(iianz==2) THEN
          range_low  = wwerte(1)
          range_high = wwerte(2)
+         IF(.NOT.lrange(1)) range_low  = -HUGE(0.0)
+         IF(.NOT.lrange(2)) range_high =  HUGE(0.0)
+         IF(range_low>=range_high) THEN
+            ier_num = -6
+            ier_typ = ER_FORT
+            ier_msg(1) = 'Incorrect ''range:[]'' parameter'
+            RETURN
+         ENDIF
       ELSE
          ier_num = -6
          ier_typ = ER_FORT

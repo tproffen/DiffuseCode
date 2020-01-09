@@ -156,11 +156,13 @@ LOGICAL                                              , INTENT(IN)  :: LDERIV  ! 
 !
 !REAL, PARAMETER      :: SCALEF = 0.005! Scalefactor for parameter modification 0.01 is good?
 !
-INTEGER              :: k, iix, iiy   ! Dummy loop variable
+INTEGER              :: k, iix, iiy, l! Dummy loop variable
 INTEGER              :: nder          ! Numper of points for derivative
 REAL(KIND=PREC_DP)                 :: delta         ! Shift to calculate derivatives
 REAL(KIND=PREC_DP)                 :: p_d           ! Shifted  parameter
-REAL(KIND=PREC_DP), DIMENSION(3)   :: dvec          ! Parameter at P, P+delta and P-delta
+!REAL(KIND=PREC_DP), DIMENSION(5)   :: p_vals        ! Parameter at P, P+delta and P-delta
+REAL(KIND=PREC_DP), DIMENSION(-2:2):: dvec          ! Parameter at P-2delta, P-delta, P, P+delta and P+2delta
+LOGICAL           , DIMENSION(-2:2):: lvec          ! Calculate at P-2delta, P-delta, P, P+delta and P+2delta
 REAL(KIND=PREC_DP), DIMENSION(3)   :: yvec          ! Chisquared at P, P+delta and P-delta
 REAL(KIND=PREC_DP), DIMENSION(3)   :: avec          ! Params for derivative y = a + bx + cx^2
 REAL(KIND=PREC_DP), DIMENSION(3,3) :: xmat          ! Rows are : 1, P, P^2
@@ -185,9 +187,9 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
       DO k=1, NPARA
          ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), -p_nderiv(k)/2:p_nderiv(k)/2))
          nder = 1                     ! First point is at P(k)
-         dvec(2) = 0.0
-         dvec(3) = 0.0
-         dvec(1) = p(k)               ! Store parameter value
+         dvec(:) = 0.0
+         lvec(:) = .FALSE.
+         dvec(0) = p(k)               ! Store parameter value
          IF(p(k)/=0.0) THEN
             delta = ABS(p(k)*p_shift(k))  ! A multiplicative variation of the parameter seems best
          ELSE
@@ -196,100 +198,168 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
 !write(*,*) 'PARAMETER ', k, p(k), delta
 !                                     ! Test at P + DELTA
          IF(prange(k,1)<=prange(k,2)) THEN     ! User provided parameter range
-            p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)+REAL(delta)))
+            IF(p(k)==prange(k,1)) THEN         ! At lower limit, use +delta +2delta
+               delta = MIN(ABS(delta), 0.5D0*(ABS(prange(k,2) - p(k)))) ! Make sure +2Delta fits
+               dvec(1) = p(k) + delta
+               dvec(2) = p(k) + 2.0D0*delta
+               lvec(1) = .TRUE.
+               lvec(2) = .TRUE.
+               nder = 3
+            ELSEIF(p(k)==prange(k,2)) THEN         ! At upper limit, use -delta -2delta
+               delta = MIN(ABS(delta), 0.5D0*(ABS(p(k) - prange(k,1)))) ! Make sure -2Delta fits
+               dvec(-2) = p(k) - 2.0D0*delta
+               dvec(-1) = p(k) - 1.0D0*delta
+               lvec(-2) = .TRUE.
+               lvec(-1) = .TRUE.
+               nder = 3
+            ELSE                               ! within range, use +-delta or +2delta
+               IF(p_nderiv(k)==3) THEN         ! Three point derivative
+                  dvec(-1) = MIN(prange(k,2),MAX(prange(k,1),p(k)+REAL(delta))) ! +delta
+                  dvec( 1) = MIN(prange(k,2),MAX(prange(k,1),p(k)-REAL(delta))) ! -delta
+                  lvec(-1) = .TRUE.
+                  lvec( 1) = .TRUE.
+                  nder = 3
+               ELSEIF(p_nderiv(k)==5) THEN     ! Five point derivative
+                  delta = MIN(delta, 0.5D0*(ABS(prange(k,2) - p(k))),  &
+                                     0.5D0*(ABS(p(k) - prange(k,1))) ) ! Make sure +-2delta fits
+                  dvec(-2) = p(k) - 2.0D0*delta
+                  dvec(-1) = p(k) - 1.0D0*delta
+                  dvec( 1) = p(k) + 1.0D0*delta
+                  dvec( 2) = p(k) + 2.0D0*delta
+                  lvec(-2) = .TRUE.
+                  lvec(-1) = .TRUE.
+                  lvec( 1) = .TRUE.
+                  lvec( 2) = .TRUE.
+                  nder = 5
+               ENDIF
+            ENDIF
+!           p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)+REAL(delta)))
          ELSE
-            p_d     = p(k) + delta
+            IF(p_nderiv(k)==3) THEN         ! Three point derivative
+               dvec(-1) = p(k) - 1.0D0*delta
+               dvec( 1) = p(k) + 1.0D0*delta
+               lvec(-1) = .TRUE.
+               lvec( 1) = .TRUE.
+                  nder = 3
+            ELSEIF(p_nderiv(k)==5) THEN     ! Five point derivative
+               dvec(-2) = p(k) - 2.0D0*delta
+               dvec(-1) = p(k) - 1.0D0*delta
+               dvec( 1) = p(k) + 1.0D0*delta
+               dvec( 2) = p(k) + 2.0D0*delta
+               lvec(-2) = .TRUE.
+               lvec(-1) = .TRUE.
+               lvec( 1) = .TRUE.
+               lvec( 2) = .TRUE.
+                  nder = 5
+            ENDIF
+!           p_d     = p(k) + delta
          ENDIF
+         DO l = -2, 2
+            IF(lvec(l)) THEN
+            CALL refine_set_param(NPARA, par_names(k), k, REAL(dvec(l)) )  ! Set modified value
+            CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+                              data_dim, refine_temp)
+            IF(ier_num /= 0) THEN
+               DEALLOCATE(refine_tttt)
+               RETURN
+            ENDIF
+            DO iiy=1, data_dim(2)
+               DO iix=1, data_dim(1)
+                  refine_tttt(iix,iiy,l) =  refine_temp(iix,iiy)
+               ENDDO
+            ENDDO
+            ENDIF
+         ENDDO
 !        p_d = p(k) + delta
-         IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
-            nder = nder + 1
-            dvec(2) = p_d            ! Store parameter value at P+DELTA
-            CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
-            CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
-                              data_dim, refine_temp)
-            IF(ier_num /= 0) THEN
-               DEALLOCATE(refine_tttt)
-               RETURN
-            ENDIF
-            DO iiy=1, data_dim(2)
-               DO iix=1, data_dim(1)
-                  refine_tttt(iix,iiy,1) =  refine_temp(iix,iiy)
-               ENDDO
-            ENDDO
-         ENDIF
+!        IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
+!           nder = nder + 1
+!           dvec(2) = p_d            ! Store parameter value at P+DELTA
+!           CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
+!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+!                             data_dim, refine_temp)
+!           IF(ier_num /= 0) THEN
+!              DEALLOCATE(refine_tttt)
+!              RETURN
+!           ENDIF
+!           DO iiy=1, data_dim(2)
+!              DO iix=1, data_dim(1)
+!                 refine_tttt(iix,iiy,1) =  refine_temp(iix,iiy)
+!              ENDDO
+!           ENDDO
+!        ENDIF
 !                                     ! Test at P - DELTA
-         IF(prange(k,1)<=prange(k,2)) THEN
-            p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)-REAL(delta)))
-         ELSE
-            p_d     = p(k) - delta
-         ENDIF
+!        IF(prange(k,1)<=prange(k,2)) THEN
+!           p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)-REAL(delta)))
+!        ELSE
+!           p_d     = p(k) - delta
+!        ENDIF
 !        p_d = p(k) - delta
-         IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
-            nder = nder + 1
-            dvec(3) = p_d            ! Store parameter value at P-DELTA
-            CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
-            CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
-                              data_dim, refine_temp)
-            IF(ier_num /= 0) THEN
-               DEALLOCATE(refine_tttt)
-               RETURN
-            ENDIF
-            DO iiy=1, data_dim(2)
-               DO iix=1, data_dim(1)
-                  refine_tttt(iix,iiy,-1) =  refine_temp(iix,iiy)
-               ENDDO
-            ENDDO
+!        IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
+!           nder = nder + 1
+!           dvec(3) = p_d            ! Store parameter value at P-DELTA
+!           CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
+!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+!                             data_dim, refine_temp)
+!           IF(ier_num /= 0) THEN
+!              DEALLOCATE(refine_tttt)
+!              RETURN
+!           ENDIF
+!           DO iiy=1, data_dim(2)
+!              DO iix=1, data_dim(1)
+!                 refine_tttt(iix,iiy,-1) =  refine_temp(iix,iiy)
+!              ENDDO
+!           ENDDO
 !
-         ENDIF
+!        ENDIF
 !                                     ! Test at P + DELTA
-         IF(p_nderiv(k)==5) THEN
-         IF(prange(k,1)<=prange(k,2)) THEN     ! User provided parameter range
-            p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)+REAL(2.*delta)))
-         ELSE
-            p_d     = p(k) + 2.*delta
-         ENDIF
+!        IF(p_nderiv(k)==5) THEN
+!        IF(prange(k,1)<=prange(k,2)) THEN     ! User provided parameter range
+!           p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)+REAL(2.*delta)))
+!        ELSE
+!           p_d     = p(k) + 2.*delta
+!        ENDIF
 !        p_d = p(k) + delta
-         IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
-            nder = nder + 1
-            dvec(2) = p_d            ! Store parameter value at P+DELTA
-            CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
-            CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
-                              data_dim, refine_temp)
-            IF(ier_num /= 0) THEN
-               DEALLOCATE(refine_tttt)
-               RETURN
-            ENDIF
-            DO iiy=1, data_dim(2)
-               DO iix=1, data_dim(1)
-                  refine_tttt(iix,iiy,2) =  refine_temp(iix,iiy)
-               ENDDO
-            ENDDO
-         ENDIF
+!        IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
+!           nder = nder + 1
+!           dvec(2) = p_d            ! Store parameter value at P+DELTA
+!           CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
+!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+!                             data_dim, refine_temp)
+!           IF(ier_num /= 0) THEN
+!              DEALLOCATE(refine_tttt)
+!              RETURN
+!           ENDIF
+!           DO iiy=1, data_dim(2)
+!              DO iix=1, data_dim(1)
+!                 refine_tttt(iix,iiy,2) =  refine_temp(iix,iiy)
+!              ENDDO
+!           ENDDO
+!        ENDIF
 !                                     ! Test at P - DELTA
-         IF(prange(k,1)<=prange(k,2)) THEN
-            p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)-REAL(2.*delta)))
-         ELSE
-            p_d     = p(k) - 2.*delta
-         ENDIF
+!        IF(prange(k,1)<=prange(k,2)) THEN
+!           p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)-REAL(2.*delta)))
+!        ELSE
+!           p_d     = p(k) - 2.*delta
+!        ENDIF
 !        p_d = p(k) - delta
-         IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
-            nder = nder + 1
-            dvec(3) = p_d            ! Store parameter value at P-DELTA
-            CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
-            CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
-                              data_dim, refine_temp)
-            IF(ier_num /= 0) THEN
-               DEALLOCATE(refine_tttt)
-               RETURN
-            ENDIF
-            DO iiy=1, data_dim(2)
-               DO iix=1, data_dim(1)
-                  refine_tttt(iix,iiy,-2) =  refine_temp(iix,iiy)
-               ENDDO
-            ENDDO
+!        IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
+!           nder = nder + 1
+!           dvec(3) = p_d            ! Store parameter value at P-DELTA
+!           CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
+!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+!                             data_dim, refine_temp)
+!           IF(ier_num /= 0) THEN
+!              DEALLOCATE(refine_tttt)
+!              RETURN
+!           ENDIF
+!           DO iiy=1, data_dim(2)
+!              DO iix=1, data_dim(1)
+!                 refine_tttt(iix,iiy,-2) =  refine_temp(iix,iiy)
+!              ENDDO
+!           ENDDO
 !
-         ENDIF
-         ENDIF
+!        ENDIF
+!        ENDIF
          CALL refine_set_param(NPARA, par_names(k), k, p(k))  ! Return to original value
 !
          IF(nder==5) THEN             ! Got all five  points for derivative
@@ -304,12 +374,28 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
             ENDDO
          ELSEIF(nder==3) THEN             ! Got all three points for derivative
             xmat(:,1) =  1.0
-            xmat(1,2) =  dvec(1) !p(k)
-            xmat(2,2) =  dvec(2) !p(k) + delta
-            xmat(3,2) =  dvec(3) !p(k) - delta
-            xmat(1,3) = (dvec(1))**2 !(p(k)        ) **2
-            xmat(2,3) = (dvec(2))**2 !(p(k) + delta) **2
-            xmat(3,3) = (dvec(3))**2 !(p(k) - delta) **2
+            xmat(1,2) =  dvec(0) !p(k)
+            IF(lvec(2)) THEN              ! +delta, + 2delta
+              xmat(2,2) =  dvec(1)        ! p(k) + delta
+              xmat(3,2) =  dvec(2)        ! p(k) + 2delta
+              xmat(2,3) = (dvec(1))**2    ! (p(k) + delta ) **2
+              xmat(3,3) = (dvec(2))**2    ! (p(k) + 2delta) **2
+            ELSEIF(lvec(-2)) THEN         ! -delta, - 2delta
+              xmat(2,2) =  dvec(-1)       ! p(k) - delta
+              xmat(3,2) =  dvec(-2)       ! p(k) - 2delta
+              xmat(2,3) = (dvec(-1))**2   ! (p(k) - delta ) **2
+              xmat(3,3) = (dvec(-2))**2   ! (p(k) - 2delta) **2
+            ELSE
+              xmat(2,2) =  dvec(-1)       ! p(k) - delta
+              xmat(3,2) =  dvec( 1)       ! p(k) + delta
+              xmat(2,3) = (dvec(-1))**2   ! (p(k) - delta ) **2
+              xmat(3,3) = (dvec( 1))**2   ! (p(k) + delta ) **2
+            ENDIF
+!           xmat(2,2) =  dvec(2) !p(k) + delta
+!           xmat(3,2) =  dvec(3) !p(k) - delta
+!           xmat(1,3) = (dvec(0))**2 !(p(k)        ) **2
+!           xmat(2,3) = (dvec(2))**2 !(p(k) + delta) **2
+!           xmat(3,3) = (dvec(3))**2 !(p(k) - delta) **2
             CALL matinv3(xmat, imat)
             IF(ier_num/=0) RETURN
             DO iiy=1, data_dim(2)
@@ -324,27 +410,28 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
                   refine_derivs(iix, iiy, k) = avec(2) + 2.*avec(3)*p(k)
                ENDDO
             ENDDO
-         ELSEIF(nder==2) THEN
-            IF(dvec(2)==0) THEN          ! P + Delta failed
-               DO iiy=1, data_dim(2)
-                  DO iix=1, data_dim(1)
-                     refine_derivs(iix, iiy, k) = (refine_temp  (iix, iiy)-refine_calc  (iix, iiy))/ &
-                                                  (dvec(3)-dvec(1))
-                  ENDDO
-               ENDDO
-            ELSEIF(dvec(3)==0) THEN      ! P - Delta failed
-               DO iiy=1, data_dim(2)
-                  DO iix=1, data_dim(1)
-                     refine_derivs(iix, iiy, k) = (refine_derivs(iix, iiy,k)-refine_calc  (iix, iiy))/ &
-                                                  (dvec(2)-dvec(1))
-                  ENDDO
-               ENDDO
-            ENDIF
+!        ELSEIF(nder==2) THEN
+!           IF(dvec(2)==0) THEN          ! P + Delta failed
+!              DO iiy=1, data_dim(2)
+!                 DO iix=1, data_dim(1)
+!                    refine_derivs(iix, iiy, k) = (refine_temp  (iix, iiy)-refine_calc  (iix, iiy))/ &
+!                                                 (dvec(3)-dvec(1))
+!                 ENDDO
+!              ENDDO
+!           ELSEIF(dvec(3)==0) THEN      ! P - Delta failed
+!              DO iiy=1, data_dim(2)
+!                 DO iix=1, data_dim(1)
+!                    refine_derivs(iix, iiy, k) = (refine_derivs(iix, iiy,k)-refine_calc  (iix, iiy))/ &
+!                                                 (dvec(2)-dvec(1))
+!                 ENDDO
+!              ENDDO
+!           ENDIF
 !
          ELSE
-            ier_num = -6
+            ier_num = -9
             ier_typ = ER_APPL
             ier_msg(1) = par_names(k)
+            DEALLOCATE(refine_tttt)
             RETURN
          ENDIF
          DEALLOCATE(refine_tttt)
@@ -628,6 +715,7 @@ INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE :: werte
 !
 LOGICAL                             :: lsuccess  ! Ture if cycle improved CHI^2
+LOGICAL            , DIMENSION(3)   :: lconv     ! Convergence criteria
 REAL               , DIMENSION(0:3) :: last_chi
 REAL               , DIMENSION(0:3) :: last_shift
 REAL               , DIMENSION(0:3) :: last_conf 
@@ -704,10 +792,18 @@ cycles:DO
 !     dp(k) = SQRT(ABS(cl(k,k)))
 !  ENDDO
    CALL refine_best(rval)                                              ! Write best macro
-   IF(ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
-      last_shift(last_i) < conv_dp_sig                   .AND.   &
-      last_conf(last_i)  > conv_conf                     .OR.    &
-      last_chi( last_i)  < conv_chi2                   ) THEN
+   lconv(1) = (ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
+                   last_shift(last_i) < conv_dp_sig               .AND.   &
+                   last_conf(last_i)  > conv_conf)
+   lconv(2) = (last_shift(last_i)>0.0 .AND.                               &
+               ABS(last_chi(last_i)-last_chi(prev_i))<conv_dchi2)
+   lconv(3) = last_chi(last_i)  < conv_chi2
+!  lconv(2) =   last_chi( last_i)  < conv_chi2
+   IF(lconv(1) .OR. lconv(2) .OR. lconv(3)) THEN
+!  IF(ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
+!     last_shift(last_i) < conv_dp_sig                   .AND.   &
+!     last_conf(last_i)  > conv_conf                     .OR.    &
+!     last_chi( last_i)  < conv_chi2                   ) THEN
       WRITE(output_io, '(/,a)') 'Convergence reached '        
       lconvergence = .TRUE.
       EXIT cycles
