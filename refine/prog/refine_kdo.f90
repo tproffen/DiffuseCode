@@ -11,8 +11,10 @@ USE diffev_mpi_mod
 USE refine_reset
 USE refine_add_param_mod
 USE refine_allocate_appl
+USE refine_constraint_mod
 USE refine_fix_mod
 USE refine_load_mod
+USE refine_params_mod
 USE refine_run_mod
 USE refine_set_mod
 USE refine_show_mod
@@ -199,13 +201,15 @@ ELSE  is_math
 !
       ref_prompt_status = prompt_status
       ref_output_status = output_status
+      IF(refine_autoconstr) CALL refine_constrain_auto
       CALL refine_run(zeile, length)
-      prompt_status = ref_prompt_status
-      output_status = ref_output_status
+      prompt_status = prompt_status
+      output_status = output_status
 !                                                                 
 !-------  Show parameters 'show'                                  
 !                                                                 
    ELSEIF (str_comp (befehl, 'show', 3, lbef, 4) ) THEN  is_befehl
+      IF(refine_autoconstr) CALL refine_constrain_auto
       CALL refine_do_show (zeile, lcomm) 
 !                                                                 
 !                                                                       
