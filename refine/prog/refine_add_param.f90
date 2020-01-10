@@ -68,11 +68,11 @@ INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate
+INTEGER, PARAMETER                        :: ncalc = 3 ! Number of values to calculate
 !
 DATA oname  / 'shift'  , 'points' ,  'value ' , 'status'  ,  'range' /
 DATA loname /  5       ,  6       ,   5       ,  6        ,   5      /
-opara  =  (/ '0.005000', '2.000000', '-1.00000', '0.000000',  '0.000000'/)   ! Always provide fresh default values
+opara  =  (/ '0.005000', '3.000000', '-1.00000', '0.000000',  '0.000000'/)   ! Always provide fresh default values
 lopara =  (/  8        ,  8        ,  8        ,  8        ,   8        /)
 owerte =  (/  0.00500  ,  3.0      ,  -1.0     ,  0.0      ,   0.0      /)
 !
