@@ -608,9 +608,9 @@ ENDIF nocomment
 il = len_str (line)
 IF (prompt_status.ne.PROMPT_OFF) THEN
    IF (il>   0) THEN
-      WRITE (output_io, 1000) line (1:il)
+      WRITE (output_io, '(A,A,A,A)') ' ',prompt(1:LEN_TRIM(prompt)),'> ',line (1:il)
    ELSE
-      WRITE (output_io, 1000) ' '
+      WRITE (output_io, '(A,A,A,A)') ' ',prompt(1:LEN_TRIM(prompt)),'> ',' '
    ENDIF
 ENDIF
 !

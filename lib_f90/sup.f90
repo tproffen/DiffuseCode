@@ -64,7 +64,7 @@ CONTAINS
          IF (ier_num.ne.0.or..not.lreg) RETURN 
 !                                                                       
       ELSEIF (lmakro.and..not.lblock_dbg) THEN 
-         CALL do_prompt (prom) 
+!        CALL do_prompt (prom) 
          CALL macro_read (input, ll) 
          IF (ier_num.ne.0) RETURN 
 !                                                                       
