@@ -1,7 +1,7 @@
 RECURSIVE SUBROUTINE suite_branch(zeile, length, lreset)
 !
 !  Specific SUITE Version of a branch subroutine
-!  Call A section via a branch
+!  Call a section via a branch
 !
 USE diffev_setup_mod
 USE diffev_loop_mod
@@ -60,19 +60,19 @@ IF (indxb + 1.le.length) THEN     ! There is space for parameters
    CALL rem_leading_bl(line , lcomm)
 ENDIF 
 !
-indxm = INDEX(line,'-macro')
+indxm = INDEX(zeile,'-macro')
 IF(indxm > 0) THEN                   ! Found '-macro' qualifier
    lmacro = .true.
-   indxt  = INDEX (zeile, tab)       ! find a tabulator
+   indxt  = INDEX (line, tab)       ! find a tabulator
    IF(indxt==0) indxt = lcomm + 1
-   indxb  = index (zeile, ' ') 
+   indxb  = index (line, ' ') 
    IF(indxb==0) indxb = lcomm + 1
    indxb  = MIN(indxb,indxt)
    lbef   = min (indxb - 1, 9) 
    IF (indxb + 1.le.lcomm) THEN      ! There is space for a macro name
       line = line(indxb+1:lcomm)     ! copy macro name and parameter list
       CALL rem_leading_bl(line , lcomm)
-      lcomm = len_str(line)
+      lcomm = LEN_TRIM(line)
    ENDIF
 ENDIF
 !
