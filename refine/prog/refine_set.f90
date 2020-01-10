@@ -176,9 +176,9 @@ INTEGER, PARAMETER                        :: ncalc = 3 ! Number of values to cal
 !
 DATA oname  / 'start ' , 'fail  '  ,  'success' /
 DATA loname /  5       ,  4        ,   7      /
-opara  =  (/ '0.001000', '4.000000',  '0.500000'/)   ! Always provide fresh default values
+opara  =  (/ '0.020000', '16.00000',  '0.500000'/)   ! Always provide fresh default values
 lopara =  (/  8        ,  8        ,   8        /)
-owerte =  (/  0.001000 ,  4.000000 ,   0.500000 /)
+owerte =  (/  0.020000 ,  16.00000 ,   0.500000 /)
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 IF(ier_num/=0) RETURN
