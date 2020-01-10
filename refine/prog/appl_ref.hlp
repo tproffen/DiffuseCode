@@ -145,7 +145,16 @@
 2  reset
 !p reset
 
-   Buts the REFINE section back into the state at system start.
+   Puts the REFINE section back into the state at system start.
+2  run
+!p run <work.mac> [, "plot:"<kuplot_macro.mac>]
+
+   Starts the actual refinement using the macro <work.mac> to 
+   simulate the structure and to eveluate the cost function.
+
+   The optional parameter "plot:" instructs REFINE to display the
+   observed and calculated data at each cycle. The macro 
+   <kuplot_macro> must be a pure KUPLOT macro.
 2  set
 !p set cycle,<maxc>
 !p set conver ["dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
