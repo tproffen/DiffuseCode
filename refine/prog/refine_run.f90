@@ -28,6 +28,7 @@ USE errlist_mod
 USE get_params_mod
 USE precision_mod
 USE prompt_mod
+USE take_param_mod
 !
 IMPLICIT NONE
 !
@@ -44,6 +45,24 @@ INTEGER                              :: i        ! Dummy loop parameter
 INTEGER                              :: ndata    ! number of data points
 INTEGER                              :: ianz     ! number of parameters
 LOGICAL                              :: lexist   ! File exists yes/no
+CHARACTER(LEN=1024)                  :: plmac    ! optional plot macro
+LOGICAL                              :: ref_do_plot ! Do plot yes/no
+!
+INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: OPLOT     = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
+!
+DATA oname  / 'plot' /
+DATA loname /  4     /
+opara  =  (/ '        ' /)
+lopara =  (/ 8          /)
+owerte =  (/  0.000000  /)
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 IF(ianz<1) THEN                   ! Macro file name is needed
@@ -51,6 +70,10 @@ IF(ianz<1) THEN                   ! Macro file name is needed
    ier_typ = ER_FORT
    RETURN
 ENDIF
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF(ier_num/=0) RETURN
+!
 IF(.NOT.ALLOCATED(ref_x)) THEN
    ier_num = -1
    ier_typ = ER_APPL
@@ -68,6 +91,13 @@ IF(.NOT.lexist) THEN              ! Macro does not exist
    RETURN
 ENDIF
 !
+ref_do_plot = .FALSE.
+plmac       = ' '
+IF(opara(OPLOT) /= ' ') THEN
+  ref_do_plot = .TRUE.
+  plmac       = opara(OPLOT)
+ENDIF
+!
 ALLOCATE(refine_calc  (ref_dim(1), ref_dim(2)))
 ALLOCATE(refine_temp  (ref_dim(1), ref_dim(2)))
 ALLOCATE(refine_derivs(ref_dim(1), ref_dim(2), refine_par_n))
@@ -82,7 +112,7 @@ CALL refine_mrq(REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,            
                 refine_chisqr, refine_conf, refine_lamda, refine_lamda_s,       &
                 refine_lamda_d, refine_lamda_u, refine_rval,                    &
                 refine_rexp, refine_p, refine_range, refine_shift, refine_nderiv,&
-                refine_dp, refine_cl)
+                refine_dp, refine_cl, ref_do_plot, plmac)
 IF(ier_num/=0) GOTO 10 
 !
 ! Copy fixed parameters for output
@@ -156,7 +186,7 @@ LOGICAL                                              , INTENT(IN)  :: LDERIV  ! 
 !
 !REAL, PARAMETER      :: SCALEF = 0.005! Scalefactor for parameter modification 0.01 is good?
 !
-INTEGER              :: k, iix, iiy, l! Dummy loop variable
+INTEGER              :: k, iix, iiy, l, j2, j3 ! Dummy loop variable
 INTEGER              :: nder          ! Numper of points for derivative
 REAL(KIND=PREC_DP)                 :: delta         ! Shift to calculate derivatives
 REAL(KIND=PREC_DP)                 :: p_d           ! Shifted  parameter
@@ -171,7 +201,6 @@ REAL(KIND=PREC_DP), DIMENSION(3,3) :: imat          ! Inverse to xmat
 REAL, DIMENSION(:,:,:), ALLOCATABLE :: refine_tttt     ! Calculated (ix, iy) for derivs
 !
 IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
-!write(*,*) 'MACRO ', p(1:3), lderiv
 !
    DO k=1, NPARA                      ! Update user defined parameter variables
       CALL refine_set_param(NPARA, par_names(k), k, p(k))
@@ -195,7 +224,6 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
          ELSE
             delta = 1.0D-4
          ENDIF
-!write(*,*) 'PARAMETER ', k, p(k), delta
 !                                     ! Test at P + DELTA
          IF(prange(k,1)<=prange(k,2)) THEN     ! User provided parameter range
             IF(p(k)==prange(k,1)) THEN         ! At lower limit, use +delta +2delta
@@ -240,7 +268,7 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
                dvec( 1) = p(k) + 1.0D0*delta
                lvec(-1) = .TRUE.
                lvec( 1) = .TRUE.
-                  nder = 3
+               nder = 3
             ELSEIF(p_nderiv(k)==5) THEN     ! Five point derivative
                dvec(-2) = p(k) - 2.0D0*delta
                dvec(-1) = p(k) - 1.0D0*delta
@@ -250,7 +278,7 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
                lvec(-1) = .TRUE.
                lvec( 1) = .TRUE.
                lvec( 2) = .TRUE.
-                  nder = 5
+               nder = 5
             ENDIF
 !           p_d     = p(k) + delta
          ENDIF
@@ -376,21 +404,19 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
             xmat(:,1) =  1.0
             xmat(1,2) =  dvec(0) !p(k)
             IF(lvec(2)) THEN              ! +delta, + 2delta
-              xmat(2,2) =  dvec(1)        ! p(k) + delta
-              xmat(3,2) =  dvec(2)        ! p(k) + 2delta
-              xmat(2,3) = (dvec(1))**2    ! (p(k) + delta ) **2
-              xmat(3,3) = (dvec(2))**2    ! (p(k) + 2delta) **2
+              j2 =  1
+              j3 =  2
             ELSEIF(lvec(-2)) THEN         ! -delta, - 2delta
-              xmat(2,2) =  dvec(-1)       ! p(k) - delta
-              xmat(3,2) =  dvec(-2)       ! p(k) - 2delta
-              xmat(2,3) = (dvec(-1))**2   ! (p(k) - delta ) **2
-              xmat(3,3) = (dvec(-2))**2   ! (p(k) - 2delta) **2
+              j2 = -1
+              j3 = -2
             ELSE
-              xmat(2,2) =  dvec(-1)       ! p(k) - delta
-              xmat(3,2) =  dvec( 1)       ! p(k) + delta
-              xmat(2,3) = (dvec(-1))**2   ! (p(k) - delta ) **2
-              xmat(3,3) = (dvec( 1))**2   ! (p(k) + delta ) **2
+              j2 = -1
+              j3 =  1
             ENDIF
+              xmat(2,2) =  dvec(j2)       ! p(k) - delta
+              xmat(3,2) =  dvec(j3)       ! p(k) + delta
+              xmat(2,3) = (dvec(j2))**2   ! (p(k) - delta ) **2
+              xmat(3,3) = (dvec(j3))**2   ! (p(k) + delta ) **2
 !           xmat(2,2) =  dvec(2) !p(k) + delta
 !           xmat(3,2) =  dvec(3) !p(k) - delta
 !           xmat(1,3) = (dvec(0))**2 !(p(k)        ) **2
@@ -403,8 +429,8 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
 !
 !              Derivative is calculated as a fit of a parabola at P, P+delta, P-delta
                   yvec(1) = refine_calc  (iix, iiy)
-                  yvec(2) = refine_tttt  (iix, iiy,1)
-                  yvec(3) = refine_tttt  (iix, iiy,-1)
+                  yvec(2) = refine_tttt  (iix, iiy,j2)
+                  yvec(3) = refine_tttt  (iix, iiy,j3)
                   avec = MATMUL(imat, yvec)
 !
                   refine_derivs(iix, iiy, k) = avec(2) + 2.*avec(3)*p(k)
@@ -577,6 +603,35 @@ END SUBROUTINE refine_macro
 !
 !*******************************************************************************
 !
+SUBROUTINE refine_do_plot(plmac)
+!
+USE do_set_mod
+USE set_sub_generic_mod
+!
+USE class_macro_internal
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=1024), INTENT(IN) :: plmac     ! optional plot macro
+!
+CHARACTER(LEN=1024)             :: string
+CHARACTER(LEN=1024)             :: kline
+INTEGER                         :: lcomm, length
+!
+string = 'prompt, off, off, save'
+length = 22
+CALL do_set(string, length)
+kline = 'kuplot -macro ' // plmac(1:LEN_TRIM(plmac))
+lcomm = LEN_TRIM(kline)
+CALL p_branch (kline, lcomm, .FALSE.)
+string = 'prompt, on,on'
+length = 13
+CALL do_set(string, length)
+!
+END SUBROUTINE refine_do_plot
+!
+!*******************************************************************************
+!
 SUBROUTINE refine_kupl_last(kupl_last)   ! Set last data set needed in KUPLOT
 !
 USE kuplot_mod
@@ -651,7 +706,7 @@ END SUBROUTINE refine_load_calc
 SUBROUTINE refine_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
 data_data, data_sigma, data_x, data_y, &
                 conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
-chisq, conf, lamda_fin, lamda_s, lamda_d, lamda_u,  rval, rexp, p, prange, p_shift, p_nderiv, dp, cl)
+chisq, conf, lamda_fin, lamda_s, lamda_d, lamda_u,  rval, rexp, p, prange, p_shift, p_nderiv, dp, cl, ref_do_plot, plmac)
 !+                                                                      
 !   This routine runs the refinement cycles, interfaces with the 
 !   Levenberg-Marquardt routine modified after Numerical Recipes
@@ -699,6 +754,8 @@ REAL            , DIMENSION(MAXP )                   , INTENT(IN)    :: p_shift 
 INTEGER         , DIMENSION(MAXP )                   , INTENT(IN)    :: p_nderiv  ! Number of derivative points needed
 REAL            , DIMENSION(MAXP)                    , INTENT(INOUT) :: dp        ! Parameter sigmas
 REAL            , DIMENSION(NPARA, NPARA)            , INTENT(INOUT) :: cl        ! Covariance matrix
+LOGICAL                                              , INTENT(IN)    :: ref_do_plot ! Do plot yes/no
+CHARACTER(LEN=1024)                                  , INTENT(IN)    :: plmac     ! optional plot macro
 !
 INTEGER :: icyc
 INTEGER :: k
@@ -765,6 +822,13 @@ cycles:DO
    CALL mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, p, NPARA, &
                par_names, prange, p_shift, p_nderiv, kupl_last, cl, alpha, beta, chisq, alamda,     &
                lamda_s, lamda_d, lamda_u, lsuccess, dp)
+!
+   IF(lsuccess) THEN
+      IF(ref_do_plot) THEN
+         CALL refine_do_plot(plmac)
+      ENDIF
+   ENDIF
+!
    IF(ier_num/=0) EXIT cycles
    IF(lsuccess .OR. rval == 0.0) CALL refine_rvalue(rval, rexp, NPARA)
    last_shift(:) = -1.0                                             ! Set parameter shift / sigma to negative
