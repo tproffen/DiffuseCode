@@ -11,6 +11,7 @@ CONTAINS
 SUBROUTINE refine_do_show(line, length)
 !
 USE refine_control_mod
+USE refine_current_mod
 USE refine_fit_erg
 USE refine_data_mod
 USE refine_mac_mod
@@ -95,43 +96,44 @@ DEALLOCATE(lpara)
 DEALLOCATE(werte)
 IF(ier_num/=0) RETURN
 !
-!  Caclulate current parameter values
+!  Calculate current parameter values
 !
-ALLOCATE(cpara(1:refine_par_n))
-ALLOCATE(lpara(1:refine_par_n))
-ALLOCATE(werte(1:refine_par_n))
-DO k=1, refine_par_n
-   cpara(k) = refine_params(k)
-   lpara(k) = LEN_TRIM(refine_params(k))
-ENDDO
-ianz = refine_par_n
-MAXW = refine_par_n
-CALL ber_params(ianz, cpara, lpara, werte, MAXW)
-DO k=1, refine_par_n
-   refine_p(k) = werte(k)
-ENDDO
-DEALLOCATE(cpara)
-DEALLOCATE(lpara)
-DEALLOCATE(werte)
+!CALL refine_current(refine_par_n, refine_params, refine_p)
+!ALLOCATE(cpara(1:refine_par_n))
+!ALLOCATE(lpara(1:refine_par_n))
+!ALLOCATE(werte(1:refine_par_n))
+!DO k=1, refine_par_n
+!   cpara(k) = refine_params(k)
+!   lpara(k) = LEN_TRIM(refine_params(k))
+!ENDDO
+!ianz = refine_par_n
+!MAXW = refine_par_n
+!CALL ber_params(ianz, cpara, lpara, werte, MAXW)
+!DO k=1, refine_par_n
+!   refine_p(k) = werte(k)
+!ENDDO
+!DEALLOCATE(cpara)
+!DEALLOCATE(lpara)
+!DEALLOCATE(werte)
 !
 !  Caclulate current fixed parameter values
 !
-ALLOCATE(cpara(1:refine_fix_n))
-ALLOCATE(lpara(1:refine_fix_n))
-ALLOCATE(werte(1:refine_fix_n))
-DO k=1, refine_fix_n
-   cpara(k) = refine_fixed(k)
-   lpara(k) = LEN_TRIM(refine_fixed(k))
-ENDDO
-ianz = refine_fix_n
-MAXW = refine_fix_n
-CALL ber_params(ianz, cpara, lpara, werte, MAXW)
-DO k=1, refine_fix_n
-   refine_f(k) = werte(k)
-ENDDO
-DEALLOCATE(cpara)
-DEALLOCATE(lpara)
-DEALLOCATE(werte)
+!ALLOCATE(cpara(1:refine_fix_n))
+!ALLOCATE(lpara(1:refine_fix_n))
+!ALLOCATE(werte(1:refine_fix_n))
+!DO k=1, refine_fix_n
+!   cpara(k) = refine_fixed(k)
+!   lpara(k) = LEN_TRIM(refine_fixed(k))
+!ENDDO
+!ianz = refine_fix_n
+!MAXW = refine_fix_n
+!CALL ber_params(ianz, cpara, lpara, werte, MAXW)
+!DO k=1, refine_fix_n
+!   refine_f(k) = werte(k)
+!ENDDO
+!DEALLOCATE(cpara)
+!DEALLOCATE(lpara)
+!DEALLOCATE(werte)
 !
 IF(.NOT.ALLOCATED(refine_CL)) THEN
    ALLOCATE(refine_cl(refine_par_n, refine_par_n))

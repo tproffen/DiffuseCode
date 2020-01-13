@@ -57,8 +57,9 @@ conv_chi2       = 0.5   ! Minimum Chi^2 value  for convergence
 conv_conf       = 0.01  ! Minimum confidence level
 lconvergence    = .FALSE. ! Convergence has been reached
 refine_lamda_s  = 0.001   ! MRQ lamda start
-refine_lamda_u  = 4.000   ! MRQ lamda Increase (up)
+refine_lamda_u  = 16.00   ! MRQ lamda Increase (up)
 refine_lamda_d  = 0.500   ! MRQ lamda Decrease (down)
+refine_init     = .TRUE.  ! Initialize MRQ
 !
 ! refine_data_mod
 !

@@ -17,7 +17,7 @@ link_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 
 set (SOURCES_ALL refine_add_param.f90 refine_allocate_appl.f90 refine_blk_appl.f90 
              refine_branch.f90 refine_constraint.f90 refine_control.f90
-             refine_data_mod.f90 refine_do_exit.f90 
+             refine_current.f90 refine_data_mod.f90 refine_do_exit.f90 
              refine_err_appl.f90 refine_fit_erg.f90 refine_fit_mache_kdo.f90 
              refine_fit_set_sub_mod.f90 refine_fix.f90 refine_kdo.f90
              refine_load.f90 refine_loop.f90 refine_loop_mpi.f90

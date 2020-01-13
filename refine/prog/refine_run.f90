@@ -47,9 +47,11 @@ INTEGER                              :: ianz     ! number of parameters
 LOGICAL                              :: lexist   ! File exists yes/no
 CHARACTER(LEN=1024)                  :: plmac    ! optional plot macro
 LOGICAL                              :: ref_do_plot ! Do plot yes/no
+LOGICAL                              :: linit       ! Initialize mrq
 !
-INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: NOPTIONAL = 2
 INTEGER, PARAMETER :: OPLOT     = 1
+INTEGER, PARAMETER :: OINIT     = 2
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -58,11 +60,11 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
 !
-DATA oname  / 'plot' /
-DATA loname /  4     /
-opara  =  (/ '        ' /)
-lopara =  (/ 8          /)
-owerte =  (/  0.000000  /)
+DATA oname  / 'plot' , 'init' /
+DATA loname /  4     ,  4     /
+opara  =  (/ '        ', 'no      '  /)
+lopara =  (/ 8         ,  8          /)
+owerte =  (/  0.000000 ,   0.0000000 /)
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 IF(ianz<1) THEN                   ! Macro file name is needed
@@ -73,6 +75,8 @@ ENDIF
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 IF(ier_num/=0) RETURN
+!
+linit = refine_init .OR. opara(OINIT)=='yes'
 !
 IF(.NOT.ALLOCATED(ref_x)) THEN
    ier_num = -1
@@ -101,40 +105,50 @@ ENDIF
 ALLOCATE(refine_calc  (ref_dim(1), ref_dim(2)))
 ALLOCATE(refine_temp  (ref_dim(1), ref_dim(2)))
 ALLOCATE(refine_derivs(ref_dim(1), ref_dim(2), refine_par_n))
-IF(ALLOCATED(refine_cl)) DEALLOCATE(refine_cl)
-ALLOCATE(refine_cl(refine_par_n, refine_par_n))
+IF(linit) THEN
+  IF(ALLOCATED(refine_cl)) DEALLOCATE(refine_cl)
+  ALLOCATE(refine_cl(refine_par_n, refine_par_n))
+  IF(ALLOCATED(refine_alpha)) DEALLOCATE(refine_alpha)
+  ALLOCATE(refine_alpha(refine_par_n, refine_par_n))
+  IF(ALLOCATED(refine_beta )) DEALLOCATE(refine_beta )
+  ALLOCATE(refine_beta (refine_par_n              ))
+  refine_cl    = 0.0
+  refine_alpha = 0.0
+  refine_beta  = 0.0
+ENDIF
 !
 ! Call main refinement routine
 !
-CALL refine_mrq(REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,            &
+CALL refine_mrq(linit, REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,            &
                 refine_params, ref_dim, ref_data, ref_sigma, ref_x, ref_y,      &
                 conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
                 refine_chisqr, refine_conf, refine_lamda, refine_lamda_s,       &
                 refine_lamda_d, refine_lamda_u, refine_rval,                    &
                 refine_rexp, refine_p, refine_range, refine_shift, refine_nderiv,&
-                refine_dp, refine_cl, ref_do_plot, plmac)
-IF(ier_num/=0) GOTO 10 
+                refine_dp, refine_cl, refine_alpha, refine_beta, ref_do_plot, plmac)
+main:IF(ier_num==0) THEN
+   refine_init = .FALSE.
 !
 ! Copy fixed parameters for output
 !
-DO i=1, refine_fix_n
-   cpara(1) = refine_fixed(i)
-   lpara(1) = LEN_TRIM(refine_fixed(i))
-   ianz = 1
-   CALL ber_params(ianz, cpara, lpara, werte, MAXW)
-   IF(ier_num/=0) GOTO 10 
-   refine_f(i) = werte(1)
-ENDDO
-ndata = ref_dim(1)*ref_dim(2)
-CALL show_fit_erg(output_io, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refine_fix_n,   &
-                  ndata, refine_mac, refine_mac_l, ref_load, ref_kload,         &
-                  ref_csigma, ref_ksigma, .FALSE., refine_chisqr, refine_conf,  &
-                  refine_lamda, refine_rval, refine_rexp, refine_params,        &
-                  refine_p, refine_dp, refine_range, refine_cl, refine_fixed,   &
-                  refine_f,                                                     &
-                  conv_dp_sig, conv_dchi2, conv_chi2, conv_conf                )
+   DO i=1, refine_fix_n
+      cpara(1) = refine_fixed(i)
+      lpara(1) = LEN_TRIM(refine_fixed(i))
+      ianz = 1
+      CALL ber_params(ianz, cpara, lpara, werte, MAXW)
+      IF(ier_num/=0) EXIT main
+      refine_f(i) = werte(1)
+   ENDDO
+   ndata = ref_dim(1)*ref_dim(2)
+   CALL show_fit_erg(output_io, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refine_fix_n,   &
+                     ndata, refine_mac, refine_mac_l, ref_load, ref_kload,         &
+                     ref_csigma, ref_ksigma, .FALSE., refine_chisqr, refine_conf,  &
+                     refine_lamda, refine_rval, refine_rexp, refine_params,        &
+                     refine_p, refine_dp, refine_range, refine_cl, refine_fixed,   &
+                        refine_f,                                                     &
+                     conv_dp_sig, conv_dchi2, conv_chi2, conv_conf                )
 !
-10 CONTINUE                  ! Target for all errors as dealloc is needed
+ENDIF main
 DEALLOCATE(refine_calc)      ! Clean up temporary files
 DEALLOCATE(refine_temp)
 DEALLOCATE(refine_derivs)
@@ -703,10 +717,12 @@ END SUBROUTINE refine_load_calc
 !
 !*******************************************************************************
 !
-SUBROUTINE refine_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
-data_data, data_sigma, data_x, data_y, &
-                conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
-chisq, conf, lamda_fin, lamda_s, lamda_d, lamda_u,  rval, rexp, p, prange, p_shift, p_nderiv, dp, cl, ref_do_plot, plmac)
+SUBROUTINE refine_mrq(linit, MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
+                      data_data, data_sigma, data_x, data_y, conv_dp_sig,         &
+                      conv_dchi2, conv_chi2, conv_conf, lconvergence,             &
+                      chisq, conf, lamda_fin, lamda_s, lamda_d, lamda_u,  rval,   &
+                      rexp, p, prange, p_shift, p_nderiv, dp, cl, alpha, beta,    &
+                      ref_do_plot, plmac)
 !+                                                                      
 !   This routine runs the refinement cycles, interfaces with the 
 !   Levenberg-Marquardt routine modified after Numerical Recipes
@@ -724,6 +740,7 @@ USE prompt_mod
 !                                                                       
 IMPLICIT NONE
 !
+LOGICAL                                              , INTENT(IN)  :: linit       ! Initialize MRQ
 INTEGER                                              , INTENT(IN)  :: MAXP        ! Parameter array size
 INTEGER                                              , INTENT(IN)  :: NPARA       ! Number of parameters
 INTEGER                                              , INTENT(IN)  :: ncycle      ! maximum cycle number
@@ -754,15 +771,15 @@ REAL            , DIMENSION(MAXP )                   , INTENT(IN)    :: p_shift 
 INTEGER         , DIMENSION(MAXP )                   , INTENT(IN)    :: p_nderiv  ! Number of derivative points needed
 REAL            , DIMENSION(MAXP)                    , INTENT(INOUT) :: dp        ! Parameter sigmas
 REAL            , DIMENSION(NPARA, NPARA)            , INTENT(INOUT) :: cl        ! Covariance matrix
+REAL            , DIMENSION(NPARA, NPARA)            , INTENT(INOUT) :: alpha
+REAL            , DIMENSION(NPARA       )            , INTENT(INOUT) :: beta
 LOGICAL                                              , INTENT(IN)    :: ref_do_plot ! Do plot yes/no
 CHARACTER(LEN=1024)                                  , INTENT(IN)    :: plmac     ! optional plot macro
 !
 INTEGER :: icyc
 INTEGER :: k
 INTEGER :: last_i, prev_i
-REAL   , DIMENSION(NPARA, NPARA) :: alpha
-REAL   , DIMENSION(NPARA       ) :: beta
-REAL    :: alamda
+REAL, SAVE    :: alamda
 !
 INTEGER :: MAXW
 INTEGER :: ianz
@@ -780,17 +797,16 @@ REAL               , DIMENSION(:,:), ALLOCATABLE :: last_p
 INTEGER :: last_ind
 !REAL :: shift
 !
-alamda     = -0.01    ! Negative lamda initializes MRQ routine
-rval       = 0.0
-rexp       = 0.0
-cl(:,:)    = 0.0
-alpha(:,:) = 0.0
-beta(:)    = 0.0
-chisq      = 0.0
-last_chi(:)   = HUGE(0.0)
-last_shift(:) = -1.0
-last_conf(:)  = HUGE(0.0)
-last_i        = 0
+IF(linit) THEN        ! INITIALIZE MRQ 
+   alamda     = -0.01    ! Negative lamda initializes MRQ routine
+   rval       = 0.0
+   rexp       = 0.0
+   chisq      = 0.0
+   last_chi(:)   = HUGE(0.0)
+   last_shift(:) = -1.0
+   last_conf(:)  = HUGE(0.0)
+   last_i        = 0
+ENDIF
 !
 ! Set initial parameter values
 !
@@ -904,6 +920,7 @@ IF(ier_num==0) THEN
 !      dp(k) = SQRT(ABS(cl(k,k)))
 !   ENDDO
    CALL refine_best(rval)                                              ! Write best macro
+   alamda = lamda_fin
 ENDIF
 !
 DEALLOCATE(cpara)
@@ -1034,6 +1051,8 @@ ENDIF
 !write(*,'(a5,3(f20.8,2x))') 'ond ', a(j), atry(j), -(a(j)-atry(j))
 !enddo
 !
+!write(*,*) ' PAR ', params(1:npara)
+!write(*,*) ' dP  ', da    (1:npara)
 !write(*,*) 'c, d, u', alamda, lamda_d, lamda_u
 IF(chisq < ochisq) THEN            ! Success, accept solution
    alamda = lamda_d*alamda         ! Decrease alamda by facror lamda_u (down)

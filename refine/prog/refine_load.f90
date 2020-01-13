@@ -11,6 +11,7 @@ SUBROUTINE refine_load(LDATA, line, length)
 ! Loads the Data set and/or the Sigmas
 ! Either explicitly or with reference to a KUPLOT data set
 !
+USE refine_control_mod
 USE refine_data_mod
 USE errlist_mod
 USE ber_params_mod
@@ -64,6 +65,7 @@ ELSE                               ! Presume a "data xy, filename "
 ENDIF
 CALL refine_load_kuplot(LDATA, ndata)
 ref_kupl = MAX(ref_kupl, ndata)   ! This is the last KUPLOT data set that needs to be kept
+refine_init = .TRUE.              ! Force initialization, as we have a new data set
 !
 END SUBROUTINE refine_load
 !

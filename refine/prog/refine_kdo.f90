@@ -12,12 +12,14 @@ USE refine_reset
 USE refine_add_param_mod
 USE refine_allocate_appl
 USE refine_constraint_mod
+USE refine_current_mod
 USE refine_fix_mod
 USE refine_load_mod
 USE refine_params_mod
 USE refine_run_mod
 USE refine_set_mod
 USE refine_show_mod
+!
 !
 USE ber_params_mod
 USE blanks_mod
@@ -59,7 +61,6 @@ INTEGER                                :: ref_output_status
 !INTEGER, SAVE                         :: lastgen = -1
 !LOGICAL                               :: back_new
 !LOGICAL                               :: lexist
-!LOGICAL                               :: lbest
 !                                                                       
 REAL                , DIMENSION(MAXW) :: werte = 0.0
 LOGICAL, EXTERNAL                     :: str_comp 
@@ -194,29 +195,37 @@ ELSE  is_math
 !                                                                 
    ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5) ) THEN is_befehl
       CALL refine_do_reset
-!                                                                 
-!     -- set the name of a refinement parameter                   
-!                                                                 
-   ELSEIF (str_comp (befehl, 'run', 3, lbef, 3) ) THEN is_befehl
 !
+!     -- start the refinement process
+!                                                                 
+   ELSEIF (str_comp (befehl, 'run', 3, lbef, 3)) THEN is_befehl
+!
+      CALL refine_current_all                ! Update all parameters
       ref_prompt_status = prompt_status
       ref_output_status = output_status
       IF(refine_autoconstr) CALL refine_constrain_auto
-      CALL refine_run(zeile, length)
-      prompt_status = prompt_status
-      output_status = output_status
+      IF(ier_num == 0) THEN
+         CALL refine_run(zeile, length)
+         prompt_status = ref_prompt_status
+         output_status = ref_output_status
+      ENDIF
 !                                                                 
 !-------  Show parameters 'show'                                  
 !                                                                 
    ELSEIF (str_comp (befehl, 'show', 3, lbef, 4) ) THEN  is_befehl
+      CALL refine_current_all                ! Update all parameters
       IF(refine_autoconstr) CALL refine_constrain_auto
-      CALL refine_do_show (zeile, lcomm) 
+      IF(ier_num == 0) THEN
+         CALL refine_do_show (zeile, lcomm) 
+      ENDIF
 !                                                                 
 !                                                                       
 !       Branch to DISCUS/ KUPLOT (standalone call system, suite do branch)
 !                                                                       
    ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) THEN is_befehl
       CALL p_branch (zeile, lcomm, .FALSE.)
+elseif(str_comp (befehl, 'uvw', 3, lbef, 3)) THEN
+call refine_constrain_temp(zeile, lcomm)
 !                                                                 
 !------   Try general commands                                    
 !                                                                 

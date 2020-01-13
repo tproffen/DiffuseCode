@@ -16,6 +16,8 @@ REAL             , DIMENSION(:)  , ALLOCATABLE :: refine_p            ! Current 
 REAL             , DIMENSION(:)  , ALLOCATABLE :: refine_f            ! Current fixed parameter value
 REAL             , DIMENSION(:)  , ALLOCATABLE :: refine_dp           ! Current parameter sigma
 REAL             , DIMENSION(:,:), ALLOCATABLE :: refine_cl           ! Correlation matrix
+REAL             , DIMENSION(:,:), ALLOCATABLE :: refine_alpha        ! temporary Correlation matrix
+REAL             , DIMENSION(:  ), ALLOCATABLE :: refine_beta         ! temporary parameter shift
 REAL             , DIMENSION(:)  , ALLOCATABLE :: refine_shift        ! P*shift gives shift to calc derivative
 INTEGER          , DIMENSION(:)  , ALLOCATABLE :: refine_nderiv       ! Number of p+n*DELTA to calc derivative
 !

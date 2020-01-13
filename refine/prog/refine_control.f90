@@ -11,5 +11,6 @@ LOGICAL :: lconvergence  = .FALSE. ! Convergence has been reached
 REAL    :: refine_lamda_s  = 0.001   ! MRQ lamda start
 REAL    :: refine_lamda_u  = 4.000   ! MRQ lamda Increase (up)
 REAL    :: refine_lamda_d  = 0.500   ! MRQ lamda Decrease (down)
+LOGICAL :: refine_init     = .TRUE.  ! Initialize 'run'
 !
 END MODULE refine_control_mod
