@@ -236,15 +236,15 @@ IF(chisq>=0.0) THEN
    kor = .false. 
    DO i = 2, npara 
       DO j = 1, i - 1 
-         IF(ABS(cl(i, j)) >=  0.8) THEN 
-            WRITE(iounit, 1070) i, j, cl(i, j) 
+         IF(ABS(cl(i, j)/SQRT(cl(i,i))/SQRT(cl(j,j))) >=  0.8) THEN 
+            WRITE(iounit, 1070) params(i), params(j), cl(i, j)/SQRT(cl(i,i))/SQRT(cl(j,j)) 
             kor = .TRUE. 
          ENDIF 
       ENDDO 
    ENDDO 
    IF (.NOT.kor) WRITE(iounit, 1060) 
    IF(lcovar) THEN
-      WRITE(iounit,'(a)') ' Correlation matrix' 
+      WRITE(iounit,'(a)') ' Covariance matrix' 
       DO i=1, npara
          WRITE(iounit,5000) params(i),(cl(i,j),j=1,i)
       ENDDO
@@ -296,7 +296,7 @@ WRITE(iounit, * ) ' '
               3x,'wR value   : ',g12.6, 5x,' R exp   : ',g12.6/)        
  1050 FORMAT (' Correlations larger than 0.8 :') 
  1060 FORMAT (3x,'** none **') 
- 1070 FORMAT (3x,'Between p(',i2,') - p(',i2,') : ',f6.3) 
+ 1070 FORMAT (3x,A16,' - ',A16,' : ',f6.3) 
  5000 FORMAT (3x,a16,' : ',10g11.3e2)
  1100 FORMAT (3x,a16,' : ',g15.6E3, ' +- ',g15.6,4x)
  1110 FORMAT (3x,a16,' : ',g15.6E3, ' +- ',g15.6,4x, '[', 15x   ,',',g15.6E3,']')
