@@ -940,6 +940,7 @@ SUBROUTINE mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, a, NPAR
 !  Least squares routine adapted from Numerical Recipes Chapter 14
 !  p 526
 !
+USE refine_constraint_mod
 USE errlist_mod
 USE gaussj_mod
 !
@@ -1033,6 +1034,10 @@ ENDIF
 !icyy = icyy+1
 !write(78,'(i3,14g15.6e3)') icyy,da(1:npara)
 !close(78)
+CALL refine_constrain_fwhm_in(MAXP, NPARA, a, da, ier_num, ier_typ)
+IF(ier_num/=0) THEN
+   RETURN
+ENDIF
 DO j=1,NPARA
    IF(prange(j,1)<=prange(j,2)) THEN
       atry(j) = MIN(prange(j,2),MAX(prange(j,1),a(j)+da(j)))

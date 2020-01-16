@@ -35,6 +35,11 @@ lcomm = 7
 CALL refine_do_allocate_appl(zeile,lcomm)
 CALL refine_initarrays
 !
+! refine_params_mod
+!
+refine_autoconstr =.TRUE.   ! Do automatic constraints
+refine_fwhm       = .FALSE. ! u,v,w, are refined=TRUE or fixed=FALSE
+refine_fwhm_ind   = HUGE(0)
 refine_par_n    = 0 ! number of parameters
 refine_fix_n    = 0 
 ref_dim(1)      = 1
@@ -48,7 +53,7 @@ refine_lamda    = -1.0  ! Final convergence criterion
 refine_rval     = -1.0  ! weighted R-value
 refine_rexp     = -1.0  ! unweighted R-value
 !
-!refine_contol_mod
+!refine_control_mod
 !
 refine_cycles   = 1     ! Maximum number of cycles defined by user
 conv_dp_sig     = 0.005 ! Maximum DeltaP/sigma for convergence
@@ -68,7 +73,6 @@ ref_csigma  = ' '  ! Load string Sigma's
 ref_kload   = 0    ! Data set within KUPLOT
 ref_ksigma  = 0    ! Sigma set within KUPLOT
 ref_kupl    = 0    ! Data set within KUPLOT that needs to be kept
-
 !
 END SUBROUTINE refine_do_reset
 !
