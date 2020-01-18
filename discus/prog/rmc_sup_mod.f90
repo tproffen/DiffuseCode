@@ -1211,6 +1211,7 @@ USE precision_mod
       INTEGER          , INTENT(INOUT) :: lp 
 !                                                                       
       CHARACTER(1024) cpara (maxw), cfile, cwic 
+CHARACTER(LEN=1024) :: line  !Dummy line
       CHARACTER(4) cdummy 
       INTEGER lpara (maxw) , cfile_l
       INTEGER ianz, nsym, rsym 
@@ -1361,7 +1362,12 @@ REAL :: d1, d2, d3, d4
 !------ NIPL file                                                       
 !                                                                       
       IF (rmc_data.eq.rmc_data_nipl) then 
-         READ (17, *, end = 99, err = 999) nx, ny 
+         READ(17, '(a)', END=99, ERR=999) line
+         DO WHILE(line(1:1)=='#')
+           READ(17, '(a)', END=99, ERR=999) line
+         ENDDO
+         READ (line, *, end=99, err = 999) nx, ny 
+!        READ (17, *, end = 99, err = 999) nx, ny 
          READ (17, *, end = 99, err = 999) (rmc_xy (j, ip), j = 1, 4) 
          IF (rmc_wic_typ (ip) .eq.rmc_wic_dat) then 
             READ (18, *, end = 99, err = 999) wx, wy 
@@ -1790,7 +1796,7 @@ REAL :: d1, d2, d3, d4
 !------ calculate sums from exp. data needed and initial chi2           
 !                                                                       
       chi2_old = 0.0 
-      DO ip=1,rmc_nplane 
+      DO ip=1,rmc_nplane
         rmc_wtot (ip)=0.0 
         rmc_e    (ip)=0.0 
         rmc_ee   (ip)=0.0 
