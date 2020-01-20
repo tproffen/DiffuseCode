@@ -1370,7 +1370,12 @@ REAL :: d1, d2, d3, d4
 !        READ (17, *, end = 99, err = 999) nx, ny 
          READ (17, *, end = 99, err = 999) (rmc_xy (j, ip), j = 1, 4) 
          IF (rmc_wic_typ (ip) .eq.rmc_wic_dat) then 
-            READ (18, *, end = 99, err = 999) wx, wy 
+            READ(18, '(a)', END=99, ERR=999) line
+            DO WHILE(line(1:1)=='#')
+              READ(18, '(a)', END=99, ERR=999) line
+            ENDDO
+            READ (line, *, end=99, err = 999) nx, ny 
+!           READ (18, *, end = 99, err = 999) wx, wy 
             READ (18, *, end = 99, err = 999) d1, d2, d3, d4 
             IF (wx.ne.nx.or.wy.ne.ny) then 
                ier_num = - 17 
