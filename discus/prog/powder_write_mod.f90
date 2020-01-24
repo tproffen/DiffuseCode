@@ -69,7 +69,8 @@ REAL(KIND=PREC_DP) :: u2aver_scale = 2.00   ! Scale to multiply <u^2> if convers
 !                     ! to sharpen the distances sufficiently for later broadening
 !
 REAL(KIND=PREC_DP) :: rmin, rmax, rstep
-INTEGER            :: npkt_pdf
+REAL(KIND=PREC_DP) :: rminf, rmaxf, rstepf
+INTEGER            :: npkt_pdf, npkt_pdff
 REAL, DIMENSION(:), ALLOCATABLE :: xfour
 REAL, DIMENSION(:), ALLOCATABLE :: yfour
 !
@@ -693,13 +694,13 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
       sigma = 2.0*(pow_u2aver*u2aver_scale)              ! TO BE REPLACED BY ATOMIC B VALUE
       CALL powder_conv_corrlin(yfour, REAL(rmin),REAL(rmax), REAL(rstep),   &
                                sigma, pdf_clin_a, pdf_cquad_a, pdf_rcut, pow_width,   &
-                               POW_MAXPKT)
+                               npkt_pdf)
 !open(77,file='POWDER/post_corrlin.PDF',status='unknown')
 !DO ii=1,npkt_pdf
 !write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
 !enddo
 !close(77)
-      CALL fft_fq(npkt_pdf, xfour, yfour, pow_qmin_u, pow_qmax_u, pow_deltaq_u, npkt_fft, npkt_wrt, xwrt, ywrt)
+!     CALL fft_fq(npkt_pdf, xfour, yfour, pow_qmin_u, pow_qmax_u, pow_deltaq_u, npkt_fft, npkt_wrt, xwrt, ywrt)
 !open(77,file='POWDER/post_corrlin.FQ',status='unknown')
 !DO ii=1,npkt_wrt
 !write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
@@ -708,6 +709,54 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
 !     CALL fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
 !      DEALLOCATE(xfour)
 !      DEALLOCATE(yfour)
+!
+!  The final limits to be written need to be adjusted, as corrlin convolution sets a 
+!  rmin at 0.5, respectively a ramx at rmax*1.25
+!
+      IF(out_user_limits) THEN
+         rminf    = out_user_values(1)
+         rmaxf    = out_user_values(2)
+         rstepf   = out_user_values(3)
+         npkt_pdff= NINT((out_user_values(2)-out_user_values(1))/out_user_values(3)) + 1
+!        npkt_pdf = NINT((out_user_values(2)*1.25-out_user_values(1))/out_user_values(3)) + 1
+      ELSE
+         rminf    = pdf_rminu
+         rmaxf    = pdf_rmaxu
+         rstepf   = pdf_deltaru
+         npkt_pdff= NINT((rmax-rmin)/pdf_deltaru) + 1
+      ENDIF
+!
+      DEALLOCATE(xwrt)
+      DEALLOCATE(ywrt)
+      ALLOCATE(xwrt(1:npkt_pdff))
+      ALLOCATE(ywrt(1:npkt_pdff))
+!
+      IF(rminf<rmin) THEN       !rminuser < rmin; rmin is set to 0.5 if User_values are present
+         j = NINT((rmin-rminf)/rstepf)
+         DO ii = 1, j
+            xwrt(ii) = rminf + (ii-1)*rstepf
+            ywrt(ii) = 0.0
+         ENDDO
+         DO ii = j+1, npkt_pdff
+            xwrt(ii) = xfour(ii-j)
+            ywrt(ii) = yfour(ii-j)
+         ENDDO
+      ELSEIF(rminf>rmin) THEN  ! rminuser > rmin; rmin is set to 0.5 if User_values are present
+         j = NINT((rmin-rminf)/rstepf)     ! j will be < 0
+         DO ii = 1, npkt_pdff
+            xwrt(ii) = xfour(ii-j)
+            ywrt(ii) = yfour(ii-j)
+         ENDDO
+      ELSE                     ! rminuser == rmin
+         j = 0
+         DO ii=1,npkt_pdf
+            xwrt(ii) =xfour(ii)
+            ywrt(ii) =yfour(ii)
+         ENDDO
+      ENDIF
+      DEALLOCATE(xfour)
+      DEALLOCATE(yfour)
+      npkt_wrt = npkt_pdff     ! Finally set corrept points for write
    ELSE corr_if       ! No correlated motion
       IF(out_user_limits) THEN
          rmin     = out_user_values(1)
@@ -749,18 +798,18 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
 !                                    sigma, pdf_clin_a, pdf_cquad_a, pow_width,   &
 !                                    POW_MAXPKT)
 !        ENDIF
+      DEALLOCATE(xwrt)
+      DEALLOCATE(ywrt)
+      ALLOCATE(xwrt(1:npkt_pdf))
+      ALLOCATE(ywrt(1:npkt_pdf))
+      DO ii=1,npkt_pdf
+         xwrt(ii) =xfour(ii)
+         ywrt(ii) =yfour(ii)
+      ENDDO
+      DEALLOCATE(xfour)
+      DEALLOCATE(yfour)
+      npkt_wrt = npkt_pdf
    ENDIF corr_if
-   DEALLOCATE(xwrt)
-   DEALLOCATE(ywrt)
-   ALLOCATE(xwrt(1:npkt_pdf))
-   ALLOCATE(ywrt(1:npkt_pdf))
-   DO ii=1,npkt_pdf
-      xwrt(ii) =xfour(ii)
-      ywrt(ii) =yfour(ii)
-   ENDDO
-   DEALLOCATE(xfour)
-   DEALLOCATE(yfour)
-   npkt_wrt = npkt_pdf
 !
 ENDIF
 !
@@ -1874,7 +1923,7 @@ dummy = 0.0   ! dummy(:)
 !tth = 1.810
 !fwhm = SQRT(MAX(sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin))
 !write(*,7777) ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin
-!7777 format(a,f5.1, f9.5, f9.5, f12.5, f9.5)
+!7777 format(a,f5.1, f9.5, f9.5, f12.5, f , POW_MAXPKT)9.5)
 !tth = 2.300
 !fwhm = SQRT(MAX(sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin))
 !write(*,7777) ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin
@@ -1910,7 +1959,7 @@ main_pts: DO i = 0, imax
    dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)  &
                           -glp_pseud_indx(i2, eta, fwhm))                             
 !
-   ii = MAX (i - 1 - max_ps + 1, 1) 
+   ii = MAX (i - 1 - max_ps + 1, 1)
    first:DO j = ii, i - 1 
       i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * dtth
       i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * dtth
@@ -1918,7 +1967,7 @@ main_pts: DO i = 0, imax
                                      -glp_pseud_indx(i2, eta, fwhm))                    
    ENDDO first
 !
-   ii = MIN(i + 1 + max_ps - 1, imax) 
+   ii = MIN(i + 1 + max_ps - 1, imax, POW_MAXPKT)
    secnd: DO j = i + 1, ii 
       i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * dtth
       i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * dtth
