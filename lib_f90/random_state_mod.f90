@@ -49,6 +49,22 @@ seed_val(1:nseeds) = seed_vals(1:nseeds)
 !
 END SUBROUTINE random_current
 !
+!*******************************************************************************
+!
+SUBROUTINE put_seeds(nseeds, seed_val)
+!
+IMPLICIT NONE
+!
+INTEGER              , INTENT(in) :: nseeds
+INTEGER, DIMENSION(:), INTENT(in) :: seed_val
+!
+seed_vals = seed_val
+CALL RANDOM_SEED(PUT=seed_vals)    ! Use the global variable, is allocated to proper size
+!
+END SUBROUTINE put_seeds
+!
+!*******************************************************************************
+!
 SUBROUTINE ini_ran_ix(np, iwerte, iaddit)
 !
 ! Initializes the random sequence or places it at a previous state
