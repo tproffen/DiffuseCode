@@ -169,6 +169,7 @@ SUBROUTINE refine_theory(MAXP, ix, iy, xx, yy, NPARA, p, par_names,  &
 ! Only if ix and iy == 1 the macro is actually called, otherwise
 ! the lookup values will be used
 !
+USE refine_random_mod
 USE refine_set_param_mod
 !
 USE errlist_mod
@@ -219,6 +220,8 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
    DO k=1, NPARA                      ! Update user defined parameter variables
       CALL refine_set_param(NPARA, par_names(k), k, p(k))
    ENDDO 
+!
+   CALL refine_save_seeds             ! Save current random number seeds
    CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
                      data_dim, refine_calc)
 !
@@ -299,6 +302,7 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
          DO l = -2, 2
             IF(lvec(l)) THEN
             CALL refine_set_param(NPARA, par_names(k), k, REAL(dvec(l)) )  ! Set modified value
+            CALL refine_restore_seeds
             CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
                               data_dim, refine_temp)
             IF(ier_num /= 0) THEN
