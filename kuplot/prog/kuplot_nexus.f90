@@ -43,10 +43,12 @@ CONTAINS
 !     include'napif.inc' 
 !     include'nexus.inc' 
       USE prompt_mod 
+	  USE precision_mod
 !
       USE build_name_mod
       USE errlist_mod 
       USE get_params_mod
+	  USE precision_mod
       IMPLICIT NONE
 !
 !                                                                       
@@ -59,7 +61,7 @@ CONTAINS
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) ent_name, ent_class 
       INTEGER lpara (maxw), ianz, itype, stat 
-      REAL werte (maxw) 
+	  REAL(KIND=PREC_DP) :: werte (maxw)
       LOGICAL lexist 
 !                                                                       
       INTEGER len_str 
@@ -210,6 +212,7 @@ CONTAINS
       USE blanks_mod
       USE errlist_mod 
       USE get_params_mod
+	  USE precision_mod
 !
       IMPLICIT NONE
 !                                                                       
@@ -222,7 +225,7 @@ CONTAINS
 !                                                                       
       CHARACTER(1024) cpara (maxw), clabel, csds 
       INTEGER lpara (maxw), ianz 
-      REAL werte (maxw) 
+	  REAL(KIND=PREC_DP) :: werte (maxw)
 !                                                                       
       CHARACTER(40) nxs_dname, nxs_aname (nmax) 
       INTEGER nxs_dim (nmax) 

@@ -42,7 +42,7 @@ set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 # NEXUS support ?
 
 if (NEXUS_FOUND)
-  set (SOURCES_ALL ${SOURCES_ALL} kuplot_nexus.f90)
+  set (SOURCES_ALL ${SOURCES_ALL} kuplot_nexus.f90 ../../nexus/NXmodule.f90 ../../nexus/NXUmodule.f90)
   set (LIBS_OPT         ${NEXUS_LIBRARIES})
   include_directories(${NEXUS_INCLUDE_PATH})
   link_directories(${NEXUS_LIBARY_PATH})
