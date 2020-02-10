@@ -538,7 +538,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       PARAMETER (imd = 45) 
 !                                                                       
       CHARACTER(1024) infile 
-INTEGER, PARAMETER                   :: AT_MAXP = 12
+INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 !
@@ -1090,7 +1090,7 @@ use molecule_mod
       INTEGER ist 
       PARAMETER (ist = 46) 
 !                                                                       
-INTEGER, PARAMETER                   :: AT_MAXP = 12
+INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       LOGICAL lread 
@@ -1286,6 +1286,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       INTEGER             :: dummy_mole ! Atom is in this molecule
       INTEGER             :: dummy_moleatom ! Atom is in this molecul at number
       INTEGER, DIMENSION(0:3)  :: dummy_surf
+      REAL   , DIMENSION(0:3)  :: dummy_magn
       INTEGER             :: natoms ! Number of molecules
       INTEGER             :: nscat  ! Number of molecule types
       INTEGER             :: TEMP_MAX_MOLE ! Number of molecules
@@ -1393,7 +1394,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       IF(mk_infile_internal) THEN
          mk_iatom =  mk_iatom + 1   ! Increment internal atom number
          CALL struc_read_one_atom_internal(infile,  mk_iatom,  &
-              xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_mole, dummy_moleatom )
+              xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_magn, dummy_mole, dummy_moleatom )
          IF( ier_num == -105 ) THEN  ! read "end_of_file" 
             ier_num = 0
             ier_typ = ER_NONE
@@ -1784,6 +1785,7 @@ USE precision_mod
       INTEGER  :: dummy_mole
       INTEGER  :: dummy_moleatom
       INTEGER, DIMENSION(0:3)  :: dummy_surf
+      REAL   , DIMENSION(0:3)  :: dummy_magn
 !                                                                       
       LOGICAL str_comp 
       REAL(KIND=PREC_DP), EXTERNAL ::    gasdev
@@ -1803,7 +1805,7 @@ USE precision_mod
       IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
          clu_iatom = clu_iatom + 1   ! Increment internal atom number
          CALL struc_read_one_atom_internal(clu_infile, clu_iatom,  &
-              xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_mole, dummy_moleatom )
+              xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_magn, dummy_mole, dummy_moleatom )
          IF( ier_num == -105 ) THEN  ! read "end_of_file" 
             lend    = .true.
             ier_num = 0

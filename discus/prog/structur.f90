@@ -515,6 +515,7 @@ cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
                         cr_mole (cr_natoms) = cr_mole (n)
                         cr_prop (cr_natoms) = cr_prop (n)
                         cr_surf(:,cr_natoms) = cr_surf(:,n)
+                        cr_magn(:,cr_natoms) = cr_magn(:,n)
                         ENDDO 
                         ENDDO 
                         ENDDO 
@@ -847,7 +848,7 @@ LOGICAL             :: need_alloc
 !
                CALL readstru (NMAX, MAXSCAT, strucfile, cr_name,        &
                cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,    &
-               cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms, &
+               cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms, &
                as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
                sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
                IF (ier_num.ne.0) then 
@@ -1040,7 +1041,7 @@ REAL               , INTENT(IN) :: r_identical
 !
       CHARACTER(10) befehl 
       CHARACTER(1024) line, zeile 
-INTEGER, PARAMETER                   :: AT_MAXP = 12
+INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER, PARAMETER                   :: ist     = 7
 INTEGER, PARAMETER                   :: MAXW = MAX(AT_MAXP,7)
 !
@@ -1253,7 +1254,8 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                   ENDDO 
                   werte (5) = 1.0 
                   cr_surf(:,cr_natoms+1) = 0
-                  CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
+                  cr_magn(:,cr_natoms+1) = 0.0
+                  CALL read_atom_line (line, ibl, lline, as_natoms, MAXW, werte, &
                                        AT_MAXP, at_ianz, at_param, at_init)                                          
                   n_read = n_read + 1
                   IF (ier_num.ne.0.and.ier_num.ne. -49) then 
@@ -1281,6 +1283,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                      cr_pos (j, i) = werte (j) 
                   ENDDO 
                   cr_surf(0:3,i) = NINT(werte(9:12))
+                  cr_magn(0:3,i) = 0.0 ! (werte(9:12)) MAGNETIC_WORK
                   dw1 = werte (4) 
                   occ1 = werte(8)                       ! WORK OCC
                   IF(mole_l_on) THEN
@@ -1290,6 +1293,9 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                   ENDIF
                   cr_prop (i) = NINT(werte(5) ) 
                   cr_surf(:,i) = 0                      ! Currently no save nor read for surface
+                  cr_magn(:,i) = werte(13:16)           ! Read for MAGNETIC_WORK
+                  IF(MAXVAL(ABS(werte(13:16)))> 0.0) cr_magnetic = .TRUE.  ! Crystal has magnetic atoms
+write(*,*) ' ATOM ', line(1:4), cr_pos(:,i), cr_magn(:,i), cr_magnetic
 !                                                                       
                   IF (line (1:4) .ne.'    ') then 
                      ibl = ibl - 1 
@@ -1452,10 +1458,14 @@ INTEGER, SAVE                        :: col_prop   = 0
 INTEGER, SAVE                        :: col_moleno = 0 
 INTEGER, SAVE                        :: col_moleat = 0 
 INTEGER, SAVE                        :: col_occ    = 0 
-INTEGER, SAVE                        :: col_surft  = 0 
-INTEGER, SAVE                        :: col_surfh  = 0 
-INTEGER, SAVE                        :: col_surfk  = 0 
-INTEGER, SAVE                        :: col_surfl  = 0 
+INTEGER, SAVE                        :: col_surft  = 0    ! Surface type
+INTEGER, SAVE                        :: col_surfh  = 0    ! Surface H
+INTEGER, SAVE                        :: col_surfk  = 0    ! Surface K 
+INTEGER, SAVE                        :: col_surfl  = 0    ! Surface L 
+INTEGER, SAVE                        :: col_magnm  = 0    ! Magnetic moment
+INTEGER, SAVE                        :: col_magnu  = 0    ! Magnetic moment u
+INTEGER, SAVE                        :: col_magnv  = 0    ! Magnetic moment v
+INTEGER, SAVE                        :: col_magnw  = 0    ! Magnetic moment w
 LOGICAL                              :: lcalc     ! Flag if calculation is needed
 !
 IF(line(1:1)=='!' .OR. line(1:1)=='#' .OR. IACHAR(line(1:1))==9 .OR. line==' ') RETURN
@@ -1473,10 +1483,14 @@ IF(at_init) THEN
       IF(at_param(i) == 'MOLENO'  ) col_moleno = i
       IF(at_param(i) == 'MOLEAT'  ) col_moleat = i
       IF(at_param(i) == 'OCC'     ) col_occ = i
-      IF(at_param(i) == 'ST'   ) col_surft = i
-      IF(at_param(i) == 'SH'   ) col_surfh = i
-      IF(at_param(i) == 'SK'   ) col_surfk = i
-      IF(at_param(i) == 'SL'   ) col_surfl = i
+      IF(at_param(i) == 'ST'      ) col_surft = i
+      IF(at_param(i) == 'SH'      ) col_surfh = i
+      IF(at_param(i) == 'SK'      ) col_surfk = i
+      IF(at_param(i) == 'SL'      ) col_surfl = i
+      IF(at_param(i) == 'MM'      ) col_magnm = i
+      IF(at_param(i) == 'MU'      ) col_magnu = i
+      IF(at_param(i) == 'MV'      ) col_magnv = i
+      IF(at_param(i) == 'MW'      ) col_magnw = i
    ENDDO
    at_init = .FALSE.
 ENDIF
@@ -1488,10 +1502,10 @@ IF(UBOUND(werte,1)>=7) THEN
    werte(6) = 0.0    ! Default for molecule number
    werte(7) = 0.0    ! Default for Atom in molecule
 ENDIF
-IF(UBOUND(wwerte,1)>=7) THEN
-   wwerte(6) = 0.0    ! Default for molecule number
-   wwerte(7) = 0.0    ! Default for Atom in molecule
-ENDIF
+!IF(UBOUND(wwerte,1)>=7) THEN
+!   wwerte(6) = 0.0    ! Default for molecule number
+!   wwerte(7) = 0.0    ! Default for Atom in molecule
+!ENDIF
 IF(UBOUND(werte,1)>=8) werte(8) = 1.0    ! Default for Occupancy
 IF(UBOUND(wwerte,1)>=8) wwerte(8) = 1.0    ! Default for Occupancy
 !
@@ -1559,7 +1573,9 @@ ELSE params
             ios = 0
             calc: DO j = 1, ianz 
                IF(j==col_prop .OR. j==col_moleno  .OR. j==col_moleat .OR. &
-                  j==col_surfh.OR. j==col_surfk   .OR. j==col_surfl ) THEN
+                  j==col_surfh.OR. j==col_surfk   .OR. j==col_surfl  .OR. &
+                  j==col_magnm                                       .OR. &
+                  j==col_magnu.OR. j==col_magnv   .OR. j==col_magnw ) THEN
                   READ(cpara(j)(1:lpara(j)),*,err=1111, end=1111,IOSTAT=ios ) jj
                   wwerte(j) = REAL(jj)
                ELSE   
@@ -1610,6 +1626,18 @@ ELSE params
          ENDIF
          IF(col_surfl >0) THEN
             werte(12) = wwerte(col_surfl)
+         ENDIF
+         IF(col_magnm >0) THEN
+            werte(13) = wwerte(col_magnm)
+         ENDIF
+         IF(col_magnu >0) THEN
+            werte(14) = wwerte(col_magnu)
+         ENDIF
+         IF(col_magnv >0) THEN
+            werte(15) = wwerte(col_magnv)
+         ENDIF
+         IF(col_magnw >0) THEN
+            werte(16) = wwerte(col_magnw)
          ENDIF
          CALL no_error 
       ELSE 
@@ -1982,8 +2010,9 @@ END SUBROUTINE struc_mole_header
       SUBROUTINE readstru (NMAX, MAXSCAT, strucfile, cr_name, cr_spcgr, &
       cr_set,                                                           &
       cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_at_lis, cr_pos,     &
-      cr_mole, cr_surf,                                                 &
-      cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw, as_pos,   &
+      cr_mole, cr_surf, cr_magn,                                        &
+      cr_iscat, cr_prop, cr_dim, cr_magnetic,                           &
+      as_natoms, as_at_lis, as_dw, as_pos,   &
       as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,           &
       spcgr_ianz, spcgr_para)                                           
 !-                                                                      
@@ -2000,8 +2029,10 @@ CHARACTER(LEN=3), INTENT(INOUT) :: cr_set
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
       INTEGER, DIMENSION(0:3,1:NMAX),INTENT(INOUT)  :: cr_surf
+      REAL   , DIMENSION(0:3,1:NMAX),INTENT(INOUT)  :: cr_magn
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
       REAL   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
+      LOGICAL , INTENT(INOUT) :: cr_magnetic
 !                                                                       
       INTEGER sav_ncell (3) 
       INTEGER sav_ncatoms 
@@ -2016,7 +2047,7 @@ CHARACTER(LEN=3), INTENT(INOUT) :: cr_set
       CHARACTER(16) cr_spcgr 
       CHARACTER(4) cr_at_lis (0:MAXSCAT) 
       CHARACTER(4) as_at_lis (0:MAXSCAT) 
-INTEGER, PARAMETER                   :: AT_MAXP = 12
+INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 !                                                                       
@@ -2059,7 +2090,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
          IF (ier_num.eq.0) then 
 !                                                                       
             CALL struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
-            cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim, &
+            cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, &
+            cr_magn, cr_prop, cr_dim, cr_magnetic, &
             as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop, &
             AT_MAXP, at_ianz, at_param)     
          ENDIF 
@@ -2569,8 +2601,9 @@ cr_occ(:) = 1.0   !! WORK OCC
       END SUBROUTINE stru_readheader                
 !********************************************************************** 
       SUBROUTINE struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
-      cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim,     &
-      as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop, &
+      cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf,     &
+      cr_magn, cr_prop, cr_dim, cr_magnetic,                            &
+      as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop,   &
             AT_MAXP, at_ianz, at_param)                      
 !-                                                                      
 !           This subroutine reads the list of atoms into the            
@@ -2597,8 +2630,10 @@ USE precision_mod
       INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_iscat
       INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_mole 
       INTEGER         , DIMENSION(0:3,1:NMAX),INTENT(INOUT) :: cr_surf
+      REAL            , DIMENSION(0:3,1:NMAX),INTENT(INOUT) :: cr_magn
       INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_prop
       REAL            , DIMENSION(3, 2)      ,INTENT(INOUT) :: cr_dim      ! (3, 2) 
+      LOGICAL                                ,INTENT(INOUT) :: cr_magnetic
       INTEGER                                ,INTENT(INOUT) :: as_natoms 
       CHARACTER(LEN=4), DIMENSION(0:MAXSCAT), INTENT(INOUT) :: as_at_lis   ! (0:MAXSCAT) 
       REAL            , DIMENSION(0:MAXSCAT), INTENT(INOUT) :: as_dw       ! (0:MAXSCAT) 
@@ -2611,7 +2646,7 @@ INTEGER                                  , INTENT(OUT) :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !                                                                       
       INTEGER , PARAMETER :: ist  = 7
-      INTEGER , PARAMETER :: maxw = 12! SHOULD READ : MAX(7, AT_MAXP)
+      INTEGER , PARAMETER :: maxw = 16! SHOULD READ : MAX(7, AT_MAXP)
 !                                                                       
       CHARACTER(LEN=10)   :: befehl 
       CHARACTER(LEN=1024) ::  line, zeile 
@@ -2693,7 +2728,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
                call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
             ENDIF
             cr_surf(:,cr_natoms+1) = 0
-            CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
+            cr_magn(:,cr_natoms+1) = 0.0
+            CALL read_atom_line (line, ibl, lline, as_natoms, MAXW, werte, &
                  AT_MAXP, at_ianz, at_param, at_init)
 
             IF (ier_num.ne.0.and.ier_num.ne. - 49) then 
@@ -2717,6 +2753,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
             dw1 = werte (4) 
             occ1 = werte(8)                             ! WORK OCC
             cr_surf(0:3,i) = NINT(werte(9:12))          ! copy surface
+            cr_magn(0:3,i) = werte(13:16)               ! MAGNETIC_WORK
+            IF(MAXVAL(ABS(werte(13:16)))>0.0) cr_magnetic = .TRUE.
             cr_prop (i) = nint (werte (5) ) 
       IF (line (1:4) .ne.'    ') then 
                ibl = ibl - 1 
@@ -3038,6 +3076,7 @@ CALL alloc_crystal(1,1)
       cr_iscat(:)  = 0
       cr_mole(:)   = 0
       cr_surf(:,:) = 0
+      cr_magn(:,:) = 0.0
 !                                                                       
 !     DO i = 0, MOLE_MAX_MOLE 
       mole_len (:) = 0 
@@ -3361,6 +3400,7 @@ IF(ier_num==0) THEN
    sav_w_adp   = .FALSE.
    sav_w_occ   = .FALSE.
    sav_w_surf  = .TRUE.
+   sav_w_magn  = .FALSE.  ! MAGNETIC_WORK
    sav_r_ncell = .FALSE.
    sav_w_ncell = .FALSE.
    sav_w_gene  = .FALSE.

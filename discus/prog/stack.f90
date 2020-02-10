@@ -1405,6 +1405,7 @@ USE precision_mod
          cr_iscat(  i) = st_type(i)
          cr_mole (  i) = 0
          cr_surf (:,i) = 0
+         cr_magn (:,i) = 0
          cr_prop (  i) = 1
       ENDDO
       mole_num_mole = 0
@@ -1549,7 +1550,7 @@ USE precision_mod
       INTEGER ist 
       PARAMETER (ist = 7) 
 !                                                                       
-INTEGER, PARAMETER                   :: AT_MAXP = 12
+INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 !                                                                       
@@ -1650,7 +1651,7 @@ more1: IF (st_nlayer.ge.1) then
          ELSE 
             CALL readstru (NMAX, MAXSCAT, st_layer (st_type (i) ), cr_name,&
             cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_at_lis,&
-            cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw,&
+            cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms, as_at_lis, as_dw,&
             as_pos, as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,&
             spcgr_ianz, spcgr_para)                                        
             IF (ier_num.ne.0) then 
@@ -1736,7 +1737,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             ier_typ = ER_NONE 
 !                                                                       
             CALL struc_read_atoms_internal (st_layer(st_type(i)),NMAX,&
-                  cr_natoms, cr_pos, cr_iscat, cr_prop, cr_surf, cr_mole)
+                  cr_natoms, cr_pos, cr_iscat, cr_prop, cr_surf, cr_magn, cr_mole)
             CLOSE (ist) 
             IF (ier_num.ne.0) then 
                RETURN 
@@ -1769,7 +1770,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
             ier_typ = ER_NONE 
 !                                                                       
             CALL struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
-            cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim,&
+            cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, &
+            cr_magn, cr_prop, cr_dim, cr_magnetic, &
             as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop, &
             AT_MAXP, at_ianz, at_param)
             CLOSE (ist) 
@@ -2051,8 +2053,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
          ELSE
          CALL readstru (NMAX, MAXSCAT, st_layer (1), cr_name, cr_spcgr, cr_set, &
          cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_at_lis, cr_pos,  &
-         cr_mole, cr_surf,                                              &
-         cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw, as_pos,&
+         cr_mole, cr_surf, cr_magn,                                     &
+         cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms, as_at_lis, as_dw, as_pos,&
          as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,        &
          spcgr_ianz, spcgr_para)                                        
          ENDIF
@@ -2133,7 +2135,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             ELSE
             CALL readstru (NMAX, MAXSCAT, st_layer_c (l), cr_name,      &
             cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,       &
-            cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms,    &
+            cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms,    &
             as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,     &
             sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)           
             ENDIF
@@ -2361,7 +2363,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             ELSE
             CALL readstru (NMAX, MAXSCAT, st_layer (1), cr_name,        &
             cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,&
-            cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms,    &
+            cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms,    &
             as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,     &
             sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)           
             ENDIF
@@ -2483,7 +2485,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             ELSE
             CALL readstru (NMAX, MAXSCAT, st_layer (l), cr_name,        &
             cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,cr_occ, &
-            cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms,    &
+            cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms,    &
             as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,     &
             sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)           
             ENDIF
@@ -2587,8 +2589,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
       ELSE
       CALL readstru (ST_MMAX, ST_MAX_SCAT, st_infile, st_name, st_spcgr, st_set, &
       st_a0, st_win, st_natoms, st_nscat, st_dw, st_occ, st_at_lis, st_pos,     &
-      st_mole, st_surf,                                                 &
-      st_iscat, st_prop, st_dim, sa_natoms, sa_at_lis, sa_dw, sa_pos,   &
+      st_mole, st_surf, st_magn,                                        &
+      st_iscat, st_prop, st_dim, st_magnetic, sa_natoms, sa_at_lis, sa_dw, sa_pos,   &
       sa_iscat, sa_prop, sav_ncell, sav_r_ncell, sav_ncatoms,           &
       st_spcgr_ianz, st_spcgr_para)                                     
       ENDIF

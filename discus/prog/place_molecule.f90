@@ -1278,6 +1278,7 @@ ENDIF
       sav_w_adp   = .TRUE.
       sav_w_occ   = .TRUE.
       sav_w_surf  = .TRUE.
+      sav_w_magn  = .FALSE.    ! MAGNETIC_WORK
       sav_r_ncell = .TRUE.
       sav_w_ncell = .TRUE.
       sav_w_gene  = .FALSE.
@@ -1911,6 +1912,7 @@ main: DO i=1, dcc_num
       sav_w_adp   = .TRUE.
       sav_w_occ   = .TRUE.
       sav_w_surf  = .TRUE.
+      sav_w_magn  = .FALSE.   ! MAGNETIC_WORK
       sav_r_ncell = .TRUE.
       sav_w_ncell = .TRUE.
       sav_w_gene  = .FALSE.
@@ -2145,6 +2147,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER                 :: itype           ! Atom type for read internal
    INTEGER                 :: iprop           ! Atom property for read internal
    INTEGER, DIMENSION(0:3) :: isurface        ! Atom surface for read internal
+   REAL   , DIMENSION(0:3) :: magn_mom        ! Atom magnetic moment for read internal
    REAL   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
 !  INTEGER                 :: i_m_type
    INTEGER, DIMENSION(4)   :: hkl
@@ -2179,20 +2182,20 @@ CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
       nold = cr_natoms
       IF(mole_axis(0)==2) THEN
       im = mole_axis(2)                                ! Make mole axis from spcified atoms
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
       axis_ligand(1) = posit(1)
       axis_ligand(2) = posit(2)
       axis_ligand(3) = posit(3)
       im = mole_axis(1)
 !
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
       axis_ligand(1) = axis_ligand(1) - posit(1)       ! this is mole axis
       axis_ligand(2) = axis_ligand(2) - posit(2)
       axis_ligand(3) = axis_ligand(3) - posit(3)
       ENDIF
 !     Insert molecule atoms into crystal at correct origin in initial orientation
       normal_l = sqrt (skalpro (surf_normal, surf_normal, cr_gten))
-      CALL struc_read_one_atom_internal(mole_name, neig, posit, itype, iprop, isurface,in_mole,in_moleatom)
+      CALL struc_read_one_atom_internal(mole_name, neig, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
 !
       origin(1)  = cr_pos(1,ia) + surf_normal(1)/normal_l*dist - posit(1)  ! Origin is shifted
       origin(2)  = cr_pos(2,ia) + surf_normal(2)/normal_l*dist - posit(2)  ! by dist away from 
@@ -2200,7 +2203,7 @@ CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
       sym_latom(:) = .false.                           ! Initially deselect all atomtypes
 !
       atoms: DO im=1,mole_natoms                       ! Load all atoms from the molecule
-         CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+         CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
          posit(:) = posit(:) + origin(:)
          WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
          laenge = 60
@@ -2208,6 +2211,7 @@ CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
          cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
          cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
          cr_surf(:,cr_natoms) = 0
+         cr_magn(:,cr_natoms) = magn_mom
          CALL check_symm
          sym_latom(cr_iscat(cr_natoms)) = .true.       ! Select atom type for rotation
       ENDDO atoms
@@ -2363,6 +2367,7 @@ INTEGER                                 :: l
 INTEGER                                 :: iprop
 INTEGER                                 :: itype
 INTEGER  , DIMENSION(0:3)               :: isurface
+REAL     , DIMENSION(0:3)               :: magn_mom        ! Atom magnetic moment for read internal
 INTEGER                                 :: nold   ! atom number previous to current molecule
 INTEGER  , DIMENSION(1:4)               :: hkl
 !
@@ -2494,12 +2499,12 @@ ENDIF
 !
 IF(mole_axis(0)==2) THEN
    im   = mole_axis(2)
-   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
    axis_ligand(1) = posit(1)
    axis_ligand(2) = posit(2)
    axis_ligand(3) = posit(3)
    im = mole_axis(1)
-CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
    axis_ligand(1) = axis_ligand(1) - posit(1)
    axis_ligand(2) = axis_ligand(2) - posit(2)
    axis_ligand(3) = axis_ligand(3) - posit(3)
@@ -2510,13 +2515,13 @@ b_n      = dist(1) * sin(acos(c_ang_ia))                 ! Calculate distance al
 !
 !     Get position of "Neig" and subtract to ensure correct origin
 !     in read_crystal this atom is always shifted to (0,0,0)
-CALL struc_read_one_atom_internal(mole_name, neig(1), posit, itype, iprop, isurface,in_mole,in_moleatom)
+CALL struc_read_one_atom_internal(mole_name, neig(1), posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
 origin(1)  = x(1) + surf_normal(1)/normal_l*b_n - posit(1)    ! Calculate ligand origin
 origin(2)  = x(2) + surf_normal(2)/normal_l*b_n - posit(2)
 origin(3)  = x(3) + surf_normal(3)/normal_l*b_n - posit(3)
 sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 DO im=1,mole_natoms                           ! Insert all atoms
-   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
    posit(:) = posit(:) + origin(:)
    WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
    laenge = 60
@@ -2525,6 +2530,7 @@ DO im=1,mole_natoms                           ! Insert all atoms
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
    cr_surf(:,cr_natoms) = 0
+   cr_magn(:,cr_natoms) = magn_mom
    CALL check_symm
    sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
 ENDDO
@@ -2662,6 +2668,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER                                 :: iprop
    INTEGER                                 :: itype
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
+   REAL   , DIMENSION(0:3) :: magn_mom       ! Atom surface
    INTEGER                                 :: n_atoms_orig   ! Number of atoms prior to insertion
    INTEGER                                 :: n1,n2          ! number of mol neighbours after insertion
    INTEGER                                 :: success        ! Everything went fine
@@ -2720,11 +2727,11 @@ CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
 !
 n_atoms_orig = cr_natoms                         ! Number of atoms prior to insertion
 nold = cr_natoms                                 ! Remember original atom number
-CALL struc_read_one_atom_internal(mole_name, neig(1), posit, itype, iprop, isurface,in_mole,in_moleatom)
+CALL struc_read_one_atom_internal(mole_name, neig(1), posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
 origin(:) = 0.0 -posit(:)                     ! initially place at 0,0,0
 sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 insert: DO im=1,mole_natoms                   ! Insert all atoms
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
       posit(:) = posit(:) + origin(:)
       WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
       laenge = 60
@@ -2732,6 +2739,7 @@ insert: DO im=1,mole_natoms                   ! Insert all atoms
       cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
       cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
       cr_surf(:,cr_natoms) = 0
+      cr_magn(:,cr_natoms) = magn_mom
       CALL check_symm
       sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
 ENDDO insert
@@ -2992,6 +3000,7 @@ INTEGER                                 :: j, im, laenge
 INTEGER                                 :: iprop
 INTEGER                                 :: itype
 INTEGER, DIMENSION(0:3)                 :: isurface
+REAL   , DIMENSION(0:3)                 :: magn_mom
 INTEGER                                 :: nold   ! atom number previous to current molecule
 INTEGER  , DIMENSION(1:4)               :: hkl
 INTEGER                                 :: n1, n2  ! Ligand atoms
@@ -3036,7 +3045,7 @@ origin(2)  = cr_pos(2,ia) + surf_normal(2)/normal_l*dist(1)
 origin(3)  = cr_pos(3,ia) + surf_normal(3)/normal_l*dist(1)
 sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 DO im=1,mole_natoms                           ! Insert all atoms
-   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
    posit(:) = posit(:) + origin(:)
    WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
    laenge = 60
@@ -3044,6 +3053,7 @@ DO im=1,mole_natoms                           ! Insert all atoms
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
    cr_surf(:,cr_natoms) = 0
+   cr_magn(:,cr_natoms) = magn_mom
    CALL check_symm
    sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
 ENDDO
@@ -3276,6 +3286,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER                                 :: iprop
    INTEGER                                 :: itype
    INTEGER, DIMENSION(0:3)                 :: isurface       ! Atom surface
+   REAL   , DIMENSION(0:3)                 :: magn_mom       ! Atom magnetic moment
    INTEGER                                 :: n_atoms_orig   ! Number of atoms prior to insertion
    INTEGER                                 :: n1,n2          ! number of mol neighbours after insertion
    INTEGER                                 :: a1,a2          ! number of mol axis atoms after rotations
@@ -3339,7 +3350,7 @@ origin(:)    = 0.0                            ! initially place at 0,0,0
 sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 !
 insert: DO im=1,mole_natoms                   ! Insert all atoms
-   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
    posit(:) = posit(:) + origin(:)
    WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
    laenge = 60
@@ -3347,6 +3358,7 @@ insert: DO im=1,mole_natoms                   ! Insert all atoms
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
    cr_surf(:,cr_natoms) = 0
+   cr_magn(:,cr_natoms) = magn_mom
    CALL check_symm
    sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
 ENDDO insert
@@ -3621,6 +3633,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER                 :: n1, n2         ! Atoms that define molecule axis
    INTEGER                 :: itype, iprop   ! Atom types, properties
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
+   REAL   , DIMENSION(0:3) :: magn_mom       ! Atom magnetic moment
    INTEGER                 :: nold           ! atom number previous to current molecule
    INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
    INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
@@ -3680,7 +3693,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 !
    atoms: DO im=1,mole_natoms                    ! Load all atoms from the molecule
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
       posit(:) = posit(:) + origin(:)
       WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
       laenge = 60
@@ -3688,6 +3701,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
       cr_prop  (cr_natoms) = IBSET (cr_prop (cr_natoms), PROP_LIGAND)
       cr_prop  (cr_natoms) = IBCLR (cr_prop (cr_natoms), PROP_SURFACE_EXT)
       cr_surf(:,cr_natoms) = 0
+      cr_magn(:,cr_natoms) = magn_mom
       CALL check_symm
       sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
    ENDDO atoms
@@ -3896,6 +3910,7 @@ REAL, PARAMETER         :: EPS = 1.0E-7
    INTEGER                 :: n1, n2         ! Atom that define teh molecule axis
    INTEGER                 :: itype, iprop   ! Atom types, properties
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
+   REAL   , DIMENSION(0:3) :: magn_mom       ! Atom magnetic moment
    INTEGER                 :: nold           ! atom number previous to current molecule
    INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
    INTEGER                 :: success        ! Failure or success ?
@@ -3963,7 +3978,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 !
    atoms: DO im=1,mole_natoms                    ! Load all atoms from the molecule
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
       posit(:) = posit(:) + origin(:)
       WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
       laenge = 60
@@ -3971,6 +3986,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
       cr_prop  (cr_natoms) = IBSET (cr_prop (cr_natoms), PROP_LIGAND)
       cr_prop  (cr_natoms) = IBCLR (cr_prop (cr_natoms), PROP_SURFACE_EXT)
       cr_surf(:,cr_natoms) = 0
+      cr_magn(:,cr_natoms) = magn_mom
       CALL check_symm
       sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
    ENDDO atoms

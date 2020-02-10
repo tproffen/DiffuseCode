@@ -869,6 +869,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ENDDO 
                DO j=1,4
                   cr_surf(:,cr_natoms + j) = 0
+                  cr_magn(:,cr_natoms + j) = 0.0
                ENDDO
 !                                                                       
 !     ------ Set the atom types and names                               
@@ -1091,6 +1092,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ENDDO 
                DO j=1,8
                   cr_surf(:,cr_natoms + j) = 0
+                  cr_magn(:,cr_natoms + j) = 0.0
                ENDDO
 !                                                                       
 !     ------ Set the atom types and names                               

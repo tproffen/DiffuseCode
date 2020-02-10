@@ -71,6 +71,7 @@ USE discus_config_mod
    INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_prop   ! (  1:MAXSCAT)
 !
    LOGICAL                               :: cr_cartesian = .false.
+   LOGICAL                               :: cr_magnetic  = .FALSE.   ! Cyrystal is magnetic YES / NO
 !
    REAL   , DIMENSION(3)                 ::  cr_a0  = 1.0
    REAL   , DIMENSION(3)                 ::  cr_win = 90.0
@@ -90,6 +91,7 @@ USE discus_config_mod
    INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_prop   ! (  1:NMAX)  !Property flag
    INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_mole   ! (  1:NMAX)  !Atom is in this molecule
    INTEGER, DIMENSION(:,:), ALLOCATABLE ::  cr_surf   ! (  1:NMAX)  !Atom is on this surface 
+   REAL   , DIMENSION(:,:), ALLOCATABLE ::  cr_magn   ! (  1:NMAX)  !Magnetic moment 
 !
    REAL   , DIMENSION(:,:), ALLOCATABLE ::  cr_pos    ! (3,1:NMAX)  !Atom coordinates
 !

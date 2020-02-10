@@ -300,6 +300,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_w_adp  = .false. 
                         sav_w_occ  = .false. 
                         sav_w_surf = .false. 
+                        sav_w_magn = .false. 
                         sav_w_obje = .false. 
                         sav_w_mole = .false. 
                         sav_w_doma = .false. 
@@ -324,6 +325,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_w_occ = .false. 
                      ELSEIF(str_comp(cpara (1), 'surf', 1, lpara(1), 3) ) THEN
                         sav_w_surf = .false. 
+                     ELSEIF(str_comp(cpara (1), 'magn', 1, lpara(1), 3) ) THEN
+                        sav_w_magn = .false. 
                      ELSEIF(str_comp(cpara (1), 'prop', 1, lpara(1), 4) ) THEN
                         sav_w_prop = .false. 
                      ELSE 
@@ -416,6 +419,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_w_adp  = .true. 
                         sav_w_occ  = .true. 
                         sav_w_surf = .true. 
+                        sav_w_magn = .FALSE.   ! MAGNETIC_WORK
                         sav_w_mole = .true. 
                         sav_w_obje = .true. 
                         sav_w_doma = .true. 
@@ -440,6 +444,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_w_occ = .true. 
                      ELSEIF(str_comp(cpara (1), 'surf', 1, lpara(1),3) ) THEN
                         sav_w_surf = .true. 
+                     ELSEIF(str_comp(cpara (1), 'magn', 1, lpara(1),3) ) THEN
+                        sav_w_magn = .FALSE.    ! MAGNETIC_WORK
                      ELSEIF(str_comp(cpara (1), 'prop', 1, lpara(1), 4) ) THEN
                         sav_w_prop = .true. 
                      ELSE 
@@ -590,6 +596,7 @@ CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
       INTEGER ::   wr_mole = 0
       INTEGER ::   wr_cont = 0
 INTEGER, DIMENSION(0:3) :: wr_surf
+REAL   , DIMENSION(0:3) :: wr_magn
       LOGICAL lread 
       LOGICAL                            :: lsave
       LOGICAL, DIMENSION(:), ALLOCATABLE :: lwrite ! flag if atom needs write
@@ -791,6 +798,7 @@ DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
          wr_mole = 0
          wr_cont = 0
          wr_surf(:) = 0
+         wr_magn(:) = 0.0
          IF(sav_w_prop) wr_prop = cr_prop(i)
          IF (sav_w_mole .OR. sav_w_doma .OR. sav_w_obje) THEN 
             IF(cr_mole(i)/=0) THEN
@@ -804,6 +812,7 @@ DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
             ENDIF
          ENDIF
          IF(sav_w_surf) wr_surf(0:3) = cr_surf(0:3,i)
+         IF(sav_w_magn) wr_surf(0:3) = cr_magn(0:3,i)   ! MAGNETIC_WORK
          WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
                         (cr_pos (j, i),j = 1, 3),          &
                         cr_dw (cr_iscat (i) ), wr_prop,    &
@@ -1140,6 +1149,7 @@ END SUBROUTINE save_internal_node
       sav_w_adp   = .false.
       sav_w_occ   = .false.
       sav_w_surf  = .false.
+      sav_w_magn  = .FALSE.
       sav_r_ncell = .true.
       sav_w_ncell = .true.
       sav_w_gene  = .true.
@@ -1191,7 +1201,8 @@ sav_w_adp     = .FALSE.
 sav_t_w_occ   = .FALSE.
 sav_w_occ     = .FALSE.
 sav_t_w_surf  = .FALSE.
-sav_w_surf    = .FALSE.
+sav_t_w_magn  = .FALSE.
+sav_w_magn    = .FALSE.
 sav_t_r_ncell = .FALSE.
 sav_r_ncell   = .FALSE.
 sav_t_w_ncell = .FALSE.
@@ -1295,6 +1306,11 @@ IF (sav_keyword) THEN
    ELSE 
       WRITE (output_io, 3070) 'omitted' 
    ENDIF 
+   IF (sav_w_magn) THEN 
+      WRITE (output_io, 3075) 'written' 
+   ELSE 
+      WRITE (output_io, 3075) 'omitted' 
+   ENDIF 
    CALL char_prop_2 (c_property,sav_sel_prop (1), sav_sel_prop (0),   &
       length)
    WRITE (output_io, 3131) c_property (1:length)
@@ -1340,6 +1356,7 @@ ENDIF
  3050 FORMAT(' Object   information: content etc.        : ',a7) 
  3060 FORMAT(' Domain   information: content etc.        : ',a7) 
  3070 FORMAT(' Surface  information: type, normal        : ',a7) 
+ 3075 FORMAT(' Magnetic moments                          : ',a7) 
  3080 FORMAT(' Range of atoms from to    : All atoms included') 
  3081 FORMAT(' Range of atoms from to    : ',2(2x,i9)) 
  3131 FORMAT    (/' Atom properties         : ','NMDOEI'/               &

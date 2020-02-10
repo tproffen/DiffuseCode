@@ -372,7 +372,7 @@ CONTAINS
 !
    END FUNCTION get_spc_n
 !******************************************************************************
-   SUBROUTINE set_cryst_atom ( this, inum, itype, posit, iprop, isurface, iin_mole)
+   SUBROUTINE set_cryst_atom ( this, inum, itype, posit, iprop, isurface, magn_mom, iin_mole)
 !
 !  Fully define atom No. <inum> for "this" crystal
 !
@@ -384,9 +384,10 @@ CONTAINS
    REAL   , DIMENSION(3),INTENT(IN) :: posit
    INTEGER,              INTENT(IN) :: iprop
    INTEGER, DIMENSION(0:3),INTENT(IN) :: isurface
+   REAL   , DIMENSION(0:3),INTENT(IN) :: magn_mom
    INTEGER, DIMENSION(1:2),INTENT(IN) :: iin_mole
 !
-   CALL this%atoms(inum)%set_atom ( itype, posit, iprop, isurface, iin_mole )
+   CALL this%atoms(inum)%set_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
 !
    END SUBROUTINE set_cryst_atom 
 !******************************************************************************
@@ -477,16 +478,17 @@ CONTAINS
    REAL   , DIMENSION(3)             :: posit
    INTEGER                           :: iprop
    INTEGER, DIMENSION(0:3)           :: isurface
+   REAL   , DIMENSION(0:3)           :: magn_mom
    INTEGER, DIMENSION(1:2)           :: iin_mole
 !
-   CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, iin_mole )
+   CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
    at_name = this%cr_at_lis(itype)
    dw1     = this%cr_dw    (itype)
    occ1    = this%cr_occ   (itype)   !!WORK OCC
 !
    END SUBROUTINE get_cryst_scat 
 !******************************************************************************
-   SUBROUTINE get_cryst_atom ( this, inum, itype, posit, iprop, isurface, iin_mole)
+   SUBROUTINE get_cryst_atom ( this, inum, itype, posit, iprop, isurface, magn_mom, iin_mole)
 !
 !  Return everything about atom <inum> in "this" crystal
 !
@@ -498,9 +500,10 @@ CONTAINS
    REAL   , DIMENSION(3),INTENT(OUT) :: posit
    INTEGER,              INTENT(OUT) :: iprop
    INTEGER, DIMENSION(0:3),INTENT(OUT) :: isurface
+   REAL   , DIMENSION(0:3),INTENT(OUT) :: magn_mom
    INTEGER, DIMENSION(1:2),INTENT(OUT) :: iin_mole
 !
-   CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, iin_mole )
+   CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
 !
    END SUBROUTINE get_cryst_atom 
 !******************************************************************************
@@ -571,6 +574,7 @@ CONTAINS
    REAL   , DIMENSION(3) :: posit
    INTEGER, DIMENSION(0:3) :: isurface
    INTEGER, DIMENSION(1:2) :: iin_mole
+   REAL   , DIMENSION(0:3) :: magn_mom
    INTEGER               :: iprop
    INTEGER               :: i,j
    INTEGER               :: ia
@@ -785,6 +789,7 @@ CONTAINS
          itype = iscat_table(cr_iscat(inum))
          posit = cr_pos(:,inum)
          isurface(:) = cr_surf(:, inum)
+         magn_mom(:) = cr_magn(:, inum)
          IF(this%cr_sav_prop) THEN
             iprop = cr_prop (inum)
          ELSE
@@ -805,7 +810,7 @@ CONTAINS
                iin_mole(:) = 0
             ENDIF
          ENDIF
-         CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, iin_mole )
+         CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
       ELSE
          IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
             IF(cr_mole(inum)/=0) THEN
@@ -837,7 +842,7 @@ CONTAINS
             rd_cr_acentric, rd_cr_newtype, rd_cr_cartesian, rd_cr_sel_prop,             &
             rd_cr_scat, rd_cr_delfi , rd_cr_delfr, rd_cr_delf_int,                    &
             rd_cr_scat_int, rd_cr_scat_equ,                                             &
-            rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, rd_cr_mole                  &
+            rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, rd_cr_magn, rd_cr_mole      &
             )
 !
 !
@@ -925,6 +930,7 @@ CONTAINS
    INTEGER             , DIMENSION(  rd_NMAX)   , INTENT(IN) :: rd_cr_iscat
    INTEGER             , DIMENSION(  rd_NMAX)   , INTENT(IN) :: rd_cr_prop
    INTEGER             , DIMENSION(0:3,rd_NMAX) , INTENT(IN) :: rd_cr_surf
+   REAL                , DIMENSION(0:3,rd_NMAX) , INTENT(IN) :: rd_cr_magn
    INTEGER             , DIMENSION(    rd_NMAX) , INTENT(IN) :: rd_cr_mole
 !
    INTEGER, DIMENSION(:), ALLOCATABLE :: iscat_table
@@ -933,6 +939,7 @@ CONTAINS
    INTEGER               :: itype
    REAL   , DIMENSION(3) :: posit
    INTEGER, DIMENSION(0:3) :: isurface
+   REAL   , DIMENSION(0:3) :: magn_mom
    INTEGER, DIMENSION(1:2) :: iin_mole
    INTEGER               :: iprop
    INTEGER               :: i,j
@@ -1104,6 +1111,7 @@ CONTAINS
          itype = iscat_table(rd_cr_iscat(inum))
          posit = rd_cr_pos(:,inum)
          isurface(:) = rd_cr_surf(:,inum)
+         magn_mom(:) = rd_cr_magn(:,inum)
          IF(this%cr_sav_prop) THEN
             iprop = rd_cr_prop (inum)
          ELSE
@@ -1124,7 +1132,7 @@ CONTAINS
                iin_mole(:) = 0
             ENDIF
          ENDIF
-         CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, iin_mole )
+         CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
       ENDIF
    ENDDO
    this%cr_natoms = MIN(rd_cr_natoms,ia)
@@ -1429,17 +1437,19 @@ CONTAINS
    INTEGER               :: itype
    REAL   , DIMENSION(3) :: posit
    INTEGER, DIMENSION(0:3) :: isurface
+   REAL   , DIMENSION(0:3) :: magn_mom
    INTEGER, DIMENSION(1:2) :: iin_mole
    INTEGER               :: iprop
    INTEGER               :: ia
 !
    ia = 0
    DO inum=1,this%cr_natoms
-      CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, iin_mole )
+      CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
       ia = ia + 1
       cr_iscat(ia) = itype
       cr_pos(:,ia) = posit
       cr_surf(:,ia) = isurface(:)
+      cr_magn(:,ia) = magn_mom(:)
       cr_prop (ia) = iprop
       cr_mole (ia) = iin_mole(1)
    ENDDO
@@ -1448,7 +1458,7 @@ CONTAINS
    END SUBROUTINE get_atoms_from_crystal
 !******************************************************************************
    SUBROUTINE get_atoms_to_local( this, RD_NMAX, rd_cr_natoms,  &
-            rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, rd_cr_mole )
+            rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, rd_cr_magn, rd_cr_mole )
 !
 !  Get atom positions from internal crystal and copy them into
 !  local variables.
@@ -1461,6 +1471,7 @@ CONTAINS
    INTEGER, DIMENSION(1:RD_NMAX),    INTENT(INOUT)  :: rd_cr_prop
    REAL   , DIMENSION(1:3,1:RD_NMAX),INTENT(INOUT)  :: rd_cr_pos
    INTEGER, DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT)  :: rd_cr_surf
+   REAL   , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT)  :: rd_cr_magn
    INTEGER, DIMENSION(    1:RD_NMAX),INTENT(INOUT)  :: rd_cr_mole
 !                                                                       
 
@@ -1470,19 +1481,21 @@ CONTAINS
    INTEGER               :: itype
    REAL   , DIMENSION(3) :: posit
    INTEGER, DIMENSION(0:3) :: isurface
+   REAL   , DIMENSION(0:3) :: magn_mom
    INTEGER, DIMENSION(1:2) :: iin_mole
    INTEGER               :: iprop
    INTEGER               :: ia
 !
    ia = 0
    DO inum=1,this%cr_natoms
-      CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, iin_mole )
+      CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
       IF ( this%cr_sav_atom(itype)) THEN
          ia = ia + 1
          rd_cr_iscat(ia) = itype
          rd_cr_pos(:,ia) = posit
          rd_cr_prop (ia) = iprop
          rd_cr_surf(:,ia)= isurface(:)
+         rd_cr_magn(:,ia)= magn_mom(:)
          rd_cr_mole(  ia)= iin_mole(1)
       ENDIF
    ENDDO

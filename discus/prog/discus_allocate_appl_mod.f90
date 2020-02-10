@@ -902,6 +902,10 @@ USE precision_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
+      CALL alloc_arr ( cr_magn,0,3   ,1,n_max ,  all_status, 1.0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      cry_size_of = cry_size_of + size_of
+!
 !
       IF( lstat ) THEN                        ! Success
          MAXSCAT       = n_scat
@@ -2855,6 +2859,10 @@ END SUBROUTINE alloc_demol
       st_cr_size_of = st_cr_size_of + size_of
 !
       CALL alloc_arr ( st_surf ,0, 3,  1,n_max ,  all_status, 0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      st_cr_size_of = st_cr_size_of + size_of
+!
+      CALL alloc_arr ( st_magn ,0, 3,  1,n_max ,  all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !

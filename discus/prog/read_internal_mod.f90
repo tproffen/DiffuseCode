@@ -174,6 +174,7 @@ USE precision_mod
    INTEGER                       :: itype      ! type of current atom
    REAL   , DIMENSION(3)         :: posit      ! position of current atom
    INTEGER, DIMENSION(0:3)       :: isurface   ! surface  of current atom
+   REAL   , DIMENSION(0:3)       :: magn_mom   ! Magnetic moment
    INTEGER                       :: iprop      ! property of current atom
    REAL(KIND=PREC_DP), DIMENSION(5)         :: werte      ! temporary array
 !
@@ -371,7 +372,7 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
 main: do ia = 1, natoms
       werte    = 0.0
       cr_natoms = cr_natoms + 1
-      CALL read_temp%crystal%get_cryst_atom ( ia, itype, posit, iprop, isurface, iin_mole)
+      CALL read_temp%crystal%get_cryst_atom ( ia, itype, posit, iprop, isurface, magn_mom, iin_mole)
       CALL read_temp%crystal%get_cryst_scat ( ia, itype, at_name , dw1, occ1  )
 mole_exist: if(n_mole > 0) THEN
       CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
@@ -439,6 +440,7 @@ do_scat_dw: DO k = 1,cr_nscat
 !     cr_mole (cr_natoms) = i_mole                ! set the molecule number
       cr_mole (cr_natoms) = 0                     ! set the molecule number
       cr_surf(:,cr_natoms) = isurface               ! set the property flag
+      cr_magn(:,cr_natoms) = magn_mom               ! set magnetic vector
       cr_prop (cr_natoms) = iprop                 ! set the property flag
       CALL symmetry
    ENDDO main
@@ -539,7 +541,7 @@ ENDIF
 !*******************************************************************************
    SUBROUTINE struc_read_atoms_internal(strucfile, RD_NMAX, &
               rd_cr_natoms, rd_cr_pos, rd_cr_iscat, rd_cr_prop, &
-              rd_cr_surf, rd_cr_mole )
+              rd_cr_surf, rd_cr_magn, rd_cr_mole )
 !
 !  This subroutine adds all atoms from the internal storage to the local
 !  crystal rd_cr_pos. The number of atoms cr_natoms is incremented accordingly
@@ -553,6 +555,7 @@ ENDIF
    REAL                , DIMENSION(3,1:RD_NMAX) , INTENT(INOUT) :: rd_cr_pos
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_iscat
    INTEGER             , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT) :: rd_cr_surf
+   REAL                , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT) :: rd_cr_magn
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_prop
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_mole
 !
@@ -565,6 +568,7 @@ ENDIF
    INTEGER                       :: itype
    REAL   , DIMENSION(3)         :: posit
    INTEGER, DIMENSION(0:3)       :: isurface
+   REAL   , DIMENSION(0:3)       :: magn_mom
    INTEGER, DIMENSION(1:2)       :: iin_mole
    INTEGER                       :: iprop
 !
@@ -578,13 +582,14 @@ ENDIF
    CALL readstru_size_int(strucfile, natoms, &           ! Get the number of atoms
               nscat, n_mole, n_type, n_atom)
    DO i=1,natoms
-      CALL read_temp%crystal%get_cryst_atom(i, itype, posit, iprop, isurface, iin_mole)
+      CALL read_temp%crystal%get_cryst_atom(i, itype, posit, iprop, isurface, magn_mom, iin_mole)
       rd_cr_natoms = rd_cr_natoms + 1
       rd_cr_pos(1,rd_cr_natoms) = posit(1)
       rd_cr_pos(2,rd_cr_natoms) = posit(2)
       rd_cr_pos(3,rd_cr_natoms) = posit(3)
       rd_cr_iscat(rd_cr_natoms) = itype
       rd_cr_prop (rd_cr_natoms) = iprop 
+      rd_cr_magn(:,rd_cr_natoms) = magn_mom
       rd_cr_mole (rd_cr_natoms) = iin_mole(1) 
    ENDDO
 !
@@ -592,7 +597,7 @@ ENDIF
 !*******************************************************************************
    SUBROUTINE struc_read_one_atom_internal(strucfile, iatom,  &
               rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, &
-              rd_cr_mole, rd_cr_moleatom )
+              rd_cr_magn, rd_cr_mole, rd_cr_moleatom )
 !
 !  This subroutine reads just atom "iatom" from the internal storage.
 !  The atom is copied into internal storage
@@ -605,6 +610,7 @@ ENDIF
    INTEGER                            , INTENT(INOUT) :: rd_cr_iscat
    INTEGER                            , INTENT(INOUT) :: rd_cr_prop
    INTEGER             , DIMENSION(0:3),INTENT(INOUT) :: rd_cr_surf
+   REAL                , DIMENSION(0:3),INTENT(INOUT) :: rd_cr_magn
    INTEGER                             ,INTENT(INOUT) :: rd_cr_mole
    INTEGER                             ,INTENT(INOUT) :: rd_cr_moleatom
 !
@@ -628,7 +634,7 @@ ENDIF
    IF ( iatom <= natoms ) THEN
       i = iatom
       CALL read_temp%crystal%get_cryst_atom(i, rd_cr_iscat, rd_cr_pos, &
-           rd_cr_prop, rd_cr_surf, iin_mole)
+           rd_cr_prop, rd_cr_surf, rd_cr_magn, iin_mole)
       rd_cr_mole     = iin_mole(1)
       rd_cr_moleatom = iin_mole(2)
    ELSE

@@ -1601,7 +1601,7 @@ USE precision_mod
       iii = cr_natoms 
 !                                                                       
       CALL symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
-      cr_mole, ii, iii, iii, igg, NG, generators, generpower)                    
+      cr_mole, cr_magn, ii, iii, iii, igg, NG, generators, generpower)                    
 !                                                                       
       IF (ier_num.ne.0) then 
          RETURN 
@@ -1618,7 +1618,7 @@ USE precision_mod
       iii = cr_natoms 
 !                                                                       
       CALL symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
-      cr_mole, ii, iii, iii, igs, GEN_ADD_MAX, gen_add, gen_add_power)           
+      cr_mole, cr_magn, ii, iii, iii, igs, GEN_ADD_MAX, gen_add, gen_add_power)           
 !                                                                       
       IF (ier_num.ne.0) then 
          RETURN 
@@ -1642,7 +1642,7 @@ USE precision_mod
       iii = cr_natoms 
 !                                                                       
       CALL symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
-      cr_mole, ii, iii, iiii, igs, SYM_ADD_MAX, sym_add, sym_add_power)          
+      cr_mole, cr_magn, ii, iii, iiii, igs, SYM_ADD_MAX, sym_add, sym_add_power)          
 !                                                                       
       IF (ier_num.ne.0) then 
          RETURN 
@@ -1666,55 +1666,61 @@ USE precision_mod
 !********************************************************************** 
 !
 SUBROUTINE symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos,    &
-      cr_iscat, cr_prop, cr_mole, ii, iii, iiii, igg, NG, generators, &
-      generpower)          
+      cr_iscat, cr_prop, cr_mole, cr_magn, ii, iii, iiii, igg, NG,  &
+      generators, generpower)          
 !-                                                                      
 !     Applies the generator to the current atom                         
 !+                                                                      
-      USE molecule_mod 
-      USE trafo_mod
+USE molecule_mod 
+USE trafo_mod
 USE precision_mod
-      IMPLICIT none 
-!                                                                       
-      INTEGER,                       INTENT(IN)     ::  NMAX 
 !
-      INTEGER,                       INTENT(INOUT)  :: cr_iset
-      INTEGER,                       INTENT(INOUT)  :: cr_natoms
-      REAL   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
-      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
-      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
-      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
-      INTEGER                   ,    INTENT(IN)     :: ii
-      INTEGER                   ,    INTENT(IN)     :: iii
-      INTEGER                   ,    INTENT(IN)     :: iiii 
-      INTEGER                       ,INTENT(IN)     :: igg 
-      INTEGER                       ,INTENT(IN)     :: NG 
-      REAL   , DIMENSION(4,4,0:NG)  ,INTENT(IN)     :: generators! (4, 4, 0:NG) 
-      INTEGER, DIMENSION(NG)        ,INTENT(IN)     :: generpower! (NG) 
+IMPLICIT none 
 !                                                                       
-REAL, DIMENSION(4, 4) :: generator
+INTEGER,                       INTENT(IN)     ::  NMAX 
+!
+INTEGER,                       INTENT(INOUT)  :: cr_iset
+INTEGER,                       INTENT(INOUT)  :: cr_natoms
+REAL   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
+INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
+INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
+INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
+REAL   , DIMENSION(0:3,1:NMAX),INTENT(INOUT)  :: cr_magn
+INTEGER                   ,    INTENT(IN)     :: ii
+INTEGER                   ,    INTENT(IN)     :: iii
+INTEGER                   ,    INTENT(IN)     :: iiii 
+INTEGER                       ,INTENT(IN)     :: igg 
+INTEGER                       ,INTENT(IN)     :: NG 
+REAL   , DIMENSION(4,4,0:NG)  ,INTENT(IN)     :: generators! (4, 4, 0:NG) 
+INTEGER, DIMENSION(NG)        ,INTENT(IN)     :: generpower! (NG) 
 !                                                                       
-      INTEGER ia, iaa, ipg 
-      INTEGER i, j, k 
-      LOGICAL lnew 
-      REAL(KIND=PREC_SP) :: x (4)
-      REAL(KIND=PREC_SP) :: y (4)
-      REAL(KIND=PREC_DP) :: yy(4)
-      REAL wmat (4, 4) 
-      REAL xmat (4, 4) 
-      REAL eps 
-      REAL(KIND=PREC_DP) :: compare (4), previous (4) 
+REAL(KIND=PREC_SP), DIMENSION(4, 4) :: generator
 !                                                                       
-      DATA eps / 0.00001 / 
+INTEGER  :: ia, iaa, ipg 
+INTEGER  :: i, j, k 
+LOGICAL  :: lnew 
+REAL(KIND=PREC_SP), DIMENSION(4)   :: x    ! (4)
+REAL(KIND=PREC_SP), DIMENSION(4)   :: y    ! (4)
+REAL(KIND=PREC_DP), DIMENSION(4)   :: yy   ! (4)
+REAL(KIND=PREC_SP), DIMENSION(4)   :: mm   ! (4)     ! magnetic moment vector
+REAL(KIND=PREC_SP), DIMENSION(4,4) :: wmat ! (4, 4) 
+REAL(KIND=PREC_SP), DIMENSION(4,4) :: xmat ! (4, 4) 
+REAL  :: eps 
+REAL(KIND=PREC_DP) :: compare (4), previous (4) 
+!                                                                       
+DATA eps / 0.00001 / 
 !                                                                       
 !     For convenience create Identity operator                          
 !                                                                       
-      DO i = 1, 4 
-      DO j = 1, 4 
-      xmat (i, j) = 0.0 
-      ENDDO 
-      xmat (i, i) = 1.0 
-      ENDDO 
+!     DO i = 1, 4 
+!     DO j = 1, 4 
+!     xmat (i, j) = 0.0 
+!     ENDDO 
+!     ENDDO 
+xmat = 0.0   ! xmat(:,:) = 0.0
+DO i = 1, 4 
+   xmat (i, i) = 1.0 
+ENDDO 
 !
 ! Make a local copy of the generator to allow different space group settings
 !
@@ -1723,36 +1729,44 @@ CALL spcgr_setting(generator, cr_iset)
 !                                                                       
 !     Loop over all powers of generator igg                             
 !                                                                       
-      DO ipg = 1, generpower (igg) 
+lp_gener: DO ipg = 1, generpower (igg) 
 !                                                                       
 !     --raise power of generator, xmat is a dummy matrix, equal to      
 !     --the previous power of the generator                             
 !                                                                       
-      DO i = 1, 4 
+   DO i = 1, 4 
       DO j = 1, 4 
-      wmat (i, j) = 0.0 
-      DO k = 1, 4 
-      wmat (i, j) = wmat (i, j) + generator  (i, k     ) * xmat (k, j) 
-!     wmat (i, j) = wmat (i, j) + generators (i, k, igg) * xmat (k, j) 
+         wmat (i, j) = 0.0 
+         DO k = 1, 4 
+            wmat (i, j) = wmat (i, j) + generator  (i, k     ) * xmat (k, j) 
+!           wmat (i, j) = wmat (i, j) + generators (i, k, igg) * xmat (k, j) 
+         ENDDO 
       ENDDO 
-      ENDDO 
-      ENDDO 
+   ENDDO 
 !                                                                       
 !     --Multiply all points with current generator                      
 !                                                                       
-      DO iaa = ii, iiii 
+   lp_points: DO iaa = ii, iiii 
       DO i = 1, 3 
-      x (i) = cr_pos (i, iaa) 
+         x(i) = cr_pos(i, iaa) 
       ENDDO 
-      x (4) = 1.0 
-      CALL trans (x, wmat, y, 4) 
+      x(4) = 1.0 
+      CALL trans(x, wmat, y, 4) 
       DO i = 1, 3 
-      compare (i) = y (i) 
+         compare(i) = y(i) 
       ENDDO 
-      compare (4) = 1.0 
-      CALL firstcell (compare, 4) 
-         yy(:) = REAL(y)
-      IF (.not.mole_l_on) then 
+      compare(4) = 1.0 
+      CALL firstcell(compare, 4) 
+      yy(:) = REAL(y)
+!
+      IF(cr_magn(0,iaa) > 0.0) THEN
+         mm(1:3) = cr_magn(1:3,iaa)    ! Copy magnetic moment, ignore translations
+         mm(4)   = 0.0
+         CALL trans(mm, wmat, mm, 4) 
+      ELSE
+         mm = 0.0
+      ENDIF
+      IF(.not.mole_l_on) THEN 
 !                                                                       
 !     ------Transform atom into first unit cell,                        
 !           if it is not inside a molecule                              
@@ -1760,20 +1774,20 @@ CALL spcgr_setting(generator, cr_iset)
          CALL firstcell (yy, 4) 
       ENDIF 
       lnew = .true. 
-      DO ia = ii, cr_natoms 
+      lp_atom: DO ia = ii, cr_natoms 
 !      DO ia = ii, iii 
-      DO i = 1, 3 
-      previous (i) = cr_pos (i, ia) 
-      ENDDO 
-      previous (4) = 1.0 
-      CALL firstcell (previous, 4) 
+         DO i = 1, 3 
+            previous(i) = cr_pos(i, ia) 
+         ENDDO 
+         previous(4) = 1.0 
+         CALL firstcell (previous, 4) 
 !     ------check if atom exists                                        
-      IF((    abs (compare (1) - previous (1) ) .lt.eps .OR.        &
-          ABS(abs (compare (1) - previous (1) )-1.) .lt.eps) .AND.  &
-         (    abs (compare (2) - previous (2) ) .lt.eps .OR.        &
-          ABS(abs (compare (2) - previous (2) )-1.) .lt.eps) .AND.  &
-         (    abs (compare (3) - previous (3) ) .lt.eps .OR.        &
-          ABS(abs (compare (3) - previous (3) )-1.) .lt.eps)  ) THEN
+         IF((    abs (compare (1) - previous (1) ) .lt.eps .OR.        &
+             ABS(abs (compare (1) - previous (1) )-1.) .lt.eps) .AND.  &
+            (    abs (compare (2) - previous (2) ) .lt.eps .OR.        &
+             ABS(abs (compare (2) - previous (2) )-1.) .lt.eps) .AND.  &
+            (    abs (compare (3) - previous (3) ) .lt.eps .OR.        &
+             ABS(abs (compare (3) - previous (3) )-1.) .lt.eps)  ) THEN
 !
 !      IF ((abs (compare (1) - previous (1) ) .lt.eps.and.  &
 !           abs (compare (2) - previous (2) ) .lt.eps.and.  &
@@ -1781,11 +1795,12 @@ CALL spcgr_setting(generator, cr_iset)
 !      (ABS(abs (compare (1) - previous (1) )-1.) .lt.eps.and.  &
 !       ABS(abs (compare (2) - previous (2) )-1.) .lt.eps.and.  &
 !       ABS(abs (compare (3) - previous (3) )-1.) .lt.eps)       ) THEN
-         lnew = .false. 
-         GOTO 30 
-      ENDIF 
-      ENDDO 
-   30 CONTINUE 
+            lnew = .false. 
+!           GOTO 30 
+            EXIT lp_atom
+         ENDIF 
+      ENDDO lp_atom
+!  30 CONTINUE 
 !                                                                       
 !     ------insert atom into crystal                                    
 !                                                                       
@@ -1798,23 +1813,27 @@ CALL spcgr_setting(generator, cr_iset)
             cr_iscat (cr_natoms) = cr_iscat (ii) 
             cr_mole (cr_natoms) = cr_mole (ii) 
             cr_prop (cr_natoms) = cr_prop (ii) 
+            cr_magn(0, cr_natoms) = cr_magn(0, ii)
+            cr_magn(1:3, cr_natoms) = mm(1:3)
          ELSE 
             ier_num = -10 
             ier_typ = ER_APPL 
             RETURN 
          ENDIF 
       ENDIF 
-      ENDDO 
+   ENDDO lp_points
 !                                                                       
 !     set xmat to current power of generator                            
 !                                                                       
-      DO i = 1, 4 
-      DO j = 1, 4 
-      xmat (i, j) = wmat (i, j) 
-      ENDDO 
-      ENDDO 
+!     DO i = 1, 4 
+!     DO j = 1, 4 
+!     xmat (i, j) = wmat (i, j) 
+!     ENDDO 
+!     ENDDO 
+   xmat = wmat  ! xmat:,:) = wmat(:,:)
 !     --End of loop over all powers                                     
-      ENDDO 
+ENDDO lp_gener
+!
       END SUBROUTINE symmetry_gener                 
 !********************************************************************** 
       SUBROUTINE mole_insert (ii) 

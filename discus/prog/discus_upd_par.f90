@@ -464,6 +464,21 @@ CALL no_error
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
+         ELSEIF (string (ikl - 4:ikl - 1) .eq.'magn') THEN   ! MAGNETIC_WORK
+            IF (ianz.eq.2) THEN 
+               IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms .AND. &
+                  0<=kpara2 .AND. kpara2 <=3                                 ) THEN
+                  WRITE(zeile(ikl - 4:ikl + PREC_WIDTH-2) , PREC_F_REAL) cr_magn(kpara2,kpara)
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+               ELSE 
+                  ier_num = - 8 
+                  ier_typ = ER_FORT 
+               ENDIF 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'menv') THEN 
             IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string(1:ikl - lcomm - 1)
@@ -763,6 +778,28 @@ CALL no_error
                   ier_num = -50
                   ier_typ = ER_FORT 
                ENDIF 
+            ELSE 
+               ier_num = -8 
+               ier_typ = ER_FORT 
+            ENDIF 
+         ELSE 
+            ier_num = -13 
+            ier_typ = ER_FORT 
+            RETURN 
+         ENDIF 
+      ELSEIF(ctype == 'magn') THEN     ! MAGNETIC_WORK
+         IF(ianz == 2) THEN 
+            IF (1 <= ww(1) .AND. ww(1) <= cr_natoms .AND.       &
+                1 <= ww(2) .AND. ww(2) <=3              ) THEN 
+               cr_magn(ww(2), ww(1)) = wert
+               IF(cr_magn(1,ww(1))==0.0 .AND. cr_magn(2,ww(1))==0.0 .AND. &
+                  cr_magn(3,ww(1))==0.0                                ) THEN
+                  cr_magn(0,ww(1)) = 0.00
+!                 cr_prop(ww(1)) = IBCLR(cr_prop(ww(1)), PROP_SURFACE_EXT)
+!              ELSE
+!                 IF(cr_magn(0,ww(1)) == 0.0 ) cr_magn(0,ww(1)) = SURF_LOCAL
+!                 cr_prop(ww(1)) = IBSET(cr_prop(ww(1)), PROP_SURFACE_EXT)
+               ENDIF
             ELSE 
                ier_num = -8 
                ier_typ = ER_FORT 
@@ -1672,7 +1709,7 @@ CHARACTER(LEN=*)     , INTENT(IN)  :: line
 INTEGER              , INTENT(IN)  :: length
 INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
 !
-INTEGER, PARAMETER :: MAXPAR = 27
+INTEGER, PARAMETER :: MAXPAR = 28
 CHARACTER(LEN=16), DIMENSION(MAXPAR) :: discus_names
 INTEGER          , DIMENSION(MAXPAR) :: discus_type
 INTEGER          , DIMENSION(MAXPAR) :: discus_dim
@@ -1683,7 +1720,7 @@ DATA discus_names  &
     /'pdf_scal', 'pdf_dens', 'mol_type', 'mol_dens', 'mol_cont', &
      'mol_cqua', 'mol_clin',                                     &
      'mol_biso', 'mol_len ', 'in_mole ', 'at_type ', 'at_name ', &
-     'sym_n   ', 'rvol    ', 'menv    ', 'cdim    ', 'surf    ', 'vol     ', &
+     'sym_n   ', 'rvol    ', 'menv    ', 'magn'    , 'cdim    ', 'surf    ', 'vol     ', &
      'occ     ', 'lat     ', 'env     ', 'z       ', 'y       ', &
      'x       ', 'n       ', 'm       ', 'b       '              &
     /
@@ -1691,7 +1728,7 @@ DATA discus_type &
     /  IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_INTE , &
        IS_REAL ,   IS_REAL ,                                     &
        IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_CHAR ,   IS_CHAR , &
-       IS_INTE ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_INTE , IS_REAL , &
+       IS_INTE ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL ,   IS_INTE , IS_REAL , &
        IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL , &
        IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_REAL               &
     /
@@ -1699,7 +1736,7 @@ DATA discus_dim  &
     /  IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  , &
        IS_VEC  ,   IS_VEC  ,                                     &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
-       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  ,   IS_ARR  , IS_VEC  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  ,   IS_ARR  ,   IS_ARR  , IS_VEC  , &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC                &
     /
@@ -1707,7 +1744,7 @@ DATA discus_ro  &
     /  .FALSE. ,   .FALSE. ,   .FALSE. ,   .FALSE. ,   .TRUE.  , &
        .FALSE. ,   .FALSE. ,                                     &
        .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
-       .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .FALSE. , .TRUE.  , &
+       .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .FALSE. ,   .TRUE.  ,   .FALSE. , .TRUE.  , &
        .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE. , &
        .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE.               &
     /

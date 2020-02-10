@@ -416,14 +416,24 @@ IF(ier_num == 0) THEN
 !     --List atom environment                                           
 !                                                                       
    IF(str_comp(cpara(2), 'envi', 1, lpara(2), 4) ) THEN 
-      WRITE(output_io, 3000) 
+      IF(cr_magnetic) THEN
+         WRITE(output_io, 4000) 
+      ELSE
+         WRITE(output_io, 3000) 
+      ENDIF
       DO l = 1, atom_env(0) 
          i = atom_env(l) 
          at_name_d = at_name(cr_iscat(i) ) 
          CALL char_prop_1(c_property, cr_prop(i), length) 
+         IF(cr_magn(0,i)>0.0) THEN
+         WRITE(output_io, 5010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
+            cr_pos(3, i), cr_dw(cr_iscat(i)), i, cr_mole(i),         &
+            c_property(1:length), cr_occ(cr_iscat(i)), cr_magn(0:3,i)
+         ELSE
          WRITE(output_io, 3010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
             cr_pos(3, i), cr_dw(cr_iscat(i)), i, cr_mole(i),         &
             c_property(1:length), cr_occ(cr_iscat(i))
+         ENDIF
          DO k=1,3
             ioffset(k) = NINT(atom_pos(k,l)-cr_pos(k,i))
          ENDDO
@@ -441,15 +451,27 @@ IF(ier_num == 0) THEN
             iend = NINT(werte(3)) 
          ENDIF 
          iend = MIN(iend, cr_natoms) 
-         WRITE(output_io, 3000) 
+         IF(cr_magnetic) THEN
+            WRITE(output_io, 4000) 
+         ELSE
+            WRITE(output_io, 3000) 
+         ENDIF
          DO i = istart, iend 
             at_name_d = at_name(cr_iscat(i)) 
             CALL char_prop_1(c_property, cr_prop(i), length) 
-            WRITE(output_io, 3010) at_name_d, cr_pos(1, i),     &
-            cr_pos(2, i), cr_pos(3, i), cr_dw(cr_iscat(i)),     &
-            i, cr_mole(i),                                      &
-            c_property(1:length), cr_occ(cr_iscat(i)),          &
-            c_surf(cr_surf(0,i)), cr_surf(1:3,i)
+            IF(cr_magn(0,i)>0.0) THEN
+            WRITE(output_io, 4010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
+               cr_pos(3, i), cr_dw(cr_iscat(i)), i, cr_mole(i),         &
+               c_property(1:length), cr_occ(cr_iscat(i)),               &
+               c_surf(cr_surf(0,i)), cr_surf(1:3,i),                    &
+               cr_magn(0:3,i)
+            ELSE
+               WRITE(output_io, 3010) at_name_d, cr_pos(1, i),     &
+               cr_pos(2, i), cr_pos(3, i), cr_dw(cr_iscat(i)),     &
+               i, cr_mole(i),                                      &
+               c_property(1:length), cr_occ(cr_iscat(i)),          &
+               c_surf(cr_surf(0,i)), cr_surf(1:3,i)
+            ENDIF
          ENDDO 
       ELSE 
          ier_num = - 6 
@@ -461,6 +483,10 @@ ENDIF
  3000 FORMAT    (' Name',11x,'x',13x,'y',13x,'z',13x,'B',12x,'Number',&
                  3x,'Molecule Property  Occupancy Surf(Type,HKL)') 
  3010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6, 2x, A1,3(1x,I3 ))
+ 4000 FORMAT    (' Name',11x,'x',13x,'y',13x,'z',13x,'B',12x,'Number',&
+                 3x,'Molecule Property  Occupancy Surf(Type,HKL) Magn(Mom,UVW)') 
+ 4010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6, 2x, A1,3(1x,I3 ), 1x, 4(1x,f5.2))
+ 5010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6, 2x, 13x         , 1x, 4(1x,f5.2))
  3020 FORMAT    ( 3x  ,3(8x,i6   )              ) 
 !
 END SUBROUTINE do_show_atom                   
