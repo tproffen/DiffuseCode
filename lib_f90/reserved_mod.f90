@@ -4,7 +4,7 @@ IMPLICIT NONE
 SAVE
 !
 INTEGER, PARAMETER :: lib_reserved_n    = 92
-INTEGER, PARAMETER :: discus_reserved_n = 42 
+INTEGER, PARAMETER :: discus_reserved_n = 43 
 INTEGER, PARAMETER :: diffev_reserved_n = 24
 INTEGER, PARAMETER :: refine_reserved_n =  1
 INTEGER, PARAMETER :: kuplot_reserved_n = 26
@@ -51,7 +51,8 @@ DATA discus_reserved /                                                  &
 'scalpro'       , 'mc_rad'        , 'md_num'        , 'md_cre'        , &
 'mc_num'        , 'md_rad'        , 'mr_run'        , 'dstar'         , &
 'sym_n'         , 'bang'          , 'blen'          , 'cdim'          , &
-'menv'          , 'rang'          , 'rlat'          , 'rvol'          , &
+'magn'          , 'menv'          , 'rang'          , 'rlat'          , &
+'rvol'          ,                                                       &
 'occ'           , 'env'           , 'lat'           , 'vol'           , &
 'b'             , 'm'             , 'n'             , 'x'             , &
 'y'             , 'z'                                                   &
