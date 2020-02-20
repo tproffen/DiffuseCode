@@ -642,47 +642,58 @@ END SUBROUTINE plot_cif
 !                                                                       
       END SUBROUTINE plot_kuplot_mol                
 !*****7*****************************************************************
-      SUBROUTINE write_atom (lkupl, iff, iatom, x, y, z, pt, pc, ps) 
+SUBROUTINE write_atom (lkupl, iff, iatom, x, y, z, pt, pc, ps) 
 !                                                                       
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE celltoindex_mod
-!     USE modify_mod
-      USE discus_plot_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE chem_mod
+USE crystal_mod 
+USE celltoindex_mod
+USE discus_plot_mod 
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      REAL x, y, z, ps 
-      INTEGER cr_end 
-      INTEGER i, pt, pc, iff, iatom, isite, icell (3) 
-      LOGICAL lkupl 
+REAL    :: x, y, z, ps 
+INTEGER :: cr_end 
+INTEGER :: i, pt, pc, iff, iatom, isite, icell (3) 
+LOGICAL :: lkupl 
 !                                                                       
-      cr_end = cr_ncatoms*cr_icc(1) * cr_icc(2)*cr_icc(3) + 1
+cr_end = cr_ncatoms*cr_icc(1) * cr_icc(2)*cr_icc(3) + 1
 !                                                                       
-      IF (pl_dens) then 
-         IF (iatom.lt.cr_end) then 
-            CALL indextocell (iatom, icell, isite) 
-         ELSE 
-            DO i = 1, 3 
-            icell (i) = int (cr_pos (i, iatom) - cr_dim0 (i, 1) ) + 1
-            ENDDO 
-         ENDIF 
-         x = x - REAL(icell (1) - 1) - cr_dim0 (1, 1) 
-         y = y - REAL(icell (2) - 1) - cr_dim0 (2, 1) 
-         z = z - REAL(icell (3) - 1) - cr_dim0 (3, 1) 
-      ENDIF 
-!                                                                       
-      IF (lkupl) then 
-         WRITE (iff, 1000) x, y, z, pt, pc, ps 
+IF (pl_dens) then 
+   IF(chem_quick) THEN      !Fast chem mode
+      IF (iatom.lt.cr_end) then 
+         CALL indextocell (iatom, icell, isite) 
       ELSE 
-         WRITE (iff, 2000) x, y, z 
+         DO i = 1, 3 
+         icell (i) = int (cr_pos (i, iatom) - cr_dim0 (i, 1) ) + 1
+         ENDDO 
       ENDIF 
+      x = x - REAL(icell (1) - 1) - cr_dim0 (1, 1) 
+      y = y - REAL(icell (2) - 1) - cr_dim0 (2, 1) 
+      z = z - REAL(icell (3) - 1) - cr_dim0 (3, 1) 
+   ELSE
+      x = x - REAL(INT(x))
+      y = y - REAL(INT(y))
+      z = z - REAL(INT(z))
+      x = x+1.25 - REAL(INT(x+1.25)) - 0.25
+      y = y+1.25 - REAL(INT(y+1.25)) - 0.25
+      z = z+1.25 - REAL(INT(z+1.25)) - 0.25
+   ENDIF 
+ENDIF 
+!                                                                       
+IF (lkupl) then 
+   WRITE (iff, 1000) x, y, z, pt, pc, ps 
+ELSE 
+   WRITE (iff, 2000) x, y, z 
+ENDIF 
 !                                                                       
  1000 FORMAT  (3(2x,f12.6),2(2x,i2),2x,f6.2) 
  2000 FORMAT  (3(2x,f12.6)) 
-      END SUBROUTINE write_atom                     
+!
+END SUBROUTINE write_atom                     
+!
 !*****7*****************************************************************
+!
       SUBROUTINE plot_xbs (iff) 
 !-                                                                      
 !     Writes the selected atoms in a format suitable for plotting       
