@@ -60,7 +60,8 @@ INTEGER lp, length
 INTEGER :: ianz, i, j, is, it, ic, lbef 
 !      INTEGER :: npoly     
 INTEGER indxg 
-INTEGER         :: nscat
+INTEGER         :: nscat = 1
+INTEGER         :: nsite = 1
 INTEGER         :: ios
 
 LOGICAL lend, l_select 
@@ -210,10 +211,12 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                IF(cr_nscat > PL_MAXSCAT .or. mole_num_type > PL_MAXSCAT .OR. & 
                   MAXSCAT > PL_MAXSCAT ) THEN
                   nscat = MAX(cr_nscat, mole_num_type, MAXSCAT)
-                  CALL alloc_plot(nscat )
+                  nsite = MAX(cr_ncatoms, MAXSCAT)
+                  CALL alloc_plot(nscat, nsite )
                   IF(ier_num < 0) THEN
                      RETURN
                   ENDIF
+                  PL_MAXSITE = UBOUND(pl_lsite,1)
                ENDIF
 !                                                                       
 !     ----Select the abscissa for a projection onto a to plot           
@@ -283,6 +286,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         str_comp (befehl, 'dese', 2, lbef, 4) ) then
 !                                                                       
                   CALL atom_select (zeile, lp, 0, PL_MAXSCAT, pl_latom, &
+                  pl_lsite, 0, PL_MAXSITE, &
                   pl_sel_atom, lold,        &
                   str_comp (befehl, 'sele', 3, lbef, 4) )               
 !                                                                       
@@ -332,9 +336,11 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ENDDO 
                      zeile = cpara (1) (1:lpara (1) ) 
                      CALL atom_select (zeile, lp, 0, MAXSCAT, pl_batom_a, &
+                     pl_lsite, 0, PL_MAXSITE, &
                      pl_sel_atom, lold,  .true.)
                      zeile = cpara (2) (1:lpara (2) ) 
                      CALL atom_select (zeile, lp, 0, MAXSCAT, pl_batom_e, &
+                     pl_lsite, 0, PL_MAXSITE, &
                      pl_sel_atom, lold, .true.)
                      CALL del_params (2, ianz, cpara, lpara, maxw) 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -1773,7 +1779,7 @@ IMPLICIT NONE
 !
 INTEGER :: ik
 !
-CALL alloc_plot(1)
+CALL alloc_plot(1, 1)
 !
 pl_init  = .TRUE.
 pl_jmol  = ' '
@@ -1802,6 +1808,7 @@ pl_sel_prop     = (/0,0/)
 pl_typ(:)       = 3
 pl_color(:)     = 0
 pl_latom(:)     = .FALSE. 
+pl_lsite(:)     = .TRUE.  
 pl_batom_a(:)   = .FALSE.   ! 
 pl_batom_e(:)   = .FALSE.   ! 
 pl_poly_n       = 0  ! Number of polyhedra definitions

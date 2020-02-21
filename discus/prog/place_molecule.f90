@@ -13,6 +13,7 @@ SUBROUTINE do_place_molecule
 !
 !   Main menu and procedures to place molecules onto a surface
 !
+USE crystal_mod
    USE deco_mod
    USE discus_allocate_appl_mod
    USE modify_mod
@@ -154,8 +155,12 @@ main_loop: DO
                   IF(MAXSCAT > UBOUND(dc_latom,1)) THEN
                      lalloc = .TRUE.
                   ENDIF
+                  DC_MAXSITE = MAX(DC_MAXSITE, cr_ncatoms, MAXSCAT)
+                  IF(DC_MAXSITE > UBOUND(dc_lsite,1)) THEN
+                     lalloc = .TRUE.
+                  ENDIF
                   IF(lalloc) THEN
-                     CALL alloc_deco(MAXSCAT, DCC_MAXNUM, DCC_MAXANCH, DCC_MAXHKL, DCC_MAXNEW, DCC_MAXMSCAT)
+                     CALL alloc_deco(MAXSCAT, DC_MAXSITE, DCC_MAXNUM, DCC_MAXANCH, DCC_MAXHKL, DCC_MAXNEW, DCC_MAXMSCAT)
                   ENDIF
 !
 !----------------------------------------------------------------------------------
@@ -167,7 +172,7 @@ main_loop: DO
                   IF(ladd) THEN
                      IF(dcc_num == DCC_MAXNUM) THEN
                         n_num = DCC_MAXNUM + 5
-                        CALL alloc_deco(MAXSCAT, n_num, DCC_MAXANCH, DCC_MAXHKL, DCC_MAXNEW, DCC_MAXMSCAT)
+                        CALL alloc_deco(MAXSCAT, DC_MAXSITE, n_num, DCC_MAXANCH, DCC_MAXHKL, DCC_MAXNEW, DCC_MAXMSCAT)
                      ENDIF
                         IF(ier_num == 0 ) THEN
                            dcc_num = dcc_num + 1
@@ -205,6 +210,7 @@ main_loop: DO
               ELSEIF (str_comp (befehl, 'sel', 3, lbef, 3) .or.  &
                       str_comp (befehl, 'del', 3, lbef, 3)     ) THEN
                   CALL atom_select (zeile, lp, 0,  DC_MAXSCAT,  dc_latom, &
+                  dc_lsite, 0, DC_MAXSITE,                                &
                   dc_sel_atom , lold  ,   &
                   str_comp (befehl, 'sel', 2, lbef, 3) )
 !
@@ -468,7 +474,7 @@ USE take_param_mod
 !        ELSE ! SUCCESS
             IF(janz > UBOUND(dcc_surf,2)) THEN
                n_anch = janz+4
-               CALL alloc_deco(MAXSCAT, DCC_MAXNUM, n_anch     , DCC_MAXHKL, DCC_MAXNEW, DCC_MAXMSCAT)
+               CALL alloc_deco(MAXSCAT, DC_MAXSITE, DCC_MAXNUM, n_anch     , DCC_MAXHKL, DCC_MAXNEW, DCC_MAXMSCAT)
                IF(ier_num /= 0) RETURN
             ENDIF
             DO i=1,janz
@@ -589,7 +595,7 @@ USE take_param_mod
          ENDIF
          IF(dcc_hkl(1,0,temp_num)+temp_nhkl  > UBOUND(dcc_hkl,2)) THEN
             n_hkl = dcc_hkl(j,0,temp_num)+temp_nhkl
-            CALL alloc_deco(MAXSCAT, DCC_MAXNUM, DCC_MAXANCH, n_hkl    , DCC_MAXNEW, DCC_MAXMSCAT)
+            CALL alloc_deco(MAXSCAT, DC_MAXSITE, DCC_MAXNUM, DCC_MAXANCH, n_hkl    , DCC_MAXNEW, DCC_MAXMSCAT)
             IF(ier_num /= 0) RETURN
          ENDIF
          j = dcc_hkl(j,0,temp_num)
@@ -612,7 +618,7 @@ USE take_param_mod
       IF(ier_num/=0) RETURN
       IF(dcc_surfnew(0,temp_num)+ianz>UBOUND(dcc_surfnew,1)) THEN
          n_surfnew = dcc_surfnew(0,temp_num)+ianz
-         CALL alloc_deco(MAXSCAT, DCC_MAXNUM, DCC_MAXANCH, DCC_MAXHKL, n_surfnew, DCC_MAXMSCAT)
+         CALL alloc_deco(MAXSCAT, DC_MAXSITE, DCC_MAXNUM, DCC_MAXANCH, DCC_MAXHKL, n_surfnew, DCC_MAXMSCAT)
          IF(ier_num /= 0) RETURN
       ENDIF
       i = dcc_surfnew(0,temp_num)
@@ -839,7 +845,8 @@ USE precision_mod
 INTEGER  :: dc_temp_natoms   ! Number of atoms in the ligand molecule
    INTEGER   :: natoms                 ! number of atoms in connectivity
    INTEGER   :: natoms_prior           ! number of atoms in shell prior to decoration
-   INTEGER   :: n_scat                 ! Dummy maximum scattering types
+   INTEGER   :: n_scat = 1             ! Dummy maximum scattering types
+   INTEGER   :: n_site = 1             ! Dummy maximum scattering types
    INTEGER   :: n_corr                 ! Dummy maximum correlation number
    INTEGER   :: nscat_old              ! maximum scattering types prior to modifying anchors
    INTEGER   :: nscat_tmp              ! maximum scattering types prior to current anchors
@@ -1180,7 +1187,8 @@ ENDIF
 !
          n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR)
          n_scat = MAX(MAXSCAT, MMC_MAX_SCAT)
-         CALL alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )       ! Basic mmc allocation
+         n_site = MAX(MAXSCAT, MMC_MAX_SITE, cr_ncatoms)
+         CALL alloc_mmc ( n_corr, MC_N_ENERGY, n_scat, n_site )       ! Basic mmc allocation
          CALL mmc_init
          ianz = 1
          cpara(1) = 'rese'                                    ! Prepare "set con, reset"
@@ -1230,7 +1238,7 @@ ENDIF
          IF(1 > MMC_REP_CORR .or.  1 > CHEM_MAX_COR  .or. &   ! Allocate Repulsive
             MAXSCAT > MMC_REP_SCAT                         ) THEN
             n_corr = MAX(n_corr, CHEM_MAX_COR, MMC_REP_CORR)
-            n_scat = MAX(MAXSCAT,MMC_REP_SCAT)
+            n_scat = MAX(MAXSCAT,MMC_REP_SCAT, cr_ncatoms)
             CALL alloc_mmc_rep (n_corr, n_scat)
 !              IF(ier_num /= 0) THEN                             ! Does not seem to fail :-)
 !                 RETURN
@@ -1837,7 +1845,7 @@ main: DO i=1, dcc_num
    dcc_natoms(i) = cr_natoms         ! Store number of atoms in this molecule
    IF(cr_nscat > DCC_MAXMSCAT .OR. cr_nscat > UBOUND(dcc_atom_name,1)) THEN
       n_mscat = cr_nscat + 5
-      CALL alloc_deco(MAXSCAT, DCC_MAXNUM, DCC_MAXANCH, DCC_MAXHKL, DCC_MAXNEW, n_mscat)
+      CALL alloc_deco(MAXSCAT, DC_MAXSITE, DCC_MAXNUM, DCC_MAXANCH, DCC_MAXHKL, DCC_MAXNEW, n_mscat)
       IF(ier_num /= 0) RETURN
    ENDIF
    dcc_atom_name(0:cr_nscat,i) = cr_at_lis(0:cr_nscat)
@@ -2023,7 +2031,7 @@ use discus_allocate_appl_mod
 IMPLICIT none
 !
 !  INTEGER :: istatus
-CALL alloc_deco(MAXSCAT, 4, 3, 3, 2, 3)
+CALL alloc_deco(MAXSCAT, 1, 4, 3, 3, 2, 3)
 !
 dcc_num = 0
 IF(ALLOCATED(dcc_name))         dcc_name      (    :) = ' '
@@ -2059,6 +2067,7 @@ IF(ALLOCATED(dcc_tilt_is_auto)) dcc_tilt_is_auto(:) = .TRUE.    ! Tilt angle for
 !
 dc_init        = .true.    ! We need to initialize
 dc_latom(:)    = .false.
+dc_lsite(:)    = .TRUE.
 !
 END SUBROUTINE deco_reset
 !
@@ -4432,11 +4441,13 @@ USE crystal_mod
    USE symm_mod
 !
    IMPLICIT NONE
-   INTEGER   :: nscat     ! dummy for allocation
+   INTEGER   :: nscat = 1 ! dummy for allocation
+   INTEGER   :: nsite = 1 ! dummy for allocation
 !
    IF( cr_nscat > SYM_MAXSCAT .or. mole_num_type > SYM_MAXSCAT) THEN
       nscat = max ( cr_nscat+10, mole_num_type)
-      CALL alloc_symmetry ( nscat )
+      nsite = MAX(nsite, cr_ncatoms, SYM_MAXSITE)
+      CALL alloc_symmetry ( nscat, nsite )
       IF ( ier_num < 0 ) THEN
          RETURN
       ENDIF

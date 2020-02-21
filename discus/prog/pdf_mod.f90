@@ -21,12 +21,14 @@ INTEGER, PARAMETER :: PDF_DO_FIT  = 1 ! Refine    PDF
 INTEGER, PARAMETER :: PDF_DO_SHOW = 2 ! Show PDF, mode not yet known
 !
 INTEGER             ::  PDF_MAXSCAT      = 1
+INTEGER             ::  PDF_MAXSITE      = 1
 INTEGER             ::  PDF_MAXDAT       = 1
 INTEGER             ::  PDF_MAXBND       = 1
 INTEGER             ::  PDF_MAXTEMP      = 1
 INTEGER             ::  PDF_MAXSINCC     = 2**12+1
 !
 INTEGER             ::  pdf_nscat = 1
+INTEGER             ::  pdf_nsite = 1
 INTEGER             ::  pdf_ndat  = 1
 INTEGER             ::  pdf_nbnd  = 1
 INTEGER             ::  pdf_ntemp = 1
@@ -101,6 +103,8 @@ REAL(PREC_DP), PARAMETER ::  pdf_gauss_step = 0.0005d0
 LOGICAL             ::  pdf_2d     = .false.
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_i ! (0:PDF_MAXSCAT)
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_j ! (0:PDF_MAXSCAT)
+LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_lsite_i   ! (0:PDF_MAXSCAT)
+LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_lsite_j   ! (0:PDF_MAXSCAT)
 INTEGER, DIMENSION(:),ALLOCATABLE  ::  pdf_has_atom  ! (0:PDF_MAXSCAT)
 INTEGER, DIMENSION(:,:),ALLOCATABLE  ::  pdf_look_mol ! (0:PDF_MAXSCAT)
 REAL,    DIMENSION(:)  , ALLOCATABLE ::  pdf_bvalue_mole ! effective mol bvalues

@@ -9,6 +9,7 @@ SAVE
 !
 INTEGER, PRIVATE    :: ik
 INTEGER                                   :: PL_MAXSCAT = 1
+INTEGER                                   :: PL_MAXSITE = 1
 !
 CHARACTER(LEN=1024)  :: pl_jmol  = ' '
 CHARACTER(LEN= 200)  :: pl_out   = 'plot.cif'
@@ -49,6 +50,7 @@ INTEGER, DIMENSION(0:1)                   :: pl_sel_prop  = (/0,0/)
 INTEGER, DIMENSION(:), ALLOCATABLE        :: pl_typ       ! (0:MAXSCAT)
 INTEGER, DIMENSION(:), ALLOCATABLE        :: pl_color     ! (0:MAXSCAT)
 LOGICAL, DIMENSION(:), ALLOCATABLE        :: pl_latom     ! (0:MAXSCAT)
+LOGICAL, DIMENSION(:), ALLOCATABLE        :: pl_lsite     ! (0:cr_ncatoms)
 LOGICAL, DIMENSION(:), ALLOCATABLE        :: pl_batom_a   ! (0:MAXSCAT)
 LOGICAL, DIMENSION(:), ALLOCATABLE        :: pl_batom_e   ! (0:MAXSCAT)
 INTEGER                                   :: pl_poly_n    ! Number of polyhedra definitions

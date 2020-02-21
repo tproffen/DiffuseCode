@@ -8,6 +8,7 @@ SAVE
 !
 INTEGER                 :: RMC_MAX_PLANES    = 1
 INTEGER                 :: RMC_MAXSCAT       = 1
+INTEGER                 :: RMC_MAXSITE       = 1
 INTEGER                 :: RMC_MAX_Q         = 1
 INTEGER                 :: RMC_MAX_SQ        = 1
 INTEGER                 :: RMC_MAX_LOTS      = 1
@@ -46,6 +47,7 @@ REAL   , DIMENSION(RMC_N_MOVE)          ::  rmc_move_prob  = 0.0 ! (RMC_N_MOVE)
 REAL   , DIMENSION(RMC_N_MOVE)          ::  rmc_move_cprob = 0.0 ! (RMC_N_MOVE)
 !
 LOGICAL, DIMENSION(:), ALLOCATABLE                 :: rmc_allowed   ! (0:RMC_MAXSCAT)
+LOGICAL, DIMENSION(:), ALLOCATABLE                 :: rmc_lsite     ! (0:RMC_MAXSCAT)
 !
 CHARACTER (LEN=80), DIMENSION(:), ALLOCATABLE     :: rmc_fname      ! (RMC_MAX_PLANES)
 CHARACTER (LEN= 4), DIMENSION(:), ALLOCATABLE     :: rmc_lambda     ! (RMC_MAX_PLANES)

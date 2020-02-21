@@ -20,10 +20,12 @@ INTEGER, PARAMETER  ::  WV_TRIANGLE  =  3
 CHARACTER(LEN=4)    ::  wv_func      = 'sinu'
 !
 INTEGER             ::  WV_MAXSCAT = 1
+INTEGER             ::  WV_MAXSITE = 1
 !
 INTEGER,          DIMENSION(:), ALLOCATABLE  ::  wv_repl      ! (0:WV_MAXSCAT)
 LOGICAL,          DIMENSION(:), ALLOCATABLE  ::  wv_latom     ! (0:WV_MAXSCAT)
 LOGICAL,          DIMENSION(:), ALLOCATABLE  ::  wv_latom_rot ! (0:WV_MAXSCAT)
+LOGICAL,          DIMENSION(:), ALLOCATABLE  ::  wv_lsite     ! (0:WV_MAXSCAT)
 !
 INTEGER             ::  wv_iwave         = WV_LONG
 INTEGER             ::  wv_ifunc         = WV_SINUS

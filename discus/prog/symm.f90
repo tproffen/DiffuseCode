@@ -59,7 +59,8 @@ USE precision_mod
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, i , iianz
       INTEGER indxc 
-      INTEGER         :: nscat
+      INTEGER         :: nscat = 1
+      INTEGER         :: nsite = 1
       LOGICAL lend, lspace 
       LOGICAL l_need_setup 
       LOGICAL lselect 
@@ -132,7 +133,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       IF( cr_nscat > SYM_MAXSCAT .or. mole_num_type > SYM_MAXSCAT) THEN
          nscat = max ( cr_nscat, mole_num_type)
-         CALL alloc_symmetry ( nscat )
+         nsite = max ( nsite, cr_ncatoms, SYM_MAXSITE)
+         CALL alloc_symmetry ( nscat, nsite )
          IF ( ier_num < 0 ) THEN
             RETURN
          ENDIF
@@ -601,6 +603,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   .OR. str_comp (befehl, 'dese', 2, lbef, 4) ) THEN         
 !                                                                       
                   CALL atom_select (zeile, lp, 0, SYM_MAXSCAT, sym_latom, &
+                  sym_lsite, 0, SYM_MAXSITE,                              &
                   sym_sel_atom, lold,     &
                   str_comp (befehl, 'sele', 2, lbef, 4) )               
 !                                                                       

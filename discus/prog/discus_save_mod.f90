@@ -9,8 +9,10 @@ USE discus_config_mod
 SAVE
 !
 INTEGER               ::  SAV_T_MAXSCAT,SAV_MAXSCAT  =  1
+INTEGER               ::  SAV_MAXSITE = 1
 LOGICAL, DIMENSION(:), ALLOCATABLE  ::  sav_latom ! (0:MAXSCAT)
 LOGICAL, DIMENSION(:), ALLOCATABLE  ::  sav_t_latom ! (0:MAXSCAT)
+LOGICAL, DIMENSION(:), ALLOCATABLE  ::  sav_lsite ! (0:MAXSITE)
 !
 LOGICAL               ::  sav_t_sel_atom, sav_sel_atom = .true.
 !

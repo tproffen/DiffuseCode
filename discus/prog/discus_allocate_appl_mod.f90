@@ -278,34 +278,34 @@ USE precision_mod
       CALL alloc_chem_vec ( 1,  CHEM_MAX_COR        )
       CALL alloc_chem_con ( 1,  CHEM_MAX_COR        )
       CALL alloc_crystal  ( 1,  1        )
-      CALL alloc_deco     ( 1,  4,  3,   3, 2 , 3)
+      CALL alloc_deco     ( 1,  1,  4,  3,   3, 2 , 3)
       CALL alloc_debye    ( 1,  1,  1, ONE )
       CALL alloc_demol    ( 1,  1        ) 
       CALL alloc_diffuse  ( 1,  1,  1    )
       CALL alloc_domain   ( 1            )
       CALL alloc_micro    ( 1,  1        )
-      CALL alloc_mmc      ( CHEM_MAX_COR,  8,  1    )
+      CALL alloc_mmc      ( CHEM_MAX_COR,  8,  1,  1)
       CALL alloc_mmc_angle( CHEM_MAX_COR,  1        )
       CALL alloc_mmc_buck ( CHEM_MAX_COR,  1        )
       CALL alloc_mmc_lenn ( CHEM_MAX_COR,  1        )
       CALL alloc_molecule ( 1,  1,  1,  1,  1)
-      CALL alloc_pdf      ( 1,  1,  1    )
-      CALL alloc_plot     ( 1            )
+      CALL alloc_pdf      ( 1,  1,  1,  1    )
+      CALL alloc_plot     ( 1,  1        )
       CALL alloc_powder   ( 1            )
       CALL alloc_powder_nmax ( 1,1          )
-      CALL alloc_rmc      ( 1            )
+      CALL alloc_rmc      ( 1,  1        )
       CALL alloc_rmc_data ( 1            )
       CALL alloc_rmc_istl ( 1,  1, 1     )
       CALL alloc_rmc_q    ( 1,  1        )
       CALL alloc_rmc_planes(1, 48        )
-      CALL alloc_save     ( 1            )
-      CALL alloc_shear    ( 1            )
+      CALL alloc_save     ( 1, 1         )
+      CALL alloc_shear    ( 1,  1        )
       CALL alloc_stack    ( 1,  1,  1,  .TRUE.)
       CALL alloc_stack_crystal    ( 1,  1        )
       CALL alloc_surf     ( MAXSCAT      )
-      CALL alloc_symmetry ( 1            )
-      CALL alloc_transfrm ( 1            )
-      CALL alloc_waves    ( 1            )
+      CALL alloc_symmetry ( 1,  1        )
+      CALL alloc_transfrm ( 1,  1        )
+      CALL alloc_waves    ( 1,  1        )
 !
     END SUBROUTINE discus_alloc_default
 !
@@ -989,7 +989,7 @@ USE precision_mod
     END SUBROUTINE alloc_debye
 !
 !
-    SUBROUTINE alloc_deco ( n_scat, n_deco, n_anch, n_hkl, n_new, m_scat)
+    SUBROUTINE alloc_deco ( n_scat, n_site, n_deco, n_anch, n_hkl, n_new, m_scat)
 !-
 !     Allocate the arrays needed by DECORATE
 !+
@@ -999,6 +999,7 @@ USE precision_mod
 !
 !      
       INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_site
       INTEGER, INTENT(IN)  :: n_deco
       INTEGER, INTENT(IN)  :: n_anch
       INTEGER, INTENT(IN)  :: n_hkl
@@ -1012,6 +1013,9 @@ USE precision_mod
       lstat     = .TRUE.
 !
        CALL alloc_arr ( dc_latom       ,0,n_scat  ,  all_status, .false.  , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+       CALL alloc_arr ( dc_lsite       ,0,n_site  ,  all_status, .false.  , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       CALL alloc_arr ( dcc_name,1,n_deco ,  all_status, ' '  , size_of )
@@ -1106,6 +1110,7 @@ USE precision_mod
 !
       IF( lstat ) THEN                        ! Success
          DCC_MAXNUM    = n_deco
+          DC_MAXSITE   = n_site
          DCC_MAXANCH   = n_anch
          DCC_MAXHKL    = n_hkl
          DCC_MAXNEW    = n_new
@@ -1375,7 +1380,7 @@ END SUBROUTINE alloc_demol
     END SUBROUTINE alloc_micro
 !
 !
-    SUBROUTINE alloc_mmc ( n_corr, n_ener, n_scat )
+    SUBROUTINE alloc_mmc ( n_corr, n_ener, n_scat, n_site )
 !-
 !     Allocate the arrays needed by MMC 
 !+
@@ -1388,6 +1393,7 @@ END SUBROUTINE alloc_demol
       INTEGER, INTENT(IN)  :: n_corr
       INTEGER, INTENT(IN)  :: n_ener
       INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_site
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
@@ -1398,6 +1404,10 @@ END SUBROUTINE alloc_demol
 !
 !
        CALL alloc_arr ( mmc_latom     ,0,n_scat  ,  all_status, .false.  , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       mmc_size_of = mmc_size_of + size_of
+!
+       CALL alloc_arr ( mmc_lsite     ,0,n_site  ,  all_status, .false.  , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        mmc_size_of = mmc_size_of + size_of
 !
@@ -1929,7 +1939,7 @@ END SUBROUTINE alloc_demol
     END SUBROUTINE alloc_molecule
 !
 !
-    SUBROUTINE alloc_pdf ( n_scat, n_dat, n_bnd )
+    SUBROUTINE alloc_pdf ( n_scat, n_site, n_dat, n_bnd )
 !-
 !     Allocate the arrays needed by PDF
 !+
@@ -1940,6 +1950,7 @@ END SUBROUTINE alloc_demol
 !
 !      
       INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_site
       INTEGER, INTENT(IN)  :: n_dat
       INTEGER, INTENT(IN)  :: n_bnd
 !
@@ -1971,6 +1982,10 @@ END SUBROUTINE alloc_demol
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of
 !
+!
+      CALL alloc_arr ( pdf_lsite_i   ,0,n_site,  all_status, .true.   , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      pdf_size_of = pdf_size_of + size_of
       CALL alloc_arr ( pdf_weight    ,0,n_scat,                      &
                                       0,n_scat, all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -2004,6 +2019,14 @@ END SUBROUTINE alloc_demol
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of
 !
+      CALL alloc_arr ( pdf_lsite_i   ,0,n_site,  all_status, .true.   , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      pdf_size_of = pdf_size_of + size_of
+!
+      CALL alloc_arr ( pdf_lsite_j   ,0,n_site,  all_status, .true.   , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      pdf_size_of = pdf_size_of + size_of
+!
       CALL alloc_arr ( pdf_has_atom  ,0,n_scat,  all_status, 0        , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of
@@ -2018,6 +2041,7 @@ END SUBROUTINE alloc_demol
 !
       IF( lstat ) THEN                        ! Success
          PDF_MAXSCAT      = n_scat
+         PDF_MAXSITE      = n_site
          PDF_MAXDAT       = n_dat
          PDF_MAXBND       = n_bnd
          pdf_allowed_i(0) = .false.
@@ -2031,6 +2055,7 @@ END SUBROUTINE alloc_demol
          ENDIF
       ELSE                                    ! Failure
          PDF_MAXSCAT   = n_scat
+         PDF_MAXSITE   = n_site
          PDF_MAXDAT    = n_dat
          PDF_MAXBND    = n_bnd
          pdf_size_of   = 0
@@ -2043,7 +2068,7 @@ END SUBROUTINE alloc_demol
     END SUBROUTINE alloc_pdf
 !
 !
-    SUBROUTINE alloc_plot ( n_scat )
+    SUBROUTINE alloc_plot ( n_scat, n_site )
 !-
 !     Allocate the arrays needed by PLOT
 !+
@@ -2053,6 +2078,7 @@ END SUBROUTINE alloc_demol
 !
 !      
       INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_site
 !
       INTEGER              :: i
       INTEGER, DIMENSION(0:4), PARAMETER :: stift = (/ 5, 3, 1, 2, 4 /)
@@ -2099,6 +2125,10 @@ END SUBROUTINE alloc_demol
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        pl_size_of = pl_size_of + size_of
 !
+       CALL alloc_arr ( pl_lsite     ,0,n_site,  all_status, .false.  , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       pl_size_of = pl_size_of + size_of
+!
        CALL alloc_arr ( pl_batom_a   ,0,n_scat,  all_status, .false.  , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        pl_size_of = pl_size_of + size_of
@@ -2120,6 +2150,7 @@ END SUBROUTINE alloc_demol
 !
       IF( lstat ) THEN                        ! Success
          PL_MAXSCAT    = n_scat
+         PL_MAXSITE    = n_site
          pl_rgb(1, :)  = 1
          FORALL (i=0:PL_MAXSCAT) pl_color(i) =  stift (mod (i, 5) )
          ier_typ       = 0
@@ -2131,6 +2162,7 @@ END SUBROUTINE alloc_demol
          ENDIF
       ELSE                                    ! Failure
          PL_MAXSCAT    = n_scat
+         PL_MAXSITE    = n_site
          pl_size_of    = 0
          ier_num       = -3
          ier_typ       = ER_COMM
@@ -2244,7 +2276,7 @@ END SUBROUTINE alloc_demol
 !
 !
 !
-    SUBROUTINE alloc_rmc ( n_scat )
+    SUBROUTINE alloc_rmc ( n_scat, n_site )
 !-
 !     Allocate the arrays needed by RMC
 !+
@@ -2254,6 +2286,7 @@ END SUBROUTINE alloc_demol
 !
 !      
       INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_site
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
@@ -2263,6 +2296,10 @@ END SUBROUTINE alloc_demol
       rmc_size_of = 0
 !
        CALL alloc_arr ( rmc_allowed    ,0,n_scat  ,  all_status, .true.   , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_lsite      ,0,n_site  ,  all_status, .true.   , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        rmc_size_of = rmc_size_of + size_of
 !
@@ -2276,6 +2313,7 @@ END SUBROUTINE alloc_demol
 !
       IF( lstat ) THEN                        ! Success
          RMC_MAXSCAT   = n_scat
+         RMC_MAXSITE   = n_site
          ier_typ       = 0
          ier_num       = 0
          IF ( all_status == 1 ) THEN
@@ -2285,6 +2323,7 @@ END SUBROUTINE alloc_demol
          ENDIF
       ELSE                                    ! Failure
          RMC_MAXSCAT   = n_scat
+         RMC_MAXSITE   = n_site
          rmc_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
@@ -2584,7 +2623,7 @@ END SUBROUTINE alloc_demol
     END SUBROUTINE alloc_rmc_planes
 !
 !
-    SUBROUTINE alloc_save ( n_scat )
+    SUBROUTINE alloc_save ( n_scat, n_site )
 !-
 !     Allocate the arrays needed by SAVE
 !+
@@ -2594,6 +2633,7 @@ END SUBROUTINE alloc_demol
 !
 !      
       INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_site
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
@@ -2610,8 +2650,13 @@ END SUBROUTINE alloc_demol
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        sav_size_of = sav_size_of + size_of
 !
+       CALL alloc_arr ( sav_lsite      ,0,n_site  ,  all_status, .true.  , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       sav_size_of = sav_size_of + size_of
+!
       IF( lstat ) THEN                        ! Success
          SAV_MAXSCAT   = n_scat
+         SAV_MAXSITE   = n_site
          ier_typ       = 0
          ier_num       = 0
          IF ( all_status == 1 ) THEN
@@ -2621,6 +2666,7 @@ END SUBROUTINE alloc_demol
          ENDIF
       ELSE                                    ! Failure
          SAV_MAXSCAT   = n_scat
+         SAV_MAXSITE   = n_site
          sav_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
@@ -2630,7 +2676,7 @@ END SUBROUTINE alloc_demol
     END SUBROUTINE alloc_save
 !
 !
-    SUBROUTINE alloc_shear ( n_scat )
+    SUBROUTINE alloc_shear ( n_scat, n_site )
 !-
 !     Allocate the arrays needed by Shear
 !+
@@ -2640,6 +2686,7 @@ END SUBROUTINE alloc_demol
 !
 !      
       INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_site
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
@@ -2652,8 +2699,13 @@ END SUBROUTINE alloc_demol
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        shear_size_of = shear_size_of + size_of
 !
+       CALL alloc_arr ( shear_lsite ,0,n_site,  all_status, .false., size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       shear_size_of = shear_size_of + size_of
+!
       IF( lstat ) THEN                        ! Success
          SHEAR_MAXSCAT = n_scat
+         SHEAR_MAXSITE = n_site
          ier_typ       = 0
          ier_num       = 0
          IF ( all_status == 1 ) THEN
@@ -2663,6 +2715,7 @@ END SUBROUTINE alloc_demol
          ENDIF
       ELSE                                    ! Failure
          SHEAR_MAXSCAT = n_scat
+         SHEAR_MAXSITE = n_site
          shear_size_of = 0
          ier_num       = -3
          ier_typ       = ER_COMM
@@ -2964,7 +3017,7 @@ END SUBROUTINE alloc_demol
       END IF
     END SUBROUTINE alloc_surf
 !
-    SUBROUTINE alloc_symmetry ( n_scat )
+    SUBROUTINE alloc_symmetry ( n_scat, n_site )
 !-
 !     Allocate the arrays needed by SYMMETRY
 !+
@@ -2974,6 +3027,7 @@ END SUBROUTINE alloc_demol
 !
 !      
       INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_site
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
@@ -2986,8 +3040,13 @@ END SUBROUTINE alloc_demol
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       sym_size_of = sym_size_of + size_of
 !
+      CALL alloc_arr ( sym_lsite      ,0,n_site  ,  all_status, .false.  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      sym_size_of = sym_size_of + size_of
+!
       IF( lstat ) THEN                        ! Success
          SYM_MAXSCAT   = n_scat
+         SYM_MAXSITE   = n_site
          ier_typ       = 0
          ier_num       = 0
          IF ( all_status == 1 ) THEN
@@ -2997,6 +3056,7 @@ END SUBROUTINE alloc_demol
          ENDIF
       ELSE                                    ! Failure
          SYM_MAXSCAT   = n_scat
+         SYM_MAXSITE   = n_site
          sym_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
@@ -3005,7 +3065,7 @@ END SUBROUTINE alloc_demol
       END IF
     END SUBROUTINE alloc_symmetry
 !
-    SUBROUTINE alloc_transfrm ( n_scat )
+    SUBROUTINE alloc_transfrm ( n_scat, n_site )
 !-
 !     Allocate the arrays needed by TRANSFRM
 !+
@@ -3015,6 +3075,7 @@ END SUBROUTINE alloc_demol
 !
 !      
       INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_site
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
@@ -3027,8 +3088,13 @@ END SUBROUTINE alloc_demol
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        tran_size_of = tran_size_of + size_of
 !
+       CALL alloc_arr ( tran_lsite     ,0,n_site  ,  all_status, .false.  , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       tran_size_of = tran_size_of + size_of
+!
       IF( lstat ) THEN                        ! Success
          TRAN_MAXSCAT  = n_scat
+         TRAN_MAXSITE  = n_site
          ier_typ       = 0
          ier_num       = 0
          IF ( all_status == 1 ) THEN
@@ -3038,6 +3104,7 @@ END SUBROUTINE alloc_demol
          ENDIF
       ELSE                                    ! Failure
          TRAN_MAXSCAT  = n_scat
+         TRAN_MAXSITE  = n_site
          tran_size_of  = 0
          ier_num       = -3
          ier_typ       = ER_COMM
@@ -3047,7 +3114,7 @@ END SUBROUTINE alloc_demol
     END SUBROUTINE alloc_transfrm
 !
 !
-    SUBROUTINE alloc_waves ( n_scat )
+    SUBROUTINE alloc_waves ( n_scat, n_site )
 !-
 !     Allocate the arrays needed by WAVES
 !+
@@ -3057,6 +3124,7 @@ END SUBROUTINE alloc_demol
 !
 !      
       INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_site
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
@@ -3077,8 +3145,13 @@ END SUBROUTINE alloc_demol
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        wv_size_of = wv_size_of + size_of
 !
+       CALL alloc_arr ( wv_lsite     ,0,n_site  ,  all_status, .false.  , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       wv_size_of = wv_size_of + size_of
+!
       IF( lstat ) THEN                        ! Success
          WV_MAXSCAT    = n_scat
+         WV_MAXSITE    = n_site
          ier_typ       = 0
          ier_num       = 0
          IF ( all_status == 1 ) THEN
@@ -3088,6 +3161,7 @@ END SUBROUTINE alloc_demol
          ENDIF
       ELSE                                    ! Failure
          WV_MAXSCAT    = n_scat
+         WV_MAXSITE    = n_site
          wv_size_of    = 0
          ier_num       = -3
          ier_typ       = ER_COMM
@@ -3181,7 +3255,7 @@ END SUBROUTINE alloc_demol
 !+
       IMPLICIT NONE
 !
-      CALL alloc_mmc      ( CHEM_MAX_COR,  8,  1    )
+      CALL alloc_mmc      ( CHEM_MAX_COR,  8,  1,  1)
       CALL alloc_mmc_angle( CHEM_MAX_COR,  1        )
       CALL alloc_mmc_buck ( CHEM_MAX_COR,  1        )
       CALL alloc_mmc_lenn ( CHEM_MAX_COR,  1        )
@@ -3208,7 +3282,7 @@ END SUBROUTINE alloc_demol
 !+
       IMPLICIT NONE
 !
-      CALL alloc_pdf ( 1, 1, 1 )
+      CALL alloc_pdf ( 1, 1,  1, 1 )
 !
     END SUBROUTINE dealloc_pdf
 !
@@ -3220,7 +3294,7 @@ END SUBROUTINE alloc_demol
 !+
       IMPLICIT NONE
 !
-      CALL alloc_plot ( 1    )
+      CALL alloc_plot ( 1, 1 )
 !
     END SUBROUTINE dealloc_plot
 !
@@ -3256,7 +3330,7 @@ END SUBROUTINE alloc_demol
 !+
       IMPLICIT NONE
 !
-      CALL alloc_rmc ( 1 )
+      CALL alloc_rmc ( 1, 1 )
 !
     END SUBROUTINE dealloc_rmc
 !
@@ -3268,7 +3342,7 @@ END SUBROUTINE alloc_demol
 !+
       IMPLICIT NONE
 !
-      CALL alloc_shear ( 1 )
+      CALL alloc_shear ( 1, 1 )
 !
     END SUBROUTINE dealloc_shear
 !
@@ -3305,7 +3379,7 @@ END SUBROUTINE alloc_demol
 !+
       IMPLICIT NONE
 !
-      CALL alloc_save ( 1 )
+      CALL alloc_save ( 1, 1 )
 !
     END SUBROUTINE dealloc_save
 !
@@ -3317,7 +3391,7 @@ END SUBROUTINE alloc_demol
 !+
       IMPLICIT NONE
 !
-      CALL alloc_symmetry ( 1 )
+      CALL alloc_symmetry ( 1, 1 )
 !
     END SUBROUTINE dealloc_symmetry
 !
@@ -3329,7 +3403,7 @@ END SUBROUTINE alloc_demol
 !+
       IMPLICIT NONE
 !
-      CALL alloc_transfrm ( 1 )
+      CALL alloc_transfrm ( 1, 1 )
 !
     END SUBROUTINE dealloc_transfrm
 !
@@ -3341,7 +3415,7 @@ END SUBROUTINE alloc_demol
 !+
       IMPLICIT NONE
 !
-      CALL alloc_waves ( 1 )
+      CALL alloc_waves ( 1,  1 )
 !
     END SUBROUTINE dealloc_waves
 !

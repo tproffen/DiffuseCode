@@ -43,6 +43,7 @@ SUBROUTINE pdf
       INTEGER lp, length
       INTEGER indxg, ianz, lbef
       INTEGER :: n_nscat = 1  ! Dummy for RMC allocation
+      INTEGER :: n_nsite = 1  ! Dummy for RMC allocation
       LOGICAL ldummy 
 !                                                                       
       INTEGER len_str 
@@ -157,9 +158,10 @@ SUBROUTINE pdf
 !
            IF( cr_nscat > PDF_MAXSCAT .or. MAXSCAT > PDF_MAXSCAT) THEN
                       pdf_nscat = MAX(pdf_nscat, cr_nscat, PDF_MAXSCAT, MAXSCAT)
+                      pdf_nsite = MAX(pdf_nsite, cr_ncatoms, PDF_MAXSITE, PDF_MAXSCAT, MAXSCAT)
                       pdf_ndat  = MAX(pdf_ndat ,           PDF_MAXDAT)
                       pdf_nbnd  = MAX(pdf_nbnd ,           PDF_MAXBND)
-                      CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
+                      CALL alloc_pdf( pdf_nscat, pdf_nsite, pdf_ndat, pdf_nbnd )
               IF ( ier_num < 0 ) THEN
                  RETURN
               ENDIF
@@ -225,6 +227,7 @@ SUBROUTINE pdf
                  str_comp (befehl, 'idese', 3, lbef, 5) ) then                            
 !                                                                       
             CALL atom_select (zeile, lp, 0, MAXSCAT, pdf_allowed_i,    &
+            pdf_lsite_i, 0, PDF_MAXSITE,                   &
             ldummy, .false., str_comp (befehl,             &
             'isele', 3, lbef, 5) )                                      
 !                                                                       
@@ -232,6 +235,7 @@ SUBROUTINE pdf
                  str_comp (befehl, 'jdese', 3, lbef, 5) ) then                            
 !                                                                       
             CALL atom_select (zeile, lp, 0, MAXSCAT, pdf_allowed_j, &
+            pdf_lsite_j, 0, PDF_MAXSITE,                   &
             ldummy, .false., str_comp (befehl,             &
             'jsele', 3, lbef, 5) )                                      
 !                                                                       
@@ -244,12 +248,14 @@ SUBROUTINE pdf
 !           This might be the first time RMC arrays are referenced
             IF(cr_nscat > RMC_MAXSCAT .or. MAXSCAT > RMC_MAXSCAT) THEN
                n_nscat = MAX(cr_nscat, MAXSCAT, RMC_MAXSCAT)
-               CALL alloc_rmc ( n_nscat )
+               n_nsite = MAX(cr_ncatoms, MAXSCAT, RMC_MAXSITE)
+               CALL alloc_rmc ( n_nscat, n_nsite )
                IF ( ier_num < 0 ) THEN
                   RETURN
                ENDIF
             ENDIF
             CALL atom_select (zeile, lp, 0, MAXSCAT, rmc_allowed, &
+            rmc_lsite  , 0, RMC_MAXSITE,                   &
             rmc_sel_atom, .false., str_comp (              &
             befehl, 'sele', 3, lbef, 4) )                               
 !                                                                       
@@ -400,9 +406,10 @@ SUBROUTINE pdf
       IF(cr_nscat > PDF_MAXSCAT .or. pdf_ndat > PDF_MAXDAT .or.         &
          pdf_nbnd > PDF_MAXBND                                  ) THEN
         pdf_nscat = MAX(pdf_nscat, cr_nscat, PDF_MAXSCAT, MAXSCAT)
+        pdf_nsite = MAX(pdf_nsite, cr_ncatoms, PDF_MAXSITE, PDF_MAXSCAT, MAXSCAT)
         pdf_ndat  = MAX(pdf_ndat ,           PDF_MAXDAT)
         pdf_nbnd  = MAX(pdf_nbnd ,           PDF_MAXBND)
-        CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
+        CALL alloc_pdf( pdf_nscat, pdf_nsite, pdf_ndat, pdf_nbnd )
       ENDIF
 !                                                                       
 !------ Setting up array for periodic boundaries                        
@@ -924,9 +931,10 @@ preread: DO
          REWIND(17)
          IF(n_dat > PDF_MAXDAT) THEN
             pdf_nscat = MAX(pdf_nscat, cr_nscat, PDF_MAXSCAT, MAXSCAT)
+            pdf_nsite = MAX(pdf_nsite, cr_ncatoms, PDF_MAXSITE, PDF_MAXSCAT, MAXSCAT)
             pdf_ndat  = MAX(pdf_ndat , n_dat   , PDF_MAXDAT)
             pdf_nbnd  = MAX(pdf_nbnd ,           PDF_MAXBND)
-            CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
+            CALL alloc_pdf( pdf_nscat, pdf_nsite, pdf_ndat, pdf_nbnd )
             IF ( ier_num < 0 ) THEN
                RETURN
             ENDIF
@@ -1153,7 +1161,8 @@ REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw)
       INTEGER lpara (maxw) 
       INTEGER ianz, nn 
       INTEGER i, j, ia, ib 
-      INTEGER  :: n_nscat    ! dummy for rmc_allocation
+      INTEGER  :: n_nscat = 1! dummy for rmc_allocation
+      INTEGER  :: n_nsite = 1! dummy for rmc_allocation
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -1691,7 +1700,8 @@ REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw)
 !           This might be the first time RMC arrays are referenced
             IF(cr_nscat > RMC_MAXSCAT .or. MAXSCAT > RMC_MAXSCAT) THEN
                n_nscat = MAX(cr_nscat, MAXSCAT, RMC_MAXSCAT)
-               CALL alloc_rmc ( n_nscat )
+               n_nsite = MAX(cr_ncatoms, MAXSCAT, RMC_MAXSITE)
+               CALL alloc_rmc ( n_nscat, n_nsite )
                IF ( ier_num < 0 ) THEN
                   RETURN
                ENDIF
@@ -3538,7 +3548,7 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
-CALL alloc_pdf(1, 1, 1)
+CALL alloc_pdf(1, 1,  1, 1)
 PDF_MAXSCAT      = 1
 PDF_MAXDAT       = 1
 PDF_MAXBND       = 1
@@ -3612,6 +3622,8 @@ pdf_gauss_init  = .true.
 pdf_2d          = .false.
 IF(ALLOCATED(pdf_allowed_i))   pdf_allowed_i(:)   = .TRUE. ! (0:PDF_MAXSCAT)
 IF(ALLOCATED(pdf_allowed_j))   pdf_allowed_j(:)   = .TRUE. ! (0:PDF_MAXSCAT)
+IF(ALLOCATED(pdf_lsite_i))     pdf_lsite_i  (:)   = .TRUE. ! (0:PDF_MAXSCAT)
+IF(ALLOCATED(pdf_lsite_j))     pdf_lsite_j  (:)   = .TRUE. ! (0:PDF_MAXSCAT)
 IF(ALLOCATED(pdf_look_mol))    pdf_look_mol(:,:)  = 0      ! (0:PDF_MAXSCAT)
 IF(ALLOCATED(pdf_bvalue_mole)) pdf_bvalue_mole(:) = 0.0    ! effective mol bvalues
 IF(ALLOCATED(pdf_clin_mole))   pdf_clin_mole(:)   = 0.0    ! linear correction mol

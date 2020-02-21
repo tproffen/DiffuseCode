@@ -11,8 +11,10 @@ INTEGER, PARAMETER       :: SYM_RUN_MOLECULE = 0
 INTEGER, PARAMETER       :: SYM_RUN_DOMAIN   = 1
 !
 INTEGER                                      ::  SYM_MAXSCAT = 1
+INTEGER                                      ::  SYM_MAXSITE = 1
 !
 LOGICAL,          DIMENSION(:), ALLOCATABLE  ::  sym_latom   ! (0:SYM_MAXSCAT)
+LOGICAL,          DIMENSION(:), ALLOCATABLE  ::  sym_lsite   ! (0:SYM_MAXSCAT)
 !
 CHARACTER (LEN = 4)      :: sym_incl       = 'list'
 INTEGER                  :: sym_use        = 0  ! Use space group symmetry operation no. N

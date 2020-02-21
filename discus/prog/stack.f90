@@ -1854,14 +1854,16 @@ internal: IF(st_internal(st_type(i)) ) THEN
       CHARACTER ( * ) line 
       INTEGER lbef 
       INTEGER iatom 
-      INTEGER         :: new_nscat   ! Dummy for allocation 
+      INTEGER         :: new_nscat = 1! Dummy for allocation 
+      INTEGER         :: new_nsite = 1! Dummy for allocation 
       INTEGER i, j 
       LOGICAL lorigin 
       LOGICAL str_comp 
 !
       IF ( SYM_MAXSCAT < MAXSCAT ) THEN
          new_nscat = MAXSCAT
-         CALL alloc_symmetry(new_nscat)
+         new_nsite = MAX(cr_ncatoms, MAXSCAT, SYM_MAXSITE)
+         CALL alloc_symmetry(new_nscat, new_nsite)
       ENDIF
 !                                                                       
       sym_power = 1 

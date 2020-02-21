@@ -149,7 +149,8 @@ CHARACTER(LEN=1024)      :: ofile = ' '
 CHARACTER(LEN=1024)      :: zeile = ' '
 CHARACTER(LEN=16)        :: do_spcgr = 'P1'
 INTEGER                  :: lp
-INTEGER                  :: nscat
+INTEGER                  :: nscat = 1
+INTEGER                  :: nsite = 1
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !
 do_spcgr = cpara(ianz)(1:LEN(do_spcgr))
@@ -173,7 +174,8 @@ ENDIF
 IF ( cr_nscat > PL_MAXSCAT .or. mole_num_type > PL_MAXSCAT .OR. & 
      MAXSCAT > PL_MAXSCAT ) THEN
    nscat = max ( cr_nscat, mole_num_type, MAXSCAT)
-   CALL alloc_plot ( nscat )
+   nsite = max ( cr_ncatoms, PL_MAXSITE, MAXSCAT)
+   CALL alloc_plot ( nscat, nsite )
    IF(ier_num < 0) THEN
      RETURN
    ENDIF
@@ -181,6 +183,7 @@ ENDIF
 zeile = 'all'
 lp    = 3
 CALL atom_select (zeile, lp, 0, PL_MAXSCAT, pl_latom, &
+                  pl_lsite, 0, PL_MAXSITE,            &
                   pl_sel_atom, lold, .TRUE.)
 !
 CALL plot_cif(IWR, .FALSE., do_spcgr)

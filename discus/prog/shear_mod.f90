@@ -9,8 +9,10 @@ SAVE
 !
 INTEGER, PRIVATE    :: ik
 INTEGER             ::  SHEAR_MAXSCAT = 1
+INTEGER             ::  SHEAR_MAXSITE = 1
 !
 LOGICAL,          DIMENSION(:), ALLOCATABLE  ::  shear_latom  ! (0:MAXSCAT)
+LOGICAL,          DIMENSION(:), ALLOCATABLE  ::  shear_lsite  ! (0:MAXSCAT)
 !
 !
 INTEGER, PARAMETER  ::    SHEAR_ATOM      =  0

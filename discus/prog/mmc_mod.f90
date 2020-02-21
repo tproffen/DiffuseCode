@@ -32,6 +32,7 @@ INTEGER, PARAMETER  ::  MMC_L_ATOMS  =  1
 !
 INTEGER             ::  MMC_MAX_CORR       =  1
 INTEGER             ::  MMC_MAX_SCAT       =  1
+INTEGER             ::  MMC_MAX_SITE       =  1
 INTEGER             ::  MMC_LENN_CORR      =  0
 INTEGER             ::  MMC_LENN_SCAT      =  0
 INTEGER             ::  MMC_BUCK_CORR      =  0
@@ -74,6 +75,7 @@ REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cfac        ! (0:CHEM_MAX_COR,0:M
 LOGICAL, DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cor_energy! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 INTEGER, DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_pair      ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 LOGICAL, DIMENSION(:),       ALLOCATABLE ::  mmc_latom     ! (0:DEF_MAXSCAT)
+LOGICAL, DIMENSION(:),       ALLOCATABLE ::  mmc_lsite     ! (0:DEF_MAXSCAT)
 LOGICAL, DIMENSION(:),       ALLOCATABLE ::  mmc_allowed   ! (0:DEF_MAXSCAT)
 !
 !

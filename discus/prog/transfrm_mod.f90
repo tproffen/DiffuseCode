@@ -13,11 +13,13 @@ INTEGER, PARAMETER  ::       TRAN_INP_G   =  2
 INTEGER, PARAMETER  ::       TRAN_INP_GI  =  3
 !
 INTEGER             ::  TRAN_MAXSCAT = 1
+INTEGER             ::  TRAN_MAXSITE = 1
 !
 INTEGER             ::  tran_start   =  1
 INTEGER             ::  tran_end     = -1
 INTEGER             ::  tran_inp     = TRAN_INP_G
 LOGICAL, DIMENSION(:), ALLOCATABLE  ::  tran_latom  ! (0:TRAN_MAXSCAT)
+LOGICAL, DIMENSION(:), ALLOCATABLE  ::  tran_lsite  ! (0:TRAN_MAXSCAT)
 !
 LOGICAL             ::  tran_oold      = .true.
 LOGICAL             ::  tran_sel_atom  = .true.

@@ -10,6 +10,7 @@ INTEGER, PARAMETER        :: DC_MAXMODE  = 7  ! We have six decoration modes
 SAVE
 !
 INTEGER                                   :: DC_MAXSCAT = 1
+INTEGER                                   :: DC_MAXSITE = 1
 !
 INTEGER, PARAMETER                        :: DC_NONE     = 0
 INTEGER, PARAMETER                        :: DC_NORMAL   = 1
@@ -115,6 +116,7 @@ INTEGER                                   :: dc_n_molecules = 0  ! number of mol
 LOGICAL                                   :: dc_init      = .true. ! do we need to initialize
 !LOGICAL, DIMENSION(:), ALLOCATABLE        :: dc_latom     ! (0:MAXSCAT)
 LOGICAL, DIMENSION(:), ALLOCATABLE        :: dc_latom     ! (0:MAXSCAT)
+LOGICAL, DIMENSION(:), ALLOCATABLE        :: dc_lsite     ! (0:MAXSCAT)
 LOGICAL                                   :: dc_sel_atom  = .true.
 LOGICAL                                   :: dc_mol_all   = .true.
 !

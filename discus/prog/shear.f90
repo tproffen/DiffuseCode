@@ -59,7 +59,8 @@ USE precision_mod
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, i, j, k 
       INTEGER indxc 
-      INTEGER          :: nscat
+      INTEGER          :: nscat = 1
+      INTEGER          :: nsite = 1
       LOGICAL lend, lspace 
       LOGICAL l_need_setup 
       LOGICAL lselect 
@@ -168,7 +169,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
                  IF( cr_nscat > SHEAR_MAXSCAT .or. mole_num_type > SHEAR_MAXSCAT) THEN
                     nscat = max ( cr_nscat, mole_num_type)
-                    CALL alloc_shear ( cr_nscat )
+                    nsite = MAX(nsite, cr_ncatoms, SHEAR_MAXSITE)
+                    CALL alloc_shear ( nscat, nsite )
                                IF ( ier_num < 0 ) THEN
                        RETURN
                     ENDIF
@@ -580,6 +582,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                .or.str_comp (befehl, 'dese', 2, lbef, 4) ) then         
 !                                                                       
                   CALL atom_select (zeile, lp, 0, SHEAR_MAXSCAT, shear_latom, &
+                  shear_lsite, 0, SHEAR_MAXSITE,                              &
                   shear_sel_atom, &
                   lold, str_comp (befehl, 'sele', 2, lbef, 4) )         
                   shear_mode = SHEAR_ATOM 
@@ -1695,9 +1698,10 @@ IMPLICIT NONE
 !
 INTEGER :: ik
 !
-CALL alloc_shear(1)
+CALL alloc_shear(1, 1)
 !
 IF(ALLOCATED(shear_latom))  shear_latom(:) = .TRUE.  ! (0:MAXSCAT)
+IF(ALLOCATED(shear_lsite))  shear_lsite(:) = .TRUE.  ! (0:MAXSCAT)
 shear_incl     = ' '
 shear_sel_prop =  0
 shear_start    =  1

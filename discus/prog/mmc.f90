@@ -44,8 +44,9 @@ INTEGER             :: lp, length
 INTEGER             :: indxg, lbef
 LOGICAL, PARAMETER  :: lold = .false. 
 !
-INTEGER             :: n_corr ! dummy for allocation
-INTEGER             :: n_scat ! dummy for allocation
+INTEGER             :: n_corr = 1 ! dummy for allocation
+INTEGER             :: n_scat = 1 ! dummy for allocation
+INTEGER             :: n_site = 1 ! dummy for allocation
 !                                                                       
 INTEGER, EXTERNAL   :: len_str 
 LOGICAL, EXTERNAL   :: str_comp 
@@ -56,8 +57,9 @@ maxw = MAX(MIN_PARA,MAXSCAT+1)
 !
 n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR)
 n_scat = MAX(MAXSCAT, MMC_MAX_SCAT)
+n_site = MAX(MAXSCAT, MMC_MAX_SITE)
 ! call alloc_chem ! NEEDS WORK
-call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
+call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat, n_site )
 orig_prompt = prompt
 prompt = prompt (1:len_str (prompt) ) //'/mmc' 
 !
@@ -169,6 +171,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                  str_comp (befehl, 'dese', 2, lbef, 4) ) then
 !                                                                       
             CALL atom_select (zeile, lp, 0, MMC_MAX_SCAT, mmc_latom, &
+            mmc_lsite, 0, MMC_MAX_SITE,            &
             mmc_sel_atom, lold, str_comp (befehl,  &
             'sele', 3, lbef, 4) )                                       
 !                                                                       
@@ -286,11 +289,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER i, j, k
 INTEGER :: n_corr
 INTEGER :: n_scat
+INTEGER :: n_site
 !                                                                       
 n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR)
 n_scat = MAX(MAXSCAT, MMC_MAX_SCAT)
+n_site = MAX(MAXSCAT, MMC_MAX_SITE)
 ! call alloc_chem ! NEEDS WORK
-call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
+call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat, n_site )
 !                                                                       
       IF (mo_sel_atom) then 
          WRITE (output_io, 1105) 'atoms' 
@@ -738,6 +743,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER is_start, is_end 
       INTEGER                :: n_corr ! Dummy for allocation
       INTEGER                :: n_scat ! Dummy for allocation
+      INTEGER                :: n_site ! Dummy for allocation
       INTEGER                :: n_angles ! Dummy for allocation
 !                                                                       
 !     INTEGER angles2index 
@@ -890,8 +896,9 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !
                      n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR)
                      n_scat = MAX(MAXSCAT, MMC_MAX_SCAT)
+                     n_site = MAX(MAXSCAT, MMC_MAX_SITE)
                      ! call alloc_chem ! NEEDS WORK
-                     call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
+                     call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat, n_site )
                   ENDIF
                   IF (ic.gt.0.and.ic.le.chem_ncor) then 
                      IF (str_comp (cpara (2) , 'corr', 2, lpara (2) , 4)) then                                             

@@ -153,8 +153,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !---------TRANSFORM specific commands
 !--------------------------------------------------------------------------------
 !
-      IF( cr_nscat > TRAN_MAXSCAT) THEN
-         CALL alloc_transfrm ( cr_nscat )
+      IF( cr_nscat > TRAN_MAXSCAT .OR. cr_ncatoms>TRAN_MAXSITE) THEN
+         CALL alloc_transfrm ( cr_nscat, cr_ncatoms )
          IF ( ier_num < 0 ) THEN
             RETURN
          ENDIF
@@ -350,6 +350,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'dese', 1, lbef, 4) ) then 
                   CALL atom_select (zeile, lp, 0, TRAN_MAXSCAT, tran_latom, &
+                  tran_lsite, 0, TRAN_MAXSITE,                              &
                   tran_sel_atom, lold,.false.)
 !
 !                 ier_num = - 6 
@@ -524,6 +525,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) ) then 
                   CALL atom_select (zeile, lp, 0, TRAN_MAXSCAT, tran_latom, &
+                  tran_lsite, 0, TRAN_MAXSITE,                              &
                   tran_sel_atom, lold,.true.)
 !                 ier_num = - 6 
 !                 ier_typ = ER_COMM 
@@ -1367,14 +1369,16 @@ IMPLICIT NONE
 !
 INTEGER :: ik
 !
-CALL alloc_transfrm(1)
+CALL alloc_transfrm(1, 1)
 !
 TRAN_MAXSCAT = 1
+TRAN_MAXSITE = 1
 !
 tran_start   =  1
 tran_end     = -1
 tran_inp     = TRAN_INP_G
 IF(ALLOCATED(tran_latom)) tran_latom(:) = .FALSE.  ! (0:TRAN_MAXSCAT)
+IF(ALLOCATED(tran_lsite)) tran_lsite(:) = .TRUE.   ! (0:TRAN_MAXSCAT)
 !
 tran_oold      = .true.
 tran_sel_atom  = .true.

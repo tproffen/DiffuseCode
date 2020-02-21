@@ -127,8 +127,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 !------- RMC specific commands
 !
-      IF( cr_nscat > RMC_MAXSCAT) THEN
-         CALL alloc_rmc ( cr_nscat )
+      IF( cr_nscat > RMC_MAXSCAT .OR. cr_ncatoms> RMC_MAXSITE) THEN
+         CALL alloc_rmc ( cr_nscat, cr_ncatoms )
          IF ( ier_num < 0 ) THEN
             RETURN
          ENDIF
@@ -145,6 +145,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          befehl, 'dese', 2, lbef, 4) ) then                             
 !                                                                       
             CALL atom_select (zeile, lp, 0, RMC_MAXSCAT, rmc_allowed, &
+            rmc_lsite, 0, RMC_MAXSITE,                                &
             rmc_sel_atom, .false., str_comp (  &
             befehl, 'sele', 3, lbef, 4) )                               
 !                                                                       
@@ -255,12 +256,14 @@ USE rmc_mod
 !
 IMPLICIT NONE
 !
-CALL alloc_rmc      ( 1            )
+CALL alloc_rmc      ( 1,  1        )
 CALL alloc_rmc_data ( 1            )
 CALL alloc_rmc_istl ( 1,  1, 1     )
 CALL alloc_rmc_q    ( 1,  1        )
 CALL alloc_rmc_planes(1, 48        )
 !
+rmc_allowed= .FALSE.
+rmc_lsite  = .TRUE.
 rmc_nplane = 0 
 rmc_calc_f = .true. 
 rmc_qmin   =  9999.0 

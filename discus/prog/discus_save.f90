@@ -215,6 +215,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                IF (str_comp (befehl, 'dese', 1, lbef, 4) ) THEN 
                    CALL atom_select (zeile, lp, 0, SAV_MAXSCAT, sav_latom, &
+                   sav_lsite, 0, SAV_MAXSITE,                              &
                    sav_sel_atom, .false., .false.)              
 !                 ier_num = - 6 
 !                 ier_typ = ER_COMM 
@@ -381,6 +382,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'sele', 2, lbef, 4) ) THEN 
                    CALL atom_select (zeile, lp, 0, SAV_MAXSCAT, sav_latom, &
+                   sav_lsite, 0, SAV_MAXSITE,                              &
                    sav_sel_atom, .false., .true.)               
 !                 ier_num = - 6 
 !                 ier_typ = ER_COMM 
@@ -511,11 +513,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE discus_save_mod 
       USE errlist_mod
 !
-      INTEGER                      :: n_nscat
+      INTEGER                      :: n_nscat = 1
+      INTEGER                      :: n_nsite = 1
 !
       IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
          n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
-         CALL alloc_save (  n_nscat )
+         n_nsite = MAX(cr_ncatoms, SAV_MAXSCAT, MAXSCAT) 
+         CALL alloc_save (  n_nscat, n_nsite )
          IF ( ier_num < 0 ) THEN
             RETURN
          ENDIF
@@ -1018,11 +1022,13 @@ END SUBROUTINE save_internal_node
       INTEGER, PARAMETER :: MIN_PARA = 20
       INTEGER            :: maxw
       INTEGER            :: n_nscat
+      INTEGER            :: n_nsite
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
          n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
-         CALL alloc_save (  n_nscat )
+         n_nsite = MAX(cr_ncatoms, SAV_MAXSCAT, MAXSCAT) 
+         CALL alloc_save (  n_nscat, n_nsite )
          IF ( ier_num < 0 ) THEN
             RETURN
          ENDIF
@@ -1071,12 +1077,14 @@ END SUBROUTINE save_internal_node
       INTEGER, PARAMETER :: MIN_PARA = 20
       INTEGER            :: maxw
       INTEGER            :: n_nscat
+      INTEGER            :: n_nsite
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT .OR. &
           SAV_T_MAXSCAT> SAV_MAXSCAT) THEN
          n_nscat = MAX(cr_nscat, SAV_MAXSCAT, SAV_T_MAXSCAT, MAXSCAT)
-         CALL alloc_save (  n_nscat )
+         n_nsite = MAX(cr_ncatoms, SAV_MAXSCAT, MAXSCAT) 
+         CALL alloc_save (  n_nscat, n_nsite )
          IF ( ier_num < 0 ) THEN
             RETURN
          ENDIF
@@ -1126,18 +1134,22 @@ END SUBROUTINE save_internal_node
       INTEGER, PARAMETER :: MIN_PARA = 20
       INTEGER            :: maxw
       INTEGER            :: n_nscat
+      INTEGER            :: n_nsite
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
          n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
-         CALL alloc_save (  n_nscat )
+         n_nsite = MAX(cr_ncatoms, SAV_MAXSCAT, MAXSCAT) 
+         CALL alloc_save (  n_nscat, n_nsite )
          IF ( ier_num < 0 ) THEN
             RETURN
          ENDIF
       ENDIF
 !
       SAV_MAXSCAT  = MAXSCAT
+      SAV_MAXSITE  = UBOUND(sav_lsite,1)
       sav_latom(:) = .true.
+      sav_lsite(:) = .TRUE.
 !
       sav_sel_atom = .true.
 !
@@ -1177,13 +1189,15 @@ USE discus_save_mod
 
 IMPLICIT NONE
 !
-CALL alloc_save(1)
+CALL alloc_save(1, 1)
 !
 SAV_T_MAXSCAT = 1
-SAV_MAXSCAT  =  1
+SAV_MAXSCAT   = 1
+SAV_MAXSITE   = 1
 !
 IF(ALLOCATED(sav_latom))   sav_latom(:)   = .TRUE. ! (0:MAXSCAT)
 IF(ALLOCATED(sav_t_latom)) sav_t_latom(:) = .TRUE. ! (0:MAXSCAT)
+IF(ALLOCATED(sav_lsite))   sav_lsite(:)   = .TRUE. ! (0:MAXSCAT)
 !
 sav_t_sel_atom = .TRUE.
 sav_sel_atom   = .TRUE.

@@ -46,7 +46,8 @@ USE precision_mod
       CHARACTER(5) befehl 
       INTEGER lp, length, lbef, ldummy 
       INTEGER indxg, ianz, is 
-      INTEGER         :: nscat
+      INTEGER         :: nscat = 1
+      INTEGER         :: nsite = 1
       LOGICAL lend 
 !                                                                       
       INTEGER len_str 
@@ -158,7 +159,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       IF( cr_nscat > WV_MAXSCAT .or. mole_num_type > WV_MAXSCAT) THEN
          nscat = max ( cr_nscat, mole_num_type)
-         CALL alloc_waves ( cr_nscat )
+         nsite = max ( nsite, cr_nscat, cr_ncatoms, MAXSCAT)
+         CALL alloc_waves ( nscat, nsite )
          IF ( ier_num < 0 ) THEN
             RETURN
          ENDIF
@@ -206,6 +208,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                .or.str_comp (befehl, 'dese', 2, lbef, 4) ) then         
 !                                                                       
                   CALL atom_select (zeile, lp, 0, WV_MAXSCAT, wv_latom, &
+                  wv_lsite, 0, WV_MAXSITE,                              &
                   wv_sel_atom, lold,        &
                   str_comp (befehl, 'sele', 2, lbef, 4) )               
 !                                                                       
@@ -413,6 +416,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            is = nint (werte (1) ) 
                            CALL atom_select (cdummy, ldummy, 0, MAXSCAT,&
                            wv_latom,  &
+                           wv_lsite, 0, WV_MAXSITE,                     &
                            wv_sel_atom,        lold, .true.,            &
                            is, wv_repl)
                         ENDIF 
@@ -720,6 +724,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       REAL hkl (3), uvw (3), tran (3), orig (3), angle
       INTEGER start, end, power
       LOGICAL pmult, mode, new, orig_mol, typ, sel_atom
+INTEGER :: nsite = 1
 !                                                                       
 !     REAL quad 
       INTEGER len_str 
@@ -750,7 +755,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !--------As sym_latom is used, we need to allocate symmetry
 !
          IF( cr_nscat > SYM_MAXSCAT) THEN
-            CALL alloc_symmetry ( cr_nscat )
+            nsite = MAX(nsite, cr_nscat, cr_ncatoms, MAXSCAT)
+            CALL alloc_symmetry ( cr_nscat, nsite )
             IF ( ier_num < 0 ) THEN
                RETURN
             ENDIF
@@ -1240,14 +1246,16 @@ USE waves_mod
 !
 IMPLICIT NONE
 !
-CALL alloc_waves(1)
+CALL alloc_waves(1, 1)
 !
 wv_func(:)   = 'sinu'
 !
 WV_MAXSCAT = 1
+WV_MAXSITE = 1
 IF(ALLOCATED(wv_repl ))     wv_repl(:)      = 0           ! (0:WV_MAXSCAT)
 IF(ALLOCATED(wv_latom))     wv_latom(:)     = .FALSE.     ! (0:WV_MAXSCAT)
 IF(ALLOCATED(wv_latom_rot)) wv_latom_rot(:) = .FALSE. ! (0:WV_MAXSCAT)
+IF(ALLOCATED(wv_lsite))     wv_lsite(:)     = .TRUE.      ! (0:WV_MAXSCAT)
 !
 wv_iwave         = WV_LONG
 wv_ifunc         = WV_SINUS

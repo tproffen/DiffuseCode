@@ -1693,75 +1693,131 @@ USE precision_mod
       scat_allowed = ltype 
       END FUNCTION scat_allowed                     
 !*****7*****************************************************************
-      SUBROUTINE atom_select (zeile, lp, lu, lo, latom, &
-                              sel_atom, lold, lselect,  &
-                              ival, repl)                             
+!
+SUBROUTINE atom_select (zeile, lp, lu, lo, latom, &
+                        lsite, lus, los,          &
+                        sel_atom, lold, lselect,  &
+                        ival, repl)                             
 !+                                                                      
 !     This routine executes the select command                          
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE get_iscat_mod
-      USE errlist_mod 
-      USE get_params_mod
-USE precision_mod
-      IMPLICIT none 
-!                                                                       
-       
-!                                                                       
-      CHARACTER  (LEN=  * ),     INTENT(IN)    :: zeile 
-      INTEGER,                   INTENT(INOUT) :: lp 
-      INTEGER,                   INTENT(IN)    :: lu
-      INTEGER,                   INTENT(IN)    :: lo
-      LOGICAL, DIMENSION(lu:lo), INTENT(OUT)   :: latom 
-      LOGICAL,                   INTENT(INOUT) :: sel_atom
-      LOGICAL,                   INTENT(IN)    :: lold
-      LOGICAL,                   INTENT(IN)    :: lselect 
-      INTEGER,                   OPTIONAL,  INTENT(IN)    :: ival
-      INTEGER, DIMENSION(lu:lo), OPTIONAL,  INTENT(OUT)   :: repl (lu:lo)
+USE discus_config_mod 
+USE crystal_mod 
+USE get_iscat_mod
 !
-      INTEGER  :: maxw
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
+USE precision_mod
+USE take_param_mod
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(1:lo+1) :: cpara 
-      REAL(KIND=PREC_DP) , DIMENSION(1:lo+1) :: werte 
-      INTEGER            , DIMENSION(1:lo+1) :: lpara 
-      INTEGER                                :: ianz, i, is
+IMPLICIT none 
 !                                                                       
-      maxw = lo+1
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) RETURN 
+CHARACTER  (LEN=  * ),     INTENT(IN)    :: zeile 
+INTEGER,                   INTENT(INOUT) :: lp 
+INTEGER,                   INTENT(IN)    :: lu
+INTEGER,                   INTENT(IN)    :: lo
+LOGICAL, DIMENSION(lu:lo), INTENT(OUT)   :: latom 
+INTEGER,                   INTENT(IN)    :: lus
+INTEGER,                   INTENT(IN)    :: los
+LOGICAL, DIMENSION(lus:los), INTENT(OUT) :: lsite
+LOGICAL,                   INTENT(INOUT) :: sel_atom
+LOGICAL,                   INTENT(IN)    :: lold
+LOGICAL,                   INTENT(IN)    :: lselect 
+INTEGER,                   OPTIONAL,  INTENT(IN)    :: ival
+INTEGER, DIMENSION(lu:lo), OPTIONAL,  INTENT(OUT)   :: repl (lu:lo)
+!
+INTEGER  :: maxw
+!                                                                       
+CHARACTER(LEN=1024), DIMENSION(1:lo+1) :: cpara 
+REAL(KIND=PREC_DP) , DIMENSION(1:lo+1) :: werte 
+INTEGER            , DIMENSION(1:lo+1) :: lpara 
+INTEGER                                :: ianz, i, is
+CHARACTER(LEN=1024)                    :: line
+!
+INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: O_SITE    = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+DATA oname  / 'site'   /
+DATA loname /  4       /
+opara  =  (/ '0.0000'  /)   ! Always provide fresh default values
+lopara =  (/  6        /)
+owerte =  (/  0.0      /)
+!
+!
+!                                                                       
+maxw = lo+1
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) RETURN 
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
 !                                                                       
 !------ In case we had molecules before, deselect all                   
 !                                                                       
-      IF (.not.sel_atom) THEN 
-         latom = .false. !  latom (i) = .false. 
-         IF(PRESENT(repl)) repl = 0 !  repl (i) = ival 
-      ENDIF 
+IF (.NOT.sel_atom) THEN 
+   latom = .false. !  latom (i) = .false. 
+   IF(PRESENT(repl)) repl = 0 !  repl (i) = ival 
+ENDIF 
 !                                                                       
-      sel_atom = .true. 
+sel_atom = .true. 
 !                                                                       
 !------ Select/deselect atoms                                           
 !                                                                       
-      CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
-      IF (ier_num.ne.0) return 
+CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
+IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF(NINT(werte(1)) == -1) then   ! all atoms are selected
-         latom  = lselect !  latom (i) = lselect 
-         IF(PRESENT(repl)) repl = ival !  repl (i) = ival 
+IF(NINT(werte(1)) == -1) THEN   ! all atoms are selected
+   latom  = lselect !  latom (i) = lselect 
+   IF(PRESENT(repl)) repl = ival !  repl (i) = ival 
+ELSE 
+   DO i = 1, ianz 
+      is = nint (werte (i) ) 
+      IF (is.ge.0.and.is.le.lo) THEN 
+         latom (is) = lselect 
+         IF(PRESENT(repl)) repl (is) = ival 
       ELSE 
-         DO i = 1, ianz 
-            is = nint (werte (i) ) 
-            IF (is.ge.0.and.is.le.cr_nscat) then 
-               latom (is) = lselect 
-               IF(PRESENT(repl)) repl (is) = ival 
-            ELSE 
-               ier_num = - 27 
-               ier_typ = ER_APPL 
-            ENDIF 
-         ENDDO 
+         ier_num = - 27 
+         ier_typ = ER_APPL 
       ENDIF 
+   ENDDO 
+ENDIF 
+!
+lsite = .TRUE.
+!
+IF(lpresent(O_SITE)) THEN      !optional parameter 'site:' is present
+   IF(opara(O_SITE)=='all') THEN
+      lsite = .TRUE.
+   ELSE
+      line = opara(O_SITE)(2:lopara(O_SITE)-1)
+      lp = lopara(O_SITE)-2
+      CALL get_params(line, ianz, cpara, lpara, MAXW, lp)
+      IF(ier_num/=0) RETURN
+      CALL ber_params(ianz, cpara, lpara, werte, MAXW)
+      IF(ier_num/=0) RETURN
+!
+      lsite = .FALSE.
+      DO i = 1, ianz 
+         is = NINT(werte(i))
+         IF(is >= 0 .AND. is<=cr_ncatoms) THEN 
+            lsite(is) = .TRUE.
+         ELSE 
+            ier_num = -10
+            ier_typ = ER_CHEM 
+         ENDIF
+      ENDDO
+   ENDIF
+ENDIF
 !                                                                       
-      END SUBROUTINE atom_select                    
+END SUBROUTINE atom_select                    
+!
 !*****7*****************************************************************
       SUBROUTINE mole_select (zeile, lp, lu, lo, latom, &
                               sel_atom, lselect,  &

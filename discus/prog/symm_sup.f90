@@ -1490,9 +1490,10 @@ USE symm_mod
 !
 IMPLICIT NONE
 !
-CALL alloc_symmetry(1)
+CALL alloc_symmetry(1, 1)
 !
 IF(ALLOCATED(sym_latom)) sym_latom(:) = .FALSE.   ! (0:SYM_MAXSCAT)
+IF(ALLOCATED(sym_lsite)) sym_lsite(:) = .TRUE.    ! (0:SYM_MAXSCAT)
 IF(ALLOCATED(sym_excl))  sym_excl     = 0
 sym_incl       = 'list'
 sym_use        = 0  ! Use space group symmetry operation no. N
