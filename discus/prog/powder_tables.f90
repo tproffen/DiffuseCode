@@ -31,16 +31,13 @@ CONTAINS
       xt = 1.0d0 / REAL (I2PI, KIND=KIND(0.0D0)) 
       twopi = 8.0d0 * datan (1.0d0) 
 !                                                                       
-      open(9,file='SINETAB.DAT',status='unknown')                   
       sinetab(0) = 0.0D0
       DO i = 1, MASK 
          xmult       = REAL (i, KIND=KIND(0.0D0)) * xt 
          xarg        = twopi * xmult 
          sinetab (i) = DBLE( dsin (xarg)        )
-      write(9,*) xarg,real(sinetab(i)), real(sinetab(i))/xarg
       ENDDO 
       ffour = .false. 
-      close(9)                                                      
 !                                                                       
  1000 FORMAT     (' Computing powder sine lookup table ...') 
       END SUBROUTINE powder_sinet                   
