@@ -56,6 +56,7 @@ refine_rexp     = -1.0  ! unweighted R-value
 !refine_control_mod
 !
 refine_cycles   = 1     ! Maximum number of cycles defined by user
+conv_status     = .TRUE.
 conv_dp_sig     = 0.005 ! Maximum DeltaP/sigma for convergence
 conv_dchi2      = 0.5   ! Maximum Chi^2 change for convergence
 conv_chi2       = 0.5   ! Minimum Chi^2 value  for convergence
