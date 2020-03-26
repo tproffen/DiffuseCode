@@ -308,7 +308,7 @@ befehl = 'lcell'
 lbef   = 5
 cpara(1) = origfile
 lpara(1) = 19
-CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0E-5, 0)
+CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0E-5, 0, .FALSE.)
 CALL chem_elem(.FALSE.)
 z_unit = 192.0
 DO i=1, cr_nscat
@@ -320,7 +320,7 @@ ENDDO
 !
 ! Restore original structure
 !
-CALL do_readstru(origfile)
+CALL do_readstru(origfile, .FALSE.)
 CALL store_remove_single(origfile, ier_num)
 IF(ier_num/=0) THEN
    ier_typ = ER_APPL
