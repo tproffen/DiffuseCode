@@ -184,6 +184,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
          ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
             CALL mmc_show 
+!                                                                       
+!------ command 'grow'                                                  
+!                                                                       
+         ELSEIF (str_comp (befehl, 'grow', 2, lbef, 4) ) then 
+            CALL mmc_grow 
 !
 !------ command 'symmetry'
 !
@@ -5002,4 +5007,73 @@ USE precision_mod
 !                                                                       
       RETURN 
       END FUNCTION buckingham                       
+!
+!*****7*************************************************************************
+!
+SUBROUTINE mmc_grow
+!
+! "grows" a correlation  
+!
+!  Initial quick and dirty method Special solution for PEROVSKITE
+!
+!
+USE crystal_mod
+USE atom_env_mod
+USE chem_mod
+USE do_find_mod
+USE mc_mod
+!
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER, PARAMETER :: MAXW = 6
+!
+INTEGER :: i, j, k                        ! Dummy loop indices
+INTEGER :: ianz                           ! Number of atom types
+INTEGER :: iatom
+INTEGER :: istart                         ! Start index to minimize bias
+INTEGER :: is_max                         ! Index of most neighbors
+INTEGER :: nn_max                         ! Number of most neighbors
+INTEGER, DIMENSION(6) :: nneig            ! Number of neighbors of type j
+REAL(KIND=prec_SP), DIMENSION(3) :: x     ! Atom position
+REAL(KIND=prec_DP), DIMENSION(3) :: werte ! Atom types allowed
+REAL               :: rmin  ! minimum distance for find_env
+REAL               :: rmax  ! maximum distance for find_env
+REAL :: rel_cycl    ! how far are we in the desired number of cycles
+LOGICAL :: lout_feed
+!
+rmin = 0.0
+rmax = cr_a0(1)*SQRT(3.0) + 0.1
+werte(1) = -1.0D0
+ianz     = 1
+lout_feed = .TRUE.
+DO i=1, mo_cyc
+   rel_cycl = REAL(i)/REAL(mo_cyc)
+   iatom = INT(ran(0)*cr_natoms) + 1    ! randomly choose an atom
+   x = cr_pos(:, iatom)
+   CALL do_find_env (ianz, werte, MAXW, x, rmin, rmax, chem_quick, chem_period)
+   nneig = 0
+   DO j=1,atom_env(0)                   ! Loop over all neighbors
+      nneig(cr_iscat(atom_env(j))) = nneig(cr_iscat(atom_env(j))) + 1
+   ENDDO
+   is_max = 0
+   nn_max = 0
+   istart = INT(ran(0)*6.0)
+   DO j=0,5
+      k = MOD(istart+j,6) + 1           ! Current index in neighors
+      IF(nneig(k) > nn_max) THEN
+         nn_max = nneig(k)
+         is_max = k
+      ENDIF
+   ENDDO
+   cr_iscat(iatom) = is_max
+   IF(MOD(i, mo_feed)==0) THEN
+      CALL mmc_correlations (lout_feed, rel_cycl)
+   ENDIF
+ENDDO
+!
+END SUBROUTINE mmc_grow
+!*****7*************************************************************************
+!
 END MODULE mmc_menu
