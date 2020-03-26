@@ -8,571 +8,591 @@ SUBROUTINE do_niplps (linverse)
 !     of the Fourier transform/Patterson to an output file in           
 !     various formats.                                                  
 !+                                                                      
-      USE discus_config_mod 
-      USE diffuse_mod 
-      USE nexus_discus
-      USE discus_mrc
-      USE vtk_mod
-      USE output_mod 
-      USE powder_write_mod
-      USE chem_aver_mod
-      USE qval_mod
+USE discus_config_mod 
+USE diffuse_mod 
+USE nexus_discus
+USE discus_mrc
+USE vtk_mod
+USE output_mod 
+USE powder_write_mod
+USE chem_aver_mod
+USE qval_mod
 !
-      USE ber_params_mod
-      USE build_name_mod
-      USE calc_expr_mod
-      USE doact_mod 
-      USE do_eval_mod
-      USE do_wait_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE learn_mod 
-      USE class_macro_internal
+USE ber_params_mod
+USE build_name_mod
+USE calc_expr_mod
+USE doact_mod 
+USE do_eval_mod
+USE do_wait_mod
+USE errlist_mod 
+USE get_params_mod
+USE learn_mod 
+USE class_macro_internal
 USE precision_mod
-      USE prompt_mod 
-      USE sup_mod
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      INTEGER maxp
-      PARAMETER (maxp = 11) 
-!                                                                       
-      CHARACTER(5) befehl 
-      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(14) cvalue (0:14) 
-      CHARACTER(22) cgraphik (0:8) 
-      CHARACTER(1024) infile 
-      CHARACTER(1024) zeile 
-      CHARACTER(1024) line, cpara (maxp) 
-      INTEGER lpara (maxp) 
-      INTEGER ix, iy, ianz, value, lp, length, lbef 
-      INTEGER indxg 
-      LOGICAL laver, lread, linverse 
-      REAL xmin, ymin, xmax, ymax 
-REAL(KIND=PREC_DP), DIMENSION(MAXP) ::werte
-!                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
-!                                                                       
-      DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnup&
-     &lot', 'Portable Any Map', 'Powder Pattern', 'SHELX', 'SHELXL List &
-     &5', 'SHELXL List 5 real HKL' /                                    
-      DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
-                    'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
-                    'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
-                    'f2aver = <f^2>', 'faver2 = <f>^2', 'faver = <f>   ',&
-                    'Normal Inten  ', 'I(Q)          ', 'PDF           ' /
-!                                                                       
-      DATA value / 1 / 
-      DATA laver / .false. / 
-!                                                                       
-      zmin = ps_low * diffumax 
-      zmax = ps_high * diffumax 
-      orig_prompt = prompt
-      prompt = prompt (1:len_str (prompt) ) //'/output' 
-   10 CONTINUE 
-!                                                                       
-      CALL no_error 
-!                                                                       
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
-      IF (ier_num.eq.0) THEN 
-         IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
-             line == char(13) .or. line(1:1) == '!'  ) THEN
-            IF(linteractive .or. lmakro) THEN
-               GOTO 10
-            ELSE
-               RETURN
-            ENDIF
-         ENDIF
-!                                                                       
-!     search for "="                                                    
-!                                                                       
-indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
-              .AND. INDEX(line,'==') == 0                            ) THEN
-!
-!     --evaluatean expression and assign the value to a variabble       
-!                                                                       
-            CALL do_math (line, indxg, length) 
-         ELSE 
-!                                                                       
-!------ execute a macro file                                            
-!                                                                       
-            IF (befehl (1:1) .eq.'@') THEN 
-               IF (length.ge.2) THEN 
-                  CALL file_kdo (line (2:length), length - 1) 
-               ELSE 
-                  ier_num = - 13 
-                  ier_typ = ER_MAC 
-               ENDIF 
-!                                                                       
-!     continues a macro 'continue'                                      
-!                                                                       
-            ELSEIF (str_comp (befehl, 'continue', 1, lbef, 8) ) THEN 
-               CALL macro_continue (zeile, lp) 
-!                                                                       
-!------ Echo a string, just for interactive check in a macro 'echo'     
-!                                                                       
-            ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
-               CALL echo (zeile, lp) 
-!                                                                       
-!     Evaluate an expression, just for interactive check 'eval'         
-!                                                                       
-            ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
-               CALL do_eval (zeile, lp, .TRUE.) 
-!                                                                       
-!     Terminate output 'exit'                                           
-!                                                                       
-            ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
-               GOTO 9999 
-!                                                                       
-!     Determine format for output 'format'                              
-!                                                                       
-            ELSEIF (str_comp (befehl, 'form', 1, lbef, 4) ) THEN 
-               CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
-               IF (ier_num.eq.0) THEN 
-                  IF (ianz.eq.1.or.ianz.eq.2.or.ianz==5) THEN 
-!                                                                       
-!     ------Switch output type to ASCII 3D  '3d'                      
-!                                                                       
-                     IF(str_comp(cpara(1),'3d',2,lpara(1),2)) THEN                                        
-                        ityp = 9 
-!                                                                       
-!     ------Switch output type to GNUPLOT 'gnup'                        
-!                                                                       
-                     ELSEIF(str_comp(cpara(1),'gnup',1,lpara(1),4)) THEN                                             
-                        ityp = 3 
-!                                                                       
-!     ------Switch output type to pgm 'pgm'                             
-!                                                                       
-                     ELSEIF(str_comp(cpara(1),'pgm ',2,lpara(1),4)) THEN                                        
-                        ityp = 2 
-!                                                                       
-!     ------Switch output type to postscript 'post'                     
-!                                                                       
-                     ELSEIF(str_comp(cpara(1),'post',3,lpara(1),4)) THEN                                        
-                        ityp = 1 
-!                                                                       
-!     ------Switch output type to powder pattern 'powd'                 
-!                                                                       
-                     ELSEIF(str_comp(cpara(1),'powd',3,lpara(1),4)) THEN                                        
-                        ityp = 5 
-                        IF (ianz >= 2) THEN 
-                           IF (str_comp (cpara (2) , 'tth', 2, lpara (2)&
-                           , 3) ) THEN                                  
-                              cpow_form = 'tth' 
-                           ELSEIF (str_comp (cpara (2) , 'q', 1, lpara (&
-                           2) , 1) ) THEN                               
-                              cpow_form = 'q  ' 
-                           ELSEIF (str_comp (cpara (2) , 'stl', 2,      &
-                           lpara (2) , 3) ) THEN                        
-                              cpow_form = 'stl' 
-                           ELSEIF (str_comp (cpara (2) , 'dst', 2,      &
-                           lpara (2) , 3) ) THEN                        
-                              cpow_form = 'dst' 
-                           ELSEIF (str_comp (cpara (2) , 'lop', 2,      &
-                           lpara (2) , 3) ) THEN                        
-                              cpow_form = 'lop' 
-                           ELSE 
-                              ier_num = - 6 
-                              ier_typ = ER_COMM 
-                           ENDIF 
-                           out_user_limits      = .false.
-                           IF(ianz==5) THEN
-                              cpara(1:2)='0'
-                              lpara(1:2)= 1 
-                              CALL ber_params (ianz, cpara, lpara, werte, maxp)
-                              IF(ier_num==0) THEN
-                                 out_user_values(1:3) = werte(3:5)
-                                 out_user_limits      = .true.
-                              ENDIF
-                           ENDIF
-                        ENDIF 
-!                                                                       
-!     ------Switch output type to ppm 'ppm'                             
-!                                                                       
-                     ELSEIF(str_comp(cpara(1),'ppm ',2,lpara(1),4)) THEN                                        
-                        ityp = 4 
-!                                                                       
-!     ------Switch output type to standard  'stan'                      
-!                                                                       
-                     ELSEIF(str_comp(cpara(1),'stan',2,lpara(1),4)) THEN                                        
-                        ityp = 0 
-!                                                                       
-!     ------Switch output type to Shelx 'shel', or 'hklf4'              
-!                                                                       
-                     ELSEIF(str_comp(cpara(1),'shel',2,lpara(1),4)) THEN                                        
-                        ityp = 6 
-                     ELSEIF(str_comp(cpara(1),'hklf4',2,lpara(1),5)) THEN                                        
-                        ityp = 6 
-!                                                                       
-!     ------Switch output type to Shelx LIST 5   'list5'                
-!                                                                       
-                     ELSEIF(str_comp(cpara(1),'list5',2,lpara(1),5)) THEN                                        
-                        ityp = 7 
-!                                                                       
-!     ------Switch output type to Shelx LIST 5   'list9'                
-!                                                                       
-                     ELSEIF(str_comp(cpara(1),'list9',2,lpara(1),5)) THEN                                        
-                        ityp = 8 
-!                                                                       
-!     ------Switch output type to NeXus format   'nexus'                
-!                                                                       
-                     ELSEIF(str_comp(cpara(1),'nexus',2,lpara(1),5)) THEN                                        
-                        ityp = 10 
-!                                                                       
-!     ------Switch output type to VTK format   'vtk'
-!                                                                       
-                     ELSEIF(str_comp(cpara(1),'vtk',2,lpara(1),5)) THEN
-                        ityp = 11
-!                                                                       
-!     ------Switch output type to MRC   format   'mrc'                
-!                                                                       
-                     ELSEIF (str_comp(cpara(1), 'mrc', 2, lpara(1), 3) ) THEN                                        
-                        ityp = 12 
-                     ELSE
-                        ier_num = - 9 
-                        ier_typ = ER_APPL 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!     help on output 'help'                                             
-!                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) THEN                                      
-               IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
-                  lp = lp + 7 
-                  CALL do_hel ('discus '//zeile, lp) 
-               ELSE 
-                  lp = lp + 14 
-                  CALL do_hel ('discus output '//zeile, lp) 
-               ENDIF 
-!                                                                       
-!     read an old output file (only for standard file type' 'inpu'      
-!                                                                       
-            ELSEIF (str_comp (befehl, 'inpu', 1, lbef, 4) ) THEN 
-               CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
-               IF (ier_num.eq.0) THEN 
-                  infile = cpara (1) 
-                  lread = .true. 
-                  CALL oeffne (1, infile, 'old') 
-                  IF (ier_num.eq.0) THEN 
-                     READ (1, * ) out_inc (1), out_inc (2) 
-                     READ (1, * ) xmin, xmax, ymin, ymax 
-                     READ (1, * ) zmax 
-                     zmin = zmax 
-                     BACKSPACE (1) 
-!                                                                       
-                     DO iy = 1, out_inc (2) 
-                     READ (1, * ) (dsi ( (ix - 1) * out_inc (2) + iy),  &
-                     ix = 1, out_inc (1) )                              
-                     DO ix = 1, out_inc (1) 
-                     zmax = max (zmax, REAL(dsi ( (ix - 1) * out_inc (2)     &
-                     + iy) ))                                            
-                     zmin = min (zmin, REAL(dsi ( (ix - 1) * out_inc (2)     &
-                     + iy)) )                                            
-                     ENDDO 
-                     ENDDO 
-                     WRITE (output_io, 1015, advance='no') zmin, zmax 
-                     READ ( *, *, end = 20) zmin, zmax 
-   20                CONTINUE 
-                  ENDIF 
-                  CLOSE (1) 
-               ENDIF 
-!                                                                       
-!     define name of output file 'outf'                                 
-!                                                                       
-            ELSEIF (str_comp (befehl, 'outf', 1, lbef, 4) ) THEN 
-               CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
-               IF (ier_num.eq.0) THEN 
-                  CALL do_build_name (ianz, cpara, lpara, werte, maxp,  &
-                  1)                                                    
-                  IF (ier_num.eq.0) THEN 
-                     outfile = cpara (1) (1:lpara(1))
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!     Reset output 'reset'
-!                                                                       
-            ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
-               CALL output_reset
-!                                                                       
-!     write output file 'run'                                           
-!                                                                       
-            ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) THEN 
-               IF(four_was_run) THEN    ! A fourier has been calculated do output
-                  CALL chem_elem(.false.)
-                  CALL set_output (linverse) 
-                  IF (ityp.eq.0) THEN 
-                     CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.1) THEN 
-                     CALL do_post (value, laver) 
-                  ELSEIF (ityp.eq.2) THEN 
-                     CALL do_pgm (value, laver) 
-                  ELSEIF (ityp.eq.3) THEN 
-                     CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.4) THEN 
-                     CALL do_ppm (value, laver) 
-                  ELSEIF (ityp.eq.5) THEN 
-                     CALL powder_out (value)
-                  ELSEIF (ityp.eq.6) THEN 
-                     CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.7) THEN 
-                     CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.8) THEN 
-                     CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.9) THEN 
-                     CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.10) THEN 
-                     CALL nexus_write (value, laver) 
-                  ELSEIF (ityp.eq.11) THEN
-                     CALL vtk_write ()
-                  ELSEIF (ityp.eq.12) THEN
-                     CALL mrc_write (value, laver)
-                  ELSE 
-                     ier_num = - 9 
-                     ier_typ = ER_APPL 
-                  ENDIF 
-               ELSE 
-                  ier_num = -118
-                  ier_typ = ER_APPL 
-                  ier_msg(1) = 'You need to calculate a Fourier / Patterson /'
-                  ier_msg(2) = 'Inverse Fourier / Powder / Fourier via Stack'
-                  ier_msg(3) = 'first, before an output can be written'
-               ENDIF 
-!                                                                       
-!     Show current settings for output 'show'                           
-!                                                                       
-            ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
-               WRITE (output_io, 3000) outfile 
-               IF (ityp.lt.0.or.8.lt.ityp) THEN 
-                  WRITE (output_io, * ) 'ityp undefiniert ', ityp 
-               ELSEIF (ityp.eq.5) THEN 
-                  WRITE (output_io, 3130) cgraphik (ityp), cpow_form 
-               ELSE 
-                  WRITE (output_io, 3100) cgraphik (ityp) 
-                  IF (laver) THEN 
-                     WRITE (output_io, 3110) '<'//cvalue (value) //'>' 
-                  ELSE 
-                     WRITE (output_io, 3110) cvalue (value) 
-                  ENDIF 
-               ENDIF 
-               WRITE (output_io, 3060) braggmin, braggmax, diffumin,    &
-               diffumax, diffuave, diffusig                             
-               WRITE (output_io, 3080) 100.0 * ps_high, zmax 
-               WRITE (output_io, 3090) 100.0 * ps_low, zmin 
-!                                                                       
-!-------Operating System Kommandos 'syst'                               
-!                                                                       
-            ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
-               IF (zeile.ne.' ') THEN 
-                  CALL do_operating (zeile (1:lp), lp) 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-!                                                                       
-!     Set threshold for intensity written to bitmaps 'thresh'           
-!                                                                       
-            ELSEIF (str_comp (befehl, 'thre', 2, lbef, 4) ) THEN 
-               CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
-               IF (ier_num.eq.0) THEN 
-                  IF (ianz.eq.2) THEN 
-                     IF (str_comp (cpara (1) , 'high', 1, lpara (1) , 4)&
-                     ) THEN                                             
-                        CALL del_params (1, ianz, cpara, lpara, maxp) 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxp)                                           
-                        IF (ier_num.eq.0) THEN 
-                           ps_high = werte (1) * 0.01 
-                           zmax = diffumax * ps_high 
-                        ENDIF 
-                     ELSEIF (str_comp (cpara (1) , 'low', 1, lpara (1) ,&
-                     3) ) THEN                                          
-                        CALL del_params (1, ianz, cpara, lpara, maxp) 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxp)                                           
-                        IF (ier_num.eq.0) THEN 
-                           ps_low = werte (1) * 0.01 
-                           zmin = diffumax * ps_low 
-                        ENDIF 
-                     ELSEIF (str_comp (cpara (1) , 'sigma', 1, lpara (1)&
-                     , 5) ) THEN                                        
-                        CALL del_params (1, ianz, cpara, lpara, maxp) 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxp)                                           
-                        IF (ier_num.eq.0) THEN 
-                           zmin = max (diffumin, diffuave-REAL(werte (1))     &
-                           * diffusig)                                  
-                           zmax = min (diffumax, diffuave+REAL(werte (1))     &
-                           * diffusig)                                  
-                           IF (diffumax.ne.0) THEN 
-                              ps_high = zmax / diffumax 
-                              ps_low = zmin / diffumax 
-                           ELSE 
-                              ps_high = 0.0 
-                              ps_low = 0.0 
-                           ENDIF 
-                        ENDIF 
-                     ELSEIF (str_comp (cpara (1) , 'zmax', 3, lpara (1) &
-                     , 4) ) THEN                                        
-                        CALL del_params (1, ianz, cpara, lpara, maxp) 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxp)                                           
-                        IF (ier_num.eq.0) THEN 
-                           zmax = werte (1) 
-                           IF (diffumax.ne.0) THEN 
-                              ps_high = zmax / diffumax 
-                           ELSE 
-                              ps_high = 0.0 
-                           ENDIF 
-                        ENDIF 
-                     ELSEIF (str_comp (cpara (1) , 'zmin', 3, lpara (1) &
-                     , 4) ) THEN                                        
-                        CALL del_params (1, ianz, cpara, lpara, maxp) 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxp)                                           
-                        IF (ier_num.eq.0) THEN 
-                           zmin = werte (1) 
-                           IF (diffumax.ne.0) THEN 
-                              ps_low = zmin / diffumax 
-                           ELSE 
-                              ps_low = 0.0 
-                           ENDIF 
-                        ENDIF 
-                     ELSE 
-                        ier_num = - 11 
-                        ier_typ = ER_APPL 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!     Define output value 'value'                                       
-!                                                                       
-            ELSEIF (str_comp (befehl, 'valu', 1, lbef, 4) ) THEN 
-               CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
-               IF (ier_num.eq.0) THEN 
-!------ ----Check if we want the average values <F> ?                   
-                  IF (cpara (1) (1:1) .eq.'<') THEN 
-                     ix = 2 
-                     laver = .true. 
-                  ELSE 
-                     ix = 1 
-                     laver = .false. 
-                  ENDIF 
-!     ----Calculate intensity 'intensity'                               
-                  IF (cpara (1) (ix:ix + 1) .eq.'in') THEN 
-                     value = val_inten
-!     ----Calculate amplitude 'amplitude'                               
-                  ELSEIF (cpara (1) (ix:ix) .eq.'a') THEN 
-                     value = val_ampli
-!     ----Calculate phase 'phase'                                       
-                  ELSEIF (cpara (1) (ix:ix) .eq.'p') THEN 
-                     IF (ianz.eq.1) THEN 
-                        value = val_phase
-                     ELSEIF (ianz.eq.2.and.cpara (2) (1:1) .eq.'r')     &
-                     THEN                                               
-                        value = val_ranph
-                     ENDIF 
-!     ----Calculate real part 'real'                                    
-                  ELSEIF (cpara (1) (ix:ix) .eq.'r') THEN 
-                     value = val_real
-!     ----Calculate imaginary part 'imaginary'                          
-                  ELSEIF (cpara (1) (ix:ix + 1) .eq.'im') THEN 
-                     value = val_imag
-!     ----Calculate I(Q)           'I(Q) =Inte/N'                       
-                  ELSEIF (cpara (1) (ix:ix + 3) .eq.'I(Q)') THEN 
-                     value = val_iq
-!     ----Calculate S(Q)           'S(Q)     '                          
-                  ELSEIF (cpara (1) (ix:ix + 3) .eq.'S(Q)') THEN 
-                     value = val_sq
-!     ----Calculate F(Q)=Q(S(Q)-1) 'F(Q)     '                          
-                  ELSEIF (cpara (1) (ix:ix + 3) .eq.'F(Q)') THEN 
-                     value = val_fq 
-                  ELSEIF (cpara (1) (ix:ix + 5) == 'f2aver') THEN
-                     value = val_f2aver
-                  ELSEIF (cpara (1) (ix:ix + 5) == 'faver2') THEN
-                     value = val_faver2
-                  ELSEIF (cpara (1) (ix:ix + 4) == 'faver') THEN
-                     value = val_faver
-!     ----Calculate S(Q)           'N(Q) = S(Q) without thermal part    '                          
-                  ELSEIF (cpara (1) (ix:ix + 2) == 'PDF' ) THEN 
-                     value = val_pdf
-                  ELSEIF (cpara (1) (ix:ix + 4) == '3DPDF' ) THEN 
-                     value = val_3DPDF
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                     value = 0 
-                  ENDIF 
-!------ ----check lots and allowed output                               
-                  IF (nlots.ne.1.and..NOT.(value==1 .OR. value==val_3dpdf).and..not.laver) THEN 
-                     ier_num = - 60 
-                     ier_typ = ER_APPL 
-                     value = 0 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!------  -waiting for user input                                        
-!                                                                       
-            ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
-               CALL do_input (zeile, lp) 
-!                                                                       
-!------ no valid subcommand found                                       
-!                                                                       
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ENDIF 
-      ENDIF 
-      IF (ier_num.ne.0) THEN 
-         CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) THEN 
-            IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
-               IF(sprompt /= prompt ) THEN
-                  ier_num = -10
-                  ier_typ = ER_COMM
-                  ier_msg(1) = ' Error occured in output menu'
-                  prompt_status = PROMPT_ON 
-                  prompt = orig_prompt
-                  RETURN
-               ELSE
-                  IF(lmacro_close) THEN
-                     CALL macro_close 
-                     prompt_status = PROMPT_ON 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
-            IF (lblock) THEN 
-               ier_num = - 11 
-               ier_typ = ER_COMM 
-               prompt_status = PROMPT_ON 
-               prompt = orig_prompt
-               RETURN 
-            ENDIF 
-            CALL no_error 
-            lmakro_error = .FALSE.
-            sprompt = ' '
-         ENDIF 
-      ENDIF 
+USE prompt_mod 
+USE sup_mod
+!                                                                       
+IMPLICIT none 
+!                                                                       
+INTEGER, PARAMETER :: maxp = 11 
+!                                                                       
+CHARACTER(LEN=5) :: befehl 
+CHARACTER(LEN=LEN(prompt)) :: orig_prompt
+CHARACTER(LEN=14) :: cvalue (0:14) 
+CHARACTER(LEN=22) :: cgraphik (0:8) 
+CHARACTER(LEN=1024) :: infile 
+CHARACTER(LEN=1024) :: zeile 
+CHARACTER(LEN=1024) :: line, cpara (maxp) 
+INTEGER, DIMENSION(MAXP) :: lpara  !(maxp) 
+INTEGER :: ix, iy, ianz, value, lp, length, lbef 
+INTEGER :: indxg 
+LOGICAL :: laver, lread, linverse 
+REAL(KIND=PREC_SP) :: xmin, ymin, xmax, ymax 
+REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
+!                                                                       
+INTEGER, EXTERNAL :: len_str 
+LOGICAL, EXTERNAL :: str_comp 
+!                                                                       
+DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
+                'Portable Any Map', 'Powder Pattern', 'SHELX',          &
+                'SHELXL List 5', 'SHELXL List 5 real HKL' /                                    
+DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
+              'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
+              'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
+              'f2aver = <f^2>', 'faver2 = <f>^2', 'faver = <f>   ',&
+              'Normal Inten  ', 'I(Q)          ', 'PDF           ' /
+                                                                  
+DATA value / 1 / 
+DATA laver / .false. / 
+!                                                                       
+zmin = ps_low * diffumax 
+zmax = ps_high * diffumax 
+orig_prompt = prompt
+prompt = prompt (1:len_str (prompt) ) //'/output' 
+10 CONTINUE 
+!                                                                       
+CALL no_error 
+!                                                                       
+CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
+IF (ier_num.eq.0) THEN 
+   IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
+       line == char(13) .or. line(1:1) == '!'  ) THEN
       IF(linteractive .or. lmakro) THEN
          GOTO 10
       ELSE
          RETURN
       ENDIF
+   ENDIF
+!                                                                       
+!     search for "="                                                    
+!                                                                       
+   indxg = index (line, '=') 
+   IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
+                 .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
+                 .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
+                             str_comp (befehl, '?   ', 2, lbef, 4) )    &
+                 .AND. INDEX(line,'==') == 0                            ) THEN
+!
+!     --evaluate an expression and assign the value to a variabble       
+!                                                                       
+      CALL do_math (line, indxg, length) 
+   ELSE 
+!                                                                       
+!------ execute a macro file                                            
+!                                                                       
+      IF (befehl (1:1) .eq.'@') THEN 
+         IF (length.ge.2) THEN 
+            CALL file_kdo (line (2:length), length - 1) 
+         ELSE 
+            ier_num = - 13 
+            ier_typ = ER_MAC 
+         ENDIF 
+!                                                                       
+!     continues a macro 'continue'                                      
+!                                                                       
+      ELSEIF (str_comp (befehl, 'continue', 1, lbef, 8) ) THEN 
+         CALL macro_continue (zeile, lp) 
+!                                                                       
+!------ Echo a string, just for interactive check in a macro 'echo'     
+!                                                                       
+      ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
+         CALL echo (zeile, lp) 
+!                                                                       
+!     Evaluate an expression, just for interactive check 'eval'         
+!                                                                       
+      ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+         CALL do_eval (zeile, lp, .TRUE.) 
+!                                                                       
+!     Terminate output 'exit'                                           
+!                                                                       
+      ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
+         GOTO 9999 
+!                                                                       
+!     Determine format for output 'format'                              
+!                                                                       
+      ELSEIF (str_comp (befehl, 'form', 1, lbef, 4) ) THEN 
+         CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
+         IF (ier_num.eq.0) THEN 
+            IF (ianz.eq.1.or.ianz.eq.2.or.ianz==5) THEN 
+!                                                                       
+!     ------Switch output type to ASCII 3D  '3d'                      
+!                                                                       
+               IF(str_comp(cpara(1),'3d',2,lpara(1),2)) THEN                                        
+                  ityp = 9 
+!                                                                       
+!     ------Switch output type to GNUPLOT 'gnup'                        
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'gnup',1,lpara(1),4)) THEN                                             
+                  ityp = 3 
+!                                                                       
+!     ------Switch output type to pgm 'pgm'                             
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'pgm ',2,lpara(1),4)) THEN                                        
+                  ityp = 2 
+!                                                                       
+!     ------Switch output type to postscript 'post'                     
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'post',3,lpara(1),4)) THEN                                        
+                  ityp = 1 
+!                                                                       
+!     ------Switch output type to powder pattern 'powd'                 
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'powd',3,lpara(1),4)) THEN                                        
+                  ityp = 5 
+                  IF (ianz >= 2) THEN 
+                     IF(str_comp(cpara(2), 'tth', 2, lpara(2), 3)) THEN
+                        cpow_form = 'tth' 
+                     ELSEIF(str_comp(cpara(2), 'q', 1, lpara(2), 1)) THEN
+                        cpow_form = 'q  ' 
+!                    ELSEIF(str_comp(cpara(2), 'r', 1, lpara(2), 1)) THEN
+!                       cpow_form = 'r  ' 
+                     ELSEIF(str_comp(cpara(2), 'stl', 2, lpara(2), 3) ) THEN
+                        cpow_form = 'stl' 
+                     ELSEIF(str_comp(cpara(2), 'dst', 2, lpara(2), 3)) THEN
+                        cpow_form = 'dst' 
+                     ELSEIF(str_comp(cpara(2), 'lop', 2, lpara(2), 3) ) THEN
+                        cpow_form = 'lop' 
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF 
+                     out_user_limits      = .false.
+                     IF(ianz==5) THEN
+                        cpara(1:2)='0'
+                        lpara(1:2)= 1 
+                        CALL ber_params (ianz, cpara, lpara, werte, maxp)
+                        IF(ier_num==0) THEN
+                           out_user_values(1:3) = werte(3:5)
+                           out_user_limits      = .true.
+                        ENDIF
+                     ENDIF
+                  ENDIF 
+!                                                                       
+!     ------Switch output type to PDF 'pdf'                 
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'pdf',3,lpara(1),3)) THEN                                        
+                  ityp = 5 
+                  IF (ianz >= 2) THEN 
+                     IF(str_comp(cpara(2), 'r', 1, lpara(2), 1)) THEN
+                        cpow_form = 'r  ' 
+                     ELSE 
+                        ier_num = -6 
+                        ier_typ = ER_COMM 
+                     ENDIF 
+                     out_user_limits      = .false.
+                     IF(ianz==5) THEN
+                        cpara(1:2)='0'
+                        lpara(1:2)= 1 
+                        CALL ber_params (ianz, cpara, lpara, werte, maxp)
+                        IF(ier_num==0) THEN
+                           out_user_values(1:3) = werte(3:5)
+                           out_user_limits      = .true.
+                        ENDIF
+                     ENDIF
+                  ENDIF 
+!                                                              
+!     ------Switch output type to ppm 'ppm'                             
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'ppm ',2,lpara(1),4)) THEN                                        
+                  ityp = 4 
+!                                                                       
+!     ------Switch output type to standard  'stan'                      
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'stan',2,lpara(1),4)) THEN                                        
+                  ityp = 0 
+!                                                                       
+!     ------Switch output type to Shelx 'shel', or 'hklf4'              
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'shel',2,lpara(1),4)) THEN                                        
+                  ityp = 6 
+               ELSEIF(str_comp(cpara(1),'hklf4',2,lpara(1),5)) THEN                                        
+                  ityp = 6 
+!                                                                       
+!     ------Switch output type to Shelx LIST 5   'list5'                
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'list5',2,lpara(1),5)) THEN                                        
+                  ityp = 7 
+!                                                                       
+!     ------Switch output type to Shelx LIST 5   'list9'                
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'list9',2,lpara(1),5)) THEN                                        
+                  ityp = 8 
+!                                                                       
+!     ------Switch output type to NeXus format   'nexus'                
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'nexus',2,lpara(1),5)) THEN                                        
+                  ityp = 10 
+!                                                                       
+!     ------Switch output type to VTK format   'vtk'
+!                                                                       
+               ELSEIF(str_comp(cpara(1),'vtk',2,lpara(1),5)) THEN
+                  ityp = 11
+!                                                                       
+!     ------Switch output type to MRC   format   'mrc'                
+!                                                                       
+               ELSEIF (str_comp(cpara(1), 'mrc', 2, lpara(1), 3) ) THEN                                        
+                  ityp = 12 
+               ELSE
+                  ier_num = - 9 
+                  ier_typ = ER_APPL 
+               ENDIF 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ENDIF 
+!                                                                       
+!     help on output 'help'                                             
+!                                                                       
+      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
+        &, '?   ', 1, lbef, 4) ) THEN                                      
+         IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
+            lp = lp + 7 
+            CALL do_hel ('discus '//zeile, lp) 
+         ELSE 
+            lp = lp + 14 
+            CALL do_hel ('discus output '//zeile, lp) 
+         ENDIF 
+!                                                                       
+!     read an old output file (only for standard file type' 'inpu'      
+!                                                                       
+      ELSEIF (str_comp (befehl, 'inpu', 1, lbef, 4) ) THEN 
+         CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
+         IF (ier_num.eq.0) THEN 
+            infile = cpara (1) 
+            lread = .true. 
+            CALL oeffne (1, infile, 'old') 
+            IF (ier_num.eq.0) THEN 
+               READ (1, * ) out_inc (1), out_inc (2) 
+               READ (1, * ) xmin, xmax, ymin, ymax 
+               READ (1, * ) zmax 
+               zmin = zmax 
+               BACKSPACE (1) 
+!                                                                       
+               DO iy = 1, out_inc (2) 
+               READ (1, * ) (dsi ( (ix - 1) * out_inc (2) + iy),  &
+               ix = 1, out_inc (1) )                              
+               DO ix = 1, out_inc (1) 
+                  zmax = max (zmax, REAL(dsi ( (ix - 1) * out_inc (2)     &
+                  + iy) ))                                            
+                  zmin = min (zmin, REAL(dsi ( (ix - 1) * out_inc (2)     &
+                  + iy)) )                                            
+               ENDDO 
+               ENDDO 
+               WRITE (output_io, 1015, advance='no') zmin, zmax 
+               READ ( *, *, end = 20) zmin, zmax 
+   20                CONTINUE 
+            ENDIF 
+            CLOSE (1) 
+         ENDIF 
+!                                                                       
+!     define name of output file 'outf'                                 
+!                                                                       
+      ELSEIF (str_comp (befehl, 'outf', 1, lbef, 4) ) THEN 
+         CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
+         IF (ier_num.eq.0) THEN 
+            CALL do_build_name (ianz, cpara, lpara, werte, maxp,  &
+            1)                                                    
+            IF (ier_num.eq.0) THEN 
+               outfile = cpara (1) (1:lpara(1))
+            ENDIF 
+         ENDIF 
+!                                                                       
+!     Reset output 'reset'
+!                                                                       
+      ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+         CALL output_reset
+!                                                                       
+!     write output file 'run'                                           
+!                                                                       
+      ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) THEN 
+         IF(four_was_run) THEN    ! A fourier has been calculated do output
+            CALL chem_elem(.false.)
+            CALL set_output (linverse) 
+            IF (ityp.eq.0) THEN 
+               CALL do_output (value, laver) 
+            ELSEIF (ityp.eq.1) THEN 
+               CALL do_post (value, laver) 
+            ELSEIF (ityp.eq.2) THEN 
+               CALL do_pgm (value, laver) 
+            ELSEIF (ityp.eq.3) THEN 
+               CALL do_output (value, laver) 
+            ELSEIF (ityp.eq.4) THEN 
+               CALL do_ppm (value, laver) 
+            ELSEIF (ityp.eq.5) THEN 
+               CALL powder_out (value)
+            ELSEIF (ityp.eq.6) THEN 
+               CALL do_output (value, laver) 
+            ELSEIF (ityp.eq.7) THEN 
+               CALL do_output (value, laver) 
+            ELSEIF (ityp.eq.8) THEN 
+               CALL do_output (value, laver) 
+            ELSEIF (ityp.eq.9) THEN 
+               CALL do_output (value, laver) 
+            ELSEIF (ityp.eq.10) THEN 
+               CALL nexus_write (value, laver) 
+            ELSEIF (ityp.eq.11) THEN
+               CALL vtk_write ()
+            ELSEIF (ityp.eq.12) THEN
+               CALL mrc_write (value, laver)
+            ELSE 
+               ier_num = - 9 
+               ier_typ = ER_APPL 
+            ENDIF 
+         ELSE 
+            ier_num = -118
+            ier_typ = ER_APPL 
+            ier_msg(1) = 'You need to calculate a Fourier / Patterson /'
+            ier_msg(2) = 'Inverse Fourier / Powder / Fourier via Stack'
+            ier_msg(3) = 'first, before an output can be written'
+         ENDIF 
+!                                                                       
+!     Show current settings for output 'show'                           
+!                                                                       
+      ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
+         WRITE (output_io, 3000) outfile 
+         IF (ityp.lt.0.or.8.lt.ityp) THEN 
+            WRITE (output_io, * ) 'ityp undefiniert ', ityp 
+         ELSEIF (ityp.eq.5) THEN 
+            WRITE (output_io, 3130) cgraphik (ityp), cpow_form 
+         ELSE 
+            WRITE (output_io, 3100) cgraphik (ityp) 
+            IF (laver) THEN 
+               WRITE (output_io, 3110) '<'//cvalue (value) //'>' 
+            ELSE 
+               WRITE (output_io, 3110) cvalue (value) 
+            ENDIF 
+         ENDIF 
+         WRITE (output_io, 3060) braggmin, braggmax, diffumin,    &
+         diffumax, diffuave, diffusig                             
+         WRITE (output_io, 3080) 100.0 * ps_high, zmax 
+         WRITE (output_io, 3090) 100.0 * ps_low, zmin 
+!                                                                       
+!-------Operating System Kommandos 'syst'                               
+!                                                                       
+      ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+         IF (zeile.ne.' ') THEN 
+            CALL do_operating (zeile (1:lp), lp) 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+!                                                                       
+!     Set threshold for intensity written to bitmaps 'thresh'           
+!                                                                       
+      ELSEIF (str_comp (befehl, 'thre', 2, lbef, 4) ) THEN 
+         CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
+         IF (ier_num.eq.0) THEN 
+            IF (ianz.eq.2) THEN 
+               IF (str_comp (cpara (1) , 'high', 1, lpara (1) , 4)&
+               ) THEN                                             
+                  CALL del_params (1, ianz, cpara, lpara, maxp) 
+                  CALL ber_params (ianz, cpara, lpara, werte,     &
+                  maxp)                                           
+                  IF (ier_num.eq.0) THEN 
+                     ps_high = werte (1) * 0.01 
+                     zmax = diffumax * ps_high 
+                  ENDIF 
+               ELSEIF (str_comp (cpara (1) , 'low', 1, lpara (1) ,&
+               3) ) THEN                                          
+                  CALL del_params (1, ianz, cpara, lpara, maxp) 
+                  CALL ber_params (ianz, cpara, lpara, werte,     &
+                  maxp)                                           
+                  IF (ier_num.eq.0) THEN 
+                     ps_low = werte (1) * 0.01 
+                     zmin = diffumax * ps_low 
+                  ENDIF 
+               ELSEIF (str_comp (cpara (1) , 'sigma', 1, lpara (1)&
+               , 5) ) THEN                                        
+                  CALL del_params (1, ianz, cpara, lpara, maxp) 
+                  CALL ber_params (ianz, cpara, lpara, werte,     &
+                  maxp)                                           
+                  IF (ier_num.eq.0) THEN 
+                     zmin = max (diffumin, diffuave-REAL(werte (1))     &
+                     * diffusig)                                  
+                     zmax = min (diffumax, diffuave+REAL(werte (1))     &
+                     * diffusig)                                  
+                     IF (diffumax.ne.0) THEN 
+                        ps_high = zmax / diffumax 
+                        ps_low = zmin / diffumax 
+                     ELSE 
+                        ps_high = 0.0 
+                        ps_low = 0.0 
+                     ENDIF 
+                  ENDIF 
+               ELSEIF (str_comp (cpara (1) , 'zmax', 3, lpara (1) &
+               , 4) ) THEN                                        
+                  CALL del_params (1, ianz, cpara, lpara, maxp) 
+                  CALL ber_params (ianz, cpara, lpara, werte,     &
+                  maxp)                                           
+                  IF (ier_num.eq.0) THEN 
+                     zmax = werte (1) 
+                     IF (diffumax.ne.0) THEN 
+                        ps_high = zmax / diffumax 
+                     ELSE 
+                        ps_high = 0.0 
+                     ENDIF 
+                  ENDIF 
+               ELSEIF (str_comp (cpara (1) , 'zmin', 3, lpara (1) &
+                  , 4) ) THEN                                        
+                  CALL del_params (1, ianz, cpara, lpara, maxp) 
+                  CALL ber_params (ianz, cpara, lpara, werte,     &
+                  maxp)                                           
+                  IF (ier_num.eq.0) THEN 
+                     zmin = werte (1) 
+                  IF (diffumax.ne.0) THEN 
+                     ps_low = zmin / diffumax 
+                  ELSE 
+                     ps_low = 0.0 
+                  ENDIF 
+               ENDIF 
+            ELSE 
+               ier_num = - 11 
+               ier_typ = ER_APPL 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!     Define output value 'value'                                       
+!                                                                       
+   ELSEIF (str_comp (befehl, 'valu', 1, lbef, 4) ) THEN 
+      CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
+      IF (ier_num.eq.0) THEN 
+!------ ----Check if we want the average values <F> ?                   
+         IF (cpara (1) (1:1) .eq.'<') THEN 
+            ix = 2 
+            laver = .true. 
+         ELSE 
+            ix = 1 
+            laver = .false. 
+         ENDIF 
+!     ----Calculate intensity 'intensity'                               
+         IF (cpara (1) (ix:ix + 1) .eq.'in') THEN 
+            value = val_inten
+!     ----Calculate amplitude 'amplitude'                               
+         ELSEIF (cpara (1) (ix:ix) .eq.'a') THEN 
+            value = val_ampli
+!     ----Calculate phase 'phase'                                       
+         ELSEIF (cpara (1) (ix:ix) .eq.'p') THEN 
+            IF (ianz.eq.1) THEN 
+               value = val_phase
+            ELSEIF (ianz.eq.2.and.cpara (2) (1:1) .eq.'r')     &
+            THEN                                               
+               value = val_ranph
+            ENDIF 
+!     ----Calculate real part 'real'                                    
+         ELSEIF (cpara (1) (ix:ix) .eq.'r') THEN 
+            value = val_real
+!     ----Calculate imaginary part 'imaginary'                          
+         ELSEIF (cpara (1) (ix:ix + 1) .eq.'im') THEN 
+            value = val_imag
+!     ----Calculate I(Q)           'I(Q) =Inte/N'                       
+         ELSEIF (cpara (1) (ix:ix + 3) .eq.'I(Q)') THEN 
+            value = val_iq
+!     ----Calculate S(Q)           'S(Q)     '                          
+         ELSEIF (cpara (1) (ix:ix + 3) .eq.'S(Q)') THEN 
+            value = val_sq
+!     ----Calculate F(Q)=Q(S(Q)-1) 'F(Q)     '                          
+         ELSEIF (cpara (1) (ix:ix + 3) .eq.'F(Q)') THEN 
+            value = val_fq 
+         ELSEIF (cpara (1) (ix:ix + 5) == 'f2aver') THEN
+            value = val_f2aver
+         ELSEIF (cpara (1) (ix:ix + 5) == 'faver2') THEN
+            value = val_faver2
+         ELSEIF (cpara (1) (ix:ix + 4) == 'faver') THEN
+            value = val_faver
+!     ----Calculate S(Q)           'N(Q) = S(Q) without thermal part    '                          
+         ELSEIF (cpara (1) (ix:ix + 2) == 'PDF' ) THEN 
+            value = val_pdf
+         ELSEIF (cpara (1) (ix:ix + 4) == '3DPDF' ) THEN 
+            value = val_3DPDF
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+            value = 0 
+         ENDIF 
+!------ ----check lots and allowed output                               
+         IF (nlots.ne.1.and..NOT.(value==1 .OR. value==val_3dpdf).and..not.laver) THEN 
+            ier_num = - 60 
+            ier_typ = ER_APPL 
+            value = 0 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!------  -waiting for user input                                        
+!                                                                       
+   ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
+      CALL do_input (zeile, lp) 
+!                                                                       
+!------ no valid subcommand found                                       
+!                                                                       
+   ELSE 
+      ier_num = - 8 
+      ier_typ = ER_COMM 
+   ENDIF 
+ENDIF 
+ENDIF 
+!
+IF (ier_num.ne.0) THEN 
+   CALL errlist 
+   IF (ier_sta.ne.ER_S_LIVE) THEN 
+      IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
+         IF(sprompt /= prompt ) THEN
+            ier_num = -10
+            ier_typ = ER_COMM
+            ier_msg(1) = ' Error occured in output menu'
+            prompt_status = PROMPT_ON 
+            prompt = orig_prompt
+            RETURN
+         ELSE
+            IF(lmacro_close) THEN
+               CALL macro_close 
+               prompt_status = PROMPT_ON 
+            ENDIF 
+         ENDIF 
+      ENDIF 
+      IF (lblock) THEN 
+         ier_num = - 11 
+         ier_typ = ER_COMM 
+         prompt_status = PROMPT_ON 
+         prompt = orig_prompt
+         RETURN 
+      ENDIF 
+      CALL no_error 
+      lmakro_error = .FALSE.
+      sprompt = ' '
+   ENDIF 
+ENDIF 
+IF(linteractive .or. lmakro) THEN
+   GOTO 10
+ELSE
+   RETURN
+ENDIF
  9999 CONTINUE 
-      prompt = orig_prompt
+prompt = orig_prompt
 !                                                                       
  1015 FORMAT ( /1x,'Z-MIN = ',G20.6,/,1x,'Z-MAX = ',G20.6,//            &
      &                     1x,'Give new values zmin, zmax    : ')     
@@ -592,8 +612,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  3100 FORMAT( ' Graphicsformat               : ',A) 
  3130 FORMAT( ' Graphicsformat               : ',A,A) 
  3110 FORMAT( ' Output value                 : ',A) 
-      END SUBROUTINE do_niplps                      
+END SUBROUTINE do_niplps                      
+!
 !*****7*****************************************************************
+!
       SUBROUTINE do_post (value, laver) 
 !-                                                                      
 !     Writes a POSTSCRIPT file                                          
