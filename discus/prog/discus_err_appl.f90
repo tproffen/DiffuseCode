@@ -9,11 +9,12 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-167,IO=7)
+      PARAMETER    (IU=-168,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -161) /                          &
+     &  'Periodic PDF is on but radius <= 0.0   ',       & !-168 ! discus
      &  'A cell/stru needs metric:host parameter',       & !-167 ! discus
      &  'Density is <= zero',                            & !-166 ! discus
      &  'Molecule axis is equal to neigbors on bonds',   & !-165 ! discus
