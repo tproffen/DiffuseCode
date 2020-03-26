@@ -126,18 +126,23 @@ USE class_macro_internal
 USE doact_mod
 USE errlist_mod
 USE exit_mod
+USE prompt_mod
 USE sup_mod
 USE terminal_mod
 !
 IMPLICIT NONE
 CHARACTER(LEN=8)  :: dummy
 INTEGER           :: lbef
+INTEGER           :: prompt_keep
 !
 LOGICAL, EXTERNAL :: str_comp
 !
 CALL exit_all
 CALL set_signal
 CALL color_set_scheme(.TRUE.,0)
+!
+prompt_keep = prompt_status
+prompt_status = PROMPT_ON
 !
 WRITE(*,*) 
 WRITE(*,'(a,a,a,a)') TRIM(color_err),' DISCUS SUITE closed by User Request CTRL-C ',TRIM(color_fg),CHAR(7)
@@ -155,20 +160,23 @@ WRITE(*,*) '          : and let the calculation continue.'
 WRITE(*,*) '          : There is no warranty that the calculation will be correct!'
 WRITE(*,*) ' exit     : Stop the discus_suite'
 dummy = ' '
-CALL do_prompt('ctrl-c')
+WRITE (*, '(1X,A6,'' > '')',advance='no') 'ctrl-c'
 READ(*,'(a)') dummy
 lbef = LEN_TRIM(dummy)
 IF(dummy==' ') THEN
+   prompt_status  = PROMPT_ON
    ier_num = -14
    ier_typ = ER_COMM
    ier_ctrlc = .TRUE.   ! Flag to interrupt lengthy calculations
    RETURN
 ELSEIF(str_comp (dummy, 'continue', 3, lbef, 8)) THEN
+   prompt_status  = PROMPT_ON
    ier_num = -14
    ier_typ = ER_COMM
    ier_ctrlc = .TRUE.   ! Flag to interrupt lengthy calculations
    RETURN
 ELSEIF(str_comp (dummy, 'save', 3, lbef, 4)) THEN
+   prompt_status  = PROMPT_ON
    CALL discus_emergency_save
    CALL diffev_emergency_save
 !
@@ -177,6 +185,7 @@ ELSEIF(str_comp (dummy, 'save', 3, lbef, 4)) THEN
    ier_ctrlc = .TRUE.   ! Flag to interrupt lengthy calculations
    RETURN
 ELSEIF(str_comp (dummy, 'resume', 3, lbef, 6)) THEN
+   prompt_status = prompt_keep
    ier_num = 0
    ier_typ = ER_NONE
    ier_msg(:) = ' '
