@@ -4491,6 +4491,7 @@
 3  format
 !p form {"gnu" | "pgm" | "ppm" | 
 !p       "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
+!p       "pdf" [,"r" [,<min>,<max>,<step>] ] 
 !p     | "post" | "shel" | "stan" | "hklf4" | "list5" | "nexus" |
 !p       "vtk" | "mrc"}
 
@@ -4561,6 +4562,11 @@
    If DISCUS is operated within the DISCUS_SUITE, a file name 
    that starts with "kuplot" is copied directly into the KUPLOT
    data array, and NOT written to disk.
+!p "pdf" [,"r" [,<min>,<max>,<step>] ]
+   Sets the output format to a Pair distribution function PDF.
+   
+   If the values [,<min>,<max>,<step>] are specified, they will
+   define the PDF range to be written. 
 
 !p "post"
    Sets the type of the output to color postscript. A bitmap of the
@@ -6231,6 +6237,17 @@
    This must be set, if you intend to use the "Q" axis. 
    You also need to set a 2Theta-range if you want to write the output
    on a 2Theta scale.
+4  qzero
+!p set qzero, <value>
+
+   Sets the zero point offset of experimental data compared to the 
+   true Q scale. The value will be subtracted from the calculated Q
+   values.
+   If the zero point of the experimental data is at say +0.1 A^-1 
+   on the absolute, true Q scale, we need to subtract this shift of
+   +0.1 A^-1 from the calculated data in order to match the 
+   experimental Q scale. All peaks in the output will be at a Q value
+   of 0.1 A^-1 less than the true value.
 4  tthmin
 !p set tthmin,<value>
 
@@ -6246,6 +6263,17 @@
    This must be set, if you intend to use the "2Theta" axis. 
    You also need to set a Q-range if you want to write the output
    on a 2Theta scale.
+4  tthzero
+!p set tthzero, <value>
+
+   Sets the zero point offset of experimental data compared to the 
+   true 2THETA scale. The value will be subtracted from the calculated 
+   2Theta values.
+   If the zero point of the experimental data is at say +0.1R°
+   on the absolute, true 2THETA scale, we need to subtract this shift of
+   +0.1° from the calculated data in order to match the 
+   experimental 2THETA scale. All peaks in the output will be at a 2Theta 
+   value of 0.1° less than the true value.
 4  temp
 !p set temp,<switch>
 
@@ -6536,7 +6564,7 @@
    the optional eighth parameter may be set to "2" to indicate the 
    alternative origin choice.
 3  stru
-!p stru <name>
+!p stru <name> [, site:{"differ"|"equal"}]
 
    Reads a whole structure from file <name>.
    The space group information is ignored, nor is a check for consistency
@@ -6547,6 +6575,14 @@
    If the file ends in 'cif', 'CIF', a CIF-file format is assumed.
    If the file ends in 'txt', 'TXT', a CMAKER-file format is assumed.
    If the file ends in 'cssr', 'CSSR', a RMCprofile-file format is assumed.
+
+   The optional parameter "site:" determines ow atoms are treated that are
+   on different sites in the unit cell, but are otherwise identical. The
+   default "site:equal" is to treat these as the same atom type. With the 
+   option "site:differ"  these atoms are treated as separate different 
+   atom types. The optio is only applied, if the crystal consists of a
+   total number of atoms that is an integer multiple of the number of
+   atoms per unit cell.
 3  exit
 !p exit
 
