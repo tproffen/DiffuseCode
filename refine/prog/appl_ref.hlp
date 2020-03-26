@@ -16,12 +16,18 @@
    help can be obtained by typing the corresponding command name at the
    help prompt.
 
-!p data     ! defines the data set 
-!p newparam ! defines the parameters to be refined
-!p fix      ! fixes a prameter, free with newparam
-!p set      ! sets control values like cycles, convergence criteria
-!p sigma    ! for 2D data defines a file that contains experimental uncertainties
-!p News          : Information on program updates
+!p data     ! Defines the data set 
+!p finished ! Terminates the slave macro
+!p fix      ! Fixes a prameter, free with newparam
+!p newparam ! Defines and sets a new parameter, which is to be refined  
+!p reset    ! Performs a global reset to system start conditions
+!p run      ! Starts the refinement
+!p show     ! Shows settings
+!p set      ! Sets control values like cycles, convergence criteria
+!p sigma    ! For 2D data; defines a file that contains experimental uncertainties
+2  News          : Information on program updates
+
+   This is the initial release of the REFINE section.
 2  Example
 
    A simple fit might refine parameters of a straight line to
@@ -66,6 +72,13 @@
       ways to load a data set.
 
    Refer to the KUPLOT section for instructions on loading data.
+2  finished
+!p finished
+
+   This command must be the last instruction in any slave macro.
+   The command instructs refine to terminate execution of the slave 
+   macro. REFINE will then evaluate the results and proceed to the
+   next refinement cycle.
 2  fix
 !p fix <parname> [,"value:"<number>]
 
@@ -154,10 +167,17 @@
 
    The optional parameter "plot:" instructs REFINE to display the
    observed and calculated data at each cycle. The macro 
-   <kuplot_macro> must be a pure KUPLOT macro.
+   <kuplot_macro> must be a pure KUPLOT macro. The last line in this
+   macro must be an 'exit' command that returns to REFINE. 
+2  show
+!p show
+
+   Shows the current refinement status.
 2  set
 !p set cycle,<maxc>
+!p set conver, ["status:on" | "status:off"]
 !p set conver ["dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
+!p            ["chisq:<value>]
 !p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>] 
 !p            [,"success:"<lamda_g>]
 !p
@@ -167,9 +187,13 @@
 
 3  convergence
 !p set conver [,"dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
-!p            [,"chi2:"<level>]
+!p            [,"chi2:"<level>] [,"status:on" | "status:off"]
 
    Allows the user to define convergence criteria.
+
+   If the status is set to "on", the convergence criteria are used.
+   Otherwise the refinement will run for the cycles defined 
+   by ==> 'set cycle'.
 
    dchi:<delta>
      If the value of Chi^2/(Ndata-Npara) decreases by less than <delta>
