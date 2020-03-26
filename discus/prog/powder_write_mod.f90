@@ -33,7 +33,7 @@ IMPLICIT none
 !                                                                       
 INTEGER, INTENT(IN) :: value ! Type of output
 !                                                                       
-INTEGER   :: ii, j , iii
+INTEGER   :: ii, j , iii, iscat
 INTEGER   :: all_status  ! Allocation status
 INTEGER   :: npkt        ! number of points in powder pattern
 INTEGER   :: npkt_equi   ! number of points in equidistant powder pattern
@@ -63,9 +63,10 @@ REAL      :: tthmax  ! minimum for equdistant curve
 REAL      ::   qmin  ! minimum for equdistant curve
 REAL      ::   qmax  ! maximum for equdistant curve
 REAL      :: arg
+REAL      :: fu      ! dummy for f² * exp(-<u>Q^2)
 REAL(KIND=PREC_DP) :: u2aver_scale = 2.00   ! Scale to multiply <u^2> if conversion
 !                     ! with corrlin_corrquad is needed. This increases the calculated
-!                     ! intensity actually by more than the damping by <u^2>, in oder
+!                     ! intensity actually by more than the damping by <u^2>, in order
 !                     ! to sharpen the distances sufficiently for later broadening
 !
 REAL(KIND=PREC_DP) :: rmin, rmax, rstep
@@ -170,6 +171,7 @@ IF(value == val_sq     .OR. value == val_fq     .OR. &
          ENDIF
          CALL powder_f2aver (npkt   )             ! Calculate average form factors <f>2 and <f^2>
       ENDIF
+!   pow_u2aver = pow_u2aver + pow_bvalue/8.0D0/pi**2
 !  ELSE                                           ! F(Q) works for Q-axis only
 !     ier_msg (1) = 'Use command ==> form, powder,q'
 !     ier_msg (2) = 'within the output menu to define the axis' 
@@ -205,18 +207,18 @@ ELSE                         ! All other output
       pow_tmp (j) = pow_conv(j)   ! copy from convoluted pattern
    ENDDO
 ENDIF           ! Output is if_block if(value==val_f2aver)
-!CORR open(77,file='POWDER/INITIAL.inte',status='unknown')
-!CORR DO ii=1,npkt
-!CORR   write(77,'(2(2x,G17.7E3))') xmin+(ii-1)*xdel, pow_tmp(ii)
-!CORR enddo
-!CORR close(77)
+! open(77,file='POWDER/INITIAL.inte',status='unknown')
+! DO ii=1,npkt
+!   write(77,'(2(2x,G17.7E3))') xmin+(ii-1)*xdel, pow_tmp(ii)
+! enddo
+! close(77)
 !
 !------ copy the powder pattern into output array, if necessary this will be put on
 !       equidistant scale
 !                                                                       
 IF (pow_four_type.eq.POW_COMPL) THEN
    pow_tmp = pow_tmp/(REAL(pow_nreal, KIND=PREC_DP))**2 * &
-                      REAL(cr_ncatoms, KIND=PREC_DP)/REAL(cr_v, KIND=PREC_DP) * &
+                      REAL(pow_ncreal , KIND=PREC_DP)/REAL(cr_v, KIND=PREC_DP) * &
              20.00D0  ! Needs to be verified where this 20 comes from
 ENDIF
 !
@@ -249,11 +251,13 @@ copy: IF (pow_four_type.eq.POW_COMPL) THEN
       ENDIF 
       lpv(ii) = polarisation (ttheta)
       IF (cpow_form.eq.'tth') THEN 
-         xpl(ii) = ttheta
+         xpl(ii) = ttheta - pow_tthzero
       ELSEIF (cpow_form.eq.'stl') THEN 
          xpl(ii) = stl
       ELSEIF (cpow_form.eq.'q  ') THEN 
-         xpl(ii) = q
+         xpl(ii) = q - pow_qzero
+      ELSEIF (cpow_form.eq.'r  ') THEN 
+         xpl(ii) = q - pow_qzero                     ! Initially the x-axis is in Q
       ELSEIF (cpow_form.eq.'dst') THEN 
          xpl(ii) = dstar
       ELSEIF (cpow_form.eq.'lop') THEN 
@@ -290,11 +294,13 @@ ELSEIF (pow_four_type.eq.POW_DEBYE) THEN  copy
       ENDIF
       lpv(ii ) = lp
       IF (cpow_form.eq.'tth') THEN 
-         xpl(ii) = ttheta
+         xpl(ii) = ttheta - pow_tthzero
       ELSEIF (cpow_form.eq.'stl') THEN 
          xpl(ii) = stl
       ELSEIF (cpow_form.eq.'q  ') THEN 
-         xpl(ii) = q
+         xpl(ii) = q - pow_qzero
+      ELSEIF (cpow_form.eq.'r  ') THEN 
+         xpl(ii) = q - pow_qzero
       ELSEIF (cpow_form.eq.'dst') THEN 
          xpl(ii) = dstar
       ENDIF 
@@ -317,7 +323,8 @@ IF(value == val_pdf) THEN   ! Divide by average Debye-Waller term
 ENDIF
 !open(77,file='POWDER/divided.inte',status='unknown')
 !DO ii=1,npkt
-!write(77,'(2(2x,G17.7E3))') xmin+(ii-1)*xdel, ypl(ii)
+!               q = ((ii-1)*xdel + xmin)
+!write(77,'(2(2x,G17.7E3))') q               , ypl(ii)
 !enddo
 !close(77)
 ENDIF        ! Output is if_block if(value==val_f2aver)
@@ -355,12 +362,27 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
                           pow_f2aver(j)/pow_faver2(j))
             ENDDO
          ELSE
+!open(63,file='fu.dat', status='unknown')
             DO j = 1, npkt   
                q = ((j-1)*xdel + xmin)
-               ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
-                         + 1.0 - exp(-q**2*pow_u2aver)   * &
-                          pow_f2aver(j)/pow_faver2(j))
+!              ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+!                        + 1.0 - exp(-q**2*pow_u2aver)   * &
+!                         pow_f2aver(j)/pow_faver2(j))
+!               arg = 1.0 + (ypl(j)/normalizer )/pow_faver2(j)
+               fu = 0.0
+               DO iscat = 1, cr_nscat
+                  fu = fu + pow_f2(j,iscat)*exp(-q**2/8./PI**2*cr_dw(iscat))*cr_occ(iscat)
+               ENDDO
+!              ypl(j) = 2.0 + (ypl(j)/normalizer - pow_f2aver(j) - fu)/pow_faver2(j)
+               ypl(j) = 1.0 + (ypl(j)/normalizer                 - fu)/pow_faver2(j)
+!              ypl(j) = 1.0 + (ypl(j)/normalizer - pow_f2aver(j)*exp(-q**2*pow_u2aver))/pow_faver2(j)
+!write(63,'(6f12.6)') q, ypl(j), arg, &
+! pow_f2aver(j)*exp(-q**2*pow_u2aver)/pow_faver2(j), fu/pow_faver2(j), pow_f2aver(j)/pow_faver2(j)
             ENDDO
+!close(63)
+!write(*,*) ' <<u2>>, <u2>', pow_u2aver, cr_dw(1)/8/PI**2, cr_dw(2)/8/PI**2
+!write(*,*) ' <f2>, f2    ', pow_f2aver(1), pow_f2(1,1), pow_f2(1,2)
+!read(*,*) j
          ENDIF
       ELSEIF(value == val_fq) THEN  valq                       ! Calc F(Q)IF
          IF(deb_conv .OR. .NOT.ldbw) THEN                      ! DEBYE was done with convolution of ADP
@@ -372,9 +394,14 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
          ELSE
             DO j = 1, npkt   
                q = ((j-1)*xdel + xmin)
-               ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
-                               - exp(-q**2*pow_u2aver)   *  &
-                          pow_f2aver(j)/pow_faver2(j)) * q
+!              ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+!                              - exp(-q**2*pow_u2aver)   *  &
+!                         pow_f2aver(j)/pow_faver2(j)) * q
+               fu = 0.0
+               DO iscat = 1, cr_nscat
+                  fu = fu + pow_f2(j,iscat)*exp(-q**2/8./PI**2*cr_dw(iscat))*cr_occ(iscat)
+               ENDDO
+               ypl(j) =       (ypl(j)/normalizer                 - fu)/pow_faver2(j)*q
             ENDDO
          ENDIF
       ELSEIF(value == val_pdf) THEN  valq                      ! Calc PDF IF
@@ -396,9 +423,14 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
             ELSE
                DO j = 1, npkt   
                   q = ((j-1)*xdel + xmin)
-                  ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
-                             - exp(-q**2*pow_u2aver)   *  &
-                             pow_f2aver(j)/pow_faver2(j)) * q
+!                 ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+!                            - exp(-q**2*pow_u2aver)   *  &
+!                            pow_f2aver(j)/pow_faver2(j)) * q
+                  fu = 0.0
+                  DO iscat = 1, cr_nscat
+                     fu = fu + pow_f2(j,iscat)*exp(-q**2/8./PI**2*cr_dw(iscat))*cr_occ(iscat)
+                  ENDDO
+                  ypl(j) =       (ypl(j)/normalizer                 - fu)/pow_faver2(j) * q
                ENDDO
             ENDIF
          ENDIF
@@ -458,6 +490,13 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
 !     RETURN
 !  ENDIF axq               ! pow_axis      == ??
 ENDIF prsq  !Prepare S(Q), F(Q)
+!write(*,*) ' normalizer ', normalizer
+!open(77,file='POWDER/normalized.inte',status='unknown')
+!DO ii=1,npkt
+!               q = ((ii-1)*xdel + xmin)
+!write(77,'(2(2x,G17.7E3))') q               , ypl(ii)
+!enddo
+!close(77)
 !
 CALL pow_k12(npkt, POW_MAXPKT, pow_ka21, pow_ka21_u, xpl, ypl)
 rmax     = out_user_values(2)
@@ -530,7 +569,7 @@ IF( cpow_form == 'tth' ) THEN
 !           ENDDO
 !           npkt_wrt = npkt
 !        ENDIF                   ! pow_axis      == ??
-ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
+ELSEIF( cpow_form == 'q' .OR. cpow_form == 'r') THEN        ! axis is Q
 !        IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
 !            ((pow_four_type == POW_COMPL) .AND. value == val_pdf) .OR. &
 !             pow_four_type == POW_DEBYE              ) THEN ! DEBYE, always spline
@@ -629,7 +668,7 @@ ENDIF                   ! cpow_form ==
 !
 !     Scale intensity and add a background
 !
-IF(value==val_inten) THEN
+IF(value==val_inten .OR. value==val_fq) THEN
          DO ii=1,npkt_wrt
             ywrt(ii) = pow_scale*ywrt(ii)
             DO iii=0,pow_nback
@@ -810,6 +849,21 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
       DEALLOCATE(yfour)
       npkt_wrt = npkt_pdf
    ENDIF corr_if
+!
+   IF(pow_lperiod) THEN      ! Make the PDF periodic
+      DO ii=1, npkt_wrt
+         IF(xwrt(ii)<pow_period) THEN
+            ywrt(ii) =ywrt(ii)/(1.0-1.5*(xwrt(ii)/pow_period)   &
+                                   +0.5*(xwrt(ii)/pow_period)**3)
+         ELSE
+            ywrt(ii) = 0.00
+         ENDIF
+      ENDDO
+   ENDIF
+!
+   DO ii=1,npkt_wrt
+      ywrt(ii) = pow_scale*ywrt(ii)
+   ENDDO
 !
 ENDIF
 !
@@ -1080,7 +1134,7 @@ dq = (xwrt(npkt_wrt)-xwrt(1))/(npkt_wrt-1)
 !rstep    = (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
 qmax     =  PI/rstep           ! by using 2*PI/rstep, the step size in direct space is halved
 !
-iqmin = NINT(xwrt(1       )/dq)
+iqmin = MAX(0,NINT(xwrt(1       )/dq))
 iqmax = NINT(xwrt(npkt_wrt)/dq)
 lensav= 4+INT(SQRT(FLOAT(npkt_fft)/2))
 lenwrk= npkt_fft*5/4-1
@@ -2047,6 +2101,7 @@ SUBROUTINE powder_f2aver ( num1 )
 !     <f^2> and <f>^2
 !
 USE crystal_mod 
+USE chem_mod
 USE diffuse_mod 
 USE powder_mod 
 USE powder_tables_mod 
@@ -2064,6 +2119,7 @@ REAL( KIND(0.0D0))             :: signum
 !!!
 pow_f2aver(:)    = 0.0D0
 pow_faver2(:)    = 0.0D0
+pow_f2    (:,:)  = 0.0D0
 pow_u2aver       = 0.0
 pow_nreal        = 0
 !
@@ -2074,7 +2130,12 @@ natom = 0
 DO i=1,cr_natoms
    natom(cr_iscat(i)) = natom(cr_iscat(i)) + 1
 ENDDO
-pow_nreal = SUM(natom(1:))  ! Add real atom numbers 
+pow_nreal = SUM(NINT(natom(1:cr_nscat)*cr_occ(1:cr_nscat)))  ! Add real atom numbers 
+IF(chem_quick) THEN
+   pow_ncreal = pow_nreal/(cr_icc(1)*cr_icc(2)*cr_icc(3))
+ELSE
+   pow_ncreal = cr_ncatoms
+ENDIF
 !write(*,*) ' IN POW_f2aver nreal, ', pow_nreal
 !
 DO iscat = 1, cr_nscat
@@ -2084,17 +2145,24 @@ DO iscat = 1, cr_nscat
       pow_f2aver (i) = pow_f2aver (i)  + &
                  DBLE (       cfact_pure(powder_istl(i), iscat)  * &
                        conjg (cfact_pure(powder_istl(i), iscat)))  &
-               * natom (iscat)/pow_nreal
+               * natom (iscat)/pow_nreal*cr_occ(iscat)
       pow_faver2 (i) = pow_faver2 (i) +  &
             SQRT(DBLE (       cfact_pure(powder_istl(i), iscat)  * &
                        conjg (cfact_pure(powder_istl(i), iscat)))) &
-               * natom (iscat)/pow_nreal                           &
+               * natom (iscat)/pow_nreal *cr_occ(iscat)            &
                * signum
+      pow_f2(i,iscat)= pow_f2(i,iscat) + &
+                 DBLE (       cfact_pure(powder_istl(i), iscat)  * &
+                       conjg (cfact_pure(powder_istl(i), iscat)))  &
+               * natom (iscat)/pow_nreal*cr_occ(iscat)
    ENDDO
-   pow_u2aver = pow_u2aver + (cr_dw(iscat)) * natom (iscat)/pow_nreal
+   pow_u2aver = pow_u2aver + (cr_dw(iscat)) * natom (iscat)/pow_nreal*cr_occ(iscat)
 ENDDO
 pow_faver2(:) = pow_faver2(:)**2
 pow_u2aver    = pow_u2aver /8./REAL(pi)**2
+!write(*,*) ' U2aver ', pow_u2aver, pow_u2aver*8*PI**2
+!rite(*,*) ' BVAL   ', cr_dw(1:cr_nscat)
+!rite(*,*) ' Natom  ', natom(1:cr_nscat)
 DEALLOCATE(natom)
 !
 !

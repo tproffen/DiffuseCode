@@ -20,6 +20,11 @@ USE discus_plot_mod
 USE discus_plot_init_mod
 USE molecule_mod
 USE powder_mod
+USE discus_save_mod
+USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc, save_show
+USE surface_func_mod
+USE prop_para_func
+USE read_internal_mod
 !
 USE errlist_mod
 USE precision_mod
@@ -28,47 +33,78 @@ USE wink_mod
 !
 IMPLICIT NONE
 !
+CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=1024) :: origstruc       ! Structure prior to powder calculation
+INTEGER :: length
 INTEGER :: i
 LOGICAL                 :: do_mol      ! Molecules with Biso /= 0.0
 INTEGER                 :: powder_nmol ! Number of look up dimensions molecules
 REAL   , DIMENSION(1:3) :: u
+REAL(KIND=PREC_DP), DIMENSION(3) :: com  ! Center of mass of crystal
 !
 IF (rlambda.ne.0.0) THEN
 !
-!  IF (pow_axis.eq.POW_AXIS_TTH) THEN 
-!     IF (pow_tthmax.le.pow_tthmin.or.pow_deltatth.le.0.0) THEN 
-!        ier_num = - 107 
-!        ier_typ = ER_APPL 
-!        RETURN 
-!     ENDIF 
-!  ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
-      IF (pow_qmax.le.pow_qmin.or.pow_deltaq.le.0.0) THEN 
-         ier_num = - 108 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-!  ENDIF 
+   IF (pow_qmax.le.pow_qmin.or.pow_deltaq.le.0.0) THEN 
+      ier_num = - 108 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
 !
 !        Calculate hkl limits 
 !
-!  IF(pow_axis.eq.POW_AXIS_TTH) THEN
-!     pow_ds_max = 2. * sind ((pow_tthmax+pow_deltatth) * 0.5 + pow_tthmax_buf) / rlambda 
-!     pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
-!  ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
-      pow_ds_max = (pow_qmax+pow_deltaq + pow_qmax_buf)/REAL(zpi)
-      pow_ds_min = pow_qmin/REAL(zpi)
-      IF(pow_qmax*rlambda/2./zpi > 1.0) THEN
-         ier_num = -108
-         ier_typ = ER_APPL
-         ier_msg(1) = 'Qmax is too large for current wave length'
-         ier_msg(2) = 'Qmax*lambda/(4pi) is greater than one!'
-         ier_msg(3) = 'Reduce Qmax or the wave length'
-         RETURN
-      ENDIF
-!  ENDIF
+   pow_ds_max = (pow_qmax+pow_deltaq + pow_qmax_buf)/REAL(zpi)
+   pow_ds_min = pow_qmin/REAL(zpi)
+   IF(pow_qmax*rlambda/2./zpi > 1.0) THEN
+      ier_num = -108
+      ier_typ = ER_APPL
+      ier_msg(1) = 'Qmax is too large for current wave length'
+      ier_msg(2) = 'Qmax*lambda/(4pi) is greater than one!'
+      ier_msg(3) = 'Reduce Qmax or the wave length'
+      RETURN
+   ENDIF
+!
    pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
    pow_hkl_max (2) = cr_a0 (2) * pow_ds_max 
    pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
+!
+!  If the user wants to calculate a periodic PDF from an extended
+!  group of atoms via the Debye mode, We:
+!  - store the original structure
+!  - cut the rest into a sphere with radius pow_period/pow_period_cut (cut=0.8)
+!  - calculate the PDF
+!  - divide the PDF by the sphere shape function
+!  - restore the original structure
+   IF(pow_lperiod) THEN      ! Make the PDF periodic
+      IF(pow_period > 0.0) THEN    ! Limit is positive
+         CALL save_store_setting             ! Backup user "save" setting
+         CALL save_default_setting           ! Default to full saving
+         line       = 'ignore, all'          ! Ignore all properties
+         length     = 11
+         CALL property_select(line, length, sav_sel_prop)
+         line       = 'ignore, all'          ! Ignore all properties for global as well
+         length     = 11
+         CALL property_select(line, length,  cr_sel_prop)
+!
+         origstruc   = 'internal.powderback.stru' ! internal user files always start with 'internal'
+         CALL save_internal(origstruc)       !     thus this file name is unique
+!
+         com = 0.0D0                         ! Calculate center of mass
+         DO i=1, cr_natoms
+            com = com + cr_pos(:,i)
+         ENDDO
+         com = com / cr_natoms
+!         WRITE(line,1000) pow_period/pow_period_cut/2.0, com
+!11000 FORMAT('sphere ',F12.4,',centx:',G15.6E3,'centy:',G15.6E3,'centz:',G15.6E3) 
+!write(*,'(a)') line
+         length = 72
+         CALL boundary (line, length)
+!
+      ELSE
+         ier_num = -168
+         ier_typ = ER_APPL 
+         RETURN
+      ENDIF
+   ENDIF
 !
    u(:) = 0.0
 !
@@ -94,7 +130,7 @@ IF (rlambda.ne.0.0) THEN
       ENDIF
    ENDDO search_mol
    IF(do_mol) THEN
-!write(*,*) ' CALLING MOLECULE '
+!
       CALL powder_debye_hist_cart_mole (u, cr_nscat, do_mol, powder_nmol)
    ELSE
       CALL powder_debye_hist_cart      (u, cr_nscat)
@@ -105,6 +141,15 @@ IF (rlambda.ne.0.0) THEN
 ELSE
    ier_num = -99
    ier_typ = ER_APPL
+ENDIF
+!
+IF(pow_lperiod) THEN
+   CALL errlist_save                   ! Keep error status 
+
+   CALL save_restore_setting
+   CALL no_error
+   CALL readstru_internal(origstruc)   ! Read  core file
+   CALL errlist_restore                ! Restore error status
 ENDIF
 !
 END SUBROUTINE pow_pdf_hist
@@ -133,6 +178,7 @@ USE wink_mod
 USE prompt_mod 
 USE precision_mod 
 USE trig_degree_mod
+use times_mod
 IMPLICIT none 
 !                                                                       
 REAL,    INTENT(IN)  :: udist(3)
@@ -169,6 +215,7 @@ REAL(KIND=PREC_SP), DIMENSION(0:0) :: clin_m   = 0.0D0
 REAL(KIND=PREC_SP), DIMENSION(0:0) :: bval_mol = 0.0D0
 INTEGER            :: nlook_mol = 0
 !                                                                       
+INTEGER i1,i0
       INTEGER IAND 
 !
 REAL, EXTERNAL :: seknds 
@@ -189,23 +236,13 @@ DO i = 1, 3
    uin (i) = 0.0 
    vin (i) = 0.0 
 ENDDO 
-!IF (pow_axis == POW_AXIS_DSTAR) THEN 
-!   CONTINUE 
-!ELSEIF (pow_axis == POW_AXIS_Q) THEN 
-   u (1) = 1.00 
-   xm (1) = pow_qmin / REAL(zpi)
-   ss = (pow_qmax+pow_qmax_buf) / REAL(zpi) 
-   st = (pow_qmax - pow_deltaq) / REAL(zpi )
-   uin (1) = pow_deltaq / REAL(zpi )
-   num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
-!ELSEIF (pow_axis == POW_AXIS_TTH) THEN 
-!   u (1) = 1.00 
-!   xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
-!   ss = 2 * sind (0.5 *  pow_tthmax + pow_tthmax_buf) / rlambda 
-!   st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda 
-!   uin (1) = (ss - st) / 2. 
-!   num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
-!ENDIF 
+!
+u (1) = 1.00 
+xm (1) = pow_qmin / REAL(zpi)
+ss = (pow_qmax+pow_qmax_buf) / REAL(zpi) 
+st = (pow_qmax - pow_deltaq) / REAL(zpi )
+uin (1) = pow_deltaq / REAL(zpi )
+num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
 !
 !    Allocate arrays
 !
@@ -222,7 +259,7 @@ IF (num (1) * num (2) > MAXQXY  .OR.          &
 ENDIF
 CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
 !
-CALL alloc_powder (n_qxy                   )
+CALL alloc_powder (n_qxy, n_nscat          )
 !                                                                       
 !     prepare loopuptable for atom types
 !                                                                       
@@ -260,13 +297,11 @@ natom            = 0
 !                                                                       
 pow_npkt = n_qxy    ! set actual number of powder data points
 CALL powder_sinet 
-!IF(pow_axis == POW_AXIS_Q ) THEN
-   xstart = pow_qmin  /zpi
-   xdelta = pow_deltaq/zpi
-   CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
-!ELSEIF (pow_axis == POW_AXIS_TTH) THEN 
-!   CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
-!ENDIF
+!
+xstart = pow_qmin  /zpi
+xdelta = pow_deltaq/zpi
+CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+!
 IF (ier_num /= 0) THEN
    DEALLOCATE(look   )
    DEALLOCATE(partial)
@@ -303,13 +338,15 @@ DO j = 1, cr_natoms ! - 1
       DO l = j + 1, cr_natoms 
          iscat = cr_iscat(l) 
          IF(iscat > 0) THEN 
-            v(1) = cr_pos(1, l) - u(1) 
-            v(2) = cr_pos(2, l) - u(2) 
-            v(3) = cr_pos(3, l) - u(3) 
-
-!              ibin = nint (sqrt (v (1) **2 + v (2) **2 + v (3) **2)/ pow_del_hist)
-!           ibin =   INT((SQRT(v(1)**2 + v(2)**2 + v(3)**2)+shift)/ pow_del_hist)
-            ibin =   INT((SQRT(v(1)*v(1)+v(2)*v(2)+v(3)*v(3))+shift)/ pow_del_hist)
+!           v(1) = cr_pos(1, l) - u(1) 
+!           v(2) = cr_pos(2, l) - u(2) 
+!           v(3) = cr_pos(3, l) - u(3) 
+!
+            ibin =   INT((SQRT((cr_pos(1, l) - u(1))*(cr_pos(1, l) - u(1)) + &
+                               (cr_pos(2, l) - u(2))*(cr_pos(2, l) - u(2)) + &
+                               (cr_pos(3, l) - u(3))*(cr_pos(3, l) - u(3))   &
+                              )                                              &
+                          +shift)/ pow_del_hist)
             histogram(ibin, look(jscat, iscat), 0) = &
             histogram(ibin, look(jscat, iscat), 0) + 1
             IF(ier_ctrlc) THEN         ! Does not influence timing
@@ -323,44 +360,15 @@ DO j = 1, cr_natoms ! - 1
    ENDIF 
 ENDDO 
 !
-!ss = seknds (ss) 
-!WRITE (output_io, 4000) ss 
-!ss = seknds (0.0) 
-!     pow_nreal = SUM(natom)  ! Add real atom numbers 
+ss = seknds (ss) 
+WRITE (output_io, 4000) ss 
+ss = seknds (0.0) 
+!
 pow_nreal = 0
 DO j=1,cr_nscat         ! Add real atom numbers
    pow_nreal = pow_nreal + NINT(natom(j)*cr_occ(j))
 ENDDO
-!open(78,file='hist.atom',status='unknown')
-!do i=1, Ubound(histogram,1)
-!  write(78,*) i, histogram(i,:,0)
-!enddo
-!close(78)
 !
-!     Check for entries in histogram (0,*,*) ==> atoms at distance ZERO
-!
-!TEMP to analyze "density" in histogram
-!
-!open(45,file='hist.list',status='unknown')
-!do l=1,MAXHIST
-!write(45, '(i7,4I12)') l,INT(histogram(l,:,0))
-!enddo
-!close (45)
-!i = 0
-!k = 0
-!j = 0
-!do j=1,nlook
-!  do l=1,MAXHIST
-!    if(maxval(histogram(:,j,0))>0) THEN
-!      if(histogram(l,j,0) > 0) THEN
-!         i = i+1
-!      else
-!         k = k +  1
-!      endif
-!endif
-!enddo
-!enddo
-!write(*,*) ' Full empty ', i,k
 n_srch = MAXHIST               ! Find longest occupied entry in histogram
 srch: DO l=MAXHIST, 1, -1
    DO j=1,nlook
@@ -383,72 +391,39 @@ IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
    DEALLOCATE(histogram)
    RETURN
 ENDIF
-!if(i==1) THEN            ! To be developed, turned off
-!   deb_conv = .TRUE.
-!else
-   deb_conv = .FALSE.
-!ENDIF
-   qbroad  = pdf_qalp
-   cquad_a = pdf_cquad_a
-   clin_a  = pdf_clin_a
-!write(*,*) ' QBROAD ', qbroad
-!   open(45,file='hist.init',status='unknown')
-!   do l=1,MAXHIST
-!   write(45, '(i7,4(1x,F18.6))') l,histogram(l,:,0)
-!   enddo
-!   close (45)
+!
+deb_conv = .FALSE.
+qbroad  = pdf_qalp
+cquad_a = pdf_cquad_a
+clin_a  = pdf_clin_a
+!
 IF(qbroad > 0.0 .OR. cquad_a>0.0 .OR. clin_a>0.0) deb_conv = .TRUE.
-!IF(                  cquad_a>0.0 .OR. clin_a>0.0) deb_conv = .TRUE.
-!qbroad = 0.0
-!deb_conv = .false.
+!
 IF(deb_conv) THEN
    cquad_m(:) = 0.0D0
    clin_m(:)  = 0.0D0
    nmol_type = 0
    bval_mol(:) = 0
    deltar = DBLE(pow_del_hist)
-!write(*,*) ' WITH CONVOLUTION ', qbroad, cquad_a, clin_a
    CALL pow_pdf_convtherm(n_hist, nlook, nlook_mol, n_srch, histogram, is_look, &
               deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,      &
               bval_mol )
 ENDIF
-!ss = seknds (ss) 
-!WRITE (output_io, 4000) ss 
-!write(*,*) ' Finished Convolution '
-!ss = seknds (0.0) 
-!   open(45,file='hist.conv',status='unknown')
-!   do l=1,MAXHIST
-!   write(45, '(i7,4(1x,F18.6))') l,histogram(l,:,0)
-!   enddo
-!   close (45)
-!write(*,*) nlook, n_srch, num(1), num(2), deb_conv
 !                                                                       
 !     --- Calculate the Fourier                                         
 !                                                                       
-DO i = 1, nlook 
+i0 = 0
+qwert: DO i = 1, nlook 
    DO j = 1, n_srch 
       IF (histogram (j, i,0) >  0) THEN 
          DO k = 1, num (1) * num (2) 
-            arg = zpi * DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
-!DBG              partial(k,i) = partial(k,i)+                          
-!DBG     &                   histogram(j,i,0)*sin(arg)/arg                
-            IF(arg==0.0) THEN
-               partial (k, i,0) = partial (k, i,0) + DBLE(histogram (j, i,0))
-            ELSE
-               iarg = int( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
-               iadd = IAND (iarg, MASK) 
-               partial (k, i,0) = partial (k, i,0) + DBLE(histogram (j, i,0)) * sinetab ( &
-               iadd) / arg                                                    
-            ENDIF 
+            partial(k, i,0) = partial(k, i,0) + histogram (j, i,0)                                   &
+               * sinetab(IAND(int((j * pow_del_hist) * (xm(1) + (k - 1) * uin(1)) * I2PI ) , MASK))  &
+               / (zpi * DBLE((j * pow_del_hist) * (xm(1) + (k - 1) * uin(1))))
          ENDDO 
       ENDIF 
    ENDDO 
-ENDDO 
-!  open(45,file='hist.part',status='unknown')
-!  do l=1,num(1)*num(2)
-!  write(45, '(i7,4(1x,F18.6))') l,partial(l,1,0)
-!  enddo
-!  close (45)
+ENDDO  qwert
 !                                                                       
 !------ Multiply the partial structure factors with form factors,add    
 !     to total sum                                                      
@@ -498,18 +473,11 @@ ELSE
    ENDDO 
 ENDIF
 !
-!  open(45,file='hist.rsf',status='unknown')
-!  do l=1,num(1)*num(2)
-!  write(45, '(i7,4(1x,F18.6))') l,rsf(l)
-!  enddo
-!  close (45)
-!
 DEALLOCATE(look   )
 DEALLOCATE(partial)
 DEALLOCATE(histogram)
 ss = seknds (ss) 
 WRITE (output_io, 4000) ss 
-!write(*,*) ' DONE WITH powder_debye_hist_cart'
 !                                                                       
  4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
 !
@@ -671,7 +639,7 @@ IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
 ENDIF
 CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
 !
-CALL alloc_powder (n_qxy                   )
+CALL alloc_powder (n_qxy, n_nscat          )
 IF(ALLOCATED(pow_dw)) DEALLOCATE(pow_dw)
 ALLOCATE(pow_dw(0:CFPKT, 0:nlook_mol))
 pow_dw = 1.0
@@ -851,6 +819,7 @@ DO i = 1, nlook
                iarg = INT( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
                iadd = IAND (iarg, MASK) 
                partial(k,i,il) = partial(k,i,il) + REAL(DBLE(histogram(j,i,il)) * sinetab(iadd)/arg)
+!AAA!          partial(k,i,il) = partial(k,i,il) + REAL(DBLE(histogram(j,i,il)) * sinetab(iadd)    )
             ENDDO 
          ENDIF 
       ENDDO 

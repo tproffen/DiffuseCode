@@ -11,32 +11,32 @@ CONTAINS
 !     Calculation of powder diffraction pattern.                        
 !                                                                       
 !*****7*****************************************************************
-      SUBROUTINE do_powder 
+SUBROUTINE do_powder 
 !-                                                                      
 !     Main menu for powder diffraction pattern                          
 !+                                                                      
-      USE discus_config_mod 
-      USE diffuse_mod 
-      USE crystal_mod 
-      USE diffuse_mod 
-      USE fourier_sup
-      USE powder_mod 
+USE discus_config_mod 
+USE diffuse_mod 
+USE crystal_mod 
+USE diffuse_mod 
+USE fourier_sup
+USE powder_mod 
 USE powder_write_mod 
 USE powder_pdf_hist_mod
 USE pdf_mod
-      USE discus_show_menu
+USE discus_show_menu
 !
-      USE calc_expr_mod
-      USE doact_mod 
-      USE do_eval_mod
-      USE do_wait_mod
-      USE get_params_mod
-      USE learn_mod 
-      USE class_macro_internal
-      USE prompt_mod 
-      USE sup_mod
+USE calc_expr_mod
+USE doact_mod 
+USE do_eval_mod
+USE do_wait_mod
+USE get_params_mod
+USE learn_mod 
+USE class_macro_internal
+USE prompt_mod 
+USE sup_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
@@ -152,6 +152,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      pow_qmin_u = pow_qmin   !! save user values
                      pow_qmax_u = pow_qmax
                      pow_deltaq_u=pow_deltaq
+                     check_dq: DO 
+                        IF(NINT( (pow_qmax-pow_qmin)/pow_deltaq+1)>2**18) THEN
+                           pow_deltaq = pow_deltaq*2.0D0
+                        ELSE
+                           EXIT check_dq
+                        ENDIF
+                     ENDDO check_dq
 !                     IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN  
 !                        pow_qmax   = MAX(30.0D0,pow_qmax*1.1D0)
 !                     ENDIF
@@ -412,8 +419,10 @@ CALL pow_conv_limits
 !     ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
          WRITE (output_io, 1290) pow_qmin, pow_qmax 
          WRITE (output_io, 1291) pow_deltaq 
+         WRITE (output_io, 1292) pow_qzero 
          WRITE (output_io, 1220) pow_tthmin, pow_tthmax 
          WRITE (output_io, 1230) pow_deltatth 
+         WRITE (output_io, 1231) pow_tthzero 
          WRITE (output_io, 2100) cprofile (pow_profile) 
          IF (pow_profile.eq.0) then 
             CONTINUE 
@@ -455,6 +464,13 @@ CALL pow_conv_limits
          ELSE 
             WRITE (output_io, 1455) 
          ENDIF 
+      ELSEIF(pow_four_mode==POW_DEBYE) THEN
+         IF(pow_lperiod) THEN
+            WRITE(output_io,'(A)' ) '   Create periodic powder/PDF '
+            WRITE(output_io, 1460) pow_period
+         ELSE
+            WRITE(output_io,'(A)' ) '   Create finite   powder/PDF '
+         ENDIF 
       ENDIF 
       IF (pow_lp.eq.POW_LP_NONE) then 
          WRITE (output_io, 1500) 
@@ -478,6 +494,7 @@ CALL pow_conv_limits
  1220 FORMAT    ( '   TTHmin, TTHmax          : ',f10.5,2x,f10.5) 
  1221 FORMAT    ( '   d* min, d* max          : ',f10.5,2x,f10.5) 
  1230 FORMAT    ( '   DELTA TTH               : ',f10.5) 
+ 1231 FORMAT    ( '   TTH zero; Obs0 at true  : ',f10.5) 
  2100 FORMAT    ( '   Instrument resolution   : ',A) 
  1235 FORMAT( '   Instrument resolution   : ',f10.5,2x,'(0.0 = off)') 
  2120 FORMAT    ( '       Profile U,V,W       : ',f10.5,2x,f10.5,2x,    &
@@ -492,6 +509,7 @@ CALL pow_conv_limits
  1270 FORMAT    ( '   shift for dH,dK,dL      : ',3(f10.5,2x)) 
  1290 FORMAT    ( '   Q  min, Q  max          : ',f10.5,2x,f10.5) 
  1291 FORMAT    ( '   DELTA Q                 : ',f10.5) 
+ 1292 FORMAT    ( '   Q zero (Obs0 at true Q) : ',f10.5) 
  1300 FORMAT    ( '   Temp. factors           : ',A) 
  1310 FORMAT    ( '   Anomalous scat.         : ',A) 
  1340 FORMAT    ( '   Preferred orientation   : ',A) 
@@ -500,6 +518,7 @@ CALL pow_conv_limits
  1400 FORMAT    ( '   Fourier Mode            : ',A) 
  1450 FORMAT    ( '       Bragg Reflections   : ','included') 
  1455 FORMAT    ( '       Bragg Reflections   : ','excluded') 
+ 1460 FORMAT    ( '   Radius for periodicity  : ', F10.5, 'A')
  1500 FORMAT    ( '   Powder diffractometer   : ','none specified',     &
      &                   ' no Lorentz/Polarisation effect calculated')  
  1510 FORMAT    ( '   Powder diffractometer   : ','Bragg-Brentano',/    &
@@ -605,6 +624,18 @@ err_para: IF (ier_num.eq.0) then
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
+!        ELSEIF(str_comp(cpara(1), 'bvalue', 3, lpara(1), 6)) THEN
+!           IF (ianz == 2) THEN 
+!              cpara (1) = '0' 
+!              lpara (1) = 1 
+!              CALL ber_params(ianz, cpara, lpara, werte, maxw) 
+!              IF(ier_num == 0) THEN 
+!                 pow_bvalue = werte(2) 
+!              ENDIF 
+!           ELSE 
+!              ier_num = - 6 
+!              ier_typ = ER_COMM 
+!           ENDIF 
          ELSEIF (str_comp (cpara (1) , 'bragg', 2, lpara (1) , 5) )     &
          then                                                           
             IF (ianz.eq.2) then 
@@ -775,6 +806,30 @@ err_para: IF (ier_num.eq.0) then
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                pow_ka21   = werte (2) 
                pow_ka21_u = .TRUE.
+            ELSE 
+               ier_num = -6 
+               ier_typ = ER_COMM 
+            ENDIF 
+!                                                                       
+!     set the periodic radius 'period' 
+!                                                                       
+         ELSEIF(str_comp(cpara(1), 'period', 4, lpara(1), 6)) THEN 
+            IF(ianz.eq.2) THEN 
+               cpara(1) = '0' 
+               lpara(1) = 1 
+               IF(str_comp(cpara(2), 'off', 3, lpara(2), 3)) THEN
+                  pow_period  = 0.00
+                  pow_lperiod = .FALSE.
+               ELSE
+                  CALL ber_params(ianz, cpara, lpara, werte, maxw) 
+                  IF(ier_num == 0) THEN
+                     pow_period  = werte(2) 
+                     pow_lperiod = .TRUE.
+                  ELSE 
+                     ier_num = -6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+               ENDIF 
             ELSE 
                ier_num = -6 
                ier_typ = ER_COMM 
@@ -1140,6 +1195,19 @@ err_para: IF (ier_num.eq.0) then
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
+         ELSEIF(str_comp(cpara(1), 'tthzero', 4, lpara(1), 4)) THEN 
+            IF(ianz.eq.2) THEN 
+               cpara (1) = '0' 
+               lpara (1) = 1 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.eq.0) then 
+                  pow_tthzero    = werte(2) 
+                  pow_qtthzero = .TRUE.
+               ENDIF 
+            ELSE 
+               ier_num = -6 
+               ier_typ = ER_COMM 
+            ENDIF 
          ELSEIF (str_comp (cpara (1) , 'qmax', 4, lpara (1) , 4) ) then 
             IF (ianz.eq.2) then 
                cpara (1) = '0' 
@@ -1163,7 +1231,20 @@ err_para: IF (ier_num.eq.0) then
                   pow_qtthmin = .TRUE.
                ENDIF 
             ELSE 
-               ier_num = - 6 
+               ier_num = -6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ELSEIF(str_comp(cpara(1), 'qzero', 4, lpara(1), 4)) THEN 
+            IF(ianz.eq.2) THEN 
+               cpara (1) = '0' 
+               lpara (1) = 1 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.eq.0) then 
+                  pow_qzero    = werte(2) 
+                  pow_qtthzero = .TRUE.
+               ENDIF 
+            ELSE 
+               ier_num = -6 
                ier_typ = ER_COMM 
             ENDIF 
 !                                                                       
@@ -1372,11 +1453,12 @@ END SUBROUTINE powder_run
 !
 !     IF(pow_axis == POW_AXIS_Q ) THEN
          n_pkt = NINT((pow_qmax+pow_deltaq  -pow_qmin  )/pow_deltaq  ) + 2
+      n_nscat = MAX(UBOUND(pow_f2,2), MAXSCAT, DIF_MAXSCAT)
 !     ELSEIF(pow_axis == POW_AXIS_TTH ) THEN
 !        n_pkt = NINT((pow_tthmax+pow_deltatth-pow_tthmin)/pow_deltatth) + 2
 !     ENDIF
       IF(n_pkt .gt. POW_MAXPKT) THEN
-         CALL alloc_powder ( n_pkt )
+         CALL alloc_powder ( n_pkt, n_nscat )
       ENDIF
 !     reset powder diagramm                                             
 !                                                                       
@@ -2389,6 +2471,12 @@ ELSE
                   fpi*sind(0.5D0*(pow_tthmax-pow_deltatth))/rlambda
 ENDIF
 !
+IF(pow_qtthzero) THEN
+  pow_tthzero = 2.0D0*asind(pow_qzero*rlambda/fpi)
+ELSE
+   pow_qzero  = fpi*sind(pow_tthzero*0.5D0)/rlambda
+ENDIF
+!
 END SUBROUTINE pow_conv_limits                 
 !
 !*******************************************************************************
@@ -2399,7 +2487,7 @@ USE discus_allocate_appl_mod
 USE powder_mod
 USE powder_scat_mod
 !
-CALL alloc_powder(1)
+CALL alloc_powder(1, 1)
 CALL alloc_powder_nmax(1, 1)
 !
 pow_axis       = POW_AXIS_Q
@@ -2415,19 +2503,23 @@ pow_l_all      = .true.
 pow_qtthmin    = .TRUE.    ! User  provided Qmin(==true) TTHmin(=false)
 pow_qtthmax    = .TRUE.    ! User  provided Qmax(==true) TTHmax(=false)
 pow_deltaqtth  = .TRUE.    ! User  provided Qstp(==true) TTHstp(=false)
+pow_qtthzero   = .TRUE.    ! User  provided Qzero(==true) TTHzero(=false)
 
+pow_tthzero    =  0.0
 pow_tthmin     =  0.1
 pow_tthmax     = 40.0
 pow_deltatth   =  0.05
+pow_qzero      =  0.0
 pow_qmin       =  0.2
 pow_qmax       =  7.0
-pow_deltaq     =  0.0001
-pow_ds_max     =  0.0001
-pow_ds_min     =  0.0001
+pow_deltaq     =  0.001
+pow_ds_max     =  0.001
+pow_ds_min     =  0.001
 pow_delta      =  0.0
 pow_lp_fac     =  0.88
 pow_lp_ang     = 20.0
 pow_lp_cos     =  0.936
+!pow_bvalue     =  0.000
 !
 pow_nback      = 0
 pow_back(:)    = 0.0

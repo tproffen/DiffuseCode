@@ -291,7 +291,7 @@ USE precision_mod
       CALL alloc_molecule ( 1,  1,  1,  1,  1)
       CALL alloc_pdf      ( 1,  1,  1,  1    )
       CALL alloc_plot     ( 1,  1        )
-      CALL alloc_powder   ( 1            )
+      CALL alloc_powder   ( 1,  1        )
       CALL alloc_powder_nmax ( 1,1          )
       CALL alloc_rmc      ( 1,  1        )
       CALL alloc_rmc_data ( 1            )
@@ -2171,7 +2171,7 @@ END SUBROUTINE alloc_demol
       END IF
     END SUBROUTINE alloc_plot
 !
-    SUBROUTINE alloc_powder ( n_qxy )
+    SUBROUTINE alloc_powder ( n_qxy, n_scat )
 !-
 !     Allocate the arrays needed by POWDER
 !+
@@ -2181,6 +2181,7 @@ END SUBROUTINE alloc_demol
 !
 !      
       INTEGER, INTENT(IN)  :: n_qxy
+      INTEGER, INTENT(IN)  :: n_scat
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
@@ -2198,6 +2199,10 @@ END SUBROUTINE alloc_demol
       pow_size_of = pow_size_of + size_of
 !
        CALL alloc_arr ( pow_faver2  ,0,n_qxy  ,  all_status, 0.0D0    , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      pow_size_of = pow_size_of + size_of
+!
+       CALL alloc_arr ( pow_f2      ,0,n_qxy  ,  0, n_scat, all_status, 0.0D0    , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pow_size_of = pow_size_of + size_of
 !
@@ -3306,7 +3311,7 @@ END SUBROUTINE alloc_demol
 !+
       IMPLICIT NONE
 !
-      CALL alloc_powder ( 1 )
+      CALL alloc_powder ( 1,  1 )
 !
     END SUBROUTINE dealloc_powder
 !

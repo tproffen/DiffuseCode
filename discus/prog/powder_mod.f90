@@ -51,13 +51,16 @@ LOGICAL                  :: pow_l_all      = .true.
 LOGICAL                  :: pow_qtthmin    = .TRUE.    ! User  provided Qmin(==true) TTHmin(=false)
 LOGICAL                  :: pow_qtthmax    = .TRUE.    ! User  provided Qmax(==true) TTHmax(=false)
 LOGICAL                  :: pow_deltaqtth  = .TRUE.    ! User  provided Qstp(==true) TTHstp(=false)
+LOGICAL                  :: pow_qtthzero   = .TRUE.    ! User  provided Qzero(==true) TTHzero(=false)
 !
+REAL(KIND=PREC_DP)       :: pow_tthzero    =  0.0D0
 REAL(KIND=PREC_DP)       :: pow_tthmin     =  0.1D0
 REAL(KIND=PREC_DP)       :: pow_tthmax     = 40.0D0
 REAL(KIND=PREC_DP)       :: pow_deltatth   =  0.05D0
+REAL(KIND=PREC_DP)       :: pow_qzero      =  0.0D0
 REAL(KIND=PREC_DP)       :: pow_qmin       =  0.2D0
 REAL(KIND=PREC_DP)       :: pow_qmax       =  7.0D0
-REAL(KIND=PREC_DP)       :: pow_deltaq     =  0.0001D0
+REAL(KIND=PREC_DP)       :: pow_deltaq     =  0.001D0
 REAL(KIND=PREC_DP)       :: pow_qmin_u     =  0.2D0    ! Temporary stored user limits in case of corrlin, corrquad
 REAL(KIND=PREC_DP)       :: pow_qmax_u     =  7.0D0    ! "         Actual calculation will proceed to 
 REAL(KIND=PREC_DP)       :: pow_deltaq_u   =  0.0001D0 ! "         qmax * 1.5
@@ -69,6 +72,12 @@ REAL                     :: pow_delta      =  0.0
 REAL                     :: pow_lp_fac     =  0.88
 REAL                     :: pow_lp_ang     = 20.0
 REAL                     :: pow_lp_cos     =  0.936
+!
+LOGICAL                  :: pow_lperiod    = .FALSE.
+REAL                     :: pow_period     =  0.000
+REAL                     :: pow_period_cut =  0.800
+!
+!REAL                     :: pow_bvalue     =  0.00
 !
 INTEGER                  :: pow_nback      = 0
 REAL   , DIMENSION(0:5)  :: pow_back       = 0.0
@@ -107,8 +116,10 @@ LOGICAL                  :: pow_ka21_u     =  .FALSE.
 REAL   (KIND=PREC_DP)    , DIMENSION(:), ALLOCATABLE :: pow_qsp     !  (0:POW_MAXPKT)
 REAL   (KIND=PREC_DP)    , DIMENSION(:), ALLOCATABLE :: pow_f2aver  !  (0:POW_MAXPKT)
 REAL   (KIND=PREC_DP)    , DIMENSION(:), ALLOCATABLE :: pow_faver2  !  (0:POW_MAXPKT)
+REAL   (KIND=PREC_DP)    , DIMENSION(:,:), ALLOCATABLE :: pow_f2    !  (0:POW_MAXPKT, 0:MAXSCAT)
 REAL   (KIND=PREC_SP    ), DIMENSION(:), ALLOCATABLE :: pow_conv    !  (0:POW_MAXPKT)
 INTEGER                            :: pow_nreal  = 0
+INTEGER                            :: pow_ncreal = 0
 REAL                               :: pow_u2aver = 0.0
 !
 INTEGER                  :: pow_size_of  = 0 ! Bytes allocated for powder
