@@ -190,7 +190,7 @@ END
        DATA ERROR (-17:-01) /                         &
      &  'Too many parameters',                      & !-17  ! command
      &  ' ',                                        & !-16  ! command
-     &  ' ',                                        & !-15  ! command
+     &  'Illegal branch to section',                & !-15  ! command
      &  'Program was interrupted by CTRL-C ',       & !-14  ! command
      &  'Optional parameter value not recognized',  & !-13  ! command
      &  'Optional parameter name not recognized',   & !-12  ! command
