@@ -41,6 +41,13 @@ LOGICAL              :: lmacro
 INTEGER :: len_str
 LOGICAL str_comp
 !
+IF(str_comp(zeile, pname, LEN_TRIM(pname), length, LEN_TRIM(pname))) THEN
+   ier_num = -15         ! branch to identical section
+   ier_typ = ER_COMM
+   ier_msg(1) = 'A branch from section '// pname(1:LEN_TRIM(pname)) // &
+                ' to ' // pname(1:LEN_TRIM(pname))
+   RETURN
+ENDIF
 !
 ! Get parameters on command line
 !
@@ -117,7 +124,7 @@ IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
    ier_sta       = br_ier_sta_old
    var_val(VAR_PROGRAM) = br_progr_old
    var_val(VAR_STATE)   = br_state_old
-ELSEIF(str_comp(zeile, 'discus', 2, length, 6)) THEN
+ELSEIF(str_comp(zeile, 'discus', 3, length, 6)) THEN
    IF(suite_discus_init) then
       pname     = 'discus'
       pname_cap = 'DISCUS'
@@ -147,7 +154,7 @@ ELSEIF(str_comp(zeile, 'discus', 2, length, 6)) THEN
    ier_sta       = br_ier_sta_old
    var_val(VAR_PROGRAM) = br_progr_old
    var_val(VAR_STATE)   = br_state_old
-ELSEIF(str_comp(zeile, 'diffev', 2, length, 6)) THEN
+ELSEIF(str_comp(zeile, 'diffev', 3, length, 6)) THEN
    IF(suite_diffev_init) then
       pname     = 'diffev'
       pname_cap = 'DIFFEV'
