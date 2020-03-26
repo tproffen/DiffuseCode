@@ -119,9 +119,10 @@ ENDIF
 !
 ! Call main refinement routine
 !
-CALL refine_mrq(linit, REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,            &
+CALL refine_mrq(linit, REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,     &
                 refine_params, ref_dim, ref_data, ref_sigma, ref_x, ref_y,      &
-                conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
+                conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf,     &
+                lconvergence,                                                   &
                 refine_chisqr, refine_conf, refine_lamda, refine_lamda_s,       &
                 refine_lamda_d, refine_lamda_u, refine_rval,                    &
                 refine_rexp, refine_p, refine_range, refine_shift, refine_nderiv,&
@@ -145,8 +146,8 @@ main:IF(ier_num==0) THEN
                      ref_csigma, ref_ksigma, .FALSE., refine_chisqr, refine_conf,  &
                      refine_lamda, refine_rval, refine_rexp, refine_params,        &
                      refine_p, refine_dp, refine_range, refine_cl, refine_fixed,   &
-                        refine_f,                                                     &
-                     conv_dp_sig, conv_dchi2, conv_chi2, conv_conf                )
+                        refine_f,                                                  &
+                     conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf     )
 !
 ENDIF main
 DEALLOCATE(refine_calc)      ! Clean up temporary files
@@ -204,7 +205,7 @@ LOGICAL                                              , INTENT(IN)  :: LDERIV  ! 
 INTEGER              :: k, iix, iiy, l, j2, j3 ! Dummy loop variable
 INTEGER              :: nder          ! Numper of points for derivative
 REAL(KIND=PREC_DP)                 :: delta         ! Shift to calculate derivatives
-REAL(KIND=PREC_DP)                 :: p_d           ! Shifted  parameter
+!REAL(KIND=PREC_DP)                 :: p_d           ! Shifted  parameter
 !REAL(KIND=PREC_DP), DIMENSION(5)   :: p_vals        ! Parameter at P, P+delta and P-delta
 REAL(KIND=PREC_DP), DIMENSION(-2:2):: dvec          ! Parameter at P-2delta, P-delta, P, P+delta and P+2delta
 LOGICAL           , DIMENSION(-2:2):: lvec          ! Calculate at P-2delta, P-delta, P, P+delta and P+2delta
@@ -231,7 +232,8 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
 !
    IF(LDERIV) THEN
       DO k=1, NPARA
-         ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), -p_nderiv(k)/2:p_nderiv(k)/2))
+!        ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), -p_nderiv(k)/2:p_nderiv(k)/2))
+         ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), -2:2))
          nder = 1                     ! First point is at P(k)
          dvec(:) = 0.0
          lvec(:) = .FALSE.
@@ -722,8 +724,8 @@ END SUBROUTINE refine_load_calc
 !*******************************************************************************
 !
 SUBROUTINE refine_mrq(linit, MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
-                      data_data, data_sigma, data_x, data_y, conv_dp_sig,         &
-                      conv_dchi2, conv_chi2, conv_conf, lconvergence,             &
+                      data_data, data_sigma, data_x, data_y, conv_status,         &
+                      conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,&
                       chisq, conf, lamda_fin, lamda_s, lamda_d, lamda_u,  rval,   &
                       rexp, p, prange, p_shift, p_nderiv, dp, cl, alpha, beta,    &
                       ref_do_plot, plmac)
@@ -755,6 +757,7 @@ REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data 
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x      ! Data coordinates x
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y      ! Data coordinates y
+LOGICAL                                              , INTENT(IN)  :: conv_status ! Do convergence test
 REAL                                                 , INTENT(IN)  :: conv_dp_sig ! Max parameter shift
 REAL                                                 , INTENT(IN)  :: conv_dchi2  ! Max Chi^2     shift
 REAL                                                 , INTENT(IN)  :: conv_chi2   ! Min Chi^2     value 
@@ -876,6 +879,7 @@ cycles:DO
 !     dp(k) = SQRT(ABS(cl(k,k)))
 !  ENDDO
    CALL refine_best(rval)                                              ! Write best macro
+   IF(conv_status) THEN 
    lconv(1) = (ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
                    last_shift(last_i) < conv_dp_sig               .AND.   &
                    last_conf(last_i)  > conv_conf)
@@ -891,6 +895,7 @@ cycles:DO
       WRITE(output_io, '(/,a)') 'Convergence reached '        
       lconvergence = .TRUE.
       EXIT cycles
+   ENDIF
    ENDIF
    IF(alamda > 0.5*HUGE(0.0)) THEN
       lconvergence = .FALSE.
@@ -1230,6 +1235,7 @@ INTEGER             :: i
 INTEGER :: MAXW
 INTEGER :: ianz
 REAL    :: step
+REAL    :: rval_w
 !
 CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
@@ -1252,24 +1258,6 @@ WRITE(IWR, '(a)') '#@'
 WRITE(IWR, '(a)') '#@ END'
 WRITE(IWR, '(a)') '#'
 !
-IF(ref_LOAD/= ' ') THEN           ! Data set was loaded 
-   WRITE(IWR, '(a)') 'kuplot'
-   WRITE(IWR, '(a)') 'rese'
-   WRITE(IWR, '(a,a)') 'load ',ref_load(1:LEN_TRIM(ref_load))
-   WRITE(IWR, '(a)') 'exit'
-   WRITE(IWR, '(a)') '#'
-ENDIF
-!
-IF(ref_csigma/= ' ') THEN           ! sigma set was loaded 
-   WRITE(IWR, '(a)') 'kuplot'
-   WRITE(IWR, '(a)') 'rese'
-   WRITE(IWR, '(a,a)') 'load ',ref_csigma(1:LEN_TRIM(ref_csigma))
-   WRITE(IWR, '(a)') 'exit'
-   WRITE(IWR, '(a)') '#'
-ENDIF
-WRITE(IWR, '(a)') 'refine'
-WRITE(IWR, '(a)') '#'
-!
 WRITE(IWR,'(a)') 'variable real, Rvalue'
 !
 WRITE(IWR,'(a)') 'variable integer, F_DATA'
@@ -1285,7 +1273,13 @@ ENDDO
 DO i=1, refine_par_n            ! Make sure each parameter is defined as a variable
    WRITE(IWR,'(a,a)') 'variable real, ',refine_params(i)
 ENDDO
-WRITE(IWR,'(a,G20.8E3)') 'Rvalue           = ', rval
+! Test for wrong R-values
+!
+rval_w = rval
+IF(ISNAN(rval)) rval_w = -1.0
+IF(ABS(rval) >= HUGE(0.0)) rval_w = -1.0
+!
+WRITE(IWR,'(a,G20.8E3)') 'Rvalue           = ', rval_w
 WRITE(IWR,'(a,I15    )') 'F_DATA           = ', ref_kupl
 WRITE(IWR,'(a,G20.8E3)') 'F_XMIN           = ', ref_x(1)
 WRITE(IWR,'(a,G20.8E3)') 'F_XMAX           = ', ref_x(ref_dim(1))
@@ -1311,6 +1305,26 @@ CALL ber_params(ianz, cpara, lpara, werte, MAXW)
 DO i=1, refine_fix_n            ! Make sure each parameter is defined as a variable
    WRITE(IWR,'(a,a,G20.8E3)') refine_fixed(i), ' = ', werte(i)
 ENDDO
+!
+WRITE(IWR, '(a)') '#'
+!
+IF(ref_LOAD/= ' ') THEN           ! Data set was loaded 
+   WRITE(IWR, '(a)') 'kuplot'
+   WRITE(IWR, '(a)') 'rese'
+   WRITE(IWR, '(a,a)') 'load ',ref_load(1:LEN_TRIM(ref_load))
+   WRITE(IWR, '(a)') 'exit'
+   WRITE(IWR, '(a)') '#'
+ENDIF
+!
+IF(ref_csigma/= ' ') THEN           ! sigma set was loaded 
+   WRITE(IWR, '(a)') 'kuplot'
+   WRITE(IWR, '(a)') 'rese'
+   WRITE(IWR, '(a,a)') 'load ',ref_csigma(1:LEN_TRIM(ref_csigma))
+   WRITE(IWR, '(a)') 'exit'
+   WRITE(IWR, '(a)') '#'
+ENDIF
+WRITE(IWR, '(a)') 'refine'
+WRITE(IWR, '(a)') '#'
 !
 ! Write refined values
 !
