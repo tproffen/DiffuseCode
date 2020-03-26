@@ -148,7 +148,7 @@ CALL show_fit_erg(iounit, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n,   &
            refine_lamda, refine_rval, refine_rexp,                        &
            refine_params, refine_p, refine_dp, refine_range, refine_cl,   &
            refine_fixed, refine_f,                                        &
-           conv_dp_sig, conv_dchi2, conv_chi2, conv_conf                  &
+           conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf     &
            )
 !
 IF(iounit/=output_io) CLOSE(iounit)
@@ -161,7 +161,7 @@ SUBROUTINE show_fit_erg(iounit, MAXP, MAXF, npara, nfixed, ndata, mac, mac_l,   
            load, kload, csigma, ksigma, lcovar, chisq, conf, lamda,             &
            r4, re,                                                              &
            params, pp, dpp, prange, cl, fixed, pf,                              &
-           conv_dp_sig, conv_dchi2, conv_chi2, conv_conf                        &
+           conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf           &
            )
 !+                                                                      
 !     Display fit results
@@ -195,6 +195,7 @@ REAL            , DIMENSION(MAXP,2), INTENT(IN) :: prange  ! Parameter range
 REAL            , DIMENSION(NPARA,NPARA), INTENT(IN) :: cl ! Covariance matrix
 CHARACTER(LEN=*), DIMENSION(MAXF), INTENT(IN) :: fixed     ! Fixed parameter names
 REAL            , DIMENSION(MAXF), INTENT(IN) :: pf        ! Fixed parameter values
+LOGICAL                          , INTENT(IN)  :: conv_status ! Apply convergence criteria
 REAL                             , INTENT(IN)  :: conv_dp_sig ! Max parameter shift
 REAL                             , INTENT(IN)  :: conv_dchi2  ! Max Chi^2     shift
 REAL                             , INTENT(IN)  :: conv_chi2   ! Min Chi^2     value 
@@ -225,6 +226,11 @@ ENDIF
 !
 WRITE(iounit, 2000) mac(1:mac_l)
 !
+IF(conv_status) THEN
+   WRITE(iounit, '(a)') '   Convergence      : Criteria are applied'
+ELSE
+   WRITE(iounit, '(a)') '   Convergence      : Criteria are ignored'
+ENDIF
 WRITE(iounit, 4000) conv_dp_sig, conv_conf , conv_dchi2
 WRITE(iounit, 4100) conv_dchi2
 WRITE(iounit, 4200) conv_chi2
