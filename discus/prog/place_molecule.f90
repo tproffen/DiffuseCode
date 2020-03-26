@@ -1816,7 +1816,7 @@ main: DO i=1, dcc_num
    strufile     = mole_name
    success = .FALSE.
    CALL rese_cr
-   CALL do_readstru(strufile)
+   CALL do_readstru(strufile, .FALSE.)
    IF(ier_num /= 0) RETURN
    CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
