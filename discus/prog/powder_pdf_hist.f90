@@ -418,7 +418,7 @@ qwert: DO i = 1, nlook
       IF (histogram (j, i,0) >  0) THEN 
          DO k = 1, num (1) * num (2) 
             partial(k, i,0) = partial(k, i,0) + histogram (j, i,0)                                   &
-               * sinetab(IAND(int((j * pow_del_hist) * (xm(1) + (k - 1) * uin(1)) * I2PI ) , MASK))  &
+               * sinetab(IAND(int((j * pow_del_hist) * (xm(1) + (k - 1) * uin(1)) * I2PI, PREC_INT_LARGE ) , MASK))  &
                / (zpi * DBLE((j * pow_del_hist) * (xm(1) + (k - 1) * uin(1))))
          ENDDO 
       ENDIF 
