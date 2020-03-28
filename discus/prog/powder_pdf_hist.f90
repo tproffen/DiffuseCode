@@ -188,7 +188,6 @@ INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT)
 INTEGER ibin 
 INTEGER j, k, l 
 INTEGER i, iscat, jscat 
-INTEGER(KIND=PREC_INT_LARGE) :: iarg, iadd 
 INTEGER                :: n_hist
 INTEGER                :: n_srch         ! Actual MAXHIST 
 INTEGER                :: n_qxy   = 1
@@ -203,7 +202,6 @@ REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: histogram
 INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
 INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: is_look
 REAL u (3), v (3) 
-REAL (KIND=PREC_DP) :: arg 
 !
 REAL(KIND=PREC_DP) :: deltar    = 0.0D0
 REAL(KIND=PREC_SP) :: qbroad    = 0.0E0
@@ -215,7 +213,7 @@ REAL(KIND=PREC_SP), DIMENSION(0:0) :: clin_m   = 0.0D0
 REAL(KIND=PREC_SP), DIMENSION(0:0) :: bval_mol = 0.0D0
 INTEGER            :: nlook_mol = 0
 !                                                                       
-INTEGER i1,i0
+INTEGER :: i0
       INTEGER IAND 
 !
 REAL, EXTERNAL :: seknds 

@@ -5068,7 +5068,7 @@ DO i=1, mo_cyc
       ENDIF
    ENDDO
    cr_iscat(iatom) = is_max
-   IF(MOD(i, mo_feed)==0) THEN
+   IF(MOD(INT(i,PREC_INT_LARGE), mo_feed)==0) THEN
       CALL mmc_correlations (lout_feed, rel_cycl)
    ENDIF
 ENDDO

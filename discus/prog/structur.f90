@@ -55,7 +55,6 @@ INTEGER , PARAMETER :: MAXW = 11
 !                                                                       
 CHARACTER(LEN=1024)        :: line, zeile, cpara (maxw) 
 CHARACTER(LEN=1024)        :: strucfile 
-CHARACTER(LEN=1024)        :: outfile 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=5)           :: befehl 
 INTEGER, DIMENSION(MAXW)   :: lpara

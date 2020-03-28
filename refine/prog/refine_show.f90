@@ -37,7 +37,6 @@ INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE :: werte
 INTEGER :: k
 INTEGER :: ianz
-INTEGER :: MAXW
 INTEGER :: iounit
 !
 LOGICAL :: lcovar

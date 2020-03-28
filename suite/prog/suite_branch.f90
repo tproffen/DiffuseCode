@@ -38,7 +38,6 @@ INTEGER              :: lbef, laenge
 INTEGER              :: lcomm
 LOGICAL              :: lmacro
 !
-INTEGER :: len_str
 LOGICAL str_comp
 !
 IF(str_comp(zeile, pname, LEN_TRIM(pname), length, LEN_TRIM(pname))) THEN
