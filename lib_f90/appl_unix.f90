@@ -61,6 +61,15 @@ find_tmp: DO i=1, 6
    ENDIF
 ENDDO find_tmp
 !
+line = ''
+CALL GET_COMMAND(line)                    ! Get complete command line
+IF(line(1:23)=='discus_suite_noparallel') THEN
+  start_line = 'discus_suite_noparallel'
+  start_line_l = 23
+ELSE
+  start_line = 'discus_suite'
+  start_line_l = 12
+ENDIF
 operating = ' ' 
 color_theme = THEME_DEFAULT
 INQUIRE(FILE='/proc/version', EXIST=lpresent)

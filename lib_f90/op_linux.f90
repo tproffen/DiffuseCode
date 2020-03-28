@@ -16,11 +16,32 @@ SUBROUTINE get_mpi_path(mpi_path)
 ! Find path to 'mpiexec' command
 ! For Windows version this is fixed
 !
+USE envir_mod
+!
 IMPLICIT NONE
 !
 CHARACTER(LEN=1024), INTENT(OUT) :: mpi_path
 !
-mpi_path = ' '  ! Turn MPI path empty
+CHARACTER(LEN=1024)  :: mpi_file
+LOGICAL              :: lda
+!
+IF(start_line(1:start_line_l) == 'discus_suite_noparallel') THEN
+   mpi_file = '/bin/mpiexec'
+   INQUIRE(FILE=mpi_file, EXIST=lda)
+   IF(lda) THEN
+      mpi_path = '/bin'
+   ELSE
+      mpi_file = '/usr/bin/mpiexec'
+      INQUIRE(FILE=mpi_file, EXIST=lda)
+      IF(lda) THEN
+         mpi_path = '/usr/bin'
+      ELSE
+         mpi_path = ' '
+      ENDIF
+   ENDIF
+ELSE
+   mpi_path = ' '  ! Turn MPI path empty
+ENDIF
 !
 END SUBROUTINE get_mpi_path
 !

@@ -20,6 +20,7 @@ MODULE envir_mod
    CHARACTER(LEN=1024) :: tmp_dir
    CHARACTER(LEN=1024) :: umac_dir
    CHARACTER(LEN=1024) :: start_dir
+   CHARACTER(LEN=1024) :: start_line
    CHARACTER(LEN=1024) :: current_dir
    CHARACTER(LEN= 256) :: operating
    CHARACTER(LEN= 256) :: operat_top
@@ -46,6 +47,7 @@ MODULE envir_mod
    INTEGER             :: tmp_dir_l
    INTEGER             :: umac_dir_l
    INTEGER             :: start_dir_l
+   INTEGER             :: start_line_l
    INTEGER             :: current_dir_l
    INTEGER             :: user_name_l
    INTEGER             :: lines
