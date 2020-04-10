@@ -508,7 +508,7 @@ DATA win_viewer /                                             &
 '/cygdrive/c/Program\ Files/Mozilla\ Firefox/firefox.exe   '  &
 /
 DATA c_manual / 'suite'  ,'discus' , 'diffev' ,'kuplot',      &
-                'package','mixscat' /
+                'package','refine'  /
 !
 opara (1) = pname         ! Default to section name
 lopara(1) = LEN_TRIM(pname)
