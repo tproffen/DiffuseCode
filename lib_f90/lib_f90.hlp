@@ -903,7 +903,7 @@
    Finishes the learn sequence started by ==> learn.
 3  manual
 !p manual ["section:"{"suite"  | "discus"  | "diffev" |
-!p                    "kuplot" | "package" | "mixscat"}
+!p                    "kuplot" | "package" | "refine"}
 !p        [,"viewer:"<name>]
 
    Opens a PDF viewer for one of the Manuals
