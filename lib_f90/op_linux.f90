@@ -62,10 +62,17 @@ END SUBROUTINE get_discus_path
 !
 SUBROUTINE operating_exit
 !
+USE envir_mod
 USE prompt_mod
+!
 IMPLICIT NONE
 !
 ! Currently no need for specifics
 !
+IF(operating==OS_LINUX_WSL) THEN
+   WRITE(output_io,'(a)') 'DISCUS_SUITE is finished, please close this window'
+ENDIF
+!
 END SUBROUTINE operating_exit
+!
 END MODULE operating_mod
