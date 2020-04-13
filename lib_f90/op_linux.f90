@@ -75,4 +75,6 @@ ENDIF
 !
 END SUBROUTINE operating_exit
 !
+!*******************************************************************************
+!
 END MODULE operating_mod
