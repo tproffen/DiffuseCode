@@ -22,7 +22,7 @@ set( SOURCE_MAIN discus.f90 )
 set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	atom_name.f90 discus_blk_appl.f90 bv_data_mod.f90 
 	chem.f90 chem_mod.f90 chem_aver_mod.f90 chem_symm_mod.f90 discus_config_mod.f90
-	discus_branch.f90 discus_export.f90 discus_nipl_header.f90
+	discus_branch.f90 discus_crystal.f90 discus_export.f90 discus_nipl_header.f90
         check_blen_mod.f90 check_bound_mod.f90 check_user_prop_mod.f90
 	conn_def_mod.f90 conn_mod.f90 conn_sup_mod.f90 conn_type_mod.f90 crystal_mod.f90 
 	class_atom.f90 class_crystal.f90 class_internal.f90
@@ -32,6 +32,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	discus_loop.f90 discus_setup.f90 domain.f90 domain_mod.f90 domaindis_mod.f90 element_data_mod.f90
 	discus_err_appl.f90 discus_exit.f90 external.f90 external_mod.f90 extrmc.f90 fourier.f90 fourier_sup.f90
         discus_fft.f90 discus_fit.f90 discus_pointgrp.f90 discus_reset_all.f90
+        discus_powder_fft.f90
         do_find_mod.f90
         four_angles_mod.f90 fourier_lmn_mod.f90 fourier_reset.f90
 	gen_add_mod.f90 generate_mod.f90 graphic.f90 insert.f90 insert_mod.f90 intens_mod.f90
@@ -40,6 +41,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	interpret.f90 inverse_mod.f90 discus_kdo.f90 discus_kdo_common.f90 mc_mod.f90 metric.f90 micro_mod.f90
 	mmc.f90 mmc_mod.f90 modify_func_mod.f90 modify_mod.f90 mole_env_mod.f90
 	molecule_alloc.f90 molecule_func.f90 molecule_mod.f90 output_mod.f90 patters.f90 patters_mod.f90 
+        phases_mod.f90 phases_set_mod.f90
 	place_molecule.f90  read_internal_mod.f90
 	pdf.f90 pdf_mod.f90
 	discus_plot.f90 discus_plot_mod.f90 discus_plot_init.f90  discus_plot_export.f90
