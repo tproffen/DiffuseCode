@@ -113,11 +113,14 @@ LOGICAL                  :: pow_ka21_u     =  .FALSE.
 !
 !
 !
-REAL   (KIND=PREC_DP)    , DIMENSION(:), ALLOCATABLE :: pow_qsp     !  (0:POW_MAXPKT)
-REAL   (KIND=PREC_DP)    , DIMENSION(:), ALLOCATABLE :: pow_f2aver  !  (0:POW_MAXPKT)
-REAL   (KIND=PREC_DP)    , DIMENSION(:), ALLOCATABLE :: pow_faver2  !  (0:POW_MAXPKT)
-REAL   (KIND=PREC_DP)    , DIMENSION(:,:), ALLOCATABLE :: pow_f2    !  (0:POW_MAXPKT, 0:MAXSCAT)
-REAL   (KIND=PREC_SP    ), DIMENSION(:), ALLOCATABLE :: pow_conv    !  (0:POW_MAXPKT)
+REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_qsp     !  (0:POW_MAXPKT)
+REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_f2aver  !  (0:POW_MAXPKT)
+REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_faver2  !  (0:POW_MAXPKT)
+REAL   (KIND=PREC_DP), DIMENSION(:,:)  , ALLOCATABLE :: pow_f2      !  (0:POW_MAXPKT, 0:MAXSCAT)
+REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_fu      !  (0:POW_MAXPKT, 0:MAXSCAT)
+REAL   (KIND=PREC_SP), DIMENSION(:)    , ALLOCATABLE :: pow_conv    !  (0:POW_MAXPKT)
+REAL   (KIND=PREC_SP), DIMENSION(:)    , ALLOCATABLE :: pow_sq      !  (0:POW_MAXPKT)
+!REAL   (KIND=PREC_SP), DIMENSION(:,:,:), ALLOCATABLE :: pow_phase   !  Results for the different phases (inte, <f2>, <f>2, thermal
 INTEGER                            :: pow_nreal  = 0
 INTEGER                            :: pow_ncreal = 0
 REAL                               :: pow_u2aver = 0.0

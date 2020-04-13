@@ -19,6 +19,7 @@ USE fourier_reset_mod
 USE insert_menu
 USE mole_surf_mod
 USE output_menu
+USE phases_set_mod
 USE pdf_menu
 USE powder
 USE prop_para_func
@@ -51,6 +52,7 @@ CALL domain_reset                       ! Domain menu
 CALL fourier_reset                      ! Fourier/diffuse variables 
 CALL insert_reset                       ! Insertion of molecules 
 CALL output_reset                       ! Output of Fourier results
+CALL phases_reset                       ! PHASES reset
 CALL pdf_reset                          ! PDF reset
 CALL plot_reset                         ! plot_reset
 CALL powder_reset                       ! reset powder menu

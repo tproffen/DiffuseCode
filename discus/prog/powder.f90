@@ -20,6 +20,8 @@ USE diffuse_mod
 USE crystal_mod 
 USE diffuse_mod 
 USE fourier_sup
+USE phases_mod
+USE phases_set_mod
 USE powder_mod 
 USE powder_write_mod 
 USE powder_pdf_hist_mod
@@ -35,6 +37,7 @@ USE learn_mod
 USE class_macro_internal
 USE prompt_mod 
 USE sup_mod
+USE wink_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -55,7 +58,7 @@ IMPLICIT none
 !                                                                       
 main: DO while (.not.lend) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
              line /= char(13) .and. line(1:1) /= '!'        ) THEN
 !                                                                       
@@ -75,8 +78,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ ----execute a macro file                                        
 !                                                                       
-               IF (befehl (1:1) .eq.'@') then 
-                  IF (length.ge.2) then 
+               IF (befehl (1:1) .eq.'@') THEN 
+                  IF (length.ge.2) THEN 
                      CALL file_kdo (line (2:length), length - 1) 
                   ELSE 
                      ier_num = - 13 
@@ -85,39 +88,39 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----list asymmetric unit 'asym'                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) THEN 
                   CALL show_asym 
 !                                                                       
 !     ----continues a macro 'continue'                                  
 !                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) then 
+               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) THEN 
                   CALL macro_continue (zeile, lp) 
 !                                                                       
 !     ----list atoms present in the crystal 'chem'                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) THEN 
                   CALL show_chem 
 !                                                                       
 !------ ----Echo a string, just for interactive check in a macro 'echo' 
 !                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
                   CALL echo (zeile, lp) 
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
                   CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
                   lend = .true. 
 !                                                                       
 !     ----help 'help','?'                                               
 !                                                                       
       ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+     &, '?   ', 1, lbef, 4) ) THEN                                      
+                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
                      lp = lp + 7 
                      CALL do_hel ('discus '//zeile, lp) 
                   ELSE 
@@ -127,31 +130,33 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     switch to electrons diffraction 'electron'                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'electron', 1, lbef, 8) ) then 
+               ELSEIF (str_comp (befehl, 'electron', 1, lbef, 8) ) THEN 
                   lxray = .true. 
                   diff_radiation = RAD_ELEC
 !                                                                       
 !     switch to neutron diffraction 'neut'                              
 !                                                                       
-               ELSEIF (str_comp (befehl, 'neut', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'neut', 1, lbef, 4) ) THEN 
                   lxray = .false. 
                   diff_radiation = RAD_NEUT
 !
 !     ----rese powder patter settings 'rese'
 !
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
                   CALL powder_reset
 !                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
-                  CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                              diff_radiation, diff_power) 
-                  IF (ier_num.eq.0) then 
+               ELSEIF(str_comp(befehl, 'run ', 2, lbef, 4)) THEN 
+                  CALL dlink(ano, lambda, rlambda, renergy, l_energy, &
+                             diff_radiation, diff_power) 
+                  IF(ier_num.eq.0) THEN 
                      CALL pow_conv_limits
                      pow_qmin_u = pow_qmin   !! save user values
                      pow_qmax_u = pow_qmax
                      pow_deltaq_u=pow_deltaq
+                     pow_ds_max = (pow_qmax+pow_deltaq)/REAL(zpi)
+                     pow_ds_min = pow_qmin/REAL(zpi)
                      check_dq: DO 
                         IF(NINT( (pow_qmax-pow_qmin)/pow_deltaq+1)>2**18) THEN
                            pow_deltaq = pow_deltaq*2.0D0
@@ -159,29 +164,32 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            EXIT check_dq
                         ENDIF
                      ENDDO check_dq
-!                     IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN  
-!                        pow_qmax   = MAX(30.0D0,pow_qmax*1.1D0)
-!                     ENDIF
-                     IF(pow_four_type.eq.POW_DEBYE) then 
+                     CALL powder_qcheck
+                     IF(ier_num==0) THEN
+                        IF(.NOT.pha_multi) pha_frac(1) = 1.0E0
+!
+                     IF(pow_four_type.eq.POW_DEBYE) THEN 
                         CALL pow_pdf_hist
                      ELSE
-                        CALL powder_run 
+                        CALL powder_complete 
                      ENDIF
                      IF(ier_num == 0) THEN
                         four_was_run = .true.
                         CALL powder_convolute   ! convolute with profile
+                        CALL phases_place       ! Copy current powder pattern into proper phase entry
                         IF (pow_four_type.eq.POW_DEBYE) THEN 
                            four_last = POWD_DY
                         ELSE
                            four_last = POWD_CO
                         ENDIF 
                      ENDIF 
+                     ENDIF 
                      pow_qmax = pow_qmax_u ! Restore user settings
                   ENDIF 
 !                                                                       
 !     ----show current parameters 'show'                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_power) 
                   CALL pow_conv_limits
@@ -189,13 +197,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------- -Set values 'set'                                              
 !                                                                       
-               ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
+               ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) THEN 
                   CALL do_pow_set (zeile, lp) 
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-                  IF (zeile.ne.' ') then 
+               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+                  IF (zeile.ne.' ') THEN 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 
                      ier_num = - 6 
@@ -204,12 +212,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------  -----waiting for user input                                    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
                   CALL do_input (zeile, lp) 
 !                                                                       
 !     switch to x-ray diffraction 'xray'                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'xray', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'xray', 1, lbef, 4) ) THEN 
                   lxray = .true. 
                   diff_radiation = RAD_XRAY
 !                                                                       
@@ -311,7 +319,7 @@ CALL pow_conv_limits
 !     radiation = 'neutron' 
 !     IF (lxray) radiation = 'x-ray' 
       radiation = c_rad(diff_radiation)
-      IF (lambda.eq.' ') then 
+      IF (lambda.eq.' ') THEN 
          IF(diff_radiation==2) THEN
             WRITE (output_io, 1201) radiation, rlambda , renergy
          ELSE 
@@ -321,17 +329,17 @@ CALL pow_conv_limits
          WRITE (output_io, 1210) radiation, lambda, rlambda 
       ENDIF 
 !                                                                       
-!     IF (pow_axis.eq.POW_AXIS_DSTAR) then 
+!     IF (pow_axis.eq.POW_AXIS_DSTAR) THEN 
 !        WRITE (output_io, 1211) 'dstar=2 sin(Theta)/lambda' 
-!     ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
+!     ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
 !        WRITE (output_io, 1211) '2-Theta' 
-!     ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
+!     ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
          WRITE (output_io, 1211) 'Q=4pi sin(Theta)/lambda' 
 !     ELSE 
 !        WRITE (output_io, 1211) 'Has not been defined!' 
 !     ENDIF 
-!     IF (pow_axis.eq.POW_AXIS_DSTAR.or.pow_axis.eq.POW_AXIS_TTH) then 
-!        IF (rlambda.ne.0.0) then 
+!     IF (pow_axis.eq.POW_AXIS_DSTAR.or.pow_axis.eq.POW_AXIS_TTH) THEN 
+!        IF (rlambda.ne.0.0) THEN 
 !           pow_ds_max = 2. * sind (pow_tthmax * 0.5) / rlambda 
 !           pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
 !        ENDIF 
@@ -404,19 +412,19 @@ CALL pow_conv_limits
 !        WRITE (output_io, 1240) pow_hkl_del 
 !                                                                       
 !        WRITE (output_io, 2100) cprofile (pow_profile) 
-!        IF (pow_profile.eq.0) then 
+!        IF (pow_profile.eq.0) THEN 
 !           CONTINUE 
-!        ELSEIF (pow_profile.eq.POW_PROFILE_GAUSS) then 
+!        ELSEIF (pow_profile.eq.POW_PROFILE_GAUSS) THEN 
 !           WRITE (output_io, 1235) pow_delta 
 !           WRITE (output_io, 2123) pow_width 
-!        ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) then 
+!        ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) THEN 
 !           WRITE (output_io, 2120) pow_u, pow_v, pow_w 
 !           WRITE (output_io, 2121) pow_eta, pow_eta_l , pow_eta_q
 !           WRITE (output_io, 2122) pow_p1, pow_p2, pow_p3, pow_p4 
 !           WRITE (output_io, 2123) pow_width 
 !        ENDIF 
 !                                                                       
-!     ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
+!     ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
          WRITE (output_io, 1290) pow_qmin, pow_qmax 
          WRITE (output_io, 1291) pow_deltaq 
          WRITE (output_io, 1292) pow_qzero 
@@ -424,12 +432,12 @@ CALL pow_conv_limits
          WRITE (output_io, 1230) pow_deltatth 
          WRITE (output_io, 1231) pow_tthzero 
          WRITE (output_io, 2100) cprofile (pow_profile) 
-         IF (pow_profile.eq.0) then 
+         IF (pow_profile.eq.0) THEN 
             CONTINUE 
-         ELSEIF (pow_profile.eq.POW_PROFILE_GAUSS) then 
+         ELSEIF (pow_profile.eq.POW_PROFILE_GAUSS) THEN 
             WRITE (output_io, 1235) pow_delta 
             WRITE (output_io, 2123) pow_width 
-         ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) then 
+         ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) THEN 
             WRITE (output_io, 2120) pow_u, pow_v, pow_w 
             WRITE (output_io, 2121) pow_eta, pow_eta_l, pow_eta_q
             WRITE (output_io, 2122) pow_p1, pow_p2, pow_p3, pow_p4 
@@ -437,19 +445,19 @@ CALL pow_conv_limits
          ENDIF 
 !     ENDIF 
 !                                                                       
-      IF (ldbw) then 
+      IF (ldbw) THEN 
          WRITE (output_io, 1300) 'used' 
       ELSE 
          WRITE (output_io, 1300) 'ignored' 
       ENDIF 
 !                                                                       
-      IF (ano) then 
+      IF (ano) THEN 
          WRITE (output_io, 1310) 'used' 
       ELSE 
          WRITE (output_io, 1310) 'ignored' 
       ENDIF 
 !                                                                       
-      IF (pow_pref) then 
+      IF (pow_pref) THEN 
          WRITE (output_io, 1340) cpref (pow_pref_type) 
          WRITE (output_io, 1341) pow_pref_g1, pow_pref_g2 
          WRITE (output_io, 1342) pow_pref_hkl 
@@ -458,8 +466,8 @@ CALL pow_conv_limits
       ENDIF 
 !                                                                       
       WRITE (output_io, 1400) cfour (pow_four_mode) 
-      IF (pow_four_mode.eq.0.or.pow_four_mode.eq.5) then 
-         IF (pow_l_all) then 
+      IF (pow_four_mode.eq.0.or.pow_four_mode.eq.5) THEN 
+         IF (pow_l_all) THEN 
             WRITE (output_io, 1450) 
          ELSE 
             WRITE (output_io, 1455) 
@@ -472,13 +480,13 @@ CALL pow_conv_limits
             WRITE(output_io,'(A)' ) '   Create finite   powder/PDF '
          ENDIF 
       ENDIF 
-      IF (pow_lp.eq.POW_LP_NONE) then 
+      IF (pow_lp.eq.POW_LP_NONE) THEN 
          WRITE (output_io, 1500) 
-      ELSEIF (pow_lp.eq.POW_LP_BRAGG) then 
+      ELSEIF (pow_lp.eq.POW_LP_BRAGG) THEN 
          WRITE (output_io, 1510) pow_lp_ang 
-      ELSEIF (pow_lp.eq.POW_LP_NEUT) then 
+      ELSEIF (pow_lp.eq.POW_LP_NEUT) THEN 
          WRITE (output_io, 1520) 
-      ELSEIF (pow_lp.eq.POW_LP_SYNC) then 
+      ELSEIF (pow_lp.eq.POW_LP_SYNC) THEN 
          WRITE (output_io, 1530) pow_lp_fac, pow_lp_ang 
       ENDIF 
       WRITE (output_io, 1600) ccalc (pow_four_type) 
@@ -540,6 +548,8 @@ SUBROUTINE do_pow_set(zeile, lcomm)
 USE discus_config_mod 
 USE debye_mod 
 USE diffuse_mod 
+USE phases_mod
+USE phases_set_mod
 USE pdf_mod
 USE powder_mod 
 USE ber_params_mod
@@ -582,126 +592,95 @@ LOGICAL, EXTERNAL :: str_comp
 !                                                                       
 opara  =  (/ '0.0000'/)   ! Always provide fresh default values
 lopara =  (/  6      /)
-owerte =  (/  1.0    /)
+owerte =  (/  0.0    /)
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
-err_para: IF (ier_num.eq.0) then 
-   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                     oname, loname, opara, lopara, lpresent, owerte)
-   err_opti: IF (ier_num.eq.0) then 
+err_para: IF (ier_num.eq.0) THEN 
 !
-         IF(str_comp(cpara(1), 'axis', 2, lpara(1), 4)) THEN 
-            pow_axis = POW_AXIS_Q 
-!           IF (ianz.eq.2) then 
-!              IF (str_comp (cpara (2) , 'dstar', 1, lpara (2) , 5) )   &
-!              then                                                     
-!                 pow_axis = POW_AXIS_Q 
-!              ELSEIF (str_comp (cpara (2) , 'q', 1, lpara (2) , 1) )   &
-!              then                                                     
-!                 pow_axis = POW_AXIS_Q 
-!              ELSEIF (str_comp (cpara (2) , 'tth', 1, lpara (2) , 3) ) &
-!              then                                                     
-!                 pow_axis = POW_AXIS_TTH 
-!              ELSE 
-!                 ier_num = - 6 
-!                 ier_typ = ER_COMM 
-!              ENDIF 
-!           ELSE 
-!              ier_num = - 6 
-!              ier_typ = ER_COMM 
-!           ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'back', 2, lpara (1) , 4) ) then 
-            IF (ianz.ge.2) then 
+      IF(str_comp(cpara(1), 'axis', 2, lpara(1), 4)) THEN 
+         pow_axis = POW_AXIS_Q 
+      ELSEIF (str_comp (cpara (1) , 'back', 2, lpara (1) , 4) ) THEN 
+         IF (ianz.ge.2) THEN 
+            cpara (1) = '0' 
+            lpara (1) = 1 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            IF (ier_num.eq.0) THEN 
+               DO i = 2, ianz 
+               pow_back (i - 2) = werte (i) 
+               ENDDO 
+               pow_nback = ianz - 2
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ELSEIF(str_comp(cpara(1), 'bragg', 2, lpara(1), 5)) THEN
+         IF (ianz.eq.2) THEN 
+            IF (str_comp(cpara(2), 'incl', 1, lpara(2), 4) ) THEN
+               pow_l_all = .true. 
+            ELSEIF(str_comp(cpara(2), 'excl', 1, lpara(2), 4) ) THEN
+               pow_l_all = .false. 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ELSEIF(str_comp (cpara (1) , 'disp', 2, lpara (1) , 4) ) THEN 
+         IF(ianz.eq.2) THEN 
+            IF(str_comp(cpara(2), 'anom', 1, lpara(2), 4) ) THEN
+               ano = .true. 
+            ELSEIF(str_comp (cpara (2) , 'off', 1, lpara (2) , 3) ) THEN
+               ano = .false. 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+   ELSEIF(str_comp(cpara(1), 'corrlin', 5, lpara(1), 7)) THEN
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, lpresent, owerte)
+      err_opt1: IF (ier_num.eq.0) THEN 
+         IF (ianz == 2) THEN 
+            cpara (1) = '0' 
+            lpara (1) = 1 
+            CALL ber_params(ianz, cpara, lpara, werte, maxw) 
+            IF(ier_num == 0) THEN 
+               pdf_clin_a = werte(2) 
+               pdf_rcut   = owerte(O_RCUT)
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF  err_opt1
+   ELSEIF(str_comp(cpara(1), 'corrquad', 5, lpara(1), 8)) THEN
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, lpresent, owerte)
+      err_opt2: IF (ier_num.eq.0) THEN 
+         IF (ianz == 2) THEN 
+            cpara (1) = '0' 
+            lpara (1) = 1 
+            CALL ber_params(ianz, cpara, lpara, werte, maxw) 
+            IF(ier_num == 0) THEN 
+               pdf_cquad_a = werte(2) 
+               pdf_rcut   = owerte(O_RCUT)
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF  err_opt2
+   ELSEIF(str_comp(cpara(1), 'delta', 2, lpara(1), 5)) THEN
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
-                  DO i = 2, ianz 
-                  pow_back (i - 2) = werte (i) 
-                  ENDDO 
-                  pow_nback = ianz - 2
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-!        ELSEIF(str_comp(cpara(1), 'bvalue', 3, lpara(1), 6)) THEN
-!           IF (ianz == 2) THEN 
-!              cpara (1) = '0' 
-!              lpara (1) = 1 
-!              CALL ber_params(ianz, cpara, lpara, werte, maxw) 
-!              IF(ier_num == 0) THEN 
-!                 pow_bvalue = werte(2) 
-!              ENDIF 
-!           ELSE 
-!              ier_num = - 6 
-!              ier_typ = ER_COMM 
-!           ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'bragg', 2, lpara (1) , 5) )     &
-         then                                                           
-            IF (ianz.eq.2) then 
-               IF (str_comp (cpara (2) , 'incl', 1, lpara (2) , 4) )    &
-               then                                                     
-                  pow_l_all = .true. 
-               ELSEIF (str_comp (cpara (2) , 'excl', 1, lpara (2) , 4) )&
-               then                                                     
-                  pow_l_all = .false. 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'disp', 2, lpara (1) , 4) ) then 
-            IF (ianz.eq.2) then 
-               IF (str_comp (cpara (2) , 'anom', 1, lpara (2) , 4) )    &
-               then                                                     
-                  ano = .true. 
-               ELSEIF (str_comp (cpara (2) , 'off', 1, lpara (2) , 3) ) &
-               then                                                     
-                  ano = .false. 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSEIF(str_comp(cpara(1), 'corrlin', 5, lpara(1), 7)) THEN
-            IF (ianz == 2) THEN 
-               cpara (1) = '0' 
-               lpara (1) = 1 
-               CALL ber_params(ianz, cpara, lpara, werte, maxw) 
-               IF(ier_num == 0) THEN 
-                  pdf_clin_a = werte(2) 
-                  pdf_rcut   = owerte(O_RCUT)
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSEIF(str_comp(cpara(1), 'corrquad', 5, lpara(1), 8)) THEN
-            IF (ianz == 2) THEN 
-               cpara (1) = '0' 
-               lpara (1) = 1 
-               CALL ber_params(ianz, cpara, lpara, werte, maxw) 
-               IF(ier_num == 0) THEN 
-                  pdf_cquad_a = werte(2) 
-                  pdf_rcut   = owerte(O_RCUT)
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'delta', 2, lpara (1) , 5) )     &
-         then                                                           
-            IF (ianz.eq.2) then 
-               cpara (1) = '0' 
-               lpara (1) = 1 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_delta = werte (2) 
                   pow_profile = POW_PROFILE_GAUSS 
                ENDIF 
@@ -709,12 +688,12 @@ err_para: IF (ier_num.eq.0) then
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'dtth', 2, lpara (1) , 4) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara (1) , 'dtth', 2, lpara (1) , 4) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   IF(werte(2)<0.0) THEN
                      ier_num = -107
                      ier_typ = ER_APPL
@@ -732,12 +711,12 @@ err_para: IF (ier_num.eq.0) then
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'dq', 2, lpara (1) , 2) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara (1) , 'dq', 2, lpara (1) , 2) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_deltaq = NINT(werte(2)*1.D5)/1.D5
                   pow_deltaqtth = .TRUE.
                ENDIF 
@@ -745,36 +724,36 @@ err_para: IF (ier_num.eq.0) then
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'dh', 2, lpara (1) , 2) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara (1) , 'dh', 2, lpara (1) , 2) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_hkl_del (1) = werte (2) 
                ENDIF 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'dk', 2, lpara (1) , 2) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara (1) , 'dk', 2, lpara (1) , 2) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_hkl_del (2) = werte (2) 
                ENDIF 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'dl', 2, lpara (1) , 2) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara (1) , 'dl', 2, lpara (1) , 2) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_hkl_del (3) = werte (2) 
                ENDIF 
             ELSE 
@@ -784,8 +763,8 @@ err_para: IF (ier_num.eq.0) then
 !                                                                       
 !     set the energy of the radiation to be used 'energy'                             
 !                                                                       
-         ELSEIF (str_comp (cpara(1), 'energy', 2, lpara(1), 6) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara(1), 'energy', 2, lpara(1), 6) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -799,8 +778,8 @@ err_para: IF (ier_num.eq.0) then
 !                                                                       
 !     set the Ka2/Ka1 ratio 'ka21' ~ 0.50
 !                                                                       
-         ELSEIF (str_comp (cpara(1), 'ka21', 4, lpara(1), 4) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara(1), 'ka21', 4, lpara(1), 4) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -810,6 +789,11 @@ err_para: IF (ier_num.eq.0) then
                ier_num = -6 
                ier_typ = ER_COMM 
             ENDIF 
+!
+!   Set Single / multiple phases
+!
+      ELSEIF(str_comp(cpara(1), 'phases', 4, lpara(1), 6)) THEN
+         CALL phases_set(zeile,  lcomm)
 !                                                                       
 !     set the periodic radius 'period' 
 !                                                                       
@@ -835,46 +819,46 @@ err_para: IF (ier_num.eq.0) then
                ier_typ = ER_COMM 
             ENDIF 
 !
-         ELSEIF (str_comp (cpara (1) , 'pref', 2, lpara (1) , 4) ) then 
-            IF (ianz.ge.2) then 
+         ELSEIF (str_comp (cpara (1) , 'pref', 2, lpara (1) , 4) ) THEN 
+            IF (ianz.ge.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                IF (str_comp (cpara (2) , 'off', 2, lpara (2) , 3) )     &
-               then                                                     
+               THEN                                                     
                   pow_pref = .false. 
                ELSE 
                   IF (str_comp (cpara (2) , 'riet', 2, lpara (2) , 4) ) &
-                  then                                                  
+                  THEN                                                  
                      pow_pref_type = POW_PREF_RIET 
                      pow_pref = .true. 
                   ELSEIF (str_comp (cpara (2) , 'march', 2, lpara (2) , &
-                  4) ) then                                             
+                  4) ) THEN                                             
                      pow_pref_type = POW_PREF_MARCH 
                      pow_pref = .true. 
                   ELSEIF (str_comp (cpara (2) , 'damp', 2, lpara (2) ,  &
                   4) .or.str_comp (cpara (2) , 'g1', 2, lpara (2) , 2) )&
-                  then                                                  
+                  THEN                                                  
                      cpara (2) = '0' 
                      lpara (2) = 1 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         pow_pref_g1 = werte (3) 
                      ENDIF 
                   ELSEIF (str_comp (cpara (2) , 'portion', 2, lpara (2) &
                   , 7) .or.str_comp (cpara (2) , 'g2', 2, lpara (2) , 2)&
-                  ) then                                                
+                  ) THEN                                                
                      cpara (2) = '0' 
                      lpara (2) = 1 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         pow_pref_g2 = werte (3) 
                      ENDIF 
                   ELSEIF (str_comp (cpara (2) , 'hkl', 2, lpara (2) , 7)&
-                  ) then                                                
+                  ) THEN                                                
                      cpara (2) = '0' 
                      lpara (2) = 1 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         pow_pref_hkl (1) = werte (3) 
                         pow_pref_hkl (2) = werte (4) 
                         pow_pref_hkl (3) = werte (5) 
@@ -889,8 +873,8 @@ err_para: IF (ier_num.eq.0) then
                ier_typ = ER_COMM 
             ENDIF 
          ELSEIF (str_comp (cpara (1) , 'profile', 2, lpara (1) , 7) )   &
-         then                                                           
-            IF (ianz.ge.2) then 
+         THEN                                                           
+            IF (ianz.ge.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                IF(str_comp(cpara(2), 'off', 2, lpara(2), 3)) THEN
@@ -922,46 +906,40 @@ err_para: IF (ier_num.eq.0) then
                      ENDIF 
                   ENDIF 
                ELSEIF (str_comp (cpara (2) , 'uvw', 2, lpara (2) , 3) ) &
-               then                                                     
+               THEN                                                     
                   cpara (1) = '0' 
                   lpara (1) = 1 
                   cpara (2) = '0' 
                   lpara (2) = 1 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      pow_u = werte (3) 
                      pow_v = werte (4) 
                      pow_w = werte (5) 
                   ENDIF 
                ELSEIF (str_comp (cpara (2) , 'asym', 2, lpara (2) , 4) )&
-               then                                                     
+               THEN                                                     
                   cpara (1) = '0' 
                   lpara (1) = 1 
                   cpara (2) = '0' 
                   lpara (2) = 1 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      pow_p1 = werte (3) 
                      pow_p2 = werte (4) 
                      pow_p3 = werte (5) 
                      pow_p4 = werte (6) 
                   ENDIF 
                ELSEIF (str_comp (cpara (2) , 'width', 2, lpara (2) , 5) &
-               ) then                                                   
+               ) THEN                                                   
                   cpara (1) = '0' 
                   lpara (1) = 1 
                   cpara (2) = '0' 
                   lpara (2) = 1 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      pow_width = werte (3) 
                   ENDIF 
-!DBGRBN ELSEIF(str_comp(cpara(2),'parameter',2,lpara(2),9)) then        
-!DBGRBN if    (str_comp(cpara(3),'theta',2,lpara(3),5)) then            
-!DBGRBN pow_pr_par = POW_PROFILE_PAR_TTH                                
-!DBGRBN ELSEIF(str_comp(cpara(3),'q',2,lpara(3),1)) then                
-!DBGRBN pow_pr_par = POW_PROFILE_PAR_Q                                  
-!DBGRBN endif                                                           
                ELSE 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
@@ -970,37 +948,36 @@ err_para: IF (ier_num.eq.0) then
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'scale', 2, lpara (1) , 5) )     &
-         then                                                           
-            IF (ianz.eq.2) then 
+         ELSEIF(str_comp (cpara (1) , 'scale', 2, lpara (1) , 5) ) THEN
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_scale = werte (2) 
                ENDIF 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'sh', 2, lpara (1) , 2) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara (1) , 'sh', 2, lpara (1) , 2) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_hkl_shift (1) = werte (2) 
                ENDIF 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'sk', 2, lpara (1) , 2) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara (1) , 'sk', 2, lpara (1) , 2) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_hkl_shift (2) = werte (2) 
                ENDIF 
             ELSE 
@@ -1008,24 +985,24 @@ err_para: IF (ier_num.eq.0) then
                ier_typ = ER_COMM 
             ENDIF 
          ELSEIF (str_comp (cpara (1) , 'stepr', 2, lpara (1) , 5) )     &
-         then                                                           
-            IF (ianz.eq.2) then 
+         THEN                                                           
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_del_hist = werte (2) 
                ENDIF 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'sl', 2, lpara (1) , 2) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara (1) , 'sl', 2, lpara (1) , 2) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_hkl_shift (3) = werte (2) 
                ENDIF 
             ELSE 
@@ -1035,10 +1012,10 @@ err_para: IF (ier_num.eq.0) then
 !                                                                       
 !     Switch Fourier type between normal Fourier and DEBYE calculation  
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'calc', 1, lpara (1) , 4) ) then 
-            IF (ianz.ge.2) then 
+         ELSEIF (str_comp (cpara (1) , 'calc', 1, lpara (1) , 4) ) THEN 
+            IF (ianz.ge.2) THEN 
                IF (str_comp (cpara (2) , 'comp', 1, lpara (2) , 4) )    &
-               then                                                     
+               THEN                                                     
                   pow_four_type = POW_COMPL 
                ELSEIF (str_comp (cpara (2) , 'debye', 1, lpara (2) , 5) ) THEN                                                   
                      pow_four_type = POW_DEBYE 
@@ -1052,12 +1029,12 @@ err_para: IF (ier_num.eq.0) then
 !       Fault 'four'                                                    
 !                                                                       
          ELSEIF (str_comp (cpara (1) , 'four', 1, lpara (1) , 4) ) THEN 
-            IF (ianz.eq.2) then 
+            IF (ianz.eq.2) THEN 
                IF (str_comp (cpara (2) , 'four', 1, lpara (2) , 4) )    &
-               then                                                     
+               THEN                                                     
                   pow_four_mode = POW_FOURIER 
                ELSEIF (str_comp (cpara (2) , 'stack', 1, lpara (2) , 5) &
-               ) then                                                   
+               ) THEN                                                   
                   pow_four_mode = POW_STACK 
                ENDIF 
             ELSE 
@@ -1068,14 +1045,14 @@ err_para: IF (ier_num.eq.0) then
 !     Switch application of LP correction to proper instrument 'lpcor'  
 !                                                                       
          ELSEIF (str_comp (cpara (1) , 'lpcor', 1, lpara (1) , 5) ) THEN                                                           
-            IF (ianz.ge.2) then 
+            IF (ianz.ge.2) THEN 
                IF (str_comp (cpara (2) , 'bragg', 4, lpara (2) , 5) )   &
-               then                                                     
+               THEN                                                     
                   pow_lp = POW_LP_BRAGG 
                   CALL del_params (2, ianz, cpara, lpara, maxw) 
-                  IF (ianz.eq.1) then 
+                  IF (ianz.eq.1) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         pow_lp_ang = werte (1) 
                         pow_lp_fac = (cosd (pow_lp_ang) ) **2 
                      ELSE 
@@ -1086,12 +1063,12 @@ err_para: IF (ier_num.eq.0) then
                      ier_typ = ER_COMM 
                   ENDIF 
                ELSEIF (str_comp (cpara (2) , 'corre', 4, lpara (2) , 5) )   &
-               then                                                     
+               THEN                                                     
                   pow_lp = POW_LP_CORRE 
                   CALL del_params (2, ianz, cpara, lpara, maxw) 
-                  IF (ianz.eq.1) then 
+                  IF (ianz.eq.1) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         pow_lp_ang = werte (1) 
                         pow_lp_fac = 0.5
                      ELSE 
@@ -1102,19 +1079,19 @@ err_para: IF (ier_num.eq.0) then
                      ier_typ = ER_COMM 
                   ENDIF 
                ELSEIF (str_comp (cpara (2) , 'neutron', 4, lpara (2) ,  &
-               7) ) then                                                
+               7) ) THEN                                                
                   pow_lp = POW_LP_NEUT 
                ELSEIF (str_comp (cpara (2) , 'none', 4, lpara (2) , 4) )&
-               then                                                     
+               THEN                                                     
                   pow_lp = POW_LP_NONE 
                ELSEIF (str_comp (cpara (2) , 'synchrotron', 4, lpara (2)&
-               , 11) ) then                                             
+               , 11) ) THEN                                             
                   pow_lp = POW_LP_SYNC 
                   CALL del_params (2, ianz, cpara, lpara, maxw) 
-                  IF (ianz.eq.1.or.ianz.eq.2) then 
+                  IF (ianz.eq.1.or.ianz.eq.2) THEN 
                      werte (2) = 0.0 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         pow_lp_fac = werte (1) 
                         pow_lp_ang = werte (2) 
                         pow_lp_cos = abs (cosd (pow_lp_ang) ) 
@@ -1136,13 +1113,13 @@ err_para: IF (ier_num.eq.0) then
 !                                                                       
 !     Switch usage of temperature coefficients on/off 'temp'            
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'temp', 1, lpara (1) , 4) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara (1) , 'temp', 1, lpara (1) , 4) ) THEN 
+            IF (ianz.eq.2) THEN 
                IF (str_comp (cpara (2) , 'igno', 1, lpara (2) , 4) )    &
-               then                                                     
+               THEN                                                     
                   ldbw = .false. 
                ELSEIF (str_comp (cpara (2) , 'use', 1, lpara (2) , 3) ) &
-               then                                                     
+               THEN                                                     
                   ldbw = .true. 
                ENDIF 
             ELSE 
@@ -1150,11 +1127,11 @@ err_para: IF (ier_num.eq.0) then
                ier_typ = ER_COMM 
             ENDIF 
          ELSEIF(str_comp(cpara(1), 'tthmax', 5, lpara(1), 6)) THEN
-            IF (ianz.eq.2) then 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   IF(werte(2)<0.0) THEN
                      ier_num = -107
                      ier_typ = ER_APPL
@@ -1173,11 +1150,11 @@ err_para: IF (ier_num.eq.0) then
                ier_typ = ER_COMM 
             ENDIF 
          ELSEIF(str_comp(cpara(1), 'tthmin', 5, lpara(1), 6)) THEN
-            IF (ianz.eq.2) then 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   IF(werte(2)<0.0) THEN
                      ier_num = -107
                      ier_typ = ER_APPL
@@ -1200,7 +1177,7 @@ err_para: IF (ier_num.eq.0) then
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_tthzero    = werte(2) 
                   pow_qtthzero = .TRUE.
                ENDIF 
@@ -1208,12 +1185,12 @@ err_para: IF (ier_num.eq.0) then
                ier_num = -6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'qmax', 4, lpara (1) , 4) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara (1) , 'qmax', 4, lpara (1) , 4) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_qmax = werte (2) 
                   pow_qtthmax = .TRUE.
                ENDIF 
@@ -1221,12 +1198,12 @@ err_para: IF (ier_num.eq.0) then
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'qmin', 4, lpara (1) , 4) ) then 
-            IF (ianz.eq.2) then 
+         ELSEIF (str_comp (cpara (1) , 'qmin', 4, lpara (1) , 4) ) THEN 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_qmin = werte (2) 
                   pow_qtthmin = .TRUE.
                ENDIF 
@@ -1239,7 +1216,7 @@ err_para: IF (ier_num.eq.0) then
                cpara (1) = '0' 
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pow_qzero    = werte(2) 
                   pow_qtthzero = .TRUE.
                ENDIF 
@@ -1251,14 +1228,14 @@ err_para: IF (ier_num.eq.0) then
 !     set the wave length to be used 'wvle'                             
 !                                                                       
          ELSEIF (str_comp (cpara (1) , 'wvle', 1, lpara (1) , 4) ) THEN 
-            IF (ianz.eq.2) then 
+            IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
                symbol    = cpara(2)
                lsymbol   = lpara(2)
                CALL do_cap (symbol) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   rlambda = werte (2) 
                   lambda = ' ' 
                   l_energy = .false.
@@ -1279,239 +1256,207 @@ err_para: IF (ier_num.eq.0) then
       ier_num = - 8 
       ier_typ = ER_COMM 
    ENDIF 
-   ENDIF err_opti
 ENDIF err_para
 !                                                                       
 END SUBROUTINE do_pow_set                     
+!
 !*****7*****************************************************************
-SUBROUTINE powder_run 
+!
+SUBROUTINE powder_qcheck 
+!-                                                                      
+!     Perform common error checking for all powder modules
+!+                                                                      
+USE diffuse_mod 
+USE powder_mod 
+USE wink_mod
+!
+IMPLICIT none 
+!                                                                       
+IF (rlambda < TINY(0.0)) THEN
+   ier_num = -99
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Wave length is zero; check powder settings'
+   RETURN
+ENDIF 
+!                                                                       
+!      Perform error checking                                           
+!                                                                       
+IF (pow_hkl_del (1) .eq.0.and.pow_hkl_del (1)               &
+      .eq.0.and.pow_hkl_del (1) .eq.0) THEN                       
+   ier_num = - 106 
+   ier_typ = ER_APPL 
+   RETURN 
+ENDIF 
+!
+IF (pow_qmax.le.pow_qmin.or.pow_deltaq.le.0.0) THEN 
+   ier_num = - 108 
+   ier_typ = ER_APPL 
+   RETURN 
+ENDIF 
+!
+IF(pow_qmax*rlambda/2./zpi > 1.0) THEN
+   ier_num = -108
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Qmax is too large for current wave length'
+   ier_msg(2) = 'Qmax*lambda/(4pi) is greater than one!'
+   ier_msg(3) = 'Reduce Qmax or the wave length'
+   RETURN
+ENDIF
+!                                                                       
+END SUBROUTINE powder_qcheck                     
+!
+!*****7*****************************************************************
+!
+SUBROUTINE powder_complete ()
 !-                                                                      
 !     Calculate global parameters and start the individual modes        
 !+                                                                      
 USE discus_config_mod 
 USE discus_allocate_appl_mod
 USE crystal_mod 
-USE debye_mod
 USE diffuse_mod 
+USE fourier_sup
+USE metric_mod
+USE phases_mod
+USE phases_set_mod
 USE powder_mod 
-!USE powder_pdf_hist_mod
-USE trig_degree_mod
+USE powder_scat_mod 
+USE powder_tables_mod 
+USE stack_menu
 USE wink_mod
-!
+!                                                                       
+USE param_mod 
+USE prompt_mod 
+USE precision_mod 
+USE trig_degree_mod
+!                                                                       
 IMPLICIT none 
+!                                                                       
+CHARACTER(LEN=1024) :: line 
+INTEGER :: laenge 
+INTEGER :: i 
+INTEGER :: h_start, h_end 
+INTEGER :: k_start, k_end 
+INTEGER :: l_start=0, l_end=1
+INTEGER :: ih, ik 
+INTEGER                    :: n_qxy   = 1
+INTEGER                    :: n_nscat = 1
+INTEGER                    :: n_natom = 1
+INTEGER                    :: n_pkt   = 1
+INTEGER                    :: n_pha   = 1
+INTEGER :: itth 
 !
-!     INTEGER                 :: i
-!     LOGICAL                 :: do_mol      ! Molecules with Biso /= 0.0
-!     INTEGER                 :: powder_nmol ! Number of look up dimensions molecules
-!     REAL   , DIMENSION(1:3) :: u
+LOGICAL :: l_twoparts
+LOGICAL :: l_ano 
+LOGICAL :: l_hh_real 
+LOGICAL :: l_kk_real 
+LOGICAL :: l_ll_real 
+LOGICAL                   :: calc_f2aver, rept_f2aver
+REAL :: llstart, llend 
+REAL :: llstart2=0.0, llend2=1.0
+REAL (PREC_DP):: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
+REAL :: hh, kk, ll 
+REAL :: rr, rrr, rtm 
+REAL :: hkl (3) 
+REAL :: dstar , q !, ttheta
+REAL (KIND=PREC_DP)  :: inten 
+REAL :: u (3), v (3), w_min (3), w_max (3) 
+REAL :: u2, vv, ww 
+REAL :: aaa, bbb, ccc 
+REAL :: llstartmini 
+REAL :: llendmini 
+REAL :: ss 
 !                                                                       
-!     REAL sind 
+REAL, EXTERNAL :: seknds 
 !
-!     u = 0.0
-!                                                                       
-!     Calculate the global maximum h,k,l                                
-!                                                                       
-IF (rlambda.ne.0.0) then 
-!                                                                       
-!      Perform error checking                                           
-!                                                                       
-!  IF(pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN
-      IF (pow_hkl_del (1) .eq.0.and.pow_hkl_del (1)               &
-            .eq.0.and.pow_hkl_del (1) .eq.0) then                       
-         ier_num = - 106 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-!  ENDIF 
-!  IF (pow_axis.eq.POW_AXIS_TTH) then 
-!     IF (pow_tthmax.le.pow_tthmin.or.pow_deltatth.le.0.0) then 
-!        ier_num = - 107 
-!        ier_typ = ER_APPL 
-!        RETURN 
-!     ENDIF 
-!  ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
-      IF (pow_qmax.le.pow_qmin.or.pow_deltaq.le.0.0) then 
-         ier_num = - 108 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-!  ENDIF 
+n_qxy   = 1
+n_nscat = 1
+n_natom = 1
+n_pkt   = 1
+l_twoparts = .false.
+calc_f2aver = .true.    ! Assume that we need form factors
+rept_f2aver = .true.    ! Assume that we need to repeat them
 !
-!        Calculate hkl limits 
+pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
+pow_hkl_max (2) = cr_a0 (2) * pow_ds_max 
+pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
+!                                                                       
 !
-!  IF(pow_axis.eq.POW_AXIS_TTH) THEN
-!     pow_ds_max = 2. * sind ((pow_tthmax+pow_deltatth) * 0.5) / rlambda 
-!     pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
-!  ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
-      pow_ds_max = (pow_qmax+pow_deltaq)/REAL(zpi)
-      pow_ds_min = pow_qmin/REAL(zpi)
-      IF(pow_qmax*rlambda/2./zpi > 1.0) THEN
-         ier_num = -108
-         ier_typ = ER_APPL
-         ier_msg(1) = 'Qmax is too large for current wave length'
-         ier_msg(2) = 'Qmax*lambda/(4pi) is greater than one!'
-         ier_msg(3) = 'Reduce Qmax or the wave length'
-         RETURN
-      ENDIF
-!  ENDIF
-   pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
-   pow_hkl_max (2) = cr_a0 (2) * pow_ds_max 
-   pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
-!                                                                       
-!  IF (pow_four_type.eq.POW_COMPL) THEN 
-!     CALL powder_complete ()
-!  ELSEIF (pow_four_type.eq.POW_NEW) THEN 
-      CALL powder_complete ()
-!
-!  ENDIF 
-ENDIF 
-!                                                                       
-END SUBROUTINE powder_run                     
-!*****7*****************************************************************
-      SUBROUTINE powder_complete ()
-!-                                                                      
-!     Calculate global parameters and start the individual modes        
-!+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE diffuse_mod 
-      USE fourier_sup
-      USE metric_mod
-      USE powder_mod 
-      USE powder_tables_mod 
-      USE stack_menu
-      USE wink_mod
-!                                                                       
-      USE param_mod 
-      USE prompt_mod 
-      USE precision_mod 
-      USE trig_degree_mod
-      IMPLICIT none 
-!                                                                       
-!     INTEGER, INTENT(IN)  :: cr_nscat_temp
-!                                                                       
-      CHARACTER(1024) line 
-      INTEGER laenge 
-      INTEGER i 
-      INTEGER h_start, h_end 
-      INTEGER k_start, k_end 
-      INTEGER :: l_start=0, l_end=1
-      INTEGER ih, ik 
-      INTEGER                    :: n_qxy   = 1
-      INTEGER                    :: n_nscat = 1
-      INTEGER                    :: n_natom = 1
-      INTEGER                    :: n_pkt   = 1
-      INTEGER itth 
-!      INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
-      LOGICAL l_twoparts
-      LOGICAL l_ano 
-      LOGICAL l_hh_real 
-      LOGICAL l_kk_real 
-      LOGICAL l_ll_real 
-      LOGICAL                   :: calc_f2aver, rept_f2aver
-      REAL llstart, llend 
-      REAL :: llstart2=0.0, llend2=1.0
-      REAL (PREC_DP):: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
-      REAL hh, kk, ll 
-      REAL rr, rrr, rtm 
-      REAL hkl (3) 
-      REAL :: dstar , q !, ttheta
-      REAL (KIND=PREC_DP)  :: inten 
-      REAL u (3), v (3), w_min (3), w_max (3) 
-      REAL u2, vv, ww 
-      REAL aaa, bbb, ccc 
-      REAL llstartmini 
-      REAL llendmini 
-      REAL ss 
-!                                                                       
-!      REAL calc_preferred 
-!     REAL skalpro 
-!     REAL asind 
-      REAL seknds 
-!
-      n_qxy   = 1
-      n_nscat = 1
-      n_natom = 1
-      n_pkt   = 1
-      l_twoparts = .false.
-      calc_f2aver = .true.    ! Assume that we need form factors
-      rept_f2aver = .true.    ! Assume that we need to repeat them
-!                                                                       
-!DBG_RBN      open(13,file='hkl.list',status='unknown')                 
-      ss = seknds (0.0) 
+ss = seknds (0.0) 
 !                                                                       
 !     Set Fourier definitions                                           
 !                                                                       
-      inc (2) = 1 
-      DO i = 1, 3 
-         vi (i, 1) = 0.0 
-         vi (i, 2) = 0.0 
-      ENDDO 
-      vi (3, 1) = pow_hkl_del (3) 
-      four_log = .false. 
+inc (2) = 1 
+DO i = 1, 3 
+   vi (i, 1) = 0.0 
+   vi (i, 2) = 0.0 
+ENDDO 
+vi (3, 1) = pow_hkl_del (3) 
+four_log = .false. 
 !
-!     IF(pow_axis == POW_AXIS_Q ) THEN
-         n_pkt = NINT((pow_qmax+pow_deltaq  -pow_qmin  )/pow_deltaq  ) + 2
-      n_nscat = MAX(UBOUND(pow_f2,2), MAXSCAT, DIF_MAXSCAT)
-!     ELSEIF(pow_axis == POW_AXIS_TTH ) THEN
-!        n_pkt = NINT((pow_tthmax+pow_deltatth-pow_tthmin)/pow_deltatth) + 2
-!     ENDIF
-      IF(n_pkt .gt. POW_MAXPKT) THEN
-         CALL alloc_powder ( n_pkt, n_nscat )
-      ENDIF
+!
+n_pkt = NINT((pow_qmax+pow_deltaq  -pow_qmin  )/pow_deltaq  ) + 2
+n_nscat = MAX(UBOUND(pow_f2,2), MAXSCAT, DIF_MAXSCAT)
+IF(n_pkt .gt. POW_MAXPKT .OR. n_nscat>POW_MAXSCAT) THEN
+   CALL alloc_powder ( n_pkt, n_nscat )
+ENDIF
 !     reset powder diagramm                                             
 !                                                                       
-      pow_qsp(:)    = 0.0D0   ! 0:POW_MAXPKT
-      pow_f2aver(:) = 0.0D0   ! 0:POW_MAXPKT
-      pow_faver2(:) = 0.0D0   ! 0:POW_MAXPKT
-      pow_nreal     = 0
-      pow_u2aver    = 0.0
+pow_qsp(:)    = 0.0D0   ! 0:POW_MAXPKT
+pow_f2aver(:) = 0.0D0   ! 0:POW_MAXPKT
+pow_faver2(:) = 0.0D0   ! 0:POW_MAXPKT
+pow_nreal     = 0
+pow_u2aver    = 0.0
 !     DO i = 1, POW_MAXPKT 
 !     pow_qsp (i) = 0.0 
 !     ENDDO 
-      n_qxy   = MAX(n_qxy,inc(1) * inc(2),n_pkt,MAXQXY)
-      n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-      n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
-      IF (inc (1) * inc (2) .gt. MAXQXY  .OR.          &
-          n_pkt             .gt. MAXQXY  .OR.          &
-          cr_nscat>DIF_MAXSCAT              ) THEN
-        CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
-        IF (ier_num /= 0) THEN
-          RETURN
-        ENDIF
-      ENDIF
+n_qxy   = MAX(n_qxy,inc(1) * inc(2),n_pkt,MAXQXY)
+n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+IF (inc (1) * inc (2) .gt. MAXQXY  .OR.          &
+    n_pkt             .gt. MAXQXY  .OR.          &
+    cr_nscat>DIF_MAXSCAT              ) THEN
+  CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
+  IF (ier_num /= 0) THEN
+    RETURN
+  ENDIF
+ENDIF
+!
+IF(n_qxy > PHA_MAXPTS .OR. cr_nscat> PHA_MAXSCAT) THEN
+   n_pha   = PHA_MAXPHA
+   n_qxy   = MAX(PHA_MAXPTS,  n_qxy)
+   n_nscat = MAX(PHA_MAXSCAT, cr_nscat)
+   CALL alloc_phases(n_pha, n_qxy, n_nscat)
+ENDIF
 !                                                                       
 !------ calculate complex exponent table, form factor table             
 !                                                                       
-      pow_npkt = n_pkt            ! set actual number of powder data points
-!     IF(pow_axis == POW_AXIS_Q ) THEN
-         xstart = pow_qmin  /zpi
-         xdelta = pow_deltaq/zpi
-         CALL powder_stltab(n_pkt, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
-!     ELSE
-!        calc_f2aver = .false.
-!        rept_f2aver = .false.
-!     ENDIF
-      CALL four_cexpt 
-      CALL four_formtab
-      CALL powder_getatoms 
+pow_npkt = n_pkt            ! set actual number of powder data points
+!
+CALL four_cexpt 
+CALL four_formtab
+!
+xstart = pow_qmin  /zpi
+xdelta = pow_deltaq/zpi
+CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+!
+CALL powder_getatoms 
 !                                                                       
 !     calculate global limits along h                                   
 !                                                                       
-!DBG                                                                    
-      l_ano = ano 
-!DBG      write(*,*) 'ANOMALOUS ',l_ano                                 
-      IF (l_ano) then 
-         h_start = - int (pow_hkl_max (1) / pow_hkl_del (1) ) 
-      ELSE 
-         h_start = 0 
-      ENDIF 
-      h_end = int (pow_hkl_max (1) / pow_hkl_del (1) ) 
+!
+l_ano = ano 
+!
+IF (l_ano) THEN 
+   h_start = - int (pow_hkl_max (1) / pow_hkl_del (1) ) 
+ELSE 
+   h_start = 0 
+ENDIF 
+h_end = int (pow_hkl_max (1) / pow_hkl_del (1) ) 
 !                                                                       
 !     loop over h                                                       
 !                                                                       
-      DO ih = h_start, h_end 
+loop_h: DO ih = h_start, h_end 
 
       hh = ih * pow_hkl_del (1) + pow_hkl_shift (1) 
       hkl (1) = hh 
@@ -1546,7 +1491,7 @@ END SUBROUTINE powder_run
 !DBG      write(*,*) ' Vector u ',u                                     
 !DBG      write(*,*) ' Vector v ',v                                     
 !DBG      write(*,*) ' x*       ',rr                                    
-      IF (rr.ge.0) then 
+      IF (rr.ge.0) THEN 
          w_min (1) = u (1) - sqrt ( (rr) ) * v (1) 
          w_min (2) = u (2) - sqrt ( (rr) ) * v (2) 
          w_min (3) = u (3) - sqrt ( (rr) ) * v (3) 
@@ -1559,7 +1504,7 @@ END SUBROUTINE powder_run
 !DBG        write(*,'(a,5f10.4)') ' k maximum ',w_max, ww,pow_ds_max    
 !DBG        write(line,'(a4,f6.2)') 'hkl.',hh                           
 !DBG        do i=5,14                                                   
-!DBG          if(line(i:i).eq. ' ') then                                
+!DBG          if(line(i:i).eq. ' ') THEN                                
 !DBG            line(i:i) = '0'                                         
 !DBG          endif                                                     
 !DBG        ENDDO                                                       
@@ -1571,11 +1516,11 @@ END SUBROUTINE powder_run
 !DBG        line(1:3) = 'EEE'                                           
 !DBG        open(18,file=line,status='unknown')                         
       ENDIF 
-      IF (rr.gt.0) then 
+      IF (rr.gt.0) THEN 
          eck (1, 1) = hh 
          eck (1, 2) = hh 
          eck (1, 3) = hh 
-         IF (.not.l_ano.and.ih.eq.0) then 
+         IF (.not.l_ano.and.ih.eq.0) THEN 
             k_start = 0 
          ELSE 
             k_start = int( w_min (2) / pow_hkl_del (2) )
@@ -1586,7 +1531,7 @@ END SUBROUTINE powder_run
 !DBG      k_end   =  6.00000/pow_hkl_del(2)                             
 !DBG      k_start = w_min(2)/pow_hkl_del(2)                             
 !DBG      k_end   = w_max(2)/pow_hkl_del(2)                             
-!DBGXXX      if(hkl(1).eq.-6.) then                                     
+!DBGXXX      if(hkl(1).eq.-6.) THEN                                     
 !DBG        write(*,*) 'k_start k_end',k_start,k_end                    
 !DBG        write(*,*)                                                  
 !DBGXXX      endif                                                      
@@ -1594,7 +1539,7 @@ END SUBROUTINE powder_run
 !     ----Start loop over k                                             
 !                                                                       
          DO ik = k_start, k_end 
-!DBGXXX      if(hkl(1).eq.0.0) then                                     
+!DBGXXX      if(hkl(1).eq.0.0) THEN                                     
 !DBGXXX        write(*,*) ' ik*pow_hkl_del(2) ',ik*pow_hkl_del(2)       
 !DBGXXX        write(*,*) ' pow_hkl_shift(2)  ',pow_hkl_shift(2)        
 !DBGXXX      endif                                                      
@@ -1614,10 +1559,10 @@ END SUBROUTINE powder_run
          * hkl (1) * hkl (2) + cr_rten (2, 2) * hkl (2) **2 -           &
          pow_ds_max**2                                                  
          rrr = bbb**2 - 4. * aaa * ccc 
-!DBG          if(.not.l_ano .and. ih.eq.0 .and. ik.eq.0) then           
+!DBG          if(.not.l_ano .and. ih.eq.0 .and. ik.eq.0) THEN           
 !DBG            write(*,*) ' rrr ',rrr                                  
 !DBG          endif                                                     
-         IF (rrr.ge.0) then 
+         IF (rrr.ge.0) THEN 
 !DBGXXX        write(*,*) ' hkl ',hkl                                   
 !DBGXXX        write(*,'(a,3f10.4)') ' aaa,bbb,ccc ',aaa,bbb,ccc        
             llstart = ( - bbb - sqrt (rrr) ) / 2. / aaa 
@@ -1633,12 +1578,12 @@ END SUBROUTINE powder_run
             * hkl (1) * hkl (2) + cr_rten (2, 2) * hkl (2) **2 -        &
             pow_ds_min**2                                               
             rtm = bbb**2 - 4. * aaa * ccc 
-!DBGXXX          if(ih.eq.0 .and. ik.eq.0) then                         
+!DBGXXX          if(ih.eq.0 .and. ik.eq.0) THEN                         
 !DBGXXX            write(*,*) ' llstart ',llstart                       
 !DBGXXX            write(*,*) ' llend   ',llend                         
 !DBGXXX            write(*,*) ' rtm ',rtm                               
 !DBGXXX          endif                                                  
-            IF (rtm.gt.0) then 
+            IF (rtm.gt.0) THEN 
 !                                                                       
 !     --------- Intersection with 2Theta minimum sphere                 
 !                                                                       
@@ -1649,7 +1594,7 @@ END SUBROUTINE powder_run
                llstartmini = ( - bbb + sqrt (rtm) ) / 2. / aaa 
                hkl (3) = llstartmini 
 !DBGXXX        ww   = sqrt(skalpro(hkl,hkl,cr_rten))                    
-               IF (.not.l_ano.and.ih.eq.0.and.ik.eq.0) then 
+               IF (.not.l_ano.and.ih.eq.0.and.ik.eq.0) THEN 
 !                                                                       
 !     ----------- Save computational time, start at 2th minimum,        
 !     ----------- only one line calculated                              
@@ -1683,7 +1628,7 @@ END SUBROUTINE powder_run
                   l_twoparts = .true. 
 !DBG                  write(15,'(2f12.4)') hkl(2),llstart               
 !DBG                  write(15,'(2f12.4)') hkl(2),llend                 
-!DBGXXX      if(ih.eq.0 .and. ik.eq.0) then                             
+!DBGXXX      if(ih.eq.0 .and. ik.eq.0) THEN                             
 !DBGXXX                write(* ,'(2f12.4)') hkl(2),llstart2             
 !DBGXXX                write( *,'(2f12.4)') hkl(2),llend2               
 !DBGXXX                write( *,'(2f12.4)') hkl(2),llstart              
@@ -1694,7 +1639,7 @@ END SUBROUTINE powder_run
 !                                                                       
 !     --------- No intersection with 2-Theta minimum                    
 !                                                                       
-               IF (.not.l_ano.and.ih.eq.0.and.ik.eq.0) then 
+               IF (.not.l_ano.and.ih.eq.0.and.ik.eq.0) THEN 
                   l_start = 0 
                   l_end = int( llend / pow_hkl_del (3) )
 !DBG                  write(15,'(2f12.4)') hkl(2),0.00                  
@@ -1710,7 +1655,7 @@ END SUBROUTINE powder_run
          ENDIF 
 !DBG_RBN      END OF NEW L LIMIT                                        
 !                                                                       
-         IF (rrr.gt.0) then 
+         IF (rrr.gt.0) THEN 
             eck (2, 1) = kk 
             eck (2, 2) = kk 
             eck (2, 3) = kk 
@@ -1722,7 +1667,7 @@ END SUBROUTINE powder_run
 !     ----------No intersection with 2Theta min sphere                  
 !               or first of the two segments                            
 !                                                                       
-!DBG          if(.not.l_ano .and. ih.eq.0 .and. ik.eq.0) then           
+!DBG          if(.not.l_ano .and. ih.eq.0 .and. ik.eq.0) THEN           
 !DBG                write(* ,'(3f12.4)') hkl(1),hkl(2),llstart          
 !DBG                write(* ,'(3f12.4)') hkl(1),hkl(2),llendmini        
 !DBG                write(* ,'(3f12.4)') hkl(1),hkl(2),llstartmini      
@@ -1739,7 +1684,7 @@ END SUBROUTINE powder_run
             inc (1) = nint ( (eck (3, 2) - eck (3, 1) ) / pow_hkl_del ( &
             3) ) + 1                                                    
 !DBG_RBN                                                                
-!DBGXXX          if(.not.l_ano .and. ih.eq.0 .and. ik.eq.0) then        
+!DBGXXX          if(.not.l_ano .and. ih.eq.0 .and. ik.eq.0) THEN        
 !DBGXXX      write(*,*) 'l_start , l_end ',l_start , l_end              
 !DBGXXX      write(*,*) 'eck(3,*)        ',eck(3,1),eck(3,2),eck(3,3)   
 !DBGXXX      write(*,*) 'inc(1)          ',inc(1)                       
@@ -1754,7 +1699,7 @@ END SUBROUTINE powder_run
                 RETURN
               ENDIF
             ENDIF
-            IF (inc (1) .gt.MAXQXY) then 
+            IF (inc (1) .gt.MAXQXY) THEN 
                ier_num = - 8 
                ier_typ = ER_APPL 
                WRITE (ier_msg (1), 8888) inc (1) 
@@ -1762,14 +1707,14 @@ END SUBROUTINE powder_run
                ier_msg (3) = 'Increase dl or reduce TTHMAX' 
                RETURN 
             ENDIF 
-            IF (pow_four_mode.eq.POW_FOURIER) then 
-!              IF (pow_four_type.eq.POW_COMPL) then 
+            IF (pow_four_mode.eq.POW_FOURIER) THEN 
+!              IF (pow_four_type.eq.POW_COMPL) THEN 
 !DBG_RBN                                                                
 !                 CALL four_run 
 !              ELSE 
                   CALL four_run_powder 
 !              ENDIF 
-            ELSEIF (pow_four_mode.eq.POW_STACK) then 
+            ELSEIF (pow_four_mode.eq.POW_STACK) THEN 
                CALL st_fourier(rept_f2aver)
                rept_f2aver = .false.   ! No further calculations needed
             ENDIF 
@@ -1785,17 +1730,17 @@ END SUBROUTINE powder_run
             l_ll_real = abs ( (nint (ll) - ll) / pow_hkl_del (3) )      &
             .gt.0.51                                                    
             IF (pow_l_all.or..not.pow_l_all.and. (                      &
-            l_hh_real.or.l_kk_real.or.l_ll_real) ) then                 
+            l_hh_real.or.l_kk_real.or.l_ll_real) ) THEN                 
                dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
 !DBG_RBN                                                                
 !                 IF(pow_axis==POW_AXIS_TTH) THEN
-!              IF (rlambda * 0.5 * dstar.le.1.0) then 
+!              IF (rlambda * 0.5 * dstar.le.1.0) THEN 
 !                 ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
 !                 IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
-!                 then                                                  
+!                 THEN                                                  
 !                    itth = nint( (ttheta - pow_tthmin) / pow_deltatth )
 !                    inten = DBLE (csf (i) * conjg (csf (i) ) ) 
-!                    IF (pow_pref) then 
+!                    IF (pow_pref) THEN 
 !write(*,'(a,3(f4.0,1x),1x,f5.2,1x,f10.2,1x,f10.2)') 'hkl',hkl,ttheta,   &
 !                        inten , inten * calc_preferred (hkl,            &
 !                        pow_pref_type, pow_pref_hkl, pow_pref_g1,       &
@@ -1814,7 +1759,7 @@ END SUBROUTINE powder_run
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = nint( (q - pow_qmin) / pow_deltaq )
                         inten = DBLE (csf (i) * conjg (csf (i) ) ) 
-                        IF (pow_pref) then 
+                        IF (pow_pref) THEN 
                            inten = inten * DBLE(calc_preferred (hkl,         &
                            pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
                            pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
@@ -1830,7 +1775,7 @@ END SUBROUTINE powder_run
 !DBG_RBN     &               (l_hh_real .or. l_kk_real .or. l_ll_real)  
 ! 4444 FORMAT    (3(2x,f5.1),f8.5,f8.3,2x,f12.6,f12.6,2x,f12.6,5(2x,l1)) 
             ENDDO 
-            IF (l_twoparts) then 
+            IF (l_twoparts) THEN 
 !                                                                       
 !     ----------Intersection with 2Theta min sphere, calculate          
 !               second section along line                               
@@ -1859,7 +1804,7 @@ END SUBROUTINE powder_run
                    RETURN
                  ENDIF
                ENDIF
-               IF (inc (1) .gt.MAXQXY) then 
+               IF (inc (1) .gt.MAXQXY) THEN 
                   ier_num = - 8 
                   ier_typ = ER_APPL 
                   WRITE (ier_msg (1), 8888) inc (1) 
@@ -1867,14 +1812,14 @@ END SUBROUTINE powder_run
                   ier_msg (3) = 'Increase dl or adjust TTHMIN / TTHMAX' 
                   RETURN 
                ENDIF 
-               IF (pow_four_mode.eq.POW_FOURIER) then 
-!                 IF (pow_four_type.eq.POW_COMPL) then 
+               IF (pow_four_mode.eq.POW_FOURIER) THEN 
+!                 IF (pow_four_type.eq.POW_COMPL) THEN 
 !DBG_RBN                                                                
 !                    CALL four_run 
 !                 ELSE 
                      CALL four_run_powder 
 !                 ENDIF 
-               ELSEIF (pow_four_mode.eq.POW_STACK) then 
+               ELSEIF (pow_four_mode.eq.POW_STACK) THEN 
                   CALL st_fourier(rept_f2aver)
                   rept_f2aver = .false.   ! no further calculations needed
                ENDIF 
@@ -1890,16 +1835,16 @@ END SUBROUTINE powder_run
                l_ll_real = abs ( (nint (ll) - ll) / pow_hkl_del (3) )   &
                .lt.0.51                                                 
                IF (pow_l_all.or..not.pow_l_all.and. (                   &
-               l_hh_real.or.l_kk_real.or.l_ll_real) ) then              
+               l_hh_real.or.l_kk_real.or.l_ll_real) ) THEN              
                   dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
 !                 IF(pow_axis==POW_AXIS_TTH) THEN
-!                 IF (rlambda * 0.5 * dstar.le.1.0) then 
+!                 IF (rlambda * 0.5 * dstar.le.1.0) THEN 
 !                    ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
 !                    IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
-!                    then                                               
+!                    THEN                                               
 !                       itth = nint( (ttheta - pow_tthmin) / pow_deltatth )
 !                       inten = DBLE (csf (i) * conjg (csf (i) ) ) 
-!                       IF (pow_pref) then 
+!                       IF (pow_pref) THEN 
 !                          inten = inten * DBLE(calc_preferred (hkl,         &
 !                          pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
 !                          pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
@@ -1913,7 +1858,7 @@ END SUBROUTINE powder_run
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = nint( (q - pow_qmin) / pow_deltaq )
                         inten = DBLE (csf (i) * conjg (csf (i) ) ) 
-                        IF (pow_pref) then 
+                        IF (pow_pref) THEN 
                            inten = inten * DBLE(calc_preferred (hkl,         &
                            pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
                            pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
@@ -1932,11 +1877,8 @@ END SUBROUTINE powder_run
          ENDIF 
          ENDDO 
       ENDIF 
-!DBG        close(15)                                                   
-!DBG        close(16)                                                   
-!DBG        close(17)                                                   
-!DBG        close(18)                                                   
-      ENDDO 
+!
+ENDDO  loop_h
 !
 !     CALCULATE normalized average squared atomic form factor
 !
@@ -1949,7 +1891,7 @@ END SUBROUTINE powder_run
          pow_u2aver = pow_u2aver / pow_nreal /8./REAL(pi**2)
       ENDIF
 !                                                                       
-      CALL dealloc_powder_nmax ! was allocated in powder_getatoms
+CALL dealloc_powder_nmax ! was allocated in powder_getatoms
 !
 !     Prepare and calculate average form factors
 !
@@ -1960,9 +1902,10 @@ END SUBROUTINE powder_run
 !      pow_nreal = SUM(natom)  ! Add real atom numbers 
 !      CALL powder_f2aver ( cr_nscat , natom , cr_dw)
 !
-      ss = seknds (ss) 
-      WRITE (output_io, 4000) ss 
-!DBG_RBN      close(13)                                                 
+!
+ss = seknds (ss) 
+WRITE (output_io, 4000) ss 
+!
 !                                                                       
  4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
  5000 FORMAT     (' Currently at H = ',f9.4,'   (dH = ',f9.4,           &
@@ -2036,7 +1979,7 @@ END SUBROUTINE powder_run
 !                                                                       
 !------ Now we multiply with formfactor                                 
 !                                                                       
-      IF (lform) then 
+      IF (lform) THEN 
          DO i = 1, num (1) * num (2) 
          tcsf (i) = tcsf (i) * cfact (istl (i), iscat) 
          ENDDO 
@@ -2163,7 +2106,7 @@ END SUBROUTINE powder_run
       nxat = 0 
 !                                                                       
       DO i = i_start + 1, cr_natoms 
-      IF (cr_iscat (i) .eq.iscat) then 
+      IF (cr_iscat (i) .eq.iscat) THEN 
          nxat = nxat + 1 
          DO j = 1, 3 
          u (j) = cr_pos (j, i_start) 
@@ -2255,7 +2198,7 @@ END SUBROUTINE powder_run
       ENDDO 
       DO i = 1, cr_natoms 
          iscat = cr_iscat (i) 
-         IF (iscat.gt.0) then 
+         IF (iscat.gt.0) THEN 
             pow_nscat (iscat) = pow_nscat (iscat) + 1 
             pow_iatom (iscat, pow_nscat (iscat) ) = i 
          ENDIF 
@@ -2331,7 +2274,7 @@ END SUBROUTINE powder_run
 !                                                                       
 !------ Now we multiply with formfactor                                 
 !                                                                       
-      IF (lform) then 
+      IF (lform) THEN 
 !DBGXXX        do i=1,num(1)*num(2)                                     
          DO i = 1, num (1) 
          tcsf (i) = tcsf (i) * cfact (istl (i), iscat) 
@@ -2374,15 +2317,15 @@ END SUBROUTINE powder_run
       calc_preferred = 1.0 
 !                                                                       
       alpha = do_bang (lspace, w, null, pow_pref_hkl) 
-      IF (pow_pref_type.eq.POW_PREF_RIET) then 
-         IF (alpha.le.90.) then 
+      IF (pow_pref_type.eq.POW_PREF_RIET) THEN 
+         IF (alpha.le.90.) THEN 
             alpha2 = alpha**2 
          ELSE 
             alpha2 = (180 - alpha) **2 
          ENDIF 
          calc_preferred = pow_pref_g2 + (1. - pow_pref_g2) * exp (      &
          pow_pref_g1 * alpha2)                                          
-      ELSEIF (pow_pref_type.eq.POW_PREF_MARCH) then 
+      ELSEIF (pow_pref_type.eq.POW_PREF_MARCH) THEN 
          calc_preferred = pow_pref_g2 + (1. - pow_pref_g2) * ( (        &
          pow_pref_g1 * cosd (alpha) ) **2 + (sind (alpha) ) **2 /       &
          pow_pref_g1) ** ( - 1.5)                                       
@@ -2424,7 +2367,7 @@ END SUBROUTINE powder_run
       uv = skalpro (w, pow_pref_hkl, cr_gten) 
       uu = skalpro (w, pow_pref_hkl, cr_gten) 
       vv = skalpro (w, pow_pref_hkl, cr_gten) 
-      IF (vv.eq.0.0) then 
+      IF (vv.eq.0.0) THEN 
          w (1) = 0.0 
          w (2) = 0.0 
          w (3) = 0.0 
@@ -2553,10 +2496,14 @@ pow_width      = 20.0
 pow_ka21       =  0.0
 pow_ka21_u     =  .FALSE.
 !
-IF(ALLOCATED(pow_qsp))    pow_qsp   (:) = 0.0D0  !  (0:POW_MAXPKT)
-IF(ALLOCATED(pow_f2aver)) pow_f2aver(:) = 0.0D0  !  (0:POW_MAXPKT)
-IF(ALLOCATED(pow_faver2)) pow_faver2(:) = 0.0D0  !  (0:POW_MAXPKT)
+IF(ALLOCATED(pow_qsp))    pow_qsp       = 0.0D0  !  (0:POW_MAXPKT)
+IF(ALLOCATED(pow_f2aver)) pow_f2aver    = 0.0D0  !  (0:POW_MAXPKT)
+IF(ALLOCATED(pow_faver2)) pow_faver2    = 0.0D0  !  (0:POW_MAXPKT)
+IF(ALLOCATED(pow_f2    )) pow_f2        = 0.0D0  !  (0:POW_MAXPKT)
+IF(ALLOCATED(pow_conv  )) pow_conv      = 0.0D0  !  (0:POW_MAXPKT)
+IF(ALLOCATED(pow_sq    )) pow_sq        = 0.0D0  !  (0:POW_MAXPKT)
 pow_nreal   = 0
+pow_ncreal  = 0
 pow_u2aver  = 0.0
 !
 ! powder_scat

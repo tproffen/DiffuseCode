@@ -9,11 +9,12 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-168,IO=7)
+      PARAMETER    (IU=-169,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -161) /                          &
+     &  'Mass fractions do not add up to  1.0   ',       & !-169 ! discus
      &  'Periodic PDF is on but radius <= 0.0   ',       & !-168 ! discus
      &  'A cell/stru needs metric:host parameter',       & !-167 ! discus
      &  'Density is <= zero',                            & !-166 ! discus

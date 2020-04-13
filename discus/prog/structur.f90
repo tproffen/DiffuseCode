@@ -3150,6 +3150,7 @@ CALL alloc_crystal(1,1)
       cr_nscat = 0 
       cr_icc       = 1
       cr_cartesian = .false. 
+cr_magnetic  = .FALSE.
       cr_scat_int (0) = .true. 
       cr_delf_int (0) = .true. 
       cr_scat_equ (0) = .false. 
@@ -3173,10 +3174,15 @@ CALL alloc_crystal(1,1)
       cr_dim (i, 2) = 0.0 
       ENDDO 
 !
+cr_amount = 0
+cr_u2aver = 0.0E0
+cr_mass   = 0   ! Crystal mass in u
+cr_nreal  = 0.0
       as_pos(:,:)  = 0
       cr_pos(:,:)  = 0
       cr_prop(:)   = 0
       cr_iscat(:)  = 0
+      cr_niscat(:)  = 0
       cr_mole(:)   = 0
       cr_surf(:,:) = 0
       cr_magn(:,:) = 0.0

@@ -69,6 +69,7 @@ USE discus_config_mod
    INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_iscat  ! (  1:MAXSCAT)
    INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_mole   ! (  1:MAXSCAT)
    INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_prop   ! (  1:MAXSCAT)
+   INTEGER, DIMENSION(  :), ALLOCATABLE  ::  cr_niscat ! (  1:MAXSCAT)  Number of atoms ot type iscat
 !
    LOGICAL                               :: cr_cartesian = .false.
    LOGICAL                               :: cr_magnetic  = .FALSE.   ! Cyrystal is magnetic YES / NO
@@ -84,6 +85,9 @@ USE discus_config_mod
 !
    INTEGER, DIMENSION(  :), ALLOCATABLE  ::  cr_amount ! (  0:MAXSCAT)
    REAL                                  ::  cr_u2aver
+!
+   REAL                                  :: cr_mass   = 0   ! Crystal mass in u
+   REAL                                  :: cr_nreal  = 0.0 ! Real amount of atoms including occupancy
 !
    INTEGER                              ::  cr_natoms       = 0
    INTEGER                              ::  cr_n_REAL_atoms = 0

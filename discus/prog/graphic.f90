@@ -166,12 +166,12 @@ IF (ier_num.eq.0) THEN
                         cpow_form = 'q  ' 
 !                    ELSEIF(str_comp(cpara(2), 'r', 1, lpara(2), 1)) THEN
 !                       cpow_form = 'r  ' 
-                     ELSEIF(str_comp(cpara(2), 'stl', 2, lpara(2), 3) ) THEN
-                        cpow_form = 'stl' 
-                     ELSEIF(str_comp(cpara(2), 'dst', 2, lpara(2), 3)) THEN
-                        cpow_form = 'dst' 
-                     ELSEIF(str_comp(cpara(2), 'lop', 2, lpara(2), 3) ) THEN
-                        cpow_form = 'lop' 
+!                    ELSEIF(str_comp(cpara(2), 'stl', 2, lpara(2), 3) ) THEN
+!                       cpow_form = 'stl' 
+!                    ELSEIF(str_comp(cpara(2), 'dst', 2, lpara(2), 3)) THEN
+!                       cpow_form = 'dst' 
+!                    ELSEIF(str_comp(cpara(2), 'lop', 2, lpara(2), 3) ) THEN
+!                       cpow_form = 'lop' 
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 

@@ -103,6 +103,8 @@ USE precision_mod
                CALL dealloc_diffuse
             ELSE IF (str_comp (cpara (1) , 'molecule'  , 3, lpara (1) , 8) )  THEN
                CALL dealloc_molecule
+            ELSE IF (str_comp (cpara (1) , 'phase'     , 3, lpara (1) , 5) )  THEN
+               CALL dealloc_phases
             ELSE IF (str_comp (cpara (1) , 'pdf'       , 3, lpara (1) , 3) )  THEN
                CALL dealloc_pdf
             ELSE IF (str_comp (cpara (1) , 'plot'      , 3, lpara (1) , 4) )  THEN
@@ -289,6 +291,7 @@ USE precision_mod
       CALL alloc_mmc_buck ( CHEM_MAX_COR,  1        )
       CALL alloc_mmc_lenn ( CHEM_MAX_COR,  1        )
       CALL alloc_molecule ( 1,  1,  1,  1,  1)
+      CALL alloc_phases   ( 1,  1,  1        )
       CALL alloc_pdf      ( 1,  1,  1,  1    )
       CALL alloc_plot     ( 1,  1        )
       CALL alloc_powder   ( 1,  1        )
@@ -863,6 +866,10 @@ USE precision_mod
       cry_size_of = cry_size_of + size_of
 !
       CALL alloc_arr ( as_prop ,       1,n_scat,  all_status,  0 , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      cry_size_of = cry_size_of + size_of
+!
+      CALL alloc_arr ( cr_niscat,      1,n_scat,  all_status,  0 , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
@@ -1938,6 +1945,87 @@ END SUBROUTINE alloc_demol
       END IF
     END SUBROUTINE alloc_molecule
 !
+!*******************************************************************************
+!
+SUBROUTINE alloc_phases ( n_pha, n_qxy, n_scat )
+!-
+!     Allocate the arrays needed by PHASES
+!+
+USE phases_mod
+!
+IMPLICIT NONE
+!
+!      
+INTEGER, INTENT(IN)  :: n_pha    ! Number of phases
+INTEGER, INTENT(IN)  :: n_qxy    ! Number of point in powder pattern
+INTEGER, INTENT(IN)  :: n_scat   ! Number of atom types
+!
+INTEGER              :: all_status
+LOGICAL              :: lstat
+INTEGER              :: size_of
+!
+lstat     = .TRUE.
+!
+CALL alloc_arr(pha_nscat           , 1,n_pha, all_status, 0        , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr(pha_calc            , 1,n_pha, all_status, 0        , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr(pha_frac            , 1,n_pha, all_status, 0.0E0    , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr(pha_occ   , 0,n_scat, 1,n_pha, all_status, 0.0E0    , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr(pha_weight,           1,n_pha, all_status, 0.0E0    , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr(pha_nreal ,           1,n_pha, all_status, 0.0E0    , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr(pha_ncreal,           1,n_pha, all_status, 0.0E0    , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr(pha_powder, 0,n_qxy , 1,n_pha, all_status, 0.0E0    , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr(pha_form  , 0,n_qxy , 0, n_scat, 1,n_pha, all_status, 0.0D0    , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr(pha_adp   , 0,n_scat, 1,n_pha, all_status, 0.0E0    , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr(pha_scale ,           1,n_pha, all_status, 0.0E0    , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr(pha_niscat, 0,n_scat, 1,n_pha, all_status, 0        , size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+!
+IF( lstat ) THEN                        ! Success
+   PHA_MAXPHA    = n_pha
+   PHA_MAXPTS    = n_qxy
+   PHA_MAXSCAT   = n_scat
+   ier_typ       = 0
+   ier_num       = 0
+   IF ( all_status == 1 ) THEN
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'Phases'
+   ENDIF
+ELSE                                    ! Failure
+   PHA_MAXPHA    = n_pha
+   PHA_MAXPTS    = n_qxy
+   PHA_MAXSCAT   = n_scat
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'Phases'
+END IF
+!
+END SUBROUTINE alloc_phases
+!
+!*******************************************************************************
 !
     SUBROUTINE alloc_pdf ( n_scat, n_site, n_dat, n_bnd )
 !-
@@ -2176,6 +2264,7 @@ END SUBROUTINE alloc_demol
 !     Allocate the arrays needed by POWDER
 !+
       USE powder_mod
+      USE powder_scat_mod
 !
       IMPLICIT NONE
 !
@@ -2206,12 +2295,20 @@ END SUBROUTINE alloc_demol
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pow_size_of = pow_size_of + size_of
 !
+       CALL alloc_arr ( pow_fu      ,0,n_qxy  ,  all_status, 0.0D0    , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      pow_size_of = pow_size_of + size_of
+!
        CALL alloc_arr ( pow_conv    ,0,n_qxy  ,  all_status, 0.0E0    , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pow_size_of = pow_size_of + size_of
 !
+       CALL alloc_arr ( pow_sq      ,0,n_qxy  ,  all_status, 0.0E0    , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
       IF( lstat ) THEN                        ! Success
          POW_MAXPKT    = n_qxy
+         POW_MAXSCAT   = n_scat
          ier_typ       = 0
          ier_num       = 0
          IF ( all_status == 1 ) THEN
@@ -2221,6 +2318,7 @@ END SUBROUTINE alloc_demol
          ENDIF
       ELSE                                    ! Failure
          POW_MAXPKT    = n_qxy
+         POW_MAXSCAT   = n_scat
          pow_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
@@ -3278,6 +3376,22 @@ END SUBROUTINE alloc_demol
       CALL alloc_molecule ( 1, 1, 1, 1, 1 )
 !
     END SUBROUTINE dealloc_molecule
+!
+!*******************************************************************************
+!
+SUBROUTINE dealloc_phases
+!-
+!     Deallocate the arrays for PHASES
+!     To avoid possible pitfals with old code, the arrays are simply
+!     reallocated to a size of 1.
+!+
+IMPLICIT NONE
+!
+CALL alloc_phases ( 1, 1,  1    )
+!
+END SUBROUTINE dealloc_phases
+!
+!*******************************************************************************
 !
     SUBROUTINE dealloc_pdf
 !-

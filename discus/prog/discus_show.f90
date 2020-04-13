@@ -3,44 +3,43 @@ MODULE discus_show_menu
 CONTAINS
 !*****7*****************************************************************
 !                                                                       
-      SUBROUTINE discus_do_show (line, laenge) 
+SUBROUTINE discus_do_show (line, laenge) 
 !-                                                                      
 !     These subroutine is the main routine for showing various          
 !     parameters.                                                       
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE conn_mod
-      USE conn_sup_mod
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE conn_mod
+USE conn_sup_mod
 !                                                                       
-      USE ber_params_mod
-      USE errlist_mod 
-      USE do_show_mod
-      USE get_params_mod
-      USE param_mod 
+USE ber_params_mod
+USE errlist_mod 
+USE do_show_mod
+USE get_params_mod
+USE param_mod 
 USE precision_mod
-      USE prompt_mod 
-      IMPLICIT none 
-       
+USE prompt_mod 
+!       
+IMPLICIT none 
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line 
+INTEGER         , INTENT(INOUT) :: laenge 
+!
+INTEGER , PARAMETER :: MAXW = 7 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 7) 
+INTEGER :: mode 
 !                                                                       
-      INTEGER mode 
+INTEGER, PARAMETER :: FULL   = 0
+INTEGER, PARAMETER :: SYMBOL = 1
+INTEGER, PARAMETER :: XYZ    = 2
+INTEGER, PARAMETER :: MATRIX = 3
 !                                                                       
-      INTEGER FULL, SYMBOL, XYZ, MATRIX 
-      PARAMETER (FULL = 0) 
-      PARAMETER (SYMBOL = 1) 
-      PARAMETER (XYZ = 2) 
-      PARAMETER (MATRIX = 3) 
-!                                                                       
-      CHARACTER ( * ) line 
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz , iianz
       INTEGER i, j 
-      INTEGER laenge 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       CHARACTER (LEN=256)  :: c_name   ! Connectivity name
       INTEGER              :: c_name_l ! connectivity name length
@@ -48,151 +47,135 @@ USE precision_mod
       INTEGER              :: iatom    ! atoms no for show
       LOGICAL              :: long
 !                                                                       
-      LOGICAL str_comp 
+LOGICAL, EXTERNAL :: str_comp 
 !                                                                       
-      CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
-      IF (ier_num.eq.0) THEN 
+CALL get_params(line, ianz, cpara, lpara, maxw, laenge) 
+IF(ier_num.eq.0) THEN 
 !                                                                       
 !     --Interprete first parameter as command                           
 !                                                                       
 !                                                                       
 !     ----Show composition of asymmetric unit 'asym'                    
 !                                                                       
-         IF (str_comp (cpara (1) , 'asym', 2, lpara (1) , 4) ) THEN 
-            CALL show_asym 
+   IF(str_comp(cpara(1), 'asym', 2, lpara(1), 4)) THEN
+      CALL show_asym 
 !                                                                       
 !     ----Show an atom                     'atom'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'atom', 2, lpara (1) , 4) ) THEN 
-            CALL do_show_atom (ianz, cpara, lpara, werte, maxw) 
+   ELSEIF(str_comp(cpara(1), 'atom', 2, lpara(1), 4) ) THEN 
+      CALL do_show_atom (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !     ----Show bond valence parameters     'bval'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'bval', 2, lpara (1) , 4) ) THEN 
-            CALL do_show_bval (ianz, cpara, maxw) 
+   ELSEIF(str_comp(cpara(1), 'bval', 2, lpara(1), 4) ) THEN 
+      CALL do_show_bval (ianz, cpara, maxw) 
 !                                                                       
 !     ----Show the chemistry               'chem'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'chem', 2, lpara (1) , 4) ) THEN 
-            CALL show_chem 
+   ELSEIF(str_comp(cpara(1), 'chem', 2, lpara(1), 4) ) THEN 
+      CALL show_chem 
 !                                                                       
 !     ----Show current configuration       'config'                     
 !                                                                       
-         ELSEIF (str_comp (cpara(1), 'config', 4, lpara(1), 6) )THEN
-            CALL discus_show_config 
+   ELSEIF(str_comp (cpara(1), 'config', 4, lpara(1), 6) )THEN
+      CALL discus_show_config 
 !                                                                       
 !     ----Show connectivity around an atom 'connect'                     
 !                                                                       
-         ELSEIF (str_comp (cpara(1), 'connect', 4, lpara(1), 7) ) THEN
-            CALL del_params (1, ianz, cpara, lpara, maxw)
-            IF(str_comp (cpara(ianz), 'long',3, lpara(ianz), 4)) THEN
-               long = .true.
-               ianz = ianz - 1
-            ELSE
-               long = .false.
-            ENDIF
-            iianz = 1
-            CALL ber_params (iianz, cpara, lpara, werte, maxw) 
-            iatom = NINT(werte(1))
-            CALL del_params (1, ianz, cpara, lpara, maxw)
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            IF(ier_num/=0) THEN
-               c_name_l = MIN(256,lpara(1))
-               c_name   = cpara(1)(1:c_name_l)
-               ino      = 0
-               CALL no_error
-            ELSE                                               ! Success set to value
-               ino = nint (werte (1) ) 
-               c_name   = ' '
-               c_name_l = 1
-            ENDIF
-            CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
-            CALL do_show_connectivity ( iatom, ino, c_name, long)
+   ELSEIF(str_comp(cpara(1), 'connect', 4, lpara(1), 7)) THEN
+      CALL del_params (1, ianz, cpara, lpara, maxw)
+      IF(str_comp (cpara(ianz), 'long',3, lpara(ianz), 4)) THEN
+         long = .true.
+         ianz = ianz - 1
+      ELSE
+         long = .false.
+      ENDIF
+      iianz = 1
+      CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+      iatom = NINT(werte(1))
+      CALL del_params (1, ianz, cpara, lpara, maxw)
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF(ier_num/=0) THEN
+         c_name_l = MIN(256,lpara(1))
+         c_name   = cpara(1)(1:c_name_l)
+         ino      = 0
+         CALL no_error
+      ELSE                                               ! Success set to value
+         ino = nint (werte (1) ) 
+         c_name   = ' '
+         c_name_l = 1
+      ENDIF
+      CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
+      CALL do_show_connectivity ( iatom, ino, c_name, long)
 !                                                                       
 !     ----Show the dimensions              'cdim'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'cdim', 2, lpara (1) , 4) ) THEN 
-            WRITE (output_io, 2000) ( (cr_dim (j, i), i = 1, 2),        &
-            j = 1, 3)                                                   
+   ELSEIF(str_comp(cpara(1), 'cdim', 2, lpara(1), 4)) THEN 
+      WRITE(output_io, 2000) ((cr_dim(j, i), i = 1, 2), j = 1, 3)
 !                                                                       
 !     ----Show a domain                    'domain'                     
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'domain', 2, lpara (1) , 6) )    &
-         THEN                                                           
-            CALL do_show_molecule (ianz, cpara, lpara, werte, maxw) 
+   ELSEIF(str_comp(cpara(1), 'domain', 2, lpara(1), 6)) THEN
+      CALL do_show_molecule (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !     ----Show the atom environment        'envi'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'envi', 2, lpara (1) , 4) ) THEN 
-            CALL do_show_env 
-            cpara (2) = 'envi' 
-            lpara (2) = 4 
-            CALL do_show_atom (ianz, cpara, lpara, werte, maxw) 
+   ELSEIF(str_comp(cpara(1), 'envi', 2, lpara(1), 4)) THEN
+      CALL do_show_env 
+      cpara (2) = 'envi' 
+      lpara (2) = 4 
+      CALL do_show_atom (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !     ----Show the molecular environment        'menvi'                 
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'menvi', 3, lpara (1) , 5) )     &
-         THEN                                                           
-            CALL do_show_menv 
-            IF (ianz.eq.2) THEN 
-               IF (str_comp (cpara (2) , 'full', 1, lpara (2) , 4) )    &
-               THEN                                                     
-                  cpara (2) = 'envi' 
-                  lpara (2) = 4 
-                  CALL do_show_molecule (ianz, cpara, lpara, werte,     &
-                  maxw)                                                 
-               ENDIF 
-            ENDIF 
+   ELSEIF(str_comp(cpara(1), 'menvi', 3, lpara(1), 5)) THEN
+!                                                                       
+!     ----Show the crystal mass                 'mass'                 
+!                                                                       
+   ELSEIF(str_comp(cpara(1), 'mass', 3, lpara(1), 4)) THEN
+      CALL do_show_mass 
 !                                                                       
 !     ----Show current unit cell metrics   'metric'                     
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'metric', 3, lpara (1) , 6) )    &
-         THEN                                                           
-            CALL do_show_metric 
+   ELSEIF(str_comp(cpara(1), 'metric', 3, lpara(1), 6) ) THEN
+      CALL do_show_metric 
 !                                                                       
 !     ----Show a molecule                  'molecule'                   
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'molecule', 2, lpara (1) , 8) )  &
-         THEN                                                           
-            CALL do_show_molecule (ianz, cpara, lpara, werte, maxw) 
+   ELSEIF(str_comp(cpara(1), 'molecule', 2, lpara(1), 8)) THEN
+      CALL do_show_molecule (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !     ----Show an object                   'object'                     
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'object', 2, lpara (1) , 6) )    &
-         THEN                                                           
-            CALL do_show_molecule (ianz, cpara, lpara, werte, maxw) 
+   ELSEIF(str_comp(cpara(1), 'object', 2, lpara(1), 6)) THEN
+      CALL do_show_molecule (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !     ----Show scattering curve            'scat'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'scat', 1, lpara (1) , 4) ) THEN 
-            CALL do_show_scat (ianz, cpara, lpara, werte, maxw) 
+   ELSEIF(str_comp(cpara(1), 'scat', 1, lpara(1), 4)) THEN 
+      CALL do_show_scat (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !     ----Show Symmetry matrices           'symmetry'                   
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'symmetry', 1, lpara (1) , 8) )  &
-         THEN                                                           
-            IF (ianz.eq.1.or.str_comp (cpara (2) , 'full', 2, lpara (2) &
-            , 4) ) THEN                                                 
-               mode = FULL 
-            ELSEIF (str_comp (cpara (2) , 'symbol', 2, lpara (2) , 6) ) &
-            THEN                                                        
-               mode = SYMBOL 
-            ELSEIF (str_comp (cpara (2) , 'xyz', 2, lpara (2) , 3) )    &
-            THEN                                                        
-               mode = XYZ 
-            ELSEIF (str_comp (cpara (2) , 'matrix', 2, lpara (2) , 6) ) &
-            THEN                                                        
-               mode = MATRIX 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-               RETURN 
-            ENDIF 
-            CALL do_show_symmetry (mode) 
-         ELSE 
-            CALL do_show_generic (cpara, lpara, maxw) 
-         ENDIF 
+   ELSEIF(str_comp(cpara(1), 'symmetry', 1, lpara(1), 8))  THEN
+      IF(ianz.eq.1.or.str_comp(cpara(2), 'full', 2, lpara(2), 4)) THEN
+         mode = FULL 
+      ELSEIF(str_comp(cpara(2), 'symbol', 2, lpara(2), 6)) THEN
+         mode = SYMBOL 
+      ELSEIF(str_comp(cpara(2), 'xyz', 2, lpara(2), 3)) THEN
+         mode = XYZ 
+      ELSEIF(str_comp(cpara(2), 'matrix', 2, lpara(2), 6)) THEN
+         mode = MATRIX 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+         RETURN 
       ENDIF 
+      CALL do_show_symmetry (mode) 
+   ELSE 
+      CALL do_show_generic (cpara, lpara, maxw) 
+   ENDIF 
+ENDIF 
 !                                                                       
  2000 FORMAT    (' Current crystal dimensions:'/                        &
      &                  '          minimum       maximum'/              &
@@ -967,5 +950,28 @@ INTEGER :: block = 1
 !                                                                       
 !                                                                       
 END SUBROUTINE do_show_symmetry_single
+!
+!*******************************************************************************
+!
+SUBROUTINE do_show_mass 
+!-
+!  Show crystal mass
+!
+USE crystal_mod
+USE crystal_task_mod
+!
+USE prompt_mod
+!
+IMPLICIT NONE
+!
+CALL crystal_calc_mass
+WRITE(output_io,1000) cr_nreal, cr_mass, cr_mass/cr_nreal
+!
+1000 FORMAT(' No atoms, Mass : ', F12.3, F12.3,/, &
+            ' Mass/Atom      : ', 12x  , F12.3)
+!
+END SUBROUTINE do_show_mass 
+!
+!*******************************************************************************
 !
 END MODULE discus_show_menu

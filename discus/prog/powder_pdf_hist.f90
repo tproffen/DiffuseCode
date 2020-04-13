@@ -42,30 +42,30 @@ INTEGER                 :: powder_nmol ! Number of look up dimensions molecules
 REAL   , DIMENSION(1:3) :: u
 REAL(KIND=PREC_DP), DIMENSION(3) :: com  ! Center of mass of crystal
 !
-IF (rlambda.ne.0.0) THEN
+!IF (rlambda.ne.0.0) THEN
 !
-   IF (pow_qmax.le.pow_qmin.or.pow_deltaq.le.0.0) THEN 
-      ier_num = - 108 
-      ier_typ = ER_APPL 
-      RETURN 
-   ENDIF 
+!   IF (pow_qmax.le.pow_qmin.or.pow_deltaq.le.0.0) THEN 
+!      ier_num = - 108 
+!      ier_typ = ER_APPL 
+!      RETURN 
+!   ENDIF 
 !
 !        Calculate hkl limits 
 !
-   pow_ds_max = (pow_qmax+pow_deltaq + pow_qmax_buf)/REAL(zpi)
-   pow_ds_min = pow_qmin/REAL(zpi)
-   IF(pow_qmax*rlambda/2./zpi > 1.0) THEN
-      ier_num = -108
-      ier_typ = ER_APPL
-      ier_msg(1) = 'Qmax is too large for current wave length'
-      ier_msg(2) = 'Qmax*lambda/(4pi) is greater than one!'
-      ier_msg(3) = 'Reduce Qmax or the wave length'
-      RETURN
-   ENDIF
+!   pow_ds_max = (pow_qmax+pow_deltaq + pow_qmax_buf)/REAL(zpi)
+!   pow_ds_min = pow_qmin/REAL(zpi)
+!   IF(pow_qmax*rlambda/2./zpi > 1.0) THEN
+!      ier_num = -108
+!      ier_typ = ER_APPL
+!      ier_msg(1) = 'Qmax is too large for current wave length'
+!      ier_msg(2) = 'Qmax*lambda/(4pi) is greater than one!'
+!      ier_msg(3) = 'Reduce Qmax or the wave length'
+!      RETURN
+!   ENDIF
 !
-   pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
-   pow_hkl_max (2) = cr_a0 (2) * pow_ds_max 
-   pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
+!   pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
+!   pow_hkl_max (2) = cr_a0 (2) * pow_ds_max 
+!   pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
 !
 !  If the user wants to calculate a periodic PDF from an extended
 !  group of atoms via the Debye mode, We:
@@ -138,10 +138,10 @@ IF (rlambda.ne.0.0) THEN
 !           CALL alloc_debye (       1,      1,   MAXDQXY, MASK )
    CALL powder_trans_atoms_fromcart 
 !
-ELSE
-   ier_num = -99
-   ier_typ = ER_APPL
-ENDIF
+!ELSE
+!   ier_num = -99
+!   ier_typ = ER_APPL
+!ENDIF
 !
 IF(pow_lperiod) THEN
    CALL errlist_save                   ! Keep error status 
@@ -170,6 +170,8 @@ USE diffuse_mod
 USE fourier_sup
 USE metric_mod
 USE output_mod 
+USE phases_mod
+USE phases_set_mod
 USE pdf_mod
 USE powder_mod 
 USE powder_tables_mod 
@@ -193,6 +195,7 @@ INTEGER                :: n_srch         ! Actual MAXHIST
 INTEGER                :: n_qxy   = 1
 INTEGER                :: n_nscat = 1
 INTEGER                :: n_natom = 1
+INTEGER                :: n_pha   = 1
 REAL                   :: distance
 REAL (PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
 REAL ss, st
@@ -258,8 +261,15 @@ ENDIF
 CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
 !
 CALL alloc_powder (n_qxy, n_nscat          )
+!
+IF(n_qxy > PHA_MAXPTS .OR. cr_nscat> PHA_MAXSCAT) THEN 
+   n_pha   = PHA_MAXPHA
+   n_qxy   = MAX(PHA_MAXPTS,  n_qxy)
+   n_nscat = MAX(PHA_MAXSCAT, cr_nscat)
+   CALL alloc_phases(n_pha, n_qxy, n_nscat)
+ENDIF
 !                                                                       
-!     prepare loopuptable for atom types
+!     prepare lookuptable for atom types
 !                                                                       
 ALLOCATE(look     (1:cr_nscat,1:cr_nscat))
 look  = 0
@@ -474,6 +484,7 @@ ENDIF
 DEALLOCATE(look   )
 DEALLOCATE(partial)
 DEALLOCATE(histogram)
+!
 ss = seknds (ss) 
 WRITE (output_io, 4000) ss 
 !                                                                       
