@@ -6102,6 +6102,16 @@
    A Debye-Scherrer geometry at a synchrotron source is defined.
    The polarisation fraction is required. 
    Optionally you can specify the monochromator angle.
+4  phases
+!p set phases,  ["mode:{"single"|"multiple"}]
+!p set phases,  ["current:"<number>, "fraction:"<weight_fraction>]
+
+   Defines the mode for multiple phases versus a single phase calculation.
+
+   The powder pattern of multiple phases are scaled to correspond to
+   the weight fractions of all phases that you define. 
+   Currently it is the users responsibility to make sure all the
+   <weight_fractions> add up to 1.0
 4  preferred
 !p set preferred, "off"
 !p set preferred, {"rietveld"|"march"}
