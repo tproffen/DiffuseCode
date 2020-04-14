@@ -149,7 +149,7 @@ CONTAINS
    var_l    ( i) = 6
    var_type ( i) = IS_INTE
    var_diff ( i) = .FALSE.
-   var_val  ( i) = 3
+   var_val  ( i) = 4
 !
    i = VAR_MPI_OFF
    var_name ( i) = 'MPI_OFF'         ! A PROGRAM is 'SUITE', 'DISCUS', 'KUPLOT', 'DIFFEV'
