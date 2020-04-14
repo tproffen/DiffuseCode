@@ -288,7 +288,7 @@ DO i=1,pha_n
 ENDDO
 !write(*,*) ' pha_frac   ', lbound(pha_frac), ubound(pha_frac), pha_frac
 !write(*,*) ' pha_weight ', lbound(pha_weight), ubound(pha_weight), pha_weight
-!write(*,*) ' pha_n      ', pha_n
+!write(*,*) ' pha_n      ', pha_n, empty, pha_nreal(1:pha_n)
 IF(ABS(1.-fractions) > EPS) THEN
    ier_num = -169
    ier_typ = ER_APPL
