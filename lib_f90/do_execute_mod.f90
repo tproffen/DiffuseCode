@@ -859,7 +859,7 @@ IMPLICIT none
 CHARACTER(LEN=*), INTENT(INOUT) :: line 
 INTEGER         , INTENT(INOUT) :: laenge
 INTEGER         , INTENT(INOUT) :: level
-1
+!
 CHARACTER(LEN=1024) :: zeile 
 INTEGER :: ipos
 INTEGER :: idummy
