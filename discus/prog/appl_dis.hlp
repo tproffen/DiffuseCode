@@ -75,6 +75,17 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2020_April
+
+   Many major updates:
+
+   Changed the PDF calculation to runvia a "detour" through the 
+   powder diffraction. Makes the calculation exact for the X-ray 
+   case in in many circumstances much faster.
+
+   Added options to add multiple powder diffraction pattern.
+
+   Improved the internal precision of most variables. 
 3  2019_December
 
    Added wave length symbols 'CU12' etc that enable Kalpha1/Kalpha2
