@@ -30,163 +30,164 @@ CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 CHARACTER(LEN=1024) :: string
 INTEGER, DIMENSION(MAXW) ::  lpara
 INTEGER :: i, ianz, length
-INTEGER :: ikl, ithen 
+INTEGER :: ikl, ithen , idummy
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !
-      IF(ier_ctrlc) THEN
-         ier_num = -14
-         ier_typ = ER_COMM
-      ENDIF
-      IF(ier_num/=0) RETURN
+IF(ier_ctrlc) THEN
+   ier_num = -14
+   ier_typ = ER_COMM
+ENDIF
+IF(ier_num/=0) RETURN
 !                                                                       
 !     LOGICAL if_test 
 !                                                                       
-      lreg = .false. 
+lreg = .false. 
 !                                                                       
-      ilevel (level) = ilevel (level) + 1 
-      line = do_comm (ilevel (level), level) 
-      laenge = do_leng (ilevel (level), level) 
-      IF(line(1:7)=='run_mpi') THEN
-          level_mpi = level
-         nlevel_mpi = ilevel(level)
-      ENDIF
-      IF (line (1:2) .eq.'&&') then 
-         level = level + 1 
-         READ (line (3:6), * ) jump (level) 
-         ilevel (level) = jump (level) 
-         line = do_comm (ilevel (level), level) 
-         laenge = do_leng (ilevel (level), level) 
-      ENDIF 
+ilevel (level) = ilevel (level) + 1 
+line = do_comm (ilevel (level), level) 
+laenge = do_leng (ilevel (level), level) 
+IF(line(1:7)=='run_mpi') THEN
+    level_mpi = level
+   nlevel_mpi = ilevel(level)
+ENDIF
+IF (line (1:2) .eq.'&&') then 
+   level = level + 1 
+   READ (line (3:6), * ) jump (level) 
+   ilevel (level) = jump (level) 
+   line = do_comm (ilevel (level), level) 
+   laenge = do_leng (ilevel (level), level) 
+ENDIF 
 !
-      CALL do_value(line,laenge)     ! Handle value() operation
+CALL do_value(line,laenge)     ! Handle value() operation
 !                                                                       
-      IF(line(1:4) ==  'else') THEN 
-         IF (INDEX (line, 'if') >   0) THEN 
-            CALL rem_insig_bl(line, laenge) 
+IF(line(1:4) ==  'else') THEN 
+   IF (INDEX (line, 'if') >   0) THEN 
+      CALL rem_insig_bl(line, laenge) 
 !        ELSE
 !           ier_num = - 31 
 !           ier_typ = ER_FORT 
 !           RETURN
-         ENDIF 
-      ELSEIF(line(1:3) ==  'end') THEN 
-         IF (INDEX (line, 'if') >   0) THEN 
-            CALL rem_insig_bl(line, laenge) 
-         ELSEIF (INDEX (line, 'do') >   0) THEN 
-            CALL rem_insig_bl(line, laenge) 
-         ENDIF
-      ENDIF 
+   ENDIF 
+ELSEIF(line(1:3) ==  'end') THEN 
+   IF (INDEX (line, 'if') >   0) THEN 
+      CALL rem_insig_bl(line, laenge) 
+   ELSEIF (INDEX (line, 'do') >   0) THEN 
+      CALL rem_insig_bl(line, laenge) 
+   ENDIF
+ENDIF 
 !     if do-loop command, evaluate counter                              
 !                                                                       
-      IF (line (1:3) .eq.'do ') then 
-         IF (level.eq.0) then 
-            jump (level) = ilevel (level) 
-         ENDIF 
-         CALL do_do (line, level, laenge) 
-         IF (ier_num.ne.0) then 
-            RETURN 
-         ENDIF 
-         IF (ldostart (level) ) then 
+IF (line (1:3) .eq.'do ') then 
+   IF (level.eq.0) then 
+      jump (level) = ilevel (level) 
+   ENDIF 
+   CALL do_do (line, level, laenge) 
+   IF (ier_num.ne.0) then 
+      RETURN 
+   ENDIF 
+   IF (ldostart (level) ) then 
 !     ----do loop is done                                               
-            level = level - 1 
-         ENDIF 
+      level = level - 1 
+   ENDIF 
 !                                                                       
 !     enddo command, check for enddo until                              
 !                                                                       
-      ELSEIF (line (1:5) .eq.'enddo') then 
-         CALL do_end (line, level, laenge) 
-         IF (ier_num.ne.0) then 
-            RETURN 
-         ENDIF 
-         IF (ldostart (level) ) then 
-            ilevel (level) = ilevel (level) + 1 
-            level = level - 1 
-         ELSE 
-            DO while (do_comm (ilevel (level) , level) (1:3) .ne.'do ') 
-            ilevel (level) = ilevel (level) - 1 
-            ENDDO 
-            ilevel (level) = jump (level) - 1 
-         ENDIF 
+ELSEIF (line (1:5) .eq.'enddo') then 
+   CALL do_end (line, level, laenge) 
+   IF (ier_num.ne.0) then 
+      RETURN 
+   ENDIF 
+   IF (ldostart (level) ) then 
+      ilevel (level) = ilevel (level) + 1 
+      level = level - 1 
+   ELSE 
+      DO while (do_comm (ilevel (level) , level) (1:3) .ne.'do ') 
+         ilevel (level) = ilevel (level) - 1 
+      ENDDO 
+         ilevel (level) = jump (level) - 1 
+   ENDIF 
 !                                                                       
 !     if or elseif command                                              
 !                                                                       
-      ELSEIF (line (1:2) .eq.'if'.or.line (1:6) .eq.'elseif') then 
-         IF (INDEX (line, 'then') .eq.0) then 
-            ier_num = - 31 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
-         CALL rem_insig_bl (line, laenge) 
-         IF (ltest (level) ) then 
+ELSEIF (line (1:2) .eq.'if'.or.line (1:6) .eq.'elseif') then 
+   IF (INDEX (line, 'then') .eq.0) then 
+      ier_num = - 31 
+      ier_typ = ER_FORT 
+      RETURN 
+   ENDIF 
+   CALL rem_insig_bl (line, laenge) 
+   IF (ltest (level) ) then 
 !........... previous block of the current if-elseif had been true      
-            ltest (level) = .false. 
-            level = level - 1 
-         ELSE 
+      ltest (level) = .false. 
+      level = level - 1 
+   ELSE 
 !...........This is the first if statement thats true                   
-            ikl = INDEX (line, '(') 
-            ithen = INDEX (line, 'then') - 1 
-            string = line (ikl:ithen) 
-            ltest (level) = if_test (string, ithen - ikl + 1) 
-            IF (ier_num.ne.0) then 
-               RETURN 
-            ENDIF 
-            IF (ier_num.ne.0) goto 999 
-            IF (.not.ltest (level) ) then 
+      ikl = INDEX (line, '(') 
+      ithen = INDEX (line, 'then') - 1 
+      string = line (ikl:ithen) 
+      idummy = ithen - ikl + 1
+      ltest (level) = if_test (string, idummy)
+      IF (ier_num.ne.0) then 
+         RETURN 
+      ENDIF 
+      IF (ier_num.ne.0) goto 999 
+      IF (.not.ltest (level) ) then 
 !.............If statement is false, ignore the commands that follow    
-               DO while(do_comm(ilevel(level)+1,level)(1:4).ne.'else'   &
-                   .and.do_comm(ilevel(level)+1,level)(1:5).ne.'endif')
-               ilevel (level) = ilevel (level) + 1 
-               ENDDO 
-            ENDIF 
-         ENDIF 
+         DO while(do_comm(ilevel(level)+1,level)(1:4).ne.'else'   &
+             .and.do_comm(ilevel(level)+1,level)(1:5).ne.'endif')
+         ilevel (level) = ilevel (level) + 1 
+         ENDDO 
+      ENDIF 
+   ENDIF 
 !                                                                       
 !     else command                                                      
 !                                                                       
-      ELSEIF (line (1:5) .eq.'else ') then 
-         IF (ltest (level) ) then 
+ELSEIF (line (1:5) .eq.'else ') then 
+   IF (ltest (level) ) then 
 !...........A previous block of the currrent if-elseif had been true    
-            ltest (level) = .false. 
-            level = level - 1 
-         ENDIF 
+      ltest (level) = .false. 
+      level = level - 1 
+   ENDIF 
 !                                                                       
 !     elseif command                                                    
 !                                                                       
-      ELSEIF (line.eq.'endif') then 
-         ltest (level) = .false. 
-         level = level - 1 
+ELSEIF (line.eq.'endif') then 
+   ltest (level) = .false. 
+   level = level - 1 
 !                                                                       
 !     break command                                                     
 !                                                                       
-      ELSEIF (line (1:5) .eq.'break') then 
-         length = laenge-5
-         CALL get_params (line (6:laenge), ianz, cpara, lpara, maxw, length)
+ELSEIF (line (1:5) .eq.'break') then 
+   length = laenge-5
+   CALL get_params (line (6:laenge), ianz, cpara, lpara, maxw, length)
+   IF (ier_num.eq.0) then 
+      IF (ianz.eq.1) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          IF (ier_num.eq.0) then 
-            IF (ianz.eq.1) then 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (level.ge.nint (werte (1) ) - 1) then 
-                     DO i = level, level - nint (werte (1) ) + 1, - 1
-                        ldostart (i) = .true. 
-                        ltest (i) = .false. 
-                     ENDDO 
-                     level = level - nint (werte (1) ) 
-                  ELSE 
-                     ier_num = - 28 
-                     ier_typ = ER_FORT 
-                  ENDIF 
-               ENDIF 
+            IF (level.ge.nint (werte (1) ) - 1) then 
+               DO i = level, level - nint (werte (1) ) + 1, - 1
+                  ldostart (i) = .true. 
+                  ltest (i) = .false. 
+               ENDDO 
+               level = level - nint (werte (1) ) 
             ELSE 
-               ier_num = - 6 
+               ier_num = - 28 
                ier_typ = ER_FORT 
             ENDIF 
          ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_FORT 
+      ENDIF 
+   ENDIF 
 !                                                                       
 !     regular command                                                   
 !                                                                       
-      ELSE 
-         lreg = .true. 
-      ENDIF 
+ELSE 
+   lreg = .true. 
+ENDIF 
 !                                                                       
-  999 CONTINUE 
+999 CONTINUE 
 !                                                                       
 END SUBROUTINE do_execute                     
 !
@@ -196,45 +197,46 @@ LOGICAL FUNCTION if_test (string, laenge)
 !-                                                                      
 !     Tests the logical condition given in 'string'                     
 !+                                                                      
-      USE berechne_mod
-      USE build_name_mod
-      USE calc_expr_mod
-      USE do_variable_mod
-      USE errlist_mod 
-      USE get_params_mod
+USE berechne_mod
+USE build_name_mod
+USE calc_expr_mod
+USE do_variable_mod
+USE errlist_mod 
+USE get_params_mod
 USE precision_mod
-      USE search_string_mod
-      USE set_sub_generic_mod
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      INTEGER MAXW 
-      PARAMETER (MAXW = 20) 
-!                                                                       
-      CHARACTER ( * ) string 
-      CHARACTER(2) comp 
-      CHARACTER(1024) zeile, line, oldstr 
-      CHARACTER(1024) string1, string2 
-      CHARACTER(1024) cpara (MAXW) 
-      INTEGER lpara (MAXW) 
-      INTEGER ianz 
+USE search_string_mod
+USE set_sub_generic_mod
+!
+IMPLICIT none 
+!
+INTEGER, PARAMETER :: MAXW = 20 
+!
+CHARACTER(LEN=*), INTENT(INOUT) ::  string 
+INTEGER         , INTENT(INOUT) ::  laenge 
+!
+CHARACTER(LEN=2)  :: comp 
+CHARACTER(LEN=1024) :: zeile, line, oldstr 
+CHARACTER(LEN=1024) :: string1, string2 
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara  !(MAXW) 
+INTEGER, DIMENSION(MAXW) :: lpara ! (MAXW) 
+INTEGER :: ianz 
 !     INTEGER suche_vor, suche_nach , suche_vor_hoch
-      INTEGER laenge, icom, iz1, iz2 , iz3
-      INTEGER :: ic1, ic2, ic3
-      INTEGER :: iper
-      INTEGER :: lcom    ! comparator length
-      INTEGER ikl, iklz, ikla, ikla1, ikla2 
-      INTEGER ll, i, inot, lll 
-      INTEGER istring1, istring2 
-      INTEGER istring1_len 
-      INTEGER istring2_len 
-      INTEGER :: omask ! , nmask might be needed later
-      LOGICAL lscr, lscr1 
-      LOGICAL lstring1, lstring2 
-      INTEGER :: ios
-      REAL(KIND=PREC_DP) :: werte (MAXW) 
-      REAL(KIND=PREC_DP) ::  w1, w2 
-      LOGICAL  , DIMENSION(1024,0:1) :: lmask
+INTEGER :: icom, iz1, iz2 , iz3
+INTEGER :: ic1, ic2, ic3
+INTEGER :: iper
+INTEGER :: lcom    ! comparator length
+INTEGER :: ikl, iklz, ikla, ikla1, ikla2 
+INTEGER :: ll, i, inot, lll 
+INTEGER :: istring1, istring2 
+INTEGER :: istring1_len 
+INTEGER :: istring2_len 
+INTEGER :: omask ! , nmask might be needed later
+LOGICAL :: lscr, lscr1 
+LOGICAL :: lstring1, lstring2 
+INTEGER :: ios
+REAL(KIND=PREC_DP) :: werte (MAXW) 
+REAL(KIND=PREC_DP) ::  w1, w2 
+LOGICAL  , DIMENSION(1024,0:1) :: lmask
 !                                                                       
       lmask = .TRUE.
       ier_num = 0 
@@ -260,7 +262,7 @@ USE precision_mod
                      INDEX (string, '>',    .TRUE.) , INDEX (string, '<=',   .TRUE.) ,  &
                      INDEX (string, '==',   .TRUE.) , INDEX (string, '/=',   .TRUE.)    &
                     )
-         DO while (icom /= 0) 
+icom_sig:         DO while (icom /= 0) 
 !                                                                       
 !     --Found an operator, search for numbers before and after          
 !                                                                       
@@ -299,6 +301,7 @@ USE precision_mod
          istring1 = INDEX (zeile, '''') 
          lstring1 = .false. 
          ENDIF
+
          IF (istring1.gt.1) THEN
             IF(ic1==0) THEN    ! Normal single string
 !                                                                       
@@ -449,7 +452,7 @@ USE precision_mod
                      INDEX (string, '>')    , INDEX (string, '<=')   ,  &
                      INDEX (string, '==')   , INDEX (string, '/=')      &
                     )
-         ENDDO 
+         ENDDO  icom_sig
 
          IF(laenge>3) THEN    ! String is long enough for a logical function
             CALL calc_intr_log(string,laenge)
@@ -684,15 +687,15 @@ SUBROUTINE do_do (line, level, laenge)
 !     reads the 'do' command and evaluates the corresponding counter    
 !+                                                                      
 USE ber_params_mod
-      USE doloop_mod 
+USE doloop_mod 
 USE do_variable_mod
-      USE errlist_mod 
-      USE get_params_mod
+USE errlist_mod 
+USE get_params_mod
 USE precision_mod
-      USE set_sub_generic_mod
+USE set_sub_generic_mod
 USE precision_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -702,6 +705,7 @@ USE precision_mod
       INTEGER lpara (maxw) 
       INTEGER ipos, ikp, ianz, level, laenge, lll 
       INTEGER ianz_d, i 
+INTEGER :: idummy
 !     LOGICAL if_test 
       LOGICAL l_var 
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
@@ -821,7 +825,8 @@ cdummy = ' '
          ier_typ = ER_NONE 
          ipos = INDEX (line, '(') 
          zeile = line (ipos:laenge) 
-         ldostart (level) = .not.if_test (zeile, laenge-ipos + 1) 
+         idummy = laenge-ipos + 1
+         ldostart (level) = .not.if_test (zeile, idummy)
          IF (ier_num.ne.0) then 
             RETURN 
          ENDIF 
@@ -846,24 +851,30 @@ SUBROUTINE do_end (line, level, laenge)
 !     reads the 'enddo'. If the 'until' is found, the expression is     
 !     evaluated                                                         
 !+                                                                      
-      USE doloop_mod 
-      USE errlist_mod 
-      IMPLICIT none 
+USE doloop_mod 
+USE errlist_mod 
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) line 
-      CHARACTER(1024) zeile 
-      INTEGER laenge, ipos, level 
+CHARACTER(LEN=*), INTENT(INOUT) :: line 
+INTEGER         , INTENT(INOUT) :: laenge
+INTEGER         , INTENT(INOUT) :: level
+1
+CHARACTER(LEN=1024) :: zeile 
+INTEGER :: ipos
+INTEGER :: idummy
 !     LOGICAL if_test 
 !                                                                       
-      ipos = INDEX (line, 'until') 
-      IF (ipos.ne.0) then 
-         zeile = line (ipos + 5:laenge) 
-         ldostart (level) = if_test (zeile, laenge- (ipos + 5) + 1) 
-         IF (ier_num.ne.0) then 
-            RETURN 
-         ENDIF 
-      ENDIF 
+ipos = INDEX (line, 'until') 
+IF (ipos.ne.0) then 
+   zeile = line (ipos + 5:laenge) 
+   idummy = laenge- (ipos + 5) + 1
+   ldostart (level) = if_test (zeile, idummy)
+   IF (ier_num.ne.0) then 
+      RETURN 
+   ENDIF 
+ENDIF 
+!
 END SUBROUTINE do_end                         
 !
 !*****7**************************************************************** 
