@@ -61,9 +61,7 @@ INTEGER          , INTENT(INOUT) :: i
              string (i - 3:i) .eq.'.ge.'.or. &
              string (i - 3:i) .eq.'.eq.'.or. &
              string (i - 3:i) .eq.'.ne.'.or. &
-             string (i - 3:i) .eq.'.or.'.or. &
-             string (i - 4:i) .eq.'.eqv.'.or. &
-             string (i - 4:i) .eq.'.xor.'     ) then                
+             string (i - 3:i) .eq.'.or.'      ) THEN
             level = - 1 
          ENDIF 
       ENDIF 
@@ -115,9 +113,7 @@ INTEGER          , INTENT(IN   ) :: laenge
              string (i:i + 3) .eq.'.ge.'.or.   &
              string (i:i + 3) .eq.'.eq.'.or.   &
              string (i:i + 3) .eq.'.ne.'.or.   &
-             string (i:i + 3) .eq.'.or.'.or.   &
-             string (i:i + 4) .eq.'.eqv.'.or.   &
-             string (i:i + 4) .eq.'.xor.') then                
+             string (i:i + 3) .eq.'.or.') THEN
             level = - 1 
          ENDIF 
       ENDIF 
