@@ -79,9 +79,11 @@
 
    Many major updates:
 
-   Changed the PDF calculation to runvia a "detour" through the 
+   Changed the PDF calculation to run via a "detour" through the 
    powder diffraction. Makes the calculation exact for the X-ray 
    case in in many circumstances much faster.
+
+   Added atomic masses
 
    Added options to add multiple powder diffraction pattern.
 
@@ -7769,6 +7771,17 @@
    All molecules in the current environment ==> 'find env' are listed. 
    If the optional "full" parameter is given, all atoms within each
    molecule are printed.
+3  mass
+!p show mass
+
+   Cacluclates and displays the current crystal mass in multiples of 
+   atomic units u. 
+
+   The results are stored into the result variable as:
+   res[0] = 3
+   res[1] = mass
+   res[2] = mass / number_of_atoms
+   res[3] = number_of_atoms
 3  metric
 !p show metric
 
