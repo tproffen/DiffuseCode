@@ -1220,13 +1220,17 @@ USE precision_mod
       IF (x (offxy (ik - 1) + ix) .ge.ex (iwin, iframe, 1) .and.x (     &
       offxy (ik - 1) + ix) .le.ex (iwin, iframe, 2) ) then              
          max_da = .true. 
-         DO jf = - ifen, - 1 
-         max_da = max_da.and. (y (offxy (ik - 1) + ix) .ge.y (offxy (ik &
-         - 1) + ix + jf) )                                              
+         DO jf = - ifen+1, - 1 
+         max_da = max_da.and. (y (offxy (ik - 1) + ix) .ge.    &
+                               y (offxy (ik - 1) + ix + jf) )  &
+                        .AND. (y (offxy (ik - 1) + ix) .gt.    &
+                               y (offxy (ik - 1) + ix + jf-1) )                                              
          ENDDO 
-         DO jf = 1, ifen 
-         max_da = max_da.and. (y (offxy (ik - 1) + ix) .ge.y (offxy (ik &
-         - 1) + ix + jf) )                                              
+         DO jf = 1, ifen -1
+         max_da = max_da.and. (y (offxy (ik - 1) + ix) .ge.    &
+                               y (offxy (ik - 1) + ix + jf) )  &
+                        .AND. (y (offxy (ik - 1) + ix) .gt.    &
+                               y (offxy (ik - 1) + ix + jf+1) )                                              
          ENDDO 
 !                                                                       
          IF (max_da) then 
