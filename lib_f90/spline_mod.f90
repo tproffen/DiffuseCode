@@ -2,7 +2,7 @@ MODULE spline_mod
 !
 CONTAINS
 !
-SUBROUTINE spline_prep(npkt, xpl, ypl, xmin, xmax, xstep, npkt_equi, xequi, yequi)
+SUBROUTINE spline_prep(nlow,npkt, xpl_in, ypl_in, xmin, xmax, xstep, npkt_equi, xequi, yequi)
 !
 ! Prepare and perform the spline operation on input arrays xpl, ypl
 !
@@ -11,16 +11,19 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
+INTEGER                              , INTENT(IN)  :: nlow
 INTEGER                              , INTENT(IN)  :: npkt
-REAL(KIND=PREC_SP), DIMENSION(1:npkt), INTENT(IN)  :: xpl
-REAL(KIND=PREC_SP), DIMENSION(1:npkt), INTENT(IN)  :: ypl
+REAL(KIND=PREC_SP), DIMENSION(nlow:npkt), INTENT(IN)  :: xpl_in
+REAL(KIND=PREC_SP), DIMENSION(nlow:npkt), INTENT(IN)  :: ypl_in
 REAL(KIND=PREC_SP)                   , INTENT(IN)  :: xmin
 REAL(KIND=PREC_SP)                   , INTENT(IN)  :: xmax
 REAL(KIND=PREC_SP)                   , INTENT(IN)  :: xstep
 INTEGER                              , INTENT(IN)  :: npkt_equi
-REAL(KIND=PREC_SP), DIMENSION(1:npkt_equi), INTENT(OUT) :: xequi
-REAL(KIND=PREC_SP), DIMENSION(1:npkt_equi), INTENT(OUT) :: yequi
+REAL(KIND=PREC_SP), DIMENSION(nlow:npkt_equi), INTENT(OUT) :: xequi
+REAL(KIND=PREC_SP), DIMENSION(nlow:npkt_equi), INTENT(OUT) :: yequi
 !
+REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: xpl
+REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: ypl
 REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: y2a
 REAL(KIND=PREC_SP) :: xequ
 REAL(KIND=PREC_SP) :: yequ
@@ -29,16 +32,28 @@ INTEGER :: ii
 INTEGER :: all_status
 !
 !npkt_equi =     NINT((xmax-xmin)/xstep) + 1             
+ALLOCATE(xpl (1:npkt),stat = all_status) ! Allocate array for calculated powder pattern
+ALLOCATE(ypl (1:npkt),stat = all_status) ! Allocate array for calculated powder pattern
 ALLOCATE(y2a (1:npkt),stat = all_status) ! Allocate array for calculated powder pattern
 !ALLOCATE(xequi(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
 !ALLOCATE(yequi(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+xpl(1:npkt) = xpl_in(0:npkt-1)
+ypl(1:npkt) = ypl_in(0:npkt-1)
 xequi = 0.0
 yequi = 0.0
 y2a  = 0.0
-CALL spline (npkt, xpl, ypl, 1.e31, 1.e31, y2a)
-DO ii = 1, npkt_equi
+!write(*,*) ' PREPARE BD n', npkt+1-nlow, npkt_equi
+!write(*,*) ' PREPARE BD x', lbound(xpl), ubound(xpl), xpl(1), xpl(2), xpl(3)
+!write(*,*) ' PREPARE BD y', lbound(ypl), ubound(ypl), ypl(1), ypl(2), ypl(3)
+!write(*,*) ' PREPARE BD 2', lbound(y2a), ubound(y2a)
+!write(*,*) ' PREPARE xequ', lbound(xequi), ubound(xequi)
+!write(*,*) ' PREPARE yequ', lbound(xequi), ubound(xequi)
+!write(*,*) ' PREPARE BD n', npkt-1-nlow
+!write(*,*) ' PREPARE xmin', xmin, xstep, xmin + (1 -1)*xstep
+CALL spline (npkt-2-nlow, xpl, ypl, 1.e31, 1.e31, y2a)
+DO ii =  1  , npkt_equi
    xequ = xmin + (ii-1)*xstep
-   CALL splint (npkt, xpl, ypl, y2a, xequ, yequ, ier_num)
+   CALL splint (npkt-2-nlow, xpl, ypl, y2a, xequ, yequ, ier_num)
    IF(ier_num/=0) THEN
 !      DEALLOCATE( pow_tmp, stat = all_status)
 !      DEALLOCATE( xpl, stat = all_status)
@@ -48,9 +63,11 @@ DO ii = 1, npkt_equi
 !     DEALLOCATE( yequi, stat = all_status)
       RETURN
    ENDIF
-   xequi(ii) = xequ
-   yequi(ii) = yequ
+   xequi(ii-1) = xequ
+   yequi(ii-1) = yequ
 ENDDO
+!write(*,*) ' POST xequi  ', xequi(0), xequi(1), xequi(2)
+!write(*,*) ' POST yequi  ', yequi(0), yequi(1), yequi(2)
 !
 DEALLOCATE(y2a, stat = all_status)
 !
@@ -79,6 +96,11 @@ REAL, DIMENSION(n) :: u
 REAL    :: sig, p, qn, un
 INTEGER :: i, k
 !
+!write(*,*) ' Boundaries n', n
+!write(*,*) ' BOUNDARIES x', lbound(x), ubound(x), x(1), x(2), x(3)
+!write(*,*) ' BOUNDARIES y', lbound(y), ubound(y), y(1), y(2), y(3)
+!write(*,*) ' BOUNDARIES 2', lbound(y2), ubound(y2)
+!write(*,*) ' yp1, ypn    ', yp1, ypn
 IF(yp1 >  .99e30) THEN
    y2(1) = 0. 
    u (1) = 0. 
@@ -93,6 +115,8 @@ frst: DO i = 2, n - 1
    u (i) = (6. * ((y(i+1)-y(i)) / (x(i+1)-x(i)) - (y(i)-y(i-1)) / (x(i)-x(i-1))) / (x(i+1)   &
          - x(i-1)) - sig * u(i - 1)) / p                          
 ENDDO  frst
+!write(*,*) ' AFTER FRST ', p, x(3), x(1), y2(1), y2(2), y2(n-1)
+!write(*,*) ' AFTER u    ',    u(1), u(2),  u(n-2), u(n-1), u(n)
 IF(ypn >  .99e30) THEN 
    qn = 0. 
    un = 0. 
@@ -101,9 +125,11 @@ ELSE
    un = (3. / (x(n) - x(n-1))) * (ypn - (y(n)-y(n-1)) / (x(n)-x(n-1)))
 ENDIF 
 y2(n) = (un - qn * u(n-1)) / (qn*y2(n-1) + 1.) 
+!write(*,*) ' PRIOR SCND ', qn, un,  x(1), y2(1), y2(2), y2(n-1), y(n)
 scnd: DO k = n - 1, 1, -1 
    y2(k) = y2(k) * y2(k+1) + u(k)
 END DO scnd
+!write(*,*) ' AFTER SCND ', p, x(3), x(1), y2(1), y2(2), y2(n-1), y2(n)
 !     RETURN 
 END SUBROUTINE spline                         
 !                                                                       
