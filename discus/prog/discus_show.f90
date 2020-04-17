@@ -960,15 +960,20 @@ SUBROUTINE do_show_mass
 USE crystal_mod
 USE crystal_task_mod
 !
+USE param_mod
 USE prompt_mod
 !
 IMPLICIT NONE
 !
 CALL crystal_calc_mass
 WRITE(output_io,1000) cr_nreal, cr_mass, cr_mass/cr_nreal
+res_para(0) = 3
+res_para(1) = cr_mass
+res_para(2) = cr_mass/cr_nreal
+res_para(3) = cr_nreal
 !
-1000 FORMAT(' No atoms, Mass : ', F12.3, F12.3,/, &
-            ' Mass/Atom      : ', 12x  , F12.3)
+1000 FORMAT(' No atoms, Mass : ', F14.3, F14.3,/, &
+            ' Mass/Atom      : ', 14x  , F14.3)
 !
 END SUBROUTINE do_show_mass 
 !
