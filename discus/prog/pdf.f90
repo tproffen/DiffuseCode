@@ -2665,6 +2665,7 @@ laccept = .false.
       ELSE
          c_sphere = 1.0
       ENDIF
+! c_sphere=1.0
       DO i = 1, pdf_bin 
       r = REAL(i) * pdf_deltar 
       IF (pdf_finite.eq.PDF_BACK_PERIOD) then 

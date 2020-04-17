@@ -87,11 +87,11 @@ CONTAINS
          ENDIF
       ENDIF
       IF(ALLOCATED(powder_istl)) DEALLOCATE(powder_istl)
-      ALLOCATE(powder_istl(1:n_qxy), stat=astatus)
+      ALLOCATE(powder_istl(0:n_qxy), stat=astatus)
       powder_istl(:) = 0
 !
-      DO i = 1, n_points
-         q2 = REAL(( (xstart + xdelta  * REAL  (i - 1,KIND=KIND(0.0D0)) ) **2) / 4.0D0 )
+      DO i = 0, n_points
+         q2 = REAL(( (xstart + xdelta  * REAL  (i    ,KIND=KIND(0.0D0)) ) **2) / 4.0D0 )
          istl (i) = nint (sqrt (q2) * (1.0 / CFINC) ) 
 !DBG                                                                    
 !DBG      if(i.eq.150) then                                             

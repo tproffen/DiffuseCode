@@ -171,7 +171,7 @@ pha_calc (pha_curr)  = pow_four_type      ! Fourier type Complete / Debye
 !write(*,*) ' Crystal mass ', cr_mass
 !write(*,*) ' SET FORM ', num(1), num(2), num(1)*num(2), npkt
 DO iscat = 1, cr_nscat
-   DO k=1, npkt
+   DO k=0, npkt
       signum = 1.0D0
       IF(REAL(cfact_pure(1, iscat))< 0.0D0) signum = -1.0D0
       pha_form(k, iscat, pha_curr) = SQRT( DBLE (       cfact_pure (powder_istl (k), iscat)   *   &
@@ -195,14 +195,14 @@ ELSE
    pha_ncreal(pha_curr) = cr_ncatoms
 ENDIF
 !write(*,*) ' IN PHA_set    nreal, ', pha_nreal(pha_curr), pha_ncreal(pha_curr), cr_nscat
+!write(*,*) ' PHASES_SET ', pow_conv(0), pow_conv(1), pow_conv(npkt)
 !
 ! Place powder pattern into appropriate phase entry
 !
 IF (pow_four_type.eq.POW_COMPL) THEN                 ! Complete powder patterm, normalizer is 1
-   npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
 !write(*,*) ' COPY ', npkt
 !open(66, file='phases.place', status='unknown')
-   DO k=1, npkt
+   DO k=0, npkt
       pha_powder(k,pha_curr) = pow_conv(k)                          &
                     /(REAL(pha_nreal(pha_curr), KIND=PREC_DP))**2 * &
                       REAL(pha_ncreal(pha_curr) , KIND=PREC_DP)   / &
@@ -216,10 +216,9 @@ IF (pow_four_type.eq.POW_COMPL) THEN                 ! Complete powder patterm, 
    ENDDO
 !close(66)
 ELSE                                                 ! Complete powder patterm, normalizer is nreal
-   npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
 !write(*,*) ' COPY ', npkt, num(1)*num(2), num(1:2)
 !open(66, file='phases.place', status='unknown')
-   DO k=1, npkt
+   DO k=0, npkt
       pha_powder(k,pha_curr) = pow_conv(k) / REAL(pha_nreal(pha_curr))
 !write(66, '(3F20.6)') pow_qmin + (k-1)*pow_deltaq, pow_conv(k), pha_powder(k,pha_curr)
    ENDDO
@@ -228,7 +227,6 @@ ENDIF
 !
 ! Adjust powder pattern if clin or cquad are non-zero
 !
-npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
 ! Currently the sine fourier is not reversible need to find the issue at hand
 !IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
 !  CALL phases_corr(npkt)
@@ -272,6 +270,7 @@ REAL(KIND=PREC_SP) :: fractions             ! Current grand fractions
 REAL(KIND=PREC_SP) :: q                     ! Temporary number of real atoms per phase
 REAL(KIND=PREC_SP) :: ttheta                ! 2Theta
 !
+
 pow_f2aver(:)    = 0.0D0
 pow_faver2(:)    = 0.0D0
 pow_fu    (:)    = 0.0D0
@@ -301,13 +300,15 @@ pha_scale = pha_frac * weight / pha_weight / (pha_n-empty)
 !
 ! Add all form factors into pow_faver2
 !
-!write(*,*) ' PHA_AVERAGE ', pha_n, pha_nscat(1)
+!write(*,*) ' PHA_AVERAGE ', pha_n, pha_nscat(1), pha_niscat(:,1), pha_nreal(1)
+!write(*,*) ' xmin, xdel, npkt', xmin, xdel, npkt
+!
 DO i=1,pha_n                                ! Sum over all phases
    IF(pha_nreal(i)>0.0) THEN
    DO j=1,pha_nscat(i)                      ! Sum over the entries for each phase
 !write(*,*) ' ', pha_form(1,j,i), pha_niscat(j,i),pha_occ(j,i), pha_nreal(i), pha_scale(i), cr_dw(j)
-      DO k = 1, npkt
-         q = ((k-1)*xdel + xmin)
+      DO k = 0, npkt
+         q = (k*xdel + xmin)
          pow_faver2(k) = pow_faver2(k) + &
             pha_form(k,j,i)   *          &
             REAL(pha_niscat(j,i)*pha_occ(j,i)/pha_nreal(i)*pha_scale(i),KIND=PREC_DP)
@@ -316,8 +317,8 @@ DO i=1,pha_n                                ! Sum over all phases
             REAL(pha_niscat(j,i)*pha_occ(j,i)/pha_nreal(i)*pha_scale(i),KIND=PREC_DP)
          pow_fu(k) = pow_fu(k) +                                               &
             pha_form(k,j,i)**2*                                                &
-            REAL(pha_niscat(j,i)/pha_nreal(i))*                                &
-            REAL(pha_occ(j,i)*pha_scale(i)*EXP(-q**2/8./PI**2*cr_dw(j)),KIND=PREC_DP) 
+            REAL(pha_occ(j,i)*pha_scale(i)*EXP(-q**2/8./PI**2*pha_adp(j,i)),KIND=PREC_DP)  &
+           *REAL(pha_niscat(j,i)/pha_nreal(i))                                
       ENDDO
 !write(*,*) 'u2aver ', i,j, pha_adp(j,i), pha_niscat(j,i), pha_nreal(i), pha_occ(j,i), pha_frac(i),pha_scale(i)
       pow_u2aver = pow_u2aver + (pha_adp(j,i)) * pha_niscat(j,i)/pha_nreal(i)*pha_occ(j,i)*pha_scale(i)
@@ -327,16 +328,16 @@ ENDDO
 pow_faver2(:) = pow_faver2(:)**2
 pow_u2aver    = pow_u2aver /8./REAL(PI)**2
 !write(*,*) ' U2aver ', pow_u2aver, pow_u2aver*8*PI**2
-!write(*,*) ' f2aver ', pow_f2aver(1)
-!write(*,*) ' faver2 ', pow_faver2(1)
+!write(*,*) ' f2aver ', pow_f2aver(0), pow_f2aver(1)
+!write(*,*) ' faver2 ', pow_faver2(0), pow_faver2(1)
 !write(*,*) ' Weight ', pha_weight(1:pha_n), weight
 !write(*,*) ' Fract  ', pha_frac(1:pha_n), fractions
 !write(*,*) ' Scale  ', pha_scale(1:pha_n)
 !write(*,*) ' Wcor   ', (pha_weight(i)*pha_scale(i),i=1,pha_n)
-!open(77,file='phases.faver', status='unknown')
-!do k=1, npkt
-!         q = ((k-1)*xdel + xmin)
-!  write(77, '(8F12.6)') q, pow_faver2(k), pow_f2aver(k), pow_fu(k), pow_f2(k, 1:pha_nscat(1))
+!open(77,file='POWDER/phases.faver', status='unknown')
+!do k=0, npkt
+!  q = ((k)*xdel + xmin)
+!  write(77, '(8F12.6)') q, pow_fu(k), pha_form(k,1:pha_nscat(1),1)**2, pow_faver2(k) 
 !enddo
 !close(77)
 !
@@ -352,8 +353,8 @@ DO i=1,pha_n
 !
 !     Prepare intensity output
 !
-      DO k=1, npkt
-         q = ((k-1)*xdel + xmin)
+      DO k=0, npkt
+         q = (k*xdel + xmin)
          ttheta = 2.*asind ( REAL(q / 2. /REAL(zpi) *rlambda ))
          pow_conv(k) = pow_conv(k) + pha_scale(i)*pha_powder(k,i) / q**2 &
                                     * polarisation(ttheta)
@@ -361,8 +362,8 @@ DO i=1,pha_n
 !
 !     Prepare S(Q)      output
 !
-      DO k=1, npkt
-         q = ((k-1)*xdel + xmin)
+      DO k=0, npkt
+         q = (k*xdel + xmin)
          pow_sq(k) = pow_sq(k) + pha_scale(i)* pha_powder(k,i) / q**2
       ENDDO
 !
@@ -370,8 +371,8 @@ DO i=1,pha_n
 !
 !     Prepare intensity output
 !
-      DO k=1, npkt
-         q = ((k-1)*xdel + xmin)
+      DO k=0, npkt
+         q = (k*xdel + xmin)
          ttheta = 2.*asind ( REAL(q / 2. /REAL(zpi) *rlambda ))
          pow_conv(k) = pow_conv(k) + pha_scale(i)*pha_powder(k,i) &
                                     * polarisation(ttheta)
@@ -379,7 +380,7 @@ DO i=1,pha_n
 !
 !     Prepare S(Q)      output
 !
-      DO k=1, npkt
+      DO k=0, npkt
          pow_sq(k) = pow_sq(k) + pha_scale(i)* pha_powder(k,i)
       ENDDO
 !
@@ -387,14 +388,14 @@ DO i=1,pha_n
    ENDIF
 ENDDO
 !open(87,file='POWDER/multi_average.conv1', status='unknown')
-!do k= 1, npkt
-!q = ((k-1)*xdel + xmin)
-!write(87,'(2(f16.6,2x))') q,      pow_conv(k)
+!do k= 0, npkt
+!q = ((k)*xdel + xmin)
+!write(87,'(2(f16.6,2x))') q,      pow_conv(k), pow_sq(k)
 !enddo
 !close(87)
 !
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
-   DO k=1, npkt
+   DO k=0, npkt
       pow_sq(k) = pow_sq(k) / REAL(pow_faver2(k))                               &
                   + 1.0 - pow_f2aver(k)/pow_faver2(k)
 !        ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer    &
@@ -403,24 +404,27 @@ IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution 
    ENDDO
 ELSE
    IF(.NOT. (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0)) THEN
-   DO k=1, npkt
-      q = ((k-1)*xdel + xmin)
+   DO k=0, npkt
+      q = ((k)*xdel + xmin)
       pow_conv(k) = pow_conv(k) +                                               &
                     (+ 1.0 - exp(-q**2*pow_u2aver))*pow_faver2(k)
    ENDDO
    ENDIF
-   DO k=1, npkt
+   DO k=0, npkt
       pow_sq(k) = 1.0 + (pow_sq(k) - pow_fu(k))/pow_faver2(k) 
 !        ypl(j) = 1.0 + (ypl(j) -pow_fu(j)                     )/pow_faver2(j)
    ENDDO
 ENDIF
 !
 !open(87,file='POWDER/multi_average.conv', status='unknown')
-!do k= 1, npkt
-!q = ((k-1)*xdel + xmin)
-!write(87,'(2(f16.6,2x))') q,      pow_conv(k)
+!do k= 0, npkt
+!q = ((k)*xdel + xmin)
+!write(87,'(2(f16.6,2x))') q,      pow_conv(k), pow_sq(k)
 !enddo
 !close(87)
+!write(*,*) ' PHASES_FIN ', pha_powder(0, 1), pha_powder(1, 1), pha_powder(4300, 1), pha_powder(npkt, 1)
+!write(*,*) ' PHASES_FIN ', pow_conv(0), pow_conv(1), pow_conv(4300), pow_conv(npkt)
+!write(*,*) ' PHASES_FIN ', pow_sq(0), pow_sq(1), pow_sq(4300), pow_sq(npkt)
 !
 END SUBROUTINE phases_average
 !
@@ -489,8 +493,8 @@ ALLOCATE(f2aver(0:POW_MAXPKT),stat = all_status)
 ALLOCATE(fu    (0:POW_MAXPKT),stat = all_status)
 ALLOCATE(xq    (0:POW_MAXPKT),stat = all_status)
 !
-DO k=1, npkt
-   q = (k-1)*pow_deltaq + pow_qmin
+DO k=0, npkt
+   q = k*pow_deltaq + pow_qmin
    xq(k) = q
 ENDDO
 !
@@ -499,8 +503,8 @@ ENDDO
 !write(*,*) ' NPKT ', npkt, pha_form(1,1,1), pha_form(npkt,1,1)
 u2aver = 0
 DO j=1,pha_nscat(pha_curr)                      ! Sum over the entries for current phase
-   DO k=1, npkt
-      q = (k-1)*pow_deltaq + pow_qmin
+   DO k=0, npkt
+      q = k*pow_deltaq + pow_qmin
       faver2(k) = faver2(k) + &
          pha_form(k,j,pha_curr)   *          &
          REAL(pha_niscat(j,pha_curr)*pha_occ(j,pha_curr)/pha_nreal(pha_curr),KIND=PREC_DP)
@@ -519,8 +523,8 @@ u2aver = u2aver /8./REAL(PI)**2
 !
 ! Prepare S(Q), initially copy powder pattern and divide by Debye-Waller term
 !
-      k = npkt
-      q = (k-1)*pow_deltaq + pow_qmin
+!     k = npkt
+!     q = (k-1)*pow_deltaq + pow_qmin
 !
 !open(77,file='POWDER/prae_corrlin.INTE',status='unknown')
 !DO k =1,npkt
@@ -532,13 +536,13 @@ u2aver = u2aver /8./REAL(PI)**2
 !write(*,*) ' EXPONENT PH ? ', u2aver*u2aver_scale, 0.5*(u2aver*u2aver_scale)*q**2, EXP(-0.5*(u2aver*u2aver_scale)*q**2)
 !read(*,*) k
 IF(pha_calc(pha_curr) == POW_COMPL) THEN           ! Complete calculation mode
-   DO k=1, npkt
-      q = (k-1)*pow_deltaq + pow_qmin
+   DO k=0, npkt
+      q = k*pow_deltaq + pow_qmin
       fq(k) = pha_powder(k, pha_curr)/q**2 /EXP(-0.5*(u2aver*u2aver_scale)*q**2)
    ENDDO
 ELSEIF(pha_calc(pha_curr) == POW_DEBYE) THEN       ! DEBYE calculation mode
-   DO k=1, npkt
-      q = (k-1)*pow_deltaq + pow_qmin
+   DO k=0, npkt
+      q = k*pow_deltaq + pow_qmin
       fq(k) = pha_powder(k, pha_curr)      /EXP(-0.5*(u2aver*u2aver_scale)*q**2)
    ENDDO
 ENDIF
@@ -550,15 +554,15 @@ ENDIF
 !enddo
 !close(87)
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
-   DO k=1, npkt
-      q = (k-1)*pow_deltaq + pow_qmin
+   DO k=0, npkt
+      q = k*pow_deltaq + pow_qmin
       fq(k) = (fq(k) / REAL(faver2(k))                              &
                   + 0.0 - f2aver(k)/faver2(k) ) * q
    ENDDO
 ELSE
 !write(*,*) ' DO CORRECTION FOR CLIN '
-   DO k=1, npkt
-      q = (k-1)*pow_deltaq + pow_qmin
+   DO k=0, npkt
+      q = k*pow_deltaq + pow_qmin
       fq(k) = ((fq(k) - f2aver(k))/faver2(k) ) * q
    ENDDO
 ENDIF
@@ -641,6 +645,11 @@ CALL fft_fq(npkt_pdf, xfour, yfour, rmin, rmax, rstep, &
 DO k=1, npkt
    fq(k) = fq(k)/xq(k)
 ENDDO
+If(xq(0)> 0.0) THEN
+  fq(0) = fq(0)/xq(0)
+ELSE
+  fq(0) = fq(1)
+ENDIF
 fq = fq + 1.0
 !
 !open(77,file='POWDER/post_corrlin.SQ',status='unknown')
@@ -649,8 +658,8 @@ fq = fq + 1.0
 !enddo
 !close(77)
 !write(*,*) ' FINISHED POST_SQ'
-DO k=1, npkt
-   q = (k-1)*pow_deltaq + pow_qmin
+DO k=0, npkt
+   q = k*pow_deltaq + pow_qmin
 !  fq(k) = ((fq(k) - f2aver(k))/faver2(k) ) * q
    fq(k) = (fq(k)  - &
                     (+ 1.0 - exp(-q**2*u2aver)))*faver2(k)
@@ -662,14 +671,14 @@ ENDDO
 !enddo
 !close(87)
 IF(pha_calc(pha_curr) == POW_COMPL) THEN           ! Complete calculation mode
-   DO k=1, npkt
-      q = (k-1)*pow_deltaq + pow_qmin
+   DO k=0, npkt
+      q = k*pow_deltaq + pow_qmin
 !     fq(k) = pha_powder(k, pha_curr)/q**2 /EXP(-0.5*(u2aver*u2aver_scale)*q**2)
       pha_powder(k, pha_curr) = fq(k) * q**2 * EXP(-0.5*(u2aver*u2aver_scale)*q**2)
    ENDDO
 ELSEIF(pha_calc(pha_curr) == POW_DEBYE) THEN       ! DEBYE calculation mode
-   DO k=1, npkt
-      q = (k-1)*pow_deltaq + pow_qmin
+   DO k=0, npkt
+      q = k*pow_deltaq + pow_qmin
 !     fq(k) = pha_powder(k, pha_curr)      /EXP(-0.5*(u2aver*u2aver_scale)*q**2)
       pha_powder(k, pha_curr) = fq(k)        * EXP(-0.5*(u2aver*u2aver_scale)*q**2)
    ENDDO

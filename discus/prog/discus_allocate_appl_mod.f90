@@ -1218,7 +1218,7 @@ END SUBROUTINE alloc_demol
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        dif_size_of = dif_size_of + size_of
 !
-       CALL alloc_arr ( istl    ,1,n_qxy  ,  all_status, 0        , size_of)
+       CALL alloc_arr ( istl    ,0,n_qxy  ,  all_status, 0        , size_of)
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        dif_size_of = dif_size_of + size_of
 !
@@ -2510,7 +2510,7 @@ END SUBROUTINE alloc_phases
       lstat     = .TRUE.
       rmc_size_of = 0
 !
-       CALL alloc_arr ( ristl,             1,n_sq  , all_status, 0        , size_of )
+       CALL alloc_arr ( ristl,             0,n_sq  , all_status, 0        , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        rmc_size_of = rmc_size_of + size_of
 !

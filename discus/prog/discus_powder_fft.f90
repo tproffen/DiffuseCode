@@ -18,8 +18,8 @@ REAL(KIND=PREC_DP)            , INTENT(IN)  :: qmin, qmax, deltaq
 REAL(KIND=PREC_DP)            , INTENT(IN)  :: rmin, rmax, rstep
 INTEGER                       , INTENT(IN)  :: npkt_fft !points in powder pattern for Fast Fourier = 2**16
 INTEGER                       , INTENT(IN)  :: npkt_pdf
-REAL   , DIMENSION(1:npkt_pdf), INTENT(OUT) :: xfour
-REAL   , DIMENSION(1:npkt_pdf), INTENT(OUT) :: yfour
+REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: xfour
+REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: yfour
 !
 INTEGER   :: i
 INTEGER   :: lensav      ! Array size for ip
@@ -27,9 +27,8 @@ INTEGER   :: lenwrk      ! Array size for w
 INTEGER   :: iqmin
 INTEGER   :: iqmax
 INTEGER   :: irmin
-!REAL(KIND=PREC_DP) :: rstep
+INTEGER   :: nlow = 0
 REAL(KIND=PREC_DP) :: dq
-!REAL(KIND=PREC_DP) :: qmin
 REAL(KIND=PREC_DP) :: qmax_l
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: temp   ! Temporary intensities for FFT
 INTEGER           , DIMENSION(:), ALLOCATABLE :: ip
@@ -43,13 +42,12 @@ REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: yfft   ! Temporary array for FF
 !write(*,*) ' PDFxwrt ', xwrt(1), xwrt(2), xwrt(npkt_wrt)
 !write(*,*) ' PDFywrt ', ywrt(1), ywrt(2), ywrt(npkt_wrt)
 !n
+nlow = 0
 dq = deltaq !  (xwrt(npkt_wrt)-xwrt(1))/(npkt_wrt-1)
 !rstep    = (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
 qmax_l   =  PI/rstep           ! by using 2*PI/rstep, the step size in direct space is halved
 !write(*,*) ' PDF q   ', dq
 !
-!iqmin = MAX(0,NINT(xwrt(1       )/dq))
-!iqmax = NINT(xwrt(npkt_wrt)/dq)
 iqmin = MAX(0,NINT(qmin/deltaq))
 iqmax = MAX(0,NINT(qmax/deltaq))
 lensav= 4+INT(SQRT(FLOAT(npkt_fft)/2))
@@ -57,8 +55,8 @@ lenwrk= npkt_fft*5/4-1
 ALLOCATE(temp(0:npkt_fft-1))
 ALLOCATE(ip(0:lensav))
 ALLOCATE(w (0:lenwrk))
-ALLOCATE(xfft(1:npkt_fft+1))
-ALLOCATE(yfft(1:npkt_fft+1))
+ALLOCATE(xfft(0:npkt_fft+1))
+ALLOCATE(yfft(0:npkt_fft+1))
 temp = 0.0D0
 ip   = 0
 w    = 0.0D0
@@ -89,14 +87,13 @@ qmax_l = (npkt_fft-1)*dq
 !enddo
 !close(77)
 !open(77,file='POWDER/fft_2.PDF',status='unknown')
-DO i=1,npkt_fft
-  xfft (i) = (i-0.50)*PI/qmax_l
-  yfft (i) = temp(i-1)*2/PI*dq
-  write(77,'(2(2x,G17.7E3))') xfft(i), yfft(i)
+DO i=0,npkt_fft-1
+  xfft (i) = (i+0.50)*PI/qmax_l
+  yfft (i) = temp(i  )*2/PI*dq
 ENDDO
 !close(77)
 !write(*,*) 'DO SPLINE ', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf
-CALL spline_prep(npkt_fft, xfft, yfft, REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, xfour, yfour)
+CALL spline_prep(nlow, npkt_fft+1, xfft, yfft, REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, xfour, yfour)
 !
 DEALLOCATE(temp)
 DEALLOCATE(ip)

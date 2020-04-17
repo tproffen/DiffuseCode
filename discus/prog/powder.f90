@@ -151,6 +151,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   CALL dlink(ano, lambda, rlambda, renergy, l_energy, &
                              diff_radiation, diff_power) 
                   IF(ier_num.eq.0) THEN 
+                     CALL phases_set(zeile, lp)
                      CALL pow_conv_limits
                      pow_qmin_u = pow_qmin   !! save user values
                      pow_qmax_u = pow_qmax
@@ -549,7 +550,6 @@ USE discus_config_mod
 USE debye_mod 
 USE diffuse_mod 
 USE phases_mod
-USE phases_set_mod
 USE pdf_mod
 USE powder_mod 
 USE ber_params_mod
@@ -789,11 +789,6 @@ err_para: IF (ier_num.eq.0) THEN
                ier_num = -6 
                ier_typ = ER_COMM 
             ENDIF 
-!
-!   Set Single / multiple phases
-!
-      ELSEIF(str_comp(cpara(1), 'phases', 4, lpara(1), 6)) THEN
-         CALL phases_set(zeile,  lcomm)
 !                                                                       
 !     set the periodic radius 'period' 
 !                                                                       
@@ -1883,7 +1878,7 @@ ENDDO  loop_h
 !     CALCULATE normalized average squared atomic form factor
 !
       IF(calc_f2aver) THEN
-         DO i=1,pow_npkt
+         DO i=0,pow_npkt
             pow_f2aver(i) = pow_f2aver(i) / DBLE(pow_nreal)
             pow_faver2(i) = pow_faver2(i) / DBLE(pow_nreal)
          ENDDO

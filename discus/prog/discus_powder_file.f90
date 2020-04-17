@@ -9,15 +9,15 @@ IMPLICIT NONE
 !
 CHARACTER (LEN=*)                , INTENT(IN) :: outfile
 INTEGER                          , INTENT(IN) :: npkt_wrt
-REAL   , DIMENSION(1:npkt_wrt  ) , INTENT(IN) :: xwrt
-REAL   , DIMENSION(1:npkt_wrt  ) , INTENT(IN) :: ywrt
+REAL   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: xwrt
+REAL   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: ywrt
 !
 INTEGER, PARAMETER                            :: iff = 2
 INTEGER   :: ii
 !
 CALL oeffne (iff, outfile, 'unknown') 
 IF(ier_num == 0) THEN
-   DO ii = 1,npkt_wrt
+   DO ii = 0,npkt_wrt
       WRITE( iff, *) xwrt(ii),ywrt(ii)
    ENDDO
    CLOSE(iff)
