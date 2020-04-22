@@ -1218,6 +1218,10 @@ END SUBROUTINE alloc_demol
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        dif_size_of = dif_size_of + size_of
 !
+       CALL alloc_arr ( rpdf    ,1,n_qxy  ,  all_status, 0.0D0    , size_of)
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       dif_size_of = dif_size_of + size_of
+!
        CALL alloc_arr ( istl    ,0,n_qxy  ,  all_status, 0        , size_of)
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        dif_size_of = dif_size_of + size_of
