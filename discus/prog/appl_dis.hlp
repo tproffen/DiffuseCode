@@ -4657,12 +4657,12 @@
 !p "zmin"  : Sets minimum threshold for BITMAP
 3  value
 !p valu {  "int"  |  "amp"  |  "pha" [,"random"]  |  "real"  |  "imag" }
-!p valu { "<int>" | "<amp>" | "<pha>" [,"random"] | "<real>" | "<imag>" }
 !p
-!p valu { "S(Q)"  | "F(Q)" | "I(Q)"}
 !p valu { "S(Q)"  | "F(Q)" | "I(Q)"}
 !p
 !p valu { "f2aver"  | "faver2" }
+!p
+!p valu { "2DPDF" }
 
    Sets what value is written to the output file. The keyword given in
    < > corresponds to the value of the average structure factor <F> whereas
@@ -4681,10 +4681,13 @@
 !p           -180 and +180 degrees.
 !p "real":   real part of structure factor
 !p "imag":   imaginary part of structure factor
+!p "3DPDF"   3DPDF == generalized Patterson function
 !p "S(Q)":   Normalized total scattering function
 !p "F(Q)":   Reduced normalized total scattering function Q[S(Q)-1]
 !p "I(Q)":   Intensity divided by the number of atoms.
-   The last three values are available for powder output only and require
+!p "f2aver": Squared atomic form factors , averaged over all atoms
+!p "faver2": Average atomic form factor squared aver avarage
+   The last five values are available for powder output only and require
    a Q axis. 
 
    The file name is not adapted automatically!
@@ -5976,8 +5979,19 @@
    system start. 
 3  run
 !p run
+!p run          ["mode:{"single"|"multiple"}]
+!p              ["current:"<number>, "fraction:"<weight_fraction>]
 
    Starts the calculation of the powder diffraction pattern.
+
+   The optional arguments define the mode for multiple phases 
+   versus a single phase calculation. Default behaviour is that 
+   of a single phase calculation.
+
+   The powder pattern of multiple phases are scaled to correspond to
+   the weight fractions of all phases that you define. 
+   Currently it is the users responsibility to make sure all the
+   <weight_fractions> add up to 1.0
 3  show
 !p show
 
@@ -6115,16 +6129,6 @@
    A Debye-Scherrer geometry at a synchrotron source is defined.
    The polarisation fraction is required. 
    Optionally you can specify the monochromator angle.
-4  phases
-!p set phases,  ["mode:{"single"|"multiple"}]
-!p set phases,  ["current:"<number>, "fraction:"<weight_fraction>]
-
-   Defines the mode for multiple phases versus a single phase calculation.
-
-   The powder pattern of multiple phases are scaled to correspond to
-   the weight fractions of all phases that you define. 
-   Currently it is the users responsibility to make sure all the
-   <weight_fractions> add up to 1.0
 4  preferred
 !p set preferred, "off"
 !p set preferred, {"rietveld"|"march"}
