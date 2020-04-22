@@ -46,6 +46,7 @@ COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:, :), ALLOCATABLE  ::  cfact_pure   ! (0
 COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  csf          ! (1:MAXQXY)
 COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  tcsf         ! (1:MAXQXY)
 COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  acsf         ! (1:MAXQXY)
+REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  rpdf         ! (1:MAXQXY)
 COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(0:MASK)             ::  cex       = (0.0D0,0.0D0)
 REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi          ! (1:MAXQXY)
 REAL    , DIMENSION(:, :), ALLOCATABLE  ::  xat          ! (1:NMAX, 1:3)
@@ -105,6 +106,9 @@ REAL   , DIMENSION(1:3)                 ::  zone_uvw     = (/ 0.0, 0.0, 1.0/)
 REAL   , DIMENSION(1:3)                 ::  zone_ewald   = 0.0
 REAL                                    ::  zone_res     = 0.0
 REAL                                    ::  zone_delta_d = 0.015
+!
+REAL(KIND=PREC_DP), DIMENSION(4,3)      ::  diff_res             ! Resolution sigma and vectors
+REAL(KIND=PREC_DP), DIMENSION(3,3)      ::  diff_tr              ! Resolution transformation matrix
 !
 INTEGER                                 ::  four_last = FOUR_NN  ! No Fourier calculated yet
 !
