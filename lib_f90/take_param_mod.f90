@@ -101,4 +101,46 @@ CALL ber_params (ncalc, opara, lopara, owerte, NOPTIONAL)
 !
 !
 END SUBROUTINE get_optional
+!
+!*******************************************************************************
+!
+SUBROUTINE get_optional_multi(MAXW, opara, lopara, werte, ianz)
+!-
+! Calculate multiple values for the optional parameters as for "dim:[3,3]"
+!+
+!
+USE errlist_mod
+USE ber_params_mod
+USE get_params_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER                            , INTENT(IN)    :: MAXW     ! Dimension of werte
+CHARACTER(LEN=*)                   , INTENT(INOUT) :: opara    ! The string with optional values
+INTEGER                            , INTENT(INOUT) :: lopara   ! length of string
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(OUT)   :: werte    ! Numerical values
+INTEGER                            , INTENT(OUT)   :: ianz    ! Number of numerical values
+!
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+INTEGER            , DIMENSION(MAXW) :: lpara
+INTEGER                              :: length
+!
+IF(opara(1:1)=='[' .AND. opara(lopara:lopara)==']') THEN     ! Matching "[...]"
+   length = lopara - 2                                       ! search string is shorter by "[" and "]"
+   CALL get_params (opara(2:lopara-1), ianz, cpara, lpara, maxw, length)
+   IF (ier_num.ne.0) RETURN
+   CALL ber_params (ianz, cpara, lpara, werte, MAXW)
+   IF (ier_num.ne.0) RETURN
+ELSE
+   ier_num = -9
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Multiple optional values must be '
+   ier_msg(2) = 'enclosed by []'
+ENDIF
+!
+END SUBROUTINE get_optional_multi
+!
+!*******************************************************************************
+!
 END MODULE take_param_mod
