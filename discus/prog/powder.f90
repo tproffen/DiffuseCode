@@ -1318,6 +1318,7 @@ USE powder_mod
 USE powder_scat_mod 
 USE powder_tables_mod 
 USE stack_menu
+USE stack_mod
 USE wink_mod
 !                                                                       
 USE param_mod 
@@ -1364,6 +1365,7 @@ REAL :: ss
 !                                                                       
 REAL, EXTERNAL :: seknds 
 !
+st_new_form = .TRUE.    ! We need new form factors from stack to be placed into phases
 n_qxy   = 1
 n_nscat = 1
 n_natom = 1

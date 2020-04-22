@@ -50,6 +50,7 @@ COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:)    , ALLOCATABLE :: st_csf          ! (
 !
 CHARACTER (LEN=200)                        :: st_infile        = ' '
 !
+LOGICAL                                    :: st_new_form      = .TRUE.    ! New formfactors need to be copied
 INTEGER                                    :: st_distr         = ST_DIST_MATRIX
 INTEGER                                    :: st_infile_l      = 1
 INTEGER                                    :: st_nlayer        = 0

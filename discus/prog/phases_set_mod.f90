@@ -69,7 +69,7 @@ err_para: IF (ier_num.eq.0) THEN
             CALL alloc_phases(n_pha, n_pts, n_scat)
             pha_frac(:)    = 0.0
             pha_frac(1)    = 0.0
-            pha_nscat(1)   = cr_nscat
+            pha_nscat(1)   = 0.0
          ELSEIF(opara(O_MODE)=='multiple') THEN
             pha_multi = .TRUE.
             IF(lpresent(O_CURRENT) .AND. lpresent(O_WGHT)) THEN
@@ -81,7 +81,7 @@ err_para: IF (ier_num.eq.0) THEN
                   CALL alloc_phases(n_pha, n_pts, n_scat)
                ENDIF
                pha_frac(pha_curr) = owerte(O_WGHT)
-               pha_nscat(pha_curr) = cr_nscat
+               pha_nscat(pha_curr) = 0.0
                pha_n = MAX(pha_n, pha_curr)
             ELSEIF((     lpresent(O_CURRENT) .AND. .NOT.lpresent(O_WGHT)) .OR. &
                    (.NOT.lpresent(O_CURRENT) .AND.      lpresent(O_WGHT))      &
@@ -107,7 +107,7 @@ err_para: IF (ier_num.eq.0) THEN
                   CALL alloc_phases(n_pha, n_pts, n_scat)
                ENDIF
                pha_frac(pha_curr) = owerte(O_WGHT)
-               pha_nscat(pha_curr) = cr_nscat
+               pha_nscat(pha_curr) = 0.0
                pha_n = MAX(pha_n, pha_curr)
             ELSEIF((     lpresent(O_CURRENT) .AND. .NOT.lpresent(O_WGHT)) .OR. &
                    (.NOT.lpresent(O_CURRENT) .AND.      lpresent(O_WGHT))      &
@@ -157,45 +157,47 @@ INTEGER :: npkt
 REAL( KIND(0.0D0))             :: signum
 !
 npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
+stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking fault mode
 !write(*,*) ' PHASES ', pha_multi, pha_n, pha_curr
 !write(*,*) ' entry  ', lbound(pha_entry), ubound(pha_entry)
 !write(*,*) ' frac   ', lbound(pha_frac ), ubound(pha_frac )
 !write(*,*) ' powder ', lbound(pha_powder), ubound(pha_powder), num(1)*num(2)
 !write(*,*) ' adp    ', lbound(pha_adp   ), ubound(pha_adp   ), cr_nscat
-CALL crystal_calc_mass
+   CALL crystal_calc_mass
 !write(*,*) ' pha_frac   ', lbound(pha_frac), ubound(pha_frac), pha_frac
 !write(*,*) ' pha_weight ', lbound(pha_weight), ubound(pha_weight), pha_weight
-pha_weight(pha_curr) = cr_mass            ! Mass in multiples of u for this phase
-pha_nscat(pha_curr)  = cr_nscat           ! Number of atom types for this phase
-pha_calc (pha_curr)  = pow_four_type      ! Fourier type Complete / Debye
+   pha_weight(pha_curr) = cr_mass            ! Mass in multiples of u for this phase
+   pha_nscat(pha_curr)  = cr_nscat           ! Number of atom types for this phase
+   pha_calc (pha_curr)  = pow_four_type      ! Fourier type Complete / Debye
 !write(*,*) ' Crystal mass ', cr_mass
 !write(*,*) ' SET FORM ', num(1), num(2), num(1)*num(2), npkt
-DO iscat = 1, cr_nscat
-   DO k=0, npkt
-      signum = 1.0D0
-      IF(REAL(cfact_pure(1, iscat))< 0.0D0) signum = -1.0D0
-      pha_form(k, iscat, pha_curr) = SQRT( DBLE (       cfact_pure (powder_istl (k), iscat)   *   &
-                                                 CONJG (cfact_pure (powder_istl (k), iscat) )  )  &
-                                         )                                                        &
-                                     * signum
-   ENDDO
-   pha_adp  (iscat, pha_curr) = cr_dw(iscat)
-   pha_occ  (iscat, pha_curr) = cr_occ(iscat)
-   pha_occ  (iscat, pha_curr) = cr_occ(iscat)
-   pha_niscat(iscat, pha_curr) = cr_niscat(iscat)    ! cr_niscat is the number of atoms of type iscat
+   DO iscat = 1, cr_nscat
+      DO k=0, npkt
+         signum = 1.0D0
+         IF(REAL(cfact_pure(1, iscat))< 0.0D0) signum = -1.0D0
+         pha_form(k, iscat, pha_curr) = SQRT( DBLE (       cfact_pure (powder_istl (k), iscat)   *   &
+                                                    CONJG (cfact_pure (powder_istl (k), iscat) )  )  &
+                                            )                                                        &
+                                        * signum
+      ENDDO
+      pha_adp  (iscat, pha_curr) = cr_dw(iscat)
+      pha_occ  (iscat, pha_curr) = cr_occ(iscat)
+      pha_niscat(iscat, pha_curr) = cr_niscat(iscat)    ! cr_niscat is the number of atoms of type iscat
 !write(*,*) pha_adp  (iscat, pha_curr), pha_occ  (iscat, pha_curr), &
 !                                      pha_niscat(iscat, pha_curr)
-ENDDO
-pha_nreal(pha_curr)  = SUM(pha_niscat(1:pha_nscat(pha_curr),pha_curr)* &
-                           pha_occ(1:pha_nscat(pha_curr),pha_curr)     &
-                          )  ! number of real atoms in phase 
-IF(chem_quick) THEN
-   pha_ncreal(pha_curr) = pha_nreal(pha_curr)/(cr_icc(1)*cr_icc(2)*cr_icc(3))
-ELSE
-   pha_ncreal(pha_curr) = cr_ncatoms
-ENDIF
+   ENDDO
+   pha_nreal(pha_curr)  = SUM(pha_niscat(1:pha_nscat(pha_curr),pha_curr)* &
+                              pha_occ(1:pha_nscat(pha_curr),pha_curr)     &
+                             )  ! number of real atoms in phase 
+   IF(chem_quick) THEN
+      pha_ncreal(pha_curr) = pha_nreal(pha_curr)/(cr_icc(1)*cr_icc(2)*cr_icc(3))
+   ELSE
+      pha_ncreal(pha_curr) = cr_ncatoms
+   ENDIF
+ENDIF stack
 !write(*,*) ' IN PHA_set    nreal, ', pha_nreal(pha_curr), pha_ncreal(pha_curr), cr_nscat
 !write(*,*) ' PHASES_SET ', pow_conv(0), pow_conv(1), pow_conv(npkt)
+!write(*,*) ' PHASES_SET ', minval(pow_conv), maxval(pow_conv)
 !
 ! Place powder pattern into appropriate phase entry
 !

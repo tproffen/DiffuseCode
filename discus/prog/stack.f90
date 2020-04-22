@@ -239,6 +239,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   IF ( st_nlayer >  ST_MAXLAYER ) THEN
                      CALL alloc_stack (ST_MAXTYPE, st_nlayer, ST_MAXQXY, st_rot_status )
                   ENDIF
+                  st_new_form = .TRUE.
                   CALL do_stack_create 
 !                                                                       
 !     ----Read a single row of the correlation matrix 'crow'            
@@ -1931,33 +1932,38 @@ internal: IF(st_internal(st_type(i)) ) THEN
       ENDIF 
 !                                                                       
       END SUBROUTINE stack_rot_setup                
+!
 !*****7*****************************************************************
-      SUBROUTINE st_fourier (calc_f2aver)
+!
+SUBROUTINE st_fourier (calc_f2aver)
 !-                                                                      
 !     Calculates the Fourier transform of the stacking fault decorated  
 !     by the respective layers.                                         
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE diffuse_mod 
-      USE fourier_sup 
-      USE fourier_lmn_mod 
-      USE four_strucf_mod
-      USE molecule_mod 
-      USE discus_save_mod 
-      USE stack_mod 
-      USE powder_mod 
-      USE powder_tables_mod 
-      USE read_internal_mod
-      USE structur
-      USE spcgr_apply
-      USE errlist_mod 
-      USE prompt_mod 
-      USE wink_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE diffuse_mod 
+USE fourier_sup 
+USE fourier_lmn_mod 
+USE four_strucf_mod
+USE molecule_mod 
+USE discus_save_mod 
+USE stack_mod 
+USE phases_stack_mod
+USE powder_mod 
+USE powder_tables_mod 
+USE read_internal_mod
+USE structur
+USE spcgr_apply
+!
+USE errlist_mod 
+USE prompt_mod 
+USE wink_mod 
+!
+IMPLICIT none 
 !                                                                       
-      LOGICAL, INTENT(IN) :: calc_f2aver
+LOGICAL, INTENT(IN) :: calc_f2aver
 !                                                                       
       INTEGER i, j, l 
       INTEGER iscat 
@@ -1973,11 +1979,11 @@ internal: IF(st_internal(st_type(i)) ) THEN
       REAL      :: xstart  ! qmin  for sin Theta / lambda calculation
       REAL      :: xdelta  ! qstep for sin Theta / lambda calculation
 !
-      LOGICAL lout 
+      LOGICAL :: lout 
 !                                                                       
       REAL( KIND(0.0D0)):: signum
-      REAL ss 
-      REAL seknds 
+      REAL :: ss 
+      REAL :: seknds 
 !
 !     n_qxy   = 1
 !     n_nscat = 1
@@ -2184,7 +2190,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !------ ------loop over all different atom types                        
 !                                                                       
-            DO iscat = 1, cr_nscat 
+         DO iscat = 1, cr_nscat 
             CALL four_getatm (iscat, ilots, lbeg, ncell) 
             CALL four_strucf (iscat, .true.) 
 !                                                                       
@@ -2194,64 +2200,68 @@ internal: IF(st_internal(st_type(i)) ) THEN
                st_csf (i) = st_csf (i) + tcsf (i) 
             ENDDO 
             IF (four_log) then 
-               WRITE (output_io, 3000) cr_at_lis (iscat), nxat 
+              WRITE (output_io, 3000) cr_at_lis (iscat), nxat 
             ENDIF 
 !
 !------ -------Calculate form factor squared
 !
-               IF(calc_f2aver) THEN
-         signum = 1.0D0
-         IF(REAL(cfact_pure(1, iscat))< 0.0D0) signum = -1.0D0
+!           IF(calc_f2aver) THEN
+!              signum = 1.0D0
+!              IF(REAL(cfact_pure(1, iscat))< 0.0D0) signum = -1.0D0
 ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q) during first calculation
-                  xstart = pow_qmin  /REAL(zpi)
-                  xdelta = pow_deltaq/REAL(zpi)
-!                 CALL powder_stltab(pow_npkt,xstart,xdelta)  
-                  DO i = 1, pow_npkt         ! Always over all points in powder pattern!
-                     pow_f2aver (i) = pow_f2aver (i)  + &
-                                real (       cfact_pure(powder_istl(i), iscat)  * &
-                                      conjg (cfact_pure(powder_istl(i), iscat)))  &
-                                * n_layers * nxat
-                     pow_faver2 (i) = pow_faver2 (i) +  &
-                           SQRT(real (       cfact_pure(powder_istl(i), iscat)  * &
-                                      conjg (cfact_pure(powder_istl(i), iscat)))) &
-                                * n_layers * nxat *                               &
-                                  signum
-                  ENDDO
-                  pow_nreal = pow_nreal + n_layers * nxat
-                  pow_u2aver    = pow_u2aver + cr_dw(iscat) * n_layers * nxat
-               ENDIF
-            ENDDO 
+!              xstart = pow_qmin  /REAL(zpi)
+!              xdelta = pow_deltaq/REAL(zpi)
+!              CALL powder_stltab(pow_npkt,xstart,xdelta)  
+!              DO i = 1, pow_npkt         ! Always over all points in powder pattern!
+!                 pow_f2aver (i) = pow_f2aver (i)  + &
+!                            real (       cfact_pure(powder_istl(i), iscat)  * &
+!                                  conjg (cfact_pure(powder_istl(i), iscat)))  &
+!                            * n_layers * nxat
+!                 pow_faver2 (i) = pow_faver2 (i) +  &
+!                       SQRT(real (       cfact_pure(powder_istl(i), iscat)  * &
+!                                  conjg (cfact_pure(powder_istl(i), iscat)))) &
+!                            * n_layers * nxat *                               &
+!                              signum
+!              ENDDO
+!              pow_nreal = pow_nreal + n_layers * nxat
+!              pow_u2aver    = pow_u2aver + cr_dw(iscat) * n_layers * nxat
+!           ENDIF
+         ENDDO 
+         IF(st_new_form) THEN
+            CALL phases_place_stack_form(n_layers, st_nlayer)    ! Place all form factors of current layer type
+         ENDIF
 !                                                                       
 !     ------Add product of acsf und st_csf to csf                       
 !                                                                       
-            DO i = 1, num (1) * num (2) *num(3)
-               csf (i) = csf (i) + st_csf (i) * acsf (i) 
-            ENDDO 
-         ENDIF 
-         ENDDO  layers
+         DO i = 1, num (1) * num (2) *num(3)
+            csf (i) = csf (i) + st_csf (i) * acsf (i) 
+         ENDDO 
+      ENDIF 
+   ENDDO  layers
 !                                                                       
 !     --Calculate average scattering and subtract                       
 !                                                                       
-         CALL st_fourier_aver 
-         DO i = 1, num (1) * num (2) *num(3)
-            csf (i) = csf (i) - acsf (i) 
-         ENDDO 
-      ELSE 
-         ier_num = - 8 
-         ier_typ = ER_APPL 
-      ENDIF 
+   CALL st_fourier_aver 
+   DO i = 1, num (1) * num (2) *num(3)
+      csf (i) = csf (i) - acsf (i) 
+   ENDDO 
+ELSE 
+   ier_num = - 8 
+   ier_typ = ER_APPL 
+ENDIF 
+st_new_form = .FALSE.                            ! Form factors have been written into phases
 !                                                                       
 !     Compute intensity                                                 
 !                                                                       
-      DO i = 1, num (1) * num (2) *num(3)
-         dsi (i) = DBLE (csf (i) * conjg (csf (i) ) ) 
-      ENDDO 
+DO i = 1, num (1) * num (2) *num(3)
+   dsi (i) = DBLE (csf (i) * conjg (csf (i) ) ) 
+ENDDO 
 !                                                                       
-      IF (four_log) then 
-         CALL four_qinfo 
-         ss = seknds (ss) 
-         WRITE (output_io, 4000) ss 
-      ENDIF 
+IF (four_log) then 
+   CALL four_qinfo 
+   ss = seknds (ss) 
+   WRITE (output_io, 4000) ss 
+ENDIF 
 !                                                                       
  3000 FORMAT (  '                   Atom typ = ',A4,7X,'(# ',I9,' )') 
  4000 FORMAT      (/,' Elapsed time    : ',G12.6,' sec') 
