@@ -168,8 +168,8 @@ SUBROUTINE do_hel (ein, length)
       ENDIF 
 !                                                                       
  1000 FORMAT    (8(a,1x)) 
- 2000 FORMAT    (' ----------- > ',A6,' online help ',25x,              &
-     &                  'Version : ',a5,/)                              
+ 2000 FORMAT    (' ----------- > ',A6,' online help ',15x,              &
+     &                  'Version : ',a10,/)                              
  3000 FORMAT    (' ----------- > current help level : ',a40) 
       END SUBROUTINE do_status                      
 !****7******************************************************************
