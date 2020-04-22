@@ -109,29 +109,31 @@ CONTAINS
 !                                                                       
       END FUNCTION skalpro                          
 !*****7*****************************************************************
-      SUBROUTINE vekprod (u, v, ww, eps, rten) 
+!
+SUBROUTINE vekprod (u, v, ww, eps, rten) 
 !-                                                                      
 !     calculates the VECTORPRODUCT in general triclinic space           
 !     with  EPS and RTEN in direct space                                
 !     with REPS and GTEN in reciprocal space                            
 !+                                                                      
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER i, j, k, l 
-      REAL U (3), V (3), WW (3), EPS (3, 3, 3), RTEN (3, 3) 
+INTEGER :: i, j, k, l 
+REAL    :: U (3), V (3), WW (3), EPS (3, 3, 3), RTEN (3, 3) 
 !                                                                       
-      DO i = 1, 3 
-      ww (i) = 0.0 
-      DO j = 1, 3 
+DO i = 1, 3 
+   ww (i) = 0.0 
+   DO j = 1, 3 
       DO k = 1, 3 
-      DO l = 1, 3 
-      ww (i) = ww (i) + eps (j, k, l) * u (k) * v (l) * rten (j, i) 
+         DO l = 1, 3 
+            ww (i) = ww (i) + eps (j, k, l) * u (k) * v (l) * rten (j, i) 
+         ENDDO 
       ENDDO 
-      ENDDO 
-      ENDDO 
-      ENDDO 
+   ENDDO 
+ENDDO 
 !                                                                       
-      END SUBROUTINE vekprod                        
+END SUBROUTINE vekprod                        
+!
 !*****7*****************************************************************
       SUBROUTINE d2r (line, laenge, lspace) 
 !-                                                                      
