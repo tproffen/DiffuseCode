@@ -4,31 +4,33 @@ USE errlist_mod
 !
 CONTAINS
 !*****7*****************************************************************
-   SUBROUTINE four_run 
+!
+SUBROUTINE four_run 
 !+                                                                      
 !     Main routine to calculate the Fourier transform for the           
 !     given plane in reciprocal space. Based on the program             
 !     'diffuse' written by B.D. Butler.                                 
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE diffuse_mod 
-      USE four_strucf_mod
-      USE fourier_lmn_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE diffuse_mod 
+USE fourier_conv_mod
+USE four_strucf_mod
+USE fourier_lmn_mod
 !                                                                       
-      USE prompt_mod 
-      USE precision_mod 
-      USE times_mod
-      IMPLICIT none 
-       
+USE prompt_mod 
+USE precision_mod 
+USE times_mod
+!
+IMPLICIT none 
 !                                                                       
-      REAL ss, seknds
-      REAL (KIND=PREC_DP) :: dnorm
+REAL(KIND=PREC_SP) :: ss, seknds
+REAL(KIND=PREC_DP) :: dnorm
       INTEGER lbeg (3), csize (3) 
       INTEGER iscat, nlot, ncell, i 
-      INTEGER :: ii          ! Dummy variable
+INTEGER :: ii          ! Dummy variable
 !                                                                       
-      ier_num = 0 
+ier_num = 0 
 !                                                                       
 !------ preset some values                                              
 !                                                                       
@@ -127,6 +129,8 @@ CONTAINS
          dsi (i) = dnorm * dsi (i) 
          ENDDO 
       ENDIF 
+!
+      CALL four_conv           ! Convolute diffraction pattern
 !                                                                       
       CALL four_qinfo 
       ss = seknds (ss) 

@@ -653,6 +653,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                IF (inc (1) * inc (2) * inc(3) .le.MAXQXY) then 
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_power) 
+                  CALL four_resolution(zeile, lp)
                   IF(l_zone) CALL zone_setup     ! Setup zone axis pattern
                   IF (four_mode.eq.INTERNAL) then 
                      IF (ier_num.eq.0) then 
@@ -978,7 +979,173 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       prompt = orig_prompt
 !                                                                       
       END SUBROUTINE fourier                        
+!
 !*****7*****************************************************************
+!
+SUBROUTINE four_resolution(line, lp)
+!-
+!  Interpret the optional parameters on the run command to set the resolution
+!+
+!
+USE crystal_mod
+USE diffuse_mod
+USE get_params_mod
+USE matrix_mod
+USE metric_mod
+USE take_param_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: lp
+!
+REAL(KIND=PREC_DP) :: EPS = 1.0D-7
+INTEGER, PARAMETER :: MAXW = 4
+!                                                                       
+INTEGER, PARAMETER :: NOPTIONAL = 3
+INTEGER, PARAMETER :: O_SIGABS  = 1                  ! Current phase number
+INTEGER, PARAMETER :: O_SIGORD  = 2                  ! Weight fraction
+INTEGER, PARAMETER :: O_SIGTOP  = 3                  ! Single / multiple
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+CHARACTER(LEN=1024)                  :: string
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+INTEGER            , DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
+INTEGER             :: ianz
+INTEGER             :: iianz
+!
+REAL(KIND=PREC_DP), DIMENSION(3,3) :: vimat    ! Col wise increment vectors in layer
+REAL(KIND=PREC_DP), DIMENSION(3,3) :: simat    ! Col
+REAL(KIND=PREC_DP), DIMENSION(3,3) :: siinv    ! simat^-1
+!REAL(KIND=PREC_DP), DIMENSION(3,3) :: trmat    ! trmat = siinv x vimat
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: vector   ! Position = vimat x vector; vector [i,j,k]
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: sigma    ! Sigma along columns of simat
+REAL(KIND=PREC_SP), DIMENSION(3  ) :: u        ! Sigma along columns of simat
+REAL(KIND=PREC_DP), DIMENSION(3)   :: uu       ! Length of user si vectors
+REAL(KIND=PREC_SP), DIMENSION(3  ) :: v1       ! Dummy vectors
+REAL(KIND=PREC_SP), DIMENSION(3  ) :: v2       ! Dummy vectors
+REAL(KIND=PREC_SP), DIMENSION(3  ) :: v3       ! Dummy vectors
+!
+DATA oname  / 'sigabs', 'sigord', 'sigtop' /
+DATA loname /  6      ,  6      ,  6       /
+!
+diff_res = 0.0D0
+CALL get_params (line, ianz, cpara, lpara, maxw, lp)
+IF (ier_num.ne.0) RETURN
+IF(ianz==0) RETURN        ! No params, use  default NULL matrix
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                              oname, loname, opara, lopara, lpresent, owerte)
+!
+CALL four_res_optional(lpresent(O_SIGABS), 1, MAXW, opara(O_SIGABS), &
+                       lopara(O_SIGABS), werte, iianz)
+CALL four_res_optional(lpresent(O_SIGORD), 2, MAXW, opara(O_SIGORD), &
+                       lopara(O_SIGORD), werte, iianz)
+CALL four_res_optional(lpresent(O_SIGTOP), 3, MAXW, opara(O_SIGTOP), &
+                       lopara(O_SIGTOP), werte, iianz)
+!
+! Build simat
+!
+!
+u = diff_res(2:4,1)
+uu(1) = SQRT (skalpro (u, u, cr_rten) )
+IF(uu(1)< EPS) THEN
+   diff_res(2:4,1) = vi(1:3,1)        ! User vector was NULL, use abscissa
+   u = diff_res(2:4,1)
+   uu(1) = SQRT (skalpro (u, u, cr_rten) )
+ENDIF
+!
+u = diff_res(2:4,2)
+uu(2) = SQRT (skalpro (u, u, cr_rten) )
+IF(uu(2)< EPS) THEN
+   diff_res(2:4,2) = vi(1:3,2)        ! User vector was NULL, use ordinate
+   u = diff_res(2:4,2)
+   uu(2) = SQRT (skalpro (u, u, cr_rten) )
+ENDIF
+!
+u = diff_res(2:4,3)
+uu(3) = SQRT (skalpro (u, u, cr_rten) )
+IF(uu(3)< EPS) THEN
+   v1 = diff_res(2:4,1)
+   v2 = diff_res(2:4,2)
+   CALL vekprod(v1, v2, v3, cr_reps, cr_gten)   ! Build a vecor normal to sigabs and sigord
+   uu(3) = SQRT (skalpro (v3, v3, cr_rten) )
+   diff_res(2:4,3) = v3
+   diff_res(1  ,3) = 0.001
+ENDIF
+!
+simat(1:3, 1) = diff_res(2:4,1) * diff_res(1,1) / uu(1)
+!
+simat(1:3, 2) = diff_res(2:4,2) * diff_res(1,2) / uu(2)
+!
+simat(1:3, 3) = diff_res(2:4,3) * diff_res(1,3) / uu(3)
+!
+CALL matinv3(simat, siinv) 
+!
+! Build vimat
+!
+vimat = vi
+diff_tr = MATMUL(siinv, vimat)
+!
+END SUBROUTINE four_resolution
+!
+!*****7*****************************************************************
+!
+SUBROUTINE four_res_optional(lpresent, ientry, MAXW, opara, &
+                             lopara, werte, ianz)
+!
+USE diffuse_mod
+!
+USE get_params_mod
+USE take_param_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+LOGICAL                            , INTENT(IN)    :: lpresent ! Optional parameter was present 
+INTEGER                            , INTENT(IN)    :: ientry   ! Entry number
+INTEGER                            , INTENT(IN)    :: MAXW     ! Dimension of werte
+CHARACTER(LEN=*)                   , INTENT(INOUT) :: opara    ! The string with optional values
+INTEGER                            , INTENT(INOUT) :: lopara   ! length of string
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(OUT)   :: werte    ! Numerical values
+INTEGER                            , INTENT(OUT)   :: ianz    ! Number of numerical values
+
+ianz = 0
+IF(lpresent) THEN                ! Sigmais present
+   CALL get_optional_multi(MAXW, opara, lopara, werte, ianz)
+   IF(ier_num==0) THEN
+      IF(ianz>0) THEN
+         diff_res(1,ientry) =werte(1)
+         IF(ianz==4) THEN
+            diff_res(2:4,ientry) = werte(2:4)
+         ELSE
+            diff_res(2,ientry) = 0.0D0
+            diff_res(3,ientry) = 0.0D0
+            diff_res(4,ientry) = 0.0D0
+         ENDIF
+      ELSE
+         diff_res(:,ientry) = 0.00D0
+      ENDIF
+   ELSE
+      RETURN
+   ENDIF
+ELSE
+   diff_res(:,ientry) = 0.0D0
+ENDIF
+!
+!
+END SUBROUTINE four_res_optional
+!
+!*****7*****************************************************************
+!
       SUBROUTINE four_show ( ltop )
 !+                                                                      
 !     prints summary of current fourier settings                        

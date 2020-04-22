@@ -329,6 +329,7 @@ IF (ier_num.eq.0) THEN
          IF(four_was_run) THEN    ! A fourier has been calculated do output
             CALL chem_elem(.false.)
             CALL set_output (linverse) 
+            IF(value==val_3DPDF) CALL out_prep_3dpdf(laver)
             IF (ityp.eq.0) THEN 
                CALL do_output (value, laver) 
             ELSEIF (ityp.eq.1) THEN 
@@ -1138,38 +1139,38 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
       ENDDO 
       nnew1 = NPKT1
       nnew2 = NPKT2
-      IF(value==val_3Dpdf) THEN
-         nnew1 = 201
-         nnew2 = 201
-         pdf3d_eck(1,1) = -2.0
-         pdf3d_eck(2,1) = -2.0
-         pdf3d_eck(3,1) =  0.0
-         pdf3d_eck(1,2) =  2.0
-         pdf3d_eck(2,2) = -2.0
-         pdf3d_eck(3,2) =  0.0
-         pdf3d_eck(1,3) = -2.0
-         pdf3d_eck(2,3) =  2.0
-         pdf3d_eck(3,3) =  0.0
-         pdf3d_inc(1) = nnew1
-         pdf3d_inc(2) = nnew2
-         pdf3d_vi(1,1) = (pdf3d_eck(1,2)-pdf3d_eck(1,1))/REAL(nnew1-1)
-         pdf3d_vi(2,1) = (pdf3d_eck(2,2)-pdf3d_eck(2,1))/REAL(nnew1-1)
-         pdf3d_vi(3,1) = (pdf3d_eck(3,2)-pdf3d_eck(3,1))/REAL(nnew1-1)
-         pdf3d_vi(1,2) = (pdf3d_eck(1,3)-pdf3d_eck(1,1))/REAL(nnew2-1)
-         pdf3d_vi(2,2) = (pdf3d_eck(2,3)-pdf3d_eck(2,1))/REAL(nnew2-1)
-         pdf3d_vi(3,2) = (pdf3d_eck(3,3)-pdf3d_eck(3,1))/REAL(nnew2-1)
-         ALLOCATE(znew(nnew1, nnew2))
-         znew(:,:) = 0.0D0
-         CALL do_fft_2d_cos(npkt1, npkt2, zwrt, out_eck, out_vi, out_inc, &
-                            nnew1, nnew2, znew, pdf3d_eck, pdf3d_vi, pdf3d_inc)
-         DEALLOCATE(zwrt)
-         ALLOCATE(zwrt(nnew1, nnew2))
-         zwrt(:,:) = znew(:,:)
-         ranges(1) = pdf3d_eck (1, 1)
-         ranges(2) = pdf3d_eck (1, 2)
-         ranges(3) = pdf3d_eck (2, 1)
-         ranges(4) = pdf3d_eck (2, 3)
-      ENDIF
+!     IF(value==val_3Dpdf) THEN
+!        nnew1 = 201
+!        nnew2 = 201
+!        pdf3d_eck(1,1) = -2.0
+!        pdf3d_eck(2,1) = -2.0
+!        pdf3d_eck(3,1) =  0.0
+!        pdf3d_eck(1,2) =  2.0
+!        pdf3d_eck(2,2) = -2.0
+!        pdf3d_eck(3,2) =  0.0
+!        pdf3d_eck(1,3) = -2.0
+!        pdf3d_eck(2,3) =  2.0
+!        pdf3d_eck(3,3) =  0.0
+!        pdf3d_inc(1) = nnew1
+!        pdf3d_inc(2) = nnew2
+!        pdf3d_vi(1,1) = (pdf3d_eck(1,2)-pdf3d_eck(1,1))/REAL(nnew1-1)
+!        pdf3d_vi(2,1) = (pdf3d_eck(2,2)-pdf3d_eck(2,1))/REAL(nnew1-1)
+!        pdf3d_vi(3,1) = (pdf3d_eck(3,2)-pdf3d_eck(3,1))/REAL(nnew1-1)
+!        pdf3d_vi(1,2) = (pdf3d_eck(1,3)-pdf3d_eck(1,1))/REAL(nnew2-1)
+!        pdf3d_vi(2,2) = (pdf3d_eck(2,3)-pdf3d_eck(2,1))/REAL(nnew2-1)
+!        pdf3d_vi(3,2) = (pdf3d_eck(3,3)-pdf3d_eck(3,1))/REAL(nnew2-1)
+!        ALLOCATE(znew(nnew1, nnew2))
+!        znew(:,:) = 0.0D0
+!        CALL do_fft_2d_cos(npkt1, npkt2, zwrt, out_eck, out_vi, out_inc, &
+!                           nnew1, nnew2, znew, pdf3d_eck, pdf3d_vi, pdf3d_inc)
+!        DEALLOCATE(zwrt)
+!        ALLOCATE(zwrt(nnew1, nnew2))
+!        zwrt(:,:) = znew(:,:)
+!        ranges(1) = pdf3d_eck (1, 1)
+!        ranges(2) = pdf3d_eck (1, 2)
+!        ranges(3) = pdf3d_eck (2, 1)
+!        ranges(4) = pdf3d_eck (2, 3)
+!     ENDIF
       CALL write_discus_nipl_header(header_lines, nheader, l)
       CALL output_save_file_2d(outfile, ranges, nnew1, nnew2, zwrt,       &
                                header_lines, nheader)
@@ -1496,6 +1497,85 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
       ENDIF 
 !
       END SUBROUTINE set_output                     
+!
+!*******************************************************************************
+!
+SUBROUTINE out_prep_3dpdf(laver)
+!-
+!  Calculate the 3DPDF value via FFT
+!+
+!
+USE diffuse_mod
+!
+USE errlist_mod
+USE fftpack_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+LOGICAL, INTENT(IN) :: laver
+!
+COMPLEX(KIND=KIND(0.0E0)) , DIMENSION(:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
+REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
+REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
+REAL(KIND=PREC_DP) :: f
+INTEGER                 :: lenwrk   ! Length of work array
+INTEGER                 :: lensav   ! Length of wsave array
+INTEGER :: n1, n2
+INTEGER :: dimen
+INTEGER :: i,j,k
+INTEGER :: ii
+INTEGER :: i1, j1, k1
+!
+dimen = MAX(num(1), num(2), num(3))
+n1 = dimen
+n2 = dimen
+lenwrk = 2*n1*n2
+lensav = 2*(n1*n2) + INT(LOG(REAL(n1))/LOG( 2.0E+00 ))       &
+                   + INT(LOG(REAL(n2))/LOG( 2.0E+00 )) + 8.
+write(*,*) ' INTO PREP 3D PDF ', dimen
+!
+ALLOCATE(pattern(dimen, dimen))
+ALLOCATE(work(1:lenwrk))
+ALLOCATE(wsave(1:lensav))
+!
+pattern = COMPLEX(0.0D0, 0.0D0)
+ii = 0
+DO j = 1, num (1)
+   j1 = MOD(j-1+dimen/2, dimen) + 1
+   DO i = 1, num (2)
+      i1 = MOD(i-1+dimen/2, dimen) + 1
+      ii = ii + 1
+      IF(laver) THEN
+         f = REAL (acsf (ii) * CONJG (acsf (ii)) , KIND=KIND(1.0D0))
+      ELSE
+         f = REAL(dsi (ii),KIND=KIND(0.0D0))
+      ENDIF
+      pattern(j1,i1) = COMPLEX(f, 0.0D0)
+   ENDDO
+ENDDO
+!
+CALL cfft2i (n1, n2, wsave, lensav, ier_num ) ! Initialize wsave
+CALL cfft2f ( dimen, n1, n2, pattern, wsave, lensav, work, lenwrk, ier_num )
+!
+ii = 0
+rpdf = 0.0D0
+!
+DO j = 1, num (1)
+   j1 = MOD(j-1+dimen/2, dimen) + 1
+   DO i = 1, num (2)
+      i1 = MOD(i-1+dimen/2, dimen) + 1
+      ii = ii + 1
+      rpdf(ii) = pattern(j1,i1)
+   ENDDO
+ENDDO
+!
+DEALLOCATE(pattern)
+DEALLOCATE(work)
+DEALLOCATE(wsave)
+write(*,*) ' DONE PREP 3D PDF '
+!
+END SUBROUTINE out_prep_3dpdf
 !
 !*******************************************************************************
 !
