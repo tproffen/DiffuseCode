@@ -70,12 +70,17 @@ CONTAINS
 !------ used, csf() will only contain the values for the                
 !------ last lot !!                                                     
 !                                                                       
-      IF (value == val_inten .OR. value == val_3Dpdf) THEN 
+      IF (value == val_inten) THEN 
          IF (laver) THEN 
             qval = REAL (f * CONJG (f) , KIND=KIND(1.0E0)) 
          ELSE 
             qval = REAL(dsi (i),KIND=KIND(0.0E0)) 
          ENDIF 
+!
+!     Calculate 3DPDF
+!
+      ELSEIF (value == val_3DPDF) THEN
+         qval = REAL(rpdf(i), KIND=KIND(0.0E0))
 !                                                                       
 !     Calculate amplitude 'amplitude'                                   
 !                                                                       
