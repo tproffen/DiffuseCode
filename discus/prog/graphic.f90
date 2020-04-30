@@ -955,7 +955,7 @@ USE discus_fft_mod
       REAL h (3) 
       REAL sq, qq, out_fac 
 !                                                                       
-      INTEGER shel_inc (2) 
+      INTEGER shel_inc (3) 
       INTEGER shel_value 
       REAL shel_eck (3, 4) 
       REAL shel_vi (3, 3) 
@@ -1003,7 +1003,7 @@ INTEGER           , DIMENSION(3)          :: pdf3d_inc
          DO j = 1, 4 
          shel_eck (i, j) = eck (i, j) 
          ENDDO 
-         DO j = 1, 4 
+         DO j = 1, 3 
          shel_vi (i, j) = vi (i, j) 
          ENDDO 
          ENDDO 
@@ -1505,77 +1505,251 @@ SUBROUTINE out_prep_3dpdf(laver)
 !  Calculate the 3DPDF value via FFT
 !+
 !
+USE crystal_mod
 USE diffuse_mod
+USE metric_mod
+USE output_mod
 !
 USE errlist_mod
-USE fftpack_mod
-USE precision_mod
+USE param_mod
 !
 IMPLICIT NONE
 !
 LOGICAL, INTENT(IN) :: laver
 !
-COMPLEX(KIND=KIND(0.0E0)) , DIMENSION(:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
-REAL(KIND=PREC_DP) :: f
-INTEGER                 :: lenwrk   ! Length of work array
-INTEGER                 :: lensav   ! Length of wsave array
-INTEGER :: n1, n2
-INTEGER :: dimen
-INTEGER :: i,j,k
-INTEGER :: ii
-INTEGER :: i1, j1, k1
+INTEGER :: isdim, i
+INTEGER, DIMENSION(3) :: dsort
+CHARACTER(LEN=1024)   :: string
+INTEGER               :: lcomm
+LOGICAL, PARAMETER    :: LSPACE = .FALSE.
+REAL(KIND=PREC_SP), DIMENSION(3)    :: u
+REAL(KIND=PREC_SP)    :: uu
 !
-dimen = MAX(num(1), num(2), num(3))
-n1 = dimen
-n2 = dimen
-lenwrk = 2*n1*n2
-lensav = 2*(n1*n2) + INT(LOG(REAL(n1))/LOG( 2.0E+00 ))       &
-                   + INT(LOG(REAL(n2))/LOG( 2.0E+00 )) + 8.
-write(*,*) ' INTO PREP 3D PDF ', dimen
+!  Determine sequence of array dimensions 
 !
-ALLOCATE(pattern(dimen, dimen))
-ALLOCATE(work(1:lenwrk))
-ALLOCATE(wsave(1:lensav))
+dsort(1)      = MAXLOC(num, 1)
+num(dsort(1)) = -num(dsort(1))
+dsort(2)      = MAXLOC(num, 1)
+num(dsort(2)) = -num(dsort(2))
+dsort(3)      = MAXLOC(num, 1)
+num(dsort(3)) = -num(dsort(3))
+num = -num
 !
-pattern = COMPLEX(0.0D0, 0.0D0)
-ii = 0
-DO j = 1, num (1)
-   j1 = MOD(j-1+dimen/2, dimen) + 1
-   DO i = 1, num (2)
-      i1 = MOD(i-1+dimen/2, dimen) + 1
-      ii = ii + 1
-      IF(laver) THEN
-         f = REAL (acsf (ii) * CONJG (acsf (ii)) , KIND=KIND(1.0D0))
-      ELSE
-         f = REAL(dsi (ii),KIND=KIND(0.0D0))
-      ENDIF
-      pattern(j1,i1) = COMPLEX(f, 0.0D0)
-   ENDDO
+!  Determine dimensions that we need 
+!
+isdim = 3
+IF(num(1)==1) isdim = isdim - 1
+IF(num(2)==1) isdim = isdim - 1
+IF(num(3)==1) isdim = isdim - 1
+!write(*,*) ' IN out_prep_3dpdf', num, isdim
+!read(*,*) i
+IF(isdim==1) THEN
+   CALL out_prep_3dpdf_1d(laver, dsort)
+ELSEIF(isdim==2) THEN
+   CALL out_prep_3dpdf_2d(laver, dsort)
+ELSEIF(isdim==3) THEN
+   CALL out_prep_3dpdf_3d(laver, dsort)
+ENDIF
+!
+! Set increments and corners for out_vi, out_eck
+!
+!write(*,*) ' num ', num
+!write(*,*) ' vi   ', vi(:,1)
+!write(*,*) ' vi   ', vi(:,2)
+!write(*,*) ' vi   ', vi(:,3)
+DO i = 1, 3
+   u(1) = num(1)*0.5D0*vi(1,i)
+   u(2) = num(1)*0.5D0*vi(2,i)
+   u(3) = num(1)*0.5D0*vi(3,i)
+   uu = skalpro (u, u, cr_rten)
+   IF( uu > 0.0) THEN
+      WRITE(string,'(2(F16.9,'',''), F16.9)') u
+      lcomm = LEN_TRIM(string)
+      CALL d2r(string, lcomm, .FALSE.)
+!write(*,*) 'ier_num ', ier_num, ier_typ
+      out_vi(1,i) = res_para(4)
+      out_vi(2,i) = res_para(5)
+      out_vi(3,i) = res_para(6)
+!write(*,*) ' res ', res_para(0:3)
+!write(*,*) ' res ', res_para(4:6)
+   ENDIF
 ENDDO
-!
-CALL cfft2i (n1, n2, wsave, lensav, ier_num ) ! Initialize wsave
-CALL cfft2f ( dimen, n1, n2, pattern, wsave, lensav, work, lenwrk, ier_num )
-!
-ii = 0
-rpdf = 0.0D0
-!
-DO j = 1, num (1)
-   j1 = MOD(j-1+dimen/2, dimen) + 1
-   DO i = 1, num (2)
-      i1 = MOD(i-1+dimen/2, dimen) + 1
-      ii = ii + 1
-      rpdf(ii) = pattern(j1,i1)
-   ENDDO
+DO i=1, 3
+   out_eck(i,1) = (- out_vi(i,1)*num(1) - out_vi(i,2)*num(2) - out_vi(i,3)*num(3))*0.25  ! lower left
+   out_eck(i,2) = (+ out_vi(i,1)*num(1) - out_vi(i,2)*num(2) - out_vi(i,3)*num(3))*0.25  ! lower left
+   out_eck(i,3) = (- out_vi(i,1)*num(1) + out_vi(i,2)*num(2) - out_vi(i,3)*num(3))*0.25  ! lower left
+   out_eck(i,4) = (- out_vi(i,1)*num(1) - out_vi(i,2)*num(2) + out_vi(i,3)*num(3))*0.25  ! lower left
 ENDDO
-!
-DEALLOCATE(pattern)
-DEALLOCATE(work)
-DEALLOCATE(wsave)
-write(*,*) ' DONE PREP 3D PDF '
+!write(*,*) ' num ', num
+!write(*,*) ' out_vi   ', out_vi(:,1)
+!write(*,*) ' out_vi   ', out_vi(:,2)
+!write(*,*) ' out_vi   ', out_vi(:,3)
+!write(*,*) 'eck_out ', out_eck(:,1)
+!write(*,*) 'eck_out ', out_eck(:,2)
+!write(*,*) 'eck_out ', out_eck(:,3)
+!write(*,*) 'eck_out ', out_eck(:,4)
 !
 END SUBROUTINE out_prep_3dpdf
+!
+!*******************************************************************************
+!
+SUBROUTINE out_prep_3dpdf_1d(laver, dsort)
+!-
+!  Calculate the 3DPDF value via FFT
+!+
+!
+USE diffuse_mod
+!
+USE errlist_mod
+!USE fftpack_mod
+USE precision_mod
+USE singleton
+USE map_1dtofield
+!
+IMPLICIT NONE
+!
+LOGICAL              , INTENT(IN) :: laver
+INTEGER, DIMENSION(3), INTENT(IN) :: dsort
+!
+COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:), ALLOCATABLE  :: pattern  ! the diffraction pattern
+!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
+!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
+!INTEGER                 :: lenwrk   ! Length of work array
+!INTEGER                 :: lensav   ! Length of wsave array
+!INTEGER :: n1, n2
+!INTEGER :: dimen
+!
+!dimen = MAX(num(1), num(2), num(3))
+!n1 = dimen
+!n2 = dimen
+!lenwrk = 2*n1*n2
+!lensav = 2*(n1*n2) + INT(LOG(REAL(n1))/LOG( 2.0E+00 ))       &
+!                   + INT(LOG(REAL(n2))/LOG( 2.0E+00 )) + 8.
+!
+ALLOCATE(pattern(num(dsort(1))))
+!ALLOCATE(work(1:lenwrk))
+!ALLOCATE(wsave(1:lensav))
+!
+CALL maptofftfd(num, dsort, dsi, pattern)
+!
+!CALL cfft2i (n1, n2, wsave, lensav, ier_num ) ! Initialize wsave
+!CALL cfft2f ( dimen, n1, n2, pattern, wsave, lensav, work, lenwrk, ier_num )
+pattern = fft(pattern) / SQRT(REAL(num(1)))
+!
+CALL mapfftfdtoline(num, dsort, rpdf, pattern)
+!
+DEALLOCATE(pattern)
+!DEALLOCATE(work)
+!DEALLOCATE(wsave)
+!
+END SUBROUTINE out_prep_3dpdf_1d
+!
+!*******************************************************************************
+!
+SUBROUTINE out_prep_3dpdf_2d(laver, dsort)
+!-
+!  Calculate the 3DPDF value via FFT
+!+
+!
+USE diffuse_mod
+!
+USE errlist_mod
+!USE fftpack_mod
+USE precision_mod
+USE singleton
+USE map_1dtofield
+!
+IMPLICIT NONE
+!
+LOGICAL              , INTENT(IN) :: laver
+INTEGER, DIMENSION(3), INTENT(IN) :: dsort
+!
+COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
+!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
+!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
+!INTEGER                 :: lenwrk   ! Length of work array
+!INTEGER                 :: lensav   ! Length of wsave array
+!INTEGER :: n1, n2
+!INTEGER :: dimen
+!
+!dimen = MAX(num(1), num(2), num(3))
+!n1 = num(1) !dimen
+!n2 = num(2) !dimen
+!lenwrk = 2*n1*n2
+!lensav = 2*(n1*n2) + INT(LOG(REAL(n1))/LOG( 2.0E+00 ))       &
+!                   + INT(LOG(REAL(n2))/LOG( 2.0E+00 )) + 8.
+!
+ALLOCATE(pattern(num(dsort(1)), num(dsort(2)) ))
+!ALLOCATE(work(1:lenwrk))
+!ALLOCATE(wsave(1:lensav))
+!
+CALL maptofftfd(num, dsort, dsi, pattern)
+!
+!CALL cfft2i (n1, n2, wsave, lensav, ier_num ) ! Initialize wsave
+!CALL cfft2f ( dimen, n1, n2, pattern, wsave, lensav, work, lenwrk, ier_num )
+pattern = fft(pattern) / SQRT(REAL(num(1)*num(2)))
+!
+CALL mapfftfdtoline(num, dsort, rpdf, pattern)
+!
+DEALLOCATE(pattern)
+!DEALLOCATE(work)
+!DEALLOCATE(wsave)
+!
+END SUBROUTINE out_prep_3dpdf_2d
+!
+!*******************************************************************************
+!
+SUBROUTINE out_prep_3dpdf_3d(laver, dsort)
+!-
+!  Calculate the 3DPDF value via FFT  3D version
+!+
+!
+USE diffuse_mod
+!
+USE errlist_mod
+!USE fftpack_mod
+USE precision_mod
+USE singleton
+USE map_1dtofield
+!
+IMPLICIT NONE
+!
+LOGICAL              , INTENT(IN) :: laver
+INTEGER, DIMENSION(3), INTENT(IN) :: dsort
+!
+COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
+!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
+!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
+!REAL(KIND=PREC_DP) :: f
+!INTEGER                 :: lenwrk   ! Length of work array
+!INTEGER                 :: lensav   ! Length of wsave array
+!INTEGER :: n1, n2
+!INTEGER :: dimen
+!
+!dimen = MAX(num(1), num(2), num(3))
+!n1 = dimen
+!n2 = dimen
+!lenwrk = 2*n1*n2
+!lensav = 2*(n1*n2) + INT(LOG(REAL(n1))/LOG( 2.0E+00 ))       &
+!                   + INT(LOG(REAL(n2))/LOG( 2.0E+00 )) + 8.
+!
+ALLOCATE(pattern(num(dsort(1)), num(dsort(2)), num(dsort(3))))
+!ALLOCATE(work(1:lenwrk))
+!ALLOCATE(wsave(1:lensav))
+!
+CALL maptofftfd(num, dsort, dsi, pattern)
+!
+!CALL cfft2i (n1, n2, wsave, lensav, ier_num ) ! Initialize wsave
+!CALL cfft2f ( dimen, n1, n2, pattern, wsave, lensav, work, lenwrk, ier_num )
+pattern = fft(pattern) / SQRT(REAL(num(1)*num(2)*num(3)))
+!
+CALL mapfftfdtoline(num, dsort, rpdf, pattern)
+!
+DEALLOCATE(pattern)
+!DEALLOCATE(work)
+!DEALLOCATE(wsave)
+!
+END SUBROUTINE out_prep_3dpdf_3d
 !
 !*******************************************************************************
 !

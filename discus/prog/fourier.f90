@@ -1015,7 +1015,6 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-CHARACTER(LEN=1024)                  :: string
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
@@ -1026,8 +1025,6 @@ REAL(KIND=PREC_DP), DIMENSION(3,3) :: vimat    ! Col wise increment vectors in l
 REAL(KIND=PREC_DP), DIMENSION(3,3) :: simat    ! Col
 REAL(KIND=PREC_DP), DIMENSION(3,3) :: siinv    ! simat^-1
 !REAL(KIND=PREC_DP), DIMENSION(3,3) :: trmat    ! trmat = siinv x vimat
-REAL(KIND=PREC_DP), DIMENSION(3  ) :: vector   ! Position = vimat x vector; vector [i,j,k]
-REAL(KIND=PREC_DP), DIMENSION(3  ) :: sigma    ! Sigma along columns of simat
 REAL(KIND=PREC_SP), DIMENSION(3  ) :: u        ! Sigma along columns of simat
 REAL(KIND=PREC_DP), DIMENSION(3)   :: uu       ! Length of user si vectors
 REAL(KIND=PREC_SP), DIMENSION(3  ) :: v1       ! Dummy vectors

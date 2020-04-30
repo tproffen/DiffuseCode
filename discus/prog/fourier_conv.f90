@@ -10,211 +10,298 @@ SUBROUTINE four_conv        ! Convolute original diffraction pattern
 !+
 USE diffuse_mod
 !
-USE errlist_mod
-USE fftpack_mod
+IMPLICIT NONE
+REAL(KIND=PREC_DP), PARAMETER :: EPS = 1.0E-6
+INTEGER :: isdim
+INTEGER, DIMENSION(3) :: dsort
+!
+IF(diff_res(1,1)<EPS .AND. diff_res(1,2)<EPS .AND. diff_res(1,3)<EPS) RETURN
+!
+!  Determine sequence of array dimensions 
+!
+dsort(1)      = MAXLOC(num, 1)
+num(dsort(1)) = -num(dsort(1))
+dsort(2)      = MAXLOC(num, 1)
+num(dsort(2)) = -num(dsort(2))
+dsort(3)      = MAXLOC(num, 1)
+num(dsort(3)) = -num(dsort(3))
+num = -num
+!
+!  Determine dimensions that we need 
+!
+isdim = 3
+IF(num(1)==1) isdim = isdim - 1
+IF(num(2)==1) isdim = isdim - 1
+IF(num(3)==1) isdim = isdim - 1
+!
+IF(isdim==3) THEN
+   CALL four_conv_3D(dsort)
+ELSEIF(isdim==2) THEN
+   CALL four_conv_2D(dsort)
+ELSEIF(isdim==1) THEN
+   CALL four_conv_1D(dsort)
+ENDIF
+!
+END SUBROUTINE four_conv        ! Convolute original diffraction pattern
+!
+!*******************************************************************************
+!
+SUBROUTINE four_conv_1D(dsort)     ! Convolute original diffraction pattern
+!
+USE diffuse_mod
+!
+USE map_1dtofield
 USE precision_mod
+USE singleton
 USE wink_mod
 !
 IMPLICIT NONE
 !
-REAL(KIND=PREC_DP), PARAMETER :: EPS = 1.0E-6
-COMPLEX(KIND=KIND(0.0E0)) , DIMENSION(:,:), ALLOCATABLE  :: profile  ! the profile function
-COMPLEX(KIND=KIND(0.0E0)) , DIMENSION(:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
-COMPLEX(KIND=KIND(0.0E0)) , DIMENSION(:,:), ALLOCATABLE  :: temp     ! temporary pattern
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
+INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
-INTEGER :: dimen
-INTEGER :: i, j
-INTEGER :: i1, j1
-INTEGER :: n1, n2
-INTEGER :: ii
-INTEGER :: ipos
-INTEGER                 :: lenwrk   ! Length of work array
-INTEGER                 :: lensav   ! Length of wsave array
-REAL(KIND=PREC_DP) :: rdimen
+COMPLEX(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE  :: profile  ! the profile function
+COMPLEX(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE  :: pattern  ! the diffraction pattern
+COMPLEX(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE  :: temp     ! A temporary pattern
 REAL(KIND=PREC_DP) :: dreal
 REAL(KIND=PREC_DP) :: dimag
 REAL(KIND=PREC_DP), DIMENSION(3  ) :: vector   ! Position = vimat x vector; vector [i,j,k]
 REAL(KIND=PREC_DP), DIMENSION(3  ) :: posit    ! Position = vimat x vector; vector [i,j,k]
 REAL(KIND=PREC_DP), DIMENSION(3  ) :: sigma    ! Sigma along columns of simat
 !
-IF(diff_res(1,1)<EPS .AND. diff_res(1,2)<EPS .AND. diff_res(1,3)<EPS) RETURN
-dimen = MAX(num(1), num(2), num(3))
-rdimen = REAL(dimen,KIND=4)
-n1    = dimen
-n2    = dimen
-lenwrk = 2*n1*n2
-lensav = 2*(n1*n2) + INT(LOG(REAL(n1))/LOG( 2.0E+00 ))       &
-                   + INT(LOG(REAL(n2))/LOG( 2.0E+00 )) + 8.
-ALLOCATE(profile(dimen, dimen))    
-ALLOCATE(pattern(dimen, dimen))    
-ALLOCATE(temp   (dimen, dimen))    
-ALLOCATE(work(1:lenwrk))
-ALLOCATE(wsave(1:lensav))
+INTEGER :: i,j, i1, j1
+INTEGER :: ipos
+!
+ALLOCATE(profile(num(1) ))        ! Allocate profile in regular dimensions
+ALLOCATE(pattern(num(dsort(1)) )) ! Allocated pattern in sorted dimensions
+!
+!  Build profile function
 !
 sigma(1) = diff_res(1, 1)
 sigma(2) = diff_res(1, 2)
 sigma(3) = diff_res(1, 3)
-write(*,*) ' sigma ', sigma
+!
+ipos = 1
+dimag = 0.0D0
+vector(3) = 0.0
+vector(2) = 0.0
+!
+DO i=1, num(1)
+   i1 = i-ipos
+   IF(i1>num(1)/2) i1 = i1 - num(1)
+   vector(1) = REAL(i1, KIND=PREC_DP)
+   posit = MATMUL(diff_tr, vector)
+   dreal = 1.0D0/SQRT(     ZPI)/sigma(1)*EXP(-0.50D0*(posit(1) )**2)
+   profile(i) = COMPLEX(dreal, dimag)
+ENDDO
+!
+profile   = fft(profile  ) / SQRT(REAL(num(1)))    ! FFT profile
+!
+IF(ilots.eq.LOT_OFF) THEN
+   CALL maptofftfd(num, dsort, csf, pattern)          ! Use complex structure factor
+   pattern   = fft(pattern)   / SQRT(REAL(num(1)))    ! FFT pattern
+   temp      = profile  *pattern                      ! Multiply the Fouriers
+   temp      = fft(temp)      / SQRT(REAL(num(1)))    ! FFT multiplied pattern
+   CALL mapfftfdtoline(num, dsort, csf, temp)
+ENDIF
+!
+CALL maptofftfd(num, dsort, dsi, pattern)          ! Use intensities
+pattern   = fft(pattern)   / SQRT(REAL(num(1)))    ! FFT pattern
+temp      = profile  *pattern                      ! Multiply the Fouriers
+temp      = fft(temp)      / SQRT(REAL(num(1)))    ! FFT multiplied pattern
+CALL mapfftfdtoline(num, dsort, dsi, temp)
+!
+DEALLOCATE(pattern)
+DEALLOCATE(temp)
+DEALLOCATE(profile)
+!
+END SUBROUTINE four_conv_1D     ! Convolute original diffraction pattern
+!
+!*******************************************************************************
+!
+SUBROUTINE four_conv_2D(dsort)     ! Convolute original diffraction pattern
+!
+USE diffuse_mod
+!
+USE map_1dtofield
+USE precision_mod
+USE singleton
+USE wink_mod
+!
+IMPLICIT NONE
+!
+INTEGER, DIMENSION(3), INTENT(IN) :: dsort
+!
+COMPLEX(KIND=PREC_DP) , DIMENSION(:,:), ALLOCATABLE  :: profile  ! the profile function
+COMPLEX(KIND=PREC_DP) , DIMENSION(:,:), ALLOCATABLE  :: profile_t! the profile function
+COMPLEX(KIND=PREC_DP) , DIMENSION(:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
+COMPLEX(KIND=PREC_DP) , DIMENSION(:,:), ALLOCATABLE  :: temp     ! A temporary pattern
+REAL(KIND=PREC_DP) :: dreal
+REAL(KIND=PREC_DP) :: dimag
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: vector   ! Position = vimat x vector; vector [i,j,k]
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: posit    ! Position = vimat x vector; vector [i,j,k]
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: sigma    ! Sigma along columns of simat
+!
+INTEGER :: i,j, i1, j1
+INTEGER :: ipos
+!
+ALLOCATE(profile(num(1), num(2) ))               ! Allocate profile in regular dimensions
+ALLOCATE(pattern(num(dsort(1)), num(dsort(2)) )) ! Allocated pattern in sorted dimensions
+!
+!  Build profile function
+!
+sigma(1) = diff_res(1, 1)
+sigma(2) = diff_res(1, 2)
+sigma(3) = diff_res(1, 3)
 !
 ipos = 1
 dimag = 0.0D0
 vector(3) = 0.0
 !
-DO j=1, dimen
+DO j=1, num(2)
    j1 = j-ipos
-   IF(j1>dimen/2) j1 = j1 - dimen
+   IF(j1>num(2)/2) j1 = j1 - num(2)
    vector(2) = REAL(j1, KIND=PREC_DP)
-   DO i=1, dimen
+   DO i=1, num(1)
       i1 = i-ipos
-      IF(i1>dimen/2) i1 = i1 - dimen
+      IF(i1>num(1)/2) i1 = i1 - num(1)
       vector(1) = REAL(i1, KIND=PREC_DP)
       posit = MATMUL(diff_tr, vector)
-      dreal = 1.0D0/SQRT(     ZPI)/sigma(1)*EXP(-0.50D0*(posit(1)         )**2) * &
-              1.0D0/SQRT(     ZPI)/sigma(2)*EXP(-0.50D0*(posit(2)         )**2)
+      dreal = 1.0D0/SQRT(     ZPI)/sigma(1)*EXP(-0.50D0*(posit(1) )**2) * &
+              1.0D0/SQRT(     ZPI)/sigma(2)*EXP(-0.50D0*(posit(2) )**2)
       profile(i,j) = COMPLEX(dreal, dimag)
    ENDDO
 ENDDO
-CALL output2(dimen, profile, 'INPUT/profile')
 !
-! Set profile
+ALLOCATE(profile_t(num(dsort(1)), num(dsort(2))))     ! Allocate array for FFT
+IF(dsort(1)==1) THEN   ! 1st coordinate is largest
+   profile_t = profile
+ELSE                   ! 2nd coordinate is largest, transpose profile
+   profile_t = TRANSPOSE(profile)
+ENDIF
 !
-pattern = COMPLEX(0.0D0, 0.0D0)
-ii = 0
-DO j = 1, num (1) 
-   j1 = MOD(j-1+dimen/2, dimen) + 1
-   DO i = 1, num (2)
-      i1 = MOD(i-1+dimen/2, dimen) + 1
-      ii = ii + 1
-      pattern(j1,i1) = csf(ii)
-   ENDDO
-ENDDO
-CALL output2(dimen, pattern, 'INPUT/pattern')
+profile_t = fft(profile_t) / SQRT(REAL(num(1)*num(2)))    ! FFT profile
 !
-CALL cfft2i (n1, n2, wsave, lensav, ier_num ) ! Initialize wsave
-CALL cfft2f ( dimen, n1, n2, profile, wsave, lensav, work, lenwrk, ier_num )
-CALL cfft2f ( dimen, n1, n2, pattern, wsave, lensav, work, lenwrk, ier_num )
-CALL output2(dimen, profile, 'INPUT/profile_four')
-CALL output2(dimen, pattern, 'INPUT/pattern_four')
+IF(ilots.eq.LOT_OFF) THEN
+   CALL maptofftfd(num, dsort, csf, pattern)                 ! Use complex structure factor
+   pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
+   temp      = profile_t*pattern                             ! Multiply the Fouriers
+   temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))    ! FFT multiplied pattern
+   CALL mapfftfdtoline(num, dsort, csf, temp)
+ENDIF
 !
-temp = profile*pattern          ! Do pointwise multiplication of transforms
-CALL output2(dimen, pattern, 'INPUT/temp_four')
-CALL cfft2b ( dimen, n1, n2, temp   , wsave, lensav, work, lenwrk, ier_num )
-CALL output2(dimen, pattern, 'INPUT/temp')
+CALL maptofftfd(num, dsort, dsi, pattern)                 ! Use intensities
+pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
+temp      = profile_t*pattern                             ! Multiply the Fouriers
+temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))    ! FFT multiplied pattern
+CALL mapfftfdtoline(num, dsort, dsi, temp)                ! Resore convoluted intensities
 !
-ii = 0
-csf = COMPLEX(0.0D0, 0.0D0)
-DO j = 1, num (1)
-   j1 = MOD(j-1+dimen/2, dimen) + 1
-   DO i = 1, num (2)
-      i1 = MOD(i-1+dimen/2, dimen) + 1
-      ii = ii + 1
-      csf(ii) = temp(j1,i1)
-   ENDDO
-ENDDO
-!
-DEALLOCATE(profile)
 DEALLOCATE(pattern)
 DEALLOCATE(temp)
-DEALLOCATE(work)
-DEALLOCATE(wsave)
+DEALLOCATE(profile_t)
+DEALLOCATE(profile)
 !
-END SUBROUTINE four_conv        ! Convolute original diffraction pattern
+END SUBROUTINE four_conv_2D     ! Convolute original diffraction pattern
 !
 !*******************************************************************************
 !
-SUBROUTINE output2(dimen, datum, base)
+SUBROUTINE four_conv_3D(dsort)     ! Convolute original diffraction pattern
+!
+USE diffuse_mod
+!
+USE map_1dtofield
+USE precision_mod
+USE singleton
+USE wink_mod
 !
 IMPLICIT NONE
 !
-
-INTEGER(KIND=4)                            , INTENT(IN) :: dimen
-COMPLEX(KIND=4), DIMENSION(1:dimen,1:dimen), INTENT(IN) :: datum
-CHARACTER(LEN=*)                           , INTENT(IN) :: base
+INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
-INTEGER, PARAMETER:: IWR = 7
+COMPLEX(KIND=PREC_DP) , DIMENSION(:,:,:), ALLOCATABLE  :: profile  ! the profile function
+COMPLEX(KIND=PREC_DP) , DIMENSION(:,:,:), ALLOCATABLE  :: profile_t! the profile function
+COMPLEX(KIND=PREC_DP) , DIMENSION(:,:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
+COMPLEX(KIND=PREC_DP) , DIMENSION(:,:,:), ALLOCATABLE  :: temp     ! A temporary pattern
+REAL(KIND=PREC_DP) :: dreal
+REAL(KIND=PREC_DP) :: dimag
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: vector   ! Position = vimat x vector; vector [i,j,k]
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: posit    ! Position = vimat x vector; vector [i,j,k]
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: sigma    ! Sigma along columns of simat
 !
-CHARACTER(len=1024) :: ofile
-INTEGER (KIND=4) :: i, j, i1,j1
-COMPLEX(KIND=4), DIMENSION(1:dimen) :: temp
+INTEGER :: i,j, k, i1, j1, k1
+INTEGER, DIMENSION(3) :: ientry
+INTEGER :: ipos
 !
-ofile = base(1:LEN_TRIM(base)) // '.nipl.real'
-OPEN(UNIT=IWR, FILE=ofile, STATUS='unknown')
-WRITE(IWR, '(i4,2x,i4)') dimen, dimen
-WRITE(IWR, '(a)') ' 0.00, 1.00,  0.00, 1.00'
-DO j=1,dimen
-  j1 = MOD(j-1+dimen/2, dimen) + 1
-  DO i=1, dimen
-    i1 = MOD(i-1+dimen/2, dimen) + 1
-    temp(i) = datum(i1, j1)
-  ENDDO
-  WRITE(IWR, '(8(2x,F16.7))') (REAL(temp(i)), i=1, dimen)
-!  WRITE(IWR, '(8(2x,F16.7))') (datum(i,j)*CONJG(datum(i,j)), j=1, dimen)
+ALLOCATE(profile(num(1), num(2), num(3) ))                     ! Allocate profile in regular dimensions
+ALLOCATE(pattern(num(dsort(1)), num(dsort(2)), num(dsort(3)))) ! Allocated pattern in sorted dimensions
+!
+!  Build profile function
+!
+sigma(1) = diff_res(1, 1)
+sigma(2) = diff_res(1, 2)
+sigma(3) = diff_res(1, 3)
+!
+ipos = 1
+dimag = 0.0D0
+!
+DO k=1, num(3)
+   k1 = k-ipos
+   IF(k1>num(3)/2) k1 = k1 - num(3)
+   vector(3) = REAL(k1, KIND=PREC_DP)
+   DO j=1, num(2)
+      j1 = j-ipos
+      IF(j1>num(2)/2) j1 = j1 - num(2)
+      vector(2) = REAL(j1, KIND=PREC_DP)
+      DO i=1, num(1)
+         i1 = i-ipos
+         IF(i1>num(1)/2) i1 = i1 - num(1)
+         vector(1) = REAL(i1, KIND=PREC_DP)
+         posit = MATMUL(diff_tr, vector)
+         dreal = 1.0D0/SQRT(     ZPI)/sigma(1)*EXP(-0.50D0*(posit(1) )**2) * &
+                 1.0D0/SQRT(     ZPI)/sigma(2)*EXP(-0.50D0*(posit(2) )**2) * &
+                 1.0D0/SQRT(     ZPI)/sigma(3)*EXP(-0.50D0*(posit(3) )**2)
+         profile(i,j,k) = COMPLEX(dreal, dimag)
+      ENDDO
+   ENDDO
 ENDDO
-CLOSE(IWR)
 !
-ofile = base(1:LEN_TRIM(base)) // '.nipl.imag'
-OPEN(UNIT=IWR, FILE=ofile, STATUS='unknown')
-WRITE(IWR, '(i4,2x,i4)') dimen, dimen
-WRITE(IWR, '(a)') ' 0.00, 1.00,  0.00, 1.00'
-DO j=1,dimen
-  j1 = MOD(j-1+dimen/2, dimen) + 1
-  DO i=1, dimen
-    i1 = MOD(i-1+dimen/2, dimen) + 1
-    temp(i) = datum(i1, j1)
-  ENDDO
-  WRITE(IWR, '(8(2x,F16.7))') (IMAG(temp(i)), i=1, dimen)
-!  WRITE(IWR, '(8(2x,F16.7))') (datum(i,j)*CONJG(datum(i,j)), j=1, dimen)
+ALLOCATE(profile_t(num(dsort(1)), num(dsort(2)), num(dsort(3))))    ! Allocate array for FFT
+!
+DO k=1, num(3)
+   ientry(dsort(3)) = k
+   DO j=1, num(2)
+      ientry(dsort(2)) = j
+      DO i=1, num(1)
+         ientry(dsort(1)) = i
+         profile_t(ientry(1), ientry(2), ientry(3)) = profile(i,j,k)
+      ENDDO
+   ENDDO
 ENDDO
-CLOSE(IWR)
 !
-ofile = base(1:LEN_TRIM(base)) // '.nipl.inte'
-OPEN(UNIT=IWR, FILE=ofile, STATUS='unknown')
-WRITE(IWR, '(i4,2x,i4)') dimen, dimen
-WRITE(IWR, '(a)') ' 0.00, 1.00,  0.00, 1.00'
-DO j=1,dimen
-  j1 = MOD(j-1+dimen/2, dimen) + 1
-  DO i=1, dimen
-    i1 = MOD(i-1+dimen/2, dimen) + 1
-    temp(i) = datum(i1, j1)
-  ENDDO
-  WRITE(IWR, '(8(2x,F16.7))') (REAL(temp(i))**2+IMAG(temp(i))**2, i=1, dimen)
-!  WRITE(IWR, '(8(2x,F16.7))') (datum(i,j)*CONJG(datum(i,j)), j=1, dimen)
-ENDDO
-CLOSE(IWR)
+profile_t = fft(profile_t) / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT profile
 !
-ofile = base(1:LEN_TRIM(base)) // '.nipl.ampl'
-OPEN(UNIT=IWR, FILE=ofile, STATUS='unknown')
-WRITE(IWR, '(i4,2x,i4)') dimen, dimen
-WRITE(IWR, '(a)') ' 0.00, 1.00,  0.00, 1.00'
-DO j=1,dimen
-  j1 = MOD(j-1+dimen/2, dimen) + 1
-  DO i=1, dimen
-    i1 = MOD(i-1+dimen/2, dimen) + 1
-    temp(i) = datum(i1, j1)
-  ENDDO
-  WRITE(IWR, '(8(2x,F16.7))') (SQRT(REAL(temp(i))**2+IMAG(temp(i))**2), i=1, dimen)
-!  WRITE(IWR, '(8(2x,F16.7))') (datum(i,j)*CONJG(datum(i,j)), j=1, dimen)
-ENDDO
-CLOSE(IWR)
+IF(ilots.eq.LOT_OFF) THEN
+   CALL maptofftfd(num, dsort, csf, pattern)              ! Use complex structure factor
+   pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT pattern
+   temp      = profile_t*pattern                                    ! Multiply the Fouriers
+   temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT multiplied pattern
+   CALL mapfftfdtoline(num, dsort, csf, temp)
+ENDIF
 !
-ofile = base(1:LEN_TRIM(base)) // '.nipl.phase'
-OPEN(UNIT=IWR, FILE=ofile, STATUS='unknown')
-WRITE(IWR, '(i4,2x,i4)') dimen, dimen
-WRITE(IWR, '(a)') ' 0.00, 1.00,  0.00, 1.00'
-DO j=1,dimen
-  j1 = MOD(j-1+dimen/2, dimen) + 1
-  DO i=1, dimen
-    i1 = MOD(i-1+dimen/2, dimen) + 1
-    temp(i) = datum(i1, j1)
-  ENDDO
-  WRITE(IWR, '(8(2x,F16.7))') (ATAN2(IMAG(temp(i)),REAL(temp(i)))+3.14159, i=1, dimen)
-!  WRITE(IWR, '(8(2x,F16.7))') (datum(i,j)*CONJG(datum(i,j)), j=1, dimen)
-ENDDO
-CLOSE(IWR)
+CALL maptofftfd(num, dsort, dsi, pattern)              ! Use intensities
+pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT pattern
+temp      = profile_t*pattern                                    ! Multiply the Fouriers
+temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT multiplied pattern
+CALL mapfftfdtoline(num, dsort, dsi, temp)
 !
-END SUBROUTINE output2
+DEALLOCATE(pattern)
+DEALLOCATE(temp)
+DEALLOCATE(profile_t)
+DEALLOCATE(profile)
+!
+END SUBROUTINE four_conv_3D     ! Convolute original diffraction pattern
+!
+!*******************************************************************************
+!
 !
 !*******************************************************************************
 !
