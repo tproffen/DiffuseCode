@@ -25,7 +25,6 @@ INTEGER   :: i
 INTEGER   :: lensav      ! Array size for ip
 INTEGER   :: lenwrk      ! Array size for w
 INTEGER   :: iqmin
-INTEGER   :: iqmax
 INTEGER   :: irmin
 INTEGER   :: nlow = 0
 REAL(KIND=PREC_DP) :: dq
@@ -44,12 +43,9 @@ REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: yfft   ! Temporary array for FF
 !n
 nlow = 0
 dq = deltaq !  (xwrt(npkt_wrt)-xwrt(1))/(npkt_wrt-1)
-!rstep    = (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
 qmax_l   =  PI/rstep           ! by using 2*PI/rstep, the step size in direct space is halved
-!write(*,*) ' PDF q   ', dq
 !
 iqmin = MAX(0,NINT(qmin/deltaq))
-iqmax = MAX(0,NINT(qmax/deltaq))
 lensav= 4+INT(SQRT(FLOAT(npkt_fft)/2))
 lenwrk= npkt_fft*5/4-1
 ALLOCATE(temp(0:npkt_fft-1))
@@ -60,21 +56,19 @@ ALLOCATE(yfft(0:npkt_fft+1))
 temp = 0.0D0
 ip   = 0
 w    = 0.0D0
-!write(*,*) ' IQMIN ', iqmin, iqmax, lbound(temp), ubound(temp), npkt_wrt
-!write(*,*) ' IQ    ', iqmax-iqmin, npkt_wrt-1
+!
 DO i=0,iqmin-1                       ! Augment straight line to q=0
    temp(i) = REAL(i,KIND=PREC_DP)*dq*ywrt(1)/xwrt(1)
 ENDDO
-temp(iqmin:iqmax) = ywrt(1:npkt_wrt) ! Add actual powder pattern
+!
+temp(iqmin:iqmin+npkt_wrt-1) = ywrt(1:npkt_wrt) ! Add actual powder pattern
 !open(77,file='POWDER/prae_fft.FQ',status='unknown')
 !DO i=0,iqmax
 !  write(77,'(2(2x,G17.7E3))') (i)*dq,temp(i)
 !enddo
 !close(77)
 !
-!write(*,*) ' DO  FOURIER '
 CALL ddst(npkt_fft, 1, temp, ip, w)
-!write(*,*) ' DID FOURIER '
 !
 irmin = nint(rmin/rstep)
 !write(*,*) 'PDF OUT ', rmin, rstep, irmin, npkt_pdf
