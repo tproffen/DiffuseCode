@@ -1976,12 +1976,9 @@ LOGICAL, INTENT(IN) :: calc_f2aver
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
-      REAL      :: xstart  ! qmin  for sin Theta / lambda calculation
-      REAL      :: xdelta  ! qstep for sin Theta / lambda calculation
 !
       LOGICAL :: lout 
 !                                                                       
-      REAL( KIND(0.0D0)):: signum
       REAL :: ss 
       REAL :: seknds 
 !
