@@ -3035,26 +3035,36 @@ subroutine cmf2kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
 
       return
 
-  106 do 107 k=1,l1
+! 106 do 107 k=1,l1  !RBN
+  106 continue
+      do     k=1,l1
          m2 = m2s
-         do 107 m1=1,m1d,im1
+!        do 107 m1=1,m1d,im1 !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ch(1,m2,k,1,1) = sn*(cc(1,m1,k,1,1)+cc(1,m1,k,1,2))
          ch(1,m2,k,2,1) = sn*(cc(1,m1,k,1,1)-cc(1,m1,k,1,2))
          ch(2,m2,k,1,1) = sn*(cc(2,m1,k,1,1)+cc(2,m1,k,1,2))
          ch(2,m2,k,2,1) = sn*(cc(2,m1,k,1,1)-cc(2,m1,k,1,2))
+      end do
+   end do
   107 continue
 
       return
 
-  102 do 103 k=1,l1
+! 102 do 103 k=1,l1 !RBN
+  102 continue
+      do     k=1,l1
          m2 = m2s
-         do 103 m1=1,m1d,im1
+!        do 103 m1=1,m1d,im1 !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ch(1,m2,k,1,1) = cc(1,m1,k,1,1)+cc(1,m1,k,1,2)
          ch(1,m2,k,2,1) = cc(1,m1,k,1,1)-cc(1,m1,k,1,2)
          ch(2,m2,k,1,1) = cc(2,m1,k,1,1)+cc(2,m1,k,1,2)
          ch(2,m2,k,2,1) = cc(2,m1,k,1,1)-cc(2,m1,k,1,2)
+     end do
+  end do
   103 continue
 
   do i=2,ido
@@ -3166,9 +3176,12 @@ subroutine cmf3kb ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
 
       return
 
-  102 do 103 k=1,l1
+! 102 do 103 k=1,l1 !RBN
+  102 continue
+      do     k=1,l1
          m2 = m2s
-         do 103 m1=1,m1d,im1
+!        do 103 m1=1,m1d,im1  !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          tr2 = cc(1,m1,k,1,2)+cc(1,m1,k,1,3)
          cr2 = cc(1,m1,k,1,1)+taur*tr2
@@ -3182,12 +3195,17 @@ subroutine cmf3kb ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          ch(1,m2,k,3,1) = cr2+ci3
          ch(2,m2,k,2,1) = ci2+cr3
          ch(2,m2,k,3,1) = ci2-cr3
+     end do
+  end do
   103 continue
 
-      do 105 i=2,ido
-        do 104 k=1,l1
+!     do 105 i=2,ido  !RBN
+!       do 104 k=1,l1  !RBN
+      do     i=2,ido
+        do     k=1,l1
          m2 = m2s
-         do 104 m1=1,m1d,im1
+!        do 104 m1=1,m1d,im1  !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             tr2 = cc(1,m1,k,i,2)+cc(1,m1,k,i,3)
             cr2 = cc(1,m1,k,i,1)+taur*tr2
@@ -3205,6 +3223,9 @@ subroutine cmf3kb ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
             ch(1,m2,k,2,i) = wa(i,1,1)*dr2-wa(i,1,2)*di2
             ch(2,m2,k,3,i) = wa(i,2,1)*di3+wa(i,2,2)*dr3
             ch(1,m2,k,3,i) = wa(i,2,1)*dr3-wa(i,2,2)*di3
+        end do
+     end do
+  end do
   104    continue
   105 continue
 
@@ -3285,8 +3306,10 @@ subroutine cmf3kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
       if ( 1 < ido ) go to 102
       sn = 1.0E+00 / real ( 3 * l1, kind = 4 )
       if (na == 1) go to 106
-      do 101 k=1,l1
-         do 101 m1=1,m1d,im1
+!     do 101 k=1,l1  !RBN
+!        do 101 m1=1,m1d,im1  !RBN
+      do     k=1,l1
+         do     m1=1,m1d,im1
          tr2 = cc(1,m1,k,1,2)+cc(1,m1,k,1,3)
          cr2 = cc(1,m1,k,1,1)+taur*tr2
          cc(1,m1,k,1,1) = sn*(cc(1,m1,k,1,1)+tr2)
@@ -3299,13 +3322,18 @@ subroutine cmf3kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          cc(1,m1,k,1,3) = sn*(cr2+ci3)
          cc(2,m1,k,1,2) = sn*(ci2+cr3)
          cc(2,m1,k,1,3) = sn*(ci2-cr3)
+     end do
+  end do
   101 continue
 
       return
 
-  106 do 107 k=1,l1
+! 106 do 107 k=1,l1  !RBN
+  106 continue
+      do     k=1,l1
          m2 = m2s
-         do 107 m1=1,m1d,im1
+!        do 107 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          tr2 = cc(1,m1,k,1,2)+cc(1,m1,k,1,3)
          cr2 = cc(1,m1,k,1,1)+taur*tr2
@@ -3319,13 +3347,18 @@ subroutine cmf3kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          ch(1,m2,k,3,1) = sn*(cr2+ci3)
          ch(2,m2,k,2,1) = sn*(ci2+cr3)
          ch(2,m2,k,3,1) = sn*(ci2-cr3)
+     end do
+  end do
   107 continue
 
       return
 
-  102 do 103 k=1,l1
+! 102 do 103 k=1,l1  !RBN
+  102 continue
+      do     k=1,l1
          m2 = m2s
-         do 103 m1=1,m1d,im1
+!        do 103 m1=1,m1d,im1  !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          tr2 = cc(1,m1,k,1,2)+cc(1,m1,k,1,3)
          cr2 = cc(1,m1,k,1,1)+taur*tr2
@@ -3339,11 +3372,16 @@ subroutine cmf3kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          ch(1,m2,k,3,1) = cr2+ci3
          ch(2,m2,k,2,1) = ci2+cr3
          ch(2,m2,k,3,1) = ci2-cr3
+     end do
+  end do
   103 continue
-      do 105 i=2,ido
-        do 104 k=1,l1
+!     do 105 i=2,ido  !RBN
+!       do 104 k=1,l1  !RBN
+      do     i=2,ido
+        do     k=1,l1
          m2 = m2s
-         do 104 m1=1,m1d,im1
+!        do 104 m1=1,m1d,im1  !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             tr2 = cc(1,m1,k,i,2)+cc(1,m1,k,i,3)
             cr2 = cc(1,m1,k,i,1)+taur*tr2
@@ -3361,6 +3399,9 @@ subroutine cmf3kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
             ch(1,m2,k,2,i) = wa(i,1,1)*dr2+wa(i,1,2)*di2
             ch(2,m2,k,3,i) = wa(i,2,1)*di3-wa(i,2,2)*dr3
             ch(1,m2,k,3,i) = wa(i,2,1)*dr3+wa(i,2,2)*di3
+         end do
+      end do
+   end do
   104    continue
   105 continue
 
@@ -3466,9 +3507,11 @@ subroutine cmf4kb ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
 
   102 continue
 
-      do 103 k=1,l1
+!     do 103 k=1,l1   !RBN
+      do     k=1,l1
          m2 = m2s
-         do 103 m1=1,m1d,im1
+!        do 103 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ti1 = cc(2,m1,k,1,1)-cc(2,m1,k,1,3)
          ti2 = cc(2,m1,k,1,1)+cc(2,m1,k,1,3)
@@ -3486,12 +3529,17 @@ subroutine cmf4kb ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          ch(1,m2,k,4,1) = tr1-tr4
          ch(2,m2,k,2,1) = ti1+ti4
          ch(2,m2,k,4,1) = ti1-ti4
+     end do
+  end do
   103 continue
 
-      do 105 i=2,ido
-         do 104 k=1,l1
+!     do 105 i=2,ido   !RBN
+!        do 104 k=1,l1   !RBN
+      do     i=2,ido
+         do     k=1,l1
          m2 = m2s
-         do 104 m1=1,m1d,im1
+!        do 104 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             ti1 = cc(2,m1,k,i,1)-cc(2,m1,k,i,3)
             ti2 = cc(2,m1,k,i,1)+cc(2,m1,k,i,3)
@@ -3515,6 +3563,9 @@ subroutine cmf4kb ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
             ch(2,m2,k,3,i) = wa(i,2,1)*ci3+wa(i,2,2)*cr3
             ch(1,m2,k,4,i) = wa(i,3,1)*cr4-wa(i,3,2)*ci4
             ch(2,m2,k,4,i) = wa(i,3,1)*ci4+wa(i,3,2)*cr4
+        end do
+     end do
+  end do
   104    continue
   105 continue
 
@@ -3597,8 +3648,10 @@ subroutine cmf4kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
       if ( 1 < ido ) go to 102
       sn = 1.0E+00 / real ( 4 * l1, kind = 4 )
       if (na == 1) go to 106
-      do 101 k=1,l1
-         do 101 m1=1,m1d,im1
+!     do 101 k=1,l1   !RBN
+!        do 101 m1=1,m1d,im1   !RBN
+      do     k=1,l1
+         do     m1=1,m1d,im1
          ti1 = cc(2,m1,k,1,1)-cc(2,m1,k,1,3)
          ti2 = cc(2,m1,k,1,1)+cc(2,m1,k,1,3)
          tr4 = cc(2,m1,k,1,2)-cc(2,m1,k,1,4)
@@ -3615,13 +3668,18 @@ subroutine cmf4kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          cc(1,m1,k,1,4) = sn*(tr1-tr4)
          cc(2,m1,k,1,2) = sn*(ti1+ti4)
          cc(2,m1,k,1,4) = sn*(ti1-ti4)
+     end do
+  end do
   101 continue
 
       return
 
-  106 do 107 k=1,l1
+! 106 do 107 k=1,l1  !RBN
+  106 continue
+      do     k=1,l1
          m2 = m2s
-         do 107 m1=1,m1d,im1
+!        do 107 m1=1,m1d,im1  !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ti1 = cc(2,m1,k,1,1)-cc(2,m1,k,1,3)
          ti2 = cc(2,m1,k,1,1)+cc(2,m1,k,1,3)
@@ -3639,13 +3697,18 @@ subroutine cmf4kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          ch(1,m2,k,4,1) = sn*(tr1-tr4)
          ch(2,m2,k,2,1) = sn*(ti1+ti4)
          ch(2,m2,k,4,1) = sn*(ti1-ti4)
+     end do
+  end do
   107 continue
 
       return
 
-  102 do 103 k=1,l1
+! 102 do 103 k=1,l1  !RBN
+  102 continue
+      do     k=1,l1
          m2 = m2s
-         do 103 m1=1,m1d,im1
+!        do 103 m1=1,m1d,im1  !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ti1 = cc(2,m1,k,1,1)-cc(2,m1,k,1,3)
          ti2 = cc(2,m1,k,1,1)+cc(2,m1,k,1,3)
@@ -3663,11 +3726,16 @@ subroutine cmf4kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          ch(1,m2,k,4,1) = tr1-tr4
          ch(2,m2,k,2,1) = ti1+ti4
          ch(2,m2,k,4,1) = ti1-ti4
+     end do
+  end do
   103 continue
-      do 105 i=2,ido
-         do 104 k=1,l1
+!     do 105 i=2,ido   !RBN
+!        do 104 k=1,l1   !RBN
+      do     i=2,ido
+         do     k=1,l1
          m2 = m2s
-         do 104 m1=1,m1d,im1
+!        do 104 m1=1,m1d,im1  !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             ti1 = cc(2,m1,k,i,1)-cc(2,m1,k,i,3)
             ti2 = cc(2,m1,k,i,1)+cc(2,m1,k,i,3)
@@ -3691,6 +3759,9 @@ subroutine cmf4kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
             ch(2,m2,k,3,i) = wa(i,2,1)*ci3-wa(i,2,2)*cr3
             ch(1,m2,k,4,i) = wa(i,3,1)*cr4+wa(i,3,2)*ci4
             ch(2,m2,k,4,i) = wa(i,3,1)*ci4-wa(i,3,2)*cr4
+        end do
+     end do
+  end do
   104    continue
   105 continue
 
@@ -3786,8 +3857,10 @@ subroutine cmf5kb ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
   m2s = 1-im2
 
       if ( 1 < ido .or. na == 1) go to 102
-      do 101 k=1,l1
-         do 101 m1=1,m1d,im1
+!     do 101 k=1,l1   !RBN
+!        do 101 m1=1,m1d,im1   !RBN
+      do     k=1,l1
+         do     m1=1,m1d,im1
          ti5 = cc(2,m1,k,1,2)-cc(2,m1,k,1,5)
          ti2 = cc(2,m1,k,1,2)+cc(2,m1,k,1,5)
          ti4 = cc(2,m1,k,1,3)-cc(2,m1,k,1,4)
@@ -3816,13 +3889,18 @@ subroutine cmf5kb ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          cc(1,m1,k,1,4) = cr3+ci4
          cc(2,m1,k,1,4) = ci3-cr4
          cc(2,m1,k,1,5) = ci2-cr5
+     end do
+  end do
   101 continue
 
       return
 
-  102 do 103 k=1,l1
+! 102 do 103 k=1,l1   !RBN
+  102 continue
+      do     k=1,l1
          m2 = m2s
-         do 103 m1=1,m1d,im1
+!        do 103 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ti5 = cc(2,m1,k,1,2)-cc(2,m1,k,1,5)
          ti2 = cc(2,m1,k,1,2)+cc(2,m1,k,1,5)
@@ -3850,12 +3928,17 @@ subroutine cmf5kb ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          ch(1,m2,k,4,1) = cr3+ci4
          ch(2,m2,k,4,1) = ci3-cr4
          ch(2,m2,k,5,1) = ci2-cr5
+     end do
+  end do
   103 continue
 
-      do 105 i=2,ido
-         do 104 k=1,l1
+!     do 105 i=2,ido   !RBN
+!        do 104 k=1,l1   !RBN
+      do     i=2,ido
+         do     k=1,l1
          m2 = m2s
-         do 104 m1=1,m1d,im1
+!        do 104 m1=1,m1d,im1  !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             ti5 = cc(2,m1,k,i,2)-cc(2,m1,k,i,5)
             ti2 = cc(2,m1,k,i,2)+cc(2,m1,k,i,5)
@@ -3891,6 +3974,9 @@ subroutine cmf5kb ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
             ch(2,m2,k,4,i) = wa(i,3,1)*di4+wa(i,3,2)*dr4
             ch(1,m2,k,5,i) = wa(i,4,1)*dr5-wa(i,4,2)*di5
             ch(2,m2,k,5,i) = wa(i,4,1)*di5+wa(i,4,2)*dr5
+        end do
+     end do
+  end do
   104    continue
   105 continue
 
@@ -3989,8 +4075,10 @@ subroutine cmf5kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
       if ( 1 < ido ) go to 102
       sn = 1.0E+00 / real ( 5 * l1, kind = 4 )
       if (na == 1) go to 106
-      do 101 k=1,l1
-         do 101 m1=1,m1d,im1
+!     do 101 k=1,l1   !RBN
+!        do 101 m1=1,m1d,im1   !RBN
+      do     k=1,l1
+         do     m1=1,m1d,im1
          ti5 = cc(2,m1,k,1,2)-cc(2,m1,k,1,5)
          ti2 = cc(2,m1,k,1,2)+cc(2,m1,k,1,5)
          ti4 = cc(2,m1,k,1,3)-cc(2,m1,k,1,4)
@@ -4019,13 +4107,18 @@ subroutine cmf5kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          cc(1,m1,k,1,4) = sn*(cr3+ci4)
          cc(2,m1,k,1,4) = sn*(ci3-cr4)
          cc(2,m1,k,1,5) = sn*(ci2-cr5)
+     end do
+  end do
   101 continue
 
       return
 
-  106 do 107 k=1,l1
+! 106 do 107 k=1,l1   !RBN
+  106 continue
+      do     k=1,l1
          m2 = m2s
-         do 107 m1=1,m1d,im1
+!        do 107 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ti5 = cc(2,m1,k,1,2)-cc(2,m1,k,1,5)
          ti2 = cc(2,m1,k,1,2)+cc(2,m1,k,1,5)
@@ -4053,13 +4146,18 @@ subroutine cmf5kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          ch(1,m2,k,4,1) = sn*(cr3+ci4)
          ch(2,m2,k,4,1) = sn*(ci3-cr4)
          ch(2,m2,k,5,1) = sn*(ci2-cr5)
+     end do
+  end do
   107 continue
 
       return
 
-  102 do 103 k=1,l1
+! 102 do 103 k=1,l1   !RBN
+  102 continue
+      do     k=1,l1
          m2 = m2s
-         do 103 m1=1,m1d,im1
+!        do 103 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ti5 = cc(2,m1,k,1,2)-cc(2,m1,k,1,5)
          ti2 = cc(2,m1,k,1,2)+cc(2,m1,k,1,5)
@@ -4087,11 +4185,16 @@ subroutine cmf5kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
          ch(1,m2,k,4,1) = cr3+ci4
          ch(2,m2,k,4,1) = ci3-cr4
          ch(2,m2,k,5,1) = ci2-cr5
+     end do
+  end do
   103 continue
-      do 105 i=2,ido
-         do 104 k=1,l1
+!     do 105 i=2,ido   !RBN
+!        do 104 k=1,l1   !RBN
+      do     i=2,ido
+         do     k=1,l1
          m2 = m2s
-         do 104 m1=1,m1d,im1
+!        do 104 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             ti5 = cc(2,m1,k,i,2)-cc(2,m1,k,i,5)
             ti2 = cc(2,m1,k,i,2)+cc(2,m1,k,i,5)
@@ -4127,6 +4230,9 @@ subroutine cmf5kf ( lot, ido, l1, na, cc, im1, in1, ch, im2, in2, wa )
             ch(2,m2,k,4,i) = wa(i,3,1)*di4-wa(i,3,2)*dr4
             ch(1,m2,k,5,i) = wa(i,4,1)*dr5+wa(i,4,2)*di5
             ch(2,m2,k,5,i) = wa(i,4,1)*di5-wa(i,4,2)*dr5
+        end do
+     end do
+  end do
   104    continue
   105 continue
 
@@ -4235,79 +4341,114 @@ subroutine cmfgkb ( lot, ido, ip, l1, lid, na, cc, cc1, im1, in1, &
 
 !RBN  111 continue
 
-      do 118 j=2,ipph
-         do 117 ki=1,lid
+!     do 118 j=2,ipph   !RBN
+!        do 117 ki=1,lid   !RBN
+      do     j=2,ipph
+         do     ki=1,lid
          m2 = m2s
-         do 117 m1=1,m1d,im1
+!        do 117 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             cc1(1,m1,ki,1) = cc1(1,m1,ki,1)+ch1(1,m2,ki,j)
             cc1(2,m1,ki,1) = cc1(2,m1,ki,1)+ch1(2,m2,ki,j)
+      end do
+    end do
+  end do
   117    continue
   118 continue
 
-      do 116 l=2,ipph
+!     do 116 l=2,ipph   !RBN
+      do     l=2,ipph
          lc = ipp2-l
-         do 113 ki=1,lid
+!        do 113 ki=1,lid   !RBN
+         do     ki=1,lid
          m2 = m2s
-         do 113 m1=1,m1d,im1
+!        do 113 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             cc1(1,m1,ki,l) = ch1(1,m2,ki,1)+wa(1,l-1,1)*ch1(1,m2,ki,2)
             cc1(1,m1,ki,lc) = wa(1,l-1,2)*ch1(1,m2,ki,ip)
             cc1(2,m1,ki,l) = ch1(2,m2,ki,1)+wa(1,l-1,1)*ch1(2,m2,ki,2)
             cc1(2,m1,ki,lc) = wa(1,l-1,2)*ch1(2,m2,ki,ip)
+        end do
+     end do
   113    continue
-         do 115 j=3,ipph
+!        do 115 j=3,ipph   !RBN
+         do     j=3,ipph
             jc = ipp2-j
             idlj = mod((l-1)*(j-1),ip)
             war = wa(1,idlj,1)
             wai = wa(1,idlj,2)
-            do 114 ki=1,lid
+!           do 114 ki=1,lid   !RBN
+            do     ki=1,lid
                m2 = m2s
-               do 114 m1=1,m1d,im1
+!              do 114 m1=1,m1d,im1   !RBN
+               do     m1=1,m1d,im1
                m2 = m2+im2
                cc1(1,m1,ki,l) = cc1(1,m1,ki,l)+war*ch1(1,m2,ki,j)
                cc1(1,m1,ki,lc) = cc1(1,m1,ki,lc)+wai*ch1(1,m2,ki,jc)
                cc1(2,m1,ki,l) = cc1(2,m1,ki,l)+war*ch1(2,m2,ki,j)
                cc1(2,m1,ki,lc) = cc1(2,m1,ki,lc)+wai*ch1(2,m2,ki,jc)
+        end do
+     end do
+     end do
+  end do
   114       continue
   115    continue
   116 continue
 
       if( 1 < ido .or. na == 1) go to 136
 
-      do 120 j=2,ipph
+!     do 120 j=2,ipph   !RBN
+      do     j=2,ipph
          jc = ipp2-j
-         do 119 ki=1,lid
-         do 119 m1=1,m1d,im1
+!        do 119 ki=1,lid   !RBN
+!        do 119 m1=1,m1d,im1   !RBN
+         do     ki=1,lid
+         do     m1=1,m1d,im1
             chold1 = cc1(1,m1,ki,j)-cc1(2,m1,ki,jc)
             chold2 = cc1(1,m1,ki,j)+cc1(2,m1,ki,jc)
             cc1(1,m1,ki,j) = chold1
             cc1(2,m1,ki,jc) = cc1(2,m1,ki,j)-cc1(1,m1,ki,jc)
             cc1(2,m1,ki,j) = cc1(2,m1,ki,j)+cc1(1,m1,ki,jc)
             cc1(1,m1,ki,jc) = chold2
+        end do
+     end do
+  end do
   119    continue
   120 continue
 
       return
 
-  136 do 137 ki=1,lid
+! 136 do 137 ki=1,lid   !RBN
+  136 continue
+      do     ki=1,lid
          m2 = m2s
-         do 137 m1=1,m1d,im1
+!        do 137 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ch1(1,m2,ki,1) = cc1(1,m1,ki,1)
          ch1(2,m2,ki,1) = cc1(2,m1,ki,1)
+     end do
+  end do
   137 continue
 
-      do 135 j=2,ipph
+!     do 135 j=2,ipph   !RBN
+      do     j=2,ipph
          jc = ipp2-j
-         do 134 ki=1,lid
+!        do 134 ki=1,lid   !RBN
+         do     ki=1,lid
          m2 = m2s
-         do 134 m1=1,m1d,im1
+!        do 134 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             ch1(1,m2,ki,j) = cc1(1,m1,ki,j)-cc1(2,m1,ki,jc)
             ch1(1,m2,ki,jc) = cc1(1,m1,ki,j)+cc1(2,m1,ki,jc)
             ch1(2,m2,ki,jc) = cc1(2,m1,ki,j)-cc1(1,m1,ki,jc)
             ch1(2,m2,ki,j) = cc1(2,m1,ki,j)+cc1(1,m1,ki,jc)
+        end do
+     end do
+  end do
   134    continue
   135 continue
 
@@ -4315,36 +4456,56 @@ subroutine cmfgkb ( lot, ido, ip, l1, lid, na, cc, cc1, im1, in1, &
         return
       end if
 
-      do 131 i=1,ido
-         do 130 k=1,l1
+!     do 131 i=1,ido   !RBN
+!        do 130 k=1,l1   !RBN
+      do     i=1,ido
+         do     k=1,l1
          m2 = m2s
-         do 130 m1=1,m1d,im1
+!        do 130 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             cc(1,m1,k,1,i) = ch(1,m2,k,i,1)
             cc(2,m1,k,1,i) = ch(2,m2,k,i,1)
+        end do
+     end do
+  end do
   130    continue
   131 continue
 
-      do 123 j=2,ip
-         do 122 k=1,l1
+!     do 123 j=2,ip   !RBN
+!        do 122 k=1,l1   !RBN
+      do     j=2,ip
+         do     k=1,l1
          m2 = m2s
-         do 122 m1=1,m1d,im1
+!        do 122 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             cc(1,m1,k,j,1) = ch(1,m2,k,1,j)
             cc(2,m1,k,j,1) = ch(2,m2,k,1,j)
+        end do
+     end do
+  end do
   122    continue
   123 continue
 
-      do 126 j=2,ip
-         do 125 i=2,ido
-            do 124 k=1,l1
+!     do 126 j=2,ip   !RBN
+!        do 125 i=2,ido   !RBN
+!           do 124 k=1,l1   !RBN
+      do     j=2,ip
+         do     i=2,ido
+            do     k=1,l1
                m2 = m2s
-               do 124 m1=1,m1d,im1
+!              do 124 m1=1,m1d,im1   !RBN
+               do     m1=1,m1d,im1
                m2 = m2+im2
                cc(1,m1,k,j,i) = wa(i,j-1,1)*ch(1,m2,k,i,j) &
                             -wa(i,j-1,2)*ch(2,m2,k,i,j)
                cc(2,m1,k,j,i) = wa(i,j-1,1)*ch(2,m2,k,i,j) &
                             +wa(i,j-1,2)*ch(1,m2,k,i,j)
+           end do
+        end do
+     end do
+  end do
   124       continue
   125    continue
   126 continue
@@ -4429,156 +4590,236 @@ subroutine cmfgkf ( lot, ido, ip, l1, lid, na, cc, cc1, im1, in1, &
       m2s = 1-im2
       ipp2 = ip+2
       ipph = (ip+1)/2
-      do 110 ki=1,lid
+!     do 110 ki=1,lid   !RBN
+      do     ki=1,lid
          m2 = m2s
-         do 110 m1=1,m1d,im1
+!        do 110 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ch1(1,m2,ki,1) = cc1(1,m1,ki,1)
          ch1(2,m2,ki,1) = cc1(2,m1,ki,1)
+     end do
+  end do
   110 continue
 
-      do 111 j=2,ipph
+!     do 111 j=2,ipph  !RBN
+      do     j=2,ipph
          jc = ipp2-j
-         do 112 ki=1,lid
+!        do 112 ki=1,lid  !RBN
+         do     ki=1,lid
          m2 = m2s
-         do 112 m1=1,m1d,im1
+!        do 112 m1=1,m1d,im1  !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             ch1(1,m2,ki,j) =  cc1(1,m1,ki,j)+cc1(1,m1,ki,jc)
             ch1(1,m2,ki,jc) = cc1(1,m1,ki,j)-cc1(1,m1,ki,jc)
             ch1(2,m2,ki,j) =  cc1(2,m1,ki,j)+cc1(2,m1,ki,jc)
             ch1(2,m2,ki,jc) = cc1(2,m1,ki,j)-cc1(2,m1,ki,jc)
+        end do
+     end do
+  end do
   112    continue
   111 continue
-      do 118 j=2,ipph
-         do 117 ki=1,lid
+!     do 118 j=2,ipph   !RBN
+!        do 117 ki=1,lid   !RBN
+      do     j=2,ipph
+         do     ki=1,lid
          m2 = m2s
-         do 117 m1=1,m1d,im1
+!        do 117 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             cc1(1,m1,ki,1) = cc1(1,m1,ki,1)+ch1(1,m2,ki,j)
             cc1(2,m1,ki,1) = cc1(2,m1,ki,1)+ch1(2,m2,ki,j)
+        end do
+     end do
+  end do
   117    continue
   118 continue
-      do 116 l=2,ipph
+!     do 116 l=2,ipph   !RBN
+      do     l=2,ipph
          lc = ipp2-l
-         do 113 ki=1,lid
+!        do 113 ki=1,lid   !RBN
+         do     ki=1,lid
          m2 = m2s
-         do 113 m1=1,m1d,im1
+!        do 113 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             cc1(1,m1,ki,l) = ch1(1,m2,ki,1)+wa(1,l-1,1)*ch1(1,m2,ki,2)
             cc1(1,m1,ki,lc) = -wa(1,l-1,2)*ch1(1,m2,ki,ip)
             cc1(2,m1,ki,l) = ch1(2,m2,ki,1)+wa(1,l-1,1)*ch1(2,m2,ki,2)
             cc1(2,m1,ki,lc) = -wa(1,l-1,2)*ch1(2,m2,ki,ip)
+        end do
+     end do
   113    continue
-         do 115 j=3,ipph
+!        do 115 j=3,ipph   !RBN
+         do     j=3,ipph
             jc = ipp2-j
             idlj = mod((l-1)*(j-1),ip)
             war = wa(1,idlj,1)
             wai = -wa(1,idlj,2)
-            do 114 ki=1,lid
+!           do 114 ki=1,lid   !RBN
+            do     ki=1,lid
                m2 = m2s
-               do 114 m1=1,m1d,im1
+!              do 114 m1=1,m1d,im1   !RBN
+               do     m1=1,m1d,im1
                m2 = m2+im2
                cc1(1,m1,ki,l) = cc1(1,m1,ki,l)+war*ch1(1,m2,ki,j)
                cc1(1,m1,ki,lc) = cc1(1,m1,ki,lc)+wai*ch1(1,m2,ki,jc)
                cc1(2,m1,ki,l) = cc1(2,m1,ki,l)+war*ch1(2,m2,ki,j)
                cc1(2,m1,ki,lc) = cc1(2,m1,ki,lc)+wai*ch1(2,m2,ki,jc)
+           end do
+        end do
+     end do
   114       continue
   115    continue
   116 continue
+  end do
       if ( 1 < ido ) go to 136
       sn = 1.0E+00 / real ( ip * l1, kind = 4 )
       if (na == 1) go to 146
-      do 149 ki=1,lid
+!     do 149 ki=1,lid   !RBN
+      do     ki=1,lid
          m2 = m2s
-         do 149 m1=1,m1d,im1
+!        do 149 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          cc1(1,m1,ki,1) = sn*cc1(1,m1,ki,1)
          cc1(2,m1,ki,1) = sn*cc1(2,m1,ki,1)
+        end do
+     end do
   149 continue
-      do 120 j=2,ipph
+!     do 120 j=2,ipph   !RBN
+      do     j=2,ipph
          jc = ipp2-j
-         do 119 ki=1,lid
-         do 119 m1=1,m1d,im1
+!        do 119 ki=1,lid   !RBN
+!        do 119 m1=1,m1d,im1   !RBN
+         do     ki=1,lid
+         do     m1=1,m1d,im1
             chold1 = sn*(cc1(1,m1,ki,j)-cc1(2,m1,ki,jc))
             chold2 = sn*(cc1(1,m1,ki,j)+cc1(2,m1,ki,jc))
             cc1(1,m1,ki,j) = chold1
             cc1(2,m1,ki,jc) = sn*(cc1(2,m1,ki,j)-cc1(1,m1,ki,jc))
             cc1(2,m1,ki,j) = sn*(cc1(2,m1,ki,j)+cc1(1,m1,ki,jc))
             cc1(1,m1,ki,jc) = chold2
+        end do
+     end do
+  end do
   119    continue
   120 continue
 
       return
 
-  146 do 147 ki=1,lid
+! 146 do 147 ki=1,lid   !RBN
+  146 continue
+      do     ki=1,lid
          m2 = m2s
-         do 147 m1=1,m1d,im1
+!        do 147 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ch1(1,m2,ki,1) = sn*cc1(1,m1,ki,1)
          ch1(2,m2,ki,1) = sn*cc1(2,m1,ki,1)
+     end do
+  end do
   147 continue
-      do 145 j=2,ipph
+!     do 145 j=2,ipph   !RBN
+      do     j=2,ipph
          jc = ipp2-j
-         do 144 ki=1,lid
+!        do 144 !i=1,lid   !RBN
+         do     ki=1,lid
          m2 = m2s
-         do 144 m1=1,m1d,im1
+!        do 144 !1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             ch1(1,m2,ki,j) = sn*(cc1(1,m1,ki,j)-cc1(2,m1,ki,jc))
             ch1(2,m2,ki,j) = sn*(cc1(2,m1,ki,j)+cc1(1,m1,ki,jc))
             ch1(1,m2,ki,jc) = sn*(cc1(1,m1,ki,j)+cc1(2,m1,ki,jc))
             ch1(2,m2,ki,jc) = sn*(cc1(2,m1,ki,j)-cc1(1,m1,ki,jc))
+        end do
+     end do
+  end do
   144    continue
   145 continue
 
       return
 
-  136 do 137 ki=1,lid
+! 136 do 137 ki=1,lid   !RBN
+  136 continue
+      do     ki=1,lid
          m2 = m2s
-         do 137 m1=1,m1d,im1
+!        do 137 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
          ch1(1,m2,ki,1) = cc1(1,m1,ki,1)
          ch1(2,m2,ki,1) = cc1(2,m1,ki,1)
+     end do
+  end do
   137 continue
-      do 135 j=2,ipph
+!     do 135 j=2,ipph   !RBN
+      do     j=2,ipph
          jc = ipp2-j
-         do 134 ki=1,lid
+!        do 134 ki=1,lid   !RBN
+         do     ki=1,lid
          m2 = m2s
-         do 134 m1=1,m1d,im1
+!        do 134 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             ch1(1,m2,ki,j) = cc1(1,m1,ki,j)-cc1(2,m1,ki,jc)
             ch1(2,m2,ki,j) = cc1(2,m1,ki,j)+cc1(1,m1,ki,jc)
             ch1(1,m2,ki,jc) = cc1(1,m1,ki,j)+cc1(2,m1,ki,jc)
             ch1(2,m2,ki,jc) = cc1(2,m1,ki,j)-cc1(1,m1,ki,jc)
+        end do
+     end do
+  end do
   134    continue
   135 continue
-      do 131 i=1,ido
-         do 130 k=1,l1
+!     do 131 i=1,ido   !RBN
+!        do 130 k=1,l1   !RBN
+      do     i=1,ido
+         do     k=1,l1
          m2 = m2s
-         do 130 m1=1,m1d,im1
+!        do 130 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             cc(1,m1,k,1,i) = ch(1,m2,k,i,1)
             cc(2,m1,k,1,i) = ch(2,m2,k,i,1)
+        end do
+     end do
+  end do
   130    continue
   131 continue
-      do 123 j=2,ip
-         do 122 k=1,l1
+!     do 123 j=2,ip   !RBN
+!        do 122 k=1,l1   !RBN
+      do     j=2,ip
+         do     k=1,l1
          m2 = m2s
-         do 122 m1=1,m1d,im1
+!        do 122 m1=1,m1d,im1   !RBN
+         do     m1=1,m1d,im1
          m2 = m2+im2
             cc(1,m1,k,j,1) = ch(1,m2,k,1,j)
             cc(2,m1,k,j,1) = ch(2,m2,k,1,j)
+        end do
+     end do
+  end do
   122    continue
   123 continue
-      do 126 j=2,ip
-         do 125 i=2,ido
-            do 124 k=1,l1
+!     do 126 j=2,ip   !RBN
+!        do 125 i=2,ido   !RBN
+!           do 124 k=1,l1   !RBN
+      do     j=2,ip
+         do     i=2,ido
+            do     k=1,l1
                m2 = m2s
-               do 124 m1=1,m1d,im1
+!              do 124 m1=1,m1d,im1   !RBN
+               do     m1=1,m1d,im1
                m2 = m2+im2
                cc(1,m1,k,j,i) = wa(i,j-1,1)*ch(1,m2,k,i,j) &
                             +wa(i,j-1,2)*ch(2,m2,k,i,j)
                cc(2,m1,k,j,i) = wa(i,j-1,1)*ch(2,m2,k,i,j) &
                             -wa(i,j-1,2)*ch(1,m2,k,i,j)
+           end do
+        end do
+     end do
+  end do
   124       continue
   125    continue
   126 continue
@@ -9248,21 +9489,29 @@ subroutine mrftb1 (m,im,n,in,c,ch,wa,fac)
       ch(i,1) = c(m2,1)
       ch(i,n) = c(m2,n)
   117 continue
-      do 118 j=2,nl,2
+!     do 118 j=2,nl,2   !RBN
+      do     j=2,nl,2
       m2 = 1-im
-      do 118 i=1,m
+!     do 118 i=1,m   !RBN
+      do     i=1,m
          m2 = m2+im
          ch(i,j) = half*c(m2,j)
          ch(i,j+1) = halfm*c(m2,j+1)
+     end do 
+  end do 
   118 continue
       go to 124
   120 continue
-      do 122 j=2,nl,2
+!     do 122 j=2,nl,2   !RBN
+      do     j=2,nl,2
       m2 = 1-im
-      do 122 i=1,m
+!     do 122 i=1,m   !RBN
+      do     i=1,m
          m2 = m2+im
          c(m2,j) = half*c(m2,j)
          c(m2,j+1) = halfm*c(m2,j+1)
+     end do 
+  end do 
   122 continue
   124 l1 = 1
       iw = 1
@@ -9472,12 +9721,16 @@ subroutine mrftf1 (m,im,n,in,c,ch,wa,fac)
          m2 = m2+im
          c(m2,1) = sn*c(m2,1)
   121 continue
-      do 122 j=2,nl,2
+!     do 122 j=2,nl,2   !RBN
+      do     j=2,nl,2
       m2 = 1-im
-      do 122 i=1,m
+!     do 122 i=1,m   !RBN
+      do     i=1,m
          m2 = m2+im
          c(m2,j) = tsn*c(m2,j)
          c(m2,j+1) = tsnm*c(m2,j+1)
+     end do
+  end do
   122 continue
       if(modn /= 0) return
       m2 = 1-im
