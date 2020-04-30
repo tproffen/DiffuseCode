@@ -1796,7 +1796,7 @@ IF(lpresent(O_SITE)) THEN      !optional parameter 'site:' is present
    IF(opara(O_SITE)=='all') THEN
       lsite = .TRUE.
    ELSE
-      line = opara(O_SITE)(2:lopara(O_SITE)-1)
+      line(1:lopara(O_SITE)-2) = opara(O_SITE)(2:lopara(O_SITE)-1)
       lp = lopara(O_SITE)-2
       CALL get_params(line, ianz, cpara, lpara, MAXW, lp)
       IF(ier_num/=0) RETURN
