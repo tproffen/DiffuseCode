@@ -331,11 +331,18 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Start the distribution of domains 'run'                       
 !                                                                       
                ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
-                  IF(clu_mode == CLU_IN_CLUSTER .AND. clu_infile_internal) THEN
-                     ier_num = -170
-                     ier_typ = ER_APPL
-                     ier_msg(1) = clu_infile(1:MIN(LEN_TRIM(clu_infile),LEN(ier_msg)))
-                  ELSE
+                  IF(clu_mode == CLU_IN_CLUSTER) THEN
+                     IF(clu_infile_internal) THEN
+                        ier_num = -170
+                        ier_typ = ER_APPL
+                        ier_msg(1) = clu_infile(1:MIN(LEN_TRIM(clu_infile),LEN(ier_msg)))
+                     ENDIF
+                     clu_number  = 0
+                     clu_index   = 0
+                     clu_name    = ' '
+                     clu_content = ' ' 
+                  ENDIF
+                  IF(ier_num ==0) THEN
                      CALL micro_filereading 
                   ENDIF
 !                                                                       
