@@ -331,7 +331,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Start the distribution of domains 'run'                       
 !                                                                       
                ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
-                  CALL micro_filereading 
+                  IF(clu_mode == CLU_IN_CLUSTER .AND. clu_infile_internal) THEN
+                     ier_num = -170
+                     ier_typ = ER_APPL
+                     ier_msg(1) = clu_infile(1:MIN(LEN_TRIM(clu_infile),LEN(ier_msg)))
+                  ELSE
+                     CALL micro_filereading 
+                  ENDIF
 !                                                                       
 !     ----define various surface related settings 'set'                 
 !                                                                       
@@ -858,23 +864,23 @@ pseudo_ok:  IF(l_ok) THEN
       chem_period(:) = .FALSE.
 !                                                                       
       END SUBROUTINE micro_filereading              
+!
 !*****7*****************************************************************
-      SUBROUTINE micro_read_micro (imd, lend, infile, mc_dimen,         &
-      mc_idimen, mc_matrix)                                             
-!                                                                       
-      USE discus_config_mod 
-      USE domaindis_mod 
-      USE tensors_mod
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
+!
+SUBROUTINE micro_read_micro (imd, lend, infile, mc_dimen, mc_idimen, mc_matrix)
+!
+USE discus_config_mod 
+USE domaindis_mod 
+USE tensors_mod
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
 USE precision_mod
-      USE string_convert_mod
-      IMPLICIT none 
+USE string_convert_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 4) 
+INTEGER, PARAMETER :: MAXW = 4
 !                                                                       
       CHARACTER (LEN=* ), INTENT(OUT) :: infile 
       INTEGER           , INTENT(IN)  :: imd 
@@ -933,6 +939,7 @@ USE precision_mod
             IF (ianz.eq.0) then 
  1000          CONTINUE 
                READ (imd, 2000, end = 998, err = 999) line 
+                  write(*,*) line(1:80)
                lline = len_str (line) 
                ibl = index (line (1:lline) , ' ') + 1 
                lbef = 10 
@@ -1031,6 +1038,7 @@ USE precision_mod
                   ier_typ = ER_APPL 
                   ier_msg (1) = 'Error while reading' 
                   ier_msg (2) = 'the domain input file' 
+                  write(*,*) zeile(1:40)
                ENDIF 
 !                                                                       
                GOTO 1000 
@@ -1048,6 +1056,7 @@ USE precision_mod
          ier_typ = ER_APPL 
          ier_msg (1) = 'Error while reading' 
          ier_msg (2) = 'the domain input file' 
+                  write(*,*) befehl
          RETURN 
       ENDIF 
       line = ' ' 

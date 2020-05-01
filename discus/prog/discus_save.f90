@@ -570,273 +570,263 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
    34 FORMAT  (6(1x,f10.6)) 
     4 FORMAT (a4,3(2x,f14.6),5x,f8.4) 
       END SUBROUTINE save_nokeyword                 
+!
 !********************************************************************** 
-      SUBROUTINE save_keyword (strucfile) 
+!
+SUBROUTINE save_keyword (strucfile) 
 !+                                                                      
 !     This subroutine saves the structure and/or the unit cell          
 !     onto a file. The format uses keyword description.                 
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE gen_add_mod 
-      USE modify_func_mod
-      USE molecule_mod 
-      USE sym_add_mod 
-      USE discus_save_mod 
+USE discus_config_mod 
+USE crystal_mod 
+USE gen_add_mod 
+USE modify_func_mod
+USE molecule_mod 
+USE sym_add_mod 
+USE discus_save_mod 
 USE surface_mod
 !
 USE errlist_mod 
 !
 IMPLICIT none 
 !
-      CHARACTER ( LEN=* ) , INTENT(in) :: strucfile 
-      CHARACTER(31) fform 
-      CHARACTER(15) C_MOLE ( - 4:4) 
+CHARACTER(LEN=*), INTENT(IN) :: strucfile 
+!
+INTEGER, PARAMETER :: ist = 67
+CHARACTER(LEN=31) :: fform 
+CHARACTER(LEN=15), DIMENSION(-4:4) :: C_MOLE !( - 4:4) 
 CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
-      INTEGER ist, i, j, k
-      INTEGER i_start, i_end 
-      INTEGER is, ie 
-      INTEGER ::   wr_prop = 1
-      INTEGER ::   wr_mole = 0
-      INTEGER ::   wr_cont = 0
+INTEGER :: i, j, k
+INTEGER :: i_start, i_end 
+INTEGER :: is, ie 
+INTEGER :: wr_prop = 1
+INTEGER :: wr_mole = 0
+INTEGER :: wr_cont = 0
+INTEGER :: wr_doma_current = 0               ! Current domain number
+LOGICAL :: need_domainheader=.TRUE.          ! Do we currently need to write a domain header
+LOGICAL :: active_domain    =.FALSE.         ! Are we writing a domain
 INTEGER, DIMENSION(0:3) :: wr_surf
 REAL   , DIMENSION(0:3) :: wr_magn
-      LOGICAL lread 
-      LOGICAL                            :: lsave
-      LOGICAL, DIMENSION(:), ALLOCATABLE :: lwrite ! flag if atom needs write
+LOGICAL lread 
+LOGICAL                            :: lsave
+LOGICAL, DIMENSION(:), ALLOCATABLE :: lwrite ! flag if atom needs write
 !                                                                       
-      INTEGER len_str 
+INTEGER len_str 
 !                                                                       
 !                                                                       
-      DATA ist / 67 / 
-      DATA C_MOLE / 'domain_fuzzy   ', 'domain_sphere  ', 'domain_cylinder',&
-                    'domain_cube    ', 'atoms          ', 'cube           ',&
+DATA C_MOLE / 'domain_fuzzy   ', 'domain_sphere  ', 'domain_cylinder',&
+              'domain_cube    ', 'atoms          ', 'cube           ',&
                     'cylinder       ', 'sphere         ', 'cube           ' /             
 !
 DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
 !
 !     Test if any atom type is selected for write
 !
-      lsave = .true.
-      DO i = 0, cr_nscat 
-         lsave = lsave .or. sav_latom(i)
-      ENDDO 
-      IF(.not. lsave ) THEN
-         ier_num = -58
-         ier_typ = ER_APPL
-         ier_msg(1) = 'No atom types were selected for write'
-         ier_msg(2) = 'The output file is not written'
-         ier_msg(3) = 'Select atoms, or set error to live'
-         RETURN
-      ENDIF
+lsave = .true.
+DO i = 0, cr_nscat 
+   lsave = lsave .or. sav_latom(i)
+ENDDO 
+IF(.not. lsave ) THEN
+   ier_num = -58
+   ier_typ = ER_APPL
+   ier_msg(1) = 'No atom types were selected for write'
+   ier_msg(2) = 'The output file is not written'
+   ier_msg(3) = 'Select atoms, or set error to live'
+   RETURN
+ENDIF
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
-      i_start = sav_start 
-      i_end = sav_end 
-      IF (sav_end.eq. - 1) i_end = cr_natoms 
+i_start = sav_start 
+i_end = sav_end 
+IF (sav_end.eq. - 1) i_end = cr_natoms 
 !                                                                       
-      lread = .false. 
-      CALL oeffne (ist, strucfile, 'unknown') 
-      IF (ier_num.ne.0) THEN 
-         RETURN 
-      ENDIF 
+lread = .false. 
+CALL oeffne (ist, strucfile, 'unknown') 
+IF (ier_num.ne.0) THEN 
+   RETURN 
+ENDIF 
 !                                                                       
 !-----      --Write new type of structur file                           
 !                                                                       
-      j = len_str (cr_name) 
-      IF (j.eq.0) THEN 
-         cr_name = ' ' 
-         j = 1 
-      ENDIF 
-      WRITE (ist, 3000) cr_name (1:j) 
-      IF (spcgr_ianz.eq.0) THEN 
-         WRITE (ist, 3010) cr_spcgr, cr_set
-      ELSEIF (spcgr_ianz.eq.1) THEN 
-         WRITE (ist, 3011) cr_spcgr, spcgr_para, cr_set
-      ENDIF 
-      WRITE (ist, 3020) (cr_a0 (i), i = 1, 3), (cr_win (i), i = 1, 3) 
-      IF (sav_w_scat) THEN 
-         j = (cr_nscat - 1) / 7 
-         DO i = 1, j 
-         is = (i - 1) * 7 + 1 
-         ie = is + 6 
-         WRITE (ist, 3110) (cr_at_lis (k), k = is, ie) 
-         ENDDO 
-         IF (cr_nscat - j * 7.eq.1) THEN 
-            WRITE (ist, 3111) cr_at_lis (cr_nscat) 
-         ELSEIF (cr_nscat - j * 7.gt.1) THEN 
-            WRITE (fform, 7010) cr_nscat - j * 7 - 1 
-            WRITE (ist, fform) (cr_at_lis (i), i = j * 7 + 1, cr_nscat) 
-         ENDIF 
-      ENDIF 
-      IF (sav_w_adp) THEN 
-         j = (cr_nscat - 1) / 7 
-         DO i = 1, j 
-         is = (i - 1) * 7 + 1 
-         ie = is + 6 
-         WRITE (ist, 3120) (cr_dw (k), k = is, ie) 
-         ENDDO 
-         IF (cr_nscat - j * 7.eq.1) THEN 
-            WRITE (ist, 3121) cr_dw (cr_nscat) 
-         ELSEIF (cr_nscat - j * 7.gt.1) THEN 
-            WRITE (fform, 7020) cr_nscat - j * 7 - 1 
-            WRITE (ist, fform) (cr_dw (i), i = j * 7 + 1, cr_nscat) 
-         ENDIF 
-      ENDIF 
-      IF (sav_w_occ) THEN 
-         j = (cr_nscat - 1) / 7 
-         DO i = 1, j 
-         is = (i - 1) * 7 + 1 
-         ie = is + 6 
-         WRITE (ist, 3220) (cr_occ(k), k = is, ie) 
-         ENDDO 
-         IF (cr_nscat - j * 7.eq.1) THEN 
-            WRITE (ist, 3221) cr_occ(cr_nscat) 
-         ELSEIF (cr_nscat - j * 7.gt.1) THEN 
-            WRITE (fform, 7030) cr_nscat - j * 7 - 1 
-            WRITE (ist, fform) (cr_occ(i), i = j * 7 + 1, cr_nscat) 
-         ENDIF 
-      ENDIF 
-      IF (sav_w_gene) THEN 
-         DO k = 1, gen_add_n 
-         WRITE (ist, 3021) ( (gen_add (i, j, k), j = 1, 4), i = 1, 3),  &
-         gen_add_power (k)                                              
-         ENDDO 
-      ENDIF 
-      IF (sav_w_symm) THEN 
-         DO k = 1, sym_add_n 
-         WRITE (ist, 3022) ( (sym_add (i, j, k), j = 1, 4), i = 1, 3),  &
-         sym_add_power (k)                                              
-         ENDDO 
-      ENDIF 
-      IF (sav_w_ncell) THEN 
-         WRITE (ist, 3030) cr_icc, cr_ncatoms , cr_natoms, cr_nscat, &
-         mole_num_mole, mole_num_type, mole_num_atom
-      ENDIF 
-      WRITE (ist, 3900) 
+j = len_str (cr_name) 
+IF (j.eq.0) THEN 
+   cr_name = ' ' 
+   j = 1 
+ENDIF 
+WRITE (ist, 3000) cr_name (1:j) 
+IF (spcgr_ianz.eq.0) THEN 
+   WRITE (ist, 3010) cr_spcgr, cr_set
+ELSEIF (spcgr_ianz.eq.1) THEN 
+   WRITE (ist, 3011) cr_spcgr, spcgr_para, cr_set
+ENDIF 
+WRITE (ist, 3020) (cr_a0 (i), i = 1, 3), (cr_win (i), i = 1, 3) 
+IF (sav_w_scat) THEN 
+   j = (cr_nscat - 1) / 7 
+   DO i = 1, j 
+      is = (i - 1) * 7 + 1 
+      ie = is + 6 
+      WRITE (ist, 3110) (cr_at_lis (k), k = is, ie) 
+   ENDDO 
+   IF (cr_nscat - j * 7.eq.1) THEN 
+      WRITE (ist, 3111) cr_at_lis (cr_nscat) 
+   ELSEIF (cr_nscat - j * 7.gt.1) THEN 
+      WRITE (fform, 7010) cr_nscat - j * 7 - 1 
+      WRITE (ist, fform) (cr_at_lis (i), i = j * 7 + 1, cr_nscat) 
+   ENDIF 
+ENDIF 
 !
-      ALLOCATE(lwrite(1:cr_natoms))
-      lwrite(:) = .true.
+IF (sav_w_adp) THEN 
+   j = (cr_nscat - 1) / 7 
+   DO i = 1, j 
+      is = (i - 1) * 7 + 1 
+      ie = is + 6 
+      WRITE (ist, 3120) (cr_dw (k), k = is, ie) 
+   ENDDO 
+   IF (cr_nscat - j * 7.eq.1) THEN 
+      WRITE (ist, 3121) cr_dw (cr_nscat) 
+   ELSEIF (cr_nscat - j * 7.gt.1) THEN 
+      WRITE (fform, 7020) cr_nscat - j * 7 - 1 
+      WRITE (ist, fform) (cr_dw (i), i = j * 7 + 1, cr_nscat) 
+   ENDIF 
+ENDIF 
+!
+IF (sav_w_occ) THEN 
+   j = (cr_nscat - 1) / 7 
+   DO i = 1, j 
+      is = (i - 1) * 7 + 1 
+      ie = is + 6 
+      WRITE (ist, 3220) (cr_occ(k), k = is, ie) 
+   ENDDO 
+   IF (cr_nscat - j * 7.eq.1) THEN 
+      WRITE (ist, 3221) cr_occ(cr_nscat) 
+   ELSEIF (cr_nscat - j * 7.gt.1) THEN 
+      WRITE (fform, 7030) cr_nscat - j * 7 - 1 
+      WRITE (ist, fform) (cr_occ(i), i = j * 7 + 1, cr_nscat) 
+   ENDIF 
+ENDIF 
+!
+IF (sav_w_gene) THEN 
+   DO k = 1, gen_add_n 
+      WRITE (ist, 3021) ( (gen_add (i, j, k), j = 1, 4), i = 1, 3),  &
+      gen_add_power (k)                                              
+   ENDDO 
+ENDIF 
+!
+IF (sav_w_symm) THEN 
+   DO k = 1, sym_add_n 
+      WRITE (ist, 3022) ( (sym_add (i, j, k), j = 1, 4), i = 1, 3),  &
+      sym_add_power (k)                                              
+   ENDDO 
+ENDIF 
+!
+IF (sav_w_ncell) THEN 
+   WRITE (ist, 3030) cr_icc, cr_ncatoms , cr_natoms, cr_nscat, &
+   mole_num_mole, mole_num_type, mole_num_atom
+ENDIF 
+!
+WRITE (ist, 3900) 
+!
+ALLOCATE(lwrite(1:cr_natoms))
+lwrite(:) = .true.
 !                                                                       
 !     Write content of objects                                          
 !                                                                       
-      IF (sav_w_obje) THEN 
-         DO i = 1, mole_num_mole 
-         IF (mole_char (i) .gt.MOLE_ATOM) THEN 
-            WRITE (ist, 4000) 'object' 
-            WRITE (ist, 4002) 'object', mole_type (i) 
-            WRITE (ist, 4100) 'object', c_mole (mole_char (i) ) 
-            WRITE (ist, 4200) 'object', mole_dens (i) 
-!           DO j = 1, mole_len (i) 
-!           k = mole_cont (mole_off (i) + j) 
-!           WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
-!           l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
-!           lwrite(k) = .false.
-!           ENDDO 
-            WRITE (ist, 4900) 'object' 
-         ENDIF 
-         ENDDO 
+IF (sav_w_obje) THEN 
+   DO i = 1, mole_num_mole 
+      IF (mole_char (i) .gt.MOLE_ATOM) THEN 
+         WRITE (ist, 4000) 'object' 
+         WRITE (ist, 4002) 'object', mole_type (i) 
+         WRITE (ist, 4100) 'object', c_mole (mole_char (i) ) 
+         WRITE (ist, 4200) 'object', mole_dens (i) 
+         WRITE (ist, 4900) 'object' 
       ENDIF 
-!                                                                       
-!     Write content of micro domains                                    
-!                                                                       
-      IF (sav_w_doma) THEN 
-         DO i = 1, mole_num_mole 
-         IF (mole_char (i) .lt.MOLE_ATOM) THEN 
-            WRITE (ist, 4000) 'domain' 
-            WRITE (ist, 4002) 'domain', mole_type (i) 
-            WRITE (ist, 4100) 'domain', c_mole (mole_char (i) ) 
-            k = len_str (mole_file (i) ) 
-            IF (k.gt.0) THEN 
-               WRITE (ist, 4300) 'domain', mole_file (i) (1:k) 
-            ELSE 
-               WRITE (ist, 4300) 'domain' 
-            ENDIF 
-            WRITE (ist, 4400) 'domain', mole_fuzzy (i) 
-!           DO j = 1, mole_len (i) 
-!           k = mole_cont (mole_off (i) + j) 
-!           WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
-!           l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
-!           lwrite(k) = .false.
-!           ENDDO 
-            WRITE (ist, 4900) 'domain' 
-         ENDIF 
-         ENDDO 
-      ENDIF 
+   ENDDO 
+ENDIF 
 !                                                                       
 !     Write content of molecules                                        
 !                                                                       
-      IF (sav_w_mole) THEN 
-         DO i = 1, mole_num_mole 
-         IF (mole_char (i) .eq.MOLE_ATOM) THEN 
-            WRITE (ist, 4000) 'molecule' 
-            WRITE (ist, 4002) 'molecule', mole_type (i) 
-            WRITE (ist, 4100) 'molecule', c_mole (mole_char (i) ) 
-            WRITE (ist, 4500) 'molecule', mole_biso (mole_type(i))
-            WRITE (ist, 4600) 'molecule', mole_clin (mole_type(i))
-            WRITE (ist, 4700) 'molecule', mole_cqua (mole_type(i))
-!           DO j = 1, mole_len (i) 
-!           k = mole_cont (mole_off (i) + j) 
-!           WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
-!           l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
-!           lwrite(k) = .false.
-!           ENDDO 
-            WRITE (ist, 4900) 'molecule' 
-         ENDIF 
-         ENDDO 
+IF (sav_w_mole) THEN 
+   DO i = 1, mole_num_mole 
+      IF (mole_char (i) .eq.MOLE_ATOM) THEN 
+         WRITE (ist, 4000) 'molecule' 
+         WRITE (ist, 4002) 'molecule', mole_type (i) 
+         WRITE (ist, 4100) 'molecule', c_mole (mole_char (i) ) 
+         WRITE (ist, 4500) 'molecule', mole_biso (mole_type(i))
+         WRITE (ist, 4600) 'molecule', mole_clin (mole_type(i))
+         WRITE (ist, 4700) 'molecule', mole_cqua (mole_type(i))
+         WRITE (ist, 4900) 'molecule' 
       ENDIF 
+   ENDDO 
+ENDIF 
 !                                                                       
 !     Write atoms                                                       
 !                                                                       
-      DO i = i_start, i_end 
+loop_atoms: DO i = i_start, i_end 
 !                                                                       
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
 !     IF (sav_latom (cr_iscat (i) ) ) THEN 
-      IF (check_select_status (i, sav_latom (cr_iscat (i) ), cr_prop (i),   &
+   IF (check_select_status (i, sav_latom (cr_iscat (i) ), cr_prop (i),   &
                                sav_sel_prop)     ) THEN
 !        IF(lwrite(i)) THEN
-         wr_prop = 1
-         wr_mole = 0
-         wr_cont = 0
-         wr_surf(:) = 0
-         wr_magn(:) = 0.0
-         IF(sav_w_prop) wr_prop = cr_prop(i)
-         IF (sav_w_mole .OR. sav_w_doma .OR. sav_w_obje) THEN 
-            IF(cr_mole(i)/=0) THEN
-               wr_mole = cr_mole(i)
-               check_mole: DO j = 1, mole_len (cr_mole(i))
-                  IF(mole_cont (mole_off(cr_mole(i))+j) == i) THEN
-                     wr_cont = j
-                     EXIT check_mole
-                  ENDIF
-               ENDDO check_mole
+      wr_prop = 1
+      wr_mole = 0
+      wr_cont = 0
+      wr_surf(:) = 0
+      wr_magn(:) = 0.0
+      IF(sav_w_prop) wr_prop = cr_prop(i)
+      IF (sav_w_mole .OR. sav_w_doma .OR. sav_w_obje) THEN 
+         IF(active_domain .AND. cr_mole(i)/=wr_doma_current) THEN   ! DOMAIN is finished
+            WRITE(ist, '(''domain end'')')
+            active_domain = .FALSE.
+            wr_doma_current = 0
+         ENDIF
+         IF(cr_mole(i)/=0) THEN
+            wr_mole = cr_mole(i)
+            check_mole: DO j = 1, mole_len (cr_mole(i))
+               IF(mole_cont (mole_off(cr_mole(i))+j) == i) THEN
+                  wr_cont = j
+                  EXIT check_mole
+               ENDIF
+            ENDDO check_mole
+            IF(mole_char(wr_mole)<MOLE_ATOM .AND. .NOT.active_domain .AND. &
+               wr_mole/=wr_doma_current                                   ) THEN  ! Need header
+               WRITE(ist, 4000) 'domain' 
+               WRITE(ist, 4002) 'domain', mole_type (wr_mole) 
+               WRITE(ist, 4100) 'domain', c_mole (mole_char (wr_mole) ) 
+               k = len_str (mole_file (wr_mole) ) 
+               IF(k.gt.0) THEN 
+                  WRITE(ist, 4300) 'domain', mole_file(wr_mole)(1:k) 
+               ELSE 
+                  WRITE(ist, 4300) 'domain' 
+               ENDIF 
+               WRITE(ist, 4400) 'domain', mole_fuzzy (wr_mole) 
+               active_domain = .TRUE.
+               wr_doma_current = wr_mole
             ENDIF
          ENDIF
-         IF(sav_w_surf) wr_surf(0:3) = cr_surf(0:3,i)
-         IF(sav_w_magn) wr_surf(0:3) = cr_magn(0:3,i)   ! MAGNETIC_WORK
-         WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
-                        (cr_pos (j, i),j = 1, 3),          &
-                        cr_dw (cr_iscat (i) ), wr_prop,    &
-                        wr_mole, wr_cont, cr_occ(cr_iscat(i)), &
-                        c_surf(wr_surf(0  )), wr_surf(1:3  )
-!           IF(sav_w_prop) THEN
-!              WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
-!                             (cr_pos (j, i),j = 1, 3),          &
-!                             cr_dw (cr_iscat (i) ), cr_prop (i)               
-!           ELSE
-!              WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
-!                             (cr_pos (j, i),j = 1, 3),          &
-!                             cr_dw (cr_iscat (i) ), 1
-!           ENDIF 
-!        ENDIF 
-      ENDIF 
-      ENDDO 
+      ENDIF
+      IF(sav_w_surf) wr_surf(0:3) = cr_surf(0:3,i)
+      IF(sav_w_magn) wr_surf(0:3) = cr_magn(0:3,i)   ! MAGNETIC_WORK
+      WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
+                     (cr_pos (j, i),j = 1, 3),          &
+                     cr_dw (cr_iscat (i) ), wr_prop,    &
+                     wr_mole, wr_cont, cr_occ(cr_iscat(i)), &
+                     c_surf(wr_surf(0  )), wr_surf(1:3  )
+   ENDIF 
+ENDDO loop_atoms
 !
-      CLOSE (ist) 
-      DEALLOCATE(lwrite)
+IF(active_domain .AND. cr_mole(i)/=wr_doma_current) THEN   ! DOMAIN is finished
+   WRITE(ist, '(''domain end'')')
+   active_domain = .FALSE.
+   wr_doma_current = 0
+ENDIF
+!
+CLOSE(ist) 
+DEALLOCATE(lwrite)
 !                                                                       
  3000 FORMAT    ('title ',a) 
  3010 FORMAT    ('spcgr ',a16, ', setting:',a3)
@@ -868,7 +858,9 @@ DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
  7010 FORMAT    ('(''scat  '', a4  ,',i1,'('','',5x,a4  ))') 
  7020 FORMAT    ('(''adp   '', f9.6,',i1,'('','',5x,f9.6))') 
  7030 FORMAT    ('(''occ   '', f9.6,',i1,'('','',5x,f9.6))') 
-      END SUBROUTINE save_keyword                   
+!
+END SUBROUTINE save_keyword                   
+!
 !********************************************************************** 
       SUBROUTINE save_internal (strucfile) 
 !+                                                                      
