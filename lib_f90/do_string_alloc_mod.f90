@@ -18,38 +18,43 @@ USE do_variable_mod
       USE param_mod 
       USE set_sub_generic_mod
 USE precision_mod
+USE variable_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER, PARAMETER :: maxw= 10 
+INTEGER, PARAMETER :: maxw= 10 
 !                                                                       
-      CHARACTER (LEN= * ), INTENT(INOUT) :: line 
-      INTEGER            , INTENT(IN)    :: indxg
-      INTEGER            , INTENT(INOUT) :: length
+CHARACTER (LEN= * ), INTENT(INOUT) :: line 
+INTEGER            , INTENT(IN)    :: indxg
+INTEGER            , INTENT(INOUT) :: length
 !
-      CHARACTER(LEN=1024)                  :: zeile
-      CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
-      CHARACTER(LEN=1024)                  :: string
+CHARACTER(LEN=1024)                  :: zeile
+CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
+CHARACTER(LEN=1024)                  :: string
 !                                                                       
-      INTEGER, DIMENSION(maxw)   :: lpara (maxw) 
-      INTEGER                    :: i, ikk, ianz, lll 
-      INTEGER, DIMENSION(1:maxw) :: iii = 0
-      INTEGER                    :: ising , indx_ind, indx_len, indx_env, indx_cwd
-      INTEGER                    :: indx_par, indx_isv, indx_ise, indx_fmd
-      INTEGER                    :: l_string 
-      INTEGER                    :: ikl, iklz, ll, laenge
-      INTEGER                    :: ios  ! I/O error status
+INTEGER, DIMENSION(maxw)   :: lpara (maxw) 
+INTEGER                    :: i, ikk, ianz, lll 
+INTEGER, DIMENSION(1:maxw) :: iii = 0
+INTEGER                    :: ising , indx_ind, indx_len, indx_env, indx_cwd
+INTEGER                    :: indx_par, indx_isv, indx_ise, indx_fmd
+INTEGER                    :: l_string 
+INTEGER                    :: ikl, iklz, ll, laenge
+INTEGER                    :: ios  ! I/O error status
+INTEGER                    :: indxpl ! Location of a substring '('
+INTEGER                    :: indxpr ! Location of a substring ')'
+INTEGER                    :: indxc  ! Location of a substring ':'
+INTEGER, DIMENSION(2)      :: substr ! Indices of substring
 !                                                                       
 REAL(KIND=PREC_DP)    :: wert
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
 !     for flexibility                                                   
 !                                                                       
-      ising = INDEX (line, '''') 
-      DO while (ising.gt.0) 
-      line (ising:ising) = '"' 
-      ising = INDEX (line, '''') 
-      ENDDO 
+ising = INDEX (line, '''') 
+DO while (ising.gt.0) 
+   line (ising:ising) = '"' 
+   ising = INDEX (line, '''') 
+ENDDO 
 !                                                                       
 !     Get the expression                                                
 !                                                                       
@@ -73,43 +78,91 @@ REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       indx_fmd=INDEX(line (indxg + 1:length),'fmodt')   ! locate fmodt function
       indx_par=INDEX(line (indxg + 1:length),'par_name')  ! locate par_name function
 !
-      IF((indx_ind>0 .AND. indx_ind<ising)  .OR. & ! We got a function of a string argument
-         (indx_len>0 .AND. indx_len<ising)  .OR. & ! We got a function of a string argument
-         (indx_env>0 .AND. indx_env<ising)  .OR. & ! We got a function of a string argument
-         (indx_cwd>0 .AND. indx_cwd<ising)  .OR. & ! We got a function of a string argument
-         (indx_isv>0 .AND. indx_isv<ising)  .OR. & ! We got a function of a string argument
-         (indx_ise>0 .AND. indx_ise<ising)  .OR. & ! We got a function of a string argument
-         (indx_fmd>0 .AND. indx_fmd<ising)  .OR. & ! We got a function of a string argument
-         (indx_par>0 .AND. indx_par<ising)) THEN
-         string = line (indxg + 1:length)
-         laenge = length - indxg
-         ikl = INDEX(string,'(')
-         iklz= INDEX(string,')',.TRUE.)
-         zeile = string (ikl + 1:iklz - 1) 
-         ll = iklz - ikl - 1 
-         CALL calc_intr (string, zeile, ikl, iklz, laenge, ll) 
-         READ(string(1:LEN_TRIM(string)),*,IOSTAT=ios) wert
-         IF(ios/=0) THEN
-            ier_msg(1) = string(1:42)
-            ier_num = -6
-            ier_typ = ER_FORT
-            RETURN
-         ENDIF
-      ELSE
+IF((indx_ind>0 .AND. indx_ind<ising)  .OR. & ! We got a function of a string argument
+   (indx_len>0 .AND. indx_len<ising)  .OR. & ! We got a function of a string argument
+   (indx_env>0 .AND. indx_env<ising)  .OR. & ! We got a function of a string argument
+   (indx_cwd>0 .AND. indx_cwd<ising)  .OR. & ! We got a function of a string argument
+   (indx_isv>0 .AND. indx_isv<ising)  .OR. & ! We got a function of a string argument
+   (indx_ise>0 .AND. indx_ise<ising)  .OR. & ! We got a function of a string argument
+   (indx_fmd>0 .AND. indx_fmd<ising)  .OR. & ! We got a function of a string argument
+   (indx_par>0 .AND. indx_par<ising)) THEN
+   string = line (indxg + 1:length)
+   laenge = length - indxg
+   ikl = INDEX(string,'(')
+   iklz= INDEX(string,')',.TRUE.)
+   zeile = string (ikl + 1:iklz - 1) 
+   ll = iklz - ikl - 1 
+   CALL calc_intr (string, zeile, ikl, iklz, laenge, ll) 
+   READ(string(1:LEN_TRIM(string)),*,IOSTAT=ios) wert
+   IF(ios/=0) THEN
+      ier_msg(1) = string(1:42)
+      ier_num = -6
+      ier_typ = ER_FORT
+      RETURN
+   ENDIF
+ELSE
 !                                                                       
 !     Construct the regular string, not a function
 !                                                                       
-         CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-         string = cpara (1) (1:lpara (1) ) 
-         l_string = lpara (1) 
-         res_para (0) = 1 
-         res_para (1) = lpara (1) 
-      ENDIF
-      IF(indxg==0) THEN
-         line = string
+   CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+   string = cpara (1) (1:lpara (1) ) 
+   l_string = lpara (1) 
+   res_para (0) = 1 
+   res_para (1) = lpara (1) 
+ENDIF
+IF(indxg==0) THEN
+   line = string
+   RETURN
+ENDIF
+IF (ier_num.eq.0) THEN 
+!
+!-----evaluate a substring range ( : )
+!
+   substr(1) = 1     ! Always clear the substring indices
+   substr(2) = VAR_CLEN  ! Always clear the substring indices
+   indxpl = INDEX(line(1:indxg-1), '(')
+   IF(indxpl > 0) THEN
+      indxpr = INDEX(line(1:indxg-1), ')', .TRUE.)  ! Find last ')'
+      indxc  = INDEX(line(1:indxg-1), ':', .TRUE.)  ! Find last ':'
+      IF(indxpl <= indxpr-2) THEN ! Enough space for at least (:)
+         line(indxc:indxc) = ','
+         zeile =  ' '
+         IF(indxc==indxpl+1 .AND. indxc==indxpr-1) THEN    ! == (:)
+            zeile = '1,1024'
+         ELSEIF(indxc==indxpl+1 .and. indxc<indxpr-1) THEN ! == (:number)
+            zeile = '1,' // line(indxc+1:indxpr-1)
+         ELSEIF(indxc> indxpl+1 .and. indxc==indxpr-1) THEN ! == (number:)
+            zeile = line(indxpl+1:indxc-1) //',1024'
+         ELSE
+            zeile(1:indxpr-indxpl-1) = line(indxpl+1:indxpr-1)  ! ==(number:number)
+         ENDIF
+         lll = len_trim(zeile)
+         CALL get_params (zeile, ianz, cpara, lpara, maxw, lll)
+         IF(ier_num.eq.0) THEN 
+            IF(ianz==2) THEN      ! Need exactly 2 params
+               CALL ber_params (ianz, cpara, lpara, werte, maxw)
+               IF(ier_num.eq.0) THEN 
+                  substr(1) = NINT(werte(1))
+                  substr(2) = NINT(werte(2))
+                  line(indxpl:indxpr) = ' '   ! Clear substring range in input line
+               ELSE
+                  RETURN
+               ENDIF 
+            ELSE 
+               ier_num = -6 
+               ier_typ = ER_FORT 
+               RETURN
+            ENDIF 
+         ELSE
+            RETURN
+         ENDIF
+      ELSE
+         ier_num = -6
+         ier_typ = ER_FORT
+         ier_msg(1) = 'Substring values appear too short'
          RETURN
       ENDIF
-      IF (ier_num.eq.0) then 
+   ENDIF
 !                                                                       
 !-----evaluate the INDEX of the variable                                
 !                                                                       
@@ -136,7 +189,7 @@ REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
 !     ------------Store result in the variable                          
 !                                                                       
-                              CALL p_upd_para (line (1:ikk - 1), iii, ianz, wert, ianz, string)
+                              CALL p_upd_para (line (1:ikk - 1), iii, ianz, wert, ianz, string, substr)
                            ENDIF 
                         ELSE 
                            ier_num = - 6 
@@ -152,7 +205,7 @@ REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
                   ier_typ = ER_FORT 
                ENDIF 
             ELSEIF (ikk.eq.0) then 
-               CALL upd_variable (line (1:i), i, wert, string, l_string) 
+               CALL upd_variable (line (1:i), i, wert, string, l_string, substr) 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_FORT 

@@ -694,6 +694,7 @@ USE get_params_mod
 USE precision_mod
 USE set_sub_generic_mod
 USE precision_mod
+USE variable_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -706,6 +707,7 @@ IMPLICIT none
       INTEGER ipos, ikp, ianz, level, laenge, lll 
       INTEGER ianz_d, i 
 INTEGER :: idummy
+INTEGER, DIMENSION(2) :: substr = (/0,VAR_CLEN/)    ! Dummy substring indices
 !     LOGICAL if_test 
       LOGICAL l_var 
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
@@ -799,9 +801,9 @@ cdummy = ' '
             wert = glow (level) + (iloop (level) - 1) * ginc (level) 
             IF (l_var) then 
                CALL upd_variable (line (4:ipos - 1), ipos - 4, wert,    &
-               cpara (1), lpara (1) )
+               cpara (1), lpara (1), substr )
             ELSE 
-               CALL p_upd_para (line (4:ikp - 1), do_kpara, 1, wert, ianz_d, cdummy)
+               CALL p_upd_para (line (4:ikp - 1), do_kpara, 1, wert, ianz_d, cdummy, substr)
             ENDIF 
             IF (ier_num.ne.0) then 
                RETURN 

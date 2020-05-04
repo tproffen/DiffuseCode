@@ -19,6 +19,7 @@ USE do_string_alloc_mod
 USE get_params_mod
 USE precision_mod
 USE set_sub_generic_mod
+USE variable_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -33,7 +34,9 @@ INTEGER, DIMENSION(3) :: var_is_type
 !                                                                       
 INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER :: i, ikk, iii (maxw), ianz, lll , laenge
-INTEGER :: indxb
+INTEGER :: indxb    ! Location of an "["
+INTEGER :: indxp    ! Location of an "("
+INTEGER, DIMENSION(2) :: substr = (/0,VAR_CLEN/)
 !                                                                       
 REAL(KIND=PREC_DP) ::  wert
 REAL(KIND=PREC_DP), DIMENSION(MAXW) ::  werte
@@ -41,7 +44,12 @@ REAL(KIND=PREC_DP), DIMENSION(MAXW) ::  werte
 cdummy = ' '
 lll = indxg -1
 indxb = INDEX(line(1:lll),'[')
-IF(indxb >0) lll = indxb - 1
+indxp = INDEX(line(1:lll),'(')
+IF(indxb >0) THEN
+   lll = indxb - 1
+ELSE
+   IF(indxp > 0) lll = indxp - 1
+ENDIF
 
 CALL p_get_var_type(line, lll, var_is_type)
 IF(var_is_type(1)== IS_UNKNOWN) THEN     ! unknown variable name on left side
@@ -120,7 +128,7 @@ IF(var_is_type(1)/=IS_CHAR) THEN     ! Variable on left side is numeric
 !                                                                       
 !     ------------Store result in the variable                          
 !                                                                       
-                              CALL p_upd_para (line (1:ikk - 1), iii,ianz, wert, ianz, cdummy)
+                              CALL p_upd_para (line (1:ikk - 1), iii,ianz, wert, ianz, cdummy, substr)
                            ENDIF 
                         ELSE 
                            ier_num = - 6 
@@ -136,7 +144,7 @@ IF(var_is_type(1)/=IS_CHAR) THEN     ! Variable on left side is numeric
                   ier_typ = ER_FORT 
                ENDIF 
             ELSEIF (ikk.eq.0) then 
-               CALL upd_variable (line (1:i), i, wert, cpara (1), lpara (1) )
+               CALL upd_variable (line (1:i), i, wert, cpara (1), lpara (1), substr )
             ELSE 
                ier_num = - 6 
                ier_typ = ER_FORT 

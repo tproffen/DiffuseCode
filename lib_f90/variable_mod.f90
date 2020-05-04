@@ -41,13 +41,15 @@ END TYPE var_arrays
    INTEGER, PARAMETER :: VAR_SLOW      = 20
    INTEGER, PARAMETER :: VAR_LOOP      = 21
 !
+   INTEGER, PARAMETER :: VAR_clen      = 200
+!
    INTEGER                                   :: var_num   = 0   ! Number of variables
    INTEGER                                   :: var_con   = 0   ! Number of internal constants
    INTEGER                                   :: var_sys   = 0   ! Number of system variables
    INTEGER                                   :: var_ref   = 0   ! Number of first refinement variable
    INTEGER                                   :: var_n_arr = 0   ! Number of variable arrays
    CHARACTER (LEN=200), DIMENSION(VAR_MAX)   :: var_name  = ' ' ! Variable name
-   CHARACTER (LEN=200), DIMENSION(VAR_MAX)   :: var_char  = ' ' ! Character string if 'char' variable
+   CHARACTER (LEN=VAR_CLEN), DIMENSION(VAR_MAX)   :: var_char  = ' ' ! Character string if 'char' variable
    INTEGER            , DIMENSION(VAR_MAX)   :: var_l     = 0   ! Length of variable name
    INTEGER            , DIMENSION(VAR_MAX)   :: var_type  = 0   ! INT=0, REAL=1, CHAR=2
    INTEGER            , DIMENSION(VAR_MAX)   :: var_entry = 0   ! Entry in 2D variable list var_field

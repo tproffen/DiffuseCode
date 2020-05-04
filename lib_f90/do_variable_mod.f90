@@ -210,7 +210,7 @@ END FUNCTION index_mask
 !
 !*****7**************************************************************** 
 !
-SUBROUTINE upd_variable (string, laenge, wert, dummy, length) 
+SUBROUTINE upd_variable (string, laenge, wert, dummy, length, substr) 
 !-                                                                      
 !       updates the user defined variable by the value wert             
 !                                                                       
@@ -219,23 +219,24 @@ SUBROUTINE upd_variable (string, laenge, wert, dummy, length)
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
 !+                                                                      
-      USE constants_mod
-      USE lib_f90_allocate_mod
-      USE errlist_mod 
-      USE param_mod
-      USE variable_mod
+USE constants_mod
+USE lib_f90_allocate_mod
+USE errlist_mod 
+USE param_mod
+USE variable_mod
 USE precision_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 !                                                                       
-CHARACTER(LEN=*), INTENT(IN) :: string 
-INTEGER         , INTENT(IN) :: laenge 
-REAL(KIND=PREC_DP), INTENT(IN) :: wert 
-CHARACTER(LEN=*), INTENT(IN) :: dummy 
-INTEGER         , INTENT(IN) :: length 
+CHARACTER(LEN=*)     , INTENT(IN) :: string 
+INTEGER              , INTENT(IN) :: laenge 
+REAL(KIND=PREC_DP)   , INTENT(IN) :: wert 
+CHARACTER(LEN=*)     , INTENT(IN) :: dummy 
+INTEGER              , INTENT(IN) :: length 
+INTEGER, DIMENSION(2), INTENT(IN) :: substr 
 !                                                                       
-      INTEGER i 
+INTEGER :: i 
 !                                                                       
       ier_num = - 24 
       ier_typ = ER_FORT 
@@ -250,7 +251,7 @@ INTEGER         , INTENT(IN) :: length
          ELSEIF (var_type (i) .eq.      IS_INTE) THEN 
             var_val (i) = nint (wert) 
          ELSEIF (var_type (i) .eq.      IS_CHAR) THEN 
-            var_char (i) = dummy (1:length) 
+            var_char (i)(substr(1):substr(2)) = dummy (1:length) 
          ENDIF 
          IF(string (1:laenge) == 'REF_DIMENSION') THEN
             IF(var_val (i)>UBOUND(ref_para,1)) THEN

@@ -269,7 +269,7 @@ ENDIF
 !                                                                       
 END SUBROUTINE    lib_ersetz_para                    
 !*****7*****************************************************************
-SUBROUTINE    lib_upd_para (ctype, ww, maxw, wert, ianz, cstring) 
+SUBROUTINE    lib_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr) 
 !-                                                                      
 !       updates the parameter specified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -288,6 +288,7 @@ INTEGER,                    INTENT(IN) :: ianz
 INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
 REAL(KIND=PREC_DP)        , INTENT(IN) :: wert 
 CHARACTER (LEN=*),          INTENT(IN) :: cstring 
+INTEGER, DIMENSION(2)     , INTENT(IN) :: substr ! Indices of substring
 !
 INTEGER :: i, ww2
 !
@@ -321,7 +322,7 @@ search_var: DO i=var_sys+1, var_num
                ELSEIF(var_type(i)==      IS_REAL) THEN
                   var_field(var_entry(i))%var_value(ww(1),ww2) = wert
                ELSEIF(var_type(i)==  IS_CHAR) THEN
-                  var_field(var_entry(i))%var_char(ww(1),ww2) = cstring
+                  var_field(var_entry(i))%var_char(ww(1),ww2)(substr(1):substr(2)) = cstring(1:len_trim(cstring))
 !write(*,*) ' SET ENTRY ', ww(1),ww2,' in ', var_name(i)(1:len_trim(var_name(i))) ,' TO ', cstring(1:len_trim(cstring))
                ENDIF
             RETURN
