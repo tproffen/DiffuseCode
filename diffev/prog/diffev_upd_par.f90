@@ -395,7 +395,7 @@ ll = LEN_TRIM(string)
 !
 END SUBROUTINE diffev_ersetz_para                    
 !*****7*****************************************************************
-SUBROUTINE diffev_upd_para (ctype, ww, maxw, wert, ianz, cstring) 
+SUBROUTINE diffev_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr) 
 !-                                                                      
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -420,12 +420,13 @@ INTEGER           , INTENT(IN   )    :: ianz
 INTEGER           , INTENT(IN   )    :: ww (maxw)
 REAL(KIND=PREC_DP), INTENT(IN   )    :: wert 
 CHARACTER (LEN=* ), INTENT(IN   )    :: cstring
+INTEGER, DIMENSION(2), INTENT(IN)    :: substr ! Indices of substring
 !
 INTEGER               :: i
 INTEGER               :: pop_neu
 REAL                  :: highest_r
 !
-CALL lib_upd_para (ctype, ww, maxw, wert, ianz, cstring)
+CALL lib_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
 IF(ier_num==0 .OR. (ier_num==-40 .AND. ier_typ==ER_FORT)) RETURN
 CALL no_error
 !                                                                       
