@@ -599,8 +599,10 @@ CALL no_error
 !                                                                       
  8000 FORMAT    (a) 
       END SUBROUTINE discus_ersetz_para                    
+!
 !*****7*****************************************************************
-      SUBROUTINE discus_upd_para (ctype, ww, maxw, wert, ianz, cstring) 
+!
+SUBROUTINE discus_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr) 
 !-                                                                      
 !       updates the parameter specified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -627,11 +629,12 @@ USE precision_mod
       INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
       REAL(KIND=PREC_DP)        , INTENT(IN) :: wert 
       CHARACTER (LEN=*),          INTENT(IN) :: cstring
+INTEGER, DIMENSION(2), INTENT(IN)    :: substr ! Indices of substring
 !
       INTEGER :: l
       INTEGER :: iwert, owert
 !
-CALL lib_upd_para (ctype, ww, maxw, wert, ianz, cstring)
+CALL lib_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
 IF(ier_num==0 .OR. (ier_num==-40 .AND. ier_typ==ER_FORT)) RETURN
 CALL no_error
 !                                                                       
