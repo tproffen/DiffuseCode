@@ -24,6 +24,10 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2020_May
+
+   Added the option to place a string into a substring in a character
+   expession
 4  2019_June
 
    Modified the test for valid user defined variable names to 
@@ -436,7 +440,13 @@
 !p line   = string          ! Both commands work, 
 !p line   = "%c",string     ! this is the prefered style
 !p line   = "%c",fdate(0)   ! See ==> functions for a list of 
-                            ! character functions
+!p                          ! character functions
+!p line(3:7) = 'Hello'      ! Place the sting into character 3 to 7
+!p line(:7)  = 'Hello'      ! Place the sting into the first seven 
+!p                          ! characters
+!p line(8:)  = 'Hello'      ! Place the sting into the characters  
+!p                          ! 8 and above
+
    Within an ==> 'if' construction you may also specify a character
    expression in the form:
 
