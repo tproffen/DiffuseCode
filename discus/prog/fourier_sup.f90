@@ -1,6 +1,12 @@
 MODULE fourier_sup
 !
 USE errlist_mod 
+USE precision_mod
+!
+COMPLEX(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: fft_field
+COMPLEX(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: fft_sum  
+INTEGER, DIMENSION(2) :: fft_dim      ! Size of fft_field
+INTEGER               :: fft_grid     ! No of grid points in a unit cell
 !
 CONTAINS
 !*****7*****************************************************************
@@ -54,6 +60,7 @@ ier_num = 0
       CALL four_formtab
       CALL four_csize (cr_icc, csize, lperiod, ls_xyz) 
       CALL four_aver (ilots, fave, csize) 
+!CALL four_fft_prep
 !                                                                       
 !------ loop over crystal regions (lots)                                
 !                                                                       
@@ -91,6 +98,7 @@ ier_num = 0
          loop_atoms: DO iscat = 1, cr_nscat 
             CALL four_getatm (iscat, ilots, lbeg, ncell) 
             CALL four_strucf (iscat, .true.) 
+!call four_strucf_fft(iscat, .TRUE., nlot)
 !                                                                       
 !------ --- Add this part of the structur factor to the total           
 !                                                                       
@@ -137,6 +145,8 @@ ier_num = 0
       IF (four_log) then 
          WRITE (output_io, 4000) ss 
       ENDIF 
+!
+!CALL four_fft_finalize
 !                                                                       
  2000 FORMAT     (/,' Lot # ',I4,'/',I4,' : starting at unit cell (',   &
      &                       3(I3,1X),')')                              
@@ -1365,5 +1375,89 @@ main:    DO
       ENDIF 
 !                                                                       
       END SUBROUTINE four_strucf_aver
+!
+!
+!*******************************************************************************
+!
+SUBROUTINE four_fft_prep
+!
+USE crystal_mod
+USE diffuse_mod
+!
+USE precision_mod
+!
+IMPLICIT NONE
+!
+fft_grid = 100
+IF(ilots==LOT_OFF) THEN
+   fft_dim(1) = cr_icc(1)*fft_grid
+   fft_dim(2) = cr_icc(2)*fft_grid
+ELSE
+   fft_dim(1) = ls_xyz(1)*fft_grid
+   fft_dim(2) = ls_xyz(2)*fft_grid
+ENDIF
+ALLOCATE(fft_field(1:fft_dim(1),1:fft_dim(2)))
+ALLOCATE(fft_sum  (1:fft_dim(1),1:fft_dim(2)))
+fft_field = COMPLEX(0.0_PREC_DP, 0.0_PREC_DP)
+fft_sum   = COMPLEX(0.0_PREC_DP, 0.0_PREC_DP)
+!
+END SUBROUTINE four_fft_prep
+!
+!*******************************************************************************
+!
+SUBROUTINE four_strucf_fft(iscat, lform, nlot)
+!
+!
+!
+USE crystal_mod
+USE diffuse_mod
+!
+USE singleton
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: iscat
+LOGICAL, INTENT(IN) :: lform
+!
+INTEGER :: nlot
+INTEGER :: loop
+INTEGER :: i,j
+!
+fft_field = COMPLEX(0.0_PREC_DP, 0.0_PREC_DP)
+!
+DO loop=1, nxat
+   i = NINT(fft_grid*xat(loop,1))
+   j = NINT(fft_grid*xat(loop,2))
+   fft_field(i,j) = COMPLEX(1.0_PREC_DP, 0.0_PREC_DP)
+ENDDO
+!
+fft_field = fft(fft_field)/REAL(fft_dim(1)*fft_dim(2),KIND=PREC_DP)
+fft_sum = fft_sum + fft_field*CONJG(fft_field)
+!
+END SUBROUTINE four_strucf_fft
+!
+!*******************************************************************************
+!
+SUBROUTINE four_fft_finalize
+!
+USE crystal_mod
+!
+IMPLICIT NONE
+!
+INTEGER :: i,j
+!
+OPEN(88,file='example3.fft_inte', status='unknown')
+write(88,*) 401, 401
+write(88,*)  0, 8, 0,8
+do j=1,402
+write(88,'(8(2x,G13.5e3))') (REAL(fft_sum(i,j)),i=1,402)
+enddo
+close(88)
+IF(ALLOCATED(fft_field)) DEALLOCATE(fft_field)
+IF(ALLOCATED(fft_sum  )) DEALLOCATE(fft_sum  )
+!
+END SUBROUTINE four_fft_finalize
+!
+!*******************************************************************************
 !
 END MODULE fourier_sup
