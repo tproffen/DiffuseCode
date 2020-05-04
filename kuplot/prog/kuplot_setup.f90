@@ -113,7 +113,7 @@ USE precision_mod
 END INTERFACE
 !
 INTERFACE
-   SUBROUTINE kuplot_upd_para (ctype, ww, maxw, wert, ianz, cstring)
+   SUBROUTINE kuplot_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
 !
    USE precision_mod
    CHARACTER (LEN=* ), INTENT(IN   )    :: ctype
@@ -122,6 +122,7 @@ INTERFACE
    INTEGER           , INTENT(IN   )    :: ww (maxw)
    REAL(KIND=PREC_DP), INTENT(IN   )    :: wert
    CHARACTER (LEN=* ), INTENT(IN   )    :: cstring
+   INTEGER, DIMENSION(2), INTENT(IN)    :: substr ! Indices of substring
 !
    END SUBROUTINE kuplot_upd_para
 END INTERFACE
