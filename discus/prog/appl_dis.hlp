@@ -6575,6 +6575,7 @@
    (e.g. from a protein) without creating that many different atom types.
 3  free
 !p free [<a>,<b>,<c>,<alpha>,<beta>,<gamma> [,<name> | <number> [, "2"]]
+!p      [, setting:abc]
 
    No structure is read. The space group is set to "P1". The lattice
    constants are set to the optional values on the command line. 
@@ -6590,6 +6591,10 @@
    For those space groups where a second origin choice is allowed, 
    the optional eighth parameter may be set to "2" to indicate the 
    alternative origin choice.
+   The last optional parameter "setting:" allows to use a non-standard
+   setting within the orthorhombic space groups. 
+   specify the desired setting as either of:
+   abc,   bca,   cab,   acb,   cba,   bac
 3  stru
 !p stru <name> [, site:{"differ"|"equal"}]
 
