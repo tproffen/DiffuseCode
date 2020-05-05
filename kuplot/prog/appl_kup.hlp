@@ -444,8 +444,9 @@
 !p buff <left>,<right>,<bottom>,<top>
 
    This command allows to alter the amount of drawing space KUPLOT
-   reserves outside the plotting area for labels, titles etc.. The
-   parameters given are relative to the size of the plot, e.g. a
+   reserves outside the plotting area for labels, titles etc.. for
+   the current frame.
+   The parameters given are relative to the size of the plot, e.g. a
    value of 0.3 will save 30% of the width/height of the plot itself
    for axis numbers, labels etc. - note that if the reserved space
    is too small text might be wrapped around or cut off.
