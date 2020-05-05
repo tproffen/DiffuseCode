@@ -717,11 +717,7 @@ INTEGER :: progname_l
 INTEGER :: i
 LOGICAL :: l_exist
 !
-IF(lstandalone) THEN
-  progname = pname
-ELSE
-  progname = 'suite'
-ENDIF
+progname = pname          ! Make a local copy of the program name pname
 !
 progname_l = LEN(TRIM(progname))
 !
