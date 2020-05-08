@@ -474,7 +474,7 @@ ENDIF
  1300 FORMAT     (1x,'Access manuals at each section with   : ','manual')
  1400 FORMAT     (1x,'Access help at each section/menu with : ','help  ')
  1500 FORMAT     (1x,'News at each section/Command_lang in  : ','help News')
- 1600 FORMAT     (1x,'Change font size with VT Fonts menu or: ','CTRL + /CTRL -')
+ 1600 FORMAT     (1x,'Change font in Edit => Preferences or : ','CTRL + /CTRL -')
  1900 FORMAT     (1x,a,'Manual files in  : ',a,a,a) 
  2000 FORMAT     (1x,a,'User macros in   : ',a,a,a) 
  2100 FORMAT     (1x,a,'System macros in : ',a,a,a) 
@@ -482,7 +482,7 @@ ENDIF
  2300 FORMAT     (1x,a,'Access manuals at each section with   : ',a,'manual',a)
  2400 FORMAT     (1x,a,'Access help at each section/menu with : ',a,'help  ',a)
  2500 FORMAT     (1x,a,'News at each section/Command_lang in  : ',a,'help News',a)
- 2600 FORMAT     (1x,a,'Change font size with ',a,'VT Fonts',a,' menu or: ',a,'CTRL + /CTRL -',a)
+ 2600 FORMAT     (1x,a,'Change font in ',a,'Edit => Preferences',a,' or : ',a,'CTRL + /CTRL -',a)
 !
 END SUBROUTINE write_appl_env                       
 !
@@ -717,7 +717,11 @@ INTEGER :: progname_l
 INTEGER :: i
 LOGICAL :: l_exist
 !
-progname = pname          ! Make a local copy of the program name pname
+IF(lstandalone) THEN
+   progname = pname          ! Make a local copy of the program name pname
+ELSE
+   progname = 'suite'
+ENDIF
 !
 progname_l = LEN(TRIM(progname))
 !
