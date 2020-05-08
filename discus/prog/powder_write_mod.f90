@@ -219,19 +219,25 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
          ypl(j) = ypl(j) * q
       ENDDO
    ELSEIF(value == val_pdf) THEN  valq               ! Calc PDF IF
-      IF(.NOT. (deb_conv .OR. .NOT.ldbw)  & ! THEN   ! DEBYE was done with convolution of ADP
-         .AND.   &
-           (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0))THEN
+!write(*,*) ' F(Q) PREP ', .NOT. (deb_conv .OR. .NOT.ldbw), deb_conv, ldbw, cr_natoms
+      IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
+!      IF(.NOT. (deb_conv .OR. .NOT.ldbw)  & ! THEN   ! DEBYE was done with convolution of ADP
+!         .AND.   &
+!           (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0))THEN
 ! NEEDS WORK  !!!!!
-!write(*,*) ' SHOULD PREPARE FQ) ? ? '
-            DO j = 0, npkt   
-               q = (j)*xdel + xmin
-               ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
-                          - exp(-0.00*q**2*(pow_u2aver/u2aver_scale))   *  &
-                          pow_f2aver(j)/pow_faver2(j)) * q
+!write(*,*) ' SHOULD PREPARE FQ) ? ? ', pow_u2aver, u2aver_scale, normalizer
+!open(unit=67,file='POWDER/clin.data', status='unknown')
+         DO j = 0, npkt   
+            q = (j)*xdel + xmin
+            ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+                       - exp(-0.00*q**2*(pow_u2aver/u2aver_scale))   *  &
+                       pow_f2aver(j)/pow_faver2(j)) * q
 !                         - 1.0 *                                 &
-            ENDDO
+!write(67,'( 4(F16.8,2x))') q, ypl(j), pow_faver2(j), pow_f2aver(j)
+         ENDDO
+!close(67)
       ELSE
+!write(*,*) ' DIREKT (YPL -1 ) * q', normalizer
          ypl = ypl - 1.0
          DO j = 0, npkt   
             q = (j)*xdel + xmin
@@ -336,62 +342,55 @@ ELSEIF( cpow_form == 'q' .OR. cpow_form == 'r') THEN        ! axis is Q
 !        IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
 !            ((pow_four_type == POW_COMPL) .AND. value == val_pdf) .OR. &
 !             pow_four_type == POW_DEBYE              ) THEN ! DEBYE, always spline
-               qmin = pow_qmin
-               qmax = pow_qmax
-               deltaq = pow_deltaq
-            IF(value == val_pdf) THEN                       ! Set limits for PDF
-               CONTINUE
-            ELSE                                            ! Set limits for powder pattern
-               IF(out_user_limits) THEN                     ! User provided values
-                  qmin   = out_user_values(1)
-                  qmax   = out_user_values(2)
-                  deltaq = out_user_values(3)
-               ELSE                                          ! Convert q limits
-               CONTINUE
-               ENDIF
-            ENDIF
-            IF(qmin < xpl(0) ) THEN                     ! User lower limit too low!
-               qmin =            (INT( (xpl(1)            )/deltaq) + 1)*deltaq
-!           ELSE
-!              qmin = pow_qmin
-            ENDIF
-            IF(qmax > xpl(npkt) ) THEN                  ! User upper limit too high!
+   qmin = pow_qmin
+   qmax = pow_qmax
+   deltaq = pow_deltaq
+   IF(value == val_pdf) THEN                       ! Set limits for PDF
+!     Dummy, will be done separately
+      CONTINUE
+   ELSE                                            ! Set limits for powder pattern
+      IF(out_user_limits) THEN                     ! User provided values
+         qmin   = out_user_values(1)
+         qmax   = out_user_values(2)
+         deltaq = out_user_values(3)
+      ELSE                                          ! Convert q limits
+         CONTINUE
+      ENDIF
+   ENDIF
+   IF(qmin < xpl(0) ) THEN                     ! User lower limit too low!
+      qmin =            (INT( (xpl(1)            )/deltaq) + 1)*deltaq
+   ENDIF
+!
+   IF(qmax > xpl(npkt) ) THEN                  ! User upper limit too high!
                qmax =            (INT( (         xpl(npkt))/deltaq) - 1)*deltaq
-!           ELSE
-!              qmax = pow_qmax
-            ENDIF
-            xmin =   qmin                                  ! Adjust limits needed later to cut 
-            xmax =   qmax                                  ! off rounding errors
-            npkt_equi =     NINT((qmax-qmin)/deltaq) + 1             
-            ALLOCATE(y2a (0:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
-            ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
-            ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
-            xwrt = 0.0
-            ywrt = 0.0
-            y2a  = 0.0
-!write(*,*) ' BND xpl    n', npkt+1
-!write(*,*) ' BND xpl    x', lbound(xpl), ubound(xpl), xpl(0), xpl(1), xpl(2)
-!write(*,*) ' BND ypl    y', lbound(ypl), ubound(ypl), ypl(0), ypl(1), ypl(2)
-!write(*,*) ' BND y2a    2', lbound(y2a), ubound(y2a)
-            CALL spline (npkt+1, xpl, ypl, 1.e31, 1.e31, y2a)
-!write(*,*) ' Y2a ', y2a(0), y2a(1), y2a(npkt)
-            DO ii = 0, npkt_equi
-               xequ = qmin + (ii)*deltaq
-               CALL splint (npkt+1, xpl, ypl, y2a, xequ, yequ, ier_num)
-               IF(ier_num/=0) THEN
-                  DEALLOCATE( xpl, stat = all_status)
-                  DEALLOCATE( ypl, stat = all_status)
-                  DEALLOCATE( lpv, stat = all_status)
-                  DEALLOCATE( y2a, stat = all_status)
-                  DEALLOCATE( xwrt, stat = all_status)
-                  DEALLOCATE( ywrt, stat = all_status)
-                  RETURN
-               ENDIF
-               xwrt(ii) = xequ
-               ywrt(ii) = yequ
-            ENDDO
-            npkt_wrt = npkt_equi
-            DEALLOCATE(y2a, stat = all_status)
+   ENDIF
+   xmin =   qmin                                  ! Adjust limits needed later to cut 
+   xmax =   qmax                                  ! off rounding errors
+   npkt_equi =     NINT((qmax-qmin)/deltaq) + 1             
+   ALLOCATE(y2a (0:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
+   ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+   ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+   xwrt = 0.0
+   ywrt = 0.0
+   y2a  = 0.0
+   CALL spline (npkt+1, xpl, ypl, 1.e31, 1.e31, y2a)
+   DO ii = 0, npkt_equi
+      xequ = qmin + (ii)*deltaq
+      CALL splint (npkt+1, xpl, ypl, y2a, xequ, yequ, ier_num)
+      IF(ier_num/=0) THEN
+         DEALLOCATE( xpl, stat = all_status)
+         DEALLOCATE( ypl, stat = all_status)
+         DEALLOCATE( lpv, stat = all_status)
+         DEALLOCATE( y2a, stat = all_status)
+         DEALLOCATE( xwrt, stat = all_status)
+         DEALLOCATE( ywrt, stat = all_status)
+         RETURN
+      ENDIF
+      xwrt(ii) = xequ
+      ywrt(ii) = yequ
+   ENDDO
+   npkt_wrt = npkt_equi
+   DEALLOCATE(y2a, stat = all_status)
 ELSE                    ! cpow_form == 
    ier_num = - 6
    ier_typ = ER_COMM
@@ -399,13 +398,6 @@ ELSE                    ! cpow_form ==
    DEALLOCATE( ypl, stat = all_status)
    DEALLOCATE( lpv, stat = all_status)
    RETURN
-!  ALLOCATE(xwrt(1:npkt),stat = all_status)  ! Allocate array for powder pattern ready to write
-!  ALLOCATE(ywrt(1:npkt),stat = all_status)  ! Allocate array for powder pattern ready to write
-!        DO ii = 1,npkt
-!           xwrt(ii) = xpl(ii)
-!           ywrt(ii) = ypl(ii)
-!        ENDDO
-!        npkt_wrt = npkt
 ENDIF                   ! cpow_form == 
 !
 !open(77,file='POWDER/equistep.inte',status='unknown')
@@ -456,6 +448,7 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
          rstep    = pdf_deltaru
          npkt_pdf = NINT((rmax-rmin)/pdf_deltaru) + 1
       ENDIF
+!write(*,*) ' PDF npkt', npkt_pdf, rmin, rmax, rstep
       rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
       ALLOCATE(xfour(0:npkt_pdf))
       ALLOCATE(yfour(0:npkt_pdf))
@@ -494,15 +487,6 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
 !write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
 !enddo
 !close(77)
-!     CALL fft_fq(npkt_pdf, xfour, yfour, pow_qmin_u, pow_qmax_u, pow_deltaq_u, npkt_fft, npkt_wrt, xwrt, ywrt)
-!open(77,file='POWDER/post_corrlin.FQ',status='unknown')
-!DO ii=1,npkt_wrt
-!write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
-!enddo
-!close(77)
-!     CALL fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, rstep, npkt_fft, npkt_pdf, xfour, yfour)
-!      DEALLOCATE(xfour)
-!      DEALLOCATE(yfour)
 !
 !  The final limits to be written need to be adjusted, as corrlin convolution sets a 
 !  rmin at 0.5, respectively a ramx at rmax*1.25
@@ -522,11 +506,11 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
 !
       DEALLOCATE(xwrt)
       DEALLOCATE(ywrt)
-      ALLOCATE(xwrt(0:npkt_pdff))
-      ALLOCATE(ywrt(0:npkt_pdff))
 !
       IF(rminf<rmin) THEN       !rminuser < rmin; rmin is set to 0.5 if User_values are present
          j = NINT((rmin-rminf)/rstepf)
+         ALLOCATE(xwrt(0:npkt_pdff))
+         ALLOCATE(ywrt(0:npkt_pdff))
          DO ii = 0, j
             xwrt(ii) = rminf + (ii)*rstepf
             ywrt(ii) = 0.0
@@ -535,7 +519,10 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
             xwrt(ii) = xfour(ii-j)
             ywrt(ii) = yfour(ii-j)
          ENDDO
+         npkt_wrt = npkt_pdff-1   ! Finally set corrept points for write
       ELSEIF(rminf>rmin) THEN  ! rminuser > rmin; rmin is set to 0.5 if User_values are present
+         ALLOCATE(xwrt(0:npkt_pdff))
+         ALLOCATE(ywrt(0:npkt_pdff))
          j = NINT((rmin-rminf)/rstepf)     ! j will be < 0
          DO ii = 0, npkt_pdff-1
             xwrt(ii) = xfour(ii-j)
@@ -543,6 +530,8 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
          ENDDO
          npkt_wrt = npkt_pdff-1   ! Finally set corrept points for write
       ELSE                     ! rminuser == rmin
+         ALLOCATE(xwrt(0:npkt_pdf))
+         ALLOCATE(ywrt(0:npkt_pdf))
          j = 0
          DO ii=0,npkt_pdf - 1
             xwrt(ii) =xfour(ii)
@@ -595,12 +584,6 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
 !write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
 !enddo
 !close(77)
-!        sigma = 2.0*pow_u2aver                    ! TO BE REPLACED BY ATOMIC B VALUE
-!        IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
-!           CALL powder_conv_corrlin(yfour, REAL(rmin),REAL(rmax), REAL(rstep),   &
-!                                    sigma, pdf_clin_a, pdf_cquad_a, pow_width,   &
-!                                    POW_MAXPKT)
-!        ENDIF
       DEALLOCATE(xwrt)
       DEALLOCATE(ywrt)
       ALLOCATE(xwrt(0:npkt_pdf-1))
@@ -633,7 +616,6 @@ ENDIF
 !
 !     Finally write the pattern
 !
-!write(*,*) 'IN WRITE ', xwrt(0) , xwrt(2)-xwrt(1)
 CALL powder_do_write (outfile, npkt_wrt, xwrt, ywrt)
 !
 DEALLOCATE( ypl, stat = all_status)

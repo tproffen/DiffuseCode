@@ -396,6 +396,7 @@ ENDDO
 !enddo
 !close(87)
 !
+!write(*,*) ' IN PHASES ', deb_conv .OR. .NOT.ldbw, deb_conv , .NOT.ldbw
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
    DO k=0, npkt
       pow_sq(k) = pow_sq(k) / REAL(pow_faver2(k))                               &
@@ -405,6 +406,9 @@ IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution 
 !                   pow_f2aver(j)/pow_faver2(j))
    ENDDO
 ELSE
+!write(*,*) ' DEBYE was not doen  with conv ', &
+! .NOT. (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0), &
+! pdf_clin_a/=0.0, pdf_cquad_a/=0.0
    IF(.NOT. (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0)) THEN
    DO k=0, npkt
       q = ((k)*xdel + xmin)
