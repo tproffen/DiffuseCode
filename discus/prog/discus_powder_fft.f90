@@ -143,7 +143,7 @@ INTEGER :: max_ps
 !------ Now convolute                                                   
 !                                                                       
 imax = INT( (tthmax - tthmin) / dtth )
-write(*,*) 'CONV ', tthmin, tthmax, dtth, imax
+!write(*,*) 'CONV ', tthmin, tthmax, dtth, imax
 sigmasq = sigma2*SQRT(eightln2)
 sigmamin = sigmasq * 0.20D0
 dist_min = REAL(rcut, KIND=PREC_DP)
