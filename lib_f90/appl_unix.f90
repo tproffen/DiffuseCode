@@ -454,7 +454,10 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       WRITE ( *, 2300) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
       WRITE ( *, 2400) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
       WRITE ( *, 2500) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
-      WRITE ( *, 2600) TRIM(color_bg),TRIM(color_info),TRIM(color_fg),TRIM(color_info),TRIM(color_fg)
+      WRITE ( *, 2600) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
+      IF(operating == OS_LINUX_WSL) THEN
+         WRITE ( *, 2700) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
+      ENDIF
    ELSE
       WRITE ( *,  900)  man_dir (1:LEN_TRIM(man_dir)) 
       WRITE ( *, 1000) umac_dir (1:LEN_TRIM(umac_dir)) 
@@ -464,6 +467,9 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       WRITE ( *, 1400)
       WRITE ( *, 1500)
       WRITE ( *, 1600)
+      IF(operating == OS_LINUX_WSL) THEN
+         WRITE ( *, 1700)
+      ENDIF
    ENDIF
 ENDIF
 !                                                                       
@@ -474,7 +480,8 @@ ENDIF
  1300 FORMAT     (1x,'Access manuals at each section with   : ','manual')
  1400 FORMAT     (1x,'Access help at each section/menu with : ','help  ')
  1500 FORMAT     (1x,'News at each section/Command_lang in  : ','help News')
- 1600 FORMAT     (1x,'Change font in Edit => Preferences or : ','CTRL + /CTRL -')
+ 1600 FORMAT     (1x,'Change font size with                 : ','CTRL + /CTRL -')
+ 1700 FORMAT     (1x,'Preferences: Right click + Preferences:' )
  1900 FORMAT     (1x,a,'Manual files in  : ',a,a,a) 
  2000 FORMAT     (1x,a,'User macros in   : ',a,a,a) 
  2100 FORMAT     (1x,a,'System macros in : ',a,a,a) 
@@ -482,7 +489,8 @@ ENDIF
  2300 FORMAT     (1x,a,'Access manuals at each section with   : ',a,'manual',a)
  2400 FORMAT     (1x,a,'Access help at each section/menu with : ',a,'help  ',a)
  2500 FORMAT     (1x,a,'News at each section/Command_lang in  : ',a,'help News',a)
- 2600 FORMAT     (1x,a,'Change font in ',a,'Edit => Preferences',a,' or : ',a,'CTRL + /CTRL -',a)
+ 2600 FORMAT     (1x,a,'Change font size with                 : ',a,'CTRL + /CTRL -',a)
+ 2700 FORMAT     (1x,a,'Preferences:',a,' Right click + Preferences',a,':')
 !
 END SUBROUTINE write_appl_env                       
 !
