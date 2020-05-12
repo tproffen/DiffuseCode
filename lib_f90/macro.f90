@@ -452,7 +452,7 @@ INTEGER :: ndol, nexcl, nquote1, nquote2
 INTEGER :: lpar
 INTEGER :: n_par
 INTEGER :: lx, nx, x, lll, sdol
-INTEGER :: il
+INTEGER :: il, lt
 INTEGER, DIMENSION(1) :: lstring
 LOGICAL :: lnum
 REAL(KIND=PREC_DP)   , DIMENSION(1) :: r_par
@@ -484,6 +484,28 @@ IF (laenge == 0) THEN
    laenge = 0
    RETURN
 ENDIF
+DO WHILE(line(laenge:laenge) == '&')    ! A continued lined
+   laenge = laenge - 1
+   mac_tree_active%current = mac_tree_active%current + 1
+   IF(mac_tree_active%current > mac_tree_active%active%macros%macro_length) THEN
+      IF(.NOT. ASSOCIATED(mac_tree_active%parent)) THEN  ! Got back to the top 
+         lmakro = .false.
+         lmakro_disp  = .FALSE.    ! Macro display error off
+         macro_level = 0
+         CALL macro_close
+      ELSE
+         mac_tree_active => mac_tree_active%parent
+!            DEALLOCATE(mac_tree_active%kid)
+         macro_level = macro_level - 1
+      ENDIF
+      RETURN
+   ENDIF
+   zeile  = mac_tree_active%active%macros%macro_line(mac_tree_active%current)
+   lt     = len_str(zeile)
+   line   = line(1:laenge) // ' ' // zeile(1:lt)
+   laenge = laenge + 1 + lt
+ENDDO
+   
 !
 nocomment: IF (line(1:1) /= '#' .AND. line (1:1) /=  '!' .AND. laenge /= 0) THEN
    ndol    = 0

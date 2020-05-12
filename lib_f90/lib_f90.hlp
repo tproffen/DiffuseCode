@@ -26,6 +26,10 @@
    Here you find a list of recent changes, additions, bug corrections
 4  2020_May
 
+   Added the possibility to continue input lines 
+
+   Added a search for a new version at GIThub
+
    Added the option to place a string into a substring in a character
    expession
 4  2019_June

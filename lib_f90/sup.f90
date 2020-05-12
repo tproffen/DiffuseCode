@@ -35,11 +35,13 @@ CONTAINS
       INTEGER          , INTENT(OUT)   :: lp
       CHARACTER (LEN=*), INTENT(OUT)   :: prom 
 !
-      CHARACTER(1024) input
+      CHARACTER(LEN=1024)               :: input
+      CHARACTER(LEN=1024)               :: as_typed
       CHARACTER(60) bprom 
       CHARACTER(10) cready 
       INTEGER lbef, indxb 
       INTEGER il, jl, lcready 
+      INTEGER :: lt
       LOGICAL lreg 
       LOGICAL str_comp 
 !                                                                       
@@ -116,6 +118,8 @@ CONTAINS
 !        line caused problems. Seems not to be an issue any longer
          IF(linteractive) THEN
             first_input = .false.
+            input = ' '
+            ll    = 0
             IF (prompt_status.eq.PROMPT_ON.and..not.first_input) THEN 
                bprom = ' '//prom (1:len_str(prom)) //' > ' 
 !                                                                       
@@ -123,6 +127,14 @@ CONTAINS
 !                                                                       
                CALL iso_readline (input,bprom) 
                ll=len_str(input)
+               DO WHILE(input(ll:ll)=='&')
+                  ll = ll - 1
+                  bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
+                  CALL iso_readline(as_typed, bprom)
+                  lt = len_str(as_typed)
+                  input = input(1:ll) // ' ' // as_typed(1:lt)
+                  ll = ll + 1 + lt
+               ENDDO
 !                                                                       
 !------ --otherwise use normal READ                                     
 !                                                                       
@@ -130,6 +142,17 @@ CONTAINS
                CALL do_prompt (prom) 
                READ ( *, 2000, end = 990, err = 995) input 
                first_input = .FALSE. 
+!
+               ll=len_str(input)
+               DO WHILE(input(ll:ll)=='&')
+                  ll = ll - 1
+                  bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
+                  CALL do_prompt (bprom) 
+                  READ ( *, 2000, end = 990, err = 995) as_typed 
+                  lt = len_str(as_typed)
+                  input = input(1:ll) // ' ' // as_typed(1:lt)
+                  ll = ll + 1 + lt
+               ENDDO
             ENDIF 
          ELSE 
             input = input_gui
