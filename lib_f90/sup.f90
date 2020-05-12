@@ -9,59 +9,64 @@ CONTAINS
 !*****7*****************************************************************
 !*****7*****************************************************************
 !
-      SUBROUTINE get_cmd (line, ll, befehl, lbef, zeile, lp, prom) 
+SUBROUTINE get_cmd (line, ll, befehl, lbef, zeile, lp, prom) 
 !+                                                                      
 !     This subroutine gets a command for processing. If it              
 !     is keyboard input and the program was compiled with               
 !     READLINE defined, you will have basic line editing                
 !     functions.                                                        
 !-                                                                      
-      USE charact_mod
-      USE debug_mod 
-      USE do_execute_mod
-      USE doact_mod 
-      USE errlist_mod 
-      USE jsu_readline
-      USE learn_mod 
-      USE class_macro_internal 
-      USE prompt_mod 
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      CHARACTER (LEN=*), INTENT(INOUT) :: line
-      INTEGER          , INTENT(OUT)   :: ll
-      CHARACTER (LEN=*), INTENT(OUT)   :: befehl
-      CHARACTER (LEN=*), INTENT(OUT)   :: zeile
-      INTEGER          , INTENT(OUT)   :: lp
-      CHARACTER (LEN=*), INTENT(OUT)   :: prom 
+USE charact_mod
+USE debug_mod 
+USE do_execute_mod
+USE doact_mod 
+USE errlist_mod 
+USE jsu_readline
+USE learn_mod 
+USE class_macro_internal 
+USE prompt_mod 
+USE support_mod
 !
-      CHARACTER(LEN=1024)               :: input
-      CHARACTER(LEN=1024)               :: as_typed
-      CHARACTER(60) bprom 
-      CHARACTER(10) cready 
-      INTEGER lbef, indxb 
-      INTEGER il, jl, lcready 
-      INTEGER :: lt
-      LOGICAL lreg 
-      LOGICAL str_comp 
+IMPLICIT none 
 !                                                                       
-      INTEGER len_str 
-      INTEGER socket_accept 
-      INTEGER socket_get 
-      INTEGER socket_send 
+INTEGER, PARAMETER  :: ILRN = 33
 !                                                                       
-      input  = ' ' 
-      line   = ' ' 
-      zeile  = ' ' 
-      befehl = ' ' 
+CHARACTER (LEN=*), INTENT(INOUT) :: line
+INTEGER          , INTENT(OUT)   :: ll
+CHARACTER (LEN=*), INTENT(OUT)   :: befehl
+CHARACTER (LEN=*), INTENT(OUT)   :: zeile
+INTEGER          , INTENT(OUT)   :: lp
+CHARACTER (LEN=*), INTENT(OUT)   :: prom 
+!
+CHARACTER(LEN=1024)               :: input
+CHARACTER(LEN=1024)               :: as_typed
+CHARACTER(60) bprom 
+CHARACTER(10) cready 
+INTEGER lbef, indxb 
+INTEGER il, jl, lcready 
+INTEGER :: lt
+LOGICAL lreg 
+LOGICAL :: ldone
+LOGICAL str_comp 
 !                                                                       
-      ll   = 0 
-      lp   = 0 
-      lbef = 0
-      ier_num = 0
-      ier_typ = ER_NONE 
+INTEGER len_str 
+INTEGER socket_accept 
+INTEGER socket_get 
+INTEGER socket_send 
 !                                                                       
-      IF (lblock) THEN 
+ldone = .FALSE.      ! Learn has not yet been written
+input  = ' ' 
+line   = ' ' 
+zeile  = ' ' 
+befehl = ' ' 
+!                                                                       
+ll   = 0 
+lp   = 0 
+lbef = 0
+ier_num = 0
+ier_typ = ER_NONE 
+!                                                                       
+IF (lblock) THEN 
          CALL do_execute (lreg, input, ll) 
          IF (ier_num.ne.0.or..not.lreg) RETURN 
 !                                                                       
@@ -127,11 +132,15 @@ CONTAINS
 !                                                                       
                CALL iso_readline (input,bprom) 
                ll=len_str(input)
+               CALL learn_save(input, ll, llearn, lmakro, ILRN)
+               CALL remove_comment(input, ll) 
                DO WHILE(input(ll:ll)=='&')
                   ll = ll - 1
                   bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
                   CALL iso_readline(as_typed, bprom)
                   lt = len_str(as_typed)
+                  CALL learn_save(as_typed, lt, llearn, lmakro, ILRN)
+                  CALL remove_comment(as_typed, lt) 
                   input = input(1:ll) // ' ' // as_typed(1:lt)
                   ll = ll + 1 + lt
                ENDDO
@@ -144,12 +153,16 @@ CONTAINS
                first_input = .FALSE. 
 !
                ll=len_str(input)
+               CALL learn_save(input, ll, llearn, lmakro, ILRN)
+               CALL remove_comment (input, ll) 
                DO WHILE(input(ll:ll)=='&')
                   ll = ll - 1
                   bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
                   CALL do_prompt (bprom) 
                   READ ( *, 2000, end = 990, err = 995) as_typed 
                   lt = len_str(as_typed)
+                  CALL learn_save(as_typed, lt, llearn, lmakro, ILRN)
+                  CALL remove_comment(as_typed, lt) 
                   input = input(1:ll) // ' ' // as_typed(1:lt)
                   ll = ll + 1 + lt
                ENDDO
@@ -175,16 +188,6 @@ CONTAINS
 !
 !     - Learn command for learn sequence                                
 !
-      lbef = MIN(LEN(input),LEN_TRIM(input)) 
-      IF (llearn.and..not.str_comp (input, 'lend', 3, lbef, 4)   &
-                .and..not.str_comp (input, 'mouse', 3, lbef, 5)  &
-                .and..not.lmakro) THEN
-         IF (ll.gt.0) THEN 
-            WRITE (33, 2000) input (1:len_str (input) ) 
-         ELSE 
-            WRITE (33, 2000) 
-         ENDIF 
-      ENDIF 
       IF (ll.ne.0) THEN 
          IF (input (1:1) .ne.'#'.and.input (1:1) .ne.'!') THEN 
             ll = len_str (input) 
@@ -245,7 +248,38 @@ CONTAINS
 !                                                                       
  2000 FORMAT     (a) 
       END SUBROUTINE get_cmd                        
+!
 !*****7*****************************************************************
+!
+SUBROUTINE learn_save(input, ll, llearn, lmakro, ILRN)
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: input
+INTEGER         , INTENT(IN) :: ll
+LOGICAL         , INTENT(IN) :: llearn
+LOGICAL         , INTENT(IN) :: lmakro
+INTEGER         , INTENT(IN) :: ILRN
+!
+INTEGER :: lbef
+INTEGER, EXTERNAL :: len_str 
+LOGICAL, EXTERNAL :: str_comp 
+!
+lbef = MIN(LEN(input),LEN_TRIM(input)) 
+IF (llearn.and..not.str_comp (input, 'lend', 3, lbef, 4)   &
+          .and..not.str_comp (input, 'mouse', 3, lbef, 5)  &
+          .and..not.lmakro) THEN
+   IF(ll.gt.0) THEN 
+      WRITE(ILRN, '(a)') input(1:len_str (input) ) 
+   ELSE 
+      WRITE(ILRN, '(a)') 
+   ENDIF 
+ENDIF 
+!
+END SUBROUTINE learn_save
+!
+!*****7*****************************************************************
+!
 SUBROUTINE remove_comment (line, ll) 
 !                                                                       
 !     removes trailing in line comments                                 
@@ -274,6 +308,7 @@ DO i = 1, ll
       ENDIF 
    ENDIF 
 ENDDO 
+ll = LEN_TRIM(line)
 !                                                                       
 END SUBROUTINE remove_comment                 
 !                                                                       

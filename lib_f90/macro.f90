@@ -440,6 +440,8 @@ USE macro_mod
 USE class_macro_internal
 USE precision_mod
 USE prompt_mod
+USE support_mod
+!
 IMPLICIT none
 !
 !
@@ -484,6 +486,7 @@ IF (laenge == 0) THEN
    laenge = 0
    RETURN
 ENDIF
+CALL remove_comment(line, laenge)
 DO WHILE(line(laenge:laenge) == '&')    ! A continued lined
    laenge = laenge - 1
    mac_tree_active%current = mac_tree_active%current + 1
@@ -502,6 +505,7 @@ DO WHILE(line(laenge:laenge) == '&')    ! A continued lined
    ENDIF
    zeile  = mac_tree_active%active%macros%macro_line(mac_tree_active%current)
    lt     = len_str(zeile)
+   CALL remove_comment(zeile, lt)
    line   = line(1:laenge) // ' ' // zeile(1:lt)
    laenge = laenge + 1 + lt
 ENDDO
