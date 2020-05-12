@@ -28,8 +28,11 @@ CHARACTER(255) cdummy
 CHARACTER(LEN=8), DIMENSION(6), PARAMETER :: tmp_test = (/'/tmp    ','/TMP    ', &
       '/var/tmp', '/Var/tmp', '/var/TMP', '/Var/TMP' /)
 CHARACTER(LEN=2048) :: line
+CHARACTER(LEN=19  ) :: cfile
 CHARACTER(LEN=2048) :: pathfile
 CHARACTER(LEN=2048) :: ufile
+CHARACTER(LEN=1024) :: message
+INTEGER             :: exit_msg
 INTEGER ico, ice, iii, i, j
 INTEGER :: length
 INTEGER :: ios ! I/O status
@@ -37,6 +40,14 @@ INTEGER len_str
 INTEGER pname_l 
 LOGICAL lpresent
 INTEGER :: lib_f90_getpid
+!
+cfile = '/tmp/DISCUS_CURRENT'         ! Initiate search for new version
+!
+line = "rm -f /tmp/DISCUS_CURRENT"
+CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+line = "curl --silent ""https://github.com/tproffen/DiffuseCode/releases/latest"" > /tmp/DISCUS_CURRENT"
+CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+CALL no_error                         ! Checked and printed in ==> write_appl_env
 !
 IF(envir_done) RETURN
 !                                                                       
@@ -439,11 +450,45 @@ SUBROUTINE write_appl_env (standalone, local_mpi_myid)
 !  Writes the path for help manual etc to the welcome screen
 !+
 USE envir_mod
+USE errlist_mod
+USE prompt_mod
 USE terminal_mod
+!
 IMPLICIT NONE
 !                                                                       
+INTEGER, PARAMETER  :: IRD = 69
 LOGICAL, INTENT(IN) :: standalone
 INTEGER, INTENT(IN) :: local_mpi_myid
+CHARACTER(LEN=1024) :: string
+CHARACTER(LEN=1024) :: message
+INTEGER             :: exit_msg
+INTEGER             :: itag
+INTEGER             :: iquote
+CHARACTER(LEN=19)   :: cfile
+CHARACTER(LEN=10)   :: cversion
+CHARACTER(LEN=1024) :: stat
+LOGICAL lda
+!
+!  Analyse if new version is avalable at GIThub
+!
+cfile = '/tmp/DISCUS_CURRENT'
+!
+INQUIRE (file = cfile, exist = lda)
+IF(lda) THEN
+   OPEN(UNIT=IRD, FILE=cfile, STATUS='OLD')
+   IF(ier_num==0) THEN    ! CURRENT file was found
+      READ(IRD,'(a)') string
+      itag = INDEX(string,'tag')
+      IF(itag>0) THEN
+         iquote = itag + INDEX(string(itag:LEN_TRIM(string)),'"') - 1
+      ENDIF
+      cversion = string (itag+6:iquote-1)
+   ENDIF
+ENDIF
+CLOSE(UNIT=IRD)
+string = "rm -f /TMP/DISCUS_CURRENT"
+CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+CALL no_error
 !
 IF(standalone .AND. local_mpi_myid==0) THEN
    IF(term_scheme_exists) THEN
@@ -458,6 +503,10 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       IF(operating == OS_LINUX_WSL) THEN
          WRITE ( *, 2700) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
       ENDIF
+      IF(version /= cversion ) THEN
+         WRITE(*,*)
+         WRITE(*,2800) TRIM(color_bg),TRIM(color_info),cversion, TRIM(color_fg)
+      ENDIF
    ELSE
       WRITE ( *,  900)  man_dir (1:LEN_TRIM(man_dir)) 
       WRITE ( *, 1000) umac_dir (1:LEN_TRIM(umac_dir)) 
@@ -470,6 +519,10 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       IF(operating == OS_LINUX_WSL) THEN
          WRITE ( *, 1700)
       ENDIF
+      IF(version /= cversion ) THEN
+         WRITE(*,*)
+         WRITE(*,1800) cversion
+      ENDIF
    ENDIF
 ENDIF
 !                                                                       
@@ -481,7 +534,8 @@ ENDIF
  1400 FORMAT     (1x,'Access help at each section/menu with : ','help  ')
  1500 FORMAT     (1x,'News at each section/Command_lang in  : ','help News')
  1600 FORMAT     (1x,'Change font size with                 : ','CTRL + /CTRL -')
- 1700 FORMAT     (1x,'Preferences: Right click + Preferences:' )
+ 1700 FORMAT     (1x,'Preferences: Right click + Preferences: ' )
+ 1800 FORMAT     (1x,'New version available at GIThub       : ',a)
  1900 FORMAT     (1x,a,'Manual files in  : ',a,a,a) 
  2000 FORMAT     (1x,a,'User macros in   : ',a,a,a) 
  2100 FORMAT     (1x,a,'System macros in : ',a,a,a) 
@@ -491,6 +545,7 @@ ENDIF
  2500 FORMAT     (1x,a,'News at each section/Command_lang in  : ',a,'help News',a)
  2600 FORMAT     (1x,a,'Change font size with                 : ',a,'CTRL + /CTRL -',a)
  2700 FORMAT     (1x,a,'Preferences:',a,' Right click + Preferences',a,':')
+ 2800 FORMAT     (1x,a,'New version available at GIThub       : ',a,a,a)
 !
 END SUBROUTINE write_appl_env                       
 !
