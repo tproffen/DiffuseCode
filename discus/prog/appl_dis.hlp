@@ -75,6 +75,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2020_May
+
+   Added more parameters to the surface => boundary command to
+   specify the orientation of a cylinder / ellipsoid. 
 3  2020_April
 
    Many major updates:
@@ -8355,6 +8359,23 @@
                                     surface
                                     Defaults to "run"
                                     See description below
+
+            Optional parameters for the "cylinder" and "ellipsoid" style
+            are:
+            "long:[",<u>,<v>,<w>,{"d"|"r"} "]"
+                                    Defines the direction of the cylinder axis,
+                                    or the third principal "ellipsoid" axis.
+                                    <u>,<v>,<w> are fractional components of
+                                    the direction vector.
+                                    The four'th parameter is optional and
+                                    defaults to "d". It specifies if the
+                                    components of the vector are in direct
+                                    or reciprocal space.
+            "short:[",<u>,<v>,<w>,{"d"|"r"} "]"
+                                    Same for the first principal axis of the
+                                    "ellipsoid". For the "cylinder" its 
+                                    meaningless, as it results in a rotation 
+                                    around the cylinder axis.
 
    This commands removes all atoms that are outside a boundary surrounding
    the crystal. The distance of the surface from the point 0,0,0 is measured
