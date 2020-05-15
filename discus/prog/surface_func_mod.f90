@@ -666,528 +666,565 @@ END SUBROUTINE surface_normalize
       END SUBROUTINE surf_show                      
 !*****7*****************************************************************
 !
-      SUBROUTINE boundary (zeile, lp) 
+SUBROUTINE boundary (zeile, lp) 
 !+                                                                      
 !     This subroutine removes all atomes outside a given boundary.      
 !-                                                                      
-      USE metric_mod
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE discus_plot_mod
-      USE discus_plot_init_mod
-      USE point_grp
-      USE prop_para_mod 
-      USE surface_mod
-      USE wyckoff_mod 
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
+USE metric_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE discus_plot_mod
+USE discus_plot_init_mod
+USE point_grp
+USE prop_para_mod 
+USE surface_mod
+USE wyckoff_mod 
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
 USE precision_mod
-      USE take_param_mod
+USE take_param_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      INTEGER, PARAMETER :: maxw = 12
-      INTEGER, PARAMETER :: NOPTIONAL = 7
+INTEGER, PARAMETER :: maxw = 12
+INTEGER, PARAMETER :: NOPTIONAL = 9
 !                                                                       
-      CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
-      INTEGER           , INTENT(INOUT) :: lp 
+CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
+INTEGER           , INTENT(INOUT) :: lp 
 !                                                                       
 !      REAL, PARAMETER :: EPS = 0.000001
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
-      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
-      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
-      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent ! Optional parameter is present
-      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-      INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
-      INTEGER, PARAMETER :: O_CENTX   = 1
-      INTEGER, PARAMETER :: O_CENTY   = 2
-      INTEGER, PARAMETER :: O_CENTZ   = 3
-      INTEGER, PARAMETER :: O_THICK   = 4
-      INTEGER, PARAMETER :: O_KEEP    = 5
-      INTEGER, PARAMETER :: O_ACCUM   = 6
-      INTEGER, PARAMETER :: O_EXEC    = 7
-      INTEGER lpara (maxw) 
-      INTEGER i, j, k, ianz 
-      INTEGER :: special_form
-      INTEGER :: special_n = 0
-      INTEGER :: nplanes       ! number of planes that atom is close to
-      INTEGER :: iplane        !  index of plane  that atom is closest to
-      LOGICAL lspace 
-      LOGICAL linside 
-      LOGICAL l_plane 
-      LOGICAL l_sphere 
-      LOGICAL l_form 
-      LOGICAL l_cyl 
-      LOGICAL l_ell 
-      LOGICAL l_local
-      LOGICAL l_special 
-      LOGICAL lwall           ! True if atom is close to cylinder wall
-      LOGICAL ltop            ! True if atom is close to cylinder top
+CHARACTER(1024) cpara (maxw) 
+CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent ! Optional parameter is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
+INTEGER, PARAMETER :: O_CENTX   = 1
+INTEGER, PARAMETER :: O_CENTY   = 2
+INTEGER, PARAMETER :: O_CENTZ   = 3
+INTEGER, PARAMETER :: O_THICK   = 4
+INTEGER, PARAMETER :: O_KEEP    = 5
+INTEGER, PARAMETER :: O_ACCUM   = 6
+INTEGER, PARAMETER :: O_EXEC    = 7
+INTEGER, PARAMETER :: O_LONG    = 8
+INTEGER, PARAMETER :: O_SHORT   = 9
+INTEGER lpara (maxw) 
+INTEGER i, j, k, ianz 
+INTEGER :: special_form
+INTEGER :: special_n = 0
+INTEGER :: nplanes       ! number of planes that atom is close to
+INTEGER :: iplane        !  index of plane  that atom is closest to
+LOGICAL lspace 
+LOGICAL linside 
+LOGICAL l_plane 
+LOGICAL l_sphere 
+LOGICAL l_form 
+LOGICAL l_cyl 
+LOGICAL l_ell 
+LOGICAL l_local
+LOGICAL l_special 
+LOGICAL lwall           ! True if atom is close to cylinder wall
+LOGICAL ltop            ! True if atom is close to cylinder top
+LOGICAL :: lrem         ! True if cylinder need to remove an atom
 !      LOGICAL l_new 
-      REAL, DIMENSION(3) :: wall  !local normal at cylinder wall
-      REAL, DIMENSION(3) :: top   !local normal at cylinder top
-      REAL h (3), d, dstar, radius, height , dshort
-      REAL :: hkl(4)!, hklw(4)
-      REAL, DIMENSION(3)    :: center       ! center of the shape
-      REAL, DIMENSION(3, 2) :: special_hkl
-      REAL, DIMENSION(:,:), ALLOCATABLE :: point_hkl ! (3,48)
-      REAL, DIMENSION(:,:), ALLOCATABLE, SAVE :: accum_hkl ! (3,48)
-      REAL, DIMENSION(:,:), ALLOCATABLE ::  temp_hkl ! (3,48)
-      REAL, DIMENSION(:  ), ALLOCATABLE ::  dstars   ! d-stars of accumulated surfaces
-      INTEGER               :: point_n
-      INTEGER, SAVE         :: accum_n
-      REAL, DIMENSION(3)    :: radius_ell
-      REAL v (3) 
+REAL, DIMENSION(3) :: wall  !local normal at cylinder wall
+REAL, DIMENSION(3) :: top   !local normal at cylinder top
+REAL h (3), d, dstar, radius, height , dshort
+REAL :: hkl(4)!, hklw(4)
+REAL, DIMENSION(3)    :: center       ! center of the shape
+REAL, DIMENSION(3, 2) :: special_hkl
+REAL, DIMENSION(:,:), ALLOCATABLE :: point_hkl ! (3,48)
+REAL, DIMENSION(:,:), ALLOCATABLE, SAVE :: accum_hkl ! (3,48)
+REAL, DIMENSION(:,:), ALLOCATABLE ::  temp_hkl ! (3,48)
+REAL, DIMENSION(:  ), ALLOCATABLE ::  dstars   ! d-stars of accumulated surfaces
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_comb    ! Rotation matrix for Cyllinder / Ellipsoid
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_combr   ! Rotation matrix for Cyllinder / Ellipsoid
+REAL(KIND=PREC_DP), DIMENSION(4)   :: v4        ! Augmented atom vector
+INTEGER               :: point_n
+INTEGER, SAVE         :: accum_n
+REAL, DIMENSION(3)    :: radius_ell
+REAL v (3) 
 !      REAL, DIMENSION(3,1) :: col_vec
-      REAL null (3) 
-      REAL :: thick
-      REAL(KIND=PREC_DP) :: werte (maxw) 
+REAL null (3) 
+REAL :: thick
+REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      LOGICAL str_comp 
+LOGICAL str_comp 
 !     REAL do_blen 
 !                                                                       
-      DATA null / 0.0, 0.0, 0.0 / 
-      DATA oname  / 'centx', 'centy', 'centz',  'thick',  'keep ',  'accum', 'exec '/
-      DATA loname /  5,       5,       5,        5     ,   4     ,   5     ,  4    /
+DATA null / 0.0, 0.0, 0.0 / 
+DATA oname  / 'centx', 'centy', 'centz',  'thick',  'keep ',  'accum', 'exec ', 'long', 'short'/
+DATA loname /  5,       5,       5,        5     ,   4     ,   5     ,  4     ,  4    ,  5     /
 !
-      opara  =  (/ '0.0000', '0.0000', '0.0000', '-2.550','inside', 'init  ', 'run   ' /)   ! Always provide fresh default values
-      lopara =  (/  6,        6,        6      ,  6      ,  6      ,  4      ,  3 /)
-      owerte =  (/  0.0,      0.0,      0.0    , -2.55   ,  0.0    ,  0.0    ,  0.0 /)
+opara  =  (/ '0.0000 ', '0.0000 ', '0.0000 ', '-2.550 ','inside ', 'init   ', 'run    ', '[0,0,1]', '[1,0,0]'  /)   ! Always provide fresh default values
+lopara =  (/  6,         6,         6       ,  6       ,  6      ,  4       ,  3       ,  7       ,  7         /)
+owerte =  (/  0.0,       0.0,       0.0     , -2.55    ,  0.0    ,  0.0     ,  0.0     ,  0.0     ,  0.0       /)
 !                                                                       
-      IF (cr_v.le.0.0) then 
-         ier_num = - 35 
-         ier_typ = ER_APPL 
-         ier_msg (1) = 'A proper unit cell must be defined' 
-         ier_msg (2) = 'for this command to operate       ' 
-         RETURN 
-      ENDIF 
+IF (cr_v.le.0.0) then 
+   ier_num = - 35 
+   ier_typ = ER_APPL 
+   ier_msg (1) = 'A proper unit cell must be defined' 
+   ier_msg (2) = 'for this command to operate       ' 
+   RETURN 
+ENDIF 
 !                                                                       
-      l_plane  = .false. 
-      l_form   = .false. 
-      l_sphere = .false. 
-      l_cyl    = .false. 
-      l_ell    = .false. 
-      l_local  = .FALSE.
-      linside  = .true. 
-      radius   = 0.0
-      height   = 0.0
-      dstar    = 1.0
-      center(:) = 0.0     ! Default center to 0.0, 0.0, 0.0
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF(ier_num /= 0) RETURN
-      opara  =  (/ '0.0000', '0.0000', '0.0000', '-2.550','inside', 'init  ', 'run   ' /)   ! Always provide fresh default values
-      lopara =  (/  6,        6,        6      ,  6      ,  6      ,  4      ,  3 /)
-      owerte =  (/  0.0,      0.0,      0.0    , -2.55   ,  0.0    ,  0.0    ,  0.0 /)
-      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                        oname, loname, opara, lopara, lpresent, owerte)
-      IF(ier_num /= 0) RETURN
+l_plane  = .false. 
+l_form   = .false. 
+l_sphere = .false. 
+l_cyl    = .false. 
+l_ell    = .false. 
+l_local  = .FALSE.
+linside  = .true. 
+radius   = 0.0
+height   = 0.0
+dstar    = 1.0
+center(:) = 0.0     ! Default center to 0.0, 0.0, 0.0
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF(ier_num /= 0) RETURN
+!opara  =  (/ '0.0000', '0.0000', '0.0000', '-2.550','inside', 'init  ', 'run   ' /)   ! Always provide fresh default values
+!lopara =  (/  6,        6,        6      ,  6      ,  6      ,  4      ,  3 /)
+!owerte =  (/  0.0,      0.0,      0.0    , -2.55   ,  0.0    ,  0.0    ,  0.0 /)
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF(ier_num /= 0) RETURN
 !     Handle optional and global parameters
 !     IF (ier_num.eq.0) then 
-         center(1:3) = owerte(1:3)   ! As defaults are always provided, we can take it take blindly here
-         IF (str_comp (cpara (ianz) , 'outside', 3, lpara (ianz) , 7)) THEN
-            linside = .false.
-            ianz = ianz - 1
-         ELSEIF (str_comp (cpara (ianz) , 'inside', 3, lpara (ianz), 6) ) THEN
-            linside = .true.
-            ianz = ianz - 1
-         ELSE     ! Test optional parameter form
-            IF (str_comp (opara(O_KEEP) , 'outside', 3, lopara(O_KEEP) , 7)) THEN
-               linside = .false.
-            ELSEIF (str_comp (opara(O_KEEP) , 'inside', 3, lopara(O_KEEP), 6) ) THEN
-               linside = .true.
-            ENDIF
-         ENDIF
-         IF (str_comp (cpara (1) , 'hkl',  3, lpara (1) , 3)  .OR.  &
-             str_comp (cpara (1) , 'form', 3, lpara (1) , 4) ) THEN 
-           l_form = str_comp (cpara (1) , 'form', 3, lpara (1) , 4)
+center(1:3) = owerte(O_CENTX:O_CENTZ)   ! As defaults are always provided, we can take it take blindly here
+IF (str_comp (cpara (ianz) , 'outside', 3, lpara (ianz) , 7)) THEN
+   linside = .false.
+   ianz = ianz - 1
+ELSEIF (str_comp (cpara (ianz) , 'inside', 3, lpara (ianz), 6) ) THEN
+   linside = .true.
+   ianz = ianz - 1
+ELSE     ! Test optional parameter form
+   IF (str_comp (opara(O_KEEP) , 'outside', 3, lopara(O_KEEP) , 7)) THEN
+      linside = .false.
+   ELSEIF (str_comp (opara(O_KEEP) , 'inside', 3, lopara(O_KEEP), 6) ) THEN
+      linside = .true.
+   ENDIF
+ENDIF
+IF (str_comp (cpara (1) , 'hkl',  3, lpara (1) , 3)  .OR.  &
+    str_comp (cpara (1) , 'form', 3, lpara (1) , 4) ) THEN 
+  l_form = str_comp (cpara (1) , 'form', 3, lpara (1) , 4)
 !                                                                       
 !     ----Crystal is limited by a plane or by a form of symmetrically equivalent planes
 !                                                                       
-            lspace = .false. 
-            l_special = .FALSE.
-            IF(str_comp(cpara(2),'cubeoct',7,lpara(2),7)) THEN
-               IF(cr_syst==CR_CUBIC) THEN
-                  cpara(5) = cpara(3)
-                  lpara(5) = lpara(3)
-                  cpara(2) = '1.0'
-                  cpara(3) = '0.0'
-                  cpara(4) = '0.0'
-                  lpara(2) = 3
-                  lpara(3) = 3
-                  lpara(4) = 3
-                  ianz = 5
+   lspace = .false. 
+   l_special = .FALSE.
+   IF(str_comp(cpara(2),'cubeoct',7,lpara(2),7)) THEN
+      IF(cr_syst==CR_CUBIC) THEN
+         cpara(5) = cpara(3)
+         lpara(5) = lpara(3)
+         cpara(2) = '1.0'
+         cpara(3) = '0.0'
+         cpara(4) = '0.0'
+         lpara(2) = 3
+         lpara(3) = 3
+         lpara(4) = 3
+         ianz = 5
 !                 l_special = .TRUE.
-                  special_form = 1
-               ELSE
-                  ier_num = -142
-                  ier_typ = ER_APPL
-                  ier_msg(1) = 'Unpredictable forms would result in non-cubic'
-                  ier_msg(2) = 'systems. Use explicit forms and combinations'
-                  ier_msg(3) = 'in non-cubic systems.'
-                  RETURN
-               ENDIF
-            ELSE
-               special_form = 0
-            ENDIF
-            IF (ianz.ge.4) then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.ne.0) return 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.ne.0) return 
-               DO i = 1, 3 
-               h (i) = werte (i) 
-               ENDDO 
-               dstar = do_blen (lspace, h, null) 
-               IF (dstar.le.0.0) then 
-                  ier_num = - 32 
-                  ier_typ = ER_APPL 
-                  RETURN 
-               ENDIF 
-               IF (ianz.eq.4) then 
-                  IF(NINT(werte(4)) == 0) THEN
-                     DO i = 1, 3 
-                        h (i) = h (i) / dstar *1.0E12
-                     ENDDO 
-                     dstar = do_blen (lspace, h, null) 
-                  ELSE
-                     DO i = 1, 3 
-                        h (i) = h (i) / dstar / werte (4) 
-                     ENDDO 
-                     dstar = do_blen (lspace, h, null) 
-                  ENDIF 
-               ENDIF 
-               IF (dstar.le.0.0) then 
-                  ier_num = - 32 
-                  ier_typ = ER_APPL 
-                  RETURN 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_FORT 
-               RETURN 
-            ENDIF 
-            l_plane  = .true. 
-            l_sphere = .false. 
-            l_cyl    = .false. 
-            l_ell    = .false. 
-            IF(l_form) THEN
-               l_plane= .FALSE.
-               l_form = .TRUE.
-            ENDIF
-            IF(special_form == 0) THEN
-               special_hkl(:,1) = h(:)
-               special_n = 1
-            ELSEIF(special_form == 1) THEN            ! CUBEOCTAHEDRON h= 1,0,0
-               special_hkl(:,1) = h(:)
-               special_hkl(1,2) = h(1) / 2.!/sqrt(3.)
-               special_hkl(2,2) = h(1) / 2.!/sqrt(3.)
-               special_hkl(3,2) = h(1) / 2.!/sqrt(3.)
-               special_n = 2
-            ENDIF
+         special_form = 1
+      ELSE
+         ier_num = -142
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Unpredictable forms would result in non-cubic'
+         ier_msg(2) = 'systems. Use explicit forms and combinations'
+         ier_msg(3) = 'in non-cubic systems.'
+         RETURN
+      ENDIF
+   ELSE
+      special_form = 0
+   ENDIF
+   IF (ianz.ge.4) then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.ne.0) return 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+      DO i = 1, 3 
+      h (i) = werte (i) 
+      ENDDO 
+      dstar = do_blen (lspace, h, null) 
+      IF (dstar.le.0.0) then 
+         ier_num = - 32 
+         ier_typ = ER_APPL 
+         RETURN 
+      ENDIF 
+      IF (ianz.eq.4) then 
+         IF(NINT(werte(4)) == 0) THEN
+            DO i = 1, 3 
+               h (i) = h (i) / dstar *1.0E12
+            ENDDO 
+            dstar = do_blen (lspace, h, null) 
+         ELSE
+            DO i = 1, 3 
+               h (i) = h (i) / dstar / werte (4) 
+            ENDDO 
+            dstar = do_blen (lspace, h, null) 
+         ENDIF 
+      ENDIF 
+      IF (dstar.le.0.0) then 
+         ier_num = - 32 
+         ier_typ = ER_APPL 
+         RETURN 
+      ENDIF 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_FORT 
+      RETURN 
+   ENDIF 
+   l_plane  = .true. 
+   l_sphere = .false. 
+   l_cyl    = .false. 
+   l_ell    = .false. 
+   IF(l_form) THEN
+      l_plane= .FALSE.
+      l_form = .TRUE.
+   ENDIF
+   IF(special_form == 0) THEN
+      special_hkl(:,1) = h(:)
+      special_n = 1
+   ELSEIF(special_form == 1) THEN            ! CUBEOCTAHEDRON h= 1,0,0
+      special_hkl(:,1) = h(:)
+      special_hkl(1,2) = h(1) / 2.!/sqrt(3.)
+      special_hkl(2,2) = h(1) / 2.!/sqrt(3.)
+      special_hkl(3,2) = h(1) / 2.!/sqrt(3.)
+      special_n = 2
+   ENDIF
 !
 !           Handle accumulation of flat surfaces
 !
-            IF(str_comp(opara(O_ACCUM), 'init', 4, lopara(O_ACCUM),4)) THEN
-               IF(ALLOCATED(accum_hkl)) DEALLOCATE(accum_hkl)
-               accum_n = 0
-            ENDIF
-            hkl(1:3) = special_hkl(:,1)
-            hkl(4)   = 0
-            CALL point_init(hkl, point_hkl, point_n)
-            IF(l_form) THEN
-               DO k = 1,special_n
-                  hkl(1:3) = special_hkl(:,k)
-                  hkl(4)   = 0
-                  CALL point_set(hkl, point_hkl, point_n)
-               ENDDO
-            ENDIF
-            IF(.NOT.ALLOCATED(accum_hkl)) THEN
-               ALLOCATE  (accum_hkl(1:4, 1:accum_n + 48))
-               accum_hkl(:,:) = 0
-               accum_n = 0
-            ELSE
-            IF(accum_n + point_n > UBOUND(accum_hkl,1)) THEN
-               IF(ALLOCATED(accum_hkl)) THEN
-                  k = UBOUND(accum_hkl,2)
-                  ALLOCATE(temp_hkl(1:4,1:k))
-                  temp_hkl(:,:) = accum_hkl(:,:)
-                  DEALLOCATE(accum_hkl)
-                  ALLOCATE  (accum_hkl(1:4, 1:accum_n + 48))
-                  accum_hkl(1:4,1:UBOUND(temp_hkl,2)) = temp_hkl(:,:)
-                  DEALLOCATE(temp_hkl)
-               ELSE
-                  ALLOCATE  (accum_hkl(1:4, 1:accum_n + 48))
-                  accum_hkl(:,:) = 0
-               ENDIF
-            ENDIF
-            ENDIF
-            accum_hkl(1:3,accum_n+1:accum_n+point_n) = point_hkl(1:3,1:point_n)
-            accum_hkl(4  ,accum_n+1:accum_n+point_n) = owerte(O_THICK)
-            accum_n = accum_n + point_n
-         ELSEIF (str_comp (cpara (1) , 'sphere', 3, lpara (1) , 6) ) THEN
+   IF(str_comp(opara(O_ACCUM), 'init', 4, lopara(O_ACCUM),4)) THEN
+      IF(ALLOCATED(accum_hkl)) DEALLOCATE(accum_hkl)
+      accum_n = 0
+   ENDIF
+   hkl(1:3) = special_hkl(:,1)
+   hkl(4)   = 0
+   CALL point_init(hkl, point_hkl, point_n)
+   IF(l_form) THEN
+      DO k = 1,special_n
+         hkl(1:3) = special_hkl(:,k)
+         hkl(4)   = 0
+         CALL point_set(hkl, point_hkl, point_n)
+      ENDDO
+   ENDIF
+   IF(.NOT.ALLOCATED(accum_hkl)) THEN
+      ALLOCATE  (accum_hkl(1:4, 1:accum_n + 48))
+      accum_hkl(:,:) = 0
+      accum_n = 0
+   ELSE
+   IF(accum_n + point_n > UBOUND(accum_hkl,1)) THEN
+      IF(ALLOCATED(accum_hkl)) THEN
+         k = UBOUND(accum_hkl,2)
+         ALLOCATE(temp_hkl(1:4,1:k))
+         temp_hkl(:,:) = accum_hkl(:,:)
+         DEALLOCATE(accum_hkl)
+         ALLOCATE  (accum_hkl(1:4, 1:accum_n + 48))
+         accum_hkl(1:4,1:UBOUND(temp_hkl,2)) = temp_hkl(:,:)
+         DEALLOCATE(temp_hkl)
+      ELSE
+         ALLOCATE  (accum_hkl(1:4, 1:accum_n + 48))
+         accum_hkl(:,:) = 0
+      ENDIF
+   ENDIF
+   ENDIF
+   accum_hkl(1:3,accum_n+1:accum_n+point_n) = point_hkl(1:3,1:point_n)
+   accum_hkl(4  ,accum_n+1:accum_n+point_n) = owerte(O_THICK)
+   accum_n = accum_n + point_n
+ELSEIF (str_comp (cpara (1) , 'sphere', 3, lpara (1) , 6) ) THEN
 !                                                                       
 !     ----Crystal is limited by a sphere                                
 !                                                                       
-            IF (ianz.eq.2) then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.ne.0) return 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.ne.0) return 
-               radius = werte (1) 
-               IF (radius.le.0.0) then 
-                  ier_num = - 28 
-                  ier_typ = ER_APPL 
-                  RETURN 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_FORT 
-               RETURN 
-            ENDIF 
-            l_plane  = .false. 
-            l_form   = .false. 
-            l_sphere = .true. 
-            l_cyl    = .false. 
-            l_ell    = .false. 
-            l_local  = .FALSE.
-         ELSEIF(str_comp(cpara(1), 'cylinder', 3, lpara(1), 8)) THEN
+   IF (ianz.eq.2) then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.ne.0) return 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+      radius = werte (1) 
+      IF (radius.le.0.0) then 
+         ier_num = - 28 
+         ier_typ = ER_APPL 
+         RETURN 
+      ENDIF 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_FORT 
+      RETURN 
+   ENDIF 
+   l_plane  = .false. 
+   l_form   = .false. 
+   l_sphere = .true. 
+   l_cyl    = .false. 
+   l_ell    = .false. 
+   l_local  = .FALSE.
+ELSEIF(str_comp(cpara(1), 'cylinder', 3, lpara(1), 8)) THEN
 !                                                                       
 !     ----Crystal is limited by a cylinder                              
 !                                                                       
-            IF (ianz.eq.3) then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.ne.0) return 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.ne.0) return 
-               radius = werte (1) 
-               height = werte (2) 
-               IF (radius.le.0.0.or.height.le.0.0) then 
-                  ier_num = - 28 
-                  ier_typ = ER_APPL 
-                  RETURN 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_FORT 
-               RETURN 
-            ENDIF 
-            l_plane  = .false. 
-            l_form   = .false. 
-            l_sphere = .false. 
-            l_cyl    = .true. 
-            l_ell    = .false. 
-            l_local  = .FALSE.
-         ELSEIF(str_comp(cpara(1), 'ellipsoid', 3, lpara(1), 9)) THEN
+   IF (ianz.eq.3) then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.ne.0) return 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+      radius = werte (1) 
+      height = werte (2) 
+      IF (radius.le.0.0.or.height.le.0.0) then 
+         ier_num = - 28 
+         ier_typ = ER_APPL 
+         RETURN 
+      ENDIF 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_FORT 
+      RETURN 
+   ENDIF 
+   l_plane  = .false. 
+   l_form   = .false. 
+   l_sphere = .false. 
+   l_cyl    = .true. 
+   l_ell    = .false. 
+   l_local  = .FALSE.
+ELSEIF(str_comp(cpara(1), 'ellipsoid', 3, lpara(1), 9)) THEN
 !                                                                       
 !     ----Crystal is limited by a standardized ellipsoid
 !                                                                       
-            IF (ianz.eq.4) then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.ne.0) return 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.ne.0) return 
-               radius_ell(1:3) = werte(1:3)*0.5  ! User provides diameters
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_FORT 
-               RETURN 
-            ENDIF 
-            l_plane  = .false. 
-            l_form   = .false. 
-            l_sphere = .false. 
-            l_cyl    = .false. 
-            l_ell    = .true. 
-            l_local  = .FALSE.
-         ELSEIF(str_comp(cpara(1), 'local', 3, lpara(1), 5)) THEN
-            l_plane  = .false. 
-            l_form   = .false. 
-            l_sphere = .false. 
-            l_cyl    = .false. 
-            l_ell    = .FALSE. 
-            l_local  = .TRUE.
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-            RETURN
-         ENDIF 
+   IF (ianz.eq.4) then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.ne.0) return 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+      radius_ell(1:3) = werte(1:3)*0.5  ! User provides diameters
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_FORT 
+      RETURN 
+   ENDIF 
+   l_plane  = .false. 
+   l_form   = .false. 
+   l_sphere = .false. 
+   l_cyl    = .false. 
+   l_ell    = .true. 
+   l_local  = .FALSE.
+ELSEIF(str_comp(cpara(1), 'local', 3, lpara(1), 5)) THEN
+   l_plane  = .false. 
+   l_form   = .false. 
+   l_sphere = .false. 
+   l_cyl    = .false. 
+   l_ell    = .FALSE. 
+   l_local  = .TRUE.
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN
+ENDIF 
 !
+IF(l_cyl .OR. l_ell) THEN
+   CALL prep_rotation(lpresent(O_LONG), lpresent(O_SHORT),                      &
+        opara(O_LONG), opara(O_short), lopara(O_LONG), lopara(O_SHORT), center, &
+        m_comb, m_combr)
+   IF(ier_num/=0) RETURN
+ENDIF
 !
-         IF (ier_num /= 0) RETURN
-            IF ((l_plane .OR. l_form) .AND. str_comp (opara(O_EXEC) , 'run', 3, lopara(O_EXEC) , 3)) THEN
-               ALLOCATE(dstars(1:accum_n))
-               DO j=1,accum_n
-                  dstars(j) = do_blen (lspace, accum_hkl(1:3,j), null)
-               ENDDO
+IF (ier_num /= 0) RETURN
+IF ((l_plane .OR. l_form) .AND. str_comp (opara(O_EXEC) , 'run', 3, lopara(O_EXEC) , 3)) THEN
+   ALLOCATE(dstars(1:accum_n))
+   DO j=1,accum_n
+      dstars(j) = do_blen (lspace, accum_hkl(1:3,j), null)
+   ENDDO
 form_loop:     DO i = 1, cr_natoms 
-                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle form_loop 
-                  IF(linside) THEN
-                     DO j=1,accum_n
+      IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle form_loop 
+      IF(linside) THEN
+         DO j=1,accum_n
 !                        dstar = do_blen (lspace, accum_hkl(1:3,j), null)
-                         d = 1.0 - (cr_pos (1, i)-center(1)) * accum_hkl (1,j) &
-                                 - (cr_pos (2, i)-center(2)) * accum_hkl (2,j) &
-                                 - (cr_pos (3, i)-center(3)) * accum_hkl (3,j) 
-                         d = d / dstars(j) 
-                         h(1:3) = accum_hkl (1:3,j)
-                         CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h, accum_hkl(4,j)) 
-                     ENDDO 
-                  ELSE
-                     dshort  = 1.E8
-                     thick   = -2.55
-                     nplanes = 0
-                     iplane  = 0 
-                     DO j=1,accum_n
+             d = 1.0 - (cr_pos (1, i)-center(1)) * accum_hkl (1,j) &
+                     - (cr_pos (2, i)-center(2)) * accum_hkl (2,j) &
+                     - (cr_pos (3, i)-center(3)) * accum_hkl (3,j) 
+             d = d / dstars(j) 
+             h(1:3) = accum_hkl (1:3,j)
+             CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h, accum_hkl(4,j)) 
+         ENDDO 
+      ELSE
+         dshort  = 1.E8
+         thick   = -2.55
+         nplanes = 0
+         iplane  = 0 
+         DO j=1,accum_n
 !                        dstar = do_blen (lspace, accum_hkl(1:3,j), null)
-                         d = 1.0 - (cr_pos (1, i)-center(1)) * accum_hkl (1,j) &
-                                 - (cr_pos (2, i)-center(2)) * accum_hkl (2,j) &
-                                 - (cr_pos (3, i)-center(3)) * accum_hkl (3,j)
-                         d = d / dstars(j) 
-                         IF(accum_hkl(4,j) > 0.0) THEN
-                            IF(ABS(d)<ABS(accum_hkl(4,j)) ) THEN
-                               nplanes = nplanes + 1
-                               iplane  = j
-                               thick   = MAX(thick, ABS(accum_hkl(4,j)))
-                            ENDIF
-                         ELSE
-                            IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
-                               nplanes = nplanes + 1
-                               iplane  = j
-                               thick   = MAX(thick,surf_ex_dist(cr_iscat(i)))
-                            ENDIF
-                         ENDIF
-                         dshort = MIN(dshort, d)
-                     ENDDO 
-                     IF(nplanes>2) THEN            ! Atom is at a corner
-                        h(:) = NINT(100*cr_pos(:,i))
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_CORNER, h, thick) 
-                        cr_surf(0,i) = SURF_CORNER
-                     ELSEIF(nplanes==2) THEN            ! Atom is at an edge 
-                        h(:) = NINT(100*cr_pos(:,i))
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE  , h, thick) 
-                        cr_surf(0,i) = SURF_EDGE
-                     ELSEIF(nplanes==1) THEN            ! Atom is at a PLANE 
-                        h(1:3) = accum_hkl (1:3,iplane)        !WRONG NEEDS WORK
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, h, thick) 
-                        cr_surf(0,i) = SURF_PLANE
-                     ELSE
-                        h(:) = NINT(100*cr_pos(:,i))
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h, thick) 
-                     ENDIF
-                  ENDIF
-               ENDDO form_loop
-               DEALLOCATE  (accum_hkl)      ! reset the accumulation list
-               accum_n = 0                  ! reset the accumulation list
-               DEALLOCATE(dstars)
-            ELSEIF (l_sphere) then 
+             d = 1.0 - (cr_pos (1, i)-center(1)) * accum_hkl (1,j) &
+                     - (cr_pos (2, i)-center(2)) * accum_hkl (2,j) &
+                     - (cr_pos (3, i)-center(3)) * accum_hkl (3,j)
+             d = d / dstars(j) 
+             IF(accum_hkl(4,j) > 0.0) THEN
+                IF(ABS(d)<ABS(accum_hkl(4,j)) ) THEN
+                   nplanes = nplanes + 1
+                   iplane  = j
+                   thick   = MAX(thick, ABS(accum_hkl(4,j)))
+                ENDIF
+             ELSE
+                IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
+                   nplanes = nplanes + 1
+                   iplane  = j
+                   thick   = MAX(thick,surf_ex_dist(cr_iscat(i)))
+                ENDIF
+             ENDIF
+             dshort = MIN(dshort, d)
+         ENDDO 
+         IF(nplanes>2) THEN            ! Atom is at a corner
+            h(:) = NINT(100*cr_pos(:,i))
+            CALL boundarize_atom (center, dshort, i, linside, SURF_CORNER, h, thick) 
+            cr_surf(0,i) = SURF_CORNER
+         ELSEIF(nplanes==2) THEN            ! Atom is at an edge 
+            h(:) = NINT(100*cr_pos(:,i))
+            CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE  , h, thick) 
+            cr_surf(0,i) = SURF_EDGE
+         ELSEIF(nplanes==1) THEN            ! Atom is at a PLANE 
+            h(1:3) = accum_hkl (1:3,iplane)        !WRONG NEEDS WORK
+            CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, h, thick) 
+            cr_surf(0,i) = SURF_PLANE
+         ELSE
+            h(:) = NINT(100*cr_pos(:,i))
+            CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h, thick) 
+         ENDIF
+      ENDIF
+   ENDDO form_loop
+   DEALLOCATE  (accum_hkl)      ! reset the accumulation list
+   accum_n = 0                  ! reset the accumulation list
+   DEALLOCATE(dstars)
+ELSEIF (l_sphere) then 
 sphere_loop:   DO i = 1, cr_natoms 
-                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle sphere_loop 
-                  v (1) = cr_pos (1, i)-center(1)
-                  v (2) = cr_pos (2, i)-center(2)
-                  v (3) = cr_pos (3, i)-center(3)
-                  d = radius - sqrt (v(1) * v(1) * cr_gten(1, 1)        &
-                     +     v(2) * v(2) * cr_gten(2, 2)    &
-                     +     v(3) * v(3) * cr_gten(3, 3)    &
-                     + 2 * v(1) * v(2) * cr_gten(1, 2)    &
-                     + 2 * v(1) * v(3) * cr_gten(1, 3)    &
-                     + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
-                  h(:) = v(:)
-                  CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h, -1.0)
-               ENDDO sphere_loop
-            ELSEIF (l_cyl) THEN
+      IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle sphere_loop 
+      v (1) = cr_pos (1, i)-center(1)
+      v (2) = cr_pos (2, i)-center(2)
+      v (3) = cr_pos (3, i)-center(3)
+      d = radius - sqrt (v(1) * v(1) * cr_gten(1, 1)        &
+         +     v(2) * v(2) * cr_gten(2, 2)    &
+         +     v(3) * v(3) * cr_gten(3, 3)    &
+         + 2 * v(1) * v(2) * cr_gten(1, 2)    &
+         + 2 * v(1) * v(3) * cr_gten(1, 3)    &
+         + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
+      h(:) = v(:)
+      CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h, -1.0)
+   ENDDO sphere_loop
+ELSEIF (l_cyl) THEN
 cyl_loop:      DO i = 1, cr_natoms 
-                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
-                  IF(linside) THEN
-                  v (1) = cr_pos (1, i)-center(1)
-                  v (2) = cr_pos (2, i)-center(2)
-                  v (3) = 0.0          !-center(3)
-                  d = radius - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
-                     +     v(2) * v(2) * cr_gten(2, 2)    &
-                     +     v(3) * v(3) * cr_gten(3, 3)    &
-                     + 2 * v(1) * v(2) * cr_gten(1, 2)    &
-                     + 2 * v(1) * v(3) * cr_gten(1, 3)    &
-                     + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
-                  h(:) = v(:)
-                  CALL boundarize_atom (center, d, i, linside, SURF_CYLINDER, h, -1.0) 
-                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
-                  v (1) = 0.0          !-center(1)
-                  v (2) = 0.0          !-center(2)
-                  v (3) = cr_pos (3, i)-center(3)
-                  d = height - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
-                     +     v(2) * v(2) * cr_gten(2, 2)    & 
-                     +     v(3) * v(3) * cr_gten(3, 3)    & 
-                     + 2 * v(1) * v(2) * cr_gten(1, 2)    &
-                     + 2 * v(1) * v(3) * cr_gten(1, 3)    & 
-                     + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
-                  h(:) = v(:)
-                  CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h, -1.0) 
-                  ELSE                             ! 
-                     dshort = 1.E8
-                     lwall =.FALSE.
-                     ltop  =.FALSE.
-                     v (1) = cr_pos (1, i)-center(1)
-                     v (2) = cr_pos (2, i)-center(2)
-                     v (3) = 0.0          -center(3)
-                     d = radius - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
-                        +     v(2) * v(2) * cr_gten(2, 2)    &
-                        +     v(3) * v(3) * cr_gten(3, 3)    &
-                        + 2 * v(1) * v(2) * cr_gten(1, 2)    &
-                        + 2 * v(1) * v(3) * cr_gten(1, 3)    &
-                        + 2 * v(2) * v(3) * cr_gten(2, 3)    )
-                     wall(:) = v(:)
-                     IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
-                        lwall = .TRUE.               ! Atom is close to wall
-                     ENDIF
-                     dshort = MIN(dshort, d)
-                     IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
-                     v (1) = 0.0          -center(1)
-                     v (2) = 0.0          -center(2)
-                     v (3) = cr_pos (3, i)-center(3)
-                     d = height - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
-                        +     v(2) * v(2) * cr_gten(2, 2)    & 
-                        +     v(3) * v(3) * cr_gten(3, 3)    & 
-                        + 2 * v(1) * v(2) * cr_gten(1, 2)    &
-                        + 2 * v(1) * v(3) * cr_gten(1, 3)    & 
-                        + 2 * v(2) * v(3) * cr_gten(2, 3)    )
-                     top(:) = v(:)
-                     IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
-                        ltop  = .TRUE.               ! Atom is close to wall
-                     ENDIF
-                     dshort = MIN(dshort, d)
-                     IF(lwall .AND. .NOT.ltop) THEN   ! Atom is at wall only
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_CYLINDER, wall, -1.0) 
-                     ELSEIF(.NOT.lwall .AND. ltop) THEN   ! Atom is at top  only
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, top, -1.0) 
-                     ELSEIF(lwall .AND. ltop) THEN   ! Atom is at edge
-                        h(:) = cr_pos(:,i)
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE , h, -1.0) 
-                     ELSE
-                        h(:) = cr_pos(:,i)
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h, -1.0) 
-                     ENDIF
-                  ENDIF
-               ENDDO cyl_loop
-            ELSEIF (l_ell) then 
-               CALL plot_ini_trans (1.0,                          &
-                 pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
-                 cr_gten, cr_rten, cr_eps)
-               radius = (radius_ell(1)*radius_ell(2)*radius_ell(3))**(1./3.)
+      IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
+      v4(1) = cr_pos(1, i)
+      v4(2) = cr_pos(2, i)
+      v4(3) = cr_pos(3, i)
+      v4(4) = 1.0D0
+      v4 = MATMUL(m_comb,v4)
+      IF(linside) THEN
+         v (1) = v4(1)        ! cr_pos (1, i)-center(1)
+         v (2) = v4(2)        ! cr_pos (2, i)-center(2)
+         v (3) = 0.0          !-center(3)
+         d = radius - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
+            +     v(2) * v(2) * cr_gten(2, 2)    &
+            +     v(3) * v(3) * cr_gten(3, 3)    &
+            + 2 * v(1) * v(2) * cr_gten(1, 2)    &
+            + 2 * v(1) * v(3) * cr_gten(1, 3)    &
+            + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
+         h(:) = v(:)
+         CALL boundarize_atom (center, d, i, linside, SURF_CYLINDER, h, -1.0) 
+         IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
+         v (1) = 0.0          !-center(1)
+         v (2) = 0.0          !-center(2)
+         v (3) = v4(3)        ! cr_pos (3, i)-center(3)
+         d = height - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
+            +     v(2) * v(2) * cr_gten(2, 2)    & 
+            +     v(3) * v(3) * cr_gten(3, 3)    & 
+            + 2 * v(1) * v(2) * cr_gten(1, 2)    &
+            + 2 * v(1) * v(3) * cr_gten(1, 3)    & 
+            + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
+         h(:) = v(:)
+         CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h, -1.0) 
+      ELSE                             ! 
+         dshort = 1.E8
+         lwall =.FALSE.
+         ltop  =.FALSE.
+         v (1) = v4(1)         !cr_pos (1, i)-center(1)
+         v (2) = v4(2)         !cr_pos (2, i)-center(2)
+         v (3) = 0.0          ! -center(3)
+         d = radius - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
+            +     v(2) * v(2) * cr_gten(2, 2)    &
+            +     v(3) * v(3) * cr_gten(3, 3)    &
+            + 2 * v(1) * v(2) * cr_gten(1, 2)    &
+            + 2 * v(1) * v(3) * cr_gten(1, 3)    &
+            + 2 * v(2) * v(3) * cr_gten(2, 3)    )
+         lrem = d > 0.0        ! Cylinder wall indicates removal
+         wall(:) = v(:)
+         IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
+            lwall = .TRUE.               ! Atom is close to wall
+         ENDIF
+         dshort = MIN(dshort, ABS(d))
+         IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
+         v (1) = 0.0         ! -center(1)
+         v (2) = 0.0         ! -center(2)
+         v (3) = v4(3)       !cr_pos (3, i)-center(3)
+         d = height - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
+            +     v(2) * v(2) * cr_gten(2, 2)    & 
+            +     v(3) * v(3) * cr_gten(3, 3)    & 
+            + 2 * v(1) * v(2) * cr_gten(1, 2)    &
+            + 2 * v(1) * v(3) * cr_gten(1, 3)    & 
+            + 2 * v(2) * v(3) * cr_gten(2, 3)    )
+         lrem = lrem .AND. d > 0.0   ! Cylinder wall  and top indicates removal
+         top(:) = v(:)
+         IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
+            ltop  = .TRUE.               ! Atom is close to wall
+         ENDIF
+         dshort = MIN(dshort, ABS(d))
+         IF(.NOT.lrem) dshort = -ABS(dshort)
+         IF(lwall .AND. .NOT.ltop) THEN   ! Atom is at wall only
+            CALL boundarize_atom (center, dshort, i, linside, SURF_CYLINDER, wall, -1.0) 
+         ELSEIF(.NOT.lwall .AND. ltop) THEN   ! Atom is at top  only
+            CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, top, -1.0) 
+         ELSEIF(lwall .AND. ltop) THEN   ! Atom is at edge
+            h(:) = v4(1:3) !cr_pos(:,i)
+            CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE , h, -1.0) 
+         ELSE
+            h(:) = v4(1:3) !cr_pos(:,i)
+            CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h, -1.0) 
+         ENDIF
+      ENDIF
+      v4 = MATMUL(m_combr,v4)
+      cr_pos(1:3,i) = v4(1:3)
+      v4(1:3) = REAL(cr_surf(1:3, i), KIND=PREC_DP)
+      v4(4)   = 0.0D0
+      v4 = MATMUL(m_combr,v4)
+      cr_surf(1:3,i) = NINT(v4(1:3))
+   ENDDO cyl_loop
+ELSEIF (l_ell) then 
+   CALL plot_ini_trans (1.0,                          &
+     pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
+     cr_gten, cr_rten, cr_eps)
+   radius = (radius_ell(1)*radius_ell(2)*radius_ell(3))**(1./3.)
 ell_loop:      DO i = 1, cr_natoms 
-                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle ell_loop 
-                  v(:) = cr_pos(:, i)-center(:)
-                  v = MATMUL(pl_tran_f(1:3,1:3), v)
-                  d = (1. - sqrt((v(1)/radius_ell(1))**2   &
-                                +(v(2)/radius_ell(2))**2   &
-                                +(v(3)/radius_ell(3))**2   ))* radius
-                  h(:) = v(:)
-                  CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h, -1.0)
-               ENDDO ell_loop
-            ELSEIF(l_local) THEN 
-               CALL surf_set_local(1, cr_natoms)
-            ENDIF 
+      IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle ell_loop 
+      v4(1) = cr_pos(1, i)
+      v4(2) = cr_pos(2, i)
+      v4(3) = cr_pos(3, i)
+      v4(4) = 1.0D0
+      v4 = MATMUL(m_comb,v4)
+      v(:) = v4(1:3)  !  cr_pos(:, i)-center(:)
+      v = MATMUL(pl_tran_f(1:3,1:3), v)
+      d = (1. - sqrt((v(1)/radius_ell(1))**2   &
+                    +(v(2)/radius_ell(2))**2   &
+                    +(v(3)/radius_ell(3))**2   ))* radius
+      h(:) = v(:)
+      CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h, -1.0)
+      v4 = MATMUL(m_combr,v4)
+      cr_pos(1:3,i) = v4(1:3)
+      v4(1:3) = REAL(cr_surf(1:3, i), KIND=PREC_DP)
+      v4(4)   = 0.0D0
+      v4 = MATMUL(m_combr,v4)
+      cr_surf(1:3,i) = NINT(v4(1:3))
+   ENDDO ell_loop
+ELSEIF(l_local) THEN 
+   CALL surf_set_local(1, cr_natoms)
+ENDIF 
 !        ENDIF 
 !     ENDIF 
 IF(ier_num==0) THEN
@@ -1312,6 +1349,253 @@ END SUBROUTINE boundary
       ENDIF
 !                                                                       
       END SUBROUTINE boundarize_atom                
+!
+!*****7*****************************************************************
+!
+SUBROUTINE prep_rotation(l_long, l_short, o_long, o_short,lo_long, lo_short,    &
+                         center, m_comb, m_combr)
+!-
+!  Prepares the rotation of the crystal
+!+
+USE crystal_mod
+USE metric_mod
+USE symm_mod
+USE symm_sup_mod
+USE trafo_mod
+!
+USE errlist_mod
+USE ber_params_mod
+USE get_params_mod
+USE matrix_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+LOGICAL         , INTENT(IN)    :: l_long
+LOGICAL         , INTENT(IN)    :: l_short
+CHARACTER(LEN=*), INTENT(INOUT) :: o_long
+CHARACTER(LEN=*), INTENT(INOUT) :: o_short
+INTEGER         , INTENT(INOUT) :: lo_long
+INTEGER         , INTENT(INOUT) :: lo_short
+REAL(KIND=PREC_SP), DIMENSION(3), INTENT(IN) :: center
+REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(OUT) :: m_comb
+REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(OUT) :: m_combr
+!
+!INTEGER, PARAMETER :: MAXW = 3
+REAL(KIND=PREC_SP), DIMENSION(3), PARAMETER :: V_NULL = (/0.0D0, 0.0D0, 0.0D0/)
+REAL(KIND=PREC_SP)              , PARAMETER :: EPS    = 1.0D-4
+REAL(KIND=PREC_SP)              , PARAMETER :: TOL    = 5.0D0
+INTEGER :: i
+INTEGER :: length
+REAL(KIND=PREC_SP), DIMENSION(3)   :: v_long
+REAL(KIND=PREC_SP), DIMENSION(3)   :: v_short
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_long
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_longr
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_short
+!
+REAL(KIND=PREC_SP), DIMENSION(3)   :: u         ! Dummy vector
+REAL(KIND=PREC_SP), DIMENSION(3)   :: v         ! Dummy vector
+REAL(KIND=PREC_SP), DIMENSION(4)   :: v4        ! Dummy vector
+REAL(KIND=PREC_SP), DIMENSION(3)   :: ww        ! Dummy vector
+REAL(KIND=PREC_DP)                 :: alpha
+!
+m_comb  = 0.0D0                     ! setup a default matrix
+m_combr = 0.0D0                     ! setup a default matrix
+DO i=1,4
+   m_comb(i,i)  = 1.0D0
+   m_combr(i,i) = 1.0D0
+ENDDO
+!
+IF(l_long) THEN                    ! long axis is present
+   CALL prep_values(o_long, lo_long, v_long, 'long')
+   IF(ier_num/=0) RETURN
+ELSE
+   v_long(1) = 0.0D0
+   v_long(2) = 0.0D0
+   v_long(3) = 1.0D0
+ENDIF
+!
+m_long = 0.0D0
+DO i=1,4
+   m_long(i,i) = 1.0D0
+ENDDO
+!
+IF(l_short) THEN                    ! short axis is present
+   CALL prep_values(o_short, lo_short, v_short, 'short')
+   IF(ier_num/=0) RETURN
+ELSE
+   u(1) = 1.0D0
+   u(2) = 0.0D0
+   u(3) = 0.0D0
+   CALL trans(u, cr_rten, v_short, 3)   ! transform b* into direct space
+ENDIF
+!
+m_short = 0.0D0
+DO i=1,4
+   m_short(i,i) = 1.0D0
+ENDDO
+!
+IF(l_long .AND. l_short) THEN
+   alpha = do_bang (.TRUE., v_short, V_NULL, v_long)
+   IF(ABS(alpha-90.0D0)>TOL) THEN                 ! Not at 90 degrees
+      ier_num = -171
+      ier_typ = ER_APPL
+      WRITE(ier_msg(1),'(a,f10.5)') 'Angle is ', alpha
+      RETURN
+   ENDIF
+ENDIF
+!
+u(1) = 0.0D0
+u(2) = 0.0D0
+u(3) = 1.0D0
+alpha = do_bang(.TRUE., u, V_NULL, v_long)     ! Angle long to [001]
+!
+IF(ABS(alpha)<EPS) THEN                        ! already parallel
+   alpha = 0.0D0                               ! Matrix will remain unit
+   m_long = 0.0D0
+   DO i=1,4
+      m_long(i,i) = 1.0D0
+   ENDDO
+   ww(1) = 0.0D0
+   ww(1) = 0.0D0
+   ww(3) = 1.0D0
+ELSEIF(ABS(180.0D0-alpha)<EPS) THEN             ! at 180 degrees
+   alpha = 180.0D0
+   v(1) = 0.0D0
+   v(2) = 1.0D0                             ! Dummy b* vector
+   v(3) = 0.0D0
+   CALL trans(v, cr_rten, ww, 3)            ! transform b* into direct space
+ELSE                                        ! Need a rotation
+   CALL vekprod(v_long, u, ww, cr_eps, cr_rten)  ! Get rotation axis
+ENDIF
+!
+!  Define rotation
+!
+   CALL symm_reset
+   sym_angle      = alpha                      ! Rotation angle
+   sym_uvw        = ww                         ! Rotation axis
+   sym_orig(:)    = 0.0                        ! Rotate around crystal center
+   sym_trans(:)   = 0.0                        ! No translation
+   sym_power      =  1                         ! Need just a single rotation
+   sym_type       = .TRUE.                     ! Proper rotation
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)   ! Make reciprocal space axis
+   CALL symm_setup                             ! get all matrices
+   m_long   = sym_mat                          ! copy rotation matrix
+!
+!  CALL matinv4(m_long, m_longr)               ! Invert matrix for backwards operation
+!
+v4(1:3) = v_short(1:3)
+v4(4)   = 0.00D0
+v4 = MATMUL(m_long, v4)                        ! Rotate short axis by op for long axis
+v(1:3) = v4(1:3)                               ! Copy current short axis
+u(1) = 1.0D0
+u(2) = 0.0D0
+u(3) = 0.0D0
+alpha = do_bang(.TRUE., u, V_NULL, v)             ! Angle short to [100]
+CALL symm_reset
+sym_angle      = alpha                         ! Rotation angle
+sym_uvw(1)     = 0.0                           ! Rotation axis [001]
+sym_uvw(2)     = 0.0                           ! Rotation axis [001]
+sym_uvw(3)     = 1.0                           ! Rotation axis [001]
+sym_orig(:)    = 0.0                           ! Rotate around crystal center
+sym_trans(:)   = 0.0                           ! No translation
+sym_power      =  1                            ! Need just a single rotation
+sym_type       = .TRUE.                        ! Proper rotation
+CALL trans (sym_uvw, cr_gten, sym_hkl, 3)      ! Make reciprocal space axis
+CALL symm_setup                                ! get all matrices
+m_short   = sym_mat                            ! copy rotation matrix
+m_comb = MATMUL(m_short, m_long)               ! Combine rotations m_short X m_long
+!
+v4(1:3) = center(1:3)                          ! Finally run computation for center
+v4(4) = 0.00D0
+v4 = MATMUL(m_comb, v4)                        ! Rotate center of Cyl/Ellipse
+m_comb(1:3,4) = -v4(1:3)                       ! Place negative result as shift
+!
+CALL matinv4(m_comb, m_combr)                  ! Invert matrix for backwards operation
+!
+END SUBROUTINE prep_rotation
+!
+!*****7*****************************************************************
+!
+SUBROUTINE prep_values(o_long, lo_long, v_long, cname )
+!
+! Interpret the values for the optional parameter long / short
+!
+USE crystal_mod
+USE trafo_mod
+!
+USE errlist_mod
+USE ber_params_mod
+USE get_params_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*)  , INTENT(INOUT) :: o_long
+INTEGER           , INTENT(INOUT) :: lo_long
+REAL(KIND=PREC_SP),DIMENSION(3), INTENT(OUT) ::  v_long
+CHARACTER(LEN=*)  , INTENT(IN) :: cname 
+!
+INTEGER, PARAMETER :: MAXW = 4
+!
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+INTEGER            , DIMENSION(MAXW) :: lpara
+INTEGER                              :: ianz 
+REAL(KIND=PREC_DP), DIMENSION(MAXW)  :: werte
+INTEGER :: length
+LOGICAL :: ldirect
+!
+length = LEN_TRIM(cname)
+IF(o_long(1:1) == '[' .AND. o_long(lo_long:lo_long) == ']') THEN
+   o_long(1:1) = ' '
+   o_long(lo_long:lo_long) = ' '
+   CALL get_params(o_long, ianz, cpara, lpara, MAXW, lo_long) 
+   IF(ier_num==0) THEN
+      IF(ianz==4) THEN          ! 'd', 'r' is present 
+         IF(cpara(4) == 'd') THEN
+            ldirect = .TRUE.
+         ELSEIF(cpara(4) == 'r') THEN
+            ldirect = .FALSE.
+         ELSE
+            ier_num = -6
+            ier_typ = ER_FORT
+            ier_msg(1) = 'Optional parameter '//cname(1:length)//' failed '
+            ier_msg(4) = 'Fourth paramter must be ''d'' or ''r'''
+            RETURN
+         ENDIF
+         ianz = 3
+         cpara(4) = ' '
+      ENDIF
+         IF(ianz==3) THEN
+         CALL ber_params (ianz, cpara, lpara, werte, MAXW) 
+         IF(ier_num==0) THEN
+            v_long(1) = werte(1)
+            v_long(2) = werte(2)
+            v_long(3) = werte(3)
+            IF(.NOT.ldirect) THEN
+               CALL trans (REAL(werte,KIND=PREC_SP), cr_rten, v_long, 3)     ! Make direct space axis
+            ENDIF
+         ELSE
+            ier_msg(1) = 'Optional parameter '//cname(1:length)//' failed '
+            RETURN
+         ENDIF
+      ELSE
+         RETURN
+      ENDIF
+   ELSE
+      ier_msg(1) = 'Optional parameter '//cname(1:length)//' failed get params'
+      RETURN
+   ENDIF
+ELSE
+   ier_num = -9
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Multiple optional values must be '
+   ier_msg(2) = 'enclosed by []'
+   ier_msg(3) = 'Optional parameter '//cname(1:length)
+   RETURN
+ENDIF
+!
+END SUBROUTINE prep_values
 !
 !*****7*****************************************************************
 !
