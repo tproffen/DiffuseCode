@@ -5,6 +5,14 @@
    another by a comma ",". There is no predefined need for any specific
    sequence of commands.
 
+   ! NEW ! 
+   Command lines can be continued by placing an "&" as last character 
+   into a line. Example
+   evaluate 5+6  &  ! the rest is a comment
+   +5
+   This will effrectively be identical to 
+   evaluate 5+6+5
+
    Commands are case sensitive, all commands and alphabetic parameters MUST
    be typed in lower case letters.
 
