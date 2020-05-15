@@ -464,6 +464,10 @@ CHARACTER(LEN=1024) :: message
 INTEGER             :: exit_msg
 INTEGER             :: itag
 INTEGER             :: iquote
+INTEGER             :: old_version
+INTEGER             :: new_version
+INTEGER             :: idot1, idot2
+INTEGER             :: i,j,k
 CHARACTER(LEN=19)   :: cfile
 CHARACTER(LEN=10)   :: cversion
 CHARACTER(LEN=1024) :: stat
@@ -483,6 +487,18 @@ IF(lda) THEN
          iquote = itag + INDEX(string(itag:LEN_TRIM(string)),'"') - 1
       ENDIF
       cversion = string (itag+6:iquote-1)
+      idot1 = INDEX(cversion, '.')
+      idot2 = INDEX(cversion, '.', .TRUE.)
+      READ(cversion(1:idot1-1), *) i
+      READ(cversion(idot1+1:idot2-1), *) j
+      READ(cversion(idot2+1:LEN_TRIM(cversion)), *) k
+      new_version = i*10000 + j*100 + k
+      idot1 = INDEX(version, '.')
+      idot2 = INDEX(version, '.', .TRUE.)
+      READ(version(1:idot1-1), *) i
+      READ(version(idot1+1:idot2-1), *) j
+      READ(version(idot2+1:LEN_TRIM(version)), *) k
+      old_version = i*10000 + j*100 + k
    ENDIF
 ENDIF
 CLOSE(UNIT=IRD)
@@ -503,7 +519,7 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       IF(operating == OS_LINUX_WSL) THEN
          WRITE ( *, 2700) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
       ENDIF
-      IF(version /= cversion ) THEN
+      IF(new_version > old_version ) THEN
          WRITE(*,*)
          WRITE(*,2800) TRIM(color_bg),TRIM(color_info),cversion, TRIM(color_fg)
       ENDIF
@@ -519,7 +535,7 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       IF(operating == OS_LINUX_WSL) THEN
          WRITE ( *, 1700)
       ENDIF
-      IF(version /= cversion ) THEN
+      IF(new_version > old_version ) THEN
          WRITE(*,*)
          WRITE(*,1800) cversion
       ENDIF
@@ -535,7 +551,7 @@ ENDIF
  1500 FORMAT     (1x,'News at each section/Command_lang in  : ','help News')
  1600 FORMAT     (1x,'Change font size with                 : ','CTRL + /CTRL -')
  1700 FORMAT     (1x,'Preferences: Right click + Preferences: ' )
- 1800 FORMAT     (1x,'New version available at GIThub       : ',a)
+ 1800 FORMAT     (1x,'New DISCUS version available at GIThub: ',a)
  1900 FORMAT     (1x,a,'Manual files in  : ',a,a,a) 
  2000 FORMAT     (1x,a,'User macros in   : ',a,a,a) 
  2100 FORMAT     (1x,a,'System macros in : ',a,a,a) 
@@ -545,7 +561,7 @@ ENDIF
  2500 FORMAT     (1x,a,'News at each section/Command_lang in  : ',a,'help News',a)
  2600 FORMAT     (1x,a,'Change font size with                 : ',a,'CTRL + /CTRL -',a)
  2700 FORMAT     (1x,a,'Preferences:',a,' Right click + Preferences',a,':')
- 2800 FORMAT     (1x,a,'New version available at GIThub       : ',a,a,a)
+ 2800 FORMAT     (1x,a,'New DISCUS version available at GIThub: ',a,a,a)
 !
 END SUBROUTINE write_appl_env                       
 !
