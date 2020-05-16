@@ -17,11 +17,11 @@ IMPLICIT none
 !                                                                       
 INTEGER, INTENT(IN) :: ianz
 INTEGER, INTENT(IN) :: maxpara 
-CHARACTER(LEN=1024), DIMENSION(MAXPARA), INTENT(IN)  :: cpara
+CHARACTER(LEN=*   ), DIMENSION(MAXPARA), INTENT(IN)  :: cpara
 INTEGER            , DIMENSION(MAXPARA), INTENT(IN)  :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXPARA), INTENT(OUT) :: werte
 !                                                                       
-CHARACTER(LEN=1024) :: line 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: line 
 INTEGER             :: ll, i ,j
 REAL(KIND=PREC_DP)  :: wert 
 !                                                                       
@@ -56,11 +56,11 @@ IMPLICIT none
 !                                                                       
 INTEGER, INTENT(IN) :: ipara
 INTEGER, INTENT(IN) :: maxpara 
-CHARACTER(LEN=1024), DIMENSION(MAXPARA), INTENT(IN)  :: cpara
+CHARACTER(LEN=*   ), DIMENSION(MAXPARA), INTENT(IN)  :: cpara
 INTEGER            , DIMENSION(MAXPARA), INTENT(IN)  :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXPARA), INTENT(OUT) :: werte
 !                                                                       
-CHARACTER(LEN=1024) :: line 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(CPARA))) :: line 
 INTEGER             :: ll, i ,j
 REAL(KIND=PREC_DP)  :: wert 
 !                                                                       

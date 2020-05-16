@@ -13,6 +13,7 @@ USE ersetz_mod
 USE do_read_number_mod
 USE errlist_mod 
 USE get_params_mod
+USE precision_mod
 USE random_mod
 USE variable_mod
 USE wink_mod
@@ -31,9 +32,9 @@ INTEGER         , INTENT(INOUT) :: iklz
 INTEGER         , INTENT(INOUT) :: lll
 INTEGER         , INTENT(INOUT) :: lp 
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
-CHARACTER(LEN=1024) :: zeile 
-CHARACTER(LEN=1024) :: answer , search
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: zeile 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: answer , search
 CHARACTER(LEN=24)   :: fmodt
 INTEGER, DIMENSION(MAXW)  :: lpara
 INTEGER  :: ikom, i, ianz 

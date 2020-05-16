@@ -29,7 +29,7 @@ CHARACTER (LEN=*), INTENT(INOUT) :: line
 INTEGER          , INTENT(IN   ) :: indxg
 INTEGER          , INTENT(INOUT) :: length
 !
-CHARACTER(LEN=1024)   :: zeile, cpara (maxw) , cdummy
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line)))   :: zeile, cpara (maxw) , cdummy
 INTEGER, DIMENSION(3) :: var_is_type
 !                                                                       
 INTEGER, DIMENSION(MAXW) :: lpara

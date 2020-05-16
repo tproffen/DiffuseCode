@@ -10,6 +10,8 @@ REAL(KIND=PREC_DP) FUNCTION berechne (string, laenge)
 !     Calculates the value of the expression stored in string           
 !+                                                                      
 !     USE calc_intr_mod
+!
+USE blanks_mod
 USE charact_mod
 USE do_read_number_mod
 USE do_variable_mod
@@ -24,7 +26,7 @@ INTEGER, PARAMETER :: maxw =3
 CHARACTER (LEN=*), INTENT(INOUT) :: string 
 INTEGER          , INTENT(INOUT) :: laenge
 !
-CHARACTER(LEN=1024) :: zeile, line, cpara (maxw) 
+CHARACTER(LEN=LEN(string)) :: zeile, line, cpara (maxw) 
 INTEGER          :: c
 INTEGER :: lpara (maxw) 
 !INTEGER :: max 
@@ -33,7 +35,7 @@ INTEGER :: ikpa, ikpa1, ikpa2, ikp, ikpz, lp, ianz, i, ikom
 INTEGER :: omask ! , nmask might be needed later
 REAL(KIND=PREC_DP)    :: werte (maxw) 
 REAL(KIND=PREC_DP)    :: r 
-LOGICAL  , DIMENSION(1024,0:1) :: lmask
+LOGICAL  , DIMENSION(LEN(string),0:1) :: lmask
 !                                                                       
 lmask = .TRUE.
 !                                                                       
@@ -135,6 +137,7 @@ ELSE
                      IF (ier_num.ne.0) then 
                         RETURN 
                      ENDIF 
+                     CALL rem_bl(line,ll)
                   ELSE 
                      RETURN 
                   ENDIF 
@@ -209,9 +212,9 @@ INTEGER, PARAMETER :: maxw =3
 CHARACTER (LEN=*), INTENT(INOUT) :: string 
 INTEGER          , INTENT(INOUT) :: laenge
 !                                                                       
-CHARACTER(LEN=1024)                  :: zeile, line
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara !(maxw) 
-CHARACTER(LEN=1024)                  :: substring 
+CHARACTER(LEN=LEN(string))                  :: zeile, line
+CHARACTER(LEN=LEN(string)), DIMENSION(MAXW) :: cpara !(maxw) 
+CHARACTER(LEN=LEN(string))                  :: substring 
 INTEGER, DIMENSION(MAXW)             :: lpara !(maxw) 
 INTEGER :: ikla, iklz, ikla1, ikla2, ikl, ll, lll
 INTEGER :: ikpa, ikpa1, ikpa2, ikp, ikpz, lp, ianz, i, ikom 
@@ -220,7 +223,7 @@ INTEGER :: icol
 INTEGER :: iapo 
 INTEGER, DIMENSION(2) ::  j! (2) 
 INTEGER :: omask, nmask   ! Current location in mask
-LOGICAL  , DIMENSION(1024,0:1) :: lmask
+LOGICAL  , DIMENSION(LEN(string),0:1) :: lmask
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
 lmask = .TRUE.

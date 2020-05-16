@@ -13,7 +13,7 @@ IMPLICIT none
 CHARACTER (LEN=*), INTENT(INOUT) :: line 
 INTEGER          , INTENT(INOUT) :: ll
 !
-CHARACTER(LEN=1024) :: zeile 
+CHARACTER(LEN=LEN(LINE)) :: zeile 
 INTEGER :: ibl 
 !                                                                       
 ibl = INDEX (line (1:ll) , ' ') 
@@ -79,7 +79,7 @@ IMPLICIT none
 CHARACTER ( LEN=* ), INTENT(INOUT) :: line 
 INTEGER            , INTENT(INOUT) :: ll
 !
-CHARACTER(LEN=1024)  :: zeile 
+CHARACTER(LEN=LEN(LINE))  :: zeile 
 INTEGER              :: i,j
 !                                                                       
 zeile = ' '
@@ -108,7 +108,7 @@ IMPLICIT none
 !                                                                       
 CHARACTER ( LEN=* ), INTENT(INOUT) :: line 
 INTEGER            , INTENT(INOUT) :: ll
-CHARACTER(LEN=1024)  :: zeile 
+CHARACTER(LEN=LEN(LINE))  :: zeile 
 INTEGER              :: i
 INTEGER :: skip
 LOGICAL :: l_hyp

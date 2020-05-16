@@ -26,16 +26,16 @@ INTEGER, PARAMETER :: NUM_FORM        = 6
 !                                                                       
 INTEGER                             , INTENT(INOUT) :: ianz 
 INTEGER                             , INTENT(IN   ) :: MAXW 
-CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW), INTENT(INOUT) :: werte
 INTEGER                             , INTENT(IN)    :: fpara 
 !                                                                       
-CHARACTER(LEN=1024) :: string 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: string 
 !                                                                       
 CHARACTER(LEN=1), DIMENSION(NUM_FORM) :: c_form !(NUM_FORM) 
-CHARACTER(LEN=1024) ::  fstring 
-CHARACTER(LEN=1024) ::  line, number 
+CHARACTER(LEN=PREC_STRING) ::  fstring 
+CHARACTER(LEN=PREC_STRING) ::  line, number 
 INTEGER            :: ftyp 
 INTEGER            :: ind_ql, ind_qr 
 INTEGER            :: ind_d, ind_i, ind_f 

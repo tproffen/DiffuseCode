@@ -14,6 +14,7 @@ USE errlist_mod
 USE envir_mod 
 USE terminal_mod
 USE param_mod
+USE precision_mod
 USE prompt_mod 
 USE string_convert_mod
 !
@@ -27,11 +28,11 @@ INTEGER, PARAMETER :: idef = 68
 CHARACTER(255) cdummy
 CHARACTER(LEN=8), DIMENSION(6), PARAMETER :: tmp_test = (/'/tmp    ','/TMP    ', &
       '/var/tmp', '/Var/tmp', '/var/TMP', '/Var/TMP' /)
-CHARACTER(LEN=2048) :: line
-CHARACTER(LEN=19  ) :: cfile
-CHARACTER(LEN=2048) :: pathfile
-CHARACTER(LEN=2048) :: ufile
-CHARACTER(LEN=1024) :: message
+CHARACTER(LEN=PREC_LSTRING) :: line
+CHARACTER(LEN=19  )         :: cfile
+CHARACTER(LEN=PREC_LSTRING) :: pathfile
+CHARACTER(LEN=PREC_LSTRING) :: ufile
+CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
 INTEGER ico, ice, iii, i, j
 INTEGER :: length
@@ -451,6 +452,7 @@ SUBROUTINE write_appl_env (standalone, local_mpi_myid)
 !+
 USE envir_mod
 USE errlist_mod
+USE precision_mod
 USE prompt_mod
 USE terminal_mod
 !
@@ -459,8 +461,8 @@ IMPLICIT NONE
 INTEGER, PARAMETER  :: IRD = 69
 LOGICAL, INTENT(IN) :: standalone
 INTEGER, INTENT(IN) :: local_mpi_myid
-CHARACTER(LEN=1024) :: string
-CHARACTER(LEN=1024) :: message
+CHARACTER(LEN=PREC_STRING) :: string
+CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
 INTEGER             :: itag
 INTEGER             :: iquote
@@ -470,12 +472,13 @@ INTEGER             :: idot1, idot2
 INTEGER             :: i,j,k
 CHARACTER(LEN=19)   :: cfile
 CHARACTER(LEN=10)   :: cversion
-CHARACTER(LEN=1024) :: stat
 LOGICAL lda
 !
 !  Analyse if new version is avalable at GIThub
 !
 cfile = '/tmp/DISCUS_CURRENT'
+old_version = 0
+new_version = 0
 !
 INQUIRE (file = cfile, exist = lda)
 IF(lda) THEN
@@ -485,14 +488,14 @@ IF(lda) THEN
       itag = INDEX(string,'tag')
       IF(itag>0) THEN
          iquote = itag + INDEX(string(itag:LEN_TRIM(string)),'"') - 1
+         cversion = string (itag+6:iquote-1)
+         idot1 = INDEX(cversion, '.')
+         idot2 = INDEX(cversion, '.', .TRUE.)
+         READ(cversion(1:idot1-1), *) i
+         READ(cversion(idot1+1:idot2-1), *) j
+         READ(cversion(idot2+1:LEN_TRIM(cversion)), *) k
+         new_version = i*10000 + j*100 + k
       ENDIF
-      cversion = string (itag+6:iquote-1)
-      idot1 = INDEX(cversion, '.')
-      idot2 = INDEX(cversion, '.', .TRUE.)
-      READ(cversion(1:idot1-1), *) i
-      READ(cversion(idot1+1:idot2-1), *) j
-      READ(cversion(idot2+1:LEN_TRIM(cversion)), *) k
-      new_version = i*10000 + j*100 + k
       idot1 = INDEX(version, '.')
       idot2 = INDEX(version, '.', .TRUE.)
       READ(version(1:idot1-1), *) i
@@ -580,6 +583,7 @@ USE blanks_mod
 USE terminal_mod
 USE envir_mod
 USE param_mod
+USE precision_mod
 USE prompt_mod
 USE string_convert_mod
 !
@@ -589,7 +593,7 @@ LOGICAL, INTENT(IN) :: standalone
 INTEGER, INTENT(IN) :: local_mpi_myid
 !
 INTEGER, PARAMETER :: idef = 68
-CHARACTER(LEN=1024) :: line, color
+CHARACTER(LEN=PREC_STRING) :: line, color
 INTEGER :: ios ! I/O status
 INTEGER :: i, icolon, length
 !
@@ -681,7 +685,7 @@ CHARACTER (LEN=*) , INTENT(OUT) :: color_color   ! Intended output color string
 CHARACTER (LEN=   3) :: zeile
 INTEGER              :: ianz
 INTEGER, PARAMETER                 :: MAXW = 1
-CHARACTER (LEN=1024), DIMENSION(1) :: cpara
+CHARACTER (LEN=PREC_STRING), DIMENSION(1) :: cpara
 INTEGER             , DIMENSION(1) :: lpara
 REAL(KIND=PREC_DP)  , DIMENSION(1) :: werte
 !
@@ -740,7 +744,7 @@ CHARACTER (LEN=*) , INTENT(OUT) :: color_color   ! Intended output color string
 CHARACTER (LEN=   3) :: zeile
 INTEGER              :: ianz
 INTEGER, PARAMETER                 :: MAXW = 1
-CHARACTER (LEN=1024), DIMENSION(1) :: cpara
+CHARACTER (LEN=PREC_STRING), DIMENSION(1) :: cpara
 INTEGER             , DIMENSION(1) :: lpara
 REAL(KIND=PREC_DP)  , DIMENSION(1) :: werte
 !
@@ -784,13 +788,14 @@ SUBROUTINE  program_files
 !+                                                                      
 USE envir_mod 
 USE errlist_mod
+USE precision_mod
 USE prompt_mod 
 !
 IMPLICIT none 
 !                                                                       
 INTEGER, PARAMETER :: ird = 34
 !
-CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=7)    :: progname
 INTEGER :: progname_l
 INTEGER :: i
@@ -877,6 +882,7 @@ INTEGER FUNCTION lib_f90_getppid(cpid)
 !
 USE envir_mod
 USE errlist_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -884,8 +890,8 @@ INTEGER, INTENT(IN) :: cpid  ! current PID whose Parent Process ID is to be foun
 !
 INTEGER, PARAMETER  :: ITMP     = 79  ! temporary unit number
 !
-CHARACTER(LEN=1024) :: line
-CHARACTER(LEN=1024) :: temp_file
+CHARACTER(LEN=PREC_STRING) :: line
+CHARACTER(LEN=PREC_STRING) :: temp_file
 INTEGER             :: tpid           ! temporary pid for current process for verification
 INTEGER             :: tppid          ! temporary ppid for current process for verification
 INTEGER             :: ios            ! I/O status 
@@ -932,6 +938,7 @@ SUBROUTINE lib_f90_getpname(cpid, tpid,tpname)
 ! Get the process name of the process with PID tpid
 !+
 USE envir_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -941,8 +948,8 @@ CHARACTER(LEN=*), INTENT(OUT) :: tpname  ! process name
 !
 INTEGER, PARAMETER  :: ITMP     = 79  ! temporary unit number
 !
-CHARACTER(LEN=1024) :: line           ! Dummy line
-CHARACTER(LEN=1024) :: temp_file      ! temporary file
+CHARACTER(LEN=PREC_STRING) :: line           ! Dummy line
+CHARACTER(LEN=PREC_STRING) :: temp_file      ! temporary file
 INTEGER             :: ios            ! I/O status 
 INTEGER             :: islash         ! I/O status 
 !

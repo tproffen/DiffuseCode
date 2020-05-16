@@ -11,6 +11,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 USE prompt_mod 
 USE debug_mod 
 USE errlist_mod 
+USE precision_mod
 USE sockets_mod
 IMPLICIT none 
 !                                                                       
@@ -18,7 +19,7 @@ INTEGER, INTENT(IN) :: local_mpi_myid
 !                                                                       
 INTEGER, PARAMETER :: marg = 20 
 !                                                                       
-CHARACTER(LEN=1024), DIMENSION(MARG) :: arg ! (marg) 
+CHARACTER(LEN=PREC_STRING), DIMENSION(MARG) :: arg ! (marg) 
 CHARACTER(LEN=2048)                  :: line = ' '
 CHARACTER(LEN=40)                    :: str 
 INTEGER :: iarg, i, ilen , ilena

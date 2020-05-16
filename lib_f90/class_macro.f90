@@ -1,8 +1,10 @@
 MODULE macro_class
 !
+USE precision_mod
+!
 TYPE cl_macro
    INTEGER                  :: macro_length
-   CHARACTER (LEN=1024),  DIMENSION(:), ALLOCATABLE :: macro_line
+   CHARACTER (LEN=PREC_STRING),  DIMENSION(:), ALLOCATABLE :: macro_line
    LOGICAL                  :: lmacro
 !  TYPE (cl_macro), POINTER :: before
 !  TYPE (cl_macro), POINTER :: after
@@ -52,8 +54,8 @@ SUBROUTINE set_macro (this, nlines, content )
 IMPLICIT none
 !
 CLASS (cl_macro) :: this
-INTEGER,                                   INTENT(IN) :: nlines   ! Number of lines for this macro
-CHARACTER (LEN=1024), DIMENSION(1:nlines), INTENT(IN) :: content  ! Actual lines for this macro
+INTEGER,                                INTENT(IN) :: nlines   ! Number of lines for this macro
+CHARACTER (LEN=*), DIMENSION(1:nlines), INTENT(IN) :: content  ! Actual lines for this macro
 !
 INTEGER :: i
 !
@@ -101,8 +103,8 @@ SUBROUTINE get_single (this, number, string )
 IMPLICIT none
 !
 CLASS (cl_macro) :: this
-INTEGER,              INTENT(IN)  :: number   ! Number of lines for this macro
-CHARACTER (LEN=1024), INTENT(OUT) :: string   ! Actual lines for this macro
+INTEGER,          INTENT(IN)  :: number   ! Number of lines for this macro
+CHARACTER (LEN=*), INTENT(OUT) :: string   ! Actual lines for this macro
 !
 string = this%macro_line(number)
 !
@@ -117,8 +119,8 @@ SUBROUTINE get_macro (this, nlines, content )
 IMPLICIT none
 !
 CLASS (cl_macro) :: this
-INTEGER,                                   INTENT(IN)  :: nlines   ! Number of lines for this macro
-CHARACTER (LEN=1024), DIMENSION(1:nlines), INTENT(OUT) :: content  ! Actual lines for this macro
+INTEGER,                               INTENT(IN)  :: nlines   ! Number of lines for this macro
+CHARACTER (LEN=*), DIMENSION(1:nlines), INTENT(OUT) :: content  ! Actual lines for this macro
 !
 INTEGER :: i
 !
