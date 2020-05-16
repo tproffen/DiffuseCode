@@ -27,6 +27,7 @@ USE surface_func_mod
       USE errlist_mod 
       USE learn_mod 
       USE class_macro_internal
+USE precision_mod
       USE prompt_mod 
       USE sup_mod
       IMPLICIT none 
@@ -37,7 +38,7 @@ USE surface_func_mod
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(1024) line, zeile
+      CHARACTER(LEN=PREC_STRING) :: line, zeile
       INTEGER lp, length, lbef 
       INTEGER indxg
       LOGICAL lend
@@ -217,7 +218,7 @@ USE precision_mod
       INTEGER, PARAMETER                   :: ATOMS = 1
       INTEGER, PARAMETER                   :: MAXW = 200 
       LOGICAL, PARAMETER                   :: LOLD = .true.
-      CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
       INTEGER            , DIMENSION(MAXW) :: lpara
       REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
       INTEGER                              :: ianz
@@ -397,13 +398,13 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 25) 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
 !                                                                       
       INTEGER, PARAMETER :: NOPTIONAL = 7
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -552,7 +553,7 @@ TYPE(prop_templ)                            :: pp
 !
 INTEGER, PARAMETER :: MAXWW= 10
 INTEGER            :: MAXW = 10
-CHARACTER(LEN=1024), DIMENSION(MAX(MAXWW, MAXSCAT)) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(opara))), DIMENSION(MAX(MAXWW, MAXSCAT)) :: cpara
 INTEGER            , DIMENSION(MAX(MAXWW, MAXSCAT)) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAX(MAXWW, MAXSCAT)) :: werte
 INTEGER                              :: ianz
@@ -793,13 +794,14 @@ SUBROUTINE property_show_user
 !
 USE crystal_mod
 USE atom_name
+USE precision_mod
 USE prop_para_mod
 USE prompt_mod
 !
 IMPLICIT NONE
 !
 CHARACTER(LEN=7), DIMENSION(-1:1) :: char_l
-CHARACTER(LEN=1024)               :: line
+CHARACTER(LEN=PREC_STRING)        :: line
 INTEGER :: i,ll
 DATA char_l /'absent ', 'ignore ', 'present' /
 !

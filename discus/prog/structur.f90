@@ -53,8 +53,8 @@ IMPLICIT none
 !                                                                       
 INTEGER , PARAMETER :: MAXW = 11
 !                                                                       
-CHARACTER(LEN=1024)        :: line, zeile, cpara (maxw) 
-CHARACTER(LEN=1024)        :: strucfile 
+CHARACTER(LEN=PREC_STRING)        :: line, zeile, cpara (maxw) 
+CHARACTER(LEN=PREC_STRING)        :: strucfile 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=5)           :: befehl 
 INTEGER, DIMENSION(MAXW)   :: lpara
@@ -70,8 +70,8 @@ REAL             :: r_identical = 1.0E-5
 INTEGER, PARAMETER :: NOPTIONAL = 5
 INTEGER, PARAMETER :: O_SETTING = 4
 INTEGER, PARAMETER :: O_SITE    = 5
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -416,8 +416,8 @@ REAL            ,                  INTENT(IN) :: r_identical
 INTEGER         ,                  INTENT(IN) :: occupancy
 LOGICAL         ,                  INTENT(IN) :: l_site
 !
-CHARACTER(LEN=1024) :: strucfile
-CHARACTER(LEN=1024) :: outfile
+CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: strucfile
+CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: outfile
 LOGICAL             :: need_alloc
 INTEGER             :: i, j, k, l, n
 INTEGER             :: iatom
@@ -663,13 +663,14 @@ USE molecule_mod
 USE read_internal_mod
 !
 USE errlist_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(INOUT) :: strucfile
 LOGICAL         , INTENT(IN)    :: l_site     ! Differ atoms on sites?
 !
-CHARACTER(LEN=1024) :: outfile 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(strucfile))) :: outfile 
 !INTEGER             :: natoms
 !INTEGER             :: nscats
 !INTEGER             :: n_mole
@@ -800,7 +801,6 @@ IMPLICIT NONE
 CHARACTER(LEN=*), INTENT(INOUT) :: strucfile
 LOGICAL         , INTENT(IN)    :: l_site     ! Differ atoms on sites?
 !
-!CHARACTER(LEN=1024) :: outfile 
 INTEGER             :: natoms
 INTEGER             :: nscats
 INTEGER             :: n_mole
@@ -1144,7 +1144,7 @@ LOGICAL            , INTENT(IN) :: l_identical
 REAL               , INTENT(IN) :: r_identical
 !
       CHARACTER(10) befehl 
-      CHARACTER(1024) line, zeile 
+      CHARACTER(LEN=PREC_STRING) :: line, zeile 
 INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER, PARAMETER                   :: ist     = 7
 INTEGER, PARAMETER                   :: MAXW = MAX(AT_MAXP,7)
@@ -1544,8 +1544,8 @@ INTEGER                             , INTENT(IN )   :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP), INTENT(IN )   :: at_param
 LOGICAL                             , INTENT(INOUT) :: at_init
 !                                                                       
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara   ! (maxw) 
-!CHARACTER(LEN=1024)                  :: string 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara   ! (maxw) 
+!CHARACTER(LEN=PREC_STRING)                  :: string 
 !CHARACTER(LEN=15)                    :: fff
 INTEGER            , DIMENSION(MAXW) :: lpara   ! (maxw) 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: wwerte  ! (maxw) 
@@ -1793,7 +1793,7 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 21) 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: cpara (maxw) 
       INTEGER j, ianz 
       INTEGER lpara (maxw)
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -2248,9 +2248,9 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       INTEGER maxw 
       PARAMETER (maxw = 13) 
 !                                                                       
-      CHARACTER(1024) line, cpara (maxw) 
-      CHARACTER(1024) zeile 
-      CHARACTER(6) befehl 
+      CHARACTER(LEN=PREC_STRING) :: line, cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: zeile 
+      CHARACTER(LEN=6) :: befehl 
       INTEGER i, ll, j, islash 
       INTEGER ianz 
 !DBG      integer             spcgr_ianz                                
@@ -2264,8 +2264,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
 INTEGER, PARAMETER :: O_SETTING = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -2752,7 +2752,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       INTEGER , PARAMETER :: maxw = 16! SHOULD READ : MAX(7, AT_MAXP)
 !                                                                       
       CHARACTER(LEN=10)   :: befehl 
-      CHARACTER(LEN=1024) ::  line, zeile 
+      CHARACTER(LEN=PREC_STRING) ::  line, zeile 
       INTEGER             :: i, j, ibl, lbef 
       INTEGER             :: iatom
       INTEGER             :: iimole
@@ -2970,7 +2970,7 @@ INTEGER              , INTENT(IN)    :: MAXW
 REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN)    :: werte
 !                                                                       
 CHARACTER(LEN=   3), DIMENSION(6) :: setting 
-CHARACTER(LEN=1024), DIMENSION(1) :: cpara 
+CHARACTER(LEN=PREC_STRING), DIMENSION(1) :: cpara 
 INTEGER            , DIMENSION(1) :: lpara 
 REAL(KIND=PREC_DP) , DIMENSION(1) :: rpara 
 !
@@ -3123,20 +3123,22 @@ SUBROUTINE rese_cr
 !                                                                       
 !     resets the crystal structure to empty                             
 !                                                                       
-      USE discus_config_mod 
+USE discus_config_mod 
 USE discus_allocate_appl_mod
 USE conn_mod
-      USE crystal_mod 
-      USE gen_add_mod 
-      USE molecule_mod 
-      USE sym_add_mod 
-      USE discus_save_mod 
-      USE discus_plot_mod
-      IMPLICIT none 
+USE crystal_mod 
+USE gen_add_mod 
+USE molecule_mod 
+USE sym_add_mod 
+USE discus_save_mod 
+USE discus_plot_mod
+USE precision_mod
+!
+IMPLICIT none 
 !                                                                       
 INTEGER, PARAMETER  :: code_res   = -2
 !
-CHARACTER(LEN=1024) :: zeile
+CHARACTER(LEN=PREC_STRING) :: zeile
 INTEGER             :: lp
 !                                                                       
       INTEGER i 
@@ -3324,9 +3326,9 @@ INTEGER         , INTENT(INOUT) :: lp
 !                                                                       
 INTEGER, PARAMETER :: MAXW = 5 
 !                                                                       
-CHARACTER(LEN=1024)                  ::  ofile
-CHARACTER(LEN=1024)                  ::  line
-CHARACTER(LEN=1024), DIMENSION(MAXW) ::  cpara !(MAXW) 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) ::  ofile
+CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) ::  line
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) ::  cpara !(MAXW) 
 INTEGER            , DIMENSION(MAXW) ::  lpara !(MAXW) 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) ::  werte !(MAXW) 
 INTEGER :: ianz 
@@ -3337,8 +3339,8 @@ CHARACTER(LEN= 200) :: hostfile  ! original structure file name
 INTEGER, PARAMETER :: NOPTIONAL = 2
 INTEGER, PARAMETER :: O_METRIC  = 1
 INTEGER, PARAMETER :: O_SPACE   = 2
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
@@ -3548,7 +3550,7 @@ INTEGER                             , INTENT(INOUT) :: ianz
 INTEGER                             , INTENT(IN)    :: MAXW 
 CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara ! (MAXW) 
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara ! (MAXW) 
-CHARACTER(LEN=1024)                 , INTENT(OUT)   :: ofile 
+CHARACTER(LEN=*)                    , INTENT(OUT)   :: ofile 
 !                                                                       
 INTEGER, PARAMETER :: NFV = 50 
 !                                                                       
@@ -3563,7 +3565,7 @@ CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE :: eadp_names
       CHARACTER(80) line1 
       CHARACTER(80) line2 
       CHARACTER(160) line 
-      CHARACTER(1024) infile 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(ofile))) :: infile 
       INTEGER ird, iwr 
       INTEGER i, j, jj 
       INTEGER ix, iy, iz, idot 
@@ -3586,7 +3588,7 @@ REAL   , DIMENSION(:), ALLOCATABLE :: eadp_values
 !
       INTEGER                               :: iianz      ! Dummy number of parameters
       INTEGER, PARAMETER                    :: MAXP  = 11 ! Dummy number of parameters
-      CHARACTER (LEN=1024), DIMENSION(MAXP) :: ccpara     ! Parameter needed for SFAC analysis
+      CHARACTER (LEN=MAX(PREC_STRING,LEN(cpara))), DIMENSION(MAXP) :: ccpara     ! Parameter needed for SFAC analysis
       INTEGER             , DIMENSION(MAXP) :: llpara
       REAL(KIND=PREC_DP)  , DIMENSION(MAXP) :: wwerte
 !                                                                       
@@ -4009,13 +4011,13 @@ USE precision_mod
       INTEGER          , INTENT(IN)                       :: MAXW 
       CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
       INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
-CHARACTER(LEN=1024)                 , INTENT(OUT)   :: ofile 
+CHARACTER(LEN=*)                 , INTENT(OUT)   :: ofile 
 !                                                                       
 !                                                                       
       REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
 !                                                                       
       CHARACTER(LEN=87)     :: line 
-      CHARACTER(LEN=1024)   :: infile 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(ofile)))   :: infile 
       INTEGER               :: ird, iwr 
       INTEGER               :: i
       INTEGER               :: indx1, indx2
@@ -4156,21 +4158,21 @@ USE take_param_mod
       INTEGER          , INTENT(IN)                    :: MAXW 
       CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
       INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
-CHARACTER(LEN=1024)                 , INTENT(OUT)   :: ofile 
+CHARACTER(LEN=*)                 , INTENT(OUT)   :: ofile 
 !                                                                       
       INTEGER, PARAMETER    :: RMC_CSSR  = 0
       INTEGER, PARAMETER    :: RMC_RMCF6 = 1
 !                                                                       
       REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
 !                                                                       
-      CHARACTER(LEN=1024)   :: infile = ' '
+      CHARACTER(LEN=PREC_STRING)   :: infile = ' '
       INTEGER               :: ird, iwr 
       INTEGER               :: style
       LOGICAL               :: fileda
       LOGICAL               :: lperiod   ! Attempt to rearrange periodically 
       INTEGER, PARAMETER    :: NOPTIONAL = 1
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -4670,7 +4672,7 @@ USE precision_mod
       INTEGER          , INTENT(IN)                    :: MAXW 
       CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
       INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
-      CHARACTER(LEN=1024)                 , INTENT(OUT)   :: ofile 
+      CHARACTER(LEN=*)                 , INTENT(OUT)   :: ofile 
 !                                                                       
       REAL(KIND=PREC_DP), PARAMETER :: eightpi2 = 8.D0*3.1415926535897932384626433832795028841971693993751D0**2
       REAL, PARAMETER :: EPS = 0.00001
@@ -4683,13 +4685,13 @@ USE precision_mod
       CHARACTER(LEN=80)     :: spcgr  = ' '
       CHARACTER(LEN=80)     :: aniso_label  = ' '
       CHARACTER(LEN=80)     :: aniso_symb   = ' '
-      CHARACTER(LEN=1024)   :: infile = ' '
-      CHARACTER(LEN=1024)   :: wfile  = ' '
-      CHARACTER(LEN=1024)                              :: line
-      CHARACTER(LEN=1024)                              :: line_cap
-      CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE   :: rawline
-      CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE   :: ccpara
-      CHARACTER(LEN=1024), DIMENSION(3)                :: cspara
+      CHARACTER(LEN=PREC_STRING)   :: infile = ' '
+      CHARACTER(LEN=PREC_STRING)   :: wfile  = ' '
+      CHARACTER(LEN=PREC_STRING)                              :: line
+      CHARACTER(LEN=PREC_STRING)                              :: line_cap
+      CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: rawline
+      CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: ccpara
+      CHARACTER(LEN=PREC_STRING), DIMENSION(3)                :: cspara
       INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
       INTEGER            , DIMENSION(3)                :: lspara
       REAL(KIND=PREC_DP) , DIMENSION(3)                :: wwerte
@@ -5632,17 +5634,17 @@ USE precision_mod
       LOGICAL          , INTENT(IN)    :: lcell
 !
       INTEGER, PARAMETER                    :: MAXW = 13 
-      CHARACTER(LEN=1024), DIMENSION(MAXW)  :: cpara (MAXW) 
+      CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW)  :: cpara (MAXW) 
       INTEGER            , DIMENSION(MAXW)  :: lpara (MAXW) 
       REAL(KIND=PREC_DP) , DIMENSION(MAXW)  :: werte (MAXW) 
 !
       REAL, PARAMETER                       :: eps = 1e-6
-      CHARACTER (LEN=1024)                  :: line
-      CHARACTER (LEN=1024)                  :: zeile
+      CHARACTER (LEN=PREC_STRING)                  :: line
+      CHARACTER (LEN=PREC_STRING)                  :: zeile
       CHARACTER (LEN=  20)                  :: bef
-      CHARACTER (LEN=   4), DIMENSION(1024), SAVE :: names
-      REAL                , DIMENSION(1024), SAVE :: bvals
-      REAL                , DIMENSION(1024), SAVE :: occs
+      CHARACTER (LEN=   4), DIMENSION(PREC_STRING), SAVE :: names
+      REAL                , DIMENSION(PREC_STRING), SAVE :: bvals
+      REAL                , DIMENSION(PREC_STRING), SAVE :: occs
       INTEGER                               :: ios
       INTEGER                               :: i
       INTEGER                               :: iblk
@@ -6082,15 +6084,15 @@ INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER                   ::MAXW = 2
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER :: ianz
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
 INTEGER, PARAMETER :: O_SETTING = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -6180,6 +6182,7 @@ USE read_internal_mod
 USE spcgr_apply
 USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc, save_show
 use wyckoff_mod
+USE precision_mod
 !
 IMPLICIT none 
 !
@@ -6189,7 +6192,7 @@ LOGICAL            , INTENT(IN)  :: l_identical
 REAL               , INTENT(IN)  :: r_identical
 !
 CHARACTER(LEN=200) :: tempfile
-CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=PREC_STRING) :: line
 INTEGER :: length
 INTEGER :: im, j, iat
 LOGICAL :: lout
