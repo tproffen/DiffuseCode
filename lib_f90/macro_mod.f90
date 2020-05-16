@@ -2,6 +2,7 @@ MODULE macro_mod
 !+
 !     include file for file related variables, all macro stuff is "macro_internal.f90"
 !-
+USE precision_mod
    IMPLICIT NONE
    PUBLIC
    SAVE
@@ -11,7 +12,7 @@ MODULE macro_mod
    INTEGER, PARAMETER :: MAC_MAX_IO    = 10
    INTEGER, PARAMETER :: MAC_MAX_FORM  = 50
 !
-   CHARACTER(LEN=1024), DIMENSION(1:MAC_MAX_IO   ) :: io_file       ! (MAC_MAX_IO)
+   CHARACTER(LEN=PREC_STRING), DIMENSION(1:MAC_MAX_IO   ) :: io_file       ! (MAC_MAX_IO)
    CHARACTER(LEN=20  ), DIMENSION(1:MAC_MAX_FORM ) :: io_out_format ! (MAC_MAX_FORM)
    LOGICAL            , DIMENSION(1:MAC_MAX_IO   ) :: io_open       ! (MAC_MAX_IO)
    INTEGER            , DIMENSION(1:MAC_MAX_IO   ) :: io_unit       ! (MAC_MAX_IO)

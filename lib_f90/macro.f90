@@ -16,8 +16,8 @@ INTEGER, PARAMETER ::  maxw = MAC_MAX_PARA + 1
 CHARACTER (LEN=*),  INTENT(INOUT) :: line
 INTEGER          ,  INTENT(INOUT) :: ilen
 !
-CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
-CHARACTER (LEN=1024)                    :: filename, string
+CHARACTER (LEN=PREC_STRING), DIMENSION(1:MAXW) :: cpara
+CHARACTER (LEN=PREC_STRING)                    :: filename, string
 !
 INTEGER             , DIMENSION(1:MAXW) :: lpara
 INTEGER                                 :: ianz, i
@@ -27,8 +27,8 @@ REAL(KIND=PREC_DP)  , DIMENSION(1:MAXW) :: werte
 !
 INTEGER, PARAMETER :: imc   = 63
 !
-CHARACTER (LEN=1024), DIMENSION(:), ALLOCATABLE  :: content
-CHARACTER (LEN=1024)  :: macrofile
+CHARACTER (LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE  :: content
+CHARACTER (LEN=PREC_STRING)  :: macrofile
 INTEGER               :: length, file_length
 INTEGER               :: iline
 INTEGER               :: iseof
@@ -266,7 +266,7 @@ CHARACTER (LEN=*), DIMENSION(1:MAXW),INTENT(OUT  )  :: cpara
 INTEGER          , DIMENSION(1:MAXW),INTENT(OUT  )  :: lpara
 REAL(KIND=PREC_DP),DIMENSION(1:MAXW),INTENT(OUT  )  :: werte
 !
-CHARACTER(LEN=1024)      :: string
+CHARACTER(LEN=PREC_STRING)      :: string
 INTEGER                  :: i
 INTEGER                  :: ip
 INTEGER                  :: length
@@ -301,6 +301,7 @@ SUBROUTINE inquire_macro_name(fileda, infile)
 !
 USE envir_mod
 USE errlist_mod
+USE precision_mod
 USE prompt_mod
 !
 IMPLICIT NONE
@@ -308,9 +309,9 @@ IMPLICIT NONE
 LOGICAL          , INTENT(OUT  )  :: fileda
 CHARACTER (LEN=*), INTENT(INOUT)  :: infile
 !
-CHARACTER(LEN=1024)      :: ldir            ! local directory
-CHARACTER(LEN=1024)      :: string
-CHARACTER(LEN=1024)      :: filename
+CHARACTER(LEN=PREC_STRING)      :: ldir            ! local directory
+CHARACTER(LEN=PREC_STRING)      :: string
+CHARACTER(LEN=PREC_STRING)      :: filename
 INTEGER                  :: ldir_length
 INTEGER                  :: filename_length ! length of filename string
 INTEGER                  :: infile_length   ! length of filename string
@@ -448,8 +449,8 @@ IMPLICIT none
 CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: laenge
 !
-CHARACTER(LEN=1024) :: zeile
-CHARACTER(LEN=1024), DIMENSION(1) :: string
+CHARACTER(LEN=PREC_STRING) :: zeile
+CHARACTER(LEN=PREC_STRING), DIMENSION(1) :: string
 INTEGER :: ndol, nexcl, nquote1, nquote2
 INTEGER :: lpar
 INTEGER :: n_par
@@ -487,28 +488,35 @@ IF (laenge == 0) THEN
    RETURN
 ENDIF
 CALL remove_comment(line, laenge)
-DO WHILE(line(laenge:laenge) == '&')    ! A continued lined
-   laenge = laenge - 1
-   mac_tree_active%current = mac_tree_active%current + 1
-   IF(mac_tree_active%current > mac_tree_active%active%macros%macro_length) THEN
-      IF(.NOT. ASSOCIATED(mac_tree_active%parent)) THEN  ! Got back to the top 
-         lmakro = .false.
-         lmakro_disp  = .FALSE.    ! Macro display error off
-         macro_level = 0
-         CALL macro_close
-      ELSE
-         mac_tree_active => mac_tree_active%parent
+IF(laenge>0) THEN
+   is_cont: DO WHILE(line(laenge:laenge) == '&')    ! A continued lined
+      laenge = laenge - 1
+      mac_tree_active%current = mac_tree_active%current + 1
+      IF(mac_tree_active%current > mac_tree_active%active%macros%macro_length) THEN
+         IF(.NOT. ASSOCIATED(mac_tree_active%parent)) THEN  ! Got back to the top 
+            lmakro = .false.
+            lmakro_disp  = .FALSE.    ! Macro display error off
+            macro_level = 0
+            CALL macro_close
+         ELSE
+            mac_tree_active => mac_tree_active%parent
 !            DEALLOCATE(mac_tree_active%kid)
-         macro_level = macro_level - 1
+            macro_level = macro_level - 1
+         ENDIF
+         RETURN
       ENDIF
-      RETURN
-   ENDIF
-   zeile  = mac_tree_active%active%macros%macro_line(mac_tree_active%current)
-   lt     = len_str(zeile)
-   CALL remove_comment(zeile, lt)
-   line   = line(1:laenge) // ' ' // zeile(1:lt)
-   laenge = laenge + 1 + lt
-ENDDO
+      zeile  = mac_tree_active%active%macros%macro_line(mac_tree_active%current)
+      lt     = len_str(zeile)
+      CALL remove_comment(zeile, lt)
+      line   = line(1:laenge) // ' ' // zeile(1:lt)
+      laenge = laenge + 1 + lt
+      IF(laenge>LEN(line)-100) THEN
+         ier_num = -16
+         ier_typ = ER_COMM
+         RETURN
+      ENDIF
+   ENDDO is_cont
+ENDIF
    
 !
 nocomment: IF (line(1:1) /= '#' .AND. line (1:1) /=  '!' .AND. laenge /= 0) THEN
@@ -777,6 +785,7 @@ END SUBROUTINE macro_close_mpi
       USE get_params_mod
       USE class_macro_internal
       USE macro_mod
+USE precision_mod
       USE prompt_mod
       IMPLICIT none
 !
@@ -785,7 +794,7 @@ END SUBROUTINE macro_close_mpi
       INTEGER            , INTENT(INOUT) :: lcomm
       INTEGER maxw
       PARAMETER (maxw = 1)
-      CHARACTER(1024) cpara (maxw)
+      CHARACTER(PREC_STRING) :: cpara (maxw)
       CHARACTER(LEN=40)  :: cprompt
       INTEGER lpara (maxw)
       INTEGER ianz
@@ -871,9 +880,9 @@ INTEGER, PARAMETER ::  maxw = MAC_MAX_PARA + 1
 INTEGER, PARAMETER ::  imc  = 63
 !
 !
-CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
-CHARACTER (LEN=1024)                    :: filename, zeile
-CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: string
+CHARACTER (LEN=PREC_STRING), DIMENSION(1:MAXW) :: cpara
+CHARACTER (LEN=PREC_STRING)                    :: filename, zeile
+CHARACTER (LEN=PREC_STRING), DIMENSION(1:MAXW) :: string
 !
 INTEGER             , DIMENSION(1:MAXW) :: lpara
 INTEGER                                 :: ianz, length

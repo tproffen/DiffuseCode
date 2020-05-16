@@ -344,7 +344,7 @@ SUBROUTINE do_hel (ein, length)
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER(LEN=1024) :: clines
+      CHARACTER(LEN=PREC_STRING) :: clines
       CHARACTER(80) line 
       CHARACTER(1) cdummy 
       INTEGER ihl, ilc, ll 
@@ -460,21 +460,21 @@ INTEGER, PARAMETER  :: N_VIEWER = 5
 INTEGER, PARAMETER  :: W_VIEWER = 5
 INTEGER, PARAMETER  :: MAXW     = 2
 INTEGER, PARAMETER  :: MAX_MAN  = 6
-CHARACTER(LEN=1024) :: string, zeile
-CHARACTER(LEN=1024) :: command, message
-CHARACTER(LEN=128 ), DIMENSION(N_VIEWER) :: pdf_viewer  ! List of possible viewers
-CHARACTER(LEN=128 ), DIMENSION(W_VIEWER) :: win_test_v  ! List of possible viewers
-CHARACTER(LEN=128 ), DIMENSION(W_VIEWER) :: win_viewer  ! List of possible viewers
-CHARACTER(LEN= 7  ), DIMENSION(MAX_MAN ) :: c_manual    ! list of possibel sections
-CHARACTER(LEN= 7  )                      :: manual      ! actual section
-CHARACTER(LEN=1024)                      :: viewer      ! actual viewer
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: string, zeile
+CHARACTER(LEN=    PREC_STRING           ) :: command, message
+CHARACTER(LEN=128 ), DIMENSION(N_VIEWER)  :: pdf_viewer  ! List of possible viewers
+CHARACTER(LEN=128 ), DIMENSION(W_VIEWER)  :: win_test_v  ! List of possible viewers
+CHARACTER(LEN=128 ), DIMENSION(W_VIEWER)  :: win_viewer  ! List of possible viewers
+CHARACTER(LEN= 7  ), DIMENSION(MAX_MAN )  :: c_manual    ! list of possibel sections
+CHARACTER(LEN= 7  )                       :: manual      ! actual section
+CHARACTER(LEN=PREC_STRING)                :: viewer      ! actual viewer
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara   !parameters
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara   !parameters
 INTEGER            , DIMENSION(MAXW) :: lpara   !parameters
 !
 INTEGER, PARAMETER :: NOPTIONAL = 2
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=    PREC_STRING           ), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Length opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present

@@ -18,7 +18,7 @@ SUBROUTINE get_params (string, ianz, cpara, lpara, nwerte, laenge)
 CHARACTER(LEN=*)                      , INTENT(IN)    :: string 
 INTEGER                               , INTENT(OUT)   :: ianz
 INTEGER                               , INTENT(IN)    :: nwerte 
-CHARACTER(LEN=1024), DIMENSION(nwerte), INTENT(OUT)   :: cpara
+CHARACTER(LEN=*   ), DIMENSION(nwerte), INTENT(OUT)   :: cpara
 INTEGER            , DIMENSION(nwerte), INTENT(OUT)   :: lpara
 INTEGER                               , INTENT(INOUT) :: laenge 
 !                                                                       
@@ -211,7 +211,7 @@ SUBROUTINE get_params_blank (string, ianz, cpara, lpara, nwerte, laenge)
 CHARACTER (LEN=* )                      ,INTENT(IN)  :: string 
 INTEGER                                 ,INTENT(OUT) :: ianz
 INTEGER                                 ,INTENT(IN)  :: nwerte 
-CHARACTER(LEN=1024),DIMENSION(1:nwerte), INTENT(OUT) :: cpara
+CHARACTER(LEN=*   ),DIMENSION(1:nwerte), INTENT(OUT) :: cpara
 INTEGER            ,DIMENSION(1:nwerte), INTENT(OUT) :: lpara
 INTEGER                                 ,INTENT(IN ) :: laenge
 !
@@ -261,7 +261,7 @@ IMPLICIT none
 INTEGER                                 ,INTENT(IN )   :: ndel
 INTEGER                                 ,INTENT(INOUT) :: ianz
 INTEGER                                 ,INTENT(IN)    :: nwerte 
-CHARACTER(LEN=1024),DIMENSION(1:nwerte), INTENT(INOUT) :: cpara
+CHARACTER(LEN=*   ),DIMENSION(1:nwerte), INTENT(INOUT) :: cpara
 INTEGER            ,DIMENSION(1:nwerte), INTENT(INOUT) :: lpara
 !                                                                       
 INTEGER i 

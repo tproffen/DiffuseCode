@@ -1,5 +1,6 @@
 MODULE class_macro_internal
 !
+USE precision_mod
 USE macro_class
 !
 IMPLICIT NONE
@@ -20,7 +21,7 @@ PUBLIC  :: sprompt
 
 TYPE :: macro_internal
    INTEGER                           :: number
-   CHARACTER (LEN=1024)              :: macrofile   ! "file" name for this internal storage
+   CHARACTER (LEN=PREC_STRING)              :: macrofile   ! "file" name for this internal storage
    TYPE (cl_macro)        , POINTER  :: macros      ! The actual data structure for the macros 
    TYPE (macro_internal), POINTER    :: before      ! Pointer to prev stored macros 
    TYPE (macro_internal), POINTER    :: after       ! Pointer to next stored macros 

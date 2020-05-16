@@ -20,8 +20,7 @@ INTEGER, PARAMETER :: maxw = 12
 CHARACTER (LEN= * ), INTENT(INOUT) :: zeile 
 INTEGER            , INTENT(INOUT) :: lcomm 
 !                                                                       
-!     CHARACTER(1024) fname 
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
 INTEGER,             DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP),  DIMENSION(MAXW) :: werte
 INTEGER :: ip, ianz, len_str 

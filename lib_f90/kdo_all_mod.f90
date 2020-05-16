@@ -34,8 +34,8 @@ IMPLICIT none
       INTEGER           , INTENT(IN)    :: lbef 
       CHARACTER (LEN=*) , INTENT(INOUT) :: zei 
       INTEGER           , INTENT(INOUT) :: lc
-      CHARACTER(1024) command 
-      CHARACTER(1024) cpara (maxpar) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zei))) :: command 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zei))) :: cpara (maxpar) 
       INTEGER lpara (maxpar) 
       INTEGER ianz 
       REAL(KIND=PREC_DP):: werte (maxpar) 
