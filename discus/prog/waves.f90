@@ -36,12 +36,12 @@ USE precision_mod
 !                                                                       
       PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
+      CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
 !
-      CHARACTER(1024) line, zeile
-      CHARACTER(1024) cdummy 
+      CHARACTER(LEN=PREC_STRING) :: line, zeile
+      CHARACTER(LEN=PREC_STRING) :: cdummy 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(5) befehl 
       INTEGER lp, length, lbef, ldummy 

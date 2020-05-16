@@ -19,12 +19,13 @@ CONTAINS
    USE trafo_mod
 !
    USE param_mod
+   USE precision_mod
 !
    IMPLICIT NONE     
 !
    REAL, PARAMETER :: EPS = 0.0001
 !
-   CHARACTER(LEN=1024) :: line
+   CHARACTER(LEN=PREC_STRING) :: line
    INTEGER             :: length
    REAL                :: dstar
    REAL                :: tthmax
@@ -191,7 +192,7 @@ CONTAINS
 !
    IMPLICIT NONE
 !
-   CHARACTER(LEN=1024)   :: line
+   CHARACTER(LEN=PREC_STRING)   :: line
    INTEGER               :: i,j,l, ii, k,m
    INTEGER               :: length
    INTEGER               :: hmax, kmax, lmax

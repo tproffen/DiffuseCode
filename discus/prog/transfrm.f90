@@ -44,14 +44,14 @@ USE precision_mod
       LOGICAL lold 
       PARAMETER (lold = .false.) 
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAXSCAT) 
+      CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAXSCAT) 
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAXSCAT)
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAXSCAT) 
 !
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(1024) line, zeile
-      CHARACTER(1024) tran_hfile 
+      CHARACTER(LEN=PREC_STRING) :: line, zeile
+      CHARACTER(LEN=PREC_STRING) :: tran_hfile 
       INTEGER lp, length, lbef 
       INTEGER tran_hlen 
       INTEGER indxg, ianz, i, j 
@@ -1275,6 +1275,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
       USE errlist_mod 
       USE param_mod 
+      USE precision_mod
       USE prompt_mod 
 !
       IMPLICIT none 
@@ -1285,8 +1286,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
       CHARACTER(20) inten 
       CHARACTER ( * ) infile 
-      CHARACTER(1024) outfile 
-      CHARACTER(1024) restfile 
+      CHARACTER(LEN=PREC_STRING) :: outfile 
+      CHARACTER(LEN=PREC_STRING) :: restfile 
       INTEGER infile_l
       INTEGER hkl (3) 
       REAL usym (4), ures (4), utest (3) 

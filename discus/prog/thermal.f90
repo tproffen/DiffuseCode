@@ -31,7 +31,7 @@ USE precision_mod
       CHARACTER (LEN=*), INTENT(INOUT) :: line 
       INTEGER          , INTENT(INOUT) :: ll
 !
-      CHARACTER(LEN=1024) :: cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(LEN=9)    :: at_name_i 
       INTEGER lpara (maxw) 
       INTEGER i, j, k, is, ii, ianz 
