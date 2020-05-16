@@ -3,32 +3,35 @@
 !     Compiler specific routines GNU gfortran version                   
 !
 !*****7**************************************************************** 
+!
 SUBROUTINE datum () 
 !                                                                       
-      USE times_mod
-      IMPLICIT none 
+USE times_mod
+!
+IMPLICIT none 
 !                                                                       
+CHARACTER(LEN=8) :: date 
+CHARACTER(LEN=10):: time 
+CHARACTER(LEN=5) :: zone 
+INTEGER, DIMENSION(8) :: values
 !                                                                       
-      CHARACTER(8) date 
-      CHARACTER(10) time 
-      CHARACTER(5) zone 
-      INTEGER values (8) 
+CALL DATE_AND_TIME (date, time, zone, values) 
+int_date (1) = values (1) 
+int_date (2) = values (2) 
+int_date (3) = values (3) 
+int_time (1) = values (5) 
+int_time (2) = values (6) 
+int_time (3) = values (7) 
+millisec = values (8) 
+midnight = values (5) * 3600 * 1000 + values (6) * 60 * 1000 +    &
+values (7) * 1000 + values (8)                                    
 !                                                                       
-      CALL DATE_AND_TIME (date, time, zone, values) 
-      int_date (1) = values (1) 
-      int_date (2) = values (2) 
-      int_date (3) = values (3) 
-      int_time (1) = values (5) 
-      int_time (2) = values (6) 
-      int_time (3) = values (7) 
-      millisec = values (8) 
-      midnight = values (5) * 3600 * 1000 + values (6) * 60 * 1000 +    &
-      values (7) * 1000 + values (8)                                    
+CALL fdate (f_date) 
 !                                                                       
-      CALL fdate (f_date) 
-!                                                                       
-      END SUBROUTINE datum                          
+END SUBROUTINE datum                          
+!
 !*****7**************************************************************** 
+!
       SUBROUTINE datum_intrinsic () 
 !                                                                       
       USE times_mod
@@ -155,12 +158,13 @@ SUBROUTINE datum ()
 !-                                                                      
       USE errlist_mod 
       USE param_mod 
+USE precision_mod
       USE prompt_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER (LEN=*), INTENT(IN) :: command 
-      CHARACTER(LEN=1024) :: message
+      CHARACTER(LEN=PREC_STRING) :: message
       INTEGER :: exit_msg
 !
       INTEGER length
@@ -203,9 +207,9 @@ USE precision_mod
       INTEGER MAXW 
       PARAMETER (MAXW = 20) 
       CHARACTER (LEN=*) dir 
-      CHARACTER(1024) cwd 
-      CHARACTER(1024) cpara (MAXW) 
-      CHARACTER(LEN=1024) :: string
+      CHARACTER(LEN=PREC_STRING) :: cwd 
+      CHARACTER(LEN=PREC_STRING) :: cpara (MAXW) 
+      CHARACTER(LEN=PREC_STRING) :: string
       CHARACTER(LEN=   1) :: drive
       INTEGER :: i
       INTEGER lpara (MAXW) 
@@ -272,11 +276,12 @@ USE precision_mod
 !     dir                                                               
 !-                                                                      
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER (LEN=*) dir 
-      CHARACTER(1024) cwd 
+      CHARACTER(LEN=PREC_STRING) :: cwd 
       INTEGER ld, dummy 
 !                                                                       
       INTEGER len_str 
@@ -294,12 +299,13 @@ USE precision_mod
 !-                                                                      
       USE blanks_mod
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER (LEN=*) name 
-      CHARACTER(1024) command 
-      CHARACTER(LEN=1024) :: message
+      CHARACTER(LEN=PREC_STRING) :: command 
+      CHARACTER(LEN=PREC_STRING) :: message
       INTEGER len_str, laenge 
 !                                                                       
       laenge = len_str (name) 
@@ -332,12 +338,13 @@ USE precision_mod
 !-                                                                      
       USE blanks_mod
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER (LEN=*) nameold, namenew 
       CHARACTER(80) command 
-      CHARACTER(LEN=1024) :: message
+      CHARACTER(LEN=PREC_STRING) :: message
       INTEGER len_str, lo, ln 
 !                                                                       
       lo = len_str (nameold) 
@@ -389,10 +396,11 @@ USE precision_mod
 !                                                                       
       USE envir_mod 
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER(1024) dffile 
+      CHARACTER(LEN=PREC_STRING) :: dffile 
       INTEGER idef, l1, l2 
       LOGICAL lread 
 !                                                                       
@@ -437,13 +445,14 @@ USE precision_mod
 !+                                                                      
       USE envir_mod 
       USE errlist_mod 
+USE precision_mod
       USE times_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER (LEN=* )    :: datei, stat 
-      CHARACTER (LEN=1024)  :: line 
-      CHARACTER (LEN=1024)  :: message
+      CHARACTER (LEN=PREC_STRING)  :: line 
+      CHARACTER (LEN=PREC_STRING)  :: message
       INTEGER inum, ios 
       INTEGER l_datei 
       LOGICAL lda
@@ -526,12 +535,14 @@ USE precision_mod
 !+                                                                      
       USE envir_mod 
       USE errlist_mod 
+
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER (LEN=*) datei, stat 
-      CHARACTER(1024) line 
-      CHARACTER(LEN=1024) :: message 
+      CHARACTER(LEN=PREC_STRING) :: line 
+      CHARACTER(LEN=PREC_STRING) :: message 
       INTEGER inum, ios 
       INTEGER l_datei 
       LOGICAL lda
@@ -628,7 +639,7 @@ USE precision_mod
       INTEGER , INTENT(INOUT)::lp 
       LOGICAL , INTENT(IN)   ::lout
 !
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw)
       INTEGER ianz 

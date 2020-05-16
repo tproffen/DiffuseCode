@@ -122,7 +122,7 @@ INTEGER                            , INTENT(INOUT) :: lopara   ! length of strin
 REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(OUT)   :: werte    ! Numerical values
 INTEGER                            , INTENT(OUT)   :: ianz    ! Number of numerical values
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(opara))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER                              :: length
 !

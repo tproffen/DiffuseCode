@@ -60,9 +60,10 @@
 !*****7**************************************************************** 
       SUBROUTINE holecwd (cwd, dummy) 
 !
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) cwd 
+      CHARACTER(LEN=PREC_STRING) :: cwd 
       INTEGER dummy 
 !
       INTEGER getcwd 
@@ -73,10 +74,11 @@
 !*****7**************************************************************** 
       SUBROUTINE holeenv (request, answer) 
 !                                                                       
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) request 
-      CHARACTER(1024) answer 
+      CHARACTER(LEN=PREC_STRING) :: request 
+      CHARACTER(LEN=PREC_STRING) :: answer 
       INTEGER length 
       INTEGER len_str
 !                                                                       
@@ -93,11 +95,12 @@
 !-                                                                      
 !
       USE errlist_mod 
+      USE precision_mod
       USE times_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER (1024) ctime
+      CHARACTER (LEN=PREC_STRING) :: ctime
       INTEGER ifile 
       INTEGER buff (13) 
 !
@@ -207,8 +210,8 @@ USE precision_mod
       INTEGER MAXW 
       PARAMETER (MAXW = 20) 
       CHARACTER ( * ) dir 
-      CHARACTER(1024) cwd 
-      CHARACTER(1024) cpara (MAXW) 
+      CHARACTER(LEN=PREC_STRING) :: cwd 
+      CHARACTER(LEN=PREC_STRING) :: cpara (MAXW) 
       INTEGER lpara (MAXW) 
       INTEGER ianz 
       INTEGER ld, dummy 
@@ -264,11 +267,12 @@ USE precision_mod
 !-
 !
       USE errlist_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER ( * ) dir 
-      CHARACTER(1024) cwd 
+      CHARACTER(LEN=PREC_STRING) :: cwd 
       INTEGER ld, dummy 
 !                                                                       
       INTEGER len_str 
@@ -285,11 +289,12 @@ USE precision_mod
 !     Deletes a file                                                    
 !-                                                                      
       USE errlist_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER ( * ) name 
-      CHARACTER(1024) command 
+      CHARACTER(LEN=PREC_STRING) :: command 
       INTEGER len_str, laenge 
       INTEGER system
 !                                                                       
@@ -429,8 +434,8 @@ USE precision_mod
 !                                                                       
 !                                                                       
       CHARACTER (LEN=* )    :: datei, stat 
-      CHARACTER (LEN=1024)  :: line 
-      CHARACTER (LEN=1024)  :: message
+      CHARACTER (LEN=PREC_STRING)  :: line 
+      CHARACTER (LEN=PREC_STRING)  :: message
       INTEGER inum, ios 
       INTEGER l_datei 
       LOGICAL lda
@@ -514,12 +519,13 @@ USE precision_mod
 !+                                                                      
       USE envir_mod 
       USE errlist_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER ( * ) datei, stat 
-      CHARACTER(1024) line 
-      CHARACTER(LEN=1024) message 
+      CHARACTER(LEN=PREC_STRING) :: line 
+      CHARACTER(LEN=PREC_STRING) :: message 
       INTEGER inum, ios 
       INTEGER l_datei 
       LOGICAL lda
@@ -614,7 +620,7 @@ USE precision_mod
       INTEGER , INTENT(INOUT)::lp 
       LOGICAL , INTENT(IN)   ::lout
 !
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw)
       INTEGER ianz 

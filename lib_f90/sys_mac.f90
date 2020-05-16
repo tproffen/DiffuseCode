@@ -29,7 +29,7 @@ USE precision_mod
       INTEGER , INTENT(INOUT)::lp 
       LOGICAL , INTENT(IN)   ::lout
 !
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw)
       INTEGER ianz 
