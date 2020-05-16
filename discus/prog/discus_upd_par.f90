@@ -29,7 +29,7 @@ USE precision_mod
       REAL(KIND=PREC_DP)   , DIMENSION(1:maxw), INTENT(IN   ) :: ww
       INTEGER,                    INTENT(IN   ) :: ianz
 !                                                                       
-      CHARACTER(1024) zeile 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) zeile 
 !                                                                       
       INTEGER laenge, ltyp, kpara, kpara2
       INTEGER lcomm 
@@ -939,7 +939,7 @@ USE precision_mod
 !                                                                       
       INTEGER, PARAMETER :: maxw = 9
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) cpara (maxw) 
       INTEGER lpara (maxw)
       INTEGER i, j, k, ianz, lcomm, l 
       LOGICAL lspace
@@ -1500,12 +1500,12 @@ CHARACTER(LEN=*), INTENT(IN) :: string
 INTEGER, PARAMETER :: MAXW      = 3
 INTEGER, PARAMETER :: NOPTIONAL = 2
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW     ) :: cpara   !parameter strings returned
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))), DIMENSION(MAXW     ) :: cpara   !parameter strings returned
 INTEGER            , DIMENSION(MAXW     ) :: lpara   !Lenght para name
 REAL(KIND=PREC_DP) , DIMENSION(MAXW     ) :: werte   !Lenght para name
 !
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   3), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present

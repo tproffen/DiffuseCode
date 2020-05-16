@@ -38,23 +38,23 @@ USE precision_mod
       USE sup_mod
       IMPLICIT none 
 !                                                                       
-       
+CHARACTER(LEN=*), INTENT(INOUT) :: string 
+INTEGER         , INTENT(INOUT) :: lcomm
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA =  20 ! A command requires at least these no of parameters
       INTEGER maxw 
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(string))), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
 !
-      CHARACTER ( LEN=*    ) string 
-      CHARACTER ( LEN=1024 ) zeile 
+      CHARACTER ( LEN=MAX(PREC_STRING,LEN(string)) ) :: zeile 
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
-      CHARACTER(1024) line
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: line
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz
-      INTEGER lcomm, sav_flen 
+      INTEGER sav_flen 
       LOGICAL lend 
 !      REAL, DIMENSION(SAV_MAXSCAT) :: repl ! Dummy variable needed for atom_select
 !                                                                       
@@ -604,7 +604,6 @@ INTEGER :: wr_prop = 1
 INTEGER :: wr_mole = 0
 INTEGER :: wr_cont = 0
 INTEGER :: wr_doma_current = 0               ! Current domain number
-LOGICAL :: need_domainheader=.TRUE.          ! Do we currently need to write a domain header
 LOGICAL :: active_domain    =.FALSE.         ! Are we writing a domain
 INTEGER, DIMENSION(0:3) :: wr_surf
 REAL   , DIMENSION(0:3) :: wr_magn

@@ -36,7 +36,7 @@ INTEGER, PARAMETER :: SYMBOL = 1
 INTEGER, PARAMETER :: XYZ    = 2
 INTEGER, PARAMETER :: MATRIX = 3
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz , iianz
       INTEGER i, j 

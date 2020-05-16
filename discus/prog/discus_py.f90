@@ -54,6 +54,7 @@ SUBROUTINE command (incomming, ier_status)
 USE discus_setup_mod
 USE errlist_mod
 USE class_macro_internal
+USE precision_mod
 USE prompt_mod
 USE set_sub_generic_mod
 USE sup_mod
@@ -62,8 +63,8 @@ IMPLICIT NONE
 CHARACTER(LEN=*), INTENT(IN   ) :: incomming
 INTEGER         , INTENT(  OUT) :: ier_status
 !
-CHARACTER(LEN=1024)  :: line
-CHARACTER(LEN=1024)  :: zeile
+CHARACTER(LEN=MAX(PREC_STRING.LEN(incomming)))  :: line
+CHARACTER(LEN=MAX(PREC_STRING.LEN(incomming)))  :: zeile
 CHARACTER(LEN=   4)  :: befehl
 INTEGER              :: laenge
 INTEGER              :: lbef

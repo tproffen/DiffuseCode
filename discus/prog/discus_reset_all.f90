@@ -32,11 +32,13 @@ USE structur
 USE transform_menu
 USE waves_do_menu
 !
+USE precision_mod
+!
 IMPLICIT NONE
 !
 INTEGER, PARAMETER  :: code_res   = -2
 !
-CHARACTER(LEN=1024) :: zeile
+CHARACTER(LEN=PREC_STRING) :: zeile
 INTEGER             :: lp
 !
 CALL discus_alloc_default               ! Shrink all arrays to minimum size
