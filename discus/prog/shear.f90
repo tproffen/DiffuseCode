@@ -49,13 +49,13 @@ USE precision_mod
 !                                                                       
       PARAMETER (lold = .false.) 
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
+      CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
 !
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(1024) line, zeile
+      CHARACTER(LEN=PREC_STRING) :: line, zeile
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, i, j, k 
       INTEGER indxc 
@@ -856,12 +856,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       USE errlist_mod 
       USE param_mod 
+      USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      CHARACTER(1024) line 
+      CHARACTER(LEN=PREC_STRING) ::line 
       INTEGER i, j
       INTEGER laenge 
       LOGICAL lspace 

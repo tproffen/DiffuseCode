@@ -39,13 +39,13 @@ USE precision_mod
                                            ! Needs work as it should also be >= ST_MAXTYPE
       INTEGER maxw 
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(MIN_PARA) :: cpara
+      CHARACTER(LEN=PREC_STRING), DIMENSION(MIN_PARA) :: cpara
       INTEGER            , DIMENSION(MIN_PARA) :: lpara
       REAL(KIND=PREC_DP) , DIMENSION(MIN_PARA) :: werte
 !
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(1024) line, zeile
+      CHARACTER(LEN=PREC_STRING) :: line, zeile
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, i, j, k 
       LOGICAL lend

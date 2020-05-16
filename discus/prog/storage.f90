@@ -19,6 +19,7 @@ USE do_eval_mod
 USE do_wait_mod
 USE errlist_mod
 USE class_macro_internal
+USE precision_mod
 USE prompt_mod
 USE sup_mod
 !
@@ -26,8 +27,8 @@ IMPLICIT none
 !
 CHARACTER (LEN=5)                       :: befehl! command on input line
 CHARACTER(LEN=LEN(prompt))              :: orig_prompt  ! original prompt
-CHARACTER (LEN=1024)                    :: line  ! input line
-CHARACTER (LEN=1024)                    :: zeile ! remainder with parameters
+CHARACTER (LEN=PREC_STRING)             :: line  ! input line
+CHARACTER (LEN=PREC_STRING)             :: zeile ! remainder with parameters
 INTEGER                                 :: indxg ! location of "="
 INTEGER                                 :: lp    ! lengtz of zeile
 INTEGER laenge, lbef
@@ -201,14 +202,14 @@ INTEGER, PARAMETER :: MAXW = 2
 LOGICAL, PARAMETER :: LALL = .TRUE.
 LOGICAL, PARAMETER :: LSINGLE = .FALSE.
 !
-CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
 !REAL               , DIMENSION(1:MAXW) :: werte
 INTEGER                                :: ianz
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
@@ -254,6 +255,7 @@ SUBROUTINE storage_reset(zeile, lp)
 USE class_internal
 USE get_params_mod
 USE errlist_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -262,7 +264,7 @@ INTEGER         , INTENT(INOUT) :: lp
 !
 INTEGER, PARAMETER :: MAXW = 1
 !
-CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
 INTEGER                                :: ianz
 !

@@ -26,6 +26,7 @@ CONTAINS
       USE learn_mod 
       USE class_macro_internal
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       USE string_convert_mod
       USE sup_mod
@@ -37,8 +38,8 @@ CONTAINS
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(40) cdummy 
-      CHARACTER(1024) line, zeile
-      CHARACTER(LEN=1024) :: cpara(MAXW) !  (MAXSCAT) 
+      CHARACTER(LEN=PREC_STRING) :: line, zeile
+      CHARACTER(LEN=PREC_STRING) :: cpara(MAXW) !  (MAXSCAT) 
       INTEGER             :: lpara(MAXW) ! (MAXSCAT)
       INTEGER lp, length 
       INTEGER indxg, ianz, lbef 

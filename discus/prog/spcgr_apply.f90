@@ -1366,13 +1366,13 @@ USE precision_mod
       PARAMETER (XYZ = 2) 
       PARAMETER (MATRIX = 3) 
 !                                                                       
-      CHARACTER(1024) zeile 
+      CHARACTER(LEN=PREC_STRING) :: zeile 
       INTEGER lp 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 4) 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
       INTEGER iianz 

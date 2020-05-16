@@ -30,11 +30,7 @@ USE precision_mod
       CHARACTER ( LEN=* ), INTENT(INOUT) :: zeile 
       INTEGER            , INTENT(INOUT) :: lp 
 !                                                                       
-!     CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
-!     REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
-!     REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: wwerte
-!     INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
-      CHARACTER(LEN=1024), DIMENSION(25                     ) :: cpara
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(25                     ) :: cpara
       REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: werte
       REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: wwerte
       REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: uerte
@@ -995,7 +991,7 @@ USE precision_mod
 !                                                                       
       INTEGER i, il
 !                                                                       
-      CHARACTER(1024) cdummy, cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: cdummy, cpara (maxw) 
       INTEGER ianz, lpara (maxw), ip, is 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -1109,13 +1105,14 @@ USE precision_mod
       USE diffuse_mod 
       USE rmc_mod 
       USE errlist_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
       CHARACTER (LEN=*), INTENT(IN) :: fname 
       INTEGER          , INTENT(IN) :: ip
       INTEGER          , INTENT(IN) :: is
 !
-      CHARACTER(LEN=1024) :: message
+      CHARACTER(LEN=PREC_STRING) :: message
       INTEGER             :: ios
       INTEGER pgmmax, i, j 
 !                                                                       
@@ -1210,8 +1207,8 @@ USE precision_mod
       CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
       INTEGER          , INTENT(INOUT) :: lp 
 !                                                                       
-      CHARACTER(1024) cpara (maxw), cfile, cwic 
-CHARACTER(LEN=1024) :: line  !Dummy line
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) cpara (maxw), cfile, cwic 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: line  !Dummy line
       CHARACTER(4) cdummy 
       INTEGER lpara (maxw) , cfile_l
       INTEGER ianz, nsym, rsym 
@@ -1599,6 +1596,8 @@ REAL :: d1, d2, d3, d4
 !     Reading PGM Header incl. possible comments                        
 !-                                                                      
       USE errlist_mod 
+USE precision_mod
+!
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1610,7 +1609,7 @@ REAL :: d1, d2, d3, d4
       REAL   , INTENT(OUT)   :: ymin
       REAL   , INTENT(OUT)   :: ymax 
 !
-      CHARACTER(1024) zeile 
+      CHARACTER(LEN=PREC_STRING) :: zeile 
       CHARACTER(2) cmagic 
       INTEGER id 
 !                                                                       
