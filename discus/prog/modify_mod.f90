@@ -31,10 +31,12 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 200) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw), cc 
+CHARACTER(LEN=*), INTENT(INOUT) :: zeile 
+INTEGER         , INTENT(INOUT) :: lp 
+!
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: cpara (maxw), cc 
       INTEGER lpara (maxw) , ccl
-      INTEGER ianz, iianz, jjanz, lp, i 
+      INTEGER ianz, iianz, jjanz, i 
       INTEGER is1, is2, isite, itype 
       INTEGER ja, jsite, jcell (3) 
       INTEGER            :: n_scat ! dummy for allocation
@@ -416,7 +418,7 @@ USE precision_mod
       INTEGER          , INTENT(INOUT) :: laenge
 !
       CHARACTER(LEN=4)              :: name 
-      CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(maxw) :: cpara
       INTEGER            , DIMENSION(maxw) :: lpara
       INTEGER i, j, ianz
       INTEGER                              :: new_nmax   = 0
@@ -512,7 +514,7 @@ USE precision_mod
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(4) name 
-      CHARACTER(1024) cpara (maxw)
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw)
       INTEGER lpara (maxw) 
       INTEGER i, j, k, ianz, laenge
       INTEGER                              :: new_nmax
@@ -829,7 +831,7 @@ INTEGER, PARAMETER :: maxw = 6
 CHARACTER( LEN=* ), INTENT(INOUT) :: line 
 INTEGER           , INTENT(INOUT) :: ll
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara !(maxw) 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara !(maxw) 
 INTEGER            , DIMENSION(MAXW) :: lpara !(maxw) 
 INTEGER :: i, j 
 INTEGER :: istart, iend, ianz 
@@ -1023,19 +1025,19 @@ IMPLICIT none
 !
 INTEGER, PARAMETER :: MAXW = 1
 !
-CHARACTER(LEN=1024), INTENT(INOUT) :: line
+CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER            , INTENT(INOUT) :: length
 !
 INTEGER             :: ianz
 !
-CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(maxw) :: cpara
 INTEGER            , DIMENSION(maxw) :: lpara
 !REAL(KIND=PREC_DP) , DIMENSION(maxw) :: werte
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
 INTEGER, PARAMETER :: O_TYPE    = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
@@ -1518,7 +1520,7 @@ USE precision_mod
       CHARACTER ( * ) line 
       CHARACTER(LEN=1) :: mode
       CHARACTER(80) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, i, lp, ind 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -1593,7 +1595,7 @@ USE precision_mod
       PARAMETER (maxw = 3) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER i, j, ianz, lp, is 
@@ -1729,16 +1731,16 @@ INTEGER, DIMENSION(lu:lo), OPTIONAL,  INTENT(OUT)   :: repl (lu:lo)
 !
 INTEGER  :: maxw
 !                                                                       
-CHARACTER(LEN=1024), DIMENSION(1:lo+1) :: cpara 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:lo+1) :: cpara 
 REAL(KIND=PREC_DP) , DIMENSION(1:lo+1) :: werte 
 INTEGER            , DIMENSION(1:lo+1) :: lpara 
 INTEGER                                :: ianz, i, is
-CHARACTER(LEN=1024)                    :: line
+CHARACTER(LEN=PREC_STRING)                    :: line
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
 INTEGER, PARAMETER :: O_SITE    = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
@@ -1846,7 +1848,7 @@ USE precision_mod
 !
       INTEGER                                :: maxw
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(1:lo+1) :: cpara 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:lo+1) :: cpara 
       REAL(KIND=PREC_DP) , DIMENSION(1:lo+1) :: werte 
       INTEGER            , DIMENSION(1:lo+1) :: lpara 
 !                                                                       
@@ -1912,7 +1914,7 @@ USE precision_mod
       PARAMETER (maxw = 7) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
       INTEGER laenge 

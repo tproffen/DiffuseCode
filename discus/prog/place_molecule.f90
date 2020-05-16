@@ -29,6 +29,7 @@ USE errlist_mod
    USE get_params_mod
    USE learn_mod
    USE class_macro_internal
+USE precision_mod
    USE prompt_mod
       USE sup_mod
 !
@@ -36,8 +37,8 @@ USE errlist_mod
 !
    CHARACTER (LEN=5)                       :: befehl! command on input line
    CHARACTER(LEN=LEN(prompt))              :: orig_prompt  ! original prompt
-   CHARACTER (LEN=1024)                    :: line  ! input line
-   CHARACTER (LEN=1024)                    :: zeile ! remainder with parameters
+   CHARACTER (LEN=PREC_STRING)                    :: line  ! input line
+   CHARACTER (LEN=PREC_STRING)                    :: zeile ! remainder with parameters
    INTEGER                                 :: indxg ! location of "="
    INTEGER                                 :: lp    ! lengtz of zeile
    INTEGER laenge, lbef
@@ -309,8 +310,8 @@ USE take_param_mod
    INTEGER            :: maxw
 !   INTEGER, PARAMETER   :: MAXW = 20
    INTEGER, PARAMETER :: NOPTIONAL = 3
-   CHARACTER (LEN=1024), DIMENSION(1:MAX(MIN_PARA,MAXSCAT+1)) :: cpara
-   CHARACTER (LEN=1024), DIMENSION(1:2)    :: ccpara
+   CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAX(MIN_PARA,MAXSCAT+1)) :: cpara
+   CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:2)    :: ccpara
    INTEGER             , DIMENSION(1:MAX(MIN_PARA,MAXSCAT+1)) :: lpara
    INTEGER             , DIMENSION(1:2)    :: llpara
 !
@@ -318,7 +319,7 @@ USE take_param_mod
    INTEGER, PARAMETER :: O_ANCHOR = 2
    INTEGER, PARAMETER :: O_DISTRI = 2
    CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-   CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+   CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
    INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
    INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
    LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -703,6 +704,7 @@ USE deco_mod
    USE modify_mod
 USE errlist_mod
    USE get_params_mod
+USE precision_mod
 !
    IMPLICIT NONE
 !
@@ -711,7 +713,7 @@ USE errlist_mod
    INTEGER          , INTENT(INOUT) :: lp
 !
    INTEGER, PARAMETER   :: MAXW = 20
-   CHARACTER (LEN=1024) :: cpara(1:MAXW)
+   CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))) :: cpara(1:MAXW)
    INTEGER              :: lpara(1:MAXW)
    INTEGER              :: ianz, success
 !  LOGICAL              :: lnew
@@ -813,12 +815,12 @@ USE precision_mod
    INTEGER, PARAMETER         :: MAXW = 200  ! not ideal, should be dynamic ....
    REAL   , PARAMETER         :: EPS = 0.00001 ! Accuracy to locate anchor
 !
-   CHARACTER(LEN=1024) :: line      ! a string
-   CHARACTER(LEN=1024) :: mole_name ! molecule file name
+   CHARACTER(LEN=PREC_STRING) :: line      ! a string
+   CHARACTER(LEN=PREC_STRING) :: mole_name ! molecule file name
    CHARACTER(LEN= 200) :: corefile  ! original structure file name
 !  CHARACTER(LEN= 200) :: corelist  ! Place holder for core position at 0,0,0
    CHARACTER(LEN= 200) :: shellfile  ! original structure file name
-   CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara      ! a string
+   CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara      ! a string
    INTEGER            , DIMENSION(MAXW) :: lpara      ! a string
    REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte      ! a string
 !
@@ -1758,16 +1760,17 @@ USE structur, ONLY: do_readstru, rese_cr
 USE trafo_mod
 !
 use read_internal_mod
+USE precision_mod
 !
 IMPLICIT none
 !
 REAL, DIMENSION(1:3), INTENT(IN) :: host_a0
 REAL, DIMENSION(1:3), INTENT(IN) :: host_win
 REAL, DIMENSION(4,4), INTENT(IN) :: host_tran_fi
-CHARACTER (LEN=1024)                :: strufile
-   CHARACTER (LEN=1024)                :: mole_name
-CHARACTER (LEN=1024)                :: savefile
-CHARACTER (LEN=1024)                :: line
+CHARACTER (LEN=PREC_STRING)                :: strufile
+   CHARACTER (LEN=PREC_STRING)                :: mole_name
+CHARACTER (LEN=PREC_STRING)                :: savefile
+CHARACTER (LEN=PREC_STRING)                :: line
 !
    INTEGER  :: mole_length      ! Molecule name length
    INTEGER  :: i,j              ! dummy index
@@ -1945,9 +1948,10 @@ ENDDO main
    USE atom_name
    USE deco_mod
    USE prompt_mod
+USE precision_mod
    IMPLICIT none
 !
-   CHARACTER(LEN=1024) :: line
+   CHARACTER(LEN=PREC_STRING) :: line
    INTEGER :: i, j, k
 !
 !
@@ -2102,6 +2106,7 @@ USE crystal_mod
    USE trafo_mod
 !
    USE param_mod
+USE precision_mod
 !
    IMPLICIT NONE
 !
@@ -2110,7 +2115,7 @@ USE crystal_mod
    INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
    INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
    INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
-   CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
+   CHARACTER (LEN=PREC_STRING),    INTENT(IN) :: mole_name       ! Molecule file name
    INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in molecule
    INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
@@ -2134,7 +2139,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
 !
    REAL   , PARAMETER      :: EPS = 1.0E-6
 !
-   CHARACTER (LEN=1024)    :: line
+   CHARACTER (LEN=PREC_STRING)    :: line
    INTEGER                 ::    j, im, laenge ! Dummy variables
    INTEGER                 :: nold            ! atom number previous to current molecule
    INTEGER                 :: m_type_new      ! new molecule types 
@@ -2331,7 +2336,7 @@ INTEGER,                    INTENT(IN) :: ia              ! Surface atom number
 INTEGER,                    INTENT(IN) :: m_type_old      ! molecule types previous to all placements
 INTEGER, DIMENSION(0:2),    INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
 INTEGER, DIMENSION(1:20),   INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
-CHARACTER (LEN=1024),       INTENT(IN) :: mole_name       ! Molecule file name
+CHARACTER (LEN=PREC_STRING),       INTENT(IN) :: mole_name       ! Molecule file name
 INTEGER,                    INTENT(IN) :: mole_natoms     ! Number of atoms in molecule
 INTEGER,                    INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
 CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
@@ -2369,7 +2374,7 @@ INTEGER, PARAMETER                      :: MINPARA = 2
 INTEGER                                 :: MAXW = MINPARA
 REAL(KIND=PREC_DP)     , DIMENSION(1:MAX(MINPARA,nanch)) :: werte
 !
-CHARACTER (LEN=1024)                    :: line, zeile
+CHARACTER (LEN=PREC_STRING)                    :: line, zeile
 INTEGER                                 :: ianz
 INTEGER                                 :: i,j, im, laenge
 INTEGER                                 :: l
@@ -2641,7 +2646,7 @@ USE precision_mod
    INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
    INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
    INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
-   CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
+   CHARACTER (LEN=PREC_STRING),    INTENT(IN) :: mole_name       ! Molecule file name
    INTEGER,                 INTENT(IN) :: mole_natoms     ! Molecule file name length
    INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
@@ -2670,7 +2675,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER                                 :: MAXW = MINPARA
    REAL(KIND=PREC_DP)  , DIMENSION(1:MAX(MINPARA,nanch)) :: werte
 !
-   CHARACTER (LEN=1024)                    :: line
+   CHARACTER (LEN=PREC_STRING)                    :: line
    INTEGER, DIMENSION(:), ALLOCATABLE  :: all_surface         ! Surface atom type
    INTEGER                                 :: ianz
    INTEGER                                 :: i,j, l,im, laenge
@@ -2960,6 +2965,7 @@ USE symm_sup_mod
 USE trafo_mod
 !
 USE param_mod
+USE precision_mod
 USE trig_degree_mod
 !
 IMPLICIT NONE
@@ -2969,7 +2975,7 @@ INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
 INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
 INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
 INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
-CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
+CHARACTER (LEN=PREC_STRING),    INTENT(IN) :: mole_name       ! Molecule file name
 INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in molecule
 INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
 CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
@@ -3004,7 +3010,7 @@ REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
 !
 REAL, PARAMETER :: EPS = 1.0E-6
 !
-CHARACTER (LEN=1024)                    :: line
+CHARACTER (LEN=PREC_STRING)                    :: line
 INTEGER                                 :: j, im, laenge
 INTEGER                                 :: iprop
 INTEGER                                 :: itype
@@ -3254,7 +3260,7 @@ USE precision_mod
    INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
    INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
    INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
-   CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
+   CHARACTER (LEN=PREC_STRING),    INTENT(IN) :: mole_name       ! Molecule file name
    INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in the molecule
    INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
@@ -3287,7 +3293,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
 !
    INTEGER                              :: test_nhkl
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
-   CHARACTER (LEN=1024)                    :: line
+   CHARACTER (LEN=PREC_STRING)                    :: line
    INTEGER   :: surf_char ! Surface character, plane, edge, corner, ...
    INTEGER, DIMENSION(0:nanch)             :: surface         ! Surface atom type
    INTEGER                                 :: ianz
@@ -3603,7 +3609,6 @@ USE surface_func_mod
 !
    USE param_mod
 USE precision_mod
-USE precision_mod
 !
    IMPLICIT NONE
 !
@@ -3612,7 +3617,7 @@ USE precision_mod
    INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
    INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
    INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
-   CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
+   CHARACTER (LEN=PREC_STRING),    INTENT(IN) :: mole_name       ! Molecule file name
    INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in the molecule
    INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
@@ -3637,7 +3642,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    REAL, PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
    REAL, DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /) 
    LOGICAL, PARAMETER      :: lspace=.TRUE.
-   CHARACTER (LEN=1024)    :: line
+   CHARACTER (LEN=PREC_STRING)    :: line
    INTEGER                 ::    j, im, laenge  ! Dummy index
    INTEGER                 :: n1, n2         ! Atoms that define molecule axis
    INTEGER                 :: itype, iprop   ! Atom types, properties
@@ -3887,7 +3892,7 @@ INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
 INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
 INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
 INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
-CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
+CHARACTER (LEN=PREC_STRING),    INTENT(IN) :: mole_name       ! Molecule file name
 INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in the molecule
    INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
@@ -3913,7 +3918,7 @@ REAL, PARAMETER         :: EPS = 1.0E-7
 !   REAL, PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
    REAL, DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /) 
    LOGICAL, PARAMETER      :: lspace=.TRUE.
-   CHARACTER (LEN=1024)    :: line
+   CHARACTER (LEN=PREC_STRING)    :: line
    INTEGER                 :: ianz
    INTEGER                 ::    j, im, laenge  ! Dummy index
    INTEGER                 :: n1, n2         ! Atom that define teh molecule axis
@@ -4175,7 +4180,7 @@ INTEGER                      , INTENT(INOUT) :: ierror
 !
 LOGICAL, PARAMETER         :: lspace = .true. 
 !
-CHARACTER (LEN=1024)                    :: line
+CHARACTER (LEN=PREC_STRING)                    :: line
 INTEGER :: ianz, i, j, k, l, kgood, lgood
 INTEGER :: good1, good2, good3
 INTEGER :: laenge
@@ -4346,6 +4351,7 @@ USE symm_sup_mod
 USE metric_mod
 USE trafo_mod
 !
+USE precision_mod
 USE param_mod
 !
 IMPLICIT NONE
@@ -4361,7 +4367,7 @@ INTEGER              , INTENT(IN) :: mole_natoms     ! number of atoms in molecu
 INTEGER              , INTENT(IN) :: n1              ! number of atom that defines rotation axis
 INTEGER              , INTENT(IN) :: n2              ! number of atom that defines rotation axis
 !
-CHARACTER(LEN=1024)   :: line
+CHARACTER(LEN=PREC_STRING)   :: line
 INTEGER               :: nold      ! Original number of atoms
 INTEGER               :: laenge
 INTEGER               :: i
@@ -4465,6 +4471,7 @@ USE symm_mod
 USE symm_sup_mod
 USE trafo_mod
 USE param_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -4475,7 +4482,7 @@ INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis    ! Axis to straighten up
 REAL   , DIMENSION(1:3), INTENT(IN) :: surf_normal  ! Surface normal at anchor atom
 !
 LOGICAL, PARAMETER  :: lspace = .TRUE.
-CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=PREC_STRING) :: line
 INTEGER             :: a1, a2          ! absolute atom numbers for rotation axix
 INTEGER             :: laenge
 REAL                :: alpha, beta
@@ -4561,6 +4568,7 @@ USE symm_sup_mod
 USE trafo_mod
 USE param_mod
 use errlist_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -4571,7 +4579,7 @@ REAL   , DIMENSION(1:3), INTENT(IN) :: surf_normal  ! Surface normal at anchor a
 !
 REAL   , PARAMETER  :: EPS = 1.0E-6
 LOGICAL, PARAMETER  :: lspace = .TRUE.
-CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=PREC_STRING) :: line
 INTEGER             :: n1              ! absolute atom numbers for neighbor
 INTEGER             :: a1, a2          ! absolute atom numbers for rotation axix
 INTEGER             :: laenge
