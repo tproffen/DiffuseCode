@@ -11,6 +11,7 @@ SUBROUTINE discus_loop
    USE class_macro_internal 
    USE mpi_slave_mod
    USE do_if_mod
+USE precision_mod
    USE prompt_mod 
       USE sup_mod
 
@@ -28,8 +29,8 @@ SUBROUTINE discus_loop
 !                                                                       
 !*****7*****************************************************************
 !                                                                       
-CHARACTER (LEN=1024) :: line   = ' '
-CHARACTER (LEN=1024) :: zeile  = ' '
+CHARACTER (LEN=PREC_STRING) :: line   = ' '
+CHARACTER (LEN=PREC_STRING) :: zeile  = ' '
 CHARACTER (LEN=4)    :: befehl = ' '
 LOGICAL              :: lend 
 INTEGER              :: laenge = 1

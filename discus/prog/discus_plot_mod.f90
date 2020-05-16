@@ -4,6 +4,7 @@ MODULE discus_plot_mod
 !     variables needed for the plotting of structures
 !-
 USE discus_config_mod
+USE precision_mod
 !
 SAVE
 !
@@ -11,7 +12,7 @@ INTEGER, PRIVATE    :: ik
 INTEGER                                   :: PL_MAXSCAT = 1
 INTEGER                                   :: PL_MAXSITE = 1
 !
-CHARACTER(LEN=1024)  :: pl_jmol  = ' '
+CHARACTER(LEN=PREC_STRING)  :: pl_jmol  = ' '
 CHARACTER(LEN= 200)  :: pl_out   = 'plot.cif'
 CHARACTER(LEN=  80)  :: pl_title = 'crystal structure'
 CHARACTER(LEN=  12)  :: pl_prog  = 'cif'

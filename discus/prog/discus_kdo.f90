@@ -54,6 +54,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE class_macro_internal
       USE kdo_all_mod
       USE learn_mod 
+      USE precision_mod
       USE prompt_mod
       USE variable_mod
       USE set_sub_generic_mod
@@ -63,7 +64,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       LOGICAL            , INTENT(OUT)   :: lend
       INTEGER            , INTENT(INOUT) :: length 
 !                                                                       
-      CHARACTER(1024) zeile 
+      CHARACTER(LEN=MAX(PREC_STRING, LEN(line))) :: zeile 
       CHARACTER(5) befehl 
       INTEGER indxb, indxg, lcomm, lbef 
       INTEGER                  :: indxt ! position of a TAB
@@ -461,14 +462,15 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
       USE unitcell_mod 
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=*), INTENT(INOUT) ::  zeile 
+      CHARACTER(LEN=MAX(PREC_STRING, LEN(zeile))) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
 !                                                                       

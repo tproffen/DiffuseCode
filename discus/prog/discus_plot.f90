@@ -47,11 +47,11 @@ INTEGER maxw
 LOGICAL lold 
 PARAMETER (lold = .false.) 
 !                                                                       
-CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAX(10,MAXSCAT)) 
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAX(10,MAXSCAT)) 
 REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAX(10,MAXSCAT)) 
 INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAX(10,MAXSCAT))
-CHARACTER(1024) line, zeile
-CHARACTER(LEN=1024) :: tempfile
+CHARACTER(LEN=PREC_STRING) :: line, zeile
+CHARACTER(LEN=PREC_STRING) :: tempfile
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
 CHARACTER(5) befehl 
 CHARACTER(1) cdum 
@@ -74,8 +74,8 @@ INTEGER len_str
 LOGICAL str_comp 
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 10
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -1264,9 +1264,9 @@ CHARACTER(LEN=*), INTENT(IN) :: kill
 !
 INTEGER, PARAMETER  :: ITMP     = 78  ! temporary unit number
 LOGICAL, PARAMETER  :: lscreen = .FALSE.
-CHARACTER(LEN=1024) :: tempfile
-CHARACTER(LEN=1024) :: line
-CHARACTER(LEN=1024) :: line_move
+CHARACTER(LEN=PREC_STRING) :: tempfile
+CHARACTER(LEN=PREC_STRING) :: line
+CHARACTER(LEN=PREC_STRING) :: line_move
 INTEGER             :: i,j,k
 INTEGER             :: length
 LOGICAL             :: lsecond  = .false.
@@ -1576,8 +1576,8 @@ LOGICAL, INTENT(IN) :: lfinal ! Flag info on screen for all systems
 !
 INTEGER, PARAMETER  :: ITMP     = 78  ! temporary unit number
 !
-CHARACTER(LEN=1024) :: kill_file
-CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=PREC_STRING) :: kill_file
+CHARACTER(LEN=PREC_STRING) :: line
 !
 INTEGER             :: jmol_pid   ! jmol Process identifier
 INTEGER             :: jppid      ! jmol Parent Process identifier

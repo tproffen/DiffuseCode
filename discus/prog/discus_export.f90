@@ -17,14 +17,14 @@ CHARACTER(LEN=*), INTENT(INOUT)  :: line
 INTEGER         , INTENT(INOUT)  :: lp
 !
 INTEGER, PARAMETER :: MAXW = 5
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=    PREC_STRING           ), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER  :: ianz
 INTEGER, PARAMETER :: NOPTIONAL = 2
 INTEGER, PARAMETER :: O_RMCVS   = 1
 INTEGER, PARAMETER :: O_SPCGR   = 2
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=    PREC_STRING           ), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
@@ -139,14 +139,14 @@ IMPLICIT NONE
 !
 INTEGER            ,                  INTENT(IN)    :: MAXW
 INTEGER            ,                  INTENT(INOUT) :: ianz
-CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !
 INTEGER, PARAMETER :: IWR = 35
 LOGICAL, PARAMETER :: lold = .FALSE.
 !
-CHARACTER(LEN=1024)      :: ofile = ' '
-CHARACTER(LEN=1024)      :: zeile = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: ofile = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: zeile = ' '
 CHARACTER(LEN=16)        :: do_spcgr = 'P1'
 INTEGER                  :: lp
 INTEGER                  :: nscat = 1
@@ -219,15 +219,15 @@ IMPLICIT NONE
 !
 INTEGER            ,                  INTENT(IN)    :: MAXW
 INTEGER            ,                  INTENT(INOUT) :: ianz
-CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !
 INTEGER, PARAMETER :: IWR = 35
 !
-CHARACTER(LEN=1024)      :: ofile = ' '
-CHARACTER(LEN=1024)      :: line = ' '
-CHARACTER(LEN=1024)      :: names = ' '
-CHARACTER(LEN=1024)      :: units = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: ofile = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: line = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: names = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: units = ' '
 CHARACTER(LEN=19)        :: origfile = ' '
 CHARACTER(LEN= 5)        :: befehl   = 'lcell'
 INTEGER                  :: i, j, k, l,i1, i2
@@ -555,15 +555,15 @@ IMPLICIT NONE
 !
 INTEGER            ,                  INTENT(IN)    :: MAXW
 INTEGER            ,                  INTENT(INOUT) :: ianz
-CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 INTEGER                             , INTENT(IN)    :: rmcversion     ! Version is 6 or 7
 !
 INTEGER, PARAMETER :: IWR = 35
 !
-CHARACTER(LEN=1024)      :: ofile  = ' '
-CHARACTER(LEN=1024)      :: line   = ' '
-CHARACTER(LEN=1024)      :: string = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: ofile  = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: line   = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: string = ' '
 CHARACTER(LEN=9), DIMENSION(:), ALLOCATABLE :: atom_names
 INTEGER         , DIMENSION(:), ALLOCATABLE :: atom_number
 INTEGER                  :: iatom, iscat, is, i, j, ii, ll
@@ -761,13 +761,13 @@ IMPLICIT NONE
 !
 INTEGER            ,                  INTENT(IN)    :: MAXW
 INTEGER            ,                  INTENT(INOUT) :: ianz
-CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !
 INTEGER, PARAMETER :: IWR = 35
 !
-CHARACTER(LEN=1024)      :: ofile  = ' '
-CHARACTER(LEN=1024)      :: string = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: ofile  = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: string = ' '
 CHARACTER(LEN=9), DIMENSION(:), ALLOCATABLE :: atom_names
 INTEGER         , DIMENSION(:), ALLOCATABLE :: atom_number
 INTEGER                  :: iatom, iscat, i, j, ii, ll
@@ -907,7 +907,7 @@ IMPLICIT NONE
 !
 INTEGER            ,                  INTENT(IN)    :: MAXW
 INTEGER            ,                  INTENT(INOUT) :: ianz
-CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !
 INTEGER, PARAMETER :: IWR = 35
@@ -915,9 +915,9 @@ INTEGER, PARAMETER :: IWR = 35
 LOGICAL, PARAMETER :: lout = .FALSE.
 LOGICAL, PARAMETER :: lsite= .TRUE.
 !
-CHARACTER(LEN=1024)      :: ofile = ' '
-CHARACTER(LEN=1024)      :: line  = ' '
-CHARACTER(LEN=1024)      :: string= ' '
+CHARACTER(LEN=    PREC_STRING            )      :: ofile = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: line  = ' '
+CHARACTER(LEN=    PREC_STRING            )      :: string= ' '
 CHARACTER(LEN=   4)      :: at_name_i = ' '
 !INTEGER                  :: lp
 INTEGER                  :: i, k, ia

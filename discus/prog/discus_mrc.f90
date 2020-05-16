@@ -20,6 +20,7 @@ CONTAINS
 !
    USE envir_mod
    USE errlist_mod
+   USE precision_mod
 !
    IMPLICIT NONE
 !
@@ -40,8 +41,8 @@ CONTAINS
 !                                          ! extend_b must be multiple of 4
    INTEGER, PARAMETER :: extend_w = extend_b/record ! =(1024 - 256)   extended in Words
 !
-   CHARACTER(LEN=1024) :: line
-   CHARACTER(LEN=1024) :: message
+   CHARACTER(LEN=PREC_STRING) :: line
+   CHARACTER(LEN=PREC_STRING) :: message
    INTEGER            :: i, j,l, irec, ios
    INTEGER            :: l_datei
    REAL               :: sqq

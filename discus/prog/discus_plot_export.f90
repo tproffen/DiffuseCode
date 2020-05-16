@@ -709,10 +709,11 @@ END SUBROUTINE write_atom
       USE trans_sup_mod
       USE errlist_mod 
       USE param_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER(1024) zeile 
+      CHARACTER(LEN=PREC_STRING) :: zeile 
       INTEGER laenge 
       INTEGER i, j, k, iff 
       LOGICAL latom, lspace 
@@ -997,10 +998,11 @@ END SUBROUTINE write_atom
       USE trans_sup_mod
       USE blanks_mod
       USE errlist_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER(1024) zeile 
+      CHARACTER(LEN=PREC_STRING) :: zeile 
       INTEGER laenge 
       INTEGER i, j, iff 
       INTEGER :: natoms

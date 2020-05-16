@@ -17,6 +17,7 @@ USE do_show_mod
 USE do_wait_mod
 USE get_params_mod
 USE sup_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -32,8 +33,8 @@ LOGICAL         , INTENT(OUT)   :: success   ! The "befehl" corresponded to a ge
 !
 INTEGER, PARAMETER :: MAXP = 5
 !
-CHARACTER(LEN=1024) :: string
-CHARACTER(LEN=1024), DIMENSION(MAXP) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: string
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXP) :: cpara
 !REAL               , DIMENSION(MAXP) :: werte
 INTEGER            , DIMENSION(MAXP) :: lpara
 INTEGER                              :: ianz
