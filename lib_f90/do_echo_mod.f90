@@ -14,9 +14,9 @@ USE precision_mod
       INTEGER maxp 
       PARAMETER (maxp = 12) 
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) string 
-      CHARACTER(1024) cpara (maxp) 
-      CHARACTER(1024) cstr 
+      CHARACTER(LEN=MAX(PREC_STRING, LEN(zeile))) :: string 
+      CHARACTER(LEN=MAX(PREC_STRING, LEN(zeile))) :: cpara (maxp) 
+      CHARACTER(LEN=MAX(PREC_STRING, LEN(zeile))) :: cstr 
       INTEGER lpara (maxp) 
       INTEGER ianz 
       INTEGER lp, i, il 

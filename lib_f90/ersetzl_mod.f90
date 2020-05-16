@@ -19,7 +19,7 @@ SUBROUTINE ersetzl (string, ikl, iklz, ww, lfunk, lll)
       INTEGER             , INTENT(IN)    :: lfunk
       INTEGER             , INTENT(INOUT) :: lll 
 !
-      CHARACTER(1024) zeile 
+      CHARACTER(LEN(STRING)):: zeile 
       INTEGER ltot , laenge
 !
       laenge = lll 

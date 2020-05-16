@@ -2,6 +2,8 @@ MODULE envir_mod
 !+
 !     Helpfile location etc.
 !-
+USE precision_mod
+!
    IMPLICIT NONE
    PUBLIC
    SAVE
@@ -13,15 +15,15 @@ MODULE envir_mod
    CHARACTER(LEN=9), PARAMETER :: OS_CYGWIN64  = 'cygwin64 '
    CHARACTER(LEN=9), PARAMETER :: OS_MACOSX    = 'darwin18 '
 !
-   CHARACTER(LEN=1024) :: home_dir
-   CHARACTER(LEN=1024) :: appl_dir
-   CHARACTER(LEN=1024) :: mac_dir
-   CHARACTER(LEN=1024) :: man_dir
-   CHARACTER(LEN=1024) :: tmp_dir
-   CHARACTER(LEN=1024) :: umac_dir
-   CHARACTER(LEN=1024) :: start_dir
-   CHARACTER(LEN=1024) :: start_line
-   CHARACTER(LEN=1024) :: current_dir
+   CHARACTER(LEN=PREC_STRING) :: home_dir
+   CHARACTER(LEN=PREC_STRING) :: appl_dir
+   CHARACTER(LEN=PREC_STRING) :: mac_dir
+   CHARACTER(LEN=PREC_STRING) :: man_dir
+   CHARACTER(LEN=PREC_STRING) :: tmp_dir
+   CHARACTER(LEN=PREC_STRING) :: umac_dir
+   CHARACTER(LEN=PREC_STRING) :: start_dir
+   CHARACTER(LEN=PREC_STRING) :: start_line
+   CHARACTER(LEN=PREC_STRING) :: current_dir
    CHARACTER(LEN= 256) :: operating
    CHARACTER(LEN= 256) :: operat_top
    CHARACTER(LEN= 256) :: user_profile

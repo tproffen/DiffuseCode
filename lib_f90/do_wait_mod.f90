@@ -23,8 +23,8 @@ INTEGER, PARAMETER :: maxw = 12
 CHARACTER ( LEN=* ), INTENT(INOUT)   ::  zeile 
 INTEGER            , INTENT(INOUT)   ::  lp 
 !
-CHARACTER(LEN=1024) :: cpara (maxw) 
-CHARACTER(LEN=1024) :: line 
+CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+CHARACTER(LEN=PREC_STRING) :: line 
 CHARACTER(LEN=4) :: cdummy 
 REAL(KIND=PREC_DP), DIMENSION(maxw) ::  werte !(maxw) 
 INTEGER :: i 

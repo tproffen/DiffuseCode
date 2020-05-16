@@ -164,15 +164,15 @@ IMPLICIT NONE
 !
 INTEGER, PARAMETER :: MAXW = 5
 !
-CHARACTER(LEN=1024)                  :: zeile 
-CHARACTER(LEN=1024)                  :: line 
-CHARACTER(LEN=1024)                  :: outfile
+CHARACTER(LEN=PREC_STRING)           :: zeile 
+CHARACTER(LEN=PREC_STRING)           :: line 
+CHARACTER(LEN=PREC_STRING)           :: outfile
 CHARACTER(LEN=20)                    :: prom 
 CHARACTER(LEN=4)                     :: befehl 
 CHARACTER(LEN=3)                     :: cprom (0:3) 
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
-CHARACTER (LEN=1024)                 :: prog_n
-CHARACTER (LEN=1024)                 :: mac_n
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING)                  :: prog_n
+CHARACTER(LEN=PREC_STRING)                  :: mac_n
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
@@ -190,8 +190,8 @@ INTEGER :: len_str
 LOGICAL :: str_comp
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 4
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
@@ -453,8 +453,8 @@ IMPLICIT none
 !                                                                       
 LOGICAL, INTENT(OUT) :: lend
 !                                                                       
-CHARACTER(LEN=1024) :: line 
-CHARACTER(LEN=1024)                  :: zeile 
+CHARACTER(LEN=PREC_STRING) :: line 
+CHARACTER(LEN=PREC_STRING)                  :: zeile 
 CHARACTER(LEN=20)                    :: prom 
 CHARACTER(LEN=4)                     :: befehl 
 INTEGER :: length, lp, lbef

@@ -25,7 +25,7 @@ IMPLICIT none
 CHARACTER (LEN=*), INTENT(IN) :: string 
 INTEGER          , INTENT(IN) :: laenge 
 !                                                                       
-CHARACTER(LEN=1024) :: line 
+CHARACTER(LEN=LEN(STRING)) :: line 
 INTEGER :: i 
 !                                                                       
 ier_num = - 1 
@@ -60,8 +60,8 @@ USE precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-CHARACTER(LEN=1024), INTENT(INOUT) :: line
-INTEGER            , INTENT(INOUT) :: ll 
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: ll 
 !
 INTEGER :: ipot, iz1, iz2, imal, idiv, iverk 
 INTEGER :: iexpo, iplus, iminus, ipp 
@@ -252,7 +252,7 @@ IMPLICIT none
 !                                                                       
 REAL(KIND=PREC_DP),INTENT(OUT)   :: w1, w2 
 CHARACTER (LEN=*), INTENT(INOUT) :: line 
-CHARACTER(1024) zeile 
+CHARACTER(LEN=LEN(line)) zeile 
 INTEGER          , INTENT(IN)    :: iverk
 INTEGER          , INTENT(OUT)   :: iz1
 INTEGER          , INTENT(OUT)   :: iz2
@@ -328,7 +328,7 @@ INTEGER          , INTENT(INOUT) :: ll
 INTEGER          , INTENT(IN)    :: lverk
 LOGICAL          , INTENT(IN)    :: lreal
 CHARACTER(LEN=5)  :: form 
-CHARACTER(LEN=1024)  :: zeile 
+CHARACTER(LEN=LEN(LINE))  :: zeile 
 INTEGER  :: lw 
 INTEGER  :: ltot 
 !                                                                       

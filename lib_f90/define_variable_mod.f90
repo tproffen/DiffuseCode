@@ -35,16 +35,16 @@ LOGICAL, PARAMETER :: no_diffev = .FALSE.
                                                                         
 INTEGER :: ianz 
 !                                                                       
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 !
 INTEGER, PARAMETER :: MAXF=2
-CHARACTER(LEN=1024), DIMENSION(MAXF) :: ccpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXF) :: ccpara
 INTEGER            , DIMENSION(MAXF) :: llpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXF) :: wwerte
 !                                                                       
-CHARACTER(LEN=1024) :: c_type, c_temp, c_init , string
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: c_type, c_temp, c_init , string
 INTEGER :: l_type, l_temp 
 INTEGER :: ccc_type 
 INTEGER :: i, j , length, iianz
@@ -55,8 +55,8 @@ LOGICAL :: l_init
 LOGICAL :: str_comp 
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=PREC_STRING),                 DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -291,6 +291,7 @@ SUBROUTINE def_set_variable(v_type, v_name, v_value, IS_DIFFEV)
 !
 USE calc_expr_mod
 USE errlist_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -299,7 +300,7 @@ CHARACTER(LEN=*), INTENT(IN) :: v_name
 REAL            , INTENT(IN) :: v_value
 LOGICAL         , INTENT(IN) :: IS_DIFFEV
 !
-CHARACTER(LEN=1024) :: string
+CHARACTER(LEN=PREC_STRING) :: string
 INTEGER             :: length
 INTEGER             :: indxg
 !

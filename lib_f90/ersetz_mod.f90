@@ -23,7 +23,7 @@ REAL(KIND=PREC_DP), INTENT(IN)    :: ww
 INTEGER           , INTENT(IN)    :: lfunk
 INTEGER           , INTENT(INOUT) :: lll
 !
-CHARACTER(LEN=1024) :: zeile 
+CHARACTER(LEN=LEN(STRING)) :: zeile 
 INTEGER             :: laenge
 INTEGER             :: ltot 
 !                                                                       
@@ -62,7 +62,7 @@ INTEGER          , INTENT(IN)    :: l_result
 INTEGER          , INTENT(IN)    :: lfunk
 INTEGER          , INTENT(INOUT) :: lll
 !
-CHARACTER(LEN=1024) :: zeile 
+CHARACTER(LEN=LEN(STRING)) :: zeile 
 INTEGER             :: laenge
 INTEGER             :: ltot 
 !                                                                       

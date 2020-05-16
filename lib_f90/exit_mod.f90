@@ -10,14 +10,15 @@ SUBROUTINE exit_all
 !                                                                       
 USE envir_mod
 USE errlist_mod 
-USE prompt_mod 
 USE operating_mod
+USE precision_mod
+USE prompt_mod 
 USE terminal_mod
 !                                                                       
 IMPLICIT none 
 !
-CHARACTER(LEN=1024) :: tempfile   ! jmol script files to remove
-CHARACTER(LEN=1024) :: line       ! temporary string
+CHARACTER(LEN=PREC_STRING) :: tempfile   ! jmol script files to remove
+CHARACTER(LEN=PREC_STRING) :: line       ! temporary string
 INTEGER             :: socket_send
 LOGICAL             :: lpresent
 !                                                                       

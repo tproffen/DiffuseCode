@@ -24,12 +24,12 @@ IMPLICIT none
 !                                                                       
 CHARACTER (LEN=*), INTENT(INOUT) :: line 
 INTEGER          , INTENT(INOUT) :: length 
-LOGICAL  , DIMENSION(1024,0:1), INTENT(INOUT) :: lmask 
+LOGICAL  , DIMENSION(   (PREC_STRING          ),0:1), INTENT(INOUT) :: lmask 
 INTEGER          , INTENT(INOUT) :: amask     ! active mask line
-CHARACTER(LEN=1024) :: string    = ' '
-CHARACTER(LEN=1024) :: substring = ' '
-CHARACTER(LEN=1024) :: zeile     = ' '
-CHARACTER(LEN=1024) :: dummy     = ' '
+CHARACTER(LEN=   (PREC_STRING          )) :: string    = ' '
+CHARACTER(LEN=   (PREC_STRING          )) :: substring = ' '
+CHARACTER(LEN=   (PREC_STRING          )) :: zeile     = ' '
+CHARACTER(LEN=   (PREC_STRING          )) :: dummy     = ' '
 !                                                                       
 INTEGER :: i, ianf, iend, ll
 INTEGER :: linsert 
@@ -333,7 +333,7 @@ IMPLICIT none
 !
 INTEGER                               , INTENT(IN)    :: MAXW
 INTEGER                               , INTENT(IN)    :: ianz
-CHARACTER(LEN=1024), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
+CHARACTER(LEN=*   ), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 LOGICAL                               , INTENT(IN)    :: is_diffev
 !
@@ -395,13 +395,14 @@ SUBROUTINE show_variables
 !+                                                                      
 USE constants_mod
 USE blanks_mod
+USE precision_mod
 USE prompt_mod 
 USE variable_mod
 IMPLICIT none 
 !
 !
 CHARACTER(LEN=6), DIMENSION(0:1) :: cdiffev
-CHARACTER(LEN=1024) :: string
+CHARACTER(LEN=PREC_STRING) :: string
 INTEGER :: i , j
 !
 INTEGER :: length

@@ -26,8 +26,8 @@ INTEGER         , INTENT(INOUT) :: laenge
 !                                                                       
 INTEGER, PARAMETER :: maxw = 2 
 !                                                                       
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
-CHARACTER(LEN=1024) :: string
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: string
 INTEGER, DIMENSION(MAXW) ::  lpara
 INTEGER :: i, ianz, length
 INTEGER :: ikl, ithen , idummy
@@ -215,9 +215,9 @@ CHARACTER(LEN=*), INTENT(INOUT) ::  string
 INTEGER         , INTENT(INOUT) ::  laenge 
 !
 CHARACTER(LEN=2)  :: comp 
-CHARACTER(LEN=1024) :: zeile, line, oldstr 
-CHARACTER(LEN=1024) :: string1, string2 
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara  !(MAXW) 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: zeile, line, oldstr 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: string1, string2 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))), DIMENSION(MAXW) :: cpara  !(MAXW) 
 INTEGER, DIMENSION(MAXW) :: lpara ! (MAXW) 
 INTEGER :: ianz 
 !     INTEGER suche_vor, suche_nach , suche_vor_hoch
@@ -236,7 +236,7 @@ LOGICAL :: lstring1, lstring2
 INTEGER :: ios
 REAL(KIND=PREC_DP) :: werte (MAXW) 
 REAL(KIND=PREC_DP) ::  w1, w2 
-LOGICAL  , DIMENSION(1024,0:1) :: lmask
+LOGICAL  , DIMENSION(MAX(PREC_STRING,LEN(string)),0:1) :: lmask
 !                                                                       
       lmask = .TRUE.
       ier_num = 0 
@@ -661,22 +661,26 @@ SUBROUTINE ersetz_log (string, iz1, iz2, icom, laenge, lcom, lscr)
 !       modified :                                                      
 !                                                                       
 !+                                                                      
+USE precision_mod
+!
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) string 
-      CHARACTER(1024) zeile 
-      INTEGER iz1, iz2, icom, laenge, lcom, ll 
-      LOGICAL lscr 
+CHARACTER(LEN=*), INTENT(INOUT) :: string 
+INTEGER         , INTENT(IN)    :: iz1, iz2, icom, lcom
+INTEGER         , INTENT(INOUT) :: laenge
+LOGICAL         , INTENT(IN)    :: lscr 
+CHARACTER(MAX(PREC_STRING,LEN(string))) :: zeile 
+INTEGER :: ll
 !                                                                       
-      zeile = ' ' 
-      IF (iz1.gt.1) zeile (1:iz1 - 1) = string (1:iz1 - 1) 
-      WRITE (zeile (iz1:iz1) , '(L1)') lscr 
-      ll = laenge- (lcom + iz2 + icom - iz1) + 1 
-      IF (icom + lcom + iz2.le.laenge) then 
-         zeile (iz1 + 1:ll) = string (icom + lcom + iz2:laenge) 
-      ENDIF 
-      string = zeile 
-      laenge = ll 
+zeile = ' ' 
+IF (iz1.gt.1) zeile (1:iz1 - 1) = string (1:iz1 - 1) 
+WRITE (zeile (iz1:iz1) , '(L1)') lscr 
+ll = laenge- (lcom + iz2 + icom - iz1) + 1 
+IF (icom + lcom + iz2.le.laenge) then 
+   zeile (iz1 + 1:ll) = string (icom + lcom + iz2:laenge) 
+ENDIF 
+string = zeile 
+laenge = ll 
 !                                                                       
 END SUBROUTINE ersetz_log                     
 !
@@ -702,7 +706,7 @@ IMPLICIT none
       PARAMETER (maxw = 3) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) zeile, cpara (maxw) , cdummy
+      CHARACTER(MAX(PREC_STRING,LEN(line))) :: zeile, cpara (maxw) , cdummy
       INTEGER lpara (maxw) 
       INTEGER ipos, ikp, ianz, level, laenge, lll 
       INTEGER ianz_d, i 
@@ -855,6 +859,7 @@ SUBROUTINE do_end (line, level, laenge)
 !+                                                                      
 USE doloop_mod 
 USE errlist_mod 
+USE precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -862,7 +867,7 @@ CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: laenge
 INTEGER         , INTENT(INOUT) :: level
 !
-CHARACTER(LEN=1024) :: zeile 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: zeile 
 INTEGER :: ipos
 INTEGER :: idummy
 !     LOGICAL if_test 
@@ -961,13 +966,14 @@ END SUBROUTINE calc_intr_log
 !
 LOGICAL FUNCTION is_expression(string)
 !
-      USE berechne_mod
-      USE calc_expr_mod
-      USE errlist_mod
+USE berechne_mod
+USE calc_expr_mod
+USE errlist_mod
+USE precision_mod
 !
       CHARACTER(LEN=*), INTENT(IN) :: string
 !
-      CHARACTER(LEN=1024) :: line
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: line
       INTEGER             :: ihyp, ihyp2, i1, i2, length
       REAL                :: ww
 !
@@ -1003,13 +1009,14 @@ SUBROUTINE do_value(line, laenge)
 !
 USE do_eval_mod
 USE errlist_mod
+USE precision_mod
 USE search_string_mod
 !
 IMPLICIT NONE
 CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: laenge
 !
-CHARACTER(LEN=1024) :: zeile, string
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: zeile, string
 INTEGER             :: iv
 INTEGER             :: lll
 INTEGER             :: ikl

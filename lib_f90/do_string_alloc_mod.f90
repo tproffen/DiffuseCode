@@ -28,9 +28,9 @@ CHARACTER (LEN= * ), INTENT(INOUT) :: line
 INTEGER            , INTENT(IN)    :: indxg
 INTEGER            , INTENT(INOUT) :: length
 !
-CHARACTER(LEN=1024)                  :: zeile
-CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
-CHARACTER(LEN=1024)                  :: string
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: zeile
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(maxw) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line)))                  :: string
 !                                                                       
 INTEGER, DIMENSION(maxw)   :: lpara (maxw) 
 INTEGER                    :: i, ikk, ianz, lll 
@@ -128,11 +128,11 @@ IF (ier_num.eq.0) THEN
          line(indxc:indxc) = ','
          zeile =  ' '
          IF(indxc==indxpl+1 .AND. indxc==indxpr-1) THEN    ! == (:)
-            zeile = '1,1024'
+            WRITE(zeile,'(a,i4)') '1,',LEN(line)
          ELSEIF(indxc==indxpl+1 .and. indxc<indxpr-1) THEN ! == (:number)
             zeile = '1,' // line(indxc+1:indxpr-1)
          ELSEIF(indxc> indxpl+1 .and. indxc==indxpr-1) THEN ! == (number:)
-            zeile = line(indxpl+1:indxc-1) //',1024'
+            WRITE(zeile,'(a,i4)') line(indxpl+1:indxc-1) , LEN(line)
          ELSE
             zeile(1:indxpr-indxpl-1) = line(indxpl+1:indxpr-1)  ! ==(number:number)
          ENDIF

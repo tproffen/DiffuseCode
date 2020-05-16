@@ -20,12 +20,12 @@ IMPLICIT none
 !                                                                       
 INTEGER, PARAMETER :: MAXW = 10
 !                                                                       
-CHARACTER(LEN=1024), INTENT(INOUT) :: line
+CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER(KIND=PREC_INT_WORD) , INTENT(INOUT) :: i
 LOGICAL            , INTENT(IN   ) :: lout
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
-CHARACTER(LEN=1024) :: cstr , zeile
+CHARACTER(LEN=MAX(PREC_STRING, LEN(line))), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING, LEN(line))) :: cstr , zeile
 CHARACTER(LEN=32)   :: form_s
 INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER :: ianz, il 

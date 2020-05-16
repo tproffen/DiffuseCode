@@ -11,6 +11,7 @@ USE envir_mod
 USE errlist_mod 
 USE do_wait_mod
 USE get_params_mod
+USE precision_mod
 USE prompt_mod 
 !                                                                       
 IMPLICIT none 
@@ -20,9 +21,9 @@ INTEGER, PARAMETER :: MAXW = 5
 CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
 INTEGER          , INTENT(INOUT) :: lp
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-CHARACTER(LEN=1024) :: message
+CHARACTER(LEN=PREC_STRING) :: message
 CHARACTER(LEN=80)   :: logfile 
 INTEGER :: ios
 INTEGER :: ianz 
