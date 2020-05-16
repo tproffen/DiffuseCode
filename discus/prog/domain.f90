@@ -41,7 +41,7 @@ USE precision_mod
       CHARACTER ( * ) line 
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(1024) zeile, cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(LINE))) :: zeile, cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER i, j, ianz, laenge, lbef 
       INTEGER indxg 
@@ -543,6 +543,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE discus_save_mod 
       USE structur, ONLY: stru_readheader, test_file
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -550,7 +551,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER imd 
       PARAMETER (imd = 45) 
 !                                                                       
-      CHARACTER(1024) infile 
+      CHARACTER(LEN=PREC_STRING) :: infile 
 INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
@@ -896,10 +897,10 @@ INTEGER, PARAMETER :: MAXW = 4
       REAL              , INTENT(OUT) :: mc_idimen (4, 4) 
       REAL              , INTENT(OUT) :: mc_matrix (4, 4) 
 !                                                                       
-      CHARACTER(10) befehl 
-      CHARACTER(1024) line, zeile 
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) mc_strufile 
+      CHARACTER(LEN=10) :: befehl 
+      CHARACTER(LEN=PREC_STRING) :: line, zeile 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: mc_strufile 
       INTEGER i, j, ibl, lbef 
       INTEGER lline 
       INTEGER lp, ianz 
@@ -1279,7 +1280,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       PARAMETER (maxw = 12) 
 !                                                                       
       CHARACTER(10) befehl 
-      CHARACTER(1024) line, zeile 
+      CHARACTER(LEN=PREC_STRING) :: line, zeile 
       INTEGER i, j, k, ii, ibl, lbef 
       INTEGER natoms_old 
       INTEGER i_count 
@@ -1791,7 +1792,7 @@ USE precision_mod
       INTEGER                                    , INTENT(IN)  :: MK_MAX_SCAT
       CHARACTER (LEN=*), DIMENSION(0:MK_MAX_SCAT), INTENT(IN)  :: mk_at_lis
 !                                                                       
-      CHARACTER(1024) line
+      CHARACTER(LEN=PREC_STRING) :: line
 !                                                                       
       INTEGER i, j, ii 
       REAL xyz (3) 
@@ -2082,7 +2083,7 @@ USE precision_mod
       CHARACTER ( * ) zeile 
       INTEGER length 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 

@@ -446,7 +446,7 @@ CONTAINS
       INTEGER iwr 
       PARAMETER (iwr = 7) 
 !                                                                       
-      INTEGER(1) header (1024) 
+      INTEGER(1), DIMENSION(1024) ::  header
       CHARACTER(80) char_header (EXTE_HLINES) 
 !                                                                       
       INTEGER exte_num 

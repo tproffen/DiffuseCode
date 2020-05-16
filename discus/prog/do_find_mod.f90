@@ -26,8 +26,8 @@ USE precision_mod
       PARAMETER (mmaxw = 5) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) ccpara (mmaxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) ccpara (mmaxw) 
       INTEGER lpara (maxw) 
       INTEGER llpara (maxw) 
       INTEGER i, ii, ianz, iianz, laenge 

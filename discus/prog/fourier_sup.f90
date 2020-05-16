@@ -1070,8 +1070,8 @@ USE precision_mod
       INTEGER, PARAMETER :: HKLF4 = 4
       INTEGER, PARAMETER :: CIF   = 1
 !
-      CHARACTER(LEN=1024) :: line
-      CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE   :: ccpara
+      CHARACTER(LEN=PREC_STRING) :: line
+      CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: ccpara
       INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
       INTEGER            :: n_qxy, n_natoms,n_nscat
       INTEGER            :: iostatus

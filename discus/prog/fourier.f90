@@ -50,16 +50,16 @@ USE precision_mod
       LOGICAL lold 
       PARAMETER (lold = .false.) 
 !                                                                       
-      CHARACTER (LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: cpara ! (MIN(10,MAXSCAT)) 
+      CHARACTER (LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: cpara ! (MIN(10,MAXSCAT)) 
       INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: lpara ! (MIN(10,MAXSCAT))
       INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: jj    ! (MAXSCAT) 
       REAL(KIND=PREC_DP)  , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: werte ! (MAXSCAT)
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(1024) zeile
-      CHARACTER(1024) line 
-      CHARACTER(LEN=1024)  :: infile, calcfile
-      CHARACTER(LEN=1024)  :: symbol
+      CHARACTER(LEN=PREC_STRING) :: zeile
+      CHARACTER(LEN=PREC_STRING) :: line 
+      CHARACTER(LEN=PREC_STRING)  :: infile, calcfile
+      CHARACTER(LEN=PREC_STRING)  :: symbol
       INTEGER :: i, j=1, k, ianz, lp, length , lsymbol, iianz
       INTEGER indxg, lbef 
       INTEGER              :: infile_l, outfile_l
@@ -1007,15 +1007,15 @@ INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_SIGABS  = 1                  ! Current phase number
 INTEGER, PARAMETER :: O_SIGORD  = 2                  ! Weight fraction
 INTEGER, PARAMETER :: O_SIGTOP  = 3                  ! Single / multiple
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER             :: ianz

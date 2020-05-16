@@ -68,7 +68,7 @@ REAL(KIND=PREC_DP), DIMENSION(3  ) :: vector   ! Position = vimat x vector; vect
 REAL(KIND=PREC_DP), DIMENSION(3  ) :: posit    ! Position = vimat x vector; vector [i,j,k]
 REAL(KIND=PREC_DP), DIMENSION(3  ) :: sigma    ! Sigma along columns of simat
 !
-INTEGER :: i,j, i1, j1
+INTEGER :: i, i1
 INTEGER :: ipos
 !
 ALLOCATE(profile(num(1) ))        ! Allocate profile in regular dimensions

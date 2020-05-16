@@ -23,15 +23,16 @@ USE precision_mod
 !                                                                       
        
 !                                                                       
-      INTEGER maxw 
-!                                                                       
-      CHARACTER ( * ) cpara (maxw) 
-      CHARACTER(1024) zeile 
-      INTEGER lpara (maxw) 
-      INTEGER i, j, l, ianz, jj, jp 
-      LOGICAL lnew 
-      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
-LOGICAL  , DIMENSION(1024,0:1) :: lmask
+INTEGER , INTENT(INOUT) :: ianz 
+INTEGER , INTENT(IN) :: maxw 
+CHARACTER (LEN=*) , INTENT(INOUT) :: cpara (maxw) 
+INTEGER           , INTENT(INOUT) :: lpara (maxw) 
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(OUT) :: werte
+LOGICAL                            , INTENT(IN)  :: lnew 
+!
+CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: zeile 
+INTEGER i, j, l, jj, jp 
+LOGICAL  , DIMENSION(MAX(PREC_STRING,LEN(cpara)),0:1) :: lmask
 INTEGER :: omask
 !                                                                       
 !                                                                       
