@@ -40,9 +40,9 @@ CHARACTER(LEN=5) :: befehl
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=14) :: cvalue (0:14) 
 CHARACTER(LEN=22) :: cgraphik (0:8) 
-CHARACTER(LEN=1024) :: infile 
-CHARACTER(LEN=1024) :: zeile 
-CHARACTER(LEN=1024) :: line, cpara (maxp) 
+CHARACTER(LEN=PREC_STRING) :: infile 
+CHARACTER(LEN=PREC_STRING) :: zeile 
+CHARACTER(LEN=PREC_STRING) :: line, cpara (maxp) 
 INTEGER, DIMENSION(MAXP) :: lpara  !(maxp) 
 INTEGER :: ix, iy, ianz, value, lp, length, lbef 
 INTEGER :: indxg 
@@ -978,12 +978,7 @@ USE discus_fft_mod
       REAL   , DIMENSION(:), ALLOCATABLE :: xwrt  ! 'x' - values for standard 1D files
       REAL   , DIMENSION(:), ALLOCATABLE :: ywrt  ! 'x' - values for standard 1D files
       REAL   , DIMENSION(:,:), ALLOCATABLE :: zwrt  ! 'z' - values for standard 2D files
-      REAL   , DIMENSION(:,:), ALLOCATABLE :: znew  ! 'z' - values for 3Dpdf    2D files
 INTEGER :: nnew1, nnew2
-!
-REAL(KIND=PREC_SP), DIMENSION(3, 4)       :: pdf3d_eck
-REAL(KIND=PREC_SP), DIMENSION(3, 3)       :: pdf3d_vi
-INTEGER           , DIMENSION(3)          :: pdf3d_inc
 !
       CHARACTER (LEN=160), DIMENSION(:), ALLOCATABLE :: header_lines
       INTEGER :: nheader
@@ -1519,9 +1514,8 @@ LOGICAL, INTENT(IN) :: laver
 !
 INTEGER :: isdim, i
 INTEGER, DIMENSION(3) :: dsort
-CHARACTER(LEN=1024)   :: string
+CHARACTER(LEN=PREC_STRING)   :: string
 INTEGER               :: lcomm
-LOGICAL, PARAMETER    :: LSPACE = .FALSE.
 REAL(KIND=PREC_SP), DIMENSION(3)    :: u
 REAL(KIND=PREC_SP)    :: uu
 !

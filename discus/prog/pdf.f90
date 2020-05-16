@@ -25,6 +25,7 @@ SUBROUTINE pdf
       USE class_macro_internal
       USE get_params_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       USE string_convert_mod
       USE sup_mod
@@ -34,12 +35,12 @@ SUBROUTINE pdf
       INTEGER, PARAMETER :: MIN_PARA = 24  ! A command requires at least these no of parameters
       INTEGER maxw 
 !                                                                       
-      CHARACTER(1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
+      CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       INTEGER        , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
 !
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(1024) line, zeile, cdummy 
+      CHARACTER(LEN=PREC_STRING) :: line, zeile, cdummy 
       INTEGER lp, length
       INTEGER indxg, ianz, lbef
       INTEGER :: n_nscat = 1  ! Dummy for RMC allocation
@@ -795,7 +796,7 @@ USE precision_mod
       INTEGER ::  pdf_calc_l, pdf_calc_u
       REAL r 
 !                                                                       
-      CHARACTER(1024) cdummy, cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: cdummy, cpara (maxw) 
       INTEGER ianz, lpara (maxw)
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -898,8 +899,8 @@ USE precision_mod
 !                                                                       
       INTEGER, PARAMETER :: maxw = 5 
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
-      CHARACTER(LEN=1024)                    :: datafile 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW) :: cpara
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile)))                    :: datafile 
       INTEGER            , DIMENSION(1:MAXW) :: lpara (maxw) 
       INTEGER ianz, ip 
       INTEGER  :: iostatus
@@ -1042,13 +1043,14 @@ main:    DO
       USE pdf_mod 
 !
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
 !                                                                       
       INTEGER , INTENT(IN) :: ifil 
 !                                                                       
-      CHARACTER(1024) line 
+      CHARACTER(LEN=PREC_STRING) :: line 
 !                                                                       
       READ (ifil, 5000) line 
       IF (line (1:7) .eq.'History') then 
@@ -1155,7 +1157,7 @@ USE precision_mod
       CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
       INTEGER          , INTENT(INOUT) :: lp 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw)
 REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw) 
       INTEGER lpara (maxw) 

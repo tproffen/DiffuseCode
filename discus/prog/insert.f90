@@ -40,9 +40,9 @@ USE precision_mod
       CHARACTER(LEN=5)                  :: befehl 
       CHARACTER(LEN=8), DIMENSION(-1:1) :: ctype
       CHARACTER(LEN=LEN(prompt))        :: orig_prompt
-      CHARACTER(LEN=1024)               :: line
-      CHARACTER(LEN=1024)               :: zeile
-      CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+      CHARACTER(LEN=PREC_STRING)               :: line
+      CHARACTER(LEN=PREC_STRING)               :: zeile
+      CHARACTER(LEN=PREC_STRING), DIMENSION(1:MAXW) :: cpara
       INTEGER,             DIMENSION(1:MAXW) :: lpara
       INTEGER                                :: lp, length, lbef 
       INTEGER                                :: indxg, ianz, i, j

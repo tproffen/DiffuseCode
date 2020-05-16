@@ -35,6 +35,7 @@ USE do_wait_mod
 USE get_params_mod
 USE learn_mod 
 USE class_macro_internal
+USE precision_mod
 USE prompt_mod 
 USE sup_mod
 USE wink_mod
@@ -43,7 +44,7 @@ IMPLICIT none
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(1024) line, zeile
+      CHARACTER(LEN=PREC_STRING) :: line, zeile
       INTEGER lp, length, lbef 
       INTEGER indxg
       LOGICAL lend
@@ -568,8 +569,8 @@ INTEGER         , INTENT(INOUT) :: lcomm
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 1
 INTEGER, PARAMETER :: O_RCUT    = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
@@ -579,8 +580,8 @@ INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to cal
 DATA oname  / 'rcut' /
 DATA loname /  4     /
 !
-CHARACTER(LEN=1024)  :: cpara (MAXW) 
-CHARACTER(LEN=1024) :: symbol
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile)))  :: cpara (MAXW) 
+CHARACTER(LEN=PREC_STRING) :: symbol
 INTEGER :: lpara (MAXW) 
 INTEGER :: lsymbol
 INTEGER :: ianz 
@@ -1328,7 +1329,7 @@ USE trig_degree_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-CHARACTER(LEN=1024) :: line 
+CHARACTER(LEN=PREC_STRING) :: line 
 INTEGER :: laenge 
 INTEGER :: i 
 INTEGER :: h_start, h_end 

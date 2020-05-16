@@ -40,7 +40,7 @@ USE precision_mod
       INTEGER, PARAMETER :: MIN_PARA = 21  ! A command requires at leaset these no of parameters
       INTEGER maxw 
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara 
+      CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara 
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara 
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
 !
@@ -50,8 +50,8 @@ USE precision_mod
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(14) cvalue (0:6) 
       CHARACTER(15) cgraphik (0:5) 
-      CHARACTER(1024) zeile
-      CHARACTER(1024) line 
+      CHARACTER(LEN=PREC_STRING) :: zeile
+      CHARACTER(LEN=PREC_STRING) :: line 
       LOGICAL lspace 
       LOGICAL ltwo_files 
       INTEGER e_io 
@@ -1244,7 +1244,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER KUPL, GNU, SHELXL, HKLF4
       PARAMETER (KUPL = 0, GNU = 3, SHELXL = 4, HKLF4 = 5) 
 !                                                                       
-      CHARACTER(1024) line 
+      CHARACTER(LEN=PREC_STRING) :: line 
       INTEGER i, j, ii, k, itic 
       INTEGER :: iostatus
       INTEGER extr_ima 
@@ -1862,8 +1862,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       PARAMETER (HKLF4 = 5) 
 !                                                                       
       CHARACTER ( * ) cpara 
-      CHARACTER(1024) outfile 
-      CHARACTER(len=1024) :: line
+      CHARACTER(LEN=PREC_STRING) :: outfile 
+      CHARACTER(LEN=PREC_STRING) :: line
       INTEGER lpara 
       INTEGER :: iostatus
       INTEGER i, n, j, lcomm 
@@ -2865,7 +2865,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
       INTEGER MAXW 
       PARAMETER (MAXW = 40) 
-      CHARACTER(1024) outfile 
+      CHARACTER(LEN=PREC_STRING) :: outfile 
       INTEGER ifa, idot 
       INTEGER i
       INTEGER h (3) 

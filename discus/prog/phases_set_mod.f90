@@ -20,29 +20,29 @@ USE take_param_mod
 !
 IMPLICIT NONE
 !                                                                       
+CHARACTER(LEN=*), INTENT(INOUT) :: zeile
+INTEGER         , INTENT(INOUT) :: lcomm
+!
 INTEGER, PARAMETER :: MAXW = 7
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_CURRENT = 1                  ! Current phase number
 INTEGER, PARAMETER :: O_WGHT    = 2                  ! Weight fraction
 INTEGER, PARAMETER :: O_MODE    = 3                  ! Single / multiple
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   8), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate 
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER             :: ianz
 !
 DATA oname  / 'current ', 'fraction', 'mode    ' /
 DATA loname /  8        ,  8        ,  8         /
-!                                                                       
-CHARACTER(LEN=*), INTENT(INOUT) :: zeile
-INTEGER         , INTENT(INOUT) :: lcomm
 !
 INTEGER :: n_pha
 INTEGER :: n_pts

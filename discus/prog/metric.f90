@@ -155,11 +155,13 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 3) 
 !                                                                       
-      CHARACTER(1024) cpara (maxw), line 
+CHARACTER(LEN=*), INTENT(INOUT) :: line 
+INTEGER         , INTENT(INOUT) :: laenge 
+LOGICAL         , INTENT(IN)    :: lspace 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw)
       INTEGER lpara (maxw) 
       INTEGER ianz 
-      INTEGER i, laenge 
-      LOGICAL lspace 
+      INTEGER i
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL(KIND=PREC_SP) :: uu, vv 
       REAL(KIND=PREC_SP) :: u (3), v (3) 
@@ -235,10 +237,13 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 7) 
 !                                                                       
-      CHARACTER(1024) cpara (maxw), line 
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: laenge 
+!
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw)
       INTEGER lpara (maxw) 
       INTEGER ianz 
-      INTEGER i, laenge 
+      INTEGER i
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL(KIND=PREC_SP) :: u (3), v (3), w (3) 
 !                                                                       
@@ -338,10 +343,13 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 7) 
 !                                                                       
-      CHARACTER(1024) cpara (maxw), line 
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: laenge 
+!
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) cpara (maxw)
       INTEGER lpara (maxw) 
       INTEGER ianz 
-      INTEGER i, laenge 
+      INTEGER i
       LOGICAL lflag 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL(KIND=PREC_SP) :: u (3), v (3), w (3), h (3), x (3) 

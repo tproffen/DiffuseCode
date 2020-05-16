@@ -1,11 +1,12 @@
 MODULE inter_readstru
 !
+USE precision_mod
 IMPLICIT NONE
 !
 INTEGER rd_NMAX 
 INTEGER rd_MAXSCAT 
 !
-CHARACTER (LEN=1024)                  :: rd_strucfile 
+CHARACTER (LEN=PREC_STRING)           :: rd_strucfile 
 CHARACTER (LEN=  80)                  :: rd_cr_name 
 CHARACTER (LEN=  16)                  :: rd_cr_spcgr 
 REAL                , DIMENSION(3)    :: rd_cr_a0

@@ -27,6 +27,7 @@ USE get_params_mod
 USE learn_mod 
 USE class_macro_internal
 USE param_mod 
+USE precision_mod
 USE prompt_mod 
       USE sup_mod
 IMPLICIT none 
@@ -39,7 +40,7 @@ INTEGER            :: maxw           ! Array size for cpara, lpara, werte
 CHARACTER(LEN=5)    :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=40)   :: cdummy 
-CHARACTER(LEN=1024) :: line, zeile 
+CHARACTER(LEN=PREC_STRING) :: line, zeile 
 INTEGER             :: lp, length 
 INTEGER             :: indxg, lbef
 LOGICAL, PARAMETER  :: lold = .false. 
@@ -263,11 +264,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE rmc_mod 
 !
       USE errlist_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER(1024) zeile 
+      CHARACTER(LEN=PREC_STRING) :: zeile 
 !      CHARACTER(LEN=24), DIMENSION(0:MC_N_ENERGY) :: c_energy = & !(0:MC_N_ENERGY) 
 !         (/'                        ', &
 !           'Occupation correlation  ', &
@@ -727,14 +729,14 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat, n_site )
       CHARACTER ( LEN=* ), INTENT(INOUT)    :: zeile 
       INTEGER            , INTENT(INOUT)    :: lp 
 !
-      CHARACTER ( LEN=1024)                 :: line
+      CHARACTER ( LEN=PREC_STRING)                 :: line
       INTEGER                               :: length
       INTEGER                               :: ianz1
       INTEGER                               :: ianz2
 !                                                                       
-      CHARACTER (LEN=1024), DIMENSION(MAXW) ::  cpara !(maxw) 
-      CHARACTER (LEN=1024), DIMENSION(MAXW) ::  cpara1 !(maxw) 
-      CHARACTER (LEN=1024), DIMENSION(MAXW) ::  cpara2 !(maxw) 
+      CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW) ::  cpara !(maxw) 
+      CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW) ::  cpara1 !(maxw) 
+      CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW) ::  cpara2 !(maxw) 
       REAL(KIND=PREC_DP) :: uerte (maxw) 
       REAL(KIND=PREC_DP) :: verte (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 

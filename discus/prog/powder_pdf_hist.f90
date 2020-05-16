@@ -33,8 +33,8 @@ USE wink_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=1024) :: line
-CHARACTER(LEN=1024) :: origstruc       ! Structure prior to powder calculation
+CHARACTER(LEN=PREC_STRING) :: line
+CHARACTER(LEN=PREC_STRING) :: origstruc       ! Structure prior to powder calculation
 INTEGER :: length
 INTEGER :: i
 LOGICAL                 :: do_mol      ! Molecules with Biso /= 0.0
