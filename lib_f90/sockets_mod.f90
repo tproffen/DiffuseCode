@@ -39,6 +39,7 @@ CONTAINS
       USE errlist_mod 
       USE get_params_mod
       USE learn_mod 
+      USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -49,9 +50,9 @@ CONTAINS
       INTEGER MAXW 
       PARAMETER (MAXW = 20) 
 !                                                                       
-      CHARACTER(1024) string 
-      CHARACTER(1024) line 
-      CHARACTER(1024) cpara (MAXW) 
+      CHARACTER(LEN=PREC_STRING) :: string 
+      CHARACTER(LEN=PREC_STRING) :: line 
+      CHARACTER(LEN=PREC_STRING) :: cpara (MAXW) 
       INTEGER lpara (MAXW) 
       INTEGER ianz 
       INTEGER il, i, j 

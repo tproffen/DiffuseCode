@@ -35,10 +35,12 @@ DO i = 1, ll
    ENDIF 
 ENDDO 
 ll = LEN_TRIM(line)
-DO WHILE(line(ll:ll)==TAB)      !  Remove trailing TABs
-   line(ll:ll) = ' '
-   ll = LEN_TRIM(line)
-ENDDO
+IF(ll>0) THEN
+   DO WHILE(line(ll:ll)==TAB)      !  Remove trailing TABs
+      line(ll:ll) = ' '
+      ll = LEN_TRIM(line)
+   ENDDO
+ENDIF
 !                                                                       
 END SUBROUTINE remove_comment                 
 !

@@ -2,6 +2,8 @@ MODULE prompt_mod
 !+
 !     Variables for program prompt
 !-
+USE precision_mod
+!
    IMPLICIT NONE
    PUBLIC
    SAVE
@@ -15,8 +17,8 @@ MODULE prompt_mod
    INTEGER, PARAMETER :: OUTPUT_NONE     = 2
    INTEGER, PARAMETER :: OUTPUT_FILE     = 3
 !
-   CHARACTER(LEN= 1024) :: blank
-   CHARACTER(LEN= 1024) :: input_gui
+   CHARACTER(LEN= PREC_STRING) :: blank
+   CHARACTER(LEN= PREC_STRING) :: input_gui
    CHARACTER(LEN= 80  ) :: s_ipallowed
    CHARACTER(LEN= 40  ) :: prompt
    CHARACTER(LEN= 40  ) :: oprompt

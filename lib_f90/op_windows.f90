@@ -13,9 +13,10 @@ SUBROUTINE get_mpi_path(mpi_path)
 ! Find path to 'mpiexec' command
 ! For Windows version this is fixed
 !
+USE precision_mod
 IMPLICIT NONE
 !
-CHARACTER(LEN=1024), INTENT(OUT) :: mpi_path
+CHARACTER(LEN=PREC_STRING), INTENT(OUT) :: mpi_path
 !
 mpi_path = '/bin'
 !

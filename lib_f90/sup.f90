@@ -24,6 +24,7 @@ USE errlist_mod
 USE jsu_readline
 USE learn_mod 
 USE class_macro_internal 
+USE precision_mod
 USE prompt_mod 
 USE support_mod
 !
@@ -38,8 +39,8 @@ CHARACTER (LEN=*), INTENT(OUT)   :: zeile
 INTEGER          , INTENT(OUT)   :: lp
 CHARACTER (LEN=*), INTENT(OUT)   :: prom 
 !
-CHARACTER(LEN=1024)               :: input
-CHARACTER(LEN=1024)               :: as_typed
+CHARACTER(LEN=PREC_STRING)       :: input
+CHARACTER(LEN=PREC_STRING)       :: as_typed
 CHARACTER(60) bprom 
 CHARACTER(10) cready 
 INTEGER lbef, indxb 
@@ -47,7 +48,7 @@ INTEGER il, jl, lcready
 INTEGER :: lt
 LOGICAL lreg 
 LOGICAL :: ldone
-LOGICAL str_comp 
+!LOGICAL str_comp 
 !                                                                       
 INTEGER len_str 
 INTEGER socket_accept 
@@ -134,16 +135,23 @@ IF (lblock) THEN
                ll=len_str(input)
                CALL learn_save(input, ll, llearn, lmakro, ILRN)
                CALL remove_comment(input, ll) 
-               DO WHILE(input(ll:ll)=='&')
-                  ll = ll - 1
-                  bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
-                  CALL iso_readline(as_typed, bprom)
-                  lt = len_str(as_typed)
-                  CALL learn_save(as_typed, lt, llearn, lmakro, ILRN)
-                  CALL remove_comment(as_typed, lt) 
-                  input = input(1:ll) // ' ' // as_typed(1:lt)
-                  ll = ll + 1 + lt
-               ENDDO
+               IF(ll>0) THEN
+                  is_cont1: DO WHILE(input(ll:ll)=='&')
+                     ll = ll - 1
+                     bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
+                     CALL iso_readline(as_typed, bprom)
+                     lt = len_str(as_typed)
+                     CALL learn_save(as_typed, lt, llearn, lmakro, ILRN)
+                     CALL remove_comment(as_typed, lt) 
+                     input = input(1:ll) // ' ' // as_typed(1:lt)
+                     ll = ll + 1 + lt
+                     IF(ll>LEN(input)-100) THEN
+                        ier_num = -16
+                        ier_typ = ER_COMM
+                        RETURN
+                     ENDIF
+                  ENDDO is_cont1
+               ENDIF
 !                                                                       
 !------ --otherwise use normal READ                                     
 !                                                                       
@@ -155,17 +163,24 @@ IF (lblock) THEN
                ll=len_str(input)
                CALL learn_save(input, ll, llearn, lmakro, ILRN)
                CALL remove_comment (input, ll) 
-               DO WHILE(input(ll:ll)=='&')
-                  ll = ll - 1
-                  bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
-                  CALL do_prompt (bprom) 
-                  READ ( *, 2000, end = 990, err = 995) as_typed 
-                  lt = len_str(as_typed)
-                  CALL learn_save(as_typed, lt, llearn, lmakro, ILRN)
-                  CALL remove_comment(as_typed, lt) 
-                  input = input(1:ll) // ' ' // as_typed(1:lt)
-                  ll = ll + 1 + lt
-               ENDDO
+               IF(ll>0) THEN
+                  is_cont2: DO WHILE(input(ll:ll)=='&')
+                     ll = ll - 1
+                     bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
+                     CALL do_prompt (bprom) 
+                     READ ( *, 2000, end = 990, err = 995) as_typed 
+                     lt = len_str(as_typed)
+                     CALL learn_save(as_typed, lt, llearn, lmakro, ILRN)
+                     CALL remove_comment(as_typed, lt) 
+                     input = input(1:ll) // ' ' // as_typed(1:lt)
+                     ll = ll + 1 + lt
+                     IF(ll>LEN(input)-100) THEN
+                        ier_num = -16
+                        ier_typ = ER_COMM
+                        RETURN
+                     ENDIF
+                  ENDDO is_cont2
+               ENDIF
             ENDIF 
          ELSE 
             input = input_gui

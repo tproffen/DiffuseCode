@@ -16,8 +16,8 @@ INTEGER          , INTENT(INOUT) :: lp
 !                                                                       
 INTEGER, PARAMETER :: maxp = 12
 !
-CHARACTER(LEN=1024) :: string , line
-CHARACTER(LEN=1024), DIMENSION(MAXP) :: cpara
+CHARACTER(LEN=PREC_STRING) :: string , line
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXP) :: cpara
 INTEGER            , DIMENSION(MAXP) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXP) :: werte
 !

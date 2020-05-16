@@ -3,13 +3,14 @@ subroutine memory_message(cpara)
 !
 ! debug routine to find memory leak, currently offline
 !
+USE precision_mod
 use mpi_slave_mod
 IMPLICIT NONE
 character(Len=*), intent(IN) :: cpara
-character(len=1024)          :: zei
+character(len=PREC_STRING)          :: zei
 !DBG_MEM
 !DBG_MEM
-character(len=1024):: pid_status
+character(len=PREC_STRING):: pid_status
 character(len=8   ):: pid_char
 integer::my_pid
 integer::ios

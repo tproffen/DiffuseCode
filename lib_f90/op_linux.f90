@@ -16,13 +16,14 @@ SUBROUTINE get_mpi_path(mpi_path)
 ! Find path to 'mpiexec' command
 ! For Windows version this is fixed
 !
+USE precision_mod
 USE envir_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=1024), INTENT(OUT) :: mpi_path
+CHARACTER(LEN=PREC_STRING), INTENT(OUT) :: mpi_path
 !
-CHARACTER(LEN=1024)  :: mpi_file
+CHARACTER(LEN=PREC_STRING)  :: mpi_file
 LOGICAL              :: lda
 !
 IF(start_line(1:start_line_l) == 'discus_suite_noparallel') THEN

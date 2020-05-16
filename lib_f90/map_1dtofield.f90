@@ -40,7 +40,7 @@ INTEGER, DIMENSION(3)                                , INTENT(IN) :: dsort
 REAL   (KIND=PREC_DP), DIMENSION(1:dimen(1))         , INTENT(IN) :: linear
 COMPLEX(KIND=PREC_DP), DIMENSION(1:dimen(dsort(1)))  , INTENT(OUT) :: fftfd
 !
-INTEGER :: loop, ii,jj
+INTEGER :: loop, ii
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
 !
 l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
@@ -67,7 +67,7 @@ INTEGER, DIMENSION(3)                                , INTENT(IN) :: dsort
 COMPLEX(KIND=PREC_DP), DIMENSION(1:dimen(1))         , INTENT(IN) :: linear
 COMPLEX(KIND=PREC_DP), DIMENSION(1:dimen(dsort(1)))  , INTENT(OUT) :: fftfd
 !
-INTEGER :: loop, ii,jj
+INTEGER :: loop, ii
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
 !
 l(dsort(1)) = MOD(dimen(dsort(1))-1,2)

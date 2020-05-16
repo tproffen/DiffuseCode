@@ -152,14 +152,14 @@ INTEGER, PARAMETER :: maxw = 193
 CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
 INTEGER          , INTENT(INOUT) :: lp
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) ::  cpara !(maxw) 
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) ::  cpara !(maxw) 
 INTEGER            , DIMENSION(MAXW) ::  lpara !(maxw)
 INTEGER  :: ianz, np
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) ::  werte !(maxw) 
 INTEGER            , DIMENSION(MAXW-1) :: iwerte !(maxw) 
 INTEGER, PARAMETER :: NOPTIONAL = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
