@@ -2,7 +2,8 @@ MODULE surface_func_mod
 !
 CONTAINS
 !*****7*****************************************************************
-      SUBROUTINE surface_menu 
+!
+SUBROUTINE surface_menu 
 !-                                                                      
 !     Main menu for surface related operations                          
 !+                                                                      
@@ -18,6 +19,7 @@ CONTAINS
       USE errlist_mod 
       USE learn_mod 
       USE class_macro_internal 
+USE precision_mod
       USE prompt_mod 
       USE sup_mod
 !                                                                       
@@ -25,7 +27,7 @@ CONTAINS
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(1024) line, zeile
+      CHARACTER(LEN=PREC_STRING) :: line, zeile
       INTEGER lp, length, lbef 
       INTEGER indxg
       LOGICAL lend
@@ -194,7 +196,7 @@ USE precision_mod
       CHARACTER ( * ) zeile 
       INTEGER length 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
@@ -237,12 +239,12 @@ USE precision_mod
 !                                                                       
       INTEGER maxw 
       INTEGER ianz 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=*) cpara (maxw) 
       INTEGER lpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER iflag 
 !                                                                       
-      CHARACTER(1024) string 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) string 
       INTEGER laenge 
       INTEGER i 
       LOGICAL lold 
@@ -393,12 +395,10 @@ IMPLICIT NONE
 !
 INTEGER                             , INTENT(IN) :: MAXW
 INTEGER                             , INTENT(INOUT) :: ianz
-CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW), INTENT(INOUT) :: werte
 !
-!CHARACTER(LEN=1024) :: line
-!INTEGER :: length
 INTEGER :: istart
 INTEGER :: ifinish
 LOGICAL, EXTERNAL :: str_comp
@@ -440,7 +440,7 @@ INTEGER, PARAMETER    :: MAXW = 1
 LOGICAL, PARAMETER    :: LSPACE = .TRUE.
 REAL(KIND=PREC_SP), DIMENSION(1:3), PARAMETER :: VNULL=(/0.0, 0.0, 0.0/)
 !
-CHARACTER(LEN=1024)   :: line
+CHARACTER(LEN=PREC_STRING)   :: line
 INTEGER               :: i, j
 INTEGER               :: laenge
 INTEGER               :: idiv
@@ -696,9 +696,9 @@ CHARACTER (LEN=* ), INTENT(INOUT) :: zeile
 INTEGER           , INTENT(INOUT) :: lp 
 !                                                                       
 !      REAL, PARAMETER :: EPS = 0.000001
-CHARACTER(1024) cpara (maxw) 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) cpara (maxw) 
 CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent ! Optional parameter is present
@@ -1386,11 +1386,9 @@ REAL(KIND=PREC_SP), DIMENSION(3), PARAMETER :: V_NULL = (/0.0D0, 0.0D0, 0.0D0/)
 REAL(KIND=PREC_SP)              , PARAMETER :: EPS    = 1.0D-4
 REAL(KIND=PREC_SP)              , PARAMETER :: TOL    = 5.0D0
 INTEGER :: i
-INTEGER :: length
 REAL(KIND=PREC_SP), DIMENSION(3)   :: v_long
 REAL(KIND=PREC_SP), DIMENSION(3)   :: v_short
 REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_long
-REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_longr
 REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_short
 !
 REAL(KIND=PREC_SP), DIMENSION(3)   :: u         ! Dummy vector
@@ -1538,13 +1536,14 @@ CHARACTER(LEN=*)  , INTENT(IN) :: cname
 !
 INTEGER, PARAMETER :: MAXW = 4
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(o_long))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER                              :: ianz 
 REAL(KIND=PREC_DP), DIMENSION(MAXW)  :: werte
 INTEGER :: length
 LOGICAL :: ldirect
 !
+ldirect = .TRUE.
 length = LEN_TRIM(cname)
 IF(o_long(1:1) == '[' .AND. o_long(lo_long:lo_long) == ']') THEN
    o_long(1:1) = ' '
@@ -1638,7 +1637,7 @@ CHARACTER(LEN=*) , INTENT(INOUT) :: zeile
 INTEGER          , INTENT(INOUT) :: lp
 !
 INTEGER, PARAMETER :: MAXW = 3
-CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
 INTEGER               :: surf_char
@@ -1796,11 +1795,11 @@ REAL   , PARAMETER , DIMENSION(3)      :: NULL        = 0.0
 REAL   , PARAMETER                     :: IS_OUTSIDE  = 80.0
 REAL   , PARAMETER                     :: IS_PARALLEL = 15.0
 !
-CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
 !
-CHARACTER(LEN=1024)     :: line
+CHARACTER(LEN=PREC_STRING)     :: line
 INTEGER  , DIMENSION(:), ALLOCATABLE :: neigh
 REAL     , DIMENSION(:), ALLOCATABLE :: angles
 REAL     , DIMENSION(:), ALLOCATABLE :: sorted

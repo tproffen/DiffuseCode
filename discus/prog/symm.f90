@@ -49,13 +49,13 @@ USE precision_mod
 !                                                                       
       PARAMETER (lold = .false.) 
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
+      CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
 !
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(1024) line, zeile
+      CHARACTER(LEN=PREC_STRING) :: line, zeile
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, i , iianz
       INTEGER indxc 
@@ -72,8 +72,8 @@ INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_RADIUS  = 1
 INTEGER, PARAMETER :: O_OCCUP   = 2
 INTEGER, PARAMETER :: O_ECHO    = 3
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
