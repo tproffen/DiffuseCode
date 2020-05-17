@@ -22,9 +22,9 @@ INTEGER, PARAMETER :: MAXW = 30
 CHARACTER(LEN=14)                    :: cdummy
 CHARACTER(LEN= 6)                    :: cnumproc
 CHARACTER(LEN=20)  , PARAMETER       :: env_num_proc='NUMBER_OF_PROCESSORS'
-CHARACTER(LEN=1024)                  :: mfile
-CHARACTER(LEN=1024)                  :: line
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile)))                  :: mfile
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile)))                  :: line
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER                              :: numproc
@@ -33,9 +33,9 @@ INTEGER                              :: iianz
 INTEGER                              :: i
 INTEGER                              :: ios
 LOGICAL                              :: lexist
-CHARACTER(LEN=1024) :: mpi_path    = ' '
-CHARACTER(LEN=1024) :: discus_path = ' '
-CHARACTER(LEN=1024) :: discus_name = ' '
+CHARACTER(LEN=PREC_STRING) :: mpi_path    = ' '
+CHARACTER(LEN=PREC_STRING) :: discus_path = ' '
+CHARACTER(LEN=PREC_STRING) :: discus_name = ' '
 !
 CALL get_mpi_path(mpi_path)
 IF(mpi_path==' ') THEN

@@ -45,7 +45,7 @@ CHARACTER (LEN= *  ), INTENT(INOUT) :: line
 LOGICAL             , INTENT(  OUT) :: lend 
 INTEGER             , INTENT(INOUT) :: length 
 !
-CHARACTER (LEN=1024)                  :: zeile 
+CHARACTER (LEN=MAX(PREC_STRING,LEN(line))) :: zeile 
 CHARACTER (LEN=   9)                  :: befehl 
 INTEGER                               :: indxb, indxg, lcomm, lbef, indxt 
 !                                                                       

@@ -79,9 +79,9 @@ LOGICAL                , INTENT(IN ) :: l_first_job
 INTEGER                , INTENT(OUT):: ierr
 !
 LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE.
-CHARACTER(LEN=2048) :: line
-CHARACTER(LEN=1024) :: empty = ' '
-CHARACTER(LEN=2048) :: logfile
+CHARACTER(LEN=PREC_LSTRING) :: line
+CHARACTER(LEN=PREC_STRING) :: empty = ' '
+CHARACTER(LEN=PREC_LSTRING) :: logfile
 CHARACTER(LEN= 7   ) :: ct_pname_old,ct_pname_cap_old
 CHARACTER(LEN= 9+LEN(trial_n))   :: string
 INTEGER              :: ct_prompt_status_old

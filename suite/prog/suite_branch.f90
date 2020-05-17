@@ -21,6 +21,7 @@ USE suite_init_mod
 USE suite_setup_mod
 USE suite_set_sub_mod
 USE charact_mod
+USE precision_mod
 USE variable_mod
 !
 IMPLICIT NONE
@@ -29,7 +30,7 @@ CHARACTER (LEN=*), INTENT(IN) :: zeile
 INTEGER          , INTENT(IN) :: length
 LOGICAL          , INTENT(IN) :: lreset
 !
-CHARACTER(LEN=1024)  :: line
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile)))  :: line
 CHARACTER(LEN= 7   ) :: br_pname_old,br_pname_cap_old
 INTEGER              :: br_prompt_status_old
 INTEGER              :: br_ier_sta_old, br_state_old, br_progr_old
