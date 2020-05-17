@@ -74,7 +74,7 @@ INTEGER len_str
 LOGICAL str_comp 
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 10
-CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -83,7 +83,7 @@ REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
 !
 DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', 'plot' , 'kill'  , 'keep'/
-DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  4     ,  4     ,  4      ,  4    /
+DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  5     ,  4     ,  4      ,  4    /
 !
 ! Always provide fresh default values, Repeat for each command
 opara  =   (/ '0.000', '0.000', '0    ', '0    ', 'flat ', 'solid', 'auto ', 'none ', 'none ', 'no   '/)
