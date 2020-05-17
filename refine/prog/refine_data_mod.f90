@@ -1,9 +1,11 @@
 MODULE refine_data_mod
 !
+USE precision_mod
+!
 IMPLICIT NONE
 !
-CHARACTER(LEN=1024)                  :: ref_load  = ' '  ! Load string data
-CHARACTER(LEN=1024)                  :: ref_csigma = ' ' ! Load string Sigma's
+CHARACTER(LEN=PREC_STRING)           :: ref_load  = ' '  ! Load string data
+CHARACTER(LEN=PREC_STRING)           :: ref_csigma = ' ' ! Load string Sigma's
 INTEGER                              :: ref_kload = 0    ! Data set within KUPLOT
 INTEGER                              :: ref_ksigma= 0    ! Sigma set within KUPLOT
 INTEGER                              :: ref_kupl  = 0    ! Data set within KUPLOT that needs to be kept

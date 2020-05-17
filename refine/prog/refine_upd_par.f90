@@ -25,7 +25,7 @@ INTEGER              , INTENT(IN   ) :: maxw
 INTEGER              , INTENT(IN   ) :: ianz
 REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN   ) :: ww
 !
-CHARACTER(LEN=1024) :: zeile
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: zeile
 INTEGER :: laenge
 INTEGER :: lcomm
 INTEGER :: ltyp

@@ -14,18 +14,13 @@ USE refine_data_mod
 USE refine_fit_erg
 USE refine_params_mod
 USE do_variable_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
-CHARACTER (LEN=1024)                   :: zeile
-!INTEGER            , PARAMETER         :: MAXW=2
-!INTEGER                                :: ianz
-!CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
-!INTEGER            , DIMENSION(1:MAXW) :: lpara
+CHARACTER (LEN=PREC_STRING)                   :: zeile
 !
-!LOGICAL, PARAMETER   :: is_refine = .TRUE.
 INTEGER              :: lcomm
-!INTEGER              :: i
 !
 ! Remove all parameter names from the variable entry
 !

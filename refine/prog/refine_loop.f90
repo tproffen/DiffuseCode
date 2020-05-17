@@ -13,6 +13,7 @@ USE doact_mod
 USE do_if_mod
 USE errlist_mod 
 USE learn_mod 
+USE precision_mod
 USE prompt_mod 
 USE set_sub_generic_mod
 USE sup_mod
@@ -31,7 +32,7 @@ IMPLICIT none
 !*****7*****************************************************************
 !
 !                                                                       
-CHARACTER (LEN=1024)           :: line, zeile 
+CHARACTER (LEN=PREC_STRING)    :: line, zeile 
 CHARACTER (LEN=4)              :: befehl 
 LOGICAL                        :: lend   = .false.
 INTEGER                        :: laenge, lp, lbef 

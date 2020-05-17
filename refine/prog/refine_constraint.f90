@@ -308,7 +308,7 @@ CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: MAXW = 3
-CHARACTER (LEN=1024), DIMENSION(MAXW) :: cpara   = ' '
+CHARACTER (LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara   != ' '
 INTEGER             , DIMENSION(MAXW) :: lpara = 0
 REAL(KIND=PREC_DP)  , DIMENSION(MAXW) :: werte = 0.0
 INTEGER :: ianz

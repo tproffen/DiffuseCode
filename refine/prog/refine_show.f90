@@ -32,7 +32,7 @@ CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: MAXWW = 2       ! Max parameters on line
-CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE :: werte
 INTEGER :: k
@@ -44,8 +44,8 @@ LOGICAL :: lcovar
 INTEGER, PARAMETER :: NOPTIONAL = 2
 INTEGER, PARAMETER :: OCOVAR    = 1
 INTEGER, PARAMETER :: OFILE     = 2
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present

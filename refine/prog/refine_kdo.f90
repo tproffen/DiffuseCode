@@ -49,8 +49,8 @@ CHARACTER (LEN= *  ), INTENT(INOUT) :: line
 LOGICAL             , INTENT(  OUT) :: lend 
 INTEGER             , INTENT(INOUT) :: length 
 !
-CHARACTER (LEN=1024)                  :: zeile   = ' '
-CHARACTER (LEN=1024), DIMENSION(MAXW) :: cpara   = ' '
+CHARACTER (LEN=MAX(PREC_STRING,LEN(line)))                  :: zeile   != ' '
+CHARACTER (LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara   != ' '
 CHARACTER (LEN=   9)                  :: befehl  = ' '
 INTEGER                               :: indxb, indxg, lcomm, lbef, indxt 
 !INTEGER                               :: n_pop  ! dummy for allocation
@@ -64,22 +64,6 @@ INTEGER                                :: ref_output_status
 !                                                                       
 REAL                , DIMENSION(MAXW) :: werte = 0.0
 LOGICAL, EXTERNAL                     :: str_comp 
-!                                                                       
-!INTEGER, PARAMETER :: NOPTIONAL = 4
-!CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-!CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
-!INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
-!INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
-!LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-!REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-!INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate 
-!
-!DATA oname  / 'partial', 'repeat' , 'logfile', 'compute'  /
-!DATA loname /  7       ,  6       ,  7       ,  7  /
-!opara  =  (/ '0.000000', '1.000000', 'none    ', 'parallel' /)   ! Always provide fresh default values
-!lopara =  (/  8        ,  8        ,  8        ,  8         /)
-!owerte =  (/  0.0      ,  1.0      ,  0.0      ,  1.0       /)
-!
 !                                                                       
 CALL no_error 
 !                                                                 

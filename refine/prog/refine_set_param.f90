@@ -7,6 +7,7 @@ CONTAINS
 SUBROUTINE refine_set_param(npara, params, k, wert)
 !
 USE calc_expr_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -15,7 +16,7 @@ CHARACTER(LEN=*)                  , INTENT(IN) :: params  ! Parameter names
 INTEGER                           , INTENT(IN) :: k       ! number to be updated
 REAL                              , INTENT(IN) :: wert    ! Target value
 !
-CHARACTER(LEN=1024) :: string   ! dumy string variable
+CHARACTER(LEN=PREC_STRING) :: string   ! dumy string variable
 INTEGER             :: lpname   ! Length of a parameter name
 INTEGER             :: indxg    ! Location of "=" in string
 INTEGER             :: length   ! Length of a string

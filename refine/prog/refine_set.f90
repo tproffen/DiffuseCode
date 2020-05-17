@@ -24,7 +24,7 @@ INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: MAXW = 20
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 !
@@ -85,7 +85,7 @@ INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: MAXW = 20
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 !REAL               , DIMENSION(MAXW) :: werte
 !
@@ -101,8 +101,8 @@ INTEGER, PARAMETER :: O_PSHIFT  = 2
 INTEGER, PARAMETER :: O_CONF    = 3
 INTEGER, PARAMETER :: O_CHI     = 4
 INTEGER, PARAMETER :: O_STATUS  = 5
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
@@ -155,7 +155,7 @@ INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: MAXW = 20
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 !REAL               , DIMENSION(MAXW) :: werte
 !
@@ -169,8 +169,8 @@ INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_START   = 1
 INTEGER, PARAMETER :: O_FAIL    = 2
 INTEGER, PARAMETER :: O_SUCCESS = 3
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present

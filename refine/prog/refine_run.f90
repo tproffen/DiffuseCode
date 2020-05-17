@@ -37,7 +37,7 @@ INTEGER         , INTENT(INOUT) :: length        ! length of input command line
 !
 INTEGER, PARAMETER :: MAXW = 20
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara    ! Parameter strings
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara    ! Parameter strings
 INTEGER            , DIMENSION(MAXW) :: lpara    ! length of each parameter strign
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte    ! Parameter values
 !
@@ -45,15 +45,15 @@ INTEGER                              :: i        ! Dummy loop parameter
 INTEGER                              :: ndata    ! number of data points
 INTEGER                              :: ianz     ! number of parameters
 LOGICAL                              :: lexist   ! File exists yes/no
-CHARACTER(LEN=1024)                  :: plmac    ! optional plot macro
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line)))                  :: plmac    ! optional plot macro
 LOGICAL                              :: ref_do_plot ! Do plot yes/no
 LOGICAL                              :: linit       ! Initialize mrq
 !
 INTEGER, PARAMETER :: NOPTIONAL = 2
 INTEGER, PARAMETER :: OPLOT     = 1
 INTEGER, PARAMETER :: OINIT     = 2
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
@@ -510,6 +510,7 @@ USE doact_mod
 USE do_if_mod
 USE do_set_mod
 USE errlist_mod
+USE precision_mod
 USE prompt_mod
 USE set_sub_generic_mod
 USE sup_mod
@@ -526,8 +527,8 @@ REAL            , DIMENSION(MAXP ), INTENT(IN)    :: p             ! parameter v
 INTEGER         , DIMENSION(2    ), INTENT(IN)    :: dimen         ! Data array dimensions
 REAL            , DIMENSION(dimen(1), dimen(2)), INTENT(OUT) :: array  ! The actual data
 
-CHARACTER(LEN=1024) :: string           ! dumy string variable
-CHARACTER(len=1024) :: zeile            ! dummy string
+CHARACTER(LEN=PREC_STRING) :: string           ! dumy string variable
+CHARACTER(len=PREC_STRING) :: zeile            ! dummy string
 CHARACTER(LEN=4   ) :: befehl           ! Command verb
 INTEGER             :: lbef             ! length   of        befehl
 INTEGER             :: lp               ! length   of        befehl
@@ -629,13 +630,14 @@ USE do_set_mod
 USE set_sub_generic_mod
 !
 USE class_macro_internal
+USE precision_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=1024), INTENT(IN) :: plmac     ! optional plot macro
+CHARACTER(LEN=*   ), INTENT(IN) :: plmac     ! optional plot macro
 !
-CHARACTER(LEN=1024)             :: string
-CHARACTER(LEN=1024)             :: kline
+CHARACTER(LEN=PREC_STRING)             :: string
+CHARACTER(LEN=MAX(PREC_STRING,LEN(plmac)+14)) :: kline
 INTEGER                         :: lcomm, length
 !
 string = 'prompt, off, off, save'
@@ -781,7 +783,7 @@ REAL            , DIMENSION(NPARA, NPARA)            , INTENT(INOUT) :: cl      
 REAL            , DIMENSION(NPARA, NPARA)            , INTENT(INOUT) :: alpha
 REAL            , DIMENSION(NPARA       )            , INTENT(INOUT) :: beta
 LOGICAL                                              , INTENT(IN)    :: ref_do_plot ! Do plot yes/no
-CHARACTER(LEN=1024)                                  , INTENT(IN)    :: plmac     ! optional plot macro
+CHARACTER(LEN=*   )                                  , INTENT(IN)    :: plmac     ! optional plot macro
 !
 INTEGER :: icyc
 INTEGER :: k
@@ -791,7 +793,7 @@ REAL, SAVE    :: alamda
 INTEGER :: MAXW
 INTEGER :: ianz
 !
-CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(par_names))), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE :: werte
 !
@@ -1237,7 +1239,7 @@ INTEGER :: ianz
 REAL    :: step
 REAL    :: rval_w
 !
-CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE :: werte
 !

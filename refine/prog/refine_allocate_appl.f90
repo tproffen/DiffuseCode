@@ -39,7 +39,7 @@ CHARACTER (LEN=*), INTENT(IN)            :: zeile
 INTEGER          , INTENT(INOUT)         :: lcomm
 !
 INTEGER , PARAMETER                      :: MAXW=10
-CHARACTER (LEN=1024), DIMENSION(1:MAXW)  :: cpara
+CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW)  :: cpara
 INTEGER             , DIMENSION(1:MAXW)  :: lpara
 REAL(KIND=PREC_DP)  , DIMENSION(1:MAXW)  :: werte
 INTEGER                                  :: ianz
@@ -79,6 +79,7 @@ END SUBROUTINE refine_do_allocate_appl
 SUBROUTINE refine_do_deallocate_appl(zeile,lcomm)
 !
 USE get_params_mod
+USE precision_mod
 IMPLICIT NONE
 !
 !
@@ -86,7 +87,7 @@ CHARACTER (LEN=*), INTENT(IN)            :: zeile     ! input command line
 INTEGER          , INTENT(INOUT)         :: lcomm     ! command line length
 !
 INTEGER , PARAMETER                      :: MAXW=10
-CHARACTER (LEN=1024), DIMENSION(1:MAXW)  :: cpara
+CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW)  :: cpara
 INTEGER             , DIMENSION(1:MAXW)  :: lpara
 !      REAL                , DIMENSION(1:MAXW)  :: werte
 INTEGER                                  :: ianz

@@ -29,7 +29,7 @@ INTEGER         , INTENT(INOUT) :: length
 LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE.
 INTEGER, PARAMETER :: MAXW = 20
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 !REAL               , DIMENSION(MAXW) :: werte
 !
@@ -38,7 +38,7 @@ INTEGER                              :: ianz, iianz
 INTEGER                              :: i, j
 LOGICAL                              :: is_new = .FALSE.  ! is a new parameter name
 !
-CHARACTER(LEN=1024)                  :: string
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line)))                  :: string
 CHARACTER(LEN=  16)                  :: pname
 INTEGER                              :: lpname
 INTEGER                              :: laenge
@@ -52,7 +52,7 @@ REAL                                 :: range_high   ! ranges
 LOGICAL, DIMENSION(2)                :: lrange       ! Range is provided
 !
 INTEGER, PARAMETER :: MAXF=2
-CHARACTER(LEN=1024), DIMENSION(MAXF) :: ccpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXF) :: ccpara
 INTEGER            , DIMENSION(MAXF) :: llpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXF) :: wwerte
 !
@@ -62,8 +62,8 @@ INTEGER, PARAMETER :: ONDERIV   = 2
 INTEGER, PARAMETER :: OVALUE    = 3
 INTEGER, PARAMETER :: OSTATUS   = 4
 INTEGER, PARAMETER :: ORANGE    = 5
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
