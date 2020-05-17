@@ -44,7 +44,7 @@ USE precision_mod
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(1024) line, zeile, cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) line, zeile, cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw), wwwerte (maxw) 
       REAL(KIND=PREC_DP) :: uwerte (maxw) 
       INTEGER lbeg (3) 
@@ -712,7 +712,7 @@ USE precision_mod
       CHARACTER ( * ) zeile 
       INTEGER lp 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: cpara (maxw) 
       REAL(KIND=PREC_DP):: werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
@@ -1933,7 +1933,7 @@ USE precision_mod
       PARAMETER (maxw = 6) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw) 
       CHARACTER(9) at_name_i 
       INTEGER lpara (maxw) 
       INTEGER i, ianz, laenge 
@@ -2093,7 +2093,7 @@ USE precision_mod
       PARAMETER (maxw = 6) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw) 
       CHARACTER(9) at_name_i 
       CHARACTER (LEN=4)  :: el_name
       INTEGER lpara (maxw) 
@@ -2231,7 +2231,7 @@ USE precision_mod
       PARAMETER (maxw = 2) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, laenge 
 !                                                                       
@@ -2286,7 +2286,7 @@ USE precision_mod
       PARAMETER (maxatom = chem_max_neig) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw) 
       CHARACTER(9) at_name_i 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL(KIND=PREC_SP) :: pos (3, 0:maxatom) 
@@ -2444,7 +2444,7 @@ USE precision_mod
       PARAMETER (maxw = 15) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) cpara (maxw), catom (2) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw), catom (2) 
       REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw) 
       INTEGER lpara (maxw), latom (2) 
       INTEGER lp, ianz, iianz 
@@ -2882,8 +2882,8 @@ USE precision_mod
       PARAMETER (maxval = 1000) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) fname, catom (2) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: fname, catom (2) 
       INTEGER back_cvec (5, chem_max_vec) 
       INTEGER lpara (maxw) 
       INTEGER latom (2), lbeg (3), lname 
@@ -3216,7 +3216,7 @@ USE precision_mod
       REAL(KIND=PREC_DP):: werte (maxw) 
       LOGICAL lout 
 !                                                                       
-      CHARACTER(1024) fname 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: fname 
       CHARACTER(9) at_name_i, at_name_j 
       INTEGER atom (0:maxatom), natom 
       INTEGER iianz, jjanz, i, j, k, is, js, ic 
@@ -4336,7 +4336,7 @@ USE precision_mod
 !     INTEGER ianz, maxw 
 !     CHARACTER ( * ) cpara (maxw) 
 !     INTEGER lpara (maxw), lbeg (3) 
-      CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: ccpara
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))), DIMENSION(:), ALLOCATABLE :: ccpara
       INTEGER         , DIMENSION(:), ALLOCATABLE :: llpara
 !     LOGICAL lout
 !                                                                       
@@ -4779,7 +4779,7 @@ USE precision_mod
       INTEGER lpara (maxw), lbeg (3) 
       LOGICAL lout 
 !                                                                       
-      CHARACTER(1024) ccpara (MAXSCAT) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: ccpara (MAXSCAT) 
       INTEGER llpara (maxw) 
 !                                                                       
       INTEGER atom (0:maxatom), natom 
@@ -6605,7 +6605,7 @@ USE precision_mod
 !
       INTEGER, PARAMETER                  :: MAXW=4
 !
-      CHARACTER(LEN=1024),DIMENSION(MAXW) :: cpara
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))),DIMENSION(MAXW) :: cpara
       INTEGER            ,DIMENSION(MAXW) :: lpara
       REAL(KIND=PREC_DP) ,DIMENSION(MAXW) :: werte
       INTEGER                             :: ianz    ! loop index

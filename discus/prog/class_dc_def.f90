@@ -3,6 +3,7 @@ MODULE dc_def_class
 !  Defines a class dc_def_class
 USE prompt_mod
 USE errlist_mod
+USE precision_mod
 !
 !  This class contains the definitions for a molecule decoration.
 !
@@ -21,9 +22,9 @@ END TYPE dc_con
 TYPE dc_def
    INTEGER                  :: dc_def_index    ! Current definition number
    INTEGER                  :: dc_def_lname    ! Length of the definition name
-   CHARACTER(LEN=1024)      :: dc_def_name     ! the definition name
+   CHARACTER(LEN=PREC_STRING)      :: dc_def_name     ! the definition name
    INTEGER                  :: dc_def_lfile    ! Length of the molecule file name
-   CHARACTER(LEN=1024)      :: dc_def_file     ! the molecule file name
+   CHARACTER(LEN=PREC_STRING)      :: dc_def_file     ! the molecule file name
    INTEGER                  :: dc_def_molnum   = 0       ! This molecule in dc_molecules belongs to me
    INTEGER                  :: dc_def_type     = 1       ! Connection type (NORMAL, BRIDGE, ...)
    CHARACTER(LEN=8)         :: dc_def_ntype    = 'NORMAL'! Connection type name (NORMAL, BRIDGE, ...)
@@ -59,7 +60,7 @@ CONTAINS
    TYPE (dc_def), POINTER :: this
    TYPE (dc_def), POINTER :: search
    INTEGER             , INTENT(IN)    :: temp_lname
-   CHARACTER (LEN=1024), INTENT(IN)    :: temp_name
+   CHARACTER (LEN=*)   , INTENT(IN)    :: temp_name
    INTEGER             , INTENT(INOUT) :: temp_id
    LOGICAL             , INTENT(IN)    :: lnew
    INTEGER             , INTENT(INOUT) :: success
@@ -139,7 +140,7 @@ CONTAINS
 !
    TYPE (dc_def), POINTER :: this
    INTEGER             , INTENT(IN) :: dc_temp_lfile
-   CHARACTER (LEN=1024), INTENT(IN) :: dc_temp_file
+   CHARACTER (LEN=*   ), INTENT(IN) :: dc_temp_file
 !
    IF(ASSOCIATED(this)) THEN
       this%dc_def_file  = dc_temp_file
@@ -449,7 +450,7 @@ CONTAINS
 !
    TYPE (dc_con), POINTER :: this
 !
-   CHARACTER(LEN=1024) :: line
+   CHARACTER(LEN=*   ) :: line
    INTEGER             :: i
 !
    IF(ASSOCIATED(this)) THEN
@@ -573,7 +574,7 @@ CONTAINS
    IMPLICIT NONE
 !
    TYPE (dc_def), POINTER :: this
-   CHARACTER (LEN=1024), INTENT(OUT)   :: mole_name
+   CHARACTER (LEN=*   ), INTENT(OUT)   :: mole_name
    INTEGER, INTENT(OUT)   :: length
 !
    mole_name = this%dc_def_file 

@@ -25,6 +25,7 @@ USE do_wait_mod
 USE doact_mod
 USE errlist_mod
 USE learn_mod
+USE precision_mod
 USE prompt_mod
 USE sup_mod
 !
@@ -32,8 +33,8 @@ IMPLICIT NONE
 !
 CHARACTER (LEN=5)                       :: befehl! command on input line
 CHARACTER(LEN=LEN(prompt))              :: orig_prompt  ! original prompt
-CHARACTER (LEN=1024)                    :: line  ! input line
-CHARACTER (LEN=1024)                    :: zeile ! remainder with parameters
+CHARACTER (LEN=PREC_STRING)                    :: line  ! input line
+CHARACTER (LEN=PREC_STRING)                    :: zeile ! remainder with parameters
 INTEGER                                 :: indxg ! location of "="
 INTEGER                                 :: lp    ! length of zeile
 INTEGER                                 :: laenge
@@ -236,15 +237,15 @@ INTEGER, INTENT(INOUT)          :: lp
 !
 INTEGER, PARAMETER                   :: MAXW = 4
 INTEGER, PARAMETER                   :: MIN_PARA = 2
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: ccpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: ccpara
 INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: llpara
 REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: wwerte
 INTEGER                              :: ianz
 INTEGER                              :: iianz
 !
-CHARACTER(LEN=1024)                  :: string
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile)))                  :: string
 INTEGER                              :: j, k
 INTEGER                              :: llp
 INTEGER                              :: MAXWW
@@ -252,8 +253,8 @@ INTEGER                              :: MAXWW
 INTEGER, PARAMETER :: NOPTIONAL = 2
 INTEGER, PARAMETER :: O_MOLRANG = 1
 INTEGER, PARAMETER :: O_ATOMRANG= 2
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
@@ -389,15 +390,15 @@ LOGICAL, INTENT(IN)             :: sel    ! =true for select
 !
 INTEGER, PARAMETER                   :: MAXW = 4
 INTEGER, PARAMETER                   :: MIN_PARA = 2
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: ccpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: ccpara
 INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: llpara
 REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: wwerte
 INTEGER                              :: ianz
 INTEGER                              :: iianz
 !
-CHARACTER(LEN=1024)                  :: string
+CHARACTER(LEN=PREC_STRING)                  :: string
 INTEGER                              :: i, j
 INTEGER                              :: llp
 INTEGER                              :: MAXWW
@@ -405,8 +406,8 @@ INTEGER                              :: MAXWW
 INTEGER, PARAMETER :: NOPTIONAL = 2
 INTEGER, PARAMETER :: O_MOLTYPE = 1
 INTEGER, PARAMETER :: O_ATOMTYPE= 2
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   8), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present

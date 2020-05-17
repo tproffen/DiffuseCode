@@ -547,11 +547,11 @@ USE precision_mod
       INTEGER, PARAMETER  :: maxw2 = 2
       INTEGER, PARAMETER  :: NOPTIONAL = 2
 !
-      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: cpara
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: cpara
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: lpara
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: werte
 !
-      CHARACTER(LEN=1024), DIMENSION(2)  :: ccpara
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(2)  :: ccpara
       INTEGER            , DIMENSION(2)  :: llpara
       REAL(KIND=PREC_DP) , DIMENSION(2)  :: wwerte
 !
@@ -576,7 +576,7 @@ USE precision_mod
       REAL                :: rmax         ! maximum bond distance
 !
       CHARACTER(LEN=   9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para was present
@@ -1008,10 +1008,10 @@ USE precision_mod
       CHARACTER(5) befehl 
 !     CHARACTER(50) prom 
       CHARACTER(LEN=LEN(PROMPT)) :: orig_prompt 
-      CHARACTER(1024) line, zeile
-      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAXSCAT) 
+      CHARACTER(LEN=PREC_STRING) :: line, zeile
+      CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAXSCAT) 
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAXSCAT)
-      CHARACTER(LEN=1024), DIMENSION(1)                       ::ccpara ! (MAXSCAT) 
+      CHARACTER(LEN=PREC_STRING), DIMENSION(1)                       ::ccpara ! (MAXSCAT) 
       INTEGER            , DIMENSION(1)                       ::llpara ! (MAXSCAT)
       CHARACTER (LEN=256)  :: c_name   ! Connectivity name
       INTEGER              :: c_name_l ! connectivity name length
@@ -1562,7 +1562,7 @@ USE precision_mod
    INTEGER          , INTENT(INOUT) :: length
 !
    INTEGER, PARAMETER                   :: MAXW = 3
-   CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+   CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
    INTEGER            , DIMENSION(MAXW) :: lpara
    REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
    INTEGER                                 :: ianz , iianz

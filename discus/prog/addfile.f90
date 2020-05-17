@@ -24,13 +24,14 @@ USE precision_mod
       INTEGER maxw, if1, if2, if3 
       PARAMETER (maxw = 15, if1 = 1, if2 = 2, if3 = 3) 
 !                                                                       
-      CHARACTER ( * ) string 
+CHARACTER(LEN=*), INTENT(INOUT) :: string 
+INTEGER         , INTENT(INOUT) :: laenge
       CHARACTER(3) ftyp 
       CHARACTER(7) stat 
-      CHARACTER(1024) datei, line, fname 
-      CHARACTER(1024) cpara (maxw), ccpara (maxw) 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: datei, line, fname 
+      CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: cpara (maxw), ccpara (maxw) 
       INTEGER lpara (maxw) 
-      INTEGER nx (2), ny (2), i, j, ianz, laenge 
+      INTEGER nx (2), ny (2), i, j, ianz
       INTEGER line_no 
       LOGICAL lcont, lread 
       REAL xmin (2), xmax (2), ymin (2), ymax (2), scale 

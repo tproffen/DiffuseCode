@@ -16,6 +16,8 @@ USE crystal_mod
 USE chem_mod
 USE wyckoff_mod
 !
+USE precision_mod
+!
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN) :: zeile
@@ -24,7 +26,7 @@ INTEGER         , INTENT(IN) :: lp
 INTEGER, PARAMETER    :: IWR = 91
 REAL   , PARAMETER    :: EPS =  0.001
 !
-CHARACTER(LEN=1024)   :: outfile
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile)))   :: outfile
 INTEGER               :: i, j
 INTEGER               :: isym
 INTEGER               :: iv, ivv
