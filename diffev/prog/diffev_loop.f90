@@ -14,6 +14,7 @@ USE class_macro_internal
 USE mpi_slave_mod
 USE diffev_random
 USE do_if_mod
+USE precision_mod
 USE prompt_mod 
 USE set_sub_generic_mod
 USE sup_mod
@@ -32,7 +33,7 @@ IMPLICIT none
 !*****7*****************************************************************
 !
 !                                                                       
-CHARACTER (LEN=1024)           :: line, zeile 
+CHARACTER (LEN=PREC_STRING)    :: line, zeile 
 CHARACTER (LEN=4)              :: befehl 
 LOGICAL                        :: lend   = .false.
 INTEGER                        :: laenge, lp, lbef 

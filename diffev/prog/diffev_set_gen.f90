@@ -11,6 +11,7 @@ SUBROUTINE set_gen(gen)
 USE compare
 USE population
 USE errlist_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -20,11 +21,11 @@ INTEGER, PARAMETER :: IRD = 17
 INTEGER, PARAMETER :: IWR = 18
 INTEGER, PARAMETER :: lpar=LEN(pop_name)
 !
-CHARACTER(LEN=1024)  :: line
-CHARACTER(LEN=1024)  :: logfiles
-CHARACTER(LEN=1024)  :: sumfiles
-CHARACTER(LEN=1024)  :: curfiles
-CHARACTER(LEN=1024)  :: outfile
+CHARACTER(LEN=PREC_STRING)  :: line
+CHARACTER(LEN=PREC_STRING)  :: logfiles
+CHARACTER(LEN=PREC_STRING)  :: sumfiles
+CHARACTER(LEN=PREC_STRING)  :: curfiles
+CHARACTER(LEN=PREC_STRING)  :: outfile
 CHARACTER(LEN=LEN(pop_name)), DIMENSION(:), ALLOCATABLE :: par_name
 INTEGER :: i
 INTEGER :: generation

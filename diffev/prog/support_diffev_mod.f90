@@ -26,7 +26,7 @@ USE precision_mod
    INTEGER            ,INTENT(IN   ) :: n        ! extension number
 !
    CHARACTER (LEN=5)              :: string 
-   CHARACTER (LEN=1024)           :: cpara (maxw) 
+   CHARACTER (LEN=MAX(PREC_STRING,LEN(infile)))           :: cpara (maxw) 
    INTEGER                        :: lpara (maxw) 
    INTEGER                        :: fpara 
    INTEGER                        :: ianz, ldot 

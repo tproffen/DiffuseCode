@@ -50,10 +50,10 @@ CHARACTER (LEN= *  ), INTENT(INOUT) :: line
 LOGICAL             , INTENT(  OUT) :: lend 
 INTEGER             , INTENT(INOUT) :: length 
 !
-CHARACTER (LEN=1024)                  :: zeile   = ' '
-CHARACTER (LEN=1024), DIMENSION(MAXW) :: cpara   = ' '
+CHARACTER (LEN=PREC_STRING)                  :: zeile   = ' '
+CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW) :: cpara   = ' '
 CHARACTER (LEN=   9)                  :: befehl  = ' '
-CHARACTER (LEN=1024)                  :: string  = ' '
+CHARACTER (LEN=PREC_STRING)                  :: string  = ' '
 INTEGER                               :: indxb, indxg, lcomm, lbef, indxt 
 INTEGER                               :: i, j, k, ii , nb
 INTEGER                               :: n_pop  ! dummy for allocation
@@ -78,8 +78,8 @@ INTEGER, PARAMETER :: O_PARTIAL = 1
 INTEGER, PARAMETER :: O_REPEAT  = 2
 INTEGER, PARAMETER :: O_LOGFILE = 3
 INTEGER, PARAMETER :: O_COMPUTE = 4
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present

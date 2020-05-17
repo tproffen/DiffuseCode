@@ -12,13 +12,14 @@ USE diffev_blk_appl
 USE population
 USE diff_evol
 USE do_variable_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
-CHARACTER (LEN=1024)                   :: zeile
+CHARACTER (LEN=PREC_STRING)                   :: zeile
 INTEGER            , PARAMETER         :: MAXW=2
 INTEGER                                :: ianz
-CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
 !
 LOGICAL, PARAMETER   :: is_diffev = .TRUE.

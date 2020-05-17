@@ -29,6 +29,7 @@ CONTAINS
    USE constraint
    USE create_trial_mod
    USE population
+USE precision_mod
    USE random_mod
 !
    IMPLICIT none 
@@ -37,8 +38,8 @@ CONTAINS
 !                                                                       
    INTEGER, PARAMETER   :: iwr = 7
 !                                                                       
-   CHARACTER (LEN=2048) :: line 
-   CHARACTER (LEN=1024) :: fname 
+   CHARACTER (LEN=PREC_LSTRING) :: line 
+   CHARACTER (LEN=PREC_STRING) :: fname 
    INTEGER              :: i
    INTEGER              :: i1, i2 
    INTEGER              :: length
@@ -198,6 +199,7 @@ CONTAINS
    USE create_trial_mod
 !  USE do_if_mod
    USE do_execute_mod
+USE precision_mod
    USE random_mod
 !
    IMPLICIT none
@@ -207,8 +209,8 @@ CONTAINS
 !
    INTEGER, PARAMETER   :: iwr = 7
 !
-   CHARACTER (LEN=2048) :: line 
-   CHARACTER (LEN=1024) :: fname 
+   CHARACTER (LEN=PREC_LSTRING) :: line 
+   CHARACTER (LEN=PREC_STRING) :: fname 
    INTEGER              :: n_tried 
    INTEGER              :: length 
    INTEGER              :: i,j,l

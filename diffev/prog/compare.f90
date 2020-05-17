@@ -355,6 +355,7 @@ list_index(:) = 0
    USE create_trial_mod
    USE support_diffev_mod
 !
+   USE precision_mod
    USE prompt_mod
    USE random_mod
    USE terminal_mod
@@ -366,8 +367,8 @@ list_index(:) = 0
    INTEGER, PARAMETER             :: iwr = 7 
 !                                                                       
    CHARACTER (LEN=7)              :: stat = 'unknown'
-   CHARACTER (LEN=1024)           :: line 
-   CHARACTER (LEN=1024)           :: fname
+   CHARACTER (LEN=PREC_STRING)    :: line 
+   CHARACTER (LEN=PREC_STRING)    :: fname
    INTEGER                        :: j, i, ii , k
    INTEGER                        :: len_file,length 
    INTEGER                        :: pop_dimx_old
@@ -613,6 +614,7 @@ list_index(:) = 0
    USE diff_evol
    USE population
    USE lib_f90_allocate_mod
+   USE precision_mod
    USE variable_mod
 !
    IMPLICIT none 
@@ -625,8 +627,8 @@ list_index(:) = 0
    INTEGER                        :: length
 !                                                                       
 !   CHARACTER (LEN=7)              :: stat  = 'append'
-   CHARACTER (LEN=2048)           :: line 
-   CHARACTER (LEN=1024)           :: fname
+   CHARACTER (LEN=PREC_LSTRING)   :: line 
+   CHARACTER (LEN=PREC_STRING)    :: fname
 !   LOGICAL                        :: lread = .false.
 !                                                                       
    REAL                           :: pave, pmin, pmax, psig 
@@ -848,6 +850,7 @@ list_index(:) = 0
    USE create_trial_mod
    USE diff_evol
    USE population
+   USE precision_mod
 !
    IMPLICIT NONE
 !
@@ -856,8 +859,8 @@ list_index(:) = 0
    INTEGER                        :: i, j , k, kmax
    INTEGER                        :: length
 !
-   CHARACTER (LEN=1024)           :: fname
-   CHARACTER (LEN=1024)           :: line
+   CHARACTER (LEN=PREC_STRING)    :: fname
+   CHARACTER (LEN=PREC_STRING)    :: line
    INTEGER, EXTERNAL              :: len_str
 !                                                                       
 !                                                                       
@@ -945,6 +948,7 @@ list_index(:) = 0
 ! and Summary files need to be written accordingly.
 !
    USE population
+   USE precision_mod
 !
    IMPLICIT none
 !
@@ -953,9 +957,9 @@ list_index(:) = 0
    INTEGER, PARAMETER    :: iwr = 7
 !
    CHARACTER (LEN=   7)  :: stat
-   CHARACTER (LEN=8192)  :: line
-   CHARACTER (LEN=1024)  :: fname
-   CHARACTER (LEN=1024)  :: oname
+   CHARACTER (LEN=8*PREC_STRING)  :: line
+   CHARACTER (LEN=PREC_STRING)  :: fname
+   CHARACTER (LEN=PREC_STRING)  :: oname
 !
    INTEGER               :: length
    INTEGER               :: i,j

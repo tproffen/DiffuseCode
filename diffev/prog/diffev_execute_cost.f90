@@ -26,7 +26,10 @@ SUBROUTINE diffev_execute_cost( repeat,    &
 !  This version is called if diffev runs as standalone and 
 !  MPI is not active.
 !
+USE precision_mod
+!
 IMPLICIT NONE
+!
 LOGICAL                , INTENT(IN) :: repeat
 INTEGER                , INTENT(IN) :: prog_len
 INTEGER                , INTENT(IN) :: prog_l
@@ -61,7 +64,7 @@ LOGICAL                , INTENT(IN ):: l_first_job
 CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_names
 REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_values
 !
-CHARACTER(LEN=2048) :: line
+CHARACTER(LEN=PREC_LSTRING) :: line
 INTEGER             :: job_l
 !
 INTEGER             :: len_str

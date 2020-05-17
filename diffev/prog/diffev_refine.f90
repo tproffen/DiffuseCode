@@ -16,16 +16,17 @@ CONTAINS
    USE define_variable_mod
    USE set_sub_generic_mod
    USE doexec_mod
+USE precision_mod
    USE variable_mod
-use do_variable_mod
+USE do_variable_mod
 !
    IMPLICIT NONE
 !
    LOGICAL, PARAMETER    :: IS_DIFFEV = .TRUE.
    LOGICAL , INTENT(IN)  :: flag_block    ! run_mpi was called in a do block
 !
-   CHARACTER (LEN=2048)  :: send_direc    ! working directory
-   CHARACTER (LEN=1024)  :: zeile         ! dummy line
+   CHARACTER (LEN=PREC_LSTRING)  :: send_direc    ! working directory
+   CHARACTER (LEN=PREC_STRING)  :: zeile         ! dummy line
    CHARACTER(LEN= 9+LEN(pop_name))   :: string
    INTEGER               :: send_direc_l  ! working directory length
    INTEGER               :: lzeile        ! working directory length

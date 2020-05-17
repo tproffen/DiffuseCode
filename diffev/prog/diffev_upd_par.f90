@@ -24,7 +24,7 @@ INTEGER              , INTENT(IN   ) :: maxw
 INTEGER              , INTENT(IN   ) :: ianz
 REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN   ) :: ww
 !
-CHARACTER (LEN=1024)                 :: zeile 
+CHARACTER (LEN=MAX(PREC_STRING,LEN(string))) :: zeile 
 !                                                                       
 INTEGER                              :: laenge, ltyp, kpara, kpara2
 INTEGER                              :: lcomm 
@@ -773,10 +773,10 @@ INTEGER            , INTENT(INOUT) :: laenge
 INTEGER            , INTENT(INOUT) :: lp
 REAL(KIND=PREC_DP) , INTENT(INOUT) :: ww
 !
-CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
 REAL               , DIMENSION(1:MAXW) :: werte
-CHARACTER(LEN=1024) :: parstring
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: parstring
 INTEGER              :: ianz
 INTEGER              :: i, j, lcomm
 !                                                                       

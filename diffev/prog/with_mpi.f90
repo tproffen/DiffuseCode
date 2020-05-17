@@ -66,13 +66,6 @@ INTEGER               :: length
 INTEGER               :: ierr
 LOGICAL               :: success
 !
-!INTEGER, PARAMETER :: IDEF=69
-!CHARACTER(LEN=1024) :: line
-!CHARACTER(LEN=1024) :: string
-!INTEGER :: PID
-!INTEGER :: ind_pid
-!INTEGER :: ind_mpi
-!INTEGER, EXTERNAL :: lib_f90_getpid
 !
 gen_mpi_active = .FALSE.
 mpi_active = .FALSE.
@@ -298,6 +291,7 @@ USE population
 USE run_mpi_mod
 USE gen_mpi_mod
 USE errlist_mod
+USE precision_mod
 USE prompt_mod
 !
 IMPLICIT none
@@ -306,7 +300,7 @@ INTEGER, PARAMETER    :: one_indiv = 1 ! Send NINDIV=1 to distrib if repeat==fal
 !
 INTEGER, DIMENSION(1:MPI_STATUS_SIZE) :: run_mpi_status
 !
-CHARACTER (LEN=2048)  :: send_direc    ! working directory
+CHARACTER (LEN=PREC_LSTRING)  :: send_direc    ! working directory
 INTEGER               :: send_direc_l  ! working directory length
 INTEGER               :: sender        ! Id of slave that answered
 INTEGER               :: i,j,kid
@@ -605,12 +599,13 @@ USE errlist_mod
 USE mpi_slave_mod
 USE prompt_mod
 USE sockets_mod
+USE precision_mod
 USE variable_mod
 !
 IMPLICIT none
 !
-CHARACTER (LEN=2048)   :: line
-CHARACTER (LEN=2048)   :: output
+CHARACTER (LEN=PREC_LSTRING)   :: line
+CHARACTER (LEN=PREC_LSTRING)   :: output
 !
 INTEGER, DIMENSION(1:MPI_STATUS_SIZE) :: run_mpi_status
 !

@@ -17,6 +17,8 @@ USE diffev_allocate_appl
 USE errlist_mod 
 USE do_show_mod
 USE get_params_mod
+!
+USE precision_mod
 USE prompt_mod 
 !
 IMPLICIT none 
@@ -27,7 +29,7 @@ INTEGER, PARAMETER   :: maxw = 2
 CHARACTER (LEN= *  ), INTENT(INOUT) :: line 
 INTEGER             , INTENT(INOUT) :: lp 
 !
-CHARACTER (LEN=1024), DIMENSION(maxw)  :: cpara (maxw) 
+CHARACTER (LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(maxw)  :: cpara (maxw) 
 INTEGER             , DIMENSION(maxw)  :: lpara (maxw)
 INTEGER                                :: ianz
 LOGICAL                                :: str_comp 
@@ -75,7 +77,7 @@ CHARACTER(LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
 INTEGER,          DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 !
 INTEGER            , PARAMETER          :: MAXWW=1
-CHARACTER(LEN=1024), DIMENSION(1:MAXWW) :: ccpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))), DIMENSION(1:MAXWW) :: ccpara
 INTEGER,             DIMENSION(1:MAXWW) :: llpara
 REAL(KIND=PREC_DP),  DIMENSION(1:MAXWW) :: wwerte
 INTEGER :: i, j

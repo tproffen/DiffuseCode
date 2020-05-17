@@ -105,15 +105,16 @@ USE run_mpi_mod
 !
 USE errlist_mod
 USE random_state_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
 INTEGER, PARAMETER :: IWR = 88
 !
 CHARACTER(LEN=40) :: macro_file = 'diffev_best.mac'
-CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=  39), PARAMETER :: string = 'cat *.mac |grep -F ref_para > /dev/null'
-CHARACTER(LEN=1024) :: message
+CHARACTER(LEN=PREC_STRING) :: message
 INTEGER            , PARAMETER :: lstring = 39
 INTEGER :: exit_msg
 INTEGER :: i, i1, nn
@@ -267,15 +268,16 @@ USE run_mpi_mod
 !
 USE errlist_mod
 USE random_state_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
 INTEGER, PARAMETER :: IWR = 88
 !
 CHARACTER(LEN=40) :: macro_file = 'diffev_error.0000.0000.mac'
-CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=  39), PARAMETER :: string = 'cat *.mac |grep -F ref_para > /dev/null'
-CHARACTER(LEN=1024) :: message
+CHARACTER(LEN=PREC_STRING) :: message
 INTEGER            , PARAMETER :: lstring = 39
 INTEGER :: exit_msg
 INTEGER :: i, i1, nn

@@ -27,7 +27,7 @@ INTEGER         , INTENT(INOUT) :: length
 !
 LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE.
 INTEGER, PARAMETER :: MAXW = 6
-CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
 !
@@ -43,8 +43,8 @@ LOGICAL                         :: lexist
 LOGICAL                         :: linit
 LOGICAL                         :: lreal
 INTEGER, PARAMETER :: NOPTIONAL = 2
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present

@@ -23,7 +23,7 @@ INTEGER          , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: maxw = 6
 !
-CHARACTER (LEN=1024), DIMENSION(MAXW) :: cpara   = ' '
+CHARACTER (LEN=    PREC_STRING            ), DIMENSION(MAXW) :: cpara   = ' '
 INTEGER             , DIMENSION(MAXW) :: lpara = 0
 REAL(KIND=PREC_DP)  , DIMENSION(MAXW) :: werte = 0.0
 !
@@ -43,8 +43,8 @@ INTEGER, PARAMETER :: O_VALUE = 2
 INTEGER, PARAMETER :: O_MIN   = 3
 INTEGER, PARAMETER :: O_MAX   = 4
 INTEGER, PARAMETER :: O_DISMISS=5
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=    PREC_STRING            ), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Length opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
@@ -52,7 +52,7 @@ REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
 !
 DATA oname  / 'range '  , 'value '   , 'min    '  , 'max   '  , 'dismiss'  /
-DATA loname /  6        ,  6         ,  6         ,  6        ,  6         /
+DATA loname /  6        ,  6         ,  6         ,  6        ,  7         /
 opara  =  (/ '-9999.00' , '-9999.00' , '-9999.00' , '-9999.00', '0.000000' /)   ! Always provide fresh default values
 lopara =  (/  8         ,  8         , 8          , 8         ,  8         /)
 owerte =  (/  -9999.    ,  -9999.    , -9999.0    , -9999.0   ,  0.0       /)

@@ -98,7 +98,7 @@ IMPLICIT none
 INTEGER,         INTENT(IN   ) :: j
 INTEGER,         INTENT(IN   ) :: jt
 !
-CHARACTER (LEN=1024)           :: line 
+CHARACTER (LEN=PREC_STRING)    :: line 
 INTEGER                        :: i, ii, k, l
 INTEGER                        :: n_tried 
 INTEGER                        :: length 

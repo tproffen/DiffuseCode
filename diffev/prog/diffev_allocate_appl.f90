@@ -43,7 +43,7 @@ USE precision_mod
     INTEGER          , INTENT(INOUT)         :: lcomm
 !
     INTEGER , PARAMETER                      :: MAXW=10
-    CHARACTER (LEN=1024), DIMENSION(1:MAXW)  :: cpara
+    CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW)  :: cpara
     INTEGER             , DIMENSION(1:MAXW)  :: lpara
     REAL(KIND=PREC_DP)  , DIMENSION(1:MAXW)  :: werte
     INTEGER                                  :: ianz
@@ -97,6 +97,7 @@ USE precision_mod
     SUBROUTINE diffev_do_deallocate_appl(zeile,lcomm)
 !
        USE get_params_mod
+USE precision_mod
        IMPLICIT NONE
 !
 !
@@ -104,7 +105,7 @@ USE precision_mod
        INTEGER          , INTENT(INOUT)         :: lcomm     ! command line length
 !
        INTEGER , PARAMETER                      :: MAXW=10
-       CHARACTER (LEN=1024), DIMENSION(1:MAXW)  :: cpara
+       CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW)  :: cpara
        INTEGER             , DIMENSION(1:MAXW)  :: lpara
 !      REAL                , DIMENSION(1:MAXW)  :: werte
        INTEGER                                  :: ianz
