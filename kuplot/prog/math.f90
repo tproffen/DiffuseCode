@@ -19,7 +19,7 @@ USE precision_mod
       PARAMETER (maxw = 1) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik, ir, l, i, j 
       REAL xxx, yyy, dxx, dyy 
@@ -119,7 +119,7 @@ USE precision_mod
       CHARACTER ( * ) zeile 
       INTEGER lp 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -455,7 +455,7 @@ USE precision_mod
       INTEGER lp 
       LOGICAL lsmooth 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(2) dir 
       INTEGER lpara (maxw) 
       INTEGER ianz, ik, ip, im, il 
@@ -564,7 +564,7 @@ USE precision_mod
       PARAMETER (maxw = 5) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ipkt, ip, ik, ix, iy 
       REAL rint, drint, rdx, rdy, xa, ya, xs 
@@ -707,7 +707,7 @@ USE precision_mod
       PARAMETER (maxw = 5) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik, ix, iy, i 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -882,7 +882,7 @@ USE precision_mod
       PARAMETER (maxw = 10) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(80) cdummy 
       CHARACTER(6) cout 
       REAL(KIND=PREC_DP) :: werte (maxw) 

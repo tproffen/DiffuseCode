@@ -42,9 +42,8 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 1) 
 !                                                                       
-      CHARACTER(1024) zei
-      CHARACTER(1024) cpara (maxw) 
-!     CHARACTER(LEN=1024), DIMENSION(3) :: blank = ' '
+      CHARACTER(LEN=PREC_STRING) :: zei
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(4) bef 
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       REAL dummy 

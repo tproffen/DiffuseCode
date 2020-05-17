@@ -1,5 +1,7 @@
 MODULE kuplot_3dm_mod
 !
+USE precision_mod
+!
 PUBLIC
 !
 INTEGER            :: k3dm_ik       = 0
@@ -17,9 +19,9 @@ INTEGER, PARAMETER :: K3DM_BLANK   =  0
 INTEGER, PARAMETER :: K3DM_IGNORE  =  1
 !
 CHARACTER(LEN=4)    :: k3dm_ctype  = ' '
-CHARACTER(LEN=1024) :: k3dm_line   = ' '
-CHARACTER(LEN=1024) :: k3dm_line_b = ' '
-CHARACTER(LEN=1024) :: k3dm_line_yf = ' '
+CHARACTER(LEN=PREC_STRING) :: k3dm_line   = ' '
+CHARACTER(LEN=PREC_STRING) :: k3dm_line_b = ' '
+CHARACTER(LEN=PREC_STRING) :: k3dm_line_yf = ' '
 
 INTEGER          :: k3dm_type      = 0
 INTEGER          :: k3dm_miss      = -1

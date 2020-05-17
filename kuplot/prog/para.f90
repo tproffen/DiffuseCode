@@ -20,7 +20,7 @@ USE precision_mod
       PARAMETER (maxw = 3) 
 !                                                                       
       CHARACTER ( * ) zeile, bef 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER nia, nie 
@@ -81,7 +81,7 @@ USE precision_mod
       PARAMETER (maxw = 4) 
 !                                                                       
       CHARACTER ( * ) zeile, befehl 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
       INTEGER nia, nib 
       INTEGER iarray (maxwin, maxframe, nia, nib), imi, ima 
@@ -144,7 +144,7 @@ USE precision_mod
       PARAMETER (maxw = 2) 
 !                                                                       
       CHARACTER ( * ) zeile, befehl 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw)
@@ -185,7 +185,7 @@ USE precision_mod
       CHARACTER ( * ) zeile, string 
       INTEGER lp 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -222,7 +222,7 @@ USE precision_mod
       CHARACTER ( * ) zeile, string 
       INTEGER lp 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       LOGICAL lflag, str_comp 
@@ -264,7 +264,7 @@ USE precision_mod
       PARAMETER (maxw = 7) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw), cdummy 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw), cdummy 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik, ic, it 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -341,7 +341,7 @@ USE precision_mod
       PARAMETER (maxw = 6) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ib, ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -409,7 +409,7 @@ USE precision_mod
       PARAMETER (maxw = 3) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik 
@@ -457,7 +457,7 @@ USE precision_mod
       PARAMETER (maxw = 2) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, it 
@@ -506,7 +506,7 @@ USE precision_mod
       PARAMETER (maxw = 3) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -581,7 +581,7 @@ USE precision_mod
 !                                                                       
       CHARACTER ( * ) zeile 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik 
@@ -651,7 +651,7 @@ USE precision_mod
 !                                                                       
       CHARACTER ( * ) zeile 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -751,7 +751,7 @@ USE precision_mod
       PARAMETER (maxw = 5) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -797,7 +797,7 @@ USE precision_mod
       PARAMETER (maxw = 5) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -859,7 +859,7 @@ USE precision_mod
       PARAMETER (maxw = 5) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -915,7 +915,7 @@ USE precision_mod
       PARAMETER (maxw = 2) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ii 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -967,7 +967,7 @@ USE precision_mod
       PARAMETER (maxw = 6) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ihl, i 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -1050,7 +1050,7 @@ USE precision_mod
       PARAMETER (maxw = 4) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(LEN=4)  :: bef
       INTEGER lpara (maxw), lp 
       INTEGER ianz, icol, ifon, ifid 
@@ -1189,7 +1189,7 @@ USE precision_mod
       PARAMETER (maxw = 4) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
       LOGICAL str_comp 

@@ -22,7 +22,7 @@ USE precision_mod
       PARAMETER (maxw = 7) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw), cfkt, cdummy 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw), cfkt, cdummy 
       INTEGER lp, lcfkt, lpara (maxw) 
       INTEGER ianz, i, ii, jj, kk, iref 
       INTEGER :: length
@@ -320,7 +320,7 @@ USE precision_mod
 CHARACTER(LEN=*), INTENT(INOUT) :: zeile 
 INTEGER         , INTENT(INOUT) :: lp
 LOGICAL         , INTENT(IN)    :: lecho
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(40) cdummy 
       INTEGER lpara (maxw) 
       INTEGER ianz, i, ii, jj 
@@ -442,8 +442,8 @@ USE precision_mod
       INTEGER, INTENT(INOUT) :: laenge
       LOGICAL, INTENT(IN) :: lecho          ! Show extrema after load
 !
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) wname, cdummy 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: wname, cdummy 
       CHARACTER(4) unter 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
@@ -454,8 +454,8 @@ USE precision_mod
       INTEGER ifiles, len_str 
 !
       INTEGER, PARAMETER :: NOPTIONAL = 6
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      CHARACTER(LEN=          9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -701,7 +701,7 @@ USE precision_mod
 !                                                                       
       INTEGER ifil 
 !                                                                       
-      CHARACTER(1024) line 
+      CHARACTER(LEN=PREC_STRING) :: line 
       INTEGER is
 !                                                                       
       INTEGER len_str 
@@ -1220,7 +1220,7 @@ USE precision_mod
       PARAMETER (maxw = 20) 
 !                                                                       
       CHARACTER ( * ) str1, str2 
-      CHARACTER(1024) line 
+      CHARACTER(LEN=PREC_STRING) :: line 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER ix, iy, ifil, nr, ianz, i, maxpp 
 !                                                                       
@@ -1277,13 +1277,15 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+!
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER mrect
       PARAMETER (mrect = 50) 
 !                                                                       
-      CHARACTER(1024) line 
+      CHARACTER(LEN=PREC_STRING) :: line 
       CHARACTER(5) cmagic, kom 
       REAL rect (mrect, 4) 
       REAL dxx, dyy 
@@ -1472,7 +1474,7 @@ USE precision_mod
       PARAMETER (READ_TYPE_SM = 2) 
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
-      CHARACTER (LEN=1024), DIMENSION(MAXWW) :: ccpara
+      CHARACTER (LEN=PREC_STRING), DIMENSION(MAXWW) :: ccpara
       INTEGER             , DIMENSION(MAXWW) :: llpara
       REAL(KIND=PREC_DP)  , DIMENSION(MAXWW) :: wwerte
       CHARACTER(4096) mine, sinfo 
@@ -2093,7 +2095,7 @@ USE precision_mod
       INTEGER len, istart, iend 
       LOGICAL lall 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ipos
@@ -2214,8 +2216,8 @@ USE precision_mod
       PARAMETER (nbank = 100) 
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
-      CHARACTER(1024) line 
-      CHARACTER(1024) iname, gsastit, filename 
+      CHARACTER(LEN=PREC_STRING) :: line 
+      CHARACTER(LEN=PREC_STRING) :: iname, gsastit, filename 
       CHARACTER(1) units, cunits 
       REAL(8) difc (nbank) 
       REAL(8) difa (nbank) 
@@ -2733,7 +2735,7 @@ USE precision_mod
       INTEGER ifil 
       LOGICAL liparm 
 !                                                                       
-      CHARACTER(1024) line, dummy 
+      CHARACTER(LEN=PREC_STRING) :: line, dummy 
       INTEGER len_str 
 !                                                                       
       liparm = .false. 
@@ -2787,7 +2789,7 @@ USE precision_mod
       INTEGER bid (nbank) 
       INTEGER ndat, ibank, ifil 
 !                                                                       
-      CHARACTER(1024) line, bank_line 
+      CHARACTER(LEN=PREC_STRING) :: line, bank_line 
       REAL clckwdt, onetick, scal 
       REAL c_min, c_d, monitor 
       REAL gtmin, gtmax, gtlog, xdelta 
@@ -3244,7 +3246,7 @@ USE precision_mod
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      CHARACTER(1024) line 
+      CHARACTER(LEN=PREC_STRING) :: line 
       REAL values (mm) 
       INTEGER ifil, nr, nval, iwex, iwey, iwdx, iwdy, iski 
       INTEGER i, maxpp 
@@ -3368,17 +3370,17 @@ IMPLICIT NONE
 !
 INTEGER                                   , INTENT(IN   ) :: MAXW
 INTEGER                                   , INTENT(INOUT) :: ianz
-CHARACTER (LEN=1024), DIMENSION(MAXW)     , INTENT(INOUT) :: cpara
+CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW)     , INTENT(INOUT) :: cpara
 INTEGER             , DIMENSION(MAXW)     , INTENT(INOUT) :: lpara
 INTEGER                                   , INTENT(IN   ) :: NOPTIONAL
-CHARACTER (LEN=1024), DIMENSION(NOPTIONAL), INTENT(INOUT) :: opara
+CHARACTER (LEN=PREC_STRING), DIMENSION(NOPTIONAL), INTENT(INOUT) :: opara
 INTEGER             , DIMENSION(NOPTIONAL), INTENT(INOUT) :: lopara
 REAL(KIND=PREC_DP)  , DIMENSION(NOPTIONAL), INTENT(INOUT) :: owerte
 INTEGER                                   , INTENT(IN   ) :: ncalc
 INTEGER                                   , INTENT(IN   ) :: ifil
 LOGICAL                                   , INTENT(IN   ) :: lecho
 !
-CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=PREC_STRING) :: line
 INTEGER             :: ios
 INTEGER :: isep, iskip, icolx, icoly, icoldx, icoldy, ncol
 INTEGER :: length
@@ -3520,12 +3522,13 @@ END SUBROUTINE do_read_csv
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !
       INTEGER, INTENT(in) :: ifil
 !
-      CHARACTER(LEN=1024) :: line
+      CHARACTER(LEN=PREC_STRING) :: line
       CHARACTER(LEN=1   ) :: sep
       INTEGER             :: ios
       INTEGER             :: isep
@@ -3743,10 +3746,11 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) line 
+      CHARACTER(LEN=PREC_STRING) :: line 
       INTEGER ifil, nr, maxpp 
 !                                                                       
 !------ read data                                                       
@@ -3917,7 +3921,7 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
-      CHARACTER(1024) line 
+      CHARACTER(LEN=PREC_STRING) :: line 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER ifil, j, npkt 
       INTEGER ianz, i, maxpp 

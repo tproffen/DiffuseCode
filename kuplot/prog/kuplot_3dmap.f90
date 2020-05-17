@@ -25,6 +25,7 @@ USE do_wait_mod
 USE doact_mod
 USE errlist_mod
 USE learn_mod
+USE precision_mod
 USE prompt_mod
 USE sup_mod
 USE take_param_mod
@@ -33,8 +34,8 @@ IMPLICIT NONE
 !
 CHARACTER (LEN=5)                       :: befehl! command on input line
 CHARACTER(LEN=LEN_TRIM(prompt))         :: orig_prompt  ! original prompt
-CHARACTER (LEN=1024)                    :: line  ! input line
-CHARACTER (LEN=1024)                    :: zeile ! remainder with parameters
+CHARACTER (LEN=PREC_STRING)             :: line  ! input line
+CHARACTER (LEN=PREC_STRING)             :: zeile ! remainder with parameters
 INTEGER                                 :: indxg ! location of "="
 INTEGER                                 :: lp    ! length of zeile
 INTEGER                                 :: laenge
@@ -43,7 +44,7 @@ LOGICAL                                 :: lend
 !
 !
 INTEGER, PARAMETER :: MAXW = 20
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
@@ -205,6 +206,7 @@ SUBROUTINE get_direction(line, length)
 !
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -216,8 +218,8 @@ INTEGER, PARAMETER :: O_PHI   = 1
 INTEGER, PARAMETER :: O_RHO   = 2
 !
 INTEGER, PARAMETER :: NOPTIONAL = 2
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   3), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -225,7 +227,7 @@ REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate 
 !
 INTEGER, PARAMETER :: MAXW = MAX(20,NOPTIONAL)
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
@@ -256,6 +258,7 @@ SUBROUTINE get_xrange(line, length)
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -267,8 +270,8 @@ INTEGER, PARAMETER :: O_XMIN = 1
 INTEGER, PARAMETER :: O_XMAX = 2
 !
 INTEGER, PARAMETER :: NOPTIONAL = 2
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -276,7 +279,7 @@ REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 INTEGER, PARAMETER :: MAXW = MAX(20,NOPTIONAL)
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
@@ -333,6 +336,7 @@ SUBROUTINE get_yfunc (line, length)
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -343,8 +347,8 @@ INTEGER         , INTENT(INOUT) :: length
 INTEGER, PARAMETER :: O_LOOP = 1
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -352,7 +356,7 @@ REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 INTEGER, PARAMETER :: MAXW = MAX(20,NOPTIONAL)
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
@@ -394,6 +398,7 @@ USE kuplot_mod
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 USE variable_mod
 !
@@ -403,7 +408,7 @@ CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: length
 !
 LOGICAL, PARAMETER :: l_no_echo = .FALSE.
-CHARACTER(LEN=1024) :: string
+CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=10  ) :: cnumber
 CHARACTER(LEN=4   ) :: bef
 INTEGER :: i, ik
@@ -421,8 +426,8 @@ REAL    :: DELTA
 INTEGER, PARAMETER :: O_PLOT = 1
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
@@ -431,7 +436,7 @@ INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to cal
 !
 !
 INTEGER, PARAMETER :: MAXW = 20
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz

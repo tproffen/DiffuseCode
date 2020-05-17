@@ -20,8 +20,7 @@ CONTAINS
 !*****7*****************************************************************
 !                                                                       
 !                                                                       
-      CHARACTER(1024) line, zeile 
-!CHARACTER(LEN=1024), DIMENSION(3) :: previous = ' '
+      CHARACTER(LEN=PREC_STRING) :: line, zeile 
       CHARACTER(4) befehl 
       LOGICAL lend 
       INTEGER lbef, lp, ll 

@@ -2,16 +2,17 @@ MODULE kuplot_diffev_mod
 !
 !  Routines to plot fit results
 !
+USE precision_mod
 !
 INTEGER :: k_diff_gen
 INTEGER :: k_diff_member
 INTEGER :: k_diff_children
 INTEGER :: k_diff_dimx
-CHARACTER (LEN=1024) :: k_diff_trialfile
-CHARACTER (LEN=1024) :: k_diff_resfile
-CHARACTER (LEN=1024) :: k_diff_logfile
-CHARACTER (LEN=1024) :: k_diff_sumfile
-CHARACTER (LEN=1024) :: k_diff_curfile
+CHARACTER (LEN=PREC_STRING) :: k_diff_trialfile
+CHARACTER (LEN=PREC_STRING) :: k_diff_resfile
+CHARACTER (LEN=PREC_STRING) :: k_diff_logfile
+CHARACTER (LEN=PREC_STRING) :: k_diff_sumfile
+CHARACTER (LEN=PREC_STRING) :: k_diff_curfile
 CHARACTER (LEN=16), DIMENSION(:), ALLOCATABLE :: k_diff_name
 !
 CONTAINS
@@ -35,8 +36,8 @@ CHARACTER (LEN= 3), PARAMETER :: is_old  = 'old'
 INTEGER, PARAMETER :: IRD = 77
 INTEGER, PARAMETER :: MAXW = 4
 !
-CHARACTER (LEN=1024) :: string
-CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
+CHARACTER (LEN=PREC_STRING) :: string
+CHARACTER (LEN=PREC_STRING), DIMENSION(1:MAXW) :: cpara
 INTEGER             , DIMENSION(1:MAXW) :: lpara
 !
 INTEGER              :: io_status
@@ -44,8 +45,8 @@ INTEGER              :: i
 INTEGER              :: ianz
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Length opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
@@ -148,8 +149,8 @@ INTEGER                            , INTENT(IN) :: ipartial
 !
 INTEGER, PARAMETER :: ifil = 44
 !
-CHARACTER (LEN=1024) :: infile
-CHARACTER (LEN=1024) :: string
+CHARACTER (LEN=PREC_STRING) :: infile
+CHARACTER (LEN=PREC_STRING) :: string
 CHARACTER (LEN=   4) :: bef
 INTEGER :: i, j, im
 INTEGER              :: ipar1
@@ -421,11 +422,11 @@ INTEGER         , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 INTEGER                            , INTENT(INOUT) :: ianz
 INTEGER                            , INTENT(IN) :: ipartial
 !
-CHARACTER (LEN=1024) :: infile0
-CHARACTER (LEN=1024) :: infile1
-CHARACTER (LEN=1024) :: infile2
-CHARACTER (LEN=1024) :: parfile
-CHARACTER (LEN=1024) :: string
+CHARACTER (LEN=PREC_STRING) :: infile0
+CHARACTER (LEN=PREC_STRING) :: infile1
+CHARACTER (LEN=PREC_STRING) :: infile2
+CHARACTER (LEN=PREC_STRING) :: parfile
+CHARACTER (LEN=PREC_STRING) :: string
 CHARACTER (LEN=   4) :: bef
 INTEGER :: i, iianz
 INTEGER :: igen

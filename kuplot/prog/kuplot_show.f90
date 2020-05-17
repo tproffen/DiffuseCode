@@ -22,7 +22,7 @@ USE precision_mod
       PARAMETER (maxw = 2) 
 !                                                                       
       CHARACTER ( * ) line 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, iku 

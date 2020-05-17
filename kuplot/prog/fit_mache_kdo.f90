@@ -13,6 +13,7 @@ USE set_sub_generic_mod
 !
 USE class_macro_internal
 USE doact_mod
+USE precision_mod
 USE prompt_mod
 !
 
@@ -24,7 +25,7 @@ INTEGER         , INTENT(INOUT) :: length
 !
 !
 CHARACTER(LEN=4)    :: befehl
-CHARACTER(LEN=1024) :: zeile
+CHARACTER(LEN=PREC_STRING) :: zeile
 INTEGER             :: indxg, indxt, indxb
 INTEGER             :: lbef, lp
 !

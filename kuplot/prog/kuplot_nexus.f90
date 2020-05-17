@@ -43,12 +43,11 @@ CONTAINS
 !     include'napif.inc' 
 !     include'nexus.inc' 
       USE prompt_mod 
-	  USE precision_mod
 !
       USE build_name_mod
       USE errlist_mod 
       USE get_params_mod
-	  USE precision_mod
+  USE precision_mod
       IMPLICIT NONE
 !
 !                                                                       
@@ -58,8 +57,8 @@ CONTAINS
       CHARACTER ( * ) line 
       INTEGER ll 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) ent_name, ent_class 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) ent_name, ent_class 
       INTEGER lpara (maxw), ianz, itype, stat 
 	  REAL(KIND=PREC_DP) :: werte (maxw)
       LOGICAL lexist 
@@ -212,7 +211,7 @@ CONTAINS
       USE blanks_mod
       USE errlist_mod 
       USE get_params_mod
-	  USE precision_mod
+  USE precision_mod
 !
       IMPLICIT NONE
 !                                                                       
@@ -223,7 +222,7 @@ CONTAINS
       CHARACTER ( * ) line 
       INTEGER ll 
 !                                                                       
-      CHARACTER(1024) cpara (maxw), clabel, csds 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw), clabel, csds 
       INTEGER lpara (maxw), ianz 
 	  REAL(KIND=PREC_DP) :: werte (maxw)
 !                                                                       

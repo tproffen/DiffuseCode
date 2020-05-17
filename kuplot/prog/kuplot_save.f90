@@ -19,7 +19,7 @@ USE precision_mod
       CHARACTER ( * ) zeile 
       INTEGER lp 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw) 
       integer ianz 
       rEAL(KIND=PREC_DP) :: werte (maxw) 
@@ -428,9 +428,9 @@ USE precision_mod
       PARAMETER (maxw = 10) 
 !                                                                       
       CHARACTER ( * ) zei 
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) zeile, line 
-      CHARACTER(1024) filname 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: zeile, line 
+      CHARACTER(LEN=PREC_STRING) :: filname 
       CHARACTER(LEN=40         ) :: orig_prompt
       CHARACTER(4) befehl, czeile 
       CHARACTER(2) form, cdummy 

@@ -1,6 +1,7 @@
 MODULE kuplot_mod
 !
 USE kuplot_config
+USE precision_mod
 !
 IMPLICIT NONE
 PUBLIC
@@ -192,7 +193,7 @@ SAVE
 !
 !------ Fit PARAMETERs
 !
-      CHARACTER(LEN=1024)      fit_func
+      CHARACTER(LEN=PREC_STRING) ::     fit_func
       CHARACTER(LEN=4)      ftyp
       CHARACTER(LEN=3)      wtyp
       CHARACTER(LEN=1)      dummy_spacer

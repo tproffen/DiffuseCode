@@ -9,6 +9,8 @@
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+!
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -18,7 +20,7 @@
       CHARACTER ( * ) zeile 
       INTEGER lp 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       INTEGER lpara (maxw), ianz 
 !                                                                       
       LOGICAL str_comp 
@@ -507,10 +509,12 @@
       USE class_macro_internal
       USE kuplot_config 
       USE kuplot_mod 
+!
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) command, befehl 
+      CHARACTER(LEN=PREC_STRING) :: command, befehl 
       INTEGER ic, ib, macro_level_old 
       LOGICAL lend, lreg 
 !                                                                       

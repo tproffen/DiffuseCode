@@ -12,6 +12,7 @@ USE doact_mod
 USE do_if_mod
 USE do_set_mod
 USE param_mod
+USE precision_mod
 USE prompt_mod
 USE sup_mod
 USE set_sub_generic_mod
@@ -24,14 +25,10 @@ REAL                    , INTENT(OUT) :: f
 REAL, DIMENSION(MAXPARA), INTENT(OUT) :: df
 INTEGER                 , INTENT(IN)  :: i
 !
-!NTEGER, PARAMETER :: MAXP = 2
-!HARACTER(LEN=1024), DIMENSION(MAXP) :: cpara
-!NTEGER            , DIMENSION(MAXP) :: lpara
-!EAL               , DIMENSION(MAXP) :: werte
-CHARACTER(LEN=1024) :: macro_name
-CHARACTER(LEN=1024) :: line
-CHARACTER(LEN=1024) :: zeile
-CHARACTER(LEN=1024) :: string
+CHARACTER(LEN=PREC_STRING) :: macro_name
+CHARACTER(LEN=PREC_STRING) :: line
+CHARACTER(LEN=PREC_STRING) :: zeile
+CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=4   ) :: befehl
 INTEGER             :: length
 INTEGER             :: lp

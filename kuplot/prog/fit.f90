@@ -2,7 +2,9 @@ MODULE kuplot_fit_const
 !
 ! Numbers that are needed by some fit routines
 !
-CHARACTER(LEN=1024) :: f6_fit_func  = ' '  ! User defined fit function
+USE precision_mod
+!
+CHARACTER(LEN=PREC_STRING) :: f6_fit_func  = ' '  ! User defined fit function
 INTEGER             :: f6_fit_lfunc = 0    ! Fit function string length
 REAL                :: pp_origin    = 0.0  ! Origin of backgroud polynomial for Pseudovoigt
 INTEGER             :: nn_backgrd   = 0    ! number of background params for Pseudovoigt
@@ -45,8 +47,8 @@ USE precision_mod
  CHARACTER (LEN=*), INTENT(INOUT) :: zei 
  INTEGER          , INTENT(INOUT) :: lp
 !
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) line, zeile
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) line, zeile
       CHARACTER(LEN=40         ) :: orig_prompt 
       CHARACTER(40) cdummy 
       CHARACTER(4) befehl 
@@ -462,7 +464,7 @@ USE precision_mod
       PARAMETER (maxw = 8) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       CHARACTER(80) iname 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp 
@@ -607,7 +609,7 @@ USE precision_mod
       PARAMETER (maxw = 10) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, i 
@@ -740,7 +742,7 @@ USE precision_mod
       PARAMETER (maxw = 2) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -803,7 +805,7 @@ USE precision_mod
       PARAMETER (maxw = 3) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ip 
@@ -1328,7 +1330,7 @@ USE precision_mod
       INTEGER maxw 
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
-      CHARACTER(1024) cdummy 
+      CHARACTER(LEN=PREC_STRING) cdummy 
       REAL dummy
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
@@ -1467,7 +1469,7 @@ REAL                   :: f
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) cdummy 
+      CHARACTER(LEN=PREC_STRING) cdummy 
       REAL xx, f, df (maxpara) 
       REAL pb, h, err 
       INTEGER i, ix, iy, ind 
@@ -1520,7 +1522,7 @@ REAL                   :: f
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(LEN=1024) :: cdummy 
+      CHARACTER(LEN=PREC_STRING) :: cdummy 
       INTEGER :: length
       REAL xx
 !                                                                       
@@ -3627,8 +3629,8 @@ INTEGER, PARAMETER :: maxw = 10
 CHARACTER (LEN=*), INTENT(INOUT) :: zei 
 INTEGER          , INTENT(INOUT) :: lp
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) ::cpara
-CHARACTER(LEN=1024) :: line, zeile
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) ::cpara
+CHARACTER(LEN=PREC_STRING) :: line, zeile
 CHARACTER(LEN=40  ) :: orig_prompt 
 CHARACTER(LEN=40)   ::cdummy 
 CHARACTER(LEN=4)    ::befehl 
@@ -4057,7 +4059,7 @@ USE precision_mod
       PARAMETER (maxw = 8) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       CHARACTER(80) iname 
       REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER lpara (maxw), lp 
@@ -4202,7 +4204,7 @@ USE precision_mod
       PARAMETER (maxw = 10) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, i 
@@ -4335,7 +4337,7 @@ USE precision_mod
       PARAMETER (maxw = 2) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
       REAL(KIND=PREC_DP) werte (maxw) 
@@ -4398,7 +4400,7 @@ USE precision_mod
       PARAMETER (maxw = 3) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ip 
@@ -5230,7 +5232,7 @@ USE precision_mod
       INTEGER maxw 
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
-      CHARACTER(1024) cdummy 
+      CHARACTER(LEN=PREC_STRING) cdummy 
       REAL dummy
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
@@ -5406,7 +5408,7 @@ LOGICAL                                              , INTENT(IN)  :: LDERIV  ! 
 !                                                                       
 REAL, PARAMETER      :: SCALEF = 0.05 ! Scalefactor for parameter modification 0.01 is good?
 !
-CHARACTER(LEN=1024) :: cdummy 
+CHARACTER(LEN=PREC_STRING) :: cdummy 
 INTEGER :: ind 
 INTEGER :: length
 !
@@ -7442,7 +7444,7 @@ REAL    :: alamda
 INTEGER :: MAXW
 INTEGER :: ianz
 !
-CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
 REAL(KIND=PREC_DP)               , DIMENSION(:), ALLOCATABLE :: werte
 !
@@ -7923,7 +7925,7 @@ INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: MAXW = 20
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 !REAL               , DIMENSION(MAXW) :: werte
 !
@@ -7937,8 +7939,8 @@ INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_START   = 1
 INTEGER, PARAMETER :: O_FAIL    = 2
 INTEGER, PARAMETER :: O_SUCCESS = 3
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   7)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
@@ -7988,7 +7990,7 @@ INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: MAXW = 20
 !
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 !REAL               , DIMENSION(MAXW) :: werte
 !
@@ -8003,8 +8005,8 @@ INTEGER, PARAMETER :: O_DCHI    = 1
 INTEGER, PARAMETER :: O_PSHIFT  = 2
 INTEGER, PARAMETER :: O_CONF    = 3
 INTEGER, PARAMETER :: O_CHI     = 4
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+CHARACTER(LEN=   6)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present

@@ -24,7 +24,7 @@
       INTEGER mmaxw
       PARAMETER (mmaxw = 3) 
 !                                                                       
-      CHARACTER(1024) zeile 
+      CHARACTER(LEN=PREC_STRING) :: zeile 
       INTEGER i, laenge
       INTEGER lcomm, ltyp 
       INTEGER idummy 

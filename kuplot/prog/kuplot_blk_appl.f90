@@ -339,7 +339,7 @@ USE precision_mod
       PARAMETER (idef = 9) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) ::cpara (maxw) 
       CHARACTER(80) cdummy 
       INTEGER lp, ianz 
       INTEGER lpara (maxw) 
@@ -384,7 +384,7 @@ USE precision_mod
       PARAMETER (idef = 9) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(80) cdummy 
       INTEGER lpara (maxw) 
       INTEGER lp, ianz 

@@ -21,7 +21,7 @@ USE precision_mod
       PARAMETER (maxw = 4) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       CHARACTER(3) oper 
       CHARACTER(2) unt 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -288,7 +288,7 @@ USE precision_mod
       PARAMETER (maxw = 3) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL a, b, x1, x2, y1, y2, xleft, xright 
       INTEGER lpara (maxw), lp 
@@ -428,7 +428,7 @@ USE precision_mod
       PARAMETER (EXCL = 0, NEUT = 1, IGNO = 2) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       CHARACTER(3) oper 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp, imin 
@@ -661,7 +661,7 @@ INTEGER          , INTENT(INOUT) :: lp
       INTEGER maxw 
       PARAMETER (maxw = MAXKURVTOT) 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL mdelta, mmin, mmax 
 REAL  ::  mdeltay, mminy, mmaxy 
@@ -909,7 +909,7 @@ USE precision_mod
       PARAMETER (maxw = 25) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw)
 REAL :: bdelta, fraction 
       INTEGER lpara (maxw), lp, maxpp, ntot 
@@ -1056,7 +1056,7 @@ USE precision_mod
       PARAMETER (maxw = 2) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw)
 REAL :: yyy 
       REAL xpl (maxarray), ypl (maxarray) 
@@ -1159,7 +1159,7 @@ USE precision_mod
       PARAMETER (maxw = 2) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL dr1, dr2, ysum, start
       INTEGER lpara (maxw), lp, maxpp 
@@ -1268,7 +1268,7 @@ USE precision_mod
       PARAMETER (maxsm = 51) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL cc (maxsm) 
       REAL deltax, fnorm 
@@ -1407,7 +1407,7 @@ USE precision_mod
       PARAMETER (maxw = 25) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL sk, ba, wtot, ee, cc, ce, c, e, wi 
       INTEGER lpara (maxw), lp 
@@ -1753,7 +1753,7 @@ USE precision_mod
       CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
       INTEGER          , INTENT(INOUT) :: lp
       LOGICAL          , INTENT(IN)    :: lout
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw)
       INTEGER ianz, ik, il 
@@ -1784,8 +1784,8 @@ USE precision_mod
       LOGICAL str_comp 
 !                                                                       
       INTEGER, PARAMETER :: NOPTIONAL = 1
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present

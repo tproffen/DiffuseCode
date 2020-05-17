@@ -1,5 +1,7 @@
 MODULE kuplot_2dm_mod
 !
+USE precision_mod
+!
 PUBLIC
 !
 INTEGER, PARAMETER :: K2DM_XY  = 1
@@ -12,9 +14,9 @@ INTEGER, PARAMETER :: K2DM_BLANK   =  0
 INTEGER, PARAMETER :: K2DM_IGNORE  =  1
 !
 CHARACTER(LEN=4)    :: k2dm_ctype  = ' '
-CHARACTER(LEN=1024) :: k2dm_line   = ' '
-CHARACTER(LEN=1024) :: k2dm_line_b = ' '
-CHARACTER(LEN=1024) :: k2dm_line_yf = ' '
+CHARACTER(LEN=PREC_STRING) :: k2dm_line   = ' '
+CHARACTER(LEN=PREC_STRING) :: k2dm_line_b = ' '
+CHARACTER(LEN=PREC_STRING) :: k2dm_line_yf = ' '
 INTEGER          :: k2dm_type      = 0
 INTEGER          :: k2dm_miss      = -1
 LOGICAL          :: k2dm_miss_set  = .FALSE.

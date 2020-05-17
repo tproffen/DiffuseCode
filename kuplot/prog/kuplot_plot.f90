@@ -113,7 +113,7 @@ USE precision_mod
       PARAMETER (maxw = 10) 
 !                                                                       
       CHARACTER ( * ) befehl, zeile 
-      CHARACTER(1024) cpara (maxw), prnbef , line
+      CHARACTER(LEN=PREC_STRING) :: cpara (maxw), prnbef , line
       CHARACTER(256) filname, uname 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL width, ratio 

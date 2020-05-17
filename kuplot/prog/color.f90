@@ -21,7 +21,7 @@ USE precision_mod
       CHARACTER ( * ) zeile 
       INTEGER lp 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, icol 
       REAL(KIND=PREC_DP) werte (maxw) 
@@ -75,7 +75,7 @@ USE precision_mod
       PARAMETER (maxw = 5) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) werte (maxw) 
 REAL :: zzmin, zzmax
       INTEGER lpara (maxw) 
