@@ -10,6 +10,7 @@ SUBROUTINE output_save_file_1d( outfile, npkt1, xwrt, ywrt )
 USE kuplot_config
 USE kuplot_mod
 USE errlist_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !
@@ -83,6 +84,7 @@ SUBROUTINE output_save_file_2d( outfile, ranges, npkt1, npkt2, zwrt,&
 USE kuplot_config
 USE kuplot_mod
 USE errlist_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !

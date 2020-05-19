@@ -13,6 +13,7 @@ USE get_params_mod
 USE operating_mod
 USE precision_mod
 USE prompt_mod
+USE sys_compiler
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN) :: zeile

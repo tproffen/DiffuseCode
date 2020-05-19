@@ -41,6 +41,7 @@ USE param_mod
 USE random_state_mod
 USE variable_mod
 USE lib_f90_allocate_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 LOGICAL                , INTENT(IN) :: repeat
@@ -96,7 +97,7 @@ INTEGER             :: ct_ostate    ! Original program state
 INTEGER             :: ct_oprogr    ! Original program
 INTEGER             :: ct_ompifirst ! Original mpi_first state
 INTEGER             :: np
-INTEGER, DIMENSION(1) :: idummy = (/0.0 /)
+INTEGER, DIMENSION(1) :: idummy = (/0 /)
 LOGICAL :: str_comp
 INTEGER :: len_str
 !

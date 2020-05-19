@@ -8,6 +8,7 @@ SUBROUTINE powder_do_write (outfile, npkt_wrt, xwrt, ywrt)
 USE kuplot_config
 USE kuplot_mod
 USE errlist_mod
+USE sys_compiler
 IMPLICIT NONE
 !
 CHARACTER (LEN=*)                , INTENT(IN) :: outfile

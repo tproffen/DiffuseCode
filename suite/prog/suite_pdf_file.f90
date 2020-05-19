@@ -9,6 +9,7 @@ SUBROUTINE pdf_save_file(cdummy, pdf_rfmin, pdf_rfmax, pdf_deltar, pdf_us_int,&
 USE kuplot_config
 USE kuplot_mod
 USE errlist_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !
