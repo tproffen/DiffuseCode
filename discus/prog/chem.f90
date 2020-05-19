@@ -2521,6 +2521,7 @@ USE precision_mod
       USE errlist_mod 
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
        
@@ -2657,6 +2658,7 @@ USE precision_mod
       USE errlist_mod 
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
        
@@ -2873,6 +2875,7 @@ USE precision_mod
       USE get_params_mod
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -3202,6 +3205,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE get_params_mod
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
        
@@ -3355,6 +3359,7 @@ USE precision_mod
       USE errlist_mod 
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
        
@@ -3753,6 +3758,7 @@ USE precision_mod
       USE errlist_mod 
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
        
@@ -3909,6 +3915,7 @@ USE precision_mod
       USE param_mod 
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
        
@@ -4104,6 +4111,7 @@ USE precision_mod
       USE get_params_mod
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
        
