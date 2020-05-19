@@ -31,6 +31,7 @@ CONTAINS
    USE population
 USE precision_mod
    USE random_mod
+USE sys_compiler
 !
    IMPLICIT none 
 !                                                                       
@@ -201,6 +202,7 @@ USE precision_mod
    USE do_execute_mod
 USE precision_mod
    USE random_mod
+USE sys_compiler
 !
    IMPLICIT none
 !
