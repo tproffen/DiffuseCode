@@ -8,6 +8,7 @@ USE doact_mod
 USE macro_mod
 USE precision_mod
 USE prompt_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !
@@ -303,6 +304,7 @@ USE envir_mod
 USE errlist_mod
 USE precision_mod
 USE prompt_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !
@@ -869,6 +871,7 @@ USE charact_mod
 USE errlist_mod
 USE macro_mod
 USE precision_mod
+USe sys_compiler
 !
 IMPLICIT NONE
 !

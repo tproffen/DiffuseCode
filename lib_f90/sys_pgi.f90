@@ -1,3 +1,4 @@
+MODULE sys_compiler
 !                                                                       
 !     This file contains subroutines for:                               
 !     Compiler specific routines GNU gfortran version                   
@@ -660,3 +661,4 @@ USE precision_mod
 !
       END FUNCTION is_nan
 !*****7***********************************************************      
+END MODULE sys_compiler

@@ -19,6 +19,7 @@ SUBROUTINE do_hel (ein, length)
       USE prompt_mod 
       USE string_convert_mod
       USE sup_mod
+      USE sys_compiler
 !
       IMPLICIT none 
 !                                                                       

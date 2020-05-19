@@ -23,6 +23,7 @@ USE precision_mod
 USE prompt_mod 
 USE sockets_mod
 USE random_state_mod
+USE sys_compiler
 !
 IMPLICIT none 
 !                                                                       

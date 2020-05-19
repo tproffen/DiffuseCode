@@ -1,3 +1,6 @@
+MODULE sys_compiler
+!
+CONTAINS
 !                                                                       
 !     This file contains subroutines for:                               
 !     Compiler specific routines GNU gfortran version                   
@@ -669,13 +672,14 @@ USE precision_mod
  1100 FORMAT     (' ------ > File ',a,' does NOT exist ...') 
       END SUBROUTINE do_fexist                      
 !*****7***********************************************************      
-      LOGICAL FUNCTION is_nan(x)
 !
-      REAL, INTENT(IN) :: x
+LOGICAL FUNCTION is_nan(x)
 !
-      is_nan = isnan(x)
+REAL, INTENT(IN) :: x
 !
-      END FUNCTION is_nan
+is_nan = isnan(x)
+!
+END FUNCTION is_nan
 !
 !*****7***********************************************************      
 !
@@ -687,3 +691,4 @@ lib_f90_getpid = getpid()
 !
 END FUNCTION lib_f90_getpid
 !*****7***********************************************************      
+END MODULE sys_compiler

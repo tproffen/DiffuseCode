@@ -17,6 +17,7 @@ USE param_mod
 USE precision_mod
 USE prompt_mod 
 USE string_convert_mod
+USE sys_compiler
 !
 IMPLICIT none 
 !                                                                       
@@ -40,7 +41,7 @@ INTEGER :: ios ! I/O status
 INTEGER len_str 
 INTEGER pname_l 
 LOGICAL lpresent
-INTEGER :: lib_f90_getpid
+!INTEGER :: lib_f90_getpid
 !
 cfile = '/tmp/DISCUS_CURRENT'         ! Initiate search for new version
 !
@@ -586,6 +587,7 @@ USE param_mod
 USE precision_mod
 USE prompt_mod
 USE string_convert_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !
@@ -790,6 +792,7 @@ USE envir_mod
 USE errlist_mod
 USE precision_mod
 USE prompt_mod 
+USE sys_compiler
 !
 IMPLICIT none 
 !                                                                       
@@ -883,6 +886,7 @@ INTEGER FUNCTION lib_f90_getppid(cpid)
 USE envir_mod
 USE errlist_mod
 USE precision_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !

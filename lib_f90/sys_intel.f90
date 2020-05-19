@@ -1,3 +1,4 @@
+MODULE sys_compiler
 !                                                                       
 !     This file contains subroutines for:                               
 !     Compiler specific routines GNU gfortran version                   
@@ -681,3 +682,4 @@ lib_f90_getpid = getpid()
 !
 END FUNCTION lib_f90_getpid
 !*****7***********************************************************      
+END MODULE sys_compiler

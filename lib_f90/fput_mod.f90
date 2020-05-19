@@ -11,6 +11,7 @@ USE ber_params_mod
       USE macro_mod 
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
 !                                                                       

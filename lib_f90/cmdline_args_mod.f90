@@ -13,6 +13,7 @@ USE debug_mod
 USE errlist_mod 
 USE precision_mod
 USE sockets_mod
+USE sys_compiler
 IMPLICIT none 
 !                                                                       
 INTEGER, INTENT(IN) :: local_mpi_myid

@@ -1,3 +1,4 @@
+MODULE sys_compiler
 !
 ! routines specific for MAC_OS
 !
@@ -67,3 +68,4 @@ USE precision_mod
 !
       END FUNCTION is_nan
 !*****7***********************************************************      
+END MODULE sys_compiler
