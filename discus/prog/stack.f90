@@ -1546,6 +1546,7 @@ USE precision_mod
       USE spcgr_apply
       USE update_cr_dim_mod
       USE errlist_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
       INTEGER ist 
@@ -1960,6 +1961,7 @@ USE spcgr_apply
 USE errlist_mod 
 USE prompt_mod 
 USE wink_mod 
+USE sys_compiler
 !
 IMPLICIT none 
 !                                                                       
@@ -1980,7 +1982,7 @@ LOGICAL, INTENT(IN) :: calc_f2aver
       LOGICAL :: lout 
 !                                                                       
       REAL :: ss 
-      REAL :: seknds 
+!     REAL :: seknds 
 !
 !     n_qxy   = 1
 !     n_nscat = 1

@@ -27,10 +27,11 @@ USE fourier_lmn_mod
 USE prompt_mod 
 USE precision_mod 
 USE times_mod
+USE sys_compiler
 !
 IMPLICIT none 
 !                                                                       
-REAL(KIND=PREC_SP) :: ss, seknds
+REAL(KIND=PREC_SP) :: ss!, seknds
 REAL(KIND=PREC_DP) :: dnorm
       INTEGER lbeg (3), csize (3) 
       INTEGER iscat, nlot, ncell, i 
@@ -1055,6 +1056,7 @@ END SUBROUTINE four_formtab
       USE get_params_mod
       USE param_mod
 USE precision_mod
+USE sys_compiler
 !
       IMPLICIT NONE
 !

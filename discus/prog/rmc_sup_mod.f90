@@ -982,6 +982,7 @@ USE precision_mod
       USE prompt_mod 
 USE precision_mod
       USE string_convert_mod
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: maxw = 10 
@@ -1198,6 +1199,7 @@ USE precision_mod
       USE prompt_mod 
 USE precision_mod
       USE string_convert_mod
+USE sys_compiler
       IMPLICIT none 
        
 !                                                                       
@@ -1697,6 +1699,7 @@ USE precision_mod
       USE param_mod 
       USE prompt_mod 
       USE precision_mod
+USE sys_compiler
       IMPLICIT none 
        
 !                                                                       
@@ -1708,7 +1711,7 @@ USE precision_mod
       REAL chi2 (rmc_max_planes) 
       REAL skal (rmc_max_planes) 
       REAL back (rmc_max_planes) 
-      REAL start, zeit, seknds 
+      REAL start, zeit
       REAL p_new (3, rmc_max_atom) 
       INTEGER i_new (rmc_max_atom) 
       INTEGER isel (rmc_max_atom), natoms 
@@ -1785,7 +1788,7 @@ USE precision_mod
       ENDDO 
 !                                                                       
       IF (rmc_log) THEN 
-        call oeffne_append(34,'rmc.log','unknown',.false.) 
+        call oeffne_append(34,'rmc.log','unknown')
 !DBG        open (34,file='rmc.log',status='unknown',access='append')   
         IF (rmc_mode.eq.rmc_mode_swchem) THEN 
           WRITE (34,2000) 'Mode SWCHEM' 
@@ -1977,7 +1980,7 @@ USE precision_mod
      &                                  rmc_back(i),rmc_chi2(i)         
           ENDDO 
           IF (rmc_log) THEN 
-            call oeffne_append(34,'rmc.log','unknown',.false.) 
+            call oeffne_append(34,'rmc.log','unknown')
 !DBG            open (34,file='rmc.log',status='unknown',access='append')
             IF (.not.loop) WRITE (34,1250) 
             WRITE (34,1300) igen,itry,iacc_good,iacc_bad,chi2_old 
@@ -2003,7 +2006,7 @@ USE precision_mod
       zs = int ( zeit - zh*3600 - zm*60.) 
 !                                                                       
       IF (rmc_log) then 
-         CALL oeffne_append (34, 'rmc.log', 'unknown', .false.) 
+         CALL oeffne_append (34, 'rmc.log', 'unknown')
 !DBG        open (34,file='rmc.log',status='unknown',access='append')   
          WRITE (34, 3000) pave, psig, pmax 
          WRITE (34, 4000) zh, zm, zs, zeit / REAL(itry) 
@@ -2062,6 +2065,7 @@ USE precision_mod
 !                                                                       
       USE errlist_mod 
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
        
 !                                                                       

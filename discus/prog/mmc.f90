@@ -1976,6 +1976,7 @@ USE precision_mod
       USE param_mod 
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
       LOGICAL, INTENT(IN) :: lout_feed
@@ -1988,7 +1989,7 @@ USE precision_mod
 !                                                                       
       CHARACTER(24) c_energy (0:MC_N_ENERGY) 
       REAL(KIND=PREC_DP) ::  werte (maxw), wwerte (maxw), wwwerte (maxw) 
-      REAL start, zeit, seknds 
+      REAL start, zeit
       REAL disp1, disp2 
       REAL disp (3, 0:CHEM_MAX_NEIG, 2) 
       REAL idir (3), jdir (3) 

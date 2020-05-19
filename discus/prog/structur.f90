@@ -1136,6 +1136,7 @@ SUBROUTINE readcell (strucfile, l_identical, r_identical)
       USE wyckoff_mod
 USE precision_mod
       USE string_convert_mod
+USE sys_compiler
       IMPLICIT none 
 !
 !                                                                       
@@ -2121,6 +2122,7 @@ END SUBROUTINE struc_mole_header
 !-                                                                      
 !           this subroutine reads an old structur.                      
 !+                                                                      
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
       INTEGER NMAX 
@@ -3542,6 +3544,7 @@ USE build_name_mod
 USE get_params_mod
 USE wink_mod
 USE precision_mod
+USE sys_compiler
 !
 IMPLICIT none 
 !                                                                       
@@ -4003,6 +4006,7 @@ DEALLOCATE(eadp_values)
 !+                                                                      
       USE build_name_mod
 USE precision_mod
+USE sys_compiler
 !
       IMPLICIT none 
 !                                                                       
@@ -4151,6 +4155,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 USE build_name_mod
 USE precision_mod
 USE take_param_mod
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -4665,6 +4670,7 @@ END SUBROUTINE rmc6f_period
       USE get_params_mod
 USE precision_mod
       USE string_convert_mod
+USE sys_compiler
 !
       IMPLICIT none 
 !                                                                       
@@ -5620,6 +5626,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       USE get_params_mod
 USE precision_mod
       USE string_convert_mod
+USE sys_compiler
       IMPLICIT NONE
 !
 
@@ -5672,7 +5679,7 @@ REAL                                 :: occ
 !
       INTEGER, EXTERNAL :: len_str
       LOGICAL, EXTERNAL :: str_comp
-      LOGICAL           :: is_nan
+!      LOGICAL           :: is_nan
       LOGICAL           :: IS_IOSTAT_END
 !
       natoms     = 0
@@ -5799,8 +5806,9 @@ header: DO
                ENDIF
             ELSE
                READ(zeile,*,IOSTAT=ios) (werte(i),i=1,6)
-               IF(ios /=0 .OR. is_nan(werte(1)) .OR. is_nan(werte(2)) .OR. is_nan(werte(3)) &
-                          .OR. is_nan(werte(4)) .OR. is_nan(werte(5)) .OR. is_nan(werte(6))) THEN
+               IF(ios /=0 .OR. is_nan(REAL(werte(1),KIND=PREC_SP)) .OR. is_nan(REAL(werte(2),KIND=PREC_SP)) &
+                          .OR. is_nan(REAL(werte(3),KIND=PREC_SP)) .OR. is_nan(REAL(werte(4),KIND=PREC_SP)) &
+                          .OR. is_nan(REAL(werte(5),KIND=PREC_SP)) .OR. is_nan(REAL(werte(6),KIND=PREC_SP))) THEN
                   ier_num = -48
                   ier_typ = ER_APPL
                   ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
@@ -5969,7 +5977,8 @@ ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
            IF(is_nan(xc) .OR. is_nan(yc) .OR. is_nan(zc) .OR. is_nan(bval)) THEN
               ios = -1
            ENDIF
-           IF(is_nan(werte(10)) .OR. is_nan(werte(11)) .OR. is_nan(werte(12)) ) THEN
+           IF(is_nan(REAL(werte(10),KIND=PREC_SP)) .OR. is_nan(REAL(werte(11),KIND=PREC_SP)) &
+               .OR. is_nan(REAL(werte(12),KIND=PREC_SP)) ) THEN
               ios = -1
            ENDIF
 !

@@ -134,6 +134,7 @@ USE build_name_mod
 USE errlist_mod
 USE precision_mod
 USE take_param_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !
@@ -214,6 +215,7 @@ USE build_name_mod
 USE errlist_mod
 USE param_mod
 USE precision_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !
@@ -550,6 +552,7 @@ USE precision_mod
 USE prompt_mod
 USE times_mod
 USE trig_degree_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !
@@ -756,6 +759,7 @@ USE precision_mod
 USE prompt_mod
 USE times_mod
 USE trig_degree_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !
@@ -902,6 +906,7 @@ USE build_name_mod
 USE errlist_mod
 USE string_convert_mod
 USE precision_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !

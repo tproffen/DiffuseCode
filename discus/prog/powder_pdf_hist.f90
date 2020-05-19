@@ -181,6 +181,7 @@ USE prompt_mod
 USE precision_mod 
 USE trig_degree_mod
 use times_mod
+USE sys_compiler
 IMPLICIT none 
 !                                                                       
 REAL,    INTENT(IN)  :: udist(3)
@@ -219,7 +220,7 @@ INTEGER            :: nlook_mol = 0
 INTEGER :: i0
       INTEGER IAND 
 !
-REAL, EXTERNAL :: seknds 
+!REAL, EXTERNAL :: seknds 
 !                                                                       
 n_qxy   = 1
 n_nscat = 1
@@ -518,6 +519,7 @@ USE wink_mod
 USE prompt_mod 
 USE precision_mod 
 USE trig_degree_mod
+USE sys_compiler
 IMPLICIT none 
 !                                                                       
 REAL,    INTENT(IN)  :: udist(3)
@@ -563,7 +565,7 @@ REAL (KIND=PREC_DP) :: arg
 !                                                                       
 INTEGER IAND 
 !     REAL sind 
-REAL seknds 
+!REAL seknds 
 !                                                                       
 n_qxy   = 1
 n_nscat = 1

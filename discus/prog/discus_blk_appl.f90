@@ -272,6 +272,7 @@ CONTAINS
       USE param_mod 
       USE errlist_mod 
       USE prompt_mod 
+      USE sys_compiler
 !
       IMPLICIT NONE
 !                                                                       

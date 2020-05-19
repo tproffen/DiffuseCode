@@ -784,6 +784,7 @@ USE precision_mod
       USE prompt_mod 
 USE precision_mod
       USE string_convert_mod
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
       CHARACTER (LEN=*), INTENT(IN) :: zeile 
@@ -891,6 +892,7 @@ USE precision_mod
       USE get_params_mod
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       USE ISO_FORTRAN_ENV
       IMPLICIT none 
 !                                                                       
@@ -1744,6 +1746,7 @@ REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw)
       USE param_mod 
       USE prompt_mod 
       USE precision_mod
+USE sys_compiler
       IMPLICIT none 
        
 !                                                                       
@@ -1752,7 +1755,7 @@ REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw)
       REAL(PREC_DP), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
       REAL sig2, sumbad 
       REAL prob, psum, p2sum, pave, psig, pmax, pn 
-      REAL start, zeit, seknds 
+      REAL start, zeit
       REAL p_new (3, rmc_max_atom) 
       REAL p_old (3, rmc_max_atom) 
       INTEGER i_new (rmc_max_atom) 
@@ -2351,6 +2354,7 @@ laccept = .false.
       USE debug_mod 
       USE errlist_mod 
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
       LOGICAL , INTENT(IN) :: lout 
@@ -2363,7 +2367,7 @@ laccept = .false.
       LOGICAL              :: all_atoms ! Are all atoms included in PDF?
       LOGICAL              :: do_mol   ! Take moleculoar B-values into account
       REAL, DIMENSION(1:3) :: u        ! Crystal diagonal
-      REAL seknds, ss 
+      REAL ss 
 !                                                                       
       ss = seknds (0.0) 
       u  = 0.00
@@ -3205,6 +3209,7 @@ inner:      DO iatom = ia+1, cr_natoms
       USE pdf_mod 
       USE errlist_mod 
       USE prompt_mod
+USE sys_compiler
       IMPLICIT none 
 !
       LOGICAL, INTENT(IN) :: lout
@@ -3214,7 +3219,7 @@ inner:      DO iatom = ia+1, cr_natoms
       INTEGER   :: ipdf_rmax
       REAL                  :: done
       REAL   , DIMENSION(3) :: dd
-      REAL :: ss, seknds
+      REAL :: ss
 !
       id = MAX(100, cr_natoms/5)    ! Progress report 20% or every 100 atoms
       ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
@@ -3269,6 +3274,7 @@ inner:      DO iatom = ia+1, cr_natoms
       USE pdf_mod 
       USE errlist_mod 
       USE prompt_mod
+USE sys_compiler
       IMPLICIT none 
 !
       LOGICAL, INTENT(IN) :: lout
@@ -3281,7 +3287,7 @@ inner:      DO iatom = ia+1, cr_natoms
       INTEGER               :: ix,iy,iz   !Loop over periodic boundaries
       REAL                  :: done, dist
       REAL   , DIMENSION(3) :: dd
-      REAL :: ss, seknds
+      REAL :: ss
 !
       icell(1) = MAX(cr_icc(1),NINT(cr_dim0(1,2)-cr_dim0(1,1)))
       icell(2) = MAX(cr_icc(1),NINT(cr_dim0(2,2)-cr_dim0(2,1)))
@@ -3356,6 +3362,7 @@ inner:      DO iatom =    1, cr_natoms
       USE molecule_mod 
       USE errlist_mod 
       USE prompt_mod
+USE sys_compiler
       IMPLICIT none 
 !
       LOGICAL, INTENT(IN) :: lout
@@ -3365,7 +3372,7 @@ inner:      DO iatom =    1, cr_natoms
       INTEGER   :: ipdf_rmax
       REAL                  :: done
       REAL   , DIMENSION(3) :: dd
-      REAL :: ss, seknds
+      REAL :: ss
 !
       id = MAX(100, cr_natoms/5)    ! Progress report 20% or every 100 atoms
       ipdf_rmax = int(pdf_rmax/pdf_deltar)+1

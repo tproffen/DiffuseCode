@@ -17,6 +17,7 @@ USE chem_mod
 USE wyckoff_mod
 !
 USE precision_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !

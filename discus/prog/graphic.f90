@@ -31,6 +31,7 @@ USE class_macro_internal
 USE precision_mod
 USE prompt_mod 
 USE sup_mod
+USE sys_compiler
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -39,7 +40,7 @@ INTEGER, PARAMETER :: maxp = 11
 CHARACTER(LEN=5) :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=14) :: cvalue (0:14) 
-CHARACTER(LEN=22) :: cgraphik (0:8) 
+CHARACTER(LEN=22) :: cgraphik (0:13) 
 CHARACTER(LEN=PREC_STRING) :: infile 
 CHARACTER(LEN=PREC_STRING) :: zeile 
 CHARACTER(LEN=PREC_STRING) :: line, cpara (maxp) 
@@ -55,7 +56,8 @@ LOGICAL, EXTERNAL :: str_comp
 !                                                                       
 DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
                 'Portable Any Map', 'Powder Pattern', 'SHELX',          &
-                'SHELXL List 5', 'SHELXL List 5 real HKL' /                                    
+                'SHELXL List 5', 'SHELXL List 5 real HKL' ,             &
+                '3d', 'nexus', 'vtk', 'MRC', 'HDF5'/                                    
 DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
               'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
               'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
@@ -252,6 +254,11 @@ IF (ier_num.eq.0) THEN
 !                                                                       
                ELSEIF (str_comp(cpara(1), 'mrc', 2, lpara(1), 3) ) THEN                                        
                   ityp = 12 
+!                                                                       
+!     ------Switch output type to HDF5  format   'hdf5'                
+!                                                                       
+               ELSEIF (str_comp(cpara(1), 'hdf5', 4, lpara(1), 4) ) THEN                                        
+                  ityp = 13 
                ELSE
                   ier_num = - 9 
                   ier_typ = ER_APPL 
@@ -356,6 +363,8 @@ IF (ier_num.eq.0) THEN
                CALL vtk_write ()
             ELSEIF (ityp.eq.12) THEN
                CALL mrc_write (value, laver)
+            ELSEIF (ityp.eq.13) THEN
+               CALL hdf5_write (value, laver, outfile, xmin, maxp, werte)
             ELSE 
                ier_num = - 9 
                ier_typ = ER_APPL 
@@ -627,6 +636,7 @@ END SUBROUTINE do_niplps
       USE qval_mod
       USE envir_mod 
       USE errlist_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -714,6 +724,7 @@ END SUBROUTINE do_niplps
       USE output_mod 
       USE qval_mod
       USE errlist_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -776,6 +787,7 @@ END SUBROUTINE do_niplps
       USE qval_mod
       USE envir_mod 
       USE errlist_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -939,6 +951,7 @@ USE discus_fft_mod
       USE envir_mod 
       USE errlist_mod 
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
        
@@ -1192,7 +1205,8 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
    ENDIF
 ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
       lread = .false. 
-      IF(.not.(out_inc(3) > 1 .and. ityp.eq.0) ) THEN   ! NOT multiple layers in standard file type
+      IF(.not.((out_inc(3) > 1 .and. ityp.eq.0) .OR.    &     ! NOT ( multiple layers in standard file typ OR
+               ityp==13                             )) THEN   !       HDF5 file format                        )
          CALL oeffne (iff, outfile, 'unknown') 
       ENDIF
       IF (ier_num.eq.0) THEN 
@@ -1438,6 +1452,29 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !100      format(/)                                                     
 !                                                                       
       END SUBROUTINE do_output                      
+!
+!*****7*****************************************************************
+!
+SUBROUTINE hdf5_write (value, laver, outfile, xmin, maxp, werte)
+!
+USE hdf5
+USE errlist_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: value
+LOGICAL, INTENT(IN) :: laver
+CHARACTER(LEN=*), INTENT(IN) :: outfile
+real(kind=prec_sp) :: xmin
+integer :: maxp
+real(kind=prec_dP), dimension(MAXp) :: werte
+!
+CALL h5open_f(ier_num)
+!CALL h5close_f(ier_num)
+!
+END SUBROUTINE hdf5_write
+!
 !*****7*****************************************************************
       SUBROUTINE set_output (linverse) 
 !-                                                                      

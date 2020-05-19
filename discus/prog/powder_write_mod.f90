@@ -638,6 +638,7 @@ USE powder_mod
 !
 USE precision_mod
 USE prompt_mod
+USE sys_compiler
 !
 IMPLICIT none 
 !                                                                       
@@ -651,7 +652,7 @@ REAL(KIND=PREC_SP) :: pow_tmp_sum
 REAL(KIND=PREC_SP) :: pow_uuu_sum
 !
 REAL           :: ss       ! time
-REAL, EXTERNAL :: seknds
+!REAL, EXTERNAL :: seknds
 !
 WRITE (output_io, * ) ' Starting convolution'
 ss = seknds (0.0)

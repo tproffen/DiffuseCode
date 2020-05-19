@@ -1229,6 +1229,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       USE errlist_mod 
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1853,6 +1854,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       USE errlist_mod 
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
        
 !                                                                       
@@ -2857,6 +2859,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       USE errlist_mod 
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
        

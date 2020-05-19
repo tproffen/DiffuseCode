@@ -1277,6 +1277,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE param_mod 
       USE precision_mod
       USE prompt_mod 
+USE sys_compiler
 !
       IMPLICIT none 
 !                                                                       

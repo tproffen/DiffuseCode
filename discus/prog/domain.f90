@@ -544,6 +544,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE structur, ONLY: stru_readheader, test_file
       USE errlist_mod 
 USE precision_mod
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
        
@@ -1095,7 +1096,8 @@ INTEGER, PARAMETER :: MAXW = 4
       USE structur, ONLY: stru_readheader
       USE trafo_mod
       USE errlist_mod 
-use molecule_mod
+USE molecule_mod
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
        

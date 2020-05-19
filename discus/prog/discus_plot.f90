@@ -38,6 +38,7 @@ USE string_convert_mod
 USE sup_mod
 USE precision_mod
 USE take_param_mod
+USE sys_compiler
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -1103,6 +1104,7 @@ END SUBROUTINE plot
       USE discus_plot_init_mod
       USE discus_plot_export_mod
       USE errlist_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
       INTEGER iff 
@@ -1119,7 +1121,7 @@ END SUBROUTINE plot
       ELSEIF (pl_prog.eq.'frames'.and.pl_append) then 
          INQUIRE (file = pl_out, exist = lexist) 
          IF (lexist) then 
-            CALL oeffne_append (iff, pl_out, 'old', lread) 
+            CALL oeffne_append (iff, pl_out, 'old')
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -1254,7 +1256,8 @@ USE param_mod
 USE precision_mod
 USE prompt_mod
 USE trig_degree_mod
-use matrix_mod
+USE matrix_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !
@@ -1568,6 +1571,7 @@ SUBROUTINE jmol_kill(lout, lfinal)
 USE envir_mod
 USE errlist_mod
 USE prompt_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !

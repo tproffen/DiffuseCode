@@ -1326,6 +1326,7 @@ USE param_mod
 USE prompt_mod 
 USE precision_mod 
 USE trig_degree_mod
+USE sys_compiler
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -1364,7 +1365,7 @@ REAL :: llstartmini
 REAL :: llendmini 
 REAL :: ss 
 !                                                                       
-REAL, EXTERNAL :: seknds 
+!REAL, EXTERNAL :: seknds 
 !
 st_new_form = .TRUE.    ! We need new form factors from stack to be placed into phases
 n_qxy   = 1
