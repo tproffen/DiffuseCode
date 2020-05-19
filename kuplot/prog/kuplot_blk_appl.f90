@@ -331,6 +331,7 @@
       USE get_params_mod
       USE prompt_mod 
 USE precision_mod
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -376,6 +377,7 @@ USE precision_mod
       USE get_params_mod
 USE precision_mod
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -705,6 +707,7 @@ USE precision_mod
       USE envir_mod 
       USE errlist_mod 
       USE prompt_mod 
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
       INTEGER idef 

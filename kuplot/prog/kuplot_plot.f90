@@ -106,6 +106,7 @@ SUBROUTINE do_plot (lmenu)
       USE kuplot_mod 
 USE precision_mod
       USE string_convert_mod
+USE sys_compiler
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -534,6 +535,7 @@ ELSE main
       USE kuplot_mod 
       USE kuplot_fit6
       USE string_convert_mod
+USE sys_compiler
 !                                                                       
       IMPLICIT none 
 !                                                                       

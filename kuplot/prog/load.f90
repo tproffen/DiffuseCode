@@ -429,6 +429,7 @@ LOGICAL         , INTENT(IN)    :: lecho
 USE precision_mod
       USE take_param_mod
       USE string_convert_mod
+USE sys_compiler
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -3081,6 +3082,7 @@ USE precision_mod
       USE errlist_mod 
       USE prompt_mod 
       USE kuplot_config 
+USE sys_compiler
 !                                                                       
       IMPLICIT none 
 !                                                                       

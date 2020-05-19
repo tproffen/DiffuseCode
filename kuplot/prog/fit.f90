@@ -602,6 +602,7 @@ USE precision_mod
 !
       USE build_name_mod
 USE precision_mod
+USE sys_compiler
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -681,6 +682,7 @@ USE precision_mod
       USE kuplot_config 
       USE kuplot_mod 
 USE precision_mod
+USE sys_compiler
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -987,6 +989,7 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE sys_compiler
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1659,6 +1662,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE trig_degree_mod
+USE sys_compiler
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1871,7 +1875,7 @@ USE precision_mod
 !                                                                       
       INTEGER maxw 
       REAL(KIND=PREC_DP) werte (maxw) 
-      REAL(KIND=PREC_DP) wmax (maxmax) 
+      REAL(KIND=PREC_SP) wmax (maxmax) 
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       
@@ -2074,7 +2078,7 @@ USE precision_mod
 !                                                                       
       INTEGER maxw 
       REAL(KIND=PREC_DP) werte (maxw) 
-      REAL(KIND=PREC_DP) wmax (maxmax) 
+      REAL(KIND=PREC_SP) wmax (maxmax) 
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       
@@ -2275,7 +2279,7 @@ USE precision_mod
       INTEGER nu 
       INTEGER maxw 
       REAL(KIND=PREC_DP) werte (maxw) 
-      REAL(KIND=PREC_DP) wmax (maxmax) 
+      REAL(KIND=PREC_SP) wmax (maxmax) 
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       
@@ -4197,6 +4201,7 @@ USE precision_mod
 !
       USE build_name_mod
 USE precision_mod
+USE sys_compiler
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -4276,6 +4281,7 @@ USE precision_mod
       USE kuplot_config 
       USE kuplot_mod 
 USE precision_mod
+USE sys_compiler
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -4663,6 +4669,7 @@ END SUBROUTINE show_fit_erg
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE sys_compiler
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -6126,7 +6133,7 @@ USE precision_mod
 !                                                                       
       INTEGER maxw 
       REAL(KIND=PREC_DP) werte (maxw) 
-      REAL(KIND=PREC_DP) wmax (maxmax) 
+      REAL(KIND=PREC_SP) wmax (maxmax) 
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       
@@ -6366,7 +6373,7 @@ USE precision_mod
       INTEGER nu 
       INTEGER maxw 
       REAL(KIND=PREC_DP) werte (maxw) 
-      REAL(KIND=PREC_DP) wmax (maxmax) 
+      REAL(KIND=PREC_SP) wmax (maxmax) 
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       

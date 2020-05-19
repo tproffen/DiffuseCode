@@ -1399,6 +1399,7 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE sys_compiler
 !                                                                       
       IMPLICIT none 
 !                                                                       
