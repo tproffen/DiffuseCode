@@ -58,6 +58,7 @@ SUBROUTINE refine_autodef
 USE envir_mod 
 USE errlist_mod 
 USE param_mod 
+USE sys_compiler
 !
 IMPLICIT NONE
 !

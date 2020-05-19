@@ -25,6 +25,7 @@ USE precision_mod
 USE prompt_mod
 USE string_convert_mod
 USE take_param_mod
+USE sys_compiler
 !
 IMPLICIT NONE
 !
