@@ -1,3 +1,6 @@
+MODULE lib_length
+!
+CONTAINS
 !*****7***************************************************************  
 !
 INTEGER FUNCTION len_str ( string )
@@ -68,3 +71,4 @@ END FUNCTION length_com
 !
 !*****7***************************************************************  
 !
+END MODULE lib_length

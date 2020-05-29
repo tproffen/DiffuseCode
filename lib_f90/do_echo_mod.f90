@@ -1,4 +1,9 @@
+MODULE lib_echo
+!
+CONTAINS
+!
 !*****7*****************************************************************
+!
 SUBROUTINE echo (zeile, lp) 
 !-                                                                      
 !     writes an echo to the screen                                      
@@ -6,6 +11,7 @@ SUBROUTINE echo (zeile, lp)
       USE build_name_mod
       USE errlist_mod 
       USE get_params_mod
+USE lib_length
 USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
@@ -23,7 +29,6 @@ USE precision_mod
       INTEGER iko, iqo, iqo2, lstring 
       REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
 !                                                                       
-      INTEGER len_str 
       INTEGER socket_send 
 !                                                                       
 !     Find any "" which would mean that we need parameter substitution  
@@ -155,4 +160,7 @@ WRITE(*,'(a, 2i4)' ) ' ERROR Number /TYP ', ier_num, ier_typ
 ENDIF
 !
 END SUBROUTINE do_flush
+!
 !*****7**************************************************************** 
+!
+END MODULE lib_echo

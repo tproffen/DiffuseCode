@@ -969,6 +969,7 @@ LOGICAL FUNCTION is_expression(string)
 USE berechne_mod
 USE calc_expr_mod
 USE errlist_mod
+USE lib_errlist_func
 USE precision_mod
 !
       CHARACTER(LEN=*), INTENT(IN) :: string

@@ -1,3 +1,9 @@
+MODULE lib_random_func
+!
+! Routines for random number generation
+!
+CONTAINS
+!                                                                       
 !*****7*****************************************************************
 !                                                                       
 REAL(KIND=KIND(1.0D0)) FUNCTION gasdev (sig) 
@@ -13,7 +19,6 @@ IMPLICIT none
 REAL(KIND=PREC_DP), INTENT(IN) ::  sig
 !                                                                       
 REAL(KIND=PREC_SP) ::  v1, v2, r, fac, gset 
-REAL ran1 
 !                                                                       
 SAVE gset 
 !                                                                       
@@ -52,7 +57,7 @@ REAL(KIND=PREC_DP), INTENT(in) :: sig
 REAL(KIND=PREC_DP), INTENT(in) :: skew
 !
 REAL(KIND=PREC_SP)  :: v1, v2, v3
-REAL(KIND=PREC_DP)  :: gasdev
+!REAL(KIND=PREC_DP)  :: gasdev
 !                                                                       
 v1      = gasdev(1.0D0)
 v2      = gasdev(1.0D0)
@@ -73,7 +78,7 @@ REAL(KIND=PREC_DP), INTENT(IN) :: factor ! iLimit in multiples of sigma
 REAL(KIND=PREC_SP)    :: x
 INTEGER :: counter
 !
-REAL(KIND=PREC_DP) :: gasdev
+!REAL(KIND=PREC_DP) :: gasdev
 !
 x = 0.0D0
 counter = 0
@@ -226,8 +231,8 @@ REAL(KIND=PREC_SP), INTENT(IN) :: xm
 !
 !U    USES gammln,ran1                                                  
 REAL(KIND=PREC_SP) :: alxm, em, g, oldm, sq, t, y
-REAL(KIND=PREC_SP) :: gammln
-REAL               ran1
+!REAL(KIND=PREC_SP) :: gammln
+!REAL               ran1
 SAVE alxm, g, oldm, sq 
 DATA oldm / -1.D0 / 
 IF (xm.lt.12.) then 
@@ -285,3 +290,7 @@ ENDDO
 gammln = REAL(tmp + LOG(stp * ser / x) )
 !
 END FUNCTION gammln                           
+!
+!******************************************************************************
+!
+END MODULE lib_random_func

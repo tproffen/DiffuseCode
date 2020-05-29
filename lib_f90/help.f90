@@ -1,3 +1,7 @@
+MODULE lib_help
+!
+CONTAINS
+!
 !****7******************************************************************
 !                                                                       
 SUBROUTINE do_hel (ein, length) 
@@ -16,6 +20,8 @@ SUBROUTINE do_hel (ein, length)
       USE envir_mod 
       USE errlist_mod 
       USE class_macro_internal 
+USE lib_errlist_func
+USE lib_length
       USE prompt_mod 
       USE string_convert_mod
       USE sup_mod
@@ -38,7 +44,6 @@ SUBROUTINE do_hel (ein, length)
       LOGICAL lread, lende 
       LOGICAL found, fast, stay 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
 !------ set up some variables                                           
 !                                                                       
@@ -141,6 +146,7 @@ SUBROUTINE do_hel (ein, length)
 !-                                                                      
       USE prompt_mod 
       USE string_convert_mod
+USE lib_length
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -152,7 +158,6 @@ SUBROUTINE do_hel (ein, length)
       CHARACTER(6) prom 
       INTEGER i 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
 !------ Build status lines                                              
 !                                                                       
@@ -180,8 +185,11 @@ SUBROUTINE do_hel (ein, length)
 !-                                                                      
       USE envir_mod 
       USE errlist_mod 
+USE lib_errlist_func
+USE lib_length
       USE prompt_mod 
       USE string_convert_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -198,8 +206,6 @@ SUBROUTINE do_hel (ein, length)
       LOGICAL found, fast 
       REAL werte 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
 !------ Loop over all helpfile levels until entry is found              
 !                                                                       
@@ -341,6 +347,7 @@ SUBROUTINE do_hel (ein, length)
       SUBROUTINE lese_text (ihl) 
 !                                                                       
       USE envir_mod 
+USE lib_length
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -350,7 +357,6 @@ SUBROUTINE do_hel (ein, length)
       CHARACTER(1) cdummy 
       INTEGER ihl, ilc, ll 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
    10 CONTINUE 
       CALL get_environment_variable ('LINES', clines)
@@ -390,6 +396,7 @@ SUBROUTINE do_hel (ein, length)
 !*****7*****************************************************************
       SUBROUTINE weitere (ihl, nl, viele, nviele, nbef) 
 !                                                                       
+USE lib_length
       IMPLICIT none 
 !                                                                       
       INTEGER nviele 
@@ -400,7 +407,6 @@ SUBROUTINE do_hel (ein, length)
       INTEGER ll 
       REAL werte 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       nbef = 0 
       BACKSPACE (ihl) 
@@ -451,6 +457,7 @@ USE precision_mod
 USE prompt_mod 
 USE take_param_mod
 USE string_convert_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -487,7 +494,6 @@ INTEGER             :: laenge, i
 INTEGER             :: ierror
 LOGICAL             :: lexist
 !
-LOGICAL :: str_comp
 !
 DATA oname  / 'section','viewer' /
 DATA loname /  7       , 6 /
@@ -651,3 +657,6 @@ ENDIF
 ' You will find the Manual in the folder:'/' ',a)
 !
 END SUBROUTINE do_manual
+!
+!
+END MODULE lib_help

@@ -11,10 +11,13 @@ SUBROUTINE do_input (zeile, lp)
 USE ber_params_mod
 USE errlist_mod 
 USE get_params_mod
+USE lib_length
 USE param_mod 
 USE precision_mod
+USE str_comp_mod
 !
 USE class_macro_internal
+USE lib_macro_func
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -30,8 +33,6 @@ REAL(KIND=PREC_DP), DIMENSION(maxw) ::  werte !(maxw)
 INTEGER :: i 
 INTEGER :: lpara (maxw)
 INTEGER :: ianz 
-INTEGER :: len_str 
-LOGICAL :: str_comp 
 !                                                                       
 IF(wait_active) THEN
       lp = - lp 

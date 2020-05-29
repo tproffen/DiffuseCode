@@ -11,6 +11,8 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 USE prompt_mod 
 USE debug_mod 
 USE errlist_mod 
+USE lib_length
+USE lib_macro_func
 USE precision_mod
 USE sockets_mod
 USE sys_compiler
@@ -24,7 +26,6 @@ CHARACTER(LEN=PREC_STRING), DIMENSION(MARG) :: arg ! (marg)
 CHARACTER(LEN=2048)                  :: line = ' '
 CHARACTER(LEN=40)                    :: str 
 INTEGER :: iarg, i, ilen , ilena
-INTEGER :: len_str 
 !                                                                       
 CALL do_getargs (iarg, arg, marg) 
 IF (iarg.gt.0) THEN 

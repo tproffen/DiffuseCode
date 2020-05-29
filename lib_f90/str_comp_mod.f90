@@ -1,3 +1,7 @@
+MODULE str_comp_mod
+!
+CONTAINS
+!
 !*****7***********************************************************      
 LOGICAL FUNCTION str_comp (a, b, j, la, lb) 
 !-                                                                      
@@ -34,3 +38,4 @@ ENDIF
 !                                                                       
 END FUNCTION str_comp                         
 !*****7***********************************************************      
+END MODULE str_comp_mod

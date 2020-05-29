@@ -10,6 +10,7 @@ SUBROUTINE exit_all
 !                                                                       
 USE envir_mod
 USE errlist_mod 
+USE lib_errlist_func
 USE operating_mod
 USE precision_mod
 USE prompt_mod 

@@ -7,6 +7,7 @@ SUBROUTINE count_col (zeile, ianz)
 !+                                                                      
 !     This subroutine counts the number of columns of string 'zeile'    
 !-                                                                      
+USE lib_length
 USE prompt_mod 
 !
 IMPLICIT NONE
@@ -17,7 +18,6 @@ INTEGER           , INTENT(INOUT) :: ianz
 INTEGER :: i 
 LOGICAL :: ein 
 !                                                                       
-INTEGER :: len_str 
 !                                                                       
 ianz = 0 
 ein = .false. 

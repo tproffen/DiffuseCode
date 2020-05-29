@@ -12,6 +12,7 @@ SUBROUTINE lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 USE constants_mod
 USE blanks_mod
 USE errlist_mod 
+USE lib_length
 USE param_mod 
 USE precision_mod
 USE random_mod 
@@ -32,7 +33,6 @@ INTEGER :: laenge, ltyp, kpara, kpara2
 INTEGER :: i
 INTEGER :: lstr
 INTEGER :: lcomm 
-INTEGER :: length_com 
 LOGICAL :: success = .FALSE.
 !                                                                       
 laenge = ll 

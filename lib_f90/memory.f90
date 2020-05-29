@@ -1,3 +1,6 @@
+MODULE lib_memory_func
+!
+CONTAINS
 !
 subroutine memory_message(cpara)
 !
@@ -52,3 +55,4 @@ close(100)
 !                             vmdata,vmstk,vmexe,vmlib,vmpte,vmswap
 write(101,'(a20, 5(1x,I10))') cpara(1:20),vmpeak,vmsize, vmhwm,vmrss, vmpte
 end subroutine memory_message
+END MODULE lib_memory_func

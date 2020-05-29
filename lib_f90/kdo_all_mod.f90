@@ -19,10 +19,16 @@ USE errlist_mod
 USE fput_mod
 USE get_params_mod
 USE learn_mod 
+USE lib_learn
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_help
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod 
 USE sockets_mod
 USE random_state_mod
+USE str_comp_mod
 USE sys_compiler
 !
 IMPLICIT none 
@@ -41,7 +47,6 @@ IMPLICIT none
       INTEGER ianz 
       REAL(KIND=PREC_DP):: werte (maxpar) 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
 !     change working directory                                          
 !                                                                       

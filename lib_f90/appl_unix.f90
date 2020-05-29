@@ -12,6 +12,8 @@ SUBROUTINE appl_env (standalone) !, local_mpi_myid)
 !+                                                                      
 USE errlist_mod
 USE envir_mod 
+USE lib_errlist_func
+USE lib_length
 USE terminal_mod
 USE param_mod
 USE precision_mod
@@ -38,7 +40,6 @@ INTEGER             :: exit_msg
 INTEGER ico, ice, iii, i, j
 INTEGER :: length
 INTEGER :: ios ! I/O status
-INTEGER len_str 
 INTEGER pname_l 
 LOGICAL lpresent
 !INTEGER :: lib_f90_getpid
@@ -453,6 +454,7 @@ SUBROUTINE write_appl_env (standalone, local_mpi_myid)
 !+
 USE envir_mod
 USE errlist_mod
+USE lib_errlist_func
 USE precision_mod
 USE prompt_mod
 USE terminal_mod

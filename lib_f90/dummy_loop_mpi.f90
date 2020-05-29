@@ -1,3 +1,7 @@
+MODULE dummy_loop_mpi_mod
+!
+CONTAINS
+!
 SUBROUTINE dummy_loop_mpi(prog_n, prog_l, mac_n, mac_l, out_n, out_l, repeat, nindiv)
 !
 ! Dummy function for formal reasons shall never be called
@@ -12,3 +16,4 @@ LOGICAL          , INTENT(IN) :: repeat
 INTEGER          , INTENT(IN) :: nindiv
 !
 END SUBROUTINE dummy_loop_mpi
+END MODULE dummy_loop_mpi_mod

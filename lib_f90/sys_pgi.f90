@@ -75,13 +75,13 @@ MODULE sys_compiler
 !*****7**************************************************************** 
       SUBROUTINE holeenv (request, answer) 
 !                                                                       
+USE lib_length
       USE precision_mod
       IMPLICIT none 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: request 
       CHARACTER(LEN=PREC_STRING) :: answer 
       INTEGER length 
-      INTEGER len_str
 !                                                                       
       answer = ' ' 
       length = len_str(request)
@@ -203,6 +203,7 @@ MODULE sys_compiler
       USE build_name_mod
       USE envir_mod 
       USE errlist_mod 
+USE lib_length
 USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
@@ -219,7 +220,6 @@ USE precision_mod
       LOGICAL echo 
       REAL(KIND=PREC_DP) :: werte (MAXW) 
 !                                                                       
-      INTEGER len_str 
 !
       INTEGER getcwd 
 !                                                                       
@@ -268,6 +268,7 @@ USE precision_mod
 !-
 !
       USE errlist_mod 
+USE lib_length
       USE precision_mod
       IMPLICIT none 
 !                                                                       
@@ -276,7 +277,6 @@ USE precision_mod
       CHARACTER(LEN=PREC_STRING) :: cwd 
       INTEGER ld, dummy 
 !                                                                       
-      INTEGER len_str 
       INTEGER getcwd 
 !                                                                       
       dummy = getcwd (cwd )
@@ -290,13 +290,14 @@ USE precision_mod
 !     Deletes a file                                                    
 !-                                                                      
       USE errlist_mod 
+USE lib_length
       USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER ( * ) name 
       CHARACTER(LEN=PREC_STRING) :: command 
-      INTEGER len_str, laenge 
+      INTEGER laenge 
       INTEGER system
 !                                                                       
       laenge = len_str (name) 
@@ -326,12 +327,13 @@ USE precision_mod
 !     Renames the file <nameold> to <namenew>                           
 !-                                                                      
       USE errlist_mod 
+USE lib_length
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER ( * ) nameold, namenew 
       CHARACTER(80) command 
-      INTEGER len_str, lo, ln 
+      INTEGER lo, ln 
       INTEGER system
 !                                                                       
       lo = len_str (nameold) 
@@ -430,6 +432,7 @@ USE precision_mod
 !+                                                                      
       USE envir_mod 
       USE errlist_mod 
+USE lib_length
       USE times_mod
       IMPLICIT none 
 !                                                                       
@@ -441,7 +444,6 @@ USE precision_mod
       INTEGER l_datei 
       LOGICAL lda
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       ios     = 0
       l_datei = len_str (datei) 
@@ -520,6 +522,7 @@ USE precision_mod
 !+                                                                      
       USE envir_mod 
       USE errlist_mod 
+USE lib_length
       USE precision_mod
       IMPLICIT none 
 !                                                                       
@@ -531,7 +534,6 @@ USE precision_mod
       INTEGER l_datei 
       LOGICAL lda
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       l_datei = len_str (datei) 
       IF (l_datei.gt.0) then 

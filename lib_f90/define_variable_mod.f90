@@ -19,8 +19,10 @@ USE constants_mod
 USE do_variable_mod
 USE errlist_mod 
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
 USE prompt_mod 
+USE str_comp_mod
 USE take_param_mod
 USE variable_mod
 !
@@ -52,7 +54,6 @@ INTEGER :: n1, n2, n_data    ! Dimensions of arrays, total size
 INTEGER :: place             ! location of variable arrays
 LOGICAL :: l_init 
 !                                                                       
-LOGICAL :: str_comp 
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
 CHARACTER(LEN=PREC_STRING),                 DIMENSION(NOPTIONAL) :: oname   !Optional parameter names

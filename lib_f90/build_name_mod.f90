@@ -12,6 +12,7 @@ SUBROUTINE do_build_name (ianz, cpara, lpara, werte, MAXW, fpara)
 USE blanks_mod
 USE berechne_mod
 USE errlist_mod 
+USE lib_length
 USE precision_mod
 !                                                                       
 IMPLICIT none 
@@ -54,7 +55,6 @@ LOGICAL            :: lfloat
 LOGICAL            :: l_hyp 
 LOGICAL            :: l_sin 
 !                                                                       
-INTEGER len_str 
 !                                                                       
 DATA c_form / 'd', 'D', 'f', 'F', 'c', 'C' / 
 !                                                                       

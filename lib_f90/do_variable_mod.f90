@@ -16,6 +16,7 @@ SUBROUTINE ersetz_variable (line, length, lmask, amask)
 USE blanks_mod
 USE constants_mod
 USE errlist_mod 
+USE lib_length
 USE precision_mod
 USE string_extract_mod
 USE variable_mod
@@ -40,7 +41,6 @@ INTEGER :: omask   = 0         ! old mask
 INTEGER :: nmask   = 1         ! new mask 
 LOGICAL :: success = .FALSE.
 !                                                                       
-INTEGER len_str 
 !                                                                       
 string = line
 istart = 1
@@ -327,6 +327,7 @@ END SUBROUTINE rese_variables
 !     Removes all or specified user variables
 !+
 USE errlist_mod
+USE str_comp_mod
 USE variable_mod
 !
 IMPLICIT none 
@@ -339,7 +340,6 @@ LOGICAL                               , INTENT(IN)    :: is_diffev
 !
 INTEGER :: i, j, k, upper
 !
-LOGICAL :: str_comp
 !
 IF(ianz==1) THEN
    CALL rese_variables (is_diffev)
@@ -395,6 +395,7 @@ SUBROUTINE show_variables
 !+                                                                      
 USE constants_mod
 USE blanks_mod
+USE lib_length
 USE precision_mod
 USE prompt_mod 
 USE variable_mod
@@ -406,7 +407,6 @@ CHARACTER(LEN=PREC_STRING) :: string
 INTEGER :: i , j
 !
 INTEGER :: length
-INTEGER :: len_str 
 DATA cdiffev/'DIFFEV','      '/
 !
 IF (var_num.gt.0) THEN 

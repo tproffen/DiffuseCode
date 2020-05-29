@@ -19,6 +19,7 @@ SUBROUTINE do_loop (line, lend, length)
       USE doexec_mod 
       USE do_execute_mod
       USE errlist_mod 
+USE lib_macro_func
       USE class_macro_internal 
 !                                                                       
       IMPLICIT none 
@@ -75,6 +76,8 @@ USE doexec_mod
 USE blanks_mod
 USE errlist_mod 
 USE class_macro_internal 
+USE lib_length
+USE lib_macro_func
 USE prompt_mod
 !
 IMPLICIT NONE
@@ -87,7 +90,6 @@ CHARACTER(LEN=20) :: prom
 CHARACTER(LEN=3)  :: cprom (0:3) 
 INTEGER :: i
 !
-INTEGER :: len_str
 !
 DATA cprom / '/do', '/if', '/do', '/do' / 
 !                                                                       
@@ -152,12 +154,16 @@ USE doexec_mod
 USE errlist_mod 
 USE get_params_mod
 USE learn_mod 
+USE lib_length
+USE lib_macro_func
 USE class_macro_internal 
 USE precision_mod
 USE prompt_mod 
 USE set_sub_generic_mod
 USE sup_mod
 USE mpi_slave_mod
+USE lib_macro_func
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -186,8 +192,6 @@ INTEGER                              :: nindiv
 !INTEGER, DIMENSION(0:maxlev)         :: jlevel ! (0:maxlev) 
 LOGICAL                              :: repeat
 !
-INTEGER :: len_str
-LOGICAL :: str_comp
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 4
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
@@ -244,7 +248,9 @@ ENDIF
          ier_num = 0 
          ier_typ = ER_NONE 
          IF (length.ge.2) then 
-            CALL file_kdo (line (2:length), length - 1) 
+            line = line(2:length)
+            length = length - 1
+            CALL file_kdo (line, length) 
          ELSE 
             ier_num = - 13 
             ier_typ = ER_MAC 
@@ -445,7 +451,10 @@ USE errlist_mod
 USE learn_mod 
 USE class_macro_internal 
 USE prompt_mod 
+USE lib_errlist_func
+USE lib_macro_func
 USE set_sub_generic_mod
+USE str_comp_mod
 USE sup_mod
 USE mpi_slave_mod
 !                                                                       
@@ -460,7 +469,6 @@ CHARACTER(LEN=4)                     :: befehl
 INTEGER :: length, lp, lbef
 LOGICAL :: lreg 
 !
-LOGICAL :: str_comp 
 !
 !      DO i = 0, maxlev 
 ilevel   (0:maxlev) = - 1 
@@ -500,7 +508,9 @@ main: DO WHILE (level.gt. - 1.and. (                                    &
             DO WHILE (lblock_dbg) 
                CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom)
                IF (line (1:1) .eq.'@') THEN 
-                  CALL file_kdo (line (2:length), length - 1) 
+                  line = line(2:length)
+                  length = length - 1
+                  CALL file_kdo (line, length) 
                ELSE 
                   CALL p_mache_kdo (line, lend, length) 
                ENDIF 
@@ -517,7 +527,9 @@ main: DO WHILE (level.gt. - 1.and. (                                    &
             length = 1 
          ENDIF 
          IF (line (1:1) .eq.'@') THEN 
-            CALL file_kdo (line (2:length), length - 1) 
+            line = line(2:length)
+            length = length - 1
+            CALL file_kdo (line, length) 
          ELSE 
             CALL p_mache_kdo (line, lend, length) 
          ENDIF 

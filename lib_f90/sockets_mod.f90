@@ -41,6 +41,7 @@ CONTAINS
       USE learn_mod 
       USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -60,7 +61,6 @@ CONTAINS
 !                                                                       
       REAL wert 
 !                                                                       
-      LOGICAL str_comp 
       INTEGER socket_connect
       INTEGER socket_get
       INTEGER socket_send
@@ -267,15 +267,15 @@ CONTAINS
 !     Waits for 'ready' from server                                     
 !                                                                       
       USE errlist_mod 
+USE lib_length
       USE prompt_mod 
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER(256) line, cstr 
       INTEGER i, il, icr 
 !                                                                       
-      LOGICAL str_comp 
-      INTEGER len_str 
       INTEGER socket_get 
 !                                                                       
       line = '' 

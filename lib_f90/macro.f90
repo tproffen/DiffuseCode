@@ -1,3 +1,7 @@
+MODULE lib_macro_func
+!
+CONTAINS
+!
 SUBROUTINE file_kdo(line, ilen)
 !
 USE blanks_mod
@@ -5,6 +9,8 @@ USE class_macro_internal
 USE envir_mod
 USE errlist_mod
 USE doact_mod
+USE lib_errlist_func
+USE lib_length
 USE macro_mod
 USE precision_mod
 USE prompt_mod
@@ -37,7 +43,6 @@ INTEGER               :: istatus
 LOGICAL               :: is_stored
 INTEGER               :: lslash          ! position os slash in filename
 !
-INTEGER   len_str
 !
 is_stored = .false.                     ! assume macro does not exist in storage
 IF(macro_level==0 .AND. .NOT.lmakro) THEN
@@ -302,6 +307,7 @@ SUBROUTINE inquire_macro_name(fileda, infile)
 !
 USE envir_mod
 USE errlist_mod
+USE lib_length
 USE precision_mod
 USE prompt_mod
 USE sys_compiler
@@ -320,7 +326,6 @@ INTEGER                  :: infile_length   ! length of filename string
 INTEGER                  :: lc
 INTEGER                  :: lslash          ! position os slash in filename
 !
-INTEGER, EXTERNAL :: len_str
 !
 ldir        = current_dir       ! Build current file name
 ldir_length = current_dir_l
@@ -439,10 +444,12 @@ USE doact_mod
 USE do_eval_mod
 USE errlist_mod
 USE get_params_mod
+USE lib_length
 USE macro_mod
 USE class_macro_internal
 USE precision_mod
 USE prompt_mod
+USE str_comp_mod
 USE support_mod
 !
 IMPLICIT none
@@ -462,8 +469,6 @@ INTEGER, DIMENSION(1) :: lstring
 LOGICAL :: lnum
 REAL(KIND=PREC_DP)   , DIMENSION(1) :: r_par
 !
-INTEGER, EXTERNAL :: len_str
-LOGICAL, EXTERNAL :: str_comp
 !
 ier_num = 0
 ier_typ = ER_NONE
@@ -786,9 +791,11 @@ END SUBROUTINE macro_close_mpi
       USE errlist_mod
       USE get_params_mod
       USE class_macro_internal
+USE lib_length
       USE macro_mod
 USE precision_mod
       USE prompt_mod
+USE str_comp_mod
       IMPLICIT none
 !
 !
@@ -801,8 +808,6 @@ USE precision_mod
       INTEGER lpara (maxw)
       INTEGER ianz
 !
-      INTEGER len_str
-      LOGICAL str_comp
 !
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm)
 !
@@ -979,3 +984,4 @@ CLOSE(IMC)
 !*****7*****************************************************************
 !
 END SUBROUTINE test_macro
+END MODULE lib_macro_func

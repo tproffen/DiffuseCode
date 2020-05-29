@@ -9,6 +9,7 @@ SUBROUTINE do_show_generic (cpara, lpara, MAXW)
 !+                                                                      
 USE do_variable_mod
 USE errlist_mod 
+USE str_comp_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -16,7 +17,6 @@ INTEGER                           , INTENT(IN) :: MAXW
 CHARACTER (LEN=*), DIMENSION(MAXW), INTENT(IN) :: cpara
 INTEGER          , DIMENSION(MAXW), INTENT(IN) :: lpara
 !                                                                       
-LOGICAL str_comp 
 !                                                                       
 IF (str_comp (cpara (1) , 'error', 2, lpara (1) , 5) ) THEN 
    CALL do_show_error 

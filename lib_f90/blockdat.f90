@@ -1,3 +1,6 @@
+MODULE lib_init_mod
+!
+CONTAINS
 !                                                                       
 !     Application independent blockdat for command language and         
 !     fortran interpreter                                               
@@ -93,3 +96,4 @@ CALL variable_init
 CALL glp_setup
 !
 END SUBROUTINE init_sysarrays                 
+END MODULE lib_init_mod

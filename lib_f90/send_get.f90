@@ -1,3 +1,6 @@
+MODULE lib_send_func
+!
+CONTAINS
 !
 ! These are generic send and get routines that are used by 
 ! the programs in the interface to python. They allow
@@ -107,3 +110,4 @@ IF(lower>0 .and. upper<501 .and. lower <= upper) THEN
 ENDIF
 !
 END SUBROUTINE get_r
+END MODULE lib_send_func

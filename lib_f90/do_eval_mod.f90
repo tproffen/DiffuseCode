@@ -13,6 +13,7 @@ USE ber_params_mod
 USE errlist_mod 
 USE do_string_alloc_mod
 USE get_params_mod
+USE lib_length
 USE precision_mod
 USE prompt_mod 
 IMPLICIT none 
@@ -33,7 +34,6 @@ INTEGER :: length
 INTEGER :: indxg = 0
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
-INTEGER, EXTERNAL :: len_str 
 !                                                                       
       IF (line.eq.' ') then 
          ier_num = - 6 

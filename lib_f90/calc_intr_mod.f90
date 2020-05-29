@@ -13,6 +13,8 @@ USE ersetz_mod
 USE do_read_number_mod
 USE errlist_mod 
 USE get_params_mod
+USE lib_length
+USE lib_random_func
 USE precision_mod
 USE random_mod
 USE variable_mod
@@ -51,10 +53,6 @@ REAL(KIND=PREC_DP), DIMENSION(3)  :: wwerte
 !     REAL sind, cosd, tand, asind, acosd, atand 
 !     REAL atan2, atan2d 
 !                                                                       
-INTEGER  ::length_com 
-INTEGER :: len_str 
-REAL(KIND=PREC_SP), EXTERNAL :: ran1, poidev
-REAL(KIND=PREC_DP), EXTERNAL :: gasdev, gasskew
 !
 !                                                                       
       ier_num = -1 

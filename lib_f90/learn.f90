@@ -1,3 +1,7 @@
+MODULE lib_learn
+!
+CONTAINS
+!
 !*****7**************************************************************** 
 SUBROUTINE start_learn (zeile, lcomm) 
 !-                                                                      
@@ -8,6 +12,7 @@ SUBROUTINE start_learn (zeile, lcomm)
 USE build_name_mod
 USE errlist_mod 
 USE get_params_mod
+USE lib_length
 USE learn_mod 
 USE precision_mod
 USE prompt_mod 
@@ -24,7 +29,7 @@ INTEGER            , INTENT(INOUT) :: lcomm
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
 INTEGER,             DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP),  DIMENSION(MAXW) :: werte
-INTEGER :: ip, ianz, len_str 
+INTEGER :: ip, ianz
 !                                                                       
 IF (llearn) THEN 
    ier_num = - 7 
@@ -86,3 +91,5 @@ ENDIF
 1000 FORMAT    (' ------ > Learning finished, makrofile: ',a) 
 !                                                                       
 END SUBROUTINE ende_learn                     
+!
+END MODULE lib_learn

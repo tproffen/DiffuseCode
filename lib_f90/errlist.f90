@@ -1,3 +1,6 @@
+MODULE lib_errlist_func
+!
+CONTAINS
 SUBROUTINE errlist
 !*****7****************************************************************
 !
@@ -94,6 +97,7 @@ END
 !       Displays the error messages 
 !+
        USE errlist_mod 
+USE lib_length
        USE terminal_mod
        USE prompt_mod
        IMPLICIT      NONE
@@ -108,7 +112,6 @@ END
        CHARACTER(LEN=80)  :: estr
        INTEGER            :: le
 !
-       INTEGER       len_str
 !
        IF(ier_ctrlc) THEN     ! Avoid multiple message in case of a ctrl-c
           IF(ier_rep .AND. ier_num==-14) RETURN
@@ -471,3 +474,4 @@ END SUBROUTINE errlist_restore
 !
 !*****7****************************************************************
 !
+END MODULE lib_errlist_func

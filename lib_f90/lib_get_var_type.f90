@@ -1,3 +1,6 @@
+MODULE lib_get_var
+!
+CONTAINS
 !
 !*******************************************************************************
 !
@@ -69,3 +72,5 @@ vari: DO i=1,var_num
 ENDDO vari
 !
 END SUBROUTINE lib_get_var_type
+!
+END MODULE lib_get_var

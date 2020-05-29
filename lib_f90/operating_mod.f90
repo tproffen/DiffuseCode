@@ -1,3 +1,7 @@
+MODULE lib_do_operating_mod
+!
+CONTAINS
+!
 !*****7*****************************************************************
 SUBROUTINE do_operating (zeile, lp) 
 !-                                                                      
@@ -108,3 +112,4 @@ ENDIF
 END SUBROUTINE do_operating                   
 !                                                                       
 !*****7***********************************************************      
+END MODULE lib_do_operating_mod

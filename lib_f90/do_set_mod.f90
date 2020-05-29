@@ -11,8 +11,10 @@ USE envir_mod
 USE errlist_mod 
 USE do_wait_mod
 USE get_params_mod
+USE lib_length
 USE precision_mod
 USE prompt_mod 
+USE str_comp_mod
 USE sys_compiler
 !                                                                       
 IMPLICIT none 
@@ -30,8 +32,6 @@ INTEGER :: ios
 INTEGER :: ianz 
 LOGICAL :: llog 
 !                                                                       
-      LOGICAL str_comp 
-      INTEGER len_str 
 !                                                                       
 IF (zeile.ne.' ') THEN 
    CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 

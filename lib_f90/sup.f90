@@ -23,6 +23,8 @@ USE doact_mod
 USE errlist_mod 
 USE jsu_readline
 USE learn_mod 
+USE lib_length
+USE lib_macro_func
 USE class_macro_internal 
 USE precision_mod
 USE prompt_mod 
@@ -48,9 +50,7 @@ INTEGER il, jl, lcready
 INTEGER :: lt
 LOGICAL lreg 
 LOGICAL :: ldone
-!LOGICAL str_comp 
 !                                                                       
-INTEGER len_str 
 INTEGER socket_accept 
 INTEGER socket_get 
 INTEGER socket_send 
@@ -268,6 +268,9 @@ IF (lblock) THEN
 !
 SUBROUTINE learn_save(input, ll, llearn, lmakro, ILRN)
 !
+USE lib_length
+USE str_comp_mod
+!
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN) :: input
@@ -277,8 +280,6 @@ LOGICAL         , INTENT(IN) :: lmakro
 INTEGER         , INTENT(IN) :: ILRN
 !
 INTEGER :: lbef
-INTEGER, EXTERNAL :: len_str 
-LOGICAL, EXTERNAL :: str_comp 
 !
 lbef = MIN(LEN(input),LEN_TRIM(input)) 
 IF (llearn.and..not.str_comp (input, 'lend', 3, lbef, 4)   &
@@ -332,13 +333,13 @@ SUBROUTINE do_prompt (prom)
 !*                                                                      
 !     This routine prints the prompt on the screen                      
 !-                                                                      
+USE lib_length
 USE prompt_mod 
 !                                                                       
 IMPLICIT none 
 !                                                                       
 CHARACTER (LEN=*), INTENT(IN) :: prom 
 !
-      INTEGER len_str 
 !                                                                       
 IF(prompt_status == PROMPT_ON.OR.prompt_status == PROMPT_REDIRECT) THEN
    WRITE (output_io, '(1X,A,'' > '')',advance='no') prom (1:len_str (prom) ) 

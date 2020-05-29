@@ -25,6 +25,7 @@ USE ber_params_mod
 use charact_mod
 USE errlist_mod
 USE precision_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -47,7 +48,6 @@ INTEGER :: icolon
 INTEGER :: len_look, len_user, l0
 LOGICAL :: ascii                   ! Test if we have letters only
 !
-LOGICAL :: str_comp
 !
 lpresent(:) = .FALSE.
 IF(ianz==0) RETURN           ! No parameters at all

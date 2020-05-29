@@ -15,6 +15,7 @@ SUBROUTINE arr_matmul(line, length)
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
 USE variable_mod
 !
@@ -166,6 +167,7 @@ SUBROUTINE arr_matadd(line, length)
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
 USE variable_mod
 !

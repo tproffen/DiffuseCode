@@ -11,6 +11,7 @@ USE ber_params_mod
       USE macro_mod 
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
 USE sys_compiler
       IMPLICIT none 
 !                                                                       
@@ -31,7 +32,6 @@ USE sys_compiler
       LOGICAL lappend 
       LOGICAL one_open 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       ianzz = 1 
 !                                                                       
@@ -126,6 +126,7 @@ USE ber_params_mod
       USE get_params_mod
       USE macro_mod 
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -140,7 +141,6 @@ USE precision_mod
       INTEGER lpara (maxw)
       INTEGER ianz, ii 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) RETURN 
@@ -185,6 +185,7 @@ USE ber_params_mod
       USE macro_mod 
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -199,7 +200,6 @@ USE precision_mod
       INTEGER ianz, ianzz 
       INTEGER ii 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       ianzz = 1 
 !                                                                       
@@ -250,6 +250,7 @@ USE calc_expr_mod
 USE charact_mod
 USE errlist_mod 
 USE get_params_mod
+USE lib_length
 USE macro_mod 
 USE param_mod 
 USE precision_mod
@@ -280,7 +281,6 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-INTEGER len_str 
 !
 DATA oname  / 'form'   /
 DATA loname /  4       /
@@ -443,6 +443,7 @@ USE ber_params_mod
       USE debug_mod 
       USE errlist_mod 
       USE get_params_mod
+USE lib_length
       USE macro_mod 
 USE precision_mod
       USE prompt_mod 
@@ -460,7 +461,6 @@ INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER                  :: ii, iii, ianz 
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) RETURN 
@@ -569,6 +569,7 @@ USE calc_expr_mod
 USE debug_mod 
 USE errlist_mod 
 USE get_params_mod
+USE lib_length
 USE macro_mod 
 USE precision_mod
 USE take_param_mod
@@ -598,7 +599,6 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-INTEGER len_str 
 !
 DATA oname  / 'form'   /
 DATA loname /  4       /
