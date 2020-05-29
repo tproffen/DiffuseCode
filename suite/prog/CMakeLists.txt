@@ -100,7 +100,7 @@ add_library (discus_suite_full ${SOURCES_ALL} ${SOURCES_LOCAL})
 add_dependencies ( discus_suite_full  discus_suite_all diffev_all refine_all discus_all kuplot_all lib_f90  suitehlp)
 
 add_executable(discus_suite ${SOURCE_MAIN} ${SOURCES_LOCAL} )
-target_link_libraries (discus_suite ${LIBS})
+target_link_libraries (discus_suite ${LIBS} ${LINK_LIBS})
 
 add_custom_target(suitehlp 
   DEPENDS      ${DIFFUSE_SOURCE_DIR}/suite/prog/appl_suite.hlp
