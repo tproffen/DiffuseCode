@@ -5,6 +5,7 @@ SUBROUTINE refine_errlist_appl
 !     Displays error Messages for the error type APPLication
 !+
       USE errlist_mod
+USE lib_errlist_func
       IMPLICIT      none
 !
 !

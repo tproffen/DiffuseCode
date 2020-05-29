@@ -11,7 +11,9 @@ USE refine_params_mod
 USE blanks_mod
 USE errlist_mod 
 USE param_mod 
+USE lib_errlist_func
 USE lib_upd_mod
+USE lib_length
 USE precision_mod
 !
 IMPLICIT none 
@@ -32,7 +34,6 @@ INTEGER :: ltyp
 INTEGER :: kpara
 INTEGER :: kpara2
 !
-INTEGER, EXTERNAL :: length_com
 !
 CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !
@@ -126,6 +127,7 @@ SUBROUTINE refine_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 USE calc_expr_mod
 USE errlist_mod 
 USE ersetz_mod
+USE lib_length
 USE param_mod 
 USE precision_mod
 IMPLICIT none 
@@ -144,7 +146,6 @@ REAL(KIND=PREC_DP) , INTENT(INOUT) :: ww
 INTEGER              :: i, lcomm
 REAL                 :: werte (maxw)
 !                                                                       
-INTEGER              :: length_com 
 !                                                                       
 lcomm = length_com (string(1:lp), ikl) 
 ier_num = - 1 
@@ -221,6 +222,7 @@ SUBROUTINE refine_get_var_type(line,length, var_is_type)
 ! Currently the refine does not offer local variables.
 !
 USE constants_mod
+USE lib_get_var
 USE variable_mod
 !
 IMPLICIT NONE

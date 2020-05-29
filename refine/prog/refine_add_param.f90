@@ -18,6 +18,7 @@ USE define_variable_mod
 USE get_params_mod
 USE ber_params_mod
 USE calc_expr_mod
+USE lib_errlist_func
 USE precision_mod
 USE take_param_mod
 !

@@ -32,6 +32,7 @@ SUBROUTINE refine_do_allocate_appl(zeile,lcomm)
 USE ber_params_mod
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 IMPLICIT NONE
 !
 !
@@ -44,7 +45,6 @@ INTEGER             , DIMENSION(1:MAXW)  :: lpara
 REAL(KIND=PREC_DP)  , DIMENSION(1:MAXW)  :: werte
 INTEGER                                  :: ianz
 !
-LOGICAL  :: str_comp
 !
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
 IF (ier_num.eq.0) then 
@@ -80,6 +80,7 @@ SUBROUTINE refine_do_deallocate_appl(zeile,lcomm)
 !
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 IMPLICIT NONE
 !
 !
@@ -92,7 +93,6 @@ INTEGER             , DIMENSION(1:MAXW)  :: lpara
 !      REAL                , DIMENSION(1:MAXW)  :: werte
 INTEGER                                  :: ianz
 !
-LOGICAL  :: str_comp
 !
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm)
 IF (ier_num.eq.0) then

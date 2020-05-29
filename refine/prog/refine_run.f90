@@ -510,6 +510,8 @@ USE doact_mod
 USE do_if_mod
 USE do_set_mod
 USE errlist_mod
+USE lib_errlist_func
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod
 USE set_sub_generic_mod
@@ -709,7 +711,7 @@ IF(lni(ndata)) THEN                    ! 2D data set
       ENDDO
    ENDDO
 ELSE
-   IF(dimen(1)/=len(ndata)) THEN
+   IF(dimen(1)/=lenc(ndata)) THEN
       ier_num = -4
       ier_typ = ER_APPL
       ier_msg(1) = 'Check x/y limits for data calculation '

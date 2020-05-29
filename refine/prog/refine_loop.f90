@@ -13,6 +13,8 @@ USE doact_mod
 USE do_if_mod
 USE errlist_mod 
 USE learn_mod 
+USE lib_errlist_func
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod 
 USE set_sub_generic_mod

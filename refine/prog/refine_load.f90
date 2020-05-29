@@ -34,7 +34,6 @@ REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 INTEGER                              :: ndata 
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 IF(line(1:6) == 'kuplot') THEN
    CALL get_params(line, ianz, cpara, lpara, MAXW, length)
@@ -157,7 +156,7 @@ IF(lni(ndata)) THEN                    ! 2D data set
    ENDIF
 ELSE                                     ! !D data set
    IF(LDATA) THEN                      ! This is the data set
-      ref_dim(1) = len(ndata )
+      ref_dim(1) = lenc(ndata )
       ref_dim(2) = 1
       ALLOCATE(ref_data  (ref_dim(1),ref_dim(2)))
       ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2)))

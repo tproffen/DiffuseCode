@@ -48,7 +48,6 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 DATA oname  / 'value' /
 DATA loname /  5      /

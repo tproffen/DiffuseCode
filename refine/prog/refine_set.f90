@@ -16,6 +16,7 @@ USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -31,7 +32,6 @@ REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 !
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 IF(IANZ>1) THEN
@@ -76,6 +76,7 @@ USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -92,7 +93,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER                              :: ianz
 !
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 !
 INTEGER, PARAMETER :: NOPTIONAL = 5
@@ -147,6 +147,7 @@ USE ber_params_mod
 USE get_params_mod
 USE precision_mod
 USE take_param_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -162,7 +163,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER                              :: ianz
 !
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 !
 INTEGER, PARAMETER :: NOPTIONAL = 3
