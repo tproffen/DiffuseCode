@@ -17,6 +17,7 @@ USE appl_env_mod
 USE cmdline_args_mod
 USE prompt_mod 
 USE lib_f90_default_mod
+USE lib_init_mod
 USE random_state_mod
 !
 IMPLICIT none 

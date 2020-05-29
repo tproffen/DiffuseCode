@@ -121,6 +121,7 @@ CONTAINS
 !+                                                                      
       USE envir_mod 
       USE errlist_mod 
+USE lib_errlist_func
       USE param_mod 
 USE sys_compiler
 !

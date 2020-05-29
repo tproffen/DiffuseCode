@@ -1,5 +1,3 @@
-!*****7**************************************************************** 
-!                                                                       
 MODULE triple_perm
 !
 PRIVATE
@@ -7,8 +5,11 @@ PUBLIC  :: do_triple_perm
 !
 CONTAINS
 !
+!*******************************************************************************
+!                                                                       
    SUBROUTINE do_triple_perm (j, j1, j2, j3, n) 
 !                                                                       
+USE lib_random_func
    USE random_mod
    IMPLICIT none 
 !                                                                       
@@ -18,9 +19,6 @@ CONTAINS
    INTEGER, INTENT(INOUT) :: j2
    INTEGER, INTENT(INOUT) :: j3
    INTEGER, INTENT(IN   ) :: n 
-!
-!                                                                       
-   REAL                 :: ran1 
 !                                                                       
    j1 = mod (j + int (ran1 (idum) * (n - 1) ), n) + 1 
    DO while (j1.eq.j) 

@@ -26,6 +26,7 @@ SUBROUTINE diffev_execute_cost( repeat,    &
 !  This version is called if diffev runs as standalone and 
 !  MPI is not active.
 !
+USE lib_length
 USE precision_mod
 !
 IMPLICIT NONE
@@ -67,7 +68,6 @@ REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_values
 CHARACTER(LEN=PREC_LSTRING) :: line
 INTEGER             :: job_l
 !
-INTEGER             :: len_str
 INTEGER             :: system
 !
 ! If instructed, get state of random number generator

@@ -34,10 +34,13 @@ USE gen_mpi_mod
 USE get_params_mod
 USE kdo_all_mod
 USE learn_mod 
+USE lib_errlist_func
+USE lib_macro_func
 USE macro_mod
 USE prompt_mod
 USE set_sub_generic_mod
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 USE variable_mod
 IMPLICIT none 
@@ -71,7 +74,6 @@ LOGICAL                               :: l_init_x = .true.
 !                                                                       
 REAL(KIND=PREC_DP)  , DIMENSION(MAXW) :: werte = 0.0
 REAL                                  :: value
-LOGICAL, EXTERNAL                     :: str_comp 
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 4
 INTEGER, PARAMETER :: O_PARTIAL = 1
@@ -148,7 +150,9 @@ ELSE
 !                                                                 
    IF (befehl (1:1) .eq.'@') THEN 
       IF (length.ge.2) THEN 
-          CALL file_kdo (line(2:length), length -1)
+          line = line(2:length)
+          length = length -1
+          CALL file_kdo(line, length)
 !         CALL file_kdo (line (2:length), length - 1) 
       ELSE 
          ier_num = - 13 

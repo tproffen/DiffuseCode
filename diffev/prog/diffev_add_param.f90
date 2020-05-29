@@ -17,6 +17,7 @@ USE errlist_mod
 USE get_params_mod
 USE lib_f90_allocate_mod
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 USE variable_mod
 !
@@ -51,7 +52,6 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-LOGICAL, EXTERNAL                     :: str_comp
 !
 DATA oname  / 'init', 'type' /
 DATA loname /  4    ,  4     /

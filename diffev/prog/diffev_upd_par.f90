@@ -9,7 +9,9 @@ USE diff_evol
 USE population
 USE blanks_mod
 USE errlist_mod 
+USE lib_errlist_func
 USE lib_upd_mod
+USE lib_length
 USE param_mod 
 USE precision_mod
 !
@@ -28,7 +30,6 @@ CHARACTER (LEN=MAX(PREC_STRING,LEN(string))) :: zeile
 !                                                                       
 INTEGER                              :: laenge, ltyp, kpara, kpara2
 INTEGER                              :: lcomm 
-INTEGER                              :: length_com 
 !
 CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 IF(ier_num == 0) RETURN
@@ -406,6 +407,7 @@ USE diff_evol
 USE population
 USE errlist_mod 
 USE param_mod 
+USE lib_errlist_func
 USE lib_f90_allocate_mod
 USE lib_upd_mod
 USE variable_mod
@@ -759,6 +761,7 @@ USE ersetz_mod
 USE population
 USE errlist_mod 
 USE get_params_mod
+USE lib_length
 USE param_mod 
 IMPLICIT none 
 !                                                                       
@@ -780,7 +783,6 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: parstring
 INTEGER              :: ianz
 INTEGER              :: i, j, lcomm
 !                                                                       
-INTEGER              :: length_com 
 !                                                                       
 lcomm = length_com (string(1:ikl), ikl) 
 ier_num = - 1 
@@ -921,6 +923,7 @@ SUBROUTINE diffev_get_var_type(line,length, var_is_type)
 ! Returns the variable type : INTEGER, REAL, CHARACTER, and Scalar versus field
 !
 USE constants_mod
+USE lib_get_var
 USE variable_mod
 !
 IMPLICIT NONE

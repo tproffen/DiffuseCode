@@ -11,6 +11,7 @@ SUBROUTINE set_gen(gen)
 USE compare
 USE population
 USE errlist_mod
+USE lib_do_operating_mod
 USE precision_mod
 !
 IMPLICIT NONE

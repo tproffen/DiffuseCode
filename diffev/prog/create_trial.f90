@@ -27,6 +27,7 @@ CONTAINS
 !                                                                       
       USE population
       USE diff_evol
+USE lib_random_func
       USE random_mod
 !                                                                       
       IMPLICIT none 
@@ -34,7 +35,6 @@ CONTAINS
 !                                                                       
       INTEGER j, jt 
 !                                                                       
-      REAL ran1 
 !                                                                       
       CALL adapt_sigma 
 !                                                                       
@@ -91,6 +91,7 @@ USE triple_perm
 USE random_mod
 USE errlist_mod 
 USE do_execute_mod
+USE lib_random_func
 USE precision_mod
 !                                                                       
 IMPLICIT none 
@@ -109,8 +110,6 @@ REAL                           :: shift
 REAL                           :: value 
 REAL                           :: w 
 !                                                                       
-REAL                           :: ran1 
-REAL(KIND=PREC_DP), EXTERNAL   :: gasdev 
 !                                                                       
 w = 0.0 
 n_tried = 0 

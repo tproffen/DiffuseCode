@@ -1,5 +1,3 @@
-!
-!
 MODULE support_diffev_mod
 !
 PRIVATE

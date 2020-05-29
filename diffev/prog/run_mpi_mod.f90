@@ -1,5 +1,3 @@
-!
-!
 MODULE run_mpi_mod
 !
 IMPLICIT none

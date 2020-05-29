@@ -36,6 +36,7 @@ CONTAINS
 USE ber_params_mod
     USE get_params_mod
 USE precision_mod
+USE str_comp_mod
     IMPLICIT NONE
 !
 !
@@ -48,7 +49,6 @@ USE precision_mod
     REAL(KIND=PREC_DP)  , DIMENSION(1:MAXW)  :: werte
     INTEGER                                  :: ianz
 !
-    LOGICAL  :: str_comp
 !
     CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
     IF (ier_num.eq.0) then 
@@ -98,6 +98,7 @@ USE precision_mod
 !
        USE get_params_mod
 USE precision_mod
+USE str_comp_mod
        IMPLICIT NONE
 !
 !
@@ -110,7 +111,6 @@ USE precision_mod
 !      REAL                , DIMENSION(1:MAXW)  :: werte
        INTEGER                                  :: ianz
 !
-       LOGICAL  :: str_comp
 !
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm)
             IF (ier_num.eq.0) then

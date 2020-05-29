@@ -1,5 +1,3 @@
-!*****7**************************************************************** 
-!                                                                       
 MODULE compare
 !
 USE errlist_mod
@@ -16,6 +14,8 @@ PUBLIC  :: write_parents
 !
 CONTAINS
 !
+!*****7**************************************************************** 
+!                                                                       
    SUBROUTINE do_compare 
 !
 ! Main comparison routine, branches into the two modes
@@ -358,6 +358,7 @@ USE sys_compiler
    USE create_trial_mod
    USE support_diffev_mod
 !
+USe lib_length
    USE precision_mod
    USE prompt_mod
    USE random_mod
@@ -384,7 +385,6 @@ USE sys_compiler
    REAL                           :: temp_val_min, temp_val_max
    REAL                           :: temp_pop_min, temp_pop_max
 !                                                                       
-   INTEGER                        :: len_str   
 !
    iostatus = 0
    temp_val_min = 0.0
@@ -618,6 +618,7 @@ USE sys_compiler
    USE diff_evol
    USE population
    USE lib_f90_allocate_mod
+USE lib_length
    USE precision_mod
    USE variable_mod
 USE sys_compiler
@@ -640,7 +641,6 @@ USE sys_compiler
    REAL                           :: sx, sx2, arg 
    REAL                           :: sw, wg
 !
-   INTEGER, EXTERNAL              :: len_str
 !                                                                       
    changed: IF ( pop_dimx_new ) THEN      ! Dimension has changed, patch parameter and summary file
       IF(pop_dimx.gt.MAXDIMX) THEN
@@ -854,6 +854,7 @@ USE sys_compiler
 !   USE diffev_allocate_appl
    USE create_trial_mod
    USE diff_evol
+USE lib_length
    USE population
    USE precision_mod
 USE sys_compiler
@@ -867,7 +868,6 @@ USE sys_compiler
 !
    CHARACTER (LEN=PREC_STRING)    :: fname
    CHARACTER (LEN=PREC_STRING)    :: line
-   INTEGER, EXTERNAL              :: len_str
 !                                                                       
 !                                                                       
 !------ write the parameters and the results for the current generation 
@@ -954,6 +954,7 @@ USE sys_compiler
 ! and Summary files need to be written accordingly.
 !
    USE population
+USE lib_length
    USE precision_mod
 USE sys_compiler
 !
@@ -975,7 +976,6 @@ USE sys_compiler
    LOGICAL               :: lread
    LOGICAL               :: istda
 !
-   INTEGER               :: len_str
    LOGICAL               :: IS_IOSTAT_END
 !
    stat    = 'unknown'

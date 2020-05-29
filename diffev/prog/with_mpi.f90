@@ -598,6 +598,7 @@ USE gen_mpi_mod
 USE set_sub_generic_mod
 USE errlist_mod
 USE mpi_slave_mod
+USE lib_length
 USE prompt_mod
 USE sockets_mod
 USE precision_mod
@@ -619,7 +620,6 @@ INTEGER  :: port  = 2000
 !
 INTEGER, PARAMETER :: seconds = 1       ! Wait time for application to start up
 !
-INTEGER  :: len_str
 INTEGER  :: system
 INTEGER  :: socket_close
 INTEGER  :: socket_connect

@@ -1,6 +1,3 @@
-!*****7**************************************************************** 
-!                                                                       
-!
 MODULE initialise
 !
 USE errlist_mod 
@@ -12,6 +9,9 @@ PUBLIC  :: do_fix
 !
 !
 CONTAINS
+!
+!*****7**************************************************************** 
+!                                                                       
 !
    SUBROUTINE do_initialise (l_init_x)
 !-                                                                      
@@ -28,6 +28,7 @@ CONTAINS
    USE diffev_allocate_appl
    USE constraint
    USE create_trial_mod
+USE lib_length
    USE population
 USE precision_mod
    USE random_mod
@@ -47,7 +48,6 @@ USE sys_compiler
 !                                                                       
    CHARACTER (LEN=7)    :: stat  = 'unknown'
 !
-   INTEGER, EXTERNAL    :: len_str
 !                                                                       
 !
    IF ( pop_c > MAXPOP) THEN
@@ -200,6 +200,8 @@ USE sys_compiler
    USE create_trial_mod
 !  USE do_if_mod
    USE do_execute_mod
+USE lib_length
+USE lib_random_func
 USE precision_mod
    USE random_mod
 USE sys_compiler
@@ -221,9 +223,7 @@ USE sys_compiler
 !                                                                       
    CHARACTER (LEN=7)    :: stat  = 'unknown'
 !
-   INTEGER, EXTERNAL    :: len_str
 !
-   REAL   , EXTERNAL    :: ran1 
 !
    children: DO j = 1, pop_c 
       n_tried = 0 

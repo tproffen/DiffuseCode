@@ -45,6 +45,9 @@ USE gen_mpi_mod
 USE diffev_mpi_mod
 USE errlist_mod
 USE class_macro_internal
+USE lib_errlist_func
+USE lib_length
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod
 USE set_sub_generic_mod
@@ -65,7 +68,6 @@ LOGICAL              :: lend
 !
 INTEGER, PARAMETER   :: master = 0 ! MPI ID of MASTER process
 !
-INTEGER              :: len_str
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL diffev_setup(.false.)

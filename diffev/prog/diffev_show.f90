@@ -20,6 +20,7 @@ USE get_params_mod
 !
 USE precision_mod
 USE prompt_mod 
+USE str_comp_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -32,7 +33,6 @@ INTEGER             , INTENT(INOUT) :: lp
 CHARACTER (LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(maxw)  :: cpara (maxw) 
 INTEGER             , DIMENSION(maxw)  :: lpara (maxw)
 INTEGER                                :: ianz
-LOGICAL                                :: str_comp 
 !
 !                                                                       
 CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
@@ -68,6 +68,7 @@ USE ber_params_mod
 USE errlist_mod
 USE precision_mod
 USE prompt_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -82,7 +83,6 @@ INTEGER,             DIMENSION(1:MAXWW) :: llpara
 REAL(KIND=PREC_DP),  DIMENSION(1:MAXWW) :: wwerte
 INTEGER :: i, j
 INTEGER :: iianz
-LOGICAL :: str_comp
 !
 !WRITE(output_io,1000)
 !

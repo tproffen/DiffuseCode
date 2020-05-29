@@ -14,6 +14,8 @@ USE class_macro_internal
 USE mpi_slave_mod
 USE diffev_random
 USE do_if_mod
+USE lib_errlist_func
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod 
 USE set_sub_generic_mod
