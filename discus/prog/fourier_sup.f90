@@ -168,6 +168,7 @@ ier_num = 0
 !     USE modify_mod
       USE random_mod
 !                                                                       
+USE lib_random_func
       USE prompt_mod 
       USE precision_mod
       IMPLICIT none 
@@ -177,7 +178,6 @@ ier_num = 0
       REAL   , INTENT(IN) :: ave 
       INTEGER, DIMENSION(3), INTENT(IN) :: csize
 !                                                                       
-      REAL ran1
       REAL (KIND=PREC_DP) :: norm
       INTEGER isite, iatom, iscat, icell (3) 
       INTEGER scell, ncell, j, ii, jj, kk 
@@ -522,13 +522,13 @@ ier_num = 0
 !     Returns a random cell from within the simulated crystal           
 !     which is limited by 'csize'.                                      
 !-                                                                      
+USE lib_random_func
       USE random_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       INTEGER, DIMENSION(3), INTENT(IN)  :: csize
       INTEGER, DIMENSION(3), INTENT(OUT) :: lbeg
-      REAL ran1 
 !                                                                       
       lbeg (1) = int (ran1 (idum) * csize (1) ) + 1 
       lbeg (2) = int (ran1 (idum) * csize (2) ) + 1 

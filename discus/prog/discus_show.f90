@@ -18,9 +18,11 @@ USE ber_params_mod
 USE errlist_mod 
 USE do_show_mod
 USE get_params_mod
+USE lib_errlist_func
 USE param_mod 
 USE precision_mod
 USE prompt_mod 
+USE str_comp_mod
 !       
 IMPLICIT none 
 !
@@ -47,7 +49,6 @@ INTEGER, PARAMETER :: MATRIX = 3
       INTEGER              :: iatom    ! atoms no for show
       LOGICAL              :: long
 !                                                                       
-LOGICAL, EXTERNAL :: str_comp 
 !                                                                       
 CALL get_params(line, ianz, cpara, lpara, maxw, laenge) 
 IF(ier_num.eq.0) THEN 
@@ -357,6 +358,7 @@ USE ber_params_mod
 USE errlist_mod 
 USE precision_mod
 USE prompt_mod 
+USE str_comp_mod
 !
 IMPLICIT none 
 !
@@ -375,7 +377,6 @@ INTEGER                 :: length
 CHARACTER(LEN=9)                            :: at_name_d 
 CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
 !
-LOGICAL, EXTERNAL :: str_comp 
 !
 DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
 !
@@ -541,8 +542,10 @@ END SUBROUTINE do_show_atom
 !                                                                       
       USE ber_params_mod
       USE errlist_mod 
+USE lib_length
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       IMPLICIT none 
        
 !                                                                       
@@ -559,8 +562,6 @@ USE precision_mod
       CHARACTER(9) at_name_d 
 !     CHARACTER(9) at_name 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       DATA C_MOLE / 'Domain    Fuzzy', 'Domain   Sphere', 'Domain Cylind&
      &er', 'Domain     Cube', '   Atoms       ', '    Cube       ', 'Cyl&

@@ -26,9 +26,16 @@ USE surface_func_mod
       USE do_wait_mod
       USE errlist_mod 
       USE learn_mod 
+USE lib_help
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_length
+USE lib_macro_func
       USE class_macro_internal
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       USE sup_mod
       IMPLICIT none 
 !                                                                       
@@ -43,8 +50,6 @@ USE precision_mod
       INTEGER indxg
       LOGICAL lend
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       maxw = MAXSCAT
       lend = .false. 
@@ -76,7 +81,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                IF (befehl (1:1) .eq.'@') then 
                   IF (length.ge.2) then 
-                     CALL file_kdo (line (2:length), length - 1) 
+                     line(1:length-1) = line(2:length)
+                     length = 1
+                     CALL file_kdo(line, length)
                   ELSE 
                      ier_num = - 13 
                      ier_typ = ER_MAC 
@@ -208,6 +215,7 @@ USE surface_func_mod
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !
       CHARACTER (LEN=*), INTENT(INOUT) :: zeile
@@ -228,7 +236,6 @@ USE precision_mod
       INTEGER                              :: istart, iend
       LOGICAL, DIMENSION(:), ALLOCATABLE   :: latom
 !
-      LOGICAL str_comp
 !
       CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
       IF (ier_num.ne.0) return 
@@ -387,6 +394,7 @@ END SUBROUTINE property_show
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       USE take_param_mod
       IMPLICIT none 
 !                                                                       
@@ -411,7 +419,6 @@ USE precision_mod
       REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate 
 !
-      LOGICAL str_comp 
 !
       DATA oname  / 'nmin' , 'nmax'  , 'emin'  , 'emax'  , 'no  ', 'atom', 'conn'   /
       DATA loname /  4     ,  4      ,  4      ,  4      ,  2    ,  4    ,  4       /
@@ -464,6 +471,7 @@ USE precision_mod
       USE prop_para_mod 
       USE modify_func_mod
       USE errlist_mod 
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -477,7 +485,6 @@ USE precision_mod
 !                                                                       
       INTEGER i, j 
 !                                                                       
-      LOGICAL str_comp 
 !     INTEGER bit_set 
 !                                                                       
       DO i = 1, ianz 

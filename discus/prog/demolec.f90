@@ -25,9 +25,16 @@ USE do_wait_mod
 USE doact_mod
 USE errlist_mod
 USE learn_mod
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod
 USE sup_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -46,8 +53,6 @@ LOGICAL                                 :: sel   ! condition of select or desele
 LOGICAL                                 :: lend  ! condition of EOF
 !
 !
-INTEGER, EXTERNAL :: len_str
-LOGICAL, EXTERNAL :: str_comp
 !
 orig_prompt = prompt
 prompt = prompt (1:len_str (prompt) ) //'/demol'
@@ -85,7 +90,9 @@ main_loop: DO
 !                                                                       
             is_generic: IF (befehl (1:1) .eq.'@') THEN     ! macro, reset or all other commands
                IF (laenge.ge.2) THEN 
-                  CALL file_kdo (line (2:laenge), laenge-1) 
+                  line = line(2:laenge)
+                  laenge = 1
+                  CALL file_kdo(line, laenge)
                ELSE 
                   ier_num = - 13 
                   ier_typ = ER_MAC 
@@ -229,6 +236,7 @@ USE ber_params_mod
 USE get_params_mod
 USE precision_mod
 USE take_param_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -261,7 +269,6 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 DATA oname  / 'molerange', 'atomrange'  /
 DATA loname /  9         ,  9           /
@@ -381,6 +388,7 @@ USE ber_params_mod
 USE get_params_mod
 USE precision_mod
 USE take_param_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -414,7 +422,6 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 DATA oname  / 'moletype', 'atomtype'  /
 DATA loname /  8        ,  8          /

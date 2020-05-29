@@ -16,8 +16,13 @@ USE do_eval_mod
 USE do_show_mod
 USE do_wait_mod
 USE get_params_mod
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_help
+USE lib_macro_func
 USE sup_mod
 USE precision_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -39,7 +44,6 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXP) :: cpara
 INTEGER            , DIMENSION(MAXP) :: lpara
 INTEGER                              :: ianz
 !
-LOGICAL :: str_comp
 !
 success = .FALSE.
 lend    = .FALSE.
@@ -48,7 +52,9 @@ lend    = .FALSE.
 !
 IF(befehl(1:1) == '@') THEN
    IF(length >= 2) THEN
-      CALL file_kdo(line(2:length), length - 1)
+      line(1:length-1) = line(2:length)
+      length = 1
+      CALL file_kdo(line, length)
       success = .TRUE.
    ELSE
       ier_num = -13

@@ -19,6 +19,7 @@ CONTAINS
 !                                                                       
       USE errlist_mod 
       USE get_params_mod
+USE lib_random_func
       USE prompt_mod 
       USE random_mod
 USE precision_mod
@@ -41,7 +42,6 @@ USE precision_mod
       REAL uc_su2 (3, 0:maxscat) 
       REAL pi2, bfac, a 
       LOGICAL flag_all, flag_mol 
-REAL(KIND=PREC_DP), EXTERNAL :: gasdev
 !
       flag_all=.true.
       flag_mol=.false.
@@ -177,6 +177,7 @@ SUBROUTINE ther_vec(flag_all, a, uc, up)
 USE crystal_mod
 USE metric_mod
 USE trafo_mod
+USE lib_random_func
 USE random_mod
 USE precision_mod
 !
@@ -192,8 +193,6 @@ REAL               :: disp
 REAL               :: length
 REAL               :: up_length
 !
-REAL :: ran1
-REAL(KIND=PREC_DP), EXTERNAL :: gasdev
 !
 search: DO
    DO i=1,3

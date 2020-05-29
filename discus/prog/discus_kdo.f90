@@ -54,10 +54,14 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE class_macro_internal
       USE kdo_all_mod
       USE learn_mod 
+USE lib_errlist_func
+USE lib_do_operating_mod
+USE lib_macro_func
       USE precision_mod
       USE prompt_mod
       USE variable_mod
       USE set_sub_generic_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
       CHARACTER (LEN= * ), INTENT(INOUT) :: line 
@@ -70,7 +74,6 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       INTEGER                  :: indxt ! position of a TAB
       INTEGER                  ::  inverse_type
       LOGICAL lout_rho, lkick 
-      LOGICAL str_comp 
 !                                                                       
       DATA lout_rho / .false. / 
 !                                                                       
@@ -125,7 +128,9 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
          IF (befehl (1:1) .eq.'@') then 
             IF (length.ge.2) then 
-               CALL file_kdo (line (2:length), length - 1) 
+               line(1:length-1) = line(2:length)
+               length = length - 1
+               CALL file_kdo(line, length)
             ELSE 
                ier_num = - 13 
                ier_typ = ER_MAC 
@@ -463,6 +468,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -474,7 +480,6 @@ USE precision_mod
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       IF (zeile.ne.' ') then 
          CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 

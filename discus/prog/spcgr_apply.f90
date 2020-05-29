@@ -1357,6 +1357,7 @@ END SUBROUTINE get_detail_axis
       USE ber_params_mod
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1380,7 +1381,6 @@ USE precision_mod
       LOGICAL loutput 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 

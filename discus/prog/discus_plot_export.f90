@@ -13,6 +13,7 @@ CONTAINS
       USE discus_plot_mod 
       USE tensors_mod
       USE errlist_mod 
+USE lib_length
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -22,7 +23,6 @@ CONTAINS
       INTEGER i, j, iff 
       LOGICAL lno_slice, latom 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       WRITE (iff, 500) cr_name (1:len_str (cr_name) ) 
       WRITE (iff, 510) (cr_a0 (i) * cr_icc (i), i = 1, 3),  &
@@ -119,6 +119,7 @@ CONTAINS
       USE discus_plot_mod 
       USE tensors_mod
       USE errlist_mod 
+USE lib_length
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -128,7 +129,6 @@ CONTAINS
       INTEGER i, j, iff 
       LOGICAL lno_slice, latom 
 !                                                                       
-      INTEGER len_str 
       CHARACTER(12) povcolor (15) 
       DATA povcolor / 'Scarlet', 'HuntersGreen', 'MediumBlue',          &
       'Magenta', 'Yellow', 'Black', 'IndianRed', 'DarkGreen',           &

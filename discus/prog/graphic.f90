@@ -27,9 +27,16 @@ USE do_wait_mod
 USE errlist_mod 
 USE get_params_mod
 USE learn_mod 
+USE lib_help
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_length
+USE lib_macro_func
 USE class_macro_internal
 USE precision_mod
 USE prompt_mod 
+USE str_comp_mod
 USE sup_mod
 USE sys_compiler
 !                                                                       
@@ -51,8 +58,6 @@ LOGICAL :: laver, lread, linverse
 REAL(KIND=PREC_SP) :: xmin, ymin, xmax, ymax 
 REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
 !                                                                       
-INTEGER, EXTERNAL :: len_str 
-LOGICAL, EXTERNAL :: str_comp 
 !                                                                       
 DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
                 'Portable Any Map', 'Powder Pattern', 'SHELX',          &
@@ -104,7 +109,9 @@ IF (ier_num.eq.0) THEN
 !                                                                       
       IF (befehl (1:1) .eq.'@') THEN 
          IF (length.ge.2) THEN 
-            CALL file_kdo (line (2:length), length - 1) 
+            line(1:length-1) = line(2:length)
+            length = 1
+            CALL file_kdo(line, length)
          ELSE 
             ier_num = - 13 
             ier_typ = ER_MAC 
@@ -247,7 +254,7 @@ IF (ier_num.eq.0) THEN
 !                                                                       
 !     ------Switch output type to VTK format   'vtk'
 !                                                                       
-               ELSEIF(str_comp(cpara(1),'vtk',2,lpara(1),5)) THEN
+               ELSEIF(str_comp(cpara(1),'vtk',2,lpara(1),3)) THEN
                   ityp = 11
 !                                                                       
 !     ------Switch output type to MRC   format   'mrc'                
@@ -364,7 +371,7 @@ IF (ier_num.eq.0) THEN
             ELSEIF (ityp.eq.12) THEN
                CALL mrc_write (value, laver)
             ELSEIF (ityp.eq.13) THEN
-               CALL hdf5_write (value, laver, outfile, xmin, maxp, werte)
+               CALL hdf5_write (value, laver)
             ELSE 
                ier_num = - 9 
                ier_typ = ER_APPL 
@@ -950,6 +957,7 @@ USE discus_fft_mod
       USE qval_mod
       USE envir_mod 
       USE errlist_mod 
+USE lib_length
       USE prompt_mod 
 USE sys_compiler
       IMPLICIT none 
@@ -997,7 +1005,6 @@ INTEGER :: nnew1, nnew2
       INTEGER :: nheader
 !                                                                       
 !     REAL qval 
-      INTEGER  len_str
       factor = 0.0
       npkt3  = 1
 !                                                                       
@@ -1455,9 +1462,14 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !
 !*****7*****************************************************************
 !
-SUBROUTINE hdf5_write (value, laver, outfile, xmin, maxp, werte)
+SUBROUTINE hdf5_write (value, laver)
 !
 USE hdf5
+!
+USE crystal_mod
+USE output_mod
+USE qval_mod
+!
 USE errlist_mod
 USE precision_mod
 !
@@ -1465,13 +1477,185 @@ IMPLICIT NONE
 !
 INTEGER, INTENT(IN) :: value
 LOGICAL, INTENT(IN) :: laver
-CHARACTER(LEN=*), INTENT(IN) :: outfile
-real(kind=prec_sp) :: xmin
-integer :: maxp
-real(kind=prec_dP), dimension(MAXp) :: werte
 !
-CALL h5open_f(ier_num)
-!CALL h5close_f(ier_num)
+INTEGER(KIND=HSIZE_T), PARAMETER       :: dim0 = 1        ! Dimension of "Yell 1.0"
+INTEGER(KIND=HSIZE_T), PARAMETER       :: sdim = 8        ! String length of "Yell 1.0"
+INTEGER(KIND= SIZE_T), PARAMETER       :: sdimd= 8        ! String length of "DISCUS60"
+INTEGER(KIND=2         ), PARAMETER    :: SHORT_NULL = 0  ! a 32 bit 0 for "is_direct"
+INTEGER(KIND=2         ), PARAMETER    :: SHORT_ONE  = 1  ! a 32 bit 1 for "is_direct"
+!
+CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=4), PARAMETER :: dataset = "data"           ! Dummy name for HDF5
+CHARACTER(LEN=sdim), DIMENSION(1:dim0), TARGET ::  wdata = (/"Yell 1.0"/) ! Write buffer
+LOGICAL                                :: isda            ! File foud yes/no
+INTEGER                                :: i,j,k,l         ! Dummy indices
+INTEGER                                :: hdferr          ! Error returned by HDF5
+INTEGER, TARGET                        :: is_direct       ! Das are 3DPDF or diffraction pattern
+!
+INTEGER(KIND=HSIZE_T), DIMENSION(1)    :: str_dims = (/dim0 /)      ! "Dimensions of the string "DISCSU60" 
+INTEGER(KIND=HSIZE_T), DIMENSION(2)    :: data_dims = (/sdim,dim0/) ! "Dimensions of the string "Yell 1.0" 
+INTEGER(KIND=SIZE_T),  DIMENSION(1)    :: str_len = (/8/)
+INTEGER(KIND=HID_T)                    :: dset            ! dataset Indicator to HDF5
+INTEGER(KIND=HID_T)                    :: file_id         ! file Indicator to HDF5
+INTEGER(KIND=HID_T)                    :: filetype        ! file Indicator to HDF5
+INTEGER(KIND=HID_T)                    ::  memtype        ! memory Indicator to HDF5
+INTEGER(KIND=HID_T)                    :: space           ! Communication between calls to HDF5
+INTEGER(KIND=HSIZE_T), DIMENSION(1:3)  :: hdims           ! Dimensions in sequence 3,2,1
+INTEGER(KIND=HSIZE_T), DIMENSION(1:3)  :: dim_one         ! Dimensions for Yell stuff
+REAL(KIND=PREC_DP)                     :: max_data        ! Max data value for normalization
+REAL(KIND=PREC_DP), DIMENSION(1:3), TARGET     :: llim    ! Lower Left Corner
+REAL(KIND=PREC_DP), DIMENSION(1:3), TARGET     :: steps   ! Step size in H,K,L
+REAL(KIND=PREC_DP), DIMENSION(1:6), TARGET     :: uc_hdf  ! Unit cell dimensions
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE, TARGET :: values ! Actual diffraction data
+
+TYPE(C_PTR)                            :: f_ptr           ! C-type pointer to data array               
+!
+CALL H5open_f(hdferr)                                     ! Open access to HDF5 stream
+IF(hdferr/=0) THEN
+   ier_num = -2
+   ier_typ = ER_IO
+   RETURN
+ENDIF
+!
+INQUIRE(FILE=outfile, EXIST=isda)                         ! If file exists, remove
+IF(ISDA) THEN
+   line = 'rm -f '//outfile(1:LEN_TRIM(outfile))
+   CALL EXECUTE_COMMAND_LINE(line, WAIT=.TRUE.)
+ENDIF
+!
+CALL H5Fcreate_f(outfile, H5F_ACC_TRUNC_f, file_id, hdferr)    ! Create output file
+IF(hdferr/=0) THEN
+   ier_num = -2
+   ier_typ = ER_IO
+   RETURN
+ENDIF
+!
+is_direct = SHORT_NULL
+hdims(3) = out_inc(1)                                        ! Transpose diemensions
+hdims(2) = out_inc(2)
+hdims(1) = out_inc(3)
+!
+CALL H5Screate_simple_f(3, hdims, space, hdferr)            ! Create data set
+!
+ALLOCATE(values(hdims(1), hdims(2), hdims(3)))
+!
+l = 0                                                       ! Copy proper "value"
+DO i = 1, out_inc(1)
+   DO j = 1, out_inc(2)
+      DO k = 1, out_inc(3)
+         l = l + 1
+         values(k,j,i) = REAL(qval(l, value, i, j, laver), KIND=PREC_DP)
+      ENDDO
+   ENDDO
+ENDDO
+!
+max_data = MAXVAL(values)
+IF(max_data /= 0.0) THEN
+   values = 10000.*values/max_data                          ! Normalize data for HDF5
+ENDIF
+!
+CALL H5Dcreate_f(file_id, dataset, H5T_NATIVE_DOUBLE, space, dset, hdferr)
+f_ptr = C_LOC(values(1,1,1))
+CALL H5Dwrite_f(dset, H5T_NATIVE_DOUBLE, f_ptr, hdferr)
+!
+CALL H5Dclose_f(dset , hdferr)
+CALL H5Sclose_f(space, hdferr)
+!
+!Write other stuff for yell format
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Write the format dataset
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+wdata = 'Yell 1.0'
+CALL H5Tcopy_f(H5T_STRING, filetype, hdferr)
+CALL H5Tset_strpad_f(filetype, H5T_STR_NULLTERM_F, hdferr)
+CALL H5Screate_f(H5S_SCALAR_F, space, hdferr)
+CALL H5Dcreate_f(file_id, 'format', filetype, space, dset, hdferr)
+CALL H5Dwrite_vl_f(dset, filetype, wdata, data_dims, str_len, hdferr, space)
+CALL H5Dclose_f(dset , hdferr)
+CALL H5Sclose_f(space, hdferr)
+CALL H5Tclose_f(filetype, hdferr)
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Write the is_direct dataset
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+IF(value==val_3DPDF .OR. value==val_PDF) THEN
+   is_direct = SHORT_ONE
+ELSE
+   is_direct = SHORT_NULL
+ENDIF
+f_ptr = C_LOC(is_direct)
+CALL H5Screate_f(H5S_SCALAR_F, space, hdferr)
+CALL H5Dcreate_f(file_id, 'is_direct', H5T_STD_I32LE, space, dset, hdferr)
+CALL H5Dwrite_f(dset, H5T_STD_I32LE, f_ptr         , hdferr)
+CALL H5Dclose_f(dset , hdferr)
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Write the lower_limits dataset
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+dim_one = 3
+llim(1) = out_eck(1,1)                                      ! Place lower left corner
+llim(2) = out_eck(2,1)
+llim(3) = out_eck(3,1)
+f_ptr = C_LOC(llim(1))
+CALL H5Screate_simple_f(1, dim_one, space, hdferr)
+CALL H5Dcreate_f(file_id, 'lower_limits',H5T_IEEE_F64BE, space, dset, hdferr)
+CALL H5Dwrite_f(dset, H5T_NATIVE_DOUBLE, f_ptr         , hdferr)
+CALL H5Dclose_f(dset , hdferr)
+CALL H5Sclose_f(space, hdferr)
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Write the step_sizes dataset
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+dim_one = 3
+steps(1) = out_vi(1,1)
+steps(2) = out_vi(2,2)
+steps(3) = out_vi(3,3)
+f_ptr = C_LOC(steps(1))
+CALL H5Screate_simple_f(1, dim_one, space, hdferr)
+CALL H5Dcreate_f(file_id, 'step_sizes',H5T_IEEE_F64BE, space, dset, hdferr)
+CALL H5Dwrite_f(dset, H5T_NATIVE_DOUBLE, f_ptr         , hdferr)
+CALL H5Dclose_f(dset , hdferr)
+CALL H5Sclose_f(space, hdferr)
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Write the unit_cell dataset
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+dim_one = 6
+uc_hdf(1:3) = cr_a0(1:3)
+uc_hdf(4:6) = cr_win(1:3)
+f_ptr = C_LOC(uc_hdf(1))
+CALL H5Screate_simple_f(1, dim_one, space, hdferr)
+CALL H5Dcreate_f(file_id, 'unit_cell',H5T_IEEE_F64BE, space, dset, hdferr)
+CALL H5Dwrite_f(dset, H5T_NATIVE_DOUBLE, f_ptr         , hdferr)
+CALL H5Dclose_f(dset , hdferr)
+CALL H5Sclose_f(space, hdferr)
+!
+str_dims = 1
+wdata = 'DISCUS60'
+!dataset = 'PROGRAM'
+CALL H5Tcopy_f(H5T_C_S1, filetype, hdferr)           ! Copy C-strign into 'filetype'
+CALL H5Tset_size_f(filetype, sdimd+1, hdferr)        ! +1 include C nullstring
+CALL H5Tcopy_f( H5T_FORTRAN_S1, memtype, hdferr)     ! Copy F-string into 'memtype'
+CALL H5Tset_size_f(memtype, sdimd, hdferr)           ! Required size for Fortran string
+CALL H5Screate_simple_f(1, str_dims, space, hdferr)     ! Create data space 
+CALL H5Dcreate_f(file_id, 'PROGRAM', filetype, space, dset, hdferr) ! Create dataset; write C-string info
+f_ptr = C_LOC(wdata(1)(1:1))
+CALL H5Dwrite_f(dset, memtype, f_ptr, hdferr)        ! Now write Fortran string
+CALL H5Dclose_f(dset , hdferr)                       ! Close data set
+CALL H5Sclose_f(space, hdferr)                       ! Close data set
+CALL H5Tclose_f(filetype, hdferr)                    ! Close C-string space
+CALL H5Tclose_f(memtype, hdferr)                     ! Close F-string space
+!
+CALL H5Fclose_f(file_id , hdferr)
+!
+CALL h5close_f(hdferr)
+DEALLOCATE(values)
 !
 END SUBROUTINE hdf5_write
 !
@@ -1589,9 +1773,9 @@ ENDIF
 !write(*,*) ' vi   ', vi(:,2)
 !write(*,*) ' vi   ', vi(:,3)
 DO i = 1, 3
-   u(1) = num(1)*0.5D0*vi(1,i)
-   u(2) = num(1)*0.5D0*vi(2,i)
-   u(3) = num(1)*0.5D0*vi(3,i)
+   u(1) = INT((num(1)-1))*1.00D0*vi(1,i)
+   u(2) = INT((num(1)-1))*1.00D0*vi(2,i)
+   u(3) = INT((num(1)-1))*1.00D0*vi(3,i)
    uu = skalpro (u, u, cr_rten)
    IF( uu > 0.0) THEN
       WRITE(string,'(2(F16.9,'',''), F16.9)') u
@@ -1606,19 +1790,22 @@ DO i = 1, 3
    ENDIF
 ENDDO
 DO i=1, 3
-   out_eck(i,1) = (- out_vi(i,1)*num(1) - out_vi(i,2)*num(2) - out_vi(i,3)*num(3))*0.25  ! lower left
-   out_eck(i,2) = (+ out_vi(i,1)*num(1) - out_vi(i,2)*num(2) - out_vi(i,3)*num(3))*0.25  ! lower left
-   out_eck(i,3) = (- out_vi(i,1)*num(1) + out_vi(i,2)*num(2) - out_vi(i,3)*num(3))*0.25  ! lower left
-   out_eck(i,4) = (- out_vi(i,1)*num(1) - out_vi(i,2)*num(2) + out_vi(i,3)*num(3))*0.25  ! lower left
+   out_eck(i,1) = (- out_vi(i,1)*INT((num(1)-1)/2) - out_vi(i,2)*INT((num(2)-1)/2) - out_vi(i,3)*INT((num(3)-1)/2))  ! lower left
+   out_eck(i,2) = (+ out_vi(i,1)*INT((num(1)-1)/2) - out_vi(i,2)*INT((num(2)-1)/2) - out_vi(i,3)*INT((num(3)-1)/2))  ! lower left
+   out_eck(i,3) = (- out_vi(i,1)*INT((num(1)-1)/2) + out_vi(i,2)*INT((num(2)-1)/2) - out_vi(i,3)*INT((num(3)-1)/2))  ! lower left
+   out_eck(i,4) = (- out_vi(i,1)*INT((num(1)-1)/2) - out_vi(i,2)*INT((num(2)-1)/2) + out_vi(i,3)*INT((num(3)-1)/2))  ! lower left
 ENDDO
 !write(*,*) ' num ', num
-!write(*,*) ' out_vi   ', out_vi(:,1)
-!write(*,*) ' out_vi   ', out_vi(:,2)
-!write(*,*) ' out_vi   ', out_vi(:,3)
-!write(*,*) 'eck_out ', out_eck(:,1)
-!write(*,*) 'eck_out ', out_eck(:,2)
-!write(*,*) 'eck_out ', out_eck(:,3)
-!write(*,*) 'eck_out ', out_eck(:,4)
+!write(*,*) ' out_abs  ', out_vi(:,1)
+!write(*,*) ' out_ord  ', out_vi(:,2)
+!write(*,*) ' out_top  ', out_vi(:,3)
+!write(*,*) 'eck_ll  ', out_eck(:,1)
+!write(*,*) 'eck_lr  ', out_eck(:,2)
+!write(*,*) 'eck_ul  ', out_eck(:,3)
+!write(*,*) 'eck_tl  ', out_eck(:,4)
+!write(*,*) 'cal lru ', out_eck(1,1)+(num(1)-1)*out_vi(1,1)
+!write(*,*) 'cal ulv ', out_eck(2,1)+(num(2)-1)*out_vi(2,2)
+!write(*,*) 'cal tlw ', out_eck(3,1)+(num(3)-1)*out_vi(3,3)
 !
 END SUBROUTINE out_prep_3dpdf
 !

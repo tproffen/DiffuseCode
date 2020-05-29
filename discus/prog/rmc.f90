@@ -24,10 +24,17 @@ CONTAINS
       USE errlist_mod 
       USE get_params_mod
       USE learn_mod 
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
       USE class_macro_internal
       USE param_mod 
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       USE string_convert_mod
       USE sup_mod
 !                                                                       
@@ -44,8 +51,6 @@ USE precision_mod
       INTEGER lp, length 
       INTEGER indxg, ianz, lbef 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !
 !     maxw = MAXSCAT
 !
@@ -74,7 +79,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !------ execute a macro file                                            
 !                                                                       
          ELSEIF (befehl (1:1) .eq.'@') then 
-            CALL file_kdo (line (2:length), length - 1) 
+            line(1:length-1) = line(2:length)
+            length = 1
+            CALL file_kdo(line, length)
 !                                                                       
 !------ continues a macro 'continue'                                    
 !                                                                       

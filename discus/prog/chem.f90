@@ -30,9 +30,16 @@ SUBROUTINE chem
       USE get_params_mod
       USE learn_mod 
       USE class_macro_internal 
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
       USE param_mod 
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       USE string_convert_mod
       USE sup_mod
       IMPLICIT none 
@@ -53,8 +60,6 @@ USE precision_mod
       INTEGER kkanz 
       LOGICAL lout , lsite
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       CALL no_error 
       orig_prompt = prompt
@@ -80,7 +85,9 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
 !------ execute a macro file                                            
 !                                                                       
          ELSEIF (befehl (1:1) .eq.'@') then 
-            CALL file_kdo (line (2:length), length - 1) 
+            line(1:length-1) = line(2:length)
+            length = 1
+            CALL file_kdo(line, length)
 !
 !------ command 'symmetry'
 !
@@ -932,6 +939,7 @@ USE chem_mod
 USE ber_params_mod
 USE errlist_mod 
 USE precision_mod
+USE str_comp_mod
 IMPLICIT none 
 !                                                                       
        
@@ -946,7 +954,6 @@ INTEGER     :: is1, is2, iv
 INTEGER     :: n_vec  ! Dummy for allocations
 INTEGER     :: n_cor  ! Dummy for allocations
 !                                                                       
-LOGICAL, EXTERNAL   :: str_comp 
 !                                                                       
 IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
    chem_cvec           =     0 ! all elements (i,j)
@@ -1018,7 +1025,9 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
    USE ber_params_mod
    USE errlist_mod 
    USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
+USE str_comp_mod
    IMPLICIT none 
 !
 !
@@ -1038,7 +1047,6 @@ USE precision_mod
    INTEGER     :: n_cor  ! Dummy for allocations
    LOGICAL     :: lold   ! Atom types have to be present
 !                                                                       
-   LOGICAL, EXTERNAL   :: str_comp 
 !                                                                       
    lold = .true.
    IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
@@ -1149,6 +1157,7 @@ USE ber_params_mod
 USE errlist_mod 
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1171,7 +1180,6 @@ REAL u (3), v (3)
 REAL uvw (4, max_uvw) 
 REAL uvw_mat (4, 4, max_uvw) 
 !                                                                       
-LOGICAL, EXTERNAL   :: str_comp 
 !REAL   , EXTERNAL   :: do_blen 
 !                                                                       
 main: IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
@@ -1395,6 +1403,7 @@ USE chem_mod
 USE ber_params_mod
 USE errlist_mod 
 USE precision_mod
+USE str_comp_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1409,7 +1418,6 @@ INTEGER            :: is1, is2, is3, iv
 INTEGER     :: n_ang  ! Dummy for allocations
 INTEGER     :: n_cor  ! Dummy for allocations
 !                                                                       
-LOGICAL, EXTERNAL  ::  str_comp 
 !                                                                       
 IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
    chem_cwin        =     0 ! All elements (i,j)
@@ -1488,6 +1496,7 @@ ENDIF
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1502,7 +1511,6 @@ USE precision_mod
       INTEGER            :: n_env
       INTEGER            :: n_cor
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
         chem_cenv           =     0 ! all elements (i,j)
@@ -1871,6 +1879,7 @@ USE precision_mod
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1885,7 +1894,6 @@ USE precision_mod
       INTEGER istart, iend 
       LOGICAL lrange 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       IF (ianz.lt.2) return 
 !                                                                       
@@ -1925,6 +1933,7 @@ USE precision_mod
       USE param_mod 
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1942,7 +1951,6 @@ USE precision_mod
       REAL(KIND=PREC_SP) ::  radius, pos (3) 
       LOGICAL latom 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       latom = .false. 
       CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
@@ -2085,6 +2093,7 @@ USE precision_mod
       USE param_mod 
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
        
@@ -2105,7 +2114,6 @@ USE precision_mod
       REAL(KIND=PREC_SP) ::  radius, bval, pos (3) 
       LOGICAL latom 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
       IF (ier_num.ne.0) return 
@@ -2224,6 +2232,7 @@ USE precision_mod
       USE errlist_mod 
       USE get_params_mod
       USE prompt_mod 
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -2235,7 +2244,6 @@ USE precision_mod
       INTEGER lpara (maxw) 
       INTEGER ianz, laenge 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
       IF (ier_num.ne.0) return 
@@ -2436,6 +2444,7 @@ USE precision_mod
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -2450,7 +2459,6 @@ USE precision_mod
       INTEGER lp, ianz, iianz 
       LOGICAL locc 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -2519,6 +2527,7 @@ USE precision_mod
       USE molecule_mod 
       USE modify_func_mod
       USE errlist_mod 
+USE lib_length
 USE precision_mod
       USE prompt_mod 
 USE sys_compiler
@@ -2535,7 +2544,6 @@ USE sys_compiler
       INTEGER i, imol, ibin, il, ia, iup 
       REAL c, sc, scc, ave_c, sig_c 
 !                                                                       
-      INTEGER len_str 
 !     LOGICAL atom_allowed, chem_inlot 
 !     LOGICAL chem_inlot 
 !                                                                       
@@ -2656,6 +2664,7 @@ USE sys_compiler
       USE fourier_sup, ONLY: four_csize, four_ranloc
       USE mc_mod 
       USE errlist_mod 
+USE lib_length
 USE precision_mod
       USE prompt_mod 
 USE sys_compiler
@@ -2672,7 +2681,6 @@ USE sys_compiler
       REAL(KIND=PREC_DP) :: sc (chem_max_cor), scc (chem_max_cor) 
       REAL(KIND=PREC_DP) :: ave_c, sig_c 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
 !------ Some setup                                                      
 !                                                                       
@@ -2875,6 +2883,7 @@ USE sys_compiler
       USE get_params_mod
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
 USE sys_compiler
       IMPLICIT none 
 !                                                                       
@@ -2900,7 +2909,6 @@ USE sys_compiler
       REAL(KIND=PREC_SP):: back_rmax (chem_max_cor) 
       LOGICAL locc 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 

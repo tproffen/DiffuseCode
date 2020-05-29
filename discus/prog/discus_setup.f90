@@ -7,16 +7,18 @@ SUBROUTINE discus_setup (standalone)
 !                                                                       
 !     This routine makes inital setup of DISCUS                         
 !                                                                       
-      USE discus_allocate_appl_mod
-      USE discus_init_mod
-      USE discus_reset_all_mod
+USE discus_allocate_appl_mod
+USE discus_init_mod
+USE discus_reset_all_mod
 !
-      USE appl_env_mod
-      USE cmdline_args_mod
-      USE errlist_mod
-      USE prompt_mod 
-      USE lib_f90_default_mod
-      USE random_state_mod
+USE appl_env_mod
+USE cmdline_args_mod
+USE errlist_mod
+USE prompt_mod 
+USE lib_errlist_func
+USE lib_f90_default_mod
+USE lib_init_mod
+USE random_state_mod
 !
 IMPLICIT none 
 !
@@ -210,7 +212,7 @@ p_calc_intr_spec    => discus_calc_intr_spec
 p_calc_intr_log_spec=> discus_calc_intr_log_spec
 p_validate_var_spec => discus_validate_var_spec
 p_branch            => discus_branch
-p_loop_mpi          => dummy_loop_mpi
+!p_loop_mpi          => dummy_loop_mpi
 p_get_var_type      => discus_get_var_type
 !
 END SUBROUTINE discus_set_sub

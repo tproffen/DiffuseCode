@@ -5,6 +5,7 @@
 !     Displays error Messages for the error type APPLication
 !+
       USE errlist_mod 
+USE lib_errlist_func
       implicit      none
 !
 !
@@ -233,6 +234,7 @@
 !     Displays error Messages for the error type FOUR                    
 !+                                                                      
       USE errlist_mod 
+USE lib_errlist_func
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -271,6 +273,7 @@
 !     Displays error Messages for the error type PDF                    
 !+                                                                      
       USE errlist_mod 
+USE lib_errlist_func
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -303,6 +306,7 @@
 !     Displays error Messages for the error type RMC                    
 !+                                                                      
       USE errlist_mod 
+USE lib_errlist_func
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -346,6 +350,7 @@
 !     Displays error Messages for the error type MC                     
 !+                                                                      
       USE errlist_mod 
+USE lib_errlist_func
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -370,6 +375,7 @@
 !     Displays error messages for the error type CHEM                   
 !+                                                                      
       USE errlist_mod 
+USE lib_errlist_func
       IMPLICIT none 
 !                                                                       
 !                                                                       

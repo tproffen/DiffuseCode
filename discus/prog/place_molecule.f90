@@ -28,9 +28,16 @@ USE do_wait_mod
 USE errlist_mod
    USE get_params_mod
    USE learn_mod
+USE lib_errlist_func
+USE lib_help
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_length
+USE lib_macro_func
    USE class_macro_internal
 USE precision_mod
    USE prompt_mod
+USE str_comp_mod
       USE sup_mod
 !
    IMPLICIT none
@@ -48,8 +55,6 @@ USE precision_mod
    LOGICAL                                 :: lend  ! condition of EOF
    LOGICAL                                 :: lold =.true. ! condition of EOF
 !
-   INTEGER, EXTERNAL :: len_str
-   LOGICAL, EXTERNAL :: str_comp
 !
    lend   = .FALSE.
    lalloc = .FALSE.
@@ -93,7 +98,9 @@ main_loop: DO
 !                                                                       
               IF (befehl (1:1) .eq.'@') THEN     ! macro, reset or all other commands
                   IF (laenge.ge.2) THEN 
-                     CALL file_kdo (line (2:laenge), laenge-1) 
+                     line(1:laenge-1) = line(2:laenge)
+                     laenge = 1
+                     CALL file_kdo(line, laenge)
                   ELSE 
                      ier_num = - 13 
                      ier_typ = ER_MAC 
@@ -298,6 +305,7 @@ USE ber_params_mod
 USE build_name_mod
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
    IMPLICIT NONE
@@ -343,7 +351,6 @@ USE take_param_mod
    REAL(KIND=PREC_DP)   , DIMENSION(1:MAX(MIN_PARA,MAXSCAT+1)) :: werte
    REAL(KIND=PREC_DP)   , DIMENSION(1:2   ) :: wwerte
 !
-   LOGICAL str_comp
 !
    DATA oname  / 'angle ', 'anchor', 'distri' /
    DATA loname /  6      ,  6      ,  6       /
@@ -705,6 +712,7 @@ USE deco_mod
 USE errlist_mod
    USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 !
    IMPLICIT NONE
 !
@@ -718,7 +726,6 @@ USE precision_mod
    INTEGER              :: ianz, success
 !  LOGICAL              :: lnew
 !
-   LOGICAL str_comp
 !
    CALL get_params(zeile, ianz, cpara, lpara, maxw, lp)
    IF ( ier_num /= 0 ) RETURN              ! Error reading parameters
@@ -804,6 +811,8 @@ USE prop_para_func
    USE symm_sup_mod
    USE discus_init_mod, ONLY: mmc_init
 !
+USE lib_errlist_func
+USE lib_random_func
    USE param_mod
    USE random_mod
 USE prompt_mod
@@ -875,7 +884,6 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    REAL   , DIMENSION(3)   :: host_win
    REAL   , DIMENSION(4,4) :: host_tran_fi
 !
-   REAL ran1
 !
    IF(MAXVAL(cr_surf(0,:)) == 0 .AND. MINVAL(cr_surf(0,:)) == 0) THEN
       ier_num = -130
@@ -3607,6 +3615,7 @@ USE surface_func_mod
    USE symm_sup_mod
    USE trafo_mod
 !
+USE lib_random_func
    USE param_mod
 USE precision_mod
 !
@@ -3669,8 +3678,6 @@ INTEGER                              :: test_nhkl
    INTEGER             :: m_type_new   ! new molecule types 
    INTEGER             :: in_mole,in_moleatom
 !
-   REAL(KIND=PREC_DP), EXTERNAL :: gaslim
-   REAL, EXTERNAL :: ran1
 !
 !  Determine surface character, if growth is restricted check if we're at proper surface
 !
@@ -3881,6 +3888,7 @@ USE trafo_mod
 !
 use molecule_mod
 !
+USE lib_random_func
 USE param_mod
 USE precision_mod
 USE random_mod
@@ -3951,7 +3959,6 @@ REAL, PARAMETER         :: EPS = 1.0E-7
    INTEGER             :: m_type_new   ! new molecule types 
    INTEGER             :: in_mole,in_moleatom
 !
-   REAL :: ran1
 !
 success = -1
 fp(:) = .FALSE.

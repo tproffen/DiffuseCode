@@ -15,6 +15,8 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
       USE blanks_mod
       USE errlist_mod 
       USE lib_upd_mod
+USE lib_length
+USE lib_errlist_func
       USE param_mod 
       USE random_mod 
 USE precision_mod
@@ -33,7 +35,6 @@ USE precision_mod
 !                                                                       
       INTEGER laenge, ltyp, kpara, kpara2
       INTEGER lcomm 
-      INTEGER length_com 
 !
 CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 IF(ier_num == 0) RETURN
@@ -618,6 +619,7 @@ USE surface_mod
 !
       USE errlist_mod 
       USE param_mod 
+USE lib_errlist_func
       USE lib_upd_mod
 USE precision_mod
 !
@@ -923,8 +925,10 @@ SUBROUTINE discus_calc_intr_spec(string, line, ikl, iklz, ww, laenge, lp)
       USE calc_expr_mod
       USE errlist_mod 
       USE get_params_mod
+USE lib_length
       USE param_mod 
 USE precision_mod
+USE str_comp_mod
 !
       IMPLICIT none 
 !                                                                       
@@ -946,8 +950,6 @@ USE precision_mod
       REAL werte (maxw), u (3), v (3), w (3) 
       REAL unitmat (3, 3) 
 !                                                                       
-      INTEGER length_com 
-      LOGICAL str_comp 
 !     REAL do_blen, do_bang 
 !     REAL skalpro 
 !                                                                       
@@ -1704,6 +1706,7 @@ SUBROUTINE discus_get_var_type(line,length, var_is_type)
 ! Returns the variable type : INTEGER, REAL, CHARACTER, and Scalar versus field
 !
 USE constants_mod
+USE lib_get_var
 USE variable_mod
 !
 IMPLICIT NONE

@@ -532,7 +532,9 @@ USE precision_mod
       USE ber_params_mod
       USE errlist_mod
       USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
+USE str_comp_mod
       USE take_param_mod
 !
       IMPLICIT none
@@ -583,7 +585,6 @@ USE precision_mod
       REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
-      LOGICAL :: str_comp
 !
       DATA oname  / 'first', 'molescope' /
       DATA loname /  5     ,  9          /
@@ -995,9 +996,16 @@ USE precision_mod
       USE learn_mod 
       USE class_macro_internal
       USE get_params_mod
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
       USE prompt_mod 
       USE sup_mod
 USE precision_mod
+USE str_comp_mod
       USE do_show_mod
       IMPLICIT none 
 !                                                                       
@@ -1027,8 +1035,6 @@ USE precision_mod
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) ::  werte ! (MAXSCAT) 
       REAL(KIND=PREC_DP) , DIMENSION(1)                       :: wwerte ! (MAXSCAT) 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       lend = .false. 
@@ -1062,7 +1068,9 @@ USE precision_mod
 !                                                                       
                IF (befehl (1:1) .eq.'@') then 
                   IF (length.ge.2) then 
-                     CALL file_kdo (line (2:length), length - 1) 
+                     line(1:length-1) = line(2:length)
+                     length = 1
+                     CALL file_kdo(line, length)
                   ELSE 
                      ier_num = - 13 
                      ier_typ = ER_MAC 
@@ -1554,6 +1562,8 @@ USE precision_mod
    USE errlist_mod 
    USE get_params_mod
    USE param_mod 
+USE lib_errlist_func
+USE lib_random_func
 USE precision_mod
 !
    IMPLICIT NONE
@@ -1575,7 +1585,6 @@ USE precision_mod
    INTEGER                            :: ino     ! Connectivity def. no.
    CHARACTER(LEN=256)                 :: c_name  ! Connectivity name
 !
-   REAL       :: ran1
 !
    iscat  = 0
    ino    = 0
@@ -1694,6 +1703,7 @@ search:        DO i=1, cr_natoms               ! loop until we find the natoms a
    USE discus_config_mod 
    USE crystal_mod 
    USE metric_mod
+USE lib_random_func
 !
    IMPLICIT none 
 !
@@ -1731,7 +1741,6 @@ search:        DO i=1, cr_natoms               ! loop until we find the natoms a
    INTEGER :: j_in_j, k_in_k
    LOGICAL :: j_ex_in_s_list
    LOGICAL :: k_ex_in_c_list
-   REAL       :: ran1
 !
    NULLIFY(hood_j)
    NULLIFY(hood_k)

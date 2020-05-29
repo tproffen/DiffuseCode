@@ -18,9 +18,16 @@ SUBROUTINE surface_menu
       USE do_wait_mod
       USE errlist_mod 
       USE learn_mod 
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
       USE class_macro_internal 
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       USE sup_mod
 !                                                                       
       IMPLICIT none 
@@ -32,8 +39,6 @@ USE precision_mod
       INTEGER indxg
       LOGICAL lend
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       lend = .false. 
       CALL no_error 
@@ -64,7 +69,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                IF (befehl (1:1) .eq.'@') then 
                   IF (length.ge.2) then 
-                     CALL file_kdo (line (2:length), length - 1) 
+                     line(1:length-1) = line(2:length)
+                     length = 1
+                     CALL file_kdo(line, length)
                   ELSE 
                      ier_num = - 13 
                      ier_typ = ER_MAC 
@@ -187,6 +194,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -201,7 +209,6 @@ USE precision_mod
       INTEGER ianz 
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.ne.0) return 
@@ -233,6 +240,7 @@ USE precision_mod
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
        
@@ -252,7 +260,6 @@ USE precision_mod
       LOGICAL :: lexternal = .false.
       REAL distance 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       lold = .false. 
 !                                                                       
@@ -390,6 +397,7 @@ USE surface_mod
 !
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -401,7 +409,6 @@ REAL(KIND=PREC_DP) , DIMENSION(MAXW), INTENT(INOUT) :: werte
 !
 INTEGER :: istart
 INTEGER :: ifinish
-LOGICAL, EXTERNAL :: str_comp
 !
 IF(str_comp(cpara(1) , 'local', 3, lpara(1), 5)) THEN
 !
@@ -682,8 +689,10 @@ USE wyckoff_mod
 USE ber_params_mod
 USE errlist_mod 
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
 USE take_param_mod
+USE str_comp_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -754,7 +763,6 @@ REAL null (3)
 REAL :: thick
 REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-LOGICAL str_comp 
 !     REAL do_blen 
 !                                                                       
 DATA null / 0.0, 0.0, 0.0 / 
@@ -1632,6 +1640,7 @@ USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 IMPLICIT NONE
 CHARACTER(LEN=*) , INTENT(INOUT) :: zeile
 INTEGER          , INTENT(INOUT) :: lp
@@ -1649,7 +1658,6 @@ INTEGER, DIMENSION(6)   :: surf_weight
 !
 INTEGER :: ianz, iatom
 !
-LOGICAL str_comp
 !
 cpara(:) = ' '
 lpara(:) = 1

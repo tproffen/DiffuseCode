@@ -19,8 +19,15 @@ USE do_eval_mod
 USE do_wait_mod
 USE errlist_mod
 USE class_macro_internal
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod
+USE str_comp_mod
 USE sup_mod
 !
 IMPLICIT none
@@ -35,8 +42,6 @@ INTEGER laenge, lbef
 LOGICAL                                 :: lalloc = .false. ! Need to allocate
 LOGICAL                                 :: lend  ! condition of EOF
 !
-INTEGER, EXTERNAL :: len_str
-LOGICAL, EXTERNAL :: str_comp
 !
 lend   = .FALSE.
 lalloc = .FALSE.
@@ -70,7 +75,9 @@ main_loop: do
 !                                                                       
            is_com: IF (befehl (1:1) .eq.'@') THEN 
                IF (laenge.ge.2) THEN 
-                  CALL file_kdo (line (2:laenge), laenge-1) 
+                  line(1:laenge-1) = line(2:laenge)
+                  laenge = 1
+                  CALL file_kdo(line, laenge)
                ELSE 
                   ier_num = - 13 
                   ier_typ = ER_MAC 
@@ -191,6 +198,7 @@ USE class_internal
 USE get_params_mod
 USE errlist_mod
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -216,7 +224,6 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-LOGICAL :: str_comp
 !
 DATA oname  / 'display' /
 DATA loname /  7        /
@@ -256,6 +263,7 @@ USE class_internal
 USE get_params_mod
 USE errlist_mod
 USE precision_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -268,7 +276,6 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
 INTEGER                                :: ianz
 !
-LOGICAL :: str_comp
 !
 IF(zeile== ' ') THEN
    CALL store_remove_all(store_root)

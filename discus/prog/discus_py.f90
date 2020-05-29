@@ -54,6 +54,9 @@ SUBROUTINE command (incomming, ier_status)
 USE discus_setup_mod
 USE errlist_mod
 USE class_macro_internal
+USE lib_errlist_func
+USE lib_length
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod
 USE set_sub_generic_mod
@@ -71,7 +74,6 @@ INTEGER              :: lbef
 INTEGER              :: lp
 LOGICAL              :: lend
 !
-INTEGER              :: len_str
 !
 EXTERNAL             :: discus_mache_kdo
 !

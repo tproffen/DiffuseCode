@@ -27,6 +27,7 @@ USE prop_para_func
 USE read_internal_mod
 !
 USE errlist_mod
+USE lib_errlist_func
 USE precision_mod
 USE trig_degree_mod
 USE wink_mod

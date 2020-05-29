@@ -744,6 +744,7 @@ USE precision_mod
       USE rmc_mod 
 !                                                                       
       USE errlist_mod 
+USE lib_length
       USE prompt_mod 
       IMPLICIT none 
        
@@ -754,7 +755,7 @@ USE precision_mod
       CHARACTER(9) at_lis (0:maxscat+1) 
       CHARACTER(8) ra 
       INTEGER mol_lis (mole_max_type+1) 
-      INTEGER i, j, k, ie, len_str 
+      INTEGER i, j, k, ie
 !                                                                       
       CHARACTER(9) at_name_i, at_name_j 
 !     CHARACTER(9) at_name 
@@ -1696,6 +1697,7 @@ USE precision_mod
       USE random_mod
 !                                                                       
       USE errlist_mod 
+USE lib_random_func
       USE param_mod 
       USE prompt_mod 
       USE precision_mod
@@ -1730,7 +1732,6 @@ USE sys_compiler
 !      INTEGER  :: n_natoms=1 ! Maximum number of atoms for DIFFUSE allocation
 !      INTEGER  :: n_nscat =1 ! Maximum number of atoms for DIFFUSE allocation
 !                                                                       
-      REAL ran1 
 !                                                                       
       igen = 0 
       itry = 0 
@@ -2906,6 +2907,7 @@ REAL(KIND=PREC_DP) :: werte(1)
       USE celltoindex_mod
       USE conn_sup_mod
       USE rmc_mod 
+USE lib_random_func
       USE random_mod
       IMPLICIT none 
 !                                                                       
@@ -2923,7 +2925,6 @@ REAL(KIND=PREC_DP) :: werte(1)
       INTEGER            :: natoms ! Number of actual actoms in connectivity list
 !                                                                       
       INTEGER i,j, ino
-      REAL ran1 
 !                                                                       
       j = 0
       ino = 1      ! RMC SELECT ALWAYS uses the FIRST connectivity defined for an atom
@@ -3010,6 +3011,7 @@ REAL(KIND=PREC_DP) :: werte(1)
 !                                                                       
       USE prompt_mod 
       USE random_mod
+USE lib_random_func
 USE precision_mod
       IMPLICIT none 
 !
@@ -3023,8 +3025,6 @@ USE precision_mod
       INTEGER i, j, is1, is2, il 
       REAL  :: value
       REAL disp1, disp2 
-      REAL ran1
-REAL(KIND=PREC_DP), EXTERNAL :: gasdev 
       REAL dummy (3) 
       LOGICAL lflag  !, rmc_inlot 
 !
@@ -3165,6 +3165,7 @@ REAL(KIND=PREC_DP), EXTERNAL :: gasdev
       USE debug_mod 
 !                                                                       
       USE errlist_mod 
+USE lib_random_func
       USE prompt_mod 
 USE precision_mod
       IMPLICIT none 
@@ -3179,8 +3180,6 @@ USE precision_mod
       INTEGER iz1 (3), iz2 (3) 
       INTEGER i, j, k, is1, is2, il, i0, j0 
       REAL disp1 (3), disp2 (3) 
-      REAL ran1
-REAL(KIND=PREC_DP), EXTERNAL :: gasdev 
       REAL dummy (3) 
       LOGICAL lflag  !, rmc_inlot 
 !                                                                       

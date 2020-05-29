@@ -42,11 +42,17 @@ USE doact_mod
 USE do_wait_mod
 USE build_name_mod
 USE learn_mod 
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
 USE get_params_mod
 USE class_macro_internal
 USE precision_mod
 USE prompt_mod 
 USE take_param_mod
+USE str_comp_mod
 USE sup_mod
 !
 IMPLICIT none 
@@ -79,8 +85,6 @@ REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: NCALC = 1 ! Number of values to calculate 
 !
 !                                                                       
-INTEGER len_str 
-LOGICAL str_comp 
 !
 DATA oname  / 'radius' , 'occupancy', 'identical', 'setting', 'site'   /
 DATA loname /  9       ,  9         ,  6         ,  7       ,  4       /
@@ -116,7 +120,9 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !                                                                       
    IF (line (1:1) .eq.'@') THEN 
       IF (length.ge.2) THEN 
-         CALL file_kdo (line (2:length), length - 1) 
+         line(1:length-1) = line(2:length)
+         length = 1
+         CALL file_kdo(line, length)
       ELSE 
          ier_num = - 13 
          ier_typ = ER_MAC 
@@ -402,6 +408,7 @@ USE update_cr_dim_mod
 USE ber_params_mod
 USE errlist_mod
 USE precision_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -433,7 +440,6 @@ INTEGER, DIMENSION(3), PARAMETER :: one = (/ 1, 1, 1/)
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 REAL                :: r
 !
-LOGICAL :: str_comp
 !
 IF (ianz.ge.1) THEN 
    cr_newtype = str_comp (befehl, 'cell', 1, lbef, 4) 
@@ -664,6 +670,7 @@ USE read_internal_mod
 !
 USE errlist_mod
 USE precision_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -679,7 +686,6 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(strucfile))) :: outfile
 !INTEGER             :: i,l
 !LOGICAL             :: need_alloc
 !
-LOGICAL             :: str_comp
 !
 CALL rese_cr
 internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
@@ -809,7 +815,6 @@ INTEGER             :: n_atom
 INTEGER             :: i,l
 LOGICAL             :: need_alloc
 !
-!LOGICAL             :: str_comp
 !
 !CALL rese_cr
 !internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
@@ -1014,6 +1019,7 @@ USE spcgr_apply
 USE stack_rese_mod
 USE ber_params_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
 !
 !CHARACTER(LEN=*),                  INTENT(IN) :: befehl
@@ -1135,6 +1141,9 @@ SUBROUTINE readcell (strucfile, l_identical, r_identical)
       USE spcgr_apply
       USE wyckoff_mod
 USE precision_mod
+USE lib_errlist_func
+USE lib_length
+USE str_comp_mod
       USE string_convert_mod
 USE sys_compiler
       IMPLICIT none 
@@ -1170,8 +1179,6 @@ LOGICAL, SAVE          :: at_init = .TRUE.
       REAL(KIND=PREC_DP) :: werte (maxw)
 REAL :: dw1 , occ1
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
       LOGICAL :: IS_IOSTAT_END
 !                                                                       
       cr_natoms = 0 
@@ -1531,6 +1538,7 @@ USE prop_para_mod
 USE ber_params_mod
 USE charact_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
 IMPLICIT none 
 !                                                                       
@@ -1784,6 +1792,7 @@ END SUBROUTINE read_atom_line
       USE ber_params_mod
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
       CHARACTER(LEN=* ), INTENT(IN)    :: zeile 
@@ -1805,7 +1814,6 @@ USE precision_mod
       INTEGER          :: n_atom
       LOGICAL          :: need_alloc = .false.
 !                                                                       
-      LOGICAL str_comp 
 !
 !
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -2219,9 +2227,12 @@ USE gen_add_mod
 USE sym_add_mod 
 USE ber_params_mod
 USE get_params_mod
+USE lib_errlist_func
+USE lib_length
 USE string_convert_mod
 USE precision_mod
 USE take_param_mod
+USE str_comp_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -2275,8 +2286,6 @@ REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !                                                                       
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !
 DATA oname  / 'setting' /
 DATA loname /  7        /
@@ -2718,7 +2727,10 @@ cr_occ(:) = 1.0   !! WORK OCC
       USE molecule_mod 
       USE prop_para_mod
       USE spcgr_apply
+USE lib_errlist_func
+USE lib_length
 USE precision_mod
+USE str_comp_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -2772,8 +2784,6 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       REAL(KIND=PREC_DP), DIMENSION(maxw) :: werte !(maxw)
       REAL                :: dw1 , occ1 = 1
 !                                                                       
-      INTEGER :: len_str 
-      LOGICAL :: str_comp 
 !                                                                       
       lcontent = .false.
       at_init = .TRUE.
@@ -2963,6 +2973,8 @@ USE spcgr_apply, ONLY : spcgr_get_setting
 !
 USE ber_params_mod
 USE errlist_mod
+USE lib_errlist_func
+USE lib_length
 USE precision_mod
 !
 IMPLICIT none 
@@ -2979,7 +2991,6 @@ REAL(KIND=PREC_DP) , DIMENSION(1) :: rpara
 INTEGER :: ii, i 
 INTEGER :: j
 !                                                                       
-INTEGER :: len_str 
 !
 DATA setting /'abc', 'bac', 'cab', 'cba', 'bca', 'acb'/
 !                                                                       
@@ -3044,8 +3055,8 @@ DO i = 16,74
 ENDDO 
 !                                                                       
 CALL no_error 
-cpara = cr_spcgr 
-lpara = len_str (cpara) 
+cpara(1) = cr_spcgr 
+lpara = len_str (cpara(1)) 
 CALL ber_params (1, cpara, lpara, rpara, 1) 
 IF (ier_num.eq.0) THEN 
    cr_spcgrno = spcgr_num(nint (rpara(1)) , ii)
@@ -3251,6 +3262,7 @@ SUBROUTINE import_test(mode, strufile, outfile)
 ! Tests if the ending of a file corresponds to a known format, tries to 
 ! import this file
 !
+USE lib_errlist_func
 USE errlist_mod
 INTEGER         , INTENT(IN)  :: mode
 CHARACTER(LEN=*), INTENT(IN)  :: strufile
@@ -3318,7 +3330,9 @@ USE trafo_mod
 !
 USE build_name_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !                                                                       
 IMPLICIT none 
@@ -3367,7 +3381,6 @@ INTEGER              :: j
 !
 LOGICAL :: lout = .FALSE.
 !
-LOGICAL :: str_comp 
 !
 opara  =  (/ 'guest ', 'P1    ' /)   ! Always provide fresh default values
 lopara =  (/  6,        6       /)
@@ -3542,6 +3555,7 @@ USE ber_params_mod
 USE blanks_mod
 USE build_name_mod
 USE get_params_mod
+USE lib_length
 USE wink_mod
 USE precision_mod
 USE sys_compiler
@@ -3595,7 +3609,6 @@ REAL   , DIMENSION(:), ALLOCATABLE :: eadp_values
       INTEGER             , DIMENSION(MAXP) :: llpara
       REAL(KIND=PREC_DP)  , DIMENSION(MAXP) :: wwerte
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
       'BOND', 'BUMP', 'CGLS', 'CHIV', 'CONF', 'CONN', 'DAMP', 'DANG',   &
@@ -4005,7 +4018,9 @@ DEALLOCATE(eadp_values)
 !     converts a CrystalMaker "xyz" file to DISCUS                   
 !+                                                                      
       USE build_name_mod
+USE lib_length
 USE precision_mod
+USE str_comp_mod
 USE sys_compiler
 !
       IMPLICIT none 
@@ -4031,8 +4046,6 @@ CHARACTER(LEN=*)                 , INTENT(OUT)   :: ofile
       INTEGER               :: length
       REAL   , DIMENSION(6) :: latt (6) 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp
 !                                                                       
 !     Create input / output file name
 !
@@ -4155,6 +4168,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 USE build_name_mod
 USE precision_mod
 USE take_param_mod
+USE str_comp_mod
 USE sys_compiler
       IMPLICIT none 
 !                                                                       
@@ -4184,7 +4198,6 @@ CHARACTER(LEN=*)                 , INTENT(OUT)   :: ofile
       REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-      LOGICAL str_comp
 !
       DATA oname  / 'sort'   /
       DATA loname /  4       /
@@ -4668,6 +4681,7 @@ END SUBROUTINE rmc6f_period
       USE ber_params_mod
       USE blanks_mod
       USE get_params_mod
+USE lib_length
 USE precision_mod
       USE string_convert_mod
 USE sys_compiler
@@ -4782,7 +4796,6 @@ USE sys_compiler
       TYPE(atom_list), POINTER :: tail
       TYPE(atom_list), POINTER :: temp
 !
-      INTEGER len_str 
 !
       is_loop = 0
       symm_n  = 0
@@ -5555,6 +5568,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       USE charact_mod
       USE blanks_mod
       USE errlist_mod
+USE lib_errlist_func
       USE string_convert_mod
       IMPLICIT NONE
 !
@@ -5624,7 +5638,9 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       USE ber_params_mod
       USE charact_mod
       USE get_params_mod
+USE lib_length
 USE precision_mod
+USE str_comp_mod
       USE string_convert_mod
 USE sys_compiler
       IMPLICIT NONE
@@ -5677,8 +5693,6 @@ LOGICAL                              :: at_init = .TRUE.
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 REAL                                 :: occ
 !
-      INTEGER, EXTERNAL :: len_str
-      LOGICAL, EXTERNAL :: str_comp
 !      LOGICAL           :: is_nan
       LOGICAL           :: IS_IOSTAT_END
 !
@@ -6191,6 +6205,7 @@ USE read_internal_mod
 USE spcgr_apply
 USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc, save_show
 use wyckoff_mod
+USE lib_errlist_func
 USE precision_mod
 !
 IMPLICIT none 

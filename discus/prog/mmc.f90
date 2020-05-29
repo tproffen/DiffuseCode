@@ -25,10 +25,17 @@ USE do_wait_mod
 USE errlist_mod 
 USE get_params_mod
 USE learn_mod 
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
 USE class_macro_internal
 USE param_mod 
 USE precision_mod
 USE prompt_mod 
+USE str_comp_mod
       USE sup_mod
 IMPLICIT none 
 !                                                                       
@@ -49,8 +56,6 @@ INTEGER             :: n_corr = 1 ! dummy for allocation
 INTEGER             :: n_scat = 1 ! dummy for allocation
 INTEGER             :: n_site = 1 ! dummy for allocation
 !                                                                       
-INTEGER, EXTERNAL   :: len_str 
-LOGICAL, EXTERNAL   :: str_comp 
 !                                                                       
 maxw = MAX(MIN_PARA,MAXSCAT+1)
 !
@@ -91,7 +96,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !------ execute a macro file                                            
 !                                                                       
          ELSEIF (befehl (1:1) .eq.'@') then 
-            CALL file_kdo (line (2:length), length - 1) 
+            line(1:length-1) = line(2:length)
+            length = 1
+            CALL file_kdo(line, length)
 !                                                                       
 !------ continues a macro 'continue'                                    
 !                                                                       
@@ -718,6 +725,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat, n_site )
       USE errlist_mod 
       USE get_params_mod
       USE precision_mod
+USE str_comp_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -755,7 +763,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat, n_site )
 !                                                                       
 !     INTEGER angles2index 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       n_corr = 0
       n_scat = 0
@@ -1973,6 +1980,7 @@ USE precision_mod
 !
       USE debug_mod 
       USE errlist_mod 
+USE lib_random_func
       USE param_mod 
 USE precision_mod
       USE prompt_mod 
@@ -2027,8 +2035,6 @@ USE sys_compiler
       REAL e_old (0:MC_N_ENERGY) 
       REAL e_new (0:MC_N_ENERGY) 
 !                                                                       
-      REAL ran1 
-REAL(KIND=PREC_DP), EXTERNAL ::gasdev 
 !                                                                       
       DATA c_energy /                    &
            '                        ',   &
@@ -2780,6 +2786,7 @@ SUBROUTINE mmc_test_multi (iacc_good, iacc_neut, iacc_bad, &
 USE discus_config_mod 
 USE mc_mod 
 USE mmc_mod 
+USE lib_random_func
 USE random_mod
 !                                                                       
 IMPLICIT none 
@@ -2794,7 +2801,6 @@ REAL    :: e_del
 REAL    :: e_ran 
 REAL    :: e_delta 
 !                                                                       
-REAL    :: ran1 
 !                                                                       
 e_del = 0.0
 DO i = 1, MC_N_ENERGY 
@@ -4809,6 +4815,7 @@ DEALLOCATE(ncentral)
       USE mmc_mod 
 !     USE modify_mod
       USE errlist_mod 
+USE lib_random_func
       USE random_mod
       IMPLICIT none 
 !                                                                       
@@ -4821,7 +4828,6 @@ DEALLOCATE(ncentral)
       INTEGER icell (3), isite, nsel 
       INTEGER ntrial 
 !                                                                       
-      REAL ran1 
 !                                                                       
       IF (mmc_l_type.eq.MMC_L_CELLS) then 
          DO i = 1, natoms 

@@ -34,11 +34,15 @@ CONTAINS
       USE errlist_mod 
       USE get_params_mod
       USE learn_mod 
+USE lib_errlist_func
+USE lib_length
+USE lib_macro_func
       USE class_macro_internal
       USE param_mod 
 USE precision_mod
       USE prompt_mod 
       USE take_param_mod
+USE str_comp_mod
       USE sup_mod
 !                                                                       
       IMPLICIT none 
@@ -80,8 +84,6 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
-      INTEGER len_str 
-      LOGICAL str_comp 
 !
       DATA l_need_setup / .true. / 
       DATA oname  / 'radius', 'occupied', 'echo    '/

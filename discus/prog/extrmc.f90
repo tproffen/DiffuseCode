@@ -119,6 +119,7 @@ CONTAINS
       USE chem_mod 
       USE rmc_mod 
       USE errlist_mod 
+USE lib_random_func
       USE random_mod
 USE precision_mod
       IMPLICIT none 
@@ -148,8 +149,6 @@ USE precision_mod
 !------ declaration of local variables, functions (-> implicit none)    
 !                                                                       
       INTEGER i 
-      REAL ran1
-REAL(KIND=PREC_DP), EXTERNAL :: gasdev 
 !                                                                       
 !------ we will modify just ONE atom                                    
 !                                                                       

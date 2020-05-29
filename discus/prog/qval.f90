@@ -26,6 +26,7 @@ CONTAINS
       USE crystal_mod 
       USE diffuse_mod 
       USE output_mod 
+USE lib_random_func
       USE random_mod
       USE trig_degree_mod
       USE wink_mod
@@ -51,7 +52,6 @@ CONTAINS
       REAL      :: signum = 1.0
 !                                                                       
 !     REAL atan2d 
-      REAL ran1 
       qval   = 0.0
       f2aver = 0.0
       faver2 = 0.0

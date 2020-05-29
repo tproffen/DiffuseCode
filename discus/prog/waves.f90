@@ -23,9 +23,16 @@ SUBROUTINE waves_menu
       USE errlist_mod 
       USE get_params_mod
       USE learn_mod 
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
       USE class_macro_internal
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       USE sup_mod
 !                                                                       
       IMPLICIT none 
@@ -50,8 +57,6 @@ USE precision_mod
       INTEGER         :: nsite = 1
       LOGICAL lend 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       lend = .false. 
@@ -84,7 +89,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                IF (befehl (1:1) .eq.'@') then 
                   IF (length.ge.2) then 
-                     CALL file_kdo (line (2:length), length - 1) 
+                     line(1:length-1) = line(2:length)
+                     length = 1
+                     CALL file_kdo(line, length)
                   ELSE 
                      ier_num = - 13 
                      ier_typ = ER_MAC 
@@ -711,6 +718,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE trafo_mod
       USE waves_mod 
       USE errlist_mod 
+USE lib_length
+USE str_comp_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -727,8 +736,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 INTEGER :: nsite = 1
 !                                                                       
 !     REAL quad 
-      INTEGER len_str 
-      LOGICAL str_comp 
       angle = 0.0
       start = 1
       end = 1
@@ -899,6 +906,7 @@ INTEGER :: nsite = 1
       USE trafo_mod
       USE waves_mod 
       USE wink_mod
+USE lib_random_func
       USE random_mod
       IMPLICIT none 
 !                                                                       
@@ -909,7 +917,6 @@ INTEGER :: nsite = 1
       INTEGER i, j 
       INTEGER  :: is_target   ! dummy for target atom type
 !                                                                       
-      REAL ran1 
 !                                                                       
       REAL wave_func 
       EXTERNAL wave_func 
@@ -1015,6 +1022,7 @@ ENDIF is_density
       USE trafo_mod
       USE waves_mod 
       USE wink_mod
+USE lib_random_func
       USE random_mod
       IMPLICIT none 
 !                                                                       
@@ -1024,7 +1032,6 @@ ENDIF is_density
       INTEGER  :: is_repl  ! no of a target molecule for density waves
       INTEGER  :: is_src   ! no of a source molecule for density waves
 !                                                                       
-      REAL ran1 
 !                                                                       
       REAL wave_func 
       EXTERNAL wave_func 

@@ -16,6 +16,7 @@ CONTAINS
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
        
@@ -40,7 +41,6 @@ USE precision_mod
 !                                                                       
       PARAMETER (lnew = .false.) 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       fp (1) = chem_period (1) 
       fp (2) = chem_period (2) 

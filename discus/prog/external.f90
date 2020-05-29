@@ -185,6 +185,7 @@ CONTAINS
       USE external_mod 
       USE metric_mod
       USE molecule_mod 
+USE lib_random_func
       USE errlist_mod 
       USE trig_degree_mod
       USE wink_mod
@@ -204,7 +205,7 @@ CONTAINS
 !                                                                       
 !     REAL skalpro 
 !     REAL cosd, sind 
-      REAL bessj1 
+!     REAL bessj1 
 !                                                                       
       DATA cartesian / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
 !                                                                       
@@ -440,6 +441,7 @@ CONTAINS
       USE external_mod 
       USE molecule_mod 
       USE errlist_mod 
+USE lib_errlist_func
       IMPLICIT none 
 !                                                                       
 !                                                                       

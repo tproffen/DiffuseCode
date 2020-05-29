@@ -22,11 +22,18 @@ SUBROUTINE pdf
       USE do_wait_mod
       USE errlist_mod 
       USE learn_mod 
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
       USE class_macro_internal
       USE get_params_mod
       USE param_mod 
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       USE string_convert_mod
       USE sup_mod
 !                                                                       
@@ -47,8 +54,6 @@ USE precision_mod
       INTEGER :: n_nsite = 1  ! Dummy for RMC allocation
       LOGICAL ldummy 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
 !
@@ -82,7 +87,9 @@ USE precision_mod
 !------ execute a macro file                                            
 !                                                                       
          ELSEIF (befehl (1:1) .eq.'@') then 
-            CALL file_kdo (line (2:length), length - 1) 
+            line(1:length-1) = line(2:length)
+            length = 1
+            CALL file_kdo(line, length)
 !                                                                       
 !     continues a macro 'continue'                                      
 !                                                                       
@@ -1100,6 +1107,7 @@ USE precision_mod
 !     Gets numbers from history part of data file                       
 !-                                                                      
       USE discus_config_mod 
+USE lib_length
       USE param_mod 
       IMPLICIT none 
 !                                                                       
@@ -1109,7 +1117,6 @@ USE precision_mod
 !
       INTEGER is, ie, ll, lk 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       ll = len_str (line) 
       lk = len_str (key) 
@@ -1148,6 +1155,7 @@ USE precision_mod
       USE get_params_mod
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -1168,7 +1176,6 @@ REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw)
       INTEGER  :: n_nscat = 1! dummy for rmc_allocation
       INTEGER  :: n_nsite = 1! dummy for rmc_allocation
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -1743,6 +1750,7 @@ REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw)
       USE random_mod
 !                                                                       
       USE errlist_mod 
+USE lib_random_func
       USE param_mod 
       USE prompt_mod 
       USE precision_mod
@@ -1767,7 +1775,6 @@ USE sys_compiler
       INTEGER igen, itry, iacc_good, iacc_bad 
       LOGICAL loop, laccept 
 !
-      REAL ran1
 !                                                                       
 !open(89,file='shift.log', status='unknown')
       IF (pdf_obs (1) .eq. - 9999.) then 
@@ -2047,6 +2054,7 @@ close(89)
       USE pdf_mod
       USE refine_mod
       USE rmc_mod
+USE lib_random_func
       USE random_mod
       USE precision_mod
 !
@@ -2069,8 +2077,6 @@ close(89)
       REAL     :: prob
       REAL(PREC_DP), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
 !
-      REAL(KIND=PREC_DP), EXTERNAL :: gasdev
-      REAL :: ran1
 !
       laccept = .false.
          pdf_old_scale = pdf_scale
@@ -2151,6 +2157,7 @@ close(89)
       USE pdf_mod
       USE rmc_mod
       USE refine_mod
+USE lib_random_func
       USE random_mod
       USE spcgr_apply
       USE precision_mod
@@ -2174,8 +2181,6 @@ close(89)
       REAL     :: prob
       REAL(PREC_DP), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
 !
-      REAL(KIND=PREC_DP), EXTERNAL :: gasdev
-      REAL :: ran1
 !
       pdf_old_lattice(1:3) = cr_a0     ! Backup old values
       pdf_old_lattice(4:6) = cr_win

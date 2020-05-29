@@ -153,6 +153,7 @@ integer ier
    USE molecule_mod
    USE spcgr_apply, ONLY: get_symmetry_matrices, firstcell, symmetry
    USE wyckoff_mod
+USE lib_errlist_func
 USE precision_mod
 !
    IMPLICIT NONE

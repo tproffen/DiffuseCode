@@ -28,10 +28,17 @@ SUBROUTINE stack
       USE errlist_mod 
       USE get_params_mod
       USE learn_mod 
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
       USE class_macro_internal
       USE prompt_mod 
       USE sup_mod
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -55,8 +62,6 @@ USE precision_mod
       INTEGER,SAVE  :: n_layers = 0 ! Current number of layers
       INTEGER,SAVE  :: n_qxy    = 0 ! Current number of points in reciprocal space
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       maxw = MIN_PARA
       lend = .false. 
@@ -89,7 +94,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                IF (befehl (1:1) .eq.'@') then 
                   IF (length.ge.2) then 
-                     CALL file_kdo (line (2:length), length - 1) 
+                     line(1:length-1) = line(2:length)
+                     length = 1
+                     CALL file_kdo(line, length)
                   ELSE 
                      ier_num = - 13 
                      ier_typ = ER_MAC 
@@ -1013,6 +1020,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE tensors_mod
       USE trafo_mod
       USE errlist_mod 
+USE lib_errlist_func
+USE lib_random_func
       USE random_mod
       USE param_mod 
       USE prompt_mod 
@@ -1040,8 +1049,6 @@ USE precision_mod
       REAL r1, r2 
       REAL st_trans_cur (3) 
 !                                                                       
-      REAL(KIND=PREC_DP), EXTERNAL :: gasdev 
-      REAL ran1 
 !                                                                       
       CALL no_error 
 !                                                                       
@@ -1501,6 +1508,7 @@ USE precision_mod
       USE stack_mod 
       USE random_mod
       USE errlist_mod 
+USE lib_random_func
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1508,7 +1516,6 @@ USE precision_mod
 !                                                                       
       INTEGER i, m 
       REAL ad, s, ptot 
-      REAL ran1 
 !                                                                       
       ptot = 0.0 
       DO m = 1, st_ntypes 
@@ -1546,6 +1553,7 @@ USE precision_mod
       USE spcgr_apply
       USE update_cr_dim_mod
       USE errlist_mod 
+USE lib_length
 USE sys_compiler
       IMPLICIT none 
 !                                                                       
@@ -1568,7 +1576,6 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       INTEGER         :: n_atom=0  ! number of molecule atoms in input file
       LOGICAL lread, lout 
       LOGICAL           :: need_alloc = .false. 
-      INTEGER, EXTERNAL :: len_str
 !                                                                       
 !                                                                       
 !     ----read corresponding layer                                      
@@ -1849,6 +1856,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       USE symm_mod 
       USE stack_mod 
       USE trafo_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1860,7 +1868,6 @@ internal: IF(st_internal(st_type(i)) ) THEN
       INTEGER         :: new_nsite = 1! Dummy for allocation 
       INTEGER i, j 
       LOGICAL lorigin 
-      LOGICAL str_comp 
 !
       IF ( SYM_MAXSCAT < MAXSCAT ) THEN
          new_nscat = MAXSCAT

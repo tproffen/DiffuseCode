@@ -32,9 +32,16 @@ SUBROUTINE save_struc (string, lcomm)
       USE errlist_mod 
       USE get_params_mod
       USE learn_mod 
+USE lib_errlist_func
+USE lib_help
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_length
+USE lib_macro_func
       USE class_macro_internal 
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       USE sup_mod
       IMPLICIT none 
 !                                                                       
@@ -58,8 +65,6 @@ INTEGER         , INTENT(INOUT) :: lcomm
       LOGICAL lend 
 !      REAL, DIMENSION(SAV_MAXSCAT) :: repl ! Dummy variable needed for atom_select
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       DATA sav_flen / 1 / 
 !                                                                       
@@ -134,7 +139,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                IF (befehl (1:1) .eq.'@') THEN 
                   IF (length.ge.2) THEN 
-                     CALL file_kdo (line (2:length), length - 1) 
+                     line(1:length-1) = line(2:length)
+                     length = 1
+                     CALL file_kdo(line, length)
                   ELSE 
                      ier_num = - 13 
                      ier_typ = ER_MAC 
@@ -536,6 +543,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
+USE lib_length
 USE sys_compiler
       IMPLICIT none 
 !                                                                       
@@ -545,7 +553,6 @@ USE sys_compiler
       INTEGER ist, i, j 
       LOGICAL lread 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       DATA ist / 7 / 
 !                                                                       
@@ -589,6 +596,7 @@ USE discus_save_mod
 USE surface_mod
 !
 USE errlist_mod 
+USE lib_length
 USE sys_compiler
 !
 IMPLICIT none 
@@ -613,7 +621,6 @@ LOGICAL lread
 LOGICAL                            :: lsave
 LOGICAL, DIMENSION(:), ALLOCATABLE :: lwrite ! flag if atom needs write
 !                                                                       
-INTEGER len_str 
 !                                                                       
 !                                                                       
 DATA C_MOLE / 'domain_fuzzy   ', 'domain_sphere  ', 'domain_cylinder',&

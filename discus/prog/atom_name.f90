@@ -10,6 +10,7 @@ CONTAINS
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+USE lib_length
       IMPLICIT none 
 !                                                                       
        
@@ -17,7 +18,6 @@ CONTAINS
       CHARACTER(5) istr 
       INTEGER iscat, il, is 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       IF (iscat.ge.100) then 
          WRITE (istr, 1000) iscat 

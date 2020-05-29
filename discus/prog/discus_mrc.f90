@@ -20,6 +20,8 @@ CONTAINS
 !
    USE envir_mod
    USE errlist_mod
+USE lib_errlist_func
+USE lib_length
    USE precision_mod
 !
    IMPLICIT NONE
@@ -47,7 +49,6 @@ CONTAINS
    INTEGER            :: l_datei
    REAL               :: sqq
 !
-   INTEGER :: len_str
 !
    CALL no_error
 !

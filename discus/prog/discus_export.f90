@@ -10,6 +10,7 @@ USE errlist_mod
 USE get_params_mod
 USE precision_mod
 USE take_param_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -33,7 +34,6 @@ INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to cal
 !
 INTEGER  :: rmcversion
 !
-LOGICAL str_comp
 !
 DATA oname  / 'version', 'spcgr  '         /
 DATA loname /  7       ,  7                /

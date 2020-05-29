@@ -28,10 +28,17 @@ CONTAINS
       USE errlist_mod 
       USE get_params_mod
       USE learn_mod 
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
       USE class_macro_internal
       USE prompt_mod 
       USE sup_mod
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -64,8 +71,6 @@ USE precision_mod
       REAL rho_divis (2) 
       REAL u (3), v (3), w (3), dvi1, dvi2, dvi3, dvi4, dvi5 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !     REAL do_blen, do_bang 
 !                                                                       
       DATA extr_achs / ' ', 'h', 'k', 'l' / 
@@ -130,7 +135,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
             IF (befehl (1:1) .eq.'@') then 
                IF (length.ge.2) then 
-                  CALL file_kdo (line (2:length), length - 1) 
+                  line(1:length-1) = line(2:length)
+                  length = 1
+                  CALL file_kdo(line, length)
                ELSE 
                   ier_num = - 13 
                   ier_typ = ER_MAC 
@@ -2858,6 +2865,7 @@ USE sys_compiler
       USE quad_mod
 !
       USE errlist_mod 
+USE lib_length
       USE prompt_mod 
 USE sys_compiler
       IMPLICIT none 
@@ -2885,7 +2893,6 @@ USE sys_compiler
       INTEGER HKLF4
       PARAMETER (HKLF4 = 5) 
 !                                                                       
-      INTEGER len_str 
 !     INTEGER e_hist 
 !     REAL fj2 
 !     REAL quad 

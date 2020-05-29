@@ -20,9 +20,12 @@ CONTAINS
       USE update_cr_dim_mod
       USE ber_params_mod
       USE errlist_mod 
+USE lib_errlist_func
+USE lib_random_func
       USE get_params_mod
       USE random_mod
 USE precision_mod
+USE str_comp_mod
 !
       IMPLICIT none 
 !                                                                       
@@ -46,8 +49,6 @@ INTEGER         , INTENT(INOUT) :: lp
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL prob 
 !                                                                       
-      LOGICAL str_comp 
-      REAL ran1 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -822,6 +823,7 @@ USE ber_params_mod
 USE errlist_mod 
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 IMPLICIT none 
 !                                                                       
        
@@ -840,7 +842,6 @@ LOGICAL :: l_mole
 LOGICAL :: l_type 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte ! (maxw) 
 !                                                                       
-LOGICAL :: str_comp 
 !                                                                       
 l_mole = .false. 
 !                                                                       
@@ -1587,6 +1588,7 @@ USE precision_mod
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1602,7 +1604,6 @@ USE precision_mod
       INTEGER, DIMENSION(0:3) :: iis
       REAL   , DIMENSION(0:3) :: ris
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -1907,6 +1908,7 @@ USE precision_mod
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
        
 !                                                                       
@@ -1920,7 +1922,6 @@ USE precision_mod
       INTEGER laenge 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
       IF (ier_num.eq.0) then 
@@ -1966,6 +1967,7 @@ USE precision_mod
       USE build_name_mod
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       IMPLICIT none 
        
 !                                                                       
@@ -1981,7 +1983,6 @@ USE precision_mod
 !                                                                       
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       IF (str_comp (cpara (1) , 'character', 2, lpara (1) , 6) ) then 
          IF (ianz.eq.3) then 

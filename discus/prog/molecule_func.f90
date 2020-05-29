@@ -23,6 +23,7 @@ USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -43,7 +44,6 @@ REAL                                 :: biso
 REAL                                 :: clin
 REAL                                 :: cqua
 !
-LOGICAL :: str_comp
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, length)
 !      CALL ber_params (ianz, cpara, lpara, werte, maxw)

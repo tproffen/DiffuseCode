@@ -13,6 +13,7 @@ SUBROUTINE fourier_lmn(eck,vi,inc,lmn,off)
 !
 USE errlist_mod
 USE tensors_mod
+USE lib_random_func
 USE random_mod
 !
 IMPLICIT NONE
@@ -31,7 +32,6 @@ REAL                        :: dummy
 REAL   , DIMENSION(1:3,1:3) :: mat_a
 REAL   , DIMENSION(1:3)     :: vec_r
 REAL   , DIMENSION(1:3,1:3) :: mat_i
-REAL     :: ran1
 !
 mat_a(:,:) = 0.0
 mat_i(:,:) = 0.0

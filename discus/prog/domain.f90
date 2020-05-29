@@ -26,9 +26,16 @@ SUBROUTINE do_domain (line, lp)
       USE errlist_mod 
       USE get_params_mod
       USE learn_mod 
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
       USE class_macro_internal 
 USE precision_mod
       USE prompt_mod 
+USE str_comp_mod
       USE string_convert_mod
       USE sup_mod
       IMPLICIT none 
@@ -50,8 +57,6 @@ USE precision_mod
       LOGICAL lend
       REAL(KIND=PREC_DP):: werte (maxw) 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       lend = .false. 
 !
@@ -89,7 +94,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                IF (befehl (1:1) .eq.'@') then 
                   IF (laenge.ge.2) then 
-                     CALL file_kdo (line (2:laenge), laenge-1) 
+                     line(1:laenge-1) = line(2:laenge)
+                     laenge = 1
+                     CALL file_kdo(line, laenge)
                   ELSE 
                      ier_num = - 13 
                      ier_typ = ER_MAC 
@@ -428,6 +435,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE domain_mod 
       USE surface_mod 
       USE errlist_mod 
+USE lib_length
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -438,7 +446,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER i, ii, j 
       INTEGER              :: new_nscat ! DUMMY for allocation
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       DATA char_mode / 'domain     ', 'pseudoatoms' / 
       DATA char_type / 'fuzzy    ', 'sphere   ', 'cylinder ', 'cube     &
@@ -884,7 +891,10 @@ USE tensors_mod
 USE ber_params_mod
 USE errlist_mod 
 USE get_params_mod
+USE lib_errlist_func
+USE lib_length
 USE precision_mod
+USE str_comp_mod
 USE string_convert_mod
 !                                                                       
 IMPLICIT none 
@@ -908,8 +918,6 @@ INTEGER, PARAMETER :: MAXW = 4
       INTEGER lpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       ier_num = - 49 
       ier_typ = ER_APPL 
@@ -1262,7 +1270,10 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       USE trafo_mod
       USE surface_mod 
       USE errlist_mod 
+USE lib_errlist_func
+USE lib_length
 USE precision_mod
+USE str_comp_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -1340,8 +1351,6 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       LOGICAL, SAVE       :: at_init = .TRUE.
       REAL :: d100, d010, d001
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !     REAL do_blen 
 !                                                                       
       DATA NULL / 0.0, 0.0, 0.0 / 
@@ -1778,8 +1787,10 @@ mole_int: IF(mk_infile_internal) THEN
       USE read_internal_mod 
       USE tensors_mod
       USE errlist_mod 
+USE lib_random_func
       USE string_convert_mod
 USE precision_mod
+USE str_comp_mod
 !
       IMPLICIT none 
 !                                                                       
@@ -1806,8 +1817,6 @@ USE precision_mod
       INTEGER, DIMENSION(0:3)  :: dummy_surf
       REAL   , DIMENSION(0:3)  :: dummy_magn
 !                                                                       
-      LOGICAL str_comp 
-      REAL(KIND=PREC_DP), EXTERNAL ::    gasdev
 !                                                                       
 !     do i=1,4                                                          
 !       do j=1,4                                                        
@@ -2076,6 +2085,7 @@ USE precision_mod
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -2090,7 +2100,6 @@ USE precision_mod
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.ne.0) return 
