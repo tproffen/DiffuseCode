@@ -48,7 +48,7 @@ USE precision_mod
 !                                                                       
       ik = nint (werte (1) ) 
       IF (ik.gt.0.and.ik.lt.iz) then 
-         ilen = len (ik) 
+         ilen = lenc (ik) 
          IF (unt.eq.'WX') then 
             IF (lni (ik) ) ilen = nx (ik) 
             CALL calc_xy (x, ilen, ik, oper, werte, maxw, ianz) 
@@ -62,9 +62,9 @@ USE precision_mod
             CALL get_extrema_xy (y, ik, ilen, ymin, ymax) 
             CALL show_data (ik) 
          ELSEIF (unt.eq.'DX') then 
-            CALL calc_xy (dx, len (ik), ik, oper, werte, maxw, ianz) 
+            CALL calc_xy (dx, lenc (ik), ik, oper, werte, maxw, ianz) 
          ELSEIF (unt.eq.'DY') then 
-            CALL calc_xy (dy, len (ik), ik, oper, werte, maxw, ianz) 
+            CALL calc_xy (dy, lenc (ik), ik, oper, werte, maxw, ianz) 
          ELSEIF (unt.eq.'WZ') then 
             IF (lni (ik) ) then 
                CALL calc_z (z, nx (ik), ny (ik), ik, oper, werte, maxw, &
@@ -327,7 +327,7 @@ USE precision_mod
          IF (xleft.gt.xmin (ik) .and.xright.lt.xmax (ik) ) then 
             a = (y2 - y1) / (x2 - x1) 
             b = y1 - a * x1 
-            DO i = 1, len (ik) 
+            DO i = 1, lenc (ik) 
             ipkt = offxy (ik - 1) + i 
             IF (x (ipkt) .gt.xleft.and.x (ipkt) .lt.xright) then 
                y (ipkt) = a * x (ipkt) + b 
@@ -338,35 +338,35 @@ USE precision_mod
 !                                                                       
          ELSEIF (xleft.lt.xmin (ik) .and.xright.lt.xmax (ik) ) then 
             IF(ileft<iright) THEN   ! normal dataset
-               DO i = iright, len (ik) 
+               DO i = iright, lenc (ik) 
                   ipkt = offxy (ik - 1) + i 
                   x (ipkt - iright + 1) = x (ipkt) 
                   dx(ipkt - iright + 1) = dx(ipkt) 
                   y (ipkt - iright + 1) = y (ipkt) 
                   dy(ipkt - iright + 1) = dy(ipkt) 
                ENDDO 
-               len (ik) = len (ik) - iright + 1 
+               lenc (ik) = lenc (ik) - iright + 1 
             ELSE     ! Data set in inverse sequence from + to -
-               len(ik) = iright
+               lenc(ik) = iright
             ENDIF
-            CALL get_extrema_xy (x, ik, len, xmin, xmax) 
+            CALL get_extrema_xy (x, ik, lenc, xmin, xmax) 
 !                                                                       
 !-------- right is outside                                              
 !                                                                       
          ELSEIF (xleft.gt.xmin (ik) .and.xright.gt.xmax (ik) ) then 
             IF(ileft<iright) THEN   ! normal dataset
-               len (ik) = ileft 
+               lenc (ik) = ileft 
             ELSE     ! Data set in inverse sequence from + to -
-               DO i=1, len(ik) - ileft + 1
+               DO i=1, lenc(ik) - ileft + 1
                   ipkt = offxy (ik - 1) + i 
                   x (ipkt) = x (ipkt + ileft -1)
                   dx(ipkt) = dx(ipkt + ileft -1)
                   y (ipkt) = y (ipkt + ileft -1)
                   dy(ipkt) = dy(ipkt + ileft -1)
                ENDDO
-               len (ik) = len (ik) - ileft + 1 
+               lenc (ik) = lenc (ik) - ileft + 1 
             ENDIF
-            CALL get_extrema_xy (x, ik, len, xmin, xmax) 
+            CALL get_extrema_xy (x, ik, lenc, xmin, xmax) 
 !                                                                       
          ELSE 
             ier_num = - 7 
@@ -394,7 +394,7 @@ USE precision_mod
 !                                                                       
       xdist_old = abs (xvalue-x (offxy (ik - 1) + 1) ) 
       iclose = 1 
-      DO i = 2, len (ik) 
+      DO i = 2, lenc (ik) 
       ipkt = offxy (ik - 1) + i 
       xdist_new = abs (xvalue-x (offxy (ik - 1) + i) ) 
       IF (xdist_new.lt.xdist_old) then 
@@ -418,6 +418,7 @@ USE precision_mod
       USE kuplot_config 
       USE kuplot_mod 
 USE precision_mod
+USE str_comp_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -433,7 +434,7 @@ USE precision_mod
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp, imin 
       INTEGER ianz, ik1, ik2, ik3, ikk1, ikk2, ikk3, ix, iy, i, ii 
-      LOGICAL str_comp, loverwrite 
+      LOGICAL loverwrite 
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
@@ -579,11 +580,11 @@ USE precision_mod
          IF (.not.loverwrite) then 
             nx (iz) = nx (ik1) 
             ny (iz) = ny (ik1) 
-            len (iz) = len (ik1) 
+            lenc (iz) = lenc (ik1) 
             lni (iz) = .true. 
             fname (iz) = 'result.dat' 
             fform (iz) = fform (ik1) 
-            offxy (iz) = offxy (iz - 1) + len (iz) 
+            offxy (iz) = offxy (iz - 1) + lenc (iz) 
             offz (iz) = offz (iz - 1) + nx (ik1) * ny (ik1) 
             iz = iz + 1 
          ENDIF 
@@ -595,7 +596,7 @@ USE precision_mod
 !------ here for a 2d data set                                          
 !                                                                       
       ELSEIF (.not.lni (ik1) .and..not.lni (ik2) ) then 
-         imin = min (len (ik1), len (ik2) ) 
+         imin = min (lenc (ik1), lenc (ik2) ) 
          DO ii = 1, imin 
          ikk1 = offxy (ik1 - 1) + ii 
          ikk2 = offxy (ik2 - 1) + ii 
@@ -623,14 +624,14 @@ USE precision_mod
          ENDDO 
 !                                                                       
          IF (.not.loverwrite) then 
-            len (iz) = imin 
+            lenc (iz) = imin 
             fform (iz) = fform (ik1) 
             fname (iz) = 'result.dat' 
-            offxy (iz) = offxy (iz - 1) + len (iz) 
+            offxy (iz) = offxy (iz - 1) + lenc (iz) 
             iz = iz + 1 
          ENDIF 
-         CALL get_extrema_xy (x, ik3, len (ik3), xmin, xmax) 
-         CALL get_extrema_xy (y, ik3, len (ik3), ymin, ymax) 
+         CALL get_extrema_xy (x, ik3, lenc (ik3), xmin, xmax) 
+         CALL get_extrema_xy (y, ik3, lenc (ik3), ymin, ymax) 
          CALL show_data (ik3) 
 !                                                                       
 !------ incompatible data sets                                          
@@ -652,6 +653,7 @@ USE get_params_mod
 USE kuplot_config 
 USE kuplot_mod 
 USE precision_mod
+USE str_comp_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -674,7 +676,6 @@ INTEGER :: ind_in, ind_out     ! Indices in inout and output 2D data
 INTEGER, DIMENSION(:), ALLOCATABLE :: npt ! number of data points
       LOGICAL lvalid, ladd, lall 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
 !------ space left for new data set ??                                  
 !                                                                       
@@ -737,9 +738,9 @@ IF(.NOT.lni(ik)) THEN                    ! 1-D DATA SETS
          RETURN 
       ENDIF 
 !
-      mdelta = x (offxy (ik - 1) + len (ik) ) - x (offxy (ik - 1)       &
+      mdelta = x (offxy (ik - 1) + lenc (ik) ) - x (offxy (ik - 1)       &
       + 1)                                                              
-      mdelta = mdelta / REAL(len (ik) - 1) 
+      mdelta = mdelta / REAL(lenc (ik) - 1) 
       mmin = xmin (nint (werte (1) ) ) 
       mmax = xmax (nint (werte (1) ) ) 
       DO i = 2, ianz 
@@ -769,7 +770,7 @@ IF(.NOT.lni(ik)) THEN                    ! 1-D DATA SETS
 !                                                                       
       DO i = 1, ianz 
       ik = nint (werte (i) ) 
-      DO ip = 1, len (ik) 
+      DO ip = 1, lenc (ik) 
       ibin = offxy (iz - 1) + nint ( (x (offxy (ik - 1) + ip) - mmin)   &
       / mdelta) + 1                                                     
       y (ibin) = y (ibin) + y (offxy (ik - 1) + ip) 
@@ -788,14 +789,14 @@ IF(.NOT.lni(ik)) THEN                    ! 1-D DATA SETS
       dx (ibin) = 0.0 
       ENDDO 
 !                                                                       
-      len (iz) = ntot 
+      lenc (iz) = ntot 
       fform (iz) = fform (nint (werte (1) ) ) 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
 !
       fname(iz) = 'merge.dat' 
       iz = iz + 1 
-      CALL get_extrema_xy (x, iz - 1, len (iz), xmin, xmax) 
-      CALL get_extrema_xy (y, iz - 1, len (iz), ymin, ymax) 
+      CALL get_extrema_xy (x, iz - 1, lenc (iz), xmin, xmax) 
+      CALL get_extrema_xy (y, iz - 1, lenc (iz), ymin, ymax) 
       CALL show_data (iz - 1) 
 ELSE                               ! 2D Data sets
 !                                                                       
@@ -878,12 +879,12 @@ ELSE                               ! 2D Data sets
    fform(iz) = fform(NINT(werte(1)))
    nx(iz)    = ntot 
    ny(iz)    = ntoty
-   len(iz)   = MAX(nx(iz), ny(iz))
-   offxy(iz) = offxy(iz-1) + len(iz)
+   lenc(iz)   = MAX(nx(iz), ny(iz))
+   offxy(iz) = offxy(iz-1) + lenc(iz)
    offz (iz) = offz (iz-1) + nx(iz)*ny(iz)
    iz = iz + 1 
-   CALL get_extrema_xy (x, iz - 1, len (iz-1), xmin, xmax) 
-   CALL get_extrema_xy (y, iz - 1, len (iz-1), ymin, ymax) 
+   CALL get_extrema_xy (x, iz - 1, lenc (iz-1), xmin, xmax) 
+   CALL get_extrema_xy (y, iz - 1, lenc (iz-1), ymin, ymax) 
    CALL get_extrema_z  (z, iz - 1, nx(iz-1), ny(iz-1), zmin, zmax) 
    CALL show_data(iz - 1) 
 ENDIF
@@ -969,7 +970,7 @@ REAL :: bdelta, fraction
 !                                                                       
 !------ Find closest bin and add data point to it                       
 !                                                                       
-      DO ip = 1, len (ik) 
+      DO ip = 1, lenc (ik) 
       ibin = offxy (iz - 1) + nint ( (x (offxy (ik - 1) + ip) - xmin (  &
       ik) ) / bdelta) + 1                                               
       y (ibin) = y (ibin) + y (offxy (ik - 1) + ip) 
@@ -1028,13 +1029,13 @@ REAL :: bdelta, fraction
       dx (ibin) = 0.0 
       ENDDO 
 !                                                                       
-      len (iz) = ntot 
+      lenc (iz) = ntot 
       fform (iz) = fform (ik) 
       fname (iz) = 'rebin.dat' 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
       iz = iz + 1 
-      CALL get_extrema_xy (x, iz - 1, len (iz), xmin, xmax) 
-      CALL get_extrema_xy (y, iz - 1, len (iz), ymin, ymax) 
+      CALL get_extrema_xy (x, iz - 1, lenc (iz), xmin, xmax) 
+      CALL get_extrema_xy (y, iz - 1, lenc (iz), ymin, ymax) 
       CALL show_data (iz - 1) 
 !                                                                       
       END SUBROUTINE do_rebin                       
@@ -1099,7 +1100,7 @@ REAL :: yyy
       ENDIF 
 !                                                                       
       maxpp = maxarray - offxy (iz - 1) 
-      ntot = len (ig) 
+      ntot = lenc (ig) 
 !                                                                       
       IF (ntot.gt.maxpp) then 
          ier_num = - 6 
@@ -1109,17 +1110,17 @@ REAL :: yyy
 !                                                                       
 !------ Now we interpolate the data                                     
 !                                                                       
-      DO i = 1, len (ik) 
+      DO i = 1, lenc (ik) 
       xpl (i) = x (offxy (ik - 1) + i) 
       ypl (i) = y (offxy (ik - 1) + i) 
       ENDDO 
 !                                                                       
-      CALL spline (xpl, ypl, len (ik), 1e30, 1e30, y2a) 
+      CALL spline (xpl, ypl, lenc (ik), 1e30, 1e30, y2a) 
 !                                                                       
       DO i = 1, ntot 
       ibin = offxy (iz - 1) + i 
       igg = offxy (ig - 1) + i 
-      CALL splint (xpl, ypl, y2a, len (ik), x (igg), yyy,ier_num)
+      CALL splint (xpl, ypl, y2a, lenc (ik), x (igg), yyy,ier_num)
       IF(ier_num /= 0) THEN
          ier_typ = ER_APPL
          RETURN
@@ -1131,13 +1132,13 @@ REAL :: yyy
       dy (ibin) = 0.0 
       ENDDO 
 !                                                                       
-      len (iz) = ntot 
+      lenc (iz) = ntot 
       fform (iz) = fform (ig) 
       fname (iz) = 'interpolate.dat' 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
       iz = iz + 1 
-      CALL get_extrema_xy (x, iz - 1, len (iz), xmin, xmax) 
-      CALL get_extrema_xy (y, iz - 1, len (iz), ymin, ymax) 
+      CALL get_extrema_xy (x, iz - 1, lenc (iz), xmin, xmax) 
+      CALL get_extrema_xy (y, iz - 1, lenc (iz), ymin, ymax) 
       CALL show_data (iz - 1) 
 !                                                                       
       END SUBROUTINE do_interpolate                 
@@ -1199,8 +1200,8 @@ USE precision_mod
          RETURN 
       ENDIF 
 !                                                                       
-      dr1 = (xmax (ik1) - xmin (ik1) ) / REAL(len (ik1) - 1) 
-      dr2 = (xmax (ik2) - xmin (ik2) ) / REAL(len (ik2) - 1) 
+      dr1 = (xmax (ik1) - xmin (ik1) ) / REAL(lenc (ik1) - 1) 
+      dr2 = (xmax (ik2) - xmin (ik2) ) / REAL(lenc (ik2) - 1) 
 !                                                                       
       IF (abs (dr1 - dr2) .gt.1e-8) then 
          ier_num = - 45 
@@ -1208,7 +1209,7 @@ USE precision_mod
       ENDIF 
 !                                                                       
       maxpp = maxarray - offxy (iz - 1) 
-      IF (len (ik1) .gt.maxpp) then 
+      IF (lenc (ik1) .gt.maxpp) then 
          ier_num = - 6 
          ier_typ = ER_APPL 
       ENDIF 
@@ -1218,11 +1219,11 @@ USE precision_mod
 !                                                                       
       start = x (offxy (ik2 - 1) + 1) 
 !                                                                       
-      DO i = 1, len (ik1) 
+      DO i = 1, lenc (ik1) 
       ysum = 0.0 
-      DO j = 1, len (ik1) 
+      DO j = 1, lenc (ik1) 
       ii = (i - j) - nint (start / dr1) + 1 
-      IF (ii.ge.1.and.ii.le.len (ik2) ) then 
+      IF (ii.ge.1.and.ii.le.lenc (ik2) ) then 
          ysum = ysum + y (offxy (ik1 - 1) + j) * y (offxy (ik2 - 1)     &
          + ii)                                                          
       ENDIF 
@@ -1237,13 +1238,13 @@ USE precision_mod
 !                                                                       
 !------ Do other settings                                               
 !                                                                       
-      len (iz) = len (ik1) 
+      lenc (iz) = lenc (ik1) 
       fform (iz) = fform (ik1) 
       fname (iz) = 'convolute.dat' 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
       iz = iz + 1 
-      CALL get_extrema_xy (x, iz - 1, len (iz), xmin, xmax) 
-      CALL get_extrema_xy (y, iz - 1, len (iz), ymin, ymax) 
+      CALL get_extrema_xy (x, iz - 1, lenc (iz), xmin, xmax) 
+      CALL get_extrema_xy (y, iz - 1, lenc (iz), ymin, ymax) 
       CALL show_data (iz - 1) 
 !                                                                       
       END SUBROUTINE do_convolute                   
@@ -1316,7 +1317,7 @@ USE precision_mod
       ENDIF 
 !                                                                       
       maxpp = maxarray - offxy (iz - 1) 
-      IF (len (ik) .gt.maxpp) then 
+      IF (lenc (ik) .gt.maxpp) then 
          ier_num = - 6 
          ier_typ = ER_APPL 
          RETURN 
@@ -1333,11 +1334,11 @@ USE precision_mod
 !                                                                       
 !------ First we copy the data to new data set                          
 !                                                                       
-      len (iz) = len (ik) 
+      lenc (iz) = lenc (ik) 
       fform (iz) = fform (ik) 
       fname (iz) = 'deriv.dat' 
 !                                                                       
-      DO i = 1, len (ik) 
+      DO i = 1, lenc (ik) 
       inew = offxy (iz - 1) + i 
       iold = offxy (ik - 1) + i 
       x (inew) = x (iold) 
@@ -1350,13 +1351,13 @@ USE precision_mod
 !                                                                       
       CALL SAVGOL (cc, ip, ip / 2, ip / 2, id, im) 
       IF (ier_num.ne.0) return 
-      CALL do_glatt_y (iz, ip, len (iz), cc, maxsm, .true.) 
+      CALL do_glatt_y (iz, ip, lenc (iz), cc, maxsm, .true.) 
       IF (ier_num.ne.0) return 
 !                                                                       
 !------ Divide by the step size                                         
 !                                                                       
-      CALL get_extrema_xy (x, iz, len (iz), xmin, xmax) 
-      deltax = (xmax (iz) - xmin (iz) ) / REAL(len (iz) - 1) 
+      CALL get_extrema_xy (x, iz, lenc (iz), xmin, xmax) 
+      deltax = (xmax (iz) - xmin (iz) ) / REAL(lenc (iz) - 1) 
 !                                                                       
       fnorm = 1.0 
       DO i = 2, id 
@@ -1365,7 +1366,7 @@ USE precision_mod
 !                                                                       
       fnorm = deltax**id / fnorm 
 !                                                                       
-      DO i = 1 + im, len (iz) - im 
+      DO i = 1 + im, lenc (iz) - im 
       inew = offxy (iz - 1) + i - im 
       iold = offxy (iz - 1) + i 
       x (inew) = x (iold) 
@@ -1374,14 +1375,14 @@ USE precision_mod
       dy (inew) = dy (iold) 
       ENDDO 
 !                                                                       
-      len (iz) = len (iz) - 2 * im 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc (iz) = lenc (iz) - 2 * im 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
 !                                                                       
 !------ Finish off                                                      
 !                                                                       
       iz = iz + 1 
 !                                                                       
-      CALL get_extrema_xy (y, iz - 1, len (iz - 1), ymin, ymax) 
+      CALL get_extrema_xy (y, iz - 1, lenc (iz - 1), ymin, ymax) 
       CALL show_data (iz - 1) 
 !                                                                       
       END SUBROUTINE do_derivative                  
@@ -1400,6 +1401,7 @@ USE precision_mod
       USE kuplot_mod 
       USE string_convert_mod
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1437,7 +1439,6 @@ USE precision_mod
       PARAMETER (W_BCK = 8) 
 !                                                                       
 !                                                                       
-      LOGICAL str_comp 
       REAL r_wichtung 
 !                                                                       
 !------ get parameters                                                  
@@ -1523,7 +1524,7 @@ USE precision_mod
 !     xy-data                                                           
 !                                                                       
       IF (.not.lni (iko) .and..not.lni (ikc) ) then 
-         DO ip = 1, len (ikc) 
+         DO ip = 1, lenc (ikc) 
          ikko = offxy (iko - 1) + ip 
          ikkc = offxy (ikc - 1) + ip 
          wi = r_wichtung (y (ikko), dy (ikko), iweight) 
@@ -1575,13 +1576,13 @@ USE precision_mod
 !------ Modifying data set ikc                                          
 !                                                                       
       IF (.not.lni (iko) .and..not.lni (ikc) ) then 
-         DO ip = 1, len (ikc) 
+         DO ip = 1, lenc (ikc) 
          ikkc = offxy (ikc - 1) + ip 
          y (ikkc) = sk * y (ikkc) + ba 
          ENDDO 
 !                                                                       
-         CALL get_extrema_xy (x, ikc, len (ikc), xmin, xmax) 
-         CALL get_extrema_xy (y, ikc, len (ikc), ymin, ymax) 
+         CALL get_extrema_xy (x, ikc, lenc (ikc), xmin, xmax) 
+         CALL get_extrema_xy (y, ikc, lenc (ikc), ymin, ymax) 
       ELSEIF (lni (iko) .and.lni (ikc) ) then 
          DO i = 1, nx (ikc) 
          DO j = 1, ny (ikc) 
@@ -1612,6 +1613,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -1625,7 +1627,6 @@ USE precision_mod
       REAL a, b, aa, bb, ab, ao, bo, fra 
       INTEGER ip, iko, ik1, ik2, iik, ii1, ii2, iio 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
 !------ space left for new data set ??                                  
 !                                                                       
@@ -1658,8 +1659,8 @@ USE precision_mod
          RETURN 
       ENDIF 
 !                                                                       
-      IF (len (iko) .ne.len (ik1) .or.len (iko) .ne.len (ik2) .or.len ( &
-      ik1) .ne.len (ik2) .or.xmin (ik1) .ne.xmin (iko) .or.xmin (ik2)   &
+      IF (lenc (iko) .ne.lenc (ik1) .or.lenc (iko) .ne.lenc (ik2) .or.lenc ( &
+      ik1) .ne.lenc (ik2) .or.xmin (ik1) .ne.xmin (iko) .or.xmin (ik2)   &
       .ne.xmin (iko) .or.xmin (ik1) .ne.xmin (ik2) .or.xmax (ik1)       &
       .ne.xmax (iko) .or.xmax (ik2) .ne.xmax (iko) .or.xmax (ik1)       &
       .ne.xmax (ik2) ) then                                             
@@ -1678,7 +1679,7 @@ USE precision_mod
       ab = 0.0 
       bb = 0.0 
 !                                                                       
-      DO ip = 1, len (iko) 
+      DO ip = 1, lenc (iko) 
       iik = offxy (iz - 1) + ip 
       ii1 = offxy (ik1 - 1) + ip 
       ii2 = offxy (ik2 - 1) + ip 
@@ -1700,7 +1701,7 @@ USE precision_mod
 !                                                                       
 !------ Create new data set                                             
 !                                                                       
-      DO ip = 1, len (iko) 
+      DO ip = 1, lenc (iko) 
       iik = offxy (iz - 1) + ip 
       ii1 = offxy (ik1 - 1) + ip 
       ii2 = offxy (ik2 - 1) + ip 
@@ -1709,13 +1710,13 @@ USE precision_mod
       y (iik) = fra * y (ii1) + (1.0 - fra) * y (ii2) 
       ENDDO 
 !                                                                       
-      len (iz) = len (iko) 
+      lenc (iz) = lenc (iko) 
       fform (iz) = fform (iko) 
       fname (iz) = 'mix.dat' 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
       iz = iz + 1 
-      CALL get_extrema_xy (x, iz - 1, len (iz), xmin, xmax) 
-      CALL get_extrema_xy (y, iz - 1, len (iz), ymin, ymax) 
+      CALL get_extrema_xy (x, iz - 1, lenc (iz), xmin, xmax) 
+      CALL get_extrema_xy (y, iz - 1, lenc (iz), ymin, ymax) 
       CALL show_data (iz - 1) 
 !                                                                       
  1000 FORMAT     (' ------ > Mix = ',f12.5,' * ',a,' + ',               &
@@ -1744,6 +1745,7 @@ USE precision_mod
       USE take_param_mod
       USE string_convert_mod
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1781,7 +1783,6 @@ USE precision_mod
       PARAMETER (W_DAT = 7) 
       PARAMETER (W_BCK = 8) 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       INTEGER, PARAMETER :: NOPTIONAL = 1
       CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
@@ -1868,8 +1869,8 @@ USE precision_mod
                RETURN 
             ENDIF 
          ELSEIF (.not.lni (ik) .and..not.lni (il) ) then 
-            IF (len (ik) .eq.len (il) ) then 
-               CALL rvalue_y (y, dy, len(ik), ik, il,        &
+            IF (lenc (ik) .eq.lenc (il) ) then 
+               CALL rvalue_y (y, dy, lenc(ik), ik, il,        &
                iweight, rval, wrval)                                    
                res_para (0) = 2 
                res_para (1) = rval 

@@ -6,12 +6,12 @@ SUBROUTINE init_devices
 !+                                                                      
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER(80) prn_name 
       INTEGER ll 
-      INTEGER len_str 
 INTEGER :: i
 !
 DO i=MAXWIN, 1, -1

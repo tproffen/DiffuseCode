@@ -22,8 +22,14 @@ USE do_wait_mod
 USE doact_mod
 USE errlist_mod
 USE learn_mod
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod
+USE str_comp_mod
 USE sup_mod
 USE take_param_mod
 !
@@ -40,7 +46,6 @@ INTEGER                                 :: lbef
 LOGICAL                                 :: lend
 !
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 !
 orig_prompt = prompt
@@ -73,7 +78,9 @@ main_loop: DO
 !                                                                       
             is_generic: IF (befehl (1:1) .eq.'@') THEN     ! macro, reset or all other commands
                IF (laenge.ge.2) THEN 
-                  CALL file_kdo (line (2:laenge), laenge-1) 
+                  line = line(2:laenge)
+                  laenge = 1
+                  CALL file_kdo(line, laenge)
                ELSE 
                   ier_num = - 13 
                   ier_typ = ER_MAC 
@@ -199,7 +206,9 @@ SUBROUTINE get_load_2dm(line, length)
 !
 USE errlist_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -228,7 +237,6 @@ CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER                              :: ianz
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'separator'  /
 DATA loname /  4    ,  4    ,   4    ,   5     ,  5     ,  9           /
@@ -271,7 +279,9 @@ SUBROUTINE get_back_2dm(line, length)
 USE errlist_mod
 USE build_name_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -304,7 +314,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER                              :: ianz
 INTEGER                              :: i
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'scale', 'separator'  /
 DATA loname /  4    ,  4    ,   4    ,   5     ,  5     ,  5     ,  9           /
@@ -354,7 +363,9 @@ SUBROUTINE get_numbers(line, length)
 !
 USE errlist_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -385,7 +396,6 @@ INTEGER                              :: ianz
 !
 INTEGER           :: i
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 DATA oname  / 'start', 'end', 'step', 'counter', 'miss' /
 DATA loname /  5     ,  3   ,  4    ,  7       ,  4     /
@@ -452,7 +462,9 @@ SUBROUTINE get_xrange(line, length)
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -478,7 +490,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 DATA oname  / 'xmin', 'xmax' /
 DATA loname /  4    ,  4     /
@@ -536,7 +547,9 @@ SUBROUTINE get_yfunc (line, length)
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -561,7 +574,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 !REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 DATA oname  / 'loop'/
 DATA loname /  4    /
@@ -598,6 +610,7 @@ USE ber_params_mod
 USE build_name_mod
 USE errlist_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
 USE take_param_mod
 USE variable_mod
@@ -720,7 +733,7 @@ IF(ier_num/=0) THEN
 ENDIF
 ik   = iz - 1                 ! This is the number of the current data set
 imin = 1                      ! Default to first data point
-imax = len(ik)                ! Default to length of data sets
+imax = lenc(ik)                ! Default to length of data sets
 IF(k2dm_lxmin) THEN           ! user specified xmin:xmin
    xxmin = x(offxy(ik-1)+1)
    imin  = 1
@@ -728,13 +741,13 @@ ELSE
    xxmin = k2dm_xmin
 ENDIF
 IF(k2dm_lxmax) THEN           ! user specified xmin:xmin
-   xxmax = x(offxy(ik-1)+len(ik))
+   xxmax = x(offxy(ik-1)+lenc(ik))
    imin  = 1
 ELSE
    xxmax = k2dm_xmax
 ENDIF
 DELTA = ABS(x(offxy(ik-1)+2)-x(offxy(ik-1)+1))*0.01    ! Calculate a sigma as (x(2)-x(1))/10
-minmax:DO i=1,len(ik)                                  ! Find number of user xmin, xmax
+minmax:DO i=1,lenc(ik)                                  ! Find number of user xmin, xmax
    IF(ABS(x(offxy(ik-1)+i)-xxmin)<DELTA) imin = i
    IF(ABS(x(offxy(ik-1)+i)-xxmax)<DELTA) THEN
       imax = i

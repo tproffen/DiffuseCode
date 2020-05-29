@@ -47,6 +47,7 @@ CONTAINS
       USE build_name_mod
       USE errlist_mod 
       USE get_params_mod
+USE lib_length
   USE precision_mod
       IMPLICIT NONE
 !
@@ -63,7 +64,6 @@ CONTAINS
 	  REAL(KIND=PREC_DP) :: werte (maxw)
       LOGICAL lexist 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       IF (nxs_open) then 
          ier_num = - 54 
@@ -131,6 +131,7 @@ CONTAINS
 !     include'napif.inc' 
 !     include'nexus.inc' 
       USE errlist_mod 
+USE lib_length
       USE prompt_mod 
 !
       IMPLICIT NONE
@@ -144,7 +145,6 @@ CONTAINS
       INTEGER nxs_dim (nmax) 
       INTEGER stat, itype, irank, i 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       IF (.not.nxs_open) then 
          ier_num = - 55 
@@ -432,6 +432,7 @@ CONTAINS
       USE debug_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !
       IMPLICIT NONE
 !     include'napif.inc' 
@@ -449,7 +450,6 @@ CONTAINS
       INTEGER stat, i, j, k, l, m, ii, jj, kk, itype, nr 
       INTEGER maxpkt, maxzz 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       IF (dbg) then 
       WRITE ( * , 8000) 'Data   : ', dname (1:len_str (dname) ) 
@@ -563,8 +563,8 @@ CONTAINS
 !------ set remaining parameters                                        
 !                                                                       
       lni (iz) = .true. 
-      len (iz) = max (nx (iz), ny (iz) ) 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc(iz) = max (nx (iz), ny (iz) ) 
+      offxy (iz) = offxy (iz - 1) + lenc(iz) 
       offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
       fname (iz) = label (1:len_str (label) ) 
       iz = iz + 1 
@@ -597,6 +597,7 @@ CONTAINS
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !
       IMPLICIT NONE
 !     include'napif.inc' 
@@ -610,7 +611,6 @@ CONTAINS
       INTEGER ival (maxarray) 
       INTEGER stat, i, itype, nr, maxpp, ntot 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       maxpp = maxarray - offxy (iz - 1) 
       IF (isize (irow) .gt.maxpp) then 
@@ -655,8 +655,8 @@ CONTAINS
       dy (offxy (iz - 1) + nr) = 0.0 
       ENDDO 
 !                                                                       
-      len (iz) = isize (irow) 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc(iz) = isize (irow) 
+      offxy (iz) = offxy (iz - 1) + lenc(iz) 
       offz (iz) = offz (iz - 1) 
       fname (iz) = label (1:len_str (label) ) 
       fform (iz) = 'XY' 

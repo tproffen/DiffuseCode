@@ -28,8 +28,11 @@ USE kuplot_fit6
       USE kuplot_config 
       USE kuplot_mod 
 !     USE kuplot_fit_mod
+USE lib_errlist_func
+USE lib_macro_func
 USE precision_mod
       USE set_sub_generic_mod
+USE str_comp_mod
       USE variable_mod
 !
       IMPLICIT none 
@@ -52,7 +55,6 @@ USE precision_mod
       INTEGER ianz, indxg, indxb , indxt
       LOGICAL ldummy 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL no_error 
 !                                                                       
@@ -110,7 +112,9 @@ USE precision_mod
 !                                                                       
          IF (bef (1:1) .eq.'@') then 
             IF (length.ge.2) then 
-               CALL file_kdo (line (2:length), length - 1) 
+               line =  line(2:length)
+               length = length - 1 
+               CALL file_kdo (line, length)
             ELSE 
                ier_num = - 13 
                ier_typ = ER_MAC 

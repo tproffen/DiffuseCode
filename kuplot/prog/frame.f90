@@ -271,6 +271,7 @@ USE precision_mod
       USE kuplot_config 
       USE kuplot_mod 
 !
+USE lib_errlist_func
       USE build_name_mod
 USE precision_mod
 !                                                                       

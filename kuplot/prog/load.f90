@@ -15,6 +15,7 @@ SUBROUTINE do_func (zeile, lp)
       USE kuplot_mod 
 USE kuplot_fit6
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -32,7 +33,7 @@ USE precision_mod
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL df (maxpara) 
       REAL xx, yy, f, xkk 
-      LOGICAL ffit, str_comp 
+      LOGICAL ffit
 !                                                                       
 !                                                                       
 !------ space left for additional data set ?                            
@@ -82,7 +83,7 @@ nianz: IF (ianz.eq.1) then
 !     RETURN 
 !  ENDIF 
 !                                                                       
-   ii = len (iref) 
+   ii = lenc(iref) 
 !                                                                       
    IF (ii.le.0.or.ii.gt.maxpkt) THEN 
       ier_num = - 6 
@@ -110,8 +111,9 @@ nianz: IF (ianz.eq.1) then
          fname (iz) = 'func.nipl' 
          fform (iz) = 'NI' 
          lni (iz) = .true. 
-         len (iz) = max (nx (iz), ny (iz) ) 
-         offxy (iz) = offxy (iz - 1) + len (iz) 
+         lh5 (iz) = .FALSE.
+         lenc(iz) = max (nx (iz), ny (iz) ) 
+         offxy (iz) = offxy (iz - 1) + lenc(iz) 
          offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
          iz = iz + 1 
       ELSE
@@ -126,8 +128,9 @@ nianz: IF (ianz.eq.1) then
          fname (iz) = 'func.xy' 
          fform (iz) = 'XY' 
          lni (iz) = .false. 
-         len (iz) = ii 
-         offxy (iz) = offxy (iz - 1) + len (iz) 
+         lh5 (iz) = .FALSE.
+         lenc(iz) = ii 
+         offxy (iz) = offxy (iz - 1) + lenc(iz) 
          offz (iz) = offz (iz - 1) 
          iz = iz + 1 
       ENDIF
@@ -156,8 +159,9 @@ nianz: IF (ianz.eq.1) then
          fname (iz) = 'func.nipl' 
          fform (iz) = 'NI' 
          lni (iz) = .true. 
-         len (iz) = max (nx (iz), ny (iz) ) 
-         offxy (iz) = offxy (iz - 1) + len (iz) 
+         lh5 (iz) = .FALSE.
+         lenc(iz) = max (nx (iz), ny (iz) ) 
+         offxy (iz) = offxy (iz - 1) + lenc(iz) 
          offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
          iz = iz + 1 
       ELSE
@@ -173,8 +177,9 @@ nianz: IF (ianz.eq.1) then
          fname (iz) = 'func.xy' 
          fform (iz) = 'XY' 
          lni (iz) = .false. 
-         len (iz) = ii 
-         offxy (iz) = offxy (iz - 1) + len (iz) 
+         lh5 (iz) = .FALSE.
+         lenc(iz) = ii 
+         offxy (iz) = offxy (iz - 1) + lenc(iz) 
          offz (iz) = offz (iz - 1) 
          iz = iz + 1 
       ENDIF 
@@ -219,8 +224,9 @@ ELSEIF (ianz.eq.3) THEN  nianz
             fname (iz) = 'func.xy' 
             fform (iz) = 'XY' 
             lni (iz) = .false. 
-            len (iz) = ii 
-            offxy (iz) = offxy (iz - 1) + len (iz) 
+            lh5 (iz) = .FALSE.
+            lenc(iz) = ii 
+            offxy (iz) = offxy (iz - 1) + lenc(iz) 
             offz (iz) = offz (iz - 1) 
             iz = iz + 1 
             CALL show_data (iz - 1) 
@@ -284,8 +290,9 @@ ELSEIF (ianz.eq.6) THEN nianz
             fname (iz) = 'func.nipl' 
             fform (iz) = 'NI' 
             lni (iz) = .true. 
-            len (iz) = max (nx (iz), ny (iz) ) 
-            offxy (iz) = offxy (iz - 1) + len (iz) 
+            lh5 (iz) = .FALSE.
+            lenc(iz) = max (nx (iz), ny (iz) ) 
+            offxy (iz) = offxy (iz - 1) + lenc(iz) 
             offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
             iz = iz + 1 
             CALL show_data (iz - 1) 
@@ -310,6 +317,7 @@ ENDIF  nianz
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_errlist_func
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -367,8 +375,9 @@ LOGICAL         , INTENT(IN)    :: lecho
             fname (iz) = cdummy 
             fform (iz) = 'XY' 
             lni (iz) = .false. 
-            len (iz) = ii 
-            offxy (iz) = offxy (iz - 1) + len (iz) 
+            lh5 (iz) = .FALSE.
+            lenc(iz) = ii 
+            offxy (iz) = offxy (iz - 1) + lenc(iz) 
             offz (iz) = offz (iz - 1) 
             iz = iz + 1 
             IF(lecho) CALL show_data (iz - 1) 
@@ -397,8 +406,9 @@ LOGICAL         , INTENT(IN)    :: lecho
             fname (iz) = cdummy 
             fform (iz) = 'NI' 
             lni (iz) = .true. 
-            len (iz) = max (nx (iz), ny (iz) ) 
-            offxy (iz) = offxy (iz - 1) + len (iz) 
+            lh5 (iz) = .FALSE.
+            lenc(iz) = max (nx (iz), ny (iz) ) 
+            offxy (iz) = offxy (iz - 1) + lenc(iz) 
             offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
             iz = iz + 1 
             IF(lecho) CALL show_data (iz - 1) 
@@ -426,8 +436,12 @@ LOGICAL         , INTENT(IN)    :: lecho
       USE times_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_load_h5
+USE lib_errlist_func
+USE lib_length
 USE precision_mod
       USE take_param_mod
+USE str_comp_mod
       USE string_convert_mod
 USE sys_compiler
 !                                                                       
@@ -451,23 +465,29 @@ USE sys_compiler
       INTEGER ii, ll, ianz, istr, nfile 
       LOGICAL zz_mod 
 !                                                                       
-      LOGICAL str_comp 
-      INTEGER ifiles, len_str 
+INTEGER ifiles
 !
-      INTEGER, PARAMETER :: NOPTIONAL = 6
-      CHARACTER(LEN=          9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-      CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
-      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
-      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
-      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-      INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate 
+INTEGER, PARAMETER :: NOPTIONAL = 7
+!INTEGER, PARAMETER :: O_SKIP      = 1
+!INTEGER, PARAMETER :: O_COLX      = 2
+!INTEGER, PARAMETER :: O_COLY      = 3
+!INTEGER, PARAMETER :: O_COLDX     = 4
+!INTEGER, PARAMETER :: O_COLDY     = 5
+INTEGER, PARAMETER :: O_LAYER     = 6
+!INTEGER, PARAMETER :: O_SEPARATOR = 7
+CHARACTER(LEN=          9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate 
 !
-      DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'separator'  /
-      DATA loname /  4    ,  4    ,   4    ,   5     ,  5     ,  9           /
-      opara  =  (/ '25.000', '1.0000', '2.0000', '0.0000', '0.0000', ';     ' /)   ! Always provide fresh default values
-      lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6       /)
-      owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  0.0     /)
+DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'layer', 'separator'  /
+DATA loname /  4    ,  4    ,   4    ,   5     ,  5     ,  5     ,  9           /
+opara  =  (/ '25.000', '1.0000', '2.0000', '0.0000', '0.0000', 'middle', ';     ' /)   ! Always provide fresh default values
+lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,  6       /)
+owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,  0.0     /)
 !
 !
 !                                                                       
@@ -496,6 +516,12 @@ USE sys_compiler
             ier_typ = ER_IO 
             RETURN 
          ENDIF 
+!
+         IF(unter=='H5') THEN    ! HDF5 file
+            CALL hdf5_read(cpara(2),lpara(2), O_LAYER, NOPTIONAL, opara,        &
+                           lopara, lpresent, owerte)
+            RETURN
+         ENDIF
 !                                                                       
          IF (ianz.eq.3.and.unter.ne.'SP') then 
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 3) 
@@ -697,6 +723,7 @@ USE sys_compiler
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -705,7 +732,6 @@ USE sys_compiler
       CHARACTER(LEN=PREC_STRING) :: line 
       INTEGER is
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       READ (ifil, 5000, end = 40, err = 44) line 
       IF (line (1:7) .eq.'History') then 
@@ -749,13 +775,13 @@ USE sys_compiler
 !-                                                                      
       USE param_mod 
       USE kuplot_config 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) line, key 
       INTEGER is, ie, ll, lk 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       ll = len_str (line) 
       lk = len_str (key) 
@@ -922,8 +948,9 @@ USE precision_mod
 !------ set other parameters                                            
 !                                                                       
       lni (iz) = .true. 
-      len (iz) = max (nx (iz), ny (iz) ) 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lh5 (iz) = .FALSE.
+      lenc(iz) = max (nx (iz), ny (iz) ) 
+      offxy (iz) = offxy (iz - 1) + lenc(iz) 
       offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
       iz = iz + 1 
       CALL show_data (iz - 1) 
@@ -1078,8 +1105,9 @@ USE precision_mod
 !------ set other parameters                                            
 !                                                                       
       lni (iz) = .true. 
-      len (iz) = max (nx (iz), ny (iz) ) 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lh5 (iz) = .FALSE.
+      lenc(iz) = max (nx (iz), ny (iz) ) 
+      offxy (iz) = offxy (iz - 1) + lenc(iz) 
       offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
       iz = iz + 1 
       CALL show_data (iz - 1) 
@@ -1194,8 +1222,9 @@ USE precision_mod
 !------ set other parameters                                            
 !                                                                       
       lni (iz) = .true. 
-      len (iz) = max (nx (iz), ny (iz) ) 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lh5 (iz) = .FALSE.
+      lenc(iz) = max (nx (iz), ny (iz) ) 
+      offxy (iz) = offxy (iz - 1) + lenc(iz) 
       offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
       iz = iz + 1 
       CALL show_data (iz - 1) 
@@ -1260,8 +1289,8 @@ USE precision_mod
       ENDIF 
       GOTO 15 
    20 CONTINUE 
-      len (iz) = nr - 1 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc(iz) = nr - 1 
+      offxy (iz) = offxy (iz - 1) + lenc(iz) 
       offz (iz) = offz (iz - 1) 
       iz = iz + 1 
 !                                                                       
@@ -1424,8 +1453,9 @@ USE precision_mod
 !------ set remaining parameters                                        
 !                                                                       
       lni (iz) = .true. 
-      len (iz) = max (nx (iz), ny (iz) ) 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lh5 (iz) = .FALSE.
+      lenc(iz) = max (nx (iz), ny (iz) ) 
+      offxy (iz) = offxy (iz - 1) + lenc(iz) 
       offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
       iz = iz + 1 
 !                                                                       
@@ -1458,7 +1488,9 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !
@@ -1504,8 +1536,6 @@ USE precision_mod
       LOGICAL not_found, data_read, lsigma, lend, lall 
       LOGICAL lkev 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
       REAL chan2kev 
 !                                                                       
       lend = .false. 
@@ -1852,8 +1882,8 @@ USE precision_mod
 !                                                                       
 !------ - Settings                                                      
 !                                                                       
-         len (iz) = nr - 1 
-         offxy (iz) = offxy (iz - 1) + len (iz) 
+         lenc(iz) = nr - 1 
+         offxy (iz) = offxy (iz - 1) + lenc(iz) 
          offz (iz) = offz (iz - 1) 
          iz = iz + 1 
 !                                                                       
@@ -1930,6 +1960,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1949,7 +1980,6 @@ USE precision_mod
       INTEGER ifil, ianz, istart, iend, iscan, nscan 
       LOGICAL lall, lend 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       date = 'none' 
       energy = 'none' 
@@ -2081,19 +2111,21 @@ USE precision_mod
 !                                                                       
       END SUBROUTINE read_spec_info                 
 !*****7**************************************************************** 
-      SUBROUTINE get_scan_numbers (str, len, istart, iend, lall) 
+      SUBROUTINE get_scan_numbers (str, length, istart, iend, lall) 
 !+                                                                      
 !     Analyse scan string (number or number>number)                     
 !-                                                                      
       USE ber_params_mod
+USE lib_length
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
       CHARACTER ( * ) str 
-      INTEGER len, istart, iend 
+      INTEGER length, istart, iend 
       LOGICAL lall 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
@@ -2101,24 +2133,22 @@ USE precision_mod
       INTEGER lpara (maxw) 
       INTEGER ipos
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
-      IF (str_comp (str, 'all', 1, len, 3) ) then 
+      IF (str_comp (str, 'all', 1, length, 3) ) then 
          istart = 1 
          iend = 9999 
          lall = .true. 
       ELSE 
-         ipos = index (str (1:len) , '>') 
+         ipos = index (str (1:length) , '>') 
          IF (ipos.eq.0) then 
             cpara (1) = str 
-            lpara (1) = len 
+            lpara (1) = length 
             cpara (2) = str 
-            lpara (2) = len 
+            lpara (2) = length 
          ELSE 
             cpara (1) = str (1:ipos - 1) 
             lpara (1) = len_str (cpara (1) ) 
-            cpara (2) = str (ipos + 1:len) 
+            cpara (2) = str (ipos + 1:length) 
             lpara (2) = len_str (cpara (2) ) 
          ENDIF 
 !                                                                       
@@ -2134,6 +2164,7 @@ USE precision_mod
 !+                                                                      
 !     Reads a single MCA data point                                     
 !-                                                                      
+USE lib_length
       IMPLICIT none 
 !                                                                       
       CHARACTER(4096) mine 
@@ -2150,7 +2181,6 @@ USE precision_mod
       INTEGER nl, i, j 
       INTEGER  :: iostatus
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       DO i = 1, 8192 
       counts (i) = 0 
@@ -2206,6 +2236,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 USE precision_mod
       USE string_convert_mod
 !                                                                       
@@ -2237,7 +2268,6 @@ USE precision_mod
       INTEGER vtype (nbank) 
       LOGICAL lend, lall, liparm, lunits, lnorm 
 !                                                                       
-      INTEGER len_str 
       INTEGER gsas_no_banks 
 !                                                                       
       filename = fname (iz) 
@@ -2343,8 +2373,8 @@ USE precision_mod
 !                                                                       
 !------ - Settings                                                      
 !                                                                       
-         len (iz) = ndat 
-         offxy (iz) = offxy (iz - 1) + len (iz) 
+         lenc(iz) = ndat 
+         offxy (iz) = offxy (iz - 1) + lenc(iz) 
          offz (iz) = offz (iz - 1) 
          fform (iz) = 'XY' 
          iz = iz + 1 
@@ -2524,6 +2554,7 @@ USE precision_mod
 !-                                                                      
       USE debug_mod 
       USE errlist_mod 
+USE lib_length
       USE wink_mod
       USE prompt_mod 
       USE kuplot_config 
@@ -2540,7 +2571,6 @@ USE precision_mod
       INTEGER ndat, j 
       LOGICAL lunits 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
 !------ Keep units                                                      
 !                                                                       
@@ -2728,6 +2758,7 @@ USE precision_mod
       USE param_mod 
       USE prompt_mod 
       USE kuplot_config 
+USE lib_length
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -2737,7 +2768,6 @@ USE precision_mod
       LOGICAL liparm 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: line, dummy 
-      INTEGER len_str 
 !                                                                       
       liparm = .false. 
       iname = '' 
@@ -2777,6 +2807,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2804,7 +2835,6 @@ USE precision_mod
       INTEGER it_no, it_nval, it_nrec, imax 
       LOGICAL ltmap, lbank, lmon 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       ltmap = .false. 
       lbank = .false. 
@@ -3082,6 +3112,7 @@ USE precision_mod
       USE errlist_mod 
       USE prompt_mod 
       USE kuplot_config 
+USE lib_length
 USE sys_compiler
 !                                                                       
       IMPLICIT none 
@@ -3100,7 +3131,6 @@ USE sys_compiler
       INTEGER vtype (nbank) 
       INTEGER ibank, i, ll 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL oeffne (12, inam, 'old') 
       IF (ier_num.ne.0) return 
@@ -3187,6 +3217,7 @@ USE sys_compiler
       USE errlist_mod 
       USE prompt_mod 
       USE kuplot_config 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -3196,7 +3227,6 @@ USE sys_compiler
       CHARACTER(80) line 
       INTEGER ibank, ib 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       ibank = 0 
       gsas_no_banks = 0
@@ -3344,8 +3374,8 @@ USE precision_mod
       ENDIF 
       GOTO 15 
    20 CONTINUE 
-      len (iz) = nr - 1 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc(iz) = nr - 1 
+      offxy (iz) = offxy (iz - 1) + lenc(iz) 
       offz (iz) = offz (iz - 1) 
       iz = iz + 1 
 !                                                                       
@@ -3370,6 +3400,13 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
+INTEGER, PARAMETER :: O_SKIP      = 1
+INTEGER, PARAMETER :: O_COLX      = 2
+INTEGER, PARAMETER :: O_COLY      = 3
+INTEGER, PARAMETER :: O_COLDX     = 4
+INTEGER, PARAMETER :: O_COLDY     = 5
+!INTEGER, PARAMETER :: O_LAYER     = 5
+INTEGER, PARAMETER :: O_SEPARATOR = 7
 INTEGER                                   , INTENT(IN   ) :: MAXW
 INTEGER                                   , INTENT(INOUT) :: ianz
 CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW)     , INTENT(INOUT) :: cpara
@@ -3396,15 +3433,15 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: limits
 ! Interpret the optional parameters into local variables
 !
 isep = 0
-IF(opara(6)==';' .OR. opara(6)=='semicolon' ) THEN
+IF(opara(O_SEPARATOR)==';' .OR. opara(O_SEPARATOR)=='semicolon' ) THEN
    isep = IACHAR(';')
-ELSEIF(opara(6)==':' .OR. opara(6)=='colon' ) THEN
+ELSEIF(opara(O_SEPARATOR)==':' .OR. opara(O_SEPARATOR)=='colon' ) THEN
    isep = IACHAR(':')
-ELSEIF(opara(6)=='comma' ) THEN
+ELSEIF(opara(O_SEPARATOR)=='comma' ) THEN
    isep = IACHAR(',')
-ELSEIF(opara(6)(1:3)=='tab' ) THEN
+ELSEIF(opara(O_SEPARATOR)(1:3)=='tab' ) THEN
    isep = 9
-ELSEIF(opara(6)(1:5)=='blank' ) THEN
+ELSEIF(opara(O_SEPARATOR)(1:5)=='blank' ) THEN
    isep = blank1
 ELSE
    ier_num = -6
@@ -3412,11 +3449,11 @@ ELSE
    ier_msg(1) = 'Unknown separator'
 ENDIF
 !
-iskip  = NINT(owerte(1))
-icolx  = NINT(owerte(2))
-icoly  = NINT(owerte(3))
-icoldx = NINT(owerte(4))
-icoldy = NINT(owerte(5))
+iskip  = NINT(owerte(O_SKIP))
+icolx  = NINT(owerte(O_COLX))
+icoly  = NINT(owerte(O_COLY))
+icoldx = NINT(owerte(O_COLDX))
+icoldy = NINT(owerte(O_COLDY))
 ncol   = MAX(icolx, icoly, icoldx, icoldy)
 !
 !write(*,*) ' IANZ ', ianz
@@ -3507,8 +3544,8 @@ ENDDO body
 !
 ! Record data set length and show data
 !
-len(iz)   = nr - 1 
-offxy(iz) = offxy(iz - 1) + len(iz) 
+lenc(iz)   = nr - 1 
+offxy(iz) = offxy(iz - 1) + lenc(iz) 
 offz(iz)  = offz(iz - 1) 
 iz = iz + 1 
 !                                                                       
@@ -3566,8 +3603,8 @@ USE precision_mod
          ENDIF 
       ENDDO body
 !
-      len (iz) = nr - 1 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc (iz) = nr - 1 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
       offz (iz) = offz (iz - 1) 
       iz = iz + 1 
 !                                                                       
@@ -3638,8 +3675,8 @@ USE precision_mod
       ENDIF 
       GOTO 10 
    20 CONTINUE 
-      len (iz) = nr - 1 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc (iz) = nr - 1 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
       offz (iz) = offz (iz - 1) 
       fform (iz) = 'XY' 
       iz = iz + 1 
@@ -3688,8 +3725,8 @@ USE precision_mod
       ENDIF 
       GOTO 10 
    20 CONTINUE 
-      len (iz) = nr - 1 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc (iz) = nr - 1 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
       offz (iz) = offz (iz - 1) 
       fform (iz) = 'XY' 
       iz = iz + 1 
@@ -3732,8 +3769,8 @@ USE precision_mod
       ENDIF 
       GOTO 10 
    20 CONTINUE 
-      len (iz) = nr - 1 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc (iz) = nr - 1 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
       offz (iz) = offz (iz - 1) 
       iz = iz + 1 
 !                                                                       
@@ -3775,8 +3812,8 @@ USE precision_mod
       ENDIF 
       GOTO 10 
    20 CONTINUE 
-      len (iz) = nr - 1 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc (iz) = nr - 1 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
       offz (iz) = offz (iz - 1) 
       iz = iz + 1 
 !                                                                       
@@ -3835,8 +3872,8 @@ USE precision_mod
       ENDIF 
       GOTO 10 
    20 CONTINUE 
-      len (iz) = nr - 1 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc (iz) = nr - 1 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
       offz (iz) = offz (iz - 1) 
       iz = iz + 1 
 !                                                                       
@@ -3861,8 +3898,8 @@ USE precision_mod
          CALL get_extrema_xy (y, ik, ny (ik), ymin, ymax) 
          CALL get_extrema_z (z, ik, nx (ik), ny (ik), zmin, zmax) 
       ELSE 
-         CALL get_extrema_xy (x, ik, len (ik), xmin, xmax) 
-         CALL get_extrema_xy (y, ik, len (ik), ymin, ymax) 
+         CALL get_extrema_xy (x, ik, lenc (ik), xmin, xmax) 
+         CALL get_extrema_xy (y, ik, lenc (ik), ymin, ymax) 
       ENDIF 
       ENDDO 
 !                                                                       
@@ -3872,6 +3909,7 @@ USE precision_mod
 !+                                                                      
 !     This subroutine splits string at spaces                           
 !-                                                                      
+USE lib_length
       IMPLICIT none 
 !                                                                       
       INTEGER colm 
@@ -3880,7 +3918,6 @@ USE precision_mod
       INTEGER nf, i, is, ia 
       LOGICAL ein 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       nf = 0 
       ia = 1
@@ -3956,8 +3993,8 @@ USE precision_mod
 !     allocate offsets, lengths,names                                   
 !                                                                       
       DO i = 1, 4 
-      len (iz) = npkt 
-      offxy (iz) = offxy (iz - 1) + len (iz) 
+      lenc (iz) = npkt 
+      offxy (iz) = offxy (iz - 1) + lenc (iz) 
       offz (iz) = offz (iz - 1) 
       iz = iz + 1 
       ENDDO 

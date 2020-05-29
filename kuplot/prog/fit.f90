@@ -35,9 +35,16 @@ SUBROUTINE do_fit (zei, lp)
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
       USE string_convert_mod
       USE sup_mod
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -60,8 +67,6 @@ USE precision_mod
       REAL(KIND=PREC_DP) :: werte (maxw) 
       LOGICAL flag (3), sel_func 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
 real :: f, df(maxpara)
 !
       empty = ' '
@@ -130,7 +135,7 @@ real :: f, df(maxpara)
             ymax (ikdif) = ymax (ikfit) 
             iz = iz + 2 
          ELSE 
-            IF (2.0 * len (iz - 1) .gt.maxpkt) then 
+            IF (2.0 * lenc(iz - 1) .gt.maxpkt) then 
                ier_num = - 6 
                ier_typ = ER_APPL 
                RETURN 
@@ -138,12 +143,12 @@ real :: f, df(maxpara)
 !                                                                       
             ikcal = iz 
             ikdif = iz + 1 
-            offxy (ikcal) = offxy (iz - 1) + len (iz - 1) 
-            offxy (ikdif) = offxy (ikcal) + len (iz - 1) 
+            offxy (ikcal) = offxy (iz - 1) + lenc(iz - 1) 
+            offxy (ikdif) = offxy (ikcal) + lenc(iz - 1) 
             offz (ikcal) = offz (iz - 1) 
             offz (ikdif) = offz (ikcal) 
-            len (ikcal) = len (ikfit) 
-            len (ikdif) = len (ikfit) 
+            lenc(ikcal) = lenc(ikfit) 
+            lenc(ikdif) = lenc(ikfit) 
             xmin (ikcal) = xmin (ikfit) 
             xmin (ikdif) = xmin (ikfit) 
             xmax (ikcal) = xmax (ikfit) 
@@ -187,7 +192,9 @@ real :: f, df(maxpara)
 !------ execute a macro file                                            
 !                                                                       
          ELSEIF (befehl (1:1) .eq.'@') then 
-            CALL file_kdo (line (2:ll), ll - 1) 
+            line = line(2:ll)
+            ll   = ll - 1
+            CALL file_kdo (line, ll) 
 !                                                                       
 !     continues a macro 'continue'                                      
 !                                                                       
@@ -601,6 +608,7 @@ USE precision_mod
       USE kuplot_mod 
 !
       USE build_name_mod
+USE lib_length
 USE precision_mod
 USE sys_compiler
 !                                                                       
@@ -615,7 +623,6 @@ USE sys_compiler
       INTEGER lpara (maxw), lp 
       INTEGER ianz, i 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -681,6 +688,7 @@ USE sys_compiler
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 USE precision_mod
 USE sys_compiler
 !                                                                       
@@ -693,7 +701,6 @@ USE sys_compiler
       CHARACTER(2) cdummy 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER ianz 
-      INTEGER len_str 
 !                                                                       
       filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit))))
       filname = filname (1:len_str (filname) ) //'.erg' 
@@ -863,13 +870,13 @@ USE precision_mod
 !-                                                                      
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER(30) fitfkt, wictyp 
       INTEGER idout, lt1, lt2, lf, lfn, lw, ipkt 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       IF (ftyp (1:2) .eq.'PO') then 
          fitfkt = 'Polynom' 
@@ -926,7 +933,7 @@ USE precision_mod
       IF (lni (ikfit) ) then 
          ipkt = nx (ikfit) * ny (ikfit) 
       ELSE 
-         ipkt = len (ikfit) 
+         ipkt = lenc(ikfit) 
       ENDIF 
 !                                                                       
       WRITE (idout, 1000) titel (iwin, iframe, 1) (1:lt1), titel (iwin, &
@@ -1088,13 +1095,13 @@ SUBROUTINE do_fit_y
 USE prompt_mod 
 USE kuplot_config 
 USE kuplot_mod 
+USE lib_length
 !                                                                       
 IMPLICIT none 
 !                                                                       
 CHARACTER(LEN=60) :: filname 
 REAL              :: xx, f, df (maxpara) 
 INTEGER           :: i, ii, jj, kk 
-INTEGER           :: len_str 
 !                                                                       
 CALL wichtung (y) 
 !IF(ier_num/=0) RETURN
@@ -1104,7 +1111,7 @@ CALL wichtung (y)
       jj = offxy (ikcal - 1) 
       kk = offxy (ikdif - 1) 
 !                                                                       
-      DO i = 1, len (ikfit) 
+      DO i = 1, lenc(ikfit) 
       xx = x (ii + i) 
       CALL kupl_theory (xx, f, df, - i) 
       x (jj + i) = xx 
@@ -1117,8 +1124,8 @@ CALL wichtung (y)
       dy (kk + i) = 0.0 
       ENDDO 
 !                                                                       
-      len (ikcal) = len (ikfit) 
-      len (ikdif) = len (ikfit) 
+      lenc(ikcal) = lenc(ikfit) 
+      lenc(ikdif) = lenc(ikfit) 
       fform (ikcal) = fform (ikfit) 
       fform (ikdif) = fform (ikfit) 
       filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit)))) 
@@ -1137,13 +1144,13 @@ CALL wichtung (y)
       USE kuplot_config 
       USE kuplot_mod 
 USE errlist_mod
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER(60) filname 
       REAL xx, f, df (maxpara) 
       INTEGER i, iii 
-      INTEGER len_str 
 !                                                                       
       CALL wichtung (z) 
 IF(ier_num/=0) RETURN
@@ -1170,8 +1177,8 @@ IF(ier_num/=0) RETURN
 !                                                                       
       lni (ikcal) = .true. 
       lni (ikdif) = .true. 
-      len (ikcal) = len (ikfit) 
-      len (ikdif) = len (ikfit) 
+      lenc(ikcal) = lenc(ikfit) 
+      lenc(ikdif) = lenc(ikfit) 
       nx (ikcal) = nx (ikfit) 
       ny (ikcal) = ny (ikfit) 
       nx (ikdif) = nx (ikfit) 
@@ -1215,12 +1222,12 @@ IF(ier_num/=0) RETURN
          ENDDO 
       ELSE 
          ii = offxy (ikfit - 1) 
-!IF(wtyp(1:3) == 'DAT' .AND. MINVAL(ABS(dy(ii+1:len(ikfit))))==0.0) THEN
+!IF(wtyp(1:3) == 'DAT' .AND. MINVAL(ABS(dy(ii+1:lenc(ikfit))))==0.0) THEN
 !   ier_num = -68
 !   ier_typ = ER_APPL
 !   RETURN
 !ENDIF
-         DO i = 1, len (ikfit) 
+         DO i = 1, lenc(ikfit) 
          IF (frall) then 
             w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
          ELSE 
@@ -1408,7 +1415,7 @@ REAL                   :: f
          ELSE 
             iiw = offxy (ikfit - 1) 
             iix = offxy (ikfit - 1) 
-            m = len (ikfit) 
+            m = lenc(ikfit) 
          ENDIF 
          DO i = 1, 1  !!! m 
             xx = x (iix + i) 
@@ -1613,7 +1620,7 @@ USE precision_mod
       IF (ima.ge.1) then 
          xpeak = x (offxy (ikfit - 1) + ixm (1) ) 
       ELSE 
-         xpeak = x (offxy (ikfit - 1) + len (ikfit) / 2) 
+         xpeak = x (offxy (ikfit - 1) + lenc(ikfit) / 2) 
       ENDIF 
 !                                                                       
       CALL read_prof (iname, ibank, itype, pcoff, ncoff, stheta, dspace,&
@@ -1621,7 +1628,7 @@ USE precision_mod
       CALL cnvptp1 (itype, pcoff, ncoff, p, dspace, stheta, maxpara) 
 !                                                                       
       inten = 0.0 
-      DO i = 1, len (ikfit) - 1 
+      DO i = 1, lenc(ikfit) - 1 
       delt = x (offxy (ikfit - 1) + i + 1) - x (offxy (ikfit - 1)       &
       + i)                                                              
       inten = inten + y (offxy (ikfit - 1) + i) * delt 
@@ -1636,7 +1643,7 @@ USE precision_mod
       IF (ima.ge.i) then 
          p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + ixm (i) ) 
       ELSE 
-         p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + len (ikfit)    &
+         p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + lenc(ikfit)    &
          / 2)                                                           
       ENDIF 
       p ( (i - 1) * np3 + 2) = inten 
@@ -1646,9 +1653,9 @@ USE precision_mod
       ENDDO 
 !                                                                       
       y1 = y (offxy (ikfit - 1) + 1) 
-      y2 = y (offxy (ikfit - 1) + len (ikfit) ) 
+      y2 = y (offxy (ikfit - 1) + lenc(ikfit) ) 
       x1 = x (offxy (ikfit - 1) + 1) 
-      x2 = x (offxy (ikfit - 1) + len (ikfit) ) 
+      x2 = x (offxy (ikfit - 1) + lenc(ikfit) ) 
       p (npara - 1) = y1 
       p (npara) = (y2 - y1) / (x2 - x1) 
 !                                                                       
@@ -1662,6 +1669,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE trig_degree_mod
+USE lib_length
 USE sys_compiler
       IMPLICIT none 
 !                                                                       
@@ -1679,7 +1687,6 @@ USE sys_compiler
       REAL secondterm 
       INTEGER k, ib, itmp, ll 
 !                                                                       
-      INTEGER len_str 
 !     REAL sind 
 !                                                                       
       CALL oeffne (12, iname, 'old') 
@@ -1761,7 +1768,7 @@ USE sys_compiler
       ENDDO 
 !                                                                       
       j = abs (i) 
-      IF (j.ge.len (ikfit) ) return 
+      IF (j.ge.lenc(ikfit) ) return 
 !                                                                       
       tth = 0. 
       ptype = np1 
@@ -1866,6 +1873,7 @@ USE sys_compiler
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_errlist_func
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -1899,7 +1907,7 @@ USE precision_mod
       ENDIF 
 !                                                                       
       ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit - 1) + len (ikfit) 
+      jj = offxy (ikfit - 1) + lenc(ikfit) 
 !                                                                       
       p (1) = y (ii) 
       pinc (1) = 1.0 
@@ -2069,6 +2077,7 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_errlist_func
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -2102,7 +2111,7 @@ USE precision_mod
       ENDIF 
 !                                                                       
       ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit - 1) + len (ikfit) 
+      jj = offxy (ikfit - 1) + lenc(ikfit) 
 !                                                                       
       p (1) = y (ii) 
       pinc (1) = 1.0 
@@ -2269,6 +2278,7 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_errlist_func
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -2312,7 +2322,7 @@ USE precision_mod
       nu = n_backgrd 
 !                                                                       
       ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit - 1) + len (ikfit) 
+      jj = offxy (ikfit - 1) + lenc(ikfit) 
 !                                                                       
       p (1) = y (ii) 
       pinc (1) = 1.0 
@@ -2554,6 +2564,7 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_errlist_func
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -2800,7 +2811,7 @@ USE precision_mod
       ENDIF 
 !                                                                       
       ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit - 1) + len (ikfit) 
+      jj = offxy (ikfit - 1) + lenc(ikfit) 
 !                                                                       
       p (1) = y (ii) 
       pinc (1) = 1.0 
@@ -2913,7 +2924,7 @@ USE precision_mod
       ENDIF 
 !                                                                       
       ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit - 1) + len (ikfit) 
+      jj = offxy (ikfit - 1) + lenc(ikfit) 
 !                                                                       
       p (1) = y (ii) 
       pinc (1) = 1.0 
@@ -3033,8 +3044,8 @@ USE precision_mod
          pinc (2) = 0.0 
       ENDIF 
 !                                                                       
-      ii = offxy (ikfit - 1) + len (ikfit) / 2 
-      jj = offxy (ikfit2 - 1) + len (ikfit2) / 2 
+      ii = offxy (ikfit - 1) + lenc(ikfit) / 2 
+      jj = offxy (ikfit2 - 1) + lenc(ikfit2) / 2 
       IF (y (jj) .ne.0) then 
          p (1) = (y (ii) - p (2) ) / y (jj) 
       ENDIF 
@@ -3139,7 +3150,7 @@ IF (lni (ikfit) ) THEN
 ELSE 
    iiw = offxy (ikfit - 1) 
    iix = offxy (ikfit - 1) 
-   m = len (ikfit) 
+   m = lenc(ikfit) 
 ENDIF 
 !                                                                       
 DO i = 1, npara 
@@ -3622,6 +3633,13 @@ USE prompt_mod
 USE kuplot_config 
 USE kuplot_fit_para
 USE kuplot_mod 
+USE lib_do_operating_mod
+USE lib_echo
+USE lib_errlist_func
+USE lib_help
+USE lib_length
+USE lib_macro_func
+USE str_comp_mod
 USE string_convert_mod
 USE sup_mod
 USE precision_mod
@@ -3647,8 +3665,6 @@ REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 LOGICAL, DIMENSION(3) :: flag
 LOGICAL               :: sel_func 
 !                                                                       
-INTEGER, EXTERNAL :: len_str 
-LOGICAL, EXTERNAL :: str_comp 
 real :: f, df(maxpara)
 !
 empty = ' '
@@ -3717,7 +3733,7 @@ IF (ier_num.ne.0) RETURN
             ymax (ikdif) = ymax (ikfit) 
             iz = iz + 2 
          ELSE 
-            IF (2.0 * len (iz - 1) .gt.maxpkt) THEN 
+            IF (2.0 * lenc(iz - 1) .gt.maxpkt) THEN 
                ier_num = - 6 
                ier_typ = ER_APPL 
                RETURN 
@@ -3725,12 +3741,12 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
             ikcal = iz 
             ikdif = iz + 1 
-            offxy (ikcal) = offxy (iz - 1) + len (iz - 1) 
-            offxy (ikdif) = offxy (ikcal) + len (iz - 1) 
+            offxy (ikcal) = offxy (iz - 1) + lenc(iz - 1) 
+            offxy (ikdif) = offxy (ikcal) + lenc(iz - 1) 
             offz (ikcal) = offz (iz - 1) 
             offz (ikdif) = offz (ikcal) 
-            len (ikcal) = len (ikfit) 
-            len (ikdif) = len (ikfit) 
+            lenc(ikcal) = lenc(ikfit) 
+            lenc(ikdif) = lenc(ikfit) 
             xmin (ikcal) = xmin (ikfit) 
             xmin (ikdif) = xmin (ikfit) 
             xmax (ikcal) = xmax (ikfit) 
@@ -3774,7 +3790,9 @@ IF (ier_num.ne.0) RETURN
 !------ execute a macro file                                            
 !                                                                       
          ELSEIF (befehl (1:1) .eq.'@') THEN 
-            CALL file_kdo (line (2:ll), ll - 1) 
+            line = line(2:ll)
+            ll   = ll - 1
+            CALL file_kdo (line, ll) 
 !                                                                       
 !     continues a macro 'continue'                                      
 !                                                                       
@@ -4200,6 +4218,7 @@ USE precision_mod
       USE kuplot_mod 
 !
       USE build_name_mod
+USE lib_length
 USE precision_mod
 USE sys_compiler
 !                                                                       
@@ -4214,7 +4233,6 @@ USE sys_compiler
       INTEGER lpara (maxw), lp 
       INTEGER ianz, i 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) RETURN 
@@ -4280,6 +4298,7 @@ USE sys_compiler
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 USE precision_mod
 USE sys_compiler
 !                                                                       
@@ -4292,7 +4311,6 @@ USE sys_compiler
       CHARACTER(2) cdummy 
       REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER ianz 
-      INTEGER len_str 
 !                                                                       
       filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit))))
       filname = filname (1:len_str (filname) ) //'.erg' 
@@ -4463,13 +4481,13 @@ SUBROUTINE show_fit_para (idout)
       USE kuplot_config 
       USE kuplot_mod 
 USE kuplot_fit_para
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER(30) fitfkt, wictyp 
       INTEGER idout, lt1, lt2, lf, lfn, lw, ipkt 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       IF (ftyp (1:2) .eq.'PO') THEN 
          fitfkt = 'Polynom' 
@@ -4526,7 +4544,7 @@ USE kuplot_fit_para
       IF (lni (ikfit) ) THEN 
          ipkt = nx (ikfit) * ny (ikfit) 
       ELSE 
-         ipkt = len (ikfit) 
+         ipkt = lenc(ikfit) 
       ENDIF 
 !                                                                       
       WRITE (idout, 1000) titel (iwin, iframe, 1) (1:lt1), titel (iwin, &
@@ -4776,6 +4794,7 @@ USE kuplot_mod
 USE kuplot_fit_para
 USE kuplot_fit_basic     ! The basic arrays for calls to kuplot_theory
 !                                                                       
+USE lib_errlist_func
 IMPLICIT none 
 !                                                                       
 CHARACTER(LEN=60) :: filname 
@@ -4824,7 +4843,7 @@ ELSE
 !  CALL wichtung (y) 
    CALL no_error
 !
-   data_dim(1) = len(ikfit)                        ! Transfer KUPLOT Dimensions
+   data_dim(1) = lenc(ikfit)                        ! Transfer KUPLOT Dimensions
    data_dim(2) = 1
 ENDIF
 ALLOCATE(data_calc(  data_dim(1), data_dim(2)))   ! Allocate CALC  at proper dimensions
@@ -4948,8 +4967,8 @@ IF(lni(ikfit)) THEN                               !xy-Z data
    ENDDO
    lni (ikcal) = .true. 
    lni (ikdif) = .true. 
-   len(ikcal) = len(ikfit) 
-   len(ikdif) = len(ikfit) 
+   lenc(ikcal) = lenc(ikfit) 
+   lenc(ikdif) = lenc(ikfit) 
    nx(ikcal) = nx(ikfit)
    ny(ikcal) = ny(ikfit)
    nx(ikdif) = nx(ikfit)
@@ -4960,7 +4979,7 @@ IF(lni(ikfit)) THEN                               !xy-Z data
    fname (ikcal) = filname (1:LEN_TRIM(filname) ) //'.fit' 
    fname (ikdif) = filname (1:LEN_TRIM(filname) ) //'.dif' 
 ELSE
-   DO i=1, len(ikfit)
+   DO i=1, lenc(ikfit)
       x(jj+i) = data_x(i)          ! Copy x-values into result
       y(jj+i) = data_calc(i,1)     ! Copy calculated data into result
       dx(jj+i) = 0.0
@@ -4972,8 +4991,8 @@ ELSE
       dy(kk+i) = 0.0
    ENDDO
 !                                                                       
-   len (ikcal) = len (ikfit) 
-   len (ikdif) = len (ikfit) 
+   lenc (ikcal) = lenc (ikfit) 
+   lenc (ikdif) = lenc (ikfit) 
    fform (ikcal) = fform (ikfit) 
    fform (ikdif) = fform (ikfit) 
    filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit)))) 
@@ -5045,8 +5064,8 @@ END SUBROUTINE do_fit
 !!                                                                       
 !      lni (ikcal) = .true. 
 !      lni (ikdif) = .true. 
-!      len (ikcal) = len (ikfit) 
-!      len (ikdif) = len (ikfit) 
+!      lenc (ikcal) = lenc (ikfit) 
+!      lenc (ikdif) = lenc (ikfit) 
 !      nx (ikcal) = nx (ikfit) 
 !      ny (ikcal) = ny (ikfit) 
 !      nx (ikdif) = nx (ikfit) 
@@ -5317,7 +5336,7 @@ REAL                   :: f
          ELSE 
             iiw = offxy (ikfit - 1) 
             iix = offxy (ikfit - 1) 
-            m = len (ikfit) 
+            m = lenc (ikfit) 
          ENDIF 
          DO i = 1, 1  !!! m 
             xx = x (iix + i) 
@@ -5643,7 +5662,7 @@ END SUBROUTINE user_upd_params
 !     IF (ima.ge.1) THEN 
 !        xpeak = x (offxy (ikfit - 1) + ixm (1) ) 
 !     ELSE 
-!        xpeak = x (offxy (ikfit - 1) + len (ikfit) / 2) 
+!        xpeak = x (offxy (ikfit - 1) + lenc (ikfit) / 2) 
 !     ENDIF 
 !                                                                       
 !     CALL read_prof (iname, ibank, itype, pcoff, ncoff, stheta, dspace,&
@@ -5651,7 +5670,7 @@ END SUBROUTINE user_upd_params
 !     CALL cnvptp1 (itype, pcoff, ncoff, p, dspace, stheta, maxpara) 
 !                                                                       
 !     inten = 0.0 
-!     DO i = 1, len (ikfit) - 1 
+!     DO i = 1, lenc (ikfit) - 1 
 !     delt = x (offxy (ikfit - 1) + i + 1) - x (offxy (ikfit - 1)       &
 !     + i)                                                              
 !     inten = inten + y (offxy (ikfit - 1) + i) * delt 
@@ -5666,7 +5685,7 @@ END SUBROUTINE user_upd_params
 !     IF (ima.ge.i) THEN 
 !        p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + ixm (i) ) 
 !     ELSE 
-!        p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + len (ikfit)    &
+!        p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + lenc (ikfit)    &
 !        / 2)                                                           
 !     ENDIF 
 !     p ( (i - 1) * np3 + 2) = inten 
@@ -5676,9 +5695,9 @@ END SUBROUTINE user_upd_params
 !     ENDDO 
 !                                                                       
 !     y1 = y (offxy (ikfit - 1) + 1) 
-!     y2 = y (offxy (ikfit - 1) + len (ikfit) ) 
+!     y2 = y (offxy (ikfit - 1) + lenc (ikfit) ) 
 !     x1 = x (offxy (ikfit - 1) + 1) 
-!     x2 = x (offxy (ikfit - 1) + len (ikfit) ) 
+!     x2 = x (offxy (ikfit - 1) + lenc (ikfit) ) 
 !     p (npara - 1) = y1 
 !     p (npara) = (y2 - y1) / (x2 - x1) 
 !                                                                       
@@ -5790,7 +5809,7 @@ END SUBROUTINE user_upd_params
 !     ENDDO 
 !                                                                       
 !     j = abs (i) 
-!     IF (j.ge.len (ikfit) ) RETURN 
+!     IF (j.ge.lenc (ikfit) ) RETURN 
 !                                                                       
 !     tth = 0. 
 !     ptype = np1 
@@ -5891,6 +5910,7 @@ USE errlist_mod
 USE kuplot_config 
 USE kuplot_mod 
 USE kuplot_fit6_set_theory
+USE lib_errlist_func
 USE precision_mod
 !                                                                       
 IMPLICIT none 
@@ -5925,7 +5945,7 @@ ELSE
 ENDIF 
 !                                                                       
 ii = offxy (ikfit - 1) + 1 
-jj = offxy (ikfit - 1) + len (ikfit) 
+jj = offxy (ikfit - 1) + lenc (ikfit) 
 !                                                                       
 p   (1) = y (ii) 
 pinc(1) = 1.0 
@@ -6124,6 +6144,7 @@ SUBROUTINE setup_gauss (ianz, werte, maxw)
       USE kuplot_config 
       USE kuplot_mod 
 USE kuplot_fit6_set_theory
+USE lib_errlist_func
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -6157,7 +6178,7 @@ USE precision_mod
       ENDIF 
 !                                                                       
       ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit - 1) + len (ikfit) 
+      jj = offxy (ikfit - 1) + lenc (ikfit) 
 !                                                                       
       p (1) = y (ii) 
       pinc (1) = 1.0 
@@ -6363,6 +6384,7 @@ SUBROUTINE setup_psvgt (ianz, werte, maxw)
       USE kuplot_mod 
 USE kuplot_fit6_set_theory
 USE kuplot_fit_const
+USE lib_errlist_func
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -6409,7 +6431,7 @@ ENDIF
 nu = nn_backgrd 
 !                                                                       
       ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit - 1) + len (ikfit) 
+      jj = offxy (ikfit - 1) + lenc (ikfit) 
 !                                                                       
       p (1) = y (ii) 
       pinc (1) = 1.0 
@@ -6690,6 +6712,7 @@ USE errlist_mod
 USE kuplot_config 
 USE kuplot_mod 
 USE kuplot_fit6_set_theory
+USE lib_errlist_func
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -6978,7 +7001,7 @@ END SUBROUTINE theory_gauss_2d
 !     ENDIF 
 !                                                                       
 !     ii = offxy (ikfit - 1) + 1 
-!     jj = offxy (ikfit - 1) + len (ikfit) 
+!     jj = offxy (ikfit - 1) + lenc (ikfit) 
 !                                                                       
 !     p (1) = y (ii) 
 !     pinc (1) = 1.0 
@@ -7095,7 +7118,7 @@ ELSE
 ENDIF 
 !                                                                       
 ii = offxy (ikfit - 1) + 1 
-jj = offxy (ikfit - 1) + len (ikfit) 
+jj = offxy (ikfit - 1) + lenc (ikfit) 
 !                                                                       
 p (1) = y (ii) 
 pinc (1) = 1.0 
@@ -7272,8 +7295,8 @@ USE precision_mod
          pinc (2) = 0.0 
       ENDIF 
 !                                                                       
-      ii = offxy (ikfit - 1) + len (ikfit) / 2 
-      jj = offxy (ikfit2 - 1) + len (ikfit2) / 2 
+      ii = offxy (ikfit - 1) + lenc (ikfit) / 2 
+      jj = offxy (ikfit2 - 1) + lenc (ikfit2) / 2 
       IF (y (jj) .ne.0) THEN 
          p (1) = (y (ii) - p (2) ) / y (jj) 
       ENDIF 
@@ -7923,6 +7946,7 @@ USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -7939,7 +7963,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER                              :: ianz
 !
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 !
 INTEGER, PARAMETER :: NOPTIONAL = 3
@@ -7988,6 +8011,7 @@ USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -8004,7 +8028,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER                              :: ianz
 !
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 !
 INTEGER, PARAMETER :: NOPTIONAL = 4

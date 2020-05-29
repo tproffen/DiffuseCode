@@ -68,6 +68,7 @@ USE precision_mod
 ! 
       USE build_name_mod
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -80,7 +81,6 @@ USE precision_mod
 REAL :: zzmin, zzmax
       INTEGER lpara (maxw) 
       INTEGER ianz, lp 
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 

@@ -138,6 +138,7 @@ USE kuplot_mod
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE lib_echo
 USE precision_mod
 !
 IMPLICIT NONE
@@ -234,7 +235,7 @@ length = LEN_TRIM(string)
 CALL do_load (string, length, .TRUE.)
 IF(ier_num/=0) RETURN
 !
-DO i=1,len(1)
+DO i=1,lenc(1)
    dy(i) = y(offxy (4-1)+i) 
 ENDDO
 !
@@ -254,7 +255,7 @@ IF(ipar1>0) THEN
    OPEN(UNIT=ifil,FILE=infile,STATUS='old')
    length = 0
    READ(ifil, *, END=9000)
-   DO i=1,len(1)                 ! Loop over all generations
+   DO i=1,lenc(1)                 ! Loop over all generations
       READ(ifil, *, END=9999)
       READ(ifil, *, END=9999)
       READ(ifil, *, END=9999) im, r_val, par_val
@@ -278,10 +279,10 @@ IF(ipar1>0) THEN
       dy(offxy(iz-1)+i) = 0.0
    ENDDO
 9999 CONTINUE
-   len(iz)   = length
+   lenc(iz)   = length
    xmin(iz)  = x(offxy(iz-1)+1)
-   xmax(iz)  = x(offxy(iz-1)+len(1)-1)
-   offxy(iz) = offxy(iz - 1) + len (iz)
+   xmax(iz)  = x(offxy(iz-1)+lenc(1)-1)
+   offxy(iz) = offxy(iz - 1) + lenc (iz)
    offz(iz)  = offz(iz - 1)
    iz = iz + 1
 9000 CONTINUE
@@ -292,7 +293,7 @@ IF(ymin(1)==ymax(1) .AND. ymin(2)==ymax(2) .AND. ymin(3)==ymax(3) .AND. &
    ABS(ymin(1)-ymin(2))<=ymin(1)*1.E-5 ) THEN
    WRITE(string,'(a,i4,'' '',a)') 'Fixed parameter No. ', ipar1, k_diff_name(ipar1)
    length = LEN_TRIM(string)
-   call echo(string,length)
+   CALL echo(string,length)
 ELSE
    bef = 'mtyp'
    length = 4
@@ -592,7 +593,7 @@ IF(ier_num/=0) RETURN
 ! Determine lowest R-value and its member number
 rvalue_min = y(1)
 rvalue_ind = 1
-DO i=2,len(1)    ! len is the length of data sets
+DO i=2,lenc(1)    ! lenc is the length of data sets
    IF(y(i)<rvalue_min) THEN
       rvalue_min = y(i)
       rvalue_ind = i
@@ -623,12 +624,12 @@ CALL do_load (string, length, .TRUE.)
 IF(ier_num/=0) RETURN
 !
 ! Create the actual curves to be plotted
-WRITE(string,'(a,i10)')  'points, ', len(1)
+WRITE(string,'(a,i10)')  'points, ', lenc(1)
 length = LEN_TRIM(string)
 CALL do_allocate (string, length, .FALSE.)
 IF(ier_num/=0) RETURN
 !
-DO i=1,len(1)
+DO i=1,lenc(1)
    x(offxy(3-1)+i) = x(offxy (2-1)+i) 
    y(offxy(3-1)+i) = x(offxy (1-1)+i) 
 ENDDO

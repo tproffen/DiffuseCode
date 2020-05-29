@@ -9,7 +9,9 @@
       USE errlist_mod 
       USE get_params_mod
       USE kuplot_config 
+USE lib_help
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -24,7 +26,6 @@ USE precision_mod
       integer ianz 
       rEAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
 !                                                                       
@@ -96,7 +97,7 @@ USE sys_compiler
 !                                                                       
       DO ikurv = 1, iz - 1 
       IF (k_in_f (ikurv) .and..not.lni (ikurv) ) then 
-         DO ip = 1, len (ikurv) 
+         DO ip = 1, lenc(ikurv) 
          WRITE (ifil, 1000) x (offxy (ikurv - 1) + ip), REAL(ikurv),  &
          y (offxy (ikurv - 1) + ip)                                     
          ENDDO 
@@ -115,6 +116,7 @@ USE sys_compiler
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 USE sys_compiler
 !                                                                       
       IMPLICIT none 
@@ -127,7 +129,6 @@ USE sys_compiler
       INTEGER ikurv, ip 
 !                                                                       
       LOGICAL k_in_f 
-      INTEGER len_str 
 !                                                                       
       CALL oeffne (ifil, filname, 'unknown') 
       IF (ier_num.ne.0) return 
@@ -163,7 +164,7 @@ USE sys_compiler
             ), connect (1:len_str (connect) ), marks (1:len_str (marks) &
             )                                                           
          ENDIF 
-         DO ip = 1, len (ikurv) 
+         DO ip = 1, lenc(ikurv) 
          WRITE (ifil, 1500) x (offxy (ikurv - 1) + ip), y (offxy (ikurv &
          - 1) + ip)                                                     
          ENDDO 
@@ -199,6 +200,7 @@ USE sys_compiler
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 USE sys_compiler
 !                                                                       
       IMPLICIT none 
@@ -221,7 +223,6 @@ USE sys_compiler
       INTEGER ntmap, nrec, irec
       LOGICAL lfile, lnew 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       eol = char (13) //char (10) 
       irec = 1 
@@ -272,7 +273,7 @@ USE sys_compiler
       ioff = offxy (ig - 1) 
       tof (1) = nint (10. * (x (ioff + 1) - tof_offset) ) 
       tof (2) = nint (10. * (x (ioff + 1) + tof_offset) ) 
-      DO k = 3, len (ig) + 1 
+      DO k = 3, lenc(ig) + 1 
       ixx = nint (20. * x (ioff + k - 1) ) 
       tof (k) = ixx - tof (k - 1) 
       ENDDO 
@@ -301,7 +302,7 @@ USE sys_compiler
 !     - Convert to Counts                                               
 !                                                                       
       ioff = offxy (ig - 1) 
-      DO k = 1, len (ig) 
+      DO k = 1, lenc(ig) 
       delt = REAL(tof (k + 1) - tof (k) ) 
       gdat (k) = y (ioff + k) * delt 
       gsig (k) = dy (ioff + k) * delt 
@@ -309,15 +310,15 @@ USE sys_compiler
 !                                                                       
 !     - Write data here                                                 
 !                                                                       
-      nrec = (len (ig) - 1) / 5 + 1 
-      WRITE (outstr, 2200) 'BANK ', ig, len (ig) , nrec, ' TIME_MAP',   &
+      nrec = (lenc(ig) - 1) / 5 + 1 
+      WRITE (outstr, 2200) 'BANK ', ig, lenc(ig) , nrec, ' TIME_MAP',   &
       imap, ' ESD'                                                      
       WRITE (ifil, 1000, rec = irec) outstr (1:80) //eol 
       irec = irec + 1 
 !                                                                       
       ibeg = 1 
       DO j = 1, nrec 
-      ifin = min (len (ig), ibeg + 4) 
+      ifin = min (lenc(ig), ibeg + 4) 
       WRITE (outstr, 2300) (gdat (k), gsig (k), k = ibeg, ifin) 
       WRITE (ifil, 1000, rec = irec) outstr (1:80) //eol 
       irec = irec + 1 
@@ -366,11 +367,11 @@ USE sys_compiler
       IF (idat.eq.1) then 
          lnew = .true. 
       ELSE 
-         IF (len (idat) .ne.len (idat - 1) ) then 
+         IF (lenc(idat) .ne.lenc(idat - 1) ) then 
             lnew = .true. 
          ELSE 
             lnew = .false. 
-            DO j = 1, len (idat) 
+            DO j = 1, lenc(idat) 
             lnew = lnew.or. (x (offxy (idat - 1) + j) .ne.x (offxy (    &
             idat - 2) + j) )                                            
             ENDDO 
@@ -386,7 +387,7 @@ USE sys_compiler
       nt = 1 
       dt = tmap (3) 
 !                                                                       
-      DO j = 2, len (idat) 
+      DO j = 2, lenc(idat) 
       IF ( (tof (j + 1) - tof (j) ) .ne.dt) then 
          nt = nt + 3 
          tmap (nt) = j 
@@ -397,7 +398,7 @@ USE sys_compiler
       ENDDO 
 !                                                                       
       nt = nt + 3 
-      tmap (nt) = tof (len (idat) + 1) 
+      tmap (nt) = tof (lenc(idat) + 1) 
 !                                                                       
       END SUBROUTINE make_timemap                   
 !*****7**************************************************************** 
@@ -423,7 +424,11 @@ USE sys_compiler
       USE kuplot_config 
       USE kuplot_mod 
       USE sup_mod
+USE lib_errlist_func
+USE lib_help
+USE lib_macro_func
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -442,7 +447,6 @@ USE precision_mod
       LOGICAL l_m999 
       REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw) 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL no_error 
       l_m999 = .false. 
@@ -811,6 +815,7 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 USE precision_mod
 USE sys_compiler
 !                                                                       
@@ -834,7 +839,6 @@ USE sys_compiler
       INTEGER nx_min, nx_max, ny_min, ny_max, nx_s, ny_s 
       LOGICAL l_m999 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL oeffne (isa, filname, 'unknown') 
       IF (ier_num.ne.0) return 
@@ -847,7 +851,7 @@ USE sys_compiler
          WRITE (isa, 3000) titel (iwin, iframe, 2) (1:len_str (titel (  &
          iwin, iframe, 2) ) )                                           
          IF(l_two_col) THEN
-         DO i = 1, len (ik) 
+         DO i = 1, lenc(ik) 
          IF (x (offxy (ik - 1) + i) .ge.werte (1) .and.x (offxy (ik - 1)&
          + i) .le.werte (2) ) then                                      
             WRITE (isa, 4000) x (offxy (ik - 1) + i), y (offxy (ik - 1) &
@@ -855,7 +859,7 @@ USE sys_compiler
          ENDIF 
          ENDDO 
          ELSE
-         DO i = 1, len (ik) 
+         DO i = 1, lenc(ik) 
          IF (x (offxy (ik - 1) + i) .ge.werte (1) .and.x (offxy (ik - 1)&
          + i) .le.werte (2) ) then                                      
             WRITE (isa, 4000) x (offxy (ik - 1) + i), y (offxy (ik - 1) &
@@ -869,7 +873,7 @@ USE sys_compiler
          iwin, iframe, 1) ) )                                           
          WRITE (isa, 3000) titel (iwin, iframe, 2) (1:len_str (titel (  &
          iwin, iframe, 2) ) )                                           
-         DO i = 1, len (ik) 
+         DO i = 1, lenc(ik) 
          IF (x (offxy (ik - 1) + i) .ge.werte (1) .and.x (offxy (ik - 1)&
          + i) .le.werte (2) ) then                                      
             WRITE (isa, 4000) x (offxy (ik - 1) + i), y (offxy (ik - 1) &
@@ -926,7 +930,7 @@ USE sys_compiler
 !                                                                       
       ELSEIF (form (1:2) .eq.'SK'.and.lni (ik) ) then 
          ispk = nint (werte (1) ) 
-         DO ixxx = 1, len (ispk) 
+         DO ixxx = 1, lenc(ispk) 
          xxx = x (offxy (ispk - 1) + ixxx) 
          yyy = y (offxy (ispk - 1) + ixxx) 
          CALL extract_subarray (xf, yf, zf, xxx, yyy, maxf, ik, ie) 

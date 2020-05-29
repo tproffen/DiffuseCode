@@ -104,6 +104,8 @@ SUBROUTINE do_plot (lmenu)
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_do_operating_mod
+USE lib_length
 USE precision_mod
       USE string_convert_mod
 USE sys_compiler
@@ -123,7 +125,6 @@ USE sys_compiler
       LOGICAL tfr, lrena, lmenu 
       LOGICAL :: l_pdf
 !                                                                       
-      INTEGER len_str 
       INTEGER PGOPEN 
 !                                                                       
       lmenu = .false. 
@@ -534,6 +535,7 @@ ELSE main
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_fit6
+USE lib_length
       USE string_convert_mod
 USE sys_compiler
 !                                                                       
@@ -543,7 +545,6 @@ USE sys_compiler
       REAL xh, yh, xt, yt 
       INTEGER i 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       filname = ftext (iwin, iframe) 
       CALL do_cap (filname) 
@@ -869,6 +870,7 @@ USE sys_compiler
       USE koordinate_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -888,7 +890,6 @@ USE sys_compiler
       INTEGER :: jkurv
       REAL    :: max_value, min_value, range, factor, sma
 !                                                                       
-      INTEGER len_str 
       LOGICAL inrect 
 !                                                                       
 !------ Loop over all data sets                                         
@@ -906,13 +907,13 @@ USE sys_compiler
          ENDIF 
       ELSE 
          IF (fform (ikurv) .ne.'CR') then 
-            DO ipkt = 2, len (ikurv) 
+            DO ipkt = 2, lenc(ikurv) 
             xpl (ipkt - 1) = x (offxy (ikurv - 1) + (ipkt - 1) ) 
             ypl (ipkt - 1) = y (offxy (ikurv - 1) + (ipkt - 1) ) 
             xpl (ipkt) = x (offxy (ikurv - 1) + ipkt) 
             ypl (ipkt) = y (offxy (ikurv - 1) + ipkt) 
             ENDDO 
-            npkt = len (ikurv) 
+            npkt = lenc(ikurv) 
             IF (npkt.gt.1) then 
                CALL draw_points (xpl, ypl, npkt, ikurv) 
             ENDIF 
@@ -923,7 +924,7 @@ USE sys_compiler
 !                                                                       
       IF (fform (ikurv) .eq.'CR') then 
          CALL draw_bonds (ikurv) 
-         DO ipkt = 1, len (ikurv) 
+         DO ipkt = 1, lenc(ikurv) 
          delx = dy (offxy (ikurv - 1) + ipkt) * sizemark (iwin, iframe, &
          ikurv)                                                         
          xma = x (offxy (ikurv - 1) + ipkt) 
@@ -937,7 +938,7 @@ USE sys_compiler
          then                                                           
             IF(rel_mark(iwin, iframe, ikurv) == 0 ) THEN
             CALL draw_bonds (ikurv) 
-            DO ipkt = 1, len (ikurv) 
+            DO ipkt = 1, lenc(ikurv) 
             xma = x (offxy (ikurv - 1) + ipkt) 
             yma = y (offxy (ikurv - 1) + ipkt) 
             CALL draw_marker (xma, yma, imarktyp (iwin, iframe, ikurv), &
@@ -949,7 +950,7 @@ USE sys_compiler
                   max_value = ABS(x (offxy (ikurv - 1) + 1))
                   min_value = ABS(x (offxy (ikurv - 1) + 1))
                   range = 0.0
-                  DO ipkt = 1, len (ikurv)
+                  DO ipkt = 1, lenc(ikurv)
                      max_value = MAX(max_value, ABS(x (offxy (ikurv - 1) + ipkt)))
                      min_value = MIN(min_value, ABS(x (offxy (ikurv - 1) + ipkt)))
                   ENDDO
@@ -958,7 +959,7 @@ USE sys_compiler
                   ELSE
                       range = (max_value-min_value)
                   ENDIF
-                  DO ipkt = 1, len (ikurv)
+                  DO ipkt = 1, lenc(ikurv)
                      xma = x (offxy (ikurv - 1) + ipkt) 
                      yma = y (offxy (ikurv - 1) + ipkt) 
                      factor = 0.1+0.9*(ABS(x (offxy (ikurv - 1) + ipkt))-min_value)/range
@@ -971,7 +972,7 @@ USE sys_compiler
                   max_value = ABS(y (offxy (ikurv - 1) + 1))
                   min_value = ABS(y (offxy (ikurv - 1) + 1))
                   range = 0.0
-                  DO ipkt = 1, len (ikurv)
+                  DO ipkt = 1, lenc(ikurv)
                      max_value = MAX(max_value, ABS(y (offxy (ikurv - 1) + ipkt)))
                      min_value = MIN(min_value, ABS(y (offxy (ikurv - 1) + ipkt)))
                   ENDDO
@@ -980,7 +981,7 @@ USE sys_compiler
                   ELSE
                       range = (max_value-min_value)
                   ENDIF
-                  DO ipkt = 1, len (ikurv)
+                  DO ipkt = 1, lenc(ikurv)
                      xma = x (offxy (ikurv - 1) + ipkt) 
                      yma = y (offxy (ikurv - 1) + ipkt) 
                      factor = 0.1+0.9*(ABS(y (offxy (ikurv - 1) + ipkt))-min_value)/range
@@ -994,7 +995,7 @@ USE sys_compiler
                   max_value = ABS(y (offxy (jkurv - 1) + 1))
                   min_value = ABS(y (offxy (jkurv - 1) + 1))
                   range = 0.0
-                  DO ipkt = 1, len (jkurv)
+                  DO ipkt = 1, lenc(jkurv)
                      max_value = MAX(max_value, ABS(y (offxy (jkurv - 1) + ipkt)))
                      min_value = MIN(min_value, ABS(y (offxy (jkurv - 1) + ipkt)))
                   ENDDO
@@ -1003,7 +1004,7 @@ USE sys_compiler
                   ELSE
                       range = (max_value-min_value)
                   ENDIF
-                  DO ipkt = 1, len (ikurv)
+                  DO ipkt = 1, lenc(ikurv)
                      xma = x (offxy (ikurv - 1) + ipkt) 
                      yma = y (offxy (ikurv - 1) + ipkt) 
                      factor = 0.1+0.9*(ABS(y (offxy (jkurv - 1) + ipkt))-min_value)/range
@@ -1041,7 +1042,7 @@ USE sys_compiler
          CALL PGSLS (1) 
          CALL PGSLW (nint (linewid (iwin, iframe, ikurv) / 0.13) ) 
          CALL PGSCI (ierrcol (iwin, iframe, ikurv) ) 
-         DO ipkt = 1, len (ikurv) 
+         DO ipkt = 1, lenc(ikurv) 
 !                                                                       
          IF (ierr (iwin, iframe, ikurv) .eq.1.or.ierr (iwin, iframe,    &
          ikurv) .eq.3) then                                             
@@ -1558,10 +1559,10 @@ USE sys_compiler
          CALL PGSLS (bond_ltyp (iwin, iframe, ib) ) 
          CALL PGSLW (nint (bond_lwid (iwin, iframe, ib) / 0.13) ) 
          CALL PGSCI (bond_lcol (iwin, iframe, ib) ) 
-         DO ipkt = 1, len (ikurv) 
+         DO ipkt = 1, lenc(ikurv) 
          iii = offxy (ikurv - 1) + ipkt 
          IF (inrect (eex, eey, x (iii), y (iii) ) ) then 
-            DO jpkt = 1, len (ikurv) 
+            DO jpkt = 1, lenc(ikurv) 
             jjj = offxy (ikurv - 1) + jpkt 
             xpl (1) = x (iii) 
             ypl (1) = y (iii) 

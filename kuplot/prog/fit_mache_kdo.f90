@@ -13,8 +13,10 @@ USE set_sub_generic_mod
 !
 USE class_macro_internal
 USE doact_mod
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod
+USE str_comp_mod
 !
 
 IMPLICIT NONE
@@ -29,7 +31,6 @@ CHARACTER(LEN=PREC_STRING) :: zeile
 INTEGER             :: indxg, indxt, indxb
 INTEGER             :: lbef, lp
 !
-LOGICAL str_comp
 !
 IF(length==0) RETURN
 IF(line == ' '.OR.line (1:1)  == '#' .OR. LINE=='!') RETURN
@@ -64,7 +65,9 @@ IF (indxg /= 0                                            &
 !------ execute a macro file                                            
 !
 ELSEIF (befehl (1:1)  == '@') THEN
-   CALL file_kdo (line (2:length), length - 1)
+   line =  line (2:length)
+   length = length - 1
+   CALL file_kdo (line, length)
 !
 !     continues a macro 'continue'                                      
 !

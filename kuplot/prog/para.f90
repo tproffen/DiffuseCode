@@ -12,6 +12,8 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_words_mod
+USE lib_help
+USE lib_length
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -29,7 +31,6 @@ USE precision_mod
       INTEGER lpara (maxw), lp 
       LOGICAL lnull 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -73,6 +74,8 @@ USE precision_mod
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_words_mod
+USE lib_help
+USE lib_length
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -89,7 +92,6 @@ USE precision_mod
       INTEGER ianz, ik, iw, ip 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -213,6 +215,7 @@ USE precision_mod
       USE kuplot_config 
       USE kuplot_mod 
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -225,7 +228,7 @@ USE precision_mod
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      LOGICAL lflag, str_comp 
+      LOGICAL lflag
 !                                                                       
       lp = -lp
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -256,6 +259,8 @@ USE precision_mod
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_words_mod
+USE lib_help
+USE lib_length
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -269,7 +274,6 @@ USE precision_mod
       INTEGER ianz, ik, ic, it 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -401,6 +405,8 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_help
+USE lib_length
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -415,7 +421,6 @@ USE precision_mod
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -449,6 +454,8 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_help
+USE lib_length
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -463,7 +470,6 @@ USE precision_mod
       INTEGER ianz, it 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -498,6 +504,7 @@ USE precision_mod
       USE kuplot_config 
       USE kuplot_mod 
 USE precision_mod
+USE str_comp_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -511,7 +518,6 @@ USE precision_mod
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !
-      LOGICAL :: str_comp
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -542,7 +548,7 @@ USE precision_mod
             ELSEIF(NINT(werte(3)) == 0) THEN
                rel_mark(iwin, iframe, ik) = 0
             ELSE
-               IF(len(ik) == len(NINT(werte(3)))) THEN
+               IF(lenc(ik) == lenc(NINT(werte(3)))) THEN
                   rel_mark(iwin, iframe, ik) = NINT(werte (3))
                ELSE
                   ier_num = - 6 
@@ -572,7 +578,10 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_help
+USE lib_length
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -587,8 +596,6 @@ USE precision_mod
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      LOGICAL str_comp 
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -643,6 +650,7 @@ USE precision_mod
       USE kuplot_config 
       USE kuplot_mod 
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -656,7 +664,6 @@ USE precision_mod
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -851,6 +858,7 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_errlist_func
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -1043,6 +1051,7 @@ USE precision_mod
       USE kuplot_mod 
       USE kuplot_words_mod
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1056,7 +1065,6 @@ USE precision_mod
       INTEGER ianz, icol, ifon, ifid 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL fsiz 
-      LOGICAL str_comp 
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
@@ -1181,6 +1189,7 @@ USE precision_mod
       USE kuplot_config 
       USE kuplot_mod 
       USE param_mod
+USE str_comp_mod
       USE take_param_mod
 !                                                                       
       IMPLICIT none 
@@ -1192,7 +1201,6 @@ USE precision_mod
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
-      LOGICAL str_comp 
       INTEGER iw, i, j 
 !                                                                       
 !------ get parameters                                                  

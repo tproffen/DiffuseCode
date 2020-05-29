@@ -52,6 +52,8 @@ SUBROUTINE command (incomming, ier_status)
 USE setup_mod
 USE errlist_mod
 USE class_macro_internal
+USE lib_errlist_func
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod
 USE sup_mod

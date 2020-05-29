@@ -64,6 +64,7 @@ CONTAINS
 !  REPLACE the string in cpara by the appropriate number 
 !  If a word is not recognized no error is specified as its likely 
 !  a numerical value
+USE str_comp_mod
    IMPLICIT NONE
 !
    INTEGER                           , INTENT(IN)    :: maxw
@@ -74,7 +75,6 @@ CONTAINS
    CHARACTER (LEN=*)                 , INTENT(IN)    :: bef
 !
    INTEGER :: lbef
-   LOGICAL :: str_comp
 !
    lbef = LEN_TRIM(bef)
    IF(str_comp(bef, 'lcol', 3, lbef, 4 ) .OR.  &
@@ -102,6 +102,7 @@ CONTAINS
 !  REPLACE the string in cpara by the appropriate number 
 !  If a word is not recognized no error is specified as its likely 
 !  a numerical value
+USE str_comp_mod
       USE string_convert_mod
    IMPLICIT NONE
 !
@@ -111,7 +112,6 @@ CONTAINS
    INTEGER          , DIMENSION(maxw), INTENT(INOUT) :: lpara
    INTEGER                           , INTENT(IN)    :: item
 !
-   LOGICAL :: str_comp
 !
    CALL do_cap(cpara(item))   ! Lets not worry about capitalization
    IF(str_comp (cpara(item),     'NONE', 2, lpara(item) , 4)) THEN
@@ -170,6 +170,7 @@ CONTAINS
 !  REPLACE the string in cpara by the appropriate number 
 !  If a word is not recognized no error is specified as its likely 
 !  a numerical value
+USE str_comp_mod
       USE string_convert_mod
    IMPLICIT NONE
 !
@@ -179,7 +180,6 @@ CONTAINS
    INTEGER          , DIMENSION(maxw), INTENT(INOUT) :: lpara
    INTEGER                           , INTENT(IN)    :: item
 !
-   LOGICAL :: str_comp
 !
    CALL do_cap(cpara(item))   ! Lets not worry about capitalization
    IF(str_comp (cpara(item),     'NONE', 2, lpara(item) , 4) .OR.  &
@@ -242,6 +242,7 @@ CONTAINS
 !  REPLACE the string in cpara by the appropriate number 
 !  If a word is not recognized no error is specified as its likely 
 !  a numerical value
+USE str_comp_mod
       USE string_convert_mod
    IMPLICIT NONE
 !
@@ -251,7 +252,6 @@ CONTAINS
    INTEGER          , DIMENSION(maxw), INTENT(INOUT) :: lpara
    INTEGER                           , INTENT(IN)    :: item
 !
-   LOGICAL :: str_comp
 !
    CALL do_cap(cpara(item))   ! Lets not worry about capitalization
    IF(str_comp (cpara(item),     'NONE', 2, lpara(item) , 4) .OR.  &
@@ -281,6 +281,7 @@ CONTAINS
 !  REPLACE the string in cpara by the appropriate number 
 !  If a word is not recognized no error is specified as its likely 
 !  a numerical value
+USE str_comp_mod
       USE string_convert_mod
    IMPLICIT NONE
 !
@@ -290,7 +291,6 @@ CONTAINS
    INTEGER          , DIMENSION(maxw), INTENT(INOUT) :: lpara
    INTEGER                           , INTENT(IN)    :: item
 !
-   LOGICAL :: str_comp
 !
    CALL do_cap(cpara(item))   ! Lets not worry about capitalization
    IF(str_comp (cpara(item),     'NONE', 2, lpara(item) , 4) .OR.  &
@@ -314,6 +314,7 @@ CONTAINS
 !  REPLACE the string in cpara by the appropriate number 
 !  If a word is not recognized no error is specified as its likely 
 !  a numerical value
+USE str_comp_mod
       USE string_convert_mod
    IMPLICIT NONE
 !
@@ -323,7 +324,6 @@ CONTAINS
    INTEGER          , DIMENSION(maxw), INTENT(INOUT) :: lpara
    INTEGER                           , INTENT(IN)    :: item
 !
-   LOGICAL :: str_comp
 !
    CALL do_cap(cpara(item))   ! Lets not worry about capitalization
        IF(str_comp (cpara(item), 'SOLID', 2, lpara(item) , 5)) THEN

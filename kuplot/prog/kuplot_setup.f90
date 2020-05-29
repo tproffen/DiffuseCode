@@ -6,14 +6,17 @@ CONTAINS
 !                                                                       
 !     This routine makes inital setup of KUPLOT                         
 !                                                                       
-      USE prompt_mod 
-      USE lib_f90_default_mod
-      USE kuplot_config 
-      USE kuplot_mod 
-      USE cmdline_args_mod
-      USE appl_env_mod
-      USE random_state_mod
-      IMPLICIT none 
+USE prompt_mod 
+USE lib_f90_default_mod
+USE lib_init_mod
+USE kuplot_config 
+USE kuplot_mod 
+USE cmdline_args_mod
+USE appl_env_mod
+USE lib_errlist_func
+USE random_state_mod
+!
+IMPLICIT none 
 !
       LOGICAL, INTENT(IN) :: standalone
 !
@@ -196,7 +199,7 @@ p_calc_intr_spec    => kuplot_calc_intr_spec
 p_calc_intr_log_spec=> kuplot_calc_intr_log_spec
 p_validate_var_spec => kuplot_validate_var_spec
 p_branch            => kuplot_branch
-p_loop_mpi          => dummy_loop_mpi
+!p_loop_mpi          => dummy_loop_mpi
 p_get_var_type      => kuplot_get_var_type
 IF(lstandalone) THEN
 p_top               => kuplot_top

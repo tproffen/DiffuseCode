@@ -15,6 +15,7 @@
       USE kuplot_config 
       USE kuplot_mod 
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -26,7 +27,6 @@ USE precision_mod
       REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, iku 
-      LOGICAL str_comp 
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -188,12 +188,12 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER iku, ia, ie, ik 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
 !------ check if we want ALL data sets                                  
 !                                                                       
@@ -221,10 +221,10 @@ USE precision_mod
          ), nx (ik), ny (ik), xmin (ik), xmax (ik), ymin (ik), ymax (ik)&
          , zmin (ik), zmax (ik)                                         
       ELSE 
-         CALL get_extrema_xy (x, ik, len (ik), xmin, xmax) 
-         CALL get_extrema_xy (y, ik, len (ik), ymin, ymax) 
+         CALL get_extrema_xy (x, ik, lenc(ik), xmin, xmax) 
+         CALL get_extrema_xy (y, ik, lenc(ik), ymin, ymax) 
          WRITE (output_io, 1010) ik, fname (ik) (1:len_str (fname (ik) )&
-         ), len (ik), xmin (ik), xmax (ik), ymin (ik), ymax (ik)        
+         ), lenc(ik), xmin (ik), xmax (ik), ymin (ik), ymax (ik)        
       ENDIF 
       ENDDO 
 !                                                                       
@@ -397,11 +397,12 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER(1) just 
-      INTEGER i, il, len_str 
+      INTEGER i, il
       LOGICAL noann 
 !                                                                       
       noann = .true. 
@@ -490,6 +491,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -497,7 +499,6 @@ USE precision_mod
       INTEGER i, j, ik 
       LOGICAL d2, d3 
 !                                                                       
-      INTEGER len_str 
       LOGICAL k_in_f 
 !                                                                       
       d3 = .false. 

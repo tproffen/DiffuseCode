@@ -36,8 +36,8 @@ USE precision_mod
          ik = nint (werte (1) ) 
          IF (ik.lt.iz.and.ik.gt.0) then 
             WRITE (output_io, 1000) ik 
-            l = len (ik) / 2 + 1 
-            ir = len (ik) 
+            l = lenc(ik) / 2 + 1 
+            ir = lenc(ik) 
    10       CONTINUE 
             IF (l.gt.1) then 
                l = l - 1 
@@ -233,9 +233,9 @@ USE precision_mod
          hmax = werte (3) 
          dh = werte (4) 
       ELSE 
-         hmin = - len (ik) / dxx 
-         hmax = len (ik) / dxx 
-         dh = 1.0 / (len (ik) * dxx) 
+         hmin = - lenc(ik) / dxx 
+         hmax = lenc(ik) / dxx 
+         dh = 1.0 / (lenc(ik) * dxx) 
       ENDIF 
       ipkt = nint ( (hmax - hmin) / dh) + 1 
 !                                                                       
@@ -253,8 +253,8 @@ USE precision_mod
          fname (ift (i) ) = oname (i) 
          fform (ift (i) ) = 'XY' 
          lni (ift (i) ) = .false. 
-         len (ift (i) ) = ipkt 
-         offxy (ift (i) ) = offxy (ift (i) - 1) + len (ift (i) ) 
+         lenc(ift (i) ) = ipkt 
+         offxy (ift (i) ) = offxy (ift (i) - 1) + lenc(ift (i) ) 
          offz (ift (i) ) = offz (ift (i) - 1) 
          iz = iz + 1 
       ENDIF 
@@ -275,7 +275,7 @@ USE precision_mod
       h = hmin + dh * (k - 1) 
       f (1) = 0.0 
       f (2) = 0.0 
-      DO j = 1, len (ik) 
+      DO j = 1, lenc(ik) 
       f (1) = f (1) + y (offxy (ik - 1) + j) * cos (fc * h * x (offxy ( &
       ik - 1) + j) )                                                    
       f (2) = f (2) + y (offxy (ik - 1) + j) * sin (fc * h * x (offxy ( &
@@ -368,8 +368,8 @@ USE precision_mod
          lni (ift (i) ) = .true. 
          nx (ift (i) ) = ipkt 
          ny (ift (i) ) = jpkt 
-         len (ift (i) ) = max (ipkt, jpkt) 
-         offxy (ift (i) ) = offxy (ift (i) - 1) + len (ift (i) ) 
+         lenc(ift (i) ) = max (ipkt, jpkt) 
+         offxy (ift (i) ) = offxy (ift (i) - 1) + lenc(ift (i) ) 
          offz (ift (i) ) = offz (ift (i) - 1) + nx (ift (i) ) * ny (ift &
          (i) )                                                          
          iz = iz + 1 
@@ -526,7 +526,7 @@ USE precision_mod
                ELSE 
                   WRITE (output_io, 2010) ik, ip 
                ENDIF 
-               CALL do_glatt_y (ik, ip, len (ik), cc, maxsm, lsmooth) 
+               CALL do_glatt_y (ik, ip, lenc(ik), cc, maxsm, lsmooth) 
             ENDIF 
          ELSE 
             ier_num = - 4 
@@ -649,7 +649,7 @@ USE precision_mod
 !------ 1D integration                                                  
 !                                                                       
       ELSE 
-         DO ix = 2, len (ik) 
+         DO ix = 2, lenc(ik) 
          ip = offxy (ik - 1) + ix 
          xa = (x (ip) + x (ip - 1) ) / 2.0 
          ya = (y (ip) + y (ip - 1) ) / 2.0 
@@ -725,7 +725,7 @@ USE precision_mod
       IF (ier_num.ne.0) return 
 !                                                                       
       ik = nint (werte (1) ) 
-      IF (ik.ge.iz.or.len (ik) .eq.0) then 
+      IF (ik.ge.iz.or.lenc(ik) .eq.0) then 
          ier_num = - 4 
          ier_typ = ER_APPL 
          RETURN 
@@ -807,7 +807,7 @@ USE precision_mod
             ier_typ = ER_APPL 
          ENDIF 
       ELSE 
-         DO ix = 1, len (ik) 
+         DO ix = 1, lenc(ik) 
          IF (x (offxy (ik - 1) + ix) .ge.wx1.and.x (offxy (ik - 1)      &
          + ix) .le.wx2) then                                            
             wert (1) = x (offxy (ik - 1) + ix) 
@@ -873,6 +873,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 USE precision_mod
 USE sys_compiler
 !                                                                       
@@ -892,7 +893,6 @@ USE sys_compiler
       INTEGER ixm (maxmax), iym (maxmax) 
       INTEGER ianz, ifil, im, ima, ik 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       cout = 'maxima' 
 !                                                                       
@@ -1142,7 +1142,7 @@ USE sys_compiler
 !                                                                       
       yma = - 1e38 
       ymi = 1e38 
-      DO ip = 1, len (i) 
+      DO ip = 1, lenc(i) 
       IF (x (offxy (i - 1) + ip) .ge.ex (iwin, iframe, 1) .and.x (offxy &
       (i - 1) + ip) .le.ex (iwin, iframe, 2) ) then                     
          yma = max (yma, y (offxy (i - 1) + ip) ) 
@@ -1217,7 +1217,7 @@ USE sys_compiler
       LOGICAL max_da 
 !                                                                       
       ima = 1 
-      DO ix = 1 + ifen, len (ik) - ifen 
+      DO ix = 1 + ifen, lenc(ik) - ifen 
       IF (x (offxy (ik - 1) + ix) .ge.ex (iwin, iframe, 1) .and.x (     &
       offxy (ik - 1) + ix) .le.ex (iwin, iframe, 2) ) then              
          max_da = .true. 

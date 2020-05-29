@@ -11,6 +11,7 @@
       USE kuplot_mod 
 !
 USE precision_mod
+USE str_comp_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -23,7 +24,6 @@ USE precision_mod
       CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       INTEGER lpara (maxw), ianz 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       lp = -lp
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -174,6 +174,14 @@ USE precision_mod
             CALL do_enter_command (lend) 
             IF (lend) return 
             CALL draw_button (11, .false., .false.) 
+!                                                                       
+!------ --- Select layer
+!
+         ELSEIF (hit_button (12, mx, my) ) THEN
+            CALL draw_button (12, .false., .true.) 
+            CALL do_layer(.true.)
+continue
+            CALL draw_button (12, .false., .false.) 
          ENDIF 
       ENDIF 
       IF (iaf (iwin) .gt.1) call border_frame (iframe, 1, 0.02) 
@@ -213,6 +221,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -220,7 +229,6 @@ USE precision_mod
       REAL xh, yh, xt, yt 
       INTEGER ini 
 !                                                                       
-      INTEGER len_str 
       LOGICAL n_in_f 
 !                                                                       
 !------ Draw borders and filling of menu region                         
@@ -251,17 +259,18 @@ USE precision_mod
       xt = 1.0 - 0.50 * dev_draw (iwin, 1) 
       yt = dev_draw (iwin, 1) * 0.9 
 !                                                                       
-      CALL def_button (2, 'Coordinates', xt, 0.95, yt, 0.04) 
-      CALL def_button (8, 'Distances', xt, 0.90, yt, 0.04) 
-      CALL def_button (3, 'Select region', xt, 0.80, yt, 0.04) 
-      CALL def_button (4, 'Zoom', xt, 0.75, yt, 0.04) 
-      CALL def_button (5, 'Move', xt, 0.70, yt, 0.04) 
-      CALL def_button (6, 'Reset region', xt, 0.65, yt, 0.04) 
-      CALL def_button (9, 'Select zmin', xt, 0.55, yt, 0.04) 
-      CALL def_button (10, 'Select zmax', xt, 0.50, yt, 0.04) 
-      CALL def_button (7, 'Select frame', xt, 0.40, yt, 0.04) 
+      CALL def_button (2, 'Coordinates',    xt, 0.95, yt, 0.04) 
+      CALL def_button (8, 'Distances',      xt, 0.90, yt, 0.04) 
+      CALL def_button (3, 'Select region',  xt, 0.80, yt, 0.04) 
+      CALL def_button (4, 'Zoom',           xt, 0.75, yt, 0.04) 
+      CALL def_button (5, 'Move',           xt, 0.70, yt, 0.04) 
+      CALL def_button (6, 'Reset region',   xt, 0.65, yt, 0.04) 
+      CALL def_button (9, 'Select zmin',    xt, 0.55, yt, 0.04) 
+      CALL def_button (10, 'Select zmax',   xt, 0.50, yt, 0.04) 
+      CALL def_button (12, 'Select layer',  xt, 0.60, yt, 0.04) 
+      CALL def_button (7, 'Select frame',   xt, 0.40, yt, 0.04) 
       CALL def_button (11, 'Enter command', xt, 0.25, yt, 0.04) 
-      CALL def_button (1, 'Exit menu', xt, 0.20, yt, 0.04) 
+      CALL def_button (1, 'Exit menu',      xt, 0.20, yt, 0.04) 
 !                                                                       
       CALL draw_button (1, .false., .false.) 
       CALL draw_button (2, .false., .false.) 
@@ -274,6 +283,7 @@ USE precision_mod
       CALL draw_button (9, .not.n_in_f (ini), .false.) 
       CALL draw_button (10, .not.n_in_f (ini), .false.) 
       CALL draw_button (11, .false., .false.) 
+      CALL draw_button (12, .not.(n_in_f (ini).AND.lh5(iz-1)), .false.) 
 !                                                                       
       CALL draw_tframe (' ', ' ', 'Use the EXIT button to return to comm&
      &and mode ...')                                                    
@@ -286,6 +296,7 @@ USE precision_mod
 !                                                                       
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -294,7 +305,6 @@ USE precision_mod
       REAL xt, yt, xh, yh 
       INTEGER ltext 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       t1 = tt1 
       t2 = tt2 
@@ -378,11 +388,12 @@ USE precision_mod
 !                                                                       
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) cmd, befehl 
-      INTEGER ic, ib, il, ir, len_str 
+      INTEGER ic, ib, il, ir
 !                                                                       
       ic = len_str (cmd) 
       il = 1 
@@ -510,7 +521,10 @@ USE precision_mod
       USE kuplot_config 
       USE kuplot_mod 
 !
+USE lib_errlist_func
+USE lib_macro_func
 USE precision_mod
+USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -518,7 +532,6 @@ USE precision_mod
       INTEGER ic, ib, macro_level_old 
       LOGICAL lend, lreg 
 !                                                                       
-      LOGICAL str_comp 
 !                                                                       
       lend = .false. 
 !                                                                       
@@ -635,6 +648,61 @@ USE precision_mod
  1000 FORMAT     ('New range Z: ',G12.6,' to ',G12.6) 
 !                                                                       
       END SUBROUTINE do_zscale                      
+!******7****************************************************************
+      SUBROUTINE do_layer  (lmin) 
+!                                                                       
+!     Set H5 layer increment ++1 by mouse                               
+!     LEFT : up by 5% / MIDDLE : down by 5% / RIGHT : back to menu      
+!                                                                       
+      USE errlist_mod 
+      USE kuplot_config 
+      USE kuplot_mod 
+      USE kuplot_load_h5
+!                                                                       
+      IMPLICIT none 
+!                                                                       
+      CHARACTER(80) zeile 
+      CHARACTER(1) key 
+      REAL wx, wy!, hub 
+      INTEGER ini 
+INTEGER :: n_layer
+      LOGICAL lw, lmin, l2d, n_in_f 
+!                                                                       
+      lw = .true. 
+      l2d = n_in_f (ini) 
+!                                                                       
+      CALL draw_tframe (' ', 'LEFT button: down  / MIDDLE button: up' &
+     &  , 'RIGHT botton: back')                                         
+!                                                                       
+!------ First point                                                     
+!                                                                       
+   10 CONTINUE 
+      CALL open_viewport 
+      CALL PGSCI (ilinecol (iwin, iframe, 0) ) 
+      CALL PGBAND (0, 0, 0.0, 0.0, wx, wy, key) 
+!     hub = nz (iwin, iframe, 1) * z_inc (iwin, iframe, 1) 
+      IF (key.eq.butt_r) then 
+         GOTO 9999 
+      ELSEIF (key.eq.butt_l) then 
+         CALL hdf5_place_kuplot(-1, .FALSE., .FALSE., .FALSE.)
+      ELSEIF (key.eq.butt_m) then 
+         CALL hdf5_place_kuplot( 1, .FALSE., .FALSE., .FALSE.)
+      ENDIF 
+      CALL draw_frame (iframe, lw) 
+      GOTO 10 
+!                                                                       
+ 9999 CONTINUE 
+!                                                                       
+      CALL draw_frame (iframe, lw) 
+      CALL frame_menu 
+n_layer = hdf5_get_layer()
+      WRITE (zeile, 1000)  n_layer
+!                                                                       
+      CALL draw_tframe (zeile, ' ', ' ') 
+!                                                                       
+ 1000 FORMAT     ('New layer  : ',I7) 
+!                                                                       
+      END SUBROUTINE do_layer                      
 !******7****************************************************************
       SUBROUTINE do_fselect 
 !                                                                       

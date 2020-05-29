@@ -9,6 +9,8 @@
       USE kuplot_mod 
       USE variable_mod
       USE lib_upd_mod
+USE lib_length
+USE lib_errlist_func
       USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -30,7 +32,6 @@
       INTEGER idummy 
       INTEGER kpara (mmaxw) 
 !                                                                       
-      INTEGER length_com 
 !
 CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 IF(ier_num == 0) RETURN
@@ -113,7 +114,7 @@ CALL no_error
          ELSEIF (string (ikl - 1:ikl - 1) .eq.'x') then 
             IF (ianz.eq.2) then 
                IF (1.le.kpara (1) .and.kpara (1) .le. (iz - 1)          &
-               .and.1.le.kpara (2) .and.kpara (2) .le.len (kpara (1) ) )&
+               .and.1.le.kpara (2) .and.kpara (2) .le.lenc(kpara (1) ) )&
                then                                                     
                   WRITE (zeile (ikl - 1:ikl + PREC_WIDTH-2) , PREC_F_REAL) x (    &
                   offxy (kpara (1) - 1) + kpara (2) )                   
@@ -130,7 +131,7 @@ CALL no_error
          ELSEIF (string (ikl - 1:ikl - 1) .eq.'y') then 
             IF (ianz.eq.2) then 
                IF (1.le.kpara (1) .and.kpara (1) .le. (iz - 1)          &
-               .and.1.le.kpara (2) .and.kpara (2) .le.len (kpara (1) ) )&
+               .and.1.le.kpara (2) .and.kpara (2) .le.lenc(kpara (1) ) )&
                then                                                     
                   WRITE (zeile (ikl - 1:ikl + PREC_WIDTH-2) , PREC_F_REAL) y (    &
                   offxy (kpara (1) - 1) + kpara (2) )                   
@@ -175,7 +176,7 @@ CALL no_error
          IF (string (ikl - 2:ikl - 1) .eq.'dx') then 
             IF (ianz.eq.2) then 
                IF (1.le.kpara (1) .and.kpara (1) .le. (iz - 1)          &
-               .and.1.le.kpara (2) .and.kpara (2) .le.len (kpara (1) ) )&
+               .and.1.le.kpara (2) .and.kpara (2) .le.lenc(kpara (1) ) )&
                then                                                     
                   WRITE (zeile (ikl - 2:ikl + PREC_WIDTH-2) , PREC_F_REAL) dx (   &
                   offxy (kpara (1) - 1) + kpara (2) )                   
@@ -192,7 +193,7 @@ CALL no_error
          ELSEIF (string (ikl - 2:ikl - 1) .eq.'dy') then 
             IF (ianz.eq.2) then 
                IF (1.le.kpara (1) .and.kpara (1) .le. (iz - 1)          &
-               .and.1.le.kpara (2) .and.kpara (2) .le.len (kpara (1) ) )&
+               .and.1.le.kpara (2) .and.kpara (2) .le.lenc(kpara (1) ) )&
                then                                                     
                   WRITE (zeile (ikl - 2:ikl + PREC_WIDTH-2) , PREC_F_REAL) dy (   &
                   offxy (kpara (1) - 1) + kpara (2) )                   
@@ -250,7 +251,7 @@ CALL no_error
                   IF (lni (kpara (1) ) ) then 
                      WRITE(zeile(ikl-2:ikl+PREC_WIDTH-2),PREC_F_INTE) ny(kpara(1))*ny(kpara(1))
                   ELSE
-                     WRITE(zeile(ikl-2:ikl+PREC_WIDTH-2),PREC_F_INTE) len(kpara(1))
+                     WRITE(zeile(ikl-2:ikl+PREC_WIDTH-2),PREC_F_INTE) lenc(kpara(1))
                   ENDIF 
                ELSE 
                   ier_num = - 8 
@@ -550,6 +551,7 @@ SUBROUTINE kuplot_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_errlist_func
       USE lib_upd_mod
 USE precision_mod
 !                                                                       
@@ -610,7 +612,7 @@ CALL no_error
       ELSEIF (ctype.eq.'x') then 
          IF (ianz.eq.2) then 
             IF (1.le.ww (1) .and.ww (1) .le. (iz - 1) .and.1.le.ww (2)  &
-            .and.ww (2) .le.len (ww (1) ) ) then                        
+            .and.ww (2) .le.lenc (ww (1) ) ) then                        
                x (offxy (ww (1) - 1) + ww (2) ) = wert 
             ELSE 
                ier_num = - 8 
@@ -624,7 +626,7 @@ CALL no_error
       ELSEIF (ctype.eq.'dx') then 
          IF (ianz.eq.2) then 
             IF (1.le.ww (1) .and.ww (1) .le. (iz - 1) .and.1.le.ww (2)  &
-            .and.ww (2) .le.len (ww (1) ) ) then                        
+            .and.ww (2) .le.lenc (ww (1) ) ) then                        
                dx (offxy (ww (1) - 1) + ww (2) ) = wert 
             ELSE 
                ier_num = - 8 
@@ -638,7 +640,7 @@ CALL no_error
       ELSEIF (ctype.eq.'y') then 
          IF (ianz.eq.2) then 
             IF (1.le.ww (1) .and.ww (1) .le. (iz - 1) .and.1.le.ww (2)  &
-            .and.ww (2) .le.len (ww (1) ) ) then                        
+            .and.ww (2) .le.lenc (ww (1) ) ) then                        
                y (offxy (ww (1) - 1) + ww (2) ) = wert 
             ELSE 
                ier_num = - 8 
@@ -652,7 +654,7 @@ CALL no_error
       ELSEIF (ctype.eq.'dy') then 
          IF (ianz.eq.2) then 
             IF (1.le.ww (1) .and.ww (1) .le. (iz - 1) .and.1.le.ww (2)  &
-            .and.ww (2) .le.len (ww (1) ) ) then                        
+            .and.ww (2) .le.lenc (ww (1) ) ) then                        
                dy (offxy (ww (1) - 1) + ww (2) ) = wert 
             ELSE 
                ier_num = - 8 
@@ -767,6 +769,7 @@ SUBROUTINE kuplot_calc_intr_spec(string, line, ikl, iklz, ww, laenge, lp)
 !     is found in this subroutine.                                      
 !+                                                                      
 USE errlist_mod 
+USE lib_length
 USE precision_mod
 !
       IMPLICIT none 
@@ -781,7 +784,6 @@ USE precision_mod
 !                                                                       
       INTEGER il 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
 !------ so far no special functions :-)                                 
 !------ so we should not end up here ...                                
@@ -789,7 +791,7 @@ USE precision_mod
       ier_num = - 3 
       ier_typ = ER_FORT 
 !                                                                       
-      il = max (len (ier_msg (1) ) - 11, len_str (string) ) 
+      il = max (LEN(ier_msg (1) ) - 11, len_str(string) ) 
       ier_msg (1) = 'Function : '//string (1:30) 
 !                                                                       
       END SUBROUTINE kuplot_calc_intr_spec                 
@@ -847,6 +849,7 @@ SUBROUTINE kuplot_get_var_type(line,length, var_is_type)
 ! Returns the variable type : INTEGER, REAL, CHARACTER, and Scalar versus field
 !
 USE constants_mod
+USE lib_get_var
 USE variable_mod
 !
 IMPLICIT NONE

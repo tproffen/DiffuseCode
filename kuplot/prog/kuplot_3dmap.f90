@@ -25,8 +25,13 @@ USE do_wait_mod
 USE doact_mod
 USE errlist_mod
 USE learn_mod
+USE lib_errlist_func
+USE lib_help
+USE lib_do_operating_mod
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod
+USE str_comp_mod
 USE sup_mod
 USE take_param_mod
 !
@@ -50,7 +55,6 @@ REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 !
 !INTEGER, EXTERNAL :: len_str
-LOGICAL, EXTERNAL :: str_comp
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, length) 
 IF (ier_num /= 0) RETURN 
@@ -88,7 +92,9 @@ main_loop: DO
 !                                                                       
             is_generic: IF (befehl (1:1) .eq.'@') THEN     ! macro, reset or all other commands
                IF (laenge.ge.2) THEN 
-                  CALL file_kdo (line (2:laenge), laenge-1) 
+                  line = line(2:laenge)
+                  laenge = 1
+                  CALL file_kdo(line, laenge)
                ELSE 
                   ier_num = - 13 
                   ier_typ = ER_MAC 
@@ -206,7 +212,9 @@ SUBROUTINE get_direction(line, length)
 !
 USE errlist_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -232,7 +240,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 DATA oname  / 'rho', 'phi' /
 DATA loname /  3   ,  3    /
@@ -258,7 +265,9 @@ SUBROUTINE get_xrange(line, length)
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -284,7 +293,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 DATA oname  / 'xmin', 'xmax' /
 DATA loname /  4    ,  4     /
@@ -336,7 +344,9 @@ SUBROUTINE get_yfunc (line, length)
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
+USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -361,7 +371,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 DATA oname  / 'loop'/
 DATA loname /  4    /
@@ -398,6 +407,7 @@ USE kuplot_mod
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE lib_errlist_func
 USE precision_mod
 USE take_param_mod
 USE variable_mod
@@ -479,7 +489,7 @@ IF(ier_num/=0) THEN
 ENDIF
 ik   = iz - 1                 ! This is the number of the current data set
 imin = 1                      ! Default to first data point
-imax = len(ik)                ! Default to length of data sets
+imax = lenc(ik)                ! Default to length of data sets
 IF(k3dm_lxmin) THEN           ! user specified xmin:xmin
    xxmin = x(offxy(ik-1)+1)
    imin  = 1
@@ -487,13 +497,13 @@ ELSE
    xxmin = k3dm_xmin
 ENDIF
 IF(k3dm_lxmax) THEN           ! user specified xmin:xmin
-   xxmax = x(offxy(ik-1)+len(ik))
+   xxmax = x(offxy(ik-1)+lenc(ik))
    imin  = 1
 ELSE
    xxmax = k3dm_xmax
 ENDIF
 DELTA = ABS(x(offxy(ik-1)+2)-x(offxy(ik-1)+1))*0.01    ! Calculate a sigma as (x(2)-x(1))/10
-minmax:DO i=1,len(ik)                                  ! Find number of user xmin, xmax
+minmax:DO i=1,lenc(ik)                                  ! Find number of user xmin, xmax
    IF(ABS(x(offxy(ik-1)+i)-xxmin)<DELTA) imin = i
    IF(ABS(x(offxy(ik-1)+i)-xxmax)<DELTA) THEN
       imax = i

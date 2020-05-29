@@ -72,7 +72,7 @@ SAVE
       REAL   , DIMENSION(MAXKURVTOT) :: xmin ! (maxkurvtot)
       REAL   , DIMENSION(MAXKURVTOT) :: ymax ! (maxkurvtot)
       REAL   , DIMENSION(MAXKURVTOT) :: ymin ! (maxkurvtot)
-      INTEGER, DIMENSION(MAXKURVTOT) :: len  ! (maxkurvtot)
+      INTEGER, DIMENSION(MAXKURVTOT) :: lenc ! (maxkurvtot)
       INTEGER                        :: iz
 !
 !     COMMON      /info/  fname,fform,xmax,xmin,ymax,ymin,len,iz
@@ -177,6 +177,7 @@ SAVE
       INTEGER hlabel(maxwin,maxframe,maxkurvtot)
       INTEGER         exclude9999
       LOGICAL lni(maxkurvtot)
+      LOGICAL :: lh5(maxkurvtot) = .FALSE.
 !
 !     COMMON /nipl/ lni,iho,nz,z_min,z_inc,nx,ny,zmin,zmax,             &
 !    &              hlinecol,hlinetyp,hlineart,pgmlow,pgmhigh,          &

@@ -329,6 +329,7 @@
       USE build_name_mod
       USE errlist_mod 
       USE get_params_mod
+USE lib_length
       USE prompt_mod 
 USE precision_mod
 USE sys_compiler
@@ -346,7 +347,6 @@ USE sys_compiler
       INTEGER lpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -375,6 +375,7 @@ USE sys_compiler
       USE build_name_mod
       USE errlist_mod 
       USE get_params_mod
+USE lib_length
 USE precision_mod
       USE prompt_mod 
 USE sys_compiler
@@ -392,7 +393,6 @@ USE sys_compiler
       INTEGER lp, ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -420,13 +420,13 @@ USE sys_compiler
 !-                                                                      
       USE kuplot_config 
       USE kuplot_mod 
+USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER(1) q 
       INTEGER idef, i, j, k 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
       q = char (39) 
 !                                                                       

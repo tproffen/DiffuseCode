@@ -4,15 +4,19 @@
 !     Displays error Messages for the error type APPLication
 !+
       USE errlist_mod 
+USE lib_errlist_func
       implicit      none
 !
 !
       integer       iu,io
-      parameter    (iu=-68,io=0)
+      parameter    (iu=-71,io=0)
 !
       character(LEN=45) ::  error(iu:io)
 !
       data error ( iu: -61) /                      &
+     &  'Optional layer number invalid',           &! -71  ! kupl
+     &  'Trouble reading dataset list   ',         &! -70  ! kupl
+     &  'Not a Yell/DISCUS h5 file      ',         &! -69  ! kupl
      &  'Sigma is zero with weight = DAT',         &! -68  ! kupl
      &  'Error reading GENERATION file',           &! -67  ! kupl
      &  'DIFFEV Rvalue file not found',            &! -66  ! kupl
