@@ -9,6 +9,7 @@ SUBROUTINE pdf_save_file(cdummy, pdf_rfmin, pdf_rfmax, pdf_deltar, pdf_us_int,&
 USE kuplot_config
 USE kuplot_mod
 USE errlist_mod
+USE lib_length
 USE sys_compiler
 !
 IMPLICIT NONE
@@ -35,7 +36,6 @@ INTEGER   :: nr
 INTEGER   :: maxpp
 INTEGER   :: ik
 !
-INTEGER :: len_str
 !
 lname   = len_str(cdummy)
 lkuplot = .false.
@@ -64,12 +64,12 @@ IF(lkuplot) THEN      ! 'write' into kuplot array
       dy (offxy (iz - 1) + nr) = 1.0
       nr = nr + 1
    ENDDO
-   len (iz) = nr - 1                      ! set length
-   offxy (iz) = offxy (iz - 1) + len (iz) ! set offset
+   lenc(iz) = nr - 1                      ! set length
+   offxy (iz) = offxy (iz - 1) + lenc(iz) ! set offset
    offz (iz) = offz (iz - 1)
    iz = iz + 1                            ! increment number of data sets
    ik = iz - 1
-   CALL get_extrema_xy (x, ik, len (ik), xmin, xmax)
+   CALL get_extrema_xy (x, ik, lenc(ik), xmin, xmax)
    fname(ik) = cdummy                     ! store filename
 ELSE                                      ! Normal write to disk
    CALL oeffne (57, cdummy, 'unknown') 

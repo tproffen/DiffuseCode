@@ -127,6 +127,7 @@ USE doact_mod
 USE errlist_mod
 USE exit_mod
 USE prompt_mod
+USE str_comp_mod
 USE sup_mod
 USE terminal_mod
 !
@@ -135,7 +136,6 @@ CHARACTER(LEN=8)  :: dummy
 INTEGER           :: lbef
 INTEGER           :: prompt_keep
 !
-LOGICAL, EXTERNAL :: str_comp
 !
 CALL exit_all
 CALL set_signal

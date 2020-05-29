@@ -1,3 +1,7 @@
+MODULE suite_errlist_func
+!
+CONTAINS
+!
 !*****7****************************************************************
 !
 SUBROUTINE suite_errlist_appl
@@ -5,6 +9,7 @@ SUBROUTINE suite_errlist_appl
 !     Displays error Messages for the error type APPLication
 !+
 USE errlist_mod
+USE lib_errlist_func
 IMPLICIT      none
 !
 !
@@ -20,4 +25,7 @@ DATA ERROR (  0:  0) /                                            &
 CALL disp_error ('APPL',error,iu,io)
 !
 END SUBROUTINE suite_errlist_appl
+!
 !*****7****************************************************************
+!
+END MODULE suite_errlist_func

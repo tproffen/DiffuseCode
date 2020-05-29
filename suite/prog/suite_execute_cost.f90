@@ -1,3 +1,7 @@
+!MODULE suite_execute_func
+!
+!CONTAINS
+!
 SUBROUTINE suite_execute_cost( repeat,           &
                          prog_len,         &
                          prog  ,  prog_l , &
@@ -35,12 +39,15 @@ USE appl_env_mod
 USe define_variable_mod
 USE do_set_mod
 USE errlist_mod
+USE lib_length
 USE mpi_slave_mod
 USE prompt_mod
 USE param_mod
 USE random_state_mod
 USE variable_mod
 USE lib_f90_allocate_mod
+USE lib_macro_func
+USE str_comp_mod
 USE sys_compiler
 !
 IMPLICIT NONE
@@ -98,8 +105,6 @@ INTEGER             :: ct_oprogr    ! Original program
 INTEGER             :: ct_ompifirst ! Original mpi_first state
 INTEGER             :: np
 INTEGER, DIMENSION(1) :: idummy = (/0 /)
-LOGICAL :: str_comp
-INTEGER :: len_str
 !
 ier_mpi = .TRUE.
 !
@@ -327,3 +332,4 @@ ier_mpi = .FALSE.
 2100 FORMAT ( a,' ',a,',',i8       )
 !
 END SUBROUTINE suite_execute_cost
+!END MODULE suite_execute_func

@@ -7,6 +7,7 @@ SUBROUTINE suite_set_sub
 ! Sets the specific SUITE  interfaces for routines that are refecenced in
 ! LIB_F90 by their generic names
 !
+USE suite_errlist_func
 USE set_sub_generic_mod
 !
 INTERFACE
@@ -19,10 +20,6 @@ INTERFACE
    END SUBROUTINE suite_mache_kdo
 END INTERFACE
 !
-INTERFACE
-   SUBROUTINE suite_errlist_appl
-   END SUBROUTINE suite_errlist_appl
-END INTERFACE
 !
 INTERFACE
    SUBROUTINE suite_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
@@ -139,8 +136,9 @@ SUBROUTINE  suite_set_sub_cost
 !
 ! Sets the specific SUITE  interfaces for the cost calculation function
 !
+!USE suite_execute_func
 USE set_sub_generic_mod
-!
+
 INTERFACE
    SUBROUTINE suite_execute_cost( repeat,    &
                             prog_len,         &
@@ -163,7 +161,7 @@ INTERFACE
                             rd_nseeds,rd_seeds,     &
                             l_first_job,            &
                             ierr )
-!
+!!
    IMPLICIT NONE
    LOGICAL                , INTENT(IN) :: repeat
    INTEGER                , INTENT(IN) :: prog_len

@@ -7,6 +7,7 @@ SUBROUTINE setup_suite_start
 !+
 USE appl_env_mod
 USE lib_f90_default_mod
+USE lib_init_mod
 USE prompt_mod
 !
 pname             = 'suite'

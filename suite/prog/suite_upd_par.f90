@@ -62,6 +62,7 @@ SUBROUTINE suite_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 USE calc_expr_mod
 USE errlist_mod 
 USE ersetz_mod
+USE lib_length
 USE param_mod 
 USE prompt_mod
 USE precision_mod
@@ -82,7 +83,6 @@ REAL(KIND=PREC_DP) , INTENT(INOUT) :: ww
 INTEGER              :: i, lcomm
 REAL                 :: werte (maxw)
 !                                                                       
-INTEGER              :: length_com 
 !                                                                       
 lcomm = length_com (string, ikl) 
 ier_num = - 1 
@@ -158,6 +158,7 @@ SUBROUTINE suite_get_var_type(line,length, var_is_type)
 ! Currently the suite does not offer local variables.
 !
 USE constants_mod
+USE lib_get_var
 USE variable_mod
 !
 IMPLICIT NONE

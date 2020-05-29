@@ -21,7 +21,9 @@ USE suite_init_mod
 USE suite_setup_mod
 USE suite_set_sub_mod
 USE charact_mod
+USE lib_macro_func
 USE precision_mod
+USE str_comp_mod
 USE variable_mod
 !
 IMPLICIT NONE
@@ -39,7 +41,6 @@ INTEGER              :: lbef, laenge
 INTEGER              :: lcomm
 LOGICAL              :: lmacro
 !
-LOGICAL str_comp
 !
 IF(str_comp(zeile, pname, LEN_TRIM(pname), length, LEN_TRIM(pname))) THEN
    ier_num = -15         ! branch to identical section
@@ -111,7 +112,8 @@ IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
    var_val(VAR_PROGRAM) = var_val(VAR_KUPLOT)
    var_val(VAR_STATE)   = var_val(VAR_IS_BRANCH)
    IF(lmacro) THEN           ! Execute "command line macro"
-      CALL file_kdo(line(1:lcomm),lcomm)
+      line = line(1:lcomm)
+      CALL file_kdo(line,lcomm)
    ENDIF
    IF(ier_num == 0) THEN     ! If no error in macro do interactive session
        CALL kuplot_loop    ()

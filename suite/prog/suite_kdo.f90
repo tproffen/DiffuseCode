@@ -34,8 +34,11 @@ USE errlist_mod
 USE class_macro_internal
 USE kdo_all_mod
 USE learn_mod 
+USE lib_errlist_func
+USE lib_macro_func
 USE prompt_mod
 USE envir_mod
+USE str_comp_mod
 USE variable_mod
 !USE set_sub_generic_mod
 !
@@ -49,7 +52,6 @@ CHARACTER (LEN=MAX(PREC_STRING,LEN(line))) :: zeile
 CHARACTER (LEN=   9)                  :: befehl 
 INTEGER                               :: indxb, indxg, lcomm, lbef, indxt 
 !                                                                       
-LOGICAL, EXTERNAL                     :: str_comp 
 !                                                                       
 lstandalone = .false.  ! Switch to slave mode for DIFFEV/DISCUS/KUPLOT
 !                                                                       
@@ -104,7 +106,9 @@ ELSE
 !                                                                 
    IF (befehl (1:1) .eq.'@') then 
       IF (length.ge.2) then 
-         CALL file_kdo (line (2:length), length - 1) 
+         line = line(2:length)
+         length = length - 1
+         CALL file_kdo (line, length)
       ELSE 
          ier_num = - 13 
          ier_typ = ER_MAC 

@@ -11,6 +11,8 @@ USE learn_mod
 USE class_macro_internal
 USE mpi_slave_mod
 USE do_if_mod
+USE lib_errlist_func
+USE lib_macro_func
 USE precision_mod
 USE prompt_mod 
 USE sup_mod

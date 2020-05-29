@@ -10,6 +10,7 @@ SUBROUTINE output_save_file_1d( outfile, npkt1, xwrt, ywrt )
 USE kuplot_config
 USE kuplot_mod
 USE errlist_mod
+USE lib_length
 USE sys_compiler
 !
 IMPLICIT NONE
@@ -28,7 +29,6 @@ INTEGER   :: nr
 INTEGER   :: maxpp
 INTEGER   :: ik
 !
-INTEGER   :: len_str
 !
 lname   = len_str(outfile)
 lkuplot = .false.
@@ -53,8 +53,8 @@ IF(lkuplot) THEN      ! 'write' into kuplot array
       dy(offxy (iz - 1) + nr) = 1.00
       nr = nr + 1
    ENDDO
-   len   (iz) = nr - 1                      ! set length
-   offxy (iz) = offxy (iz - 1) + len (iz) ! set offset
+   lenc  (iz) = nr - 1                      ! set length
+   offxy (iz) = offxy (iz - 1) + lenc(iz) ! set offset
    offz  (iz) = offz (iz - 1)
    xmin  (iz) = MINVAL(xwrt)
    xmax  (iz) = MAXVAL(xwrt)
@@ -84,6 +84,7 @@ SUBROUTINE output_save_file_2d( outfile, ranges, npkt1, npkt2, zwrt,&
 USE kuplot_config
 USE kuplot_mod
 USE errlist_mod
+USE lib_length
 USE sys_compiler
 !
 IMPLICIT NONE
@@ -105,7 +106,6 @@ INTEGER   :: maxpkt
 INTEGER   :: maxzz
 REAL      :: dxx, dyy
 !
-INTEGER   :: len_str
 !
 lname   = len_str(outfile)
 lkuplot = .false.
@@ -147,8 +147,8 @@ IF(lkuplot) THEN      ! 'write' into kuplot array
       y(offxy(iz - 1) + i) = ymin(iz) + (i-1)*dyy 
    ENDDO 
    lni(iz)   = .true.
-   len(iz)   = MAX(nx(iz),ny(iz))
-   offxy(iz) = offxy(iz-1) + len(iz)
+   lenc(iz)   = MAX(nx(iz),ny(iz))
+   offxy(iz) = offxy(iz-1) + lenc(iz)
    offz (iz) = offz (iz-1) + nx(iz)*ny(iz)
    iz        = iz + 1
    zmax (iz-1) = MAXVAL(zwrt)
