@@ -34,12 +34,40 @@ set (DIFFUSE_VERSION_PATCH 32)
 
 find_package(Readline REQUIRED)
 
+set (FIND_HDF_COMPONENTS C CXX Fortran shared)
+find_package(HDF5 NAMES "hdf5" COMPONENTS ${FIND_HDF_COMPONENTS} REQUIRED)
+if (HDF5_FOUND)
+  if (HDF5_shared_C_FOUND)
+    set (LINK_LIBS ${LINK_LIBS} ${HDF5_C_SHARED_LIBRARY})
+  endif ()
+  if (HDF5_shared_CXX_FOUND)
+    set (LINK_LIBS ${LINK_LIBS} ${HDF5_CXX_SHARED_LIBRARY})
+  endif ()
+  if (HDF5_shared_Fortran_FOUND)
+    set (LINK_LIBS ${LINK_LIBS} ${HDF5_FORTRAN_SHARED_LIBRARY})
+
+    message (status " COMPILING WITH TOPF")
+  endif ()
+    message (status " COMPILING WITH TOP  ? " ${HDF5_FOUND})
+    message (status " SHARED FOUND        ? " ${HDF5_shared_Fortran_FOUND})
+    message (status " STATIC_FOUND        ? " ${HDF5_static_Fortran_FOUND})
+#   set (LIBS ${LINK_LIBS}  ${HDF5_FORTRAN_SHARED_LIBRARY})
+  INCLUDE_DIRECTORIES (${HDF5_INCLUDE_DIR_FORTRAN})
+endif ()
+#   message (status " COMPILING WITH HDF5 ? " ${HDF5_FOUND})
+#   message (status " COMPILING WITH HDF5 ? " ${HDF5_shared_Fortran_FOUND})
+#   message (status " COMPILING WITH HDF5 ? " ${HDF5_FORTRAN_static_LIBRARY})
+    message (status " F SHARED LIB   TOP  ? " ${HDF5_FORTRAN_SHARED_LIBRARY})
+    message (status " LINK_LIBS      TOP  ? " ${LINK_LIBS})
+    message (status " LIBS           TOP  ? " ${LIBS})
+
 # Option to build a PYTHON interface
 option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" OFF)
 
 # Set common libraries
 
 set (DIFFUSE_LIBS ${READLINE_LIBRARY})
+
 
 ##64## if (WIN32 OR CYGWIN)
 ##64##   set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ws2_32)
