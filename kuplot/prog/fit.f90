@@ -192,7 +192,7 @@ real :: f, df(maxpara)
 !------ execute a macro file                                            
 !                                                                       
          ELSEIF (befehl (1:1) .eq.'@') then 
-            line = line(2:ll)
+            line(1:ll-1) = line(2:ll)
             ll   = ll - 1
             CALL file_kdo (line, ll) 
 !                                                                       
@@ -3790,7 +3790,7 @@ IF (ier_num.ne.0) RETURN
 !------ execute a macro file                                            
 !                                                                       
          ELSEIF (befehl (1:1) .eq.'@') THEN 
-            line = line(2:ll)
+            line(1:ll-1) = line(2:ll)
             ll   = ll - 1
             CALL file_kdo (line, ll) 
 !                                                                       

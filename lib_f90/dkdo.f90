@@ -248,7 +248,7 @@ ENDIF
          ier_num = 0 
          ier_typ = ER_NONE 
          IF (length.ge.2) then 
-            line = line(2:length)
+            line(1:length-1) = line(2:length)
             length = length - 1
             CALL file_kdo (line, length) 
          ELSE 
@@ -508,7 +508,7 @@ main: DO WHILE (level.gt. - 1.and. (                                    &
             DO WHILE (lblock_dbg) 
                CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom)
                IF (line (1:1) .eq.'@') THEN 
-                  line = line(2:length)
+                  line(1:length-1) = line(2:length)
                   length = length - 1
                   CALL file_kdo (line, length) 
                ELSE 
@@ -527,7 +527,7 @@ main: DO WHILE (level.gt. - 1.and. (                                    &
             length = 1 
          ENDIF 
          IF (line (1:1) .eq.'@') THEN 
-            line = line(2:length)
+            line(1:length-1) = line(2:length)
             length = length - 1
             CALL file_kdo (line, length) 
          ELSE 
