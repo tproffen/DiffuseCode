@@ -77,6 +77,8 @@ TODAY(BUILD_DATE)
 message (status " BUILD_DATE=${BUILD_DATE} ")
 configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/date.inc.template
                  ${CMAKE_CURRENT_BINARY_DIR}/date.inc )
+configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/version.inc.template
+                 ${CMAKE_CURRENT_BINARY_DIR}/version.inc )
 
 IF (WIN32 OR CYGWIN )
   set (CSOURCES ${CSOURCES} win32-glob.c)
