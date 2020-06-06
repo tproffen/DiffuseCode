@@ -827,10 +827,12 @@ loop_atoms: DO i = i_start, i_end
    ENDIF 
 ENDDO loop_atoms
 !
-IF(active_domain .AND. cr_mole(i)/=wr_doma_current) THEN   ! DOMAIN is finished
-   WRITE(ist, '(''domain end'')')
-   active_domain = .FALSE.
-   wr_doma_current = 0
+IF(active_domain) THEN
+   IF(cr_mole(i)/=wr_doma_current) THEN   ! DOMAIN is finished
+      WRITE(ist, '(''domain end'')')
+      active_domain = .FALSE.
+      wr_doma_current = 0
+   ENDIF
 ENDIF
 !
 CLOSE(ist) 
