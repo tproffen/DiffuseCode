@@ -1,0 +1,6 @@
+set prompt,off,on,save
+#
+#	$Id: systest.mac,v 1.1.1.1 2012/06/09 16:18:24 rbneder Exp $
+#
+echo "REFINE system macros seem to work ..."
+set prompt,old
