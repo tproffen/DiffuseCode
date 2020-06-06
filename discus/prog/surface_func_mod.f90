@@ -684,6 +684,7 @@ USE discus_plot_mod
 USE discus_plot_init_mod
 USE point_grp
 USE prop_para_mod 
+USE symm_sup_mod
 USE surface_mod
 USE wyckoff_mod 
 USE ber_params_mod
@@ -772,6 +773,8 @@ DATA loname /  5,       5,       5,        5     ,   4     ,   5     ,  4     , 
 opara  =  (/ '0.0000 ', '0.0000 ', '0.0000 ', '-2.550 ','inside ', 'init   ', 'run    ', '[0,0,1]', '[1,0,0]'  /)   ! Always provide fresh default values
 lopara =  (/  6,         6,         6       ,  6       ,  6      ,  4       ,  3       ,  7       ,  7         /)
 owerte =  (/  0.0,       0.0,       0.0     , -2.55    ,  0.0    ,  0.0     ,  0.0     ,  0.0     ,  0.0       /)
+!
+CALL symm_store                      ! Store current symmetry settings
 !                                                                       
 IF (cr_v.le.0.0) then 
    ier_num = - 35 
@@ -1249,6 +1252,8 @@ IF(ier_num==0) THEN
       ENDIF
    ENDIF
 ENDIF
+!
+CALL symm_restore                      ! Store current symmetry settings
 !                                                                       
 END SUBROUTINE boundary                       
 !*****7*****************************************************************
