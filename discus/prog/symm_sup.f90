@@ -1483,6 +1483,162 @@ END FUNCTION symm_occupied
 !
 !*****7*****************************************************************
 !
+SUBROUTINE symm_store
+!
+USE discus_allocate_appl_mod
+USE symm_mod
+USE symm_temp_mod
+!
+IMPLICIT NONE
+!
+INTEGER :: i,j
+!
+SYM_TEMP_MAXSCAT = SYM_MAXSCAT
+SYM_TEMP_MAXSITE = SYM_MAXSITE
+!
+IF(ALLOCATED(sym_latom)) THEN
+write(*,*) ' latom l/u   ', lbound(sym_latom), ubound(sym_latom)
+   IF(ALLOCATED(sym_temp_latom)) DEALLOCATE(sym_temp_latom)
+   i = LBOUND(sym_latom,1)
+   j = UBOUND(sym_latom,1)
+write(*,*) 'SYM_LATOM ', i,j
+   ALLOCATE(sym_temp_latom(i:j))
+   sym_temp_latom(i:j) = sym_latom(i:j)
+ENDIF
+#
+IF(ALLOCATED(sym_lsite)) THEN
+   IF(ALLOCATED(sym_temp_lsite)) DEALLOCATE(sym_temp_lsite)
+   i = LBOUND(sym_lsite,1)
+   j = UBOUND(sym_lsite,1)
+   ALLOCATE(sym_temp_lsite(i:j))
+   sym_temp_lsite(i:j) = sym_lsite(i:j)
+ENDIF
+#
+IF(ALLOCATED(sym_excl)) THEN 
+   IF(ALLOCATED(sym_temp_excl)) DEALLOCATE(sym_temp_excl)
+   i = LBOUND(sym_excl,1)
+   j = UBOUND(sym_excl,1)
+   ALLOCATE(sym_temp_excl(i:j))
+   sym_temp_excl(i:j) = sym_excl(i:j)
+ENDIF
+#
+sym_temp_incl       = sym_incl 
+sym_temp_use        = sym_use  ! ace group symmetry operation no. N
+sym_temp_sel_mode   = sym_sel_mode
+sym_temp_sel_prop   = sym_sel_prop
+sym_temp_start      = sym_start
+sym_temp_end        = sym_end
+sym_temp_sub_start  = sym_sub_start
+sym_temp_sub_end    = sym_sub_end
+sym_temp_n_excl     = sym_n_excl
+sym_temp_power      = sym_power
+sym_temp_axis_type  = sym_axis_type
+sym_temp_axis_atoms = sym_axis_atoms
+sym_temp_orig_type  = sym_orig_type
+sym_temp_orig_atom  = sym_orig_atom
+sym_temp_mode       = sym_mode
+sym_temp_new        = sym_new
+sym_temp_orig_mol   = sym_orig_mol
+sym_temp_power_mult = sym_power_mult
+sym_temp_type       = sym_type
+sym_temp_occup      = sym_occup
+sym_temp_sel_atom   = sym_sel_atom
+sym_temp_sel_sub    = sym_sel_sub
+sym_temp_dom_mode_shape = sym_dom_mode_shape
+sym_temp_dom_mode_atom  = sym_dom_mode_atom
+sym_temp_angle     = sym_angle
+sym_temp_radius    = sym_radius 
+sym_temp_hkl       = sym_hkl
+sym_temp_orig      = sym_orig
+sym_temp_or_tr     = sym_or_tr
+sym_temp_trans     = sym_trans
+sym_temp_uvw       = sym_uvw
+sym_temp_mat       = sym_mat
+sym_temp_rmat      = sym_rmat
+!
+END SUBROUTINE symm_store
+!
+!*****7*****************************************************************
+!
+SUBROUTINE symm_restore
+!
+USE discus_allocate_appl_mod
+USE symm_mod
+USE symm_temp_mod
+!
+IMPLICIT NONE
+!
+INTEGER :: i,j
+!
+SYM_MAXSCAT = SYM_TEMP_MAXSCAT
+SYM_MAXSITE = SYM_TEMP_MAXSITE
+!
+IF(ALLOCATED(sym_temp_latom)) THEN
+write(*,*) ' latom l/u   ', lbound(sym_temp_latom), ubound(sym_temp_latom)
+   IF(ALLOCATED(sym_latom)) DEALLOCATE(sym_latom)
+   i = LBOUND(sym_temp_latom,1)
+   j = UBOUND(sym_temp_latom,1)
+write(*,*) 'SYM_LATOM ', i,j
+   ALLOCATE(sym_latom(i:j))
+write(*,*) ' latom, temp ', lbound(sym_latom), ubound(sym_latom), &
+                            lbound(sym_temp_latom), ubound(sym_temp_latom)
+   sym_latom(i:j) = sym_temp_latom(i:j)
+ENDIF
+#
+IF(ALLOCATED(sym_temp_lsite)) THEN
+   IF(ALLOCATED(sym_lsite)) DEALLOCATE(sym_lsite)
+   i = LBOUND(sym_temp_lsite,1)
+   j = UBOUND(sym_temp_lsite,1)
+   ALLOCATE(sym_lsite(i:j))
+   sym_lsite(i:j) = sym_temp_lsite(i:j)
+ENDIF
+#
+IF(ALLOCATED(sym_temp_excl)) THEN
+   IF(ALLOCATED(sym_excl)) DEALLOCATE(sym_excl)
+   i = LBOUND(sym_temp_excl,1)
+   j = UBOUND(sym_temp_excl,1)
+   ALLOCATE(sym_excl(i:j))
+   sym_excl(i:j) = sym_temp_excl(i:j)
+ENDIF
+#
+sym_incl       = sym_temp_incl 
+sym_use        = sym_temp_use  ! ace group symmetry operation no. N
+sym_sel_mode   = sym_temp_sel_mode
+sym_sel_prop   = sym_temp_sel_prop
+sym_start      = sym_temp_start
+sym_end        = sym_temp_end
+sym_sub_start  = sym_temp_sub_start
+sym_sub_end    = sym_temp_sub_end
+sym_n_excl     = sym_temp_n_excl
+sym_power      = sym_temp_power
+sym_axis_type  = sym_temp_axis_type
+sym_axis_atoms = sym_temp_axis_atoms
+sym_orig_type  = sym_temp_orig_type
+sym_orig_atom  = sym_temp_orig_atom
+sym_mode       = sym_temp_mode
+sym_new        = sym_temp_new
+sym_orig_mol   = sym_temp_orig_mol
+sym_power_mult = sym_temp_power_mult
+sym_type       = sym_temp_type
+sym_occup      = sym_temp_occup
+sym_sel_atom   = sym_temp_sel_atom
+sym_sel_sub    = sym_temp_sel_sub
+sym_dom_mode_shape = sym_temp_dom_mode_shape
+sym_dom_mode_atom  = sym_temp_dom_mode_atom
+sym_angle     = sym_temp_angle
+sym_radius    = sym_temp_radius 
+sym_hkl       = sym_temp_hkl
+sym_orig      = sym_temp_orig
+sym_or_tr     = sym_temp_or_tr
+sym_trans     = sym_temp_trans
+sym_uvw       = sym_temp_uvw
+sym_mat       = sym_temp_mat
+sym_rmat      = sym_temp_rmat
+!
+END SUBROUTINE symm_restore
+!
+!*****7*****************************************************************
+!
 SUBROUTINE symm_reset
 !
 USE discus_allocate_appl_mod
