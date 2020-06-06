@@ -120,7 +120,7 @@ add_custom_target(suitehlp
 
 install (TARGETS discus_suite DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/suite/prog/suite.hlp DESTINATION share)
-#FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/suite/prog/sysmac/*.mac")
-#install (FILES ${files} DESTINATION share/suite)
+FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/suite/prog/sysmac/*.mac")
+install (FILES ${files} DESTINATION share/suite)
 
 
