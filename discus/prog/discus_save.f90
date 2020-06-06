@@ -787,10 +787,12 @@ loop_atoms: DO i = i_start, i_end
       wr_magn(:) = 0.0
       IF(sav_w_prop) wr_prop = cr_prop(i)
       IF (sav_w_mole .OR. sav_w_doma .OR. sav_w_obje) THEN 
-         IF(active_domain .AND. cr_mole(i)/=wr_doma_current) THEN   ! DOMAIN is finished
-            WRITE(ist, '(''domain end'')')
-            active_domain = .FALSE.
-            wr_doma_current = 0
+         IF(active_domain) THEN
+            IF(cr_mole(i)/=wr_doma_current) THEN   ! DOMAIN is finished
+               WRITE(ist, '(''domain end'')')
+               active_domain = .FALSE.
+               wr_doma_current = 0
+            ENDIF
          ENDIF
          IF(cr_mole(i)/=0) THEN
             wr_mole = cr_mole(i)
