@@ -132,3 +132,6 @@ FILE (APPEND ${DIFFUSE_BINARY_DIR}/DiscusSuite.txt "\nManual      : ${CMAKE_INST
 FILE (APPEND ${DIFFUSE_BINARY_DIR}/DiscusSuite.txt "\nHelpdir     : ${CMAKE_INSTALL_PREFIX}/share/")
 FILE (APPEND ${DIFFUSE_BINARY_DIR}/DiscusSuite.txt "\nVersion     : ${DIFFUSE_VERSION_MAJOR}.${DIFFUSE_VERSION_MINOR}.${DIFFUSE_VERSION_PATCH}\n")
 install (FILES ${DIFFUSE_BINARY_DIR}/DiscusSuite.txt DESTINATION share)
+#FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/suite/prog/sysmac/*.mac")
+#install (FILES ${files} DESTINATION share/suite)
+
