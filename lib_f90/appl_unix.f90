@@ -816,9 +816,9 @@ progname_l = LEN(TRIM(progname))
 !
 mac_dir = ' ' 
 mac_dir (1:appl_dir_l) = appl_dir 
-mac_dir (appl_dir_l + 1:appl_dir_l + progname_l + 10) = '../share/'//     &
-progname (1:progname_l) //'/'                                           
-mac_dir_l = LEN(TRIM (mac_dir) )
+mac_dir (appl_dir_l + 1:appl_dir_l + LEN_TRIM(pname)  + 10) = '../share/'//     &
+pname (1:LEN_TRIM(pname)) //'/'                                           
+mac_dir_l = LEN_TRIM (mac_dir) 
 !                                                                       
 umac_dir = home_dir(1:home_dir_l)//'/mac/'//progname(1:progname_l) //'/'
 umac_dir_l = LEN(TRIM (umac_dir) )
