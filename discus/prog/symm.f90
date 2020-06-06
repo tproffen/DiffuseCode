@@ -537,7 +537,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !-----      --------Apply symmetry operation to atoms                   
 !                                                                       
-                     IF(sym_end == -1) sym_end=cr_natoms
+                     IF(sym_incl == 'all') sym_end=cr_natoms
+!                    IF(sym_end == -1) sym_end=cr_natoms
                      IF(.NOT. (sym_start >= 1           .AND. &
                                sym_end <= cr_natoms     .AND. &
                                sym_start <= sym_end)          ) THEN
