@@ -1497,11 +1497,9 @@ SYM_TEMP_MAXSCAT = SYM_MAXSCAT
 SYM_TEMP_MAXSITE = SYM_MAXSITE
 !
 IF(ALLOCATED(sym_latom)) THEN
-write(*,*) ' latom l/u   ', lbound(sym_latom), ubound(sym_latom)
    IF(ALLOCATED(sym_temp_latom)) DEALLOCATE(sym_temp_latom)
    i = LBOUND(sym_latom,1)
    j = UBOUND(sym_latom,1)
-write(*,*) 'SYM_LATOM ', i,j
    ALLOCATE(sym_temp_latom(i:j))
    sym_temp_latom(i:j) = sym_latom(i:j)
 ENDIF
@@ -1574,14 +1572,10 @@ SYM_MAXSCAT = SYM_TEMP_MAXSCAT
 SYM_MAXSITE = SYM_TEMP_MAXSITE
 !
 IF(ALLOCATED(sym_temp_latom)) THEN
-write(*,*) ' latom l/u   ', lbound(sym_temp_latom), ubound(sym_temp_latom)
    IF(ALLOCATED(sym_latom)) DEALLOCATE(sym_latom)
    i = LBOUND(sym_temp_latom,1)
    j = UBOUND(sym_temp_latom,1)
-write(*,*) 'SYM_LATOM ', i,j
    ALLOCATE(sym_latom(i:j))
-write(*,*) ' latom, temp ', lbound(sym_latom), ubound(sym_latom), &
-                            lbound(sym_temp_latom), ubound(sym_temp_latom)
    sym_latom(i:j) = sym_temp_latom(i:j)
 ENDIF
 #
