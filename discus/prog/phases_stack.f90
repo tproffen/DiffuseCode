@@ -24,21 +24,24 @@ IMPLICIT NONE
 INTEGER, INTENT(IN) :: n_layers  ! Number of layers for current layer type
 INTEGER, INTENT(IN) :: st_nlayer ! Total number of layers
 INTEGER :: k,iscat, jscat
-INTEGER :: n_pha    ! Number of phases
-INTEGER :: n_pts    ! Number of points in powder pattern
-INTEGER :: n_scat   ! Number of atom types
+INTEGER :: n_pha=0    ! Number of phases
+INTEGER :: n_pts=0    ! Number of points in powder pattern
+INTEGER :: n_scat=0   ! Number of atom types
 INTEGER :: npkt
 !
 REAL( KIND(0.0D0))             :: signum
 !
-IF(cr_nscat+pha_nscat(pha_curr) > PHA_MAXSCAT) THEN
-   n_pha  = pha_curr
-   n_pts  = PHA_MAXPTS
-   n_scat = cr_nscat + pha_nscat(pha_curr)
+npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
+!
+IF(cr_nscat+pha_nscat(pha_curr) > PHA_MAXSCAT .OR.  &
+   npkt > PHA_MAXPTS                          .OR.  &
+   pha_curr > PHA_MAXPHA                            ) THEN
+   n_pha  = MAX(n_pha, pha_curr)
+   n_pts  = MAX(n_pts, npkt , PHA_MAXPTS)
+   n_scat = MAX(n_pha, cr_nscat + pha_nscat(pha_curr))
    CALL alloc_phases(n_pha, n_pts, n_scat)
 ENDIF
 !
-npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
 CALL crystal_calc_mass
 !
 pha_weight(pha_curr) = pha_weight(pha_curr) + cr_mass   ! accumulate masses of layer types
