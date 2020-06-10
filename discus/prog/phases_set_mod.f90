@@ -152,6 +152,7 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
+character(len=256) :: ofile
 INTEGER :: k,iscat
 INTEGER :: npkt
 REAL( KIND(0.0D0))             :: signum
@@ -226,6 +227,12 @@ ELSE                                                 ! Complete powder patterm, 
    ENDDO
 !close(66)
 ENDIF
+!write(ofile,'(a,i1.1)') 'phases.place.',pha_curr
+!open(66, file=ofile, status='unknown')
+!   DO k=0, npkt
+!write(66, '(3F20.6)') pow_qmin + (k-1)*pow_deltaq, pow_conv(k), pha_powder(k,pha_curr)
+!  ENDDO
+!close(66)
 !
 ! Adjust powder pattern if clin or cquad are non-zero
 !
@@ -398,6 +405,7 @@ ENDDO
 !
 !write(*,*) ' IN PHASES ', deb_conv .OR. .NOT.ldbw, deb_conv , .NOT.ldbw
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
+!write(*,*) ' DEBYE was     done  with conv '
    DO k=0, npkt
       pow_sq(k) = pow_sq(k) / REAL(pow_faver2(k))                               &
                   + 1.0 - pow_f2aver(k)/pow_faver2(k)
@@ -406,7 +414,7 @@ IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution 
 !                   pow_f2aver(j)/pow_faver2(j))
    ENDDO
 ELSE
-!write(*,*) ' DEBYE was not doen  with conv ', &
+!write(*,*) ' DEBYE was not done  with conv '
 ! .NOT. (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0), &
 ! pdf_clin_a/=0.0, pdf_cquad_a/=0.0
    IF(.NOT. (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0)) THEN
