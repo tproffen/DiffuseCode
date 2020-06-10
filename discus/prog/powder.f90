@@ -57,10 +57,11 @@ IMPLICIT none
       LOGICAL lend
 !                                                                       
 !                                                                       
-      lend = .false. 
-      CALL no_error 
-      orig_prompt = prompt
-      prompt = prompt (1:len_str (prompt) ) //'/powd' 
+lend = .false. 
+CALL no_error 
+orig_prompt = prompt
+prompt = prompt (1:len_str (prompt) ) //'/powd' 
+diff_lsingle = .FALSE.
 !                                                                       
 main: DO while (.not.lend) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 

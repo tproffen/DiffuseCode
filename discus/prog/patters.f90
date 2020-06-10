@@ -83,6 +83,8 @@ USE str_comp_mod
      &, 'Phase angle   ', 'Real Part     ', 'Imaginary Part', 'Fcalc    &
      &     ' /                                                          
 !
+
+diff_lsingle = .TRUE.
       maxw     = MAX(MIN_PARA,MAXSCAT+1)
 !     n_qxy    = 1
 !     n_nscat  = 1

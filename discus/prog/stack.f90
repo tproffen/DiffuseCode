@@ -2233,7 +2233,7 @@ LOGICAL, INTENT(IN) :: calc_f2aver
 !              pow_u2aver    = pow_u2aver + cr_dw(iscat) * n_layers * nxat
 !           ENDIF
          ENDDO 
-         IF(st_new_form) THEN
+         IF(st_new_form .AND. .NOT.diff_lsingle) THEN            ! New Form factros and powder diffraction
             CALL phases_place_stack_form(n_layers, st_nlayer)    ! Place all form factors of current layer type
          ENDIF
 !                                                                       

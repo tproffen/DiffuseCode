@@ -88,6 +88,7 @@ USE str_comp_mod
       n_natoms = 1
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/fourier' 
+diff_lsingle = .TRUE.
 !                                                                       
    10 CONTINUE 
 !                                                                       

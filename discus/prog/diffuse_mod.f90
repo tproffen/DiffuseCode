@@ -86,6 +86,7 @@ INTEGER , DIMENSION(1:6)                ::  lmn      = 0
 LOGICAL                                 ::  ano      = .false.
 LOGICAL                                 ::  ldbw     = .false.
 LOGICAL                                 ::  lxray    = .true.
+LOGICAL                                 ::  diff_lsingle  = .true.
 INTEGER                                 ::  diff_radiation = RAD_XRAY
 INTEGER                                 ::  diff_power     = 4
 REAL    , DIMENSION(1:3, 1:4)           ::  eck      = reshape((/ 0.0, 0.0,  0.0, &
