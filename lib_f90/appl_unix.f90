@@ -960,17 +960,17 @@ INTEGER             :: ios            ! I/O status
 INTEGER             :: islash         ! I/O status 
 !
 !  Make a temp_file to write the system(ps) into
-WRITE(temp_file, '(a,I5.5)') '/tmp/getpname.', cpid
+WRITE(temp_file, '(a,I10.10)') '/tmp/getpname.', cpid
 !
 IF(operating(1:6)=='darwin') THEN
-   WRITE(line,'(a,I5,a,a)') 'ps -p ',tpid, ' -o comm= > ',temp_file(1:LEN_TRIM(temp_file))
+   WRITE(line,'(a,I10,a,a)') 'ps -p ',tpid, ' -o comm= > ',temp_file(1:LEN_TRIM(temp_file))
 ELSEIF(operating==OS_WINDOWS .OR. operating==OS_CYGWIN64 .OR. operating==OS_CYGWIN32) THEN
-   WRITE(line,'(a,i5,a,i5,a,a)') 'ps -p ',tpid, ' | grep ', tpid, '| grep -v grep > ', &
+   WRITE(line,'(a,i10,a,i10,a,a)') 'ps -p ',tpid, ' | grep ', tpid, '| grep -v grep > ', &
    temp_file(1:LEN_TRIM(temp_file))
 ELSEIF(operating==OS_LINUX) THEN
-   WRITE(line,'(a,I5,a,a)') 'ps -p ',tpid, ' -o comm= > ',temp_file(1:LEN_TRIM(temp_file))
+   WRITE(line,'(a,I10,a,a)') 'ps -p ',tpid, ' -o comm= > ',temp_file(1:LEN_TRIM(temp_file))
 ELSEIF(operating==OS_LINUX_WSL) THEN
-   WRITE(line,'(a,I5,a,a)') 'ps -p ',tpid, ' -o comm= > ',temp_file(1:LEN_TRIM(temp_file))
+   WRITE(line,'(a,I10,a,a)') 'ps -p ',tpid, ' -o comm= > ',temp_file(1:LEN_TRIM(temp_file))
 ENDIF
 CALL system(line)
 !
