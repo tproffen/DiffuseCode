@@ -1597,7 +1597,7 @@ INTEGER             :: ios
 LOGICAL :: lpresent
 LOGICAL :: did_kill
 !
-WRITE(kill_file, '(a,I5.5,a)') '/tmp/jmol.',PID,'.pid'
+WRITE(kill_file, '(a,I10.10,a)') '/tmp/jmol.',PID,'.pid'
 INQUIRE(FILE=kill_file, EXIST=lpresent)
 IF(lpresent) THEN
    WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
