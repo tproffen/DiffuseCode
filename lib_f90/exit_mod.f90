@@ -29,7 +29,7 @@ ENDIF
 !
 !------ Delete JMOL scripts
 !
-WRITE(tempfile, '(a,i5.5,a)') '/tmp/jmol.',PID,'.00001.mol'
+WRITE(tempfile, '(a,i10.10,a)') '/tmp/jmol.',PID,'.00001.mol'
 INQUIRE(FILE=tempfile,EXIST=lpresent)
 IF(lpresent) THEN
    line = 'rm -f ' // tempfile(1:len_trim(tempfile)-9) // '*.mol'
