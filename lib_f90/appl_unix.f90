@@ -36,6 +36,7 @@ CHARACTER(LEN=19  )         :: cfile
 CHARACTER(LEN=PREC_LSTRING) :: pathfile
 CHARACTER(LEN=PREC_LSTRING) :: ufile
 CHARACTER(LEN=PREC_STRING) :: message
+CHARACTER(LEN=15), PARAMETER :: etc_os_release = '/etc/os-release'
 INTEGER             :: exit_msg
 INTEGER ico, ice, iii, i, j
 INTEGER :: length
@@ -188,9 +189,9 @@ ENDIF
       ENDIF
 !
       color_theme = THEME_DEFAULT
-      INQUIRE(FILE='/etc/os-release',EXIST=lpresent)
+      INQUIRE(FILE=  etc_os_release ,EXIST=lpresent)
       IF(lpresent) THEN
-         CALL oeffne(idef, '/etc/os-release', 'old')
+         CALL oeffne(idef,   etc_os_release , 'old')
          i=0
          name_search: DO
             READ(idef,'(a)',IOSTAT = ios) line 
