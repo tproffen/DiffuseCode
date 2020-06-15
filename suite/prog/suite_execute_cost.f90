@@ -57,12 +57,12 @@ INTEGER                , INTENT(IN) :: prog_l
 INTEGER                , INTENT(IN) :: mac_len
 INTEGER                , INTENT(IN) :: mac_l
 INTEGER                , INTENT(IN) :: direc_len
-INTEGER                , INTENT(IN) :: direc_l
+INTEGER                , INTENT(INOUT) :: direc_l
 INTEGER                , INTENT(IN) :: output_len
 INTEGER                , INTENT(IN) :: output_l
 CHARACTER(LEN=prog_len), INTENT(IN) :: prog  
 CHARACTER(LEN=mac_len ), INTENT(IN) :: mac   
-CHARACTER(LEN=direc_len), INTENT(IN) :: direc 
+CHARACTER(LEN=direc_len), INTENT(INOUT) :: direc 
 INTEGER                , INTENT(IN) :: kid   
 INTEGER                , INTENT(IN) :: indiv
 CHARACTER(LEN=output_len), INTENT(IN) :: output
