@@ -247,7 +247,8 @@ INTEGER         , INTENT(INOUT) :: laenge
       CLOSE (if2) 
       CLOSE (if3) 
       IF (lcont) then 
-         CALL do_rename_file ('discus.scr', fname) 
+         datei = 'discus.scr' 
+         CALL do_rename_file (datei, fname) 
       ENDIF 
 !                                                                       
       IF (ier_num.ne.0) then 
