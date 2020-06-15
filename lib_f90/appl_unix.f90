@@ -153,12 +153,12 @@ IF(lpresent) THEN               ! /proc/version exists, Linux type OS
    ENDIF
 ELSE   !  /proc/version does not exist , likely a MAC OS X 
 !  Read OS from uname
-   WRITE(ufile,'(a,a,i6.6)') tmp_dir(1:tmp_dir_l), '/DISCUS_SUITE_UNAME.' , PID
+   WRITE(ufile,'(a,a,i10.10)') tmp_dir(1:tmp_dir_l), '/DISCUS_SUITE_UNAME.' , PID
    WRITE(line,'(a,a)') 'uname -av > ', ufile(1:LEN_TRIM(ufile))
 !   line = 'uname -av > '//tmp_dir(1:tmp_dir_l)//'/DISCUS_SUITE_UNAME'
    CALL do_operating_comm(line)
    line = ' '
-!  WRITE(line,'(a,a,i6.6)')                                           &
+!  WRITE(line,'(a,a,i10.10)')                                           &
 !         tmp_dir(1:tmp_dir_l), '/DISCUS_SUITE_UNAME' , PID
 !  INQUIRE(FILE=line                     ,EXIST=lpresent)
    OPEN(UNIT=idef, FILE=ufile)
@@ -388,7 +388,7 @@ ENDIF
                start_dir_l = start_dir_l + 1
             ENDIF
          ENDIF
-         CALL do_chdir ( start_dir, start_dir_l, .false.)
+         CALL do_chdir ( start_dir, start_dir_l, .FALSE.)
       ELSEIF(operating==OS_LINUX_WSL) THEN
          CALL do_cwd (start_dir, start_dir_l) 
          IF(start_dir == '/mnt/c/Users' ) THEN
@@ -413,7 +413,7 @@ ENDIF
                   start_dir = start_dir(1:start_dir_l) // '/' // &
                               user_name(1:LEN_TRIM(user_name))
                   start_dir_l = LEN_TRIM(start_dir)
-                  CALL do_chdir (start_dir, start_dir_l, .TRUE.) 
+                  CALL do_chdir(start_dir, start_dir_l, .FALSE.) 
                ENDIF
             ENDIF
          ENDIF
@@ -905,18 +905,18 @@ INTEGER             :: ios            ! I/O status
 tppid = 0   ! Default value 
 !
 !  Make a temp_file to write the system(ps) into
-WRITE(temp_file, '(a,I5.5)') '/tmp/getppid.', cpid
+WRITE(temp_file, '(a,I10.10)') '/tmp/getppid.', cpid
 !
 IF(operating(1:6)=='darwin') THEN
-   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep -v grep | awk ''{print $2, $3}'' >> ', &
+   WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep -v grep | awk ''{print $2, $3}'' >> ', &
        temp_file(1:LEN_TRIM(temp_file))
    CALL system(line)
 ELSEIF(operating==OS_WINDOWS .OR. operating==OS_CYGWIN64 .OR. operating==OS_CYGWIN32) THEN
-   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep discus  | awk ''{print $1, $2}'' >> ', &
+   WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep discus  | awk ''{print $1, $2}'' >> ', &
        temp_file(1:LEN_TRIM(temp_file))
    CALL system(line)
 ELSE
-   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep -v grep | awk ''{print $2, $1}'' >> ', &
+   WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep -v grep | awk ''{print $2, $1}'' >> ', &
        temp_file(1:LEN_TRIM(temp_file))
    CALL system(line)
 ENDIF
