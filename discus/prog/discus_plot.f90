@@ -1414,15 +1414,15 @@ IF(pl_prog=='jmol') THEN
 !
    jmol_no = jmol_no + 1
    IF(operating=='Linux') THEN
-      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
+      WRITE(tempfile,'(a,i10.10,a,i10.10,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating=='Linux_WSL') THEN
-      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
+      WRITE(tempfile,'(a,i10.10,a,i10.10,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating(1:6)=='darwin') THEN
-      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
+      WRITE(tempfile,'(a,i10.10,a,i10.10,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating(1:6)=='cygwin') THEN
-      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
+      WRITE(tempfile,'(a,i10.10,a,i10.10,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating(1:7)=='Windows') THEN
-      WRITE(tempfile,'(a,i5.5,a,i5.5,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
+      WRITE(tempfile,'(a,i10.10,a,i10.10,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
    ENDIF
    CALL oeffne( ITMP, tempfile, 'unknown')
    IF(operating=='Linux'.OR.operating(1:6)=='darwin' .OR. &
@@ -1557,10 +1557,10 @@ IF(pl_prog=='jmol') THEN
       WRITE(line,'(a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
    ELSEIF(operating(1:6)=='cygwin') THEN
-      WRITE(line,'(a,a,i5.5,a,i5.5,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
+      WRITE(line,'(a,a,i10.10,a,i10.10,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
             ' -s jmol.', PID, '.',jmol_no, '.mol  > /dev/null &'
    ELSEIF(operating(1:7)=='Windows') THEN
-      WRITE(line,'(a,a,i5.5,a,i5.5,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
+      WRITE(line,'(a,a,i10.10,a,i10.10,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
             ' -s ../../tmp/jmol.', PID, '.',jmol_no, '.mol  > /dev/null &'
 !
    ENDIF
@@ -1610,15 +1610,15 @@ ENDIF
 !
 did_kill = .FALSE.
 IF(operating=='Linux') THEN
-   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $3}'' >> ', &
+   WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $3}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
    CALL system(line)
 ELSEIF(operating=='Linux_WSL') THEN
-   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $3}'' >> ', &
+   WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $3}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
    CALL system(line)
 ELSEIF(operating(1:6)=='darwin') THEN
-   WRITE(line,'(a,i8,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $4}'' >> ', &
+   WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $4}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
    CALL system(line)
 
