@@ -193,85 +193,89 @@ USE precision_mod
  2010 FORMAT    (' ****SYST**** ',a38,' ****')
       END SUBROUTINE do_operating_comm              
 !*****7*****************************************************************
-      SUBROUTINE do_chdir (dir, ld, echo) 
+SUBROUTINE do_chdir (dir, ld, echo) 
 !+                                                                      
 !     Changes working directory ..                                      
 !-                                                                      
-      USE build_name_mod
-      USE errlist_mod 
-      USE envir_mod 
+USE build_name_mod
+USE errlist_mod 
+USE envir_mod 
 USE lib_length
 USE precision_mod
-      USE get_params_mod
-      USE prompt_mod 
-      USE string_convert_mod
-      IMPLICIT none 
+USE get_params_mod
+USE prompt_mod 
+USE string_convert_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      INTEGER MAXW 
-      PARAMETER (MAXW = 20) 
-      CHARACTER (LEN=*) dir 
-      CHARACTER(LEN=PREC_STRING) :: cwd 
-      CHARACTER(LEN=PREC_STRING) :: cpara (MAXW) 
-      CHARACTER(LEN=PREC_STRING) :: string
-      CHARACTER(LEN=   1) :: drive
-      INTEGER :: i
-      INTEGER lpara (MAXW) 
-      INTEGER ianz 
-      INTEGER ld, dummy 
-      LOGICAL echo 
-      REAL(KIND=PREC_DP) :: werte (MAXW) 
+INTEGER, PARAMETER :: MAXW = 20 
+CHARACTER(LEN=*), INTENT(INOUT) :: dir 
+INTEGER         , INTENT(INOUT) :: ld
+LOGICAL         , INTENT(IN)    :: echo 
+!
+CHARACTER(LEN=PREC_STRING) :: cwd 
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING) :: string
+CHARACTER(LEN=   1)        :: drive
+INTEGER                    :: i
+INTEGER, DIMENSION(MAXW)   :: lpara
+INTEGER                    :: ianz 
+INTEGER                    :: dummy 
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
-      INTEGER  :: getcwd
+INTEGER  :: getcwd
 !                                                                       
-      IF (dir.eq.' ') then 
-         dummy = getcwd (cwd )
-         ld = len_str (cwd) 
-         dir = cwd 
-         IF (echo) then 
-            WRITE ( *, 1000) cwd (1:ld) 
-         ENDIF 
-      ELSE 
-         ld = -ld
-         CALL get_params (dir, ianz, cpara, lpara, maxw, ld) 
-         CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-         IF(operating==OS_LINUX_WSL) THEN
-            string = cpara(1)
-            IF(string(2:2)==':') THEN
-               drive = string(1:1)
-               CALL do_low(drive)
-               cpara(1) = '/mnt/' // drive // string(3:LEN_TRIM(string))
-            ENDIF
-            lpara(1) = LEN_TRIM(cpara(1))
-            DO i=1,lpara(1)
-               IF(cpara(1)(i:i)=='\') cpara(1)(i:i) = '/'
-            ENDDO
-         ENDIF
-         dir = cpara (1) (1:lpara (1) ) 
-         ld = lpara (1) 
-         CALL chdir (dir (1:ld), ier_num) 
-         IF (ier_num.eq.0) then 
-            ier_typ = ER_NONE 
-            dummy = getcwd (cwd )
-            ld = len_str (cwd) 
-            IF(cwd(ld:ld) /= '/' ) THEN
-               cwd = cwd(1:ld) // '/'
-               ld  = ld + 1
-            ENDIF
-            IF(echo) WRITE (output_io, 1000) cwd (1:ld)
-            current_dir   = cwd(1:LEN(current_dir))
-            current_dir_l = MIN(ld, LEN(current_dir))
-         ELSE 
-            WRITE ( *, 2000) ier_num 
-            ier_num = - 5 
-            ier_typ = ER_COMM 
-         ENDIF 
-      ENDIF 
+IF (dir.eq.' ') then 
+   dummy = getcwd(cwd )
+   ld = LEN_TRIM(cwd) 
+   dir = cwd 
+   IF (echo) then 
+      WRITE ( *, 1000) cwd (1:ld) 
+   ENDIF 
+ELSE 
+   ld = -ld
+   cwd = dir
+   CALL get_params (cwd, ianz, cpara, lpara, maxw, ld) 
+   CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+   IF(operating==OS_LINUX_WSL) THEN
+      string = cpara(1)
+      IF(string(2:2)==':') THEN
+         drive = string(1:1)
+         CALL do_low(drive)
+         cpara(1) = '/mnt/' // drive // string(3:LEN_TRIM(string))
+      ENDIF
+      lpara(1) = LEN_TRIM(cpara(1))
+      DO i=1,lpara(1)
+         IF(cpara(1)(i:i)=='\') cpara(1)(i:i) = '/'
+      ENDDO
+   ENDIF
+   cwd = cpara (1) (1:lpara (1) ) 
+   ld = lpara (1) 
+   CALL chdir (dir (1:ld), ier_num) 
+   IF (ier_num.eq.0) then 
+      ier_typ = ER_NONE 
+      dummy = getcwd (cwd )
+      ld = len_str (cwd) 
+      IF(cwd(ld:ld) /= '/' ) THEN
+         cwd = cwd(1:ld) // '/'
+         ld  = ld + 1
+      ENDIF
+      IF(echo) WRITE (output_io, 1000) cwd (1:ld)
+      current_dir   = cwd(1:LEN(current_dir))
+      current_dir_l = MIN(ld, LEN(current_dir))
+      dir = current_dir
+      ld  = current_dir_l
+   ELSE 
+      WRITE ( *, 2000) ier_num 
+      ier_num = - 5 
+      ier_typ = ER_COMM 
+   ENDIF 
+ENDIF 
 !                                                                       
  1000 FORMAT    (' ------ > Working directory : ',a) 
  2000 FORMAT    (' ****SYST**** Unable to change directory - Error :',  &
      &             i5,  ' ****')                                        
-      END SUBROUTINE do_chdir                       
+END SUBROUTINE do_chdir                       
 !*****7*****************************************************************
       SUBROUTINE do_cwd (dir, ld) 
 !+                                                                      
