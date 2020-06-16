@@ -1945,7 +1945,8 @@
    When the command is given without an additional parameter, KUPLOT
    redraws the plot with a button area and enters the interactive 
    'mouse mode'. Use the 'EXIT' button to return to the normal command 
-   mode. The command 'mouse point' allows the user to select a point
+   mode. 
+   The command 'mouse point' allows the user to select a point
    within the active frame (-> afra) and returns the coordinates
    in the variable res[]:
 
