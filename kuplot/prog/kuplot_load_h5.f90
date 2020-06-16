@@ -13,12 +13,15 @@ PRIVATE
 PUBLIC hdf5_read
 PUBLIC hdf5_place_kuplot
 PUBLIC hdf5_get_layer
+PUBLIC hdf5_get_height
+PUBLIC hdf5_get_direct
 !
 CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE :: h5_datasets       ! Names of the data set in file
 CHARACTER(LEN=PREC_STRING)                            :: h5_infile         ! input file
 INTEGER                                               :: H5_MAX_DATASETS   ! Current MAX data sets
 INTEGER                                               :: h5_n_datasets     ! Current actual data sets
 INTEGER                                               :: h5_layer=1        ! Current layer in data set
+LOGICAL                                               :: h5_direct         ! Direct space == TRUE
 INTEGER                                               :: ndims             ! Number of dimensions
 INTEGER                                               :: one_ndims         ! Number of dimensions
 INTEGER(KIND=HSIZE_T), DIMENSION(3)                   :: h5_dims           ! Actual dimensions
@@ -247,6 +250,7 @@ CALL H5Dget_space_f(dset_id, space_id, hdferr)
 f_ptr = C_LOC(r_is_direct)
 CALL H5Dread_F(dset_id, H5T_STD_I32LE, f_ptr, hdferr)
 CALL H5Dclose_f(dset_id, hdferr)
+h5_direct = 1 == r_is_direct
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Get the stepss
@@ -287,12 +291,14 @@ ELSE
       ier_typ = ER_APPL
       ier_msg(1) = 'Layer number <= 0'
       ier_msg(2) = 'FILE '//h5_infile (1:LEN(ier_msg)-5)
+      DEALLOCATE(h5_datasets)
       RETURN
-   ELSEIF(nlayer  <= h5_dims(1)) THEN
+   ELSEIF(nlayer  >  h5_dims(1)) THEN
       ier_num = -71
       ier_typ = ER_APPL
       ier_msg(1) = 'Layer number <= 0'
       ier_msg(2) = 'FILE '//h5_infile (1:LEN(ier_msg)-5)
+      DEALLOCATE(h5_datasets)
       RETURN
    ENDIF
 ENDIF
@@ -468,7 +474,9 @@ IF(lnew) iz = iz + 1
 IF(lshow) THEN
    CALL show_data(iz - 1)!
    WRITE(output_io,1000) h5_dims(3), h5_dims(2), h5_dims(1)
-   1000 FORMAT('   Full size:', 2(i7,' x'), i7, ' points',/)
+   WRITE(output_io,1100) nlayer
+   1000 FORMAT('   Full size:', 2(i7,' x'), i7, ' points')
+   1100 FORMAT('   At  layer:',   i7      ,/)
 ENDIF
 !
 END SUBROUTINE hdf5_place_kuplot
@@ -482,6 +490,26 @@ IMPLICIT NONE
 hdf5_get_layer = h5_layer
 !
 END FUNCTION hdf5_get_layer
+!
+!*******************************************************************************
+!
+LOGICAL FUNCTION hdf5_get_direct()
+!
+IMPLICIT NONE
+!
+hdf5_get_direct = h5_direct
+!
+END FUNCTION hdf5_get_direct
+!
+!*******************************************************************************
+!
+REAL FUNCTION hdf5_get_height()
+!
+IMPLICIT NONE
+!
+hdf5_get_height = h5_llims(3) + (h5_layer-1)*h5_steps(3)
+!
+END FUNCTION hdf5_get_height
 !
 !*******************************************************************************
 !

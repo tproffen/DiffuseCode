@@ -649,60 +649,92 @@ USE str_comp_mod
 !                                                                       
       END SUBROUTINE do_zscale                      
 !******7****************************************************************
-      SUBROUTINE do_layer  (lmin) 
+SUBROUTINE do_layer  (lmin) 
 !                                                                       
 !     Set H5 layer increment ++1 by mouse                               
 !     LEFT : up by 5% / MIDDLE : down by 5% / RIGHT : back to menu      
 !                                                                       
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
-      USE kuplot_load_h5
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
+USE kuplot_load_h5
+USE param_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      CHARACTER(80) zeile 
-      CHARACTER(1) key 
-      REAL wx, wy!, hub 
-      INTEGER ini 
+LOGICAL, INTENT(IN) :: lmin
+!
+CHARACTER(LEN=80) :: zeile, string 
+CHARACTER(LEN=1)  :: key 
+REAL              :: wx, wy!, hub 
+REAL              :: zz     ! Current height
+INTEGER ini 
 INTEGER :: n_layer
-      LOGICAL lw, lmin, l2d, n_in_f 
+LOGICAL :: is_direct
+LOGICAL :: lw, l2d, n_in_f 
 !                                                                       
-      lw = .true. 
-      l2d = n_in_f (ini) 
+lw = .true. 
+l2d = n_in_f (ini) 
 !                                                                       
-      CALL draw_tframe (' ', 'LEFT button: down  / MIDDLE button: up' &
+main_loop: DO
+   n_layer   = hdf5_get_layer()
+   zz        = hdf5_get_height()
+   is_direct = hdf5_get_direct()
+   IF(is_direct) THEN
+      WRITE(zeile,'(''Currently at layer:'',i7,2x,'' w = '',F10.4)') n_layer, zz
+   ELSE
+      WRITE(zeile,'(''Currently at layer:'',i7,2x,'' l = '',F10.4)') n_layer, zz
+   ENDIF
+   CALL frame_menu 
+   CALL draw_tframe (zeile(1:LEN_TRIM(zeile)), 'LEFT button: down  / MIDDLE button: up' &
      &  , 'RIGHT botton: back')                                         
 !                                                                       
 !------ First point                                                     
 !                                                                       
-   10 CONTINUE 
-      CALL open_viewport 
-      CALL PGSCI (ilinecol (iwin, iframe, 0) ) 
-      CALL PGBAND (0, 0, 0.0, 0.0, wx, wy, key) 
-!     hub = nz (iwin, iframe, 1) * z_inc (iwin, iframe, 1) 
-      IF (key.eq.butt_r) then 
-         GOTO 9999 
-      ELSEIF (key.eq.butt_l) then 
-         CALL hdf5_place_kuplot(-1, .FALSE., .FALSE., .FALSE.)
-      ELSEIF (key.eq.butt_m) then 
-         CALL hdf5_place_kuplot( 1, .FALSE., .FALSE., .FALSE.)
-      ENDIF 
-      CALL draw_frame (iframe, lw) 
-      GOTO 10 
+!   10 CONTINUE 
+   CALL open_viewport 
+   CALL PGSCI (ilinecol (iwin, iframe, 0) ) 
+   CALL PGBAND (0, 0, 0.0, 0.0, wx, wy, key) 
+!  hub = nz (iwin, iframe, 1) * z_inc (iwin, iframe, 1) 
+   IF (key.eq.butt_r) then 
+      EXIT main_loop
+   ELSEIF (key.eq.butt_l) then 
+      CALL hdf5_place_kuplot(-1, .FALSE., .FALSE., .FALSE.)
+   ELSEIF (key.eq.butt_m) then 
+      CALL hdf5_place_kuplot( 1, .FALSE., .FALSE., .FALSE.)
+   ENDIF 
+   CALL draw_frame (iframe, lw) 
+ENDDO main_loop
 !                                                                       
- 9999 CONTINUE 
+CALL draw_frame (iframe, lw) 
+CALL frame_menu 
+!
+n_layer   = hdf5_get_layer()
+zz        = hdf5_get_height()
+is_direct = hdf5_get_direct()
+IF(is_direct) THEN
+   WRITE (zeile, 1000)  n_layer, zz
+   string = 'layer in res[1], height in res[2], direct==1 in res[3]'
+ELSE
+   WRITE (zeile, 1100)  n_layer, zz
+   string = 'layer in res[1], height in res[2], reciprocal==0 in res[3]'
+ENDIF
 !                                                                       
-      CALL draw_frame (iframe, lw) 
-      CALL frame_menu 
-n_layer = hdf5_get_layer()
-      WRITE (zeile, 1000)  n_layer
+CALL draw_tframe (zeile, ' ', string)
+res_para(1) = REAL(n_layer)
+res_para(2) = zz
+IF(is_direct) THEN
+   res_para(3) = 1.0
+ELSE
+   res_para(3) = 0.0
+ENDIF
+res_para(0) = 3.0
 !                                                                       
-      CALL draw_tframe (zeile, ' ', ' ') 
+ 1000 FORMAT     ('New layer  : ',I7,2x, 'w = ', F10.4) 
+ 1100 FORMAT     ('New layer  : ',I7,2x, 'l = ', F10.4) 
 !                                                                       
- 1000 FORMAT     ('New layer  : ',I7) 
-!                                                                       
-      END SUBROUTINE do_layer                      
+END SUBROUTINE do_layer                      
+!
 !******7****************************************************************
       SUBROUTINE do_fselect 
 !                                                                       
