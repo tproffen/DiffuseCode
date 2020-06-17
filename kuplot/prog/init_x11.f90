@@ -53,5 +53,8 @@ dev_ID(:,x11) = -1
       butt_l = 'A' 
       butt_m = 'D' 
       butt_r = 'X' 
+      keyb_l = 'l' 
+      keyb_m = 'm' 
+      keyb_r = 'r' 
 !                                                                       
       END SUBROUTINE init_devices                   

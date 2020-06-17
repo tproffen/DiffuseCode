@@ -57,6 +57,7 @@ SAVE
 !
       CHARACTER(LEN=80), DIMENSION(MAXB) :: btext ! (maxb)
       CHARACTER(LEN= 1)                  :: butt_l,butt_m,butt_r
+      CHARACTER(LEN= 1)                  :: keyb_l,keyb_m,keyb_r
       REAL, DIMENSION(MAXB)              :: bx    ! (maxb)
       REAL, DIMENSION(MAXB)              :: by    ! (maxb)
       REAL, DIMENSION(MAXB)              :: bw    ! (maxb)

@@ -86,7 +86,7 @@ USE str_comp_mod
    10 CONTINUE 
       CALL frame_menu 
       CALL PGCURS (mx, my, ch) 
-      IF (ch.eq.butt_l) then 
+      IF (ch.eq.butt_l.OR.ch==keyb_l) then 
 !                                                                       
 !------ --- Exit selected                                               
 !                                                                       
@@ -587,7 +587,7 @@ USE str_comp_mod
       SUBROUTINE do_zscale (lmin) 
 !                                                                       
 !     Set zmin,zmax via mouse                                           
-!     LEFT : up by 5% / MIDDLE : down by 5% / RIGHT : back to menu      
+!     LEFT : up by 5% / RIGHT : down by 5% / MIDDLE : back to menu      
 !                                                                       
       USE errlist_mod 
       USE kuplot_config 
@@ -604,8 +604,9 @@ USE str_comp_mod
       lw = .true. 
       l2d = n_in_f (ini) 
 !                                                                       
-      CALL draw_tframe (' ', 'LEFT button: up 5% / MIDDLE button: down 5&
-     &%', 'RIGHT botton: back')                                         
+      CALL draw_tframe ('LEFT button/Keyboard l: down 5%',    &
+                        'RIGHT button/Keyboard r: up 5%', &
+                        'MIDDLE botton/Keyboard m: back'   )                                         
 !                                                                       
 !------ First point                                                     
 !                                                                       
@@ -614,9 +615,9 @@ USE str_comp_mod
       CALL PGSCI (ilinecol (iwin, iframe, 0) ) 
       CALL PGBAND (0, 0, 0.0, 0.0, wx, wy, key) 
       hub = nz (iwin, iframe, 1) * z_inc (iwin, iframe, 1) 
-      IF (key.eq.butt_r) then 
+      IF (key.eq.butt_m .OR. key==keyb_m) then 
          GOTO 9999 
-      ELSEIF (key.eq.butt_l) then 
+      ELSEIF (key.eq.butt_r .OR. key==keyb_r) then 
          IF (lmin) then 
             z_min (iwin, iframe, 1) = z_min (iwin, iframe, 1) + 0.05 *  &
             hub                                                         
@@ -624,7 +625,7 @@ USE str_comp_mod
             z_inc (iwin, iframe, 1) = (1.00 + 0.05) * hub / REAL(nz ( &
             iwin, iframe, 1) )                                          
          ENDIF 
-      ELSEIF (key.eq.butt_m) then 
+      ELSEIF (key.eq.butt_l .OR. key==keyb_l) then 
          IF (lmin) then 
             z_min (iwin, iframe, 1) = z_min (iwin, iframe, 1) - 0.05 *  &
             hub                                                         
@@ -652,7 +653,7 @@ USE str_comp_mod
 SUBROUTINE do_layer  (lmin) 
 !                                                                       
 !     Set H5 layer increment ++1 by mouse                               
-!     LEFT : up by 5% / MIDDLE : down by 5% / RIGHT : back to menu      
+!     LEFT : up by 5% / RIGHT : down by 5% / MIDDLE : back to menu      
 !                                                                       
 USE errlist_mod 
 USE kuplot_config 
@@ -686,8 +687,9 @@ main_loop: DO
       WRITE(zeile,'(''Currently at layer:'',i7,2x,'' l = '',F10.4)') n_layer, zz
    ENDIF
    CALL frame_menu 
-   CALL draw_tframe (zeile(1:LEN_TRIM(zeile)), 'LEFT button: down  / MIDDLE button: up' &
-     &  , 'RIGHT botton: back')                                         
+   CALL draw_tframe (zeile(1:LEN_TRIM(zeile)), &
+      'LEFT button/Keyboard l: down  / RIGHT button/Keyboard r: up' &
+     &  , 'MIDDLE button/Keyboard m: back')                                         
 !                                                                       
 !------ First point                                                     
 !                                                                       
@@ -696,11 +698,11 @@ main_loop: DO
    CALL PGSCI (ilinecol (iwin, iframe, 0) ) 
    CALL PGBAND (0, 0, 0.0, 0.0, wx, wy, key) 
 !  hub = nz (iwin, iframe, 1) * z_inc (iwin, iframe, 1) 
-   IF (key.eq.butt_r) then 
+   IF (key == butt_m .OR. key==keyb_m) then 
       EXIT main_loop
-   ELSEIF (key.eq.butt_l) then 
+   ELSEIF (key == butt_l .OR. key==keyb_l) then 
       CALL hdf5_place_kuplot(-1, .FALSE., .FALSE., .FALSE.)
-   ELSEIF (key.eq.butt_m) then 
+   ELSEIF (key == butt_r .OR. key==keyb_r) then 
       CALL hdf5_place_kuplot( 1, .FALSE., .FALSE., .FALSE.)
    ENDIF 
    CALL draw_frame (iframe, lw) 
@@ -761,7 +763,7 @@ END SUBROUTINE do_layer
 !                                                                       
       CALL PGSCI (ilinecol (iwin, iframe, 0) ) 
       CALL PGBAND (0, 0, 0.0, 0.0, wx, wy, key) 
-      IF (key.ne.butt_l) return 
+      IF (.NOT. (key==butt_l .OR. key==keyb_l)) return 
 !                                                                       
 !------ Determine frame                                                 
 !                                                                       
@@ -815,21 +817,20 @@ END SUBROUTINE do_layer
 !                                                                       
       lw = .true. 
 !                                                                       
-      CALL draw_tframe (' ', ' ', 'LEFT button: mark corners / RIGHT bot&
-     &ton: reset')                                                      
+      CALL draw_tframe (' ', ' ', 'LEFT button: mark corners / RIGHT botton: reset')                                                      
 !                                                                       
 !------ First point                                                     
 !                                                                       
       CALL open_viewport 
       CALL PGSCI (ilinecol (iwin, iframe, 0) ) 
       CALL PGBAND (0, 0, 0.0, 0.0, wx1, wy1, key) 
-      IF (key.eq.butt_r) then 
+      IF (key.eq.butt_r .OR. key==keyb_r) then 
          ex (iwin, iframe, 1) = - 9999.0 
          ey (iwin, iframe, 1) = - 9999.0 
          t (iwin, iframe, 1) = - 9999.0 
          t (iwin, iframe, 2) = - 9999.0 
       ENDIF 
-      IF (key.ne.butt_l) goto 9999 
+      IF (.NOT. (key==butt_l .OR. key==keyb_l)) goto 9999 
 !                                                                       
 !------ Draw cross at first point                                       
 !                                                                       
@@ -851,7 +852,7 @@ END SUBROUTINE do_layer
 !------ Second point                                                    
 !                                                                       
       CALL PGBAND (2, 0, wx1, wy1, wx2, wy2, key) 
-      IF (key.ne.butt_l) goto 9999 
+      IF (.NOT. (key==butt_l .OR. key==keyb_l)) goto 9999
 !                                                                       
 !------ Set new scale                                                   
 !                                                                       
@@ -898,10 +899,10 @@ END SUBROUTINE do_layer
       lw = .true. 
 !                                                                       
       IF (lzoom) then 
-      thelp = 'LEFT button: zoom in / MIDDLE button: zoom out'//' / RIGH&
-     &T botton: exit'                                                   
+         thelp = 'LEFT button: zoom in / RIGHT button: zoom out'//' / MIDDLE&
+     & botton: exit'                                                   
       ELSE 
-         thelp = 'LEFT button: new center / RIGHT botton: exit' 
+         thelp = 'LEFT button: new center / MIDDLE botton: exit' 
       ENDIF 
       CALL draw_tframe (' ', ' ', thelp) 
 !                                                                       
@@ -911,7 +912,7 @@ END SUBROUTINE do_layer
       CALL open_viewport 
       CALL PGSCI (ilinecol (iwin, iframe, 0) ) 
       CALL PGBAND (0, 0, 0.0, 0.0, wx, wy, key) 
-      IF (key.eq.butt_r) goto 20 
+      IF (key.eq.butt_m.OR. key==keyb_m) goto 20 
 !                                                                       
 !------ - Compute new boundaries                                        
 !                                                                       
@@ -920,11 +921,11 @@ END SUBROUTINE do_layer
       w2 = 0.5 * (ex (iwin, iframe, 2) - ex (iwin, iframe, 1) ) 
       h2 = 0.5 * (ey (iwin, iframe, 2) - ey (iwin, iframe, 1) ) 
 !                                                                       
-      IF (key.eq.butt_l.and.lzoom) then 
+      IF ((key.eq.butt_l.OR.key==keyb_l).and.lzoom) then 
          w2 = 0.9 * w2 
          h2 = 0.9 * h2 
       ENDIF 
-      IF (key.eq.butt_m.and.lzoom) then 
+      IF ((key.eq.butt_r.OR.key==keyb_r).and.lzoom) then 
          w2 = 1.1 * w2 
          h2 = 1.1 * h2 
       ENDIF 
@@ -1040,7 +1041,7 @@ END SUBROUTINE do_layer
       CALL open_viewport 
       CALL PGSCI (ilinecol (iwin, iframe, 0) ) 
       CALL PGBAND (7, 0, 0.0, 0.0, wx, wy, key) 
-      IF (key.eq.butt_r) goto 20 
+      IF (key.eq.butt_r .OR. key==keyb_r) goto 20 
 !                                                                       
       CALL trans_koor (wx, wy) 
 !                                                                       
@@ -1113,9 +1114,9 @@ END SUBROUTINE do_layer
       CALL open_viewport 
       CALL PGSCI (ilinecol (iwin, iframe, 0) ) 
       CALL PGBAND (7, 0, 0.0, 0.0, wx, wy, key) 
-      IF (key.eq.butt_l) ikey = 1 
-      IF (key.eq.butt_m) ikey = 2 
-      IF (key.eq.butt_r) ikey = 3 
+      IF (key.eq.butt_l.OR.key==keyb_l) ikey = 1 
+      IF (key.eq.butt_m.OR.key==keyb_m) ikey = 2 
+      IF (key.eq.butt_r.OR.key==keyb_r) ikey = 3 
 !                                                                       
       CALL trans_koor (wx, wy) 
 !                                                                       
@@ -1172,9 +1173,9 @@ END SUBROUTINE do_layer
 !------ Second point                                                    
 !                                                                       
       CALL PGBAND (imode, 0, wx1, wy1, wx2, wy2, key) 
-      IF (key.eq.butt_l) ikey = 1 
-      IF (key.eq.butt_m) ikey = 2 
-      IF (key.eq.butt_r) ikey = 3 
+      IF (key.eq.butt_l.OR.key==keyb_l) ikey = 1 
+      IF (key.eq.butt_m.OR.key==keyb_l) ikey = 2 
+      IF (key.eq.butt_r.OR.key==keyb_l) ikey = 3 
 !                                                                       
 !------ Set new scale                                                   
 !                                                                       
