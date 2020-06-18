@@ -152,7 +152,6 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
-character(len=256) :: ofile
 INTEGER :: k,iscat
 INTEGER :: npkt
 REAL( KIND(0.0D0))             :: signum
