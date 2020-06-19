@@ -32,12 +32,9 @@ CHARACTER(255) cdummy
 CHARACTER(LEN=8), DIMENSION(6), PARAMETER :: tmp_test = (/'/tmp    ','/TMP    ', &
       '/var/tmp', '/Var/tmp', '/var/TMP', '/Var/TMP' /)
 CHARACTER(LEN=PREC_LSTRING) :: line
-CHARACTER(LEN=19  )         :: cfile
 CHARACTER(LEN=PREC_LSTRING) :: pathfile
 CHARACTER(LEN=PREC_LSTRING) :: ufile
-CHARACTER(LEN=PREC_STRING) :: message
 CHARACTER(LEN=15), PARAMETER :: etc_os_release = '/etc/os-release'
-INTEGER             :: exit_msg
 INTEGER ico, ice, iii, i, j
 INTEGER :: length
 INTEGER :: ios ! I/O status
@@ -45,13 +42,7 @@ INTEGER pname_l
 LOGICAL lpresent
 !INTEGER :: lib_f90_getpid
 !
-cfile = '/tmp/DISCUS_CURRENT'         ! Initiate search for new version
-!
-line = "rm -f /tmp/DISCUS_CURRENT"
-CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-line = "curl --silent ""https://github.com/tproffen/DiffuseCode/releases/latest"" > /tmp/DISCUS_CURRENT"
-CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-CALL no_error                         ! Checked and printed in ==> write_appl_env
+CALL lib_f90_init_updates
 !
 IF(envir_done) RETURN
 !                                                                       
@@ -462,56 +453,21 @@ USE terminal_mod
 !
 IMPLICIT NONE
 !                                                                       
-INTEGER, PARAMETER  :: IRD = 69
 LOGICAL, INTENT(IN) :: standalone
 INTEGER, INTENT(IN) :: local_mpi_myid
-CHARACTER(LEN=PREC_STRING) :: string
-CHARACTER(LEN=PREC_STRING) :: message
-INTEGER             :: exit_msg
-INTEGER             :: itag
-INTEGER             :: iquote
 INTEGER             :: old_version
 INTEGER             :: new_version
-INTEGER             :: idot1, idot2
-INTEGER             :: i,j,k
+INTEGER             :: since_update
 CHARACTER(LEN=19)   :: cfile
 CHARACTER(LEN=10)   :: cversion
-LOGICAL lda
 !
 !  Analyse if new version is avalable at GIThub
 !
+CALL lib_f90_test_updates(old_version, new_version, cversion, since_update)
 cfile = '/tmp/DISCUS_CURRENT'
 old_version = 0
 new_version = 0
 !
-INQUIRE (file = cfile, exist = lda)
-IF(lda) THEN
-   OPEN(UNIT=IRD, FILE=cfile, STATUS='OLD')
-   IF(ier_num==0) THEN    ! CURRENT file was found
-      READ(IRD,'(a)') string
-      itag = INDEX(string,'tag')
-      IF(itag>0) THEN
-         iquote = itag + INDEX(string(itag:LEN_TRIM(string)),'"') - 1
-         cversion = string (itag+6:iquote-1)
-         idot1 = INDEX(cversion, '.')
-         idot2 = INDEX(cversion, '.', .TRUE.)
-         READ(cversion(1:idot1-1), *) i
-         READ(cversion(idot1+1:idot2-1), *) j
-         READ(cversion(idot2+1:LEN_TRIM(cversion)), *) k
-         new_version = i*10000 + j*100 + k
-      ENDIF
-      idot1 = INDEX(version, '.')
-      idot2 = INDEX(version, '.', .TRUE.)
-      READ(version(1:idot1-1), *) i
-      READ(version(idot1+1:idot2-1), *) j
-      READ(version(idot2+1:LEN_TRIM(version)), *) k
-      old_version = i*10000 + j*100 + k
-   ENDIF
-ENDIF
-CLOSE(UNIT=IRD)
-string = "rm -f /TMP/DISCUS_CURRENT"
-CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-CALL no_error
 !
 IF(standalone .AND. local_mpi_myid==0) THEN
    IF(term_scheme_exists) THEN
@@ -525,6 +481,10 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       WRITE ( *, 2600) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
       IF(operating == OS_LINUX_WSL) THEN
          WRITE ( *, 2700) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
+         IF(since_update>7) THEN
+            WRITE(*,*)
+            WRITE(*,2750) TRIM(color_bg),TRIM(color_fg)
+         ENDIF
       ENDIF
       IF(new_version > old_version ) THEN
          WRITE(*,*)
@@ -541,6 +501,10 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       WRITE ( *, 1600)
       IF(operating == OS_LINUX_WSL) THEN
          WRITE ( *, 1700)
+         IF(since_update>7) THEN
+            WRITE(*,*)
+            WRITE(*,1750) 
+         ENDIF
       ENDIF
       IF(new_version > old_version ) THEN
          WRITE(*,*)
@@ -558,6 +522,7 @@ ENDIF
  1500 FORMAT     (1x,'News at each section/Command_lang in  : ','help News')
  1600 FORMAT     (1x,'Change font size with                 : ','CTRL + /CTRL -')
  1700 FORMAT     (1x,'Preferences: Right click + Preferences: ' )
+ 1750 FORMAT     (1x,'Ubuntu will be updated at DISCUS exit : ')
  1800 FORMAT     (1x,'New DISCUS version available at GIThub: ',a)
  1900 FORMAT     (1x,a,'Manual files in  : ',a,a,a) 
  2000 FORMAT     (1x,a,'User macros in   : ',a,a,a) 
@@ -568,6 +533,7 @@ ENDIF
  2500 FORMAT     (1x,a,'News at each section/Command_lang in  : ',a,'help News',a)
  2600 FORMAT     (1x,a,'Change font size with                 : ',a,'CTRL + /CTRL -',a)
  2700 FORMAT     (1x,a,'Preferences:',a,' Right click + Preferences',a,':')
+ 2750 FORMAT     (1x,a,'Ubuntu will be updated at DISCUS exit : ',a)
  2800 FORMAT     (1x,a,'New DISCUS version available at GIThub: ',a,a,a)
 !
 END SUBROUTINE write_appl_env                       
@@ -990,6 +956,259 @@ line = 'rm -f ' // temp_file(1:len_trim(temp_file))
 CALL SYSTEM(line)                    ! remove temporary file
 
 END SUBROUTINE lib_f90_getpname
+!
+!*******************************************************************************
+!
+SUBROUTINE lib_f90_init_updates
+!
+USE errlist_mod
+USE lib_errlist_func
+USE precision_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=19         ) :: cfile
+CHARACTER(LEN=PREC_STRING) :: line
+CHARACTER(LEN=PREC_STRING) :: message
+INTEGER             :: exit_msg
+!
+cfile = '/tmp/DISCUS_CURRENT'         ! Initiate search for new version
+!
+line = "rm -f /tmp/DISCUS_CURRENT"
+CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+line = "curl --silent ""https://github.com/tproffen/DiffuseCode/releases/latest"" > /tmp/DISCUS_CURRENT"
+CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+CALL no_error                         ! Checked and printed in ==> write_appl_env
+END SUBROUTINE lib_f90_init_updates
+!
+!*******************************************************************************
+!
+SUBROUTINE lib_f90_test_updates(old_version, new_version, cversion, since_update)
+!
+USE envir_mod
+USE errlist_mod
+USE lib_errlist_func
+USE precision_mod
+USE prompt_mod
+!
+IMPLICIT NONE
+!
+INTEGER          , INTENT(OUT) :: old_version
+INTEGER          , INTENT(OUT) :: new_version
+CHARACTER(LEN=10), INTENT(OUT) :: cversion
+INTEGER          , INTENT(OUT) :: since_update
+!
+INTEGER, PARAMETER  :: IRD = 69
+!
+CHARACTER(LEN=19         ) :: cfile
+CHARACTER(LEN=19         ) :: discus_update
+CHARACTER(LEN=PREC_STRING) :: string
+CHARACTER(LEN=PREC_STRING) :: message
+INTEGER             :: exit_msg
+INTEGER             :: idot1, idot2
+INTEGER             :: iquote
+INTEGER             :: itag
+INTEGER             :: idate
+INTEGER             :: i, j, k
+INTEGER             :: ios
+!
+LOGICAL :: lda
+CHARACTER(LEN=8) :: date
+CHARACTER(LEN=10):: time
+CHARACTER(LEN=5) :: zone
+INTEGER, DIMENSION(8) :: values
+!                                                                       
+CALL DATE_AND_TIME (date, time, zone, values)
+!
+!  Analyse if new version is available at GIThub
+!
+cfile = '/tmp/DISCUS_CURRENT'
+discus_update = '/tmp/DISCUS_UPDATE '
+old_version = 0
+new_version = 0
+!
+INQUIRE (file = cfile, exist = lda)
+IF(lda) THEN
+   OPEN(UNIT=IRD, FILE=cfile, STATUS='OLD')
+   IF(ier_num==0) THEN    ! CURRENT file was found
+      READ(IRD,'(a)') string
+      itag = INDEX(string,'tag')
+      IF(itag>0) THEN
+         iquote = itag + INDEX(string(itag:LEN_TRIM(string)),'"') - 1
+         cversion = string (itag+6:iquote-1)
+         idot1 = INDEX(cversion, '.')
+         idot2 = INDEX(cversion, '.', .TRUE.)
+         READ(cversion(1:idot1-1), *) i
+         READ(cversion(idot1+1:idot2-1), *) j
+         READ(cversion(idot2+1:LEN_TRIM(cversion)), *) k
+         new_version = i*10000 + j*100 + k
+      ENDIF
+      idot1 = INDEX(version, '.')
+      idot2 = INDEX(version, '.', .TRUE.)
+      READ(version(1:idot1-1), *) i
+      READ(version(idot1+1:idot2-1), *) j
+      READ(version(idot2+1:LEN_TRIM(version)), *) k
+      old_version = i*10000 + j*100 + k
+   ENDIF
+ENDIF
+CLOSE(UNIT=IRD)
+string = "rm -f /TMP/DISCUS_CURRENT"
+CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+CALL no_error
+!
+! Test for updates of operating system
+!
+last_update = 0
+since_update = 0
+!IF(operating==OS_LINUX_WSL) THEN
+   INQUIRE(FILE=discus_update,EXIST=lda)
+   IF(lda) THEN
+      OPEN(UNIT=IRD, FILE=discus_update, STATUS='old')
+      READ(IRD,'(a)', IOSTAT=ios) string
+      IF(ios==0) THEN
+         READ(string,'(i4,1x,i2,1x,i2)') i,j,k
+         last_update= i*10000 + j*100 + k    ! Compound date
+      ENDIF
+      CLOSE(IRD)
+   ENDIF
+   READ(date,*) idate
+   since_update = idate-last_update
+!ENDIF
+!
+END SUBROUTINE lib_f90_test_updates
+!
+!*******************************************************************************
+!
+SUBROUTINE lib_f90_update_ubuntu
+!
+USE envir_mod
+USE errlist_mod
+USE precision_mod
+USE prompt_mod
+!
+CHARACTER(LEN=PREC_STRING) :: string
+CHARACTER(LEN=PREC_STRING) :: message
+INTEGER             :: exit_msg
+!
+IF(operating == OS_LINUX .OR. operating == OS_LINUX_WSL) THEN
+   WRITE(output_io, '(a)') 
+   WRITE(output_io, '(a)')  ' Your Ubuntu system will be updated '
+   string = 'sudo apt update'
+   CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   string = 'sudo apt upgrade -y'
+   CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   string = 'date --iso-8601 > /tmp/DISCUS_UPDATE'
+   CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   WRITE(output_io, '(a)') 
+ENDIF
+!
+END SUBROUTINE lib_f90_update_ubuntu
+!
+!*******************************************************************************
+!
+SUBROUTINE lib_f90_update_discus
+!
+USE envir_mod
+USE errlist_mod
+USE precision_mod
+USE sys_compiler
+!
+IMPLICIT NONE
+!
+INTEGER, PARAMETER :: IRD = 69
+CHARACTER(LEN=PREC_STRING) :: string
+CHARACTER(LEN=20)          :: discus_version
+CHARACTER(LEN=20)          :: discus_power
+CHARACTER(LEN= 9)          :: grep
+CHARACTER(LEN=40)          :: script
+CHARACTER(LEN=20)          :: verstring
+CHARACTER(LEN=PREC_STRING) :: command
+CHARACTER(LEN=PREC_STRING) :: message
+INTEGER             :: exit_msg
+INTEGER             :: length
+!
+discus_version='/tmp/DISCUS_VERSION '
+discus_power  ='/tmp/DISCUS_POWER   '
+!
+IF(operating == OS_LINUX) THEN
+   grep    = 'grep -Poe'
+   script  = 'bbb_install_script.sh'
+   command ='cd $HOME && ./' // script(1:LEN_TRIM(script)) // ' started=native'
+ELSEIF(operating == OS_LINUX_WSL) THEN
+   grep    = 'grep -Poe'
+   script  = 'bbb_install_suite_Windows10_WSL.ps1'
+   string  = 'ls /mnt/c/Windows/System32/WindowsPowerShell/ > ' // discus_power
+   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!
+   OPEN(UNIT=IRD,FILE=discus_power, STATUS='old')
+   READ(IRD,'(a)') verstring
+   CLOSE(UNIT=IRD)
+!
+   command = '/mnt/c/Windows/System32/WindowsPowerShell/'             //        &
+             verstring(1:LEN_TRIM(verstring)) // '/'                  //        &
+             'powershell.exe -NoProfile -ExecutionPolicy Unrestricted ' //      &
+             '-Command "& {Start-Process PowerShell -ArgumentList ''' //        &
+             '-NoProfile -ExecutionPolicy Unrestricted -File ""'      //        &
+             'C:\Users\' // user_name(1:LEN_TRIM(user_name)) // '\'   //        &
+             '\Downloads\' // script(1:LEN_TRIM(script)) // '""'' -Verb RunAs}";'
+ELSEIF(operating == OS_MACOSX) THEN
+   grep    = 'grep -oe '
+   script  = 'bbb_install_script_mac.sh'
+   command ='cd $HOME && ./' // script(1:LEN_TRIM(script)) // ' started=native'
+ENDIF
+!
+! Get latest DISCUS Version
+!
+string = 'curl --silent https://github.com/tproffen/DiffuseCode/releases/latest ' // &
+         '| ' // grep(1:LEN_TRIM(grep)) // ' ''v.[0-9]*.[0-9]*.[0-9]*'' > /tmp/DISCUS_VERSION'
+CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!
+OPEN(UNIT=IRD,FILE=discus_version, STATUS='old')
+READ(IRD,'(a)') verstring
+CLOSE(UNIT=IRD)
+!
+! Download latest installation script
+!
+string = 'curl -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
+         ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
+         verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
+CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!
+string = 'chmod 700 $HOME/' // script(1:LEN_TRIM(script))
+CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!string = 'ls -l $HOME/' // script(1:LEN_TRIM(script))
+!CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!
+! For LINUX_WSL we need to step into 'C:\Users\...\Downloads'
+IF(operating == OS_LINUX_WSL) THEN
+   string = 'cp $HOME/' // script(1:LEN_TRIM(script)) // ' /mnt/c/Users/' //          &
+            user_name(1:LEN_TRIM(user_name)) // '/Downloads'  
+   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   string = '/mnt/c/Users/' // user_name(1:LEN_TRIM(user_name)) // '/Downloads'
+   length = LEN_TRIM(string)
+   CALL do_chdir (string, length, .FALSE.)
+ENDIF
+!
+! Finally run the DISCUS update via the installation script
+!
+CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!
+! As installation script updated the operating system, touch update file
+!
+IF(operating == OS_LINUX .OR. operating == OS_LINUX_WSL) THEN
+   string = 'date --iso-8601 > /tmp/DISCUS_UPDATE'
+ELSEIF(operating == OS_MACOSX) THEN
+   string = 'date +%Y-%m-%d > /tmp/DISCUS_UPDATE'
+ENDIF
+CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+IF(operating == OS_LINUX_WSL) THEN
+   WRITE(*,*) ' This DISCUS Window will stop now '
+   WRITE(*,*) ' Once the update is finished the new version '
+   WRITE(*,*) ' will be started '
+   STOP
+ENDIF
+!
+END SUBROUTINE lib_f90_update_discus
 !
 !*******************************************************************************
 !

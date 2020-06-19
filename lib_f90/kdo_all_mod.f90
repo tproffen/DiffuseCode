@@ -9,6 +9,8 @@ SUBROUTINE kdo_all (bef, lbef, zei, lc)
 !     This part contains all the program independent commands.          
 !                                                                       
 !     USE calc_expr_mod
+!
+USE appl_env_mod
 USE arrays_mod
 USE ber_params_mod
 USE define_variable_mod
@@ -205,6 +207,11 @@ IMPLICIT none
             ier_num = - 6 
             ier_typ = ER_COMM 
          ENDIF 
+!                                                                       
+!------ Update WSL Ubuntu
+!                                                                       
+      ELSEIF (str_comp (bef, 'update', 3, lbef, 6) ) THEN 
+         CALL lib_f90_update_discus
 !                                                                       
 !------ definition of variables                                         
 !                                                                       
