@@ -97,6 +97,12 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2020_June
+   Added 'h5' for HDF5 capabilities to the load command. 
+
+   The buttons in the interactive "mouse" mode have been revised 
+   and kyeboard input has been added in case you do not have a
+   three button mouse. 
 3  2019_December
    Changed the fit algorithm to a more stable routine
 3  2019_November
