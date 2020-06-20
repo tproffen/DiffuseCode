@@ -32,6 +32,10 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2020_June
+
+   New commands 'mount' and 'umount' enable access to Removable drives
+   at Windows. Not relevant for Linux and MACOSX
 4  2020_May
 
    Added the possibility to continue input lines 
@@ -298,18 +302,22 @@
    For the Windows versions, two different styles help to copy the 
    folder name into the program window. 
 
-   For KUPLOT and the DISCUS_SUITE type 
+   Type 
    cd 
    and a space. Do not hit the enter/return key at this moment. 
    Within a Windos Explorer click on the folder icon and copy the 
    string CTRL-c. Activate the KUPLOT or DISCUS_SUITE program and 
    click the middle mouse button. This should paste the full path
    to the folder into the KUPLOT or DISCUS_SUITE window. 
+   Alternatively past with SHIFT+CTRL-c.
 
-   For DISCUS, DIFFEV, and MIXSCAT type "cd " with the space as well.
-   Now left click and drag the selected folder icon into the program 
-   window. This should copy the full pathinto the program window.
-   Activate the window and hit the ENTER key.
+   For Windows only:
+   If the drive refers to a removable disk, you might be prompted
+   for the Linux password. As Discus does not know if you do not
+   need the drive any longer, you have to dismount it explicitely
+   with a ==> 'umount' command. Otherwise Windows will not let you
+   remove the drive. 
+
 3  continue
 !p continue [ "prog" ]
 
@@ -937,6 +945,17 @@
    default or the user provided viewer, DISCUS will search
    a list of common PDF viewers. If none is found an error message
    points to the folder that contains the manuals.
+3  mount
+!p mount <drive>
+!p mount <drive:>
+
+   This command is relevant for the Windows version only. 
+   It anables access to removable drives like "F:" etc. 
+   Unfortunately at the moment The Linus Subsystem does not 
+   perform an automount. 
+   A mount is performed automatically if you use the ==> 'cd' command.
+
+   See also ==> 'umount'
 3  seed
 !p seed [ <value> ]
 !p seed [ <value_a>, <value_b> ] , group:<no>
@@ -1265,6 +1284,23 @@
    With 'set wait, off' the 'wait' command in a macro will be 
    ignored and the programm continues execution as if the 
    'wait' command were absent.
+3  umount
+!p umount <drive>
+!p umount <drive:>
+
+   This command is relevant for the Windows version only. 
+   It disables access to removable drives like "F:" etc. 
+   Unfortunately at the moment The Linus Subsystem does not 
+   perform an automount / dismount. 
+   If a removable drive had been mounted either by the ==> 'mount' 
+   command or the ==> 'cd' command, Windows will lock the drive 
+   and you cannot remove it properly. As Discus does not know 
+   if you do not need the drive any longer, you have to unmount the 
+   drive explicitly.
+
+   A mount is performed automatically if you use the ==> 'cd' command.
+
+   See also ==> 'mount'
 3  variable
 !p variable {"integer"|"real"},<name> [,<initial_value>] [,dim:[d1,d2]]
 !p variable {"character"},<name>
