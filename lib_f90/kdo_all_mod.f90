@@ -207,9 +207,19 @@ IMPLICIT none
             ier_num = - 6 
             ier_typ = ER_COMM 
          ENDIF 
-!                                                                       
-!------ Update WSL Ubuntu
-!                                                                       
+!
+!------ mount a WSL drive
+!
+      ELSEIF (str_comp (bef, 'mount', 3, lbef, 5) ) THEN 
+         CALL mount_drive(zei)
+!
+!------ umount a WSL drive
+!
+      ELSEIF (str_comp (bef, 'umount', 3, lbef, 6) ) THEN 
+         CALL umount_drive(zei)
+!
+!------ Update Discus
+!
       ELSEIF (str_comp (bef, 'update', 3, lbef, 6) ) THEN 
          CALL lib_f90_update_discus
 !                                                                       

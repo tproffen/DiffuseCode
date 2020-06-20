@@ -367,16 +367,16 @@ ENDIF
             start_dir   = user_profile
             start_dir_l = len_str(start_dir)
          ENDIF
-         IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
-            start_dir   = start_dir(1:start_dir_l) // '/'
+         IF(start_dir(start_dir_l:start_dir_l) /= '\') THEN
+            start_dir   = start_dir(1:start_dir_l) // '\'
             start_dir_l = start_dir_l + 1
          ENDIF
          ELSE
 !           start dir is not '/', started via system <pname>
 !           Use current start directory
 !
-            IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
-               start_dir   = start_dir(1:start_dir_l) // '/'
+            IF(start_dir(start_dir_l:start_dir_l) /= '\') THEN
+               start_dir   = start_dir(1:start_dir_l) // '\'
                start_dir_l = start_dir_l + 1
             ENDIF
          ENDIF
@@ -409,8 +409,8 @@ ENDIF
                ENDIF
             ENDIF
          ENDIF
-         IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
-            start_dir   = start_dir(1:start_dir_l) // '/'
+         IF(start_dir(start_dir_l:start_dir_l) /= '\') THEN
+            start_dir   = start_dir(1:start_dir_l) // '\'
             start_dir_l = start_dir_l + 1
          ENDIF
       ELSE

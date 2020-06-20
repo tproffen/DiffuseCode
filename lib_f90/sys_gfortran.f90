@@ -233,7 +233,9 @@ LOGICAL         , INTENT(IN)    :: echo
 CHARACTER(LEN=PREC_STRING) :: cwd 
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 CHARACTER(LEN=PREC_STRING) :: string
+CHARACTER(LEN=PREC_STRING) :: message
 CHARACTER(LEN=   1)        :: drive
+CHARACTER(LEN=   6)        :: mntdrive
 INTEGER                    :: i
 INTEGER, DIMENSION(MAXW)   :: lpara
 INTEGER                    :: ianz 
@@ -245,6 +247,21 @@ INTEGER  :: getcwd
 IF (dir.eq.' ') then 
    dummy = getcwd(cwd )
    ld = LEN_TRIM(cwd) 
+   IF(operating==OS_LINUX_WSL) THEN
+      DO i=1, ld
+         IF(cwd(i:i)=='/') cwd(i:i)='\'
+      ENDDO
+      IF(cwd(ld:ld) /= '\') THEN
+         cwd(ld+1:ld+1) = '\'
+         ld = ld + 1
+      ENDIF
+      IF(cwd(1:5) == '\mnt\') THEN
+         drive = cwd(6:6)
+         CALL do_cap(drive)
+         cwd = drive // ':' // cwd(7:ld)
+         ld = LEN_TRIM(cwd)
+      ENDIF
+   ENDIF
    dir = cwd 
    IF (echo) then 
       WRITE ( *, 1000) cwd (1:ld) 
@@ -260,6 +277,10 @@ ELSE
          drive = string(1:1)
          CALL do_low(drive)
          cpara(1) = '/mnt/' // drive // string(3:LEN_TRIM(string))
+         mntdrive = '/mnt/' // drive
+         IF(drive /= 'c') THEN  !     For all other drives but C:
+            CALL mount_drive(drive)
+         ENDIF
       ENDIF
       lpara(1) = LEN_TRIM(cpara(1))
       DO i=1,lpara(1)
@@ -268,7 +289,7 @@ ELSE
    ENDIF
    cwd = cpara (1) (1:lpara (1) ) 
    ld = lpara (1) 
-   CALL chdir (dir (1:ld), ier_num) 
+   CALL chdir (cwd (1:ld), ier_num) 
    IF (ier_num.eq.0) then 
       ier_typ = ER_NONE 
       dummy = getcwd (cwd )
@@ -276,6 +297,17 @@ ELSE
       IF(cwd(ld:ld) /= '/' ) THEN
          cwd = cwd(1:ld) // '/'
          ld  = ld + 1
+      ENDIF
+      IF(operating==OS_LINUX_WSL) THEN
+         DO i=1, ld
+            IF(cwd(i:i)=='/') cwd(i:i)='\'
+         ENDDO
+         IF(cwd(1:5) == '\mnt\') THEN
+            drive = cwd(6:6)
+            CALL do_cap(drive)
+            cwd = drive // ':' // cwd(7:ld)
+            ld = LEN_TRIM(cwd)
+         ENDIF
       ENDIF
       IF(echo) WRITE (output_io, 1000) cwd (1:ld)
       current_dir   = cwd(1:LEN(current_dir))
@@ -741,6 +773,103 @@ INTEGER FUNCTION lib_f90_getpid()
 lib_f90_getpid = getpid()
 !
 END FUNCTION lib_f90_getpid
+!
+!*****7***********************************************************      
+!
+SUBROUTINE mount_drive(indrive)
+!
+! Mount a removable drive at WSL
+!
+USE blanks_mod
+USE envir_mod
+USE errlist_mod
+USE prompt_mod
+USE precision_mod
+USE string_convert_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=1), INTENT(IN) :: indrive
+!
+CHARACTER(LEN=1) :: drive
+CHARACTER(LEN=6) :: mntdrive
+CHARACTER(LEN=PREC_STRING) :: string
+CHARACTER(LEN=PREC_STRING) :: message
+INTEGER :: length
+LOGICAL :: lda
+!
+IF(operating == OS_LINUX_WSL) THEN    ! Only for WSL
+   drive = indrive
+!
+   length = LEN_TRIM(drive)
+   CALL rem_bl(drive, length)
+   CALL do_low(drive)
+   mntdrive = '/mnt/' // drive(1:1)
+!
+   INQUIRE(FILE=mntdrive,EXIST=lda)
+   IF(.NOT. lda) THEN     ! Need to build a '/mnt/X' file
+      WRITE(output_io,*) 'Access to drives requires Ubuntu password'
+      string='sudo mkdir -p '// mntdrive
+      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), &
+                              CMDSTAT=ier_num, CMDMSG=message) 
+      CALL do_cap(drive)
+      string = 'sudo mount -t drvfs ' // drive // ': ' // mntdrive
+      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), &
+                                 CMDSTAT=ier_num, CMDMSG=message) 
+   ELSE
+      WRITE(output_io,*) 'Access to drives may require Ubuntu password'
+      CALL do_cap(drive)
+      string = 'sudo mount -t drvfs ' // drive // ': ' // mntdrive
+      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), &
+                                 CMDSTAT=ier_num, CMDMSG=message) 
+   ENDIF
+ENDIF
+!
+END SUBROUTINE mount_drive
+!
+!*****7***********************************************************      
+!
+SUBROUTINE umount_drive(indrive)
+!
+! un mount a WSL removable drive
+!
+USE blanks_mod
+USE envir_mod
+USE errlist_mod
+USE precision_mod
+USE prompt_mod
+USE string_convert_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=1), INTENT(IN) :: indrive
+!
+CHARACTER(LEN=1) :: drive
+CHARACTER(LEN=6) :: mntdrive
+CHARACTER(LEN=PREC_STRING) :: string
+CHARACTER(LEN=PREC_STRING) :: message
+INTEGER :: length
+LOGICAL :: lda
+!
+IF(operating == OS_LINUX_WSL) THEN    ! Only for WSL
+   drive = indrive
+!
+   length = LEN_TRIM(drive)
+   CALL rem_bl(drive, length)
+   CALL do_low(drive)
+   mntdrive = '/mnt/' // drive(1:1)
+!
+   INQUIRE(FILE=mntdrive,EXIST=lda)
+!
+   IF(lda) THEN       ! Drive letter exists, otherwise silently leave
+      WRITE(output_io,*) 'Access to drives may require Ubuntu password'
+      string = 'sudo umount ' // mntdrive
+      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), &
+                                 CMDSTAT=ier_num, CMDMSG=message) 
+   ENDIF
+ENDIF
+!
+END SUBROUTINE umount_drive
 !
 !*****7***********************************************************      
 !
