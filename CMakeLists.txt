@@ -1,6 +1,6 @@
 # Toplevel for Diffuse Project
 
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.12.0)
 project(DIFFUSE)
 enable_language(Fortran)
 
@@ -28,7 +28,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 6)
 set (DIFFUSE_VERSION_MINOR 00)
-set (DIFFUSE_VERSION_PATCH 01)
+set (DIFFUSE_VERSION_PATCH 02)
 
 # Readline required for all programs
 
