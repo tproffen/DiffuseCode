@@ -247,6 +247,7 @@ INTEGER  :: getcwd
 IF (dir.eq.' ') then 
    dummy = getcwd(cwd )
    ld = LEN_TRIM(cwd) 
+   dir = cwd 
    IF(operating==OS_LINUX_WSL) THEN
       DO i=1, ld
          IF(cwd(i:i)=='/') cwd(i:i)='\'
@@ -262,8 +263,8 @@ IF (dir.eq.' ') then
          ld = LEN_TRIM(cwd)
       ENDIF
    ENDIF
-   dir = cwd 
    IF (echo) then 
+      ld = LEN_TRIM(cwd)
       WRITE ( *, 1000) cwd (1:ld) 
    ENDIF 
 ELSE 
@@ -298,6 +299,10 @@ ELSE
          cwd = cwd(1:ld) // '/'
          ld  = ld + 1
       ENDIF
+      current_dir   = cwd(1:LEN(current_dir))
+      current_dir_l = MIN(ld, LEN(current_dir))
+      dir = current_dir
+      ld  = current_dir_l
       IF(operating==OS_LINUX_WSL) THEN
          DO i=1, ld
             IF(cwd(i:i)=='/') cwd(i:i)='\'
@@ -310,10 +315,6 @@ ELSE
          ENDIF
       ENDIF
       IF(echo) WRITE (output_io, 1000) cwd (1:ld)
-      current_dir   = cwd(1:LEN(current_dir))
-      current_dir_l = MIN(ld, LEN(current_dir))
-      dir = current_dir
-      ld  = current_dir_l
    ELSE 
       WRITE ( *, 2000) ier_num 
       ier_num = - 5 
@@ -327,6 +328,40 @@ ENDIF
 END SUBROUTINE do_chdir                       
 !
 !*****7*****************************************************************
+!
+SUBROUTINE display_dir(cwd)
+!
+USE envir_mod
+USE string_convert_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: cwd
+!
+CHARACTER(LEN=   1)        :: drive
+INTEGER :: i, ld
+!
+IF(operating==OS_LINUX_WSL) THEN
+   ld = LEN_TRIM(cwd)
+   DO i=1, ld
+      IF(cwd(i:i)=='/') cwd(i:i)='\'
+   ENDDO
+   IF(cwd(ld:ld) /= '\') THEN
+      cwd(ld+1:ld+1) = '\'
+      ld = ld + 1
+   ENDIF
+   IF(cwd(1:5) == '\mnt\') THEN
+      drive = cwd(6:6)
+      CALL do_cap(drive)
+      cwd = drive // ':' // cwd(7:ld)
+      ld = LEN_TRIM(cwd)
+   ENDIF
+ENDIF
+!
+END SUBROUTINE display_dir
+!
+!*****7*****************************************************************
+!
 SUBROUTINE do_cwd (dir, ld) 
 !+                                                                      
 !     Gets the current working directory and stores the result in       

@@ -42,13 +42,13 @@ INTEGER pname_l
 LOGICAL lpresent
 !INTEGER :: lib_f90_getpid
 !
-CALL lib_f90_init_updates
-!
 IF(envir_done) RETURN
 !                                                                       
 ! Get the PID of the DISCUS Process
 !
 PID = lib_f90_getpid()
+!
+CALL lib_f90_init_updates
 !
 ! Determine a temporary directory
 !
@@ -367,16 +367,16 @@ ENDIF
             start_dir   = user_profile
             start_dir_l = len_str(start_dir)
          ENDIF
-         IF(start_dir(start_dir_l:start_dir_l) /= '\') THEN
-            start_dir   = start_dir(1:start_dir_l) // '\'
+         IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
+            start_dir   = start_dir(1:start_dir_l) // '/'
             start_dir_l = start_dir_l + 1
          ENDIF
          ELSE
 !           start dir is not '/', started via system <pname>
 !           Use current start directory
 !
-            IF(start_dir(start_dir_l:start_dir_l) /= '\') THEN
-               start_dir   = start_dir(1:start_dir_l) // '\'
+            IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
+               start_dir   = start_dir(1:start_dir_l) // '/'
                start_dir_l = start_dir_l + 1
             ENDIF
          ENDIF
@@ -406,11 +406,12 @@ ENDIF
                               user_name(1:LEN_TRIM(user_name))
                   start_dir_l = LEN_TRIM(start_dir)
                   CALL do_chdir(start_dir, start_dir_l, .FALSE.) 
+                  start_dir_l = LEN_TRIM(start_dir)
                ENDIF
             ENDIF
          ENDIF
-         IF(start_dir(start_dir_l:start_dir_l) /= '\') THEN
-            start_dir   = start_dir(1:start_dir_l) // '\'
+         IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
+            start_dir   = start_dir(1:start_dir_l) // '/'
             start_dir_l = start_dir_l + 1
          ENDIF
       ELSE
@@ -449,6 +450,7 @@ USE errlist_mod
 USE lib_errlist_func
 USE precision_mod
 USE prompt_mod
+USE sys_compiler
 USE terminal_mod
 !
 IMPLICIT NONE
@@ -458,23 +460,24 @@ INTEGER, INTENT(IN) :: local_mpi_myid
 INTEGER             :: old_version
 INTEGER             :: new_version
 INTEGER             :: since_update
-CHARACTER(LEN=19)   :: cfile
 CHARACTER(LEN=10)   :: cversion
+CHARACTER(LEN=PREC_STRING) :: line
 !
 !  Analyse if new version is avalable at GIThub
 !
 CALL lib_f90_test_updates(old_version, new_version, cversion, since_update)
-cfile = '/tmp/DISCUS_CURRENT'
 old_version = 0
 new_version = 0
 !
 !
 IF(standalone .AND. local_mpi_myid==0) THEN
    IF(term_scheme_exists) THEN
-      WRITE ( *, 1900) TRIM(color_bg),TRIM(color_info), man_dir (1:LEN_TRIM(man_dir)) ,TRIM(color_fg)
-      WRITE ( *, 2000) TRIM(color_bg),TRIM(color_info),umac_dir (1:LEN_TRIM(umac_dir)),TRIM(color_fg)
-      WRITE ( *, 2100) TRIM(color_bg),TRIM(color_info),mac_dir (1:mac_dir_l),     TRIM(color_fg)
-      WRITE ( *, 2200) TRIM(color_bg),TRIM(color_info),start_dir (1:start_dir_l) ,TRIM(color_fg)
+!     WRITE ( *, 1900) TRIM(color_bg),TRIM(color_info), man_dir (1:LEN_TRIM(man_dir)) ,TRIM(color_fg)
+!     WRITE ( *, 2000) TRIM(color_bg),TRIM(color_info),umac_dir (1:LEN_TRIM(umac_dir)),TRIM(color_fg)
+!     WRITE ( *, 2100) TRIM(color_bg),TRIM(color_info),mac_dir (1:mac_dir_l),     TRIM(color_fg)
+      line =  start_dir
+      CALL display_dir(line)
+      WRITE ( *, 2200) TRIM(color_bg),TRIM(color_info),line (1:LEN_TRIM(line)) ,TRIM(color_fg)
       WRITE ( *, 2300) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
       WRITE ( *, 2400) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
       WRITE ( *, 2500) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
@@ -491,10 +494,12 @@ IF(standalone .AND. local_mpi_myid==0) THEN
          WRITE(*,2800) TRIM(color_bg),TRIM(color_info),cversion, TRIM(color_fg)
       ENDIF
    ELSE
-      WRITE ( *,  900)  man_dir (1:LEN_TRIM(man_dir)) 
-      WRITE ( *, 1000) umac_dir (1:LEN_TRIM(umac_dir)) 
-      WRITE ( *, 1100) mac_dir (1:mac_dir_l) 
-      WRITE ( *, 1200) start_dir (1:start_dir_l) 
+!     WRITE ( *,  900)  man_dir (1:LEN_TRIM(man_dir)) 
+!     WRITE ( *, 1000) umac_dir (1:LEN_TRIM(umac_dir)) 
+!     WRITE ( *, 1100) mac_dir (1:mac_dir_l) 
+      line =  start_dir
+      CALL display_dir(line)
+      WRITE ( *, 1200) line (1:LEN_TRIM(line))
       WRITE ( *, 1300)
       WRITE ( *, 1400)
       WRITE ( *, 1500)
@@ -961,22 +966,28 @@ END SUBROUTINE lib_f90_getpname
 !
 SUBROUTINE lib_f90_init_updates
 !
+USE envir_mod
 USE errlist_mod
 USE lib_errlist_func
 USE precision_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=19         ) :: cfile
+CHARACTER(LEN=32         ) :: cfile
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
+LOGICAL             :: lda
 !
-cfile = '/tmp/DISCUS_CURRENT'         ! Initiate search for new version
+WRITE(cfile,'(a,i10.10)') '/tmp/DISCUS_CURRENT.', PID         ! Initiate search for new version
 !
-line = "rm -f /tmp/DISCUS_CURRENT"
-CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-line = "curl --silent ""https://github.com/tproffen/DiffuseCode/releases/latest"" > /tmp/DISCUS_CURRENT"
+INQUIRE(FILE=cfile, EXIST=lda)
+IF(lda) THEN 
+   line = "rm -f /" // cfile(1:LEN_TRIM(cfile))
+   CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+ENDIF
+line = "curl --silent ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
+       // cfile(1:LEN_TRIM(cfile))
 CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 CALL no_error                         ! Checked and printed in ==> write_appl_env
 END SUBROUTINE lib_f90_init_updates
@@ -1000,7 +1011,7 @@ INTEGER          , INTENT(OUT) :: since_update
 !
 INTEGER, PARAMETER  :: IRD = 69
 !
-CHARACTER(LEN=19         ) :: cfile
+CHARACTER(LEN=32         ) :: cfile
 CHARACTER(LEN=19         ) :: discus_update
 CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=PREC_STRING) :: message
@@ -1022,12 +1033,12 @@ CALL DATE_AND_TIME (date, time, zone, values)
 !
 !  Analyse if new version is available at GIThub
 !
-cfile = '/tmp/DISCUS_CURRENT'
+WRITE(cfile,'(a,i10.10)') '/tmp/DISCUS_CURRENT.', PID
 discus_update = '/tmp/DISCUS_UPDATE '
 old_version = 0
 new_version = 0
 !
-INQUIRE (file = cfile, exist = lda)
+INQUIRE(FILE=cfile, EXIST=lda)
 IF(lda) THEN
    OPEN(UNIT=IRD, FILE=cfile, STATUS='OLD')
    IF(ier_num==0) THEN    ! CURRENT file was found
@@ -1052,7 +1063,7 @@ IF(lda) THEN
    ENDIF
 ENDIF
 CLOSE(UNIT=IRD)
-string = "rm -f /TMP/DISCUS_CURRENT"
+string = "rm -f " // cfile(1:LEN_TRIM(cfile))
 CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 CALL no_error
 !
@@ -1060,7 +1071,7 @@ CALL no_error
 !
 last_update = 0
 since_update = 0
-!IF(operating==OS_LINUX_WSL) THEN
+IF(operating==OS_LINUX_WSL) THEN
    INQUIRE(FILE=discus_update,EXIST=lda)
    IF(lda) THEN
       OPEN(UNIT=IRD, FILE=discus_update, STATUS='old')
@@ -1073,7 +1084,7 @@ since_update = 0
    ENDIF
    READ(date,*) idate
    since_update = idate-last_update
-!ENDIF
+ENDIF
 !
 END SUBROUTINE lib_f90_test_updates
 !
