@@ -26,7 +26,7 @@ USE sys_compiler
 !
 IMPLICIT none 
 !                                                                       
-INTEGER, PARAMETER :: MAXW = 9
+INTEGER, PARAMETER :: MAXW = 30
 !                                                                       
 CHARACTER(LEN=*), INTENT(INOUT) :: string
 CHARACTER(LEN=*), INTENT(INOUT) :: line 
@@ -483,19 +483,28 @@ REAL(KIND=PREC_DP), DIMENSION(3)  :: wwerte
             ww = REAL(INT(ww), PREC_DP ) 
             CALL ersetz2 (string, ikl, iklz, ww, 3, lll) 
          ELSEIF (string (ikl - 3:ikl - 1) .eq.'max') then 
-            CALL get_params (line, ianz, cpara, lpara, 2, lp) 
-            IF (ianz.eq.2) then 
-               DO i = 1, ianz 
-               CALL eval (cpara (i), lpara (i) ) 
-               IF (ier_num.ne.0) then 
+            CALL get_params (line, ianz, cpara, lpara, MAXW, lp) 
+            IF (ianz>=1 .AND. ianz <=MAXW) THEN 
+               CALL eval(cpara(1), lpara(1) ) 
+               IF(ier_num /= 0) THEN 
                   RETURN 
                ENDIF 
-               wwerte(i) = do_read_number (cpara (i), lpara (i) ) 
-               IF (ier_num.ne.0) then 
+               werte(1) = do_read_number(cpara(1), lpara(1) ) 
+               IF (ier_num /= 0) THEN 
                   RETURN 
                ENDIF 
+               ww = werte(1)
+               DO i = 2, ianz 
+                  CALL eval(cpara (i), lpara (i) ) 
+                  IF (ier_num /= 0) THEN 
+                     RETURN 
+                  ENDIF 
+                  wwerte(i) = do_read_number (cpara (i), lpara (i) ) 
+                  IF (ier_num /= 0) THEN 
+                     RETURN 
+                  ENDIF 
+                  ww = MAX(ww, wwerte(i) ) 
                ENDDO 
-               ww = max (wwerte(1), wwerte(2) ) 
                CALL ersetz2 (string, ikl, iklz, ww, 3, lll) 
             ELSE 
                ier_num = - 6 
@@ -503,19 +512,28 @@ REAL(KIND=PREC_DP), DIMENSION(3)  :: wwerte
                RETURN 
             ENDIF 
          ELSEIF (string (ikl - 3:ikl - 1) .eq.'min') then 
-            CALL get_params (line, ianz, cpara, lpara, 2, lp) 
-            IF (ianz.eq.2) then 
-               DO i = 1, ianz 
-               CALL eval (cpara (i), lpara (i) ) 
-               IF (ier_num.ne.0) then 
+            CALL get_params (line, ianz, cpara, lpara, MAXW, lp) 
+            IF (ianz>=1 .AND. ianz <=MAXW) THEN 
+               CALL eval(cpara(1), lpara(1) ) 
+               IF(ier_num /= 0) THEN 
                   RETURN 
                ENDIF 
-               wwerte(i) = do_read_number (cpara (i), lpara (i) ) 
-               IF (ier_num.ne.0) then 
+               werte(1) = do_read_number(cpara(1), lpara(1) ) 
+               IF (ier_num /= 0) THEN 
                   RETURN 
                ENDIF 
+               ww = werte(1)
+               DO i = 2, ianz 
+                  CALL eval(cpara (i), lpara (i) ) 
+                  IF (ier_num /= 0) THEN 
+                     RETURN 
+                  ENDIF 
+                  wwerte(i) = do_read_number (cpara (i), lpara (i) ) 
+                  IF (ier_num /= 0) THEN 
+                     RETURN 
+                  ENDIF 
+                  ww = MIN(ww, wwerte(i) ) 
                ENDDO 
-               ww = min (wwerte(1), wwerte(2) ) 
                CALL ersetz2 (string, ikl, iklz, ww, 3, lll) 
             ELSE 
                ier_num = - 6 
