@@ -36,6 +36,9 @@
 
    New commands 'mount' and 'umount' enable access to Removable drives
    at Windows. Not relevant for Linux and MACOSX
+
+   Modified "min" mand "max" functions to take more than 2 arguments.
+   
 4  2020_May
 
    Added the possibility to continue input lines 
@@ -739,8 +742,8 @@
 !p abs(<arg>)                      ! Absolute value of <arg>
 
 !p mod(<arg1>,<arg2>)              ! Modulo <arg1> of <arg2>, real arguments
-!p max(<arg1>,<arg2>)              ! Maximum of <arg1> and <arg2>
-!p min(<arg1>,<arg2>)              ! Minimum of <arg1> and <arg2>
+!p max(<arg1>,<arg2> [, <argi>])   ! Maximum of all arguments, at most 30 args.
+!p min(<arg1>,<arg2> [, <argi>])   ! Minimum of all arguments, at most 30 args.
 
 !p int(<arg>)                      ! Convert argument to integer
 !p nint(<arg>)                     ! Convert argument to nearest integer
