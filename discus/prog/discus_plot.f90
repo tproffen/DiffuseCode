@@ -589,21 +589,17 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ELSEIF (cpara(1)(1:1) .eq.'J'.and.ianz.eq.1) then
                         pl_prog = 'jmol' 
 !                       Test existence of jmol / java 
+                        WRITE(tempfile, '(a,i10.10)') '/tmp/which_jmol.', PID
                         IF(operating=='Linux') THEN                      
-                           tempfile = '/tmp/which_jmol'
-                           line = 'which jmol > /tmp/which_jmol'
+                           WRITE(line,'(a,i10.10)')  'which jmol > /tmp/which_jmol.', PID
                         ELSEIF(operating=='Linux_WSL') THEN                      
-                           tempfile = '/tmp/which_jmol'
-                           line = 'which jmol > /tmp/which_jmol'
+                           WRITE(line,'(a,i10.10)')  'which jmol > /tmp/which_jmol.', PID
                         ELSEIF(operating=='Windows') THEN                      
-                           tempfile = '/tmp/which_jmol'
-                           line = 'which java > /tmp/which_jmol'
+                           WRITE(line,'(a,i10.10)')  'which java > /tmp/which_jmol.', PID
                         ELSEIF(operating(1:6)=='cygwin') THEN                      
-                           tempfile = '/tmp/which_jmol'
-                           line = 'which java > /tmp/which_jmol'
+                           WRITE(line,'(a,i10.10)')  'which java > /tmp/which_jmol.', PID
                         ELSEIF(operating(1:6)=='darwin') THEN                      
-                           tempfile = '/tmp/which_jmol'
-                           line = 'which jmol > /tmp/which_jmol'
+                           WRITE(line,'(a,i10.10)')  'which jmol > /tmp/which_jmol.', PID
                         ENDIF
                            CALL system(line)
                            CALL oeffne( ITMP, tempfile, 'old')
@@ -636,6 +632,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                                  ENDIF
                               ENDIF
                            ENDIF
+                        WRITE(line,'(a,a)') 'rm -f ', tempfile(1:LEN_TRIM(tempfile))
+                        CALL system(line)
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -1565,6 +1563,7 @@ IF(pl_prog=='jmol') THEN
 !
    ENDIF
    WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
+write(*,*) ' line ', line(1:len_trim(line))
    CALL system(line)
 ENDIF
 END SUBROUTINE plot_inter
