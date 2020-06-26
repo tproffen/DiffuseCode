@@ -493,7 +493,7 @@ main:DO i = 1, lib_reserved_n
    IF ((lib_reserved (i)(1:length)== zeile (1:length) ) ) THEN 
       ier_num = - 25 
       ier_typ = ER_FORT 
-      EXIT main
+      RETURN
    ENDIF 
 ENDDO main 
 !                                                                       
@@ -502,6 +502,7 @@ ENDDO main
 IF(lstandalone) THEN
    IF (ier_num.eq.0) THEN 
       CALL p_validate_var_spec (zeile, lp) 
+      IF(ier_num /= 0) RETURN
    ENDIF 
 ELSE        ! Part of the suite, check all parts 
    CALL general_validate_var_spec (zeile, lp, diffev_reserved_n, diffev_reserved)
