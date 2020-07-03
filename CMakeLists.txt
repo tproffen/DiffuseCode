@@ -1,6 +1,7 @@
 # Toplevel for Diffuse Project
 
 cmake_minimum_required(VERSION 3.12.0)
+#cmake_minimum_required(VERSION 2.8.4)
 project(DIFFUSE)
 enable_language(Fortran)
 
@@ -28,25 +29,29 @@ set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 6)
 set (DIFFUSE_VERSION_MINOR 00)
-set (DIFFUSE_VERSION_PATCH 02)
+set (DIFFUSE_VERSION_PATCH 03)
 
 # Readline required for all programs
 
 find_package(Readline REQUIRED)
 
-set (FIND_HDF_COMPONENTS C CXX Fortran shared)
-find_package(HDF5 NAMES "hdf5" COMPONENTS ${FIND_HDF_COMPONENTS} REQUIRED)
-if (HDF5_FOUND)
-  if (HDF5_shared_C_FOUND)
-    set (LINK_LIBS ${LINK_LIBS} ${HDF5_C_SHARED_LIBRARY})
+if (DEFINED ENV{HDF5_LIB})
+  set (LINK_LIBS ${LINK_LIBS} "$ENV{HDF5_LIB}" )
+else ()
+  set (FIND_HDF_COMPONENTS C CXX Fortran shared)
+  find_package(HDF5 NAMES "hdf5" COMPONENTS ${FIND_HDF_COMPONENTS} REQUIRED)
+  if (HDF5_FOUND)
+    if (HDF5_shared_C_FOUND)
+      set (LINK_LIBS ${LINK_LIBS} ${HDF5_C_SHARED_LIBRARY})
+    endif ()
+    if (HDF5_shared_CXX_FOUND)
+      set (LINK_LIBS ${LINK_LIBS} ${HDF5_CXX_SHARED_LIBRARY})
+    endif ()
+    if (HDF5_shared_Fortran_FOUND)
+      set (LINK_LIBS ${LINK_LIBS} ${HDF5_FORTRAN_SHARED_LIBRARY})
+    endif ()
+    INCLUDE_DIRECTORIES (${HDF5_INCLUDE_DIR_FORTRAN})
   endif ()
-  if (HDF5_shared_CXX_FOUND)
-    set (LINK_LIBS ${LINK_LIBS} ${HDF5_CXX_SHARED_LIBRARY})
-  endif ()
-  if (HDF5_shared_Fortran_FOUND)
-    set (LINK_LIBS ${LINK_LIBS} ${HDF5_FORTRAN_SHARED_LIBRARY})
-  endif ()
-  INCLUDE_DIRECTORIES (${HDF5_INCLUDE_DIR_FORTRAN})
 endif ()
 
 # Option to build a PYTHON interface
@@ -66,7 +71,7 @@ set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
 #set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -finit-local-zero")
-set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 ")
+set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -std=legacy")
 
 # Set different compiler flags for Portland compiler
 if (PGF)
