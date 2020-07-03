@@ -3256,130 +3256,163 @@ USE lib_length
  1000 FORMAT(' debug > Number of GSAS banks found: ',i3) 
       END FUNCTION gsas_no_banks                    
 !*****7**************************************************************** 
-      SUBROUTINE read_xy (ifil, ianz, werte, maxw) 
+!
+SUBROUTINE read_xy (ifil, ianz, werte, maxw) 
 !+                                                                      
 !     Load x,y or x,y,dx,dy files                                       
 !-                                                                      
-      USE blanks_mod
-      USE errlist_mod 
-      USE prompt_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE blanks_mod
+USE errlist_mod 
+USE prompt_mod 
+USE kuplot_config 
+USE kuplot_mod 
 USE precision_mod
 !
-      USE count_col_mod
+USE count_col_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER mm 
-      PARAMETER (mm = 50) 
+INTEGER, PARAMETER :: mm = 50
 !                                                                       
-      INTEGER maxw 
-      INTEGER ianz 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
+INTEGER, INTENT(IN) :: ifil 
+INTEGER, INTENT(IN) :: ianz 
+INTEGER, INTENT(IN) :: MAXW 
+REAL(KIND=PREC_DP), INTENT(IN) :: werte (maxw) 
 !                                                                       
-      CHARACTER(LEN=PREC_STRING) :: line 
-      REAL values (mm) 
-      INTEGER ifil, nr, nval, iwex, iwey, iwdx, iwdy, iski 
-      INTEGER i, maxpp 
-      INTEGER :: length   ! Character string length
+CHARACTER(LEN=PREC_STRING) :: line 
+REAL    :: values (mm) 
+INTEGER :: nr, nval, iwex, iwey, iwdx, iwdy, iski 
+INTEGER :: i, maxpp 
+INTEGER :: ios      ! I/O status
+INTEGER :: length   ! Character string length
 !                                                                       
 !------ Get correct column numbers                                      
 !                                                                       
-      IF (ianz.eq.2) then 
-         iwex = nint (werte (1) ) 
-         iwey = nint (werte (2) ) 
-         iwdx = 0 
-         iwdy = 0 
-         iski = 0 
-      ELSEIF (ianz.eq.3) then 
-         iwex = nint (werte (1) ) 
-         iwey = nint (werte (2) ) 
-         iwdx = 0 
-         iwdy = nint (werte (3) ) 
-         iski = 0 
-      ELSEIF (ianz.eq.4) then 
-         iwex = nint (werte (1) ) 
-         iwey = nint (werte (2) ) 
-         iwdx = nint (werte (3) ) 
-         iwdy = nint (werte (4) ) 
-         iski = 0 
-      ELSEIF (ianz.eq.5) then 
-         iwex = nint (werte (1) ) 
-         iwey = nint (werte (2) ) 
-         iwdx = nint (werte (3) ) 
-         iwdy = nint (werte (4) ) 
-         iski = nint (werte (5) ) 
-      ELSE 
-         iski = 0 
-         iwex = 1 
-         iwey = 2 
-         iwdx = 0 
-         iwdy = 0 
-      ENDIF 
+IF (ianz.eq.2) then 
+   iwex = nint (werte (1) ) 
+   iwey = nint (werte (2) ) 
+   iwdx = 0 
+   iwdy = 0 
+   iski = 0 
+ELSEIF (ianz.eq.3) then 
+   iwex = nint (werte (1) ) 
+   iwey = nint (werte (2) ) 
+   iwdx = 0 
+   iwdy = nint (werte (3) ) 
+   iski = 0 
+ELSEIF (ianz.eq.4) then 
+   iwex = nint (werte (1) ) 
+   iwey = nint (werte (2) ) 
+   iwdx = nint (werte (3) ) 
+   iwdy = nint (werte (4) ) 
+   iski = 0 
+ELSEIF (ianz.eq.5) then 
+   iwex = nint (werte (1) ) 
+   iwey = nint (werte (2) ) 
+   iwdx = nint (werte (3) ) 
+   iwdy = nint (werte (4) ) 
+   iski = nint (werte (5) ) 
+ELSE 
+   iski = 0 
+   iwex = 1 
+   iwey = 2 
+   iwdx = 0 
+   iwdy = 0 
+ENDIF 
 !                                                                       
 !------ read data                                                       
 !                                                                       
-      nr = 1 
-      maxpp = maxarray - offxy (iz - 1) 
+nr = 1 
+maxpp = maxarray - offxy (iz - 1) 
 !                                                                       
-      DO i = 1, iski 
-      READ (ifil, 9999, end = 20) line 
-      ENDDO 
+ios = 0
+DO i = 1, iski 
+!  READ (ifil, 9999, end = 20) line 
+   READ(ifil,'(a)', IOSTAT=ios ) line
+   IF(IS_IOSTAT_END(ios)) RETURN
+ENDDO 
 !                                                                       
-   10 CONTINUE 
-      READ (ifil, 9999, end = 20) line 
-      length = LEN_TRIM(line)
-      CALL rem_leading_bl (line, length)
-      IF (line (1:1) .eq.'#'.and.iski.eq.0) goto 10 
-      CALL count_col (line, nval) 
-      IF (nval.eq.0) goto 10 
-      IF (nval.gt.mm) nval = mm 
-      BACKSPACE (ifil) 
+!  10 CONTINUE 
+loop_col: DO
+   READ(ifil,'(a)', IOSTAT=ios ) line
+   IF(IS_IOSTAT_END(ios)) RETURN
+   length = LEN_TRIM(line)
+   CALL rem_leading_bl (line, length)
+!  IF (line (1:1) .eq.'#'.and.iski.eq.0) goto 10 
+   IF (line (1:1) .eq.'#'.and.iski.eq.0) CYCLE loop_col
+   CALL count_col (line, nval) 
+!  IF (nval.eq.0) goto 10 
+   IF (nval >  0) EXIT loop_col
+enddo loop_col
+!
+IF (nval.gt.mm) nval = mm 
+BACKSPACE (ifil) 
 !                                                                       
-      IF (ianz.lt.2) then 
-         IF (nval.eq.3) iwdy = 3 
-         IF (nval.ge.4) then 
-            iwdx = 3 
-            iwdy = 4 
-         ENDIF 
-      ENDIF 
+IF (ianz.lt.2) then 
+   IF (nval.eq.3) iwdy = 3 
+   IF (nval.ge.4) then 
+      iwdx = 3 
+      iwdy = 4 
+   ENDIF 
+ENDIF 
 !                                                                       
-      IF (iski.gt.0) WRITE (output_io, 1010) iski 
-      WRITE (output_io, 1000) iwex, iwey, iwdx, iwdy 
-      IF (iwex.le.0.or.iwex.gt.nval.or.iwey.le.0.or.iwey.gt.nval.or.iwdx&
-     &.gt.nval.or.iwdy.gt.nval) then                                    
-         ier_num = - 59 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
+IF (iski.gt.0) WRITE (output_io, 1010) iski 
+WRITE (output_io, 1000) iwex, iwey, iwdx, iwdy 
+IF (iwex.le.0 .OR. iwex.gt.nval .OR. iwey.le.0 .OR. iwey.gt.nval .OR. &
+    iwdx.gt.nval .OR. iwdy.gt.nval) THEN                                    
+   ier_num = - 59 
+   ier_typ = ER_APPL 
+   RETURN 
+ENDIF 
 !                                                                       
-   15 CONTINUE 
-      READ(ifil,'(a)', END=20) line
-      length = LEN_TRIM(line)
-      CALL rem_leading_bl (line, length)
-      IF(line(1:1)=='#') GOTO 15
-      READ (line, *, end = 20) (values (i), i = 1, nval) 
-      x (offxy (iz - 1) + nr) = values (iwex) 
-      y (offxy (iz - 1) + nr) = values (iwey) 
-      dx (offxy (iz - 1) + nr) = 0.0 
-      dy (offxy (iz - 1) + nr) = 0.0 
-      IF (iwdx.gt.0) dx (offxy (iz - 1) + nr) = values (iwdx) 
-      IF (iwdy.gt.0) dy (offxy (iz - 1) + nr) = values (iwdy) 
-      nr = nr + 1 
-      IF (nr.gt.maxpp) then 
-         ier_num = - 6 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-      GOTO 15 
-   20 CONTINUE 
-      lenc(iz) = nr - 1 
-      offxy (iz) = offxy (iz - 1) + lenc(iz) 
-      offz (iz) = offz (iz - 1) 
-      iz = iz + 1 
+ios = 0
+loop_read: DO
+   READ(ifil,'(a)', IOSTAT=ios ) line
+   IF(IS_IOSTAT_END(ios)) THEN
+      ios = 0
+      EXIT loop_read
+   ENDIF
+   length = LEN_TRIM(line)
+   CALL rem_leading_bl (line, length)
+!  IF(line(1:1)=='#') GOTO 15
+   IF(line(1:1)=='#') CYCLE loop_read
+   READ (line, *, IOSTAT=ios, ERR=50 ) (values (i), i = 1, nval) 
+   IF(IS_IOSTAT_END(ios)) THEN
+      CYCLE loop_read
+   ELSEIF(ios/=0) THEN
+      EXIT loop_read
+   ENDIF
+   x (offxy (iz - 1) + nr) = values (iwex) 
+   y (offxy (iz - 1) + nr) = values (iwey) 
+   dx (offxy (iz - 1) + nr) = 0.0 
+   dy (offxy (iz - 1) + nr) = 0.0 
+   IF (iwdx.gt.0) dx (offxy (iz - 1) + nr) = values (iwdx) 
+   IF (iwdy.gt.0) dy (offxy (iz - 1) + nr) = values (iwdy) 
+   nr = nr + 1 
+   IF (nr.gt.maxpp) then 
+      ier_num = - 6 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+ENDDO loop_read
+!
+!20 CONTINUE 
+IF(ios==0) THEN  
+!
+   lenc(iz) = nr - 1 
+   offxy (iz) = offxy (iz - 1) + lenc(iz) 
+   offz (iz) = offz (iz - 1) 
+   iz = iz + 1 
 !                                                                       
-      CALL show_data (iz - 1) 
+   CALL show_data (iz - 1) 
+ENDIF
+!
+50 CONTINUE
+!
+IF(ios /= 0) THEN
+   ier_num = -3
+   ier_typ = ER_IO
+ENDIF
 !                                                                       
  1000 FORMAT     (1x,'Column assignement (x y dx dy): ',4i5) 
  1010 FORMAT     (1x,'Header lines skipped: ',i5) 
