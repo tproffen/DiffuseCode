@@ -14,6 +14,12 @@ find_package(NEXUS)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
+if (DEFINED ENV{HDF5_INC})
+  include_directories($ENV{HDF5_INC})
+  #else ()
+  #  include_directories(/usr/include)
+endif ()
+#include_directories(/usr/local/HDF_Group/HDF5/1.12.0/include/shared/)
 
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 
