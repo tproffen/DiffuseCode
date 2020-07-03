@@ -4099,6 +4099,7 @@ END FUNCTION mmc_energy_cn
       REAL bl_s2 (0:DEF_maxscat, 0:DEF_maxscat) 
       REAL u (3), v (3), d (3) 
       REAL dist 
+REAL :: divisor
 !
 INTEGER :: n_cn
 INTEGER, DIMENSION(:), ALLOCATABLE :: ncentral
@@ -4408,13 +4409,13 @@ DO is = 0, cr_nscat
 ENDDO
 je = MC_OCC 
 !                                                                       
-!                                                                       
          nneigh = pair11 + pair12 + pair21 + pair22 
          IF (nneigh.gt.0.) then 
             prob11 =  pair11           / REAL(nneigh) 
             prob12 = (pair12 + pair21) / REAL(nneigh) 
             prob22 =  pair22           / REAL(nneigh) 
             thet = 0.5 * (2.0 * pair11 + pair12 + pair21) / REAL(nneigh)                                                     
+!           thet = 0.5 * ((pair22 + pair11) + pair12 + pair21) / REAL(nneigh)                                                     
          ENDIF 
          lfirst = .true.
 corr_pair: DO is = 0, cr_nscat 
@@ -4425,16 +4426,29 @@ corr_pair: DO is = 0, cr_nscat
                                                     (thet * (1 - thet) )
                     mmc_ach_corr (ic, je, js, is) = (prob11 - thet**2) /&
                                                     (thet * (1 - thet) )
-!               Feedback mechanism                                      
-                    mmc_depth (ic, MC_OCC, 0, 0) = mmc_depth (ic, MC_OCC, 0, 0) - &
-                    mmc_cfac (ic, MC_OCC) * (mmc_target_corr (ic, MC_OCC, is,js)- &
-                                             mmc_ach_corr (ic, MC_OCC, is, js) ) / 2. &
-                    *ABS(mmc_target_corr (ic, MC_OCC, is, js)) &
-                    * damp
                  ELSE 
-                    mmc_ach_corr (ic, je, is, js) = 0.0 
-                    mmc_ach_corr (ic, je, js, is) = 0.0 
+                    IF((pair11>0 .OR. pair22>0) .AND. (pair12==0 .AND. pair21==0)) THEN
+                       mmc_ach_corr (ic, je, is, js) = 1.0 
+                       mmc_ach_corr (ic, je, js, is) = 1.0 
+                    ELSEIF((pair12>0 .OR. pair12>0) .AND. (pair11==0 .AND. pair22==0)) THEN
+                       mmc_ach_corr (ic, je, is, js) =-1.0 
+                       mmc_ach_corr (ic, je, js, is) =-1.0 
+                    ELSE 
+                       mmc_ach_corr (ic, je, is, js) = 0.0 
+                       mmc_ach_corr (ic, je, js, is) = 0.0 
+                    ENDIF 
                  ENDIF 
+!               Feedback mechanism                                      
+                 IF(mmc_target_corr (ic, MC_OCC, is, js) /= 0.0) THEN
+                    divisor = ABS(mmc_target_corr (ic, MC_OCC, is, js))
+                 ELSE
+                    divisor = 1.0
+                 ENDIF
+                 mmc_depth (ic, MC_OCC, 0, 0) = mmc_depth (ic, MC_OCC, 0, 0) - &
+                 mmc_cfac (ic, MC_OCC) * (mmc_target_corr (ic, MC_OCC, is,js)- &
+                                          mmc_ach_corr (ic, MC_OCC, is, js) ) / 2. &
+                 *ABS(mmc_target_corr (ic, MC_OCC, is, js)) &
+                 * damp
 !                                                                       
                  IF (lout .and. mmc_pair(ic,MC_OCC,is,js) < 0 .and. lfirst) THEN
                     lfirst = .false.
