@@ -25,7 +25,7 @@ USE precision_mod
 USE prompt_mod
 USE string_convert_mod
 USE take_param_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 !
@@ -288,18 +288,18 @@ WRITE(iounit, * ) ' '
 3120 FORMAT(' Sigma loaded as    : ',a )
 2000 FORMAT(' Refinement macro   : ',a)
 4000 FORMAT('   Convergence 1    : dP/sigma < AND conf >     AND dChi^2 <',/, &
-            '                      ',2(G10.3E3,5x),G10.3E3)
+            '                      ',2(G11.3E3,5x),G11.3E3)
 4100 FORMAT('   Convergence 2    : dChi^2 <   AND dP/sigma > 0.0          ',/, &
-            '                      ',  G10.3E3            )
+            '                      ',  G11.3E3            )
 4200 FORMAT('   Convergence 3    : Chi^2 <                                ',/, &
-            '                      ',  G10.3E3            )
+            '                      ',  G11.3E3            )
  1040 FORMAT (/,                                                        &
               ' Information about the fit : ',/,                        &
-              3x,'Chi^2      : ',g12.6, 5x,' Chi^2/N : ',g12.6 /,       &
-              3x,'Conf. level: ',g12.6, 1x,' Chi^2/(N-P) : ',g12.6 /,   &
-              3x,'No.Data    : ',i12  , 4x,' No.Params: ',i12/,          &
-              3x,'MRQ final  : ',g12.6,/,                               &
-              3x,'wR value   : ',g12.6, 5x,' R exp   : ',g12.6/)        
+              3x,'Chi^2      : ',g13.6, 5x,' Chi^2/N : ',g13.6 /,       &
+              3x,'Conf. level: ',g13.6, 1x,' Chi^2/(N-P) : ',g13.6 /,   &
+              3x,'No.Data    : ',i12  , 4x,' No.Params: ',i13/,          &
+              3x,'MRQ final  : ',g13.6,/,                               &
+              3x,'wR value   : ',g13.6, 5x,' R exp   : ',g13.6/)        
  1050 FORMAT (' Correlations larger than 0.8 :') 
  1060 FORMAT (3x,'** none **') 
  1070 FORMAT (3x,A16,' - ',A16,' : ',f6.3) 
