@@ -32,7 +32,7 @@ USE lib_length
    USE population
 USE precision_mod
    USE random_mod
-USE sys_compiler
+USE support_mod
 !
    IMPLICIT none 
 !                                                                       
@@ -204,7 +204,7 @@ USE lib_length
 USE lib_random_func
 USE precision_mod
    USE random_mod
-USE sys_compiler
+USE support_mod
 !
    IMPLICIT none
 !

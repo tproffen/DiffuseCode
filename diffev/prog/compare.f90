@@ -44,7 +44,7 @@ CONTAINS
    USE diff_evol
    USE diffev_random
    USE population
-USE sys_compiler
+USE support_mod
 !                                                                       
    IMPLICIT none 
 !
@@ -142,7 +142,7 @@ USE sys_compiler
    USE diffev_random
    USE population
    USE random_mod
-USE sys_compiler
+USE support_mod
 !
    IMPLICIT none 
 !                                                                       
@@ -316,7 +316,7 @@ list_index(:) = 0
 !
    USE population
    USE support_diffev_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
    IMPLICIT none 
 !
@@ -363,7 +363,7 @@ USe lib_length
    USE prompt_mod
    USE random_mod
    USE terminal_mod
-USE sys_compiler
+USE support_mod
 !
 !                                                                       
    IMPLICIT none 
@@ -449,7 +449,7 @@ USE sys_compiler
                WRITE(error_io,'(a,a)') ' ***APPL*** ',fname(1:LEN_TRIM(fname))
                WRITE(error_io,'(a)')   ' ***APPL*** Generation,    member,     child'
                WRITE(error_io,'(a  ,3(2x,I9))') ' ***APPL***',pop_gen-1,i,j
-               WRITE(error_io,'(a,2(2x,G16.10E2))') ' ***APPL*** ',parent_val(j,0), pop_x(i,j)
+               WRITE(error_io,'(a,2(2x,G17.10E2))') ' ***APPL*** ',parent_val(j,0), pop_x(i,j)
                CLOSE(iwr)
                RETURN
             ENDIF
@@ -503,7 +503,7 @@ USE sys_compiler
                WRITE(error_io,'(a,a)') ' ***APPL*** ',fname(1:LEN_TRIM(fname))
                WRITE(error_io,'(a)')   ' ***APPL*** Generation,    member,     child'
                WRITE(error_io,'(a  ,3(2x,I9))') ' ***APPL***',pop_gen-1,i,j
-               WRITE(error_io,'(a, (2x,G16.10E2))') ' ***APPL*** ',parent_val(j,k)
+               WRITE(error_io,'(a, (2x,G17.10E2))') ' ***APPL*** ',parent_val(j,k)
                CLOSE(iwr)
                RETURN
             ENDIF
@@ -621,7 +621,7 @@ USE sys_compiler
 USE lib_length
    USE precision_mod
    USE variable_mod
-USE sys_compiler
+USE support_mod
 !
    IMPLICIT none 
 !                                                                       
@@ -857,7 +857,7 @@ USE sys_compiler
 USE lib_length
    USE population
    USE precision_mod
-USE sys_compiler
+USE support_mod
 !
    IMPLICIT NONE
 !
@@ -956,7 +956,7 @@ USE sys_compiler
    USE population
 USE lib_length
    USE precision_mod
-USE sys_compiler
+USE support_mod
 !
    IMPLICIT none
 !

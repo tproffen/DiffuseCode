@@ -123,7 +123,7 @@ CONTAINS
       USE errlist_mod 
 USE lib_errlist_func
       USE param_mod 
-USE sys_compiler
+USE support_mod
 !
    IMPLICIT NONE
 !

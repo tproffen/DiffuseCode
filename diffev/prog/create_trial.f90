@@ -309,7 +309,7 @@ USE population
 USE support_diffev_mod
 USE param_mod
 USE variable_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -357,7 +357,7 @@ USE diffev_random
 USE run_mpi_mod
 !
 USE random_state_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -445,7 +445,7 @@ USE diffev_random
 USE errlist_mod
 USE lib_f90_allocate_mod
 USE variable_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
 IMPLICIT none 
 !

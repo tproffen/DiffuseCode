@@ -106,7 +106,7 @@ USE run_mpi_mod
 USE errlist_mod
 USE random_state_mod
 USE precision_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 !
@@ -270,7 +270,7 @@ USE run_mpi_mod
 USE errlist_mod
 USE random_state_mod
 USE precision_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 !

@@ -19,7 +19,7 @@ CONTAINS
 USE precision_mod
    USE variable_mod
 USE do_variable_mod
-USE sys_compiler
+USE support_mod
 !
    IMPLICIT NONE
 !

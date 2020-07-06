@@ -46,10 +46,10 @@ CHARACTER(LEN=direc_len ), INTENT(IN) :: direc
 INTEGER                , INTENT(IN) :: kid   
 INTEGER                , INTENT(IN) :: indiv
 INTEGER                , INTENT(IN ):: n_rvalue_i
-INTEGER                , INTENT(OUT):: n_rvalue_o
+INTEGER                , INTENT(IN) :: n_rvalue_o
 INTEGER                , INTENT(IN ):: NRVAL
-REAL, DIMENSION(0:NRVAL   ),INTENT(OUT):: rvalue
-LOGICAL                , INTENT(OUT):: l_rvalue
+REAL, DIMENSION(0:NRVAL   ),INTENT(IN):: rvalue
+LOGICAL                , INTENT(IN):: l_rvalue
 CHARACTER(LEN=output_len), INTENT(IN) :: output
 INTEGER                , INTENT(IN) :: generation
 INTEGER                , INTENT(IN) :: member
