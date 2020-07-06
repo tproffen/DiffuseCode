@@ -12,7 +12,7 @@ USE ber_params_mod
 USE precision_mod
       USE prompt_mod 
 USE str_comp_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
