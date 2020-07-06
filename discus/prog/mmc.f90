@@ -1984,7 +1984,7 @@ USE lib_random_func
       USE param_mod 
 USE precision_mod
       USE prompt_mod 
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
       LOGICAL, INTENT(IN) :: lout_feed
@@ -5047,6 +5047,7 @@ USE do_find_mod
 USE mc_mod
 !
 USE precision_mod
+USE lib_random_func
 !
 IMPLICIT NONE
 !
@@ -5073,7 +5074,7 @@ ianz     = 1
 lout_feed = .TRUE.
 DO i=1, mo_cyc
    rel_cycl = REAL(i)/REAL(mo_cyc)
-   iatom = INT(ran(0)*cr_natoms) + 1    ! randomly choose an atom
+   iatom = INT(ran1(0)*cr_natoms) + 1    ! randomly choose an atom
    x = cr_pos(:, iatom)
    CALL do_find_env (ianz, werte, MAXW, x, rmin, rmax, chem_quick, chem_period)
    nneig = 0
@@ -5082,7 +5083,7 @@ DO i=1, mo_cyc
    ENDDO
    is_max = 0
    nn_max = 0
-   istart = INT(ran(0)*6.0)
+   istart = INT(ran1(0)*6.0)
    DO j=0,5
       k = MOD(istart+j,6) + 1           ! Current index in neighors
       IF(nneig(k) > nn_max) THEN
