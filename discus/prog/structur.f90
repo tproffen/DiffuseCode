@@ -1145,7 +1145,7 @@ USE lib_errlist_func
 USE lib_length
 USE str_comp_mod
       USE string_convert_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !
 !                                                                       
@@ -2130,7 +2130,7 @@ END SUBROUTINE struc_mole_header
 !-                                                                      
 !           this subroutine reads an old structur.                      
 !+                                                                      
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
       INTEGER NMAX 
@@ -2759,8 +2759,8 @@ USE str_comp_mod
       INTEGER         , DIMENSION(1:MAXSCAT), INTENT(INOUT) :: as_iscat    ! (MAXSCAT) 
       INTEGER         , DIMENSION(1:MAXSCAT), INTENT(INOUT) :: as_prop     ! (MAXSCAT) 
 INTEGER                                  , INTENT(IN)  :: AT_MAXP
-INTEGER                                  , INTENT(OUT) :: at_ianz
-CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
+INTEGER                                  , INTENT(IN ) :: at_ianz
+CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN ) :: at_param
 !                                                                       
       INTEGER , PARAMETER :: ist  = 7
       INTEGER , PARAMETER :: maxw = 16! SHOULD READ : MAX(7, AT_MAXP)
@@ -3558,7 +3558,7 @@ USE get_params_mod
 USE lib_length
 USE wink_mod
 USE precision_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -4021,7 +4021,7 @@ DEALLOCATE(eadp_values)
 USE lib_length
 USE precision_mod
 USE str_comp_mod
-USE sys_compiler
+USE support_mod
 !
       IMPLICIT none 
 !                                                                       
@@ -4169,7 +4169,7 @@ USE build_name_mod
 USE precision_mod
 USE take_param_mod
 USE str_comp_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -4684,7 +4684,7 @@ END SUBROUTINE rmc6f_period
 USE lib_length
 USE precision_mod
       USE string_convert_mod
-USE sys_compiler
+USE support_mod
 !
       IMPLICIT none 
 !                                                                       
@@ -5642,7 +5642,7 @@ USE lib_length
 USE precision_mod
 USE str_comp_mod
       USE string_convert_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT NONE
 !
 
