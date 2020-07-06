@@ -1553,13 +1553,13 @@ USE precision_mod
             zeile (1:4) = cr_at_lis (cr_iscat (ind) ) 
             zeile (5:5) = ',' 
             IF (mode            ==  'a') then 
-               WRITE (zeile (7:57), 3000) (werte (i), i = 3, 5),        &
+               WRITE (zeile (7:58), 3000) (werte (i), i = 3, 5),        &
                cr_dw (cr_iscat (ind) )                                  
-               lp = 57 
+               lp = 58 
             ELSEIF (mode            ==  'r') then 
-               WRITE (zeile (7:57), 3000) (werte (i) + cr_pos (i - 2,   &
+               WRITE (zeile (7:58), 3000) (werte (i) + cr_pos (i - 2,   &
                ind), i = 3, 5), cr_dw (cr_iscat (ind) )                 
-               lp = 57 
+               lp = 58 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
@@ -1571,7 +1571,7 @@ USE precision_mod
             ier_typ = ER_APPL 
          ENDIF 
       ENDIF 
- 3000 FORMAT    (3(e12.5e1,','),e12.5e3) 
+ 3000 FORMAT    (3(e12.5e1,','),e13.5e3) 
       END SUBROUTINE do_copy                        
 !*****7*****************************************************************
       SUBROUTINE do_switch (line, lp) 

@@ -817,12 +817,12 @@ USE precision_mod
  2001 FORMAT     ( ' Lattice constants :'                               &
      &           ,/,4x,'a',10x,'b',10x,'c', 9x,                         &
      &           'alpha',6x,'beta',7x,'gamma', 6x,'volume',             &
-     &           /,6(2X,F9.5),2X,G12.6)                                 
+     &           /,6(2X,F9.5),2X,G13.6)                                 
  2002 FORMAT     (/' Metric Tensor     :'/(3(' ',3(2X,F11.5)/))) 
  2003 FORMAT     ( ' Reciprocal Lattice constants :'                    &
      &           ,/,4x,'a*', 9x,'b*', 9x,'c*', 8x,                      &
      &           'alpha*',5x,'beta*',6x,'gamma*', 5x,'volume',          &
-     &           /,6(2X,F9.5),2X,G12.6)                                 
+     &           /,6(2X,F9.5),2X,G13.6)                                 
  2004 FORMAT     (/' Reciprocal metric tensor     : '/                  &
      &            (3(' ',3(2X,F11.5)/)))                                
 !                                                                       

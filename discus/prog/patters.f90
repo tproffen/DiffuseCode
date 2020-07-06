@@ -1238,7 +1238,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       USE errlist_mod 
       USE prompt_mod 
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1863,7 +1863,7 @@ USE sys_compiler
 !
       USE errlist_mod 
       USE prompt_mod 
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
        
 !                                                                       
@@ -2869,7 +2869,7 @@ USE sys_compiler
       USE errlist_mod 
 USE lib_length
       USE prompt_mod 
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
        

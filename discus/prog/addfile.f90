@@ -18,7 +18,7 @@ CONTAINS
       USE get_params_mod
 USE precision_mod
       USE prompt_mod 
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -260,9 +260,9 @@ INTEGER         , INTENT(INOUT) :: laenge
       ENDIF 
 !                                                                       
  1000 FORMAT    (a) 
- 3010 FORMAT    (5(1x,e11.5)) 
- 3020 FORMAT    (4(1x,e11.5)) 
- 3030 FORMAT    (2(1x,e11.5)) 
+ 3010 FORMAT    (5(1x,e12.5)) 
+ 3020 FORMAT    (4(1x,e12.5)) 
+ 3030 FORMAT    (2(1x,e12.5)) 
 !                                                                       
       END SUBROUTINE do_addfile                     
 END MODULE addfile_mod

@@ -544,7 +544,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE crystal_mod 
       USE errlist_mod 
 USE lib_length
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
        
@@ -597,7 +597,7 @@ USE surface_mod
 !
 USE errlist_mod 
 USE lib_length
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT none 
 !

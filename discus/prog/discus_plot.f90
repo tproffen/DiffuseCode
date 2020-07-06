@@ -45,7 +45,7 @@ USE sup_mod
 USE precision_mod
 USE take_param_mod
 USE str_comp_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -1109,7 +1109,7 @@ END SUBROUTINE plot
       USE discus_plot_init_mod
       USE discus_plot_export_mod
       USE errlist_mod 
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
       INTEGER iff 
@@ -1262,7 +1262,7 @@ USE precision_mod
 USE prompt_mod
 USE trig_degree_mod
 USE matrix_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 !
@@ -1576,7 +1576,7 @@ SUBROUTINE jmol_kill(lout, lfinal)
 USE envir_mod
 USE errlist_mod
 USE prompt_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 !
