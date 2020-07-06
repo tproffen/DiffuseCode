@@ -551,7 +551,7 @@ USE lib_length
       USE structur, ONLY: stru_readheader, test_file
       USE errlist_mod 
 USE precision_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1105,7 +1105,7 @@ INTEGER, PARAMETER :: MAXW = 4
       USE trafo_mod
       USE errlist_mod 
 USE molecule_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1283,8 +1283,8 @@ CHARACTER (LEN = *), INTENT(IN) :: infile
 REAL               , INTENT(IN) :: mc_idimen (4, 4) 
 REAL               , INTENT(IN) :: mc_matrix (4, 4) 
 INTEGER                                  , INTENT(IN)  :: AT_MAXP
-INTEGER                                  , INTENT(OUT) :: at_ianz
-CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
+INTEGER                                  , INTENT(IN)  :: at_ianz
+CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN)  :: at_param
 !
 !                                                                       
       INTEGER idim4 
