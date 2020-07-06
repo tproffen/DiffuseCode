@@ -46,7 +46,7 @@ INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensi
 l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
 DO loop = 1, dimen(1)
   ii = mod((mod(loop-1, dimen(dsort(1)))                 + 1) + INT(dimen(dsort(1))/2) - l(dsort(1)), dimen(dsort(1))) + 1
-  fftfd(ii   ) = COMPLEX(linear(loop), 0.0D0)
+  fftfd(ii   ) = CMPLX(linear(loop), 0.0D0)
 ENDDO
 !
 END SUBROUTINE maptofftfd_1D_R_C_DP
@@ -109,7 +109,7 @@ DO loop = 1, dimen(1)*dimen(2)
    ientry(dsort(2)) = j                 ! j ==> goes into :dsort(2)
    ii = MOD(ientry(1) + INT(dimen(dsort(1))/2) - l(dsort(1)), dimen(dsort(1))) + 1
    jj = MOD(ientry(2) + INT(dimen(dsort(2))/2) - l(dsort(2)), dimen(dsort(2))) + 1
-   fftfd(ii,jj) = COMPLEX(linear(loop), 0.0D0)
+   fftfd(ii,jj) = CMPLX(linear(loop), 0.0D0)
 ENDDO
 !
 END SUBROUTINE maptofftfd_2D_R_C_DP
@@ -189,7 +189,7 @@ DO loop = 1, dimen(1)*dimen(2)*dimen(3)
    ii = MOD(ientry(1) + INT(dimen(dsort(1))/2) - l(dsort(1)), dimen(dsort(1))) + 1
    jj = MOD(ientry(2) + INT(dimen(dsort(2))/2) - l(dsort(2)), dimen(dsort(2))) + 1
    kk = MOD(ientry(3) + INT(dimen(dsort(3))/2) - l(dsort(3)), dimen(dsort(3))) + 1
-   fftfd(ii,jj, kk) = COMPLEX(linear(loop), 0.0D0)
+   fftfd(ii,jj, kk) = CMPLX(linear(loop), 0.0D0)
 ENDDO
 !
 END SUBROUTINE maptofftfd_3D_R_C_DP

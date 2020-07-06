@@ -1643,7 +1643,8 @@ subroutine c1fm1b ( n, inc, lenc, lench, lenwa, iw1, c_in, ch, wa, fnf, fac )
       end do
 !RBN                                      !RBN Copy local array back to COMPLEX 
   do i=1, lenc
-    c_in(i) = complex(c(2*i-1), c(2*i))
+!   c_in(i) = complex(c(2*i-1), c(2*i))
+    c_in(i) = cmplx(c(2*i-1), c(2*i))
   enddo
 
   return
@@ -1762,7 +1763,8 @@ subroutine c1fm1f ( n, inc, lenc, lench, lenwa, iw1, c_in, ch, wa, fnf, fac )
       end do
 !RBN                                      !RBN Copy local array back to COMPLEX 
   do i=1, lenc
-    c_in(i) = complex(c(2*i-1), c(2*i))
+!   c_in(i) = complex(c(2*i-1), c(2*i))
+    c_in(i) = cmplx(c(2*i-1), c(2*i))
   enddo
 
   return
@@ -4939,7 +4941,8 @@ subroutine cmfm1b ( lot, jump, n, inc, lenc, lench, lenwa, iw1, &
   125 continue
 !RBN                                      !RBN Copy local array back to COMPLEX 
   do i=1, lenc
-    c_in(i) = complex(c(2*i-1), c(2*i))
+!   c_in(i) = complex(c(2*i-1), c(2*i))
+    c_in(i) = cmplx(c(2*i-1), c(2*i))
   enddo
 
 
@@ -5058,7 +5061,8 @@ subroutine cmfm1f ( lot, jump, n, inc, lenc, lench, lenwa, iw1, &
   125 continue
 !RBN                                      !RBN Copy local array back to COMPLEX 
    do i=1, lenc
-     c_in(i) = complex(c(2*i-1), c(2*i))
+!    c_in(i) = complex(c(2*i-1), c(2*i))
+     c_in(i) = cmplx(c(2*i-1), c(2*i))
    enddo
 
 
@@ -12585,7 +12589,8 @@ subroutine rfft2b ( ldim, l, m, r, wsave, lensav, work, lenwrk, ier )
       call r2w(ldim,ldw,l,m,r,work)
       allocate(cwork(1:ldh*m))                !RBN 
       do loop = 1, ldh*m                      !RBN copy work into cwork
-         cwork(loop) = complex(work(2*loop), work(2*loop+1))
+!        cwork(loop) = complex(work(2*loop), work(2*loop+1))
+         cwork(loop) = cmplx(work(2*loop), work(2*loop+1))
       enddo
 !RBN  call cfftmb(ldh-1,1,m,ldh,work(2),ldh*m, &
 !RBN       wsave(lwsav+1),mwsav,r,l*m, ier1)
@@ -12835,7 +12840,8 @@ subroutine rfft2f ( ldim, l, m, r, wsave, lensav, work, lenwrk, ier )
       call r2w(ldim,ldw,l,m,r,work)
       allocate(cwork(1:ldh*m))                !RBN 
       do loop = 1, ldh*m                      !RBN copy work into cwork
-         cwork(loop) = complex(work(2*loop), work(2*loop+1))
+!        cwork(loop) = complex(work(2*loop), work(2*loop+1))
+         cwork(loop) = cmplx(work(2*loop), work(2*loop+1))
       enddo
 !RBN  call cfftmf(ldh-1,1,m,ldh,work(2),ldh*m, &
 !RBN       wsave(lwsav+1),mwsav,r,l*m, ier1)
