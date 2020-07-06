@@ -791,7 +791,7 @@ USE str_comp_mod
       USE prompt_mod 
 USE precision_mod
       USE string_convert_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
       CHARACTER (LEN=*), INTENT(IN) :: zeile 
@@ -899,7 +899,7 @@ USE sys_compiler
       USE get_params_mod
 USE precision_mod
       USE prompt_mod 
-USE sys_compiler
+USE support_mod
       USE ISO_FORTRAN_ENV
       IMPLICIT none 
 !                                                                       
@@ -1754,7 +1754,7 @@ USE lib_random_func
       USE param_mod 
       USE prompt_mod 
       USE precision_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
        
 !                                                                       
@@ -2359,7 +2359,7 @@ laccept = .false.
       USE debug_mod 
       USE errlist_mod 
       USE prompt_mod 
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
       LOGICAL , INTENT(IN) :: lout 
@@ -3214,7 +3214,7 @@ inner:      DO iatom = ia+1, cr_natoms
       USE pdf_mod 
       USE errlist_mod 
       USE prompt_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !
       LOGICAL, INTENT(IN) :: lout
@@ -3262,7 +3262,7 @@ inner:      DO iatom = ia+1, cr_natoms
       ENDDO  main
       ss = seknds (ss )
       WRITE (output_io, 4000) ss
-4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec')
+4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec')
 !                                                                       
 1000  FORMAT     (  '   ',f6.2,' % done  ...') 
 !
@@ -3279,7 +3279,7 @@ inner:      DO iatom = ia+1, cr_natoms
       USE pdf_mod 
       USE errlist_mod 
       USE prompt_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !
       LOGICAL, INTENT(IN) :: lout
@@ -3349,7 +3349,7 @@ inner:      DO iatom =    1, cr_natoms
       ENDDO  main
       ss = seknds (ss )
       WRITE (output_io, 4000) ss
-4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec')
+4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec')
 !                                                                       
 1000  FORMAT     (  '   ',f6.2,' % done  ...') 
 !
@@ -3367,7 +3367,7 @@ inner:      DO iatom =    1, cr_natoms
       USE molecule_mod 
       USE errlist_mod 
       USE prompt_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !
       LOGICAL, INTENT(IN) :: lout
@@ -3420,7 +3420,7 @@ inner:      DO iatom = ia+1, cr_natoms
       ENDDO  main
       ss = seknds (ss )
       WRITE (output_io, 4000) ss
-4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec')
+4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec')
 !                                                                       
 1000  FORMAT     (  '   ',f6.2,' % done  ...') 
 !

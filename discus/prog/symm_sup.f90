@@ -1503,7 +1503,7 @@ IF(ALLOCATED(sym_latom)) THEN
    ALLOCATE(sym_temp_latom(i:j))
    sym_temp_latom(i:j) = sym_latom(i:j)
 ENDIF
-#
+!
 IF(ALLOCATED(sym_lsite)) THEN
    IF(ALLOCATED(sym_temp_lsite)) DEALLOCATE(sym_temp_lsite)
    i = LBOUND(sym_lsite,1)
@@ -1511,7 +1511,7 @@ IF(ALLOCATED(sym_lsite)) THEN
    ALLOCATE(sym_temp_lsite(i:j))
    sym_temp_lsite(i:j) = sym_lsite(i:j)
 ENDIF
-#
+!
 IF(ALLOCATED(sym_excl)) THEN 
    IF(ALLOCATED(sym_temp_excl)) DEALLOCATE(sym_temp_excl)
    i = LBOUND(sym_excl,1)
@@ -1519,7 +1519,7 @@ IF(ALLOCATED(sym_excl)) THEN
    ALLOCATE(sym_temp_excl(i:j))
    sym_temp_excl(i:j) = sym_excl(i:j)
 ENDIF
-#
+!
 sym_temp_incl       = sym_incl 
 sym_temp_use        = sym_use  ! ace group symmetry operation no. N
 sym_temp_sel_mode   = sym_sel_mode
@@ -1578,7 +1578,7 @@ IF(ALLOCATED(sym_temp_latom)) THEN
    ALLOCATE(sym_latom(i:j))
    sym_latom(i:j) = sym_temp_latom(i:j)
 ENDIF
-#
+!
 IF(ALLOCATED(sym_temp_lsite)) THEN
    IF(ALLOCATED(sym_lsite)) DEALLOCATE(sym_lsite)
    i = LBOUND(sym_temp_lsite,1)
@@ -1586,7 +1586,7 @@ IF(ALLOCATED(sym_temp_lsite)) THEN
    ALLOCATE(sym_lsite(i:j))
    sym_lsite(i:j) = sym_temp_lsite(i:j)
 ENDIF
-#
+!
 IF(ALLOCATED(sym_temp_excl)) THEN
    IF(ALLOCATED(sym_excl)) DEALLOCATE(sym_excl)
    i = LBOUND(sym_temp_excl,1)
@@ -1594,7 +1594,7 @@ IF(ALLOCATED(sym_temp_excl)) THEN
    ALLOCATE(sym_excl(i:j))
    sym_excl(i:j) = sym_temp_excl(i:j)
 ENDIF
-#
+!
 sym_incl       = sym_temp_incl 
 sym_use        = sym_temp_use  ! ace group symmetry operation no. N
 sym_sel_mode   = sym_temp_sel_mode

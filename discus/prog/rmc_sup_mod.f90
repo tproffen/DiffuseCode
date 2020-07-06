@@ -727,8 +727,8 @@ USE precision_mod
 !                                                                       
  1000 FORMAT     (' R-values for current RMC results : ') 
  1500 FORMAT     ('    Plane ',i3,'/',i3,', sym. op. ',i2,'/',i2,' : ', &
-     &                   g12.6,' %')                                    
- 1600 FORMAT     ('                    Total R-value : ',g12.6,' %') 
+     &                   g13.6,' %')                                    
+ 1600 FORMAT     ('                    Total R-value : ',g13.6,' %') 
       END SUBROUTINE rmc_rvalue                     
 !*****7*****************************************************************
       SUBROUTINE rmc_show (cmd) 
@@ -983,7 +983,7 @@ USE lib_length
       USE prompt_mod 
 USE precision_mod
       USE string_convert_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: maxw = 10 
@@ -1200,7 +1200,7 @@ USE sys_compiler
       USE prompt_mod 
 USE precision_mod
       USE string_convert_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
        
 !                                                                       
@@ -1701,7 +1701,7 @@ USE lib_random_func
       USE param_mod 
       USE prompt_mod 
       USE precision_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
        
 !                                                                       
@@ -2042,7 +2042,7 @@ USE sys_compiler
  1250 FORMAT (/,' ---- Final configuration ---- ') 
  1300 FORMAT (/,' Gen: ',I6,' try: ',I6,' acc: (good/bad): ',I6,        &
      &          ' / ',I6,' s2x2: ',G15.8)                               
- 1400 FORMAT ('   Plane ',I2,': scal: ',G10.4,' / back: ',G10.4,        &
+ 1400 FORMAT ('   Plane ',I2,': scal: ',G11.4,' / back: ',G11.4,        &
      &          ' / s2x2: ',G22.8)                                      
  2000 FORMAT (/,' Starting main RMC loop ...',/,                        &
      &          ' (',A,') ',/)                                          
@@ -2066,7 +2066,7 @@ USE sys_compiler
 !                                                                       
       USE errlist_mod 
       USE prompt_mod 
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
        
 !                                                                       

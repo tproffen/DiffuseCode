@@ -1554,7 +1554,7 @@ USE lib_random_func
       USE update_cr_dim_mod
       USE errlist_mod 
 USE lib_length
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
       INTEGER ist 
@@ -1968,7 +1968,7 @@ USE spcgr_apply
 USE errlist_mod 
 USE prompt_mod 
 USE wink_mod 
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -2270,7 +2270,7 @@ IF (four_log) then
 ENDIF 
 !                                                                       
  3000 FORMAT (  '                   Atom typ = ',A4,7X,'(# ',I9,' )') 
- 4000 FORMAT      (/,' Elapsed time    : ',G12.6,' sec') 
+ 4000 FORMAT      (/,' Elapsed time    : ',G13.6,' sec') 
 !                                                                       
       END SUBROUTINE st_fourier                     
 !*****7*****************************************************************

@@ -6,7 +6,7 @@ module vtk_mod
     use crystal_mod
     use output_mod
     use errlist_mod
-USE sys_compiler
+USE support_mod
     implicit none
     real                :: dx,dy,dz
     

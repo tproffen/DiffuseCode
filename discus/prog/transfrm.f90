@@ -824,8 +824,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
      &           ' ( k(old) ) = ( ',2(F9.5,','),f9.5,' ) * ( k(new) )'/ &
      &           ' ( l(old) ) = ( ',2(F9.5,','),f9.5,' )   ( l(new) )'/)
  3100 FORMAT    (                                                       &
-     &           '   V(new)   = ',G12.5E3,' * V(old)'/                     &
-     &           '   V(old)   = ',G12.5E3,' * V(new)'/)                    
+     &           '   V(new)   = ',G13.5E3,' * V(old)'/                     &
+     &           '   V(old)   = ',G13.5E3,' * V(new)'/)                    
  3200 FORMAT    (                                                       &
      &           '   Determinant of transformation is zero'/)           
  3080 FORMAT    (' Range of atoms from to    : All atoms included') 
@@ -1284,7 +1284,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE param_mod 
       USE precision_mod
       USE prompt_mod 
-USE sys_compiler
+USE support_mod
 !
       IMPLICIT none 
 !                                                                       

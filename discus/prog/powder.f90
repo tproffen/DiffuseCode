@@ -1335,7 +1335,7 @@ USE param_mod
 USE prompt_mod 
 USE precision_mod 
 USE trig_degree_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -1915,7 +1915,7 @@ ss = seknds (ss)
 WRITE (output_io, 4000) ss 
 !
 !                                                                       
- 4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
+ 4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
  5000 FORMAT     (' Currently at H = ',f9.4,'   (dH = ',f9.4,           &
      &                   ', maxH = ',f9.4,')')                          
  8888 FORMAT    ('Current number = ',i10) 

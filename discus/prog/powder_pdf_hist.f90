@@ -182,7 +182,7 @@ USE prompt_mod
 USE precision_mod 
 USE trig_degree_mod
 use times_mod
-USE sys_compiler
+USE support_mod
 IMPLICIT none 
 !                                                                       
 REAL,    INTENT(IN)  :: udist(3)
@@ -490,7 +490,7 @@ DEALLOCATE(histogram)
 ss = seknds (ss) 
 WRITE (output_io, 4000) ss 
 !                                                                       
- 4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
+ 4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
 !
 END SUBROUTINE powder_debye_hist_cart         
 !
@@ -520,7 +520,7 @@ USE wink_mod
 USE prompt_mod 
 USE precision_mod 
 USE trig_degree_mod
-USE sys_compiler
+USE support_mod
 IMPLICIT none 
 !                                                                       
 REAL,    INTENT(IN)  :: udist(3)
@@ -871,7 +871,7 @@ ENDDO
       ss = seknds (ss) 
       WRITE (output_io, 4000) ss 
 !                                                                       
- 4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
+ 4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
 END SUBROUTINE powder_debye_hist_cart_mole
 !
 !*******************************************************************************

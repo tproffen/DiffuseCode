@@ -638,7 +638,7 @@ USE powder_mod
 !
 USE precision_mod
 USE prompt_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -771,7 +771,7 @@ ELSEIF(pow_four_type==POW_COMPL) THEN
 ENDIF
 pow_conv(:) = pow_conv(:) * scalef
 ss = seknds (ss) 
-WRITE (output_io, '(/,'' Elapsed time    : '',G12.6,'' sec'')') ss
+WRITE (output_io, '(/,'' Elapsed time    : '',G13.6,'' sec'')') ss
 !open(77,file='POWDER/post_conv.FQ',status='unknown')
 !DO j=0,npkt
 !  write(77,'(2(2x,G17.7E3))')     xmin+j *xdel, pow_conv(j)
