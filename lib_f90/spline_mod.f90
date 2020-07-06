@@ -145,7 +145,7 @@ REAL, DIMENSION(n), INTENT(IN)  :: xa
 REAL, DIMENSION(n), INTENT(IN)  :: ya
 REAL              , INTENT(IN)  :: x
 REAL              , INTENT(OUT) :: y
-REAL, DIMENSION(n), INTENT(OUT) :: y2a
+REAL, DIMENSION(n), INTENT(IN ) :: y2a
 INTEGER           , INTENT(OUT) :: ier
 !
 INTEGER :: klo, khi, k
