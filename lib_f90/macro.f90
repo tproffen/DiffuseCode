@@ -14,7 +14,7 @@ USE lib_length
 USE macro_mod
 USE precision_mod
 USE prompt_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 !
@@ -310,7 +310,7 @@ USE errlist_mod
 USE lib_length
 USE precision_mod
 USE prompt_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 !
@@ -876,7 +876,7 @@ USE charact_mod
 USE errlist_mod
 USE macro_mod
 USE precision_mod
-USe sys_compiler
+USe support_mod
 !
 IMPLICIT NONE
 !

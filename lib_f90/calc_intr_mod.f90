@@ -22,7 +22,7 @@ USE wink_mod
 USE times_mod
 USE trig_degree_mod
 USE set_sub_generic_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT none 
 !                                                                       

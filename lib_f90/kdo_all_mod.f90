@@ -31,7 +31,7 @@ USE prompt_mod
 USE sockets_mod
 USE random_state_mod
 USE str_comp_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT none 
 !                                                                       

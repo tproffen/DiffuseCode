@@ -75,7 +75,7 @@ WRITE(form_s,'(A,I2.2,a,I2.2,A)')  '('' Value of '',a,'' = '',g',PREC_WIDTH,'.',
                   CALL socket_send (s_conid, cstr, il) 
                ENDIF 
                ENDDO 
-               WRITE(line,'(G18.10E4)')  werte(1)
+               WRITE(line,'(G19.10E4)')  werte(1)
                i = LEN_TRIM(line)
             ELSEIF(ier_num==-1 .AND. ier_typ == ER_FORT) THEN   ! Try string substitution
                length = LEN_TRIM(line)

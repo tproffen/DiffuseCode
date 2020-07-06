@@ -15,7 +15,7 @@ USE lib_length
 USE lib_macro_func
 USE precision_mod
 USE sockets_mod
-USE sys_compiler
+USE support_mod
 IMPLICIT none 
 !                                                                       
 INTEGER, INTENT(IN) :: local_mpi_myid

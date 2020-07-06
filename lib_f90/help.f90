@@ -25,7 +25,7 @@ USE lib_length
 USE prompt_mod 
 USE string_convert_mod
 USE sup_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT none 
 !                                                                       

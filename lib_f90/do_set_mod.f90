@@ -15,7 +15,7 @@ USE lib_length
 USE precision_mod
 USE prompt_mod 
 USE str_comp_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       

@@ -12,7 +12,7 @@ USE errlist_mod
 USE get_params_mod
 USE precision_mod
 USE prompt_mod 
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT none 
 !                                                                       

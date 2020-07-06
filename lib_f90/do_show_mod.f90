@@ -67,7 +67,7 @@ ELSE
 ENDIF 
 !                                                                       
  2000 FORMAT    ( i8,' Values in the result array') 
- 2001 FORMAT    (5(2x,g13.7)) 
+ 2001 FORMAT    (5(2x,g14.7)) 
 END SUBROUTINE do_show_res                    
 !
 !*****7*****************************************************************

@@ -19,7 +19,7 @@ USE param_mod
 USE precision_mod
 USE prompt_mod 
 USE string_convert_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -450,7 +450,7 @@ USE errlist_mod
 USE lib_errlist_func
 USE precision_mod
 USE prompt_mod
-USE sys_compiler
+USE support_mod
 USE terminal_mod
 !
 IMPLICIT NONE
@@ -561,7 +561,7 @@ USE param_mod
 USE precision_mod
 USE prompt_mod
 USE string_convert_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 !
@@ -766,7 +766,7 @@ USE envir_mod
 USE errlist_mod
 USE precision_mod
 USE prompt_mod 
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -860,7 +860,7 @@ INTEGER FUNCTION lib_f90_getppid(cpid)
 USE envir_mod
 USE errlist_mod
 USE precision_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 !
@@ -1122,7 +1122,7 @@ SUBROUTINE lib_f90_update_discus
 USE envir_mod
 USE errlist_mod
 USE precision_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 !
