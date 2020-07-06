@@ -39,7 +39,7 @@ INTEGER          , INTENT(OUT)   :: ll
 CHARACTER (LEN=*), INTENT(OUT)   :: befehl
 CHARACTER (LEN=*), INTENT(OUT)   :: zeile
 INTEGER          , INTENT(OUT)   :: lp
-CHARACTER (LEN=*), INTENT(OUT)   :: prom 
+CHARACTER (LEN=*), INTENT(IN )   :: prom 
 !
 CHARACTER(LEN=PREC_STRING)       :: input
 CHARACTER(LEN=PREC_STRING)       :: as_typed
