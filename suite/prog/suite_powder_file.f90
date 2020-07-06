@@ -9,7 +9,7 @@ USE kuplot_config
 USE kuplot_mod
 USE errlist_mod
 USE lib_length
-USE sys_compiler
+USE support_mod
 IMPLICIT NONE
 !
 CHARACTER (LEN=*)                , INTENT(IN) :: outfile

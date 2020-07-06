@@ -48,7 +48,7 @@ USE variable_mod
 USE lib_f90_allocate_mod
 USE lib_macro_func
 USE str_comp_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 LOGICAL                , INTENT(IN) :: repeat

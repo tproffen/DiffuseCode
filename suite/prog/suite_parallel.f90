@@ -15,7 +15,7 @@ USE precision_mod
 USE prompt_mod
 USE lib_errlist_func
 USE lib_help
-USE sys_compiler
+USE support_mod
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN) :: zeile
