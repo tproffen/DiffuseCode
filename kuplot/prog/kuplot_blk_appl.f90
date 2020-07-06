@@ -332,7 +332,7 @@
 USE lib_length
       USE prompt_mod 
 USE precision_mod
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -378,7 +378,7 @@ USE sys_compiler
 USE lib_length
 USE precision_mod
       USE prompt_mod 
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -542,7 +542,7 @@ USE lib_length
 !                                                                       
  1000 FORMAT    (32('#'),' KUPLOT Defaults ',31('#')) 
  1100 FORMAT    (5(i8,1x)) 
- 1400 FORMAT    (6(g11.5,1x)) 
+ 1400 FORMAT    (6(g12.5,1x)) 
  1500 FORMAT    (10(f7.4,1x)) 
  1600 FORMAT    (10(f7.2,1x)) 
  1700 FORMAT    (10(f7.0,1x)) 
@@ -707,7 +707,7 @@ USE lib_length
       USE envir_mod 
       USE errlist_mod 
       USE prompt_mod 
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
       INTEGER idef 

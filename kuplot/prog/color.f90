@@ -418,7 +418,7 @@ END SUBROUTINE cmap_thermal
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -462,7 +462,7 @@ USE sys_compiler
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       

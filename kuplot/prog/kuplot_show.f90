@@ -177,7 +177,7 @@ USE str_comp_mod
      &                   ' / frame ',i3,/)                              
  1010 FORMAT     (3x,'Cont.set    minimum       ',                      &
      &                   'increment   # of contours',/,3x,56('-'))      
- 1020 FORMAT     (4x,i3,7x,g11.5,3x,g11.5,6x,i4) 
+ 1020 FORMAT     (4x,i3,7x,g12.5,3x,g12.5,6x,i4) 
       END SUBROUTINE show_hlin                      
 !*****7*****************************************************************
       SUBROUTINE show_data (iku) 
@@ -296,7 +296,7 @@ USE lib_length
       ENDIF 
 !                                                                       
  1000 FORMAT    (' Parameter for window ',i3,' / frame ',i3,//          &
-     &                   3x,'Ratio y/x-axis           : ',g11.5/        &
+     &                   3x,'Ratio y/x-axis           : ',g12.5/        &
      &                   3x,'Angle between x&y axis   : ',f7.2/         &
      &                   3x,'Color of grid lines      : ',i7/           &
      &                   3x,'Line width of frame [cm] : ',f7.2/         &
@@ -432,8 +432,8 @@ USE lib_length
  1000 FORMAT     (' Annotation for window ',i3,' / frame  ',i3,//       &
      &      3x,'  #',6x,'x',13x,'y',8x,'angle  just  text',/,           &
      &      3x,69('-'))                                                 
- 2000 FORMAT     (3x,i3,2(2x,g12.6),2x,f5.1,2x,a1,4x,a) 
- 2100 FORMAT     (6x,2(2x,g12.6),14x,'Text position ..') 
+ 2000 FORMAT     (3x,i3,2(2x,g13.6),2x,f5.1,2x,a1,4x,a) 
+ 2100 FORMAT     (6x,2(2x,g13.6),14x,'Text position ..') 
  3000 FORMAT     ('   *** no annotations set ***') 
       END SUBROUTINE show_annotation                
 !*****7**************************************************************** 

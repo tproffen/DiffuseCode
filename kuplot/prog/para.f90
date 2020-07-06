@@ -1407,7 +1407,7 @@ USE str_comp_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1446,17 +1446,17 @@ USE sys_compiler
       CLOSE (ifil) 
 !                                                                       
  1000 FORMAT     ( ' Plot - parameter : '/) 
- 1002 FORMAT     ( ' Ratio y/x-axis   : ',g9.4e1,/                      &
-     &                    ' Angle x/y axis   : ',g9.4e1,/)              
+ 1002 FORMAT     ( ' Ratio y/x-axis   : ',g11.4e1,/                      &
+     &                    ' Angle x/y axis   : ',g11.4e1,/)              
  1005 FORMAT     ( ' File : ',a40,/                                     &
-     &           '    x : ',g9.4e1,' to ',g9.4e1/                       &
-     &           '    y : ',g9.4e1,' to ',g9.4e1/                       &
-     &           '    z : ',g9.4e1,' to ',g9.4e1)                       
+     &           '    x : ',g11.4e1,' to ',g11.4e1/                       &
+     &           '    y : ',g11.4e1,' to ',g11.4e1/                       &
+     &           '    z : ',g11.4e1,' to ',g11.4e1)                       
  1010 FORMAT     ( ' File : ',a40,/                                     &
-     &           '    x : ',g9.4e1,' to ',g9.4e1/                       &
-     &           '    y : ',g9.4e1,' to ',g9.4e1)                       
+     &           '    x : ',g11.4e1,' to ',g11.4e1/                       &
+     &           '    y : ',g11.4e1,' to ',g11.4e1)                       
  1020 FORMAT        (/' Contours     [frame ',i2,'] : '/                &
      &           ' minimum     step        #')                          
- 1030 FORMAT     ( 1x,g10.4,1x,g10.4,2x,i2) 
+ 1030 FORMAT     ( 1x,g11.4,1x,g11.4,2x,i2) 
 !                                                                       
       END SUBROUTINE write_para                     

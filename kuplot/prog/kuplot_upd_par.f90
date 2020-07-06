@@ -780,7 +780,7 @@ USE precision_mod
       INTEGER,           INTENT(IN)    :: iklz
       INTEGER,           INTENT(IN)    :: laenge
       INTEGER,           INTENT(IN)    :: lp
-      REAL(KIND=PREC_DP),INTENT(OUT)   :: ww
+      REAL(KIND=PREC_DP),INTENT(IN )   :: ww
 !                                                                       
       INTEGER il 
 !                                                                       

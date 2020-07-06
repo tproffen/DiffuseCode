@@ -80,7 +80,7 @@ USE str_comp_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -117,7 +117,7 @@ USE sys_compiler
       USE kuplot_config 
       USE kuplot_mod 
 USE lib_length
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -185,7 +185,7 @@ USE sys_compiler
  1300 FORMAT('<default connected="yes" marks="none"/>') 
  1400 FORMAT('<dataset name="',a,'" connected="',a,                     &
      &       '" ',a,'>')                                                
- 1500 FORMAT('<p x="',e12.6,'" y="',e12.6,'"/>') 
+ 1500 FORMAT('<p x="',e13.6,'" y="',e13.6,'"/>') 
  2100 FORMAT('</plot>') 
  2400 FORMAT('</dataset>') 
 !                                                                       
@@ -201,7 +201,7 @@ USE sys_compiler
       USE kuplot_config 
       USE kuplot_mod 
 USE lib_length
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -709,8 +709,8 @@ USE str_comp_mod
  1000 FORMAT    (' Current KSAV settings (data set ',i3,') :',//,       &
      &                  3x,'Output filename   : ',a40)                  
  1100 FORMAT    (3x,'Format            : ',a2) 
- 1200 FORMAT    (3x,'Parameters        : ',5(g11.5,2x)) 
- 1300 FORMAT    (3x,'Z range -> 0..255 : ',2(g11.5,2x)) 
+ 1200 FORMAT    (3x,'Parameters        : ',5(g12.5,2x)) 
+ 1300 FORMAT    (3x,'Z range -> 0..255 : ',2(g12.5,2x)) 
       END SUBROUTINE do_ksav                        
 !*****7************************************************************     
       SUBROUTINE check_form (form, ianz, werte, maxw) 
@@ -817,7 +817,7 @@ USE precision_mod
       USE kuplot_mod 
 USE lib_length
 USE precision_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       

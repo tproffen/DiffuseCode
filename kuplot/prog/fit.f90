@@ -610,7 +610,7 @@ USE precision_mod
       USE build_name_mod
 USE lib_length
 USE precision_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -640,7 +640,7 @@ USE sys_compiler
       CLOSE (77) 
 !                                                                       
  1000 FORMAT ('# parameter number ',i3) 
- 2000 FORMAT ('par ',i3,',',g12.6,',',f2.0) 
+ 2000 FORMAT ('par ',i3,',',g13.6,',',f2.0) 
  3000 FORMAT (' ---------- > Saving current parameters to macro file ', &
      &                   a,' ..')                                       
       END SUBROUTINE do_fit_macro                   
@@ -690,7 +690,7 @@ USE sys_compiler
       USE kuplot_mod 
 USE lib_length
 USE precision_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -860,7 +860,7 @@ USE precision_mod
          ENDDO
       ENDIF
 !                                                                       
- 1000 FORMAT     (' ---------- > Setting parameter p(',i2,') = ',g12.6, &
+ 1000 FORMAT     (' ---------- > Setting parameter p(',i2,') = ',g13.6, &
      &                   '  pinc = ',f4.1)                              
       END SUBROUTINE do_fit_par                     
 !*****7*****************************************************************
@@ -979,10 +979,10 @@ USE lib_length
       WRITE (idout, * ) ' ' 
 !                                                                       
  1040 FORMAT (' Information about the fit : ',/,                        &
-     &        3x,'Sum n-1    : ',g12.6,12x,' Sum n   : ',g12.6/,        &
-     &        3x,'Difference : ',g12.6,/,                               &
-     &        3x,'Urf final  : ',g12.6,/,                               &
-     &        3x,'R4 value   : ',g12.6,12x,' R exp   : ',g12.6/)        
+     &        3x,'Sum n-1    : ',g13.6,12x,' Sum n   : ',g13.6/,        &
+     &        3x,'Difference : ',g13.6,/,                               &
+     &        3x,'Urf final  : ',g13.6,/,                               &
+     &        3x,'R4 value   : ',g13.6,12x,' R exp   : ',g13.6/)        
  1050 FORMAT (' Correlations larger than 0.8 :') 
  1060 FORMAT (3x,'** none **') 
  1070 FORMAT (3x,'Between p(',i2,') - p(',i2,') : ',f6.3) 
@@ -996,7 +996,7 @@ USE lib_length
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1038,8 +1038,8 @@ USE sys_compiler
  1070 FORMAT ( 1x,'betw. p(',i2,') - p(',i2,') : ',f6.3) 
  1100 FORMAT ( 1x,'--------------------------------------',/,           &
      &         1x,'Resulting parameters: ',/)                           
- 1200 FORMAT ( 1x,'p(',i2,') = ',g12.6,' fixed') 
- 1210 FORMAT ( 1x,'p(',i2,') = ',g12.6,' +- ',g12.6) 
+ 1200 FORMAT ( 1x,'p(',i2,') = ',g13.6,' fixed') 
+ 1210 FORMAT ( 1x,'p(',i2,') = ',g13.6,' +- ',g13.6) 
 !                                                                       
       CLOSE (22) 
 !                                                                       
@@ -1446,7 +1446,7 @@ REAL                   :: f
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT (1x,'Fit function : F = ',a,/) 
- 1100 FORMAT (3x,'p(',i2,') : ',g12.6,' +- ',g12.6,4x,'pinc : ',f2.0) 
+ 1100 FORMAT (3x,'p(',i2,') : ',g13.6,' +- ',g13.6,4x,'pinc : ',f2.0) 
 !                                                                       
       END SUBROUTINE show_user                      
 !*****7*****************************************************************
@@ -1466,7 +1466,7 @@ REAL                   :: f
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT (1x,'Fit function : F = ',a,/) 
- 1100 FORMAT (3x,'p(',i2,') : ',g12.6,' +- ',g12.6,4x,'pinc : ',f2.0) 
+ 1100 FORMAT (3x,'p(',i2,') : ',g13.6,' +- ',g13.6,4x,'pinc : ',f2.0) 
 !                                                                       
       END SUBROUTINE show_user_macro                      
 !***********************************************************************
@@ -1579,7 +1579,7 @@ REAL                   :: f
 !                                                                       
  1000 FORMAT   (1x,'GSAS profile ',i2,': Type ',i2,/) 
  1100 FORMAT   (3x,'p(',i2,') : ',a20,' : ',                            &
-     &                       g12.6,' +- ',g12.6,4x,'pinc : ',f2.0)      
+     &                       g13.6,' +- ',g13.6,4x,'pinc : ',f2.0)      
  1200 FORMAT     (1x,'Global parameters:',/) 
  2000 FORMAT     ('Profile Coeff. ',i2) 
 !                                                                       
@@ -1670,7 +1670,7 @@ USE precision_mod
       USE kuplot_config 
       USE trig_degree_mod
 USE lib_length
-USE sys_compiler
+USE support_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1851,20 +1851,20 @@ USE sys_compiler
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Lorenzian(s) : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g12.6,' +- ',g12.6,     &
+ 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g12.6,' +- ',g12.6,     &
+ 1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
  1300 FORMAT     (/,1x,'Lorenzian : ',i3,/) 
- 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g12.6,' +- ',g12.6,     &
+ 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1500 FORMAT     (3x,'p(',i2,') : position  : ',g12.6,' +- ',g12.6,     &
+ 1500 FORMAT     (3x,'p(',i2,') : position  : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1600 FORMAT     (3x,'p(',i2,') : fwhm      : ',g12.6,' +- ',g12.6,     &
+ 1600 FORMAT     (3x,'p(',i2,') : fwhm      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1700 FORMAT     (3x,'p(',i2,') : asymmetry : ',g12.6,' +- ',g12.6,     &
+ 1700 FORMAT     (3x,'p(',i2,') : asymmetry : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1800 FORMAT     (3x,'        integral  : ',g12.6,' +- ',g12.6) 
+ 1800 FORMAT     (3x,'        integral  : ',g13.6,' +- ',g13.6) 
 !                                                                       
       END SUBROUTINE show_lor                       
 !*****7*****************************************************************
@@ -2055,20 +2055,20 @@ USE precision_mod
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Gaussian(s) : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g12.6,' +- ',g12.6,     &
+ 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g12.6,' +- ',g12.6,     &
+ 1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
  1300 FORMAT     (/,1x,'Gaussian : ',i3,/) 
- 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g12.6,' +- ',g12.6,     &
+ 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1500 FORMAT     (3x,'p(',i2,') : position  : ',g12.6,' +- ',g12.6,     &
+ 1500 FORMAT     (3x,'p(',i2,') : position  : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1600 FORMAT     (3x,'p(',i2,') : fwhm      : ',g12.6,' +- ',g12.6,     &
+ 1600 FORMAT     (3x,'p(',i2,') : fwhm      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1700 FORMAT     (3x,'p(',i2,') : asymmetry : ',g12.6,' +- ',g12.6,     &
+ 1700 FORMAT     (3x,'p(',i2,') : asymmetry : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1800 FORMAT     (3x,'        integral  : ',g12.6,' +- ',g12.6) 
+ 1800 FORMAT     (3x,'        integral  : ',g13.6,' +- ',g13.6) 
 !                                                                       
       END SUBROUTINE show_gauss                     
 !***7*******************************************************************
@@ -2251,24 +2251,24 @@ USE precision_mod
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Pseudo-Voigt(s) : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : backgr. ',i1,' : ',g12.6,' +- ',      &
-     &                   g12.6,4x,'pinc : ',f2.0)                       
-!1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g12.6,' +- ',g12.6,     &
+ 1100 FORMAT     (3x,'p(',i2,') : backgr. ',i1,' : ',g13.6,' +- ',      &
+     &                   g13.6,4x,'pinc : ',f2.0)                       
+!1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g13.6,' +- ',g13.6,     &
 !    &                   4x,'pinc : ',f2.0)                             
-!1210 FORMAT     (3x,'p(',i2,') : backgr. 3 : ',g12.6,' +- ',g12.6,     &
+!1210 FORMAT     (3x,'p(',i2,') : backgr. 3 : ',g13.6,' +- ',g13.6,     &
 !    &                   4x,'pinc : ',f2.0)                             
  1300 FORMAT     (/,1x,'Pseudo-Voigt : ',i3,/) 
- 1400 FORMAT     (3x,'p(',i2,') : eta       : ',g12.6,' +- ',g12.6,     &
+ 1400 FORMAT     (3x,'p(',i2,') : eta       : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1500 FORMAT     (3x,'p(',i2,') : int. Inten: ',g12.6,' +- ',g12.6,     &
+ 1500 FORMAT     (3x,'p(',i2,') : int. Inten: ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1600 FORMAT     (3x,'p(',i2,') : position  : ',g12.6,' +- ',g12.6,     &
+ 1600 FORMAT     (3x,'p(',i2,') : position  : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1700 FORMAT     (3x,'p(',i2,') : fwhm      : ',g12.6,' +- ',g12.6,     &
+ 1700 FORMAT     (3x,'p(',i2,') : fwhm      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1800 FORMAT     (3x,'p(',i2,') : asymmetry1: ',g12.6,' +- ',g12.6,     &
+ 1800 FORMAT     (3x,'p(',i2,') : asymmetry1: ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1900 FORMAT     (3x,'p(',i2,') : asymmetry2: ',g12.6,' +- ',g12.6,     &
+ 1900 FORMAT     (3x,'p(',i2,') : asymmetry2: ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
 !                                                                       
       END SUBROUTINE show_psvgt                     
@@ -2536,26 +2536,26 @@ USE precision_mod
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Gaussian(s) : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g12.6,' +- ',g12.6,     &
+ 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
  1300 FORMAT     (/,1x,'Gaussian : ',i3,/) 
- 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g12.6,' +- ',g12.6,     &
+ 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1410 FORMAT     (3x,'p(',i2,') : position x: ',g12.6,' +- ',g12.6,     &
+ 1410 FORMAT     (3x,'p(',i2,') : position x: ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1420 FORMAT     (3x,'p(',i2,') : position y: ',g12.6,' +- ',g12.6,     &
+ 1420 FORMAT     (3x,'p(',i2,') : position y: ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1430 FORMAT     (3x,'p(',i2,') : fwhm a    : ',g12.6,' +- ',g12.6,     &
+ 1430 FORMAT     (3x,'p(',i2,') : fwhm a    : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1440 FORMAT     (3x,'p(',i2,') : fwhm b    : ',g12.6,' +- ',g12.6,     &
+ 1440 FORMAT     (3x,'p(',i2,') : fwhm b    : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1450 FORMAT     (3x,'p(',i2,') : angle a,x : ',g12.6,' +- ',g12.6,     &
+ 1450 FORMAT     (3x,'p(',i2,') : angle a,x : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1460 FORMAT     (3x,'p(',i2,') : asym. a   : ',g12.6,' +- ',g12.6,     &
+ 1460 FORMAT     (3x,'p(',i2,') : asym. a   : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1470 FORMAT     (3x,'p(',i2,') : asym. b   : ',g12.6,' +- ',g12.6,     &
+ 1470 FORMAT     (3x,'p(',i2,') : asym. b   : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1800 FORMAT     (3x,'        integral  : ',g12.6,' +- ',g12.6) 
+ 1800 FORMAT     (3x,'        integral  : ',g13.6,' +- ',g13.6) 
 !                                                                       
       END SUBROUTINE show_gauss_2d                  
 !***7*******************************************************************
@@ -2772,8 +2772,8 @@ USE precision_mod
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted Chebyshev polynom of order ',i2,' : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : coeff. A(',i2,') : ',g12.6,           &
-     &                   ' +- ',g12.6,4x,'pinc : ',f2.0)                
+ 1100 FORMAT     (3x,'p(',i2,') : coeff. A(',i2,') : ',g13.6,           &
+     &                   ' +- ',g13.6,4x,'pinc : ',f2.0)                
 !                                                                       
       END SUBROUTINE show_poly_cheb                 
 !***7*******************************************************************
@@ -2886,8 +2886,8 @@ USE precision_mod
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted polynom of order ',i2,' : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : coeff. for x**',i2,' : ',g12.6,       &
-     &                   ' +- ',g12.6,4x,'pinc : ',f2.0)                
+ 1100 FORMAT     (3x,'p(',i2,') : coeff. for x**',i2,' : ',g13.6,       &
+     &                   ' +- ',g13.6,4x,'pinc : ',f2.0)                
 !                                                                       
       END SUBROUTINE show_poly                      
 !***7*******************************************************************
@@ -2993,10 +2993,10 @@ USE precision_mod
 !                                                                       
  1000 FORMAT     (1x,'Fitted Background polynom of order ',i2,' : '/) 
  1020 FORMAT     (1x,'Constant part from data set        ',i2) 
- 1050 FORMAT     (1x,'Scale factor               : ',g12.6,             &
-     &                   ' +- ',g12.6,4x,'pinc : ',f2.0)                
- 1100 FORMAT     (3x,'p(',i2,') : coeff. for x**',i2,' : ',g12.6,       &
-     &                   ' +- ',g12.6,4x,'pinc : ',f2.0)                
+ 1050 FORMAT     (1x,'Scale factor               : ',g13.6,             &
+     &                   ' +- ',g13.6,4x,'pinc : ',f2.0)                
+ 1100 FORMAT     (3x,'p(',i2,') : coeff. for x**',i2,' : ',g13.6,       &
+     &                   ' +- ',g13.6,4x,'pinc : ',f2.0)                
 !                                                                       
       END SUBROUTINE show_backpoly                  
 !***7*******************************************************************
@@ -3382,7 +3382,7 @@ ENDDO
 IF (fstart) write (output_io, * ) 
 !                                                                       
  5000 FORMAT     (' Starting least square fit ... ',/) 
- 5010 FORMAT     (3x,'cycle:',i4,3x,'sum: ',g12.6,3x,' urf: ',g12.6) 
+ 5010 FORMAT     (3x,'cycle:',i4,3x,'sum: ',g13.6,3x,' urf: ',g13.6) 
 !                                                                       
 END SUBROUTINE fit_kupl                       
 !
@@ -4220,7 +4220,7 @@ USE precision_mod
       USE build_name_mod
 USE lib_length
 USE precision_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -4250,7 +4250,7 @@ USE sys_compiler
       CLOSE (77) 
 !                                                                       
  1000 FORMAT ('# parameter number ',i3) 
- 2000 FORMAT ('par ',i3,',',g12.6,',',f2.0) 
+ 2000 FORMAT ('par ',i3,',',g13.6,',',f2.0) 
  3000 FORMAT (' ---------- > Saving current parameters to macro file ', &
      &                   a,' ..')                                       
       END SUBROUTINE do_fit_macro                   
@@ -4300,7 +4300,7 @@ USE sys_compiler
       USE kuplot_mod 
 USE lib_length
 USE precision_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -4470,7 +4470,7 @@ USE precision_mod
          ENDDO
       ENDIF
 !                                                                       
- 1000 FORMAT     (' ---------- > Setting parameter p(',i2,') = ',g12.6, &
+ 1000 FORMAT     (' ---------- > Setting parameter p(',i2,') = ',g13.6, &
      &                   '  pinc = ',f4.1)                              
       END SUBROUTINE do_fit_par                     
 !*****7*****************************************************************
@@ -4570,11 +4570,11 @@ WRITE(idout, 4000) kup_fit6_conv_chi2
      &        3x,'Weighting scheme : ',a,/)                             
 !
 2000 FORMAT('   Convergence 1    : dP/sigma < AND conf > AND      dChi^2 <',/, &
-            '                      ',2(G10.3E3,5x),G10.3E3)
+            '                      ',2(G11.3E3,5x),G11.3E3)
 3000 FORMAT('   Convergence 2    : dChi^2 <   AND dP/simg > 0.0           ',/, &
-            '                      ',  G10.3E3            )
+            '                      ',  G11.3E3            )
 4000 FORMAT('   Convergence 3    : Chi^2 <                                ',/, &
-            '                      ',  G10.3E3            )
+            '                      ',  G11.3E3            )
       END SUBROUTINE show_fit_para                  
 !*****7*****************************************************************
 SUBROUTINE show_fit_erg(idout)
@@ -4627,11 +4627,11 @@ WRITE(idout, * ) ' '
 !                                                                       
  1040 FORMAT (/,                                                        &
               ' Information about the fit : ',/,                        &
-              3x,'Chi^2      : ',g12.6, 5x,' Chi^2/N : ',g12.6 /,       &
-              3x,'Conf. level: ',g12.6, 1x,' Chi^2/(N-P) : ',g12.6 /,   &
+              3x,'Chi^2      : ',g13.6, 5x,' Chi^2/N : ',g13.6 /,       &
+              3x,'Conf. level: ',g13.6, 1x,' Chi^2/(N-P) : ',g13.6 /,   &
               3x,'No.Data    : ',i12  , 4x,' No.Params: ',i12/,          &
-              3x,'MRQ final  : ',g12.6,/,                               &
-              3x,'wR value   : ',g12.6, 5x,' R exp   : ',g12.6/)        
+              3x,'MRQ final  : ',g13.6,/,                               &
+              3x,'wR value   : ',g13.6, 5x,' R exp   : ',g13.6/)        
  1050 FORMAT (' Correlations larger than 0.8 :') 
  1060 FORMAT (3x,'** none **') 
  1070 FORMAT (3x,'Between p(',i2,') - p(',i2,') : ',f6.3) 
@@ -4687,7 +4687,7 @@ END SUBROUTINE show_fit_erg
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -4729,8 +4729,8 @@ USE sys_compiler
  1070 FORMAT ( 1x,'betw. p(',i2,') - p(',i2,') : ',f6.3) 
  1100 FORMAT ( 1x,'--------------------------------------',/,           &
      &         1x,'Resulting parameters: ',/)                           
- 1200 FORMAT ( 1x,'p(',i2,') = ',g12.6,' fixed') 
- 1210 FORMAT ( 1x,'p(',i2,') = ',g12.6,' +- ',g12.6) 
+ 1200 FORMAT ( 1x,'p(',i2,') = ',g32.6,' fixed') 
+ 1210 FORMAT ( 1x,'p(',i2,') = ',g13.6,' +- ',g13.6) 
 !                                                                       
       CLOSE (22) 
 !                                                                       
@@ -5368,7 +5368,7 @@ USE kuplot_fit_const
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT (1x,'Fit function : F = ',a,/) 
- 1100 FORMAT (3x,'p(',i2,') : ',g12.6,' +- ',g12.6,4x,'pinc : ',f2.0) 
+ 1100 FORMAT (3x,'p(',i2,') : ',g13.6,' +- ',g13.6,4x,'pinc : ',f2.0) 
 !                                                                       
       END SUBROUTINE show_user                      
 !*****7*****************************************************************
@@ -5388,7 +5388,7 @@ USE kuplot_fit_const
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT (1x,'Fit function : F = ',a,/) 
- 1100 FORMAT (3x,'p(',i2,') : ',g12.6,' +- ',g12.6,4x,'pinc : ',f2.0) 
+ 1100 FORMAT (3x,'p(',i2,') : ',g13.6,' +- ',g13.6,4x,'pinc : ',f2.0) 
 !                                                                       
       END SUBROUTINE show_user_macro                      
 !***********************************************************************
@@ -5886,20 +5886,20 @@ ENDDO
 WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Lorenzian(s) : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g12.6,' +- ',g12.6,     &
+ 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g12.6,' +- ',g12.6,     &
+ 1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
  1300 FORMAT     (/,1x,'Lorenzian : ',i3,/) 
- 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g12.6,' +- ',g12.6,     &
+ 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1500 FORMAT     (3x,'p(',i2,') : position  : ',g12.6,' +- ',g12.6,     &
+ 1500 FORMAT     (3x,'p(',i2,') : position  : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1600 FORMAT     (3x,'p(',i2,') : fwhm      : ',g12.6,' +- ',g12.6,     &
+ 1600 FORMAT     (3x,'p(',i2,') : fwhm      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1700 FORMAT     (3x,'p(',i2,') : asymmetry : ',g12.6,' +- ',g12.6,     &
+ 1700 FORMAT     (3x,'p(',i2,') : asymmetry : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1800 FORMAT     (3x,'        integral  : ',g12.6,' +- ',g12.6) 
+ 1800 FORMAT     (3x,'        integral  : ',g13.6,' +- ',g13.6) 
 !                                                                       
 END SUBROUTINE show_lor                       
 !*****7*****************************************************************
@@ -6121,20 +6121,20 @@ END SUBROUTINE theory_lor
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Gaussian(s) : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g12.6,' +- ',g12.6,     &
+ 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g12.6,' +- ',g12.6,     &
+ 1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
  1300 FORMAT     (/,1x,'Gaussian : ',i3,/) 
- 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g12.6,' +- ',g12.6,     &
+ 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1500 FORMAT     (3x,'p(',i2,') : position  : ',g12.6,' +- ',g12.6,     &
+ 1500 FORMAT     (3x,'p(',i2,') : position  : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1600 FORMAT     (3x,'p(',i2,') : fwhm      : ',g12.6,' +- ',g12.6,     &
+ 1600 FORMAT     (3x,'p(',i2,') : fwhm      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1700 FORMAT     (3x,'p(',i2,') : asymmetry : ',g12.6,' +- ',g12.6,     &
+ 1700 FORMAT     (3x,'p(',i2,') : asymmetry : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1800 FORMAT     (3x,'        integral  : ',g12.6,' +- ',g12.6) 
+ 1800 FORMAT     (3x,'        integral  : ',g13.6,' +- ',g13.6) 
 !                                                                       
       END SUBROUTINE show_gauss                     
 !***7*******************************************************************
@@ -6355,24 +6355,24 @@ USE kuplot_fit_const
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Pseudo-Voigt(s) : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : backgr. ',i1,' : ',g12.6,' +- ',      &
-     &                   g12.6,4x,'pinc : ',f2.0)                       
-!1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g12.6,' +- ',g12.6,     &
+ 1100 FORMAT     (3x,'p(',i2,') : backgr. ',i1,' : ',g13.6,' +- ',      &
+     &                   g13.6,4x,'pinc : ',f2.0)                       
+!1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g13.6,' +- ',g13.6,     &
 !    &                   4x,'pinc : ',f2.0)                             
-!1210 FORMAT     (3x,'p(',i2,') : backgr. 3 : ',g12.6,' +- ',g12.6,     &
+!1210 FORMAT     (3x,'p(',i2,') : backgr. 3 : ',g13.6,' +- ',g13.6,     &
 !    &                   4x,'pinc : ',f2.0)                             
  1300 FORMAT     (/,1x,'Pseudo-Voigt : ',i3,/) 
- 1400 FORMAT     (3x,'p(',i2,') : eta       : ',g12.6,' +- ',g12.6,     &
+ 1400 FORMAT     (3x,'p(',i2,') : eta       : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1500 FORMAT     (3x,'p(',i2,') : int. Inten: ',g12.6,' +- ',g12.6,     &
+ 1500 FORMAT     (3x,'p(',i2,') : int. Inten: ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1600 FORMAT     (3x,'p(',i2,') : position  : ',g12.6,' +- ',g12.6,     &
+ 1600 FORMAT     (3x,'p(',i2,') : position  : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1700 FORMAT     (3x,'p(',i2,') : fwhm      : ',g12.6,' +- ',g12.6,     &
+ 1700 FORMAT     (3x,'p(',i2,') : fwhm      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1800 FORMAT     (3x,'p(',i2,') : asymmetry1: ',g12.6,' +- ',g12.6,     &
+ 1800 FORMAT     (3x,'p(',i2,') : asymmetry1: ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1900 FORMAT     (3x,'p(',i2,') : asymmetry2: ',g12.6,' +- ',g12.6,     &
+ 1900 FORMAT     (3x,'p(',i2,') : asymmetry2: ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
 !                                                                       
       END SUBROUTINE show_psvgt                     
@@ -6683,26 +6683,26 @@ END SUBROUTINE theory_psvgt
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Gaussian(s) : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g12.6,' +- ',g12.6,     &
+ 1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
  1300 FORMAT     (/,1x,'Gaussian : ',i3,/) 
- 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g12.6,' +- ',g12.6,     &
+ 1400 FORMAT     (3x,'p(',i2,') : peak      : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1410 FORMAT     (3x,'p(',i2,') : position x: ',g12.6,' +- ',g12.6,     &
+ 1410 FORMAT     (3x,'p(',i2,') : position x: ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1420 FORMAT     (3x,'p(',i2,') : position y: ',g12.6,' +- ',g12.6,     &
+ 1420 FORMAT     (3x,'p(',i2,') : position y: ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1430 FORMAT     (3x,'p(',i2,') : fwhm a    : ',g12.6,' +- ',g12.6,     &
+ 1430 FORMAT     (3x,'p(',i2,') : fwhm a    : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1440 FORMAT     (3x,'p(',i2,') : fwhm b    : ',g12.6,' +- ',g12.6,     &
+ 1440 FORMAT     (3x,'p(',i2,') : fwhm b    : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1450 FORMAT     (3x,'p(',i2,') : angle a,x : ',g12.6,' +- ',g12.6,     &
+ 1450 FORMAT     (3x,'p(',i2,') : angle a,x : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1460 FORMAT     (3x,'p(',i2,') : asym. a   : ',g12.6,' +- ',g12.6,     &
+ 1460 FORMAT     (3x,'p(',i2,') : asym. a   : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1470 FORMAT     (3x,'p(',i2,') : asym. b   : ',g12.6,' +- ',g12.6,     &
+ 1470 FORMAT     (3x,'p(',i2,') : asym. b   : ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
- 1800 FORMAT     (3x,'        integral  : ',g12.6,' +- ',g12.6) 
+ 1800 FORMAT     (3x,'        integral  : ',g13.6,' +- ',g13.6) 
 !                                                                       
       END SUBROUTINE show_gauss_2d                  
 !***7*******************************************************************
@@ -7076,8 +7076,8 @@ END SUBROUTINE theory_gauss_2d
       WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted polynom of order ',i2,' : '/) 
- 1100 FORMAT     (3x,'p(',i2,') : coeff. for x**',i2,' : ',g12.6,       &
-     &                   ' +- ',g12.6,4x,'pinc : ',f2.0)                
+ 1100 FORMAT     (3x,'p(',i2,') : coeff. for x**',i2,' : ',g13.6,       &
+     &                   ' +- ',g13.6,4x,'pinc : ',f2.0)                
 !                                                                       
       END SUBROUTINE show_poly                      
 !***7*******************************************************************
@@ -7243,10 +7243,10 @@ END SUBROUTINE theory_poly
 !                                                                       
  1000 FORMAT     (1x,'Fitted Background polynom of order ',i2,' : '/) 
  1020 FORMAT     (1x,'Constant part from data set        ',i2) 
- 1050 FORMAT     (1x,'Scale factor               : ',g12.6,             &
-     &                   ' +- ',g12.6,4x,'pinc : ',f2.0)                
- 1100 FORMAT     (3x,'p(',i2,') : coeff. for x**',i2,' : ',g12.6,       &
-     &                   ' +- ',g12.6,4x,'pinc : ',f2.0)                
+ 1050 FORMAT     (1x,'Scale factor               : ',g13.6,             &
+     &                   ' +- ',g13.6,4x,'pinc : ',f2.0)                
+ 1100 FORMAT     (3x,'p(',i2,') : coeff. for x**',i2,' : ',g13.6,       &
+     &                   ' +- ',g13.6,4x,'pinc : ',f2.0)                
 !                                                                       
       END SUBROUTINE show_backpoly                  
 !***7*******************************************************************

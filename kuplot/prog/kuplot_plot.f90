@@ -108,7 +108,7 @@ USE lib_do_operating_mod
 USE lib_length
 USE precision_mod
       USE string_convert_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -537,7 +537,7 @@ ELSE main
       USE kuplot_fit6
 USE lib_length
       USE string_convert_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1669,10 +1669,10 @@ USE lib_length
          WRITE (output_io, 8000) rdx, rdy 
          WRITE (output_io, 8010) nx_min, nx_max, ny_min, ny_max 
          WRITE (output_io, 8020) tr 
- 8000 FORMAT      (' debug > dx,dy               = ',2(g12.6,2x)) 
+ 8000 FORMAT      (' debug > dx,dy               = ',2(g13.6,2x)) 
  8010 FORMAT      (' debug > nx(mi,ma),ny(mi,ma) = ',2i5,2x,2i5) 
- 8020 FORMAT      (' debug > TR matrix           = ',3(g12.6,2x),/,     &
-     &                    '                               ',3(g12.6,2x))
+ 8020 FORMAT      (' debug > TR matrix           = ',3(g13.6,2x),/,     &
+     &                    '                               ',3(g13.6,2x))
       ENDIF 
 !                                                                       
 !------ Setting colours                                                 
@@ -1779,10 +1779,10 @@ USE lib_length
          WRITE (output_io, 8000) rdx, rdy 
          WRITE (output_io, 8010) nx_min, nx_max, ny_min, ny_max 
          WRITE (output_io, 8020) tr 
- 8000 FORMAT      (' debug > dx,dy               = ',2(g12.6,2x)) 
+ 8000 FORMAT      (' debug > dx,dy               = ',2(g13.6,2x)) 
  8010 FORMAT      (' debug > nx(mi,ma),ny(mi,ma) = ',2i5,2x,2i5) 
- 8020 FORMAT      (' debug > TR matrix           = ',3(g12.6,2x),/,     &
-     &                    '                               ',3(g12.6,2x))
+ 8020 FORMAT      (' debug > TR matrix           = ',3(g13.6,2x),/,     &
+     &                    '                               ',3(g13.6,2x))
       ENDIF 
 !                                                                       
 !------ Drawing the contours                                            
