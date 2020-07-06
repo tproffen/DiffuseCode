@@ -14,12 +14,6 @@ find_package(NEXUS)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
-if (DEFINED ENV{HDF5_INC})
-  include_directories($ENV{HDF5_INC})
-  #else ()
-  #  include_directories(/usr/include)
-endif ()
-#include_directories(/usr/local/HDF_Group/HDF5/1.12.0/include/shared/)
 
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 
@@ -42,7 +36,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
         do_find_mod.f90
         four_angles_mod.f90 fourier_conv.f90 fourier_lmn_mod.f90 fourier_reset.f90
 	gen_add_mod.f90 generate_mod.f90 graphic.f90 insert.f90 insert_mod.f90 intens_mod.f90
-        get_iscat_mod.f90
+        get_iscat_mod.f90 
 	inter_readstru.f90
 	interpret.f90 inverse_mod.f90 discus_kdo.f90 discus_kdo_common.f90 mc_mod.f90 metric.f90 micro_mod.f90
 	mmc.f90 mmc_mod.f90 modify_func_mod.f90 modify_mod.f90 mole_env_mod.f90
@@ -68,6 +62,17 @@ set( SOURCES_LOCAL discus_pdf_file.f90 discus_powder_file.f90 discus_out_file.f9
 #set( SOURCES ${SOURCE_MAIN} ${SOURCES_ALL} )
 
 set( LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
+
+if (DIFFUSE_HDF5)
+  if (DEFINED ENV{HDF5_INC})
+    include_directories($ENV{HDF5_INC})
+  endif ()
+  set (SOURCES_ALL ${SOURCES_ALL} hdf_write.f90)
+  message (DISCUS " HDF5 is ON  ${DIFFUSE_HDF5} ")
+else (DIFFUSE_HDF5)
+  set (SOURCES_ALL ${SOURCES_ALL} hdf_write_no.f90)
+  message (DISCUS " HDF5 is OFF ${DIFFUSE_HDF5} ")
+endif ()
 
 # NEXUS support ?
 

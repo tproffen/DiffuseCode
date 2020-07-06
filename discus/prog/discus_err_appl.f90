@@ -10,11 +10,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-171,IO=7)
+      PARAMETER    (IU=-172,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -161) /                          &
+     &  'HDF5 is not supported in this version',         & !-172 ! discus
      &  'Long and short axis not at 90degrees +-5deg',   & !-171 ! discus
      &  'Input file must be on disk for domain mode',    & !-170 ! discus
      &  'Mass fractions do not add up to  1.0   ',       & !-169 ! discus
