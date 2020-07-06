@@ -71,7 +71,7 @@ SUBROUTINE ini_ran_ix(np, iwerte, iaddit)
 !
 USE random_mod
 USE times_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT NONE
 !
