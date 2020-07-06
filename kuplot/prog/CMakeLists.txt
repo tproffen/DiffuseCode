@@ -5,12 +5,6 @@ find_package(NEXUS)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
-if (DEFINED ENV{HDF5_INC})
-  include_directories($ENV{HDF5_INC})
-  #else ()
-  #  include_directories(/usr/include)
-endif ()
-#include_directories(/usr/local/HDF_Group/HDF5/1.12.0/include/shared/)
 
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 link_directories(${PGPLOT_LIBRARIES})
@@ -24,7 +18,6 @@ set (SOURCES_ALL kuplot_blk_appl.f90 calc.f90 color.f90 draw.f90
 	kuplot_setup.f90 kuplot_branch.f90 load.f90 math.f90 para.f90 
 	kuplot_plot.f90 kuplot_save.f90 kuplot_show.f90 kuplot_upd_par.f90
 	kuplot_config.f90 kuplot_mod.f90 kuplot_branch.f90
-        kuplot_load_h5.f90
 	kuplot_words_mod.f90 kuplot_top.f90 kuplot_2dmap_mod.f90 kuplot_2dmap.f90
 	kuplot_3dmap_mod.f90  kuplot_3dmap_draw.f90)
 
@@ -45,6 +38,15 @@ set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY})
 ##64## endif (WIN32 OR CYGWIN) 
 
 set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
+
+if (DIFFUSE_HDF5)
+  if (DEFINED ENV{HDF5_INC})
+    include_directories($ENV{HDF5_INC})
+  endif ()
+  set (SOURCES_ALL ${SOURCES_ALL} kuplot_load_h5.f90)
+else (DIFFUSE_HDF5)
+  set (SOURCES_ALL ${SOURCES_ALL} kuplot_load_h5_no.f90)
+endif ()
 
 # NEXUS support ?
 

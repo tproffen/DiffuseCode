@@ -192,7 +192,7 @@ continue
 !                                                                       
  1000 FORMAT    (' ------ > Click on EXIT MENU to return to ',          &
      &                            'command mode ...')                   
- 2000 FORMAT     ('skal ',3(G12.6,','),G12.6) 
+ 2000 FORMAT     ('skal ',3(G13.6,','),G13.6) 
       END SUBROUTINE do_menu                        
 !******7****************************************************************
       SUBROUTINE frame_menu 
@@ -646,7 +646,7 @@ USE str_comp_mod
 !                                                                       
       CALL draw_tframe (zeile, ' ', ' ') 
 !                                                                       
- 1000 FORMAT     ('New range Z: ',G12.6,' to ',G12.6) 
+ 1000 FORMAT     ('New range Z: ',G13.6,' to ',G13.6) 
 !                                                                       
       END SUBROUTINE do_zscale                      
 !******7****************************************************************
@@ -660,6 +660,7 @@ USE kuplot_config
 USE kuplot_mod 
 USE kuplot_load_h5
 USE param_mod
+USE prompt_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -701,9 +702,13 @@ main_loop: DO
    IF (key == butt_m .OR. key==keyb_m) then 
       EXIT main_loop
    ELSEIF (key == butt_l .OR. key==keyb_l) then 
-      CALL hdf5_place_kuplot(-1, .FALSE., .FALSE., .FALSE.)
+      CALL hdf5_place_kuplot(-1, .FALSE., .FALSE., .FALSE.,                &
+   MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, xmin, xmax, ymin, ymax,     &
+   offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
    ELSEIF (key == butt_r .OR. key==keyb_r) then 
-      CALL hdf5_place_kuplot( 1, .FALSE., .FALSE., .FALSE.)
+      CALL hdf5_place_kuplot( 1, .FALSE., .FALSE., .FALSE.,                &
+   MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, xmin, xmax, ymin, ymax,     &
+   offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
    ENDIF 
    CALL draw_frame (iframe, lw) 
 ENDDO main_loop
@@ -875,8 +880,8 @@ END SUBROUTINE do_layer
 !                                                                       
       CALL draw_tframe (zeile (1) , zeile (2) , ' ') 
 !                                                                       
- 1000 FORMAT     ('New range X: ',G12.6,' to ',G12.6) 
- 1010 FORMAT     ('New range Y: ',G12.6,' to ',G12.6) 
+ 1000 FORMAT     ('New range X: ',G13.6,' to ',G13.6) 
+ 1010 FORMAT     ('New range Y: ',G13.6,' to ',G13.6) 
 !                                                                       
       END SUBROUTINE do_region                      
 !******7****************************************************************
@@ -953,8 +958,8 @@ END SUBROUTINE do_layer
       WRITE (zeile (2), 1010) ey (iwin, iframe, 1), ey (iwin, iframe, 2) 
       CALL draw_tframe (zeile (1) , zeile (2) , ' ') 
 !                                                                       
- 1000 FORMAT     ('New range X: ',G12.6,' to ',G12.6) 
- 1010 FORMAT     ('New range Y: ',G12.6,' to ',G12.6) 
+ 1000 FORMAT     ('New range X: ',G13.6,' to ',G13.6) 
+ 1010 FORMAT     ('New range Y: ',G13.6,' to ',G13.6) 
 !                                                                       
       END SUBROUTINE do_zoom                        
 !******7****************************************************************
@@ -1003,7 +1008,7 @@ END SUBROUTINE do_layer
 !                                                                       
       CALL frame_menu 
 !                                                                       
- 2200 FORMAT    ('Distance = ',g12.6) 
+ 2200 FORMAT    ('Distance = ',g13.6) 
 !                                                                       
       END SUBROUTINE do_distance                    
 !******7****************************************************************
@@ -1074,8 +1079,8 @@ END SUBROUTINE do_layer
       CALL frame_menu 
       CALL draw_tframe (' ', ' ', ' ') 
 !                                                                       
- 2200 FORMAT    ('(x,y) = ',2(g12.6,1x)) 
- 2210 FORMAT    ('(x,y,z) = ',3(g12.6,1x)) 
+ 2200 FORMAT    ('(x,y) = ',2(g13.6,1x)) 
+ 2210 FORMAT    ('(x,y,z) = ',3(g13.6,1x)) 
 !                                                                       
       END SUBROUTINE do_koor                        
 !******7****************************************************************

@@ -2,9 +2,8 @@ MODULE kuplot_load_h5
 !-
 !  Contains routines to read a HDF5 file written by DISCUS
 !+
-USE kuplot_mod
 USE hdf5
-USE prompt_mod
+!
 USE precision_mod
 !
 IMPLICIT NONE
@@ -37,14 +36,15 @@ CONTAINS
 !*******************************************************************************
 !
 SUBROUTINE hdf5_read(infile, length, O_LAYER, NOPTIONAL, opara, lopara,         &
-                     lpresent, owerte)
+                     lpresent, owerte,               &
+                     MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
+                     xmin, xmax, ymin, ymax, offxy, offz, lni, lh5, lenc,       &
+                     ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !
-!USE allocate_generic
 USE hdf5
 USE iso_c_binding
 !
 USE ber_params_mod
-USE errlist_mod
 !
 IMPLICIT NONE
 !
@@ -56,6 +56,32 @@ CHARACTER(LEN=*)   , DIMENSION(NOPTIONAL), INTENT(IN) :: opara
 INTEGER            , DIMENSION(NOPTIONAL), INTENT(IN) :: lopara
 LOGICAL            , DIMENSION(NOPTIONAL), INTENT(IN) :: lpresent
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL), INTENT(IN) :: owerte
+INTEGER, INTENT(IN)    :: MAXARRAY     ! KUPLOT array size
+INTEGER, INTENT(IN)    :: MAXKURVTOT   ! KUPLOT array size
+CHARACTER(LEN=200), DIMENSION(MAXKURVTOT), INTENT(INOUT) :: fname
+INTEGER, INTENT(INOUT) :: iz     ! KUPLOT data set number
+REAL   , DIMENSION(MAXARRAY)  , INTENT(INOUT) :: x
+REAL   , DIMENSION(MAXARRAY)  , INTENT(INOUT) :: y
+REAL   , DIMENSION(MAXARRAY)  , INTENT(INOUT) :: z
+INTEGER, DIMENSION(MAXKURVTOT), INTENT(INOUT) :: nx
+INTEGER, DIMENSION(MAXKURVTOT), INTENT(INOUT) :: ny
+REAL   , DIMENSION(MAXKURVTOT), INTENT(INOUT) :: xmax ! (maxkurvtot)
+REAL   , DIMENSION(MAXKURVTOT), INTENT(INOUT) :: xmin ! (maxkurvtot)
+REAL   , DIMENSION(MAXKURVTOT), INTENT(INOUT) :: ymax ! (maxkurvtot)
+REAL   , DIMENSION(MAXKURVTOT), INTENT(INOUT) :: ymin
+INTEGER, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: offxy
+INTEGER, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: offz
+LOGICAL, DIMENSION(maxkurvtot), INTENT(INOUT) :: lni
+LOGICAL, DIMENSION(maxkurvtot), INTENT(INOUT) :: lh5
+INTEGER, DIMENSION(MAXKURVTOT), INTENT(INOUT) :: lenc
+!
+INTEGER,                            INTENT(OUT)   :: ier_num
+INTEGER,                            INTENT(OUT)   :: ier_typ
+INTEGER,                            INTENT(IN )   :: idims
+CHARACTER(LEN=*), DIMENSION(idims), INTENT(INOUT) :: ier_msg    ! Error message
+INTEGER,                            INTENT(IN )   :: ER_APPL
+INTEGER,                            INTENT(IN )   :: ER_IO
+INTEGER, INTENT(IN)    :: output_io   ! KUPLOT array size
 !
 !INTEGER(KIND=SIZE_T), PARAMETER :: f_str_len = 20  ! Length F-string to receive  
 !
@@ -107,7 +133,8 @@ CALL H5Eset_auto_f(1, hdferr)                              ! Turn Error messages
 !
 CALL H5Fopen_f(h5_infile, H5F_ACC_RDWR_F, file_id, hdferr)     ! Open existing file
 IF(hdferr/=0) THEN
-   CALL hdf5_error(h5_infile, file_id, dataname, dset_id, -2, ER_IO, 'Could not open ''H5'' file')
+   CALL hdf5_error(h5_infile, file_id, dataname, dset_id, ier_num, ier_typ, idims,ier_msg,&
+                   -2, ER_IO, 'Could not open ''H5'' file')
    RETURN
 ENDIF
 !
@@ -123,27 +150,30 @@ CALL H5Literate_f(file_id, H5_INDEX_NAME_F, H5_ITER_NATIVE_F, idx, funptr, ptr, 
 IF(hdferr/=0) THEN
    dataname = ' '
    dset_id  = 0
-   CALL hdf5_error(h5_infile, file_id, dataname, dset_id, -70, ER_APPL, 'Initial iteration failed')
+   CALL hdf5_error(h5_infile, file_id, dataname, dset_id, ier_num, ier_typ, idims,ier_msg,&
+                   -70, ER_APPL, 'Initial iteration failed')
    RETURN
 ENDIF
 !
 IF(h5_n_datasets<1) THEN
    dataname = ' '
    dset_id  = 0
-   CALL hdf5_error(h5_infile, file_id, dataname, dset_id, -69, ER_APPL, 'No datasets in H5 file')
+   CALL hdf5_error(h5_infile, file_id, dataname, dset_id, ier_num, ier_typ, idims,ier_msg,&
+                   -69, ER_APPL, 'No datasets in H5 file')
    RETURN
 ENDIF
 !write(*,*) 'NUMBER of data sets found ', h5_n_datasets
-DO i=1,h5_n_datasets
-   WRITE(*,*) ' DATASETS ', h5_datasets(i)(1:LEN_TRIM(h5_datasets(i)))
-ENDDO
+!DO i=1,h5_n_datasets
+!   WRITE(*,*) ' DATASETS ', h5_datasets(i)(1:LEN_TRIM(h5_datasets(i)))
+!ENDDO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! get the format identifier
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 dataname = 'format'
 CALL H5Dopen_f(file_id, dataname, dset_id, hdferr)           ! Open the 'format'
 IF(hdferr/=0) THEN
-   CALL hdf5_error(h5_infile, file_id, dataname, dset_id, -69, ER_APPL, 'Dataset does not exist')
+   CALL hdf5_error(h5_infile, file_id, dataname, dset_id, ier_num, ier_typ, idims,ier_msg,&
+                   -69, ER_APPL, 'Dataset does not exist')
    RETURN
 ENDIF
 !CALL H5Dget_storage_size_f(dset_id, nummer, hdferr)          ! Get rough storage size
@@ -164,7 +194,8 @@ CALL H5Dclose_f(dset_id , hdferr)
 DEALLOCATE(rdata)
 !
 IF(rstring(1:j)/='Yell 1.0') THEN
-   CALL hdf5_error(h5_infile, file_id, rstring, dset_id, -69, ER_APPL, 'format dataset has wrong value')
+   CALL hdf5_error(h5_infile, file_id, rstring, dset_id, ier_num, ier_typ, idims,ier_msg,&
+                   -69, ER_APPL, 'format dataset has wrong value')
    RETURN
 ENDIF
 !
@@ -303,7 +334,10 @@ ELSE
    ENDIF
 ENDIF
 !
-CALL hdf5_place_kuplot(nlayer, .TRUE.,.TRUE., .TRUE.)
+CALL hdf5_place_kuplot(nlayer, .TRUE.,.TRUE., .TRUE.,               &
+   MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
+   xmin, xmax, ymin, ymax, &
+   offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
 !
 DEALLOCATE(h5_datasets)
 !
@@ -380,9 +414,8 @@ INTEGER FUNCTION op_func(loc_id, name, info, operator_data) bind(C)
 !
 !*******************************************************************************
 !
-SUBROUTINE hdf5_error(infile, file_id, dataname, dset_id, er_nr, er_type, message)
-!
-USE errlist_mod
+SUBROUTINE hdf5_error(infile, file_id, dataname, dset_id, ier_num, ier_typ, &
+                      idims,ier_msg,er_nr, er_type, message)
 !
 IMPLICIT NONE
 !
@@ -390,6 +423,10 @@ CHARACTER(LEN=*)   , INTENT(IN) :: infile     ! File name
 INTEGER(KIND=HID_T), INTENT(IN) :: file_id    ! File identifier
 CHARACTER(LEN=*)   , INTENT(IN) :: dataname   ! dataset name
 INTEGER(KIND=HID_T), INTENT(IN) :: dset_id    ! dataset identifier
+INTEGER            , INTENT(OUT) :: ier_num     ! Error number
+INTEGER            , INTENT(OUT) :: ier_typ     ! Error type
+INTEGER            , INTENT(IN)  :: idims       ! Dimension of ier_msg
+CHARACTER(LEN=*), DIMENSION(idims)   , INTENT(OUT) :: ier_msg    ! Error message
 INTEGER            , INTENT(IN) :: er_nr      ! Error number
 INTEGER            , INTENT(IN) :: er_type    ! Error type
 CHARACTER(LEN=*)   , INTENT(IN) :: message    ! Error message
@@ -414,21 +451,45 @@ END SUBROUTINE hdf5_error
 !
 !*******************************************************************************
 !
-SUBROUTINE hdf5_place_kuplot(nlayer, lset, lnew, lshow)
+SUBROUTINE hdf5_place_kuplot(nlayer, lset, lnew, lshow,                &
+   MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
+   xmin, xmax, ymin, ymax, &
+   offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
+
 !-
 ! PLace a curve into the kuplot section, 
 ! IF lset==TRUE set absolute layer , else increment
 ! IF lnew==TRUE, make new curve, 
 ! IF lshow = TRUE display data
 !+
-USE kuplot_mod
-!
 IMPLICIT NONE
 !
 INTEGER, INTENT(IN) :: nlayer    ! Cut this layer from the data
 LOGICAL, INTENT(IN) :: lset      ! absolute layer setting
 LOGICAL, INTENT(IN) :: lnew      ! make new curve
 LOGICAL, INTENT(IN) :: lshow     ! show data
+INTEGER, INTENT(IN)    :: MAXARRAY     ! KUPLOT array size
+INTEGER, INTENT(IN)    :: MAXKURVTOT   ! KUPLOT array size
+CHARACTER(LEN=200), DIMENSION(MAXKURVTOT), INTENT(INOUT) :: fname
+INTEGER, INTENT(INOUT) :: iz     ! KUPLOT data set number
+REAL   , DIMENSION(MAXARRAY)  , INTENT(INOUT) :: x
+REAL   , DIMENSION(MAXARRAY)  , INTENT(INOUT) :: y
+REAL   , DIMENSION(MAXARRAY)  , INTENT(INOUT) :: z
+INTEGER, DIMENSION(MAXKURVTOT), INTENT(INOUT) :: nx
+INTEGER, DIMENSION(MAXKURVTOT), INTENT(INOUT) :: ny
+REAL   , DIMENSION(MAXKURVTOT), INTENT(INOUT) :: xmax ! (maxkurvtot)
+REAL   , DIMENSION(MAXKURVTOT), INTENT(INOUT) :: xmin ! (maxkurvtot)
+REAL   , DIMENSION(MAXKURVTOT), INTENT(INOUT) :: ymax ! (maxkurvtot)
+REAL   , DIMENSION(MAXKURVTOT), INTENT(INOUT) :: ymin
+INTEGER, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: offxy
+INTEGER, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: offz
+LOGICAL, DIMENSION(maxkurvtot), INTENT(INOUT) :: lni
+LOGICAL, DIMENSION(maxkurvtot), INTENT(INOUT) :: lh5
+INTEGER, DIMENSION(MAXKURVTOT), INTENT(INOUT) :: lenc
+INTEGER, INTENT(IN)    :: output_io   ! KUPLOT array size
+!
+INTEGER,                 INTENT(OUT) :: ier_num
+INTEGER,                 INTENT(OUT) :: ier_typ
 !
 INTEGER :: i,j,k, ll             ! dummy indices
 INTEGER :: izz

@@ -443,7 +443,7 @@ USE precision_mod
       USE take_param_mod
 USE str_comp_mod
       USE string_convert_mod
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -519,7 +519,11 @@ owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,  0.0   
 !
          IF(unter=='H5') THEN    ! HDF5 file
             CALL hdf5_read(cpara(2),lpara(2), O_LAYER, NOPTIONAL, opara,        &
-                           lopara, lpresent, owerte)
+                           lopara, lpresent, owerte ,                           &
+                           MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny,    &
+                           xmin, xmax, ymin, ymax, offxy, offz, lni, lh5, lenc, &
+                           ier_num, ier_typ, UBOUND(ier_msg,1), ier_msg, ER_APPL, &
+                           ER_IO, output_io)
             RETURN
          ENDIF
 !                                                                       
@@ -2105,8 +2109,8 @@ USE lib_length
  3010 FORMAT (3x,'Date       : ',a) 
  3020 FORMAT (3x,'Energy     : ',a) 
  4000 FORMAT (3x,'Parameters : ',/) 
- 4010 FORMAT (3x,5(a12,3x)) 
- 4020 FORMAT (3x,5(g12.6,3x)) 
+ 4010 FORMAT (3x,5(a13,3x)) 
+ 4020 FORMAT (3x,5(g13.6,3x)) 
  9999 FORMAT (a) 
 !                                                                       
       END SUBROUTINE read_spec_info                 
@@ -3113,7 +3117,7 @@ USE lib_length
       USE prompt_mod 
       USE kuplot_config 
 USE lib_length
-USE sys_compiler
+USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       

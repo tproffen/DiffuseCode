@@ -9,11 +9,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      parameter    (iu=-71,io=0)
+      parameter    (iu=-72,io=0)
 !
       character(LEN=45) ::  error(iu:io)
 !
       data error ( iu: -61) /                      &
+     &  'HDF5 is not supported in this version',   &! -72  ! kupl
      &  'Optional layer number invalid',           &! -71  ! kupl
      &  'Trouble reading dataset list   ',         &! -70  ! kupl
      &  'Not a Yell/DISCUS h5 file      ',         &! -69  ! kupl
