@@ -27,7 +27,7 @@ USE fourier_lmn_mod
 USE prompt_mod 
 USE precision_mod 
 USE times_mod
-USE sys_compiler
+USE support_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -153,7 +153,7 @@ ier_num = 0
      &                       3(I3,1X),')')                              
  2010 FORMAT     (/,' Lot # ',I4,'/',I4,' : complete crystal') 
  3000 FORMAT (  '                   Atom typ = ',A4,7X,'(# ',I9,' )') 
- 4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
+ 4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
       END SUBROUTINE four_run                       
 !*****7*****************************************************************
       SUBROUTINE four_aver (lots, ave, csize) 
@@ -789,9 +789,9 @@ END SUBROUTINE four_formtab
       ENDIF 
 !                                                                       
  1000 FORMAT     (/,' ') 
- 1010 FORMAT     (  ' Bragg scat.     : ',G12.6,'  -> ',G12.6) 
- 1020 FORMAT     (  ' Diffuse scat.   : ',G12.6,'  -> ',G12.6) 
- 1030 FORMAT     (  '      Average    : ',G12.6,'  +- ',G12.6) 
+ 1010 FORMAT     (  ' Bragg scat.     : ',G13.6,'  -> ',G13.6) 
+ 1020 FORMAT     (  ' Diffuse scat.   : ',G13.6,'  -> ',G13.6) 
+ 1030 FORMAT     (  '      Average    : ',G13.6,'  +- ',G13.6) 
       END SUBROUTINE four_qinfo                     
 !*****7*****************************************************************
       REAL FUNCTION form (ll, scat, lxray, h2, power) 
@@ -1056,7 +1056,7 @@ END SUBROUTINE four_formtab
       USE get_params_mod
       USE param_mod
 USE precision_mod
-USE sys_compiler
+USE support_mod
 !
       IMPLICIT NONE
 !
@@ -1400,8 +1400,8 @@ ELSE
 ENDIF
 ALLOCATE(fft_field(1:fft_dim(1),1:fft_dim(2)))
 ALLOCATE(fft_sum  (1:fft_dim(1),1:fft_dim(2)))
-fft_field = COMPLEX(0.0_PREC_DP, 0.0_PREC_DP)
-fft_sum   = COMPLEX(0.0_PREC_DP, 0.0_PREC_DP)
+fft_field = CMPLX(0.0_PREC_DP, 0.0_PREC_DP)
+fft_sum   = CMPLX(0.0_PREC_DP, 0.0_PREC_DP)
 !
 END SUBROUTINE four_fft_prep
 !
@@ -1425,12 +1425,12 @@ INTEGER :: nlot
 INTEGER :: loop
 INTEGER :: i,j
 !
-fft_field = COMPLEX(0.0_PREC_DP, 0.0_PREC_DP)
+fft_field = CMPLX(0.0_PREC_DP, 0.0_PREC_DP)
 !
 DO loop=1, nxat
    i = NINT(fft_grid*xat(loop,1))
    j = NINT(fft_grid*xat(loop,2))
-   fft_field(i,j) = COMPLEX(1.0_PREC_DP, 0.0_PREC_DP)
+   fft_field(i,j) = CMPLX(1.0_PREC_DP, 0.0_PREC_DP)
 ENDDO
 !
 fft_field = fft(fft_field)/REAL(fft_dim(1)*fft_dim(2),KIND=PREC_DP)
