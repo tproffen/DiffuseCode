@@ -5,6 +5,16 @@ cmake_minimum_required(VERSION 3.12.0)
 project(DIFFUSE)
 enable_language(Fortran)
 
+if ( NOT DEFINED ENV{FC} )
+    message(FATAL_ERROR "The environment variable FC is not set
+Please set FC to the full path to fortran compiler before running CMake/ccmake
+For example use: export FC=$(which gfortran) or export FC=$(which ifort) ")
+else ()
+   message (status " FC set to $ENV{FC} ")
+endif()
+set (CMAKE_Fortran_COMPILER $ENV{FC})
+message ( status " TOPLEVEL COMPILER is ${CMAKE_Fortran_COMPILER}" )
+
 # Detect if Intel or Portland Fortran compiler is used.
 if (${CMAKE_Fortran_COMPILER} MATCHES "ifort")
   set(IFORT TRUE)
@@ -35,6 +45,13 @@ set (DIFFUSE_VERSION_PATCH 03)
 
 find_package(Readline REQUIRED)
 
+# Option to build a PYTHON interface
+option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" OFF)
+
+# Option to build with HDF5 support 
+option(DIFFUSE_HDF5 "DIFFUSE_HDF5" ON )
+
+if ( DIFFUSE_HDF5 )
 if (DEFINED ENV{HDF5_LIB})
   set (LINK_LIBS ${LINK_LIBS} "$ENV{HDF5_LIB}" )
 else ()
@@ -53,9 +70,10 @@ else ()
     INCLUDE_DIRECTORIES (${HDF5_INCLUDE_DIR_FORTRAN})
   endif ()
 endif ()
-
-# Option to build a PYTHON interface
-option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" OFF)
+  message (status " HDF5 is ON  ${DIFFUSE_HDF5} ")
+else ()
+  message (status " HDF5 is OFF ${DIFFUSE_HDF5} ")
+endif ()
 
 # Set common libraries
 
@@ -70,8 +88,12 @@ set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 
 set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
-#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -finit-local-zero")
-set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -std=legacy")
+#
+if ( ISGNU )
+  set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -std=legacy")
+elseif ( IFORT )
+  set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 ")
+endif ()
 
 # Set different compiler flags for Portland compiler
 if (PGF)
