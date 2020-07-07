@@ -17,6 +17,7 @@ USE precision_mod
 !
    CHARACTER(LEN=PREC_STRING) :: home_dir
    CHARACTER(LEN=PREC_STRING) :: appl_dir
+   CHARACTER(LEN=PREC_STRING) :: share_dir
    CHARACTER(LEN=PREC_STRING) :: mac_dir
    CHARACTER(LEN=PREC_STRING) :: man_dir
    CHARACTER(LEN=PREC_STRING) :: tmp_dir
@@ -40,6 +41,7 @@ USE precision_mod
    CHARACTER(LEN= 80 ) :: user_name
    INTEGER             :: home_dir_l
    INTEGER             :: appl_dir_l
+   INTEGER             :: share_dir_l
    INTEGER             :: term_scheme_file_l
    INTEGER             :: deffile_l
    INTEGER             :: hlpfile_l

@@ -172,6 +172,19 @@ ELSE   !  /proc/version does not exist , likely a MAC OS X
    CALL do_operating_comm(line)
 ENDIF
 !
+IF(operating==OS_WINDOWS) THEN
+   IF(home_dir(home_dir_l:home_dir_l) == '/') THEN
+      home_dir(home_dir_l:home_dir_l) = '\'
+   ELSEIF(home_dir(home_dir_l:home_dir_l) /= '\') THEN
+      home_dir(home_dir_l+1:home_dir_l+1) = '\'
+      home_dir_l = home_dir_l + 1
+   ENDIF
+ELSE
+   IF(home_dir(home_dir_l:home_dir_l) /= '/') THEN
+      home_dir(home_dir_l+1:home_dir_l+1) = '/'
+      home_dir_l = home_dir_l + 1
+   ENDIF
+ENDIF
 ! All remaining test for OS should be obsolete
    IF(operating == ' ') THEN
       CALL get_environment_variable ('OS', operating) 
@@ -240,111 +253,46 @@ ENDIF
       ENDIF 
       lines = lines - 2 
 !
-!     IF(index(operating, 'Windows') /= 0) THEN  ! We got a Windows
-!        operating = 'Windows'
-!        color_theme = THEME_LGHTYL_BLACK
-!        INQUIRE(FILE='/Cygwin.bat',EXIST=lpresent)
-!        IF(lpresent) THEN
-!           OPEN(idef,FILE='/Cygwin.bat',STATUS='old')
-!           READ(idef,'(a)', IOSTAT=ios) line
-!           find_op: DO WHILE(.NOT. IS_IOSTAT_END(ios))
-!              IF(line(1:5)=='chdir') THEN    ! FOUND correct line
-!                operat_top = line( 7:LEN_TRIM(LINE)-4)
-!                operating  = line(10:LEN_TRIM(LINE)-4) !'Cygwin'
-!                EXIT find_op
-!              ENDIF
-!              READ(idef,'(a)', IOSTAT=ios) line
-!           ENDDO find_op
-!           CLOSE(idef)
-!        ELSE
-!           INQUIRE(FILE='/suite.sh',EXIST=lpresent)
-!           IF(lpresent) THEN
-!              operating = 'Windows'
-!           ENDIF
-!        ENDIF
-!        user_profile = ' '
-!        CALL get_environment_variable ('USERPROFILE', user_profile)
-!        home_dir = user_profile
-!     ELSE
-!                                                                       
-!        home_dir = ' ' 
-!        CALL get_environment_variable ('HOME', home_dir) 
-!        IF (home_dir.eq.' ') then 
-!           home_dir = '.' 
-!        ENDIF 
-!     ENDIF
-!     home_dir_l = len_str (home_dir) 
-!                                                                       
-!     appl_dir = ' ' 
-!     CALL get_environment_variable (pname_cap, appl_dir) 
-!     IF (appl_dir.eq.' ') then 
-!        appl_dir = '.' 
-!     ENDIF 
-!
 !     Try to find the correct share/ folder
-!         Start with environment variable PNAME_CAP
-!         Else try from process name
+!         Start from from process name
 !         Else assume /usr/local/bin
-      IF(standalone) THEN
-!
-!        Environment variable
-!
-         appl_dir = ' ' 
-         CALL get_environment_variable (pname_cap, appl_dir) 
-         IF (appl_dir.eq.' ') then 
-            appl_dir = '.' 
-         ENDIF 
-         appl_dir_l = LEN_TRIM(appl_dir)
-         IF(appl_dir(appl_dir_l:appl_dir_l) /= '/') THEN
-            appl_dir   = appl_dir(1:appl_dir_l)//'/'
-            appl_dir_l = appl_dir_l+ 1
-         ENDIF
-         hlpdir    = ' ' 
-         hlpdir(1:appl_dir_l+9)=appl_dir(1:appl_dir_l)//'../share/'
-         hlp_dir_l = appl_dir_l+9
-         hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:pname_l)//'.hlp'
-         hlpfile_l = LEN(TRIM (hlpfile) )
-         CALL do_fexist(hlpfile,hlpfile_l,.FALSE.)
-         IF(res_para(1)==0) THEN   ! hlpdir does not exist
-!
-!           Try /usr/local/bin
-!
-            appl_dir   = '/usr/local/bin/'
-            appl_dir_l = 15
-            hlpdir    = ' ' 
-            hlpdir(1:appl_dir_l+9) = appl_dir(1:appl_dir_l)//'../share/'
-            hlp_dir_l = appl_dir_l+9
-            hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:pname_l)//'.hlp'
-            hlpfile_l = LEN(TRIM (hlpfile) )
-            CALL do_fexist(hlpfile,hlpfile_l,.FALSE.)
-            IF(res_para(1)==0) THEN   ! hlpfile does not exist
+!         Else assume $HOME/bin
+IF(standalone) THEN
 !
 !              Process folder
 !
-               CALL GET_ENVIRONMENT_VARIABLE ('_', cdummy) 
-               iii = INDEX(cdummy,pname,.true.)
-               i   = INDEX(cdummy,'/',.TRUE.)
-               j   = INDEX(cdummy,'\',.TRUE.)
-               iii = MAX(i,j)
-               appl_dir = ' '
-               appl_dir(1:MAX(1,MIN(LEN(cdummy),iii)))   = cdummy(1:iii  )
-               appl_dir_l = len_str (appl_dir) 
-               hlpdir    = ' ' 
-               hlpdir(1:appl_dir_l+9) = appl_dir(1:appl_dir_l)//'../share/'
-               hlp_dir_l = appl_dir_l+9
-               hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:pname_l)//'.hlp'
-               hlpfile_l = LEN(TRIM (hlpfile) )
-               CALL do_fexist(hlpfile,hlpfile_l,.FALSE.)
-               IF(res_para(1)==0) THEN   ! hlpfile does not exist
+   CALL GET_ENVIRONMENT_VARIABLE ('_', cdummy) 
+   iii = INDEX(cdummy,pname,.true.)
+   i   = INDEX(cdummy,'/',.TRUE.)
+   j   = INDEX(cdummy,'\',.TRUE.)
+   iii = MAX(i,j)
+   appl_dir = ' '
+   appl_dir(1:MAX(1,MIN(LEN(cdummy),iii)))   = cdummy(1:iii  )
+   appl_dir_l = len_str (appl_dir) 
+   i=INDEX(appl_dir(1:len_trim(appl_dir)-1),'/', .TRUE.)
+   share_dir = appl_dir(1:i) // 'share/'
+   hlpfile = share_dir(1:share_dir_l) // pname(1:pname_l)//'.hlp'
+   hlpfile_l = LEN(TRIM (hlpfile) )
+   CALL do_fexist(hlpfile,hlpfile_l,.FALSE.)
+   IF(res_para(1)==0) THEN   ! hlpdir does not exist
+!
+!           Try /usr/local/bin
+!
+      share_dir = '/usr/local/share/'
+      share_dir_l = 17
+      hlpfile = share_dir(1:share_dir_l) // pname(1:pname_l)//'.hlp'
+      hlpfile_l = LEN(TRIM (hlpfile) )
+      CALL do_fexist(hlpfile,hlpfile_l,.FALSE.)
+      IF(res_para(1)==0) THEN   ! hlpdir does not exist
 !
 !                 last resort, take home dir
 !
-                  appl_dir   = home_dir
-                  appl_dir_l = home_dir_l
-               ENDIF
-            ENDIF
-         ENDIF
+         share_dir   = home_dir(1:home_dir_l) // 'share/'
+         share_dir_l = home_dir_l + 6
       ENDIF
+   ENDIF
+ENDIF
+!
 !                                                                       
       deffile = '.'//pname (1:pname_l) 
       deffile_l = len_str (deffile) 
@@ -786,57 +734,29 @@ ENDIF
 !
 progname_l = LEN(TRIM(progname))
 !
+!
 mac_dir = ' ' 
-mac_dir (1:appl_dir_l) = appl_dir 
-mac_dir (appl_dir_l + 1:appl_dir_l + LEN_TRIM(pname)  + 10) = '../share/'//     &
-pname (1:LEN_TRIM(pname)) //'/'                                           
+mac_dir = share_dir // pname (1:LEN_TRIM(pname)) //'/'
 mac_dir_l = LEN_TRIM (mac_dir) 
 !                                                                       
-umac_dir = home_dir(1:home_dir_l)//'/mac/'//progname(1:progname_l) //'/'
+umac_dir = home_dir(1:home_dir_l)//'mac/'//progname(1:progname_l) //'/'
 umac_dir_l = LEN(TRIM (umac_dir) )
 !                                                                       
 hlpfile = ' ' 
 hlpdir  = ' ' 
-hlpdir  (1:appl_dir_l+9) = appl_dir(1:appl_dir_l) //'../share/'
-hlp_dir_l = appl_dir_l+9
+hlpdir  = share_dir
+hlp_dir_l = share_dir_l
 hlpfile   = hlpdir(1:hlp_dir_l)//progname(1:progname_l)//'.hlp'
 hlpfile_l = LEN(TRIM (hlpfile) )
 !                                                                       
 colorfile = ' ' 
-colorfile (1:MIN(LEN(colorfile),appl_dir_l)) = appl_dir(1:MAX(1,MIN((LEN(colorfile)),appl_dir_l))) 
-colorfile (appl_dir_l + 1:appl_dir_l + 19) = '../share/color.map' 
+colorfile = share_dir(1:share_dir_l) // 'color.map'
 colorfile_l = LEN(TRIM (colorfile) )
 !
 !   Search for the Installation file "DiscusSuite.txt" to obtain paths
 !
-man_dir = ' '
-inst_file = appl_dir(1:LEN_TRIM(appl_dir)) // '../share/DiscusSuite.txt'
-INQUIRE(FILE=inst_file,EXIST=l_exist)
-IF(.NOT.l_exist) THEN
-   inst_file = '/usr/local/share/DiscusSuite.txt'
-   INQUIRE(FILE=inst_file,EXIST=l_exist)
-   IF(.NOT.l_exist) THEN
-            inst_file = '/usr/share/DiscusSuite.txt'
-      INQUIRE(FILE=inst_file,EXIST=l_exist)
-      IF(.NOT.l_exist) THEN
-         inst_file = '/share/DiscusSuite.txt'
-      ENDIF
-   ENDIF
-ENDIF
-IF(l_exist) THEN
-   CALL oeffne(IRD, inst_file,'old')
-   IF(ier_num==0) THEN
-      READ(IRD,'(a)') line
-      READ(IRD,'(a)') line
-      READ(IRD,'(a)') line
-      IF(line(1:13)=='Manual      :') THEN
-         READ(line(15:LEN_TRIM(line)),'(a)') man_dir
-      ENDIF
-   ENDIF
-   CLOSE(IRD)
-ELSE
-   man_dir = appl_dir(1:LEN_TRIM(appl_dir)) // '../share/'
-ENDIF
+man_dir = hlpdir
+!
 i=LEN_TRIM(man_dir)
 IF(operating(1:7)=='Windows') THEN
    IF(man_dir(i:i) /='\') THEN
