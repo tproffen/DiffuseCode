@@ -54,7 +54,7 @@ USE precision_mod
       IF (ianz.eq.0) THEN 
          flag_all = .true. 
          flag_mol = .false. 
-      ELSEIF (ianz == 1) THEN 
+      ELSEIF (ianz >= 1) THEN 
          flag_mol = (cpara (1) (1:1) .eq.'m') 
          flag_all = .true. 
          IF (flag_mol) THEN 
@@ -65,6 +65,7 @@ USE precision_mod
             flag_all = (cpara (1) (1:1) .ne.'2') 
          ENDIF 
       ENDIF 
+!
 !                                                                       
 !------ reset counters                                                  
 !                                                                       
