@@ -875,12 +875,15 @@ IMPLICIT NONE
 !
 CHARACTER(LEN=1), INTENT(IN) :: indrive
 !
+INTEGER, PARAMETER :: IRD = 69
 CHARACTER(LEN=1) :: drive
 CHARACTER(LEN=6) :: mntdrive
 CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER :: length
+INTEGER :: ios
 LOGICAL :: lda
+LOGICAL :: lmounted
 !
 IF(operating == OS_LINUX_WSL) THEN    ! Only for WSL
    drive = indrive
@@ -901,11 +904,26 @@ IF(operating == OS_LINUX_WSL) THEN    ! Only for WSL
       CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), &
                                  CMDSTAT=ier_num, CMDMSG=message) 
    ELSE
-      WRITE(output_io,*) 'Access to drives may require Ubuntu password'
       CALL do_cap(drive)
-      string = 'sudo mount -t drvfs ' // drive // ': ' // mntdrive
-      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), &
-                                 CMDSTAT=ier_num, CMDMSG=message) 
+      OPEN(UNIT=IRD, FILE='/proc/mounts', STATUS='OLD', ACTION='READ')
+      lmounted = .FALSE.
+      find: DO
+         READ(IRD,'(a)', IOSTAT=IOS) string
+         IF(IS_IOSTAT_END(ios)) EXIT find
+         length = LEN_TRIM(string)
+         CALL rem_leading_bl(string,length)
+         IF(string(1:2) == drive//':') THEN
+            lmounted=.TRUE.
+            EXIT find
+         ENDIF
+      ENDDO find
+      CLOSE(UNIT=IRD)
+      IF(.NOT.lmounted) THEN
+         WRITE(output_io,*) 'Access to drives may require Ubuntu password'
+         string = 'sudo mount -t drvfs ' // drive // ': ' // mntdrive
+         CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), &
+                                    CMDSTAT=ier_num, CMDMSG=message) 
+      ENDIF
    ENDIF
 ENDIF
 !
