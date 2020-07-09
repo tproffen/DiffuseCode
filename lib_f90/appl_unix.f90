@@ -1074,6 +1074,7 @@ SUBROUTINE lib_f90_update_discus
 USE envir_mod
 USE errlist_mod
 USE precision_mod
+USE prompt_mod
 USE support_mod
 !
 IMPLICIT NONE
@@ -1179,7 +1180,7 @@ cdir = current_dir
 line = home_dir
 length = len_trim(line)
 CALL do_chdir(line,length,.FALSE.)     ! Go to home dir
-CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), WAIT=.FALSE., CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
 ! As installation script updated the operating system, touch update file
 !
@@ -1192,12 +1193,17 @@ CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=m
 string = 'chmod ugo+rw ' // tmp_dir(1:len_trim(tmp_dir)) // '/DISCUS_UPDATE'
 CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 IF(operating == OS_LINUX_WSL) THEN
-   WRITE(*,*) ' This DISCUS Window will stop now. '
-   WRITE(*,*) ' The new version will be started '
-   WRITE(*,*) ' once the update is finished. '
+   WRITE(output_io,*) ' This DISCUS Window will stop now. '
+   WRITE(output_io,*) ' The new version will be started '
+   WRITE(output_io,*) ' once the update is finished. '
    STOP
 ELSE
-  write(*,*) ' started script'
+  IF(operating_name=="ManjaroLinux" ) THEN
+     WRITE(output_io,*) ' This DISCUS Window will stop now. '
+     STOP
+  ELSE
+  WRITE(output_io,*) ' started script'
+  ENDIF
 ENDIF
 line = cdir                           ! Return to old current directory
 length = len_trim(line)
