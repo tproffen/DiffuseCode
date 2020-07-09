@@ -81,6 +81,7 @@ IF(gen_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    ENDIF
    CALL diffev_loop    ()
 ELSE
+   CALL lib_f90_init_updates
    CALL program_files ()
    CALL discus_setup(lstandalone)
    CALL kuplot_setup(lstandalone)
