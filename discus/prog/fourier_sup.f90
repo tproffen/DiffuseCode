@@ -1055,6 +1055,7 @@ END SUBROUTINE four_formtab
       USE discus_allocate_appl_mod
       USE get_params_mod
       USE param_mod
+USE prompt_mod
 USE precision_mod
 USE support_mod
 !
@@ -1206,8 +1207,8 @@ check2:  DO
             length = LEN_TRIM(line)
          ENDDO check2
       ELSE
-         write(*,*) ' WRONG STYLE ', style
-         return
+         WRITE(output_io,*) ' WRONG STYLE ', style
+         RETURN
       ENDIF
       vi(:,:) = 0
       vi(1,1) = 1.0

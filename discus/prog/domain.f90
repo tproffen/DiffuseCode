@@ -956,7 +956,6 @@ INTEGER, PARAMETER :: MAXW = 4
             IF (ianz.eq.0) then 
  1000          CONTINUE 
                READ (imd, 2000, end = 998, err = 999) line 
-                  write(*,*) line(1:80)
                lline = len_str (line) 
                ibl = index (line (1:lline) , ' ') + 1 
                lbef = 10 
@@ -1055,7 +1054,7 @@ INTEGER, PARAMETER :: MAXW = 4
                   ier_typ = ER_APPL 
                   ier_msg (1) = 'Error while reading' 
                   ier_msg (2) = 'the domain input file' 
-                  write(*,*) zeile(1:40)
+                  ier_msg(3) =  zeile(1:40)
                ENDIF 
 !                                                                       
                GOTO 1000 
@@ -1073,7 +1072,7 @@ INTEGER, PARAMETER :: MAXW = 4
          ier_typ = ER_APPL 
          ier_msg (1) = 'Error while reading' 
          ier_msg (2) = 'the domain input file' 
-                  write(*,*) befehl
+         ier_msg (3) = befehl
          RETURN 
       ENDIF 
       line = ' ' 
