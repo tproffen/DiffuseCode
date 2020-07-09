@@ -10,6 +10,7 @@ SUBROUTINE appl_env (standalone) !, local_mpi_myid)
 !     Reads environment variables, sets path for helpfile               
 !     UNIX version ..                                                   
 !+                                                                      
+USE blanks_mod
 USE errlist_mod
 USE envir_mod 
 USE lib_errlist_func
@@ -29,8 +30,9 @@ LOGICAL, INTENT(IN) :: standalone
 INTEGER, PARAMETER :: idef = 68
 !
 CHARACTER(255) cdummy
-CHARACTER(LEN=8), DIMENSION(6), PARAMETER :: tmp_test = (/'/tmp    ','/TMP    ', &
-      '/var/tmp', '/Var/tmp', '/var/TMP', '/Var/TMP' /)
+CHARACTER(LEN=12), DIMENSION(7), PARAMETER :: tmp_test = (/                     &
+'/private/tmp', '/tmp        ', '/TMP        ',                                 &
+'/var/tmp    ', '/Var/tmp    ', '/var/TMP    ', '/Var/TMP    ' /)
 CHARACTER(LEN=PREC_LSTRING) :: line
 CHARACTER(LEN=PREC_LSTRING) :: pathfile
 CHARACTER(LEN=PREC_LSTRING) :: ufile
@@ -48,8 +50,6 @@ IF(envir_done) RETURN
 !
 PID = lib_f90_getpid()
 !
-CALL lib_f90_init_updates
-!
 ! Determine a temporary directory
 !
 tmp_dir   = '.'
@@ -66,6 +66,8 @@ find_tmp: DO i=1, 6
       EXIT find_tmp
    ENDIF
 ENDDO find_tmp
+!
+!CALL lib_f90_init_updates
 !
 line = ''
 CALL GET_COMMAND(line)                    ! Get complete command line
@@ -96,8 +98,27 @@ IF(lpresent) THEN               ! /proc/version exists, Linux type OS
          IF (home_dir.eq.' ') then 
             home_dir = '.' 
          ENDIF 
-!     ENDIF
       home_dir_l = len_str (home_dir) 
+!
+      OPEN(idef,FILE='/etc/os-release', STATUS='old', IOSTAT=ios)
+      get_linux_loop: DO
+         READ(idef,'(a)', IOSTAT=ios) line
+         IF(IS_IOSTAT_END(ios)) EXIT get_linux_loop
+         j= LEN_TRIM(line)
+         CALL rem_bl(line,j)
+         j = INDEX(line,'=')
+         CALL do_cap(line(1:j-1))
+         IF(line(1:5) == 'NAME=') THEN
+            operating_name=line(6:LEN_TRIM(line))
+            j= LEN_TRIM(operating_name)
+            DO i=1,j
+               IF(operating_name(i:i)=='"') operating_name(i:i)=' '
+            ENDDO
+            CALL rem_bl(operating_name,j)
+            EXIT get_linux_loop
+         ENDIF
+      ENDDO get_linux_loop
+      CLOSE(idef)
    ELSEIF(INDEX(line,'CYGWIN') > 0) THEN
       operating   = OS_WINDOWS              ! Windows based Cygwin
       color_theme = THEME_LGHTYL_BLACK
@@ -123,10 +144,14 @@ IF(lpresent) THEN               ! /proc/version exists, Linux type OS
             home_dir = '.' 
          ENDIF 
          home_dir_l = len_str (home_dir) 
+         operating_name = 'CygwinNative'
       ELSE
          INQUIRE(FILE='/suite.sh',EXIST=lpresent)
          IF(lpresent) THEN
             operating = OS_WINDOWS  ! Cygwin from DISCUS Icon
+            operating_name = 'CygwinIcon'
+         ELSE
+            operating_name = 'CygwinNative'
          ENDIF
          user_profile = ' '
          CALL get_environment_variable ('USERPROFILE', user_profile)
@@ -142,6 +167,7 @@ IF(lpresent) THEN               ! /proc/version exists, Linux type OS
          home_dir = '.' 
       ENDIF 
       home_dir_l = len_str (home_dir) 
+      operating_name = 'MacOSX'
    ENDIF
 ELSE   !  /proc/version does not exist , likely a MAC OS X 
 !  Read OS from uname
@@ -166,6 +192,7 @@ ELSE   !  /proc/version does not exist , likely a MAC OS X
          home_dir = '.'
       ENDIF
       home_dir_l = len_str (home_dir) 
+      operating_name = 'MacOSX'
    ENDIF
 !  Remove temporary file
    WRITE(line,'(a,a)') 'rm -f ', ufile(1:LEN_TRIM(ufile))
@@ -411,6 +438,8 @@ INTEGER             :: since_update
 CHARACTER(LEN=10)   :: cversion
 CHARACTER(LEN=PREC_STRING) :: line
 !
+IF(local_mpi_myid/=0) RETURN
+!
 !  Analyse if new version is avalable at GIThub
 !
 CALL lib_f90_test_updates(old_version, new_version, cversion, since_update)
@@ -465,6 +494,7 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       ENDIF
    ENDIF
 ENDIF
+CALL lib_f90_findterminal
 !                                                                       
   900 FORMAT     (1x,'Manual files in  : ',a) 
  1000 FORMAT     (1x,'User macros in   : ',a) 
@@ -893,13 +923,13 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=32         ) :: cfile
+CHARACTER(LEN=128        ) :: cfile
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
 LOGICAL             :: lda
 !
-WRITE(cfile,'(a,i10.10)') '/tmp/DISCUS_CURRENT.', PID         ! Initiate search for new version
+WRITE(cfile,'(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_CURRENT.', PID ! Initiate search for new version
 !
 INQUIRE(FILE=cfile, EXIST=lda)
 IF(lda) THEN 
@@ -931,8 +961,8 @@ INTEGER          , INTENT(OUT) :: since_update
 !
 INTEGER, PARAMETER  :: IRD = 69
 !
-CHARACTER(LEN=32         ) :: cfile
-CHARACTER(LEN=19         ) :: discus_update
+CHARACTER(LEN=128        ) :: cfile
+CHARACTER(LEN=128        ) :: discus_update
 CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
@@ -953,8 +983,8 @@ CALL DATE_AND_TIME (date, time, zone, values)
 !
 !  Analyse if new version is available at GIThub
 !
-WRITE(cfile,'(a,i10.10)') '/tmp/DISCUS_CURRENT.', PID
-discus_update = '/tmp/DISCUS_UPDATE '
+WRITE(cfile,        '(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_CURRENT.', PID ! Initiate search for new version
+WRITE(discus_update,'(a,a       )') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_UPDATE'        ! Initiate search for new version
 old_version = 0
 new_version = 0
 !
@@ -1028,7 +1058,9 @@ IF(operating == OS_LINUX .OR. operating == OS_LINUX_WSL) THEN
    CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
    string = 'sudo apt upgrade -y'
    CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-   string = 'date --iso-8601 > /tmp/DISCUS_UPDATE'
+   string = 'date --iso-8601 > '// tmp_dir(1:LEN_TRIM(tmp_dir)) // '/DISCUS_UPDATE'
+   CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   string = 'chmod ugo+rw ' // tmp_dir(1:len_trim(tmp_dir)) // '/DISCUS_UPDATE'
    CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
    WRITE(output_io, '(a)') 
 ENDIF
@@ -1048,8 +1080,10 @@ IMPLICIT NONE
 !
 INTEGER, PARAMETER :: IRD = 69
 CHARACTER(LEN=PREC_STRING) :: string
-CHARACTER(LEN=20)          :: discus_version
-CHARACTER(LEN=20)          :: discus_power
+CHARACTER(LEN=PREC_STRING) :: line
+CHARACTER(LEN=PREC_STRING) :: cdir              ! previous current directory
+CHARACTER(LEN=128)          :: discus_version
+CHARACTER(LEN=128)         :: discus_power
 CHARACTER(LEN= 9)          :: grep
 CHARACTER(LEN=40)          :: script
 CHARACTER(LEN=20)          :: verstring
@@ -1058,13 +1092,27 @@ CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
 INTEGER             :: length
 !
-discus_version='/tmp/DISCUS_VERSION '
-discus_power  ='/tmp/DISCUS_POWER   '
+discus_power  ='/tmp/DISCUS_POWER'
+WRITE(discus_version,'(a,a)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_VERSION' ! Initiate search for new version
+!
+IF(terminal_wrp /= ' ') THEN
+   OPEN(UNIT=IRD, FILE=terminal_wrp, STATUS='unknown')
+   WRITE(IRD, '(a)') '#/bin/bash'
+   WRITE(IRD, '(a)') 'if [ $# -eq 0 ]; then "${SHELL:-sh}"; else "$@"; fi '
+   WRITE(IRD, '(a)') 'echo "The DISCUS_UPDATE exited with status $?. Press any key to close the terminal." '
+   WRITE(IRD, '(a)') 'stty -icanon; dd ibs=1 count=1 >/dev/null 2>&1 '
+   CLOSE(UNIT=IRD)
+   line = 'chmod ugo+rwx ' // terminal_wrp(1:LEN_TRIM(terminal_wrp))
+   CALL EXECUTE_COMMAND_LINE(line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+ENDIF
 !
 IF(operating == OS_LINUX) THEN
    grep    = 'grep -Poe'
    script  = 'bbb_install_script.sh'
-   command ='cd $HOME && ./' // script(1:LEN_TRIM(script)) // ' started=native'
+   command = terminal_emu(1:LEN_TRIM(terminal_emu)) // ' '// &
+             terminal_exe(1:LEN_TRIM(terminal_exe)) // ' '// &
+             terminal_wrp(1:LEN_TRIM(terminal_wrp)) // ' '// &
+             ' $HOME/' // script(1:LEN_TRIM(script)) // ' started=native '
 ELSEIF(operating == OS_LINUX_WSL) THEN
    grep    = 'grep -Poe'
    script  = 'bbb_install_suite_Windows10_WSL.ps1'
@@ -1083,15 +1131,20 @@ ELSEIF(operating == OS_LINUX_WSL) THEN
              'C:\Users\' // user_name(1:LEN_TRIM(user_name)) // '\'   //        &
              '\Downloads\' // script(1:LEN_TRIM(script)) // '""'' -Verb RunAs}";'
 ELSEIF(operating == OS_MACOSX) THEN
+   WRITE(discus_version,'(a,a)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_VERSION' ! Initiate search for new version
    grep    = 'grep -oe '
    script  = 'bbb_install_script_mac.sh'
-   command ='cd $HOME && ./' // script(1:LEN_TRIM(script)) // ' started=native'
+   command ='$HOME./' // script(1:LEN_TRIM(script)) // ' started=native'
+   command = terminal_emu(1:LEN_TRIM(terminal_emu)) // ' '// &
+             terminal_exe(1:LEN_TRIM(terminal_exe)) // ' '// &
+             terminal_wrp(1:LEN_TRIM(terminal_wrp)) // ' '// &
+             ' $HOME/' // script(1:LEN_TRIM(script)) // ' started=native '
 ENDIF
 !
 ! Get latest DISCUS Version
 !
 string = 'curl --silent https://github.com/tproffen/DiffuseCode/releases/latest ' // &
-         '| ' // grep(1:LEN_TRIM(grep)) // ' ''v.[0-9]*.[0-9]*.[0-9]*'' > /tmp/DISCUS_VERSION'
+         '| ' // grep(1:LEN_TRIM(grep)) // ' ''v.[0-9]*.[0-9]*.[0-9]*'' > ' //  discus_version
 CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
 OPEN(UNIT=IRD,FILE=discus_version, STATUS='old')
@@ -1122,24 +1175,111 @@ ENDIF
 !
 ! Finally run the DISCUS update via the installation script
 !
+cdir = current_dir
+line = home_dir
+length = len_trim(line)
+CALL do_chdir(line,length,.FALSE.)     ! Go to home dir
 CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
 ! As installation script updated the operating system, touch update file
 !
 IF(operating == OS_LINUX .OR. operating == OS_LINUX_WSL) THEN
-   string = 'date --iso-8601 > /tmp/DISCUS_UPDATE'
+   string = 'date --iso-8601 > ' // tmp_dir(1:LEN_TRIM(tmp_dir)) // '/DISCUS_UPDATE'
 ELSEIF(operating == OS_MACOSX) THEN
-   string = 'date +%Y-%m-%d > /tmp/DISCUS_UPDATE'
+   string = 'date +%Y-%m-%d > ' // tmp_dir(1:LEN_TRIM(tmp_dir)) // '/DISCUS_UPDATE'
 ENDIF
 CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+string = 'chmod ugo+rw ' // tmp_dir(1:len_trim(tmp_dir)) // '/DISCUS_UPDATE'
+CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 IF(operating == OS_LINUX_WSL) THEN
-   WRITE(*,*) ' This DISCUS Window will stop now '
-   WRITE(*,*) ' Once the update is finished the new version '
-   WRITE(*,*) ' will be started '
+   WRITE(*,*) ' This DISCUS Window will stop now. '
+   WRITE(*,*) ' The new version will be started '
+   WRITE(*,*) ' once the update is finished. '
    STOP
+ELSE
+  write(*,*) ' started script'
 ENDIF
+line = cdir                           ! Return to old current directory
+length = len_trim(line)
+CALL do_chdir(line,length,.FALSE.)
 !
 END SUBROUTINE lib_f90_update_discus
+!
+!*******************************************************************************
+!
+SUBROUTINE lib_f90_findterminal
+!-
+! Try to find a terminal emulator installed in this system
+!+
+USE envir_mod
+USE errlist_mod
+USE precision_mod
+USE support_mod
+!
+IMPLICIT NONE
+!
+INTEGER, PARAMETER :: MAXTERM=4
+INTEGER, PARAMETER :: IDEF = 68
+!
+CHARACTER(LEN=16), DIMENSION(0:MAXTERM-1) :: terminals
+CHARACTER(LEN=16), DIMENSION(0:MAXTERM-1) :: terminal_execute
+CHARACTER(LEN=128        ) :: cfile
+CHARACTER(LEN=PREC_STRING) :: line
+CHARACTER(LEN=PREC_STRING) :: message
+INTEGER             :: exit_msg
+INTEGER :: ios
+INTEGER :: i,j
+INTEGER :: istart
+DATA terminals /'gnome-terminal  ',  &
+                'terminator      ',  &
+                'xterm           ',  &
+                'konsole         '   &
+               /
+DATA terminal_execute /' --             ', &
+                       ' --execute      ', &
+                       ' -e             ', &
+                       ' --hold -e      '  &
+                      /
+!
+IF(operating==OS_LINUX) THEN
+  IF(operating_name=="ManjaroLinux" ) THEN
+     istart = MAXTERM-1
+  ELSE
+     istart = 0
+  ENDIF
+ELSEIF(operating==OS_LINUX_WSL) THEN
+  istart = 1
+ELSEIF(OPERATING==OS_MACOSX) THEN
+  istart = 2
+ELSE
+  istart = 0
+ENDIF
+!
+WRITE(cfile,'(a,a,i10.10)') tmp_dir(1:LEN_TRIM(tmp_dir)), '/DISCUS_TERM.', PID
+main_loop: DO i=istart, istart+MAXTERM
+   j = MOD(i,MAXTERM)
+   line = 'which ' // terminals(j) // ' > ' // cfile
+   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   OPEN(UNIT=IDEF, FILE=cfile, STATUS='OLD', IOSTAT=ios)
+   IF(ios/=0) CYCLE main_loop
+   line = ' '
+   READ(IDEF, '(a)', IOSTAT=ios) line
+   IF(IS_IOSTAT_END(ios)) CYCLE main_loop
+   IF(LINE /= ' ') EXIT main_loop
+ENDDO main_loop
+CLOSE(UNIT=IDEF)
+IF(line== ' ') THEN
+   terminal_emu = 'NONE'
+   terminal_exe = ' '
+ELSE
+   terminal_emu = line(1:len_trim(line))
+   terminal_exe = terminal_execute(j)
+   IF(j==MAXTERM-1) terminaL_wrp  = ' '     ! No terminal_wrapper for konsole
+ENDIF 
+WRITE(line,'(a,a)') 'rm -f ', cfile(1:LEN_TRIM(cfile))
+CALL do_operating_comm(line)
+!
+END SUBROUTINE lib_f90_findterminal
 !
 !*******************************************************************************
 !

@@ -25,20 +25,24 @@ USE precision_mod
    CHARACTER(LEN=PREC_STRING) :: start_dir
    CHARACTER(LEN=PREC_STRING) :: start_line
    CHARACTER(LEN=PREC_STRING) :: current_dir
-   CHARACTER(LEN= 256) :: operating
-   CHARACTER(LEN= 256) :: operat_top
-   CHARACTER(LEN= 256) :: user_profile
-   CHARACTER(LEN= 256) :: term_scheme_file
-   CHARACTER(LEN= 256) :: inst_file
-   CHARACTER(LEN= 256) :: process_name
-   CHARACTER(LEN= 256) :: parent_name
-   CHARACTER(LEN= 80 ) :: deffile
-   CHARACTER(LEN= 80 ) :: hlpfile
-   CHARACTER(LEN= 80 ) :: manfile
-   CHARACTER(LEN= 80 ) :: hlpdir
-   CHARACTER(LEN= 80 ) :: colorfile
-   CHARACTER(LEN= 80 ) :: nullfile
-   CHARACTER(LEN= 80 ) :: user_name
+   CHARACTER(LEN=PREC_STRING) :: terminal_emu = ' '
+   CHARACTER(LEN=PREC_STRING) :: terminal_exe = ' '
+   CHARACTER(LEN=PREC_STRING) :: terminal_wrp = '/tmp/terminal_wrapper.sh'
+   CHARACTER(LEN= 256) :: operating         = ' '
+   CHARACTER(LEN= 256) :: operating_name    = ' '
+   CHARACTER(LEN= 256) :: operat_top        = ' '
+   CHARACTER(LEN= 256) :: user_profile      = ' '
+   CHARACTER(LEN= 256) :: term_scheme_file  = ' '
+   CHARACTER(LEN= 256) :: inst_file         = ' '
+   CHARACTER(LEN= 256) :: process_name      = ' '
+   CHARACTER(LEN= 256) :: parent_name       = ' '
+   CHARACTER(LEN= 80 ) :: deffile           = ' '
+   CHARACTER(LEN= 80 ) :: hlpfile           = ' '
+   CHARACTER(LEN= 80 ) :: manfile           = ' '
+   CHARACTER(LEN= 80 ) :: hlpdir            = ' '
+   CHARACTER(LEN= 80 ) :: colorfile         = ' '
+   CHARACTER(LEN= 80 ) :: nullfile          = ' '
+   CHARACTER(LEN= 80 ) :: user_name         = ' '
    INTEGER             :: home_dir_l
    INTEGER             :: appl_dir_l
    INTEGER             :: share_dir_l
