@@ -1135,10 +1135,11 @@ ELSEIF(operating == OS_MACOSX) THEN
    WRITE(discus_version,'(a,a)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_VERSION' ! Initiate search for new version
    grep    = 'grep -oe '
    script  = 'bbb_install_script_mac.sh'
-   command ='$HOME./' // script(1:LEN_TRIM(script)) // ' started=native'
-   command = terminal_emu(1:LEN_TRIM(terminal_emu)) // ' '// &
-             terminal_exe(1:LEN_TRIM(terminal_exe)) // ' '// &
-             terminal_wrp(1:LEN_TRIM(terminal_wrp)) // ' '// &
+!  command ='$HOME./' // script(1:LEN_TRIM(script)) // ' started=native'
+!  command = terminal_emu(1:LEN_TRIM(terminal_emu)) // ' '// &
+!            terminal_exe(1:LEN_TRIM(terminal_exe)) // ' '// &
+!            terminal_wrp(1:LEN_TRIM(terminal_wrp)) // ' '// &
+   command = 'open -b com.apple.terminal ' //                &
              ' $HOME/' // script(1:LEN_TRIM(script)) // ' started=native '
 ENDIF
 !
