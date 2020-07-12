@@ -1612,7 +1612,6 @@ IF(pl_prog=='jmol') THEN
 !
    ENDIF
    WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
-write(*,*) 'JMOL: ', line(1:len_trim(line))
    length= LEN_TRIM(line)
    CALL do_operating(line, length)
 ENDIF
@@ -1661,22 +1660,18 @@ IF(lfinal) THEN
 ENDIF
 !
 did_kill = .FALSE.
-write(*,*) ' OPERATING ', operating
 IF(operating=='Linux') THEN
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
          '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep '
-write(*,'(a)') line(1:len_trim(line))
    length = LEN_TRIM(line)
    CALL do_operating(line, length)
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
         '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep | awk ''{print $2}'' '
-write(*,'(a)') line(1:len_trim(line))
    length = LEN_TRIM(line)
    CALL do_operating(line, length)
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' ' // &
         '| grep -F ''.mol'' | grep -F ''java'' | grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-write(*,'(a)') line(1:len_trim(line))
    length = LEN_TRIM(line)
    CALL do_operating(line, length)
 ELSEIF(operating=='Linux_WSL') THEN
@@ -1705,14 +1700,11 @@ ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
 ENDIF
 !
 CALL oeffne( ITMP, kill_file, 'old')
-write(*,*) ' OPENED KILL ', kill_file(1:len_trim(kill_file))
 IF(ier_num==0) THEN
    READ(ITMP,*,IOSTAT=ios) jmol_pid!, jppid
-write(*,*) ' jpid pid, ppid ', jmol_pid, pid, ppid
    DO WHILE (.NOT.IS_IOSTAT_END(ios)) 
 !     IF(jppid==PID .OR. jppid==PPID) THEN                    ! Current discus_suite has started jmol
          WRITE(line,'(a,i12,a)') 'kill -9 ',jmol_pid, ' > /dev/null'
-write(*,'(a)') line(1:len_trim(line))
          length = LEN_TRIM(line)
          CALL do_operating(line, length)
          did_kill = .TRUE.
