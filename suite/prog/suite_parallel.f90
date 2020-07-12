@@ -16,6 +16,7 @@ USE prompt_mod
 USE lib_errlist_func
 USE lib_help
 USE support_mod
+USE lib_do_operating_mod
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN) :: zeile
@@ -35,6 +36,7 @@ INTEGER                              :: ianz
 INTEGER                              :: iianz
 INTEGER                              :: i
 INTEGER                              :: ios
+INTEGER                              :: llength
 LOGICAL                              :: lexist
 CHARACTER(LEN=PREC_STRING) :: mpi_path    = ' '
 CHARACTER(LEN=PREC_STRING) :: discus_path = ' '
@@ -92,7 +94,8 @@ IF(ier_num == 0) THEN
             DO I=1, ianz
                line = line(1:LEN_TRIM(line))//' '//cpara(i)(1:lpara(i))
             ENDDO
-            CALL do_operating_comm(line)
+            llength = LEN_TRIM(line)
+            CALL do_operating(line, llength)
             CALL color_set_scheme(.TRUE., 0)
          ELSE
             ier_num = -12
