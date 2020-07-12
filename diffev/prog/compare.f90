@@ -44,12 +44,13 @@ CONTAINS
    USE diff_evol
    USE diffev_random
    USE population
-USE support_mod
+USE lib_do_operating_mod
 !                                                                       
    IMPLICIT none 
 !
    CHARACTER(LEN=600)             :: string 
    INTEGER                        :: i, j , nb
+INTEGER  :: length
    REAL                           ::  best, worst 
 !                                                                       
    CALL do_read_values(.TRUE.)
@@ -72,7 +73,8 @@ USE support_mod
                                      pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
                                      pop_back_trg(nb)(1:pop_back_trg_l(nb)), j, &
                                      pop_back_ext(nb)(1:pop_back_ext_l(nb))
-                  CALL do_operating_comm(string)
+                  length = LEN_TRIM(string)
+                  CALL do_operating(string, length)
                ENDDO
                ENDIF
             ENDIF bck_during
@@ -97,7 +99,8 @@ USE support_mod
                                   pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
                                   pop_back_trg(nb)(1:pop_back_trg_l(nb)), j, &
                                   pop_back_ext(nb)(1:pop_back_ext_l(nb))
-               CALL do_operating_comm(string)
+               length = LEN_TRIM(string)
+               CALL do_operating(string, length)
                IF ( ier_num /=0) RETURN
             ENDDO
             ENDIF
@@ -133,27 +136,30 @@ USE support_mod
 1000 FORMAT('cp ',a,i4.4,a,' ',a,i4.4,a)
 !
    END SUBROUTINE compare_toparent               
+!
 !*****7**************************************************************** 
-   SUBROUTINE compare_best_all 
+!
+SUBROUTINE compare_best_all 
 !
 ! compares all children to the combined group of (parent + children)
 !
-   USE diff_evol
-   USE diffev_random
-   USE population
-   USE random_mod
-USE support_mod
+USE diff_evol
+USE diffev_random
+USE population
+USE random_mod
+USE lib_do_operating_mod
 !
-   IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 !                                                                       
-   CHARACTER(LEN=600)             :: string 
-   INTEGER                        :: list_number 
-   INTEGER                        :: list_index (2 * MAXPOP) 
-   REAL                           :: list_val (2 * MAXPOP) 
-   REAL                           :: best, worst
+CHARACTER(LEN=600)             :: string 
+INTEGER                        :: list_number 
+INTEGER                        :: list_index (2 * MAXPOP) 
+REAL                           :: list_val (2 * MAXPOP) 
+REAL                           :: best, worst
 !                                                                       
-   INTEGER                        :: i, j, k, ii , nb
+INTEGER                        :: i, j, k, ii , nb
+INTEGER :: length
 !
 !                                                                       
    CALL do_read_values(.TRUE.)
@@ -217,7 +223,8 @@ list_index(:) = 0
                                         pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
                                         pop_back_trg(nb)(1:pop_back_trg_l(nb)), k, &
                                         pop_back_ext(nb)(1:pop_back_ext_l(nb))
-                     CALL do_operating_comm(string)
+                     length = LEN_TRIM(string)
+                     CALL do_operating(string, length)
                      IF ( ier_num /=0) RETURN
                   ENDDO
                   ENDIF
@@ -233,7 +240,8 @@ list_index(:) = 0
                                      pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
                                      pop_back_trg(nb)(1:pop_back_trg_l(nb)), k, &
                                      pop_back_ext(nb)(1:pop_back_ext_l(nb))
-                  CALL do_operating_comm(string)
+                  length = LEN_TRIM(string)
+                  CALL do_operating(string, length)
                ENDDO
                ENDIF
             ENDIF
@@ -279,7 +287,8 @@ list_index(:) = 0
                                   pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
                                   pop_back_trg(nb)(1:pop_back_trg_l(nb)), k, &
                                   pop_back_ext(nb)(1:pop_back_ext_l(nb))
-               CALL do_operating_comm(string)
+               length = LEN_TRIM(string)
+               CALL do_operating(string, length)
             ENDDO
             ENDIF
          ENDDO
