@@ -5807,7 +5807,8 @@
    Reset all plot definitions back to the default values at 
    system start. 
 3  run
-!p run  ["plot:inter"] [, "kill:"["yes"|"no"}]
+!p run  ["plot:inter"] [, "geom:"[<px>,<py>]]
+        [, "kill:"["yes"|"no"]] [,"keep:"["yes"|"no"]]
 
    Starts writing of the structure. If no output filename has been provided
    or no atoms been selected, an error message is given.
@@ -5817,12 +5818,19 @@
    It may take a while for JMOL to open, you might want to add a 
    ==> 'wait return' command after the 'run' command.
 
+   The default jmol window size is 500 by 500 pixels. You can change this
+   via the optional "geom" parameter.
+
    If previous instances of "JMOL" are to be terminated prior to the
    new plat provide the optional parameter "kill:yes".
    On a Linux type operating system processes "jmol" are killed, 
    on Windows processes "java" will be killed. Be careful if other
    java programs are active! The intention is to kill only processes
    started by DISCUS.
+
+   At program end, DISCUS will kill all Jmol windows that were opened
+   by this DISCUS. If you need to preserve these, use the optional
+   "keep:yes" parameter.
 3  sel
 !p sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
