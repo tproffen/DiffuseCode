@@ -79,7 +79,7 @@ LOGICAL :: lnor = .FALSE.
 !
 !                                                                       
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 10
+INTEGER, PARAMETER :: NOPTIONAL = 11
 CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -88,13 +88,16 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
 !
-DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', 'plot' , 'kill'  , 'keep'/
-DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  5     ,  4     ,  4      ,  4    /
+DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', 'plot' , 'kill'  , 'keep',  'geom'/
+DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  5     ,  4     ,  4      ,  4    ,   4    /
 !
 ! Always provide fresh default values, Repeat for each command
-opara  =   (/ '0.000', '0.000', '0    ', '0    ', 'flat ', 'solid', 'auto ', 'none ', 'none ', 'no   '/)
-lopara =   (/  5     ,  5     ,  1     ,  1     ,  4     ,  5     ,  4     ,  4     ,  4     ,  2     /)
-owerte =   (/  0.00  ,  0.00  ,  0.    ,  0.    ,  0.0   ,  0.0   ,  0.0   ,  0.0   ,  0.0   ,  0.0   /)
+opara  =   (/ '0.000    ', '0.000    ', '0        ', '0        ', 'flat     ', &
+              'solid    ', 'auto     ', 'none     ', 'none     ', 'no       ', '[500,500]'/)
+lopara =   (/  5         ,  5         ,  1         ,  1         ,  4         , &
+               5         ,  4         ,  4         ,  4         ,  2         ,  9         /)
+owerte =   (/  0.00      ,  0.00      ,  0.        ,  0.        ,  0.0       , &
+               0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       /)
 !
 IF(pl_init) THEN
    labs = .FALSE.
@@ -193,7 +196,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
                   IF (zeile.ne.' ') then 
-                     CALL do_operating (zeile, lp) 
+                     length = LEN_TRIM(zeile)
+                     CALL do_operating(zeile, length) 
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
@@ -589,19 +593,26 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ELSEIF (cpara(1)(1:1) .eq.'J'.and.ianz.eq.1) then
                         pl_prog = 'jmol' 
 !                       Test existence of jmol / java 
-                        WRITE(tempfile, '(a,i10.10)') '/tmp/which_jmol.', PID
+                        WRITE(tempfile, '(a, a,i10.10)') tmp_dir(1:LEN_TRIM(tmp_dir)), &
+                           '/which_jmol.', PID
                         IF(operating=='Linux') THEN                      
-                           WRITE(line,'(a,i10.10)')  'which jmol > /tmp/which_jmol.', PID
+                           WRITE(line,'(a,a,a,i10.10)')  'which jmol > ', &
+                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
                         ELSEIF(operating=='Linux_WSL') THEN                      
-                           WRITE(line,'(a,i10.10)')  'which jmol > /tmp/which_jmol.', PID
+                           WRITE(line,'(a,a,a,i10.10)')  'which jmol > ', &
+                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
                         ELSEIF(operating=='Windows') THEN                      
-                           WRITE(line,'(a,i10.10)')  'which java > /tmp/which_jmol.', PID
+                           WRITE(line,'(a,a,a,i10.10)')  'which java > ', &
+                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
                         ELSEIF(operating(1:6)=='cygwin') THEN                      
-                           WRITE(line,'(a,i10.10)')  'which java > /tmp/which_jmol.', PID
+                           WRITE(line,'(a,a,a,i10.10)')  'which java > ', &
+                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
                         ELSEIF(operating(1:6)=='darwin') THEN                      
-                           WRITE(line,'(a,i10.10)')  'which jmol > /tmp/which_jmol.', PID
+                           WRITE(line,'(a,a,a,i10.10)')  'which jmol > ', &
+                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
                         ENDIF
-                           CALL system(line)
+                           length = LEN_TRIM(line)
+                           CALL do_operating(line, length)
                            CALL oeffne( ITMP, tempfile, 'old')
                            IF(ier_NUM==0) THEN
                               READ(ITMP,'(a)',IOSTAT=ios) pl_jmol
@@ -633,7 +644,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                               ENDIF
                            ENDIF
                         WRITE(line,'(a,a)') 'rm -f ', tempfile(1:LEN_TRIM(tempfile))
-                        CALL system(line)
+                        length = LEN_TRIM(line)  
+                        CALL do_operating(line, length)
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -644,9 +656,9 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'run', 3, lbef, 3) ) then 
 !                 Always provide fresh default values, Repeat for each command
-                  opara (8:10) =   (/ 'none ', 'none ', 'no   '/)
-                  lopara(8:10) =   (/  4     ,  4     ,  2     /)
-                  owerte(8:10) =   (/  0.0   ,  0.0   ,  0.0   /)
+                  opara (8:11) =   (/ 'none     ', 'none     ', 'no       ', '[500,500]' /)
+                  lopara(8:11) =   (/  4         ,  4         ,  2         ,  9          /)
+                  owerte(8:11) =   (/  0.0       ,  0.0       ,  0.0       ,  0.0        /)
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                                     oname, loname, opara, lopara, lpresent, owerte)
@@ -677,7 +689,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                               IF(ier_num == 0) THEN
                                  IF(opara(8)=='inter') THEN
                                     IF(pl_prog=='jmol') THEN
-                                       CALL plot_inter(opara(9)(1:lopara(9)))
+                                       i = 3
+                                       CALL plot_inter(i,opara(9:11))
                                     ELSE
                                        ier_num = -152
                                        ier_typ = ER_APPL 
@@ -1241,7 +1254,7 @@ USE support_mod
 !
 !*****7*****************************************************************
 !
-SUBROUTINE plot_inter(kill)
+SUBROUTINE plot_inter(MAXW,opara)
 !   
 USE crystal_mod
 USE discus_plot_mod
@@ -1262,20 +1275,33 @@ USE precision_mod
 USE prompt_mod
 USE trig_degree_mod
 USE matrix_mod
+!
+USE take_param_mod
 USE support_mod
+USE lib_do_operating_mod
 !
 IMPLICIT NONE
 !
 REAL, PARAMETER :: azero = 1.0
 REAL, PARAMETER :: eps   = 1.0E-5
-CHARACTER(LEN=*), INTENT(IN) :: kill
+INTEGER                          , INTENT(IN) :: MAXW
+CHARACTER(LEN=*), DIMENSION(MAXW), INTENT(IN) :: opara
+CHARACTER(LEN=PREC_STRING)   :: kill
+
+!
+CHARACTER(LEN=PREC_STRING)               :: cpara
+INTEGER                                  :: lpara
+REAL(KIND=PREC_DP)        , DIMENSION(2) :: werte
+INTEGER                             :: ianz
 !
 INTEGER, PARAMETER  :: ITMP     = 78  ! temporary unit number
 LOGICAL, PARAMETER  :: lscreen = .FALSE.
 CHARACTER(LEN=PREC_STRING) :: tempfile
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: line_move
+CHARACTER(LEN=12         ) :: geom
 INTEGER             :: i,j,k
+INTEGER             :: px, py
 INTEGER             :: length
 LOGICAL             :: lsecond  = .false.
 LOGICAL             :: lunit    = .false.
@@ -1295,6 +1321,24 @@ REAL(KIND=PREC_DP) :: det, trace
 INTEGER :: ier
 REAL                :: rr
 REAL(KIND=PREC_DP)                :: beta
+!
+kill = opara(1)
+cpara = opara(3)           ! Copy geometry optional parameter
+lpara = LEN_TRIM(cpara)
+werte = 0.0
+i    = 2
+ianz = 2
+CALL get_optional_multi(i, cpara, lpara, werte, ianz)
+IF(ier_num/=0) RETURN
+px = NINT(werte(1))
+py = NINT(werte(2))
+IF(px<10 .OR. px> 2000 .OR.px<10 .OR. px> 2000) THEN
+   ier_num = -6
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Geometry parameter outside valid range'
+   RETURN
+ENDIF
+WRITE(geom,'(a3,i4.4,a1,i4.4)') ' -g', px, 'x', py
 !
 IF(pl_prog=='jmol') THEN
    IF(kill=='yes') THEN
@@ -1412,15 +1456,20 @@ IF(pl_prog=='jmol') THEN
 !
    jmol_no = jmol_no + 1
    IF(operating=='Linux') THEN
-      WRITE(tempfile,'(a,i10.10,a,i10.10,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
+      WRITE(tempfile,'(a,a,i10.10,a,i10.10,a)')  tmp_dir(1:len_trim(tmp_dir)), &
+      '/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating=='Linux_WSL') THEN
-      WRITE(tempfile,'(a,i10.10,a,i10.10,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
+      WRITE(tempfile,'(a,a,i10.10,a,i10.10,a)')  tmp_dir(1:len_trim(tmp_dir)), &
+      '/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating(1:6)=='darwin') THEN
-      WRITE(tempfile,'(a,i10.10,a,i10.10,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
+      WRITE(tempfile,'(a,a,i10.10,a,i10.10,a)')  tmp_dir(1:len_trim(tmp_dir)), &
+      '/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating(1:6)=='cygwin') THEN
-      WRITE(tempfile,'(a,i10.10,a,i10.10,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
+      WRITE(tempfile,'(a,a,i10.10,a,i10.10,a)')  tmp_dir(1:len_trim(tmp_dir)), &
+      '/jmol.',PID,'.',jmol_no,'.mol'
    ELSEIF(operating(1:7)=='Windows') THEN
-      WRITE(tempfile,'(a,i10.10,a,i10.10,a)')  '/tmp/jmol.',PID,'.',jmol_no,'.mol'
+      WRITE(tempfile,'(a,a,i10.10,a,i10.10,a)')  tmp_dir(1:len_trim(tmp_dir)), &
+      '/jmol.',PID,'.',jmol_no,'.mol'
    ENDIF
    CALL oeffne( ITMP, tempfile, 'unknown')
    IF(operating=='Linux'.OR.operating(1:6)=='darwin' .OR. &
@@ -1546,24 +1595,26 @@ IF(pl_prog=='jmol') THEN
    WRITE(ITMP,'(a,i3,a,i3,a,i3,a)') 'background [',pl_back(1),',' , pl_back(2),',', pl_back(3),']'
    CLOSE(ITMP)
    IF(operating=='Linux') THEN
-      WRITE(line,'(a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s ',&
+      WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), geom,' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
    ELSEIF(operating=='Linux_WSL') THEN
-      WRITE(line,'(a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s ',&
+      WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), geom,' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
    ELSEIF(operating(1:6)=='darwin') THEN
-      WRITE(line,'(a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s ',&
+      WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), geom,' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
    ELSEIF(operating(1:6)=='cygwin') THEN
-      WRITE(line,'(a,a,i10.10,a,i10.10,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
-            ' -s jmol.', PID, '.',jmol_no, '.mol  > /dev/null &'
+      WRITE(line,'(a,a,a,i10.10,a,i10.10,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
+            geom,' -s jmol.', PID, '.',jmol_no, '.mol  > /dev/null &'
    ELSEIF(operating(1:7)=='Windows') THEN
-      WRITE(line,'(a,a,i10.10,a,i10.10,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
-            ' -s ../../tmp/jmol.', PID, '.',jmol_no, '.mol  > /dev/null &'
+      WRITE(line,'(a,a,a,i10.10,a,i10.10,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
+            geom,' -s ../../tmp/jmol.', PID, '.',jmol_no, '.mol  > /dev/null &'
 !
    ENDIF
    WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
-   CALL system(line)
+write(*,*) 'JMOL: ', line(1:len_trim(line))
+   length= LEN_TRIM(line)
+   CALL do_operating(line, length)
 ENDIF
 END SUBROUTINE plot_inter
 !
@@ -1577,6 +1628,7 @@ USE envir_mod
 USE errlist_mod
 USE prompt_mod
 USE support_mod
+USE lib_do_operating_mod
 !
 IMPLICIT NONE
 !
@@ -1591,15 +1643,17 @@ CHARACTER(LEN=PREC_STRING) :: line
 INTEGER             :: jmol_pid   ! jmol Process identifier
 INTEGER             :: jppid      ! jmol Parent Process identifier
 INTEGER             :: ios
+INTEGER             :: length
 !
 LOGICAL :: lpresent
 LOGICAL :: did_kill
 !
-WRITE(kill_file, '(a,I10.10,a)') '/tmp/jmol.',PID,'.pid'
+WRITE(kill_file, '(a,a,I10.10,a)') tmp_dir(1:LEN_TRIM(tmp_dir)),'/jmol.',PID,'.pid'
 INQUIRE(FILE=kill_file, EXIST=lpresent)
 IF(lpresent) THEN
    WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
-   CALL system(line)
+   length= LEN_TRIM(line)
+   CALL do_operating(line, length)
 ENDIF
 !
 IF(lfinal) THEN
@@ -1607,54 +1661,73 @@ IF(lfinal) THEN
 ENDIF
 !
 did_kill = .FALSE.
+write(*,*) ' OPERATING ', operating
 IF(operating=='Linux') THEN
-   WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $3}'' >> ', &
+   WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
+         '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep '
+write(*,'(a)') line(1:len_trim(line))
+   length = LEN_TRIM(line)
+   CALL do_operating(line, length)
+   WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
+        '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep | awk ''{print $2}'' '
+write(*,'(a)') line(1:len_trim(line))
+   length = LEN_TRIM(line)
+   CALL do_operating(line, length)
+   WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' ' // &
+        '| grep -F ''.mol'' | grep -F ''java'' | grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL system(line)
+write(*,'(a)') line(1:len_trim(line))
+   length = LEN_TRIM(line)
+   CALL do_operating(line, length)
 ELSEIF(operating=='Linux_WSL') THEN
-   WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $3}'' >> ', &
+   WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' ' // &
+        '| grep -F ''.mol'' | grep -F ''java'' | grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL system(line)
+   length = LEN_TRIM(line)
+   CALL do_operating(line, length)
 ELSEIF(operating(1:6)=='darwin') THEN
-   WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2, $4}'' >> ', &
+   WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep -F ''jmol'' ' // &
+         '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL system(line)
+   length = LEN_TRIM(line)
+   CALL do_operating(line, length)
 
 ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
 !  WRITE(line,'(a,I5.5,a,a)') 'ps aux | grep ''jmol -s /tmp/jmol.',PID, &
 !     '.mol'' | grep -v grep | awk ''{print $1, $3}''  '
-!  CALL system(line)
 !  WRITE(line,'(a,I5.5,a,a)') 'ps aux | grep ''jmol -s /tmp/jmol.',PID, &
 !     '.mol'' | grep -v grep | awk ''{print $1, $3}'' > ', kill_file(1:LEN_TRIM(kill_file))
-!  CALL system(line)
 !  line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1, $3}'' '
-!  CALL system(line)
    line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1, $3}'' >> ' //  &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL system(line)
+   length = LEN_TRIM(line)
+   CALL do_operating(line, length)
 ENDIF
 !
 CALL oeffne( ITMP, kill_file, 'old')
+write(*,*) ' OPENED KILL ', kill_file(1:len_trim(kill_file))
 IF(ier_num==0) THEN
-   READ(ITMP,*,IOSTAT=ios) jmol_pid, jppid
+   READ(ITMP,*,IOSTAT=ios) jmol_pid!, jppid
+write(*,*) ' jpid pid, ppid ', jmol_pid, pid, ppid
    DO WHILE (.NOT.IS_IOSTAT_END(ios)) 
-      IF(jppid==PID .OR. jppid==PPID) THEN                    ! Current discus_suite has started jmol
+!     IF(jppid==PID .OR. jppid==PPID) THEN                    ! Current discus_suite has started jmol
          WRITE(line,'(a,i12,a)') 'kill -9 ',jmol_pid, ' > /dev/null'
-         CALL system(line)
+write(*,'(a)') line(1:len_trim(line))
+         length = LEN_TRIM(line)
+         CALL do_operating(line, length)
          did_kill = .TRUE.
-      ENDIF
-      READ(ITMP,*,IOSTAT=ios) jmol_pid, jppid
+!     ENDIF
+      READ(ITMP,*,IOSTAT=ios) jmol_pid!, jppid
    ENDDO
    CLOSE(ITMP)
-!!!RBN   WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
-!   CALL system(line)
    IF(operating=='Linux' .AND. lout) THEN
       IF(did_kill) WRITE(output_io,*) ' Processes were killed, hit ENTER to retrieve prompt'
    ENDIF
 ENDIF
 !
 WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
-CALL system(line)
+length = LEN_TRIM(line)
+CALL do_operating(line, length)
 !
 IF(did_kill .AND.lfinal) THEN
    WRITE(output_io,*) ' Closed JMOL windows, ignore ''Killed'' messages '
