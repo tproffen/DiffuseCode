@@ -21,6 +21,7 @@ USE precision_mod
 USE prompt_mod 
 USE string_convert_mod
 USE support_mod
+USE lib_do_operating_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -174,7 +175,8 @@ ELSE   !  /proc/version does not exist , likely a MAC OS X
    WRITE(ufile,'(a,a,i10.10)') tmp_dir(1:tmp_dir_l), '/DISCUS_SUITE_UNAME.' , PID
    WRITE(line,'(a,a)') 'uname -av > ', ufile(1:LEN_TRIM(ufile))
 !   line = 'uname -av > '//tmp_dir(1:tmp_dir_l)//'/DISCUS_SUITE_UNAME'
-   CALL do_operating_comm(line)
+   length = LEN_TRIM(line)
+   CALL do_operating(line, length)
    line = ' '
 !  WRITE(line,'(a,a,i10.10)')                                           &
 !         tmp_dir(1:tmp_dir_l), '/DISCUS_SUITE_UNAME' , PID
@@ -196,7 +198,8 @@ ELSE   !  /proc/version does not exist , likely a MAC OS X
    ENDIF
 !  Remove temporary file
    WRITE(line,'(a,a)') 'rm -f ', ufile(1:LEN_TRIM(ufile))
-   CALL do_operating_comm(line)
+   length = LEN_TRIM(line)
+   CALL do_operating(line, length)
 ENDIF
 !
 IF(operating==OS_WINDOWS) THEN
@@ -363,7 +366,8 @@ ENDIF
 !           Started from Icon set start directory to
 !           User HOME
             line = 'echo $PATH > '//tmp_dir(1:tmp_dir_l)//'/discus_suite_path.txt'
-            CALL do_operating_comm(line)
+            length = LEN_TRIM(line)
+            CALL do_operating(line, length)
             pathfile = tmp_dir(1:tmp_dir_l)//'/discus_suite_path.txt'
             OPEN(UNIT=idef,FILE=pathfile,ACTION='READ')
             READ(idef,'(a)') line
@@ -1221,7 +1225,7 @@ SUBROUTINE lib_f90_findterminal
 USE envir_mod
 USE errlist_mod
 USE precision_mod
-USE support_mod
+USE lib_do_operating_mod
 !
 IMPLICIT NONE
 !
@@ -1235,6 +1239,7 @@ CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
 INTEGER :: ios
+INTEGER :: length
 INTEGER :: i,j
 INTEGER :: istart
 DATA terminals /'gnome-terminal  ',  &
@@ -1284,7 +1289,8 @@ ELSE
    IF(j==MAXTERM-1) terminaL_wrp  = ' '     ! No terminal_wrapper for konsole
 ENDIF 
 WRITE(line,'(a,a)') 'rm -f ', cfile(1:LEN_TRIM(cfile))
-CALL do_operating_comm(line)
+length = LEN_TRIM(line)
+CALL do_operating(line, length)
 !
 END SUBROUTINE lib_f90_findterminal
 !
