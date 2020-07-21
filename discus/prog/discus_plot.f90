@@ -196,7 +196,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
                   IF (zeile.ne.' ') then 
-                     length = LEN_TRIM(zeile)
+                     length=LEN_TRIM(zeile)
                      CALL do_operating(zeile, length) 
                   ELSE 
                      ier_num = - 6 
@@ -611,8 +611,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            WRITE(line,'(a,a,a,i10.10)')  'which jmol > ', &
                            tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
                         ENDIF
-                           length = LEN_TRIM(line)
-                           CALL do_operating(line, length)
+                           CALL EXECUTE_COMMAND_LINE(line)
                            CALL oeffne( ITMP, tempfile, 'old')
                            IF(ier_NUM==0) THEN
                               READ(ITMP,'(a)',IOSTAT=ios) pl_jmol
@@ -644,8 +643,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                               ENDIF
                            ENDIF
                         WRITE(line,'(a,a)') 'rm -f ', tempfile(1:LEN_TRIM(tempfile))
-                        length = LEN_TRIM(line)  
-                        CALL do_operating(line, length)
+                        CALL EXECUTE_COMMAND_LINE(line)
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -1612,8 +1610,7 @@ IF(pl_prog=='jmol') THEN
 !
    ENDIF
    WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
-   length= LEN_TRIM(line)
-   CALL do_operating(line, length)
+   CALL EXECUTE_COMMAND_LINE(line)
 ENDIF
 END SUBROUTINE plot_inter
 !
@@ -1651,8 +1648,7 @@ WRITE(kill_file, '(a,a,I10.10,a)') tmp_dir(1:LEN_TRIM(tmp_dir)),'/jmol.',PID,'.p
 INQUIRE(FILE=kill_file, EXIST=lpresent)
 IF(lpresent) THEN
    WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
-   length= LEN_TRIM(line)
-   CALL do_operating(line, length)
+   CALL EXECUTE_COMMAND_LINE(line)
 ENDIF
 !
 IF(lfinal) THEN
@@ -1663,29 +1659,24 @@ did_kill = .FALSE.
 IF(operating=='Linux') THEN
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
          '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep '
-   length = LEN_TRIM(line)
-   CALL do_operating(line, length)
+   CALL EXECUTE_COMMAND_LINE(line)
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
         '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep | awk ''{print $2}'' '
-   length = LEN_TRIM(line)
-   CALL do_operating(line, length)
+   CALL EXECUTE_COMMAND_LINE(line)
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' ' // &
         '| grep -F ''.mol'' | grep -F ''java'' | grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   length = LEN_TRIM(line)
-   CALL do_operating(line, length)
+   CALL EXECUTE_COMMAND_LINE(line)
 ELSEIF(operating=='Linux_WSL') THEN
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' ' // &
         '| grep -F ''.mol'' | grep -F ''java'' | grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   length = LEN_TRIM(line)
-   CALL do_operating(line, length)
+   CALL EXECUTE_COMMAND_LINE(line)
 ELSEIF(operating(1:6)=='darwin') THEN
    WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep -F ''jmol'' ' // &
          '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   length = LEN_TRIM(line)
-   CALL do_operating(line, length)
+   CALL EXECUTE_COMMAND_LINE(line)
 
 ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
 !  WRITE(line,'(a,I5.5,a,a)') 'ps aux | grep ''jmol -s /tmp/jmol.',PID, &
@@ -1695,8 +1686,7 @@ ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
 !  line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1, $3}'' '
    line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1, $3}'' >> ' //  &
          kill_file(1:LEN_TRIM(kill_file))
-   length = LEN_TRIM(line)
-   CALL do_operating(line, length)
+   CALL EXECUTE_COMMAND_LINE(line)
 ENDIF
 !
 CALL oeffne( ITMP, kill_file, 'old')
@@ -1705,8 +1695,7 @@ IF(ier_num==0) THEN
    DO WHILE (.NOT.IS_IOSTAT_END(ios)) 
 !     IF(jppid==PID .OR. jppid==PPID) THEN                    ! Current discus_suite has started jmol
          WRITE(line,'(a,i12,a)') 'kill -9 ',jmol_pid, ' > /dev/null'
-         length = LEN_TRIM(line)
-         CALL do_operating(line, length)
+         CALL EXECUTE_COMMAND_LINE(line)
          did_kill = .TRUE.
 !     ENDIF
       READ(ITMP,*,IOSTAT=ios) jmol_pid!, jppid
@@ -1718,8 +1707,7 @@ IF(ier_num==0) THEN
 ENDIF
 !
 WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
-length = LEN_TRIM(line)
-CALL do_operating(line, length)
+CALL EXECUTE_COMMAND_LINE(line)
 !
 IF(did_kill .AND.lfinal) THEN
    WRITE(output_io,*) ' Closed JMOL windows, ignore ''Killed'' messages '
