@@ -5641,58 +5641,62 @@ REAL(KIND=PREC_DP) :: dummy(1)
 !------ Mode vector                                                     
 !------ ------------------------------------------------------          
 !                                                                       
-      ELSEIF (chem_ctyp (ic) .eq.CHEM_VEC) then 
-         ncent = 1 
-         natom (  ncent) = 0 
-         iatom (:,ncent) = 0 
-         CALL indextocell (jatom, jcell, jsite) 
-         DO i = 1, chem_nvec (ic) 
-         iatom (0, ncent) = jatom 
-         patom (1, 0, ncent) = cr_pos (1, jatom) 
-         patom (2, 0, ncent) = cr_pos (2, jatom) 
-         patom (3, 0, ncent) = cr_pos (3, jatom) 
-         iv = chem_use_vec (i, ic) 
-         IF (jsite.eq.chem_cvec (1, iv) ) then 
-            icell (1) = jcell (1) + chem_cvec (3, iv) 
-            icell (2) = jcell (2) + chem_cvec (4, iv) 
-            icell (3) = jcell (3) + chem_cvec (5, iv) 
-            lok = .false. 
-            CALL check_bound (icell, offset, chem_period, lok) 
-            IF (lok) then 
-               isite = chem_cvec (2, iv) 
-               CALL celltoindex (icell, isite, katom) 
-               natom (ncent) = natom (ncent) + 1 
-               iatom (natom (ncent), ncent) = katom 
-               patom (1, natom (ncent), ncent) = cr_pos (1, katom)      &
-               + offset (1)                                             
-               patom (2, natom (ncent), ncent) = cr_pos (2, katom)      &
-               + offset (2)                                             
-               patom (3, natom (ncent), ncent) = cr_pos (3, katom)      &
-               + offset (3)                                             
-            ENDIF 
-         ELSEIF (jsite.eq.chem_cvec (2, iv) ) then 
-            icell (1) = jcell (1) - chem_cvec (3, iv) 
-            icell (2) = jcell (2) - chem_cvec (4, iv) 
-            icell (3) = jcell (3) - chem_cvec (5, iv) 
-            CALL check_bound (icell, offset, chem_period, lok) 
-            IF (lok) then 
-               isite = chem_cvec (1, iv) 
-               CALL celltoindex (icell, isite, katom) 
-               natom (ncent) = natom (ncent) + 1 
-               iatom (natom (ncent), ncent) = katom 
-               patom (1, natom (ncent), ncent) = cr_pos (1, katom)      &
-               + offset (1)                                             
-               patom (2, natom (ncent), ncent) = cr_pos (2, katom)      &
-               + offset (2)                                             
-               patom (3, natom (ncent), ncent) = cr_pos (3, katom)      &
-               + offset (3)                                             
-            ENDIF 
+ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN 
+   ncent = 1 
+   natom (  ncent) = 0 
+   iatom (:,ncent) = 0 
+   CALL indextocell (jatom, jcell, jsite) 
+   DO i = 1, chem_nvec(ic) 
+      iv = chem_use_vec(i, ic) 
+      IF(jsite == chem_cvec(1, iv) ) THEN     ! Atom jatom is at vector start == central
+         iatom(0, ncent) = jatom 
+         patom(1, 0, ncent) = cr_pos(1, jatom) 
+         patom(2, 0, ncent) = cr_pos(2, jatom) 
+         patom(3, 0, ncent) = cr_pos(3, jatom) 
+         icell(1) = jcell (1) + chem_cvec (3, iv) 
+         icell(2) = jcell (2) + chem_cvec (4, iv) 
+         icell(3) = jcell (3) + chem_cvec (5, iv) 
+         lok = .false. 
+         CALL check_bound(icell, offset, chem_period, lok) 
+         IF(lok) THEN 
+            isite = chem_cvec(2, iv) 
+            CALL celltoindex(icell, isite, katom) 
+            natom(ncent) = natom(ncent) + 1 
+            iatom(natom (ncent), ncent) = katom 
+            patom(1, natom(ncent), ncent) = cr_pos(1, katom) + offset(1)
+            patom(2, natom(ncent), ncent) = cr_pos(2, katom) + offset(2)
+            patom(3, natom(ncent), ncent) = cr_pos(3, katom) + offset(3)
          ENDIF 
-         ENDDO 
-         IF (natom (ncent) .eq.0) then 
-            ncent = ncent - 1 
-            ncent = 0 
+      ELSEIF(jsite == chem_cvec(2, iv) ) THEN ! Atom jatom is at vector end == neighbor
+         icell(1) = jcell(1) - chem_cvec(3, iv) 
+         icell(2) = jcell(2) - chem_cvec(4, iv) 
+         icell(3) = jcell(3) - chem_cvec(5, iv) 
+         CALL check_bound(icell, offset, chem_period, lok) 
+         IF(lok) THEN 
+            natom (ncent) = natom (ncent) + 1 
+!
+            iatom(natom(ncent), ncent) = jatom 
+            patom(1, natom(ncent), ncent) = cr_pos(1, jatom)
+            patom(2, natom(ncent), ncent) = cr_pos(2, jatom)
+            patom(3, natom(ncent), ncent) = cr_pos(3, jatom)
+!
+            isite = chem_cvec (1, iv) 
+            CALL celltoindex (icell, isite, katom) 
+            iatom(0, ncent) = katom
+            patom(1, 0, ncent) = cr_pos(1, katom) + offset(1)
+            patom(2, 0, ncent) = cr_pos(2, katom) + offset(2)
+            patom(3, 0, ncent) = cr_pos(3, katom) + offset(3)
+!              iatom (natom (ncent), ncent) = katom 
+!              patom(1, natom(ncent), ncent) = cr_pos(1, katom) + offset(1)
+!              patom(2, natom(ncent), ncent) = cr_pos(2, katom) + offset(2)
+!              patom(3, natom(ncent), ncent) = cr_pos(3, katom) + offset(3)
          ENDIF 
+      ENDIF 
+   ENDDO 
+   IF (natom(ncent) ==  0) THEN 
+      ncent = ncent - 1 
+      ncent = 0 
+   ENDIF 
 !                                                                       
 !------ ------------------------------------------------------          
 !------ Mode connectivity                                                     
