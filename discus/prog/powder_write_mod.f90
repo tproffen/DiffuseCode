@@ -44,9 +44,11 @@ IMPLICIT none
 !                                                                       
 INTEGER, INTENT(IN) :: value ! Type of output
 !                                                                       
+INTEGER   :: POW_WR_MAXPKT   ! Maximum number of data points for write
 INTEGER   :: ii, j , iii
 INTEGER   :: all_status  ! Allocation status
-INTEGER   :: npkt        ! number of points in powder pattern
+INTEGER   :: npkt        ! number of points in powder pattern; actual calculation
+INTEGER   :: npkt_u      ! number of points in powder pattern; User input in 'powder'
 INTEGER   :: npkt_equi   ! number of points in equidistant powder pattern
 INTEGER   :: npkt_wrt    ! number of points in powder pattern ready to write
 INTEGER   :: npkt_fft    ! number of points in powder pattern for Fast Fourier
@@ -101,18 +103,24 @@ IF(.NOT. (value == val_inten  .OR. value == val_sq      .OR. &
    RETURN
 ENDIF
 !
-ALLOCATE(xpl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
-ALLOCATE(ypl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
-ALLOCATE(lpv(0:POW_MAXPKT),stat = all_status)  ! Allocate array for LP correction
+xmin   = pow_qmin_u
+xmax   = pow_qmax_u
+xdel   = pow_deltaq_u
+npkt_u = NINT((xmax+xdel-xmin)/xdel) + 0
+!                                                                       
+xmin = pow_qmin
+xmax = pow_qmax
+xdel = pow_deltaq
+npkt = NINT((xmax+xdel-xmin)/xdel) + 0            ! Use automatic maximum for write until spline
+!
+POW_WR_MAXPKT = MAX(npkt, npkt_u, POW_MAXPKT)
+!
+ALLOCATE(xpl(0:POW_WR_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
+ALLOCATE(ypl(0:POW_WR_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
+ALLOCATE(lpv(0:POW_WR_MAXPKT),stat = all_status)  ! Allocate array for LP correction
 xpl     = 0.0   ! (:)
 ypl     = 0.0   ! (:)
 lpv     = 0.0   ! (:)
-xdel    = 0.0
-!                                                                       
-xmin = pow_qmin_u
-xmax = pow_qmax_u
-xdel = pow_deltaq_u
-npkt = MIN(NINT((xmax+xdel-xmin)/xdel) + 0, POW_MAXPKT)
 !
 CALL phases_average(xmin, xdel, npkt)          ! Calculate average: powder, f2aver, faver2, fu
 !
@@ -276,7 +284,7 @@ ENDIF prsq  !Prepare S(Q), F(Q)
 !enddo
 !close(77)
 !
-CALL pow_k12(npkt, POW_MAXPKT, pow_ka21, pow_ka21_u, xpl, ypl)
+CALL pow_k12(npkt, POW_WR_MAXPKT, pow_ka21, pow_ka21_u, xpl, ypl)
 rmax     = out_user_values(2)
 !open(77,file='POWDER/normalized.k12',status='unknown')
 !DO ii=0,npkt
@@ -313,7 +321,7 @@ IF( cpow_form == 'tth' ) THEN
    xmin = tthmin                                  ! Adjust limits needed later to cut 
    xmax = tthmax                                  ! off rounding errors
    npkt_equi =     INT((tthmax-tthmin)/pow_deltatth) + 1             
-   ALLOCATE(y2a (0:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
+   ALLOCATE(y2a (0:POW_WR_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
    ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
    ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
    xwrt = 0.0
@@ -353,6 +361,10 @@ ELSEIF( cpow_form == 'q' .OR. cpow_form == 'r') THEN        ! axis is Q
          qmin   = out_user_values(1)
          qmax   = out_user_values(2)
          deltaq = out_user_values(3)
+      ELSEIF(npkt_u>npkt) THEN
+         qmin   = pow_qmin_u
+         qmax   = pow_qmax_u
+         deltaq = pow_deltaq_u
       ELSE                                          ! Convert q limits
          CONTINUE
       ENDIF
@@ -367,7 +379,7 @@ ELSEIF( cpow_form == 'q' .OR. cpow_form == 'r') THEN        ! axis is Q
    xmin =   qmin                                  ! Adjust limits needed later to cut 
    xmax =   qmax                                  ! off rounding errors
    npkt_equi =     NINT((qmax-qmin)/deltaq) + 1             
-   ALLOCATE(y2a (0:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
+   ALLOCATE(y2a (0:POW_WR_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
    ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
    ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
    xwrt = 0.0
