@@ -4299,6 +4299,12 @@
 !p set "target",<ic>,"corr",    ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
 !p                              ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
 !p                               <correlation>, <energy>, {"CORR" | "ENER"}
+!p set "target",<ic>,"unid",     {<number> | <name> | "all"},
+!p                               {<number> | <name> | "all"},
+!p                               <correlation>, <energy>, {"CORR" | "ENER"}
+!p set "target",<ic>,"unid",    ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+!p                              ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+!p                               <correlation>, <energy>, {"CORR" | "ENER"}
 !p set "target",<ic>,"cd",       {<number> | <name> | "all"},
 !p                               {<number> | <name> | "all"},
 !p                               <correlation>, <energy>, {"CORR" | "ENER"}
@@ -4369,6 +4375,23 @@
    correlation will give you a crystal in which an atom of the first 
    group has an atom of the second group as neighbor.
 
+   set "target",<ic>,"unid", {<number> | <name> | "all"},
+                             {<number> | <name> | "all"},
+                             <correlation>, <energy>, {"CORR" | "ENER"}
+   set "target",<ic>,"unid", ({<number> | <name> | "all"}
+                              [, {<number> | <name> | "all"}...]),
+                             ({<number> | <name> | "all"}
+                              [, {<number> | <name> | "all"}...]),
+
+   This energy form is essentially identical to the chemical 
+   correlation energy. The difference is that this energy form
+   serves to distinguish directional pairs. For the target:
+   set target, 1, unid, A, B, -1.0, 0.00, CORR
+   the program will sort the structure favoring A => B pairs
+   over all other pairs (A => A; B =>B; B =>A). 
+   This energy works best for "vector" neighborhoods, and you 
+   should only use a given vector and not the opposite vector.
+
    set "target",<ic>,"cd",   {<number> | <name> | "all"},
                              {<number> | <name> | "all"},
                              <correlation>, <energy>, {"CORR" | "ENER"}
@@ -4379,7 +4402,8 @@
    same direction, while a negative correlation means a preference
    for opposing displacements. 
    Equal displacements are characterized by a positive value of the 
-   scalar product of the two displacement vectors.
+   scalar product of the two displacement vectors. Naturally this 
+   energy works best in a local environment that is not centrosymmetric.
   
 
    set "target",<ic>,"lennard",  {<number> | <name> | "all"},
