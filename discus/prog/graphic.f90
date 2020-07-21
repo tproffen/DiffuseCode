@@ -69,10 +69,10 @@ DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
               'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
               'f2aver = <f^2>', 'faver2 = <f>^2', 'faver = <f>   ',&
               'Normal Inten  ', 'I(Q)          ', 'PDF           ' /
-                                                                  
+!
 DATA value / 1 / 
 DATA laver / .false. / 
-!                                                                       
+!
 zmin = ps_low * diffumax 
 zmax = ps_high * diffumax 
 orig_prompt = prompt
@@ -498,7 +498,7 @@ IF (ier_num.eq.0) THEN
 !                                                                       
 !     Define output value 'value'                                       
 !                                                                       
-   ELSEIF (str_comp (befehl, 'valu', 1, lbef, 4) ) THEN 
+   ELSEIF (str_comp (befehl, 'value', 1, lbef, 5) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
       IF (ier_num.eq.0) THEN 
 !------ ----Check if we want the average values <F> ?                   
@@ -555,7 +555,10 @@ IF (ier_num.eq.0) THEN
             value = 0 
          ENDIF 
 !------ ----check lots and allowed output                               
-         IF (nlots.ne.1.and..NOT.(value==1 .OR. value==val_3dpdf).and..not.laver) THEN 
+!        IF (nlots.ne.1.and..NOT.(value==1 .OR. value==val_3dpdf).and..not.laver) THEN 
+         IF (nlots.ne.1 .AND.  .NOT.laver .AND.   &
+             (value==val_ampli .OR. value==val_phase .OR. value==val_ranph .OR. &
+              value==val_real  .OR. value==val_imag)    ) THEN
             ier_num = - 60 
             ier_typ = ER_APPL 
             value = 0 
