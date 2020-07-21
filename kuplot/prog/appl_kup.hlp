@@ -97,6 +97,18 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2020 July
+   Added a new color scheme "pdf" that gives white colors at 
+   level zero, yellow to red colors for positive values and
+   light to rakr blue values for negative values.
+   The ==> 'hlin' command has been modified to be better suited
+   to PDF plots. New modes are:
+     hlin 1, zmin, zdelta, n, %m  !percentages with respect to
+                                  ! zmax only
+     hlin 1, zdelta, n, %         ! Zmin is chosen automatically to
+                                  ! give equal contour lines at 
+                                  ! positive and negative lines
+     hlin 1, zdelta, n            ! same on an absolute scale
 3  2020_June
    Added 'h5' for HDF5 capabilities to the load command. 
 
@@ -530,7 +542,7 @@
    If the partial R-values are provided as well, they will 
    overwrite the corresponding partial R-values.
 2  cmap
-!p cmap { "gray" | "fire" | "ice" | "kupl" |"thermal" }
+!p cmap { "gray" | "fire" | "ice" | "kupl" |"thermal" | "pdf" }
 !p cmap { "read" | "write"}, <fname>
 !p cmap "invert"
 
@@ -545,6 +557,13 @@
       blue color with increasing data values.
    "thermal" combines "fire" and "ice", with a "fire" map for positive
       data values and "ice" for negative data values.
+   "pdf" is similar to "thermal". The zero level is plotted white,
+      positive values are yellow to red to dark red, 
+      negative values are light blue to dark blue to black.
+      This color map is best combined with the contour lines as:
+      hlin 1, <inc>, <n> {, "%" }
+      as this ensures that the contor lines are equally spaced around 
+      the zero level.
 
    Color maps
    can also be read from a file using the command 'cmap read,<fname>'.
@@ -1325,7 +1344,8 @@
    the base level is labeled. The font characteristics of the axes
    labels are used, only the font size is reduced by 75%.
 2  hlin
-!p hlin <ic>,<min>,<inc>,<n> [, { "abs" | "%" }]
+!p hlin <ic>,<min>,<inc>,<n> [, { "abs" | "%" | "%m" }]
+!p hlin <ic>,      <inc>,<n> [, { "abs" | "%" }]
 
    This command sets the contour line parameters. The first parameter
    <ic> specifies the contour line set, which is defined by the following
@@ -1334,6 +1354,12 @@
    As default the given values are taken as absolute values. However,
    is a fifth parameter set to "%" the values of <min> and <inc> are
    taken relative to the maximum/minimum value of loaded data set 1.
+   If the last parameter is "%m" the percentage refers to zmax only.
+
+   If the second form is chosen, the contour levels are placed at 
+   equal intervals around the zero level within the data. If the
+   data are either only positive or only negative, the contours
+   start at the <inc> level and proceed to the <n>th level.
 
    Is the command given without parameters, the current settings of the
    contour parameters are displayed on the screen.
