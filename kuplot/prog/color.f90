@@ -98,6 +98,10 @@ REAL :: zzmin, zzmax
             zzmin = z_min (iwin, iframe, 1) 
             zzmax = nz(iwin, iframe, 1) * z_inc(iwin, iframe, 1) + z_min(iwin, iframe, 1)
             CALL cmap_thermal (zzmin, zzmax, .true.) 
+         ELSEIF (str_comp (cpara (1) , 'pdf', 3, lpara (1) , 7) ) then 
+            zzmin = z_min (iwin, iframe, 1) 
+            zzmax = nz(iwin, iframe, 1) * z_inc(iwin, iframe, 1) + z_min(iwin, iframe, 1)
+            CALL cmap_pdf (zzmin, zzmax, .true.) 
          ELSEIF (str_comp (cpara (1) , 'invert', 3, lpara (1) , 6) )    &
          then                                                           
             CALL cmap_invert (.true.) 
@@ -133,7 +137,7 @@ REAL :: zzmin, zzmax
       INTEGER i 
       LOGICAL lout 
 !                                                                       
-      IF (lout) write (output_io, 1000) 
+      IF (lout) WRITE(output_io, 1000) 
 !                                                                       
       DO i = 1, maxcol 
       dummy (i, 1) = col_map (iwin, i, 1) 
@@ -164,7 +168,7 @@ REAL :: zzmin, zzmax
       INTEGER i 
       LOGICAL lout 
 !                                                                       
-      IF (lout) write (output_io, 1000) 
+      IF (lout) WRITE (output_io, 1000) 
 !                                                                       
       DO i = 1, maxcol 
       col_map (iwin, i, 1) = REAL(maxcol - i + 1) / REAL(maxcol) 
@@ -189,7 +193,7 @@ REAL :: zzmin, zzmax
       INTEGER i, ifarb 
       LOGICAL lout 
 !                                                                       
-      IF (lout) write (output_io, 1000) 
+      IF (lout) WRITE (output_io, 1000) 
 !                                                                       
       DO ifarb = 1, maxcol 
       rh = 0.1 + REAL(ifarb - 1) / 284.0 
@@ -247,7 +251,7 @@ REAL :: zzmin, zzmax
       INTEGER i, ii, m 
       LOGICAL lout 
 !                                                                       
-      IF (lout) write (output_io, 1000) 
+      IF (lout) WRITE (output_io, 1000) 
 !                                                                       
       m = maxcol / 3 
       ii = 1 
@@ -291,31 +295,31 @@ REAL :: zzmin, zzmax
       INTEGER i, ii, m 
       LOGICAL lout 
 !                                                                       
-      IF (lout) write (output_io, 1000) 
+      IF (lout) WRITE (output_io, 1000) 
 !                                                                       
       m = maxcol / 3 
       ii = 1 
 !                                                                       
-      DO i = 1, m 
-      col_map (iwin, ii, 1) = 0.0 
-      col_map (iwin, ii, 2) = 0.0 
-      col_map (iwin, ii, 3) = REAL(3 * i) / REAL(maxcol)  /3.
-      ii = ii + 1 
-      ENDDO 
+!     DO i = 1, m 
+!     col_map (iwin, ii, 1) = 0.0 
+!     col_map (iwin, ii, 2) = 0.0 
+!     col_map (iwin, ii, 3) = REAL(3 * i) / REAL(maxcol)  /3.
+!     ii = ii + 1 
+!     ENDDO 
 !                                                                       
-      DO i = 1, m 
-      col_map (iwin, ii, 1) = 0.0 
-      col_map (iwin, ii, 2) = REAL(3 * i) / REAL(maxcol)    /6.
-      col_map (iwin, ii, 3) = REAL(3 * i) / REAL(maxcol) *2./3.
-      ii = ii + 1 
-      ENDDO 
+!     DO i = 1, m 
+!     col_map (iwin, ii, 1) = 0.0 
+!     col_map (iwin, ii, 2) = REAL(3 * i) / REAL(maxcol)    /6.
+!     col_map (iwin, ii, 3) = REAL(3 * i) / REAL(maxcol) *2./3.
+!     ii = ii + 1 
+!     ENDDO 
 !                                                                       
-      DO i = 1, m 
-      col_map (iwin, ii, 1) = REAL(3 * i) / REAL(maxcol) *1./6.
-      col_map (iwin, ii, 2) = REAL(3 * i) / REAL(maxcol) *1./3.
-      col_map (iwin, ii, 3) = REAL(3 * i) / REAL(maxcol) 
-      ii = ii + 1 
-      ENDDO 
+!     DO i = 1, m 
+!     col_map (iwin, ii, 1) = REAL(3 * i) / REAL(maxcol) *1./6.
+!     col_map (iwin, ii, 2) = REAL(3 * i) / REAL(maxcol) *1./3.
+!     col_map (iwin, ii, 3) = REAL(3 * i) / REAL(maxcol) 
+!     ii = ii + 1 
+!     ENDDO 
 DO i=1, maxcol
    col_map (iwin, i, 3) = REAL(i)/REAL(maxcol)
 ENDDO
@@ -407,6 +411,92 @@ IF(lout) WRITE(output_io, 1000)
 1000 FORMAT     (' ------ > Setting colour map to : thermal ') 
 !
 END SUBROUTINE cmap_thermal
+!
+!*****7*****************************************************************
+!
+SUBROUTINE cmap_pdf(zzmin, zzmax, lout)
+!
+USE prompt_mod 
+USE kuplot_config 
+USE kuplot_mod 
+!
+IMPLICIT NONE
+!
+REAl, INTENT(IN) :: zzmin
+REAl, INTENT(IN) :: zzmax
+LOGICAL, INTENT(IN) :: lout
+!
+INTEGER :: i, m
+INTEGER :: ii
+INTEGER :: istart
+REAL    :: scalef
+REAL    :: red, green!, blue
+!
+!  CALL cmap_fire(lout)
+!  CALL cmap_invert(lout)
+!LSEIF(zzmax < 0.0 .AND. zzmin < 0.0 ) THEN  ! negative only
+!  CALL cmap_ice(lout)
+!  CALL cmap_invert(lout)
+!LSE
+!
+!  Calculate istart , keep in window [1:maxcol]
+!  istart = MIN(maxcol,MAX(1,NINT(maxcol * (1. - zzmax/(zzmax-zzmin)))))
+!                                                                       
+!  scalef = 1./(MAX(ABS(zzmax),ABS(zzmin))/(zzmax-zzmin))
+!  m  = INT(maxcol / 3 / scalef)
+!  col_map(iwin,istart,1:3) = 1.0   ! Zero level at white
+!                                                                       
+IF(zzmax > 0.0 .AND. zzmin > 0.0 ) THEN  ! positive only
+   istart = 1
+ELSEIF(zzmax < 0.0 .AND. zzmin < 0.0 ) THEN  ! negative only
+   istart = maxcol
+ELSE
+   istart = (maxcol+1)/2
+ENDIF
+!
+   m = (maxcol-istart) / 3 
+   ii = istart
+!                                                                       
+   DO i = 1, m 
+      col_map (iwin, ii, 1) = 1.0 
+      col_map (iwin, ii, 2) = 1.0 
+      col_map (iwin, ii, 3) = 1.0 - REAL(3 * i) / REAL(maxcol) 
+      ii = ii + 1 
+   ENDDO 
+!                                                                       
+   DO i = 1, m 
+      col_map (iwin, ii, 1) = 1.0 
+      col_map (iwin, ii, 2) = 1.0 - REAL(3 * i) / REAL(maxcol) 
+      col_map (iwin, ii, 3) = 0.0 
+      ii = ii + 1 
+   ENDDO 
+!                                                                       
+   DO i = 1, m 
+      col_map (iwin, ii, 1) = 1.0 - REAL(3 * i) / REAL(maxcol) 
+      col_map (iwin, ii, 2) = 0.0 
+      col_map (iwin, ii, 3) = 0.0 
+      ii = ii + 1 
+   ENDDO 
+!                                                                       
+!
+!  Negative colors like ICE
+!
+scalef = 1.
+   DO i=istart-1,1, -1
+      col_map (iwin, i, 3) = MAX(0.0, 1.0 - REAL(istart-i)/REAL(istart) * 0.250000 * scalef)
+   ENDDO
+   DO i=istart-1,1, -1
+      col_map (iwin, i, 2) = MAX(0.0, 1.0 - REAL(istart-i)/REAL(istart) * 0.800000 * scalef)
+   ENDDO
+   DO i=istart-1,1, -1
+      col_map (iwin, i, 1) = MAX(0.0, 1.0 - REAL(istart-i)/REAL(istart) * 1.000000 * scalef)
+   ENDDO
+!ENDIF
+!
+IF(lout) WRITE(output_io, 1000)
+1000 FORMAT     (' ------ > Setting colour map to : pdf ') 
+!
+END SUBROUTINE cmap_pdf
 !
 !*****7*****************************************************************
 !

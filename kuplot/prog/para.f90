@@ -957,88 +957,149 @@ USE precision_mod
       ENDIF 
 !                                                                       
       END SUBROUTINE set_hpak                       
+!
 !*****7*****************************************************************
-      SUBROUTINE set_hlin (zeile, lp) 
+!
+SUBROUTINE set_hlin(zeile, lp) 
 !+                                                                      
 !     Setting of contour line intervalls                                
 !-                                                                      
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
+USE kuplot_config 
+USE kuplot_mod 
 USE precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 6) 
+INTEGER, PARAMETER :: MAXW = 6
 !                                                                       
-      CHARACTER ( * ) zeile 
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
-      INTEGER ianz, ihl, i 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL zzmin, zzmax, zhub 
-      LOGICAL proz, k_in_f 
+CHARACTER(LEN=*), INTENT(INOUT) :: zeile    ! incoming command
+INTEGER,          INTENT(INOUT) :: lp       ! length
+!
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
+INTEGER                   , DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
+REAL    :: zzmin, zzmax, zhub     ! MIN/MAX/Delta values for date/contour lines
+REAL    :: zlow    ! Minimum value for contour lines
+INTEGER :: ianz, ihl, i 
+LOGICAL :: k_in_f  ! Current data set is in frame
+LOGICAL :: proz    ! User specified a "%" als last parameter
+LOGICAL :: labs    ! Percent scale is Based on zmax only
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+CALL get_params(zeile, ianz, cpara, lpara, MAXW, lp) 
+IF(ier_num.ne.0) RETURN 
 !                                                                       
 !------ no parameters : show actual settings                            
 !                                                                       
-      IF (ianz.eq.0) then 
-         CALL show_hlin 
+IF (ianz.eq.0) THEN 
+   CALL show_hlin 
 !                                                                       
 !------ set contour line base, intervall, number and optinally mode     
 !                                                                       
-      ELSEIF (ianz.eq.4.or.ianz.eq.5) then 
-         proz = .false. 
-         IF (ianz.eq.5) then 
-            proz = (cpara (5) (1:1) .eq.'%') 
-            ianz = ianz - 1 
-         ENDIF 
+ELSE
+   IF(ianz>=3 .AND. ianz<=5) THEN
+      labs = .FALSE.
+      proz = .FALSE.
+      IF(cpara(ianz)(1:1) == '%') THEN     ! Data in percent
+         proz = .TRUE.
+         IF(cpara(ianz)(2:2) == 'm') labs = .TRUE.
+         ianz = ianz - 1
+      ELSE
+         proz = .FALSE.
+      ENDIF
+      IF(ianz == 4.OR.ianz == 3) THEN
+!        proz = .false. 
+!        IF (ianz.eq.5) then 
+!           proz = (cpara (5) (1:1) .eq.'%') 
+!           ianz = ianz - 1 
+!        ENDIF 
 !                                                                       
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) return 
+         IF(ier_num /= 0) RETURN 
 !                                                                       
-         ihl = nint (werte (1) ) 
-         IF (ihl.ge.1.and.ihl.le.maxhl) then 
-            iho (iwin, iframe) = max (iho (iwin, iframe), ihl) 
-            nz (iwin, iframe, ihl) = nint (werte (4) ) 
+         ihl = NINT(werte(1) ) 
+         IF(ihl >= 1.AND.ihl <= maxhl) THEN 
+            iho(iwin, iframe) = MAX(iho(iwin, iframe), ihl) 
+            nz(iwin, iframe, ihl) = NINT(werte(ianz) ) 
 !                                                                       
-            IF (proz) then 
                CALL get_extrema 
-               zzmax = - 1e19 
-               zzmin = 1e19 
+               zzmax = -1.e19 
+               zzmin =  1.e19 
                DO i = 1, iz - 1 
-               IF (k_in_f (i) ) then 
-                  zzmax = max (zzmax, zmax (i) ) 
-                  zzmin = min (zzmin, zmin (i) ) 
-               ENDIF 
+                  IF(k_in_f(i) ) THEN 
+                     zzmax = max (zzmax, zmax (i) ) 
+                     zzmin = min (zzmin, zmin (i) ) 
+                  ENDIF 
                ENDDO 
 !                                                                       
-               zhub = zzmax - zzmin 
-               IF (zhub.eq.0) zhub = 100.0 
-               z_min (iwin, iframe, ihl) = zzmin + 0.01 * zhub * werte (&
-               2)                                                       
-               z_inc (iwin, iframe, ihl) = 0.01 * zhub * werte (3) 
-            ELSE 
-               z_min (iwin, iframe, ihl) = werte (2) 
-               z_inc (iwin, iframe, ihl) = werte (3) 
+            IF(proz) THEN                  ! Contour lines in percent
+               IF(ianz==4) THEN            ! User specified "hmin, delta, n, %"
+                  IF(labs) THEN            ! User specified percentage of MAXIMUM "%m"
+                     zhub = zzmax
+                     zlow = 0.0
+                  ELSE
+                     zhub = zzmax - zzmin 
+                     zlow = zzmin
+                  ENDIF
+                  IF (zhub.eq.0) zhub = 100.0 
+                  z_min(iwin, iframe, ihl) = zlow + 0.01 * zhub * werte(2)
+                  z_inc(iwin, iframe, ihl) = 0.01 * zhub * ABS(werte(3))
+               ELSE                        ! User specified "delta, n, %"
+                  IF(zzmin>= 0.0) THEN     ! positive values only
+                     zhub = zzmax
+                     IF (zhub.eq.0) zhub = 100.0 
+                     z_min(iwin, iframe, ihl) = MAX(zzmin, 0.00)
+                     z_inc(iwin, iframe, ihl) = 0.01 * zhub * ABS(werte(2) )
+                  ELSEIF(zzmin<0.0 .AND. zzmax > 0.0) THEN    ! neg and positive
+                     zhub = zzmax          ! The maximum intensity
+                     IF (zhub.eq.0) zhub = 100.0 
+                     z_min(iwin, iframe, ihl) = -0.50 * zhub * ABS(werte(2))
+                     z_inc(iwin, iframe, ihl) =  0.01 * zhub * ABS(werte(2))
+!write(*,*) ' User specified "delta, n, %" Positive and negative values ', zhub
+                  ELSE                     ! Negative values only
+                     zhub = -zzmin 
+                     IF (zhub.eq.0) zhub = 100.0 
+                     z_min(iwin, iframe, ihl) = MIN(zzmin, 0.00)
+                     z_inc(iwin, iframe, ihl) = 0.01 * zhub * ABS(werte(2))
+                  ENDIF
+               ENDIF
+            ELSE                           ! Contour lines in absolute values
+               IF(ianz==4) THEN            ! User specified "hmin, delta, n"
+                  z_min(iwin, iframe, ihl) = werte (2) 
+                  z_inc(iwin, iframe, ihl) = werte (3) 
+               ELSE                        ! User specified "delta, n"
+                  IF(zzmin>= 0.0) THEN     ! positive values only
+                     z_min(iwin, iframe, ihl) = MAX(zzmin, 0.00)
+                     z_inc(iwin, iframe, ihl) = werte(2) 
+                  ELSEIF(zzmin<0.0 .AND. zzmax > 0.0) THEN    ! neg and positive
+                     z_min(iwin, iframe, ihl) = -ABS(werte(2))*nz(iwin, iframe, ihl)/2.
+                     z_inc(iwin, iframe, ihl) = werte(2) 
+                  ELSE                     ! Negative values only
+                     z_min(iwin, iframe, ihl) = -ABS(werte(2))*nz(iwin, iframe, ihl)
+                     z_inc(iwin, iframe, ihl) = werte(2) 
+                  ENDIF
+               ENDIF
             ENDIF 
          ELSE 
             ier_num = - 14 
             ier_typ = ER_APPL 
          ENDIF 
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
       ENDIF 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
+ENDIF 
+!write(*,*) ' HLIN ', z_min(iwin, iframe, ihl), z_inc(iwin, iframe, ihl), &
+!  z_min(iwin, iframe, ihl)+z_inc(iwin, iframe, ihl)*nz(iwin, iframe, ihl), &
+!  nz(iwin, iframe, ihl)
 !                                                                       
-      END SUBROUTINE set_hlin                       
+END SUBROUTINE set_hlin                       
+!
 !*****7*****************************************************************
       SUBROUTINE set_font (zeile, lp) 
 !+                                                                      
