@@ -41,7 +41,15 @@ ier_num = 0
 !                                                                       
 !------ preset some values                                              
 !                                                                       
-      ss = seknds (0.0) 
+ss = seknds (0.0) 
+!
+!
+!----- Test for Friedels law, and reduce calculation time
+!
+CALL four_test_friedel
+!                                                                       
+!------ preset some values                                              
+!                                                                       
       CALL four_layer 
 !                                                                       
 !------ zero some arrays                                                
@@ -57,6 +65,18 @@ ier_num = 0
       CALL fourier_lmn(eck,vi,inc,lmn,off_shift)
       CALL four_cexpt 
       CALL four_stltab 
+!write(*,*) ' eck ll ', eck(:,1)
+!write(*,*) ' eck lr ', eck(:,2)
+!write(*,*) ' eck ul ', eck(:,3)
+!write(*,*) ' eck tl ', eck(:,4)
+!write(*,*) ' vi abs ', vi(:,1), uin
+!write(*,*) ' vi ord ', vi(:,2), vin
+!write(*,*) ' vi top ', vi(:,3), win
+!write(*,*) ' OFF  x ', off_shift(:,1)
+!write(*,*) ' OFF  y ', off_shift(:,2)
+!write(*,*) ' OFF  z ', off_shift(:,3)
+!write(*,*) ' inc num', inc, num
+!write(*,*) ' lmn    ', lmn
       IF (ier_num.ne.0) return 
       CALL four_formtab
       CALL four_csize (cr_icc, csize, lperiod, ls_xyz) 
@@ -123,10 +143,15 @@ ier_num = 0
             csf (i) = csf (i) - acsf (i) 
             dsi (i) = dsi (i) + DBLE (csf (i) * conjg (csf (i) ) ) 
          ENDDO 
+         CALL four_apply_friedel
       ENDDO loop_lots
 !DO i = 1, num (1) * num (2) *num (3)
 !dsi (i) = DBLE (acsf (i) * conjg (acsf (i) ) ) 
 !ENDDO 
+!
+!----- Reset for Friedels law, and reduce calculation time
+!
+CALL four_rese_friedel
 !                                                                       
 !------ if we had lots, normalise the intensities                       
 !                                                                       
@@ -146,6 +171,18 @@ ier_num = 0
       IF (four_log) then 
          WRITE (output_io, 4000) ss 
       ENDIF 
+!write(*,*) ' eck ll ', eck(:,1)
+!write(*,*) ' eck lr ', eck(:,2)
+!write(*,*) ' eck ul ', eck(:,3)
+!write(*,*) ' eck tl ', eck(:,4)
+!write(*,*) ' vi abs ', vi(:,1), uin
+!write(*,*) ' vi ord ', vi(:,2), vin
+!write(*,*) ' vi top ', vi(:,3), win
+!write(*,*) ' OFF  x ', off_shift(:,1)
+!write(*,*) ' OFF  y ', off_shift(:,2)
+!write(*,*) ' OFF  z ', off_shift(:,3)
+!write(*,*) ' inc num', inc, num
+!write(*,*) ' lmn    ', lmn
 !
 !CALL four_fft_finalize
 !                                                                       
@@ -1382,6 +1419,127 @@ main:    DO
 !
 !*******************************************************************************
 !
+SUBROUTINE four_test_friedel
+!
+USE diffuse_mod
+!
+USE precision_mod
+!
+IMPLICIT NONE
+!
+REAL(PREC_SP), DIMENSION(3) :: rut   ! right upper top corner
+REAL(PREC_SP), DIMENSION(3) :: dia   ! sum of all vi's
+REAL(PREC_SP), DIMENSION(3) :: point ! sum of (left lower bottom) and (right upper top)
+REAL(PREC_SP)               :: EPS = 1.E-6
+!
+diff_l_friedel = .FALSE.
+IF(.NOT.ano) THEN        ! anomalous scattering is off, test space
+   rut(1) = eck(1,1) + vi(1,1)*(inc(1)-1) + vi(1,2)*(inc(2)-1) + vi(1,3)*(inc(3)-1)
+   rut(2) = eck(2,1) + vi(2,1)*(inc(1)-1) + vi(2,2)*(inc(2)-1) + vi(2,3)*(inc(3)-1)
+   rut(3) = eck(3,1) + vi(3,1)*(inc(1)-1) + vi(3,2)*(inc(2)-1) + vi(3,3)*(inc(3)-1)
+!
+   diff_l_even(1) = MOD(inc(1),2)==0
+   diff_l_even(2) = MOD(inc(2),2)==0
+   diff_l_even(3) = MOD(inc(3),2)==0
+   point(1) = eck(1,1) + rut(1)
+   point(2) = eck(2,1) + rut(2)
+   point(3) = eck(3,1) + rut(3)
+   dia(1) = vi(1,1) + vi(1,2) + vi(1,3)
+   dia(2) = vi(2,1) + vi(2,2) + vi(3,3)
+   dia(3) = vi(3,1) + vi(3,2) + vi(3,3)
+   IF(.NOT.diff_l_even(1) .AND. .NOT.diff_l_even(2) .AND. .NOT.diff_l_even(3)) THEN   ! All ODD increments
+      diff_l_even(0) = .FALSE.    ! All odd
+      IF(ABS(point(1))<EPS .AND. ABS(point(3))<EPS .AND.                           &
+         ABS(point(2))<EPS                               ) THEN
+!                         !left lower bottom and right upper top add up to zero
+         diff_eck_u = eck         ! Back up user settings
+         diff_vi_u  = vi          ! Back up user settings
+         diff_inc_u = inc         ! Back up user settings
+         IF(inc(1) > 1) THEN      ! We have an abscissa vector, cut this one
+            inc(1) = (inc(1) + 1)/2
+            diff_l_friedel = .TRUE.    ! A suitable solution
+            diff_idim      = 1
+         ELSEIF(inc(1)==1 .AND. inc(2)>1) THEN
+            inc(2) = (inc(2) + 1)/2
+            diff_l_friedel = .TRUE.    ! A suitable solution
+            diff_idim      = 2
+         ELSEIF(inc(1)==1 .AND. inc(2)==1 .AND. inc(3)>1) THEN
+            inc(3) = (inc(3) + 1)/2
+            diff_l_friedel = .TRUE.    ! A suitable solution
+            diff_idim      = 3
+         ELSE
+            diff_l_friedel = .FALSE.   ! Not a suitable solution
+            diff_idim      = 0
+         ENDIF
+      ENDIF
+!  ELSEIF(diff_l_even(1) .AND. diff_l_even(2) .AND. diff_l_even(3)) THEN              ! All Even increments
+!     diff_l_even(0) = .TRUE.    ! All even
+!     IF(ABS(point(1)-dia(1))<EPS .AND. ABS(point(3)-dia(2))<EPS .AND.                           &
+!        ABS(point(2)-dia(3))<EPS                                     ) THEN
+!                         !left lower bottom and right upper top add up to sum of vi
+!        diff_eck_u = eck         ! Back up user settings
+!        diff_vi_u  = vi          ! Back up user settings
+!        diff_inc_u = inc         ! Back up user settings
+!        IF(inc(1) > 1) THEN      ! We have an abscissa vector, cut this one
+!           inc(1) = inc(1)/2 + 1
+!        ELSEIF(inc(1)==1 .AND. inc(2) > 1) THEN      ! We have an abscissa vector, cut this one
+!           inc(2) = inc(2)/2 + 1
+!        ENDIF
+!     ENDIF
+   ELSE
+           diff_l_friedel = .FALSE.   ! Not a suitable solution
+   ENDIF
+!write(*,*) ' llb ', eck(:,1)
+!write(*,*) ' rut ', rut(:)
+!write(*,*) ' point',point(:)
+!write(*,*) ' RES ', diff_l_friedel
+!write(*,*) ' INC ', inc(:)
+ENDIF 
+END SUBROUTINE four_test_friedel
+!
+!*******************************************************************************
+!
+SUBROUTINE four_apply_friedel
+!-
+!  Applies Friedels lay to the Fourier calculation
+!+
+USE diffuse_mod
+!
+IMPLICIT NONE
+!
+INTEGER :: i, j
+!
+IF(diff_l_friedel) THEN
+   j = diff_inc_u(1)*diff_inc_u(2)*diff_inc_u(3) + 1
+   DO i = 1, num(1) * num(2) * num(3)
+      csf(j-i) = csf(i)
+      dsi(j-i) = dsi(i)
+   ENDDO 
+ENDIF
+!
+END SUBROUTINE four_apply_friedel
+!
+!*******************************************************************************
+!
+SUBROUTINE four_rese_friedel
+!
+! Set the corners, increments back to user values
+!
+USE diffuse_mod
+!
+IMPLICIT NONE
+!
+IF(diff_l_friedel) THEN
+   eck = diff_eck_u
+   vi  = diff_vi_u
+   inc = diff_inc_u
+   num = diff_inc_u
+ENDIF
+!
+END SUBROUTINE four_rese_friedel
+!
+!*******************************************************************************
+!
 SUBROUTINE four_fft_prep
 !
 USE crystal_mod
@@ -1449,13 +1607,13 @@ IMPLICIT NONE
 !
 INTEGER :: i,j
 !
-OPEN(88,file='example3.fft_inte', status='unknown')
-write(88,*) 401, 401
-write(88,*)  0, 8, 0,8
-do j=1,402
-write(88,'(8(2x,G13.5e3))') (REAL(fft_sum(i,j)),i=1,402)
-enddo
-close(88)
+!OPEN(88,file='example3.fft_inte', status='unknown')
+!write(88,*) 401, 401
+!write(88,*)  0, 8, 0,8
+!do j=1,402
+!write(88,'(8(2x,G13.5e3))') (REAL(fft_sum(i,j)),i=1,402)
+!enddo
+!close(88)
 IF(ALLOCATED(fft_field)) DEALLOCATE(fft_field)
 IF(ALLOCATED(fft_sum  )) DEALLOCATE(fft_sum  )
 !

@@ -100,7 +100,15 @@ REAL    , DIMENSION(1:3, 1:3)           ::  off_shift= 0.00
 REAL                                    ::  renergy  = 17.480782
 REAL                                    ::  rlambda  =  0.709260
 LOGICAL                                 ::  l_energy = .false.
+REAL   , DIMENSION(1:3,1:4)             ::  diff_eck_u  = 0.0   ! User supplied corners
+REAL    , DIMENSION(1:3, 1:3)           ::  diff_vi_u   = 0.0
+INTEGER , DIMENSION(1:3)                ::  diff_inc_u  = 1
 INTEGER                                 ::  dif_size_of = 0.0
+!
+LOGICAL                                 ::  diff_l_friedel = .FALSE.     ! Use Fridels law to reduce calculation time
+LOGICAL, DIMENSION(0:3)                 ::  diff_l_even    = .FALSE.     ! User inc is even along dimension
+LOGICAL, DIMENSION(1:3)                 ::  diff_l_all     = .FALSE.     ! User inc is even along all dimension
+INTEGER                                 ::  diff_idim      = 0           ! Which dimension has been cut in half
 !
 LOGICAL                                 ::  l_zone       = .false.
 REAL   , DIMENSION(1:3)                 ::  zone_uvw     = (/ 0.0, 0.0, 1.0/) 
