@@ -75,6 +75,17 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2020_July
+
+   Added a new energy "unid" to mmc. This is essentially the same 
+   as "corr", the SRO chemical short range order energy, except taken
+   strictly unidirectional from the center to the neighbor. It works
+   best with a "vector" environment in a locally noncentrosymmetric
+   environment.
+
+   Improved speed of fourier for the special case of a block of
+   LxMxN pixels that are centrosymmetrically around the origin.
+   All L,M,N must be odd and anomalous scattering be off.
 3  2020_May
 
    Added more parameters to the surface => boundary command to
