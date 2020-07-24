@@ -1767,11 +1767,6 @@ DO i=1,ianz1              ! Set "opposite" pairs
    END DO
 END DO
 !
-write(*,*) ' NEIG  ', ic
-write(*,*) '    1: ', mmc_pair(ic, ie, 1, 1:3)
-write(*,*) '    2: ', mmc_pair(ic, ie, 2, 1:3)
-write(*,*) '    3: ', mmc_pair(ic, ie, 3, 1:3)
-read(*,*) i
 !
 END SUBROUTINE mmc_set_unid_occ
 !
