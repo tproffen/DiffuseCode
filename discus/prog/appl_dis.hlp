@@ -83,7 +83,7 @@
    best with a "vector" environment in a locally noncentrosymmetric
    environment.
 
-   Improved speed of fourier for the special case of a block of
+   Improved speed of Fourier for the special case of a block of
    LxMxN pixels that are centrosymmetrically around the origin.
    All L,M,N must be odd and anomalous scattering be off.
 3  2020_May
@@ -457,7 +457,7 @@
    The 'read' ==> 'cell' and 'stru' commands have been changed to
    accept CIF, CMAKER and RMCprofile formats as well. 
 
-   The molecularize command will add atoms to a previous molecule, if
+   The 'molecularize' command will add atoms to a previous molecule, if
    the first atom is inside a molecule.
 3  2017_Feb
 
@@ -535,7 +535,7 @@
    Added option to the save menu to utilize the atom properties.
 3  2016_March
 
-   Within the ==> fourier menu, the radiation may also be defined
+   Within the ==> Fourier menu, the radiation may also be defined
    via its ==> 'energy' instead of its wavelength ==> 'wvle'
 
    Domains with an explicit shape (cube, sphere, cylinder) can now
@@ -1557,7 +1557,7 @@
    whereas the mode "quick" only looks at neighboring unit cells.
    BUT in the "quick" mode errors can occur due to using the "purge"
    command or appending atoms to the structure. 
-   Allowed bond angle range, bondlength range, calculation mode and 
+   Allowed bond angle range, bond length range, calculation mode and 
    sigmas for a neighbor matching criteria are given with the 
    'set' command.
 
@@ -2107,7 +2107,7 @@
 
    cif
    Exports the atoms of the current structure as a minimal CIF
-   file. with the optional parameter "spcgr" set to original you
+   file. With the optional parameter "spcgr" set to original you
    can retain this original space group instead of the default
    space group "P1". 
    You can even specify another space group instead of the string
@@ -2228,7 +2228,7 @@
               Exactly one 'set bond...' command is required.
    "donor"    Place a ligand molecule with a hydrogen bond type. 
               The surface atom acts as donor atom. The surface atom should
-              be a reasonable donor atom like H. and the ligand atom
+              be a reasonable donor atom like H, and the ligand atom
               should be a reasonable acceptor atom like O, N, ... 
               The ligand atom is placed at a user specified distance to the 
               surface atom. This distance should be around 1.9  Angstrom. 
@@ -2720,7 +2720,7 @@
 
    The <contentfile> contains a DISCUS type structure file with all the
    atoms that are to be placed inside the host crystal. You need to make 
-   sure that the structure listed in the <contetnfile> is large enough
+   sure that the structure listed in the <contentfile> is large enough
    to fill the empty void created by the respective domain. 
    The space group and unit cell dimensions of the domain structure and 
    the host crystal must be identical.
@@ -2766,7 +2766,7 @@
    the guest structure.
 
    The optional <sigma> allows for a size distribution of the domains.
-   the matrix part is multiplied by a factor (1 + gran(sigma)). 
+   The matrix part is multiplied by a factor (1 + gran(sigma)). 
    Discus cuts the factor at 0.01, all large values are allowed.
 3  inputfile
 !p inputfile <inputfile>
@@ -3095,10 +3095,17 @@
    Reset all Fourier definitions back to the default values at 
    system start. 
 3  run
-!p run
+!p run [ sigabs:[<sigma>, <h>, <k>, <l>]] [, sigord:[<sigma>, <h>, <k>, <l>]]
+!p     [,sigtop:[<sigma>, <h>, <k>, <l>]]
 
-   Starts the Fourier calculation. The user is given a rough
-   estimate of the time it will take.
+   Starts the Fourier calculation. 
+
+   The optional parameters enable you to apply a convolution with a 
+   triaxial Gaussian resolution function. The sigma and the directions
+   for the three half axes of the ellipsoid are independent. The
+   directions <h>, <k>, <l> can be omitted. In this case the directions 
+   default to the abscissa, ordinate and top axis of the Fourier 
+   calculation.
 3  scat
 !p scat { <name> | <number> },<a1>,<b1>,<a2>,<b2>,<a3>,<b3>,<a4>,<b4>,<c>
 !p scat { <name> | <number> | "all" }, <name>
@@ -3234,7 +3241,7 @@
 !p                                   in parameter no 7. "d" means real space,
 !p                                   "r" reciprocal space.
 !p gran(val,typ)                   ! Returns Gaussian distributed pseudo
-!p                                   random number with mean zero an a width
+!p                                   random number with mean zero and a width
 !p                                   given by parameter <val>. If <typ> is
 !p                                   "s" <val> is taken as sigma, if <typ>
 !p                                   is "f", <val> is taken as FWHM.
@@ -3257,7 +3264,7 @@
 !p                                   'normal', 'molecule', 'domain',  
 !p                                   'outside', 'external', 'inside', 
 !p                                   'ligand'.
-!p                                   The function will thus be used to querry
+!p                                   The function will thus be used to query
 !p                                   exactly one property. 
 !p                                   Alternatively the propstring can take 
 !p                                   the form 'NMDOEIL' or 'nmdoeil'
@@ -3301,7 +3308,7 @@
    two coordinates system will usually differ considerable, the space
    group of the imported structure is set to P1 unless the optional
    parameter space:host is used which changes the space group to that 
-   of the present strucure, the host.
+   of the present structure, the host.
 
    In order to transform a DISCUS file format the "metric:host" 
    parameter becomes mandatory.
@@ -3353,7 +3360,7 @@
 !p index2cell <x>,<y>,<z>,<site>
 
    This command allows to switch between a given index of the
-   storage array <atomindex> and the corresponding unitcell <x>,<y>,<z>
+   storage array <atomindex> and the corresponding unit cell <x>,<y>,<z>
    and site <site>. The parameter not given is calculated ...
 
    index2cell stores the results in the "res[]" variable:
@@ -3631,7 +3638,7 @@
 3  layer
 !p layer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 
-   sets the lower left, lower right and upper left corner of the
+   Sets the lower left, lower right and upper left corner of the
    Fourier plane to be calculated and sets the number of data
    points along the horizontal and the vertical
 3  ll
@@ -3830,13 +3837,13 @@
    Example
    i[0] = n[1]+1
    do i[1]=1,10
-     insert  al,ran(0),ran(0),0.5, 1.0, i[0],n[1], -2.4
+     insert  Al,ran(0),ran(0),0.5, 1.0, i[0],n[1], -2.4
    enddo
    This loop inserts up to 10 Al atoms in the x,y range 0 to 1 at
    z=0.5 with a minimum distance of 2.4 Angstrom. Since i[0], the 
    value for <na> is initially at n[1]+1, all previously inserted
    atoms are not affected. Since i[0] remains fixed within the loop,
-   each new al atom affects all al atoms previously inserted within
+   each new "Al" atom affects all "Al" atoms previously inserted within
    this loop.
 2  mc
 !p mc
@@ -3855,7 +3862,7 @@
    of commands available in this sub level. 
 
    NOTE: The MC and CHEM sub level share some variables which define
-         neighbours etc. and settings made in this sub level might be
+         neighbors etc. and settings made in this sub level might be
          altered when using the other sub level. It is always save to
          repeat settings when entering this sub level if both levels
          are used. 
@@ -3975,7 +3982,7 @@
 !p set "neig","rese"
 !p set "neig","vec",<iv1> [,<iv2>,..]
 
-   This command is used to define the neighbours used to determine the
+   This command is used to define the neighbors used to determine the
    correlations. The subcommand 'dis' uses the distance as a criterion
    whereas 'vec' uses defined interaction vectors (-> set vec). The
    subcommand 'ang' uses an angle at a site, defined by (-> set ang). The
@@ -4042,7 +4049,7 @@
    of commands available in this sub level. 
 
    NOTE: The MMC, MC and CHEM sub level share some variables which define
-         neighbours etc. and settings made in this sub level might be
+         neighbors etc. and settings made in this sub level might be
          altered when using the other sub level. It is always save to
          repeat settings when entering this sub level if both levels
          are used. 
@@ -4274,7 +4281,7 @@
 !p set "neig","rese"
 !p set "neig","vec",<iv1>,{ [<iv2>,..] | <iv2>, "range" }
 
-   This command is used to define the neighbours used to determine the
+   This command is used to define the neighbors used to determine the
    correlations. The subcommand 'env' uses defined interaction 
    environments (-> set env). The subcommand 'vec' uses defined
    interaction vectors (-> set vec). The
@@ -4556,6 +4563,14 @@
    line separating each block. Each line of each block contains:
    index along abscissa, index along ordinate, intensity, third index.
 
+!p "hdf5"
+   Sets the output to HDF5 file format. This applies to single
+   crystal data only, not to powder diffraction pattern.
+
+   The file format is compatible to the Yell program by Arkadiy 
+   Simonov. 
+   See the manual for details on the file format.
+
 !p "list5"
    Sets the output type to a SHELXL list 5. Each line of the output
    contains " h k l F F phase" in the format (3I4, 2F10.2,F2.2).
@@ -4576,8 +4591,8 @@
    Sets the output to NeXuS file format.
 
 !p "pgm"
-   Sets the type of the output to portable grey map. A bitmap of the
-   intensity is written in portable grey map style. All values below the
+   Sets the type of the output to portable gray map. A bitmap of the
+   intensity is written in portable gray map style. All values below the
    minimum threshold are set to this value, all values above the maximum
    threshold are set to this maximum value.
 
@@ -4706,7 +4721,7 @@
    Sets what value is written to the output file. The keyword given in
    < > corresponds to the value of the average structure factor <F> whereas
    the plain word stands for the resulting value of the Fourier transform
-   which can be F or F-<F> depending on the selected modus. The command
+   which can be F or F-<F> depending on the selected mode. The command
    'value int' will save the resulting intensity whereas 'value <int>' will
    give the intensity of the average structure. The allowed values are
    summed up in the following list:
@@ -4725,7 +4740,7 @@
 !p "F(Q)":   Reduced normalized total scattering function Q[S(Q)-1]
 !p "I(Q)":   Intensity divided by the number of atoms.
 !p "f2aver": Squared atomic form factors , averaged over all atoms
-!p "faver2": Average atomic form factor squared aver avarage
+!p "faver2": Average atomic form factor squared aver average
    The last five values are available for powder output only and require
    a Q axis. 
 
@@ -4809,7 +4824,7 @@
 !p real            imaginary
 
    If the input format is 'shelxl' then one input file is sufficient.
-   DISCUS assumes the input file to be a SHLEXL List type 5 containing
+   DISCUS assumes the input file to be a SHEXL List type 5 containing
    <h> <k> l> <Fobs> <Fcalc> <phase angle in degree>
    The file is read as free format.
 3  format
@@ -4866,7 +4881,7 @@
 3  layer
 !p layer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 
-   sets the lower left, lower right and upper left corner of the
+   Sets the lower left, lower right and upper left corner of the
    Fourier plane to be calculated and sets the number of data
    points along the horizontal and the vertical
 3  ll
@@ -4900,7 +4915,7 @@
 3  rholayer
 !p rholayer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 
-   sets the lower left, lower right and upper left corner of the
+   Sets the lower left, lower right and upper left corner of the
    real space plane to be calculated and sets the number of data
    points along the horizontal and the vertical
 3  rholl
@@ -5031,7 +5046,7 @@
 3  show
 !p show
 
-   shows the current settings for the Fourier transform file
+   Shows the current settings for the Fourier transform file
 3  type
 !p type {"a"|"b"},
 !p      {"intensity"|"amplitude"|"real"|"imaginary"|"phase"|"fobs"|"fcalc"}
@@ -5740,7 +5755,7 @@
 !p "kuplot"   The xyz coordinates of all selected atoms are written in the
 !p            sequence defined by the ==> 'col' command. A projection of the
 !p            structure along the third direction of the 'col' parameter is
-!p            plotted. The file contains the typ, color and size code set
+!p            plotted. The file contains the type, color and size code set
 !p            with the ==> 'set' command. Use 'load cr,<file>' to read the
 !p            file with KUPLOT.
 !p "atoms"    The coordinates are written in a format that can be imported
@@ -5763,7 +5778,7 @@
 !p            as long as it is not equal to zero degrees.
 !p "frames"   A movie file in the format of XBS is written to the
 !p            output file.
-!p            Remember to change the output filename to consist of an 
+!p            Remember to change the output file name to consist of an 
 !p            identical base as had been used for the main XBS output.
 !p            If the optional second parameter is "init", the frame file
 !p            is initialized.
@@ -5845,7 +5860,7 @@
 !p run  ["plot:inter"] [, "geom:"[<px>,<py>]]
         [, "kill:"["yes"|"no"]] [,"keep:"["yes"|"no"]]
 
-   Starts writing of the structure. If no output filename has been provided
+   Starts writing of the structure. If no output file name has been provided
    or no atoms been selected, an error message is given.
 
    If the plot progamm was selected as "jmol", you can start an 
@@ -5882,20 +5897,20 @@
 
    The selection made stay valid until explicitly deselected!
 3  set
-!p set { <name> | <number> }, <typ>,<col>,<size>
-!p set { <name> | <number> }, <typ>,<r>,<g>,<b>,<size>
+!p set { <name> | <number> }, <type>,<col>,<size>
+!p set { <name> | <number> }, <type>,<r>,<g>,<b>,<size>
 
-   This command allows to set the marker type <typ>, its color <col>
+   This command allows to set the marker type <type>, its color <col>
    and size <size> for the given atom or molecule. In case of atoms, 
    the input can be given by its name <name> or scattering type number 
    <number>. For molecules only <number> as the molecule type is a valid 
    input. The resulting file will contains the coordinates of the atom 
-   and typ, color and size in a row. This file can be read by KUPLOT 
+   and type, color and size in a row. This file can be read by KUPLOT 
    using the command
 
 !p    load cr,<file>
 
-   The possible values for <typ> are:
+   The possible values for <type> are:
 
 !p   0 : no marker       5 : filled square    10 : line (/)
 !p   1 : dot             6 : empty triangle   11 : line (\)
@@ -5917,7 +5932,7 @@
    result in the full marker size whereas 0.5 will reduce the size
    by 50%. 
 
-   If you are using 'gnuplot' as program typ (-> 'prog') the settings
+   If you are using 'gnuplot' as program type (-> 'prog') the settings
    will be ignored.
 
    If you are using the XBS program, the color can be represented 
@@ -5957,7 +5972,7 @@
 3  type
 !p typ { "crystal" | "projection" }
 
-   This command switches between to plot modes. The typ "crystal" will
+   This command switches between to plot modes. The type "crystal" will
    write the atom coordinates of the selected (-> 'sele') atoms on a 
    file. The type "projection" will remove the translation and all atoms
    will be projected in a single unit cell. The second type can be read
@@ -6032,7 +6047,7 @@
    Starts the calculation of the powder diffraction pattern.
 
    The optional arguments define the mode for multiple phases 
-   versus a single phase calculation. Default behaviour is that 
+   versus a single phase calculation. Default behavior is that 
    of a single phase calculation.
 
    The powder pattern of multiple phases are scaled to correspond to
@@ -6351,7 +6366,7 @@
 4  temp
 !p set temp,<switch>
 
-   sets whether temperature coefficients are to be used or not.
+   Sets whether temperature coefficients are to be used or not.
    Valid values for <switch> are "use" and "ignore". The first
    two letters of the switch are sufficient.
 4  wvle
@@ -6415,7 +6430,7 @@
    The global property selection rules apply to commands:
        'replace', 'mmc', 'find env'
        The respective operations for these commands are carried out only
-       if the selected atom fulfils the property selection criteria.
+       if the selected atom fulfills the property selection criteria.
 
    Local property selection rules are used in the menus:
        'plot', 
@@ -6475,7 +6490,7 @@
             placed onto the surface within the ==> 'deco' menu. 
 
    The second form with the optional arguments allows to define 
-   property like behaviour based on the connectivities that must 
+   property like behavior based on the connectivities that must 
    have been defined for the atom(s) of type <type>.
    nmin and nmax are minimum and maximum coordination numbers that the
         atom must have for the property to be true.
@@ -6530,7 +6545,7 @@
    ==> 'set crystal' command in the ==> 'chemistry' menu.
 
    The optional parameter allows control over the handling of atom types.
-   if "type:yes" is used the list of atom type will be purged as well. 
+   If "type:yes" is used the list of atom type will be purged as well. 
    Any atom type for which no atom is present in the crystal will be 
    deleted. Atom type numbers for the actual atoms will change! 
    The affects all atoms whose type number is larger than 
@@ -6774,7 +6789,7 @@
    This command reads the experimental data stored in <file>. The parameter
    "x-ray" / "neutron" selects what kind of scattering data are stored
    in the file. The second parameter is the wavelength which can be given
-   as <name> (like cua1 ..) or as value (like 1.23). After the filename
+   as <name> (like cua1 ..) or as value (like 1.23). After the file name
    <file> the weighting scheme to be used can be specified. The parameter
    <wic> can take the following values:
 
@@ -6796,8 +6811,9 @@
    information about the supported data file formats see help for the
    'set data' command.
 
-   By repeating the data command you can read several planes with exp.
-   data for the RMC fit. To start again use the 'rese' command.
+   By repeating the data command you can read several planes with 
+   experimental data for the RMC fit. To start again use 
+   the 'rese' command.
 3  dese
 !p dese { "all" | <name> | <number> }, [ ... ]
 
@@ -6856,7 +6872,7 @@
 
    This command saves the current structure to the file named <name>.
    The format is identical to the unit cell or structure file. Each
-   atom is written in format A4,3(2X,F11.6),5X,F6.4. The filename
+   atom is written in format A4,3(2X,F11.6),5X,F6.4. The file name
    can be created by an format string and one or more numbers -> filenames.
 4  scat
 !p save "scat",<plane>,<name>
@@ -6993,10 +7009,10 @@
    For details about the command and its parameters see the help file
    entry for 'four lots'. 
 
-   The optional last parameter is a filename for a file containing a
+   The optional last parameter is a file name for a file containing a
    predefined set of lot origins. This file can be created using
    'save lots,..' after a RMC refinement was carried out. If no
-   filename <fname> is given, DISCUS creates a new random set of
+   file name <fname> is given, DISCUS creates a new random set of
    lots for the RMC fit.
 
    The advantage of using lots is the combination of a smooth calculated
@@ -7032,7 +7048,7 @@
    The possible modes are:
 
 !p "shift"    : The selected atoms are displaced by a random move. The
-!p              max. size of a move can be specified via "set move .."
+!p              maximum size of a move can be specified via "set move .."
 !p              command.
 !p "swchem"   : Here two atoms are selected at random and their chemistry
 !p              is switched (if the atoms are selected via "sel" command).
@@ -7830,7 +7846,7 @@
 3  mass
 !p show mass
 
-   Cacluclates and displays the current crystal mass in multiples of 
+   Calculates and displays the current crystal mass in multiples of 
    atomic units u. 
 
    The results are stored into the result variable as:
@@ -8410,7 +8426,7 @@
                                     or the third principal "ellipsoid" axis.
                                     <u>,<v>,<w> are fractional components of
                                     the direction vector.
-                                    The four'th parameter is optional and
+                                    The fourth parameter is optional and
                                     defaults to "d". It specifies if the
                                     components of the vector are in direct
                                     or reciprocal space.
@@ -8534,7 +8550,7 @@
                         res[5:7]   1st. Surface normal
                         res[8:10]  2nd. Surface normal
    Corner : res[1] = 3, res[2:4]   1st. Surface normal
-                        res[8:...] 2nd. and further Surface normals
+                        res[8:...] 2nd. and further surface normals
 3  set
 
    Make various setting related to surfaces
@@ -9237,7 +9253,7 @@
 
    Transforms the reflections read from <infile> into reflections according
    to the new base system. The input format is the SHEXL format(3i4,2f8.2,i4).
-   All new reflections that are integer are written to the outputfile
+   All new reflections that are integer are written to the output file
    named <infile>".trans" in SHELX format. You can set an accuracy for
    being integer by the ==> 'set deltahkl' command. All other reflections,
    that are more than +-<deltahkl> away from integer h,k,l are written to
@@ -9248,7 +9264,7 @@
 
    Transforms the reflections read from <infile> into reflections according
    to the old base system. The input format is the SHEXL format(3i4,2f8.2,i4).
-   All old reflections that are integer are written to the outputfile
+   All old reflections that are integer are written to the output file
    named <infile>".trans" in SHELX format. You can set an accuracy for
    being integer by the ==> 'set deltahkl' command. All other reflections,
    that are more than +-<deltahkl> away from integer h,k,l are written to
@@ -9452,11 +9468,11 @@
 
 !p "env[<i>]"      Index of neighboring atoms as found by 
 !p                 ==> "find"
-!p                 "env[0]" is the number of neighbours.
+!p                 "env[0]" is the number of neighbors.
 
 !p "menv[<i>]"      Index of neighboring molecules as found by 
 !p                 ==> "find"
-!p                 "menv[0]" is the number of neighbours.
+!p                 "menv[0]" is the number of neighbors.
 
 !p "mol_cont[i1,i2]" Content of molecule number i1.
 !p                 mol_cont[i1,0] gives the number of
@@ -10189,7 +10205,7 @@
 
    An attempt was made to write output to or read from a file without 
    defining a file name. DISCUS does not provide default names for the
-   output of the 'plot' command or the input filenames. Check the
+   output of the 'plot' command or the input file names. Check the
    'outfile' command at sublevel 'output' and 'plot' or the 'content'
    command at sublevel 'microdomains'. 
 4  -38
@@ -10208,7 +10224,7 @@
    Since the correlation matrix gives the probabilities for existence 
    of a microdomain type, not all elements may be equal to zero. The 
    default values at startup are 1 for the diagonal elements and zero 
-   for all other elements. display the correlation matrix with the
+   for all other elements. Display the correlation matrix with the
    command 'show corr' and check the 'ccol', 'cele' and 'crow' commands 
    for proper values. 
 4  -40
@@ -11031,7 +11047,7 @@
 4  -155
    Coordination range is erroneous
 
-   For the user defined property like behaviour, the 
+   For the user defined property like behavior, the 
    coordination number limits must be given as
    nmin:<lower>, nmax:<upper>
    emin:<lower>, emax:<upper>
@@ -11138,7 +11154,7 @@
    Correlation fields require same mode
 
    To calculate correlation fields, all neighbor definitions must be
-   made using the same mode, i.e. 'dist' or 'vec'. Redefine the neighbours
+   made using the same mode, i.e. 'dist' or 'vec'. Redefine the neighbors
    to be used via the command 'set neig'. This condition is only valid 
    for 2-dimensional correlation fields.
 4  -18
@@ -11346,7 +11362,7 @@
    Too many experimental data planes
 
    This message appears if the user tries to read an additional plane of 
-   experiment al data and the maximal number of planes is exceeded. If that 
+   experimental data and the maximal number of planes is exceeded. If that 
    many data planes are really needed, the variable RMC_MAX_PLANES has to 
    be adjusted in the file 'config.inc' and DISCUS must be recompiled.
 4  -2
