@@ -42,13 +42,15 @@ SAVE
 !
 !     Color map 
       INTEGER, PARAMETER                 :: COL_MAP_NONE=0
-      INTEGER, PARAMETER                 :: COL_MAP_GRAY=0
-      INTEGER, PARAMETER                 :: COL_MAP_FIRE=1
-      INTEGER, PARAMETER                 :: COL_MAP_ICE =2
-      INTEGER, PARAMETER                 :: COL_MAP_THER=3
-      INTEGER, PARAMETER                 :: COL_MAP_KUPL=4
+      INTEGER, PARAMETER                 :: COL_MAP_GRAY=1
+      INTEGER, PARAMETER                 :: COL_MAP_FIRE=2
+      INTEGER, PARAMETER                 :: COL_MAP_ICE =3
+      INTEGER, PARAMETER                 :: COL_MAP_THER=4
+      INTEGER, PARAMETER                 :: COL_MAP_KUPL=5
+      INTEGER, PARAMETER                 :: COL_MAP_PDF =6
+      INTEGER, PARAMETER                 :: COL_MAP_READ=7
       REAL,    DIMENSION(MAXWIN,MAXCOL,3):: col_map    ! (maxwin,maxcol,3)
-      INTEGER                            :: col_map_type
+      INTEGER, DIMENSION(MAXWIN,MAXFRAME):: col_map_type
 !
 !     COMMON /dev/  dev_name,dev_prn,dev_sf,dev_height,  &
 !    &       dev_id,dev_width,dev_draw,col_map

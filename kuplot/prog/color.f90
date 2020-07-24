@@ -88,26 +88,34 @@ REAL :: zzmin, zzmax
       IF (ianz.ge.1) then 
          IF (str_comp (cpara (1) , 'gray', 3, lpara (1) , 4) ) then 
             CALL cmap_gray (.true.) 
+            col_map_type(iwin,iframe) = COL_MAP_GRAY
          ELSEIF (str_comp (cpara (1) , 'ice', 3, lpara (1) , 3) ) then 
             CALL cmap_ice (.true.) 
+            col_map_type(iwin,iframe) = COL_MAP_ICE
          ELSEIF (str_comp (cpara (1) , 'fire', 3, lpara (1) , 4) ) then 
             CALL cmap_fire (.true.) 
+            col_map_type(iwin,iframe) = COL_MAP_FIRE
          ELSEIF (str_comp (cpara (1) , 'kupl', 3, lpara (1) , 4) ) then 
             CALL cmap_kupl (.true.) 
+            col_map_type(iwin,iframe) = COL_MAP_KUPL
          ELSEIF (str_comp (cpara (1) , 'thermal', 3, lpara (1) , 7) ) then 
             zzmin = z_min (iwin, iframe, 1) 
             zzmax = nz(iwin, iframe, 1) * z_inc(iwin, iframe, 1) + z_min(iwin, iframe, 1)
             CALL cmap_thermal (zzmin, zzmax, .true.) 
+            col_map_type(iwin,iframe) = COL_MAP_THER
          ELSEIF (str_comp (cpara (1) , 'pdf', 3, lpara (1) , 7) ) then 
             zzmin = z_min (iwin, iframe, 1) 
             zzmax = nz(iwin, iframe, 1) * z_inc(iwin, iframe, 1) + z_min(iwin, iframe, 1)
             CALL cmap_pdf (zzmin, zzmax, .true.) 
+            col_map_type(iwin,iframe) = COL_MAP_PDF
          ELSEIF (str_comp (cpara (1) , 'invert', 3, lpara (1) , 6) )    &
          then                                                           
             CALL cmap_invert (.true.) 
+            col_map_type(iwin,iframe) = -col_map_type(iwin,iframe)
          ELSEIF (str_comp (cpara (1) , 'read', 3, lpara (1) , 4) ) then 
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 2) 
             IF (ier_num.eq.0) call cmap_read (cpara (2) ) 
+            col_map_type(iwin,iframe) = COL_MAP_READ
          ELSEIF (str_comp (cpara (1) , 'write', 3, lpara (1) , 5) )     &
          then                                                           
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 2) 
@@ -426,7 +434,7 @@ REAl, INTENT(IN) :: zzmin
 REAl, INTENT(IN) :: zzmax
 LOGICAL, INTENT(IN) :: lout
 !
-INTEGER :: i, m
+INTEGER :: i, m, n
 INTEGER :: ii
 INTEGER :: istart
 REAL    :: scalef
@@ -455,6 +463,7 @@ ELSE
 ENDIF
 !
    m = (maxcol-istart) / 3 
+n = MOD((maxcol-istart),3)
    ii = istart
 !                                                                       
    DO i = 1, m 
@@ -471,12 +480,13 @@ ENDIF
       ii = ii + 1 
    ENDDO 
 !                                                                       
-   DO i = 1, m 
+final:   DO i = 1, m + n + 1
+      if(ii>maxcol) EXIT final
       col_map (iwin, ii, 1) = 1.0 - REAL(3 * i) / REAL(maxcol) 
       col_map (iwin, ii, 2) = 0.0 
       col_map (iwin, ii, 3) = 0.0 
       ii = ii + 1 
-   ENDDO 
+   ENDDO  final
 !                                                                       
 !
 !  Negative colors like ICE

@@ -164,7 +164,7 @@ USE support_mod
                ENDIF 
                l_pdf = .FALSE.
             ELSEIF (cpara (1) (1:2) .eq.'PI') then 
-               filname = 'kuplot.pic' 
+               filname = 'kuplot.gif' 
                IF (orient (iwin) ) then 
                   idev = pic 
                ELSE 
@@ -1676,8 +1676,21 @@ USE lib_length
 !                                                                       
 !------ Setting colours                                                 
 !                                                                       
-      IF(col_map_type==COL_MAP_THER) THEN
-         CALL cmap_thermal(zzmin, zzmax, .TRUE.)
+      IF(ABS(col_map_type(iwin,iframe))==COL_MAP_GRAY) THEN
+         CALL cmap_gray(.FALSE.)
+      ELSEIF(ABS(col_map_type(iwin,iframe))==COL_MAP_FIRE) THEN
+         CALL cmap_fire(.FALSE.)
+      ELSEIF(ABS(col_map_type(iwin,iframe))==COL_MAP_ICE ) THEN
+         CALL cmap_ice(.FALSE.)
+      ELSEIF(ABS(col_map_type(iwin,iframe))==COL_MAP_KUPL) THEN
+         CALL cmap_kupl(.FALSE.)
+      ELSEIF(ABS(col_map_type(iwin,iframe))==COL_MAP_THER) THEN
+         CALL cmap_thermal(zzmin, zzmax, .FALSE.)
+      ELSEIF(ABS(col_map_type(iwin,iframe))==COL_MAP_PDF) THEN
+         CALL cmap_pdf(zzmin, zzmax, .FALSE.)
+      ENDIF
+      IF(col_map_type(iwin,iframe)<0) THEN
+         CALL cmap_invert(.FALSE.)
       ENDIF
       CALL PGQCIR (ix, iy) 
       IF (ix.lt. (iaf (iwin) + 19) ) ix = iaf (iwin) + 19 
