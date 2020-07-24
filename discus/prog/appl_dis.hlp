@@ -3101,11 +3101,14 @@
    Starts the Fourier calculation. 
 
    The optional parameters enable you to apply a convolution with a 
-   triaxial Gaussian resolution function. The sigma and the directions
-   for the three half axes of the ellipsoid are independent. The
-   directions <h>, <k>, <l> can be omitted. In this case the directions 
-   default to the abscissa, ordinate and top axis of the Fourier 
-   calculation.
+   triaxial Gaussian resolution function. 
+   The sigma's are in units of reciprocal Angstrom, keep in mind that
+   DISCUS uses the definition a* = 1/a instead of a* = 2pi/a.
+
+   The sigma and the directions for the three half axes of the 
+   ellipsoid are independent. The directions <h>, <k>, <l> can be 
+   omitted. In this case the directions default to the abscissa, 
+   ordinate and top axis of the Fourier calculation.
 3  scat
 !p scat { <name> | <number> },<a1>,<b1>,<a2>,<b2>,<a3>,<b3>,<a4>,<b4>,<c>
 !p scat { <name> | <number> | "all" }, <name>
