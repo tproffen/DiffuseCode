@@ -327,7 +327,7 @@ ELSE
    ELSEIF(nlayer  >  h5_dims(1)) THEN
       ier_num = -71
       ier_typ = ER_APPL
-      ier_msg(1) = 'Layer number <= 0'
+      WRITE(ier_msg(1),'(a,i4)') 'Layer number > ', nlayer
       ier_msg(2) = 'FILE '//h5_infile (1:LEN(ier_msg)-5)
       DEALLOCATE(h5_datasets)
       RETURN
