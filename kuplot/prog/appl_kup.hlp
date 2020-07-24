@@ -41,7 +41,7 @@
 !p excl          : Exclude regions from 1D files
 !p fill          : Set filling style
 !p fit           : Enter least square fit sub level
-!p fnam          : Toggle plot of filenames in upper left corner
+!p fnam          : Toggle plot of file names in upper left corner
 !p font          : Set font size, type and color
 !p fset          : Set type of plot frame (axis, tick marks, ..)
 !p frames        : More information about the use of frames
@@ -100,7 +100,7 @@
 3  2020 July
    Added a new color scheme "pdf" that gives white colors at 
    level zero, yellow to red colors for positive values and
-   light to rakr blue values for negative values.
+   light to dark blue values for negative values.
    The ==> 'hlin' command has been modified to be better suited
    to PDF plots. New modes are:
      hlin 1, zmin, zdelta, n, %m  !percentages with respect to
@@ -113,7 +113,7 @@
    Added 'h5' for HDF5 capabilities to the load command. 
 
    The buttons in the interactive "mouse" mode have been revised 
-   and kyeboard input has been added in case you do not have a
+   and keyboard input has been added in case you do not have a
    three button mouse. 
 3  2019_December
    Changed the fit algorithm to a more stable routine
@@ -275,7 +275,7 @@
 !p         separator:<name> 
 
    Defines the name and type of the 2D input files.
-   The filename must be specified within double quotation marks
+   The file name must be specified within double quotation marks
    and contain a format descriptor that will be replaced by the 
    formal "LOOP" loop index. The loop index must be called "LOOP".
 
@@ -402,7 +402,7 @@
    points for a 2d data set. To allocate a 3d data sets, the size in x-
    and y-direction is given after the name of the data set. The parameter
    <name> just specifies a name for the data set (also used as default
-   filename if the data set is saved).
+   file name if the data set is saved).
 2  angl
 !p angl [<angle>]
 
@@ -562,7 +562,7 @@
       negative values are light blue to dark blue to black.
       This color map is best combined with the contour lines as:
       hlin 1, <inc>, <n> {, "%" }
-      as this ensures that the contor lines are equally spaced around 
+      as this ensures that the contour lines are equally spaced around 
       the zero level.
 
    Color maps
@@ -706,7 +706,7 @@
 
 !p function   2d   3d   what            <par>
 !p -----------------------------------------------------------
-!p  "poly"    yes  no   polynomial         order of the polynomial
+!p  "poly"    yes  no   polynomial      order of the polynomial
 !p  "cheb"    yes  no   Chebyshev poly. order of the polynomial
 !p  "gaus"    yes  yes  Gaussian        number of Gaussians
 !p  "lore"    yes  no   Lorentzian      number of Lorentzians
@@ -998,7 +998,7 @@
 !p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>]
 !p            [,"success:"<lamda_g>]
 
-   Allows to fine tune the relaxation behaviour.
+   Allows to fine tune the relaxation behavior.
    The initial Levenberg-Marquardt lamda parameter is defined
    with ["start:"<lamda_s>]. Default is 0.001
 
@@ -1017,8 +1017,8 @@
 3  save
 !p save
 
-   This command saves the current fit results. The output filename
-   is the filename of the input data set with the following extensions:
+   This command saves the current fit results. The output file name
+   is the file name of the input data set with the following extensions:
 
 !p   .erg  : text file with fit results
 !p   .fit  : calculated data set
@@ -1036,7 +1036,7 @@
 
    This command has become obsolete, please use the ==> 'relax' 
    command instead.
-   the command urf will set the initial value of lamda for the 
+   The command urf will set the initial value of lamda for the 
    Levenberg-Marquadt refinement a reasonable value is about 0.001
 
    The value is automatically adjusted to allow a smooth 
@@ -1057,9 +1057,9 @@
 2  fnam
 !p fnam [ {"on" | "off"} ]
 
-   This command determines weather the filename should be plotted for
+   This command determines weather the file name should be plotted for
    every data set in the upper right corner. Called without parameters, 
-   filename plotting is switched off.
+   file name plotting is switched off.
 2  font
 !p font <prop>,<value>,..
 
@@ -1098,7 +1098,7 @@
 
 !p   1 : main title line               2: subtitle line
 !p   3 : axis labels                   4: numbers at axis
-!p   5 : text in text frame            6: filename & caption
+!p   5 : text in text frame            6: file name & caption
 
    The allowed default color values <icol> are listed below. Note
    that they can be changed by the user via the command 'color'.
@@ -1124,7 +1124,7 @@
 
 !p   1 : main title line               2: subtitle line
 !p   3 : axis labels                   4: numbers at axis
-!p   5 : text in text frame            6: filename & caption
+!p   5 : text in text frame            6: file name & caption
 
    Alternatively if only one parameter is given after "size", all fonts
    will be scaled by the given factor <scale>, i.e. a value of 0.5 will
@@ -1132,12 +1132,12 @@
 3  typ
 !p font "typ",<id>,<typ>
 
-   This command sets the font of the text typ <id> to <typ>. Allowed
+   This command sets the font of the text type <id> to <typ>. Allowed
    values for the text typ parameter <id> are:
 
 !p   1 : main title line               2: subtitle line
 !p   3 : axis labels                   4: numbers at axis
-!p   5 : text in text frame            6: filename & caption
+!p   5 : text in text frame            6: file name & caption
 
    Currently implemented fonts are:
 
@@ -1421,7 +1421,7 @@
 !p form    : Sets output file format
 !p help    : Displays on-line help (see general help)
 !p m999    : Treatment of excluded data points
-!p outfile : Specifies the output filename
+!p outfile : Specifies the output file name
 !p run     : Saves file and leaves KSAV level 
 !p show    : Shows the current settings
 !p thresh  : Sets threshold for PGM file output
@@ -1434,7 +1434,7 @@
    is not required, the default is the current plotting window.
    The following list shows the valid file formats:
 
-!p <ff>   <p1>,....           required   What
+!p <ff>   <p1>,....           Required   What
 !p ---------------------------------------------------------------------
 !p  xy    xmin,xmax,[<style>]    no      Saves xy file from xmin,xmax
 !p  ni    xmin,xmax,ymin,ymax    no      Nipl file, given area
@@ -1477,7 +1477,7 @@
 !p outfile <fname>
 
    This command specifies the name of the output file. See entry 'filenames'
-   for more information about the building of filenames.
+   for more information about the building of file names.
 3  run
 !p run
 
@@ -1612,7 +1612,7 @@
 !p load 4d,<file>,<ix>,<iy>,<iz>,<ival>
 
    This command allows to read a section from a NIPL type 4D files
-   (x y z value). The first two parameters after the filename define
+   (x y z value). The first two parameters after the file name define
    which index is mapped to x and y in KUPLOT. The next parameter
    defined which index is used for cutting and <ival> specified the
    value at which the cut is performed.
@@ -1685,6 +1685,18 @@
    Finally if the last optional parameter is set to "norm", the intensities
    will be normalized by the incident spectrum. A valid instrument parameter
    file is required in this case.
+3  h5
+!p load h5,<file> [, layer:<number>]
+!p load h5,<file> [, layer:{"bottom"|"middle"|"top"}]
+
+   This commands reads an HDF5 file format as written by the DISCUS
+   section or the Yell program.
+
+   By default, the middle layer is presented, optionally you can specify 
+   a layer number or the "bottom" or "top" layer.
+
+   All layers in the HDF5 file are read, and you can use hte ==> 'mouse'
+   menu to step through the layers.
 3  ma
 !p load ma,<file>
 
@@ -1720,7 +1732,7 @@
 !p load smca,<file>,[<iscan> [,<iscan>, <ipoint> [,"kev",par1,par2,par3]]]
 
    This command allows one to read SPEC scan files. The parameter
-   <file> is as usual the filename. If no further parameters are 
+   <file> is as usual the file name. If no further parameters are 
    given, KUPLOT lists the scans present in the file. The next
    parameter <iscan> is the number of the scan. Rather than an
    individual scan, one can specify a range of scans to be read
@@ -2126,7 +2138,7 @@
 !p rdef [<fname>]
 
    This command reads the KUPLOT setting from a defaults file. If
-   no filename <fname> is give, the setting are read from 'kuplot.def'.
+   no file name <fname> is give, the setting are read from 'kuplot.def'.
 2  rebin
 !p rebin <ik>,<delta>
 
@@ -2185,7 +2197,7 @@
    point. If omitted, no arrow is drawn.
 
    Font type, size and color is similar to the settings for
-   filenames and caption (-> font). Call 'sann' without parameters
+   file names and caption (-> font). Call 'sann' without parameters
    or use 'show annotation' to get a list of the currently set
    annotations.
 2  save
@@ -2209,7 +2221,7 @@
 !p sdef [<fname>]
 
    This command writes the current setting of KUPLOT in a file. If
-   no filename <fname> is give, the setting are written to 'kuplot.def'.
+   no file name <fname> is give, the setting are written to 'kuplot.def'.
 2  show
 !p show <sub> [,<par>]
 

@@ -18,7 +18,7 @@
 
 !p data     ! Defines the data set 
 !p finished ! Terminates the slave macro
-!p fix      ! Fixes a prameter, free with newparam
+!p fix      ! Fixes a parameter, free with newparam
 !p newparam ! Defines and sets a new parameter, which is to be refined  
 !p reset    ! Performs a global reset to system start conditions
 !p run      ! Starts the refinement
@@ -93,7 +93,7 @@
 
    The command performs three tasks:
    - Defines a new parameter named <parname>
-   - Frees a parametere <pname> that had previously been fixed 
+   - Frees a parameter <pname> that had previously been fixed 
      by the ==> 'fix' command
    - Defines a constant <pname> that you may need to use in the 
      user macro.
@@ -140,7 +140,7 @@
       the cost function at the current parameter value and at points 
       at slightly smaller and slightly larger values. REFINE calculates
       the shift of the original parameter values as par*<value>. It is
-      not straighhtforward to recommend good values. For parameters that
+      not straightforward to recommend good values. For parameters that
       can be expected to give a smooth variation of the cost function
       like scale factors a value of 0.003 seems to be good. For
       parameters like nano particle diameters larger values like 0.1 to
@@ -148,13 +148,13 @@
       Default: shift:0.003
 
    points:<nderiv>
-      REFINE estimates the derivative by calculting the cost function
+      REFINE estimates the derivative by calculating the cost function
       at either:
       the 3 points        p-h; p; p+h          or at 
       the 5 points  p-2h; p-h; p; h+h; p+2h.
-      The five point estimate is more accurate and is reccommended 
+      The five point estimate is more accurate and is recommended 
       for parameters like nanoparticle diameters. 
-      Defalut: points:3
+      Default: points:3
 2  reset
 !p reset
 
@@ -163,7 +163,7 @@
 !p run <work.mac> [, "plot:"<kuplot_macro.mac>]
 
    Starts the actual refinement using the macro <work.mac> to 
-   simulate the structure and to eveluate the cost function.
+   simulate the structure and to evaluate the cost function.
 
    The optional parameter "plot:" instructs REFINE to display the
    observed and calculated data at each cycle. The macro 
@@ -223,7 +223,7 @@
 !p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>] 
 !p            [,"success:"<lamda_g>]
 
-   Allows to fine tune the relaxation behaviour. 
+   Allows to fine tune the relaxation behavior. 
    The initial Levenberg-Marquardt lamda parameter is defined
    with ["start:"<lamda_s>]. Default is 0.001 
 

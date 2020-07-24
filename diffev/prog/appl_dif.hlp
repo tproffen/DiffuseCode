@@ -30,7 +30,7 @@
    as the failed slave. 
 
    A bug was fixed in the handling of the random state for
-   "diffev_best.mac". The random state is now recorded exaclty.
+   "diffev_best.mac". The random state is now recorded exactly.
 3  2019_Jan
 
    Improved the writing of the diffev_best.mac macro. 
@@ -51,7 +51,7 @@
 3  2018_Oct
 
    Added a ==> 'release' command that is intended to act
-   complementary to a previopus ==> 'fix' command.
+   complementary to a previous ==> 'fix' command.
 3  2018_July
 
    A small modification to the "diffev_best" macro. 
@@ -160,7 +160,7 @@
    ref_para[1..]   Current trial parameters for current child
 3  2016_june
 
-   DIFFEV may now be interupted gracefully with a CTRL-c.
+   DIFFEV may now be interrupted gracefully with a CTRL-c.
    This will cause DIFFEV to shut down MPI if active.
 
    The 'run_mpi' command can now be used as a generic interface to identical
@@ -332,7 +332,7 @@
 
    DIFFEV writes a short file for each member that contains the current
    parameters for one member. 
-   The user defined filename is appended by a four digit member number.
+   The user defined file name is appended by a four digit member number.
    The first lines contain the information
    on current generation number, the number of members in the population,
    the number of children and the number of parameters
@@ -349,7 +349,7 @@
    Result files (obsolete)
 
    DIFFEV expects to read the R-values for each member from a short file.
-   The user defined filename is appended by a four digit member number.
+   The user defined file name is appended by a four digit member number.
 
    The file must contain the member number and the R-value in free format
    within the first line.
@@ -642,7 +642,7 @@
    inputfile.????.extension
    where "????" is a four digit integer number with leading zeros.
    Note that the '.' before the number "????" and before the extension
-   are mandatory parts of the filename. You need to ensure that your
+   are mandatory parts of the file name. You need to ensure that your
    version of "kup.diffev.mac" adheres to this standard. 
    If the output file name includes a path, make sure that the output
    directory does exist. DIFFEV does not create the output directory.
@@ -690,7 +690,7 @@
    Branches to the "kuplot" or "discus" section.
 
    Within this section any standard KUPLOT command can be
-   given. The behaviour of "kuplot" is essentially the same
+   given. The behavior of "kuplot" is essentially the same
    as in the stand alone version. Likewise for DISCUS.
   
    The main use will branch to KUPLOT while the discus section
@@ -769,7 +769,7 @@
    and replace these parents. 
 
    This command should be used after you changed the parameter dimension
-   and initialised ==> 'init' some or all of the trial values. 
+   and initialized ==> 'init' some or all of the trial values. 
    Otherwise, many or eval all of the new children might not have
    a better R-value than their parents, and as a consequence the 
    (re-)initialization of the trial values may get lost.
@@ -873,7 +873,7 @@
    actual development across the cycles is not relevant to you you 
    can reduces the file sizes drastically be a sequence like:
    pop_gen[1] = 1
-   initialise logfile
+   initialize logfile
 2  lastfile
 !p lastfile <filename>
 
@@ -942,7 +942,7 @@
    This command is only needed if you want to add a new parameter 
    to a refinement that you want to continue and the ==> 'newparam'
    command is the first command in DIFFEV after starting the 
-   program prior to the ==> 'run_mpi'command.
+   program prior to the ==> 'run_mpi' command.
 
    Example:
    read
@@ -1061,8 +1061,8 @@
    These temporary files are used to communicate the R-value from the 
    slave program back to DIFFEV. 
    DIFFEV expects a separate file for each member of the population. 
-   The filename <result> is automatically augmented by a four digit 
-   member number. Thus, if the filename is Results, DIFFEV expects to 
+   The file name <result> is automatically augmented by a four digit 
+   member number. Thus, if the file name is Results, DIFFEV expects to 
    find the files:
 !p Results.0001
 !p Results.0002
@@ -1220,8 +1220,8 @@
    between DIFFEV and the slave program. 
 
    DIFFEV writes a separate file for each member of the population. 
-   The filename <filename> is automatically augmented by a four digit 
-   member number. The if the filename is Trials, DIFFEV expects to 
+   The file name <filename> is automatically augmented by a four digit 
+   member number. The if the file name is "Trials", DIFFEV expects to 
    find the files:
 !p Trials.0001
 !p Trials.0002
@@ -1276,7 +1276,7 @@
 !p               automatically. If the population is increased, the R-values
 !p               for the new members are set to ten times the maximum 
 !p               current R-value. Parameter values are copied from old 
-!p               member no. one.
+!p               member number one.
 !p pop_c[1]      The size of the children population
 !p               The size of the children population may be changed during a
 !p               refinement. In this case, a new set of trial files is 
