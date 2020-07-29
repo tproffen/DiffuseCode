@@ -103,7 +103,7 @@ REAL :: zzmin, zzmax
             zzmax = nz(iwin, iframe, 1) * z_inc(iwin, iframe, 1) + z_min(iwin, iframe, 1)
             CALL cmap_thermal (zzmin, zzmax, .true.) 
             col_map_type(iwin,iframe) = COL_MAP_THER
-         ELSEIF (str_comp (cpara (1) , 'pdf', 3, lpara (1) , 7) ) then 
+         ELSEIF (str_comp (cpara (1) , 'pdf', 3, lpara (1) , 3) ) then 
             zzmin = z_min (iwin, iframe, 1) 
             zzmax = nz(iwin, iframe, 1) * z_inc(iwin, iframe, 1) + z_min(iwin, iframe, 1)
             CALL cmap_pdf (zzmin, zzmax, .true.) 
