@@ -275,7 +275,6 @@ LOGICAL         , INTENT(IN)    :: echo
 CHARACTER(LEN=PREC_STRING) :: cwd 
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 CHARACTER(LEN=PREC_STRING) :: string
-CHARACTER(LEN=PREC_STRING) :: message
 CHARACTER(LEN=   1)        :: drive
 CHARACTER(LEN=   6)        :: mntdrive
 INTEGER                    :: i

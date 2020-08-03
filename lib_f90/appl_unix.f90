@@ -752,13 +752,13 @@ USE support_mod
 !
 IMPLICIT none 
 !                                                                       
-INTEGER, PARAMETER :: ird = 34
+!INTEGER, PARAMETER :: ird = 34
 !
-CHARACTER(LEN=PREC_STRING) :: line
+!CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=7)    :: progname
 INTEGER :: progname_l
 INTEGER :: i
-LOGICAL :: l_exist
+!LOGICAL :: l_exist
 !
 IF(lstandalone) THEN
    progname = pname          ! Make a local copy of the program name pname
@@ -778,7 +778,7 @@ umac_dir_l = LEN(TRIM (umac_dir) )
 !                                                                       
 hlpfile = ' ' 
 hlpdir  = ' ' 
-hlpdir  = share_dir
+hlpdir  = share_dir(1:MIN(LEN(hlpdir),LEN_TRIM(share_dir)))
 hlp_dir_l = share_dir_l
 hlpfile   = hlpdir(1:hlp_dir_l)//progname(1:progname_l)//'.hlp'
 hlpfile_l = LEN(TRIM (hlpfile) )
@@ -1253,6 +1253,7 @@ DATA terminal_execute /' --             ', &
                        ' --hold -e      '  &
                       /
 !
+j = 0
 IF(operating==OS_LINUX) THEN
   IF(operating_name=="ManjaroLinux" ) THEN
      istart = MAXTERM-1
