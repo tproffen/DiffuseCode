@@ -1637,9 +1637,7 @@ CHARACTER(LEN=PREC_STRING) :: kill_file
 CHARACTER(LEN=PREC_STRING) :: line
 !
 INTEGER             :: jmol_pid   ! jmol Process identifier
-INTEGER             :: jppid      ! jmol Parent Process identifier
 INTEGER             :: ios
-INTEGER             :: length
 !
 LOGICAL :: lpresent
 LOGICAL :: did_kill
@@ -1657,12 +1655,12 @@ ENDIF
 !
 did_kill = .FALSE.
 IF(operating=='Linux') THEN
-   WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
-         '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep '
-   CALL EXECUTE_COMMAND_LINE(line)
-   WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
-        '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep | awk ''{print $2}'' '
-   CALL EXECUTE_COMMAND_LINE(line)
+!   WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
+!         '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep '
+!   CALL EXECUTE_COMMAND_LINE(line)
+!   WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
+!        '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep | awk ''{print $2}'' '
+!   CALL EXECUTE_COMMAND_LINE(line)
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' ' // &
         '| grep -F ''.mol'' | grep -F ''java'' | grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
