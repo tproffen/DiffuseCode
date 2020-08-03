@@ -1605,15 +1605,6 @@ USE crystal_mod
 !
 IMPLICIT NONE
 !
-INTEGER :: i,j
-!
-!OPEN(88,file='example3.fft_inte', status='unknown')
-!write(88,*) 401, 401
-!write(88,*)  0, 8, 0,8
-!do j=1,402
-!write(88,'(8(2x,G13.5e3))') (REAL(fft_sum(i,j)),i=1,402)
-!enddo
-!close(88)
 IF(ALLOCATED(fft_field)) DEALLOCATE(fft_field)
 IF(ALLOCATED(fft_sum  )) DEALLOCATE(fft_sum  )
 !
