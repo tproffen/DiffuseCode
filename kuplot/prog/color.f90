@@ -438,7 +438,7 @@ INTEGER :: i, m, n
 INTEGER :: ii
 INTEGER :: istart
 REAL    :: scalef
-REAL    :: red, green!, blue
+!REAL    :: red, green!, blue
 !
 !  CALL cmap_fire(lout)
 !  CALL cmap_invert(lout)

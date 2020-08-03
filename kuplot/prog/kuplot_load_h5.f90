@@ -114,7 +114,7 @@ INTEGER                                     :: ianz
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 INTEGER                   , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
-INTEGER :: i,j                      ! Dummy loop indices
+INTEGER :: j                        ! Dummy loop indices
 INTEGER :: nlayer                   ! Layer to place into KUPLOT
 !
 h5_infile = infile
