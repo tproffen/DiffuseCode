@@ -12,17 +12,17 @@ SAVE
 !     NMAX    : Maximum number of atoms
 !     MAXAT_CELL : Maximum number of atoms per unit cell
 !
-      INTEGER,  PARAMETER  ::  DEF_NMAX              = 1100000
-      INTEGER,  PARAMETER  ::  DEF_MAXSCAT           =     100
-      INTEGER,  PARAMETER  ::  DEF_MAXAT_CELL        =     250
+!     INTEGER,  PARAMETER  ::  DEF_NMAX              = 1100000
+!     INTEGER,  PARAMETER  ::  DEF_MAXSCAT           =     100
+!     INTEGER,  PARAMETER  ::  DEF_MAXAT_CELL        =     250
 !
-      INTEGER        MAXAT_CELL
+!     INTEGER              ::     MAXAT_CELL
       INTEGER              ::  MAXSCAT               = 1
       INTEGER              ::  NMAX                  = 1
 !
 !     PARAMETER      (NMAX       = 1000000)
 !     PARAMETER      (MAXSCAT    =  25)
-      PARAMETER      (MAXAT_CELL = 250)
+!     PARAMETER      (MAXAT_CELL = 250)
 !
 !#######################################################################
 ! (1b) Molecules
@@ -39,9 +39,9 @@ SAVE
 !               table ranges from 0 to (CFPKT+1)*CFINC
 !
 !
-      INTEGER,  PARAMETER  ::  DEF_MAXQXY            = 301*301
-      INTEGER,  PARAMETER  ::  DEF_CFPKT             =    4999
-      REAL   ,  PARAMETER  ::  DEF_CFINC             =       0.001
+!     INTEGER,  PARAMETER  ::  DEF_MAXQXY            = 301*301
+!     INTEGER,  PARAMETER  ::  DEF_CFPKT             =    4999
+!     REAL   ,  PARAMETER  ::  DEF_CFINC             =       0.001
 !
       INTEGER             ::   MAXQXY
       INTEGER, PARAMETER  ::   CFPKT  = 4999
@@ -63,14 +63,14 @@ SAVE
 !     RMC_MAX_LOTS   : Maximum number of 'lots' allowed
 !
 !     INTEGER            RMC_MAX_Q ,RMC_MAX_PLANES,RMC_MAX_SYM
-      INTEGER            RMC_MAX_ATOM
+!     INTEGER            RMC_MAX_ATOM
 !     INTEGER            RMC_MAX_ATOM,RMC_MAX_LOTS,RMC_MAX_SQ
 !
 !     PARAMETER      (RMC_MAX_PLANES = 1)
 !     PARAMETER      (RMC_MAX_SYM    = 1)
 !     PARAMETER      (RMC_MAX_Q      = 100000 )
 !     PARAMETER      (RMC_MAX_SQ     = RMC_MAX_SYM*RMC_MAX_Q) ! RMC_MAX_SYM*RMC_MAX_Q)
-      PARAMETER      (RMC_MAX_ATOM   = 20)
+!     PARAMETER      (RMC_MAX_ATOM   = 20)
 !     PARAMETER      (RMC_MAX_LOTS   = 100)
 !
 !#######################################################################
@@ -86,31 +86,25 @@ SAVE
 !     CHEM_MAX_COR  : Maximum number of correlations
 !     CHEM_MAX_BIN  : Maximum number of points for histograms
 !     CHEM_MAX_ATOM : Maximum number of different atoms
-!     CHEM_MAX_NEIG : Maximum number of neighbouring atoms/molecules
 !     CHEM_MAX_CENT : Maximum number of central atoms
 !
 !       INTEGER         CHEM_MAX_VEC
 !       INTEGER         CHEM_MAX_ANG
-        INTEGER         CHEM_MAX_COR
+!       INTEGER         CHEM_MAX_COR
 !       INTEGER         CHEM_MAX_RAN
 !       INTEGER         CHEM_MAX_ENV
-        INTEGER         CHEM_MAX_BIN,CHEM_MAX_ATOM
-      INTEGER            CHEM_MAX_NEIG,MAX_ATOM_ENV
-      INTEGER            CHEM_MAX_CENT
+!       INTEGER         CHEM_MAX_BIN,CHEM_MAX_ATOM
+!       INTEGER         CHEM_MAX_ATOM
+!     INTEGER            CHEM_MAX_CENT
 !
 !       PARAMETER       (CHEM_MAX_VEC  = 200 )
 !       PARAMETER       (CHEM_MAX_RAN  = 200 )
 !       PARAMETER       (CHEM_MAX_ANG  = 200 )
 !       PARAMETER       (CHEM_MAX_ENV  = 5000)
-        PARAMETER       (CHEM_MAX_COR  = 200 )
-        PARAMETER       (CHEM_MAX_BIN  = 2001)
-        PARAMETER       (CHEM_MAX_ATOM = 20  )
-!     Warning!      MAXPAR_RES  in "param_mod.f90" must always be of 
-!                                 identical size to
-!                 CHEM_MAX_NEIG in "config_mod.f90"
-        PARAMETER       (CHEM_MAX_NEIG = 6000 )
-       PARAMETER        (MAX_ATOM_ENV  = CHEM_MAX_NEIG)
-      PARAMETER      (CHEM_MAX_CENT = 200 )
+!       PARAMETER       (CHEM_MAX_COR  = 200 )
+!       PARAMETER       (CHEM_MAX_BIN  = 2001)
+!       PARAMETER       (CHEM_MAX_ATOM = 20  )
+!     PARAMETER      (CHEM_MAX_CENT = 200 )
 !
 !#######################################################################
 ! (5) Microdomains
