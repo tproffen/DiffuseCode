@@ -3,7 +3,7 @@ MODULE mole_env_mod
 !
 !     include file for molecular environment variables
 !-
-USE discus_config_mod
+USE atom_env_mod
 !
 SAVE
 !
