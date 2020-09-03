@@ -44,7 +44,7 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      INTEGER i, j, k
+!     INTEGER i, j, k
       INTEGER stift (0:4) 
 !                                                                       
       DATA stift / 5, 3, 1, 2, 4 / 
@@ -67,15 +67,15 @@ CONTAINS
 !                                                                       
 !     /chem/                                                
 !                                                                       
-      DO i = 1, CHEM_MAX_COR 
-      chem_ldall (i) = .true. 
-      chem_cang (i) = .false. 
-      chem_ctyp (i) = CHEM_NONE 
-      chem_nvec (i) = 0 
-      chem_freq_sigma (i) = 0.05 
-      chem_wink_sigma (i) = 0.05 
-      chem_dir (1, 1, i) = - 9999 
-      ENDDO 
+!     DO i = 1, CHEM_MAX_COR 
+      chem_ldall (:) = .true. 
+      chem_cang (:) = .false. 
+      chem_ctyp (:) = CHEM_NONE 
+      chem_nvec (:) = 0 
+      chem_freq_sigma (:) = 0.05 
+      chem_wink_sigma (:) = 0.05 
+      chem_dir (1, 1, :) = - 9999 
+!     ENDDO 
 !                                                                       
 !     /mcbl/                                                
 !                                                                       
@@ -90,30 +90,37 @@ CONTAINS
       mo_atom (3)  = '    ' 
       mo_sel_atom = .true. 
 !                                                                       
-      DO k = 1, CHEM_MAX_COR 
-      DO i = 0, MAXSCAT 
-      DO j = 0, MAXSCAT 
-      mo_disp (k, i, j) = 0.0 
-      ENDDO 
-      ENDDO 
-      ENDDO 
+!      DO k = 1, CHEM_MAX_COR 
+!      DO i = 0, MAXSCAT 
+!      DO j = 0, MAXSCAT 
+!      mo_disp (k, i, j) = 0.0 
+!      ENDDO 
+!      ENDDO 
+!      ENDDO 
+!mo_disp = 0.0
+mo_maxmove(:,0) = 0.0
+mo_maxmove(:,1:) = 0.2
+mo_maxmove(4,1:) = 0.0
+!mo_const(1:)     = 0.0
+!mo_const(0 )     = 1.0
+!mo_cfac          = 1.0
 !                                                                       
-      mo_maxmove (1, 0) = 0.0 
-      mo_maxmove (2, 0) = 0.0 
-      mo_maxmove (3, 0) = 0.0 
-      mo_maxmove (4, 0) = 0.0 
-      DO i = 1, MAXSCAT 
-      mo_maxmove (1, i) = 0.2 
-      mo_maxmove (2, i) = 0.2 
-      mo_maxmove (3, i) = 0.2 
-      mo_maxmove (4, i) = 0.0 
-      ENDDO 
+!      mo_maxmove (1, 0) = 0.0 
+!      mo_maxmove (2, 0) = 0.0 
+!      mo_maxmove (3, 0) = 0.0 
+!      mo_maxmove (4, 0) = 0.0 
+!      DO i = 1, MAXSCAT 
+!      mo_maxmove (1, i) = 0.2 
+!      mo_maxmove (2, i) = 0.2 
+!      mo_maxmove (3, i) = 0.2 
+!      mo_maxmove (4, i) = 0.0 
+!      ENDDO 
 !                                                                       
-      DO i = 1, CHEM_MAX_COR 
-      mo_const (i) = 0.0 
-      mo_cfac (i) = 1.0 
-      ENDDO 
-      mo_const (0) = 1.0 
+!     DO i = 1, CHEM_MAX_COR 
+!     mo_const (i) = 0.0 
+!     mo_cfac (i) = 1.0 
+!     ENDDO 
+!     mo_const (0) = 1.0 
 !                                                                       
 !     /mmcbl/                                                   
 !                                                                       
@@ -262,8 +269,16 @@ CONTAINS
 !
       mmc_no_valid = 1000
 !                                                                       
-      END SUBROUTINE mmc_init                       
+mmc_h_stop   = .TRUE.   ! Stop at full number of cycles
+MMC_H_NNNN   = 3        ! Number of feedbacks to average
+mmc_h_conv_m = 0.0900   ! Largest difference (target-achieved)/target
+mmc_h_conv_c = 0.0500   ! Largest change in difference (target-achieved)/target
+mmc_h_conv_a = 0.0010   ! Largest difference (target-achieved)/target
+!
+END SUBROUTINE mmc_init                       
+!
 !*****7*****************************************************************
+!
       SUBROUTINE discus_autodef 
 !-                                                                      
 !     Tries to open a default file for the integer and real variables   
