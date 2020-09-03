@@ -384,11 +384,16 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !                                                                       
  9999 CONTINUE 
 !
-      prompt = orig_prompt
+DO i=1,3
+  IF(cr_icc(i)==1) chem_period(i) = .FALSE.
+ENDDO
+!
+prompt = orig_prompt
 !                                                                       
  1000 FORMAT    (1x,a16,i5, ' Setting:',a3,2x, a16) 
  2000 FORMAT    (1x,a16,i5)
-      END SUBROUTINE read_struc                     
+!
+END SUBROUTINE read_struc                     
 !
 !*******************************************************************************
 !
