@@ -6,7 +6,7 @@ CONTAINS
 !                                                                       
 !*****7*****************************************************************
 !                                                                       
-REAL(KIND=KIND(1.0D0)) FUNCTION gasdev (sig) 
+RECURSIVE REAL(KIND=KIND(1.0D0)) FUNCTION gasdev (sig) 
 !-                                                                      
 !     calculates a random number for gaussian distribution of           
 !     sigma.                                                            
@@ -15,16 +15,23 @@ USE random_mod
 USE precision_mod
 !
 IMPLICIT none 
+SAVE
 !                                                                       
 REAL(KIND=PREC_DP), INTENT(IN) ::  sig
 !                                                                       
 REAL(KIND=PREC_SP) ::  v1, v2, r, fac, gset 
+REAL(KIND=PREC_SP) :: r1
 !                                                                       
-SAVE gset 
+!SAVE gset 
 !                                                                       
 IF (iset.eq.0) then 
-1   v1 = 2.E0 * ran1 (idum) - 1. 
-   v2 = 2.E0 * ran1 (idum) - 1. 
+1  CONTINUE
+   CALL RANDOM_NUMBER(r1)
+   v1 = 2.E0 * r1          - 1. 
+   CALL RANDOM_NUMBER(r1)
+   v2 = 2.E0 * r1          - 1. 
+!  v1 = 2.E0 * ran1 (idum) - 1. 
+!  v2 = 2.E0 * ran1 (idum) - 1. 
    r = v1**2 + v2**2 
    IF (r.ge.1.) goto 1 
    fac = sqrt ( - 2.0E0 * log (r) / r) 
