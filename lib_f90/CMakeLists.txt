@@ -58,6 +58,20 @@ else ( CYGWIN )
   message ( status " OP SYSTEM is unknown" )
 endif ( CYGWIN ) 
 
+# OpenMP ?
+
+if (CUDA_FOUND)
+  message (status " building LIBF90 with cuda")
+  set ( FSOURCES ${FSOURCES} parallel_CUDA.f90)
+elseif( DISCUS_OMP)
+  message (status " building LIBF90 with openmp")
+  set ( FSOURCES ${FSOURCES} parallel_mod.f90)
+else (CUDA_FOUND)
+  message (status " building LIBF90 serial ")
+  set (SOURCES_ALL ${SOURCES_ALL} parallel_none.f90)
+endif (CUDA_FOUND)
+
+
 # This macro modified from http://www.cmake.org/pipermail/cmake/2010-November/041034.html
 # The date is returned in ISO8601 format
 MACRO (TODAY RESULT)
