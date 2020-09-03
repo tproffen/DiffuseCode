@@ -711,11 +711,13 @@ USE precision_mod
       CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                   diff_radiation, diff_power) 
       IF(ier_num /= 0) THEN
-         ier_msg(1) = 'At least one of the element names is not an'
-         ier_msg(2) = 'internal DISCUS atom name. Check with:'
-         ier_msg(3) = 'show atom, all and compare to help atom_names'
+         IF(ier_num /= -173) THEN
+            ier_msg(1) = 'At least one of the element names is not an'
+            ier_msg(2) = 'internal DISCUS atom name. Check with:'
+            ier_msg(3) = 'show atom, all and compare to help atom_names'
+         ENDIF
          RETURN
-      endif
+      ENDIF
 !                                                                       
       DO i = 0, cr_nscat 
       latom (i) = .false.   
