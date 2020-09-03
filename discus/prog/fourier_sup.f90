@@ -990,6 +990,16 @@ END SUBROUTINE four_formtab
                      ier_typ = ER_NONE 
                      ier_typ = ER_APPL 
                   ENDIF
+                  j = LEN_TRIM(element)
+                  IF(MAXVAL(cr_scat(:,i))==0.0 .AND. &
+                     (element(j:j)=='+' .OR. element(j:j)=='-')) THEN
+                     ier_num = -173
+                     ier_typ = ER_APPL
+                     WRITE(ier_msg(1),'(3a,i4,a)') 'Element ',element(1:j), '(',i,')'
+                     WRITE(ier_msg(2),'(a)') 'Replace by neutral atom or use in fourier'
+                     WRITE(ier_msg(3),'(a)') 'scat <ion_name>, <neutron_name>'
+                     RETURN
+                  ENDIF
                END SELECT
 !                                                                       
             ENDIF 
