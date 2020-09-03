@@ -21,7 +21,8 @@ link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 set( SOURCE_MAIN discus.f90 )
 set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	atom_name.f90 discus_blk_appl.f90 bv_data_mod.f90 
-	chem.f90 chem_mod.f90 chem_aver_mod.f90 chem_symm_mod.f90 discus_config_mod.f90
+	chem.f90 chem_mod.f90 chem_aver_mod.f90 chem_symm_mod.f90 chem_multi.f90 chem_neig_multi.f90
+        discus_config_mod.f90
 	discus_branch.f90 discus_crystal.f90 discus_export.f90 discus_nipl_header.f90
         check_blen_mod.f90 check_bound_mod.f90 check_user_prop_mod.f90
 	conn_def_mod.f90 conn_mod.f90 conn_sup_mod.f90 conn_type_mod.f90 crystal_mod.f90 
