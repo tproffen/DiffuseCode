@@ -34,7 +34,8 @@ USE lib_do_operating_mod
 USE lib_echo
 USE lib_length
 USE lib_macro_func
-   USE class_macro_internal
+USE class_macro_internal
+USE parallel_mod
 USE precision_mod
    USE prompt_mod
 USE str_comp_mod
@@ -207,7 +208,12 @@ main_loop: DO
                  IF(dcc_num > 0 ) THEN
                      CALL deco_error_check
                      IF(ier_num==0) THEN
+!
+                        par_omp_use = .FALSE.
+                        par_omp_maxthreads = 1           ! Turn off parallel processing
                         CALL deco_run
+                        par_omp_use = .TRUE.             ! Turn parallel processing back on
+                        par_omp_maxthreads = -1          
                         if(ier_num == 0) ladd = .true.   ! allow new add command
                      ENDIF
                  ELSE
@@ -589,7 +595,7 @@ USE take_param_mod
          ier_typ = ER_COMM
          ier_msg(1) = 'set hkl command needs 3 or 5 parameters'
       ENDIF
-      IF(ier_num==0) then
+      IF(ier_num==0 .AND. dcc_lrestrict(temp_num)) then
          IF(ALLOCATED(temp_hkl)) THEN
             DEALLOCATE(temp_hkl)
          ENDIF
@@ -779,7 +785,7 @@ USE str_comp_mod
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-   SUBROUTINE deco_run
+SUBROUTINE deco_run
 !
 !  Performs the actual decoration
 !
@@ -813,8 +819,8 @@ USE prop_para_func
 !
 USE lib_errlist_func
 USE lib_random_func
-   USE param_mod
-   USE random_mod
+USE param_mod
+USE random_mod
 USE prompt_mod
 USE discus_show_menu
 USE precision_mod
@@ -865,6 +871,7 @@ INTEGER  :: dc_temp_natoms   ! Number of atoms in the ligand molecule
    INTEGER   :: n_repl, i_repl         ! counter for anchor atoms
    INTEGER   :: m_type_old             ! Molecule types in original crystal
    INTEGER   :: j_surf                 ! Surface atom type replaced by an achor
+   INTEGER   :: n_surf                 ! Number of surface atoms after replacement by an achor
    INTEGER   :: temp_secnd             ! Second neighbor in the molecule
 !INTEGER   :: ier_sta_temp          ! temporary error status
    LOGICAL   :: l_correct              ! A dummy for logical comparisons
@@ -883,7 +890,6 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    REAL   , DIMENSION(3)   :: host_a0
    REAL   , DIMENSION(3)   :: host_win
    REAL   , DIMENSION(4,4) :: host_tran_fi
-!
 !
    IF(MAXVAL(cr_surf(0,:)) == 0 .AND. MINVAL(cr_surf(0,:)) == 0) THEN
       ier_num = -130
@@ -1023,75 +1029,83 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
 !
 !     Now sort those surface atoms that are anchors to the ligand
 !
-      n_anch = 0                                           !Initialize number of anchors
-      n_repl = 0
+   n_anch = 0                                              !Initialize number of anchors
+   n_repl = 0
    name_anchors: DO dc_temp_id=1, dcc_num                  ! Loop over all definitions to name anchors
-     dc_temp_dens = dcc_dens(  dc_temp_id)                 ! Get density for surface coverage
-     dc_temp_dist = dcc_dist(1,dc_temp_id)
-     j = dcc_surf(1,0,dc_temp_id)
-     dc_temp_surf(0:j) = dcc_surf(1,0:j,dc_temp_id)
-         CALL chem_elem(.false.)                           ! get composition
-         r_anch = 0.0
-         DO j = 1, dc_temp_surf(0)
-            r_anch = r_anch + res_para(dc_temp_surf(j)+1)  ! Fractional composition of the anchoring atoms
-         ENDDO
-         prob   = MAX(0.0,MIN(1.0,DC_AREA*dc_temp_dens/r_anch)) ! replacement probability
-!        Replace anchors by a new atom type
-         nscat_tmp = cr_nscat
-         IF(cr_nscat+dc_temp_surf(0) > MAXSCAT) THEN                   ! Number of scattering types increased
-            n_scat = MAX(cr_nscat+MAX(5,dc_temp_surf(0)), MAXSCAT)     ! Allow for several anchor types
-            natoms = MAX(cr_natoms, NMAX)
-            CALL alloc_crystal(n_scat,natoms)
-         ENDIF
-         DO k = 1, dc_temp_surf(0)
-            n_anch = n_anch + 1
-            WRITE(cr_at_lis(nscat_tmp + k),'(a2,i2.2)') 'AN', n_anch  ! Fixed name for anchor, numbered
-            cr_dw    (nscat_tmp + k) = cr_dw(dc_temp_surf(1))
-            anch_id(n_anch,1) = dc_temp_id          ! This anchor belongs to environment dc_temp_id
-            anch_id(n_anch,2) = dc_temp_surf(k)     ! This anchor connects at atom type  dc_temp_surf(k)
-         ENDDO
-         cr_nscat = nscat_tmp + dc_temp_surf(0)
-!        As surface atom number is bound to be small try several times until we get sufficient anchors
-         i = 0
-         i_repl = 0
+      dc_temp_dens = dcc_dens(  dc_temp_id)                 ! Get density for surface coverage
+      dc_temp_dist = dcc_dist(1,dc_temp_id)
+      j = dcc_surf(1,0,dc_temp_id)
+      dc_temp_surf(0:j) = dcc_surf(1,0:j,dc_temp_id)
+      CALL chem_elem(.false.)                           ! get composition
+      r_anch = 0.0
+      DO j = 1, dc_temp_surf(0)
+         r_anch = r_anch + res_para(dc_temp_surf(j)+1)  ! Fractional composition of the anchoring atoms
+      ENDDO
+      prob   = MAX(0.0,MIN(1.0,DC_AREA*dc_temp_dens/r_anch)) ! replacement probability
+!     Replace anchors by a new atom type
+      nscat_tmp = cr_nscat
+      IF(cr_nscat+dc_temp_surf(0) > MAXSCAT) THEN                   ! Number of scattering types increased
+         n_scat = MAX(cr_nscat+MAX(5,dc_temp_surf(0)), MAXSCAT)     ! Allow for several anchor types
+         natoms = MAX(cr_natoms, NMAX)
+         CALL alloc_crystal(n_scat,natoms)
+      ENDIF
+      DO k = 1, dc_temp_surf(0)
+         n_anch = n_anch + 1
+         WRITE(cr_at_lis(nscat_tmp + k),'(a2,i2.2)') 'AN', n_anch  ! Fixed name for anchor, numbered
+         cr_dw    (nscat_tmp + k) = cr_dw(dc_temp_surf(1))
+         anch_id(n_anch,1) = dc_temp_id          ! This anchor belongs to environment dc_temp_id
+         anch_id(n_anch,2) = dc_temp_surf(k)     ! This anchor connects at atom type  dc_temp_surf(k)
+      ENDDO
+      cr_nscat = nscat_tmp + dc_temp_surf(0)
+!     As surface atom number is bound to be small try several times until we get sufficient anchors
+      i = 0
+      i_repl = 0
 !
-         replace: DO i=1, cr_natoms 
-            DO ia = 1, cr_natoms                        ! Loop to replace
-               l_correct = .FALSE.
-               find_surf: DO j=1,dc_temp_surf(0)
-                  IF(cr_iscat(ia) == dc_temp_surf(j)) THEN
-                     l_correct = .TRUE.
-                     j_surf = j
-                     EXIT find_surf
-                  ENDIF
-               ENDDO find_surf
-               IF(l_correct                    ) THEN   ! Got a surface atom of correct type
-               IF(ran1(idum) < prob) THEN               ! Randomly pick a fraction
-                     cr_iscat(ia) = nscat_tmp + j_surf  ! Replace by standard Anchor type
-                     cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)    ! FLAG THIS ATOM AS SURFACE ANCHOR
-                     n_repl       = n_repl  + 1         ! Increment replaced atoms, grand total
-                     i_repl       = i_repl  + 1         ! Increment replaced atoms, local count
-                     IF(i_repl == NINT(cr_natoms*r_anch*prob) .OR. &
-                        i_repl == cr_natoms                       ) EXIT replace   ! got enough anchors
-                  ENDIF
+      replace: DO i=1, cr_natoms 
+         DO ia = 1, cr_natoms                        ! Loop to replace
+            l_correct = .FALSE.
+            find_surf: DO j=1,dc_temp_surf(0)
+               IF(cr_iscat(ia) == dc_temp_surf(j)) THEN
+                  l_correct = .TRUE.
+                  j_surf = j
+                  EXIT find_surf
                ENDIF
-            ENDDO
-         ENDDO replace
-      ENDDO name_anchors
+            ENDDO find_surf
+            IF(l_correct                    ) THEN   ! Got a surface atom of correct type
+               IF(ran1(idum) < prob) THEN            ! Randomly pick a fraction
+                  cr_iscat(ia) = nscat_tmp + j_surf  ! Replace by standard Anchor type
+                  cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)    ! FLAG THIS ATOM AS SURFACE ANCHOR
+                  n_repl       = n_repl  + 1         ! Increment replaced atoms, grand total
+                  i_repl       = i_repl  + 1         ! Increment replaced atoms, local count
+                  IF(i_repl == NINT(cr_natoms*r_anch*prob) .OR. &
+                     i_repl == cr_natoms                       ) EXIT replace   ! got enough anchors
+               ENDIF
+            ENDIF
+         ENDDO
+      ENDDO replace
+   ENDDO name_anchors
 !
+   n_surf = 0
+   DO ia = 1, cr_natoms                        ! Determine surface atoms that remained after replacement
+      find_surf2: DO j=1,dc_temp_surf(0)
+         IF(cr_iscat(ia) == dc_temp_surf(j)) THEN
+            n_surf = n_surf+1
+         ENDIF
+      ENDDO find_surf2
+   ENDDO
 !
-IF(n_repl==0) THEN
-   CALL save_restore_setting
-   CALL no_error
-   CALL readstru_internal( corefile)   ! Read  core file
-   ier_num = -131
-   ier_typ = ER_APPL
-   ier_msg(1) = 'Is the surface very small, just a few atoms?'
-   ier_msg(2) = 'Is the coverage too small? '
-   ier_msg(3) = 'Check the set ligand command A1'
-   DEALLOCATE(anch_id)
-   RETURN
-ENDIF
+   IF(n_repl==0) THEN
+      CALL save_restore_setting
+      CALL no_error
+      CALL readstru_internal( corefile)   ! Read  core file
+      ier_num = -131
+      ier_typ = ER_APPL
+      ier_msg(1) = 'Is the surface very small, just a few atoms?'
+      ier_msg(2) = 'Is the coverage too small? '
+      ier_msg(3) = 'Check the set ligand command A1'
+      DEALLOCATE(anch_id)
+      RETURN
+   ENDIF
 !
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
@@ -1115,17 +1129,18 @@ ENDIF
 
    CALL property_select(line, length,  cr_sel_prop)
 !
-      IF(n_repl > 0                       ) THEN    ! Need at least one anchor
-         ALLOCATE(anchor_num(1:cr_nscat-nscat_old))
-         anchor_num(:) = 0
-         DO k=1, cr_natoms
-            j= cr_iscat(k)-nscat_old
-            IF(j>0) anchor_num(j) = anchor_num(j)+1 
-         ENDDO
-         j=MAXVAL(anchor_num)
-         DEALLOCATE(anchor_num)
+   IF(n_repl > 0                       ) THEN    ! Need at least one anchor
+      ALLOCATE(anchor_num(1:cr_nscat-nscat_old))
+      anchor_num(:) = 0
+      DO k=1, cr_natoms
+         j= cr_iscat(k)-nscat_old
+         IF(j>0) anchor_num(j) = anchor_num(j)+1 
+      ENDDO
+      j=MAXVAL(anchor_num)
+      DEALLOCATE(anchor_num)
       IF(dcc_spread(dc_temp_id)) THEN               ! Spread if seleced
-      IF(n_repl > 2 .AND. n_repl<cr_natoms-2 .AND. j>2) THEN  ! Need at least two anchors for sorting
+      IF(n_repl > 2 .AND. n_repl<cr_natoms-2 .AND. j>2 .AND. n_surf>2) THEN  ! Need at least two anchors for sorting
+                                                                             ! and >2 remaining surface atoms
 !
 !        Sorting requires separate loops to avoid exchange of anchor atom types
 !
@@ -1696,12 +1711,12 @@ CYCLE main_loop
 !
 !  Clean up temporary arrays
 !
-   IF(ALLOCATED(temp_prob )) DEALLOCATE(temp_prob, STAT=istatus)
-   IF(ALLOCATED(anch_id   )) DEALLOCATE(anch_id)
-   IF(ALLOCATED(temp_ident)) DEALLOCATE(temp_ident)
-   IF(ALLOCATED(temp_iscat)) DEALLOCATE(temp_iscat)
-   IF(ALLOCATED(temp_iatom)) DEALLOCATE(temp_iatom)
-   IF(ALLOCATED(temp_pos  )) DEALLOCATE(temp_pos  )
+IF(ALLOCATED(temp_prob )) DEALLOCATE(temp_prob, STAT=istatus)
+IF(ALLOCATED(anch_id   )) DEALLOCATE(anch_id)
+IF(ALLOCATED(temp_ident)) DEALLOCATE(temp_ident)
+IF(ALLOCATED(temp_iscat)) DEALLOCATE(temp_iscat)
+IF(ALLOCATED(temp_iatom)) DEALLOCATE(temp_iatom)
+IF(ALLOCATED(temp_pos  )) DEALLOCATE(temp_pos  )
 IF(ALLOCATED(anchor    )) DEALLOCATE(anchor)
    line   = ' '
    length = 1
@@ -1728,20 +1743,20 @@ CALL symm_reset
 !
 !  Restore DECO ERROR SETTINGS 
 !
-   IF(ier_num_deco/=0) THEN
-      ier_num = ier_num_deco
-      ier_typ = ier_typ_deco
-      ier_msg = ier_msg_deco
-   ELSE
-      chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
-                              ! In the rare circumstances that is is the user
-                              ! has to turn this on explicitly
-      chem_quick = .FALSE.
-      chem_period(:) = .FALSE.
-   ENDIF
+IF(ier_num_deco/=0) THEN
+   ier_num = ier_num_deco
+   ier_typ = ier_typ_deco
+   ier_msg = ier_msg_deco
+ELSE
+   chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
+                           ! In the rare circumstances that is is the user
+                           ! has to turn this on explicitly
+   chem_quick = .FALSE.
+   chem_period(:) = .FALSE.
+ENDIF
 !
 !
-   END SUBROUTINE deco_run
+END SUBROUTINE deco_run
 !
 !######################################################################
 !
@@ -3394,7 +3409,7 @@ j = anchor(1,0)
 surface(1:j) = anchor(1,1:j)
 surface(0) = j
 n1 = n_atoms_orig +     neig(1)  !Absolute number for 1st neighbor in molecule
-CALL deco_find_anchor(nsites(1), surface(0), surface, dist(1), ia,  &
+CALL deco_find_anchor(natoms_prior, nsites(1), surface(0), surface, dist(1), ia,  &
                       surf_normal, posit, is_good, base, success)
 IF(success/=0) THEN ! DID not find a suitable anchor, flag error
    GOTO 9999
@@ -4153,7 +4168,7 @@ END SUBROUTINE deco_place_donor
 !
 !*****7*****************************************************************
 !
-SUBROUTINE deco_find_anchor(MAXAT,MAXTYPE, surface, distance, ia, &
+SUBROUTINE deco_find_anchor(natoms_prior, MAXAT,MAXTYPE, surface, distance, ia, &
                             normal, posit, is_good, &
                             base, ierror)
 !-                                                                      
@@ -4172,8 +4187,10 @@ USE errlist_mod
 USE param_mod
 USE precision_mod
 USE wink_mod
+use prompt_mod
 !
 IMPLICIT NONE
+INTEGER                      , INTENT(IN)    :: natoms_prior
 INTEGER                      , INTENT(IN)    :: MAXAT
 INTEGER                      , INTENT(IN)    :: MAXTYPE
 INTEGER, DIMENSION(0:MAXTYPE), INTENT(IN)    :: surface
@@ -4194,7 +4211,7 @@ INTEGER :: laenge
 INTEGER, DIMENSION(0:6,2:MAXAT) :: neig
 LOGICAL, DIMENSION(1:3) :: fp
 LOGICAL                 :: fq
-REAL                    :: alpha
+REAL                    :: alpha, vlen
 REAL                    :: rmin, radius
 REAL(KIND=PREC_DP)   , DIMENSION(1:MAXTYPE) :: werte
 REAL   , DIMENSION(1:3)    :: x, u,v,w, e1,e2,e3, rnorm
@@ -4226,9 +4243,12 @@ REAL     , DIMENSION(1:3)               :: vnull
       IF(atom_env(0) >= 1 ) THEN                                     ! We need at least one neighbor
         j = 0
         check_prop: DO i=1,atom_env(0)                               ! Check properties 
+           IF(atom_env(i) <= natoms_prior) THEN                      ! Real atom was in structure prior to deco
            IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
               IBITS(cr_prop(atom_env(i)),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
                v(:) = REAL(cr_surf(1:3,atom_env(i)))   ! Surface normal at environment atom
+               vlen = do_blen( .FALSE., v, vnull)
+               IF(vlen>1E-4) THEN
                alpha = do_bang (.FALSE., rnorm, vnull, v)
                IF(alpha<50.0) THEN                                   ! Angle is small enough, similar surface
                j = j +1                                              ! Will use this neighbor
@@ -4236,6 +4256,8 @@ REAL     , DIMENSION(1:3)               :: vnull
                neig(0,l) = j
                IF(j==6) EXIT check_prop                              ! Found first six good neighbors
                ENDIF
+               ENDIF
+            ENDIF
             ENDIF
          ENDDO check_prop
          IF(j==0) THEN                                      ! No suitable neighbor, quietly leave
@@ -4244,7 +4266,7 @@ REAL     , DIMENSION(1:3)               :: vnull
             RETURN
          ENDIF
       ELSE
-         ier_num = -1118
+         ier_num = -1119
          ier_typ = ER_APPL
          RETURN
       ENDIF  ! 
