@@ -16,7 +16,11 @@ INTEGER, PARAMETER  ::  MC_N_MOVE          =  4
 INTEGER, PARAMETER  ::  MMC_SELECT_RANDOM  =  0
 INTEGER, PARAMETER  ::  MMC_SELECT_ALL     =  0
 !
+INTEGER, PARAMETER  ::  MMC_MAX_ATOM       =  2    ! Number of selected atoms
+!
 INTEGER             ::  MMC_MAX_ANGLES     =  1
+!
+INTEGER             ::  MMC_MAX_CENT       =  2
 !
 INTEGER, PARAMETER  ::  MC_MOVE_NONE       =  0
 INTEGER, PARAMETER  ::  MC_MOVE_SWCHEM     =  1
@@ -39,6 +43,8 @@ INTEGER             ::  MMC_BUCK_CORR      =  0
 INTEGER             ::  MMC_BUCK_SCAT      =  0
 INTEGER             ::  MMC_REP_CORR       =  0
 INTEGER             ::  MMC_REP_SCAT       =  0
+!
+INTEGER             ::  MMC_H_NNNN         =  3
 !
 INTEGER             ::  mmc_move           =  0
 INTEGER ::  mmc_select_mode
@@ -71,6 +77,19 @@ REAL , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ach_sigm    ! (CHEM_MAX_COR,0:MC_
 !REAL,DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_vec         ! (4,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_const       ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cfac        ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
+!
+REAL, DIMENSION(:,:)     , ALLOCATABLE :: mmc_h_diff             ! history of achieved correlation differences
+INTEGER                                :: mmc_h_number= 0        ! Number of achieved targets
+INTEGER                                :: mmc_h_ctarg = 0        ! Number of current  target 
+INTEGER                                :: mmc_h_index = 0        ! Current cycle entry in achieved history
+INTEGER                                :: mmc_h_ncycl = 0        ! Number of feedback cycles achieved
+REAL, DIMENSION(:)       , ALLOCATABLE :: mmc_h_targ             ! Target values
+REAL, DIMENSION(:)       , ALLOCATABLE :: mmc_h_aver             ! average changes from cycle to cycle
+REAL, DIMENSION(:,:)     , ALLOCATABLE :: mmc_h_maxd             ! Maximum change from cycle to cycle
+REAL                                   :: mmc_h_conv_m = 0.090   ! convergence Maximum difference to target over last cycles
+REAL                                   :: mmc_h_conv_c = 0.050   ! convergence Maximum change in difference over last cycles
+REAL                                   :: mmc_h_conv_a = 0.001   ! convergence average change in difference over last cycles
+LOGICAL                                :: mmc_h_stop   = .TRUE.  ! stop upon cycles==F or convergence==T
 !
 LOGICAL, DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cor_energy! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 INTEGER, DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_pair      ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
