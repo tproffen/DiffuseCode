@@ -1731,6 +1731,7 @@ USE support_mod
       INTEGER  :: n_lots  =1 ! DANumber of RMC Lots for Fourier
 !      INTEGER  :: n_natoms=1 ! Maximum number of atoms for DIFFUSE allocation
 !      INTEGER  :: n_nscat =1 ! Maximum number of atoms for DIFFUSE allocation
+REAL :: r1
 !                                                                       
 !                                                                       
       igen = 0 
@@ -1935,7 +1936,9 @@ USE support_mod
               pmax    = max (pmax,prob) 
               pn      = pn + 1 
               prob    = exp(-prob/sig2) 
-              laccept = (prob.gt.ran1(idum)) 
+              CALL RANDOM_NUMBER(r1)
+              laccept = (prob.gt.r1        ) 
+!             laccept = (prob.gt.ran1(idum)) 
             ELSE 
               laccept = .false. 
             ENDIF 
@@ -2898,7 +2901,7 @@ REAL(KIND=PREC_DP) :: werte(1)
       END SUBROUTINE rmc_check_dist                 
 !*****7*****************************************************************
       SUBROUTINE rmc_select (imode, isel, iz1, iz2, is1, is2, &
-                             MAXALLOWED, local_rmc_allowed) 
+                             MAXALLOWED, MAXSELECT, local_rmc_allowed) 
 !+                                                                      
 !     Select two atom sites (global, local, ...)                        
 !                                                                       
@@ -2912,7 +2915,8 @@ USE lib_random_func
       IMPLICIT none 
 !                                                                       
       INTEGER                         , INTENT(IN)    :: imode
-      INTEGER, DIMENSION(RMC_MAX_ATOM), INTENT(INOUT) :: isel !(rmc_max_atom) 
+      INTEGER                         , INTENT(IN)    :: MAXSELECT
+      INTEGER, DIMENSION(MAXSELECT)   , INTENT(INOUT) :: isel !(rmc_max_atom) 
       INTEGER, DIMENSION(3)           , INTENT(INOUT) :: iz1 !(3)
       INTEGER, DIMENSION(3)           , INTENT(INOUT) :: iz2 !(3)
       INTEGER                         , INTENT(INOUT) :: is1
@@ -2925,6 +2929,7 @@ USE lib_random_func
       INTEGER            :: natoms ! Number of actual actoms in connectivity list
 !                                                                       
       INTEGER i,j, ino
+REAL :: r1
 !                                                                       
       j = 0
       ino = 1      ! RMC SELECT ALWAYS uses the FIRST connectivity defined for an atom
@@ -2932,18 +2937,24 @@ USE lib_random_func
    10 CONTINUE 
       IF(j>10000000) RETURN        ! DID not find a valid pair
       j = j + 1
-      isel (1) = int (ran1 (idum) * cr_natoms) + 1 
+      CALL RANDOM_NUMBER(r1)
+      isel (1) = int (r1          * cr_natoms) + 1 
+!     isel (1) = int (ran1 (idum) * cr_natoms) + 1 
       IF (isel (1) .gt.cr_natoms.or.isel (1) .lt.1) goto 10 
       IF(.NOT.local_rmc_allowed(cr_iscat(isel(1)))) GOTO 10
 !
       IF (imode == rmc_local_conn) THEN   ! Choose second atom from connectivity
          CALL get_connectivity_list(isel(1), cr_iscat(isel(1)), ino, c_list, c_offs, natoms)
          IF(natoms == 0) GOTO 10
-         isel(2) = c_list(INT(ran1(idum)*natoms) + 1)
+         CALL RANDOM_NUMBER(r1)
+         isel(2) = c_list(INT(r1        *natoms) + 1)
+!        isel(2) = c_list(INT(ran1(idum)*natoms) + 1)
       ELSE
 !                                                                       
    20 CONTINUE 
-      isel (2) = int (ran1 (idum) * cr_natoms) + 1 
+      CALL RANDOM_NUMBER(r1)
+      isel (2) = int (r1          * cr_natoms) + 1 
+!     isel (2) = int (ran1 (idum) * cr_natoms) + 1 
       IF (isel (2) .gt.cr_natoms.or.isel (2) .lt.1) goto 20 
 !
       ENDIF
@@ -2964,13 +2975,17 @@ USE lib_random_func
             IF( cr_icc(i) > 1 ) THEN
                iz1 (i) = max (2, iz1 (i) ) 
                iz1 (i) = min (cr_icc (i) - 1, iz1 (i) ) 
-               iz2 (i) = iz1 (i) + nint (1.0 - 2.0 * ran1 (idum) ) 
+               CALL RANDOM_NUMBER(r1)
+               iz2 (i) = iz1 (i) + nint (1.0 - 2.0 * r1          ) 
+!              iz2 (i) = iz1 (i) + nint (1.0 - 2.0 * ran1 (idum) ) 
             ELSE
                iz1 (i) = 1
                iz2 (i) = 1
             ENDIF
          ENDDO 
-         is2 = MIN(int (ran1 (idum) * cr_ncatoms) + 1 ,cr_ncatoms)
+         CALL RANDOM_NUMBER(r1)
+         is2 = MIN(int (r1          * cr_ncatoms) + 1 ,cr_ncatoms)
+!        is2 = MIN(int (ran1 (idum) * cr_ncatoms) + 1 ,cr_ncatoms)
          CALL celltoindex (iz1, is1, isel (1) ) 
          CALL celltoindex (iz2, is2, isel (2) ) 
 !                                                                       
@@ -2981,7 +2996,9 @@ USE lib_random_func
             IF( cr_icc(i) > 1 ) THEN
                iz1 (i) = max (2, iz1 (i) ) 
                iz1 (i) = min (cr_icc (i) - 1, iz1 (i) ) 
-               iz2 (i) = iz1 (i) + nint (1.0 - 2.0 * ran1 (idum) ) 
+               CALL RANDOM_NUMBER(r1)
+               iz2 (i) = iz1 (i) + nint (1.0 - 2.0 * r1          ) 
+!              iz2 (i) = iz1 (i) + nint (1.0 - 2.0 * ran1 (idum) ) 
             ELSE
                iz1 (i) = 1
                iz2 (i) = 1
@@ -3026,11 +3043,13 @@ USE precision_mod
       REAL  :: value
       REAL disp1, disp2 
       REAL dummy (3) 
+REAL :: r1
       LOGICAL lflag  !, rmc_inlot 
 !
 !------ Randomly select a move
 !
-      value = ran1(idum)
+      CALL RANDOM_NUMBER(value)
+!     value = ran1(idum)
       i     = 1
       DO WHILE (value>rmc_move_cprob(i) .and. i<RMC_N_MOVE)
          i = i + 1
@@ -3043,7 +3062,7 @@ USE precision_mod
       IF (rmc_mode.eq.rmc_mode_swchem) then 
          natoms = 2 
          CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2,  &
-                          cr_nscat,rmc_allowed) 
+                          cr_nscat,RMC_MAX_ATOM,rmc_allowed) 
          laccept = rmc_allowed (cr_iscat (isel (1) ) ) .and.rmc_allowed &
          (cr_iscat (isel (2) ) ) .and.cr_iscat (isel (1) ) .ne.cr_iscat &
          (isel (2) )                                                    
@@ -3061,7 +3080,9 @@ USE precision_mod
       ELSEIF (rmc_mode.eq.rmc_mode_shift) then 
          natoms = 1 
    10    CONTINUE 
-         isel (1) = int (ran1 (idum) * cr_natoms) + 1 
+         CALL RANDOM_NUMBER(r1)
+         isel (1) = int (r1          * cr_natoms) + 1 
+!        isel (1) = int (ran1 (idum) * cr_natoms) + 1 
          IF (isel (1) .gt.cr_natoms.or.isel (1) .lt.1) goto 10 
          laccept = rmc_allowed (cr_iscat (isel (1) ) ) 
          IF (laccept) then 
@@ -3085,7 +3106,7 @@ USE precision_mod
       ELSEIF (rmc_mode.eq.rmc_mode_swdisp) then 
          natoms = 2 
          CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2, &
-                          cr_nscat,rmc_allowed) 
+                          cr_nscat,RMC_MAX_ATOM,rmc_allowed) 
          laccept = rmc_allowed (cr_iscat (isel (1) ) ) .and.rmc_allowed &
          (cr_iscat (isel (2) ) )                                        
          IF (laccept) then 
@@ -3182,14 +3203,19 @@ USE precision_mod
       REAL disp1 (3), disp2 (3) 
       REAL dummy (3) 
       LOGICAL lflag  !, rmc_inlot 
+REAL :: r1
 !                                                                       
       natoms = 0 
 !                                                                       
 !------ Mode 'swchem': only switch atoms => pnew=pold                   
 !                                                                       
       IF (rmc_mode.eq.rmc_mode_swchem) then 
-         imol (1) = int (ran1 (idum) * mole_num_mole) + 1 
-         imol (2) = int (ran1 (idum) * mole_num_mole) + 1 
+         CALL RANDOM_NUMBER(r1)
+         imol (1) = int (r1          * mole_num_mole) + 1 
+!        imol (1) = int (ran1 (idum) * mole_num_mole) + 1 
+         CALL RANDOM_NUMBER(r1)
+         imol (2) = int (r1          * mole_num_mole) + 1 
+!        imol (2) = int (ran1 (idum) * mole_num_mole) + 1 
          laccept = rmc_allowed (mole_type (imol (1) ) )                 &
          .and.rmc_allowed (mole_type (imol (2) ) ) .and.mole_type (imol &
          (1) ) .ne.mole_type (imol (2) )                                
@@ -3216,7 +3242,9 @@ USE precision_mod
 !------ Mode 'shift': shift atoms (gaussian distribution)               
 !                                                                       
       ELSEIF (rmc_mode.eq.rmc_mode_shift) then 
-         imol (1) = int (ran1 (idum) * mole_num_mole) + 1 
+         CALL RANDOM_NUMBER(r1)
+         imol (1) = int (r1          * mole_num_mole) + 1 
+!        imol (1) = int (ran1 (idum) * mole_num_mole) + 1 
          laccept = rmc_allowed (mole_type (imol (1) ) ) 
 !                                                                       
          IF (laccept) then 
@@ -3237,8 +3265,12 @@ USE precision_mod
 !------ Mode 'swdisp': switch displacements of two atoms                
 !                                                                       
       ELSEIF (rmc_mode.eq.rmc_mode_swdisp) then 
-         imol (1) = int (ran1 (idum) * mole_num_mole) + 1 
-         imol (2) = int (ran1 (idum) * mole_num_mole) + 1 
+         CALL RANDOM_NUMBER(r1)
+         imol (1) = int (r1          * mole_num_mole) + 1 
+!        imol (1) = int (ran1 (idum) * mole_num_mole) + 1 
+         CALL RANDOM_NUMBER(r1)
+         imol (2) = int (r1          * mole_num_mole) + 1 
+!        imol (2) = int (ran1 (idum) * mole_num_mole) + 1 
          laccept = rmc_allowed (mole_type (imol (1) ) )                 &
          .and.rmc_allowed (mole_type (imol (2) ) ) .and.mole_type (imol &
          (1) ) .ne.mole_type (imol (2) )                                
