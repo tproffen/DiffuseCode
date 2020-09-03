@@ -49,12 +49,17 @@ USE wink_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-      CHARACTER(5) befehl 
-      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(LEN=PREC_STRING) :: line, zeile
-      INTEGER lp, length, lbef 
-      INTEGER indxg
-      LOGICAL lend
+INTEGER, PARAMETER :: MIN_PARA= 5
+CHARACTER(LEN=5) :: befehl 
+CHARACTER(LEN=LEN(prompt)) :: orig_prompt
+CHARACTER(LEN=PREC_STRING) :: line, zeile
+CHARACTER (LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: cpara ! (MIN(10,MAXSCAT)) 
+INTEGER                    , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: lpara
+REAL(KIND=PREC_DP)         , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: werte
+INTEGER :: ianz
+INTEGER :: lp, length, lbef 
+INTEGER :: indxg
+LOGICAL :: lend
 !                                                                       
 !                                                                       
 lend = .false. 
@@ -202,8 +207,19 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_power) 
-                  CALL pow_conv_limits
-                  CALL pow_show 
+                  IF(str_comp(cpara(1), 'scat', 4, lpara(1), 4)) THEN
+                     CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+                                 diff_radiation, diff_power)
+                     IF (ier_num.ne.0) THEN
+                       RETURN
+                     ENDIF
+                     CALL get_params(zeile, ianz, cpara, lpara, UBOUND(cpara,1), lp)
+                     IF(ier_num==0) &
+                     CALL do_show_scat(ianz, cpara, lpara, werte, UBOUND(cpara,1))
+                  ELSE
+                     CALL pow_conv_limits
+                     CALL pow_show 
+                  ENDIF
 !                                                                       
 !------- -Set values 'set'                                              
 !                                                                       
