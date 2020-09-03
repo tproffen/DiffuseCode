@@ -7,12 +7,14 @@
 !*****7*****************************************************************
 !
 SUBROUTINE hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
-                       cr_a0, cr_win, qval, VAL_PDF, VAL_3DPDF,         &
+                       cr_a0, cr_win, qval, VAL_PDF, VAL_3DPDF, valmax, &
                        ier_num, ier_typ, ER_IO, ER_APPL)
 !
 USE hdf5
 !
 IMPLICIT NONE
+!
+INTEGER, PARAMETER:: PREC_DP=SELECTED_REAL_KIND(p=15,r=307)  ! double precision
 !
 INTEGER, INTENT(IN) :: value
 LOGICAL, INTENT(IN) :: laver
@@ -24,6 +26,7 @@ REAL   , DIMENSION(3)  , INTENT(IN) :: cr_a0
 REAL   , DIMENSION(3)  , INTENT(IN) :: cr_win
 INTEGER                , INTENT(IN) :: VAL_PDF
 INTEGER                , INTENT(IN) :: VAL_3DPDF
+REAL(KIND=PREC_DP)     , INTENT(IN)  :: valmax
 INTEGER                , INTENT(OUT) :: ier_num
 INTEGER                , INTENT(OUT) :: ier_typ
 INTEGER                , INTENT(IN) :: ER_IO
@@ -34,7 +37,6 @@ INTEGER(KIND=HSIZE_T), PARAMETER       :: sdim = 8        ! String length of "Ye
 INTEGER(KIND= SIZE_T), PARAMETER       :: sdimd= 8        ! String length of "DISCUS60"
 INTEGER(KIND=2         ), PARAMETER    :: SHORT_NULL = 0  ! a 32 bit 0 for "is_direct"
 INTEGER(KIND=2         ), PARAMETER    :: SHORT_ONE  = 1  ! a 32 bit 1 for "is_direct"
-INTEGER, PARAMETER:: PREC_DP=SELECTED_REAL_KIND(p=15,r=307)  ! double precision
 !
 CHARACTER(LEN=1024) :: line
 CHARACTER(LEN=4), PARAMETER :: dataset = "data"           ! Dummy name for HDF5
@@ -93,7 +95,7 @@ IF(hdferr/=0) THEN
 ENDIF
 !
 is_direct = SHORT_NULL
-hdims(3) = out_inc(1)                                        ! Transpose diemensions
+hdims(3) = out_inc(1)                                        ! Transpose dimensions
 hdims(2) = out_inc(2)
 hdims(1) = out_inc(3)
 !
@@ -111,9 +113,11 @@ DO i = 1, out_inc(1)
    ENDDO
 ENDDO
 !
-max_data = MAXVAL(values)
-IF(max_data /= 0.0) THEN
-   values = 10000.*values/max_data                          ! Normalize data for HDF5
+IF(valmax>0.0D0) THEN
+   max_data = MAXVAL(values)
+   IF(max_data >= 0.0) THEN
+      values = valmax*values/max_data                          ! Normalize data for HDF5
+   ENDIF
 ENDIF
 !
 CALL H5Dcreate_f(file_id, dataset, H5T_NATIVE_DOUBLE, space, dset, hdferr)

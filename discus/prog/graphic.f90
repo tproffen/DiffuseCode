@@ -35,6 +35,7 @@ USE lib_errlist_func
 USE lib_length
 USE lib_macro_func
 USE class_macro_internal
+USE take_param_mod
 USE precision_mod
 USE prompt_mod 
 USE str_comp_mod
@@ -58,8 +59,22 @@ INTEGER :: indxg
 LOGICAL :: laver, lread, linverse 
 REAL(KIND=PREC_SP) :: xmin, ymin, xmax, ymax 
 REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
+REAL(KIND=PREC_DP)                  :: valmax
+! 
+INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: O_MAXVAL  = 1                  ! Current SCALE for maxvalue                                                                
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
 !                                                                       
-!                                                                       
+DATA oname  / 'maxval'/
+DATA loname /  6      /
+DATA opara  / 'data'  /
+DATA owerte /  -1.000 /
 DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
                 'Portable Any Map', 'Powder Pattern', 'SHELX',          &
                 'SHELXL List 5', 'SHELXL List 5 real HKL' ,             &
@@ -73,6 +88,9 @@ DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
 DATA value / 1 / 
 DATA laver / .false. / 
 !
+opara  = (/'data  '/)
+lopara = (/  4     /)
+owerte = (/ -1.000 /)
 zmin = ps_low * diffumax 
 zmax = ps_high * diffumax 
 orig_prompt = prompt
@@ -143,6 +161,8 @@ IF (ier_num.eq.0) THEN
       ELSEIF (str_comp (befehl, 'form', 1, lbef, 4) ) THEN 
          CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
          IF (ier_num.eq.0) THEN 
+            CALL get_optional(ianz, MAXP, cpara, lpara, NOPTIONAL,  ncalc, &
+                              oname, loname, opara, lopara, lpresent, owerte)
             IF (ianz.eq.1.or.ianz.eq.2.or.ianz==5) THEN 
 !                                                                       
 !     ------Switch output type to ASCII 3D  '3d'                      
@@ -266,7 +286,12 @@ IF (ier_num.eq.0) THEN
 !     ------Switch output type to HDF5  format   'hdf5'                
 !                                                                       
                ELSEIF (str_comp(cpara(1), 'hdf5', 4, lpara(1), 4) ) THEN                                        
-                  ityp = 13 
+                  CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, MAXP, opara, &
+                       lopara, werte)
+                  IF(ier_num == 0) THEN
+                     valmax = werte(O_MAXVAL)
+                     ityp = 13 
+                  ENDIF
                ELSE
                   ier_num = - 9 
                   ier_typ = ER_APPL 
@@ -373,8 +398,8 @@ IF (ier_num.eq.0) THEN
                CALL mrc_write (value, laver)
             ELSEIF (ityp.eq.13) THEN
                CALL hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
-                       cr_a0, cr_win, qval,val_pdf, val_3Dpdf, ier_num, ier_typ, &
-                       ER_IO, ER_APPL)
+                       cr_a0, cr_win, qval,val_pdf, val_3Dpdf, valmax,           &
+                       ier_num, ier_typ, ER_IO, ER_APPL)
             ELSE 
                ier_num = - 9 
                ier_typ = ER_APPL 
@@ -636,6 +661,41 @@ prompt = orig_prompt
  3130 FORMAT( ' Graphicsformat               : ',A,A) 
  3110 FORMAT( ' Output value                 : ',A) 
 END SUBROUTINE do_niplps                      
+!
+!*****7*****************************************************************
+!
+SUBROUTINE form_optional(lpresent, ientry, MAXW, opara, &
+                       lopara, werte)
+!
+USE ber_params_mod
+USE precision_mod
+USE str_comp_mod
+!
+IMPLICIT NONE
+!
+LOGICAL                            , INTENT(IN)    :: lpresent ! Optional parameter was present 
+INTEGER                            , INTENT(IN)    :: ientry   ! Entry number
+INTEGER                            , INTENT(IN)    :: MAXW     ! Dimension of werte
+CHARACTER(LEN=*)  , DIMENSION(MAXW), INTENT(INOUT) :: opara    ! The string with optional values
+INTEGER           , DIMENSION(MAXW), INTENT(INOUT) :: lopara   ! length of string
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(OUT)   :: werte    ! Numerical values
+!
+INTEGER :: ianz
+!
+ianz = ientry
+IF(lpresent) THEN
+   IF(str_comp(opara(ientry), 'auto', 4, lopara(ientry), 4) ) THEN
+      werte(ientry) = 10000
+   ELSEIF(str_comp(opara(ientry), 'data', 4, lopara(ientry), 4) ) THEN
+      werte(ientry) = -1
+   ELSE
+      CALL ber_params (ianz, opara, lopara, werte, MAXW)
+   ENDIF
+ELSE
+   werte(ientry) = -1.0D0
+ENDIF
+!
+END SUBROUTINE form_optional
 !
 !*****7*****************************************************************
 !
