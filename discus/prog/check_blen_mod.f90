@@ -12,7 +12,6 @@ SUBROUTINE check_blen(x, iatom, rmin, rmax, offset)
 !     atoms are stored in 'atom_pos' to retain information              
 !     about possible periodic boundaries.                               
 !-                                                                      
-USE discus_config_mod 
 USE crystal_mod 
 USE atom_env_mod 
 USE metric_mod
@@ -45,7 +44,7 @@ dist = do_blen (lspace, x, v)
 IF (dist >= rmin.AND.dist <= rmax) THEN 
    IF (atom_env(0) < MAX_ATOM_ENV) THEN 
       IF(atom_env(0) > MAXPAR_RES) THEN
-         n_res = MAX(atom_env(0), NINT(MAXPAR_RES*1.1+10),CHEM_MAX_NEIG)
+         n_res = MAX(atom_env(0), NINT(MAXPAR_RES*1.1+10)) 
          CALL alloc_param(n_res)
          MAXPAR_RES = n_res
       ENDIF
@@ -80,7 +79,6 @@ SUBROUTINE check_blen_mol(x, imole, rmin, rmax, offset)
 !     molecules are stored in 'mole_pos' to retain information          
 !     about possible periodic boundaries.                               
 !-                                                                      
-USE discus_config_mod 
 USE crystal_mod 
 USE metric_mod
 USE molecule_mod 
