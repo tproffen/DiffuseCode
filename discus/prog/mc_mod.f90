@@ -29,12 +29,12 @@ USE precision_mod
       INTEGER             ::  mo_mode,mo_local
       INTEGER(KIND=PREC_INT_LARGE)  ::  mo_cyc,mo_feed
 !
-      REAL                ::  mo_target_corr(CHEM_MAX_COR)
-      REAL                ::  mo_ach_corr(CHEM_MAX_COR)
-      REAL                ::  mo_const(0:CHEM_MAX_COR)
-      REAL                ::  mo_cfac(0:CHEM_MAX_COR)
-      REAL                ::  mo_disp(CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-      REAL                ::  mo_maxmove(4,0:DEF_MAXSCAT)
+!     REAL, DIMENSION(:)    , ALLOCATABLE                ::  mo_target_corr ! (200)
+      REAL, DIMENSION(:)    , ALLOCATABLE                ::  mo_ach_corr    ! (200)
+!     REAL, DIMENSION(:)    , ALLOCATABLE                ::  mo_const       ! (0:200)
+!     REAL, DIMENSION(:)    , ALLOCATABLE                ::  mo_cfac        ! (0:200)
+!     REAL, DIMENSION(:,:,:), ALLOCATABLE                ::  mo_disp        ! (200,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+      REAL, DIMENSION(:,:  ), ALLOCATABLE                ::  mo_maxmove     ! (4,0:DEF_MAXSCAT)
       REAL                ::  mo_kt
       LOGICAL             ::  mo_sel_atom
 !
