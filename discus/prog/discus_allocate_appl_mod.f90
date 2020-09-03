@@ -139,10 +139,12 @@ USE str_comp_mod
     SUBROUTINE discus_show_config
 !
        USE chem_mod
+       USE atom_env_mod
        USE debye_mod
        USE diffuse_mod
        USE domain_mod
        USE micro_mod
+       USE mmc_mod
        USE pdf_mod
        USE discus_plot_mod
        USE powder_mod
@@ -174,8 +176,8 @@ USE str_comp_mod
        WRITE (output_io, 1080) CHEM_MAX_VEC
        WRITE (output_io, 1090) CHEM_MAX_COR
        WRITE (output_io, 1100) CHEM_MAX_BIN
-       WRITE (output_io, 1110) CHEM_MAX_ATOM
-       WRITE (output_io, 1120) CHEM_MAX_NEIG
+       WRITE (output_io, 1110)  MMC_MAX_ATOM
+       WRITE (output_io, 1120) MAX_ATOM_ENV
 !
        WRITE (output_io, 1130) MK_MAX_ATOM
        WRITE (output_io, 1140) MK_MAX_SCAT
@@ -274,12 +276,17 @@ USE str_comp_mod
       IMPLICIT NONE
       INTEGER(KIND=PREC_INT_LARGE), PARAMETER :: ONE=1
 !
-      CALL alloc_chem_ang ( 1,  CHEM_MAX_COR        )
+      CALL alloc_chem_correlation( 1     )
+      CALL alloc_chem_ang ( 1,  1        )
       CALL alloc_chem_aver( 1,  1        )
       CALL alloc_chem_disp( 1,  1        )
-      CALL alloc_chem_env ( 1,  1,  CHEM_MAX_COR    )
-      CALL alloc_chem_vec ( 1,  CHEM_MAX_COR        )
-      CALL alloc_chem_con ( 1,  CHEM_MAX_COR        )
+      CALL alloc_chem_env ( 1,  1,  1    )
+      CALL alloc_chem_vec ( 1,  1        )
+      CALL alloc_chem_con ( 1,  1        )
+      CALL alloc_chem_dir ( 1 )
+      CALL alloc_chem_ran ( 1,  1,  1    )
+      CALL alloc_chem_dist( 1 )
+      CALL alloc_chem_hist( 1            )
       CALL alloc_crystal  ( 1,  1        )
       CALL alloc_deco     ( 1,  1,  4,  3,   3, 2 , 3)
       CALL alloc_debye    ( 1,  1,  1, ONE )
@@ -287,10 +294,11 @@ USE str_comp_mod
       CALL alloc_diffuse  ( 1,  1,  1    )
       CALL alloc_domain   ( 1            )
       CALL alloc_micro    ( 1,  1        )
-      CALL alloc_mmc      ( CHEM_MAX_COR,  8,  1,  1)
-      CALL alloc_mmc_angle( CHEM_MAX_COR,  1        )
-      CALL alloc_mmc_buck ( CHEM_MAX_COR,  1        )
-      CALL alloc_mmc_lenn ( CHEM_MAX_COR,  1        )
+      CALL alloc_mmc      ( 1,  8,  1,  1)
+      CALL alloc_mmc_angle( 1,  1        )
+      CALL alloc_mmc_buck ( 1,  1        )
+      CALL alloc_mmc_lenn ( 1,  1        )
+      CALL alloc_mmc_move ( 1,  1        )
       CALL alloc_molecule ( 1,  1,  1,  1,  1)
       CALL alloc_phases   ( 1,  1,  1        )
       CALL alloc_pdf      ( 1,  1,  1,  1    )
@@ -313,6 +321,27 @@ USE str_comp_mod
 !
     END SUBROUTINE discus_alloc_default
 !
+SUBROUTINE alloc_chem_correlation( n_cor)
+!-
+!     Allocate the arrays needed by CHEM correlations, for all types
+!+
+USE chem_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN)  :: n_cor
+!
+INTEGER :: all_status
+INTEGER :: size_of
+!
+CALL alloc_arr(chem_ctyp , 1,n_cor,  all_status, 0, size_of)
+CALL alloc_arr(chem_nnei , 1,n_cor,  all_status, 0, size_of)
+CALL alloc_arr(chem_neig , 1,3,  1, 48,  1,n_cor,  all_status, 0.0, size_of)
+CALL alloc_arr(chem_ldall, 1,n_cor,  all_status, .TRUE., size_of)
+!
+CHEM_MAX_COR = n_cor
+!
+END SUBROUTINE alloc_chem_correlation
 !
     SUBROUTINE alloc_chem_aver ( n_atom_cell, n_max_atom )
 !-
@@ -409,6 +438,11 @@ USE str_comp_mod
       chem_ang_size_of = chem_ang_size_of + size_of
 !
       CALL alloc_arr ( chem_use_win  ,1,n_ang, 1,n_cor,  &
+                       all_status, 0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      chem_ang_size_of = chem_ang_size_of + size_of
+!
+      CALL alloc_arr ( chem_nwin             , 1,n_cor,  &
                        all_status, 0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       chem_ang_size_of = chem_ang_size_of + size_of
@@ -512,6 +546,11 @@ USE str_comp_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       chem_env_size_of = chem_env_size_of + size_of
 !
+      CALL alloc_arr ( chem_nenv                  , 1, n_cor,  &
+                       all_status, -9999, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      chem_env_size_of = chem_env_size_of + size_of
+!
       CALL alloc_arr ( chem_cenv        ,0,n_atom , 1, n_env,  &
                        all_status, -9999, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -578,6 +617,11 @@ USE str_comp_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       chem_ran_size_of = chem_ran_size_of + size_of
 !
+      CALL alloc_arr ( chem_nran     ,1,n_cor,      &
+                       all_status, 0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      chem_ran_size_of = chem_ran_size_of + size_of
+!
       CALL alloc_arr ( chem_cran_cent,0,n_max_atom, 1,n_ran, &
                        all_status, -9999, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -598,7 +642,7 @@ USE str_comp_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       chem_ran_size_of = chem_ran_size_of + size_of
 !
-      CALL alloc_arr ( chem_cran_uvw ,1,3         , 4,48,    &
+      CALL alloc_arr ( chem_cran_uvw ,1,3         , 1,48,    &
                                       1,n_ran     ,          &
                        all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -694,6 +738,11 @@ USE str_comp_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       chem_vec_size_of = chem_vec_size_of + size_of
 !
+      CALL alloc_arr ( chem_nvec     ,1,n_cor,      &
+                       all_status, 0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      chem_vec_size_of = chem_vec_size_of + size_of
+!
 !
       IF( lstat ) THEN                        ! Success
          CHEM_MAX_VEC  = n_vec
@@ -757,6 +806,11 @@ USE str_comp_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       chem_con_size_of = chem_con_size_of + size_of
 !
+      CALL alloc_arr ( chem_ncon  ,1,n_cor,      &
+                       all_status, 0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      chem_con_size_of = chem_con_size_of + size_of
+!
 !
       IF( lstat ) THEN                        ! Success
          CHEM_MAX_CON  = n_con
@@ -777,6 +831,64 @@ USE str_comp_mod
          RETURN
       END IF
     END SUBROUTINE alloc_chem_con
+!
+SUBROUTINE alloc_chem_dir( n_cor)
+!-
+!     Allocate the arrays needed by CHEM correlations, for all types
+!+
+USE chem_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN)  :: n_cor
+!
+INTEGER :: all_status
+INTEGER :: size_of
+!
+CALL alloc_arr(chem_dir , 1, 3, 1,2,  1,n_cor,  all_status, 0.0, size_of)
+!
+END SUBROUTINE alloc_chem_dir
+!
+SUBROUTINE alloc_chem_dist( n_cor)
+!-
+!     Allocate the arrays needed by CHEM correlations, for all types
+!+
+USE chem_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN)  :: n_cor
+!
+INTEGER :: all_status
+INTEGER :: size_of
+!
+CALL alloc_arr(chem_rmax       , 1,n_cor,  all_status, 0.0, size_of)
+CALL alloc_arr(chem_rmin       , 1,n_cor,  all_status, 0.0, size_of)
+CALL alloc_arr(chem_freq_sigma , 1,n_cor,  all_status, 0.0, size_of)
+CALL alloc_arr(chem_wink_sigma , 1,n_cor,  all_status, 0.0, size_of)
+CALL alloc_arr(chem_cang       , 1,n_cor,  all_status, .FALSE., size_of)
+!
+END SUBROUTINE alloc_chem_dist
+!
+SUBROUTINE alloc_chem_hist( n_hist)
+!-
+!     Allocate the arrays needed by CHEM correlations, for all types
+!+
+USE chem_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN)  :: n_hist
+!
+INTEGER :: all_status
+INTEGER :: size_of
+!
+CALL alloc_arr(chem_hist       , 1,n_hist,  all_status, 0, size_of)
+!
+CHEM_MAX_BIN = n_hist
+!
+END SUBROUTINE alloc_chem_hist
+!
 !
 !
     SUBROUTINE alloc_crystal ( n_scat, n_max )
@@ -1518,6 +1630,29 @@ END SUBROUTINE alloc_demol
       END IF
     END SUBROUTINE alloc_mmc
 !
+SUBROUTINE alloc_mmc_move( n_corr, n_scat)
+!-
+!     Allocate the arrays needed by MMC  for moves in mc_mod
+!+
+USE mc_mod
+!
+IMPLICIT NONE
+!
+!      
+INTEGER, INTENT(IN)  :: n_corr
+INTEGER, INTENT(IN)  :: n_scat
+!
+INTEGER              :: all_status
+INTEGER              :: size_of
+!
+!CALL alloc_arr(mo_target_corr,1,n_corr                    ,  all_status, 0.0      , size_of )
+CALL alloc_arr(mo_ach_corr   ,1,n_corr                    ,  all_status, 0.0      , size_of )
+!CALL alloc_arr(mo_const      ,0,n_corr                    ,  all_status, 0.0      , size_of )
+!CALL alloc_arr(mo_cfac       ,0,n_corr                    ,  all_status, 0.0      , size_of )
+!CALL alloc_arr(mo_disp       ,1,n_corr, 0,n_scat, 0,n_scat,  all_status, 0.0      , size_of )
+CALL alloc_arr(mo_maxmove    ,1,4     , 0,n_scat          ,  all_status, 0.0      , size_of )
+!
+END SUBROUTINE alloc_mmc_move
 !
     SUBROUTINE alloc_mmc_angle ( n_corr, n_angle )
 !-
@@ -3286,11 +3421,13 @@ END SUBROUTINE alloc_phases
 !+
       IMPLICIT NONE
 !
-      CALL alloc_chem_ang ( 1,  CHEM_MAX_COR        )
+      CALL alloc_chem_correlation( 1     )
+      CALL alloc_chem_ang ( 1,  1        )
       CALL alloc_chem_aver( 1,  1        )
       CALL alloc_chem_disp( 1,  1        )
-      CALL alloc_chem_vec ( 1,  CHEM_MAX_COR        )
-      CALL alloc_chem_con ( 1,  CHEM_MAX_COR        )
+      CALL alloc_chem_vec ( 1,  1        )
+      CALL alloc_chem_con ( 1,  1        )
+      CALL alloc_chem_ran ( 1,  1,  1    )
     END SUBROUTINE dealloc_chemistry
 !
     SUBROUTINE dealloc_crystal
@@ -3363,10 +3500,11 @@ END SUBROUTINE alloc_phases
 !+
       IMPLICIT NONE
 !
-      CALL alloc_mmc      ( CHEM_MAX_COR,  8,  1,  1)
-      CALL alloc_mmc_angle( CHEM_MAX_COR,  1        )
-      CALL alloc_mmc_buck ( CHEM_MAX_COR,  1        )
-      CALL alloc_mmc_lenn ( CHEM_MAX_COR,  1        )
+      CALL alloc_mmc      ( 1,  8,  1,  1)
+      CALL alloc_mmc_angle( 1,  1        )
+      CALL alloc_mmc_buck ( 1,  1        )
+      CALL alloc_mmc_lenn ( 1,  1        )
+      CALL alloc_mmc_rep  ( 1,  1        )
 !
     END SUBROUTINE dealloc_mmc
 !
