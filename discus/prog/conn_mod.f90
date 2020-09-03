@@ -1473,6 +1473,7 @@ USE str_comp_mod
 !     Shows the connectivity no. idef around atom no iatom
 !+                                                                      
       USE crystal_mod
+USE atom_env_mod
       USE atom_name
 !     USE modify_mod
       USE prop_char_mod
@@ -1514,7 +1515,7 @@ USE str_comp_mod
          WRITE(output_io, 1200)
       ENDIF
       IF( natoms > MAXPAR_RES) THEN
-        n_res = MAX(natoms,MAXPAR_RES,CHEM_MAX_NEIG)
+        n_res = MAX(natoms,MAXPAR_RES,MAX_ATOM_ENV)
         CALL alloc_param(n_res)
         MAXPAR_RES = n_res
       ENDIF
