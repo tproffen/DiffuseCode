@@ -23,6 +23,7 @@ CONTAINS
       USE get_iscat_mod
       USE modify_mod
       USE output_mod 
+USE discus_show_menu
       USE zone
 !
       USE ber_params_mod
@@ -234,7 +235,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF
                         CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                                     diff_radiation, diff_power) 
-                        CALL calc_000 (rhkl) 
+                        IF(ier_num==0) CALL calc_000 (rhkl) 
                      ENDIF 
                   ELSEIF (ianz.eq.0) then 
                      rhkl (1) = 0.0 
@@ -242,7 +243,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      rhkl (3) = 0.0 
                      CALL dlink (ano, lambda, rlambda, renergy, l_energy,    &
                                     diff_radiation, diff_power) 
-                     CALL calc_000 (rhkl) 
+                     IF(ier_num==0) CALL calc_000 (rhkl) 
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
@@ -661,6 +662,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                IF (inc (1) * inc (2) * inc(3) .le.MAXQXY) then 
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_power) 
+                 IF (ier_num.ne.0) THEN
+                   RETURN
+                 ENDIF
                   CALL four_resolution(zeile, lp)
                   IF(l_zone) CALL zone_setup     ! Setup zone axis pattern
                   IF (four_mode.eq.INTERNAL) then 
@@ -806,7 +810,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num == 0) THEN 
-                  IF (ianz==  1) THEN 
+                  IF(str_comp(cpara(1), 'scat', 4, lpara(1), 4)) THEN
+                     CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+                                 diff_radiation, diff_power) 
+                     IF (ier_num.ne.0) THEN
+                       RETURN
+                     ENDIF
+                     CALL do_show_scat (ianz, cpara, lpara, werte, maxw)
+                  ELSEIF (ianz==  1) THEN 
                      CALL do_show_generic (cpara, lpara, maxw)
                   ELSEIF(ianz==0) THEN
                      IF(.not.ltop) THEN           ! The three-D corner was never defined, assume 2D
@@ -821,6 +832,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ENDIF
                      CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                                  diff_radiation, diff_power) 
+                     IF (ier_num.ne.0) THEN
+                       RETURN
+                     ENDIF
                      IF(l_zone) CALL zone_setup     ! Setup zone axis pattern
                      CALL four_show  ( ltop )
                   ELSE 
