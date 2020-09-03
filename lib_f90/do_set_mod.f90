@@ -68,9 +68,14 @@ IF (zeile.ne.' ') THEN
             ier_typ = ER_COMM 
          ENDIF 
 !                                                                       
+!----- ---- set parallel                                                
+!                                                                       
+      ELSEIF(str_comp(cpara(1), 'parallel', 3, lpara(1), 8)) THEN
+         CALL do_set_parallel(ianz, cpara, lpara, MAXW)
+!                                                                       
 !----- ---- set prompt                                                  
 !                                                                       
-      ELSEIF(str_comp(cpara(1), 'prompt', 1, lpara(1), 6)) THEN
+      ELSEIF(str_comp(cpara(1), 'prompt', 3, lpara(1), 6)) THEN
          IF (ianz.ge.2) THEN 
 !                                                                       
 !------ ------- Third+1  optional parameter: save previous setting      
@@ -240,6 +245,83 @@ ENDIF
  5000 FORMAT    (' debug  > Prompt (current, old) : ',2I3) 
  5010 FORMAT    (' debug  > Output (current, old) : ',2I3) 
 !                                                                       
-      END SUBROUTINE do_set                         
+END SUBROUTINE do_set                         
+!
 !*****7*****************************************************************
+!
+SUBROUTINE do_set_parallel(ianz, cpara, lpara, MAXW)
+!-
+! Get parameters for 'set parallel, ...' command
+!+
+USE ber_params_mod
+USE errlist_mod
+USE parallel_mod
+USE precision_mod
+USE take_param_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(INOUT) :: ianz
+INTEGER, INTENT(IN)    :: MAXW
+CHARACTER(LEN=*)  , DIMENSION(MAXW), INTENT(INOUT) :: cpara
+INTEGER           , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+!
+INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: O_NTHREAD = 1                  ! Maximum difference
+INTEGER, PARAMETER :: O_USEOMP  = 2                  ! Number of feedbacks to average
+CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte    ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
+!
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+!
+DATA oname  / 'nthread', 'useomp ' /   ! 
+DATA loname /  7       ,  6        /
+!
+opara  = (/'all   ', 'use   ' /)
+lopara = (/ 3      ,  3       /)
+owerte = (/ -1.    ,  0.0000  /)
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                              oname, loname, opara, lopara, lpresent, owerte)
+par_omp_use        = .TRUE. ! DEFAULT: User wants to use OMP
+par_omp_maxthreads = -1     ! DEFAULT: Maximum number of threads to use, -1==use all available
+!
+IF(ier_num==0) THEN
+   IF(opara(O_USEOMP) == 'use') THEN
+      par_omp_use = .TRUE.
+   ELSEIF(opara(O_USEOMP) == 'serial') THEN
+      par_omp_use = .FALSE.
+   ELSE
+      ier_num = -6
+      ier_typ = ER_COMM
+      ier_msg(1) = 'Optional OMP must be omp:use or omp:serial'
+      RETURN
+   ENDIF
+   IF(par_omp_use) THEN
+      IF(opara(O_NTHREAD) == 'all') THEN
+         par_omp_maxthreads = -1     ! DEFAULT: Maximum number of threads to use, -1==use all available
+      ELSE
+         opara (O_USEOMP) = '0.0'
+         lopara(O_USEOMP) = 3
+         CALL ber_params (ianz, cpara, lpara, werte, MAXW)
+         IF(ier_num==0) THEN
+            par_omp_maxthreads = NINT(werte(O_NTHREAD))
+            IF(par_omp_maxthreads<1) THEN
+               ier_num = -18
+               ier_typ =  ER_COMM
+            ENDIF
+         ENDIF
+      ENDIF
+   ENDIF
+ENDIF
+!
+END SUBROUTINE do_set_parallel
+!
+!*****7*****************************************************************
+!
 END MODULE do_set_mod
