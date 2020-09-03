@@ -75,6 +75,14 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2020_September
+
+   Added finish criteria to mmc
+
+   Addes 'show scat' command to Fourier and powder menu.
+3  2020_August
+
+   Added extensive parallel computing throughout the code
 3  2020_July
 
    Added a new energy "unid" to mmc. This is essentially the same 
@@ -3167,8 +3175,16 @@
    this state, you must set the Fourier to "external".
 3  show
 !p show
+!p show "scat", {<name> | <number> } [, {<name> | <number> }...]
 
    Shows the current settings for the Fourier transform file
+
+   The second form shows the scattering curve of the selected atom types,
+   which may be given as the scattering number of as the element name.
+
+   The values for the scattering curve are stored into the res[] 
+   variable in the order:
+   a1, a2, a3, a4,  b1, b2, b3, b4, c
 3  temp
 !p temp <switch>
 
@@ -4142,6 +4158,7 @@
 !p cyc     : Setting of maximum number of MMC moves
 !p envir   : Definitions of interaction environments
 !p feed    : Setting of display/feedback interval
+!p finish  : Convergence criteria to finish MMC
 !p fixed   : Setting of atom ranges that are fixed
 !p limit   : Setting of a limited atom range
 !p mode    : Setting of MMC mode (crystal modification)
@@ -4238,7 +4255,28 @@
    the interval of screen outputs. Note that the energy mode "disp"
    does not use the feedback mechanism and the value <number> given
    here only determines the output interval.
+4  finish
+!p set "finish" [, feed:<nfeed>] [, diff:<maxdiff>] [, change:<maxchange>]
 
+   Set criteria that MMC uses to finish the cycles.
+
+   Default or "stop:cycles" disables the convergence criteria. 
+   MMC will run the full amount of ==> set cycles.
+
+   With "stop:converge", MMC will apply the two convergence criteria
+   and stop running once both are met.
+
+   diff:<maxdiff>
+      If the largest deviation:
+      |(target-achieved)/target| is less than <maxdiff> MMC has converged
+
+   change:<maxchange> 
+      If the largest change of |(target-achieved)/target| observed over
+      the last <nfeed> feedbacks is less than <maxchange>, MMC is
+      considered to be stagnant and will be stopped.
+
+   feed:<nfeed>
+      Number of feedback that are considered for the "change" criterion.
 4  limited
 !p set "limited", "OFF"
 !p set "limited", "atom", <nmin>, <nmax>
@@ -4566,13 +4604,21 @@
    line separating each block. Each line of each block contains:
    index along abscissa, index along ordinate, intensity, third index.
 
-!p "hdf5"
+!p "hdf5" [,maxval:"auto"]
+!p "hdf5" [,maxval:"data"]
+!p "hdf5" [,maxval:<value>]
    Sets the output to HDF5 file format. This applies to single
    crystal data only, not to powder diffraction pattern.
 
    The file format is compatible to the Yell program by Arkadiy 
    Simonov. 
    See the manual for details on the file format.
+
+   By default the data are scaled by a multiplier 1.0 to give the 
+   maximum value in the output file as in the data. The same is 
+   achieved by maxval:"data". 
+   Alternatively a scale factor can be applied such that the maximum
+   value in the output file is equal to <value>.
 
 !p "list5"
    Sets the output type to a SHELXL list 5. Each line of the output
@@ -6059,9 +6105,17 @@
    <weight_fractions> add up to 1.0
 3  show
 !p show
+!p show "scat", {<name> | <number> } [, {<name> | <number> }...]
 
    Shows the current settings relevant to the calculation of a
    powder pattern.
+
+   The second form shows the scattering curve of the selected atom types,
+   which may be given as the scattering number of as the element name.
+
+   The values for the scattering curve are stored into the res[] 
+   variable in the order:
+   a1, a2, a3, a4,  b1, b2, b3, b4, c
 3  set
 
    Sets various parameters for powder diffraction. 
