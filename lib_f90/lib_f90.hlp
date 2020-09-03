@@ -32,6 +32,10 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2020_September
+
+   As of version 6.02, the DISCUS_SUITE is compiled with OpenMP as default.
+   To allow user flexibility, a new command ==> 'set parallel,...' was added.
 4  2020_June
 
    New commands 'mount' and 'umount' enable access to Removable drives
@@ -1054,6 +1058,22 @@
    This command allows to alter various program independent setting.
    Allowed values for <command> are:
 
+4  parallel
+!p set parallel {,"omp:USE"} {,"nthread:"["all"|<number>]}
+
+   Defines the usage of OpenMP. As of version 6.02 DISCUS_SUITE is
+   compiled with OpenMP. THis allows to calculate several parts of the 
+   program in parallel, without user interaction. 
+
+   As the parallel algorithm of OpenMP requires a bit of administrative
+   overload, you might want to turn this parallel processing off if:
+     The program runs in parallel with "mpiexec" (Linux/MacOS) or the
+     'parallel' command at the suite level.
+     This would commonly be the case if you use the "diffev" type of
+     refinement.
+     Since the MPI parallel processing currently uses all cores of 
+     a given node, the local OpenMP parallel algorithm cannot use 
+     more processors. 
 4  prompt
 !p set prompt, {"on"|"off"|"redirect"},[{"on"|"off"|"file"}, ["save"]]
 !p set prompt, "old"
