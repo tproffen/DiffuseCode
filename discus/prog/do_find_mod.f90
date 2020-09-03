@@ -317,6 +317,7 @@ ENDIF
 !
 !     Sort neighbors according to distance
 !
+IF(atom_env(0)>0) THEN
       ALLOCATE(tmp_ind(  1:atom_env(0)))
       ALLOCATE(tmp_env(  1:atom_env(0)))
       ALLOCATE(tmp_pos(3,0:atom_env(0)))
@@ -335,6 +336,7 @@ ENDIF
       DEALLOCATE(tmp_env)
       DEALLOCATE(tmp_pos)
       DEALLOCATE(tmp_dis)
+ENDIF
 !                                                                       
       END SUBROUTINE do_find_env                    
 !
