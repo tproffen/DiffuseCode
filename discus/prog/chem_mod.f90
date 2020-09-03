@@ -17,6 +17,7 @@ INTEGER, PARAMETER      :: CHEM_RANGE = 5
 INTEGER, PARAMETER      :: CHEM_CON   = 6
 !
 !
+INTEGER                 :: CHEM_MAX_COR      = 1
 INTEGER                 :: CHEM_MAXAT_CELL   = 1
 INTEGER                 :: CHEM_MAX_AVE_ATOM = 1
 INTEGER                 :: CHEM_MAX_VEC      = 1
@@ -24,6 +25,7 @@ INTEGER                 :: CHEM_MAX_ANG      = 1
 INTEGER                 :: CHEM_MAX_RAN      = 0
 INTEGER                 :: CHEM_MAX_CON      = 1
 INTEGER                 :: CHEM_MAX_ENV      = 1
+INTEGER                 :: CHEM_MAX_BIN      = 1
 !
 CHARACTER(LEN=80)                        :: chem_fname     = 'blen.xy'
 INTEGER                                  :: chem_bin       = 601
@@ -67,7 +69,7 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE     :: chem_use_con     !  (CHEM_MAX_CON,CH
 !
 ! Environment definitions
 !
-INTEGER, DIMENSION(CHEM_MAX_BIN)                       :: chem_hist        !  (CHEM_MAX_BIN)
+INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_hist        !  (CHEM_MAX_BIN)
 !
 ! Average crystal structure
 INTEGER, DIMENSION(:)  , ALLOCATABLE                   :: chem_ave_n       !  (MAXAT_CELL)
@@ -92,23 +94,23 @@ INTEGER, DIMENSION(:)  , ALLOCATABLE                   :: chem_env_neig    !  (C
 REAL,    DIMENSION(:)  , ALLOCATABLE                   :: chem_rmax_env    !  (CHEM_MAX_ENV)
 REAL,    DIMENSION(:)  , ALLOCATABLE                   :: chem_rmin_env    !  (CHEM_MAX_ENV)
 !
-INTEGER, DIMENSION(CHEM_MAX_COR)                       :: chem_nran        !  (CHEM_MAX_COR)
-INTEGER, DIMENSION(CHEM_MAX_COR)                       :: chem_nvec        !  (CHEM_MAX_COR)
-INTEGER, DIMENSION(CHEM_MAX_COR)                       :: chem_ncon        !  (CHEM_MAX_COR)
-INTEGER, DIMENSION(CHEM_MAX_COR)                       :: chem_nwin        !  (CHEM_MAX_COR)
-INTEGER, DIMENSION(CHEM_MAX_COR)                       :: chem_ctyp        !  (CHEM_MAX_COR)
-INTEGER, DIMENSION(CHEM_MAX_COR)                       :: chem_nnei        !  (CHEM_MAX_COR)
-INTEGER, DIMENSION(CHEM_MAX_COR)                       :: chem_nenv        !  (CHEM_MAX_COR)
+INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_nran        !  (CHEM_MAX_COR)
+INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_nvec        !  (CHEM_MAX_COR)
+INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_ncon        !  (CHEM_MAX_COR)
+INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_nwin        !  (CHEM_MAX_COR)
+INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_ctyp        !  (CHEM_MAX_COR)
+INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_nnei        !  (CHEM_MAX_COR)
+INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_nenv        !  (CHEM_MAX_COR)
 !REAL, DIMENSION(3,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT) :: chem_vect_ave    !  (3,12,CHEM_MAX_COR,0:MAXSCAT,0:MAXSCAT)
 !REAL, DIMENSION(3,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT) :: chem_vect_sig    !  (3,12,CHEM_MAX_COR,0:MAXSCAT,0:MAXSCAT)
-REAL, DIMENSION(3,48,CHEM_MAX_COR)                     :: chem_neig        !  (3,48,CHEM_MAX_COR)
-REAL, DIMENSION(3,2,CHEM_MAX_COR)                      :: chem_dir         !  (3,2,CHEM_MAX_COR)
-REAL, DIMENSION(CHEM_MAX_COR)                          :: chem_rmax        !  (CHEM_MAX_COR)
-REAL, DIMENSION(CHEM_MAX_COR)                          :: chem_rmin        !  (CHEM_MAX_COR)
-REAL, DIMENSION(CHEM_MAX_COR)                          :: chem_freq_sigma  !  (CHEM_MAX_COR)
-REAL, DIMENSION(CHEM_MAX_COR)                          :: chem_wink_sigma  !  (CHEM_MAX_COR)
-LOGICAL, DIMENSION(CHEM_MAX_COR)                       :: chem_cang        !  (CHEM_MAX_COR)
-LOGICAL, DIMENSION(CHEM_MAX_COR)                       :: chem_ldall       !  (CHEM_MAX_COR)
+REAL, DIMENSION(:, :,:), ALLOCATABLE                   :: chem_neig        !  (3,48,CHEM_MAX_COR)
+REAL, DIMENSION(:,:,:), ALLOCATABLE                    :: chem_dir         !  (3,2,CHEM_MAX_COR)
+REAL, DIMENSION(:), ALLOCATABLE                        :: chem_rmax        !  (CHEM_MAX_COR)
+REAL, DIMENSION(:), ALLOCATABLE                        :: chem_rmin        !  (CHEM_MAX_COR)
+REAL, DIMENSION(:), ALLOCATABLE                        :: chem_freq_sigma  !  (CHEM_MAX_COR)
+REAL, DIMENSION(:), ALLOCATABLE                        :: chem_wink_sigma  !  (CHEM_MAX_COR)
+LOGICAL, DIMENSION(:), ALLOCATABLE                     :: chem_cang        !  (CHEM_MAX_COR)
+LOGICAL, DIMENSION(:), ALLOCATABLE                     :: chem_ldall       !  (CHEM_MAX_COR)
 !
 !
 INTEGER :: chem_aver_size_of = 0

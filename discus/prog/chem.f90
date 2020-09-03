@@ -701,6 +701,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
 !     sets most parameters for 'chem' section                           
 !-                                                                      
       USE discus_config_mod 
+USE discus_allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
@@ -724,6 +725,7 @@ USE precision_mod
       INTEGER lpara (maxw) 
       INTEGER ianz 
       INTEGER indxx, indxy, indxz 
+INTEGER :: n_bin ! Dummy for histogramm allocation
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
@@ -810,7 +812,7 @@ USE precision_mod
         ELSE
            chem_quick   = (cpara(2)(1:3) .eq.'QUI') 
            chem_cluster = (cpara(2)(1:3) .eq.'CLU') 
-           IF(ianz == 3) THEN 
+           IF(ianz >= 3) THEN 
               CALL do_cap(cpara(3) ) 
               IF(cpara(3)(1:3)  == 'PER') THEN 
                  IF(ianz == 4) THEN 
@@ -845,15 +847,19 @@ USE precision_mod
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.ne.0) return 
                IF (ianz.eq.1) then 
-                  IF (nint (werte (1) ) .lt.chem_max_bin) then 
-                     chem_bin = nint (werte (1) ) 
-                  ELSE 
-                     ier_num = - 1 
-                     ier_typ = ER_CHEM 
-                  ENDIF 
+                  n_bin = NINT(werte(1))
+                  IF(n_bin >=  CHEM_MAX_BIN) THEN
+                     CALL alloc_chem_hist(n_bin)
+                  ENDIF
+                  chem_bin = n_bin
+!                 ELSE 
+!                    ier_num = - 1 
+!                    ier_typ = ER_CHEM 
+!                 ENDIF 
                ELSE 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
+                  chem_bin = 1
                ENDIF 
 !                                                                       
 !------ --- set blen: set allowed range for bond-length histogramm      
@@ -981,7 +987,7 @@ IF (ianz.eq.6) then
 !  allocate vectors
 !
    IF (iv > 0 ) THEN
-      IF (iv > CHEM_MAX_VEC) THEN
+      IF (iv > CHEM_MAX_VEC .OR. CHEM_MAX_COR>UBOUND(chem_nvec,1)) THEN
          n_vec = CHEM_MAX_VEC + 10   ! Increment size by 10
          n_cor = CHEM_MAX_COR
          CALL alloc_chem_vec ( n_vec , n_cor )
@@ -1066,7 +1072,7 @@ USE str_comp_mod
             c_name_l = 1
             CALL get_connectivity_identity( is, ino, c_name, c_name_l)
             iv = iv + 1                                  ! autoincrement con.nr.
-            IF (iv > CHEM_MAX_CON) THEN
+            IF (iv > CHEM_MAX_CON .OR. CHEM_MAX_COR>UBOUND(chem_ncon,1)) THEN
                n_con = CHEM_MAX_CON + 10                 ! Increment size by 10
                n_cor = CHEM_MAX_COR
                CALL alloc_chem_con ( n_con , n_cor )
@@ -1111,7 +1117,7 @@ USE str_comp_mod
 !     allocate list of mmc connectivities
 !
       IF (iv > 0 ) THEN
-         IF (iv > CHEM_MAX_CON) THEN
+         IF (iv > CHEM_MAX_CON .OR. CHEM_MAX_COR>UBOUND(chem_ncon,1)) THEN
             n_con = CHEM_MAX_CON + 10   ! Increment size by 10
             n_cor = CHEM_MAX_COR
             CALL alloc_chem_con ( n_con , n_cor )
@@ -1206,7 +1212,7 @@ ELSE main
 !  allocate ranges
 !
             IF (iv > 0 ) THEN
-               IF (iv > CHEM_MAX_RAN) THEN
+               IF (iv > CHEM_MAX_RAN .OR. CHEM_MAX_COR>UBOUND(chem_nran,1)) THEN
                   n_ran = CHEM_MAX_RAN + 10   ! Increment size by 10
                   n_cor = CHEM_MAX_COR
                   CALL alloc_chem_vec ( n_ran , n_cor )
@@ -1291,7 +1297,7 @@ ELSE main
 !  allocate ranges
 !
             IF (iv > 0 ) THEN
-               IF (iv > CHEM_MAX_RAN) THEN
+               IF (iv > CHEM_MAX_RAN .OR. CHEM_MAX_COR>UBOUND(chem_nran,1)) THEN
                   n_ran = CHEM_MAX_RAN + 10   ! Increment size by 10
                   n_cor = CHEM_MAX_COR
                   CALL alloc_chem_vec ( n_ran , n_cor )
@@ -1327,7 +1333,7 @@ ELSE main
 !  allocate ranges
 !
             IF (iv > 0 ) THEN
-               IF (iv > CHEM_MAX_RAN) THEN
+               IF (iv > CHEM_MAX_RAN .OR. CHEM_MAX_COR>UBOUND(chem_nenv,1)) THEN
                   n_ran = CHEM_MAX_RAN + 10   ! Increment size by 10
                   n_cor = CHEM_MAX_COR
                   CALL alloc_chem_vec ( n_ran , n_cor )
@@ -1363,7 +1369,7 @@ ELSE main
 !  allocate ranges
 !
             IF (iv > 0 ) THEN
-               IF (iv > CHEM_MAX_RAN) THEN
+               IF (iv > CHEM_MAX_RAN .OR. CHEM_MAX_COR>UBOUND(chem_nvec,1)) THEN
                   n_ran = CHEM_MAX_RAN + 10   ! Increment size by 10
                   n_cor = CHEM_MAX_COR
                   CALL alloc_chem_vec ( n_ran , n_cor )
@@ -1447,7 +1453,7 @@ IF (ianz.eq.10) then
 !  allocate angles
 !
    IF (iv > 0 ) THEN
-      IF (iv > CHEM_MAX_ANG) THEN
+      IF (iv > CHEM_MAX_ANG .OR. CHEM_MAX_COR>UBOUND(chem_nwin,1)) THEN
          n_ang = CHEM_MAX_ANG + 10   ! Increment size by 10
          n_cor = CHEM_MAX_COR
          call alloc_chem_ang ( n_ang , n_cor )
@@ -1488,6 +1494,7 @@ ENDIF
 !-                                                                      
       USE discus_allocate_appl_mod 
       USE discus_config_mod 
+USE atom_env_mod
       USE crystal_mod 
       USE chem_mod 
       USE get_iscat_mod
@@ -1539,7 +1546,7 @@ USE str_comp_mod
 !  allocate vectors
 !
       IF (iv > 0 ) THEN
-         IF (iv > CHEM_MAX_ENV) THEN
+         IF (iv > CHEM_MAX_ENV .OR. CHEM_MAX_COR>UBOUND(chem_nenv,1)) THEN
             n_atom= MAX(n_atom,MAX_ATOM_ENV)
             n_env = CHEM_MAX_ENV + 10   ! Increment size by 10
             n_cor = CHEM_MAX_COR
@@ -1568,34 +1575,41 @@ USE str_comp_mod
 !                                                                       
       END SUBROUTINE chem_set_envir                 
 !*****7*****************************************************************
-      SUBROUTINE chem_set_neig (ianz, cpara, lpara, werte, maxw) 
+!
+SUBROUTINE chem_set_neig (ianz, cpara, lpara, werte, maxw) 
 !+                                                                      
 !     Command 'set neig' processed here                                 
 !-                                                                      
-      USE discus_config_mod 
-      USE chem_mod 
-      USE metric_mod
-      USE rmc_sup_mod
-      USE rmc_symm_mod
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE atom_env_mod
+USE chem_mod 
+USE metric_mod
+USE rmc_sup_mod
+USE rmc_symm_mod
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
 USE precision_mod
-      USE string_convert_mod
-      IMPLICIT none 
+USE string_convert_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      INTEGER max_uvw 
-      PARAMETER (max_uvw = 48) 
+INTEGER, INTENT(INOUT) :: ianz 
+INTEGER, INTENT(IN)    :: maxw 
+CHARACTER(LEN=*)  , DIMENSION(MAXW), INTENT(INOUT) :: cpara !(maxw) 
+INTEGER           , DIMENSION(MAXW), INTENT(INOUT) :: lpara !(maxw) 
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(INOUT) :: werte !(maxw) 
 !                                                                       
-      INTEGER maxw 
-!                                                                       
-      CHARACTER ( * ) cpara (maxw) 
-      REAL(KIND=PREC_DP) ::  werte (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER ianz 
-!                                                                       
+INTEGER, PARAMETER :: max_uvw = 48
       INTEGER i, j, iv , ii
+INTEGER :: n_cor    ! Dummy number of correlations
+INTEGER :: n_ang    ! Dummy number of vectors
+INTEGER :: n_con    ! Dummy number of vectors
+INTEGER :: n_env    ! Dummy number of vectors
+INTEGER :: n_ran    ! Dummy number of vectors
+INTEGER :: n_vec    ! Dummy number of vectors
+INTEGER :: n_atom   ! Dummy number of vectors
       REAL u (3), v (3) 
       REAL uvw (4, max_uvw) 
       REAL uvw_mat (4, 4, max_uvw) 
@@ -1609,8 +1623,34 @@ USE precision_mod
 !                                                                       
 !------ set neig,add : Add neighbour definition to list                 
 !                                                                       
-      IF (cpara (1) (1:2) .eq.'AD'.and.ianz.eq.1) then 
-         IF (chem_ncor.lt.CHEM_MAX_COR) then 
+IF(cpara(1)(1:2) == 'AD' .AND. ianz == 1) THEN 
+   IF(chem_ncor == CHEM_MAX_COR) THEN      ! Need to allocate more correlations
+      n_cor = CHEM_MAX_COR + 10
+      CALL alloc_chem_correlation(n_cor)
+      IF(MAXVAL(chem_nvec) > 0) THEN       ! Need to allocate vectors
+         n_vec = CHEM_MAX_VEC
+         CALL alloc_chem_vec(n_vec, n_cor)
+      ENDIF
+      IF(MAXVAL(chem_ncon) > 0) THEN       ! Need to allocate vectors
+         n_con = CHEM_MAX_CON
+         CALL alloc_chem_con(n_con, n_cor)
+      ENDIF
+      IF(MAXVAL(chem_nwin) > 0) THEN       ! Need to allocate vectors
+         n_ang = CHEM_MAX_ANG
+         CALL alloc_chem_ang(n_ang, n_cor)
+      ENDIF
+      IF(MAXVAL(chem_nran) > 0) THEN       ! Need to allocate vectors
+         n_ran = CHEM_MAX_RAN
+         n_atom= MAX(n_atom,MAX_ATOM_ENV)
+         CALL alloc_chem_ran(n_ran, n_cor, n_atom)
+      ENDIF
+      IF(MAXVAL(chem_nenv) > 0) THEN       ! Need to allocate vectors
+         n_env = CHEM_MAX_ENV
+         n_atom= MAX(n_atom,MAX_ATOM_ENV)
+         CALL alloc_chem_env ( n_atom , n_env, n_cor )
+      ENDIF
+   ENDIF
+         IF (chem_ncor.lt.CHEM_MAX_COR) THEN 
             chem_ncor = chem_ncor + 1 
          ELSE 
             ier_num = - 12 
@@ -1619,12 +1659,13 @@ USE precision_mod
 !                                                                       
 !------ set neig,rese : Reset neighbour list                            
 !                                                                       
-      ELSEIF (cpara (1) (1:2) .eq.'RE') then 
+ELSEIF (cpara (1) (1:2) .eq.'RE') then 
          chem_ncor = 1 
          chem_nvec (1) = 0 
          chem_ncon (1) = 0 
          chem_nwin (1) = 0 
          chem_nran (1) = 0 
+         chem_nenv (1) = 0 
 !                                                                       
 !------ set neig,vec : Define neighbour via vectors                     
 !                                                                       
@@ -2275,6 +2316,7 @@ USE str_comp_mod
 !+                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+USE atom_env_mod
       USE atom_name 
       USE chem_mod 
       USE molecule_mod 
@@ -2289,17 +2331,17 @@ USE precision_mod
 !                                                                       
        
 !                                                                       
-      INTEGER maxw, maxatom 
+      INTEGER maxw! , maxatom 
       PARAMETER (maxw = 3) 
-      PARAMETER (maxatom = chem_max_neig) 
+!     PARAMETER (maxatom = chem_max_neig) 
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw) 
       CHARACTER(9) at_name_i 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL(KIND=PREC_SP) :: pos (3, 0:maxatom) 
+      REAL(KIND=PREC_SP) :: pos (3, 0:MAX_ATOM_ENV) 
       INTEGER lpara (maxw) 
-      INTEGER ind (0:maxatom), iatom, imol 
+      INTEGER ind (0:MAX_ATOM_ENV), iatom, imol 
       INTEGER i, j, n, ic, ianz, laenge 
       INTEGER :: n_res
 !                                                                       
@@ -2331,7 +2373,7 @@ USE precision_mod
             ENDIF 
             IF (ier_num.ne.0) return 
 !                                                                       
-            CALL chem_neighbour (iatom, ic, ind, pos, n, maxatom) 
+            CALL chem_neighbour (iatom, ic, ind, pos, n, MAX_ATOM_ENV) 
 !                                                                       
             IF (n.gt.0) then 
                at_name_i = at_name (cr_iscat (iatom) ) 
@@ -2370,7 +2412,7 @@ USE precision_mod
             ENDIF 
             IF (ier_num.ne.0) return 
 !                                                                       
-            CALL chem_neighbour_mol (imol, ic, ind, n, maxatom) 
+            CALL chem_neighbour_mol (imol, ic, ind, n, MAX_ATOM_ENV) 
 !                                                                       
             IF (n.gt.0) then 
                WRITE (output_io, 2000) (cr_pos (i, mole_cont (mole_off (&
@@ -2399,7 +2441,7 @@ USE precision_mod
 !------ store results in res_para                                       
 !                                                                       
       IF (n.gt.MAXPAR_RES) then 
-         n_res = MAX(n, MAXPAR_RES, CHEM_MAX_NEIG)
+         n_res = MAX(n, MAXPAR_RES, MAX_ATOM_ENV)
          CALL alloc_param(n_res)
          MAXPAR_RES = n_res
       ENDIF
@@ -2562,7 +2604,7 @@ USE support_mod
 !                                                                       
       CALL four_csize (cr_icc, csize, lperiod, ls_xyz) 
 !                                                                       
-      DO i = 1, chem_max_bin 
+      DO i = 1, CHEM_MAX_BIN 
       chem_hist (i) = 0 
       ENDDO 
 !                                                                       
@@ -2678,7 +2720,7 @@ USE support_mod
 !                                                                       
       INTEGER csize (3), lbeg (3) 
       INTEGER i, ibin, il, iup, ic, l 
-      REAL(KIND=PREC_DP) :: sc (chem_max_cor), scc (chem_max_cor) 
+      REAL(KIND=PREC_DP) :: sc (CHEM_MAX_COR), scc (CHEM_MAX_COR) 
       REAL(KIND=PREC_DP) :: ave_c, sig_c 
 !                                                                       
 !                                                                       
@@ -2697,11 +2739,11 @@ USE support_mod
 !                                                                       
       CALL four_csize (cr_icc, csize, lperiod, ls_xyz) 
 !                                                                       
-      DO i = 1, chem_max_bin 
+      DO i = 1, CHEM_MAX_BIN 
       chem_hist (i) = 0 
       ENDDO 
 !                                                                       
-      DO i = 1, chem_max_cor 
+      DO i = 1, CHEM_MAX_COR 
       sc (i) = 0.0 
       scc (i) = 0.0 
       ENDDO 
@@ -2904,9 +2946,9 @@ USE support_mod
       REAL(KIND=PREC_DP):: werte (maxw)
       REAL(KIND=PREC_SP):: nv (3) 
       REAL(KIND=PREC_SP):: cval (maxval) 
-      REAL(KIND=PREC_SP):: back_neig (3, 48, chem_max_cor) 
-      REAL(KIND=PREC_SP):: back_rmin (chem_max_cor) 
-      REAL(KIND=PREC_SP):: back_rmax (chem_max_cor) 
+      REAL(KIND=PREC_SP):: back_neig (3, 48, CHEM_MAX_COR) 
+      REAL(KIND=PREC_SP):: back_rmin (CHEM_MAX_COR) 
+      REAL(KIND=PREC_SP):: back_rmax (CHEM_MAX_COR) 
       LOGICAL locc 
 !                                                                       
 !                                                                       
@@ -2979,7 +3021,7 @@ USE support_mod
 !------ Save current 'neig' settings                                    
 !                                                                       
       CALL chem_save_neig (back_cvec, back_neig, back_rmin, back_rmax,  &
-      chem_cvec, chem_neig, chem_rmin, chem_rmax, CHEM_MAX_VEC)
+      chem_cvec, chem_neig, chem_rmin, chem_rmax, CHEM_MAX_COR, CHEM_MAX_VEC)
 !                                                                       
 !------ We have a 1D file                                               
 !                                                                       
@@ -3059,7 +3101,7 @@ USE support_mod
 !------ Restore 'neig' settings                                         
 !                                                                       
       CALL chem_save_neig (chem_cvec, chem_neig, chem_rmin, chem_rmax,  &
-      back_cvec, back_neig, back_rmin, back_rmax, CHEM_MAX_VEC)
+      back_cvec, back_neig, back_rmin, back_rmax, CHEM_MAX_COR, CHEM_MAX_VEC)
 !                                                                       
       CLOSE (37) 
 !                                                                       
@@ -3072,21 +3114,22 @@ USE support_mod
       END SUBROUTINE chem_corr_field                
 !*****7*****************************************************************
       SUBROUTINE chem_save_neig (a_cvec, a_neig, a_rmin, a_rmax, b_cvec,&
-      b_neig, b_rmin, b_rmax, CHEM_MAX_VEC)
+      b_neig, b_rmin, b_rmax, CHEM_MAX_COR, CHEM_MAX_VEC)
 !-                                                                      
 !     Saves/restores current CHEM neighbour settings                    
 !+                                                                      
       USE discus_config_mod 
       IMPLICIT none 
 !                                                                       
+INTEGER, INTENT(IN) :: CHEM_MAX_COR
 INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       INTEGER a_cvec (5, chem_max_vec) 
       INTEGER b_cvec (5, chem_max_vec) 
-      REAL a_neig (3, 48, chem_max_cor) 
-      REAL b_neig (3, 48, chem_max_cor) 
-      REAL a_rmin (chem_max_cor), a_rmax (chem_max_cor) 
-      REAL b_rmin (chem_max_cor), b_rmax (chem_max_cor) 
+      REAL a_neig (3, 48, CHEM_MAX_COR) 
+      REAL b_neig (3, 48, CHEM_MAX_COR) 
+      REAL a_rmin (CHEM_MAX_COR), a_rmax (CHEM_MAX_COR) 
+      REAL b_rmin (CHEM_MAX_COR), b_rmax (CHEM_MAX_COR) 
 !                                                                       
       INTEGER i, j, k 
 !                                                                       
@@ -3096,7 +3139,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       ENDDO 
       ENDDO 
 !                                                                       
-      DO i = 1, chem_max_cor 
+      DO i = 1, CHEM_MAX_COR 
       a_rmin (i) = b_rmin (i) 
       a_rmax (i) = b_rmax (i) 
 !                                                                       
@@ -3123,7 +3166,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       INTEGER i, j, ix, iy, iv 
       INTEGER cvec (5, chem_max_vec) 
-      REAL neig (3, 48, chem_max_cor) 
+      REAL neig (3, 48, CHEM_MAX_COR) 
       REAL nv (3), u (3), v (3) 
 !                                                                       
 !     REAL do_blen 
@@ -3202,6 +3245,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE discus_allocate_appl_mod
       USE discus_config_mod 
       USE crystal_mod 
+USE atom_env_mod
       USE atom_name 
       USE chem_mod 
       USE get_iscat_mod
@@ -3218,9 +3262,9 @@ USE support_mod
 !                                                                       
        
 !                                                                       
-      INTEGER maxatom 
+!     INTEGER maxatom 
 !                                                                       
-      PARAMETER (maxatom = chem_max_neig) 
+!     PARAMETER (maxatom = chem_max_neig) 
 !                                                                       
       INTEGER ianz, maxw 
       CHARACTER ( * ) cpara (maxw) 
@@ -3230,12 +3274,12 @@ USE support_mod
 !                                                                       
       CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: fname 
       CHARACTER(9) at_name_i, at_name_j 
-      INTEGER atom (0:maxatom), natom 
+      INTEGER atom (0:MAX_ATOM_ENV), natom 
       INTEGER iianz, jjanz, i, j, k, is, js, ic 
       INTEGER bl_anz (0:maxscat, 0:maxscat) 
       REAL bl_sum (0:maxscat, 0:maxscat) 
       REAL bl_s2 (0:maxscat, 0:maxscat) 
-      REAL patom (3, 0:maxatom) 
+      REAL patom (3, 0:MAX_ATOM_ENV) 
       REAL u (3), v (3), d (3), di 
       REAL(KIND=PREC_DP) :: wwerte (maxw) 
       LOGICAL lfile 
@@ -3287,7 +3331,7 @@ USE support_mod
 !                                                                       
       DO i = 1, cr_natoms 
       IF (atom_allowed (i, werte, ianz, maxw) ) then 
-         CALL chem_neighbour (i, ic, atom, patom, natom, maxatom) 
+         CALL chem_neighbour (i, ic, atom, patom, natom, MAX_ATOM_ENV) 
          IF (natom.gt.0) then 
             DO j = 1, natom 
             IF (atom_allowed (atom (j), wwerte, ianz, maxw) ) then 
@@ -3348,407 +3392,6 @@ USE support_mod
  3000 FORMAT (3(f12.5,1x),3x,2(i3,1x)) 
 !                                                                       
       END SUBROUTINE chem_disp                      
-!*****7*****************************************************************
-      SUBROUTINE chem_disp_multi (ianz, cpara, lpara, werte, maxw, lout) 
-!+                                                                      
-!     Calculates distortions within the crystal                         
-!-                                                                      
-      USE discus_allocate_appl_mod
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE atom_name 
-      USE chem_mod 
-      USE get_iscat_mod
-      USE metric_mod
-      USE mc_mod 
-      USE mmc_mod 
-      USE modify_mod
-      USE modify_func_mod
-      USE errlist_mod 
-USE precision_mod
-      USE prompt_mod 
-USE support_mod
-      IMPLICIT none 
-!                                                                       
-       
-!                                                                       
-      INTEGER maxatom 
-!                                                                       
-      PARAMETER (maxatom = chem_max_neig) 
-!                                                                       
-      INTEGER ianz, maxw 
-      CHARACTER ( * ) cpara (maxw) 
-      INTEGER lpara (maxw) 
-      REAL(KIND=PREC_DP) ::  werte (maxw) 
-      LOGICAL lout 
-!                                                                       
-      CHARACTER(9) at_name_i, at_name_j 
-      INTEGER atom (0:maxatom, CHEM_MAX_CENT) 
-      INTEGER natom (CHEM_MAX_CENT) 
-      INTEGER iianz, i, j, k, is, js, ic 
-      INTEGER ja, je 
-      INTEGER icent, ncent 
-      INTEGER bl_anz (0:maxscat, 0:maxscat) 
-      REAL bl_sum (0:maxscat, 0:maxscat) 
-      REAL bl_s2 (0:maxscat, 0:maxscat) 
-      REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
-      REAL u (3), v (3), d (3), di 
-      LOGICAL lfile 
-!                                                                       
-!     REAL do_blen 
-!     LOGICAL atom_allowed 
-!                                                                       
-!     allocate displacement arrays
-!
-      CALL alloc_chem_disp(CHEM_MAX_COR, MAXSCAT)
-!                                                                       
-      iianz = 2 
-      CALL get_iscat (iianz, cpara, lpara, werte, maxw, .false.) 
-      IF (ier_num.ne.0) return 
-!                                                                       
-!------ write output                                                    
-!                                                                       
-      IF (lout) then 
-         WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
-         (1:lpara (2) )                                                 
-         IF (ianz.gt.2) then 
-            CALL oeffne (37, cpara (3) , 'unknown')
-         ENDIF 
-      ENDIF 
-!                                                                       
-      lfile = lout.and. (ianz.gt.2) 
-!                                                                       
-!------ loop over all defined correlations                              
-!                                                                       
-      DO ic = 1, chem_ncor 
-!                                                                       
-!     --reset the average and sigma values. Necessary when the          
-!         correlations or                                               
-!       periodicity has been changed                                    
-!                                                                       
-      DO i = 0, cr_nscat 
-      DO j = i, cr_nscat 
-      chem_disp_ave (ic, i, j) = 0.0 
-      chem_disp_sig (ic, i, j) = 0.0 
-      ENDDO 
-      ENDDO 
-      IF (chem_ctyp (ic) .eq.CHEM_VEC.or.chem_ctyp (ic)                 &
-      .eq.CHEM_ENVIR.or.chem_ctyp (ic) .eq.CHEM_RANGE.or.chem_ctyp (ic) &
-      .eq.CHEM_DIST) then                                               
-!                                                                       
-!------ --- reset counters, vectors, ..                                 
-!                                                                       
-         DO i = 0, cr_nscat 
-         DO j = 0, cr_nscat 
-         bl_sum (i, j) = 0.0 
-         bl_s2 (i, j) = 0.0 
-         bl_anz (i, j) = 0 
-         ENDDO 
-         ENDDO 
-!                                                                       
-!------ --- calculate distortions                                       
-!                                                                       
-         DO i = 1, cr_natoms 
-         IF (atom_allowed (i, werte, ianz, maxw) ) then 
-            CALL chem_neighbour_multi (i, ic, atom, patom, natom, ncent,&
-            maxatom)                                                    
-            DO icent = 1, ncent 
-            IF (natom (icent) .gt.0) then 
-               IF (i.eq.atom (0, icent) ) then 
-!                                                                       
-!     --------- The selected atom is the central atom, check all atoms  
-!                                                                       
-                  ja = 1 
-                  je = natom (icent) 
-                  DO k = 1, 3 
-                  u (k) = patom (k, 0, icent) 
-                  ENDDO 
-                  is = cr_iscat (i) 
-               ELSE 
-!                                                                       
-!     --------- The selected atom is a neighbour, check central         
-!                 atom only                                             
-!                                                                       
-                  ja = 0 
-                  je = 0 
-                  DO k = 1, 3 
-                  u (k) = cr_pos (k, i) 
-                  ENDDO 
-                  is = cr_iscat (i) 
-               ENDIF 
-               DO j = ja, je 
-               IF (atom_allowed (atom (j, icent), werte, ianz, maxw) )  &
-               then                                                     
-                  DO k = 1, 3 
-                  v (k) = patom (k, j, icent) 
-                  d (k) = v (k) - u (k) 
-                  ENDDO 
-                  di = do_blen (.true., u, v) 
-                  js = cr_iscat (atom (j, icent) ) 
-                  IF (lfile) WRITE (37, 3000) d, is, js 
-                  bl_sum (is, js) = bl_sum (is, js) + di 
-                  bl_s2 (is, js) = bl_s2 (is, js) + di**2 
-                  bl_anz (is, js) = bl_anz (is, js) + 1 
-               ENDIF 
-               ENDDO 
-            ENDIF 
-            ENDDO 
-         ENDIF 
-         ENDDO 
-!                                                                       
-!------ - write results and save to res_para block                      
-!                                                                       
-         DO i = 0, cr_nscat 
-         DO j = i, cr_nscat 
-         IF (bl_anz (i, j) .ne.0.or.bl_anz (j, i) .ne.0) then 
-            chem_disp_ave (ic, i, j) = (bl_sum (i, j) + bl_sum (j, i) ) &
-            / (bl_anz (i, j) + bl_anz (j, i) )                          
-            chem_disp_sig (ic, i, j) = (bl_s2 (i, j) + bl_s2 (j, i) )   &
-            / (bl_anz (i, j) + bl_anz (j, i) )                          
-            chem_disp_sig (ic, i, j) = (chem_disp_sig (ic, i, j)        &
-            - (chem_disp_ave (ic, i, j) **2) )                          
-            IF (chem_disp_sig (ic, i, j) .gt.0) then 
-               chem_disp_sig (ic, i, j) = sqrt (chem_disp_sig (ic, i, j)&
-               )                                                        
-            ELSE 
-               chem_disp_sig (ic, i, j) = 0.0 
-            ENDIF 
-            IF (lout) then 
-               at_name_i = at_name (i) 
-               at_name_j = at_name (j) 
-               WRITE (output_io, 2000) ic, at_name_i, at_name_j,        &
-               chem_disp_ave (ic, i, j), chem_disp_sig (ic, i, j),      &
-               bl_anz (i, j) + bl_anz (j, i)                            
-            ENDIF 
-         ENDIF 
-         ENDDO 
-         ENDDO 
-         IF (ier_num.ne.0) return 
-      ENDIF 
-      ENDDO 
-!                                                                       
-      IF (lfile) close (37) 
-!                                                                       
- 1000 FORMAT (  ' Calculating distortions ',/,                          &
-     &          '    Atom types : A = ',A4,' and B = ',A4,' ',//,       &
-     &          '    Neig.  Atom A      Atom B       distance',         &
-     &          '   sigma     # pairs',/,4x,60('-'))                    
- 2000 FORMAT (4x,i3,3x,a9,3x,a9,5x,f7.3,3x,f7.3,3x,i8) 
- 3000 FORMAT (3(f12.5,1x),3x,2(i3,1x)) 
-!                                                                       
-      END SUBROUTINE chem_disp_multi                
-!*****7*****************************************************************
-!     SUBROUTINE chem_vector_multi (ianz, cpara, lpara, werte, maxw,    &
-!     lout)                                                             
-!+                                                                      
-!     Calculates vector distortions within the crystal                  
-!-                                                                      
-!     USE discus_config_mod 
-!     USE crystal_mod 
-!     USE chem_mod 
-!     USE mc_mod 
-!     USE mmc_mod   
-!     USE modify_mod
-!     USE modify_func_mod
-!     USE errlist_mod 
-!     USE param_mod 
-!     USE prompt_mod 
-!     IMPLICIT none 
-!                                                                       
-!      
-!                                                                       
-!     INTEGER maxatom 
-!                                                                       
-!     PARAMETER (maxatom = chem_max_neig) 
-!                                                                       
-!     INTEGER ianz, maxw 
-!     CHARACTER ( * ) cpara (maxw) 
-!     INTEGER lpara (maxw) 
-!     REAL werte (maxw) 
-!     LOGICAL lout 
-!                                                                       
-!     CHARACTER(9) at_name_i, at_name_j 
-!     INTEGER atom (0:maxatom, CHEM_MAX_CENT) 
-!     INTEGER natom (CHEM_MAX_CENT) 
-!     INTEGER iianz, i, j, k, is, js, ic 
-!     INTEGER ja, je, nv 
-!     INTEGER icent, ncent 
-!     INTEGER ia 
-!     INTEGER isel (CHEM_MAX_ATOM) 
-!     INTEGER bl_anz (12, 0:maxscat, 0:maxscat) 
-!     REAL bl_sum (3, 12, 0:maxscat, 0:maxscat) 
-!     REAL bl_s2 (3, 12, 0:maxscat, 0:maxscat) 
-!     REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
-!     REAL u (3), v (3), w (3), null (3) 
-!     REAL an 
-!     REAL e_tot, e_alt 
-!     LOGICAL lfile 
-!                                                                       
-!     CHARACTER(9) at_name 
-!     REAL mmc_energy_vec 
-!     LOGICAL atom_allowed 
-!     REAL do_bang 
-!                                                                       
-!     DATA null / 0.0, 0.0, 0.0 / 
-!                                                                       
-!                                                                       
-!     e_tot = 0. 
-!     e_alt = 0. 
-!     iianz = 2 
-!     CALL get_iscat (iianz, cpara, lpara, werte, maxw, .false.) 
-!     IF (ier_num.ne.0) return 
-!                                                                       
-!------ write output                                                    
-!                                                                       
-!     IF (lout) then 
-!        WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
-!        (1:lpara (2) )                                                 
-!        IF (ianz.gt.2) then 
-!           CALL oeffne (37, cpara (3) , 'unknown') 
-!        ENDIF 
-!     ENDIF 
-!                                                                       
-!     lfile = lout.and. (ianz.gt.2) 
-!                                                                       
-!------ loop over all defined correlations                              
-!                                                                       
-!     DO ic = 1, chem_ncor 
-!     IF (chem_ctyp (ic) .eq.CHEM_ENVIR) then 
-!                                                                       
-!------ --- reset counters, vectors, ..                                 
-!                                                                       
-!        DO i = 0, cr_nscat 
-!        DO j = 0, cr_nscat 
-!        DO nv = 1, 12 
-!        DO k = 1, 3 
-!        bl_sum (k, nv, i, j) = 0.0 
-!        bl_s2 (k, nv, i, j) = 0.0 
-!        ENDDO 
-!        bl_anz (nv, i, j) = 0 
-!        ENDDO 
-!        ENDDO 
-!        ENDDO 
-!                                                                       
-!------ --- calculate distortions                                       
-!                                                                       
-!        DO i = 1, cr_natoms 
-!        IF (atom_allowed (i, werte, ianz, maxw) ) then 
-!           CALL chem_neighbour_multi (i, ic, atom, patom, natom, ncent,&
-!           maxatom)                                                    
-!           DO icent = 1, ncent 
-!           IF (natom (icent) .gt.0) then 
-!              IF (i.eq.atom (0, icent) ) then 
-!                                                                       
-!     --------- The selected atom is the central atom, check all atoms  
-!                                                                       
-!                 ja = 1 
-!                 je = natom (icent) 
-!                 DO k = 1, 3 
-!                 u (k) = patom (k, 0, icent) 
-!                 ENDDO 
-!                 is = cr_iscat (i) 
-!              ELSE 
-!                                                                       
-!     --------- The selected atom is a neighbour, check central         
-!                 atom only                                             
-!                                                                       
-!                 ja = 0 
-!                 je = 0 
-!                 DO k = 1, 3 
-!                 u (k) = cr_pos (k, i) 
-!                 ENDDO 
-!                 is = cr_iscat (i) 
-!              ENDIF 
-!              DO j = ja, je 
-!              IF (atom_allowed (atom (j, icent), werte, ianz, maxw) )  &
-!              then                                                     
-!                 js = cr_iscat (atom (j, icent) ) 
-!                 DO nv = 1, mmc_nvec (ic, is, js) 
-!                 DO k = 1, 3 
-!                 v (k) = patom (k, j, icent) - u (k) 
-!                 w (k) = mmc_vec (k, nv, ic, is, js) 
-!                 ENDDO 
-!                 an = do_bang (.true., v, null, w) 
-!                 IF (lfile) write (37, 3000) w, is, js 
-!                 IF (an.lt.mmc_vec (4, nv, ic, is, js) ) then 
-!                    DO k = 1, 3 
-!                    bl_sum (k, nv, is, js) = bl_sum (k, nv, is, js)    &
-!                    + v (k)                                            
-!                    bl_s2 (k, nv, is, js) = bl_s2 (k, nv, is, js)      &
-!                    + v (k) **2                                        
-!                    ENDDO 
-!                    bl_anz (nv, is, js) = bl_anz (nv, is, js) + 1 
-!                 ENDIF 
-!                 ENDDO 
-!              ENDIF 
-!              ENDDO 
-!                                                                       
-!     --------- Calculate grand Energy                                  
-!                                                                       
-!              isel (1) = i 
-!              ia = 1 
-!              e_tot = e_tot + mmc_energy_vec (isel, ia, ic, atom,      &
-!              patom, icent, natom)                                     
-!           ENDIF 
-!           ENDDO 
-!        ENDIF 
-!        ENDDO 
-!                                                                       
-!                                                                       
-!                                                                       
-!                                                                       
-!------ - write results and save to res_para block                      
-!                                                                       
-!        DO i = 0, cr_nscat 
-!        DO j = i, cr_nscat 
-!        DO nv = 1, mmc_nvec (ic, i, j) 
-!        IF (bl_anz (nv, i, j) .ne.0.or.bl_anz (nv, j, i) .ne.0) then 
-!           DO k = 1, 3 
-!           chem_vect_ave (k, nv, ic, i, j) = (bl_sum (k, nv, i, j)     &
-!           + bl_sum (k, nv, j, i) ) / (bl_anz (nv, i, j) + bl_anz (nv, &
-!           j, i) )                                                     
-!           chem_vect_sig (k, nv, ic, i, j) = (bl_s2 (k, nv, i, j)      &
-!           + bl_s2 (k, nv, j, i) ) / (bl_anz (nv, i, j) + bl_anz (nv,  &
-!           j, i) )                                                     
-!           chem_vect_sig (k, nv, ic, i, j) = (chem_vect_sig (k, nv, ic,&
-!           i, j) - (chem_vect_ave (k, nv, ic, i, j) **2) )             
-!           IF (chem_vect_sig (k, nv, ic, i, j) .gt.0) then 
-!              chem_vect_sig (k, nv, ic, i, j) = sqrt (chem_vect_sig (k,&
-!              nv, ic, i, j) )                                          
-!           ELSE 
-!              chem_vect_sig (k, nv, ic, i, j) = 0.0 
-!           ENDIF 
-!           ENDDO 
-!           IF (lout) then 
-!              at_name_i = at_name (i) 
-!              at_name_j = at_name (j) 
-!              WRITE (output_io, 2000) ic, at_name_i, at_name_j,        &
-!              chem_vect_ave (1, nv, ic, i, j), chem_vect_sig (1, nv,   &
-!              ic, i, j), bl_anz (nv, i, j) + bl_anz (nv, j, i)         
-!              WRITE (output_io, 2010) chem_vect_ave (2, nv, ic, i, j), &
-!              chem_vect_sig (2, nv, ic, i, j)                          
-!              WRITE (output_io, 2010) chem_vect_ave (3, nv, ic, i, j), &
-!              chem_vect_sig (3, nv, ic, i, j)                          
-!           ENDIF 
-!        ENDIF 
-!        ENDDO 
-!        ENDDO 
-!        ENDDO 
-!        IF (ier_num.ne.0) return 
-!     ENDIF 
-!     ENDDO 
-!                                                                       
-!     IF (lfile) close (37) 
-!                                                                       
-!1000 FORMAT (' Calculating distortions ',/,                            &
-!    &        '    Atom types : A = ',A4,' and B = ',A4,' ',//,         &
-!    &        '    Neig.  Atom A      Atom B       vector  ',           &
-!    &        '   sigma     # pairs',/,4x,60('-'))                      
-!2000 FORMAT (4x,i3,3x,a9,3x,a9,4x,'(',f7.3,') (',f7.3,')',2x,i8) 
-!2010 FORMAT (35x                 ,'(',f7.3,') (',f7.3,')',2x,i8) 
-!3000 FORMAT (3(f12.5,1x),3x,2(i3,1x)) 
-!                                                                       
-!     END SUBROUTINE chem_vector_multi              
 !*****7*****************************************************************
       SUBROUTINE chem_disp_mol (ianz, cpara, lpara, werte, maxw, lout) 
 !+                                                                      
@@ -3910,6 +3553,7 @@ USE support_mod
       USE discus_allocate_appl_mod
       USE discus_config_mod 
       USE crystal_mod 
+USE atom_env_mod
       USE atom_name 
       USE chem_mod 
       USE metric_mod
@@ -3928,9 +3572,9 @@ USE support_mod
 !                                                                       
        
 !                                                                       
-      INTEGER maxatom 
+!     INTEGER maxatom 
 !                                                                       
-      PARAMETER (maxatom = chem_max_neig) 
+!     PARAMETER (maxatom = chem_max_neig) 
 !                                                                       
       INTEGER ianz, maxw 
       CHARACTER ( * ) cpara (maxw) 
@@ -3942,7 +3586,7 @@ USE support_mod
 !                                                                       
       CHARACTER(9) at_name_i, at_name_j 
       CHARACTER(9) name_1, name_2, name_3 
-      INTEGER atom (0:maxatom), natom 
+      INTEGER atom (0:MAX_ATOM_ENV), natom 
       INTEGER iianz, i, j, k, is, js, ic 
       INTEGER jjanz, kkanz 
       INTEGER lname_1, lname_2, lname_3 
@@ -3950,7 +3594,7 @@ USE support_mod
       INTEGER :: n_res
       REAL ba_sum (0:maxscat, 0:maxscat) 
       REAL ba_s2 (0:maxscat, 0:maxscat) 
-      REAL patom (3, 0:maxatom) 
+      REAL patom (3, 0:MAX_ATOM_ENV) 
       REAL u (3), v (3), w (3), wi 
       LOGICAL lfile 
 !                                                                       
@@ -4009,7 +3653,7 @@ USE support_mod
 !                                                                       
       DO i = 1, cr_natoms 
       IF (atom_allowed (i, werte, iianz, maxw) ) then 
-         CALL chem_neighbour (i, ic, atom, patom, natom, maxatom) 
+         CALL chem_neighbour (i, ic, atom, patom, natom, MAX_ATOM_ENV) 
          IF (natom.gt.1) then 
             DO k = 1, 3 
             u (k) = patom (k, 1) 
@@ -4069,7 +3713,7 @@ USE support_mod
 !------ ------- Save results to res[i]                                  
 !                                                                       
          IF(res_para(0)+2 > MAXPAR_RES) THEN
-            n_res = MAX(NINT(res_para(0)+2), INT(MAXPAR_RES*1.1+10), CHEM_MAX_NEIG)
+            n_res = MAX(NINT(res_para(0)+2), INT(MAXPAR_RES*1.1+10), MAX_ATOM_ENV)
             CALL alloc_param(n_res)
             MAXPAR_RES = n_res
          ENDIF
@@ -4099,221 +3743,6 @@ USE support_mod
 !                                                                       
       END SUBROUTINE chem_angle                     
 !*****7*****************************************************************
-      SUBROUTINE chem_angle_multi (ianz, cpara, lpara, werte, uerte,    &
-      verte, maxw, lout)                                                
-!+                                                                      
-!     Calculates angular distortions within the crystal                 
-!-                                                                      
-      USE discus_allocate_appl_mod
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE atom_name 
-      USE chem_mod 
-      USE get_iscat_mod
-      USE metric_mod
-      USE mc_mod 
-      USE mmc_mod 
-      USE modify_mod   
-      USE modify_func_mod   
-      USE errlist_mod 
-      USE get_params_mod
-USE precision_mod
-      USE prompt_mod 
-USE support_mod
-      IMPLICIT none 
-!                                                                       
-       
-!                                                                       
-      INTEGER maxatom 
-!                                                                       
-      PARAMETER (maxatom = chem_max_neig) 
-!                                                                       
-      INTEGER ianz, maxw 
-      CHARACTER ( * ) cpara (maxw) 
-      INTEGER lpara (maxw) 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL(KIND=PREC_DP) :: uerte (maxw) 
-      REAL(KIND=PREC_DP) :: verte (maxw) 
-      LOGICAL lout 
-!                                                                       
-      CHARACTER(9) at_name_i, at_name_j 
-      CHARACTER(9) name_1, name_2, name_3 
-      INTEGER atom (0:maxatom, CHEM_MAX_CENT) 
-      INTEGER natom (CHEM_MAX_CENT) 
-      INTEGER iianz, i, j, k, is, js, ic 
-      INTEGER jj 
-      INTEGER jjanz, kkanz 
-      INTEGER icent, ncent 
-      INTEGER lname_1, lname_2, lname_3 
-      INTEGER ba_anz (0:maxscat, 0:maxscat) 
-      REAL ba_sum (0:maxscat, 0:maxscat) 
-      REAL ba_s2 (0:maxscat, 0:maxscat) 
-      REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
-      REAL u (3), v (3), w (3), wi, wis 
-      LOGICAL lfile 
-!                                                                       
-!     REAL do_bang 
-!     LOGICAL atom_allowed 
-!                                                                       
-!     allocate displacement arrays
-!
-      CALL alloc_chem_disp(CHEM_MAX_COR, MAXSCAT)
-!                                                                       
-      iianz = 1 
-      CALL get_iscat (iianz, cpara, lpara, werte, maxw, .false.) 
-      name_1 = cpara (1) 
-      lname_1 = lpara (1) 
-      CALL del_params (1, ianz, cpara, lpara, maxw) 
-      jjanz = 1 
-      CALL get_iscat (jjanz, cpara, lpara, uerte, maxw, .false.) 
-      name_2 = cpara (1) 
-      lname_2 = lpara (1) 
-      CALL del_params (1, ianz, cpara, lpara, maxw) 
-      kkanz = 1 
-      CALL get_iscat (kkanz, cpara, lpara, verte, maxw, .false.) 
-      name_3 = cpara (1) 
-      lname_3 = lpara (1) 
-      IF (ier_num.ne.0) return 
-!                                                                       
-!------ write output                                                    
-!                                                                       
-      IF (lout) then 
-         WRITE (output_io, 1000) name_1 (1:lname_1), name_2 (1:lname_2),&
-         name_3 (1:lname_3)                                             
-         IF (ianz.gt.1) then 
-            CALL oeffne (37, cpara (2) , 'unknown') 
-         ENDIF 
-      ENDIF 
-!                                                                       
-      lfile = lout.and. (ianz.gt.1) 
-!                                                                       
-!------ loop over all defined correlations                              
-!                                                                       
-      DO ic = 1, chem_ncor 
-      IF (chem_ctyp (ic) .eq.CHEM_ANG.or.chem_ctyp (ic) .eq.CHEM_ENVIR) &
-      then                                                              
-!                                                                       
-!------ - reset counters, vectors, ..                                   
-!                                                                       
-         DO i = 0, cr_nscat 
-         DO j = 0, cr_nscat 
-         ba_sum (i, j) = 0.0 
-         ba_s2 (i, j) = 0.0 
-         ba_anz (i, j) = 0 
-         ENDDO 
-         ENDDO 
-!                                                                       
-!------ - calculate angles                                              
-!                                                                       
-         DO i = 1, cr_natoms 
-         IF (atom_allowed (i, werte, iianz, maxw) ) then 
-            CALL chem_neighbour_multi (i, ic, atom, patom, natom, ncent,&
-            maxatom)                                                    
-            DO icent = 1, ncent 
-            IF (natom (icent) .gt.1) then 
-               DO k = 1, 3 
-               u (k) = patom (k, 0, icent) 
-               ENDDO 
-               DO j = 1, natom (icent) - 1 
-               DO jj = j + 1, natom (icent) 
-               IF (atom_allowed (atom (j, icent), uerte, jjanz, maxw)   &
-               .and.atom_allowed (atom (jj, icent), verte, kkanz, maxw) &
-               .or.atom_allowed (atom (jj, icent), uerte, jjanz, maxw)  &
-               .and.atom_allowed (atom (j, icent), verte, kkanz, maxw) )&
-               then                                                     
-                  DO k = 1, 3 
-                  v (k) = patom (k, j, icent) 
-                  ENDDO 
-                  DO k = 1, 3 
-                  w (k) = patom (k, jj, icent) 
-                  ENDDO 
-                  wi = do_bang (.true., v, u, w) 
-                  is = cr_iscat (atom (j, icent) ) 
-                  js = cr_iscat (atom (jj, icent) ) 
-                  wis = mmc_target_corr (ic, MC_ANGLE, is, js) 
-!DBG                                                                    
-!DBG      if(cr_iscat(i).eq.11 .or.                                     
-!DBG     &              (is.eq.12 .and. js.eq.28) ) then                
-!DBG        write(*,*) '==============================================' 
-!DBG        write(*,*) 'Selected   , Type',i,cr_iscat(i)                
-!DBG        write(*,*) 'Position zentral ',u                            
-!DBG        write(*,*) 'Zentral Atom     ',atom(0 ,icent)               
-!DBG        write(*,*) 'Correlation      ',ic                           
-!DBG        write(*,*) 'Nachbarn         ',natom(icent)                 
-!DBG        write(*,*) 'Erster           ',atom(j ,icent)               
-!DBG        write(*,*) 'Position         ',v                            
-!DBG        write(*,*) 'Zweiter          ',atom(jj,icent)               
-!DBG        write(*,*) 'Position         ',w                            
-!DBG        write(*,*) 'Winkel           ',wi                           
-!DBG        write(*,*) 'Sollwinkel       ',wis                          
-!DBG        write(*,*) 'is,js            ',is,js                        
-!DBG      endif                                                         
-                  IF (wis.le.90.) then 
-                     IF (wi.gt.1.5 * wis) then 
-                        wi = mod (wi + wis / 2., wis) - wis / 2. 
-                     ENDIF 
-                  ENDIF 
-                  IF (lfile) WRITE (37, 3000) u, is, js 
-                  ba_sum (is, js) = ba_sum (is, js) + wi 
-                  ba_s2 (is, js) = ba_s2 (is, js) + wi**2 
-                  ba_anz (is, js) = ba_anz (is, js) + 1 
-!DBG      if(cr_iscat(i).eq.11 .or.                                     
-!DBG     &              (is.eq.12 .and. js.eq.28) ) then                
-!DBG        write(*,*) 'i,cr_iscat(i),is,js,ba_anz(is,js)   ',          
-!DBG      i,cr_iscat(i),is,js,ba_anz(is,js)                             
-!DBG        write(*,*) 'ba_sum(is,js),wi   ',ba_sum(is,js),wi           
-!DBG      endif                                                         
-               ENDIF 
-               ENDDO 
-               ENDDO 
-            ENDIF 
-            ENDDO 
-         ENDIF 
-         ENDDO 
-!                                                                       
-!------ - write results and save to res_para block                      
-!                                                                       
-         DO i = 0, cr_nscat 
-         DO j = i, cr_nscat 
-         IF (ba_anz (i, j) .ne.0.or.ba_anz (j, i) .ne.0) then 
-            chem_disp_ave (ic, i, j) = (ba_sum (i, j) + ba_sum (j, i) ) &
-            / (ba_anz (i, j) + ba_anz (j, i) )                          
-            chem_disp_sig (ic, i, j) = (ba_s2 (i, j) + ba_s2 (j, i) )   &
-            / (ba_anz (i, j) + ba_anz (j, i) )                          
-            chem_disp_sig (ic, i, j) = (chem_disp_sig (ic, i, j)        &
-            - (chem_disp_ave (ic, i, j) **2) )                          
-            IF (chem_disp_sig (ic, i, j) .gt.0) then 
-               chem_disp_sig (ic, i, j) = sqrt (chem_disp_sig (ic, i, j)&
-               )                                                        
-            ELSE 
-               chem_disp_sig (ic, i, j) = 0.0 
-            ENDIF 
-            IF (lout) then 
-               at_name_i = at_name (i) 
-               at_name_j = at_name (j) 
-               WRITE (output_io, 2000) ic, at_name_i, at_name_j,        &
-               chem_disp_ave (ic, i, j), chem_disp_sig (ic, i, j),      &
-               ba_anz (i, j) + ba_anz (j, i)                            
-            ENDIF 
-         ENDIF 
-         ENDDO 
-         ENDDO 
-         IF (ier_num.ne.0) return 
-      ENDIF 
-      ENDDO 
-!                                                                       
-      IF (lfile) close (37) 
-!                                                                       
- 1000 FORMAT ( ' Calculating angles ',/,                                &
-     &         '    Zentral atom   = ',A4,/,                            &
-     &         '    Atom types : A = ',A4,' and B = ',A4,' ',//,        &
-     &         '    Neig.  Atom A      Atom B       angle   ',          &
-     &         '   sigma     # pairs',/,4x,60('-'))                     
- 2000 FORMAT (4x,i3,3x,a9,3x,a9,5x,f7.3,3x,f7.3,3x,i8) 
- 3000 FORMAT (3(f12.5,1x),3x,2(i3,1x)) 
-!                                                                       
-      END SUBROUTINE chem_angle_multi               
-!*****7*****************************************************************
       SUBROUTINE chem_corr_dis (ianz, cpara, lpara, maxw, lout, lbeg) 
 !+                                                                      
 !     Calculates displacement correlations within the crystal           
@@ -4321,6 +3750,7 @@ USE support_mod
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+USE atom_env_mod
       USE chem_mod 
       USE chem_aver_mod
       USE celltoindex_mod
@@ -4345,9 +3775,9 @@ USE precision_mod
       INTEGER          , DIMENSION(1:3   ), INTENT(IN) ::  lbeg 
       LOGICAL                             , INTENT(IN) ::  lout 
 !                                                                       
-      INTEGER maxww, maxatom 
+      INTEGER maxww!, maxatom 
 !                                                                       
-      PARAMETER (maxatom = chem_max_neig) 
+!     PARAMETER (maxatom = chem_max_neig) 
 !                                                                       
 !     INTEGER ianz, maxw 
 !     CHARACTER ( * ) cpara (maxw) 
@@ -4356,11 +3786,11 @@ USE precision_mod
       INTEGER         , DIMENSION(:), ALLOCATABLE :: llpara
 !     LOGICAL lout
 !                                                                       
-      INTEGER atom (0:maxatom), natom 
+      INTEGER atom (0:MAX_ATOM_ENV), natom 
       INTEGER icc (3), jcc (3) 
       INTEGER i, j, ii, is, js, ic, iianz, jjanz, nn 
       INTEGER :: n_res
-      REAL patom (3, 0:maxatom) 
+      REAL patom (3, 0:MAX_ATOM_ENV) 
       REAL(KIND=PREC_DP):: werte (MAXSCAT), wwerte (MAXSCAT) 
       REAL idir (3), jdir (3), di (3), dj (3) 
       REAL rdi, rdj, dpi, dpj 
@@ -4444,7 +3874,7 @@ USE precision_mod
       ENDIF 
 !                                                                       
       IF (lvalid) then 
-         CALL chem_neighbour (i, ic, atom, patom, natom, maxatom) 
+         CALL chem_neighbour (i, ic, atom, patom, natom, MAX_ATOM_ENV) 
          IF (natom.gt.0) then 
             CALL indextocell (i, icc, is) 
             DO j = 1, 3 
@@ -4529,7 +3959,7 @@ USE precision_mod
 !------ Save results to res[i]                                          
 !                                                                       
       IF(chem_ncor     > MAXPAR_RES) THEN
-         n_res = MAX(chem_ncor ,MAXPAR_RES, CHEM_MAX_NEIG)
+         n_res = MAX(chem_ncor ,MAXPAR_RES, MAX_ATOM_ENV)
          CALL alloc_param(n_res)
          MAXPAR_RES = n_res
       ENDIF
@@ -4564,6 +3994,7 @@ USE precision_mod
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+USE atom_env_mod
       USE chem_mod 
       USE chem_aver_mod
       USE celltoindex_mod
@@ -4741,7 +4172,7 @@ USE precision_mod
 !------ Save results to res[i]                                          
 !                                                                       
       IF(chem_ncor     > MAXPAR_RES) THEN
-         n_res = MAX(chem_ncor ,MAXPAR_RES, CHEM_MAX_NEIG)
+         n_res = MAX(chem_ncor ,MAXPAR_RES, MAX_ATOM_ENV)
          CALL alloc_param(n_res)
          MAXPAR_RES = n_res
       ENDIF
@@ -4771,6 +4202,7 @@ USE precision_mod
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+USE atom_env_mod
       USE chem_mod 
       USE get_iscat_mod
       USE mc_mod 
@@ -4786,9 +4218,9 @@ USE precision_mod
 !                                                                       
        
 !                                                                       
-      INTEGER maxww, maxatom 
+      INTEGER maxww!, maxatom 
 !                                                                       
-      PARAMETER (maxatom = chem_max_neig) 
+!     PARAMETER (maxatom = chem_max_neig) 
 !                                                                       
       INTEGER maxw 
       CHARACTER ( * ) cpara (maxw) 
@@ -4798,11 +4230,11 @@ USE precision_mod
       CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: ccpara (MAXSCAT) 
       INTEGER llpara (maxw) 
 !                                                                       
-      INTEGER atom (0:maxatom), natom 
+      INTEGER atom (0:MAX_ATOM_ENV), natom 
       INTEGER i, j, is, js, ic, iianz, jjanz 
       INTEGER nneig 
       INTEGER :: n_res
-      REAL patom (3, 0:maxatom) 
+      REAL patom (3, 0:MAX_ATOM_ENV) 
       REAL(KIND=PREC_DP) :: werte (MAXSCAT), wwerte (MAXSCAT) 
       REAL pneig (2, 2) 
       REAL pro00, pro01, pro11 
@@ -4875,7 +4307,7 @@ USE precision_mod
          IF (atom_allowed (i, werte, iianz, maxww) ) is = 1 
          IF (atom_allowed (i, wwerte, jjanz, maxww) ) is = 2 
          IF (is.gt.0) then 
-            CALL chem_neighbour (i, ic, atom, patom, natom, maxatom) 
+            CALL chem_neighbour (i, ic, atom, patom, natom, MAX_ATOM_ENV) 
             IF (natom.gt.0) then 
                DO j = 1, natom 
                js = - 1 
@@ -4922,7 +4354,7 @@ USE precision_mod
 !------ Save results to res[i]                                          
 !                                                                       
       IF(chem_ncor     > MAXPAR_RES) THEN
-         n_res = MAX(chem_ncor ,MAXPAR_RES, CHEM_MAX_NEIG)
+         n_res = MAX(chem_ncor ,MAXPAR_RES, MAX_ATOM_ENV)
          CALL alloc_param(n_res)
          MAXPAR_RES = n_res
       ENDIF
@@ -4954,6 +4386,7 @@ USE precision_mod
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+USE atom_env_mod
       USE chem_mod 
       USE mc_mod 
       USE mmc_mod   
@@ -5096,7 +4529,7 @@ USE precision_mod
 !------ Save results to res[i]                                          
 !                                                                       
       IF(chem_ncor     > MAXPAR_RES) THEN
-         n_res = MAX(chem_ncor ,MAXPAR_RES, CHEM_MAX_NEIG)
+         n_res = MAX(chem_ncor ,MAXPAR_RES, MAX_ATOM_ENV)
          CALL alloc_param(n_res)
          MAXPAR_RES = n_res
       ENDIF
@@ -5368,646 +4801,13 @@ REAL(KIND=PREC_DP) :: dummy(1)
 !                                                                       
       END SUBROUTINE chem_neighbour                 
 !*****7*****************************************************************
-      SUBROUTINE chem_neighbour_multi (jatom, ic, iatom, patom, natom,  &
-      ncent, maxw)                                                      
-!+                                                                      
-!     Determine neighbours from given atom index 'jatom'.               
-!-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE atom_env_mod 
-      USE check_bound_mod
-      USE chem_mod 
-      USE celltoindex_mod
-      USE conn_sup_mod
-      USE do_find_mod
-      USE metric_mod
-      USE modify_mod
-      USE modify_func_mod
-!
-      USE debug_mod 
-      USE errlist_mod 
-      USE param_mod 
-USE precision_mod
-      USE prompt_mod 
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      INTEGER, INTENT(IN)      ::  maxw    ! Maximum array size
-!                                                                       
-      INTEGER, INTENT(IN)      ::  jatom   ! Central atom no, get neighbours around jatom
-      INTEGER, INTENT(IN)      ::  ic      ! Use correlation definition no. ic
-      INTEGER, DIMENSION(0:maxw, CHEM_MAX_CENT), INTENT(OUT) :: iatom ! indices of neighbs
-      INTEGER, DIMENSION(CHEM_MAX_CENT)        , INTENT(OUT) :: natom ! no of neigh
-      INTEGER                                  , INTENT(OUT) :: ncent ! no of central atoms
-      REAL   , DIMENSION(3, 0:maxw, CHEM_MAX_CENT), INTENT(OUT) :: patom ! Coordinates
-!
-      REAL dist (CHEM_MAX_CENT) 
-      REAL(KIND=PREC_DP) :: werte (MAX_ATOM_ENV) 
-!                                                                       
-      REAL u (3), v (3), w (3), uu (3) 
-      REAL offset (3)
-REAL(KIND=PREC_DP) :: dummy(1) 
-      INTEGER jcell (3), icell (3), isite, jsite 
-      INTEGER i, j, k, l, ii, iv, katom, ianz 
-      INTEGER                    :: is1    ! central atom type
-      INTEGER                    :: ino    ! number of connectivity list 
-      INTEGER                    :: natoms ! number of atoms in connectivity list 
-      INTEGER, DIMENSION(:), ALLOCATABLE :: c_list ! Result of connectivity search
-      INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
-      LOGICAL laccept 
-      LOGICAL lok 
-      LOGICAL ldbg 
-!                                                                       
-!     LOGICAL atom_allowed 
-!     REAL do_bang 
-!     REAL do_blen 
-!                                                                       
-      DO i = 1, CHEM_MAX_CENT 
-      natom (i) = 0 
-      ENDDO 
-      dummy = - 1 
-      ncent = 1 
-!                                                                       
-      ldbg = .false. 
-!                                                                       
-!------ ------------------------------------------------------          
-!------ Mode distance                                                   
-!------ ------------------------------------------------------          
-!                                                                       
-      IF (chem_ctyp (ic) .eq.CHEM_DIST) then 
-         ncent = 1 
-         natom (ncent) = 0 
-         DO j = 1, 3 
-         u (j) = cr_pos (j, jatom) 
-         w (j) = 0.0 
-         ENDDO 
-         CALL do_find_env (1, dummy, 1, u, chem_rmin (ic), chem_rmax (  &
-         ic), chem_quick, chem_period)                                  
-         IF (atom_env (0) .ne.0) then 
-            DO j = 1, atom_env (0) 
-            IF (chem_cang (ic) ) then 
-!                                                                       
-!------ ------- Check neighbouring angle and symmetry                   
-!                                                                       
-               DO k = 1, chem_nnei (ic) 
-               DO ii = 1, 3 
-               v (ii) = atom_pos (ii, j) - cr_pos (ii, jatom) 
-               uu (ii) = chem_neig (ii, k, ic) 
-               ENDDO 
-               IF (abs (do_bang (.true., v, w, uu) )                    &
-               .lt.chem_wink_sigma (ic) ) then                          
-                  natom (ncent) = natom (ncent) + 1 
-                  IF (natom (ncent) .le.maxw) then 
-                     iatom (natom (ncent), ncent) = atom_env (j) 
-                     patom (1, natom (ncent), ncent) = atom_pos (1, j) 
-                     patom (2, natom (ncent), ncent) = atom_pos (2, j) 
-                     patom (3, natom (ncent), ncent) = atom_pos (3, j) 
-                  ELSE 
-                     ier_num = - 23 
-                     ier_typ = ER_CHEM 
-                     RETURN 
-                  ENDIF 
-               ENDIF 
-               ENDDO 
-!                                                                       
-!------ ------- Check just distance                                     
-!                                                                       
-            ELSE 
-               natom (ncent) = natom (ncent) + 1 
-               IF (natom (ncent) .le.maxw) then 
-                  iatom (natom (ncent), ncent) = atom_env (j) 
-                  patom (1, natom (ncent), ncent) = atom_pos (1, j) 
-                  patom (2, natom (ncent), ncent) = atom_pos (2, j) 
-                  patom (3, natom (ncent), ncent) = atom_pos (3, j) 
-               ELSE 
-                  ier_num = - 23 
-                  ier_typ = ER_CHEM 
-                  RETURN 
-               ENDIF 
-            ENDIF 
-            ENDDO 
-         ENDIF 
-         IF (natom (ncent) .gt.0) then 
-            iatom (0, ncent) = jatom 
-            patom (1, 0, ncent) = cr_pos (1, jatom) 
-            patom (2, 0, ncent) = cr_pos (2, jatom) 
-            patom (3, 0, ncent) = cr_pos (3, jatom) 
-         ENDIF 
-!                                                                       
-!------ ------------------------------------------------------          
-!------ Mode distance-range (New mode for mmc)                          
-!------ ------------------------------------------------------          
-!                                                                       
-      ELSEIF (chem_ctyp (ic) .eq.CHEM_RANGE) then 
-         i = 1 
-         iv = chem_use_ran (i, ic) 
-!                                                                       
-!     --Check whether central atom is allowed                           
-!                                                                       
-         IF (chem_cran_cent (0, iv) .eq. - 1) then 
-            laccept = .true. 
-         ELSE 
-            ianz = chem_cran_cent (0, iv) 
-            DO j = 1, chem_cran_cent (0, iv) 
-            werte (j) = chem_cran_cent (j, iv) 
-!!DBGDISPwrite(*,*) ' neighbours are       ', (iatom(j,ncent),j=1,natom(ncent))
-            ENDDO 
-            laccept = atom_allowed (jatom, werte, ianz, maxw) 
-         ENDIF 
-         IF (.not.laccept) return 
-!                                                                       
-         ncent = 1 
-         natom (ncent) = 0 
-         DO j = 1, 3 
-         u (j) = cr_pos (j, jatom) 
-         w (j) = 0.0 
-         ENDDO 
-         dist (1) = 0.0 
-!                                                                       
-!     --Check whether neighbour atom is allowed                         
-!                                                                       
-         IF (chem_cran_neig (0, iv) .eq. - 1) then 
-            werte (1) = - 1 
-            ianz = 1 
-         ELSE 
-            ianz = chem_cran_neig (0, iv) 
-            DO j = 1, chem_cran_neig (0, iv) 
-            werte (j) = chem_cran_neig (j, iv) 
-            ENDDO 
-         ENDIF 
-      CALL do_find_env (1, dummy, 1, u, chem_cran_rmin (iv),  chem_cran_&
-     &rmax (iv),  chem_quick, chem_period)                              
-         IF (atom_env (0) .ne.0) then 
-            DO j = 1, atom_env (0) 
-            k = atom_env (j) 
-            laccept = atom_allowed (k, werte, ianz, maxw) 
-            IF (laccept) then 
-!                                                                       
-               IF (chem_cran_cang (iv) ) then 
-!                                                                       
-!------ ------- Check neighbouring angle and symmetry                   
-!                                                                       
-                  DO k = 1, chem_cran_nuvw (iv) 
-                  DO ii = 1, 3 
-                  v (ii) = atom_pos (ii, j) - cr_pos (ii, jatom) 
-                  uu (ii) = chem_cran_uvw (ii, k, iv) 
-                  ENDDO 
-                  dummy = do_blen (.true., w, v) 
-                  IF (abs (do_bang (.true., v, w, uu) )                 &
-                  .lt.chem_cran_wsig (iv) ) then                        
-                     natom (ncent) = natom (ncent) + 1 
-                     IF (natom (ncent) .le.maxw) then 
-                        ii = 1 
-                        DO while (dummy(1).gt.dist (ii) .and.ii.lt.natom ( &
-                        ncent) )                                        
-                        ii = ii + 1 
-                        ENDDO 
-                        DO l = natom (ncent) - 1, ii, - 1 
-                        iatom (l + 1, ncent) = iatom (l, ncent) 
-                        patom (1, l + 1, ncent) = patom (1, l, ncent) 
-                        patom (2, l + 1, ncent) = patom (2, l, ncent) 
-                        patom (3, l + 1, ncent) = patom (3, l, ncent) 
-                        dist (l + 1) = dist (l) 
-                        ENDDO 
-                        iatom (ii, ncent) = atom_env (j) 
-                        patom (1, ii, ncent) = atom_pos (1, j) 
-                        patom (2, ii, ncent) = atom_pos (2, j) 
-                        patom (3, ii, ncent) = atom_pos (3, j) 
-                        dist (ii) = dummy (1)
-                     ELSE 
-                        ier_num = - 23 
-                        ier_typ = ER_CHEM 
-                        RETURN 
-                     ENDIF 
-                  ENDIF 
-                  ENDDO 
-!                                                                       
-!------ ------- Check just distance                                     
-!                                                                       
-               ELSE 
-                  natom (ncent) = natom (ncent) + 1 
-                  IF (natom (ncent) .le.maxw) then 
-                     ii = 1 
-                     DO while (dummy(1).gt.dist (ii) .and.ii.lt.natom (    &
-                     ncent) )                                           
-                     ii = ii + 1 
-                     ENDDO 
-                     DO l = natom (ncent) - 1, ii, - 1 
-                     iatom (l + 1, ncent) = iatom (l, ncent) 
-                     patom (1, l + 1, ncent) = patom (1, l, ncent) 
-                     patom (2, l + 1, ncent) = patom (2, l, ncent) 
-                     patom (3, l + 1, ncent) = patom (3, l, ncent) 
-                     dist (l + 1) = dist (l) 
-                     ENDDO 
-                     iatom (ii, ncent) = atom_env (j) 
-                     patom (1, ii, ncent) = atom_pos (1, j) 
-                     patom (2, ii, ncent) = atom_pos (2, j) 
-                     patom (3, ii, ncent) = atom_pos (3, j) 
-                     dist (ii) = dummy(1) 
-                  ELSE 
-                     ier_num = - 23 
-                     ier_typ = ER_CHEM 
-                     RETURN 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
-            ENDDO 
-         ENDIF 
-         IF (natom (ncent) .gt.0) then 
-            iatom (0, ncent) = jatom 
-            patom (1, 0, ncent) = cr_pos (1, jatom) 
-            patom (2, 0, ncent) = cr_pos (2, jatom) 
-            patom (3, 0, ncent) = cr_pos (3, jatom) 
-         ENDIF 
-!                                                                       
-!     --Only the shortest vectors are to be considered                  
-!                                                                       
-         IF (chem_cran_short (iv) ) then 
-            IF (ldbg) then 
-               WRITE ( output_io , * ) ' natom(ncent) ', natom (ncent) 
-!      WRITE ( output_io ,  * ) ' nshort       ', chem_cran_nshort (iv) 
-            ENDIF 
-            DO l = chem_cran_nshort (iv) + 1, natom (ncent) 
-            iatom (l, ncent) = 0 
-            patom (1, l, ncent) = 0.0 
-            patom (2, l, ncent) = 0.0 
-            patom (3, l, ncent) = 0.0 
-            ENDDO 
-            natom (ncent) = min (natom (ncent), chem_cran_nshort (iv) ) 
-         ENDIF 
-!                                                                       
-!------ ------------------------------------------------------          
-!------ Mode vector                                                     
-!------ ------------------------------------------------------          
-!                                                                       
-ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN 
-   ncent = 1 
-   natom (  ncent) = 0 
-   iatom (:,ncent) = 0 
-   CALL indextocell (jatom, jcell, jsite) 
-   DO i = 1, chem_nvec(ic) 
-      iv = chem_use_vec(i, ic) 
-      IF(jsite == chem_cvec(1, iv) ) THEN     ! Atom jatom is at vector start == central
-         iatom(0, ncent) = jatom 
-         patom(1, 0, ncent) = cr_pos(1, jatom) 
-         patom(2, 0, ncent) = cr_pos(2, jatom) 
-         patom(3, 0, ncent) = cr_pos(3, jatom) 
-         icell(1) = jcell (1) + chem_cvec (3, iv) 
-         icell(2) = jcell (2) + chem_cvec (4, iv) 
-         icell(3) = jcell (3) + chem_cvec (5, iv) 
-         lok = .false. 
-         CALL check_bound(icell, offset, chem_period, lok) 
-         IF(lok) THEN 
-            isite = chem_cvec(2, iv) 
-            CALL celltoindex(icell, isite, katom) 
-            natom(ncent) = natom(ncent) + 1 
-            iatom(natom (ncent), ncent) = katom 
-            patom(1, natom(ncent), ncent) = cr_pos(1, katom) + offset(1)
-            patom(2, natom(ncent), ncent) = cr_pos(2, katom) + offset(2)
-            patom(3, natom(ncent), ncent) = cr_pos(3, katom) + offset(3)
-         ENDIF 
-      ELSEIF(jsite == chem_cvec(2, iv) ) THEN ! Atom jatom is at vector end == neighbor
-         icell(1) = jcell(1) - chem_cvec(3, iv) 
-         icell(2) = jcell(2) - chem_cvec(4, iv) 
-         icell(3) = jcell(3) - chem_cvec(5, iv) 
-         CALL check_bound(icell, offset, chem_period, lok) 
-         IF(lok) THEN 
-            natom (ncent) = natom (ncent) + 1 
-!
-            iatom(natom(ncent), ncent) = jatom 
-            patom(1, natom(ncent), ncent) = cr_pos(1, jatom)
-            patom(2, natom(ncent), ncent) = cr_pos(2, jatom)
-            patom(3, natom(ncent), ncent) = cr_pos(3, jatom)
-!
-            isite = chem_cvec (1, iv) 
-            CALL celltoindex (icell, isite, katom) 
-            iatom(0, ncent) = katom
-            patom(1, 0, ncent) = cr_pos(1, katom) + offset(1)
-            patom(2, 0, ncent) = cr_pos(2, katom) + offset(2)
-            patom(3, 0, ncent) = cr_pos(3, katom) + offset(3)
-!              iatom (natom (ncent), ncent) = katom 
-!              patom(1, natom(ncent), ncent) = cr_pos(1, katom) + offset(1)
-!              patom(2, natom(ncent), ncent) = cr_pos(2, katom) + offset(2)
-!              patom(3, natom(ncent), ncent) = cr_pos(3, katom) + offset(3)
-         ENDIF 
-      ENDIF 
-   ENDDO 
-   IF (natom(ncent) ==  0) THEN 
-      ncent = ncent - 1 
-      ncent = 0 
-   ENDIF 
-!                                                                       
-!------ ------------------------------------------------------          
-!------ Mode connectivity                                                     
-!------ ------------------------------------------------------          
-!                                                                       
-      ELSEIF (chem_ctyp (ic) .eq.CHEM_CON) then 
-         ncent = 1 
-         natom (ncent) = 0 
-!        CALL indextocell (jatom, jcell, jsite) 
-         DO i = 1, chem_ncon (ic) 
-            iatom (0, ncent)    = jatom             ! Store central atom at entry 0
-            patom (1, 0, ncent) = cr_pos (1, jatom) ! Store coord. of central atom
-            patom (2, 0, ncent) = cr_pos (2, jatom) 
-            patom (3, 0, ncent) = cr_pos (3, jatom) 
-            iv = chem_use_con (i, ic)               ! Use connectivity no iv
-            IF (cr_iscat(jatom).eq.chem_ccon (1, iv) ) then ! Central has correct type
-               is1 = chem_ccon (1, iv)              ! central atom type
-               ino = chem_ccon (2, iv)              ! connectivity number
-               CALL get_connectivity_list ( jatom, is1, ino, c_list, c_offs, natoms )
-               k = natom(ncent)
-               DO j=1,natoms
-                  iatom(  k+j,ncent) = c_list(j)
-                  patom(1,k+j,ncent) = cr_pos(1,c_list(j)) + REAL(c_offs(1,j))
-                  patom(2,k+j,ncent) = cr_pos(2,c_list(j)) + REAL(c_offs(2,j))
-                  patom(3,k+j,ncent) = cr_pos(3,c_list(j)) + REAL(c_offs(3,j))
-               ENDDO 
-               natom(ncent) = natom(ncent) + natoms
-            ENDIF
-         ENDDO 
-         IF (natom (ncent) .eq.0) then 
-            ncent = ncent - 1 
-            ncent = 0 
-         ENDIF 
-!                                                                       
-!------ ------------------------------------------------------          
-!------ Mode angular neighbours                                         
-!------ ------------------------------------------------------          
-!                                                                       
-      ELSEIF (chem_ctyp (ic) .eq.CHEM_ANG) then 
-         ncent = 0 
-         natom (ncent) = 0 
-         CALL indextocell (jatom, jcell, jsite) 
-         DO i = 1, chem_nwin (ic) 
-         ncent = ncent + 1 
-         ncent = 1 
-         iv = chem_use_win (i, ic) 
-         IF (jsite.eq.chem_cwin (1, iv) ) then 
-!                                                                       
-!     ------Selected atom is center of the angle                        
-!                                                                       
-            iatom (0, ncent) = jatom 
-            patom (1, 0, ncent) = cr_pos (1, jatom) 
-            patom (2, 0, ncent) = cr_pos (2, jatom) 
-            patom (3, 0, ncent) = cr_pos (3, jatom) 
-            icell (1) = jcell (1) + chem_cwin (3, iv) 
-            icell (2) = jcell (2) + chem_cwin (4, iv) 
-            icell (3) = jcell (3) + chem_cwin (5, iv) 
-            CALL check_bound (icell, offset, chem_period, lok) 
-            IF (lok) then 
-               isite = chem_cwin (2, iv) 
-               CALL celltoindex (icell, isite, katom) 
-               natom (ncent) = natom (ncent) + 1 
-               iatom (natom (ncent), ncent) = katom 
-               patom (1, natom (ncent), ncent) = cr_pos (1, katom)      &
-               + offset (1)                                             
-               patom (2, natom (ncent), ncent) = cr_pos (2, katom)      &
-               + offset (2)                                             
-               patom (3, natom (ncent), ncent) = cr_pos (3, katom)      &
-               + offset (3)                                             
-            ENDIF 
-            icell (1) = jcell (1) + chem_cwin (7, iv) 
-            icell (2) = jcell (2) + chem_cwin (8, iv) 
-            icell (3) = jcell (3) + chem_cwin (9, iv) 
-            CALL check_bound (icell, offset, chem_period, lok) 
-            IF (lok) then 
-               isite = chem_cwin (6, iv) 
-               CALL celltoindex (icell, isite, katom) 
-               natom (ncent) = natom (ncent) + 1 
-               iatom (natom (ncent), ncent) = katom 
-               patom (1, natom (ncent), ncent) = cr_pos (1, katom)      &
-               + offset (1)                                             
-               patom (2, natom (ncent), ncent) = cr_pos (2, katom)      &
-               + offset (2)                                             
-               patom (3, natom (ncent), ncent) = cr_pos (3, katom)      &
-               + offset (3)                                             
-            ENDIF 
-         ELSEIF (jsite.eq.chem_cwin (2, iv) ) then 
-!                                                                       
-!     ------Selected atom is first neighbour of the central atom        
-!                                                                       
-            icell (1) = jcell (1) - chem_cwin (3, iv) 
-            icell (2) = jcell (2) - chem_cwin (4, iv) 
-            icell (3) = jcell (3) - chem_cwin (5, iv) 
-            CALL check_bound (icell, offset, chem_period, lok) 
-            IF (lok) then 
-!     --------The central atom is within the boundary condition         
-               isite = chem_cwin (1, iv) 
-               CALL celltoindex (icell, isite, katom) 
-               iatom (0, ncent) = katom 
-               patom (1, 0, ncent) = cr_pos (1, katom) + offset (1) 
-               patom (2, 0, ncent) = cr_pos (2, katom) + offset (2) 
-               patom (3, 0, ncent) = cr_pos (3, katom) + offset (3) 
-               natom (ncent) = natom (ncent) + 1 
-               iatom (natom (ncent), ncent) = jatom 
-               patom (1, natom (ncent), ncent) = cr_pos (1, jatom) 
-               patom (2, natom (ncent), ncent) = cr_pos (2, jatom) 
-               patom (3, natom (ncent), ncent) = cr_pos (3, jatom) 
-               icell (1) = jcell (1) - chem_cwin (3, iv) + chem_cwin (7,&
-               iv)                                                      
-               icell (2) = jcell (2) - chem_cwin (4, iv) + chem_cwin (8,&
-               iv)                                                      
-               icell (3) = jcell (3) - chem_cwin (5, iv) + chem_cwin (9,&
-               iv)                                                      
-               CALL check_bound (icell, offset, chem_period, lok) 
-               IF (lok) then 
-                  isite = chem_cwin (6, iv) 
-                  CALL celltoindex (icell, isite, katom) 
-                  natom (ncent) = natom (ncent) + 1 
-                  iatom (natom (ncent), ncent) = katom 
-                  patom (1, natom (ncent), ncent) = cr_pos (1, katom)   &
-                  + offset (1)                                          
-                  patom (2, natom (ncent), ncent) = cr_pos (2, katom)   &
-                  + offset (2)                                          
-                  patom (3, natom (ncent), ncent) = cr_pos (3, katom)   &
-                  + offset (3)                                          
-               ENDIF 
-            ELSE 
-!     --------The central atom is outside the (periodic) boundary       
-               natom (ncent) = 0 
-            ENDIF 
-         ELSEIF (jsite.eq.chem_cwin (6, iv) ) then 
-!                                                                       
-!     ------Selected atom is second neighbour of the central atom       
-!                                                                       
-            icell (1) = jcell (1) - chem_cwin (7, iv) 
-            icell (2) = jcell (2) - chem_cwin (8, iv) 
-            icell (3) = jcell (3) - chem_cwin (9, iv) 
-            CALL check_bound (icell, offset, chem_period, lok) 
-            IF (lok) then 
-               isite = chem_cwin (1, iv) 
-               CALL celltoindex (icell, isite, katom) 
-               iatom (0, ncent) = katom 
-               patom (1, 0, ncent) = cr_pos (1, katom) + offset (1) 
-               patom (2, 0, ncent) = cr_pos (2, katom) + offset (2) 
-               patom (3, 0, ncent) = cr_pos (3, katom) + offset (3) 
-               icell (1) = jcell (1) - chem_cwin (7, iv) + chem_cwin (3,&
-               iv)                                                      
-               icell (2) = jcell (2) - chem_cwin (8, iv) + chem_cwin (4,&
-               iv)                                                      
-               icell (3) = jcell (3) - chem_cwin (9, iv) + chem_cwin (5,&
-               iv)                                                      
-               CALL check_bound (icell, offset, chem_period, lok) 
-               IF (lok) then 
-                  isite = chem_cwin (2, iv) 
-                  CALL celltoindex (icell, isite, katom) 
-                  natom (ncent) = natom (ncent) + 1 
-                  iatom (natom (ncent), ncent) = katom 
-                  patom (1, natom (ncent), ncent) = cr_pos (1, katom)   &
-                  + offset (1)                                          
-                  patom (2, natom (ncent), ncent) = cr_pos (2, katom)   &
-                  + offset (2)                                          
-                  patom (3, natom (ncent), ncent) = cr_pos (3, katom)   &
-                  + offset (3)                                          
-               ENDIF 
-               natom (ncent) = natom (ncent) + 1 
-               iatom (natom (ncent), ncent) = jatom 
-               patom (1, natom (ncent), ncent) = cr_pos (1, jatom) 
-               patom (2, natom (ncent), ncent) = cr_pos (2, jatom) 
-               patom (3, natom (ncent), ncent) = cr_pos (3, jatom) 
-            ELSE 
-!     --------The central atom is outside the (periodic) boundary       
-               natom (ncent) = 0 
-            ENDIF 
-         ENDIF 
-         ENDDO 
-         IF (natom (ncent) .eq.0) then 
-            ncent = ncent - 1 
-            ncent = 0 
-         ENDIF 
-!                                                                       
-!------ ------------------------------------------------------          
-!------ Mode environment                                                
-!------ ------------------------------------------------------          
-!                                                                       
-      ELSEIF (chem_ctyp (ic) .eq.CHEM_ENVIR) then 
-         ncent = 0 
-         natom (1) = 0 
-         DO j = 1, 3 
-         u (j) = cr_pos (j, jatom) 
-         w (j) = 0.0 
-         ENDDO 
-!                                                                       
-!--------Loop over all environment definitions used by current          
-!        neighbor definition                                            
-!                                                                       
-         DO i = 1, chem_nenv (ic) 
-!                                                                       
-!----------The selected atom is the central atom of environment         
-!          definition                                                   
-!                                                                       
-         IF (cr_iscat (jatom) .eq.chem_cenv (0, chem_use_env (i, ic) )  &
-         .or. - 1.eq.chem_cenv (0, chem_use_env (i, ic) ) ) then        
-            DO j = 1, chem_env_neig (chem_use_env (i, ic) ) 
-            werte (j) = chem_cenv (j, chem_use_env (i, ic) ) 
-            ENDDO 
-            ianz = chem_env_neig (chem_use_env (i, ic) ) 
-            CALL do_find_env (ianz, werte, maxw, u, chem_rmin_env (ic), &
-            chem_rmax_env (ic), chem_quick, chem_period)                
-            IF (atom_env (0) .ne.0) then 
-!                                                                       
-!     --------Neighbours were found, add to list of atoms               
-!                                                                       
-               ncent = ncent + 1 
-               ncent = 1 
-               DO j = 1, atom_env (0) 
-               IF (natom (ncent) .lt.maxw) then 
-                  natom (ncent) = natom (ncent) + 1 
-                  iatom (natom (ncent), ncent) = atom_env (j) 
-                  patom (1, natom (ncent), ncent) = atom_pos (1, j) 
-                  patom (2, natom (ncent), ncent) = atom_pos (2, j) 
-                  patom (3, natom (ncent), ncent) = atom_pos (3, j) 
-               ELSE 
-                  natom (ncent) = 0 
-                  ncent = ncent - 1 
-                  ier_num = - 23 
-                  ier_typ = ER_CHEM 
-                  RETURN 
-               ENDIF 
-               ENDDO 
-               iatom (0, ncent) = jatom 
-               patom (1, 0, ncent) = cr_pos (1, jatom) 
-               patom (2, 0, ncent) = cr_pos (2, jatom) 
-               patom (3, 0, ncent) = cr_pos (3, jatom) 
-            ENDIF 
-         ELSE 
-!                                                                       
-!     ----The selected atom is a neighbour atom of environment          
-!           definition                                                  
-!                                                                       
-!c           lis_neig = .false.                                         
-!c           do j=1,chem_env_neig(chem_use_env(i,ic))                   
-!c             if(cr_iscat(jatom).eq.                                   
-!C     &                      chem_cenv(j,chem_use_env(i,ic))) then     
-!c               lis_neig = .true.                                      
-!c             endif                                                    
-!c           ENDDO                                                      
-!c           if(lis_neig) then                                          
-!c             werte(1) = chem_cenv(0,chem_use_env(i,ic))               
-!c             ianz     = 1                                             
-!c             call do_find_env(ianz,werte,maxw,u,chem_rmin_env(ic),    
-!C     &                                  chem_rmax_env(ic),            
-!C     &                                  chem_quick,chem_period)       
-!                                                                       
-!-----      ------- Store the true central atoms in patom               
-!                                                                       
-!c             do j=1,atom_env(0)                                       
-!c               iatom(0,ncent+j)   = atom_env(j)                       
-!c               patom(1,0,ncent+j) = atom_pos(1,j)                     
-!c               patom(2,0,ncent+j) = atom_pos(2,j)                     
-!c               patom(3,0,ncent+j) = atom_pos(3,j)                     
-!c             ENDDO                                                    
-!c             nnew = atom_env(0)                                       
-!c             do k=1,nnew                                              
-!c               do j=1,chem_env_neig(chem_use_env(i,ic))               
-!c                 werte(j) = chem_cenv(j,chem_use_env(i,ic))           
-!c               ENDDO                                                  
-!c               do j=1,3                                               
-!c                 u(j) = patom(j,0,ncent+1)                            
-!c               ENDDO                                                  
-!c               ianz = chem_env_neig(chem_use_env(i,ic))               
-!c               call do_find_env(ianz,werte,maxw,u,chem_rmin_env(ic),  
-!C     &                                    chem_rmax_env(ic),          
-!C     &                                    chem_quick,chem_period)     
-!c               if (atom_env(0).ne.0) then                             
-!c                 ncent = ncent + 1                                    
-!c                 ncent =         1                                    
-!c                 do j=1,atom_env(0)                                   
-!c                   if (natom(ncent).lt.maxw) then                     
-!c                     natom(ncent)          = natom(ncent) + 1         
-!c                     iatom(natom(ncent),ncent)   = atom_env(j)        
-!c                     patom(1,natom(ncent),ncent) = atom_pos(1,j)      
-!c                     patom(2,natom(ncent),ncent) = atom_pos(2,j)      
-!c                     patom(3,natom(ncent),ncent) = atom_pos(3,j)      
-!c                   ELSE                                               
-!DBG_SPHERES                                                            
-!C  write(*,*) ' NEIGHBOUR, NUMBER OF NEIGHBOURS ',natom(ncent),        
-!C  atom_env(0),nnew                                                    
-!c                     natom(ncent) = 0                                 
-!c                     ncent = ncent - 1                                
-!c                     ncent =         0                                
-!c                     ier_num = -23                                    
-!c                     ier_typ = ER_CHEM                                
-!c                     return                                           
-!c                   endif                                              
-!c                 ENDDO                                                
-!c               endif                                                  
-!c             ENDDO                                                    
-!c           endif                                                      
-         ENDIF 
-         ENDDO 
-      ENDIF 
-      ldbg = .false. 
-!                                                                       
-      END SUBROUTINE chem_neighbour_multi           
-!*****7*****************************************************************
       SUBROUTINE chem_neighbour_mol (jmol, ic, imol, nmol, maxww) 
 !+                                                                      
 !     Determine neighbours from given molecule index 'jmol'.            
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+USE atom_env_mod
       USE chem_mod 
       USE molecule_mod 
       USE rmc_mod 
@@ -6016,12 +4816,12 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
 !                                                                       
        
 !                                                                       
-      INTEGER maxww, maxw 
-      PARAMETER (maxw = chem_max_neig) 
+      INTEGER maxww!, maxw 
+!     PARAMETER (maxw = chem_max_neig) 
 !                                                                       
-      REAL patom (3, 0:maxw) 
+      REAL patom (3, 0:MAX_ATOM_ENV) 
       INTEGER imol (0:maxww), jmol, nmol, ic 
-      INTEGER iatom (0:maxw), jatom, natom 
+      INTEGER iatom (0:MAX_ATOM_ENV), jatom, natom 
       INTEGER i, im 
       LOGICAL no 
 !                                                                       
@@ -6030,7 +4830,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
 !------ Get origin of selected molecule and find neighbours             
 !                                                                       
       jatom = mole_cont (mole_off (jmol) + 1) 
-      CALL chem_neighbour (jatom, ic, iatom, patom, natom, maxw) 
+      CALL chem_neighbour (jatom, ic, iatom, patom, natom, MAX_ATOM_ENV) 
 !                                                                       
 !------ Convert found atoms to molecules                                
 !                                                                       
@@ -6045,7 +4845,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
 !                                                                       
          IF (.not.no) then 
             nmol = nmol + 1 
-            IF (nmol.le.chem_max_neig) then 
+            IF (nmol.le.MAX_ATOM_ENV) then 
                imol (nmol) = im 
             ELSE 
                ier_num = - 23 
@@ -6114,7 +4914,7 @@ USE precision_mod
       bl_max (i, j) = 0.0 
       ENDDO 
       ENDDO 
-      DO i = 1, chem_max_bin 
+      DO i = 1, CHEM_MAX_BIN 
       chem_hist (i) = 0 
       ENDDO 
 !                                                                       
@@ -6150,7 +4950,7 @@ USE precision_mod
       btottot = 0 
       n_res = (cr_nscat+2)*(cr_nscat+1)/2
       IF(n_res                           > MAXPAR_RES) THEN
-         n_res = MAX(n_res     ,MAXPAR_RES, CHEM_MAX_NEIG)
+         n_res = MAX(n_res     ,MAXPAR_RES, MAX_ATOM_ENV)
          CALL alloc_param(n_res)
          MAXPAR_RES = n_res
       ENDIF
@@ -6278,7 +5078,7 @@ USE precision_mod
 !                                                                       
 !------ Reset arrays                                                    
 !                                                                       
-      DO i = 1, chem_max_bin 
+      DO i = 1, CHEM_MAX_BIN 
       chem_hist (i) = 0 
       ENDDO 
 !                                                                       
@@ -6298,7 +5098,7 @@ USE precision_mod
 !                                                                       
             ibin = int ( (dist - chem_blen_cut (1) ) * chem_bin /       &
             (chem_blen_cut (2) - chem_blen_cut (1) ) ) + 1              
-            IF (0.lt.ibin.and.ibin.le.chem_max_bin) then 
+            IF (0.lt.ibin.and.ibin.le.CHEM_MAX_BIN) then 
                chem_hist (ibin) = chem_hist (ibin) + 1 
             ENDIF 
          ENDIF 
@@ -6407,7 +5207,7 @@ USE precision_mod
       ba_max (i, j) = - 1000.0 
       ENDDO 
       ENDDO 
-      DO i = 1, chem_max_bin 
+      DO i = 1, CHEM_MAX_BIN 
       chem_hist (i) = 0 
       ENDDO 
 !                                                                       
@@ -6538,6 +5338,7 @@ USE precision_mod
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+USE atom_env_mod
       USE chem_mod 
       USE molecule_mod 
       USE errlist_mod 
@@ -6583,7 +5384,7 @@ USE precision_mod
       ENDIF 
 !                                                                       
       IF(mole_num_type                   > MAXPAR_RES) THEN
-         n_res = MAX(mole_num_type, MAXPAR_RES, CHEM_MAX_NEIG)
+         n_res = MAX(mole_num_type, MAXPAR_RES, MAX_ATOM_ENV)
          CALL alloc_param(n_res)
          MAXPAR_RES = n_res
       ENDIF
@@ -6751,12 +5552,17 @@ USE chem_mod
 !
 IMPLICIT NONE
 !
-CALL alloc_chem_ang ( 1,  CHEM_MAX_COR        )
+CALL alloc_chem_correlation( 1     )
+CALL alloc_chem_ang ( 1,  1        )
 CALL alloc_chem_aver( 1,  1        )
 CALL alloc_chem_disp( 1,  1        )
-CALL alloc_chem_env ( 1,  1,  CHEM_MAX_COR    )
-CALL alloc_chem_vec ( 1,  CHEM_MAX_COR        )
-CALL alloc_chem_con ( 1,  CHEM_MAX_COR        )
+CALL alloc_chem_env ( 1,  1,  1    )
+CALL alloc_chem_vec ( 1,  1        )
+CALL alloc_chem_ran ( 1,  1 ,  1   )
+CALL alloc_chem_con ( 1,  1        )
+CALL alloc_chem_dir (     1        )
+CALL alloc_chem_dist(     1        )
+CALL alloc_chem_hist(     1        )
 !
 CHEM_MAXAT_CELL   = 1
 CHEM_MAX_AVE_ATOM = 1

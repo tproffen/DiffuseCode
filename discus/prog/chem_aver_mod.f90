@@ -9,6 +9,7 @@ SUBROUTINE chem_aver (lout, lsite)
 USE discus_config_mod 
 USE discus_allocate_appl_mod 
 USE crystal_mod 
+USE atom_env_mod
 USE atom_name
 USE chem_mod 
 USE errlist_mod 
@@ -36,15 +37,17 @@ INTEGER            :: n_max_atom   ! Dummy for allocation
 !
 is = 1
 !
-IF ( CHEM_MAXAT_CELL   < MAXAT_CELL .or. &
-     CHEM_MAX_AVE_ATOM < MAX(cr_ncatoms, MAXSCAT) .or. &
+!IF ( CHEM_MAXAT_CELL   < MAXAT_CELL .or. &
+IF ( CHEM_MAX_AVE_ATOM < MAX(cr_ncatoms, MAXSCAT) .or. &
      CHEM_MAXAT_CELL   <= cr_ncatoms                    ) THEN
-   n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL, cr_ncatoms)
+!  n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL, cr_ncatoms)
+   n_atom_cell = MAX(CHEM_MAXAT_CELL,             cr_ncatoms)
    n_max_atom  = MAX(CHEM_MAX_AVE_ATOM, cr_ncatoms, MAXSCAT) + 1
    call alloc_chem_aver ( n_atom_cell, n_max_atom)
 ENDIF
 IF(.not. lsite) THEN
-   n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL)
+!  n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL)
+   n_atom_cell = MAX(CHEM_MAXAT_CELL, cr_ncatoms)
    IF(ALLOCATED(chem_ave_posit)) DEALLOCATE(chem_ave_posit)
    IF(ALLOCATED(chem_ave_sigma)) DEALLOCATE(chem_ave_sigma)
    ALLOCATE(chem_ave_posit(3,n_atom_cell, MAX(12,cr_nscat)))
@@ -59,7 +62,7 @@ IF (cr_ncatoms.gt.CHEM_MAXAT_CELL) then
    ier_num = - 103 
    ier_typ = ER_APPL 
    ier_msg (1) = 'Adjust the value of the variable' 
-   ier_msg (2)  = 'MAXAT_CELL in config_mod.f90 and  ' 
+   ier_msg (2)  = 'CHEM_MAXAT_CELL in chem_mod.f90 and  ' 
    ier_msg (3)  = 'compile the program             ' 
    RETURN 
 ENDIF 
@@ -116,7 +119,7 @@ loopk: DO k = 1, cr_icc (3)
                IF (flag) then 
                   chem_ave_n (ii) = chem_ave_n (ii) + 1 
                   is = chem_ave_n (ii) 
-                  IF (chem_ave_n (ii) .gt.chem_max_atom) then 
+                  IF (chem_ave_n (ii) .gt.CHEM_MAX_AVE_ATOM) then 
                      ier_typ = ER_CHEM 
                      ier_num = - 5 
                      RETURN 
@@ -222,7 +225,7 @@ IF(lsite) THEN           ! one pos for all types on a single site
 !------ store results in res_para                                       
 !                                                                       
    IF ( (9 * nvalues) .gt.MAXPAR_RES) then 
-      n_res = MAX(9 * cr_ncatoms,MAXPAR_RES, CHEM_MAX_NEIG)
+      n_res = MAX(9 * cr_ncatoms,MAXPAR_RES, MAX_ATOM_ENV)
       CALL alloc_param(n_res)
       MAXPAR_RES = n_res
 !     ier_typ = ER_CHEM 
@@ -272,7 +275,7 @@ ELSE
 !------ store results in res_para                                       
 !                                                                       
    IF ( (9 * nvalues) .gt.MAXPAR_RES) then 
-      n_res = MAX(9 * cr_ncatoms,MAXPAR_RES, CHEM_MAX_NEIG)
+      n_res = MAX(9 * cr_ncatoms,MAXPAR_RES, MAX_ATOM_ENV)
       CALL alloc_param(n_res)
       MAXPAR_RES = n_res
 !     ier_typ = ER_CHEM 
@@ -312,9 +315,9 @@ SUBROUTINE chem_elem (lout)
 !+                                                                      
 !     Show information about elements/rel. amounts within crystal       
 !-                                                                      
-      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name
+USE atom_env_mod
       USE chem_mod 
 !                                                                       
       USE errlist_mod 
@@ -357,7 +360,7 @@ ENDDO
 IF (lout) write (output_io, 1000) (cr_icc (i), i = 1, 3) 
 IF (lout) write (output_io, 1100) cr_natoms, cr_ncatoms, cr_nscat 
 IF (i >  MAXPAR_RES) THEN 
-   n_res = MAX(cr_nscat, MAXPAR_RES, CHEM_MAX_NEIG)
+   n_res = MAX(cr_nscat, MAXPAR_RES, MAX_ATOM_ENV)
    CALL alloc_param(n_res)
    MAXPAR_RES = n_res
 ENDIF

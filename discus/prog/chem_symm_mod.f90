@@ -16,25 +16,35 @@ USE crystal_mod
 USE chem_mod
 USE wyckoff_mod
 !
+USE blanks_mod
+USE build_name_mod
+USE errlist_mod
+USE get_params_mod
 USE precision_mod
 USE support_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=*), INTENT(IN) :: zeile
-INTEGER         , INTENT(IN) :: lp
+CHARACTER(LEN=*), INTENT(INOUT) :: zeile
+INTEGER         , INTENT(INOUT) :: lp
 !
+INTEGER, PARAMETER    :: MAXW = 20
 INTEGER, PARAMETER    :: IWR = 91
 REAL   , PARAMETER    :: EPS =  0.001
 !
-CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile)))   :: outfile
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
+INTEGER,             DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP),  DIMENSION(MAXW) :: werte
+!
+!CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile)))   :: outfile
 INTEGER               :: i, j
+INTEGER               :: ianz
 INTEGER               :: isym
 INTEGER               :: iv, ivv
 INTEGER               :: ic
 INTEGER               :: iv_max
 INTEGER               :: isite, jsite
-INTEGER               :: n_vec, n_cor
+INTEGER               :: n_vec, n_cor, n_old
 INTEGER, DIMENSION(3) :: vec
 LOGICAL, DIMENSION(:),ALLOCATABLE :: old_vector
 LOGICAL               :: lisite, ljsite
@@ -56,16 +66,23 @@ iv_max = 0
 CALL chem_aver(.false., .false.)        ! Ensure we have the average structure
 !
 IF(lp>0) THEN                           ! output file parameter given
-   outfile = zeile(1:lp)
-   CALL oeffne (IWR, outfile, 'unknown')
-   lout = .true.
+   CALL get_params(zeile, ianz, cpara, lpara, MAXW, lp)
+   IF(ier_num==0) THEN
+      CALL do_build_name(ianz, cpara, lpara, werte, MAXW, 1)
+!   outfile = zeile(1:lp)
+      CALL oeffne(IWR, cpara(1), 'unknown')
+      IF(ier_num/=0) RETURN
+      lout = .TRUE.
+   ELSE
+      RETURN
+   ENDIF
 ENDIF
 !
 DO iv = 1, CHEM_MAX_VEC    ! Loop over all defined vectors
    IF(chem_cvec(1,iv) /= -9999 ) THEN   ! Vector has been defined
       iv_max = iv                       ! Log highest vector number
 !     If file was defined, write output file
-      IF(lout) WRITE(IWR,1000) iv, chem_cvec(:,iv)
+      IF(lout) WRITE(IWR,1000) iv, chem_cvec(:,iv), iv
    ENDIF
 ENDDO
 !
@@ -79,13 +96,14 @@ DO iv = 1, CHEM_MAX_VEC                ! Loop over all defined vectors
       old_vector(iv) = .true.          ! 
    ENDIF
 ENDDO
+n_old = CHEM_MAX_VEC
 !
 ivv = iv_max
 !
 symmetry: DO isym = 2, spc_n   !Loop over all space group symmetry operations
    IF(lout) WRITE(IWR,1100)
 !
-   old_vectors: DO iv = 1, CHEM_MAX_VEC    ! Loop over all defined vectors
+   old_vectors: DO iv = 1, n_old           ! Loop over all defined vectors
       IF(old_vector(iv)           ) THEN   ! Vector has been defined
          DO i=1,3                          ! copy sites from average unit cell
             ri(i) = chem_ave_pos(i,chem_cvec(1,iv))
@@ -124,7 +142,7 @@ symmetry: DO isym = 2, spc_n   !Loop over all space group symmetry operations
                   ier_typ = ER_CHEM
                   ier_msg(1) = 'There are several sites in the unit cell with'
                   ier_msg(2) = '(almost) identical coordinates. Symmetry ex-  '
-                  ier_msg(3) = 'pansion restricted to file, flagged as - site'
+                  ier_msg(3) = 'pansion restricted to file, flagged as -site'
                   isite = -isite
                ENDIF
                lisite = .true.
@@ -146,7 +164,7 @@ symmetry: DO isym = 2, spc_n   !Loop over all space group symmetry operations
          ENDDO
 !
          ivv = ivv + 1
-         IF(lout) WRITE(IWR,1000) ivv, isite, jsite, vec
+         IF(lout) WRITE(IWR,1000) ivv, isite, jsite, vec, iv
 !
 ! update list of defined correlation vectors
 ! and enter these new vectors into neighborhood definitions
@@ -179,10 +197,30 @@ is_used:          DO i=1, chem_nvec (ic)
    ENDDO old_vectors
 ENDDO symmetry
 !
+WRITE(IWR,'(a)') 'set neig, rese' 
+DO ic=1,chem_ncor
+   IF(chem_ctyp(ic) == CHEM_VEC) THEN
+      WRITE(IWR,'(a,50(a2,i3))') 'set neig, vec', (', ',chem_use_vec(i,ic),i=1, chem_nvec(ic))
+   ELSEIF(chem_ctyp(ic) == CHEM_CON) THEN
+      WRITE(IWR,'(a,50(a2,i3))') 'set neig, con', (', ',chem_use_con(i,ic),i=1, chem_ncon(ic))
+   ELSEIF(chem_ctyp(ic) == CHEM_ANG) THEN
+      WRITE(IWR,'(a,50(a2,i3))') 'set neig, ang', (', ',chem_use_win(i,ic),i=1, chem_nwin(ic))
+   ELSEIF(chem_ctyp(ic) == CHEM_RANGE) THEN
+      WRITE(IWR,'(a,50(a2,i3))') 'set neig, ra ', (', ',chem_use_ran(i,ic),i=1, chem_nran(ic))
+   ELSEIF(chem_ctyp(ic) == CHEM_ENVIR) THEN
+      WRITE(IWR,'(a,50(a2,i3))') 'set neig, env', (', ',chem_use_env(i,ic),i=1, chem_nenv(ic))
+!  ELSEIF(chem_ctyp(ic) == CHEM_DIST ) THEN
+!     WRITE(IWR,'(a,50(a2,i3))') 'set neig, dis', (', ',chem_use_env(i,ic),i=1, chem_nenv(ic))
+!  ELSEIF(chem_ctyp(ic) == CHEM_DIR  ) THEN
+!     WRITE(IWR,'(a, 6(a2,f9.4))') 'set neig, dir', (', ',chem_dir(1:3,1,ic), chem_dir(1:3,2,ic)
+   ENDIF
+   IF(ic<chem_ncor) WRITE(IWR,'(a)') 'set neig, add'
+ENDDO
+!
 IF(lout) CLOSE (IWR)
 DEALLOCATE(old_vector)
 !
-1000 FORMAT('set vec, ', 5(i3,', '),i3) 
+1000 FORMAT('set vec, ', 5(i3,', '),i3,'  ! symm. equiv. to vector ', i3) 
 1100 FORMAT('!',/,'!')
 !
 END SUBROUTINE chem_symm
