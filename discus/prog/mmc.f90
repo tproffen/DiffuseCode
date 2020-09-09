@@ -313,6 +313,17 @@ WRITE (output_io, 1250) mo_cyc
 WRITE (output_io, 1300) mo_feed 
 WRITE (output_io, 1350) mmc_no_valid 
 WRITE (output_io, 1400) mo_kt 
+IF(mmc_h_stop) THEN
+   WRITE(output_io, '(3x,a)'     ) 'MMC will stop at convergence'
+   WRITE(output_io, '(3x,a,f8.4,a)') '   Max rel. difference       : ', mmc_h_conv_m, &
+                                   ' at last cycle'
+   WRITE(output_io, '(3x,a,f8.4,a,i4,a)') '   Max change rel. difference: ', mmc_h_conv_c, &
+                                   ' observed over ',MMC_H_NNNN ,' feedbacks'
+   WRITE(output_io, '(3x,a,f8.4,a,i4,a)') '   Av. change rel. difference: ', mmc_h_conv_a, &
+                                   ' averaged over ',MMC_H_NNNN ,' feedbacks'
+ELSE
+   WRITE(output_io, '(3x,a)'     ) 'MMC will stop at full cycles'
+ENDIF
 !                                                                       
 !     Information about the moves                                       
 !                                                                       
@@ -2168,8 +2179,6 @@ USE chem_mod
 USE chem_neig_multi_mod
 USE chem_menu
 !
-use chem_aver_mod
-!
 USE celltoindex_mod
 USE atom_env_mod
 USE atom_name
@@ -2213,6 +2222,7 @@ INTEGER :: iacc_good, iacc_neut, iacc_bad
 INTEGER :: isel(MMC_MAX_ATOM) 
 INTEGER :: lbeg (3) 
 INTEGER :: ic
+INTEGER :: nocc
 INTEGER :: i, natoms
 INTEGER :: ncent 
 INTEGER :: NALLOWED   ! Current size mmc_allowed
@@ -2306,6 +2316,7 @@ lbeg (3) = 0
 !                                                                       
 !     Normalize the correlation directions                              
 !                                                                       
+nocc = 0
 DO ic = 1, chem_ncor 
    IF (mmc_cor_energy (0, MC_DISP) ) THEN 
       DO i = 1, 3 
@@ -2316,8 +2327,18 @@ DO ic = 1, chem_ncor
       rdj (ic) = skalpro (jdir, jdir, cr_gten) 
       rdi (ic) = sqrt (rdi (ic) ) 
       rdj (ic) = sqrt (rdj (ic) ) 
+   ELSEIF(mmc_cor_energy(ic, MC_OCC)) THEN
+      nocc = nocc + 1
    ENDIF 
 ENDDO 
+IF(nocc>1) THEN
+   DO ic = 1, chem_ncor
+      IF(mmc_cor_energy(ic, MC_OCC)) THEN
+         mmc_cfac(ic,MC_OCC) = 2.5/REAL(nocc)
+      ENDIF
+   ENDDO
+ENDIF
+!read(*,*) ic
 !                                                                       
 !     Initialize the different energies                                 
 !                                                                       
@@ -2333,6 +2354,7 @@ NALLOWED = UBOUND(mmc_allowed,1)
 loop = .TRUE.
 IF(mo_cyc == 0) loop = .FALSE. 
 !
+lserial = .FALSE.
 check_conn: DO IC = 1, chem_ncor         ! Check is we have a connectivity
    IF(chem_ctyp(ic) == CHEM_CON) THEN    ! if so, we need serial computation
       lserial = .TRUE.                   ! Needs serious debugging...
@@ -2390,29 +2412,31 @@ IF(nthreads > 1) THEN
    !$OMP                  iatom, patom, natom,ncent, laccept,                 &
    !$OMP                  disp,             e_old, e_new)                     &
    !$OMP          SHARED(done)
-   !$OMP DO SCHEDULE(STATIC)
-   parallel_loop: DO itry=1, mo_cyc     ! Do mmc in parallel
    !$   tid = OMP_GET_THREAD_NUM()
+   !$OMP DO SCHEDULE(DYNAMIC, mo_cyc/nthreads/32)
+   parallel_loop: DO itry=1, mo_cyc     ! Do mmc in parallel
+      IF(done) CYCLE parallel_loop    ! Quickly cycle to end if an error occuredd
       CALL    mmc_run_loop(tid, nthreads, igen, itry, natoms, &
                            iatom, patom, natom,ncent, laccept,                       &
                            rdi, rdj,         e_old, e_new, done, loop,               &
                            iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
                            lout_feed, imodulus,                                      &
                            NALLOWED, MAX_ATOM_ENV, MMC_MAX_CENT, MMC_MAX_ATOM)
-      IF(done) CYCLE parallel_loop    ! Quickly cycle to end if an error occuredd
 !
    ENDDO parallel_loop
    !$OMP END DO NOWAIT
+   !$ IF(tid==0) igen = igen*nthreads
    !$OMP END PARALLEL
+   itry = igen
 ELSE     ! Use nonparallel code
    serial_loop: DO itry=1, mo_cyc     ! Do mmc serially
-   CALL    mmc_run_loop(tid, nthreads, igen, itry, &
-                        natoms, &
-                        iatom, patom, natom,ncent, laccept,                       &
-                        rdi, rdj,         e_old, e_new, done, loop,               &
-                        iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
-                        lout_feed, imodulus,                                      &
-                        NALLOWED, MAX_ATOM_ENV, MMC_MAX_CENT, MMC_MAX_ATOM)
+      CALL    mmc_run_loop(tid, nthreads, igen, itry, &
+                           natoms, &
+                           iatom, patom, natom,ncent, laccept,                       &
+                           rdi, rdj,         e_old, e_new, done, loop,               &
+                           iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
+                           lout_feed, imodulus,                                      &
+                           NALLOWED, MAX_ATOM_ENV, MMC_MAX_CENT, MMC_MAX_ATOM)
       IF(ier_num/=0 .OR. done) EXIT serial_loop
    ENDDO serial_loop
 ENDIF
@@ -2648,13 +2672,17 @@ REAL(KIND=PREC_SP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
    IF(tid==0) THEN
       IF(MOD(igen, imodulus)==0) THEN ! .AND. .NOT.done .AND. loop) THEN
 !         done = .TRUE. 
-         IF(lout_feed) WRITE (output_io, 2000) igen, itry, iacc_good, iacc_neut, iacc_bad 
+         IF(lout_feed) WRITE (output_io, 2000) igen*nthreads, itry*nthreads, &
+             iacc_good, iacc_neut, iacc_bad 
 !                                                                       
 !     ----New mmc_correlations for all energies                         
 !                                                                       
          rel_cycl = REAL(igen)/REAL(mo_cyc)*REAL(NTHREADS)
          CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE.)
       ENDIF 
+      IF(igen> mo_cyc/nthreads) THEN
+         done = .TRUE.
+      ENDIF
    ENDIF 
 !
  2000 FORMAT (/,' Gen: ',I10,' try: ',I10,' acc: (g/n/b): ',I8,        &
@@ -2709,6 +2737,10 @@ main: DO
    j = j + 1
    IF(j>10000000) THEN   ! Failure did not find a valid pair
       isel = 0
+            ier_num = -22
+            ier_typ = ER_RMC
+            ier_msg(1) = 'RMC did not find a valid pair'
+            ier_msg(2) = 'Check composition and properties'
       RETURN
    ENDIF
 !                                                                       
@@ -3569,6 +3601,7 @@ INTEGER :: ncalc
 mmc_energy_cn = 0.0
 ncalc = 0 
 valid_e = .FALSE. 
+IF(ALLOCATED(n_neig)) DEALLOCATE(n_neig)
 ALLOCATE(n_neig(0:CR_NSCAT))
 n_neig(:) = 0
 !                                                                       
