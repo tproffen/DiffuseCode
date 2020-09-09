@@ -77,9 +77,12 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2020_September
 
-   Added finish criteria to mmc
+   Added finish criteria to mmc. These allow to terminate a MMC loop
+   upon reaching several convergence/stagnation criteria. 
 
-   Addes 'show scat' command to Fourier and powder menu.
+   Added 'show scat' command to Fourier and powder menu.
+
+   Added optional "geom:[<px>,<py>]" to ==> 'plot/run' command
 3  2020_August
 
    Added extensive parallel computing throughout the code
@@ -4067,14 +4070,11 @@
    See help entry 'commands' for a complete list
    of commands available in this sub level. 
 
-   NOTE: The MMC, MC and CHEM sub level share some variables which define
+   NOTE: The MMC and CHEM sub level share some variables which define
          neighbors etc. and settings made in this sub level might be
          altered when using the other sub level. It is always save to
          repeat settings when entering this sub level if both levels
          are used. 
-
-   NOTE: Many of the commands of the MMC mode are at first sight
-         similar to the corresponding MC commands. 
 
    The mmc menu modifies the crystal according to the moves, ==> 'set move'
    that you define. Only those atoms will take part of the 'moves' and
