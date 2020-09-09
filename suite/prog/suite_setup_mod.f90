@@ -43,16 +43,21 @@ USE cmdline_args_mod
 USE gen_mpi_mod
 USE prompt_mod
 USE lib_f90_default_mod
+USE parallel_mod
 USE random_state_mod
+!
+!$ USE omp_lib
 !
 IMPLICIT none
 !                                                                       
       include'date.inc'
 CHARACTER(LEN=13)  :: is_debug
+CHARACTER(LEN=37)  :: string
 LOGICAL                        :: lend
 INTEGER, PARAMETER  :: np = 1
 !REAL, DIMENSION(np) :: werte = 0.0
 INTEGER, DIMENSION(np) :: iwerte = 0
+INTEGER :: tid, nthreads
 !                                                                       
 lend              = .false.
 blank             = ' '
@@ -83,6 +88,17 @@ CALL ini_ran_ix (np, iwerte, 0)
 CALL color_set_scheme (.TRUE.,   gen_mpi_myid)
 !
 IF(gen_mpi_myid==0) THEN
+!
+!$OMP PARALLEL PRIVATE(tid)
+!$   tid = OMP_GET_THREAD_NUM()
+!$   IF (tid == 0) THEN
+!$      IF(par_omp_maxthreads == -1) THEN
+!$         nthreads = OMP_GET_NUM_THREADS()
+!$      ELSE
+!$         nthreads = MAX(1,MIN(par_omp_maxthreads, OMP_GET_NUM_THREADS()))
+!$      ENDIF
+!$   END IF
+!$OMP END PARALLEL
 !                                                                       
 !------ Write starting screen                                           
 !                                                                       
@@ -92,8 +108,13 @@ ELSE
    is_debug = '             '
 ENDIF
 version   = aktuell
-WRITE ( *, 1000) version, is_debug, cdate
-CALL write_appl_env (.TRUE., gen_mpi_myid)
+   IF(par_omp_use) THEN
+      WRITE(string,'(a,i3)') 'OpenMP is active; maximum threads ',nthreads
+   ELSE
+      STRING =               'OpenMP is inactive                   '
+   ENDIF
+   WRITE ( *, 1000) version, is_debug, string, cdate
+   CALL write_appl_env (.TRUE., gen_mpi_myid)
 ENDIF
 !                                                                       
 !     try to read default file                                          
@@ -116,6 +137,7 @@ lsetup_done = .true.
      10x,59('*'),/,                                                          &
      10x,'*', 9x,'D I S C U S - S U I T E  Version ',a10, 5x,'*',/,          &
      10x,'*',22(' '),a13,22(' '),'*',/                                       &
+     10x,'*',9 (' '),a37,11(' '),'*',/                                       &
      10x,'*         Created : ',a35,3x,'*',/,                                &
      10x,'*',57('-'),'*',/,                                                  &
      10x,'* (c) R.B. Neder  ','(reinhard.neder@fau.de)                 *',/, &
