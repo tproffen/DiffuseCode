@@ -15,6 +15,7 @@ USE arrays_mod
 USE ber_params_mod
 USE define_variable_mod
 USE do_eval_mod
+USE do_show_mod
 USE do_set_mod
 USE do_wait_mod
 USE errlist_mod 
@@ -154,8 +155,11 @@ IMPLICIT none
 !                                                                       
 !------ Calculate transpose matrix          'mattrans'                      
 !                                                                       
-      ELSEIF (str_comp (bef, 'mattrans', 4, lbef, 6) ) THEN 
+      ELSEIF (str_comp (bef, 'mattrans', 4, lbef, 8) ) THEN 
          CALL arr_transpose(zei,lc) 
+      ELSEIF (str_comp (bef, 'show' , 2, lbef, 4) ) THEN 
+         CALL get_params (zei, ianz, cpara, lpara, maxpar, lc) 
+         CALL do_show_generic (cpara, lpara, MAXPAR)
 !                                                                       
 !     Reset the seed for the random number generator 'seed'             
 !                                                                       
@@ -177,7 +181,7 @@ IMPLICIT none
 !                                                                       
 !------ Sleep fo a while 'sleep'                                        
 !                                                                       
-      ELSEIF (str_comp (bef, 'sleep', 2, lbef, 4) ) THEN 
+      ELSEIF (str_comp (bef, 'sleep', 2, lbef, 5) ) THEN 
          CALL get_params (zei, ianz, cpara, lpara, maxpar, lc) 
          IF (ier_num.eq.0) THEN 
             CALL ber_params (ianz, cpara, lpara, werte, maxpar) 
@@ -198,7 +202,7 @@ IMPLICIT none
 !                                                                       
 !------ Operating System Kommandos 'syst'                               
 !                                                                       
-      ELSEIF (str_comp (bef, 'syst', 2, lbef, 4) ) THEN 
+      ELSEIF (str_comp (bef, 'system', 2, lbef, 6) ) THEN 
          command = ' ' 
          IF (zei.ne.' ') THEN 
             command (1:lc) = zei (1:lc) 
@@ -225,7 +229,7 @@ IMPLICIT none
 !                                                                       
 !------ definition of variables                                         
 !                                                                       
-      ELSEIF (str_comp (bef, 'var', 3, lbef, 3) ) THEN 
+      ELSEIF (str_comp (bef, 'variable', 3, lbef, 8) ) THEN 
          CALL define_variable (zei, lc, NO_DIFFEV) 
 !                                                                       
 !------ Wait for user input 'wait'                                      
