@@ -20,6 +20,8 @@ INTEGER          , DIMENSION(MAXW), INTENT(IN) :: lpara
 !                                                                       
 IF (str_comp (cpara (1) , 'error', 2, lpara (1) , 5) ) THEN 
    CALL do_show_error 
+ELSEIF (str_comp (cpara (1) , 'parallel', 2, lpara (1) , 8) ) THEN 
+   CALL do_show_parallel 
 !                                                                       
 !     ----Show result array                'result'                     
 !                                                                       
@@ -96,5 +98,46 @@ ENDIF
  2105 FORMAT  (' Program terminates after display of error message') 
 !
 END SUBROUTINE do_show_error                  
+!
+!*****7*****************************************************************
+!
+SUBROUTINE do_show_parallel
+!
+!$ USE omp_lib
+USE parallel_mod
+USE prompt_mod
+USE param_mod
+!
+IMPLICIT none 
+!
+INTEGER :: nthreads
+INTEGER :: tid
+!
+nthreads = 1
+IF(par_omp_use) THEN
+!$OMP PARALLEL PRIVATE(tid)
+!$ tid = OMP_GET_THREAD_NUM()
+!$ IF(tid == 0) THEN
+!$    IF(par_omp_maxthreads == -1) THEN
+!$       nthreads = OMP_GET_NUM_THREADS()
+!$    ELSE
+!$       nthreads = MAX(1,MIN(par_omp_maxthreads, OMP_GET_NUM_THREADS()))
+!$    ENDIF
+!$ ENDIF
+!$OMP END PARALLEL
+   WRITE(output_io,'(a,i6,a)') 'OpenMP is active with ',nthreads, ' threads'
+   res_para(0) = 2
+   res_para(1) = 1
+   res_para(2) = REAL(nthreads)
+ELSE
+   WRITE(output_io,'(a)') 'OpenMP is inactive'
+   res_para(0) = 2
+   res_para(1) = 0
+   res_para(2) = 1
+ENDIF
+!                                                                       
+END SUBROUTINE do_show_parallel
+!
+!*****7*****************************************************************
 !
 END MODULE do_show_mod
