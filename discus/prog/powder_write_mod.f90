@@ -279,7 +279,7 @@ ENDIF prsq  !Prepare S(Q), F(Q)
 !write(*,*) ' normalizer ', normalizer
 !open(77,file='POWDER/normalized.inte',status='unknown')
 !DO ii=0,npkt
-!               q = ((ii-1)*xdel + xmin)
+!!               q = ((ii-1)*xdel + xmin)
 !write(77,'(2(2x,G17.7E3))') xpl(ii)         , ypl(ii)
 !enddo
 !close(77)
@@ -306,15 +306,15 @@ IF( cpow_form == 'tth' ) THEN
       pow_tthmax = 2.*asind(arg)
       pow_deltatth = xpl(2)-xpl(1)
    ENDIF
-   arg = 2.*asind(xpl(1)/REAL(zpi) * rlambda / 2.)
-   IF(pow_tthmin <          arg ) THEN           ! User lower limit too low!
-      tthmin =              (INT( (         arg        )/pow_deltatth) + 1)*pow_deltatth
+   IF(pow_tthmin < xpl(0) ) THEN           ! User lower limit too low!
+      tthmin = xpl(0)
+!     tthmin =              (INT( (         arg        )/pow_deltatth) + 1)*pow_deltatth
    ELSE
       tthmin = pow_tthmin
    ENDIF
-   arg = 2.*asind((MIN(1.0, xpl(npkt)/REAL(zpi) * rlambda / 2.)))
-   IF(pow_tthmax > arg       ) THEN              ! User upper limit too high!
-      tthmax =              (INT( ( arg                )/pow_deltatth) - 1)*pow_deltatth
+   IF(pow_tthmax > xpl(npkt) ) THEN              ! User upper limit too high!
+      tthmax = xpl(npkt)
+!     tthmax =              (INT( ( arg                )/pow_deltatth) - 1)*pow_deltatth
    ELSE
       tthmax = pow_tthmax
    ENDIF
