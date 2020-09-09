@@ -66,9 +66,17 @@ if (CUDA_FOUND)
 elseif( DISCUS_OMP)
   message (status " building LIBF90 with openmp")
   set ( FSOURCES ${FSOURCES} parallel_mod.f90)
+  # Add OpenMP flag depending on compiler
+  if (PGF)
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mp")
+  elseif (IFORT)
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -openmp")
+  else (PGF) # Else assume gfortran
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fopenmp")
+  endif (PGF)
 else (CUDA_FOUND)
   message (status " building LIBF90 serial ")
-  set (SOURCES_ALL ${SOURCES_ALL} parallel_none.f90)
+  set (FSOURCES ${FSOURCES} parallel_none.f90)
 endif (CUDA_FOUND)
 
 

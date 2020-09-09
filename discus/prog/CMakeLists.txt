@@ -1,14 +1,14 @@
 # DISCUS Build
 
-option(DISCUS_OMP    "Switch for compiling DISCUS with OpenMP" OFF)
-if (DISCUS_OMP)
-  find_package(OpenMP REQUIRED)
-endif (DISCUS_OMP)
-
-option(DISCUS_CUDA   "Switch for compiling DISCUS with CUDA"   OFF)
-if (DISCUS_CUDA)
-  find_package(CUDA REQUIRED)
-endif (DISCUS_CUDA)
+#option(DISCUS_OMP    "Switch for compiling DISCUS with OpenMP" OFF)
+#if (DISCUS_OMP)
+#  find_package(OpenMP REQUIRED)
+#endif (DISCUS_OMP)
+#
+#option(DISCUS_CUDA   "Switch for compiling DISCUS with CUDA"   OFF)
+#if (DISCUS_CUDA)
+#  find_package(CUDA REQUIRED)
+#endif (DISCUS_CUDA)
 
 find_package(NEXUS)
 
