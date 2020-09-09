@@ -363,12 +363,17 @@ natom_p     = 0
 !     Omitting the SQRT only saves a little, as do the local variables
 !     The if(iscat) does not cause much compute time
 shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
+tid = 0
 !$OMP PARALLEL PRIVATE(tid, jscat, iscat, ibin, u)
+!$ IF(par_omp_use) THEN
+!$ tid = OMP_GET_THREAD_NUM()
+!$ ELSE
+!$    tid = 0
+!$ ENDIF
 !$OMP DO SCHEDULE(DYNAMIC, cr_natoms/32)
 ! !$OMP DO SCHEDULE(GUIDED, cr_natoms/16)
 ! ! !$OMP DO SCHEDULE(STATIC)
 main_loop: DO j = 1, cr_natoms ! - 1
-!$ tid = OMP_GET_THREAD_NUM()
    jscat = cr_iscat(j) 
    IF(jscat > 0) THEN 
       u(1) = cr_pos(1, j) 
@@ -465,11 +470,16 @@ ENDIF
 !     --- Calculate the Fourier                                         
 !                                                                       
 i0 = 0
+tid = 0
 qwert: DO i = 1, nlook 
    !$OMP PARALLEL PRIVATE(tid)
+!$    IF(par_omp_use) THEN
+!$       tid = OMP_GET_THREAD_NUM()
+!$    ELSE
+!$       tid = 0
+!$    ENDIF
    !$OMP DO SCHEDULE(DYNAMIC, 1)
    DO j = 1, n_srch 
-      !$ tid = OMP_GET_THREAD_NUM()
       IF (histogram (j, i,0) >  0) THEN 
          DO k = 1, num (1) * num (2) 
             partial_p(k, i,tid) = partial_p(k, i,tid) + histogram (j, i,0)                                   &
@@ -810,10 +820,11 @@ natom     = 0
 !     The if(iscat) do not cause much compute time
 
 shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
+tid = 0
 !$OMP PARALLEL PRIVATE(tid, jscat, iscat, ibin, u)
+!$ tid = OMP_GET_THREAD_NUM()
 !$OMP DO SCHEDULE(DYNAMIC, cr_natoms/32)
 DO j = 1, cr_natoms - 1
-   !$ tid = OMP_GET_THREAD_NUM()
    jscat = cr_iscat(j) 
    IF (jscat.gt.0) THEN 
       u(1) = cr_pos(1,j) 
@@ -926,11 +937,12 @@ ENDIF
 !                                                                       
 !     --- Calculate the Fourier                                         
 !                                                                       
+tid = 0
 DO i = 1, nlook 
    !$OMP PARALLEL PRIVATE(tid)
+   !$ tid = OMP_GET_THREAD_NUM()
    !$OMP DO SCHEDULE(DYNAMIC, 1)
    DO j = 1, MAXHIST 
-      !$ tid = OMP_GET_THREAD_NUM()
       DO il=0,nlook_mol
          IF (histogram (j, i,il) .gt.0.0D0) THEN 
             DO k = 1, num (1) * num (2) 
