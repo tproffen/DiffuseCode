@@ -297,7 +297,8 @@ USE lib_random_func
 !------ - now compute the interference function of the lot shape        
 !                                                                       
          CALL four_getav (lots) 
-         CALL four_strucf_aver (0, .false.) 
+!        CALL four_strucf_aver (0, .false.) 
+         CALL four_strucf      (0, .false.) 
          IF(ncell >0) THEN
             norm = DBLE(1.0D0 / ncell)
          ELSE
