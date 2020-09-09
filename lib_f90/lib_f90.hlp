@@ -36,12 +36,14 @@
 
    As of version 6.02, the DISCUS_SUITE is compiled with OpenMP as default.
    To allow user flexibility, a new command ==> 'set parallel,...' was added.
+
+   Added ==> 'show' to the commands available at the SUITE level
 4  2020_June
 
-   New commands 'mount' and 'umount' enable access to Removable drives
+   New commands 'mount' and 'umount' enable access to removable drives
    at Windows. Not relevant for Linux and MACOSX
 
-   Modified "min" mand "max" functions to take more than 2 arguments.
+   Modified "min" and "max" functions to take more than 2 arguments.
    
 4  2020_May
 
@@ -1059,10 +1061,10 @@
    Allowed values for <command> are:
 
 4  parallel
-!p set parallel {,"omp:USE"} {,"nthread:"["all"|<number>]}
+!p set parallel {,"useomp:"["use"|"serial"]} {,"nthread:"["all"|<number>]}
 
    Defines the usage of OpenMP. As of version 6.02 DISCUS_SUITE is
-   compiled with OpenMP. THis allows to calculate several parts of the 
+   compiled with OpenMP. This allows to calculate several parts of the 
    program in parallel, without user interaction. 
 
    As the parallel algorithm of OpenMP requires a bit of administrative
@@ -1154,13 +1156,26 @@
    ignored and the programm continues execution as if the 
    'wait' command were absent.
 3  show
-!p show {"res" | "variables"}
+!p show {"error" | "parallel" | "res" | "variables"}
 
    The show command displays settings onto your screen. The individual
    programs discus, kuplot, diffev, mixscat all have specific parameters
    to the show command as well, see the help at the main program level
    for details.
 
+!p "error"
+
+   With ==> 'set error' you can define the program behavior if 
+   DISCUS_SUITE detects an error. "show error" displays the current status.
+
+!p "parallel"
+
+   Shows if DISCUS_SUITE has been compiled with OpenMP. If OpenMP is
+   active, the number of threads is shown.
+   Entry "res[1]" is set to TRUE==1/FALSE==0
+   Entry "res[1]" is set to the maximum number of threads available.
+
+   See ==> 'set parallel' for options related to OpenMp
 !p "res"
 
    Many commands produce results that are stored in the result variable 
