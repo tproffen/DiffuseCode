@@ -166,3 +166,10 @@
    default or the user provided viewer, DISCUS will search
    a list of common PDF viewers. If none is found an error message
    points to the folder that contains the manuals.
+2  show
+!p show {"error" | "parallel" | "res" | "variables"}
+
+   The show command displays settings onto your screen. The individual
+   programs discus, kuplot, diffev, mixscat all have specific parameters
+   to the show command as well, see the help at the main program level
+   for details of the 'show' command: "help Command_language".
