@@ -277,8 +277,6 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte    ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
 !
-REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
-!
 DATA oname  / 'nthread', 'useomp ' /   ! 
 DATA loname /  7       ,  6        /
 !
@@ -308,12 +306,14 @@ IF(ier_num==0) THEN
       ELSE
          opara (O_USEOMP) = '0.0'
          lopara(O_USEOMP) = 3
-         CALL ber_params (ianz, cpara, lpara, werte, MAXW)
+         CALL ber_params (ianz, opara, lopara, owerte, MAXW)
          IF(ier_num==0) THEN
-            par_omp_maxthreads = NINT(werte(O_NTHREAD))
+            par_omp_maxthreads = NINT(owerte(O_NTHREAD))
             IF(par_omp_maxthreads<1) THEN
                ier_num = -18
                ier_typ =  ER_COMM
+            ELSE
+!$             CALL OMP_SET_NUM_THREADS(par_omp_maxthreads)
             ENDIF
          ENDIF
       ENDIF
