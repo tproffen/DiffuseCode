@@ -2541,7 +2541,7 @@ INTEGER                           , INTENT(IN) :: MMC_MAX_ATOM_L
 INTEGER                           , INTENT(IN)  :: tid
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)  :: nthreads
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(INOUT)  :: igen
-INTEGER(KIND=PREC_INT_LARGE)      , INTENT(INOUT)  :: itry
+INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)     :: itry
 INTEGER                           , INTENT(OUT) :: natoms
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: iatom
 REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
