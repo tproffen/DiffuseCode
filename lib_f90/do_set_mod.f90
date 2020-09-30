@@ -290,19 +290,24 @@ par_omp_use        = .TRUE. ! DEFAULT: User wants to use OMP
 par_omp_maxthreads = -1     ! DEFAULT: Maximum number of threads to use, -1==use all available
 !
 IF(ier_num==0) THEN
-   IF(opara(O_USEOMP) == 'use') THEN
+   IF(opara(O_USEOMP) == 'use' .OR. opara(O_USEOMP) == 'parallel') THEN
       par_omp_use = .TRUE.
-   ELSEIF(opara(O_USEOMP) == 'serial') THEN
+   ELSEIF(opara(O_USEOMP) == 'serial'.OR. opara(O_USEOMP) == 'off') THEN
       par_omp_use = .FALSE.
    ELSE
       ier_num = -6
       ier_typ = ER_COMM
-      ier_msg(1) = 'Optional OMP must be omp:use or omp:serial'
+      ier_msg(1) = 'Optional OMP must be omp:use ; omp:parallel'
+      ier_msg(2) = '                  or omp:off ; omp:serial'
       RETURN
    ENDIF
    IF(par_omp_use) THEN
       IF(opara(O_NTHREAD) == 'all') THEN
          par_omp_maxthreads = -1     ! DEFAULT: Maximum number of threads to use, -1==use all available
+      ELSEIF(opara(O_NTHREAD) == 'physical') THEN
+         par_omp_maxthreads = par_omp_phys
+      ELSEIF(opara(O_NTHREAD) == 'logical') THEN
+         par_omp_maxthreads = par_omp_logi
       ELSE
          opara (O_USEOMP) = '0.0'
          lopara(O_USEOMP) = 3

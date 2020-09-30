@@ -119,21 +119,27 @@ IF(par_omp_use) THEN
 !$ tid = OMP_GET_THREAD_NUM()
 !$ IF(tid == 0) THEN
 !$    IF(par_omp_maxthreads == -1) THEN
-!$       nthreads = OMP_GET_NUM_THREADS()
+!$       nthreads = MAX(1, MIN(par_omp_phys, OMP_GET_NUM_THREADS()))
 !$    ELSE
 !$       nthreads = MAX(1,MIN(par_omp_maxthreads, OMP_GET_NUM_THREADS()))
 !$    ENDIF
 !$ ENDIF
 !$OMP END PARALLEL
    WRITE(output_io,'(a,i6,a)') 'OpenMP is active with ',nthreads, ' threads'
-   res_para(0) = 2
+   WRITE(output_io,'(a,i6)')   'Number physical cores ', par_omp_phys
+   WRITE(output_io,'(a,i6)')   'Number logical  cores ', par_omp_logi
+   res_para(0) = 4
    res_para(1) = 1
    res_para(2) = REAL(nthreads)
+   res_para(3) = REAL(par_omp_phys)
+   res_para(4) = REAL(par_omp_logi)
 ELSE
    WRITE(output_io,'(a)') 'OpenMP is inactive'
    res_para(0) = 2
    res_para(1) = 0
    res_para(2) = 1
+   res_para(3) = REAL(par_omp_phys)
+   res_para(4) = REAL(par_omp_logi)
 ENDIF
 !                                                                       
 END SUBROUTINE do_show_parallel
