@@ -172,7 +172,7 @@ USE fourier_sup
 USE metric_mod
 USE output_mod 
 USE phases_mod
-USE phases_set_mod
+!USE phases_set_mod
 USE pdf_mod
 USE powder_mod 
 USE powder_tables_mod 
@@ -204,8 +204,8 @@ REAL                   :: distance
 REAL (PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
 REAL ss, st
 REAL                   :: shift
-REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: partial
-REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: histogram
+REAL(KIND=PREC_DP), DIMENSION(:,:  ), ALLOCATABLE :: partial
+REAL(KIND=PREC_DP), DIMENSION(:,:  ), ALLOCATABLE :: histogram
 INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
 INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: is_look
 REAL u (3), v (3) 
@@ -220,18 +220,14 @@ REAL(KIND=PREC_SP), DIMENSION(0:0) :: clin_m   = 0.0D0
 REAL(KIND=PREC_SP), DIMENSION(0:0) :: bval_mol = 0.0D0
 INTEGER            :: nlook_mol = 0
 !                                                                       
-INTEGER :: i0
 
 INTEGER :: IAND 
 !VARIABLES for OpenMP
-INTEGER                              :: tid       ! Id of this thread
-INTEGER                              :: nthreads  ! Number of threadsa available from OMP
-INTEGER, DIMENSION(:,:), ALLOCATABLE :: natom_p   ! Number of atoms (0:cr_nscat_temp, 0:nthreads)
-REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: histogram_p
-REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: partial_p
+INTEGER           , DIMENSION(:  ), ALLOCATABLE, SAVE :: natom_l   ! Number of atoms (0:cr_nscat_temp)
+REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE, SAVE :: histogram_l
+REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE, SAVE :: partial_l
+!$OMP THREADPRIVATE(natom_l, histogram_l, partial_l)
 !
-!REAL, EXTERNAL :: seknds 
-!                                                                       
 n_qxy   = 1
 n_nscat = 1
 n_natom = 1
@@ -253,19 +249,18 @@ u (1) = 1.00
 xm (1) = pow_qmin / REAL(zpi)
 ss = (pow_qmax+pow_qmax_buf) / REAL(zpi) 
 st = (pow_qmax - pow_deltaq) / REAL(zpi )
-uin (1) = pow_deltaq / REAL(zpi )
-num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
+uin(1) = pow_deltaq / REAL(zpi )
+num(1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
 !
 !    Allocate arrays
 !
-n_qxy    = num (1) * num (2) + 1
-distance = sqrt(udist(1)**2+udist(2)**2+udist(3)**2)
-n_hist   = nint(distance/pow_del_hist) + 2
-!     n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
-n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
-IF (num (1) * num (2) > MAXQXY  .OR.          &
-    num (1) * num (2) > MAXDQXY .OR.          &
+n_qxy    = num(1) + 1
+distance = SQRT(udist(1)**2+udist(2)**2+udist(3)**2)
+n_hist   = NINT(distance/pow_del_hist) + 2
+n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+n_natom  = MAX(n_natom,cr_natoms,DIF_MAXAT)
+IF (num(1) > MAXQXY  .OR.          &
+    num(1) > MAXDQXY .OR.          &
     cr_nscat>DIF_MAXSCAT              ) THEN
    CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
 ENDIF
@@ -282,7 +277,7 @@ ENDIF
 !                                                                       
 !     prepare lookuptable for atom types
 !                                                                       
-ALLOCATE(look     (1:cr_nscat,1:cr_nscat))
+ALLOCATE(look(1:cr_nscat,1:cr_nscat))
 look  = 0
 nlook = 0 
 DO i = 1, cr_nscat 
@@ -293,9 +288,8 @@ DO i = 1, cr_nscat
    ENDDO 
 ENDDO 
 !
-ALLOCATE(is_look  (1:2,1:nlook))
-ALLOCATE(partial  (1:num(1)*num(2),1:nlook,0:0))
-!ALLOCATE(histogram(0:n_hist       ,1:nlook,0:0))
+ALLOCATE(is_look(1:2,1:nlook))
+ALLOCATE(partial(1:num(1),1:nlook))
 k=0
 DO i = 1, cr_nscat 
    DO j = i, cr_nscat
@@ -307,10 +301,9 @@ ENDDO
 !                                                                       
 !------ zero some arrays                                                
 !                                                                       
-partial(:,:,:)   = 0.0D0
-rsf(:)           = 0.0D0
-!histogram(:,:,:) = 0
-!natom            = 0 
+partial(:,:) = 0.0D0
+rsf(:)       = 0.0D0
+natom        = 0
 !                                                                       
 !------ preset some tables, calculate average structure                 
 !                                                                       
@@ -330,30 +323,9 @@ CALL four_formtab
 !
 WRITE (output_io, * ) ' Starting histogram' 
 ss = seknds (0.0) 
-!     Jump into OpenMP to obtain number of threads
-tid      = 0    ! Default if not compiled with OpenMP
-nthreads = 1    ! Default if not compiled with OpenMP
-IF(par_omp_use) THEN
-!$OMP PARALLEL PRIVATE(tid)
-!$   tid = OMP_GET_THREAD_NUM()
-!$   IF (tid == 0) THEN
-!$      IF(par_omp_maxthreads == -1) THEN
-!$         nthreads = OMP_GET_NUM_THREADS()
-!$      ELSE
-!$         nthreads = MAX(1,MIN(par_omp_maxthreads, OMP_GET_NUM_THREADS()))
-!$      ENDIF
-!$   END IF
-!$OMP END PARALLEL
-ENDIF
 !
-ALLOCATE(natom_p(    0:cr_nscat_temp,        0:nthreads-1))
-ALLOCATE(partial_p  (1:num(1)*num(2),1:nlook,0:nthreads-1))
-ALLOCATE(histogram_p(0:n_hist       ,1:nlook,0:nthreads-1))
-ALLOCATE(histogram(  0:n_hist       ,1:nlook,0:0         ))
+ALLOCATE(histogram(  0:n_hist,1:nlook))
 histogram   = 0.0D0
-histogram_p = 0.0D0
-partial_p   = 0.0D0
-natom_p     = 0
 !                                                                       
 !     loop over all atoms                                               
 !                                                                       
@@ -363,60 +335,93 @@ natom_p     = 0
 !     Omitting the SQRT only saves a little, as do the local variables
 !     The if(iscat) does not cause much compute time
 shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
-tid = 0
-!$OMP PARALLEL PRIVATE(tid, jscat, iscat, ibin, u)
-!$ IF(par_omp_use) THEN
-!$ tid = OMP_GET_THREAD_NUM()
-!$ ELSE
-!$    tid = 0
-!$ ENDIF
-!$OMP DO SCHEDULE(DYNAMIC, cr_natoms/32)
-! !$OMP DO SCHEDULE(GUIDED, cr_natoms/16)
-! ! !$OMP DO SCHEDULE(STATIC)
-main_loop: DO j = 1, cr_natoms ! - 1
-   jscat = cr_iscat(j) 
-   IF(jscat > 0) THEN 
-      u(1) = cr_pos(1, j) 
-      u(2) = cr_pos(2, j) 
-      u(3) = cr_pos(3, j) 
+IF(par_omp_use) THEN                         ! USE OMP for parallel accumulation
+   !$OMP PARALLEL PRIVATE(jscat, iscat, ibin, u)
+   ALLOCATE(natom_l(    0:cr_nscat_temp ))
+   ALLOCATE(histogram_l(0:n_hist,1:nlook))
+   natom_l = 0
+   histogram_l = 0.0D0
+!
+   !$OMP DO SCHEDULE(DYNAMIC, cr_natoms/32)
+   main_loop: DO j = 1, cr_natoms
+      jscat = cr_iscat(j) 
+      IF(jscat > 0) THEN 
+         u(1) = cr_pos(1, j) 
+         u(2) = cr_pos(2, j) 
+         u(3) = cr_pos(3, j) 
 !                                                                       
 !     --- get info on relative amount of atoms                          
 !                                                                       
-      natom_p(jscat,tid) = natom_p(jscat,tid) + 1 
+         natom_l(jscat    ) = natom_l(jscat    ) + 1 
 !                                                                       
 !------ --- loop over all different atom types                          
 !                                                                       
-      DO l = j + 1, cr_natoms 
-         iscat = cr_iscat(l) 
-         IF(iscat > 0) THEN 
-            ibin =   INT((SQRT((cr_pos(1, l) - u(1))*(cr_pos(1, l) - u(1)) + &
-                               (cr_pos(2, l) - u(2))*(cr_pos(2, l) - u(2)) + &
-                               (cr_pos(3, l) - u(3))*(cr_pos(3, l) - u(3))   &
-                              )                                              &
-                          +shift)/ pow_del_hist)
-            histogram_p(ibin, look(jscat, iscat), tid) = &
-            histogram_p(ibin, look(jscat, iscat), tid) + 1
-!            IF(ier_ctrlc) EXIT main_loop ! Does not influence timing
-         ENDIF 
-      ENDDO 
-   ENDIF 
-ENDDO  main_loop
-!$OMP END DO NOWAIT
-!$OMP END PARALLEL
+         DO l = j + 1, cr_natoms 
+            iscat = cr_iscat(l) 
+            IF(iscat > 0) THEN 
+               ibin =   INT((SQRT((cr_pos(1, l) - u(1))*(cr_pos(1, l) - u(1)) + &
+                                  (cr_pos(2, l) - u(2))*(cr_pos(2, l) - u(2)) + &
+                                  (cr_pos(3, l) - u(3))*(cr_pos(3, l) - u(3))   &
+                                 )                                              &
+                             +shift)/ pow_del_hist)
+               histogram_l(ibin, look(jscat, iscat)     ) = &
+               histogram_l(ibin, look(jscat, iscat)     ) + 1
+            ENDIF 
+         ENDDO 
+      ENDIF 
+   ENDDO  main_loop
+   !$OMP END DO NOWAIT
+   !$OMP CRITICAL
+   DO l=0,cr_nscat_temp                    ! Reduce the threadprivate local arrays
+      natom(l) = natom(l) + natom_l(l)
+   ENDDO
+   DO l=1,nlook
+      DO i=0,n_hist
+         histogram(i,l) = histogram(i,l) + histogram_l(i,l)
+      ENDDO
+   ENDDO
+   !$OMP END CRITICAL
+   DEALLOCATE(natom_l)
+   DEALLOCATE(histogram_l)
+   !$OMP END PARALLEL
+ELSE                                                ! Serial accumulation
+   seri_loop: DO j = 1, cr_natoms ! - 1
+      jscat = cr_iscat(j) 
+      IF(jscat > 0) THEN 
+         u(1) = cr_pos(1, j) 
+         u(2) = cr_pos(2, j) 
+         u(3) = cr_pos(3, j) 
+!                                                                       
+!     --- get info on relative amount of atoms                          
+!                                                                       
+         natom  (jscat    ) = natom  (jscat    ) + 1 
+!                                                                       
+!------ --- loop over all different atom types                          
+!                                                                       
+         DO l = j + 1, cr_natoms 
+            iscat = cr_iscat(l) 
+            IF(iscat > 0) THEN 
+               ibin =   INT((SQRT((cr_pos(1, l) - u(1))*(cr_pos(1, l) - u(1)) + &
+                                  (cr_pos(2, l) - u(2))*(cr_pos(2, l) - u(2)) + &
+                                  (cr_pos(3, l) - u(3))*(cr_pos(3, l) - u(3))   &
+                                 )                                              &
+                             +shift)/ pow_del_hist)
+               histogram  (ibin, look(jscat, iscat) ) = &
+               histogram  (ibin, look(jscat, iscat) ) + 1
+               IF(ier_ctrlc) EXIT seri_loop ! Does not influence timing
+            ENDIF 
+         ENDDO 
+      ENDIF 
+   ENDDO  seri_loop
+ENDIF
 IF(ier_ctrlc .OR. ier_num/=0) THEN         ! Does not influence timing
    ier_num = -14
    ier_typ = ER_COMM
    DEALLOCATE(look   )
    DEALLOCATE(partial)
    DEALLOCATE(histogram)
-   DEALLOCATE(histogram_p)
-   DEALLOCATE(natom_p)
    RETURN
 ENDIF
-!IF(nthreads>0) THEN
-   natom  (:  )     = SUM(natom_p, DIM=2)
-   histogram(:,:,0) = SUM(histogram_p,DIM=3)
-!ENDIF
 !
 pow_nreal = 0
 DO j=1,cr_nscat         ! Add real atom numbers
@@ -426,7 +431,7 @@ ENDDO
 n_srch = MAXHIST               ! Find longest occupied entry in histogram
 srch: DO l=MAXHIST, 1, -1
    DO j=1,nlook
-      IF(histogram(l,j,0) >0) THEN
+      IF(histogram(l,j) >0) THEN
          n_srch = l             ! Limit convolution / Fourier range
          EXIT srch
       ENDIF
@@ -435,7 +440,7 @@ ENDDO  srch
 !
 i= 0
 DO j=1,nlook
-   i = MAX(i, INT(histogram(0,j,0)))
+   i = MAX(i, INT(histogram(0,j)))
 ENDDO
 IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
    ier_num = -123
@@ -443,8 +448,6 @@ IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
    DEALLOCATE(look   )
    DEALLOCATE(partial)
    DEALLOCATE(histogram)
-   DEALLOCATE(histogram_p)
-   DEALLOCATE(natom_p)
    RETURN
 ENDIF
 !
@@ -469,30 +472,43 @@ ENDIF
 !
 !     --- Calculate the Fourier                                         
 !                                                                       
-i0 = 0
-tid = 0
-qwert: DO i = 1, nlook 
-   !$OMP PARALLEL PRIVATE(tid)
-!$    IF(par_omp_use) THEN
-!$       tid = OMP_GET_THREAD_NUM()
-!$    ELSE
-!$       tid = 0
-!$    ENDIF
-   !$OMP DO SCHEDULE(DYNAMIC, 1)
-   DO j = 1, n_srch 
-      IF (histogram (j, i,0) >  0) THEN 
-         DO k = 1, num (1) * num (2) 
-            partial_p(k, i,tid) = partial_p(k, i,tid) + histogram (j, i,0)                                   &
-               * sinetab(IAND(int((j * pow_del_hist) * (xm(1) + (k - 1) * uin(1)) * I2PI, PREC_INT_LARGE ) , MASK))  &
-               / (zpi * DBLE((j * pow_del_hist) * (xm(1) + (k - 1) * uin(1))))
-         ENDDO 
-      ENDIF 
-   ENDDO 
-  !$OMP END DO NOWAIT
-  !$OMP END PARALLEL
-ENDDO  qwert
-!IF(nthreads>0) THEN
-partial(:,:,0)     = SUM(partial_p, DIM=3)
+IF(par_omp_use) THEN
+   qwert: DO i = 1, nlook 
+      !$OMP PARALLEL
+      ALLOCATE(partial_l  (1:num(1),1:nlook))
+      partial_l = 0.0D0
+      !$OMP DO SCHEDULE(DYNAMIC, 1)
+      DO j = 1, n_srch 
+         IF (histogram (j, i) >  0) THEN 
+            DO k = 1, num(1)
+               partial_l(k, i    ) = partial_l(k, i    ) + histogram (j, i)                                   &
+                  * sinetab(IAND(INT((j * pow_del_hist) * (xm(1) + (k - 1) * uin(1)) * I2PI, PREC_INT_LARGE ), MASK))  &
+                  / (zpi * DBLE((j * pow_del_hist) * (xm(1) + (k - 1) * uin(1))))
+            ENDDO 
+         ENDIF 
+      ENDDO 
+     !$OMP END DO NOWAIT
+     !$OMP CRITICAL
+           DO k = 1, num(1)
+              partial(k,i) = partial(k,i) + partial_l(k,i)
+           ENDDO
+      !$OMP END CRITICAL
+      DEALLOCATE(partial_l)
+      !$OMP END PARALLEL
+   ENDDO  qwert
+ELSE                             ! Serial accumulation
+   qwert_ser: DO i = 1, nlook 
+      DO j = 1, n_srch 
+         IF (histogram (j, i) >  0) THEN 
+            DO k = 1, num(1)
+               partial(k, i) = partial(k, i) + histogram (j, i)                                   &
+                  * sinetab(IAND(INT((j * pow_del_hist) * (xm(1) + (k - 1) * uin(1)) * I2PI, PREC_INT_LARGE ), MASK))  &
+                  / (zpi * DBLE((j * pow_del_hist) * (xm(1) + (k - 1) * uin(1))))
+            ENDDO 
+         ENDIF 
+      ENDDO 
+   ENDDO  qwert_ser
+ENDIF
 !                                                                       
 !------ Multiply the partial structure factors with form factors,add    
 !     to total sum                                                      
@@ -500,8 +516,8 @@ partial(:,:,0)     = SUM(partial_p, DIM=3)
 IF(.NOT.deb_conv .AND. ldbw) THEN
    DO i = 1, cr_nscat 
       DO j = i, cr_nscat 
-         DO k = 1, num (1) * num (2) 
-            rsf (k) = rsf (k) + 2.0D0 * partial (k, look (i, j),0 ) * ( &
+         DO k = 1, num(1)
+            rsf (k) = rsf (k) + 2.0D0 * partial (k, look (i, j) ) * ( &
                DBLE(cfact (powder_istl (k), i) ) * DBLE(cfact (powder_istl (k), j) ) + &
               aimag(cfact (powder_istl (k), i) ) * aimag (cfact (powder_istl (k), j) ) )            
          ENDDO 
@@ -513,7 +529,7 @@ IF(.NOT.deb_conv .AND. ldbw) THEN
 !     store <f**2> and <f>**2
 !                                                                       
    DO iscat = 1, cr_nscat 
-      DO i = 1, num (1) * num (2) 
+      DO i = 1, num(1)
          rsf (i) = rsf (i) + DBLE (cfact      (powder_istl (i), iscat) * &
                             conjg (cfact      (powder_istl (i), iscat) ) ) * natom (iscat)
       ENDDO 
@@ -522,8 +538,8 @@ IF(.NOT.deb_conv .AND. ldbw) THEN
 ELSE
    DO i = 1, cr_nscat 
       DO j = i, cr_nscat 
-         DO k = 1, num (1) * num (2) 
-            rsf(k) = rsf(k) + 2.0D0 * partial(k, look(i, j),0 ) * ( &
+         DO k = 1, num(1)
+            rsf(k) = rsf(k) + 2.0D0 * partial(k, look(i, j) ) * ( &
                DBLE(cfact_pure (powder_istl(k), i)) * DBLE( cfact_pure(powder_istl(k), j)) + &
               AIMAG(cfact_pure (powder_istl(k), i)) * AIMAG(cfact_pure(powder_istl(k), j)) )            
          ENDDO 
@@ -534,7 +550,7 @@ ELSE
 !     store <f**2> and <f>**2
 !
    DO iscat = 1, cr_nscat 
-      DO i = 1, num (1) * num (2) 
+      DO i = 1, num(1)
          rsf(i) = rsf(i) + DBLE(cfact_pure(powder_istl(i), iscat) * &
                           CONJG(cfact_pure(powder_istl(i), iscat))) * natom(iscat)
       ENDDO 
@@ -545,9 +561,6 @@ ENDIF
 DEALLOCATE(look   )
 DEALLOCATE(partial)
 DEALLOCATE(histogram)
-DEALLOCATE(histogram_p)
-DEALLOCATE(natom_p)
-DEALLOCATE(partial_p)
 !
 ss = seknds (ss) 
 WRITE (output_io, 4000) ss 
@@ -574,6 +587,7 @@ USE fourier_sup
 USE metric_mod
 USE molecule_mod
 USE output_mod 
+USE phases_mod
 USE pdf_mod
 USE powder_mod 
 USE powder_tables_mod 
@@ -596,6 +610,7 @@ INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT)
 INTEGER ibin 
 INTEGER j, k, l , il
 INTEGER i, iscat, jscat 
+INTEGER :: n_pha
 INTEGER(KIND=PREC_INT_LARGE) :: iarg, iadd 
 INTEGER                :: n_hist
 INTEGER                :: n_srch         ! Actual MAXHIST 
@@ -632,9 +647,10 @@ INTEGER IAND
 !VARIABLES for OpenMP
 INTEGER                              :: tid       ! Id of this thread
 INTEGER                              :: nthreads  ! Number of threadsa available from OMP
-INTEGER, DIMENSION(:,:), ALLOCATABLE :: natom_p   ! Number of atoms (0:cr_nscat_temp, 0:nthreads)
-REAL(KIND=PREC_DP), DIMENSION(:,:,:,:), ALLOCATABLE :: histogram_p
-REAL(KIND=PREC_DP), DIMENSION(:,:,:,:), ALLOCATABLE :: partial_p
+INTEGER           , DIMENSION(:)    , ALLOCATABLE, SAVE :: natom_l   ! Number of atoms (0:cr_nscat_temp, 0:nthreads)
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE, SAVE :: histogram_l
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE, SAVE :: partial_l
+!$OMP THREADPRIVATE(natom_l, histogram_l, partial_l)
 !     REAL sind 
 !REAL seknds 
 !                                                                       
@@ -722,6 +738,14 @@ ENDIF
 CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
 !
 CALL alloc_powder (n_qxy, n_nscat          )
+!
+IF(n_qxy > PHA_MAXPTS .OR. cr_nscat> PHA_MAXSCAT) THEN 
+   n_pha   = PHA_MAXPHA
+   n_qxy   = MAX(PHA_MAXPTS,  n_qxy)
+   n_nscat = MAX(PHA_MAXSCAT, cr_nscat)
+   CALL alloc_phases(n_pha, n_qxy, n_nscat)
+ENDIF
+!
 IF(ALLOCATED(pow_dw)) DEALLOCATE(pow_dw)
 ALLOCATE(pow_dw(0:CFPKT, 0:nlook_mol))
 pow_dw = 1.0
@@ -778,31 +802,24 @@ ss = seknds (0.0)
 !     Jump into OpenMP to obtain number of threads
 tid      = 0    ! Default if not compiled with OpenMP
 nthreads = 1    ! Default if not compiled with OpenMP
-IF(par_omp_use) THEN
-!$OMP PARALLEL PRIVATE(tid)
-!$   tid = OMP_GET_THREAD_NUM()
-!$   IF (tid == 0) THEN
-!$      IF(par_omp_maxthreads == -1) THEN
-!$         nthreads = OMP_GET_NUM_THREADS()
-!$      ELSE
-!$         nthreads = MAX(1,MIN(par_omp_maxthreads, OMP_GET_NUM_THREADS()))
-!$      ENDIF
-!$   END IF
-!$OMP END PARALLEL
-ENDIF
+!! IF(par_omp_use) THEN
+!! !$OMP PARALLEL PRIVATE(tid)
+!! !$   tid = OMP_GET_THREAD_NUM()
+!! !$   IF (tid == 0) THEN
+!! !$      IF(par_omp_maxthreads == -1) THEN
+!! !$         nthreads = OMP_GET_NUM_THREADS()
+!! !$      ELSE
+!! !$         nthreads = MAX(1,MIN(par_omp_maxthreads, OMP_GET_NUM_THREADS()))
+!! !$      ENDIF
+!! !$   END IF
+!! !$OMP END PARALLEL
+!! ENDIF
 !
 !ALLOCATE(partial  (1:num(1)*num(2),1:nlook,0:nlook_mol))
 !ALLOCATE(histogram(0:n_hist       ,1:nlook,0:nlook_mol))
 
-ALLOCATE(natom_p(    0:cr_nscat_temp,        0:nthreads-1            ))
-ALLOCATE(partial    (1:num(1)*num(2),1:nlook,0:nlook_mol             ))
-ALLOCATE(partial_p  (1:num(1)*num(2),1:nlook,0:nlook_mol,0:nthreads-1))
-ALLOCATE(histogram_p(0:n_hist       ,1:nlook,0:nlook_mol,0:nthreads-1))
+ALLOCATE(partial    (1:num(1),1:nlook,0:nlook_mol             ))
 ALLOCATE(histogram(  0:n_hist       ,1:nlook,0:nlook_mol             ))
-histogram   = 0.0D0
-histogram_p = 0.0D0
-partial_p   = 0.0D0
-natom_p     = 0
 !
 !------ zero some arrays                                                
 !                                                                       
@@ -821,68 +838,107 @@ natom     = 0
 
 shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
 tid = 0
-!$OMP PARALLEL PRIVATE(tid, jscat, iscat, ibin, u)
-!$ tid = OMP_GET_THREAD_NUM()
-!$OMP DO SCHEDULE(DYNAMIC, cr_natoms/32)
-DO j = 1, cr_natoms - 1
-   jscat = cr_iscat(j) 
-   IF (jscat.gt.0) THEN 
-      u(1) = cr_pos(1,j) 
-      u(2) = cr_pos(2,j) 
-      u(3) = cr_pos(3,j) 
+IF(par_omp_use) THEN
+   !$OMP PARALLEL PRIVATE(jscat, iscat, ibin, u)
+   ALLOCATE(natom_l(    0:cr_nscat_temp                    ))
+   ALLOCATE(histogram_l(0:n_hist       ,1:nlook,0:nlook_mol))
+   natom_l = 0
+   histogram_l = 0.0D0
+!
+   !$OMP DO SCHEDULE(DYNAMIC, cr_natoms/32)
+   main_loop:DO j = 1, cr_natoms - 1
+      jscat = cr_iscat(j) 
+      IF (jscat.gt.0) THEN 
+         u(1) = cr_pos(1,j) 
+         u(2) = cr_pos(2,j) 
+         u(3) = cr_pos(3,j) 
 !                                                                       
 !     --- get info on relative amount of atoms                          
 !                                                                       
-      natom_p (jscat, tid) = natom_p (jscat, tid) + 1 
+         natom_l(jscat) = natom_l(jscat) + 1 
 !                                                                       
 !------ --- loop over all different atom types                          
 !                                                                       
-      DO l = j + 1, cr_natoms 
-         iscat = cr_iscat (l) 
-         IF (iscat.gt.0) THEN 
-           IF(cr_mole(j )==cr_mole(l)) THEN
-              islook = 0   ! Atoms are within the same molecule
-           ELSE
-              islook = powder_look_mol(mole_type(cr_mole(j)),mole_type(cr_mole(l)))
-           ENDIF
-!if(j==1 .and. l==2) then
-!write(*,*) 'Atom 1 ', jscat,cr_pos(:,j), cr_mole(j)
-!write(*,*) 'Atom 2 ', iscat,cr_pos(:,l), cr_mole(l)
-!write(*,*) 'islook', islook, look(jscat, iscat)
-!endif
-           v(1) = cr_pos(1, l) - u(1) 
-           v(2) = cr_pos(2, l) - u(2) 
-           v(3) = cr_pos(3, l) - u(3) 
+         DO l = j + 1, cr_natoms 
+            iscat = cr_iscat (l) 
+            IF (iscat.gt.0) THEN 
+              IF(cr_mole(j )==cr_mole(l)) THEN
+                 islook = 0   ! Atoms are within the same molecule
+              ELSE
+                 islook = powder_look_mol(mole_type(cr_mole(j)),mole_type(cr_mole(l)))
+              ENDIF
+              v(1) = cr_pos(1, l) - u(1) 
+              v(2) = cr_pos(2, l) - u(2) 
+              v(3) = cr_pos(3, l) - u(3) 
 
-!              ibin = nint (sqrt (v (1) **2 + v (2) **2 + v (3) **2)/ pow_del_hist)
-            ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
-            histogram_p(ibin, look(jscat, iscat), islook, tid ) = &
-            histogram_p(ibin, look(jscat, iscat), islook, tid ) + 1.0D0
-!           IF(ier_ctrlc) THEN
-!              ier_num = -14
-!              ier_typ = ER_COMM
-!              RETURN
-!           ENDIF
-!           IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
-         ENDIF 
-      ENDDO 
-   ENDIF 
-ENDDO 
-!$OMP END DO NOWAIT
-!$OMP END PARALLEL
+               ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
+               histogram_l(ibin, look(jscat, iscat), islook) = &
+               histogram_l(ibin, look(jscat, iscat), islook) + 1.0D0
+            ENDIF 
+         ENDDO
+      ENDIF 
+   ENDDO  main_loop
+   !$OMP END DO NOWAIT
+   !$OMP CRITICAL
+   DO l=0,cr_nscat_temp                    ! Reduce the threadprivate local arrays
+      natom(l) = natom(l) + natom_l(l)
+   ENDDO
+   DO k = 0,nlook_mol
+      DO l=1,nlook
+         DO i=0,n_hist
+            histogram(i,l,k) = histogram(i,l,k) + histogram_l(i,l,k)
+         ENDDO
+      ENDDO
+   ENDDO
+   !$OMP END CRITICAL
+   DEALLOCATE(natom_l)
+   DEALLOCATE(histogram_l)
+   !$OMP END PARALLEL
+ELSE    ! Serial compilation
+   seri_loop:DO j = 1, cr_natoms - 1
+      jscat = cr_iscat(j) 
+      IF (jscat.gt.0) THEN 
+         u(1) = cr_pos(1,j) 
+         u(2) = cr_pos(2,j) 
+         u(3) = cr_pos(3,j) 
+!                                                                       
+!     --- get info on relative amount of atoms                          
+!                                                                       
+         natom  (jscat) = natom  (jscat) + 1 
+!                                                                       
+!------ --- loop over all different atom types                          
+!                                                                       
+         DO l = j + 1, cr_natoms 
+            iscat = cr_iscat (l) 
+            IF (iscat.gt.0) THEN 
+              IF(cr_mole(j )==cr_mole(l)) THEN
+                 islook = 0   ! Atoms are within the same molecule
+              ELSE
+                 islook = powder_look_mol(mole_type(cr_mole(j)),mole_type(cr_mole(l)))
+              ENDIF
+              v(1) = cr_pos(1, l) - u(1) 
+              v(2) = cr_pos(2, l) - u(2) 
+              v(3) = cr_pos(3, l) - u(3) 
+
+               ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
+               histogram  (ibin, look(jscat, iscat), islook) = &
+               histogram  (ibin, look(jscat, iscat), islook) + 1.0D0
+            ENDIF 
+         ENDDO
+      ENDIF 
+   ENDDO  seri_loop
+ENDIF
 IF(ier_ctrlc .OR. ier_num/=0) THEN         ! Does not influence timing
    ier_num = -14
    ier_typ = ER_COMM
    DEALLOCATE(look   )
    DEALLOCATE(partial)
    DEALLOCATE(histogram)
-   DEALLOCATE(histogram_p)
-   DEALLOCATE(natom_p)
    RETURN
 ENDIF
 !IF(nthreads>0) THEN
-   natom  (:  )     = SUM(natom_p, DIM=2)
-   histogram(:,:,:) = SUM(histogram_p,DIM=4)
+!  natom  (:  )     = SUM(natom_p, DIM=2)
+!  histogram(:,:,:) = SUM(histogram_p,DIM=4)
 !ENDIF
 !open(78,file='hist.mole',status='unknown')
 !do i=1, Ubound(histogram,1)
@@ -937,28 +993,53 @@ ENDIF
 !                                                                       
 !     --- Calculate the Fourier                                         
 !                                                                       
-tid = 0
-DO i = 1, nlook 
-   !$OMP PARALLEL PRIVATE(tid)
-   !$ tid = OMP_GET_THREAD_NUM()
-   !$OMP DO SCHEDULE(DYNAMIC, 1)
-   DO j = 1, MAXHIST 
-      DO il=0,nlook_mol
-         IF (histogram (j, i,il) .gt.0.0D0) THEN 
-            DO k = 1, num (1) * num (2) 
-               arg  = zpi *DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
-               iarg = INT( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
-               iadd = IAND (iarg, MASK) 
-               partial_p(k,i,il, tid) = partial_p(k,i,il, tid) + REAL(DBLE(histogram(j,i,il)) * sinetab(iadd)/arg)
-!AAA!          partial(k,i,il) = partial(k,i,il) + REAL(DBLE(histogram(j,i,il)) * sinetab(iadd)    )
-            ENDDO 
-         ENDIF 
+IF(par_omp_use) THEN
+   DO i = 1, nlook 
+      !$OMP PARALLEL
+      ALLOCATE(partial_l  (1:num(1),1:nlook,0:nlook_mol             ))
+      partial_l = 0.0D0
+      !$OMP DO SCHEDULE(DYNAMIC, 1)
+      DO j = 1, MAXHIST 
+         DO il=0,nlook_mol
+            IF (histogram (j, i,il) .gt.0.0D0) THEN 
+               DO k = 1, num (1) * num (2) 
+                  arg  = zpi *DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
+                  iarg = INT( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
+                  iadd = IAND (iarg, MASK) 
+                  partial_l(k,i,il) = partial_l(k,i,il) + REAL(DBLE(histogram(j,i,il)) * sinetab(iadd)/arg)
+               ENDDO 
+            ENDIF 
+         ENDDO 
       ENDDO 
+      !$OMP END DO NOWAIT
+      !$OMP CRITICAL
+      DO il=0,nlook_mol
+!        DO i = 1, nlook 
+            DO k = 1, num(1)*num(2)
+               partial(k,i,il) = partial(k,i,il) + partial_l(k,i,il)
+            ENDDO
+!        ENDDO
+      ENDDO
+      !$OMP END CRITICAL
+      DEALLOCATE(partial_l)
+      !$OMP END PARALLEL
    ENDDO 
-   !$OMP END DO NOWAIT
-   !$OMP END PARALLEL
-ENDDO 
-partial(:,:,:)     = SUM(partial_p, DIM=4)
+ELSE
+   qwert_ser: DO i = 1, nlook 
+      DO j = 1, MAXHIST 
+         DO il=0,nlook_mol
+            IF (histogram (j, i,il) .gt.0.0D0) THEN 
+               DO k = 1, num (1) * num (2) 
+                  arg  = zpi *DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
+                  iarg = INT( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
+                  iadd = IAND (iarg, MASK) 
+                  partial  (k,i,il) = partial  (k,i,il) + REAL(DBLE(histogram(j,i,il)) * sinetab(iadd)/arg)
+               ENDDO 
+            ENDIF 
+         ENDDO 
+      ENDDO 
+   ENDDO  qwert_ser
+ENDIF
 !
 !                                                                       
 !------ Multiply the partial structure factors with form factors,add    
@@ -987,13 +1068,15 @@ partial(:,:,:)     = SUM(partial_p, DIM=4)
          ENDDO 
       ENDDO 
 !
-      DEALLOCATE(look)
-      DEALLOCATE(partial)
-      DEALLOCATE(histogram)
-      ss = seknds (ss) 
-      WRITE (output_io, 4000) ss 
+DEALLOCATE(look)
+DEALLOCATE(partial)
+DEALLOCATE(histogram)
+!
+ss = seknds (ss) 
+WRITE (output_io, 4000) ss 
 !                                                                       
  4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
+!
 END SUBROUTINE powder_debye_hist_cart_mole
 !
 !*******************************************************************************
