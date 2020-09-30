@@ -1082,6 +1082,11 @@
                       or several threads onto a single physical core.
             <number> will use the user provided number of threads.
 
+   Entry "res[1]" is set to TRUE==1/FALSE==0
+   Entry "res[2]" is set to the maximum number of threads available.
+   Entry "res[3]" is set to the number of physical cores.
+   Entry "res[4]" is set to the number of logical cores.
+
    DISCUS_SUITE will check at startup how many physical and logical cores
    are available on your computer. My experience is that performance with
    openMP improves only up to the number of physical cores. Thus the 
