@@ -256,6 +256,7 @@ SUBROUTINE do_set_parallel(ianz, cpara, lpara, MAXW)
 USE ber_params_mod
 USE errlist_mod
 USE parallel_mod
+USE param_mod
 USE precision_mod
 USE take_param_mod
 !
@@ -324,6 +325,11 @@ IF(ier_num==0) THEN
       ENDIF
    ENDIF
 ENDIF
+res_para(0) = 4
+res_para(1) = 1
+res_para(2) = REAL(par_omp_maxthreads)
+res_para(3) = REAL(par_omp_phys)
+res_para(4) = REAL(par_omp_logi)
 !
 END SUBROUTINE do_set_parallel
 !
