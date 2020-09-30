@@ -36,6 +36,12 @@
 
    As of version 6.02, the DISCUS_SUITE is compiled with OpenMP as default.
    To allow user flexibility, a new command ==> 'set parallel,...' was added.
+   DISCUS_SUITE will check at startup how many physical and logical cores
+   are available on your computer. My experience is that performance with
+   openMP improves only up to the number of physical cores. Thus the 
+   maximum number of parallel threads is initially limited to this number.
+   You have control over the number of threads via the 
+   ==> 'set parallel' command.
 
    Added ==> 'show' to the commands available at the SUITE level
 4  2020_June
@@ -1061,11 +1067,27 @@
    Allowed values for <command> are:
 
 4  parallel
-!p set parallel {,"useomp:"["use"|"serial"]} {,"nthread:"["all"|<number>]}
+!p set parallel {,"useomp:"["use"|"parallel"|"serial"|"off"]} 
+!p              {,"nthread:"["all"|"physical"|"logical"|<number>]}
 
    Defines the usage of OpenMP. As of version 6.02 DISCUS_SUITE is
    compiled with OpenMP. This allows to calculate several parts of the 
    program in parallel, without user interaction. 
+
+   useomp: "use" or "parallel" will turn the use of openMP on, 
+           "serial" or "off" will turn its use off.
+
+   nthread: "all" or "physical" will use all physical cores as threads.
+            "logical" will use all logical threads, which might put two
+                      or several threads onto a single physical core.
+            <number> will use the user provided number of threads.
+
+   DISCUS_SUITE will check at startup how many physical and logical cores
+   are available on your computer. My experience is that performance with
+   openMP improves only up to the number of physical cores. Thus the 
+   maximum number of parallel threads is initially limited to this number.
+
+   See ==> 'show parallel' to get the number of physical and logical cores.
 
    As the parallel algorithm of OpenMP requires a bit of administrative
    overload, you might want to turn this parallel processing off if:
@@ -1173,7 +1195,9 @@
    Shows if DISCUS_SUITE has been compiled with OpenMP. If OpenMP is
    active, the number of threads is shown.
    Entry "res[1]" is set to TRUE==1/FALSE==0
-   Entry "res[1]" is set to the maximum number of threads available.
+   Entry "res[2]" is set to the maximum number of threads available.
+   Entry "res[3]" is set to the number of physical cores.
+   Entry "res[4]" is set to the number of logical cores.
 
    See ==> 'set parallel' for options related to OpenMp
 !p "res"
