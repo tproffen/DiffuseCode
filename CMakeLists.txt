@@ -123,7 +123,7 @@ set (CMAKE_C_FLAGS "-fPIC")
 #
 if ( ISGNU )
 # set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -std=legacy -fno-automatic")
-  set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -std=legacy")
+  set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -ffast-math -std=legacy")
 elseif ( IFORT )
   set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 ")
 endif ()
