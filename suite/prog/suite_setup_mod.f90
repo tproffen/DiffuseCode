@@ -3,7 +3,7 @@ MODULE suite_setup_mod
 CONTAINS
 SUBROUTINE setup_suite_start
 !-
-! This routine makes start up setup of DISCSU_SUITE
+! This routine makes start up setup of DISCUS_SUITE
 !+
 USE appl_env_mod
 USE lib_f90_default_mod
@@ -89,13 +89,15 @@ CALL color_set_scheme (.TRUE.,   gen_mpi_myid)
 !
 IF(gen_mpi_myid==0) THEN
 !
+CALL get_cores()     ! Determine number of physical cores
+!
 !$OMP PARALLEL PRIVATE(tid)
 !$   tid = OMP_GET_THREAD_NUM()
 !$   IF (tid == 0) THEN
 !$      IF(par_omp_maxthreads == -1) THEN
-!$         nthreads = OMP_GET_NUM_THREADS()
+!$         nthreads = MAX(1,MIN(par_omp_phys, OMP_GET_NUM_THREADS()))
 !$      ELSE
-!$         nthreads = MAX(1,MIN(par_omp_maxthreads, OMP_GET_NUM_THREADS()))
+!$         nthreads = MAX(1,MIN(par_omp_maxthreads, par_omp_phys, OMP_GET_NUM_THREADS()))
 !$      ENDIF
 !$   END IF
 !$OMP END PARALLEL
