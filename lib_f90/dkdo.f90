@@ -57,6 +57,7 @@ USE lib_macro_func
             CALL macro_close
          ENDIF 
       ENDIF 
+      do_macro = ' '
 !                                                                       
 !                                                                       
 !2000 FORMAT    (a1) 
@@ -125,6 +126,8 @@ DATA cprom / '/do', '/if', '/do', '/do' /
       nlevel (level) = 0 
       do_comm (0, 0) = line 
       do_leng (0, 0) = length 
+      IF(lmakro) do_macro(0,0) = &
+         mac_tree_active%active%macrofile(1:LEN_TRIM(mac_tree_active%active%macrofile))
       lblock_read = .TRUE. 
 !
 999 CONTINUE
@@ -134,6 +137,7 @@ IF (ier_num.ne.0) then
    IF(lmakro .AND. lmacro_close) THEN
       CALL macro_close
    ENDIF 
+   do_macro = ' '
 ENDIF 
 !
  3000 FORMAT    ('Erroneous line in block structure') 
@@ -363,6 +367,10 @@ ENDIF
       do_comm (nlevel (level), level) = line 
       do_leng (nlevel (level), level) = length 
       ldostart (level) = .true. 
+      IF(lmakro) THEN
+         do_macro(nlevel (level), level) =  &
+           mac_tree_active%active%macrofile(1:LEN_TRIM(mac_tree_active%active%macrofile))
+      ENDIF
 !
       IF(line(1:3) ==  'end') THEN
          IF (INDEX (line, 'if') >   0) THEN
@@ -457,6 +465,7 @@ USE set_sub_generic_mod
 USE str_comp_mod
 USE sup_mod
 USE mpi_slave_mod
+USE terminal_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -545,8 +554,17 @@ ENDDO main
 !999 CONTINUE
 !
 IF (ier_num.ne.0) then 
-   WRITE (ier_msg (1), 3000) 
-   WRITE (ier_msg (2), 3100) line (1:41) 
+   WRITE (ier_msg (4), 3000) 
+   WRITE (ier_msg (5), 3100) line (1:41) 
+   WRITE (ier_msg (6), 3200) 'Error in block line: ',ilevel(level),' Nested', level+1
+   CALL errlist
+   IF(do_macro(ilevel(level),level)/=' ') THEN
+      WRITE (output_io,'(a,'' ***MAC *** '',a,a)') TRIM(color_err), &
+      do_macro(ilevel(level),level)(1:LEN_TRIM(do_macro(ilevel(level),level))), &
+      TRIM(color_fg)
+   ENDIF
+!  ier_num = -5
+!  ier_typ = ER_FORT
    IF(lmakro .AND. lmacro_close) THEN
       CALL macro_close
    ENDIF 
@@ -556,6 +574,7 @@ ENDIF
  2000 FORMAT    (a1) 
  3000 FORMAT    ('Erroneous line in block structure') 
  3100 FORMAT    (a41) 
+ 3200 FORMAT    (a, i5, a, i3)
 !
 END SUBROUTINE do_execute_block
 !

@@ -68,7 +68,7 @@ ENDIF
 !
 1000  FORMAT(' ****EXIT**** Program terminated by error status',        &
      &       '        ****',a1/)
-2000 FORMAT(a,' ***MAC *** Error occured in line:',i5,' Level',i3, &
+2000 FORMAT(a,' ***MAC *** Error in macro line: ',i5,' Level ',i3, &
             '          ***',a,/,                              &
             a,' ***MAC *** ',a,a                                   &
      )
