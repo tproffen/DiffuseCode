@@ -84,6 +84,9 @@ lend = .FALSE.
                lblock = .false. 
                CALL no_error 
             ENDIF 
+            sprompt       = ' '
+            lmakro        = .FALSE.
+            lmakro_error  = .FALSE.
          ENDIF 
 !
 !        If loop was run from a non interactive remote and we
