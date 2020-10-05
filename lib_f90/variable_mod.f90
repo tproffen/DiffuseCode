@@ -54,7 +54,7 @@ END TYPE var_arrays
    INTEGER            , DIMENSION(VAR_MAX)   :: var_type  = 0   ! INT=0, REAL=1, CHAR=2
    INTEGER            , DIMENSION(VAR_MAX)   :: var_entry = 0   ! Entry in 2D variable list var_field
    LOGICAL            , DIMENSION(VAR_MAX)   :: var_diff  = .FALSE.   ! This is a DIFFEV variable yes/no
-   REAL               , DIMENSION(VAR_MAX)   :: var_val   = 0.0 ! Value for INT or REAL
+   REAL(KIND=PREC_DP) , DIMENSION(VAR_MAX)   :: var_val   = 0.0 ! Value for INT or REAL
 !
    TYPE(var_arrays), DIMENSION(VAR_MAX) :: var_field
 !
