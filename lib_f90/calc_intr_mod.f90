@@ -49,7 +49,7 @@ REAL  :: fl1, fl2, fl3, gbox_k, gbox_w, gbox_x
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP)  :: ww, a , skew
 REAL(KIND=PREC_DP)  :: ww1, ww2
-REAL(KIND=PREC_DP), DIMENSION(3)  :: wwerte
+REAL(KIND=PREC_DP), DIMENSION(MAXW)  :: wwerte
 !     REAL sind, cosd, tand, asind, acosd, atand 
 !     REAL atan2, atan2d 
 !                                                                       
