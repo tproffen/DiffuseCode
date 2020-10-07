@@ -81,7 +81,7 @@ option(DIFFUSE_HDF5 "DIFFUSE_HDF5" ON )
 
 if ( DIFFUSE_HDF5 )
 if (DEFINED ENV{HDF5_LIB})
-  set LINK_LIBS ${LINK_LIBS} "$ENV{HDF5_LIB}" )
+  set (LINK_LIBS ${LINK_LIBS} "$ENV{HDF5_LIB}" )
 #  set (LINK_LIBS ${LINK_LIBS} "hdf5" )
 #  set (LINK_LIBS ${LINK_LIBS} "hdf5_f90" )
 #  set (LINK_LIBS ${LINK_LIBS} "hdf5_f90cstub" )
