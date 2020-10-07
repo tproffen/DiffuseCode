@@ -48,6 +48,7 @@ INTEGER               :: n_vec, n_cor, n_old
 INTEGER, DIMENSION(3) :: vec
 LOGICAL, DIMENSION(:),ALLOCATABLE :: old_vector
 LOGICAL               :: lisite, ljsite
+LOGICAL               :: lisnew
 LOGICAL               :: lout
 REAL   , DIMENSION(4) :: ri
 REAL   , DIMENSION(4) :: rj
@@ -63,7 +64,7 @@ rj(4) = 1.0
 lout = .false.
 iv_max = 0
 !
-CALL chem_aver(.false., .false.)        ! Ensure we have the average structure
+CALL chem_aver(.FALSE., .TRUE.)        ! Ensure we have the average structure
 !
 IF(lp>0) THEN                           ! output file parameter given
    CALL get_params(zeile, ianz, cpara, lpara, MAXW, lp)
@@ -101,7 +102,7 @@ n_old = CHEM_MAX_VEC
 ivv = iv_max
 !
 symmetry: DO isym = 2, spc_n   !Loop over all space group symmetry operations
-   IF(lout) WRITE(IWR,1100)
+!   IF(lout) WRITE(IWR,1100)
 !
    old_vectors: DO iv = 1, n_old           ! Loop over all defined vectors
       IF(old_vector(iv)           ) THEN   ! Vector has been defined
@@ -117,6 +118,7 @@ symmetry: DO isym = 2, spc_n   !Loop over all space group symmetry operations
               rj_n(i) = rj_n(i) + spc_mat(i,j,isym)*rj(j)
             ENDDO
          ENDDO
+!write(*,*) ' old sites ', ri(1:3), rj(1:3)
          DO i=1,3                          ! convert sites into first unit cell [0:1]
             ri_f(i) = ri_n(i) - REAL(INT(ri_n(i))) + 1.0 ! create a copy for site i
             ri_f(i) = ri_f(i) - REAL(INT(ri_f(i))) 
@@ -124,6 +126,8 @@ symmetry: DO isym = 2, spc_n   !Loop over all space group symmetry operations
             rj_f(i) = rj_f(i) - REAL(INT(rj_f(i))) 
             vec(i)  = nint(rj_n(i)-rj_f(i)) - nint(ri_n(i)-ri_f(i))
          ENDDO
+!write(*,*) ' new sites ', ri_f(1:3), rj_f(1:3)
+!read(*,*) i
 !
 !        To identify the new sites within the unit cell, we have to compare the new
 !        position to all atoms in the average unit cell. Multiple hits flag an error
@@ -163,6 +167,17 @@ symmetry: DO isym = 2, spc_n   !Loop over all space group symmetry operations
             ENDIF
          ENDDO
 !
+         lisnew = .TRUE.
+         search: DO i=1, ivv
+            IF(chem_cvec(1,i)==isite .AND. chem_cvec(2,i)==jsite .AND.  &
+               chem_cvec(3,i)==vec(1).AND. chem_cvec(4,i)==vec(2).AND.  &
+               chem_cvec(5,i)==vec(3) ) THEN
+               lisnew = .FALSE.
+               EXIT search
+           ENDIF
+         ENDDO search
+!write(*,*) ' NEW VECTOR ', isite, jsite, vec, iv, lisnew
+         IF(lisnew) THEN
          ivv = ivv + 1
          IF(lout) WRITE(IWR,1000) ivv, isite, jsite, vec, iv
 !
@@ -191,6 +206,7 @@ is_used:          DO i=1, chem_nvec (ic)
                   ENDDO is_used
                ENDIF
             ENDDO
+         ENDIF
          ENDIF
 !
       ENDIF ! old_vector(iv) == .true.
