@@ -1,123 +1,156 @@
 MODULE fput_mod
 !
 CONTAINS
+!
 !*****7***********************************************************      
-      SUBROUTINE do_fopen (zeile, lp) 
+!
+SUBROUTINE do_fopen (zeile, lp) 
 !                                                                       
 USE ber_params_mod
-      USE build_name_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE macro_mod 
+USE build_name_mod
+USE errlist_mod 
+USE get_params_mod
+USE macro_mod 
 USE precision_mod
-      USE prompt_mod 
+USE prompt_mod 
 USE str_comp_mod
 USE support_mod
-      IMPLICIT none 
+USE take_param_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 10) 
+INTEGER, PARAMETER :: MAXW = 10
 !                                                                       
-      CHARACTER (LEN=*), INTENT(IN) ::  zeile 
-      INTEGER          , INTENT(INOUT) :: lp 
+CHARACTER (LEN=*), INTENT(IN) ::  zeile 
+INTEGER          , INTENT(INOUT) :: lp 
 !
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      CHARACTER(LEN=PREC_STRING) :: message
-      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
-      INTEGER lpara (maxw)
-      INTEGER :: ios
-      INTEGER ianz, ianzz 
-      INTEGER ii 
-      LOGICAL lappend 
-      LOGICAL one_open 
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=PREC_STRING) :: message
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+INTEGER           , DIMENSION(MAXW) :: lpara
+INTEGER :: ios
+INTEGER :: ianz, ianzz 
+INTEGER :: ii 
+LOGICAL :: lappend 
+LOGICAL :: one_open 
+LOGICAL :: lout 
+!
+INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: O_STATUS = 1
+INTEGER, PARAMETER :: O_LOG    = 2
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+DATA oname  / 'status', 'log'/
+DATA loname /  6      ,  3   /
+opara  =  (/ 'unknown', 'screen ' /)   ! Always provide fresh default values
+lopara =  (/  7,         6        /)
+owerte =  (/  0.0,       0.0      /)
+!
 !                                                                       
+ianzz = 1 
 !                                                                       
-      ianzz = 1 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) RETURN 
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+lout = .FALSE.
+lout = opara(O_LOG) == 'screen'
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) RETURN 
+IF (ianz.ge.1) THEN 
+   CALL ber_params (ianzz, cpara, lpara, werte, maxw) 
+   IF(ier_num.ne.0) RETURN 
+   IF(ianz.eq.1) THEN 
+      ianz = 0 
+   ELSE 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+   ENDIF 
+   IF(ier_num.ne.0) RETURN 
+   ii = nint (werte (1) ) 
+   IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
+      ier_num = - 13 
+      ier_typ = ER_IO 
+      RETURN 
+   ENDIF 
 !                                                                       
-      IF (ianz.ge.1) THEN 
-         CALL ber_params (ianzz, cpara, lpara, werte, maxw) 
+   IF(ianz.ge.1) THEN 
+      IF(io_open (ii) ) THEN 
+         ier_num = - 10 
+         ier_typ = ER_IO 
+         RETURN 
+      ENDIF 
+      CALL do_build_name(ianz, cpara, lpara, werte, maxw, 1) 
+      IF (ianz.eq.2) THEN 
+         lappend = str_comp(cpara(2), 'append', 1, lpara(2), 6)
+      ELSE 
+         lappend = .false. 
+      ENDIF 
+      IF(lpresent(O_STATUS)) THEN
+         IF(opara(O_STATUS)=='append') THEN
+            lappend = .TRUE.
+         ELSE
+            lappend = .FALSE.
+         ENDIF
+      ENDIF
+      IF (lappend) THEN 
+         CALL oeffne_append(io_unit(ii), cpara(1), 'unknown')
          IF (ier_num.ne.0) RETURN 
-         IF (ianz.eq.1) THEN 
-            ianz = 0 
-         ELSE 
-            CALL del_params (1, ianz, cpara, lpara, maxw) 
-         ENDIF 
-         IF (ier_num.ne.0) RETURN 
-         ii = nint (werte (1) ) 
-         IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
-            ier_num = - 13 
-            ier_typ = ER_IO 
-            RETURN 
-         ENDIF 
-!                                                                       
-         IF (ianz.ge.1) THEN 
-            IF (io_open (ii) ) THEN 
-               ier_num = - 10 
-               ier_typ = ER_IO 
-               RETURN 
-            ENDIF 
-            CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-            IF (ianz.eq.2) THEN 
-               lappend = str_comp (cpara (2) , 'append', 1, lpara (2) , &
-               6)                                                       
-            ELSE 
-               lappend = .false. 
-            ENDIF 
-            IF (lappend) THEN 
-               CALL oeffne_append (io_unit (ii) , cpara (1) , 'unknown')
-               IF (ier_num.ne.0) RETURN 
 !DBG            open (unit=io_unit(ii),file=cpara(1),status='unknown',  
 !DBG     &                       access='append',err=999)               
 !DBG95     &                       access='sequential',err=999)         
-               WRITE (output_io, 1000) cpara (1) (1:lpara (1) ) 
-            ELSE 
-               OPEN (unit = io_unit (ii) , file = cpara (1) , &
-                     status = 'unknown', IOSTAT=ios,IOMSG=message)                                    
-               IF(ios/=0) THEN
-                  ier_num = -2
-                  ier_typ = ER_IO
-                  ier_msg(1) ='Could not open the NULL file'
-                  ier_msg(2) = message(1:MAX(1,MIN(80,LEN_TRIM(message))))
-                  RETURN
-               ENDIF
-               WRITE (output_io, 1100) cpara (1) (1:lpara (1) ) 
-            ENDIF 
-            io_open (ii) = .true. 
-            io_file (ii) = cpara (1) (1:lpara (1) ) 
-         ELSE 
-            IF (io_open (ii) ) THEN 
-               WRITE (output_io, 2000) ii, io_file (ii) 
-            ELSE 
-               WRITE (output_io, 2010) 
-            ENDIF 
-         ENDIF 
+         IF(lout) WRITE (output_io, 1000) cpara (1) (1:lpara (1) ) 
       ELSE 
-         one_open = .false. 
-         DO ii = 1, MAC_MAX_IO 
-         IF (io_open (ii) ) THEN 
-            WRITE (output_io, 2000) ii, io_file (ii) 
-            one_open = .true. 
-         ENDIF 
-         ENDDO 
-         IF (.not.one_open) THEN 
-            WRITE (output_io, 2010) 
-         ENDIF 
+         OPEN(UNIT = io_unit(ii), FILE = cpara(1) , &
+              STATUS = 'unknown', IOSTAT=ios, IOMSG=message)                                    
+         IF(ios/=0) THEN
+            ier_num = -2
+            ier_typ = ER_IO
+            ier_msg(1) ='Could not open the file'
+            ier_msg(2) = message(1:MAX(1,MIN(80,LEN_TRIM(message))))
+            RETURN
+         ENDIF
+         IF(lout) WRITE (output_io, 1100) cpara (1) (1:lpara (1) ) 
       ENDIF 
-      RETURN 
+      io_open (ii) = .true. 
+      io_file (ii) = cpara (1) (1:lpara (1) ) 
+   ELSE 
+      IF(io_open (ii) ) THEN 
+         IF(lout) WRITE (output_io, 2000) ii, io_file (ii) 
+      ELSE 
+         IF(lout) WRITE (output_io, 2010) 
+      ENDIF 
+   ENDIF 
+ELSE 
+   one_open = .false. 
+   DO ii = 1, MAC_MAX_IO 
+      IF(io_open (ii) ) THEN 
+         IF(lout) WRITE (output_io, 2000) ii, io_file (ii) 
+         one_open = .TRUE. 
+      ENDIF 
+   ENDDO 
+   IF(.NOT.one_open) THEN 
+      IF(lout) WRITE (output_io, 2010) 
+   ENDIF 
+ENDIF 
+!RETURN 
 !                                                                       
 ! 999 CONTINUE 
-      ier_num = - 2 
-      ier_typ = ER_IO 
+!ier_num = - 2 
+!ier_typ = ER_IO 
 !                                                                       
  1000 FORMAT     (' ------ > File ',a,' opened (appending) ...') 
  1100 FORMAT     (' ------ > File ',a,' opened (overwriting) ...') 
  2000 FORMAT     (' ------ > IO stream Nr. ',i2,' open, file : ',a) 
  2010 FORMAT     (' ------ > No IO stream open') 
-      END SUBROUTINE do_fopen                       
+!
+END SUBROUTINE do_fopen                       
+!
 !*****7***********************************************************      
       SUBROUTINE do_fclose (zeile, lp) 
 !                                                                       
