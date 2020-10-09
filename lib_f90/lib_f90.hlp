@@ -32,6 +32,10 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2020_October
+
+   Added optional parameters 'status:append', 'status:unknown' and
+   log:'screen', 'log:off' to ==> fopen command
 4  2020_September
 
    As of version 6.02, the DISCUS_SUITE is compiled with OpenMP as default.
@@ -670,6 +674,7 @@
    fclose 1
 3  fopen
 !p fopen <number>,<file> [,{"append" | "overwrite"}]
+!p       [,status:["append"|"unknown"]], [,log:["screen"|"off"]]
 
    This command allows the user to open a file for reading and writing
    using the commands 'fget' and 'fput'. The first argument is the number
@@ -678,6 +683,11 @@
    The second argument is the file name. The default is that existing 
    files will be overwritten if 'fput' is used. Alternatively one can 
    append data to a file by specifying the optional parameter "append".
+
+   The optional parameter 'status' equivalently allows to differ between 
+   "append" and overwrite mode.
+   The optional parameter "log" allows to write to "screen" or to 
+   suppress a message that the file was opened. 
 3  fput
 !p fput <number>,<p1>,<p2>, ..
 !p               [, form:'<string>'] 
