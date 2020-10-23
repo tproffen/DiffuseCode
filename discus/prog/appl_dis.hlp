@@ -75,6 +75,11 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2020_October
+
+   Added support for file name constructors to ==> 'import'
+   File names may now make use of constructors like:
+      "NiceFile%4D.cif", 5 ==> "NiceFile0005.cif"
 3  2020_September
 
    Added finish criteria to mmc. These allow to terminate a MMC loop
@@ -3324,10 +3329,13 @@
    This command converts other crystal structure formats into a DISCUS 
    unit cell.
 
+   The file name may be presented with format specifications as in
+   "gold%3D.cif", 3  for a file name 'gold003.cif'
+
    The optional parameter "metric:host" instructs DISCUS to perform a
    unit cell transformation of the input structure into the metric of the 
    crystal structure that is currently present within DISCUS. As the 
-   two coordinates system will usually differ considerable, the space
+   two coordinates system will usually differ considerably, the space
    group of the imported structure is set to P1 unless the optional
    parameter space:host is used which changes the space group to that 
    of the present structure, the host.
