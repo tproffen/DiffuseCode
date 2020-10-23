@@ -101,6 +101,7 @@ CALL get_cores()     ! Determine number of physical cores
 !$      ENDIF
 !$   END IF
 !$OMP END PARALLEL
+!$ CALL OMP_SET_NUM_THREADS(nthreads)
 !                                                                       
 !------ Write starting screen                                           
 !                                                                       
