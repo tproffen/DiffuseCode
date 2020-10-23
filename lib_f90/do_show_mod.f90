@@ -119,7 +119,7 @@ IF(par_omp_use) THEN
 !$ tid = OMP_GET_THREAD_NUM()
 !$ IF(tid == 0) THEN
 !$    IF(par_omp_maxthreads == -1) THEN
-!$       nthreads = MAX(1, MIN(par_omp_phys, OMP_GET_NUM_THREADS()))
+!$       nthreads = MAX(1, MIN(par_omp_logi, OMP_GET_NUM_THREADS()))
 !$    ELSE
 !$       nthreads = MAX(1,MIN(par_omp_maxthreads, OMP_GET_NUM_THREADS()))
 !$    ENDIF
