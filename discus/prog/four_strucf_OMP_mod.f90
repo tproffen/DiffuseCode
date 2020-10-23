@@ -22,6 +22,8 @@ SUBROUTINE four_strucf (iscat, lform)
 !  Interface to four_strucf_serial((iscat, lform)
 !           and four_strucf_omp((iscat, lform)
 !-
+!
+!$ USE OMP_LIB
 USE parallel_mod
 !
 IMPLICIT NONE
@@ -29,7 +31,21 @@ IMPLICIT NONE
 INTEGER, INTENT(IN) :: iscat 
 LOGICAL, INTENT(IN) :: lform 
 !
-IF(par_omp_use) THEN
+INTEGER :: tid
+INTEGER :: nthreads
+!
+nthreads = 1
+!$OMP PARALLEL PRIVATE(tid)
+!$   tid = OMP_GET_THREAD_NUM()
+!$   IF (tid == 0) THEN
+!$      IF(par_omp_maxthreads == -1) THEN
+!$         nthreads = MAX(1,MIN(par_omp_phys, OMP_GET_NUM_THREADS()))
+!$      ELSE
+!$         nthreads = MAX(1,MIN(par_omp_maxthreads, par_omp_phys, OMP_GET_NUM_THREADS()))
+!$      ENDIF
+!$   END IF
+!$OMP END PARALLEL
+IF(par_omp_use .AND. nthreads>1) THEN
    CALL four_strucf_omp  (iscat, lform)
 ELSE
    CALL four_strucf_serial(iscat, lform)
