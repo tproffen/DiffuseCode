@@ -30,6 +30,17 @@
    data are written directly into the next available KUPLOT 
    data set. This is available for Fourier output, powder, pdf.
 2  News
+3  2020_October
+
+   As of version 6.02.00 the DISCUS_SUITE is compiled with 
+   support for OpenMP, an internal parallelization that affects 
+   at the moment Single crystal Fourier, MMC, and Powder 
+   diffraction through the Debye scattering equation.
+
+   In version 6.02.01 a small bug was corrected. The number of
+   parallel threads is by default limited to the number of 
+   physical cores, you can change this vis the 
+   ==> 'set parallel' command.
 3  2019_November
 
    Added a global 'reset' command
