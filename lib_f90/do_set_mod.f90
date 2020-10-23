@@ -277,6 +277,7 @@ INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name retu
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte    ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
+INTEGER :: nthreads    ! local variable number of threads
 !
 DATA oname  / 'nthread', 'useomp ' /   ! 
 DATA loname /  7       ,  6        /
@@ -318,10 +319,16 @@ IF(ier_num==0) THEN
             IF(par_omp_maxthreads<1) THEN
                ier_num = -18
                ier_typ =  ER_COMM
-            ELSE
-!$             CALL OMP_SET_NUM_THREADS(par_omp_maxthreads)
             ENDIF
          ENDIF
+      ENDIF
+      IF(ier_num==0) THEN
+         IF(par_omp_maxthreads==-1) THEN
+            nthreads = MAX(1, par_omp_phys, par_omp_logi)
+         ELSE
+            nthreads = par_omp_maxthreads
+         ENDIF
+!$       CALL OMP_SET_NUM_THREADS(nthreads)
       ENDIF
    ENDIF
 ENDIF
