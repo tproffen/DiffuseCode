@@ -3404,7 +3404,7 @@ ENDIF
 !
 IF (ianz.ge.1) THEN 
    IF (str_comp (cpara (1) , 'shelx', 2, lpara (1) , 5) ) THEN 
-      IF (ianz.eq.2) THEN 
+      IF (ianz >= 2) THEN 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          IF (ier_num.ne.0) return 
          CALL ins2discus (ianz, cpara, lpara, MAXW, ofile) 
@@ -3413,7 +3413,7 @@ IF (ianz.ge.1) THEN
          ier_typ = ER_COMM 
       ENDIF 
    ELSEIF (str_comp (cpara (1) , 'cif', 2, lpara (1) , 3) ) THEN 
-      IF (ianz.eq.2) THEN 
+      IF (ianz >= 2) THEN 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          IF (ier_num.ne.0) return 
          CALL cif2discus (ianz, cpara, lpara, MAXW, ofile) 
@@ -3422,7 +3422,7 @@ IF (ianz.ge.1) THEN
          ier_typ = ER_COMM 
       ENDIF 
    ELSEIF (str_comp (cpara (1) , 'cmaker', 2, lpara (1) , 6) ) THEN 
-      IF (ianz.eq.2) THEN 
+      IF (ianz >= 2) THEN 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          IF (ier_num.ne.0) return 
          CALL cmaker2discus (ianz, cpara, lpara, MAXW, ofile) 
