@@ -698,7 +698,7 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
                   IF(ier_num/=0) RETURN
                ELSE internals
-                  CALL import_test(0, strucfile, outfile)
+                  CALL import_test(1, strucfile, outfile)
                   IF(ier_num == 0) THEN
                      strucfile = outfile
                   ELSE
@@ -4339,6 +4339,7 @@ REAL   , DIMENSION(3) :: pos ! (6)
       READ(ird, *    ,IOSTAT=iostatus) natoms
       IF(iostatus/=0) THEN
          ier_num = -119
+         ier_typ = ER_APPL
          WRITE(ier_msg(1),'(a,i7)') 'Error in line ', nline
          CLOSE(iwr)
          CLOSE(ird)
@@ -4348,6 +4349,7 @@ REAL   , DIMENSION(3) :: pos ! (6)
       READ(ird, '(a)',IOSTAT=iostatus) line
       IF(iostatus/=0) THEN
          ier_num = -46
+         ier_typ = ER_APPL
          WRITE(ier_msg(1),'(a,i7)') 'Error in line ', nline
          CLOSE(iwr)
          CLOSE(ird)
@@ -4371,6 +4373,7 @@ REAL   , DIMENSION(3) :: pos ! (6)
          READ(ird, '(a)',IOSTAT=iostatus) line
          IF(iostatus/=0) THEN
             ier_num = -49
+            ier_typ = ER_APPL
             WRITE(ier_msg(1),'(a,i7)') 'Error in line ', nline
             CLOSE(iwr)
             CLOSE(ird)
@@ -4380,6 +4383,7 @@ REAL   , DIMENSION(3) :: pos ! (6)
          READ(line(15:49),*,IOSTAT=iostatus) pos
          IF(iostatus/=0) THEN
             ier_num = -49
+            ier_typ = ER_APPL
             WRITE(ier_msg(1),'(a,i7)') 'Error in line ', nline
             CLOSE(iwr)
             CLOSE(ird)
