@@ -2304,6 +2304,8 @@ cr_occ(:) = 1.0   !! WORK OCC
       xx_nscat = 0 
       xx_nadp = 0 
       xx_nocc = 0 
+gen_add_n = 0
+sym_add_n = 0
 !                                                                       
       ier_num = - 46 
       ier_typ = ER_APPL 
@@ -5697,7 +5699,7 @@ USE support_mod
       LOGICAL                               :: l_type     ! RFound molecule type command
       LOGICAL                               :: new
       REAL                                  :: xc,yc,zc,bval
-INTEGER, PARAMETER                   :: AT_MAXP = 12
+INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
 LOGICAL                              :: at_init = .TRUE.
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
