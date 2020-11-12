@@ -88,7 +88,8 @@ USE str_comp_mod
 !                                                                       
          ELSEIF (befehl (1:1) .eq.'@') then 
             line(1:length-1) = line(2:length)
-            length = 1
+            line(length:length) = ' '
+            length = length - 1
             CALL file_kdo(line, length)
 !                                                                       
 !     continues a macro 'continue'                                      

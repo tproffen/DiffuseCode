@@ -121,7 +121,8 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
    IF (line (1:1) .eq.'@') THEN 
       IF (length.ge.2) THEN 
          line(1:length-1) = line(2:length)
-         length = 1
+         line(length:length) = ' '
+         length = length - 1
          CALL file_kdo(line, length)
       ELSE 
          ier_num = - 13 

@@ -90,7 +90,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                IF (befehl (1:1) .eq.'@') then 
                   IF (length.ge.2) then 
                      line(1:length-1) = line(2:length)
-                     length = 1
+                     line(length:length) = ' '
+                     length = length - 1
                      CALL file_kdo(line, length)
                   ELSE 
                      ier_num = - 13 

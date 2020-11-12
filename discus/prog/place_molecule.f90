@@ -100,7 +100,8 @@ main_loop: DO
               IF (befehl (1:1) .eq.'@') THEN     ! macro, reset or all other commands
                   IF (laenge.ge.2) THEN 
                      line(1:laenge-1) = line(2:laenge)
-                     laenge = 1
+                     line(laenge:laenge) = ' '
+                     laenge = laenge - 1
                      CALL file_kdo(line, laenge)
                   ELSE 
                      ier_num = - 13 
