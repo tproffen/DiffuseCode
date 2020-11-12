@@ -43,7 +43,7 @@ lopara =  (/  6      ,  6       /)
 owerte =  (/  6.0    ,  0.0     /)
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, lp)
-IF (ier_num.ne.0) then
+IF (ier_num.ne.0) THEN
    RETURN
 ENDIF
 !
@@ -52,11 +52,11 @@ CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
 IF(ier_num/=0) RETURN
 !
 !                                                                       
-IF (ianz.ge.1) then
-   IF (str_comp (cpara (1) , 'cif', 2, lpara (1) , 3) ) then
-      IF (ianz.eq.2) then
+IF (ianz.ge.1) THEN
+   IF (str_comp (cpara (1) , 'cif', 2, lpara (1) , 3) ) THEN
+      IF (ianz >= 2) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)
-         IF (ier_num.ne.0) return
+         IF (ier_num.ne.0) RETURN
          ianz = ianz + 1
          cpara(ianz) = opara(O_SPCGR)
          lpara(ianz) = lopara(O_SPCGR)
@@ -65,17 +65,17 @@ IF (ianz.ge.1) then
          ier_num = - 6
          ier_typ = ER_COMM
       ENDIF
-   ELSEIF (str_comp (cpara (1) , 'shelx', 2, lpara (1) , 5) ) then
-      IF (ianz.eq.2) then
+   ELSEIF (str_comp (cpara (1) , 'shelx', 2, lpara (1) , 5) ) THEN
+      IF (ianz >= 2) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)
-         IF (ier_num.ne.0) return
+         IF (ier_num.ne.0) RETURN
          CALL discus2ins (ianz, cpara, lpara, MAXW)
       ELSE
          ier_num = - 6
          ier_typ = ER_COMM
       ENDIF
-   ELSEIF (str_comp (cpara (1) , 'rmcprofile', 2, lpara (1) , 10) ) then
-      IF (ianz.eq.2) then
+   ELSEIF (str_comp (cpara (1) , 'rmcprofile', 2, lpara (1) , 10) ) THEN
+      IF (ianz >= 2) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) RETURN
          rmcversion = NINT(owerte(O_RMCVS))
@@ -84,8 +84,8 @@ IF (ianz.ge.1) then
          ier_num = - 6
          ier_typ = ER_COMM
       ENDIF
-   ELSEIF (str_comp (cpara (1) , 'scatty', 2, lpara (1) , 6) ) then
-      IF (ianz.eq.2) then
+   ELSEIF (str_comp (cpara (1) , 'scatty', 2, lpara (1) , 6) ) THEN
+      IF (ianz >= 2) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) RETURN
          CALL discus2scatty (ianz, cpara, lpara, MAXW)
@@ -94,8 +94,8 @@ IF (ianz.ge.1) then
          ier_typ = ER_COMM
       ENDIF
    ELSEIF (str_comp (cpara (1) , 'vasp', 2, lpara (1) , 4)  .OR.  &
-           str_comp (cpara (1) , 'poscar', 2, lpara (1) , 6) ) then
-      IF (ianz.eq.2) then
+           str_comp (cpara (1) , 'poscar', 2, lpara (1) , 6) ) THEN
+      IF (ianz >= 2) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) RETURN
          CALL discus2poscar (ianz, cpara, lpara, MAXW)
@@ -158,7 +158,7 @@ do_spcgr = cpara(ianz)(1:LEN(do_spcgr))
 ianz = ianz -1
 !
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
-IF (ier_num.ne.0) then
+IF (ier_num.ne.0) THEN
    RETURN
 ENDIF
 ofile = cpara (1)
@@ -248,13 +248,13 @@ REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 REAL   , DIMENSION(3), PARAMETER :: NULL = (/0.00, 0.00, 0.00/)
 !
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
-IF (ier_num.ne.0) then
+IF (ier_num.ne.0) THEN
    RETURN
 ENDIF
 ofile = cpara (1)
 IF(ofile(lpara(1)-3:lpara(1)) /= '.ins') ofile = cpara (1) (1:lpara (1) ) //'.ins'
 CALL oeffne (IWR, ofile, 'unknown')
-IF (ier_num.ne.0) then
+IF (ier_num.ne.0) THEN
    CLOSE(IWR)
    RETURN
 ENDIF
@@ -579,7 +579,7 @@ REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 ! Build the output file name
 !
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
-IF (ier_num.ne.0) then
+IF (ier_num.ne.0) THEN
    RETURN
 ENDIF
 ofile = cpara (1)
@@ -587,7 +587,7 @@ IF(.NOT.(ofile(lpara(1)-5:lpara(1)) == '.rmc6f')) THEN
   ofile = cpara (1) (1:lpara (1) ) //'.rmc6f'
 ENDIF
 CALL oeffne (IWR, ofile, 'unknown')
-IF (ier_num.ne.0) then
+IF (ier_num.ne.0) THEN
    CLOSE(IWR)
    RETURN
 ENDIF
@@ -783,12 +783,12 @@ REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 ! Build the output file name
 !
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
-IF (ier_num.ne.0) then
+IF (ier_num.ne.0) THEN
    RETURN
 ENDIF
 ofile = cpara (1)
 CALL oeffne (IWR, ofile, 'unknown')
-IF (ier_num.ne.0) then
+IF (ier_num.ne.0) THEN
    CLOSE(IWR)
    RETURN
 ENDIF
@@ -932,7 +932,7 @@ INTEGER, DIMENSION(3)    :: icell
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
-IF (ier_num.ne.0) then
+IF (ier_num.ne.0) THEN
    RETURN
 ENDIF
 ofile = cpara (1)
@@ -942,7 +942,7 @@ ELSE
    ofile = cpara (1) (1:lpara (1) ) //'_atoms_01.txt'
 ENDIF
 CALL oeffne (IWR, ofile, 'unknown')
-IF (ier_num.ne.0) then
+IF (ier_num.ne.0) THEN
    CLOSE(IWR)
    RETURN
 ENDIF
