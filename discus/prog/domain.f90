@@ -1173,6 +1173,10 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
          mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
          sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
          AT_MAXP, at_ianz, at_param)           
+         IF(ier_num /= 0) THEN
+            CLOSE(IST)
+            RETURN
+         ENDIF
       ENDIF
 !                                                                       
       CALL micro_read_atom (ist, infile, mc_idimen, mc_matrix, &
@@ -1484,7 +1488,7 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
             IF (ier_num.ne.0) return 
          ELSE is_mole
 !           READ (line (ibl:80), *, end = 999, err = 999) (werte (j), j = 1, 4)
-!write(*,*) ' LINE ', line(1:len_trim(line))
+!write(*,*) ' LINE ', line(1:len_trim(line)), ' INFILE ', infile(1:len_trim(infile))
 !write(*,*) 'at_init', at_init, lline, ibl, at_ianz, AT_MAXP
 !   write(*,*) 'werte, wwerte ', ubound(werte),ubound(at_param)
             CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
