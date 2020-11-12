@@ -75,11 +75,17 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2020_November
+
+   Corrected a bug that prevented the execution of macros at sub-levels
 3  2020_October
 
-   Added support for file name constructors to ==> 'import'
+   Added support for file name constructors to ==> 'import' and
+      ==> 'export'
    File names may now make use of constructors like:
       "NiceFile%4D.cif", 5 ==> "NiceFile0005.cif"
+
+   Corrected a bug that prevented a direct read of imported structures.
 3  2020_September
 
    Added finish criteria to mmc. These allow to terminate a MMC loop
