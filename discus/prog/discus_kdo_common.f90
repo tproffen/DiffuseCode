@@ -53,7 +53,8 @@ lend    = .FALSE.
 IF(befehl(1:1) == '@') THEN
    IF(length >= 2) THEN
       line(1:length-1) = line(2:length)
-      length = 1
+      line(length:length) = ' '
+      length = length - 1
       CALL file_kdo(line, length)
       success = .TRUE.
    ELSE
