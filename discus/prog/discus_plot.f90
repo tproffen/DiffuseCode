@@ -12,6 +12,7 @@ SUBROUTINE plot
 !+                                                                      
 USE discus_config_mod 
 USE discus_allocate_appl_mod
+USE discus_kdo_common_mod
 USE crystal_mod 
 USE metric_mod
 USE modify_mod
@@ -61,6 +62,7 @@ INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAX(10,MAXSC
 CHARACTER(LEN=PREC_STRING) :: line, zeile
 CHARACTER(LEN=PREC_STRING) :: tempfile
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
+CHARACTER(LEN=4) :: hlp_sec = 'plot'
 CHARACTER(5) befehl 
 CHARACTER(1) cdum 
 REAL :: size, rr=0.0, rg=0.0, rb=0.0
@@ -72,7 +74,7 @@ INTEGER         :: nscat = 1
 INTEGER         :: nsite = 1
 INTEGER         :: ios
 
-LOGICAL lend, l_select 
+LOGICAL lend, l_select , success
 LOGICAL :: labs = .FALSE.
 LOGICAL :: lord = .FALSE.
 LOGICAL :: lnor = .FALSE.
@@ -148,7 +150,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             IF (befehl (1:1) .eq.'@') then                ! macro or reset or all other commands
                   IF (length.ge.2) then 
                      line(1:length-1) = line(2:length)
-                     length = 1
+                     line(length:length) = ' '
+                     length = length - 1
                      CALL file_kdo(line, length)
                   ELSE 
                      ier_num = - 13 
@@ -867,8 +870,10 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ENDIF 
 !                                                                       
                ELSE 
-                  ier_num = - 8 
-                  ier_typ = ER_COMM 
+                  CALL discus_kdo_common(befehl, lbef, line, length, zeile, lp, hlp_sec, &
+                             lend, success)
+!                 ier_num = - 8 
+!                 ier_typ = ER_COMM 
                ENDIF                                            ! All commands
             ENDIF                                               ! macro or reset or all other commands
          ENDIF if_gleich                                        ! DO Math ?
