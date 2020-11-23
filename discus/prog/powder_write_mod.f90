@@ -666,7 +666,7 @@ REAL(KIND=PREC_SP) :: pow_uuu_sum
 REAL           :: ss       ! time
 !REAL, EXTERNAL :: seknds
 !
-WRITE (output_io, * ) ' Starting convolution'
+WRITE (output_io, * ) ' Starting convolution'!, pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w
 ss = seknds (0.0)
 !
 xmin  = 0.0 
@@ -749,11 +749,11 @@ IF (pow_profile == POW_PROFILE_GAUSS) THEN
 ELSEIF (pow_profile == POW_PROFILE_PSVGT) THEN 
    IF(pow_u/=0.0 .OR. pow_v/=0.0 .OR. pow_eta_l/=0.0 .OR. pow_eta_q/=0.0) THEN
       xxmax = xmax + xdel
-      IF(pow_p1/=0.0 .OR. pow_p2/=0.0 .OR.                 &
-         pow_p3/=0.0 .OR. pow_p4/=0.0            ) THEN       
+      IF(pow_asym(1,1)/=0.0 .OR. pow_asym(2,1)/=0.0 .OR.                 &
+         pow_asym(3,1)/=0.0 .OR. pow_asym(3,1)/=0.0            ) THEN       
          CALL powder_conv_psvgt_uvw_asym(pow_conv, xmin,xxmax, xdel,   &
-         pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
-         pow_p3, pow_p4, pow_width, POW_MAXPKT, pow_four_type, pow_axis)
+         pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_asym,  &
+         pow_width, POW_MAXPKT, pow_four_type, pow_axis)
       ELSE          ! Symmetric case
          CALL powder_conv_psvgt_uvw(pow_conv, xmin,xxmax, xdel,   &
          pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_width,  &
@@ -1225,7 +1225,7 @@ END SUBROUTINE powder_conv_psvgt_uvw
 !*****7*****************************************************************
 !
 SUBROUTINE powder_conv_psvgt_uvw_asym (dat, tthmin, tthmax, dtth, eta0,&
-      eta_l, eta_q, u, v, w, p1, p2, p3, p4, pow_width, POW_MAXPKT,    &
+      eta_l, eta_q, u, v, w, asym          , pow_width, POW_MAXPKT,    &
       pow_type, axis)
 !-
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
@@ -1252,10 +1252,7 @@ REAL                            , INTENT(IN)    :: eta_q   ! Lor/Gaus mix variab
 REAL                            , INTENT(IN)    :: u      ! u*tan^2(Theta)
 REAL                            , INTENT(IN)    :: v      ! v*tan  (Theta)
 REAL                            , INTENT(IN)    :: w      ! w
-REAL                            , INTENT(IN)    :: p1     ! Asymmetry terms p1 to P4
-REAL                            , INTENT(IN)    :: p2     ! Asymmetry terms p1 to P4
-REAL                            , INTENT(IN)    :: p3     ! Asymmetry terms p1 to P4
-REAL                            , INTENT(IN)    :: p4     ! Asymmetry terms p1 to P4
+REAL   , DIMENSION(4,3)         , INTENT(IN)    :: asym   ! Asymmetry terms p1 to P4
 REAL                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 INTEGER                         , INTENT(IN)    :: pow_type  ! == 0 for COMPLETE, ==1 for Debye
 INTEGER                         , INTENT(IN)    :: axis   ! == 2 for 2theta, == 1 for Q
@@ -1270,6 +1267,7 @@ REAL                          :: tantth   ! tan(Theta)
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
 REAL(KIND=PREC_DP)    :: tth1            ! Theta values for asymmetry
 REAL(KIND=PREC_DP)    :: tth2            ! Theta values for asymmetry
+REAL                  :: p1, p2, p3, p4  ! 2Theta dependen asymmety parameters
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
 INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
 REAL    :: pseudo          ! scale factor for lookup table
@@ -1299,6 +1297,10 @@ IF(pow_type==POW_COMPL) THEN
       i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
       tth1 = 0 * dtth 
       tth2 = 2 * i * dtth 
+      p1 = asym(1,1) + asym(1,2)*tth + tth*asym(1,3)*tth**2
+      p2 = asym(2,1) + asym(2,2)*tth + tth*asym(2,3)*tth**2
+      p3 = asym(3,1) + asym(3,2)*tth + tth*asym(3,3)*tth**2
+      p4 = asym(4,1) + asym(4,2)*tth + tth*asym(4,3)*tth**2
       pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
       pra2 = profile_asymmetry (tth, tth2, fwhm, p1, p2, p3, p4) 
       dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)*pra1  &

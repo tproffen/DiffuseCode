@@ -102,10 +102,10 @@ REAL                     :: pow_eta_q      =  0.0
 REAL                     :: pow_u          =  0.0
 REAL                     :: pow_v          =  0.0
 REAL                     :: pow_w          =  0.05
-REAL                     :: pow_p1         =  0.0
-REAL                     :: pow_p2         =  0.0
-REAL                     :: pow_p3         =  0.0
-REAL                     :: pow_p4         =  0.0
+REAL   , DIMENSION(4,3)  :: pow_asym       =  0.0
+!REAL                     :: pow_p2         =  0.0
+!REAL                     :: pow_p3         =  0.0
+!REAL                     :: pow_p4         =  0.0
 REAL                     :: pow_width      = 20.0
 !
 REAL                     :: pow_ka21       =  0.0

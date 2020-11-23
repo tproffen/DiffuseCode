@@ -466,8 +466,10 @@ CALL pow_conv_limits
          ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) THEN 
             WRITE (output_io, 2120) pow_u, pow_v, pow_w 
             WRITE (output_io, 2121) pow_eta, pow_eta_l, pow_eta_q
-            WRITE (output_io, 2122) pow_p1, pow_p2, pow_p3, pow_p4 
-            WRITE (output_io, 2123) pow_width 
+            WRITE (output_io, 2122) pow_asym(:,1)
+            WRITE (output_io, 2123) pow_asym(:,2)
+            WRITE (output_io, 2124) pow_asym(:,3)
+            WRITE (output_io, 2125) pow_width 
          ENDIF 
 !     ENDIF 
 !                                                                       
@@ -509,7 +511,7 @@ CALL pow_conv_limits
       IF (pow_lp.eq.POW_LP_NONE) THEN 
          WRITE (output_io, 1500) 
       ELSEIF (pow_lp.eq.POW_LP_BRAGG) THEN 
-         WRITE (output_io, 1510) pow_lp_ang 
+         WRITE (output_io, 1510) pow_lp_fac, pow_lp_ang 
       ELSEIF (pow_lp.eq.POW_LP_NEUT) THEN 
          WRITE (output_io, 1520) 
       ELSEIF (pow_lp.eq.POW_LP_SYNC) THEN 
@@ -535,7 +537,9 @@ CALL pow_conv_limits
      &                                                   f10.5)         
  2121 FORMAT    ( '       Profile Eta, q, l   : ',f10.5,2x,f10.5, 2x,f10.5) 
  2122 FORMAT    ( '       Profile asymmetry   : ',4(f10.5,2x)) 
- 2123 FORMAT    ( '       Profile width *FWHM : ',1(f10.5,2x)) 
+ 2123 FORMAT    ( '       Profile asym linear : ',4(f10.5,2x)) 
+ 2124 FORMAT    ( '       Profile asym square : ',4(f10.5,2x)) 
+ 2125 FORMAT    ( '       Profile width *FWHM : ',1(f10.5,2x)) 
  1240 FORMAT    ( '   dH, dK, dL              : ',3(f10.5,2x)) 
  1245 FORMAT    ( '   Corr. steps in TTH') 
  1250 FORMAT    ( '   at TTHmin               : ',3(f10.5,2x)) 
@@ -556,6 +560,7 @@ CALL pow_conv_limits
  1500 FORMAT    ( '   Powder diffractometer   : ','none specified',     &
      &                   ' no Lorentz/Polarisation effect calculated')  
  1510 FORMAT    ( '   Powder diffractometer   : ','Bragg-Brentano',/    &
+     &                   '   Polarisation fraction   : ',f10.5,/        &
      &                   '   2-Theta Monochromator   : ',f10.5)         
  1520 FORMAT    ( '   Powder diffractometer   : ',                      &
      &                   'Neutron Debye-Scherrer')                      
@@ -938,18 +943,33 @@ err_para: IF (ier_num.eq.0) THEN
                      pow_v = werte (4) 
                      pow_w = werte (5) 
                   ENDIF 
-               ELSEIF (str_comp (cpara (2) , 'asym', 2, lpara (2) , 4) )&
-               THEN                                                     
+               ELSEIF(str_comp(cpara(2), 'asym', 2, lpara(2), 4)  &
+                      .AND.    lpara(2)<=4) THEN                                                     
                   cpara (1) = '0' 
                   lpara (1) = 1 
                   cpara (2) = '0' 
                   lpara (2) = 1 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.eq.0) THEN 
-                     pow_p1 = werte (3) 
-                     pow_p2 = werte (4) 
-                     pow_p3 = werte (5) 
-                     pow_p4 = werte (6) 
+                     pow_asym(:,1) = werte (3:6) 
+                  ENDIF 
+               ELSEIF(str_comp(cpara(2), 'asym_l', 2, lpara(2), 6)) THEN
+                  cpara (1) = '0' 
+                  lpara (1) = 1 
+                  cpara (2) = '0' 
+                  lpara (2) = 1 
+                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  IF (ier_num.eq.0) THEN 
+                     pow_asym(:,2) = werte (3:6) 
+                  ENDIF 
+               ELSEIF(str_comp(cpara(2), 'asym_q', 2, lpara(2), 6)) THEN
+                  cpara (1) = '0' 
+                  lpara (1) = 1 
+                  cpara (2) = '0' 
+                  lpara (2) = 1 
+                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  IF (ier_num.eq.0) THEN 
+                     pow_asym(:,3) = werte (3:6) 
                   ENDIF 
                ELSEIF (str_comp (cpara (2) , 'width', 2, lpara (2) , 5) &
                ) THEN                                                   
@@ -1067,18 +1087,20 @@ err_para: IF (ier_num.eq.0) THEN
 !                                                                       
          ELSEIF (str_comp (cpara (1) , 'lpcor', 1, lpara (1) , 5) ) THEN                                                           
             IF (ianz.ge.2) THEN 
-               IF (str_comp (cpara (2) , 'bragg', 4, lpara (2) , 5) )   &
-               THEN                                                     
+               IF(str_comp(cpara(2), 'bragg', 4, lpara(2), 5)) THEN
                   pow_lp = POW_LP_BRAGG 
                   CALL del_params (2, ianz, cpara, lpara, maxw) 
-                  IF (ianz.eq.1) THEN 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) THEN 
+                  IF(ianz == 1) THEN 
+                     CALL ber_params(ianz, cpara, lpara, werte, maxw) 
+                     IF(ier_num == 0) THEN 
                         pow_lp_ang = werte (1) 
-                        pow_lp_fac = (cosd (pow_lp_ang) ) **2 
+                        pow_lp_fac = (cosd(pow_lp_ang))**2 
                      ELSE 
                         RETURN 
                      ENDIF 
+                  ELSEIF(ianz == 0) THEN 
+                     pow_lp_fac = 0.5          ! Not polarised
+                     pow_lp_ang = 0.0
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
@@ -2511,10 +2533,7 @@ pow_eta_q      =  0.0
 pow_u          =  0.0
 pow_v          =  0.0
 pow_w          =  0.05
-pow_p1         =  0.0
-pow_p2         =  0.0
-pow_p3         =  0.0
-pow_p4         =  0.0
+pow_asym       =  0.0
 pow_width      = 20.0
 !
 pow_ka21       =  0.0
