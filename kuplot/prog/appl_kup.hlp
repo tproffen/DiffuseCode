@@ -97,6 +97,11 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2020_November
+
+   Added a further optional parameter "decimal" to the 'load csv' command.
+   This allows to read in data like "20.12" as well as "20,12" to give the 
+   same numerical value.
 3  2020 July
    Added a new color scheme "pdf" that gives white colors at 
    level zero, yellow to red colors for positive values and
@@ -1638,7 +1643,7 @@
 !  load csv,<file>
 !  load csv,<file>, skip:<nskip>, 
            colx:<icolx>, coly:<icoly>, coldx:<icoldx>, coldy:<icoldy>,
-           separator:<name> 
+           separator:<name> , decimal:<name>
 
    Reads a csv type file that has been extracted from PANAlytical
    powder data.  
@@ -1656,6 +1661,9 @@
               "comma"
               "tab"
               "space" Will take as separator a string of blank(s)
+   decimal: Character that separates the fractional part of numeric data
+            Defaults to a "period", as used in most English speaking areas
+              "comma" reads a numerical field "12,34" as 12.34
    If the error columns are omitted or set to zero no error data are read
 3  de
 !p load de,<file>,<gridx>,<gridy>
