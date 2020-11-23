@@ -130,7 +130,7 @@ REAL(KIND=PREC_DP) FUNCTION glp_pseud_indx(i, eta, fwhm)
 !
 IMPLICIT NONE
 !
-INTEGER           , INTENT(IN) :: i     ! Position, must be >= 0.0 is INT(x/fwhm)*GLP_NPT
+INTEGER           , INTENT(IN) :: i     ! Position, must be >= 0.0 is INT(x/fwhm*GLP_NPT)
 REAL(KIND=PREC_DP), INTENT(IN) :: eta   ! Mixing parameter
 REAL(KIND=PREC_DP), INTENT(IN) :: fwhm  ! FWHM,     must be >= 0.0D0
 !

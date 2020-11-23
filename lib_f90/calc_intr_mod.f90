@@ -267,10 +267,13 @@ REAL(KIND=PREC_DP), DIMENSION(MAXW)  :: wwerte
                   RETURN 
                ENDIF 
             ENDIF
-         ELSE 
+   ELSEIF (string (ikl - 5:ikl - 1) .eq.'psvgt') then 
+      CALL intr_psvgt(line, lp, ww)
+      CALL ersetz2 (string, ikl, iklz, ww, 5, lll) 
+   ELSE 
             CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
-         ENDIF 
-      ELSEIF (lcom.eq.4) then 
+   ENDIF 
+ELSEIF (lcom.eq.4) then 
          IF (string (ikl - 4:ikl - 1) .eq.'asin') then 
             IF (abs (ww) .le.1.0D0) then 
                ww = asin (ww) 
@@ -584,5 +587,139 @@ REAL(KIND=PREC_DP), DIMENSION(MAXW)  :: wwerte
 !                                                                       
       END SUBROUTINE calc_intr                      
 !
-!*****7**************************************************************** 
+!*****7************************************************************************* 
+!
+SUBROUTINE intr_psvgt(line, lp, ww)
+!-
+! Calculate a pseudovoigt function
+!+
+USE ber_params_mod
+USE element_data_mod
+USE errlist_mod
+USE get_params_mod
+USE lib_f90_profile
+USE precision_mod
+USE take_param_mod
+USE trig_degree_mod
+USE wink_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: lp
+REAL(KIND=PREC_DP), INTENT(OUT)   :: ww
+!
+INTEGER, PARAMETER :: MAXW = 30
+CHARACTER(LEN=MAX(PREC_STRING,LEN(LINE))), DIMENSION(MAXW) :: cpara
+INTEGER                                  , DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP)                       , DIMENSION(MAXW) :: werte
+INTEGER :: ianz          ! number of parameters
+REAL(KIND=PREC_DP)  :: xx
+REAL(KIND=PREC_DP)  :: P_eta
+REAL(KIND=PREC_DP)  :: P_inte
+REAL(KIND=PREC_DP)  :: P_pos
+REAL(KIND=PREC_DP)  :: P_fwhm
+REAL(KIND=PREC_DP)  :: P_asym1
+REAL(KIND=PREC_DP)  :: P_asym2
+REAL(KIND=PREC_DP)  :: itwo           ! Ratio Intensity Ka2/Ka1
+REAL(KIND=PREC_DP)  :: xw             ! Deviation from position 
+REAL(KIND=PREC_DP)  :: zz             ! Value for asymmetry function
+REAL(KIND=PREC_DP)  :: fa             ! Value for asymmetry function
+REAL(KIND=PREC_DP)  :: fb             ! Value for asymmetry function
+REAL(KIND=PREC_DP)  :: asym           ! Value for asymmetry function
+LOGICAL             :: axis           ! TRUE==TTH; FALSE=Q
+INTEGER             :: nwave          ! Entry in per_wavel
+CHARACTER  (LEN=4) :: symbol
+REAL               :: lambda1
+REAL               :: lambda2
+REAL               :: lam_1_2         ! Ratio lam(Ka1)/lam(Ka2)
+!
+INTEGER, PARAMETER :: NOPTIONAL = 3
+INTEGER, PARAMETER :: O_ITWO    = 1
+INTEGER, PARAMETER :: O_WAVE    = 2
+INTEGER, PARAMETER :: O_AXIS    = 3
+CHARACTER(LEN=   7)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate
+!
+!
+DATA oname  / 'itwo  ' , 'wave  '  ,  'axis   ' /
+DATA loname /  4       ,  4        ,   4      /
+!
+opara  =  (/ '0.500000', 'CU      ',  'tth     '/)   ! Always provide fresh default values
+lopara =  (/  8        ,  2        ,   3        /)
+owerte =  (/  0.500000 ,  1.541800 ,   0.000000 /)
+!
+CALL get_params (line, ianz, cpara, lpara, MAXW, lp) 
+IF(ier_num/=0) RETURN
+!
+IF(ianz>=5) THEN
+   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                     oname, loname, opara, lopara, lpresent, owerte)
+   IF(ier_num/=0) RETURN
+   CALL ber_params(ianz, cpara, lpara, werte, MAXW)
+   IF(ier_num/=0) RETURN
+!
+   xx      = werte(1)
+   P_eta   = werte(2)
+   P_inte  = werte(3)
+   P_pos   = werte(4)
+   P_fwhm  = werte(5)
+   P_asym1 = 0.0D0
+   P_asym2 = 0.0D0
+!
+   IF(ianz>5) P_asym1 = werte(6)
+   IF(ianz>6) P_asym2 = werte(7)
+   IF(opara(O_AXIS)=='tth') THEN
+      axis = .TRUE.
+   ELSEIF(opara(O_AXIS)=='Q') THEN
+      axis = .FALSE.
+   ELSE
+      ier_num = -6
+      ier_typ = ER_FORT
+      RETURN
+   ENDIF
+   nwave = get_wave_number(opara(O_WAVE))
+   IF(nwave>0) THEN                   ! Found wave length entry
+      CALL get_sym_length(nwave, symbol, lambda1)
+   ELSE
+      cpara(1) = opara(O_WAVE)
+      lpara(1) = lopara(O_WAVE)
+      ianz = 1
+      CALL ber_params(ianz, cpara, lpara, werte, MAXW)
+      IF(ier_num/=0) RETURN
+      lambda1 = werte(1)
+   ENDIF
+!
+   ww = pseudo_voigt(xx, P_eta, P_inte, P_pos, P_fwhm, P_asym1, P_asym2, axis)
+   IF(symbol(3:4)=='12') THEN            ! Kalpha 1,2 doublet
+      IF(lpresent(O_ITWO)) THEN          ! User supplied intensity ratios
+         itwo = owerte(O_ITWO)
+      ELSE
+         itwo = get_ka21_inte(nwave)  ! Look up default intensity ratio
+      ENDIF
+      P_inte = P_inte * itwo
+      lam_1_2 = get_ka12_len(nwave)
+      lambda2 = lambda1/lam_1_2
+      IF(axis) THEN                      ! 2Theta axis
+         P_pos = 2.0D0*ASIND(lambda2/2.0D0/(lambda1/2.0D0/SIND(0.5D0*P_pos)))
+      ELSE
+         P_pos = P_pos/lam_1_2
+      ENDIF
+!      P_inte = P_inte * get_ka21_inte(nwave)
+      ww = ww + pseudo_voigt(xx, P_eta, P_inte, P_pos, P_fwhm, P_asym1, P_asym2, axis)
+   ENDIF
+ELSE
+   ier_num = -6
+   ier_typ = ER_FORT
+ENDIF
+!
+END SUBROUTINE intr_psvgt
+!
+!*****7************************************************************************* 
+!
 !END MODULE calc_intr_mod
