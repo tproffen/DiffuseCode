@@ -77,6 +77,9 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2020_November
 
+   Added a linear and square (TTH/Q)-dependence of asymmetry parameters
+   to powder == 'set profile'
+ 
    Corrected a bug that prevented the execution of macros at sub-levels
 3  2020_October
 
@@ -4607,7 +4610,8 @@
 !p       "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
 !p       "pdf" [,"r" [,<min>,<max>,<step>] ] 
 !p     | "post" | "shel" | "stan" | "hklf4" | "list5" | "nexus" |
-!p       "vtk" | "mrc"}
+!p       "vtk" | "mrc"
+!p     | "hdf5" }
 
    Defines the output format that will be used. 
    Valid parameters are:
@@ -6301,6 +6305,8 @@
 !p set profile,"eta",<eta>
 !p set profile,"uvw",<u>,<v>,<w>
 !p set profile,"asym",<a1>,<b1>,<a2>,<b2>
+!p set profile,"asym_l",<a1_l>,<b1_l>,<a2_l>,<b2_l>
+!p set profile,"asym_q",<a1_q>,<b1_q>,<a2_q>,<b2_q>
 !p set profile,"width",<width>
 
    Defines the instrumental profile function. 
@@ -6329,6 +6335,12 @@
    "asym"
    The Asymmetry or the Pseudo-Voigt function is calculated according 
    to the definition as in Fullprof.
+
+   "asym_l"
+   Linear TTH/Q dependent varition of the asymmetry parameters
+
+   "asym_q"
+   Square TTH/Q dependent varition of the asymmetry parameters
 
    "width"
    Defines the width in multiples of the FWHM, over which the profile
