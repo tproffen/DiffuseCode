@@ -1594,6 +1594,13 @@ END SUBROUTINE alloc_demol
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mmc_size_of = mmc_size_of + size_of
 !
+      CALL alloc_arr ( mmc_pneig       ,0,n_scat , &
+                                        0,n_scat , &
+                                        1,n_corr , &
+                                      all_status, 0    , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mmc_size_of = mmc_size_of + size_of
+!
       CALL alloc_arr ( mmc_cor_energy  ,0,n_corr ,  &
                                         0,n_ener ,  &
                                       all_status,.false., size_of)
