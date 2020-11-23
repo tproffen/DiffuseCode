@@ -799,6 +799,21 @@
 !p pois(<arg>)                     ! Returns Poisson  distributed pseudo
 !p                                   random value with mean <arg>.
 
+!p psvgt(<x>,<eta>,<integral>, <pos>, <FWHM> [, <asym_1>, <asym_2>]
+!p       ,wave:<symbol>, itwo:<Int2/int1>  )
+!p                                   Returns a Pseudo-Voigt function
+!p                                   eta * lorentzian + (1-eta) * gaussian
+!p                                   with integral intensity <integral>
+!p                                   at position <pos> and FWHM
+!p                                   Two optional asymmetry parameters allow 
+!p                                   to calculate an asymmetric profile shape.
+!p                                   at asym=0 a symmetric profile results.
+!p                                   The combination of "wave" and "itwo"
+!p                                   will generate a doublet like Copper
+!p                                   Kalpha1,2. Allowed wave length are
+!p                                   same as for DISCUS powder / Fourier 
+!p                                   calculations.
+
    The arguments to any of these functions are any arithmetic expression.
 
    System functions:
