@@ -467,7 +467,7 @@ USE support_mod
 !                                                                       
 INTEGER ifiles
 !
-INTEGER, PARAMETER :: NOPTIONAL = 7
+INTEGER, PARAMETER :: NOPTIONAL = 8
 !INTEGER, PARAMETER :: O_SKIP      = 1
 !INTEGER, PARAMETER :: O_COLX      = 2
 !INTEGER, PARAMETER :: O_COLY      = 3
@@ -475,6 +475,7 @@ INTEGER, PARAMETER :: NOPTIONAL = 7
 !INTEGER, PARAMETER :: O_COLDY     = 5
 INTEGER, PARAMETER :: O_LAYER     = 6
 !INTEGER, PARAMETER :: O_SEPARATOR = 7
+!INTEGER, PARAMETER :: O_DECIMAL   = 8
 CHARACTER(LEN=          9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -483,11 +484,11 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate 
 !
-DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'layer', 'separator'  /
-DATA loname /  4    ,  4    ,   4    ,   5     ,  5     ,  5     ,  9           /
-opara  =  (/ '25.000', '1.0000', '2.0000', '0.0000', '0.0000', 'middle', ';     ' /)   ! Always provide fresh default values
-lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,  6       /)
-owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,  0.0     /)
+DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'layer', 'separator', 'decimal'  /
+DATA loname /  4    ,  4    ,   4    ,   5     ,  5     ,  5     ,  9         ,  7  /
+opara  =  (/ '25.000', '1.0000', '2.0000', '0.0000', '0.0000', 'middle', ';     ', 'period' /)   ! Always provide fresh default values
+lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,  6      ,  6   /)
+owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,  0.0    ,  0.0 /)
 !
 !
 !                                                                       
@@ -3444,6 +3445,7 @@ INTEGER, PARAMETER :: O_COLDX     = 4
 INTEGER, PARAMETER :: O_COLDY     = 5
 !INTEGER, PARAMETER :: O_LAYER     = 5
 INTEGER, PARAMETER :: O_SEPARATOR = 7
+INTEGER, PARAMETER :: O_DECIMAL   = 8
 INTEGER                                   , INTENT(IN   ) :: MAXW
 INTEGER                                   , INTENT(INOUT) :: ianz
 CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW)     , INTENT(INOUT) :: cpara
@@ -3546,6 +3548,11 @@ body: DO
       ENDIF
    ENDDO
 !
+   IF(opara(O_DECIMAL)=='comma') THEN
+      DO i=1, length
+         IF(line(i:i)==',') line(i:i)= '.'
+      ENDDO
+   ENDIF
 !  Check if we have something like ...;;... for a required column If so quit reading
    IF(limits(2,icolx)-limits(1,icolx)<0) EXIT body   ! Width is zero 
    IF(limits(2,icoly)-limits(1,icoly)<0) EXIT body   ! Width is zero 
