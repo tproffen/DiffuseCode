@@ -62,6 +62,9 @@ ELSEIF(str_comp (cpara(1), 'relax', 3, lpara(1), 5) ) THEN
 !        refine_lamda_d  = werte(4)
 !     ENDIF
 !  ENDIF
+ELSE
+   ier_num = -8
+   ier_typ = ER_COMM
 ENDIF
 !
 END SUBROUTINE refine_set

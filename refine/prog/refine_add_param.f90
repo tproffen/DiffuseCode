@@ -78,6 +78,7 @@ lopara =  (/  8        ,  8        ,  8        ,  8        ,   8        /)
 owerte =  (/  0.00500  ,  3.0      ,  -1.0     ,  0.0      ,   0.0      /)
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
+IF(ier_num/=0) RETURN
 !
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
