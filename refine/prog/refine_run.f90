@@ -848,7 +848,7 @@ cycles:DO
 !write(*,*) ' data_sigma', data_sigma(1,1), data_sigma(data_dim(1),data_dim(2)), MINVAL(data_sigma), MAXVAL(data_sigma)
    CALL mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, p, NPARA, &
                par_names, prange, p_shift, p_nderiv, kupl_last, cl, alpha, beta, chisq, alamda,     &
-               lamda_s, lamda_d, lamda_u, lsuccess, dp)
+               lamda_s, lamda_d, lamda_u, lsuccess, dp, rval, rexp)
 !
    IF(lsuccess) THEN
       IF(ref_do_plot) THEN
@@ -857,7 +857,9 @@ cycles:DO
    ENDIF
 !
    IF(ier_num/=0) EXIT cycles
-   IF(lsuccess .OR. rval == 0.0) CALL refine_rvalue(rval, rexp, NPARA)
+   IF(lsuccess) THEN ! .OR. rval == 0.0) THEN
+      CALL refine_rvalue(rval, rexp, NPARA)
+   ENDIF
    last_shift(:) = -1.0                                             ! Set parameter shift / sigma to negative
    DO k=1, NPARA
       CALL refine_set_param(NPARA, par_names(k), k, p(k))   ! Updata parameters
@@ -927,7 +929,7 @@ IF(ier_num==0) THEN
 !
    CALL mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, p, NPARA, &
                par_names, prange, p_shift, p_nderiv, kupl_last, cl, alpha, beta, chisq, alamda,     &
-               lamda_s, lamda_d, lamda_u, lsuccess, dp)
+               lamda_s, lamda_d, lamda_u, lsuccess, dp, rval, rexp)
    CALL refine_rvalue(rval, rexp, NPARA)
 !   DO k = 1, NPARA
 !      dp(k) = SQRT(ABS(cl(k,k)))
@@ -948,7 +950,7 @@ END SUBROUTINE refine_mrq
 SUBROUTINE mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, a, NPARA, &
     par_names, &
     prange, p_shift, p_nderiv, kupl_last, covar, alpha, beta, chisq, alamda, lamda_s, lamda_d, lamda_u, &
-    lsuccess, dp)
+    lsuccess, dp, rval, rexp)
 !
 !  Least squares routine adapted from Numerical Recipes Chapter 14
 !  p 526
@@ -982,6 +984,8 @@ REAL                                                , INTENT(IN)    :: lamda_d  
 REAL                                                , INTENT(IN)    :: lamda_u    ! Multiplier_up
 LOGICAL                                             , INTENT(OUT)   :: lsuccess   ! True if improved
 REAL            , DIMENSION(MAXP)                   , INTENT(OUT)   :: dp          ! Parameter sigmas
+REAL                                                , INTENT(OUT)   :: rval        ! Initial Rvalue
+REAL                                                , INTENT(OUT)   :: rexp        ! Initial expected Rvalue
 !
 INTEGER                         :: j     = 0
 INTEGER                         :: k     = 0
@@ -1002,6 +1006,7 @@ IF(alamda < 0) THEN                   ! Initialization
    IF(ier_num/=0) THEN
       RETURN
    ENDIF
+   CALL refine_rvalue(rval, rexp, NPARA)          ! Call initial R-value
    ochisq = chisq
    DO j=1, NPARA
       IF(prange(j,1)<=prange(j,2)) THEN
@@ -1080,7 +1085,7 @@ IF(chisq < ochisq) THEN            ! Success, accept solution
          alpha(j,k) = covar(j,k)
       ENDDO
       beta(j) = da(j)
-      a(     (j)) = atry(     (j))
+      a(     (j)) = atry(     (j)) ! Adjust parameter values to trial ones
    ENDDO
    lsuccess = .TRUE.
 ELSE                               ! Failure, reject, keep old params and 
