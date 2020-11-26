@@ -225,7 +225,7 @@ IMPLICIT none
 !------ Update Discus
 !
       ELSEIF (str_comp (bef, 'update', 3, lbef, 6) ) THEN 
-         CALL lib_f90_update_discus
+         CALL lib_f90_update_discus(zei, lc)
 !                                                                       
 !------ definition of variables                                         
 !                                                                       

@@ -1073,20 +1073,28 @@ END SUBROUTINE lib_f90_update_ubuntu
 !
 !*******************************************************************************
 !
-SUBROUTINE lib_f90_update_discus
+SUBROUTINE lib_f90_update_discus(zeile, lp)
 !
 USE envir_mod
 USE errlist_mod
+USE get_params_mod
 USE precision_mod
 USE prompt_mod
 USE support_mod
+USE take_param_mod
 !
 IMPLICIT NONE
 !
+CHARACTER(LEN=*), INTENT(INOUT) :: zeile
+INTEGER         , INTENT(INOUT) :: lp
+!
 INTEGER, PARAMETER :: IRD = 69
+INTEGER, PARAMETER :: MAXW = 2
 CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: cdir              ! previous current directory
+CHARACTER(LEN=PREC_STRING) :: code_str          ! optional "code=" string
+CHARACTER(LEN=PREC_STRING) :: inst_str          ! optional "install=" string
 CHARACTER(LEN=128)          :: discus_version
 CHARACTER(LEN=128)         :: discus_power
 CHARACTER(LEN= 9)          :: grep
@@ -1096,6 +1104,64 @@ CHARACTER(LEN=PREC_STRING) :: command
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
 INTEGER             :: length
+!
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+INTEGER           , DIMENSION(MAXW) :: lpara
+INTEGER                             :: ianz
+INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: O_CODE    = 1
+INTEGER, PARAMETER :: O_INSTALL = 2
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+DATA oname  / 'code', 'install'/
+DATA loname /  4    ,  7   /
+opara  =  (/ 'pre  ', 'fetch' /)   ! Always provide fresh default values
+lopara =  (/  3,       5        /)
+owerte =  (/  0.0,     0.0      /)
+!
+!                                                                       
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp)
+IF (ier_num.ne.0) RETURN
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+code_str = 'code=PRE'
+inst_str = 'install=FETCH'
+IF(opara(O_CODE) == 'pre') THEN
+   code_str = 'code=PRE'
+ELSEIF(opara(O_CODE) == 'git') THEN
+   code_str = 'code=GITHUB'
+ELSEIF(opara(O_CODE) == 'current') THEN
+   code_str = 'code=CURRENT'
+ELSEIF(opara(O_CODE)(lopara(O_CODE)-5:lopara(O_CODE)) == 'tar.gz') THEN
+   inst_str = 'code=' // opara(O_CODE)(1:lopara(O_CODE))
+ELSE
+   ier_num = -6
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Optional parameter ''code'' must be ''pre'', ''git'' '
+   ier_msg(2) = '  ''current'' or a file ending in tar.gz'
+   RETURN
+ENDIF
+IF(opara(O_INSTALL) == 'fetch') THEN
+   inst_str = 'install=FETCH'
+ELSEIF(opara(O_INSTALL) == 'local') THEN
+   inst_str = 'install=LOCAL'
+ELSEIF(opara(O_INSTALL)(lopara(O_INSTALL)-5:lopara(O_INSTALL)) == 'tar.gz') THEN
+   inst_str = 'install=' // opara(O_INSTALL)(1:lopara(O_INSTALL))
+ELSE
+   ier_num = -6
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Optional parameter ''install'' must be ''fetch'' or ''local'' '
+   ier_msg(2) = 'or a file ending in tar.gz'
+   RETURN
+ENDIF
 !
 discus_power  ='/tmp/DISCUS_POWER'
 WRITE(discus_version,'(a,a)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_VERSION' ! Initiate search for new version
@@ -1117,7 +1183,10 @@ IF(operating == OS_LINUX) THEN
    command = terminal_emu(1:LEN_TRIM(terminal_emu)) // ' '// &
              terminal_exe(1:LEN_TRIM(terminal_exe)) // ' '// &
              terminal_wrp(1:LEN_TRIM(terminal_wrp)) // ' '// &
-             ' $HOME/' // script(1:LEN_TRIM(script)) // ' started=native '
+             ' $HOME/' // script(1:LEN_TRIM(script)) //      &
+             ' started=native ' //                           &
+             code_str(1:LEN_TRIM(code_str)) //               &
+             inst_str(1:LEN_TRIM(inst_str))
 ELSEIF(operating == OS_LINUX_WSL) THEN
    grep    = 'grep -Poe'
    script  = 'bbb_install_suite_Windows10_WSL.ps1'
@@ -1144,7 +1213,10 @@ ELSEIF(operating == OS_MACOSX) THEN
 !            terminal_exe(1:LEN_TRIM(terminal_exe)) // ' '// &
 !            terminal_wrp(1:LEN_TRIM(terminal_wrp)) // ' '// &
    command = 'open -b com.apple.terminal ' //                &
-             ' $HOME/' // script(1:LEN_TRIM(script)) // ' started=native '
+             ' $HOME/' // script(1:LEN_TRIM(script)) //      &
+             ' started=native ' //                           &
+             code_str(1:LEN_TRIM(code_str)) //               &
+             inst_str(1:LEN_TRIM(inst_str))
 ENDIF
 !
 ! Get latest DISCUS Version
