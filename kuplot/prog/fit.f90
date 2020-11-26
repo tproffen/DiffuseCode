@@ -3547,6 +3547,9 @@ REAL             , DIMENSION(:)  , ALLOCATABLE :: data_y       ! y-coordinates(f
 REAL             , DIMENSION(:,:), ALLOCATABLE :: data_calc    ! The calculated data
 
 END MODULE kuplot_fit_basic
+MODULE kuplot_fit_support
+REAL             , DIMENSION(:,:), ALLOCATABLE :: data_data2   ! The data for Background Polynomial
+END MODULE kuplot_fit_support
 !
 !*******************************************************************************
 !
@@ -4793,6 +4796,7 @@ USE kuplot_config
 USE kuplot_mod 
 USE kuplot_fit_para
 USE kuplot_fit_basic     ! The basic arrays for calls to kuplot_theory
+USE kuplot_fit_support
 !                                                                       
 USE lib_errlist_func
 IMPLICIT none 
@@ -4877,6 +4881,12 @@ ELSE                                              ! xY data
 !     ENDIF
    ENDDO
    data_y(1:data_dim(2)) = 1.0                       ! Set dummy y
+   IF(ftyp(1:2) == 'BA') THEN      ! Fit background polynomial
+      ALLOCATE(data_data2(  data_dim(1), data_dim(2)))   ! Allocate DATA  at proper dimensions
+   DO i=1, data_dim(1)
+      data_data2(i, 1) = y(offxy(ikfit2-1) + i)
+   ENDDO
+   ENDIF
 ENDIF
 
 !conv_dp_sig   = 0.005
@@ -5009,6 +5019,7 @@ CALL do_fit_info (output_io, .false., .false., .true.)
 !
 DEALLOCATE(data_calc)
 DEALLOCATE(data_data)
+IF(ALLOCATED(data_data2)) DEALLOCATE(data_data2)
 DEALLOCATE(data_sigma)
 DEALLOCATE(data_x)
 DEALLOCATE(data_y)
@@ -7323,6 +7334,7 @@ SUBROUTINE theory_backpoly(MAXP, ix, iy, xx, yy, NPARA, params, par_names,      
 ! Calculate a background polynomial function
 ! ymod = SUM p[i]*xx^ind
 !
+USE kuplot_fit_support
 IMPLICIT NONE
 !
 INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
@@ -7370,7 +7382,7 @@ ENDDO
 !     arg = (xx - xmin (idata) ) 
 arg = (xx-data_x(1))
 !                                                                       
-ymod = params(1) * data_data(ix,iy)
+ymod = params(1) * data_data2(ix,iy)
 IF (npara >= 2) THEN 
    ymod = ymod + params(2) 
 ENDIF 
