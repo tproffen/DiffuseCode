@@ -30,6 +30,9 @@
    data are written directly into the next available KUPLOT 
    data set. This is available for Fourier output, powder, pdf.
 2  News
+3  2020_November
+
+   Added options to the 'update' command
 3  2020_October
 
    As of version 6.02.00 the DISCUS_SUITE is compiled with 
@@ -184,3 +187,24 @@
    programs discus, kuplot, diffev, mixscat all have specific parameters
    to the show command as well, see the help at the main program level
    for details of the 'show' command: "help Command_language".
+2  update
+!p update {"install=fetch" | "install=local" | "install="<archive.tar.gz>}
+!p        {,"code=pre" | "code=git" | "code=current" |
+!p          "code="<archive.tar.gz>}
+
+   This command updates the DISCUS_SUITE.
+
+   Without the optional parameters, the suite will download the 
+   installer ("install=fetch") and use a precompiled code
+   ("code=pre") if available for the current operating system. 
+
+   The options allow you to:
+   "install=local"   Use the installer in the current directory 
+                     $HOME/DIFFUSE_INSTALL
+   "install="<archive.tar.gz>  Unpack the archive, expecting a
+                     directory called DIFFUSE_INSTALL
+
+   "code=git"        Use the code from the current release at GIThub, compile
+   "code=current"    Use the current source code in 
+                     $HOME/DIFFUSE_INSTALL/develop and compile
+   "code="<archive.tar.gz> Use the source code in the archive
