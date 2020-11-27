@@ -144,12 +144,28 @@
    Gaussian distributed random number. The underlying distribution
    can be set to be is left or right skewed.
 3  Options
-!p program [-debug] [-remote] [-port=p] [-access=ip] [macro.mac]
-!p program -macro <macro.mac>[ <par1> [ <par2> ...]]
+!p program [-noautorun] [-debug] [-remote] [-port=p] [-access=ip] [macro.mac]
+!p program [-noautorun] -macro <macro.mac>[ <par1> [ <par2> ...]]
 
-   All programs allow the following command line parameters. The flag
-   "-debug" starts the program in debug mode. This is the same as using
-   the command "set debug,on". The switch "-remote" starts the program
+   If run on operating system Linux or MacOS, the DISCUS_SUITE 
+   allows the following command line parameters.
+
+   As of version 6.03 and later, DISCUS_SUITE will look for a macro file
+   "autorun.mac". If found, this is run first. Afterwards all other 
+   options are set and user supplied macros will be executed. 
+   If you do not want the macro "autorun.mac" to be run, start the suite
+   with the command line option "-noautorun". This option is compatible
+   with the "-macro" option.
+   As the Windos icon does not allow you to use optional parameters, 
+   the execution of "autorun.mac" is always turned on. At the moment that 
+   DISCUS_SUITE looks for the "autorun.mac" file, we are at the folder
+   "C:\Users\yourr_account_name", i.e. one level above "Documents".
+   To use "autorun.mac" you need to place the macro into this folder. 
+   To turn off its use, remove or rename the file.
+
+   The flag "-debug" starts the program in debug mode. 
+   This is the same as using the command "set debug,on". 
+   The switch "-remote" starts the program
    in remote control mode. In this case the commands are send to the
    program through a socket. In this case the switch "-port' allows one
    to specify the port, the program will be listening on. Port numbers
