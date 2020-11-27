@@ -10,6 +10,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 USE prompt_mod 
 USE debug_mod 
+USE envir_mod
 USE errlist_mod 
 USE lib_length
 USE lib_macro_func
@@ -25,9 +26,46 @@ INTEGER, PARAMETER :: marg = 20
 CHARACTER(LEN=PREC_STRING), DIMENSION(MARG) :: arg ! (marg) 
 CHARACTER(LEN=2048)                  :: line = ' '
 CHARACTER(LEN=40)                    :: str 
-INTEGER :: iarg, i, ilen , ilena
+INTEGER :: iarg, i, j,  ilen , ilena
+LOGICAL :: lexist, lautorun
+!
+IF(start_dir(1:5)=='/mnt/') THEN 
+   line = 'autorun.mac'
+   ilen = LEN_TRIM(line)
+   INQUIRE(FILE=line(1:ilen), EXIST=lexist)
+   IF(lexist) THEN
+      CALL file_kdo(line(1:ilen), ilen) ! Execute macro and return to normal prompt
+   ENDIF
+   RETURN    ! Ignore all command line args at WINDOWS 
+ENDIF
+!
+lautorun = .TRUE.                ! Assume to run macro: "autorun.mac"
 !                                                                       
 CALL do_getargs (iarg, arg, marg) 
+!
+IF(iarg>0) THEN                  ! First test for "-noautorun"
+   is_noauto: DO i=1, iarg
+      IF(INDEX(arg(i), '-noautorun') > 0) THEN
+         lautorun = .FALSE.      ! Turn off execution of autorun macro
+         arg(i) = ' '            ! Clear current argument
+         DO j=i+1,iarg           ! Shift down remaining arguments
+            arg(j-1) = arg(j)
+         ENDDO
+         EXIT is_noauto
+      ENDIF
+   ENDDO is_noauto
+   IF(.NOT.lautorun) iarg = iarg - 1   ! We deleted one argument, reduce total number
+ENDIF
+!
+IF(lautorun) THEN
+   line = 'autorun.mac'
+   ilen = LEN_TRIM(line)
+   INQUIRE(FILE=line(1:ilen), EXIST=lexist)
+   IF(lexist) THEN
+      CALL file_kdo(line(1:ilen), ilen) ! Execute macro and return to normal prompt
+   ENDIF
+ENDIF
+!
 IF (iarg.gt.0) THEN 
    IF (index (arg (1) , '-macro') .ne. 0) THEN ! execute a macro with optional parameters
       IF (iarg.gt.1) THEN 
