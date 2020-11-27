@@ -885,6 +885,10 @@ CHARACTER(LEN=PREC_STRING) :: temp_file      ! temporary file
 INTEGER             :: ios            ! I/O status 
 INTEGER             :: islash         ! I/O status 
 !
+IF(tpid == 0) THEN
+  tpname = 'NULL'
+  RETURN
+ENDIF
 !  Make a temp_file to write the system(ps) into
 WRITE(temp_file, '(a,I10.10)') '/tmp/getpname.', cpid
 !
@@ -909,6 +913,9 @@ IF(operating==OS_WINDOWS .OR. operating==OS_CYGWIN64 .OR. operating==OS_CYGWIN32
    READ(tpname(islash+1:),'(a)', IOSTAT=ios) tpname
 ELSE
    READ(ITMP,'(a)', IOSTAT=ios) tpname
+   IF(IS_IOSTAT_END(ios)) THEN
+      tpname = 'NULL'
+   ENDIF
 ENDIF
 CLOSE(ITMP)
 line = 'rm -f ' // temp_file(1:len_trim(temp_file))
