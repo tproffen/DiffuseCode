@@ -43,13 +43,20 @@ IMPLICIT NONE
       CALL angle(angle_vh, inc(2), inc(1), ver, hor,        &
                  length(2), length(1), extr_ord, extr_abs,  &
                  ratio_vh, aver_vh)
-      IF(ltop .AND. inc(3)>1) THEN
+      IF(ltop .AND. inc(3)>1 .AND.length(3)>0.0) THEN
          CALL angle(angle_ht, inc(3), inc(1), hor, top,        &
                     length(1), length(3), extr_abs, extr_top,  &
                     ratio_ht, aver_ht)
          CALL angle(angle_tv, inc(3), inc(2), top, ver,        &
                     length(3), length(2), extr_top, extr_ord,  &
                     ratio_tv, aver_tv)
+      ELSE
+         angle_ht = 90.0
+         ratio_ht = 1.0
+         aver_ht  = 1.0
+         angle_tv = 90.0
+         ratio_tv = 1.0
+         aver_tv  = 1.0
       ENDIF
    END SUBROUTINE four_angles
 !
