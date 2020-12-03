@@ -622,11 +622,11 @@ REAL(KIND=PREC_DP)  :: P_fwhm
 REAL(KIND=PREC_DP)  :: P_asym1
 REAL(KIND=PREC_DP)  :: P_asym2
 REAL(KIND=PREC_DP)  :: itwo           ! Ratio Intensity Ka2/Ka1
-REAL(KIND=PREC_DP)  :: xw             ! Deviation from position 
-REAL(KIND=PREC_DP)  :: zz             ! Value for asymmetry function
-REAL(KIND=PREC_DP)  :: fa             ! Value for asymmetry function
-REAL(KIND=PREC_DP)  :: fb             ! Value for asymmetry function
-REAL(KIND=PREC_DP)  :: asym           ! Value for asymmetry function
+!REAL(KIND=PREC_DP)  :: xw             ! Deviation from position 
+!REAL(KIND=PREC_DP)  :: zz             ! Value for asymmetry function
+!REAL(KIND=PREC_DP)  :: fa             ! Value for asymmetry function
+!REAL(KIND=PREC_DP)  :: fb             ! Value for asymmetry function
+!REAL(KIND=PREC_DP)  :: asym           ! Value for asymmetry function
 LOGICAL             :: axis           ! TRUE==TTH; FALSE=Q
 INTEGER             :: nwave          ! Entry in per_wavel
 CHARACTER  (LEN=4) :: symbol

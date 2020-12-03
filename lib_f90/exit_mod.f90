@@ -21,7 +21,7 @@ IMPLICIT none
 !
 CHARACTER(LEN=PREC_STRING) :: tempfile   ! jmol script files to remove
 CHARACTER(LEN=PREC_STRING) :: line       ! temporary string
-INTEGER             :: socket_send
+!INTEGER             :: socket_send
 LOGICAL             :: lpresent
 INTEGER           :: old_version
 INTEGER           :: new_version
@@ -65,15 +65,15 @@ ENDIF
 !                                                                       
 !------ Close sockets                                                   
 !                                                                       
-IF (lremote) THEN 
-   ier_num =  socket_send (s_remote, 'bye', 3) 
-   CALL socket_close (s_remote) 
-ENDIF 
+!IF (lremote) THEN 
+!   ier_num =  socket_send (s_remote, 'bye', 3) 
+!   CALL socket_close (s_remote) 
+!ENDIF 
 !                                                                       
-IF (lsocket) THEN 
-   CALL socket_close (s_conid) 
-   CALL socket_close (s_sock) 
-ENDIF 
+!IF (lsocket) THEN 
+!   CALL socket_close (s_conid) 
+!   CALL socket_close (s_sock) 
+!ENDIF 
 !
 !       For library procedure style set setup_done to false
 !

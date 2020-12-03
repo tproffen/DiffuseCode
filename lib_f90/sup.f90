@@ -44,16 +44,15 @@ CHARACTER (LEN=*), INTENT(IN )   :: prom
 CHARACTER(LEN=PREC_STRING)       :: input
 CHARACTER(LEN=PREC_STRING)       :: as_typed
 CHARACTER(60) bprom 
-CHARACTER(10) cready 
 INTEGER lbef, indxb 
-INTEGER il, jl, lcready 
+INTEGER il, jl
 INTEGER :: lt
 LOGICAL lreg 
 LOGICAL :: ldone
 !                                                                       
-INTEGER socket_accept 
-INTEGER socket_get 
-INTEGER socket_send 
+!INTEGER socket_accept 
+!INTEGER socket_get 
+!INTEGER socket_send 
 !                                                                       
 ldone = .FALSE.      ! Learn has not yet been written
 input  = ' ' 
@@ -76,42 +75,42 @@ IF (lblock) THEN
          CALL macro_read (input, ll) 
          IF (ier_num.ne.0) RETURN 
 !                                                                       
-      ELSEIF (lsocket) THEN 
-!                                                                       
-!------ -- Here we get commands via a SOCKET for remote control         
-!------ -- Send ready message first                                     
-!                                                                       
-         IF (.not.lconn) THEN 
-            il = len_str (s_ipallowed) 
-            ier_num = socket_accept (s_sock, s_conid, s_ipallowed, il,       &
-            s_port)                                                     
-            IF(ier_num < 0) THEN
-               ier_typ = ER_IO
-               STOP
-            ENDIF 
-            lconn = .true. 
-         ENDIF 
-         cready = 'ready' 
-         lcready = len_str (cready) 
-         ier_num = socket_send (s_conid, cready, lcready) 
-         IF(ier_num < 0) THEN
-            ier_num = -19
-            RETURN
-         ELSE
-            ier_num = 0
-         ENDIF
-         first_input = .false. 
-         ier_num = socket_get (s_conid, input, ll) 
-         IF(ier_num == -21 ) THEN
-            input = 'exit'
-            ll    = 4
-            ier_num = 0
-            ier_typ = ER_NONE 
-         ELSEIF(ier_num /=  0 ) THEN
-            ier_typ = ER_IO
-            lremote = .false. 
-            RETURN
-         ENDIF
+!      ELSEIF (lsocket) THEN 
+!!                                                                       
+!!------ -- Here we get commands via a SOCKET for remote control         
+!!------ -- Send ready message first                                     
+!!                                                                       
+!         IF (.not.lconn) THEN 
+!            il = len_str (s_ipallowed) 
+!            ier_num = socket_accept (s_sock, s_conid, s_ipallowed, il,       &
+!            s_port)                                                     
+!            IF(ier_num < 0) THEN
+!               ier_typ = ER_IO
+!               STOP
+!            ENDIF 
+!            lconn = .true. 
+!         ENDIF 
+!         cready = 'ready' 
+!         lcready = len_str (cready) 
+!         ier_num = socket_send (s_conid, cready, lcready) 
+!         IF(ier_num < 0) THEN
+!            ier_num = -19
+!            RETURN
+!         ELSE
+!            ier_num = 0
+!         ENDIF
+!         first_input = .false. 
+!         ier_num = socket_get (s_conid, input, ll) 
+!         IF(ier_num == -21 ) THEN
+!            input = 'exit'
+!            ll    = 4
+!            ier_num = 0
+!            ier_typ = ER_NONE 
+!         ELSEIF(ier_num /=  0 ) THEN
+!            ier_typ = ER_IO
+!            lremote = .false. 
+!            RETURN
+!         ENDIF
       ELSE 
         ier_ctrlc = .FALSE.
         ier_rep   = .FALSE.

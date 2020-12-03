@@ -34,10 +34,10 @@ USE precision_mod
    INTEGER              :: output_status_old = OUTPUT_SCREEN
    INTEGER              :: output_io
    INTEGER              :: error_io
-   INTEGER              :: socket_status     = OUTPUT_SCREEN
-   INTEGER              :: socket_status_old = OUTPUT_SCREEN
+!   INTEGER              :: socket_status     = OUTPUT_SCREEN
+!   INTEGER              :: socket_status_old = OUTPUT_SCREEN
    LOGICAL              :: first_input
-   LOGICAL              :: lsocket           = .false.
+!   LOGICAL              :: lsocket           = .false.
    LOGICAL              :: lconn             = .false.
    LOGICAL              :: lremote           = .false.
    LOGICAL              :: lsetup_done       = .false.

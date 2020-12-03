@@ -29,7 +29,7 @@ USE lib_help
 USE lib_macro_func
 USE precision_mod
 USE prompt_mod 
-USE sockets_mod
+!USE sockets_mod
 USE random_state_mod
 USE str_comp_mod
 USE support_mod
@@ -78,9 +78,9 @@ IMPLICIT none
 !                                                                       
 !------ IO commands                                                     
 !                                                                       
-      ELSEIF (str_comp (bef, 'bye', 2, lbef, 3) .and.lconn) THEN 
-         CALL socket_close (s_conid) 
-         lconn = .false. 
+!      ELSEIF (str_comp (bef, 'bye', 2, lbef, 3) .and.lconn) THEN 
+!         CALL socket_close (s_conid) 
+!         lconn = .false. 
 !                                                                       
       ELSEIF (str_comp (bef, 'fopen', 2, lbef, 5) ) THEN 
          CALL do_fopen (zei, lc) 
@@ -197,8 +197,8 @@ IMPLICIT none
 !                                                                       
 !------ Handling a scocket connection                                   
 !                                                                       
-      ELSEIF (str_comp (bef, 'socket', 3, lbef, 6) ) THEN 
-         CALL do_socket (zei, lc) 
+!      ELSEIF (str_comp (bef, 'socket', 3, lbef, 6) ) THEN 
+!         CALL do_socket (zei, lc) 
 !                                                                       
 !------ Operating System Kommandos 'syst'                               
 !                                                                       

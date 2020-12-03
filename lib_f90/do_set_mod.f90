@@ -89,15 +89,15 @@ IF (zeile.ne.' ') THEN
 !                                                                       
             IF(str_comp(cpara(2), 'on', 2, lpara(2) , 2)) THEN
                prompt_status = PROMPT_ON 
-               socket_status = PROMPT_ON 
+!               socket_status = PROMPT_ON 
 !                                                                       
             ELSEIF(str_comp(cpara(2), 'off', 2, lpara(2), 2)) THEN
                prompt_status = PROMPT_OFF 
-               socket_status = PROMPT_OFF 
+!               socket_status = PROMPT_OFF 
 !                                                                       
             ELSEIF(str_comp(cpara(2), 'redirect', 1, lpara(2), 8)) THEN
                prompt_status = PROMPT_REDIRECT 
-               socket_status = PROMPT_REDIRECT 
+!               socket_status = PROMPT_REDIRECT 
 !                                                                       
             ELSEIF(str_comp(cpara(2), 'old', 1, lpara(2), 3)) THEN
                IF (output_status.ne.OUTPUT_SCREEN) THEN 
@@ -105,7 +105,7 @@ IF (zeile.ne.' ') THEN
                ENDIF 
                output_status = output_status_old 
                prompt_status = prompt_status_old 
-               socket_status = socket_status_old 
+!               socket_status = socket_status_old 
                IF (output_status.eq.OUTPUT_SCREEN) THEN 
                   output_io = 6 
                ELSEIF (output_status.eq.OUTPUT_NONE) THEN 

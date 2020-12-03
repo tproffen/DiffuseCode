@@ -55,7 +55,7 @@ DO i = 1, MAC_MAX_FORM
    io_out_format (i) = '(*)' 
 ENDDO 
 !                                                                       
-lsocket = .false. 
+!lsocket = .false. 
 lremote = .false. 
 lconn = .false. 
 !                                                                       

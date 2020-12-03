@@ -25,11 +25,11 @@ USE precision_mod
       CHARACTER(LEN=MAX(PREC_STRING, LEN(zeile))) :: cstr 
       INTEGER lpara (maxp) 
       INTEGER ianz 
-      INTEGER lp, i, il 
+      INTEGER lp, i
       INTEGER iko, iqo, iqo2, lstring 
       REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
 !                                                                       
-      INTEGER socket_send 
+!      INTEGER socket_send 
 !                                                                       
 !     Find any "" which would mean that we need parameter substitution  
 !                                                                       
@@ -40,16 +40,16 @@ USE precision_mod
 !                                                                       
          WRITE (output_io, 2010) zeile (1:lp) 
          WRITE (cstr, 2010) zeile (1:lp) 
-         IF (lconn.and.lsocket) THEN 
-            il = len_str (cstr) 
-            ier_num = socket_send (s_conid, cstr, il) 
-            IF(ier_num < 0) THEN
-               ier_num = -19
-               RETURN
-            ELSE
-               ier_num = 0
-            ENDIF
-         ENDIF 
+!         IF (lconn.and.lsocket) THEN 
+!            il = len_str (cstr) 
+!            ier_num = socket_send (s_conid, cstr, il) 
+!            IF(ier_num < 0) THEN
+!               ier_num = -19
+!               RETURN
+!            ELSE
+!               ier_num = 0
+!            ENDIF
+!         ENDIF 
 !                                                                       
 !        IF (output_status.eq.OUTPUT_FILE) THEN 
 !           WRITE (output_io, 2010) zeile (1:lp) 
@@ -126,16 +126,16 @@ USE precision_mod
 !                    cpara (ianz) (1:lpara (ianz) )                     
 !                 ENDIF 
                ENDIF 
-               IF (lconn.and.lsocket) THEN 
-                  il = len_str (cstr) 
-                  ier_num = socket_send (s_conid, cstr, il) 
-                  IF(ier_num < 0) THEN
-                     ier_num = -19
-                     RETURN
-                  ELSE
-                     ier_num = 0
-                  ENDIF
-               ENDIF 
+!               IF (lconn.and.lsocket) THEN 
+!                  il = len_str (cstr) 
+!                  ier_num = socket_send (s_conid, cstr, il) 
+!                  IF(ier_num < 0) THEN
+!                     ier_num = -19
+!                     RETURN
+!                  ELSE
+!                     ier_num = 0
+!                  ENDIF
+!               ENDIF 
             ENDIF 
          ENDIF 
       ENDIF 

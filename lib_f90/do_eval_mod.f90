@@ -26,10 +26,10 @@ INTEGER(KIND=PREC_INT_WORD) , INTENT(INOUT) :: i
 LOGICAL            , INTENT(IN   ) :: lout
 !
 CHARACTER(LEN=MAX(PREC_STRING, LEN(line))), DIMENSION(MAXW) :: cpara
-CHARACTER(LEN=MAX(PREC_STRING, LEN(line))) :: cstr , zeile
+CHARACTER(LEN=MAX(PREC_STRING, LEN(line))) :: zeile
 CHARACTER(LEN=32)   :: form_s
 INTEGER, DIMENSION(MAXW) :: lpara
-INTEGER :: ianz, il 
+INTEGER :: ianz
 INTEGER :: length 
 INTEGER :: indxg = 0
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
@@ -69,11 +69,11 @@ WRITE(form_s,'(A,I2.2,a,I2.2,A)')  '('' Value of '',a,'' = '',g',PREC_WIDTH,'.',
 !              IF (output_status.eq.OUTPUT_FILE) then 
                   IF(lout) WRITE (output_io, form_s) cpara (i) (1:length), werte ( i)
 !              ENDIF 
-               IF (lconn.and.lsocket.and.i.eq.1) then 
-                  IF(lout) WRITE (cstr, form_s) cpara (i) (1:lpara (i) ), werte (i) 
-                  il = len_str (cstr) 
-                  CALL socket_send (s_conid, cstr, il) 
-               ENDIF 
+!               IF (lconn.and.lsocket.and.i.eq.1) then 
+!                  IF(lout) WRITE (cstr, form_s) cpara (i) (1:lpara (i) ), werte (i) 
+!                  il = len_str (cstr) 
+!                  CALL socket_send (s_conid, cstr, il) 
+!               ENDIF 
                ENDDO 
                WRITE(line,'(G19.10E4)')  werte(1)
                i = LEN_TRIM(line)
