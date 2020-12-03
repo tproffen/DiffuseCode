@@ -6,7 +6,7 @@
 #include <readline/history.h>
 #
 /* -------------------------------------------------------------------------- */
-FCreadline(int len, char *myline, char prompt[]){
+void FCreadline(int len, char *myline, char prompt[]){
 /*
 @(#)FCreadline.sh  return line from readline(3c) to Fortran. John S. Urban, 20100323
 
