@@ -34,7 +34,7 @@ run_mpi_senddata%generation = pop_gen    ! Current GENERATION no
 run_mpi_senddata%member     = pop_n      ! Number of members
 run_mpi_senddata%children   = pop_c      ! Number of children
 run_mpi_senddata%parameters = pop_dimx   ! Number of parameters
-run_mpi_senddata%use_socket = .false.
+!run_mpi_senddata%use_socket = .false.
 !
 run_mpi_senddata%l_get_state = l_get_random_state
 !
