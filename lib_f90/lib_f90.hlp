@@ -32,6 +32,9 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2020_December
+
+   The socket connections have been removed.
 4  2020_October
 
    Added optional parameters 'status:append', 'status:unknown' and
@@ -144,8 +147,9 @@
    Gaussian distributed random number. The underlying distribution
    can be set to be is left or right skewed.
 3  Options
-!p program [-noautorun] [-debug] [-remote] [-port=p] [-access=ip] [macro.mac]
+!p program [-noautorun] [-debug] [macro.mac]
 !p program [-noautorun] -macro <macro.mac>[ <par1> [ <par2> ...]]
+!% program [-noautorun] [-debug] [-remote] [-port=p] [-access=ip] [macro.mac]
 
    If run on operating system Linux or MacOS, the DISCUS_SUITE 
    allows the following command line parameters.
@@ -165,17 +169,17 @@
 
    The flag "-debug" starts the program in debug mode. 
    This is the same as using the command "set debug,on". 
-   The switch "-remote" starts the program
-   in remote control mode. In this case the commands are send to the
-   program through a socket. In this case the switch "-port' allows one
-   to specify the port, the program will be listening on. Port numbers
-   should be larger than 1024. The switch "-access' allows one to specify
-   from which host connections will be accepted. The default is 
-   'localhost'.
-
-   See file "remote.f" for an example how to remote control the 
-   applications from another program. Note that the program will not 
-   accept input from the keyboard when in remote control mode. 
+!% The switch "-remote" starts the program
+!% in remote control mode. In this case the commands are send to the
+!% program through a socket. In this case the switch "-port' allows one
+!% to specify the port, the program will be listening on. Port numbers
+!% should be larger than 1024. The switch "-access' allows one to specify
+!% from which host connections will be accepted. The default is 
+!% 'localhost'.
+!%
+!% See file "remote.f" for an example how to remote control the 
+!% applications from another program. Note that the program will not 
+!% accept input from the keyboard when in remote control mode. 
 
    All other command line arguments are interpreted as macro files
    and will be executed at startup. These macros may not rely on
@@ -1261,65 +1265,65 @@
 !p sleep <seconds>
 
    This command causes the program to sleep for <seconds> seconds
-3  socket
-!p socket "open",<host>,<port>
-!p socket "close"
-!p socket "exit"
-!p socket "send",<string>
-!p socket <string>
-!p socket "transfer",<slave_var>,<expression>
-!p socket "transfer",<slave_var>,<character expression>,<local_var>
-
-   These commands connect to a program that has been started with the 
-   "-remote" option, sees ==> "Options" for further help. 
-   The commands will be send to the slave program where they will be
-   executed as typed. 
-
-4  open
-!p socket "open",<host>,<port>
-
-   Opens the connection to the program running on host <host> and 
-   listening on port <port>. The server program  must have been 
-   started beforehand with the "-remote" option
-4  close
-!p socket close
-
-   Temporarily closes the connection to the slave program, which keeps
-   running. You can open to the same program with a new socket open,<pname>.
-4  exit
-!p socket exit
-
-   Terminates the slave program and closes the connection. To communicate
-   with the slave program again, you must first start this with the
-   "-remote" option and then open the connection with 
-   socket "open",<pname>.
-4  send
-!p socket send,<string>
-!p socket <string>
-
-   The string is send to the slave program and executed as typed.
-   Both forms are equivalent.
-4  transfer
-!p socket transfer,<slave_var>,<expression>
-!p socket transfer,<slave_var>,<character expression>,<local_var>
-
-   This command transverse the value of <expression> to the slave
-   variable <slave_var>. You must define this slave variable prior
-   to a transfer. 
-4  Example
-
-!p system /usr/local/bin/kuplot -remote   ! starts kuplot slave
-!p i[0] = 4.0                             ! set local variable
-!p socket open,localhost,3331             ! open connection
-!p socket func r[0]**2,-2,2,0.1           ! define a function to plot
-!p socket transfer,i[1],i[0]              ! transfer local variable
-!p socket tit1 "%d",i[1]                  ! set plot title
-!p socket plot                            ! display plot
-!p socket mark 1,1                        ! change marker interval
-!p socket plot                            ! plot again
-!p socket send, mark 0.5,0.5              ! change marker interval
-!p socket send, plot                      ! plot again
-!p socket exit                            ! terminate kuplot, exit
+!% 3  socket
+!% !p socket "open",<host>,<port>
+!% !p socket "close"
+!% !p socket "exit"
+!% !p socket "send",<string>
+!% !p socket <string>
+!% !p socket "transfer",<slave_var>,<expression>
+!% !p socket "transfer",<slave_var>,<character expression>,<local_var>
+!% 
+!%    These commands connect to a program that has been started with the 
+!%    "-remote" option, sees ==> "Options" for further help. 
+!%    The commands will be send to the slave program where they will be
+!%    executed as typed. 
+!% 
+!% 4  open
+!% !p socket "open",<host>,<port>
+!% 
+!%    Opens the connection to the program running on host <host> and 
+!%    listening on port <port>. The server program  must have been 
+!%    started beforehand with the "-remote" option
+!% 4  close
+!% !p socket close
+!% 
+!%    Temporarily closes the connection to the slave program, which keeps
+!%    running. You can open to the same program with a new socket open,<pname>.
+!% 4  exit
+!% !p socket exit
+!% 
+!%    Terminates the slave program and closes the connection. To communicate
+!%    with the slave program again, you must first start this with the
+!%    "-remote" option and then open the connection with 
+!%    socket "open",<pname>.
+!% 4  send
+!% !p socket send,<string>
+!% !p socket <string>
+!% 
+!%    The string is send to the slave program and executed as typed.
+!%    Both forms are equivalent.
+!% 4  transfer
+!% !p socket transfer,<slave_var>,<expression>
+!% !p socket transfer,<slave_var>,<character expression>,<local_var>
+!% 
+!%    This command transverse the value of <expression> to the slave
+!%    variable <slave_var>. You must define this slave variable prior
+!%    to a transfer. 
+!% 4  Example
+!% 
+!% !p system /usr/local/bin/kuplot -remote   ! starts kuplot slave
+!% !p i[0] = 4.0                             ! set local variable
+!% !p socket open,localhost,3331             ! open connection
+!% !p socket func r[0]**2,-2,2,0.1           ! define a function to plot
+!% !p socket transfer,i[1],i[0]              ! transfer local variable
+!% !p socket tit1 "%d",i[1]                  ! set plot title
+!% !p socket plot                            ! display plot
+!% !p socket mark 1,1                        ! change marker interval
+!% !p socket plot                            ! plot again
+!% !p socket send, mark 0.5,0.5              ! change marker interval
+!% !p socket send, plot                      ! plot again
+!% !p socket exit                            ! terminate kuplot, exit
 3  stop
 !p stop
 
@@ -1907,58 +1911,58 @@
    You tried to open a file with ==> 'fopen', whose file name is of
    length zero.
    Check the statement for the missing filename, or an additional comma.
-5  -15
-   No socket connected
-
-   Apparently you tried to use a ==> 'socket' command prior to opening
-   a connection to the remote computer. 
-   Use a 'socket open' command first.
-5  -16
-   Could not resolve hostname for socket
-
-   The hostname to which you want to connect could not be resolved into
-   an IP address. 
-   Check the host name for typing errors and the Internet access of your
-   computer.
-5  -17
-   Could not grab socket
-
-   Internal socket debug message.
-5  -18
-   Could not open socket connection
-
-   Internal socket debug message.
+!% 5  -15
+!%    No socket connected
+!% 
+!%    Apparently you tried to use a ==> 'socket' command prior to opening
+!%    a connection to the remote computer. 
+!%    Use a 'socket open' command first.
+!% 5  -16
+!%    Could not resolve hostname for socket
+!% 
+!%    The hostname to which you want to connect could not be resolved into
+!%    an IP address. 
+!%    Check the host name for typing errors and the Internet access of your
+!%    computer.
+!% 5  -17
+!%    Could not grab socket
+!% 
+!%    Internal socket debug message.
+!% 5  -18
+!%    Could not open socket connection
+!% 
+!%    Internal socket debug message.
 5  -19
-   Problem sending to socket
-
-   Internal socket debug message.
-5  -20
-   Problem receiving from socket
-
-   Internal socket debug message.
-5  -21
-   Received null string from socket receive
-
-   The remote computer send back an answer of zero length. Apparently 
-   the connection was terminated prematurely.
-
-   Try to connect again.
-5  -22
-   Socket accept problem
-
-   Internal socket debug message.
-5  -23
-   Scocket: Rejected connection
-
-   Internal socket debug message.
-5  -24
-   Socket bind problem
-
-   Internal socket debug message.
-5  -25
-   Socket listen problem
-
-   Internal socket debug message.
+!%    Problem sending to socket
+!% 
+!%    Internal socket debug message.
+!% 5  -20
+!%    Problem receiving from socket
+!% 
+!%    Internal socket debug message.
+!% 5  -21
+!%    Received null string from socket receive
+!% 
+!%    The remote computer send back an answer of zero length. Apparently 
+!%    the connection was terminated prematurely.
+!% 
+!%    Try to connect again.
+!% 5  -22
+!%    Socket accept problem
+!% 
+!%    Internal socket debug message.
+!% 5  -23
+!%    Scocket: Rejected connection
+!% 
+!%    Internal socket debug message.
+!% 5  -24
+!%    Socket bind problem
+!% 
+!%    Internal socket debug message.
+!% 5  -25
+!%    Socket listen problem
+!% 
+!%    Internal socket debug message.
 5  -26
    Second parameter must be >= first Param.
 
