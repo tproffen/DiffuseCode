@@ -224,7 +224,7 @@ REAL :: werte
 !                                                                       
 !------ Loop over all helpfile levels until entry is found              
 !                                                                       
-      DO lev = 1, ibef 
+main: DO lev = 1, ibef 
     5 CONTINUE 
       found = .false. 
       READ (ihl, 1000, end = 10) zeile 
@@ -253,7 +253,7 @@ REAL :: werte
       ELSE 
          GOTO 5 
       ENDIF 
-      ENDDO 
+ENDDO main
 !                                                                       
 !------ If entry is found, print text and get possible further          
 !------ subentries                                                      
@@ -400,8 +400,9 @@ main_loop: DO
    ELSE
       READ(clines,*) lines
    ENDIF
-   DO ilc = 1, lines - 6 
+   reading: DO ilc = 1, lines - 6 
       READ(ihl, 1000, end = 9010) line 
+      IF(line(1:2) == '!%' ) CYCLE reading
 !                                                                       
       IF(line (1:1) .eq.'!') THEN 
          line (1:1) = ' ' 
@@ -418,7 +419,7 @@ main_loop: DO
             WRITE(output_io, * ) 
          ENDIF 
       ENDIF 
-   ENDDO 
+   ENDDO  reading
    WRITE(output_io, 2000) 
    IF(output_io == 6) read ( *, 1000) cdummy 
 ENDDO main_loop
@@ -455,13 +456,15 @@ BACKSPACE (ihl)
 !
 main_LOOP: DO
    READ(ihl, 1000, END = 9010) zeile 
+   IF(zeile(1:2) == '!%' ) CYCLE main_LOOP
    ll = len_str(zeile) 
    line = zeile(1:ll) 
-   DO WHILE(line(1:1)  == ' '.or.line(1:1)  == ACHAR(13)) 
+   inner_loop: DO WHILE(line(1:1)  == ' '.or.line(1:1)  == ACHAR(13)) 
       READ(ihl, 1000, END = 9010) zeile 
+      IF(zeile(1:2) == '!%' ) CYCLE inner_LOOP
       ll = len_str(zeile) 
       line = zeile(1:ll) 
-   ENDDO 
+   ENDDO inner_loop
    CALL hole_zahl(line, ianz, werte) 
    IF(ianz == 1) then 
       IF(INT(werte)  == nl) then 
