@@ -561,6 +561,7 @@ USE str_comp_mod
 !
       INTEGER             :: ianz         ! number of command line parameters
       INTEGER             :: iianz,i      ! dummy number
+      INTEGER             :: i1, i2       ! dummy number
       INTEGER             :: is1          ! first atom type
       INTEGER             :: is2          ! second atom type
       INTEGER             :: temp_id      ! temporary definition ID
@@ -640,8 +641,11 @@ USE str_comp_mod
          ier_num = -13
          ier_typ = ER_COMM
          ier_msg(1) = 'Offending parameter'
-         ier_msg(2) = oname(2)(1:MIN(43,loname(2)))
-         ier_msg(3) = opara(2)(1:MIN(43,lopara(2)))
+         i1 = 1
+         i2 = MIN(43,LEN(oname),loname(2))
+         ier_msg(2)(i1:i2) = oname(2)(i1:i2)
+!        ier_msg(2) = oname(2)(1:MIN(43,LEN(oname),loname(2)))
+!        ier_msg(3) = opara(2)(1:MIN(43,lopara(2)))
          RETURN
       ENDIF
 !
