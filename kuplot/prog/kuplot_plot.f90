@@ -117,7 +117,7 @@ USE support_mod
 !                                                                       
       CHARACTER ( * ) befehl, zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw), prnbef , line
-      CHARACTER(256) filname, uname 
+      CHARACTER(256) filname, uname , oname
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL width, ratio 
       INTEGER lpara (maxw) 
@@ -278,6 +278,7 @@ USE support_mod
 !                                                                       
       IF(l_PDF) THEN  !temporarily change extension  to ps
           i = LEN_TRIM(uname)
+          oname = uname
           IF(uname(i-3:i)=='.pdf' .or. uname(i-3:i)=='.PDF') THEN
              uname(i-3:i) = '.ps '
           ENDIF
@@ -285,7 +286,8 @@ USE support_mod
       IF (lrena) call do_rename_file (filname, uname) 
       IF(l_PDF) THEN
           i = LEN_TRIM(uname)
-          WRITE(line,'(a,a)') 'ps2pdf14 ', uname
+          WRITE(line,'(a,a,a,a)') 'ps2pdf14 ', uname(1:LEN_TRIM(uname)), ' ', &
+                                               oname(1:LEN_TRIM(oname))
           CALL system(line, ier_num)
       ENDIF
 !                                                                       
