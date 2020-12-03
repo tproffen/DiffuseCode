@@ -19,7 +19,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               lib_upd_mod.f90 
               macro.f90  matrix_mod.f90 map_1dtofield.f90 
               operating_mod.f90 reserved_mod.f90
-              random.f90 random_state_mod.f90 sockets_mod.f90 str_comp_mod.f90 
+              random.f90 random_state_mod.f90 str_comp_mod.f90 
               string_convert_mod.f90
               sup.f90 set_sub_generic_mod.f90 variable_test.f90 
               charact_mod.f90 debug_mod.f90 doact_mod.f90 doexec_mod.f90 
@@ -32,8 +32,10 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               sine_table.f90 spline_mod.f90 string_extract_mod.f90
               times_mod.f90 variable_mod.f90 wink_mod.f90 precision_mod.f90 
               memory.f90 support_mod.f90 )
+#             sockets_mod.f90
 
-set (CSOURCES FCreadline.c csocket.c csup.c)
+#set (CSOURCES FCreadline.c csocket.c csup.c)
+set (CSOURCES FCreadline.c csup.c)
 
 # Will change the sys_*.f90 file depending on which
 # compiler is used. Default to gfortran.
