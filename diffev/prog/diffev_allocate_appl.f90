@@ -23,7 +23,7 @@ PUBLIC  :: diffev_do_deallocate_appl
 PUBLIC  :: diffev_alloc_default
 PUBLIC  :: alloc_backup
 PUBLIC  :: dealloc_backup
-PUBLIC  :: alloc_socket_nprogs
+!PUBLIC  :: alloc_socket_nprogs
 PUBLIC  :: alloc_population
 PUBLIC  :: alloc_constraint
 PUBLIC  :: diffev_show_config
@@ -180,7 +180,7 @@ USE str_comp_mod
       CALL alloc_constraint ( 1 )
       CALL alloc_population ( 1,  1    )
       CALL alloc_backup     ( 20)
-      CALL alloc_socket_nprogs ( 2, 1)
+!      CALL alloc_socket_nprogs ( 2, 1)
 !
     END SUBROUTINE diffev_alloc_default
 !
@@ -453,57 +453,57 @@ USE str_comp_mod
       RETURN
     END SUBROUTINE alloc_backup
 !
-    SUBROUTINE alloc_socket_nprogs ( nprog, nproc)
-!-
-!     Allocate the number of programs that may be started via sockets
-!+
-      USE run_mpi_mod
-!
-      IMPLICIT NONE
-!
-!      
-      INTEGER, INTENT(IN)  :: nprog
-      INTEGER, INTENT(IN)  :: nproc
-!
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
-      INTEGER              :: size_of
-!
-      lstat = .TRUE.
-      progs_size_of = 0
-!
-      CALL alloc_arr ( prog_entry ,1,nprog, all_status, ' ', size_of)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      progs_size_of =   progs_size_of + size_of
-!
-      CALL alloc_arr ( socket_id ,1,nprog, all_status, 0  , size_of)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      progs_size_of =   progs_size_of + size_of
-!
-      CALL alloc_arr (   port_id ,1,nprog, 1, nproc, all_status, 0  , size_of)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      progs_size_of =   progs_size_of + size_of
-!
-      IF( lstat ) THEN                        ! Success
-         RUN_MPI_MAXPROG = nprog
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'Socket_programs'
-         ENDIF
-      ELSE                                    ! Failure
-         RUN_MPI_MAXPROG =  0
-         progs_size_of =   0
-         ier_num         = -3
-         ier_typ         = ER_COMM
-         ier_msg(1)      = 'Socket_programs'
-         RETURN
-      END IF
-!
-      RETURN
-    END SUBROUTINE alloc_socket_nprogs
+!    SUBROUTINE alloc_socket_nprogs ( nprog, nproc)
+!!-
+!!     Allocate the number of programs that may be started via sockets
+!!+
+!      USE run_mpi_mod
+!!
+!      IMPLICIT NONE
+!!
+!!      
+!      INTEGER, INTENT(IN)  :: nprog
+!      INTEGER, INTENT(IN)  :: nproc
+!!
+!      INTEGER              :: all_status
+!      LOGICAL              :: lstat
+!      INTEGER              :: size_of
+!!
+!      lstat = .TRUE.
+!      progs_size_of = 0
+!!
+!      CALL alloc_arr ( prog_entry ,1,nprog, all_status, ' ', size_of)
+!      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!      progs_size_of =   progs_size_of + size_of
+!!
+!      CALL alloc_arr ( socket_id ,1,nprog, all_status, 0  , size_of)
+!      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!      progs_size_of =   progs_size_of + size_of
+!!
+!      CALL alloc_arr (   port_id ,1,nprog, 1, nproc, all_status, 0  , size_of)
+!      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!      progs_size_of =   progs_size_of + size_of
+!!
+!      IF( lstat ) THEN                        ! Success
+!         RUN_MPI_MAXPROG = nprog
+!         ier_typ       = 0
+!         ier_num       = 0
+!         IF ( all_status == 1 ) THEN
+!            ier_typ       = 1
+!            ier_num       = ER_COMM
+!            ier_msg(1)    = 'Socket_programs'
+!         ENDIF
+!      ELSE                                    ! Failure
+!         RUN_MPI_MAXPROG =  0
+!         progs_size_of =   0
+!         ier_num         = -3
+!         ier_typ         = ER_COMM
+!         ier_msg(1)      = 'Socket_programs'
+!         RETURN
+!      END IF
+!!
+!      RETURN
+!    END SUBROUTINE alloc_socket_nprogs
 !
     SUBROUTINE dealloc_constraint
 !-

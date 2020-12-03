@@ -132,10 +132,10 @@ IF (indxg.ne.0.and.                                              &
     &    .not. (str_comp (befehl, 'echo',  2, lbef, 4) ) .and.   &
     &    .not. (str_comp (befehl, 'syst',  2, lbef, 4) ) .and.   &
     &    .not. (str_comp (befehl, 'fput',  2, lbef, 4) ) .and.   &
-    &    .not. (str_comp (befehl, 'socket',2, lbef, 5) ) .and.   &
     &    .not. (str_comp (befehl, 'help',  2, lbef, 4) .or.      &
     &     str_comp (befehl, '?   ',  2, lbef, 4) )       .AND.   &
           INDEX(line,'==') == 0                               ) THEN      
+!    &    .not. (str_comp (befehl, 'socket',2, lbef, 5) ) .and.   &
 !                                                                 
 !-------Zuweisung eines Funktionswertes                           
 !                                                                 
@@ -751,12 +751,12 @@ ELSE
             run_mpi_senddata%n_rvalue_i = n_rvalue_i ! We expect this many Rvalues
             CALL refine_no_mpi(.true.)
          ELSE
-         IF ( ianz == 5 ) THEN
-            run_mpi_senddata%use_socket = str_comp(cpara(5), 'socket', 6, lpara(5), 6)
-            ianz = 4
-         ELSE
-            run_mpi_senddata%use_socket = .false.
-         ENDIF
+!         IF ( ianz == 5 ) THEN
+!            run_mpi_senddata%use_socket = str_comp(cpara(5), 'socket', 6, lpara(5), 6)
+!            ianz = 4
+!         ELSE
+!            run_mpi_senddata%use_socket = .false.
+!         ENDIF
          IF ( ianz >= 2 .and. ianz <= 4 ) THEN
             run_mpi_senddata%generation = pop_gen    ! Current GENERATION no
             run_mpi_senddata%member     = pop_n      ! Number of members

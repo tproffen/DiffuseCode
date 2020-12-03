@@ -40,7 +40,7 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    INTEGER               :: n_rvalue_i ! 16  ! 16
    INTEGER               :: n_rvalue_o ! 16  ! 16
    LOGICAL               :: repeat     ! 21  ! 21
-   LOGICAL               :: use_socket ! 22  ! 22
+!   LOGICAL               :: use_socket ! 22  ! 22
    LOGICAL               :: prog_start ! 23  ! 23
    LOGICAL               :: l_rvalue   ! 24  ! 24
    LOGICAL               :: l_get_state! 25  ! 25
@@ -66,7 +66,7 @@ INTEGER                  :: run_mpi_kid_per_core
 !
 !
 CHARACTER(LEN=200), DIMENSION(:), ALLOCATABLE :: prog_entry
-INTEGER           , DIMENSION(:), ALLOCATABLE :: socket_id
+!INTEGER           , DIMENSION(:), ALLOCATABLE :: socket_id
 INTEGER           , DIMENSION(:,:), ALLOCATABLE :: port_id
 !
 INTEGER                  :: progs_size_of = 0

@@ -529,7 +529,6 @@ USE support_mod
 !                                                                       
       best  = parent_val (1,0) + 1.0 
       worst = parent_val (1,0) - 1.0 
-               WRITE(error_io,'(10x,3(2x,I9))') pop_gen-1,i,j
       DO j = 1, pop_n 
          IF (parent_val (j,0) .lt.best) THEN 
             best     = parent_val(j,0)
