@@ -32,8 +32,8 @@ LOGICAL           , INTENT(IN)  :: axis
 !
 !REAL(KIND=PREC_DP) :: ww
 !
-REAL(KIND=PREC_DP), PARAMETER:: vln2 = 4.D0 * LOG (2.D0)
-REAL(KIND=PREC_DP), PARAMETER:: gpre = 2.D0 * SQRT (LOG (2.D0) / PI)
+!REAL(KIND=PREC_DP), PARAMETER:: vln2 = 4.D0 * LOG (2.D0)
+!REAL(KIND=PREC_DP), PARAMETER:: gpre = 2.D0 * SQRT (LOG (2.D0) / PI)
 !
 REAL(KIND=PREC_DP)  :: xw             ! Deviation from position 
 REAL(KIND=PREC_DP)  :: zz             ! Value for asymmetry function
