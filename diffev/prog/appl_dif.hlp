@@ -185,6 +185,8 @@
    refinement generation.
 3  2013_May
 
+   Sockets have been removed, this comment is obsolete.
+
    The run_mpi command has been augmented by a "socket" qualifier, which 
    will cause DIFFEV to run the application program controlled via a
    socket. This should speed up the process on a multi-core/multi-cpu
@@ -1083,7 +1085,8 @@
    program has to provide the properly weighted average R-value.
 
 2  run_mpi
-!p run_mpi <program_name>, <macro_name>, <no_repetitions>, <output_base> [,"socket"]
+!p run_mpi <program_name>, <macro_name>, <no_repetitions>, <output_base>
+!% !p run_mpi <program_name>, <macro_name>, <no_repetitions>, <output_base> [,"socket"]
 
    This command starts the processing of the slave program <program_name>.
    If the program has been compiled with MPI and started with mpiexec,
@@ -1138,10 +1141,10 @@
    on macro parameters but to use the refinement variables.
 
 
-   If the last optional parameter is "socket", the program will be
-   started via a socket connection, else via a single "system" call.
-
-   system == non-socket option:
+!%   If the last optional parameter is "socket", the program will be
+!%   started via a socket connection, else via a single "system" call.
+!%
+!%   system == non-socket option:
 
    Relevant for older verisons (5.6 an earlier only):
 
@@ -1169,27 +1172,27 @@
            calculation is performed per child and the output is
            written to "LOGFILES/d.xxxx". 
 
-   socket option:
-
-   The program is started via socket at the beginning of a refinement. It
-   remains active until DIFFEV is terminated. A second, third program may
-   be started as well, such as a discus run followed by kuplot.
-
-   The socket option starts the program via the line:
-   
-   "program_name" -remote -access=127.0.0.0 -port=<port> > <output>
-
-   Thereafter the variables generation, member, children, parameters,
-   kid, indiv, nindiv are defined and placed at their proper values.
-   The corresponding lines are 
-   variable integer,generation
-   generation = <value>
-   And so on for the other variables.
-   For each calculation i.e. combination of kid, indiv the current 
-   values are sent for "kid" and "indiv". All corresponding trial 
-   values are placed into the array "r[*]", into entries 201 to
-   201 + <parameters>. Then the calculation macro is started, which
-   does of course not have to read the GENERATION and the trial file.
+!%   socket option:
+!%
+!%   The program is started via socket at the beginning of a refinement. It
+!%   remains active until DIFFEV is terminated. A second, third program may
+!%   be started as well, such as a discus run followed by kuplot.
+!%
+!%   The socket option starts the program via the line:
+!%   
+!%   "program_name" -remote -access=127.0.0.0 -port=<port> > <output>
+!%
+!%   Thereafter the variables generation, member, children, parameters,
+!%   kid, indiv, nindiv are defined and placed at their proper values.
+!%   The corresponding lines are 
+!%   variable integer,generation
+!%   generation = <value>
+!%   And so on for the other variables.
+!%   For each calculation i.e. combination of kid, indiv the current 
+!%   values are sent for "kid" and "indiv". All corresponding trial 
+!%   values are placed into the array "r[*]", into entries 201 to
+!%   201 + <parameters>. Then the calculation macro is started, which
+!%   does of course not have to read the GENERATION and the trial file.
 2  selection
 !p selection {"compare" | "best","all"}
 

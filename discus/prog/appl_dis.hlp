@@ -4783,7 +4783,9 @@
 !p
 !p valu { "f2aver"  | "faver2" }
 !p
-!p valu { "2DPDF" }
+!p valu { "pdf" }
+!p
+!p valu { "3DPDF" }
 
    Sets what value is written to the output file. The keyword given in
    < > corresponds to the value of the average structure factor <F> whereas
@@ -4802,6 +4804,7 @@
 !p           -180 and +180 degrees.
 !p "real":   real part of structure factor
 !p "imag":   imaginary part of structure factor
+!p "pdf"     Powder PDF 
 !p "3DPDF"   3DPDF == generalized Patterson function
 !p "S(Q)":   Normalized total scattering function
 !p "F(Q)":   Reduced normalized total scattering function Q[S(Q)-1]
