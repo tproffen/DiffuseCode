@@ -1096,6 +1096,7 @@ CHARACTER(LEN=*), INTENT(INOUT) :: zeile
 INTEGER         , INTENT(INOUT) :: lp
 !
 INTEGER, PARAMETER :: IRD = 69
+INTEGER, PARAMETER :: IWR = 68
 INTEGER, PARAMETER :: MAXW = 2
 CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=PREC_STRING) :: line
@@ -1219,11 +1220,17 @@ ELSEIF(operating == OS_MACOSX) THEN
 !  command = terminal_emu(1:LEN_TRIM(terminal_emu)) // ' '// &
 !            terminal_exe(1:LEN_TRIM(terminal_exe)) // ' '// &
 !            terminal_wrp(1:LEN_TRIM(terminal_wrp)) // ' '// &
-   command = 'open -b com.apple.terminal ' //                &
-             ' $HOME/' // script(1:LEN_TRIM(script)) //      &
+   OPEN(UNIT=IWR,FILE='/tmp/bbb.sh', STATUS='unknown')
+   command = ' $HOME/' // script(1:LEN_TRIM(script)) //      &
              ' started=native ' //                           &
-             code_str(1:LEN_TRIM(code_str)) //               &
+             code_str(1:LEN_TRIM(code_str)) // ' ' //        &
              inst_str(1:LEN_TRIM(inst_str))
+   WRITE(IWR, '(a)' ) '#!/bin/zsh'
+   WRITE(IWR, '(a)' ) command(1:LEN_TRIM(command))
+   CLOSE(UNIT=IWR)
+   command = 'chmod 700 /tmp/bbb.sh'
+   CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   command = 'open -b com.apple.terminal /tmp/bbb.sh' 
 ENDIF
 !
 ! Get latest DISCUS Version
