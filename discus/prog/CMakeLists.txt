@@ -65,8 +65,8 @@ set( SOURCES_LOCAL discus_pdf_file.f90 discus_powder_file.f90 discus_out_file.f9
 set( LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
 
 if (DIFFUSE_HDF5)
-  if (DEFINED ENV{HDF5_INC})
-    include_directories($ENV{HDF5_INC})
+  if (DEFINED ENV{HDF5_INC_DIR})
+    include_directories($ENV{HDF5_INC_DIR})
   endif ()
   set (SOURCES_ALL ${SOURCES_ALL} hdf_write.f90)
   message (DISCUS " HDF5 is ON  ${DIFFUSE_HDF5} ")

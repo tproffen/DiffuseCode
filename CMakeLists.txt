@@ -39,7 +39,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 6)
 set (DIFFUSE_VERSION_MINOR 03)
-set (DIFFUSE_VERSION_PATCH 00)
+set (DIFFUSE_VERSION_PATCH 01)
 
 # Readline required for all programs
 
@@ -80,37 +80,65 @@ option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" OFF)
 option(DIFFUSE_HDF5 "DIFFUSE_HDF5" ON )
 
 if ( DIFFUSE_HDF5 )
-if (DEFINED ENV{HDF5_LIB})
-  set (LINK_LIBS ${LINK_LIBS} "$ENV{HDF5_LIB}" )
+  if ( NOT DEFINED ENV{HDF5_FORTRAN_SHARED_LIBRARY} )
+    message(FATAL_ERROR "The environment variable HDF5_FORTRAN_SHARED_LIBRARY is not set
+    Best execute the following two commands:
+    source $HOME/DIFFUSE_INSTALL/find_user.sh
+    source $HOME/DIFFUSE_INSTALL/prepare_hdf5.sh
+    ")
+#
+  else ()
+    if ( NOT DEFINED ENV{HDF5_FORTRAN_INCLUDE_DIR}) 
+      message(FATAL_ERROR "The environment variable HDF5_FORTRAN_INCLUDE_DIR is not set
+      Best execute the following two commands:
+      source $HOME/DIFFUSE_INSTALL/find_user.sh
+      source $HOME/DIFFUSE_INSTALL/prepare_hdf5.sh
+      ")
+    else ()
+      set (HDF5_FORTRAN_SHARED_LIBRARY "$ENV{HDF5_FORTRAN_SHARED_LIBRARY}")
+      set (HDF5_FORTRAN_INCLUDE_PATH "$ENV{HDF5_INC_DIR}")
+      message (STATUS " HDF5_FORTRAN_SHARED_LIBRARY ${HDF5_FORTRAN_SHARED_LIBRARY}")
+      message (STATUS " HDF5_FORTRAN_INCLUDE_PATH $ENV{HDF5_INC_DIR}")
+      set (LINK_LIBS ${LINK_LIBS} "${HDF5_FORTRAN_SHARED_LIBRARY}" )
+      INCLUDE_DIRECTORIES ("${HDF5_FORTRAN_INCLUDE_PATH}")
+    endif ()
+  endif ()
+#  
+##Qif (DEFINED ENV{HDF5_LIB_RBN})
+##Q  set (LINK_LIBS ${LINK_LIBS} "$ENV{HDF5_LIB}" )
 ##  set (LINK_LIBS ${LINK_LIBS} "hdf5::hdf5" )
 ##  set (LINK_LIBS ${LINK_LIBS} "hdf5::hdf5_f90" )
 ##  set (LINK_LIBS ${LINK_LIBS} "hdf5::hdf5_f90cstub" )
 ##  set (LINK_LIBS ${LINK_LIBS} "hdf5::hdf5_fortran-shared" )
 #hdf5::hdf5-shared;hdf5::hdf5_cpp-shared;hdf5::hdf5_f90cstub-shared;hdf5::hdf5_fortran-shared
 #hdf5::hdf5_fortran-shared;hdf5::hdf5-shared;hdf5::hdf5_cpp-shared;hdf5::hdf5_f90cstub-shared;hdf5::hdf5_fortran-shared
-  INCLUDE_DIRECTORIES ("$ENV{HDF5_INC}")
-else ()
-  set (FIND_HDF_COMPONENTS C CXX Fortran shared)
-  find_package(HDF5 NAMES "hdf5" COMPONENTS ${FIND_HDF_COMPONENTS} REQUIRED)
-  if (HDF5_FOUND)
-    if (HDF5_shared_C_FOUND)
-      set (LINK_LIBS ${LINK_LIBS} ${HDF5_C_SHARED_LIBRARY})
-    endif ()
-    if (HDF5_shared_CXX_FOUND)
-      set (LINK_LIBS ${LINK_LIBS} ${HDF5_CXX_SHARED_LIBRARY})
-    endif ()
-    if (HDF5_shared_Fortran_FOUND)
-      set (LINK_LIBS ${LINK_LIBS} ${HDF5_FORTRAN_SHARED_LIBRARY})
-    endif ()
-    INCLUDE_DIRECTORIES (${HDF5_INCLUDE_DIR_FORTRAN})
-  endif ()
-endif ()
+##Q  INCLUDE_DIRECTORIES ("$ENV{HDF5_INC}")
+##Qelse ()
+##Q  set (FIND_HDF_COMPONENTS C CXX Fortran shared)
+##Q  find_package(HDF5 NAMES "hdf5" COMPONENTS ${FIND_HDF_COMPONENTS} REQUIRED)
+##Q  if (HDF5_FOUND)
+##Q    if (HDF5_shared_C_FOUND)
+##Q      set (LINK_LIBS ${LINK_LIBS} ${HDF5_C_SHARED_LIBRARY})
+##Q    endif ()
+##Q    if (HDF5_shared_CXX_FOUND)
+##Q      set (LINK_LIBS ${LINK_LIBS} ${HDF5_CXX_SHARED_LIBRARY})
+##Q    endif ()
+##Q    if (HDF5_shared_Fortran_FOUND)
+##Q      set (LINK_LIBS ${LINK_LIBS} ${HDF5_FORTRAN_SHARED_LIBRARY})
+##Q    endif ()
+##Q    INCLUDE_DIRECTORIES (${HDF5_INCLUDE_DIR_FORTRAN})
+##Q  endif ()
+##Qendif ()
   message (status " HDF5 is ON  ${DIFFUSE_HDF5} ")
   message (status " LINK_LIBS ${LINK_LIBS}")
 else ()
   message (status " HDF5 is OFF ${DIFFUSE_HDF5} ")
 endif ()
-message (status " LIBS ${LIBS}")
+##Qmessage (status " LIBS ${LIBS}")
+##Qmessage (status " LINK_LIBS ${LINK_LIBS}")
+##Qmessage (status " HDF5_FORT ${HDF5_FORTRAN_SHARED_LIBRARY}")
+##Qmessage (status " HDF5_INC  ${HDF5_INCLUDE_DIR_FORTRAN}")
+##Qmessage (status " HDF5_INC  $ENV{HDF5_INC}")
 
 # Set common libraries
 
