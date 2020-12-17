@@ -48,7 +48,7 @@ INTEGER, PARAMETER :: maxp = 11
 !                                                                       
 CHARACTER(LEN=5) :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-CHARACTER(LEN=14) :: cvalue (0:14) 
+CHARACTER(LEN=14) :: cvalue (0:15) 
 CHARACTER(LEN=22) :: cgraphik (0:13) 
 CHARACTER(LEN=PREC_STRING) :: infile 
 CHARACTER(LEN=PREC_STRING) :: zeile 
@@ -57,12 +57,17 @@ INTEGER, DIMENSION(MAXP) :: lpara  !(maxp)
 INTEGER :: ix, iy, ianz, value, lp, length, lbef 
 INTEGER :: indxg 
 LOGICAL :: laver, lread, linverse 
+LOGICAL :: l_val_limited=.FALSE.    ! for 3D PDF do we limit d-star
 REAL(KIND=PREC_SP) :: xmin, ymin, xmax, ymax 
 REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
 REAL(KIND=PREC_DP)                  :: valmax
+REAL(KIND=PREC_DP)                  ::  dsmax = 0.0
 ! 
-INTEGER, PARAMETER :: NOPTIONAL = 1
-INTEGER, PARAMETER :: O_MAXVAL  = 1                  ! Current SCALE for maxvalue                                                                
+INTEGER, PARAMETER :: NOPTIONAL = 4
+INTEGER, PARAMETER :: O_MAXVAL  = 1                  ! Current SCALE for maxvalue
+INTEGER, PARAMETER :: O_DSMAX   = 2                  ! Maximum d-star
+INTEGER, PARAMETER :: O_QMAX    = 3                  ! Maximum Q
+INTEGER, PARAMETER :: O_HKLMAX  = 4                  ! Maximum hkl vector
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -71,10 +76,10 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
 !                                                                       
-DATA oname  / 'maxval'/
-DATA loname /  6      /
-DATA opara  / 'data'  /
-DATA owerte /  -1.000 /
+DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax'/
+DATA loname /  6      ,  5      ,  4      ,  6      /
+DATA opara  / 'data'  , '0.00'  , '0.00'  , '0.00'  /
+DATA owerte /  -1.000 ,  0.000  ,  0.000  ,  0.000  /
 DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
                 'Portable Any Map', 'Powder Pattern', 'SHELX',          &
                 'SHELXL List 5', 'SHELXL List 5 real HKL' ,             &
@@ -83,14 +88,16 @@ DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
               'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
               'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
               'f2aver = <f^2>', 'faver2 = <f>^2', 'faver = <f>   ',&
-              'Normal Inten  ', 'I(Q)          ', 'PDF           ' /
+              'Normal Inten  ', 'I(Q)          ', 'PDF           ',&
+              '3DPDF         '                                     &
+            /
 !
 DATA value / 1 / 
 DATA laver / .false. / 
 !
-opara  = (/'data  '/)
-lopara = (/  4     /)
-owerte = (/ -1.000 /)
+opara  = (/'data  ', '0.00  ', '0.00  ', '0.00  ' /)
+lopara = (/  4     ,  5      ,  4      ,  6       /)
+owerte = (/ -1.000 ,  0.000  ,  0.000  ,  0.000   /)
 zmin = ps_low * diffumax 
 zmax = ps_high * diffumax 
 orig_prompt = prompt
@@ -287,7 +294,7 @@ IF (ier_num.eq.0) THEN
 !     ------Switch output type to HDF5  format   'hdf5'                
 !                                                                       
                ELSEIF (str_comp(cpara(1), 'hdf5', 4, lpara(1), 4) ) THEN                                        
-                  CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, MAXP, opara, &
+                  CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, NOPTIONAL, opara, &
                        lopara, werte)
                   IF(ier_num == 0) THEN
                      valmax = werte(O_MAXVAL)
@@ -352,10 +359,9 @@ IF (ier_num.eq.0) THEN
       ELSEIF (str_comp (befehl, 'outf', 1, lbef, 4) ) THEN 
          CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
          IF (ier_num.eq.0) THEN 
-            CALL do_build_name (ianz, cpara, lpara, werte, maxp,  &
-            1)                                                    
+            CALL do_build_name(ianz, cpara, lpara, werte, maxp, 1)
             IF (ier_num.eq.0) THEN 
-               outfile = cpara (1) (1:lpara(1))
+               outfile = cpara(1)(1:lpara(1))
             ENDIF 
          ENDIF 
 !                                                                       
@@ -368,9 +374,12 @@ IF (ier_num.eq.0) THEN
 !                                                                       
       ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) THEN 
          IF(four_was_run) THEN    ! A fourier has been calculated do output
+
             CALL chem_elem(.false.)
             CALL set_output (linverse) 
-            IF(value==val_3DPDF) CALL out_prep_3dpdf(laver)
+            IF(value==val_3DPDF) THEN
+               CALL out_prep_3dpdf(laver, l_val_limited, dsmax)
+            ENDIF
             IF (ityp.eq.0) THEN 
                CALL do_output (value, laver) 
             ELSEIF (ityp.eq.1) THEN 
@@ -417,7 +426,7 @@ IF (ier_num.eq.0) THEN
 !                                                                       
       ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
          WRITE (output_io, 3000) outfile 
-         IF (ityp.lt.0.or.8.lt.ityp) THEN 
+         IF (ityp.lt.0.or.13.lt.ityp) THEN 
             WRITE (output_io, * ) 'ityp undefiniert ', ityp 
          ELSEIF (ityp.eq.5) THEN 
             WRITE (output_io, 3130) cgraphik (ityp), cpow_form 
@@ -429,6 +438,11 @@ IF (ier_num.eq.0) THEN
                WRITE (output_io, 3110) cvalue (value) 
             ENDIF 
          ENDIF 
+         IF(value==val_3dpdf) THEN
+            IF(l_val_limited) THEN
+              WRITE(output_io, '(a,f4.1,a)') ' Rec. space limited to d-star <=: ',dsmax, 'A^-1'
+            ENDIF
+         ENDIF
          WRITE (output_io, 3060) braggmin, braggmax, diffumin,    &
          diffumax, diffuave, diffusig                             
          WRITE (output_io, 3080) 100.0 * ps_high, zmax 
@@ -527,6 +541,8 @@ IF (ier_num.eq.0) THEN
    ELSEIF (str_comp (befehl, 'value', 1, lbef, 5) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
       IF (ier_num.eq.0) THEN 
+         CALL get_optional(ianz, MAXP, cpara, lpara, NOPTIONAL,  ncalc, &
+                           oname, loname, opara, lopara, lpresent, owerte)
 !------ ----Check if we want the average values <F> ?                   
          IF (cpara (1) (1:1) .eq.'<') THEN 
             ix = 2 
@@ -574,6 +590,8 @@ IF (ier_num.eq.0) THEN
          ELSEIF (cpara (1) (ix:ix + 2) == 'PDF' ) THEN 
             value = val_pdf
          ELSEIF (cpara (1) (ix:ix + 4) == '3DPDF' ) THEN 
+            CALL value_optional(lpresent, O_DSMAX, O_QMAX, O_HKLMAX, NOPTIONAL, opara, &
+                                lopara, werte, l_val_limited, dsmax)
             value = val_3DPDF
          ELSE 
             ier_num = - 6 
@@ -645,22 +663,22 @@ prompt = orig_prompt
 !                                                                       
  1015 FORMAT ( /1x,'Z-MIN = ',G20.6,/,1x,'Z-MAX = ',G20.6,//            &
      &                     1x,'Give new values zmin, zmax    : ')     
- 3000 FORMAT( ' Output file                  : ',a) 
- 3060 FORMAT(/' Bragg minimum                : ',g13.6/                 &
-     &        ' Bragg maximum                : ',g13.6/                 &
-     &        ' Diffuse minimum              : ',g13.6/                 &
-     &        ' Diffuse maximum              : ',g13.6/                 &
-     &        ' Diffuse average intensity    : ',g13.6/                 &
-     &        ' Diffuse intensity sigma      : ',g13.6)                 
+ 3000 FORMAT( ' Output file                    : ',a) 
+ 3060 FORMAT(/' Bragg minimum                  : ',g13.6/                 &
+     &        ' Bragg maximum                  : ',g13.6/                 &
+     &        ' Diffuse minimum                : ',g13.6/                 &
+     &        ' Diffuse maximum                : ',g13.6/                 &
+     &        ' Diffuse average intensity      : ',g13.6/                 &
+     &        ' Diffuse intensity sigma        : ',g13.6)                 
  3080 FORMAT(/' Maximum value for BITMAP'/                              &
      &        ' in % of highest diffuse value'/                         &
-     &        ' and absolute                 : ',2x,f9.4,2x,g13.6)      
+     &        ' and absolute                   : ',2x,f9.4,2x,g13.6)      
  3090 FORMAT( ' Minimum value for BITMAP'/                              &
      &        ' in % of highest diffuse value'/                         &
-     &        ' and absolute                 : ',2x,f9.4,2x,g13.6)      
- 3100 FORMAT( ' Graphicsformat               : ',A) 
- 3130 FORMAT( ' Graphicsformat               : ',A,A) 
- 3110 FORMAT( ' Output value                 : ',A) 
+     &        ' and absolute                   : ',2x,f9.4,2x,g13.6)      
+ 3100 FORMAT( ' Graphicsformat                 : ',A) 
+ 3130 FORMAT( ' Graphicsformat                 : ',A,A) 
+ 3110 FORMAT( ' Output value                   : ',A) 
 END SUBROUTINE do_niplps                      
 !
 !*****7*****************************************************************
@@ -697,6 +715,97 @@ ELSE
 ENDIF
 !
 END SUBROUTINE form_optional
+!
+!*****7*************************************************************************
+!
+SUBROUTINE value_optional(lpresent, O_DSMAX, O_QMAX, O_HKLMAX, MAXW, opara, &
+                          lopara, owerte, l_val_limited, dsmax)
+!
+!-
+!  Sets limits for d-star to be applied prior to 3D-PDF output. all points in
+!  reciprocal space outside a spher with dsmax radias are set to intensity zero
+!+
+!
+USE metric_mod
+!
+USE errlist_mod
+USE ber_params_mod
+USE precision_mod
+USE str_comp_mod
+USE take_param_mod
+USE wink_mod
+!
+IMPLICIT NONE
+!
+INTEGER                            , INTENT(IN)    :: MAXW     ! Dimension of werte
+LOGICAL           , DIMENSION(MAXW), INTENT(IN)    :: lpresent ! Optional parameter was present 
+INTEGER                            , INTENT(IN)    :: O_DSMAX  ! Entry number
+INTEGER                            , INTENT(IN)    :: O_QMAX   ! Entry number
+INTEGER                            , INTENT(IN)    :: O_HKLMAX ! Entry number
+CHARACTER(LEN=*)  , DIMENSION(MAXW), INTENT(INOUT) :: opara    ! The string with optional values
+INTEGER           , DIMENSION(MAXW), INTENT(INOUT) :: lopara   ! length of string
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(OUT)   :: owerte   ! Numerical values
+LOGICAL                            , INTENT(OUT)   :: l_val_limited ! Limitation is applied T/F
+REAL(KIND=PREC_DP)                 , INTENT(OUT)   :: dsmax    ! Final maximum dstar
+!
+INTEGER, PARAMETER :: MAXP = 3
+REAL(KIND=PREC_SP), DIMENSION(3) :: NULL = (/0.00E0, 0.00E0, 0.00E0/)   ! Null vector
+!
+CHARACTER(LEN=1024)                 :: cpara
+INTEGER                             :: lpara
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte   ! Numerical values
+REAL(KIND=PREC_SP), DIMENSION(MAXW) :: u       ! Numerical values
+INTEGER :: ianz, i
+!
+werte         =  0.0D0
+dsmax         = 0.0
+l_val_limited = .FALSE.
+!
+IF(.NOT.(lpresent(O_DSMAX) .OR. lpresent(O_QMAX) .OR. lpresent(O_HKLMAX))) THEN
+   l_val_limited = .FALSE.
+   dsmax = 0.0
+   RETURN
+ELSEIF(lpresent(O_DSMAX) .AND. .NOT. (lpresent(O_QMAX) .OR. lpresent(O_HKLMAX))) THEN
+   DO i=1,MAXW
+      IF(i/=O_DSMAX) THEN
+         opara(i)  = '0'
+         lopara(i) = 1
+      ENDIF
+   ENDDO
+   ianz = O_DSMAX
+   CALL ber_params (ianz, opara, lopara, owerte, MAXW)
+   IF(ier_num /= 0) RETURN
+   dsmax         = owerte(O_DSMAX)
+   l_val_limited = .TRUE.
+ELSEIF(lpresent(O_QMAX) .AND. .NOT. (lpresent(O_DSMAX) .OR. lpresent(O_HKLMAX))) THEN
+   DO i=1,MAXW
+      IF(i/=O_QMAX) THEN
+         opara(i)  = '0'
+         lopara(i) = 1
+      ENDIF
+   ENDDO
+   ianz = O_QMAX
+   CALL ber_params (ianz, opara, lopara, owerte, MAXW)
+   IF(ier_num /= 0) RETURN
+   dsmax         = owerte(O_QMAX)/zpi
+   l_val_limited = .TRUE.
+ELSEIF(lpresent(O_HKLMAX) .AND. .NOT. (lpresent(O_DSMAX) .OR. lpresent(O_QMAX))) THEN
+   cpara = opara (O_HKLMAX)
+   lpara = lopara(O_HKLMAX)
+   CALL get_optional_multi(MAXP, cpara, lpara, werte, ianz)
+   u = REAL(werte)
+   dsmax = do_blen (.FALSE., u, NULL)
+   l_val_limited = .TRUE.
+ELSE
+   owerte        =  0.0D0
+   dsmax         = 0.0
+   l_val_limited = .FALSE.
+   ier_num = -174
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Only one of ''dsmax'', ''qmax'', ''hklmax'' allowed'
+ENDIF
+!
+END SUBROUTINE value_optional
 !
 !*****7*****************************************************************
 !
@@ -1584,7 +1693,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !
 !*******************************************************************************
 !
-SUBROUTINE out_prep_3dpdf(laver)
+SUBROUTINE out_prep_3dpdf(laver, l_val_limited, dsmax)
 !-
 !  Calculate the 3DPDF value via FFT
 !+
@@ -1596,10 +1705,13 @@ USE output_mod
 !
 USE errlist_mod
 USE param_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
-LOGICAL, INTENT(IN) :: laver
+LOGICAL           , INTENT(IN) :: laver
+LOGICAL           , INTENT(IN) :: l_val_limited
+REAL(KIND=PREC_DP), INTENT(IN) :: dsmax
 !
 INTEGER :: isdim, i
 INTEGER, DIMENSION(3) :: dsort
@@ -1607,6 +1719,10 @@ CHARACTER(LEN=PREC_STRING)   :: string
 INTEGER               :: lcomm
 REAL(KIND=PREC_SP), DIMENSION(3)    :: u
 REAL(KIND=PREC_SP)    :: uu
+!
+IF(l_val_limited) THEN
+   CALL output_limit(dsmax)
+ENDIF
 !
 !  Determine sequence of array dimensions 
 !
@@ -1868,6 +1984,50 @@ out_user_limits = .false.
 out_user_values(:) = (/1.0, 10.0, 0.01/)
 !
 END SUBROUTINE output_reset
+!
+!*******************************************************************************
+!
+SUBROUTINE output_limit(dsmax)
+!-
+!  Limits reciprocal space to a maximum dstar value
+!+
+USE crystal_mod
+USE diffuse_mod
+USE metric_mod
+USE output_mod
+!
+IMPLICIT NONE
+!
+REAL(KIND=PREC_DP), INTENT(IN) :: dsmax
+!
+REAL(KIND=PREC_SP), DIMENSION(3), PARAMETER :: NULL = (/0.0, 0.0, 0.0/)
+!
+REAL(KIND=PREC_SP)               :: dstarmax
+REAL(KIND=PREC_SP), DIMENSION(3) :: h
+INTEGER :: i,j,k,l
+INTEGER :: iii
+!
+dstarmax = REAL(dsmax)
+DO l = 1, inc(3) 
+   DO j = 1, inc(2) 
+      DO i = 1, inc(1) 
+         DO k = 1, 3 
+            h (k) = eck(k, 1) + vi(k, 1) * REAL(i - 1)   &
+                              + vi(k, 2) * REAL(j - 1)   &
+                              + vi(k, 3) * REAL(l - 1)
+            IF(do_blen(.FALSE., h, NULL)> dstarmax) THEN
+               iii       =  (i - 1) * inc(3)*inc (2) +        &
+                            (j - 1) * inc(3)             + l
+               acsf(iii) = CMPLX(0.0D0, 0.0D0)
+                csf(iii) = CMPLX(0.0D0, 0.0D0)
+                dsi(iii) = CMPLX(0.0D0, 0.0D0)
+            ENDIF
+         ENDDO
+      ENDDO
+   ENDDO
+ENDDO
+!
+END SUBROUTINE output_limit
 !
 !*******************************************************************************
 !
