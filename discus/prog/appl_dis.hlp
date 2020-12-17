@@ -75,6 +75,14 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2020_Dezember
+
+   Corrected import of RMCprofile version 6 files
+
+   Added not on side effect to mmc ==> set ==> vec
+
+   Added an optional paarameter to the value command in 'output'.
+   Allows to limit reciprocal-space prior to 3D-PDF calculations. 
 3  2020_November
 
    Added a linear and square (TTH/Q)-dependence of asymmetry parameters
@@ -3330,6 +3338,7 @@
 !p import "cmaker",<file[".xyz"]>
 !p import "shelx",<file[".ins"]>
 !p import "rmcprofile",<file[".cssr"]>
+!p           [, "sort:discus" ]
 !p import "cell",<file>
 !p        [, "metric:host" [,"space:host"] ]
 !p
@@ -3392,8 +3401,11 @@
    Currently DISCUS does not recognize the internal symmetry of a molecule.
 3  rmcprofile
 
-   DISCUS will read a RMCProfile *.cssr file and write a corresponding
+   DISCUS will read a RMCProfile *.cssr  or "rmcf6" file and write a corresponding
    structure file.
+   If the optional parameter "sort:discus" is present, DISCUS will attempt to
+   sort the structure in the DISCUS style, breaking it down into the individual
+   unit cells.
 2  index2cell
 !p index2cell <atomindex> or
 !p index2cell <x>,<y>,<z>,<site>
@@ -4554,6 +4566,10 @@
    in unit cells. Correlation vectors within one unit cell have <dx>,<dy>
    and <dz> set to zero. If you want to define correlation vectors crossing
    the unit cell boundaries set <dx>,<dy> and <dy> accordingly.
+
+   As a side effect of the UNIDIRECTIONAL correlations, you must make
+   sure that vectors that start on different sites are in separate targets,
+   even though they might be symmetrically related. (To be fixed).
 3  show
 !p show
 
@@ -4785,7 +4801,8 @@
 !p
 !p valu { "pdf" }
 !p
-!p valu { "3DPDF" }
+!p valu { "3DPDF" } {, "dsmax:"<value> | "qmax:"<value> 
+!p                     "hklmax:["<h>,<k>,<l>"]"
 
    Sets what value is written to the output file. The keyword given in
    < > corresponds to the value of the average structure factor <F> whereas
@@ -4806,6 +4823,16 @@
 !p "imag":   imaginary part of structure factor
 !p "pdf"     Powder PDF 
 !p "3DPDF"   3DPDF == generalized Patterson function
+!p           Exactly one optional parameter can be specified that
+!p           sets a limit in reciprocal space. All intensities further
+!p           outside are multiplied with zero. 
+!p           "dsmax"   : value is in 2*sin(Theta)/lambda
+!p           "qmax"    : value is in 2PI*2*sin(Theta)/lambda
+!p           "hklmax"  : value is length of reciprocal vector
+!p           WARNING, as the intensity is multiplied with zero, 
+!p              all further output is truncated as well!
+!p              To avoid write 3D-PDF output last.
+!p           Defaults to no limit to be applied.
 !p "S(Q)":   Normalized total scattering function
 !p "F(Q)":   Reduced normalized total scattering function Q[S(Q)-1]
 !p "I(Q)":   Intensity divided by the number of atoms.
