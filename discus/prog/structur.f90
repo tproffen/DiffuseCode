@@ -3360,9 +3360,10 @@ INTEGER :: length
 !
 CHARACTER(LEN= 200) :: hostfile  ! original structure file name
 !
-INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_METRIC  = 1
 INTEGER, PARAMETER :: O_SPACE   = 2
+INTEGER, PARAMETER :: O_SORT    = 3
 CHARACTER(LEN=   6)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -3371,8 +3372,8 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'metric', 'space'   /
-DATA loname /  6,        5        /
+DATA oname  / 'metric', 'space', 'sort'   /
+DATA loname /  6,        5     ,  4       /
 !
 REAL, DIMENSION(1:3) :: host_a0
 REAL, DIMENSION(1:3) :: host_win
@@ -3386,13 +3387,14 @@ CHARACTER(LEN=16)    :: host_spcgr_set = 'P1'
 REAL, DIMENSION(4)   :: posit4 ! atom position
 REAL, DIMENSION(4)   :: uvw4   ! atom position
 INTEGER              :: j
+LOGICAL              :: lperiod
 !
 LOGICAL :: lout = .FALSE.
 !
 !
-opara  =  (/ 'guest ', 'P1    ' /)   ! Always provide fresh default values
-lopara =  (/  6,        6       /)
-owerte =  (/  0.0,      0.0     /)
+opara  =  (/ 'guest ', 'P1    ', 'discus' /)   ! Always provide fresh default values
+lopara =  (/  6,        6      ,  6       /)
+owerte =  (/  0.0,      0.0    ,  0.0     /)
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
 IF (ier_num.ne.0) THEN 
@@ -3404,6 +3406,8 @@ CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
 IF (ier_num.ne.0) THEN 
    RETURN
 ENDIF 
+!
+lperiod=.FALSE.
 !
 IF (ianz.ge.1) THEN 
    IF (str_comp (cpara (1) , 'shelx', 2, lpara (1) , 5) ) THEN 
@@ -3434,10 +3438,19 @@ IF (ianz.ge.1) THEN
          ier_typ = ER_COMM 
       ENDIF 
    ELSEIF (str_comp (cpara (1) , 'rmcprofile', 2, lpara (1) , 10) ) THEN 
+      IF(lpresent(O_SORT)) THEN
+         IF(str_comp(opara(O_SORT), 'discus', 6, lopara(O_SORT), 6)) THEN
+            lperiod=.TRUE.
+         ELSE
+            lperiod=.FALSE.
+         ENDIF
+      ELSE
+         lperiod = .FALSE.
+      ENDIF
       IF (ianz >= 2) THEN 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          IF (ier_num.ne.0) return 
-         CALL rmcprofile2discus (ianz, cpara, lpara, MAXW, ofile) 
+         CALL rmcprofile2discus (ianz, cpara, lpara, MAXW, ofile, lperiod) 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -4167,136 +4180,136 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 !                                                                       
       END SUBROUTINE cmaker2discus                     
 !
-!*****7**************************************************************** 
+!*****7*************************************************************************
 !
-      SUBROUTINE rmcprofile2discus (ianz, cpara, lpara, MAXW, ofile) 
+SUBROUTINE rmcprofile2discus (ianz, cpara, lpara, MAXW, ofile, lperiod) 
 !-                                                                      
-!     converts a RMCProfile "cssr" file to DISCUS                   
+!     converts a RMCProfile "cssr" or "rmc6f" file to DISCUS                   
 !+                                                                      
 USE build_name_mod
 USE precision_mod
 USE take_param_mod
 USE str_comp_mod
 USE support_mod
-      IMPLICIT none 
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      INTEGER          , INTENT(INOUT)                 :: ianz 
-      INTEGER          , INTENT(IN)                    :: MAXW 
-      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
-      INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
-CHARACTER(LEN=*)                 , INTENT(OUT)   :: ofile 
+INTEGER          , INTENT(INOUT)                 :: ianz 
+INTEGER          , INTENT(IN)                    :: MAXW 
+CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
+INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
+CHARACTER(LEN=*)                    , INTENT(OUT)   :: ofile 
+LOGICAL                             , INTENT(IN)    :: lperiod   ! Attempt to rearrange periodically 
 !                                                                       
-      INTEGER, PARAMETER    :: RMC_CSSR  = 0
-      INTEGER, PARAMETER    :: RMC_RMCF6 = 1
+INTEGER, PARAMETER    :: RMC_CSSR  = 0
+INTEGER, PARAMETER    :: RMC_RMCF6 = 1
 !                                                                       
-      REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
 !                                                                       
-      CHARACTER(LEN=PREC_STRING)   :: infile = ' '
-      INTEGER               :: ird, iwr 
-      INTEGER               :: style
-      LOGICAL               :: fileda
-      LOGICAL               :: lperiod   ! Attempt to rearrange periodically 
-      INTEGER, PARAMETER    :: NOPTIONAL = 1
-      CHARACTER(LEN=   4)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-      CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
-      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
-      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
-      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-      INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+CHARACTER(LEN=PREC_STRING)   :: infile = ' '
+INTEGER               :: ird, iwr 
+INTEGER               :: style
+LOGICAL               :: fileda
+!     INTEGER, PARAMETER    :: NOPTIONAL = 1
+!     CHARACTER(LEN=   4)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+!     CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+!     INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+!     INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+!     LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
+!     REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+!     INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 !
-      DATA oname  / 'sort'   /
-      DATA loname /  4       /
-      opara  =  (/ 'none' /)   ! Always provide fresh default values
-      lopara =  (/  4     /)
-      owerte =  (/  0.0   /)
+!     DATA oname  / 'sort'   /
+!     DATA loname /  4       /
+!     opara  =  (/ 'none' /)   ! Always provide fresh default values
+!     lopara =  (/  4     /)
+!     owerte =  (/  0.0   /)
 !
-      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                        oname, loname, opara, lopara, lpresent, owerte)
-      IF(ier_num/=0) RETURN
-      lperiod = str_comp(opara(1), 'discus', 3, lopara(1), 6)
+!     CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+!                       oname, loname, opara, lopara, lpresent, owerte)
+!     IF(ier_num/=0) RETURN
+!     lperiod = str_comp(opara(1), 'discus', 3, lopara(1), 6)
 !
 !                                                                       
 !     Create input / output file name
 !
-      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-      IF (ier_num.ne.0) THEN 
-         RETURN 
-      ENDIF 
-      infile = cpara (1)(1:lpara (1) )
+CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+IF (ier_num.ne.0) THEN 
+   RETURN 
+ENDIF 
+infile = cpara (1)(1:lpara (1) )
+INQUIRE(file=infile,exist=fileda)
+IF(fileda) THEN
+   IF(infile(lpara(1)-4:lpara(1)) == '.cssr' .OR. &
+      infile(lpara(1)-4:lpara(1)) == '.CSSR' ) THEN 
+      style = RMC_CSSR
+      ofile  = cpara (1) (1:lpara (1)-5 ) //'.stru' 
+   ELSEIF(infile(lpara(1)-5:lpara(1)) == '.rmc6f' .OR. &
+      infile(lpara(1)-5:lpara(1)) == '.RMC6F' ) THEN 
+      style = RMC_RMCF6
+      ofile  = cpara (1) (1:lpara (1)-6 ) //'.stru' 
+   ELSE
+      ier_num = -6
+      ier_typ = ER_COMM
+      RETURN
+   ENDIF
+ELSE
+   infile = cpara (1) (1:lpara (1) ) //'.rmc6f'
+   INQUIRE(file=infile,exist=fileda)
+   IF(fileda) THEN
+      style = RMC_RMCF6
+      ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
+   ELSE
+      infile = cpara (1) (1:lpara (1) ) //'.rmc6f'
       INQUIRE(file=infile,exist=fileda)
       IF(fileda) THEN
-         IF(infile(lpara(1)-4:lpara(1)) == '.cssr' .OR. &
-            infile(lpara(1)-4:lpara(1)) == '.CSSR' ) THEN 
-            style = RMC_CSSR
-            ofile  = cpara (1) (1:lpara (1)-5 ) //'.stru' 
-         ELSEIF(infile(lpara(1)-5:lpara(1)) == '.rmc6f' .OR. &
-            infile(lpara(1)-5:lpara(1)) == '.RMC6F' ) THEN 
-            style = RMC_RMCF6
-            ofile  = cpara (1) (1:lpara (1)-6 ) //'.stru' 
-         ELSE
-            ier_num = -6
-            ier_typ = ER_COMM
-            RETURN
-         ENDIF
+         style = RMC_RMCF6
+         ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
       ELSE
-         infile = cpara (1) (1:lpara (1) ) //'.rmc6f'
+         infile = cpara (1) (1:lpara (1) ) //'.cssr'
          INQUIRE(file=infile,exist=fileda)
          IF(fileda) THEN
-            style = RMC_RMCF6
+            style = RMC_CSSR
             ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
          ELSE
-            infile = cpara (1) (1:lpara (1) ) //'.rmc6f'
+            infile = cpara (1) (1:lpara (1) ) //'.CSSR'
             INQUIRE(file=infile,exist=fileda)
             IF(fileda) THEN
-               style = RMC_RMCF6
+               style = RMC_CSSR
                ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
             ELSE
-               infile = cpara (1) (1:lpara (1) ) //'.cssr'
-               INQUIRE(file=infile,exist=fileda)
-               IF(fileda) THEN
-                  style = RMC_CSSR
-                  ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
-               ELSE
-                  infile = cpara (1) (1:lpara (1) ) //'.CSSR'
-                  INQUIRE(file=infile,exist=fileda)
-                  IF(fileda) THEN
-                     style = RMC_CSSR
-                     ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
-                  ELSE
-                     ier_num = -6
-                     ier_typ = ER_COMM
-                     RETURN
-                  ENDIF
-               ENDIF
+               ier_num = -6
+               ier_typ = ER_COMM
+               RETURN
             ENDIF
          ENDIF
       ENDIF
+   ENDIF
+ENDIF
 !
-      ird = 34 
-      iwr = 35 
-      CALL oeffne (ird, infile, 'old') 
-      IF (ier_num.ne.0) THEN 
-         CLOSE(ird)
-         RETURN 
-      ENDIF 
-      CALL oeffne (iwr, ofile, 'unknown') 
-      IF (ier_num.ne.0) THEN 
-         CLOSE(iwr)
-         RETURN 
-      ENDIF 
+ird = 34 
+iwr = 35 
+CALL oeffne (ird, infile, 'old') 
+IF (ier_num /= 0) THEN 
+   CLOSE(ird)
+   RETURN 
+ENDIF 
+CALL oeffne (iwr, ofile, 'unknown') 
+IF(ier_num /= 0) THEN 
+   CLOSE(iwr)
+   RETURN 
+ENDIF 
 !                                                                       
-      IF(style == RMC_CSSR) THEN
-         CALL cssr2discus(ird, iwr)
-      ELSEIF(style == RMC_RMCF6) THEN
-         CALL rmcf62discus(ird, iwr, lperiod)
-      ENDIF
-      CLOSE(iwr)
-      CLOSE(ird)
+IF(style == RMC_CSSR) THEN
+   CALL cssr2discus(ird, iwr)
+ELSEIF(style == RMC_RMCF6) THEN
+   CALL rmcf62discus(ird, iwr, lperiod)
+ENDIF
+CLOSE(iwr)
+CLOSE(ird)
 !
-      END SUBROUTINE rmcprofile2discus 
+END SUBROUTINE rmcprofile2discus 
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
@@ -4410,7 +4423,9 @@ END SUBROUTINE cssr2discus
 !
 SUBROUTINE rmcf62discus(ird, iwr, lperiod)
 !
+USE blanks_mod
 USE errlist_mod
+USE get_params_mod
 !
 IMPLICIT NONE
 !
@@ -4425,7 +4440,11 @@ CHARACTER(LEN= 4), DIMENSION(:)  , ALLOCATABLE :: r6_at_name
 REAL             , DIMENSION(:,:), ALLOCATABLE :: r6_pos
 INTEGER          , DIMENSION(:)  , ALLOCATABLE :: r6_site
 INTEGER          , DIMENSION(:,:), ALLOCATABLE :: r6_cell
-
+INTEGER, PARAMETER  :: MAXP = 9
+INTEGER                               :: ianz
+CHARACTER(LEN=1024),DIMENSION(1:MAXP) :: cpara
+INTEGER            ,DIMENSION(1:MAXP) :: lpara
+INTEGER                               :: length
 !
 INTEGER                :: i, inumber ! Dummy index
 INTEGER                :: iostatus   ! Current line number for error reports
@@ -4452,6 +4471,11 @@ header: DO
       RETURN
    ENDIF
    IF(line(1: 6) == 'Atoms:') EXIT header
+   IF(line(1:18) == 'Metadata material:') THEN
+      READ(line(19:LEN_TRIM(line)),'(a)') title
+      length = LEN_TRIM(title)
+      CALL rem_leading_bl(title, length)
+   ENDIF
    IF(line(1:16) == 'Number of atoms:') THEN
       READ(line(17:LEN_TRIM(line)),*,IOSTAT=iostatus) natoms
    ENDIF
@@ -4489,16 +4513,29 @@ r6_cell   (:,:) = 0
 atoms:DO i=1,natoms
    nline = nline + 1
    READ(ird,'(a)',iostat=iostatus) line
+   length = LEN_TRIM(line)
+   CALL get_params_blank (line, ianz, cpara, lpara, MAXP, length)
    IF ( IS_IOSTAT_END(iostatus )) THEN
       WRITE(ier_msg(1),'(a,i8)') 'Error in line ', nline
       ier_num = -6
       ier_typ = ER_IO
       RETURN
    ENDIF
-   READ(line(1:6),*) inumber
-   r6_at_name(i) = line(10:11)
-   READ(line(16:51),*,IOSTAT=iostatus) r6_pos(:,i)
-   READ(line(52:69),*,IOSTAT=iostatus) r6_site(i),r6_cell(:,i)
+   length = LEN_TRIM(line)
+   CALL get_params_blank (line, ianz, cpara, lpara, MAXP, length)
+   IF(ier_num/=0) then
+      WRITE(ier_msg(1),'(a,i8)') 'Error in line ', nline
+      RETURN
+   ENDIF
+   READ(cpara(1) ,*) inumber
+   READ(cpara(2), '(a)') r6_at_name(i)
+   READ(cpara(3), *) r6_pos(1,i)
+   READ(cpara(4), *) r6_pos(2,i)
+   READ(cpara(5), *) r6_pos(3,i)
+   READ(cpara(6), *) r6_site(i)
+   READ(cpara(7), *) r6_cell(1,i)
+   READ(cpara(8), *) r6_cell(2,i)
+   READ(cpara(9), *) r6_cell(3,i)
    nsites = MAX(nsites, r6_site(i))
 ENDDO atoms
 !
@@ -4532,7 +4569,7 @@ DEALLOCATE(r6_cell   )
 !
 END SUBROUTINE rmcf62discus
 !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!*******************************************************************************
 !
 SUBROUTINE rmc6f_period(natoms, nsites, lattice, super, r6_at_name, r6_pos, r6_site, r6_cell)
 !
