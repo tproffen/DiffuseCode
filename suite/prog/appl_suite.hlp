@@ -30,6 +30,10 @@
    data are written directly into the next available KUPLOT 
    data set. This is available for Fourier output, powder, pdf.
 2  News
+   The individual help topics contain information on changes, 
+   improvements and bug fixes. 
+   Further news are available at the DISCUS, KUPLOT, DIFFEV,
+   REFINE and Command_language help sections.
 3  2020_November
 
    Added options to the 'update' command
