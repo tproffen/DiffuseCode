@@ -52,6 +52,7 @@ line = ' '
 lmask(:,:)= .TRUE.
 omask = 0
 nmask = 1
+substring = ' '
 !
 main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
    CALL string_extract(string,istart, istop, substring, s1,s2,s3)
@@ -80,12 +81,12 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
    success = .FALSE.
    ianf = INDEX_MASK (substring, var_name (i) (1:var_l (i) ), lmask(1:LEN_TRIM(substring),omask)) !, .TRUE. ) 
    DO while (ianf.ne.0) 
-!write(*,*) ' zeile Z>', zeile    (1:len_trim(zeile    )),'<',var_name (i) (1:var_l (i)), ianf
-!write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(zeile),omask)
-!write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(zeile),nmask)
+!write(*,*) ' zeile Z>', substring(1:len_trim(substring)),'<',var_name (i) (1:var_l (i)), ianf
+!write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(substring),omask)
+!write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(substring),nmask)
 !write(*,*) '         123456789 123456789 1234567890'
 !write(*,'(1x,a,2i8)') '        ', ianf, var_l(i)
-      IF(var_entry(i)>0) EXIT names        ! This is a variable field
+      IF(var_entry(i)>0) CYCLE names        ! This is a variable field
       zeile = ' ' 
       iend = ianf + var_l (i) - 1 
       IF (ianf.gt.1) THEN
