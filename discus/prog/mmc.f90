@@ -1022,8 +1022,8 @@ IF (ier_num == 0) THEN
                      CALL ber_params (ianz, cpara, lpara, werte, maxw)
                      IF (mmc_cfac (ic, MC_OCC) > 0.0) THEN 
                         CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
-                             MAXW, werte1, werte2, werte(1) , -1.0000*werte(1) )                                   
-                           mmc_depth (ic, MC_OCC, 0, 0) = -1.0000*werte (1) 
+                             MAXW, werte1, werte2, werte(1) , -0.5000*werte(1) )                                   
+                           mmc_depth (ic, MC_OCC, 0, 0) = -0.5000*werte (1) 
                      ELSEIF (mmc_cfac (ic, MC_OCC) ==0.0) THEN 
                      CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
                              MAXW, werte1, werte2, werte(1) , werte(2) )                                   
@@ -2252,6 +2252,7 @@ INTEGER :: zh, zm, zs
 INTEGER :: n_angles   ! Dummy for angle allocation
 LOGICAL, DIMENSION(3) :: old_chem_period
 LOGICAL :: lserial    ! serial calculation if TRUE
+LOGICAL :: lfeed      ! Perform feedback algorithm
 LOGICAL :: loop, laccept, done 
 LOGICAL :: lout, lfinished
 !                                                                       
@@ -2367,7 +2368,9 @@ ENDIF
 !                                                                       
 lout = .FALSE. 
 lfinished = .FALSE.
-CALL mmc_correlations (lout, 0.0, done, lfinished) 
+lfeed = .FALSE.
+CALL mmc_correlations (lout, 0.0, done, lfinished, lfeed) 
+lfeed = .TRUE.
 IF(ier_num /= 0) RETURN 
 !
 !     current size of mmc_allowed
@@ -2443,7 +2446,7 @@ IF(nthreads > 1) THEN
                            iatom, patom, natom,ncent, laccept,                       &
                            rdi, rdj,         e_old, e_new, done, loop,               &
                            iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
-                           lout_feed, imodulus,                                      &
+                           lout_feed, lfeed, imodulus,                               &
                            NALLOWED, MAX_ATOM_ENV, MMC_MAX_CENT, MMC_MAX_ATOM)
 !
    ENDDO parallel_loop
@@ -2458,7 +2461,7 @@ ELSE     ! Use nonparallel code
                            iatom, patom, natom,ncent, laccept,                       &
                            rdi, rdj,         e_old, e_new, done, loop,               &
                            iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
-                           lout_feed, imodulus,                                      &
+                           lout_feed, lfeed, imodulus,                               &
                            NALLOWED, MAX_ATOM_ENV, MMC_MAX_CENT, MMC_MAX_ATOM)
       IF(ier_num/=0 .OR. done) EXIT serial_loop
    ENDDO serial_loop
@@ -2470,7 +2473,7 @@ ELSEIF(mmc_algo .EQV. MMC_GROWTH) THEN           !Use the growth MMC algorithm
                               iatom, patom, natom,ncent, laccept,                       &
                               rdi, rdj,         e_old, e_new, done, loop,               &
                               iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
-                              lout_feed, imodulus,                                      &
+                              lout_feed, lfeed, imodulus,                               &
                               NALLOWED, MAX_ATOM_ENV, MMC_MAX_CENT, MMC_MAX_ATOM)
          IF(ier_num/=0 .OR. done) EXIT serial_grow
       ENDDO serial_grow
@@ -2495,7 +2498,8 @@ IF(lout_feed) THEN
 ENDIF
 !     lout = .TRUE. 
 lfinished = .TRUE.
-CALL mmc_correlations (lout_feed, rel_cycl, done, lfinished) 
+lfeed     = .FALSE.   ! no feedback algorithm
+CALL mmc_correlations (lout_feed, rel_cycl, done, lfinished, lfeed) 
 !                                                                       
 !     Give average energy changes for the different energy terms        
 !                                                                       
@@ -2554,7 +2558,7 @@ SUBROUTINE mmc_run_loop(tid, nthreads, igen, itry, &
                         iatom, patom, natom,ncent, laccept,                       &
                         rdi, rdj,         e_old, e_new, done, loop,               &
                         iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
-                        lout_feed, imodulus,                                      &
+                        lout_feed, lfeed, imodulus,                               &
                         NALLOWED, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
 !
 USE crystal_mod
@@ -2594,6 +2598,7 @@ INTEGER                           , INTENT(INOUT)  :: iacc_neut
 INTEGER                           , INTENT(INOUT)  :: iacc_bad
 REAL                              , INTENT(INOUT)  :: rel_cycl
 LOGICAL                           , INTENT(IN ) :: lout_feed
+LOGICAL                           , INTENT(IN ) :: lfeed
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)  :: imodulus
 !
 INTEGER, DIMENSION(MMC_MAX_ATOM_L)              :: isel !(chem_max_atom) 
@@ -2707,6 +2712,7 @@ REAL(KIND=PREC_SP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
 !                                                                       
 !     --End of modification of atoms if a proper "old" energy was found 
 !                                                                       
+!$OMP CRITICAL
    IF(tid==0) THEN
       IF(MOD(igen, imodulus)==0) THEN ! .AND. .NOT.done .AND. loop) THEN
 !         done = .TRUE. 
@@ -2716,12 +2722,13 @@ REAL(KIND=PREC_SP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
 !     ----New mmc_correlations for all energies                         
 !                                                                       
          rel_cycl = REAL(igen)/REAL(mo_cyc)*REAL(NTHREADS)
-         CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE.)
+         CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE., lfeed)
       ENDIF 
       IF(igen> mo_cyc/nthreads) THEN
          done = .TRUE.
       ENDIF
    ENDIF 
+!$OMP END CRITICAL
 !
  2000 FORMAT (/,' Gen: ',I10,' try: ',I10,' acc: (g/n/b): ',I8,        &
      &          ' / ',I8,' / ',I8,'  MC moves ')                                 
@@ -2735,7 +2742,7 @@ SUBROUTINE mmc_run_grow(tid, nthreads, igen, itry, &
                         iatom, patom, natom,ncent, laccept,                       &
                         rdi, rdj,         e_old, e_new, done, loop,               &
                         iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
-                        lout_feed, imodulus,                                      &
+                        lout_feed, lfeed, imodulus,                               &
                         NALLOWED, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
 !
 !-
@@ -2783,15 +2790,16 @@ INTEGER                           , INTENT(INOUT)  :: iacc_neut
 INTEGER                           , INTENT(INOUT)  :: iacc_bad
 REAL                              , INTENT(INOUT)  :: rel_cycl
 LOGICAL                           , INTENT(IN ) :: lout_feed
+LOGICAL                           , INTENT(IN ) :: lfeed
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)  :: imodulus
 !
 INTEGER, DIMENSION(0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L,2) :: iatom_l      !Neighbors for isel(1:2)
 INTEGER, DIMENSION(                  MMC_MAX_CENT_L,2) :: natom_l      ! number of neighbors
 INTEGER, DIMENSION(                                 2) :: ncent_l      ! number of centers
 !
-LOGICAL, PARAMETER :: LOUT=.FALSE.
+!LOGICAL, PARAMETER :: LOUT=.FALSE.
 !
-INTEGER :: MAXTEST
+!INTEGER :: MAXTEST
 INTEGER, DIMENSION(MMC_MAX_ATOM_L)              :: isel !(chem_max_atom) 
 INTEGER, DIMENSION(2)                           :: is
 INTEGER, DIMENSION(2, 3)                        :: iz
@@ -2802,30 +2810,30 @@ INTEGER                                         :: iselz2
 !
 INTEGER, DIMENSION(2) :: iposit ! Original atom number at selected position 1,2
 INTEGER, DIMENSION(2) :: iorig  ! Original atom type at selected position 1,2
-INTEGER :: i, j, k
+INTEGER :: i !, j, k
 INTEGER :: imode = 1  ! Select atom that could be improved most
-INTEGER :: latom
-INTEGER :: itest
+!INTEGER :: latom
+!INTEGER :: itest
 INTEGER :: ichoose    ! Which atom within isel to choose
-INTEGER :: istart     ! Start for loop to search for new atom type
-INTEGER :: iend       ! End   for loop to search for new atom type
-INTEGER :: jmin       ! Atom type with minimum energy at selected atom position
+!INTEGER :: istart     ! Start for loop to search for new atom type
+!INTEGER :: iend       ! End   for loop to search for new atom type
+!INTEGER :: jmin       ! Atom type with minimum energy at selected atom position
 INTEGER :: ic                             ! Loop index correlations
-INTEGER :: ie                             ! Loop index energy type
-INTEGER :: jc                             ! Current correlation to improve
-INTEGER :: js                             ! Loop index atom type 
-INTEGER :: ks                             ! Loop index atom type 
-INTEGER :: nt                             ! Number of targets for chosen energy
-INTEGER :: it                             ! Loop index over targets for chosen energy
+!INTEGER :: ie                             ! Loop index energy type
+!INTEGER :: jc                             ! Current correlation to improve
+!INTEGER :: js                             ! Loop index atom type 
+!INTEGER :: ks                             ! Loop index atom type 
+!INTEGER :: nt                             ! Number of targets for chosen energy
+!INTEGER :: it                             ! Loop index over targets for chosen energy
 INTEGER :: wic, wie                       ! Index of Correlation, energy, atom types at worst deviation
 INTEGER :: icent                          ! Current center 
 INTEGER :: iaccept                        ! DACounter if we want toaccept correlation changes
 INTEGER, DIMENSION(2) :: wjks             ! Index of Correlation, energy, atom types at worst deviation
 integer, dimension(0:2) :: isnei
-LOGICAL :: valid_all, valid_e
-REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz !(3) = 0.0
-REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !(3) = 0.0
-REAL(KIND=PREC_SP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
+LOGICAL :: valid_e
+!REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz !(3) = 0.0
+!REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !(3) = 0.0
+!REAL(KIND=PREC_SP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
 REAL :: r1
 !REAL, DIMENSION(:,:), ALLOCATABLE :: energies_old
 REAL, DIMENSION(2,0:CHEM_MAX_COR) :: en_old    ! Old energy at position 1,2
@@ -2834,7 +2842,7 @@ REAL(KIND=PREC_SP), DIMENSION(2)  :: cold  ! old correlation at atom 1,2
 REAL(KIND=PREC_SP), DIMENSION(2)  :: cnew  ! old correlation at atom 1,2
 REAL(KIND=PREC_SP), DIMENSION(2)  ::ccold  ! old correlation at atom 1,2
 REAL(KIND=PREC_SP), DIMENSION(2)  ::ccnew  ! old correlation at atom 1,2
-integer, dimension(0:3, 0:3, 11) :: rbn_pneig = 0
+!integer, dimension(0:3, 0:3, 11) :: rbn_pneig = 0
 !
 REAL :: damp = 1.0
 !
@@ -3185,6 +3193,7 @@ ENDIF
 !
 !     --End of modification of atoms if a proper "old" energy was found 
 !
+!$OMP CRITICAL
 IF(tid==0) THEN
    IF(MOD(igen, imodulus)==0) THEN ! .AND. .NOT.done .AND. loop) THEN
 !         done = .TRUE. 
@@ -3194,12 +3203,13 @@ IF(tid==0) THEN
 !     ----New mmc_correlations for all energies                         
 !                                                                       
       rel_cycl = REAL(igen)/REAL(mo_cyc)*REAL(NTHREADS)
-      CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE.)
+      CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE., lfeed)
    ENDIF 
    IF(igen> mo_cyc/nthreads) THEN
       done = .TRUE.
    ENDIF
 ENDIF 
+!$OMP END CRITICAL
 !
 2000 FORMAT (/,' Gen: ',I10,' try: ',I10,' acc: (g/n/b): ',I8,        &
              ' / ',I8,' / ',I8,'  MC moves ')                                 
@@ -3213,7 +3223,7 @@ SUBROUTINE mmc_run_oswald(tid, nthreads, igen, itry, &
                         iatom, patom, natom,ncent, laccept,                       &
                         rdi, rdj,         e_old, e_new, done, loop,               &
                         iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
-                        lout_feed, imodulus,                                      &
+                        lout_feed, lfeed, imodulus,                               &
                         NALLOWED, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
 !
 !-
@@ -3261,15 +3271,16 @@ INTEGER                           , INTENT(INOUT)  :: iacc_neut
 INTEGER                           , INTENT(INOUT)  :: iacc_bad
 REAL                              , INTENT(INOUT)  :: rel_cycl
 LOGICAL                           , INTENT(IN ) :: lout_feed
+LOGICAL                           , INTENT(IN ) :: lfeed
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)  :: imodulus
 !
 INTEGER, DIMENSION(0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L,2) :: iatom_l      !Neighbors for isel(1:2)
 INTEGER, DIMENSION(                  MMC_MAX_CENT_L,2) :: natom_l      ! number of neighbors
 INTEGER, DIMENSION(                                 2) :: ncent_l      ! number of centers
 !
-LOGICAL, PARAMETER :: LOUT=.FALSE.
+!LOGICAL, PARAMETER :: LOUT=.FALSE.
 !
-INTEGER :: MAXTEST
+!INTEGER :: MAXTEST
 INTEGER, DIMENSION(MMC_MAX_ATOM_L)              :: isel !(chem_max_atom) 
 INTEGER, DIMENSION(2)                           :: is
 INTEGER, DIMENSION(2, 3)                        :: iz
@@ -3278,38 +3289,38 @@ INTEGER, DIMENSION(3)                           :: iz2
 INTEGER                                         :: iselz
 INTEGER                                         :: iselz2
 !
-INTEGER, DIMENSION(2) :: iposit ! Original atom number at selected position 1,2
+!INTEGER, DIMENSION(2) :: iposit ! Original atom number at selected position 1,2
 INTEGER, DIMENSION(2) :: iorig  ! Original atom type at selected position 1,2
-INTEGER :: i, j, k
+!INTEGER :: i!, j!, k
 INTEGER :: imode = 2  ! Select atom that cannot be improved any further
-INTEGER :: latom
-INTEGER :: itest
+!INTEGER :: latom
+!INTEGER :: itest
 INTEGER :: ichoose    ! Which atom within isel to choose
-INTEGER :: istart     ! Start for loop to search for new atom type
-INTEGER :: iend       ! End   for loop to search for new atom type
-INTEGER :: jmin       ! Atom type with minimum energy at selected atom position
+!INTEGER :: istart     ! Start for loop to search for new atom type
+!INTEGER :: iend       ! End   for loop to search for new atom type
+!INTEGER :: jmin       ! Atom type with minimum energy at selected atom position
 INTEGER :: ic                             ! Loop index correlations
-INTEGER :: ie                             ! Loop index energy type
-INTEGER :: jc                             ! Current correlation to improve
-INTEGER :: js                             ! Loop index atom type 
-INTEGER :: ks                             ! Loop index atom type 
-INTEGER :: nt                             ! Number of targets for chosen energy
-INTEGER :: it                             ! Loop index over targets for chosen energy
+!INTEGER :: ie                             ! Loop index energy type
+!INTEGER :: jc                             ! Current correlation to improve
+!INTEGER :: js                             ! Loop index atom type 
+!INTEGER :: ks                             ! Loop index atom type 
+!INTEGER :: nt                             ! Number of targets for chosen energy
+!INTEGER :: it                             ! Loop index over targets for chosen energy
 INTEGER :: wic, wie                       ! Index of Correlation, energy, atom types at worst deviation
 INTEGER :: icent                          ! Current center 
 INTEGER, DIMENSION(2) :: wjks             ! Index of Correlation, energy, atom types at worst deviation
-integer, dimension(0:2) :: isnei
-LOGICAL :: valid_all, valid_e
-REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz !(3) = 0.0
-REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !(3) = 0.0
-REAL(KIND=PREC_SP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
-REAL :: r1
+!integer, dimension(0:2) :: isnei
+!LOGICAL :: valid_e
+!REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz !(3) = 0.0
+!REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !(3) = 0.0
+!REAL(KIND=PREC_SP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
+!REAL :: r1
 !REAL, DIMENSION(:,:), ALLOCATABLE :: energies_old
-REAL, DIMENSION(2,0:MC_N_ENERGY) :: en_old    ! Old energy at position 1,2
-REAL, DIMENSION(2,0:MC_N_ENERGY) :: en_new    ! New energy at position 1,2
+!REAL, DIMENSION(2,0:MC_N_ENERGY) :: en_old    ! Old energy at position 1,2
+!REAL, DIMENSION(2,0:MC_N_ENERGY) :: en_new    ! New energy at position 1,2
 REAL(KIND=PREC_SP), DIMENSION(2)  :: cold  ! old correlation at atom 1,2
 REAL(KIND=PREC_SP), DIMENSION(2)  :: cnew  ! old correlation at atom 1,2
-integer, dimension(0:3, 0:3, 11) :: rbn_pneig = 0
+!integer, dimension(0:3, 0:3, 11) :: rbn_pneig = 0
 !
 REAL :: damp = 1.0
 !
@@ -3374,7 +3385,7 @@ INTEGER, DIMENSION(2), INTENT(OUT) :: wjks   ! Selected atom types
 !
 INTEGER :: ic                             ! Loop index correlations
 INTEGER :: ie                             ! Loop index energy type
-INTEGER :: jc                             ! Current correlation to improve
+!INTEGER :: jc                             ! Current correlation to improve
 INTEGER :: js                             ! Loop index atom type 
 INTEGER :: ks                             ! Loop index atom type 
 INTEGER :: nt                             ! Number of targets for chosen energy
@@ -3529,12 +3540,12 @@ INTEGER :: icounter                       ! End   atom number for random search
 INTEGER :: inumber                        ! End   atom number for random search
 INTEGER :: iinc                           ! Increment         for random search
 INTEGER :: latom                          ! Current atom number
-INTEGER :: ic                             ! Loop index correlations
-INTEGER :: ie                             ! Loop index energy type
-INTEGER :: jc                             ! Current correlation to improve
-INTEGER :: js                             ! Loop index atom type 
-INTEGER :: ks                             ! Loop index atom type 
-INTEGER :: i                              ! Dummy loop index
+!INTEGER :: ic                             ! Loop index correlations
+!INTEGER :: ie                             ! Loop index energy type
+!INTEGER :: jc                             ! Current correlation to improve
+!INTEGER :: js                             ! Loop index atom type 
+!INTEGER :: ks                             ! Loop index atom type 
+!INTEGER :: i                              ! Dummy loop index
 INTEGER :: ia                             ! Dummy loop index
 INTEGER :: icent                          ! Dummy loop index
 integer, dimension(0:2) :: isnei
@@ -3544,7 +3555,12 @@ LOGICAL :: valid_e
 ngrand = 0
 grand: DO
    ngrand = ngrand + 1
-CALL RANDOM_NUMBER(r1)                    ! 
+!
+   iinc = 1
+   inumber = cr_icc(1)
+!
+   CALL RANDOM_NUMBER(r1)                    ! 
+!
 IF(r1<1./2.) THEN                         ! Increment along x-axis
    IF(cr_icc(1) > 1) THEN
       CALL RANDOM_NUMBER(r1)
@@ -3723,11 +3739,11 @@ INTEGER :: inumber                        ! End   atom number for random search
 INTEGER :: iinc                           ! Increment         for random search
 INTEGER :: latom                          ! Current atom number
 INTEGER :: ic                             ! Loop index correlations
-INTEGER :: ie                             ! Loop index energy type
-INTEGER :: jc                             ! Current correlation to improve
-INTEGER :: js                             ! Loop index atom type 
-INTEGER :: ks                             ! Loop index atom type 
-INTEGER :: i                              ! Dummy loop index
+!INTEGER :: ie                             ! Loop index energy type
+!INTEGER :: jc                             ! Current correlation to improve
+!INTEGER :: js                             ! Loop index atom type 
+!INTEGER :: ks                             ! Loop index atom type 
+!INTEGER :: i                              ! Dummy loop index
 INTEGER :: ia                             ! Dummy loop index
 INTEGER :: icent                          ! Dummy loop index
 integer, dimension(0:2) :: isnei
@@ -3736,8 +3752,12 @@ LOGICAL :: valid_e
 !
 ngrand = 0
 grand: DO
+!
+   iinc = 1
+   inumber = cr_icc(1)
+!
    ngrand = ngrand + 1
-CALL RANDOM_NUMBER(r1)                    ! 
+   CALL RANDOM_NUMBER(r1)                    ! 
 IF(r1<1./2.) THEN                         ! Increment along x-axis
    IF(cr_icc(1) > 1) THEN
       CALL RANDOM_NUMBER(r1)
@@ -5977,7 +5997,7 @@ REAL :: a, b, u (3), v (3), w (3)
 !     END FUNCTION mmc_energy_vec                   
 !*****7*****************************************************************
 !
-SUBROUTINE mmc_correlations (lout, rel_cycl, done, lfinished) 
+SUBROUTINE mmc_correlations (lout, rel_cycl, done, lfinished, lfeed) 
 !-                                                                      
 !     Determines the achieved correlations                              
 !                                                                       
@@ -6003,6 +6023,7 @@ LOGICAL , INTENT(IN) :: lout     ! Flag for output yes/no
 REAL    , INTENT(IN) :: rel_cycl ! Relative progress along cycles
 LOGICAL , INTENT(INOUT) :: done     ! MMC is converged/ stagnates
 LOGICAL , INTENT(IN)    :: lfinished ! MMC is finished
+LOGICAL , INTENT(IN)    :: lfeed     ! Perform feedback algorithm
 ! 
 !                                                                       
 CHARACTER(LEN=30) :: energy_name (0:MC_N_ENERGY) 
@@ -6213,6 +6234,7 @@ is_mc_disp: IF (mmc_cor_energy (ic, MC_DISP) ) THEN
 !     ---- Loop over all centers                                        
 !                                                                       
 main_cent: DO icent = 1, ncent 
+!write(*,'(3(2i5,a)20i5)') i, is, ' : ', icent, ncent, ' : ', natom(icent), iatom(0,icent), ' : ', iatom(1:natom(icent), icent)
 !                                                                       
 !     ------- Since the loop is over all atoms, do central atoms only   
 !                                                                       
@@ -6240,7 +6262,10 @@ loop_neig:  DO j = 1, natom (icent)
 !                                                                       
 !     ----------- Chemical correlation, add number of atom pairs        
 !                                                                       
+!                 IF(mmc_pair(ic, MC_OCC,is,js) /=0) THEN
+!write(*,'(5i5)') i, is, j, iatom(j, icent), js
                   mmc_pneig (is, js, ic) = mmc_pneig (is, js, ic) + 1 
+!                 ENDIF
                ENDIF 
                IF (mmc_cor_energy (ic, MC_UNI) ) THEN 
 !                                                                       
@@ -6359,11 +6384,11 @@ ENDDO main_atoms       ! i     ! Loop over all atoms
 !                                                                       
 !     ----- Chemical correlation                                        
 !                                                                       
-CALL mmc_correlations_occ(ic, mmc_pneig, rel_cycl, damp, lout, MAXSCAT, CHEM_MAX_COR)
+CALL mmc_correlations_occ(ic, mmc_pneig, rel_cycl, damp, lout, lfeed, MAXSCAT, CHEM_MAX_COR)
 !                                                                       
 !     ----- Unidirectional Chemical correlation                                        
 !                                                                       
-CALL mmc_correlations_uni(ic, mmc_pneig, rel_cycl, damp, lout, MAXSCAT, CHEM_MAX_COR)
+CALL mmc_correlations_uni(ic, mmc_pneig, rel_cycl, damp, lout, lfeed, MAXSCAT, CHEM_MAX_COR)
 !
 !  Coordination number
 !
@@ -6802,7 +6827,7 @@ END SUBROUTINE mmc_correlations
 !
 !*******************************************************************************
 !
-SUBROUTINE mmc_correlations_occ(ic, pneig, rel_cycl, damp, lout, MAXSCAT_L, &
+SUBROUTINE mmc_correlations_occ(ic, pneig, rel_cycl, damp, lout, lfeed, MAXSCAT_L, &
                                 MAX_COR)
 !
 !     ----- Chemical correlation                                        
@@ -6823,8 +6848,9 @@ INTEGER, DIMENSION(0:MAXSCAT_L, 0:MAXSCAT_L, 1:MAX_COR) , INTENT(IN) :: pneig
 REAL   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
 REAL   , INTENT(IN) :: damp
 LOGICAL, INTENT(IN) :: lout
+LOGICAL, INTENT(IN) :: lfeed
 !
-integer :: j = 0
+!integer, save :: j = 0
 INTEGER :: pair11
 INTEGER :: pair12
 INTEGER :: pair21
@@ -6832,11 +6858,15 @@ INTEGER :: pair22
 INTEGER :: is, js, je
 INTEGER :: nneigh
 LOGICAL :: lfirst
-      REAL :: prob11=0.0, prob12, prob22 
+REAL :: prob11, prob12, prob22 
 REAL(PREC_SP) :: thet
 REAL(PREC_SP) :: divisor
 REAL(PREC_SP) :: change
 !
+je = MC_OCC 
+prob11 = 0.0
+prob12 = 0.0
+prob22 = 0.0
 pair11 = 0
 pair12 = 0
 pair21 = 0
@@ -6855,7 +6885,6 @@ DO is = 0, cr_nscat
       ENDIF
    ENDDO
 ENDDO
-!write(*,*) ' pair12, pair21, pair11, pair22 ', pair12, pair21, pair11, pair22
 je = MC_OCC 
 !                                                                       
 nneigh = pair11 + pair12 + pair21 + pair22 
@@ -6866,6 +6895,7 @@ IF (nneigh > 0.) THEN
    thet = 0.5 * (2.0 * pair11 + pair12 + pair21) / REAL(nneigh)                                                     
 !           thet = 0.5 * ((pair22 + pair11) + pair12 + pair21) / REAL(nneigh)                                                     
 ENDIF 
+!
 lfirst = .TRUE.
 corr_pair: DO is = 0, cr_nscat 
    DO js = is, cr_nscat 
@@ -6893,48 +6923,39 @@ corr_pair: DO is = 0, cr_nscat
         ELSE
            divisor = 1.0
         ENDIF
-        IF(rel_cycl>0.0) THEN
+        IF_FEED: IF(lfeed) THEN
+        IF_RELC: IF(rel_cycl>0.0) THEN
            change = mmc_cfac(ic, MC_OCC) * (mmc_target_corr(ic, MC_OCC, is, js) -      &
-                                            mmc_ach_corr   (ic, MC_OCC, is, js) ) / 1. * &
-           (mmc_target_corr(ic, MC_OCC, is, js) - mmc_ach_corr   (ic, MC_OCC, is, js))**2  &
+                                            mmc_ach_corr   (ic, MC_OCC, is, js) ) / 2.0& !divisor &
                    *ABS(mmc_target_corr(ic, MC_OCC, is, js)) * damp
-           mmc_depth(ic, MC_OCC, js, is) = mmc_depth (ic, MC_OCC, is, js)
-           mmc_depth(ic, MC_OCC,  0,  0) = mmc_depth (ic, MC_OCC, is, js)
+!
            IF(mmc_target_corr(ic, MC_OCC, is, js)*mmc_ach_corr(ic, MC_OCC, is, js)>=0.0  .AND. &
               mmc_depth(ic, MC_OCC, is, js)*(mmc_depth(ic, MC_OCC, is, js)-change)<0.0         ) THEN
-!IF(is==1 .and. js==1) &
-!write(88,*) ' INITIAL CHANGE ', change , mmc_depth(ic, MC_OCC, is, js), &
-!mmc_depth(ic, MC_OCC, is, js) - change , &
-!mmc_target_corr(ic, MC_OCC, is, js), mmc_ach_corr(ic, MC_OCC, is, js), &
-!mmc_target_corr(ic, MC_OCC, is, js)*mmc_ach_corr(ic, MC_OCC, is, js)>=0.0, &
-!mmc_depth(ic, MC_OCC, is, js)*(mmc_depth(ic, MC_OCC, is, js)-change)<0.0
+               change = -mmc_depth(ic, MC_OCC, is, js)*0.005
+           ENDIF
 !
-!              change = MIN(ABS(mmc_depth(ic, MC_OCC, is, js))*0.333, ABS(change))* &
-!                       SIGN(1.00, change)
-!write(88,*) ' FINAL   CHANGE ', change 
-change = -mmc_depth(ic, MC_OCC, is, js)*0.005
-            ENDIF
-!
-!if(ic==1.and.is==1 .and. js==1) then
-!  j = j + 1
-!write(88,'(1(i6), 1x, 7(f10.6,1x),2l2)') j, mmc_depth (ic, MC_OCC, is, js), & 
-!mmc_target_corr(ic, MC_OCC, is, js), mmc_ach_corr   (ic, MC_OCC, is, js), &
-!mmc_target_corr(ic, MC_OCC, is, js)- mmc_ach_corr   (ic, MC_OCC, is, js), &
-! (mmc_target_corr(ic, MC_OCC, is, js)-                               &
-!  mmc_ach_corr   (ic, MC_OCC, is, js) ) / 2., damp, -change !          , &
-!
-!mmc_target_corr(ic, MC_OCC, is, js)*mmc_ach_corr(ic, MC_OCC, is, js)>=0.0, &
-!mmc_depth(ic, MC_OCC, is, js)*(mmc_depth(ic, MC_OCC, is, js)-change)<0.0
-!change, &
-!-mmc_cfac (ic, MC_OCC) * (mmc_target_corr(ic, MC_OCC, is, js)- &
-!                          mmc_ach_corr   (ic, MC_OCC, is, js) ) / 1. &
-!        *ABS(mmc_target_corr (ic, MC_OCC, is, js)) &
-!        * damp
-!
-!mmc_depth (ic, MC_OCC, js, is), mmc_depth (ic, MC_OCC, 0,0), &
-!endif
-        ENDIF
+!Qif(ic==1.and.is==1 .and. js==1) then
+!Q  j = j + 1
+!Qwrite(88,'(1(i6), 1x, 7(f10.6,1x),2l2)') j, mmc_depth (ic, MC_OCC, is, js), & 
+!Qmmc_target_corr(ic, MC_OCC, is, js), mmc_ach_corr   (ic, MC_OCC, is, js), &
+!Qmmc_target_corr(ic, MC_OCC, is, js)- mmc_ach_corr   (ic, MC_OCC, is, js), &
+!Q (mmc_target_corr(ic, MC_OCC, is, js)-                               &
+!Q  mmc_ach_corr   (ic, MC_OCC, is, js) ) / 2., damp, -change  !         , &
+!Q!
+!Q!mmc_target_corr(ic, MC_OCC, is, js)*mmc_ach_corr(ic, MC_OCC, is, js)>=0.0, &
+!Q!mmc_depth(ic, MC_OCC, is, js)*(mmc_depth(ic, MC_OCC, is, js)-change)<0.0
+!Q!change, &
+!Q!-mmc_cfac (ic, MC_OCC) * (mmc_target_corr(ic, MC_OCC, is, js)- &
+!Q!                          mmc_ach_corr   (ic, MC_OCC, is, js) ) / 1. &
+!Q!        *ABS(mmc_target_corr (ic, MC_OCC, is, js)) &
+!Q!        * damp
+!Q!
+!Q!mmc_depth (ic, MC_OCC, js, is), mmc_depth (ic, MC_OCC, 0,0), &
+!Qendif
            mmc_depth(ic, MC_OCC, is, js) = mmc_depth (ic, MC_OCC, is, js) - change
+           mmc_depth(ic, MC_OCC, js, is) = mmc_depth (ic, MC_OCC, is, js)
+        ENDIF IF_RELC
+        ENDIF IF_FEED
 !                                                                       
         IF (lout .AND. mmc_pair(ic,MC_OCC,is,js) < 0 .AND. lfirst) THEN
            mmc_h_ctarg = mmc_h_ctarg + 1          ! Increment targets in history
@@ -6962,7 +6983,7 @@ END SUBROUTINE mmc_correlations_occ
 !
 !*******************************************************************************
 !
-SUBROUTINE mmc_correlations_uni(ic, pneig, rel_cycl, damp, lout, MAXSCAT_L, &
+SUBROUTINE mmc_correlations_uni(ic, pneig, rel_cycl, damp, lout, lfeed, MAXSCAT_L, &
                                 MAX_COR)
 !
 !     ----- Chemical correlation                                        
@@ -6983,6 +7004,7 @@ INTEGER, DIMENSION(0:MAXSCAT_L, 0:MAXSCAT_L, 1:MAX_COR) , INTENT(IN) :: pneig
 REAL   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
 REAL   , INTENT(IN) :: damp
 LOGICAL, INTENT(IN) :: lout
+LOGICAL, INTENT(IN) :: lfeed
 !
 INTEGER :: pair11
 INTEGER :: pair12
@@ -6995,7 +7017,7 @@ LOGICAL :: lfirst
 REAL(PREC_SP) :: thet
 REAL(PREC_SP) :: divisor
 REAL(PREC_SP) :: change
-integer :: iwr, j=0
+!integer :: iwr, j=0
 !
 pair11 = 0
 pair12 = 0
@@ -7053,14 +7075,20 @@ corr_pair: DO is = 0, cr_nscat
         ELSE
            divisor = 1.0
         ENDIF
-        IF(rel_cycl>0.0) THEN
+        IF_FEED: IF(lfeed) THEN
+        IF_RELC: IF(rel_cycl>0.0) THEN
            change=-mmc_cfac (ic, MC_UNI) * (mmc_target_corr(ic, MC_UNI, is, js)-     &
                                             mmc_ach_corr   (ic, MC_UNI, is, js) )/2. &
                   *ABS(mmc_target_corr (ic, MC_UNI, is, js)) * damp
+           IF(mmc_target_corr(ic, MC_UNI, is, js)*mmc_ach_corr(ic, MC_UNI, is, js)>=0.0  .AND. &
+              mmc_depth(ic, MC_UNI, is, js)*(mmc_depth(ic, MC_UNI, is, js)-change)<0.0         ) THEN
+               change = -mmc_depth(ic, MC_UNI, is, js)*0.005
+           ENDIF
            mmc_depth (ic, MC_UNI, is, js) = mmc_depth      (ic, MC_UNI, is, js)    - &
                    mmc_cfac (ic, MC_UNI) * (mmc_target_corr(ic, MC_UNI, is, js)-     &
                                             mmc_ach_corr   (ic, MC_UNI, is, js) )/2. &
                   *ABS(mmc_target_corr (ic, MC_UNI, is, js)) * damp
+           mmc_depth(ic, MC_UNI, is, js) = mmc_depth (ic, MC_UNI, is, js) - change
            mmc_depth(ic, MC_UNI, js, is) = mmc_depth (ic, MC_UNI, is, js)
            mmc_depth(ic, MC_UNI,  0,  0) = mmc_depth (ic, MC_UNI, is, js)
 !if(is==1 .and. js==1) then
@@ -7073,7 +7101,8 @@ corr_pair: DO is = 0, cr_nscat
 ! (mmc_target_corr(ic, MC_UNI, is, js)-                               &
 !  mmc_ach_corr   (ic, MC_UNI, is, js) ) / 2., damp, -change !          , &
 !endif
-        ENDIF
+        ENDIF IF_RELC
+        ENDIF IF_FEED
 !                                                                       
         IF (lout .AND. mmc_pair(ic,MC_UNI,is,js) < 0 .AND. lfirst) THEN
          mmc_h_ctarg = mmc_h_ctarg + 1          ! Increment targets in history
@@ -7090,8 +7119,8 @@ corr_pair: DO is = 0, cr_nscat
         ENDIF 
 !                                                                       
       ENDIF 
-!write(*,*) ' pair12, pair21, pair11, pair22 ', pair12, pair21, pair11, pair22, ic, mmc_ach_corr (ic, MC_UNI, is, js)
-mmc_ach_corr (ic, je,  0,  0) = mmc_ach_corr (ic, je, is, js)
+!
+      mmc_ach_corr (ic, je,  0,  0) = mmc_ach_corr (ic, je, is, js)
    ENDDO 
 ENDDO corr_pair
 !
@@ -7457,7 +7486,7 @@ DO i=1, mo_cyc
    ENDDO
    cr_iscat(iatom) = is_max
    IF(MOD(INT(i,PREC_INT_LARGE), mo_feed)==0) THEN
-      CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE.)
+      CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE., .TRUE.)
    ENDIF
 ENDDO
 !
