@@ -13,6 +13,7 @@ USE discus_config_mod
 USE diffuse_mod 
 USE nexus_discus
 USE discus_mrc
+USE discus_xplor
 USE vtk_mod
 USE output_mod 
 USE powder_write_mod
@@ -45,11 +46,12 @@ USE support_mod
 IMPLICIT none 
 !                                                                       
 INTEGER, PARAMETER :: maxp = 11 
+INTEGER, PARAMETER :: MAXFORM = 14
 !                                                                       
 CHARACTER(LEN=5) :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-CHARACTER(LEN=14) :: cvalue (0:15) 
-CHARACTER(LEN=22) :: cgraphik (0:13) 
+!CHARACTER(LEN=14) :: cvalue (0:15) 
+CHARACTER(LEN=22) :: cgraphik (0:MAXFORM) 
 CHARACTER(LEN=PREC_STRING) :: infile 
 CHARACTER(LEN=PREC_STRING) :: zeile 
 CHARACTER(LEN=PREC_STRING) :: line, cpara (maxp) 
@@ -83,14 +85,14 @@ DATA owerte /  -1.000 ,  0.000  ,  0.000  ,  0.000  /
 DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
                 'Portable Any Map', 'Powder Pattern', 'SHELX',          &
                 'SHELXL List 5', 'SHELXL List 5 real HKL' ,             &
-                '3d', 'nexus', 'vtk', 'MRC', 'HDF5'/                                    
-DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
-              'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
-              'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
-              'f2aver = <f^2>', 'faver2 = <f>^2', 'faver = <f>   ',&
-              'Normal Inten  ', 'I(Q)          ', 'PDF           ',&
-              '3DPDF         '                                     &
-            /
+                '3d', 'nexus', 'vtk', 'MRC', 'HDF5', 'XPLOR' /                                    
+!DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
+!              'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
+!              'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
+!              'f2aver = <f^2>', 'faver2 = <f>^2', 'faver = <f>   ',&
+!              'Normal Inten  ', 'I(Q)          ', 'PDF           ',&
+!              '3DPDF         '                                     &
+!            /
 !
 DATA value / 1 / 
 DATA laver / .false. / 
@@ -300,6 +302,11 @@ IF (ier_num.eq.0) THEN
                      valmax = werte(O_MAXVAL)
                      ityp = 13 
                   ENDIF
+!                                                                       
+!     ------Switch output type to XPLOR format   'xplor'                
+!                                                                       
+               ELSEIF (str_comp(cpara(1), 'xplor', 2, lpara(1), 5) ) THEN                                        
+                  ityp = 14 
                ELSE
                   ier_num = - 9 
                   ier_typ = ER_APPL 
@@ -410,6 +417,8 @@ IF (ier_num.eq.0) THEN
                CALL hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
                        cr_a0, cr_win, qval,val_pdf, val_3Dpdf, valmax,           &
                        ier_num, ier_typ, ER_IO, ER_APPL)
+            ELSEIF (ityp.eq.14) THEN
+               CALL xplor_write (value, laver)
             ELSE 
                ier_num = - 9 
                ier_typ = ER_APPL 
