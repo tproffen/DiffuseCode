@@ -15,6 +15,18 @@ INTEGER, PARAMETER :: val_faver  = 11
 INTEGER, PARAMETER :: val_iq     = 13
 INTEGER, PARAMETER :: val_pdf    = 14
 INTEGER, PARAMETER :: val_3DPDF  = 15
+!
+INTEGER, PARAMETER :: MAXVALS = 15
+!
+CHARACTER(LEN=14) :: cvalue (0:15)
+!
+DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
+              'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
+              'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
+              'f2aver = <f^2>', 'faver2 = <f>^2', 'faver = <f>   ',&
+              'Normal Inten  ', 'I(Q)          ', 'PDF           ',&
+              '3DPDF         '                                     &
+            /
 CONTAINS
 !*****7*****************************************************************
       REAL FUNCTION qval (i, value, ix, iy, laver) 
