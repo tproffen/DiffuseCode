@@ -77,6 +77,8 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2020_Dezember
 
+   Added "xplor" output file format for diffraction data.
+
    Corrected import of RMCprofile version 6 files
 
    Added not on side effect to mmc ==> set ==> vec
@@ -4626,7 +4628,7 @@
 !p       "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
 !p       "pdf" [,"r" [,<min>,<max>,<step>] ] 
 !p     | "post" | "shel" | "stan" | "hklf4" | "list5" | "nexus" |
-!p       "vtk" | "mrc"
+!p       "vtk" | "mrc" | "xplor" 
 !p     | "hdf5" }
 
    Defines the output format that will be used. 
@@ -4744,6 +4746,10 @@
    number of data points along the abscissa and the ordinate, the 
    second line the minimum and maximum value of the indices in reciprocal
    space along the abscissa and ordinate respectively.
+!p "xplor"
+   Writes an ASCII formatted 3D-map of the intensity or 3DPDF in the
+   X-plor file format. This map can be viewed with several crystallographic
+   viewers, for example VESTA. 
 !p "vtk"
    Sets the output to vtk.
 3  input
