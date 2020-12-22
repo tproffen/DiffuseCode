@@ -78,6 +78,8 @@
 3  2020_Dezember
 
    Added "xplor" output file format for diffraction data.
+   Added a 'range' command to output to go along with the 
+   "xplr" file format.
 
    Corrected import of RMCprofile version 6 files
 
@@ -4764,6 +4766,28 @@
    Within the DISCUS_SUITE the output files can be written directly into 
    KUPLOT. Simply start the file name with the fixed string 'kuplot'.
    The data set number in kuplot will be incremented automatically.
+3  range
+!p range "full"
+!p range "center:["<cx>,<cy>,<cz> "]", "pixel:["<px>,<py>,<pz>"]"
+!p range "center:middle",              "pixel:["<px>,<py>,<pz>"]"
+!p range "quad:lll"
+
+   This command allows you to limit the output of 3D pixel maps. 
+
+   With "full" as first and single parameter, the full map is written.
+
+   With "center:..." the central position is defined, which can be either
+   the "middle" of the complete calculated volume or a suser defined
+   triplet of pixel values.
+
+   With "pixel:.." you set the width of the map to be written. 
+   Specify as "pixel:[51, 31, 61]" with the numbers replaced by 
+   values of your choice.
+
+   With "quad:..." as single parameter, you choose a quadrant. 
+   The three letters must be any combination of "r" and "l" for
+   "right" and "left" quadrant along each axis.  
+   
 3  reset
 !p reset
 
