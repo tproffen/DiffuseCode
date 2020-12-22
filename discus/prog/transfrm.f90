@@ -11,96 +11,100 @@ CONTAINS
 !     calculated as well.                                               
 !                                                                       
 !*****7*****************************************************************
-      SUBROUTINE transform 
+SUBROUTINE transform 
 !-                                                                      
 !     Main menu for generalized transformation operations               
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE modify_mod
-      USE discus_show_menu
-      USE transfrm_mod 
-      USE trans_sup_mod
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE metric_mod
+USE modify_mod
+USE discus_show_menu
+USE transfrm_mod 
+USE trans_sup_mod
 !
-      USE ber_params_mod
-      USE calc_expr_mod
-      USE doact_mod 
-      USE do_eval_mod
-      USE do_wait_mod
-      USE build_name_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE learn_mod 
+USE ber_params_mod
+USE calc_expr_mod
+USE doact_mod 
+USE do_eval_mod
+USE do_wait_mod
+USE build_name_mod
+USE errlist_mod 
+USE get_params_mod
+USE learn_mod 
 USE lib_do_operating_mod
 USE lib_echo
 USE lib_errlist_func
 USE lib_help
 USE lib_length
 USE lib_macro_func
-      USE class_macro_internal
-      USE prompt_mod 
-      USE sup_mod
+USE class_macro_internal
+USE prompt_mod 
+USE sup_mod
 USE precision_mod
 USE str_comp_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER, PARAMETER :: MIN_PARA = 20  ! A command requires at leaset these no of parameters
-      INTEGER maxw 
-      LOGICAL lold 
-      PARAMETER (lold = .false.) 
+INTEGER, PARAMETER :: MIN_PARA = 20  ! A command requires at leaset these no of parameters
+INTEGER maxw 
+LOGICAL, PARAMETER :: lold = .FALSE. 
 !                                                                       
-      CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAXSCAT) 
-      INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAXSCAT)
-      REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAXSCAT) 
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAXSCAT) 
+INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAXSCAT)
+REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAXSCAT) 
 !
-      CHARACTER(5) befehl 
-      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(LEN=PREC_STRING) :: line, zeile
-      CHARACTER(LEN=PREC_STRING) :: tran_hfile 
-      INTEGER lp, length, lbef 
-      INTEGER tran_hlen 
-      INTEGER indxg, ianz, i, j 
-      LOGICAL lend, lchange, lscreen 
-      REAL hkl (4) 
+CHARACTER(LEN=5) :: befehl 
+CHARACTER(LEN=LEN(prompt)) :: orig_prompt
+CHARACTER(LEN=PREC_STRING) :: line, zeile
+CHARACTER(LEN=PREC_STRING) :: tran_hfile 
+INTEGER :: lp, length, lbef 
+INTEGER :: tran_hlen 
+INTEGER :: indxg, ianz, i, j 
+LOGICAL :: lend, lchange, lscreen 
+LOGICAL :: lspace
+REAL(KIND=PREC_SP), DIMENSION(3), PARAMETER :: NULLV = (/ 0.00, 0.00, 0.00 /)
+REAL(KIND=PREC_SP), DIMENSION(3) :: u
+REAL(KIND=PREC_SP)               :: dd
+REAL(KIND=PREC_SP), DIMENSION(4) :: hkl !(4) 
 !                                                                       
 !                                                                       
 !                                                                       
-      DATA lchange / .true. / 
-      DATA lscreen / .true. / 
+DATA lchange / .TRUE. / 
+DATA lscreen / .TRUE. / 
 !                                                                       
-      maxw = MAX(MIN_PARA,MAXSCAT+1)
-      lend = .false. 
-      CALL no_error 
+maxw = MAX(MIN_PARA,MAXSCAT+1)
+lend = .FALSE. 
+CALL no_error 
 !
-      orig_prompt = prompt
-      prompt = prompt (1:len_str (prompt) ) //'/tran' 
+orig_prompt = prompt
+prompt = prompt (1:len_str (prompt) ) //'/tran' 
 !                                                                       
-      DO while (.not.lend) 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
-      IF (ier_num.eq.0) then 
-         IF (line /= ' '      .and. line(1:1) /= '#' .and. &
-             line /= char(13) .and. line(1:1) /= '!'        ) THEN
+main: DO WHILE (.NOT.lend) 
+   CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
+   IF (ier_num == 0) THEN 
+      IF (line /= ' '      .AND. line(1:1) /= '#' .AND. &
+          line /= CHAR(13) .AND. line(1:1) /= '!'        ) THEN
 !                                                                       
 !     ----search for "="                                                
 !                                                                       
-indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
-              .AND. INDEX(line,'==') == 0                            ) THEN
+         indxg = index (line, '=') 
+         IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
+                       .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
+                       .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
+                                   str_comp (befehl, '?   ', 2, lbef, 4) )    &
+                       .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     ------evaluatean expression and assign the value to a variabble   
 !                                                                       
-               CALL do_math (line, indxg, length) 
-            ELSE 
+            CALL do_math (line, indxg, length) 
+         ELSE 
 !                                                                       
 !------ ----execute a macro file                                        
 !                                                                       
-               IF (befehl (1:1) .eq.'@') then 
-                  IF (length.ge.2) then 
+               IF (befehl (1:1)  == '@') THEN 
+                  IF (length.ge.2) THEN 
                      line(1:length-1) = line(2:length)
                      line(length:length) = ' '
                      length = length - 1
@@ -112,157 +116,176 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----list asymmetric unit 'asym'                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) THEN 
                   CALL show_asym 
 !                                                                       
 !     ----continues a macro 'continue'                                  
 !                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) then 
+         ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) THEN 
                   CALL macro_continue (zeile, lp) 
 !                                                                       
 !     ----list atoms present in the crystal 'chem'                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) THEN 
                   CALL show_chem 
 !                                                                       
 !------ ----Echo a string, just for interactive check in a macro 'echo' 
 !                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
                   CALL echo (zeile, lp) 
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
                   CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
-                  lend = .true. 
+         ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
+                  lend = .TRUE. 
 !                                                                       
 !     ----help 'help','?'                                               
 !                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
-                     lp = lp + 7 
-                     CALL do_hel ('discus '//zeile, lp) 
-                  ELSE 
-                     lp = lp + 12 
-                     CALL do_hel ('discus tran '//zeile, lp) 
-                  ENDIF 
+         ELSEIF(str_comp(befehl, 'help', 2, lbef, 4) .OR.         &
+                str_comp(befehl, '?   ', 1, lbef, 4)      ) THEN                                      
+            IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
+               lp = lp + 7 
+               CALL do_hel ('discus '//zeile, lp) 
+            ELSE 
+               lp = lp + 12 
+               CALL do_hel ('discus tran '//zeile, lp) 
+            ENDIF 
 !                                                                       
 !     ----reset transformation 'reset'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
                   CALL tran_reset
-               ELSE
+         ELSE
 !--------------------------------------------------------------------------------
 !---------TRANSFORM specific commands
 !--------------------------------------------------------------------------------
 !
-      IF( cr_nscat > TRAN_MAXSCAT .OR. cr_ncatoms>TRAN_MAXSITE) THEN
-         CALL alloc_transfrm ( cr_nscat, cr_ncatoms )
-         IF ( ier_num < 0 ) THEN
-            RETURN
-         ENDIF
-      ENDIF
+            IF( cr_nscat > TRAN_MAXSCAT .OR. cr_ncatoms>TRAN_MAXSITE) THEN
+               CALL alloc_transfrm ( cr_nscat, cr_ncatoms )
+               IF ( ier_num < 0 ) THEN
+                  RETURN
+               ENDIF
+            ENDIF
 !                                                                       
 !     ----a(new) in terms of old axes                                   
 !                                                                       
-                   IF (str_comp (befehl, 'anew', 2, lbef, 4) ) then 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+            IF(str_comp (befehl, 'anew', 2, lbef, 4) ) THEN 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+               IF(ier_num == 0.AND.ianz == 3) THEN 
+                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  IF(ier_num == 0) THEN 
+                     u = werte(1:3)
+                     lspace = .TRUE.
+                     dd = do_blen(lspace, u, NULLV) 
+                     IF(ier_num==0) THEN
                         DO j = 1, 3 
-                        tran_g (1, j) = werte (j) 
+                           tran_g (1, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_G 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
+               ENDIF 
 !                                                                       
 !     ----a(old) in terms of new axes                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'aold', 2, lbef, 4) ) then 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+            ELSEIF (str_comp(befehl, 'aold', 2, lbef, 4) ) THEN 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+               IF (ier_num == 0.AND.ianz == 3) THEN 
+                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  IF(ier_num == 0) THEN 
+                     u = werte(1:3)
+                     lspace = .TRUE.
+                     dd = do_blen(lspace, u, NULLV) 
+                     IF(ier_num==0) THEN
                         DO j = 1, 3 
-                        tran_gi (1, j) = werte (j) 
+                           tran_gi (1, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_GI 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
+               ENDIF 
 !                                                                       
 !     ----b(new) in terms of old axes                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'bnew', 2, lbef, 4) ) then 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+            ELSEIF (str_comp (befehl, 'bnew', 2, lbef, 4) ) THEN 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+               IF (ier_num == 0.AND.ianz == 3) THEN 
+                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  IF (ier_num == 0) THEN 
+                     u = werte(1:3)
+                     lspace = .TRUE.
+                     dd = do_blen(lspace, u, NULLV) 
+                     IF(ier_num==0) THEN
                         DO j = 1, 3 
-                        tran_g (2, j) = werte (j) 
+                           tran_g (2, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_G 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
+               ENDIF 
 !                                                                       
 !     ----b(old) in terms of new axes                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'bold', 2, lbef, 4) ) then 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+            ELSEIF (str_comp (befehl, 'bold', 2, lbef, 4) ) THEN 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+               IF (ier_num == 0.AND.ianz == 3) THEN 
+                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  IF (ier_num == 0) THEN 
+                     u = werte(1:3)
+                     lspace = .TRUE.
+                     dd = do_blen(lspace, u, NULLV) 
+                     IF(ier_num==0) THEN
                         DO j = 1, 3 
-                        tran_gi (2, j) = werte (j) 
+                           tran_gi (2, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_GI 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
+               ENDIF 
 !                                                                       
 !     ----calculate a single transformation operation 'c2new'           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'c2new', 2, lbef, 5) ) then 
-                  IF (lchange) then 
-                     CALL tran_setup 
-                  ENDIF 
-                  lchange = .false. 
+            ELSEIF (str_comp (befehl, 'c2new', 2, lbef, 5) ) THEN 
+               IF (lchange) THEN 
+                  CALL tran_setup 
+               ENDIF 
+               IF(ier_num==0) THEN
+                  lchange = .FALSE. 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.3) then 
+                  IF (ier_num == 0) THEN 
+                     IF (ianz == 3) THEN 
                         cpara (4) = 'd' 
                         lpara (4) = 1 
                      ENDIF 
                      ianz = 3 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num == 0) THEN 
                         DO i = 1, 3 
-                        hkl (i) = werte (i) 
+                           hkl(i) = werte (i) 
                         ENDDO 
-                        IF (str_comp (cpara (4) , 'd', 1, lpara (4) , 1)&
-                        ) then                                          
+                        IF(str_comp(cpara(4), 'd', 1, lpara(4), 1)) THEN                                          
                            hkl (4) = 1.0 
                            CALL tran_ca (hkl, tran_f, lscreen) 
-                        ELSEIF (str_comp (cpara (4) , 'r', 1, lpara (4) &
-                        , 1) ) then                                     
+                        ELSEIF(str_comp(cpara(4), 'r', 1, lpara(4), 1) ) THEN                                     
                            hkl (4) = 0.0 
                            CALL tran_ca (hkl, tran_g, lscreen) 
                         ELSE 
@@ -277,34 +300,36 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
+               ENDIF 
 !                                                                       
 !     ----calculate a single transformation operation 'c2old'           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'c2old', 2, lbef, 5) ) then 
-                  IF (lchange) then 
+               ELSEIF (str_comp (befehl, 'c2old', 2, lbef, 5) ) THEN 
+                  IF (lchange) THEN 
                      CALL tran_setup 
                   ENDIF 
-                  lchange = .false. 
+                  IF(ier_num==0) THEN
+                  lchange = .FALSE. 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.3) then 
+                  IF (ier_num == 0) THEN 
+                     IF (ianz == 3) THEN 
                         cpara (4) = 'd' 
                         lpara (4) = 1 
                      ENDIF 
                      ianz = 3 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num == 0) THEN 
                         DO i = 1, 3 
                         hkl (i) = werte (i) 
                         ENDDO 
                         IF (str_comp (cpara (4) , 'd', 1, lpara (4) , 1)&
-                        ) then                                          
+                        ) THEN                                          
                            hkl (4) = 1.0 
                            CALL tran_ca (hkl, tran_fi, lscreen) 
                         ELSEIF (str_comp (cpara (4) , 'r', 1, lpara (4) &
-                        , 1) ) then                                     
+                        , 1) ) THEN                                     
                            hkl (4) = 0.0 
                            CALL tran_ca (hkl, tran_gi, lscreen) 
                         ELSE 
@@ -319,62 +344,63 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
+                  ENDIF 
 !                                                                       
 !     ----c(new) in terms of old axes                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'cnew', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'cnew', 2, lbef, 4) ) THEN 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
+                  IF (ier_num == 0.AND.ianz == 3) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num == 0) THEN 
                         DO j = 1, 3 
                         tran_g (3, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_G 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
 !                                                                       
 !     ----c(old) in terms of new axes                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'cold', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'cold', 2, lbef, 4) ) THEN 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
+                  IF (ier_num == 0.AND.ianz == 3) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num == 0) THEN 
                         DO j = 1, 3 
                         tran_gi (3, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_GI 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
 !                                                                       
 !     ----Deselect which atoms are included in the wave 'dese'          
 !                                                                       
-               ELSEIF (str_comp (befehl, 'dese', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'dese', 1, lbef, 4) ) THEN 
                   CALL atom_select (zeile, lp, 0, TRAN_MAXSCAT, tran_latom, &
                   tran_lsite, 0, TRAN_MAXSITE,                              &
-                  tran_sel_atom, lold,.false.)
+                  tran_sel_atom, lold,.FALSE.)
 !
 !                 ier_num = - 6 
 !                 ier_typ = ER_COMM 
 !                 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-!                 IF (ier_num.eq.0) then 
+!                 IF (ier_num == 0) THEN 
 !                    CALL get_iscat (ianz, cpara, lpara, werte, maxw,   &
 !                    lold)                                              
-!                    IF (ier_num.eq.0) then 
-!                       IF (werte (1) .eq. - 1) then 
+!                    IF (ier_num == 0) THEN 
+!                       IF (werte (1)  ==  - 1) THEN 
 !                          DO i = 0, cr_nscat 
-!                          tran_latom (i) = .false. 
+!                          tran_latom (i) = .FALSE. 
 !                          ENDDO 
 !                       ELSE 
 !                          DO i = 1, ianz 
-!                          tran_latom (nint (werte (i) ) ) = .false. 
+!                          tran_latom (NINT (werte (i) ) ) = .FALSE. 
 !                          ENDDO 
 !                       ENDIF 
 !                    ENDIF 
@@ -382,19 +408,20 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----transforme a list of reflections to new base 'h2new'          
 !                                                                       
-               ELSEIF (str_comp (befehl, 'h2new', 2, lbef, 5) ) then 
-                  IF (lchange) then 
+               ELSEIF (str_comp (befehl, 'h2new', 2, lbef, 5) ) THEN 
+                  IF (lchange) THEN 
                      CALL tran_setup 
                   ENDIF 
-                  lchange = .false. 
+                  IF(ier_num==0) THEN
+                  lchange = .FALSE. 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.ge.1) then 
+                  IF (ier_num == 0) THEN 
+                     IF (ianz.ge.1) THEN 
                         CALL do_build_name (ianz, cpara, lpara, werte,  &
                         maxw, 1)                                        
-                        IF (ier_num.eq.0) then 
+                        IF (ier_num == 0) THEN 
                            tran_hfile = cpara (1) 
                            tran_hlen = lpara (1) 
                            CALL tran_hkl (tran_hfile, tran_hlen, tran_g) 
@@ -407,22 +434,24 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
+                  ENDIF 
 !                                                                       
 !     ----transforme a list of reflections to old base 'h2old'          
 !                                                                       
-               ELSEIF (str_comp (befehl, 'h2old', 2, lbef, 5) ) then 
-                  IF (lchange) then 
+               ELSEIF (str_comp (befehl, 'h2old', 2, lbef, 5) ) THEN 
+                  IF (lchange) THEN 
                      CALL tran_setup 
                   ENDIF 
-                  lchange = .false. 
+                  IF(ier_num==0) THEN
+                  lchange = .FALSE. 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.1) then 
+                  IF (ier_num == 0) THEN 
+                     IF (ianz == 1) THEN 
                         CALL do_build_name (ianz, cpara, lpara, werte,  &
                         maxw, 1)                                        
-                        IF (ier_num.eq.0) then 
+                        IF (ier_num == 0) THEN 
                            tran_hfile = cpara (1) 
                            tran_hlen = lpara (1) 
                            CALL tran_hkl (tran_hfile, tran_hlen,        &
@@ -436,24 +465,24 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
+                  ENDIF 
 !                                                                       
 !     ----Select range of atoms within crystal to be included 'incl'    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'incl', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'incl', 1, lbef, 4) ) THEN 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.2) then 
+                  IF (ier_num == 0) THEN 
+                     IF (ianz == 2) THEN 
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxw)                                           
-                        IF (ier_num.eq.0) then 
-                           tran_start = nint (werte (1) ) 
-                           tran_end = nint (werte (2) ) 
+                        IF (ier_num == 0) THEN 
+                           tran_start = NINT (werte (1) ) 
+                           tran_end = NINT (werte (2) ) 
                         ENDIF 
-                     ELSEIF (ianz.eq.1) then 
-                        IF (str_comp (cpara (1) , 'all', 1, lpara (1) , &
-                        3) ) then                                       
+                     ELSEIF (ianz == 1) THEN 
+                        IF(str_comp(cpara(1), 'all', 1, lpara(1), 3) ) THEN                                       
                            tran_start = 1 
                            tran_end = - 1 
                         ELSE 
@@ -469,20 +498,20 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !------ ----Select the location of the new origin in old                
 !                  coordinates 'onew'                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'onew', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'onew', 2, lbef, 4) ) THEN 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.3) then 
+                  IF (ier_num == 0) THEN 
+                     IF (ianz == 3) THEN 
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxw)                                           
-                        IF (ier_num.eq.0) then 
-                           tran_oold = .true. 
+                        IF (ier_num == 0) THEN 
+                           tran_oold = .TRUE. 
                            DO i = 1, 3 
                            tran_orig (i) = werte (i) 
                            ENDDO 
-                           lchange = .true. 
+                           lchange = .TRUE. 
                         ENDIF 
                      ELSE 
                         ier_num = - 6 
@@ -496,20 +525,20 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Select the location of the old origin in new                  
 !                  coordinates 'oold'                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'oold', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'oold', 2, lbef, 4) ) THEN 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.3) then 
+                  IF (ier_num == 0) THEN 
+                     IF (ianz == 3) THEN 
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxw)                                           
-                        IF (ier_num.eq.0) then 
-                           tran_oold = .false. 
+                        IF (ier_num == 0) THEN 
+                           tran_oold = .FALSE. 
                            DO i = 1, 3 
                            tran_orig (i) = werte (i) 
                            ENDDO 
-                           lchange = .true. 
+                           lchange = .TRUE. 
                         ENDIF 
                      ELSE 
                         ier_num = - 6 
@@ -522,33 +551,33 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
-                  IF (lchange) then 
+               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) THEN 
+                  IF (lchange) THEN 
                      CALL tran_setup 
                   ENDIF 
-                  lchange = .false. 
-                  CALL tran_op 
+                  lchange = .FALSE. 
+                  IF(ier_num==0) CALL tran_op 
 !                                                                       
 !     ----Select which atoms are copied to their image 'sele'           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) ) THEN 
                   CALL atom_select (zeile, lp, 0, TRAN_MAXSCAT, tran_latom, &
                   tran_lsite, 0, TRAN_MAXSITE,                              &
-                  tran_sel_atom, lold,.true.)
+                  tran_sel_atom, lold,.TRUE.)
 !                 ier_num = - 6 
 !                 ier_typ = ER_COMM 
 !                 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-!                 IF (ier_num.eq.0) then 
+!                 IF (ier_num == 0) THEN 
 !                    CALL get_iscat (ianz, cpara, lpara, werte, maxw,   &
 !                    lold)                                              
-!                    IF (ier_num.eq.0) then 
-!                       IF (werte (1) .eq. - 1) then 
+!                    IF (ier_num == 0) THEN 
+!                       IF (werte (1)  ==  - 1) THEN 
 !                          DO i = 0, cr_nscat 
-!                          tran_latom (i) = .true. 
+!                          tran_latom (i) = .TRUE. 
 !                          ENDDO 
 !                       ELSE 
 !                          DO i = 1, ianz 
-!                          tran_latom (nint (werte (i) ) ) = .true. 
+!                          tran_latom (NINT (werte (i) ) ) = .TRUE. 
 !                          ENDDO 
 !                       ENDIF 
 !                    ENDIF 
@@ -556,17 +585,17 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Set parameters for various commands 'set'                     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'set', 3, lbef, 3) ) then 
+               ELSEIF (str_comp (befehl, 'set', 3, lbef, 3) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.gt.0) then 
+                  IF (ier_num == 0) THEN 
+                     IF (ianz.gt.0) THEN 
                         IF (str_comp (cpara (1) , 'deltahkl', 1, lbef,  &
-                        8) ) then                                       
+                        8) ) THEN                                       
                            cpara (1) = '0.0' 
                            lpara (1) = 3 
                            CALL ber_params (ianz, cpara, lpara, werte,  &
                            maxw)                                        
-                           IF (ier_num.eq.0) then 
+                           IF (ier_num == 0) THEN 
                               tran_deltahkl = werte (2) 
                            ENDIF 
                         ENDIF 
@@ -578,11 +607,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----show current parameters 'show'                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-                  IF (lchange) then 
+               ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
+                  IF (lchange) THEN 
                      CALL tran_setup 
                   ENDIF 
-                  lchange = .false. 
+                  lchange = .FALSE. 
                   WRITE (output_io, 3000) 
                   WRITE (output_io, 3010) ( (tran_g (i, j), j = 1, 3),  &
                   i = 1, 3)                                             
@@ -601,7 +630,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   WRITE (output_io, 3062) ( (tran_gi (i, j), j = 1, 3), &
                   i = 1, 3)                                             
 !                                                                       
-                  IF (tran_det.ne.0) then 
+                  IF (tran_det /= 0) THEN 
                      WRITE (output_io, 3100) tran_det, 1. / tran_det 
                   ELSE 
                      WRITE (output_io, 3200) 
@@ -610,11 +639,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   WRITE (output_io, 3090) 
                   WRITE (output_io, 3091) 
                   DO i = 0, cr_nscat 
-                  IF (tran_latom (i) ) then 
+                  IF (tran_latom (i) ) THEN 
                      WRITE (output_io, 3092) i, cr_at_lis (i) 
                   ENDIF 
                   ENDDO 
-                  IF (tran_end.eq. - 1) then 
+                  IF (tran_end ==  - 1) THEN 
                      WRITE (output_io, 3080) 
                   ELSE 
                      WRITE (output_io, 3081) tran_start, tran_end 
@@ -622,8 +651,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-                  IF (zeile.ne.' ') then 
+               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+                  IF (zeile /= ' ') THEN 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 
                      ier_num = - 6 
@@ -632,114 +661,114 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------  -----waiting for user input                                    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
                   CALL do_input (zeile, lp) 
 !                                                                       
 !     ----x(new) in terms of old axes                                   
 !                                                                       
                ELSEIF (str_comp (befehl, 'xnew', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'asnew', 3, lbef, 5) ) then        
+               .OR.str_comp (befehl, 'asnew', 3, lbef, 5) ) THEN        
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
+                  IF (ier_num == 0.AND.ianz == 3) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num == 0) THEN 
                         DO j = 1, 3 
                         tran_f (1, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_F 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
 !                                                                       
 !     ----x(old) in terms of new axes                                   
 !                                                                       
                ELSEIF (str_comp (befehl, 'xold', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'asold', 3, lbef, 5) ) then        
+               .OR.str_comp (befehl, 'asold', 3, lbef, 5) ) THEN        
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
+                  IF (ier_num == 0.AND.ianz == 3) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num == 0) THEN 
                         DO j = 1, 3 
                         tran_fi (1, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_FI 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
 !                                                                       
 !     ----y(new) in terms of old axes                                   
 !                                                                       
                ELSEIF (str_comp (befehl, 'ynew', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'bsnew', 3, lbef, 5) ) then        
+               .OR.str_comp (befehl, 'bsnew', 3, lbef, 5) ) THEN        
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
+                  IF (ier_num == 0.AND.ianz == 3) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num == 0) THEN 
                         DO j = 1, 3 
                         tran_f (2, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_F 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
 !                                                                       
 !     ----y(old) in terms of new axes                                   
 !                                                                       
                ELSEIF (str_comp (befehl, 'yold', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'bsold', 3, lbef, 5) ) then        
+               .OR.str_comp (befehl, 'bsold', 3, lbef, 5) ) THEN        
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
+                  IF (ier_num == 0.AND.ianz == 3) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num == 0) THEN 
                         DO j = 1, 3 
                         tran_fi (2, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_FI 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
 !                                                                       
 !     ----z(new) in terms of old axes                                   
 !                                                                       
                ELSEIF (str_comp (befehl, 'znew', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'csnew', 3, lbef, 5) ) then        
+               .OR.str_comp (befehl, 'csnew', 3, lbef, 5) ) THEN        
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
+                  IF (ier_num == 0.AND.ianz == 3) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num == 0) THEN 
                         DO j = 1, 3 
                         tran_f (3, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_F 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
 !                                                                       
 !     ----z(old) in terms of new axes                                   
 !                                                                       
                ELSEIF (str_comp (befehl, 'zold', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'csold', 3, lbef, 5) ) then        
+               .OR.str_comp (befehl, 'csold', 3, lbef, 5) ) THEN        
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
+                  IF (ier_num == 0.AND.ianz == 3) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num == 0) THEN 
                         DO j = 1, 3 
                         tran_fi (3, j) = werte (j) 
                         ENDDO 
                         tran_inp = TRAN_INP_FI 
-                        lchange = .true. 
+                        lchange = .TRUE. 
                      ENDIF 
                   ENDIF 
                ELSE 
@@ -750,37 +779,38 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             ENDIF 
          ENDIF 
       ENDIF 
-      IF (ier_num.ne.0) THEN 
-         CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) THEN 
-            IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
-               IF(sprompt /= prompt ) THEN
-                  ier_num = -10
-                  ier_typ = ER_COMM
-                  ier_msg(1) = ' Error occured in transform menu'
-                  prompt_status = PROMPT_ON 
-                  prompt = orig_prompt
-                  RETURN
-               ELSE
-                  IF(lmacro_close) THEN
-                     CALL macro_close 
-                     prompt_status = PROMPT_ON 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
-            IF (lblock) THEN 
-               ier_num = - 11 
-               ier_typ = ER_COMM 
+   IF (ier_num /= 0) THEN 
+      lchange = .TRUE. 
+      CALL errlist 
+      IF (ier_sta /= ER_S_LIVE) THEN 
+         IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
+            IF(sprompt /= prompt ) THEN
+               ier_num = -10
+               ier_typ = ER_COMM
+               ier_msg(1) = ' Error occured in transform menu'
                prompt_status = PROMPT_ON 
                prompt = orig_prompt
-               RETURN 
+               RETURN
+            ELSE
+               IF(lmacro_close) THEN
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
-            CALL no_error 
-            lmakro_error = .FALSE.
-            sprompt = ' '
          ENDIF 
+         IF (lblock) THEN 
+            ier_num = - 11 
+            ier_typ = ER_COMM 
+            prompt_status = PROMPT_ON 
+            prompt = orig_prompt
+            RETURN 
+         ENDIF 
+         CALL no_error 
+         lmakro_error = .FALSE.
+         sprompt = ' '
       ENDIF 
-      ENDDO 
+   ENDIF 
+ENDDO  main
 !
       prompt = orig_prompt
 !                                                                       
@@ -836,25 +866,27 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  3092 FORMAT    (16x,2x,i8,1x,a4) 
 !                                                                       
       END SUBROUTINE transform                      
-!*****7*****************************************************************
-      SUBROUTINE tran_setup 
+!
+!*****7*************************************************************************
+!
+SUBROUTINE tran_setup 
 !-                                                                      
 !     Performs the generalized symmetry operation                       
 !     See Sands, D.E. Vectors and Tensors in Crystallography Chapt. 4.7 
 !+                                                                      
-      USE discus_config_mod 
-      USE tensors_mod
-      USE transfrm_mod 
-      USE errlist_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE tensors_mod
+USE transfrm_mod 
+USE errlist_mod 
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      INTEGER i, j 
-      REAL a (3, 3) 
+INTEGER :: i, j 
+REAL, DIMENSION(3,3) ::  a !(3, 3) 
 !                                                                       
 !     initialize fourth columns and rows                                
 !                                                                       
-      DO i = 1, 4 
+DO i = 1, 4 
       tran_g (i, 4) = 0.0 
       tran_g (4, i) = 0.0 
       tran_gi (i, 4) = 0.0 
@@ -863,110 +895,114 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       tran_f (4, i) = 0.0 
       tran_fi (i, 4) = 0.0 
       tran_fi (4, i) = 0.0 
-      ENDDO 
-      tran_f (4, 4) = 1.0 
-      tran_fi (4, 4) = 1.0 
+ENDDO 
+tran_f (4, 4) = 1.0 
+tran_fi (4, 4) = 1.0 
 !                                                                       
 !     Matrix g was defined                                              
 !                                                                       
-      IF (tran_inp.eq.TRAN_INP_G) then 
-         DO i = 1, 4 
-         DO j = 1, 4 
+IF (tran_inp == TRAN_INP_G) THEN 
+   DO i = 1, 4 
+      DO j = 1, 4 
          tran_gi (i, j) = tran_g (i, j) 
-         ENDDO 
-         ENDDO 
-         CALL invmat4 (tran_gi) 
-         DO i = 1, 3 
-         DO j = 1, 3 
+      ENDDO 
+   ENDDO 
+   CALL invmat4 (tran_gi) 
+   IF(ier_num/=0) THEN
+      ier_msg(2) = 'Check transformation matrices'
+      RETURN
+   ENDIF
+   DO i = 1, 3 
+      DO j = 1, 3 
          tran_f (j, i) = tran_gi (i, j) 
          tran_fi (j, i) = tran_g (i, j) 
-         ENDDO 
-         ENDDO 
+      ENDDO 
+   ENDDO 
 !                                                                       
 !     Matrix gi was defined                                             
 !                                                                       
-      ELSEIF (tran_inp.eq.TRAN_INP_GI) then 
-         DO i = 1, 4 
-         DO j = 1, 4 
+ELSEIF (tran_inp == TRAN_INP_GI) THEN 
+   DO i = 1, 4 
+      DO j = 1, 4 
          tran_g (i, j) = tran_gi (i, j) 
-         ENDDO 
-         ENDDO 
-         CALL invmat4 (tran_g) 
-         DO i = 1, 3 
-         DO j = 1, 3 
+      ENDDO 
+   ENDDO 
+   CALL invmat4 (tran_g) 
+   DO i = 1, 3 
+      DO j = 1, 3 
          tran_f (j, i) = tran_gi (i, j) 
          tran_fi (j, i) = tran_g (i, j) 
-         ENDDO 
-         ENDDO 
+      ENDDO 
+   ENDDO 
 !                                                                       
 !     Matrix f was defined                                              
 !                                                                       
-      ELSEIF (tran_inp.eq.TRAN_INP_F) then 
-         DO i = 1, 4 
-         DO j = 1, 4 
+ELSEIF (tran_inp == TRAN_INP_F) THEN 
+   DO i = 1, 4 
+      DO j = 1, 4 
          tran_fi (i, j) = tran_f (i, j) 
-         ENDDO 
-         ENDDO 
-         CALL invmat4 (tran_fi) 
-         DO i = 1, 3 
-         DO j = 1, 3 
+      ENDDO 
+   ENDDO 
+   CALL invmat4 (tran_fi) 
+   DO i = 1, 3 
+      DO j = 1, 3 
          tran_g (j, i) = tran_fi (i, j) 
          tran_gi (j, i) = tran_f (i, j) 
-         ENDDO 
-         ENDDO 
+      ENDDO 
+   ENDDO 
 !                                                                       
 !     Matrix fi was defined                                             
 !                                                                       
-      ELSEIF (tran_inp.eq.TRAN_INP_FI) then 
-         DO i = 1, 4 
-         DO j = 1, 4 
+ELSEIF (tran_inp == TRAN_INP_FI) THEN 
+   DO i = 1, 4 
+      DO j = 1, 4 
          tran_f (i, j) = tran_fi (i, j) 
-         ENDDO 
-         ENDDO 
-         CALL invmat4 (tran_f) 
-         DO i = 1, 3 
-         DO j = 1, 3 
+      ENDDO 
+   ENDDO 
+   CALL invmat4 (tran_f) 
+   DO i = 1, 3 
+      DO j = 1, 3 
          tran_g (j, i) = tran_fi (i, j) 
          tran_gi (j, i) = tran_f (i, j) 
-         ENDDO 
-         ENDDO 
-      ENDIF 
+      ENDDO 
+   ENDDO 
+ENDIF 
 !                                                                       
 !     Origin was defined in terms of the old coordinates                
 !                                                                       
-      IF (tran_oold) then 
-         j = 4 
-         DO i = 1, 3 
+IF (tran_oold) THEN 
+   j = 4 
+   DO i = 1, 3 
          tran_fi (i, 4) = tran_orig (i) 
-         ENDDO 
-         DO i = 1, 3 
-         DO j = 1, 3 
+   ENDDO 
+   DO i = 1, 3 
+      DO j = 1, 3 
          tran_f (i, 4) = tran_f (i, 4) - tran_f (i, j) * tran_fi (j, 4) 
-         ENDDO 
-         ENDDO 
-      ELSE 
-         j = 4 
-         DO i = 1, 3 
-         tran_f (i, 4) = tran_orig (i) 
-         ENDDO 
-         DO i = 1, 3 
-         DO j = 1, 3 
+      ENDDO 
+   ENDDO 
+ELSE 
+   j = 4 
+   DO i = 1, 3 
+      tran_f (i, 4) = tran_orig (i) 
+   ENDDO 
+   DO i = 1, 3 
+      DO j = 1, 3 
          tran_fi (i, 4) = tran_fi (i, 4) - tran_fi (i, j) * tran_f (j,  &
          4)                                                             
-         ENDDO 
-         ENDDO 
-      ENDIF 
+      ENDDO 
+   ENDDO 
+ENDIF 
 !                                                                       
-      DO i = 1, 3 
-      DO j = 1, 3 
+DO i = 1, 3 
+   DO j = 1, 3 
       a (i, j) = tran_g (i, j) 
-      ENDDO 
-      ENDDO 
-      tran_det = a (1, 1) * (a (2, 2) * a (3, 3) - a (2, 3) * a (3, 2) )&
-      + a (2, 1) * (a (3, 2) * a (1, 3) - a (1, 2) * a (3, 3) ) + a (3, &
-      1) * (a (1, 2) * a (2, 3) - a (1, 3) * a (2, 2) )                 
+   ENDDO 
+ENDDO 
+tran_det = a(1, 1) * (a(2, 2) * a(3, 3) - a(2, 3) * a(3, 2) ) &
+         + a(2, 1) * (a(3, 2) * a(1, 3) - a(1, 2) * a(3, 3) ) &
+         + a(3, 1) * (a(1, 2) * a(2, 3) - a(1, 3) * a(2, 2) )                 
 !                                                                       
-      END SUBROUTINE tran_setup                     
+END SUBROUTINE tran_setup                     
 !*****7*****************************************************************
       SUBROUTINE tran_op 
 !-                                                                      
@@ -1005,7 +1041,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
       i_start = tran_start 
       i_end = tran_end 
-      IF (tran_end.eq. - 1) i_end = cr_natoms 
+      IF (tran_end ==  - 1) i_end = cr_natoms 
 !                                                                       
 !     Apply transformation operation to all atoms within selected range 
 !                                                                       
@@ -1014,7 +1050,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
-      IF (tran_latom (cr_iscat (i) ) ) then 
+      IF (tran_latom (cr_iscat (i) ) ) THEN 
 !                                                                       
 !     ----Copy atom to temporary place                                  
 !                                                                       
@@ -1038,11 +1074,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     If all atoms of the crystal have been selected, calculate new     
 !     lattice constants and symmetry operations                         
 !                                                                       
-      IF (i_start.eq.1.and.i_end.eq.cr_natoms) then 
+      IF (i_start == 1.AND.i_end == cr_natoms) THEN 
          v (1) = 0.0 
          v (2) = 0.0 
          v (3) = 0.0 
-         lspace = .true. 
+         lspace = .TRUE. 
          DO i = 1, 3 
          DO j = 1, 3 
          usym (j) = tran_g (i, j) 
@@ -1066,7 +1102,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          cr_spcgrno = 1 
          spcgr_ianz = 0 
          spcgr_para = 1 
-         lout = .true. 
+         lout = .TRUE. 
          CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
          cr_cartesian, cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
@@ -1106,7 +1142,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !       additional                                                      
 !     generators. The original additional generators are shifted up.    
 !                                                                       
-      IF (gen_add_n + generspcgr (0, cr_spcgrno) .gt.gen_add_MAX) then 
+      IF (gen_add_n + generspcgr (0, cr_spcgrno) .gt.gen_add_MAX) THEN 
          ier_typ = ER_APPL 
          ier_num = - 73 
          RETURN 
@@ -1129,9 +1165,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     copy space group generators into additional generators            
 !                                                                       
       DO n = 1, generspcgr (0, cr_spcgrno) 
-      IF (gen_sta.eq.GEN_SYMM) then 
+      IF (gen_sta == GEN_SYMM) THEN 
          nn = generspcgr (n, cr_spcgrno) 
-      ELSEIF (gen_sta.eq.GEN_CENTER) then 
+      ELSEIF (gen_sta == GEN_CENTER) THEN 
          nn = generspcgr_center (n, cr_spcgrno) 
       ENDIF 
       DO i = 1, 4 
@@ -1191,9 +1227,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       mat (n, 4) = 1.0 
       CALL matmul4 (arr, tran_f, mat) 
       CALL matmul4 (mat, arr, tran_fi) 
-      IF (abs (amod (mat (1, 4), 1.) ) .gt.eps.or.abs (amod (mat (2, 4),&
-      1.) ) .gt.eps.or.abs (amod (mat (3, 4), 1.) ) .gt.eps) then       
-         IF (gen_add_n + 1.gt.gen_add_MAX) then 
+      IF (ABS (amod (mat (1, 4), 1.) ) .gt.eps.OR.ABS (amod (mat (2, 4),&
+      1.) ) .gt.eps.OR.ABS (amod (mat (3, 4), 1.) ) .gt.eps) THEN       
+         IF (gen_add_n + 1.gt.gen_add_MAX) THEN 
             ier_typ = ER_APPL 
             ier_num = - 73 
             RETURN 
@@ -1213,9 +1249,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          IF (mat (i, 4) .lt.0.0) mat (i, 4) = mat (i, 4) + 1.0 
          ENDDO 
          jp = 1 
-         DO while (abs (jp * mat (1, 4) - nint (jp * mat (1, 4) ) )     &
-         .gt.eps.or.abs (jp * mat (2, 4) - nint (jp * mat (2, 4) ) )    &
-         .gt.eps.or.abs (jp * mat (3, 4) - nint (jp * mat (3, 4) ) )    &
+         DO WHILE (ABS (jp * mat (1, 4) - NINT (jp * mat (1, 4) ) )     &
+         .gt.eps.OR.ABS (jp * mat (2, 4) - NINT (jp * mat (2, 4) ) )    &
+         .gt.eps.OR.ABS (jp * mat (3, 4) - NINT (jp * mat (3, 4) ) )    &
          .gt.eps)                                                       
          jp = jp + 1 
          ENDDO 
@@ -1223,14 +1259,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Compare to previous generators originating from primitive     
 !         translations. If identical, skip this one.                    
 !                                                                       
-         lequal = .true. 
+         lequal = .TRUE. 
          DO i = k + 1, gen_add_n 
          DO j = 1, 3 
-         lequal = lequal.and. (abs (gen_add (j, 4, i) - mat (j, 4) )    &
+         lequal = lequal.AND. (ABS (gen_add (j, 4, i) - mat (j, 4) )    &
          .lt.eps)                                                       
          ENDDO 
          ENDDO 
-         IF (.not.lequal.or.k.eq.gen_add_n) then 
+         IF (.NOT.lequal.OR.k == gen_add_n) THEN 
             gen_add_n = gen_add_n + 1 
             gen_add_power (gen_add_n) = 1 
             IF (jp.gt.1) jp = jp - 1 
@@ -1306,24 +1342,24 @@ USE support_mod
 !                                                                       
 !     Open input file, and the two output files                         
 !                                                                       
-      lread = .true. 
+      lread = .TRUE. 
       CALL oeffne (ird, infile, 'unknown') 
-      IF (ier_num.ne.0) then 
+      IF (ier_num /= 0) THEN 
          CLOSE (ird) 
          RETURN 
       ENDIF 
-      lread = .false. 
+      lread = .FALSE. 
       outfile = infile (1:infile_l) //'.trans' 
       CALL oeffne (iwr, outfile, 'unknown') 
-      IF (ier_num.ne.0) then 
+      IF (ier_num /= 0) THEN 
          CLOSE (ird) 
          CLOSE (iwr) 
          RETURN 
       ENDIF 
-      lread = .false. 
+      lread = .FALSE. 
       restfile = infile (1:infile_l) //'.rest' 
       CALL oeffne (irs, restfile, 'unknown') 
-      IF (ier_num.ne.0) then 
+      IF (ier_num /= 0) THEN 
          CLOSE (ird) 
          CLOSE (iwr) 
          CLOSE (irs) 
@@ -1346,15 +1382,15 @@ USE support_mod
 !     -- Write new integer reflections to output file, non-integer      
 !        reflections to restfile                                        
 !                                                                       
-      ltest = .true. 
+      ltest = .TRUE. 
       DO i = 1, 3 
-      utest (i) = abs (REAL(nint (ures (i) ) ) - ures (i) ) 
-      ltest = ltest.and. (utest (i) .lt.tran_deltahkl) 
+      utest (i) = ABS (REAL(NINT (ures (i) ) ) - ures (i) ) 
+      ltest = ltest.AND. (utest (i) .lt.tran_deltahkl) 
       ENDDO 
-      IF (ltest) then 
-         WRITE (iwr, 2000) (nint (ures (j) ), j = 1, 3), inten 
+      IF (ltest) THEN 
+         WRITE (iwr, 2000) (NINT (ures (j) ), j = 1, 3), inten 
       ELSE 
-         WRITE (irs, 3000) (ures (j), j = 1, 3), inten, (nint (usym (j) &
+         WRITE (irs, 3000) (ures (j), j = 1, 3), inten, (NINT (usym (j) &
          ), j = 1, 3)                                                   
       ENDIF 
       GOTO 1000 
@@ -1390,8 +1426,8 @@ tran_inp     = TRAN_INP_G
 IF(ALLOCATED(tran_latom)) tran_latom(:) = .FALSE.  ! (0:TRAN_MAXSCAT)
 IF(ALLOCATED(tran_lsite)) tran_lsite(:) = .TRUE.   ! (0:TRAN_MAXSCAT)
 !
-tran_oold      = .true.
-tran_sel_atom  = .true.
+tran_oold      = .TRUE.
+tran_sel_atom  = .TRUE.
 tran_orig(3)   = 0.0
 tran_det       = 1.0
 tran_g   (:,:) = &
