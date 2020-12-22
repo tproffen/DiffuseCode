@@ -1,7 +1,9 @@
 MODULE output_menu
 !
 CONTAINS
-!*****7*****************************************************************
+!
+!*****7*************************************************************************
+!
 SUBROUTINE do_niplps (linverse) 
 !-                                                                      
 !     This sublevel contains all routines used to write the output      
@@ -44,6 +46,7 @@ USE sup_mod
 USE support_mod
 !                                                                       
 IMPLICIT none 
+LOGICAL, INTENT(IN) :: linverse
 !                                                                       
 INTEGER, PARAMETER :: maxp = 11 
 INTEGER, PARAMETER :: MAXFORM = 14
@@ -58,7 +61,7 @@ CHARACTER(LEN=PREC_STRING) :: line, cpara (maxp)
 INTEGER, DIMENSION(MAXP) :: lpara  !(maxp) 
 INTEGER :: ix, iy, ianz, value, lp, length, lbef 
 INTEGER :: indxg 
-LOGICAL :: laver, lread, linverse 
+LOGICAL :: laver, lread
 LOGICAL :: l_val_limited=.FALSE.    ! for 3D PDF do we limit d-star
 REAL(KIND=PREC_SP) :: xmin, ymin, xmax, ymax 
 REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
@@ -371,6 +374,11 @@ IF (ier_num.eq.0) THEN
                outfile = cpara(1)(1:lpara(1))
             ENDIF 
          ENDIF 
+!                                                                       
+!     Limit output ranget'
+!                                                                       
+      ELSEIF (str_comp (befehl, 'range', 2, lbef, 5) ) THEN 
+         CALL output_range(zeile, lp)
 !                                                                       
 !     Reset output 'reset'
 !                                                                       
@@ -690,7 +698,110 @@ prompt = orig_prompt
  3110 FORMAT( ' Output value                   : ',A) 
 END SUBROUTINE do_niplps                      
 !
-!*****7*****************************************************************
+!*****7*************************************************************************
+!
+SUBROUTINE output_range(zeile, length)
+!-
+!  Interpret range command, limit output range for 3D-maps
+!+
+!
+USE output_mod
+!
+USE errlist_mod
+USE get_params_mod
+USE precision_mod
+USE str_comp_mod
+USE take_param_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: zeile
+INTEGER         , INTENT(INOUT) :: length
+! 
+INTEGER, PARAMETER :: MAXP = 3
+!
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXP) :: cpara
+INTEGER                   , DIMENSION(MAXP) :: lpara
+INTEGER                                     :: ianz
+REAL(KIND=PREC_DP)        , DIMENSION(MAXP) :: werte
+!
+CHARACTER(LEN=PREC_STRING)                  :: ccpara
+INTEGER                                     :: llpara
+!
+INTEGER, PARAMETER :: NOPTIONAL = 4
+INTEGER, PARAMETER :: O_CENTER  = 1                  ! Center of map
+INTEGER, PARAMETER :: O_PIXEL   = 2                  ! Pixels at plus minus
+INTEGER, PARAMETER :: O_QUAD    = 3                  ! Select a quadrant
+!INTEGER, PARAMETER :: O_HKLMAX  = 4                  ! Maximum hkl vector
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
+!                                                                       
+DATA oname  / 'center', 'pixel ', 'quad  ', 'hklmax'/
+DATA loname /  6      ,  5      ,  4      ,  6      /
+DATA opara  / 'middle', '0.00  ', 'rrr   ', '0.00  '/
+DATA owerte /  0.0000 ,  0.000  ,  0.000  ,  0.000  /
+!
+CALL get_params (zeile, ianz, cpara, lpara, maxp, length) 
+IF (ier_num /= 0) RETURN
+!
+IF(str_comp(cpara(1), 'full', 2, lpara(1), 4) ) THEN 
+   out_lrange  = 0                                 ! Output range is not limited
+!  out_lcenter = .FALSE.
+!  out_lrange  = .FALSE.
+   RETURN
+ENDIF
+!
+CALL get_optional(ianz, MAXP, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+!
+IF(lpresent(O_CENTER)) THEN                         ! User provided "center:[cx,cy,cz]" parameter
+   IF(opara(O_CENTER)=='middle') THEN
+      out_lrange  = 1                            ! Limit range
+      out_lcenter = 0                            ! Center is at midpoint
+   ELSE
+      ccpara = opara(O_CENTER)
+      llpara = lopara(O_CENTER)
+      CALL get_optional_multi(MAXP, ccpara, llpara, werte, ianz)
+      IF (ier_num /= 0) RETURN
+      out_center(1) = NINT(werte(1))
+      out_center(2) = NINT(werte(2))
+      out_center(3) = NINT(werte(3))
+      out_lrange  = 1                            ! Range is limited
+      out_lcenter = 1                            ! Center is at user values
+   ENDIF
+ELSE
+   out_lcenter = 0                               ! Center is at midpoint
+ENDIF
+!
+IF(lpresent(O_PIXEL)) THEN                         ! User provided "pixel:[px,py,pz]" parameter
+   ccpara = opara(O_PIXEL)
+   llpara = lopara(O_PIXEL)
+   CALL get_optional_multi(MAXP, ccpara, llpara, werte, ianz)
+   IF (ier_num /= 0) RETURN
+   out_pixel(1) = NINT(werte(1))
+   out_pixel(2) = NINT(werte(2))
+   out_pixel(3) = NINT(werte(3))
+   out_lpixel  = 1                                 !User provided pixels
+   out_lrange  = 1
+ELSE
+   out_pixel = 0                                   ! All pixels, may be at off center
+ENDIF
+!
+IF(lpresent(O_QUAD)) THEN                          ! User provided "quad:rll" parameter
+   out_quad = opara(O_QUAD)(1:3)
+   out_lrange = 2
+ELSE
+   out_quad =  ' '
+ENDIF
+!
+END SUBROUTINE output_range
+!
+!*****7*************************************************************************
 !
 SUBROUTINE form_optional(lpresent, ientry, MAXW, opara, &
                        lopara, werte)
@@ -1991,6 +2102,11 @@ out_vi       = reshape((/0.05, 0.00, 0.00, &
 cpow_form    = 'tth'
 out_user_limits = .false.
 out_user_values(:) = (/1.0, 10.0, 0.01/)
+out_lrange  = 0
+out_lcenter = 0
+out_lpixel  = 0
+out_center  = 0
+out_pixel   = 0
 !
 END SUBROUTINE output_reset
 !
