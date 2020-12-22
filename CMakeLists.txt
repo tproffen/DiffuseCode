@@ -38,7 +38,7 @@ endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 6)
-set (DIFFUSE_VERSION_MINOR 03)
+set (DIFFUSE_VERSION_MINOR 04)
 set (DIFFUSE_VERSION_PATCH 01)
 
 # Readline required for all programs
@@ -104,50 +104,15 @@ if ( DIFFUSE_HDF5 )
     endif ()
   endif ()
 #  
-##Qif (DEFINED ENV{HDF5_LIB_RBN})
-##Q  set (LINK_LIBS ${LINK_LIBS} "$ENV{HDF5_LIB}" )
-##  set (LINK_LIBS ${LINK_LIBS} "hdf5::hdf5" )
-##  set (LINK_LIBS ${LINK_LIBS} "hdf5::hdf5_f90" )
-##  set (LINK_LIBS ${LINK_LIBS} "hdf5::hdf5_f90cstub" )
-##  set (LINK_LIBS ${LINK_LIBS} "hdf5::hdf5_fortran-shared" )
-#hdf5::hdf5-shared;hdf5::hdf5_cpp-shared;hdf5::hdf5_f90cstub-shared;hdf5::hdf5_fortran-shared
-#hdf5::hdf5_fortran-shared;hdf5::hdf5-shared;hdf5::hdf5_cpp-shared;hdf5::hdf5_f90cstub-shared;hdf5::hdf5_fortran-shared
-##Q  INCLUDE_DIRECTORIES ("$ENV{HDF5_INC}")
-##Qelse ()
-##Q  set (FIND_HDF_COMPONENTS C CXX Fortran shared)
-##Q  find_package(HDF5 NAMES "hdf5" COMPONENTS ${FIND_HDF_COMPONENTS} REQUIRED)
-##Q  if (HDF5_FOUND)
-##Q    if (HDF5_shared_C_FOUND)
-##Q      set (LINK_LIBS ${LINK_LIBS} ${HDF5_C_SHARED_LIBRARY})
-##Q    endif ()
-##Q    if (HDF5_shared_CXX_FOUND)
-##Q      set (LINK_LIBS ${LINK_LIBS} ${HDF5_CXX_SHARED_LIBRARY})
-##Q    endif ()
-##Q    if (HDF5_shared_Fortran_FOUND)
-##Q      set (LINK_LIBS ${LINK_LIBS} ${HDF5_FORTRAN_SHARED_LIBRARY})
-##Q    endif ()
-##Q    INCLUDE_DIRECTORIES (${HDF5_INCLUDE_DIR_FORTRAN})
-##Q  endif ()
-##Qendif ()
   message (status " HDF5 is ON  ${DIFFUSE_HDF5} ")
   message (status " LINK_LIBS ${LINK_LIBS}")
 else ()
   message (status " HDF5 is OFF ${DIFFUSE_HDF5} ")
 endif ()
-##Qmessage (status " LIBS ${LIBS}")
-##Qmessage (status " LINK_LIBS ${LINK_LIBS}")
-##Qmessage (status " HDF5_FORT ${HDF5_FORTRAN_SHARED_LIBRARY}")
-##Qmessage (status " HDF5_INC  ${HDF5_INCLUDE_DIR_FORTRAN}")
-##Qmessage (status " HDF5_INC  $ENV{HDF5_INC}")
 
 # Set common libraries
 
 set (DIFFUSE_LIBS ${READLINE_LIBRARY})
-
-
-##64## if (WIN32 OR CYGWIN)
-##64##   set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ws2_32)
-##64## endif (WIN32 OR CYGWIN)
 
 # Set Compiler Flags
 
@@ -185,9 +150,6 @@ endif (DEBUG)
 # Go into directories
 
 add_subdirectory(lib_f90) # this must be first for date.inc
-#if (NOT DEBUG)
-#  add_subdirectory(mixscat/prog)
-#endif (NOT DEBUG)
 add_subdirectory(discus/prog)
 add_subdirectory(diffev/prog)
 add_subdirectory(kuplot/prog)
