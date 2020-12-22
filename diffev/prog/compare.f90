@@ -162,62 +162,62 @@ INTEGER                        :: i, j, k, ii , nb
 INTEGER :: length
 !
 !                                                                       
-   CALL do_read_values(.TRUE.)
-   IF ( ier_num /=0) RETURN
+CALL do_read_values(.TRUE.)
+IF ( ier_num /=0) RETURN
 !                                                                       
 !     Selection mode: use the pop_n best of parents and children        
 !                                                                       
 !                                                                       
 !     Create complete list of all r-values                              
 !                                                                       
-   list_val(:) = 0.0
-   during: IF (pop_gen.gt.0) THEN 
-      DO j = 1, pop_n 
-         list_val (j) = parent_val (j,0) 
-      ENDDO 
-      best  = trial_val(1,0)
-      worst = trial_val(1,0)
-      DO j = 1, pop_c 
-         list_val (pop_n + j) = trial_val (j,0) 
-         best = MIN(best , trial_val(j,0))
-         worst= MAX(worst, trial_val(j,0))
-      ENDDO 
-      DO j = pop_c+1, pop_n
-         list_val(j) = worst + (worst-best)
-      ENDDO
-      list_number = pop_n + pop_c 
-   ELSE during
-      best  = trial_val(1,0)
-      worst = trial_val(1,0)
-      DO j = 1, pop_c 
-         list_val (j) = trial_val (j,0) 
-         best = MIN(best , trial_val(j,0))
-         worst= MAX(worst, trial_val(j,0))
-      ENDDO 
-      DO j = pop_c+1, pop_n
-         list_val(j) = worst + (worst-best)
-      ENDDO
-      list_number = pop_c 
-   ENDIF during
+list_val(:) = 0.0
+during: IF (pop_gen.gt.0) THEN 
+   DO j = 1, pop_n 
+      list_val (j) = parent_val (j,0) 
+   ENDDO 
+   best  = trial_val(1,0)
+   worst = trial_val(1,0)
+   DO j = 1, pop_c 
+      list_val (pop_n + j) = trial_val (j,0) 
+      best = MIN(best , trial_val(j,0))
+      worst= MAX(worst, trial_val(j,0))
+   ENDDO 
+   DO j = pop_c+1, pop_n
+      list_val(j) = worst + (worst-best)
+   ENDDO
+   list_number = pop_n + pop_c 
+ELSE during
+   best  = trial_val(1,0)
+   worst = trial_val(1,0)
+   DO j = 1, pop_c 
+      list_val (j) = trial_val (j,0) 
+      best = MIN(best , trial_val(j,0))
+      worst= MAX(worst, trial_val(j,0))
+   ENDDO 
+   DO j = pop_c+1, pop_n
+      list_val(j) = worst + (worst-best)
+   ENDDO
+   list_number = pop_c 
+ENDIF during
 !                                                                       
 !     heapsort index array  on r-values                                 
 !                                                                       
 list_index(:) = 0
-   CALL indexx (list_number, list_val, list_index) 
+CALL indexx (list_number, list_val, list_index) 
 !                                                                       
 !     copy the pop_n best into the child variables                      
 !                                                                       
-   copy: IF (pop_gen.gt.0) THEN 
-      bck_during: IF(pop_backup) THEN    ! copy current best calculations into backup 
+copy: IF (pop_gen.gt.0) THEN 
+   bck_during: IF(pop_backup) THEN    ! copy current best calculations into backup 
                                          ! This effectively replaces kup.backup.mac
-         DO k = pop_n ,1, -1
-            IF (list_index (k) .le.pop_n) THEN 
+      DO k = pop_n ,1, -1
+         IF (list_index (k) .le.pop_n) THEN 
 !                                                                       
 !     ------ an old parent                                                 
 !                                                                       
-               ii = list_index (k) 
-               IF(ii /= k) THEN
-                  IF(ii> 0 .AND. ii<=pop_c) THEN
+            ii = list_index (k) 
+            IF(ii /= k) THEN
+               IF(ii> 0 .AND. ii<=pop_c) THEN
                   DO nb = 1, pop_back_number
                      WRITE(string,1000) pop_back_trg(nb)(1:pop_back_trg_l(nb)),ii, &
                                         pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
@@ -227,14 +227,14 @@ list_index(:) = 0
                      CALL do_operating(string, length)
                      IF ( ier_num /=0) RETURN
                   ENDDO
-                  ENDIF
                ENDIF
-            ELSE 
+            ENDIF
+         ELSE 
 !                                                                       
 !     ------ a child                                                       
 !                                                                       
-               ii = list_index (k) - pop_n 
-               IF(ii> 0 .AND. ii<=pop_c) THEN
+            ii = list_index (k) - pop_n 
+            IF(ii> 0 .AND. ii<=pop_c) THEN
                DO nb = 1, pop_back_number
                   WRITE(string,1000) pop_back_fil(nb)(1:pop_back_fil_l(nb)),ii, &
                                      pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
@@ -243,45 +243,45 @@ list_index(:) = 0
                   length = LEN_TRIM(string)
                   CALL do_operating(string, length)
                ENDDO
-               ENDIF
             ENDIF
-         ENDDO
-      ENDIF bck_during
-      DO k = 1, pop_n 
-         IF (list_index (k) .le.pop_n) THEN 
+         ENDIF
+      ENDDO
+   ENDIF bck_during
+   DO k = 1, pop_n 
+      IF (list_index (k) .le.pop_n) THEN 
 !                                                                       
 !     --- an old parent                                                 
 !                                                                       
-            ii = list_index (k) 
-            DO i = 1, pop_dimx 
-               child (i, k) = pop_x (i, ii) 
-               child_val (k,0:n_rvalue_i) = parent_val (ii,0:n_rvalue_i) 
-            ENDDO 
-         ELSE 
+         ii = list_index (k) 
+         DO i = 1, pop_dimx 
+            child (i, k) = pop_x (i, ii) 
+            child_val (k,0:n_rvalue_i) = parent_val (ii,0:n_rvalue_i) 
+         ENDDO 
+      ELSE 
 !                                                                       
 !     --- a child                                                       
 !                                                                       
-            ii = list_index (k) - pop_n 
-            DO i = 1, pop_dimx 
-               child (i, k) = trial (i, ii) 
-               child_val (k,0:n_rvalue_i) = trial_val (ii,0:n_rvalue_i) 
-            ENDDO 
-         ENDIF 
-      ENDDO 
-      k = 1
-      IF (.NOT.(list_index (k) .le.pop_n)) THEN 
+         ii = list_index (k) - pop_n 
+         DO i = 1, pop_dimx 
+            child (i, k) = trial (i, ii) 
+            child_val (k,0:n_rvalue_i) = trial_val (ii,0:n_rvalue_i) 
+         ENDDO 
+      ENDIF 
+   ENDDO 
+   k = 1
+   IF (.NOT.(list_index (k) .le.pop_n)) THEN 
 !
 !     This is a new "best", update random state
 !
          ii = list_index (k) - pop_n 
-         CALL diffev_random_save(pop_random(:,ii))
-      ENDIF
-   ELSE copy
-      bck_prior: IF(pop_backup) THEN    ! copy current best calculations into backup 
-         DO k = pop_n ,1, -1
-            ii = list_index (k) 
-            IF(k>pop_c) ii = list_index(list_number)  ! Not enough children copy worst
-            IF(ii> 0 .AND. ii<=pop_c) THEN
+      CALL diffev_random_save(pop_random(:,ii))
+   ENDIF
+ELSE copy
+   bck_prior: IF(pop_backup) THEN    ! copy current best calculations into backup 
+      DO k = pop_n ,1, -1
+         ii = list_index (k) 
+         IF(k>pop_c) ii = list_index(list_number)  ! Not enough children copy worst
+         IF(ii> 0 .AND. ii<=pop_c) THEN
             DO nb = 1, pop_back_number
                WRITE(string,1000) pop_back_fil(nb)(1:pop_back_fil_l(nb)),ii, &
                                   pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
@@ -290,25 +290,25 @@ list_index(:) = 0
                length = LEN_TRIM(string)
                CALL do_operating(string, length)
             ENDDO
-            ENDIF
-         ENDDO
-      ENDIF bck_prior
-      DO k = 1, pop_n 
-         ii = list_index (k) 
-         DO i = 1, pop_dimx 
-            child (i, k) = trial (i, ii) 
-            child_val (k,0:n_rvalue_i) = trial_val (ii,0:n_rvalue_i) 
-         ENDDO 
+         ENDIF
+      ENDDO
+   ENDIF bck_prior
+   DO k = 1, pop_n 
+      ii = list_index (k) 
+      DO i = 1, pop_dimx 
+         child (i, k) = trial (i, ii) 
+         child_val (k,0:n_rvalue_i) = trial_val (ii,0:n_rvalue_i) 
       ENDDO 
-      k = 1
-      ii = list_index (1)
-      CALL diffev_random_save(pop_random(:,ii))
-   ENDIF copy
+   ENDDO 
+   k = 1
+   ii = list_index (1)
+   CALL diffev_random_save(pop_random(:,ii))
+ENDIF copy
 !                                                                       
 !     determine best/worst member                                       
 !                                                                       
-   pop_best = 1 
-   pop_worst = pop_n 
+pop_best = 1 
+pop_worst = pop_n 
 !                                                                       
 !     write parents, copy current children into parents and             
 !     create new trial file                                             
@@ -317,7 +317,8 @@ list_index(:) = 0
 !
 1000 FORMAT('cp ',a,i4.4,a,' ',a,i4.4,a)
 !                                                                       
-   END SUBROUTINE compare_best_all               
+END SUBROUTINE compare_best_all               
+!
 !*****7**************************************************************** 
    SUBROUTINE read_obj_values 
 !
@@ -359,49 +360,49 @@ USE support_mod
 !                                                                       
    END SUBROUTINE read_obj_values                
 !*****7**************************************************************** 
-   SUBROUTINE read_par_values 
+SUBROUTINE read_par_values 
 !
 ! Read the logfile
 !
-   USE population
-   USE create_trial_mod
-   USE support_diffev_mod
+USE population
+USE create_trial_mod
+USE support_diffev_mod
 !
 USe lib_length
-   USE precision_mod
-   USE prompt_mod
-   USE random_mod
-   USE terminal_mod
+USE precision_mod
+USE prompt_mod
+USE random_mod
+USE terminal_mod
 USE support_mod
 !
 !                                                                       
-   IMPLICIT none 
+IMPLICIT none 
 !
 !                                                                       
-   INTEGER, PARAMETER             :: iwr = 7 
+INTEGER, PARAMETER             :: iwr = 7 
 !                                                                       
-   CHARACTER (LEN=7)              :: stat = 'unknown'
-   CHARACTER (LEN=PREC_STRING)    :: line 
-   CHARACTER (LEN=PREC_STRING)    :: fname
-   INTEGER                        :: j, i, ii , k
-   INTEGER                        :: len_file,length 
-   INTEGER                        :: pop_dimx_old
-   INTEGER                        :: iostatus, isuccess
-   INTEGER                        :: ieq
-   LOGICAL                        :: istda, lcurrent
-   REAL                           :: best, worst 
-   REAL                           :: r
-   REAL                           :: temp_val_min, temp_val_max
-   REAL                           :: temp_pop_min, temp_pop_max
+CHARACTER (LEN=7)              :: stat = 'unknown'
+CHARACTER (LEN=PREC_STRING)    :: line 
+CHARACTER (LEN=PREC_STRING)    :: fname
+INTEGER                        :: j, i, ii , k
+INTEGER                        :: len_file,length 
+INTEGER                        :: pop_dimx_old
+INTEGER                        :: iostatus, isuccess
+INTEGER                        :: ieq
+LOGICAL                        :: istda, lcurrent
+REAL                           :: best, worst 
+REAL                           :: r
+REAL                           :: temp_val_min, temp_val_max
+REAL                           :: temp_pop_min, temp_pop_max
 !                                                                       
 !
-   iostatus = 0
-   temp_val_min = 0.0
-   temp_val_max = 0.0
+iostatus = 0
+temp_val_min = 0.0
+temp_val_max = 0.0
 !                                                                       
 ! Read old Parent value, if not yet initialized                     
 !                                                                       
-   init: IF (.not.pop_current.and.pop_gen.gt.0) THEN 
+init: IF (.not.pop_current.and.pop_gen.gt.0) THEN 
 !  init: IF (                     pop_gen.gt.0) THEN 
 !
 !     loop over dimension to find old dimension
@@ -551,6 +552,7 @@ USE support_mod
       pop_current = .true. 
    ENDIF init
    iostatus = 0
+!write(*,*) ' IN READ_PAR_VALUES_CCC ', ier_num, ier_typ
 !                                                                       
 ! Read old trial value, if not yet initialized, and a stand alone program                     
 !                                                                       
@@ -587,13 +589,16 @@ USE support_mod
       pop_current_trial = .true.
      ENDIF init_trial
   ELSE  is_alone
+!write(*,*) ' IN READ_PAR_VALUES_DDD ', ier_num, ier_typ
      init_slave: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN 
         CALL create_trial
+        IF(ier_num /= 0) RETURN
         pop_current_trial = .true.
       ELSE init_slave
          trial = pop_t
          pop_current_trial = .true.
      ENDIF init_slave
+!write(*,*) ' IN READ_PAR_VALUES_EEE ', ier_num, ier_typ
   ENDIF is_alone
 !
 ! Read error  parent result file
@@ -615,49 +620,51 @@ USE support_mod
     970 FORMAT (A,'.',A,'.',I4.4   )
    2000 FORMAT ('Child No. ',i4)
 !                                                                       
-   END SUBROUTINE read_par_values                
+END SUBROUTINE read_par_values                
+!
 !*****7**************************************************************** 
-   SUBROUTINE write_parents 
+!
+SUBROUTINE write_parents 
 !                                                                       
 ! Writes the logfile and summary file
 !
-   USE diffev_allocate_appl
-   USE create_trial_mod
-   USE diff_evol
-   USE population
-   USE lib_f90_allocate_mod
+USE diffev_allocate_appl
+USE create_trial_mod
+USE diff_evol
+USE population
+USE errlist_mod
+USE lib_f90_allocate_mod
 USE lib_length
-   USE precision_mod
-   USE variable_mod
+USE precision_mod
+USE variable_mod
 USE support_mod
 !
-   IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 !                                                                       
-   INTEGER, PARAMETER             :: iwr = 7
+INTEGER, PARAMETER             :: iwr = 7
 !                                                                       
-   INTEGER                        :: i, j,k , kmax
-   INTEGER                        :: i1, i2 
-   INTEGER                        :: length
+INTEGER                        :: i, j,k , kmax
+INTEGER                        :: i1, i2 
+INTEGER                        :: length
 !                                                                       
-!   CHARACTER (LEN=7)              :: stat  = 'append'
-   CHARACTER (LEN=PREC_LSTRING)   :: line 
-   CHARACTER (LEN=PREC_STRING)    :: fname
-!   LOGICAL                        :: lread = .false.
+CHARACTER (LEN=PREC_LSTRING)   :: line 
+CHARACTER (LEN=PREC_STRING)    :: fname
 !                                                                       
-   REAL                           :: pave, pmin, pmax, psig 
-   REAL                           :: sx, sx2, arg 
-   REAL                           :: sw, wg
+REAL                           :: pave, pmin, pmax, psig 
+REAL                           :: sx, sx2, arg 
+REAL                           :: sw, wg
 !
 !                                                                       
-   changed: IF ( pop_dimx_new ) THEN      ! Dimension has changed, patch parameter and summary file
-      IF(pop_dimx.gt.MAXDIMX) THEN
-         CALL alloc_population(pop_c, pop_dimx)  ! Local DIFFEV Variables
-         CALL alloc_ref_para(pop_dimx)           ! Global refinement paramater variable
-      ENDIF
-      CALL patch_para
-      pop_dimx_new = .false.
-   ENDIF changed
+changed: IF ( pop_dimx_new ) THEN      ! Dimension has changed, patch parameter and summary file
+   IF(pop_dimx.gt.MAXDIMX) THEN
+      CALL alloc_population(pop_c, pop_dimx)  ! Local DIFFEV Variables
+      CALL alloc_ref_para(pop_dimx)           ! Global refinement paramater variable
+   ENDIF
+   CALL patch_para
+   IF(ier_num/=0) RETURN
+   pop_dimx_new = .false.
+ENDIF changed
 !                                                                       
 !------ write the parameters and the results for the current generation 
 !                                                                       
@@ -723,6 +730,7 @@ USE support_mod
    ENDDO params
 !
    CALL write_current
+   IF(ier_num /= 0) RETURN
 !                                                                       
 !     Write the Summary files
 !                                                                       
@@ -833,55 +841,47 @@ USE support_mod
    var_val(var_ref+0) = pop_gen ! Update global user variable
 !                                                                       
    CALL create_trial 
+   IF(ier_num /= 0) RETURN
    CALL write_genfile 
-!                                                                       
-!   RETURN 
-!     999 CONTINUE 
-!   WRITE ( * , * ) ' Error opening file' 
+   IF(ier_num /= 0) RETURN
 !                                                                       
      950 FORMAT (A,'.',a   )
      970 FORMAT (A,'.',a,'.',I4.4   )
     1100 FORMAT ('#S ',i7,' = Generation Number ') 
-!    1200 FORMAT (a10) 
     1250 FORMAT (a) 
     1300 FORMAT (i5,2(2x,e18.10))
-!    1310 FORMAT (2x,e18.10) 
-!    2100 FORMAT (i5,' = Member     Number ',i5) 
-!    3000 FORMAT (2x,e18.10) 
-!    5000 FORMAT (2x,i5,2x,e18.10) 
     4000 FORMAT (i7) 
     4100 FORMAT (4(1x,e17.10)) 
     4200 FORMAT (a) 
 !                                                                       
-   END SUBROUTINE write_parents                  
+END SUBROUTINE write_parents                  
 !
 !*******************************************************************************
 !
-   SUBROUTINE write_current
+SUBROUTINE write_current
 !
-!   USE diffev_allocate_appl
-   USE create_trial_mod
-   USE diff_evol
+USE create_trial_mod
+USE diff_evol
 USE lib_length
-   USE population
-   USE precision_mod
+USE population
+USE precision_mod
 USE support_mod
 !
-   IMPLICIT NONE
+IMPLICIT NONE
 !
-   INTEGER, PARAMETER             :: iwr = 7
+INTEGER, PARAMETER             :: iwr = 7
 !                                                                       
-   INTEGER                        :: i, j , k, kmax
-   INTEGER                        :: length
+INTEGER                        :: i, j , k, kmax
+INTEGER                        :: length
 !
-   CHARACTER (LEN=PREC_STRING)    :: fname
-   CHARACTER (LEN=PREC_STRING)    :: line
+CHARACTER (LEN=PREC_STRING)    :: fname
+CHARACTER (LEN=PREC_STRING)    :: line
 !                                                                       
 !                                                                       
 !------ write the parameters and the results for the current generation 
 !                                                                       
-   length = len_str(parent_current)
-   IF(length  > 0 ) THEN                    ! Current file is defined
+length = len_str(parent_current)
+IF(length  > 0 ) THEN                    ! Current file is defined
       kmax = 0
       IF(n_rvalue_i>1) kmax = n_rvalue_i
       i      = 0                                     ! 0 is the R-value
@@ -1091,18 +1091,6 @@ USE support_mod
                                  pop_name(i)(1:LEN_TRIM(pop_name(i))), &
                                  pop_name(i)(1:LEN_TRIM(pop_name(i))), &
                                  pop_name(i)(1:LEN_TRIM(pop_name(i)))
-!     DO j =  9, 13
-!        IF (line (j:j) .eq.' ') line (j:j) = '_'
-!     ENDDO
-!     DO j = 27, 31
-!        IF (line (j:j) .eq.' ') line (j:j) = '_'
-!     ENDDO
-!     DO j = 45, 49
-!        IF (line (j:j) .eq.' ') line (j:j) = '_'
-!     ENDDO
-!     DO j = 63, 67
-!        IF (line (j:j) .eq.' ') line (j:j) = '_'
-!     ENDDO
       WRITE (iwr, 1000) line(1:LEN_TRIM(line))        ! Write Header line 1
       input2: DO                                      ! loop over all lines
          READ ( ird, *   , IOSTAT=ios) j
@@ -1119,43 +1107,47 @@ USE support_mod
 1200 FORMAT ( ' ',a,'_AVE',2x,a,'_MIN',2x,a,'_MAX ',2x,a,'_SIG ')
 1300 FORMAT ( I4, 4(1x,E17.10))
 !
-   END SUBROUTINE patch_para
+END SUBROUTINE patch_para
+!
 !*****7**************************************************************** 
-   SUBROUTINE do_dismiss ( lb, ub)
+!
+SUBROUTINE do_dismiss ( lb, ub)
 !                                                                       
 !  Sets the R-values of the worst parents to a very high value.
 !  The purpose is to ensure replacement in the next generation
 !
-   USE population
+USE population
 !
-   IMPLICIT none 
+IMPLICIT none 
 !
 !
-   INTEGER, INTENT(IN) :: lb
-   INTEGER, INTENT(IN) :: ub
+INTEGER, INTENT(IN) :: lb
+INTEGER, INTENT(IN) :: ub
 !
-   INTEGER             :: list_index(MAXPOP)
+INTEGER             :: list_index(MAXPOP)
 !
-   INTEGER             :: j
-   REAL                :: shift
+INTEGER             :: j
+REAL                :: shift
 !                                                                       
-   CALL do_read_values(.TRUE.)       ! If necessary read parameter values from logfile
-   IF ( ier_num /=0) RETURN
+CALL do_read_values(.TRUE.)       ! If necessary read parameter values from logfile
+IF ( ier_num /=0) RETURN
 !                                                                       
 !  heapsort index array  on r-values                                 
 !                                                                       
-   CALL indexx (MAXPOP, parent_val(:,0), list_index) 
-   shift = int(parent_val(list_index(pop_n),0)) + 1.0E10
+CALL indexx (MAXPOP, parent_val(:,0), list_index) 
+shift = int(parent_val(list_index(pop_n),0)) + 1.0E10
 !                                                                       
 !     copy the pop_n best into the child variables                      
 !
-   DO j = lb, ub
-      parent_val (list_index(j),: ) = parent_val (list_index(j),:) + shift
-   ENDDO 
+DO j = lb, ub
+   parent_val (list_index(j),: ) = parent_val (list_index(j),:) + shift
+ENDDO 
 !
-   END SUBROUTINE do_dismiss
+END SUBROUTINE do_dismiss
+!
 !*****7**************************************************************** 
-   SUBROUTINE do_read_values(forced)
+!
+SUBROUTINE do_read_values(forced)
 !
 !  Reads the parameter values from the log file
 !                                                                       
@@ -1164,31 +1156,36 @@ USE support_mod
 !
    IMPLICIT none 
 !
-   LOGICAL, INTENT(IN) :: forced
+LOGICAL, INTENT(IN) :: forced
 !                                                                       
-   init: IF (pop_gen.gt.0 .OR. forced) THEN 
-      CALL read_genfile 
-      IF ( ier_num /=0) THEN
-         ier_msg(1) = 'check existence of GENERATION'
-         ier_msg(2) = 'has population been properly initialized?'
-         RETURN
-      ENDIF
-      CALL read_obj_values 
-      IF ( ier_num /=0) THEN
-         ier_msg(1) = 'check for errors in result files'
-         ier_msg(2) = 'has a calculation of the R-values'
-         ier_msg(3) = 'been performed?'
-         RETURN
-      ENDIF
-      CALL read_par_values 
-      IF ( ier_num /=0) THEN
-         ier_msg(1) = 'check existence of logfile/summary'
-         ier_msg(2) = 'has population been properly initialized?'
-         RETURN
-      ENDIF
-      pop_not_first = .TRUE.                     ! This is no longer the first time
-   ENDIF init
+init: IF (pop_gen.gt.0 .OR. forced) THEN 
+   CALL read_genfile 
+!write(*,*) ' READ_GENFILE    ', ier_num, ier_typ
+   IF ( ier_num /=0) THEN
+      ier_msg(1) = 'check existence of GENERATION'
+      ier_msg(2) = 'has population been properly initialized?'
+      RETURN
+   ENDIF
+   CALL read_obj_values 
+!write(*,*) ' READ_OBJ_VALUES ', ier_num, ier_typ
+   IF ( ier_num /=0) THEN
+      ier_msg(1) = 'check for errors in result files'
+      ier_msg(2) = 'has a calculation of the R-values'
+      ier_msg(3) = 'been performed?'
+      RETURN
+   ENDIF
+   CALL read_par_values 
+!write(*,*) ' READ_PAR_VALUES ', ier_num, ier_typ
+   IF ( ier_num /=0) THEN
+      ier_msg(1) = 'check existence of logfile/summary'
+      ier_msg(2) = 'has population been properly initialized?'
+      RETURN
+   ENDIF
+   pop_not_first = .TRUE.                     ! This is no longer the first time
+ENDIF init
 !
-   END SUBROUTINE do_read_values
+END SUBROUTINE do_read_values
+!
 !*****7**************************************************************** 
+!
 END MODULE compare

@@ -1,9 +1,10 @@
 MODULE create_trial_mod
 !
 CONTAINS
+!
 !*****7**************************************************************** 
 !                                                                       
-      SUBROUTINE create_trial 
+SUBROUTINE create_trial 
 !                                                                       
 !     creates a new generation.                                         
 !     Each parameter is calculated as                                   
@@ -25,61 +26,69 @@ CONTAINS
 !       For those parameters that are not affected by the cross-over, a 
 !     local shift may be applied using the user supplied local sigma.   
 !                                                                       
-      USE population
-      USE diff_evol
+USE population
+USE diff_evol
 USE lib_random_func
-      USE random_mod
+USE random_mod
+USE errlist_mod
 !                                                                       
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      INTEGER j, jt 
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      CALL adapt_sigma 
+INTEGER :: j, jt 
 !                                                                       
-      IF (diff_sel_mode.eq.SEL_COMP) then 
+!                                                                       
+CALL adapt_sigma 
+IF(ier_num/=0) RETURN
+!                                                                       
+IF (diff_sel_mode.eq.SEL_COMP) then 
 !                                                                       
 !     --Each child is compared to its parent, generate straight from    
 !       parent                                                          
 !                                                                       
-         DO jt = 1, pop_n 
-            j = jt 
-            CALL create_single (j, jt) 
-            CALL write_trial (jt) 
-         ENDDO 
-      ELSE 
+   DO jt = 1, pop_n 
+      j = jt 
+      CALL create_single (j, jt) 
+      IF(ier_num /= 0) RETURN
+      CALL write_trial (jt) 
+   ENDDO 
+ELSE 
 !                                                                       
 !     --Selection mode is "BEST".                                       
 !       If there are equal or more children than parents, then          
 !         create pop_n children straigth from each parent               
 !         create additional children from random parents                
 !                                                                       
-         IF (pop_n.le.pop_c) then 
-            DO jt = 1, pop_n 
-               j = jt 
-               CALL create_single (j, jt) 
-               CALL write_trial (jt) 
-            ENDDO 
-            DO jt = pop_n + 1, pop_c 
-               j = int (pop_n * ran1 (idum) ) + 1 
-               CALL create_single (j, jt) 
-               CALL write_trial (jt) 
-            ENDDO 
-         ELSE 
+   IF (pop_n.le.pop_c) then 
+      DO jt = 1, pop_n 
+         j = jt 
+         CALL create_single (j, jt) 
+         IF(ier_num /= 0) RETURN
+         CALL write_trial (jt) 
+      ENDDO 
+      DO jt = pop_n + 1, pop_c 
+         j = int (pop_n * ran1 (idum) ) + 1 
+         CALL create_single (j, jt) 
+         IF(ier_num /= 0) RETURN
+         CALL write_trial (jt) 
+      ENDDO 
+   ELSE 
 !     --There are less children than parents, create all children       
 !       from randomly chosen parents                                    
 !                                                                       
-            DO jt = 1, pop_c 
-               j = int (pop_n * ran1 (idum) ) + 1 
-               CALL create_single (j, jt) 
-               CALL write_trial (jt) 
-            ENDDO 
-         ENDIF 
-      ENDIF 
+      DO jt = 1, pop_c 
+         j = int (pop_n * ran1 (idum) ) + 1 
+         CALL create_single (j, jt) 
+         IF(ier_num /= 0) RETURN
+         CALL write_trial (jt) 
+      ENDDO 
+   ENDIF 
+ENDIF 
 !                                                                       
-      END SUBROUTINE create_trial                   
+END SUBROUTINE create_trial                   
+!
 !*****7**************************************************************** 
+!
 SUBROUTINE create_single (j, jt) 
 !                                                                       
 USE diffev_config
@@ -87,12 +96,15 @@ USE constraint
 USE diff_evol
 USE population
 USE triple_perm
-!USE do_if_mod
 USE random_mod
 USE errlist_mod 
 USE do_execute_mod
 USE lib_random_func
 USE precision_mod
+USE variable_mod
+USE define_variable_mod
+!
+use do_variable_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -100,16 +112,19 @@ INTEGER,         INTENT(IN   ) :: j
 INTEGER,         INTENT(IN   ) :: jt
 !
 CHARACTER (LEN=PREC_STRING)    :: line 
-INTEGER                        :: i, ii, k, l
+INTEGER                        :: i, ii, k, l, m
 INTEGER                        :: n_tried 
 INTEGER                        :: length 
 INTEGER                        :: j1, j2, j3 
 LOGICAL                        :: l_ok 
+LOGICAL                        :: l_success
 LOGICAL                        :: l_unchanged 
+LOGICAL, PARAMETER             :: is_diffev = .TRUE.
 REAL                           :: shift 
 REAL                           :: value 
 REAL                           :: w 
 !                                                                       
+!write(*,*) 'INTO CREATE_SINGLE ', j, ier_num, ier_typ
 !                                                                       
 w = 0.0 
 n_tried = 0 
@@ -201,8 +216,33 @@ cross1:     IF (ran1 (idum) .lt.diff_cr.or.l_unchanged) then
          ELSE 
             pop_t (i, jt) = pop_x (i, j) 
          ENDIF refine1
+
+         l_success = .FALSE.
+         loop_par_L: DO m=1,var_num
+            IF(var_name(m)==pop_name(i)) THEN
+               var_val(m) = pop_x(i,j)
+               l_success = .TRUE.
+               EXIT loop_par_L
+            ENDIF
+         ENDDO loop_par_L
+
+         IF(.NOT. l_success) THEN          ! Variable does not yet exist, create
+            WRITE(line, '(a,a)') 'real, ',pop_name(i)(1:LEN_TRIM(pop_name(i)))
+            length = LEN_TRIM(line)
+            CALL define_variable(line, length, is_diffev)
+           IF(ier_num/=0) RETURN
+            loop_par2_L: DO m=1,var_num
+               IF(var_name(m)==pop_name(i)) THEN
+                  var_val(m) = pop_x(i,j)
+                  l_success = .TRUE.
+                  EXIT loop_par2_L
+               ENDIF
+            ENDDO loop_par2_L
+         ENDIF
+
       ENDDO kdimx1
    ELSE local
+
   idimx2:   DO i = 1, pop_dimx 
  refine2:IF (pop_refine (i) ) then 
 !                                                                 
@@ -235,16 +275,46 @@ cross1:     IF (ran1 (idum) .lt.diff_cr.or.l_unchanged) then
          ELSE refine2
             pop_t (i, jt) = pop_x (i, j) 
          ENDIF refine2
+
+         l_success = .FALSE.
+         loop_par: DO m=1,var_num
+            IF(var_name(m)==pop_name(i)) THEN
+               var_val(m) = pop_t(i,j)
+               l_success = .TRUE.
+               EXIT loop_par
+            ENDIF
+         ENDDO loop_par
+
+         IF(.NOT. l_success) THEN          ! Variable does not yet exist, create
+            WRITE(line, '(a,a)') 'variable real, ',pop_name(i)
+            length = LEN_TRIM(line)
+            CALL define_variable(line, length, is_diffev)
+            IF(ier_num/=0) RETURN
+            loop_par2: DO m=1,var_num
+               IF(var_name(m)==pop_name(i)) THEN
+                  var_val(m) = pop_t(i,j)
+                  l_success = .TRUE.
+                  EXIT loop_par2
+               ENDIF
+            ENDDO loop_par2
+         ENDIF
+
       ENDDO idimx2
    ENDIF local
+!
    l_ok = .true. 
    DO l = 1, constr_number 
       line = ' ' 
       line = '('//constr_line (l) (1:constr_length (l) ) //')' 
       length = constr_length (l) + 2 
+      line = ' ' 
+      line = '('//constr_line (l) (1:constr_length (l) ) //')' 
+      length = constr_length (l) + 2 
       l_ok = l_ok.and.if_test (line, length) 
    ENDDO 
+!
 ENDDO main
+!
 nlok: IF (.not.l_ok) then 
 !                                                                 
 !     ----Try a local modification, before giving up              
@@ -281,6 +351,16 @@ nlok: IF (.not.l_ok) then
       ELSE 
          pop_t (i, jt) = pop_x (i, j) 
       ENDIF 
+
+         l_success = .FALSE.
+         loop_par3: DO m=1,var_num
+            IF(var_name(m)==pop_name(i)) THEN
+               var_val(m) = pop_t(i,j)
+               l_success = .TRUE.
+               EXIT loop_par3
+            ENDIF
+         ENDDO loop_par3
+
    ENDDO 
    l_ok = .true. 
    DO l = 1, constr_number 
@@ -292,14 +372,16 @@ nlok: IF (.not.l_ok) then
    IF ( l_ok ) THEN
       pop_current_trial = .true.
    ELSE
-      ier_num = - 8 
+      ier_num = -8 
       ier_typ = ER_APPL 
       RETURN 
    ENDIF 
 ENDIF nlok
 !                                                                       
 END SUBROUTINE create_single                  
+!
 !*****7**************************************************************** 
+!
 SUBROUTINE write_trial (jt) 
 !
 ! Writes the trial file of just one kid, and updates the ref_para array
@@ -351,6 +433,7 @@ END SUBROUTINE write_trial
 !*****7**************************************************************** 
 SUBROUTINE write_genfile 
 !                                                                       
+USE constraint
 USE population
 USE diff_evol
 USE diffev_random
@@ -393,6 +476,11 @@ DO i = 0, (random_nseed-1)/6
    WRITE(IWR,3100) (random_best(j+1),j = i*6,MIN(i*6+5,random_nseed-1))
 ENDDO
 !
+WRITE(IWR, 2200) constr_number
+DO i=1, constr_number
+   WRITE(IWR,'(A)') constr_line(i)(1:LEN_TRIM(constr_line(i)))
+ENDDO
+!
 WRITE (IWR, 1640) 'XMIN','XMAX','SMIN','SMAX'
 string='Member'
 WRITE (IWR, 1800) string(1:16),-1, 1.,REAL(pop_dimx), &
@@ -404,6 +492,7 @@ WRITE (IWR, 1800) string(1:16), 0, parent_val(pop_best,0),&
                                child_val(pop_best,0),&
                                child_val(pop_worst,0),&
  'I', .FALSE.
+!
 DO i = 1, pop_dimx
    string = pop_name(i)(1:LEN_TRIM(pop_name(i)))
 !  WRITE(IWR, 1800) pop_name(i)(1:LEN_TRIM(pop_name(i))), &
@@ -433,10 +522,13 @@ CLOSE (iwr)
  2000 FORMAT ('# donor mode, selection mode'/2(2x,i2))
  2100 FORMAT ('# Cross_over, Factor, Local, position'/,4(2x, E18.10)) 
 !
+ 2200 FORMAT ('# constraint number'/i5)
+!
 END SUBROUTINE write_genfile                  
 !*****7**************************************************************** 
 SUBROUTINE read_genfile 
 !                                                                       
+USE constraint
 USE diffev_allocate_appl
 USE diff_evol
 USE population
@@ -471,190 +563,177 @@ ENDIF
 ier_num = -31                                       ! Turn error on for read
 ier_typ = ER_APPL
 !
-READ (iwr, *   ,iostat=IO_status)                   ! Read 1st header line
+READ (iwr,'(a)',iostat=IO_status) line              ! Read 1st header line
 IF(IS_IOSTAT_END(IO_STATUS)) THEN
    CLOSE(iwr)
    RETURN
 ENDIF
 !
-READ (iwr, *   ,iostat=IO_status) r1, r2, r3, r4    ! Read generation values
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-!
-READ (iwr, *   ,iostat=IO_status)                   ! Read trialfile header line
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-!
-READ (iwr, 1000,iostat=IO_status) pop_trialfile     ! Read trialfile name
-pop_ltrialfile = LEN_TRIM(pop_trialfile)
-!
-READ (iwr, *   ,iostat=IO_status)                   ! read reaultfile header line
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-!
-READ (iwr, 1000,iostat=IO_status) trial_results     ! Read resultfile name 
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-ltrial_results = LEN_TRIM(trial_results)
-!
-READ (iwr, *   ,iostat=IO_status)                   ! read logfile header line
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-!
-READ (iwr, 1000,iostat=IO_status) parent_results    ! Read parent log file name 
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-lparent_results = LEN_TRIM(parent_results)
-!
-READ (iwr, *   ,iostat=IO_status)                   ! read summary header line
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-!
-READ (iwr, 1000,iostat=IO_status) parent_summary    ! Read summary file name 
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-lparent_summary     = LEN_TRIM(parent_summary)
-!
-ier_num = 0                                         ! Turn error message off as 
-ier_typ = 0                                         ! old file finish here
-READ (iwr, *   ,iostat=IO_status)                   ! read current header line
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-!
-ier_num = -31                                       ! Turn error on for read
-ier_typ = ER_APPL
-READ (iwr, 1000,iostat=IO_status) parent_current    ! Read current file name
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-lparent_current = LEN_TRIM(parent_current)
-!
-READ (iwr, 1000,iostat=IO_status) line              ! read backup header line
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-!
-READ (iwr, *   ,iostat=IO_status) pop_back_number  ! read number of backups
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
-!
-DO i=1, pop_back_number
-   READ (iwr, *   ,iostat=IO_status) 
-   IF(IS_IOSTAT_END(IO_STATUS)) THEN
-      CLOSE(iwr)
-      RETURN
+header: DO                                          ! Loop over all header lines until '# Parameter'
+   IF(line(1:12)=='# generation') THEN
+      READ (iwr, *   ,iostat=IO_status) r1, r2, r3, r4    ! Read generation values
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
    ENDIF
 !
-   READ (iwr, 1000,iostat=IO_status) pop_back_fil(i) 
-   IF(IS_IOSTAT_END(IO_STATUS)) THEN
-      CLOSE(iwr)
-      RETURN
+   IF(line(1:12)=='# trial file') THEN
+      READ (iwr, 1000,iostat=IO_status) pop_trialfile     ! Read trialfile name
+      pop_ltrialfile = LEN_TRIM(pop_trialfile)
    ENDIF
 !
-   READ (iwr, *   ,iostat=IO_status) 
-   IF(IS_IOSTAT_END(IO_STATUS)) THEN
-      CLOSE(iwr)
-      RETURN
+   IF(line(1:13)=='# result file') THEN
+      READ (iwr, 1000,iostat=IO_status) trial_results     ! Read resultfile name 
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
+      ltrial_results = LEN_TRIM(trial_results)
    ENDIF
 !
-   READ (iwr, 1000,iostat=IO_status) pop_back_ext(i) 
-   IF(IS_IOSTAT_END(IO_STATUS)) THEN
-      CLOSE(iwr)
-      RETURN
+   IF(line(1:10)=='# log file') THEN
+      READ (iwr, 1000,iostat=IO_status) parent_results    ! Read parent log file name 
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
+      lparent_results = LEN_TRIM(parent_results)
    ENDIF
 !
-   READ (iwr, *   ,iostat=IO_status) 
-   IF(IS_IOSTAT_END(IO_STATUS)) THEN
-      CLOSE(iwr)
-      RETURN
+   IF(line(1:14)=='# summary file') THEN
+      READ (iwr, 1000,iostat=IO_status) parent_summary    ! Read summary file name 
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
+      lparent_summary     = LEN_TRIM(parent_summary)
    ENDIF
 !
-   READ (iwr, 1000,iostat=IO_status) pop_back_trg(i) 
-   IF(IS_IOSTAT_END(IO_STATUS)) THEN
-      CLOSE(iwr)
-      RETURN
+   IF(line(1:14)=='# current file') THEN
+      READ (iwr, 1000,iostat=IO_status) parent_current    ! Read current file name
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
+      lparent_current = LEN_TRIM(parent_current)
    ENDIF
 !
-   pop_back_fil_l(i) = LEN_TRIM(pop_back_fil(i))
-   pop_back_ext_l(i) = LEN_TRIM(pop_back_ext(i))
-   pop_back_trg_l(i) = LEN_TRIM(pop_back_trg(i))
-ENDDO
+   IF(line(1:15)=='# backup number') THEN
+      READ (iwr, *   ,iostat=IO_status) pop_back_number  ! read number of backups
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
 !
-IF(pop_back_number>0) pop_backup = .TRUE.
-READ (iwr, *   ,iostat=IO_status)                  ! Read donor  header line
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
+      DO i=1, pop_back_number
+         READ (iwr, *   ,iostat=IO_status) 
+         IF(IS_IOSTAT_END(IO_STATUS)) THEN
+            CLOSE(iwr)
+            RETURN
+         ENDIF
 !
-READ (iwr, *, IOSTAT=io_status   ) diff_donor_mode, diff_sel_mode
-READ (iwr, *   ,iostat=IO_status)                  ! Read CR, F  header line
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
+         READ (iwr, 1000,iostat=IO_status) pop_back_fil(i) 
+         IF(IS_IOSTAT_END(IO_STATUS)) THEN
+            CLOSE(iwr)
+            RETURN
+         ENDIF
 !
-READ (iwr, *, IOSTAT=io_status   ) diff_cr, diff_f, diff_local, diff_k
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
+         READ (iwr, *   ,iostat=IO_status) 
+         IF(IS_IOSTAT_END(IO_STATUS)) THEN
+            CLOSE(iwr)
+            RETURN
+         ENDIF
+!
+         READ (iwr, 1000,iostat=IO_status) pop_back_ext(i) 
+         IF(IS_IOSTAT_END(IO_STATUS)) THEN
+            CLOSE(iwr)
+            RETURN
+         ENDIF
+!
+         READ (iwr, *   ,iostat=IO_status) 
+         IF(IS_IOSTAT_END(IO_STATUS)) THEN
+            CLOSE(iwr)
+            RETURN
+         ENDIF
+!
+         READ (iwr, 1000,iostat=IO_status) pop_back_trg(i) 
+         IF(IS_IOSTAT_END(IO_STATUS)) THEN
+            CLOSE(iwr)
+            RETURN
+         ENDIF
+!
+         pop_back_fil_l(i) = LEN_TRIM(pop_back_fil(i))
+         pop_back_ext_l(i) = LEN_TRIM(pop_back_ext(i))
+         pop_back_trg_l(i) = LEN_TRIM(pop_back_trg(i))
+      ENDDO
+!
+      IF(pop_back_number>0) pop_backup = .TRUE.
+   ENDIF
+!
+   IF(line(1:12)=='# donor mode') THEN
+      READ (iwr, *, IOSTAT=io_status   ) diff_donor_mode, diff_sel_mode
+   ENDIF
+!
+   IF(line(1:12)=='# Cross over') THEN
+      READ (iwr, *, IOSTAT=io_status   ) diff_cr, diff_f, diff_local, diff_k
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
+   ENDIF
 !
 ! Read random status of best element
 !
-line = ' '
-j = 0
-READ(iwr,'(a)', IOSTAT=io_status) line
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
+   IF(line(1:14)=='# random seeds') THEN
+      READ (iwr, *, IOSTAT=io_status   ) random_nseed
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
 !
+      DO i = 0, (random_nseed-1)/6
+         READ(iwr,'(a)', IOSTAT=io_status) line
+         IF(IS_IOSTAT_END(IO_STATUS)) THEN
+            CLOSE(iwr)
+            RETURN
+         ENDIF
 !
-READ (iwr, *, IOSTAT=io_status   ) random_nseed
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
+         READ(line,*, IOSTAT=IO_status) (random_best(j+1),j = i*6,MIN(i*6+5,random_nseed-1))
+         IF(IS_IOSTAT_END(IO_STATUS)) THEN
+            CLOSE(iwr)
+            RETURN
+         ENDIF
 !
+      ENDDO
+   ENDIF
 !
-DO i = 0, (random_nseed-1)/6
-   READ(iwr,'(a)', IOSTAT=io_status) line
+   IF(line(1:19)=='# constraint number') THEN
+      READ(iwr,*, IOSTAT=IO_status) constr_number
+      IF(.NOT.ALLOCATED(constr_line)) ALLOCATE(constr_line(1:constr_number))
+      IF(UBOUND(constr_line,1)< constr_number) THEN
+         DEALLOCATE(constr_line)
+         ALLOCATE(constr_line(1:constr_number))
+      ENDIF
+      MAX_CONSTR = constr_number
+      DO i=1, constr_number
+         READ(iwr,'(a)', IOSTAT=io_status) line
+         IF(IS_IOSTAT_END(IO_STATUS)) THEN
+            CLOSE(iwr)
+            RETURN
+         ENDIF
+         READ(line,'(a)', IOSTAT=io_status) constr_line(i)
+         constr_length(i) = LEN_TRIM(constr_line(i))
+      ENDDO
+   ENDIF
+!
+   READ (iwr,'(a)',iostat=IO_status) line              ! Read next header line
    IF(IS_IOSTAT_END(IO_STATUS)) THEN
       CLOSE(iwr)
       RETURN
    ENDIF
-!
-   READ(line,*, IOSTAT=IO_status) (random_best(j+1),j = i*6,MIN(i*6+5,random_nseed-1))
-   IF(IS_IOSTAT_END(IO_STATUS)) THEN
-      CLOSE(iwr)
-      RETURN
-   ENDIF
-!
-ENDDO
-!READ (iwr, *   ,iostat=IO_status) random_best(1:random_nseed)
+   IF(line(1:11) == '# Parameter') EXIT header
+ENDDO header
 !
 READ (iwr, *   ,iostat=IO_status) 
 IF(IS_IOSTAT_END(IO_STATUS)) THEN
@@ -668,11 +747,11 @@ IF(IS_IOSTAT_END(IO_STATUS)) THEN
    RETURN
 ENDIF
 !
-READ (iwr, *   ,iostat=IO_status)
-IF(IS_IOSTAT_END(IO_STATUS)) THEN
-   CLOSE(iwr)
-   RETURN
-ENDIF
+!READ (iwr, *   ,iostat=IO_status)
+!IF(IS_IOSTAT_END(IO_STATUS)) THEN
+!   CLOSE(iwr)
+!   RETURN
+!ENDIF
 !
 l_write = .FALSE.              ! Generation file does not have to be written
 IF(.NOT.pop_current)   THEN    ! Need to update the population etc

@@ -134,7 +134,7 @@ CHARACTER(LEN=7), DIMENSION(1:2) :: cref
 CHARACTER(LEN=7)                 :: string
 INTEGER, INTENT(in) :: i
 !
-DATA ctype /'Reel   ','Integer' /
+DATA ctype /'Real   ','Integer' /
 DATA cref  /'Refined','Fixed  ' /
 !
 IF(pop_refine(i)) THEN

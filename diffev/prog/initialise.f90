@@ -190,128 +190,136 @@ USE support_mod
     2250 FORMAT (a16,4(2x,E18.10)) 
     3000 FORMAT (a)
 !                                                                       
-   END SUBROUTINE do_initialise                     
-!*****7**************************************************************** 
-   SUBROUTINE init_x (lb, ub)
+   END SUBROUTINE do_initialise
 !
-   USE diffev_config
-   USE population
-   USE constraint
-   USE create_trial_mod
-!  USE do_if_mod
-   USE do_execute_mod
+!*****7*************************************************************************
+!
+SUBROUTINE init_x (lb, ub)
+!
+USE diffev_config
+USE population
+USE constraint
+USE create_trial_mod
+USE do_execute_mod
 USE lib_length
 USE lib_random_func
 USE precision_mod
-   USE random_mod
+USE random_mod
 USE support_mod
+USE variable_mod
 !
-   IMPLICIT none
+IMPLICIT none
 !
-   INTEGER, INTENT(IN) :: lb,ub
+INTEGER, INTENT(IN) :: lb,ub
 !                                                                       
 !
-   INTEGER, PARAMETER   :: iwr = 7
+INTEGER, PARAMETER   :: iwr = 7
 !
-   CHARACTER (LEN=PREC_LSTRING) :: line 
-   CHARACTER (LEN=PREC_STRING) :: fname 
-   INTEGER              :: n_tried 
-   INTEGER              :: length 
-   INTEGER              :: i,j,l
-   LOGICAL              :: l_ok
-   REAL                 :: w 
+CHARACTER (LEN=PREC_LSTRING) :: line 
+CHARACTER (LEN=PREC_STRING) :: fname 
+INTEGER              :: n_tried 
+INTEGER              :: length 
+INTEGER              :: i,j,k,l
+LOGICAL              :: l_ok
+REAL                 :: w 
 !                                                                       
-   CHARACTER (LEN=7)    :: stat  = 'unknown'
+CHARACTER (LEN=7)    :: stat  = 'unknown'
 !
 !
 !
-   children: DO j = 1, pop_c 
-      n_tried = 0 
-      l_ok = .false. 
-      attempt: DO while (.not.l_ok.and.n_tried.lt.MAX_CONSTR_TRIAL) 
-         n_tried = n_tried+1 
-         w = 0.00 
-         DO i=1,pop_dimx ! set default values
-            pop_para(i) = pop_t (i,j)
-         ENDDO
-         params: DO i = lb, ub
-            IF(pop_smin(i) < pop_xmin(i) .or. pop_xmax(i) < pop_smax(i)) THEN
-               ier_num = -25
+children: DO j = 1, pop_c 
+   n_tried = 0 
+   l_ok = .false. 
+   attempt: DO WHILE (.NOT.l_ok .AND. n_tried < MAX_CONSTR_TRIAL) 
+      n_tried = n_tried+1 
+      w = 0.00 
+      DO i=1,pop_dimx ! set default values
+         pop_para(i) = pop_t (i,j)
+      ENDDO
+      params: DO i = lb, ub
+         IF(pop_smin(i) < pop_xmin(i) .OR. pop_xmax(i) < pop_smax(i)) THEN
+            ier_num = -25
+            ier_typ = ER_APPL
+            ier_msg(1) = 'Conflicting values for boundaries'
+            ier_msg(2) = 'Check values for pop_xmin/max; pop_smin/smax'
+            write(ier_msg(3),'(a,i5)') 'Parameter ',i
+            RETURN
+         ENDIF
+         IF(.NOT. pop_refine(i)) THEN  ! parameter is fixed, check pop_xmin/max
+            IF(pop_xmin(i) /= pop_xmax(i) .OR. &
+               MINVAL(pop_x(i,:)) /= MAXVAL(pop_x(i,:))) THEN
+               ier_num = -28
                ier_typ = ER_APPL
-               ier_msg(1) = 'Conflicting values for boundaries'
-               ier_msg(2) = 'Check values for pop_xmin/max; pop_smin/smax'
-               write(ier_msg(3),'(a,i5)') 'Parameter ',i
+               write(ier_msg(1),'(a,a,a)') 'Parameter: ',pop_name(i),' is fixed but'
+               ier_msg(2) = 'but limits pop_xmin/pop_xmax are not identical'
+               ier_msg(3) = 'or trial parameters are not identical'
                RETURN
             ENDIF
-            IF(.NOT. pop_refine(i)) THEN  ! parameter is fixed, check pop_xmin/max
-               IF(pop_xmin(i) /= pop_xmax(i) .OR. &
-                  MINVAL(pop_x(i,:)) /= MAXVAL(pop_x(i,:))) THEN
-                  ier_num = -28
-                  ier_typ = ER_APPL
-                  write(ier_msg(1),'(a,a,a)') 'Parameter: ',pop_name(i),' is fixed but'
-                  ier_msg(2) = 'but limits pop_xmin/pop_xmax are not identical'
-                  ier_msg(3) = 'or trial parameters are not identical'
-                  RETURN
-               ENDIF
-            ENDIF
-            IF (pop_type (i) .eq.POP_INTEGER) THEN 
-               pop_t (i, j) = nint (pop_smin (i) + ran1 (idum) * (pop_smax (i) - pop_smin (i) ) )
-            ELSE 
-               pop_t (i, j) = pop_smin (i) + ran1 (idum) * (pop_smax (i) - pop_smin (i) )
-            ENDIF 
-            pop_para (i) = pop_t (i, j) 
-         ENDDO  params
-         l_ok = .true. 
-         DO l = 1, constr_number 
-            line = ' ' 
-            line = '('//constr_line (l) (1:constr_length (l) ) //')' 
-            length = constr_length (l) + 2 
-            l_ok = l_ok.and.if_test (line, length) 
-         ENDDO
-      ENDDO  attempt
-      IF (.not.l_ok) then 
-         ier_num = - 8 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-   ENDDO children
-!                                                                 
-   DO j = 1, pop_c 
-      DO i = lb,ub 
-         IF( pop_gen == 0 ) THEN
-            pop_x(i, j) = pop_t(i, j) 
-            child(i, j) = pop_t(i,j)
          ENDIF
-      ENDDO 
-      CALL write_trial (j) 
-   ENDDO 
+         IF (pop_type (i) == POP_INTEGER) THEN 
+            pop_t (i, j) = nint (pop_smin (i) + ran1 (idum) * (pop_smax (i) - pop_smin (i) ) )
+         ELSE 
+            pop_t (i, j) = pop_smin (i) + ran1 (idum) * (pop_smax (i) - pop_smin (i) )
+         ENDIF 
+         pop_para (i) = pop_t (i, j) 
 !
+         loop_par: DO k=1,var_num
+            IF(var_name(k)==pop_name(i)) THEN
+               var_val(k) = pop_para(i)
+               EXIT loop_par
+            ENDIF
+         ENDDO loop_par
+      ENDDO  params
+      l_ok = .true. 
+      DO l = 1, constr_number 
+         line = ' ' 
+         line = '('//constr_line (l) (1:constr_length (l) ) //')' 
+         length = constr_length (l) + 2 
+         l_ok = l_ok.AND.if_test (line, length) 
+      ENDDO
+   ENDDO  attempt
+   IF (.NOT.l_ok) THEN 
+      ier_num = - 8 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+ENDDO children
+!                                                                 
+DO j = 1, pop_c 
    DO i = lb,ub 
-      pop_refine(i) = .true.
-      IF(pop_sig_ad(i) == 0.0) THEN
-         pop_sigma (i) = (pop_smax(i)-pop_smin(i))*0.2
-         pop_sig_ad(i) = 0.2
-      ELSE
-         pop_sigma (i) = (pop_smax(i)-pop_smin(i))*pop_sig_ad(i)
+      IF( pop_gen == 0 ) THEN
+         pop_x(i, j) = pop_t(i, j) 
+         child(i, j) = pop_t(i,j)
       ENDIF
-   ENDDO
+   ENDDO 
+   CALL write_trial (j) 
+ENDDO 
+!
+DO i = lb,ub 
+   pop_refine(i) = .true.
+   IF(pop_sig_ad(i) == 0.0) THEN
+      pop_sigma (i) = (pop_smax(i)-pop_smin(i))*0.2
+      pop_sig_ad(i) = 0.2
+   ELSE
+      pop_sigma (i) = (pop_smax(i)-pop_smin(i))*pop_sig_ad(i)
+   ENDIF
+ENDDO
 !
 !  Create file with parameter names
 !
-   length = len_str(parent_results)
-   fname  = parent_results(1:length) // '.name'
-   CALL oeffne (iwr, fname, stat)
-   IF (ier_num.ne.0) return
-   WRITE(IWR, 2250) 'Member'
-   WRITE(IWR, 2250) 'Rvalue'
-   DO i = 1, pop_dimx
-      WRITE(IWR, 2250) pop_name(i)(1:len_str(pop_name(i)))
-   ENDDO
-   CLOSE (IWR)
+length = len_str(parent_results)
+fname  = parent_results(1:length) // '.name'
+CALL oeffne (iwr, fname, stat)
+IF (ier_num /= 0) RETURN
+WRITE(IWR, '(a)') 'Member'
+WRITE(IWR, '(a)') 'Rvalue'
+DO i = 1, pop_dimx
+   WRITE(IWR, '(a)') pop_name(i)(1:len_str(pop_name(i)))
+ENDDO
+CLOSE (IWR)
 !
-    2250 FORMAT (a) 
 !
-   END SUBROUTINE init_x
+END SUBROUTINE init_x
 !*****7**************************************************************** 
    SUBROUTINE do_fix ( lb, value )
 !
