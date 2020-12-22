@@ -1043,6 +1043,19 @@
    This lets you step back to an earlier refinement status.
    Keep in mind that the later cycles are irrevocably lost.
    If in doubt make a backup first.
+2  show
+!p show population
+!p show parameter
+!p show config
+
+   population
+   Shows information on the current population.
+
+   parameter 
+   Lists all parameter names their limits and current range.
+
+   config
+   Current maximum values, these are overwritten dynamically.
 2  summary
 !p summary <filename>
 
