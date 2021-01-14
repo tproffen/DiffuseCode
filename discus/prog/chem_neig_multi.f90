@@ -6,7 +6,8 @@ CONTAINS
 !
 !*****7*****************************************************************
 !
-SUBROUTINE chem_neighbour_multi(jatom, ic, iatom, patom, natom, ncent, maxw, MMC_MAX_CENT)
+SUBROUTINE chem_neighbour_multi(jatom, ic, iatom, patom, tatom, natom, &
+                                ncent, maxw, MMC_MAX_CENT)
 !+                                                                      
 !     Determine neighbours from given atom index 'jatom'.               
 !-                                                                      
@@ -33,12 +34,13 @@ IMPLICIT none
 INTEGER, INTENT(IN)      ::  MAXW    ! Maximum array size
 INTEGER, INTENT(IN)      ::  MMC_MAX_CENT    ! Maximum array size
 !                                                                       
-      INTEGER, INTENT(IN)      ::  jatom   ! Central atom no, get neighbours around jatom
-      INTEGER, INTENT(IN)      ::  ic      ! Use correlation definition no. ic
-      INTEGER, DIMENSION(0:maxw, MMC_MAX_CENT), INTENT(OUT) :: iatom ! indices of neighbs
-      INTEGER, DIMENSION(MMC_MAX_CENT)        , INTENT(OUT) :: natom ! no of neigh
-      INTEGER                                  , INTENT(OUT) :: ncent ! no of central atoms
-      REAL   , DIMENSION(3, 0:maxw, MMC_MAX_CENT), INTENT(OUT) :: patom ! Coordinates
+INTEGER, INTENT(IN)      ::  jatom   ! Central atom no, get neighbours around jatom
+INTEGER, INTENT(IN)      ::  ic      ! Use correlation definition no. ic
+INTEGER, DIMENSION(0:maxw, MMC_MAX_CENT)   , INTENT(OUT) :: iatom ! indices of neighbs
+REAL   , DIMENSION(3, 0:maxw, MMC_MAX_CENT), INTENT(OUT) :: patom ! Coordinates
+LOGICAL, DIMENSION(0:maxw, MMC_MAX_CENT)   , INTENT(OUT) :: tatom ! indices of neighbs
+INTEGER, DIMENSION(MMC_MAX_CENT)           , INTENT(OUT) :: natom ! no of neigh
+INTEGER                                    , INTENT(OUT) :: ncent ! no of central atoms
 !
       REAL dist (MMC_MAX_CENT) 
       REAL(KIND=PREC_DP) :: werte (MAX_ATOM_ENV) 
@@ -61,13 +63,14 @@ REAL(KIND=PREC_DP) :: dummy(1)
 !     REAL do_bang 
 !     REAL do_blen 
 !                                                                       
-      DO i = 1, MMC_MAX_CENT 
-      natom (i) = 0 
-      ENDDO 
-      dummy = - 1 
-      ncent = 1 
+DO i = 1, MMC_MAX_CENT 
+   natom(i) = 0 
+ENDDO 
+dummy = - 1 
+ncent = 1 
 !                                                                       
-      ldbg = .false. 
+ldbg = .false. 
+tatom(0, ncent) = .TRUE.
 !                                                                       
 !------ ------------------------------------------------------          
 !------ Mode distance                                                   
@@ -98,6 +101,7 @@ REAL(KIND=PREC_DP) :: dummy(1)
                   natom (ncent) = natom (ncent) + 1 
                   IF (natom (ncent) .le.maxw) then 
                      iatom (natom (ncent), ncent) = atom_env (j) 
+                     tatom (natom (ncent), ncent) = .TRUE.
                      patom (1, natom (ncent), ncent) = atom_pos (1, j) 
                      patom (2, natom (ncent), ncent) = atom_pos (2, j) 
                      patom (3, natom (ncent), ncent) = atom_pos (3, j) 
@@ -115,6 +119,7 @@ REAL(KIND=PREC_DP) :: dummy(1)
                natom (ncent) = natom (ncent) + 1 
                IF (natom (ncent) .le.maxw) then 
                   iatom (natom (ncent), ncent) = atom_env (j) 
+                  tatom (natom (ncent), ncent) = .TRUE.
                   patom (1, natom (ncent), ncent) = atom_pos (1, j) 
                   patom (2, natom (ncent), ncent) = atom_pos (2, j) 
                   patom (3, natom (ncent), ncent) = atom_pos (3, j) 
@@ -203,12 +208,14 @@ REAL(KIND=PREC_DP) :: dummy(1)
                         ENDDO 
                         DO l = natom (ncent) - 1, ii, - 1 
                         iatom (l + 1, ncent) = iatom (l, ncent) 
+                        tatom (l + 1, ncent) = .TRUE.
                         patom (1, l + 1, ncent) = patom (1, l, ncent) 
                         patom (2, l + 1, ncent) = patom (2, l, ncent) 
                         patom (3, l + 1, ncent) = patom (3, l, ncent) 
                         dist (l + 1) = dist (l) 
                         ENDDO 
                         iatom (ii, ncent) = atom_env (j) 
+                        tatom (ii, ncent) = .TRUE.
                         patom (1, ii, ncent) = atom_pos (1, j) 
                         patom (2, ii, ncent) = atom_pos (2, j) 
                         patom (3, ii, ncent) = atom_pos (3, j) 
@@ -233,12 +240,14 @@ REAL(KIND=PREC_DP) :: dummy(1)
                      ENDDO 
                      DO l = natom (ncent) - 1, ii, - 1 
                      iatom (l + 1, ncent) = iatom (l, ncent) 
+                     tatom (l + 1, ncent) = .TRUE.
                      patom (1, l + 1, ncent) = patom (1, l, ncent) 
                      patom (2, l + 1, ncent) = patom (2, l, ncent) 
                      patom (3, l + 1, ncent) = patom (3, l, ncent) 
                      dist (l + 1) = dist (l) 
                      ENDDO 
                      iatom (ii, ncent) = atom_env (j) 
+                     tatom (ii, ncent) = .TRUE.
                      patom (1, ii, ncent) = atom_pos (1, j) 
                      patom (2, ii, ncent) = atom_pos (2, j) 
                      patom (3, ii, ncent) = atom_pos (3, j) 
@@ -284,8 +293,10 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
    natom (  ncent) = 0 
    iatom (:,ncent) = 0 
    CALL indextocell (jatom, jcell, jsite) 
+!write(*,*) ' FIND VECTORS AT ', jatom, 'CELL ', jcell, 'SITE ', jsite, ' MAXW, MAXCENT ',MAXW, MMC_MAX_CENT
    DO i = 1, chem_nvec(ic) 
       iv = chem_use_vec(i, ic) 
+!write(*,*) ' Vectors         ', chem_cvec(1:2, iv), jsite == chem_cvec(1, iv) , jsite == chem_cvec(2, iv), natom(ncent)
       IF(jsite == chem_cvec(1, iv) ) THEN     ! Atom jatom is at vector start == central
          iatom(0, ncent) = jatom 
          patom(1, 0, ncent) = cr_pos(1, jatom) 
@@ -301,6 +312,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
             CALL celltoindex(icell, isite, katom) 
             natom(ncent) = natom(ncent) + 1 
             iatom(natom (ncent), ncent) = katom 
+            tatom(natom (ncent), ncent) = .TRUE.         ! This is a neighbour to jatom
             patom(1, natom(ncent), ncent) = cr_pos(1, katom) + offset(1)
             patom(2, natom(ncent), ncent) = cr_pos(2, katom) + offset(2)
             patom(3, natom(ncent), ncent) = cr_pos(3, katom) + offset(3)
@@ -309,28 +321,40 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
          icell(1) = jcell(1) - chem_cvec(3, iv) 
          icell(2) = jcell(2) - chem_cvec(4, iv) 
          icell(3) = jcell(3) - chem_cvec(5, iv) 
+         lok = .false. 
          CALL check_bound(icell, offset, chem_period, lok) 
          IF(lok) THEN 
             natom (ncent) = natom (ncent) + 1 
 !
-            iatom(natom(ncent), ncent) = jatom 
-            patom(1, natom(ncent), ncent) = cr_pos(1, jatom)
-            patom(2, natom(ncent), ncent) = cr_pos(2, jatom)
-            patom(3, natom(ncent), ncent) = cr_pos(3, jatom)
+            iatom(0, ncent) = jatom 
+            patom(1, 0           , ncent) = cr_pos(1, jatom)
+            patom(2, 0           , ncent) = cr_pos(2, jatom)
+            patom(3, 0           , ncent) = cr_pos(3, jatom)
+!!          patom(1, natom(ncent), ncent) = cr_pos(1, jatom)
+!!          patom(2, natom(ncent), ncent) = cr_pos(2, jatom)
+!!          patom(3, natom(ncent), ncent) = cr_pos(3, jatom)
 !
             isite = chem_cvec (1, iv) 
             CALL celltoindex (icell, isite, katom) 
-            iatom(0, ncent) = katom
-            patom(1, 0, ncent) = cr_pos(1, katom) + offset(1)
-            patom(2, 0, ncent) = cr_pos(2, katom) + offset(2)
-            patom(3, 0, ncent) = cr_pos(3, katom) + offset(3)
+            iatom(natom (ncent), ncent) = katom 
+            tatom(natom (ncent), ncent) = .FALSE.         ! jatom is the neighbor
+!!            patom(1, 0, ncent) = cr_pos(1, katom) + offset(1)
+!!            patom(2, 0, ncent) = cr_pos(2, katom) + offset(2)
+!!            patom(3, 0, ncent) = cr_pos(3, katom) + offset(3)
 !              iatom (natom (ncent), ncent) = katom 
-!              patom(1, natom(ncent), ncent) = cr_pos(1, katom) + offset(1)
-!              patom(2, natom(ncent), ncent) = cr_pos(2, katom) + offset(2)
-!              patom(3, natom(ncent), ncent) = cr_pos(3, katom) + offset(3)
+            patom(1, natom(ncent), ncent) = cr_pos(1, katom) + offset(1)
+            patom(2, natom(ncent), ncent) = cr_pos(2, katom) + offset(2)
+            patom(3, natom(ncent), ncent) = cr_pos(3, katom) + offset(3)
          ENDIF 
       ENDIF 
    ENDDO 
+!write(*,*) ' FOUND NEIGHBORS ', natom(ncent)
+!do i=1, natom(ncent)
+!write(*,'(2(a2,i8,i2, 3f6.1),1x,l1, a,10 i8)') 'c', jatom, cr_iscat(jatom), patom(1:3, 0, ncent),  &
+!                                      'n', katom, cr_iscat(katom), patom(1:3, i, ncent), &
+!                                       tatom(i, ncent), &
+! ' : ', natom(ncent), iatom(0:natom(ncent), ncent)
+!enddo
    IF (natom(ncent) ==  0) THEN 
       ncent = ncent - 1 
       ncent = 0 
@@ -362,6 +386,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
 !   STOP
 !endif
                   iatom(  k+j,ncent) = c_list(j)
+                  tatom(  k+j,ncent) = .TRUE.
                   patom(1,k+j,ncent) = cr_pos(1,c_list(j)) + REAL(c_offs(1,j))
                   patom(2,k+j,ncent) = cr_pos(2,c_list(j)) + REAL(c_offs(2,j))
                   patom(3,k+j,ncent) = cr_pos(3,c_list(j)) + REAL(c_offs(3,j))
@@ -403,6 +428,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
                CALL celltoindex (icell, isite, katom) 
                natom (ncent) = natom (ncent) + 1 
                iatom (natom (ncent), ncent) = katom 
+               tatom (natom (ncent), ncent) = .TRUE.
                patom (1, natom (ncent), ncent) = cr_pos (1, katom)      &
                + offset (1)                                             
                patom (2, natom (ncent), ncent) = cr_pos (2, katom)      &
@@ -419,6 +445,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
                CALL celltoindex (icell, isite, katom) 
                natom (ncent) = natom (ncent) + 1 
                iatom (natom (ncent), ncent) = katom 
+               tatom (natom (ncent), ncent) = .TRUE.
                patom (1, natom (ncent), ncent) = cr_pos (1, katom)      &
                + offset (1)                                             
                patom (2, natom (ncent), ncent) = cr_pos (2, katom)      &
@@ -444,27 +471,23 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
                patom (3, 0, ncent) = cr_pos (3, katom) + offset (3) 
                natom (ncent) = natom (ncent) + 1 
                iatom (natom (ncent), ncent) = jatom 
+               tatom (natom (ncent), ncent) = .TRUE.
                patom (1, natom (ncent), ncent) = cr_pos (1, jatom) 
                patom (2, natom (ncent), ncent) = cr_pos (2, jatom) 
                patom (3, natom (ncent), ncent) = cr_pos (3, jatom) 
-               icell (1) = jcell (1) - chem_cwin (3, iv) + chem_cwin (7,&
-               iv)                                                      
-               icell (2) = jcell (2) - chem_cwin (4, iv) + chem_cwin (8,&
-               iv)                                                      
-               icell (3) = jcell (3) - chem_cwin (5, iv) + chem_cwin (9,&
-               iv)                                                      
+               icell(1) = jcell(1) - chem_cwin(3, iv) + chem_cwin(7, iv)
+               icell(2) = jcell(2) - chem_cwin(4, iv) + chem_cwin(8, iv)
+               icell(3) = jcell(3) - chem_cwin(5, iv) + chem_cwin(9, iv)
                CALL check_bound (icell, offset, chem_period, lok) 
                IF (lok) then 
                   isite = chem_cwin (6, iv) 
                   CALL celltoindex (icell, isite, katom) 
                   natom (ncent) = natom (ncent) + 1 
                   iatom (natom (ncent), ncent) = katom 
-                  patom (1, natom (ncent), ncent) = cr_pos (1, katom)   &
-                  + offset (1)                                          
-                  patom (2, natom (ncent), ncent) = cr_pos (2, katom)   &
-                  + offset (2)                                          
-                  patom (3, natom (ncent), ncent) = cr_pos (3, katom)   &
-                  + offset (3)                                          
+                  tatom (natom (ncent), ncent) = .TRUE.
+                  patom (1, natom (ncent), ncent) = cr_pos(1, katom) + offset(1)
+                  patom (2, natom (ncent), ncent) = cr_pos(2, katom) + offset(2)
+                  patom (3, natom (ncent), ncent) = cr_pos(3, katom) + offset(3)
                ENDIF 
             ELSE 
 !     --------The central atom is outside the (periodic) boundary       
@@ -497,15 +520,14 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
                   CALL celltoindex (icell, isite, katom) 
                   natom (ncent) = natom (ncent) + 1 
                   iatom (natom (ncent), ncent) = katom 
-                  patom (1, natom (ncent), ncent) = cr_pos (1, katom)   &
-                  + offset (1)                                          
-                  patom (2, natom (ncent), ncent) = cr_pos (2, katom)   &
-                  + offset (2)                                          
-                  patom (3, natom (ncent), ncent) = cr_pos (3, katom)   &
-                  + offset (3)                                          
+                  tatom (natom (ncent), ncent) = .TRUE. 
+                  patom (1, natom (ncent), ncent) = cr_pos(1, katom) + offset(1)
+                  patom (2, natom (ncent), ncent) = cr_pos(2, katom) + offset(2)
+                  patom (3, natom (ncent), ncent) = cr_pos(3, katom) + offset(3)
                ENDIF 
                natom (ncent) = natom (ncent) + 1 
                iatom (natom (ncent), ncent) = jatom 
+               tatom (natom (ncent), ncent) = .TRUE.
                patom (1, natom (ncent), ncent) = cr_pos (1, jatom) 
                patom (2, natom (ncent), ncent) = cr_pos (2, jatom) 
                patom (3, natom (ncent), ncent) = cr_pos (3, jatom) 
@@ -558,6 +580,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
                IF (natom (ncent) .lt.maxw) then 
                   natom (ncent) = natom (ncent) + 1 
                   iatom (natom (ncent), ncent) = atom_env (j) 
+                  tatom (natom (ncent), ncent) = .TRUE.
                   patom (1, natom (ncent), ncent) = atom_pos (1, j) 
                   patom (2, natom (ncent), ncent) = atom_pos (2, j) 
                   patom (3, natom (ncent), ncent) = atom_pos (3, j) 

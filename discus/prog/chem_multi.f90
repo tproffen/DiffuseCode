@@ -42,6 +42,7 @@ INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
 !                                                                       
       CHARACTER(9) at_name_i, at_name_j 
       INTEGER atom (0:MAX_ATOM_ENV_L, MMC_MAX_CENT) 
+      LOGICAL  :: tatom (0:MAX_ATOM_ENV_L, MMC_MAX_CENT) 
       INTEGER natom (MMC_MAX_CENT) 
       INTEGER iianz, i, j, k, is, js, ic 
       INTEGER ja, je 
@@ -108,7 +109,7 @@ INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
 !                                                                       
          DO i = 1, cr_natoms 
          IF (atom_allowed (i, werte, ianz, maxw) ) then 
-            CALL chem_neighbour_multi (i, ic, atom, patom, natom, ncent,&
+            CALL chem_neighbour_multi (i, ic, atom, patom, tatom, natom, ncent,&
             MAX_ATOM_ENV_L)                                                    
             DO icent = 1, ncent 
             IF (natom (icent) .gt.0) then 
@@ -239,6 +240,7 @@ INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
       CHARACTER(9) at_name_i, at_name_j 
       CHARACTER(9) name_1, name_2, name_3 
       INTEGER atom (0:MAX_ATOM_ENV_L, MMC_MAX_CENT) 
+LOGICAL :: tatom (0:MAX_ATOM_ENV_L, MMC_MAX_CENT) 
       INTEGER natom (MMC_MAX_CENT) 
       INTEGER iianz, i, j, k, is, js, ic 
       INTEGER jj 
@@ -307,7 +309,7 @@ INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
 !                                                                       
          DO i = 1, cr_natoms 
          IF (atom_allowed (i, werte, iianz, maxw) ) then 
-            CALL chem_neighbour_multi (i, ic, atom, patom, natom, ncent,&
+            CALL chem_neighbour_multi (i, ic, atom, patom, tatom, natom, ncent,&
             MAX_ATOM_ENV_L)                                                    
             DO icent = 1, ncent 
             IF (natom (icent) .gt.1) then 
