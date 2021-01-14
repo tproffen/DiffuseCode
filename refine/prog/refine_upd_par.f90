@@ -51,15 +51,17 @@ ENDIF
 !                                                                       
 lcomm = length_com (string, ikl)
 !                                                                       
-IF (lcomm.eq.5) THEN
+IF (lcomm.eq.3) THEN
 !
    IF(ikl > lcomm + 1) zeile(1:ikl - lcomm - 1) = string(1:ikl - lcomm - 1)
 !
-   IF(string(ikl-5:ikl - 1) .eq.'covar') THEN
-      IF(ianz==2) THEN
-         IF(1<=kpara .AND.kpara<=refine_par_n.AND. &
-            1<=kpara2.AND.kpara2<=refine_par_n  ) THEN
-            WRITE(zeile(ikl-5:ikl+PREC_WIDTH-2), PREC_F_REAL) refine_cl(kpara,kpara2)
+   IF(string(ikl-3:ikl - 1) .eq.'par') THEN
+      IF(ianz==1) THEN
+         IF(1<=kpara .AND.kpara<=refine_par_n ) THEN
+            WRITE(zeile(ikl-3:ikl+PREC_WIDTH-2), PREC_F_REAL) refine_p(kpara)
+            zeile(ikl+PREC_MANTIS-lcomm:ikl+PREC_MANTIS-lcomm) = 'e'
+         ELSEIF(1<=ABS(kpara) .AND.ABS(kpara)<=refine_par_n ) THEN
+            WRITE(zeile(ikl-3:ikl+PREC_WIDTH-2), PREC_F_REAL) refine_f(ABS(kpara))
             zeile(ikl+PREC_MANTIS-lcomm:ikl+PREC_MANTIS-lcomm) = 'e'
          ELSE
             ier_num = -8
@@ -68,6 +70,48 @@ IF (lcomm.eq.5) THEN
       ELSE
          ier_num = -13
          ier_typ = ER_FORT
+      ENDIF
+   ELSEIF(string(ikl-3:ikl - 1) .eq.'sig') THEN
+      IF(ianz==1) THEN
+         IF(1<=kpara .AND.kpara<=refine_par_n ) THEN
+            WRITE(zeile(ikl-3:ikl+PREC_WIDTH-2), PREC_F_REAL) refine_dp(kpara)
+            zeile(ikl+PREC_MANTIS-lcomm:ikl+PREC_MANTIS-lcomm) = 'e'
+         ELSE
+            ier_num = -8
+            ier_typ = ER_FORT
+         ENDIF
+      ELSE
+         ier_num = -13
+         ier_typ = ER_FORT
+      ENDIF
+   ELSE
+      ier_num = -2
+      ier_typ = ER_FORT
+      RETURN
+   ENDIF
+!
+ELSEIF (lcomm.eq.5) THEN
+!
+   IF(ikl > lcomm + 1) zeile(1:ikl - lcomm - 1) = string(1:ikl - lcomm - 1)
+!
+   IF(string(ikl-5:ikl - 1) .eq.'covar') THEN
+      IF(ALLOCATED(refine_cl)) THEN
+         IF(ianz==2) THEN
+            IF(1<=kpara .AND.kpara<=refine_par_n.AND. &
+               1<=kpara2.AND.kpara2<=refine_par_n  ) THEN
+               WRITE(zeile(ikl-5:ikl+PREC_WIDTH-2), PREC_F_REAL) refine_cl(kpara,kpara2)
+               zeile(ikl+PREC_MANTIS-lcomm:ikl+PREC_MANTIS-lcomm) = 'e'
+            ELSE
+               ier_num = -8
+               ier_typ = ER_FORT
+            ENDIF
+         ELSE
+            ier_num = -13
+            ier_typ = ER_FORT
+         ENDIF
+      ELSE
+         ier_num = -12
+         ier_typ = ER_APPL
       ENDIF
    ELSE
       ier_num = -2
@@ -124,16 +168,21 @@ SUBROUTINE refine_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 !     Currently empty, needed for formal reasons.
 !+                                                                      
 !
+USE refine_params_mod
+!
+USE ber_params_mod
+USE build_name_mod
 USE calc_expr_mod
 USE errlist_mod 
 USE ersetz_mod
+USE get_params_mod
 USE lib_length
 USE param_mod 
 USE precision_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
-INTEGER, PARAMETER   :: maxw = 9
+INTEGER, PARAMETER   :: MAXW = 9
 !                                                                       
 CHARACTER (LEN= * ), INTENT(INOUT) :: string
 CHARACTER (LEN= * ), INTENT(INOUT) :: line 
@@ -144,7 +193,12 @@ INTEGER            , INTENT(INOUT) :: lp
 REAL(KIND=PREC_DP) , INTENT(INOUT) :: ww
 !
 INTEGER              :: i, lcomm
-REAL                 :: werte (maxw)
+INTEGER              :: ianz, length
+LOGICAL              :: lstring
+LOGICAL              :: lfound
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
+INTEGER                   , DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
 !                                                                       
 !                                                                       
 lcomm = length_com (string(1:lp), ikl) 
@@ -154,17 +208,17 @@ DO i = 1, maxw
    werte (i) = 0.0 
 ENDDO 
 !                                                                 
-IF (lcomm.eq.0) then 
+IF (lcomm.eq.0) THEN 
    CALL ersetz2 (string, ikl, iklz, ww, 0, laenge) 
 ELSE 
    ier_num = - 3 
    ier_typ = ER_FORT 
 ENDIF 
 !                                                                 
-IF (ier_num.ne.0) then 
-   WRITE ( *, * ) string 
-   WRITE ( *, * ) line 
-ENDIF 
+!IF (ier_num.ne.0) THEN 
+!   WRITE ( *, * ) string (1:len_trim(string))
+!   WRITE ( *, * ) line   (1:len_trim(line))
+!ENDIF 
 !                                                                       
 END SUBROUTINE refine_calc_intr_spec                 
 !

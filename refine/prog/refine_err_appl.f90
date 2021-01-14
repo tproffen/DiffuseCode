@@ -10,12 +10,14 @@ USE lib_errlist_func
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU=-11,IO=0)
+      PARAMETER    (IU=-13,IO=0)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
 !
       DATA ERROR ( IU:  0) /                                       &
+     &  'Unknown prameter name, check list of newpara',            & ! -13 ! refine
+     &  'COVAR not allocated, run a refinement first ',            & ! -12 ! refine
      &  'Parameter(s) outside range/constrain        ',            & ! -11 ! refine
      &  'FWHM parameter give negative FWHM           ',            & ! -10 ! refine
      &  'Calculation of derivatives failed           ',            & ! -9  ! refine

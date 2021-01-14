@@ -30,6 +30,8 @@ USE precision_mod
 USE prompt_mod
 USE take_param_mod
 !
+USE global_data_mod
+!
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(INOUT) :: line          ! Input command line
@@ -41,6 +43,7 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara    ! Paramet
 INTEGER            , DIMENSION(MAXW) :: lpara    ! length of each parameter strign
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte    ! Parameter values
 !
+INTEGER            , DIMENSION(4   ) :: dimen    ! Dimension of global array
 INTEGER                              :: i        ! Dummy loop parameter
 INTEGER                              :: ndata    ! number of data points
 INTEGER                              :: ianz     ! number of parameters
@@ -117,6 +120,14 @@ IF(linit) THEN
   refine_beta  = 0.0
 ENDIF
 !
+CALL gl_set_use(.TRUE.)          ! Turn usage of global data on
+CALL gl_set_npara(refine_par_n)  ! Define number of parameters
+dimen(1) = ref_dim(1)
+dimen(2) = ref_dim(2)
+dimen(3) = 1
+dimen(4) = refine_par_n
+CALL gl_alloc(dimen)             ! Turn usage of global data on
+!
 ! Call main refinement routine
 !
 CALL refine_mrq(linit, REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,     &
@@ -177,6 +188,8 @@ USE errlist_mod
 USE matrix_mod
 USE precision_mod
 !
+USE global_data_mod
+!
 IMPLICIT NONE
 !
 INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
@@ -216,7 +229,7 @@ REAL(KIND=PREC_DP), DIMENSION(3,3) :: imat          ! Inverse to xmat
 !
 REAL, DIMENSION(:,:,:), ALLOCATABLE :: refine_tttt     ! Calculated (ix, iy) for derivs
 !
-IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
+initial: IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
 !
    DO k=1, NPARA                      ! Update user defined parameter variables
       CALL refine_set_param(NPARA, par_names(k), k, p(k))
@@ -230,9 +243,12 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
 !
 !  Loop over all parameters to derive derivatives
 !
-   IF(LDERIV) THEN
+   if_deriv: IF(LDERIV) THEN
       DO k=1, NPARA
 !        ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), -p_nderiv(k)/2:p_nderiv(k)/2))
+         is_deriv: IF(gl_is_der(k)) THEN
+            CALL gl_get_data(k, data_dim(1), refine_derivs(1:data_dim(1), 1, k))
+         ELSE is_deriv
          ALLOCATE(refine_tttt(1:data_dim(1), 1:data_dim(2), -2:2))
          nder = 1                     ! First point is at P(k)
          dvec(:) = 0.0
@@ -482,10 +498,11 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
          ENDIF
          DEALLOCATE(refine_tttt)
 !
+         ENDIF is_deriv
       ENDDO
-   ENDIF
+   ENDIF if_deriv
 !
-ENDIF
+ENDIF initial
 !
 f = refine_calc(ix, iy)           ! Function value to be returned
 IF(LDERIV) THEN                   ! Derivatives are needed
@@ -516,6 +533,8 @@ USE precision_mod
 USE prompt_mod
 USE set_sub_generic_mod
 USE sup_mod
+!
+USE global_data_mod
 !
 IMPLICIT NONE
 !
@@ -605,7 +624,14 @@ lmacro_close = .TRUE.       ! Do close macros in do-loops
 !
 !
 IF(ier_number == 0 .AND. IER_NUM == 0) THEN
-   CALL refine_load_calc(dimen, array)
+   IF(gl_is_der(0)) THEN       ! Calculated data were set into globalk array
+!     dimen_gl(1:2) = dimen(1:2)
+!     dimen_gl(3)   = 1
+!     dimen_gl(4)   = NPARA
+      CALL gl_get_data(0, dimen(1), array(1:dimen(1), 1))
+   ELSE
+      CALL refine_load_calc(dimen, array)
+   ENDIF
    IF(ier_num/=0) RETURN
 ENDIF
 !

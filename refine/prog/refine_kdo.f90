@@ -206,6 +206,11 @@ ELSE  is_math
       IF(ier_num == 0) THEN
          CALL refine_do_show (zeile, lcomm) 
       ENDIF
+!
+!-------- Copy dimension to global 'togloal'
+!
+!  ELSEIF(str_comp(befehl, 'toglobal', 4, lbef, 8)) THEN
+!     CALL refine_toglobal(zeile)
 !                                                                 
 !                                                                       
 !       Branch to DISCUS/ KUPLOT (standalone call system, suite do branch)

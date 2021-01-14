@@ -175,10 +175,16 @@ lstat = .TRUE.
 CALL alloc_arr ( refine_params  ,1,n_params, all_status, ' ', size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
+CALL alloc_arr ( refine_fixed   ,1,n_params, all_status, ' ', size_of)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!!
 CALL alloc_arr ( refine_range   ,1,n_params, 1, 2, all_status, 1.00000, size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
 CALL alloc_arr ( refine_p       ,1,n_params, all_status, 1.00000, size_of)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!!
+CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000, size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
 CALL alloc_arr ( refine_dp      ,1,n_params, all_status, 0.00000, size_of)
@@ -188,6 +194,9 @@ CALL alloc_arr ( refine_shift   ,1,n_params, all_status, 0.00500, size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
 CALL alloc_arr ( refine_nderiv  ,1,n_params, all_status, 2      , size_of)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!!
+CALL alloc_arr ( refine_kderiv  ,1,n_params, all_status, 0      , size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
 IF( lstat ) THEN                        ! Success
