@@ -203,6 +203,7 @@ SAVE
       CHARACTER(LEN=1)      dummy_spacer
       REAL w(maxarray)
       REAL p(maxpara),pinc(maxpara),dp(maxpara)
+      REAL pra(maxpara,2)                        ! Fit range
       REAL p_merk(maxpara),pinc_merk(maxpara)
       REAL cl(maxpara,maxpara)
       REAL urf

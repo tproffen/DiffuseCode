@@ -22,6 +22,7 @@ SUBROUTINE do_fit (zei, lp)
 !                                                                       
 !     Main fitting menu                                                 
 !                                                                       
+!USE kuplot_theory_macro_mod
       USE ber_params_mod
       USE calc_expr_mod
       USE doact_mod 
@@ -1291,6 +1292,7 @@ IF(ier_num/=0) RETURN
 !*****7*****************************************************************
       SUBROUTINE kupl_theory (xx, f, df, iwert) 
 !                                                                       
+!USE kuplot_theory_macro_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -1373,6 +1375,7 @@ USE precision_mod
 !*****7*****************************************************************
       SUBROUTINE setup_user_macro (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
+!USE kuplot_theory_macro_mod
       USE  berechne_mod
       USE errlist_mod 
       USE kuplot_config 
@@ -3553,6 +3556,21 @@ END MODULE kuplot_fit_support
 !
 !*******************************************************************************
 !
+MODULE kuplot_k12
+!-
+!  Data for Kalpha1, 2 Axis
+!+
+REAL               :: lambda1
+REAL               :: lambda2
+REAL               :: itwo           ! Ratio lam(Ka1)/lam(Ka2)
+LOGICAL            :: axis_tth           ! TRUE==TTH; FALSE=Q
+!
+!*******************************************************************************
+!
+END MODULE kuplot_k12
+!
+!*******************************************************************************
+!
 MODULE kuplot_fit6_set_theory
 !
 ! MRQCOF uses a procedure pointer to call the theory function
@@ -3585,7 +3603,7 @@ INTERFACE
    REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
    REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma   ! Data sigmas
    REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
-   REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+   REAL            , DIMENSION(data_dim(2))             , INTENT(IN)  :: data_y       ! Data coordinates y
    REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
    INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
    REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
@@ -3622,6 +3640,7 @@ SUBROUTINE do_f66(zei, lp)
 !                                                                       
 !     Main fitting menu                                                 
 !                                                                       
+!USE kuplot_theory_macro_mod
 USE ber_params_mod
 USE calc_expr_mod
 USE doact_mod 
@@ -4113,7 +4132,9 @@ USE precision_mod
             CALL ber_params (iianz, cpara, lpara, werte, maxw) 
          ELSEIF (ianz.gt.1) THEN 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            IF(ftyp(1:2) /= 'DP') THEN
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            ENDIF
          ELSE 
             ianz = 0 
          ENDIF 
@@ -4192,6 +4213,16 @@ USE precision_mod
             ier_num = - 25 
             ier_typ = ER_APPL 
          ENDIF 
+!                                                                       
+!------ Double Pseudo-Voigt (only 2D)                                          
+!                                                                       
+ELSEIF(ftyp(1:2) ==  'DP') THEN 
+   IF (.not.lni (ikfit) ) THEN 
+      CALL setup_psvgt2(ianz, cpara, lpara, werte, maxw) 
+   ELSE 
+      ier_num = -25 
+      ier_typ = ER_APPL 
+   ENDIF 
 !                                                                       
 !------ User defined function (xy and xyz data sets)                    
 !                                                                       
@@ -4406,77 +4437,182 @@ USE precision_mod
       ENDIF 
 !                                                                       
       END SUBROUTINE do_fit_wichtung                
+!
 !*****7*****************************************************************
-      SUBROUTINE do_fit_par (zeile, lp) 
+!
+SUBROUTINE do_fit_par (zeile, lp) 
 !+                                                                      
 !     aendern der fit-parameter                                         
 !-                                                                      
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE prompt_mod 
-      USE param_mod
-      USE kuplot_config 
-      USE kuplot_mod 
-USE precision_mod
-      USE string_convert_mod
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 3) 
-!                                                                       
-      CHARACTER ( * ) zeile 
-      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
-      REAL(KIND=PREC_DP) werte (maxw) 
-      INTEGER lpara (maxw), lp 
-      INTEGER ianz, ip 
-!                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) RETURN 
-!                                                                       
-      IF (ianz.eq.0) THEN 
-         CALL do_fit_info (output_io, .false., .false., .true.) 
-!                                                                       
-      ELSEIF (ianz.eq.1) THEN 
-         CALL do_cap (cpara (1) ) 
-         IF (cpara (1) (1:2) .eq.'SA') THEN 
-            CALL do_fit_pmerk 
-         ELSEIF (cpara (1) (1:2) .eq.'LO') THEN 
-            CALL do_fit_prueck 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-         ENDIF 
-!                                                                       
-      ELSEIF (ianz.eq.2.or.ianz.eq.3) THEN 
-         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) RETURN 
-         ip = nint (werte (1) ) 
-         IF (ip.gt.0.and.ip.le.MAXPARA) THEN 
-            pinc (ip) = werte (2) 
-            IF (ianz.eq.3) p (ip) = werte (3) 
-            WRITE (output_io, 1000) ip, p (ip), pinc (ip) 
-         ELSE 
-            ier_num = - 26 
-            ier_typ = ER_APPL 
-         ENDIF 
-!                                                                       
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-      ENDIF 
 !
-      IF(ier_num == 0) THEN 
-         DO ip=1,MAXPARA
-            kupl_para(ip) = p(ip)
-         ENDDO
+!USE kuplot_fit_para
+USE kuplot_config 
+USE kuplot_mod 
+!
+USE blanks_mod
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
+USE prompt_mod 
+USE param_mod
+USE precision_mod
+USE string_convert_mod
+USE take_param_mod
+!                                                                       
+IMPLICIT none 
+!                                                                       
+INTEGER, PARAMETER :: MAXW = 4 
+INTEGER, PARAMETER :: MAXWW = 2           ! Two return values for range:[low,high]
+!                                                                       
+CHARACTER ( * ) zeile 
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
+REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
+INTEGER                   , DIMENSION(MAXW) :: lpara
+CHARACTER(LEN=PREC_STRING)                  :: ccpara
+REAL(KIND=PREC_DP)        , DIMENSION(MAXWW):: wwerte
+INTEGER                                     :: llpara
+INTEGER :: ianz, ip , lp, iianz
+!
+REAL                                 :: range_low    ! template for parameter
+REAL                                 :: range_high   ! ranges 
+LOGICAL, DIMENSION(2)                :: lrange       ! Range is provided
+INTEGER                              :: lcom
+!
+INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: O_RANGE   = 1
+CHARACTER(LEN=   7)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
+!
+DATA oname  / 'range'   /
+DATA loname /  5        /
+!
+opara  =  (/ '[1,-1]  ' /)   ! Always provide fresh default values
+lopara =  (/  6         /)
+owerte =  (/  1.0000000 /)
+!                                                                       
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) RETURN 
+!                                                                       
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF (ier_num.ne.0) RETURN 
+!
+range_low  = +1.             ! Default to unlimited range
+range_high = -1.
+lrange = .FALSE.
+IF(lpresent(O_RANGE)) THEN
+   ccpara = opara( O_RANGE)
+   llpara = lopara(O_RANGE)
+   CALL rem_bl(ccpara, llpara)
+   lcom   = INDEX(opara(O_RANGE)(2:llpara-1),',')
+   IF(lcom > 0 ) THEN        ! comma is present
+      IF(lcom==1) THEN       ! range:[,high]
+         lrange(1) = .FALSE.
+         lrange(2) = .TRUE.
+         ccpara = '[0.0' // ccpara(lcom+1:llpara)
+         llpara = llpara + 3
+      ELSEIF(lcom==llpara-2) THEN  ! range:[low,]
+         lrange(1) = .TRUE.
+         lrange(2) = .FALSE.
+         ccpara = ccpara(1:lcom+1) // '0.0]'
+         llpara = llpara + 3
+      ELSE
+         lrange(1) = .TRUE.
+         lrange(2) = .TRUE.
       ENDIF
+   ENDIF
+   CALL get_optional_multi(MAXWW, ccpara, llpara, wwerte, iianz)
+   IF(ier_num.ne.0) RETURN 
+   IF(lrange(1) .AND. lrange(2)) THEN
+      IF(wwerte(1) <= wwerte(2)) THEN
+         range_low  = wwerte(1)    ! Set user defined range
+         range_high = wwerte(2)
+      ELSE
+         ier_num = -6
+         ier_typ = ER_FORT
+         RETURN
+      ENDIF
+   ELSEIF(lrange(1) .AND. .NOT.lrange(2)) THEN
+      range_low  = wwerte(1)    ! Set user defined range
+      range_high =  HUGE(0.0)   ! Set +infinity
+   ELSEIF(.NOT.lrange(1) .AND. lrange(2)) THEN
+      range_low  = -HUGE(0.0)   ! Set -infinity
+      range_high = wwerte(2)    ! Set user defined range
+   ENDIF
+ENDIF
+IF (ianz.eq.0) THEN 
+   CALL do_fit_info (output_io, .false., .false., .true.) 
+!                                                                       
+ELSEIF (ianz.eq.1) THEN 
+   CALL do_cap (cpara (1) ) 
+   IF (cpara (1) (1:2) .eq.'SA') THEN 
+      CALL do_fit_pmerk 
+   ELSEIF (cpara (1) (1:2) .eq.'LO') THEN 
+      CALL do_fit_prueck 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
+!                                                                       
+ELSEIF (ianz.eq.2.or.ianz.eq.3) THEN 
+   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+   IF (ier_num.ne.0) RETURN 
+   ip = nint (werte (1) ) 
+   IF (ip.gt.0.and.ip.le.MAXPARA) THEN 
+      pinc (ip) = werte (2) 
+      IF (ianz.eq.3) p (ip) = werte (3) 
+!      kup_fit6_pp    (ip  ) = p(ip)                  ! Copy into kup_fit6 arrays
+!      kup_fit6_prange(ip,1) = range_low              ! Copy into kup_fit6 arrays
+!      kup_fit6_prange(ip,2) = range_high
+      pra(ip,1) = range_low
+      pra(ip,2) = range_high
+      IF(lrange(1) .AND. lrange(2)) THEN
+!        WRITE (output_io, 1100) ip, p (ip), pinc (ip) , kup_fit6_prange(ip,:)
+         WRITE (output_io, 1100) ip, p (ip), pinc (ip) , pra(ip,:)
+      ELSEIF(lrange(1) .AND. .NOT.lrange(2)) THEN
+!        WRITE (output_io, 1100) ip, p (ip), pinc (ip) , kup_fit6_prange(ip,:)
+         WRITE (output_io, 1110) ip, p (ip), pinc (ip) , pra(ip,1)
+         pra(ip,2) = HUGE(0.0)
+      ELSEIF(.NOT.lrange(1) .AND. lrange(2)) THEN
+!        WRITE (output_io, 1100) ip, p (ip), pinc (ip) , kup_fit6_prange(ip,:)
+         WRITE (output_io, 1120) ip, p (ip), pinc (ip) , pra(ip,2)
+         pra(ip,1) = -HUGE(0.0)
+      ELSE 
+         WRITE (output_io, 1000) ip, p (ip), pinc (ip) 
+      ENDIF 
+   ELSE 
+      ier_num = - 26 
+      ier_typ = ER_APPL 
+   ENDIF 
+!                                                                       
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
+!
+IF(ier_num == 0) THEN 
+   DO ip=1,MAXPARA
+      kupl_para(ip) = p(ip)
+   ENDDO
+ENDIF
 !                                                                       
  1000 FORMAT     (' ---------- > Setting parameter p(',i2,') = ',g13.6, &
      &                   '  pinc = ',f4.1)                              
-      END SUBROUTINE do_fit_par                     
+ 1100 FORMAT     (' ---------- > Setting parameter p(',i2,') = ',g13.6, &
+     &                   '  pinc = ',f4.1, ' range:[',g13.6,',',g13.6,']')                              
+ 1110 FORMAT     (' ---------- > Setting parameter p(',i2,') = ',g13.6, &
+     &                   '  pinc = ',f4.1, ' range:[',g13.6,',',' +infinity   ]')                              
+ 1120 FORMAT     (' ---------- > Setting parameter p(',i2,') = ',g13.6, &
+     &                   '  pinc = ',f4.1, ' range:[ -infinity   ,',g13.6,']')                              
+END SUBROUTINE do_fit_par                     
+!
 !*****7*****************************************************************
+!
 SUBROUTINE show_fit_para (idout) 
 !+                                                                      
 !     anzeigen der fit-parameter                                        
@@ -4773,6 +4909,8 @@ USE support_mod
             CALL show_lor (idout) 
          ELSEIF (ftyp (1:2) .eq.'PS') THEN 
             CALL show_psvgt (idout) 
+         ELSEIF (ftyp (1:2) .eq.'DP') THEN 
+            CALL show_psvgt2(idout) 
          ELSEIF (ftyp (1:2) .eq.'FX') THEN 
             CALL show_user (idout) 
          ELSEIF (ftyp (1:2) .eq.'MA') THEN 
@@ -4923,8 +5061,8 @@ DO i=1, NPARA                          ! Loop over all KUPLOT parameters
       par_value(ifree) = p(i)          ! Copy KUPLOT value
       WRITE(par_names(ifree),'(a,i2.2,a)') 'p[',i,']'
       par_ind(ifree)   = i             ! Set index
-      prange(ifree,1)  = 1.0
-      prange(ifree,2)  =-1.0
+      prange(ifree,1)  = pra(i,1)      ! Set range low
+      prange(ifree,2)  = pra(i,2)      ! Set range high
    ELSE                                ! Fixed parameter
       ifixed           = ifixed + 1
       pf(ifixed)       = p(i)          ! Copy KUPLOT value
@@ -4936,6 +5074,7 @@ ENDDO
 dpp(:)     = 0.0
 covar(:,:) = 0.0
 kupl_last  = iz-1
+write(*,*) ' CALLCING KUPLOT_MRQ '
 CALL kuplot_mrq(MAXP, nparams, ncycle, kupl_last, par_names, par_ind,           &
                 MAXF, nfixed, fixed, fixed_ind, pf, data_dim, data_data,        &
                 data_sigma, data_x, data_y, data_calc, kup_fit6_conv_dp_sig, kup_fit6_conv_dchi2, &
@@ -5177,6 +5316,7 @@ SUBROUTINE kupl_theory (xx, f, df, iwert)
 ! Interface to old kupl_theory as called in kuplot_load for 'func' command
 !+
 !!                                                                       
+!USE kuplot_theory_macro_mod
 USE kuplot_mod
 USE kuplot_fit6_set_theory
 USE precision_mod
@@ -5193,7 +5333,7 @@ INTEGER          , DIMENSION(2)     :: data_dim     ! No of data points
 REAL             , DIMENSION(1,1)   :: data_data    ! The data
 REAL             , DIMENSION(1,1)   :: data_sigma  ! The sigma
 REAL             , DIMENSION(1)     :: data_x       ! X-coordinates
-REAL             , DIMENSION(1)     :: data_y       ! y-coordinates(for xyz data
+REAL             , DIMENSION(2)     :: data_y       ! y-coordinates(for xyz data
 REAL             , DIMENSION(1,1)   :: data_calc    ! The calculated data
 
 INTEGER                   :: ix             ! Point number along x
@@ -5225,6 +5365,8 @@ ELSEIF (ftyp (1:2) .eq.'LO') THEN
    p_kuplot_theory => theory_lor
 ELSEIF (ftyp (1:2) .eq.'PS') THEN 
    p_kuplot_theory => theory_psvgt
+ELSEIF (ftyp (1:2) .eq.'DP') THEN 
+   p_kuplot_theory => theory_psvgt2
 ELSEIF (ftyp (1:2) .eq.'FX') THEN 
    p_kuplot_theory => theory_user
 ELSEIF (ftyp (1:2) .eq.'GA') THEN 
@@ -5234,11 +5376,13 @@ ELSEIF (ftyp (1:2) .eq.'GA') THEN
    ELSE 
       p_kuplot_theory => theory_gauss_2d
    ENDIF 
-!ELSEIF (ftyp (1:2) .eq.'MA') THEN 
-!   p_kuplot_theory => theory_macro
+ELSEIF (ftyp (1:2) .eq.'MA') THEN 
+write(*,*) ' DEFINED THEORY_MAC '
+   p_kuplot_theory => theory_macro_n
 ENDIF 
 !
 kupl_last  = iz-1
+write(*,*) ' CALLING THEORY '
 CALL p_kuplot_theory(npara, ix, iy, xx, yy, npara, p, par_names,   &
                    prange, l_do_deriv, &
                    data_dim, data_data, data_sigma, data_x, data_y, &
@@ -5305,6 +5449,8 @@ END SUBROUTINE setup_user
 !*****7*****************************************************************
       SUBROUTINE setup_user_macro (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
+!USE kuplot_theory_macro_mod
+USE kuplot_fit6_set_theory
       USE  berechne_mod
       USE errlist_mod 
       USE kuplot_config 
@@ -5359,8 +5505,62 @@ REAL                   :: f
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+p_kuplot_theory => theory_macro_n
 !                                                                       
       END SUBROUTINE setup_user_macro
+!
+SUBROUTINE theory_macro_n(MAXP, ix, iy, xx, yy, NNPARA, params, par_names,          &
+                          prange, l_do_deriv, data_dim, &
+                          data_data, data_sigma, data_x, data_y, &
+                          data_calc, kupl_last,      &
+                          ymod, dyda, LDERIV)
+!
+USE kuplot_config
+USE kuplot_mod
+!
+! Calculate a theory function using a user supplied macro
+!
+IMPLICIT NONE
+!
+INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
+INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
+INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
+REAL                                                 , INTENT(IN)  :: xx      ! Point value  along x
+REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
+INTEGER                                              , INTENT(IN)  :: NNPARA   ! Number of refined parameters
+REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
+CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
+REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
+INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+REAL            , DIMENSION(data_dim(2))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
+INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
+REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
+REAL            , DIMENSION(NNPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
+LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
+!
+!REAL                     :: xx
+REAL                     :: f
+REAL, DIMENSION(MAXPARA) :: df
+INTEGER                  :: i
+!
+DO i=1,NPARA
+  p(i) = params(i)
+ENDDO
+CALL theory_macro(xx, f, df, ix)
+ymod             = f
+data_calc(ix,iy) = ymod
+dyda(1:NNPARA)   = df(1:NNPARA)
+!write(*,*) ' f, df ', ix, iy, xx, ' :', data_calc(ix,iy), ' | ', params(1:3)
+!
+END SUBROUTINE theory_macro_n
+!
+!*******************************************************************************
+!
 !*****7*****************************************************************
       SUBROUTINE show_user (idout) 
 !                                                                       
@@ -5436,7 +5636,7 @@ INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim  
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(2))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
 INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
 REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
@@ -6027,7 +6227,7 @@ INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim  
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(2))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
 INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
 REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
@@ -6260,7 +6460,7 @@ INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim  
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(2))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
 INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
 REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
@@ -6332,38 +6532,33 @@ END SUBROUTINE theory_gauss
 !***7*******************************************************************
 !       Pseudo-Voigt                                                    
 !***7*******************************************************************
-      SUBROUTINE show_psvgt (idout) 
+!
+SUBROUTINE show_psvgt (idout) 
 !                                                                       
-      USE wink_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE wink_mod
+USE kuplot_config 
+USE kuplot_mod 
 USE kuplot_fit_const
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER idout, i, iii 
+INTEGER :: idout, i, iii 
 !                                                                       
-      WRITE (idout, 1000) np1 
-      DO i = 1, nn_backgrd 
-      WRITE (idout, 1100) i, i, p (i), dp (i), pinc (i) 
-      ENDDO 
-      DO i = 1, np1 
-      WRITE (idout, 1300) i 
-      iii = nn_backgrd+ (i - 1) * 6 
-      WRITE (idout, 1400) iii + 1, p (iii + 1), dp (iii + 1), pinc (iii &
-      + 1)                                                              
-      WRITE (idout, 1500) iii + 2, p (iii + 2), dp (iii + 2), pinc (iii &
-      + 2)                                                              
-      WRITE (idout, 1600) iii + 3, p (iii + 3), dp (iii + 3), pinc (iii &
-      + 3)                                                              
-      WRITE (idout, 1700) iii + 4, p (iii + 4), dp (iii + 4), pinc (iii &
-      + 4)                                                              
-      WRITE (idout, 1800) iii + 5, p (iii + 5), dp (iii + 5), pinc (iii &
-      + 5)                                                              
-      WRITE (idout, 1900) iii + 6, p (iii + 6), dp (iii + 6), pinc (iii &
-      + 6)                                                              
-      ENDDO 
-      WRITE (idout, * ) ' ' 
+WRITE (idout, 1000) np1 
+DO i = 1, nn_backgrd 
+   WRITE (idout, 1100) i, i, p (i), dp (i), pinc (i) 
+ENDDO 
+DO i = 1, np1 
+   WRITE (idout, 1300) i 
+   iii = nn_backgrd+ (i - 1) * 6 
+   WRITE (idout, 1400) iii + 1, p (iii + 1), dp (iii + 1), pinc (iii + 1)
+   WRITE (idout, 1500) iii + 2, p (iii + 2), dp (iii + 2), pinc (iii + 2)
+   WRITE (idout, 1600) iii + 3, p (iii + 3), dp (iii + 3), pinc (iii + 3)
+   WRITE (idout, 1700) iii + 4, p (iii + 4), dp (iii + 4), pinc (iii + 4)
+   WRITE (idout, 1800) iii + 5, p (iii + 5), dp (iii + 5), pinc (iii + 5)
+   WRITE (idout, 1900) iii + 6, p (iii + 6), dp (iii + 6), pinc (iii + 6)
+ENDDO 
+WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Pseudo-Voigt(s) : '/) 
  1100 FORMAT     (3x,'p(',i2,') : backgr. ',i1,' : ',g13.6,' +- ',      &
@@ -6386,122 +6581,127 @@ USE kuplot_fit_const
  1900 FORMAT     (3x,'p(',i2,') : asymmetry2: ',g13.6,' +- ',g13.6,     &
      &                   4x,'pinc : ',f2.0)                             
 !                                                                       
-      END SUBROUTINE show_psvgt                     
+END SUBROUTINE show_psvgt                     
+!
 !***7*******************************************************************
+!
 SUBROUTINE setup_psvgt (ianz, werte, maxw) 
+!-
+!   Define parameters for a single peak Pseudovoigt
+!+
 !                                                                       
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
 USE kuplot_fit6_set_theory
 USE kuplot_fit_const
 USE lib_errlist_func
 USE precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxmax 
-      PARAMETER (maxmax = 50) 
+INTEGER, PARAMETER :: maxmax = 50
+INTEGER, PARAMETER :: nnp    =  6   ! Six params: Eta, Inte, Pos, FWHM, ASYM1, Asym2
 !                                                                       
-      INTEGER nu 
-      INTEGER maxw 
-      REAL(KIND=PREC_DP) werte (maxw) 
-      REAL(KIND=PREC_SP) wmax (maxmax) 
-      INTEGER ixm (maxmax) 
-      INTEGER ianz, ii, jj, ima, i 
+INTEGER :: nu 
+INTEGER :: maxw 
+REAL(KIND=PREC_DP), DIMENSION(MAXW)   :: werte ! (maxw) 
+REAL(KIND=PREC_SP), DIMENSION(MAXMAX) :: wmax  ! (maxmax) 
+INTEGER           , DIMENSION(MAXMAX) :: ixm   !(maxmax) 
+INTEGER :: ianz, ii, jj, ima, i 
 !                                                                       
-nn_backgrd = 2
-pp_origin  = 0.0
+nn_backgrd = 2          ! Default to two background P1+P2*x 
+pp_origin  = 0.0        ! Default to origin at x=0.0
 !
-IF(ianz.eq.0) THEN 
-   npara = 8 
+IF(ianz.eq.0) THEN      ! No para : onw Pseudovoigt and two Background
+   npara = 2 + NNP 
    np1 = 1 
-ELSEIF(ianz.le.3) THEN 
+ELSEIF(ianz.le.3) THEN  ! Three Params: number of PSVGT's, Origin, Number of background params. 
    IF (ianz.eq.3) THEN 
-      nn_backgrd = nint (werte (3) ) 
+      nn_backgrd = NINT(werte(3) )    ! Number of background parameters
    ENDIF 
    IF (ianz.ge.2) THEN 
-      pp_origin = werte (2) 
+      pp_origin = werte(2)            ! Origin of background polynomial
    ENDIF 
-   ii = nint (werte (1) ) 
-   IF (ii.gt.0.and. (nn_backgrd + 6 * ii) .le.maxpara) THEN 
+   ii = NINT(werte(1))                ! number of PSVGT's
+   IF (ii.gt.0.AND. (nn_backgrd + NNP * ii) .le.maxpara) THEN 
       np1 = ii 
-      npara = nn_backgrd + 6 * np1 
+      npara = nn_backgrd + NNP * np1 
    ELSE 
-      ier_num = - 31 
+      ier_num = -31 
       ier_typ = ER_APPL 
       RETURN 
    ENDIF 
 !        pp_origin = 0.0 
 !        nn_backgrd = 2 
 ELSE 
-   ier_num = - 6 
+   ier_num = -6 
    ier_typ = ER_COMM 
    RETURN 
 ENDIF 
 nu = nn_backgrd 
 !                                                                       
-      ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit - 1) + lenc (ikfit) 
+ii = offxy (ikfit - 1) + 1 
+jj = offxy (ikfit - 1) + lenc (ikfit) 
 !                                                                       
-      p (1) = y (ii) 
-      pinc (1) = 1.0 
-      p (2) = (y (jj) - y (ii) ) / (x (jj) - x (ii) ) 
-      pinc (2) = 1.0 
-      DO i = 3, nn_backgrd 
-      p (i) = 0.0 
-      pinc (i) = 1.0 
-      ENDDO 
+p   (1) = y (ii)                    ! Defaulf background params, slope throug first to last
+pinc(1) = 1.0 
+p   (2) = (y (jj) - y (ii) ) / (x (jj) - x (ii) ) 
+pinc(2) = 1.0 
+DO i = 3, nn_backgrd 
+   p (i) = 0.0 
+   pinc (i) = 1.0 
+ENDDO 
 !                                                                       
-      ifen = fit_ifen 
-      CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
-      IF (ima.lt.np1) THEN 
-         ier_num = - 30 
-         ier_typ = ER_APPL 
-         CALL errlist 
-         DO i = 1, np1 
-         wmax (i) = 1.0 
-         ixm (i) = 1 
-         ENDDO 
-      ELSE 
-         DO i = ima + 1, np1 
-         wmax (i) = wmax (ima) 
-         ixm (i) = ixm (ima) 
-         ENDDO 
-      ENDIF 
-      CALL no_error 
+ifen = fit_ifen                     ! Try to get peaks automatically
+CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
+IF (ima.lt.np1) THEN 
+   ier_num = - 30 
+   ier_typ = ER_APPL 
+   CALL errlist 
+   DO i = 1, np1 
+      wmax (i) = 1.0 
+      ixm (i) = 1 
+   ENDDO 
+ELSE 
+   DO i = ima + 1, np1 
+      wmax (i) = wmax (ima) 
+      ixm (i) = ixm (ima) 
+   ENDDO 
+ENDIF 
+CALL no_error 
 !                                                                       
-      IF (ier_num.eq.0) THEN 
-         DO i = 1, np1 
-         p (nu + (i - 1) * 6 + 1) = 0.5 
-         pinc (nu + (i - 1) * 6 + 1) = 1.0 
-         p (nu + (i - 1) * 6 + 2) = wmax (i) * 0.1 * abs (x (jj)        &
-         - x (ii) ) * 3.14 / 2.                                         
-         pinc (nu + (i - 1) * 6 + 2) = 1.0 
-         p (nu + (i - 1) * 6 + 3) = x (ii + ixm (i) - 1) 
-         pinc (nu + (i - 1) * 6 + 3) = 1.0 
-         p (nu + (i - 1) * 6 + 4) = 0.1 * abs (x (jj) - x (ii) ) 
-         pinc (nu + (i - 1) * 6 + 4) = 1.0 
-         p (nu + (i - 1) * 6 + 5) = 0.0 
-         pinc (nu + (i - 1) * 6 + 5) = 0.0 
-         p (nu + (i - 1) * 6 + 6) = 0.0 
-         pinc (nu + (i - 1) * 6 + 6) = 0.0 
-         ENDDO 
+IF (ier_num.eq.0) THEN 
+   DO i = 1, np1 
+      p(   nu + (i - 1) * 6 + 1) = 0.5                             ! Eta
+      pinc(nu + (i - 1) * 6 + 1) = 1.0 
+      p(   nu + (i - 1) * 6 + 2) = wmax(i) * 0.1 * ABS(x (jj) - x (ii) ) * 3.14 / 2.   ! Inte
+      pinc(nu + (i - 1) * 6 + 2) = 1.0 
+      p(   nu + (i - 1) * 6 + 3) = x (ii + ixm (i) - 1)            ! Position
+      pinc(nu + (i - 1) * 6 + 3) = 1.0 
+      p(   nu + (i - 1) * 6 + 4) = 0.1 * ABS(x (jj) - x (ii) )     ! FWHM
+      pinc(nu + (i - 1) * 6 + 4) = 1.0 
+      p(   nu + (i - 1) * 6 + 5) = 0.0                             ! Asym1
+      pinc(nu + (i - 1) * 6 + 5) = 0.0 
+      p(   nu + (i - 1) * 6 + 6) = 0.0                             ! Asym1 
+      pinc(nu + (i - 1) * 6 + 6) = 0.0 
+   ENDDO 
 !                                                                       
-         DO i = 1, npara 
-         dp (i) = 0.0 
-         ENDDO 
-      ENDIF 
+   DO i = 1, npara 
+      dp (i) = 0.0 
+   ENDDO 
+ENDIF 
+!
 p_kuplot_theory => theory_psvgt
 !                                                                       
-      END SUBROUTINE setup_psvgt                    
+END SUBROUTINE setup_psvgt                    
 !
 !*********************************************************************  
 !
 SUBROUTINE theory_psvgt(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
                        prange, l_do_deriv, data_dim, &
                        data_data, data_sigma, data_x, data_y, &
- data_calc, kupl_last,      &
+                       data_calc, kupl_last,      &
                        ymod, dyda, LDERIV)
 !
 ! Calculate a Pseudo Voigt Function
@@ -6527,7 +6727,7 @@ INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim  
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(2))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
 INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
 REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
@@ -6543,15 +6743,15 @@ LOGICAL                                              , INTENT(IN)  :: LDERIV  ! 
 !     REAL xx, f, df (maxpara) 
 !     INTEGER i 
 !                                                                       
-      REAL fw, xw 
-      REAL eta, pseudo 
-      REAL asym, lore, lorn
-      REAL gaus 
-      REAL vln2, gpre 
-      REAL zz, fa, fb 
-      REAL dgdpos, dldpos 
-      REAL dgdfw, dldfw 
-      INTEGER j, ind, na, nu, np, nl, nlauf 
+REAL :: fw, xw 
+REAL :: eta, pseudo 
+REAL :: asym, lore, lorn
+REAL :: gaus 
+REAL :: vln2, gpre 
+REAL :: zz, fa, fb 
+REAL :: dgdpos, dldpos 
+REAL :: dgdfw, dldfw 
+INTEGER :: j, ind, na, nu, np, nl, nlauf 
 !
 !REAL :: p_origin = 0.0   ! Needs work!!
 !INTEGER :: n_backgrd  = 2
@@ -6584,7 +6784,7 @@ DO nlauf = 1, nl
    fa = 2. * zz * exp ( - zz**2) 
    fb = 2. * (2 * zz**2 - 3.) * fa 
    asym = 1.0 
-   asym = asym + (params (na + 4) * fa + params (na + 5) * fb) / tand (params (na + 2) )
+   asym = asym + (params (na + 4) * fa + params (na + 5) * fb) / tanh(0.5*params (na + 2) )
 !DBG        asym = asym+(p(na+4)*fa + p(na+5)*fb)/tand(p(na+2)*0.5)     
 !     --Lorentzian                                                      
    lorn = (fw * fw + 4.0 * xw * xw) 
@@ -6635,6 +6835,458 @@ ENDIF
 data_calc(ix, iy) = ymod
 !                                                                       
 END SUBROUTINE theory_psvgt                   
+!
+!*********************************************************************  
+!
+!***7*******************************************************************
+!       Pseudo-Voigt                                                    
+!***7*******************************************************************
+!
+SUBROUTINE show_psvgt2(idout) 
+!                                                                       
+USE wink_mod
+USE kuplot_config 
+USE kuplot_mod 
+USE kuplot_fit_const
+!                                                                       
+IMPLICIT none 
+!                                                                       
+INTEGER :: idout, i, iii 
+!                                                                       
+WRITE (idout, 1000) np1 
+DO i = 1, nn_backgrd 
+   WRITE (idout, 1100) i, i, p (i), dp (i), pinc (i) 
+ENDDO 
+DO i = 1, np1 
+   WRITE (idout, 1300) i 
+   iii = nn_backgrd+ (i - 1) * 6 
+   WRITE (idout, 1400) iii + 1, p (iii + 1), dp (iii + 1), pinc (iii + 1)
+   WRITE (idout, 1500) iii + 2, p (iii + 2), dp (iii + 2), pinc (iii + 2)
+   WRITE (idout, 1600) iii + 3, p (iii + 3), dp (iii + 3), pinc (iii + 3)
+   WRITE (idout, 1700) iii + 4, p (iii + 4), dp (iii + 4), pinc (iii + 4)
+   WRITE (idout, 1800) iii + 5, p (iii + 5), dp (iii + 5), pinc (iii + 5)
+   WRITE (idout, 1900) iii + 6, p (iii + 6), dp (iii + 6), pinc (iii + 6)
+   WRITE (idout, 2000) iii + 7, p (iii + 7), dp (iii + 7), pinc (iii + 7)
+ENDDO 
+WRITE (idout, * ) ' ' 
+!                                                                       
+ 1000 FORMAT     (1x,'Fitted',i3,' double peak Pseudo-Voigt(s) : '/) 
+ 1100 FORMAT     (3x,'p(',i2,') : backgr. ',i1,' : ',g13.6,' +- ',      &
+     &                   g13.6,4x,'pinc : ',f2.0)                       
+!1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g13.6,' +- ',g13.6,     &
+!    &                   4x,'pinc : ',f2.0)                             
+!1210 FORMAT     (3x,'p(',i2,') : backgr. 3 : ',g13.6,' +- ',g13.6,     &
+!    &                   4x,'pinc : ',f2.0)                             
+ 1300 FORMAT     (/,1x,'Pseudo-Voigt : ',i3,/) 
+ 1400 FORMAT     (3x,'p(',i2,') : eta       : ',g13.6,' +- ',g13.6,     &
+     &                   4x,'pinc : ',f2.0)                             
+ 1500 FORMAT     (3x,'p(',i2,') : int. Inten: ',g13.6,' +- ',g13.6,     &
+     &                   4x,'pinc : ',f2.0)                             
+ 1600 FORMAT     (3x,'p(',i2,') : position  : ',g13.6,' +- ',g13.6,     &
+     &                   4x,'pinc : ',f2.0)                             
+ 1700 FORMAT     (3x,'p(',i2,') : fwhm      : ',g13.6,' +- ',g13.6,     &
+     &                   4x,'pinc : ',f2.0)                             
+ 1800 FORMAT     (3x,'p(',i2,') : asymmetry1: ',g13.6,' +- ',g13.6,     &
+     &                   4x,'pinc : ',f2.0)                             
+ 1900 FORMAT     (3x,'p(',i2,') : asymmetry2: ',g13.6,' +- ',g13.6,     &
+     &                   4x,'pinc : ',f2.0)                             
+ 2000 FORMAT     (3x,'p(',i2,') : Int2/Int1 : ',g13.6,' +- ',g13.6,     &
+     &                   4x,'pinc : ',f2.0)                             
+!                                                                       
+END SUBROUTINE show_psvgt2
+!
+!***7*******************************************************************
+!
+SUBROUTINE setup_psvgt2(ianz, cpara, lpara, werte, maxw) 
+!-
+!   Define parameters for a double peak Pseudovoigt
+!+
+!                                                                       
+USE ber_params_mod
+USE element_data_mod
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
+USE kuplot_fit6_set_theory
+USE kuplot_fit_const
+USE kuplot_k12
+USE lib_errlist_func
+USE precision_mod
+USE take_param_mod
+USE string_convert_mod
+!                                                                       
+IMPLICIT none 
+!                                                                       
+INTEGER, PARAMETER :: maxmax = 50
+INTEGER, PARAMETER :: nnp    =  7   ! Six params: Eta, Inte, Pos, FWHM, ASYM1, Asym2
+!                                                                       
+CHARACTER  (LEN=4) :: symbol
+INTEGER :: nu 
+INTEGER :: maxw 
+CHARACTER(LEN=*)  , DIMENSION(MAXW)   :: cpara ! (maxw) 
+INTEGER           , DIMENSION(MAXW)   :: lpara ! (maxw) 
+REAL(KIND=PREC_DP), DIMENSION(MAXW)   :: werte ! (maxw) 
+REAL(KIND=PREC_SP), DIMENSION(MAXMAX) :: wmax  ! (maxmax) 
+INTEGER           , DIMENSION(MAXMAX) :: ixm   !(maxmax) 
+INTEGER :: ianz, ii, jj, ima, i 
+INTEGER :: nwave
+!
+INTEGER, PARAMETER :: NOPTIONAL = 5
+INTEGER, PARAMETER :: O_PEAKS   = 1
+INTEGER, PARAMETER :: O_ORIGIN  = 2
+INTEGER, PARAMETER :: O_NBACK   = 3
+INTEGER, PARAMETER :: O_WAVE    = 4
+INTEGER, PARAMETER :: O_AXIS    = 5
+CHARACTER(LEN=   7)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 3 ! Number of values to calculate
+!
+DATA oname  / 'peaks'   , 'origin'  , 'nback'   , 'wave  '  ,  'axis   ' /
+DATA loname /  5        ,  6        ,  5        ,  4        ,   4      /
+!
+opara  =  (/ '1       ' ,  '0.0     ',  '2       ',  'CU      ',  'TTH     '/)   ! Always provide fresh default values
+lopara =  (/  1         ,   3        ,   1        ,   2        ,   3        /)
+owerte =  (/  1.0000000 ,  0.0000000 ,   2.000000 ,1.541800 ,   0.000000 /)
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+!
+IF(ier_num/=0) RETURN
+!CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+!write(*,*) ' BER_PARAMS   FOR DOUBLE', ier_num, ier_typ
+!IF(ier_num/=0) RETURN
+!
+axis_tth = .TRUE.
+CALL do_cap(opara(O_AXIS))
+IF(opara(O_AXIS)=='TTH') THEN
+   axis_tth = .TRUE.
+ELSEIF(opara(O_AXIS)=='Q') THEN
+   axis_tth = .FALSE.
+ELSE
+   ier_num = -6
+   ier_typ = ER_FORT
+   RETURN
+ENDIF
+!
+ii         = 1          ! Default to a single Double-peak
+np1        = 1          ! Default to a single Double-peak
+nn_backgrd = 2          ! Default to two background P1+P2*x 
+pp_origin  = 0.0        ! Default to origin at x=0.0
+!
+IF(lpresent(O_PEAKS)) THEN
+   ii = NINT(owerte(O_PEAKS))
+   IF(ii<1) THEN
+      ier_num = -6
+      ier_typ = ER_FORT
+      ier_msg(1) = ' '
+      RETURN
+   ENDIF
+ELSE
+   ii = 1
+ENDIF
+!
+IF(lpresent(O_ORIGIN)) THEN
+   pp_origin = owerte(O_ORIGIN)
+ELSE
+   pp_origin = 0.0
+ENDIF
+!
+IF(lpresent(O_PEAKS)) THEN
+   nn_backgrd = NINT(owerte(O_NBACK))
+ELSE
+   nn_backgrd = 2
+ENDIF
+!
+IF (ii.gt.0.AND. (nn_backgrd + NNP * ii) .le.maxpara) THEN 
+   np1 = ii 
+   npara = nn_backgrd + NNP * np1 
+ELSE 
+   ier_num = -31 
+   ier_typ = ER_APPL 
+   RETURN 
+ENDIF 
+!
+CALL do_cap(opara(O_WAVE))
+symbol = ' '
+nwave = get_wave_number(opara(O_WAVE))
+IF(nwave>0) THEN                   ! Found wave length entry
+   CALL get_sym_length(nwave, symbol, lambda1)
+ELSE
+   cpara(1) = opara(O_WAVE)
+   lpara(1) = lopara(O_WAVE)
+   ianz = 1
+   CALL ber_params(ianz, cpara, lpara, werte, MAXW)
+   IF(ier_num/=0) THEN
+      ier_msg(1) = 'Invalid wave length symbol'
+      RETURN
+   ENDIF
+   lambda1 = werte(1)
+   symbol = ' '
+ENDIF
+!
+itwo = 0.0
+lambda2 = lambda1
+IF(symbol(3:4)=='12') THEN            ! Kalpha 1,2 doublet
+   itwo = get_ka21_inte(nwave)  ! Look up default intensity ratio
+   lambda2 = lambda2/get_ka12_len(nwave)
+ENDIF
+!                                                                       
+!
+!IF(ianz.eq.0) THEN      ! No para : one Pseudovoigt and two Background
+!   npara = 2 + NNP 
+!   np1 = 1 
+!ELSEIF(ianz.le.3) THEN  ! Three Params: number of PSVGT's, Origin, Number of background params. 
+!   IF (ianz.eq.3) THEN 
+!      nn_backgrd = NINT(werte(3) )    ! Number of background parameters
+!   ENDIF 
+!   IF (ianz.ge.2) THEN 
+!      pp_origin = werte(2)            ! Origin of background polynomial
+!   ENDIF 
+!   ii = NINT(werte(1))                ! number of PSVGT's
+!!        pp_origin = 0.0 
+!!        nn_backgrd = 2 
+!ELSE 
+!   ier_num = -6 
+!   ier_typ = ER_COMM 
+!   RETURN 
+!ENDIF 
+nu = nn_backgrd 
+!                                                                       
+ii = offxy (ikfit - 1) + 1 
+jj = offxy (ikfit - 1) + lenc (ikfit) 
+!                                                                       
+p   (1) = y (ii)                    ! Defaulf background params, slope throug first to last
+pinc(1) = 1.0 
+p   (2) = (y (jj) - y (ii) ) / (x (jj) - x (ii) ) 
+pinc(2) = 1.0 
+DO i = 3, nn_backgrd 
+   p (i) = 0.0 
+   pinc (i) = 1.0 
+ENDDO 
+!                                                                       
+ifen = fit_ifen                     ! Try to get peaks automatically
+CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
+IF (ima.lt.np1) THEN 
+   ier_num = - 30 
+   ier_typ = ER_APPL 
+   CALL errlist 
+   DO i = 1, np1 
+      wmax (i) = 1.0 
+      ixm (i) = 1 
+   ENDDO 
+ELSE 
+   DO i = ima + 1, np1 
+      wmax (i) = wmax (ima) 
+      ixm (i) = ixm (ima) 
+   ENDDO 
+ENDIF 
+CALL no_error 
+!                                                                       
+IF (ier_num.eq.0) THEN 
+   DO i = 1, np1 
+      p(   nu + (i - 1) * NNP + 1) = 0.5                             ! Eta
+      pinc(nu + (i - 1) * NNP + 1) = 1.0 
+      p(   nu + (i - 1) * NNP + 2) = wmax(i) * 0.1 * ABS(x (jj) - x (ii) ) * 3.14 / 2.   ! Inte
+      pinc(nu + (i - 1) * NNP + 2) = 1.0 
+      p(   nu + (i - 1) * NNP + 3) = x (ii + ixm (i) - 1)            ! Position
+      pinc(nu + (i - 1) * NNP + 3) = 1.0 
+      p(   nu + (i - 1) * NNP + 4) = 0.1 * ABS(x (jj) - x (ii) )     ! FWHM
+      pinc(nu + (i - 1) * NNP + 4) = 1.0 
+      p(   nu + (i - 1) * NNP + 5) = 0.0                             ! Asym1
+      pinc(nu + (i - 1) * NNP + 5) = 0.0 
+      p(   nu + (i - 1) * NNP + 6) = 0.0                             ! Asym1 
+      pinc(nu + (i - 1) * NNP + 6) = 0.0 
+      p(   nu + (i - 1) * NNP + 7) = itwo                            ! Intensity Kalpha2/Kalpha1
+      pinc(nu + (i - 1) * NNP + 7) = 0.0 
+   ENDDO 
+!                                                                       
+   DO i = 1, npara 
+      dp (i) = 0.0 
+   ENDDO 
+ENDIF 
+!
+p_kuplot_theory => theory_psvgt2
+!                                                                       
+END SUBROUTINE setup_psvgt2
+!
+!*********************************************************************  
+!
+SUBROUTINE theory_psvgt2(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
+                       prange, l_do_deriv, data_dim, &
+                       data_data, data_sigma, data_x, data_y, &
+                       data_calc, kupl_last,      &
+                       ymod, dyda, LDERIV)
+!
+! Calculate a double Pseudo Voigt Function Kalpha1, Kalpha2
+! ymod =   inten        * asym * ( eta*L + (1-eta)*G )   ! at pos1
+!        + inten * itwo * asym * ( eta*L + (1-eta)*G )   ! at pos2
+!
+! L = 2 / PI * FWHM / ( FWHM^2 + 4 *(x-pos)^2 )
+! G = gpre / FWHM * exp ( - vln2 / FWHM^2 * (x-pos)^2 ) 
+!
+! zz = (x-pos)/FWHM
+! fa = 2. * zz * exp ( - zz**2 ) 
+! fb = 2. * (2 * zz**2 - 3.) * fa 
+! asym = 1. + (asym1 * fa + asym2 * fb) / tanh (pos )
+!
+USE kuplot_k12
+USE trig_degree_mod
+USE wink_mod
+USE kuplot_fit_const
+!
+IMPLICIT NONE
+!
+INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
+INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
+INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
+REAL                                                 , INTENT(IN)  :: xx      ! Point value  along x
+REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
+INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
+REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
+CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
+REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
+INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+REAL            , DIMENSION(data_dim(2))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
+INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
+REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
+REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
+LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
+!                                                                       
+INTEGER, PARAMETER :: np = 7   !  Requires seven parameters
+REAL,    PARAMETER :: vln2 = 4. * ALOG (2.) 
+REAL,    PARAMETER :: gpre = 2. * SQRT (ALOG (2.) / PI) 
+REAL :: fw
+REAL, DIMENSION(2) :: xw    ! deviation from position 
+REAL, DIMENSION(2) :: pos   ! Position Kalpha1, Kalpha2
+REAL, DIMENSION(2) :: zz    ! Asymetry Kalpha1, Kalpha2
+REAL, DIMENSION(2) :: fa    ! Asymetry Kalpha1, Kalpha2
+REAL, DIMENSION(2) :: fb    ! Asymetry Kalpha1, Kalpha2
+REAL, DIMENSION(2) :: asym  ! Asymetry Kalpha1, Kalpha2
+REAL, DIMENSION(2) :: lorn  ! Lorenzian Divisor Kalpha1, Kalpha2
+REAL, DIMENSION(2) :: inte  ! Intensity         Kalpha1, Kalpha2
+REAL, DIMENSION(2) :: lore  ! Lorenzian         Kalpha1, Kalpha2
+REAL, DIMENSION(2) :: gaus  ! Gaussian          Kalpha1, Kalpha2
+REAL, DIMENSION(2) :: pseudo! pseudo Voigt      Kalpha1, Kalpha2
+REAL, DIMENSION(2) :: asym_pos
+REAL :: eta!, pseudo 
+!REAL :: asym, lore, lorn
+!REAL :: gaus 
+!REAL :: vln2, gpre 
+!REAL :: zz, fa, fb 
+REAL :: dgdpos, dldpos 
+REAL :: dgdfw, dldfw 
+INTEGER :: j, ind, na, nu, nl, nlauf 
+INTEGER :: j2   ! End for loop over Kalpha12
+!
+!REAL :: p_origin = 0.0   ! Needs work!!
+!INTEGER :: n_backgrd  = 2
+!                                                                       
+DO ind = 1, npara 
+   dyda(ind) = 0.0 
+ENDDO 
+!                                                                       
+nu = nn_backgrd 
+!np = 6 
+nl = (npara-nu)/np         ! Number of peaks
+!-------untergrund                                                      
+ymod = 0 
+DO j = 1, nu 
+   ymod = ymod + params (j) * (xx - pp_origin) ** (j - 1) 
+ENDDO 
+!                                                                       
+peaks: DO nlauf = 1, nl 
+   na = nu + (nlauf - 1) * np + 1 
+   dyda(na:na+np-1) = 0.0              ! Preset derivatives
+   j = 1
+   pos(1)  = params(na+2)              ! Position for Kalpha 1
+   IF(axis_tth) THEN                       ! 2Theta axis
+      pos(2) = 2.0D0*ASIND(lambda2/2.0D0/(lambda1/2.0D0/SIND(0.5D0*pos(1))))
+      asym_pos(1) = tanh(RAD*0.5*pos(1))
+      asym_pos(2) = tanh(RAD*0.5*pos(2))
+   ELSE
+      pos(2) = pos(1)*lambda2/lambda1
+      asym_pos(1) = tanh(asin(pos(1)/FPI/lambda1))
+      asym_pos(2) = tanh(asin(pos(2)/FPI/lambda1))
+   ENDIF
+   inte(1) = 1.000                     ! Intensity for Kalpha1
+   inte(2) =              params(na+6) ! Intensity for Kalpha2
+   j2 = 1
+   if(inte(2)>0) j2 = 2
+   eta     = params(na)                ! Eta identical for both Pseudo-Voigts
+   fw      = params(na+3)              ! FWHM identical for both Pseudo-Voigts
+   double: DO j=1, j2                  ! Loop over the two Pseudo-Voigts
+   xw(j)  = xx - pos(j)                ! Deviation from position
+!---------asymmetry                                                     
+   zz(j) = xw(j) / fw 
+   fa(j) = 2. * zz(j) * exp ( - zz(j)**2) 
+   fb(j) = 2. * (2 * zz(j)**2 - 3.) * fa(j) 
+   asym(j) = 1.0 
+   asym(j) = asym(j) + (params (na + 4) * fa(j) + params (na + 5) * fb(j)) / asym_pos(j)
+!DBG        asym(j) = asym(j)+(p(na+4)*fa(j) + p(na+5)*fb(j))/tand(p(na+2)*0.5)     
+!     --Lorentzian                                                      
+   lorn(j) = (fw * fw + 4.0 * xw(j) * xw(j)) 
+   lore(j) = 2. / pi * fw / lorn(j) 
+   gaus(j) = gpre / fw * EXP ( - vln2 / fw**2 * xw(j)**2) 
+   pseudo(j) = (eta * lore(j)+ (1 - eta) * gaus(j)) 
+!---------calculate pseudo Voigt                                        
+   ymod = ymod + params(na+1)*inte(j) * asym(j) * pseudo(j) 
+!---------calculate derivatives                                         
+   IF (LDERIV) THEN 
+!     ---- eta                                                          
+      IF (l_do_deriv (na)) THEN 
+         dyda(na) = dyda(na) + params(na+1)*inte(j) * asym(j) * (lore(j)-gaus(j)) 
+      ENDIF 
+!     ---- intensity                                                    
+      IF (l_do_deriv (na + 1)) THEN 
+         dyda(na + 1) = dyda(na+1) + inte(j) * asym(j) * pseudo(j) 
+      ENDIF 
+!     ---- intensity ratio Kalpha1/kalpha2
+      IF (l_do_deriv (na + 6)) THEN 
+         dyda(na + 6) = dyda(na+1) + params(na+1) * asym(j) * pseudo(j) 
+      ENDIF 
+!     ---- position                                                     
+      IF (l_do_deriv (na + 2)) THEN 
+         dldpos = 2. / pi * 8. * fw * xw(j) / lorn(j)**2 
+         dgdpos = gaus(j) * (2. * vln2 / fw**2 * xw(j)) 
+         dyda(na + 2) = dyda(na+2) + asym(j) * params(na+1)*inte(j) * (eta * dldpos + (1. - eta) * dgdpos)
+      ENDIF 
+!     ---- FWHM                                                         
+      IF (l_do_deriv (na + 3)) THEN 
+         dldfw = 2. / pi * ( - 1. * fw * fw + 4. * xw(j) * xw(j)) / lorn(j)**2
+         dgdfw = gaus(j) * ( - 1. / fw + 2. * vln2 / fw**3 * xw(j) * xw(j)) 
+         dyda(na + 3) = dyda(na+3) + asym(j) * params(na+1)*inte(j) * (eta * dldfw + (1. - eta) * dgdfw)
+      ENDIF 
+!     ---- asymmetry parameter 1                                        
+      IF (l_do_deriv (na + 4)) THEN 
+         dyda (na + 4) = dyda(na+4) + params(na+1)*inte (j) * pseudo(j) * fa(j) / asym_pos(j)
+      ENDIF 
+!     ---- asymmetry parameter 2                                        
+      IF (l_do_deriv (na + 5)) THEN 
+         dyda (na + 5) = dyda(na+5) + params(na+1)*inte(j) * pseudo(j) * fb(j) / asym_pos(j)
+      ENDIF 
+   ENDIF 
+   ENDDO double
+ENDDO peaks
+!-------derivative of background                                        
+IF (LDERIV) THEN 
+   DO j = 1, nu 
+      IF (l_do_deriv (j)) dyda (j) = (xx - pp_origin) ** (j - 1) 
+   ENDDO 
+ENDIF 
+!
+data_calc(ix, iy) = ymod
+!                                                                       
+END SUBROUTINE theory_psvgt2                   
+!
 !***7*******************************************************************
 !     Gaussian (2D)                                                     
 !***7*******************************************************************
@@ -6847,7 +7499,7 @@ INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim  
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(2))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
 INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
 REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
@@ -7175,7 +7827,7 @@ INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim  
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(2))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
 INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
 REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
@@ -7351,7 +8003,7 @@ INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim  
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(2))             , INTENT(IN)  :: data_y       ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
 INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
 REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
@@ -7455,7 +8107,7 @@ INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim  
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data   ! Data array
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x      ! Data coordinates x
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y      ! Data coordinates y
+REAL            , DIMENSION(data_dim(2))             , INTENT(IN)  :: data_y      ! Data coordinates y
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc   ! Calculated
 REAL                                                 , INTENT(IN)  :: conv_dp_sig ! Max parameter shift
 REAL                                                 , INTENT(IN)  :: conv_dchi2  ! Max Chi^2     shift
