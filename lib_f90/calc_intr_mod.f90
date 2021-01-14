@@ -24,6 +24,8 @@ USE trig_degree_mod
 USE set_sub_generic_mod
 USE support_mod
 !
+USE global_data_mod
+!
 IMPLICIT none 
 !                                                                       
 INTEGER, PARAMETER :: MAXW = 30
@@ -40,7 +42,7 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: zeile
 CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: answer , search
 CHARACTER(LEN=24)   :: fmodt
 INTEGER, DIMENSION(MAXW)  :: lpara
-INTEGER  :: ikom, i, ianz 
+INTEGER  :: ikom, i, ianz
 INTEGER  :: lcom 
 INTEGER  :: ihyp 
 INTEGER  :: dummy 
@@ -55,22 +57,33 @@ REAL(KIND=PREC_DP), DIMENSION(MAXW)  :: wwerte
 !                                                                       
 !
 !                                                                       
-      ier_num = -1 
-      ier_typ = ER_FORT 
-      ikom = INDEX (line, ',') 
-      ihyp = MAX(INDEX(line, '''') , INDEX(line, '"') ) 
-      IF (ikom.eq.0.and.ihyp.eq.0) then 
-         ww = do_read_number (line, lp) 
-         IF (ier_num.ne.0) then 
-            RETURN 
-         ENDIF 
-      ENDIF 
-      ier_num = 0 
-      ier_typ = ER_NONE 
-      lcom = length_com (string, ikl) 
-      IF (lcom.eq.0) then 
+ier_num = -1 
+ier_typ = ER_FORT 
+ikom = INDEX (line, ',') 
+ihyp = MAX(INDEX(line, '''') , INDEX(line, '"') ) 
+IF (ikom.eq.0.and.ihyp.eq.0) then 
+   ww = do_read_number (line, lp) 
+   IF (ier_num.ne.0) then 
+      RETURN 
+   ENDIF 
+ENDIF 
+ier_num = 0 
+ier_typ = ER_NONE 
+lcom = length_com (string, ikl) 
+IF (lcom.eq.0) then 
          CALL ersetz2 (string, ikl, iklz, ww, 0, lll) 
-      ELSEIF (lcom.eq.6) then 
+ELSEIF (lcom.eq.7) then 
+!
+   IF(string (ikl - 7:ikl - 1) .eq.'pnumber') THEN
+      ww = REAL(gl_get_pnumber(line), KIND=KIND(ww))
+      IF(ier_num==0) THEN
+         CALL ersetz2(string, ikl, iklz, ww, 7, lll)
+      ENDIF
+   ELSE
+      ier_num = -6
+      ier_typ = ER_FORT
+   ENDIF
+ELSEIF (lcom.eq.6) then 
          IF (string (ikl - 6:ikl - 1) .eq.'getcwd') then 
             CALL holecwd (zeile, dummy) 
             i = len_str (zeile) 
@@ -599,6 +612,7 @@ USE errlist_mod
 USE get_params_mod
 USE lib_f90_profile
 USE precision_mod
+USE string_convert_mod
 USE take_param_mod
 USE trig_degree_mod
 USE wink_mod
@@ -627,7 +641,7 @@ REAL(KIND=PREC_DP)  :: itwo           ! Ratio Intensity Ka2/Ka1
 !REAL(KIND=PREC_DP)  :: fa             ! Value for asymmetry function
 !REAL(KIND=PREC_DP)  :: fb             ! Value for asymmetry function
 !REAL(KIND=PREC_DP)  :: asym           ! Value for asymmetry function
-LOGICAL             :: axis           ! TRUE==TTH; FALSE=Q
+LOGICAL             :: axis_theta     ! TRUE==TTH; FALSE=Q
 INTEGER             :: nwave          ! Entry in per_wavel
 CHARACTER  (LEN=4) :: symbol
 REAL               :: lambda1
@@ -674,15 +688,17 @@ IF(ianz>=5) THEN
 !
    IF(ianz>5) P_asym1 = werte(6)
    IF(ianz>6) P_asym2 = werte(7)
-   IF(opara(O_AXIS)=='tth') THEN
-      axis = .TRUE.
+   CALL do_cap(opara(O_AXIS))
+   IF(opara(O_AXIS)=='TTH') THEN
+      axis_theta = .TRUE.
    ELSEIF(opara(O_AXIS)=='Q') THEN
-      axis = .FALSE.
+      axis_theta = .FALSE.
    ELSE
       ier_num = -6
       ier_typ = ER_FORT
       RETURN
    ENDIF
+   CALL do_cap(opara(O_WAVE))
    nwave = get_wave_number(opara(O_WAVE))
    IF(nwave>0) THEN                   ! Found wave length entry
       CALL get_sym_length(nwave, symbol, lambda1)
@@ -695,7 +711,7 @@ IF(ianz>=5) THEN
       lambda1 = werte(1)
    ENDIF
 !
-   ww = pseudo_voigt(xx, P_eta, P_inte, P_pos, P_fwhm, P_asym1, P_asym2, axis)
+   ww = pseudo_voigt(xx, P_eta, P_inte, P_pos, P_fwhm, P_asym1, P_asym2, axis_theta, lambda1)
    IF(symbol(3:4)=='12') THEN            ! Kalpha 1,2 doublet
       IF(lpresent(O_ITWO)) THEN          ! User supplied intensity ratios
          itwo = owerte(O_ITWO)
@@ -705,13 +721,13 @@ IF(ianz>=5) THEN
       P_inte = P_inte * itwo
       lam_1_2 = get_ka12_len(nwave)
       lambda2 = lambda1/lam_1_2
-      IF(axis) THEN                      ! 2Theta axis
+      IF(axis_theta) THEN                      ! 2Theta axis
          P_pos = 2.0D0*ASIND(lambda2/2.0D0/(lambda1/2.0D0/SIND(0.5D0*P_pos)))
       ELSE
          P_pos = P_pos/lam_1_2
       ENDIF
 !      P_inte = P_inte * get_ka21_inte(nwave)
-      ww = ww + pseudo_voigt(xx, P_eta, P_inte, P_pos, P_fwhm, P_asym1, P_asym2, axis)
+      ww = ww + pseudo_voigt(xx, P_eta, P_inte, P_pos, P_fwhm, P_asym1, P_asym2, axis_theta, lambda1)
    ENDIF
 ELSE
    ier_num = -6

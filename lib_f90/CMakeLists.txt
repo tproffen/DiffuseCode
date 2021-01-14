@@ -14,7 +14,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               fast_fourier_mod.f90 fftpack6.0.f90 fft_singleton.f90
               fput_mod.f90 help.f90 jsu_readline.f90 kdo_all_mod.f90 learn.f90 
               gauss_lorentz_pseudo.f90
-              gamma_mod.f90 gaussj_mod.f90 gen_mpi_mod.f90
+              gamma_mod.f90 gaussj_mod.f90 gen_mpi_mod.f90 global_data.f90
               length_string_mod.f90 lib_get_var_type.f90 lib_f90_profile.f90
               lib_upd_mod.f90 
               macro.f90  matrix_mod.f90 map_1dtofield.f90 

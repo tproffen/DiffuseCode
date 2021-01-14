@@ -227,12 +227,14 @@ USE lib_length
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -50
+       INTEGER, PARAMETER :: iu = -52
        INTEGER, PARAMETER :: io =   1
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
        DATA ERROR ( iu:-41) /                       &
+     &  'No parameters defined so far',             & !-52  ! fortran
+     &  'Unknown parameter name ',                  & !-51  ! fortran
      &  'Value is outside limits',                  & !-50  ! fortran
      &  'Value is Nan',                             & !-49  ! fortran
      &  'Parameters must be matrix variables',      & !-48  ! fortran
