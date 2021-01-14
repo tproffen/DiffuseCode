@@ -7,8 +7,8 @@ CONTAINS
 !*****7************************************************************************* 
 !
 REAL(KIND=KIND(0.0D0)) FUNCTION pseudo_voigt(xx, P_eta, P_inte, P_pos,     &
-                                                      P_fwhm, P_asym1, P_asym2, &
-                                                      axis) RESULT(ww)
+                                                 P_fwhm, P_asym1, P_asym2, &
+                                                 axis, lambda) RESULT(ww)
 !+
 !  Calculate a Pseudo-Voigt function at position xx
 !  If axis==TRUE on 2Theta axis
@@ -21,14 +21,15 @@ USE wink_mod
 !
 IMPLICIT NONE
 !
-REAL(KIND=PREC_DP), INTENT(IN)  :: xx
-REAL(KIND=PREC_DP), INTENT(IN)  :: P_eta
-REAL(KIND=PREC_DP), INTENT(IN)  :: P_inte
-REAL(KIND=PREC_DP), INTENT(IN)  :: P_pos
-REAL(KIND=PREC_DP), INTENT(IN)  :: P_fwhm
-REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym1
-REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym2
-LOGICAL           , INTENT(IN)  :: axis
+REAL(KIND=PREC_DP), INTENT(IN)  :: xx            ! Position at which to calculate Pseduovoigt
+REAL(KIND=PREC_DP), INTENT(IN)  :: P_eta         ! Profile Mixing parameter
+REAL(KIND=PREC_DP), INTENT(IN)  :: P_inte        ! Integrated intensity
+REAL(KIND=PREC_DP), INTENT(IN)  :: P_pos         ! Position
+REAL(KIND=PREC_DP), INTENT(IN)  :: P_fwhm        ! FWHM
+REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym1       ! Asymmetry parameter 1
+REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym2       ! Asymmetry parameter 2
+LOGICAL           , INTENT(IN)  :: axis          ! TRUE if TTH Scale
+REAL(KIND=PREC_SP), INTENT(IN)  :: lambda        ! Wave length
 !
 !REAL(KIND=PREC_DP) :: ww
 !
@@ -49,9 +50,9 @@ fa = 2.D0 * zz * EXP( -zz**2)
 fb = 2.D0 * (2.D0 * zz**2 - 3.) * fa
 asym = 1.0D0
 IF(axis) THEN
-      asym = asym + (P_asym1*fa + P_asym2*fb) / tand(0.5*P_pos )
+      asym = asym + (P_asym1*fa + P_asym2*fb) / tanh(RAD*0.5*P_pos )
 ELSE
-      asym = asym + (P_asym1*fa + P_asym2*fb) / P_pos
+      asym = asym + (P_asym1*fa + P_asym2*fb) / tanh(asin(P_pos/FPI/lambda))
 ENDIF
 !
 !ww = P_inte*(  P_eta       *(2.0/PI*P_fwhm/(P_fwhm*P_fwhm + 4.0D0 * xw * xw))   &
