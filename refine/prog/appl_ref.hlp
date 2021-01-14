@@ -28,6 +28,9 @@
 2  News          : Information on program updates
 
    This is the initial release of the REFINE section.
+3  2020_Dec
+
+   Added variables par und sig that are read only
 2  Example
 
    A simple fit might refine parameters of a straight line to
