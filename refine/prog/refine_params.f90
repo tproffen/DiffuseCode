@@ -22,5 +22,6 @@ REAL             , DIMENSION(:,:), ALLOCATABLE :: refine_alpha        ! temporar
 REAL             , DIMENSION(:  ), ALLOCATABLE :: refine_beta         ! temporary parameter shift
 REAL             , DIMENSION(:)  , ALLOCATABLE :: refine_shift        ! P*shift gives shift to calc derivative
 INTEGER          , DIMENSION(:)  , ALLOCATABLE :: refine_nderiv       ! Number of p+n*DELTA to calc derivative
+INTEGER          , DIMENSION(:)  , ALLOCATABLE :: refine_kderiv       ! KUPLOT data set that has derivative
 !
 END MODULE refine_params_mod

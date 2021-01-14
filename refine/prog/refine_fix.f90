@@ -20,6 +20,8 @@ USE get_params_mod
 USE precision_mod
 USE take_param_mod
 !
+USE global_data_mod
+!
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(INOUT) :: line
@@ -131,6 +133,8 @@ ELSE
    ier_typ = ER_FORT
    RETURN
 ENDIF
+!
+CALL gl_set_pnumber(refine_par_n, refine_fix_n, refine_params, refine_fixed)
 !
 END SUBROUTINE refine_fix
 !
