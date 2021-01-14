@@ -97,6 +97,14 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2021_January
+
+   Fixed the macro option to the ==> 'fit' command.
+
+   Added a double peak Pseudo-Voigt function for Kalpha1/Kalpha2
+     to ==> 'fit'
+
+   Added option to limit parameter range to ==> 'fit'
 3  2020_November
 
    Added a further optional parameter "decimal" to the 'load csv' command.
@@ -716,6 +724,7 @@
 !p  "gaus"    yes  yes  Gaussian        number of Gaussians
 !p  "lore"    yes  no   Lorentzian      number of Lorentzians
 !p  "pseudo"  yes  no   Pseudo-Voigt    number of Pseudo-Voigts
+!p  "dpseudo" yes  no   Pseudo-Voigt    number of Double peak Pseudo-Voigts
 !p  "fx"      yes  yes  User defined    # parameters and function
 !p  "ma"      yes  yes  User macro      # parameters and macro name
 !p  "back"    yes  no   Background      # of background parameters
@@ -821,6 +830,98 @@
    The last optional parameter defines the number of background
    parameters to be used. If it is omitted, the number of 
    background parameters is set to 2.
+4  dpseudo
+!p func "dpseudo" [, "peaks:"<par>] [,"origin:"<origin>]
+!p      [, "nback:"<n_backgrd> ]]
+!p      [, "wave:"<symbl>, ["axis:tth"| "axis:Q"]
+
+   All parameters use the form: "par_name:par_value".
+
+   Available parameters are:
+
+!p "peaks:"<par>]
+   Number of double peaks within the fit range.
+   Defaults to 1.
+
+!p "origin:"<origin>]
+   Origin of the background polynomial.
+   Defaults to 0.0
+
+!p "nback:"<n_backgrd> ]
+   Number of parameters for the background polynomial. The order
+   of the polynomial will thus be <n_backgrd>-1
+   Defaults to 2.
+
+!p "wave:"<symbl>
+   Wave length symbol. Should be one of:
+   Ti12, Cr12, Fe12, Co12, Cu12, Mo12, Ag12, Ta12, W12, Au12
+   Capitalization is not relevant.
+   Defaults to "Cu12"
+
+   You can also give the wave length as symbol like "Cu", or as
+   a numerical expression like "1.54". In any of these cases the 
+   intensity of the second peak is set to zero and the function
+   essentially fits a single Pseudo-Voigt peak.
+
+!p "axis:tth"| "axis:Q"
+   Define if the x-axis in in steps of 2Theta or steps of 
+   Q=2PIsin(Theta)/lambda.
+   Capitalization is not relevant.
+   Defaults to "tth"
+ 
+   The fit uses <par> idouble peak Pseudo-Voigt functions. 
+   <n_backgrd> parameters (no. 1, .. to <n_backgrd>) are refined 
+   for the background and each 
+   double peak Pseudo-Voigt peak used seven parameters:
+
+!p p[3] eta
+!p p[4] integral intensity
+!p p[5] Position
+!p p[6] FWHM
+!p p[7] Asymmetry parameter 1
+!p p[8] Asymmetry parameter 2
+!p p[9] Itwo: Intensity ratio I(Ka2)/I(Ka1)
+
+   The Pseudo-Voigt function is used in the form:
+
+!p background + Intensity*     (eta*L + (1-eta)G)*Asymmetry
+!p            + Intensity*Itwo*(eta*L + (1-eta)G)*Asymmetry
+
+   with Lorentzian part as:
+!p L = 2/pi*FWHM / ( FWHM**2 + 4*(x-POSITION)**2 )
+   and Gaussian part as:
+!p G = 2*sqrt(ln(2)/pi)/FWHM * exp ( -4ln(2) * (x-POSITION)**2/FWHM**2 )
+
+   The position of the second peak is automatically calculated from the
+   internally stored wave lengths for Kalpha1 and Kalpha2
+
+   The asymmetry function is defined as:
+   For a 2Theta axis:
+!p ASYMMETRY = 1 + (p[7]*FA(z) + p[8]*FB(z))/ tanh(0.5*POSITION)
+   For a Q-axis
+!p ASYMMETRY = 1 + (p[7]*FA(z) + p[8]*FB(z))/ tanh(asin(POSITION/4PI/lambda)
+
+!p FA(z) = 2*z*exp(-z**2)
+!p FB(z) = 2*(2*z**2-3)*FA(z)
+
+!p z = (x-POSITION)/FWHM
+
+   The background is calculated as a polynomial of order
+   (n_backgrd-1):
+   
+!p p[1] + p[2]*(x-origin) + p[3]*(x-origin)**2 + ...
+!p or more exactly:
+!p SUM p[i]*(x-origin)**(i-1)
+
+   where origin is the optional "origin:" parameter from the command
+   line. If this parameter is omitted, the origin is set to zero.
+   To describe a locally bent background, one should set the 
+   origin of the background to a position within the refined 
+   x-range instead of zero. The value of the origin is not refined.
+
+   The optional parameter "nback:" defines the number of background
+   parameters to be used. If it is omitted, the number of 
+   background parameters is set to 2.
 4  fx
 !p func "fx",<ip>,<function>
    KUPLOT allows the user to fit a user defined function to a given
@@ -841,7 +942,7 @@
 !p func "ma",<ip>,<macro_name>
    KUPLOT allows the user to fit a user defined function inside a
    macro to a given 1D as well as 2D data set. The first parameter
-   after "fx" specifies the number of parameters. Refer to the
+   after "ma" specifies the number of parameters. Refer to the
    parameters in the expression for the function as p[1],p[2],....
    The x-variable is r[0] and the y-variable (for 2D data sets)
    is r[1]. Note, that possible values stored in these variables
@@ -857,15 +958,21 @@
    The final function value must be given on a 'value' command,
    the derivatives on a 'deriv' command. For these command you
    must have left the 'top' section via a 'quit'.
+
+   The macro must specify the function value into the special 
+   global variable 'F_VALUE', and the derivatives into the 
+   entries in 'F_DERIV[<i>]', where <i> takes the values 1 to the 
+   number of refined parameters.
+
    As simple macro would be:
-   value p[1]*r[0]                  ! Fit a*x
-   deriv 1, r[0]                    ! Derivative with respect to p[1]
+   F_VALUE = p[1]*r[0]              ! Fit a*x
+   F_DERIV[1]= r[0]                 ! Derivative with respect to p[1]
    finished
 
    or absolutely equivalently:
    r[100] = p[1]*r[0]
-   value r[100]                     ! Fit a*x
-   deriv 1, r[0]                    ! Derivative with respect to p[1]
+   F_VALUE = r[100]                 ! Fit a*x
+   F_DERIV[1] =  r[0]               ! Derivative with respect to p[1]
    finished
 
    More involved, create a structure, calculate bond length as the
@@ -884,9 +991,9 @@
        r[202] = -1.0                ! The derivative with respect to p[2]
      exit
    quit                             ! Quit the top level menu back to fit
-   value r[200]
-   deriv 1, r[201]
-   deriv 2, r[202]
+   F_VALUE = r[200]
+   F_DERIV[1] = 1, r[201]
+   F_DERIV[1] = 2, r[202]
    finished
 
    It sounds complicated, but the following examples should help:
@@ -894,10 +1001,10 @@
 !p func ma,3, one.mac                   : Fit a+b*exp(c*x)
 
    Inside macro "one.mac" use the lines:
-   value p[1]+p[2]*exp(p[3]*r[0])   ! Fit a+b*exp(c*x)
-   deriv 1, 0.0                     ! Derivative with respect to p[1]
-   deriv 2, exp(p[3]*r[0])          ! Derivative with respect to p[2]
-   deriv 3, p[2]*exp(p[3]*r[0])*r[0]! Derivative with respect to p[3]
+   F_VALUE = p[1]+p[2]*exp(p[3]*r[0])   ! Fit a+b*exp(c*x)
+   F_DERIV[1] = 0.0                     ! Derivative with respect to p[1]
+   F_DERIV[1] = exp(p[3]*r[0])          ! Derivative with respect to p[2]
+   F_DERIV[1] = p[2]*exp(p[3]*r[0])*r[0]! Derivative with respect to p[3]
    finished
 
    The last command 'finished' is required inside these macros to 
@@ -906,9 +1013,9 @@
 !p func ma,2, two.mac                   : Fit a*x + b*y (2D data set)
 
    Inside macro "two.mac" use the lines:
-   value p[1]*r[0]+p[2]*r[1]        ! Fit a*x + b*y
-   deriv 1, r[0]                    ! Derivative with respect to p[1]
-   deriv 2, r[1]                    ! Derivative with respect to p[2]
+   F_VALUE = p[1]*r[0]+p[2]*r[1]        ! Fit a*x + b*y
+   F_DERIV[1] = r[0]                    ! Derivative with respect to p[1]
+   F_DERIV[1] = r[1]                    ! Derivative with respect to p[2]
    finished
 
 !p func ma, 2
