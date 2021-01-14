@@ -12,6 +12,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous)
 !
 USE kuplot_fit_old_mod
 USE kuplot_fit6
+USE kuplot_toglobal
 !
       USE ber_params_mod
       USE blanks_mod
@@ -45,9 +46,9 @@ USE str_comp_mod
       INTEGER maxw 
       PARAMETER (maxw = 1) 
 !                                                                       
-      CHARACTER(LEN=PREC_STRING) :: zei
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      CHARACTER(4) bef 
+CHARACTER(LEN=PREC_STRING) :: zei
+CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+CHARACTER(LEN=8)           :: bef 
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       REAL dummy 
       INTEGER lpara (maxw) 
@@ -456,6 +457,10 @@ USE str_comp_mod
             CALL para_set_title (zei, lc, titel (iwin, iframe, 1) ) 
          ELSEIF (str_comp (bef, 'tit2', 4, lbef, 4) ) then 
             CALL para_set_title (zei, lc, titel (iwin, iframe, 2) ) 
+!
+!
+         ELSEIF (str_comp (bef, 'torefine', 4, lbef, 8)) THEN
+            CALL kuplot_to_global(zei)
 !                                                                       
 !-------  Commands 'mass','aver',...                                    
 !                                                                       
