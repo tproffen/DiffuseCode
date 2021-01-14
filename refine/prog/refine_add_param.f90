@@ -22,6 +22,8 @@ USE lib_errlist_func
 USE precision_mod
 USE take_param_mod
 !
+USE global_data_mod
+!
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(INOUT) :: line
@@ -56,6 +58,7 @@ INTEGER, PARAMETER :: MAXF=2
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXF) :: ccpara
 INTEGER            , DIMENSION(MAXF) :: llpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXF) :: wwerte
+REAL(KIND=PREC_DP) :: temp_val     ! temporary value from value: statement
 !
 INTEGER, PARAMETER :: NOPTIONAL = 5
 INTEGER, PARAMETER :: OSHIFT    = 1
@@ -106,8 +109,18 @@ ENDIF
 !
 ! Set starting value for parameter, if 'value:' was given
 !
+temp_val = 0.0D0
 IF(lpresent(OVALUE)) THEN
    IF(opara(OVALUE)/='current') THEN                      ! User did not specify "current"
+      ccpara(1) = opara(OVALUE)(1:lopara(OVALUE))
+      llpara(1) = lopara(OVALUE)
+      iianz = 1
+      CALL ber_params (iianz, ccpara, llpara, wwerte, MAXF)
+      IF(ier_num/=0) THEN
+         ier_msg(1) = 'Could not set parameter value'
+         RETURN
+      ENDIF
+      temp_val = wwerte(1)
       WRITE(string,'(a,a,a)') pname(1:lpname), ' = ', opara(OVALUE)(1:lopara(OVALUE))
       indxg = lpname + 2
       CALL do_math (string, indxg, length)
@@ -236,6 +249,10 @@ IF(lrefine) THEN
    refine_range(ipar,2) = range_high
    refine_shift(ipar)   = owerte(OSHIFT)
    refine_nderiv(ipar)  = owerte(ONDERIV)
+   IF(opara(OVALUE)/='current') THEN                      ! User did not specify "current"
+!      READ(opara(OVALUE)(1:lopara(OVALUE)), *) refine_p(ipar)
+      refine_p(ipar) = temp_val
+   ENDIF
 !
    fixed: DO i=1, refine_fix_n                 ! Remove from fixed list
       IF(pname == refine_fixed(i)) THEN        ! Found old parameter name
@@ -245,6 +262,7 @@ IF(lrefine) THEN
          ELSE                                  ! This is not the last parameter
             DO j=i+1, refine_fix_n
                refine_fixed(j-1) = refine_fixed(j)
+               refine_f    (j-1) = refine_f    (j)
             ENDDO
             refine_fix_n = refine_fix_n - 1
             EXIT fixed
@@ -260,6 +278,10 @@ ELSE
          EXIT old_f
       ENDIF
    ENDDO old_f
+   IF(opara(OVALUE)/='current') THEN                      ! User did not specify "current"
+!     READ(opara(OVALUE)(1:lopara(OVALUE)), *) refine_p(ipar)
+      refine_p(ipar) = temp_val
+   ENDIF
 !
    IF(is_new) THEN                              ! New parameter, add to list
       IF(refine_fix_n==REF_MAXPARAM_FIX) THEN
@@ -271,6 +293,7 @@ ELSE
    ENDIF
 ENDIF
 !
+CALL gl_set_pnumber(refine_par_n, refine_fix_n, refine_params, refine_fixed)
 !
 END SUBROUTINE refine_add_param
 !
