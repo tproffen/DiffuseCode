@@ -99,10 +99,10 @@ IF(lpresent(O_REFINE)) THEN
    ENDIF
 ENDIF
 !
-IF(ig<nnfix .OR. ig> nnpara) THEN
+IF(ig<-ABS(nnfix) .OR. ig> nnpara) THEN
    ier_num = -6
    ier_typ = ER_FORT
-   ier_msg(1) = 'Global dat set numerb outside limits'
+   ier_msg(1) = 'Global data set number outside limits'
    RETURN
 ELSE
    IF(ig<0) RETURN          ! Fixed data set silently ignore
