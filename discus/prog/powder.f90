@@ -917,22 +917,23 @@ err_para: IF (ier_num.eq.0) THEN
                   cpara (2) = '0' 
                   lpara (2) = 1 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  pow_eta   = 0.5 
+                  pow_eta_l = 0.0 
+                  pow_eta_q = 0.0 
                   IF (ier_num == 0) THEN 
                      pow_eta = werte(3) 
-                     IF (ianz == 4) THEN 
+                     IF(ianz == 4) THEN 
                         pow_eta_l = werte(4) 
-                        IF (ianz == 5) THEN 
-                           pow_eta_q = werte(5) 
-                        ELSE 
-                           pow_eta_q = 0.0 
-                        ENDIF 
+                        pow_eta_q = 0.0 
+                     ELSEIF(ianz == 5) THEN 
+                        pow_eta_l = werte(4) 
+                        pow_eta_q = werte(5) 
                      ELSE 
                         pow_eta_l = 0.0 
                         pow_eta_q = 0.0 
                      ENDIF 
                   ENDIF 
-               ELSEIF (str_comp (cpara (2) , 'uvw', 2, lpara (2) , 3) ) &
-               THEN                                                     
+               ELSEIF(str_comp(cpara(2), 'uvw', 2, lpara(2), 3)) THEN
                   cpara (1) = '0' 
                   lpara (1) = 1 
                   cpara (2) = '0' 
