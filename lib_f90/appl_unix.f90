@@ -1087,6 +1087,7 @@ USE errlist_mod
 USE get_params_mod
 USE precision_mod
 USE prompt_mod
+USE string_convert_mod
 USE support_mod
 USE take_param_mod
 !
@@ -1140,16 +1141,18 @@ IF (ier_num.ne.0) RETURN
 !
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
-code_str = 'code=PRE'
-inst_str = 'install=FETCH'
+code_str = 'code=pre'
+inst_str = 'install=fetch'
+CALL do_low(opara(O_CODE))
+CALL do_low(opara(O_INSTALL))
 IF(opara(O_CODE) == 'pre') THEN
-   code_str = 'code=PRE'
+   code_str = 'code=pre'
 ELSEIF(opara(O_CODE) == 'git') THEN
-   code_str = 'code=GITHUB'
+   code_str = 'code=git'
 ELSEIF(opara(O_CODE) == 'current') THEN
-   code_str = 'code=CURRENT'
+   code_str = 'code=current'
 ELSEIF(opara(O_CODE)(lopara(O_CODE)-5:lopara(O_CODE)) == 'tar.gz') THEN
-   inst_str = 'code=' // opara(O_CODE)(1:lopara(O_CODE))
+   code_str = 'code=' // opara(O_CODE)(1:lopara(O_CODE))
 ELSE
    ier_num = -6
    ier_typ = ER_FORT
@@ -1158,9 +1161,9 @@ ELSE
    RETURN
 ENDIF
 IF(opara(O_INSTALL) == 'fetch') THEN
-   inst_str = 'install=FETCH'
+   inst_str = 'install=fetch'
 ELSEIF(opara(O_INSTALL) == 'local') THEN
-   inst_str = 'install=LOCAL'
+   inst_str = 'install=local'
 ELSEIF(opara(O_INSTALL)(lopara(O_INSTALL)-5:lopara(O_INSTALL)) == 'tar.gz') THEN
    inst_str = 'install=' // opara(O_INSTALL)(1:lopara(O_INSTALL))
 ELSE
@@ -1193,7 +1196,7 @@ IF(operating == OS_LINUX) THEN
              terminal_wrp(1:LEN_TRIM(terminal_wrp)) // ' '// &
              ' $HOME/' // script(1:LEN_TRIM(script)) //      &
              ' started=native ' //                           &
-             code_str(1:LEN_TRIM(code_str)) //               &
+             code_str(1:LEN_TRIM(code_str)) // ' ' //        &
              inst_str(1:LEN_TRIM(inst_str))
 ELSEIF(operating == OS_LINUX_WSL) THEN
    grep    = 'grep -Poe'
@@ -1248,10 +1251,10 @@ CLOSE(UNIT=IRD)
 string = 'curl -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
          ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
          verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
-CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!QQQ CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
-string = 'chmod 700 $HOME/' // script(1:LEN_TRIM(script))
-CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!QQQ string = 'chmod 700 $HOME/' // script(1:LEN_TRIM(script))
+!QQQ CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !string = 'ls -l $HOME/' // script(1:LEN_TRIM(script))
 !CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
@@ -1271,7 +1274,8 @@ cdir = current_dir
 line = home_dir
 length = len_trim(line)
 CALL do_chdir(line,length,.FALSE.)     ! Go to home dir
-CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), WAIT=.FALSE., CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), WAIT=.FALSE., CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), WAIT=.FALSE.) !,                  CMDMSG=message, EXITSTAT=exit_msg)
 !
 ! As installation script updated the operating system, touch update file
 !
