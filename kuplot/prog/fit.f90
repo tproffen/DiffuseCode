@@ -3025,7 +3025,7 @@ USE precision_mod
          ii = nint (werte (2) ) 
          IF (ii.ge.0.and. (1 + ii) .le.maxpara) then 
             np1 = ii 
-            npara = ii + 1 
+            npara = ii! + 1 
          ELSE 
             ier_num = - 31 
             ier_typ = ER_APPL 
@@ -4020,7 +4020,7 @@ IF (ier_num.ne.0) RETURN
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.eq.0) THEN 
                      urf = werte (1) 
-                     kup_fit6_lamda_s = werte(1)
+!                     kup_fit6_lamda_s = werte(1)
                   ENDIF 
                ELSE 
                   ier_num = - 6 
@@ -5074,7 +5074,6 @@ ENDDO
 dpp(:)     = 0.0
 covar(:,:) = 0.0
 kupl_last  = iz-1
-write(*,*) ' CALLCING KUPLOT_MRQ '
 CALL kuplot_mrq(MAXP, nparams, ncycle, kupl_last, par_names, par_ind,           &
                 MAXF, nfixed, fixed, fixed_ind, pf, data_dim, data_data,        &
                 data_sigma, data_x, data_y, data_calc, kup_fit6_conv_dp_sig, kup_fit6_conv_dchi2, &
@@ -5377,12 +5376,10 @@ ELSEIF (ftyp (1:2) .eq.'GA') THEN
       p_kuplot_theory => theory_gauss_2d
    ENDIF 
 ELSEIF (ftyp (1:2) .eq.'MA') THEN 
-write(*,*) ' DEFINED THEORY_MAC '
    p_kuplot_theory => theory_macro_n
 ENDIF 
 !
 kupl_last  = iz-1
-write(*,*) ' CALLING THEORY '
 CALL p_kuplot_theory(npara, ix, iy, xx, yy, npara, p, par_names,   &
                    prange, l_do_deriv, &
                    data_dim, data_data, data_sigma, data_x, data_y, &
@@ -7887,22 +7884,24 @@ END SUBROUTINE theory_poly
 !***7*******************************************************************
 !     Scale factor + Background Polynom                                 
 !***7*******************************************************************
-      SUBROUTINE show_backpoly (idout) 
+SUBROUTINE show_backpoly (idout) 
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
+USE kuplot_config 
+USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER idout, i 
+INTEGER, INTENT(IN) :: idout
+!
+INTEGER :: i 
 !                                                                       
-      WRITE (idout, 1000) np1 - 2 
-      WRITE (idout, 1020) ikfit2 
-      WRITE (idout, 1050) p (1), dp (1), pinc (1) 
-      DO i = 2, np1 
-      WRITE (idout, 1100) i, i - 2, p (i), dp (i), pinc (i) 
-      ENDDO 
-      WRITE (idout, * ) ' ' 
+WRITE (idout, 1000) np1 - 2 
+WRITE (idout, 1020) ikfit2 
+WRITE (idout, 1050) p (1), dp (1), pinc (1) 
+DO i = 2, np1 
+   WRITE (idout, 1100) i, i - 2, p (i), dp (i), pinc (i) 
+ENDDO 
+WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted Background polynom of order ',i2,' : '/) 
  1020 FORMAT     (1x,'Constant part from data set        ',i2) 
@@ -7911,71 +7910,73 @@ END SUBROUTINE theory_poly
  1100 FORMAT     (3x,'p(',i2,') : coeff. for x**',i2,' : ',g13.6,       &
      &                   ' +- ',g13.6,4x,'pinc : ',f2.0)                
 !                                                                       
-      END SUBROUTINE show_backpoly                  
+END SUBROUTINE show_backpoly                  
 !***7*******************************************************************
-SUBROUTINE setup_backpoly (ianz, werte, maxw) 
+SUBROUTINE setup_backpoly (ianz, werte, MAXW) 
 !                                                                       
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
 USE kuplot_fit6_set_theory
 USE precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      REAL(KIND=PREC_DP) werte (maxw) 
-      INTEGER ianz, ii, jj, i 
+INTEGER, INTENT(IN) :: ianz 
+INTEGER, INTENT(IN) :: MAXW 
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN) :: werte !(maxw) 
+!
+INTEGER :: ii, jj, i 
 !                                                                       
-      IF (ianz.eq.1) THEN 
-         ikfit2 = nint (werte (1) ) 
-         npara = 1 
-         np1 = 1 
-      ELSEIF (ianz.eq.2) THEN 
-         ikfit2 = nint (werte (1) ) 
-         ii = nint (werte (2) ) 
-         IF (ii.ge.0.and. (1 + ii) .le.maxpara) THEN 
-            np1 = ii 
-            npara = ii + 1 
-         ELSE 
-            ier_num = - 31 
-            ier_typ = ER_APPL 
-            RETURN 
-         ENDIF 
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-         RETURN 
-      ENDIF 
+IF (ianz.eq.1) THEN 
+   ikfit2 = nint (werte (1) ) 
+   npara = 1 
+   np1 = 1 
+ELSEIF (ianz.eq.2) THEN 
+   ikfit2 = nint (werte (1) ) 
+   ii = nint (werte (2) ) 
+   IF (ii.ge.0.and. (1 + ii) .le.maxpara) THEN 
+      np1 = ii 
+      npara = ii
+   ELSE 
+      ier_num = - 31 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN 
+ENDIF 
 !                                                                       
-      ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit2 - 1) + 1 
+ii = offxy (ikfit - 1) + 1 
+jj = offxy (ikfit2 - 1) + 1 
 !                                                                       
-      IF (np1.ge.2) THEN 
-         p (2) = y (ii) - y (jj) 
-         pinc (2) = 1.0 
-      ELSE 
-         pinc (2) = 0.0 
-      ENDIF 
+IF (np1 >= 2) THEN 
+   p(2) = y (ii) - y (jj) 
+   pinc(2) = 1.0 
+ELSE 
+   pinc(2) = 0.0 
+ENDIF 
 !                                                                       
-      ii = offxy (ikfit - 1) + lenc (ikfit) / 2 
-      jj = offxy (ikfit2 - 1) + lenc (ikfit2) / 2 
-      IF (y (jj) .ne.0) THEN 
-         p (1) = (y (ii) - p (2) ) / y (jj) 
-      ENDIF 
-      pinc (1) = 1.0 
-      DO i = 3, npara 
-      p (i) = 0.0 
-      pinc (i) = 1.0 
-      ENDDO 
+ii = offxy(ikfit - 1) + lenc (ikfit) / 2 
+jj = offxy(ikfit2 - 1) + lenc (ikfit2) / 2 
+IF(y(jj) /=  0) THEN 
+   p(1) = (y(ii) - p(2)) / y(jj) 
+ENDIF 
+pinc(1) = 1.0 
+DO i = 3, npara 
+   p(i) = 0.0 
+   pinc(i) = 1.0 
+ENDDO 
 !                                                                       
-      DO i = 1, npara 
-      dp (i) = 0.0 
-      ENDDO 
+DO i = 1, npara 
+      dp(i) = 0.0 
+ENDDO 
 !
 p_kuplot_theory => theory_backpoly
 !                                                                       
-      END SUBROUTINE setup_backpoly                 
+END SUBROUTINE setup_backpoly                 
 !***7*******************************************************************
 SUBROUTINE theory_backpoly(MAXP, ix, iy, xx, yy, NPARA, params, par_names,      &
                        prange, l_do_deriv, data_dim,                            &
@@ -8009,29 +8010,15 @@ INTEGER                                              , INTENT(IN)  :: kupl_last 
 REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
 REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
 LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
-!     SUBROUTINE theory_backpoly (xx, f, df, iwert) 
 !                                                                       
-!     USE kuplot_config 
-!     USE kuplot_mod 
+INTEGER :: ind 
 !                                                                       
-!     IMPLICIT none 
-!                                                                       
-!     REAL xx, f, df (maxpara) 
-      INTEGER ind 
-      INTEGER iii 
-!                                                                       
-!     INTEGER idata, ipoint 
-      REAL arg 
-!                                                                       
-      DATA iii / 0 / 
+REAL :: arg 
 !                                                                       
 DO ind = 1, npara 
    dyda(ind) = 0.0 
 ENDDO 
 !                                                                       
-!     idata = ikfit2 
-!     ipoint = iabs (iwert) 
-!     arg = (xx - xmin (idata) ) 
 arg = (xx-data_x(1))
 !                                                                       
 ymod = params(1) * data_data2(ix,iy)
@@ -8047,7 +8034,7 @@ ENDDO
 IF(LDERIV) THEN 
    ind = 1 
    IF (l_do_deriv(ind)) THEN 
-      dyda(ind) = data_data(ix,iy)
+      dyda(ind) = data_data2(ix,iy)
    ENDIF 
    DO ind = 2, npara 
       IF (l_do_deriv(ind)) THEN 
