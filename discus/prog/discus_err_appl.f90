@@ -10,11 +10,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-174,IO=7)
+      PARAMETER    (IU=-175,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -161) /                          &
+     &  'Fourier was not accumulated               ',    & !-175 ! discus
      &  'Exactly one optional parameter is required',    & !-174 ! discus
      &  'Ions not supported for electron diffraction',   & !-173 ! discus
      &  'HDF5 is not supported in this version',         & !-172 ! discus

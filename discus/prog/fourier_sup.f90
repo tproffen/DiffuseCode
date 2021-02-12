@@ -140,7 +140,7 @@ CALL four_test_friedel
 !------ - subtract average structure factor, add intensity              
 !                                                                       
          DO i = 1, num (1) * num (2) *num (3)
-            csf (i) = csf (i) - acsf (i) 
+            csf (i) = csf (i) - acsf (i) !* fave_sca
             dsi (i) = dsi (i) + DBLE (csf (i) * conjg (csf (i) ) ) 
          ENDDO 
          CALL four_apply_friedel
@@ -171,6 +171,9 @@ CALL four_rese_friedel
       IF (four_log) then 
          WRITE (output_io, 4000) ss 
       ENDIF 
+!
+CALL four_accumulate
+!
 !write(*,*) ' eck ll ', eck(:,1)
 !write(*,*) ' eck lr ', eck(:,2)
 !write(*,*) ' eck ul ', eck(:,3)
@@ -1620,6 +1623,469 @@ IF(ALLOCATED(fft_field)) DEALLOCATE(fft_field)
 IF(ALLOCATED(fft_sum  )) DEALLOCATE(fft_sum  )
 !
 END SUBROUTINE four_fft_finalize
+!
+!*******************************************************************************
+!
+SUBROUTINE four_accumulate
+!-
+!  Accumulates the structure factor / intensity 
+!+
+USE diffuse_mod
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+integer:: k, i
+!
+IF(four_accum==FOUR_ACCUM_SINGLE) THEN
+   IF(four_symm) THEN
+      IF(ALLOCATED(csf_sum)) DEALLOCATE(csf_sum)
+      IF(ALLOCATED(dsi_sum)) DEALLOCATE(dsi_sum)
+      ALLOCATE(csf_sum(LBOUND(csf,1):UBOUND(csf,1)))
+      csf_sum = CMPLX(0.0D0, 0.0D0)
+      ALLOCATE(dsi_sum(LBOUND(dsi,1):UBOUND(dsi,1)))
+      dsi_sum = 0.0D0
+      csf_sum = csf
+      dsi_sum = dsi
+      CALL four_fill_csf                         ! Apply symm, if Set aver was used, fill Bragg
+      CALL four_fill_dsi                         ! Apply symm, if Set aver was used, fill Bragg
+      csf = csf_sum
+      dsi = dsi_sum
+   ELSE
+      RETURN                                      ! Single diffracation pattern mode no symmetry average
+   ENDIF
+ELSEIF(four_accum==FOUR_ACCUM_INIT) THEN          ! Initialization, clear *_sum arays
+   IF(ALLOCATED(csf_sum)) DEALLOCATE(csf_sum)
+   IF(ALLOCATED(dsi_sum)) DEALLOCATE(dsi_sum)
+ELSEIF(four_accum==FOUR_ACCUM_ACCUM) THEN         ! Accumulate into current sum
+   IF(.NOT.ALLOCATED(csf_sum)) THEN
+      ALLOCATE(csf_sum(LBOUND(csf,1):UBOUND(csf,1)))
+      csf_sum = CMPLX(0.0D0, 0.0D0)
+   ENDIF
+   IF(.NOT.ALLOCATED(dsi_sum)) THEN
+      ALLOCATE(dsi_sum(LBOUND(dsi,1):UBOUND(dsi,1)))
+      dsi_sum = 0.0D0
+   ENDIF
+   csf_sum = csf_sum + csf
+   dsi_sum = dsi_sum + dsi
+ELSEIF(four_accum==FOUR_ACCUM_FINISHED) THEN      ! Finished, copy everything into the original
+   IF(.NOT.ALLOCATED(csf_sum) .OR. .NOT.ALLOCATED(dsi_sum)) THEN
+      ier_num = -175
+      ier_typ = ER_APPL
+      RETURN
+   ENDIF
+   CALL four_fill_csf                         ! Apply sym, if Set aver was used, fill Bragg
+   CALL four_fill_dsi                         ! Apply sym, if Set aver was used, fill Bragg
+   csf = csf_sum
+   dsi = dsi_sum
+   DEALLOCATE(csf_sum)
+   DEALLOCATE(dsi_sum)
+ENDIF
+!
+END SUBROUTINE four_accumulate
+!
+!*******************************************************************************
+!
+SUBROUTINE four_fill_csf
+!-
+!  If set aver was used with faver > 0, we need to fill the Bragg intensities
+!+
+USE diffuse_mod
+!
+IMPLICIT NONE
+!
+COMPLEX(KIND=KIND(0.0D0)), DIMENSION(:,:,:), ALLOCATABLE :: csf_3d
+!
+INTEGER :: h,k,l
+INTEGER :: ii
+INTEGER :: np
+REAL(KIND=KIND(0.0E0)), DIMENSION(3) :: hkl
+REAL(KIND=KIND(0.0E0)), DIMENSION(3) :: step
+COMPLEX(KIND=KIND(0.0D0))            :: aaa
+!
+IF(fave==0.0 .AND. .NOT. four_symm) RETURN          ! nothing to do
+!
+step(1) = MAX(vi(1,1),vi(1,2), vi(1,3))*0.25       ! Get a step size that
+step(2) = MAX(vi(2,1),vi(2,2), vi(2,3))*0.25       ! is used to check if hkl is integer
+step(3) = MAX(vi(3,1),vi(3,2), vi(3,3))*0.25
+IF(num(1)==1) step(1) = 0.0001
+IF(num(2)==1) step(2) = 0.0001
+IF(num(3)==1) step(3) = 0.0001
+!
+ALLOCATE(csf_3d(num(1), num(2), num(3)))
+!
+ii = 0
+DO l = 1, num (3) 
+   DO k = 1, num (2) 
+      DO h = 1, num (1) 
+         ii       = ii + 1 
+         csf_3d(h,k,l) = csf_sum(ii)
+      ENDDO
+   ENDDO
+ENDDO
+!
+IF(four_symm) CALL four_symm_csf(num, csf_3d, eck, vi)
+!
+!
+IF(fave > 0.0) THEN
+   DO l = 1, num (3) 
+      DO k = 1, num (2) 
+         DO h = 1, num (1) 
+            hkl(1) = eck(1,1) + (h-1)*vi(1,1) + (k-1)*vi(1,2) + (l-1)*vi(1,3)
+            hkl(2) = eck(2,1) + (h-1)*vi(2,1) + (k-1)*vi(2,2) + (l-1)*vi(2,3)
+            hkl(3) = eck(3,1) + (h-1)*vi(3,1) + (k-1)*vi(3,2) + (l-1)*vi(3,3)
+            IF(ABS(hkl(1)-NINT(hkl(1)))<step(1) .AND.  &
+               ABS(hkl(2)-NINT(hkl(2)))<step(2) .AND.  &
+               ABS(hkl(3)-NINT(hkl(3)))<step(3)       ) THEN       ! Got integer hkl
+               aaa = 0.0
+               np  = 0
+               IF(h>1) THEN                        ! Add point at h-1
+                  aaa = aaa + csf_3d(h-1,k,l)
+                  np  = np + 1
+               ENDIF
+               IF(h<num(1)) THEN                   ! Add point at h+1
+                  aaa = aaa + csf_3d(h+1,k,l)
+                  np  = np + 1
+               ENDIF
+               IF(k>1) THEN                        ! Add point at h-1
+                  aaa = aaa + csf_3d(h,k-1,l)
+                  np  = np + 1
+               ENDIF
+               IF(k<num(2)) THEN                   ! Add point at h+1
+                  aaa = aaa + csf_3d(h,k+1,l)
+                  np  = np + 1
+               ENDIF
+               IF(l>1) THEN                        ! Add point at h-1
+                  aaa = aaa + csf_3d(h,k,l-1)
+                  np  = np + 1
+               ENDIF
+               IF(l<num(3)) THEN                   ! Add point at h+1
+                  aaa = aaa + csf_3d(h,k,l+1)
+                  np  = np + 1
+               ENDIF
+               IF(np>0) THEN
+                  csf_3d(h,k,l) = aaa/REAL(np)
+               ENDIF
+            ENDIF
+         ENDDO
+      ENDDO
+   ENDDO
+ENDIF
+!
+ii = 0
+DO l = 1, num (3) 
+   DO k = 1, num (2) 
+      DO h = 1, num (1) 
+         ii       = ii + 1 
+         csf_sum(ii) = csf_3d(h,k,l)
+      ENDDO
+   ENDDO
+ENDDO
+!
+DEALLOCATE(csf_3d)
+!
+END SUBROUTINE four_fill_csf
+!
+!*******************************************************************************
+!
+SUBROUTINE four_fill_dsi
+!-
+!  If set aver was used with faver > 0, we need to fill the Bragg intensities
+!+
+USE diffuse_mod
+!
+IMPLICIT NONE
+!
+REAL(KIND=KIND(0.0D0))   , DIMENSION(:,:,:), ALLOCATABLE :: dsi_3d
+!
+INTEGER :: h,k,l
+INTEGER :: ii
+INTEGER :: np
+REAL, DIMENSION(3) :: hkl
+REAL, DIMENSION(3) :: step
+REAL(KIND=KIND(0.0D0))               :: aaa
+!
+IF(fave==0.0 .AND. .NOT. four_symm) RETURN          ! nothing to do
+!
+step(1) = MAX(vi(1,1),vi(1,2), vi(1,3))*0.45
+step(2) = MAX(vi(2,1),vi(2,2), vi(2,3))*0.45
+step(3) = MAX(vi(3,1),vi(3,2), vi(3,3))*0.45
+IF(num(1)==1) step(1) = 0.0001
+IF(num(2)==1) step(2) = 0.0001
+IF(num(3)==1) step(3) = 0.0001
+!
+ALLOCATE(dsi_3d(num(1), num(2), num(3)))
+!
+ii = 0
+DO l = 1, num (3) 
+   DO k = 1, num (2) 
+      DO h = 1, num (1) 
+         ii       = ii + 1 
+         dsi_3d(h,k,l) = dsi_sum(ii)
+      ENDDO
+   ENDDO
+ENDDO
+!
+IF(four_symm) CALL four_symm_dsi(num, dsi_3d, eck, vi)
+!
+IF(fave > 0.0) THEN
+   DO l = 1, num (3) 
+      DO k = 1, num (2) 
+         DO h = 1, num (1) 
+            hkl(1) = eck(1,1) + (h-1)*vi(1,1) + (k-1)*vi(1,2) + (l-1)*vi(1,3)
+            hkl(2) = eck(2,1) + (h-1)*vi(2,1) + (k-1)*vi(2,2) + (l-1)*vi(2,3)
+            hkl(3) = eck(3,1) + (h-1)*vi(3,1) + (k-1)*vi(3,2) + (l-1)*vi(3,3)
+            IF(ABS(hkl(1)-NINT(hkl(1)))<step(1) .AND.  &
+               ABS(hkl(2)-NINT(hkl(2)))<step(2) .AND.  &
+               ABS(hkl(3)-NINT(hkl(3)))<step(3)       ) THEN       ! Got integer hkl
+               aaa = 0.0
+               np  = 0
+               IF(h>1) THEN                        ! Add point at h-1
+                  aaa = aaa + dsi_3d(h-1,k,l)
+                  np  = np + 1
+               ENDIF
+               IF(h<num(1)) THEN                   ! Add point at h+1
+                  aaa = aaa + dsi_3d(h+1,k,l)
+                  np  = np + 1
+               ENDIF
+               IF(k>1) THEN                        ! Add point at h-1
+                  aaa = aaa + dsi_3d(h,k-1,l)
+                     np  = np + 1
+               ENDIF
+               IF(k<num(2)) THEN                   ! Add point at h+1
+                  aaa = aaa + dsi_3d(h,k+1,l)
+                  np  = np + 1
+               ENDIF
+               IF(l>1) THEN                        ! Add point at h-1
+                  aaa = aaa + dsi_3d(h,k,l-1)
+                  np  = np + 1
+               ENDIF
+               IF(l<num(3)) THEN                   ! Add point at h+1
+                  aaa = aaa + dsi_3d(h,k,l+1)
+                  np  = np + 1
+               ENDIF
+               IF(np>0) THEN
+                  dsi_3d(h,k,l) = aaa/REAL(np)
+               ENDIF
+            ENDIF
+         ENDDO
+      ENDDO
+   ENDDO
+ENDIF
+!
+ii = 0
+DO l = 1, num (3) 
+   DO k = 1, num (2) 
+      DO h = 1, num (1) 
+         ii       = ii + 1 
+         dsi_sum(ii) = dsi_3d(h,k,l)
+      ENDDO
+   ENDDO
+ENDDO
+!
+DEALLOCATE(dsi_3d)
+!
+END SUBROUTINE four_fill_dsi
+!
+!*******************************************************************************
+!
+SUBROUTINE four_symm_csf(num, csf_3d, eck, vi)
+!-
+!   Apply reciprocal space symmetry of point group
+!+
+USE crystal_mod
+use wyckoff_mod
+!
+USE matrix_mod
+!
+IMPLICIT NONE
+!
+INTEGER                  , DIMENSION(3)                     , INTENT(IN)    :: num
+COMPLEX(KIND=KIND(0.0D0)), DIMENSION(num(1), num(2), num(3)), INTENT(INOUT) :: csf_3d
+REAL    , DIMENSION(1:3, 1:4)           ::  eck
+REAL    , DIMENSION(1:3, 1:3)           ::  vi
+!
+INTEGER :: n_center     ! Only use this fraction of symmetry operations
+INTEGER :: i
+INTEGER :: h,k,l
+INTEGER :: h1,k1,l1
+INTEGER, DIMENSION(3) :: izero                                    ! Indices of point 0,0,0
+REAL(KIND=PREC_DP), DIMENSION(3) :: hkl
+REAL(KIND=PREC_DP), DIMENSION(3) :: uvw
+COMPLEX(KIND=KIND(0.0D0)), DIMENSION(:,:,:), ALLOCATABLE :: csf_sym
+INTEGER                  , DIMENSION(:,:,:), ALLOCATABLE :: weight
+REAL(KIND=PREC_DP)       , DIMENSION(3, 3)               :: sym_mat
+REAL(KIND=PREC_DP)       , DIMENSION(3, 3)               :: tmp_mat
+!
+sym_mat(:,1) = vi(:,1)              ! Find pixels at which hkl = (0,0,0)
+sym_mat(:,2) = vi(:,2)
+sym_mat(:,3) = vi(:,3)
+sym_mat(:,3) = (/ 0.0, 0.0, 1.0/)
+!
+CALL matinv3(sym_mat, tmp_mat)
+!
+hkl(:) = -eck(:,1)
+uvw = MATMUL(tmp_mat, hkl)
+izero(1) = NINT(1+uvw(1))            ! Pixel at hkl = (0,0,0)
+izero(2) = NINT(1+uvw(2))
+izero(3) = NINT(1+uvw(3))
+!
+!                                     ! Determine number of primitive operations
+!
+n_center = 1
+IF (cr_spcgr (1:1) .eq.'P') THEN
+   n_center = 1
+ELSEIF (cr_spcgr (1:1) .eq.'A') THEN  ! Normal space group can be used
+   n_center = 2
+ELSEIF (cr_spcgr (1:1) .eq.'B') THEN  ! as n_center is identical for
+   n_center = 2
+ELSEIF (cr_spcgr (1:1) .eq.'C') THEN  ! A B and C, orthorhombic alternative setting
+   n_center = 2
+ELSEIF (cr_spcgr (1:1) .eq.'I') THEN
+   n_center = 2
+ELSEIF (cr_spcgr (1:1) .eq.'F') THEN
+   n_center = 4
+ELSEIF (cr_spcgr (1:1) .eq.'R'.and.cr_syst.eq.6) THEN
+   n_center = 3
+ENDIF
+!
+ALLOCATE(csf_sym(num(1), num(2), num(3)))
+ALLOCATE(weight (num(1), num(2), num(3)))      ! Weight counts the number that symm adds intensity to a pixel
+weight = 1
+!
+csf_sym = csf_3d                     ! Effectively operation 1
+!
+DO i = 2, spc_n/n_center             ! only apply numbers 2 for P centered part
+   sym_mat=spc_mat(1:3,1:3,i)        ! Copy symmetry matrix to local copy
+   DO l = 1, num (3) 
+      hkl(3) = l - izero(3)
+      DO k = 1, num (2) 
+         hkl(2) = k - izero(2)
+         DO h = 1, num (1) 
+            hkl(1) = h - izero(1)
+            uvw    = MATMUL(hkl, sym_mat)
+            h1 = izero(1) + NINT(uvw(1))
+            k1 = izero(2) + NINT(uvw(2))
+            l1 = izero(3) + NINT(uvw(3))
+            IF(h1>=1 .AND. h1<=num(1) .AND.          &
+               k1>=1 .AND. k1<=num(2) .AND.          &
+               l1>=1 .AND. l1<=num(3)      ) THEN
+               csf_sym(h1,k1,l1) = csf_sym(h1, k1, l1) + csf_3d(h,k,l)
+               weight (h1,k1,l1) = weight (h1, k1, l1) + 1
+            ENDIF
+         ENDDO
+      ENDDO
+   ENDDO
+ENDDO
+!
+! Apply symmetry weight and divide by number of Symmetry operations
+!
+csf_3d = csf_sym/weight/REAL(spc_n/n_center)! Copy back into original
+!
+DEALLOCATE(csf_sym)
+DEALLOCATE(weight )
+!
+END SUBROUTINE four_symm_csf
+!
+!*******************************************************************************
+!
+SUBROUTINE four_symm_dsi(num, dsi_3d, eck, vi)
+!-
+!   Apply reciprocal space symmetry of point group
+!+
+USE crystal_mod
+use wyckoff_mod
+!
+USE matrix_mod
+!
+IMPLICIT NONE
+!
+INTEGER               , DIMENSION(3)                     , INTENT(IN)    :: num
+REAL(KIND=KIND(0.0D0)), DIMENSION(num(1), num(2), num(3)), INTENT(INOUT) :: dsi_3d
+REAL    , DIMENSION(1:3, 1:4)           ::  eck
+REAL    , DIMENSION(1:3, 1:3)           ::  vi
+!
+INTEGER :: n_center     ! Only use this fraction of symmetry operations
+INTEGER :: i
+INTEGER :: h,k,l
+INTEGER :: h1,k1,l1
+INTEGER, DIMENSION(3) :: izero                                    ! Indices of point 0,0,0
+REAL(KIND=PREC_DP), DIMENSION(3) :: hkl
+REAL(KIND=PREC_DP), DIMENSION(3) :: uvw
+REAL(KIND=KIND(0.0D0)), DIMENSION(:,:,:), ALLOCATABLE :: dsi_sym
+INTEGER               , DIMENSION(:,:,:), ALLOCATABLE :: weight
+REAL(KIND=PREC_DP), DIMENSION(3, 3)                   :: sym_mat
+REAL(KIND=PREC_DP), DIMENSION(3, 3)                   :: tmp_mat
+!
+sym_mat(:,1) = vi(:,1)              ! Find pixels at which hkl = (0,0,0)
+sym_mat(:,2) = vi(:,2)
+sym_mat(:,3) = vi(:,3)
+sym_mat(:,3) = (/ 0.0, 0.0, 1.0/)
+!
+CALL matinv3(sym_mat, tmp_mat)
+!
+hkl(:) = -eck(:,1)
+uvw = MATMUL(tmp_mat, hkl)
+izero(1) = NINT(1+uvw(1))            ! Pixel at hkl = (0,0,0)
+izero(2) = NINT(1+uvw(2))
+izero(3) = NINT(1+uvw(3))
+!
+!                                     ! Determine number of primitive operations
+!
+n_center = 1
+IF (cr_spcgr (1:1) .eq.'P') THEN
+   n_center = 1
+ELSEIF (cr_spcgr (1:1) .eq.'A') THEN  ! Normal space group can be used
+   n_center = 2
+ELSEIF (cr_spcgr (1:1) .eq.'B') THEN  ! as n_center is identical for
+   n_center = 2
+ELSEIF (cr_spcgr (1:1) .eq.'C') THEN  ! A B and C, orthorhombic alternative setting
+   n_center = 2
+ELSEIF (cr_spcgr (1:1) .eq.'I') THEN
+   n_center = 2
+ELSEIF (cr_spcgr (1:1) .eq.'F') THEN
+   n_center = 4
+ELSEIF (cr_spcgr (1:1) .eq.'R'.and.cr_syst.eq.6) THEN
+   n_center = 3
+ENDIF
+!
+ALLOCATE(dsi_sym(num(1), num(2), num(3)))
+ALLOCATE(weight (num(1), num(2), num(3)))      ! Weight counts the number that symm adds intensity to a pixel
+weight = 1
+!
+dsi_sym = dsi_3d                     ! Effectively operation 1
+!
+DO i = 2, spc_n/n_center             ! only apply numbers 2 for P centered part
+   sym_mat=spc_mat(1:3,1:3,i)        ! Copy symmetry matrix to local copy
+   DO l = 1, num (3) 
+      hkl(3) = l - izero(3)
+      DO k = 1, num (2) 
+         hkl(2) = k - izero(2)
+         DO h = 1, num (1) 
+            hkl(1) = h - izero(1)
+            uvw    = MATMUL(hkl, sym_mat)
+            h1 = izero(1) + NINT(uvw(1))
+            k1 = izero(2) + NINT(uvw(2))
+            l1 = izero(3) + NINT(uvw(3))
+            IF(h1>=1 .AND. h1<=num(1) .AND.          &
+               k1>=1 .AND. k1<=num(2) .AND.          &
+               l1>=1 .AND. l1<=num(3)      ) THEN
+               dsi_sym(h1,k1,l1) = dsi_sym(h1, k1, l1) + dsi_3d(h,k,l)
+               weight (h1,k1,l1) = weight (h1, k1, l1) + 1
+            ENDIF
+         ENDDO
+      ENDDO
+   ENDDO
+ENDDO
+!
+! Apply symmetry weight and divide by number of Symmetry operations
+!
+dsi_3d = dsi_sym/weight/REAL(spc_n/n_center)! Copy back into original
+!
+DEALLOCATE(dsi_sym)
+DEALLOCATE(weight )
+!
+END SUBROUTINE four_symm_dsi
 !
 !*******************************************************************************
 !

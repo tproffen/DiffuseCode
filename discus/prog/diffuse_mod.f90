@@ -49,12 +49,16 @@ COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  acsf         ! (1
 REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  rpdf         ! (1:MAXQXY)
 COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(0:MASK)             ::  cex       = (0.0D0,0.0D0)
 REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi          ! (1:MAXQXY)
+!
+COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  csf_sum      ! (1:MAXQXY)
+REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi_sum      ! (1:MAXQXY)
 REAL    , DIMENSION(:, :), ALLOCATABLE  ::  xat          ! (1:NMAX, 1:3)
 REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  xm        = 0.0D0
 REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  win       = 0.0D0
 REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  vin       = 0.0D0
 REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  uin       = 0.0D0
 REAL                                    ::  fave      = 0.0
+REAL                                    ::  fave_sca  = 1.0
 INTEGER , DIMENSION(:)   , ALLOCATABLE  ::  istl         ! (1:MAXQXY)
 INTEGER , DIMENSION(1:3)                ::  num       = 1
 INTEGER                                 ::  nlots     = 1
@@ -120,5 +124,12 @@ REAL(KIND=PREC_DP), DIMENSION(4,3)      ::  diff_res             ! Resolution si
 REAL(KIND=PREC_DP), DIMENSION(3,3)      ::  diff_tr              ! Resolution transformation matrix
 !
 INTEGER                                 ::  four_last = FOUR_NN  ! No Fourier calculated yet
+!
+INTEGER, PARAMETER :: FOUR_ACCUM_INIT     = -1
+INTEGER, PARAMETER :: FOUR_ACCUM_SINGLE   =  0
+INTEGER, PARAMETER :: FOUR_ACCUM_ACCUM    =  1
+INTEGER, PARAMETER :: FOUR_ACCUM_FINISHED =  2
+INTEGER                                 :: four_accum = 0        ! Run a single Fourier (-1==init, 0==single, 1==add, 2==finished)
+LOGICAL                                 :: four_symm  = .FALSE.  ! Run a single Fourier (-1==init, 0==single, 1==add, 2==finished)
 !
 END MODULE diffuse_mod

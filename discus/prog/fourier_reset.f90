@@ -84,6 +84,9 @@ zone_delta_d  = 0.015
 !
 four_last = FOUR_NN  ! No Fourier calculated yet
 !
+four_accum = 0
+four_symm  = .FALSE.
+!
 END SUBROUTINE fourier_reset
 !
 !*******************************************************************************

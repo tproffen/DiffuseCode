@@ -3,7 +3,10 @@ MODULE fourier_menu
 USE errlist_mod 
 !
 CONTAINS
-      SUBROUTINE fourier 
+!
+!*******************************************************************************
+!
+SUBROUTINE fourier 
 !+                                                                      
 !     This subroutine 'fourier' calculates the Fourier transform        
 !     of the given crystal structure. The algorithm to speed up         
@@ -12,42 +15,44 @@ CONTAINS
 !     J. Appl. Cryst. 25, 391-399.                                      
 !                                                                       
 !-                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE chem_mod
-      USE diffuse_mod 
-      USE external_four
-      USE fourier_sup
-      USE fourier_reset_mod
-      USE get_iscat_mod
-      USE modify_mod
-      USE output_mod 
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE chem_mod
+USE diffuse_mod 
+USE external_four
+USE fourier_sup
+USE fourier_reset_mod
+USE get_iscat_mod
+USE modify_mod
+USE output_mod 
 USE discus_show_menu
-      USE zone
+USE zone
 !
-      USE ber_params_mod
-      USE build_name_mod
-      USE calc_expr_mod
-      USE doact_mod 
-      USE do_eval_mod
-      USE do_wait_mod
-      USE get_params_mod
-      USE learn_mod 
+USE ber_params_mod
+USE build_name_mod
+USE calc_expr_mod
+USE doact_mod 
+USE do_eval_mod
+USE do_wait_mod
+USE get_params_mod
+USE learn_mod 
 USE lib_do_operating_mod
 USE lib_echo
 USE lib_errlist_func
 USE lib_help
 USE lib_length
 USE lib_macro_func
-      USE class_macro_internal 
-      USE prompt_mod 
-      USE do_show_mod
+USE class_macro_internal 
+USE prompt_mod 
+USE do_show_mod
 USE precision_mod
 USE str_comp_mod
-      USE string_convert_mod
-      USE sup_mod
-      IMPLICIT none 
+USE string_convert_mod
+USE sup_mod
+USE take_param_mod
+!
+IMPLICIT none 
 !                                                                       
        
 !                                                                       
@@ -82,6 +87,24 @@ USE str_comp_mod
       REAL   , DIMENSION(3)::  divis
       REAL   , DIMENSION(3)::  rhkl
 !                                                                       
+INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: O_MODE    = 1
+INTEGER, PARAMETER :: O_SYMM    = 2
+CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+DATA oname  / 'mode', 'symm'  /
+DATA loname /  4    ,  4      /
+opara  =  (/ '0.0000', '0.0000' /)   ! Always provide fresh default values
+lopara =  (/  6      ,  6       /)
+owerte =  (/  0.0    ,  0.0     /)
+!
+!
 !
       maxw     = MAX(MIN_PARA,MAXSCAT+1)
       n_qxy    = 1
@@ -768,43 +791,82 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     set desired mode of Fourier transform 'set'                       
 !                                                                       
-            ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.ge.1.and.ianz.le.2) then 
-                     IF (str_comp (cpara (1) , 'aver', 1, lpara (1) , 4)&
-                     ) then                                             
-                        IF (ianz.eq.1) then 
-                           fave = 0.0 
-                        ELSE 
-                           CALL del_params (1, ianz, cpara, lpara, maxw) 
-                           CALL ber_params (ianz, cpara, lpara, werte,  &
-                           maxw)                                        
-                           IF (ier_num.eq.0) then 
-                              IF (werte (1) .ge.0.0D0.and.werte (1)       &
-                              .le.100.0D0) then                           
-                                 fave = werte (1) * 0.01 
-                              ELSE 
-                                 ier_num = - 1 
-                                 ier_typ = ER_FOUR 
-                              ENDIF 
-                           ENDIF 
-                        ENDIF 
-                     ELSEIF (str_comp (cpara (1) , 'extern', 1, lpara ( &
-                     1) , 6) ) then                                     
+        ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
+           CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+           CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                    oname, loname, opara, lopara, lpresent, owerte)
+           IF (ier_num.eq.0) then 
+              four_symm = .FALSE.
+              IF(lpresent(O_SYMM)) THEN       ! set mode: 
+                 IF(opara(O_symm)=='apply') THEN
+                    four_symm = .TRUE.
+                 ELSE
+                    four_symm = .FALSE.
+                 ENDIF
+              ENDIF
+              IF(lpresent(O_MODE)) THEN       ! set mode: 
+                 IF(opara(O_MODE)=='single') THEN
+                    four_accum = 0
+                    IF(four_symm) CALL four_accumulate  ! Call to apply symmetry
+                 ELSEIF(opara(O_MODE)=='init') THEN
+                    four_accum = -1
+                    CALL four_accumulate      ! Call to clear arrays
+                    four_accum =  1           ! Toggle to accumulate
+                 ELSEIF(opara(O_MODE)=='accumulate') then
+                    IF(four_accum==0) THEN    ! First accumulate, initialize
+                       four_accum = -1
+                       CALL four_accumulate      ! Call to clear arrays
+                    ENDIF
+                    four_accum =  1           ! Toggle to accumulate
+                 ELSEIF(opara(O_MODE)=='finish') THEN
+                    four_accum =  2
+                    CALL four_accumulate      ! Call to clear arrays
+                    four_accum = 0
+                 ENDIF
+              ELSE                            ! No 'set mode:' parameter present
+                 IF(lpresent(O_SYMM)) THEN       ! set mode: 
+                    four_accum = 0
+                    IF(four_symm) CALL four_accumulate  ! Call to apply symmetry
+                 ENDIF
+              ENDIF
+                 IF((lpresent(O_MODE) .OR. lpresent(O_SYMM)).AND. ianz==0) THEN
+                    CONTINUE
+                 ELSE
+                 IF(ianz.ge.1.and.ianz.le.2) then 
+                    IF(str_comp(cpara(1), 'aver', 1, lpara(1), 4)) THEN
+                      IF(ianz.eq.1) THEN 
+                         fave = 0.0 
+                      ELSE 
+                         CALL del_params (1, ianz, cpara, lpara, maxw) 
+                         CALL ber_params(ianz, cpara, lpara, werte, maxw)
+                         IF (ier_num.eq.0) then 
+                             IF(werte(1) .ge.0.0D0 .AND. werte(1).le.100.0D0) THEN                           
+                                fave = werte (1) * 0.01 
+                             ELSE 
+                                ier_num = - 1 
+                                ier_typ = ER_FOUR 
+                             ENDIF 
+!                             IF(ianz==2) THEN
+!                                fave_sca = werte(2)
+!                             ELSE
+!                                fave_sca = 1.0
+!                             ENDIF 
+                          ENDIF 
+                       ENDIF 
+                    ELSEIF(str_comp(cpara(1), 'extern', 1, lpara(1), 6) ) THEN
                         four_mode = EXTERNAL 
-                     ELSEIF (str_comp (cpara (1) , 'intern', 1, lpara ( &
-                     1) , 6) ) then                                     
-                        four_mode = INTERNAL 
-                     ELSE 
-                        ier_num = - 1 
-                        ier_typ = ER_FOUR 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+                    ELSEIF(str_comp(cpara(1), 'intern', 1, lpara(1), 6) ) THEN
+                       four_mode = INTERNAL 
+                    ELSE 
+                       ier_num = - 1 
+                       ier_typ = ER_FOUR 
+                    ENDIF 
+                 ELSE 
+                    ier_num = - 6 
+                    ier_typ = ER_COMM 
+                 ENDIF 
+              ENDIF 
+           ENDIF 
 !                                                                       
 !     Show the current settings for the Fourier 'show'                  
 !                                                                       
@@ -1231,7 +1293,11 @@ END SUBROUTINE four_res_optional
       radiation = c_rad(diff_radiation)
       IF (lambda.eq.' ') then 
          IF(diff_radiation==2) THEN
-            WRITE (output_io, 1201) radiation, rlambda , renergy
+            IF(renergy>999.) THEN
+               WRITE (output_io, 1202) radiation, rlambda , renergy*0.001
+            ELSE 
+               WRITE (output_io, 1201) radiation, rlambda , renergy
+            ENDIF 
          ELSE 
             WRITE (output_io, 1200) radiation, rlambda , renergy
          ENDIF 
@@ -1333,6 +1399,8 @@ END SUBROUTINE four_res_optional
      &          F7.4,' A == ', F8.4,'keV')                                              
  1201 FORMAT (  '   Radiation          : ',A,', wavelength = ',         &
      &          F7.4,' A == ', F8.4,'meV')                                              
+ 1202 FORMAT (  '   Radiation          : ',A,', wavelength = ',         &
+     &          F7.4,' A == ', F8.4,' eV')                                              
  1210 FORMAT (  '   Radiation          : ',A,', wavelength = ',A4,      &
      &          ' = ',F7.4,' A')                                        
  1300 FORMAT (  '   Temp. factors      : ',A) 
