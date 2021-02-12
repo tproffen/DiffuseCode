@@ -431,7 +431,440 @@ USE precision_mod
  1000 FORMAT     (' ------ > Calulating Fourier Transform of data set ',&
      &                              I2,' ...')                          
       END SUBROUTINE do_four_z                      
+!
+!!*****7**************************************************************   
+SUBROUTINE kuplot_do_fft(zeile, lp) 
+!-
+!  Calculate a FFT of data set(s)
+!+
+!
+USE kuplot_mod
+!
+USE errlist_mod
+USE get_params_mod
+USE map_1dtofield
+USE precision_mod
+USE take_param_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: zeile
+INTEGER         , INTENT(INOUT) :: lp
+!
+!
+INTEGER, PARAMETER :: MAXW = 2
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+INTEGER            , DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP ), DIMENSION(MAXW) :: werte
+INTEGER :: ianz
+INTEGER :: isdim                   ! Dimension of data set (1, 2, 3)
+!
+INTEGER, DIMENSION(2) :: idata     ! Data set number to transform
+INTEGER, DIMENSION(2) :: odata     ! Data set number with results
+!
+INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: O_REAL      = 1
+INTEGER, PARAMETER :: O_IMAG      = 2
+!INTEGER, PARAMETER :: O_COLY      = 3
+!INTEGER, PARAMETER :: O_COLDX     = 4
+!INTEGER, PARAMETER :: O_COLDY     = 5
+!INTEGER, PARAMETER :: O_LAYER     = 6
+!INTEGER, PARAMETER :: O_SEPARATOR = 7
+!INTEGER, PARAMETER :: O_DECIMAL   = 8
+CHARACTER(LEN=          4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate 
+!
+DATA oname  / 'real', 'imag'   /
+DATA loname /  4    ,  4       /
+opara  =  (/ '1.0000', '1.0000'/)
+lopara =  (/  6,        6      /)
+owerte =  (/  1.0,      1.0    /)
+!
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp)
+IF(ier_num /= 0) RETURN
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF(ier_num /= 0) RETURN
+!
+isdim = 1
+write(*,*) ' HDF5 ? ', lh5((1))
+IF(lpresent(O_REAL) .AND. lpresent(O_IMAG)) THEN        ! User specified REAL and IMAG
+   idata(1) = NINT(owerte(O_REAL))
+   idata(2) = NINT(owerte(O_IMAG))
+   IF(lh5(idata(1)).EQV.lh5(idata(2))  .AND.   &        ! Both DATA equivalent ?
+      lni(idata(1)).EQV.lni(idata(2))        ) THEN     ! Both DATA equivalent ?
+      IF(lh5(idata(1))) THEN                            ! Both are 3D
+         isdim = 3
+      ELSEIF(lni(idata(1))) THEN                        ! Both are 2D
+         isdim = 2
+         IF(.NOT. (nx(idata(1))==nx(idata(2)) .AND.    &
+                   ny(idata(1))==ny(idata(2))  )) THEN  ! Different length
+            ier_num = -74
+            ier_typ = ER_APPL
+            RETURN
+         ENDIF
+      ELSE                                              ! Both are 1D
+         isdim = 1    
+         IF(.NOT. (lenc(idata(1))==lenc(idata(2)))) THEN   ! Different length
+            ier_num = -74
+            ier_typ = ER_APPL
+            RETURN
+         ENDIF
+      ENDIF
+   ELSE
+      ier_num = -73                                     ! Data sets differ in dimension
+      ier_typ = ER_APPL
+      RETURN
+   ENDIF
+ELSEIF(lpresent(O_REAL) .AND. .NOT.lpresent(O_IMAG)) THEN  ! Only REAL part present
+   idata(1) = NINT(owerte(O_REAL))
+   idata(2) = 0
+   IF(lh5(idata(1))) THEN                                  ! 3D data set
+      isdim = 3
+   ELSEIF(lni(idata(1))) THEN                              ! 2D data set
+      isdim = 2
+   ELSE
+      isdim = 1
+   ENDIF
+ELSEIF(.NOT.lpresent(O_REAL) .AND. lpresent(O_IMAG)) THEN  ! Only IMAG part present
+   idata(1) = 0
+   idata(2) = NINT(owerte(O_REAL))
+   IF(lh5(idata(2))) THEN                                  ! 3D data set
+      isdim = 3
+   ELSEIF(lni(idata(2))) THEN                              ! 2D data set
+      isdim = 2
+   ELSE
+      isdim = 1
+   ENDIF
+ELSE
+   ier_num = -73
+   ier_typ = ER_APPL
+   RETURN
+ENDIF
+!
+IF(isdim==3) THEN                                          ! 2D FFT
+   CALL kuplot_do_fft_3D(idata, odata)
+ELSEIF(isdim==2) THEN                                      ! 2D FFT
+   CALL kuplot_do_fft_2D(idata, odata)
+ELSEIF(isdim==1) THEN                                      ! 1D FFT
+   CALL kuplot_do_fft_1D(idata, odata)
+ENDIF
+!
+END SUBROUTINE kuplot_do_fft
+!
+!*******************************************************************************
+!
+SUBROUTINE kuplot_do_fft_1D(idata, odata)
+!-
+!  Calculate 1D FFT of data set idata
+!+
+!
+USE kuplot_mod
+!
+USE map_1dtofield
+USE singleton
+USE wink_mod
+!
+IMPLICIT NONE
+!
+INTEGER, DIMENSION(2), INTENT(IN)  :: idata     ! Data set number to transform
+INTEGER, DIMENSION(2), INTENT(OUT) :: odata     ! Data set number to transform
+!
+INTEGER :: i
+INTEGER :: kdat
+INTEGER :: length             ! Data set length
+INTEGER, DIMENSION(3) :: num  ! DATA set dimensions
+INTEGER, DIMENSION(3) :: dsort
+COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:), ALLOCATABLE  :: k_data   ! The Kuplot in data set)
+COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:), ALLOCATABLE  :: pattern  ! The Curve to be FFT'd
+REAL :: xrange
+REAL :: xstep
+!
+!write(*,*) ' IDATA(1)',     (idata(1))
+!write(*,*) ' LENC(1) ', lenc(idata(1)), ' :', lenc(lbound(lenc,1):4)
+!write(*,*) ' OFFXY   ', offxy(0:2)
+!write(*,*) ' IZ      ', iz
+IF(idata(1)>0) THEN
+   length = lenc(idata(1))                      ! User provided real part
+   kdat   = 1
+ELSE
+   length = lenc(idata(2))                      ! User provided imag part
+   kdat   = 2
+ENDIF
+num    = 1
+num(1) = length
+dsort(1) = 1
+dsort(2) = 2
+dsort(3) = 3
+ALLOCATE(k_data (length))
+ALLOCATE(pattern(length))
+IF(idata(1)>0 .and. idata(2)>0) THEN            ! Got real and imag part
+   DO i=1,length
+      k_data(i) = CMPLX(y(offxy(idata(1)-1)+i), y(offxy(idata(2)-1)+i))
+   ENDDO
+ELSEIF(idata(1)>0) THEN                         ! Got real only
+   DO i=1,length
+      k_data(i) = CMPLX(y(offxy(idata(1)-1)+i), 0.0D0)
+   ENDDO
+ELSEIF(idata(2)>0) THEN                         ! Got imag only
+   DO i=1,length
+      k_data(i) = CMPLX(0.0D0, y(offxy(idata(2)-1)+i))
+   ENDDO
+ENDIF
+!
+CALL maptofftfd(num, dsort, k_data, pattern)
+!
+pattern = fft(pattern) / SQRT(REAL(num(1)))
+!
+CALL mapfftfdtoline(num, dsort, k_data, pattern)
+!
+offxy(iz  ) = offxy(iz-1) +   length
+offxy(iz+1) = offxy(iz-1) + 2*length
+!
+xrange = xmax(idata(kdat)) - xmin(idata(kdat))
+xstep  = xrange/REAL(lenc(idata(kdat)))
+DO i=1,length
+   y(offxy(iz-1)+i) = REAL(k_data(i))*SQRT(xrange*xstep)
+   y(offxy(iz  )+i) = IMAG(k_data(i))*SQRT(xrange*xstep)
+   x(offxy(iz-1)+i) = x(offxy(idata(1)-1)+i)/(xrange*xstep)
+   x(offxy(iz  )+i) = x(offxy(idata(1)-1)+i)/(xrange*xstep)
+ENDDO
+lenc(iz  ) = length
+lenc(iz+1) = length
+lni (iz)   = .FALSE.
+lni (iz+1) = .FALSE.
+lh5 (iz)   = .FALSE.
+lh5 (iz+1) = .FALSE.
+fname(iz  ) = 'Fourier_real'
+fname(iz+1) = 'Fourier_imag'
+iz = iz + 2
+!
+DEALLOCATE(k_data )
+DEALLOCATE(pattern)
+!
+END SUBROUTINE kuplot_do_fft_1D
+!
 !*****7**************************************************************** 
+!
+SUBROUTINE kuplot_do_fft_2D(idata, odata)
+!-
+!  Calculate 2D FFT of data set idata
+!+
+!
+USE kuplot_mod
+!
+USE map_1dtofield
+USE singleton
+USE wink_mod
+!
+IMPLICIT NONE
+!
+INTEGER, DIMENSION(2), INTENT(IN)  :: idata     ! Data set number to transform
+INTEGER, DIMENSION(2), INTENT(OUT) :: odata     ! Data set number to transform
+!
+INTEGER :: i, j
+INTEGER :: kdat
+INTEGER :: length             ! Data set length == nx * ny
+INTEGER, DIMENSION(3) :: num  ! DATA set dimensions
+INTEGER, DIMENSION(3) :: dsort
+COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:),   ALLOCATABLE  :: k_data   ! The Kuplot in data set)
+COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:), ALLOCATABLE  :: pattern  ! The Curve to be FFT'd
+REAL :: xrange
+REAL :: xstep
+REAL :: yrange
+REAL :: ystep
+!
+!
+!  Determine sequence of array dimensions 
+!
+IF(idata(1)>0) THEN              ! Real is provided
+   kdat   = 1
+ELSE                             ! Imag only
+   kdat   = 2
+ENDIF
+num(1) = nx(idata(kdat))
+num(2) = ny(idata(kdat))
+num(3) = 1
+length = num(1)*num(2)
+!
+dsort(1)      = MAXLOC(num, 1)
+num(dsort(1)) = -num(dsort(1))
+dsort(2)      = MAXLOC(num, 1)
+num(dsort(2)) = -num(dsort(2))
+dsort(3)      = MAXLOC(num, 1)
+num(dsort(3)) = -num(dsort(3))
+num = -num
+!
+!write(*,*) ' IDATA(1)',     idata(1), idata(2)
+!write(*,*) ' LENC(1) ', lenc(idata(1))!, ' :', lenc(lbound(lenc,1):4)
+!write(*,*) ' OFFXY   ', offxy(0:2)
+!write(*,*) ' OFFZ    ', offz (0:2)
+!write(*,*) ' IZ      ', iz
+!write(*,*) ' NUM ', num
+!write(*,*) ' length ', length
+!read(*,*) i
+ALLOCATE(k_data (length))
+ALLOCATE(pattern(num(dsort(1)), num(dsort(2)) ))
+IF(idata(1)>0 .and. idata(2)>0) THEN            ! Got real and imag part
+   DO i=1,length
+      k_data(i) = CMPLX(z(offz(idata(1)-1)+i), z(offz(idata(2)-1)+i))
+   ENDDO
+ELSEIF(idata(1)>0) THEN                         ! Got real only
+   DO i=1,length
+      k_data(i) = CMPLX(z(offz(idata(1)-1)+i), 0.0D0)
+   ENDDO
+ELSEIF(idata(2)>0) THEN                         ! Got imag only
+   DO i=1,length
+      k_data(i) = CMPLX(0.0D0, z(offz(idata(2)-1)+i))
+   ENDDO
+ENDIF
+!
+CALL maptofftfd(num, dsort, k_data, pattern)
+!
+pattern = fft(pattern) / SQRT(REAL(num(1)*num(2)))
+!
+CALL mapfftfdtoline(num, dsort, k_data, pattern)
+!
+offxy(iz  ) = offxy(iz-1) +   num(1)
+offxy(iz+1) = offxy(iz-1) + 2*num(1)
+offz (iz  ) = offz(iz-1) +   length
+offz (iz+1) = offz(iz-1) + 2*length
+!
+xrange = xmax(idata(kdat)) - xmin(idata(kdat))
+xstep  = xrange/REAL(lenc(idata(kdat)))
+yrange = ymax(idata(kdat)) - ymin(idata(kdat))
+ystep  = yrange/REAL(lenc(idata(kdat)))
+!
+DO i=1,length
+   z(offz(iz-1)+i) = REAL(k_data(i))*SQRT(xrange*xstep*yrange*ystep)
+   z(offz(iz  )+i) = IMAG(k_data(i))*SQRT(xrange*xstep*yrange*ystep)
+ENDDO
+DO i =1, nx(idata(kdat))
+   x(offxy(iz-1) +i) = x(offxy(idata(kdat)-1)+i)/(xrange*xstep)
+   x(offxy(iz  ) +i) = x(offxy(idata(kdat)-1)+i)/(xrange*xstep)
+ENDDO
+DO i =1, ny(idata(kdat))
+   y(offxy(iz-1) +i) = y(offxy(idata(kdat)-1)+i)/(xrange*ystep)
+   y(offxy(iz  ) +i) = y(offxy(idata(kdat)-1)+i)/(yrange*ystep)
+ENDDO
+fform(iz  ) = 'NI'
+fform(iz+1) = 'NI'
+nx  (iz)   = nx(idata(kdat))
+ny  (iz)   = ny(idata(kdat))
+nx  (iz+1) = nx(idata(kdat))
+ny  (iz+1) = ny(idata(kdat))
+lni (iz)   = .TRUE.
+lni (iz+1) = .TRUE.
+lh5 (iz)   = .FALSE.
+lh5 (iz+1) = .FALSE.
+lenc(iz  ) = MAX(nx  (iz), ny(iz))
+lenc(iz+1) = MAX(nx  (iz), ny(iz))
+fname(iz  ) = 'Fourier_real'
+fname(iz+1) = 'Fourier_imag'
+iz = iz + 2
+!write(*,*) ' OFFXY   ', offxy(0:4)
+!write(*,*) ' OFFZ    ', offz (0:4)
+!write(*,*) ' IZ      ', iz
+!
+DEALLOCATE(k_data)
+DEALLOCATE(pattern)
+!
+END SUBROUTINE kuplot_do_fft_2D
+!
+!*****7**************************************************************** 
+!
+SUBROUTINE kuplot_do_fft_3D(idata, odata)
+!-
+!  Calculate 3D FFT of data set idata
+!+
+!
+USE kuplot_mod
+USE kuplot_load_h5
+!
+USE errlist_mod
+USE map_1dtofield
+USE prompt_mod
+USE singleton
+USE wink_mod
+!
+IMPLICIT NONE
+!
+INTEGER, DIMENSION(2), INTENT(IN)  :: idata     ! Data set number to transform
+INTEGER, DIMENSION(2), INTENT(OUT) :: odata     ! Data set number to transform
+!
+INTEGER :: i, j
+INTEGER :: kdat
+INTEGER :: length             ! Data set length == nx * ny
+INTEGER, DIMENSION(3) :: num  ! DATA set dimensions
+INTEGER, DIMENSION(3) :: dsort
+REAL   (KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: k_data   ! The Kuplot in data set)
+COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: pattern  ! The Curve to be FFT'd
+REAL :: xrange
+REAL :: xstep
+REAL :: yrange
+REAL :: ystep
+REAL :: zrange
+REAL :: zstep
+INTEGER :: node_number_real
+INTEGER :: node_number_rnew
+!
+!
+!  Determine sequence of array dimensions 
+!
+IF(idata(1)>0) THEN              ! Real is provided
+   kdat   = 1
+ELSE                             ! Imag only
+   kdat   = 2
+ENDIF
+CALL hdf5_set_pointer(idata(kdat), ier_num, ier_typ, node_number_real)
+CALL hdf5_get_dims(idata(kdat), num)
+length = num(1)*num(2)*num(3)
+!
+dsort(1)      = MAXLOC(num, 1)
+num(dsort(1)) = -num(dsort(1))
+dsort(2)      = MAXLOC(num, 1)
+num(dsort(2)) = -num(dsort(2))
+dsort(3)      = MAXLOC(num, 1)
+num(dsort(3)) = -num(dsort(3))
+num = -num
+!
+ALLOCATE(k_data (num(1), num(2), num(3)))
+ALLOCATE(pattern(num(dsort(1)), num(dsort(2)), num(dsort(3)) ))
+!
+CALL hdf5_get_map(num, k_data)
+!
+CALL maptofftfd(num, dsort, k_data, pattern)
+!
+pattern = fft(pattern) / SQRT(REAL(num(1)*num(2)*num(3)))
+!
+CALL mapfftfdtoline(num, dsort, k_data, pattern)
+!
+CALL hdf5_copy_node(node_number_real, node_number_rnew)
+CALL hdf5_set_map(num, k_data)
+!
+DEALLOCATE(k_data)
+DEALLOCATE(pattern)
+!
+! Replace the current image with the central layer
+!
+IF(MOD(num(3),2)==0) THEN
+  i = num(3)/2
+ELSE
+  i = (num(3)+1)/2
+ENDIF
+CALL hdf5_place_kuplot( i, .TRUE., .TRUE., .TRUE.,                &
+   MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, xmin, xmax, ymin, ymax,     &
+   offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
+!
+END SUBROUTINE kuplot_do_fft_3D
+!
+!*****7**************************************************************** 
+!
       SUBROUTINE do_glat (zeile, lp, lsmooth) 
 !+                                                                      
 !     Smooth data set                                                   

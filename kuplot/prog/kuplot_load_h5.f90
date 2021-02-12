@@ -4,19 +4,54 @@ MODULE kuplot_load_h5
 !+
 USE hdf5
 !
+USE kuplot_config
 USE precision_mod
 !
 IMPLICIT NONE
 !
 PRIVATE
 PUBLIC hdf5_read
+PUBLIC hdf5_new_node
+PUBLIC hdf5_set_node
 PUBLIC hdf5_place_kuplot
+PUBLIC hdf5_set_pointer
+PUBLIC hdf5_find_node
+PUBLIC hdf5_copy_node
 PUBLIC hdf5_get_layer
 PUBLIC hdf5_get_height
 PUBLIC hdf5_get_direct
+PUBLIC hdf5_get_dims
+PUBLIC hdf5_get_map
+PUBLIC hdf5_set_map
+PUBLIC hdf5_reset
 !
 CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE :: h5_datasets       ! Names of the data set in file
 CHARACTER(LEN=PREC_STRING)                            :: h5_infile         ! input file
+INTEGER, DIMENSION(MAXKURVTOT)                        :: h5_ku_is_h5 = 0   ! Pointer from kuplot number to h5 number
+INTEGER, DIMENSION(MAXKURVTOT)                        :: h5_h5_is_ku = 0   ! Pointer from h5 number to kuplot number
+INTEGER                                               :: h5_number   = 0   ! Currently loaded h5 data sets
+!
+TYPE :: h5_data_struc
+   INTEGER                                               :: h5_data_num       ! Current data set number
+   CHARACTER(LEN=PREC_STRING)                            :: h5_infile         ! input file
+   INTEGER                                               :: h5_layer=1        ! Current layer in data set
+   LOGICAL                                               :: h5_direct         ! Direct space == TRUE
+   INTEGER                                               :: ndims             ! Number of dimensions
+   INTEGER                                               :: one_ndims         ! Number of dimensions
+   INTEGER(KIND=HSIZE_T), DIMENSION(3)                   :: h5_dims           ! Actual dimensions
+   INTEGER(KIND=HSIZE_T), DIMENSION(3)                   :: maxdims           ! Maximum dimensions
+   INTEGER(KIND=HSIZE_T), DIMENSION(3)                   :: one_dims          ! Actual dimensions
+   INTEGER(KIND=HSIZE_T), DIMENSION(3)                   :: one_maxdims       ! Maximum dimensions
+   REAL(KIND=PREC_SP)   , DIMENSION(:,:,:), ALLOCATABLE  :: h5_data           ! Actual diffraction data
+   REAL(KIND=PREC_DP)   , DIMENSION(3)                   :: h5_llims          ! Lower limits
+   REAL(KIND=PREC_DP)   , DIMENSION(3)                   :: h5_steps          ! steps in H, K, L
+   TYPE(h5_data_struc), POINTER                          :: after
+END TYPE h5_data_struc
+!
+TYPE(h5_data_struc), POINTER                          :: h5_root => NULL()
+TYPE(h5_data_struc), POINTER                          :: h5_temp => NULL()
+TYPE(h5_data_struc), POINTER                          :: h5_find => NULL()
+!
 INTEGER                                               :: H5_MAX_DATASETS   ! Current MAX data sets
 INTEGER                                               :: h5_n_datasets     ! Current actual data sets
 INTEGER                                               :: h5_layer=1        ! Current layer in data set
@@ -121,6 +156,8 @@ h5_infile = infile
 dataname = ' '
 !dset_id  = 0
 !file_id  = 0
+CALL hdf5_new_node
+!
 !
 H5_MAX_DATASETS = 10                                        ! Initial estimate of dataset number
 ALLOCATE(h5_datasets(H5_MAX_DATASETS))
@@ -302,6 +339,14 @@ CALL h5fclose_f(file_id, hdferr)                             ! Close the input f
 CALL H5close_f(hdferr)                                    ! Close HDF interface
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Copy into H5 storage
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+CALL hdf5_set_node(h5_infile, h5_layer, h5_direct, ndims, one_ndims, h5_dims, &
+                   maxdims, one_dims, one_maxdims, h5_data, h5_llims, h5_steps)
+ 
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Copy into KUPLOT array
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
@@ -340,8 +385,104 @@ CALL hdf5_place_kuplot(nlayer, .TRUE.,.TRUE., .TRUE.,               &
    offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
 !
 DEALLOCATE(h5_datasets)
+DEALLOCATE(h5_data)
 !
 END SUBROUTINE hdf5_read
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_new_node
+!-
+! Create a new node
+!+
+IF(ASSOCIATED(h5_root)) THEN                                ! A root node exists
+write(*,*) ' ROOT EXISTED '
+   h5_temp => h5_root                                       ! Point to current node
+   find_node: DO WHILE(ASSOCIATED(h5_temp%after))           ! Does next node exist?
+write(*,*) ' AFTER EXISTED '
+      h5_temp => h5_temp%after                              ! Next node exists, point to this next node
+   ENDDO find_node
+   ALLOCATE(h5_temp%after)                                  ! Create next node
+   h5_temp => h5_root%after                                 ! Point to Current working node
+ELSE
+   ALLOCATE(h5_root)                                        ! Create first node
+   NULLIFY(h5_root%after)
+   h5_temp => h5_root                                       ! Point to Current working node
+ENDIF
+! Work on current node
+NULLIFY(h5_temp%after)
+h5_temp%h5_data_num = h5_number + 1                         ! Increment the data number
+h5_number = h5_number + 1                                   ! Increment the global data number
+write(*,*) 'CURRENT IS ', h5_number
+!
+END SUBROUTINE hdf5_new_node
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_copy_node(old, new)
+!-
+!  Copies old node to new node
+!+
+INTEGER, INTENT(IN)  :: old
+INTEGER, INTENT(OUT) :: new
+INTEGER :: ier_num
+INTEGER :: ier_typ
+!
+CALL hdf5_find_node(old, ier_num, ier_typ)
+CALL hdf5_new_node
+h5_temp%h5_infile   = h5_find%h5_infile         ! input file
+h5_temp%h5_layer    = h5_find%h5_layer          ! Current layer in data set
+h5_temp%h5_direct   = h5_find%h5_direct         ! Direct space == TRUE
+h5_temp%ndims       = h5_find%ndims          ! Number of dimensions
+h5_temp%one_ndims   = h5_find%one_ndims      ! Number of dimensions
+h5_temp%h5_dims     = h5_find%h5_dims           ! Actual dimensions
+h5_temp%maxdims     = h5_find%maxdims        ! Maximum dimensions
+h5_temp%one_dims    = h5_find%one_dims       ! Actual dimensions
+h5_temp%one_maxdims = h5_find%one_maxdims    ! Maximum dimensions
+ALLOCATE(h5_temp%h5_data(h5_temp%h5_dims(1), h5_temp%h5_dims(2), h5_temp%h5_dims(3)))
+h5_temp%h5_data     = h5_find%h5_data           ! Actual diffraction data
+h5_temp%h5_llims    = h5_find%h5_llims          ! Lower limits
+h5_temp%h5_steps    = h5_find%h5_steps          ! steps in H, K, L
+!
+new = h5_temp%h5_data_num
+!
+END SUBROUTINE hdf5_copy_node
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_set_node(l_infile, l_layer, l_direct, l_ndims, l_one_ndims, l_dims, &
+                   l_maxdims, l_one_dims, l_one_maxdims, l_data, l_llims, l_steps)
+!-
+!  Place the temporary values into the current hdf5 node
+!+
+CHARACTER(LEN=*)                   , INTENT(IN)       :: l_infile         ! Input file
+INTEGER                            , INTENT(IN)       :: l_layer          ! Current layer in data set
+LOGICAL                            , INTENT(IN)       :: l_direct         ! Direct space == TRUE
+INTEGER                            , INTENT(IN)       :: l_ndims          ! Number of dimensions
+INTEGER                            , INTENT(IN)       :: l_one_ndims      ! Number of dimensions
+INTEGER(KIND=HSIZE_T), DIMENSION(3), INTENT(IN)       :: l_dims           ! Actual dimensions
+INTEGER(KIND=HSIZE_T), DIMENSION(3), INTENT(IN)       :: l_maxdims        ! Maximum dimensions
+INTEGER(KIND=HSIZE_T), DIMENSION(3), INTENT(IN)       :: l_one_dims       ! Actual dimensions
+INTEGER(KIND=HSIZE_T), DIMENSION(3), INTENT(IN)       :: l_one_maxdims    ! Maximum dimensions
+REAL(KIND=PREC_SP)   , DIMENSION(l_dims(1), l_dims(2), l_dims(3)), INTENT(IN):: l_data           ! Actual diffraction data
+REAL(KIND=PREC_DP)   , DIMENSION(3), INTENT(IN)       :: l_llims          ! Lower limits
+REAL(KIND=PREC_DP)   , DIMENSION(3), INTENT(IN)       :: l_steps          ! steps in H, K, L
+!
+h5_temp%h5_infile   = l_infile         ! input file
+h5_temp%h5_layer    = l_layer          ! Current layer in data set
+h5_temp%h5_direct   = l_direct         ! Direct space == TRUE
+h5_temp%ndims       = l_ndims          ! Number of dimensions
+h5_temp%one_ndims   = l_one_ndims      ! Number of dimensions
+h5_temp%h5_dims     = l_dims           ! Actual dimensions
+h5_temp%maxdims     = l_maxdims        ! Maximum dimensions
+h5_temp%one_dims    = l_one_dims       ! Actual dimensions
+h5_temp%one_maxdims = l_one_maxdims    ! Maximum dimensions
+ALLOCATE(h5_temp%h5_data(h5_temp%h5_dims(1), h5_temp%h5_dims(2), h5_temp%h5_dims(3)))
+h5_temp%h5_data     = l_data           ! Actual diffraction data
+h5_temp%h5_llims    = l_llims          ! Lower limits
+h5_temp%h5_steps    = l_steps          ! steps in H, K, L
+!
+END SUBROUTINE hdf5_set_node
 !
 !*******************************************************************************
 !
@@ -455,13 +596,14 @@ SUBROUTINE hdf5_place_kuplot(nlayer, lset, lnew, lshow,                &
    MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
    xmin, xmax, ymin, ymax, &
    offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
-
+!
 !-
 ! PLace a curve into the kuplot section, 
 ! IF lset==TRUE set absolute layer , else increment
 ! IF lnew==TRUE, make new curve, 
 ! IF lshow = TRUE display data
 !+
+!
 IMPLICIT NONE
 !
 INTEGER, INTENT(IN) :: nlayer    ! Cut this layer from the data
@@ -493,48 +635,62 @@ INTEGER,                 INTENT(OUT) :: ier_typ
 !
 INTEGER :: i,j,k, ll             ! dummy indices
 INTEGER :: izz
+INTEGER :: node_number
 !
-IF(lset) THEN
-  h5_layer = nlayer
-ELSE
-  h5_layer = MAX(1,MIN(INT(h5_dims(1)), h5_layer+nlayer))
-ENDIF
-IF(lnew) THEN
+IF(lnew) THEN            ! This is a new data set, from 'load' command
    izz = iz
-ELSE
+   h5_h5_is_ku(h5_number) = izz
+   h5_ku_is_h5(izz      ) = h5_number
+   node_number = h5_number
+ELSE                     ! Overwrite current KUPLOT data set
    izz = iz - 1
 ENDIF
+!                        ! Locate this data set in the h5 storage
+IF(.NOT. ASSOCIATED(h5_root)) THEN
+   ier_num = -74         ! Root node does not exist !
+   ier_typ =   6         ! ER_APPL
+   RETURN
+ENDIF
+CALL hdf5_set_pointer(izz, ier_num, ier_typ, node_number)
+!
+IF(lset) THEN
+  h5_temp%h5_layer = nlayer
+ELSE
+  h5_temp%h5_layer = MAX(1,MIN(INT(h5_temp%h5_dims(1)), h5_temp%h5_layer+nlayer))
+ENDIF
 ll = 0
-k = h5_layer
-DO i = 1, h5_dims(3)
-  DO j = 1, h5_dims(2)
+k = h5_temp%h5_layer
+DO i = 1, h5_temp%h5_dims(3)
+  DO j = 1, h5_temp%h5_dims(2)
      ll = ll + 1
-     z(offz(izz - 1) + ll ) = h5_data(k,j,i)
+     z(offz(izz - 1) + ll ) = h5_temp%h5_data(k,j,i)
   ENDDO
 ENDDO
-nx(izz) = h5_dims(3)
-ny(izz) = h5_dims(2)
-xmin(izz) = h5_llims(1)
-xmax(izz) = h5_llims(1) + (nx(izz)-1)*h5_steps(1)
-ymin(izz) = h5_llims(2)
-ymax(izz) = h5_llims(2) + (ny(izz)-1)*h5_steps(2)
+nx(izz) = h5_temp%h5_dims(3)
+ny(izz) = h5_temp%h5_dims(2)
+xmin(izz) = h5_temp%h5_llims(1)
+xmax(izz) = h5_temp%h5_llims(1) + (nx(izz)-1)*h5_temp%h5_steps(1)
+ymin(izz) = h5_temp%h5_llims(2)
+ymax(izz) = h5_temp%h5_llims(2) + (ny(izz)-1)*h5_temp%h5_steps(2)
 DO i = 1, nx(izz)
-   x(offxy(izz - 1) + i) = xmin(izz) + (i - 1) * h5_steps(1)
+   x(offxy(izz - 1) + i) = xmin(izz) + (i - 1) * h5_temp%h5_steps(1)
 ENDDO
 DO i = 1, ny(izz)
-   y(offxy(izz - 1) + i) = ymin(izz) + (i - 1) * h5_steps(2)
+   y(offxy(izz - 1) + i) = ymin(izz) + (i - 1) * h5_temp%h5_steps(2)
 ENDDO
 lni (izz) = .TRUE.
 lh5 (izz) = .TRUE.
 lenc(izz) = MAX(nx(izz), ny(izz))
 offxy(izz) = offxy(izz - 1) + lenc(izz)
 offz (izz) = offz (izz - 1) + nx(izz) * ny(izz)
-fname(izz) = h5_infile(1:LEN_TRIM(h5_infile))
+fname(izz) = h5_temp%h5_infile(1:LEN_TRIM(h5_temp%h5_infile))
+h5_h5_is_ku(node_number) = izz       ! H5 Data set 1 is stored in Kuplot as number izz
+h5_ku_is_h5(izz        ) = node_number ! Kuplot data set izz is stored in H5 number 1
 IF(lnew) iz = iz + 1
 !
 IF(lshow) THEN
    CALL show_data(iz - 1)!
-   WRITE(output_io,1000) h5_dims(3), h5_dims(2), h5_dims(1)
+   WRITE(output_io,1000) h5_temp%h5_dims(3), h5_temp%h5_dims(2), h5_temp%h5_dims(1)
    WRITE(output_io,1100) nlayer
    1000 FORMAT('   Full size:', 2(i7,' x'), i7, ' points')
    1100 FORMAT('   At  layer:',   i7      ,/)
@@ -544,11 +700,67 @@ END SUBROUTINE hdf5_place_kuplot
 !
 !*******************************************************************************
 !
+SUBROUTINE hdf5_set_pointer(izz, ier_num, ier_typ, node_number)
+!-
+!  Find the node associated to kuplot data set number izz
+!+
+INTEGER, INTENT(IN ) :: izz
+INTEGER, INTENT(OUT) :: ier_num
+INTEGER, INTENT(OUT) :: ier_typ
+INTEGER, INTENT(OUT) :: node_number
+!
+h5_temp => h5_root
+find_node: DO            ! Search for node
+   IF(h5_ku_is_h5(izz) == h5_temp%h5_data_num) THEN
+      node_number = h5_temp%h5_data_num
+      EXIT find_node
+   ELSE
+      IF(ASSOCIATED(h5_temp%after)) THEN    ! A next node exists 
+         h5_temp => h5_temp%after
+      ELSE
+         ier_num = -74         ! Root node does not exist !
+         ier_typ =   6         ! ER_APPL
+         RETURN
+      ENDIF
+   ENDIF
+ENDDO find_node
+!
+END SUBROUTINE hdf5_set_pointer
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_find_node(node_number, ier_num, ier_typ)
+!-
+!  Find the node with node_number
+!+
+INTEGER, INTENT(IN)  :: node_number
+INTEGER, INTENT(OUT) :: ier_num
+INTEGER, INTENT(OUT) :: ier_typ
+!
+h5_find => h5_root
+find_node: DO            ! Search for node
+   IF(node_number == h5_find%h5_data_num) THEN
+      EXIT find_node
+   ELSE
+      IF(ASSOCIATED(h5_find%after)) THEN    ! A next node exists 
+         h5_find => h5_find%after
+      ELSE
+         ier_num = -74         ! Root node does not exist !
+         ier_typ =   6         ! ER_APPL
+         RETURN
+      ENDIF
+   ENDIF
+ENDDO find_node
+!
+END SUBROUTINE hdf5_find_node
+!
+!*******************************************************************************
+!
 INTEGER FUNCTION hdf5_get_layer()
 !
 IMPLICIT NONE
 !
-hdf5_get_layer = h5_layer
+hdf5_get_layer = h5_temp%h5_layer
 !
 END FUNCTION hdf5_get_layer
 !
@@ -558,7 +770,7 @@ LOGICAL FUNCTION hdf5_get_direct()
 !
 IMPLICIT NONE
 !
-hdf5_get_direct = h5_direct
+hdf5_get_direct = h5_temp%h5_direct
 !
 END FUNCTION hdf5_get_direct
 !
@@ -568,9 +780,93 @@ REAL FUNCTION hdf5_get_height()
 !
 IMPLICIT NONE
 !
-hdf5_get_height = h5_llims(3) + (h5_layer-1)*h5_steps(3)
+hdf5_get_height = h5_temp%h5_llims(3) + (h5_temp%h5_layer-1)*h5_temp%h5_steps(3)
 !
 END FUNCTION hdf5_get_height
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_get_dims(idata, dims)
+!
+IMPLICIT NONE
+!
+INTEGER,               INTENT(IN)  :: idata
+INTEGER, DIMENSION(3), INTENT(OUT) :: dims
+!
+dims = h5_temp%h5_dims
+!
+END SUBROUTINE hdf5_get_dims
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_get_map(dims, odata)
+!
+IMPLICIT NONE
+!
+INTEGER,            DIMENSION(3),                         INTENT(IN)  :: dims
+REAL(KIND=PREC_DP), DIMENSION(dims(1), dims(2), dims(3)), INTENT(OUT) :: odata
+!
+INTEGER :: i,j,k
+!
+DO i=1, dims(1)
+   DO j=1, dims(2)
+      DO k=1, dims(3)
+         odata(i,j,k) = h5_temp%h5_data(i,j,k)
+      ENDDO
+   ENDDO
+ENDDO
+!
+END SUBROUTINE hdf5_get_map
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_set_map(dims, odata)
+!
+IMPLICIT NONE
+!
+INTEGER,            DIMENSION(3),                         INTENT(IN) :: dims
+REAL(KIND=PREC_DP), DIMENSION(dims(1), dims(2), dims(3)), INTENT(IN) :: odata
+!
+INTEGER :: i,j,k
+!
+DO i=1, dims(1)
+   DO j=1, dims(2)
+      DO k=1, dims(3)
+         h5_temp%h5_data(i,j,k)= odata(i,j,k) 
+      ENDDO
+   ENDDO
+ENDDO
+!
+END SUBROUTINE hdf5_set_map
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_reset
+!
+TYPE(h5_data_struc), POINTER :: h5_current => NULL()
+!
+IF(ASSOCIATED(h5_root)) THEN       ! A storage does exist
+   h5_temp => h5_root
+   IF(ALLOCATED(h5_temp%h5_data)) DEALLOCATE(h5_temp%h5_data)
+   find_node: DO 
+      IF(ASSOCIATED(h5_temp%after)) THEN   ! A next node exists
+         h5_current => h5_temp             ! Point to current
+         h5_temp    => h5_temp%after       ! Point to next node
+         DEALLOCATE(h5_current)            ! Clean up current node
+      ELSE
+         h5_current => h5_temp             ! Point to current
+         DEALLOCATE(h5_current)            ! Clean up current node
+         EXIT find_node                    ! We are done
+      ENDIF
+   ENDDO find_node
+ENDIF
+NULLIFY(h5_temp)
+NULLIFY(h5_root)
+h5_number   = 0
+h5_h5_is_ku = 0
+h5_ku_is_h5 = 0
+!
+END SUBROUTINE hdf5_reset
 !
 !*******************************************************************************
 !

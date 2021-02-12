@@ -280,6 +280,8 @@ CHARACTER(LEN=8)           :: bef
 !                                                                       
          ELSEIF (str_comp (bef, 'four', 2, lbef, 4) ) then 
             CALL do_four (zei, lc) 
+         ELSEIF (str_comp (bef, 'fft' , 2, lbef, 3) ) then 
+            CALL kuplot_do_fft (zei, lc) 
 !                                                                       
 !-------  Create data set from function                                 
 !                                                                       

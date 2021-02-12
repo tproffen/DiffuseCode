@@ -1252,6 +1252,7 @@ USE str_comp_mod
       USE param_mod
 USE str_comp_mod
       USE take_param_mod
+USE kuplot_load_h5, ONLY: hdf5_reset
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1317,6 +1318,8 @@ USE str_comp_mod
             ier_typ = ER_APPL 
          ENDIF 
       ENDIF 
+!
+CALL hdf5_reset
 !                                                                       
  1000 FORMAT     (1x,'Resetting ..') 
  1100 FORMAT     (1x,'Resetting - all parameters ..') 

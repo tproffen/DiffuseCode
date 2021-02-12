@@ -9,11 +9,13 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      parameter    (iu=-72,io=0)
+      parameter    (iu=-74,io=0)
 !
       character(LEN=45) ::  error(iu:io)
 !
       data error ( iu: -61) /                      &
+     &  'Data sets are of different length',       &! -74  ! kupl
+     &  'Data sets differ in dimension',           &! -73  ! kupl
      &  'HDF5 is not supported in this version',   &! -72  ! kupl
      &  'Optional layer number invalid',           &! -71  ! kupl
      &  'Trouble reading dataset list   ',         &! -70  ! kupl
