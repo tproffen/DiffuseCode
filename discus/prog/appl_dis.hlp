@@ -75,6 +75,13 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2021_February
+
+   Added an option to accumulate several diffraction pattern prior to output
+   ==> fourier/set
+   Added an option to apply symmetry averaging to a diffraction pattern
+   ==> fourier/set
+
 3  2020_Dezember
 
    Added "xplor" output file format for diffraction data.
@@ -3175,6 +3182,8 @@
 3  set
 !p set "aver" [, <per>]
 !p set {"external"|"internal"}
+!p     {"mode:single" | "mode:init" | "mode:accumulate" | "mode:finish"}
+!p     "symm:apply"
 
 !p set "aver" [, <per>]
 
@@ -3191,6 +3200,28 @@
    If the command 'purge' is performed or a structure is read where the 
    atoms are not listed in the DISCUS order the average structure will
    not be calculated correctly !
+
+!p     {"mode:single" | "mode:init" | "mode:accumulate" | "mode:finish"}
+
+   As default mode, DISCUS will calculate a single Fourier transform 
+   that can be written to an output file. 
+   As an alternative to the ==> 'lots' command, you can also perform a
+   simulation and calculate a diffraction pattern and then accumulate
+   several such calculations into the final pattern.
+   Prior to such a loop, use within the fourier menu the command
+   set mode:init
+   During the loop use 'set mode:accumulate'
+   After the loop go back to fourier and use:
+   set mode:finish
+   before you use the ==> 'output' manu to write the data.
+
+!p For a small to moderate crystal, the actual realization of the disorder
+   might not match the crystals symmetry very well. you can improve the
+   situation by applying the point group symmetry to the diffraction 
+   pattern with:
+   set symm:apply
+   This optional parameter can be combined with the 'mode:finish' parameter
+   and will apply both to a single as well as to an accumulated pattern.
 
 !p set {"external"|"internal"}
 
@@ -4617,6 +4648,8 @@
 !p help    ! Gives help for the output level (see main help)
 !p input   ! Reads an old data file
 !p outfile ! Sets name of output file
+!p range   ! Limit the range of a 3DPDF, most useful in combination with
+!p         ! format "xplor"
 !p reset   ! Reset and clear all definitions
 !p run     ! Starts writing of output
 !p show    ! Shows the current settings
@@ -4631,7 +4664,7 @@
 !p       "pdf" [,"r" [,<min>,<max>,<step>] ] 
 !p     | "post" | "shel" | "stan" | "hklf4" | "list5" | "nexus" |
 !p       "vtk" | "mrc" | "xplor" 
-!p     | "hdf5" }
+!p     | "hdf5" [,"maxval:"{"auto"|"data"|<value>"]" }
 
    Defines the output format that will be used. 
    Valid parameters are:
@@ -4861,7 +4894,7 @@
 !p           "hklmax"  : value is length of reciprocal vector
 !p           WARNING, as the intensity is multiplied with zero, 
 !p              all further output is truncated as well!
-!p              To avoid write 3D-PDF output last.
+!p              To avoid, write 3D-PDF output last.
 !p           Defaults to no limit to be applied.
 !p "S(Q)":   Normalized total scattering function
 !p "F(Q)":   Reduced normalized total scattering function Q[S(Q)-1]
