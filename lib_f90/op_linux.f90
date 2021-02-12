@@ -70,9 +70,6 @@ IMPLICIT NONE
 !
 ! Currently no need for specifics
 !
-IF(operating==OS_LINUX_WSL) THEN
-   WRITE(output_io,'(a)') 'DISCUS_SUITE is finished, please close this window'
-ENDIF
 !
 END SUBROUTINE operating_exit
 !
