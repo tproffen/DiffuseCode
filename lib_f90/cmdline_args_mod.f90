@@ -29,15 +29,15 @@ CHARACTER(LEN=2048)                  :: line = ' '
 INTEGER :: iarg, i, j,  ilen , ilena
 LOGICAL :: lexist, lautorun
 !
-IF(start_dir(1:5)=='/mnt/') THEN 
-   line = 'autorun.mac'
-   ilen = LEN_TRIM(line)
-   INQUIRE(FILE=line(1:ilen), EXIST=lexist)
-   IF(lexist) THEN
-      CALL file_kdo(line(1:ilen), ilen) ! Execute macro and return to normal prompt
-   ENDIF
-   RETURN    ! Ignore all command line args at WINDOWS 
-ENDIF
+!IF(start_dir(1:5)=='/mnt/') THEN 
+!   line = 'autorun.mac'
+!   ilen = LEN_TRIM(line)
+!   INQUIRE(FILE=line(1:ilen), EXIST=lexist)
+!   IF(lexist) THEN
+!      CALL file_kdo(line(1:ilen), ilen) ! Execute macro and return to normal prompt
+!   ENDIF
+!   RETURN    ! Ignore all command line args at WINDOWS 
+!ENDIF
 !
 lautorun = .TRUE.                ! Assume to run macro: "autorun.mac"
 !                                                                       
