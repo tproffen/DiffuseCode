@@ -272,40 +272,42 @@ CHARACTER(LEN=*), INTENT(INOUT) :: dir
 INTEGER         , INTENT(INOUT) :: ld
 LOGICAL         , INTENT(IN)    :: echo 
 !
-CHARACTER(LEN=PREC_STRING) :: cwd 
+CHARACTER(LEN=PREC_STRING) :: cwd                    ! to wotk with locally
+CHARACTER(LEN=PREC_STRING) :: cwd_echo               ! For display only
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=   1)        :: drive
 CHARACTER(LEN=   6)        :: mntdrive
 INTEGER                    :: i
+INTEGER                    :: lld
 INTEGER, DIMENSION(MAXW)   :: lpara
 INTEGER                    :: ianz 
 INTEGER                    :: dummy 
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
 !                                                                       
-IF (dir.eq.' ') then 
+IF (dir.eq.' ') THEN 
    CALL sys_holecwd(cwd, dummy)
-   ld = LEN_TRIM(cwd) 
-   dir = cwd 
+   ld  = LEN_TRIM(cwd) 
+   dir = cwd                                    ! Update user directory
+   cwd_echo = cwd                               ! Make copy for display
    IF(operating==OS_LINUX_WSL) THEN
-      DO i=1, ld
+      lld = LEN_TRIM(cwd_echo)
+      DO i=1, lld
          IF(cwd(i:i)=='/') cwd(i:i)='\'
       ENDDO
-      IF(cwd(ld:ld) /= '\') THEN
-         cwd(ld+1:ld+1) = '\'
-         ld = ld + 1
+      IF(cwd(lld:lld) /= '\') THEN
+         cwd(lld+1:lld+1) = '\'
+         lld = lld + 1
       ENDIF
       IF(cwd(1:5) == '\mnt\') THEN
          drive = cwd(6:6)
          CALL do_cap(drive)
-         cwd = drive // ':' // cwd(7:ld)
-         ld = LEN_TRIM(cwd)
+         cwd_echo = drive // ':' // cwd(7:lld)
       ENDIF
    ENDIF
    IF (echo) then 
-      ld = LEN_TRIM(cwd)
-      WRITE ( *, 1000) cwd (1:ld) 
+      WRITE ( *, 1000) cwd_echo(1:LEN_TRIM(cwd_echo)) 
    ENDIF 
 ELSE 
    ld = -ld
@@ -328,39 +330,43 @@ ELSE
          IF(cpara(1)(i:i)=='\') cpara(1)(i:i) = '/'
       ENDDO
    ENDIF
-   cwd = cpara (1) (1:lpara (1) ) 
-   ld = lpara (1) 
-   CALL sys_chdir (cwd (1:ld), ier_num) 
+   cwd = cpara(1)(1:lpara (1) ) 
+   ld  = lpara(1) 
+   CALL sys_chdir(cwd(1:ld), ier_num) 
    IF (ier_num.eq.0) then 
       ier_typ = ER_NONE 
       CALL sys_holecwd(cwd, dummy)
-      ld = len_str (cwd) 
+      ld = LEN_TRIM(cwd) 
       IF(cwd(ld:ld) /= '/' ) THEN
          cwd = cwd(1:ld) // '/'
          ld  = ld + 1
       ENDIF
-      current_dir   = cwd(1:LEN(current_dir))
-      current_dir_l = MIN(ld, LEN(current_dir))
-      dir = current_dir
-      ld  = current_dir_l
+      cwd_echo = cwd
       IF(operating==OS_LINUX_WSL) THEN
-         DO i=1, ld
-            IF(cwd(i:i)=='/') cwd(i:i)='\'
+         lld = LEN_TRIM(cwd_echo)
+         DO i=1, lld
+            IF(cwd_echo(i:i)=='/') cwd_echo(i:i)='\'
          ENDDO
-         IF(cwd(1:5) == '\mnt\') THEN
-            drive = cwd(6:6)
+         IF(cwd_echo(1:5) == '\mnt\') THEN
+            drive = cwd_echo(6:6)
             CALL do_cap(drive)
-            cwd = drive // ':' // cwd(7:ld)
-            ld = LEN_TRIM(cwd)
+            cwd_echo = drive // ':' // cwd_echo(7:lld)
          ENDIF
+      ELSE
+         cwd_echo = cwd
       ENDIF
-      IF(echo) WRITE (output_io, 1000) cwd (1:ld)
+      IF(echo) WRITE (output_io, 1000) cwd_echo(1:LEN_TRIM(cwd_echo))
    ELSE 
       WRITE ( *, 2000) ier_num 
       ier_num = - 5 
       ier_typ = ER_COMM 
    ENDIF 
 ENDIF 
+!
+current_dir   = cwd(1:LEN(current_dir))             ! Update the global variable
+current_dir_l = MIN(ld, LEN(current_dir))
+dir = cwd
+ld  = LEN_TRIM(dir)
 !                                                                       
  1000 FORMAT    (' ------ > Working directory : ',a) 
  2000 FORMAT    (' ****SYST**** Unable to change directory - Error :',  &
