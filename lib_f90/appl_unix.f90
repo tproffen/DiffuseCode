@@ -1104,6 +1104,7 @@ CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: cdir              ! previous current directory
 CHARACTER(LEN=PREC_STRING) :: code_str          ! optional "code=" string
 CHARACTER(LEN=PREC_STRING) :: inst_str          ! optional "install=" string
+CHARACTER(LEN=PREC_STRING) :: prep_str          ! optional "prepare=" string
 CHARACTER(LEN=128)          :: discus_version
 CHARACTER(LEN=128)         :: discus_power
 CHARACTER(LEN= 9)          :: grep
@@ -1118,9 +1119,10 @@ CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 !REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 INTEGER           , DIMENSION(MAXW) :: lpara
 INTEGER                             :: ianz
-INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_CODE    = 1
 INTEGER, PARAMETER :: O_INSTALL = 2
+INTEGER, PARAMETER :: O_PREPARE = 2
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -1129,11 +1131,11 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'code', 'install'/
-DATA loname /  4    ,  7   /
-opara  =  (/ 'pre  ', 'fetch' /)   ! Always provide fresh default values
-lopara =  (/  3,       5        /)
-owerte =  (/  0.0,     0.0      /)
+DATA oname  / 'code', 'install', 'prepare'/
+DATA loname /  4    ,  7       ,  7       /
+opara  =  (/ 'pre      ', 'fetch    '  , 'libraries'/)   ! Always provide fresh default values
+lopara =  (/  3,           5           ,  9         /)
+owerte =  (/  0.0,         0.0         ,  0.0       /)
 !
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp)
@@ -1143,8 +1145,10 @@ CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 code_str = 'code=pre'
 inst_str = 'install=fetch'
+prep_str = 'prepare=libraries'
 CALL do_low(opara(O_CODE))
 CALL do_low(opara(O_INSTALL))
+CALL do_low(opara(O_PREPARE))
 IF(opara(O_CODE) == 'pre') THEN
    code_str = 'code=pre'
 ELSEIF(opara(O_CODE) == 'git') THEN
@@ -1174,6 +1178,17 @@ ELSE
    RETURN
 ENDIF
 !
+IF(opara(O_PREPARE) == 'libraries') THEN
+   prep_str = 'prepare=libraries'
+ELSEIF(opara(O_PREPARE) == 'none') THEN
+   prep_str = 'prepare=none'
+ELSE
+   ier_num = -6
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Optional parameter ''prepare'' must be ''libraries'' or ''none'' '
+   RETURN
+ENDIF
+!
 discus_power  ='/tmp/DISCUS_POWER'
 WRITE(discus_version,'(a,a)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_VERSION' ! Initiate search for new version
 !
@@ -1197,6 +1212,7 @@ IF(operating == OS_LINUX) THEN
              ' $HOME/' // script(1:LEN_TRIM(script)) //      &
              ' started=native ' //                           &
              code_str(1:LEN_TRIM(code_str)) // ' ' //        &
+             prep_str(1:LEN_TRIM(prep_str)) // ' ' //        &
              inst_str(1:LEN_TRIM(inst_str))
 ELSEIF(operating == OS_LINUX_WSL) THEN
    grep    = 'grep -Poe'
@@ -1227,6 +1243,7 @@ ELSEIF(operating == OS_MACOSX) THEN
    command = ' $HOME/' // script(1:LEN_TRIM(script)) //      &
              ' started=native ' //                           &
              code_str(1:LEN_TRIM(code_str)) // ' ' //        &
+             prep_str(1:LEN_TRIM(prep_str)) // ' ' //        &
              inst_str(1:LEN_TRIM(inst_str))
    WRITE(IWR, '(a)' ) '#!/bin/zsh'
    WRITE(IWR, '(a)' ) command(1:LEN_TRIM(command))
