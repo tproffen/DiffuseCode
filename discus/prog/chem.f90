@@ -1625,6 +1625,13 @@ INTEGER :: n_atom   ! Dummy number of vectors
 !------ set neig,add : Add neighbour definition to list                 
 !                                                                       
 IF(cpara(1)(1:2) == 'AD' .AND. ianz == 1) THEN 
+   IF(chem_ncor==1) THEN                   ! This might be erroneous first 'add' command
+      IF(MAXVAL(chem_nvec)==0 .AND. MAXVAL(chem_ncon)==0 .AND.         &
+         MAXVAL(chem_nwin)==0 .AND.                                    &
+         MAXVAL(chem_nran)==0 .AND. MAXVAL(chem_nenv)==0       ) THEN
+         RETURN                            ! Ignore erroneous first 'add' command
+      ENDIF 
+   ENDIF 
    IF(chem_ncor == CHEM_MAX_COR) THEN      ! Need to allocate more correlations
       n_cor = CHEM_MAX_COR + 10
       CALL alloc_chem_correlation(n_cor)
@@ -1651,12 +1658,13 @@ IF(cpara(1)(1:2) == 'AD' .AND. ianz == 1) THEN
          CALL alloc_chem_env ( n_atom , n_env, n_cor )
       ENDIF
    ENDIF
-         IF (chem_ncor.lt.CHEM_MAX_COR) THEN 
-            chem_ncor = chem_ncor + 1 
-         ELSE 
-            ier_num = - 12 
-            ier_typ = ER_CHEM 
-         ENDIF 
+!
+   IF (chem_ncor.lt.CHEM_MAX_COR) THEN 
+      chem_ncor = chem_ncor + 1 
+   ELSE 
+      ier_num = - 12 
+      ier_typ = ER_CHEM 
+   ENDIF 
 !                                                                       
 !------ set neig,rese : Reset neighbour list                            
 !                                                                       
