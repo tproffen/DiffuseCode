@@ -35,6 +35,13 @@ CHARACTER(LEN=9)   :: at_name_i
 INTEGER            :: n_atom_cell  ! Dummy for allocation
 INTEGER            :: n_max_atom   ! Dummy for allocation
 !
+INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_chem_ave_iscat
+REAL   , DIMENSION(:,:), ALLOCATABLE :: temp_chem_ave_posit
+REAL   , DIMENSION(:,:), ALLOCATABLE :: temp_chem_ave_sigma
+REAL   , DIMENSION(  :), ALLOCATABLE :: temp_chem_ave_bese
+REAL   , DIMENSION(3  )              :: temp_chem_ave_pos
+REAL   , DIMENSION(3  )              :: temp_chem_ave_sig
+!
 is = 1
 !
 !IF ( CHEM_MAXAT_CELL   < MAXAT_CELL .or. &
@@ -193,6 +200,51 @@ sloopk: DO k = 1, cr_icc (3)
       ENDDO  sloopi
    ENDDO  sloopj
 ENDDO  sloopk
+!
+!------ Sort atom types on a given site
+!
+DO i=1, cr_ncatoms                  ! Loop over all sites
+   IF(chem_ave_n(i) > 0) THEN      ! We have atoms on this site
+      IF(ALLOCATED(temp_chem_ave_iscat)) DEALLOCATE(temp_chem_ave_iscat)
+      IF(ALLOCATED(temp_chem_ave_bese )) DEALLOCATE(temp_chem_ave_bese )
+      ALLOCATE(temp_chem_ave_iscat(   chem_ave_n(i)))
+      ALLOCATE(temp_chem_ave_bese (   chem_ave_n(i)))
+      IF(.NOT. lsite) THEN
+         IF(ALLOCATED(temp_chem_ave_posit)) DEALLOCATE(temp_chem_ave_posit)
+         IF(ALLOCATED(temp_chem_ave_sigma)) DEALLOCATE(temp_chem_ave_sigma)
+         ALLOCATE(temp_chem_ave_posit(3, chem_ave_n(i)))
+         ALLOCATE(temp_chem_ave_sigma(3, chem_ave_n(i)))
+         temp_chem_ave_posit =  0.0
+         temp_chem_ave_sigma =  0.0
+      ENDIF
+   ENDIF
+   temp_chem_ave_iscat =  0
+   temp_chem_ave_pos   =  0.0
+   temp_chem_ave_sig   =  0.0
+   temp_chem_ave_bese  =  0.0
+   DO k = 1, chem_ave_n (i) 
+      j = MINLOC(chem_ave_iscat(i, 1:chem_ave_n (i)),dim=1)
+      temp_chem_ave_iscat(  k) = chem_ave_iscat(  i,j)
+      temp_chem_ave_pos  (:  ) = chem_ave_pos  (:,i  )
+      temp_chem_ave_sig  (:  ) = chem_ave_sig  (:,i  )
+      temp_chem_ave_bese (  k) = chem_ave_bese (  i,j)
+      IF(.NOT. lsite) THEN
+         temp_chem_ave_posit(:,k) = chem_ave_posit(:,i,j)
+         temp_chem_ave_sigma(:,k) = chem_ave_sigma(:,i,j)
+      ENDIF
+      chem_ave_iscat(i,j) = 9999
+   ENDDO
+   DO k = 1, chem_ave_n (i) 
+      chem_ave_iscat(  i,k) = temp_chem_ave_iscat(  k)
+      chem_ave_pos  (:,i  ) = temp_chem_ave_pos  (:  )
+      chem_ave_sig  (:,i  ) = temp_chem_ave_sig  (:  )
+      chem_ave_bese (  i,k) = temp_chem_ave_bese (  k)
+      IF(.NOT. lsite) THEN
+         chem_ave_posit(:,i,k) = temp_chem_ave_posit(:,k)
+         chem_ave_sigma(:,i,k) = temp_chem_ave_sigma(:,k)
+      ENDIF
+   ENDDO
+ENDDO
 !                                                                       
 !------ output of average and sigma                                     
 !                                                                       
