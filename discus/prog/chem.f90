@@ -5419,78 +5419,118 @@ USE atom_env_mod
      &                   '  (',I9,' molecules)')                        
       END SUBROUTINE chem_mole                      
 !
-      SUBROUTINE chem_trans(zeile,lp)
+!*******************************************************************************
 !
-      USE crystal_mod
-      USE celltoindex_mod
-      USE errlist_mod
-      USE get_params_mod
-      USE ber_params_mod
-      USE param_mod
+SUBROUTINE chem_trans(zeile,lp)
+!
+USE crystal_mod
+USE chem_mod
+USE celltoindex_mod
+USE errlist_mod
+USE get_params_mod
+USE ber_params_mod
+USE param_mod
 USE precision_mod
-      USE prompt_mod
-      IMPLICIT NONE
-      CHARACTER(LEN=*), INTENT(INOUT) :: zeile
-      INTEGER         , INTENT(INOUT) :: lp
+USE prompt_mod
+USE take_param_mod
 !
-      INTEGER, PARAMETER                  :: MAXW=4
+IMPLICIT NONE
 !
-      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))),DIMENSION(MAXW) :: cpara
-      INTEGER            ,DIMENSION(MAXW) :: lpara
-      REAL(KIND=PREC_DP) ,DIMENSION(MAXW) :: werte
-      INTEGER                             :: ianz    ! loop index
-      INTEGER               :: i    ! loop index
-      INTEGER               :: ia   ! Atom index
-      INTEGER, DIMENSION(3) :: ic   ! Cell number
-      INTEGER               :: is   ! site number
+CHARACTER(LEN=*), INTENT(INOUT) :: zeile
+INTEGER         , INTENT(INOUT) :: lp
 !
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-      IF (ier_num.eq.0.and.cr_natoms.ne.0) then 
-         IF (ianz.eq.1) then 
-            ia = nint (werte (1) ) 
-            IF (ia.gt.0.and.ia.le.cr_natoms) then 
-               CALL indextocell (ia, ic, is) 
-               WRITE (output_io, 3000) ia, ic, is 
-               res_para(0  ) = 5
-               res_para(1  ) = ia
-               res_para(2:4) = ic
-               res_para(5  ) = is
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-        ELSEIF (ianz.eq.4) then 
-            is = nint (werte (4) ) 
-            DO i = 1, 3 
-               ic (i) = nint (werte (i) ) 
-            ENDDO 
-            IF (ic (1) .gt.0.and.ic (1) .le.cr_icc (1) .and.ic (2)&
-                  .gt.0.and.ic (2) .le.cr_icc (2) .and.ic (3)           &
-                  .gt.0.and.ic (3) .le.cr_icc (3)                       &
-                  .and.is.gt.0.and.is.le.cr_ncatoms) then               
-               CALL celltoindex (ic, is, ia) 
-               WRITE (output_io, 3000) ia, ic, is 
-               res_para(0  ) = 5
-               res_para(1  ) = ia
-               res_para(2:4) = ic
-               res_para(5  ) = is
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-         ENDIF 
+INTEGER, PARAMETER                  :: MAXW=6
+!
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))),DIMENSION(MAXW) :: cpara
+INTEGER            ,DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP) ,DIMENSION(MAXW) :: werte
+INTEGER                             :: ianz    ! loop index
+INTEGER               :: i    ! loop index
+INTEGER               :: ia   ! Atom index
+INTEGER, DIMENSION(3) :: ic   ! Cell number
+INTEGER               :: is   ! site number
+!
+INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: O_BOUND   = 1
+INTEGER, PARAMETER :: O_OUT     = 2
+CHARACTER(LEN=   8), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+DATA oname  / 'boundary', 'output'   /
+DATA loname /  8,          6         /
+opara  =  (/ 'crystal', 'screen '     /)   ! Always provide fresh default values
+lopara =  (/  7       ,  6            /)
+owerte =  (/  0.0     ,  0.0          /)
+!
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF(ier_NUM/=0) RETURN
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF(ier_NUM/=0) RETURN
+CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+IF (ier_num == 0 .AND. cr_natoms /= 0) THEN 
+   IF (ianz == 1) THEN 
+      ia = NINT(werte (1) ) 
+      IF (ia > 0 .AND. ia <= cr_natoms) THEN 
+         CALL indextocell (ia, ic, is) 
+         IF(opara(O_OUT)=='screen') THEN
+            WRITE (output_io, 3000) ia, ic, is 
+         ENDIF
+         res_para(0  ) = 5
+         res_para(1  ) = ia
+         res_para(2:4) = ic
+         res_para(5  ) = is
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+  ELSEIF (ianz == 4) THEN 
+      is = NINT(werte(4) ) 
+      DO i = 1, 3 
+         ic (i) = NINT(werte(i)) 
+      ENDDO 
+      IF(opara(O_BOUND)=='periodic') THEN
+         DO i = 1, 3 
+            IF(chem_period(i)) THEN
+               ic(i) = MOD(ic(i) + cr_icc(i) -1, cr_icc(i)) + 1
+            ENDIF 
+         ENDDO 
+      ENDIF
+      IF(ic(1) > 0 .AND. ic(1) <= cr_icc(1) .AND.  &
+         ic(2) > 0 .AND. ic(2) <= cr_icc(2) .AND.  &
+         ic(3) > 0 .AND. ic(3) <= cr_icc(3) .AND.  &
+         is >  0   .AND. is  <= cr_ncatoms         ) THEN               
+         CALL celltoindex (ic, is, ia) 
+         IF(opara(O_OUT)=='screen') THEN
+            WRITE (output_io, 3000) ia, ic, is 
+         ENDIF
+         res_para(0  ) = 5
+         res_para(1  ) = ia
+         res_para(2:4) = ic
+         res_para(5  ) = is
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
 !                                                                       
  3000 FORMAT    (' Atomindex ',I6,' : Unitcell ',3(I4,1X),              &
      &                  ' / site ',I2)                                  
-      END SUBROUTINE chem_trans
+END SUBROUTINE chem_trans
+!
+!*******************************************************************************
 !
 SUBROUTINE chem_apply_period(isel,lupdate_conn)
 !
