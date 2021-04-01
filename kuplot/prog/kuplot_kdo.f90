@@ -477,7 +477,7 @@ CHARACTER(LEN=8)           :: bef
 !-------  Commands 'ltyp','lcol','mtyp','mcol',...                      
 !                                                                       
          ELSEIF (str_comp (bef, 'ltyp', 3, lbef, 4) ) then 
-            CALL para_seti (zei, lc, ilinetyp, 1, maxkurvtot, bef, 0, 5,&
+            CALL para_seti (zei, lc, ilinetyp, 1, maxkurvtot, bef,-5, 5,&
             .false.)                                                    
          ELSEIF (str_comp (bef, 'mtyp', 3, lbef, 4) ) then 
             CALL para_seti (zei, lc, imarktyp, 1, maxkurvtot, bef,      &

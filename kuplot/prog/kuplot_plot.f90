@@ -1289,14 +1289,125 @@ USE lib_length
 !                                                                       
 !------ Draw the line                                                   
 !                                                                       
-      IF (ilinetyp (iwin, iframe, ikurv) .gt.0) then 
-         CALL PGSLS (ilinetyp (iwin, iframe, ikurv) ) 
+      IF (abs(ilinetyp(iwin, iframe, ikurv)) .gt.0) then 
+         CALL PGSLS (abs(ilinetyp (iwin, iframe, ikurv)) ) 
          CALL PGSLW (nint (linewid (iwin, iframe, ikurv) / 0.13) ) 
          CALL PGSCI (ilinecol (iwin, iframe, ikurv) ) 
          CALL PGLINE (npkt, xpl, ypl) 
       ENDIF 
 !                                                                       
       END SUBROUTINE draw_line                      
+!****7******************************************************************
+      SUBROUTINE draw_poly (xpl, ypl, npkt, ikurv) 
+!+                                                                      
+!     The drawing and filling itself                                    
+!-                                                                      
+      USE koordinate_mod
+!
+      USE debug_mod 
+      USE errlist_mod 
+      USE kuplot_config 
+      USE kuplot_mod 
+!                                                                       
+      IMPLICIT none 
+!                                                                       
+      INTEGER npkt, ikurv 
+      REAL xpl (npkt), ypl (npkt) 
+!                                                                       
+      REAL xfill (maxarray), yfill (maxarray) 
+      REAL x1, x2, y1, y2, yb 
+      INTEGER ip, np 
+!                                                                       
+      CALL koor_shear (npkt, xpl, ypl) 
+      CALL koor_log (npkt, xpl, ypl) 
+!                                                                       
+!------ Fill area if required                                           
+!                                                                       
+      IF (ifilltyp (iwin, iframe, ikurv) .gt.0) then 
+         IF (fillrange (iwin, iframe, ikurv, 1) .eq. - 9999.) then 
+            x1 = pex (iwin, iframe, 1) 
+            x2 = pex (iwin, iframe, 2) 
+         ELSE 
+            x1 = fillrange (iwin, iframe, ikurv, 1) 
+            x2 = fillrange (iwin, iframe, ikurv, 2) 
+         ENDIF 
+         IF (fillrange (iwin, iframe, ikurv, 3) .eq. - 9999.) then 
+            y1 = pey (iwin, iframe, 1) 
+            y2 = pey (iwin, iframe, 2) 
+            yb = max (0.0, ey (iwin, iframe, 1) ) 
+         ELSE 
+            y1 = fillrange (iwin, iframe, ikurv, 3) 
+            y2 = fillrange (iwin, iframe, ikurv, 4) 
+            yb = fillrange (iwin, iframe, ikurv, 3) 
+         ENDIF 
+!                                                                       
+         np = 0 
+!        xfill (np) = x1 
+!        yfill (np) = yb 
+!                                                                       
+         DO ip = 1, npkt 
+         IF (xpl (ip) .ge.x1.and.xpl (ip) .le.x2) then 
+            np = np + 1 
+            xfill (np) = xpl (ip) 
+            IF (ypl (ip) .ge.y1.and.ypl (ip) .le.y2) then 
+               yfill (np) = ypl (ip) 
+            ELSE 
+               IF (ypl (ip) .lt.y1) yfill (np) = y1 
+               IF (ypl (ip) .gt.y2) yfill (np) = y2 
+            ENDIF 
+         ENDIF 
+         ENDDO 
+!                                                                       
+!        np = np + 1 
+!        xfill (np) = x2 
+!        yfill (np) = yb 
+!                                                                       
+         IF (dbg) then 
+            WRITE ( *, 1000) 1, xfill (1), yfill (1) 
+            WRITE ( *, 1000) 2, xfill (2), yfill (2) 
+            WRITE ( *, 1000) np - 1, xfill (np - 1), yfill (np - 1) 
+            WRITE ( *, 1000) np, xfill (np), yfill (np) 
+ 1000 FORMAT         (' debug  > Fill point ',i5,' at ',2(g12.4,1x)) 
+         ENDIF 
+!                                                                       
+         IF (ifilltyp (iwin, iframe, ikurv) .eq.1.or.ifilltyp (iwin,    &
+         iframe, ikurv) .eq.5) then                                     
+            CALL PGSFS (1) 
+            CALL PGSHS (45.0, 1.0, 0.0) 
+         ELSEIF (ifilltyp (iwin, iframe, ikurv) .eq.2.or.ifilltyp (iwin,&
+         iframe, ikurv) .eq.6) then                                     
+            CALL PGSFS (3) 
+            CALL PGSHS (45.0, 1.0, 0.0) 
+         ELSEIF (ifilltyp (iwin, iframe, ikurv) .eq.3.or.ifilltyp (iwin,&
+         iframe, ikurv) .eq.7) then                                     
+            CALL PGSFS (3) 
+            CALL PGSHS ( - 45.0, 1.0, 0.0) 
+         ELSEIF (ifilltyp (iwin, iframe, ikurv) .eq.4.or.ifilltyp (iwin,&
+         iframe, ikurv) .eq.8) then                                     
+            CALL PGSFS (4) 
+            CALL PGSHS (45.0, 1.0, 0.0) 
+         ENDIF 
+!                                                                       
+         CALL PGSCI (ifillcol (iwin, iframe, ikurv) ) 
+         CALL PGPOLY (np, xfill, yfill) 
+!                                                                       
+         IF (ifilltyp (iwin, iframe, ikurv) .gt.4) then 
+            CALL PGSCI (6) 
+            CALL PGSFS (2) 
+            CALL PGPOLY (np, xfill, yfill) 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!------ Draw the line                                                   
+!                                                                       
+      IF (abs(ilinetyp (iwin, iframe, ikurv)) .gt.0) then 
+         CALL PGSLS (abs(ilinetyp (iwin, iframe, ikurv))) 
+         CALL PGSLW (nint (linewid (iwin, iframe, ikurv) / 0.13) ) 
+         CALL PGSCI (ilinecol (iwin, iframe, ikurv) ) 
+         CALL PGLINE (npkt, xpl, ypl) 
+      ENDIF 
+!                                                                       
+      END SUBROUTINE draw_poly                      
 !****7******************************************************************
       SUBROUTINE draw_points (xpl, ypl, nnpkt, ikurv) 
 !+                                                                      
@@ -1325,15 +1436,19 @@ USE lib_length
 !                                                                       
 !------ Normal line between points                                      
 !                                                                       
-      IF (ilineart (iwin, iframe, ikurv) .eq.1) then 
+      IF (abs(ilineart (iwin, iframe, ikurv)) .eq.1) then 
          IF (shear (iwin, iframe) .ne.90.0) then 
             CALL clip_array (eex, eey, xpl, ypl, npkt) 
          ENDIF 
+         if(ilinetyp(iwin, iframe, ikurv)>=0) then
          CALL draw_line (xpl, ypl, npkt, ikurv) 
+         else
+         CALL draw_poly (xpl, ypl, npkt, ikurv) 
+         endif
 !                                                                       
 !------ Histogram style steps                                           
 !                                                                       
-      ELSEIF (ilineart (iwin, iframe, ikurv) .eq.2) then 
+      ELSEIF (abs(ilineart (iwin, iframe, ikurv)) .eq.2) then 
          IF (4 * npkt.gt.maxsp) then 
             ier_num = - 13 
             ier_typ = ER_APPL 
@@ -1360,7 +1475,7 @@ USE lib_length
 !                                                                       
 !------ Spline interpolation between points                             
 !                                                                       
-      ELSEIF (ilineart (iwin, iframe, ikurv) .eq.3) then 
+      ELSEIF (abs(ilineart (iwin, iframe, ikurv)) .eq.3) then 
          IF (npkt.gt.maxsp) then 
             ier_num = - 13 
             ier_typ = ER_APPL 
