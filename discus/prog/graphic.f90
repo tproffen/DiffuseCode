@@ -44,6 +44,8 @@ USE prompt_mod
 USE str_comp_mod
 USE sup_mod
 USE support_mod
+!
+use fourier_sup
 !                                                                       
 IMPLICIT none 
 LOGICAL, INTENT(IN) :: linverse
@@ -68,12 +70,18 @@ REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
 REAL(KIND=PREC_DP)                  :: valmax
 REAL(KIND=PREC_DP)                  ::  dsmax = 0.0
 ! 
-INTEGER, PARAMETER :: NOPTIONAL = 4
+INTEGER, PARAMETER :: NOPTIONAL = 7
 INTEGER, PARAMETER :: O_MAXVAL  = 1                  ! Current SCALE for maxvalue
 INTEGER, PARAMETER :: O_DSMAX   = 2                  ! Maximum d-star
 INTEGER, PARAMETER :: O_QMAX    = 3                  ! Maximum Q
 INTEGER, PARAMETER :: O_HKLMAX  = 4                  ! Maximum hkl vector
+INTEGER, PARAMETER :: O_PATT    = 5                  ! Maximum hkl vector
+INTEGER, PARAMETER :: O_SPATT   = 6                  ! Maximum hkl vector
+INTEGER, PARAMETER :: O_DPATT   = 7                  ! Maximum hkl vector
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+character(len=8)                          :: cpatt   ! Optional patterson overlay
+character(len=PREC_STRING)                :: spatt   ! Atoms selected for Patterson overlay
+character(len=PREC_STRING)                :: dpatt   ! Atoms deselected for Patterson overlay
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -81,10 +89,8 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
 !                                                                       
-DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax'/
-DATA loname /  6      ,  5      ,  4      ,  6      /
-DATA opara  / 'data'  , '0.00'  , '0.00'  , '0.00'  /
-DATA owerte /  -1.000 ,  0.000  ,  0.000  ,  0.000  /
+DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax', 'patt'  ,'sel', 'des' /
+DATA loname /  6      ,  5      ,  4      ,  6      ,  4      , 3   ,  3    /
 DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
                 'Portable Any Map', 'Powder Pattern', 'SHELX',          &
                 'SHELXL List 5', 'SHELXL List 5 real HKL' ,             &
@@ -100,9 +106,9 @@ DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
 DATA value / 1 / 
 DATA laver / .false. / 
 !
-opara  = (/'data  ', '0.00  ', '0.00  ', '0.00  ' /)
-lopara = (/  4     ,  5      ,  4      ,  6       /)
-owerte = (/ -1.000 ,  0.000  ,  0.000  ,  0.000   /)
+opara  = (/'data  ', '0.00  ', '0.00  ', '0.00  ', 'none  ', 'all   ', 'none  ' /)
+lopara = (/  4     ,  5      ,  4      ,  6      ,  6      ,  3      ,  4     /)
+owerte = (/ -1.000 ,  0.000  ,  0.000  ,  0.000  ,  0.00   ,  0.000  ,  0.000   /)
 zmin = ps_low * diffumax 
 zmax = ps_high * diffumax 
 orig_prompt = prompt
@@ -112,7 +118,7 @@ prompt = prompt (1:len_str (prompt) ) //'/output'
 CALL no_error 
 !                                                                       
 CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
-IF (ier_num.eq.0) THEN 
+main_if: IF (ier_num.eq.0) THEN 
    IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
        line == char(13) .or. line(1:1) == '!'  ) THEN
       IF(linteractive .or. lmakro) THEN
@@ -310,6 +316,36 @@ IF (ier_num.eq.0) THEN
 !                                                                       
                ELSEIF (str_comp(cpara(1), 'xplor', 2, lpara(1), 5) ) THEN                                        
                   ityp = 14 
+!                                                                       
+!     ------Switch output type to Vesta format   'vesta'                
+!                                                                       
+               ELSEIF (str_comp(cpara(1), 'vesta', 2, lpara(1), 5) ) THEN                                        
+                  cpatt = opara(O_PATT)(1:min(len(cpatt),len_trim(opara(O_PATT))))
+                  if(opara(O_SPATT)=='none' .or. opara(O_SPATT)=='all' .or. index(opara(O_SPATT),',')==0) then
+                     spatt = opara(O_SPATT)                             ! Selected atoms  for Patterson overlay
+                  else
+                     if(opara(O_SPATT)(1:1)/='[' .or. opara(O_SPATT)(lopara(O_SPATT):lopara(O_SPATT))/=']') then
+                     ier_num = -9
+                     ier_typ = ER_FORT
+                     ier_msg(1) = 'Multiple optional values must be '
+                     ier_msg(2) = 'enclosed by []'
+                     exit main_if
+                     endif
+                     spatt = opara(O_SPATT)(2:lopara(O_SPATT)-1)        ! Selected atoms  for Patterson overlay
+                  endif
+                  if(opara(O_DPATT)=='none' .or. opara(O_DPATT)=='all' .or. index(opara(O_DPATT),',')==0) then
+                     dpatt = opara(O_DPATT)                             ! Selected atoms  for Patterson overlay
+                  else
+                  if(opara(O_DPATT)(1:1)/='[' .or. opara(O_DPATT)(lopara(O_DPATT):lopara(O_DPATT))/=']') then
+                        ier_num = -9
+                        ier_typ = ER_FORT
+                        ier_msg(1) = 'Multiple optional values must be '
+                        ier_msg(2) = 'enclosed by []'
+                        exit main_if
+                     endif
+                     dpatt = opara(O_DPATT)(2:lopara(O_DPATT)-1)        ! Deselected atoms  for Patterson overlay
+                  endif
+                  ityp = 15 
                ELSE
                   ier_num = - 9 
                   ier_typ = ER_APPL 
@@ -427,6 +463,8 @@ IF (ier_num.eq.0) THEN
                        ier_num, ier_typ, ER_IO, ER_APPL)
             ELSEIF (ityp.eq.14) THEN
                CALL xplor_write (value, laver)
+            ELSEIF (ityp.eq.15) THEN
+               CALL   grd_write (value, laver, cpatt, spatt, dpatt)
             ELSE 
                ier_num = - 9 
                ier_typ = ER_APPL 
@@ -638,7 +676,7 @@ IF (ier_num.eq.0) THEN
       ier_typ = ER_COMM 
    ENDIF 
 ENDIF 
-ENDIF 
+ENDIF  main_if
 !
 IF (ier_num.ne.0) THEN 
    CALL errlist 
