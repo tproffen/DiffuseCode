@@ -8,131 +8,158 @@ SUBROUTINE symm_setup
 !     Performs the generalized symmetry operation                       
 !     See Sands, D.E. Vectors and Tensors in Crystallography Chapt. 4.7 
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE metric_mod
-      USE symm_mod 
-      USE tensors_mod
-      USE trafo_mod
-      USE wyckoff_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE metric_mod
+USE symm_mod 
+USE tensors_mod
+USE trafo_mod
+USE wyckoff_mod
 !
-      USE errlist_mod 
-      USE trig_degree_mod
-      IMPLICIT none 
+USE errlist_mod 
+USE trig_degree_mod
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
-       
+INTEGER :: i, j, k, l 
+REAL(kind=PREC_DP) :: length 
 !                                                                       
-      INTEGER i, j, k, l 
-      REAL length 
-!                                                                       
-      REAL uij 
-      REAL ctheta, stheta 
-      REAL sym_d (3), sym_r (3) 
-      REAL usym (4), ures (4) 
-      REAL kron (3, 3) 
-      REAL a (3, 3) 
-      REAL b (3, 3) 
+REAL(kind=PREC_DP) :: uij 
+REAL(kind=PREC_DP) :: ctheta, stheta 
+REAL(kind=PREC_DP) :: sym_d (3), sym_r (3) 
+REAL(kind=PREC_DP) :: usym (4), ures (4) 
+REAL(kind=PREC_DP) :: kron (3, 3) 
+REAL(kind=PREC_DP) :: a (3, 3) 
+REAL(kind=PREC_DP) :: b (3, 3) 
+REAL(kind=PREC_DP), dimension(3,3)   :: lo_gten 
+REAL(kind=PREC_DP), dimension(3,3)   :: lo_rten 
+REAL(kind=PREC_DP), dimension(3,3,3) :: lo_eps 
+REAL(kind=PREC_DP), dimension(3,3,3) :: lo_reps 
 !                                                                       
 !     REAL cosd, sind 
 !     REAL skalpro 
 !                                                                       
 !                                                                       
-      DATA kron / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
+DATA kron / 1.0d0, 0.0d0, 0.0d0, 0.0d0, 1.0d0, 0.0d0, 0.0d0, 0.0d0, 1.0d0 / 
 !
+!write(*,*) 'SYM_UVW ', sym_uvw
+!write(*,*) 'SYM_hkl ', sym_hkl
 IF(sym_use == 0) THEN
 !                                                                       
 !     initialize matrix and angle                                       
 !                                                                       
-      DO i = 1, 4 
+   DO i = 1, 4 
       DO j = 1, 4 
-      sym_mat (i, j) = 0.0 
-      sym_rmat (i, j) = 0.0 
+         sym_mat (i, j) = 0.0d0
+         sym_rmat (i, j) = 0.0d0 
       ENDDO 
-      ENDDO 
-      sym_mat (4, 4) = 1.0 
-      sym_rmat (4, 4) = 0.0 
-      IF (sym_power_mult) then 
-         ctheta = cosd (sym_angle) 
-         stheta = sind (sym_angle) 
-      ELSE 
-         ctheta = cosd (sym_angle * sym_power) 
-         stheta = sind (sym_angle * sym_power) 
-      ENDIF 
+   ENDDO 
+   sym_mat (4, 4) = 1.0d0 
+   sym_rmat (4, 4) = 0.0d0 
+   IF (sym_power_mult) then 
+      ctheta = cosd (sym_angle) 
+      stheta = sind (sym_angle) 
+   ELSE 
+      ctheta = cosd (sym_angle * sym_power) 
+      stheta = sind (sym_angle * sym_power) 
+   ENDIF 
 !
 !     symmetry origin is specified as absolute coordinates, or
 !     via atom (from crystal or molecule)
 !
-      IF(sym_orig_type == 1) THEN       ! Origin defined by atom
-         sym_orig(:) = cr_pos(:,sym_orig_atom)
-      ENDIF
+   IF(sym_orig_type == 1) THEN       ! Origin defined by atom
+      sym_orig(:) = cr_pos(:,sym_orig_atom)
+   ENDIF
 !
 !     symmetry axis is specified as absolute coordinates, or 
 !     via atom pair (from crystal or molecule)
 !
-      IF(sym_axis_type == 1) THEN       ! axis defined by atom pair
-         DO i=1, 3
-            sym_uvw(i) = cr_pos(i,sym_axis_atoms(2)) - cr_pos(i,sym_axis_atoms(1))
-         ENDDO
-         CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
-      ENDIF
+   IF(sym_axis_type == 1) THEN       ! axis defined by atom pair
+      DO i=1, 3
+         sym_uvw(i) = cr_pos(i,sym_axis_atoms(2)) - cr_pos(i,sym_axis_atoms(1))
+      ENDDO
+!     CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+      sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
+   ENDIF
 !                                                                       
 !     Create vectors of unit length in direct and reciprocal space      
 !                                                                       
-      length = sqrt (skalpro (sym_uvw, sym_uvw, cr_gten) ) 
-      IF (length.eq.0.0) then 
-         ier_num = - 32 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-      DO j = 1, 3 
+!   length = sqrt (skalpro (real(sym_uvw), real(sym_uvw), cr_gten) ) 
+!write(*,*) ' LENGTH DIRECT SP ',length
+   length = sqrt(dot_product(sym_uvw, matmul(real(cr_gten, kind=PREC_DP), sym_uvw)))
+   IF (length.eq.0.0) then 
+!write(*,*) ' LENGTH DIRECT DP ',length, sym_uvw
+      ier_num = - 32 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+   DO j = 1, 3 
       sym_d (j) = sym_uvw (j) / length 
-      ENDDO 
-      length = sqrt (skalpro (sym_hkl, sym_hkl, cr_rten) ) 
-      IF (length.eq.0.0) then 
-         ier_num = - 32 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-      DO j = 1, 3 
+   ENDDO 
+!   length = sqrt (skalpro (real(sym_hkl), real(sym_hkl), cr_rten) ) 
+!write(*,*) ' LENGTH RECIP  SP ',length
+   length = sqrt(dot_product(sym_hkl, matmul(real(cr_rten, kind=PREC_DP), sym_hkl)))
+!write(*,*) ' LENGTH RECIP  DP ',length
+   IF (length.eq.0.0) then 
+!write(*,*) ' LENGTH RECIP  DP ',length, sym_hkl
+      ier_num = - 32 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+   DO j = 1, 3 
       sym_r (j) = sym_hkl (j) / length 
-      ENDDO 
+   ENDDO 
 !     write (output_io,2001) sym_d,sym_r                                
 !2001      format('direct axis     :',3(2x,f10.6)/                      
 !    &                  'reciprocal axis :',3(2x,f10.6))                
 !                                                                       
 !     calculate symmetry operation                                      
 !                                                                       
-      DO i = 1, 3 
+!write(*,'(a,3f17.10)') 'sym_d ',sym_d
+!write(*,'(a,3f17.10)') 'sym_r ',sym_r
+   DO i = 1, 3 
       DO j = 1, 3 
-      sym_mat (i, j) = 0.0 
-      DO k = 1, 3 
-      DO l = 1, 3 
-      sym_mat (i, j) = sym_mat (i, j) + cr_rten (i, k) * cr_eps (k, l,  &
-      j) * sym_d (l)                                                    
-      ENDDO 
-      ENDDO 
-      uij = sym_d (i) * sym_r (j) 
-      sym_mat (i, j) = sym_mat (i, j) * stheta + uij + (kron (i, j)     &
-      - uij) * ctheta                                                   
+         sym_mat (i, j) = 0.0d0 
+         DO k = 1, 3 
+            DO l = 1, 3 
+!if((i==1 .and. j==3) .or. (i==3 .and. j==1)) then
+!write(*,'(2i3,2f17.10)') i,j, sym_mat(i, j), real(cr_rten(i, k), kind=PREC_DP) * &
+!                                               real(cr_eps(k, l,j),kind=PREC_DP) * sym_d(l)
+!endif
+               sym_mat(i, j) = sym_mat(i, j) + real(cr_rten(i, k), kind=PREC_DP) * &
+                                               real(cr_eps(k, l,j),kind=PREC_DP) * sym_d(l)
+            ENDDO 
+         ENDDO 
+         uij = sym_d (i) * sym_r (j) 
+!if((i==1 .and. j==3) .or. (i==3 .and. j==1)) then
+!write(*,'(2i3,3f17.10)') i,j, sym_mat(i, j), &
+!stheta + uij + (kron(i, j) - uij) * ctheta, &
+!uij
+!endif
+         sym_mat(i, j) = sym_mat(i, j) * stheta + uij + (kron(i, j) - uij) * ctheta
+!if((i==1 .and. j==3) .or. (i==3 .and. j==1)) then
+!write(*,'(2i3,1f17.10)') i,j, sym_mat(i, j)
+!endif
       ENDDO 
       IF (sym_power_mult) then 
          sym_mat (i, 4) = sym_trans (i) 
       ELSE 
          sym_mat (i, 4) = sym_trans (i) * sym_power 
       ENDIF 
-      ENDDO 
+   ENDDO 
 !                                                                       
 !     In case of improper rotation, multiply by -1                      
 !                                                                       
-      IF (.not.sym_type.and. (                                          &
+   IF (.not.sym_type.and. (                                          &
       sym_power_mult.or..not.sym_power_mult.and.mod (sym_power, 2)      &
       .ne.0) ) then                                                     
-         DO i = 1, 3 
+      DO i = 1, 3 
          DO j = 1, 3 
-         sym_mat (i, j) = - sym_mat (i, j) 
+            sym_mat (i, j) = - sym_mat (i, j) 
          ENDDO 
-         ENDDO 
-      ENDIF 
+      ENDDO 
+   ENDIF 
 !     write (output_io,2000) ((sym_mat(i,j),j=1,3),i=1,3)               
 !2000      format(3(3(2x,f10.6)/))                                      
 !                                                                       
@@ -140,41 +167,44 @@ IF(sym_use == 0) THEN
 !                                                                       
 !     Transform symmetry operation into reciprocal space                
 !                                                                       
-      DO i = 1, 3 
+   DO i = 1, 3 
       DO j = 1, 3 
-      a (i, j) = sym_mat (i, j) 
+         a (i, j) = sym_mat (i, j) 
       ENDDO 
-      ENDDO 
+   ENDDO 
 !                                                                       
 !     do transformation q = gSg*                                        
 !                                                                       
-      CALL matmulx (b, a, cr_rten) 
-      CALL matmulx (a, cr_gten, b) 
-      DO i = 1, 3 
+!  CALL matmulx (b, a, cr_rten) 
+!  CALL matmulx (a, cr_gten, b) 
+   b = matmul(a, real(cr_rten, kind=PREC_DP))
+   a = matmul(   real(cr_gten, kind=PREC_DP), b)
+   DO i = 1, 3 
       DO j = 1, 3 
-      sym_rmat (i, j) = a (i, j) 
+         sym_rmat (i, j) = a (i, j) 
       ENDDO 
-      ENDDO 
+   ENDDO 
 !                                                                       
 !     ----Calculate translational component due to origin               
 !                                                                       
 !                                                                       
 !     ----Apply rotational part of symmetry operation to -1*origin      
 !                                                                       
-      DO j = 1, 3 
+   DO j = 1, 3 
       usym (j) = - sym_orig (j) 
-      ENDDO 
+   ENDDO 
 !                                                                       
 !-----      ----Apply symmetry operation                                
 !                                                                       
-      usym (4) = 0.0 
-      CALL trans (usym, sym_mat, ures, 4) 
+   usym (4) = 0.0 
+!  CALL trans (usym, sym_mat, ures, 4) 
+   ures = matmul(sym_mat,real(usym,KIND=PREC_DP))
 !                                                                       
 !     ----Add origin to result to obtain total translational part       
 !                                                                       
-      DO j = 1, 3 
+   DO j = 1, 3 
       sym_or_tr (j) = ures (j) + sym_orig (j) 
-      ENDDO 
+   ENDDO 
 ELSE
    sym_mat (:, :) = 0.0 
    sym_rmat(:, :) = 0.0 
@@ -190,8 +220,10 @@ ELSE
 !                                                                       
 !  do transformation q = gSg*                                        
 !                                                                       
-   CALL matmulx (b, a, cr_rten) 
-   CALL matmulx (a, cr_gten, b) 
+!  CALL matmulx (b, a, cr_rten) 
+!  CALL matmulx (a, cr_gten, b) 
+   b = matmul(a, real(cr_rten, kind=PREC_DP))
+   a = matmul(   real(cr_gten, kind=PREC_DP), b)
    sym_rmat(1:3, 1:3) = a (:, :) 
 !
 ENDIF
@@ -267,7 +299,8 @@ loop_atoms: DO l = i_start, i_end
 !                                                                       
          usym (4) = 1.0 
 loop_pow:DO k = 1, sym_power 
-         CALL trans (usym, sym_mat, ures, 4) 
+!        CALL trans (usym, sym_mat, ures, 4) 
+         ures = matmul(sym_mat, real(usym,KIND=PREC_DP))
 !                                                                       
 !     ----Add origin                                                    
 !                                                                       
@@ -372,7 +405,8 @@ loop_atoms: DO l = i_start, i_end
 !-----      ----Apply symmetry operation                                
 !                                                                       
          usym (4) = 1.0 
-         CALL trans (usym, sym_mat, ures, 4) 
+!        CALL trans (usym, sym_mat, ures, 4) 
+         ures = matmul(sym_mat, real(usym,KIND=PREC_DP))
 !                                                                       
 !     ----Add origin                                                    
 !                                                                       
@@ -530,7 +564,8 @@ USE precision_mod
                   i2 = mole_cont(mole_off(l)+sym_axis_atoms(2))
                   sym_uvw(i) = cr_pos(i,i2) - cr_pos(i,i1)
                ENDDO
-               CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+!              CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+               sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
             ENDIF
             IF(sym_orig_type == -1) THEN       ! origin defined by atom within molecule
                i1 = mole_cont(mole_off(l)+sym_orig_atom)
@@ -556,7 +591,8 @@ USE precision_mod
 !                                                                       
          usym (4) = 1.0 
          DO k = 1, sym_power 
-         CALL trans (usym, sym_mat, ures, 4) 
+!        CALL trans (usym, sym_mat, ures, 4) 
+         ures = matmul(sym_mat, real(usym,KIND=PREC_DP))
 !                                                                       
 !     ------- Add origin                                                
 !                                                                       
@@ -739,7 +775,8 @@ USE precision_mod
                   i2 = mole_cont(mole_off(l)+sym_axis_atoms(2))
                   sym_uvw(i) = cr_pos(i,i2) - cr_pos(i,i1)
                ENDDO
-               CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+!              CALL trans (real(sym_uvw), cr_gten, real(sym_hkl), 3)
+               sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
             ENDIF
             IF(sym_orig_type == -1) THEN       ! origin defined by atom within molecule
                i1 = mole_cont(mole_off(l)+sym_orig_atom)
@@ -764,7 +801,8 @@ USE precision_mod
 !-----      ----- Apply symmetry operation                              
 !                                                                       
          usym (4) = 1.0 
-         CALL trans (usym, sym_mat, ures, 4) 
+!        CALL trans (usym, sym_mat, ures, 4) 
+         ures = matmul(sym_mat,real(usym,KIND=PREC_DP))
 !                                                                       
 !     ----- Add origin                                                  
 !                                                                       
@@ -939,8 +977,8 @@ USE precision_mod
 !     ----Loop over Power of Operation                                  
 !                                                                       
          DO k = 1, sym_power 
-         CALL matmul4 (new_atom, sym_mat, mat_atom) 
-         CALL matmul4 (new_dime, sym_mat, mat_dime) 
+         CALL matmul4 (new_atom, real(sym_mat), mat_atom) 
+         CALL matmul4 (new_dime, real(sym_mat), mat_dime) 
          DO i = 1, 3 
          DO j = 1, 3 
          mat_atom (i, j) = new_atom (i, j) 
@@ -963,7 +1001,8 @@ USE precision_mod
 !-----      ----- Apply symmetry operation                              
 !                                                                       
          usym (4) = 1.0 
-         CALL trans (usym, sym_mat, ures, 4) 
+!        CALL trans (usym, real(sym_mat), ures, 4) 
+         ures = matmul(sym_mat,real(usym,KIND=PREC_DP))
 !                                                                       
 !     ------- Add origin                                                
 !                                                                       
@@ -1167,8 +1206,8 @@ USE precision_mod
          ENDDO 
          mat_atom (4, 4) = 1.0 
          mat_dime (4, 4) = 1.0 
-         CALL matmul4 (new_atom, sym_mat, mat_atom) 
-         CALL matmul4 (new_dime, sym_mat, mat_dime) 
+         CALL matmul4 (new_atom, real(sym_mat), mat_atom) 
+         CALL matmul4 (new_dime, real(sym_mat), mat_dime) 
 !                                                                       
 !     ----Loop over the two origins of the microdomain                  
 !                                                                       
@@ -1184,7 +1223,8 @@ USE precision_mod
 !-----      ----- Apply symmetry operation                              
 !                                                                       
          usym (4) = 1.0 
-         CALL trans (usym, sym_mat, ures, 4) 
+!        CALL trans (usym, real(sym_mat), ures, 4) 
+         ures = matmul(sym_mat,real(usym,KIND=PREC_DP))
 !                                                                       
 !     ----- Add origin                                                  
 !                                                                       
@@ -1311,7 +1351,8 @@ IF (lspace) THEN
 !                                                                       
    usym(4) = 1.0 
    DO k = 1, sym_power 
-      CALL trans (usym, sym_mat, ures, 4) 
+!     CALL trans (usym, real(sym_mat), ures, 4) 
+      ures = matmul(sym_mat,real(usym,KIND=PREC_DP))
 !                                                                       
 !     ----Add origin and store result                                   
 !                                                                       
@@ -1340,7 +1381,8 @@ ELSE
 !                                                                       
    usym(4) = 0.0 
    DO k = 1, sym_power 
-      CALL trans (usym, sym_rmat, ures, 4) 
+!     CALL trans (usym, real(sym_rmat), ures, 4) 
+      ures = matmul(sym_rmat,real(usym,KIND=PREC_DP))
 !                                                                       
 !     ----Store result                                                  
 !                                                                       
@@ -1406,7 +1448,8 @@ USE precision_mod
 !-----      --Apply symmetry operation                                  
 !                                                                       
          usym (4) = 1.0 
-         CALL trans (usym, sym_mat, ures, 4) 
+!        CALL trans (usym, REAL(sym_mat), ures, 4) 
+         ures = matmul(sym_mat,real(usym,KIND=PREC_DP))
 !                                                                       
 !     ----Add origin and store result                                   
 !                                                                       
@@ -1430,7 +1473,8 @@ USE precision_mod
 !-----      --Apply symmetry operation                                  
 !                                                                       
          usym (4) = 0.0 
-         CALL trans (usym, sym_rmat, ures, 4) 
+!        CALL trans (usym, real(sym_rmat), ures, 4) 
+         ures = matmul(sym_rmat,real(usym,KIND=PREC_DP))
 !                                                                       
 !     ----Add origin and store result                                   
 !                                                                       
