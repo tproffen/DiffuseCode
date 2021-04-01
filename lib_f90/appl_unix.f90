@@ -1122,7 +1122,7 @@ INTEGER                             :: ianz
 INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_CODE    = 1
 INTEGER, PARAMETER :: O_INSTALL = 2
-INTEGER, PARAMETER :: O_PREPARE = 2
+INTEGER, PARAMETER :: O_PREPARE = 3
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
