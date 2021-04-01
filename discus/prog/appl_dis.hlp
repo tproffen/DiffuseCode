@@ -75,8 +75,16 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2021_April
+
+   Added an output format option 'vesta', that replaces 'xplor'
+         This allows better control of the 3D visualization including
+         an overlay by a calculated Patterson map.
 3  2021_February
 
+   Corrected setting of anomalous dispersion coefficients.
+   Added optional parameters to ==> 'index2cell' regarding output and 
+         periodic boundary conditions
    Added an option to accumulate several diffraction pattern prior to output
    ==> fourier/set
    Added an option to apply symmetry averaging to a diffraction pattern
@@ -86,7 +94,7 @@
 
    Added "xplor" output file format for diffraction data.
    Added a 'range' command to output to go along with the 
-   "xplr" file format.
+   "xplor" file format.
 
    Corrected import of RMCprofile version 6 files
 
@@ -1942,10 +1950,17 @@
 3  trans
 !p trans <atomindex> or
 !p trans <x>,<y>,<z>,<site>
+!p            ",output:screen" | ",output:none"
+!p            ",boundary:periodic" | ",boundary:crystal"
 
    This command allows to transform between a given index of the
    storage array <atomindex> and the corresponding unit cell <x>,<y>,<z>
    and site <site>. The parameter not given is calculated ...
+
+   The optional parameter "boundary:periodic" will apply periodic boundary
+   conditions to the unit cell indices <x>, <y>, <z>
+
+   The optional parameter "output:none" will suppress the screen output.
 
    Trans stores the results in the "res[]" variable:
    res[1] : <atomindex>
@@ -3444,10 +3459,17 @@
 2  index2cell
 !p index2cell <atomindex> or
 !p index2cell <x>,<y>,<z>,<site>
+!p            ",output:screen" | ",output:none"
+!p            ",boundary:periodic" | ",boundary:crystal"
 
    This command allows to switch between a given index of the
    storage array <atomindex> and the corresponding unit cell <x>,<y>,<z>
    and site <site>. The parameter not given is calculated ...
+
+   The optional parameter "boundary:periodic" will apply periodic boundary
+   conditions to the unit cell indices <x>, <y>, <z>
+
+   The optional parameter "output:none" will suppress the screen output.
 
    index2cell stores the results in the "res[]" variable:
    res[1] : <atomindex>
@@ -4649,7 +4671,7 @@
 !p input   ! Reads an old data file
 !p outfile ! Sets name of output file
 !p range   ! Limit the range of a 3DPDF, most useful in combination with
-!p         ! format "xplor"
+!p         ! format "xplor", and "vesta"
 !p reset   ! Reset and clear all definitions
 !p run     ! Starts writing of output
 !p show    ! Shows the current settings
@@ -4663,7 +4685,7 @@
 !p       "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
 !p       "pdf" [,"r" [,<min>,<max>,<step>] ] 
 !p     | "post" | "shel" | "stan" | "hklf4" | "list5" | "nexus" |
-!p       "vtk" | "mrc" | "xplor" 
+!p       "vtk" | "mrc" | "vesta" | "xplor" 
 !p     | "hdf5" [,"maxval:"{"auto"|"data"|<value>"]" }
 
    Defines the output format that will be used. 
@@ -4781,6 +4803,27 @@
    number of data points along the abscissa and the ordinate, the 
    second line the minimum and maximum value of the indices in reciprocal
    space along the abscissa and ordinate respectively.
+!p "vesta"
+!p [, {"patt:none" | "patt:unit" | "patt:full" ]
+!p [, {"sel:all" | "sel:none" | "sel:name" | "sel:[name1,name2 {, ...}]"]
+!p [, {"des:all" | "des:none" | "des:name" | "des:[name1,name2 {, ...}]"]
+
+   Writes an ASCII formatted 3D-map of the intensity or 3DPDF in the
+   GSAS grd file format. This map can be viewed with VESTA.
+
+   Optionally a 3D-PDF map can be overlayed by a sketch of the Patterson
+   structure, which is calculated from the average structure. 
+   Choices are a "full" Patterson overlay throughout the entire 3D-PDF,
+   or a restriction to a single "unit" cell in the range [-0.5, 0.5].
+
+   The "sel", "des" options allow to select or deselect atom types 
+   from which the Patterson overlay is constructed. "VOID" atoms are
+   deselected by default. As a Patterson overlay will easily become 
+   very crowded a restriction to few atom types might help for clarity.
+   For an X-ray 3D-PDF for example you might consider to deselect Hydrogen. 
+
+   Default values are:
+   "patt:none"; "sel:all"; "des:none"
 !p "xplor"
    Writes an ASCII formatted 3D-map of the intensity or 3DPDF in the
    X-plor file format. This map can be viewed with several crystallographic
@@ -6697,9 +6740,9 @@
    prop present, atom:7,conn:1, nmin:0, nmax:3 !Apply to atom type 7
 3  set/clear
 !p set   <flag>, "types",  {"all" | <iscat> [, <iscat...]}
-!p set   <flag>, "atoms"}, {"all" | <start>,<end>}
+!p set   <flag>, "atoms",  {"all" | <start>,<end>}
 !p clear <flag>, "types",  {"all" | <iscat> [, <iscat...]}
-!p clear <flag>, "atoms"}, {"all" | <start>,<end>}
+!p clear <flag>, "atoms",  {"all" | <start>,<end>}
 
    Set or clear the property bit for atoms of selected type or 
    for a range of atom numbers.

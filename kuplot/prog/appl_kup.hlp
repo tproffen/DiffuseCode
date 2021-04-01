@@ -97,6 +97,11 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2021_April
+
+   Added the option to make line types of a data set negative, which
+   will have the effect that this is drawn as a polygon. The fill 
+   command will fill just the are inside the polygon.
 3  2021_January
 
    Fixed the macro option to the ==> 'fit' command.
@@ -2002,6 +2007,10 @@
 !p   3 : {"dashed"}        : - ---- - ---- - ---- - --
 !p   4 : {"shortbroken"}   : - - - - - - - - - - - - -
 !p   5 : {"shortdashed"}   : - - - ---- - - - ---- - -
+
+   If the line type is negative, the data set will be treated as a 
+   polygon. You can use the 'fill' command to fill the inside of this
+   polygon.
 2  lwid
 !p lwid <ik>,<width>
 
