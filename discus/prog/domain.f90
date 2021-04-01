@@ -574,7 +574,7 @@ REAL(PREC_SP), DIMENSION(4,4) :: mc_dimen
 REAL(PREC_SP), DIMENSION(4,4) :: mc_idimen
 REAL(PREC_SP), DIMENSION(4,4) :: mc_matrix
 INTEGER :: natoms_old
-INTEGER               :: i
+INTEGER               :: i, j, k
 INTEGER, DIMENSION(5) :: maxdim = 0
 INTEGER  :: natoms  ! Number of atoms in the input file
 INTEGER  :: nscats  ! NUmber of atom types in the input file
@@ -583,6 +583,8 @@ INTEGER  :: n_symm  ! Number of symm. ops. for molecules in the input file
 INTEGER  :: n_mole  ! Number of molecules in the input file
 INTEGER  :: n_type  ! Number of molecule types  in the input file
 INTEGER  :: n_atom  ! Number of atoms within molecules in the input file
+integer, dimension(:,:), allocatable :: clu_moles  ! No of molecule and types in each cluster
+!integer, dimension(:,:), allocatable :: clu_mole_tab! No of molecule and types in each cluster
 REAL(PREC_SP)               :: shortest
 REAL(PREC_SP), DIMENSION(3) :: vv
 REAL(PREC_SP) :: sgrand  ! grand time
@@ -593,12 +595,21 @@ REAL :: sstep   ! time step
 !
 !     TEST FILESIZE OF ALL internal CONTENT FILES
 !
+! Prepare list of molecule types with the clusters
+!
+if(allocated(clu_moles)) deallocate(clu_moles)
+allocate(clu_moles(2,0:clu_number))
+clu_moles  = 0
+clu_moles(1,0) = mole_num_mole
+clu_moles(2,0) = mole_num_type
 maxdim(:) = 0
 DO i=1, clu_number
    infile = clu_content(i)
    IF(clu_content(i)(1:8)=='internal')THEN
          CALL testfile_internal(  infile , natoms, &
               nscats, n_mole, n_type, n_atom)
+      clu_moles(1,i) = n_mole
+      clu_moles(2,i) = n_type
       MK_MAX_SCAT = MAX(MK_MAX_SCAT, MAXSCAT, nscats)
       MK_MAX_ATOM = MAX(MK_MAX_ATOM, NMAX, natoms)
       CALL alloc_micro  ( MK_MAX_SCAT , MK_MAX_ATOM)
@@ -627,6 +638,8 @@ DO i=1, clu_number
    ELSE
       CALL test_file(infile ,natoms, &
               nscats, n_mole, n_type, n_atom, -1 , .false.)
+      clu_moles(1,i) = n_mole
+      clu_moles(2,i) = n_type
       IF (ier_num.ne.0) THEN
          RETURN
       ENDIF
@@ -689,6 +702,17 @@ DO i=1, clu_number
       RETURN 
    ENDIF 
 ENDDO
+if(allocated(clu_mole_tab)) deallocate(clu_mole_tab)
+!allocate(clu_mole_tab(maxval(clu_moles(2,1:clu_number))+clu_moles(2,0),1:clu_number))
+allocate(clu_mole_tab(maxval(clu_moles(2,1:clu_number)),1:clu_number))
+clu_mole_tab = 0
+j = clu_moles(2,0)             ! molecule types prior
+do i=1,clu_number
+   do k=1,clu_moles(2,i)
+     j = j + 1
+     clu_mole_tab(k,i) = j
+   enddo
+enddo
 natoms = maxdim(1)
 nscats = maxdim(2)
 n_mole = maxdim(3)
@@ -749,6 +773,7 @@ ELSE
    CALL oeffne (imd, clu_infile, 'old') 
    IF (ier_num.ne.0) THEN 
       CLOSE(imd)
+      if(allocated(clu_moles)) deallocate(clu_moles)
       RETURN
    ENDIF
 !                                                                       
@@ -761,6 +786,7 @@ ELSE
 ENDIF
 IF (ier_num.ne.0) THEN 
    CLOSE(imd)
+      if(allocated(clu_moles)) deallocate(clu_moles)
    RETURN
 ENDIF
 !                                                                       
@@ -779,6 +805,7 @@ IF (.NOT.lmetric) THEN
    ier_msg (1) = 'The lattice constants in the domain' 
    ier_msg (2) = 'file differ from those of the host' 
    CLOSE (imd) 
+      if(allocated(clu_moles)) deallocate(clu_moles)
    RETURN 
 ENDIF 
 IF (mk_spcgr (1:1) .ne.cr_spcgr (1:1) ) then 
@@ -786,6 +813,7 @@ IF (mk_spcgr (1:1) .ne.cr_spcgr (1:1) ) then
    ier_typ = ER_APPL 
    ier_msg (1) = 'between microdomain and host' 
    CLOSE (imd) 
+      if(allocated(clu_moles)) deallocate(clu_moles)
    RETURN 
 ENDIF 
 !                                                                       
@@ -794,12 +822,13 @@ satoms = 0.0
 shead  = 0.0
 srem   = 0.0
 sstep  = 0.0
-IF (clu_mode.eq.CLU_IN_PSEUDO) then 
+IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
    infile = ' '
    CALL micro_read_simple (imd, lend, l_ok, infile, mc_dimen, mc_idimen,&
    mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
    IF (ier_num.ne.0) THEN 
       CLOSE(imd)
+      if(allocated(clu_moles)) deallocate(clu_moles)
       RETURN
    ENDIF
 !                                                                       
@@ -813,6 +842,7 @@ IF (clu_mode.eq.CLU_IN_PSEUDO) then
          ENDIF 
          IF (ier_num.ne.0) THEN 
             CLOSE(imd)
+      if(allocated(clu_moles)) deallocate(clu_moles)
             RETURN
          ENDIF
 !!!!!!!!!!!
@@ -833,12 +863,14 @@ IF (clu_mode.eq.CLU_IN_PSEUDO) then
             mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
       IF(ier_ctrlc) THEN
          CLOSE(imd)
+      if(allocated(clu_moles)) deallocate(clu_moles)
          ier_num = -14
          ier_typ = ER_COMM
          RETURN
       ENDIF
       IF (ier_num.ne.0) THEN 
          CLOSE(imd)
+      if(allocated(clu_moles)) deallocate(clu_moles)
          RETURN
       ENDIF
    ENDDO  read_domains 
@@ -867,6 +899,7 @@ ELSE
    CALL micro_read_micro(imd, lend, infile, mc_dimen, mc_idimen, mc_matrix)                                                     
    IF (ier_num.ne.0) THEN 
       CLOSE(imd)
+      if(allocated(clu_moles)) deallocate(clu_moles)
       RETURN
    ENDIF
 !                                                                       
@@ -876,17 +909,20 @@ ELSE
       ENDIF 
       IF (ier_num.ne.0) THEN 
          CLOSE(imd)
+         if(allocated(clu_moles)) deallocate(clu_moles)
          RETURN
       ENDIF
       CALL micro_read_micro (imd, lend, infile, mc_dimen, mc_idimen, mc_matrix)
       IF (ier_num.ne.0) THEN 
          CLOSE(imd)
+         if(allocated(clu_moles)) deallocate(clu_moles)
          RETURN
       ENDIF
    ENDDO 
 ENDIF 
 IF ( .not. clu_infile_internal ) THEN
    CLOSE (imd) 
+      if(allocated(clu_moles)) deallocate(clu_moles)
 ENDIF 
 !
 sgrand = seknds(sgrand)
@@ -900,6 +936,7 @@ chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
                         ! has to turn this on explicitly
 chem_quick = .FALSE.
 chem_period(:) = .FALSE.
+if(allocated(clu_moles)) deallocate(clu_moles)
 !                                                                       
 END SUBROUTINE micro_filereading              
 !
@@ -1279,6 +1316,9 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 !*****7*****************************************************************
       SUBROUTINE micro_read_atom (ist, infile, mc_idimen, mc_matrix, &
                                   AT_MAXP, at_ianz, at_param) 
+!-
+!  Reads the atoms of the current cluster type 
+!+
 !                                                                       
       USE discus_config_mod 
       USE discus_allocate_appl_mod 
@@ -1374,6 +1414,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN)  :: at_param
       INTEGER             :: lline
       LOGICAL             :: linternal
       LOGICAL, SAVE       :: at_init = .TRUE.
+logical :: lmole_type    ! The molecule has a 'molecule  type' line
+integer :: is_mole_type  ! Molecule type provided on the 'molecule type line'
       REAL :: d100, d010, d001
 !                                                                       
 !     REAL do_blen 
@@ -1440,6 +1482,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN)  :: at_param
       ELSE
          n_mole_old = mole_num_mole
       ENDIF
+lmole_type = .false.                   ! Assume no 'molecule type' line
+is_mole_type = 1
  1000 CONTINUE 
       ier_num = - 49 
       ier_typ = ER_APPL 
@@ -1485,6 +1529,17 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
             i = 200 - ibl 
             i = len_str (zeile) 
             CALL struc_mole_header (zeile, i, .false.,lcontent) 
+            if(index(zeile,'type')>0) then
+               lmole_type = .true.                    ! Input file provided 'molecule type'
+               is_mole_type = mole_type(mole_num_mole)
+            elseif(index(zeile,'end')>0) then          ! 'molecule end' line
+               if(lmole_type) then                    ! Input file provided 'molecule type'
+                  mole_type(mole_num_mole) = clu_mole_tab(is_mole_type, clu_current)
+               else
+                  mole_type(mole_num_mole) = clu_mole_tab(1           , clu_current)
+                  lmole_type = .false.                ! Reset flag for next molecule
+               endif
+            endif
             IF (ier_num.ne.0) return 
          ELSE is_mole
 !           READ (line (ibl:80), *, end = 999, err = 999) (werte (j), j = 1, 4)
@@ -1694,6 +1749,7 @@ mole_int: IF(mk_infile_internal) THEN
           call alloc_molecule( MOLE_MAX_GENE, MOLE_MAX_SYMM, n_mole, n_type, n_atom )
        ENDIF
        DO i=1, temp_num_mole ! Create a lookup table, atom is in molecule
+          temp_mole_type(i) = clu_mole_tab(temp_mole_type(i), clu_current)  ! Replace by look up table
           DO j=1, temp_mole_len(i)
              k = temp_mole_cont(temp_mole_off(i)+j)
              temp_in_mole(k) = i
@@ -1854,6 +1910,8 @@ USE str_comp_mod
 !       mc_matrix(i,i) = 1.0                                            
 !     ENDDO                                                             
 !                                                                       
+ii = 0
+clu_current = 0
       l_ok = .false.                 ! Assume pseudoatom is incorrect
       IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
          clu_iatom = clu_iatom + 1   ! Increment internal atom number
@@ -1925,6 +1983,7 @@ USE str_comp_mod
 !DBG      write(*,2222) 'MC_MATRIX ',(mc_matrix(i,j),j=1,4)             
 !DBG      ENDDO                                                         
 !DBG2222      format(a10,3(f8.3,2x),2x,f8.3)                            
+clu_current = ii                       ! Transfer current cluster type
       RETURN 
 !                                                                       
   999 CONTINUE 

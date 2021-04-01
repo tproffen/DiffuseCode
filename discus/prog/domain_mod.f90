@@ -28,9 +28,11 @@ REAL   ,            DIMENSION(:)    , ALLOCATABLE  ::  clu_fuzzy  ! (CLU_MAX_TYP
 REAL   ,            DIMENSION(:,:,:), ALLOCATABLE  ::  clu_orient ! (CLU_MAX_TYPE,3,4)
 REAL   ,            DIMENSION(:,:,:), ALLOCATABLE  ::  clu_shape  ! (CLU_MAX_TYPE,3,4)
 REAL   ,            DIMENSION(:,:  ), ALLOCATABLE  ::  clu_sigma  ! (CLU_MAX_TYPE,3  )
+INTEGER,            DIMENSION(:,:)  , ALLOCATABLE  ::  clu_mole_tab  ! (CLU_MAX_TYPE)
 INTEGER                               ::  clu_index = 0
 INTEGER                               ::  clu_mode  = CLU_IN_PSEUDO
-INTEGER                               ::  clu_number = 0
+INTEGER                               ::  clu_number  = 0               ! Total cluster type numbers
+INTEGER                               ::  clu_current = 0               ! Current cluster type
 !
 LOGICAL                               ::  clu_surface = .FALSE.
 LOGICAL                               ::  clu_infile_internal = .false. ! Is infile an internal file ?
