@@ -6,6 +6,7 @@ CONTAINS
 !
 SUBROUTINE fourier_reset
 !
+USE crystal_mod
 USE discus_allocate_appl_mod
 USE diffuse_mod
 IMPLICIT NONE
@@ -86,6 +87,14 @@ four_last = FOUR_NN  ! No Fourier calculated yet
 !
 four_accum = 0
 four_symm  = .FALSE.
+!
+cr_delfr   = 0.0
+cr_delfi   = 0.0
+cr_delfr_u = 0.0
+cr_delfi_u = 0.0
+cr_scat_int = .TRUE.
+cr_scat_equ = .FALSE.
+cr_delf_int = .TRUE.
 !
 END SUBROUTINE fourier_reset
 !
