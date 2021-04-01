@@ -46,6 +46,8 @@ USE discus_config_mod
    REAL   , DIMENSION(:,:), ALLOCATABLE ::  cr_scat   ! (11,0:MAXSCAT)
    REAL   , DIMENSION(  :), ALLOCATABLE ::  cr_delfr  ! (  0:MAXSCAT)
    REAL   , DIMENSION(  :), ALLOCATABLE ::  cr_delfi  ! (  0:MAXSCAT)
+   REAL   , DIMENSION(  :), ALLOCATABLE ::  cr_delfr_u! (  0:MAXSCAT)
+   REAL   , DIMENSION(  :), ALLOCATABLE ::  cr_delfi_u! (  0:MAXSCAT)
    REAL   , DIMENSION(3,2)          ::  cr_dim0     =RESHAPE((/0,0,0, 1,1,1/),SHAPE(cr_dim0))
 !
    LOGICAL                          ::  cr_acentric = .true.
