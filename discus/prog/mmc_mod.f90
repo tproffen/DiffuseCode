@@ -3,6 +3,8 @@ MODULE mmc_mod
 !     Variables for MONTE-CARLO multi level
 !-
 USE discus_config_mod
+USE mc_mod
+!
 USE precision_mod
 !
 SAVE
@@ -10,11 +12,12 @@ SAVE
 LOGICAL, PARAMETER  ::  MMC_CLASSIC        = .TRUE.
 LOGICAL, PARAMETER  ::  MMC_GROWTH         = .FALSE.
 !
-INTEGER, PARAMETER  ::  MC_N_ENERGY        = 11
+!
+!INTEGER, PARAMETER  ::  MC_N_ENERGY        = 12
 INTEGER, PARAMETER  ::  MC_MULTI_ENERGY    =  1
 INTEGER, PARAMETER  ::  MC_SINGLE_ENERGY   =  0
 !
-INTEGER, PARAMETER  ::  MC_N_MOVE          =  4
+INTEGER, PARAMETER  ::  MC_N_MOVE          =  5
 !
 INTEGER, PARAMETER  ::  MMC_SELECT_RANDOM  =  0
 INTEGER, PARAMETER  ::  MMC_SELECT_ALL     =  0
@@ -30,6 +33,7 @@ INTEGER, PARAMETER  ::  MC_MOVE_SWCHEM     =  1
 INTEGER, PARAMETER  ::  MC_MOVE_SWDISP     =  2
 INTEGER, PARAMETER  ::  MC_MOVE_DISP       =  3
 INTEGER, PARAMETER  ::  MC_MOVE_INVDISP    =  4
+INTEGER, PARAMETER  ::  MC_MOVE_ROTATE     =  5
 !
 INTEGER, PARAMETER  ::  MMC_C_XYZ    =  0
 INTEGER, PARAMETER  ::  MMC_C_RADIUS =  1
@@ -48,6 +52,8 @@ INTEGER             ::  MMC_REP_CORR       =  0
 INTEGER             ::  MMC_REP_SCAT       =  0
 !
 INTEGER             ::  MMC_H_NNNN         =  3
+!
+LOGICAL             ::  mmc_style          = MMC_IS_ATOM
 !
 !LOGICAL             ::  mmc_algo           = MMC_GROWTH         ! MMC Algorithm == CLASSIC or GROWTH
 LOGICAL             ::  mmc_algo           = MMC_CLASSIC        ! MMC Algorithm == CLASSIC or GROWTH
@@ -85,6 +91,7 @@ REAL , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ach_sigm    ! (CHEM_MAX_COR,0:MC_
 !REAL,DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_vec         ! (4,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_const       ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cfac        ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
+REAL , DIMENSION(:)      , ALLOCATABLE ::  mmc_depth_def   ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE ::  mmc_pneig       ! (0:DEF_MAXSCAT, 0:DEF_MAXSCAT, 1:CHEM_MAX_COR)
 !
 REAL, DIMENSION(:,:)     , ALLOCATABLE :: mmc_h_diff             ! history of achieved correlation differences
@@ -103,6 +110,8 @@ INTEGER                                :: mmc_h_nfeed  = 0       ! Number of fee
 !
 LOGICAL, DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cor_energy! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 INTEGER, DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_pair      ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+INTEGER, DIMENSION(:,:,:  ), ALLOCATABLE ::  mmc_left      ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT)
+INTEGER, DIMENSION(:,:,:  ), ALLOCATABLE ::  mmc_right     ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT)
 LOGICAL, DIMENSION(:),       ALLOCATABLE ::  mmc_latom     ! (0:DEF_MAXSCAT)
 LOGICAL, DIMENSION(:),       ALLOCATABLE ::  mmc_lsite     ! (0:DEF_MAXSCAT)
 LOGICAL, DIMENSION(:),       ALLOCATABLE ::  mmc_allowed   ! (0:DEF_MAXSCAT)

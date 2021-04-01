@@ -22,6 +22,12 @@ USE precision_mod
       INTEGER, PARAMETER  ::  MC_REPULSIVE= 9
       INTEGER, PARAMETER  ::  MC_COORDNUM = 10
       INTEGER, PARAMETER  ::  MC_UNI      = 11
+      INTEGER, PARAMETER  ::  MC_GROUP    = 12
+!
+INTEGER, PARAMETER  ::  MC_N_ENERGY        = 12
+!
+LOGICAL, PARAMETER  :: MMC_IS_ATOM = .TRUE.
+LOGICAL, PARAMETER  :: MMC_IS_MOLE = .FALSE.
 !
       CHARACTER(LEN=200)  ::  mo_atom(3)
 !
@@ -35,6 +41,8 @@ USE precision_mod
 !     REAL, DIMENSION(:)    , ALLOCATABLE                ::  mo_cfac        ! (0:200)
 !     REAL, DIMENSION(:,:,:), ALLOCATABLE                ::  mo_disp        ! (200,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
       REAL, DIMENSION(:,:  ), ALLOCATABLE                ::  mo_maxmove     ! (4,0:DEF_MAXSCAT)
+      REAL, DIMENSION(:,:  ), ALLOCATABLE                ::  mo_maxmove_mole! (4,0:DEF_MAXSCAT)
+      REAL, DIMENSION(:,:  ), ALLOCATABLE                ::  mo_maxrota_mole! (4,0:DEF_MAXSCAT)
       REAL                ::  mo_kt
       LOGICAL             ::  mo_sel_atom
 !
