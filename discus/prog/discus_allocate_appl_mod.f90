@@ -298,7 +298,7 @@ USE str_comp_mod
       CALL alloc_mmc_angle( 1,  1        )
       CALL alloc_mmc_buck ( 1,  1        )
       CALL alloc_mmc_lenn ( 1,  1        )
-      CALL alloc_mmc_move ( 1,  1        )
+      CALL alloc_mmc_move ( 1,  1,  1    )
       CALL alloc_molecule ( 1,  1,  1,  1,  1)
       CALL alloc_phases   ( 1,  1,  1        )
       CALL alloc_pdf      ( 1,  1,  1,  1    )
@@ -948,6 +948,14 @@ END SUBROUTINE alloc_chem_hist
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
+      CALL alloc_arr ( cr_delfr_u,     0,n_scat,  all_status, 0.0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      cry_size_of = cry_size_of + size_of
+!
+      CALL alloc_arr ( cr_delfi_u,     0,n_scat,  all_status, 0.0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      cry_size_of = cry_size_of + size_of
+!
       CALL alloc_arr ( cr_scat_int,    0,n_scat,  all_status, .true., size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
@@ -1519,6 +1527,7 @@ END SUBROUTINE alloc_demol
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_site
 !
+integer :: i_scat
       INTEGER              :: all_status
       LOGICAL              :: lstat
       INTEGER              :: size_of
@@ -1562,6 +1571,11 @@ END SUBROUTINE alloc_demol
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mmc_size_of = mmc_size_of + size_of
 !
+      CALL alloc_arr ( mmc_depth_def   ,1,n_corr , &
+                                      all_status, 0.0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mmc_size_of = mmc_size_of + size_of
+!
       CALL alloc_arr ( mmc_ach_corr    ,1,n_corr , &
                                         0,n_ener , &
                                        -1,n_scat , &
@@ -1594,8 +1608,9 @@ END SUBROUTINE alloc_demol
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mmc_size_of = mmc_size_of + size_of
 !
-      CALL alloc_arr ( mmc_pneig       ,0,n_scat , &
-                                        0,n_scat , &
+ i_scat = max(3, n_scat)
+      CALL alloc_arr ( mmc_pneig       ,0,i_scat , &
+                                        0,i_scat , &
                                         1,n_corr , &
                                       all_status, 0    , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -1610,6 +1625,20 @@ END SUBROUTINE alloc_demol
       CALL alloc_arr ( mmc_pair        ,1,n_corr , &
                                         0,n_ener , &
                                         0,n_scat , &
+                                        0,n_scat , &
+                                      all_status, 0    , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mmc_size_of = mmc_size_of + size_of
+!
+      CALL alloc_arr ( mmc_left        ,1,n_corr , &
+                                        0,n_ener , &
+                                        0,n_scat , &
+                                      all_status, 0    , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mmc_size_of = mmc_size_of + size_of
+!
+      CALL alloc_arr ( mmc_right       ,1,n_corr , &
+                                        0,n_ener , &
                                         0,n_scat , &
                                       all_status, 0    , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -1637,7 +1666,7 @@ END SUBROUTINE alloc_demol
       END IF
     END SUBROUTINE alloc_mmc
 !
-SUBROUTINE alloc_mmc_move( n_corr, n_scat)
+SUBROUTINE alloc_mmc_move( n_corr, n_scat, n_mole)
 !-
 !     Allocate the arrays needed by MMC  for moves in mc_mod
 !+
@@ -1646,8 +1675,9 @@ USE mc_mod
 IMPLICIT NONE
 !
 !      
-INTEGER, INTENT(IN)  :: n_corr
-INTEGER, INTENT(IN)  :: n_scat
+INTEGER, INTENT(IN)  :: n_corr    ! Number of targets
+INTEGER, INTENT(IN)  :: n_scat    ! Number of atom types
+INTEGER, INTENT(IN)  :: n_mole    ! Number of molecule types
 !
 INTEGER              :: all_status
 INTEGER              :: size_of
@@ -1657,7 +1687,9 @@ CALL alloc_arr(mo_ach_corr   ,1,n_corr                    ,  all_status, 0.0    
 !CALL alloc_arr(mo_const      ,0,n_corr                    ,  all_status, 0.0      , size_of )
 !CALL alloc_arr(mo_cfac       ,0,n_corr                    ,  all_status, 0.0      , size_of )
 !CALL alloc_arr(mo_disp       ,1,n_corr, 0,n_scat, 0,n_scat,  all_status, 0.0      , size_of )
-CALL alloc_arr(mo_maxmove    ,1,4     , 0,n_scat          ,  all_status, 0.0      , size_of )
+CALL alloc_arr(mo_maxmove     ,1,4     , 0,n_scat          ,  all_status, 0.0      , size_of )
+CALL alloc_arr(mo_maxmove_mole,1,4     , 0,n_mole          ,  all_status, 0.0      , size_of )
+CALL alloc_arr(mo_maxrota_mole,1,4     , 0,n_mole          ,  all_status, 0.0      , size_of )
 !
 END SUBROUTINE alloc_mmc_move
 !
