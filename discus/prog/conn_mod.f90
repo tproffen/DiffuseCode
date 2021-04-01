@@ -265,7 +265,7 @@ USE precision_mod
                        ENDIF
                     ENDIF
                     n_neig = n_neig + 1
-                    valid_neig(n_neig) = atom_env(j)
+                    valid_neig(n_neig) =         (j)
                   ENDIF
                ENDDO list
 !
@@ -308,24 +308,26 @@ USE precision_mod
                j = 1
                tail => hood_temp%nachbar                    ! tail points to the first NEIGHBOR
 !              tail%atom_number = atom_env(j)               ! I store the atom_no of the neighbor
-               tail%atom_number = valid_neig(j)             ! I store the atom_no of the neighbor
-               tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
-               tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
-               tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
+               tail%atom_number = atom_env(valid_neig(j))   ! I store the atom_no of the neighbor
+               tail%offset(1)   = NINT(atom_pos(1,(valid_neig(j)))-cr_pos(1,atom_env(valid_neig(j))))
+               tail%offset(2)   = NINT(atom_pos(2,(valid_neig(j)))-cr_pos(2,atom_env(valid_neig(j))))
+               tail%offset(3)   = NINT(atom_pos(3,(valid_neig(j)))-cr_pos(3,atom_env(valid_neig(j))))
                NULLIFY (tail%next)                          ! No further neighbors
 !
                DO j = 2, n_neig                             ! Add all (intended) neighbors to list
                      ALLOCATE (tail%next)                      ! create a further NEIGHBOR
                      tail => tail%next                         ! reassign tail to new end of list
-                     tail%atom_number = valid_neig(j)          ! I store the atom_no of the neighbor
-                     tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
-                     tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
-                     tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
+                     tail%atom_number = atom_env(valid_neig(j))          ! I store the atom_no of the neighbor
+                     tail%offset(1)   = NINT(atom_pos(1,(valid_neig(j)))-cr_pos(1,atom_env(valid_neig(j))))
+                     tail%offset(2)   = NINT(atom_pos(2,(valid_neig(j)))-cr_pos(2,atom_env(valid_neig(j))))
+                     tail%offset(3)   = NINT(atom_pos(3,(valid_neig(j)))-cr_pos(3,atom_env(valid_neig(j))))
                      NULLIFY (tail%next)                       ! No further neighbors
                ENDDO
                DEALLOCATE(valid_neig)
             ENDIF
-               IF(.NOT.l_all) CYCLE atome
+               IF(.NOT.l_all) then
+                  CYCLE atome
+               endif
 !              def_temp%create = .FALSE.
             ENDIF                                           ! IF create
             IF ( .NOT. ASSOCIATED(def_temp%def_next)) THEN  ! No more def.s
@@ -1483,6 +1485,7 @@ USE atom_env_mod
 !     USE modify_mod
       USE prop_char_mod
       USE metric_mod
+USE surface_mod
       USE param_mod 
       USE prompt_mod 
       USE lib_f90_allocate_mod
@@ -1507,6 +1510,9 @@ USE atom_env_mod
       REAL   , DIMENSION(3)      :: u, v
       REAL                       :: distance
 !
+CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
+DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
+!
       is1 = cr_iscat(iatom)
       u   = cr_pos(:,iatom)
       CALL get_connectivity_list (iatom, is1, idef, c_list, c_offs, natoms )
@@ -1519,24 +1525,35 @@ USE atom_env_mod
       ELSE
          WRITE(output_io, 1200)
       ENDIF
-      IF( natoms > MAXPAR_RES) THEN
-        n_res = MAX(natoms,MAXPAR_RES,MAX_ATOM_ENV)
+      IF( 4*natoms > MAXPAR_RES) THEN
+        n_res = MAX(4*natoms,MAXPAR_RES,MAX_ATOM_ENV)
         CALL alloc_param(n_res)
         MAXPAR_RES = n_res
       ENDIF
-      IF ( natoms>0 .AND. natoms <= MAXPAR_RES ) THEN
-         res_para(0) = REAL(natoms)
+      IF ( natoms>0 .AND. 4*natoms <= MAXPAR_RES ) THEN
+         res_para(0) = REAL(4*natoms)
          res_para(1:natoms) = REAL(c_list(1:natoms))
+         DO j= 1,natoms
+            res_para(natoms+(j-1)*3+1:natoms+(j-1)*3+3) = c_offs(:,j)
+         ENDDO
       ENDIF
 !
       IF(long) THEN
+         WRITE(output_io,3000)
+         i=iatom
+         at_name_d = at_name(cr_iscat(i))
+            CALL char_prop_1 (c_property, cr_prop (i), length) 
+            WRITE (output_io, 3010) at_name_d, cr_pos(:, i),              &
+            cr_dw (cr_iscat (i) ), i, cr_mole(i), c_property (1:length),  &
+            cr_occ(cr_iscat(i)), c_surf(cr_surf(0,i)), cr_surf(1:3,i)
+         WRITE(output_io,'(a)')
          DO j= 1,natoms
             i = c_list(j)
             at_name_d = at_name(cr_iscat(i))
             CALL char_prop_1 (c_property, cr_prop (i), length) 
-            WRITE (output_io, 3010) at_name_d, cr_pos (1, i), cr_pos (2,&
-            i), cr_pos (3, i), cr_dw (cr_iscat (i) ), c_property (1:    &   !! WORK OCC
-            length)
+            WRITE (output_io, 3010) at_name_d, cr_pos(:, i),              &
+            cr_dw (cr_iscat (i) ), i, cr_mole(i), c_property (1:length),  &
+            cr_occ(cr_iscat(i)), c_surf(cr_surf(0,i)), cr_surf(1:3,i)
             v(:) = cr_pos(:,i) + c_offs(:,j)
             distance = do_blen(.TRUE., u,v)
             WRITE (output_io, 3020) c_offs(:,j), distance
@@ -1552,7 +1569,9 @@ USE atom_env_mod
               '      Neighbor number:', i3)
 1100  FORMAT( '      Neighbors are        ',20(i6:,2x))
 1200  FORMAT( '      Atom has no neighbours')
-3010  FORMAT(1x,a9,3(2x,f12.6),4x,f10.6,2x,a) 
+3000  FORMAT( ' Name           x             y             z             B', &
+              '            Number   Molecule Property  Occupancy Surf(Type,HKL)')
+3010  FORMAT(1x,a9,3(2x,f12.6),4x,f10.6,2x,i9,2x, i9,1x, a,3x, F8.6, 2x, A1,3(1x,I3 )) 
 3020  FORMAT( 3x  ,3(8x,i6   ),9x,f12.6    ) 
 !
       END SUBROUTINE do_show_connectivity 
