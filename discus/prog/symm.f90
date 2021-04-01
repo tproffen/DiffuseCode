@@ -269,7 +269,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         DO i = 1, 3 
                         sym_hkl (i) = werte (i) 
                         ENDDO 
-                        CALL trans (sym_hkl, cr_rten, sym_uvw, 3) 
+!                       CALL trans (sym_hkl, cr_rten, sym_uvw, 3) 
+                        sym_hkl = matmul(real(cr_rten,KIND=PREC_DP), sym_uvw)
                         sym_axis_type     = 0      ! Axis in absolute coordinates
                         l_need_setup = .true. 
                         sym_use = 0             ! Turn off space group matrix usage
@@ -701,7 +702,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         DO i = 1, 3 
                         sym_uvw (i) = werte (i) 
                         ENDDO 
-                        CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
+!                       CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
+                        sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
                         sym_axis_type     = 0      ! Axis in absolute coordinates
                         l_need_setup = .true. 
                         sym_use = 0             ! Turn off space group matrix usage
@@ -794,12 +796,17 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE symm_mod 
 !                                                                       
       USE prompt_mod 
+USE matrix_mod
+use precision_mod
+use param_mod
 !
       IMPLICIT none 
 !                                                                       
       CHARACTER(9) at_lis (0:maxscat+1)!, at_name 
       INTEGER mol_lis (maxscat+1)
       INTEGER i, j, k 
+real :: deter
+real(KIND=PREC_DP), dimension(3,3) :: matr 
 !                                                                       
    IF(sym_use==0) THEN
       WRITE (output_io, 3000) sym_uvw 
@@ -813,6 +820,16 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       WRITE (output_io, 3040) sym_trans 
       WRITE (output_io, 3045) sym_or_tr 
       WRITE (output_io, 3050) ( (sym_mat (i, j), j = 1, 4), i = 1, 3) 
+matr = sym_mat(1:3,1:3)
+deter = det3(matr)
+!write(*,*) 'Determinant is ', deter
+res_para(1:3) = sym_mat(1,1:3)
+res_para(4:6) = sym_mat(2,1:3)
+res_para(7:9) = sym_mat(3,1:3)
+res_para(10:12) = sym_rmat(1,1:3)
+res_para(13:15) = sym_rmat(2,1:3)
+res_para(16:18) = sym_rmat(3,1:3)
+res_para(0)   = 18
       WRITE (output_io, 3060) ( (sym_rmat (i, j), j = 1, 3), i = 1, 3) 
       WRITE (output_io, 3070) sym_power 
 !                                                                       
