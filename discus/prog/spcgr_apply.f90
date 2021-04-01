@@ -2025,7 +2025,7 @@ USE precision_mod
             mole_num_mole = mole_num_mole+1 
             mole_len (imole) = 0 
             mole_off (imole) = mole_num_atom 
-            mole_type (imole) = mole_num_type 
+            mole_type (imole) = mole_type (imole-1) !mole_num_type 
             mole_char (imole) = mole_char (imole-1) 
             mole_dens (imole) = mole_dens (imole-1) 
 !            mole_biso (imole) = mole_biso (imole-1) 
@@ -2128,7 +2128,7 @@ USE precision_mod
             mole_num_mole = mole_num_mole+1 
             mole_len (imole) = 0 
             mole_off (imole) = mole_num_atom 
-            mole_type (imole) = MAX(1,mole_num_type )
+            mole_type (imole) = mole_type (imole-1) !MAX(1,mole_num_type )
             mole_char (imole) = mole_char (imole-1) 
             mole_dens (imole) = mole_dens (imole-1) 
 !            mole_biso (imole) = mole_biso (imole-1) 
