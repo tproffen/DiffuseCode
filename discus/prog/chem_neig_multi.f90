@@ -350,11 +350,12 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
    ENDDO 
 !write(*,*) ' FOUND NEIGHBORS ', natom(ncent)
 !do i=1, natom(ncent)
-!write(*,'(2(a2,i8,i2, 3f6.1),1x,l1, a,10 i8)') 'c', jatom, cr_iscat(jatom), patom(1:3, 0, ncent),  &
-!                                      'n', katom, cr_iscat(katom), patom(1:3, i, ncent), &
+!write(*,'(a,i3,2(a3,i8,i2, 3f6.1),1x,l1, a,10 i8)') 'CORR ',ic, ' c', jatom, cr_iscat(jatom), patom(1:3, 0, ncent),  &
+!                                      ' n', katom, cr_iscat(katom), patom(1:3, i, ncent), &
 !                                       tatom(i, ncent), &
 ! ' : ', natom(ncent), iatom(0:natom(ncent), ncent)
 !enddo
+!read(*,*) i
    IF (natom(ncent) ==  0) THEN 
       ncent = ncent - 1 
       ncent = 0 
@@ -387,6 +388,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
 !endif
                   iatom(  k+j,ncent) = c_list(j)
                   tatom(  k+j,ncent) = .TRUE.
+!write(*,'(a,i2,i6,6f8.3)') 'NEI ', j, c_list(j),cr_pos(:,c_list(j)), REAL(c_offs(:,j))
                   patom(1,k+j,ncent) = cr_pos(1,c_list(j)) + REAL(c_offs(1,j))
                   patom(2,k+j,ncent) = cr_pos(2,c_list(j)) + REAL(c_offs(2,j))
                   patom(3,k+j,ncent) = cr_pos(3,c_list(j)) + REAL(c_offs(3,j))
