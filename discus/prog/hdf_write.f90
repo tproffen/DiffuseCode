@@ -11,6 +11,8 @@ SUBROUTINE hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
                        ier_num, ier_typ, ER_IO, ER_APPL)
 !
 USE hdf5
+!use diffuse_mod
+!use fourier_sup
 !
 IMPLICIT NONE
 !
