@@ -1905,12 +1905,14 @@ USE str_comp_mod
             sym_uvw (1) = st_rot_no (1) 
             sym_uvw (2) = st_rot_no (2) 
             sym_uvw (3) = st_rot_no (3) 
-            CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
+!           CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
+            sym_hkl = matmul(real(cr_gten,kind=PREC_DP), sym_uvw)
          ELSE 
             sym_hkl (1) = st_rot_no (1) 
             sym_hkl (2) = st_rot_no (2) 
             sym_hkl (3) = st_rot_no (3) 
-            CALL trans (sym_hkl, cr_rten, sym_uvw, 3) 
+!           CALL trans (sym_hkl, cr_rten, sym_uvw, 3) 
+            sym_uvw = matmul(real(cr_rten,kind=PREC_DP), sym_hkl)
          ENDIF 
       ELSEIF (str_comp (line, 'mod1', 4, lbef, 4) ) then 
          sym_angle = st_rot_ang_m1 (i) 
@@ -1918,12 +1920,14 @@ USE str_comp_mod
             sym_uvw (1) = st_rot_m1 (1) 
             sym_uvw (2) = st_rot_m1 (2) 
             sym_uvw (3) = st_rot_m1 (3) 
-            CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
+!           CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
+            sym_hkl = matmul(real(cr_gten,kind=PREC_DP), sym_uvw)
          ELSE 
             sym_hkl (1) = st_rot_m1 (1) 
             sym_hkl (2) = st_rot_m1 (2) 
             sym_hkl (3) = st_rot_m1 (3) 
-            CALL trans (sym_hkl, cr_rten, sym_uvw, 3) 
+!           CALL trans (sym_hkl, cr_rten, sym_uvw, 3) 
+            sym_uvw = matmul(real(cr_rten,kind=PREC_DP), sym_hkl)
          ENDIF 
       ELSEIF (str_comp (line, 'mod2', 4, lbef, 4) ) then 
          sym_angle = st_rot_ang_m2 (i) 
@@ -1931,12 +1935,14 @@ USE str_comp_mod
             sym_uvw (1) = st_rot_m2 (1) 
             sym_uvw (2) = st_rot_m2 (2) 
             sym_uvw (3) = st_rot_m2 (3) 
-            CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
+!           CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
+            sym_hkl = matmul(real(cr_gten,kind=PREC_DP), sym_uvw)
          ELSE 
             sym_hkl (1) = st_rot_m2 (1) 
             sym_hkl (2) = st_rot_m2 (2) 
             sym_hkl (3) = st_rot_m2 (3) 
-            CALL trans (sym_hkl, cr_rten, sym_uvw, 3) 
+!           CALL trans (sym_hkl, cr_rten, sym_uvw, 3) 
+            sym_uvw = matmul(real(cr_rten,kind=PREC_DP), sym_hkl)
          ENDIF 
       ENDIF 
 !                                                                       
