@@ -18,54 +18,70 @@ USE errlist_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=1024) :: string
+CHARACTER(LEN=1024), DIMENSION(2) :: string
 CHARACTER(LEN=1024) :: ofile
+INTEGER             :: ianz
 !
 IF(operating==OS_LINUX .OR. operating==OS_LINUX_WSL) THEN
    ofile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/discus.phys_cores'
-   WRITE(string,'(a,a)') 'cat /proc/cpuinfo | grep ''cpu cores'' | uniq | awk ''{print $4}'' > ', &
+   WRITE(string(1),'(a,a)') 'cat /proc/cpuinfo | grep ''cpu cores'' | uniq | awk ''{print $4}'' > ', &
             ofile(1:LEN_TRIM(ofile))
-   par_omp_phys =  read_phys(string, ofile)
+   WRITE(string(2),'(a,a)') 'cat /proc/cpuinfo | grep ''physical id'' | sort -u | wc -l >>', &
+            ofile(1:LEN_TRIM(ofile))
+   ianz = 2
+   par_omp_phys =  read_phys(string, ofile, ianz)
 !
-   WRITE(string,'(a,a)') 'nproc > ', ofile(1:LEN_TRIM(ofile))
-   par_omp_logi =  read_phys(string, ofile)
+   ofile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/discus.logi_cores'
+   WRITE(string(1),'(a,a)') 'nproc > ', ofile(1:LEN_TRIM(ofile))
+   ianz = 1
+   par_omp_logi =  read_phys(string, ofile, ianz)
 ELSEIF(operating==OS_MACOSX) THEN
    ofile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/discus.phys_cores'
-   WRITE(string,'(a,a)') 'sysctl hw.physicalcpu | awk ''{print $2}'' > ', ofile(1:LEN_TRIM(ofile))
-   par_omp_phys =  read_phys(string, ofile)
+   WRITE(string(1),'(a,a)') 'sysctl hw.physicalcpu | awk ''{print $2}'' > ', ofile(1:LEN_TRIM(ofile))
+   ianz = 1
+   par_omp_phys =  read_phys(string, ofile, ianz)
 !
-   WRITE(string,'(a,a)') 'sysctl hw.logicalcpu | awk ''{print $2}'' > ', ofile(1:LEN_TRIM(ofile))
-   par_omp_logi =  read_phys(string, ofile)
+   ofile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/discus.logi_cores'
+   WRITE(string(1),'(a,a)') 'sysctl hw.logicalcpu | awk ''{print $2}'' > ', ofile(1:LEN_TRIM(ofile))
+   ianz = 1
+   par_omp_logi =  read_phys(string, ofile, ianz)
 ENDIF
 
 END SUBROUTINE get_cores
 !
 !*******************************************************************************
 !
-INTEGER FUNCTION read_phys(string, ofile)
+INTEGER FUNCTION read_phys(string, ofile, ianz)
 !
 USE support_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=*), INTENT(INOUT) :: string
+CHARACTER(LEN=*), DIMENSION(2), INTENT(INOUT) :: string
 CHARACTER(LEN=*), INTENT(IN) :: ofile
+INTEGER         , INTENT(IN) :: ianz
 !
 INTEGER, PARAMETER :: IRD = 88
 !
 INTEGER :: j
+INTEGER :: k
 INTEGER :: ios
 !
 read_phys = 1
-CALL EXECUTE_COMMAND_LINE(string)
+DO k=1,ianz
+   CALL EXECUTE_COMMAND_LINE(string(k))
+ENDDO
 CALL oeffne(IRD, ofile, 'old')
-READ(IRD, *, IOSTAT=ios) j
+!
+DO k=1,ianz
+   READ(IRD, *, IOSTAT=ios) j
+   IF(ios==0) THEN
+      read_phys = read_phys * j
+   ENDIF
+ENDDO
 CLOSE(IRD)
-IF(ios==0) THEN
-   read_phys = j
-ENDIF
-WRITE(string,'(a,a)') 'rm -f ', ofile(1:LEN_TRIM(ofile))
-CALL EXECUTE_COMMAND_LINE(string)
+WRITE(string(1),'(a,a)') 'rm -f ', ofile(1:LEN_TRIM(ofile))
+CALL EXECUTE_COMMAND_LINE(string(1))
 !
 END FUNCTION read_phys
 !
