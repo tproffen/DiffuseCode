@@ -6143,6 +6143,8 @@ SUBROUTINE set_spcgr(line,length)
 !
 USE crystal_mod
 USE spcgr_apply
+USE gen_add_mod
+USE sym_add_mod
 USE wyckoff_mod
 USE errlist_mod
 USE get_params_mod
@@ -6196,6 +6198,9 @@ IF(ianz>=1) THEN                   ! At least one parameter
    cr_set = opara(O_SETTING)(1:MIN(3,lopara(O_SETTING)))
    CALL spcgr_no (spcgr_ianz, MAXW, werte) 
    IF(ier_num/=0) RETURN
+   spc_n     = 1     ! reset spcgr
+   gen_add_n = 0     ! No additional generators
+   sym_add_n = 0     ! No additional symmetry operations
    CALL get_symmetry_matrices
    IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
       ier_num = -160
