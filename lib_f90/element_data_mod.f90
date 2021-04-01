@@ -1413,6 +1413,9 @@ END FUNCTION get_mass
          CASE('AUA1')
             temp_delf(1) = per_aua1_fp (j)
             temp_delf(2) = per_aua1_fpp(j)
+         CASE DEFAULT
+            temp_delf(1) = 0.0
+            temp_delf(2) = 0.0
       END SELECT
 !
       END SUBROUTINE get_scat_ano
