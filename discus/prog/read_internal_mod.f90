@@ -140,130 +140,122 @@ integer ier
    chem_purge = .FALSE.                          ! No purge, period boundary is OK
 !
    END SUBROUTINE readstru_internal
+!
 !*******************************************************************************
-   SUBROUTINE readcell_internal ( strucfile )
 !
+SUBROUTINE readcell_internal ( strucfile )
+!-
 !  Reads a unit cell from an internal cystal. The old crystal is overwritten
+!+
 !
-   USE discus_allocate_appl_mod
-!   USE class_internal
-   USE chem_mod
-   USE cryst_class
-   USE crystal_mod
-   USE molecule_mod
-   USE spcgr_apply, ONLY: get_symmetry_matrices, firstcell, symmetry
-   USE wyckoff_mod
+USE discus_allocate_appl_mod
+USE chem_mod
+USE cryst_class
+USE crystal_mod
+USE molecule_mod
+USE spcgr_apply, ONLY: get_symmetry_matrices, firstcell, symmetry
+USE wyckoff_mod
 USE lib_errlist_func
 USE precision_mod
 !
-   IMPLICIT NONE
+IMPLICIT NONE
 !
+CHARACTER (LEN=*), INTENT(IN) :: strucfile
 !
-   CHARACTER (LEN=*), INTENT(IN) :: strucfile
+INTEGER                       :: i,j,k        ! Dummy
+INTEGER                       :: ia         ! Dummy; atoms in internal crystal
+INTEGER                       :: natoms
+INTEGER                       :: nscat
+INTEGER                       :: n_mole
+INTEGER                       :: n_type
+INTEGER                       :: n_atom
+INTEGER                       :: new_mole
+INTEGER                       :: new_nmax
+INTEGER                       :: new_nscat
+INTEGER, DIMENSION(3)         :: rd_icc     ! Crystal size on 'cell' command line
+INTEGER                       :: itype      ! type of current atom
+REAL   , DIMENSION(3)         :: posit      ! position of current atom
+INTEGER, DIMENSION(0:3)       :: isurface   ! surface  of current atom
+REAL   , DIMENSION(0:3)       :: magn_mom   ! Magnetic moment
+INTEGER                       :: iprop      ! property of current atom
+REAL(KIND=PREC_DP), DIMENSION(5)         :: werte      ! temporary array
 !
-   INTEGER                       :: i,j,k        ! Dummy
-   INTEGER                       :: ia         ! Dummy; atoms in internal crystal
-   INTEGER                       :: natoms
-   INTEGER                       :: nscat
-   INTEGER                       :: n_mole
-   INTEGER                       :: n_type
-   INTEGER                       :: n_atom
-   INTEGER                       :: new_mole
-   INTEGER                       :: new_nmax
-   INTEGER                       :: new_nscat
-   INTEGER, DIMENSION(3)         :: rd_icc     ! Crystal size on 'cell' command line
-   INTEGER                       :: itype      ! type of current atom
-   REAL   , DIMENSION(3)         :: posit      ! position of current atom
-   INTEGER, DIMENSION(0:3)       :: isurface   ! surface  of current atom
-   REAL   , DIMENSION(0:3)       :: magn_mom   ! Magnetic moment
-   INTEGER                       :: iprop      ! property of current atom
-   REAL(KIND=PREC_DP), DIMENSION(5)         :: werte      ! temporary array
+CHARACTER (LEN=4)             :: at_name    ! temporary atom name
+REAL                          :: dw1        ! temporary DW factor
+REAL                          :: occ1       ! temporary occupancy factor
 !
-   CHARACTER (LEN=4)             :: at_name    ! temporary atom name
-   REAL                          :: dw1        ! temporary DW factor
-   REAL                          :: occ1       ! temporary occupancy factor
-!
-   INTEGER                       :: i_mole     ! Atoom is part of molecule i_mole
-   INTEGER                       :: i_type     ! and this molecule is of type i_type
-   INTEGER                       :: i_char     ! and this molecule is of type i_type
-   CHARACTER (LEN=200)           :: c_file     ! and this molecule is of type i_type
-   REAL                          :: r_fuzzy    ! and this molecule is of type i_type
-   REAL                          :: r_dens     ! and this molecule is of type i_type
-   REAL                          :: r_biso     ! and this molecule is of type i_type
-   REAL                          :: r_clin     ! and this molecule is of type i_type
-   REAL                          :: r_cqua     ! and this molecule is of type i_type
+INTEGER                       :: i_mole     ! Atoom is part of molecule i_mole
+INTEGER                       :: i_type     ! and this molecule is of type i_type
+INTEGER                       :: i_char     ! and this molecule is of type i_type
+CHARACTER (LEN=200)           :: c_file     ! and this molecule is of type i_type
+REAL                          :: r_fuzzy    ! and this molecule is of type i_type
+REAL                          :: r_dens     ! and this molecule is of type i_type
+REAL                          :: r_biso     ! and this molecule is of type i_type
+REAL                          :: r_clin     ! and this molecule is of type i_type
+REAL                          :: r_cqua     ! and this molecule is of type i_type
 !
 
-   INTEGER                              :: temp_num_mole
-   INTEGER                              :: temp_num_type
-   INTEGER                              :: temp_num_atom
-   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_len
-   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_off
-   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_type
-   CHARACTER (LEN=200), DIMENSION(:  ), ALLOCATABLE :: temp_file
-   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_char
-   REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_dens
-   REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_biso
-   REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_clin
-   REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_cqua
-   REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_fuzz
-   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_cont
-   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_look
-   INTEGER, DIMENSION(1,2)              :: iin_mole
+INTEGER                              :: temp_num_mole
+INTEGER                              :: temp_num_type
+INTEGER                              :: temp_num_atom
+INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_len
+INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_off
+INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_type
+CHARACTER (LEN=200), DIMENSION(:  ), ALLOCATABLE :: temp_file
+INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_char
+REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_dens
+REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_biso
+REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_clin
+REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_cqua
+REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_fuzz
+INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_cont
+INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_look
+INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_upd
+INTEGER, DIMENSION(1,2)              :: iin_mole
 !
-   LOGICAL                       :: need_alloc ! we need to allocate something
-   LOGICAL                       :: new_type   ! Each atom is a new type
+LOGICAL                       :: need_alloc ! we need to allocate something
+LOGICAL                       :: new_type   ! Each atom is a new type
 !
-   rd_icc = cr_icc               ! Save crystal dimensions
+rd_icc = cr_icc               ! Save crystal dimensions
 !
-   new_type = cr_newtype         ! Was defined via the 'cell' or 'lcell' command
-!  ALLOCATE(read_temp, STAT = istatus )            ! Allocate a temporary storage
-!  IF ( istatus /= 0) THEN
-!     ier_num = -114
-!     ier_typ = ER_APPL
-!     RETURN
-!  ENDIF
-!   ALLOCATE(read_temp, STAT = istatus )           ! Allocate a temporary storage
-!write(*,*) ' STATUS of ALLOC ', istatus
-   CALL readstru_size_int(strucfile, natoms, &     ! Get the sizes of the internal crystal
+new_type = cr_newtype         ! Was defined via the 'cell' or 'lcell' command
+!
+CALL readstru_size_int(strucfile, natoms, &     ! Get the sizes of the internal crystal
                    nscat, n_mole, n_type, n_atom)
-   IF ( ier_num /= 0) THEN
-      ier_typ = ER_APPL
-      ier_msg(1) = 'Could not get size of stored crystal'
-      RETURN
-   ENDIF
+IF ( ier_num /= 0) THEN
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Could not get size of stored crystal'
+   RETURN
+ENDIF
 !
 !  Get number of symmetry operations for propper allocations
-   spc_n = read_temp%crystal%get_spc_n()
-!ELLAwrite(*,*) ' ATOMS, MOL '
-!ELLAwrite(*,*) natoms, &     ! Get the sizes of the internal crystal
-!ELLA                   nscat, n_mole, n_type, n_atom, spc_n
+spc_n = read_temp%crystal%get_spc_n()
 !
 !  Allocate enough space for one unit cell
-   need_alloc = .false.
-   IF ( NMAX < spc_n*natoms ) THEN
-      new_nmax = spc_n*natoms + 1
-      need_alloc = .true.
-   ELSE
-      new_nmax = NMAX
+need_alloc = .false.
+IF ( NMAX < spc_n*natoms ) THEN
+   new_nmax = spc_n*natoms + 1
+   need_alloc = .true.
+ELSE
+   new_nmax = NMAX
+ENDIF
+IF ( MAXSCAT < nscat                    ) THEN
+   new_nscat =     nscat
+   need_alloc = .true.
+ELSE
+   new_nscat= MAXSCAT
+ENDIF
+IF( new_type .and. natoms > new_nscat ) THEN     ! Each atom is a new scattering type make enough space
+   new_nscat = MAX(new_nscat, natoms)
+   need_alloc = .true.
+ENDIF
+IF ( need_alloc ) THEN
+   call alloc_crystal(new_nscat, new_nmax)
+   IF ( ier_num /= 0 ) THEN
+      ier_msg(1) = 'Could not allocate space for actual crystal'
+      RETURN
    ENDIF
-   IF ( MAXSCAT < nscat                    ) THEN
-      new_nscat =     nscat
-      need_alloc = .true.
-   ELSE
-      new_nscat= MAXSCAT
-   ENDIF
-   IF( new_type .and. natoms > new_nscat ) THEN     ! Each atom is a new scattering type make enough space
-      new_nscat = MAX(new_nscat, natoms)
-      need_alloc = .true.
-   ENDIF
-   IF ( need_alloc ) THEN
-      call alloc_crystal(new_nscat, new_nmax)
-      IF ( ier_num /= 0 ) THEN
-         ier_msg(1) = 'Could not allocate space for actual crystal'
-         RETURN
-      ENDIF
-   ENDIF
+ENDIF
 !  Allocate space for molecules
 found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
    need_alloc = .false.
@@ -292,35 +284,35 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
          RETURN
       ENDIF
    ENDIF
-!ELLAwrite(*,*) ' READ MOLECULE ', MOLE_MAX_MOLE, MOLE_MAX_TYPE, MOLE_MAX_ATOM
-!ELLAwrite(*,*) ' WILL READ mols', n_mole
 !
 !  Allocate temporary space for molecule info
 ! 
-      ALLOCATE(temp_len (0:n_mole))
-      ALLOCATE(temp_off (0:n_mole))
-      ALLOCATE(temp_type(0:n_mole))
-      ALLOCATE(temp_file(0:n_mole))
-      ALLOCATE(temp_char(0:n_mole))
-      ALLOCATE(temp_dens(0:n_mole))
-      ALLOCATE(temp_biso(0:n_type))
-      ALLOCATE(temp_clin(0:n_type))
-      ALLOCATE(temp_cqua(0:n_type))
-      ALLOCATE(temp_fuzz(0:n_mole))
-      ALLOCATE(temp_cont(0:natoms))
-      ALLOCATE(temp_look(0:natoms))
-      temp_len (0:n_mole) = 0
-      temp_off (0:n_mole) = 0
-      temp_type(0:n_mole) = 0
-      temp_file(0:n_mole) = ' '
-      temp_char(0:n_mole) = 0
-      temp_dens(0:n_mole) = 0.0
-      temp_biso(0:n_type) = 0.0
-      temp_clin(0:n_type) = 0.0
-      temp_cqua(0:n_type) = 0.0
-      temp_fuzz(0:n_mole) = 0.0
-      temp_cont(0:natoms) = 0
-      temp_look(0:natoms) = 0
+   ALLOCATE(temp_len (0:n_mole))
+   ALLOCATE(temp_off (0:n_mole))
+   ALLOCATE(temp_type(0:n_mole))
+   ALLOCATE(temp_file(0:n_mole))
+   ALLOCATE(temp_char(0:n_mole))
+   ALLOCATE(temp_dens(0:n_mole))
+   ALLOCATE(temp_biso(0:n_type))
+   ALLOCATE(temp_clin(0:n_type))
+   ALLOCATE(temp_cqua(0:n_type))
+   ALLOCATE(temp_fuzz(0:n_mole))
+   ALLOCATE(temp_cont(0:natoms))
+   ALLOCATE(temp_look(0:natoms))
+   ALLOCATE(temp_upd (0:n_mole))
+   temp_len (0:n_mole) = 0
+   temp_off (0:n_mole) = 0
+   temp_type(0:n_mole) = 0
+   temp_file(0:n_mole) = ' '
+   temp_char(0:n_mole) = 0
+   temp_dens(0:n_mole) = 0.0
+   temp_biso(0:n_type) = 0.0
+   temp_clin(0:n_type) = 0.0
+   temp_cqua(0:n_type) = 0.0
+   temp_fuzz(0:n_mole) = 0.0
+   temp_cont(0:natoms) = 0
+   temp_look(0:natoms) = 0
+   temp_upd (0:n_mole) = 0
 !
 !  Get header
    CALL read_temp%crystal%get_header_from_crystal() ! Read the header
@@ -330,136 +322,137 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
 !
 !  Now copy from internal crystal to local variables
 !
-      CALL read_temp%crystal%get_molecules_from_crystal(n_mole,       &
-              n_type, natoms, temp_num_mole, temp_num_type, &
-              temp_num_atom, temp_len, temp_off, temp_type, temp_char,    &
-              temp_file, temp_dens, temp_biso, temp_clin, temp_cqua,    &
-              temp_fuzz, temp_cont)
-!ELLAwrite(*,*) ' DID  READ mols', n_mole, temp_num_mole
-!ELLAwrite(*,*) ' MOLE_TYPE     ', temp_type(0:)
-!ELLAwrite(*,*) ' MOLE_OFF      ', temp_off (0:)
-!ELLAwrite(*,*) ' MOLE_CONT     ', temp_cont(0:)
+   CALL read_temp%crystal%get_molecules_from_crystal(n_mole,       &
+           n_type, natoms, temp_num_mole, temp_num_type, &
+           temp_num_atom, temp_len, temp_off, temp_type, temp_char,    &
+           temp_file, temp_dens, temp_biso, temp_clin, temp_cqua,    &
+           temp_fuzz, temp_cont)
 !
 !  Build lookup table for original molecules
 !
    DO i=1, temp_num_mole
+      temp_upd(i) = i                 ! Initially each molecule is at the corect number
       DO j=1, temp_len(i)
          ia = temp_cont(temp_off(i)+j)
          temp_look(ia) = i            !atom(iatom) is in molecule i
       ENDDO
    ENDDO
-   ELSE
+ELSE
 !
 !  Get header
    CALL read_temp%crystal%get_header_from_crystal() ! Read the header
    cr_icc = rd_icc               ! Restore crystal dimensions
 !
    CALL get_symmetry_matrices                       ! Setup symmetry
-   ENDIF found
+ENDIF found
 !
 !  Main loop over all atoms in the asymmetric unit   
 !
-   mole_l_on = .false.
-   cr_natoms = 0
-   cr_nscat  = 0
-   mole_len  = 0
-   mole_off  = 0
-   mole_type = 0
-   mole_cont = 0
-   i_mole    = 0
-   mole_num_atom = 0
-   mole_num_mole = 0
+mole_l_on = .false.
+cr_natoms = 0
+cr_nscat  = 0
+mole_len  = 0
+mole_off  = 0
+mole_type = 0
+mole_cont = 0
+i_mole    = 0
+mole_num_atom = 0
+mole_num_mole = 0
 !
+mole_num_curr = 0                                  ! Start with no molecules
 main: do ia = 1, natoms
-      werte    = 0.0
-      cr_natoms = cr_natoms + 1
-      CALL read_temp%crystal%get_cryst_atom ( ia, itype, posit, iprop, isurface, magn_mom, iin_mole)
-      CALL read_temp%crystal%get_cryst_scat ( ia, itype, at_name , dw1, occ1  )
-mole_exist: if(n_mole > 0) THEN
-      CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
+   werte    = 0.0
+   cr_natoms = cr_natoms + 1
+   CALL read_temp%crystal%get_cryst_atom ( ia, itype, posit, iprop, isurface, magn_mom, iin_mole)
+   CALL read_temp%crystal%get_cryst_scat ( ia, itype, at_name , dw1, occ1  )
+   mole_exist: if(n_mole > 0) THEN
+   CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
                  i_char, c_file, r_fuzzy, r_dens, r_biso, r_clin, r_cqua)
-!ELLAwrite(*,*) ' READ ATOM ', ia, itype, i_mole, i_type, temp_look(ia)
-in_mole: IF ( temp_look(ia) > 0 ) THEN            ! This atom belongs to a molecule
-            IF ( .not. mole_l_on .OR. temp_look(ia)> mole_num_curr ) THEN  ! Right now we are not in a molecule
-               mole_l_on    = .true.              ! Turn molecule on
-               mole_l_first = .true.              ! This is the first atom in the molecule
-               mole_gene_n  = 0                   ! No molecule generators
-               mole_symm_n  = 0                   ! no molecule symmetry
-               i_mole = mole_num_mole + 1         ! Need to work on a new (=next) molecule
-               mole_off  (i_mole) = mole_off(mole_num_mole)+mole_len(mole_num_mole) ! Set offset
-               mole_num_mole      = MAX(mole_num_mole, i_mole) ! Adjust no of molecules
-               mole_num_type      = MAX(mole_num_type, i_type) ! Adjust no of molecule types
-               mole_type (i_mole) = i_type        ! Set current molecule type
-               mole_char (i_mole) = i_char        ! Set current molecule character
-               mole_file (i_mole) = c_file        ! Set current molecule file
-               mole_fuzzy(i_mole) = r_fuzzy       ! Set current molecule Fuzzy distance
-               mole_dens (i_mole) = r_dens        ! Set current molecule density
-               mole_biso (mole_type(i_mole)) = r_biso ! Set current molecule b-value
-               mole_clin (mole_type(i_mole)) = r_clin ! Set current molecule b-value
-               mole_cqua (mole_type(i_mole)) = r_cqua ! Set current molecule b-value
-               mole_num_curr      = i_mole        ! Set molecule no we are working on
-            ENDIF
+      in_mole: IF ( temp_look(ia) /= 0 ) THEN            ! This atom belongs to a molecule
+         IF ( .not. mole_l_on .OR. temp_upd(temp_look(ia))> mole_num_curr ) THEN  ! Right now we are not in a molecule
+            mole_l_on    = .true.              ! Turn molecule on
+            mole_l_first = .true.              ! This is the first atom in the molecule
+            mole_gene_n  = 0                   ! No molecule generators
+            mole_symm_n  = 0                   ! no molecule symmetry
+            i_mole = mole_num_mole + 1         ! Need to work on a new (=next) molecule
+            mole_off  (i_mole) = mole_off(mole_num_mole)+mole_len(mole_num_mole) ! Set offset
+            mole_num_mole      = MAX(mole_num_mole, i_mole) ! Adjust no of molecules
+            mole_num_type      = MAX(mole_num_type, i_type) ! Adjust no of molecule types
+            mole_type (i_mole) = i_type        ! Set current molecule type
+            mole_char (i_mole) = i_char        ! Set current molecule character
+            mole_file (i_mole) = c_file        ! Set current molecule file
+            mole_fuzzy(i_mole) = r_fuzzy       ! Set current molecule Fuzzy distance
+            mole_dens (i_mole) = r_dens        ! Set current molecule density
+            mole_biso (mole_type(i_mole)) = r_biso ! Set current molecule b-value
+            mole_clin (mole_type(i_mole)) = r_clin ! Set current molecule b-value
+            mole_cqua (mole_type(i_mole)) = r_cqua ! Set current molecule b-value
+            mole_num_curr      = i_mole        ! Set molecule no we are working on
+         ENDIF
       ELSE  in_mole
          mole_l_on = .false.                      ! Next atom is not inside a molecule
       ENDIF in_mole
-      ENDIF mole_exist
-scat_dw: IF ( new_type ) THEN                     ! force each atom to be a new type 
-         cr_nscat = cr_nscat + 1
+   ENDIF mole_exist
+   scat_dw: IF ( new_type ) THEN                     ! force each atom to be a new type 
+      cr_nscat = cr_nscat + 1
+      cr_at_lis(cr_nscat) = at_name
+      cr_dw    (cr_nscat) = dw1
+      cr_occ   (cr_nscat) = occ1
+      itype               = cr_nscat
+   ELSE scat_dw                                ! check for previous atom types
+      itype = -1
+      do_scat_dw: DO k = 1,cr_nscat
+         IF( at_name == cr_at_lis(k) .AND.  &
+             dw1     == cr_dw    (k) .AND.  &
+             occ1    == cr_occ   (k)   ) THEN
+            itype = k
+            EXIT do_scat_dw
+         ENDIF
+      ENDDO do_scat_dw
+      IF ( itype == -1 ) THEN
+         cr_nscat = cr_nscat + 1               ! Atom type does not exist, create a new one
          cr_at_lis(cr_nscat) = at_name
          cr_dw    (cr_nscat) = dw1
          cr_occ   (cr_nscat) = occ1
          itype               = cr_nscat
-      ELSE scat_dw                                ! check for previous atom types
-         itype = -1
-do_scat_dw: DO k = 1,cr_nscat
-            IF ( at_name == cr_at_lis(k) .AND.  &
-                 dw1     == cr_dw    (k) .AND.  &
-                 occ1    == cr_occ   (k)   ) THEN
-               itype = k
-               EXIT do_scat_dw
-            ENDIF
-         ENDDO do_scat_dw
-         IF ( itype == -1 ) THEN
-            cr_nscat = cr_nscat + 1               ! Atom type does not exist, create a new one
-            cr_at_lis(cr_nscat) = at_name
-            cr_dw    (cr_nscat) = dw1
-            cr_occ   (cr_nscat) = occ1
-            itype               = cr_nscat
-         ENDIF
-      ENDIF scat_dw                               ! End check for atom type
-!
-      werte(1)  = posit(1)                        ! Just to be compatible to firstcell...
-      werte(2)  = posit(2)
-      werte(3)  = posit(3)
-      IF ( .not. mole_l_on ) THEN
-         CALL firstcell ( werte, 5)
       ENDIF
-      DO j=1,3
-         cr_pos(j,cr_natoms) = werte(j)           ! strore in actual crystal
-      ENDDO
-      cr_iscat(cr_natoms) = itype                 ! set the atom type
-!     cr_mole (cr_natoms) = i_mole                ! set the molecule number
-      cr_mole (cr_natoms) = 0                     ! set the molecule number
-      cr_surf(:,cr_natoms) = isurface               ! set the property flag
-      cr_magn(:,cr_natoms) = magn_mom               ! set magnetic vector
-      cr_prop (cr_natoms) = iprop                 ! set the property flag
-      CALL symmetry
-   ENDDO main
-!ELLAwrite(*,*) ' READ ATOMS ', mole_num_mole, mole_num_type, mole_num_atom
+   ENDIF scat_dw                               ! End check for atom type
 !
-   CALL no_error 
+   werte(1)  = posit(1)                        ! Just to be compatible to firstcell...
+   werte(2)  = posit(2)
+   werte(3)  = posit(3)
+   IF ( .not. mole_l_on ) THEN
+      CALL firstcell ( werte, 5)
+   ENDIF
+   DO j=1,3
+      cr_pos(j,cr_natoms) = werte(j)           ! strore in actual crystal
+   ENDDO
+   cr_iscat(cr_natoms) = itype                 ! set the atom type
+!  cr_mole (cr_natoms) = i_mole                ! set the molecule number
+   cr_mole (cr_natoms) = 0                     ! set the molecule number
+   cr_surf(:,cr_natoms) = isurface               ! set the property flag
+   cr_magn(:,cr_natoms) = magn_mom               ! set magnetic vector
+   cr_prop (cr_natoms) = iprop                 ! set the property flag
+   j = mole_num_mole                           ! temporarily store number of molecules
+   CALL symmetry
+   if(mole_num_mole>j) then                    ! New molecules were generated update lookup
+      do k=(temp_look(ia))+1, temp_num_mole
+         temp_upd(k) = temp_upd(k) + mole_num_mole - j
+      enddo
+   endif
+ENDDO main
+!
+CALL no_error 
 !                                                                       
 !  move first unit cell into lower left corner of crystal          
 !                                                                       
-   DO i = 1, cr_natoms 
-      DO j = 1, 3 
-         cr_pos (j, i) = cr_pos (j, i) - int ( (cr_icc (j) ) / 2) 
-         cr_dim (j, 1) = amin1 (cr_dim (j, 1), cr_pos (j, i) ) 
-         cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
-      ENDDO 
+DO i = 1, cr_natoms 
+   DO j = 1, 3 
+      cr_pos (j, i) = cr_pos (j, i) - int ( (cr_icc (j) ) / 2) 
+      cr_dim (j, 1) = amin1 (cr_dim (j, 1), cr_pos (j, i) ) 
+      cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
    ENDDO 
+ENDDO 
 !
-!  DEALLOCATE(read_temp, STAT = istatus )         ! Deallocate a temporary storage
 IF(n_mole > 0) THEN
 !
 !  Deallocate temporary space for molecule info
@@ -476,11 +469,12 @@ IF(n_mole > 0) THEN
    DEALLOCATE(temp_fuzz)
    DEALLOCATE(temp_cont)
    DEALLOCATE(temp_look)
+   DEALLOCATE(temp_upd )
 ENDIF
 !
-   chem_purge = .FALSE.                          ! No purge, period boundary is OK
+chem_purge = .FALSE.                          ! No purge, period boundary is OK
 !
-   END SUBROUTINE readcell_internal
+END SUBROUTINE readcell_internal
 !*******************************************************************************
    SUBROUTINE stru_readheader_internal (rd_strucfile, rd_MAXSCAT, rd_cr_name,   &
             rd_cr_spcgr, rd_cr_spcgr_set, rd_cr_set, rd_cr_iset,                &
