@@ -1212,7 +1212,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
 !        SORT ATOMS WITH MMC REPULSIVE
 !
          n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR)
-         n_scat = MAX(MAXSCAT, MMC_MAX_SCAT)
+         n_scat = MAX(MAXSCAT, MMC_MAX_SCAT, 3)               ! 3 is needed for 'group'
          n_site = MAX(MAXSCAT, MMC_MAX_SITE, cr_ncatoms)
          CALL alloc_mmc ( n_corr, MC_N_ENERGY, n_scat, n_site )       ! Basic mmc allocation
          CALL mmc_init
@@ -1925,8 +1925,10 @@ main: DO i=1, dcc_num
    DO j=1, cr_natoms
       posit4(1:3) = cr_pos(1:3,j)
       posit4(4)   = 1.0
-      CALL trans(posit4,cr_tran_f ,uvw4, 4)       ! Transform mol to cartesian
-      CALL trans(uvw4  ,host_tran_fi,posit4, 4)   ! Transform cartesian to host_crystal
+!     CALL trans(posit4,cr_tran_f ,uvw4, 4)       ! Transform mol to cartesian
+      uvw4 = matmul(real(cr_tran_f,KIND=PREC_DP), posit4)
+!     CALL trans(uvw4  ,host_tran_fi,posit4, 4)   ! Transform cartesian to host_crystal
+      posit4 = matmul(real(host_tran_fi,KIND=PREC_DP), uvw4)
       cr_pos(1:3,j) = posit4(1:3)
    ENDDO
 !
@@ -2210,7 +2212,8 @@ IF(surf_char == 0) RETURN
       ENDIF
       DEALLOCATE(test_hkl)
    ENDIF
-CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+!CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+surf_normal = matmul(cr_rten, surf_normal_r)
 !
    n_atoms_orig = cr_natoms
 !
@@ -2448,7 +2451,8 @@ IF(lrestrict) THEN
    DEALLOCATE(test_hkl)
 ENDIF
 !
-CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+!CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+surf_normal = matmul(cr_rten, surf_normal_r)
 !
 n_atoms_orig = cr_natoms                                  ! Store original atom numbers
 !
@@ -2759,7 +2763,8 @@ IF(lrestrict) THEN
    DEALLOCATE(test_hkl)
 ENDIF
 !
-CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+!CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+surf_normal = matmul(cr_rten, surf_normal_r)
 !
 !  Load the molecule into the crystal structure
 !
@@ -2846,7 +2851,8 @@ sym_mode       = .false.                   ! Move atom to new position
 sym_orig_mol   = .false.                   ! Origin at crystal
 sym_power_mult =.false.                    ! No multiple copies
 sym_sel_atom   = .true.                    ! Select atoms not molecules
-CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+!CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
 v(:) =  tangent(:)*dist(1)/t_l     ! Scale vector to bond length
 CALL symm_ca_single (v, .true., .false.)
@@ -2868,7 +2874,8 @@ sym_trans(:)   = 0.0                       ! No translation needed
 sym_orig(:)    = 0.0                       ! Define origin in 0,0,0
 sym_uvw(:)     = -sym_uvw(:)               ! invert axis
 v(:) =  -tangent(:)*dist(2)/t_l    ! invert and scale vector to bond length
-CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+!CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
 CALL symm_ca_single (v, .true., .false.)   ! rotate negative surface vector
 w(:) = cr_pos(:,all_surface(2)) + res_para(1:3)  ! Target position for 2nd molecule atom
@@ -2886,7 +2893,8 @@ sym_angle  = do_bang(lspace, v1, vnull, v2)   ! Calculate rotation angle = < (v1
 sym_incl   = 'list'                           ! A range of atoms is included
 sym_start  =  n_atoms_orig + 1                ! set range of atoms numbers
 sym_end    =  cr_natoms
-CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
 CALL symm_op_single                           ! Perform the operation
 ELSE
@@ -2906,7 +2914,8 @@ sym_angle     = tilt
 sym_trans(:)  = 0.0                           ! No translation needed
 sym_start     =  n_atoms_orig + 1             ! set range of atoms numbers
 sym_end       =  cr_natoms
-CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
 CALL symm_op_single                           ! Perform the operation
 origin(1:3) = cr_pos(1:3, n1)
@@ -3075,7 +3084,8 @@ IF(lrestrict) THEN
       DEALLOCATE(test_hkl)
 ENDIF
 !
-CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+!CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+surf_normal = matmul(cr_rten, surf_normal_r)
 !
 !  Insert molecule atoms into crystal at initial origin along normal
 normal_l = sqrt (skalpro (surf_normal, surf_normal, cr_gten))
@@ -3141,7 +3151,8 @@ IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
    laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    sym_uvw(:) = res_para(1:3)
-   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+!  CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+   sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
    CALL symm_setup
 !  CALL symm_show
    CALL symm_op_single
@@ -3178,7 +3189,8 @@ IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
    laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    sym_uvw(:) = res_para(1:3)
-   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+!  CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+   sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
    CALL symm_setup
 !  CALL symm_show
    CALL symm_op_single
@@ -3196,7 +3208,8 @@ sym_angle     = tilt
 sym_trans(:)  = 0.0                           ! No translation needed
 sym_start     =  nold         + 1             ! set range of atoms numbers
 sym_end       =  cr_natoms
-CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
 CALL symm_op_single                           ! Perform the operation
 !origin(1:3) = cr_pos(1:3, n1)
@@ -3379,7 +3392,8 @@ IF(lrestrict) THEN
    DEALLOCATE(test_hkl)
 ENDIF
 !
-CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+!CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+surf_normal = matmul(cr_rten, surf_normal_r)
 !
 !  Load the molecule into the crystal structure
 !
@@ -3487,7 +3501,8 @@ sym_mode       = .false.                   ! Move atom to new position
 sym_orig_mol   = .false.                   ! Origin at crystal
 sym_power_mult =.false.                    ! No multiple copies
 sym_sel_atom   = .true.                    ! Select atoms not molecules
-CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+!CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
 CALL symm_ca_single (v, .true., .false.)
 IF(ier_num /= 0) GOTO 9999                 ! Rotation is erroneous, |Axis| = 0 or similar 
@@ -3504,7 +3519,8 @@ sym_orig(:) = cr_pos(:,n1)                 ! Set origin in 1st mole
 sym_incl   = 'list'                        ! A range of atoms is included
 sym_start  =  n_atoms_orig + 1             ! set range of atoms numbers
 sym_end    =  cr_natoms
-CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+!CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
 CALL symm_op_single                        ! Perform the operation
 IF(ier_num /= 0) GOTO 9999                 ! Rotation is erroneous, |Axis| = 0 or similar 
@@ -3532,7 +3548,7 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    u(:) =  res_para(1:3)
-   beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
+   beta = do_bang(lspace, real(sym_uvw, kind=PREC_SP), vnull, u)     ! Calculate angle (rot-axis) to vector product 
    IF(beta < 90) THEN                            ! Need to invert rotation axis
       IF(alpha < 90) THEN
          sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
@@ -3552,7 +3568,8 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
       ENDIF
    ENDIF
    sym_orig(:) = cr_pos(:,n1)                    ! Origin in 1st bonded atom
-   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!  CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
    CALL symm_setup
    CALL symm_op_single                           ! Perform the operation
 ENDIF
@@ -3713,7 +3730,8 @@ IF(lrestrict) THEN
       DEALLOCATE(test_hkl)
 ENDIF
 !
-CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+!CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+surf_normal = matmul(cr_rten, surf_normal_r)
 !
 !
 !  Accept as surfaces any outside facing surface and all internal "flat" surfaces
@@ -3768,7 +3786,8 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
             sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
             sym_end        =  cr_natoms
             sym_uvw(:) = res_para(1:3)
-            CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!           CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+            sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
             CALL symm_setup                               ! Symmetry setup defines matrix
 !           CALL symm_show                                ! Show only in debug
             CALL symm_op_single                           ! Perform the operation
@@ -3777,7 +3796,8 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
 !
             sym_uvw(:)     = u(:)
             sym_angle      = 360.0*ran1(0)
-            CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!           CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+            sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
             CALL symm_setup                               ! Symmetry setup defines matrix
 !           CALL symm_show                                ! Show only in debug
             CALL symm_op_single                           ! Perform the operation
@@ -3821,7 +3841,8 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    sym_incl       = 'list'                       ! A range of atoms is included
    sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
    sym_end        =  cr_natoms
-   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!  CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
    CALL symm_setup                               ! Symmetry setup defines matrix
 !
    p(:) = cr_pos(:,n2)                           ! absolute position of axis atom number two
@@ -3998,7 +4019,8 @@ IF(lrestrict) THEN
    DEALLOCATE(test_hkl)
 ENDIF
 !
-CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+!CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
+surf_normal = matmul(cr_rten, surf_normal_r)
 !
 !
 nold = cr_natoms
@@ -4077,7 +4099,8 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
    sym_end        =  cr_natoms
    sym_uvw(:) = res_para(1:3)
-   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!  CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
    CALL symm_setup                               ! Symmetry setup defines matrix
 !  CALL symm_show                                ! Show only in debug
    CALL symm_op_single                           ! Perform the operation
@@ -4087,7 +4110,8 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    sym_uvw(:)     = u(:)
    sym_orig(:)    = cr_pos(:,nold+neig)          ! Rotate in Acceptor
    sym_angle      = 360.0*ran1(0)
-   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!  CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
    CALL symm_setup                               ! Symmetry setup defines matrix
 !  CALL symm_show                                ! Show only in debug
    CALL symm_op_single                           ! Perform the operation
@@ -4121,7 +4145,8 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    sym_incl       = 'list'                       ! A range of atoms is included
    sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
    sym_end        =  cr_natoms
-   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!  CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
    CALL symm_setup                               ! Symmetry setup defines matrix
 !
    CALL symm_op_single                           ! Perform the operation on the whole molecule
@@ -4457,7 +4482,8 @@ nold = cr_natoms - mole_natoms
    sym_incl       = 'list'                       ! A range of atoms is included
    sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
    sym_end        =  cr_natoms
-   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!  CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
    CALL symm_setup                               ! Symmetry setup defines matrix
 !  CALL symm_show                                ! Show only in debug
    CALL symm_op_single                           ! Perform the operation
@@ -4542,7 +4568,7 @@ WRITE(line,1100) v3,v2                        ! Do vector product (mol_axis) x (
 laenge = LEN_TRIM(line)
 CALL vprod(line, laenge)
 u(:) =  res_para(1:3)
-beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
+beta = do_bang(lspace, real(sym_uvw,kind=PREC_SP), vnull, u)     ! Calculate angle (rot-axis) to vector product 
 IF(beta < 90) THEN                            ! Need to invert rotation axis
    IF(alpha < 90) THEN
       sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
@@ -4576,7 +4602,8 @@ sym_incl       = 'list'                    ! A range of atoms is included
 sym_start      =  n_atoms_orig + 1         ! set range of atoms numbers
 sym_end        =  cr_natoms
 !
-CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
 !call symm_show
 CALL symm_op_single                           ! Perform the operation
@@ -4645,7 +4672,8 @@ axis_ligand(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
          laenge = LEN_TRIM(line)
          CALL vprod(line, laenge)                      ! Make rotation axis
          sym_uvw(:) = res_para(1:3)
-         CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+!        CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+         sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
          CALL symm_setup                               ! Symmetry setup defines matrix
 !        CALL symm_show                                ! Show only in debug
          CALL symm_op_single                           ! Perform the operation
