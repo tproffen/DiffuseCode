@@ -421,7 +421,7 @@ IF(ier_num == 0) THEN
          DO k=1,3
             ioffset(k) = NINT(atom_pos(k,l)-cr_pos(k,i))
          ENDDO
-         WRITE(output_io, 3020) ioffset
+         WRITE(output_io, 3020) ioffset, atom_dis(l)
       ENDDO 
 !                                                                       
 !     --List sequence of atoms                                          
@@ -471,7 +471,7 @@ ENDIF
                  3x,'Molecule Property  Occupancy Surf(Type,HKL) Magn(Mom,UVW)') 
  4010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6, 2x, A1,3(1x,I3 ), 1x, 4(1x,f5.2))
  5010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6, 2x, 13x         , 1x, 4(1x,f5.2))
- 3020 FORMAT    ( 3x  ,3(8x,i6   )              ) 
+ 3020 FORMAT    ( 3x  ,3(8x,i6   ),4x,f10.6     ) 
 !
 END SUBROUTINE do_show_atom                   
 !
