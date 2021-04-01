@@ -957,12 +957,20 @@ END SUBROUTINE four_formtab
                      CALL get_scat_xray ( j, temp_scat )
                      cr_scat(:,i) = 0.0
                      cr_scat(:,i) = temp_scat(:)   ! copy temp array into 1st column
-                     cr_delfr (i) = 0.0   ! DEVELOPMENT !
-                     cr_delfi (i) = 0.0   ! DEVELOPMENT !
-                     IF (ano.and.cr_delf_int (i) ) then 
-                        CALL get_scat_ano ( j, lambda, temp_delf )
-                        cr_delfr (i) = temp_delf(1)
-                        cr_delfi (i) = temp_delf(2)
+!                    cr_delfr (i) = 0.0   ! DEVELOPMENT !
+!                    cr_delfi (i) = 0.0   ! DEVELOPMENT !
+                     IF(ano) THEN
+                        IF(cr_delf_int (i) ) then 
+                           CALL get_scat_ano ( j, lambda, temp_delf )
+                           cr_delfr (i) = temp_delf(1)
+                           cr_delfi (i) = temp_delf(2)
+                        ELSE
+                           cr_delfr(i) =   cr_delfr_u(i)
+                           cr_delfi(i) =   cr_delfi_u(i)
+                        ENDIF 
+                     ELSE
+                        cr_delfr(i) = 0.0   ! DEVELOPMENT !
+                        cr_delfi(i) = 0.0   ! DEVELOPMENT !
                      ENDIF 
                      diff_power   = PER_RAD_POWER(diff_radiation)
                      ier_num = 0
@@ -1635,7 +1643,7 @@ USE diffuse_mod
 USE errlist_mod
 !
 IMPLICIT NONE
-integer:: k, i
+integer:: k, i, ii, h
 !
 IF(four_accum==FOUR_ACCUM_SINGLE) THEN
    IF(four_symm) THEN
@@ -1705,9 +1713,9 @@ COMPLEX(KIND=KIND(0.0D0))            :: aaa
 !
 IF(fave==0.0 .AND. .NOT. four_symm) RETURN          ! nothing to do
 !
-step(1) = MAX(vi(1,1),vi(1,2), vi(1,3))*0.25       ! Get a step size that
-step(2) = MAX(vi(2,1),vi(2,2), vi(2,3))*0.25       ! is used to check if hkl is integer
-step(3) = MAX(vi(3,1),vi(3,2), vi(3,3))*0.25
+step(1) = MAX(vi(1,1),vi(1,2), vi(1,3))*0.005      ! Get a step size that
+step(2) = MAX(vi(2,1),vi(2,2), vi(2,3))*0.005      ! is used to check if hkl is integer
+step(3) = MAX(vi(3,1),vi(3,2), vi(3,3))*0.005
 IF(num(1)==1) step(1) = 0.0001
 IF(num(2)==1) step(2) = 0.0001
 IF(num(3)==1) step(3) = 0.0001
@@ -1715,9 +1723,9 @@ IF(num(3)==1) step(3) = 0.0001
 ALLOCATE(csf_3d(num(1), num(2), num(3)))
 !
 ii = 0
-DO l = 1, num (3) 
-   DO k = 1, num (2) 
       DO h = 1, num (1) 
+   DO k = 1, num (2) 
+DO l = 1, num (3) 
          ii       = ii + 1 
          csf_3d(h,k,l) = csf_sum(ii)
       ENDDO
@@ -1727,10 +1735,10 @@ ENDDO
 IF(four_symm) CALL four_symm_csf(num, csf_3d, eck, vi)
 !
 !
-IF(fave > 0.0) THEN
-   DO l = 1, num (3) 
-      DO k = 1, num (2) 
+IF(fave < 0.0) THEN
          DO h = 1, num (1) 
+      DO k = 1, num (2) 
+   DO l = 1, num (3) 
             hkl(1) = eck(1,1) + (h-1)*vi(1,1) + (k-1)*vi(1,2) + (l-1)*vi(1,3)
             hkl(2) = eck(2,1) + (h-1)*vi(2,1) + (k-1)*vi(2,2) + (l-1)*vi(2,3)
             hkl(3) = eck(3,1) + (h-1)*vi(3,1) + (k-1)*vi(3,2) + (l-1)*vi(3,3)
@@ -1773,9 +1781,9 @@ IF(fave > 0.0) THEN
 ENDIF
 !
 ii = 0
-DO l = 1, num (3) 
-   DO k = 1, num (2) 
       DO h = 1, num (1) 
+   DO k = 1, num (2) 
+DO l = 1, num (3) 
          ii       = ii + 1 
          csf_sum(ii) = csf_3d(h,k,l)
       ENDDO
@@ -1807,9 +1815,9 @@ REAL(KIND=KIND(0.0D0))               :: aaa
 !
 IF(fave==0.0 .AND. .NOT. four_symm) RETURN          ! nothing to do
 !
-step(1) = MAX(vi(1,1),vi(1,2), vi(1,3))*0.45
-step(2) = MAX(vi(2,1),vi(2,2), vi(2,3))*0.45
-step(3) = MAX(vi(3,1),vi(3,2), vi(3,3))*0.45
+step(1) = MAX(vi(1,1),vi(1,2), vi(1,3))*0.005
+step(2) = MAX(vi(2,1),vi(2,2), vi(2,3))*0.005
+step(3) = MAX(vi(3,1),vi(3,2), vi(3,3))*0.005
 IF(num(1)==1) step(1) = 0.0001
 IF(num(2)==1) step(2) = 0.0001
 IF(num(3)==1) step(3) = 0.0001
@@ -1817,9 +1825,9 @@ IF(num(3)==1) step(3) = 0.0001
 ALLOCATE(dsi_3d(num(1), num(2), num(3)))
 !
 ii = 0
-DO l = 1, num (3) 
-   DO k = 1, num (2) 
       DO h = 1, num (1) 
+   DO k = 1, num (2) 
+DO l = 1, num (3) 
          ii       = ii + 1 
          dsi_3d(h,k,l) = dsi_sum(ii)
       ENDDO
@@ -1828,10 +1836,10 @@ ENDDO
 !
 IF(four_symm) CALL four_symm_dsi(num, dsi_3d, eck, vi)
 !
-IF(fave > 0.0) THEN
-   DO l = 1, num (3) 
-      DO k = 1, num (2) 
+IF(fave < 0.0) THEN
          DO h = 1, num (1) 
+      DO k = 1, num (2) 
+   DO l = 1, num (3) 
             hkl(1) = eck(1,1) + (h-1)*vi(1,1) + (k-1)*vi(1,2) + (l-1)*vi(1,3)
             hkl(2) = eck(2,1) + (h-1)*vi(2,1) + (k-1)*vi(2,2) + (l-1)*vi(2,3)
             hkl(3) = eck(3,1) + (h-1)*vi(3,1) + (k-1)*vi(3,2) + (l-1)*vi(3,3)
@@ -1874,9 +1882,9 @@ IF(fave > 0.0) THEN
 ENDIF
 !
 ii = 0
-DO l = 1, num (3) 
-   DO k = 1, num (2) 
       DO h = 1, num (1) 
+   DO k = 1, num (2) 
+DO l = 1, num (3) 
          ii       = ii + 1 
          dsi_sum(ii) = dsi_3d(h,k,l)
       ENDDO
@@ -1917,18 +1925,40 @@ INTEGER                  , DIMENSION(:,:,:), ALLOCATABLE :: weight
 REAL(KIND=PREC_DP)       , DIMENSION(3, 3)               :: sym_mat
 REAL(KIND=PREC_DP)       , DIMENSION(3, 3)               :: tmp_mat
 !
-sym_mat(:,1) = vi(:,1)              ! Find pixels at which hkl = (0,0,0)
-sym_mat(:,2) = vi(:,2)
-sym_mat(:,3) = vi(:,3)
-sym_mat(:,3) = (/ 0.0, 0.0, 1.0/)
+!sym_mat(:,1) = vi(:,1)              ! Find pixels at which hkl = (0,0,0)
+!sym_mat(:,2) = vi(:,2)
+!sym_mat(:,3) = vi(:,3)
+!sym_mat(:,3) = (/ 0.0, 0.0, 1.0/)
+!
+if(num(1)>1) then
+   sym_mat(:,1) = vi(:,1)              ! Find pixels at which hkl = (0,0,0)
+else
+   sym_mat(:,1) = (/ 1.0, 0.0, 0.0/)
+endif
+!
+if(num(2)>1) then
+   sym_mat(:,2) = vi(:,2)              ! Find pixels at which hkl = (0,0,0)
+else
+   sym_mat(:,2) = (/ 0.0, 1.0, 0.0/)
+endif
+!
+if(num(3)>1) then
+   sym_mat(:,3) = vi(:,3)              ! Find pixels at which hkl = (0,0,0)
+else
+   sym_mat(:,3) = (/ 0.0, 0.0, 1.0/)
+endif
 !
 CALL matinv3(sym_mat, tmp_mat)
 !
 hkl(:) = -eck(:,1)
 uvw = MATMUL(tmp_mat, hkl)
-izero(1) = NINT(1+uvw(1))            ! Pixel at hkl = (0,0,0)
-izero(2) = NINT(1+uvw(2))
-izero(3) = NINT(1+uvw(3))
+do i=1,3
+   if(num(i)>1) then
+      izero(i) = NINT(1+uvw(i))            ! Pixel at hkl = (0,0,0)
+   else
+      izero(i) = 1
+   endif
+enddo
 !
 !                                     ! Determine number of primitive operations
 !
@@ -1955,7 +1985,8 @@ weight = 1
 !
 csf_sym = csf_3d                     ! Effectively operation 1
 !
-DO i = 2, spc_n/n_center             ! only apply numbers 2 for P centered part
+!
+DO i = 2, 1!spc_n/n_center             ! only apply numbers 2 for P centered part
    sym_mat=spc_mat(1:3,1:3,i)        ! Copy symmetry matrix to local copy
    DO l = 1, num (3) 
       hkl(3) = l - izero(3)
@@ -2017,20 +2048,38 @@ INTEGER               , DIMENSION(:,:,:), ALLOCATABLE :: weight
 REAL(KIND=PREC_DP), DIMENSION(3, 3)                   :: sym_mat
 REAL(KIND=PREC_DP), DIMENSION(3, 3)                   :: tmp_mat
 !
-sym_mat(:,1) = vi(:,1)              ! Find pixels at which hkl = (0,0,0)
-sym_mat(:,2) = vi(:,2)
-sym_mat(:,3) = vi(:,3)
-sym_mat(:,3) = (/ 0.0, 0.0, 1.0/)
+if(num(1)>1) then
+   sym_mat(:,1) = vi(:,1)              ! Find pixels at which hkl = (0,0,0)
+else
+   sym_mat(:,1) = (/ 1000.0, 0.0, 0.0/)
+endif
+!
+if(num(2)>1) then
+   sym_mat(:,2) = vi(:,2)              ! Find pixels at which hkl = (0,0,0)
+else
+   sym_mat(:,2) = (/ 0.0, 1000.0, 0.0/)
+endif
+!
+if(num(3)>1) then
+   sym_mat(:,3) = vi(:,3)              ! Find pixels at which hkl = (0,0,0)
+else
+   sym_mat(:,3) = (/ 0.0, 0.0, 1000.0/)
+endif
 !
 CALL matinv3(sym_mat, tmp_mat)
 !
 hkl(:) = -eck(:,1)
 uvw = MATMUL(tmp_mat, hkl)
-izero(1) = NINT(1+uvw(1))            ! Pixel at hkl = (0,0,0)
-izero(2) = NINT(1+uvw(2))
-izero(3) = NINT(1+uvw(3))
+do i=1,3
+   if(num(i)>1) then
+      izero(i) = NINT(1+uvw(i))            ! Pixel at hkl = (0,0,0)
+   else
+      izero(i) = 1
+   endif
+enddo
 !
 !                                     ! Determine number of primitive operations
+!write(*,*) ' IZERO ', izero
 !
 n_center = 1
 IF (cr_spcgr (1:1) .eq.'P') THEN
@@ -2057,6 +2106,9 @@ dsi_sym = dsi_3d                     ! Effectively operation 1
 !
 DO i = 2, spc_n/n_center             ! only apply numbers 2 for P centered part
    sym_mat=spc_mat(1:3,1:3,i)        ! Copy symmetry matrix to local copy
+!write(*,'(a, 3F6.1)') ' SYMM ', sym_mat(1,:)
+!write(*,'(a, 3F6.1)') ' SYMM ', sym_mat(2,:)
+!write(*,'(a, 3F6.1)') ' SYMM ', sym_mat(3,:)
    DO l = 1, num (3) 
       hkl(3) = l - izero(3)
       DO k = 1, num (2) 
@@ -2080,7 +2132,7 @@ ENDDO
 !
 ! Apply symmetry weight and divide by number of Symmetry operations
 !
-dsi_3d = dsi_sym/weight/REAL(spc_n/n_center)! Copy back into original
+dsi_3d = dsi_sym/weight/REAL(spc_n/n_center,kind=PREC_DP)! Copy back into original
 !
 DEALLOCATE(dsi_sym)
 DEALLOCATE(weight )
