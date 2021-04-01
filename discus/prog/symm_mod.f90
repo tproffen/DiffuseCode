@@ -4,6 +4,7 @@ MODULE symm_mod
 !     variables needed for the generalized symmetry operations
 !-
 !
+use precision_mod
 !
 SAVE
 !
@@ -41,15 +42,15 @@ LOGICAL                  :: sym_sel_atom   = .true.
 LOGICAL                  :: sym_sel_sub    = .FALSE.
 LOGICAL                  :: sym_dom_mode_shape = .false.
 LOGICAL                  :: sym_dom_mode_atom  = .false.
-REAL                     :: sym_angle     = 0.0
+REAL(KIND=PREC_DP)       :: sym_angle     = 0.0
 REAL                     :: sym_radius    = 1.0E-8
-REAL, DIMENSION(3)       :: sym_hkl       = (/0.0, 0.0, 1.0/)
-REAL, DIMENSION(3)       :: sym_orig      = (/0.0, 0.0, 0.0/)
-REAL, DIMENSION(3)       :: sym_or_tr     = (/0.0, 0.0, 0.0/)
-REAL, DIMENSION(3)       :: sym_trans     = (/0.0, 0.0, 0.0/)
-REAL, DIMENSION(3)       :: sym_uvw       = (/0.0, 0.0, 1.0/)
-REAL, DIMENSION(4,4)     :: sym_mat       = 0.0
-REAL, DIMENSION(4,4)     :: sym_rmat      = 0.0
+REAL(KIND=PREC_DP), DIMENSION(3)       :: sym_hkl       = (/0.0, 0.0, 1.0/)
+REAL(KIND=PREC_DP), DIMENSION(3)       :: sym_orig      = (/0.0, 0.0, 0.0/)
+REAL(KIND=PREC_DP), DIMENSION(3)       :: sym_or_tr     = (/0.0, 0.0, 0.0/)
+REAL(KIND=PREC_DP), DIMENSION(3)       :: sym_trans     = (/0.0, 0.0, 0.0/)
+REAL(KIND=PREC_DP), DIMENSION(3)       :: sym_uvw       = (/0.0, 0.0, 1.0/)
+REAL(KIND=PREC_DP), DIMENSION(4,4)     :: sym_mat       = 0.0
+REAL(KIND=PREC_DP), DIMENSION(4,4)     :: sym_rmat      = 0.0
 !
 INTEGER                  :: sym_size_of  ! Bytes allocated for symmetry
 !
