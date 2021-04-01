@@ -1535,11 +1535,14 @@ IF(pl_prog=='jmol') THEN
       k = LEN_TRIM(line)
       IF(pl_poly_nmax>0) WRITE(line(k+1:k+3),'(1x,i2  )') pl_poly_nmax
       k = LEN_TRIM(line)
-      IF(pl_poly_dmin>0.0 .AND. pl_poly_dmax>0.0) WRITE(line(k+1:k+8),'(f8.2)') pl_poly_dmin
+      write(line(k+1:k+14),'(a)') ' BONDS RADIUS '
       k = LEN_TRIM(line)
+!     IF(pl_poly_dmin>0.0 .AND. pl_poly_dmax>0.0) WRITE(line(k+1:k+8),'(f8.2)') pl_poly_dmin
+!     k = LEN_TRIM(line)
       IF(pl_poly_dmax>0.0) WRITE(line(k+1:k+8),'(f8.2)') pl_poly_dmax
       k = LEN_TRIM(line)
-      WRITE(line(k+1:k+8),'(a)') ' BONDS ('
+!     WRITE(line(k+1:k+8),'(a)') ' BONDS ('
+      WRITE(line(k+1:k+2),'(a)') ' ('
       k = LEN_TRIM(line)
       IF(pl_poly_c(-1)) THEN
          WRITE(line(k+1:k+7),'(a)') '*) to ('
@@ -1549,9 +1552,9 @@ IF(pl_prog=='jmol') THEN
          DO j=0,cr_nscat
             IF(pl_poly_c(j)) THEN
                IF(lsecond) THEN
-                  WRITE(line(k+1:k+8),'(a,a)') ' OR ',cr_at_lis(j)
+                  WRITE(line(k+1:k+9),'(a,a)') ' OR _',cr_at_lis(j)
                ELSE
-                  WRITE(line(k+1:k+4),'(a)') cr_at_lis(j)
+                  WRITE(line(k+1:k+5),'(a,a)') '_',cr_at_lis(j)
                   lsecond = .TRUE.
                ENDIF
                k = LEN_TRIM(line)
@@ -1568,9 +1571,9 @@ IF(pl_prog=='jmol') THEN
          DO j=0,cr_nscat
             IF(pl_poly_o(j)) THEN
                IF(lsecond) THEN
-                  WRITE(line(k+1:k+8),'(a,a)') ' OR ',cr_at_lis(j)
+                  WRITE(line(k+1:k+9),'(a,a)') ' OR _',cr_at_lis(j)
                ELSE
-                  WRITE(line(k+1:k+4),'(a)') cr_at_lis(j)
+                  WRITE(line(k+1:k+5),'(a,a)') '_',cr_at_lis(j)
                   lsecond = .TRUE.
                ENDIF
                k = LEN_TRIM(line)
@@ -1630,6 +1633,7 @@ USE errlist_mod
 USE prompt_mod
 USE support_mod
 USE lib_do_operating_mod
+use lib_errlist_func
 !
 IMPLICIT NONE
 !
@@ -1640,9 +1644,11 @@ INTEGER, PARAMETER  :: ITMP     = 78  ! temporary unit number
 !
 CHARACTER(LEN=PREC_STRING) :: kill_file
 CHARACTER(LEN=PREC_STRING) :: line
+CHARACTER(LEN=PREC_STRING) :: message
 !
 INTEGER             :: jmol_pid   ! jmol Process identifier
 INTEGER             :: ios
+INTEGER             :: exit_msg
 !
 LOGICAL :: lpresent
 LOGICAL :: did_kill
@@ -1651,7 +1657,7 @@ WRITE(kill_file, '(a,a,I10.10,a)') tmp_dir(1:LEN_TRIM(tmp_dir)),'/jmol.',PID,'.p
 INQUIRE(FILE=kill_file, EXIST=lpresent)
 IF(lpresent) THEN
    WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
-   CALL EXECUTE_COMMAND_LINE(line)
+   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 !
 IF(lfinal) THEN
@@ -1669,17 +1675,17 @@ IF(operating=='Linux') THEN
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' ' // &
         '| grep -F ''.mol'' | grep -F ''java'' | grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL EXECUTE_COMMAND_LINE(line)
+   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 ELSEIF(operating=='Linux_WSL') THEN
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' ' // &
         '| grep -F ''.mol'' | grep -F ''java'' | grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL EXECUTE_COMMAND_LINE(line)
+   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 ELSEIF(operating(1:6)=='darwin') THEN
    WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep -F ''jmol'' ' // &
          '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL EXECUTE_COMMAND_LINE(line)
+   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 
 ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
 !  WRITE(line,'(a,I5.5,a,a)') 'ps aux | grep ''jmol -s /tmp/jmol.',PID, &
@@ -1689,7 +1695,7 @@ ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
 !  line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1, $3}'' '
    line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1, $3}'' >> ' //  &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL EXECUTE_COMMAND_LINE(line)
+   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 !
 CALL oeffne( ITMP, kill_file, 'old')
@@ -1698,7 +1704,7 @@ IF(ier_num==0) THEN
    DO WHILE (.NOT.IS_IOSTAT_END(ios)) 
 !     IF(jppid==PID .OR. jppid==PPID) THEN                    ! Current discus_suite has started jmol
          WRITE(line,'(a,i12,a)') 'kill -9 ',jmol_pid, ' > /dev/null'
-         CALL EXECUTE_COMMAND_LINE(line)
+         CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
          did_kill = .TRUE.
 !     ENDIF
       READ(ITMP,*,IOSTAT=ios) jmol_pid!, jppid
@@ -1710,12 +1716,13 @@ IF(ier_num==0) THEN
 ENDIF
 !
 WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
-CALL EXECUTE_COMMAND_LINE(line)
+CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
 IF(did_kill .AND.lfinal) THEN
    WRITE(output_io,*) ' Closed JMOL windows, ignore ''Killed'' messages '
    WRITE(output_io,*) ' DISCUS_SUITE will terminate properly '
 ENDIF
+call no_error
 !
 END SUBROUTINE jmol_kill
 !
