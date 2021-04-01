@@ -13,6 +13,7 @@ CONTAINS
       USE fourier_sup
       USE get_iscat_mod
       USE modify_mod
+use molecule_mod
       USE rmc_mod 
       USE quad_mod
       USE ber_params_mod
@@ -328,7 +329,7 @@ USE precision_mod
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
                CALL rmc_set_move (rmc_maxmove, rmc_sel_atom, ianz,      &
-               cpara, werte, lpara, maxw, 3)                               
+               cpara, werte, lpara, maxw, 3, MOLE_MAX_TYPE)                               
 !                                                                       
 !------ --- 'set range': set q-range to be used in RMC runs             
 !                                                                       
@@ -439,112 +440,117 @@ USE precision_mod
       ENDIF 
 !                                                                       
       END SUBROUTINE rmc_set                        
+!
 !*****7*****************************************************************
-      SUBROUTINE rmc_set_move (move, sel_atom, ianz, cpara, werte,      &
-      lpara, maxw,dimen)                                                      
+!
+SUBROUTINE rmc_set_move (move, sel_atom, ianz, cpara, werte,      &
+      lpara, maxw,dimen, MAXMOVE)                                                      
 !+                                                                      
 !     Sets RMC/MC maximum shift in 'shift' mode                         
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE get_iscat_mod
-      USE modify_mod
-      USE molecule_mod 
-      USE rmc_mod 
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE get_iscat_mod
+USE modify_mod
+USE molecule_mod 
+USE rmc_mod 
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
 USE precision_mod
-      IMPLICIT none 
-!                                                                       
-      INTEGER, PARAMETER :: maxww = 4 
 !
-      INTEGER                             , INTENT(IN)    :: dimen
-      INTEGER                             , INTENT(IN )   :: maxw
-      REAL    , DIMENSION(dimen,0:MAXSCAT), INTENT(OUT)   :: move ! (3, 0:MAXSCAT) 
-      LOGICAL                             , INTENT(IN )   :: sel_atom 
-      INTEGER                             , INTENT(INOUT) :: ianz
+IMPLICIT none 
 !                                                                       
-      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara !(maxw) 
-      REAL(KIND=PREC_DP),DIMENSION(1:MAXW), INTENT(INOUT) :: werte !(maxw) 
-      INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara !(maxw) 
+INTEGER, PARAMETER :: maxww = 4 
 !
-      REAL(KIND=PREC_DP) :: wwerte (maxww) 
-      INTEGER ii, is, i, j 
+INTEGER                             , INTENT(IN)    :: DIMEN
+INTEGER                             , INTENT(IN )   :: MAXW
+INTEGER                             , INTENT(IN )   :: MAXMOVE
+REAL    , DIMENSION(dimen,0:MAXMOVE), INTENT(OUT)   :: move ! (3, 0:MAXSCAT) 
+LOGICAL                             , INTENT(IN )   :: sel_atom 
+INTEGER                             , INTENT(INOUT) :: ianz
+!                                                                       
+CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara !(maxw) 
+REAL(KIND=PREC_DP),DIMENSION(1:MAXW), INTENT(INOUT) :: werte !(maxw) 
+INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara !(maxw) 
+!
+REAL(KIND=PREC_DP) :: wwerte (maxww) 
+INTEGER ii, is, i, j 
 !                                                                       
 !------ Atoms                                                           
 !                                                                       
-      wwerte(:) = 0.0
-      IF (sel_atom) then 
-         IF ((dimen==3 .AND.ianz.eq.4) .OR.           &
-             (dimen==4 .AND. (ianz==4 .OR. ianz==5))) then 
-            IF(dimen==3) THEN
-               ii = ianz - 3
-            ELSEIF(dimen==4) THEN
-               ii = 1       ! MMC allows only ONE atom name
-            ENDIF
-            CALL get_iscat (ii, cpara, lpara, werte, maxw, .false.) 
-            IF (ier_num.eq.0) then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
-               is = int (werte (1) ) 
-               IF (is.ne. - 1) then 
-                  DO i = 1, ii 
-                  is = int (werte (i) ) 
-                  DO j = 1, ianz 
+wwerte(:) = 0.0
+IF (sel_atom) then 
+   IF ((dimen==3 .AND.ianz.eq.4) .OR.           &
+       (dimen==4 .AND. (ianz==4 .OR. ianz==5))) then 
+      IF(dimen==3) THEN
+         ii = ianz - 3
+      ELSEIF(dimen==4) THEN
+         ii = 1       ! MMC allows only ONE atom name
+      ENDIF
+      CALL get_iscat (ii, cpara, lpara, werte, maxw, .false.) 
+      IF (ier_num.eq.0) then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
+         is = int (werte (1) ) 
+         IF (is.ne. - 1) then 
+            DO i = 1, ii 
+               is = int (werte (i) ) 
+               DO j = 1, ianz 
                   move (j, is) = wwerte (j) 
-                  ENDDO 
-                  ENDDO 
-               ELSE 
-                  DO i = 1, cr_nscat 
-                  DO j = 1, ianz 
-                  move (j, i) = wwerte (j) 
-                  ENDDO 
-                  ENDDO 
-               ENDIF 
-            ENDIF 
+               ENDDO 
+            ENDDO 
          ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
+            DO i = 1, cr_nscat 
+               DO j = 1, ianz 
+                  move (j, i) = wwerte (j) 
+               ENDDO 
+            ENDDO 
          ENDIF 
+      ENDIF 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
 !                                                                       
 !------ Molecules                                                       
 !                                                                       
+ELSE 
+   IF ((dimen==3 .AND.ianz.eq.4) .OR.           &
+       (dimen==4 .AND. (ianz==4 .OR. ianz==5))) then 
+      IF (cpara (1) (1:1) .eq.'a') then 
+         is = - 1 
       ELSE 
-         IF ((dimen==3 .AND.ianz.eq.4) .OR.           &
-             (dimen==4 .AND. (ianz==4 .OR. ianz==5))) then 
-            IF (cpara (1) (1:1) .eq.'a') then 
-               is = - 1 
-            ELSE 
-               CALL ber_params (1, cpara, lpara, werte, maxw) 
-               is = nint (werte (1) ) 
-               IF (is.le.0.or.is.gt.mole_num_type) then 
-                  ier_num = - 64 
-                  ier_typ = ER_APPL 
-                  RETURN 
-               ENDIF 
-!                                                                       
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
-               IF (is.ne. - 1) then 
-                  DO j = 1, ianz 
-                  move (j, is) = wwerte (j) 
-                  ENDDO 
-               ELSE 
-                  DO i = 1, mole_num_type 
-                  DO j = 1, ianz 
-                  move (j, i) = wwerte (j) 
-                  ENDDO 
-                  ENDDO 
-               ENDIF 
-            ENDIF 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
+         CALL ber_params (1, cpara, lpara, werte, maxw) 
+         is = nint (werte (1) ) 
+         IF (is.le.0.or.is.gt.mole_num_type) then 
+            ier_num = - 64 
+            ier_typ = ER_APPL 
+            RETURN 
          ENDIF 
       ENDIF 
 !                                                                       
-      END SUBROUTINE rmc_set_move                   
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
+         IF (is.ne. - 1) then 
+            DO j = 1, ianz 
+               move (j, is) = wwerte (j) 
+            ENDDO 
+         ELSE 
+            DO i = 1, mole_num_type 
+               DO j = 1, ianz 
+                  move (j, i) = wwerte (j) 
+               ENDDO 
+            ENDDO 
+         ENDIF 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
+ENDIF 
+!                                                                       
+END SUBROUTINE rmc_set_move                   
+!
 !*****7*****************************************************************
 !     SUBROUTINE rmc_set_mode (imode, ilocal, ianz, cpara, lpara, werte,maxw) 
       SUBROUTINE rmc_set_mode (               ianz, cpara, lpara, werte,maxw) 
