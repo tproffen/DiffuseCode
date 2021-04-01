@@ -1399,15 +1399,15 @@ REAL(KIND=PREC_SP), DIMENSION(3), PARAMETER :: V_NULL = (/0.0D0, 0.0D0, 0.0D0/)
 REAL(KIND=PREC_SP)              , PARAMETER :: EPS    = 1.0D-4
 REAL(KIND=PREC_SP)              , PARAMETER :: TOL    = 5.0D0
 INTEGER :: i
-REAL(KIND=PREC_SP), DIMENSION(3)   :: v_long
-REAL(KIND=PREC_SP), DIMENSION(3)   :: v_short
+REAL(KIND=PREC_DP), DIMENSION(3)   :: v_long
+REAL(KIND=PREC_DP), DIMENSION(3)   :: v_short
 REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_long
 REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_short
 !
-REAL(KIND=PREC_SP), DIMENSION(3)   :: u         ! Dummy vector
-REAL(KIND=PREC_SP), DIMENSION(3)   :: v         ! Dummy vector
-REAL(KIND=PREC_SP), DIMENSION(4)   :: v4        ! Dummy vector
-REAL(KIND=PREC_SP), DIMENSION(3)   :: ww        ! Dummy vector
+REAL(KIND=PREC_DP), DIMENSION(3)   :: u         ! Dummy vector
+REAL(KIND=PREC_DP), DIMENSION(3)   :: v         ! Dummy vector
+REAL(KIND=PREC_DP), DIMENSION(4)   :: v4        ! Dummy vector
+REAL(KIND=PREC_DP), DIMENSION(3)   :: ww        ! Dummy vector
 REAL(KIND=PREC_DP)                 :: alpha
 !
 m_comb  = 0.0D0                     ! setup a default matrix
@@ -1438,7 +1438,8 @@ ELSE
    u(1) = 1.0D0
    u(2) = 0.0D0
    u(3) = 0.0D0
-   CALL trans(u, cr_rten, v_short, 3)   ! transform b* into direct space
+!  CALL trans(u, cr_rten, v_short, 3)   ! transform b* into direct space
+   v_short = matmul(real(cr_rten,KIND=PREC_DP), u)
 ENDIF
 !
 m_short = 0.0D0
@@ -1447,7 +1448,7 @@ DO i=1,4
 ENDDO
 !
 IF(l_long .AND. l_short) THEN
-   alpha = do_bang (.TRUE., v_short, V_NULL, v_long)
+   alpha = do_bang (.TRUE., REAL(v_short,kind=PREC_SP), V_NULL, real(v_long,kind=PREC_SP))
    IF(ABS(alpha-90.0D0)>TOL) THEN                 ! Not at 90 degrees
       ier_num = -171
       ier_typ = ER_APPL
@@ -1459,7 +1460,7 @@ ENDIF
 u(1) = 0.0D0
 u(2) = 0.0D0
 u(3) = 1.0D0
-alpha = do_bang(.TRUE., u, V_NULL, v_long)     ! Angle long to [001]
+alpha = do_bang(.TRUE., real(u,kind=PREC_SP), V_NULL, real(v_long,kind=PREC_SP))     ! Angle long to [001]
 !
 IF(ABS(alpha)<EPS) THEN                        ! already parallel
    alpha = 0.0D0                               ! Matrix will remain unit
@@ -1475,9 +1476,11 @@ ELSEIF(ABS(180.0D0-alpha)<EPS) THEN             ! at 180 degrees
    v(1) = 0.0D0
    v(2) = 1.0D0                             ! Dummy b* vector
    v(3) = 0.0D0
-   CALL trans(v, cr_rten, ww, 3)            ! transform b* into direct space
+!  CALL trans(v, cr_rten, ww, 3)            ! transform b* into direct space
+   ww = matmul(real(cr_rten,KIND=PREC_DP), v)
 ELSE                                        ! Need a rotation
-   CALL vekprod(v_long, u, ww, cr_eps, cr_rten)  ! Get rotation axis
+   CALL vekprod(real(v_long,kind=PREC_SP), real(u,kind=PREC_SP), &
+                real(ww,kind=PREC_SP), cr_eps, cr_rten)  ! Get rotation axis
 ENDIF
 !
 !  Define rotation
@@ -1489,7 +1492,8 @@ ENDIF
    sym_trans(:)   = 0.0                        ! No translation
    sym_power      =  1                         ! Need just a single rotation
    sym_type       = .TRUE.                     ! Proper rotation
-   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)   ! Make reciprocal space axis
+!  CALL trans (sym_uvw, cr_gten, sym_hkl, 3)   ! Make reciprocal space axis
+   sym_hkl = matmul(real(cr_gten,kind=PREC_DP), sym_uvw)
    CALL symm_setup                             ! get all matrices
    m_long   = sym_mat                          ! copy rotation matrix
 !
@@ -1502,7 +1506,8 @@ v(1:3) = v4(1:3)                               ! Copy current short axis
 u(1) = 1.0D0
 u(2) = 0.0D0
 u(3) = 0.0D0
-alpha = do_bang(.TRUE., u, V_NULL, v)             ! Angle short to [100]
+!alpha = do_bang(.TRUE., u, V_NULL, v)             ! Angle short to [100]
+alpha = do_bang(.TRUE., real(u,kind=PREC_SP), V_NULL, real(v_long,kind=PREC_SP))     ! Angle long to [001]
 CALL symm_reset
 sym_angle      = alpha                         ! Rotation angle
 sym_uvw(1)     = 0.0                           ! Rotation axis [001]
@@ -1512,7 +1517,8 @@ sym_orig(:)    = 0.0                           ! Rotate around crystal center
 sym_trans(:)   = 0.0                           ! No translation
 sym_power      =  1                            ! Need just a single rotation
 sym_type       = .TRUE.                        ! Proper rotation
-CALL trans (sym_uvw, cr_gten, sym_hkl, 3)      ! Make reciprocal space axis
+!CALL trans (sym_uvw, cr_gten, sym_hkl, 3)      ! Make reciprocal space axis
+sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup                                ! get all matrices
 m_short   = sym_mat                            ! copy rotation matrix
 m_comb = MATMUL(m_short, m_long)               ! Combine rotations m_short X m_long
@@ -1544,7 +1550,7 @@ IMPLICIT NONE
 !
 CHARACTER(LEN=*)  , INTENT(INOUT) :: o_long
 INTEGER           , INTENT(INOUT) :: lo_long
-REAL(KIND=PREC_SP),DIMENSION(3), INTENT(OUT) ::  v_long
+REAL(KIND=PREC_DP),DIMENSION(3), INTENT(OUT) ::  v_long
 CHARACTER(LEN=*)  , INTENT(IN) :: cname 
 !
 INTEGER, PARAMETER :: MAXW = 4
@@ -1585,7 +1591,8 @@ IF(o_long(1:1) == '[' .AND. o_long(lo_long:lo_long) == ']') THEN
             v_long(2) = werte(2)
             v_long(3) = werte(3)
             IF(.NOT.ldirect) THEN
-               CALL trans (REAL(werte,KIND=PREC_SP), cr_rten, v_long, 3)     ! Make direct space axis
+!              CALL trans (REAL(werte,KIND=PREC_SP), cr_rten, v_long, 3)     ! Make direct space axis
+               v_long = matmul(real(cr_rten, kind=PREC_DP), werte(1:3))
             ENDIF
          ELSE
             ier_msg(1) = 'Optional parameter '//cname(1:length)//' failed '
@@ -1628,7 +1635,8 @@ END SUBROUTINE prep_values
       uu = SQRT(skalpro (u, u, gten) )
 !     uu = SQRT(u(1)**2 + u(2)**2 + u(3)**2)  ! Really rough length
       u(:) = u(:)/uu
-      CALL trans (u, gten, v, 3)              ! Transform into reciprocal space
+!     CALL trans (u, gten, v, 3)              ! Transform into reciprocal space
+      v = matmul(gten, u)
       hkl(1:3) = NINT(10.*v(1:3))             ! Make an approximate integer vector
 !
       END SUBROUTINE pos2hkl
