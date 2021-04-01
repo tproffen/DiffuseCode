@@ -803,7 +803,8 @@ INTEGER :: nsite = 1
             sym_trans (i) = 0.0 
          ENDDO 
 !                                                                       
-         CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
+!        CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
+         sym_hkl = matmul(real(cr_gten,kind=PREC_DP), sym_uvw)
       ENDIF 
 !                                                                       
 !     normalise wavevector to length 1 A,                               
