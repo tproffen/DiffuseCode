@@ -292,8 +292,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         maxw)                                           
                         IF (ier_num.eq.0) then 
                            DO k = 1, i 
-                           cr_delfr (jj (k) ) = werte (2) 
-                           cr_delfi (jj (k) ) = werte (3) 
+                           cr_delfr_u (jj (k) ) = werte (2) 
+                           cr_delfi_u (jj (k) ) = werte (3) 
                            cr_delf_int (jj (k) ) = .false. 
                            ENDDO 
                         ENDIF 
@@ -807,7 +807,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
               IF(lpresent(O_MODE)) THEN       ! set mode: 
                  IF(opara(O_MODE)=='single') THEN
                     four_accum = 0
-                    IF(four_symm) CALL four_accumulate  ! Call to apply symmetry
+!                   IF(four_symm) CALL four_accumulate  ! Call to apply symmetry
                  ELSEIF(opara(O_MODE)=='init') THEN
                     four_accum = -1
                     CALL four_accumulate      ! Call to clear arrays
@@ -826,7 +826,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
               ELSE                            ! No 'set mode:' parameter present
                  IF(lpresent(O_SYMM)) THEN       ! set mode: 
                     four_accum = 0
-                    IF(four_symm) CALL four_accumulate  ! Call to apply symmetry
+!                   IF(four_symm) CALL four_accumulate  ! Call to apply symmetry
                  ENDIF
               ENDIF
                  IF((lpresent(O_MODE) .OR. lpresent(O_SYMM)).AND. ianz==0) THEN
