@@ -147,4 +147,12 @@ END FUNCTION hdf5_get_height
 !
 !*******************************************************************************
 !
+SUBROUTINE hdf5_reset
+!
+implicit none
+!
+END SUBROUTINE hdf5_reset
+!
+!*******************************************************************************
+!
 END MODULE kuplot_load_h5
