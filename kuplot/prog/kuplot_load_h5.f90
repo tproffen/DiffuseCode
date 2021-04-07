@@ -396,10 +396,8 @@ SUBROUTINE hdf5_new_node
 ! Create a new node
 !+
 IF(ASSOCIATED(h5_root)) THEN                                ! A root node exists
-write(*,*) ' ROOT EXISTED '
    h5_temp => h5_root                                       ! Point to current node
    find_node: DO WHILE(ASSOCIATED(h5_temp%after))           ! Does next node exist?
-write(*,*) ' AFTER EXISTED '
       h5_temp => h5_temp%after                              ! Next node exists, point to this next node
    ENDDO find_node
    ALLOCATE(h5_temp%after)                                  ! Create next node
@@ -413,7 +411,6 @@ ENDIF
 NULLIFY(h5_temp%after)
 h5_temp%h5_data_num = h5_number + 1                         ! Increment the data number
 h5_number = h5_number + 1                                   ! Increment the global data number
-write(*,*) 'CURRENT IS ', h5_number
 !
 END SUBROUTINE hdf5_new_node
 !
@@ -672,6 +669,8 @@ xmin(izz) = h5_temp%h5_llims(1)
 xmax(izz) = h5_temp%h5_llims(1) + (nx(izz)-1)*h5_temp%h5_steps(1)
 ymin(izz) = h5_temp%h5_llims(2)
 ymax(izz) = h5_temp%h5_llims(2) + (ny(izz)-1)*h5_temp%h5_steps(2)
+x = 0.0
+y = 0.0
 DO i = 1, nx(izz)
    x(offxy(izz - 1) + i) = xmin(izz) + (i - 1) * h5_temp%h5_steps(1)
 ENDDO

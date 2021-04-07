@@ -1319,6 +1319,21 @@ USE kuplot_load_h5, ONLY: hdf5_reset
          ENDIF 
       ENDIF 
 !
+dx    = 0.0
+dy    = 0.0
+x     = 0.0
+y     = 0.0
+xmin  = 0.0
+xmax  = 0.0
+ymin  = 0.0
+ymax  = 0.0
+z     = 0.0
+lenc  = 0
+offxy = 0
+offz  = 0
+fname = ' '
+fform = ' '
+!
 CALL hdf5_reset
 !                                                                       
  1000 FORMAT     (1x,'Resetting ..') 
