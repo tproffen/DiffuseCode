@@ -1085,7 +1085,7 @@
    displayed on the screen ("on") or not ("off").
 3  para
 !p para 
-!p para <ip>,<pinc> [,<value>]
+!p para <ip>,<pinc> [,<value>]  [,range:[lower:upper]]
 !p para { "save" | "load" }
 
    This command allows to modify the fit parameters. If the command 
@@ -1098,6 +1098,15 @@
    A set of parameters can be internally stored ('para save') and loaded
    later back in the parameter array ('para load'). Each save command
    will overwrite previously stored values.
+
+   The optional "range:[,]" parameter allows to restrict the range of a 
+   parameter to the interval speified by the <lower> and <upper> limits.
+   Allowed formats are:
+   range:[<lower>,<upper>]   ! Expressions for lower and upper limit
+   range:[,<upper>]          ! Expressions for upper limit only, lower
+                               limit is set to -infinity
+   range:[<lower>,]          ! Expressions for lower limit only, upper
+                               limit is set to +infinity
 3  plot
 !p plot
  
