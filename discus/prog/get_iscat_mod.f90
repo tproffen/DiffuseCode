@@ -71,10 +71,11 @@ DO i=1, ianz
    j     = lpara(1)
    CALL ersetz_variable (zeile, j, lmask, omask)
    jj = LEN_TRIM(zeile)
-   IF(ier_num == 0 .AND. jj>2 .AND. zeile(1:1)=='''' .AND.           &
-                                    zeile(jj:jj) == ''''    ) THEN
+!  IF(ier_num == 0 .AND. jj>2 .AND. zeile(1:1)=='''' .AND.           &
+!                                   zeile(jj:jj) == ''''    ) THEN
+   if(ier_num==0 .and. zeile/=cpara(i)(1:lpara(i))) then
       cpara(i) = ' '
-      cpara(i)(1:jj-2) = zeile(2:jj-1)
+      cpara(i)(1:jj) = zeile(1:jj)
    ENDIF
 ENDDO
 !
