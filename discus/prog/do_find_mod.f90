@@ -172,7 +172,7 @@ IMPLICIT none
 !                                                                       
 INTEGER                            , intent(in) :: ianz
 INTEGER                            , intent(in) :: maxw 
-REAL(KIND=PREC_DP), dimension(MAXW), intent(out) :: werte ! (maxw) 
+REAL(KIND=PREC_DP), dimension(MAXW), intent(in) :: werte ! (maxw) 
 REAL              , dimension(3)   , intent(in)  :: x     ! (3) 
 REAL                               , intent(in)  :: rmin
 REAL                               , intent(in)  :: rmax 
