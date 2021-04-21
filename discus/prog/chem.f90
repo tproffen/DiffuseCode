@@ -4867,149 +4867,163 @@ USE atom_env_mod
 !                                                                       
       END SUBROUTINE chem_neighbour_mol             
 !*****7*****************************************************************
-      SUBROUTINE chem_blen (iianz, jjanz, werte, wwerte, maxw) 
+!
+SUBROUTINE chem_blen (iianz, jjanz, werte, wwerte, maxw) 
 !+                                                                      
 !     Calculate bond length distribution within crystal                 
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE atom_name 
-      USE atom_env_mod 
-      USE chem_mod 
-      USE do_find_mod
-      USE modify_mod
-      USE modify_func_mod
-      USE errlist_mod 
-      USE lib_f90_allocate_mod
-      USE param_mod 
+USE discus_config_mod 
+USE crystal_mod 
+USE atom_name 
+USE atom_env_mod 
+USE chem_mod 
+USE do_find_mod
+USE modify_mod
+USE modify_func_mod
+USE errlist_mod 
+USE lib_f90_allocate_mod
+USE param_mod 
 USE precision_mod
-      USE prompt_mod 
-      IMPLICIT none 
+USE prompt_mod 
 !                                                                       
+implicit none 
 !                                                                       
-      INTEGER maxw, iianz, jjanz 
-      REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw) 
+integer, intent(in) :: iianz
+integer, intent(in) :: jjanz
+integer, intent(in) :: MAXW
+real(kind=PREC_DP), dimension(maxw), intent(in) :: werte
+real(kind=PREC_DP), dimension(maxw), intent(in) :: wwerte
 !                                                                       
-      INTEGER i, j, k, l, is, js, ibin 
-      INTEGER bl_anz (0:maxscat, 0:maxscat), btot, btottot 
-      INTEGER :: n_res
-      REAL u (3) 
-      REAL(KIND=PREC_DP) :: bl_min (0:maxscat, 0:maxscat) 
-      REAL(KIND=PREC_DP) :: bl_max (0:maxscat, 0:maxscat) 
-      REAL(KIND=PREC_DP) :: bl_sum (0:maxscat, 0:maxscat) 
-      REAL(KIND=PREC_DP) :: bl_s2 (0:maxscat, 0:maxscat) 
-      REAL(KIND=PREC_DP) :: bl_ave, bl_sig 
+INTEGER i, j, k, l, is, js, ibin 
+INTEGER bl_anz (0:maxscat, 0:maxscat), btot, btottot 
+INTEGER :: n_res
+REAL u (3) 
+REAL(KIND=PREC_DP) :: bl_min (0:maxscat, 0:maxscat) 
+REAL(KIND=PREC_DP) :: bl_max (0:maxscat, 0:maxscat) 
+REAL(KIND=PREC_DP) :: bl_sum (0:maxscat, 0:maxscat) 
+REAL(KIND=PREC_DP) :: bl_s2 (0:maxscat, 0:maxscat) 
+REAL(KIND=PREC_DP) :: bl_ave, bl_sig 
+logical, dimension(0:maxscat, 0:maxscat) :: lprint   ! Print this pair
 !                                                                       
-      CHARACTER(9) at_name_i 
-      CHARACTER(9) at_name_j 
+CHARACTER(9) at_name_i 
+CHARACTER(9) at_name_j 
 !
-      REAL, DIMENSION(:), ALLOCATABLE :: xwrt
-      REAL, DIMENSION(:), ALLOCATABLE :: ywrt
-      INTEGER                         :: all_status
+REAL, DIMENSION(:), ALLOCATABLE :: xwrt
+REAL, DIMENSION(:), ALLOCATABLE :: ywrt
+INTEGER                         :: all_status
 !     LOGICAL atom_allowed 
 !                                                                       
 !------ write output                                                    
 !                                                                       
-      WRITE (output_io, 500) chem_blen_cut, chem_fname, chem_bin 
+WRITE (output_io, 500) chem_blen_cut, chem_fname, chem_bin 
 !                                                                       
 !------ Reset arrays                                                    
 !                                                                       
-      DO i = 0, cr_nscat 
-      DO j = 0, cr_nscat 
-      bl_sum (i, j) = 0.0 
-      bl_s2 (i, j) = 0.0 
-      bl_anz (i, j) = 0 
-      bl_min (i, j) = 999.0 
-      bl_max (i, j) = 0.0 
-      ENDDO 
-      ENDDO 
-      DO i = 1, CHEM_MAX_BIN 
-      chem_hist (i) = 0 
-      ENDDO 
+bl_sum = 0.0
+bl_s2  = 0.0
+bl_anz = 0
+bl_min = 0.0
+bl_max = 0.0
+chem_hist = 0
+lprint = .TRUE.     ! Print all pairs
+!      DO i = 0, cr_nscat 
+!      DO j = 0, cr_nscat 
+!      bl_sum (i, j) = 0.0 
+!      bl_s2 (i, j) = 0.0 
+!      bl_anz (i, j) = 0 
+!      bl_min (i, j) = 999.0 
+!      bl_max (i, j) = 0.0 
+!      ENDDO 
+!      ENDDO 
+!      DO i = 1, CHEM_MAX_BIN 
+!      chem_hist (i) = 0 
+!      ENDDO 
 !                                                                       
 !------ Start the calculation                                           
 !                                                                       
-      DO i = 1, cr_natoms 
-      IF (atom_allowed (i, werte, iianz, maxw) ) then 
-         DO j = 1, 3 
-         u (j) = cr_pos (j, i) 
-         ENDDO 
-         CALL do_find_env (jjanz, wwerte, maxw, u, chem_blen_cut (1),   &
-         chem_blen_cut (2), chem_quick, chem_period)                    
-         IF (ier_num.ne.0) return 
-         DO k = 1, atom_env (0) 
-         is = cr_iscat (i) 
-         js = cr_iscat (atom_env (k) ) 
-         bl_sum (is, js) = bl_sum (is, js) + res_para (k) 
-         bl_s2 (is, js) = bl_s2 (is, js) + res_para (k) **2 
-         bl_anz (is, js) = bl_anz (is, js) + 1 
-         bl_min (is, js) = min (bl_min (is, js), res_para (k) ) 
-         bl_max (is, js) = max (bl_max (is, js), res_para (k) ) 
+loop_atoms: DO i = 1, cr_natoms 
+   IF (atom_allowed (i, werte, iianz, maxw) ) then 
+!     DO j = 1, 3 
+!        u (j) = cr_pos (j, i) 
+!     ENDDO 
+      u = cr_pos(1:3,i)
+      CALL do_find_env(jjanz, wwerte, maxw, u, chem_blen_cut (1),               &
+                       chem_blen_cut (2), chem_quick, chem_period)
+      IF(ier_num.ne.0) return 
+      DO k = 1, atom_env(0) 
+         is = cr_iscat(i) 
+         js = cr_iscat(atom_env (k) ) 
+         bl_sum(is, js) = bl_sum(is, js) + res_para(k) 
+         bl_s2 (is, js) = bl_s2 (is, js) + res_para(k) **2 
+         bl_anz(is, js) = bl_anz(is, js) + 1 
+         bl_min(is, js) = min(bl_min(is, js), res_para(k)) 
+         bl_max(is, js) = max(bl_max(is, js), res_para(k)) 
                                                                         
-         ibin = int ( (res_para (k) - chem_blen_cut (1) ) * chem_bin /  &
-         (chem_blen_cut (2) - chem_blen_cut (1) ) ) + 1                 
-         chem_hist (ibin) = chem_hist (ibin) + 1 
-         ENDDO 
-      ENDIF 
+         ibin = int((res_para(k) - chem_blen_cut(1)) * chem_bin /               &
+                    (chem_blen_cut(2) - chem_blen_cut(1)))        + 1                 
+         chem_hist (ibin) = chem_hist(ibin) + 1 
       ENDDO 
+   ENDIF 
+ENDDO  loop_atoms
 !                                                                       
 !------ write output                                                    
 !                                                                       
-      l = 0 
-      btottot = 0 
-      n_res = (cr_nscat+2)*(cr_nscat+1)/2
-      IF(n_res                           > MAXPAR_RES) THEN
-         n_res = MAX(n_res     ,MAXPAR_RES, MAX_ATOM_ENV)
-         CALL alloc_param(n_res)
-         MAXPAR_RES = n_res
-      ENDIF
+l = 0 
+btottot = 0 
+n_res = (cr_nscat+2)*(cr_nscat+1)/2
+IF(n_res                           > MAXPAR_RES) THEN
+   n_res = MAX(n_res     ,MAXPAR_RES, MAX_ATOM_ENV)
+   CALL alloc_param(n_res)
+   MAXPAR_RES = n_res
+ENDIF
 !                                                                       
-      DO i = 0, cr_nscat 
-      IF(-1==NINT(werte(1))  .OR. i==NINT(werte(1))  ) THEN
-      DO j = i, cr_nscat 
-      IF(-1==NINT(wwerte(1)) .OR. j==NINT(wwerte(1)) ) THEN
-      IF (bl_anz (i, j) .ne.0.or.bl_anz (j, i) .ne.0) then 
-         bl_ave = (bl_sum (i, j) + bl_sum (j, i) ) / (bl_anz (i, j)     &
-         + bl_anz (j, i) )                                              
-         bl_sig = (bl_s2 (i, j) + bl_s2 (j, i) ) / (bl_anz (i, j)       &
-         + bl_anz (j, i) )                                              
-         bl_sig = bl_sig - (bl_ave**2) 
-         IF (bl_sig.gt.0.0) then 
-            bl_sig = sqrt (bl_sig) 
-         ELSE 
-            bl_sig = 0.0 
+loop_fst: DO i = 0, cr_nscat  
+   IF(-1==NINT(werte(1))  .OR. i==NINT(werte(1))  ) THEN
+!     DO j = i, cr_nscat 
+      loop_scd: DO j = 0, cr_nscat 
+         if(lprint(i,j)) then               ! this pair still needs to be printed
+         IF(-1==NINT(wwerte(1)) .OR. j==NINT(wwerte(1)) ) THEN
+            IF (bl_anz (i, j) .ne.0.or.bl_anz (j, i) .ne.0) then 
+               bl_ave = (bl_sum(i, j) + bl_sum(j, i)) / (bl_anz(i, j) + bl_anz(j, i))
+               bl_sig = (bl_s2 (i, j) + bl_s2 (j, i)) / (bl_anz(i, j) + bl_anz(j, i))
+               bl_sig = bl_sig - (bl_ave**2) 
+               IF (bl_sig.gt.0.0) then 
+                  bl_sig = sqrt (bl_sig) 
+               ELSE 
+                  bl_sig = 0.0 
+               ENDIF 
+            ELSE 
+               bl_ave = 0.0 
+               bl_sig = 0.0 
+            ENDIF 
+            at_name_i = at_name (i) 
+            at_name_j = at_name (j) 
+!                                                                       
+            IF (i.ne.j) then 
+               btot = bl_anz (i, j) + bl_anz (j, i) 
+            ELSE 
+               btot = bl_anz (i, i) 
+            ENDIF 
+            btottot = btottot + btot 
+!                                                                       
+            WRITE (output_io, 1000) at_name_i, at_name_j, bl_ave, bl_sig,          &
+            min(bl_min(i, j), bl_min(j, i)), max(bl_max(i, j), bl_max(j, i)), btot
+!                                                                       
+            IF ( (l + 3) <=  MAXPAR_RES) then 
+               res_para (l + 1) = bl_ave 
+               res_para (l + 2) = bl_sig 
+               res_para (l + 3) = REAL(btot) 
+               l = l + 3 
+            ELSE 
+               ier_num = - 2 
+               ier_typ = ER_CHEM 
+            ENDIF 
          ENDIF 
-      ELSE 
-         bl_ave = 0.0 
-         bl_sig = 0.0 
-      ENDIF 
-      at_name_i = at_name (i) 
-      at_name_j = at_name (j) 
-!                                                                       
-      IF (i.ne.j) then 
-         btot = bl_anz (i, j) + bl_anz (j, i) 
-      ELSE 
-         btot = bl_anz (i, i) 
-      ENDIF 
-      btottot = btottot + btot 
-!                                                                       
-      WRITE (output_io, 1000) at_name_i, at_name_j, bl_ave, bl_sig, min &
-      (bl_min (i, j), bl_min (j, i) ), max (bl_max (i, j), bl_max (j, i)&
-      ), btot                                                           
-!                                                                       
-      IF ( (l + 3) <=  MAXPAR_RES) then 
-         res_para (l + 1) = bl_ave 
-         res_para (l + 2) = bl_sig 
-         res_para (l + 3) = REAL(btot) 
-         l = l + 3 
-      ELSE 
-         ier_num = - 2 
-         ier_typ = ER_CHEM 
-      ENDIF 
-      ENDIF 
-      ENDDO 
-      ENDIF 
-      ENDDO 
+            lprint(j,i) = .FALSE.        ! Flag transposed pair as done
+         ENDIF 
+      ENDDO  loop_scd
+   ENDIF 
+ENDDO loop_fst
 !                                                                       
       res_para (0) = l 
       WRITE (output_io, 1100) btottot 
