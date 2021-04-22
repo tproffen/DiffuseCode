@@ -9,6 +9,7 @@ CONTAINS
 SUBROUTINE do_input (zeile, lp) 
 !                                                                       
 USE ber_params_mod
+use doact_mod
 USE errlist_mod 
 USE get_params_mod
 USE lib_length
@@ -47,12 +48,18 @@ IF(wait_active) THEN
             WRITE ( *, 1000,advance='no') 
             READ ( *, 5000, err = 50, end = 50) cdummy 
             IF(cdummy=='stop') THEN
-
-               WRITE ( *, '(a,a1)') 'Macro stopped ', char (7)
+!
+               if(lblock) then
+                  lblock = .false.
+                  lblock_dbg = .false.
+               endif
+               if(lmakro) then
+               WRITE( *, '(a,a1)') ' Macro stopped ', char (7)
                lmakro = .false.
                lmakro_error = .false.    ! Macro termination error off
                macro_level = 0
                CALL macro_close
+               endif
 !            line = '#'
 !            il = 1
             ENDIF

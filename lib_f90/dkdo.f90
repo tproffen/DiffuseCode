@@ -473,7 +473,6 @@ LOGICAL, INTENT(OUT) :: lend
 !                                                                       
 CHARACTER(LEN=PREC_STRING) :: line 
 CHARACTER(LEN=PREC_STRING)                  :: zeile 
-CHARACTER(LEN=20)                    :: prom 
 CHARACTER(LEN=4)                     :: befehl 
 INTEGER :: length, lp, lbef
 LOGICAL :: lreg 
@@ -506,7 +505,7 @@ main: DO WHILE (level.gt. - 1.and. (                                    &
    IF (lreg) then 
       IF (.NOT. (level.eq.0.AND.ilevel (level) .eq.0) ) THEN 
          IF (str_comp (line (1:4) , 'stop', 4, length, 4) ) THEN 
-            WRITE (output_io, 2000) achar (7) 
+            WRITE(output_io, '(a,a1)') '------ > do/if halted, continue with cont ...', achar(7) 
             lblock_dbg = .true. 
             lblock = .false. 
             line = '#' 
@@ -515,7 +514,7 @@ main: DO WHILE (level.gt. - 1.and. (                                    &
 !     ----Continuous loop until debug mode is switched off              
 !                                                                       
             DO WHILE (lblock_dbg) 
-               CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom)
+               CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt)
                IF (line (1:1) .eq.'@') THEN 
                   line(1:length-1) = line(2:length)
                   length = length - 1
@@ -549,6 +548,12 @@ main: DO WHILE (level.gt. - 1.and. (                                    &
          ENDIF 
       ENDIF 
    ENDIF 
+   if(.not.lblock) then
+      if(ier_num==0) then
+         write(output_io,'(a)') ' Block terminated by user'
+      endif
+      exit main
+   endif
 ENDDO main
 !
 !999 CONTINUE
@@ -571,7 +576,7 @@ IF (ier_num.ne.0) then
 ENDIF 
 !                                                                       
 !                                                                       
- 2000 FORMAT    (a1) 
+!2000 FORMAT    (a1) 
  3000 FORMAT    ('Erroneous line in block structure') 
  3100 FORMAT    (a41) 
  3200 FORMAT    (a, i5, a, i3)
