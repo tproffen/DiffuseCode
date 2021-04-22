@@ -1608,6 +1608,13 @@ integer :: i_scat
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mmc_size_of = mmc_size_of + size_of
 !
+      CALL alloc_arr ( mmc_pre_corr    ,1,n_corr , &
+                                        0,n_ener , &
+                                       -1,n_scat , &
+                                       -1,n_scat , &
+                                      all_status, 0.0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
  i_scat = max(3, n_scat)
       CALL alloc_arr ( mmc_pneig       ,0,i_scat , &
                                         0,i_scat , &
@@ -1666,6 +1673,75 @@ integer :: i_scat
       END IF
     END SUBROUTINE alloc_mmc
 !
+!*******************************************************************************
+!
+subroutine alloc_mmc_pid ( n_corr, n_ener, n_scat, n_site )
+!-
+!     Allocate the arrays needed by MMC 
+!+
+USE chem_mod
+USE mmc_mod
+!
+IMPLICIT NONE
+!
+!      
+INTEGER, INTENT(IN)  :: n_corr
+INTEGER, INTENT(IN)  :: n_ener
+INTEGER, INTENT(IN)  :: n_scat
+INTEGER, INTENT(IN)  :: n_site
+!
+INTEGER              :: all_status
+LOGICAL              :: lstat
+INTEGER              :: size_of
+!
+lstat       = .TRUE.
+!
+!
+CALL alloc_arr ( mmc_pid_diff ,1,n_corr , &
+                               0,n_ener , &
+                              -1,n_scat , &
+                              -1,n_scat , &
+                              all_status, 0.0  , size_of)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( mmc_pid_inte ,1,n_corr , &
+                               0,n_ener , &
+                              -1,n_scat , &
+                              -1,n_scat , 0,2 ,&
+                              all_status, 0.0  , size_of)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( mmc_pid_deri ,1,n_corr , &
+                               0,n_ener , &
+                              -1,n_scat , &
+                              -1,n_scat , 0,2, &
+                              all_status, 0.0  , size_of)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+end subroutine alloc_mmc_pid
+!
+!*******************************************************************************
+!
+SUBROUTINE alloc_mo_ach  ( n_corr)
+!-
+!     Allocate the arrays needed by MMC  for moves in mc_mod
+!+
+USE mc_mod
+!
+IMPLICIT NONE
+!
+!      
+INTEGER, INTENT(IN)  :: n_corr    ! Number of targets
+!
+INTEGER              :: all_status
+INTEGER              :: size_of
+!
+CALL alloc_arr(mo_ach_corr   ,1,n_corr                    ,  all_status, 0.0      , size_of )
+!
+END SUBROUTINE alloc_mo_ach
+!
+!*******************************************************************************
+!
 SUBROUTINE alloc_mmc_move( n_corr, n_scat, n_mole)
 !-
 !     Allocate the arrays needed by MMC  for moves in mc_mod
@@ -1683,7 +1759,7 @@ INTEGER              :: all_status
 INTEGER              :: size_of
 !
 !CALL alloc_arr(mo_target_corr,1,n_corr                    ,  all_status, 0.0      , size_of )
-CALL alloc_arr(mo_ach_corr   ,1,n_corr                    ,  all_status, 0.0      , size_of )
+!CALL alloc_arr(mo_ach_corr   ,1,n_corr                    ,  all_status, 0.0      , size_of )
 !CALL alloc_arr(mo_const      ,0,n_corr                    ,  all_status, 0.0      , size_of )
 !CALL alloc_arr(mo_cfac       ,0,n_corr                    ,  all_status, 0.0      , size_of )
 !CALL alloc_arr(mo_disp       ,1,n_corr, 0,n_scat, 0,n_scat,  all_status, 0.0      , size_of )

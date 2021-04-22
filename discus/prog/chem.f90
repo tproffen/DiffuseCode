@@ -2709,6 +2709,7 @@ USE support_mod
 !     Calculates correlation distribution                               
 !+                                                                      
       USE discus_config_mod 
+use discus_allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
@@ -2735,6 +2736,7 @@ USE support_mod
 !                                                                       
 !------ Some setup                                                      
 !                                                                       
+call alloc_mo_ach(chem_ncor)
       WRITE (output_io, 500) 
       IF (ilots.eq.LOT_OFF) then 
          WRITE (output_io, 600) 
@@ -2926,6 +2928,7 @@ USE support_mod
 !     Calculates correlation field                                      
 !+                                                                      
       USE discus_config_mod 
+use discus_allocate_appl_mod
       USE chem_mod 
       USE mc_mod 
       USE build_name_mod
@@ -2960,6 +2963,7 @@ USE support_mod
       REAL(KIND=PREC_SP):: back_rmax (CHEM_MAX_COR) 
       LOGICAL locc 
 !                                                                       
+call alloc_mo_ach(chem_ncor)
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -4211,6 +4215,7 @@ USE precision_mod
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+use discus_allocate_appl_mod
 USE atom_env_mod
       USE chem_mod 
       USE get_iscat_mod
@@ -4218,6 +4223,7 @@ USE atom_env_mod
       USE mmc_mod   
       USE modify_mod
       USE modify_func_mod
+!
       USE errlist_mod 
       USE lib_f90_allocate_mod
       USE param_mod 
@@ -4287,6 +4293,7 @@ USE precision_mod
       IF (lout) then 
          WRITE (output_io, 1000) cr_at_lis (is), cr_at_lis (js) 
       ENDIF 
+call alloc_mo_ach(chem_ncor)
 !                                                                       
 !------ loop over all defined correlations                              
 !                                                                       
