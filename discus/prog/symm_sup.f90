@@ -32,13 +32,7 @@ REAL(kind=PREC_DP) :: usym (4), ures (4)
 REAL(kind=PREC_DP) :: kron (3, 3) 
 REAL(kind=PREC_DP) :: a (3, 3) 
 REAL(kind=PREC_DP) :: b (3, 3) 
-REAL(kind=PREC_DP), dimension(3,3)   :: lo_gten 
-REAL(kind=PREC_DP), dimension(3,3)   :: lo_rten 
-REAL(kind=PREC_DP), dimension(3,3,3) :: lo_eps 
-REAL(kind=PREC_DP), dimension(3,3,3) :: lo_reps 
 !                                                                       
-!     REAL cosd, sind 
-!     REAL skalpro 
 !                                                                       
 !                                                                       
 DATA kron / 1.0d0, 0.0d0, 0.0d0, 0.0d0, 1.0d0, 0.0d0, 0.0d0, 0.0d0, 1.0d0 / 
