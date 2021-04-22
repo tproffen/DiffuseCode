@@ -1643,7 +1643,6 @@ USE diffuse_mod
 USE errlist_mod
 !
 IMPLICIT NONE
-integer:: k, i, ii, h
 !
 IF(four_accum==FOUR_ACCUM_SINGLE) THEN
    IF(four_symm) THEN
