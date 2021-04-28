@@ -58,6 +58,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	unitcell_mod.f90 discus_upd_par.f90
 	update_cr_dim.f90 vtk_mod.f90
 	waves.f90 waves_mod.f90 wyckoff_mod.f90 quad.f90 qval.f90 utilities.f90 zone.f90
+        privat.f90
   )
 set( SOURCES_LOCAL discus_pdf_file.f90 discus_powder_file.f90 discus_out_file.f90)
 #set( SOURCES ${SOURCE_MAIN} ${SOURCES_ALL} )
