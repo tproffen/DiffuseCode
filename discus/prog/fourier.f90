@@ -305,6 +305,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (ianz.eq.2) then 
                   IF (str_comp (cpara (2) , 'internal', 2, lpara (2) ,  &
                   8) ) then                                             
+                     i = 1 
                      CALL get_iscat (i, cpara, lpara, werte, maxw, lold) 
                      IF (ier_num.eq.0) then 
                         i = nint (werte (1) ) 
