@@ -46,6 +46,8 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE discus_export
       USE storage_menu_mod
 !
+use privat_mod
+!
       USE blanks_mod
       USE calc_expr_mod
       USE doact_mod
@@ -327,6 +329,11 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
          ELSEIF (str_comp (befehl, 'proj', 4, lbef, 4) ) THEN 
             CALL do_proj (zeile, lcomm) 
+!                                                                       
+!     Pivat user subroutine 'privat'
+!                                                                       
+         ELSEIF(str_comp(befehl, 'privat', 5, lbef, 5) ) THEN 
+            CALL do_private(zeile)
 !                                                                       
 !     Go to property menu 'property'                                    
 !                                                                       
