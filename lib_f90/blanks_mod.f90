@@ -162,7 +162,7 @@ USE charact_mod
 IMPLICIT none
 !                                                                       
 CHARACTER ( LEN=* ), INTENT(INOUT) :: line
-INTEGER            , INTENT(INOUT) :: ll
+INTEGER            , INTENT(IN   ) :: ll
 !
 INTEGER              :: i
 !
