@@ -1146,6 +1146,8 @@ SUBROUTINE readcell (strucfile, l_identical, r_identical)
       USE discus_save_mod 
       USE spcgr_apply
       USE wyckoff_mod
+!
+use blanks_mod
 USE precision_mod
 USE lib_errlist_func
 USE lib_length
@@ -1317,6 +1319,7 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
             GOTO 999
          ENDIF
          lline = len_str (line) 
+         call tab2blank(line, lline)
 !23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
 empty:   IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!' .AND. line.ne.char (13)) THEN
             need_alloc = .false.
@@ -1414,7 +1417,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                   cr_magn(:,i) = werte(13:16)           ! Read for MAGNETIC_WORK
                   IF(MAXVAL(ABS(werte(13:16)))> 0.0) cr_magnetic = .TRUE.  ! Crystal has magnetic atoms
 !                                                                       
-                  IF (line (1:4) .ne.'    ') THEN 
+                  IF (line (1:ibl) .ne.'    ') THEN 
                      ibl = ibl - 1 
                      CALL do_cap (line (1:ibl) ) 
 !                                                                       
@@ -1541,6 +1544,8 @@ SUBROUTINE read_atom_line (line, ibl, length, cr_natoms, maxw, werte, &
 !     reads a line from the cell file/structure file                    
 !+                                                                      
 USE prop_para_mod 
+!
+!use blanks_mod
 USE ber_params_mod
 USE charact_mod
 USE get_params_mod
@@ -1588,6 +1593,7 @@ LOGICAL                              :: lcalc     ! Flag if calculation is neede
 !
 IF(line(1:1)=='!' .OR. line(1:1)=='#' .OR. IACHAR(line(1:1))==9 .OR. line==' ') RETURN
 !
+!call tab2blank(line, length)
 !
 ! Determine sequence of parameters on the atom line
 !
@@ -2231,6 +2237,8 @@ SUBROUTINE stru_readheader (ist, HD_MAXSCAT, cr_name,   &
 !+                                                                      
 USE gen_add_mod 
 USE sym_add_mod 
+!
+use blanks_mod
 USE ber_params_mod
 USE get_params_mod
 USE lib_errlist_func
@@ -2347,6 +2355,7 @@ sym_add_n = 0
          READ (ist, 2000, end = 999, err = 999) line 
          ll = 200 
          ll = len_str (line) 
+         call tab2blank(line, ll)
 !                                                                       
 !     ----The maximum number of significant characters depends on the   
 !     ----length of the character constant befehl.                      
@@ -2694,7 +2703,8 @@ sym_add_n = 0
          ier_msg(1) = 'Error in a non-keyword structure file'
          ier_msg(2) = 'Check if the 1st line starts with ''title'''
          READ (ist, 2010, end = 999, err = 999) line 
-         lp = len_str (line) 
+         lp = len_str(line) 
+         call tab2blank(line, lp)
          CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
          cr_spcgr = cpara (1) (1:lpara(1))
          cr_set   = 'abc'
@@ -2735,6 +2745,8 @@ sym_add_n = 0
       USE molecule_mod 
       USE prop_para_mod
       USE spcgr_apply
+!
+use blanks_mod
 USE lib_errlist_func
 USE lib_length
 USE precision_mod
@@ -2806,6 +2818,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN ) :: at_param
       line = ' ' 
       READ (ist, 2000, end = 2, err = 999) line 
       lline = len_str (line) 
+      call tab2blank(line, lline)
       IF (line.ne.' '.and.line (1:1) .ne.'#'.and. line(1:1) /= '!' .AND. &
           line.ne.char (13) )  THEN
          ibl = index (line (1:lline) , ' ') + 1 
@@ -2854,7 +2867,6 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN ) :: at_param
             cr_magn(:,cr_natoms+1) = 0.0
             CALL read_atom_line (line, ibl, lline, as_natoms, MAXW, werte, &
                  AT_MAXP, at_ianz, at_param, at_init)
-
             IF (ier_num.ne.0.and.ier_num.ne. - 49) THEN 
                GOTO 999 
             ENDIF 
@@ -2879,7 +2891,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN ) :: at_param
             cr_magn(0:3,i) = werte(13:16)               ! MAGNETIC_WORK
             IF(MAXVAL(ABS(werte(13:16)))>0.0) cr_magnetic = .TRUE.
             cr_prop (i) = nint (werte (5) ) 
-      IF (line (1:4) .ne.'    ') THEN 
+      IF (line (1:ibl) .ne.'    ') THEN 
                ibl = ibl - 1 
                CALL do_cap (line (1:ibl) ) 
                DO j = 0, cr_nscat 
@@ -5684,6 +5696,7 @@ USE lib_errlist_func
 !
 !     Determines the number of atoms and atom types in strucfile
 !
+use blanks_mod
       USE ber_params_mod
       USE charact_mod
       USE get_params_mod
@@ -5779,6 +5792,7 @@ header: DO
         IF (line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
             line == CHAR (13) )  CYCLE header
         laenge = LEN_TRIM(LINE)
+        call tab2blank(line, laenge)
         iblk = INDEX(line, ' ')
         CALL do_cap (line(1:iblk))
 !        laenge = len_str(line)
@@ -5960,11 +5974,12 @@ ENDIF
       l_type = .FALSE.
 !
 main: DO
-        READ (99,1000, IOSTAT=ios) line
-        IF ( IS_IOSTAT_END(ios) ) EXIT main
-        IF (line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
-            line == CHAR (13) )  CYCLE main
-        laenge = len_str(line)
+   READ (99,1000, IOSTAT=ios) line
+   IF( IS_IOSTAT_END(ios) ) EXIT main
+   IF(line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
+      line == CHAR (13) )  CYCLE main
+   laenge = len_str(line)
+   call tab2blank(line, laenge)
 !
         bef   = '    '
         indxt = INDEX (line, tab)       ! find a tabulator
@@ -6052,7 +6067,7 @@ isatom:    IF ( ios == 0 ) THEN
               ENDIF
               new = .true.
 types:        DO i=1,ntypes
-                 IF ( LINE(1:4) == names(i) ) THEN
+                 IF ( line(1:lbef) == names(i) ) THEN
                     IF ( lcell ) THEN
                        new = .false.
                        EXIT types
@@ -6065,7 +6080,7 @@ types:        DO i=1,ntypes
               ENDDO types
               IF ( new ) THEN
                  ntypes = ntypes + 1
-                 names(ntypes) = line(1:4)
+                 names(ntypes) = line(1:lbef)
                  bvals(ntypes) = bval
                   occs(ntypes) = occ 
               ENDIF
