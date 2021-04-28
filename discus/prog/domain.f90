@@ -1335,6 +1335,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       USE trafo_mod
       USE surface_mod 
       USE errlist_mod 
+!
+use blanks_mod
 USE lib_errlist_func
 USE lib_length
 USE precision_mod
@@ -1508,6 +1510,7 @@ is_mole_type = 1
          READ (ist, 2000, END = 2, ERR = 999) line 
       ENDIF
       lline = len_str (line)
+      call tab2blank(line,lline)
 blank1: IF (line.ne.' '.AND.line (1:1) .ne.'#'.AND.line(1:1)/='!'.AND.line.ne.char (13) ) THEN
          i_count = i_count + 1 
          ibl = index (line, ' ') + 1 
