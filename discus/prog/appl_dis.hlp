@@ -867,22 +867,24 @@
 
    pdf        ! Calculate a Pair distribution function
 2  Unit_cell
-!p !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   Don't worry, the old data file format is still supported !
-
-   The new format adopts a key word controlled style of the data file.
-   Except for the lines containing the atoms, each line now contains a
+   The unit cell format adopts a key word controlled style of the data file.
+   Except for the lines containing the atoms, each line contains a
    keyword in the first few characters, followed by the parameters needed
    for this keyword. 
    The first line MUST contain the keyword "title", the sequence of the
    other keywords is not relevant.
    The last keyword MUST be "atoms" which starts the list of atoms.
-   You may include commentaries or empty lines anywhere between the 
+   You may include comments or empty lines anywhere between the 
    "title" and "atoms" keyword.
 
    The keywords "title", "spcgr", "cell" and "atoms" are required, all
    other keywords are optional.
+
+   The first character after the keyword must be a blank ot TAB. All following
+   parameters must be separated by a comma. White spaces between the parameters
+   may be either blanks or TABs. 
+   
 
    Example
 
@@ -969,8 +971,9 @@
    at which entry within the atom is.
    The <occ> specifies an occupancy for the atom.
 
-   The name (in capital characters) must be left bound in the first four
-   columns. 
+   The name (in capital characters) must be left bound in the first 
+   columns prior to a blank or TAB.
+ 
    The fractional coordinates and the B value can be in free format, if the
    lines contains no comma. In this case the property flag must be omitted.
    Otherwise, the fractional coordinates and the isotropic thermal 
@@ -3228,7 +3231,7 @@
    During the loop use 'set mode:accumulate'
    After the loop go back to fourier and use:
    set mode:finish
-   before you use the ==> 'output' manu to write the data.
+   before you use the ==> 'output' menu to write the data.
 
 !p For a small to moderate crystal, the actual realization of the disorder
    might not match the crystals symmetry very well. you can improve the
@@ -3238,6 +3241,9 @@
    This optional parameter can be combined with the 'mode:finish' parameter
    and will apply both to a single as well as to an accumulated pattern.
 
+!p set "symm:apply"
+
+   
 !p set {"external"|"internal"}
 
    Usually DISCUS will assume that all atoms in the crystal represent
@@ -5288,7 +5294,7 @@
    output files:
    <outputfile>.ehkl   Normalized structure factors for all input reflections
    <outputfile>.statistics  Statistical values for the E
-   <outputfile>.short	    Short summary of statistical values
+   <outputfile>.short       Short summary of statistical values
    <outputfile>.histogram   Number of E versus |E| for plotting 
 
    The input file must have been defined by ==> "file a,<infile>",
