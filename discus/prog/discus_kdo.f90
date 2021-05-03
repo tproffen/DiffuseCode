@@ -46,7 +46,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE discus_export
       USE storage_menu_mod
 !
-use privat_mod
+use private_mod
 !
       USE blanks_mod
       USE calc_expr_mod
