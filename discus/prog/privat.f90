@@ -1,4 +1,4 @@
-module privat_mod
+module private_mod
 !-
 !  A module in which private calculations can be performed
 !  The actual file "private.f90" is maintained as this template only. 
@@ -15,7 +15,7 @@ contains
 subroutine do_private(line)
 !-
 !  Do a private structure modification.
-!  The list mod used modules serves as example only.
+!  The listed modules which are used serve as example only.
 !+
 use crystal_mod
 use atom_env_mod
@@ -36,4 +36,4 @@ end subroutine do_private
 !
 !*******************************************************************************
 !
-end module privat_mod
+end module private_mod
