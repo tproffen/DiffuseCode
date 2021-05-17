@@ -94,16 +94,16 @@ INTEGER :: i
 !
 DATA cprom / '/do', '/if', '/do', '/do' / 
 !                                                                       
-      IF (line (1:2) .eq.'do'.and.INDEX (line, '=') .ne.0) then 
-         jlevel (0) = 0 
-         i = length - 3 
-         CALL rem_bl (line (4:length), i) 
-         length = i + 3 
-      ELSEIF (line (1:2) .eq.'do'.and.INDEX (line, 'while') .ne.0) then 
+      IF (line (1:2) .eq.'do'.and.INDEX (line, 'while') .ne.0) then 
          jlevel (0) = 2 
          i = length - 3 
 !        CALL rem_bl (line (4:length), i) 
          CALL rem_insig_bl (line (4:length), i) 
+         length = i + 3 
+      ELSEIF (line (1:2) .eq.'do'.and.INDEX (line, '=') .ne.0) then 
+         jlevel (0) = 0 
+         i = length - 3 
+         CALL rem_bl (line (4:length), i) 
          length = i + 3 
       ELSEIF (line (1:2) .eq.'do'.and.length.eq.2) then 
          jlevel (0) = 3 
@@ -232,14 +232,14 @@ ENDIF
           nlevel (level) = nlevel (level) - 1 
           GOTO 999
       ENDIF
-      IF (line (1:2) .eq.'do'.and.INDEX (line, '=') .ne.0) then 
-         i = length - 3 
-         CALL rem_bl (line (4:length), i) 
-         length = i + 3 
-      ELSEIF (line (1:2) .eq.'do'.and.INDEX (line, 'while') .ne.0) then 
+      IF (line (1:2) .eq.'do'.and.INDEX (line, 'while') .ne.0) then 
          i = length - 3 
 !        CALL rem_bl (line (4:length), i) 
          CALL rem_insig_bl (line (4:length), i) 
+         length = i + 3 
+      ELSEIF (line (1:2) .eq.'do'.and.INDEX (line, '=') .ne.0) then 
+         i = length - 3 
+         CALL rem_bl (line (4:length), i) 
          length = i + 3 
       ELSEIF (line (1:2) .eq.'if') then 
 !        CALL rem_bl (line, length) 
@@ -392,10 +392,10 @@ ENDIF
             nlevel (level) = nlevel (level) + 1 
             do_comm (nlevel (level), level) = line 
             do_leng (nlevel (level), level) = length 
-            IF (line (1:2) .eq.'do'.and.INDEX (line, '=') .ne.0) then 
-               jlevel (level) = 0 
-            ELSEIF (line(1:2).eq.'do'.and.INDEX(line,'while').ne.0) then
+            IF (line(1:2).eq.'do'.and.INDEX(line,'while').ne.0) then
                jlevel (level) = 2 
+            ELSEIF (line (1:2) .eq.'do'.and.INDEX (line, '=') .ne.0) then 
+               jlevel (level) = 0 
             ELSEIF (line (1:2) .eq.'do'.and.length.eq.2) then 
                jlevel (level) = 3 
             ELSEIF (line (1:2).eq.'if'.and.INDEX(line,'then').ne.0) then

@@ -723,7 +723,11 @@ cdummy = ' '
 !                                                                       
 !     search for argument separator on the do-loop command line         
 !                                                                       
-      ipos = INDEX (line, '=') 
+      if(index(line, 'while')==0) then
+        ipos = index(line, '=') 
+      else
+        ipos = 0
+      endif
       ikp = INDEX (line, '[') 
 !                                                                       
 !     Do-loop of type: do counter = start,end[,increment]               
