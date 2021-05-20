@@ -105,7 +105,7 @@ USE lib_errlist_func
      &  'Illegal keyword in domain input file',          & !-96  ! discus
      &  'First domain keyword has parameters',           & !-95  ! discus
      &  'Invalid domain descriptor in input file',       & !-94  ! discus
-     &  'Unit cell constants <= zero',                   & !-93  ! discus
+     &  'Unit cell constants <= zero; or angles >180',   & !-93  ! discus
      &  'Error reading generators from structure',       & !-92  ! discus
      &  'Unexpected pseudoatom name read',               & !-91  ! discus
      &  'Unknown diffractometer geometry',               & !-90  ! discus

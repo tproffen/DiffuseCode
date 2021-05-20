@@ -1079,7 +1079,7 @@ ELSEIF (ianz==6 .OR. ianz==7 .OR. ianz==8) THEN
             spcgr_para = nint (wwerte (1) ) 
             spcgr_ianz = 1
          ELSE
-            ier_num = - 93
+            ier_num = -93
             ier_typ = ER_APPL 
             ier_msg (1) = 'Error reading origin choice indicator'
          ENDIF
@@ -1095,7 +1095,7 @@ ELSEIF (ianz==6 .OR. ianz==7 .OR. ianz==8) THEN
    IF (cr_a0(1)  <=   0.0 .OR. cr_a0 (2) <=   0.0 .OR. cr_a0 (3) <=   0.0 .OR.    &
        cr_win(1) <=   0.0 .OR. cr_win(2) <=   0.0 .OR. cr_win(3) <=   0.0 .OR.    &
        cr_win(1) >= 180.0 .OR. cr_win(2) >= 180.0 .OR. cr_win(3) >= 180.0      ) THEN                                          
-      ier_num = - 93 
+      ier_num = -93 
       ier_typ = ER_APPL 
       ier_msg (1) = 'Error reading unit cell parameters' 
       RETURN                 ! Jump to handle error messages, amd macro conditions
