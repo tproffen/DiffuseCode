@@ -455,7 +455,6 @@ INTEGER         , INTENT(INOUT) :: lp
 INTEGER, PARAMETER :: MAXW = 2
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-REAL(KIND=PREC_DP ), DIMENSION(MAXW) :: werte
 INTEGER :: ianz
 INTEGER :: isdim                   ! Dimension of data set (1, 2, 3)
 !
@@ -667,7 +666,7 @@ IMPLICIT NONE
 INTEGER, DIMENSION(2), INTENT(IN)  :: idata     ! Data set number to transform
 INTEGER, DIMENSION(2), INTENT(OUT) :: odata     ! Data set number to transform
 !
-INTEGER :: i, j
+INTEGER :: i
 INTEGER :: kdat
 INTEGER :: length             ! Data set length == nx * ny
 INTEGER, DIMENSION(3) :: num  ! DATA set dimensions
@@ -797,19 +796,13 @@ IMPLICIT NONE
 INTEGER, DIMENSION(2), INTENT(IN)  :: idata     ! Data set number to transform
 INTEGER, DIMENSION(2), INTENT(OUT) :: odata     ! Data set number to transform
 !
-INTEGER :: i, j
+INTEGER :: i
 INTEGER :: kdat
 INTEGER :: length             ! Data set length == nx * ny
 INTEGER, DIMENSION(3) :: num  ! DATA set dimensions
 INTEGER, DIMENSION(3) :: dsort
 REAL   (KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: k_data   ! The Kuplot in data set)
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: pattern  ! The Curve to be FFT'd
-REAL :: xrange
-REAL :: xstep
-REAL :: yrange
-REAL :: ystep
-REAL :: zrange
-REAL :: zstep
 INTEGER :: node_number_real
 INTEGER :: node_number_rnew
 !
