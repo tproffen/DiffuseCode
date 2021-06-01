@@ -3372,10 +3372,11 @@ INTEGER :: length
 !
 CHARACTER(LEN= 200) :: hostfile  ! original structure file name
 !
-INTEGER, PARAMETER :: NOPTIONAL = 3
+INTEGER, PARAMETER :: NOPTIONAL = 4
 INTEGER, PARAMETER :: O_METRIC  = 1
 INTEGER, PARAMETER :: O_SPACE   = 2
 INTEGER, PARAMETER :: O_SORT    = 3
+INTEGER, PARAMETER :: O_ATOM    = 4     ! For LAMMPS
 CHARACTER(LEN=   6)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -3384,8 +3385,8 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'metric', 'space', 'sort'   /
-DATA loname /  6,        5     ,  4       /
+DATA oname  / 'metric', 'space', 'sort', 'atom'   /
+DATA loname /  6,        5     ,  4    ,  4       /
 !
 REAL, DIMENSION(1:3) :: host_a0
 REAL, DIMENSION(1:3) :: host_win
@@ -3404,9 +3405,9 @@ LOGICAL              :: lperiod
 LOGICAL :: lout = .FALSE.
 !
 !
-opara  =  (/ 'guest ', 'P1    ', 'discus' /)   ! Always provide fresh default values
-lopara =  (/  6,        6      ,  6       /)
-owerte =  (/  0.0,      0.0    ,  0.0     /)
+opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ' /)   ! Always provide fresh default values
+lopara =  (/  6,        6      ,  6      ,  6       /)
+owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0     /)
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
 IF (ier_num.ne.0) THEN 
@@ -3453,7 +3454,8 @@ IF (ianz.ge.1) THEN
       if (ianz >= 2) then 
          call del_params(1, ianz, cpara, lpara, maxw) 
          if (ier_num /= 0) return 
-         call lammps2discus(ianz, cpara, lpara, MAXW, ofile) 
+         call lammps2discus(ianz, cpara, lpara, MAXW,           &
+                            NOPTIONAL, opara, lopara, lpresent, O_ATOM, ofile) 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -5634,9 +5636,11 @@ find:       DO WHILE (ASSOCIATED(TEMP))
 !
 !*******************************************************************************
 !
-subroutine lammps2discus(ianz, cpara, lpara, MAXW, ofile) 
+subroutine lammps2discus(ianz, cpara, lpara, MAXW, &
+                            NOPTIONAL, opara, lopara, lpresent, O_ATOM, ofile) 
 !-                                                                      
 !     converts a LAMMPS file to DISCUS                   
+!  Presently a very basic routine for a triclinic dump.
 !+                                                                      
 !                                                                       
 !use tensors_mod
@@ -5644,7 +5648,7 @@ use build_name_mod
 !use wink_mod
 !use ber_params_mod
 !use blanks_mod
-!use get_params_mod
+use get_params_mod
 !use lib_length
 use precision_mod
 !use string_convert_mod
@@ -5653,24 +5657,31 @@ use trig_degree_mod
 !
 implicit none 
 !                                                                       
-integer                             , intent(inout) :: ianz 
-integer                             , intent(in)    :: MAXW 
-character (LEN=*), DIMENSION(1:MAXW), intent(inout) :: cpara
-integer          , DIMENSION(1:MAXW), intent(inout) :: lpara
-character(LEN=*)                    , intent(out)   :: ofile 
+integer                                , intent(inout) :: ianz 
+integer                                , intent(in)    :: MAXW 
+character (LEN=*), DIMENSION(1:MAXW)   , intent(inout) :: cpara
+integer          , DIMENSION(1:MAXW)   , intent(inout) :: lpara
+integer                                , intent(in)    :: NOPTIONAL
+character(LEN=*) , dimension(NOPTIONAL), intent(in)    :: opara   !Optional parameter strings returned
+integer          , dimension(NOPTIONAL), intent(in)    :: lopara  !Lenght opt. para name returned
+logical          , dimension(NOPTIONAL), intent(in)    :: lpresent!opt. para is present
+integer                                , intent(in)    :: O_ATOM
+character(LEN=*)                       , intent(out)   :: ofile 
 !                                                                       
-integer, parameter :: ird = 34
-integer, parameter :: iwr = 35
+integer, parameter :: ird = 34            ! I/O channel read
+integer, parameter :: iwr = 35            ! I/O channel write
+integer, parameter :: MAXP = 100          ! Max number of parameters on atoms:[]
 !
 character(len=PREC_STRING) :: infile      ! Input file 
-character(len=PREC_STRING) :: line        ! Input line 
+character(len=PREC_STRING) :: line        ! Dummy line 
+character(len=PREC_STRING) :: string      ! Dummy line 
 character(len=PREC_STRING) :: title       ! Crystal structure title line
-character(len=4), dimension(4) :: catom   ! Atom names
 integer :: i, j                           ! Dummy counters
 integer :: ios                            ! I/O status flag
 integer :: natoms                         ! Grand number of atoms
 integer :: nr                             ! Atom number
 integer :: id                             ! Atom type
+integer :: length                         ! Dummy length
 real(kind=PREC_DP), dimension(3)    :: xyz  ! Atom coordinates bounding box
 real(kind=PREC_DP), DIMENSION(MAXW) :: werte
 real(kind=PREC_DP) :: xlo_bound, xhi_bound, xy  ! Bounding box parameters 
@@ -5679,9 +5690,14 @@ real(kind=PREC_DP) :: zlo_bound, zhi_bound, yz
 real(kind=PREC_DP) :: lx, ly, lz                ! Bounding box lengths
 real(kind=PREC_DP), DIMENSION(3,2 ) :: xyz_lh   ! LAMMPS xlow xhigh etc
 real(kind=PREC_DP), DIMENSION(6)    :: lat      ! lattice parametersetc
+!
+character(LEN=4) , dimension(:), allocatable :: catom   !Optional parameter strings returned
+integer          , dimension(:), allocatable :: latom   !Lenght opt. para name returned
+!
 !                                                                       
 !     Create input / output file name
 !
+werte = 0.0D0
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
 IF (ier_num.ne.0) THEN 
    RETURN 
@@ -5734,9 +5750,6 @@ header: do
             read(ird,'(a)', iostat=ios) line
             read(line,*) zlo_bound, zhi_bound, yz
 !
-!write(*,*)               xlo_bound, xhi_bound, xy
-!write(*,*)               ylo_bound, yhi_bound, xz
-!write(*,*)               zlo_bound, zhi_bound, yz
             xyz_lh(1,1) = xlo_bound - min(0.0D0,xy,xz,xy+xz)
             xyz_lh(1,2) = xhi_bound - max(0.0D0,xy,xz,xy+xz)
             xyz_lh(2,1) = ylo_bound - min(0.0D0,yz)
@@ -5746,16 +5759,12 @@ header: do
             lx = xyz_lh(1,2) - xyz_lh(1,1)
             ly = xyz_lh(2,2) - xyz_lh(2,1)
             lz = xyz_lh(3,2) - xyz_lh(3,1)
-!write(*,*) xyz_lh(1,:), lx
-!write(*,*) xyz_lh(2,:), ly
-!write(*,*) xyz_lh(3,:), lz
             lat(1) = lx
             lat(2) = sqrt( ly**2 + xy**2 )
             lat(3) = sqrt( lz**2 + xz**2 + yz**2 )
             lat(4) = acosd( (xy*xz + lx*yz)/lat(2)/lat(3))
             lat(5) = acosd( xz/lat(3) )
             lat(6) = acosd( xy/lat(2) )
-!write(*,'(a,6f10.4)') ' LATTICE PARA ', lat
          endif
       elseif(line(7:11)=='ATOMS') then
          exit header                     ! Last header line, start to read atoms
@@ -5763,20 +5772,31 @@ header: do
    endif
 enddo header
 !
+!  set up atom names either dummy Q1... or from optional parameters
+!
+allocate(catom(1:MAXP))
+allocate(latom(1:MAXP))
+if(lpresent(O_ATOM)) then
+   length = lopara(O_ATOM)
+   string = opara(O_atom)(2:lopara(O_ATOM)-1)
+   call get_params(string, ianz, catom, latom, MAXP, length)
+else
+   do i=1,MAXP
+      write(catom(i),'(a,i3.3)') 'Q',i
+   enddo
+endif
+!
 open(IWR, file=ofile, status='unknown')
 write(IWR, '(a,a)') 'title ', title(1:len_trim(title))
 write(IWR, '(a)  ') 'spcgr P1'
-!write(IWR, '(a, 5(f10.6,a),f10.6)') 'cell ',(lat(i),',',i=1,5), lat(6)
-write(IWR, '(a, 5(f10.6,a),f10.6)') 'cell ',xhi_bound-xlo_bound,',',yhi_bound-ylo_bound,',', &
- zhi_bound-zlo_bound,',', 90.0, ',', 90.0, ',', 90.0
+write(IWR, '(a, 5(f10.6,a),f10.6)') 'cell ',(lat(i),',',i=1,5), lat(6)
+write(IWR, '(a,a)') 'scat '
+write(IWR, '(a,a)') 'adp  '
+write(IWR, '(a,a)') 'occ  '
 write(IWR, '(a)') 'atoms'
 !
 !  Loop over atoms
 !
-catom(1)  = 'Cl  '
-catom(2)  = 'Zn  '
-catom(3)  = 'H   '
-catom(4)  = 'O   '
 atoms: do j=1, natoms
    read(ird,'(a)', iostat=ios) line
    if(is_iostat_end(ios)) then
@@ -5785,13 +5805,17 @@ atoms: do j=1, natoms
       ier_msg(1) = 'LAMMPS atoms ended unexpectedly'
       close(IRD)
       close(IWR)
+      deallocate(catom)
+      deallocate(latom)
       return
    endif
    read(line,*) nr, id, xyz
-   write(IWR, '(a4, 3(f9.6,a),f6.2)') catom(id), (xyz(i),',',i=1,3), 1.0
+   write(IWR, '(a4, 2x,3(f9.6,a),f6.2)') catom(id), (xyz(i),',',i=1,3), 1.0
 enddo atoms
 close(IWR)
 close(IRD)
+deallocate(catom)
+deallocate(latom)
 !
 end subroutine lammps2discus
 !
