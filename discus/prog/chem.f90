@@ -1593,6 +1593,7 @@ USE errlist_mod
 USE get_params_mod
 USE precision_mod
 USE string_convert_mod
+use take_param_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -1617,6 +1618,64 @@ INTEGER :: n_atom   ! Dummy number of vectors
       LOGICAL lacentric, csym 
       LOGICAL :: success = .TRUE.
       LOGICAL :: grand   = .FALSE.
+integer :: iianz
+INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: O_NUM     = 1
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+DATA oname  / 'number' /
+DATA loname /  6       /
+opara  =  (/ '0.0000'  /)   ! Always provide fresh default values
+lopara =  (/  6        /)
+owerte =  (/  0.0      /)
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+!
+if(lpresent(O_NUM)) then
+  if(opara(O_NUM) == 'next') then
+     chem_ncor = chem_ncor + 1
+  else
+     iianz = 1
+     call ber_params(iianz, opara, lopara, owerte, NOPTIONAL) 
+     chem_ncor = nint(owerte(1))
+  endif
+else
+  chem_ncor = max(1,chem_ncor)             ! Old style without "number:" 
+endif
+   IF(chem_ncor >= CHEM_MAX_COR) THEN      ! Need to allocate more correlations
+      n_cor = CHEM_MAX_COR + 10
+      CALL alloc_chem_correlation(n_cor)
+      IF(MAXVAL(chem_nvec) > 0) THEN       ! Need to allocate vectors
+         n_vec = CHEM_MAX_VEC
+         CALL alloc_chem_vec(n_vec, n_cor)
+      ENDIF
+      IF(MAXVAL(chem_ncon) > 0) THEN       ! Need to allocate vectors
+         n_con = CHEM_MAX_CON
+         CALL alloc_chem_con(n_con, n_cor)
+      ENDIF
+      IF(MAXVAL(chem_nwin) > 0) THEN       ! Need to allocate vectors
+         n_ang = CHEM_MAX_ANG
+         CALL alloc_chem_ang(n_ang, n_cor)
+      ENDIF
+      IF(MAXVAL(chem_nran) > 0) THEN       ! Need to allocate vectors
+         n_ran = CHEM_MAX_RAN
+         n_atom= MAX(n_atom,MAX_ATOM_ENV)
+         CALL alloc_chem_ran(n_ran, n_cor, n_atom)
+      ENDIF
+      IF(MAXVAL(chem_nenv) > 0) THEN       ! Need to allocate vectors
+         n_env = CHEM_MAX_ENV
+         n_atom= MAX(n_atom,MAX_ATOM_ENV)
+         CALL alloc_chem_env ( n_atom , n_env, n_cor )
+      ENDIF
+   ENDIF
+!
 !                                                                       
 !     REAL do_blen 
 !                                                                       
@@ -1632,7 +1691,7 @@ IF(cpara(1)(1:2) == 'AD' .AND. ianz == 1) THEN
          RETURN                            ! Ignore erroneous first 'add' command
       ENDIF 
    ENDIF 
-   IF(chem_ncor == CHEM_MAX_COR) THEN      ! Need to allocate more correlations
+   IF(chem_ncor >= CHEM_MAX_COR) THEN      ! Need to allocate more correlations
       n_cor = CHEM_MAX_COR + 10
       CALL alloc_chem_correlation(n_cor)
       IF(MAXVAL(chem_nvec) > 0) THEN       ! Need to allocate vectors
@@ -1669,7 +1728,7 @@ IF(cpara(1)(1:2) == 'AD' .AND. ianz == 1) THEN
 !------ set neig,rese : Reset neighbour list                            
 !                                                                       
 ELSEIF (cpara (1) (1:2) .eq.'RE') then 
-         chem_ncor = 1 
+         chem_ncor = 0 
          chem_nvec (1) = 0 
          chem_ncon (1) = 0 
          chem_nwin (1) = 0 
@@ -5644,7 +5703,7 @@ CHEM_MAX_ENV      = 1
 !
 chem_fname     = 'blen.xy'
 chem_bin       = 601
-chem_ncor      = 1
+chem_ncor      =   0
 chem_blen_cut(:)  = (/1.5,  7.5/)
 chem_bang_cut(:)  = (/0.0,180.0/)
 chem_quick     = .true.
