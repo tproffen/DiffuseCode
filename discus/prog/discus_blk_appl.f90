@@ -271,9 +271,12 @@ mo_maxmove(4,1:) = 0.0
 !                                                                       
 mmc_h_stop   = .TRUE.   ! Stop at full number of cycles
 MMC_H_NNNN   = 3        ! Number of feedbacks to average
-mmc_h_conv_m = 0.0900   ! Largest difference (target-achieved)/target
-mmc_h_conv_c = 0.0500   ! Largest change in difference (target-achieved)/target
-mmc_h_conv_a = 0.0010   ! Largest difference (target-achieved)/target
+mmc_h_conv_m = 0.0000   ! Largest difference (target-achieved)/target
+mmc_h_conv_r = 0.0000   ! Largest difference (target-achieved)/target
+mmc_h_conv_c = 0.0000   ! Largest change in difference (target-achieved)/target
+mmc_h_conv_a = 0.0000   ! Largest difference (target-achieved)/target
+!
+mmc_feed_auto = .FALSE.
 !
 END SUBROUTINE mmc_init                       
 !
