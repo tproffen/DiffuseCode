@@ -193,11 +193,6 @@ INTEGER            , INTENT(INOUT) :: lp
 REAL(KIND=PREC_DP) , INTENT(INOUT) :: ww
 !
 INTEGER              :: i, lcomm
-INTEGER              :: ianz, length
-LOGICAL              :: lstring
-LOGICAL              :: lfound
-CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
-INTEGER                   , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
 !                                                                       
 !                                                                       
