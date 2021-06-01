@@ -27,6 +27,8 @@ PRIVATE do_bond_switch         !  Perform a bond witching operation
 PRIVATE get_connect_pointed    !  Read out connectivity list return the pointer to list
 PRIVATE do_exchange            !  Helper to exchange atoms between connectivities
 PUBLIC  conn_update            !  Update the connectivity for an atom
+public  conn_reset
+public  conn_create
 !
 INTEGER, PARAMETER              :: MAX_ATOM=10
 !
@@ -531,6 +533,7 @@ USE precision_mod
 !     USE modify_mod
       USE variable_test
       USE berechne_mod
+use do_replace_expr_mod
       USE ber_params_mod
       USE errlist_mod
       USE get_params_mod
@@ -768,6 +771,7 @@ USE str_comp_mod
          ianz        = ianz - 1
          IF(cpara(ianz)(1:6)=='first:') THEN
             cpara(ianz) = cpara(ianz)(7:lpara(ianz))
+            call do_replace_expr(cpara(ianz), lpara(ianz))
             temp_number = NINT(berechne(cpara(ianz), lpara(ianz)))
             ianz        = ianz - 1
          ELSE
@@ -1028,14 +1032,11 @@ USE str_comp_mod
       CHARACTER(LEN=PREC_STRING), DIMENSION(1)                       ::ccpara ! (MAXSCAT) 
       INTEGER            , DIMENSION(1)                       ::llpara ! (MAXSCAT)
       CHARACTER (LEN=256)  :: c_name   ! Connectivity name
-      INTEGER              :: c_name_l ! connectivity name length
       INTEGER              :: ino      ! connectivity no
-      INTEGER              :: iatom    ! atoms no for show
       INTEGER              :: itype    ! atomR type for recreate
-      INTEGER              :: i, lp, length, lbef 
+      INTEGER              :: lp, length, lbef 
       INTEGER              :: indxg, ianz, iianz
       LOGICAL              :: l_all    ! Deallocate all connectivities
-      LOGICAL              :: long     ! make long output
       LOGICAL              :: lnew     ! Do not make new atom type
       LOGICAL              :: lend
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) ::  werte ! (MAXSCAT) 
@@ -1161,7 +1162,7 @@ USE str_comp_mod
                         llpara(1) = lpara(ianz)
                         c_name = ccpara(1)(1:llpara(1))
                         iianz = 1
-                        CALL ber_params (iianz, ccpara, llpara, werte, maxw) 
+                        CALL ber_params (iianz, ccpara, llpara, wwerte, maxw) 
                         IF(ier_num==0) THEN
                            ino = NINT(wwerte(1))
                            c_name = ' '
@@ -1202,62 +1203,12 @@ USE str_comp_mod
 !                                                                       
                ELSEIF (str_comp (befehl, 'recreate', 3, lbef, 8) .OR.    &
                        str_comp (befehl,   'create', 3, lbef, 6) ) THEN 
-                  exist_defs: IF(ALLOCATED(def_main)) THEN    ! Are there any definitions
-                  CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-                  IF(ier_num==0) THEN
-                     itype  = 0
-                     ino    = 0
-                     c_name = ' '
-                     IF(ianz==2) THEN
-                        ccpara(1) = cpara(ianz)
-                        llpara(1) = lpara(ianz)
-                        c_name = ccpara(1)(1:llpara(1))
-                        iianz = 1
-                        CALL ber_params (iianz, ccpara, llpara, wwerte, maxw) 
-                        IF(ier_num==0) THEN
-                           ino = NINT(werte(1))
-                           c_name = ' '
-                        ELSEif(ier_num==-1 .AND. ier_typ==ER_FORT) THEN
-                           CALL no_error   ! assume 
-                        ENDIF
-                        lnew  = .false.
-                        ianz = ianz - 1
-                        CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
-                        IF(ier_num==0) THEN
-                           itype = NINT(werte(1))
-                           l_all = .FALSE.
-                           IF(itype == -1) THEN
-                              DO itype =0, cr_nscat
-                                 CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
-                                 CALL create_connectivity(l_all, itype, ino, c_name)
-                              ENDDO
-                           ELSE
-                              DO i=1, ianz
-                                 itype = NINT(werte(i))
-                                 CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
-                                 CALL create_connectivity(l_all, itype, ino, c_name)
-                              ENDDO
-                           ENDIF
-                        ENDIF
-                     ELSEIF(ianz==0) THEN
-                        l_all = .TRUE.
-                        CALL create_connectivity(l_all, itype, ino, c_name)
-                     ELSE
-                        ier_num = -6
-                        ier_typ = ER_COMM
-                     ENDIF
-                  ENDIF
-                  ELSE exist_defs
-                     ier_num = -134
-                     ier_typ = ER_APPL
-                  ENDIF exist_defs
+                  call conn_create(zeile)
 !                                                                       
 !     ----reset to no      connectivity definition 'reset'                 
 !                                                                       
                ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5) ) then 
-                  CALL conn_do_set (code_res,zeile, lp) 
-                  l_all = .TRUE.
-                  CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
+                  call conn_reset
 !                                                                       
 !     ----overwrite  a new connectivity definition 'set'                 
 !                                                                       
@@ -1267,48 +1218,7 @@ USE str_comp_mod
 !     ----show current parameters 'show'                                
 !                                                                       
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-                  CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-                  IF ( ianz==0) THEN
-                     CALL conn_show 
-!                  CALL conn_test  For debug only
-                  ELSE
-                     IF (str_comp (cpara(1), 'connect', 3, lpara(1), 7) ) then
-                        CALL del_params (1, ianz, cpara, lpara, maxw)
-                        IF(str_comp (cpara(ianz), 'long',3, lpara(ianz), 4)) THEN
-                           long = .true.
-                           ianz = ianz - 1
-                        ELSE
-                           long = .false.
-                        ENDIF
-                        iianz = 1
-                        CALL ber_params (iianz, cpara, lpara, werte, maxw) 
-                        iatom = NINT(werte(1))
-                        IF(iatom>0 .AND. iatom<=cr_natoms) THEN
-                           CALL del_params (1, ianz, cpara, lpara, maxw)
-                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                           IF(ier_num/=0) THEN
-                              c_name_l = MIN(256,lpara(1))
-                              c_name   = cpara(1)(1:c_name_l)
-                              ino      = 0
-                              CALL no_error
-                           ELSE                                               ! Success set to value
-                              ino = nint (werte (1) ) 
-                              c_name   = ' '
-                              c_name_l = 1
-                           ENDIF
-                           CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
-                           CALL do_show_connectivity ( iatom, ino, c_name, long)
-                        ELSE 
-                           ier_num = -105
-                           ier_typ = ER_APPL 
-                        ENDIF
-                     ELSEIF (str_comp (cpara(1), 'res', 3, lpara(1), 3) ) THEN
-                        CALL do_show_res                                    ! Show result variable
-                     ELSE 
-                        ier_num = - 6 
-                        ier_typ = ER_COMM 
-                     ENDIF 
-                  ENDIF 
+                  call conn_do_show(zeile)
 !                                                                       
 !     ----Perform bond switching 'switch'                 
 !                                                                       
@@ -1361,6 +1271,210 @@ USE str_comp_mod
       prompt = orig_prompt
 !                                                                       
    END SUBROUTINE conn_menu
+subroutine conn_reset
+!
+!*******************************************************************************
+!
+!-
+!  Reset the connectivity
+!+
+use conn_def_mod
+!
+use precision_mod
+!
+character(len=PREC_STRING) :: zeile
+character(len=256)         :: c_name         ! Conn  name for this atom type
+logical :: l_all 
+integer :: lp
+integer :: itype          ! Atom type whose conn shal be deallocated
+integer :: ino            ! Conn number for this atom type
+!
+zeile = ' '
+lp = 1
+!
+CALL conn_do_set (code_res,zeile, lp) 
+l_all = .TRUE.
+CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
+!
+end subroutine conn_reset
+!
+!
+!*******************************************************************************
+!
+subroutine conn_create(zeile)
+!
+use conn_def_mod
+use crystal_mod
+use get_iscat_mod
+!
+use ber_params_mod
+use errlist_mod
+use lib_errlist_func
+use get_params_mod
+use precision_mod
+!
+implicit none
+!
+character(len=*), intent(inout) :: zeile
+!
+integer, parameter :: MIN_PARA = 1
+!
+character(len=256) :: c_name
+character(len=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: cpara
+integer                   , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: lpara
+real(kind=PREC_DP)        , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: werte
+character(len=PREC_STRING), DIMENSION(1   ) :: ccpara
+integer                   , DIMENSION(1   ) :: llpara
+real(kind=PREC_DP)        , DIMENSION(1   ) :: wwerte
+integer :: i
+integer :: ianz
+integer :: iianz
+integer :: length
+integer :: itype
+integer :: ino
+integer :: maxw
+logical :: lnew
+logical :: l_all
+!
+MAXW = max(MIN_PARA,MAXSCAT+5)
+exist_defs: IF(ALLOCATED(def_main)) THEN    ! Are there any definitions
+CALL get_params (zeile, ianz, cpara, lpara, MAXW, length) 
+   IF(ier_num==0) THEN
+      itype  = 0
+      ino    = 0
+      c_name = ' '
+      IF(ianz==2) THEN
+         ccpara(1) = cpara(ianz)
+         llpara(1) = lpara(ianz)
+         c_name = ccpara(1)(1:llpara(1))
+         iianz = 1
+         CALL ber_params (iianz, ccpara, llpara, wwerte, maxw) 
+         IF(ier_num==0) THEN
+            ino = NINT(werte(1))
+            c_name = ' '
+         ELSEif(ier_num==-1 .AND. ier_typ==ER_FORT) THEN
+            CALL no_error   ! assume 
+         ENDIF
+         lnew  = .false.
+         ianz = ianz - 1
+         CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
+         IF(ier_num==0) THEN
+           itype = NINT(werte(1))
+           l_all = .FALSE.
+           IF(itype == -1) THEN
+               DO itype =0, cr_nscat
+                  CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
+                  CALL create_connectivity(l_all, itype, ino, c_name)
+               ENDDO
+            ELSE
+               DO i=1, ianz
+                  itype = NINT(werte(i))
+                  CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
+                  CALL create_connectivity(l_all, itype, ino, c_name)
+               ENDDO
+            ENDIF
+         ENDIF
+      ELSEIF(ianz==0) THEN
+         l_all = .TRUE.
+         CALL create_connectivity(l_all, itype, ino, c_name)
+      ELSE
+         ier_num = -6
+         ier_typ = ER_COMM
+      ENDIF
+   ENDIF
+ELSE exist_defs
+   ier_num = -134
+   ier_typ = ER_APPL
+ENDIF exist_defs
+!
+end subroutine conn_create
+!
+!*******************************************************************************
+!
+subroutine conn_do_show(zeile)
+!-
+!  Execture show command
+!+
+!
+use crystal_mod
+use conn_def_mod
+!
+use ber_params_mod
+use errlist_mod
+use get_params_mod
+use lib_errlist_func
+use precision_mod
+use str_comp_mod
+use do_show_mod
+!
+implicit none
+!
+!
+character(len=*), intent(inout) :: zeile
+!
+integer, parameter :: MIN_PARA = 1
+!
+character(len=256) :: c_name
+character(len=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: cpara
+integer                   , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: lpara
+real(kind=PREC_DP)        , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: werte
+integer :: maxw
+integer :: c_name_l
+integer :: iatom
+integer :: ianz
+integer :: iianz
+integer :: length
+integer :: ino
+logical :: long
+!
+MAXW = max(MIN_PARA,MAXSCAT+5)
+length = len_trim(zeile)
+CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+IF ( ianz==0) THEN
+   CALL conn_show 
+!                  CALL conn_test  For debug only
+ELSE
+   IF (str_comp (cpara(1), 'connect', 3, lpara(1), 7) ) then
+      CALL del_params (1, ianz, cpara, lpara, maxw)
+      IF(str_comp (cpara(ianz), 'long',3, lpara(ianz), 4)) THEN
+         long = .true.
+         ianz = ianz - 1
+      ELSE
+         long = .false.
+      ENDIF
+      iianz = 1
+      CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+      iatom = NINT(werte(1))
+      IF(iatom>0 .AND. iatom<=cr_natoms) THEN
+         CALL del_params (1, ianz, cpara, lpara, maxw)
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF(ier_num/=0) THEN
+            c_name_l = MIN(256,lpara(1))
+            c_name   = cpara(1)(1:c_name_l)
+            ino      = 0
+            CALL no_error
+         ELSE                                               ! Success set to value
+            ino = nint (werte (1) ) 
+            c_name   = ' '
+            c_name_l = 1
+         ENDIF
+         CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
+         CALL do_show_connectivity ( iatom, ino, c_name, long)
+      ELSE 
+         ier_num = -105
+         ier_typ = ER_APPL 
+      ENDIF
+   ELSEIF (str_comp (cpara(1), 'res', 3, lpara(1), 3) ) THEN
+      CALL do_show_res                                    ! Show result variable
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
+ENDIF 
+!
+end subroutine conn_do_show
+!
+!*******************************************************************************
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !

@@ -237,6 +237,7 @@ USE str_comp_mod
       USE get_iscat_mod
       USE surface_mod 
       USE berechne_mod
+use do_replace_expr_mod
       USE errlist_mod 
       USE get_params_mod
 USE precision_mod
@@ -309,6 +310,7 @@ USE str_comp_mod
             IF (ianz.eq.1) then 
                string = '('//cpara (ianz) (1:lpara (ianz) ) //')' 
                laenge = lpara (ianz) + 2 
+               call do_replace_expr(string, laenge)
                distance = berechne (string, laenge) 
                DO i = cr_nscat + 1, SURF_MAXSCAT 
                IF (linternal) then 
@@ -326,6 +328,7 @@ USE str_comp_mod
          ELSE 
             string = '('//cpara (ianz) (1:lpara (ianz) ) //')' 
             laenge = lpara (ianz) + 2 
+            call do_replace_expr(string, laenge)
             distance = berechne (string, laenge) 
             IF (ier_num.ne.0) return 
             ianz = ianz - 1 

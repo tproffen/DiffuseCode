@@ -20,6 +20,7 @@ USE crystal_mod
 !
 USE charact_mod
 USE berechne_mod
+use do_replace_expr_mod
 USE do_variable_mod
 USE errlist_mod 
 USE get_params_mod
@@ -132,6 +133,7 @@ DO WHILE(j <= ianz.AND.ier_num == 0)
       zeile(2:l + 1) = cpara(j)(1:lpara(j))
       zeile(l + 2:l + 2) = ')' 
       l = l + 2 
+      call do_replace_expr(zeile, l)
       werte(jj) = berechne(zeile, l) 
       IF(ier_num == 0) THEN 
          IF(0 <= NINT(werte(jj)) .AND. NINT(werte(jj))  <= cr_nscat) THEN                                          

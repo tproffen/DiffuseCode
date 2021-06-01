@@ -1417,6 +1417,10 @@ END SUBROUTINE alloc_demol
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        clu_size_of =   clu_size_of + size_of
 !
+       CALL alloc_arr ( clu_use_expr ,1,n_clu, 1, 2,  all_status, .FALSE. , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       clu_size_of =   clu_size_of + size_of
+!
        CALL alloc_arr ( clu_character ,1,n_clu,  all_status, -4 , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        clu_size_of =   clu_size_of + size_of
@@ -1426,6 +1430,10 @@ END SUBROUTINE alloc_demol
        clu_size_of =   clu_size_of + size_of
 !
        CALL alloc_arr ( clu_orient    ,1,n_clu, 1,3,1,4, all_status, 0.0, size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       clu_size_of =   clu_size_of + size_of
+!
+       CALL alloc_arr ( clu_or_expr   ,1,n_clu, 1,3,1,4, all_status, ' ', size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        clu_size_of =   clu_size_of + size_of
 !
@@ -2560,6 +2568,11 @@ END SUBROUTINE alloc_phases
 !
        CALL alloc_arr ( pow_sq      ,0,n_qxy  ,  all_status, 0.0E0    , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+call alloc_arr(pow_do_partial, 0, n_scat, 0, n_scat, all_status, .TRUE., size_of)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+call alloc_arr(pow_nn_partial, 0, n_scat,            all_status, 0     , size_of)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       IF( lstat ) THEN                        ! Success
          POW_MAXPKT    = n_qxy
