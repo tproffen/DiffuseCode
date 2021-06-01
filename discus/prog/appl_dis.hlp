@@ -75,6 +75,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2021_May
+
+   Depreciated the "set neig, add" command and added an optional
+   parameter "number:value" to the individual "set neigh, ..." commands.
 3  2021_April
 
    Added an output format option 'vesta', that replaces 'xplor'
@@ -1873,18 +1877,39 @@
 !p "dir"  : Defines directions for displacement correlation calculations
 !p "rese" : Resets list of defined neighbors
 !p "vec"  : Defines neighbors via given vectors
+!p     [,"number:"<value>]
+!p     [,"number:next"]
+
+   The optional parameter "number:" replaces the "set neig, add" 
+   command that was required in between two "set neig,..." commands.
+   You can either specify a specific numerical value:
+     set neig, number:1, vec, 1, 2
+   or increment the neighborhood number with
+     set neig, number:next, vec, 1, 2
 5  ang
 !p set "neig","ang",<iv1> [,<iv2>,..]
 !p set "neig","ang",<iv1> ,<iv2>, "range"
+!p     [,"number:"<value>]
+!p     [,"number:next"]
 
    "Ang" results in DISCUS using correlation angles <iv> to be used
    for the calculation. The parameters are the numbers <iv> of the 
    correlation angles defined with 'set ang'.
    If the second command form is given, the correlation angles in the
    range <iv1> to <iv2> will be used for the calculation.
+
+   The optional parameter "number:" replaces the "set neig, add" 
+   command that was required in between two "set neig,..." commands.
+   You can either specify a specific numerical value:
+     set neig, number:1, vec, 1, 2
+   or increment the neighborhood number with
+     set neig, number:next, vec, 1, 2
 5  add
 !p set "neig","add"
    
+   This command is depreciated. Best use the optional parameter
+   number:value on the regular "set neig, ..." commands instead.
+
    "Add" adds the current neighbor definition to the list of
    definitions executed later by the -> 'corr' command. Use 'show'
    to get a list of defined correlation vectors/distances. DISCUS saves
@@ -1892,6 +1917,8 @@
    is entered.
 5  dis
 !p set "neig","dis",<u>,<v>,<w>,<fsig> [, <wsig>] [, {"sym" | "nosym"}]
+!p     [,"number:"<value>]
+!p     [,"number:next"]
 
    "Dis" causes DISCUS to determine the neighbors used for the 
    calculation of the correlations using the given distance and 
@@ -1904,9 +1931,25 @@
    parameter determines if symmetrically equivalent directions to 
    <u>,<v>,<w> should be used as well. If this parameter is omitted ALL
    neighbors with the correct distance are valid.
+
+   The optional parameter "number:" replaces the "set neig, add" 
+   command that was required in between two "set neig,..." commands.
+   You can either specify a specific numerical value:
+     set neig, number:1, vec, 1, 2
+   or increment the neighborhood number with
+     set neig, number:next, vec, 1, 2
+
+   The optional parameter "number:" replaces the "set neig, add" 
+   command that was required in between two "set neig,..." commands.
+   You can either specify a specific numerical value:
+     set neig, number:1, vec, 1, 2
+   or increment the neighborhood number with
+     set neig, number:next, vec, 1, 2
 5  dir
 !p set "neig","dir",<x1>,<y1>,<z1> [,<x2>,<y2>,<z2>]
 !p set "neig","dir","all"
+!p     [,"number:"<value>]
+!p     [,"number:next"]
 
    This command sets the displacement directions to be used for the
    calculation of displacement correlations. The parameter "all" will
@@ -1920,6 +1963,13 @@
    neighboring vector between sites i and j is set by the command 
    'set neig'. If <x2>,<y2>,<z2> are not given their values are set to 
    those of <x1>,<y1>,<z1>.
+
+   The optional parameter "number:" replaces the "set neig, add" 
+   command that was required in between two "set neig,..." commands.
+   You can either specify a specific numerical value:
+     set neig, number:1, vec, 1, 2
+   or increment the neighborhood number with
+     set neig, number:next, vec, 1, 2
 5  rese
 !p set "neig","rese"
 
@@ -1927,6 +1977,8 @@
 5  vec
 !p set "neig","vec",<iv1> [,<iv2>,..]
 !p set "neig","ang",<iv1> ,<iv2>, "range"
+!p     [,"number:"<value>]
+!p     [,"number:next"]
 
    "Vec" results in DISCUS using correlation vectors <iv> to be used
    for the calculation. The parameters are the numbers <iv> of the 
@@ -1934,6 +1986,13 @@
 
    If the second command form is given, the correlation vectors in the
    range <iv1> to <iv2> will be used for the calculation.
+
+   The optional parameter "number:" replaces the "set neig, add" 
+   command that was required in between two "set neig,..." commands.
+   You can either specify a specific numerical value:
+     set neig, number:1, vec, 1, 2
+   or increment the neighborhood number with
+     set neig, number:next, vec, 1, 2
 4  vec
 !p set "vec",<iv>,<is1>,<is2>,<dx>,<dy>,<dz>
 
@@ -4408,29 +4467,57 @@
    The movement of the atom is restricted along this vector. The last 
    parameter is a multiplicative sigma along this direction.
 4  neig
+!p set "neig","rese"
 !p set "neig","add"
 !p set "neig","ang",<iv1>,{ [<iv2>,..] | <iv2>, "range" }
 !p set "neig","env",<iv1>,{ [<iv2>,..] | <iv2>, "range" }
-!p set "neig","rese"
 !p set "neig","vec",<iv1>,{ [<iv2>,..] | <iv2>, "range" }
+!p     [,"number:"<value>]
+!p     [,"number:next"]
 
    This command is used to define the neighbors used to determine the
-   correlations. The subcommand 'env' uses defined interaction 
-   environments (-> set env). The subcommand 'vec' uses defined
-   interaction vectors (-> set vec). The
-   subcommand 'ang' uses an angle at a site, defined by (-> set ang). The
-   subcommands 'add' and 'rese' allow the storage and reset of the 
-   list of definitions. The details of these commands are given in the
+   correlations. 
+   The subcommand 'env' uses defined interaction 
+   environments (-> set env). 
+   The subcommand 'vec' uses defined interaction vectors (-> set vec).
+   The subcommand 'ang' uses an angle at a site, defined by (-> set ang).
+   Subcommand "reset" is used to set the number of neighborhoods 
+   back to zero.
+
+   The optional parameter "number:" replaces the "set neig, add" 
+   command that was required in between two "set neig,..." commands.
+   You can either specify a specific numerical value:
+     set neig, number:1, vec, 1, 2
+   or increment the neighborhood number with
+     set neig, number:next, vec, 1, 2
+
+   The subcommand 'add' is depreciated and it is reccommended to use 
+   the optional parameter "number:" instead.
+   The details of these commands are also given in the
    online help for the same command 'set neig' in the CHEM sub level.
 
    If the last parameter is "range", and exactly two arguments 
-   <iv1>,<iv2> are given, then the range of correlations from
-   <iv1> to <iv2> is used.
+   <iv1>,<iv2> are given, then the contiguous range of correlations
+   from <iv1> to <iv2> is used.
 
    Examples
+   set neig, reset             ! Back to initial state
+   set neig, number:1, vec 1, 2     ! define neighborhood 1 with vectors. 
+   set neig, number:next, vec 3, 4  ! define the next neighborhood
+   set neig, number:3,    vec, 1,2,3,4,5,6
+   set neig, number:4,    vec, 1,6,range
+
+   Old examples:
+   set neigh, rese              ! Back to initial state
+   set neig, vec, 1,2           ! use the listed vectors
+   set neig, add                ! Increment number of neighborhoods
    set neig, vec, 1,2,8,7
+   set neig, add                ! Increment number of neighborhoods
    set neig, vec, 1,2,3,4,5,6
-   set neig, vec, 1,6,range
+   set neig, add                ! Increment number of neighborhoods
+   set neig, vec, 1,6,range     ! Use vectors 1 to 6
+   !                            ! Do not use "set neig, add" after the
+   !                            ! last neighborhood
 4  move
 !p set "move",{ "all" | <name> | <number> },<sx>,<sy>,<sz>
 
@@ -5454,6 +5541,7 @@
 !p "qdamp"    : sets SIGMA Q for resolution correction
 !p "rad"      : sets radiation used to calculate PDF
 !p "range"    : sets r range for PDF calculation 
+!p "refine"   : sets which parameters are fined in an RMC cycle
 !p "rdensity" : sets rho0 correction factor manually (see "density")
 !p "scal"     : sets scale factor and refinement flag (see RMC level)
 !p "shape"    : sets particle shape parameter for finite objects
@@ -6408,6 +6496,16 @@
    A Debye-Scherrer geometry at a synchrotron source is defined.
    The polarisation fraction is required. 
    Optionally you can specify the monochromator angle.
+4  period
+!p set period, "off"
+!p set period, <diameter>
+
+   To calculate th PDF of an extended highly disorderd structure requires to
+   calculate a powder pattern either via complete integration with a very 
+   fine grid or from a finite object that is very large. 
+   A good compromise is to calculate the PDF for a moderately sized spherical
+   object via the Debye-Scattering-Equation. Discus will devide the resulting
+   PDF by the shape function of a sphere with diameter <diameter>.
 4  preferred
 !p set preferred, "off"
 !p set preferred, {"rietveld"|"march"}
@@ -6489,7 +6587,19 @@
    function is applied. The <width> defaults to 20*FWHM. This is a 
    reasonable compromise between cut of errors at the tail of a peak 
    and computational time.
+4  refine
+!p set refine, scale
+!p set refine, density
+!p set refine, lattice [, "a"|"b"|"c"|"alpha"|"beta"|"gamma"|
 
+   Defines which parameters are refined during a RMC cycle.
+   With the "set move" command at the RMC menu, atom positions may be
+   moved. This command allowes to additionally refine:
+   "scale"    The scale parameter from "set weight"
+   "density"  the number density
+   "lattice"  The lattice parameters, while maintaining restrictions
+              imposed by the point group symmetry, or with the 
+              optional parameters explicitely for a given parameter  
 4  scale
 !p set scale,<value>
 
@@ -6895,11 +7005,11 @@
    If the file ends in 'txt', 'TXT', a CMAKER-file format is assumed.
    If the file ends in 'cssr', 'CSSR', a RMCprofile-file format is assumed.
 
-   The optional parameter "site:" determines ow atoms are treated that are
+   The optional parameter "site:" determines how atoms are treated that are
    on different sites in the unit cell, but are otherwise identical. The
    default "site:equal" is to treat these as the same atom type. With the 
    option "site:differ"  these atoms are treated as separate different 
-   atom types. The optio is only applied, if the crystal consists of a
+   atom types. The option is only applied, if the crystal consists of a
    total number of atoms that is an integer multiple of the number of
    atoms per unit cell.
 3  exit
@@ -9662,6 +9772,10 @@
 !p "b[<t>]" is the isotropic B value for atom type <t>.
 
 !p "occ[<t>]" is the occupancy for atom type <t>.
+
+!p "surf[<i>, <j>] are the j components of the surface vector for 
+            atom number <i>. These will all be zero unless the 
+            atom is close to an external surface.
 
 !p "n[1]"   is the total number of atoms in the crystal, this variable
 !p          is read only.
