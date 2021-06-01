@@ -1,49 +1,74 @@
-MODULE string_convert_mod
+module string_convert_mod
 !
-CONTAINS
+contains
 !
 !*****7*****************************************************************
 !
-SUBROUTINE do_cap (str) 
+subroutine do_cap (str) 
 !+                                                                      
 !       Converts string 'str' to upper letters                          
 !-                                                                      
-IMPLICIT none 
+implicit none 
 !                                                                       
-CHARACTER (LEN=* ), INTENT(INOUT) :: str 
-INTEGER  :: i 
-INTEGER  :: len 
+character (len=* ), intent(inout) :: str 
+integer  :: i 
+integer  :: len 
 !                                                                       
-DO i = 1, LEN (str) 
-   IF (IACHAR (str (i:i) ) .ge.IACHAR ('a') .and. &
-       IACHAR (str (i:i) ) .le.IACHAR ('z')       ) THEN                                            
-      str(i:i) = achar(IACHAR(str(i:i)) - IACHAR('a') + IACHAR('A'))
-   ENDIF 
-ENDDO 
+do i = 1, len (str) 
+   if (iachar (str (i:i) ) >=  iachar ('a') .and. &
+       iachar (str (i:i) ) <=  iachar ('z')       ) then                                            
+      str(i:i) = achar(iachar(str(i:i)) - iachar('a') + iachar('A'))
+   endif 
+enddo 
 !
-END SUBROUTINE do_cap                         
+end subroutine do_cap                         
 !
 !*****7*****************************************************************
 !
-SUBROUTINE do_low (str) 
+subroutine do_low (str) 
 !+                                                                      
 !       Converts string 'str' to lower case letters                          
 !-                                                                      
-IMPLICIT none 
+implicit none 
 !                                                                       
-CHARACTER (LEN=* ), INTENT(INOUT) :: str 
-INTEGER  :: i 
-INTEGER  :: len 
+character (len=* ), intent(inout) :: str 
+integer  :: i 
+integer  :: len 
 !                                                                       
-DO i = 1, LEN (str) 
-   IF (IACHAR (str (i:i) ) .ge.IACHAR ('A') .and. &
-       IACHAR (str (i:i) ) .le.IACHAR ('Z')       ) THEN                                            
-      str(i:i) = achar(IACHAR(str(i:i)) - IACHAR('A') + IACHAR('a'))
-   ENDIF 
-ENDDO 
+do i = 1, len (str) 
+   if (iachar (str (i:i) ) >=  iachar ('A') .and. &
+       iachar (str (i:i) ) <=  iachar ('Z')       ) then                                            
+      str(i:i) = achar(iachar(str(i:i)) - iachar('A') + iachar('a'))
+   endif 
+enddo 
 !
-END SUBROUTINE do_low
+end subroutine do_low
+!
+!*****7*****************************************************************
+!
+subroutine do_str(str) 
+!+                                                                      
+!       Converts string 'str' to pure letters, blanks are not removed
+!-                                                                      
+implicit none 
+!                                                                       
+character (len=* ), intent(inout) :: str 
+integer  :: i 
+integer  :: len 
+!                                                                       
+main: do i = 1, len (str) 
+   if ((iachar (str (i:i) ) >=  iachar ('a') .and.                              &
+        iachar (str (i:i) ) <=  iachar ('z')      ) .or.                        &
+       (iachar (str (i:i) ) >=  iachar ('A') .and.                              &
+        iachar (str (i:i) ) <=  iachar ('Z')      )       ) then                                            
+      cycle main
+   else
+      str(i:i) = ' '
+   endif 
+enddo  main
+!
+end subroutine do_str                         
 !
 !*****7***********************************************************      
 !
-END MODULE string_convert_mod
+end module string_convert_mod
