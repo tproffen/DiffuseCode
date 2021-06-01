@@ -1,6 +1,7 @@
 MODULE domain_menu
 !
 CONTAINS
+!
 !*****7*****************************************************************
 !                                                                       
 SUBROUTINE do_domain (line, lp) 
@@ -50,7 +51,7 @@ USE str_comp_mod
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(LEN=MAX(PREC_STRING,LEN(LINE))) :: zeile, cpara (maxw) 
       INTEGER lpara (maxw), lp 
-      INTEGER i, j, ianz, laenge, lbef 
+      INTEGER j, ianz, laenge, lbef 
       INTEGER indxg 
       INTEGER, SAVE    :: n_clu = 0   ! current number of clusters
       LOGICAL, SAVE    :: linit = .true. ! do we need to initialize?
@@ -58,7 +59,7 @@ USE str_comp_mod
       REAL(KIND=PREC_DP):: werte (maxw) 
 !                                                                       
 !                                                                       
-      lend = .false. 
+lend = .false. 
 !
 !     Allocate the arrays in domain_mod.f90. As DISCUS cannot know the 
 !     required number, of cluster types, we will just allocate a reasonable
@@ -66,224 +67,123 @@ USE str_comp_mod
 !                                                                       
 !     BEGIN OF new domain code                                          
 !                                                                       
-      orig_prompt = prompt
-      prompt = prompt (1:len_str (prompt) ) //'/domain' 
+orig_prompt = prompt
+prompt = prompt (1:len_str (prompt) ) //'/domain' 
 !                                                                       
-      DO while (.not.lend) 
-      CALL no_error 
-      CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prompt) 
-      IF (ier_num.eq.0) then 
-         IF (line /= ' '      .and. line(1:1) /= '#' .and. &
-             line /= char(13) .and. line(1:1) /= '!'        ) THEN
+loop_main: DO while (.not.lend)         ! Main "DOMAIN" loop
+   CALL no_error 
+   CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prompt) 
+   if_cmd: IF (ier_num.eq.0) then 
+      IF(line /= ' '      .and. line(1:1) /= '#' .and. &
+         line /= char(13) .and. line(1:1) /= '!'        ) THEN
 !                                                                       
 !     ----search for "="                                                
 !                                                                       
-indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
-              .AND. INDEX(line,'==') == 0                            ) THEN
+         indxg = index (line, '=') 
+         IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
+                       .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
+                       .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
+                                   str_comp (befehl, '?   ', 2, lbef, 4) )    &
+                       .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 ! ------evaluate an expression and assign the value to a variabble      
 !                                                                       
-               CALL do_math (line, indxg, laenge) 
-            ELSE 
+            CALL do_math (line, indxg, laenge) 
+         ELSE 
 !                                                                       
 !------ ----execute a macro file                                        
 !                                                                       
-               IF (befehl (1:1) .eq.'@') then 
-                  IF (laenge.ge.2) then 
-                     line(1:laenge-1) = line(2:laenge)
-                     line(laenge:laenge) = ' '
-                     laenge = laenge - 1
-                     CALL file_kdo(line, laenge)
-                  ELSE 
-                     ier_num = - 13 
-                     ier_typ = ER_MAC 
-                  ENDIF 
+            IF(befehl (1:1) .eq.'@') then 
+               IF(laenge.ge.2) then 
+                  line(1:laenge-1) = line(2:laenge)
+                  line(laenge:laenge) = ' '
+                  laenge = laenge - 1
+                  CALL file_kdo(line, laenge)
+               ELSE 
+                  ier_num = - 13 
+                  ier_typ = ER_MAC 
+               ENDIF 
 !                                                                       
 !------ ----list asymmetric unit 'asym'                                 
 !                                                                       
-               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
-                  CALL show_asym 
+            ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
+               CALL show_asym 
 !                                                                       
 !------ ----list atoms present in the crystal 'chem'                    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
-                  CALL show_chem 
+            ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+               CALL show_chem 
 !                                                                       
 !     ----continues a macro 'continue'                                  
 !                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 5, lbef, 8) ) then 
-                  CALL macro_continue (zeile, lp) 
+            ELSEIF (str_comp (befehl, 'continue', 5, lbef, 8) ) then 
+               CALL macro_continue (zeile, lp) 
 !                                                                       
 !     ----Echo a string, just for interactive check in a macro 'echo'   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
-                  CALL echo (zeile, lp) 
+            ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+               CALL echo (zeile, lp) 
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
-                  CALL do_eval (zeile, lp, .TRUE.) 
+            ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+               CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
-                  lend = .true. 
+            ELSEIF(str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+               lend = .true. 
 !                                                                       
 !     ----help 'help' , '?'                                             
 !                                                                       
-      ELSEIF (str_comp (befehl, 'help', 1, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
-                     lp = lp + 7 
-                     CALL do_hel ('discus '//zeile, lp) 
-                  ELSE 
-                     lp = lp + 13 
-                     CALL do_hel ('discus domain '//zeile, lp) 
-                  ENDIF 
+            ELSEIF(str_comp(befehl, 'help', 1, lbef, 4) .or.                    &
+                   str_comp(befehl, '?   ', 1, lbef, 4)      ) then                                      
+               IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+                  lp = lp + 7 
+                  CALL do_hel ('discus '//zeile, lp) 
+               ELSE 
+                  lp = lp + 13 
+                  CALL do_hel ('discus domain '//zeile, lp) 
+               ENDIF 
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-                  IF (zeile.ne.' '.and.zeile.ne.char (13) ) then 
-                     CALL do_operating (zeile (1:lp), lp) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
+            ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+               IF (zeile.ne.' '.and.zeile.ne.char (13) ) then 
+                  CALL do_operating (zeile (1:lp), lp) 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
 !                                                                       
 !------  -----waiting for user input                                    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
-                  CALL do_input (zeile, lp) 
+            ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+               CALL do_input (zeile, lp) 
 !
 !     ----Reset the distribution of domains 'rese'                       
 !
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
-                  CALL domain_reset 
+            ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+               CALL domain_reset 
 
 !                                                                       
 !     ----Original domain commands                                      
 !                                                                       
-               ELSE
+            ELSE
 !
-      IF ( linit ) THEN
-         CALL alloc_domain ( clu_increment )
-         MK_MAX_SCAT = MAX(MK_MAX_SCAT, MAXSCAT)
-         MK_MAX_ATOM = MAX(MK_MAX_ATOM, NMAX)
-         CALL alloc_micro  ( MK_MAX_SCAT , MK_MAX_ATOM)
-         n_clu = CLU_MAX_TYPE
-         linit = .false.
-      ENDIF
+               IF(linit ) THEN
+                  CALL alloc_domain ( clu_increment )
+                  MK_MAX_SCAT = MAX(MK_MAX_SCAT, MAXSCAT)
+                  MK_MAX_ATOM = MAX(MK_MAX_ATOM, NMAX)
+                  CALL alloc_micro  ( MK_MAX_SCAT , MK_MAX_ATOM)
+                  n_clu = CLU_MAX_TYPE
+                  linit = .false.
+               ENDIF
 !                                                                       
 !     assign properties to pseudoatoms 'assign'                         
 !                                                                       
-                   IF (str_comp (befehl, 'assign', 1, lbef, 6) ) then 
-                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.ge.3) then 
-                        CALL do_build_name (ianz, cpara, lpara, werte,  &
-                        maxw, 2)                                        
-                        clu_index = 0 
-                        CALL do_cap (cpara (2) ) 
-                        DO i = 1, clu_number 
-!                       IF (str_comp(cpara (2), clu_name (i), 2, lpara &
-!                       (2), 4) ) then                                  
-                           IF(cpara(2)(1:4)==clu_name(i)(1:4)) THEN
-                              clu_index = i 
-                           ENDIF 
-                        ENDDO 
-                        IF (clu_index.eq.0) then 
-!
-!                          If necessary increase array sizes
-!
-                           IF ( clu_number >= CLU_MAX_TYPE ) THEN
-                              i     = CLU_MAX_TYPE + clu_increment
-                              CALL alloc_domain ( i )
-                              n_clu = CLU_MAX_TYPE
-                           ENDIF
-                           clu_number = clu_number + 1 
-                           clu_index = clu_number 
-                           clu_name (clu_index) = ' ' 
-                           clu_name (clu_index) = cpara (2) (1:lpara(2))
-                        ENDIF 
-                        IF (str_comp (cpara (1) , 'character', 2, lpara &
-                        (1) , 9) ) then                                 
-                           IF (str_comp (cpara (3) , 'cube', 2, lpara ( &
-                           3) , 4) ) then                               
-                              clu_character (clu_index) = CLU_CHAR_CUBE 
-                           ELSEIF (str_comp (cpara (3) , 'cylinder', 2, &
-                           lpara (3) , 8) ) then                        
-                              clu_character (clu_index) =               &
-                              CLU_CHAR_CYLINDER                         
-                           ELSEIF (str_comp (cpara (3) , 'fuzzy', 1,    &
-                           lpara (3) , 5) ) then                        
-                              clu_character (clu_index) =               &
-                              CLU_CHAR_FUZZY                            
-                           ELSEIF (str_comp (cpara (3) , 'sphere', 2,   &
-                           lpara (3) , 6) ) then                        
-                              clu_character (clu_index) =               &
-                              CLU_CHAR_SPHERE                           
-                           ENDIF 
-                        ELSEIF (str_comp (cpara (1) , 'contentfile', 2, &
-                        lpara (1) , 11) ) then                          
-                           CALL del_params (2, ianz, cpara, lpara, maxw) 
-                           IF (ier_num.eq.0) then 
-                              CALL do_build_name (ianz, cpara, lpara,   &
-                              werte, maxw, 1)                           
-                              IF (ier_num.eq.0) then 
-                                 clu_content (clu_index) = cpara (1) (1:lpara(1))
-                              ENDIF 
-                           ENDIF 
-                        ELSEIF (str_comp (cpara (1) , 'fuzzy', 1, lpara &
-                        (1) , 5) ) then                                 
-                           CALL del_params (2, ianz, cpara, lpara, maxw) 
-                           IF (ier_num.eq.0) then 
-                              CALL ber_params (ianz, cpara, lpara,      &
-                              werte, maxw)                              
-                              IF (ier_num.eq.0) then 
-                                 clu_fuzzy (clu_index) = werte (1) 
-                              ENDIF 
-                           ENDIF 
-                        ELSEIF (str_comp (cpara (1) , 'orient', 1,      &
-                        lpara (1) , 6) ) then                           
-                           CALL del_params (2, ianz, cpara, lpara, maxw) 
-                           IF (ier_num.eq.0) then 
-                              werte(:) = 0.0
-                              CALL ber_params (ianz, cpara, lpara,      &
-                              werte, maxw)                              
-                              IF (ier_num.eq.0) then 
-                                 i = nint (werte (1) ) 
-                                 DO j = 1, 4 
-                                 clu_orient (clu_index, i, j) = werte ( &
-                                 j + 1)                                 
-                                 ENDDO 
-                              ENDIF 
-                           ENDIF 
-                        ELSEIF (str_comp (cpara (1) , 'shape', 1, lpara &
-                        (1) , 5) ) then                                 
-                           CALL del_params (2, ianz, cpara, lpara, maxw) 
-                           IF (ier_num.eq.0) then 
-                              werte(:) = 0.0
-                              CALL ber_params (ianz, cpara, lpara,      &
-                              werte, maxw)                              
-                              IF (ier_num.eq.0) then 
-                                 i = nint (werte (1) ) 
-                                 DO j = 1, 4 
-                                    clu_shape(clu_index,i,j) = werte(j+1)                                   
-                                 ENDDO 
-                                 clu_sigma(clu_index,i) = ABS(werte(6))
-                              ENDIF 
-                           ENDIF 
-                        ENDIF 
-                     ELSE 
-                        ier_num = - 6 
-                        ier_typ = ER_COMM 
-                     ENDIF 
-                  ENDIF 
+               IF (str_comp (befehl, 'assign', 1, lbef, 6) ) then 
+                  call domain_assign(zeile, lp)
 !                                                                       
 !     ----set orientation for the current type 'orientation'            
 !                                                                       
@@ -310,8 +210,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define name of input file 'inputfile'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'inputfile', 1, lbef, 9) )     &
-               then                                                     
+               ELSEIF(str_comp(befehl, 'inputfile', 1, lbef, 9) ) then
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      CALL do_build_name (ianz, cpara, lpara, werte,     &
@@ -327,12 +226,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'mode', 1, lbef, 4) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
-                     IF (str_comp (cpara (1) , 'domain', 1, lbef, 7) )  &
-                     then                                               
+                     IF(str_comp(cpara(1), 'domain', 1, lbef, 7)) then
                         clu_mode = CLU_IN_CLUSTER 
-                     ELSEIF (str_comp (cpara (1) , 'pseudo', 1, lbef, 6)&
-                     ) then                                             
+                     ELSEIF(str_comp(cpara(1), 'pseudo', 1, lbef, 6)) then
                         clu_mode = CLU_IN_PSEUDO 
+                     ELSEIF(str_comp(cpara(1), 'irreg' , 1, lbef, 5)) then
+                        clu_mode = CLU_IN_IRREG 
                      ENDIF 
                   ENDIF 
 !                                                                       
@@ -351,6 +250,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      clu_content = ' ' 
                   ENDIF
                   IF(ier_num ==0) THEN
+                     call domain_test_expr      ! Test if "EXPR" were used
                      CALL micro_filereading 
                   ENDIF
 !                                                                       
@@ -367,65 +267,230 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (ianz.eq.0.or.ianz.eq.1) then 
                         CALL show_domain 
                      ELSE 
-                        ier_num = - 6 
+                        ier_num = -6 
                         ier_typ = ER_COMM 
                      ENDIF 
                   ELSE 
-                     ier_num = - 6 
+                     ier_num = -6 
                      ier_typ = ER_COMM 
                   ENDIF 
 !                                                                       
 !     ----unknown command                                               
 !                                                                       
                ELSE 
-                  ier_num = - 8 
+                  ier_num = -8 
                   ier_typ = ER_COMM 
-               ENDIF 
                ENDIF 
             ENDIF 
          ENDIF 
       ENDIF 
+   ENDIF if_cmd
 !                                                                       
 !     --Goto_s and jumps are terrible, yet FORTRTAN does not            
 !       have a break                                                    
 !     --Jump here if an error occured                                   
 !                                                                       
-      IF (ier_num.ne.0) THEN 
-         CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) THEN 
-            IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
-               IF(sprompt /= prompt ) THEN
-                  ier_num = -10
-                  ier_typ = ER_COMM
-                  ier_msg(1) = ' Error occured in domain menu'
-                  prompt_status = PROMPT_ON 
-                  prompt = orig_prompt
-                  RETURN
-               ELSE
-                  IF(lmacro_close) THEN
-                     CALL macro_close 
-                     prompt_status = PROMPT_ON 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
-            IF (lblock) THEN 
-               ier_num = - 11 
-               ier_typ = ER_COMM 
+   IF (ier_num.ne.0) THEN 
+      CALL errlist 
+      IF (ier_sta.ne.ER_S_LIVE) THEN 
+         IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
+            IF(sprompt /= prompt ) THEN
+               ier_num = -10
+               ier_typ = ER_COMM
+               ier_msg(1) = ' Error occured in domain menu'
                prompt_status = PROMPT_ON 
                prompt = orig_prompt
-               RETURN 
+               RETURN
+            ELSE
+               IF(lmacro_close) THEN
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
-            CALL no_error 
-            lmakro_error = .FALSE.
-            sprompt = ' '
          ENDIF 
+         IF (lblock) THEN 
+            ier_num = -11 
+            ier_typ = ER_COMM 
+            prompt_status = PROMPT_ON 
+            prompt = orig_prompt
+            RETURN 
+         ENDIF 
+         CALL no_error 
+         lmakro_error = .FALSE.
+         sprompt = ' '
       ENDIF 
-      ENDDO 
+   ENDIF
+ENDDO loop_main
 !
       prompt = orig_prompt
 !                                                                       
       END SUBROUTINE do_domain                      
+!
 !*****7*****************************************************************
+!
+subroutine domain_assign(zeile, lp)
+!-
+!  Perform the 'assign' task
+!+
+!
+use domain_mod
+use discus_allocate_appl_mod
+!
+use errlist_mod
+use ber_params_mod
+use get_params_mod
+use build_name_mod
+use precision_mod
+use str_comp_mod
+use string_convert_mod
+!
+character(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp
+!
+integer, parameter :: maxw = 7
+!
+character(LEN=PREC_STRING), dimension(4   ) :: dummy_expr
+character(LEN=PREC_STRING), dimension(MAXW) :: cpara
+integer                   , dimension(MAXW) :: lpara
+real(kind=PREC_DP)        , dimension(MAXW) :: werte
+integer :: i, j    ! Dummy loop indices
+integer :: ianz    ! Number parameters
+integer :: n_clu   ! Dummy for allocation
+!
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF(ier_num /= 0) return
+!
+IF (ianz.ge.3) then 
+   CALL do_build_name(ianz, cpara, lpara, werte, maxw, 2)
+   clu_index = 0 
+   CALL do_cap (cpara (2) ) 
+   DO i = 1, clu_number 
+!                       IF (str_comp(cpara (2), clu_name (i), 2, lpara &
+!                       (2), 4) ) then                                  
+      IF(cpara(2)(1:4)==clu_name(i)(1:4)) THEN
+         clu_index = i 
+      ENDIF 
+   ENDDO 
+   IF (clu_index.eq.0) then 
+!
+!                          If necessary increase array sizes
+!
+      IF ( clu_number >= CLU_MAX_TYPE ) THEN
+         i     = CLU_MAX_TYPE + clu_increment
+         CALL alloc_domain ( i )
+         n_clu = CLU_MAX_TYPE
+      ENDIF
+      clu_number = clu_number + 1 
+      clu_index = clu_number 
+      clu_name (clu_index) = ' ' 
+      clu_name (clu_index) = cpara (2) (1:lpara(2))
+   ENDIF 
+   IF(str_comp(cpara(1), 'character', 2, lpara(1), 9) ) then                                 
+      IF(str_comp(cpara(3), 'cube', 2, lpara(3), 4) ) then
+         clu_character(clu_index) = CLU_CHAR_CUBE
+      ELSEIF(str_comp(cpara(3), 'cylinder', 2, lpara(3), 8)) then                        
+         clu_character(clu_index) = CLU_CHAR_CYLINDER
+      ELSEIF(str_comp(cpara(3), 'fuzzy', 1, lpara(3), 5)) then
+         clu_character(clu_index) = CLU_CHAR_FUZZY
+      ELSEIF(str_comp(cpara(3), 'irreg', 1, lpara(3), 5)) then
+         clu_character(clu_index) = CLU_CHAR_IRREG
+      ELSEIF(str_comp(cpara(3), 'sphere', 2, lpara(3), 6)) then
+         clu_character(clu_index) = CLU_CHAR_SPHERE
+      ENDIF 
+   ELSEIF(str_comp(cpara(1), 'contentfile', 2, lpara(1), 11)) then
+      CALL del_params (2, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         CALL do_build_name(ianz, cpara, lpara, werte, maxw, 1)
+         IF (ier_num.eq.0) then
+            clu_content(clu_index) = cpara(1)(1:lpara(1))
+         ENDIF 
+      ENDIF 
+   ELSEIF(str_comp(cpara(1), 'fuzzy', 1, lpara(1), 5) ) then
+      CALL del_params (2, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw)
+         IF (ier_num.eq.0) then 
+            clu_fuzzy(clu_index) = werte (1) 
+         ENDIF 
+      ENDIF 
+   ELSEIF(str_comp(cpara(1), 'orient', 1, lpara(1), 6) ) then   ! Orientation of guest within host
+      CALL del_params(2, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         werte(:) = 0.0
+         do j = 1, 4                              ! Test if "EXPR" occurs in a parameter
+            if(index(cpara(j+1),'EXPR')>0) then
+               dummy_expr(j) = cpara(j+1)         ! Temporary copy
+            else
+               dummy_expr(j) = ' '                ! No occurence, nullify temporary
+            endif
+         enddo
+         CALL ber_params(ianz, cpara, lpara, werte, maxw)
+         IF (ier_num.eq.0) then 
+            i = nint (werte (1) ) 
+            DO j = 1, 4 
+               clu_orient(clu_index, i, j) = werte(j + 1)        ! Copy result of berechne
+               if(dummy_expr(j) == ' ') then          ! Dummy is empty use current value
+                  write(clu_or_expr(clu_index, i,j), '(g16.8e3)') werte(j+1)
+               else
+                  clu_or_expr(clu_index, i,j) = dummy_expr(j)    ! Copy original EXPR string
+               endif
+!write(*,*) ' CLU_OR_EXPR ', clu_index, clu_or_expr(clu_index, i,j) &
+!                           (1:len_trim(clu_or_expr(clu_index, i,j)))
+            ENDDO 
+         ENDIF 
+      ENDIF 
+   ELSEIF(str_comp(cpara(1), 'shape', 1, lpara(1) , 5) ) then                                 
+      CALL del_params(2, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         werte(:) = 0.0
+         CALL ber_params(ianz, cpara, lpara, werte, maxw)                              
+         IF (ier_num.eq.0) then 
+            i = nint (werte (1) ) 
+            DO j = 1, 4 
+               clu_shape(clu_index,i,j) = werte(j+1)                                   
+            ENDDO 
+            clu_sigma(clu_index,i) = ABS(werte(6))
+         ENDIF 
+      ENDIF 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+endif 
+!
+end subroutine domain_assign
+!
+!*****7*****************************************************************
+!
+subroutine domain_test_expr
+!-
+!  Test if the orientations and/or the shapes are subject to "EXPR" calculation mode
+!+
+!
+use domain_mod
+!
+integer :: i,j, k
+!
+clu_use_expr = .FALSE.                 ! Initialize all
+!
+loop_orient: do k=1, clu_number
+   do i=1, 3
+      do j=1, 3
+         if(index(clu_or_expr(k, i,j),'EXPR') > 0) then
+            clu_use_expr(k,1) = .TRUE.
+            cycle loop_orient
+         endif
+      enddo
+   enddo
+enddo loop_orient
+!do k=1, clu_number
+!write(*,*) ' CLUSTER TYPE ', k, clu_use_expr(k, :)
+!enddo
+!
+end subroutine domain_test_expr
+!
+!*****7*****************************************************************
+!
       SUBROUTINE show_domain 
 !-                                                                      
 !     Displays the current parameters for domain distributions          
@@ -442,15 +507,15 @@ USE lib_length
 !                                                                       
        
 !                                                                       
-      CHARACTER(9) char_type ( - 4:0) 
-      CHARACTER(12) char_mode (0:1) 
+      CHARACTER(9) char_type ( -5:0) 
+      CHARACTER(12) char_mode (0:2) 
       INTEGER i, ii, j 
       INTEGER              :: new_nscat ! DUMMY for allocation
 !                                                                       
 !                                                                       
-      DATA char_mode / 'domain     ', 'pseudoatoms' / 
-      DATA char_type / 'fuzzy    ', 'sphere   ', 'cylinder ', 'cube     &
-     &', 'undefined' /                                                  
+DATA char_mode / 'domain     ', 'pseudoatoms', 'irregular' / 
+DATA char_type / 'irreg    ', 'fuzzy    ', 'sphere   ', 'cylinder ',            &
+                 'cube     ', 'undefined'                             /
 !                                                                       
       IF (cr_nscat == MAXSCAT) then 
          new_nscat = MAX(MAXSCAT + 5, INT ( MAXSCAT * 1.025 ))
@@ -895,6 +960,9 @@ IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
       ENDIF
    ENDIF
 !                                                                       
+elseif(clu_mode == CLU_IN_IRREG ) then               ! IRREGULAR domain mode
+   close(imd)
+   call domain_irregular !(imd, lend, infile, mc_dimen, mc_idimen, mc_matrix)
 ELSE 
    CALL micro_read_micro(imd, lend, infile, mc_dimen, mc_idimen, mc_matrix)                                                     
    IF (ier_num.ne.0) THEN 
@@ -939,6 +1007,621 @@ chem_period(:) = .FALSE.
 if(allocated(clu_moles)) deallocate(clu_moles)
 !                                                                       
 END SUBROUTINE micro_filereading              
+!
+!*****7*****************************************************************
+!
+subroutine domain_irregular 
+!-
+!  Replace a contiguous irregularly shaped microdomain by the structure contained 
+!  inside the cluster file
+!+
+!
+!
+use crystal_mod
+use domain_mod 
+use domaindis_mod 
+use chem_mod
+use prop_para_mod
+use structur,  only:do_readstru
+use spcgr_apply
+!
+use str_comp_mod
+use string_convert_mod
+
+!
+implicit none
+!
+!
+character(len=4) :: line   ! dummy line
+integer :: i, ii         ! Dummy loop index
+integer :: iatom         ! Dummy atom number
+integer :: nprior        ! number of atoms prior to replacement
+logical :: l_site
+logical :: lout
+!
+lout = .false.
+!
+!***  Read the list of pseudoatoms as structure 
+!
+l_site = .FALSE.
+!
+call do_readstru(clu_infile, l_site)
+call setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,             &
+            cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
+            cr_fmat, cr_cartesian,                                      &
+            cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+call get_symmetry_matrices
+!
+do i=1,3
+  if(cr_icc(i)==1) chem_period(i) = .FALSE.
+end do
+!
+clu_remove_end = cr_natoms     ! Store atom number in original crystal
+nprior = cr_natoms             ! Store atom number in original crystal
+!
+call domain_irreg_conn         ! Create connectivity with closest neighbors
+!write(*,*) ' CLEANING PSEUDO '
+!do i=1, 1
+!   call domain_clean_conn         ! change atoms with 2 or less partners
+!   call domain_irreg_conn         ! Create connectivity with closest neighbors
+!enddo
+!
+iatom = 5051
+iatom = 1
+!
+!write(*,*) ' Starting LOOP '
+loop_atoms: do iatom = 1, cr_natoms
+!write(*,*) ' AT ATOM ', iatom, cr_prop(iatom), btest(cr_prop(iatom), PROP_TEMP), nprior
+   if(cr_iscat(iatom)==0) cycle loop_atoms ! NEEDS WORK 
+!   if(btest(cr_prop(iatom), PROP_TEMP)) cycle loop_atoms   ! Temp property is set already, skip
+!                              ! Determine cluster type for current pseudo atom
+!                              ! Copy shape and orientation matrix
+   line = cr_at_lis(cr_iscat(iatom))
+   call do_cap(line(1:4))
+   ii = 0 
+   loop_types: DO i = 1, clu_number 
+      if(str_comp(line(1:4), clu_name(i), 2, 4, 4) ) then
+         ii = i 
+         exit loop_types
+      end if
+   end do loop_types
+   if(ii == 0) then       ! Pseudo atom type is unknown ERROR
+      ier_num = -91 
+      ier_typ = ER_APPL 
+      ier_msg(1)  = ' Unknown pseudo atom name '//line(1:4)
+      return 
+   end if
+!
+!
+   call domain_irreg_find(iatom, nprior, ii)  !, infile, mc_dimen, mc_idimen, mc_matrix)
+   if(ier_num/=0)  return                     ! Error like evaluating the "EXPR" 
+end do loop_atoms
+!write(*,*) ' DID REPLACE '
+!
+end subroutine domain_irregular
+!
+!*****7*****************************************************************
+!
+subroutine domain_irreg_conn
+!-
+!  Create a connectivity list for the pseudoatom structure
+!+
+!
+use crystal_mod
+use conn_mod
+use conn_def_mod
+!
+use precision_mod
+!
+implicit none
+!
+character(len=PREC_STRING) :: line
+integer :: i
+integer :: lp
+real(kind=PREC_SP) :: dist
+!
+call conn_reset        ! Reset all connectivities   (NEEDS WORK save old ?)
+!
+dist = cr_a0(1)*1.1    ! NEEDS WORK
+do i=1, cr_nscat       ! Loop over all pseudo atoms
+   write(line, '(a4, 4a,f8.4,a,i3.3)') '    ', &
+            cr_at_lis(i)(1:len_trim(cr_at_lis(i))), ',', &
+            cr_at_lis(i)(1:len_trim(cr_at_lis(i))), ', 0.1,', dist, &
+            ', cd_',i
+!write(*,*) line(1:len_trim(line))
+   lp = len_trim(line)
+   call conn_do_set(code_add,line, lp)
+enddo
+line = ' '
+call conn_create(line)
+!
+end subroutine domain_irreg_conn
+!
+!*****7*****************************************************************
+!
+subroutine domain_clean_conn
+!-
+!  Create a connectivity list for the pseudoatom structure
+!+
+!
+use crystal_mod
+use chem_mod
+use atom_env_mod
+use conn_sup_mod
+use conn_def_mod
+use do_find_mod
+!
+use precision_mod
+!
+implicit none
+!
+integer                    :: is1    ! central atom type
+integer                    :: ino    ! number of connectivity list 
+integer                    :: natoms ! number of atoms in connectivity list 
+integer, dimension(:),   allocatable :: c_list ! Result of connectivity search
+integer, dimension(:,:), allocatable :: c_offs ! Result of connectivity search
+integer :: i, k
+integer :: ianz      ! Number of general neighbors
+integer :: iscat
+logical                           :: fq
+logical           , dimension(3)  :: fp
+integer            , dimension(0:MAXSCAT) :: nscats
+real(KIND=PREC_DP) , dimension(MAXSCAT)   :: werte
+real(KIND=PREC_SP) , dimension(3)         :: pos
+real(kind=PREC_SP) :: rmin
+real(kind=PREC_SP) :: rmax
+!
+fp(1) = chem_period(1)
+fp(2) = chem_period(2)
+fp(3) = chem_period(3)
+fq = chem_quick
+!
+do i=1, cr_natoms
+  is1 = cr_iscat(i)
+  ino = 1
+  call get_connectivity_list(i, is1, ino, c_list, c_offs, natoms )
+  if(natoms <=2) then
+!write(*,*) ' AT ATOM ', i, is1, (' | ',c_list(k), cr_iscat(c_list(k)),k=1,natoms)
+     nscats = 0
+     ianz     = 1             ! Just one atom type
+     werte(1) = -1            ! Find all atom types
+     rmin = 0.01
+     rmax = cr_a0(1) + 0.5    ! NEEDS WORK
+     pos = cr_pos(:, i)
+     call do_find_env(ianz, werte, MAXSCAT, pos, rmin, rmax, fq, fp)
+     do k=1, atom_env(0)
+        nscats(cr_iscat(atom_env(k))) = nscats(cr_iscat(atom_env(k))) + 1
+!write(*,*) ' ENV ', i, k, atom_env(k), cr_iscat(atom_env(k))
+     enddo
+!write(*,*) ' replace ', i, cr_iscat(i), MAXLOC(nscats, 1)-1, '|', nscats
+     iscat = MAXLOC(nscats, 1)-1
+     cr_iscat(i) = iscat
+!read(*,*) k
+  endif
+enddo
+!
+!
+end subroutine domain_clean_conn
+!
+!*****7*****************************************************************
+!
+subroutine domain_irreg_find(iatom, nprior, iclu) !, infile, mc_dimen, mc_idimen, mc_matrix)
+!-
+!  Find all neighbors of starting atom
+!  Replace this volume by guest
+!+
+use crystal_mod
+use conn_sup_mod
+use domain_mod
+use domain_irreg_mod
+use domaindis_mod
+use prop_para_mod
+use metric_mod
+!
+use errlist_mod
+use precision_mod
+!use lib_random_func
+!
+implicit none
+!
+integer,           intent(in) :: iatom            ! starting atom to work on
+integer,           intent(in) :: nprior           ! Atom number in original pseudo atom list
+integer,           intent(in) :: iclu             ! Cluster type
+!
+logical, parameter :: LSPACE=.TRUE.
+!
+character(len=PREC_STRING)    :: infile               ! Cluster content file
+real                          :: mc_dimen (4, 4) 
+real                          :: mc_idimen(4, 4) 
+real                          :: mc_matrix(4, 4) 
+!
+integer                    :: i,j    ! Dummy counter
+integer                    :: is1    ! central atom type
+integer                    :: ino    ! number of connectivity list 
+integer                    :: natoms ! number of atoms in connectivity list 
+integer, dimension(:),   allocatable :: c_list ! Result of connectivity search
+integer, dimension(:,:), allocatable :: c_offs ! Result of connectivity search
+integer, dimension(:),   allocatable :: list   ! List of atoms in the current domain
+integer, dimension(:,:), allocatable :: list_o ! List of atoms in the current domain offsets
+!integer, dimension(3) :: orig_off ! Offest of origin atom from first domain atom
+logical :: lfound    ! Found new neighbors
+real(kind=PREC_SP) :: dist    ! dummy distance
+real(kind=PREC_SP) :: dmin    ! minimum distance
+real(kind=PREC_SP), dimension(3) :: com     ! Center of mass for domain
+real(kind=PREC_SP), dimension(3) :: uu      ! Dummy vector
+!
+if(cr_iscat(iatom)==0) return           ! Ignore VOIDS  NEEDS WORK ==> FLAG
+!
+!**** Get connectivity of this first atom in the new pseudo atom group
+!
+is1 = cr_iscat(iatom)
+ino = 1
+call get_connectivity_list(iatom, is1, ino, c_list, c_offs, natoms )
+!
+!if(natoms==0) return      !NEEDS WORK
+!
+allocate(list(1:nprior))             ! Long temporary list
+allocate(list_o(3,1:nprior))         ! Long temporary list, including offsets
+list = 0
+list_o = 0
+!
+list(iatom) = 1                         ! Mark this atom as done
+ngroup      = 1                         ! Currently one atom in the group
+mgroup      = 1                         ! Currently one atom in the group
+!write(*,*) ' FIRST ATOM ', natoms
+do i=1, natoms
+   if(c_list(i)>0) then
+      list(c_list(i)) = -1 !Mark this as a new neighbor
+!write(*,*) ' INITIAL NE ', c_list(i)
+      list_o(:,c_list(i)) = c_offs(:, i)
+   endif
+enddo
+!
+!***  Search all atoms that are connected
+!
+lfound = .TRUE.
+loop_neig: do
+   if(.NOT. lfound) exit loop_neig
+   lfound = .FALSE.
+   loop_list: do j=1, nprior         ! Go through list to find new neighbors
+      if(list(j)<0) then                ! This is a new neighbor
+         is1 = cr_iscat((j))
+         ino = 1
+         call get_connectivity_list(j, is1, ino, c_list, c_offs, natoms )
+         if(natoms==0) cycle loop_list  ! This one does not have a connectivity
+         do i=1, natoms
+           if(c_list(i)>0) then 
+              if(list(c_list(i))==0) then 
+                 list(c_list(i)) = -1 !Mark this as a new neighbor
+!write(*,*) ' NEW NEIGHB ', c_list(i)
+                 list_o(:,c_list(i)) = list_o(:,j) + c_offs(:,i)
+               end if
+            end if
+         end do
+         lfound = .TRUE.                        ! We found a new neighbor
+         list(j) = 1
+         ngroup = ngroup + 1
+      endif
+   end do loop_list
+end do loop_neig
+!
+!write(*,*) ' NGROUP ', ngroup, nprior
+!
+allocate(short(1:ngroup))               ! make short group of members in this group
+allocate(offs(3,ngroup))
+allocate(coor(3,ngroup))
+!
+! Loop until all group members are replaced
+!
+loop_mgroup: do                        ! Loop over group until all atoms are replaced
+short = 0
+offs  = 0
+coor  = 0.0D0
+!
+i     = 0
+com   = 0.0E0
+!write(*,'(a,2x,a,4x,a,6x,a,4x,a)') ' member ', 'short', 'cr_pos', 'offs', 'effective'
+loop_build: do j=1, nprior
+   if(list(j)==1) then
+      if(btest(cr_prop(j), PROP_TEMP)) cycle loop_build
+      i = i + 1
+      short(i) = j
+      offs(:,i) = list_o(:,j)
+      com = com + cr_pos(:,j) + offs(:,i)
+!write(*,'(a,i8,4(3f8.1,2x))') ' member ', short(i), cr_pos(:,short(i)), offs(:,(i))
+   endif
+end do loop_build
+mgroup = i
+   if(mgroup==0) exit loop_mgroup
+com = com/real(mgroup, kind=PREC_SP)
+dmin = 1.0E9
+icent = 1
+loop_icent: do i=1, mgroup                    ! Find atom closest to COM
+   if(btest(cr_prop(short(i)), PROP_TEMP)) cycle loop_icent
+   uu = cr_pos(:,short(i)) + offs(:,i)
+   dist = do_blen(lspace, uu, com)
+!write(*,'(a,i5,3(3f6.1,2x))') 'dist',i, cr_pos(:,short(i)), offs(:,i), uu
+   if(dist<dmin) then
+      icent = i
+      dmin = dist
+   endif
+enddo loop_icent
+!
+!!write(*,*)
+!write(*,*) ' group size ', ngroup, mgroup, ' ISCAT : ', cr_iscat(iatom)
+!write(*,*) ' COM        ', com, icent
+!
+!                             ! Determine origin, coordinates of group elements
+!
+!call random_number(r1)
+!icent = int(ngroup*r1) + 1
+icent_cr = short(icent)
+!
+origin = cr_pos(:, icent_cr)
+orig_off = offs  (:, icent)
+!write(*,'(a, (3f8.2,2x),3i5, 2i8)') ' Origin at ', origin, orig_off, icent, icent_cr
+!read(*,*) i
+maxdim = 0.0D0
+!write(*,'(a,2x,a,4x,a,6x,a,4x,a)') ' member ', 'short', 'cr_pos', 'offs', 'effective'
+do i=1, mgroup
+   coor(:,i) = (cr_pos(:,short(i))+offs(:,(i))-origin(:)) - orig_off(:)
+   maxdim(1,1) = min(maxdim(1,1), coor(1,i))
+   maxdim(1,2) = max(maxdim(1,2), coor(1,i))
+   maxdim(2,1) = min(maxdim(2,1), coor(2,i))
+   maxdim(2,2) = max(maxdim(2,2), coor(2,i))
+   maxdim(3,1) = min(maxdim(3,1), coor(3,i))
+   maxdim(3,2) = max(maxdim(3,2), coor(3,i))
+   cr_prop(short(i)) = ibclr(cr_prop(short(i)), PROP_TEMP)
+!write(*,'(a,i8,4(3f8.1,2x),i5)') ' member ', short(i), cr_pos(:,short(i)), offs(:,(i)), &
+! (cr_pos(:,short(i))-offs(:,(i))-origin(:)), coor(:,i), cr_prop(short(i))
+enddo
+maxdim(:,1) = maxdim(:,1) - 0.1
+maxdim(:,2) = maxdim(:,2) + 0.1
+!write(*,*) ' Maxdim 1 ', maxdim(1,:)
+!write(*,*) ' Maxdim 2 ', maxdim(2,:)
+!write(*,*) ' Maxdim 3 ', maxdim(3,:)
+!read(*,*) i
+!
+!***  Determine cluster type, shape and orientation matrix
+!     The shape matrix is a unit matrix
+!
+infile     = clu_content(iclu)
+mc_type    = clu_character(iclu)
+md_sep_fuz = clu_fuzzy(iclu)
+!
+call domain_set_matrix(iclu, mc_type, mc_dimen, mc_idimen, mc_matrix)
+if(ier_num/=0)  return                   ! Error evaluating the "EXPR"
+clu_current = iclu                       ! Transfer current cluster type
+!
+!if(iatom<5) then
+!  write(*,'(a,4f9.6,1x)') 'MC ',mc_matrix(1,:)
+!  write(*,'(a,4f9.6,1x)') 'MC ',mc_matrix(2,:)
+!  write(*,'(a,4f9.6,1x)') 'MC ',mc_matrix(3,:)
+!  write(*,'(a,4f9.6,1x)') 'MC ',mc_matrix(4,:)
+!end if
+!!!!!!!!!!!!!!!!!!!!!!!!!!
+!write(*,*) ' PSEUDO ATOM ', iatom, cr_iscat(iatom), cr_at_lis(cr_iscat(iatom)), iclu, infile(1:len_trim(infile))
+!                                         ! Now replace atoms
+mc_type = MD_DOMAIN_IRREG
+!
+call micro_read_atoms(infile, mc_idimen, mc_matrix) !
+!write(*,*) ' GROUP AFTER REPLACE '
+do i=1,mgroup
+   if(btest(cr_prop(short(i)), PROP_TEMP)) then
+      cr_iscat(short(i)) = 0
+!  cr_prop(short(i)) = ibset(cr_prop(short(i)), PROP_TEMP)
+   endif
+!   write(*,*) ' PROP ', i, short(i), cr_iscat(short(i)), cr_prop(short(i))
+enddo
+enddo loop_mgroup
+!
+!call domain_irreg_replace(infile)
+!
+deallocate(list)
+deallocate(short)
+deallocate(offs)
+deallocate(coor)
+!
+end subroutine domain_irreg_find
+!
+!*****7*****************************************************************
+!
+subroutine domain_irreg_test_atom(vv, linside)
+!-
+!  Tests if an atom at coordinates vv is inside the current domain
+!  Apply periodic boundary conditions to place near actual pseudo atom
+!+
+!
+use domain_mod
+use domain_irreg_mod
+use crystal_mod
+use metric_mod
+use prop_para_mod
+!
+implicit none
+!
+real(kind=PREC_SP), dimension(3), intent(inout) :: vv
+logical                         , intent(out)   :: linside
+!
+logical, parameter :: lspace = .TRUE.
+!
+integer            :: i       ! dummy loop index
+integer            :: ishort  ! Index of closest atom
+real(kind=PREC_SP) :: dist    ! distance to pseudo atoms
+real(kind=PREC_SP) :: d       ! distance to pseudo atoms
+real(kind=PREC_SP), dimension(3) :: uu  ! Vector atom to pseudo
+real(kind=PREC_SP), dimension(3) :: NULLV!  ! Null vector
+ data NULLV / 0.0, 0.0, 0.0 /
+!
+linside = .false.                         ! Assume outside
+!
+!write(*,*) 'testing ', vv, origin
+dist = 1.e9
+if(maxdim(1,1)<vv(1) .and. vv(1)<maxdim(1,2)   .and.                            &
+   maxdim(2,1)<vv(2) .and. vv(2)<maxdim(2,2)   .and.                            &
+   maxdim(3,1)<vv(3) .and. vv(3)<maxdim(3,2)         ) then     ! Initial crude estimate
+   ishort = 0
+   loop_ishort: do i=1, mgroup                         ! Loop over all atoms to find closest
+      if(btest(cr_prop(short(i)), PROP_TEMP)) cycle loop_ishort
+      uu = vv - coor(:,i)
+      d  = do_blen(lspace, uu, NULLV)
+      if(d<dist) then
+         dist = d
+         ishort = i
+      endif
+      if(d<dist) then
+         dist = d
+         ishort = i
+      endif
+   enddo loop_ishort
+!
+   if(dist < clu_fuzzy(clu_current)) then
+!if(cr_natoms < clu_remove_end+20) then
+! write(*,'(a, 3f6.1,2i6, 6(3f6.1,1x),3i5,2f6.1)') ' vv ', vv, ishort, short(ishort), coor(:,ishort), &
+! cr_pos(:,short(ishort)), offs(:,ishort), dist, clu_fuzzy(clu_current)
+!!
+!end if
+      vv = vv + origin - offs(:,ishort) + orig_off
+      linside = .true.
+      cr_prop(short(ishort)) = ibset(cr_prop(short(ishort)), PROP_TEMP)
+!else
+!if(cr_natoms < clu_remove_end+20) then
+! write(*,'(a, 3f6.1,2i6, 6(3f6.1,1x),3i5,2f6.1)') ' xx ', vv, ishort, short(ishort), coor(:,ishort), &
+! cr_pos(:,short(ishort)), offs(:,ishort), dist, clu_fuzzy(clu_current)
+!endif
+   endif
+endif
+!
+end subroutine domain_irreg_test_atom
+!
+!*****7*****************************************************************
+!
+subroutine domain_set_matrix(iclu, mc_type, mc_dimen, mc_idimen, mc_matrix)
+!-
+!  Set the current shape / orientation matrix 
+!  either from clu_orient /clu_shape
+!  or from "EXPR"
+!+
+!
+use domain_mod
+!
+use ber_params_mod
+use errlist_mod
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: iclu            ! Current cluster number
+integer, intent(in) :: mc_type         ! Current cluster type
+real   , intent(out)           :: mc_dimen (4, 4) 
+real   , intent(out)           :: mc_idimen(4, 4) 
+real   , intent(out)           :: mc_matrix(4, 4) 
+!
+integer, parameter :: MAXW = 12
+character(len=PREC_STRING), dimension(MAXW) :: cpara
+integer                   , dimension(MAXW) :: lpara
+real(kind=PREC_DP)        , dimension(MAXW) :: werte
+!
+integer :: i, j
+integer :: ianz
+!
+if(clu_use_expr(iclu,1)) then              ! Orientation uses "EXPR", evaluate current value
+   ianz = 0
+   do i = 1, 3
+      do j = 1,4
+         ianz = ianz + 1
+         cpara(ianz) = clu_or_expr(iclu, i, j)  ! Transfer expressions into cpara for berechne
+         lpara(ianz) = len_trim(cpara(ianz))
+      enddo
+   enddo
+   call ber_params(ianz, cpara, lpara, werte, MAXW)  ! Evaluate current "EXPR"
+   if(ier_num/=0)  then
+      ier_msg(1) = 'Expression for orient erroneous '
+      return
+   endif
+   ianz = 0
+   do i = 1, 3
+      do j = 1,4
+         ianz = ianz + 1
+         mc_matrix(i, j) = werte(ianz)         ! Transfer current results into orient matrix
+      enddo
+   enddo
+else                                       ! Orientation uses clu_orient
+   do i = 1, 3
+      do j = 1,4
+         mc_matrix(i, j) = clu_orient(iclu, i, j)
+      end  do
+      mc_matrix(i, 4) = clu_orient(iclu, i, 4) !+ cr_pos(i,icent_cr)
+      mc_matrix(4, i) = 0.0
+   enddo
+endif
+if(clu_use_expr(iclu,2)) then              ! Shape       uses "EXPR"
+   continue
+else                                       ! Shape       uses clu_shape
+   if(mc_type==CLU_IN_IRREG) then          ! Irregular shape, use unit matrix
+      mc_dimen  = 0.0
+      mc_idimen = 0.0
+      do i = 1, 4
+         mc_dimen (i,i) = 1.0
+         mc_idimen(i,i) = 1.0
+      enddo
+   else
+      mc_dimen(1:3,1:4) = clu_shape(iclu, 1:3, 1:4)
+      mc_dimen(4,:)     = 0.0
+      mc_dimen(4,4)     = 1.0
+   endif
+endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!
+!call random_number(shift)
+!shift = shift *0.07
+!shift = 0.03+ gasdev(0.005D0)
+!shift = 0.00+ gasdev(0.250D0)
+!if(iclu==1) then
+!  mc_matrix(1,1) = 1.0 + shift
+!  mc_matrix(1,2) =       shift
+!  mc_matrix(2,1) =     - shift
+!  mc_matrix(2,2) = 1.0 - shift
+!!!!
+!  mc_matrix(1,1) = 1.0
+!  mc_matrix(1,2) =       shift
+!  mc_matrix(2,1) = 0.0
+!  mc_matrix(2,2) = 1.0
+!!!!
+!!elseif(iclu==2) then
+!  mc_matrix(1,1) = 1.0 - shift
+!  mc_matrix(1,2) =     - shift
+!  mc_matrix(2,1) =       shift
+!  mc_matrix(2,2) = 1.0 + shift
+!!!!
+!  mc_matrix(1,1) = 1.0
+!  mc_matrix(1,2) =       shift
+!  mc_matrix(2,1) = 0.0
+!  mc_matrix(2,2) = 1.0
+!!!!
+!elseif(iclu==3) then
+!  mc_matrix(1,1) = 1.0 + shift
+!  mc_matrix(1,2) =     - shift
+!  mc_matrix(2,1) =     + shift
+!  mc_matrix(2,2) = 1.0 - shift
+!!!!
+!  mc_matrix(1,1) = 1.0
+!  mc_matrix(1,2) = 0.0
+!  mc_matrix(2,1) =       shift
+!  mc_matrix(2,2) = 1.0
+!elseif(iclu==4) then
+!  mc_matrix(1,1) = 1.0 - shift
+!  mc_matrix(1,2) =     + shift
+!  mc_matrix(2,1) =     - shift
+!  mc_matrix(2,2) = 1.0 + shift
+!!!!
+!  mc_matrix(1,1) = 1.0
+!  mc_matrix(1,2) = 0.0
+!  mc_matrix(2,1) =       shift
+!  mc_matrix(2,2) = 1.0
+!!!!
+!endif
+!
+end subroutine domain_set_matrix
 !
 !*****7*****************************************************************
 !
@@ -1313,9 +1996,11 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       ENDDO 
 !                                                                       
       END SUBROUTINE micro_remove_old               
+!
 !*****7*****************************************************************
-      SUBROUTINE micro_read_atom (ist, infile, mc_idimen, mc_matrix, &
-                                  AT_MAXP, at_ianz, at_param) 
+!
+SUBROUTINE micro_read_atom(ist, infile, mc_idimen, mc_matrix, &
+                            AT_MAXP, at_ianz, at_param) 
 !-
 !  Reads the atoms of the current cluster type 
 !+
@@ -1325,6 +2010,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       USE crystal_mod 
       USE domain_mod 
       USE domaindis_mod 
+use domain_irreg_mod
       USE metric_mod
       USE micro_mod 
       USE molecule_mod 
@@ -1341,9 +2027,9 @@ USE lib_errlist_func
 USE lib_length
 USE precision_mod
 USE str_comp_mod
-      USE string_convert_mod
+USE string_convert_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 INTEGER            , INTENT(IN) :: ist 
 CHARACTER (LEN = *), INTENT(IN) :: infile
@@ -1487,9 +2173,9 @@ integer :: is_mole_type  ! Molecule type provided on the 'molecule type line'
 lmole_type = .false.                   ! Assume no 'molecule type' line
 is_mole_type = 1
  1000 CONTINUE 
-      ier_num = - 49 
-      ier_typ = ER_APPL 
-      line = ' ' 
+   ier_num = - 49 
+   ier_typ = ER_APPL 
+   line = ' ' 
       IF(mk_infile_internal) THEN
          mk_iatom =  mk_iatom + 1   ! Increment internal atom number
          CALL struc_read_one_atom_internal(infile,  mk_iatom,  &
@@ -1583,6 +2269,7 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
                ENDIF
             ELSEIF (mc_type  .eq.MD_DOMAIN_CYLINDER) then 
                linside = .false. 
+               d = 0.0
                IF (abs (vv (3) ) .le.1) then 
                   ww(:) = vv(:)
                   ww (3) = 0.0 
@@ -1596,6 +2283,12 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
                ENDIF
             ELSEIF (mc_type  .eq.MD_DOMAIN_FUZZY) then 
                linside = .true. 
+            ELSEIF(mc_type ==  MD_DOMAIN_IRREG) then           ! Irregularly shaped domain
+               call domain_irreg_test_atom(v, linside)        ! Test if atom is inside, including periodic boundaries
+!if(cr_natoms < clu_remove_end+20 )then
+!write(*,*) ' ATOM ', u(1:3), v(1:3)
+!end if
+!               linside = .true. 
             ENDIF 
 inside:     IF (linside) then 
                IF (cr_natoms.eq.nmax) then 
@@ -1858,123 +2551,113 @@ mole_int: IF(mk_infile_internal) THEN
  3100 FORMAT    ('Shortest Distance to host ',f12.4) 
  3200 FORMAT    ('Intended fuzzy distance   ',f12.4) 
       END SUBROUTINE micro_read_atom                
+!
 !*****7*****************************************************************
-      SUBROUTINE micro_read_simple (imd, lend, l_ok,infile, mc_dimen,  &
+!
+SUBROUTINE micro_read_simple (imd, lend, l_ok,infile, mc_dimen,  &
       mc_idimen, mc_matrix, MK_MAX_SCAT,mk_at_lis)                                             
 !
 !     Reads a single line from the input file. This should contain a 
 !     pseudo atom that is interpreted as cluster type
 !                                                                       
-      USE discus_config_mod 
-      USE domain_mod 
-      USE domaindis_mod 
-      USE read_internal_mod 
-      USE tensors_mod
-      USE errlist_mod 
+USE discus_config_mod 
+USE domain_mod 
+USE domaindis_mod 
+USE read_internal_mod 
+USE tensors_mod
+USE errlist_mod 
 USE lib_random_func
-      USE string_convert_mod
+USE string_convert_mod
 USE precision_mod
 USE str_comp_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER                                    , INTENT(IN)  :: imd 
-      LOGICAL                                    , INTENT(OUT) :: lend 
-      LOGICAL                                    , INTENT(OUT) :: l_ok 
-      CHARACTER (LEN=*)                          , INTENT(OUT) :: infile 
-      REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_dimen
-      REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_idimen
-      REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_matrix
-      INTEGER                                    , INTENT(IN)  :: MK_MAX_SCAT
-      CHARACTER (LEN=*), DIMENSION(0:MK_MAX_SCAT), INTENT(IN)  :: mk_at_lis
+INTEGER                                    , INTENT(IN)  :: imd 
+LOGICAL                                    , INTENT(OUT) :: lend 
+LOGICAL                                    , INTENT(OUT) :: l_ok 
+CHARACTER (LEN=*)                          , INTENT(OUT) :: infile 
+REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_dimen
+REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_idimen
+REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_matrix
+INTEGER                                    , INTENT(IN)  :: MK_MAX_SCAT
+CHARACTER (LEN=*), DIMENSION(0:MK_MAX_SCAT), INTENT(IN)  :: mk_at_lis
 !                                                                       
-      CHARACTER(LEN=PREC_STRING) :: line
+CHARACTER(LEN=PREC_STRING) :: line
 !                                                                       
-      INTEGER i, j, ii 
-      REAL xyz (3) 
-      REAL     :: size_sigma
-      INTEGER  :: dummy_iscat
-      INTEGER  :: dummy_prop
-      INTEGER  :: dummy_mole
-      INTEGER  :: dummy_moleatom
-      INTEGER, DIMENSION(0:3)  :: dummy_surf
-      REAL   , DIMENSION(0:3)  :: dummy_magn
+INTEGER  :: i, j, ii 
+REAL     :: xyz (3) 
+REAL     :: size_sigma
+INTEGER  :: dummy_iscat
+INTEGER  :: dummy_prop
+INTEGER  :: dummy_mole
+INTEGER  :: dummy_moleatom
+INTEGER, DIMENSION(0:3)  :: dummy_surf
+REAL   , DIMENSION(0:3)  :: dummy_magn
 !                                                                       
-!                                                                       
-!     do i=1,4                                                          
-!       do j=1,4                                                        
-!         mc_dimen (i,j) = 0.0                                          
-!         mc_idimen(i,j) = 0.0                                          
-!         mc_matrix(i,j) = 0.0                                          
-!       ENDDO                                                           
-!       mc_dimen (i,i) = 1.0                                            
-!       mc_idimen(i,i) = 1.0                                            
-!       mc_matrix(i,i) = 1.0                                            
-!     ENDDO                                                             
 !                                                                       
 ii = 0
 clu_current = 0
-      l_ok = .false.                 ! Assume pseudoatom is incorrect
-      IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
-         clu_iatom = clu_iatom + 1   ! Increment internal atom number
-         CALL struc_read_one_atom_internal(clu_infile, clu_iatom,  &
-              xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_magn, dummy_mole, dummy_moleatom )
-         IF( ier_num == -105 ) THEN  ! read "end_of_file" 
-            lend    = .true.
-            ier_num = 0
-            ier_typ = ER_NONE
-            RETURN
-         ENDIF
-         WRITE(line, 1000) mk_at_lis(dummy_iscat), xyz ! copy into line
+l_ok = .false.                 ! Assume pseudoatom is incorrect
+IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
+   clu_iatom = clu_iatom + 1   ! Increment internal atom number
+   CALL struc_read_one_atom_internal(clu_infile, clu_iatom,  &
+        xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_magn, dummy_mole, dummy_moleatom )
+   IF( ier_num == -105 ) THEN  ! read "end_of_file" 
+      lend    = .true.
+      ier_num = 0
+      ier_typ = ER_NONE
+      RETURN
+   ENDIF
+   WRITE(line, 1000) mk_at_lis(dummy_iscat), xyz ! copy into line
 !if(clu_infile=='internal/STRU/cubo.0002.0001.pt') goto 1234
-      ELSE
-        READ (imd, '(a)', end = 999) line 
-      ENDIF
-      IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!'.AND.line.ne.char (13) )    &
-      THEN                                                              
-         CALL do_cap(line(1:4))
-         ii = 0 
-         DO i = 1, clu_number 
-         IF (str_comp (line (1:4), clu_name (i), 2, 4, 4) ) then 
-            ii = i 
-         ENDIF 
-         ENDDO 
+ELSE
+  READ (imd, '(a)', end = 999) line 
+ENDIF
+IF(line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!'.AND.line.ne.char(13)) THEN
+   CALL do_cap(line(1:4))
+   ii = 0 
+   DO i = 1, clu_number 
+      IF (str_comp (line (1:4), clu_name (i), 2, 4, 4) ) then 
+         ii = i 
+      ENDIF 
+   ENDDO 
 !read(*,*) i
 !                                                                       
-         IF (ii.eq.0) then 
-            ier_num = - 91 
-            ier_typ = ER_APPL 
-            ier_msg(1)  = ' Unknown pseudo atom name '//line(1:4)
-            RETURN 
-         ENDIF 
+   IF (ii.eq.0) then 
+      ier_num = - 91 
+      ier_typ = ER_APPL 
+      ier_msg(1)  = ' Unknown pseudo atom name '//line(1:4)
+      RETURN 
+   ENDIF 
 !                                                                       
-         infile = clu_content (ii) 
-         mc_type    = clu_character (ii) 
-         md_sep_fuz = clu_fuzzy (ii) 
-         READ (line (5:52), * ) xyz 
+   infile = clu_content (ii) 
+   mc_type    = clu_character (ii) 
+   md_sep_fuz = clu_fuzzy (ii) 
+   READ (line (5:52), * ) xyz 
 !                                                                       
-         DO i = 1, 3 
-         size_sigma = MAX(1. + gasdev(DBLE(clu_sigma(ii,i))), 0.01D0)
-         DO j = 1, 4 
+   DO i = 1, 3 
+      size_sigma = MAX(1. + gasdev(DBLE(clu_sigma(ii,i))), 0.01D0)
+      DO j = 1, 4 
          mc_dimen (i, j)  = MAX(clu_shape (ii, i, j) * size_sigma , 0.001 )
          mc_idimen (i, j) = MAX(clu_shape (ii, i, j) * size_sigma , 0.001 )
          mc_matrix (i, j) = clu_orient (ii, i, j) 
-         ENDDO 
-         mc_dimen (i, 4) = clu_shape (ii, i, 4) + xyz (i) 
-         mc_idimen (i, 4) = clu_shape (ii, i, 4) + xyz (i) 
-         mc_matrix (i, 4) = clu_orient (ii, i, 4) + xyz (i) 
-         mc_dimen (4, i) = 0.0 
-         mc_idimen (4, i) = 0.0 
-         mc_matrix (4, i) = 0.0 
-         ENDDO 
-         mc_dimen (4, i) = 1.0 
-         mc_idimen (4, i) = 1.0 
-         mc_matrix (4, i) = 1.0 
-         CALL invmat4 (mc_idimen) 
-         lend = .false. 
-         l_ok = .true.       ! Pseudoatom is fine
-      ENDIF 
+      ENDDO 
+      mc_dimen (i, 4) = clu_shape (ii, i, 4) + xyz (i) 
+      mc_idimen (i, 4) = clu_shape (ii, i, 4) + xyz (i) 
+      mc_matrix (i, 4) = clu_orient (ii, i, 4) + xyz (i) 
+      mc_dimen (4, i) = 0.0 
+      mc_idimen (4, i) = 0.0 
+      mc_matrix (4, i) = 0.0 
+   ENDDO 
+   mc_dimen (4, i) = 1.0 
+   mc_idimen (4, i) = 1.0 
+   mc_matrix (4, i) = 1.0 
+   CALL invmat4 (mc_idimen) 
+   lend = .false. 
+   l_ok = .true.       ! Pseudoatom is fine
+ENDIF 
 !DBG                                                                    
 !DBG      do i=1,4                                                      
 !DBG      write(*,2222) 'MC_DIMEN  ',(mc_dimen (i,j),j=1,4)             
@@ -1987,15 +2670,17 @@ clu_current = 0
 !DBG      ENDDO                                                         
 !DBG2222      format(a10,3(f8.3,2x),2x,f8.3)                            
 clu_current = ii                       ! Transfer current cluster type
-      RETURN 
+RETURN 
 !                                                                       
-  999 CONTINUE 
-      lend = .true. 
+999 CONTINUE 
+lend = .true. 
 !
 1000  FORMAT(a4, 3(f16.8))
 !                                                                       
-      END SUBROUTINE micro_read_simple              
+END SUBROUTINE micro_read_simple              
+!
 !*****7*****************************************************************
+!
       SUBROUTINE micro_fuzzy_rem (mk_dim, natoms_old, mk_natoms,        &
       md_sep_fuz, w, shortest, mc_type, MD_DOMAIN_FUZZY)                                          
 !-                                                                      
