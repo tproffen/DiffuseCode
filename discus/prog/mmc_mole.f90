@@ -40,6 +40,7 @@ logical                      :: lout
 logical                      :: loop
 LOGICAL, DIMENSION(3)        :: old_chem_period     ! Original periodic boundary conditions
 REAL                         :: rel_cycl
+real(kind=PREC_SP), dimension(2) :: maxdev = (/ 0.0, 0.0/)
 !
 call mmc_initial(old_chem_period, itry, igen, iacc_good, iacc_neut, iacc_bad, &
            done, loop)
@@ -59,7 +60,7 @@ lfeed = .false.
 lout      = .FALSE.
 lfinished = .FALSE.
 lfeed     = .FALSE.
-CALL mmc_correlations (lout, 0.0, done, lfinished, lfeed)
+CALL mmc_correlations (lout, 0.0, done, lfinished, lfeed, maxdev)
 !
 !
 call symm_store                                    ! save symmetry settings
@@ -78,7 +79,7 @@ IF(lout_feed) THEN
 ENDIF
 lfinished = .TRUE.
 lfeed     = .FALSE.   ! no feedback algorithm
-CALL mmc_correlations (lout_feed, rel_cycl, done, lfinished, lfeed)
+CALL mmc_correlations (lout_feed, rel_cycl, done, lfinished, lfeed, maxdev)
 !
 call symm_restore                                  ! restore symmetry settings
 chem_period = old_chem_period                      ! Restore boundary conditions
@@ -125,6 +126,7 @@ real(kind=PREC_SP), dimension(0:MC_N_ENERGY) :: e_old        ! old energies
 real(kind=PREC_SP), dimension(0:MC_N_ENERGY) :: e_new        ! new energies
 !
 real(kind=PREC_SP), dimension(:,:), allocatable :: orig_pos  ! original atom positions
+real(kind=PREC_SP), dimension(2) :: maxdev = (/ 0.0, 0.0/)
 !
 call mmc_select_mole(isel, nmoles, is_move)                                                   ! Select move shift/rotate
 !write(*,*) ' SELECTED MOLE ', isel, 'NM ',nmoles, 'MOVE ',is_move
@@ -144,7 +146,7 @@ if(mod(itry, imodulus)==0) then
              iacc_good, iacc_neut, iacc_bad
 !
    rel_cycl = REAL(itry)/REAL(mo_cyc)*REAL(NTHREADS)
-   CALL mmc_correlations(lout_feed, rel_cycl, done, .FALSE., lfeed)
+   CALL mmc_correlations(lout_feed, rel_cycl, done, .FALSE., lfeed, maxdev)
 
 endif
 !

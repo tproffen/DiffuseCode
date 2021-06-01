@@ -51,7 +51,7 @@ INTEGER             ::  MMC_BUCK_SCAT      =  0
 INTEGER             ::  MMC_REP_CORR       =  0
 INTEGER             ::  MMC_REP_SCAT       =  0
 !
-INTEGER             ::  MMC_H_NNNN         =  3
+INTEGER             ::  MMC_H_NNNN         =  5
 !
 LOGICAL             ::  mmc_style          = MMC_IS_ATOM
 !
@@ -92,19 +92,30 @@ REAL , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ach_sigm    ! (CHEM_MAX_COR,0:MC_
 REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_const       ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cfac        ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 REAL , DIMENSION(:)      , ALLOCATABLE ::  mmc_depth_def   ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
+REAL , DIMENSION(:,:,:,:)  , ALLOCATABLE ::  mmc_pid_diff    ! PID Difference term
+REAL , DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_pid_inte    ! PID Integral term
+REAL , DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_pid_deri    ! PID Differential term
+REAL , DIMENSION(3,2)                    ::  mmc_pid_pid     ! PID PID parameters, Average of (diff, inte,dervi)
+integer                                  :: mmc_pid_pid_n    ! Number of correlations contributing
+real(kind=PREC_SP) :: mmc_pid_change = 0.0
+REAL , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_pre_corr    ! Previous correlation 
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE ::  mmc_pneig       ! (0:DEF_MAXSCAT, 0:DEF_MAXSCAT, 1:CHEM_MAX_COR)
 !
+logical                                :: mmc_feed_auto=.FALSE.  ! Set Feedback cycles automatically
 REAL, DIMENSION(:,:)     , ALLOCATABLE :: mmc_h_diff             ! history of achieved correlation differences
 INTEGER                                :: mmc_h_number= 0        ! Number of achieved targets
 INTEGER                                :: mmc_h_ctarg = 0        ! Number of current  target 
 INTEGER                                :: mmc_h_index = 0        ! Current cycle entry in achieved history
+INTEGER                                :: mmc_m_index = 0        ! Maximum number of feedback cycles so far
 INTEGER                                :: mmc_h_ncycl = 0        ! Number of feedback cycles achieved
 REAL, DIMENSION(:)       , ALLOCATABLE :: mmc_h_targ             ! Target values
 REAL, DIMENSION(:)       , ALLOCATABLE :: mmc_h_aver             ! average changes from cycle to cycle
+REAL, DIMENSION(:)       , ALLOCATABLE :: mmc_h_aver_r           ! average changes from cycle to cycle
 REAL, DIMENSION(:,:)     , ALLOCATABLE :: mmc_h_maxd             ! Maximum change from cycle to cycle
-REAL                                   :: mmc_h_conv_m = 0.090   ! convergence Maximum difference to target over last cycles
-REAL                                   :: mmc_h_conv_c = 0.050   ! convergence Maximum change in difference over last cycles
-REAL                                   :: mmc_h_conv_a = 0.001   ! convergence average change in difference over last cycles
+REAL                                   :: mmc_h_conv_m = 1.0E10  ! convergence Maximum difference to target over last cycles
+REAL                                   :: mmc_h_conv_r = 1.0E10  ! convergence Maximum difference to target over last cycles
+REAL                                   :: mmc_h_conv_c = 1.0E10  ! convergence Maximum change in difference over last cycles
+REAL                                   :: mmc_h_conv_a = 1.0E10  ! convergence average change in difference over last cycles
 LOGICAL                                :: mmc_h_stop   = .TRUE.  ! stop upon cycles==F or convergence==T
 INTEGER                                :: mmc_h_nfeed  = 0       ! Number of feed back this run
 !

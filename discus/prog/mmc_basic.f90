@@ -56,6 +56,7 @@ n_scat = MAX(MAXSCAT, MMC_MAX_SCAT, 3)    ! 3 is needed for 'group'
 n_site = MAX(MAXSCAT, MMC_MAX_SITE)
 n_mole = MOLE_MAX_TYPE
 call alloc_mmc      (CHEM_MAX_COR, MC_N_ENERGY, MAXSCAT, n_site)
+call alloc_mmc_pid  (CHEM_MAX_COR, MC_N_ENERGY, MAXSCAT, n_site)
 IF (mmc_n_angles == 0          .OR.     &
     mmc_n_angles >= MMC_MAX_ANGLES) THEN 
    n_angles = max(mmc_n_angles+20, int(MMC_MAX_ANGLES*1.025))
@@ -72,18 +73,21 @@ IF(CHEM_MAX_COR>UBOUND(mmc_rep_a ,1) .OR. MAXSCAT>UBOUND(mmc_rep_a ,2)) THEN
 ENDIF
 !
 mmc_h_nfeed = 0                                   ! Clear overall feedback run counter
-IF(ALLOCATED(mmc_h_diff)) DEALLOCATE(mmc_h_diff)
-IF(ALLOCATED(mmc_h_targ)) DEALLOCATE(mmc_h_targ)
-IF(ALLOCATED(mmc_h_aver)) DEALLOCATE(mmc_h_aver)
-IF(ALLOCATED(mmc_h_maxd)) DEALLOCATE(mmc_h_maxd)
-ALLOCATE(mmc_h_diff(mmc_h_number+10,0:MMC_H_NNNN-1))
-ALLOCATE(mmc_h_targ(mmc_h_number+10))
-ALLOCATE(mmc_h_aver(mmc_h_number+10))
-ALLOCATE(mmc_h_maxd(mmc_h_number+10, 0:MMC_H_NNNN-1))
-mmc_h_diff= 0.0
-mmc_h_targ= 0.0
-mmc_h_aver= 1.0E20
-mmc_h_maxd= 1.0E20
+IF(ALLOCATED(mmc_h_diff  )) DEALLOCATE(mmc_h_diff)
+IF(ALLOCATED(mmc_h_targ  )) DEALLOCATE(mmc_h_targ)
+IF(ALLOCATED(mmc_h_aver  )) DEALLOCATE(mmc_h_aver)
+IF(ALLOCATED(mmc_h_aver_r)) DEALLOCATE(mmc_h_aver_r)
+IF(ALLOCATED(mmc_h_maxd  )) DEALLOCATE(mmc_h_maxd)
+ALLOCATE(mmc_h_diff  (mmc_h_number+10,0:MMC_H_NNNN-1))
+ALLOCATE(mmc_h_targ  (mmc_h_number+10))
+ALLOCATE(mmc_h_aver  (mmc_h_number+10))
+ALLOCATE(mmc_h_aver_r(mmc_h_number+10))
+ALLOCATE(mmc_h_maxd  (mmc_h_number+10, 0:MMC_H_NNNN-1))
+mmc_h_diff   = 0.0
+mmc_h_targ   = 0.0
+mmc_h_aver   = 0.0
+mmc_h_aver_r = 0.0
+mmc_h_maxd   = 0.0
 !
 !
 n_e_av_p = 0                                 ! Initialize counters for energy changes
@@ -104,6 +108,16 @@ done = .TRUE.
 !lbeg(1) = -1 
 !lbeg(2) =  0 
 !lbeg(3) =  0 
+mmc_pid_diff = 0.0
+mmc_pid_inte = 0.0
+mmc_pid_deri = 0.0
+mmc_pre_corr = 0.0
+mmc_pid_pid  = 0.0
+mmc_pid_pid(1,1) = 0.30
+mmc_pid_pid(2,1) = 0.05   !0.06
+mmc_pid_pid(3,1) =-0.10
+mmc_pid_pid_n = 0
+mmc_pid_change = 0.0
 !
 end subroutine mmc_initial
 !
@@ -186,9 +200,9 @@ ENDIF
 !                                                                       
 END SUBROUTINE mmc_test_multi                 
 !
-!*****7*****************************************************************
+!*****7*************************************************************************
 !
-SUBROUTINE mmc_correlations (lout, rel_cycl, done, lfinished, lfeed) 
+SUBROUTINE mmc_correlations (lout, rel_cycl, done, lfinished, lfeed, maxdev) 
 !-                                                                      
 !     Determines the achieved correlations                              
 !                                                                       
@@ -215,6 +229,7 @@ REAL    , INTENT(IN) :: rel_cycl ! Relative progress along cycles
 LOGICAL , INTENT(INOUT) :: done     ! MMC is converged/ stagnates
 LOGICAL , INTENT(IN)    :: lfinished ! MMC is finished
 LOGICAL , INTENT(IN)    :: lfeed     ! Perform feedback algorithm
+real(kind=PREC_SP), dimension(2), intent(inout) :: maxdev
 ! 
 !                                                                       
 CHARACTER(LEN=30) :: energy_name (0:MC_N_ENERGY) 
@@ -224,6 +239,7 @@ INTEGER :: is, js, ls
 INTEGER :: iis, jjs, lls, iic, kk 
 INTEGER :: i, j, k, l 
 INTEGER :: icent 
+!
 !                                                                       
 LOGICAL :: searching 
 !LOGICAL   :: lfirst = .TRUE.  ! Flag to write output only at first instance
@@ -239,6 +255,8 @@ REAL(KIND=PREC_SP), DIMENSION(:,:), ALLOCATABLE :: bl_sum ! (0:DEF_maxscat, 0:DE
 REAL(KIND=PREC_SP), DIMENSION(:,:), ALLOCATABLE :: bl_s2  ! (0:DEF_maxscat, 0:DEF_maxscat) 
 REAL :: u (3), v (3), d (3) 
 REAL :: dist 
+real(kind=PREC_SP) :: change    ! Changes in (target-achieved) from feedback to feedback
+real(kind=PREC_SP), dimension(4), save :: conv_val ! Convergence values
 !REAL :: divisor
 !
 INTEGER :: n_cn
@@ -275,7 +293,11 @@ DATA energy_name / 'none', 'Chemical correlation    ', 'Displacement correlation
      'Repulsive     potential ',     'Coordination number     ', &
      'Unidirectional corr     ',     'Groupwise    correlation' /         
 !
+mmc_pid_pid(:,2) = 0.0    ! Reset all average (diff, inte, deriv) terms
+mmc_pid_pid_n    = 0      ! Reset counter of contributing correlations
 damp = 0.01 + 0.99*exp(-4.0*rel_cycl)
+damp = 0.01 + 0.99*exp(-4.0*rel_cycl**2)
+!damp = 1.0
 !
 ALLOCATE(patom(3, 0:MAX_ATOM_ENV, MMC_MAX_CENT))
 ALLOCATE(iatom(0:MAX_ATOM_ENV, MMC_MAX_CENT))
@@ -295,21 +317,22 @@ ALLOCATE( p_cn(0:MAXSCAT, 0:MAXSCAT))
 !ALLOCATE( pneig(0:MAXSCAT, 0:MAXSCAT, 1:CHEM_MAX_COR) )
 !
 IF(.NOT.ALLOCATED(mmc_h_diff) ) THEN
-   ALLOCATE(mmc_h_diff(1:mmc_h_number + 10,0:MMC_H_NNNN-1))
-   ALLOCATE(mmc_h_targ(mmc_h_number+10))
-   ALLOCATE(mmc_h_aver(mmc_h_number+10))
-   ALLOCATE(mmc_h_maxd(mmc_h_number+10,0:MMC_H_NNNN-1))
+   ALLOCATE(mmc_h_diff  (1:mmc_h_number + 10,0:MMC_H_NNNN-1))
+   ALLOCATE(mmc_h_targ  (mmc_h_number+10))
+   ALLOCATE(mmc_h_aver  (mmc_h_number+10))
+   ALLOCATE(mmc_h_aver_r(mmc_h_number+10))
+   ALLOCATE(mmc_h_maxd  (mmc_h_number+10,0:MMC_H_NNNN-1))
    mmc_h_diff  = 0.0
    mmc_h_targ  = 0.0
-   mmc_h_aver  = 1.0E20
-   mmc_h_maxd  = 1.0E20
+   mmc_h_aver  = 0.0
+   mmc_h_aver_r= 0.0
+   mmc_h_maxd  = 0.0
    mmc_h_index =  -1
    mmc_h_ncycl =  0
-   mmc_h_aver  =  0.0
-   mmc_h_maxd  =  1.0E20
 ENDIF
 mmc_h_ctarg = 0          ! Start with no targets in history
 mmc_h_index = MOD(mmc_h_index+1,MMC_H_NNNN)   ! increment current index
+mmc_m_index = max(mmc_m_index, mmc_h_index)   ! Record maximum number of feedback cycles so far
 mmc_h_nfeed = mmc_h_nfeed + 1                 ! Increment overall feedback counter
 !                                                                       
 !------ Write title line                                                
@@ -474,26 +497,43 @@ loop_neig:  DO j = 1, natom (icent)
 !                                                                       
 !     ----------- Chemical correlation, add number of atom pairs        
 !                                                                       
+!write(*,*) is, js
+!write(*,*) mmc_left (ic, MC_GROUP,:), ' | ', &
+!mmc_left (ic, MC_GROUP,is),  &
+!mmc_left (ic, MC_GROUP,js)
+
+!write(*,*) mmc_right(ic, MC_GROUP,:), ' | ',  &
+!mmc_right(ic, MC_GROUP,is), &
+!mmc_right(ic, MC_GROUP,js)
+
                   IF(mmc_left (ic, MC_GROUP,is)/=0) THEN                    ! (A) => 
                      IF(    mmc_right(ic, MC_GROUP,js)/=0) THEN                ! (A) => (B) 
                         mmc_pneig (1 , 2, ic ) = mmc_pneig (1 , 2, ic ) + 1 
+!write(*,*) ' (A) => (B)'
                      ELSEIF(mmc_left (ic, MC_GROUP,js)/=0) THEN                ! (A) => (A)
                         mmc_pneig (1 , 1, ic ) = mmc_pneig (1 , 1, ic ) + 1 
+!write(*,*) ' (A) => (A)'
                      ELSE                                                      ! (A) => (other)
                         mmc_pneig (1 , 3, ic ) = mmc_pneig (1 , 3, ic ) + 1 
+!write(*,*) ' (A) => (o)'
                      ENDIF
                   ELSEIF(mmc_right(ic, MC_GROUP,is)/=0) THEN                ! (B) =>
                      IF(    mmc_left (ic, MC_GROUP,js)/=0) THEN                ! (B) => (A)
                         mmc_pneig (2 , 1, ic ) = mmc_pneig (2 , 1, ic ) + 1 
+!write(*,*) ' (B) => (A)'
                      ELSEIF(mmc_right(ic, MC_GROUP,js)/=0) THEN                ! (B) => (B) 
                         mmc_pneig (2 , 2, ic ) = mmc_pneig (2 , 2, ic ) + 1 
+!write(*,*) ' (B) => (B)'
                      ELSE                                                      ! (B) => (other)
                         mmc_pneig (2 , 3, ic ) = mmc_pneig (2 , 3, ic ) + 1 
+!write(*,*) ' (B) => (o)'
                      ENDIF
                   ELSE
                      mmc_pneig (3 , 3, ic ) = mmc_pneig (3 , 3, ic ) + 1       ! (other) => (other)
+!write(*,*) ' (o) => (o)'
                   ENDIF
                ENDIF 
+!read(*,*) k
 !
 !
 !--- Coordination number, ic
@@ -604,19 +644,22 @@ ENDDO main_atoms       ! i     ! Loop over all atoms
 !     ----- Chemical correlation                                        
 !                                                                       
 IF (mmc_cor_energy (0, MC_OCC)) THEN
-   CALL mmc_correlations_occ(ic, mmc_pneig, rel_cycl, damp, lout, lfeed, max(MAXSCAT,3), CHEM_MAX_COR)
+   CALL mmc_correlations_occ(ic, mmc_pneig, rel_cycl, damp, lout, lfeed,        &
+        max(MAXSCAT,3), CHEM_MAX_COR, maxdev)
 ENDIF
 !                                                                       
 !     ----- Unidirectional Chemical correlation                                        
 !                                                                       
 IF (mmc_cor_energy (0, MC_UNI)) THEN
-   CALL mmc_correlations_uni(ic, mmc_pneig, rel_cycl, damp, lout, lfeed, max(MAXSCAT,3), CHEM_MAX_COR)
+   CALL mmc_correlations_uni(ic, mmc_pneig, rel_cycl, damp, lout, lfeed,        &
+        max(MAXSCAT,3), CHEM_MAX_COR, maxdev)
 ENDIF
 !                                                                       
 !     ----- Group wise correlations
 !                                                                       
 IF (mmc_cor_energy (0, MC_GROUP)) THEN
-CALL mmc_correlations_group(ic, mmc_pneig, rel_cycl, damp, lout, lfeed, max(MAXSCAT,3), CHEM_MAX_COR)
+CALL mmc_correlations_group(ic, mmc_pneig, rel_cycl, damp, lout, lfeed,         &
+     max(MAXSCAT,3), CHEM_MAX_COR, maxdev)
 ENDIF
 !
 !  Coordination number
@@ -950,6 +993,40 @@ repu_pair: DO is = 0, cr_nscat
    ENDDO buck_pair
 ENDDO main_corr
 !
+if(lfeed) then
+!          mmc_pid_pid(1,2) = mmc_pid_pid(1,2) + sum(mmc_pid_deri(ic, MC_OCC, is, js, :)) ! Derivat. PID ==> P
+!          mmc_pid_pid(2,2) = mmc_pid_pid(2,2) + mmc_pid_diff(ic, MC_OCC, is, js)         ! Integral PID ==> I
+!          mmc_pid_pid(3,2) = mmc_pid_pid(3,2) + change                                   ! Change       ==> D
+!          mmc_pid_pid_n    = mmc_pid_pid_n + 1
+   if(mmc_pid_pid_n > 0 ) then
+      mmc_pid_pid(1,2) = mmc_pid_pid(1,2) / mmc_pid_pid_n
+      mmc_pid_pid(2,2) = mmc_pid_pid(2,2) / mmc_pid_pid_n
+      mmc_pid_pid(3,2) = mmc_pid_pid(3,2) / mmc_pid_pid_n
+   endif
+!          mmc_pid_pid_n    = mmc_pid_pid_n + 1
+   if(mmc_pid_pid(1,2)>0.0) then
+      mmc_pid_pid(1,1) = min(mmc_pid_pid(1,1) * 1.05, 1.000)
+   else
+      mmc_pid_pid(1,1) = max(mmc_pid_pid(1,1) * 0.90, 0.001)
+   endif
+   if(mmc_pid_pid(2,2) > 0) then
+      mmc_pid_pid(2,1) = min(mmc_pid_pid(2,1) * 1.025, 1.000)
+   else
+      mmc_pid_pid(2,1) = max(mmc_pid_pid(2,1) * 0.950, 0.001)
+   endif
+   if(abs(mmc_pid_pid(3,2)) > mmc_pid_change) then
+      mmc_pid_pid(3,1) = min(mmc_pid_pid(3,1) * 0.950, 1.000)
+   else
+      if(mmc_pid_pid(3,1)>0.0) then
+         mmc_pid_pid(3,1) = max(mmc_pid_pid(3,1) * 1.025, 0.001)
+      elseif(mmc_pid_pid(3,1)<0.0) then
+         mmc_pid_pid(3,1) = min(mmc_pid_pid(3,1) * 1.025,-0.001)
+      endif
+   endif
+   mmc_pid_change = abs(mmc_pid_pid(3,2))
+endif
+!
+!
 DEALLOCATE(ncentral)
 DEALLOCATE(patom)
 DEALLOCATE(iatom)
@@ -972,33 +1049,85 @@ DEALLOCATE( p_cn)
 !
 done = .FALSE.
 IF(mmc_h_stop) THEN     ! Apply convergence criteria
-   mmc_h_nfeed = mmc_h_nfeed + 1            ! Increment overall Feedback cycles 
    IF(.NOT.lfinished .AND.mmc_h_ctarg>0) THEN
-   DO i=1, mmc_h_number
-      j = MOD(mmc_h_index+2,MMC_H_NNNN)     ! Increment Feedback number
-      mmc_h_aver(i) = mmc_h_diff(i,0)       ! initialize average over MMC_H_NNNN feedbacks
-      DO is = 1, MMC_H_NNNN-1
-         mmc_h_aver(i) = mmc_h_aver(i) + mmc_h_diff(i,is)
-      ENDDO
-      mmc_h_aver(i) = mmc_h_aver(i)/MMC_H_NNNN
-      mmc_h_maxd(i,mmc_h_index) = (mmc_h_diff(i,mmc_h_index) - mmc_h_diff(i,j))
-      IF(mmc_h_targ(i) /= 0.0) THEN         ! Normalize relative to target value
-         mmc_h_aver(i) = ABS(mmc_h_aver(i)/mmc_h_targ(i))
-         mmc_h_maxd(i,mmc_h_index) = (mmc_h_maxd(i,mmc_h_index)/mmc_h_targ(i))
-      ENDIF
-   ENDDO
+!
+      mmc_h_aver  = 0.0                     ! Initialize average changes in difference (target -achieved)
+      mmc_h_aver_r= 0.0                     ! Initialize maximum changes in difference (target -achieved)
+      if(mmc_m_index>0) then                ! We need at least feedback cycles 0 and 1
+         conv_val = 0.0
+         do i = 1, mmc_h_number             ! Loop over all targets
+            do is = 0,mmc_m_index -1        ! Loop over all feedback cycles but one
+               j = mod(is+1, MMC_H_NNNN)   ! Next cycle after is
+               change = (mmc_h_diff(i,j) - mmc_h_diff(i,is))
+               if(mmc_h_targ(i) /= 0.0)  change = change / mmc_h_targ(i)   ! Relative change
+               mmc_h_aver(i) = mmc_h_aver(i) + change                      ! Accumulate all changes feedback to feedback
+               mmc_h_aver_r(i) = max(mmc_h_aver_r(i), abs(change))             ! Determine maximum absolute change
+            enddo
+            mmc_h_aver = mmc_h_aver / mmc_m_index
+            if(mmc_h_targ(i)/=0.0) then
+               conv_val(2) = max(conv_val(2), abs(mmc_h_diff(i,mmc_h_index))/abs(mmc_h_targ(i)))
+            endif
+         enddo
+         conv_val(1) = maxval(abs(mmc_h_diff(1:mmc_h_number,mmc_h_index)))   ! Maximum difference (target-achieved)
+!        conv_val(2) = maxval(abs(mmc_h_diff(1:mmc_h_number,mmc_h_index))/abs(mmc_h_targ(1:mmc_h_number)), &
+!                             mmc_h_targ(1:mmc_h_number) > 0.0)              ! Maximum difference (target-achieved)/target
+         conv_val(3) = maxval(mmc_h_aver(1:mmc_h_number))                    ! Average change between feedbacks
+         conv_val(4) = maxval(mmc_h_aver_r(1:mmc_h_number))                    ! Maximum change between feedbacks
+      else
+         conv_val = 1.0e20                  ! No convergence yet
+      endif
+!write(output_io, '(a,5i5)    ') ' INDEX               ', mmc_h_index, mmc_m_index, mmc_h_number, MMC_H_NNNN, mmc_h_nfeed
+!do is = 0, mmc_m_index                                     ! Only for actual feedback cycles
+!  WRITE(output_io,'(a,i3,10F8.4)') 'Target-Achieved      ', is, abs(mmc_h_diff(1:mmc_h_number,is)) ,  &
+!                                                            maxval(abs(mmc_h_diff(1:mmc_h_number,is))),  &
+!                                                            conv_val(1), mmc_h_conv_m
+!enddo
+!do is = 0, mmc_m_index                                     ! Only for actual feedback cycles
+!  change = 0
+!  do i = 1, mmc_h_number
+!    change = max(change, abs(mmc_h_diff(i,is)/mmc_h_targ(i)))
+!  enddo
+!  WRITE(output_io,'(a,i3,10F8.4)') 'Target-Achieved rel  ', is, (abs(mmc_h_diff(i,is)/mmc_h_targ(i)),i=1,mmc_h_number), &
+!                                                            change, conv_val(2), mmc_h_conv_r
+!enddo
+!write(output_io,'(a,1x,10F8.4)') 'Average changes        ', mmc_h_aver(1:mmc_h_number),  conv_val(3), mmc_h_conv_a
+!write(output_io,'(a,1x,10F8.4)') 'Maximum changes        ', mmc_h_aver_r(1:mmc_h_number),conv_val(4), mmc_h_conv_c
+!write(output_io,'(a,4l3)')       'Convergence             ', &
+!          conv_val(1) < mmc_h_conv_m ,     conv_val(2) < mmc_h_conv_r ,         &
+!          conv_val(3) < mmc_h_conv_a ,     conv_val(4) < mmc_h_conv_c 
+maxdev(1) = conv_val(1)
+maxdev(2) = conv_val(2)
+!write(*,*) '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+!  DO i=1, mmc_h_number                     ! Loop over all targets
+!     j = MOD(mmc_h_index+2,MMC_H_NNNN)     ! Increment Feedback number
+!     mmc_h_aver(i) = mmc_h_diff(i,0)       ! initialize average deviations over MMC_H_NNNN feedbacks
+!     DO is = 1, MMC_H_NNNN-1
+!        mmc_h_aver(i) = mmc_h_aver(i) + mmc_h_diff(i,is)
+!     ENDDO
+!     mmc_h_aver  (i) = mmc_h_aver(i)/MMC_H_NNNN
+!     mmc_h_aver_r(i) = mmc_h_aver(i)/MMC_H_NNNN
+!     mmc_h_maxd(i,mmc_h_index) = (mmc_h_diff(i,mmc_h_index) - mmc_h_diff(i,j))
+!     IF(mmc_h_targ(i) /= 0.0) THEN         ! Normalize relative to target value
+!        mmc_h_aver_r(i) = ABS(mmc_h_aver_r(i)/mmc_h_targ(i))
+!        mmc_h_maxd(i,mmc_h_index) = (mmc_h_maxd(i,mmc_h_index)/mmc_h_targ(i))
+!     ENDIF
+!  ENDDO
 !mmc_h_ctarg
    ENDIF
 !write(*,*) mmc_h_nfeed , mmc_h_nfeed > 2
-   done = mmc_h_nfeed > 2                                         .AND.     &
-          MAXVAL(    mmc_h_aver(1:mmc_h_ctarg))    < mmc_h_conv_m .AND.     &
-          MAXVAL(ABS(mmc_h_maxd(1:mmc_h_ctarg,:))) < mmc_h_conv_c .AND.     &
-          ABS(SUM(mmc_h_maxd(1:mmc_h_ctarg,0:MMC_H_NNNN-1)))/               &
-             (REAL(mmc_h_ctarg*MMC_H_NNNN))   < mmc_h_conv_a
+   done = mmc_h_nfeed >= MMC_H_NNNN                                   .and.     &
+          conv_val(1) < mmc_h_conv_m .and. conv_val(2) < mmc_h_conv_r .and.     &
+          conv_val(3) < mmc_h_conv_a .and. conv_val(4) < mmc_h_conv_c 
+!         MAXVAL(    mmc_h_aver  (1:mmc_h_ctarg))    < mmc_h_conv_m .AND.     &
+!         MAXVAL(    mmc_h_aver_r(1:mmc_h_ctarg))    < mmc_h_conv_r .AND.     &
+!         MAXVAL(ABS(mmc_h_maxd  (1:mmc_h_ctarg,:))) < mmc_h_conv_c .AND.     &
+!         ABS(SUM(mmc_h_maxd(1:mmc_h_ctarg,0:MMC_H_NNNN-1)))/               &
+!            (REAL(mmc_h_ctarg*MMC_H_NNNN))   < mmc_h_conv_a
 !if(mmc_h_ctarg>0) then
-!WRITE(output_io,'(a,10F8.4)') ' Convergence criterium ', mmc_h_aver(1:mmc_h_ctarg), mmc_h_conv_m
-!DO is = 0, MMC_H_NNNN-1
-!WRITE(output_io,'(a,10F8.4)') ' Stagnant    changes   ', (mmc_h_maxd(1:mmc_h_ctarg,is))
+!WRITE(output_io,'(a,10F8.4)') ' Average deviations    ', mmc_h_aver  (1:mmc_h_ctarg), mmc_h_conv_m
+!WRITE(output_io,'(a,10F8.4)') ' Average rel. deviation', mmc_h_aver_r(1:mmc_h_ctarg), mmc_h_conv_r
+!DO is = 0, mmc_m_index                                     ! Only for actual feedback cycles
+!  WRITE(output_io,'(a,10F8.4)') ' Differences           ', (mmc_h_maxd(1:mmc_h_ctarg,is))
 !enddo
 !WRITE(output_io,'(a,10F8.4)') ' Stagnant    largest   ', MAXVAL(ABS(mmc_h_maxd(1:mmc_h_ctarg,:))), &
 ! mmc_h_conv_c
@@ -1009,23 +1138,27 @@ IF(mmc_h_stop) THEN     ! Apply convergence criteria
    IF(lout .AND. lfinished) THEN
       WRITE(output_io,*)
       IF(done) THEN
-         WRITE(output_io,'(a,f6.0,a,i3,a)') ' Convergence reached after ',  &
-            rel_cycl*100., ' % of user cycles', &
+         WRITE(output_io,'(a,f6.0,a,i3,a)') ' Convergence reached after ',      &
+            rel_cycl*100., ' % of user cycles',                                 &
             MMC_H_NNNN, ' Feedbacks averaged'
+         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Largest          difference ',   &
+            conv_val(1), ' < ', mmc_h_conv_m
+         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Largest relative difference ',   &
+            conv_val(2), ' < ', mmc_h_conv_r
+         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Stagnant: average changes   ',   &
+            conv_val(3), ' < ', mmc_h_conv_a
+         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Stagnant: largest changes   ',   &
+            conv_val(4), ' < ', mmc_h_conv_c
       ELSEIF(rel_cycl==1.0) THEN
          WRITE(output_io,*) 'Maximum Cycles reached '
-      ENDIF
-      IF(done .OR. rel_cycl==1.0) THEN
-      WRITE(output_io,'(a,f8.4,a, f8.4)') ' Largest relative difference ',    &
-            MAXVAL(mmc_h_aver(1:mmc_h_number)), ' < ',                  &
-            mmc_h_conv_m
-      WRITE(output_io,'(a,f8.4,a, f8.4)') ' Stagnant: largest changes   ',    &
-            MAXVAL(ABS(mmc_h_maxd(1:mmc_h_number,:))), ' < ',           &
-            mmc_h_conv_c
-      WRITE(output_io,'(a,f8.4,a, f8.4)') ' Stagnant: average changes   ',    &
-            ABS(SUM(mmc_h_maxd(1:mmc_h_ctarg,0:MMC_H_NNNN-1)))/         &
-            (REAL(mmc_h_ctarg*MMC_H_NNNN)), ' < ', mmc_h_conv_a
-      WRITE(output_io,*)
+         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Largest          difference ',   &
+            conv_val(1), ' ? ', mmc_h_conv_m
+         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Largest relative difference ',   &
+            conv_val(2), ' ? ', mmc_h_conv_r
+         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Stagnant: average changes   ',   &
+            conv_val(3), ' ? ', mmc_h_conv_a
+         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Stagnant: largest changes   ',   &
+            conv_val(4), ' ? ', mmc_h_conv_c
       ENDIF
    ENDIF
 ENDIF
@@ -1058,7 +1191,7 @@ END SUBROUTINE mmc_correlations
 !*******************************************************************************
 !
 SUBROUTINE mmc_correlations_occ(ic, pneig, rel_cycl, damp, lout, lfeed, MAXSCAT_L, &
-                                MAX_COR)
+                                MAX_COR, maxdev)
 !
 !     ----- Chemical correlation                                        
 !
@@ -1079,8 +1212,9 @@ REAL   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
 REAL   , INTENT(IN) :: damp
 LOGICAL, INTENT(IN) :: lout
 LOGICAL, INTENT(IN) :: lfeed
+real(kind=PREC_SP), dimension(2), intent(inout) :: maxdev
 !
-!integer, save :: j = 0
+!
 INTEGER :: pair11
 INTEGER :: pair12
 INTEGER :: pair21
@@ -1092,6 +1226,7 @@ REAL :: prob11, prob12, prob22
 REAL(PREC_SP) :: thet, thet2
 REAL(PREC_SP) :: divisor
 REAL(PREC_SP) :: change
+integer :: k
 !
 je = MC_OCC 
 prob11 = 0.0
@@ -1102,6 +1237,7 @@ pair12 = 0
 pair21 = 0
 pair22 = 0
 thet   = 0.0
+k = 0
 DO is = 0, cr_nscat 
 !IF(MAxVAL(mmc_pair (ic, MC_OCC, is, 0:cr_nscat))>0 .OR.   &
 !   minval(mmc_pair (ic, MC_OCC, is, 0:cr_nscat))<0      ) then
@@ -1162,54 +1298,44 @@ corr_pair: DO is = 0, cr_nscat
            divisor = 1.0
         ENDIF
         IF_FEED: IF(lfeed) THEN
-        IF_RELC: IF(rel_cycl>0.0) THEN
-           change = mmc_cfac(ic, MC_OCC) * (mmc_target_corr(ic, MC_OCC, is, js) -      &
-                                            mmc_ach_corr   (ic, MC_OCC, is, js) ) / 2.0& !divisor &
-                   *ABS(mmc_target_corr(ic, MC_OCC, is, js)) * damp
+           IF_RELC: IF(rel_cycl>0.0) THEN
+              call calc_change_pid(ic, MC_OCC, is, js, damp, divisor, 1.0, maxdev, change)
 !
-           IF(mmc_target_corr(ic, MC_OCC, is, js)*mmc_ach_corr(ic, MC_OCC, is, js)>=0.0  .AND. &
-              mmc_depth(ic, MC_OCC, is, js)*(mmc_depth(ic, MC_OCC, is, js)-change)<0.0         ) THEN
-               change = -mmc_depth(ic, MC_OCC, is, js)*0.005
-           ENDIF
+!          change = mmc_cfac(ic, MC_OCC) * (mmc_target_corr(ic, MC_OCC, is, js) -      &
+!                                           mmc_ach_corr   (ic, MC_OCC, is, js) ) / 0.1& !divisor &
+!                  *ABS(mmc_target_corr(ic, MC_OCC, is, js)) * damp
 !
-!Qif(ic==1.and.is==1 .and. js==1) then
-!Q  j = j + 1
-!Qwrite(88,'(1(i6), 1x, 7(f10.6,1x),2l2)') j, mmc_depth (ic, MC_OCC, is, js), & 
-!Qmmc_target_corr(ic, MC_OCC, is, js), mmc_ach_corr   (ic, MC_OCC, is, js), &
-!Qmmc_target_corr(ic, MC_OCC, is, js)- mmc_ach_corr   (ic, MC_OCC, is, js), &
-!Q (mmc_target_corr(ic, MC_OCC, is, js)-                               &
-!Q  mmc_ach_corr   (ic, MC_OCC, is, js) ) / 2., damp, -change  !         , &
-!Q!
-!Q!mmc_target_corr(ic, MC_OCC, is, js)*mmc_ach_corr(ic, MC_OCC, is, js)>=0.0, &
-!Q!mmc_depth(ic, MC_OCC, is, js)*(mmc_depth(ic, MC_OCC, is, js)-change)<0.0
-!Q!change, &
-!Q!-mmc_cfac (ic, MC_OCC) * (mmc_target_corr(ic, MC_OCC, is, js)- &
-!Q!                          mmc_ach_corr   (ic, MC_OCC, is, js) ) / 1. &
-!Q!        *ABS(mmc_target_corr (ic, MC_OCC, is, js)) &
-!Q!        * damp
-!Q!
-!Q!mmc_depth (ic, MC_OCC, js, is), mmc_depth (ic, MC_OCC, 0,0), &
-!Qendif
-           mmc_depth(ic, MC_OCC, is, js) = mmc_depth (ic, MC_OCC, is, js) - change
-           mmc_depth(ic, MC_OCC, js, is) = mmc_depth (ic, MC_OCC, is, js)
-        ENDIF IF_RELC
-        ENDIF IF_FEED
+               IF(mmc_target_corr(ic, MC_OCC, is, js)*mmc_ach_corr(ic, MC_OCC, is, js)>=0.0  .AND. &
+                  mmc_depth(ic, MC_OCC, is, js)*(mmc_depth(ic, MC_OCC, is, js)+change)<0.0         ) THEN
+                   change = -mmc_depth(ic, MC_OCC, is, js)*0.005
+               ENDIF
+!
+               mmc_depth(ic, MC_OCC, is, js) = mmc_depth (ic, MC_OCC, is, js) + change
+               mmc_depth(ic, MC_OCC, js, is) = mmc_depth (ic, MC_OCC, is, js)
+            ENDIF IF_RELC
+         ENDIF IF_FEED
 !                                                                       
-        IF (lout .AND. mmc_pair(ic,MC_OCC,is,js) < 0 .AND. lfirst) THEN
-           mmc_h_ctarg = mmc_h_ctarg + 1          ! Increment targets in history
-           mmc_h_diff(mmc_h_ctarg, mmc_h_index) = mmc_target_corr(ic, je, is, js) - &
-                                                  mmc_ach_corr   (ic, je, is, js)
-           mmc_h_targ(mmc_h_ctarg)              = mmc_target_corr(ic, je, is, js)
-           lfirst = .FALSE.
-           WRITE (output_io, 3100) ic, cr_at_lis (is), cr_at_lis (js),         &
-               mmc_target_corr(ic, je, is, js),                                &
-               mmc_ach_corr   (ic, je, is, js),                                &
-               mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js), &
-              (mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js))/divisor, &
-               nneigh
-!write(*,*) ' DEPTH ', mmc_depth(ic, MC_OCC, 1:2, 1:2), change
+!if(ic==1 .and. rel_cycl==0.0) then
+!write(88,'(5g18.6e3)') rel_cycl, mmc_ach_corr(ic, je,1,2),mmc_depth(ic, MC_OCC, 1,2), change, damp
+!endif
+         IF (lout .AND. mmc_pair(ic,MC_OCC,is,js) < 0 .AND. lfirst) THEN
+!if(ic==1 .and. lfeed) then
+!write(88,'(5g18.6e3)') rel_cycl, mmc_ach_corr(ic, je,1,2),mmc_depth(ic, MC_OCC, 1,2), change, damp
+!endif
+            mmc_h_ctarg = mmc_h_ctarg + 1          ! Increment targets in history
+            mmc_h_diff(mmc_h_ctarg, mmc_h_index) = mmc_target_corr(ic, je, is, js) - &
+                                                   mmc_ach_corr   (ic, je, is, js)
+            mmc_h_targ(mmc_h_ctarg)              = mmc_target_corr(ic, je, is, js)
+            lfirst = .FALSE.
+            WRITE (output_io, 3100) ic, cr_at_lis (is), cr_at_lis (js),         &
+                mmc_target_corr(ic, je, is, js),                                &
+                mmc_ach_corr   (ic, je, is, js),                                &
+                mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js), &
+               (mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js))/divisor, &
+                nneigh
+!write(*,*) ' DEPTH , change ', mmc_depth(ic, MC_OCC  , 1:2, 1:2), -change
 !                                                                     
-        ENDIF 
+         ENDIF 
 !                                                                       
       ENDIF 
    ENDDO 
@@ -1222,8 +1348,59 @@ END SUBROUTINE mmc_correlations_occ
 !
 !*******************************************************************************
 !
+subroutine calc_change_pid(ic, ie, is, js, damp, divisor, fact, maxdev, change)
+!-
+!  Calculate depth change and new PID parameters
+!+
+use mmc_mod
+!
+use precision_mod
+!
+implicit none
+!
+integer,            intent(in)  :: ic
+integer,            intent(in)  :: ie
+integer,            intent(in)  :: is
+integer,            intent(in)  :: js
+real   ,            intent(in)  :: damp
+real(kind=PREC_SP),               intent(in)    :: divisor
+real(kind=PREC_SP),               intent(in)    :: fact
+real(kind=PREC_SP), dimension(2), intent(inout) :: maxdev
+real(kind=PREC_SP), intent(out) :: change
+!
+real(kind=PREC_SP) :: mmc_pid_summ
+real(kind=PREC_SP) :: mmc_pid_dddd
+!
+mmc_pid_diff(ic, ie, is, js) = mmc_target_corr(ic, ie, is, js) -                &    ! Proportional
+                                   mmc_ach_corr   (ic, ie, is, js) 
+mmc_pid_inte(ic, ie, is, js, mmc_h_index) =                                     &    ! Integral
+                                   mmc_pid_diff(ic, ie, is, js)
+mmc_pid_summ = sum(mmc_pid_inte(ic, ie, is, js, :))
+mmc_pid_deri(ic, ie, is, js, mmc_h_index) =                                     &    ! Derivative
+                                   mmc_ach_corr   (ic, ie, is, js) -            &
+                                   mmc_pre_corr   (ic, ie, is, js)
+mmc_pid_dddd = sum(mmc_pid_deri(ic, ie, is, js, :))
+mmc_pre_corr   (ic, ie, is, js) = mmc_ach_corr   (ic, ie, is, js)
+change = -(mmc_pid_pid(1,1) * mmc_pid_diff(ic, ie, is, js) +                    &
+           mmc_pid_pid(2,1) * mmc_pid_summ                 +                    &
+           mmc_pid_pid(3,1) * mmc_pid_dddd                   ) * damp
+!
+!
+mmc_pid_pid(1,2) = mmc_pid_pid(1,2) + sum(mmc_pid_deri(ic, ie, is, js, :))*fact ! Derivat. PID ==> P
+mmc_pid_pid(2,2) = mmc_pid_pid(2,2) + mmc_pid_diff(ic, ie, is, js)        *fact ! Integral PID ==> I
+mmc_pid_pid(3,2) = mmc_pid_pid(3,2) + change                              *fact ! Change       ==> D
+mmc_pid_pid_n    = mmc_pid_pid_n + 1
+maxdev(1) = max(maxdev(1), abs( mmc_target_corr(ic, ie, is, js) -               &
+                                mmc_ach_corr   (ic, ie, is, js)))
+maxdev(2) = max(maxdev(2), abs((mmc_target_corr(ic, ie, is, js) -               &
+                                mmc_ach_corr   (ic, ie, is, js))/divisor))
+!
+end subroutine calc_change_pid
+!
+!*******************************************************************************
+!
 SUBROUTINE mmc_correlations_uni(ic, pneig, rel_cycl, damp, lout, lfeed, MAXSCAT_L, &
-                                MAX_COR)
+                                MAX_COR, maxdev)
 !
 !     ----- Chemical correlation                                        
 !
@@ -1244,6 +1421,7 @@ REAL   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
 REAL   , INTENT(IN) :: damp
 LOGICAL, INTENT(IN) :: lout
 LOGICAL, INTENT(IN) :: lfeed
+real(kind=PREC_SP), dimension(2), intent(inout) :: maxdev
 !
 INTEGER :: pair11
 INTEGER :: pair12
@@ -1256,6 +1434,7 @@ LOGICAL :: lfirst
 REAL(PREC_SP) :: thet
 REAL(PREC_SP) :: divisor
 REAL(PREC_SP) :: change
+REAL(PREC_SP) :: fact
 !integer :: iwr, j=0
 !
 pair11 = 0
@@ -1317,15 +1496,22 @@ corr_pair: DO is = 0, cr_nscat
         ELSE
            divisor = 1.0
         ENDIF
+        if(mmc_target_corr(ic, MC_UNI, is, js)<0.0) then
+          fact = -1.0          ! Adjust shift for PID parameters
+        else
+          fact =  1.0
+        endif
         IF_FEED: IF(lfeed) THEN
         IF_RELC: IF(rel_cycl>0.0) THEN
-           change= mmc_cfac (ic, MC_UNI) * (mmc_target_corr(ic, MC_UNI, is, js)-     &
-                                            mmc_ach_corr   (ic, MC_UNI, is, js) )/2. &
-                  *ABS(mmc_target_corr (ic, MC_UNI, is, js)) * damp
-           IF(mmc_target_corr(ic, MC_UNI, is, js)*mmc_ach_corr(ic, MC_UNI, is, js)>=0.0  .AND. &
-              mmc_depth(ic, MC_UNI, is, js)*(mmc_depth(ic, MC_UNI, is, js)-change)<0.0         ) THEN
-               change = -mmc_depth(ic, MC_UNI, is, js)*0.005
-           ENDIF
+              call calc_change_pid(ic, MC_UNI, is, js, damp, divisor, fact, maxdev,  change)
+           change = -change
+!CHANGE    change= mmc_cfac (ic, MC_UNI) * (mmc_target_corr(ic, MC_UNI, is, js)-     &
+!CHANGE                                     mmc_ach_corr   (ic, MC_UNI, is, js) )/2. &
+!CHANGE           *ABS(mmc_target_corr (ic, MC_UNI, is, js)) * damp
+!CHANGE    IF(mmc_target_corr(ic, MC_UNI, is, js)*mmc_ach_corr(ic, MC_UNI, is, js)>=0.0  .AND. &
+!CHANGE       mmc_depth(ic, MC_UNI, is, js)*(mmc_depth(ic, MC_UNI, is, js)-change)<0.0         ) THEN
+!CHANGE        change = -mmc_depth(ic, MC_UNI, is, js)*0.005
+!CHANGE    ENDIF
 !          mmc_depth (ic, MC_UNI, is, js) = mmc_depth      (ic, MC_UNI, is, js)    - &
 !                  mmc_cfac (ic, MC_UNI) * (mmc_target_corr(ic, MC_UNI, is, js)-     &
 !                                           mmc_ach_corr   (ic, MC_UNI, is, js) )/2. &
@@ -1358,7 +1544,7 @@ corr_pair: DO is = 0, cr_nscat
                mmc_target_corr (ic, je, is, js) - mmc_ach_corr (ic,je, is, js),&
               (mmc_target_corr (ic, je, is, js) - mmc_ach_corr (ic,je, is, js))/divisor,&
                nneigh
-!write(*,*) ' DEPTH ', mmc_depth(ic, MC_UNI, 1:2, 1:2), change
+write(*,*) ' DEPTH ', mmc_depth(ic, MC_UNI, 1:2, 1:2), change
         ENDIF 
 !                                                                       
       ENDIF 
@@ -1375,7 +1561,7 @@ END SUBROUTINE mmc_correlations_uni
 !*******************************************************************************
 !
 SUBROUTINE mmc_correlations_group(ic, pneig, rel_cycl, damp, lout, lfeed, MAXSCAT_L, &
-                                MAX_COR)
+                                MAX_COR, maxdev)
 !
 !     ----- Chemical correlation                                        
 !
@@ -1396,6 +1582,7 @@ REAL   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
 REAL   , INTENT(IN) :: damp
 LOGICAL, INTENT(IN) :: lout
 LOGICAL, INTENT(IN) :: lfeed
+real(kind=PREC_SP), dimension(2), intent(inout) :: maxdev
 !
 INTEGER :: pair11
 INTEGER :: pair12
@@ -1411,6 +1598,7 @@ REAL(PREC_SP) :: depth
 REAL(PREC_SP) :: thet
 REAL(PREC_SP) :: divisor
 REAL(PREC_SP) :: change
+real(kind=PREC_SP) :: fact
 !integer :: iwr, j=0
 !write(*,*) ' IN GROUP CORRELATIONS ', ic, lout, lfeed
 !
@@ -1427,6 +1615,8 @@ pair22 = pneig(2, 2, ic)
 je = MC_GROUP 
 !                                                                       
 nneigh = pair11 + pair12 + pair21 + pair22 + pneig(1,3,ic) + pneig(2,3,ic) + pneig(3,3,ic) 
+!write(*,*) ' LEFT     ', mmc_left( ic, MC_GROUP,:)
+!write(*,*) ' RIGHT    ', mmc_right(ic, MC_GROUP,:)
 !write(*,*) ' PAIRS 1,:', pneig(1,1:3, ic) 
 !write(*,*) ' PAIRS 2,:', pneig(2,1:3, ic) 
 !write(*,*) ' PAIRS 3,:', pneig(3,1:3, ic) , sum(pneig)
@@ -1458,18 +1648,30 @@ IF(target_corr /= 0.0) then
 ELSE
    divisor = 1.0
 ENDIF
+if(target_corr<0.0) then
+  fact = -1.0          ! Adjust shift for PID parameters
+else
+  fact = +1.0
+endif
 !write(*,*) ' Achieved ', achieved, prob11, prob12, prob22, thet, target_corr
+mmc_ach_corr(ic, MC_GROUP, is, js) = achieved
 !write(*,*) ' IS, JS ', is, js, divisor
 IF_FEED: IF(lfeed) THEN
    IF_RELC: IF(rel_cycl>0.0) THEN
       CFAC: IF(mmc_cfac(ic, MC_GROUP)>0.0) THEN
-      change = mmc_cfac (ic, MC_GROUP) * (target_corr- achieved)/2.             &
-                                       * ABS(target_corr) * damp
-      IF(target_corr*achieved>=0.0  .AND. &
-              mmc_depth(ic, MC_GROUP, is, js)*(mmc_depth(ic, MC_GROUP, is, js)-change)<0.0         ) THEN
-         change = -mmc_depth(ic, MC_GROUP, is, js)*0.005
-      ENDIF
+!write(*,*) ' GROUP ', is, js
+              call calc_change_pid(ic, MC_GROUP, is, js,  damp, divisor, fact, maxdev,  change)
+!     change = mmc_cfac (ic, MC_GROUP) * (target_corr- achieved)/2.             &
+!                                      * ABS(target_corr) * damp
+!write(*,*) '         CHANGE ', mmc_cfac (ic, MC_GROUP) , (target_corr- achieved)/2.,            &
+!                                        ABS(target_corr) , damp, change
+       change = -change
+!SIG  IF(target_corr*achieved>=0.0  .AND. &
+!SIG          mmc_depth(ic, MC_GROUP, is, js)*(mmc_depth(ic, MC_GROUP, is, js)-change)<0.0         ) THEN
+!SIG     change = -mmc_depth(ic, MC_GROUP, is, js)*0.005
+!SIG  ENDIF
       mmc_depth(ic, MC_GROUP, is, js) = mmc_depth (ic, MC_GROUP, is, js) - change
+      mmc_depth(ic, MC_GROUP, js, is) = mmc_depth (ic, MC_GROUP, is, js)
       depth = mmc_depth(ic, MC_GROUP, is, js)
 !     mmc_depth_def = ABS(depth)
 
@@ -1505,7 +1707,7 @@ IF(lout .AND. lfirst) THEN
    WRITE(output_io, 3100) ic, 'GR1 ', 'GR2 ', target_corr, achieved ,          &
          target_corr - achieved, (target_corr - achieved)/divisor, pneig(1,2,ic) !nneigh
 ENDIF
-!write(*,*) ' DEPTH , change ', depth, mmc_depth(ic, MC_GROUP, 1:1, 1:1), -change
+!write(*,*) ' DEPTH , change ', mmc_depth(ic, MC_GROUP, 1:2, 1:2), -change
 !     ENDIF 
 !do is=0,cr_nscat
 !write(*,'(a,12f7.2)') ' Depth  ',mmc_depth(ic, MC_GROUP, is, :)
