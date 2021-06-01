@@ -3449,6 +3449,15 @@ IF (ianz.ge.1) THEN
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+   elseif(str_comp(cpara(1), 'lammps', 2, lpara(1) , 6) ) THEN 
+      if (ianz >= 2) then 
+         call del_params(1, ianz, cpara, lpara, maxw) 
+         if (ier_num /= 0) return 
+         call lammps2discus(ianz, cpara, lpara, MAXW, ofile) 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
    ELSEIF (str_comp (cpara (1) , 'rmcprofile', 2, lpara (1) , 10) ) THEN 
       IF(lpresent(O_SORT)) THEN
          IF(str_comp(opara(O_SORT), 'discus', 6, lopara(O_SORT), 6)) THEN
@@ -5622,6 +5631,171 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       DEALLOCATE(rawline)
 !
       END SUBROUTINE cif2discus
+!
+!*******************************************************************************
+!
+subroutine lammps2discus(ianz, cpara, lpara, MAXW, ofile) 
+!-                                                                      
+!     converts a LAMMPS file to DISCUS                   
+!+                                                                      
+!                                                                       
+!use tensors_mod
+use build_name_mod
+!use wink_mod
+!use ber_params_mod
+!use blanks_mod
+!use get_params_mod
+!use lib_length
+use precision_mod
+!use string_convert_mod
+use support_mod
+use trig_degree_mod
+!
+implicit none 
+!                                                                       
+integer                             , intent(inout) :: ianz 
+integer                             , intent(in)    :: MAXW 
+character (LEN=*), DIMENSION(1:MAXW), intent(inout) :: cpara
+integer          , DIMENSION(1:MAXW), intent(inout) :: lpara
+character(LEN=*)                    , intent(out)   :: ofile 
+!                                                                       
+integer, parameter :: ird = 34
+integer, parameter :: iwr = 35
+!
+character(len=PREC_STRING) :: infile      ! Input file 
+character(len=PREC_STRING) :: line        ! Input line 
+character(len=PREC_STRING) :: title       ! Crystal structure title line
+character(len=4), dimension(4) :: catom   ! Atom names
+integer :: i, j                           ! Dummy counters
+integer :: ios                            ! I/O status flag
+integer :: natoms                         ! Grand number of atoms
+integer :: nr                             ! Atom number
+integer :: id                             ! Atom type
+real(kind=PREC_DP), dimension(3)    :: xyz  ! Atom coordinates bounding box
+real(kind=PREC_DP), DIMENSION(MAXW) :: werte
+real(kind=PREC_DP) :: xlo_bound, xhi_bound, xy  ! Bounding box parameters 
+real(kind=PREC_DP) :: ylo_bound, yhi_bound, xz
+real(kind=PREC_DP) :: zlo_bound, zhi_bound, yz
+real(kind=PREC_DP) :: lx, ly, lz                ! Bounding box lengths
+real(kind=PREC_DP), DIMENSION(3,2 ) :: xyz_lh   ! LAMMPS xlow xhigh etc
+real(kind=PREC_DP), DIMENSION(6)    :: lat      ! lattice parametersetc
+!                                                                       
+!     Create input / output file name
+!
+CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+IF (ier_num.ne.0) THEN 
+   RETURN 
+ENDIF 
+infile = cpara (1) 
+i = index (infile, '.',.true.)                  ! find last occurence of '.'
+IF (i.eq.0) THEN 
+   infile = cpara(1)(1:lpara(1)) //'.out' 
+   ofile  = cpara(1)(1:lpara(1)) //'.stru' 
+   title  = cpara(1)(1:lpara(1))
+ELSE 
+   IF(    cpara(1)(lpara(1)-3:lpara(1)) == '.out') THEN
+      ofile  = cpara (1) (1:lpara(1)-3) //'stru' 
+   ELSEIF(cpara(1)(lpara(1)-3:lpara(1)) == '.OUT') THEN
+      ofile  = cpara (1) (1:lpara(1)-3) //'stru' 
+   ELSE
+      ofile  = cpara (1) (1:i) //'stru'
+   ENDIF
+ENDIF 
+!
+CALL oeffne(ird, infile, 'old') 
+IF (ier_num.ne.0) THEN 
+   RETURN 
+ENDIF 
+!
+!  Read header section 
+!
+header: do
+   read(ird,'(a)', iostat=ios) line
+   if(is_iostat_end(ios)) then
+      ier_num = 6
+      ier_typ = ER_IO
+      ier_msg(1) = 'LAMMPS header ended unexpectedly'
+      close(ird)
+      return
+   endif
+   if(line(1:5)=='ITEM:') then
+      if(line(7:14)=='TIMESTEP') then
+         read(ird,'(a)', iostat=ios) line
+         title = title(1:len_trim(title)) // ' LAMMPS Timestep ' // line(1:len_trim(line))
+      elseif(line(7:21)=='NUMBER OF ATOMS') then
+         read(ird,'(a)', iostat=ios) line
+         read(line,*) natoms
+      elseif(line(7:16)=='BOX BOUNDS') then
+         if(line(18:25)=='xy xz yz') then
+            read(ird,'(a)', iostat=ios) line
+            read(line,*) xlo_bound, xhi_bound, xy
+            read(ird,'(a)', iostat=ios) line
+            read(line,*) ylo_bound, yhi_bound, xz
+            read(ird,'(a)', iostat=ios) line
+            read(line,*) zlo_bound, zhi_bound, yz
+!
+!write(*,*)               xlo_bound, xhi_bound, xy
+!write(*,*)               ylo_bound, yhi_bound, xz
+!write(*,*)               zlo_bound, zhi_bound, yz
+            xyz_lh(1,1) = xlo_bound - min(0.0D0,xy,xz,xy+xz)
+            xyz_lh(1,2) = xhi_bound - max(0.0D0,xy,xz,xy+xz)
+            xyz_lh(2,1) = ylo_bound - min(0.0D0,yz)
+            xyz_lh(2,2) = yhi_bound - max(0.0D0,yz)
+            xyz_lh(3,1) = zlo_bound
+            xyz_lh(3,2) = zhi_bound
+            lx = xyz_lh(1,2) - xyz_lh(1,1)
+            ly = xyz_lh(2,2) - xyz_lh(2,1)
+            lz = xyz_lh(3,2) - xyz_lh(3,1)
+!write(*,*) xyz_lh(1,:), lx
+!write(*,*) xyz_lh(2,:), ly
+!write(*,*) xyz_lh(3,:), lz
+            lat(1) = lx
+            lat(2) = sqrt( ly**2 + xy**2 )
+            lat(3) = sqrt( lz**2 + xz**2 + yz**2 )
+            lat(4) = acosd( (xy*xz + lx*yz)/lat(2)/lat(3))
+            lat(5) = acosd( xz/lat(3) )
+            lat(6) = acosd( xy/lat(2) )
+!write(*,'(a,6f10.4)') ' LATTICE PARA ', lat
+         endif
+      elseif(line(7:11)=='ATOMS') then
+         exit header                     ! Last header line, start to read atoms
+      endif
+   endif
+enddo header
+!
+open(IWR, file=ofile, status='unknown')
+write(IWR, '(a,a)') 'title ', title(1:len_trim(title))
+write(IWR, '(a)  ') 'spcgr P1'
+!write(IWR, '(a, 5(f10.6,a),f10.6)') 'cell ',(lat(i),',',i=1,5), lat(6)
+write(IWR, '(a, 5(f10.6,a),f10.6)') 'cell ',xhi_bound-xlo_bound,',',yhi_bound-ylo_bound,',', &
+ zhi_bound-zlo_bound,',', 90.0, ',', 90.0, ',', 90.0
+write(IWR, '(a)') 'atoms'
+!
+!  Loop over atoms
+!
+catom(1)  = 'Cl  '
+catom(2)  = 'Zn  '
+catom(3)  = 'H   '
+catom(4)  = 'O   '
+atoms: do j=1, natoms
+   read(ird,'(a)', iostat=ios) line
+   if(is_iostat_end(ios)) then
+      ier_num = 6
+      ier_typ = ER_IO
+      ier_msg(1) = 'LAMMPS atoms ended unexpectedly'
+      close(IRD)
+      close(IWR)
+      return
+   endif
+   read(line,*) nr, id, xyz
+   write(IWR, '(a4, 3(f9.6,a),f6.2)') catom(id), (xyz(i),',',i=1,3), 1.0
+enddo atoms
+close(IWR)
+close(IRD)
+!
+end subroutine lammps2discus
+!
+!*******************************************************************************
 !
       SUBROUTINE test_atom_name(lsymbol, at_name)
 !
