@@ -336,5 +336,43 @@ INTEGER, INTENT(IN) :: laenge
 END FUNCTION suche_nach_hoch
 !
 !****7***************************************************************** 
+integer function suche_pair(string, length, co, cc) result(ipos)
+!-
+!  Expects a string with opening bracket as first character.
+!  Find the pair wise closing barcket at the same level
+!+
+!
+implicit none
+!
+character(len=*), intent(in) :: string
+integer,          intent(in) :: length
+character(len=*), intent(in) :: co         ! Opening bracket '(', '['
+character(len=*), intent(in) :: cc         ! Closing bracket ')', ']'
+!
+integer :: i
+integer :: level
+!
+level = 0
+ipos  = 0
+if(string(1:1)/=co) then
+   ipos = -1
+   return
+endif
+!
+main_loop: do i=1, length
+   if(string(i:i)==co) then
+      level = level + 1
+   elseif(string(i:i)==cc) then
+      level = level - 1
+   endif
+   if(level==0) exit main_loop
+enddo main_loop
+if(level==0) then
+   ipos = i
+else
+   ipos = -1
+endif
+!
+end function suche_pair
 !
 END MODULE search_string_mod
