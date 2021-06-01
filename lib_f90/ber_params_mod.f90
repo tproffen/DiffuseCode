@@ -10,6 +10,7 @@ SUBROUTINE ber_params (ianz, cpara, lpara, werte, maxpara)
 !+                                                                      
 USE berechne_mod
 !USE calc_expr_mod
+use do_replace_expr_mod
 USE errlist_mod 
 USE precision_mod
 !
@@ -34,6 +35,7 @@ main: DO i = 1, ianz
    DO j=1, ll
       IF(IACHAR(line(j:j))==9) line(j:j) = ' '
    ENDDO
+   call do_replace_expr(line,ll)          ! Initially replace any "EXPR" 
    wert = berechne (line, ll) 
    IF (ier_num /= 0) EXIT main
    werte (i) = wert 
@@ -49,6 +51,7 @@ SUBROUTINE ber_param  (ipara, cpara, lpara, werte, maxpara)
 !+                                                                      
 USE berechne_mod
 !USE calc_expr_mod
+use do_replace_expr_mod
 USE errlist_mod 
 USE precision_mod
 !
@@ -73,6 +76,7 @@ i = ipara
    DO j=1, ll
       IF(IACHAR(line(j:j))==9) line(j:j) = ' '
    ENDDO
+   call do_replace_expr(line,ll)          ! Initially replace any "EXPR" 
    wert = berechne (line, ll) 
    IF (ier_num /= 0) RETURN
    werte (i) = wert 

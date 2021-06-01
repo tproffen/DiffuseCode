@@ -14,6 +14,7 @@ USE berechne_mod
 USE ber_params_mod
 USE constants_mod
 USE do_variable_mod
+use do_replace_expr_mod
 USE errlist_mod 
 USE do_string_alloc_mod
 USE get_params_mod
@@ -57,6 +58,9 @@ IF(var_is_type(1)== IS_UNKNOWN) THEN     ! unknown variable name on left side
    ier_typ = ER_FORT
    ier_msg(1) = 'Offending name is '//line(1:lll)
    RETURN
+elseif(var_is_type(1)== IS_EXPR) then
+   call do_set_expression (line, indxg, length)
+   return
 ENDIF
 IF(var_is_type(3)==IS_READ) THEN
    ier_num = -41
@@ -100,6 +104,7 @@ i     = lpara(1) + 2
 !     Calculate the expression                                          
 !                                                                       
 IF(var_is_type(1)/=IS_CHAR) THEN     ! Variable on left side is numeric
+      call do_replace_expr(zeile, i)
       wert = berechne (zeile, i) 
       IF (ier_num.eq.0) then 
 !                                                                       

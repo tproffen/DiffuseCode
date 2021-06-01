@@ -134,6 +134,7 @@ ELSE
                         ENDIF 
                      ENDDO 
                      CALL p_ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
+                     ll = len_trim(line)
                      IF (ier_num.ne.0) then 
                         RETURN 
                      ENDIF 
@@ -156,7 +157,7 @@ ELSE
 !                                                                       
 !                                                                       
          ikom = INDEX (line, ',') 
-         IF (ikom.eq.0) then 
+         IF (ikom.eq.0 .and. index(line,'(')==0) then 
             CALL eval (line, ll) 
             IF (ier_num.ne.0) then 
                RETURN 

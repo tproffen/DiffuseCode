@@ -7,7 +7,8 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               constants_mod.f90
               get_params_mod.f90 count_col_mod.f90 
               define_variable_mod.f90 dkdo.f90 do_echo_mod.f90 do_eval_mod.f90
-              do_execute_mod.f90 do_read_number_mod.f90 do_show_mod.f90 do_set_mod.f90
+              do_execute_mod.f90 do_read_number_mod.f90 do_replace_expr.f90
+              do_show_mod.f90 do_set_mod.f90
               do_string_alloc_mod.f90 do_variable_mod.f90 do_wait_mod.f90
               element_data_mod.f90
               errlist.f90 ersetz_mod.f90 ersetzl_mod.f90 exit_mod.f90

@@ -201,6 +201,7 @@ USE berechne_mod
 USE build_name_mod
 USE calc_expr_mod
 USE do_variable_mod
+use do_replace_expr_mod
 USE errlist_mod 
 USE get_params_mod
 USE precision_mod
@@ -321,6 +322,7 @@ icom_sig:         DO while (icom /= 0)
             lstring1 = .true. 
             ENDIF 
          ELSE 
+            call do_replace_expr(zeile, ll)
             w1 = berechne (zeile, ll) 
             IF (ier_num.ne.0) then 
                RETURN 
@@ -384,6 +386,7 @@ icom_sig:         DO while (icom /= 0)
                istring2_len = istring2 - istring1 - 1 
                lstring2 = .true. 
             ELSE 
+               call do_replace_expr(zeile, ll)
                w2 = berechne (zeile, ll) 
                IF (ier_num.ne.0) then 
                   RETURN 
@@ -972,6 +975,7 @@ LOGICAL FUNCTION is_expression(string)
 !
 USE berechne_mod
 USE calc_expr_mod
+use do_replace_expr_mod
 USE errlist_mod
 USE lib_errlist_func
 USE precision_mod
@@ -995,6 +999,7 @@ USE precision_mod
       IF(i2 >= i1) THEN
          line = '(' // string(i1:i2) // ')'
          length = LEN_TRIM(line)
+         call do_replace_expr(line, length)
          ww = berechne(line, length)
          IF(ier_num == 0) then
             is_expression = .TRUE.

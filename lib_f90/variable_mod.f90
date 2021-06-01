@@ -40,6 +40,7 @@ END TYPE var_arrays
    INTEGER, PARAMETER :: VAR_FIT_VALUE = 19
    INTEGER, PARAMETER :: VAR_SLOW      = 20
    INTEGER, PARAMETER :: VAR_LOOP      = 21
+   INTEGER, PARAMETER :: VAR_EXPRESSION= 22
 !
    INTEGER, PARAMETER :: VAR_clen      = 200
 !
@@ -55,6 +56,8 @@ END TYPE var_arrays
    INTEGER            , DIMENSION(VAR_MAX)   :: var_entry = 0   ! Entry in 2D variable list var_field
    LOGICAL            , DIMENSION(VAR_MAX)   :: var_diff  = .FALSE.   ! This is a DIFFEV variable yes/no
    REAL(KIND=PREC_DP) , DIMENSION(VAR_MAX)   :: var_val   = 0.0 ! Value for INT or REAL
+!
+   character(len=PREC_STRING), dimension(:), allocatable :: var_expr  ! Expressions to be analysed ar run time
 !
    TYPE(var_arrays), DIMENSION(VAR_MAX) :: var_field
 !
@@ -233,6 +236,14 @@ CONTAINS
    var_diff ( i) = .FALSE.
    var_val  ( i) = 0
 !
+   i = VAR_EXPRESSION
+   var_name ( i) = 'EXPR'           ! Generic loop variable 1
+   var_char ( i) = ' '
+   var_l    ( i) = 4
+   var_type ( i) = IS_EXPR
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = 0
+!
    var_con      = i                ! Store number of system "constants" set internally
 !
    i = i + 1
@@ -313,6 +324,7 @@ CONTAINS
    var_sys      = i
 !
    var_entry(1:i) = 0          ! all system variables are scalar, thus no entry
+   var_entry(VAR_EXPRESSION) = 1  ! 'EXPR' is a field
 !
    END SUBROUTINE variable_init
 !

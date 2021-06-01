@@ -16,6 +16,7 @@ USE get_params_mod
 USE lib_length
 USE precision_mod
 USE prompt_mod 
+use do_replace_expr_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -35,16 +36,17 @@ INTEGER :: indxg = 0
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
 !                                                                       
-      IF (line.eq.' ') then 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-         RETURN 
-      ELSE 
-WRITE(form_s,'(A,I2.2,a,I2.2,A)')  '('' Value of '',a,'' = '',g',PREC_WIDTH,'.',PREC_DIGIT,')'
+IF (line.eq.' ') then 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN 
+ELSE 
+   WRITE(form_s,'(A,I2.2,a,I2.2,A)')  '('' Value of '',a,'' = '',g',PREC_WIDTH,'.',PREC_DIGIT,')'
 !                                                                       
 !     String substitution???                                            
 !                                                                       
-      CALL rem_insig_bl(line,i)
+   CALL rem_insig_bl(line,i)
+   call do_replace_expr(line,i)
 !     IF (INDEX (line, '"') .gt.0.or.INDEX (line, '''') .gt.0 ) THEN
       IF (INDEX (line, '"')  == 1.or.INDEX (line, '''') == 1  ) THEN
          CALL do_string_alloc (line, indxg, i) 

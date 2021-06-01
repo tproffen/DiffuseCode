@@ -1,23 +1,30 @@
-MODULE lib_f90_default_mod
+module lib_f90_default_mod
 !
-USE lib_f90_allocate_mod
-USE param_mod
+use lib_f90_allocate_mod
+use param_mod
 !
-IMPLICIT NONE
+implicit none
 !
-CONTAINS
+contains
 !
-SUBROUTINE lib_alloc_default
+!*******************************************************************************
 !
-INTEGER :: n_res
-INTEGER :: n_para
+subroutine lib_alloc_default
+!
+integer :: n_res
+integer :: n_para
+integer :: n_expr
 !
 n_res = MAX(MAXPAR_RES, 6000)
-CALL alloc_param(n_res)
+call alloc_param(n_res)
 MAXPAR_RES = n_res
 n_para = 1
-CALL alloc_ref_para(n_para)
+call alloc_ref_para(n_para)
+n_expr = 1
+call alloc_expr(n_expr)
 !
-END SUBROUTINE lib_alloc_default
+end subroutine lib_alloc_default
 !
-END MODULE lib_f90_default_mod
+!*******************************************************************************
+!
+end module lib_f90_default_mod

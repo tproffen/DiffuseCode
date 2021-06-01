@@ -1,36 +1,61 @@
-MODULE lib_f90_allocate_mod
+module lib_f90_allocate_mod
 !
-USE allocate_generic
-USE errlist_mod
+use allocate_generic
+use errlist_mod
 !
-CONTAINS
+contains
 !
-   SUBROUTINE alloc_param(n_res)
+   subroutine alloc_param(n_res)
 !
-   USE param_mod
+   use param_mod
 !
-   IMPLICIT NONE
+   implicit none
 !
-   INTEGER, INTENT(IN)  :: n_res
-   INTEGER              :: all_status
-   INTEGER              :: size_of
+   integer, intent(in)  :: n_res
+   integer              :: all_status
+   integer              :: size_of
 !
-   CALL alloc_arr(res_para, 0, n_res, all_status, 0.0D0, size_of )
+   call alloc_arr(res_para, 0, n_res, all_status, 0.0D0, size_of )
 !
-   END SUBROUTINE alloc_param
+   end subroutine alloc_param
 !
-   SUBROUTINE alloc_ref_para(n_para)
+!*******************************************************************************
 !
-   USE param_mod
+   subroutine alloc_ref_para(n_para)
 !
-   IMPLICIT NONE
+   use param_mod
 !
-   INTEGER, INTENT(IN)  :: n_para
-   INTEGER              :: all_status
-   INTEGER              :: size_of
+   implicit none
 !
-   CALL alloc_arr(ref_para, 0, n_para, all_status, 0.0, size_of )
+   integer, intent(in)  :: n_para
+   integer              :: all_status
+   integer              :: size_of
+!
+   call alloc_arr(ref_para, 0, n_para, all_status, 0.0, size_of )
    MAXPAR_REF = n_para
 !
-   END SUBROUTINE alloc_ref_para
-END MODULE lib_f90_allocate_mod
+   end subroutine alloc_ref_para
+!
+!*******************************************************************************
+!
+subroutine alloc_expr(n_expr)
+!-
+!  Allocate the array for expressions
+!+
+!
+use variable_mod
+!
+implicit none
+!
+integer, intent(in)  :: n_expr
+integer              :: all_status
+integer              :: size_of
+!
+call alloc_arr(var_expr, 1, n_expr, all_status, ' ', size_of)
+var_entry(VAR_EXPRESSION) = n_expr    ! Store dimension
+!
+end subroutine alloc_expr
+!
+!*******************************************************************************
+!
+end module lib_f90_allocate_mod

@@ -45,10 +45,21 @@ IF (ianz.ge.2) THEN
 ENDIF 
 !                                                                       
 lcomm = length_com (string, ikl) 
+success = .FALSE.
+!
+!  Test for Expressions stored in var_exp
+!
+if(ikl-var_l(VAR_EXPRESSION)>=1) then      ! Enough space to search for "EXPR"
+   if(var_name(VAR_EXPRESSION) == string(ikl -  var_l(VAR_EXPRESSION):ikl-1)) then ! found "EXPR"
+      lcomm = var_l(VAR_EXPRESSION)
+      zeile(1:ikl - lcomm-1) = string(1:ikl - lcomm-1)
+      zeile(ikl-lcomm:ikl+len_trim(var_expr(kpara))) = var_expr(kpara)(1:len_trim(var_expr(kpara)))
+      success = .TRUE.
+   endif
+endif
 !
 !  Test User defined variable arrays
 !
-success = .FALSE.
 search_var: DO i=var_sys+1, var_num
 !write(*,*) 'search ', string(ikl - lcomm:ikl - 1),ikl, lcomm, iklz,ianz,'|',string(1:50)
 !  IF(var_name(i) == string(ikl - lcomm:ikl - 1)) THEN

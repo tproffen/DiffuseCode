@@ -600,6 +600,7 @@ USE blanks_mod
 USE build_name_mod
 USE calc_expr_mod
 USE debug_mod 
+use do_replace_expr_mod
 USE errlist_mod 
 USE get_params_mod
 USE lib_length
@@ -699,6 +700,7 @@ IF (ianz.ge.1) THEN
             cstr = '('//cpara (i) (1:lpara (i) ) //')' 
             lstr = lpara (i) + 2 
             CALL rem_bl (cstr, lstr) 
+            call do_replace_expr(cstr, lstr)
             wert = berechne (cstr, lstr) 
             IF (ier_num.ne.0) RETURN 
             IF (io_out_format (i) .eq.'(*)') THEN 

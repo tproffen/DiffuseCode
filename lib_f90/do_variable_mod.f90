@@ -85,7 +85,7 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
 !write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(substring),omask)
 !write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(substring),nmask)
 !write(*,*) '         123456789 123456789 1234567890'
-!write(*,'(1x,a,2i8)') '        ', ianf, var_l(i)
+!write(*,'(1x,a,3i8)') '        ', ianf, var_l(i), var_entry(i)
       IF(var_entry(i)>0) CYCLE names        ! This is a variable field
       zeile = ' ' 
       iend = ianf + var_l (i) - 1 
@@ -136,8 +136,9 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
          linsert = ll + 2 
       ENDIF 
       ll = laenge+linsert - (iend-ianf + 1) 
+!write(*,*) ' ll neu ', ll, laenge, linsert, ianf, iend, iend.lt.laenge
       IF(iend.lt.laenge) THEN
-!write(*,*) 'ADD   ',ianf+linsert, ll, iend+1, laenge
+!write(*,*) 'ADD   ',ianf+linsert, ll, iend+1, laenge, '>',substring(iend+1:laenge),'<'
          zeile(ianf + linsert:ll)       =substring(iend+1:laenge)
          lmask(ianf + linsert:ll,nmask) =lmask(    iend+1:laenge    ,omask)
 !        lmask(ianf + linsert:ll,nmask) =lmask(    ianf + linsert:ll,omask)
@@ -170,6 +171,7 @@ amask  = omask
 !write(*,*) ' LINE  X>', line(1:len_trim(line)),'<'
 !write(*,'(1x,a,90L1)') ' MASK  X>', lmask    (1:len_trim(zeile),omask)
 !write(*,*) ' OMASK NMASK ', omask, nmask, amask
+!rite(*,*) ' AFTER ERSETZ_VARIABLE >',line(1:len_trim(line)),'<' 
 !
 END SUBROUTINE ersetz_variable                
 !

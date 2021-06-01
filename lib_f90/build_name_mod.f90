@@ -11,6 +11,7 @@ SUBROUTINE do_build_name (ianz, cpara, lpara, werte, MAXW, fpara)
 !+                                                                      
 USE blanks_mod
 USE berechne_mod
+use do_replace_expr_mod
 USE errlist_mod 
 USE lib_length
 USE precision_mod
@@ -33,6 +34,7 @@ REAL(KIND=PREC_DP) , DIMENSION(MAXW), INTENT(INOUT) :: werte
 INTEGER                             , INTENT(IN)    :: fpara 
 !                                                                       
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: string 
+character(len=PREC_STRING) :: zeile
 !                                                                       
 CHARACTER(LEN=1), DIMENSION(NUM_FORM) :: c_form !(NUM_FORM) 
 CHARACTER(LEN=PREC_STRING) ::  fstring 
@@ -155,6 +157,7 @@ main: DO while (ind_d.ge.pos)
             ll = ll + 2 
             CALL rem_bl (line (1:ll), ll) 
             ier_num = 0 
+            call do_replace_expr(line, ll)
             wert = berechne (line, ll) 
             IF (ier_num.ne.0) THEN 
                ier_msg (1) = 'An error occurred while calculating' 
@@ -186,6 +189,7 @@ main: DO while (ind_d.ge.pos)
             IF (ind_p.gt.0) THEN 
                number = line (1:ind_p - 1) //')' 
                lp = ind_p 
+               call do_replace_expr(number, lp)
                itot = nint (berechne (number, lp) ) 
                IF (ier_num.ne.0) THEN 
                   ier_msg (1)  = 'An error occurred while calculating' 
@@ -197,6 +201,7 @@ main: DO while (ind_d.ge.pos)
                IF (ind_p.lt.ll - 1) THEN 
                   number = '('//line (ind_p + 1:ll) 
                   lp = ll - ind_p + 1 
+                  call do_replace_expr(number, lp)
                   idec = nint (berechne (number, lp) ) 
                   IF (ier_num.ne.0) THEN 
                      ier_msg (1)  = 'An error occurred while calculating' 
@@ -209,7 +214,9 @@ main: DO while (ind_d.ge.pos)
                   idec = 0 
                ENDIF 
             ELSE 
-               itot = nint (berechne (line (1:ll), ll) ) 
+               zeile = line(1:ll)
+               call do_replace_expr(zeile, ll)
+               itot = nint(berechne(zeile, ll) ) 
                IF (ier_num.ne.0) THEN 
                   ier_msg (1)  = 'An error occurred while calculating' 
                   ier_msg (2)  = 'the value of a format specifier    ' 
@@ -240,6 +247,7 @@ main: DO while (ind_d.ge.pos)
             ll = ll + 2 
             CALL rem_bl (line (1:ll), ll) 
             ier_num = 0 
+            call do_replace_expr(line, ll)
             wert = berechne (line, ll) 
             IF (ier_num.ne.0) THEN 
                ier_msg (1) = 'An error occurred while calculating' 
@@ -285,6 +293,7 @@ main: DO while (ind_d.ge.pos)
          line = '('//cpara (npara) (1:ll) //')' 
          ll = ll + 2 
          CALL rem_bl (line (1:ll), ll) 
+         call do_replace_expr(line, ll)
          wert = berechne (line, ll) 
          IF (ier_num.ne.0) THEN 
             cpara (fpara) = ' ' 
