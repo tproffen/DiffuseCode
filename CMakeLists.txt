@@ -80,32 +80,37 @@ option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" OFF)
 option(DIFFUSE_HDF5 "DIFFUSE_HDF5" ON )
 
 if ( DIFFUSE_HDF5 )
-  if ( NOT DEFINED ENV{HDF5_FORTRAN_SHARED_LIBRARY} )
-    message(FATAL_ERROR "The environment variable HDF5_FORTRAN_SHARED_LIBRARY is not set
-    Best execute the following two commands:
-    source $HOME/DIFFUSE_INSTALL/find_user.sh
-    source $HOME/DIFFUSE_INSTALL/prepare_hdf5.sh
-    ")
-#
-  else ()
-    if ( NOT DEFINED ENV{HDF5_FORTRAN_INCLUDE_DIR}) 
-      message(FATAL_ERROR "The environment variable HDF5_FORTRAN_INCLUDE_DIR is not set
-      Best execute the following two commands:
-      source $HOME/DIFFUSE_INSTALL/find_user.sh
-      source $HOME/DIFFUSE_INSTALL/prepare_hdf5.sh
-      ")
-    else ()
-      set (HDF5_FORTRAN_SHARED_LIBRARY "$ENV{HDF5_FORTRAN_SHARED_LIBRARY}")
-      set (HDF5_FORTRAN_INCLUDE_PATH "$ENV{HDF5_INC_DIR}")
-      message (STATUS " HDF5_FORTRAN_SHARED_LIBRARY ${HDF5_FORTRAN_SHARED_LIBRARY}")
-      message (STATUS " HDF5_FORTRAN_INCLUDE_PATH $ENV{HDF5_INC_DIR}")
-      set (LINK_LIBS ${LINK_LIBS} "${HDF5_FORTRAN_SHARED_LIBRARY}" )
-      INCLUDE_DIRECTORIES ("${HDF5_FORTRAN_INCLUDE_PATH}")
-    endif ()
-  endif ()
-#  
+  find_package(HDF5 REQUIRED)
+#HDF5_RBN  if ( NOT DEFINED ENV{HDF5_FORTRAN_SHARED_LIBRARY} )
+#HDF5_RBN    message(FATAL_ERROR "The environment variable HDF5_FORTRAN_SHARED_LIBRARY is not set
+#HDF5_RBN    Best execute the following two commands:
+#HDF5_RBN    source $HOME/DIFFUSE_INSTALL/find_user.sh
+#HDF5_RBN    source $HOME/DIFFUSE_INSTALL/prepare_hdf5.sh
+#HDF5_RBN    ")
+#HDF5_RBN#
+#HDF5_RBN  else ()
+#HDF5_RBN    if ( NOT DEFINED ENV{HDF5_FORTRAN_INCLUDE_DIR}) 
+#HDF5_RBN      message(FATAL_ERROR "The environment variable HDF5_FORTRAN_INCLUDE_DIR is not set
+#HDF5_RBN      Best execute the following two commands:
+#HDF5_RBN      source $HOME/DIFFUSE_INSTALL/find_user.sh
+#HDF5_RBN      source $HOME/DIFFUSE_INSTALL/prepare_hdf5.sh
+#HDF5_RBN      ")
+#HDF5_RBN    else ()
+#HDF5_RBN      set (HDF5_FORTRAN_SHARED_LIBRARY "$ENV{HDF5_FORTRAN_SHARED_LIBRARY}")
+#HDF5_RBN      set (HDF5_FORTRAN_INCLUDE_PATH "$ENV{HDF5_INC_DIR}")
+#HDF5_RBN      message (STATUS " HDF5_FORTRAN_SHARED_LIBRARY ${HDF5_FORTRAN_SHARED_LIBRARY}")
+#HDF5_RBN      message (STATUS " HDF5_FORTRAN_INCLUDE_PATH $ENV{HDF5_INC_DIR}")
+#HDF5_RBN      set (LINK_LIBS ${LINK_LIBS} "${HDF5_FORTRAN_SHARED_LIBRARY}" )
+#HDF5_RBN      INCLUDE_DIRECTORIES ("${HDF5_FORTRAN_INCLUDE_PATH}")
+#HDF5_RBN    endif ()
+#HDF5_RBN  endif ()
+#HDF5_RBN#  
+  set (LINK_LIBS ${LINK_LIBS} "${HDF5_FORTRAN_SHARED_LIBRARY}" )
+  INCLUDE_DIRECTORIES ("${HDF5_FORTRAN_INCLUDE_PATH}")
   message (status " HDF5 is ON  ${DIFFUSE_HDF5} ")
-  message (status " LINK_LIBS ${LINK_LIBS}")
+# message (status " LINK_LIBS ${LINK_LIBS}")
+# message (status " HDF5_LIBRARY ${HDF5_FORTRAN_SHARED_LIBRARY}" )
+# message (status " HDF5_INCLUDE ${HDF5_FORTRAN_INCLUDE_PATH}" )
 else ()
   message (status " HDF5 is OFF ${DIFFUSE_HDF5} ")
 endif ()
