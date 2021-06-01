@@ -256,7 +256,7 @@ COMPLEX(KIND=KIND(0.0D0)), DIMENSION(1:dimen(dsort(1)),                         
                                      1:dimen(dsort(2)),                         &
                                      1:dimen(dsort(3))), INTENT(OUT) :: fftfd
 !
-INTEGER :: loop, i,j,k, ii,jj, kk
+INTEGER :: i,j,k, ii,jj, kk
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
 INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
 !
@@ -524,7 +524,7 @@ COMPLEX(KIND=PREC_DP), DIMENSION(1:dimen(dsort(1)),                             
                                  1:dimen(dsort(2)),                              &
                                  1:dimen(dsort(3)))  , INTENT(IN) :: fftfd
 !
-INTEGER :: loop, i,j,k, ii,jj, kk
+INTEGER :: i,j,k, ii,jj, kk
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
 INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
 !
