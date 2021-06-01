@@ -1085,7 +1085,7 @@
    displayed on the screen ("on") or not ("off").
 3  para
 !p para 
-!p para <ip>,<pinc> [,<value>]  [,range:[lower:upper]]
+!p para <ip>,<pinc> [,<value>]  [,range:[lower,upper]]
 !p para { "save" | "load" }
 
    This command allows to modify the fit parameters. If the command 
