@@ -152,6 +152,7 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
+integer :: i,j
 INTEGER :: k,iscat
 INTEGER :: npkt
 REAL( KIND(0.0D0))             :: signum
@@ -167,7 +168,23 @@ stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking 
 !write(*,*) ' pha_frac   ', lbound(pha_frac), ubound(pha_frac), pha_frac
 !write(*,*) ' pha_weight ', lbound(pha_weight), ubound(pha_weight), pha_weight
    pha_weight(pha_curr) = cr_mass            ! Mass in multiples of u for this phase
-   pha_nscat(pha_curr)  = cr_nscat           ! Number of atom types for this phase
+   if(pow_l_partial) then
+      loop_partial: do i=1,cr_nscat
+         if(pow_do_partial(i,i)) then
+            pha_nscat(pha_curr) = 1
+            exit loop_partial
+         else
+            do j=i,cr_nscat
+              if(pow_do_partial(i,j)) then
+                 pha_nscat(pha_curr) = 2
+                 exit loop_partial
+              endif
+            enddo
+         endif
+      enddo loop_partial
+   else
+      pha_nscat(pha_curr)  = cr_nscat        ! Number of atom types for this phase
+   end if
    pha_calc (pha_curr)  = pow_four_type      ! Fourier type Complete / Debye
 !write(*,*) ' Crystal mass ', cr_mass
 !write(*,*) ' SET FORM ', num(1), num(2), num(1)*num(2), npkt

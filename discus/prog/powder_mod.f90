@@ -112,6 +112,9 @@ REAL                     :: pow_ka21       =  0.0
 LOGICAL                  :: pow_ka21_u     =  .FALSE.
 !
 !
+logical                               :: pow_l_partial = .FALSE.   ! Default to full powder/PDF
+logical , dimension(:,:), allocatable :: pow_do_partial    ! 0:maxscat, 0:maxscat)
+integer , dimension(:  ), allocatable :: pow_nn_partial    ! 0:maxscat, 0:maxscat)
 !
 REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_qsp     !  (0:POW_MAXPKT)
 REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_f2aver  !  (0:POW_MAXPKT)
