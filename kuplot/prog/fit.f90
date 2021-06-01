@@ -1332,6 +1332,7 @@ IF(ier_num/=0) RETURN
       SUBROUTINE setup_user (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
       USE  berechne_mod
+use do_replace_expr_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -1362,6 +1363,7 @@ USE precision_mod
          fit_lfunc = lpara (2) 
          cdummy = '('//fit_func (1:fit_lfunc) //')' 
          length = fit_lfunc + 2
+         call do_replace_expr(cdummy, length)
          dummy = berechne (cdummy, length)
 !                                                                       
       ELSE 
@@ -1376,7 +1378,7 @@ USE precision_mod
       SUBROUTINE setup_user_macro (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
 !USE kuplot_theory_macro_mod
-      USE  berechne_mod
+!     USE  berechne_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -1476,6 +1478,7 @@ REAL                   :: f
       SUBROUTINE theory_user (xx, f, df, i) 
 !                                                                       
       USE  berechne_mod
+use do_replace_expr_mod
       USE param_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -1507,6 +1510,7 @@ REAL                   :: f
 !                                                                       
       cdummy = '('//fit_func (1:fit_lfunc) //')' 
       length = fit_lfunc + 2
+      call do_replace_expr(cdummy, length)
       f = berechne (cdummy, length)
 !                                                                       
 !-------ableitungen                                                     
@@ -1529,6 +1533,7 @@ REAL                   :: f
       REAL function func (xx) 
 !                                                                       
       USE  berechne_mod
+use do_replace_expr_mod
       USE param_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -1542,6 +1547,7 @@ REAL                   :: f
       p (np1) = xx 
       cdummy = '('//fit_func (1:fit_lfunc) //')' 
       length = fit_lfunc + 2
+      call do_replace_expr(cdummy, length)
       func = berechne (cdummy, length)
 !                                                                       
       END FUNCTION func                             
@@ -5398,6 +5404,7 @@ END SUBROUTINE kupl_theory
 SUBROUTINE setup_user (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
       USE  berechne_mod
+use do_replace_expr_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -5430,6 +5437,7 @@ USE precision_mod
          f6_fit_lfunc = lpara (2) 
          cdummy = '('//f6_fit_func (1:f6_fit_lfunc) //')' 
          length = f6_fit_lfunc + 2
+         call do_replace_expr(cdummy, length)
          dummy = berechne (cdummy, length)
 !                                                                       
       ELSE 
@@ -5448,7 +5456,7 @@ END SUBROUTINE setup_user
 !                                                                       
 !USE kuplot_theory_macro_mod
 USE kuplot_fit6_set_theory
-      USE  berechne_mod
+!     USE  berechne_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -5613,6 +5621,7 @@ SUBROUTINE theory_user(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          
 USE kuplot_fit_const
 !
 USE berechne_mod
+use do_replace_expr_mod
 USE matrix_mod
 USE param_mod 
 USE precision_mod
@@ -5669,6 +5678,7 @@ rpara(1) = data_y(iy)
 !                                                                       
 cdummy = '('//f6_fit_func(1:f6_fit_lfunc) //')' 
 length = f6_fit_lfunc + 2
+call do_replace_expr(cdummy, length)
 ymod   = berechne (cdummy, length)
 !                                                                       
 !-------Derivatives                                                     
@@ -5700,6 +5710,7 @@ IF(LDERIV) THEN
             CALL user_upd_params(ind, REAL(p_d)) ! Write params into kuplot "p"
             cdummy = '('//f6_fit_func(1:f6_fit_lfunc) //')' 
             length = f6_fit_lfunc + 2
+            call do_replace_expr(cdummy, length)
             yvec(2) = berechne (cdummy, length)
             IF(ier_num /= 0) RETURN
          ENDIF
@@ -5716,6 +5727,7 @@ IF(LDERIV) THEN
             CALL user_upd_params(ind, REAL(p_d)) ! Write params into kuplot "p"
             cdummy = '('//f6_fit_func(1:f6_fit_lfunc) //')' 
             length = f6_fit_lfunc + 2
+            call do_replace_expr(cdummy, length)
             yvec(3) = berechne (cdummy, length)
             IF(ier_num /= 0) RETURN
 !

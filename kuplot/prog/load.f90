@@ -9,6 +9,7 @@ SUBROUTINE do_func (zeile, lp)
       USE ber_params_mod
       USE berechne_mod
       USE errlist_mod 
+use do_replace_expr_mod
       USE get_params_mod
       USE param_mod 
       USE kuplot_config 
@@ -146,6 +147,7 @@ nianz: IF (ianz.eq.1) then
             DO jj = 1, ny (iz) 
                cdummy = '('//cfkt (1:lcfkt) //')' 
                length = lcfkt + 2
+               call do_replace_expr(cdummy, length)
                rpara (1) = y (offxy (iref - 1) + jj) 
                z (offz (iz - 1) + (ii - 1) * ny (iz) + jj) =  &
                  berechne(cdummy, length)
@@ -169,6 +171,7 @@ nianz: IF (ianz.eq.1) then
             rpara (0) = x (offxy (iref - 1) + i) 
             cdummy = '('//cfkt (1:lcfkt) //')' 
             length = lcfkt + 2
+            call do_replace_expr(cdummy, length)
             x (offxy (iz - 1) + i) = rpara (0) 
             y (offxy (iz - 1) + i) = berechne (cdummy, length)
             dx (offxy (iz - 1) + i) = 0.0 
@@ -215,6 +218,7 @@ ELSEIF (ianz.eq.3) THEN  nianz
                rpara (0) = xstart + (i - 1) * xdelta 
                cdummy = '('//cfkt (1:lcfkt) //')' 
                length = lcfkt + 2
+               call do_replace_expr(cdummy, length)
                x (offxy (iz - 1) + i) = rpara (0) 
                y (offxy (iz - 1) + i) = berechne (cdummy, length)
                dx (offxy (iz - 1) + i) = 0.0 
@@ -276,6 +280,7 @@ ELSEIF (ianz.eq.6) THEN nianz
                DO jj = 1, ny (iz) 
                cdummy = '('//cfkt (1:lcfkt) //')' 
                length = lcfkt + 2
+               call do_replace_expr(cdummy, length)
                rpara (1) = ystart + (jj - 1) * ydelta 
                z (offz (iz - 1) + (ii - 1) * ny (iz) + jj) =  &
                  berechne(cdummy, length)
