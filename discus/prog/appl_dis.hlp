@@ -75,6 +75,14 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2021_June
+
+   Added a LAMMPS import
+   Moderate improvements for plot to handle charged atoms
+   Continued improvements within MMC
+   Added improved output to 'show env'
+   Added a file "private.f90" and a 'private' command to let the user
+         develop own algorithms
 3  2021_May
 
    Depreciated the "set neig, add" command and added an optional
