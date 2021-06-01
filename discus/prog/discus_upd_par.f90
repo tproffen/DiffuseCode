@@ -914,7 +914,7 @@ SUBROUTINE discus_calc_intr_spec(string, line, ikl, iklz, ww, laenge, lp)
 !     intrinsic function that references crystallographic values        
 !     is found in this subroutine.                                      
 !+                                                                      
-      USE berechne_mod
+!
       USE discus_config_mod 
       USE crystal_mod 
       USE do_read_number_mod
