@@ -239,7 +239,6 @@ INTEGER                            , INTENT(IN) :: NPARA
 INTEGER                            , INTENT(IN) :: ipara
 REAL(KIND=PREC_SP), DIMENSION(idim), INTENT(IN) :: ext_data
 !
-INTEGER, DIMENSION(4) :: dimen
 !
 !IF(.NOT.ALLOCATED(gl_data)) THEN
 !   dimen(1) = idim
