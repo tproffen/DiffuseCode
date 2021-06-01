@@ -245,6 +245,7 @@ USE discus_plot_mod
 USE tensors_mod
 USE errlist_mod 
 USE wink_mod
+use string_convert_mod
 !
 IMPLICIT none 
 !
@@ -256,6 +257,7 @@ REAL   , PARAMETER   :: eightpisq = 8.*3.14159265**2
 !                                                                       
 !                                                                       
 CHARACTER(LEN=16)     :: do_spcgr_w = 'P1'
+character(len=4)      :: atom_i
 REAL                  :: d, dist , shift
 REAL,    DIMENSION(3) :: v
 INTEGER, DIMENSION(3) :: scalef
@@ -348,7 +350,9 @@ DO i = 1, cr_natoms
 !     ------Write atom position in desired sequence of coordinates      
 !                                                                       
             latom = .true. 
-            WRITE (iff, 1000) cr_at_lis (cr_iscat (i) ),             &
+            atom_i = cr_at_lis(cr_iscat(i))
+            call do_str(atom_i)               ! Remove non-character 
+            WRITE (iff, 1000) atom_i,                                &
                 ( (v (j) - cr_dim (j, 1) ) / scalef (j), j = 1, 3),  &
                  cr_dw ( cr_iscat (i) )/eightpisq
          ENDIF 

@@ -1282,6 +1282,7 @@ USE matrix_mod
 USE take_param_mod
 USE support_mod
 USE lib_do_operating_mod
+use string_convert_mod
 !
 IMPLICIT NONE
 !
@@ -1303,6 +1304,8 @@ CHARACTER(LEN=PREC_STRING) :: tempfile
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: line_move
 CHARACTER(LEN=12         ) :: geom
+character(len=4)           :: atom_i
+character(len=4)           :: atom_j
 INTEGER             :: i,j,k
 INTEGER             :: px, py
 INTEGER             :: length
@@ -1516,12 +1519,16 @@ IF(pl_prog=='jmol') THEN
    IF(ANY(pl_bond(0:cr_nscat, 0:cr_nscat))) THEN   ! Bonds were specified
    WRITE(ITMP,'(a)') 'connect (all) (all) DELETE'
    DO i=0, cr_nscat
+      atom_i = cr_at_lis(i)
+      call do_str(atom_i)
       DO j=0, cr_nscat
          IF(pl_bond(i,j)) THEN
+            atom_j = cr_at_lis(j)
+            call do_str(atom_j)
             WRITE(ITMP,'(a, f5.2, 1x, f5.2, 1x, a,a,a, a,a,a, a, f5.2, a)') &
             'connect ', pl_bond_len(1,i,j), pl_bond_len(2,i,j), &
-            '(_',cr_at_lis(i)(1:len_trim(cr_at_lis(i))),')',    &
-            '(_',cr_at_lis(j)(1:len_trim(cr_at_lis(j))),')',    &
+            '(_',atom_i(1:len_trim(atom_i)),')',    &
+            '(_',atom_j(1:len_trim(atom_j)),')',    &
             ' SINGLE radius ',pl_bond_rad(i,j), ' ModifyOrCreate'
          ENDIF
       ENDDO
@@ -1551,10 +1558,12 @@ IF(pl_prog=='jmol') THEN
          lsecond = .FALSE.
          DO j=0,cr_nscat
             IF(pl_poly_c(j)) THEN
+               atom_j = cr_at_lis(j)
+               call do_str(atom_j)
                IF(lsecond) THEN
-                  WRITE(line(k+1:k+9),'(a,a)') ' OR _',cr_at_lis(j)
+                  WRITE(line(k+1:k+9),'(a,a)') ' OR _',atom_j
                ELSE
-                  WRITE(line(k+1:k+5),'(a,a)') '_',cr_at_lis(j)
+                  WRITE(line(k+1:k+5),'(a,a)') '_',atom_j
                   lsecond = .TRUE.
                ENDIF
                k = LEN_TRIM(line)
@@ -1570,10 +1579,12 @@ IF(pl_prog=='jmol') THEN
          lsecond = .FALSE.
          DO j=0,cr_nscat
             IF(pl_poly_o(j)) THEN
+               atom_j = cr_at_lis(j)
+               call do_str(atom_j)
                IF(lsecond) THEN
-                  WRITE(line(k+1:k+9),'(a,a)') ' OR _',cr_at_lis(j)
+                  WRITE(line(k+1:k+9),'(a,a)') ' OR _',atom_j
                ELSE
-                  WRITE(line(k+1:k+5),'(a,a)') '_',cr_at_lis(j)
+                  WRITE(line(k+1:k+5),'(a,a)') '_',atom_j
                   lsecond = .TRUE.
                ENDIF
                k = LEN_TRIM(line)
@@ -1594,9 +1605,11 @@ IF(pl_prog=='jmol') THEN
             WRITE(ITMP,'(a)') line(1:LEN_TRIM(line))
          ENDIF
       ENDIF
+     WRITE(ITMP,'(a)') 'spacefill 25%'
 !  ENDDO
+   else 
+     WRITE(ITMP,'(a)') 'spacefill 90%'
    ENDIF
-   WRITE(ITMP,'(a)') 'spacefill 25%'
    WRITE(ITMP,'(a)') 'zoom 125'
    WRITE(ITMP,'(a,i3,a,i3,a,i3,a)') 'background [',pl_back(1),',' , pl_back(2),',', pl_back(3),']'
    CLOSE(ITMP)
@@ -1618,6 +1631,7 @@ IF(pl_prog=='jmol') THEN
 !
    ENDIF
    WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
+write(*,*) ' LINE ', line(1:len_trim(line))
    CALL EXECUTE_COMMAND_LINE(line)
 ENDIF
 END SUBROUTINE plot_inter
