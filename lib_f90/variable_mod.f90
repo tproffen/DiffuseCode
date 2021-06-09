@@ -57,7 +57,8 @@ END TYPE var_arrays
    LOGICAL            , DIMENSION(VAR_MAX)   :: var_diff  = .FALSE.   ! This is a DIFFEV variable yes/no
    REAL(KIND=PREC_DP) , DIMENSION(VAR_MAX)   :: var_val   = 0.0 ! Value for INT or REAL
 !
-   character(len=PREC_STRING), dimension(:), allocatable :: var_expr  ! Expressions to be analysed ar run time
+   character(len=PREC_STRING), dimension(:), allocatable :: var_expr      ! Expressions to be analysed at run time
+   real(kind=PREC_DP)        , dimension(:), allocatable :: var_expr_val  ! Expressions value
 !
    TYPE(var_arrays), DIMENSION(VAR_MAX) :: var_field
 !

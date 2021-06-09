@@ -227,12 +227,14 @@ USE lib_length
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -52
+       INTEGER, PARAMETER :: iu = -54
        INTEGER, PARAMETER :: io =   1
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
        DATA ERROR ( iu:-41) /                       &
+     &  'Error evaluating EXPR',                    & !-54  ! fortran
+     &  'EXPR seem to reference cyclically',        & !-53  ! fortran
      &  'No parameters defined so far',             & !-52  ! fortran
      &  'Unknown parameter name ',                  & !-51  ! fortran
      &  'Value is outside limits',                  & !-50  ! fortran

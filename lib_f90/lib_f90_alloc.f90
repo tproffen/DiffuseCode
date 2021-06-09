@@ -52,6 +52,7 @@ integer              :: all_status
 integer              :: size_of
 !
 call alloc_arr(var_expr, 1, n_expr, all_status, ' ', size_of)
+call alloc_arr(var_expr_val, 1, n_expr, all_status, 0.0D0, size_of)
 var_entry(VAR_EXPRESSION) = n_expr    ! Store dimension
 !
 end subroutine alloc_expr
