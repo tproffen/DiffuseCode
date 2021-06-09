@@ -4,59 +4,60 @@ CONTAINS
 !
 !*****7*****************************************************************
 !                                                                       
-SUBROUTINE do_domain (line, lp) 
+SUBROUTINE do_domain
 !-                                                                      
-!           This subroutine reads a domain from a file and replaces the 
+!     This subroutine reads a domain from a file and replaces the 
 !     corresponding part of the structure.                              
-!     This is the new versio of the microdomain level.                  
+!     This is the new version of the microdomain level.                  
 !-                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE domain_mod 
-      USE micro_mod 
-      USE domaindis_mod 
-      USE discus_show_menu
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE domain_mod 
+USE micro_mod 
+USE domaindis_mod 
+USE discus_show_menu
 !
-      USE ber_params_mod
-      USE calc_expr_mod
-      USE doact_mod 
-      USe do_eval_mod
-      USE do_wait_mod
-      USE build_name_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE learn_mod 
+USE ber_params_mod
+USE calc_expr_mod
+USE doact_mod 
+USe do_eval_mod
+USE do_wait_mod
+USE build_name_mod
+USE errlist_mod 
+USE get_params_mod
+USE learn_mod 
 USE lib_do_operating_mod
 USE lib_echo
 USE lib_errlist_func
 USE lib_help
 USE lib_length
 USE lib_macro_func
-      USE class_macro_internal 
+USE class_macro_internal 
 USE precision_mod
-      USE prompt_mod 
+USE prompt_mod 
 USE str_comp_mod
-      USE string_convert_mod
-      USE sup_mod
-      IMPLICIT none 
+USE string_convert_mod
+USE sup_mod
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 9) 
+INTEGER, PARAMETER :: MAXW = 9 
 !                                                                       
-      CHARACTER ( * ) line 
-      CHARACTER(5) befehl 
-      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(LEN=MAX(PREC_STRING,LEN(LINE))) :: zeile, cpara (maxw) 
-      INTEGER lpara (maxw), lp 
-      INTEGER j, ianz, laenge, lbef 
-      INTEGER indxg 
-      INTEGER, SAVE    :: n_clu = 0   ! current number of clusters
-      LOGICAL, SAVE    :: linit = .true. ! do we need to initialize?
-      LOGICAL lend
-      REAL(KIND=PREC_DP):: werte (maxw) 
+CHARACTER(len=PREC_STRING) :: line    ! Command string
+integer                    :: lp      ! length of command string
+!
+CHARACTER(len=5) :: befehl            ! Command verb
+CHARACTER(LEN=LEN(prompt)) :: orig_prompt  ! Prompt prior to this menu
+CHARACTER(LEN=MAX(PREC_STRING,LEN(LINE))) :: zeile        ! Dummy string
+CHARACTER(LEN=MAX(PREC_STRING,LEN(LINE))), dimension(MAXW) :: cpara    ! Dummy strings for parameters
+INTEGER, dimension(MAXW) :: lpara                         ! length of parameter strings
+INTEGER :: j, ianz, laenge, lbef 
+INTEGER :: indxg 
+INTEGER, SAVE    :: n_clu = 0      ! current number of clusters
+LOGICAL, SAVE    :: linit = .true. ! do we need to initialize?
+LOGICAL          :: lend           ! Finish menu yes/no
+REAL(KIND=PREC_DP), dimension(MAXW) :: werte
 !                                                                       
 !                                                                       
 lend = .false. 
@@ -475,7 +476,7 @@ clu_use_expr = .FALSE.                 ! Initialize all
 !
 loop_orient: do k=1, clu_number
    do i=1, 3
-      do j=1, 3
+      do j=1, 4
          if(index(clu_or_expr(k, i,j),'EXPR') > 0) then
             clu_use_expr(k,1) = .TRUE.
             cycle loop_orient
@@ -993,11 +994,13 @@ IF ( .not. clu_infile_internal ) THEN
       if(allocated(clu_moles)) deallocate(clu_moles)
 ENDIF 
 !
-sgrand = seknds(sgrand)
-write(output_io,'(a,f10.4,a)') ' Elapsed time   ', sgrand, ' sec'
+if(ier_num==0) then
+   sgrand = seknds(sgrand)
+   write(output_io,'(a,f10.4,a)') ' Elapsed time   ', sgrand, ' sec'
 !write(*,'(a,f10.4)') ' Time in atoms', satoms
 !write(*,'(a,f10.4)') ' Time in head ', shead
 !write(*,'(a,f10.4)') ' Time in rem  ', srem
+endif
 !
 chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
                         ! In the rare circumstances that is is the user
@@ -1061,13 +1064,10 @@ nprior = cr_natoms             ! Store atom number in original crystal
 !
 call domain_irreg_conn         ! Create connectivity with closest neighbors
 !write(*,*) ' CLEANING PSEUDO '
-!do i=1, 1
-!   call domain_clean_conn         ! change atoms with 2 or less partners
-!   call domain_irreg_conn         ! Create connectivity with closest neighbors
-!enddo
-!
-iatom = 5051
-iatom = 1
+do i=1, 1
+   call domain_clean_conn         ! change atoms with 2 or less partners
+   call domain_irreg_conn         ! Create connectivity with closest neighbors
+enddo
 !
 !write(*,*) ' Starting LOOP '
 loop_atoms: do iatom = 1, cr_natoms
@@ -1079,7 +1079,7 @@ loop_atoms: do iatom = 1, cr_natoms
    line = cr_at_lis(cr_iscat(iatom))
    call do_cap(line(1:4))
    ii = 0 
-   loop_types: DO i = 1, clu_number 
+   loop_types: DO i = 1, clu_number       ! Determine pseudo atom type
       if(str_comp(line(1:4), clu_name(i), 2, 4, 4) ) then
          ii = i 
          exit loop_types
@@ -1093,7 +1093,7 @@ loop_atoms: do iatom = 1, cr_natoms
    end if
 !
 !
-   call domain_irreg_find(iatom, nprior, ii)  !, infile, mc_dimen, mc_idimen, mc_matrix)
+   call domain_irreg_find(iatom, nprior, ii)  ! Replace the domain by guest
    if(ier_num/=0)  return                     ! Error like evaluating the "EXPR" 
 end do loop_atoms
 !write(*,*) ' DID REPLACE '
@@ -1235,7 +1235,7 @@ real                          :: mc_dimen (4, 4)
 real                          :: mc_idimen(4, 4) 
 real                          :: mc_matrix(4, 4) 
 !
-integer                    :: i,j    ! Dummy counter
+integer                    :: i,j,k  ! Dummy counter
 integer                    :: is1    ! central atom type
 integer                    :: ino    ! number of connectivity list 
 integer                    :: natoms ! number of atoms in connectivity list 
@@ -1243,10 +1243,9 @@ integer, dimension(:),   allocatable :: c_list ! Result of connectivity search
 integer, dimension(:,:), allocatable :: c_offs ! Result of connectivity search
 integer, dimension(:),   allocatable :: list   ! List of atoms in the current domain
 integer, dimension(:,:), allocatable :: list_o ! List of atoms in the current domain offsets
-!integer, dimension(3) :: orig_off ! Offest of origin atom from first domain atom
-logical :: lfound    ! Found new neighbors
-real(kind=PREC_SP) :: dist    ! dummy distance
-real(kind=PREC_SP) :: dmin    ! minimum distance
+logical                          :: lfound  ! Found new neighbors
+real(kind=PREC_SP)               :: dist    ! dummy distance
+real(kind=PREC_SP)               :: dmin    ! minimum distance
 real(kind=PREC_SP), dimension(3) :: com     ! Center of mass for domain
 real(kind=PREC_SP), dimension(3) :: uu      ! Dummy vector
 !
@@ -1313,39 +1312,41 @@ allocate(coor(3,ngroup))
 !
 ! Loop until all group members are replaced
 !
+k = 0                                  ! Modifier to handle no-replacement situation
 loop_mgroup: do                        ! Loop over group until all atoms are replaced
-short = 0
-offs  = 0
-coor  = 0.0D0
+   short = 0
+   offs  = 0
+   coor  = 0.0D0
 !
-i     = 0
-com   = 0.0E0
+   i     = 0
+   com   = 0.0E0
 !write(*,'(a,2x,a,4x,a,6x,a,4x,a)') ' member ', 'short', 'cr_pos', 'offs', 'effective'
-loop_build: do j=1, nprior
-   if(list(j)==1) then
-      if(btest(cr_prop(j), PROP_TEMP)) cycle loop_build
-      i = i + 1
-      short(i) = j
-      offs(:,i) = list_o(:,j)
-      com = com + cr_pos(:,j) + offs(:,i)
+   loop_build: do j=1, nprior
+      if(list(j)==1) then
+         if(btest(cr_prop(j), PROP_TEMP)) cycle loop_build
+         i = i + 1
+         short(i) = j
+         offs(:,i) = list_o(:,j)
+         com = com + cr_pos(:,j) + offs(:,i)
 !write(*,'(a,i8,4(3f8.1,2x))') ' member ', short(i), cr_pos(:,short(i)), offs(:,(i))
-   endif
-end do loop_build
-mgroup = i
-   if(mgroup==0) exit loop_mgroup
-com = com/real(mgroup, kind=PREC_SP)
-dmin = 1.0E9
-icent = 1
-loop_icent: do i=1, mgroup                    ! Find atom closest to COM
-   if(btest(cr_prop(short(i)), PROP_TEMP)) cycle loop_icent
-   uu = cr_pos(:,short(i)) + offs(:,i)
-   dist = do_blen(lspace, uu, com)
+      endif
+   end do loop_build
+   mgroup = i - k                      ! k is incremented if no atoms were replace
+!write(*,*) 'MGROUP ', mgroup
+   if(mgroup<=0) exit loop_mgroup
+   com = com/real(mgroup, kind=PREC_SP)
+   dmin = 1.0E9
+   icent = 1
+   loop_icent: do i=1, mgroup                    ! Find atom closest to COM
+      if(btest(cr_prop(short(i)), PROP_TEMP)) cycle loop_icent
+      uu = cr_pos(:,short(i)) + offs(:,i)
+      dist = do_blen(lspace, uu, com)
 !write(*,'(a,i5,3(3f6.1,2x))') 'dist',i, cr_pos(:,short(i)), offs(:,i), uu
-   if(dist<dmin) then
-      icent = i
-      dmin = dist
-   endif
-enddo loop_icent
+      if(dist<dmin) then
+         icent = i
+         dmin = dist
+      endif
+   enddo loop_icent
 !
 !!write(*,*)
 !write(*,*) ' group size ', ngroup, mgroup, ' ISCAT : ', cr_iscat(iatom)
@@ -1355,43 +1356,45 @@ enddo loop_icent
 !
 !call random_number(r1)
 !icent = int(ngroup*r1) + 1
-icent_cr = short(icent)
+   icent_cr = short(icent)
 !
-origin = cr_pos(:, icent_cr)
-orig_off = offs  (:, icent)
+   origin = cr_pos(:, icent_cr)
+   orig_off = offs  (:, icent)
 !write(*,'(a, (3f8.2,2x),3i5, 2i8)') ' Origin at ', origin, orig_off, icent, icent_cr
 !read(*,*) i
-maxdim = 0.0D0
+   maxdim = 0.0D0
 !write(*,'(a,2x,a,4x,a,6x,a,4x,a)') ' member ', 'short', 'cr_pos', 'offs', 'effective'
-do i=1, mgroup
-   coor(:,i) = (cr_pos(:,short(i))+offs(:,(i))-origin(:)) - orig_off(:)
-   maxdim(1,1) = min(maxdim(1,1), coor(1,i))
-   maxdim(1,2) = max(maxdim(1,2), coor(1,i))
-   maxdim(2,1) = min(maxdim(2,1), coor(2,i))
-   maxdim(2,2) = max(maxdim(2,2), coor(2,i))
-   maxdim(3,1) = min(maxdim(3,1), coor(3,i))
-   maxdim(3,2) = max(maxdim(3,2), coor(3,i))
-   cr_prop(short(i)) = ibclr(cr_prop(short(i)), PROP_TEMP)
+   do i=1, mgroup
+      coor(:,i) = (cr_pos(:,short(i))+offs(:,(i))-origin(:)) - orig_off(:)
+      maxdim(1,1) = min(maxdim(1,1), coor(1,i))
+      maxdim(1,2) = max(maxdim(1,2), coor(1,i))
+      maxdim(2,1) = min(maxdim(2,1), coor(2,i))
+      maxdim(2,2) = max(maxdim(2,2), coor(2,i))
+      maxdim(3,1) = min(maxdim(3,1), coor(3,i))
+      maxdim(3,2) = max(maxdim(3,2), coor(3,i))
+      cr_prop(short(i)) = ibclr(cr_prop(short(i)), PROP_TEMP)
 !write(*,'(a,i8,4(3f8.1,2x),i5)') ' member ', short(i), cr_pos(:,short(i)), offs(:,(i)), &
 ! (cr_pos(:,short(i))-offs(:,(i))-origin(:)), coor(:,i), cr_prop(short(i))
-enddo
-maxdim(:,1) = maxdim(:,1) - 0.1
-maxdim(:,2) = maxdim(:,2) + 0.1
-!write(*,*) ' Maxdim 1 ', maxdim(1,:)
-!write(*,*) ' Maxdim 2 ', maxdim(2,:)
-!write(*,*) ' Maxdim 3 ', maxdim(3,:)
-!read(*,*) i
+   enddo
+   maxdim(:,1) = maxdim(:,1) - 0.6
+   maxdim(:,2) = maxdim(:,2) + 0.6
 !
 !***  Determine cluster type, shape and orientation matrix
 !     The shape matrix is a unit matrix
 !
-infile     = clu_content(iclu)
-mc_type    = clu_character(iclu)
-md_sep_fuz = clu_fuzzy(iclu)
+   infile     = clu_content(iclu)        ! Guest structure
+   mc_type    = clu_character(iclu)      ! Character of this domain
+   md_sep_fuz = clu_fuzzy(iclu)          ! Distance to previous atoms, remove old at shorter
 !
-call domain_set_matrix(iclu, mc_type, mc_dimen, mc_idimen, mc_matrix)
-if(ier_num/=0)  return                   ! Error evaluating the "EXPR"
-clu_current = iclu                       ! Transfer current cluster type
+   call domain_set_matrix(iclu, mc_type, mc_dimen, mc_idimen, mc_matrix)
+   if(ier_num/=0) then
+      deallocate(list)
+      deallocate(short)
+      deallocate(offs)
+      deallocate(coor)
+      return                   ! Error evaluating the "EXPR"
+   endif
+   clu_current = iclu                       ! Transfer current cluster type
 !
 !if(iatom<5) then
 !  write(*,'(a,4f9.6,1x)') 'MC ',mc_matrix(1,:)
@@ -1402,17 +1405,35 @@ clu_current = iclu                       ! Transfer current cluster type
 !!!!!!!!!!!!!!!!!!!!!!!!!!
 !write(*,*) ' PSEUDO ATOM ', iatom, cr_iscat(iatom), cr_at_lis(cr_iscat(iatom)), iclu, infile(1:len_trim(infile))
 !                                         ! Now replace atoms
-mc_type = MD_DOMAIN_IRREG
+   mc_type = MD_DOMAIN_IRREG
 !
-call micro_read_atoms(infile, mc_idimen, mc_matrix) !
-!write(*,*) ' GROUP AFTER REPLACE '
-do i=1,mgroup
-   if(btest(cr_prop(short(i)), PROP_TEMP)) then
-      cr_iscat(short(i)) = 0
-!  cr_prop(short(i)) = ibset(cr_prop(short(i)), PROP_TEMP)
+!write(*,*) ' GROUP PRIOR REPLACE ', iatom, cr_natoms
+i = cr_natoms
+   call micro_read_atoms(infile, mc_idimen, mc_matrix) !
+!write(*,*) ' GROUP AFTER REPLACE ', iatom, cr_natoms
+!read(*,*) i
+   if(i==cr_natoms) then                  ! No atoms were replaced, adapt modifier
+     k = k + 1
+     if(k>ngroup) then                    ! Failure could not replace any atoms
+         deallocate(list)
+         deallocate(short)
+         deallocate(offs)
+         deallocate(coor)
+         ier_num = 1
+         ier_typ = ER_FORT
+         return
+      endif
+   else
+      k = 0                              ! Reset modifier, as atoms were replaced
    endif
+   do i=1,mgroup
+      if(btest(cr_prop(short(i)), PROP_TEMP)) then
+         cr_iscat(short(i)) = 0
+!  cr_prop(short(i)) = ibset(cr_prop(short(i)), PROP_TEMP)
 !   write(*,*) ' PROP ', i, short(i), cr_iscat(short(i)), cr_prop(short(i))
-enddo
+      endif
+   enddo
+!read(*,*) i
 enddo loop_mgroup
 !
 !call domain_irreg_replace(infile)
@@ -1426,7 +1447,7 @@ end subroutine domain_irreg_find
 !
 !*****7*****************************************************************
 !
-subroutine domain_irreg_test_atom(vv, linside)
+subroutine domain_irreg_test_atom(vv, linside, ddd)
 !-
 !  Tests if an atom at coordinates vv is inside the current domain
 !  Apply periodic boundary conditions to place near actual pseudo atom
@@ -1442,6 +1463,7 @@ implicit none
 !
 real(kind=PREC_SP), dimension(3), intent(inout) :: vv
 logical                         , intent(out)   :: linside
+real :: ddd
 !
 logical, parameter :: lspace = .TRUE.
 !
@@ -1484,13 +1506,14 @@ if(maxdim(1,1)<vv(1) .and. vv(1)<maxdim(1,2)   .and.                            
       vv = vv + origin - offs(:,ishort) + orig_off
       linside = .true.
       cr_prop(short(ishort)) = ibset(cr_prop(short(ishort)), PROP_TEMP)
-!else
+else
 !if(cr_natoms < clu_remove_end+20) then
 ! write(*,'(a, 3f6.1,2i6, 6(3f6.1,1x),3i5,2f6.1)') ' xx ', vv, ishort, short(ishort), coor(:,ishort), &
 ! cr_pos(:,short(ishort)), offs(:,ishort), dist, clu_fuzzy(clu_current)
 !endif
    endif
 endif
+ddd = dist
 !
 end subroutine domain_irreg_test_atom
 !
@@ -1506,7 +1529,9 @@ subroutine domain_set_matrix(iclu, mc_type, mc_dimen, mc_idimen, mc_matrix)
 use domain_mod
 !
 use ber_params_mod
+use do_replace_expr_mod
 use errlist_mod
+use matrix_mod
 use precision_mod
 !
 implicit none
@@ -1521,11 +1546,15 @@ integer, parameter :: MAXW = 12
 character(len=PREC_STRING), dimension(MAXW) :: cpara
 integer                   , dimension(MAXW) :: lpara
 real(kind=PREC_DP)        , dimension(MAXW) :: werte
+real(kind=PREC_DP)        , dimension(4,4)  :: mat_dir
+real(kind=PREC_DP)        , dimension(4,4)  :: mat_inv
 !
 integer :: i, j
 integer :: ianz
 !
-if(clu_use_expr(iclu,1)) then              ! Orientation uses "EXPR", evaluate current value
+call do_evaluate_expr                      ! Determine current EXPR value
+if(ier_num/=0) return
+if(clu_use_expr(iclu,1)) then              ! Orientation uses "EXPR", use current value
    ianz = 0
    do i = 1, 3
       do j = 1,4
@@ -1534,7 +1563,8 @@ if(clu_use_expr(iclu,1)) then              ! Orientation uses "EXPR", evaluate c
          lpara(ianz) = len_trim(cpara(ianz))
       enddo
    enddo
-   call ber_params(ianz, cpara, lpara, werte, MAXW)  ! Evaluate current "EXPR"
+   call do_use_expr(ianz, cpara, lpara, MAXW)        ! Use evaluated EXPR
+   call ber_params(ianz, cpara, lpara, werte, MAXW)  ! Evaluate, with current "EXPR"
    if(ier_num/=0)  then
       ier_msg(1) = 'Expression for orient erroneous '
       return
@@ -1555,8 +1585,30 @@ else                                       ! Orientation uses clu_orient
       mc_matrix(4, i) = 0.0
    enddo
 endif
-if(clu_use_expr(iclu,2)) then              ! Shape       uses "EXPR"
-   continue
+if(clu_use_expr(iclu,2) .and. mc_type/=CLU_IN_IRREG) then   ! Shape       uses "EXPR"; not an irregular character
+   ianz = 0
+   do i = 1, 3
+      do j = 1,4
+         ianz = ianz + 1
+         cpara(ianz) = clu_or_expr(iclu, i, j)  ! Transfer expressions into cpara for berechne
+         lpara(ianz) = len_trim(cpara(ianz))
+      enddo
+   enddo
+   call do_use_expr(ianz, cpara, lpara, MAXW)        ! Use evaluated EXPR
+   call ber_params(ianz, cpara, lpara, werte, MAXW)  ! Evaluate current "EXPR"
+   if(ier_num/=0)  then
+      ier_msg(1) = 'Expression for orient erroneous '
+      return
+   endif
+   ianz = 0
+   do i = 1, 3
+      do j = 1,4
+         ianz = ianz + 1
+         mc_dimen (i, j) = werte(ianz)         ! Transfer current results into orient matrix
+      enddo
+   enddo
+   mc_dimen(4,:)     = 0.0
+   mc_dimen(4,4)     = 1.0
 else                                       ! Shape       uses clu_shape
    if(mc_type==CLU_IN_IRREG) then          ! Irregular shape, use unit matrix
       mc_dimen  = 0.0
@@ -1571,55 +1623,10 @@ else                                       ! Shape       uses clu_shape
       mc_dimen(4,4)     = 1.0
    endif
 endif
-!!!!!!!!!!!!!!!!!!!!!!!!!!
-!call random_number(shift)
-!shift = shift *0.07
-!shift = 0.03+ gasdev(0.005D0)
-!shift = 0.00+ gasdev(0.250D0)
-!if(iclu==1) then
-!  mc_matrix(1,1) = 1.0 + shift
-!  mc_matrix(1,2) =       shift
-!  mc_matrix(2,1) =     - shift
-!  mc_matrix(2,2) = 1.0 - shift
-!!!!
-!  mc_matrix(1,1) = 1.0
-!  mc_matrix(1,2) =       shift
-!  mc_matrix(2,1) = 0.0
-!  mc_matrix(2,2) = 1.0
-!!!!
-!!elseif(iclu==2) then
-!  mc_matrix(1,1) = 1.0 - shift
-!  mc_matrix(1,2) =     - shift
-!  mc_matrix(2,1) =       shift
-!  mc_matrix(2,2) = 1.0 + shift
-!!!!
-!  mc_matrix(1,1) = 1.0
-!  mc_matrix(1,2) =       shift
-!  mc_matrix(2,1) = 0.0
-!  mc_matrix(2,2) = 1.0
-!!!!
-!elseif(iclu==3) then
-!  mc_matrix(1,1) = 1.0 + shift
-!  mc_matrix(1,2) =     - shift
-!  mc_matrix(2,1) =     + shift
-!  mc_matrix(2,2) = 1.0 - shift
-!!!!
-!  mc_matrix(1,1) = 1.0
-!  mc_matrix(1,2) = 0.0
-!  mc_matrix(2,1) =       shift
-!  mc_matrix(2,2) = 1.0
-!elseif(iclu==4) then
-!  mc_matrix(1,1) = 1.0 - shift
-!  mc_matrix(1,2) =     + shift
-!  mc_matrix(2,1) =     - shift
-!  mc_matrix(2,2) = 1.0 + shift
-!!!!
-!  mc_matrix(1,1) = 1.0
-!  mc_matrix(1,2) = 0.0
-!  mc_matrix(2,1) =       shift
-!  mc_matrix(2,2) = 1.0
-!!!!
-!endif
+mat_dir = mc_dimen
+call matinv4(mat_dir, mat_inv)
+mc_idimen = mat_inv
+!
 !
 end subroutine domain_set_matrix
 !
@@ -1833,35 +1840,37 @@ INTEGER, PARAMETER :: MAXW = 4
 !                                                                       
       END SUBROUTINE micro_read_micro               
 !*****7*****************************************************************
-      SUBROUTINE micro_read_atoms (infile, mc_idimen,         &
-      mc_matrix)                                                        
-!                                                                       
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE metric_mod
-      USE micro_mod 
-      USE read_internal_mod 
-      USE discus_save_mod 
-      USE structur, ONLY: stru_readheader
-      USE trafo_mod
-      USE errlist_mod 
+!
+SUBROUTINE micro_read_atoms (infile, mc_idimen, mc_matrix)
+!-
+! Read the guest atoms and insert into host structure
+!+
+!
+USE discus_config_mod 
+USE crystal_mod 
+USE metric_mod
+USE micro_mod 
+USE read_internal_mod 
+USE discus_save_mod 
+USE structur, ONLY: stru_readheader
+USE trafo_mod
+USE errlist_mod 
 USE molecule_mod
 USE support_mod
-      IMPLICIT none 
 !                                                                       
+IMPLICIT none 
        
 !                                                                       
-      CHARACTER ( * ) infile 
-      REAL mc_idimen (4, 4) 
-      REAL mc_matrix (4, 4) 
+CHARACTER(len=*)     , intent(in) :: infile 
+REAL , dimension(4,4), intent(in) :: mc_idimen
+REAL , dimension(4,4), intent(in) :: mc_matrix
 !                                                                       
-      INTEGER ist 
-      PARAMETER (ist = 46) 
+INTEGER, PARAMETER  :: ist = 46
 !                                                                       
 INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
-      LOGICAL lread 
+LOGICAL  :: lread 
 !                                                                       
       lread = .true. 
       IF(infile(1:8)=='internal') THEN
@@ -1905,7 +1914,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
          CLOSE (ist) 
       ENDIF
 !                                                                       
-      END SUBROUTINE micro_read_atoms               
+END SUBROUTINE micro_read_atoms               
+!
 !*****7*****************************************************************
       SUBROUTINE micro_remove_old (mc_idimen) 
 !                                                                       
@@ -2005,22 +2015,22 @@ SUBROUTINE micro_read_atom(ist, infile, mc_idimen, mc_matrix, &
 !  Reads the atoms of the current cluster type 
 !+
 !                                                                       
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod 
-      USE crystal_mod 
-      USE domain_mod 
-      USE domaindis_mod 
+USE discus_config_mod 
+USE discus_allocate_appl_mod 
+USE crystal_mod 
+USE domain_mod 
+USE domaindis_mod 
 use domain_irreg_mod
-      USE metric_mod
-      USE micro_mod 
-      USE molecule_mod 
-      USE prop_para_mod 
-      USE read_internal_mod
-      USE structur, ONLY: struc_mole_header, read_atom_line
-      USE spcgr_apply, ONLY: mole_insert_current, mole_insert_explicit
-      USE trafo_mod
-      USE surface_mod 
-      USE errlist_mod 
+USE metric_mod
+USE micro_mod 
+USE molecule_mod 
+USE prop_para_mod 
+USE read_internal_mod
+USE structur, ONLY: struc_mole_header, read_atom_line
+USE spcgr_apply, ONLY: mole_insert_current, mole_insert_explicit
+USE trafo_mod
+USE surface_mod 
+USE errlist_mod 
 !
 use blanks_mod
 USE lib_errlist_func
@@ -2284,7 +2294,8 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
             ELSEIF (mc_type  .eq.MD_DOMAIN_FUZZY) then 
                linside = .true. 
             ELSEIF(mc_type ==  MD_DOMAIN_IRREG) then           ! Irregularly shaped domain
-               call domain_irreg_test_atom(v, linside)        ! Test if atom is inside, including periodic boundaries
+               call domain_irreg_test_atom(v(1:3), linside, d)        ! Test if atom is inside, including periodic boundaries
+!write(*,*) ' TESTED ', v(1:3), linside
 !if(cr_natoms < clu_remove_end+20 )then
 !write(*,*) ' ATOM ', u(1:3), v(1:3)
 !end if
