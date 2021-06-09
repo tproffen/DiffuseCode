@@ -285,7 +285,6 @@ USE prompt_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-character(len=200) :: fff
 CHARACTER(LEN=PREC_STRING) :: zeile 
 CHARACTER (LEN=20), DIMENSION(MC_N_MOVE)    :: c_move = & !  (MC_N_MOVE) 
    (/ 'switch chemistry    ', &
@@ -2637,7 +2636,7 @@ IF(.NOT.lserial .AND. par_omp_use) THEN
 ENDIF
 !
 if(mmc_feed_auto) then            ! Feedback cycles parameters set automatically
-   imodulus=MAX(1_PREC_INT_LARGE, min(cr_natoms,mo_cyc/50/nthreads))
+   imodulus=MAX(1_PREC_INT_LARGE, min(int(cr_natoms,PREC_INT_LARGE),mo_cyc/50/nthreads))
 else                              ! Feedback cycles set by user
    imodulus=MAX(1_PREC_INT_LARGE, mo_feed/nthreads)
 endif
@@ -3011,10 +3010,11 @@ ENDIF
       if(mmc_feed_auto) then
          if(maxdev(1)<0.1) then
 !           imodulus = max(min(imodulus-1, nint(imodulus*0.999)),nint(cr_natoms*0.05))
-            imodulus = max(min(imodulus-1, nint(imodulus*0.950)), nint(cr_natoms*0.50))
+            imodulus = max(min(imodulus-1, nint(imodulus*0.950,PREC_INT_LARGE)), &
+                           nint(cr_natoms*0.50, PREC_INT_LARGE))
          else
 !           imodulus = max(imodulus+1,nint(imodulus*1.001))
-            imodulus=MAX(1_PREC_INT_LARGE, min(cr_natoms,mo_cyc/50/nthreads))
+            imodulus=MAX(1_PREC_INT_LARGE, min(int(cr_natoms,PREC_INT_LARGE),mo_cyc/50/nthreads))
          endif
       endif
 !      imodulus = max(1000, nint(imodulus*0.90))
@@ -5379,7 +5379,6 @@ LOGICAL                                              , INTENT(OUT) :: valid_e
 INTEGER :: is, js, ind
 INTEGER :: in_a, in_e 
 INTEGER :: ncalc 
-INTEGER :: ival1
 !                                                                       
 mmc_energy_group = 0.0 
 ncalc   = 0 
