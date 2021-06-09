@@ -202,7 +202,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !-------Handling of domains within the host structure 'domain'          
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'domain', 3, lbef, 6) ) THEN 
-            CALL do_domain (zeile, lcomm) 
+            CALL do_domain
 !                                                                       
 !-------copy an atom 'copy'                                             
 !                                                                       
