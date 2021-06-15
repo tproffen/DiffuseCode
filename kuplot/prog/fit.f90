@@ -6868,7 +6868,7 @@ DO i = 1, nn_backgrd
 ENDDO 
 DO i = 1, np1 
    WRITE (idout, 1300) i 
-   iii = nn_backgrd+ (i - 1) * 6 
+   iii = nn_backgrd+ (i - 1) * 7 
    WRITE (idout, 1400) iii + 1, p (iii + 1), dp (iii + 1), pinc (iii + 1)
    WRITE (idout, 1500) iii + 2, p (iii + 2), dp (iii + 2), pinc (iii + 2)
    WRITE (idout, 1600) iii + 3, p (iii + 3), dp (iii + 3), pinc (iii + 3)
