@@ -8,10 +8,10 @@
 !+                                                                      
       USE nexus_kuplot
 !
-      USE envir_mod 
+!     USE envir_mod 
       USE errlist_mod 
-      USE learn_mod
-      USE prompt_mod 
+!     USE learn_mod
+!     USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -26,8 +26,8 @@
 !                                                                       
 !------ Sockt defaults                                                  
 !                                                                       
-      s_port = 3331 
-      s_ipallowed = "localhost" 
+!     s_port = 3331 
+!     s_ipallowed = "localhost" 
 !                                                                       
 !------ Device definitions for PGPLOT                                   
 !                                                                       
@@ -290,6 +290,7 @@
       foncol (iw, i, 5) = 6 
       foncol (iw, i, 6) = 6 
 !                                                                       
+      fname          = ' '
       ifname (iw, i) = .true. 
       igrid (iw, i) = .false. 
       ibox (iw, i) = 3 
