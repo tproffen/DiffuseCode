@@ -204,6 +204,8 @@ integer :: ibro     ! position of "["
 integer :: ibrc     ! position of "]"
 integer :: kpara    ! Current index in "EXPR"
 !
+call do_evaluate_expr                      ! Determine current EXPR value
+!
 loop_main: do i=1, ianz
   line   = cpara(i)
   length = lpara(i)
