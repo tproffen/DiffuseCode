@@ -700,7 +700,10 @@ DO i=1, clu_number
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
-         IF(ier_num /= 0) RETURN
+         IF(ier_num /= 0) then
+            ier_msg(1) = ' Guest file ' // infile
+            RETURN
+         endif
    ELSE
       CALL test_file(infile ,natoms, &
               nscats, n_mole, n_type, n_atom, -1 , .false.)
@@ -741,6 +744,7 @@ DO i=1, clu_number
       AT_MAXP, at_ianz, at_param)           
       CLOSE(imd)
       IF (ier_num.ne.0) THEN 
+         ier_msg(1) = ' Guest file ' // infile
          RETURN
       ENDIF
    ENDIF
@@ -809,7 +813,10 @@ IF ( clu_infile_internal ) THEN
    sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
    mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
    mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
-   IF(ier_num /= 0) RETURN
+   IF(ier_num /= 0) then
+      ier_msg(1) = ' Input file ' // clu_infile
+      return
+   endif
    clu_iatom = 0
    at_param(1) = 'X'
    at_param(2) = 'Y'
@@ -851,6 +858,7 @@ ELSE
    AT_MAXP, at_ianz, at_param)           
 ENDIF
 IF (ier_num.ne.0) THEN 
+      ier_msg(1) = ' Input file ' // clu_infile
    CLOSE(imd)
       if(allocated(clu_moles)) deallocate(clu_moles)
    RETURN
@@ -1388,10 +1396,12 @@ loop_mgroup: do                        ! Loop over group until all atoms are rep
 !
    call domain_set_matrix(iclu, mc_type, mc_dimen, mc_idimen, mc_matrix)
    if(ier_num/=0) then
-      deallocate(list)
-      deallocate(short)
-      deallocate(offs)
-      deallocate(coor)
+      if(allocated(c_list)) deallocate(c_list)
+      if(allocated(c_offs)) deallocate(c_offs)
+      if(allocated(list))   deallocate(list)
+      if(allocated(short))  deallocate(short)
+      if(allocated(offs))   deallocate(offs)
+      if(allocated(coor))   deallocate(coor)
       return                   ! Error evaluating the "EXPR"
    endif
    clu_current = iclu                       ! Transfer current cluster type
@@ -1413,12 +1423,14 @@ i = cr_natoms
 !write(*,*) ' GROUP AFTER REPLACE ', iatom, cr_natoms
 !read(*,*) i
    if(i==cr_natoms) then                  ! No atoms were replaced, adapt modifier
-     k = k + 1
-     if(k>ngroup) then                    ! Failure could not replace any atoms
-         deallocate(list)
-         deallocate(short)
-         deallocate(offs)
-         deallocate(coor)
+      k = k + 1
+      if(k>ngroup) then                    ! Failure could not replace any atoms
+         if(allocated(c_list)) deallocate(c_list)
+         if(allocated(c_offs)) deallocate(c_offs)
+         if(allocated(list))   deallocate(list)
+         if(allocated(short))  deallocate(short)
+         if(allocated(offs))   deallocate(offs)
+         if(allocated(coor))   deallocate(coor)
          ier_num = 1
          ier_typ = ER_FORT
          return
@@ -1438,10 +1450,12 @@ enddo loop_mgroup
 !
 !call domain_irreg_replace(infile)
 !
-deallocate(list)
-deallocate(short)
-deallocate(offs)
-deallocate(coor)
+if(allocated(c_list)) deallocate(c_list)
+if(allocated(c_offs)) deallocate(c_offs)
+if(allocated(list))   deallocate(list)
+if(allocated(short))  deallocate(short)
+if(allocated(offs))   deallocate(offs)
+if(allocated(coor))   deallocate(coor)
 !
 end subroutine domain_irreg_find
 !
@@ -1650,180 +1664,178 @@ IMPLICIT none
 !                                                                       
 INTEGER, PARAMETER :: MAXW = 4
 !                                                                       
-      CHARACTER (LEN=* ), INTENT(OUT) :: infile 
-      INTEGER           , INTENT(IN)  :: imd 
-      LOGICAL           , INTENT(OUT) :: lend 
-      REAL              , INTENT(OUT) :: mc_dimen (4, 4) 
-      REAL              , INTENT(OUT) :: mc_idimen (4, 4) 
-      REAL              , INTENT(OUT) :: mc_matrix (4, 4) 
+CHARACTER (LEN=* ), INTENT(OUT) :: infile 
+INTEGER           , INTENT(IN)  :: imd 
+LOGICAL           , INTENT(OUT) :: lend 
+REAL              , INTENT(OUT) :: mc_dimen (4, 4) 
+REAL              , INTENT(OUT) :: mc_idimen (4, 4) 
+REAL              , INTENT(OUT) :: mc_matrix (4, 4) 
 !                                                                       
-      CHARACTER(LEN=10) :: befehl 
-      CHARACTER(LEN=PREC_STRING) :: line, zeile 
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      CHARACTER(LEN=PREC_STRING) :: mc_strufile 
-      INTEGER i, j, ibl, lbef 
-      INTEGER lline 
-      INTEGER lp, ianz 
-      INTEGER lpara (maxw) 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
+CHARACTER(LEN=10) :: befehl 
+CHARACTER(LEN=PREC_STRING) :: line, zeile 
+CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+CHARACTER(LEN=PREC_STRING) :: mc_strufile 
+INTEGER :: i, j, ibl, lbef 
+INTEGER :: lline 
+INTEGER :: lp, ianz 
+INTEGER, dimension(MAXW) ::  lpara
+logical :: lexist        ! Flag if host structure file exissts
+REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
 !                                                                       
-      ier_num = - 49 
-      ier_typ = ER_APPL 
+ier_num = - 49 
+ier_typ = ER_APPL 
+!
+mc_matrix = 0.0
+mc_dimen  = 0.0
       DO i = 1, 4 
-      DO j = 1, 4 
-      mc_matrix (i, j) = 0.0 
-      mc_dimen (i, j) = 0.0 
-      ENDDO 
-      mc_matrix (i, i) = 1.0 
-      mc_dimen (i, i) = 1.0 
-      ENDDO 
-      line = ' ' 
-      READ (imd, 2000, end = 2, err = 999) line 
-      lline = len_str (line) 
-      DO while (line.eq.' '.or.line (1:1) .eq.'#'.OR.line(1:1)=='!'.or.line.eq.char (13) ) 
-      READ (imd, 2000, end = 2, err = 999) line 
-      lline = len_str (line) 
-      ENDDO 
-      ibl = index (line (1:lline) , ' ') + 1 
-      lbef = 10 
-      befehl = ' ' 
-      ibl = index (line, ' ') 
-      lbef = min (ibl - 1, lbef) 
-      befehl = line (1:lbef) 
-      lbef = len_str (befehl) 
-      befehl = line (1:lbef) 
-      IF (str_comp (befehl, 'domain', 4, lbef, 6) ) then 
+!     DO j = 1, 4 
+!     mc_matrix (i, j) = 0.0 
+!     mc_dimen (i, j) = 0.0 
+!     ENDDO 
+   mc_matrix (i, i) = 1.0 
+   mc_dimen (i, i) = 1.0 
+ENDDO 
+line = ' ' 
+READ (imd, 2000, end = 2, err = 999) line 
+lline = len_str (line) 
+DO while (line.eq.' '.or.line (1:1) .eq.'#'.OR.line(1:1)=='!'.or.line.eq.char (13) ) 
+   READ (imd, 2000, end = 2, err = 999) line 
+   lline = len_str (line) 
+ENDDO 
+!
+ibl = index (line (1:lline) , ' ') + 1 
+lbef = 10 
+befehl = ' ' 
+ibl = index (line, ' ') 
+lbef = min (ibl - 1, lbef) 
+befehl = line (1:lbef) 
+lbef = len_str (befehl) 
+befehl = line (1:lbef) 
+!
+if_domain: IF(str_comp(befehl, 'domain', 4, lbef, 6) ) then 
 !                                                                       
 !     --Start/End of a microdomain descriptor                           
 !                                                                       
+   CALL no_error 
+   zeile = line (ibl:lline) 
+   lp = lline-ibl + 1 
+   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+   IF(ier_num /= 0) return
+   IF(ianz == 0) then               ! First domain line must not have parameters
+ 1000          CONTINUE 
+         READ (imd, 2000, end = 998, err = 999) line 
+         lline = len_str (line) 
+         ibl = index (line (1:lline) , ' ') + 1 
+         lbef = 10 
+         befehl = ' ' 
+         ibl = index (line, ' ') 
+         lbef = min (ibl - 1, lbef) 
+         befehl = line (1:lbef) 
+         lbef = len_str (befehl) 
+         befehl = line (1:lbef) 
+         CALL do_cap (befehl) 
          CALL no_error 
          zeile = line (ibl:lline) 
          lp = lline-ibl + 1 
-         CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-         IF (ier_num.eq.0) then 
-            IF (ianz.eq.0) then 
- 1000          CONTINUE 
-               READ (imd, 2000, end = 998, err = 999) line 
-               lline = len_str (line) 
-               ibl = index (line (1:lline) , ' ') + 1 
-               lbef = 10 
-               befehl = ' ' 
-               ibl = index (line, ' ') 
-               lbef = min (ibl - 1, lbef) 
-               befehl = line (1:lbef) 
-               lbef = len_str (befehl) 
-               befehl = line (1:lbef) 
-               CALL do_cap (befehl) 
-               CALL no_error 
-               zeile = line (ibl:lline) 
-               lp = lline-ibl + 1 
 !                                                                       
-               IF (str_comp (befehl, 'DOMAIN', 4, lbef, 6) ) then 
-                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (str_comp (cpara (1) , 'character', 2, lpara (1)&
-                     , 9) ) then                                        
-                        IF (str_comp (cpara (2) , 'domain_sphere', 9,   &
-                        lpara (2) , 13) ) then                          
-                           mc_type = MD_DOMAIN_SPHERE 
-                        ELSEIF (str_comp (cpara (2) , 'domain_cube', 10,&
-                        lpara (2) , 11) ) then                          
-                           mc_type = MD_DOMAIN_CUBE 
-                        ELSEIF (str_comp (cpara (2) , 'domain_cylinder',&
-                        10, lpara (2) , 15) ) then                      
-                           mc_type = MD_DOMAIN_CYLINDER 
-                        ELSEIF (str_comp (cpara (2) , 'domain_fuzzy',   &
-                        10, lpara (2) , 12) ) then                      
-                           mc_type = MD_DOMAIN_FUZZY 
-                        ENDIF 
-                     ELSEIF (str_comp (cpara (1) , 'content', 2, lpara (&
-                     1) , 7) ) then                                     
-                        CONTINUE 
-                     ELSEIF (str_comp (cpara (1) , 'file', 2, lpara (1) &
-                     , 4) ) then                                        
-                        mc_strufile = cpara (2) (1:lpara (2) ) 
-                        infile = cpara (2) (1:lpara (2) ) 
-                     ELSEIF (str_comp (cpara (1) , 'fuzzy', 2, lpara (1)&
-                     , 5) ) then                                        
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxw)                                           
-                        IF (ier_num.eq.0) then 
-                           md_sep_fuz = werte (1) 
-                        ELSE 
-                           RETURN 
-                        ENDIF 
-                     ELSEIF (str_comp (cpara (1) , 'end', 3, lpara (1) ,&
-                     3) ) then                                          
-                        DO i = 1, 3 
-                        DO j = 1, 3 
-                        mc_matrix (i, j) = mc_matrix (i, j) - mc_matrix &
-                        (j, 4)                                          
-                        mc_dimen (i, j) = mc_dimen (i, j) - mc_dimen (j,&
-                        4)                                              
-                        ENDDO 
-                        ENDDO 
-                        DO i = 1, 4 
-                        DO j = 1, 4 
-                        mc_idimen (i, j) = mc_dimen (i, j) 
-                        ENDDO 
-                        ENDDO 
-                        CALL invmat4 (mc_idimen) 
-                        lend = .false. 
-                        CALL no_error 
-                        RETURN 
-                     ELSE 
-                        ier_num = - 94 
-                        ier_typ = ER_APPL 
-                        ier_msg (1) = 'Error while reading' 
-                        ier_msg (2) = 'the domain input file' 
-                     ENDIF 
+         IF(str_comp(befehl, 'DOMAIN', 4, lbef, 6) ) then 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF(ier_num.eq.0) then 
+               IF(str_comp(cpara(1), 'character', 2, lpara(1), 9) ) then
+                  IF(str_comp(cpara(2), 'domain_sphere', 9, lpara(2), 13) ) then
+                     mc_type = MD_DOMAIN_SPHERE 
+                  ELSEIF(str_comp(cpara(2), 'domain_cube', 10, lpara(2), 11) ) then
+                     mc_type = MD_DOMAIN_CUBE 
+                  ELSEIF(str_comp(cpara(2), 'domain_cylinder', 10, lpara(2), 15) ) then
+                     mc_type = MD_DOMAIN_CYLINDER 
+                  ELSEIF(str_comp(cpara(2), 'domain_fuzzy', 10, lpara(2), 12) ) then
+                     mc_type = MD_DOMAIN_FUZZY 
+                  ENDIF
+               ELSEIF(str_comp(cpara(1), 'content', 2, lpara(1), 7) ) then
+                  CONTINUE 
+               ELSEIF(str_comp(cpara(1), 'file', 2, lpara(1), 4) ) then
+                  mc_strufile = cpara(2)(1:lpara(2))
+                  infile = cpara(2)(1:lpara(2))
+                  inquire(file=infile,exist=lexist)
+                  if(.not.lexist) then
+                     ier_num = -1
+                     ier_typ = ER_IO
+                     ier_msg(1) = 'Content file: ' // infile
+                     return
+                  endif
+               ELSEIF(str_comp(cpara(1), 'fuzzy', 2, lpara(1) , 5) ) then
+                  CALL del_params(1, ianz, cpara, lpara, maxw)
+                  CALL ber_params(ianz, cpara, lpara, werte, maxw)
+                  IF(ier_num.eq.0) then 
+                     md_sep_fuz = werte(1) 
                   ELSE 
                      RETURN 
-                  ENDIF 
-               ELSEIF (str_comp (befehl, 'POSI', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_matrix (i, 4), i = 1, 3) 
-               ELSEIF (str_comp (befehl, 'XAXI', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_matrix (1, i), i = 1, 3) 
-               ELSEIF (str_comp (befehl, 'YAXI', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_matrix (2, i), i = 1, 3) 
-               ELSEIF (str_comp (befehl, 'ZAXI', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_matrix (3, i), i = 1, 3) 
-               ELSEIF (str_comp (befehl, 'CENT', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_dimen (i, 4), i = 1, 3) 
-               ELSEIF (str_comp (befehl, 'XDIM', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_dimen (1, i), i = 1, 3) 
-               ELSEIF (str_comp (befehl, 'YDIM', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_dimen (2, i), i = 1, 3) 
-               ELSEIF (str_comp (befehl, 'ZDIM', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_dimen (3, i), i = 1, 3) 
+                  ENDIF
+               ELSEIF(str_comp(cpara(1) , 'end', 3, lpara(1), 3) ) then
+                  DO i = 1, 3 
+                     DO j = 1, 3 
+                        mc_matrix(i, j) = mc_matrix(i, j) - mc_matrix(j, 4)
+                        mc_dimen (i, j) = mc_dimen (i, j) - mc_dimen (j, 4)
+                     ENDDO 
+                  ENDDO 
+                  DO i = 1, 4 
+                     DO j = 1, 4 
+                        mc_idimen (i, j) = mc_dimen (i, j) 
+                     ENDDO 
+                  ENDDO 
+                  CALL invmat4 (mc_idimen) 
+                  lend = .false. 
+                  CALL no_error 
+                  RETURN 
                ELSE 
+                  ier_num = - 94 
+                  ier_typ = ER_APPL 
+                  ier_msg (1) = 'Error while reading' 
+                  ier_msg (2) = 'the domain input file' 
+               ENDIF
+            ELSE 
+               RETURN 
+            ENDIF
+         ELSEIF(str_comp(befehl, 'POSI', 4, lbef, 8) ) then 
+                  READ (zeile, * ) (mc_matrix (i, 4), i = 1, 3) 
+         ELSEIF(str_comp(befehl, 'XAXI', 4, lbef, 8) ) then 
+                  READ (zeile, * ) (mc_matrix (1, i), i = 1, 3) 
+         ELSEIF(str_comp(befehl, 'YAXI', 4, lbef, 8) ) then 
+                  READ (zeile, * ) (mc_matrix (2, i), i = 1, 3) 
+         ELSEIF(str_comp(befehl, 'ZAXI', 4, lbef, 8) ) then 
+                  READ (zeile, * ) (mc_matrix (3, i), i = 1, 3) 
+         ELSEIF(str_comp(befehl, 'CENT', 4, lbef, 8) ) then 
+                  READ (zeile, * ) (mc_dimen (i, 4), i = 1, 3) 
+         ELSEIF(str_comp(befehl, 'XDIM', 4, lbef, 8) ) then 
+                  READ (zeile, * ) (mc_dimen (1, i), i = 1, 3) 
+         ELSEIF(str_comp(befehl, 'YDIM', 4, lbef, 8) ) then 
+                  READ (zeile, * ) (mc_dimen (2, i), i = 1, 3) 
+         ELSEIF(str_comp(befehl, 'ZDIM', 4, lbef, 8) ) then 
+                  READ (zeile, * ) (mc_dimen (3, i), i = 1, 3) 
+         ELSE 
                   ier_num = - 96 
                   ier_typ = ER_APPL 
                   ier_msg (1) = 'Error while reading' 
                   ier_msg (2) = 'the domain input file' 
                   ier_msg(3) =  zeile(1:40)
-               ENDIF 
+         ENDIF
 !                                                                       
-               GOTO 1000 
-            ELSE 
-               ier_num = - 95 
-               ier_typ = ER_APPL 
-               ier_msg (1) = 'Error while reading' 
-               ier_msg (2) = 'the domain input file' 
-            ENDIF 
-         ELSE 
-            RETURN 
-         ENDIF 
-      ELSE 
+      GOTO 1000 
+   ELSE 
+      ier_num = - 95 
+      ier_typ = ER_APPL 
+      ier_msg (1) = 'Error while reading' 
+      ier_msg (2) = 'the domain input file' 
+   ENDIF
+ELSE  if_domain
          ier_num = - 96 
          ier_typ = ER_APPL 
          ier_msg (1) = 'Error while reading' 
          ier_msg (2) = 'the domain input file' 
          ier_msg (3) = befehl
          RETURN 
-      ENDIF 
+ENDIF if_domain
       line = ' ' 
 !                                                                       
     2 CONTINUE 
@@ -1903,6 +1915,7 @@ LOGICAL  :: lread
          sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
          AT_MAXP, at_ianz, at_param)           
          IF(ier_num /= 0) THEN
+            ier_msg(1) = ' Guest file ' // infile
             CLOSE(IST)
             RETURN
          ENDIF
