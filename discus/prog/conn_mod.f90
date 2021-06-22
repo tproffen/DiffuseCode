@@ -174,75 +174,84 @@ use crystal_mod
 !
    END SUBROUTINE deallocate_conn
 !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!*******************************************************************************
 !
-   SUBROUTINE create_connectivity(l_all, itype, ino, c_name)
+SUBROUTINE create_connectivity(l_all, itype, ino, c_name)
 !
 !  Performs a loop over all atoms and creates the individual connectivities
 !
-   USE chem_mod
-   USE crystal_mod
-   USE atom_env_mod
-!  USE modify_mod
-   USE do_find_mod
+USE chem_mod
+USE crystal_mod
+USE atom_env_mod
+USE do_find_mod
+!use do_find_top
+!
 USE precision_mod
 !
-   IMPLICIT NONE
+IMPLICIT NONE
 !
-   LOGICAL, INTENT(IN)          :: l_all          ! allocate all connectivities
-   INTEGER, INTENT(in)          :: itype          ! Atom type whose conn shall be allocated
-   INTEGER, INTENT(in)          :: ino            ! Conn number for this atom type
-   CHARACTER(LEN=*), INTENT(IN) :: c_name         ! Conn  name for this atom type
+LOGICAL, INTENT(IN)          :: l_all          ! allocate all connectivities
+INTEGER, INTENT(in)          :: itype          ! Atom type whose conn shall be allocated
+INTEGER, INTENT(in)          :: ino            ! Conn number for this atom type
+CHARACTER(LEN=*), INTENT(IN) :: c_name         ! Conn  name for this atom type
 !
-   INTEGER, PARAMETER  :: MIN_PARA = 1
-   INTEGER             :: maxw
+INTEGER, PARAMETER  :: MIN_PARA = 1
+INTEGER             :: maxw
 !
-   REAL(KIND=PREC_DP)   , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! Array for neighbors
+REAL(KIND=PREC_DP)   , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! Array for neighbors
 !
-   INTEGER              :: j,i
-   INTEGER              :: is  ! dummies for scattering types
-   INTEGER              :: ianz
-   INTEGER              :: n_neig      ! Actual number of neighboring atoms
-!  INTEGER, PARAMETER   :: itype = 0   ! Dummy atom type
-!  INTEGER, PARAMETER   :: ino   = 0   ! Dummy conn number
-!  CHARACTER(LEN=256), PARAMETER     :: c_name   = ' '   ! Dummy conn name
-   INTEGER,DIMENSION(:), ALLOCATABLE :: valid_neig       ! Valid neigbors under the scope
-   LOGICAL, DIMENSION(3):: fp    ! periodic boundary conditions
-   LOGICAL              :: fq    ! quick search algorithm
-!  LOGICAL              :: l_all ! Deallocate all connectivities
-   REAL                 :: rmin        ! Minimum bond length
-   REAL                 :: rmax        ! Maximum bond length
-   REAL   , DIMENSION(3)     :: x      ! Atom position
+INTEGER              :: j,i
+INTEGER              :: is  ! dummies for scattering types
+INTEGER              :: ianz
+INTEGER              :: n_neig      ! Actual number of neighboring atoms
+INTEGER,DIMENSION(:), ALLOCATABLE :: valid_neig       ! Valid neigbors under the scope
+LOGICAL, DIMENSION(3):: fp    ! periodic boundary conditions
+LOGICAL              :: fq    ! quick search algorithm
+REAL                 :: rmin        ! Minimum bond length
+REAL                 :: rmax        ! Maximum bond length
+REAL   , DIMENSION(3)     :: x      ! Atom position
 !
-   maxw = MAX(MIN_PARA, MAXSCAT+1)
+maxw = MAX(MIN_PARA, MAXSCAT+1)
 !
-   CALL deallocate_conn(conn_nmax, l_all, itype, ino, c_name)              ! Deallocate old connectivity(ies)
-   conn_nmax = cr_natoms                               ! Remember current atom number
-   IF(l_all) CALL allocate_conn_list(conn_nmax)        ! Allocate connectivity
+CALL deallocate_conn(conn_nmax, l_all, itype, ino, c_name)              ! Deallocate old connectivity(ies)
+conn_nmax = cr_natoms                               ! Remember current atom number
+IF(l_all) CALL allocate_conn_list(conn_nmax)        ! Allocate connectivity
 !
-   fp (1) = chem_period (1)
-   fp (2) = chem_period (2)
-   fp (3) = chem_period (3)
-   fq     = chem_quick
+fp (1) = chem_period (1)
+fp (2) = chem_period (2)
+fp (3) = chem_period (3)
+fq     = chem_quick
 !
-   atome: DO i = 1,cr_natoms                                ! Check all atoms in the structure    
-      NULLIFY(hood_temp)
-      x(1) = cr_pos(1,i)
-      x(2) = cr_pos(2,i)
-      x(3) = cr_pos(3,i)
-      ianz = 1
-      is   = cr_iscat(i)                                    ! Keep atom type
-      allowed: IF ( ASSOCIATED(def_main(is)%def_liste )) THEN  ! def.s exist
-         def_temp => def_main(is)%def_liste
-         neighs: DO
-            IF(l_all .OR. c_name == def_temp%def_name) THEN !Allocate all OR a specific one
+atome: DO i = 1,cr_natoms                                ! Check all atoms in the structure    
+   NULLIFY(hood_temp)
+   x(1) = cr_pos(1,i)
+   x(2) = cr_pos(2,i)
+   x(3) = cr_pos(3,i)
+   ianz = 1
+   is   = cr_iscat(i)                                    ! Keep atom type
+   allowed: IF ( ASSOCIATED(def_main(is)%def_liste )) THEN  ! def.s exist
+      def_temp => def_main(is)%def_liste
+      neighs: DO
+         IF(l_all .OR. c_name == def_temp%def_name) THEN !Allocate all OR a specific one
             IF(def_temp%create) THEN
-            werte(1:def_temp%valid_no) =      &
-               def_temp%valid_types(1:def_temp%valid_no)    ! Copy valid atom types
-            ianz  = def_temp%valid_no                       ! Copy no. of valid atom types
-            rmin     = def_temp%def_rmin                    ! Copy distance limits
-            rmax     = def_temp%def_rmax
-            CALL do_find_env (ianz, werte, maxw, x, rmin,rmax, fq, fp)
+!
+               werte(1:def_temp%valid_no) =      &
+                     def_temp%valid_types(1:def_temp%valid_no)    ! Copy valid atom types
+               ianz  = def_temp%valid_no                       ! Copy no. of valid atom types
+               if(def_temp%def_mode==CONN_DIST) THEN       ! Find neighbors via distance
+                  rmin     = def_temp%def_rmin                    ! Copy distance limits
+                  rmax     = def_temp%def_rmax
+                  CALL do_find_env (ianz, werte, maxw, x, rmin,rmax, fq, fp)
+               elseif(def_temp%def_mode==CONN_VECT) THEN       ! Find neighbors via vectors
+!do j=1, def_temp%def_nvect
+!write(*,'(a,5i4)') 'INTENT VECT', def_temp%def_vectors(:, j)
+!enddo
+if(i==56) then
+write(*,*) 'CENTRAL ', i, cr_iscat(i)
+write(*,*) 'Valid   ', werte(1:ianz)
+endif
+                  call do_find_nei_vect_many(ianz, werte, maxw, def_temp%def_nvect, i, def_temp%def_vectors)
+               endif
             at_conn(i)%number = i                           ! Just set atom no
 !
             IF ( atom_env(0) > 0) THEN                      ! The atom has neighbors
@@ -270,6 +279,10 @@ USE precision_mod
                     valid_neig(n_neig) =         (j)
                   ENDIF
                ENDDO list
+!write(*,*) ' CENTRAL ', i, 'neighbors ', n_neig, ' : ', valid_neig(1:n_neig), atom_env(1:atom_env(0))
+!do j=1, atom_env(0)
+!write(*,*) ' POS ', atom_pos(:,j), nint(atom_pos(:,j)-cr_pos(:,atom_env(j)))
+!enddo
 !
 !              Properly set the pointer hood_temp
 !
@@ -335,11 +348,11 @@ USE precision_mod
             IF ( .NOT. ASSOCIATED(def_temp%def_next)) THEN  ! No more def.s
                CYCLE atome
             ENDIF
-            ENDIF                                           ! IF all or specific
-            def_temp => def_temp%def_next
-         ENDDO neighs                                       ! Loop over def.s
-      ENDIF allowed                                         ! Atom has def.s
-   ENDDO atome                                              ! Loop over all atoms in structure
+         ENDIF                                           ! IF all or specific
+         def_temp => def_temp%def_next
+      ENDDO neighs                                       ! Loop over def.s
+   ENDIF allowed                                         ! Atom has def.s
+ENDDO atome                                              ! Loop over all atoms in structure
 !
    conn_status = .true.
 !
@@ -520,9 +533,9 @@ USE precision_mod
 !!
 !   END SUBROUTINE recreate_connectivity
 !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!*******************************************************************************
 !
-   SUBROUTINE conn_do_set ( code, zeile, length)
+SUBROUTINE conn_do_set ( code, zeile, length)
 !-                                                                      
 !     Set the parameters for the connectivity
 !+                                                                      
@@ -549,10 +562,10 @@ USE str_comp_mod
       CHARACTER (LEN=*), INTENT(INOUT)  :: zeile
       INTEGER          , INTENT(INOUT)  :: length 
 !
-      INTEGER, PARAMETER  :: MIN_PARA = 5
+      INTEGER, PARAMETER  :: MIN_PARA = 8
       INTEGER             :: maxw
       INTEGER, PARAMETER  :: maxw2 = 2
-      INTEGER, PARAMETER  :: NOPTIONAL = 2
+      INTEGER, PARAMETER  :: NOPTIONAL = 4
 !
       CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: cpara
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: lpara
@@ -560,12 +573,12 @@ USE str_comp_mod
 !
       CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(2)  :: ccpara
       INTEGER            , DIMENSION(2)  :: llpara
-      REAL(KIND=PREC_DP) , DIMENSION(2)  :: wwerte
+      REAL(KIND=PREC_DP) , DIMENSION(20) :: wwerte
 !
       INTEGER, DIMENSION(:), ALLOCATABLE :: is_cent  ! Central atom type(s)
 !
       INTEGER             :: ianz         ! number of command line parameters
-      INTEGER             :: iianz,i      ! dummy number
+      INTEGER             :: iianz,i,j    ! dummy number
       INTEGER             :: i1, i2       ! dummy number
       INTEGER             :: is1          ! first atom type
       INTEGER             :: is2          ! second atom type
@@ -580,9 +593,14 @@ USE str_comp_mod
       INTEGER             :: is_no        ! Unused DUMMY argument
       INTEGER             :: all_status   ! Allocation status
       INTEGER             :: mole_scope   ! Scope is limited to a molecule
+integer :: conn_mode      ! Mode distance / vector
       REAL                :: rmin         ! minimum bond distance
       REAL                :: rmax         ! maximum bond distance
 !
+integer, parameter ::O_FIRST = 1
+integer, parameter ::O_MOLE  = 2
+integer, parameter ::O_VECT  = 3
+integer, parameter ::O_MODE  = 4
       CHARACTER(LEN=   9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
       CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -592,67 +610,74 @@ USE str_comp_mod
       INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
 !
-      DATA oname  / 'first', 'molescope' /
-      DATA loname /  5     ,  9          /
-      opara  =  (/ '-1     ', 'ignore ' /)   ! Always provide fresh default values
-      lopara =  (/  7       ,  7        /)
-      owerte =  (/  -1.0    ,  0.0      /)
+      DATA oname  / 'first', 'molescope', 'vector' , 'mode'    /
+      DATA loname /  5     ,  9         ,  6       ,  4        /
+      opara  =  (/ '-1     ', 'ignore ' , 'none   ', 'dist   ' /)   ! Always provide fresh default values
+      lopara =  (/  7       ,  7        ,  7       ,  7        /)
+      owerte =  (/  -1.0    ,  0.0      ,  0.0     ,  0.0      /)
 !
 !                                                                       
-      rmin = 0.0
-      rmax = 0.5
-      maxw = MAX(MIN_PARA, MAXSCAT+5)     ! (MAXSCAT+ void) + 4 Parameters  
-      temp_number = NINT(owerte(1))       ! Take default from optional parameter list
+rmin = 0.0
+rmax = 0.5
+maxw = MAX(MIN_PARA, MAXSCAT+5)     ! (MAXSCAT+ void) + 4 Parameters  
+temp_number = NINT(owerte(1))       ! Take default from optional parameter list
 !                                                                       
 !     Check definitions array
 !
-      IF ( .NOT. ALLOCATED(def_main)) THEN
-         ALLOCATE (def_main(0:MAXSCAT), stat = all_status) 
-         DO is1 = 0, MAXSCAT
-            NULLIFY(def_main(is1)%def_liste)
-            def_main(is1)%def_id     = is1
-            def_main(is1)%def_number = 0
-         ENDDO
+IF ( .NOT. ALLOCATED(def_main)) THEN
+   ALLOCATE (def_main(0:MAXSCAT), stat = all_status) 
+   DO is1 = 0, MAXSCAT
+      NULLIFY(def_main(is1)%def_liste)
+      def_main(is1)%def_id     = is1
+      def_main(is1)%def_number = 0
+   ENDDO
 !        conn_max_def = MAXSCAT
-         IF ( all_status /= 0 ) THEN
-            ier_num = -3
-            ier_typ = ER_COMM
-            ier_msg(1) = ' Error allocating the definitions'
-            WRITE(ier_msg(2),'(a,i6)') 'Error no:',all_status
-            RETURN
-         ENDIF
-      ENDIF
+   IF ( all_status /= 0 ) THEN
+      ier_num = -3
+      ier_typ = ER_COMM
+      ier_msg(1) = ' Error allocating the definitions'
+      WRITE(ier_msg(2),'(a,i6)') 'Error no:',all_status
+      RETURN
+   ENDIF
+ENDIF
 !
 !     Get parameters from input line
 !
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.ne.0) return 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+IF (ier_num.ne.0) return 
 !
 !     Sort optional parameters
 !
-      opara  =  (/ '-1     ', 'ignore ' /)   ! Always provide fresh default values
-      lopara =  (/  7       ,  7        /)
-      owerte =  (/  -1.0    ,  0.0      /)
-      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                        oname, loname, opara, lopara, lpresent, owerte)
-      IF(ier_num/=0) RETURN
-      IF(     str_comp(opara(2), 'ignore',  2, lopara(2), 6) ) THEN
-         mole_scope = MOLE_SCOPE_IGN
-      ELSEIF( str_comp(opara(2), 'within',  2, lopara(2), 6) ) THEN
-         mole_scope = MOLE_SCOPE_WITH
-      ELSEIF( str_comp(opara(2), 'outside', 2, lopara(2), 7) ) THEN
-         mole_scope = MOLE_SCOPE_OUT
-      ELSE
-         ier_num = -13
-         ier_typ = ER_COMM
-         ier_msg(1) = 'Offending parameter'
-         i1 = 1
-         i2 = MIN(43,LEN(oname),loname(2))
-         ier_msg(2)(i1:i2) = oname(2)(i1:i2)
+opara  =  (/ '-1     ', 'ignore ' , 'none   ', 'dist   ' /)   ! Always provide fresh default values
+lopara =  (/  7       ,  7        ,  7       ,  7        /)
+owerte =  (/  -1.0    ,  0.0      ,  0.0     ,  0.0      /)
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF(ier_num/=0) RETURN
+IF(     str_comp(opara(O_MOLE), 'ignore',  2, lopara(O_MOLE), 6) ) THEN
+   mole_scope = MOLE_SCOPE_IGN
+ELSEIF( str_comp(opara(O_MOLE), 'within',  2, lopara(O_MOLE), 6) ) THEN
+   mole_scope = MOLE_SCOPE_WITH
+ELSEIF( str_comp(opara(O_MOLE), 'outside', 2, lopara(O_MOLE), 7) ) THEN
+   mole_scope = MOLE_SCOPE_OUT
+ELSE
+   ier_num = -13
+   ier_typ = ER_COMM
+   ier_msg(1) = 'Offending parameter'
+   i1 = 1
+   i2 = MIN(43,LEN(oname),loname(O_MOLE))
+   ier_msg(2)(i1:i2) = oname(O_MOLE)(i1:i2)
 !        ier_msg(2) = oname(2)(1:MIN(43,LEN(oname),loname(2)))
 !        ier_msg(3) = opara(2)(1:MIN(43,lopara(2)))
-         RETURN
-      ENDIF
+   RETURN
+ENDIF
+!
+conn_mode = CONN_DIST
+if(    str_comp(opara(O_MODE), 'dist', 4, lopara(O_MODE), 4)) then
+   conn_mode = CONN_DIST
+elseif(str_comp(opara(O_MODE), 'vect', 4, lopara(O_MODE), 4)) then
+   conn_mode = CONN_VECT
+endif
 !
 !     Set mmc behaviour
 !
@@ -686,103 +711,106 @@ USE str_comp_mod
 !
 !     Remove all definitions 
 !
-      reset: IF ( code == code_res ) THEN        ! remove all definitions
-         exist_def: IF ( ALLOCATED(def_main)) THEN    ! Are there any definitions
-            DO is1 = 0, MAXSCAT
-               is_range: IF (is1 <= UBOUND(def_main,1) ) THEN 
-               is_reset: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
-                  def_head => def_main(is1)%def_liste
-                  def_temp => def_main(is1)%def_liste
-                  work_id = 1
-                  DO WHILE ( ASSOCIATED(def_temp%def_next) )        ! A further definition exists
-                     IF ( work_id == 1 ) THEN                       ! This is the first def.
-                        def_main(is1)%def_liste => def_temp%def_next  ! properly point in def_main
-                        DEALLOCATE(def_temp, stat=all_status)       ! Remove this node
-                        def_temp => def_main(is1)%def_liste         ! Point to next node
-                     ELSE                                           ! Not the first definition
-                        def_head%def_next   => def_temp%def_next    ! Point previous next to further
-                        DEALLOCATE(def_temp, stat=all_status)       ! Remove this node
-                        def_temp => def_head%def_next               ! Point to next node
-                        work_id = work_id + 1                       ! Increment node number
-                     ENDIF
-                  ENDDO
-                  DEALLOCATE(def_main(is1)%def_liste, stat=all_status) !Remove the whole list for this scat type
-               ENDIF is_reset
-               ENDIF is_range
-            ENDDO
-            DEALLOCATE(def_main, stat=all_status)                   ! Deallocate the main structure
-         ENDIF exist_def
-         RETURN                           ! All definitions have been removed
-      ENDIF reset
+reset: IF ( code == code_res ) THEN        ! remove all definitions
+   exist_def: IF ( ALLOCATED(def_main)) THEN    ! Are there any definitions
+      DO is1 = 0, MAXSCAT
+         is_range: IF (is1 <= UBOUND(def_main,1) ) THEN 
+            is_reset: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
+               def_head => def_main(is1)%def_liste
+               def_temp => def_main(is1)%def_liste
+               work_id = 1
+               DO WHILE ( ASSOCIATED(def_temp%def_next) )        ! A further definition exists
+                  IF ( work_id == 1 ) THEN                       ! This is the first def.
+                     def_main(is1)%def_liste => def_temp%def_next  ! properly point in def_main
+                     DEALLOCATE(def_temp, stat=all_status)       ! Remove this node
+                     def_temp => def_main(is1)%def_liste         ! Point to next node
+                  ELSE                                           ! Not the first definition
+                     def_head%def_next   => def_temp%def_next    ! Point previous next to further
+                     DEALLOCATE(def_temp, stat=all_status)       ! Remove this node
+                     def_temp => def_head%def_next               ! Point to next node
+                     work_id = work_id + 1                       ! Increment node number
+                  ENDIF
+               ENDDO
+               DEALLOCATE(def_main(is1)%def_liste, stat=all_status) !Remove the whole list for this scat type
+            ENDIF is_reset
+         ENDIF is_range
+      ENDDO
+      DEALLOCATE(def_main, stat=all_status)                   ! Deallocate the main structure
+   ENDIF exist_def
+   RETURN                           ! All definitions have been removed
+ENDIF reset
 !
 !     All other codes
 !
-      IF ((code==code_del .AND. ianz/=2) .OR. (code/=code_del .AND.ianz < 4)) THEN
-         ier_num = -6         ! Wrong number of input parameters
-         ier_typ = ER_COMM
-         return      ! At least four parameters
-      ENDIF
+IF ((code==code_del .AND. ianz/=2) .OR. &
+    (code/=code_del .AND. conn_mode==CONN_DIST .and. ianz < 4)) THEN
+   ier_num = -6         ! Wrong number of input parameters
+   ier_typ = ER_COMM
+   return      ! At least four parameters
+ENDIF
 !                                                                       
-      iianz = 1
-      lnew  = .false.
+iianz = 1
+lnew  = .false.
 !
 !     Get the first atom type
 !
-      CALL get_iscat (iianz, cpara, lpara, werte, maxw, lnew)
-      is1 = NINT(werte(1))
-      IF(ALLOCATED(is_cent)) DEALLOCATE(is_cent)
-      ALLOCATE(is_cent(0:iianz))
-      is_cent(1:iianz) = NINT(werte(1:iianz))
-      is_cent(0) = iianz
-      CALL del_params (1, ianz, cpara, lpara, maxw) 
+CALL get_iscat (iianz, cpara, lpara, werte, maxw, lnew)
+is1 = NINT(werte(1))
+IF(ALLOCATED(is_cent)) DEALLOCATE(is_cent)
+ALLOCATE(is_cent(0:iianz))
+is_cent(1:iianz) = NINT(werte(1:iianz))
+is_cent(0) = iianz
+CALL del_params (1, ianz, cpara, lpara, maxw) 
 !
-      IF ( code /= code_add ) then
-         iianz = 1
-         CALL ber_params (iianz, cpara, lpara, werte, maxw)
-         IF(ier_num == 0) THEN
-            work_id     = NINT(werte(1))
-            work_name   = ' '
-            work_name_l = 1
-         ELSE
-            work_id     = -2
-            work_name   = cpara(iianz)(1:lpara(iianz))
-            work_name_l = lpara(iianz)
-            call no_error
-         ENDIF
-         CALL variable_exist (work_name, work_name_l,0, l_exist, l_type, is_no)
-         IF(l_exist) THEN
-            DEALLOCATE(is_cent)
-            ier_num = -120
-            ier_typ = ER_APPL
-            RETURN
-         ENDIF
-         CALL discus_validate_var_spec(work_name, work_name_l)
-         IF( ier_num == -25 ) THEN
-            DEALLOCATE(is_cent)
-            ier_num = -120
-            ier_typ = ER_APPL
-            RETURN
-         ENDIF
-         CALL del_params (1, ianz, cpara, lpara, maxw) 
-      ELSE
-         work_id     = -1
-         work_name   = cpara(ianz)(1:lpara(ianz))
-         work_name_l = lpara(ianz)
-         ianz        = ianz - 1
-         IF(cpara(ianz)(1:6)=='first:') THEN
-            cpara(ianz) = cpara(ianz)(7:lpara(ianz))
-            call do_replace_expr(cpara(ianz), lpara(ianz))
-            temp_number = NINT(berechne(cpara(ianz), lpara(ianz)))
-            ianz        = ianz - 1
-         ELSE
-            temp_number = NINT(owerte(1))  ! Take default from optional parameter list
-         ENDIF
-      ENDIF
 !
-      IF ( code /= code_del ) THEN
+IF ( code /= code_add ) then
+   iianz = 1
+   CALL ber_params (iianz, cpara, lpara, werte, maxw)
+   IF(ier_num == 0) THEN
+      work_id     = NINT(werte(1))
+      work_name   = ' '
+      work_name_l = 1
+   ELSE
+      work_id     = -2
+      work_name   = cpara(iianz)(1:lpara(iianz))
+      work_name_l = lpara(iianz)
+      call no_error
+   ENDIF
+   CALL variable_exist (work_name, work_name_l,0, l_exist, l_type, is_no)
+   IF(l_exist) THEN
+      DEALLOCATE(is_cent)
+      ier_num = -120
+      ier_typ = ER_APPL
+      RETURN
+   ENDIF
+   CALL discus_validate_var_spec(work_name, work_name_l)
+   IF( ier_num == -25 ) THEN
+      DEALLOCATE(is_cent)
+      ier_num = -120
+      ier_typ = ER_APPL
+      RETURN
+   ENDIF
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+ELSE
+   work_id     = -1
+   work_name   = cpara(ianz)(1:lpara(ianz))
+   work_name_l = lpara(ianz)
+   ianz        = ianz - 1
+   IF(cpara(ianz)(1:6)=='first:') THEN
+      cpara(ianz) = cpara(ianz)(7:lpara(ianz))
+      call do_replace_expr(cpara(ianz), lpara(ianz))
+      temp_number = NINT(berechne(cpara(ianz), lpara(ianz)))
+      ianz        = ianz - 1
+   ELSE
+      temp_number = NINT(owerte(O_FIRST))  ! Take default from optional parameter list
+   ENDIF
+ENDIF
+!
+IF(code /= code_del) THEN
 !
 !     Get minimum and maximum bond length, last two parameters
 !
+   if(conn_mode == CONN_DIST) then          ! Choose connectivity by distance range
          ccpara(1) = cpara(ianz-1)
          llpara(1) = lpara(ianz-1)
          ccpara(2) = cpara(ianz  )
@@ -792,13 +820,18 @@ USE str_comp_mod
          rmin = wwerte(1)
          rmax = wwerte(2)
          ianz = ianz - 2
+   elseif(conn_mode==CONN_VECT) then
+      call get_optional_multi(MAXW, opara(O_VECT), lopara(O_VECT), wwerte, iianz)
+      rmin = -1.0                           ! Make distances void
+      rmax = -1.0
+   endif
 !
 !     get scattering types of neighbors
 !
-         CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
-      ENDIF
+   CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
+ENDIF
 !
-      loop_central: DO i = 1, is_cent(0)
+loop_central: DO i = 1, is_cent(0)
       is1 = is_cent(i)
       is_range2: IF (is1 <= UBOUND(def_main,1) ) THEN 
       is_there: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
@@ -850,10 +883,22 @@ USE str_comp_mod
                   def_temp%valid_types(is2) = NINT(werte(is2))
                ENDDO
                def_temp%valid_no   = ianz                        ! Set number of neighb or types
+               def_temp%def_mode   = conn_mode                   ! Set mode distance / vector
                def_temp%intend_no  = temp_number                 ! Set intended number of neighbor atoms
                def_temp%mole_scope = mole_scope                  ! Set scope
                def_temp%def_rmin   = rmin                        ! Set bond length limits
                def_temp%def_rmax   = rmax                        ! Set bond length limits
+               if(conn_mode==CONN_DIST) then                     ! Distance mode, void vectors
+                  allocate(def_temp%def_vectors(5,1))            ! Do dummy allocation to one member
+                  def_temp%def_vectors = -9999                   ! Void vectors
+                  def_temp%def_nvect   = 0                       ! No vectors for this definition
+               elseif(conn_mode==CONN_VECT) then                 ! Vector mode
+                  def_temp%def_nvect  = iianz                    ! Set number of vectors 
+                  allocate(def_temp%def_vectors(5,iianz))        ! Do allocation to iianz members
+                  do j=1, iianz
+                     def_temp%def_vectors(:,j) = conn_vectors(:,nint(wwerte(j)))
+                  enddo
+               endif
                def_temp%create     = .TRUE.
             ELSEIF ( code == code_del ) THEN                     ! Remove this definition
                IF ( ASSOCIATED(def_temp%def_next) ) THEN         ! A further definition exists
@@ -920,6 +965,7 @@ USE str_comp_mod
                def_temp%valid_types(is2) = NINT(werte(is2))
             ENDDO
             def_temp%valid_id   = temp_id + 1                 ! Set number of neighb or types
+            def_temp%def_mode   = conn_mode                   ! Set mode distance / vector
             def_temp%def_name   = work_name                   ! Set definition name
             def_temp%def_name_l = work_name_l                 ! Set definition name length
             def_temp%mmc_sel    = conn_mmc_sel                ! Set mmc selection type
@@ -929,6 +975,17 @@ USE str_comp_mod
             def_temp%mole_scope = mole_scope                  ! Set scope
             def_temp%def_rmin   = rmin                        ! Set bond length limits
             def_temp%def_rmax   = rmax                        ! Set bond length limits
+            if(conn_mode==CONN_DIST) then                     ! Distance mode, void vectors
+               allocate(def_temp%def_vectors(5,1))            ! Do dummy allocation to one member
+               def_temp%def_vectors = -9999                   ! Void vectors
+               def_temp%def_nvect   = 0                       ! No vectors for this definition
+            elseif(conn_mode==CONN_VECT) then                 ! Vector mode
+               def_temp%def_nvect  = iianz                    ! Set number of vectors 
+               allocate(def_temp%def_vectors(5,iianz))        ! Do allocation to iianz members
+               do j=1, iianz
+                  def_temp%def_vectors(:,j) = conn_vectors(:,nint(wwerte(j)))
+               enddo
+            endif
             def_temp%create     = .TRUE.
             NULLIFY(def_temp%def_next)                        ! No further definition
             def_main(is1)%def_number = def_main(is1)%def_number + 1
@@ -960,6 +1017,7 @@ USE str_comp_mod
                def_temp%valid_types(is2) = NINT(werte(is2))
             ENDDO
             def_temp%valid_id   = 1                           ! Set number of neighb or types
+            def_temp%def_mode   = conn_mode                   ! Set mode distance / vector
             def_temp%def_name   = work_name                   ! Set definition name
             def_temp%def_name_l = work_name_l                 ! Set definition name length
             def_temp%mmc_sel    = conn_mmc_sel                ! Set mmc selection type
@@ -969,6 +1027,17 @@ USE str_comp_mod
             def_temp%mole_scope = mole_scope                  ! Set scope
             def_temp%def_rmin   = rmin                        ! Set bond length limits
             def_temp%def_rmax   = rmax                        ! Set bond length limits
+            if(conn_mode==CONN_DIST) then                     ! Distance mode, void vectors
+               allocate(def_temp%def_vectors(5,1))            ! Do dummy allocation to one member
+               def_temp%def_vectors = -9999                   ! Void vectors
+               def_temp%def_nvect   = 0                       ! No vectors for this definition
+            elseif(conn_mode==CONN_VECT) then                 ! Vector mode
+               def_temp%def_nvect  = iianz                    ! Set number of vectors 
+               allocate(def_temp%def_vectors(5,iianz))        ! Do allocation to iianz members
+               do j=1, iianz
+                  def_temp%def_vectors(:,j) = conn_vectors(:,nint(wwerte(j)))
+               enddo
+            endif
             def_temp%create     = .TRUE.
             NULLIFY(def_temp%def_next)                        ! No further definition
             def_main(is1)%def_number = def_main(is1)%def_number + 1
@@ -987,9 +1056,9 @@ USE str_comp_mod
 !
    END SUBROUTINE conn_do_set
 !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!*******************************************************************************
 !
-   SUBROUTINE conn_menu
+SUBROUTINE conn_menu
 !-                                                                      
 !     Main menu for connectivity related operations                          
 !+                                                                      
@@ -1049,7 +1118,7 @@ USE str_comp_mod
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/conn' 
 !                                                                       
-      DO while (.not.lend) 
+loop_main: DO while (.not.lend) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
@@ -1213,7 +1282,11 @@ USE str_comp_mod
 !     ----overwrite  a new connectivity definition 'set'                 
 !                                                                       
                ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
-                  CALL conn_do_set (code_set,zeile, lp) 
+                  if(zeile(1:3)=='vec') then
+                     call conn_do_vect(zeile,lp)
+                  else
+                     CALL conn_do_set (code_set,zeile, lp) 
+                  endif
 !                                                                       
 !     ----show current parameters 'show'                                
 !                                                                       
@@ -1267,14 +1340,15 @@ USE str_comp_mod
             sprompt = ' '
          ENDIF 
       ENDIF 
-      ENDDO 
-      prompt = orig_prompt
+ENDDO loop_main
+!
+prompt = orig_prompt
 !                                                                       
-   END SUBROUTINE conn_menu
-subroutine conn_reset
+end subroutine conn_menu
 !
 !*******************************************************************************
 !
+subroutine conn_reset
 !-
 !  Reset the connectivity
 !+
@@ -1476,8 +1550,6 @@ end subroutine conn_do_show
 !
 !*******************************************************************************
 !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!
    SUBROUTINE conn_show
 !-                                                                      
 !     Show connectivity definitions
@@ -1505,24 +1577,30 @@ end subroutine conn_do_show
 !     ELSE
 !        WRITE(output_io, 3000) 'energy', 'ignore'
 !     ENDIF
-      exist_def: IF ( ALLOCATED(def_main)) THEN    ! Are there any definitions
-        scats: DO is=0,MIN(MAXSCAT,UBOUND(def_main,1))                     ! Loop over all atom types
-           IF ( .NOT. ASSOCIATED(def_main(is)%def_liste)) THEN  ! This type has no def.s
+exist_def: IF ( ALLOCATED(def_main)) THEN    ! Are there any definitions
+   scats: DO is=0,MIN(MAXSCAT,UBOUND(def_main,1))                     ! Loop over all atom types
+      IF ( .NOT. ASSOCIATED(def_main(is)%def_liste)) THEN  ! This type has no def.s
               CYCLE scats
-           ENDIF
-           def_temp => def_main(is)%def_liste
-           WRITE(output_io, 1000) at_name(is)
-           DO
-              IF ( .NOT. ASSOCIATED(def_temp)) THEN  ! This type has no more def.s
-                 CYCLE scats
-              ENDIF
-              WRITE(output_io, 2000) def_temp%valid_id, &
-                  def_temp%def_name(1:def_temp%def_name_l), def_temp%valid_no,   &
-                  (at_name  (def_temp%valid_types(i)),i=1,def_temp%valid_no)
+      ENDIF
+      def_temp => def_main(is)%def_liste
+      WRITE(output_io, 1000) at_name(is)
+      DO
+         IF( .NOT. ASSOCIATED(def_temp)) THEN  ! This type has no more def.s
+            CYCLE scats
+         ENDIF
+         WRITE(output_io, 2000) def_temp%valid_id, &
+               def_temp%def_name(1:def_temp%def_name_l), def_temp%valid_no,   &
+               (at_name  (def_temp%valid_types(i)),i=1,def_temp%valid_no)
 !                 (cr_at_lis(def_temp%valid_types(i)),                                &
 !                            def_temp%valid_types(i) ,i=1,def_temp%valid_no)
-              WRITE(output_io, 2300) def_temp%intend_no,def_temp%def_rmin,&
+         if(def_temp%def_mode==CONN_DIST) then
+         WRITE(output_io, 2300) def_temp%intend_no,def_temp%def_rmin,&
                                                         def_temp%def_rmax
+         else
+            do i=1, def_temp%def_nvect
+               write(output_io, 2350) i, def_temp%def_vectors(:,i)
+            enddo
+         endif
 !             IF(def_temp%mmc_sel==STATUS_ON) THEN
 !                WRITE(output_io, 4000) 'selection', 'on'
 !             ELSEIF(def_temp%mmc_sel==STATUS_OFF) THEN
@@ -1537,18 +1615,19 @@ end subroutine conn_do_show
 !             ELSE
 !                WRITE(output_io, 4000), 'energy', 'ignore'
 !             ENDIF
-              def_temp => def_temp%def_next
-           ENDDO
-        ENDDO scats
-      ELSE exist_def                               ! No def.s exist
-         WRITE(output_io, 7000) 
-      ENDIF exist_def
+         def_temp => def_temp%def_next
+      ENDDO
+   ENDDO scats
+ELSE exist_def                               ! No def.s exist
+   WRITE(output_io, 7000) 
+ENDIF exist_def
 !
 1000  FORMAT(' Central atom type       : ',a9)
 2000  FORMAT('     Def.no; Name; No.of.types; Types : ',i4,1x, a,1x,i4,1x, &
              ': ',20(a9:,',',2x))
 !            20(a4,'(',i4,')',2x))
 2300  FORMAT('     Max neig, Bond length range', 4x,i8,2x,f8.4, 2x, f8.4)
+2350  format('     Vector; is, js; [cell change]    : ',i4,';', 1x,i4,' =>',i4,';',2x, '[',3(2x, i4),']') 
 7000  FORMAT(' No connectivity definitions set')
 !
    END SUBROUTINE conn_show
@@ -2281,6 +2360,77 @@ NULLIFY(hood_j)
 !
 !
 END SUBROUTINE conn_update
+!
+!*******************************************************************************
+!
+subroutine conn_do_vect(zeile,lp)
+!-
+!  Analyze the 'set vector' command
+!+
+!
+use discus_allocate_appl_mod
+!
+use ber_params_mod
+use get_params_mod
+use precision_mod
+USE str_comp_mod
+!
+implicit none
+!
+character(len=*), intent(inout) :: zeile
+integer, intent(inout) :: lp
+!
+integer, parameter :: MAXW = 7
+character(len=PREC_STRING), dimension(MAXW) :: cpara
+integer                   , dimension(MAXW) :: lpara
+real(kind=PREC_DP)        , dimension(MAXW) :: werte
+integer :: ianz                  ! Number of parameters
+integer     :: is1, is2, iv
+integer     :: n_vec  ! Dummy for allocations
+!
+!
+call get_params(zeile, ianz, cpara, lpara, MAXW, lp)
+if(ier_num/=0) return
+if(ianz==7) then
+   call del_params(1, ianz, cpara, lpara, MAXW)
+   if(ier_num/=0) return
+   if(str_comp(cpara(1), 'rese', 2, lpara(1), 4) ) then
+      n_vec = 1
+      call alloc_conn_vect(n_vec)        ! Do dummy allocation to 1 element
+      conn_nvect = 0                     ! no vectors defined
+   else
+      call ber_params(ianz, cpara, lpara, werte, MAXW)
+      if(ier_num/=0) return
+!
+      iv  = nint(werte(1))               ! Vector number
+      is1 = nint(werte(2))               ! Starting site
+      is2 = nint(werte(3))               ! Ending   site
+      if(iv<=0) then                     ! Vectro number outside range
+         ier_num = -8
+         ier_typ = ER_FORT
+         ier_msg(1) = 'Vector number must be > zero'
+         return
+      elseif(iv>CONN_MAX_VECT) then      ! Need allocation of more elements
+         n_vec = iv
+         call alloc_conn_vect(n_vec)     ! Do allocation to n_vec elements
+      endif
+      if(is1 <= 0.or.is1 >  cr_ncatoms.or.       &
+         is2 <= 0.or.is2 >  cr_ncatoms    ) then
+         ier_num = -10                   ! Site numbers outside range
+         ier_typ = ER_CHEM
+         return
+      else
+         conn_vectors(1:5, iv) = int(werte(2:6) )
+         conn_nvect = max(conn_nvect, iv)
+      ENDIF
+   endif
+else
+   ier_num = -1
+   ier_typ = ER_FORT
+   return
+endif
+!
+end subroutine conn_do_vect
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !

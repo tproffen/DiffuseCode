@@ -3,7 +3,15 @@ MODULE conn_sup_mod
 USE conn_def_mod
 USE conn_type_mod
 !
+private
+!
+public get_connectivity_list
+public get_connectivity_identity
+public get_connectivity_numbers
+!
 CONTAINS
+!
+!*******************************************************************************
 !
    SUBROUTINE get_connectivity_list (jatom, is1, ino, c_list, c_offs, natoms )
 !-                                                                      
@@ -75,6 +83,7 @@ CONTAINS
 !
    END SUBROUTINE get_connectivity_list
 !
+!*******************************************************************************
 !
    SUBROUTINE get_connectivity_identity (is1, work_id, work_name, work_name_l)
 !-                                                                      
@@ -127,6 +136,7 @@ CONTAINS
 !
    END SUBROUTINE get_connectivity_identity
 !
+!*******************************************************************************
 !
    INTEGER FUNCTION get_connectivity_numbers (is1)
 !-                                                                      
@@ -159,5 +169,7 @@ CONTAINS
       get_connectivity_numbers = numbers   ! assign return value
 !
    END FUNCTION get_connectivity_numbers
+!
+!*******************************************************************************
 !
 END MODULE conn_sup_mod

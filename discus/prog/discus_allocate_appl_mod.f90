@@ -287,6 +287,7 @@ USE str_comp_mod
       CALL alloc_chem_ran ( 1,  1,  1    )
       CALL alloc_chem_dist( 1 )
       CALL alloc_chem_hist( 1            )
+      CALL alloc_conn_vect( 1            )
       CALL alloc_crystal  ( 1,  1        )
       CALL alloc_deco     ( 1,  1,  4,  3,   3, 2 , 3)
       CALL alloc_debye    ( 1,  1,  1, ONE )
@@ -889,7 +890,51 @@ CHEM_MAX_BIN = n_hist
 !
 END SUBROUTINE alloc_chem_hist
 !
+!*******************************************************************************
 !
+SUBROUTINE alloc_conn_vect(n_vec)
+!-
+!     Allocate the arrays needed by CONN vector definitions
+!+
+USE conn_def_mod
+!
+IMPLICIT NONE
+!
+!      
+INTEGER, INTENT(IN)  :: n_vec
+!
+INTEGER              :: all_status
+LOGICAL              :: lstat
+INTEGER              :: size_of
+!
+lstat  = .TRUE.
+!
+!
+CALL alloc_arr(conn_vectors ,1,5, 1,n_vec, all_status, -9999, size_of)
+!
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+!
+IF( lstat ) THEN                        ! Success
+   CONN_MAX_VECT = n_vec
+   ier_typ       = 0
+   ier_num       = 0
+   IF(all_status == 1) THEN
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'CONNECTIVITY'
+   ENDIF
+ELSE                                    ! Failure
+   CONN_MAX_VECT = n_vec
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'CONNECTIVITY'
+   RETURN
+END IF
+!
+end SUBROUTINE alloc_conn_vect
+!
+!*******************************************************************************
 !
     SUBROUTINE alloc_crystal ( n_scat, n_max )
 !-
