@@ -28,9 +28,9 @@ INTEGER                  :: sym_sub_end    = 1
 INTEGER                  :: sym_n_excl     = 1
 INTEGER, DIMENSION(:), ALLOCATABLE  :: sym_excl
 INTEGER                  :: sym_power      = 1
-INTEGER                  :: sym_axis_type  = 0  ! axis type (0 abolute, 1 atoms in crystal, -1 atoms in mol
+INTEGER                  :: sym_axis_type  = 0  ! axis type (0 absolute, 1 atoms in crystal, -1 atoms in mol
 INTEGER, DIMENSION(3)    :: sym_axis_atoms = 0  ! Atoms that define the axis
-INTEGER                  :: sym_orig_type  = 0  ! origin type (0 abolute, 1 atoms in crystal, -1 atoms in mol
+INTEGER                  :: sym_orig_type  = 0  ! origin type (0 absolute, 1 atoms in crystal, -1 atoms in mol
 INTEGER                  :: sym_orig_atom  = 1  ! Atom at origin of symmetry operation
 LOGICAL                  :: sym_mode       = .true.
 LOGICAL                  :: sym_new        = .false.
@@ -53,6 +53,27 @@ REAL(KIND=PREC_DP), DIMENSION(4,4)     :: sym_mat       = 0.0
 REAL(KIND=PREC_DP), DIMENSION(4,4)     :: sym_rmat      = 0.0
 !
 INTEGER                  :: sym_size_of  ! Bytes allocated for symmetry
+!
+character(len=1024), dimension(13) :: symm_expr   ! EXPR for setting
+logical            , dimension(13) :: symm_use_expr  ! USE/NOT use EXPR
+!
+! Symmetry expressions are stored in elements:
+!  1 :  u
+!  2 :  v
+!  3 :  w
+!  4 :  h
+!  5 :  k
+!  6 :  l
+!  7 :  angle
+!  8 :  trans x
+!  9 :  trans y
+! 10 :  trany z
+! 11 :  orig x
+! 12 :  orig y
+! 13 :  orig z
+data symm_expr /'0.0d0', '0.0d0', '1.0d0', '0.0d0', '0.0d0', '1.0d0', '0.0d0',  & ! uvw hkl alpha
+                '0.0d0', '0.0d0', '0.0d0', '0.0d0', '0.0d0', '0.0d0'            & ! trans orig
+               /
 !
 END MODULE symm_mod
 MODULE symm_temp_mod

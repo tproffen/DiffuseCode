@@ -40,17 +40,18 @@ DATA kron / 1.0d0, 0.0d0, 0.0d0, 0.0d0, 1.0d0, 0.0d0, 0.0d0, 0.0d0, 1.0d0 /
 !write(*,*) 'SYM_UVW ', sym_uvw
 !write(*,*) 'SYM_hkl ', sym_hkl
 IF(sym_use == 0) THEN
+!
+!  Evaluate and use current EXPR
+!
+   call symm_check_expr
 !                                                                       
 !     initialize matrix and angle                                       
-!                                                                       
-   DO i = 1, 4 
-      DO j = 1, 4 
-         sym_mat (i, j) = 0.0d0
-         sym_rmat (i, j) = 0.0d0 
-      ENDDO 
-   ENDDO 
+!
+   sym_mat  = 0.0d0
+   sym_rmat = 0.0d0
    sym_mat (4, 4) = 1.0d0 
    sym_rmat (4, 4) = 0.0d0 
+!
    IF (sym_power_mult) then 
       ctheta = cosd (sym_angle) 
       stheta = sind (sym_angle) 
@@ -73,17 +74,13 @@ IF(sym_use == 0) THEN
       DO i=1, 3
          sym_uvw(i) = cr_pos(i,sym_axis_atoms(2)) - cr_pos(i,sym_axis_atoms(1))
       ENDDO
-!     CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
       sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
    ENDIF
 !                                                                       
 !     Create vectors of unit length in direct and reciprocal space      
 !                                                                       
-!   length = sqrt (skalpro (real(sym_uvw), real(sym_uvw), cr_gten) ) 
-!write(*,*) ' LENGTH DIRECT SP ',length
    length = sqrt(dot_product(sym_uvw, matmul(real(cr_gten, kind=PREC_DP), sym_uvw)))
    IF (length.eq.0.0) then 
-!write(*,*) ' LENGTH DIRECT DP ',length, sym_uvw
       ier_num = - 32 
       ier_typ = ER_APPL 
       RETURN 
@@ -91,12 +88,9 @@ IF(sym_use == 0) THEN
    DO j = 1, 3 
       sym_d (j) = sym_uvw (j) / length 
    ENDDO 
-!   length = sqrt (skalpro (real(sym_hkl), real(sym_hkl), cr_rten) ) 
-!write(*,*) ' LENGTH RECIP  SP ',length
+!
    length = sqrt(dot_product(sym_hkl, matmul(real(cr_rten, kind=PREC_DP), sym_hkl)))
-!write(*,*) ' LENGTH RECIP  DP ',length
    IF (length.eq.0.0) then 
-!write(*,*) ' LENGTH RECIP  DP ',length, sym_hkl
       ier_num = - 32 
       ier_typ = ER_APPL 
       RETURN 
@@ -104,60 +98,38 @@ IF(sym_use == 0) THEN
    DO j = 1, 3 
       sym_r (j) = sym_hkl (j) / length 
    ENDDO 
-!     write (output_io,2001) sym_d,sym_r                                
-!2001      format('direct axis     :',3(2x,f10.6)/                      
-!    &                  'reciprocal axis :',3(2x,f10.6))                
 !                                                                       
 !     calculate symmetry operation                                      
 !                                                                       
-!write(*,'(a,3f17.10)') 'sym_d ',sym_d
-!write(*,'(a,3f17.10)') 'sym_r ',sym_r
    DO i = 1, 3 
       DO j = 1, 3 
          sym_mat (i, j) = 0.0d0 
          DO k = 1, 3 
             DO l = 1, 3 
-!if((i==1 .and. j==3) .or. (i==3 .and. j==1)) then
-!write(*,'(2i3,2f17.10)') i,j, sym_mat(i, j), real(cr_rten(i, k), kind=PREC_DP) * &
-!                                               real(cr_eps(k, l,j),kind=PREC_DP) * sym_d(l)
-!endif
                sym_mat(i, j) = sym_mat(i, j) + real(cr_rten(i, k), kind=PREC_DP) * &
                                                real(cr_eps(k, l,j),kind=PREC_DP) * sym_d(l)
             ENDDO 
          ENDDO 
          uij = sym_d (i) * sym_r (j) 
-!if((i==1 .and. j==3) .or. (i==3 .and. j==1)) then
-!write(*,'(2i3,3f17.10)') i,j, sym_mat(i, j), &
-!stheta + uij + (kron(i, j) - uij) * ctheta, &
-!uij
-!endif
          sym_mat(i, j) = sym_mat(i, j) * stheta + uij + (kron(i, j) - uij) * ctheta
-!if((i==1 .and. j==3) .or. (i==3 .and. j==1)) then
-!write(*,'(2i3,1f17.10)') i,j, sym_mat(i, j)
-!endif
       ENDDO 
       IF (sym_power_mult) then 
-         sym_mat (i, 4) = sym_trans (i) 
+         sym_mat(i, 4) = sym_trans (i) 
       ELSE 
-         sym_mat (i, 4) = sym_trans (i) * sym_power 
+         sym_mat(i, 4) = sym_trans (i) * sym_power 
       ENDIF 
    ENDDO 
 !                                                                       
 !     In case of improper rotation, multiply by -1                      
 !                                                                       
    IF (.not.sym_type.and. (                                          &
-      sym_power_mult.or..not.sym_power_mult.and.mod (sym_power, 2)      &
-      .ne.0) ) then                                                     
+      sym_power_mult.or..not.sym_power_mult.and.mod(sym_power, 2).ne.0) ) then
       DO i = 1, 3 
          DO j = 1, 3 
             sym_mat (i, j) = - sym_mat (i, j) 
          ENDDO 
       ENDDO 
    ENDIF 
-!     write (output_io,2000) ((sym_mat(i,j),j=1,3),i=1,3)               
-!2000      format(3(3(2x,f10.6)/))                                      
-!                                                                       
-!                                                                       
 !                                                                       
 !     Transform symmetry operation into reciprocal space                
 !                                                                       
@@ -169,8 +141,6 @@ IF(sym_use == 0) THEN
 !                                                                       
 !     do transformation q = gSg*                                        
 !                                                                       
-!  CALL matmulx (b, a, cr_rten) 
-!  CALL matmulx (a, cr_gten, b) 
    b = matmul(a, real(cr_rten, kind=PREC_DP))
    a = matmul(   real(cr_gten, kind=PREC_DP), b)
    DO i = 1, 3 
@@ -225,7 +195,53 @@ ENDIF
 !2000      format(3(3(2x,f10.6)/))                                      
 !                                                                       
       END SUBROUTINE symm_setup                     
+!
 !*****7*****************************************************************
+!
+subroutine symm_check_expr
+!-
+!  Set the values of EXPR into the appropriate variables
+!+
+!
+use symm_mod
+!
+use ber_params_mod
+use do_replace_expr_mod
+use errlist_mod
+use precision_mod
+!
+integer, parameter :: MAXW = 13
+integer :: ianz
+character(len=PREC_STRING), dimension(MAXW) :: cpara
+integer                   , dimension(MAXW) :: lpara
+real(kind=PREC_DP)        , dimension(MAXW) :: werte
+integer :: i
+!
+ianz = 13
+do i=1,ianz
+   cpara(i) = symm_expr(i)        ! Transfer into cpara, which may be modified
+   lpara(i) = len_trim(cpara(i))
+enddo
+!
+call do_use_expr(ianz, cpara, lpara, MAXW)        ! Use evaluated EXPR; EXPR string is replaced by numbers
+call ber_params(ianz, cpara, lpara, werte, MAXW)  ! Evaluate, with current "EXPR"
+if(ier_num/=0)  then
+   ier_msg(1) = 'Expression for orient erroneous '
+   return
+endif
+!
+!   Replace sym* variable if EXPR was set. Test is not necessary, as defaults 
+!   can be used if user might not have set the corresponding variable. 
+if(any(symm_use_expr( 1: 3))) sym_uvw   = werte( 1:3)
+if(any(symm_use_expr( 4: 6))) sym_hkl   = werte( 4:6)
+if(    symm_use_expr( 7   ) ) sym_angle = werte( 7)
+if(any(symm_use_expr( 8:10))) sym_trans = werte( 8:10)
+if(any(symm_use_expr(11:13))) sym_orig  = werte(11:13)
+!
+end subroutine symm_check_expr
+!
+!*****7*****************************************************************
+!
       SUBROUTINE symm_op_mult 
 !-                                                                      
 !     Performs the actual symmetry operation, multiple copy version     
@@ -343,6 +359,7 @@ END SUBROUTINE symm_op_mult
       USE crystal_mod 
       USE atom_env_mod 
       USE modify_mod
+use prop_para_mod
       USE symm_mod 
       USE trafo_mod
       USE errlist_mod 
@@ -382,6 +399,7 @@ loop_atoms: DO l = i_start, i_end
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
+      if(btest(cr_prop(i), PROP_TEMP)) cycle loop_atoms    ! 
         IF (sym_latom (cr_iscat (i) ) ) then 
           IF (sym_incl.eq.'env ') THEN 
              i = atom_env (l) 
@@ -1491,7 +1509,86 @@ USE precision_mod
  3000 FORMAT    (' Result    : ',3(2x,f9.4)) 
       END SUBROUTINE symm_ca_single                 
 !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!*******************************************************************************
+!
+subroutine symm_rec
+!-
+! Perform the symmetry operations on the recursive environment of a given atom
+! The 'include', 'select' status are temporarily stored. The lower routines 
+! must include all atoms and all atom types that are within the current 
+! environment.
+! The temporary property flag is used to perform the operation only once, i.e.
+! only on those atoms whose property is not set. At the end the property is
+! cleared globally.
+!+
+!
+use crystal_mod
+use atom_env_mod
+use do_find_mod
+use prop_para_mod
+use symm_mod
+!
+implicit none
+!
+integer, parameter :: MAXW = 1
+integer :: i, j     ! Dummy index
+integer :: ianz     ! Number of params in werte
+integer :: r_start  ! Main symmetry inlude start
+integer :: r_end    ! Main symmetry inlude end
+!logical,          dimension(:), allocatable  ::  r_sym_latom   ! main symmetry selected atom list
+!logical,          dimension(:), allocatable  ::  r_sym_lsite   ! main symmetry site list
+real(kind=PREC_DP), dimension(MAXW) :: werte                   ! Array to transfer atom number to conn
+!
+sym_incl = 'env'                                   ! For lower routines use 'env' mode
+r_start = sym_start                                ! Retain original include limits (start / end)
+if(sym_end==-1) then
+   r_end = cr_natoms                               ! User specified "all" on 'include' command
+else
+   r_end = sym_end                                 ! User specified limits
+endif
+!
+do i=1, cr_natoms
+   cr_prop(i) = ibclr(cr_prop(i), PROP_TEMP)       ! Set   temporary property for all atoms
+enddo
+cr_sel_prop(0) = ibclr(cr_sel_prop(0), PROP_TEMP)  ! Set temporary property as 'present'
+cr_sel_prop(1) = ibclr(cr_sel_prop(1), PROP_TEMP)  ! Set temporary property as 'present'
+!
+loop_incl: do i=r_start, r_end                     ! Loop over all atoms included
+   if(.not. sym_latom(cr_iscat(i))) cycle loop_incl      ! Only for selected atoms
+   if(btest(cr_prop(i), PROP_TEMP)) cycle loop_incl
+   ianz = 1
+   werte(1) = real(i)
+!  werte(2) =  1
+   call do_find_neig_conn_all(ianz, MAXW, werte)
+!write(*,*) ' CENTRAL ', i, btest(cr_prop(i), PROP_TEMP)
+!write(*,*) ' neig    ', atom_env(1:atom_env(0))
+   sym_start = 1
+   sym_end   = atom_env(0)
+!
+!  Since each connectivity might/should have its own random values set up symmetry
+!
+   call symm_setup 
+!
+!  Now perform actual symmetry operation
+!
+   if(sym_power_mult) THEN
+      call symm_op_mult
+   else
+      call symm_op_single
+   endif
+   do j=1, atom_env(0)
+      cr_prop(atom_env(j)) = ibset(cr_prop(atom_env(j)), PROP_TEMP)  ! Set TEMP prop
+   enddo
+enddo loop_incl
+!
+do i=1, cr_natoms
+   cr_prop(i) = ibclr(cr_prop(i), PROP_TEMP)       ! Clear temporary property
+enddo
+!
+!
+end subroutine symm_rec
+!
+!*******************************************************************************
 !
 LOGICAL FUNCTION symm_occupied(werte, radius)
 !
