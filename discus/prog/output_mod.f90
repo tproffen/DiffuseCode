@@ -26,5 +26,6 @@ REAL   , DIMENSION(3,3) ::  out_vi  ! (3,3)
 CHARACTER(LEN=  3)      ::  cpow_form    = 'tth'
 LOGICAL                 ::  out_user_limits = .false.
 REAL   , DIMENSION(3)   ::  out_user_values = (/1.0, 10.0, 0.01/)
+integer                 ::  out_mode = 0       ! Output mode if KUPLOT 0;1;2 == new, old, add
 !
 END MODULE output_mod
