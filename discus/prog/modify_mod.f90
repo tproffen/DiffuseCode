@@ -5,181 +5,185 @@ MODULE modify_mod
 !                                                                       
 CONTAINS
 !*****7*****************************************************************
-      SUBROUTINE do_replace (zeile, lp) 
+!
+SUBROUTINE do_replace (zeile, lp) 
 !-                                                                      
 !     Replaces atom(s) or molecule(s) within the crystal ..             
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE celltoindex_mod
-      USE get_iscat_mod
-      USE modify_func_mod
-      USE molecule_mod 
-      USE prop_para_mod 
-      USE update_cr_dim_mod
-      USE ber_params_mod
-      USE errlist_mod 
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE celltoindex_mod
+USE get_iscat_mod
+USE modify_func_mod
+USE molecule_mod 
+USE prop_para_mod 
+USE update_cr_dim_mod
+USE ber_params_mod
+USE errlist_mod 
+use build_name_mod
 USE lib_errlist_func
 USE lib_random_func
-      USE get_params_mod
-      USE random_mod
+USE get_params_mod
+USE random_mod
 USE precision_mod
 USE str_comp_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 200) 
+INTEGER, PARAMETER :: maxw = 200
 !                                                                       
 CHARACTER(LEN=*), INTENT(INOUT) :: zeile 
 INTEGER         , INTENT(INOUT) :: lp 
 !
-      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: cpara (maxw), cc 
-      INTEGER lpara (maxw) , ccl
-      INTEGER ianz, iianz, jjanz, i 
-      INTEGER is1, is2, isite, itype 
-      INTEGER ja, jsite, jcell (3) 
-      INTEGER            :: n_scat ! dummy for allocation
-      LOGICAL lexist, lrepl 
-      REAL(KIND=PREC_DP) :: uerte (maxw) 
-      REAL(KIND=PREC_DP) :: verte (maxw) 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL prob 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: cpara (maxw), cc 
+INTEGER :: lpara (maxw) , ccl
+INTEGER :: ianz, iianz, jjanz, i 
+INTEGER :: is1, is2, isite, itype 
+INTEGER :: ja, jsite, jcell (3) 
+INTEGER            :: n_scat ! dummy for allocation
+LOGICAL lexist, lrepl 
+REAL(KIND=PREC_DP) :: uerte (maxw) 
+REAL(KIND=PREC_DP) :: verte (maxw) 
+REAL(KIND=PREC_DP) :: werte (maxw) 
+REAL :: prob 
 !                                                                       
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) return 
+! Test for atom name constructions at param 1
+CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
+IF (ier_num.ne.0) return 
+! Test for atom name constructions at param 2
+CALL do_build_name (ianz, cpara, lpara, werte, maxw, 2)
+IF (ier_num.ne.0) return 
 !                                                                       
-      IF (ianz.eq.2) then 
-         cpara (3) = 'x' 
-         lpara (3) = 1 
-      ENDIF 
+IF (ianz.eq.2) then 
+   cpara (3) = 'x' 
+   lpara (3) = 1 
+ENDIF 
 !                                                                       
 !------ Here are molecule manipulations                                 
 !                                                                       
-      IF (str_comp (cpara (3) , 'mol', 2, lpara (3) , 3) ) then 
+IF (str_comp (cpara (3) , 'mol', 2, lpara (3) , 3) ) then 
 !                                                                       
 !------ - Single molecule will be changed                               
 !                                                                       
-         IF (ianz.eq.3) then 
-            ianz = ianz - 1 
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            is1 = nint (werte (1) ) 
-            is2 = nint (werte (2) ) 
-            CALL do_swap_mole (is1, is2, .false.) 
-            CALL update_cr_dim 
+   IF (ianz.eq.3) then 
+      ianz = ianz - 1 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      is1 = nint (werte (1) ) 
+      is2 = nint (werte (2) ) 
+      CALL do_swap_mole (is1, is2, .false.) 
+      CALL update_cr_dim 
 !                                                                       
 !------ - More molecules will be changed                                
 !                                                                       
-         ELSEIF (ianz.eq.4) then 
-            CALL ber_params (2, cpara, lpara, werte, maxw) 
-            itype = nint (werte (1) ) 
-            is2 = nint (werte (2) ) 
-            CALL del_params (3, ianz, cpara, lpara, maxw) 
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            prob = werte (1) 
+   ELSEIF (ianz.eq.4) then 
+      CALL ber_params (2, cpara, lpara, werte, maxw) 
+      itype = nint (werte (1) ) 
+      is2 = nint (werte (2) ) 
+      CALL del_params (3, ianz, cpara, lpara, maxw) 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      prob = werte (1) 
 !                                                                       
-            IF (itype.gt.0.and.itype.le.mole_num_type) then 
-               DO ja = 1, mole_num_mole 
-               IF (mole_type (ja) .eq.itype.and.ran1 (idum) .le.prob)   &
-               then                                                     
-                  CALL do_swap_mole (ja, is2, .false.) 
-               ENDIF 
-               ENDDO 
-               CALL update_cr_dim 
-            ELSE 
-               ier_num = - 64 
-               ier_typ = ER_APPL 
+      IF (itype.gt.0.and.itype.le.mole_num_type) then 
+         DO ja = 1, mole_num_mole 
+            IF(mole_type(ja) .eq.itype.and.ran1(idum).le.prob) then
+               CALL do_swap_mole (ja, is2, .false.) 
             ENDIF 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-         ENDIF 
+         ENDDO 
+         CALL update_cr_dim 
+      ELSE 
+         ier_num = - 64 
+         ier_typ = ER_APPL 
+      ENDIF 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
 !                                                                       
 !------ Here are atom manipulations                                     
 !                                                                       
-      ELSE 
+ELSE 
 !                                                                       
 !------ - Replace all given atoms with given probability                
 !                                                                       
-         IF (ianz.eq.4) then 
-            iianz = 1 
-            jjanz = 1 
-            CALL get_iscat (iianz, cpara (1), lpara (1), uerte, maxw,   &
-            .false.)                                                    
+   IF (ianz.eq.4) then 
+      iianz = 1 
+      jjanz = 1 
+      CALL get_iscat(iianz, cpara(1), lpara(1), uerte, maxw, .false.)
 !                                                                       
 !     ----The first atom type does not exist, user error                
 !                                                                       
-            IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) return 
 !                                                                       
 !     ----Get second atom                                               
 !                                                                       
-            CALL get_iscat (jjanz, cpara (2), lpara (2), verte, maxw,   &
-            .false.)                                                    
-            IF (ier_num.eq. - 27) then 
+      CALL get_iscat(jjanz, cpara(2), lpara(2), verte, maxw, .false.)
+      IF (ier_num.eq. - 27) then 
 !                                                                       
 !------ ----The second atom type does not exist, create new             
 !           scattering curve(s)                                         
 !                                                                       
-               DO i = 1, iianz 
-               IF (cr_nscat + 1 >  MAXSCAT) then 
-                  n_scat = cr_nscat + 1
-                  call alloc_crystal (n_scat, NMAX)
-               ENDIF
-               IF (cr_nscat + 1.le.maxscat) then 
-                  cr_nscat = cr_nscat + 1 
-                  cr_at_lis (cr_nscat) = cpara (2) (1:lpara(2))
-!DBG                cr_dw(cr_nscat)     = cr_dw(nint(uerte(i)))         
-                  cr_dw (cr_nscat) = 0.05 
-                  CALL no_error 
-                  verte (i) = REAL(cr_nscat) 
-               ELSE 
-                  ier_num = - 26 
-                  ier_typ = ER_APPL 
-                  RETURN 
-               ENDIF 
-               ENDDO 
-            ELSEIF (ier_num.ne.0) then 
+         DO i = 1, iianz 
+            IF (cr_nscat + 1 >  MAXSCAT) then 
+               n_scat = cr_nscat + 1
+               call alloc_crystal (n_scat, NMAX)
+            ENDIF
+            IF (cr_nscat + 1.le.maxscat) then 
+               cr_nscat = cr_nscat + 1 
+               cr_at_lis (cr_nscat) = cpara (2) (1:lpara(2))
+!DBG                   cr_dw(cr_nscat)     = cr_dw(nint(uerte(i)))         
+               cr_dw (cr_nscat) = 0.05 
+               CALL no_error 
+               verte (i) = REAL(cr_nscat) 
+            ELSE 
+               ier_num = - 26 
+               ier_typ = ER_APPL 
+               RETURN 
+            ENDIF 
+         ENDDO 
+      ELSEIF (ier_num.ne.0) then 
 !                                                                       
 !     ------other errors, return                                        
 !                                                                       
-               RETURN 
-            ENDIF 
-            is1 = nint (uerte (1) ) 
-            is2 = nint (verte (1) ) 
-            IF (str_comp (cpara (3) , 'all', 1, lpara (3) , 3) ) then 
-               CALL del_params (3, ianz, cpara, lpara, maxw) 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               isite = - 1 
-               prob = werte (1) 
-            ELSE 
-               CALL del_params (2, ianz, cpara, lpara, maxw) 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               isite = nint (werte (1) ) 
-               prob = werte (2) 
-            ENDIF 
+         RETURN 
+      ENDIF 
+      is1 = nint (uerte (1) ) 
+      is2 = nint (verte (1) ) 
+      IF (str_comp (cpara (3) , 'all', 1, lpara (3) , 3) ) then 
+         CALL del_params (3, ianz, cpara, lpara, maxw) 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         isite = - 1 
+         prob = werte (1) 
+      ELSE 
+         CALL del_params (2, ianz, cpara, lpara, maxw) 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         isite = nint (werte (1) ) 
+         prob = werte (2) 
+      ENDIF 
 !                                                                       
-      IF (prob.le.0.0.or.prob.gt.1.0.or.isite.gt.cr_ncatoms.or.is1.eq. -&
-     & 1.or.is2.eq. - 1) then                                           
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-               RETURN 
-            ENDIF 
+      IF(prob.le.0.0.or.prob.gt.1.0.or.isite.gt.cr_ncatoms.or. &
+         is1.eq. -1 .or.is2.eq. - 1                           ) then                                           
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+         RETURN 
+      ENDIF 
 !                                                                       
-            DO ja = 1, cr_natoms 
-            IF (isite.eq. - 1) then 
-               jsite = - 1 
-            ELSE 
-               CALL indextocell (ja, jcell, jsite) 
-            ENDIF 
-            DO i = 1, iianz 
-            IF (cr_iscat (ja) .eq.nint (uerte (i) ) .and. (             &
-            jsite.eq.isite.or.isite.eq. - 1) .and.ran1 (idum) .le.prob) &
-            then                                                        
-      IF (check_select_status (ja, .true., cr_prop (ja),  cr_sel_prop) ) THEN
+      DO ja = 1, cr_natoms 
+         IF (isite.eq. - 1) then 
+            jsite = - 1 
+         ELSE 
+            CALL indextocell (ja, jcell, jsite) 
+         ENDIF 
+         DO i = 1, iianz 
+            IF( cr_iscat (ja) .eq.nint(uerte(i)) .and. &
+               (jsite.eq.isite.or.isite.eq. - 1) .and. & 
+                ran1 (idum) .le.prob                   )  then                                                        
+               IF (check_select_status (ja, .true., cr_prop (ja),  cr_sel_prop) ) THEN
                   cr_iscat (ja) = nint (verte (i) ) 
                   IF (nint (verte (i) ) .gt.0) then 
                      cr_prop (ja) = IBSET (cr_prop (ja), PROP_NORMAL) 
@@ -189,9 +193,9 @@ INTEGER         , INTENT(INOUT) :: lp
                   GOTO 999 
                ENDIF 
             ENDIF 
-            ENDDO 
-  999       CONTINUE 
-            lrepl = .false. 
+         ENDDO 
+         999       CONTINUE 
+         lrepl = .false. 
 !           do i=1,iianz                                                
 !             lrepl = lrepl .or. cr_iscat(ja).eq.nint(uerte(i))         
 !     &                     .and. (jsite.eq.isite .or. isite.eq.-1)     
@@ -202,103 +206,103 @@ INTEGER         , INTENT(INOUT) :: lp
 !     &         ran1(idum).le.prob                     ) then           
 !             cr_iscat(ja) = is2                                        
 !           endif                                                       
-            ENDDO 
+      ENDDO 
 !
 !                                                                       
 !------ - Replace a single atom                                         
 !                                                                       
-         ELSEIF (ianz.eq.2.or.ianz.eq.3) then 
-            CALL ber_params (1, cpara, lpara, werte, maxw) 
-            ja = nint (werte (1) ) 
-            iianz = 1 
-            CALL get_iscat (iianz, cpara (2), lpara (2), uerte, maxw,   &
-            .false.)                                                    
-            DO i = 1, iianz
-               IF(uerte(i)==-1) THEN
-                  ier_num = -6
-                  ier_typ = ER_COMM
-                  RETURN
-               ENDIF
-            ENDDO
+   ELSEIF (ianz.eq.2.or.ianz.eq.3) then 
+      CALL ber_params (1, cpara, lpara, werte, maxw) 
+      ja = nint (werte (1) ) 
+      iianz = 1 
+      CALL get_iscat (iianz, cpara (2), lpara (2), uerte, maxw, .false.)
+      DO i = 1, iianz
+         IF(uerte(i)==-1) THEN
+            ier_num = -6
+            ier_typ = ER_COMM
+            RETURN
+         ENDIF
+      ENDDO
 !                                                                       
-            IF (ianz.eq.3.and.ier_num.eq. - 27) then 
-               IF (cr_nscat + 1 >  MAXSCAT) then 
-                  n_scat = cr_nscat + 1
-                  call alloc_crystal (n_scat, NMAX)
-               ENDIF
-               IF (cr_nscat + 1.le.maxscat) then 
-                  cr_nscat = cr_nscat + 1 
-                  cr_at_lis (cr_nscat) = cpara (2)  (1:lpara(2))
-                  CALL del_params (2, ianz, cpara, lpara, maxw) 
-                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  cr_dw (cr_nscat) = werte (1) 
-                  is1 = cr_nscat 
-                  CALL no_error 
-               ELSE 
-                  ier_num = - 26 
-                  ier_typ = ER_APPL 
-                  RETURN 
-               ENDIF 
-            ELSEIF (ianz.eq.3.and.ier_num.eq.0) then 
+      IF (ianz.eq.3.and.ier_num.eq. - 27) then 
+         IF (cr_nscat + 1 >  MAXSCAT) then 
+            n_scat = cr_nscat + 1
+            call alloc_crystal (n_scat, NMAX)
+         ENDIF
+         IF (cr_nscat + 1.le.maxscat) then 
+            cr_nscat = cr_nscat + 1 
+            cr_at_lis (cr_nscat) = cpara (2)  (1:lpara(2))
+            CALL del_params (2, ianz, cpara, lpara, maxw) 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            cr_dw (cr_nscat) = werte (1) 
+            is1 = cr_nscat 
+            CALL no_error 
+         ELSE 
+            ier_num = - 26 
+            ier_typ = ER_APPL 
+            RETURN 
+         ENDIF 
+      ELSEIF (ianz.eq.3.and.ier_num.eq.0) then 
 !                                                                       
 !     ------Atom name exists, but since DW was given check this         
 !                                                                       
-               cc = cpara (2) 
-               ccl = lpara (2)
-               CALL del_params (2, ianz, cpara, lpara, maxw) 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         cc = cpara (2) 
+         ccl = lpara (2)
+         CALL del_params (2, ianz, cpara, lpara, maxw) 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                                                                         
-               lexist = .false. 
-               DO i = 1, iianz 
-               IF (ABS(cr_dw (NINT(uerte (i) ) ) - werte(1) )< 1.0D-4) THEN 
+         lexist = .false. 
+         DO i = 1, iianz 
+            IF (ABS(cr_dw (NINT(uerte (i) ) ) - werte(1) )< 1.0D-4) THEN 
 !                                                                       
 !     --------Atom exists with identical DW                             
 !                                                                       
-                  is1 = nint (uerte (i) ) 
-                  lexist = .true. 
-               ENDIF 
-               ENDDO 
-               IF (.not.lexist) then 
-                  IF (cr_nscat + 1 >  MAXSCAT) then 
-                     n_scat = cr_nscat + 1
-                     call alloc_crystal (n_scat, NMAX)
-                  ENDIF
-                  IF (cr_nscat + 1.le.maxscat) then 
-                     cr_nscat = cr_nscat + 1 
-                     cr_at_lis (cr_nscat) = cc(1:ccl)
-                     cr_dw (cr_nscat) = werte (1) 
-                     is1 = cr_nscat 
-                     CALL no_error 
-                  ELSE 
-                     ier_num = - 26 
-                     ier_typ = ER_APPL 
-                     RETURN 
-                  ENDIF 
-               ENDIF 
+               is1 = nint (uerte (i) ) 
+               lexist = .true. 
+            ENDIF 
+         ENDDO 
+         IF (.not.lexist) then 
+            IF (cr_nscat + 1 >  MAXSCAT) then 
+               n_scat = cr_nscat + 1
+               call alloc_crystal (n_scat, NMAX)
+            ENDIF
+            IF (cr_nscat + 1.le.maxscat) then 
+               cr_nscat = cr_nscat + 1 
+               cr_at_lis (cr_nscat) = cc(1:ccl)
+               cr_dw (cr_nscat) = werte (1) 
+               is1 = cr_nscat 
+               CALL no_error 
             ELSE 
-               is1 = nint (uerte (1) ) 
+               ier_num = - 26 
+               ier_typ = ER_APPL 
+               RETURN 
             ENDIF 
-!                                                                       
-            IF (is1.eq. - 1.or.ja.le.0.or.ja.gt.cr_natoms) then 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-            IF (ier_num.ne.0) return 
-!                                                                       
-            cr_iscat (ja) = is1 
-            IF (cr_iscat (ja) .gt.0) then 
-               cr_prop (ja) = IBSET (cr_prop (ja), PROP_NORMAL) 
-            ELSE 
-               cr_prop (ja) = IBCLR (cr_prop (ja), PROP_NORMAL) 
-            ENDIF 
-!                                                                       
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
          ENDIF 
+      ELSE 
+         is1 = nint (uerte (1) ) 
       ENDIF 
 !                                                                       
-      END SUBROUTINE do_replace                     
+      IF (is1.eq. - 1.or.ja.le.0.or.ja.gt.cr_natoms) then 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+      IF (ier_num.ne.0) return 
+!                                                                       
+      cr_iscat (ja) = is1 
+      IF (cr_iscat (ja) .gt.0) then 
+         cr_prop (ja) = IBSET (cr_prop (ja), PROP_NORMAL) 
+      ELSE 
+         cr_prop (ja) = IBCLR (cr_prop (ja), PROP_NORMAL) 
+      ENDIF 
+!                                                                       
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
+endIF 
+!                                                                       
+END SUBROUTINE do_replace                     
+!
 !*****7*****************************************************************
       SUBROUTINE do_swap_mole (idest, isource, lswap) 
 !-                                                                      
