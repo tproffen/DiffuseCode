@@ -3,7 +3,7 @@
 !  The file is always written to hard disk
 !  Separate routines for 1D and 2D files
 !
-SUBROUTINE output_save_file_1d( outfile, npkt1, xwrt, ywrt )
+SUBROUTINE output_save_file_1d( outfile, npkt1, xwrt, ywrt, mode )
 !
 USE errlist_mod
 IMPLICIT NONE
@@ -12,6 +12,7 @@ CHARACTER (LEN=*),           INTENT(IN) :: outfile
 INTEGER,                     INTENT(IN) :: npkt1
 REAL   , DIMENSION(1:npkt1), INTENT(IN) :: xwrt
 REAL   , DIMENSION(1:npkt1), INTENT(IN) :: ywrt
+integer                    , intent(in) :: mode
 !
 INTEGER, PARAMETER :: IFF = 2
 INTEGER            :: i

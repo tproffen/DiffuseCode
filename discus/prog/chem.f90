@@ -5102,7 +5102,7 @@ ENDDO loop_fst
          xwrt(i) = chem_blen_cut(1) + (chem_blen_cut(2) -chem_blen_cut(1)) * (i-1)/chem_bin
       ENDDO
       ywrt(1:chem_bin) = chem_hist(1:chem_bin)
-      CALL output_save_file_1d( chem_fname, chem_bin, xwrt, ywrt )
+      CALL output_save_file_1d( chem_fname, chem_bin, xwrt, ywrt, 0 )
       DEALLOCATE(xwrt, stat=all_status)
       DEALLOCATE(ywrt, stat=all_status)
 !     OPEN (unit = 43, file = chem_fname, status = 'unknown',iostat=ios, &
@@ -5203,7 +5203,7 @@ USE precision_mod
          xwrt(i) = chem_blen_cut(1) + (chem_blen_cut(2) -chem_blen_cut(1)) * (i-1)/chem_bin
       ENDDO
       ywrt(1:chem_bin) = chem_hist(1:chem_bin)
-      CALL output_save_file_1d( chem_fname, chem_bin, xwrt, ywrt )
+      CALL output_save_file_1d( chem_fname, chem_bin, xwrt, ywrt, 0 )
       DEALLOCATE(xwrt, stat=all_status)
       DEALLOCATE(ywrt, stat=all_status)
 !     OPEN (unit = 43, file = chem_fname, status = 'unknown', &
@@ -5394,7 +5394,7 @@ USE precision_mod
          xwrt(i) = chem_bang_cut(1) + (chem_bang_cut(2) -chem_bang_cut(1)) * (i-1)/chem_bin
       ENDDO
       ywrt(1:chem_bin) = chem_hist(1:chem_bin)
-      CALL output_save_file_1d( chem_fname, chem_bin, xwrt, ywrt )
+      CALL output_save_file_1d( chem_fname, chem_bin, xwrt, ywrt, 0 )
       DEALLOCATE(xwrt, stat=all_status)
       DEALLOCATE(ywrt, stat=all_status)
 !     OPEN (unit = 43, file = chem_fname, status = 'unknown', &

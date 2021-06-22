@@ -52,6 +52,9 @@ LOGICAL, INTENT(IN) :: linverse
 !                                                                       
 INTEGER, PARAMETER :: maxp = 11 
 INTEGER, PARAMETER :: MAXFORM = 14
+integer, parameter :: NEW = 0
+integer, parameter :: OLD = 1
+integer, parameter :: ADD = 2
 !                                                                       
 CHARACTER(LEN=5) :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
@@ -70,7 +73,7 @@ REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
 REAL(KIND=PREC_DP)                  :: valmax
 REAL(KIND=PREC_DP)                  ::  dsmax = 0.0
 ! 
-INTEGER, PARAMETER :: NOPTIONAL = 7
+INTEGER, PARAMETER :: NOPTIONAL = 8
 INTEGER, PARAMETER :: O_MAXVAL  = 1                  ! Current SCALE for maxvalue
 INTEGER, PARAMETER :: O_DSMAX   = 2                  ! Maximum d-star
 INTEGER, PARAMETER :: O_QMAX    = 3                  ! Maximum Q
@@ -78,6 +81,7 @@ INTEGER, PARAMETER :: O_HKLMAX  = 4                  ! Maximum hkl vector
 INTEGER, PARAMETER :: O_PATT    = 5                  ! Maximum hkl vector
 INTEGER, PARAMETER :: O_SPATT   = 6                  ! Maximum hkl vector
 INTEGER, PARAMETER :: O_DPATT   = 7                  ! Maximum hkl vector
+INTEGER, PARAMETER :: O_MODE    = 8                  ! Mode if written into KUPLOT
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 character(len=8)                          :: cpatt   ! Optional patterson overlay
 character(len=PREC_STRING)                :: spatt   ! Atoms selected for Patterson overlay
@@ -89,8 +93,8 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
 !                                                                       
-DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax', 'patt'  ,'sel', 'des' /
-DATA loname /  6      ,  5      ,  4      ,  6      ,  4      , 3   ,  3    /
+DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax', 'patt'  ,'sel', 'des', 'mode' /
+DATA loname /  6      ,  5      ,  4      ,  6      ,  4      , 3   ,  3   ,  4     /
 DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
                 'Portable Any Map', 'Powder Pattern', 'SHELX',          &
                 'SHELXL List 5', 'SHELXL List 5 real HKL' ,             &
@@ -106,9 +110,9 @@ DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
 DATA value / 1 / 
 DATA laver / .false. / 
 !
-opara  = (/'data  ', '0.00  ', '0.00  ', '0.00  ', 'none  ', 'all   ', 'none  ' /)
-lopara = (/  4     ,  5      ,  4      ,  6      ,  6      ,  3      ,  4     /)
-owerte = (/ -1.000 ,  0.000  ,  0.000  ,  0.000  ,  0.00   ,  0.000  ,  0.000   /)
+opara  = (/'data  ', '0.00  ', '0.00  ', '0.00  ', 'none  ', 'all   ', 'none  ', 'new   ' /)
+lopara = (/  4     ,  5      ,  4      ,  6      ,  6      ,  3      ,  4      ,  3       /)
+owerte = (/ -1.000 ,  0.000  ,  0.000  ,  0.000  ,  0.00   ,  0.000  ,  0.000  ,  0.00    /)
 zmin = ps_low * diffumax 
 zmax = ps_high * diffumax 
 orig_prompt = prompt
@@ -405,9 +409,18 @@ main_if: IF (ier_num.eq.0) THEN
       ELSEIF (str_comp (befehl, 'outf', 1, lbef, 4) ) THEN 
          CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
          IF (ier_num.eq.0) THEN 
+            CALL get_optional(ianz, MAXP, cpara, lpara, NOPTIONAL,  ncalc, &
+                              oname, loname, opara, lopara, lpresent, owerte)
             CALL do_build_name(ianz, cpara, lpara, werte, maxp, 1)
             IF (ier_num.eq.0) THEN 
                outfile = cpara(1)(1:lpara(1))
+               if(opara(O_MODE)=='new') then
+                  out_mode =  NEW
+               elseif(opara(O_MODE)=='old') then
+                  out_mode =  OLD
+               elseif(opara(O_MODE)=='add') then
+                  out_mode =  ADD
+               endif
             ENDIF 
          ENDIF 
 !                                                                       
@@ -1473,7 +1486,7 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
          xwrt(i) = h(out_extr_abs)
          ywrt(i) = qval (i, value, i, j, laver)
       ENDDO 
-      CALL output_save_file_1d(outfile, npkt1, xwrt, ywrt)
+      CALL output_save_file_1d(outfile, npkt1, xwrt, ywrt, out_mode)
       DEALLOCATE(xwrt)
       DEALLOCATE(ywrt)
    ELSEIF(is_dim==2) THEN                       ! 2D output
@@ -1522,7 +1535,7 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
 !     ENDIF
       CALL write_discus_nipl_header(header_lines, nheader, l)
       CALL output_save_file_2d(outfile, ranges, nnew1, nnew2, zwrt,       &
-                               header_lines, nheader)
+                               header_lines, nheader, out_mode)
       DEALLOCATE(header_lines)
       DEALLOCATE(zwrt)
    ELSEIF(is_dim==3) THEN                       ! 3D output into standard slices
@@ -1539,7 +1552,7 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
             ENDDO 
          ENDDO 
          CALL output_save_file_2d(dummy_file, ranges, npkt1, npkt2, zwrt,    &
-                                  header_lines, nheader)
+                                  header_lines, nheader, out_mode)
          DEALLOCATE(header_lines)
       ENDDO 
       DEALLOCATE(zwrt)
