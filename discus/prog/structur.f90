@@ -1254,6 +1254,7 @@ ENDIF
          cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)
       IF (ier_num.ne.0) THEN 
+         ier_msg(1) = 'Structure ' // strucfile
          CLOSE (ist)
          RETURN 
       ENDIF 
@@ -2219,12 +2220,15 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
             cr_magn, cr_prop, cr_dim, cr_magnetic, &
             as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop, &
             AT_MAXP, at_ianz, at_param)     
+         else
+            ier_msg(1) = 'Structure ' // strucfile
          ENDIF 
       ENDIF 
 !                                                                       
       CLOSE (ist) 
-      IF (ier_num.eq. - 49) THEN 
+      IF (ier_num.eq. -49) THEN 
          WRITE (ier_msg (1), 3000) cr_natoms + 1 
+         ier_msg(2) = 'Structure ' // strucfile
  3000 FORMAT      ('At atom number = ',i8) 
       ENDIF 
       END SUBROUTINE readstru                       
@@ -2315,7 +2319,7 @@ cr_occ(:) = 1.0   !! WORK OCC
 gen_add_n = 0
 sym_add_n = 0
 !                                                                       
-      ier_num = - 46 
+      ier_num = -46 
       ier_typ = ER_APPL 
       READ (ist, 2000, end = 999, err = 999) cr_name 
 !                                                                       
