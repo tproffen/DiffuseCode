@@ -13,7 +13,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE chem_aver_mod, ONLY: get_displacement
       USE conn_mod
       USE demolec
-      USE do_find_mod
+      USE do_find_top
       USE domain_menu
       USE fourier_menu
       USE insert_menu

@@ -1,152 +1,19 @@
 MODULE do_find_mod
 !
-CONTAINS
 !*****7*****************************************************************
-      SUBROUTINE do_find (line, laenge) 
-!-                                                                      
-!     Finds the environment around an atom                              
-!+                                                                      
-      USE discus_config_mod 
-      USE charact_mod 
-      USE charact_mod 
-      USE crystal_mod 
-      USE get_iscat_mod
-      USE chem_mod 
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
-USE precision_mod
-USE str_comp_mod
-      IMPLICIT none 
-!                                                                       
-       
-!                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 200) 
-      INTEGER mmaxw 
-      PARAMETER (mmaxw = 5) 
-!                                                                       
-      CHARACTER ( * ) line 
-      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) cpara (maxw) 
-      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) ccpara (mmaxw) 
-      INTEGER lpara (maxw) 
-      INTEGER llpara (maxw) 
-      INTEGER i, ii, ianz, iianz, laenge 
-      LOGICAL lnew, fq, fp (3) 
-      REAL rmin 
-      REAL radius 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL(KIND=PREC_DP) :: wwerte (maxw) 
-      REAL x (3) 
-!                                                                       
-      PARAMETER (lnew = .false.) 
-!                                                                       
-!                                                                       
-      fp (1) = chem_period (1) 
-      fp (2) = chem_period (2) 
-      fp (3) = chem_period (3) 
-      fq = chem_quick 
-!                                                                       
-      CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
-      IF (ier_num.eq.0) then 
-         IF (str_comp (cpara (1) , 'env', 1, lpara (1) , 3) ) then 
-!                                                                       
-!     ----Find environment                                              
-!                                                                       
-            IF (ianz.ge.7) then 
-!                                                                       
-!     ------copy last five parameters for evaluation                    
-!                                                                       
-               DO i = ianz - 4, ianz 
-               ii = i - (ianz - 5) 
-               ccpara (ii) = cpara (i) 
-               llpara (ii) = lpara (i) 
-               ENDDO 
-               iianz = 5 
-               CALL ber_params (iianz, ccpara, llpara, wwerte, mmaxw) 
-               x (1) = wwerte (1) 
-               x (2) = wwerte (2) 
-               x (3) = wwerte (3) 
-               rmin = wwerte (4) 
-               radius = wwerte (5) 
-               IF (ier_num.eq.0) then 
-!                                                                       
-!     -------- shift remaining parameters one left                      
-!                                                                       
-                  DO i = 2, ianz - 5 
-                  cpara (i - 1) = cpara (i) 
-                  lpara (i - 1) = lpara (i) 
-                  ENDDO 
-                  ianz = ianz - 6 
-!                                                                       
-!     --------Get scattering curves                                     
-!                                                                       
-                  CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew) 
-                  IF (ier_num.eq.0) then 
-                     CALL do_find_env (ianz, werte, maxw, x, rmin,      &
-                     radius, fq, fp)                                    
-                  ENDIF 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'menv', 1, lpara (1) , 4) ) then 
-!                                                                       
-!     ----Find molecular environment                                    
-!                                                                       
-            IF (ianz.ge.7) then 
-!                                                                       
-!     ------copy last three parameters for evaluation                   
-!                                                                       
-               DO i = ianz - 4, ianz 
-               ii = i - (ianz - 5) 
-               ccpara (ii) = cpara (i) 
-               llpara (ii) = lpara (i) 
-               ENDDO 
-               iianz = 5 
-               CALL ber_params (iianz, ccpara, llpara, wwerte, mmaxw) 
-               x (1) = wwerte (1) 
-               x (2) = wwerte (2) 
-               x (3) = wwerte (3) 
-               rmin = wwerte (4) 
-               radius = wwerte (5) 
-               IF (ier_num.eq.0) then 
-!                                                                       
-!     -------- shift remaining parameters one left                      
-!                                                                       
-                  DO i = 2, ianz - 5 
-                  cpara (i - 1) = cpara (i) 
-                  lpara (i - 1) = lpara (i) 
-                  ENDDO 
-                  ianz = ianz - 6 
-!                                                                       
-!     --------Get allowed molecule types                                
-!                                                                       
-                  IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3) )  &
-                  then                                                  
-                     ianz = - 1 
-                  ELSE 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  ENDIF 
-                  IF (ier_num.eq.0) then 
-                     CALL do_find_mol (ianz, werte, maxw, x, rmin, radius)
-                  ENDIF
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-         ENDIF 
-      ELSE 
-         ier_num = - 10 
-         ier_typ = ER_APPL 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE do_find                        
+!
+integer, DIMENSION(:)  , ALLOCATABLE :: grand     ! Initial long list of neighbors
+integer, DIMENSION(:,:), ALLOCATABLE :: grand_o   ! Initial long list of neighbors, incl. offsets
+integer                              :: grand_n   ! Number of neighbors found
+!
+private 
+public  do_find_env
+public  do_find_mol
+public  do_find_nei_vect_many
+public  do_find_neig_conn
+public  do_find_neig_conn_all
+!
+contains
 !
 !*****7*****************************************************************
 !
@@ -170,8 +37,8 @@ USE precision_mod
 IMPLICIT none 
 
 !                                                                       
-INTEGER                            , intent(in) :: ianz
-INTEGER                            , intent(in) :: maxw 
+integer                            , intent(in) :: ianz
+integer                            , intent(in) :: maxw 
 REAL(KIND=PREC_DP), dimension(MAXW), intent(in) :: werte ! (maxw) 
 REAL              , dimension(3)   , intent(in)  :: x     ! (3) 
 REAL                               , intent(in)  :: rmin
@@ -179,14 +46,14 @@ REAL                               , intent(in)  :: rmax
 LOGICAL                            , intent(in)  :: fq
 LOGICAL           , dimension(3)   , intent(in)  :: fp 
 !                                                                       
-INTEGER :: i, j, k, ii 
-INTEGER :: ix, iy, iz
-INTEGER :: ix1, ix2, iy1,iy2, iz1,iz2
-INTEGER :: istart (3), iend (3), iii (3), cell (3), iatom 
+integer :: i, j, k, ii 
+integer :: ix, iy, iz
+integer :: ix1, ix2, iy1,iy2, iz1,iz2
+integer :: istart (3), iend (3), iii (3), cell (3), iatom 
 REAL    :: offset (3), nooffset (3) 
 LOGICAL :: ltype 
-INTEGER, DIMENSION(  :), ALLOCATABLE :: tmp_ind
-INTEGER, DIMENSION(  :), ALLOCATABLE :: tmp_env
+integer, DIMENSION(  :), ALLOCATABLE :: tmp_ind
+integer, DIMENSION(  :), ALLOCATABLE :: tmp_env
 REAL   , DIMENSION(:,:), ALLOCATABLE :: tmp_pos
 REAL   , DIMENSION(  :), ALLOCATABLE :: tmp_dis
 !                                                                       
@@ -365,12 +232,12 @@ USE precision_mod
       IMPLICIT none 
        
 !                                                                       
-      INTEGER ianz, maxw 
+      integer ianz, maxw 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL x (3) 
       REAL rmin, rmax 
 !                                                                       
-      INTEGER i, j 
+      integer i, j 
 !                                                                       
       REAL nooffset (3) 
       LOGICAL ltype 
@@ -401,6 +268,270 @@ USE precision_mod
 !DBG        write (output_io,*) 'molecule ',mole_env(i)                 
 !DBG      ENDDO                                                         
       END SUBROUTINE do_find_mol                    
+!
+!*****7*****************************************************************
+!
+subroutine do_find_nei_vect_many(ianz, werte, maxw, nvect, iatom, vect)
+!-
+!  Find the neighbor under the given vectors
+!+
+!
+use crystal_mod
+use atom_env_mod
+use check_bound_mod
+use chem_mod
+use celltoindex_mod
+USE modify_func_mod
+!
+use precision_mod
+!
+implicit none
+!
+integer                            , intent(in) :: ianz
+integer                            , intent(in) :: MAXW 
+REAL(KIND=PREC_DP), dimension(MAXW), intent(in) :: werte ! (maxw) 
+integer                     , intent(in) :: nvect    ! Number of vectors
+integer                     , intent(in) :: iatom    ! The central==start atom
+integer, dimension(5, nvect), intent(in) :: vect     ! (isite, jsite, cx, cy, cz)
+!
+integer, dimension(3) :: icell                ! Unit cell number for start atom
+integer, dimension(3) :: jcell                ! Unit cell number for end   atom
+integer               :: isite                ! Site number for start atom
+integer               :: jsite                ! Site number for end   atom
+integer               :: jatom                ! Target atom number
+integer               :: i                    ! Dummy index
+logical               :: lok                  ! Flag if boundary is OK
+logical               :: ltype                ! Flag atom is OK
+real(kind=PREC_SP), dimension(3) :: offset    ! in case of periodic boundary conditions, the offset
+!                      
+atom_env(0) = 0
+!ltype = atom_allowed (iatom, werte, ianz, maxw) .and. &
+!        check_select_status(iatom, .true., cr_prop (iatom),  cr_sel_prop)                    
+!if(.not. ltype) return                        ! Atom has incorrect type or properties
+call indextocell(iatom, icell, isite)         ! Determine unit cell location
+!
+loop_vect: do i=1, nvect
+   if(isite==vect(1,i)) then                       ! Start atom is at correct site
+      jcell = icell + vect(3:5,i)                  ! Add unit cell shift to atom
+      lok   = .false.
+      call check_bound(jcell, offset, chem_period, lok)
+      if(lok) then
+         jsite = vect(2,i)                         ! Target site
+         call celltoindex(jcell, jsite, jatom)     ! Determine unit cell location
+         ltype = atom_allowed (jatom, werte, ianz, maxw) .and. &
+                 check_select_status(jatom, .true., cr_prop (jatom),  cr_sel_prop)                    
+         if(.not. ltype) cycle loop_vect
+         atom_env(0)             = atom_env(0) + 1
+         atom_env(atom_env(0))   = jatom
+         atom_pos(:,atom_env(0)) = cr_pos(:,jatom) + offset
+      endif
+   endif
+enddo loop_vect
+!
+end subroutine do_find_nei_vect_many
+!
+!*****7*****************************************************************
+!
+subroutine do_find_neig_conn(ianz, MAXW, werte) !iatom, iconn)
+!-
+!  Find the connectivity for atom iatom, use connectivitie stored in
+!  Werte (2:), no search beyond these connectivities is performed
+!+
+!
+use crystal_mod
+use atom_env_mod
+use conn_sup_mod
+!
+use errlist_mod
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: ianz                       ! Number of parameters
+integer, intent(in) :: MAXW                       ! Array size
+real(kind=PREC_DP), dimension(MAXW) :: werte      ! Values
+integer :: iatom                                  ! Find connectivity for this atom
+integer :: nconn                                  ! Central atom has this many connectivities
+!
+integer                              :: inoo      ! Find this connectivity number
+integer                              :: c_natoms  ! Number of atoms connected
+integer, DIMENSION(:  ), ALLOCATABLE :: c_list    ! List of atoms connected to current
+integer, DIMENSION(:,:), ALLOCATABLE :: c_offs    ! Offsets for atoms connected to current
+integer, DIMENSION(:)  , ALLOCATABLE :: list      ! List of connectivities to use
+!
+integer :: i, j, k ! Dummy index
+integer :: itype   ! Atom type for iatom
+!
+atom_env(0) = 0
+!
+iatom = nint(werte(1))
+itype = cr_iscat(iatom)
+nconn = get_connectivity_numbers(itype)           ! Determine number of connectivities
+if(nconn == 0) return                             ! No connectivities, nothing to do
+allocate(list(1:nconn))                           ! List of connectivities to search
+!
+if(nint(werte(ianz))==-1) then                    ! Use all connectivities
+   do i=1,nconn
+      list(i) = i
+   enddo
+else                                              ! Use explicit list
+   k = 0
+   do i=2, ianz                                   ! Conn's start in werte(2)
+      if(nint(werte(i))<=nconn .and. nint(werte(i))>0) then
+         k = k + 1
+         list(k) = nint(werte(i))
+      else
+         ier_num = -177
+         ier_typ = ER_APPL
+         write(ier_msg(1),'(a,i8)') 'Wrong number ', nint(werte(i))
+         return
+      endif
+   enddo
+   nconn = k                                      ! Use corrected length
+endif
+!
+atom_env(0) = 0
+!
+loop_conns: do j=1, nconn                         ! Loop over all requested connectivities
+   inoo  = list(j)
+   call get_connectivity_list(iatom, itype, inoo, c_list, c_offs, c_natoms)
+   if(ier_num /= 0) then
+      atom_env(0) = 0
+      if(allocated(list))   deallocate(list)
+      if(allocated(c_list)) deallocate(c_list)
+      if(allocated(c_offs)) deallocate(c_offs)
+      return
+   endif
+!
+!  Copy into atom_env
+!
+   do i=1, c_natoms
+      atom_env(atom_env(0)+i)   = c_list(i)        ! Add atoms to end of list
+      atom_pos(:,atom_env(0)+i) = cr_pos(:,c_list(i)) + c_offs(:,(i))
+   enddo
+   atom_env(0) = atom_env(0) + c_natoms            ! Update length
+enddo loop_conns
+!
+if(allocated(list)) deallocate(list)
+if(allocated(c_list)) deallocate(c_list)
+if(allocated(c_offs)) deallocate(c_offs)
+!
+end subroutine do_find_neig_conn
+!
+!*****7*****************************************************************
+!
+subroutine do_find_neig_conn_all(ianz, MAXW, werte)
+!-
+!  Find the connectivity for atom iatom, use connectivities stored in
+!  Werte (2:), do search beyond these connectivities as well
+!+
+!
+use crystal_mod
+use atom_env_mod
+use conn_sup_mod
+!
+use errlist_mod
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: ianz                       ! Number of parameters
+integer, intent(in) :: MAXW                       ! Array size
+real(kind=PREC_DP), dimension(MAXW) :: werte      ! Values
+integer :: iatom                                  ! Find connectivity for this atom
+integer :: nconn                                  ! Central atom has this many connectivities
+!
+integer                              :: inoo      ! Find this connectivity number
+!
+integer :: i, j, k ! Dummy index
+integer :: itype   ! Atom type for iatom
+!
+atom_env(0) = 0
+!
+iatom = nint(werte(1))
+itype = cr_iscat(iatom)
+nconn = get_connectivity_numbers(itype)           ! Determine number of connectivities
+if(nconn == 0) return                             ! No connectivities, nothing to do
+!
+atom_env(0) = 0
+allocate(grand(1:cr_natoms))                      ! Initial (very) long list of neighbors
+allocate(grand_o(3, 1:cr_natoms))                 ! Initial (very) long list of neighbors, incl offset
+grand   = 0
+grand_o = 0
+grand_n = 1                                       ! We start with one atom that has been found
+grand(iatom) = 1                                  ! This atom is done, conn has been searched
+!
+!  Now find (recursive) neighbors
+!
+call do_find_neig_conn_rec(iatom)
+
+j = 0
+do i=1, cr_natoms
+   if(grand(i)==1) then
+      j = j + 1
+      atom_env(j)     = i
+      atom_pos(:,j) = cr_pos(:,i) + grand_o(:, i)
+   endif
+enddo
+atom_env(0) = j
+!
+if(allocated(grand))    deallocate(grand)
+if(allocated(grand_o))  deallocate(grand_o)
+!
+end subroutine do_find_neig_conn_all
+!
+!*****7*****************************************************************
+!
+recursive subroutine do_find_neig_conn_rec(iatom)
+!-
+!  Recursively find neighbors
+!+
+!
+use crystal_mod
+use conn_sup_mod
+!
+use errlist_mod
+!
+integer, intent(in) :: iatom
+!
+integer                              :: c_natoms  ! Number of atoms connected
+integer, DIMENSION(:  ), ALLOCATABLE :: c_list    ! List of atoms connected to current
+integer, DIMENSION(:,:), ALLOCATABLE :: c_offs    ! Offsets for atoms connected to current
+integer :: itype              ! Central atom type
+integer :: nconn              ! Number of connectivities this atom
+integer :: ino                ! Current   connectivity   this atom
+integer :: j, i, k
+!
+grand(iatom)= 1                   ! Mark this atom as done
+itype = cr_iscat(iatom)
+nconn = get_connectivity_numbers(itype)           ! Determine number of connectivities
+if(nconn==0) return                               ! No connectivity, we are done
+!
+loop_conns: do j=1, nconn                         ! Loop over all requested connectivities
+   ino = j
+   call get_connectivity_list(iatom, itype, ino, c_list, c_offs, c_natoms)
+   if(ier_num /= 0) then
+      if(allocated(c_list)) deallocate(c_list)
+      if(allocated(c_offs)) deallocate(c_offs)
+      return
+   endif
+   do i=1, c_natoms
+      k = c_list(i)
+      if(k>0) then
+         if(grand(k)==0) then                     ! Atom has not been searched
+            grand(k)     = -1                     ! Mark as new neighbor
+            grand_n      = grand_n + 1            ! New neighbor, increment total number
+            grand_o(:,k) = grand_o(:,iatom) + c_offs(:,i)   ! Remember accumulated conn
+            call do_find_neig_conn_rec(k)         ! Now search for neighbors of this neighbor
+         endif
+      endif
+   enddo
+enddo loop_conns
+!
+if(allocated(c_list)) deallocate(c_list)
+if(allocated(c_offs)) deallocate(c_offs)
+!
+end subroutine do_find_neig_conn_rec
 !
 !*****7*****************************************************************
 !
