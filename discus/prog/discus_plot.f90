@@ -1631,7 +1631,6 @@ IF(pl_prog=='jmol') THEN
 !
    ENDIF
    WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
-write(*,*) ' LINE ', line(1:len_trim(line))
    CALL EXECUTE_COMMAND_LINE(line)
 ENDIF
 END SUBROUTINE plot_inter
