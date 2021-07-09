@@ -25,6 +25,7 @@ FILE(GLOB HDF5_LIB_SEARCH_PATHS "/usr/lib/x86_64-linux-gnu/hdf5/serial*"
 FILE(GLOB HDF5_INC_SEARCH_PATHS "/usr/include/hdf5/serial*"
                                 "/usr/include*"
                                 "/usr/lib64/gfortran/modules*"
+                                "/usr/local/include*"
                                 "/usr/local/Cellar/hdf5*")
 
 FIND_LIBRARY(HDF5_FORTRAN_LIBRARY NAME hdf5_fortran PATHS ${HDF5_LIB_SEARCH_PATHS} )
