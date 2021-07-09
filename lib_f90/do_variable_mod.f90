@@ -40,6 +40,7 @@ INTEGER :: s1,s2,s3
 INTEGER :: omask   = 0         ! old mask 
 INTEGER :: nmask   = 1         ! new mask 
 LOGICAL :: success = .FALSE.
+logical :: lres    = .FALSE.   ! Found a reserved word => true
 !                                                                       
 !                                                                       
 string = line
@@ -86,70 +87,81 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
 !write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(substring),nmask)
 !write(*,*) '         123456789 123456789 1234567890'
 !write(*,'(1x,a,3i8)') '        ', ianf, var_l(i), var_entry(i)
-      IF(var_entry(i)>0) CYCLE names        ! This is a variable field
       zeile = ' ' 
       iend = ianf + var_l (i) - 1 
-      IF (ianf.gt.1) THEN
-         zeile (1:ianf - 1) = substring (1:ianf - 1) 
-         lmask (1:ianf-1,nmask) = lmask (1:ianf-1,omask)
+      call test_reserved(substring, ianf, iend, var_val(VAR_PROGRAM), &    ! Test if inside a reserved string
+                         lmask, omask, nmask, lres)
+      if_lres:if(lres) then         ! Inside a reserved string, skip this occurence
+!write(*,*) ' MASKED RESERVED ??? '
+!write(*,*) ' zeile Z>', substring(1:len_trim(substring)),'<',var_name (i) (1:var_l (i)), ianf
+!write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(substring),omask)
+!write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(substring),nmask)
+!write(*,*) '         123456789 123456789 123456789 123456789 123456789 '
+!write(*,'(1x,a,3i8)') '        ', ianf, var_l(i), var_entry(i)
+      else   if_lres
+         IF(var_entry(i)>0) CYCLE names        ! This is a variable field
+         IF (ianf.gt.1) THEN
+            zeile (1:ianf - 1) = substring (1:ianf - 1) 
+            lmask (1:ianf-1,nmask) = lmask (1:ianf-1,omask)
 !write(*,*) ' zeile A>', zeile    (1:len_trim(zeile    )),'<', ianf
 !write(*,'(1x,a,80L1)') ' MASK A >', lmask    (1:len_trim(zeile),omask)
 !write(*,'(1x,a,80L1)') ' MASK A >', lmask    (1:len_trim(zeile),nmask)
 !write(*,*) '         123456789 123456789 1234567890'
-      ENDIF
-      IF (var_type (i) .eq.      IS_REAL) THEN
-         WRITE (dummy (1:PREC_WIDTH) , PREC_F_REAL) var_val (i) 
-         dummy (PREC_MANTIS+1:PREC_MANTIS+1) = 'd' 
-         ll = PREC_WIDTH
-         CALL rem_bl (dummy, ll) 
-         zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
-         lmask (ianf:ianf+ll-1,nmask) = .FALSE.
+         ENDIF
+         IF (var_type (i) .eq.      IS_REAL) THEN
+            WRITE (dummy (1:PREC_WIDTH) , PREC_F_REAL) var_val (i) 
+            dummy (PREC_MANTIS+1:PREC_MANTIS+1) = 'd' 
+            ll = PREC_WIDTH
+            CALL rem_bl (dummy, ll) 
+            zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
+            lmask (ianf:ianf+ll-1,nmask) = .FALSE.
 !write(*,*) ' zeile R>', zeile    (1:len_trim(zeile    )),'<'
 !write(*,'(1x,a,80L1)') ' MASK R >', lmask    (1:len_trim(zeile),omask)
 !write(*,'(1x,a,80L1)') ' MASK R >', lmask    (1:len_trim(zeile),nmask)
 !write(*,*) '         123456789 123456789 1234567890'
 !write(*,*) ' ianf, ll ', ianf, ll
-         linsert = ll 
-      ELSEIF (var_type (i) .eq.      IS_INTE) THEN 
-         WRITE (dummy (1:PREC_WIDTH) , PREC_F_INTE) nint (var_val (i) ) 
-         ll = PREC_WIDTH 
-         CALL rem_bl (dummy, ll) 
-         zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
-         lmask (ianf:ianf+ll-1,nmask) = .FALSE.
+            linsert = ll 
+         ELSEIF (var_type (i) .eq.      IS_INTE) THEN 
+            WRITE (dummy (1:PREC_WIDTH) , PREC_F_INTE) nint (var_val (i) ) 
+            ll = PREC_WIDTH 
+            CALL rem_bl (dummy, ll) 
+            zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
+            lmask (ianf:ianf+ll-1,nmask) = .FALSE.
 !write(*,*) ' zeile I>', zeile    (1:len_trim(zeile    )),'<'
 !write(*,'(1x,a,80L1)') ' MASK I >', lmask    (1:len_trim(zeile),omask)
 !write(*,'(1x,a,80L1)') ' MASK I >', lmask    (1:len_trim(zeile),nmask)
 !write(*,*) '         123456789 123456789 1234567890'
 !write(*,*) ' ianf, ll ', ianf, ll
-         linsert = ll 
-      ELSEIF (var_type (i) .eq.      IS_CHAR) THEN 
-         ll = len_str (var_char (i) ) 
-         zeile (ianf:ianf) = '''' 
-         zeile (ianf + 1:ianf + ll) = var_char (i) (1:ll) 
-         zeile (ianf + ll + 1:ianf + ll + 1) = '''' 
-         lmask (ianf:ianf+ll+1,nmask) = .FALSE.
+            linsert = ll 
+         ELSEIF (var_type (i) .eq.      IS_CHAR) THEN 
+            ll = len_str (var_char (i) ) 
+            zeile (ianf:ianf) = '''' 
+            zeile (ianf + 1:ianf + ll) = var_char (i) (1:ll) 
+            zeile (ianf + ll + 1:ianf + ll + 1) = '''' 
+            lmask (ianf:ianf+ll+1,nmask) = .FALSE.
 !write(*,*) ' zeile Q>', zeile    (1:len_trim(zeile    )),'<'
 !write(*,'(1x,a,80L1)') ' MASK Q >', lmask    (1:len_trim(zeile),omask)
 !write(*,'(1x,a,80L1)') ' MASK Q >', lmask    (1:len_trim(zeile),nmask)
 !write(*,*) '         123456789 123456789 1234567890'
 !write(*,*) ' ianf, ll ', ianf, ll
-         linsert = ll + 2 
-      ENDIF 
-      ll = laenge+linsert - (iend-ianf + 1) 
+            linsert = ll + 2 
+         ENDIF 
+         ll = laenge+linsert - (iend-ianf + 1) 
 !write(*,*) ' ll neu ', ll, laenge, linsert, ianf, iend, iend.lt.laenge
-      IF(iend.lt.laenge) THEN
+         IF(iend.lt.laenge) THEN
 !write(*,*) 'ADD   ',ianf+linsert, ll, iend+1, laenge, '>',substring(iend+1:laenge),'<'
-         zeile(ianf + linsert:ll)       =substring(iend+1:laenge)
-         lmask(ianf + linsert:ll,nmask) =lmask(    iend+1:laenge    ,omask)
+            zeile(ianf + linsert:ll)       =substring(iend+1:laenge)
+            lmask(ianf + linsert:ll,nmask) =lmask(    iend+1:laenge    ,omask)
 !        lmask(ianf + linsert:ll,nmask) =lmask(    ianf + linsert:ll,omask)
-      ENDIF
-      substring = zeile 
+         ENDIF
+         substring = zeile 
 !write(*,*) ' zeile X>', zeile    (1:len_trim(zeile    )),'<'
 !write(*,*) ' SUB   X>', substring(1:len_trim(substring)),'<'
 !write(*,'(1x,a,90L1)') ' MASK  X>', lmask    (1:len_trim(zeile),omask)
 !write(*,'(1x,a,900L1)') ' MASK  X>', lmask    (1:len_trim(zeile),nmask)
 !write(*,*) '         123456789 123456789 1234567890'
-      istart = ianf+linsert                  ! Start further search after insert
+         istart = ianf+linsert                  ! Start further search after insert
+      endif if_lres                          ! If block reserved words
       laenge = ll 
       success = .TRUE.
       omask = MOD(omask+1,2)
@@ -210,6 +222,95 @@ ENDDO main
 !endif
 !
 END FUNCTION index_mask
+!
+!*****7**************************************************************** 
+!
+subroutine test_reserved(substring, ianf, iend,           prog_name,            &
+        lmask, omask, nmask, lres)
+!-
+!  Test if the user variable is inside a reserved string, if so, the mask is
+!  adapted to ignore this section of the substring
+!+
+!
+use reserved_mod
+use precision_mod
+!
+implicit none
+!
+character(len=*)                                , intent(in)    :: substring   ! String to be tested
+integer                                         , intent(in)    :: ianf        ! Start position of variable
+integer                                         , intent(in)    :: iend        ! End  position of variable
+real(kind=PREC_DP)                              , intent(in)    :: prog_name   ! Suite, discus, diffev etc
+logical           , dimension((PREC_STRING),0:1), intent(inout) :: lmask       ! Mask to flag areas to ignore
+integer                                         , intent(in)    :: omask       ! Old mask
+integer                                         , intent(in)    :: nmask       ! new mask
+logical                                         , intent(inout) :: lres        ! true if reserved word was found
+!
+integer :: ires   ! Location of reserved string
+!
+lres = .FALSE.
+call test_reserved_group(substring, ianf, iend,    lib_reserved_n,              &
+                         lib_reserved, lmask, omask, nmask, lres)
+!
+if(nint(prog_name)==0) then         ! SUITE  section
+   call test_reserved_group(substring, ianf, iend,  suite_reserved_n,           &
+                             suite_reserved, lmask, omask, nmask, lres)
+elseif(nint(prog_name)==1) then     ! DISCUS section
+   call test_reserved_group(substring, ianf, iend, discus_reserved_n,           &
+                            discus_reserved, lmask, omask, nmask, lres)
+elseif(nint(prog_name)==2) then     ! DIFFEV section
+   call test_reserved_group(substring, ianf, iend, diffev_reserved_n,           &
+                            diffev_reserved, lmask, omask, nmask, lres)
+elseif(nint(prog_name)==3) then     ! KUPLOT section
+   call test_reserved_group(substring, ianf, iend, kuplot_reserved_n,           &
+                            kuplot_reserved, lmask, omask, nmask, lres)
+elseif(nint(prog_name)==4) then     ! REFINE section
+   call test_reserved_group(substring, ianf, iend, refine_reserved_n,           &
+                            refine_reserved, lmask, omask, nmask, lres)
+endif
+!
+end subroutine test_reserved
+!
+!*****7**************************************************************** 
+!
+subroutine test_reserved_group(substring, ianf, iend,                           &
+        reserved_n, reserved, lmask, omask, nmask, lres)
+!-
+!  Test if the user variable is inside a reserved string, ignore
+!  Test the group lib, suite, discus, diffev, kuplot, refine
+!+
+!
+use precision_mod
+!
+implicit none
+!
+character(len=*)                              , intent(in)    :: substring   ! String to be tested
+integer                                       , intent(in)    :: ianf        ! Start position of variable 
+integer                                       , intent(in)    :: iend        ! End position of variable
+integer                                       , intent(in)    :: reserved_n  ! Number of reserved words
+character(len=*), dimension(1:reserved_n)     , intent(in)    :: reserved    ! The reserved words
+logical         , dimension((PREC_STRING),0:1), intent(inout) :: lmask       ! Mask to flag areas to ignore
+integer                                       , intent(in)    :: omask       ! Old mask index
+integer                                       , intent(in)    :: nmask       ! New mask index
+logical                                       , intent(inout) :: lres        ! true if reserved word was found
+!
+integer :: i      ! Dummy loop index
+integer :: ires   ! Location of reserved string
+!
+loop_res: do i=1,reserved_n
+   ires = index(substring, reserved(i)(1:len_trim(reserved(i))) )
+   if(ires>0) then
+      if(ires<=ianf .and. ires+len_trim(reserved(i))-1>=iend) then
+         lres = .TRUE.
+         lmask(ires:ires+len_trim(reserved(i))-1,omask) = .FALSE.
+         lmask(1:ires+len_trim(reserved(i))-1,nmask) = &
+         lmask(1:ires+len_trim(reserved(i))-1,omask)
+         exit loop_res
+      endif
+   endif
+enddo loop_res
+!
+end subroutine test_reserved_group
 !
 !*****7**************************************************************** 
 !
