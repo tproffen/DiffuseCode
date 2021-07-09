@@ -195,6 +195,13 @@ temp      = profile_t*pattern                             ! Multiply the Fourier
 temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))    ! FFT multiplied pattern
 CALL mapfftfdtoline(num, dsort, dsi, temp)                ! Resore convoluted intensities
 !
+!
+CALL maptofftfd(num, dsort, acsf, pattern)                 ! Use intensities
+pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
+temp      = profile_t*pattern                             ! Multiply the Fouriers
+temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))    ! FFT multiplied pattern
+CALL mapfftfdtoline(num, dsort, acsf, temp)                ! Resore convoluted intensities
+!
 DEALLOCATE(pattern)
 DEALLOCATE(temp)
 DEALLOCATE(profile_t)
