@@ -701,7 +701,7 @@ DO i=1, clu_number
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
          IF(ier_num /= 0) then
-            ier_msg(1) = ' Guest file ' // infile
+            ier_msg(1) = ' Guest file ' // infile(1:min(len_trim(infile),66))
             RETURN
          endif
    ELSE
@@ -744,7 +744,7 @@ DO i=1, clu_number
       AT_MAXP, at_ianz, at_param)           
       CLOSE(imd)
       IF (ier_num.ne.0) THEN 
-         ier_msg(1) = ' Guest file ' // infile
+         ier_msg(1) = ' Guest file ' // infile(1:min(len_trim(infile),66))
          RETURN
       ENDIF
    ENDIF
@@ -786,7 +786,7 @@ enddo
 natoms = maxdim(1)
 nscats = maxdim(2)
 n_mole = maxdim(3)
-n_type = maxdim(4)
+n_type = max(maxdim(4), maxval(clu_mole_tab))   ! Previous and cluster molecule types
 n_atom = maxdim(5)
    IF(natoms > MAX(MK_MAX_ATOM, NMAX)    .or. &
       nscats > MAX(MK_MAX_SCAT, MAXSCAT) .or. &
@@ -814,7 +814,7 @@ IF ( clu_infile_internal ) THEN
    mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
    mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
    IF(ier_num /= 0) then
-      ier_msg(1) = ' Input file ' // clu_infile
+      ier_msg(1) = ' Input file ' // clu_infile(1:min(len_trim(clu_infile),66))
       return
    endif
    clu_iatom = 0
@@ -858,7 +858,7 @@ ELSE
    AT_MAXP, at_ianz, at_param)           
 ENDIF
 IF (ier_num.ne.0) THEN 
-      ier_msg(1) = ' Input file ' // clu_infile
+      ier_msg(1) = ' Input file ' // clu_infile(1:min(len_trim(clu_infile),66))
    CLOSE(imd)
       if(allocated(clu_moles)) deallocate(clu_moles)
    RETURN
@@ -2247,8 +2247,10 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
             elseif(index(zeile,'end')>0) then          ! 'molecule end' line
                if(lmole_type) then                    ! Input file provided 'molecule type'
                   mole_type(mole_num_mole) = clu_mole_tab(is_mole_type, clu_current)
+                  mole_num_type = max(mole_num_type, mole_type(mole_num_mole))
                else
                   mole_type(mole_num_mole) = clu_mole_tab(1           , clu_current)
+                  mole_num_type = max(mole_num_type, mole_type(mole_num_mole))
                   lmole_type = .false.                ! Reset flag for next molecule
                endif
             endif
