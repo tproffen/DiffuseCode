@@ -11,6 +11,7 @@ SAVE
 INTEGER, PRIVATE    :: ik
 INTEGER                                   :: PL_MAXSCAT = 1
 INTEGER                                   :: PL_MAXSITE = 1
+INTEGER                                   :: PL_MAXLINE = 1
 !
 CHARACTER(LEN=PREC_STRING)  :: pl_jmol  = ' '
 CHARACTER(LEN= 200)  :: pl_out   = 'plot.cif'
@@ -37,6 +38,8 @@ INTEGER, DIMENSION(3)                     :: pl_back = &  ! plot background
 REAL   , DIMENSION(:,:,:), ALLOCATABLE    :: pl_bond_len  ! (2,0:MAXSCAT,0:MAXSCAT)
 REAL   , DIMENSION(  :,:), ALLOCATABLE    :: pl_bond_rad  ! (  0:MAXSCAT,0:MAXSCAT)
 REAL   , DIMENSION(:,:,:), ALLOCATABLE    :: pl_bond_col  ! (3,0:MAXSCAT,0:MAXSCAT)
+real   , dimension(:,:,:), allocatable    :: pl_lines 
+integer                                   :: pl_n_lines = 0 ! Number of lines
 REAL                                      :: pl_vrml_scaling = 0.05
 REAL   , DIMENSION(4,4)                   :: pl_tran_g    = &
          RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(pl_tran_g ))

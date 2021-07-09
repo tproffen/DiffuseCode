@@ -152,6 +152,7 @@ CHARACTER(LEN=16)        :: do_spcgr = 'P1'
 INTEGER                  :: lp
 INTEGER                  :: nscat = 1
 INTEGER                  :: nsite = 1
+INTEGER                  :: nline = 1
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !
 do_spcgr = cpara(ianz)(1:LEN(do_spcgr))
@@ -176,7 +177,8 @@ IF ( cr_nscat > PL_MAXSCAT .or. mole_num_type > PL_MAXSCAT .OR. &
      MAXSCAT > PL_MAXSCAT ) THEN
    nscat = max ( cr_nscat, mole_num_type, MAXSCAT)
    nsite = max ( cr_ncatoms, PL_MAXSITE, MAXSCAT)
-   CALL alloc_plot ( nscat, nsite )
+   nline =       PL_MAXLINE
+   CALL alloc_plot ( nscat, nsite, nline )
    IF(ier_num < 0) THEN
      RETURN
    ENDIF

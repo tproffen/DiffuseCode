@@ -303,7 +303,7 @@ USE str_comp_mod
       CALL alloc_molecule ( 1,  1,  1,  1,  1)
       CALL alloc_phases   ( 1,  1,  1        )
       CALL alloc_pdf      ( 1,  1,  1,  1    )
-      CALL alloc_plot     ( 1,  1        )
+      CALL alloc_plot     ( 1,  1,  1    )
       CALL alloc_powder   ( 1,  1        )
       CALL alloc_powder_nmax ( 1,1          )
       CALL alloc_rmc      ( 1,  1        )
@@ -2464,7 +2464,7 @@ END SUBROUTINE alloc_phases
     END SUBROUTINE alloc_pdf
 !
 !
-    SUBROUTINE alloc_plot ( n_scat, n_site )
+    SUBROUTINE alloc_plot ( n_scat, n_site, n_line )
 !-
 !     Allocate the arrays needed by PLOT
 !+
@@ -2475,6 +2475,7 @@ END SUBROUTINE alloc_phases
 !      
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_site
+      INTEGER, INTENT(IN)  :: n_line
 !
       INTEGER              :: i
       INTEGER, DIMENSION(0:4), PARAMETER :: stift = (/ 5, 3, 1, 2, 4 /)
@@ -2544,9 +2545,14 @@ END SUBROUTINE alloc_phases
        CALL alloc_arr ( pl_poly_o    ,          -1, n_scat,  all_status, .FALSE. , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+call alloc_arr ( pl_lines, 1,3, 1, 2, 1, n_line, all_status, 0.0, size_of)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+pl_size_of = pl_size_of + size_of
+!
       IF( lstat ) THEN                        ! Success
          PL_MAXSCAT    = n_scat
          PL_MAXSITE    = n_site
+         PL_MAXLINE    = n_line
          pl_rgb(1, :)  = 1
          FORALL (i=0:PL_MAXSCAT) pl_color(i) =  stift (mod (i, 5) )
          ier_typ       = 0
@@ -2559,6 +2565,7 @@ END SUBROUTINE alloc_phases
       ELSE                                    ! Failure
          PL_MAXSCAT    = n_scat
          PL_MAXSITE    = n_site
+         PL_MAXLINE    = n_line
          pl_size_of    = 0
          ier_num       = -3
          ier_typ       = ER_COMM
@@ -2566,6 +2573,49 @@ END SUBROUTINE alloc_phases
          RETURN
       END IF
     END SUBROUTINE alloc_plot
+!
+!*******************************************************************************
+!
+subroutine alloc_plot_line(n_line)
+!-
+!  Alloc the number of JMOL lines
+!+
+USE discus_plot_mod
+!
+IMPLICIT NONE
+!
+!      
+INTEGER, INTENT(IN)  :: n_line
+!
+INTEGER              :: all_status
+LOGICAL              :: lstat
+INTEGER              :: size_of
+!
+lstat     = .TRUE.
+!
+call alloc_arr ( pl_lines, 1,3, 1, 2, 1, n_line, all_status, 0.0, size_of)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+IF( lstat ) THEN                        ! Success
+   PL_MAXLINE    = n_line
+   ier_typ       = 0
+   ier_num       = 0
+   IF ( all_status == 1 ) THEN
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'Plot'
+   ENDIF
+ELSE                                    ! Failure
+   PL_MAXLINE    = n_line
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'Plot'
+   RETURN
+END IF
+!
+end subroutine alloc_plot_line
+!
+!*******************************************************************************
 !
     SUBROUTINE alloc_powder ( n_qxy, n_scat )
 !-
@@ -3729,7 +3779,7 @@ END SUBROUTINE dealloc_phases
 !+
       IMPLICIT NONE
 !
-      CALL alloc_plot ( 1, 1 )
+      CALL alloc_plot ( 1, 1, 1 )
 !
     END SUBROUTINE dealloc_plot
 !

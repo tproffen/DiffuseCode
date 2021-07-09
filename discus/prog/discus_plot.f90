@@ -72,6 +72,7 @@ INTEGER :: ianz, i, j, is, it, ic, lbef
 INTEGER indxg 
 INTEGER         :: nscat = 1
 INTEGER         :: nsite = 1
+INTEGER         :: nline = 1
 INTEGER         :: ios
 
 LOGICAL lend, l_select , success
@@ -81,8 +82,8 @@ LOGICAL :: lnor = .FALSE.
 !
 !                                                                       
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 11
-CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+INTEGER, PARAMETER :: NOPTIONAL = 12
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -90,15 +91,19 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
 !
-DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', 'plot' , 'kill'  , 'keep',  'geom'/
-DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  5     ,  4     ,  4      ,  4    ,   4    /
+DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', &
+              'plot' , 'kill'  , 'keep',  'geom', 'export' /
+DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  5     , &
+               4     ,  4      ,  4    ,   4    ,  6       /
 !
 ! Always provide fresh default values, Repeat for each command
-opara  =   (/ '0.000    ', '0.000    ', '0        ', '0        ', 'flat     ', &
-              'solid    ', 'auto     ', 'none     ', 'none     ', 'no       ', '[500,500]'/)
-lopara =   (/  5         ,  5         ,  1         ,  1         ,  4         , &
-               5         ,  4         ,  4         ,  4         ,  2         ,  9         /)
-owerte =   (/  0.00      ,  0.00      ,  0.        ,  0.        ,  0.0       , &
+opara  =   (/ '0.000    ', '0.000    ', '0        ', '0        ', 'flat     ', 'solid    ', &
+              'auto     ', 'none     ', 'none     ', 'no       ', '[500,500]', 'none     '/)
+!
+lopara =   (/  5         ,  5         ,  1         ,  1         ,  4         ,  5         , &
+               4         ,  4         ,  4         ,  2         ,  9         ,  4         /)
+!
+owerte =   (/  0.00      ,  0.00      ,  0.        ,  0.        ,  0.0       ,  0.0       , &
                0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       /)
 !
 IF(pl_init) THEN
@@ -227,7 +232,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   MAXSCAT > PL_MAXSCAT ) THEN
                   nscat = MAX(cr_nscat, mole_num_type, MAXSCAT)
                   nsite = MAX(cr_ncatoms, MAXSCAT)
-                  CALL alloc_plot(nscat, nsite )
+                  nline =     PL_MAXLINE
+                  CALL alloc_plot(nscat, nsite, nline)
                   IF(ier_num < 0) THEN
                      RETURN
                   ENDIF
@@ -338,6 +344,11 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF 
                      ENDIF 
                   ENDIF 
+!                                                                       
+!     ----Add a line to jmol plot 'line'
+!                                                                       
+               ELSEIF (str_comp (befehl, 'line', 2, lbef, 4) ) then 
+                  call do_line(zeile, lp)
 !                                                                       
 !     ----Select the bonds 'bond'                                       
 !                                                                       
@@ -690,8 +701,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                               IF(ier_num == 0) THEN
                                  IF(opara(8)=='inter') THEN
                                     IF(pl_prog=='jmol') THEN
-                                       i = 3
-                                       CALL plot_inter(i,opara(9:11))
+                                       i = 4
+                                       CALL plot_inter(i,opara(9:12))
                                     ELSE
                                        ier_num = -152
                                        ier_typ = ER_APPL 
@@ -915,6 +926,124 @@ prompt = orig_prompt
 END SUBROUTINE plot                           
 !
 !*****7*****************************************************************
+!
+subroutine do_line(zeile, lp)
+!-
+!  Add a new line to JMOL
+!+
+!
+use crystal_mod
+use discus_allocate_appl_mod
+use discus_plot_mod
+!
+use errlist_mod
+use ber_params_mod
+use get_params_mod
+use precision_mod
+use take_param_mod
+!
+implicit none
+!
+character(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp
+!
+integer, parameter :: MAXW = 10
+!
+character(LEN=PREC_STRING), dimension(MAXW)                    :: cpara ! (MAX(10,MAXSCAT)) 
+real(kind=PREC_DP)        , dimension(MAXW)                    :: werte ! (MAX(10,MAXSCAT)) 
+integer                   , dimension(MAXW)                    :: lpara ! (MAX(10,MAXSCAT))
+character(LEN=PREC_STRING)               :: ccpara
+integer                                  :: llpara
+!
+integer :: ianz       ! Number of parameters
+integer :: iianz      ! Number of parameters
+integer :: i          ! Dummy index
+integer :: j          ! Current line number
+real(kind=PREC_DP), DIMENSION(3) :: v_start   ! Coordinates start point
+real(kind=PREC_DP), DIMENSION(3) :: v_end     ! Coordinates end  point
+!
+INTEGER, PARAMETER :: NOPTIONAL = 3 
+integer, parameter :: O_NUM     = 1
+integer, parameter :: O_START   = 2
+integer, parameter :: O_END     = 3
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+DATA oname  / 'number' , 'start' , 'end' /
+DATA loname /  6       ,  5      ,  3   /
+!
+opara  =   (/ 'next   ', '[0,0,0]', '[0,0,0]'/)
+lopara =   (/  4       ,  7       ,  7       /)
+owerte =   (/  0.00      ,  0.00  ,  0.00    /)
+!
+call get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
+if(ier_num/=0) return
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+!if(lpresent(O_NUM)) then
+   if(opara(O_NUM ) == 'next') then
+      pl_n_lines = pl_n_lines + 1
+      if(pl_n_lines> PL_MAXLINE) then
+         call alloc_plot_line(pl_n_lines)
+         if(ier_num/=0) return
+      endif
+      j = pl_n_lines
+   else
+      iianz = 1
+      call ber_params(iianz, opara, lopara, owerte, NOPTIONAL)
+      j = nint(owerte(O_NUM))
+   endif
+!endif
+!
+!  Starting point
+!
+if(opara(O_START)(1:5)=='[atom') then
+   cpara(1) = ' '
+   cpara(1)(1:lopara(O_START)-7) = opara(O_START)(7:lopara(O_START)-1)
+   lpara(1) = len_trim(cpara(1))
+   iianz = 1
+   call ber_params(iianz, cpara, lpara, werte, NOPTIONAL)
+   v_start = cr_pos(:, nint(werte(1)))
+else
+   ccpara = opara(O_START)
+   llpara = lopara(O_START)
+   werte = 0.0
+   i    = MAXW       ! 
+   ianz = 3          ! We need 3 values
+   call get_optional_multi(i, ccpara, llpara, werte, ianz)
+   v_start = werte(1:3)
+endif
+!
+!  End  ing point
+!
+if(opara(O_END)(1:5)=='[atom') then
+   cpara(1) = ' '
+   cpara(1) (1:lopara(O_START)-6)= opara(O_END)(7:lopara(O_END)-1)
+   lpara(1) = len_trim(cpara(1))
+   iianz = 1
+   call ber_params(iianz, cpara, lpara, werte, NOPTIONAL)
+   v_end   = cr_pos(:, nint(werte(1)))
+else
+   ccpara = opara(O_END)
+   llpara = lopara(O_END)
+   werte = 0.0
+   i    = MAXW       ! 
+   ianz = 3          ! We need 3 values
+   call get_optional_multi(i, ccpara, llpara, werte, ianz)
+   v_end   = werte(1:3)
+endif
+pl_lines(:,1, j) = v_start
+pl_lines(:,2, j) = v_end
+!
+end subroutine do_line
+!
+!*****7*****************************************************************
+!
       SUBROUTINE plot_show 
 !                                                                       
       USE discus_config_mod 
@@ -1303,6 +1432,7 @@ LOGICAL, PARAMETER  :: lscreen = .FALSE.
 CHARACTER(LEN=PREC_STRING) :: tempfile
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: line_move
+character(LEN=PREC_STRING) :: path
 CHARACTER(LEN=12         ) :: geom
 character(len=4)           :: atom_i
 character(len=4)           :: atom_j
@@ -1327,6 +1457,14 @@ REAL(KIND=PREC_DP) :: det, trace
 INTEGER :: ier
 REAL                :: rr
 REAL(KIND=PREC_DP)                :: beta
+integer, dimension(3) :: scalef
+real                  :: shift    
+!
+! Scale and shift as in CIF file
+scalef(1) =                INT((cr_dim(1,2)-cr_dim(1,1)))+2
+scalef(2) =                INT((cr_dim(2,2)-cr_dim(2,1)))+2
+scalef(3) =                INT((cr_dim(3,2)-cr_dim(3,1)))+2
+shift     = 0.01
 !
 kill = opara(1)
 cpara = opara(3)           ! Copy geometry optional parameter
@@ -1485,16 +1623,19 @@ IF(pl_prog=='jmol') THEN
 !     blanks in filenemes
       i=LEN_TRIM(current_dir)
       IF(current_dir(i:i) /= '/') current_dir(i+1:i+1)='/'
+      path = current_dir
       WRITE(ITMP,'(3a)') 'load ''',                  &
          current_dir(1:LEN_TRIM(current_dir))//      &
          pl_out(1:LEN_TRIM(pl_out)), ''' {1 1 1}'
    ELSEIF(operating(1:6)=='cygwin') THEN
       IF(current_dir(1:5)=='/home') THEN
+         path = operat_top(1:LEN_TRIM(operat_top)) // current_dir
       WRITE(ITMP,'(3a)') 'load ''',                   &
          operat_top(1:LEN_TRIM(operat_top))//        &
          current_dir(1:LEN_TRIM(current_dir))//      &
          pl_out(1:LEN_TRIM(pl_out)), ''' {1 1 1}'
       ELSEIF(current_dir(1:10)=='/cygdrive/') THEN
+         path = 'C:\' // current_dir
       WRITE(ITMP,'(3a)') 'load ''',                   &
          'C:\'//                                      &
          current_dir(13:LEN_TRIM(current_dir))//      &
@@ -1503,6 +1644,7 @@ IF(pl_prog=='jmol') THEN
          WRITE(*,*) 'WRONG DRIVE ', current_dir(1:len_trim(current_dir))
       ENDIF
    ELSEIF(operating(1:7)=='Windows') THEN
+      path = current_dir
       WRITE(ITMP,'(3a)') 'load ''',                  &
          current_dir(11:11) // ':' //                &
          current_dir(12:LEN_TRIM(current_dir)) //    &
@@ -1612,6 +1754,29 @@ IF(pl_prog=='jmol') THEN
    ENDIF
    WRITE(ITMP,'(a)') 'zoom 125'
    WRITE(ITMP,'(a,i3,a,i3,a,i3,a)') 'background [',pl_back(1),',' , pl_back(2),',', pl_back(3),']'
+!
+   do i=1, pl_n_lines
+      u = (pl_lines(:,1,i) + shift - cr_dim(:,1))/scalef
+      v = (pl_lines(:,2,i) + shift - cr_dim(:,1))/scalef
+      write(itmp,'(a, i3.3,a,2(f8.4,a,f8.4,a,f8.4,a),i3.3,a)')                 &
+            'draw line', i,' 125 {',u(1),'/1.0, ',u(2),'/1.0, ',u(3),'/1.0 } {',&
+                                    v(1),'/1.0, ',v(2),'/1.0, ',v(3),'/1.0 }; color $line',i,' black'
+   enddo
+
+!
+   if(opara(4)=='none') then
+      continue
+   elseif(index(opara(4),'png', .true.)==len_trim(opara(4))-2) then
+      line = 'write IMAGE PNG 2 ''' // path(1:len_trim(path)) // opara(4)(1:len_trim(opara(4))) // ''''
+      write(ITMP,'(a)') line(1:len_trim(line))
+   elseif(index(opara(4),'pdf', .true.)==len_trim(opara(4))-2) then
+      line = 'write IMAGE PDF 1 ''' // path(1:len_trim(path)) // opara(4)(1:len_trim(opara(4))) // ''''
+      write(ITMP,'(a)') line(1:len_trim(line))
+   else
+      ier_num = -147
+      ier_typ = ER_APPL
+      ier_msg(1) = 'JMOL supports ''png'' or ''pdf'' format only'
+   endif
    CLOSE(ITMP)
    IF(operating=='Linux') THEN
       WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), geom,' -s ',&
@@ -1864,7 +2029,7 @@ IMPLICIT NONE
 !
 INTEGER :: ik
 !
-CALL alloc_plot(1, 1)
+CALL alloc_plot(1, 1, 1)
 !
 pl_init  = .TRUE.
 pl_jmol  = ' '
@@ -1912,6 +2077,7 @@ pl_mol_all   = .TRUE.
 pl_bond(:,:) = .FALSE.      ! (0:MAXSCAT,0:MAXSCAT)
 pl_append    = .FALSE.
 pl_ext_all   = .TRUE.
+pl_n_lines   = 0
 !
 END SUBROUTINE plot_reset
 !
