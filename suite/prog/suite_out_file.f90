@@ -38,6 +38,7 @@ logical   :: lold_exist
 lname   = len_str(outfile)
 lkuplot = .false.
 !mode  = ADD
+ik = 1
 !
 IF(lname >= 6) THEN   ! File name long enough for 'kuplot' string?
    IF(outfile(1:6) == 'kuplot') THEN
@@ -156,6 +157,7 @@ REAL      :: dxx, dyy
 !
 lname   = len_str(outfile)
 lkuplot = .false.
+ik      = 1
 !
 IF(lname >= 6) THEN   ! File name long enough for 'kuplot' string?
    IF(outfile(1:6) == 'kuplot') THEN
