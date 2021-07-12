@@ -1635,7 +1635,7 @@ IF(pl_prog=='jmol') THEN
          current_dir(1:LEN_TRIM(current_dir))//      &
          pl_out(1:LEN_TRIM(pl_out)), ''' {1 1 1}'
       ELSEIF(current_dir(1:10)=='/cygdrive/') THEN
-         path = 'C:\' // current_dir
+         path = 'C:\' // current_dir(1:LEN_TRIM(current_dir))
       WRITE(ITMP,'(3a)') 'load ''',                   &
          'C:\'//                                      &
          current_dir(13:LEN_TRIM(current_dir))//      &
