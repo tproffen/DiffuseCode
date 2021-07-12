@@ -441,9 +441,8 @@ real(kind=PREC_DP), dimension(MAXW) :: werte      ! Values
 integer :: iatom                                  ! Find connectivity for this atom
 integer :: nconn                                  ! Central atom has this many connectivities
 !
-integer                              :: inoo      ! Find this connectivity number
 !
-integer :: i, j, k ! Dummy index
+integer :: i, j    ! Dummy index
 integer :: itype   ! Atom type for iatom
 !
 atom_env(0) = 0
