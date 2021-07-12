@@ -18,7 +18,7 @@ INTEGER, PARAMETER :: val_3DPDF  = 15
 !
 INTEGER, PARAMETER :: MAXVALS = 15
 !
-CHARACTER(LEN=14) :: cvalue (0:15)
+CHARACTER(LEN=14) :: cvalue (0:MAXVALS)
 !
 DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
               'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
