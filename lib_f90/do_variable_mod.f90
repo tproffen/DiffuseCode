@@ -246,8 +246,6 @@ integer                                         , intent(in)    :: omask       !
 integer                                         , intent(in)    :: nmask       ! new mask
 logical                                         , intent(inout) :: lres        ! true if reserved word was found
 !
-integer :: ires   ! Location of reserved string
-!
 lres = .FALSE.
 call test_reserved_group(substring, ianf, iend,    lib_reserved_n,              &
                          lib_reserved, lmask, omask, nmask, lres)
