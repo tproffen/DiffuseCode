@@ -26,6 +26,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE mole_surf_mod
       USE output_menu
       USE patters_menu
+      use perioditize_mod
       USE pdf_menu
       USE discus_plot_menu
       USE powder
@@ -314,6 +315,11 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'pdf', 2, lbef, 3) ) THEN 
             CALL pdf 
+!                                                                       
+!     Create peridic crystal
+!                                                                       
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'perioditize', 3, lbef, 11) ) THEN 
+            CALL perioditize_menu 
 !                                                                       
 !     Plot the crystal 'plot'                                           
 !                                                                       

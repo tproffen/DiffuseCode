@@ -44,7 +44,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	molecule_alloc.f90 molecule_func.f90 molecule_mod.f90 output_mod.f90 patters.f90 patters_mod.f90 
         phases_mod.f90 phases_set_mod.f90 phases_stack.f90
 	place_molecule.f90  read_internal_mod.f90
-	pdf.f90 pdf_mod.f90
+	perioditize.f90 pdf.f90 pdf_mod.f90
 	discus_plot.f90 discus_plot_mod.f90 discus_plot_init.f90  discus_plot_export.f90
 	powder.f90 powder_mod.f90 powder_scat_mod.f90 powder_write_mod.f90
 	powder_tables.f90 powder_pdf_hist.f90 
