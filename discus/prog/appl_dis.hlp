@@ -5833,6 +5833,7 @@
 !p ext     ! Sets the extend of crystal space to be plotted
 !p help    ! Gives on-line help for 'plot' (see main help)
 !p hkl     ! Sets reciprocal space direction normal to plot slice
+!p line    ! Draw a line into a "Jmol" plot
 !p ordi    ! Defines the ordinate of the plot
 !p outfile ! Name of output file to which the structure is written
 !p poly    ! Selects the polyhedron plotting style 
@@ -5991,6 +5992,19 @@
    Alternatively individual molecule types can be selected using the
    corresponding <number>. In order to use atoms again, use the 'sele'
    command.
+3  line
+!p line number:{<value>}, start:[<u>,<v>,<w>], end:[<u>,<v>,<w>]
+!p line number:{"next" }, start:[atom,<index>], end:[atom,<index>]
+
+   This command will draw a line into a "JMOL" plot. Since several
+   lines can be drawn, you can refer to a fixed line number <value>
+   especially if you want to modify an existing line. Usually the
+   easiest will be to specify "number:next" to draw another line.
+
+   The line start and end point are at 0,0,0 by default. If the 
+   optional start / end parameters are given, the line will use these
+   points <u>,<v>,<w>, or the coordinates of the atoms specified by
+   its index.
 3  ordi
 !p ordinate <x>,<y>,<z>
 
