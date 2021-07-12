@@ -246,10 +246,6 @@ atome: DO i = 1,cr_natoms                                ! Check all atoms in th
 !do j=1, def_temp%def_nvect
 !write(*,'(a,5i4)') 'INTENT VECT', def_temp%def_vectors(:, j)
 !enddo
-if(i==56) then
-write(*,*) 'CENTRAL ', i, cr_iscat(i)
-write(*,*) 'Valid   ', werte(1:ianz)
-endif
                   call do_find_nei_vect_many(ianz, werte, maxw, def_temp%def_nvect, i, def_temp%def_vectors)
                endif
             at_conn(i)%number = i                           ! Just set atom no

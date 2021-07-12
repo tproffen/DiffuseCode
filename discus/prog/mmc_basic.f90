@@ -1544,7 +1544,7 @@ corr_pair: DO is = 0, cr_nscat
                mmc_target_corr (ic, je, is, js) - mmc_ach_corr (ic,je, is, js),&
               (mmc_target_corr (ic, je, is, js) - mmc_ach_corr (ic,je, is, js))/divisor,&
                nneigh
-write(*,*) ' DEPTH ', mmc_depth(ic, MC_UNI, 1:2, 1:2), change
+!write(*,*) ' DEPTH ', mmc_depth(ic, MC_UNI, 1:2, 1:2), change
         ENDIF 
 !                                                                       
       ENDIF 
