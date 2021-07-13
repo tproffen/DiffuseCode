@@ -298,7 +298,8 @@ integer :: ires   ! Location of reserved string
 loop_res: do i=1,reserved_n
    ires = index(substring, reserved(i)(1:len_trim(reserved(i))) )
    if(ires>0) then
-      if(ires<=ianf .and. ires+len_trim(reserved(i))-1>=iend) then
+      if(ires<=ianf .and. ires+len_trim(reserved(i))-1>=iend .and.              &
+         (iend-ianf+1 < len_trim(reserved(i))                 )       ) then
          lres = .TRUE.
          lmask(ires:ires+len_trim(reserved(i))-1,omask) = .FALSE.
          lmask(1:ires+len_trim(reserved(i))-1,nmask) = &
