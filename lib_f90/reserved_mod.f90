@@ -3,7 +3,7 @@ MODULE reserved_mod
 IMPLICIT NONE
 SAVE
 !
-INTEGER, PARAMETER :: lib_reserved_n    = 92
+INTEGER, PARAMETER :: lib_reserved_n    =113
 INTEGER, PARAMETER :: discus_reserved_n = 43 
 INTEGER, PARAMETER :: diffev_reserved_n = 24
 INTEGER, PARAMETER :: refine_reserved_n =  1
@@ -18,9 +18,15 @@ CHARACTER(LEN=16), DIMENSION(1:discus_reserved_n) :: discus_reserved
 CHARACTER(LEN=16), DIMENSION(1:lib_reserved_n)    :: lib_reserved
 !                                                                       
 DATA lib_reserved /                                                         &
-'REF_GENERATION', 'REF_DIMENSION ', 'REF_CHILDREN  ', 'REF_MEMBER    ', &
-'REF_COMPUTE   ', 'REF_NINDIV    ', 'REF_INDIV     ', 'variable   '   , &
-'continue      ', 'REF_KID       ', 'fformat      ' , 'elseif   '     , &
+'REF_GENERATION', 'REF_DIMENSION ', 'REF_CHILDREN  ', 'REF_COMPUTE   ', &
+'REF_MEMBER    ', 'IS_SECTION    ', 'REF_NINDIV    ', 'IS_BRANCH     ', &  
+'MPI_FIRST     ', 'NUM_NODES     ', 'REF_INDIV     ', 'F_VALUE       ', &
+'MPI_OFF       ', 'PROGRAM       ', 'REF_KID       ', 'DIFFEV        ', &
+'DISCUS        ', 'IS_TOP        ', 'KUPLOT        ', 'MPI_ON        ', &
+'REFINE        ', 'FALSE         ', 'STATE         ', 'SUITE         ', &
+'UNDEF         ', 'LOOP          ', 'SLOW          ', 'TRUE          ', &
+'MPI           ',                                                       &
+'variable   '   , 'continue      ', 'fformat      ' , 'elseif   '     , &
 'fclose'        , 'fexist'        , 'socket'        , 'system'        , &
 'getcwd'        , 'getenv'        , 'endif'         , 'asind'         , &
 'acosd'         , 'atand'         , 'enddo'         , 'while'         , &
