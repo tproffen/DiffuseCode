@@ -10,13 +10,15 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-177,IO=7)
+      PARAMETER    (IU=-179,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -161) /                          &
-     &  'Connectivity number outside user define range', & !-177  ! kupl
-     &  'Data sets differ in dimension',                 & !-176  ! kupl
+     &  'Sites*Number unit cells/=Natoms              ', & !-179 ! discus
+     &  'Perioditize failed                           ', & !-178 ! discus
+     &  'Connectivity number outside user define range', & !-177 ! discus
+     &  'Data sets differ in dimension',                 & !-176 ! discus
      &  'Fourier was not accumulated               ',    & !-175 ! discus
      &  'Exactly one optional parameter is required',    & !-174 ! discus
      &  'Ions not supported for electron diffraction',   & !-173 ! discus
