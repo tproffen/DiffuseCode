@@ -443,6 +443,9 @@ main_if: IF (ier_num.eq.0) THEN
             CALL set_output (linverse) 
             IF(value==val_3DPDF) THEN
                CALL out_prep_3dpdf(laver, l_val_limited, dsmax)
+            elseif(value==val_3DBETA) then
+               dsi = real(acsf * conjg(acsf), kind=PREC_DP)
+               CALL out_prep_3dpdf(laver, l_val_limited, dsmax)
             ENDIF
             IF (ityp.eq.0) THEN 
                CALL do_output (value, laver) 
@@ -661,6 +664,10 @@ main_if: IF (ier_num.eq.0) THEN
             CALL value_optional(lpresent, O_DSMAX, O_QMAX, O_HKLMAX, NOPTIONAL, opara, &
                                 lopara, werte, l_val_limited, dsmax)
             value = val_3DPDF
+         ELSEIF (cpara (1) (ix:ix + 5) == '3DBETA' ) THEN 
+            CALL value_optional(lpresent, O_DSMAX, O_QMAX, O_HKLMAX, NOPTIONAL, opara, &
+                                lopara, werte, l_val_limited, dsmax)
+            value = val_3DBETA
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 

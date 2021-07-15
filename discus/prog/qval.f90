@@ -15,8 +15,9 @@ INTEGER, PARAMETER :: val_faver  = 11
 INTEGER, PARAMETER :: val_iq     = 13
 INTEGER, PARAMETER :: val_pdf    = 14
 INTEGER, PARAMETER :: val_3DPDF  = 15
+INTEGER, PARAMETER :: val_3DBETA = 16
 !
-INTEGER, PARAMETER :: MAXVALS = 15
+INTEGER, PARAMETER :: MAXVALS = 16
 !
 CHARACTER(LEN=14) :: cvalue (0:MAXVALS)
 !
@@ -25,7 +26,7 @@ DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
               'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
               'f2aver = <f^2>', 'faver2 = <f>^2', 'faver = <f>   ',&
               'Normal Inten  ', 'I(Q)          ', 'PDF           ',&
-              '3DPDF         '                                     &
+              '3DPDF         ', '3DBETA        '                   &
             /
 CONTAINS
 !*****7*****************************************************************
@@ -91,7 +92,7 @@ USE lib_random_func
 !
 !     Calculate 3DPDF
 !
-      ELSEIF (value == val_3DPDF) THEN
+      ELSEIF (value == val_3DPDF .or. value == val_3DBETA) THEN
          qval = REAL(rpdf(i), KIND=KIND(0.0E0))
 !                                                                       
 !     Calculate amplitude 'amplitude'                                   
