@@ -34,7 +34,7 @@ DISCUS
           data set
           added an output of the averaged Intensities
           Added   'vesta' output
-  PERIOD  Created a new menue to rearrange the sequence into a
+  PERIOD  Created a new menu to rearrange the sequence into a
           periodic structure
 
 
