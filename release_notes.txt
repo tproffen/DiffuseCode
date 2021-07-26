@@ -1,0 +1,105 @@
+6.06.01 DRAFT
+
+General
+  Added an option "prepare=libraries" or "prepare=none" to update command
+  Added a new variable type "EXPR" that is to be evaluated in a menu at 'run' time
+
+DISCUS
+  FIXED BUG in mmc regarding the sorting of targets with atom groups
+            like "...(Al), (Be,Cs)..."
+  FIXED BUG related to symmetry average of 3D diffraction pattern
+  FIXED BUG Corrected atom names in export to JMol this improved polygon plotting
+  FIXED BUG Corrected internal handling of user defined anomalous scattering parameters
+  FIXED BUG Recognition of molecules in domain/read from internal storage
+  FIXED BUG Internal counting of additional generators
+  FIXED BUG Included avarage intensity in convolution for single crystal pattern
+
+  MMC     added a 'group' correlation
+  MMC     extensive revision with regards to molecules
+  MMC     improved convergence
+  MMC     replaced 'neig, add' by 'set neig, ..., number:'
+  DOMAIN  added irregular domains
+  PLOT    Improved handling of atoms with charges
+  PLOT    Changed default atom size (except with polyhedra)
+  PLOT    Added options to draw lines into JMOL plot
+  PLOT    Added export option to JMOL plots
+  CONN    added a new mode to create connectivities from a group
+          of vectors
+  FIND    Added the option to find an environment that corresponds
+          to a neighborhood as defined in MMC
+  FIND    Added an option to find a neighborhood that consists of the
+          recursively searched connectivity.
+  SYMM and DOMAIN added use of 'EXPR' variables
+  OUTPUT  added an option to add the data into an existing kuplot
+          data set
+          added an output of the averaged Intensities
+          Added   'vesta' output
+  PERIOD  Created a new menue to rearrange the sequence into a
+          periodic structure
+
+
+KUPLOT
+  Added option to plot a line as (filled) polygon
+  Changed the 'png' output to go through a postscript file. This works
+      better for multiple color maps.
+
+6.06.00 RELEASED  2021_Feb_16
+
+SUITE
+  FIXED BUG parallel command did not work for Windows WSL
+
+DISCUS
+  Added option to accumulate several diffraction pattern
+  Added option to apply symmetry averaging to diffraction pattern
+  FIXED BUG in powder, Linear and square parameters were not read correctly. 
+  FIXED BUG Corrected output format for neutron energies at short wave lengths 
+
+KUPLOT
+  Added a FFT for 1D, 2D, 3D
+  FIXED BUG fit: the old "urf" was transscribed into the lambda start for the new fit.
+  FIXED BUG fit: The background polynomial indicated wrong parameter number. 
+  FIXED BUG parallel mode at windows did not work.
+
+General
+  FIXED BUG for update command. Unfortunately the 'update' command had
+  a bug that rendered it faulty on Linux and MAC. 
+  FIXED BUG change directory was faulty for WSL
+
+6.05.00 RELEASED  2021_Jan_20
+
+DIFFEV
+  FIXED BUG constraint rules were not working
+
+DISCUS
+  Added "xplor" file format for 3-D maps (intensity, 3DPDF etc.)
+  Added 'range' command to output to limit extend of maps for "xplor"
+  Fixed use of "set vec" into neighborhoods with vectors starting
+        at several (symmetrically equivalent) sites.
+
+KUPLOT
+  Added a double peak Pseudo-Voigt function for Kalpha1,2 radiation
+        as general function and as fit function.
+
+REFINE, KUPLOT
+  Added a global storage to exchange data, especially calculated derivatives
+
+General
+  Added a (double-peak) Pseduo-Voigt function
+  Added a function to determine the number associated to a Refine
+        parameter name. Used for the calculated derivatives 
+  The Linux installation scripts include a check for the "curl" program
+  The MacOS installation has a minor update related to the changed brew syntax 
+
+6.04.00 RELEASED
+   
+        FIXED bug in calculations involving matrices. These could not be at a 
+                  lower alphabetical order than scalar variables.
+
+DISCUS
+   Added an optional parameter to the 'value' command in 'output'.
+   This allows to set a maximum radius in reciprocal space to be 
+   applied prior to the 3D-PDF calculation.
+
+   import  Adapted RMCf6 import to more flexible file formats
+
+6.03.01	RELEASED
