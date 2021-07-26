@@ -9,11 +9,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      parameter    (iu=-74,io=0)
+      parameter    (iu=-75,io=0)
 !
       character(LEN=45) ::  error(iu:io)
 !
       data error ( iu: -61) /                      &
+     &  'Could not open PGPLOT device     ',       &! -75  ! kupl
      &  'Data sets are of different length',       &! -74  ! kupl
      &  'Data sets differ in dimension',           &! -73  ! kupl
      &  'HDF5 is not supported in this version',   &! -72  ! kupl

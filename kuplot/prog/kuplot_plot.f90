@@ -94,188 +94,224 @@ SUBROUTINE do_plot (lmenu)
 !                                                                       
       END SUBROUTINE do_plot                        
 !*********************************************************************  
-      SUBROUTINE do_hardcopy (befehl, zeile, lbef, lp) 
+!
+SUBROUTINE do_hardcopy (befehl, zeile, lbef, lp) 
 !+                                                                      
 !     This is the plotting routine for hardcopies                       
 !-                                                                      
-      USE build_name_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE prompt_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE build_name_mod
+USE errlist_mod 
+USE get_params_mod
+USE prompt_mod 
+USE kuplot_config 
+USE kuplot_mod 
 USE lib_do_operating_mod
 USE lib_length
 USE precision_mod
-      USE string_convert_mod
+USE string_convert_mod
 USE support_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 10) 
+INTEGER, PARAMETER :: maxw = 10
 !                                                                       
-      CHARACTER ( * ) befehl, zeile 
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw), prnbef , line
-      CHARACTER(256) filname, uname , oname
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL width, ratio 
-      INTEGER lpara (maxw) 
-      INTEGER ianz, ii, idev, lbef, lp ,i
-      LOGICAL tfr, lrena, lmenu 
-      LOGICAL :: l_pdf
+CHARACTER(len=*), intent(inout) :: befehl
+CHARACTER(len=*), intent(inout) :: zeile 
+integer         , intent(inout) :: lbef
+integer         , intent(inout) :: lp
+!
+CHARACTER(LEN=PREC_STRING) :: cpara (maxw), prnbef , line
+CHARACTER(len=256) :: filname, uname , oname
+REAL(KIND=PREC_DP) :: werte (maxw) 
+REAL(kind=PREC_SP) :: width, ratio 
+INTEGER :: lpara (maxw) 
+INTEGER :: ianz, ii, idev, i
+integer :: udev        ! User device definition
+LOGICAL :: tfr, lrena, lmenu 
+LOGICAL :: l_pdf
 !                                                                       
-      INTEGER PGOPEN 
+INTEGER :: PGOPEN 
 !                                                                       
-      lmenu = .false. 
-      lrena = .false. 
-      l_pdf = .false. 
-      idev  = png
+lmenu = .false. 
+lrena = .false. 
+l_pdf = .false. 
+idev  = png
 !                                                                       
 !------ see if there are data at all                                    
 !                                                                       
-      tfr = .false. 
-      DO ii = 1, iaf (iwin) 
-      tfr = tfr.or. (infra (iwin, ii, 1) .eq. - 1) 
-      ENDDO 
+tfr = .false. 
+DO ii = 1, iaf (iwin) 
+   tfr = tfr.or. (infra (iwin, ii, 1) .eq. - 1) 
+ENDDO 
 !                                                                       
-      IF (iz.le.1.and..not.tfr) then 
-         ier_num = - 12 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
+IF (iz.le.1.and..not.tfr) then 
+      ier_num = - 12 
+      ier_typ = ER_APPL 
+      RETURN 
+ENDIF 
 !                                                                       
-      CALL do_cap (befehl) 
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+CALL do_cap (befehl) 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) return 
 !                                                                       
 !------ Command save or print                                           
 !                                                                       
-      IF (befehl (1:2) .eq.'SA') then 
-         IF (ianz.ge.1) then 
-            lrena = .false. 
-            CALL do_cap (cpara (1) ) 
-            IF (cpara (1) (1:2) .eq.'PS') then 
-               filname = 'kuplot.ps' 
-               IF (orient (iwin) ) then 
-                  idev = ps 
-               ELSE 
-                  idev = vps 
-               ENDIF 
-               l_pdf = .FALSE.
-            ELSEIF (cpara (1) (1:2) .eq.'PI') then 
-               filname = 'kuplot.gif' 
-               IF (orient (iwin) ) then 
-                  idev = pic 
-               ELSE 
-                  idev = vpic 
-               ENDIF 
-               l_pdf = .FALSE.
-!DBG                                                                    
-!DBG      Temporary solution, while gif is having trouble...            
-               idev = png 
-            ELSEIF (cpara (1) (1:2) .eq.'PN') then 
-               filname = 'kuplot.png' 
-               idev = png 
-               l_pdf = .FALSE.
-            ELSEIF (cpara (1) (1:2) .eq.'LA') then 
-               filname = 'kuplot.tex' 
-               idev = lat 
-               l_pdf = .FALSE.
-            ELSEIF (cpara (1) (1:2) .eq.'PD') then 
-               filname = 'kuplot.ps' 
-               l_pdf = .TRUE.
-               IF (orient (iwin) ) then 
-                  idev = ps 
-               ELSE 
-                  idev = vps 
-               ENDIF 
-            ELSE 
-               ier_num = - 11 
-               ier_typ = ER_APPL 
-               RETURN 
-            ENDIF 
-            IF (ianz.ge.2) then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-               uname = cpara (1) (1:MIN(256,LEN_TRIM(cpara(1))))
-               lrena = .true. 
-            ELSE 
-               uname = filname 
-            ENDIF 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-            RETURN 
-         ENDIF 
-!                                                                       
-         ii = len_str (uname) 
-         WRITE (output_io, 1000) iwin, uname (1:ii) 
-!                                                                       
-!------ Command prin                                                    
-!                                                                       
-      ELSEIF (befehl (1:2) .eq.'PR') then 
-         filname = 'kuplot.plt' 
-         idev = ps 
+IF (befehl (1:2) .eq.'SA') then 
+   IF (ianz.ge.1) then 
+      lrena = .false. 
+      CALL do_cap (cpara (1) ) 
+      IF (cpara (1) (1:2) .eq.'PS') then      ! Postscript
+         filname = 'kuplot.ps' 
          IF (orient (iwin) ) then 
             idev = ps 
          ELSE 
             idev = vps 
          ENDIF 
-         lrena = .false. 
-!                                                                       
-         IF (ianz.ge.1) then 
-            CALL do_cap (cpara (1) ) 
-            IF (cpara (1) (1:2) .ne.'PS') then 
-               ier_num = - 11 
-               ier_typ = ER_APPL 
-               RETURN 
-            ENDIF 
-         ENDIF 
-!                                                                       
-         IF (ianz.gt.1) then 
-            lp = -lp
-            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            CALL del_params (1, ianz, cpara, lpara, maxw) 
-            CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-            prnbef = cpara (1) 
+         udev = idev 
+         l_pdf = .FALSE.
+      ELSEIF (cpara (1) (1:2) .eq.'PI') then  ! GIF, 
+         filname = 'kuplot.gif' 
+         IF (orient (iwin) ) then 
+            idev = pic 
          ELSE 
-            prnbef = dev_prn (idev) 
+            idev = vpic 
          ENDIF 
+         udev = idev 
+         l_pdf = .FALSE.
+!DBG                                                                    
+!DBG      Temporary solution, while gif is having trouble...            
+         idev = png 
+         udev = png 
+      ELSEIF (cpara (1) (1:2) .eq.'PN') then  ! PNG, make postscript and convert
+         filname = 'kuplot.ps' 
+         udev = png 
+         if (orient (iwin) ) then
+            idev = ps
+         ELSE
+            idev = vps
+         ENDIF
+         l_pdf = .FALSE.
+      ELSEIF (cpara (1) (1:2) .eq.'LA') then  ! Latex
+         filname = 'kuplot.tex' 
+         idev = lat 
+         udev = idev
+         l_pdf = .FALSE.
+      ELSEIF (cpara (1) (1:2) .eq.'PD') then  ! PDF, make postscript and convert
+         filname = 'kuplot.ps' 
+         l_pdf = .TRUE.
+         IF (orient (iwin) ) then 
+            idev = ps 
+         ELSE 
+            idev = vps 
+         ENDIF 
+         udev = pdf
+      ELSE                                   ! Unknown output format
+         ier_num = - 11 
+         ier_typ = ER_APPL 
+         RETURN 
       ENDIF 
-      IF (ier_num.ne.0) return 
+      IF (ianz.ge.2) then                    ! User specified file name
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+         uname = cpara (1) (1:MIN(256,LEN_TRIM(cpara(1))))
+         lrena = .true. 
+      ELSE 
+         uname = filname 
+      ENDIF 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+      RETURN 
+   ENDIF 
+!                                                                       
+   ii = len_str (uname) 
+   WRITE (output_io, 1000) iwin, uname (1:ii) 
+!                                                                       
+!------ Command prin                                                    
+!                                                                       
+ELSEIF (befehl (1:2) .eq.'PR') then 
+   filname = 'kuplot.plt' 
+   idev = ps 
+   IF (orient (iwin) ) then 
+      idev = ps 
+   ELSE 
+      idev = vps 
+   ENDIF 
+   lrena = .false. 
+!                                                                       
+   IF (ianz.ge.1) then 
+      CALL do_cap (cpara (1) ) 
+      IF (cpara (1) (1:2) .ne.'PS') then 
+         ier_num = - 11 
+         ier_typ = ER_APPL 
+         RETURN 
+      ENDIF 
+   ENDIF 
+!                                                                       
+   IF (ianz.gt.1) then 
+      lp = -lp
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+      prnbef = cpara (1) 
+   ELSE 
+      prnbef = dev_prn (idev) 
+   ENDIF 
+ENDIF 
+!
+IF (ier_num.ne.0) return 
 !                                                                       
 !------ Opening device                                                  
 !                                                                       
-      dev_draw (iwin, 1) = 0.00 
-      dev_draw (iwin, 2) = 0.00 
+dev_draw (iwin, 1) = 0.00 
+dev_draw (iwin, 2) = 0.00 
 !                                                                       
-      dev_id (iwin, idev) = PGOPEN (filname(1:len_str(filname))//dev_name (idev) ) 
-      IF (dev_id (iwin, idev) .le.0) stop 
+dev_id (iwin, idev) = PGOPEN (filname(1:len_str(filname))//dev_name (idev) ) 
+IF (dev_id (iwin, idev) .le.0) then
+   ier_num = -75
+   ier_typ =ER_APPL
+   return
+endif
 !                                                                       
-      width = dev_sf (iwin, idev) * dev_width (iwin) 
-      ratio = dev_height (iwin) / dev_width (iwin) 
+width = dev_sf (iwin, idev) * dev_width (iwin) 
+ratio = dev_height (iwin) / dev_width (iwin) 
 !                                                                       
-      CALL PGPAP (width, ratio) 
-      CALL colour_setup 
+CALL PGPAP (width, ratio) 
+CALL colour_setup 
 !                                                                       
 !------ here starts the plotting                                        
 !                                                                       
-      DO ii = 1, iaf (iwin) 
-      CALL draw_frame (ii, lmenu) 
-      ENDDO 
+DO ii = 1, iaf (iwin) 
+   CALL draw_frame (ii, lmenu) 
+ENDDO 
 !                                                                       
 !------ draw identification                                             
 !                                                                       
-      IF (iden (iwin) ) then 
-         CALL PGSCI (foncol (iwin, iframe, 3) ) 
-         CALL PGIDEN 
-      ENDIF 
+IF (iden (iwin) ) then 
+   CALL PGSCI (foncol (iwin, iframe, 3) ) 
+   CALL PGIDEN 
+ENDIF 
 !                                                                       
-      CALL PGCLOS 
+CALL PGCLOS 
 !                                                                       
 !------ check if we need to rename ouputfile                            
 !                                                                       
+if(udev==png) then            ! Create png file out of Postscript
+   i = LEN_TRIM(uname)
+   oname = uname
+   IF(uname(i-3:i)=='.png' .or. uname(i-3:i)=='.PNG') THEN
+      uname(i-3:i) = '.ps '
+      oname(i-3:i) = '    '   ! Remove extension, as gmt will add '.png'
+   ENDIF
+   if(lrena) call do_rename_file (filname, uname) 
+   write(line,'(a,a, a, a)') 'gmt psconvert -Tg -P -D. -E600 -F',               &
+                             oname(1:len_trim(oname)),                          &
+                             ' ', uname(1:len_trim(uname))
+   CALL system(line, ier_num)
+elseif(udev==pdf) then
+   IF(uname(i-3:i)=='.pdf' .or. uname(i-3:i)=='.PDF') THEN
+      uname(i-3:i) = '.ps '
+   ENDIF
       IF(l_PDF) THEN  !temporarily change extension  to ps
           i = LEN_TRIM(uname)
           oname = uname
@@ -290,22 +326,28 @@ USE support_mod
                                                oname(1:LEN_TRIM(oname))
           CALL system(line, ier_num)
       ENDIF
+elseif(udev==ps) then
+   if (lrena) call do_rename_file (filname, uname) 
+endif
 !                                                                       
 !------ if the command was print we print                               
 !                                                                       
-      IF (befehl (1:2) .eq.'PR') then 
-         ii = len_str (prnbef) 
-         prnbef = prnbef (1:ii) //' '//filname 
-         ii = len_str (prnbef) 
-         WRITE (output_io, 2000) iwin, prnbef (1:ii) 
-         CALL do_operating (prnbef (1:ii), ii) 
-         CALL do_del_file (filname) 
-      ENDIF 
+IF (befehl (1:2) .eq.'PR') then 
+   ii = len_str (prnbef) 
+   prnbef = prnbef (1:ii) //' '//filname 
+   ii = len_str (prnbef) 
+   WRITE (output_io, 2000) iwin, prnbef (1:ii) 
+   CALL do_operating (prnbef (1:ii), ii) 
+   CALL do_del_file (filname) 
+ENDIF 
 !                                                                       
  1000 FORMAT     (' ------ > Saving window ',i3,' to file : ',a,' ..') 
  2000 FORMAT     (' ------ > Printing window ',i3,' using : ',a,' ..') 
-      END SUBROUTINE do_hardcopy                    
+!
+END SUBROUTINE do_hardcopy                    
+!
 !*****7*****************************************************************
+!
       SUBROUTINE colour_setup 
 !+                                                                      
 !     This sets the default KUPLOT colours ...                          

@@ -20,6 +20,7 @@ SAVE
       INTEGER, PARAMETER :: vps  = 5
       INTEGER, PARAMETER :: png  = 6
       INTEGER, PARAMETER :: lat  = 7
+      INTEGER, PARAMETER :: pdf  = 8
 !
 !
       INTEGER, PARAMETER :: if_left   = 1
