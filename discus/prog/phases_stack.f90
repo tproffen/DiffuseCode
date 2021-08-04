@@ -7,7 +7,7 @@ CONTAINS
 !
 !*******************************************************************************
 !
-SUBROUTINE phases_place_stack_form(n_layers, st_nlayer)
+SUBROUTINE phases_place_stack_form(n_layers, st_nlayer, st_ncunit)
 !-
 !  Place the form factors for the current layer into the phases section
 !
@@ -23,6 +23,7 @@ IMPLICIT NONE
 !
 INTEGER, INTENT(IN) :: n_layers  ! Number of layers for current layer type
 INTEGER, INTENT(IN) :: st_nlayer ! Total number of layers
+INTEGER, INTENT(IN) :: st_ncunit ! Total number of layers
 INTEGER :: k,iscat, jscat
 INTEGER :: n_pha=0    ! Number of phases
 INTEGER :: n_pts=0    ! Number of points in powder pattern
@@ -63,17 +64,34 @@ DO iscat = 1, cr_nscat
 ENDDO
 !
 pha_nscat(pha_curr)  = pha_nscat(pha_curr) + cr_nscat           ! Number of atom types for this phase
-pha_ncreal(pha_curr) = pha_ncreal(pha_curr) + REAL(cr_ncreal)*REAL(n_layers)/REAL(st_nlayer) ! Add relative amount of 
+pha_ncreal(pha_curr) = pha_ncreal(pha_curr) + REAL(cr_ncreal)*REAL(n_layers)/REAL(st_nlayer)*st_ncunit ! Add relative amount of 
 pha_nreal(pha_curr)  = pha_nreal(pha_curr) + REAL(cr_nreal)*REAL(n_layers)                 ! Add absolute amount of 
 !write(*,*) 'PHASES_STACK ', pha_n, pha_curr, pha_nscat(pha_curr)
 !write(*,*) 'form         ', pha_form(1, 1:pha_nscat(pha_curr), pha_curr)
 !write(*,*) 'adp          ', pha_adp (   1:pha_nscat(pha_curr), pha_curr)
 !write(*,*) 'NISCAT       ', pha_niscat( 1:pha_nscat(pha_curr), pha_curr)
 !write(*,*) 'NCATOMS      ', cr_ncatoms, cr_ncreal, pha_ncreal(pha_curr)
-!write(*,*) 'NREAL        ', cr_nreal, pha_nreal(pha_curr)
+!write(*,*) 'NREAL        ', cr_nreal, pha_nreal(pha_curr), pha_ncreal(pha_curr)
 !                                                           ! atoms pere unit cell
 !
 END SUBROUTINE phases_place_stack_form
+!
+!*******************************************************************************
+!
+SUBROUTINE phases_place_stack_rese
+!-
+! Reset entries in case of single powder pattern
+!
+pha_curr = 1
+pha_weight = 0.0D0
+pha_niscat = 0
+pha_nscat  = 0
+pha_ncreal = 0.0
+pha_nreal  = 0.0
+pha_adp    = 0.0
+pha_occ    = 0.0
+!
+END SUBROUTINE phases_place_stack_rese
 !
 !*******************************************************************************
 !

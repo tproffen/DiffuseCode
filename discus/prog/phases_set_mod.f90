@@ -60,6 +60,7 @@ err_para: IF (ier_num.eq.0) THEN
    err_opti: IF (ier_num.eq.0) THEN
       IF(lpresent(O_MODE)) THEN                ! mode: is present
          IF(opara(O_MODE)=='single') THEN
+            call phases_reset
             pha_multi = .FALSE.
             pha_n     = 1
             pha_curr  = 1
@@ -123,6 +124,8 @@ err_para: IF (ier_num.eq.0) THEN
                ier_typ = ER_APPL
                ier_msg(1) = 'Phases are in single mode, activate with'
                ier_msg(2) = 'mode:multiple                           '
+            else
+               call phases_reset
             ENDIF
          ENDIF
       ENDIF                                    ! mode: is present
@@ -156,6 +159,7 @@ integer :: i,j
 INTEGER :: k,iscat
 INTEGER :: npkt
 REAL( KIND(0.0D0))             :: signum
+!character(len=1024) :: ofile
 !
 npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
 stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking fault mode
@@ -243,10 +247,10 @@ ELSE                                                 ! Complete powder patterm, 
    ENDDO
 !close(66)
 ENDIF
-!write(ofile,'(a,i1.1)') 'phases.place.',pha_curr
+!write(ofile,'(a,i1.1)') 'POWDER/phases.place',pha_curr
 !open(66, file=ofile, status='unknown')
 !   DO k=0, npkt
-!write(66, '(3F20.6)') pow_qmin + (k-1)*pow_deltaq, pow_conv(k), pha_powder(k,pha_curr)
+!write(66, '(3F25.6)') pow_qmin + (k-1)*pow_deltaq, pow_conv(k), pha_powder(k,pha_curr)
 !  ENDDO
 !close(66)
 !
@@ -256,6 +260,7 @@ ENDIF
 !IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
 !  CALL phases_corr(npkt)
 !ENDIF
+!
 !
 END SUBROUTINE phases_place
 !
@@ -325,6 +330,7 @@ pha_scale = pha_frac * weight / pha_weight / (pha_n-empty)
 !
 ! Add all form factors into pow_faver2
 !
+!write(*,*) ' PHA_AVERAGE scale ', pha_scale
 !write(*,*) ' PHA_AVERAGE ', pha_n, pha_nscat(1), pha_niscat(:,1), pha_nreal(1)
 !write(*,*) ' xmin, xdel, npkt', xmin, xdel, npkt
 !
@@ -370,6 +376,11 @@ pow_u2aver    = pow_u2aver /8./REAL(PI)**2
 ! Distinguish if calculation mode was COMPLETE or DEBYE
 ! Make separate results for intensities and S(Q) [F(Q) and PDF will work with S(Q)]
 !
+!open(87,file='POWDER/multi_average.conv0', status='unknown')
+!do k= 0, npkt
+!q = ((k)*xdel + xmin)
+!write(87,'(2(f16.6,2x))') q,      pha_powder(k,1)!, pow_sq(k)
+!enddo
 pow_conv = 0.0
 pow_sq   = 0.0
 DO i=1,pha_n

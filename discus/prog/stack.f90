@@ -1379,6 +1379,12 @@ USE precision_mod
          res_para(i) = st_number(i)
       ENDDO
       res_para(0) = st_ntypes
+! Estimate number of atoms per unit cell
+st_ncunit =nint( &
+             st_nlayer/( max(abs(maxval(st_origin(1,:))-minval(st_origin(1,:))),  &
+                           abs(maxval(st_origin(2,:))-minval(st_origin(2,:))),  &
+                           abs(maxval(st_origin(3,:))-minval(st_origin(3,:))))  &
+                     ))
 !
 !     Save the list of origins as internal file
 !
@@ -1535,31 +1541,35 @@ USE lib_random_func
 !                                                                       
       END SUBROUTINE stack_type                     
 !*****7*****************************************************************
-      SUBROUTINE do_stack_fill 
+!
+SUBROUTINE do_stack_fill 
 !-                                                                      
 !     Creates the crystal with stacking faults                          
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE chem_mod
-      USE crystal_mod 
-      USE gen_add_mod 
-      USE sym_add_mod 
-      USE molecule_mod 
-      USE read_internal_mod
-      USE discus_save_mod 
-      USE stack_mod  
-      USE structur  
-      USE symm_sup_mod
-      USE spcgr_apply
-      USE update_cr_dim_mod
-      USE errlist_mod 
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE chem_mod
+USE crystal_mod 
+USE gen_add_mod 
+USE sym_add_mod 
+USE molecule_mod 
+USE read_internal_mod
+USE discus_save_mod 
+use perioditize_mod, ONLY : estimate_ncells, estimate_ncatom
+USE stack_mod  
+USE structur  
+USE symm_sup_mod
+USE spcgr_apply
+!
+USE update_cr_dim_mod
+USE errlist_mod 
 USE lib_length
+use precision_mod
 USE support_mod
-      IMPLICIT none 
+!
+IMPLICIT none 
 !                                                                       
-      INTEGER ist 
-      PARAMETER (ist = 7) 
+INTEGER, PARAMETER                   :: ist = 7 
 !                                                                       
 INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
@@ -1577,6 +1587,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       INTEGER         :: n_atom=0  ! number of molecule atoms in input file
       LOGICAL lread, lout 
       LOGICAL           :: need_alloc = .false. 
+real(kind=PREC_SP)      :: aver
+real(kind=PREC_SP)      :: sigma
 !                                                                       
 !                                                                       
 !     ----read corresponding layer                                      
@@ -1831,21 +1843,26 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !  write(*,*) ' mole_len, mole_typ, mole_off ',mole_len(j), mole_type(j), mole_off(j)
 !  write(*,*) ' mole_cont ', (mole_cont(mole_off(j)+k),k=1, mole_len(j))
 !enddo
-         ENDDO layers
-      ENDIF more1
+   ENDDO layers
+ENDIF more1
 !                                                                       
-      CLOSE (ist) 
+CLOSE (ist) 
 !                                                                       
 !     Update Crystal dimension                                          
 !                                                                       
-      CALL update_cr_dim 
-      chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
+CALL update_cr_dim 
+chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
                               ! In the rare circumstances that is is the user
                               ! has to turn this on explicitly
-      chem_quick = .FALSE.
-      chem_period(:) = .FALSE.
+chem_quick = .FALSE.
+chem_period(:) = .FALSE.
+!
+call estimate_ncells               ! Estimate number of unit cells in teh crystal
+call estimate_ncatom(aver, sigma)  ! Estimate number of atoms per unit cell
+cr_ncatoms = nint(aver)
 !                                                                       
-      END SUBROUTINE do_stack_fill                  
+END SUBROUTINE do_stack_fill                  
+!
 !*****7*****************************************************************
       SUBROUTINE stack_rot_setup (line, lbef, iatom, i, lorigin) 
 !-                                                                      
@@ -2241,7 +2258,7 @@ LOGICAL, INTENT(IN) :: calc_f2aver
 !           ENDIF
          ENDDO 
          IF(st_new_form .AND. .NOT.diff_lsingle) THEN            ! New Form factros and powder diffraction
-            CALL phases_place_stack_form(n_layers, st_nlayer)    ! Place all form factors of current layer type
+            CALL phases_place_stack_form(n_layers, st_nlayer, st_ncunit)    ! Place all form factors of current layer type
          ENDIF
 !                                                                       
 !     ------Add product of acsf und st_csf to csf                       
@@ -2677,6 +2694,7 @@ st_nlayer        = 0
 st_ntypes        = 0
 st_nchem         = 0
 st_first         = 0
+st_ncunit        = 1
 st_mod_sta       = .false.
 st_tra_aver      = .false.
 st_rot_mode      = .false.

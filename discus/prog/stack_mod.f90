@@ -57,6 +57,7 @@ INTEGER                                    :: st_nlayer        = 0
 INTEGER                                    :: st_ntypes        = 0
 INTEGER                                    :: st_nchem         = 0
 INTEGER                                    :: st_first         = 0
+integer                                    :: st_ncunit        = 1  ! Number of layers per unit translation
 LOGICAL                                    :: st_mod_sta       = .false.
 LOGICAL                                    :: st_tra_aver      = .false.
 LOGICAL                                    :: st_rot_mode      = .false.
