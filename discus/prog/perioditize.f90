@@ -91,7 +91,7 @@ loop_menu: do
             IF(sprompt /= prompt ) THEN
                ier_num = -10
                ier_typ = ER_COMM
-               ier_msg(1) = ' Error occured in symmetry menu'
+               ier_msg(1) = ' Error occured in perioditize menu'
                prompt_status = PROMPT_ON 
                prompt = orig_prompt
                RETURN
@@ -457,11 +457,12 @@ use precision_mod
 !
 implicit none
 !
+integer, dimension(3) :: ncell_dummy
 real(kind=PREC_SP) :: aver
 real(kind=PREC_SP) :: sigma
 !
 if(.not. (pdt_usr_ncell) ) then            ! User did not define number of atoms
-   call estimate_ncells
+   call estimate_ncells(ncell_dummy)
 endif
 !
 if(.not. (pdt_usr_nsite) ) then            ! User did not define number of sites in unit cell
@@ -488,7 +489,7 @@ end subroutine perioditize_run
 !
 !*******************************************************************************
 !
-subroutine estimate_ncells
+subroutine estimate_ncells(ncell_out)
 !-
 !  Try to estimate the number of unit cells
 !+
@@ -498,6 +499,7 @@ use precision_mod
 !
 implicit none
 !
+integer, dimension(3), intent(out) :: ncell_out
 !
 integer :: i          ! Dummy counter
 !
@@ -522,13 +524,16 @@ pdt_ihig = 0
 pdt_ncells = 1
 do i=1, 3
    if(nint(pdt_dims(i,2)-pdt_dims(i,1))>2) then
-   pdt_ilow(i) = nint(pdt_dims(i,1))! + 1
-   pdt_ihig(i) = nint(pdt_dims(i,2))! - 1
+!  pdt_ilow(i) = nint(pdt_dims(i,1))! + 1
+!  pdt_ihig(i) = nint(pdt_dims(i,2))! - 1
+      pdt_ilow(i) = nint(pdt_dims(i,1))! + 1
+      pdt_ihig(i) = pdt_ilow(i) + int(pdt_dims(i,2)-pdt_dims(i,1))! - 1
    else
       pdt_ilow(i) = nint(pdt_dims(i,1))
-      pdt_ihig(i) = nint(pdt_dims(i,2))
+      pdt_ihig(i) = pdt_ilow(i) + int(pdt_dims(i,2)-pdt_dims(i,1))
    endif
    pdt_ncells = pdt_ncells * (pdt_ihig(i)-pdt_ilow(i)+1)
+   ncell_out(i) = (pdt_ihig(i)-pdt_ilow(i)+1)
 !write(*,'( i3,  i3, i3 )' ) i, pdt_ilow(i), pdt_ihig(i)
 enddo
 pdt_usr_ncell = .false.              ! Unit cells were estimates automatically
@@ -631,6 +636,7 @@ integer                                       :: temp_nsite    ! Initial number 
 integer           , dimension(  2*nint(aver)) :: pdt_temp_n    ! Number of atoms per site
 logical           , dimension(  2*nint(aver)) :: is_valid      ! This site is OK T/F
 !
+pdt_nsite = aver                       ! Initialize number of sites per unit cell
 eps = 0.9                              ! Start with 0.5 Angstroem
 if(pdt_asite==0) then                  ! No sites yet
    pdt_asite = 1                              ! No sites yet
@@ -686,8 +692,6 @@ reduce: do
       else
          ier_num = -179
          ier_typ = ER_APPL
-         write(ier_msg(1),'(a, i3,a,i8)') 'Sites ',pdt_asite-nred,  &
-              ' Sites*Cells ', (pdt_asite-nred)*pdt_ncells
          return
       endif
    endif
@@ -726,12 +730,10 @@ do j=1, pdt_asite
   if(is_valid(j)) then
     k = k + 1
     pdt_pos(:,k) = pdt_temp(:,j)
-!  write(*,*) ' SITE ', j, pdt_pos(:,j), pdt_temp_n(j)
   endif
 enddo
 pdt_asite = pdt_asite - nred
 !
-!write(*,*) ' NSITE ', pdt_nsite*pdt_ncells, pdt_nsite*pdt_ncells==cr_natoms
 
 end subroutine find_average
 !
