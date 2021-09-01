@@ -649,6 +649,7 @@ INTEGER  :: n_symm  ! Number of symm. ops. for molecules in the input file
 INTEGER  :: n_mole  ! Number of molecules in the input file
 INTEGER  :: n_type  ! Number of molecule types  in the input file
 INTEGER  :: n_atom  ! Number of atoms within molecules in the input file
+integer, dimension(3) :: n_cells  ! Number of unit cells in the input file
 integer, dimension(:,:), allocatable :: clu_moles  ! No of molecule and types in each cluster
 !integer, dimension(:,:), allocatable :: clu_mole_tab! No of molecule and types in each cluster
 REAL(PREC_SP)               :: shortest
@@ -706,7 +707,7 @@ DO i=1, clu_number
          endif
    ELSE
       CALL test_file(infile ,natoms, &
-              nscats, n_mole, n_type, n_atom, -1 , .false.)
+              nscats, n_mole, n_type, n_atom, n_cells, -1 , .false.)
       clu_moles(1,i) = n_mole
       clu_moles(2,i) = n_type
       IF (ier_num.ne.0) THEN
@@ -828,7 +829,7 @@ IF ( clu_infile_internal ) THEN
    at_param(8) = 'OCC'
    at_ianz = 8
 ELSE
-   CALL test_file(clu_infile, natoms, nscats, n_mole, n_type, n_atom, -1 , .false.)
+   CALL test_file(clu_infile, natoms, nscats, n_mole, n_type, n_atom, n_cells, -1 , .false.)
    IF(natoms > MAX(MK_MAX_ATOM, NMAX)    .or. &
       nscats > MAX(MK_MAX_SCAT, MAXSCAT) .or. &
       n_mole > MOLE_MAX_MOLE             .or. &

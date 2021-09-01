@@ -819,6 +819,7 @@ INTEGER             :: n_mole
 INTEGER             :: n_type
 INTEGER             :: n_atom
 INTEGER             :: i,l
+integer, dimension(3) :: n_cells
 LOGICAL             :: need_alloc
 !
 !
@@ -835,7 +836,7 @@ LOGICAL             :: need_alloc
 !                    RETURN
 !                  ENDIF
                CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
-                             n_atom, -1 , .false.)
+                             n_atom, n_cells, -1 , .false.)
                IF (ier_num /= 0) THEN
                   RETURN                 ! Jump to handle error messages, amd macro conditions
                ENDIF
@@ -1180,6 +1181,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       INTEGER                          :: n_mole 
       INTEGER                          :: n_type 
       INTEGER                          :: n_atom 
+integer, dimension(3) :: n_cells
       LOGICAL          :: need_alloc = .false.
       LOGICAL          :: lcontent
 LOGICAL, SAVE          :: at_init = .TRUE.
@@ -1197,7 +1199,7 @@ REAL :: dw1 , occ1
       at_ianz     = 0
       n_read      = 0
       CALL test_file ( strucfile, new_nmax, new_nscat, n_mole, n_type, &
-                             n_atom, -1 , .not.cr_newtype)
+                             n_atom, n_cells, -1 , .not.cr_newtype)
       IF (ier_num /= 0) THEN
          CLOSE (ist)
          RETURN
@@ -5894,7 +5896,7 @@ USE lib_errlist_func
       END SUBROUTINE test_atom_name
 !
       SUBROUTINE test_file ( strucfile, natoms, ntypes, n_mole, n_type, &
-                             n_atom, init, lcell)
+                             n_atom, n_cells, init, lcell)
 !
 !     Determines the number of atoms and atom types in strucfile
 !
@@ -5911,14 +5913,15 @@ USE support_mod
 !
 
 !
-      CHARACTER (LEN=*), INTENT(IN)    :: strucfile
-      INTEGER          , INTENT(INOUT) :: natoms
-      INTEGER          , INTENT(INOUT) :: ntypes
-      INTEGER          , INTENT(INOUT) :: n_mole 
-      INTEGER          , INTENT(INOUT) :: n_type 
-      INTEGER          , INTENT(INOUT) :: n_atom 
-      INTEGER          , INTENT(IN)    :: init
-      LOGICAL          , INTENT(IN)    :: lcell
+CHARACTER (LEN=*)    , INTENT(IN)    :: strucfile
+INTEGER              , INTENT(INOUT) :: natoms
+INTEGER              , INTENT(INOUT) :: ntypes
+INTEGER              , INTENT(INOUT) :: n_mole 
+INTEGER              , INTENT(INOUT) :: n_type 
+INTEGER              , INTENT(INOUT) :: n_atom 
+integer, dimension(3), intent(out)   :: n_cells
+INTEGER              , INTENT(IN)    :: init
+LOGICAL              , INTENT(IN)    :: lcell
 !
       INTEGER, PARAMETER                    :: MAXW = 13 
       CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW)  :: cpara (MAXW) 
@@ -5951,6 +5954,7 @@ USE support_mod
       LOGICAL                               :: l_type     ! RFound molecule type command
       LOGICAL                               :: new
       REAL                                  :: xc,yc,zc,bval
+real(kind=PREC_SP), dimension(3,2)   :: ccdim     ! Crystal dimensions 
 INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
 LOGICAL                              :: at_init = .TRUE.
@@ -5965,6 +5969,7 @@ REAL                                 :: occ
       nadptypes  = 0
       nocctypes  = 0
 iblk = 0
+ccdim = 0.0
       IF ( init == -1 ) THEN
         names(:)  = ' '
         bvals(:)  = 0.0
@@ -6113,6 +6118,7 @@ header: DO
                   IF(ianz>=5) THEN
                      natoms = werte(5)
                   ENDIF
+                  n_cells = werte(1:3)
                   ntypes = werte(6)
                   n_mole = werte(7)
                   n_type = werte(8)
@@ -6263,6 +6269,12 @@ ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
            ENDIF
 !
 isatom:    IF ( ios == 0 ) THEN
+              ccdim(1,1) = min(ccdim(1,1), xc)
+              ccdim(1,2) = max(ccdim(1,2), xc)
+              ccdim(2,1) = min(ccdim(2,1), yc)
+              ccdim(2,2) = max(ccdim(2,2), yc)
+              ccdim(3,1) = min(ccdim(3,1), zc)
+              ccdim(3,2) = max(ccdim(3,2), zc)
               natoms = natoms + 1
               IF ( in_mole ) THEN
                  n_atom = n_atom + 1
@@ -6305,6 +6317,7 @@ types:        DO i=1,ntypes
          n_atom = MAX(n_atom,1)
       ENDIF
 !
+n_cells     = int(ccdim(:,2)-ccdim(:,1)) + 1
 !
 1000  FORMAT(a)
 !
