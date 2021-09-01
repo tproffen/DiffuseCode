@@ -216,9 +216,6 @@ stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking 
       pha_ncreal(pha_curr) = cr_ncatoms
    ENDIF
 ENDIF stack
-!write(*,*) ' IN PHA_set    nreal, ', pha_nreal(pha_curr), pha_ncreal(pha_curr), cr_nscat
-!write(*,*) ' PHASES_SET ', pow_conv(0), pow_conv(1), pow_conv(npkt)
-!write(*,*) ' PHASES_SET ', minval(pow_conv), maxval(pow_conv)
 !
 ! Place powder pattern into appropriate phase entry
 !
