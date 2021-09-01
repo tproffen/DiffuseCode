@@ -6,3 +6,4 @@ CMakeFiles
 BACK*
 Doxygen*
 .ipynb_checkpoints
+private.f90
