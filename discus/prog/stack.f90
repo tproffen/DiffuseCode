@@ -1020,17 +1020,20 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE symm_sup_mod
       USE tensors_mod
       USE trafo_mod
-      USE errlist_mod 
+!
+USE errlist_mod 
 USE lib_errlist_func
+use matrix_mod
 USE lib_random_func
-      USE random_mod
-      USE param_mod 
-      USE prompt_mod 
+USE random_mod
+USE param_mod 
+USE prompt_mod 
 USE precision_mod
-      IMPLICIT none 
 !                                                                       
-       
+IMPLICIT none 
+
 !                                                                       
+real(kind=PREC_DP), parameter :: EPS = 1.0D-8
       CHARACTER(LEN=23), PARAMETER :: tempfile ='internal.temporary.stru'
       CHARACTER(LEN=23), PARAMETER :: stackfile='internal.stacklist.stru'
       CHARACTER(LEN=25), PARAMETER :: stacksimple='internal.stacksimple.list'
@@ -1040,15 +1043,16 @@ USE precision_mod
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
       INTEGER         :: natoms
+integer, dimension(3) :: n_cells
       INTEGER         :: nscats
       LOGICAL         :: need_alloc = .false.
       LOGICAL lprev 
       REAL prob (ST_MAXTYPE) 
       REAL prob_n (ST_MAXTYPE) 
       REAL ptot_n 
-      REAL u (3), v (3) 
-      REAL r1, r2 
-      REAL st_trans_cur (3) 
+      REAL(kind=PREC_DP) :: u (3), v (3) 
+      REAL(kind=PREC_DP) :: r1, r2 
+      REAL(kind=PREC_DP) :: st_trans_cur (3) 
 !                                                                       
 !                                                                       
       CALL no_error 
@@ -1103,7 +1107,7 @@ USE precision_mod
              st_nscat, n_mole, n_type, n_atom)
          ELSE
             CALL test_file ( st_infile,st_natoms,st_nscat, n_mole, n_type,&
-                             n_atom,-1, .true. )
+                             n_atom, n_cells, -1, .true. )
          ENDIF
 !        CALL test_file ( st_infile, st_natoms, st_nscat, n_mole,  &
 !                         n_type, n_atom, -1, .true. )
@@ -1204,7 +1208,8 @@ USE precision_mod
       st_inv (i, j) = st_mod (i, j) 
       ENDDO 
       ENDDO 
-      CALL invmat (st_inv, st_mod) 
+!     CALL invmat (st_inv, st_mod) 
+      CALL matinv3(st_mod, st_inv) 
       IF (ier_num.eq. - 1) then 
          CALL no_error 
          ier_num = - 56 
@@ -1224,10 +1229,10 @@ USE precision_mod
 !     Loop over all layers                                              
 !                                                                       
 !DBG                                                                    
-      WRITE (output_io, * ) ' Start Loop' , st_nlayer
-      WRITE (output_io, 2000) ' Origins', st_type (1) , st_origin (1, 1)&
-      , st_origin (2, 1) , st_origin (3, 1)                             
-      DO i = 2, st_nlayer 
+WRITE (output_io, * ) ' Start Loop' , st_nlayer
+WRITE (output_io, 2000) ' Origins', st_type (1), st_origin(1, 1)&
+                        , st_origin(2, 1), st_origin(3, 1)                             
+loop_layer: DO i = 2, st_nlayer 
 !                                                                       
 !     --Determine whether random or regular stacking fault              
 !                                                                       
@@ -1303,7 +1308,7 @@ USE precision_mod
          IF (st_rot_si_no.gt.0.0) then 
             CALL stack_rot_setup ('normal', 6, 1, i - 1, .false.) 
             CALL symm_setup 
-            CALL symm_ca_single (st_trans_cur, .true., .false.) 
+            CALL symm_ca_single (real(st_trans_cur,kind=prec_sp), .true., .false.) 
             DO j = 1, 3 
             st_trans_cur (j) = res_para (j) 
             ENDDO 
@@ -1314,7 +1319,7 @@ USE precision_mod
          IF (st_rot_si_m1.gt.0.0) then 
             CALL stack_rot_setup ('mod1', 4, 1, i - 1, .false.) 
             CALL symm_setup 
-            CALL symm_ca_single (st_trans_cur, .true., .false.) 
+            CALL symm_ca_single (real(st_trans_cur,kind=prec_sp), .true., .false.) 
             DO j = 1, 3 
             st_trans_cur (j) = res_para (j) 
             ENDDO 
@@ -1325,7 +1330,7 @@ USE precision_mod
          IF (st_rot_si_m2.gt.0.0) then 
             CALL stack_rot_setup ('mod2', 4, 1, i - 1, .false.) 
             CALL symm_setup 
-            CALL symm_ca_single (st_trans_cur, .true., .false.) 
+            CALL symm_ca_single (real(st_trans_cur,kind=prec_sp), .true., .false.) 
             DO j = 1, 3 
             st_trans_cur (j) = res_para (j) 
             ENDDO 
@@ -1333,10 +1338,11 @@ USE precision_mod
       ENDIF 
 !                                                                       
 !     --Add translation vector to last origin                           
+!  Adding the modulo vector ensures that origins stay in [0,1[ range
 !                                                                       
-      st_origin (1, i) = st_origin (1, i - 1) + st_trans_cur (1) 
-      st_origin (2, i) = st_origin (2, i - 1) + st_trans_cur (2) 
-      st_origin (3, i) = st_origin (3, i - 1) + st_trans_cur (3) 
+   st_origin (1, i) = st_origin (1, i - 1) + st_trans_cur (1) + st_mod(1,1) + st_mod(1,2) 
+   st_origin (2, i) = st_origin (2, i - 1) + st_trans_cur (2) + st_mod(2,1) + st_mod(2,2)
+   st_origin (3, i) = st_origin (3, i - 1) + st_trans_cur (3) + st_mod(3,1) + st_mod(3,2)
       IF (.not.lprev) then 
 !DBG                                                                    
 !         IF (i.eq.2) then 
@@ -1355,31 +1361,35 @@ USE precision_mod
 !                                                                       
 !     --If necessary apply modulo function                              
 !                                                                       
-      IF (st_mod_sta) then 
-         DO j = 1, 3 
+   IF (st_mod_sta) then 
+      DO j = 1, 3 
          v (j) = st_origin (j, i) - st_origin (j, 1) 
-         ENDDO 
-         CALL trans (v, st_inv, u, 3) 
-         DO j = 1, 3 
-         st_origin (j, i) = st_origin (j, i) - REAL(int (u (1) ) )    &
-         * st_mod (j, 1) - REAL(int (u (2) ) ) * st_mod (j, 2)        
-         ENDDO 
-      ENDIF 
+      ENDDO 
+!     CALL trans (v, st_inv, u, 3) 
+!     EPS ensures that the origins are in the range [-EPS:1-EPS]. This helps to avoid 
+!     issues with origins at 0/3 ; 3/3, wich should all be at 0.
+      u = matmul(st_inv, v)
+      DO j = 1, 3 
+         st_origin(j, i) = st_origin(j, i) - REAL(int(u(1)+EPS)) * st_mod(j, 1) &
+                                           - REAL(int(u(2)+EPS)) * st_mod(j, 2)
+      ENDDO 
+   ENDIF 
 !                                                                       
 !     --Increment number of layers of this type                         
 !                                                                       
-      st_number (st_type (i) ) = st_number (st_type (i) ) + 1 
-      WRITE (output_io, 2000) ' Origins', st_type (i) , st_origin (1, i)&
-      , st_origin (2, i) , st_origin (3, i)                             
-      ENDDO 
+   st_number(st_type(i) ) = st_number(st_type(i) ) + 1 
+   WRITE (output_io, 2000) ' Origins', st_type(i) , st_origin(1, i)             &
+      , st_origin (2, i) , st_origin (3, i)
+!
+enddo loop_layer
 !
 !     Copy the amount of each layer type into res
 !
-      DO i = 1, st_ntypes
-         res_para(i) = st_number(i)
-      ENDDO
-      res_para(0) = st_ntypes
-! Estimate number of atoms per unit cell
+DO i = 1, st_ntypes
+   res_para(i) = st_number(i)
+ENDDO
+res_para(0) = st_ntypes
+! Estimate number of layers per unit cell
 st_ncunit =nint( &
              st_nlayer/( max(abs(maxval(st_origin(1,:))-minval(st_origin(1,:))),  &
                            abs(maxval(st_origin(2,:))-minval(st_origin(2,:))),  &
@@ -1555,7 +1565,7 @@ USE sym_add_mod
 USE molecule_mod 
 USE read_internal_mod
 USE discus_save_mod 
-use perioditize_mod, ONLY : estimate_ncells, estimate_ncatom
+use perioditize_mod, ONLY : estimate_ncells
 USE stack_mod  
 USE structur  
 USE symm_sup_mod
@@ -1585,6 +1595,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       INTEGER         :: n_mole=0  ! number of molecules in input file
       INTEGER         :: n_type=0  ! number of molecule types in input file
       INTEGER         :: n_atom=0  ! number of molecule atoms in input file
+integer, dimension(3) :: n_cells
       LOGICAL lread, lout 
       LOGICAL           :: need_alloc = .false. 
 real(kind=PREC_SP)      :: aver
@@ -1620,7 +1631,7 @@ more1: IF (st_nlayer.ge.1) then
                                 n_type, n_atom)
             ELSE
                CALL test_file ( st_layer (i ), natoms, nscats, n_mole, &
-                                n_type, n_atom, -1*i, .false.)
+                                n_type, n_atom, n_cells, -1*i, .false.)
             ENDIF
             If(ier_num/=0) RETURN
             max_natoms = MAX(max_natoms, natoms)
@@ -1837,7 +1848,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
                   CALL symm_setup 
                   CALL symm_op_single 
                ENDIF 
-            ENDIF 
+      ENDIF 
 !write(*,*)' MOLECULES ' , mole_num_mole, mole_num_curr, mole_num_atom, mole_num_type
 !do j= 1, mole_num_mole
 !  write(*,*) ' mole_len, mole_typ, mole_off ',mole_len(j), mole_type(j), mole_off(j)
@@ -1857,9 +1868,12 @@ chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
 chem_quick = .FALSE.
 chem_period(:) = .FALSE.
 !
-call estimate_ncells               ! Estimate number of unit cells in teh crystal
-call estimate_ncatom(aver, sigma)  ! Estimate number of atoms per unit cell
-cr_ncatoms = nint(aver)
+call estimate_ncells(n_cells)        ! Estimate number of unit cells in the crystal
+n_cells = max(n_cells,1)
+write(*,*) ' Layertype ', -9999     , n_cells, cr_natoms, &
+  nint(real(cr_natoms) /real(n_cells(1)*n_cells(2)*n_cells(3)))
+cr_icc = n_cells
+cr_ncatoms = nint(real(cr_natoms) /real(n_cells(1)*n_cells(2)*n_cells(3)))
 !                                                                       
 END SUBROUTINE do_stack_fill                  
 !
@@ -2009,6 +2023,7 @@ LOGICAL, INTENT(IN) :: calc_f2aver
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
+integer, dimension(3) :: n_cells
 !
       LOGICAL :: lout 
 !                                                                       
@@ -2066,7 +2081,7 @@ LOGICAL, INTENT(IN) :: calc_f2aver
               n_nscat, n_mole, n_type, n_atom)
          ELSE
             CALL test_file ( st_layer(1), n_atoms, n_nscat, n_mole, n_type,&
-                             n_atom,-1, .false. )
+                             n_atom, n_cells, -1, .false. )
          ENDIF
          IF(n_atoms > NMAX .or. n_nscat > MAXSCAT .or. st_nlayer > NMAX) THEN
             n_atoms = MAX( n_atoms, st_nlayer, NMAX )
@@ -2146,7 +2161,7 @@ LOGICAL, INTENT(IN) :: calc_f2aver
                  n_nscat, n_mole, n_type, n_atom)
             ELSE
                CALL test_file ( st_layer(l), n_atoms, n_nscat, n_mole, n_type,&
-                                n_atom,-1, .false. )
+                                n_atom, n_cells, -1, .false. )
             ENDIF
 !            CALL test_file ( st_layer_c(l), n_atoms, n_nscat,n_mole,    &
 !                             n_type, n_atom, -1, .true. )
@@ -2331,6 +2346,7 @@ ENDIF
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
+integer, dimension(3) :: n_cells
 !
       REAL u (3) 
 !
@@ -2378,7 +2394,7 @@ ENDIF
                  n_nscat, n_mole, n_type, n_atom)
             ELSE
                CALL test_file ( st_layer(1), n_natoms, n_nscat, n_mole, n_type,&
-                                n_atom,-1, .false. )
+                                n_atom, n_cells, -1, .false. )
             ENDIF
 !         CALL test_file ( st_layer(1), n_natoms, n_nscat,n_mole, n_type,&
 !                          n_atom, -1, .true. )
@@ -2500,7 +2516,7 @@ ENDIF
                  n_nscat, n_mole, n_type, n_atom)
             ELSE
                CALL test_file ( st_layer(l), n_natoms, n_nscat, n_mole, n_type,&
-                                n_atom,-1, .false. )
+                                n_atom, n_cells, -1, .false. )
             ENDIF
 !        CALL test_file ( st_layer(l), n_natoms, n_nscat,n_mole, n_type,&
 !                         n_atom, -1, .true. )

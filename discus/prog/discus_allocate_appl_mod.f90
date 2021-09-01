@@ -3240,24 +3240,24 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_size_of = size_of
 !
       CALL alloc_arr (  st_disp     ,1,3      ,                                           &
-                                     0,n_types  ,  all_status, 0.0      , size_of )
+                                     0,n_types  ,  all_status, 0.0D0    , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_size_of = size_of
 !
       CALL alloc_arr (  st_corr     ,0,n_types  ,                                  &
-                                     0,n_types  ,  all_status, 0.0      , size_of )
+                                     0,n_types  ,  all_status, 0.0D0    , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_size_of = size_of
 !
       CALL alloc_arr (  st_sigma    ,0,n_types  ,                                  &
                                      0,n_types  ,                                  &
-                                     1,3      , all_status, 0.0      , size_of )
+                                     1,3      , all_status, 0.0D0    , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_size_of = size_of
 !
       CALL alloc_arr (  st_trans    ,0,n_types  , &
                                      0,n_types  , &
-                                     1,3      ,  all_status, 0.0      , size_of )
+                                     1,3      ,  all_status, 0.0D0     , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_size_of = size_of
 !
@@ -3270,21 +3270,21 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_size_of = size_of
 !
       CALL alloc_arr (  st_origin   ,1,3      ,                                          &
-                                     0,n_layers,  all_status, 0.0      , size_of )
+                                     0,n_layers,  all_status, 0.0D0    , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_size_of = size_of
 !
       IF ( l_rot ) THEN   ! Allocate rotational stacking faults, this is rarely used
 !
-         CALL alloc_arr (  st_rot_ang_no, 0,n_layers,  all_status, 0.0, size_of )
+         CALL alloc_arr (  st_rot_ang_no, 0,n_layers,  all_status, 0.0D0, size_of )
          lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
          st_size_of = size_of
 !
-         CALL alloc_arr (  st_rot_ang_m1, 0,n_layers,  all_status, 0.0, size_of )
+         CALL alloc_arr (  st_rot_ang_m1, 0,n_layers,  all_status, 0.0D0, size_of )
          lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
          st_size_of = size_of
 !
-         CALL alloc_arr (  st_rot_ang_m2, 0,n_layers,  all_status, 0.0, size_of )
+         CALL alloc_arr (  st_rot_ang_m2, 0,n_layers,  all_status, 0.0D0, size_of )
          lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
          st_size_of = size_of
 !

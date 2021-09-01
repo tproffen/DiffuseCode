@@ -4,6 +4,7 @@ MODULE stack_mod
 !     Variables needed for the generalized stacking faults
 !-
 USE discus_config_mod
+use precision_mod
 !
 SAVE
 !
@@ -34,17 +35,17 @@ INTEGER            , DIMENSION(:)    , ALLOCATABLE :: st_llayer       ! (  ST_MA
 INTEGER            , DIMENSION(:)    , ALLOCATABLE :: st_number       ! (  ST_MAXTYPE)
 INTEGER            , DIMENSION(:)    , ALLOCATABLE :: st_ndisp        ! (  ST_MAXTYPE)
 INTEGER            , DIMENSION(:)    , ALLOCATABLE :: st_chem         ! (  ST_MAXTYPE)
-REAL               , DIMENSION(:,:)  , ALLOCATABLE :: st_disp         ! (3,ST_MAXTYPE)
-REAL               , DIMENSION(:,:)  , ALLOCATABLE :: st_corr         ! (  ST_MAXTYPE, ST_MAXTYPE)
-REAL               , DIMENSION(:,:,:), ALLOCATABLE :: st_sigma        ! (  ST_MAXTYPE, ST_MAXTYPE,3)
-REAL               , DIMENSION(:,:,:), ALLOCATABLE :: st_trans        ! (  ST_MAXTYPE, ST_MAXTYPE,3)
+REAL(kind=PREC_DP) , DIMENSION(:,:)  , ALLOCATABLE :: st_disp         ! (3,ST_MAXTYPE)
+REAL(kind=PREC_DP) , DIMENSION(:,:)  , ALLOCATABLE :: st_corr         ! (  ST_MAXTYPE, ST_MAXTYPE)
+REAL(kind=PREC_DP) , DIMENSION(:,:,:), ALLOCATABLE :: st_sigma        ! (  ST_MAXTYPE, ST_MAXTYPE,3)
+REAL(kind=PREC_DP) , DIMENSION(:,:,:), ALLOCATABLE :: st_trans        ! (  ST_MAXTYPE, ST_MAXTYPE,3)
 !
 INTEGER            , DIMENSION(:)    , ALLOCATABLE :: st_type         ! (  ST_MAXLAYER)
 LOGICAL            , DIMENSION(:)    , ALLOCATABLE :: st_internal     ! (  ST_MAXTYPE )
-REAL               , DIMENSION(:,:)  , ALLOCATABLE :: st_origin       ! (3,ST_MAXLAYER)
-REAL               , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_no   ! (  ST_MAXLAYER)
-REAL               , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_m1   ! (  ST_MAXLAYER)
-REAL               , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_m2   ! (  ST_MAXLAYER)
+REAL(kind=PREC_DP) , DIMENSION(:,:)  , ALLOCATABLE :: st_origin       ! (3,ST_MAXLAYER)
+REAL(kind=PREC_DP) , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_no   ! (  ST_MAXLAYER)
+REAL(kind=PREC_DP) , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_m1   ! (  ST_MAXLAYER)
+REAL(kind=PREC_DP) , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_m2   ! (  ST_MAXLAYER)
 !
 COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:)    , ALLOCATABLE :: st_csf          ! (ST_MAXQXY)
 !
@@ -65,19 +66,19 @@ LOGICAL                                    :: st_rot_status    = .false.
 LOGICAL                                    :: st_rot_no_lspace = .true.
 LOGICAL                                    :: st_rot_m1_lspace = .true.
 LOGICAL                                    :: st_rot_m2_lspace = .true.
-REAL                                       :: st_aver          = 0.0
-REAL                                       :: st_prob          = 0.0
-REAL   , DIMENSION(3,3)                    :: st_mod           = 0.0
-REAL   , DIMENSION(3,3)                    :: st_inv           = 0.0
-REAL   , DIMENSION(3)                      :: st_t_aver        = 0.0
-REAL   , DIMENSION(3)                      :: st_off           = 0.0
-REAL   , DIMENSION(3)                      :: st_sigma_off     = 0.0
-REAL   , DIMENSION(3)                      :: st_rot_no        = 0.0
-REAL   , DIMENSION(3)                      :: st_rot_m1        = 0.0
-REAL   , DIMENSION(3)                      :: st_rot_m2        = 0.0
-REAL                                       :: st_rot_si_no     = 0.0
-REAL                                       :: st_rot_si_m1     = 0.0
-REAL                                       :: st_rot_si_m2     = 0.0
+REAL(kind=PREC_DP)                         :: st_aver          = 0.0D0
+REAL(kind=PREC_DP)                         :: st_prob          = 0.0D0
+REAL(kind=PREC_DP)   , DIMENSION(3,3)      :: st_mod           = 0.0D0
+REAL(kind=PREC_DP)   , DIMENSION(3,3)      :: st_inv           = 0.0D0
+REAL(kind=PREC_DP)   , DIMENSION(3)        :: st_t_aver        = 0.0D0
+REAL(kind=PREC_DP)   , DIMENSION(3)        :: st_off           = 0.0D0
+REAL(kind=PREC_DP)   , DIMENSION(3)        :: st_sigma_off     = 0.0D0
+REAL(kind=PREC_DP)   , DIMENSION(3)        :: st_rot_no        = 0.0D0
+REAL(kind=PREC_DP)   , DIMENSION(3)        :: st_rot_m1        = 0.0D0
+REAL(kind=PREC_DP)   , DIMENSION(3)        :: st_rot_m2        = 0.0D0
+REAL(kind=PREC_DP)                         :: st_rot_si_no     = 0.0D0
+REAL(kind=PREC_DP)                         :: st_rot_si_m1     = 0.0D0
+REAL(kind=PREC_DP)                         :: st_rot_si_m2     = 0.0D0
 !
 INTEGER                                    :: st_size_of       = 0
 !
