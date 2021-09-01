@@ -663,16 +663,16 @@ DO i = 1, h5_temp%h5_dims(3)
      z(offz(izz - 1) + ll ) = h5_temp%h5_data(k,j,i)
   ENDDO
 ENDDO
+!
 nx(izz) = h5_temp%h5_dims(3)
 ny(izz) = h5_temp%h5_dims(2)
 xmin(izz) = h5_temp%h5_llims(1)
 xmax(izz) = h5_temp%h5_llims(1) + (nx(izz)-1)*h5_temp%h5_steps(1)
 ymin(izz) = h5_temp%h5_llims(2)
 ymax(izz) = h5_temp%h5_llims(2) + (ny(izz)-1)*h5_temp%h5_steps(2)
-x = 0.0
-y = 0.0
+!
 DO i = 1, nx(izz)
-   x(offxy(izz - 1) + i) = xmin(izz) + (i - 1) * h5_temp%h5_steps(1)
+    x(offxy(izz - 1) + i) = xmin(izz) + (i - 1) * h5_temp%h5_steps(1)
 ENDDO
 DO i = 1, ny(izz)
    y(offxy(izz - 1) + i) = ymin(izz) + (i - 1) * h5_temp%h5_steps(2)
