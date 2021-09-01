@@ -72,6 +72,7 @@ pha_nreal(pha_curr)  = pha_nreal(pha_curr) + REAL(cr_nreal)*REAL(n_layers)      
 !write(*,*) 'NISCAT       ', pha_niscat( 1:pha_nscat(pha_curr), pha_curr)
 !write(*,*) 'NCATOMS      ', cr_ncatoms, cr_ncreal, pha_ncreal(pha_curr)
 !write(*,*) 'NREAL        ', cr_nreal, pha_nreal(pha_curr), pha_ncreal(pha_curr)
+!write(*,*) 'CALC NCREAL  ', cr_ncreal, n_layers, st_nlayer, st_ncunit
 !                                                           ! atoms pere unit cell
 !
 END SUBROUTINE phases_place_stack_form
@@ -81,6 +82,10 @@ END SUBROUTINE phases_place_stack_form
 SUBROUTINE phases_place_stack_rese
 !-
 ! Reset entries in case of single powder pattern
+!
+use phases_mod
+!
+implicit none
 !
 pha_curr = 1
 pha_weight = 0.0D0
