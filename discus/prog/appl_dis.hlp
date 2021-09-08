@@ -3459,6 +3459,7 @@
 2  import
 !p import "cif",<file[".cif"]>
 !p import "cmaker",<file[".xyz"]>
+!p import "lammps",<file>
 !p import "shelx",<file[".ins"]>
 !p import "rmcprofile",<file[".cssr"]>
 !p           [, "sort:discus" ]
@@ -3495,6 +3496,14 @@
 !p "cmaker", <file{".xyz"]>
 
    Imports a CrystalMaker file into the corresponding discus "stru" file.
+3  lammps
+!p import "lammps",<file>
+
+   Imports a LAMMPS output file. 
+   At the present, a simple dump output file is imported.
+
+   DISCUS will read the input file and create a file <file>".stru" in
+   the DISCUS cell format.
 3  shelx
 !p "shelx",<file{".ins"]>
 
@@ -6735,6 +6744,13 @@
 !p xray
 
    Switches to X-ray calculation.
+2  private
+!p private List_of_parameters
+
+   In the source code you will find a template for a "private" subroutine.
+   Feel free to modify this to perform your tasks at hand. 
+
+   Keep in mind that an update will overwrite any local private.f90.
 2  project
 !p project <u1>,<v1>,<w1>,<u2>,<v2>,<w2> [ ,<flag> ]
 
