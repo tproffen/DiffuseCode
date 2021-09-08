@@ -2,56 +2,65 @@ MODULE metric_mod
 !
 CONTAINS
 !*****7*****************************************************************
-      REAL function do_blen (lspace, u, v) 
+!
+REAL function do_blen (lspace, u, v) 
 !-                                                                      
 !     Calculates the length of the vector v-u in the space defined by   
 !     lspace (.true. = real space , .false. = reciprocal space)         
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
-       
+LOGICAL , intent(in) :: lspace 
+real(kind=PREC_SP), dimension(3), intent(in) ::  u
+real(kind=PREC_SP), dimension(3), intent(in) ::  v
 !                                                                       
-      LOGICAL lspace 
-      REAL u (3), v (3) 
-!                                                                       
-      INTEGER i 
-      REAL w (3) 
+INTEGER :: i 
+REAL(kind=PREC_SP), dimension(3) :: w
 !     REAL skalpro 
 !                                                                       
-      DO i = 1, 3 
-      w (i) = v (i) - u (i) 
-      ENDDO 
+DO i = 1, 3 
+   w (i) = v (i) - u (i) 
+ENDDO 
 !                                                                       
-      IF (lspace) then 
-         do_blen = sqrt (skalpro (w, w, cr_gten) ) 
-      ELSE 
-         do_blen = sqrt (skalpro (w, w, cr_rten) ) 
-      ENDIF 
+IF (lspace) then 
+   do_blen = sqrt (skalpro (w, w, cr_gten) ) 
+ELSE 
+   do_blen = sqrt (skalpro (w, w, cr_rten) ) 
+ENDIF 
 !                                                                       
-      END FUNCTION do_blen                          
+END FUNCTION do_blen                          
+!
 !*****7*****************************************************************
-      REAL function do_bang (lspace, u, v, w) 
+!
+REAL function do_bang (lspace, u, v, w) 
 !-                                                                      
 !     Calculates the angle between vectors v-u and v-w in the space     
 !     defined by lspace (.true. = real space ,                          
 !       .false. = reciprocal space)                                     
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE errlist_mod 
-      USE wink_mod
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+USE errlist_mod 
+USE wink_mod
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
-       
+LOGICAL , intent(in) :: lspace 
+real(kind=PREC_SP), dimension(3), intent(in) ::  u
+real(kind=PREC_SP), dimension(3), intent(in) ::  v
+real(kind=PREC_SP), dimension(3), intent(in) ::  w
 !                                                                       
-      LOGICAL lspace 
-      REAL u (3), v (3), w (3) 
+!     LOGICAL lspace 
+!     REAL u (3), v (3), w (3) 
 !                                                                       
-      INTEGER i 
-      REAL xx, xy, yy, arg 
-      REAL x (3), y (3) 
+INTEGER i 
+REAL(kind=PREC_SP) ::  xx, xy, yy, arg 
+REAL(kind=PREC_SP), dimension(3) ::  x (3), y (3) 
 !     REAL skalpro 
 !                                                                       
       do_bang = 0.0 
@@ -86,19 +95,26 @@ CONTAINS
       ENDIF 
 !                                                                       
       END FUNCTION do_bang                          
+!
 !*****7*********************************************************        
-      REAL function skalpro (h, k, rten) 
+!
+REAL function skalpro (h, k, rten) 
 !-                                                                      
 !           Calulates the SCALARPRODUCT of two vectors                  
 !           1/D**2 = H(I)*K(J)*RTEN(I,J)                                
 !-                                                                      
-      IMPLICIT none 
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-      REAL h (idim), k (idim), rten (idim, idim) 
+real(kind=PREC_SP), dimension(3),   intent(in) :: h
+real(kind=PREC_SP), dimension(3),   intent(in) :: k
+real(kind=PREC_SP), dimension(3,3), intent(in) :: rten
+!
+INTEGER , PARAMETER :: idim = 3
+!     REAL h (idim), k (idim), rten (idim, idim) 
 !                                                                       
-      INTEGER i, j 
+INTEGER :: i, j 
 !                                                                       
       skalpro = 0.0 
       DO i = 1, idim 
@@ -116,10 +132,18 @@ SUBROUTINE vekprod (u, v, ww, eps, rten)
 !     with  EPS and RTEN in direct space                                
 !     with REPS and GTEN in reciprocal space                            
 !+                                                                      
+use precision_mod
+!
 IMPLICIT none 
 !                                                                       
+real(kind=PREC_SP), dimension(3),     intent(in)  :: u
+real(kind=PREC_SP), dimension(3),     intent(in)  :: v
+real(kind=PREC_SP), dimension(3),     intent(out) :: ww
+real(kind=PREC_SP), dimension(3,3,3), intent(in)  :: eps
+real(kind=PREC_SP), dimension(3,3),   intent(in)  :: rten
+!
 INTEGER :: i, j, k, l 
-REAL    :: U (3), V (3), WW (3), EPS (3, 3, 3), RTEN (3, 3) 
+!REAL    :: U (3), V (3), WW (3), EPS (3, 3, 3), RTEN (3, 3) 
 !                                                                       
 DO i = 1, 3 
    ww (i) = 0.0 
