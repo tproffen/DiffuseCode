@@ -348,7 +348,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'four', 1, lbef, 4) ) then 
                   four_log = .true. 
                   CALL st_fourier (.false.)
-                  four_was_run = .true.
+                  if(ier_num==0) then
+                     four_was_run = .true.
+                  endif
 !                                                                       
 !     ----read the name of a new layer type                'layer'      
 !                                                                       
@@ -1598,8 +1600,6 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 integer, dimension(3) :: n_cells
       LOGICAL lread, lout 
       LOGICAL           :: need_alloc = .false. 
-real(kind=PREC_SP)      :: aver
-real(kind=PREC_SP)      :: sigma
 !                                                                       
 !                                                                       
 !     ----read corresponding layer                                      
@@ -2032,6 +2032,16 @@ integer, dimension(3) :: n_cells
 !
 !     n_qxy   = 1
 !     n_nscat = 1
+!                                                                       
+!     If there are any layers in the crystal read each layer            
+!                                                                       
+IF ( MAXVAL(st_number) == 0 ) then
+   ier_num = -55
+   ier_typ = ER_APPL
+   ier_msg(1) = 'No layers have been created yet'
+   ier_msg(2) = 'Use the ''create'' command prior to ''run'' '
+   RETURN
+ENDIF
 !                                                                       
 !------ preset some values                                              
 !                                                                       
