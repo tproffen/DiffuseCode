@@ -338,7 +338,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !     Pivat user subroutine 'privat'
 !                                                                       
-         ELSEIF(str_comp(befehl, 'privat', 5, lbef, 5) ) THEN 
+         ELSEIF(str_comp(befehl, 'private', 6, lbef, 6) ) THEN 
             CALL do_private(zeile)
 !                                                                       
 !     Go to property menu 'property'                                    
