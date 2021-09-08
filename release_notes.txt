@@ -1,4 +1,9 @@
-6.06.01 DRAFT
+6.07.01 DRAFT
+
+  SURFACE  FIXED BUG, optional command 'long' did not work
+  SYMM     FIXED BUG, User 'uvw' was not handeled properly
+
+6.07.00 RELEASED  2021_Jul_26
 
 General
   Added an option "prepare=libraries" or "prepare=none" to update command
