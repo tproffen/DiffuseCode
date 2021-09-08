@@ -136,6 +136,7 @@ lmenu = .false.
 lrena = .false. 
 l_pdf = .false. 
 idev  = png
+udev  = png
 !                                                                       
 !------ see if there are data at all                                    
 !                                                                       
@@ -237,6 +238,7 @@ ELSEIF (befehl (1:2) .eq.'PR') then
    ELSE 
       idev = vps 
    ENDIF 
+   udev = idev
    lrena = .false. 
 !                                                                       
    IF (ianz.ge.1) then 
@@ -309,6 +311,7 @@ if(udev==png) then            ! Create png file out of Postscript
                              ' ', uname(1:len_trim(uname))
    CALL system(line, ier_num)
 elseif(udev==pdf) then
+   i = LEN_TRIM(uname)
    IF(uname(i-3:i)=='.pdf' .or. uname(i-3:i)=='.PDF') THEN
       uname(i-3:i) = '.ps '
    ENDIF
