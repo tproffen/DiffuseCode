@@ -1377,6 +1377,7 @@ USE crystal_mod
 USE metric_mod
 USE symm_mod
 USE symm_sup_mod
+use symm_menu
 USE trafo_mod
 !
 USE errlist_mod
@@ -1411,6 +1412,7 @@ REAL(KIND=PREC_DP), DIMENSION(3)   :: u         ! Dummy vector
 REAL(KIND=PREC_DP), DIMENSION(3)   :: v         ! Dummy vector
 REAL(KIND=PREC_DP), DIMENSION(4)   :: v4        ! Dummy vector
 REAL(KIND=PREC_DP), DIMENSION(3)   :: ww        ! Dummy vector
+REAL(KIND=PREC_SP), DIMENSION(3)   :: www       ! Dummy vector
 REAL(KIND=PREC_DP)                 :: alpha
 !
 m_comb  = 0.0D0                     ! setup a default matrix
@@ -1483,7 +1485,9 @@ ELSEIF(ABS(180.0D0-alpha)<EPS) THEN             ! at 180 degrees
    ww = matmul(real(cr_rten,KIND=PREC_DP), v)
 ELSE                                        ! Need a rotation
    CALL vekprod(real(v_long,kind=PREC_SP), real(u,kind=PREC_SP), &
-                real(ww,kind=PREC_SP), cr_eps, cr_rten)  ! Get rotation axis
+                     www             , cr_eps, cr_rten)  ! Get rotation axis
+!               real(ww,kind=PREC_SP), cr_eps, cr_rten)  ! Get rotation axis
+   ww = www
 ENDIF
 !
 !  Define rotation

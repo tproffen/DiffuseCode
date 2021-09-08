@@ -1702,6 +1702,7 @@ LOGICAL  :: lnew
 REAL(KIND=PREC_SP), DIMENSION(4)   :: x    ! (4)
 REAL(KIND=PREC_SP), DIMENSION(4)   :: y    ! (4)
 REAL(KIND=PREC_DP), DIMENSION(4)   :: yy   ! (4)
+REAL(KIND=PREC_SP), DIMENSION(4)   :: mmi  ! (4)     ! magnetic moment vector
 REAL(KIND=PREC_SP), DIMENSION(4)   :: mm   ! (4)     ! magnetic moment vector
 REAL(KIND=PREC_SP), DIMENSION(4,4) :: wmat ! (4, 4) 
 REAL(KIND=PREC_SP), DIMENSION(4,4) :: xmat ! (4, 4) 
@@ -1760,9 +1761,9 @@ lp_gener: DO ipg = 1, generpower (igg)
       yy(:) = REAL(y)
 !
       IF(cr_magn(0,iaa) > 0.0) THEN
-         mm(1:3) = cr_magn(1:3,iaa)    ! Copy magnetic moment, ignore translations
-         mm(4)   = 0.0
-         CALL trans(mm, wmat, mm, 4) 
+         mmi(1:3) = cr_magn(1:3,iaa)    ! Copy magnetic moment, ignore translations
+         mmi(4)   = 0.0
+         CALL trans(mmi, wmat, mm, 4) 
       ELSE
          mm = 0.0
       ENDIF
