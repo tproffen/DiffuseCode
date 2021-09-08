@@ -707,13 +707,17 @@ loop_menu: DO while (.not.lend)
             ENDIF
          ELSEIF(ianz.eq.3) THEN 
             call symm_set_trans(zeile, lp, 1, MAXV, vector, l_need_setup)
-            if(ier_num==0) sym_uvw   = vector
+            if(ier_num==0) then
+               sym_uvw   = vector
+               sym_axis_type     = 0      ! Axis in absolute coordinates
+               l_need_setup = .true. 
+               sym_use = 0             ! Turn off space group matrix usage
+            endif
 !                    CALL ber_params (ianz, cpara, lpara, werte, maxw) 
 !                    IF (ier_num.eq.0) THEN 
 !                       DO i = 1, 3 
 !                       sym_uvw (i) = werte (i) 
 !                       ENDDO 
-!                       sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 !                       sym_axis_type     = 0      ! Axis in absolute coordinates
 !                       l_need_setup = .true. 
 !                       sym_use = 0             ! Turn off space group matrix usage
@@ -725,6 +729,7 @@ loop_menu: DO while (.not.lend)
             ier_num = - 6 
             ier_typ = ER_COMM 
          ENDIF 
+         sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
