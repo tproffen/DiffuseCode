@@ -110,10 +110,11 @@ USE lib_length
 USE precision_mod
 USE string_convert_mod
 USE support_mod
+use take_param_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-INTEGER, PARAMETER :: maxw = 10
+INTEGER, PARAMETER :: maxw = 20
 !                                                                       
 CHARACTER(len=*), intent(inout) :: befehl
 CHARACTER(len=*), intent(inout) :: zeile 
@@ -121,22 +122,44 @@ integer         , intent(inout) :: lbef
 integer         , intent(inout) :: lp
 !
 CHARACTER(LEN=PREC_STRING) :: cpara (maxw), prnbef , line
-CHARACTER(len=256) :: filname, uname , oname
+CHARACTER(len=256) :: filname, uname , outname
+CHARACTER(len=256), dimension(2) :: conv_opt
 REAL(KIND=PREC_DP) :: werte (maxw) 
 REAL(kind=PREC_SP) :: width, ratio 
 INTEGER :: lpara (maxw) 
 INTEGER :: ianz, ii, idev, i
 integer :: udev        ! User device definition
 LOGICAL :: tfr, lrena, lmenu 
-LOGICAL :: l_pdf
 !                                                                       
 INTEGER :: PGOPEN 
+!
+!
+integer, parameter :: NOPTIONAL = 2
+integer, parameter :: O_RES     = 1
+integer, parameter :: O_TRANS   = 2
+character(LEN=   5), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 1 ! Number of values to calculate 
+!
+data oname  / 'res', 'trans'  /
+data loname /  3,     5       /
+opara  =  (/ '300 ', 'none' /)   ! Always provide fresh default values
+lopara =  (/  3,    4       /)
+owerte =  (/  0.0,  0.0     /)
+!
+!
 !                                                                       
 lmenu = .false. 
 lrena = .false. 
-l_pdf = .false. 
 idev  = png
 udev  = png
+filname = ' '
+uname = ' '
+outname = ' '
 !                                                                       
 !------ see if there are data at all                                    
 !                                                                       
@@ -154,6 +177,8 @@ ENDIF
 CALL do_cap (befehl) 
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
 IF (ier_num.ne.0) return 
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
 !                                                                       
 !------ Command save or print                                           
 !                                                                       
@@ -162,44 +187,52 @@ IF (befehl (1:2) .eq.'SA') then
       lrena = .false. 
       CALL do_cap (cpara (1) ) 
       IF (cpara (1) (1:2) .eq.'PS') then      ! Postscript
-         filname = 'kuplot.ps' 
+         filname = 'kuplot_temp.ps' 
+           uname = 'kuplot.ps' 
+         lrena   = .FALSE.
          IF (orient (iwin) ) then 
             idev = ps 
          ELSE 
             idev = vps 
          ENDIF 
          udev = idev 
-         l_pdf = .FALSE.
-      ELSEIF (cpara (1) (1:2) .eq.'PI') then  ! GIF, 
-         filname = 'kuplot.gif' 
+      elseIF (cpara(1)(1:3) .eq.'EPS') then      ! Postscript
+         filname = 'kuplot_temp.ps' 
+           uname = 'kuplot.eps' 
+         lrena   = .FALSE.
          IF (orient (iwin) ) then 
-            idev = pic 
+            idev = ps 
          ELSE 
-            idev = vpic 
+            idev = vps 
          ENDIF 
-         udev = idev 
-         l_pdf = .FALSE.
-!DBG                                                                    
-!DBG      Temporary solution, while gif is having trouble...            
-         idev = png 
-         udev = png 
+         udev = eps 
+      ELSEIF (cpara (1) (1:2) .eq.'PI') then  ! GIF, 
+         filname = 'kuplot_temp.ps' 
+           uname = 'kuplot.gif' 
+         udev = pic 
+         IF (orient (iwin) ) then 
+            idev = ps 
+         ELSE 
+            idev = vps 
+         ENDIF 
       ELSEIF (cpara (1) (1:2) .eq.'PN') then  ! PNG, make postscript and convert
-         filname = 'kuplot.ps' 
+         filname = 'kuplot_temp.ps' 
+           uname = 'kuplot.png' 
          udev = png 
          if (orient (iwin) ) then
             idev = ps
          ELSE
             idev = vps
          ENDIF
-         l_pdf = .FALSE.
       ELSEIF (cpara (1) (1:2) .eq.'LA') then  ! Latex
          filname = 'kuplot.tex' 
+           uname = 'kuplot.tex' 
          idev = lat 
          udev = idev
-         l_pdf = .FALSE.
       ELSEIF (cpara (1) (1:2) .eq.'PD') then  ! PDF, make postscript and convert
-         filname = 'kuplot.ps' 
-         l_pdf = .TRUE.
+         filname = 'kuplot_temp.ps' 
+           uname = 'kuplot.pdf' 
+         udev = pdf 
          IF (orient (iwin) ) then 
             idev = ps 
          ELSE 
@@ -216,8 +249,16 @@ IF (befehl (1:2) .eq.'SA') then
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          uname = cpara (1) (1:MIN(256,LEN_TRIM(cpara(1))))
          lrena = .true. 
-      ELSE 
-         uname = filname 
+         if(udev==ps) then                ! User specified Postscript without filename
+            filname = uname               ! No need for different file names
+            lrena = .FALSE. 
+         endif
+      ELSE
+         if(udev==ps) then                ! User specified Postscript without filename
+            filname = 'kuplot.ps'         ! Default file name
+            uname = filname 
+            lrena = .FALSE. 
+         endif
       ENDIF 
    ELSE 
       ier_num = - 6 
@@ -297,40 +338,54 @@ ENDIF
 CALL PGCLOS 
 !                                                                       
 !------ check if we need to rename ouputfile                            
-!                                                                       
-if(udev==png) then            ! Create png file out of Postscript
-   i = LEN_TRIM(uname)
-   oname = uname
-   IF(uname(i-3:i)=='.png' .or. uname(i-3:i)=='.PNG') THEN
-      uname(i-3:i) = '.ps '
-      oname(i-3:i) = '    '   ! Remove extension, as gmt will add '.png'
-   ENDIF
-   if(lrena) call do_rename_file (filname, uname) 
-   write(line,'(a,a, a, a)') 'gmt psconvert -Tg -P -D. -E600 -F',               &
-                             oname(1:len_trim(oname)),                          &
-                             ' ', uname(1:len_trim(uname))
-   CALL system(line, ier_num)
-elseif(udev==pdf) then
-   i = LEN_TRIM(uname)
-   IF(uname(i-3:i)=='.pdf' .or. uname(i-3:i)=='.PDF') THEN
-      uname(i-3:i) = '.ps '
-   ENDIF
-      IF(l_PDF) THEN  !temporarily change extension  to ps
-          i = LEN_TRIM(uname)
-          oname = uname
-          IF(uname(i-3:i)=='.pdf' .or. uname(i-3:i)=='.PDF') THEN
-             uname(i-3:i) = '.ps '
-          ENDIF
-      ENDIF
-      IF (lrena) call do_rename_file (filname, uname) 
-      IF(l_PDF) THEN
-          i = LEN_TRIM(uname)
-          WRITE(line,'(a,a,a,a)') 'ps2pdf14 ', uname(1:LEN_TRIM(uname)), ' ', &
-                                               oname(1:LEN_TRIM(oname))
-          CALL system(line, ier_num)
-      ENDIF
-elseif(udev==ps) then
-   if (lrena) call do_rename_file (filname, uname) 
+if(udev/=lat)  then           ! No need if latex
+   if(udev==ps) then
+      if (lrena) call do_rename_file (filname, uname) 
+   elseif(udev==eps) then
+      line = 'ps2eps '//filname(1:len(filname))// ' -f ' //uname(1:len(uname))
+      call system(line, ier_num)
+   else                       ! All other picture types (pdf, png, gif)
+!     ! Write the options for convert: density=Pixel per inch and 
+!     !                                transparency
+      write(conv_opt(1),'(a,i6,a)') ' -density ', nint(owerte(O_RES)),          &
+           ' -units PixelsPerInch '
+      conv_opt(2) = ' -background white -alpha off  -alpha remove '
+      if(opara(O_TRANS)=='none'.or. opara(O_TRANS)=='solid') then
+         conv_opt(2) = ' -background white -alpha off  -alpha remove '
+      elseif(opara(O_TRANS)=='trans') then
+         conv_opt(2) = ' '
+      endif
+      i = LEN_TRIM(uname)
+      outname = uname
+      if(udev==png) then            ! Create png file out of Postscript
+         IF(uname(i-3:i)=='.png' .or. uname(i-3:i)=='.PNG') THEN
+            uname(i-3:i) = '.ps '
+            outname(i-3:i) = '.png'   ! 
+         ENDIF
+      elseif(udev==pic) then            ! Create GIF file out of Postscript
+         IF(uname(i-3:i)=='.gif' .or. uname(i-3:i)=='.GIF') THEN
+            uname(i-3:i) = '.ps '
+            outname(i-3:i) = '.gif'   ! 
+         ENDIF
+      elseif(udev==pdf) then
+         IF(uname(i-3:i)=='.pdf' .or. uname(i-3:i)=='.PDF') THEN
+            uname(i-3:i) = '.ps '
+            outname(i-3:i+1) = '.pdf'
+         endif
+      endif
+!
+      write(line,'(8a)') 'convert ', &
+          conv_opt(1)(1:len_trim(conv_opt(1))), ' ',&
+          filname(1:len_trim(filname)),       &
+          ' -rotate 90 ',     &
+          conv_opt(2)(1:len_trim(conv_opt(2))), ' ',&
+          outname(1:len_trim(outname))
+!         ' -density 300 -units PixelsPerInch ',                                 &
+!         ' -background white -alpha off  -alpha remove ',     &
+      CALL system(line, ier_num)
+      line = 'rm -r kuplot_temp.ps'
+      CALL system(line, ier_num)
+   endif
 endif
 !                                                                       
 !------ if the command was print we print                               
@@ -572,24 +627,25 @@ ELSE main
 !                                                                       
       END SUBROUTINE draw_frame                     
 !****7******************************************************************
-      SUBROUTINE draw_text_frame 
+SUBROUTINE draw_text_frame 
 !+                                                                      
 !       plot text frame                                                 
 !-                                                                      
-      USE errlist_mod 
-      USE wink_mod
-      USE kuplot_config 
-      USE kuplot_mod 
-      USE kuplot_fit6
+USE errlist_mod 
+USE wink_mod
+USE kuplot_config 
+USE kuplot_mod 
+USE kuplot_fit6
 USE lib_length
-      USE string_convert_mod
+use precision_mod
+USE string_convert_mod
 USE support_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      CHARACTER(80) zeile, filname 
-      REAL xh, yh, xt, yt 
-      INTEGER i 
+CHARACTER(len=PREC_STRING) :: zeile, filname 
+REAL :: xh, yh, xt, yt 
+INTEGER :: i 
 !                                                                       
 !                                                                       
       filname = ftext (iwin, iframe) 

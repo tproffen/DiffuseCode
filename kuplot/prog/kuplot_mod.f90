@@ -21,6 +21,7 @@ SAVE
       INTEGER, PARAMETER :: png  = 6
       INTEGER, PARAMETER :: lat  = 7
       INTEGER, PARAMETER :: pdf  = 8
+      INTEGER, PARAMETER :: eps  = 9
 !
 !
       INTEGER, PARAMETER :: if_left   = 1
@@ -85,7 +86,7 @@ SAVE
 !
       CHARACTER(LEN=80)      titel(maxwin,maxframe,2)
       CHARACTER(LEN=60)      achse(maxwin,maxframe,3)
-      CHARACTER(LEN=40)      ftext(maxwin,maxframe)
+      CHARACTER(LEN=256)      ftext(maxwin,maxframe)
       CHARACTER(LEN=40)      clegend(maxwin,maxframe,maxkurvtot)
       CHARACTER(LEN=40)      antext(maxwin,maxframe,maxan)
       REAL colour(maxwin,0:20,3)
