@@ -1,4 +1,5 @@
 MODULE appl_env_mod
+!
 !*****7***************************************************************  
 !                                                                       
 CONTAINS
@@ -30,7 +31,7 @@ LOGICAL, INTENT(IN) :: standalone
 !                                                                       
 INTEGER, PARAMETER :: idef = 68
 !
-CHARACTER(255) cdummy
+CHARACTER(len=255) :: cdummy
 CHARACTER(LEN=12), DIMENSION(7), PARAMETER :: tmp_test = (/                     &
 '/private/tmp', '/tmp        ', '/TMP        ',                                 &
 '/var/tmp    ', '/Var/tmp    ', '/var/TMP    ', '/Var/TMP    ' /)
@@ -985,6 +986,7 @@ INTEGER             :: i, j, k
 INTEGER             :: ios
 !
 LOGICAL :: lda
+logical :: lonline
 CHARACTER(LEN=8) :: date
 CHARACTER(LEN=10):: time
 CHARACTER(LEN=5) :: zone
@@ -999,11 +1001,14 @@ WRITE(discus_update,'(a,a       )') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_UPDATE
 old_version = 0
 new_version = 0
 !
+lonline = .FALSE.                 ! Assume offline
 INQUIRE(FILE=cfile, EXIST=lda)
-IF(lda) THEN
+ON_LINE: IF(lda) THEN
    OPEN(UNIT=IRD, FILE=cfile, STATUS='OLD')
    IF(ier_num==0) THEN    ! CURRENT file was found
-      READ(IRD,'(a)') string
+      READ(IRD,'(a)', iostat=ios) string
+      if(is_iostat_end(ios)) exit ON_LINE
+      lonline = .TRUE.                 ! We are online
       itag = INDEX(string,'tag')
       IF(itag>0) THEN
          iquote = itag + INDEX(string(itag:LEN_TRIM(string)),'"') - 1
@@ -1022,11 +1027,12 @@ IF(lda) THEN
       READ(version(idot2+1:LEN_TRIM(version)), *) k
       old_version = i*10000 + j*100 + k
    ENDIF
-ENDIF
+ENDIF ON_LINE
 CLOSE(UNIT=IRD)
 string = "rm -f " // cfile(1:LEN_TRIM(cfile))
 CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 CALL no_error
+if(.not. lonline) return
 !
 ! Test for updates of operating system
 !
@@ -1055,26 +1061,57 @@ SUBROUTINE lib_f90_update_ubuntu
 !
 USE envir_mod
 USE errlist_mod
+USE lib_errlist_func
 USE precision_mod
 USE prompt_mod
 !
+implicit none
+!
+INTEGER, PARAMETER  :: IRD = 69
+!
 CHARACTER(LEN=PREC_STRING) :: string
+CHARACTER(LEN=PREC_STRING) :: cfile
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
+integer             :: ios
+logical             :: lonline
+logical             :: lda
 !
-IF(operating == OS_LINUX .OR. operating == OS_LINUX_WSL) THEN
-   WRITE(output_io, '(a)') 
-   WRITE(output_io, '(a)')  ' Your Ubuntu system will be updated '
-   string = 'sudo apt update'
+lonline = .TRUE.
+WRITE(cfile,        '(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_UBUNTU.', PID ! Test file to see if we are on-line
+string = "curl --silent ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
+       // cfile(1:LEN_TRIM(cfile))                                                      ! The actual command
+call execute_command_line(string, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+INQUIRE(FILE=cfile,EXIST=lda)
+IF_LDA: IF(lda) THEN
+   open(unit=IRD, file=cfile, status='OLD')
+   string = ' '
+   read(IRD,'(a)', iostat=ios) string
+   if(is_iostat_end(ios)) lonline = .FALSE.    ! Apparently offline
+   if(string(1:88) /= '<html><body>You are being <a href="https://github.com/tproffen/DiffuseCode/releases/tag/') &
+      lonline = .FALSE.                        ! Apparently offline
+   on_line: if(lonline) then
+!
+   IF(operating == OS_LINUX .OR. operating == OS_LINUX_WSL) THEN
+      WRITE(output_io, '(a)') 
+      WRITE(output_io, '(a)')  ' Your Ubuntu system will be updated '
+      string = 'sudo apt update'
+      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+      string = 'sudo apt upgrade -y'
+      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+      string = 'date --iso-8601 > '// tmp_dir(1:LEN_TRIM(tmp_dir)) // '/DISCUS_UPDATE'
+      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+      string = 'chmod ugo+rw ' // tmp_dir(1:len_trim(tmp_dir)) // '/DISCUS_UPDATE'
+      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+      WRITE(output_io, '(a)') 
+   ENDIF
+   endif on_line
+!
+   string = "rm -f " // cfile(1:LEN_TRIM(cfile))
+!
    CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-   string = 'sudo apt upgrade -y'
-   CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-   string = 'date --iso-8601 > '// tmp_dir(1:LEN_TRIM(tmp_dir)) // '/DISCUS_UPDATE'
-   CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-   string = 'chmod ugo+rw ' // tmp_dir(1:len_trim(tmp_dir)) // '/DISCUS_UPDATE'
-   CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-   WRITE(output_io, '(a)') 
-ENDIF
+   CALL no_error
+endif if_lda             ! test file is present
 !
 END SUBROUTINE lib_f90_update_ubuntu
 !
