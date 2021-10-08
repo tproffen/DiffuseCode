@@ -1645,6 +1645,10 @@ params: IF(IANZ.eq.1) THEN
    READ(line(ibl:length), *, IOSTAT=ios) (werte(j), j = 1, 5)
    IF(IS_IOSTAT_END(ios))  THEN     ! LESS THAN FIVE PARAMS
       READ(line(ibl:length), *, IOSTAT=ios) (werte(j), j = 1, 4)
+      IF(IS_IOSTAT_END(ios))  THEN     ! LESS THAN FOUR PARAMS
+         READ(line(ibl:length), *, IOSTAT=ios) (werte(j), j = 1, 3)
+         werte(4) = 0.0
+      ENDIF
    ENDIF
    IF(ios /= 0) THEN   ! Error reading
       ier_num = -49
@@ -1657,7 +1661,7 @@ ELSE params
 !  The line has comma separated parameters, compare to expectation from 'atom' line
    got_params: IF (ier_num == 0) THEN 
       IF(ianz>=at_ianz .AND.   & ! Correct minimum parameter number
-         (ianz>=4 .AND. ianz<=12)) THEN 
+         (ianz>=3 .AND. ianz<=12)) THEN 
 !
          lcalc = .false.
          check_calc: DO j = 1, ianz 
@@ -1725,6 +1729,11 @@ ELSE params
          werte(2) = wwerte(col_y)        ! Are always present
          werte(3) = wwerte(col_z)        ! Are always present
          werte(4) = wwerte(col_biso)     ! Are always present
+         IF(col_biso>0) THEN             ! Optional property flag
+            werte(4) = wwerte(col_biso)
+         ELSE
+            werte(4) = 0.0
+         ENDIF
          IF(col_prop>0) THEN             ! Optional property flag
             werte(5) = wwerte(col_prop)
          ELSE
