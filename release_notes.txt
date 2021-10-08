@@ -1,5 +1,7 @@
 6.07.01 DRAFT
 
+  MMC      Added an optional parameter "log" to 'run' command
+  READ     Structure fiules may no consist of  "name x, y, z" only
   SURFACE  FIXED BUG, optional command 'long' did not work
   SYMM     FIXED BUG, User 'uvw' was not handeled properly
 

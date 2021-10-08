@@ -75,6 +75,13 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2021_Oct
+
+   Changed the reading of structures to enable files without BISO collumn.
+3  2021_Sept
+
+   MMC  added an optional parameter "log:screen" to the 'set finish'
+        command.
 3  2021_June
 
    Added a LAMMPS import
@@ -972,6 +979,7 @@
 !p <name>  <x>, <y>, <z>, <B> , <propertyflag>, <MoleNo>, <MoleAt>, <occ>
 !p <name>  <x>, <y>, <z>, <B> , <propertyflag>
 !p <name>  <x>  <y>  <z>  <B>
+!p <name>  <x>  <y>  <z>
 
    If a unit cell is read, only those atoms in the asymmetric unit should
    be listed.
@@ -985,6 +993,9 @@
 
    The name (in capital characters) must be left bound in the first 
    columns prior to a blank or TAB.
+
+   The atom name and the coordinates x,y,z are mandatory. 
+   The optional parameters should be listed on the 'atom' keyword line.
  
    The fractional coordinates and the B value can be in free format, if the
    lines contains no comma. In this case the property flag must be omitted.
@@ -4425,6 +4436,8 @@
    here only determines the output interval.
 4  finish
 !p set "finish" [, feed:<nfeed>] [, diff:<maxdiff>] [, change:<maxchange>]
+!p              [, aver:<maxaver>]
+!p              [, {log:none}| log:screen]
 
    Set criteria that MMC uses to finish the cycles.
 
@@ -4443,8 +4456,18 @@
       the last <nfeed> feedbacks is less than <maxchange>, MMC is
       considered to be stagnant and will be stopped.
 
+   aver:<maxaver>
+      If the average changes over the last nfeed cycles are less than
+      <maxaver>, MMC is considered to be stagnant.
+
    feed:<nfeed>
       Number of feedback that are considered for the "change" criterion.
+
+   log:screen or log:none
+      Turns a display of the convergence status on/off. At "screen", a
+      short report on the current values of the convergence criteria is
+      displayed on the screen. This helps to find good valus for the 
+      parameters.
 4  limited
 !p set "limited", "OFF"
 !p set "limited", "atom", <nmin>, <nmax>
