@@ -1870,8 +1870,6 @@ chem_period(:) = .FALSE.
 !
 call estimate_ncells(n_cells)        ! Estimate number of unit cells in the crystal
 n_cells = max(n_cells,1)
-write(*,*) ' Layertype ', -9999     , n_cells, cr_natoms, &
-  nint(real(cr_natoms) /real(n_cells(1)*n_cells(2)*n_cells(3)))
 cr_icc = n_cells
 cr_ncatoms = nint(real(cr_natoms) /real(n_cells(1)*n_cells(2)*n_cells(3)))
 !                                                                       
