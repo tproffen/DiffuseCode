@@ -570,7 +570,7 @@ MODULE nr
             REAL(DP), DIMENSION(:), INTENT(INOUT) :: data
             REAL(DP), DIMENSION(:), INTENT(IN) :: respns
             INTEGER(I4B), INTENT(IN) :: isign
-            REAL(DP), DIMENSION(:), INTENT(IN) :: convlv
+            REAL(DP), DIMENSION(:), INTENT(OUT) :: convlv
 !           REAL(DP), DIMENSION(size(data)) :: convlv
 !           END FUNCTION convlv
             END SUBROUTINE convlv_sub
