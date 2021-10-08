@@ -334,7 +334,7 @@ USE lib_length
          WRITE (output_io, 3500) i, (infra (iwin, i, j), j = 1,         &
          maxkurvtot)                                                    
       ELSE 
-         WRITE (output_io, 3600) i, ftext (iwin, i) 
+         WRITE (output_io, 3600) i, ftext (iwin, i) (1:len_trim(ftext (iwin, i)))
       ENDIF 
       ENDDO 
       WRITE (output_io, * ) 
@@ -345,8 +345,10 @@ USE lib_length
  2500 FORMAT (3x,i3,4x,4(f4.2,1x),9x,3(f3.1,1x)) 
  3000 FORMAT (/,3x,'Frame  data sets/text file',/,3x,67('-')) 
  3500 FORMAT (3x,i3,4x,20i3) 
- 3600 FORMAT (3x,i3,4x,a40) 
-      END SUBROUTINE show_frames                    
+ 3600 FORMAT (3x,i3,4x,a) 
+!
+END SUBROUTINE show_frames                    
+!
 !*****7**************************************************************** 
       SUBROUTINE show_font 
 !+                                                                      
