@@ -567,7 +567,7 @@ MODULE nr
             USE nrtype
             INTEGER               , INTENT(IN) :: NDATA
             INTEGER               , INTENT(IN) :: NRESPNS
-            REAL(DP), DIMENSION(:), INTENT(IN) :: data
+            REAL(DP), DIMENSION(:), INTENT(INOUT) :: data
             REAL(DP), DIMENSION(:), INTENT(IN) :: respns
             INTEGER(I4B), INTENT(IN) :: isign
             REAL(DP), DIMENSION(:), INTENT(IN) :: convlv
