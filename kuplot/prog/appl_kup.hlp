@@ -97,6 +97,13 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2021_October
+
+   All picture output is first written as postscript file and 
+   converted to the available formats vie ImageMagick.
+   This allows optional setting of the pixels per inch and the
+   transparency. See ==> 'save'
+   Furthermore a direct eps output was added
 3  2021_April
 
    Added the option to make line types of a data set negative, which
@@ -2336,20 +2343,27 @@
 2  save
 !p save <dev>, [<filename>]
 
-   <dev> : "ps", "png", "pic", "pdf", "la"
+   <dev> : "ps", "eps", "png", "pic", "pdf", "la"
    This command allows to save the current view graph. The output
    device type <dev> can be given as first parameter. The
    choices for <dev> are:
-   "ps" for POSTSCRIPT 
-   "pic" or "png" for a PNG 
+   "ps"  for POSTSCRIPT 
+   "eps" for Encapsulated POSTSCRIPT 
+   "pic" for GIF
+   "png" for a PNG 
    "pdf" for a PDF file format
    "latex" Latex picture environment
 
-   If "pdf" is chosen, a postscript file and a pdf file will be generated.
+   for the bitmaps 'gif', 'png' and 'pdf' two optional parameters are
+   available:
+!p res:<value>
+!p trans:<flag>
 
-   The hardcopy and graphics file format
-   can be changed in the file 'blk_appl.f90' of the KUPLOT source code
-   to any device that is supported by PGPLOT.
+   The resolution expects a numerical value in pixels per inch, default is 300.
+
+   The transparenca can be either: "trans:trans" for a transparent image
+   or "trans:none" or "trans:solid" for a non-transparent image.
+
 2  sdef
 !p sdef [<fname>]
 
