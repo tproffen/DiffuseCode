@@ -321,7 +321,7 @@ USE precision_mod
                CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
                IF (ier_num.ne.0) return 
                infra (iwin, ifr, 1) = - 1 
-               ftext (iwin, ifr) = cpara (1) (1:MIN(40,LEN_TRIM(cpara(1))))
+               ftext (iwin, ifr) = cpara (1) (1:MIN(len(ftext),LEN_TRIM(cpara(1))))
             ENDIF 
          ENDIF 
       ELSE 
