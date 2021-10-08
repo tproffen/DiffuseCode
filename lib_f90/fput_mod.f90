@@ -19,7 +19,7 @@ USE take_param_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-INTEGER, PARAMETER :: MAXW = 10
+INTEGER, PARAMETER :: MAXW = 20
 !                                                                       
 CHARACTER (LEN=*), INTENT(IN) ::  zeile 
 INTEGER          , INTENT(INOUT) :: lp 
