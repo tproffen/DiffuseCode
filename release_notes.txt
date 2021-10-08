@@ -1,9 +1,19 @@
-6.07.01 DRAFT
+6.08.00  RELEASED 2021_October_08
 
+General
+  Expanded the internal tests to see if the program runs on a computer 
+  that is online/offline.
+DISCUS
   MMC      Added an optional parameter "log" to 'run' command
   READ     Structure fiules may no consist of  "name x, y, z" only
   SURFACE  FIXED BUG, optional command 'long' did not work
   SYMM     FIXED BUG, User 'uvw' was not handeled properly
+KUPLOT
+  All graphics output is written as Postscipt file. ImageMagick is used to 
+  process these into the desired graphics format. 
+  As default the background is no longer transparent.An optional
+  parameter allows transparent images.
+  For 'png' and 'pdf' output, the resolution can be specified.
 
 6.07.00 RELEASED  2021_Jul_26
 
