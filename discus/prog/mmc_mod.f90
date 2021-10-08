@@ -117,6 +117,7 @@ REAL                                   :: mmc_h_conv_r = 1.0E10  ! convergence M
 REAL                                   :: mmc_h_conv_c = 1.0E10  ! convergence Maximum change in difference over last cycles
 REAL                                   :: mmc_h_conv_a = 1.0E10  ! convergence average change in difference over last cycles
 LOGICAL                                :: mmc_h_stop   = .TRUE.  ! stop upon cycles==F or convergence==T
+LOGICAL                                :: mmc_h_log    = .FALSE. ! Screen log on / off 
 INTEGER                                :: mmc_h_nfeed  = 0       ! Number of feed back this run
 !
 LOGICAL, DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cor_energy! (0:CHEM_MAX_COR,0:MC_N_ENERGY)

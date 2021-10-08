@@ -1752,13 +1752,14 @@ CHARACTER(LEN=*)  , DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER           , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(INOUT) :: werte
 !
-INTEGER, PARAMETER :: NOPTIONAL = 6
+INTEGER, PARAMETER :: NOPTIONAL = 7
 INTEGER, PARAMETER :: O_FEED    = 1                  ! Number of feedbacks to average
 INTEGER, PARAMETER :: O_DIFF    = 2                  ! Maximum difference
 INTEGER, PARAMETER :: O_RDIFF   = 3                  ! Maximum difference
 INTEGER, PARAMETER :: O_CHANGE  = 4                  ! Maximum change in differences
 INTEGER, PARAMETER :: O_AVER    = 5                  ! Maximum change in differences
 INTEGER, PARAMETER :: O_STOP    = 6                  ! How to stop cycles/convergence
+INTEGER, PARAMETER :: O_LOG     = 7                  ! Screen log ?
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -1767,12 +1768,12 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte    ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate
 !
-DATA oname  / 'feed  ', 'diff  ', 'rdiff ', 'change', 'aver  ', 'stop  ' /   ! mmc_set capitalizes only the first parameter
-DATA loname /  4      ,  4      ,  5      ,  6      ,  4      ,  4       /
+DATA oname  / 'feed  ', 'diff  ', 'rdiff ', 'change', 'aver  ', 'stop  ' , 'log   ' /   ! mmc_set capitalizes only the first parameter
+DATA loname /  4      ,  4      ,  5      ,  6      ,  4      ,  4       ,  3       /
 !
-opara  = (/'3     ', '9.9990', '9.9990', '9.9990', '9.9990', 'cycles' /)
-lopara = (/ 1      ,  6      ,  6      ,  6      ,  6      , 6        /)
-owerte = (/ 3.     ,  9.9990 ,  9.9990 ,  9.9990 ,  9.9990 , 0.0      /)
+opara  = (/'3     ', '99999.', '99999.', '99999.', '99999.', 'cycles' ,'none  '/)
+lopara = (/ 1      ,  6      ,  6      ,  6      ,  6      , 6        , 4      /)
+owerte = (/ 3.     ,  99999. ,  99999. ,  99999. ,  99999. , 0.0      , 0.0    /)
 !
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                               oname, loname, opara, lopara, lpresent, owerte)
@@ -1787,6 +1788,17 @@ IF(ier_num==0) THEN
       ier_typ = ER_COMM
       ier_msg(1) = 'Optional stop must be stop:converge or '
       ier_msg(2) = '                      stop:cycles '
+      RETURN
+   ENDIF
+   IF(opara(O_LOG) == 'screen') THEN
+      mmc_h_log = .TRUE.
+   ELSEIF(opara(O_LOG) == 'none') THEN
+      mmc_h_log = .FALSE.
+   ELSE
+      ier_num = -6
+      ier_typ = ER_COMM
+      ier_msg(1) = 'Optional log must be log:none or '
+      ier_msg(2) = '                     log:screen '
       RETURN
    ENDIF
    MMC_H_NNNN   = NINT(owerte(O_FEED))    ! Number of feedbacks to average

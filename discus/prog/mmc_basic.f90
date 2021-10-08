@@ -1135,30 +1135,46 @@ maxdev(2) = conv_val(2)
 !SUM(mmc_h_maxd(1:mmc_h_ctarg,0:MMC_H_NNNN-1))/(REAL(mmc_h_ctarg*MMC_H_NNNN)), mmc_h_conv_a
 !write(output_io,* ) ' DONE, finished ', done,lfinished, rel_cycl, mmc_h_ctarg
 !endif
-   IF(lout .AND. lfinished) THEN
+   IF(lout) then
+   if(lfinished) THEN
       WRITE(output_io,*)
       IF(done) THEN
          WRITE(output_io,'(a,f6.0,a,i3,a)') ' Convergence reached after ',      &
             rel_cycl*100., ' % of user cycles',                                 &
             MMC_H_NNNN, ' Feedbacks averaged'
-         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Largest          difference ',   &
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Largest          difference ',   &
             conv_val(1), ' < ', mmc_h_conv_m
-         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Largest relative difference ',   &
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Largest relative difference ',   &
             conv_val(2), ' < ', mmc_h_conv_r
-         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Stagnant: average changes   ',   &
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Stagnant: average changes   ',   &
             conv_val(3), ' < ', mmc_h_conv_a
-         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Stagnant: largest changes   ',   &
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Stagnant: largest changes   ',   &
             conv_val(4), ' < ', mmc_h_conv_c
       ELSEIF(rel_cycl==1.0) THEN
          WRITE(output_io,*) 'Maximum Cycles reached '
-         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Largest          difference ',   &
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Largest          difference ',   &
             conv_val(1), ' ? ', mmc_h_conv_m
-         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Largest relative difference ',   &
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Largest relative difference ',   &
             conv_val(2), ' ? ', mmc_h_conv_r
-         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Stagnant: average changes   ',   &
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Stagnant: average changes   ',   &
             conv_val(3), ' ? ', mmc_h_conv_a
-         WRITE(output_io,'(a,f8.4,a, f8.4)') ' Stagnant: largest changes   ',   &
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Stagnant: largest changes   ',   &
             conv_val(4), ' ? ', mmc_h_conv_c
+      ENDIF
+      else
+         if(mmc_h_log) then
+         WRITE(output_io,'(a,f6.0,a,i3,a)') ' Convergence status  after ',      &
+            rel_cycl*100., ' % of user cycles',                                 &
+            MMC_H_NNNN, ' Feedbacks averaged'
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Largest          difference ',   &
+            conv_val(1), ' < ', mmc_h_conv_m
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Largest relative difference ',   &
+            conv_val(2), ' < ', mmc_h_conv_r
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Stagnant: average changes   ',   &
+            conv_val(3), ' < ', mmc_h_conv_a
+         WRITE(output_io,'(a,f12.4,a,f12.4)') ' Stagnant: largest changes   ',   &
+            conv_val(4), ' < ', mmc_h_conv_c
+         endif
       ENDIF
    ENDIF
 ENDIF
