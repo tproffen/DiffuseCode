@@ -10,6 +10,9 @@ SUBROUTINE  fft_fq(npkt_wrt, xwrt, ywrt, qmin, qmax, deltaq, rmin, rmax, rstep, 
 USE fast_fourier_mod
 USE spline_mod
 USE wink_mod
+use errlist_mod
+!
+implicit none
 !
 INTEGER                       , INTENT(IN)  :: npkt_wrt
 REAL   , DIMENSION(0:npkt_wrt), INTENT(IN)  :: xwrt
@@ -63,8 +66,8 @@ ENDDO
 !
 temp(iqmin:iqmin+npkt_wrt-1) = ywrt(1:npkt_wrt) ! Add actual powder pattern
 !open(77,file='POWDER/prae_fft.FQ',status='unknown')
-!DO i=0,iqmax
-!  write(77,'(2(2x,G17.7E3))') (i)*dq,temp(i)
+!DO i=0,iqmin+npkt_wrt-1
+!  write(77,'(2(2x,G17.7E3))') (i),temp(i)
 !enddo
 !close(77)
 !
@@ -77,7 +80,7 @@ qmax_l = (npkt_fft-1)*dq
 !write(*,*) 'PDF_OUT ', qmax, rstep, PI/qmax
 !open(77,file='POWDER/fft.PDF',status='unknown')
 !DO i=0,npkt_pdf+irmin
-!  write(77,'(2(2x,G17.7E3))') ( 0.5+i)*PI/QMAX,temp(i)*2/PI*dq  ! -0.5
+!  write(77,'(2(2x,G17.7E3))') ( 0.5+i)*PI/QMAX_l,temp(i)*2/PI*dq  ! -0.5
 !enddo
 !close(77)
 !open(77,file='POWDER/fft_2.PDF',status='unknown')
@@ -86,7 +89,7 @@ DO i=0,npkt_fft-1
   yfft (i) = temp(i  )*2/PI*dq
 ENDDO
 !close(77)
-!write(*,*) 'DO SPLINE ', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf
+!write(*,*) 'DO SPLINE ', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, nlow, npkt_fft+1
 CALL spline_prep(nlow, npkt_fft+1, xfft, yfft, REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, xfour, yfour)
 !
 DEALLOCATE(temp)
