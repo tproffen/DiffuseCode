@@ -683,6 +683,7 @@ SUBROUTINE boundary (zeile, lp)
 USE metric_mod
 USE discus_config_mod 
 USE crystal_mod 
+use chem_aver_mod
 USE discus_plot_mod
 USE discus_plot_init_mod
 USE point_grp
@@ -703,31 +704,36 @@ IMPLICIT none
        
 !                                                                       
 INTEGER, PARAMETER :: maxw = 12
-INTEGER, PARAMETER :: NOPTIONAL = 9
+INTEGER, PARAMETER :: maxww = 3
+INTEGER, PARAMETER :: NOPTIONAL = 10
 !                                                                       
 CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
 INTEGER           , INTENT(INOUT) :: lp 
 !                                                                       
 !      REAL, PARAMETER :: EPS = 0.000001
-CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) cpara (maxw) 
-CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) :: cpara (maxw) 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) :: ccpara (maxw) 
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent ! Optional parameter is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
-INTEGER, PARAMETER :: O_CENTX   = 1
-INTEGER, PARAMETER :: O_CENTY   = 2
-INTEGER, PARAMETER :: O_CENTZ   = 3
-INTEGER, PARAMETER :: O_THICK   = 4
-INTEGER, PARAMETER :: O_KEEP    = 5
-INTEGER, PARAMETER :: O_ACCUM   = 6
-INTEGER, PARAMETER :: O_EXEC    = 7
-INTEGER, PARAMETER :: O_LONG    = 8
-INTEGER, PARAMETER :: O_SHORT   = 9
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+INTEGER, PARAMETER :: O_THICK   = 1
+INTEGER, PARAMETER :: O_CENTX   = 2
+INTEGER, PARAMETER :: O_CENTY   = 3
+INTEGER, PARAMETER :: O_CENTZ   = 4
+INTEGER, PARAMETER :: O_CENTER  = 5
+INTEGER, PARAMETER :: O_KEEP    = 6
+INTEGER, PARAMETER :: O_ACCUM   = 7
+INTEGER, PARAMETER :: O_EXEC    = 8
+INTEGER, PARAMETER :: O_LONG    = 9
+INTEGER, PARAMETER :: O_SHORT   = 10
 INTEGER lpara (maxw) 
-INTEGER i, j, k, ianz 
+integer, dimension(1:MAXWW) :: llpara
+INTEGER :: i, j, k, ianz 
+integer :: iianz            ! Number of parameters for cent 
 INTEGER :: special_form
 INTEGER :: special_n = 0
 INTEGER :: nplanes       ! number of planes that atom is close to
@@ -750,6 +756,7 @@ REAL, DIMENSION(3) :: top   !local normal at cylinder top
 REAL h (3), d, dstar, radius, height , dshort
 REAL :: hkl(4)!, hklw(4)
 REAL, DIMENSION(3)    :: center       ! center of the shape
+REAL, DIMENSION(3)    :: com   ! Center of Mass
 REAL, DIMENSION(3, 2) :: special_hkl
 REAL, DIMENSION(:,:), ALLOCATABLE :: point_hkl ! (3,48)
 REAL, DIMENSION(:,:), ALLOCATABLE, SAVE :: accum_hkl ! (3,48)
@@ -766,16 +773,17 @@ REAL v (3)
 REAL null (3) 
 REAL :: thick
 REAL(KIND=PREC_DP) :: werte (maxw) 
+REAL(KIND=PREC_DP) :: wwerte (maxw) 
 !                                                                       
 !     REAL do_blen 
 !                                                                       
 DATA null / 0.0, 0.0, 0.0 / 
-DATA oname  / 'centx', 'centy', 'centz',  'thick',  'keep ',  'accum', 'exec ', 'long', 'short'/
-DATA loname /  5,       5,       5,        5     ,   4     ,   5     ,  4     ,  4    ,  5     /
+DATA oname  / 'thick',  'centx', 'centy', 'centz',  'center', 'keep ',  'accum', 'exec ', 'long', 'short'/
+DATA loname /  5,       5,       5,        5     ,   6      ,  4     ,   5     ,  4     ,  4    ,  5     /
 !
-opara  =  (/ '0.0000 ', '0.0000 ', '0.0000 ', '-2.550 ','inside ', 'init   ', 'run    ', '[0,0,1]', '[1,0,0]'  /)   ! Always provide fresh default values
-lopara =  (/  6,         6,         6       ,  6       ,  6      ,  4       ,  3       ,  7       ,  7         /)
-owerte =  (/  0.0,       0.0,       0.0     , -2.55    ,  0.0    ,  0.0     ,  0.0     ,  0.0     ,  0.0       /)
+opara  =  (/ '-2.550 ', '0.0000 ', '0.0000 ', '0.0000 ','0.0000 ','inside ', 'init   ', 'run    ', '[0,0,1]', '[1,0,0]'  /)   ! Always provide fresh default values
+lopara =  (/  6,         6,         6       ,  6       ,  6       ,  6      ,  4       ,  3       ,  7       ,  7         /)
+owerte =  (/ -2.55,      0.0,       0.0     ,  0.00    ,  0.0     ,  0.0    ,  0.0     ,  0.0     ,  0.0     ,  0.0       /)
 !
 CALL symm_store                      ! Store current symmetry settings
 !                                                                       
@@ -808,7 +816,59 @@ CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
 IF(ier_num /= 0) RETURN
 !     Handle optional and global parameters
 !     IF (ier_num.eq.0) then 
-center(1:3) = owerte(O_CENTX:O_CENTZ)   ! As defaults are always provided, we can take it take blindly here
+if(opara(O_CENTX)=='com' .or. opara(O_CENTY)=='com' .or. opara(O_CENTZ)=='com' .or. &
+   opara(O_CENTER)=='com'                                                          ) then !'com' given
+   call chem_com (com,.false.)
+endif
+   if(lpresent(O_CENTX)) then       ! User provided 'centx:'
+      if(opara(O_CENTX)=='com') write(opara(O_CENTX),'(G20.12E3)') com(1)
+   else                              ! User did not provide 'centx:'
+      if(lpresent(O_CENTER)) then   ! User provided 'center:'
+         if(opara(O_CENTER)=='com') then
+            write(opara(O_CENTX),'(G20.12E3)') com(1)
+         else
+            opara(O_CENTX) = opara(O_CENTER)
+         endif
+      endif
+   endif
+!  Handle centy
+   if(lpresent(O_CENTY)) then       ! User provided 'centy:'
+      if(opara(O_CENTY)=='com') write(opara(O_CENTY),'(G20.12E3)') com(1)
+   else                              ! User did not provide 'centy:'
+      if(lpresent(O_CENTER)) then   ! User provided 'center:'
+         if(opara(O_CENTER)=='com') then
+            write(opara(O_CENTY),'(G20.12E3)') com(1)
+         else
+            opara(O_CENTY) = opara(O_CENTER)
+         endif
+      endif
+   endif
+!  Handle centz
+   if(lpresent(O_CENTZ)) then       ! User provided 'centz:'
+      if(opara(O_CENTZ)=='com') write(opara(O_CENTZ),'(G20.12E3)') com(1)
+   else                              ! User did not provide 'centz:'
+      if(lpresent(O_CENTER)) then   ! User provided 'center:'
+         if(opara(O_CENTER)=='com') then
+            write(opara(O_CENTZ),'(G20.12E3)') com(1)
+         else
+            opara(O_CENTZ) = opara(O_CENTER)
+         endif
+      endif
+   endif
+!  if(opara(O_CENTX)=='com' .or.(.not.lpresent(O_CENTX) .and. opara(O_CENTER)=='com')) write(opara(O_CENTX),'(G20.12E3)') com(1)
+!  if(opara(O_CENTY)=='com' .or.(.not.lpresent(O_CENTY) .and. opara(O_CENTER)=='com')) write(opara(O_CENTY),'(G20.12E3)') com(2)
+!  if(opara(O_CENTZ)=='com' .or.(.not.lpresent(O_CENTZ) .and. opara(O_CENTER)=='com')) write(opara(O_CENTZ),'(G20.12E3)') com(3)
+!endif
+ccpara(1) = opara(O_CENTX)
+ccpara(2) = opara(O_CENTY)
+ccpara(3) = opara(O_CENTZ)
+llpara(1) = len_trim(ccpara(1))
+llpara(2) = len_trim(ccpara(2))
+llpara(3) = len_trim(ccpara(3))
+iianz = 3
+CALL ber_params (iianz, ccpara, llpara, wwerte, maxww) 
+center(1:3) = wwerte(1:3)               ! As defaults are always provided, we can take it take blindly here
+!
 IF (str_comp (cpara (ianz) , 'outside', 3, lpara (ianz) , 7)) THEN
    linside = .false.
    ianz = ianz - 1
