@@ -1,3 +1,10 @@
+6.08.01  DRAFT
+
+DISCUS
+  SURFACE  Augmented the boundary command with a center:<value> parameter
+           and the option to use "com" == "center of mass" for the value.
+  POWDER   FIXED BUG Corrected the calculation of a periodic boundaary PDF
+                     using the Debye-Scattering-Equation
 6.08.00  RELEASED 2021_October_08
 
 General
