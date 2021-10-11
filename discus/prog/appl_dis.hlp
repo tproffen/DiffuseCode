@@ -78,6 +78,12 @@
 3  2021_Oct
 
    Changed the reading of structures to enable files without BISO collumn.
+
+   SURFACE  Added an optiona parameter center:<value> to the 'boundary'
+            command. Added the option to set the value to "com" as in
+            "center of mass" to all "cent*:com" parameters
+   FIXED BUG  Corrected the determination of a periodic boundary PDF
+              calculated via Debye-Scattering-Equation
 3  2021_Sept
 
    MMC  added an optional parameter "log:screen" to the 'set finish'
@@ -8793,7 +8799,11 @@
             "centx:"<center_x>   The central location for the 
             "centy:"<center_y>   boundary is at this point
             "centz:"<center_z>   Defaults to (0, 0, 0)
+            "center:"<value>     Identical centers for x, y, z.
                                  The units are fractional coordinates
+                                 The value to all four parameter may be
+                                 specified as "com", the center of mass.
+                                 This is the average postion of all atoms.
             "thick:"<thickness>  Defaults to value set by 
                                  set distance, external for atom type 1
                                  Atoms within a distance of <thickness>
