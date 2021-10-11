@@ -18,14 +18,16 @@ USE debye_mod
 USE diffuse_mod
 USE discus_plot_mod
 USE discus_plot_init_mod
+use chem_aver_mod
+use modify_mod
 USE molecule_mod
 USE powder_mod
 USE discus_save_mod
 USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc, save_show
 USE surface_func_mod
 USE prop_para_func
-USE read_internal_mod
 !
+use blanks_mod
 USE errlist_mod
 USE lib_errlist_func
 USE precision_mod
@@ -94,11 +96,16 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: com  ! Center of mass of crystal
             com = com + cr_pos(:,i)
          ENDDO
          com = com / cr_natoms
-!         WRITE(line,1000) pow_period/pow_period_cut/2.0, com
-!11000 FORMAT('sphere ',F12.4,',centx:',G15.6E3,'centy:',G15.6E3,'centz:',G15.6E3) 
-!write(*,'(a)') line
-         length = 72
+         ! Cut a sphere that is pow_period_cut==80% larger to ensure good agreement 
+         ! up to the readius == pow_period 
+          WRITE(line,1000) pow_period/pow_period_cut/2.0, com
+ 1000 FORMAT('sphere,',F12.4,',centx:',G15.6E3,', centy:',G15.6E3,',centz:',G15.6E3) 
+         length = len_trim(line)
+         call rem_bl(line,length)
          CALL boundary (line, length)
+         line = ' '
+         length =1
+         call do_purge(line,length)
 !
       ELSE
          ier_num = -168
@@ -144,16 +151,42 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: com  ! Center of mass of crystal
 !   ier_typ = ER_APPL
 !ENDIF
 !
-IF(pow_lperiod) THEN
-   CALL errlist_save                   ! Keep error status 
-
-   CALL save_restore_setting
-   CALL no_error
-   CALL readstru_internal(origstruc)   ! Read  core file
-   CALL errlist_restore                ! Restore error status
-ENDIF
-!
 END SUBROUTINE pow_pdf_hist
+!
+!*****7*************************************************************************
+!
+subroutine pow_pdf_hist_prep_period
+!
+use output_mod
+use powder_mod
+use powder_write_mod
+use qval_mod
+USE read_internal_mod
+USE save_menu, ONLY: save_restore_setting
+!
+use errlist_mod
+USE lib_errlist_func
+use precision_mod
+!
+implicit none
+!
+character(len=PREC_STRING) :: origstruc
+!
+out_user_values(1) =   0.01
+out_user_values(2) = min(100.0, pow_period/pow_period_cut)
+out_user_values(3) =   0.01
+out_user_limits    = .TRUE.
+cpow_form = 'r'
+call powder_out(val_pdf, .TRUE.)
+CALL errlist_save                   ! Keep error status 
+
+CALL save_restore_setting
+CALL no_error
+origstruc   = 'internal.powderback.stru' ! internal user files always start with 'internal'
+CALL readstru_internal(origstruc)   ! Read  core file
+CALL errlist_restore                ! Restore error status
+!
+END SUBROUTINE pow_pdf_hist_prep_period
 !
 !*****7*****************************************************************
 !
@@ -346,14 +379,14 @@ histogram   = 0.0!D0
 !     Omitting the SQRT only saves a little, as do the local variables
 !     The if(iscat) does not cause much compute time
 shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
-IF(par_omp_use) THEN                         ! USE OMP for parallel accumulation
+IF(par_omp_use .and. cr_natoms > 10*par_omp_logi) THEN  ! USE OMP for parallel accumulation
    !$OMP PARALLEL PRIVATE(jscat, iscat, ibin, u)
    ALLOCATE(natom_l(    0:cr_nscat_temp ))
    ALLOCATE(histogram_l(0:n_hist,1:nlook))
    natom_l = 0
    histogram_l  = 0.0!D0
 !
-   !$OMP DO SCHEDULE(DYNAMIC, cr_natoms/32)
+   !$OMP DO SCHEDULE(DYNAMIC, max(10,cr_natoms/32))
    main_loop: DO j = 1, cr_natoms
       jscat = cr_iscat(j) 
       IF(jscat > 0) THEN 
@@ -481,7 +514,7 @@ cquad_a = pdf_cquad_a
 clin_a  = pdf_clin_a
 !
 IF(qbroad > 0.0 .OR. cquad_a>0.0 .OR. clin_a>0.0) deb_conv = .TRUE.
-!
+!!
 IF(deb_conv) THEN
    cquad_m(:) = 0.0D0
    clin_m(:)  = 0.0D0

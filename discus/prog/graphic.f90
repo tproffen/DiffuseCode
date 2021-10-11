@@ -458,7 +458,7 @@ main_if: IF (ier_num.eq.0) THEN
             ELSEIF (ityp.eq.4) THEN 
                CALL do_ppm (value, laver) 
             ELSEIF (ityp.eq.5) THEN 
-               CALL powder_out (value)
+               CALL powder_out (value, .false.)
             ELSEIF (ityp.eq.6) THEN 
                CALL do_output (value, laver) 
             ELSEIF (ityp.eq.7) THEN 

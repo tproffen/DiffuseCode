@@ -1,3 +1,15 @@
+module powder_period_temp_mod
+!
+implicit none
+!
+INTEGER, save   :: npkt_pdf_temp    ! number of points in powder pattern ready to write
+REAL, DIMENSION(:), ALLOCATABLE :: xwrt_pdf_temp ! y-values of powder pattern ready for output
+REAL, DIMENSION(:), ALLOCATABLE :: ywrt_pdf_temp ! y-values of powder pattern ready for output
+!
+end module powder_period_temp_mod
+!
+!
+!
 MODULE powder_write_mod
 !-
 ! Write the powder pattern in the selected format onto disk
@@ -16,7 +28,7 @@ PUBLIC
 !
 CONTAINS
 !
-SUBROUTINE powder_out (value)
+SUBROUTINE powder_out (value, ltemp)
 !-                                                                      
 !     Write the powder pattern                                          
 !+                                                                      
@@ -31,6 +43,7 @@ USE powder_mod
 USE powder_fft_mod
 USE powder_tables_mod
 USE pdf_mod
+use powder_period_temp_mod
 !
 USE spline_mod
 USE wink_mod
@@ -43,6 +56,8 @@ IMPLICIT none
 !     INTEGER, PARAMETER :: iff = 2 
 !                                                                       
 INTEGER, INTENT(IN) :: value ! Type of output
+logical, intent(in) :: ltemp ! Prepare output in case of periodic boundary conditions
+!                            ! True only for periodic boundary and PDF output
 !                                                                       
 INTEGER   :: POW_WR_MAXPKT   ! Maximum number of data points for write
 INTEGER   :: ii, j , iii
@@ -431,18 +446,19 @@ ENDDO cut
 !
 !     Scale intensity and add a background
 !
-IF(value==val_inten) THEN
+place_ywrt: IF(value==val_inten) THEN
    DO ii=0,npkt_wrt
       ywrt(ii) = pow_scale*ywrt(ii)
       DO iii=0,pow_nback
          ywrt(ii) = ywrt(ii) + pow_back(iii)*xwrt(ii)**iii
       ENDDO
    ENDDO
-ELSEIF(value==val_fq) THEN
+ELSEIF(value==val_fq) THEN place_ywrt
    DO ii=0,npkt_wrt
       ywrt(ii) = pow_scale*ywrt(ii)
    ENDDO
-ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
+ELSEIF(value==val_pdf) THEN  place_ywrt  ! Transform F(Q) into PDF
+   if(.not.ltemp .and. pow_lperiod) exit place_ywrt ! PDF has been prepared for periodic
 !
 ! treat for correlated motion effects
 !
@@ -501,7 +517,7 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
 !close(77)
 !
 !  The final limits to be written need to be adjusted, as corrlin convolution sets a 
-!  rmin at 0.5, respectively a ramx at rmax*1.25
+!  rmin at 0.5, respectively a rmax at rmax*1.25
 !
       IF(out_user_limits) THEN
          rminf    = out_user_values(1)
@@ -612,8 +628,8 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
    IF(pow_lperiod) THEN      ! Make the PDF periodic
       DO ii=0, npkt_wrt
          IF(xwrt(ii)<pow_period) THEN
-            ywrt(ii) =ywrt(ii)/(1.0-1.5*(xwrt(ii)/pow_period)   &
-                                   +0.5*(xwrt(ii)/pow_period)**3)
+            ywrt(ii) =ywrt(ii)/(1.0-1.5*(xwrt(ii)/pow_period*pow_period_cut)   &
+                                   +0.5*(xwrt(ii)/pow_period*pow_period_cut)**3)
          ELSE
             ywrt(ii) = 0.00
          ENDIF
@@ -624,11 +640,66 @@ ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
       ywrt(ii) = pow_scale*ywrt(ii)
    ENDDO
 !
-ENDIF
+ENDIF place_ywrt
 !
 !     Finally write the pattern
 !
-CALL powder_do_write (outfile, npkt_wrt, xwrt, ywrt)
+if(ltemp) then         ! copy pdf into temporary array
+   if(pow_lperiod .and. value==val_pdf) then
+      if(allocated(xwrt_pdf_temp)) deallocate(xwrt_pdf_temp)
+      if(allocated(ywrt_pdf_temp)) deallocate(ywrt_pdf_temp)
+      allocate(xwrt_pdf_temp(0:npkt_wrt))
+      allocate(ywrt_pdf_temp(0:npkt_wrt))
+      xwrt_pdf_temp = xwrt
+      ywrt_pdf_temp = ywrt
+      npkt_pdf_temp = npkt_wrt
+   endif
+else                   ! normal write 
+   if(pow_lperiod .and. value==val_pdf) then
+!     Determine user output limits for PDF
+!     The PDF prepared for periodic boundary condition is splied onto the user grid.
+!
+      IF(out_user_limits) THEN
+         rmin     = out_user_values(1)
+         rmax     = out_user_values(2)
+         rstep    = out_user_values(3)
+         npkt_pdf = NINT((out_user_values(2)-out_user_values(1))/out_user_values(3)) + 1
+      ELSE
+         rmin     = pdf_rminu
+         rmax     = pdf_rmaxu
+         rstep    = pdf_deltaru
+         npkt_pdf = NINT((rmax-rmin)/pdf_deltaru) + 1
+      ENDIF
+      rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
+!
+      ALLOCATE(y2a(0:POW_WR_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
+      call spline(npkt_pdf_temp+1, xwrt_pdf_temp, ywrt_pdf_temp, 1.e31, 1.e31, y2a)
+      npkt_wrt = npkt_pdf
+!
+      if(allocated(xwrt)) deallocate(xwrt)
+      if(allocated(ywrt)) deallocate(ywrt)
+      allocate(xwrt(0:npkt_wrt))
+      allocate(ywrt(0:npkt_wrt))
+      DO ii = 0, npkt_wrt
+         xequ = rmin + (ii)*rstep
+         CALL splint (npkt_pdf+1, xwrt_pdf_temp, ywrt_pdf_temp, y2a, xequ, yequ, ier_num)
+         IF(ier_num/=0) THEN
+            DEALLOCATE( xpl, stat = all_status)
+            DEALLOCATE( ypl, stat = all_status)
+            DEALLOCATE( lpv, stat = all_status)
+            DEALLOCATE( y2a, stat = all_status)
+            DEALLOCATE( xwrt, stat = all_status)
+            DEALLOCATE( ywrt, stat = all_status)
+            RETURN
+         ENDIF
+         xwrt(ii) = xequ
+         ywrt(ii) = yequ
+      ENDDO
+      DEALLOCATE(y2a, stat = all_status)
+   endif
+!
+   CALL powder_do_write (outfile, npkt_wrt, xwrt, ywrt)
+endif
 !
 DEALLOCATE( ypl, stat = all_status)
 DEALLOCATE( lpv, stat = all_status)
