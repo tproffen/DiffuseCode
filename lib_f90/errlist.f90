@@ -227,12 +227,13 @@ USE lib_length
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -54
+       INTEGER, PARAMETER :: iu = -55
        INTEGER, PARAMETER :: io =   1
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
        DATA ERROR ( iu:-41) /                       &
+     &  'Error calculating spline',                 & !-55  ! fortran
      &  'Error evaluating EXPR',                    & !-54  ! fortran
      &  'EXPR seem to reference cyclically',        & !-53  ! fortran
      &  'No parameters defined so far',             & !-52  ! fortran

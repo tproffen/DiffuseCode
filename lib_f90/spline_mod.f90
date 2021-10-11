@@ -135,6 +135,8 @@ END SUBROUTINE spline
 !                                                                       
 SUBROUTINE splint (n, xa, ya, y2a, x, y, ier) 
 !
+use errlist_mod
+!
 IMPLICIT NONE
 !
 !IMPLICIT integer(i-n)
@@ -167,7 +169,11 @@ main: DO
 ENDDO main
 h = xa (khi) - xa (klo) 
 IF(h == 0.) THEN
-   ier = -60
+   ier = -55
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Internal error in splint '
+   ier_msg(2) = 'Please document and report to authors'
+!write(*,*) ' ERROR IN SPLINE ', h, xa(khi), xa(klo), khi, klo, n
    RETURN
 ENDIF
 a = (xa (khi) - x) / h 
