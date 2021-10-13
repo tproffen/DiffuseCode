@@ -14,6 +14,12 @@ PUBLIC hdf5_place_kuplot
 PUBLIC hdf5_get_layer
 PUBLIC hdf5_get_height
 PUBLIC hdf5_get_direct
+PUBLIC hdf5_reset
+PUBLIC hdf5_copy_node
+PUBLIC hdf5_get_dims
+PUBLIC hdf5_get_map
+PUBLIC hdf5_set_map
+PUBLIC hdf5_set_pointer
 !
 !
 CONTAINS
@@ -131,7 +137,7 @@ LOGICAL FUNCTION hdf5_get_direct()
 !
 IMPLICIT NONE
 !
-hdf5_get_direct = 1
+hdf5_get_direct = .TRUE.
 !
 END FUNCTION hdf5_get_direct
 !
@@ -144,6 +150,70 @@ IMPLICIT NONE
 hdf5_get_height = 0.0
 !
 END FUNCTION hdf5_get_height
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_copy_node(old, new)
+!-
+!  Copies old node to new node
+!+
+INTEGER, INTENT(IN)  :: old
+INTEGER, INTENT(OUT) :: new
+!
+end subroutine hdf5_copy_node
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_get_dims(idata, dims)
+!
+IMPLICIT NONE
+!
+INTEGER,               INTENT(IN)  :: idata
+INTEGER, DIMENSION(3), INTENT(OUT) :: dims
+!
+dims = 1
+!
+END SUBROUTINE hdf5_get_dims
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_get_map(dims, odata)
+!
+IMPLICIT NONE
+!
+INTEGER,            DIMENSION(3),                         INTENT(IN)  :: dims
+REAL(KIND=PREC_DP), DIMENSION(dims(1), dims(2), dims(3)), INTENT(OUT) :: odata
+!
+!INTEGER :: i,j,k
+!
+odata = 0.0D0
+!
+END SUBROUTINE hdf5_get_map
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_set_map(dims, odata)
+!
+IMPLICIT NONE
+!
+INTEGER,            DIMENSION(3),                         INTENT(IN) :: dims
+REAL(KIND=PREC_DP), DIMENSION(dims(1), dims(2), dims(3)), INTENT(IN) :: odata
+!
+!
+END SUBROUTINE hdf5_set_map
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_set_pointer(izz, ier_num, ier_typ, node_number)
+!-
+!  Find the node associated to kuplot data set number izz
+!+
+INTEGER, INTENT(IN ) :: izz
+INTEGER, INTENT(OUT) :: ier_num
+INTEGER, INTENT(OUT) :: ier_typ
+INTEGER, INTENT(OUT) :: node_number
+!
+end subroutine hdf5_set_pointer
 !
 !*******************************************************************************
 !
