@@ -1436,6 +1436,7 @@ SUBROUTINE prep_rotation(l_long, l_short, o_long, o_short,lo_long, lo_short,    
 USE crystal_mod
 USE metric_mod
 USE symm_mod
+use symm_menu
 USE symm_sup_mod
 use symm_menu
 USE trafo_mod
@@ -1574,7 +1575,7 @@ u(1) = 1.0D0
 u(2) = 0.0D0
 u(3) = 0.0D0
 !alpha = do_bang(.TRUE., u, V_NULL, v)             ! Angle short to [100]
-alpha = do_bang(.TRUE., real(u,kind=PREC_SP), V_NULL, real(v_long,kind=PREC_SP))     ! Angle long to [001]
+alpha = do_bang(.TRUE., real(u,kind=PREC_SP), V_NULL, real(v_short,kind=PREC_SP))     ! Angle short to [001]
 CALL symm_reset
 sym_angle      = alpha                         ! Rotation angle
 sym_uvw(1)     = 0.0                           ! Rotation axis [001]
