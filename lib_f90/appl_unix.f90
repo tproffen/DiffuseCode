@@ -1240,7 +1240,7 @@ IF(terminal_wrp /= ' ') THEN
    CALL EXECUTE_COMMAND_LINE(line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 !
-IF(operating == OS_LINUX) THEN
+IF(operating == OS_LINUX .or. operating == OS_LINUX_WSL) THEN
    grep    = 'grep -Poe'
    script  = 'bbb_install_script.sh'
    command = terminal_emu(1:LEN_TRIM(terminal_emu)) // ' '// &
@@ -1251,23 +1251,23 @@ IF(operating == OS_LINUX) THEN
              code_str(1:LEN_TRIM(code_str)) // ' ' //        &
              prep_str(1:LEN_TRIM(prep_str)) // ' ' //        &
              inst_str(1:LEN_TRIM(inst_str))
-ELSEIF(operating == OS_LINUX_WSL) THEN
-   grep    = 'grep -Poe'
-   script  = 'bbb_install_suite_Windows10_WSL.ps1'
-   string  = 'ls /mnt/c/Windows/System32/WindowsPowerShell/ > ' // discus_power
-   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-!
-   OPEN(UNIT=IRD,FILE=discus_power, STATUS='old')
-   READ(IRD,'(a)') verstring
-   CLOSE(UNIT=IRD)
-!
-   command = '/mnt/c/Windows/System32/WindowsPowerShell/'             //        &
-             verstring(1:LEN_TRIM(verstring)) // '/'                  //        &
-             'powershell.exe -NoProfile -ExecutionPolicy Unrestricted ' //      &
-             '-Command "& {Start-Process PowerShell -ArgumentList ''' //        &
-             '-NoProfile -ExecutionPolicy Unrestricted -File ""'      //        &
-             'C:\Users\' // user_name(1:LEN_TRIM(user_name)) // '\'   //        &
-             '\Downloads\' // script(1:LEN_TRIM(script)) // '""'' -Verb RunAs}";'
+!ELSEIF(operating == OS_LINUX_WSL) THEN
+!   grep    = 'grep -Poe'
+!   script  = 'bbb_install_suite_Windows10_WSL.ps1'
+!   string  = 'ls /mnt/c/Windows/System32/WindowsPowerShell/ > ' // discus_power
+!   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!!
+!   OPEN(UNIT=IRD,FILE=discus_power, STATUS='old')
+!   READ(IRD,'(a)') verstring
+!   CLOSE(UNIT=IRD)
+!!
+!   command = '/mnt/c/Windows/System32/WindowsPowerShell/'             //        &
+!             verstring(1:LEN_TRIM(verstring)) // '/'                  //        &
+!             'powershell.exe -NoProfile -ExecutionPolicy Unrestricted ' //      &
+!             '-Command "& {Start-Process PowerShell -ArgumentList ''' //        &
+!             '-NoProfile -ExecutionPolicy Unrestricted -File ""'      //        &
+!             'C:\Users\' // user_name(1:LEN_TRIM(user_name)) // '\'   //        &
+!             '\Downloads\' // script(1:LEN_TRIM(script)) // '""'' -Verb RunAs}";'
 ELSEIF(operating == OS_MACOSX) THEN
    WRITE(discus_version,'(a,a)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_VERSION' ! Initiate search for new version
    grep    = 'grep -oe '
@@ -1305,21 +1305,29 @@ CLOSE(UNIT=IRD)
 string = 'curl -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
          ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
          verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
-!QQQ CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
-!QQQ string = 'chmod 700 $HOME/' // script(1:LEN_TRIM(script))
-!QQQ CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+string = 'chmod 700 $HOME/' // script(1:LEN_TRIM(script))
+CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !string = 'ls -l $HOME/' // script(1:LEN_TRIM(script))
 !CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
 ! For LINUX_WSL we need to step into 'C:\Users\...\Downloads'
 IF(operating == OS_LINUX_WSL) THEN
+   script  = 'bbb_install_suite_Windows10_WSL.ps1'
+!
+! Download latest installation script
+!
+   string = 'curl -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
+            ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
+            verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
+   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
    string = 'cp $HOME/' // script(1:LEN_TRIM(script)) // ' /mnt/c/Users/' //          &
             user_name(1:LEN_TRIM(user_name)) // '/Downloads'  
    CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-   string = '/mnt/c/Users/' // user_name(1:LEN_TRIM(user_name)) // '/Downloads'
-   length = LEN_TRIM(string)
-   CALL do_chdir (string, length, .FALSE.)
+!   string = '/mnt/c/Users/' // user_name(1:LEN_TRIM(user_name)) // '/Downloads'
+!   length = LEN_TRIM(string)
+!   CALL do_chdir (string, length, .FALSE.)
 ENDIF
 !
 ! Finally run the DISCUS update via the installation script
