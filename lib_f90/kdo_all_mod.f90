@@ -19,6 +19,7 @@ USE do_show_mod
 USE do_set_mod
 USE do_wait_mod
 USE errlist_mod 
+USE lib_errlist_func
 USE fput_mod
 USE get_params_mod
 USE learn_mod 
@@ -205,6 +206,7 @@ IMPLICIT none
       ELSEIF (str_comp (bef, 'system', 2, lbef, 6) ) THEN 
          command = ' ' 
          IF (zei.ne.' ') THEN 
+            call no_error
             command (1:lc) = zei (1:lc) 
             CALL do_operating (command, lc) 
          ELSE 
