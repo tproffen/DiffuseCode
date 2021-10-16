@@ -1,5 +1,11 @@
 6.08.02  DRAFT
 
+General
+  Modified update command for WSL, avoids powershell.
+
+DISCUS
+  SURFACE FIXED BUG Orientation of ellipsoids was erroneously turned around
+          long axis. 
 KUPLOT
   FIXED BUG some routines were missing in kuplot_load_hdf5_no
 6.08.01  RELEASED 2021_October_11
