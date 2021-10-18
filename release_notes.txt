@@ -2,6 +2,7 @@
 
 General
   Modified update command for WSL, avoids powershell.
+  Modified Windows installation script to handle blanks in User names.
 
 DISCUS
   SURFACE FIXED BUG Orientation of ellipsoids was erroneously turned around
