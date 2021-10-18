@@ -4593,9 +4593,9 @@
 !p                               {<number> | <name> | "all"},
 !p                               <correlation>, <energy>, {"CORR" | "ENER"}
 !p
-!p set "target",<ic>,"angle",    {<number> | <name> | "all"},
-!p                               {<number> | <name> | "all"}, 
-!p                               {<number> | <name> | "all"},
+!p set "target",<ic>,"angle",    {<number> | <name> | "all"},    ! Central atom
+!p                               {<number> | <name> | "all"},    ! neighbors
+!p                               {<number> | <name> | "all"},    ! neighbors
 !p                               <angle>,       <energy>
 !p
 !p set "target",<ic>,"spring",   {<number> | <name> | "all"},
@@ -4730,6 +4730,16 @@
    <scale>  defaults to 1.0
    <rmin>   defaults to zero
    <pr>     defaults to 1.0
+
+   set "target",<ic>,"angle",    {<number> | <name> | "all"},    ! Central atom
+                                 {<number> | <name> | "all"},    ! neighbors
+                                 {<number> | <name> | "all"},    ! neighbors
+                                 <angle>,       <energy>
+  
+   Define an angular potential. The first atom type is the central atom, at
+   whose position the bond angle is located. 
+   The potential is <energ>*(alpha-<angle>)**2. Compared to the Lennard-Jones
+   potential, the energy values should usually be smaller by a factor 10 or so.
 4  temp
 !p set "temp",<kt>
 
