@@ -1,7 +1,12 @@
 1  suite
 
-   The discus_suite program integrates the stand alone programs
-   DISCUS DIFFEV and KUPLOT into one common program.
+   The discus_suite program integrates the stand alections:
+   DISCUS, DIFFEV, KUPLOT and REFINE into one common program.
+
+   DISCUS  Structure builder
+   KUPLOT  Data manipulation and appraisal / Graphics
+   REFINE  Least-Squares refinement section
+   DIFFEV  Population based refinement section 
 
    To switch to any of the individual sections type the respective
    name. Return to the suite with the command "exit". Within each
@@ -16,8 +21,8 @@
 2  Summary
 
    You can switch to the individual sections "discus", "diffev",
-   and "kuplot" by typing the respective section name. To return
-   to the suite type "exit" at the main menu of each section.
+   "kuplot" and "refine" by typing the respective section name. 
+   To return to the suite type "exit" at the main menu of each section.
 
    The variables i[*], r[*] and res[*] are global variables, 
    a change in any section will be seen in any other section 
@@ -99,24 +104,45 @@
    See the help entry on "cd" in the general "Command_lang" section
    for further information. The process is described in the 
    package manual as well.
+2  help
+!p help [<command> [, <subcommand>] ]
 
+   The 'help' command is used to display on-line help messages. They are
+   short notes on the command <command>. The command may be abbreviated.
+   If the abbreviation is not unique, only the first help topic that matches
+   the command is listed.
+
+   The first line of the help text gives the syntax of the command that is
+   explained in the following lines. For a few commands the syntax line is
+   repeated for different set of possible parameters.
+
+   After the text is displayed, you are in the HELP sublevel of PROG
+   and there are the following commands possible:
+
+!p <command> : Display help for <command> of current help level.
+!p ".."      : Go up one help level.
+!p "?"       : Prints list of help entries of the current level.
+!p <RETURN>  : Exit help sublevel.
+
+   Within this help, text that is written as:
+   <text>    : in pointed brackets : This text is to be understood as text
+                                     or command or number that you have to
+                                     type when using the actual command. 
+                                     Omit the pointed brackets.
+   "text"    : in quotation marks  : This text is to be understood as the
+                                     explicit test that is given.
+                                     Omit the quotation marks.
+   'command' : in single quotes    : Refers to commands of suite, discus etc.
 2  diffev
 
    Switches to the "diffev" section. 
 
    Within this section any standard DIFFEV command can be
-   given. The behaviour of "diffev" is essentially the same
-   as in the stand alone version. 
-   The 'diffev/run_mpi' command will start a discus/kuplot
-   section. The syntax of the command is unchanged. 
-   All trial parameters are placed into array <r[]> at 
-   entries 201, 202, ...
-   The values of generation, member, children and number
-   of parameters are placed into <i[]>:
-   i[201] = generation
-   i[202] = member
-   i[203] = children
-   i[204] = parameter
+   given. 
+
+   The "diffev" command 'run_mpi' will start a discus/kuplot
+   calculation at the specified section. 
+   See the diffev manual / help for further information.
 
    Use an 'exit' to return to the suite.
 2  discus
@@ -124,34 +150,38 @@
    Switches to the "discus" section.
 
    Within this section any standard DISCUS command can be
-   given. The behaviour of "discus" is essentially the same
-   as in the stand alone version.
+   given. 
  
    Within the discus section you can use the command
    'branch kuplot' to switch to the kuplot branch.
 
-   In contrast to the stand alone DISCUS version, one can 
-   write an output file directly into the KUPLOT data sets.
-   The number of data sets in KUPLOT is atumatically incremented. 
+   One can write an output file directly into the KUPLOT
+   data sets. The number of data sets in KUPLOT is
+   automatically incremented. 
    Currently this is implemented for the PDF and the powder
    output. Single crystal diffraction pattern to follow
    shortly.
+
+   Use an 'exit' to return to the suite.
 2  kuplot
 
    Switches to the "kuplot" section.
 
    Within this section any standard KUPLOT command can be
-   given. The behaviour of "kuplot" is essentially the same
-   as in the stand alone version.
+   given.
  
    Within the kuplot section you can use the command
    'branch discus' to switch to the discus branch.
+
+   Use an 'exit' to return to the suite.
 2  refine
 
    Switches to the "refine" section.
 
    Within this section you can refine model parameters to 
    a data set.
+
+   Use an 'exit' to return to the suite.
 2  parallel
 !p parallel {<numprocs>, },<macro.mac> {, <para_1...}
 
@@ -188,7 +218,7 @@
 !p show {"error" | "parallel" | "res" | "variables"}
 
    The show command displays settings onto your screen. The individual
-   programs discus, kuplot, diffev, mixscat all have specific parameters
+   programs discus, kuplot, diffev, refine all have specific parameters
    to the show command as well, see the help at the main program level
    for details of the 'show' command: "help Command_language".
 2  update

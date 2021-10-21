@@ -923,6 +923,17 @@
 !p ".."      : Go up one help level.
 !p "?"       : Prints list of help entries of the current level.
 !p <RETURN>  : Exit help sublevel.
+
+
+   Within this help, text that is written as:
+   <text>    : in pointed brackets : This text is to be understood as text
+                                     or command or number that you have to
+                                     type when using the actual command.
+                                     Omit the pointed brackets.
+   "text"    : in quotation marks  : This text is to be understood as the
+                                     explicit test that is given.
+                                     Omit the quotation marks.
+   'command' : in single quotes    : Refers to commands of suite, discus etc.
 3  if
    The if-control structure takes the following form:
 
