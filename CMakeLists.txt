@@ -45,7 +45,7 @@ set (DIFFUSE_VERSION_PATCH 02)
 
 find_package(Readline REQUIRED)
 
-option(DISCUS_OMP    "Switch for compiling DISCUS_SUITE with OpenMP" OFF)
+option(DISCUS_OMP    "Switch for compiling DISCUS_SUITE with OpenMP" ON)
 if (DISCUS_OMP)
 if(APPLE)
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
