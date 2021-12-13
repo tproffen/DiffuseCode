@@ -64,6 +64,49 @@ ww = P_inte * glp_pseud_indx(i, P_eta, P_fwhm) * asym  ! Look up Pseudo-Voigt
 !
 END FUNCTION pseudo_voigt
 !
+!*******************************************************************************
+!
+real(kind=PREC_DP) function tukey(x, alpha, width)
+!-
+!  Return a value for the Tukey window function
+!
+!  t(x,alpha) = 1/2 [ 1 - cos(2PIx/(alpha*width) ]	0             <= x <  alpha*width/2
+!             = 1                                       alpha*width/2 <= x <= width/2
+!             = 1/2 [ 1 - cos(2PIx/(alpha*width) ]	width/2       <= x <= width
+!+
+!
+use precision_mod
+use wink_mod
+!
+implicit none
+!
+real(kind=PREC_DP), intent(in) :: x 
+real(kind=PREC_DP), intent(in) :: alpha 
+real(kind=PREC_DP), optional, intent(in) :: width 
+!
+real(kind=PREC_DP) :: xl
+real(kind=PREC_DP) :: w
+!
+if(present(width)) then
+  w = width
+else
+  w = 1.0D0
+endif
+!
+xl = x
+if(xl>0.5D0*w) xl = w-xl
+!
+tukey = 0.0D0
+if(xl<0.0D0) then
+   tukey = 0.0D0
+elseif(xl<0.5D0*w*alpha ) then
+   tukey = 0.5D0*(1.0D0 - cos(ZPI*xl/(alpha*w)))
+else
+   tukey = 1.0D0
+endif
+!
+end function tukey
+!
 !*****7************************************************************************* 
 !
 END MODULE lib_f90_profile
