@@ -283,6 +283,9 @@ ELSEIF (lcom.eq.6) then
    ELSEIF (string (ikl - 5:ikl - 1) .eq.'psvgt') then 
       CALL intr_psvgt(line, lp, ww)
       CALL ersetz2 (string, ikl, iklz, ww, 5, lll) 
+   elseif (string (ikl - 5:ikl - 1) .eq.'tukey') then 
+      CALL intr_tukey(line, lp, ww)
+      CALL ersetz2 (string, ikl, iklz, ww, 5, lll) 
    ELSE 
             CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
    ENDIF 
@@ -735,6 +738,46 @@ ELSE
 ENDIF
 !
 END SUBROUTINE intr_psvgt
+!
+!*****7************************************************************************* 
+!
+subroutine intr_tukey(line, lp, ww)
+!-
+! Calculate a Tukey window function
+!+
+!
+use errlist_mod
+use ber_params_mod
+use get_params_mod
+use lib_f90_profile
+use precision_mod
+!
+implicit none
+!
+character(len=*)  , intent(inout) :: line
+integer           , intent(inout) :: lp
+real(kind=PREC_DP), intent(out)   :: ww
+!
+INTEGER, PARAMETER :: MAXW = 30
+CHARACTER(LEN=MAX(PREC_STRING,LEN(LINE))), DIMENSION(MAXW) :: cpara
+INTEGER                                  , DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP)                       , DIMENSION(MAXW) :: werte
+INTEGER :: ianz          ! number of parameters
+!
+werte(1:2) = 0.0d0
+werte(3  ) = 1.0d0
+!
+call get_params (line, ianz, cpara, lpara, MAXW, lp) 
+if(ier_num/=0) return
+!
+CALL ber_params(ianz, cpara, lpara, werte, MAXW)
+if(ier_num/=0) return
+!
+if(ianz<3) werte(3) = 1.0D0
+!
+ww = tukey(werte(1), werte(2), werte(3))
+!
+end subroutine intr_tukey
 !
 !*****7************************************************************************* 
 !
