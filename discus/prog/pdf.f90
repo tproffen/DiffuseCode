@@ -445,7 +445,7 @@ USE str_comp_mod
 !------ Setting up weighting (b(i)b(j)/<b**2>)                          
 !                                                                       
       CALL dlink (ano, lambda, rlambda,  renergy, l_energy, &
-                  pdf_radiation, pdf_power) 
+                  pdf_radiation, 4, pdf_power) 
       bave = 0.0 
       hh = pdf_xq**2 
 !                                                                       
@@ -1852,6 +1852,8 @@ USE support_mod
       start = seknds (0.0) 
       IF (rmc_mode.eq.rmc_mode_swchem) then 
          WRITE (output_io, 2000) 'Mode SWCHEM' 
+      elseIF (rmc_mode.eq.rmc_mode_rotate) then 
+         WRITE (output_io, 2000) 'Mode ROTATE' 
       ELSEIF (rmc_mode.eq.rmc_mode_swdisp) then 
          WRITE (output_io, 2000) 'Mode SWDISP' 
       ELSEIF (rmc_mode.eq.rmc_mode_shift) then 
@@ -1863,32 +1865,31 @@ USE support_mod
       sig2 = rmc_sigma**2 / 2.0 
 !                                                                       
 main: DO while (loop) 
-         IF(ier_ctrlc) THEN
-            ier_num = -14
-            ier_typ = ER_COMM
-            RETURN
-         ENDIF
-         IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
-         laccept = .true. 
-         igen = igen + 1 
-IF((igen<0.05*rmc_maxcyc.and.MOD(igen,10)==2) .or. MOD(igen, 10)==2) THEN
+   IF(ier_ctrlc) THEN
+      ier_num = -14
+      ier_typ = ER_COMM
+      RETURN
+   ENDIF
+   IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
+   laccept = .true. 
+   igen = igen + 1 
+   IF((igen<0.05*rmc_maxcyc.and.MOD(igen,10)==2) .or. MOD(igen, 10)==2) THEN
          CALL pdf_rmc_scale( nmi, nma, cold, wtot, ee, psum, p2sum, &
                           sig2, pmax, pn )
-ELSEIF((igen<0.05*rmc_maxcyc.and.MOD(igen,10)==5) .or. MOD(igen,200)==5) THEN
+   ELSEIF((igen<0.05*rmc_maxcyc.and.MOD(igen,10)==5) .or. MOD(igen,200)==5) THEN
          CALL pdf_rmc_lattice( nmi, nma, cold, wtot, ee, psum, p2sum, &
                                sig2, pmax, pn )
-ELSE
+   ELSE
 !                                                                       
 !-------- generate move and check for limits                            
 !                                                                       
-         IF (rmc_sel_atom) then 
-            CALL rmc_genmove (laccept, natoms, p_new, i_new, isel) 
-         ELSE 
-            CALL rmc_genmove_mol (laccept, natoms, p_new, i_new, isel,     &
-            imol)                                                          
-         ENDIF 
-         IF (ier_num.ne.0) return 
-         IF (laccept) then 
+   IF (rmc_sel_atom) then 
+      CALL rmc_genmove (laccept, natoms, p_new, i_new, isel) 
+   ELSE 
+      CALL rmc_genmove_mol(laccept, natoms, p_new, i_new, isel, imol)
+   ENDIF 
+   IF (ier_num.ne.0) return 
+   IF (laccept) then 
 !                                                                       
 !-------- - save old positions ...                                      
 !                                                                       
@@ -3453,11 +3454,12 @@ inner:      DO iatom = ia+1, cr_natoms
       REAL sigma, fac , factor, fac4
       REAL :: sqrt_zpi
 !                                                                       
-!   open(45,file='hist.pdf_init',status='unknown')
+!   open(45,file='POWDER/hist.pdf_init',status='unknown')
 !   do ii=1,UBOUND(pdf_temp,1)
 !   write(45, '(i7,4(1x,F18.6))') ii,REAL(pdf_temp(ii,1,1,0))
 !   enddo
 !   close (45)
+
       fac = 1.0 / (2.0 * REAL(zpi)**2) 
       sqrt_zpi =1.0/sqrt(REAL(zpi))
       loop_is: DO is = 1, cr_nscat 
@@ -3547,9 +3549,10 @@ inner:      DO iatom = ia+1, cr_natoms
       ENDIF 
       ENDDO loop_is
 !                                                                       
-!   open(45,file='hist.pdf_conv',status='unknown')
+!   open(45,file='POWDER/hist.pdf_conv',status='unknown')
 !   do ii=1,UBOUND(pdf_corr,1)
-!   write(45, '(i7,4(1x,F18.6))') ii,pdf_corr(ii)
+!   write(45, '(2F18.8)') ii*pdf_deltar,pdf_corr(ii)
+!   write(45, '(i7,4(1x,F18.6))') ii,pdf_temp(ii, 1, 1, 0)
 !   enddo
 !   close (45)
       END SUBROUTINE pdf_convtherm                  
