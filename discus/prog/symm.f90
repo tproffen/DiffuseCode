@@ -16,6 +16,7 @@ SUBROUTINE symm
 !+                                                                      
 USE discus_config_mod 
 USE discus_allocate_appl_mod
+use chem_mod
 USE crystal_mod 
 USE discus_kdo_common_mod
 USE modify_mod
@@ -579,6 +580,15 @@ loop_menu: DO while (.not.lend)
                   CALL symm_op_single 
                ENDIF 
             ENDIF 
+!           IF(sym_incl == 'all' .and. linteractive) then
+!              ier_num = +1
+!              ier_typ = ER_APPL
+!              ier_msg(1) = 'Symmetry was used with all atoms'
+!              call errlist
+!              call no_error
+!              chem_quick = .false.
+!              chem_period = .false.
+!           endif
          ELSE 
             IF (sym_sel_mode.eq.SYM_RUN_MOLECULE) THEN 
 !                                                                       
