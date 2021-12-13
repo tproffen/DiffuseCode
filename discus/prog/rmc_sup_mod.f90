@@ -1,437 +1,127 @@
 MODULE rmc_sup_mod
 !
 CONTAINS
+!
 !*****7*****************************************************************
-      SUBROUTINE rmc_set (zeile, lp) 
+!
+SUBROUTINE rmc_set (zeile, lp) 
 !+                                                                      
 !     sets most parameters for 'set' section                            
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE chem_mod 
-      USE diffuse_mod 
-      USE fourier_sup
-      USE get_iscat_mod
-      USE modify_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE chem_mod 
+USE diffuse_mod 
+USE fourier_sup
+USE get_iscat_mod
+USE modify_mod
 use molecule_mod
-      USE rmc_mod 
-      USE quad_mod
-      USE ber_params_mod
-      USE errlist_mod
-      USE get_params_mod
-      USE build_name_mod
+USE rmc_mod 
+USE quad_mod
+USE ber_params_mod
+USE errlist_mod
+USE get_params_mod
+USE build_name_mod
 USE precision_mod
-      USE string_convert_mod
-      IMPLICIT none 
+USE string_convert_mod
 !                                                                       
+IMPLICIT none 
 !
-      INTEGER, PARAMETER :: MIN_PARA = 23  ! A command requires at leaset these no of parameters
-      INTEGER maxw 
+INTEGER, PARAMETER :: MIN_PARA = 23  ! A command requires at leaset these no of parameters
+INTEGER maxw 
 !                                                                       
-      CHARACTER ( LEN=* ), INTENT(INOUT) :: zeile 
-      INTEGER            , INTENT(INOUT) :: lp 
+CHARACTER ( LEN=* ), INTENT(INOUT) :: zeile 
+INTEGER            , INTENT(INOUT) :: lp 
 !                                                                       
-      CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(25                     ) :: cpara
-      REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: werte
-      REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: wwerte
-      REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: uerte
-      INTEGER            , DIMENSION(25                     ) :: lpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(25                     ) :: cpara
+REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: wwerte
+REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: uerte
+INTEGER            , DIMENSION(25                     ) :: lpara
 !
-      REAL mmdis, hklmin (3), hklmax (3)
+REAL mmdis, hklmin (3), hklmax (3)
 !, quad 
-      INTEGER ianz, iianz, jjanz, is, js, i, j, ii, ie1, ie2, ip 
-      LOGICAL flag 
+INTEGER ianz, iianz, jjanz, is, js, i, j, ii, ie1, ie2, ip 
+LOGICAL flag 
 !                                                                       
-      maxw = MAX(MIN_PARA,MAXSCAT+1)
-      maxw = 25
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.eq.0) then 
-         IF (ianz.ge.2) then 
-            CALL do_cap (cpara (1) ) 
+maxw = MAX(MIN_PARA,MAXSCAT+1)
+maxw = 25
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF(ier_num /= 0) return 
+!
+IF (ianz.ge.2) then 
+   CALL do_cap (cpara (1) ) 
 !                                                                       
 !------ --- 'set aver': sets the portion of the crystal used to calc <F>
 !                                                                       
-            IF (cpara (1) (1:2) .eq.'AV') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ianz.eq.1) then 
-                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  IF (ier_num.eq.0) then 
-                     IF (werte (1) .ge.0.0.and.werte (1) .le.100.0)     &
+   IF (cpara (1) (1:2) .eq.'AV') then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ianz.eq.1) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            IF (werte (1) .ge.0.0.and.werte (1) .le.100.0)     &
                      then                                               
-                        rmc_ave = werte (1) * 0.01 
-                        rmc_calc_f = .true. 
-                     ELSE 
-                        ier_num = - 1 
-                        ier_typ = ER_FOUR 
-                     ENDIF 
-                  ENDIF 
+               rmc_ave = werte (1) * 0.01 
+               rmc_calc_f = .true. 
+            ELSE 
+               ier_num = - 1 
+               ier_typ = ER_FOUR 
+            ENDIF 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!------ --- 'set back': background correction for all planes on/off     
+!                                                                       
+   ELSEIF (cpara (1) (1:2) .eq.'BA') then 
+      CALL do_cap (cpara (2) ) 
+      rmc_doback = (cpara (2) (1:2) .eq.'ON') 
+      IF (ianz.eq.3.or.ianz.eq.4) then 
+         CALL del_params (2, ianz, cpara, lpara, maxw) 
+         IF (ier_num.eq.0) then 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            IF (ianz.eq.2) then 
+               ip = nint (werte (2) ) 
+               IF (ip.gt.0.and.ip.le.rmc_max_planes) then 
+                  rmc_back (ip) = werte (1) 
                ELSE 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                ENDIF 
-!                                                                       
-!------ --- 'set back': background correction for all planes on/off     
-!                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'BA') then 
-               CALL do_cap (cpara (2) ) 
-               rmc_doback = (cpara (2) (1:2) .eq.'ON') 
-               IF (ianz.eq.3.or.ianz.eq.4) then 
-                  CALL del_params (2, ianz, cpara, lpara, maxw) 
-                  IF (ier_num.eq.0) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ianz.eq.2) then 
-                        ip = nint (werte (2) ) 
-                        IF (ip.gt.0.and.ip.le.rmc_max_planes) then 
-                           rmc_back (ip) = werte (1) 
-                        ELSE 
-                           ier_num = - 6 
-                           ier_typ = ER_COMM 
-                        ENDIF 
-                     ELSE 
-                        DO i = 1, rmc_max_planes 
-                        rmc_back (i) = werte (1) 
-                        ENDDO 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ELSE 
-                  DO i = 1, rmc_max_planes 
-                  rmc_back (i) = 0.0 
-                  ENDDO 
-               ENDIF 
+            ELSE 
+               DO i = 1, rmc_max_planes 
+                  rmc_back (i) = werte (1) 
+               ENDDO 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ELSE 
+         DO i = 1, rmc_max_planes 
+            rmc_back (i) = 0.0 
+         ENDDO 
+      ENDIF 
 !                                                                       
 !------ --- 'set constrain': setting possible skaling/background        
 !                            constrains                                 
 !                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'CO') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.2) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     ie1 = nint (werte (1) ) 
-                     ie2 = nint (werte (2) ) 
-                     IF (ie1.gt.0.and.ie1.le.rmc_max_planes.and. &
-                         ie2.gt.0.and.ie2.le.rmc_max_planes.and. &
-                         ie2.le.ie1                        ) then                                  
-                        rmc_constrain (ie1) = ie2 
-                     ELSE 
-                        ier_num = - 19 
-                        ier_typ = ER_RMC 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!------ --- 'set cycl': setting of number of RMC cycles                 
-!                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'CY') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.1) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.ne.0) return 
-                     rmc_maxcyc = int (werte (1) ) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!------ --- 'set data' : setting data type for input data               
-!                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'DA') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.ge.1) then 
-                     CALL do_cap (cpara (1) ) 
-                     IF (cpara (1) (1:1) .eq.'N') then 
-                        rmc_data = rmc_data_nipl 
-                     ELSEIF (cpara (1) (1:1) .eq.'P') then 
-                        rmc_data = rmc_data_pgm 
-                     ELSE 
-                        ier_num = - 15 
-                        ier_typ = ER_RMC 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!------ --- 'set dbw'  : debye-waller factor control flag setting       
-!                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'DB') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.ge.1) then 
-                     CALL do_cap (cpara (1) ) 
-                     flag = (cpara (1) (1:2) .eq.'ON') 
-                     IF (ianz.gt.1) then 
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxw)                                           
-                        DO i = 1, ianz 
-                        ii = nint (werte (i) ) 
-                        IF (ii.gt.0.and.ii.le.rmc_nplane) then 
-                           rmc_ldbw (ii) = flag 
-                        ELSE 
-                           ier_num = - 7 
-                           ier_typ = ER_RMC 
-                        ENDIF 
-                        ENDDO 
-                     ELSE 
-                        DO i = 1, rmc_nplane 
-                        rmc_ldbw (i) = flag 
-                        ENDDO 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!------ --- 'set disp' : setting of output intervall                    
-!                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'DI') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.1) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     rmc_display = max (1, int (werte (1) ) ) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!------ --- 'set log': Output RMC progress in rmc.log - on/off          
-!                                                                       
-            ELSEIF (cpara (1) (1:3) .eq.'LOG') then 
-               CALL do_cap (cpara (2) ) 
-               rmc_log = (cpara (2) (1:2) .eq.'ON') 
-!                                                                       
-!     --- 'set lots' : Setting of RMC lots                              
-!                                                                       
-            ELSEIF (cpara (1) (1:3) .eq.'LOT') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.1) then 
-                     CALL do_cap (cpara (1) ) 
-                     IF (cpara (1) (1:1) .eq.'O') then 
-                        rmc_ilots = LOT_OFF 
-                        rmc_nlots = 1 
-                        rmc_calc_f = .true. 
-                     ELSE 
-                        ier_num = - 6 
-                        ier_typ = ER_COMM 
-                     ENDIF 
-                  ELSEIF (ianz.ge.6) then 
-                     CALL do_cap (cpara (1) ) 
-                     IF (cpara (1) (1:1) .eq.'B') then 
-                        rmc_ilots = LOT_BOX 
-                        rmc_calc_f = .true. 
-                     ELSEIF (cpara (1) (1:1) .eq.'E') then 
-                        rmc_ilots = LOT_ELI 
-                        rmc_calc_f = .true. 
-                     ELSE 
-                        ier_num = - 2 
-                        ier_typ = ER_FOUR 
-                     ENDIF 
-                     IF (ier_num.eq.0) then 
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL ber_params (4, cpara, lpara, werte, maxw) 
-                        IF (ier_num.eq.0) then 
-!                          IF (nint (werte (4) ) .le.RMC_MAX_LOTS) then 
-                              ls_xyz (1) = nint (werte (1) ) 
-                              ls_xyz (2) = nint (werte (2) ) 
-                              ls_xyz (3) = nint (werte (3) ) 
-                              rmc_nlots = nint (werte (4) ) 
-                              CALL do_cap (cpara (5) ) 
-                              lperiod = (cpara (5) (1:1) .eq.'Y') 
-                              IF (ianz.gt.5) then 
-                                 CALL del_params (5, ianz, cpara, lpara,&
-                                 maxw)                                  
-                                 CALL do_build_name (ianz, cpara, lpara,&
-                                 werte, maxw, 1)                        
-                                 IF (ier_num.eq.0) then 
-                                    rmc_ranloc = .FALSE. 
-                                    rmc_lname = cpara (1) (1:lpara(1))
-                                 ENDIF 
-                              ELSE 
-                                 rmc_ranloc = .TRUE. 
-                              ENDIF 
-!                          ELSE 
-!                             ier_num = - 21 
-!                             ier_typ = ER_RMC 
-!                          ENDIF 
-                        ENDIF 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!------ --- 'set mdis' : sets minimal allowed atom distances            
-!                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'MD') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.3) then 
-                     iianz = 1 
-                     CALL get_iscat (iianz, cpara (1), lpara (1),       &
-                     werte, maxw, .false.)                              
-                     IF (ier_num.eq.0) then 
-                        jjanz = 1 
-                        CALL get_iscat (jjanz, cpara (2), lpara (2),    &
-                        wwerte, maxw, .false.)                          
-                        IF (ier_num.eq.0) then 
-                           CALL del_params (2, ianz, cpara, lpara, maxw) 
-                           CALL ber_params (1, cpara, lpara, uerte, 1) 
-                           mmdis = uerte(1)
-                           IF (ier_num.eq.0) then 
-                              DO i = 1, iianz 
-                              DO j = 1, jjanz 
-                              is = NINT (werte (i) ) 
-                              js = NINT (wwerte (j) ) 
-                              CALL rmc_set_mindist (is, js, mmdis) 
-                              ENDDO 
-                              ENDDO 
-                           ENDIF 
-                        ENDIF 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!------ --- 'set mode': sets operation mode for RMC                     
-!                                                                       
-            ELSEIF (cpara (1) (1:3) .eq.'MOD') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.ne.0) return 
-               j = 1 
-               CALL ber_params (j, cpara, lpara, werte, maxw) 
-               IF (ier_num.ne.0) return 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.ne.0) return 
-               CALL rmc_set_mode (                     ianz, cpara,lpara, werte,maxw)
-!              CALL rmc_set_mode (rmc_mode, rmc_local, ianz, cpara,lpara, werte,maxw)
-!                                                                       
-!------ --- 'set move': sets factor for generated moves                 
-!                                                                       
-            ELSEIF (cpara (1) (1:3) .eq.'MOV') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.ne.0) return 
-               CALL rmc_set_move (rmc_maxmove, rmc_sel_atom, ianz,      &
-               cpara, werte, lpara, maxw, 3, MOLE_MAX_TYPE)                               
-!                                                                       
-!------ --- 'set range': set q-range to be used in RMC runs             
-!                                                                       
-            ELSEIF (cpara (1) (1:3) .eq.'RAN') then 
-               IF (ianz.eq.2) then 
-                  CALL do_cap (cpara (2) ) 
-                  IF (cpara (2) (1:3) .eq.'ALL') then 
-                     rmc_llim = rmc_qmin 
-                     rmc_ulim = rmc_qmax 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ELSEIF (ianz.eq.3) then 
-                  CALL del_params (1, ianz, cpara, lpara, maxw) 
-                  IF (ier_num.ne.0) return 
-                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  rmc_llim = werte (1) / 2.0 
-                  rmc_ulim = werte (2) / 2.0 
-               ELSEIF (ianz.eq.7) then 
-                  CALL del_params (1, ianz, cpara, lpara, maxw) 
-                  IF (ier_num.ne.0) return 
-                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  hklmin (1) = werte (1) 
-                  hklmin (2) = werte (2) 
-                  hklmin (3) = werte (3) 
-                  hklmax (1) = werte (4) 
-                  hklmax (2) = werte (5) 
-                  hklmax (3) = werte (6) 
-                  rmc_llim = sqrt (quad (hklmin, hklmin, cr_rten)       &
-                  / 4.0)                                                
-                  rmc_ulim = sqrt (quad (hklmax, hklmax, cr_rten)       &
-                  / 4.0)                                                
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-!                                                                       
-!------ --- 'set scal': scalingfactor for all planes on/off             
-!                                                                       
-            ELSEIF (cpara (1) (1:3) .eq.'SCA') then 
-               CALL do_cap (cpara (2) ) 
-               rmc_doskal = (cpara (2) (1:2) .eq.'ON') 
-               IF (ianz.eq.3.or.ianz.eq.4) then 
-                  CALL del_params (2, ianz, cpara, lpara, maxw) 
-                  IF (ier_num.eq.0) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ianz.eq.2) then 
-                        ip = nint (werte (2) ) 
-                        IF (ip.gt.0.and.ip.le.rmc_max_planes) then 
-                           rmc_skal (ip) = 1.0 / werte (1) 
-                        ELSE 
-                           ier_num = - 6 
-                           ier_typ = ER_COMM 
-                        ENDIF 
-                     ELSE 
-                        DO i = 1, rmc_max_planes 
-                        rmc_skal (i) = 1.0 / werte (1) 
-                        ENDDO 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ELSE 
-                  DO i = 1, rmc_max_planes 
-                  rmc_skal (i) = 1.0 
-                  ENDDO 
-               ENDIF 
-!                                                                       
-!------ --- 'set sigma': sets SIGMA for CHI2 calculation                
-!                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'SI') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.1) then 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     rmc_sigma = werte (1) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-!                                                                       
-!------ --- 'set sym': include symmetry of measured data on/off         
-!                                                                       
-            ELSEIF (cpara (1) (1:3) .eq.'SYM') then 
-               CALL do_cap (cpara (2) ) 
-               rmc_dosym = (cpara (2) (1:2) .eq.'ON') 
-               rmc_calc_f = .true. 
-!                                                                       
-               IF (rmc_dosym.and.rmc_nosym) then 
-                  rmc_dosym = .false. 
-                  ier_num = - 13 
-                  ier_typ = ER_RMC 
-               ENDIF 
-!                                                                       
-!------ --- unknown subcommand entered                                  
-!                                                                       
+   ELSEIF (cpara (1) (1:2) .eq.'CO') then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.eq.2) then 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            ie1 = nint (werte (1) ) 
+            ie2 = nint (werte (2) ) 
+            IF (ie1.gt.0.and.ie1.le.rmc_max_planes.and. &
+                ie2.gt.0.and.ie2.le.rmc_max_planes.and. &
+                ie2.le.ie1                        ) then                                  
+               rmc_constrain (ie1) = ie2 
             ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
+               ier_num = - 19 
+               ier_typ = ER_RMC 
             ENDIF 
          ELSE 
             ier_num = - 6 
@@ -439,7 +129,319 @@ USE precision_mod
          ENDIF 
       ENDIF 
 !                                                                       
-      END SUBROUTINE rmc_set                        
+!------ --- 'set cycl': setting of number of RMC cycles                 
+!                                                                       
+   ELSEIF (cpara (1) (1:2) .eq.'CY') then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.eq.1) then 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            IF (ier_num.ne.0) return 
+            rmc_maxcyc = int (werte (1) ) 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!------ --- 'set data' : setting data type for input data               
+!                                                                       
+   ELSEIF (cpara (1) (1:2) .eq.'DA') then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.ge.1) then 
+            CALL do_cap (cpara (1) ) 
+            IF (cpara (1) (1:1) .eq.'N') then 
+               rmc_data = rmc_data_nipl 
+            ELSEIF (cpara (1) (1:1) .eq.'P') then 
+               rmc_data = rmc_data_pgm 
+            ELSE 
+               ier_num = - 15 
+               ier_typ = ER_RMC 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!------ --- 'set dbw'  : debye-waller factor control flag setting       
+!                                                                       
+   ELSEIF (cpara (1) (1:2) .eq.'DB') then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.ge.1) then 
+            CALL do_cap (cpara (1) ) 
+            flag = (cpara (1) (1:2) .eq.'ON') 
+            IF (ianz.gt.1) then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw)
+               DO i = 1, ianz 
+                  ii = nint (werte (i) ) 
+                  IF (ii.gt.0.and.ii.le.rmc_nplane) then 
+                     rmc_ldbw (ii) = flag 
+                  ELSE 
+                     ier_num = - 7 
+                     ier_typ = ER_RMC 
+                  ENDIF 
+               ENDDO 
+            ELSE 
+               DO i = 1, rmc_nplane 
+                  rmc_ldbw (i) = flag 
+               ENDDO 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!------ --- 'set disp' : setting of output intervall                    
+!                                                                       
+   ELSEIF (cpara (1) (1:2) .eq.'DI') then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.eq.1) then 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            rmc_display = max (1, int (werte (1) ) ) 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!------ --- 'set log': Output RMC progress in rmc.log - on/off          
+!                                                                       
+   ELSEIF (cpara (1) (1:3) .eq.'LOG') then 
+      CALL do_cap (cpara (2) ) 
+      rmc_log = (cpara (2) (1:2) .eq.'ON') 
+!                                                                       
+!     --- 'set lots' : Setting of RMC lots                              
+!                                                                       
+   ELSEIF (cpara (1) (1:3) .eq.'LOT') then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.eq.1) then 
+            CALL do_cap (cpara (1) ) 
+            IF (cpara (1) (1:1) .eq.'O') then 
+               rmc_ilots = LOT_OFF 
+               rmc_nlots = 1 
+               rmc_calc_f = .true. 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ELSEIF (ianz.ge.6) then 
+            CALL do_cap (cpara (1) ) 
+            IF (cpara (1) (1:1) .eq.'B') then 
+               rmc_ilots = LOT_BOX 
+               rmc_calc_f = .true. 
+            ELSEIF (cpara (1) (1:1) .eq.'E') then 
+               rmc_ilots = LOT_ELI 
+               rmc_calc_f = .true. 
+            ELSE 
+               ier_num = - 2 
+               ier_typ = ER_FOUR 
+            ENDIF 
+            IF (ier_num.eq.0) then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               CALL ber_params (4, cpara, lpara, werte, maxw) 
+               IF (ier_num.eq.0) then 
+!                          IF (nint (werte (4) ) .le.RMC_MAX_LOTS) then 
+                     ls_xyz (1) = nint (werte (1) ) 
+                     ls_xyz (2) = nint (werte (2) ) 
+                     ls_xyz (3) = nint (werte (3) ) 
+                     rmc_nlots = nint (werte (4) ) 
+                     CALL do_cap (cpara (5) ) 
+                     lperiod = (cpara (5) (1:1) .eq.'Y') 
+                     IF (ianz.gt.5) then 
+                        CALL del_params (5, ianz, cpara, lpara,&
+                                 maxw)                                  
+                        CALL do_build_name (ianz, cpara, lpara,&
+                                 werte, maxw, 1)                        
+                        IF (ier_num.eq.0) then 
+                           rmc_ranloc = .FALSE. 
+                           rmc_lname = cpara (1) (1:lpara(1))
+                        ENDIF 
+                     ELSE 
+                        rmc_ranloc = .TRUE. 
+                     ENDIF 
+!                          ELSE 
+!                             ier_num = - 21 
+!                             ier_typ = ER_RMC 
+!                          ENDIF 
+               ENDIF 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!------ --- 'set mdis' : sets minimal allowed atom distances            
+!                                                                       
+   ELSEIF (cpara (1) (1:2) .eq.'MD') then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.eq.3) then 
+            iianz = 1 
+            CALL get_iscat (iianz, cpara (1), lpara (1),       &
+            werte, maxw, .false.)                              
+            IF (ier_num.eq.0) then 
+               jjanz = 1 
+               CALL get_iscat (jjanz, cpara (2), lpara (2),    &
+                        wwerte, maxw, .false.)                          
+               IF (ier_num.eq.0) then 
+                  CALL del_params (2, ianz, cpara, lpara, maxw) 
+                  CALL ber_params (1, cpara, lpara, uerte, 1) 
+                  mmdis = uerte(1)
+                  IF (ier_num.eq.0) then 
+                     DO i = 1, iianz 
+                        DO j = 1, jjanz 
+                           is = NINT (werte (i) ) 
+                           js = NINT (wwerte (j) ) 
+                           CALL rmc_set_mindist (is, js, mmdis) 
+                        ENDDO 
+                     ENDDO 
+                  ENDIF 
+               ENDIF 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!------ --- 'set mode': sets operation mode for RMC                     
+!                                                                       
+   ELSEIF(cpara(1)(1:3) .eq. 'MOD') then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.ne.0) return 
+      j = 1 
+      CALL ber_params (j, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.ne.0) return 
+      CALL rmc_set_mode(ianz, cpara,lpara, werte,maxw)
+!              CALL rmc_set_mode (rmc_mode, rmc_local, ianz, cpara,lpara, werte,maxw)
+!                                                                       
+!------ --- 'set move': sets factor for generated moves                 
+!                                                                       
+   ELSEIF (cpara (1) (1:3) .eq.'MOV') then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.ne.0) return 
+      CALL rmc_set_move (rmc_maxmove, rmc_sel_atom, ianz,      &
+      cpara, werte, lpara, maxw, 3, MOLE_MAX_TYPE)                               
+!                                                                       
+!------ --- 'set range': set q-range to be used in RMC runs             
+!                                                                       
+   ELSEIF (cpara (1) (1:3) .eq.'RAN') then 
+      IF (ianz.eq.2) then 
+         CALL do_cap (cpara (2) ) 
+         IF (cpara (2) (1:3) .eq.'ALL') then 
+            rmc_llim = rmc_qmin 
+            rmc_ulim = rmc_qmax 
+         ELSE 
+   ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ELSEIF (ianz.eq.3) then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         IF (ier_num.ne.0) return 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         rmc_llim = werte (1) / 2.0 
+         rmc_ulim = werte (2) / 2.0 
+      ELSEIF (ianz.eq.7) then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         IF (ier_num.ne.0) return 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         hklmin (1) = werte (1) 
+         hklmin (2) = werte (2) 
+         hklmin (3) = werte (3) 
+         hklmax (1) = werte (4) 
+         hklmax (2) = werte (5) 
+         hklmax (3) = werte (6) 
+         rmc_llim = sqrt (quad (hklmin, hklmin, cr_rten)       &
+                  / 4.0)                                                
+         rmc_ulim = sqrt (quad (hklmax, hklmax, cr_rten)       &
+                  / 4.0)                                                
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!------ --- 'set scal': scalingfactor for all planes on/off             
+!                                                                       
+   ELSEIF (cpara (1) (1:3) .eq.'SCA') then 
+      CALL do_cap (cpara (2) ) 
+      rmc_doskal = (cpara (2) (1:2) .eq.'ON') 
+      IF (ianz.eq.3.or.ianz.eq.4) then 
+         CALL del_params (2, ianz, cpara, lpara, maxw) 
+         IF (ier_num.eq.0) then 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            IF (ianz.eq.2) then 
+               ip = nint (werte (2) ) 
+               IF (ip.gt.0.and.ip.le.rmc_max_planes) then 
+                  rmc_skal (ip) = 1.0 / werte (1) 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
+            ELSE 
+               DO i = 1, rmc_max_planes 
+                  rmc_skal (i) = 1.0 / werte (1) 
+               ENDDO 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ELSE 
+         DO i = 1, rmc_max_planes 
+            rmc_skal (i) = 1.0 
+         ENDDO 
+      ENDIF 
+!                                                                       
+!------ --- 'set sigma': sets SIGMA for CHI2 calculation                
+!                                                                       
+   ELSEIF (cpara (1) (1:2) .eq.'SI') then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.eq.1) then 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            rmc_sigma = werte (1) 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!------ --- 'set sym': include symmetry of measured data on/off         
+!                                                                       
+   ELSEIF (cpara (1) (1:3) .eq.'SYM') then 
+      CALL do_cap (cpara (2) ) 
+      rmc_dosym = (cpara (2) (1:2) .eq.'ON') 
+      rmc_calc_f = .true. 
+!                                                                       
+      IF (rmc_dosym.and.rmc_nosym) then 
+         rmc_dosym = .false. 
+         ier_num = - 13 
+         ier_typ = ER_RMC 
+      ENDIF 
+!                                                                       
+!------ --- unknown subcommand entered                                  
+!                                                                       
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
+!ENDIF 
+!                                                                       
+END SUBROUTINE rmc_set                        
 !
 !*****7*****************************************************************
 !
@@ -552,18 +554,19 @@ ENDIF
 END SUBROUTINE rmc_set_move                   
 !
 !*****7*****************************************************************
+!
 !     SUBROUTINE rmc_set_mode (imode, ilocal, ianz, cpara, lpara, werte,maxw) 
-      SUBROUTINE rmc_set_mode (               ianz, cpara, lpara, werte,maxw) 
+SUBROUTINE rmc_set_mode (               ianz, cpara, lpara, werte,maxw) 
 !+                                                                      
 !     Sets RMC/MC mode                                                  
 !-                                                                      
-      USE discus_config_mod 
-      USE rmc_mod 
-      USE errlist_mod 
+USE discus_config_mod 
+USE rmc_mod 
+USE errlist_mod 
 USE precision_mod
-      USE string_convert_mod
-      IMPLICIT none 
+USE string_convert_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: maxw 
 !                                                                       
@@ -578,64 +581,70 @@ USE precision_mod
       INTEGER :: i
       REAL    :: sump
 !                                                                       
-      IF (ianz.ge.1) then 
-         CALL do_cap (cpara (1)(1:lpara(1)) ) 
-         IF (cpara (1) (1:3) .eq.'SHI') then 
-            imode = rmc_mode_shift 
-         ELSEIF (cpara (1) (1:3) .eq.'SWD') then 
-            imode = rmc_mode_swdisp 
-         ELSEIF (cpara (1) (1:3) .eq.'SWC') then 
-            imode = rmc_mode_swchem 
-         ELSEIF (cpara (1) (1:3) .eq.'EXT') then 
-            imode = rmc_mode_external 
-         ELSE 
-            ier_typ = ER_RMC 
-            ier_num = - 9 
-            RETURN
-         ENDIF 
+IF (ianz.ge.1) then 
+   CALL do_cap (cpara (1)(1:lpara(1)) ) 
+write(*,*) ' CPARA(!) ', cpara(1)(1:4)
+   IF (cpara (1) (1:3) .eq.'SHI') then 
+      imode = rmc_mode_shift 
+   ELSEIF (cpara (1) (1:3) .eq.'SWD') then 
+      imode = rmc_mode_swdisp 
+   ELSEIF (cpara (1) (1:3) .eq.'SWC') then 
+      imode = rmc_mode_swchem 
+   ELSEIF (cpara (1) (1:3) .eq.'EXT') then 
+      imode = rmc_mode_external 
+   ELSEIF(cpara(1)(1:3) .eq. 'ROT') then 
+      imode = rmc_mode_rotate 
+   ELSE 
+      ier_typ = ER_RMC 
+      ier_num = - 9 
+      RETURN
+   ENDIF 
+write(*,*) ' IMODE ', imode
 !                                                                       
-         IF (ianz.eq.2) then 
-            CALL do_cap (cpara(2)(1:lpara(2)) ) 
-            IF (cpara (2) (1:1) .eq.'A') then 
-               rmc_move_local(imode) = rmc_local_all 
-            ELSEIF (cpara (2) (1:1) .eq.'L') then 
-               rmc_move_local(imode) = rmc_local_loc 
-            ELSEIF (cpara (2) (1:2) .eq.'SL') then 
-               rmc_move_local(imode) = rmc_local_locsite 
-            ELSEIF (cpara (2) (1:2) .eq.'SI') then 
-               rmc_move_local(imode) = rmc_local_site 
-            ELSEIF (cpara (2) (1:2) .eq.'CO') then 
-               rmc_move_local(imode) = rmc_local_conn 
-            ELSE 
-               ier_typ = ER_RMC 
-               ier_num = - 9 
-               RETURN
-            ENDIF 
-         ELSE 
-            rmc_move_local(imode) = rmc_local_all 
-         ENDIF 
+   IF (ianz.eq.2) then 
+      CALL do_cap (cpara(2)(1:lpara(2)) ) 
+      IF (cpara (2) (1:1) .eq.'A') then 
+         rmc_move_local(imode) = rmc_local_all 
+      ELSEIF (cpara (2) (1:1) .eq.'L') then 
+         rmc_move_local(imode) = rmc_local_loc 
+      ELSEIF (cpara (2) (1:2) .eq.'SL') then 
+         rmc_move_local(imode) = rmc_local_locsite 
+      ELSEIF (cpara (2) (1:2) .eq.'SI') then 
+         rmc_move_local(imode) = rmc_local_site 
+      ELSEIF (cpara (2) (1:2) .eq.'CO') then 
+         rmc_move_local(imode) = rmc_local_conn 
+      ELSE 
+         ier_typ = ER_RMC 
+         ier_num = - 9 
+         RETURN
+      ENDIF 
+   ELSE 
+      rmc_move_local(imode) = rmc_local_all 
+   ENDIF 
 !                                                                       
 !     --Set probabilities for the different moves                       
 !                                                                       
-         rmc_move_prob (imode) = werte (1) 
-         sump = 0.0 
-         DO i = 1, RMC_N_MOVE 
-         sump = sump + rmc_move_prob (i) 
-         ENDDO 
-         IF (sump.gt.0) then 
-            rmc_move_cprob (1) = rmc_move_prob (1) / sump 
-            DO i = 2, RMC_N_MOVE 
-            rmc_move_cprob (i) = rmc_move_cprob (i - 1) + &
-                                 rmc_move_prob  (i) / sump                                                  
-            ENDDO 
-         ENDIF 
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-      ENDIF 
+   rmc_move_prob (imode) = werte (1) 
+   sump = 0.0 
+   DO i = 1, RMC_N_MOVE 
+      sump = sump + rmc_move_prob (i) 
+   ENDDO 
+   IF (sump.gt.0) then 
+      rmc_move_cprob (1) = rmc_move_prob (1) / sump 
+      DO i = 2, RMC_N_MOVE 
+         rmc_move_cprob (i) = rmc_move_cprob (i - 1) + &
+                              rmc_move_prob  (i) / sump                                                  
+      ENDDO 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
 !                                                                       
-      END SUBROUTINE rmc_set_mode                   
+END SUBROUTINE rmc_set_mode                   
+!
 !*****7*****************************************************************
+!
       SUBROUTINE rmc_set_mindist (is, js, dist) 
 !+                                                                      
 !     Set minimal allowed atom distances                                
@@ -762,6 +771,8 @@ USE lib_length
       CHARACTER(8) ra 
       INTEGER mol_lis (mole_max_type+1) 
       INTEGER i, j, k, ie
+integer :: imode
+real    :: prob
 !                                                                       
       CHARACTER(9) at_name_i, at_name_j 
 !     CHARACTER(9) at_name 
@@ -771,18 +782,27 @@ USE lib_length
      &**2        ', 'w(Int) = 1/Int         ', 'w(Int) = 1/sqrt(Int)   '&
      &, 'w(Int) = read from file' /                                     
 !                                                                       
-      IF (cmd (1:3) .eq.'ALL'.or.cmd (1:3) .eq.'MOD') then 
+IF(cmd(1:3)=='ALL' .or. cmd (1:3)=='MOD') then 
+   prob = 0.00
+   do i=1, RMC_N_MOVE
+      if(rmc_move_cprob(i)-prob>0.0001) then
+         rmc_mode = i
          IF (rmc_mode.eq.rmc_mode_shift) then 
-            WRITE (output_io, 1100) 'move atoms/molecules' 
+            WRITE (output_io, 1100) rmc_move_cprob(i)-prob,'move atoms/molecules' 
+         elseIF (rmc_mode.eq.rmc_mode_rotate) then 
+            WRITE (output_io, 1100) rmc_move_cprob(i)-prob,'rotate atoms/molecules' 
          ELSEIF (rmc_mode.eq.rmc_mode_swchem) then 
-            WRITE (output_io, 1100) 'switch atoms/molecules' 
+            WRITE (output_io, 1100) rmc_move_cprob(i)-prob,'switch atoms/molecules' 
          ELSEIF (rmc_mode.eq.rmc_mode_swdisp) then 
-            WRITE (output_io, 1100) 'switch displacements' 
+            WRITE (output_io, 1100) rmc_move_cprob(i)-prob,'switch displacements' 
          ELSEIF (rmc_mode.eq.rmc_mode_external) then 
-      WRITE (output_io, 1100) 'defined in user supplied subroutine' 
+            WRITE (output_io, 1100) rmc_move_cprob(i)-prob,'defined in user supplied subroutine' 
          ELSE 
-            WRITE (output_io, 1100) '??????????' 
+            WRITE (output_io, 1100) rmc_move_cprob(i)-prob,'??????????' 
          ENDIF 
+         prob = prob + rmc_move_cprob(i)
+      endif
+   enddo
          IF (rmc_local.eq.rmc_local_all) then 
             WRITE (output_io, 1120) 'all' 
          ELSEIF (rmc_local.eq.rmc_local_loc) then 
@@ -930,7 +950,7 @@ USE lib_length
          ENDIF 
       ENDIF 
 !                                                                       
- 1100 FORMAT     (  ' RMC running mode            : ',A) 
+ 1100 FORMAT     (  ' RMC running mode            : ',f6.3,' : ',A) 
  1120 FORMAT     (  '   Valid neighbours          : ',A) 
  1150 FORMAT     (  '   Calc. scaling/backgr.     : ',A) 
  1200 FORMAT     (  '   Fourier volume            : complete crystal') 
@@ -1687,29 +1707,31 @@ USE precision_mod
       ENDIF 
 !                                                                       
       END FUNCTION rmc_dowic                        
+!
 !*****7*****************************************************************
-      SUBROUTINE rmc_run 
+!
+SUBROUTINE rmc_run 
 !+                                                                      
 !     main rmc loop - called by run command                             
 !-                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE chem_mod 
-      USE diffuse_mod 
-      USE fourier_sup
-      USE rmc_mod
-      USE update_cr_dim_mod
-      USE random_mod
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE chem_mod 
+USE diffuse_mod 
+USE fourier_sup
+USE rmc_mod
+USE update_cr_dim_mod
+USE random_mod
 !                                                                       
-      USE errlist_mod 
+USE errlist_mod 
 USE lib_random_func
-      USE param_mod 
-      USE prompt_mod 
-      USE precision_mod
-USE support_mod
-      IMPLICIT none 
-       
+USE param_mod 
+USE prompt_mod 
+USE precision_mod
+use support_mod
+!
+IMPLICIT none 
 !                                                                       
       REAL(PREC_DP) rmc_cc, rmc_c, rmc_ce 
       REAL(PREC_DP) rmc_e (rmc_max_planes) 
@@ -1740,22 +1762,24 @@ USE support_mod
 REAL :: r1
 !                                                                       
 !                                                                       
-      igen = 0 
-      itry = 0 
-      iacc_good = 0 
-      iacc_bad = 0 
-      loop = .true. 
-      laccept = .true. 
+igen = 0 
+itry = 0 
+iacc_good = 0 
+iacc_bad = 0 
+loop = .true. 
+laccept = .true. 
 !                                                                       
-      psum = 0.0 
-      p2sum = 0.0 
-      pmax = 0.0 
-      pn = 0.0 
+psum = 0.0 
+p2sum = 0.0 
+pmax = 0.0 
+pn = 0.0 
 !                                                                       
 !------ check consistency of input data                                 
 !                                                                       
-      CALL rmc_check_input 
-      IF (ier_num.ne.0) return 
+write(*,*) 'RMC CHECK INPUT '
+CALL rmc_check_input 
+write(*,*) 'RMC CHECK INPUT done'
+IF (ier_num.ne.0) return 
 !
 !------	Allocate arrays related to SQ, LOTS
 !
@@ -1804,6 +1828,8 @@ REAL :: r1
           WRITE (34,2000) 'Mode SWDISP' 
         ELSEIF (rmc_mode.eq.rmc_mode_shift) THEN 
           WRITE (34,2000) 'Mode SHIFT' 
+        ELSEIF (rmc_mode.eq.rmc_mode_rotate) THEN 
+          WRITE (34,2000) 'Mode ROTATE' 
         ENDIF 
         CLOSE (34) 
       ENDIF 
@@ -1862,12 +1888,15 @@ REAL :: r1
         WRITE (output_io,2000) 'Mode SWDISP' 
       ELSEIF (rmc_mode.eq.rmc_mode_shift) THEN 
         WRITE (output_io,2000) 'Mode SHIFT' 
+      ELSEIF (rmc_mode.eq.rmc_mode_rotate) THEN 
+        WRITE (output_io,2000) 'Mode ROTATE' 
       ELSEIF (rmc_mode.eq.rmc_mode_external) THEN 
         WRITE (output_io,2000) 'external defined mode' 
       ENDIF 
 !                                                                       
       sig2 = rmc_sigma**2/2.0 
 !                                                                       
+write(*,*) 'RMC MAIN LOOP STARTED '
       DO while (loop) 
         IF(ier_ctrlc) THEN
            ier_num = -14
@@ -1899,7 +1928,7 @@ REAL :: r1
             call dlink(rmc_ano(ip),           &
      &                     rmc_lambda(ip),rmc_rlambda(ip),   &
                            rmc_energy, l_rmc_energy,                & 
-                           rmc_radiation(ip), rmc_power(ip))
+                           rmc_radiation(ip), 4, rmc_power(ip))
             DO is=1,isym(ip) 
               call rmc_fcalc (ip,is,natoms,i_new,p_new,isel) 
               call rmc_inten (ip,is,.true.) 
@@ -1932,6 +1961,7 @@ REAL :: r1
 !     ----Accept move ?                                                 
 !                                                                       
           prob = chi2_new - chi2_old 
+!write(*,*) 'CHINEW OLD ', prob , chi2_new , chi2_old, sig2, exp(-abs(prob)/sig2)
 !                                                                       
           IF (prob.lt.0) THEN 
             laccept = .true. 
@@ -2039,6 +2069,14 @@ REAL :: r1
 !------ Update crystal dimensions                                       
 !                                                                       
       CALL update_cr_dim 
+!
+open(77,file='INTE/rmc.inte', status='unknown')
+write(77,'(2i8)')  51, 51
+write(77,'(4f8.2)') -4.,4., -4., 4.
+do i=1, 51
+  write(77,'(5g13.5e2)') (dsi(iq), iq=(i-1)*51+1, (i-1)*51+51)
+enddo
+close(77)
 !                                                                       
 !------ formats                                                         
 !                                                                       
@@ -2113,7 +2151,7 @@ USE support_mod
 loop_plane: DO ip = 1, rmc_nplane 
          CALL dlink (rmc_ano (ip), rmc_lambda (ip),        &
                      rmc_rlambda (ip),  rmc_energy, l_rmc_energy, &
-                     rmc_radiation(ip), rmc_power(ip) )
+                     rmc_radiation(ip), 4, rmc_power(ip) )
          CALL rmc_formtab (ip, .true.) 
 !                                                                       
 !------ - Loop over all sym. equivalent planes                          
@@ -3171,106 +3209,120 @@ REAL :: r1
      &       3(F9.3,1X),/,72('-'))                                      
 !                                                                       
       END SUBROUTINE rmc_genmove                    
+!
 !********************************************************************** 
-      SUBROUTINE rmc_genmove_mol (laccept, natoms, p_new, i_new, isel,  &
-      imol)                                                             
+!
+SUBROUTINE rmc_genmove_mol(laccept, natoms, p_new, i_new, isel, imol)
 !+                                                                      
 !     Generate RMC move (for switch and relax. mode)                    
 !     Version for molecules ..                                          
 !                                                                       
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE chem_mod 
-      USE celltoindex_mod
-      USE diffuse_mod 
+USE discus_config_mod 
+USE crystal_mod 
+USE chem_mod 
+USE celltoindex_mod
+USE diffuse_mod 
 !     USE modify_mod
-      USE molecule_mod 
-      USE rmc_mod 
-      USE extrmc
-      USE random_mod
+USE molecule_mod 
+USE rmc_mod 
+USE extrmc
+USE random_mod
+use symm_menu, only: symm_show
+use symm_mod
+use symm_sup_mod
 !
-      USE debug_mod 
+USE debug_mod 
 !                                                                       
-      USE errlist_mod 
+USE errlist_mod 
 USE lib_random_func
-      USE prompt_mod 
+USE prompt_mod 
 USE precision_mod
-      IMPLICIT none 
 !
-      LOGICAL, INTENT(OUT) :: laccept 
-      INTEGER, INTENT(OUT) :: natoms 
-      REAL   , DIMENSION(3, RMC_MAX_ATOM), INTENT(OUT) :: p_new !(3, rmc_max_atom) 
-      INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: i_new !(rmc_max_atom) 
-      INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: isel  !(rmc_max_atom) 
-      INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: imol !(rmc_max_atom) 
+IMPLICIT none 
+!
+LOGICAL, INTENT(OUT) :: laccept 
+INTEGER, INTENT(OUT) :: natoms 
+REAL   , DIMENSION(3, RMC_MAX_ATOM), INTENT(OUT) :: p_new !(3, rmc_max_atom) 
+INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: i_new !(rmc_max_atom) 
+INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: isel  !(rmc_max_atom) 
+INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: imol !(rmc_max_atom) 
 !                                                                       
-      INTEGER iz1 (3), iz2 (3) 
-      INTEGER i, j, k, is1, is2, il, i0, j0 
-      REAL disp1 (3), disp2 (3) 
-      REAL dummy (3) 
-      LOGICAL lflag  !, rmc_inlot 
+INTEGER :: iz1 (3), iz2 (3) 
+INTEGER :: i, j, k, is1, is2, il, i0, j0 
+REAL(kind=PREC_SP), dimension(3) :: disp1 ! (3), disp2 (3) 
+REAL(kind=PREC_SP), dimension(3) :: disp2 ! (3), disp2 (3) 
+REAL(kind=PREC_SP), dimension(3) ::  dummy ! (3) 
+LOGICAL :: lflag  !, rmc_inlot 
 REAL :: r1
 !                                                                       
-      natoms = 0 
+natoms = 0 
+!
+!  select move type
+!
+CALL RANDOM_NUMBER(r1)
+select_move: do i=1,RMC_N_MOVE
+   if(rmc_move_cprob(i)>r1) then
+      rmc_mode = i
+      exit select_move
+   endif
+enddo select_move
 !                                                                       
 !------ Mode 'swchem': only switch atoms => pnew=pold                   
 !                                                                       
-      IF (rmc_mode.eq.rmc_mode_swchem) then 
-         CALL RANDOM_NUMBER(r1)
-         imol (1) = int (r1          * mole_num_mole) + 1 
+IF (rmc_mode.eq.rmc_mode_swchem) then 
+   CALL RANDOM_NUMBER(r1)
+   imol (1) = int (r1          * mole_num_mole) + 1 
 !        imol (1) = int (ran1 (idum) * mole_num_mole) + 1 
-         CALL RANDOM_NUMBER(r1)
-         imol (2) = int (r1          * mole_num_mole) + 1 
+   CALL RANDOM_NUMBER(r1)
+   imol (2) = int (r1          * mole_num_mole) + 1 
 !        imol (2) = int (ran1 (idum) * mole_num_mole) + 1 
-         laccept = rmc_allowed (mole_type (imol (1) ) )                 &
-         .and.rmc_allowed (mole_type (imol (2) ) ) .and.mole_type (imol &
-         (1) ) .ne.mole_type (imol (2) )                                
+   laccept = rmc_allowed(mole_type(imol(1) ) )                 &
+        .and.rmc_allowed(mole_type(imol(2) ) )                 &
+        .and.mole_type (imol (1) ) .ne.mole_type (imol (2) )                                
 !                                                                       
-         IF (laccept) then 
-            natoms = 2 * mole_len (imol (1) ) 
-            i0 = mole_cont (mole_off (imol (1) ) + 1) 
-            j0 = mole_cont (mole_off (imol (2) ) + 1) 
-            DO i = 1, mole_len (imol (1) ) 
-            j = i + mole_len (imol (1) ) 
-            isel (i) = mole_cont (mole_off (imol (1) ) + i) 
-            isel (j) = mole_cont (mole_off (imol (2) ) + i) 
-            i_new (i) = cr_iscat (isel (j) ) 
-            i_new (j) = cr_iscat (isel (i) ) 
-            DO k = 1, 3 
-            p_new (k, i) = cr_pos (k, isel (j) ) - cr_pos (k, j0)       &
-            + cr_pos (k, i0)                                            
-            p_new (k, j) = cr_pos (k, isel (i) ) - cr_pos (k, i0)       &
-            + cr_pos (k, j0)                                            
-            ENDDO 
-            ENDDO 
-         ENDIF 
+   IF(laccept) then 
+      natoms = 2 * mole_len(imol (1) ) 
+      i0 = mole_cont(mole_off (imol (1) ) + 1) 
+      j0 = mole_cont(mole_off (imol (2) ) + 1) 
+      DO i = 1, mole_len(imol (1) ) 
+         j = i + mole_len(imol (1) ) 
+         isel (i) = mole_cont (mole_off (imol (1) ) + i) 
+         isel (j) = mole_cont (mole_off (imol (2) ) + i) 
+         i_new (i) = cr_iscat (isel (j) ) 
+         i_new (j) = cr_iscat (isel (i) ) 
+         DO k = 1, 3 
+            p_new(k, i) = cr_pos(k, isel(j)) - cr_pos(k, j0) + cr_pos (k, i0)
+            p_new(k, j) = cr_pos(k, isel(i)) - cr_pos(k, i0) + cr_pos (k, j0)
+         ENDDO 
+      ENDDO 
+   ENDIF 
 !                                                                       
 !------ Mode 'shift': shift atoms (gaussian distribution)               
 !                                                                       
-      ELSEIF (rmc_mode.eq.rmc_mode_shift) then 
-         CALL RANDOM_NUMBER(r1)
-         imol (1) = int (r1          * mole_num_mole) + 1 
+ELSEIF (rmc_mode.eq.rmc_mode_shift) then 
+   CALL RANDOM_NUMBER(r1)
+   imol (1) = int (r1          * mole_num_mole) + 1 
 !        imol (1) = int (ran1 (idum) * mole_num_mole) + 1 
-         laccept = rmc_allowed (mole_type (imol (1) ) ) 
+   laccept = rmc_allowed (mole_type (imol (1) ) ) 
 !                                                                       
-         IF (laccept) then 
-            natoms = mole_len (imol (1) ) 
-            DO j = 1, 3 
-            disp1(j) = gasdev(DBLE(rmc_maxmove(j, mole_type(imol(1)))))
-            ENDDO 
+   IF (laccept) then 
+      natoms = mole_len(imol(1)) 
+      DO j = 1, 3 
+         disp1(j) = gasdev(DBLE(rmc_maxmove(j, mole_type(imol(1)))))
+      ENDDO 
 !                                                                       
-            DO i = 1, mole_len (imol (1) ) 
-            isel (i) = mole_cont (mole_off (imol (1) ) + i) 
-            i_new (i) = cr_iscat (isel (i) ) 
-            DO j = 1, 3 
-            p_new (j, i) = cr_pos (j, isel (i) ) + disp1 (j) 
-            ENDDO 
-            ENDDO 
-         ENDIF 
+      DO i = 1, mole_len(imol(1)) 
+         isel (i) = mole_cont(mole_off(imol(1)) + i) 
+         i_new (i) = cr_iscat(isel (i) ) 
+         DO j = 1, 3 
+            p_new(j, i) = cr_pos(j, isel(i)) + disp1(j) 
+         ENDDO 
+      ENDDO 
+   ENDIF 
 !                                                                       
 !------ Mode 'swdisp': switch displacements of two atoms                
 !                                                                       
-      ELSEIF (rmc_mode.eq.rmc_mode_swdisp) then 
+ELSEIF (rmc_mode.eq.rmc_mode_swdisp) then 
          CALL RANDOM_NUMBER(r1)
          imol (1) = int (r1          * mole_num_mole) + 1 
 !        imol (1) = int (ran1 (idum) * mole_num_mole) + 1 
@@ -3309,11 +3361,49 @@ REAL :: r1
             ENDDO 
          ENDIF 
 !                                                                       
+!------ Mode 'rotate': Rotate the molecule 
+!                                                                       
+elseif(rmc_mode == rmc_mode_rotate) then 
+   CALL RANDOM_NUMBER(r1)
+   imol(1) = int(r1* mole_num_mole) + 1 
+   laccept = rmc_allowed(mole_type(imol(1))) 
+!                                                                       
+   IF (laccept) then 
+      natoms = mole_len(imol(1)) 
+write(*,*) ' imol ', imol(1), mole_len(imol(1)), mole_off(imol(1))
+!
+!  CALL RANDOM_NUMBER(r1)
+!  sym_uvw(1) = 2.0D0*(r1-1)
+!  CALL RANDOM_NUMBER(r1)
+!  sym_uvw(2) = 2.0D0*(r1-1)
+!  CALL RANDOM_NUMBER(r1)
+!  sym_uvw(3) = 2.0D0*(r1-1)
+sym_uvw(1) = 0.0D0
+sym_uvw(2) = 0.0D0
+sym_uvw(3) = 1.0D0
+   sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
+   sym_angle  = gasdev(1.0D0)
+   sym_orig(1) = 0.00 !cr_pos(1, mole_cont(mole_off(imol(1)) + i))
+   sym_orig(2) = 0.00 !cr_pos(2, mole_cont(mole_off(imol(1)) + i))
+   sym_orig(3) = 0.00 !cr_pos(3, mole_cont(mole_off(imol(1)) + i))
+   sym_orig_mol = .true.
+   sym_sel_atom = .false.
+   sym_mode = .false.
+   sym_power = 1
+   sym_power_mult = .false.
+   sym_type = .true.
+   sym_start = imol(1)
+   sym_end   = imol(1)
+   call symm_setup
+   call symm_show
+   read(*,*) i
+   endif
+!                                                                       
 !------ Mode 'external': Moves defined by external subroutine           
 !                                                                       
-      ELSEIF (rmc_mode.eq.rmc_mode_external) then 
-         CALL rmc_genmove_ext (laccept, natoms, p_new, i_new, isel) 
-      ENDIF 
+ELSEIF(rmc_mode.eq.rmc_mode_external) then 
+   CALL rmc_genmove_ext (laccept, natoms, p_new, i_new, isel) 
+ENDIF 
 !                                                                       
 !------ Check if atoms are in any defined 'lots'                        
 !                                                                       

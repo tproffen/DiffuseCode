@@ -13,13 +13,14 @@ INTEGER                 :: RMC_MAX_Q         = 1
 INTEGER                 :: RMC_MAX_SQ        = 1
 INTEGER                 :: RMC_MAX_LOTS      = 1
 INTEGER                 :: RMC_MAX_SYM       = 48  ! Maximum no of sym op in rec space
-INTEGER                 :: RMC_MAX_ATOM      = 2   ! Maximum number of selected atoms
+INTEGER                 :: RMC_MAX_ATOM      = 24  ! Maximum number of selected atoms
 !
 INTEGER, PARAMETER      :: rmc_mode_shift    = 1
 INTEGER, PARAMETER      :: rmc_mode_swchem   = 2
 INTEGER, PARAMETER      :: rmc_mode_swdisp   = 3
 INTEGER, PARAMETER      :: rmc_mode_external = 4
-INTEGER, PARAMETER      :: RMC_N_MOVE        = 4
+INTEGER, PARAMETER      :: rmc_mode_rotate   = 5
+INTEGER, PARAMETER      :: RMC_N_MOVE        = 5
 !
 INTEGER, PARAMETER      :: rmc_data_nipl = 1
 INTEGER, PARAMETER      :: rmc_data_pgm  = 2
