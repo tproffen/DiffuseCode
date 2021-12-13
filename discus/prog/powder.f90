@@ -45,6 +45,7 @@ USE precision_mod
 USE prompt_mod 
 USE str_comp_mod
 USE sup_mod
+use take_param_mod
 USE wink_mod
 !                                                                       
 IMPLICIT none 
@@ -56,11 +57,30 @@ CHARACTER(LEN=PREC_STRING) :: line, zeile
 CHARACTER (LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: cpara ! (MIN(10,MAXSCAT)) 
 INTEGER                    , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: lpara
 REAL(KIND=PREC_DP)         , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: werte
+integer :: MAXW
 INTEGER :: ianz
 INTEGER :: lp, length, lbef 
 INTEGER :: indxg
 LOGICAL :: lend
-!                                                                       
+real(kind=PREC_DP) :: fwhm  ! FWHM at Qmax
+!
+integer, parameter :: NOPTIONAL = 1
+integer, parameter :: O_TABLE   = 1
+character(LEN=   5), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 3 ! Number of values to calculate 
+!
+data oname  / 'table'  /
+data loname /  2       /
+opara  =  (/ 'waas  ' /)   ! Always provide fresh default values
+lopara =  (/  4       /)
+owerte =  (/  0.0     /)
+!
+MAXW = MAX(MIN_PARA,MAXSCAT+1)
 !                                                                       
 lend = .false. 
 CALL no_error 
@@ -147,12 +167,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'electron', 1, lbef, 8) ) THEN 
                   lxray = .true. 
                   diff_radiation = RAD_ELEC
+                  diff_table = RAD_INTER
 !                                                                       
 !     switch to neutron diffraction 'neut'                              
 !                                                                       
                ELSEIF (str_comp (befehl, 'neut', 1, lbef, 4) ) THEN 
                   lxray = .false. 
                   diff_radiation = RAD_NEUT
+                  diff_table = RAD_INTER
 !
 !     ----rese powder patter settings 'rese'
 !
@@ -163,13 +185,15 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF(str_comp(befehl, 'run ', 2, lbef, 4)) THEN 
                   CALL dlink(ano, lambda, rlambda, renergy, l_energy, &
-                             diff_radiation, diff_power) 
+                             diff_radiation, diff_table, diff_power) 
                   IF(ier_num.eq.0) THEN 
                      CALL phases_set(zeile, lp)
                      CALL pow_conv_limits
                      pow_qmin_u = pow_qmin   !! save user values
                      pow_qmax_u = pow_qmax
                      pow_deltaq_u=pow_deltaq
+                     fwhm = SQRT(MAX(ABS(pow_u*pow_qmax**2 + pow_v*pow_qmax + pow_w), 0.00001D0) ) 
+                     pow_qmax = pow_qmax + 2.0D0*pow_width*fwhm
                      pow_ds_max = (pow_qmax+pow_deltaq)/REAL(zpi)
                      pow_ds_min = pow_qmin/REAL(zpi)
                      check_dq: DO 
@@ -207,10 +231,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                              diff_radiation, diff_power) 
+                              diff_radiation, diff_table, diff_power) 
                   IF(str_comp(cpara(1), 'scat', 4, lpara(1), 4)) THEN
                      CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                                 diff_radiation, diff_power)
+                                 diff_radiation, diff_table, diff_power)
                      IF (ier_num.ne.0) THEN
                        RETURN
                      ENDIF
@@ -247,6 +271,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'xray', 1, lbef, 4) ) THEN 
                   lxray = .true. 
                   diff_radiation = RAD_XRAY
+                  diff_table = RAD_INTER
+                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp)
+                  if(ianz>0) then
+                  CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                       oname, loname, opara, lopara, lpresent, owerte)
+                  endif
+                  if(opara(O_TABLE)=='waas') diff_table= RAD_WAAS
 !                                                                       
 !     ------unknown command                                             
 !                                                                       

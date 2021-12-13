@@ -23,6 +23,8 @@ INTEGER(KIND=PREC_INT_LARGE) , PARAMETER  :: MASK     = I2PI-1
 INTEGER , PARAMETER  :: RAD_XRAY = 1
 INTEGER , PARAMETER  :: RAD_NEUT = 2
 INTEGER , PARAMETER  :: RAD_ELEC = 3
+INTEGER , PARAMETER  :: RAD_INTER= 0
+INTEGER , PARAMETER  :: RAD_WAAS = 1
 !
 INTEGER , PARAMETER  :: FOUR_ZL  = -4  ! Zone Axis with lots
 INTEGER , PARAMETER  :: FOUR_3L  = -3  ! 3D Fourier with lots
@@ -49,6 +51,7 @@ COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  acsf         ! (1
 REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  rpdf         ! (1:MAXQXY)
 COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(0:MASK)             ::  cex       = (0.0D0,0.0D0)
 REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi          ! (1:MAXQXY)
+REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi3d        ! (1:MAXQXY)
 !
 COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  csf_sum      ! (1:MAXQXY)
 REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi_sum      ! (1:MAXQXY)
@@ -92,6 +95,7 @@ LOGICAL                                 ::  ldbw     = .false.
 LOGICAL                                 ::  lxray    = .true.
 LOGICAL                                 ::  diff_lsingle  = .true.
 INTEGER                                 ::  diff_radiation = RAD_XRAY
+INTEGER                                 ::  diff_table     = RAD_INTER
 INTEGER                                 ::  diff_power     = 4
 REAL    , DIMENSION(1:3, 1:4)           ::  eck      = reshape((/ 0.0, 0.0,  0.0, &
                                                                   5.0, 0.0,  0.0, &

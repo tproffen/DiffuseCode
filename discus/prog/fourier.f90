@@ -87,10 +87,11 @@ IMPLICIT none
       REAL   , DIMENSION(3)::  divis
       REAL   , DIMENSION(3)::  rhkl
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_MODE    = 1
 INTEGER, PARAMETER :: O_SYMM    = 2
-CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+INTEGER, PARAMETER :: O_TABLE   = 3
+CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -98,11 +99,11 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'mode', 'symm'  /
-DATA loname /  4    ,  4      /
-opara  =  (/ '0.0000', '0.0000' /)   ! Always provide fresh default values
-lopara =  (/  6      ,  6       /)
-owerte =  (/  0.0    ,  0.0     /)
+DATA oname  / 'mode', 'symm'  , 'table'/
+DATA loname /  4    ,  4      ,  5     /
+opara  =  (/ '0.0000', '0.0000', 'waas  ' /)   ! Always provide fresh default values
+lopara =  (/  6      ,  6      ,  4       /)
+owerte =  (/  0.0    ,  0.0    ,  0.0     /)
 !
 !
 !
@@ -258,7 +259,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                           ENDIF
                         ENDIF
                         CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                                    diff_radiation, diff_power) 
+                                    diff_radiation, diff_table, diff_power) 
                         IF(ier_num==0) CALL calc_000 (rhkl) 
                      ENDIF 
                   ELSEIF (ianz.eq.0) then 
@@ -266,7 +267,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      rhkl (2) = 0.0 
                      rhkl (3) = 0.0 
                      CALL dlink (ano, lambda, rlambda, renergy, l_energy,    &
-                                    diff_radiation, diff_power) 
+                                    diff_radiation, diff_table, diff_power) 
                      IF(ier_num==0) CALL calc_000 (rhkl) 
                   ELSE 
                      ier_num = - 6 
@@ -368,6 +369,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             ELSEIF (str_comp (befehl, 'electron', 2, lbef, 8) ) then 
                lxray = .true. 
                diff_radiation = RAD_ELEC
+               diff_table     = RAD_INTER
                lambda = ' '
 !                                                                       
 !     calculate at a SHELXL list of reciprocal points 'hkl'                     
@@ -570,6 +572,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             ELSEIF (str_comp (befehl, 'neut', 2, lbef, 4) ) then 
                lxray = .false. 
                diff_radiation = RAD_NEUT
+               diff_table     = RAD_INTER
                lambda = ' '
 !                                                                       
 !     define the number of points along the ordinate 'no'               
@@ -686,7 +689,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ENDIF
                IF (inc (1) * inc (2) * inc(3) .le.MAXQXY) then 
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                              diff_radiation, diff_power) 
+                              diff_radiation, diff_table, diff_power) 
                  IF (ier_num.ne.0) THEN
                    RETURN
                  ENDIF
@@ -876,7 +879,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                IF (ier_num == 0) THEN 
                   IF(str_comp(cpara(1), 'scat', 4, lpara(1), 4)) THEN
                      CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                                 diff_radiation, diff_power) 
+                                 diff_radiation, diff_table, diff_power) 
                      IF (ier_num.ne.0) THEN
                        RETURN
                      ENDIF
@@ -895,7 +898,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         divis(3) = 1
                      ENDIF
                      CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                                 diff_radiation, diff_power) 
+                                 diff_radiation, diff_table, diff_power) 
                      IF (ier_num.ne.0) THEN
                        RETURN
                      ENDIF
@@ -976,6 +979,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             ELSEIF (str_comp (befehl, 'xray', 1, lbef, 4) ) then 
                lxray = .true. 
                diff_radiation = RAD_XRAY
+               diff_table     = RAD_INTER
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+               if(ianz>0) then
+               CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                    oname, loname, opara, lopara, lpresent, owerte)
+               endif
+               if(opara(O_TABLE)=='waas') diff_table= RAD_WAAS
 !                                                                       
 !     set a zone axis pattern calculation
 !                                                                       

@@ -709,7 +709,7 @@ USE precision_mod
       ianz = ianz - 1 
 !                                                                       
       CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                  diff_radiation, diff_power) 
+                  diff_radiation, diff_table, diff_power) 
       IF(ier_num /= 0) THEN
          IF(ier_num /= -173) THEN
             ier_msg(1) = 'At least one of the element names is not an'

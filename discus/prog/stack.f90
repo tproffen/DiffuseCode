@@ -2225,7 +2225,7 @@ ENDIF
                ENDIF
             ENDIF
             CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                        diff_radiation, diff_power) 
+                        diff_radiation, diff_table, diff_power) 
                                                                         
             IF (ier_num.ne.0) then 
                RETURN 
@@ -2571,7 +2571,7 @@ integer, dimension(3) :: n_cells
             ier_num = 0 
             ier_typ = ER_NONE 
             CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                        diff_radiation, diff_power) 
+                        diff_radiation, diff_table, diff_power) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 

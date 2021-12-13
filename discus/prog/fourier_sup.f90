@@ -33,8 +33,8 @@ IMPLICIT none
 !                                                                       
 REAL(KIND=PREC_SP) :: ss!, seknds
 REAL(KIND=PREC_DP) :: dnorm
-      INTEGER lbeg (3), csize (3) 
-      INTEGER iscat, nlot, ncell, i 
+INTEGER :: lbeg (3), csize (3) 
+INTEGER :: iscat, nlot, ncell, i 
 INTEGER :: ii          ! Dummy variable
 !                                                                       
 ier_num = 0 
@@ -43,28 +43,24 @@ ier_num = 0
 !                                                                       
 ss = seknds (0.0) 
 !
-!
-!----- Test for Friedels law, and reduce calculation time
-!
-CALL four_test_friedel
 !                                                                       
 !------ preset some values                                              
 !                                                                       
-      CALL four_layer 
+CALL four_layer 
 !                                                                       
 !------ zero some arrays                                                
 !                                                                       
-      DO i = 1, num (1) * num (2) * num(3)
-         csf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
-         acsf(i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
-         dsi (i) = 0.0d0 
-      ENDDO 
+DO i = 1, num (1) * num (2) * num(3)
+   csf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
+   acsf(i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
+   dsi (i) = 0.0d0 
+ENDDO 
 !                                                                       
 !------ preset some tables, calculate average structure                 
 !                                                                       
-      CALL fourier_lmn(eck,vi,inc,lmn,off_shift)
-      CALL four_cexpt 
-      CALL four_stltab 
+CALL fourier_lmn(eck,vi,inc,lmn,off_shift)
+CALL four_cexpt 
+CALL four_stltab 
 !write(*,*) ' eck ll ', eck(:,1)
 !write(*,*) ' eck lr ', eck(:,2)
 !write(*,*) ' eck ul ', eck(:,3)
@@ -77,10 +73,15 @@ CALL four_test_friedel
 !write(*,*) ' OFF  z ', off_shift(:,3)
 !write(*,*) ' inc num', inc, num
 !write(*,*) ' lmn    ', lmn
-      IF (ier_num.ne.0) return 
-      CALL four_formtab
-      CALL four_csize (cr_icc, csize, lperiod, ls_xyz) 
-      CALL four_aver (ilots, fave, csize) 
+IF (ier_num.ne.0) return 
+!
+CALL four_formtab
+!
+!----- Test for Friedels law, and reduce calculation time
+!
+CALL four_test_friedel
+CALL four_csize (cr_icc, csize, lperiod, ls_xyz) 
+CALL four_aver (ilots, fave, csize) 
 !CALL four_fft_prep
 !                                                                       
 !------ loop over crystal regions (lots)                                
@@ -163,6 +164,11 @@ CALL four_rese_friedel
          dsi (i) = dnorm * dsi (i) 
          ENDDO 
       ENDIF 
+!
+!if(allocated(dsi3d)) deallocate(dsi3d)
+!allocate(dsi3d(1:ubound(dsi,1)))
+!dsi3d = dsi
+CALL four_weight               ! Correct the relative weight of Bragg and diffuse
 !
       CALL four_conv           ! Convolute diffraction pattern
 !                                                                       
@@ -327,6 +333,226 @@ USE lib_random_func
  1000 FORMAT     (' Calculating <F> with ',F5.1,' % of the crystal ...') 
  2000 FORMAT     (' Used ',F5.1,' % of the crystal to calculate <F> ...') 
       END SUBROUTINE four_aver                      
+!
+!*****7*****************************************************************
+!
+subroutine four_weight
+!-
+!  Correct the weight of Bragg versus diffuse if fave /= 100 and
+!  the grid size or lot size does not correspond to 1/cr_icc.
+!
+!  This is needed only if the full 3D-PDF is calculated.  
+!
+!  If the volume of a voxel in reciprocal space does not 
+!  correspond to the volume of the reciprocal unit cell divided by
+!  the number of unit cell dimensions**3 we need to scale
+!
+!  2D 
+!  If the area of the 2D-Pixel does not correspond to the area of
+!  the area of the reciprocal unit cell section divided by the 
+!  number of unit cell dimensions**2 we need to scale
+!
+!  1D
+!  If the length os a step in reciprocal space does not
+!  correspond to the length of the reciprocal unit cell divided by
+!  the number of unit cells we need to scale
+!
+!+
+!
+use crystal_mod
+use diffuse_mod
+use metric_mod
+!
+use lib_errlist_func
+use precision_mod
+!
+implicit none
+!
+integer               :: isdim      ! Fourier was calculated in 1,2,3 dimensions
+integer               :: ncells
+integer               :: i, j, k, ii
+real(kind=PREC_DP)    :: scalef     ! scale factor to apply to the Bragg reflections
+real(kind=PREC_SP), dimension(3  ) :: hkl     ! base vectors to calculate a volume
+real(kind=PREC_SP), dimension(3,3) :: bases   ! base vectors to calculate a volume
+real(kind=PREC_SP)                 :: voxel
+!
+scalef = 1.0D0
+if_fave:if(fave == 0.000) then
+!
+   isdim = 3
+   IF(num(1)==1) isdim = isdim - 1
+   IF(num(2)==1) isdim = isdim - 1
+   IF(num(3)==1) isdim = isdim - 1
+!write(*,*) ' IN four_weight ISDIM ', num, isdim, dsort
+!write(*,*) ' eck ll ', eck(:,1)
+!write(*,*) ' eck lr ', eck(:,2)
+!write(*,*) ' eck ul ', eck(:,3)
+!write(*,*) ' eck tl ', eck(:,4)
+!write(*,*) ' vi abs ', vi(:,1), uin
+!write(*,*) ' vi ord ', vi(:,2), vin
+!write(*,*) ' vi top ', vi(:,3), win
+!write(*,*) ' OFF  x ', off_shift(:,1)
+!write(*,*) ' OFF  y ', off_shift(:,2)
+!write(*,*) ' OFF  z ', off_shift(:,3)
+!write(*,*) ' inc num', inc, num
+!
+   ncells = 1
+   if(isdim==1) then              ! 1D correction
+      if(num(1)/=1) then
+         bases(:,1) = uin
+         bases(:,2) = 0.0D0
+         bases(:,3) = 0.0D0
+         if(bases(1,1)/=0D0) then
+             bases(2,2)=1.0D0
+             bases(3,3)=1.0D0
+         elseif(bases(2,1)/=0D0) then
+             bases(3,2)=1.0D0
+             bases(1,3)=1.0D0
+         elseif(bases(3,1)/=0D0) then
+             bases(1,2)=1.0D0
+             bases(2,3)=1.0D0
+         endif
+         if(nlots==1) then
+            ncells = cr_icc(1)
+         else
+            ncells = ls_xyz(1)
+         endif
+      elseif(num(2)==1) then
+         bases(:,1) = 0.0D0
+         bases(:,2) = vin
+         bases(:,3) = 0.0D0
+         if(bases(1,2)/=0D0) then
+             bases(2,1)=1.0D0
+             bases(3,3)=1.0D0
+         elseif(bases(2,2)/=0D0) then
+             bases(3,1)=1.0D0
+             bases(1,3)=1.0D0
+         elseif(bases(3,2)/=0D0) then
+             bases(1,1)=1.0D0
+             bases(2,3)=1.0D0
+         endif
+         if(nlots==1) then
+            ncells = cr_icc(2)
+         else
+            ncells = ls_xyz(2)
+         endif
+      elseif(num(3)==1) then
+         bases(:,1) = 0.0D0
+         bases(:,2) = 0.0D0
+         bases(:,3) = win
+         if(bases(1,3)/=0D0) then
+             bases(2,1)=1.0D0
+             bases(3,2)=1.0D0
+         elseif(bases(2,3)/=0D0) then
+             bases(3,1)=1.0D0
+             bases(1,2)=1.0D0
+         elseif(bases(3,3)/=0D0) then
+             bases(1,1)=1.0D0
+             bases(2,2)=1.0D0
+         endif
+         if(nlots==1) then
+            ncells = cr_icc(3)
+         else
+            ncells = ls_xyz(3)
+         endif
+      endif
+   elseif(isdim==2) then          ! 2D correction
+      if(num(3)==1) then
+         bases(:,1) = uin
+         bases(:,2) = vin
+         bases(:,3) = 1.0D0
+         if(bases(1,1)/=0D0 .or. bases(1,2)/=0.0D0) bases(1,3)=0.0D0
+         if(bases(2,1)/=0D0 .or. bases(2,2)/=0.0D0) bases(2,3)=0.0D0
+         if(bases(3,1)/=0D0 .or. bases(3,2)/=0.0D0) bases(3,3)=0.0D0
+         if(nlots==1) then
+            ncells = cr_icc(1)*cr_icc(2)
+         else
+            ncells = ls_xyz(1)*ls_xyz(2)
+         endif
+      elseif(num(2)==1) then
+         bases(:,1) = uin
+         bases(:,2) = 1.0D0
+         bases(:,3) = win
+         if(bases(1,1)/=0D0 .or. bases(1,3)/=0.0D0) bases(1,2)=0.0D0
+         if(bases(2,1)/=0D0 .or. bases(2,3)/=0.0D0) bases(2,2)=0.0D0
+         if(bases(3,1)/=0D0 .or. bases(3,3)/=0.0D0) bases(3,2)=0.0D0
+         if(nlots==1) then
+            ncells = cr_icc(1)*cr_icc(3)
+         else
+            ncells = ls_xyz(1)*ls_xyz(3)
+         endif
+      elseif(num(3)==1) then
+         bases(:,1) = 1.0D0
+         bases(:,2) = vin
+         bases(:,3) = win
+         if(bases(1,2)/=0D0 .or. bases(1,3)/=0.0D0) bases(1,1)=0.0D0
+         if(bases(2,2)/=0D0 .or. bases(2,3)/=0.0D0) bases(2,1)=0.0D0
+         if(bases(3,2)/=0D0 .or. bases(3,3)/=0.0D0) bases(3,1)=0.0D0
+         if(nlots==1) then
+            ncells = cr_icc(2)*cr_icc(3)
+         else
+            ncells = ls_xyz(2)*ls_xyz(3)
+         endif
+      endif
+!write(*,*) ' Base 1 ', bases(:,1)
+!write(*,*) ' Base 2 ', bases(:,2)
+!write(*,*) ' Base 3 ', bases(:,3)
+!   voxel = do_volume(.FALSE., bases(:,1), bases(:,2), bases(:,3))
+!   scalef = real(ncells)/cr_vr*voxel
+!   write(*,*)  ' Voxel ', voxel
+!   write(*,*)  ' Vr/Voxel ', cr_vr/voxel
+!   write(*,*)  ' Ratio    ', real(ncells)/cr_vr*voxel, scalef
+!
+   elseif(isdim==3) then          ! 3D correction
+      bases(:,1) = uin
+      bases(:,2) = vin
+      bases(:,3) = win
+      if(nlots==1) then
+         ncells = cr_icc(1)*cr_icc(2)*cr_icc(3)
+      else
+         ncells = ls_xyz(1)*ls_xyz(2)*ls_xyz(3)
+   endif
+   endif
+!
+   voxel = do_volume(.FALSE., bases(:,1), bases(:,2), bases(:,3))
+   if(voxel>0.0) then
+      scalef = real(ncells)/cr_vr*voxel
+   else
+      call no_error
+   endif
+endif if_fave
+!
+if(allocated(dsi3d)) deallocate(dsi3d)
+allocate(dsi3d(1:ubound(dsi,1)))
+if(fave==0.0 .and. abs(scalef-1.0)>1.0E-5) then
+!write(*,*) 'base1  ', bases(:,1)
+!write(*,*) 'base2  ', bases(:,2)
+!write(*,*) 'base3  ', bases(:,3)
+!write(*,*) 'Scalef ', scalef, ncells, cr_vr, voxel
+!read(*,*) i
+   dsi3d = dsi
+   ii= 0
+   do k=0,num(3)-1
+      do j=0,num(2)-1
+         do i=0,num(1)-1
+            ii = ii + 1
+            hkl(1) = eck(1,1) + vi(1,1)*i + vi(1,2)*j + vi(1,3)*k
+            hkl(2) = eck(2,1) + vi(2,1)*i + vi(2,2)*j + vi(2,3)*k
+            hkl(3) = eck(3,1) + vi(3,1)*i + vi(3,2)*j + vi(3,3)*k
+            if(abs(hkl(1)-nint(hkl(1)))<1.0e-4 .and.                               &
+               abs(hkl(2)-nint(hkl(2)))<1.0e-4 .and.                               &
+               abs(hkl(3)-nint(hkl(3)))<1.0e-4       ) then
+               dsi3d(ii) = dsi(ii)/scalef
+            endif
+         enddo
+      enddo
+   enddo
+else
+   dsi3d = dsi
+endif
+!
+end subroutine four_weight
+!
 !*****7*****************************************************************
       SUBROUTINE four_getatm (iscat, lots, lbeg, ncell) 
 !+                                                                      
@@ -860,42 +1086,46 @@ END SUBROUTINE four_formtab
          ENDDO 
       ENDIF 
       END FUNCTION form                             
+!
 !*****7*****************************************************************
-      SUBROUTINE dlink (ano, lambda, rlambda, renergy, l_energy, &
-                        diff_radiation, diff_power) 
+!
+SUBROUTINE dlink (ano, lambda, rlambda, renergy, l_energy, &
+                  diff_radiation, diff_table, diff_power) 
 !-                                                                      
 !     This routine reads wavelength symbols, wavelength values 
 !     and atomic form factors from module "element_data_mod"
 !     It replaces the old dlink and LAZY_PULVERIX
 !+                                                                      
-      USE discus_config_mod 
-      USE charact_mod
-      USE crystal_mod 
-      USE element_data_mod
-      USE chem_aver_mod
-      USE param_mod
-      IMPLICIT none 
+USE discus_config_mod 
+USE charact_mod
+USE crystal_mod 
+USE element_data_mod
+USE chem_aver_mod
+USE param_mod
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      LOGICAL             , INTENT(IN)   :: ano
-      CHARACTER (LEN = * ), INTENT(IN)   :: lambda 
-      REAL                , INTENT(OUT)  :: rlambda
-      REAL                , INTENT(INOUT):: renergy
-      LOGICAL             , INTENT(IN)   :: l_energy
-      INTEGER             , INTENT(IN)   :: diff_radiation
-      INTEGER             , INTENT(OUT)  :: diff_power
+LOGICAL             , INTENT(IN)   :: ano             ! Anomalous scattering TRUE/FALSE
+CHARACTER (LEN = * ), INTENT(IN)   :: lambda          ! Wavelength symbol
+REAL                , INTENT(OUT)  :: rlambda         ! Wave length value
+REAL                , INTENT(INOUT):: renergy         ! Wave length energy
+LOGICAL             , INTENT(IN)   :: l_energy        ! Wave length specified as energy TRUE/FALSE
+INTEGER             , INTENT(IN)   :: diff_radiation  ! xray/neutron/electron
+INTEGER             , INTENT(IN)   :: diff_table      ! International / Waasmaier
+INTEGER             , INTENT(OUT)  :: diff_power      ! 4 or 5 parameters
 !
-      INTEGER , PARAMETER  :: RAD_XRAY = 1
-      INTEGER , PARAMETER  :: RAD_NEUT = 2
-      INTEGER , PARAMETER  :: RAD_ELEC = 3
-      LOGICAL, PARAMETER :: lout = .FALSE.
+INTEGER, PARAMETER :: RAD_XRAY = 1
+INTEGER, PARAMETER :: RAD_NEUT = 2
+INTEGER, PARAMETER :: RAD_ELEC = 3
+INTEGER, PARAMETER :: RAD_INTER = 0
+LOGICAL, PARAMETER :: LOUT = .FALSE.
 !
-      CHARACTER (LEN = 4 ) :: element 
-      INTEGER    :: i
-      INTEGER    :: j
-      REAL   , DIMENSION(1:11)  :: temp_scat  ! a1,b1,---a4,b4,c
-      REAL   , DIMENSION(1:2)   :: temp_delf  ! delfr, delfi
-      REAL                      :: temp_bcoh  ! b_choherent
+CHARACTER (LEN = 4 ) :: element 
+INTEGER    :: i
+INTEGER    :: j
+REAL   , DIMENSION(1:11)  :: temp_scat  ! a1,b1,---a4,b4,c
+REAL   , DIMENSION(1:2)   :: temp_delf  ! delfr, delfi
+REAL                      :: temp_bcoh  ! b_choherent
 !
 !     CHARACTER(4) line 
 !     INTEGER element, symwl, kodlp, i, j 
@@ -904,24 +1134,24 @@ END SUBROUTINE four_formtab
 !     REAL delfr, delfi, fneu 
 !     REAL wave 
 !                                                                       
-      ier_num = -77 
-      ier_typ = ER_APPL 
+ier_num = -77 
+ier_typ = ER_APPL 
 !
-      CALL get_wave ( lambda, rlambda, renergy, l_energy,diff_radiation, &
-                      ier_num, ier_typ )
+CALL get_wave ( lambda, rlambda, renergy, l_energy,diff_radiation, &
+                ier_num, ier_typ )
 !
-      CALL chem_elem(lout)
+CALL chem_elem(lout)
 !                                                                       
-      IF (ier_num.ne.0) RETURN 
+IF (ier_num.ne.0) RETURN 
 !                                                                       
-      any_element: IF (cr_nscat.gt.0) THEN 
-         DO i = 1, cr_nscat 
-         IF (cr_at_lis (i) /= 'XAXI' .AND. cr_at_lis (i) /= 'YAXI' .and. & 
-             cr_at_lis (i) /= 'ZAXI') THEN                  
-            IF(res_para(i+1)> 0.0) THEN
+any_element: IF (cr_nscat.gt.0) THEN 
+   DO i = 1, cr_nscat 
+      IF (cr_at_lis (i) /= 'XAXI' .AND. cr_at_lis (i) /= 'YAXI' .and. & 
+          cr_at_lis (i) /= 'ZAXI') THEN                  
+         IF(res_para(i+1)> 0.0) THEN
             IF (cr_scat_int (i) ) then 
                SELECTCASE(diff_radiation)
-                  CASE(RAD_NEUT)        !  neutron scattering
+               CASE(RAD_NEUT)        !  neutron scattering
                   IF (cr_scat_equ (i) ) then 
                      element =         cr_at_equ (i) 
                   ELSE 
@@ -935,14 +1165,14 @@ END SUBROUTINE four_formtab
                      cr_scat(1,i) = temp_bcoh
                      cr_delfr (i) = 0.0 
                      cr_delfi (i) = 0.0 
-                     diff_power   = PER_RAD_POWER(diff_radiation)
+                     diff_power   = PER_RAD_POWER(diff_radiation, 0)
                      ier_num = 0
                      ier_typ = ER_NONE 
                   ELSE
                      ier_num = -20 
                      ier_typ = ER_APPL 
                   ENDIF
-                  CASE(RAD_XRAY)        !  Xray diffraction
+               CASE(RAD_XRAY)        !  Xray diffraction
                   IF (cr_scat_equ (i) ) then 
                      element =         cr_at_equ (i) 
                   ELSE 
@@ -954,7 +1184,11 @@ END SUBROUTINE four_formtab
 !                                                                       
                   CALL symbf ( element, j)
                   IF ( j /= 0 ) THEN 
-                     CALL get_scat_xray ( j, temp_scat )
+                     if(diff_table==RAD_INTER) then
+                        CALL get_scat_xray ( j, temp_scat )
+                     else
+                        CALL get_scat_xray_waas(j, temp_scat)
+                     endif
                      cr_scat(:,i) = 0.0
                      cr_scat(:,i) = temp_scat(:)   ! copy temp array into 1st column
 !                    cr_delfr (i) = 0.0   ! DEVELOPMENT !
@@ -972,14 +1206,14 @@ END SUBROUTINE four_formtab
                         cr_delfr(i) = 0.0   ! DEVELOPMENT !
                         cr_delfi(i) = 0.0   ! DEVELOPMENT !
                      ENDIF 
-                     diff_power   = PER_RAD_POWER(diff_radiation)
+                     diff_power   = PER_RAD_POWER(diff_radiation, diff_table)
                      ier_num = 0
                   ELSE
                      ier_typ = ER_NONE 
                      ier_typ = ER_APPL 
                   ENDIF
 !
-                  CASE(RAD_ELEC)        !  Electron diffraction
+               CASE(RAD_ELEC)        !  Electron diffraction
                   IF (cr_scat_equ (i) ) then 
                      element =         cr_at_equ (i) 
                   ELSE 
@@ -996,7 +1230,7 @@ END SUBROUTINE four_formtab
                      cr_scat(:,i) = temp_scat(:)   ! copy temp array into 1st column
                      cr_delfr (i) = 0.0
                      cr_delfi (i) = 0.0
-                     diff_power   = PER_RAD_POWER(diff_radiation)
+                     diff_power   = PER_RAD_POWER(diff_radiation, 0)
                      ier_num = 0
                   ELSE
                      ier_typ = ER_NONE 
@@ -1012,22 +1246,23 @@ END SUBROUTINE four_formtab
                      WRITE(ier_msg(3),'(a)') 'scat <ion_name>, <neutron_name>'
                      RETURN
                   ENDIF
-               END SELECT
+            END SELECT
 !                                                                       
             ENDIF 
-            ELSE
-               cr_scat(:,i) = 0.00
-               cr_delfr (i) = 0.0
-               cr_delfi (i) = 0.0
-            ENDIF
-         ENDIF 
-         ENDDO 
-      ELSE any_element
-         ier_num = - 21 
-         ier_typ = ER_APPL 
-      ENDIF any_element
+         ELSE
+            cr_scat(:,i) = 0.00
+            cr_delfr (i) = 0.0
+            cr_delfi (i) = 0.0
+         ENDIF
+      ENDIF 
+   ENDDO 
+ELSE any_element
+   ier_num = - 21 
+   ier_typ = ER_APPL 
+ENDIF any_element
 !                                                                       
-      END SUBROUTINE dlink                          
+END SUBROUTINE dlink                          
+!
 !*****7*****************************************************************
       SUBROUTINE calc_000 (rhkl) 
 !-                                                                      
@@ -1302,7 +1537,7 @@ check2:  DO
             ENDIF
          ENDIF
          CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                     diff_radiation, diff_power) 
+                     diff_radiation, diff_table, diff_power) 
          call four_run
          rhkl (1) =  0. 
          rhkl (2) =  0. 
@@ -1534,6 +1769,7 @@ INTEGER :: i, j
 IF(diff_l_friedel) THEN
    j = diff_inc_u(1)*diff_inc_u(2)*diff_inc_u(3) + 1
    DO i = 1, num(1) * num(2) * num(3)
+     acsf(j-i) =acsf(i)
       csf(j-i) = csf(i)
       dsi(j-i) = dsi(i)
    ENDDO 
