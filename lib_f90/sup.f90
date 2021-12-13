@@ -44,7 +44,7 @@ CHARACTER (LEN=*), INTENT(IN )   :: prom
 CHARACTER(LEN=PREC_STRING)       :: input
 CHARACTER(LEN=PREC_STRING)       :: as_typed
 CHARACTER(60) bprom 
-INTEGER lbef, indxb 
+INTEGER :: lbef, indxb , indxt
 INTEGER il, jl
 INTEGER :: lt
 LOGICAL lreg 
@@ -70,7 +70,7 @@ IF (lblock) THEN
          CALL do_execute (lreg, input, ll) 
          IF (ier_num.ne.0.or..not.lreg) RETURN 
 !                                                                       
-      ELSEIF (lmakro.and..not.lblock_dbg) THEN 
+      ELSEIF (lmakro) then !!!RBN!!! .and. .not.lblock_dbg) THEN 
 !        CALL do_prompt (prom) 
          CALL macro_read (input, ll) 
          IF (ier_num.ne.0) RETURN 
@@ -223,12 +223,16 @@ IF (lblock) THEN
 !                                                                       
             lbef = len (befehl) 
             indxb = index (line, ' ') 
-            lbef = min (indxb - 1, lbef) 
+            indxt = index (line, TAB) 
+            if(indxb==0) indxb = len(line) + 2      ! If no blank, set beyond length of befehl
+            if(indxt==0) indxt = len(line) + 2      ! If no tab,   set beyond length of befehl
+            lbef = min (indxb - 1, indxt-1, lbef) 
             befehl = line (1:lbef) 
 !                                                                       
 !     - command parameters start at the first character following       
 !------ - the blank                                                     
 !                                                                       
+            indxb = min(indxb, indxt)   ! Both have been set to non zero values
             IF (indxb + 1.le.ll) THEN 
                zeile = line (indxb + 1:ll) 
                lp = ll - indxb 
