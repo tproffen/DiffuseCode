@@ -917,7 +917,7 @@
 !p spcgr Pm-3m
 !p symm  1.00,0.00,0.00,0.123, 0.00,1.0,0.00,0.00, 0.00,0.00,1.00,-0.567
 !p cell  5.0,5.0,5.0,90.,90.,90.
-!p atoms x,    y,    z,  Biso, Property, MoleNcwoum, MoleAt, Occ
+!p atoms x,    y,    z,  Biso, Property, MoleNum, MoleAt, Occ
 !p NA1+  0.0   0.0   0.0 0.1
 !p NA1+  1/3, 1-0.5, 0.0, 0.1
 !p NA1+  1/3, 1-0.5, 0.3, 0.1,  1
@@ -4782,16 +4782,103 @@
    This command lists all current settings for the MMC simulation part
    of DISCUS on the screen.
 2  molecularize
+!p molecularize "conn" [, start:<from>] [, finish:<to>]
+!p                     [, conn:<list>] [, central:<list>]
+!p                     [, exclude:<list>]
+!p                     [, moletype:<type>] [, biso:<value>]
+!p                     [, corrlin:<value>] [, corrquad:<value>]
+!p molecularize "range" [, start:<from>] [, finish:<to>]
+!p                     [, moletype:<type>] [, biso:<value>]
+!p                     [, corrlin:<value>] [, corrquad:<value>]
 !p molecularize "conn", <central> [, <exclude> ...]
 !p molecularize "range", <from>, <to>, <molecule_type> , <molecule_Biso>
 
    This command allows to group a set of atoms into a molecule.
 
+!b molecularize conn
+   'molecularize conn' and its optional parameters will place atoms 
+   and their connectivities into a molecule. At least one suitable 
+   connectivity must have been created within the ==> 'conn' menu.
+
+!b molecularize "range"
+   'molecularize range" and its optional parameters will place the 
+   consecutive range of atoms from start to finish into a molecule. 
+   DISCUS will not check how close these atoms are.
+
+!b optional parameters
+
+!b start:<from>
+   start:all
+   Defines the first atom number <from> to be at the center of a
+   molecule or sets that "all" atoms are checked. Defaults to "all"
+
+!b finish:<to>
+   finish:all
+   Defines the last atom number <to> to be at the center of a
+   molecule. If <to> is set to "last", the search runs to the last
+   atom in the crystal, i.e. up to n[1]. If <to> is set to "all", 
+   all atoms from 1 to n[1] are examined. Defaults to "last"
+
+!b conn:<list>
+   Defines which of the connectivities of the current central 
+   atom are used to build the molecule. 
+   The list can take the forms: 
+      "-1" to include all connectivities
+      a single numerical value such as 1
+      a list of comma separated numerical values enclosed in [...]
+   Defaults to "-1", which includes all connectivities.
+
+!b central:<list>
+   Defines which central atom types are used.
+   The list can take the forms: 
+      "-1" or "all" to include all atom types
+      a single numerical value such as 1 or 4
+      a list of comma separated numerical values and/or
+        atom type names enclosed in [...]
+   Defaults to "-1", which includes all atom types.
+
+!b moletype:<value>
+   Defines the molecule type that will be used for the new molecules.
+   Please make sure that this will be a unique number
+
+!b biso:<value>
+   Defines a molecular isotropic displacement parameter, used 
+   in the Fourier and powder menues
+
+!b corrlin:<value>
+   Defines a correlation term that is used to make PDF maxima at
+   short distances narrower than those at larger distance.
+   corrlin defines a relationship proportional to 1/r.
+
+!b corrquad:<value>
+   Defines a correlation term that is used to make PDF maxima at
+   short distances narrower than those at larger distance.
+   corrquad defines a relationship proportional to 1/r^2.
+
+!b older versions, discouraged
+
+   The third version requires that for atom <central> and all other
+   atoms in the molecule a suitable connectivity list has been prepared,
+   at the connectivity menu, see ==> 'conn' for further details. 
+   You can list  one or more excluded atoms. They and the connectivity 
+   behind these atoms are excluded from the molecule. This in turn 
+   allows you to group a sub section of a full molecule.
+   Internally this algorithm is used within the symmetry menu to
+   rotate a partial molecule.
+
+   The last version places the consecutive range of atoms into 
+   a molecule of type <molecule_type>. 
+   DISCUS will not check how close these atoms are.
+2  output
+!p output
+
+   Switches to the output level of discus. All Fourier output is written 
+
    The first version requires that for atom <central> and all other
    atoms in the molecule a suitable connectivity list has been prepared,
    at the connectivity menu, see ==> 'conn' for further details. 
    You can list  one or more excluded atoms. They and the connectivity 
-   behind these atoms is excluded from the molecule. This in turn 
+   behind these atoms are excluded from the molecule. This in turn 
    allows you to group a sub section of a full molecule.
    Internally this algorithm is used within the symmetry menu to
    rotate a partial molecule.
