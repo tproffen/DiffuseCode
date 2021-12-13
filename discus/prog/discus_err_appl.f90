@@ -10,11 +10,16 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-179,IO=7)
+      PARAMETER    (IU=-181,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
-      DATA ERROR ( IU : -161) /                          &
+      DATA ERROR ( IU : -181) /                          &
+     &  'EXCLUDE requires single atom: START=FINISH   '  & !-181 ! discus
+     &  /
+!
+      DATA ERROR (-180: -161) /                          &
+     &  '3D-PDF cannot be written                     ', & !-180 ! discus
      &  'Sites*Number unit cells/=Natoms              ', & !-179 ! discus
      &  'Perioditize failed                           ', & !-178 ! discus
      &  'Connectivity number outside user define range', & !-177 ! discus
@@ -388,7 +393,7 @@ USE lib_errlist_func
 !                                                                       
 !                                                                       
       INTEGER iu, io 
-      PARAMETER (IU = - 31, IO = 0) 
+      PARAMETER (IU = - 31, IO = 1) 
 !                                                                       
       CHARACTER(LEN=45) :: ERROR (IU:IO) 
 !                                                                       
@@ -427,8 +432,9 @@ USE lib_errlist_func
       'Not enough space for all result in res[]',        & ! !- 2
       'Too many points for histogramm          '         & ! !- 1
       /                                 
-      DATA ERROR (  0:  0) /                             &
-      ' '                                                & ! !  0
+      DATA ERROR (  0: io) /                             &
+      ' ',                                               & ! !  0
+      'CHEM quick and turned off!               '        & ! !  1
       /                                 
 !                                                                       
       CALL disp_error ('CHEM', error, iu, io) 
