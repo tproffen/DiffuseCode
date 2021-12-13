@@ -1223,6 +1223,11 @@ USE str_comp_mod
                      ENDIF 
                   ELSE 
 !     --------Input are real space coordinates                          
+                     if(ianz<6) then
+                        ier_num = -6
+                        ier_typ = ER_COMM
+                        return
+                     endif
                      DO i = 1, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
