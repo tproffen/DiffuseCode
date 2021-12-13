@@ -834,6 +834,14 @@
 !p                                   same as for DISCUS powder / Fourier 
 !p                                   calculations.
 
+!p tukey(x, <alpha> [, <width>])
+!p                                   Returns a Tukey window function
+!p                                   1/2[1-cos/2PIx/(alpha*width))
+!p                                   for 0<=x< 1/ alpha*width
+!p                                   Symmetric at width/2
+!p                                   zero outside the range 0:width
+!p                                   The width defaults to 1.0
+
    The arguments to any of these functions are any arithmetic expression.
 
    System functions:
