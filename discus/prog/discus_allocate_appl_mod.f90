@@ -1659,6 +1659,11 @@ integer :: i_scat
                                         0,n_ener ,  &
                                       all_status, 0.0  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( mmc_lfeed       ,0,n_corr ,  &
+                                        0,n_ener ,  &
+                                      all_status, .true.  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_pre_corr    ,1,n_corr , &

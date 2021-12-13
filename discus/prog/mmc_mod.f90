@@ -91,6 +91,7 @@ REAL , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ach_sigm    ! (CHEM_MAX_COR,0:MC_
 !REAL,DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_vec         ! (4,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_const       ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cfac        ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
+logical, DIMENSION(:,:)    , ALLOCATABLE ::  mmc_lfeed       ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 REAL , DIMENSION(:)      , ALLOCATABLE ::  mmc_depth_def   ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 REAL , DIMENSION(:,:,:,:)  , ALLOCATABLE ::  mmc_pid_diff    ! PID Difference term
 REAL , DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_pid_inte    ! PID Integral term

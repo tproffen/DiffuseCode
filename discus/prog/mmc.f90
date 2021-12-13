@@ -1109,9 +1109,11 @@ IF (ier_num == 0) THEN
                      CALL del_params (1, ianz, cpara, lpara, maxw) 
                      IF (cpara (ianz) (1:2)  == 'CO') THEN 
                         mmc_cfac (ic, MC_OCC) =  1.0 
+                        mmc_lfeed(ic, MC_OCC) =  .true.
                         ianz = ianz - 1 
                      ELSEIF (cpara (ianz) (1:2)  == 'EN') THEN 
                         mmc_cfac (ic, MC_OCC) = 0.0 
+                        mmc_lfeed(ic, MC_OCC) =  .false.
                         ianz = ianz - 1 
                      ENDIF 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw)
@@ -1132,9 +1134,11 @@ winit = -1.0D0*werte(1)  - 3.0D0*werte(1)**5
                      CALL del_params (1, ianz, cpara, lpara, maxw) 
                      IF (cpara (ianz) (1:2)  == 'CO') THEN 
                         mmc_cfac (ic, MC_UNI) =  1.0 
+                        mmc_lfeed(ic, MC_UNI) =  .true.
                         ianz = ianz - 1 
                      ELSEIF (cpara (ianz) (1:2)  == 'EN') THEN 
                         mmc_cfac (ic, MC_UNI) = 0.0 
+                        mmc_lfeed(ic, MC_UNI) =  .false.
                         ianz = ianz - 1 
                      ENDIF 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw)
@@ -1166,9 +1170,11 @@ winit = -1.0D0*werte(1)  - 3.0D0*werte(1)**5
                         CALL del_params (1, ianz, cpara, lpara, maxw) 
                         IF (cpara (ianz) (1:2)  == 'CO') THEN 
                            mmc_cfac (ic, MC_DISP) =  1.00 
+                           mmc_lfeed(ic, MC_DISP) =  .true.
                            ianz = ianz - 1 
                         ELSEIF (cpara (ianz) (1:2)  == 'EN') THEN 
                            mmc_cfac (ic, MC_DISP) = 0.0 
+                           mmc_lfeed(ic, MC_DISP) =  .false.
                            ianz = ianz - 1 
                         ENDIF 
                         CALL ber_params (2, cpara, lpara, werte, maxw) 
@@ -1713,9 +1719,11 @@ CALL del_params (4, ianz, cpara, lpara, maxw)
 !
 IF (cpara(ianz)(1:2)  == 'CO') THEN 
    mmc_cfac(ic, MC_GROUP) =  1.0 
+   mmc_lfeed(ic, MC_GROUP) =  .true.
    ianz = ianz - 1 
 ELSEIF(cpara(ianz)(1:2)  == 'EN') THEN 
    mmc_cfac(ic, MC_GROUP) = 0.0 
+   mmc_lfeed(ic, MC_GROUP) =  .false.
    ianz = ianz - 1 
 ENDIF 
 !
@@ -5002,6 +5010,7 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
             is = cr_iscat (iatom (ind, icent) ) 
 !           ival1 = mmc_pair(ic, MC_OCC,is,js)
          ENDIF
+!write(*,*) 'OCC ', tatom(ind, icent), is, js, mmc_depth(ic,MC_OCC, is, js)
          IF(mmc_pair(ic, MC_OCC,is,js)/=0) THEN
             IF (check_select_status (iatom (ind, icent),  &
                                      .TRUE., cr_prop (iatom (ind,  &

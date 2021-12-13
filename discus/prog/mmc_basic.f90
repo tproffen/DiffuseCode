@@ -143,6 +143,7 @@ LOGICAL, INTENT(OUT)   :: laccept
 !                                                                       
 INTEGER :: i 
 REAL    :: e_del 
+real    :: e_neu
 REAL    :: e_ran 
 REAL    :: e_delta 
 REAL    :: r1
@@ -155,9 +156,10 @@ DO i = 1, MC_N_ENERGY
       e_del = e_del + e_delta 
    ENDIF 
 ENDDO 
-!write(*,*) 'OLD ', e_old
-!write(*,*) 'new ', e_new
-!write(*,*) 'del ',(e_new(i)-e_old(i),i=1,MC_N_ENERGY)
+!write(*,*) 'OLD ', -(sqrt(abs(e_old(7))))
+!write(*,*) 'new ', -(sqrt(abs(e_new(7))))
+!write(*,*) 'del ',(e_new(i)-e_old(i),i=7,7) , mo_kt !1,MC_N_ENERGY)
+if(mo_kt>0) then
 IF (e_del <  0) THEN 
    laccept = .TRUE. 
 ELSE 
@@ -169,7 +171,31 @@ ELSE
       CALL RANDOM_NUMBER(r1)
       laccept = (e_ran > r1          ) 
    ENDIF 
-ENDIF 
+ENDIF
+else
+   laccept = .FALSE.
+   if(e_new(7)>0.0) then                    ! Positive energy, 
+      e_neu = sqrt(e_new(7))
+   else
+      e_neu = - sqrt(abs(e_new(7)))
+   endif
+!     if(e_del < 0) then
+!        laccept = .TRUE.
+!     endif
+!  else
+!     e_ran = exp ( - e_del / mo_kt) 
+      e_ran = exp(-(e_neu + mmc_depth(1,7,1,1)             )/abs(mo_kt))
+!      e_ran = exp(-(e_neu + mmc_depth(1,7,1,1) - abs(mo_kt))/abs(mo_kt))
+!!!      e_ran =      exp ( - (mmc_depth(1,7,1,1)-sqrt(abs(e_new(7))) -abs(mo_kt)) / abs(mo_kt)) 
+!write(*,*) e_ran , exp ( - (mmc_depth(1,7,1,1)-sqrt(abs(e_new(7))) -abs(mo_kt)) / abs(mo_kt)) , &
+!(mmc_depth(1,7,1,1)-sqrt(abs(e_new(7))) - abs(mo_kt) ), &
+!(mmc_depth(1,7,1,1)-sqrt(abs(e_new(7))) - abs(mo_kt) )/ abs(mo_kt)
+      e_ran = e_ran / (1 + e_ran) 
+      CALL RANDOM_NUMBER(r1)
+      laccept = (e_ran > r1          ) 
+!write(*,*) e_ran, r1, laccept
+!  endif
+endif
 !                                                                       
 IF (laccept) THEN 
    IF (e_del <  0.0) THEN 
@@ -1314,6 +1340,7 @@ corr_pair: DO is = 0, cr_nscat
            divisor = 1.0
         ENDIF
         IF_FEED: IF(lfeed) THEN
+           IF_lfeed: IF(mmc_lfeed(ic,MC_OCC)) THEN
            IF_RELC: IF(rel_cycl>0.0) THEN
               call calc_change_pid(ic, MC_OCC, is, js, damp, divisor, 1.0, maxdev, change)
 !
@@ -1329,6 +1356,7 @@ corr_pair: DO is = 0, cr_nscat
                mmc_depth(ic, MC_OCC, is, js) = mmc_depth (ic, MC_OCC, is, js) + change
                mmc_depth(ic, MC_OCC, js, is) = mmc_depth (ic, MC_OCC, is, js)
             ENDIF IF_RELC
+            ENDIF IF_lfeed
          ENDIF IF_FEED
 !                                                                       
 !if(ic==1 .and. rel_cycl==0.0) then
@@ -1349,7 +1377,6 @@ corr_pair: DO is = 0, cr_nscat
                 mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js), &
                (mmc_target_corr(ic, je, is, js) - mmc_ach_corr (ic,je, is, js))/divisor, &
                 nneigh
-!write(*,*) ' DEPTH , change ', mmc_depth(ic, MC_OCC  , 1:2, 1:2), -change
 !                                                                     
          ENDIF 
 !                                                                       
@@ -1518,6 +1545,7 @@ corr_pair: DO is = 0, cr_nscat
           fact =  1.0
         endif
         IF_FEED: IF(lfeed) THEN
+           IF_lfeed: IF(mmc_lfeed(ic,MC_UNI)) THEN
         IF_RELC: IF(rel_cycl>0.0) THEN
               call calc_change_pid(ic, MC_UNI, is, js, damp, divisor, fact, maxdev,  change)
            change = -change
@@ -1546,6 +1574,7 @@ corr_pair: DO is = 0, cr_nscat
 !  mmc_ach_corr   (ic, MC_UNI, is, js) ) / 2., damp, -change !          , &
 !endif
         ENDIF IF_RELC
+        ENDIF IF_lFEED
         ENDIF IF_FEED
 !                                                                       
         IF (lout .AND. mmc_pair(ic,MC_UNI,is,js) < 0 .AND. lfirst) THEN
@@ -1673,6 +1702,7 @@ endif
 mmc_ach_corr(ic, MC_GROUP, is, js) = achieved
 !write(*,*) ' IS, JS ', is, js, divisor
 IF_FEED: IF(lfeed) THEN
+   IF_lfeed: IF(mmc_lfeed(ic, MC_GROUP)) THEN
    IF_RELC: IF(rel_cycl>0.0) THEN
       CFAC: IF(mmc_cfac(ic, MC_GROUP)>0.0) THEN
 !write(*,*) ' GROUP ', is, js
@@ -1713,6 +1743,7 @@ IF_FEED: IF(lfeed) THEN
       ENDDO
       ENDIF CFAC
    ENDIF IF_RELC
+   ENDIF IF_lfeed
 ENDIF IF_FEED
 !
 IF(lout .AND. lfirst) THEN
