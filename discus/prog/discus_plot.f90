@@ -91,6 +91,19 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
 !
+integer, parameter :: ODMIN   =  1
+integer, parameter :: ODMAX   =  2
+integer, parameter :: ONMIN   =  3
+integer, parameter :: ONMAX   =  4
+integer, parameter :: OFACE   =  5
+integer, parameter :: OHUE    =  6
+integer, parameter :: OCOLOR  =  7
+integer, parameter :: OPLOT   =  8
+integer, parameter :: OKILL   =  9
+integer, parameter :: OKEEP   = 10
+integer, parameter :: OGEOM   = 11
+integer, parameter :: OEXPORT = 12
+!
 DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', &
               'plot' , 'kill'  , 'keep',  'geom', 'export' /
 DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  5     , &
@@ -699,7 +712,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                               CALL do_plot 
                               pl_keep = opara(10)(1:lopara(10))=='yes'
                               IF(ier_num == 0) THEN
-                                 IF(opara(8)=='inter') THEN
+                                 IF(opara(OPLOT)=='inter') THEN
                                     IF(pl_prog=='jmol') THEN
                                        i = 4
                                        CALL plot_inter(i,opara(9:12))
@@ -707,6 +720,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                                        ier_num = -152
                                        ier_typ = ER_APPL 
                                     ENDIF
+                                 elseif(opara(OKILL)=='yes') THEN
+                                    call jmol_kill(.TRUE. , .FALSE.)
                                  ENDIF
                               ENDIF
                            ENDIF
@@ -1781,6 +1796,7 @@ IF(pl_prog=='jmol') THEN
    IF(operating=='Linux') THEN
       WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), geom,' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
+write(*,*) line(1:len_trim(line))
    ELSEIF(operating=='Linux_WSL') THEN
       WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), geom,' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
