@@ -178,6 +178,7 @@ ELSE is_new
 !
 ENDIF is_new
 !
+!
 IF(macro_level == 1 ) THEN                 ! Top level, start execution tree
 !
    ALLOCATE(mac_tree_root, STAT=istatus)      ! Allocate next node
@@ -245,6 +246,11 @@ ELSE
    mac_tree_temp%parent => mac_tree_active ! Store parent of current macro
    mac_tree_active      => mac_tree_temp   ! Point to currently active macro
    mac_tree_tail        => mac_tree_temp   ! Point to last macro
+   if(.not. lmakro .and. lmakro_dbg) then  ! In 'stop' mode
+   lmakro = .true.
+   lmakro_error = .FALSE.                  ! Start with macro termination error off
+   lmakro_disp  = .TRUE.                   ! Start with macro display error on
+   endif
 ENDIF
 !
 IF (prompt.ne.'macro ') oprompt = prompt
@@ -484,6 +490,11 @@ IF(mac_tree_active%current > mac_tree_active%active%macros%macro_length) THEN
       mac_tree_active => mac_tree_active%parent
 !            DEALLOCATE(mac_tree_active%kid)
       macro_level = macro_level - 1
+      if(lmakro_dbg) then       ! We are in 'stop' mode
+         lmakro = .false.
+         lmakro_disp  = .FALSE.    ! Macro display error off
+         return
+       endif
    ENDIF
    RETURN
 ENDIF
@@ -663,7 +674,9 @@ IF(il>   0) THEN
 !
    IF(str_comp(line, 'stop', 4, il, 4) .AND..NOT.lblock_read) THEN
       WRITE ( *, 2000) char (7)
+      prompt_stop = prompt
       lmakro = .false.
+      lmakro_dbg = .TRUE.
       lmakro_error = .false.    ! Macro termination error off
       lmakro_disp  = .FALSE.    ! Macro display error off
       line = '#'
@@ -791,6 +804,7 @@ END SUBROUTINE macro_close_mpi
       USE errlist_mod
       USE get_params_mod
       USE class_macro_internal
+use lib_errlist_func
 USE lib_length
       USE macro_mod
 USE precision_mod
@@ -805,6 +819,7 @@ USE str_comp_mod
       PARAMETER (maxw = 1)
       CHARACTER(PREC_STRING) :: cpara (maxw)
       CHARACTER(LEN=40)  :: cprompt
+character(len=6) :: cdummy
       INTEGER lpara (maxw)
       INTEGER ianz
 !
@@ -813,38 +828,73 @@ USE str_comp_mod
 !
 !     --No parameter for macro or block structures
 !
-      IF (ianz == 0) THEN
+IF (ianz == 0) THEN
 !
 !     --Only active inside macros stopped by a previous 'stop' command
 !
 !        IF (mac_level>   0) THEN
-         IF (macro_level>   0) THEN
+   IF (macro_level>   0) THEN
+      if(prompt==prompt_stop) then
+         lmakro = .true.
+         lmakro_dbg = .false.
+         lmakro_error = .FALSE.
+         lmakro_disp  = .TRUE.    ! Macro display error on
+         IF (prompt.ne.'macro ') oprompt = prompt
+         prompt = 'macro '
+      else
+         ier_num=+2
+         ier_typ = ER_FORT
+         ier_msg(1) = 'Remainder of macro might be faulty!'   
+         ier_msg(2) = 'Continue anyway with <RETURN>      '   
+         ier_msg(3) = 'Or enter ''cancel'' and  <RETURN>      '   
+         call errlist
+         call no_error
+         write(*,'(a)', advance='no') '------ > Waiting for <RETURN> : '
+         cdummy ='anyway'
+         read(*,'(a)') cdummy
+         if(cdummy=='cancel') then
+            return
+         else!ifcdummy==' ') then
+            write(*,*) ' cdummy', cdummy
             lmakro = .true.
             lmakro_error = .FALSE.
             lmakro_disp  = .TRUE.    ! Macro display error on
             IF (prompt.ne.'macro ') oprompt = prompt
             prompt = 'macro '
-         ENDIF
+          endif
+       endif
+   ENDIF
 !
 !     Only active inside macros stopped by a previous 'stop' command
 !
          IF (lblock_dbg) THEN
+            if(prompt==prompt_stop) then
             lblock_dbg = .false.
             lblock = .true.
+            else
+               ier_num=+2
+               ier_typ = ER_FORT
+               ier_msg(1) = 'Return to the original section/menu'   
+               ier_msg(2) = '       prior to continue command   '   
+               call errlist
+               call no_error
+               return
+             endif
          ENDIF
 !
 !     --One parameter and '<pname>' command
 !
-      ELSEIF (ianz == 1) THEN
-         IF (str_comp (cpara (1), pname, 3, lpara (1), len_str (pname) )&
-         ) THEN
+ELSEIF (ianz == 1) THEN
+   IF(str_comp(cpara(1), pname, 3, lpara(1), len_str(pname))) THEN
             cprompt = prompt   ! Remember current prompt, as macro close 
                                ! goes all the way back....
             CALL macro_close
+            lmakro_dbg = .false.
             prompt = cprompt   ! Set current prompt as active prompt
             lblock_dbg = .false.
             lblock = .false.
          ELSEIF(str_comp(cpara(1), 'suite', 3, lpara (1), 5)) THEN
+            lmakro_dbg = .false.
             CALL macro_close
             lblock_dbg = .false.
             lblock = .false.
@@ -855,15 +905,17 @@ USE str_comp_mod
          ELSE
             ier_num = - 6
             ier_typ = ER_COMM
+            lmakro_dbg = .false.
             CALL macro_close
          ENDIF
       ELSE
          ier_num = - 6
          ier_typ = ER_COMM
+         lmakro_dbg = .false.
          CALL macro_close
       ENDIF
 !
-      END SUBROUTINE macro_continue
+END SUBROUTINE macro_continue
 !
 !*****7*****************************************************************
 !

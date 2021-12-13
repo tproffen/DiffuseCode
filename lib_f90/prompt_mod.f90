@@ -21,6 +21,7 @@ USE precision_mod
    CHARACTER(LEN= PREC_STRING) :: input_gui
    CHARACTER(LEN= 80  ) :: s_ipallowed
    CHARACTER(LEN= 40  ) :: prompt
+   CHARACTER(LEN= 40  ) :: prompt_stop
    CHARACTER(LEN= 40  ) :: oprompt
    CHARACTER(LEN= 10  ) :: version
    CHARACTER(LEN= 7   ) :: pname,pname_cap

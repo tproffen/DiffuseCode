@@ -12,6 +12,8 @@ USE precision_mod
    INTEGER, PARAMETER :: MAC_MAX_IO    = 20
    INTEGER, PARAMETER :: MAC_MAX_FORM  = 50
 !
+logical :: lmakro_dbg = .FALSE.
+!
    CHARACTER(LEN=PREC_STRING), DIMENSION(1:MAC_MAX_IO   ) :: io_file       ! (MAC_MAX_IO)
    CHARACTER(LEN=20  ), DIMENSION(1:MAC_MAX_FORM ) :: io_out_format ! (MAC_MAX_FORM)
    LOGICAL            , DIMENSION(1:MAC_MAX_IO   ) :: io_open       ! (MAC_MAX_IO)
