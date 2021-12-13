@@ -147,8 +147,9 @@ INTEGER :: max_ps
 !                                                                       
 imax = INT( (tthmax - tthmin) / dtth )
 !write(*,*) 'CONV ', tthmin, tthmax, dtth, imax
-sigmasq = sigma2*SQRT(eightln2)
+sigmasq = sigma2!*SQRT(eightln2)
 sigmamin = sigmasq * 0.20D0
+sigmamin = sigmasq * 0.020D0
 dist_min = REAL(rcut, KIND=PREC_DP)
 !
 eta = 0.0     ! Gaussian function
@@ -175,6 +176,7 @@ dummy = 0.0   ! dummy(:)
 !tth = tthmax
 !fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, 0.00001))
 !write(*,*) ' FWHM FINAL ',tth, fwhm 
+!!open(45,file='POWDER/new.pdf', status='unknown')
 main_pts: DO i = 0, imax 
    tth = tthmin + i * dtth 
    IF(tth<0.50) THEN
@@ -183,7 +185,7 @@ main_pts: DO i = 0, imax
    ENDIF
 !
 !  fwhm = SQRT(MAX(sigmasq - corrlin/tth -corrquad/tth**2, 0.00001))
-   fwhm = SQRT(MAX(sigmasq - corrlin/(tth-dist_min) -corrquad/(tth-dist_min)**2, sigmamin))
+   fwhm = SQRT(MAX((sigmasq - corrlin/(tth-dist_min) -corrquad/(tth-dist_min)**2)*sqrt(eightln2), sigmamin))
 !
    max_ps = INT((pow_width * fwhm) / dtth )
    pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
@@ -211,7 +213,9 @@ ENDDO main_pts
 !                                                                       
 DO i = 0, imax 
    dat (i) = dummy (i) * dtth   ! scale with stepwidth
+!!   write(45,'(2f18.8)') i*dtth+tthmin, dat(i)
 ENDDO 
+!!close(45)
 !                                                                       
 END SUBROUTINE powder_conv_corrlin          
 !
