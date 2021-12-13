@@ -546,4 +546,63 @@ INTEGER         , INTENT(INOUT) :: laenge
       ENDIF 
 !                                                                       
       END SUBROUTINE do_proj                        
+!
+!*******************************************************************************
+!
+real function do_area(lspace, u, v)
+!-
+!  determine the area spanned by vectors u and v
+!  area = |u| * |v| * sin(<(u,v))
+!+
+!
+use precision_mod
+use trig_degree_mod
+!
+implicit none
+!
+logical, intent(in) :: lspace    ! True=direct; false=reciprocal
+real(kind=PREC_SP), dimension(3), intent(in) :: u
+real(kind=PREC_SP), dimension(3), intent(in) :: v
+!
+real(kind=PREC_SP), dimension(3), parameter :: NULLV = (/0.0, 0.0, 0.0/)
+!
+do_area = do_blen(lspace,u, NULLV) * do_blen(lspace, v, NULLV) * &
+          sind(do_bang(lspace, u, NULLV, v))
+!
+end function do_area
+!
+!*******************************************************************************
+!
+real function do_volume(lspace, u, v, w)
+!-
+!  determine the volume spanned by the vectors u,v,w
+!+
+use precision_mod
+use trig_degree_mod
+!
+implicit none
+!
+logical, intent(in) :: lspace    ! True=direct; false=reciprocal
+real(kind=PREC_SP), dimension(3), intent(in) :: u
+real(kind=PREC_SP), dimension(3), intent(in) :: v
+real(kind=PREC_SP), dimension(3), intent(in) :: w
+!
+real(kind=PREC_SP), dimension(3), parameter :: NULLV = (/0.0, 0.0, 0.0/)
+real(kind=PREC_SP), dimension(3) :: lengths
+real(kind=PREC_SP), dimension(3) :: cosines
+!
+lengths(1) = do_blen(lspace, u, NULLV)
+lengths(2) = do_blen(lspace, v, NULLV)
+lengths(3) = do_blen(lspace, w, NULLV)
+cosines(1) = cosd(do_bang(lspace, v, NULLV, w))
+cosines(2) = cosd(do_bang(lspace, u, NULLV, w))
+cosines(3) = cosd(do_bang(lspace, u, NULLV, v))
+!
+do_volume = lengths(1)*lengths(2)*lengths(3) *                                  &
+            sqrt(1.0E0 - cosines(1)**2 - cosines(2)**2 - cosines(3)**2 +        &
+                 2.0D0*cosines(1)*cosines(2)*cosines(3)                 )
+end function do_volume
+!
+!*******************************************************************************
+!
 END MODULE metric_mod
