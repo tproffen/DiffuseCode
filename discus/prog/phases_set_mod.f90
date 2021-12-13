@@ -296,6 +296,7 @@ REAL(KIND=PREC_SP) :: weight                ! Current grand weight
 REAL(KIND=PREC_SP) :: fractions             ! Current grand fractions
 REAL(KIND=PREC_SP) :: q                     ! Temporary number of real atoms per phase
 REAL(KIND=PREC_SP) :: ttheta                ! 2Theta
+real(kind=PREC_DP) :: sq_scale
 !
 
 pow_f2aver(:)    = 0.0D0
@@ -362,6 +363,7 @@ pow_u2aver    = pow_u2aver /8./REAL(PI)**2
 !write(*,*) ' Fract  ', pha_frac(1:pha_n), fractions
 !write(*,*) ' Scale  ', pha_scale(1:pha_n)
 !write(*,*) ' Wcor   ', (pha_weight(i)*pha_scale(i),i=1,pha_n)
+!read(*,*) i
 !open(77,file='POWDER/phases.faver', status='unknown')
 !do k=0, npkt
 !  q = ((k)*xdel + xmin)
@@ -423,13 +425,18 @@ ENDDO
 !open(87,file='POWDER/multi_average.conv1', status='unknown')
 !do k= 0, npkt
 !q = ((k)*xdel + xmin)
-!write(87,'(2(f16.6,2x))') q,      pow_conv(k), pow_sq(k)
+!write(87,'(5(f16.6,2x))') q,      pow_conv(k), pow_sq(k), pow_fu(k), pow_faver2(k)
 !enddo
 !close(87)
 !
 !write(*,*) ' IN PHASES ', deb_conv .OR. .NOT.ldbw, deb_conv , .NOT.ldbw
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
 !write(*,*) ' DEBYE was     done  with conv '
+   DO k=0, npkt
+      q = ((k)*xdel + xmin)
+      pow_conv(k) = pow_conv(k)  !+                                               &
+              !       (+ 1.0 - exp(-q**2*pow_u2aver))*pow_faver2(k)
+   ENDDO
    DO k=0, npkt
       pow_sq(k) = pow_sq(k) / REAL(pow_faver2(k))                               &
                   + 1.0 - pow_f2aver(k)/pow_faver2(k)
@@ -441,23 +448,45 @@ ELSE
 !write(*,*) ' DEBYE was not done  with conv '
 ! .NOT. (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0), &
 ! pdf_clin_a/=0.0, pdf_cquad_a/=0.0
-   IF(.NOT. (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0)) THEN
+!  IF(.NOT. (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0)) THEN
    DO k=0, npkt
       q = ((k)*xdel + xmin)
       pow_conv(k) = pow_conv(k) +                                               &
                     (+ 1.0 - exp(-q**2*pow_u2aver))*pow_faver2(k)
    ENDDO
-   ENDIF
+!  ENDIF
    DO k=0, npkt
       pow_sq(k) = 1.0 + (pow_sq(k) - pow_fu(k))/pow_faver2(k) 
 !        ypl(j) = 1.0 + (ypl(j) -pow_fu(j)                     )/pow_faver2(j)
    ENDDO
 ENDIF
+!  Fine tune average value of S(Q) => 1 for large Q, slight deviations arrise
+!  due to convolution
+sq_scale = 0.0D0
+if(npkt*xdel>25.0) then 
+   i = nint((20.0-xmin)/xdel)
+   if(pow_sq(i) > 1.0) then       !Find a point at S(Q) = 1.0
+      do while(pow_sq(i) > 1.0)
+         i = i-1
+      enddo
+   elseif(pow_sq(i) < 1.0) then       !Find a point at S(Q) = 1.0
+      do while(pow_sq(i) < 1.0)
+         i = i-1
+      enddo
+   endif
+   j = nint(0.9*npkt)
+   do k=i,j
+      sq_scale = sq_scale + pow_sq(k)
+   enddo
+   sq_scale = sq_scale/(j-i+1)
+!write(*,*) 'scale ',sq_scale, i, j, npkt
+   pow_sq = pow_sq / sq_scale
+endif
 !
 !open(87,file='POWDER/multi_average.conv', status='unknown')
 !do k= 0, npkt
 !q = ((k)*xdel + xmin)
-!write(87,'(2(f16.6,2x))') q,      pow_conv(k), pow_sq(k)
+!write(87,'(3(f16.6,2x))') q,      pow_conv(k), pow_sq(k)
 !enddo
 !close(87)
 !write(*,*) ' PHASES_FIN ', pha_powder(0, 1), pha_powder(1, 1), pha_powder(4300, 1), pha_powder(npkt, 1)
