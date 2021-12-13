@@ -501,7 +501,7 @@ IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
    DEALLOCATE(histogram)
    RETURN
 ENDIF
-!open(unit=77,file='histogram.hist', status='unknown')
+!open(unit=77,file='POWDER/histogram.hist', status='unknown')
 !do k=1, MAXHIST
 !  write(77,'(4g18.6e3)') 1.*k, histogram(k,:)
 !enddo
@@ -515,6 +515,8 @@ clin_a  = pdf_clin_a
 !
 IF(qbroad > 0.0 .OR. cquad_a>0.0 .OR. clin_a>0.0) deb_conv = .TRUE.
 !!
+!write(*,*) 'POWDER_DEBYE conv ? ', deb_conv, ldbw
+deb_conv = .FALSE.  !DBGCQUAD
 IF(deb_conv) THEN
    cquad_m(:) = 0.0D0
    clin_m(:)  = 0.0D0
@@ -525,7 +527,7 @@ IF(deb_conv) THEN
               deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,      &
               bval_mol )
 ENDIF
-!open(unit=77,file='histogram.conv', status='unknown')
+!open(unit=77,file='POWDER/histogram.conv', status='unknown')
 !do k=1, MAXHIST
 !  write(77,'(4g18.6e3)') 1.*k, histogram(k,:)
 !enddo
@@ -570,7 +572,7 @@ ELSE                             ! Serial accumulation
       ENDDO 
    ENDDO  qwert_ser
 ENDIF
-!open(unit=77,file='histogram.dat', status='unknown')
+!open(unit=77,file='POWDER/histogram.dat', status='unknown')
 !do k=1, num(1)
 !  write(77,'(4g18.6e3)') 1.*k, partial(k,:)
 !enddo
@@ -1057,11 +1059,12 @@ srch: DO l=MAXHIST, 1, -1
 ENDDO  srch
 !
 deb_conv = .FALSE.
-
+!
 qbroad  = pdf_qalp
 cquad_a = pdf_cquad_a
 clin_a  = pdf_clin_a
 IF(qbroad > 0.0 .OR. cquad_a>0.0 .OR. clin_a>0.0) deb_conv = .TRUE.
+deb_conv = .FALSE.
 IF(deb_conv) THEN
    cquad_m(:) = 0.0D0
    clin_m(:)  = 0.0D0
