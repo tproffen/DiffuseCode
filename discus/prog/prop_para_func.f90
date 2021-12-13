@@ -427,6 +427,7 @@ USE str_comp_mod
       owerte =  (/  0.0,      192.0  ,  -1.0   ,  -1.0   ,  0.00   , -2.00   ,  0.00      /)
 !
       CALL get_params (line, ianz, cpara, lpara, maxw, length) 
+      IF (ier_num.ne.0) RETURN 
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                         oname, loname, opara, lopara, lpresent, owerte)
       IF (ier_num.ne.0) RETURN 
