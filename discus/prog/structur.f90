@@ -2827,6 +2827,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN ) :: at_param
       ELSE
          n_mole_old = mole_num_mole
       ENDIF
+werte = 0.0
  1000 CONTINUE 
       ier_num = - 49 
       ier_typ = ER_APPL 
@@ -5904,23 +5905,26 @@ USE lib_errlist_func
 !
       END SUBROUTINE test_atom_name
 !
-      SUBROUTINE test_file ( strucfile, natoms, ntypes, n_mole, n_type, &
-                             n_atom, n_cells, init, lcell)
+!*******************************************************************************
+!
+SUBROUTINE test_file ( strucfile, natoms, ntypes, n_mole, n_type, &
+                       n_atom, n_cells, init, lcell)
 !
 !     Determines the number of atoms and atom types in strucfile
 !
+use aatom_line_mod
+!
 use blanks_mod
-      USE ber_params_mod
-      USE charact_mod
-      USE get_params_mod
+USE ber_params_mod
+USE charact_mod
+USE get_params_mod
 USE lib_length
 USE precision_mod
 USE str_comp_mod
-      USE string_convert_mod
+USE string_convert_mod
 USE support_mod
-      IMPLICIT NONE
 !
-
+IMPLICIT NONE
 !
 CHARACTER (LEN=*)    , INTENT(IN)    :: strucfile
 INTEGER              , INTENT(INOUT) :: natoms
@@ -5932,37 +5936,37 @@ integer, dimension(3), intent(out)   :: n_cells
 INTEGER              , INTENT(IN)    :: init
 LOGICAL              , INTENT(IN)    :: lcell
 !
-      INTEGER, PARAMETER                    :: MAXW = 13 
-      CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW)  :: cpara (MAXW) 
-      INTEGER            , DIMENSION(MAXW)  :: lpara (MAXW) 
-      REAL(KIND=PREC_DP) , DIMENSION(MAXW)  :: werte (MAXW) 
+INTEGER, PARAMETER                    :: MAXW = 13 
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW)  :: cpara (MAXW) 
+INTEGER            , DIMENSION(MAXW)  :: lpara (MAXW) 
+REAL(KIND=PREC_DP) , DIMENSION(MAXW)  :: werte (MAXW) 
 !
-      REAL, PARAMETER                       :: eps = 1e-6
-      CHARACTER (LEN=PREC_STRING)                  :: line
-      CHARACTER (LEN=PREC_STRING)                  :: zeile
-      CHARACTER (LEN=  20)                  :: bef
-      CHARACTER (LEN=   4), DIMENSION(PREC_STRING), SAVE :: names
-      REAL                , DIMENSION(PREC_STRING), SAVE :: bvals
-      REAL                , DIMENSION(PREC_STRING), SAVE :: occs
-      INTEGER                               :: ios
-      INTEGER                               :: i
-      INTEGER                               :: iblk
-      INTEGER                               :: ianz   ! no of arguments
-      INTEGER                               :: laenge ! length of input line
-      INTEGER                               :: lp     ! length of parameter string
-      INTEGER                               :: nscattypes ! no of SCAT arguments 
-      INTEGER                               :: nadptypes  ! no of ADP  arguments 
-      INTEGER                               :: nocctypes  ! no of ADP  arguments 
-      INTEGER                               :: indxt      ! Pos of a TAB in input
-      INTEGER                               :: indxb      ! Pos of a BLANK in input
-      INTEGER                               :: lbef       ! Length of command string
-      INTEGER                               :: iflag      ! FLAG FOR NMDE 
-      INTEGER                               :: imole      ! Mole number on atom line
-      INTEGER                               :: inatom     ! Atom in Mole number on atom line
-      LOGICAL                               :: in_mole    ! Currently within a molecule
-      LOGICAL                               :: l_type     ! RFound molecule type command
-      LOGICAL                               :: new
-      REAL                                  :: xc,yc,zc,bval
+REAL, PARAMETER                       :: eps = 1e-6
+CHARACTER (LEN=PREC_STRING)                  :: line
+CHARACTER (LEN=PREC_STRING)                  :: zeile
+CHARACTER (LEN=  20)                  :: bef
+CHARACTER (LEN=   4), DIMENSION(PREC_STRING), SAVE :: names
+REAL                , DIMENSION(PREC_STRING), SAVE :: bvals
+REAL                , DIMENSION(PREC_STRING), SAVE :: occs
+INTEGER                               :: ios
+INTEGER                               :: i
+INTEGER                               :: iblk
+INTEGER                               :: ianz   ! no of arguments
+INTEGER                               :: laenge ! length of input line
+INTEGER                               :: lp     ! length of parameter string
+INTEGER                               :: nscattypes ! no of SCAT arguments 
+INTEGER                               :: nadptypes  ! no of ADP  arguments 
+INTEGER                               :: nocctypes  ! no of ADP  arguments 
+INTEGER                               :: indxt      ! Pos of a TAB in input
+INTEGER                               :: indxb      ! Pos of a BLANK in input
+INTEGER                               :: lbef       ! Length of command string
+INTEGER                               :: iflag      ! FLAG FOR NMDE 
+INTEGER                               :: imole      ! Mole number on atom line
+INTEGER                               :: inatom     ! Atom in Mole number on atom line
+LOGICAL                               :: in_mole    ! Currently within a molecule
+LOGICAL                               :: l_type     ! RFound molecule type command
+LOGICAL                               :: new
+REAL                                  :: xc,yc,zc,bval
 real(kind=PREC_SP), dimension(3,2)   :: ccdim     ! Crystal dimensions 
 INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
@@ -5971,211 +5975,214 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 REAL                                 :: occ
 !
 !      LOGICAL           :: is_nan
-      LOGICAL           :: IS_IOSTAT_END
+LOGICAL           :: IS_IOSTAT_END
 !
-      natoms     = 0
-      nscattypes = 0
-      nadptypes  = 0
-      nocctypes  = 0
+natoms     = 0
+nscattypes = 0
+nadptypes  = 0
+nocctypes  = 0
 iblk = 0
 ccdim = 0.0
-      IF ( init == -1 ) THEN
-        names(:)  = ' '
-        bvals(:)  = 0.0
-        occs(:)   = 1.0
-        ntypes    = 0
-        n_mole     = 0
-        n_type     = 0
-        n_atom     = 0
-      ENDIF
-      in_mole = .false.
+IF ( init == -1 ) THEN
+   names(:)  = ' '
+   bvals(:)  = 0.0
+   occs(:)   = 1.0
+   ntypes    = 0
+   n_mole     = 0
+   n_type     = 0
+   n_atom     = 0
+ENDIF
+in_mole = .false.
 !
-      CALL oeffne ( 99, strucfile, 'old')
-      IF ( ier_num /= 0) THEN
-          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-          CLOSE ( 99 )
-          RETURN
-      ENDIF
+!call aatom_get_size(strucfile, nlines)
+!
+CALL oeffne ( 99, strucfile, 'old')
+IF ( ier_num /= 0) THEN
+   ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+   CLOSE ( 99 )
+   RETURN
+ENDIF
+!
 header: DO
-        READ (99,1000, IOSTAT=ios) line
-        IF ( ios /= 0 ) THEN
-           ier_num = -6
-           ier_typ = ER_IO
-           CLOSE ( 99 )
-           ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-           RETURN
-        ENDIF
-        IF (line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
-            line == CHAR (13) )  CYCLE header
-        laenge = LEN_TRIM(LINE)
-        call tab2blank(line, laenge)
-        iblk = INDEX(line, ' ')
-        CALL do_cap (line(1:iblk))
+   READ (99,1000, IOSTAT=ios) line
+   IF(ios /= 0) THEN
+      ier_num = -6
+      ier_typ = ER_IO
+      CLOSE ( 99 )
+      ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+      RETURN
+   ENDIF
+   IF (line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
+       line == CHAR (13) )  CYCLE header
+   laenge = LEN_TRIM(LINE)
+   call tab2blank(line, laenge)
+   iblk = INDEX(line, ' ')
+   CALL do_cap (line(1:iblk))
 !        laenge = len_str(line)
-        IF ( laenge .gt. 4 ) THEN
-           zeile = line(iblk+1:laenge)
-           lp    = laenge - 4
-        ELSE
-           zeile = ' '
-           lp    = 1
-        ENDIF
-        IF (line(1:4) == 'SCAT' ) THEN 
-            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF (ier_num.eq.0) THEN 
-               DO i = 1,ianz
-                   names(nscattypes+i) = cpara(i)(1:lpara(i))
-               ENDDO
-               nscattypes = nscattypes + ianz
-            ELSE
-               ier_num = -111
-               ier_typ = ER_APPL
-               ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-               CLOSE(99)
-               RETURN
-            ENDIF
-        ELSEIF (line(1:3) == 'ADP' ) THEN 
-            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF (ier_num.eq.0) THEN 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) THEN 
-                  DO i = 1,ianz
-                      bvals(nadptypes+i) = werte(i)
-                  ENDDO
-                  nadptypes = nadptypes + ianz
-               ELSE
-                  ier_num = -112
-                  ier_typ = ER_APPL
-                  ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-                  CLOSE(99)
-                  RETURN
-               ENDIF
-            ELSE
-               ier_num = -149
-               ier_typ = ER_APPL
-               ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-               CLOSE(99)
-               RETURN
-            ENDIF
-        ELSEIF (line(1:3) == 'OCC' ) THEN 
-            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF (ier_num.eq.0) THEN 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) THEN 
-                  DO i = 1,ianz
-                      IF(werte(i)<0.0 .OR. 1.0<werte(i)) THEN
-                         ier_num = -150
-                         ier_typ = ER_APPL
-                         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-                         CLOSE(99)
-                         RETURN
-                      ENDIF
-                      occs (nocctypes+i) = werte(i)
-                  ENDDO
-                  nocctypes = nocctypes + ianz
-               ELSE
-                  ier_num = -149
-                  ier_typ = ER_APPL
-                  ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-                  CLOSE(99)
-                  RETURN
-               ENDIF
-            ELSE
-               ier_num = -149
-               ier_typ = ER_APPL
-               ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-               CLOSE(99)
-               RETURN
-            ENDIF
-        ELSEIF (line(1:4) == 'CELL' ) THEN 
-            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF (ier_num.eq.0 .AND. ianz == 6) THEN 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num /= 0) THEN 
-                  ier_num = -48
-                  ier_typ = ER_APPL
-                  ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-                  CLOSE(99)
-                  RETURN
-               ENDIF
-            ELSE
-               READ(zeile,*,IOSTAT=ios) (werte(i),i=1,6)
-               IF(ios /=0 .OR. is_nan(REAL(werte(1),KIND=PREC_SP)) .OR. is_nan(REAL(werte(2),KIND=PREC_SP)) &
-                          .OR. is_nan(REAL(werte(3),KIND=PREC_SP)) .OR. is_nan(REAL(werte(4),KIND=PREC_SP)) &
-                          .OR. is_nan(REAL(werte(5),KIND=PREC_SP)) .OR. is_nan(REAL(werte(6),KIND=PREC_SP))) THEN
-                  ier_num = -48
-                  ier_typ = ER_APPL
-                  ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-                  CLOSE(99)
-                  RETURN
-               ENDIF
-            ENDIF
-        ELSEIF (line(1:5) == 'NCELL' ) THEN 
-            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF (ier_num.eq.0) THEN 
-               werte = 0.0
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) THEN 
-                  DO i = 1,ianz
-                      IF(werte(i)<0.0 ) THEN
-                         ier_num = -164
-                         ier_typ = ER_APPL
-                         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-                         CLOSE(99)
-                         RETURN
-                      ENDIF
-                  ENDDO
-                  IF(ianz>=5) THEN
-                     natoms = werte(5)
-                  ENDIF
-                  n_cells = werte(1:3)
-                  ntypes = werte(6)
-                  n_mole = werte(7)
-                  n_type = werte(8)
-                  n_atom = werte(9)
-               ELSE
-                  ier_num = -163
-                  ier_typ = ER_APPL
-                  ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-                  CLOSE(99)
-                  RETURN
-               ENDIF
-            ELSE
-               ier_num = -163
-               ier_typ = ER_APPL
-               ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-               CLOSE(99)
-               RETURN
-            ENDIF
-        ENDIF
-        IF (line(1:4) == 'ATOM') THEN 
-            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF(ianz==0)   THEN   ! Pre 5.17.2 style, no params
-               at_ianz = 4       ! At least x,y,z,Biso
-               at_param(1) = 'X'
-               at_param(2) = 'Y'
-               at_param(3) = 'Z'
-               at_param(4) = 'BISO'
-            ELSE
-               DO i=1,ianz
-                  CALL do_cap(cpara(i))
-                  at_param(i) = cpara(i)(1:MIN(LEN(at_param),lpara(i)))
-               ENDDO
-               at_ianz = ianz
-            ENDIF
-            at_init = .TRUE.
-            EXIT header
-         ENDIF
-      ENDDO header
-!
-      IF (nscattypes /= nadptypes ) THEN
-         ier_num = -115
-         ier_typ = ER_APPL
-         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-         CLOSE(99)
-         RETURN
+   IF ( laenge .gt. 4 ) THEN
+      zeile = line(iblk+1:laenge)
+      lp    = laenge - 4
+   ELSE
+      zeile = ' '
+      lp    = 1
+   ENDIF
+   IF (line(1:4) == 'SCAT' ) THEN 
+       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+       IF (ier_num.eq.0) THEN 
+          DO i = 1,ianz
+              names(nscattypes+i) = cpara(i)(1:lpara(i))
+          ENDDO
+          nscattypes = nscattypes + ianz
+       ELSE
+          ier_num = -111
+          ier_typ = ER_APPL
+          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+          CLOSE(99)
+          RETURN
+       ENDIF
+   ELSEIF (line(1:3) == 'ADP' ) THEN 
+       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+       IF (ier_num.eq.0) THEN 
+          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+          IF (ier_num.eq.0) THEN 
+             DO i = 1,ianz
+                 bvals(nadptypes+i) = werte(i)
+             ENDDO
+             nadptypes = nadptypes + ianz
+          ELSE
+             ier_num = -112
+             ier_typ = ER_APPL
+             ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+             CLOSE(99)
+             RETURN
+          ENDIF
+       ELSE
+          ier_num = -149
+          ier_typ = ER_APPL
+          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+          CLOSE(99)
+          RETURN
+       ENDIF
+   ELSEIF (line(1:3) == 'OCC' ) THEN 
+       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+       IF (ier_num.eq.0) THEN 
+          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+          IF (ier_num.eq.0) THEN 
+             DO i = 1,ianz
+                 IF(werte(i)<0.0 .OR. 1.0<werte(i)) THEN
+                    ier_num = -150
+                    ier_typ = ER_APPL
+                    ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+                    CLOSE(99)
+                    RETURN
+                 ENDIF
+                 occs (nocctypes+i) = werte(i)
+             ENDDO
+             nocctypes = nocctypes + ianz
+          ELSE
+             ier_num = -149
+             ier_typ = ER_APPL
+             ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+             CLOSE(99)
+             RETURN
+          ENDIF
+       ELSE
+          ier_num = -149
+          ier_typ = ER_APPL
+          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+          CLOSE(99)
+          RETURN
+       ENDIF
+   ELSEIF (line(1:4) == 'CELL' ) THEN 
+       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+       IF (ier_num.eq.0 .AND. ianz == 6) THEN 
+          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+          IF (ier_num /= 0) THEN 
+             ier_num = -48
+             ier_typ = ER_APPL
+             ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+             CLOSE(99)
+             RETURN
+          ENDIF
+       ELSE
+          READ(zeile,*,IOSTAT=ios) (werte(i),i=1,6)
+          IF(ios /=0 .OR. is_nan(REAL(werte(1),KIND=PREC_SP)) .OR. is_nan(REAL(werte(2),KIND=PREC_SP)) &
+                     .OR. is_nan(REAL(werte(3),KIND=PREC_SP)) .OR. is_nan(REAL(werte(4),KIND=PREC_SP)) &
+                     .OR. is_nan(REAL(werte(5),KIND=PREC_SP)) .OR. is_nan(REAL(werte(6),KIND=PREC_SP))) THEN
+             ier_num = -48
+             ier_typ = ER_APPL
+             ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+             CLOSE(99)
+             RETURN
+          ENDIF
+       ENDIF
+   ELSEIF (line(1:5) == 'NCELL' ) THEN 
+       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+       IF (ier_num.eq.0) THEN 
+          werte = 0.0
+          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+          IF (ier_num.eq.0) THEN 
+             DO i = 1,ianz
+                 IF(werte(i)<0.0 ) THEN
+                    ier_num = -164
+                    ier_typ = ER_APPL
+                    ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+                    CLOSE(99)
+                    RETURN
+                 ENDIF
+             ENDDO
+             IF(ianz>=5) THEN
+                natoms = werte(5)
+             ENDIF
+             n_cells = werte(1:3)
+             ntypes = werte(6)
+             n_mole = werte(7)
+             n_type = werte(8)
+             n_atom = werte(9)
+          ELSE
+             ier_num = -163
+             ier_typ = ER_APPL
+             ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+             CLOSE(99)
+             RETURN
+          ENDIF
+       ELSE
+          ier_num = -163
+          ier_typ = ER_APPL
+          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+          CLOSE(99)
+          RETURN
+       ENDIF
+   ENDIF
+   IF(line(1:4) == 'ATOM') THEN 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF(ianz==0)   THEN   ! Pre 5.17.2 style, no params
+         at_ianz = 4       ! At least x,y,z,Biso
+         at_param(1) = 'X'
+         at_param(2) = 'Y'
+         at_param(3) = 'Z'
+         at_param(4) = 'BISO'
+      ELSE
+         DO i=1,ianz
+            CALL do_cap(cpara(i))
+            at_param(i) = cpara(i)(1:MIN(LEN(at_param),lpara(i)))
+         ENDDO
+         at_ianz = ianz
       ENDIF
+      at_init = .TRUE.
+      EXIT header
+   ENDIF
+ENDDO header
 !
-      ntypes = MAX(ntypes,nscattypes)
+IF (nscattypes /= nadptypes ) THEN
+   ier_num = -115
+   ier_typ = ER_APPL
+   ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+   CLOSE(99)
+   RETURN
+ENDIF
+!
+ntypes = MAX(ntypes,nscattypes)
 !
 IF(natoms>0) THEN
    IF(ntypes>0) THEN
@@ -6188,7 +6195,7 @@ IF(natoms>0) THEN
    ENDIF
 ENDIF
 !
-      l_type = .FALSE.
+l_type = .FALSE.
 !
 main: DO
    READ (99,1000, IOSTAT=ios) line
@@ -6198,70 +6205,70 @@ main: DO
    laenge = len_str(line)
    call tab2blank(line, laenge)
 !
-        bef   = '    '
-        indxt = INDEX (line, tab)       ! find a tabulator
-        IF(indxt==0) indxt = laenge + 1
-        indxb = index (line, ' ')       ! find a blank
-        IF(indxb==0) indxb = laenge + 1
-        indxb = MIN(indxb,indxt)
+   bef   = '    '
+   indxt = INDEX (line, tab)       ! find a tabulator
+   IF(indxt==0) indxt = laenge + 1
+   indxb = index (line, ' ')       ! find a blank
+   IF(indxb==0) indxb = laenge + 1
+   indxb = MIN(indxb,indxt)
 !
-        lbef = min (indxb - 1, 8)
-        bef  = line (1:lbef)
-        CALL do_cap (line(1:laenge))
-        IF(line(1:1)=='#' .OR. line(1:1)=='!') CYCLE main
+   lbef = min (indxb - 1, 8)
+   bef  = line (1:lbef)
+   CALL do_cap (line(1:laenge))
+   IF(line(1:1)=='#' .OR. line(1:1)=='!') CYCLE main
 !
-ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
-             str_comp(line, 'DOMAIN'  , 3, lbef, 6) .or. &
-             str_comp(line, 'OBJECT'  , 3, lbef, 6)     ) THEN
-           IF ( indxb+1 >= laenge) THEN   ! No parameter => start
-              IF ( .not. in_mole) THEN
-                 in_mole = .true.
-                 n_mole  = n_mole + 1
-                 l_type  = .false.
-              ENDIF
-           ELSEIF ( str_comp(line(indxb+1: laenge), 'END',3, laenge-indxb,3)) THEN
-              IF ( in_mole) THEN
-                 in_mole = .false.
-                 IF(.not.l_type) THEN
-                    n_type = n_type + 1
-                 ENDIF
-                 l_type  = .false.
-              ENDIF
-           ELSEIF ( str_comp(line(indxb+1: laenge), 'TYPE',3, laenge-indxb,4)) THEN
-              zeile  = line(indxb+1: laenge)
-              laenge = laenge-indxb
-              CALL get_params (zeile, ianz, cpara, lpara, maxw, laenge)
-              cpara(1) = '0' 
-              lpara(1) = 1
-              CALL ber_params (ianz, cpara, lpara, werte, maxw)
-              n_type = MAX(n_type, NINT(werte(2)))
-              l_type = .true.
-           ELSE
-           ENDIF
-        ELSE ismole
-           iflag  = 0
-           imole  = 0
-           inatom = 0
-           ios = 0
-           CALL read_atom_line (line, lbef+1, laenge, natoms, MAXW, werte, &
-                                AT_MAXP, at_ianz, at_param, at_init)                                          
-           xc     = werte(1)
-           yc     = werte(2)
-           zc     = werte(3)
-           bval   = werte(4)
-           iflag  = NINT(werte(5))
-           imole  = NINT(werte(6))
-           inatom = NINT(werte(7))
-           occ    =      werte(8)
-           IF(occ     <0.0 .OR. 1.0<occ     ) THEN
-              ier_num = -150
-              ier_typ = ER_APPL
-              ier_msg(1) = line(1:46)
-              WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
-              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-              CLOSE(99)
-              RETURN
-           ENDIF
+   ismole: IF(str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
+              str_comp(line, 'DOMAIN'  , 3, lbef, 6) .or. &
+              str_comp(line, 'OBJECT'  , 3, lbef, 6)     ) THEN
+      IF ( indxb+1 >= laenge) THEN   ! No parameter => start
+         IF ( .not. in_mole) THEN
+            in_mole = .true.
+            n_mole  = n_mole + 1
+            l_type  = .false.
+         ENDIF
+      ELSEIF ( str_comp(line(indxb+1: laenge), 'END',3, laenge-indxb,3)) THEN
+         IF ( in_mole) THEN
+            in_mole = .false.
+            IF(.not.l_type) THEN
+               n_type = n_type + 1
+            ENDIF
+            l_type  = .false.
+         ENDIF
+      ELSEIF ( str_comp(line(indxb+1: laenge), 'TYPE',3, laenge-indxb,4)) THEN
+         zeile  = line(indxb+1: laenge)
+         laenge = laenge-indxb
+         CALL get_params (zeile, ianz, cpara, lpara, maxw, laenge)
+         cpara(1) = '0' 
+         lpara(1) = 1
+         CALL ber_params (ianz, cpara, lpara, werte, maxw)
+         n_type = MAX(n_type, NINT(werte(2)))
+         l_type = .true.
+!          ELSE
+      ENDIF
+   ELSE ismole
+      iflag  = 0
+      imole  = 0
+      inatom = 0
+      ios = 0
+      CALL read_atom_line (line, lbef+1, laenge, natoms, MAXW, werte, &
+                           AT_MAXP, at_ianz, at_param, at_init)                                          
+      xc     = werte(1)
+      yc     = werte(2)
+      zc     = werte(3)
+      bval   = werte(4)
+      iflag  = NINT(werte(5))
+      imole  = NINT(werte(6))
+      inatom = NINT(werte(7))
+      occ    =      werte(8)
+      IF(occ     <0.0 .OR. 1.0<occ     ) THEN
+         ier_num = -150
+         ier_typ = ER_APPL
+         ier_msg(1) = line(1:46)
+         WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
+         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+         CLOSE(99)
+         RETURN
+      ENDIF
 !          READ (line(5:len_str(line)), *, IOSTAT = ios) xc,yc,zc,bval, iflag, imole, inatom
 !          IF(IS_IOSTAT_END(ios))  THEN     ! iflag, imole, inatom are missing
 !             READ (line(5:len_str(line)), *, IOSTAT = ios) xc,yc,zc,bval
@@ -6269,68 +6276,69 @@ ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
               n_mole = MAX(n_mole, imole)
               n_atom = MAX(n_atom, inatom)
 !          ENDIF
-           IF(is_nan(xc) .OR. is_nan(yc) .OR. is_nan(zc) .OR. is_nan(bval)) THEN
-              ios = -1
-           ENDIF
-           IF(is_nan(REAL(werte(10),KIND=PREC_SP)) .OR. is_nan(REAL(werte(11),KIND=PREC_SP)) &
-               .OR. is_nan(REAL(werte(12),KIND=PREC_SP)) ) THEN
-              ios = -1
-           ENDIF
-!
-isatom:    IF ( ios == 0 ) THEN
-              ccdim(1,1) = min(ccdim(1,1), xc)
-              ccdim(1,2) = max(ccdim(1,2), xc)
-              ccdim(2,1) = min(ccdim(2,1), yc)
-              ccdim(2,2) = max(ccdim(2,2), yc)
-              ccdim(3,1) = min(ccdim(3,1), zc)
-              ccdim(3,2) = max(ccdim(3,2), zc)
-              natoms = natoms + 1
-              IF ( in_mole ) THEN
-                 n_atom = n_atom + 1
-              ENDIF
-              new = .true.
-types:        DO i=1,ntypes
-                 IF ( line(1:lbef) == names(i) ) THEN
-                    IF ( lcell ) THEN
-                       new = .false.
-                       EXIT types
-                    ELSEIF ( abs(abs(bval)-abs(bvals(i))) < eps .AND.   &
-                             abs(abs(occ )-abs( occs(i))) < eps ) THEN
-                       new = .false.
-                       EXIT types
-                    ENDIF
-                 ENDIF
-              ENDDO types
-              IF ( new ) THEN
-                 ntypes = ntypes + 1
-                 names(ntypes) = line(1:lbef)
-                 bvals(ntypes) = bval
-                  occs(ntypes) = occ 
-              ENDIF
-           ELSE isatom
-              ier_num = -49
-              ier_typ = ER_APPL
-              ier_msg(1) = line(1:46)
-              WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
-              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-              CLOSE(99)
-              RETURN
-           ENDIF isatom
-        ENDIF ismole
-      ENDDO main
-!
-      CLOSE (99)
-!
-      IF(n_mole>0) THEN
-         n_type = MAX(n_type,1)  ! Ensure values are NOT zero
-         n_atom = MAX(n_atom,1)
+      IF(is_nan(xc) .OR. is_nan(yc) .OR. is_nan(zc) .OR. is_nan(bval)) THEN
+         ios = -1
       ENDIF
+      IF(     is_nan(REAL(werte(10),KIND=PREC_SP)) &
+         .OR. is_nan(REAL(werte(11),KIND=PREC_SP)) &
+         .OR. is_nan(REAL(werte(12),KIND=PREC_SP)) ) THEN
+         ios = -1
+      ENDIF
+!
+      isatom:    IF ( ios == 0 ) THEN
+         ccdim(1,1) = min(ccdim(1,1), xc)
+         ccdim(1,2) = max(ccdim(1,2), xc)
+         ccdim(2,1) = min(ccdim(2,1), yc)
+         ccdim(2,2) = max(ccdim(2,2), yc)
+         ccdim(3,1) = min(ccdim(3,1), zc)
+         ccdim(3,2) = max(ccdim(3,2), zc)
+         natoms = natoms + 1
+         IF ( in_mole ) THEN
+            n_atom = n_atom + 1
+         ENDIF
+         new = .true.
+         types: DO i=1,ntypes
+            IF ( line(1:lbef) == names(i) ) THEN
+               IF ( lcell ) THEN
+                  new = .false.
+                  EXIT types
+               ELSEIF(abs(abs(bval)-abs(bvals(i))) < eps .AND.   &
+                      abs(abs(occ )-abs( occs(i))) < eps ) THEN
+                  new = .false.
+                  EXIT types
+               ENDIF
+            ENDIF
+         ENDDO types
+         IF ( new ) THEN
+            ntypes = ntypes + 1
+            names(ntypes) = line(1:lbef)
+            bvals(ntypes) = bval
+            occs(ntypes) = occ 
+         ENDIF
+      ELSE isatom
+         ier_num = -49
+         ier_typ = ER_APPL
+         ier_msg(1) = line(1:46)
+         WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
+         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+         CLOSE(99)
+         RETURN
+      ENDIF isatom
+   ENDIF ismole
+ENDDO main
+!
+CLOSE (99)
+!
+IF(n_mole>0) THEN
+   n_type = MAX(n_type,1)  ! Ensure values are NOT zero
+   n_atom = MAX(n_atom,1)
+ENDIF
 !
 n_cells     = int(ccdim(:,2)-ccdim(:,1)) + 1
 !
 1000  FORMAT(a)
 !
-      END SUBROUTINE test_file
+END SUBROUTINE test_file
 !
 !*******************************************************************************
 !
