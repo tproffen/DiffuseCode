@@ -1,71 +1,71 @@
-MODULE ber_params_mod
+module ber_params_mod
 !
-CONTAINS
+contains
 !
 !*****7***************************************************************  
 !
-SUBROUTINE ber_params (ianz, cpara, lpara, werte, maxpara) 
+subroutine ber_params (ianz, cpara, lpara, werte, maxpara) 
 !-                                                                      
 !     Calculated the value of all expressions stored in cpara           
 !+                                                                      
-USE berechne_mod
-!USE calc_expr_mod
+use berechne_mod
+!use calc_expr_mod
 use do_replace_expr_mod
-USE errlist_mod 
-USE precision_mod
+use errlist_mod 
+use precision_mod
 !
-IMPLICIT none 
+implicit none 
 !                                                                       
-INTEGER, INTENT(IN) :: ianz
-INTEGER, INTENT(IN) :: maxpara 
-CHARACTER(LEN=*   ), DIMENSION(MAXPARA), INTENT(IN)  :: cpara
-INTEGER            , DIMENSION(MAXPARA), INTENT(IN)  :: lpara
-REAL(KIND=PREC_DP) , DIMENSION(MAXPARA), INTENT(OUT) :: werte
+integer, intent(in) :: ianz
+integer, intent(in) :: maxpara 
+character(len=*   ), dimension(MAXPARA), intent(in)  :: cpara
+integer            , dimension(MAXPARA), intent(in)  :: lpara
+real(kind=PREC_DP) , dimension(MAXPARA), intent(out) :: werte
 !                                                                       
-CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: line 
-INTEGER             :: ll, i ,j
-REAL(KIND=PREC_DP)  :: wert 
+character(len=max(PREC_STRING,len(cpara))) :: line 
+integer             :: ll, i ,j
+real(kind=PREC_DP)  :: wert 
 !                                                                       
 !                                                                       
-main: DO i = 1, ianz 
+main: do i = 1, ianz 
    ll   = lpara (i) 
    line = ' ' 
    line = '('//cpara (i) (1:ll) //')' 
    ll   = ll + 2 
-   DO j=1, ll
-      IF(IACHAR(line(j:j))==9) line(j:j) = ' '
-   ENDDO
+   do j=1, ll
+      if(iachar(line(j:j))==9) line(j:j) = ' '
+   enddo
    call do_replace_expr(line,ll)          ! Initially replace any "EXPR" 
    wert = berechne (line, ll) 
-   IF (ier_num /= 0) EXIT main
+   if (ier_num /= 0) exit main
    werte (i) = wert 
-ENDDO  main
+enddo  main
 !
-END SUBROUTINE ber_params                     
+end subroutine ber_params                     
 !
 !*****7***************************************************************  
 !
-SUBROUTINE ber_param  (ipara, cpara, lpara, werte, maxpara) 
+subroutine ber_param  (ipara, cpara, lpara, werte, maxpara) 
 !-                                                                      
 !     Calculated the value of the expressions stored in cpara ipara
 !+                                                                      
-USE berechne_mod
-!USE calc_expr_mod
+use berechne_mod
+!use calc_expr_mod
 use do_replace_expr_mod
-USE errlist_mod 
-USE precision_mod
+use errlist_mod 
+use precision_mod
 !
-IMPLICIT none 
+implicit none 
 !                                                                       
-INTEGER, INTENT(IN) :: ipara
-INTEGER, INTENT(IN) :: maxpara 
-CHARACTER(LEN=*   ), DIMENSION(MAXPARA), INTENT(IN)  :: cpara
-INTEGER            , DIMENSION(MAXPARA), INTENT(IN)  :: lpara
-REAL(KIND=PREC_DP) , DIMENSION(MAXPARA), INTENT(OUT) :: werte
+integer, intent(in) :: ipara
+integer, intent(in) :: maxpara 
+character(len=*   ), dimension(MAXPARA), intent(in)  :: cpara
+integer            , dimension(MAXPARA), intent(in)  :: lpara
+real(kind=PREC_DP) , dimension(MAXPARA), intent(out) :: werte
 !                                                                       
-CHARACTER(LEN=MAX(PREC_STRING,LEN(CPARA))) :: line 
-INTEGER             :: ll, i ,j
-REAL(KIND=PREC_DP)  :: wert 
+character(len=max(PREC_STRING,len(CPARA))) :: line 
+integer             :: ll, i ,j
+real(kind=PREC_DP)  :: wert 
 !                                                                       
 !                                                                       
 i = ipara 
@@ -73,16 +73,62 @@ i = ipara
    line = ' ' 
    line = '('//cpara (i) (1:ll) //')' 
    ll   = ll + 2 
-   DO j=1, ll
-      IF(IACHAR(line(j:j))==9) line(j:j) = ' '
-   ENDDO
+   do j=1, ll
+      if(iachar(line(j:j))==9) line(j:j) = ' '
+   enddo
    call do_replace_expr(line,ll)          ! Initially replace any "EXPR" 
    wert = berechne (line, ll) 
-   IF (ier_num /= 0) RETURN
+   if (ier_num /= 0) return
    werte (i) = wert 
 !
-END SUBROUTINE ber_param                     
+end subroutine ber_param                     
 !
 !*****7***************************************************************  
 !
-END MODULE ber_params_mod
+subroutine eva_params (ianz, cpara, lpara, werte, names, maxpara, inums, inames)
+!-                                                                      
+!     Evaluates parameters stored in cpara one by one.
+!     Those where the numeric evaluation give no error are 
+!     stored in 'werte', the other ones are retained in 'names'
+!+                                                                      
+use berechne_mod
+use do_replace_expr_mod
+use errlist_mod 
+use lib_errlist_func
+use precision_mod
+!
+implicit none 
+!                                                                       
+integer, intent(in) :: ianz
+integer, intent(in) :: maxpara 
+character(len=*   ), dimension(MAXPARA), intent(in)  :: cpara
+integer            , dimension(MAXPARA), intent(in)  :: lpara
+real(kind=PREC_DP) , dimension(ianz)   , intent(out) :: werte
+character(len=*   ), dimension(ianz)   , intent(out) :: names
+integer                                , intent(out) :: inums
+integer                                , intent(out) :: inames
+!
+real(kind=PREC_DP), dimension(MAXPARA) :: wwerte   ! Automatic dynamic array
+!                                                                       
+integer :: i
+!
+inums =  0  ! no numerical parameters yet
+inames = 0  ! no character parameters yet
+do i=1, ianz
+  call no_error
+  call ber_param(i, cpara, lpara, wwerte, MAXPARA)
+  if(ier_num == 0) then        ! numerical value
+     inums = inums + 1
+     werte(inums) = wwerte(i)
+  else
+     inames = inames + 1
+     names(inames) = cpara(i)
+  endif
+enddo
+call no_error
+!
+end subroutine eva_params
+!
+!*****7***************************************************************  
+!
+end module ber_params_mod
