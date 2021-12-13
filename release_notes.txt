@@ -1,4 +1,31 @@
-6.08.02  DRAFT
+6.08.03  DRAFT
+
+General
+  'stop'  Enabled execution of macros in stopped mode.
+
+DISCUS
+  DOMAIN  enabled "orient' and 'shape' to handle format specifiers
+  PLOT    enabled a 'run kill:yes' line, just to kill all previous JMOLs
+  POWDER  FIXED BUG  Corrected corrlin, corrquad action in powder menue
+  FIND    enabled format specifier for atom names
+  FOURIER FIXED BUG, in some circumstances the average intensity output
+          was missing the Friedel pairs.
+  FOURIER Introduced an automatic scaling between Bragg and diffuse 
+          intensities that applies to a full 3D-PDF only. Not relevant
+          for 3D-Delta-PDF or plain intensities.
+  MMC     FIXED BUG, Feedback algorithm was always on, even for 
+          target "corr" with last parameter set to "ENER".
+  MOLECULARIZE Improved the command by adding optional parameters.
+
+  Atomic Form factors
+  Corrected values for the Elements:
+          Gd	xray		a4
+	  Sm	xray		b4
+	  Cr	electron	a5
+	  Mo	electron	a2
+          Implemented Waasmaier & Kirfel Parameters
+
+6.08.02  RELEASED 2021_18
 
 General
   Modified update command for WSL, avoids powershell.
