@@ -15,6 +15,7 @@ USE crystal_mod
 USE get_iscat_mod
 USE chem_mod 
 !
+use build_name_mod
 use do_find_mod
 USE get_params_mod
 USE ber_params_mod
@@ -104,6 +105,7 @@ IF (ier_num.eq.0) then
 !                                                                       
 !     --------Get scattering curves                                     
 !                                                                       
+            CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
             CALL get_iscat(ianz, cpara, lpara, werte, maxw, lnew) 
             IF (ier_num.eq.0) then 
                CALL do_find_env(ianz, werte, maxw, x, rmin, radius, fq, fp)
