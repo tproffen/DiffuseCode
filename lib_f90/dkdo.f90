@@ -506,6 +506,9 @@ main: DO WHILE (level.gt. - 1.and. (                                    &
       IF (.NOT. (level.eq.0.AND.ilevel (level) .eq.0) ) THEN 
          IF (str_comp (line (1:4) , 'stop', 4, length, 4) ) THEN 
             WRITE(output_io, '(a,a1)') '------ > do/if halted, continue with cont ...', achar(7) 
+            WRITE(output_io, '(a,a1)') '------ > return to the current section/menu  ', achar(7) 
+            WRITE(output_io, '(a,a1)') '------ > prior to the continue command       ', achar(7) 
+            prompt_stop = prompt
             lblock_dbg = .true. 
             lblock = .false. 
             line = '#' 
