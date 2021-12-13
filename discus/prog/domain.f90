@@ -348,7 +348,7 @@ use string_convert_mod
 character(len=*), intent(inout) :: zeile
 integer         , intent(inout) :: lp
 !
-integer, parameter :: maxw = 7
+integer, parameter :: maxw = 15
 !
 character(LEN=PREC_STRING), dimension(4   ) :: dummy_expr
 character(LEN=PREC_STRING), dimension(MAXW) :: cpara
