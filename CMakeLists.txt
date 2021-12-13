@@ -44,6 +44,9 @@ set (DIFFUSE_VERSION_PATCH 02)
 # Readline required for all programs
 
 find_package(Readline REQUIRED)
+find_package(X11 REQUIRED)
+find_package(PNG REQUIRED)
+find_package(ZLIB REQUIRED)
 
 option(DISCUS_OMP    "Switch for compiling DISCUS_SUITE with OpenMP" ON)
 if (DISCUS_OMP)
