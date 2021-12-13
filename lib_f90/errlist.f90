@@ -210,7 +210,7 @@ USE lib_length
      &  'Command parameter has zero length ',       & ! -2  ! io
      &  '       directory not defined '             & ! -1  ! io
      &       /
-       DATA ERROR (  0:  0) /                         &
+       DATA ERROR (  0: io) /                         &
      &  ' '                                         & !  0  ! command
      &       /
 !
@@ -228,7 +228,7 @@ USE lib_length
 !
 !
        INTEGER, PARAMETER :: iu = -55
-       INTEGER, PARAMETER :: io =   1
+       INTEGER, PARAMETER :: io =   2
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
@@ -293,9 +293,10 @@ USE lib_length
      &  'Unknown Variable',                         & ! -2  ! fortran
      &  'Nonnumerical Parameters in expression'     & ! -1  ! fortran
      &   /
-       DATA ERROR (  0:  1) /                       &
+       DATA ERROR (  0: io) /                       &
      &  ' ',                                        & !  0  ! command
-     &  'Variable name is already defined'          & !  1  ! fortran
+     &  'Variable name is already defined',          & !  1  ! fortran
+     &  'Wrong section/menu for continue after stop' & !  2  ! fortran
      &       /
 !
        CALL disp_error ('FORT',error,iu,io)
@@ -347,7 +348,7 @@ USE lib_length
      &  'Error opening file',                       & ! -2  ! io
      &  'File does not exist'                       & ! -1  ! io
      &       /
-       DATA ERROR (  0:  0) /                       &
+       DATA ERROR (  0: io) /                       &
      &  ' '                                         & !  0  ! command
      &       /
 !
@@ -409,10 +410,10 @@ USE lib_length
      &  ' ',                                        & ! -5  ! command
      &  ' ',                                        & ! -4  ! io
      &  ' ',                                        & ! -3  ! io
-     &  ' ',                                        & ! -2  ! io
+     &  'Macros are not available during stop ',    & ! -2  ! io
      &  'Too many macro parameters given'           & ! -1  ! macro
      &   /
-       DATA ERROR (  0:  3) /                       &
+       DATA ERROR (  0: io) /                       &
      &  ' ',                                        & !  0  ! command
      &  ' ',                                        & !  1  ! command
      &  ' ',                                        & !  2  ! command
