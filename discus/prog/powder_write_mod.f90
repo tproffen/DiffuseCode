@@ -163,7 +163,8 @@ ELSEIF(value == val_sq .OR. value == val_fq) THEN
 ELSEIF(value == val_pdf) THEN
    IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
       DO j = 0, npkt
-             ypl (j) = pow_conv(j)   ! copy from convoluted pattern
+             ypl (j) = pow_conv(j) & ! copy from convoluted pattern
+                  -  (+ 1.0 - exp(-q**2*pow_u2aver))*pow_faver2(j)
                                      ! After phases_average
       ENDDO
    ELSE
@@ -179,6 +180,7 @@ ELSE                              ! All other output is  inte
    ENDDO
 ENDIF           ! Output is if_block if(value==val_f2aver)
 !
+!DBGCQUAD
 !open(77,file='POWDER/INITIAL.inte',status='unknown')
 !DO ii=0,npkt
 !  write(77,'(2(2x,G17.7E3))') xmin+(ii)*xdel,     ypl(ii)
@@ -291,6 +293,7 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
    ENDIF valq
 ENDIF prsq  !Prepare S(Q), F(Q)
 !
+!DBGCQUAD
 !write(*,*) ' normalizer ', normalizer
 !open(77,file='POWDER/normalized.inte',status='unknown')
 !DO ii=0,npkt
@@ -301,9 +304,10 @@ ENDIF prsq  !Prepare S(Q), F(Q)
 !
 CALL pow_k12(npkt, POW_WR_MAXPKT, pow_ka21, pow_ka21_u, xpl, ypl)
 rmax     = out_user_values(2)
+!DBGCQUAD
 !open(77,file='POWDER/normalized.k12',status='unknown')
 !DO ii=0,npkt
-!               q = ((ii-1)*xdel + xmin)
+!!               q = ((ii-1)*xdel + xmin)
 !write(77,'(2(2x,G17.7E3))') xpl(ii)         , ypl(ii)
 !enddo
 !close(77)
@@ -426,10 +430,11 @@ ELSE                    ! cpow_form ==
    DEALLOCATE( lpv, stat = all_status)
    RETURN
 ENDIF                   ! cpow_form == 
-!
+!!
+!DBGCQUAD
 !open(77,file='POWDER/equistep.inte',status='unknown')
 !DO ii=1,npkt_wrt
-!               q = ((ii-1)*xdel + xmin)
+!!               q = ((ii-1)*xdel + xmin)
 !write(77,'(2(2x,G17.7E3))') xwrt(ii)         , ywrt(ii)
 !enddo
 !close(77)
@@ -1197,10 +1202,11 @@ INTEGER, PARAMETER  :: POW_COMPL = 0
 INTEGER, PARAMETER  :: POW_DEBYE = 1
 !
 REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
-REAL, DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
+REAL(kind=PREC_DP), DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
 REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
 REAL                          :: tantth   ! tan(Theta)
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
+REAL(KIND=PREC_DP)    :: ddtth            ! actual eta at current 2Theta
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
 INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
 REAL    :: pseudo          ! scale factor for lookup table
@@ -1208,12 +1214,13 @@ INTEGER :: max_ps
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
+ddtth = 0.001D0
 imax = INT( (tthmax - tthmin) / dtth )
 !
-dummy = 0.0   ! dummy(:)
+dummy = 0.0D0   ! dummy(:)
 IF(pow_type==POW_COMPL) THEN     ! Complete, check for zeros in DAT
    main_pts: DO i = 0, imax 
-      tth = tthmin + i * dtth 
+      tth = tthmin + i * ddtth 
       tantth = tand (tth * 0.5) 
 !
       fwhm = 0.00001
@@ -1223,19 +1230,19 @@ IF(pow_type==POW_COMPL) THEN     ! Complete, check for zeros in DAT
          fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
       ENDIF
 !
-      max_ps = INT((pow_width * fwhm) / dtth )
+      max_ps = INT((pow_width * fwhm) / ddtth )
       eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
-      pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
-      i1 = 0                               ! == 0 * dtth
-      i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
+      pseudo =     ddtth/fwhm*glp_npt  ! scale factor for look up table
+      i1 = 0                               ! == 0 * ddtth
+      i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*ddtth
       dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)  &
                              -glp_pseud_indx(i2, eta, fwhm))                             
 !
       ii = MAX (i - 1 - max_ps + 1, 0) 
       first:DO j = ii, i - 1 
          IF(dat(j)==0.0) CYCLE first
-         i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * dtth
-         i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * dtth
+         i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * ddtth
+         i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * ddtth
          dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
                                         -glp_pseud_indx(i2, eta, fwhm))                    
       ENDDO first
@@ -1243,15 +1250,15 @@ IF(pow_type==POW_COMPL) THEN     ! Complete, check for zeros in DAT
       ii = MIN(i + 1 + max_ps - 1, imax) 
       secnd: DO j = i + 1, ii 
          IF(dat(j)==0.0) CYCLE secnd
-         i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * dtth
-         i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * dtth
+         i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * ddtth
+         i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * ddtth
          dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
                                         -glp_pseud_indx(i2, eta, fwhm))
       ENDDO secnd
    ENDDO main_pts
 ELSEIF(pow_type==POW_DEBYE) THEN     ! DEBYE, do not check for zeros in DAT
    main_pts_deb: DO i = 0, imax 
-      tth = tthmin + i * dtth 
+      tth = tthmin + i * ddtth 
       tantth = tand (tth * 0.5) 
 !
       fwhm = 0.00001
@@ -1261,26 +1268,26 @@ ELSEIF(pow_type==POW_DEBYE) THEN     ! DEBYE, do not check for zeros in DAT
          fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
       ENDIF
 !
-      max_ps = INT((pow_width * fwhm) / dtth )
+      max_ps = INT((pow_width * fwhm) / ddtth )
       eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
-      pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
-      i1 = 0                               ! == 0 * dtth
-      i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
+      pseudo =     ddtth/fwhm*glp_npt  ! scale factor for look up table
+      i1 = 0                               ! == 0 * ddtth
+      i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*ddtth
       dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)  &
                              -glp_pseud_indx(i2, eta, fwhm))                             
 !
       ii = MAX (i - 1 - max_ps + 1, 0) 
       first_deb:DO j = ii, i - 1 
-         i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * dtth
-         i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * dtth
+         i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * ddtth
+         i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * ddtth
          dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
                                         -glp_pseud_indx(i2, eta, fwhm))                    
       ENDDO first_deb
 !
       ii = MIN(i + 1 + max_ps - 1, imax) 
       secnd_deb: DO j = i + 1, ii 
-         i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * dtth
-         i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * dtth
+         i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * ddtth
+         i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * ddtth
          dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
                                         -glp_pseud_indx(i2, eta, fwhm))
       ENDDO secnd_deb
@@ -1288,7 +1295,7 @@ ELSEIF(pow_type==POW_DEBYE) THEN     ! DEBYE, do not check for zeros in DAT
 ENDIF
 !                                                                       
 DO i = 0, imax 
-   dat (i) = dummy (i) * dtth   ! scale with stepwidth
+   dat (i) = dummy (i) * ddtth   ! scale with stepwidth
 ENDDO 
 !                                                                       
 END SUBROUTINE powder_conv_psvgt_uvw          
