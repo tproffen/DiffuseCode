@@ -55,6 +55,9 @@ INTEGER, PARAMETER :: MAXFORM = 14
 integer, parameter :: NEW = 0
 integer, parameter :: OLD = 1
 integer, parameter :: ADD = 2
+!
+integer, parameter :: PDF3D_NORMAL = 0
+integer, parameter :: PDF3D_SHARP  = 1
 !                                                                       
 CHARACTER(LEN=5) :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
@@ -65,6 +68,8 @@ CHARACTER(LEN=PREC_STRING) :: zeile
 CHARACTER(LEN=PREC_STRING) :: line, cpara (maxp) 
 INTEGER, DIMENSION(MAXP) :: lpara  !(maxp) 
 INTEGER :: ix, iy, ianz, value, lp, length, lbef 
+integer :: i,j,k,l     ! Dummy indices
+integer :: pdf3d_mode  !  3D-PDF mode "normal" / "sharp"
 INTEGER :: indxg 
 LOGICAL :: laver, lread
 LOGICAL :: l_val_limited=.FALSE.    ! for 3D PDF do we limit d-star
@@ -73,15 +78,16 @@ REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
 REAL(KIND=PREC_DP)                  :: valmax
 REAL(KIND=PREC_DP)                  ::  dsmax = 0.0
 ! 
-INTEGER, PARAMETER :: NOPTIONAL = 8
+INTEGER, PARAMETER :: NOPTIONAL = 9
 INTEGER, PARAMETER :: O_MAXVAL  = 1                  ! Current SCALE for maxvalue
 INTEGER, PARAMETER :: O_DSMAX   = 2                  ! Maximum d-star
 INTEGER, PARAMETER :: O_QMAX    = 3                  ! Maximum Q
 INTEGER, PARAMETER :: O_HKLMAX  = 4                  ! Maximum hkl vector
-INTEGER, PARAMETER :: O_PATT    = 5                  ! Maximum hkl vector
-INTEGER, PARAMETER :: O_SPATT   = 6                  ! Maximum hkl vector
-INTEGER, PARAMETER :: O_DPATT   = 7                  ! Maximum hkl vector
+INTEGER, PARAMETER :: O_PATT    = 5                  ! Optional Patteron overlay for Vesta
+INTEGER, PARAMETER :: O_SPATT   = 6                  ! Optional Patteron overlay for Vesta
+INTEGER, PARAMETER :: O_DPATT   = 7                  ! Optional Patteron overlay for Vesta
 INTEGER, PARAMETER :: O_MODE    = 8                  ! Mode if written into KUPLOT
+INTEGER, PARAMETER :: O_SHARP   = 9                  ! 3D-PDF type normal/sharpened
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 character(len=8)                          :: cpatt   ! Optional patterson overlay
 character(len=PREC_STRING)                :: spatt   ! Atoms selected for Patterson overlay
@@ -93,8 +99,8 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
 !                                                                       
-DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax', 'patt'  ,'sel', 'des', 'mode' /
-DATA loname /  6      ,  5      ,  4      ,  6      ,  4      , 3   ,  3   ,  4     /
+DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax', 'patt'  ,'sel', 'des', 'mode', 'type' /
+DATA loname /  6      ,  5      ,  4      ,  6      ,  4      , 3   ,  3   ,  4    ,  4     /
 DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
                 'Portable Any Map', 'Powder Pattern', 'SHELX',          &
                 'SHELXL List 5', 'SHELXL List 5 real HKL' ,             &
@@ -110,9 +116,9 @@ DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
 DATA value / 1 / 
 DATA laver / .false. / 
 !
-opara  = (/'data  ', '0.00  ', '0.00  ', '0.00  ', 'none  ', 'all   ', 'none  ', 'new   ' /)
-lopara = (/  4     ,  5      ,  4      ,  6      ,  6      ,  3      ,  4      ,  3       /)
-owerte = (/ -1.000 ,  0.000  ,  0.000  ,  0.000  ,  0.00   ,  0.000  ,  0.000  ,  0.00    /)
+opara  = (/'data  ', '0.00  ', '0.00  ', '0.00  ', 'none  ', 'all   ', 'none  ', 'new   ', 'normal' /)
+lopara = (/  4     ,  5      ,  4      ,  6      ,  6      ,  3      ,  4      ,  3      ,  6       /)
+owerte = (/ -1.000 ,  0.000  ,  0.000  ,  0.000  ,  0.00   ,  0.000  ,  0.000  ,  0.00   ,  0.00    /)
 zmin = ps_low * diffumax 
 zmax = ps_high * diffumax 
 orig_prompt = prompt
@@ -442,7 +448,27 @@ main_if: IF (ier_num.eq.0) THEN
             CALL chem_elem(.false.)
             CALL set_output (linverse) 
             IF(value==val_3DPDF) THEN
+               if(.not. allocated(dsi3d)) then
+                  ier_num = -180
+                  ier_typ = ER_APPL
+                  ier_msg(1) = 'No Fourier has been calculated '
+                  ier_msg(2) = 'or 3d-PDF has been written since last calculation'
+                  return
+               endif
+               dsi = dsi3d
+               if(opara(O_SHARP)(1:5)=='sharp') then
+                  do k=1,num(3)
+                     do j=1,num(2)
+                        do i=1,num(1)
+                           l =  (i - 1)*out_inc(3)*out_inc(2) +        &
+                                (j - 1)*out_inc(3)            + k
+                           dsi(l) = dsi(l)/qval(l,val_faver2,  i, j, laver)
+                        enddo
+                     enddo
+                  enddo
+               endif
                CALL out_prep_3dpdf(laver, l_val_limited, dsmax)
+               deallocate(dsi3d)
             elseif(value==val_3DBETA) then
                dsi = real(acsf * conjg(acsf), kind=PREC_DP)
                CALL out_prep_3dpdf(laver, l_val_limited, dsmax)
@@ -664,10 +690,20 @@ main_if: IF (ier_num.eq.0) THEN
             CALL value_optional(lpresent, O_DSMAX, O_QMAX, O_HKLMAX, NOPTIONAL, opara, &
                                 lopara, werte, l_val_limited, dsmax)
             value = val_3DPDF
+            if(opara(O_SHARP)(1:6)=='normal') then
+               pdf3d_mode = PDF3D_NORMAL
+            elseif(opara(O_SHARP)(1:5)=='sharp') then
+               pdf3d_mode = PDF3D_SHARP
+            endif
          ELSEIF (cpara (1) (ix:ix + 5) == '3DBETA' ) THEN 
             CALL value_optional(lpresent, O_DSMAX, O_QMAX, O_HKLMAX, NOPTIONAL, opara, &
                                 lopara, werte, l_val_limited, dsmax)
             value = val_3DBETA
+            if(opara(O_SHARP)(1:6)=='normal') then
+               pdf3d_mode = PDF3D_NORMAL
+            elseif(opara(O_SHARP)(1:5)=='sharp') then
+               pdf3d_mode = PDF3D_SHARP
+            endif
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
@@ -2038,6 +2074,7 @@ USE errlist_mod
 USE precision_mod
 USE singleton
 USE map_1dtofield
+use lib_f90_profile
 !
 IMPLICIT NONE
 !
@@ -2045,12 +2082,17 @@ LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
+real(kind=PREC_DP) :: dx
+real(kind=PREC_DP) :: dy
+real(kind=PREC_DP) :: tx
+real(kind=PREC_DP) :: ty
 !REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
 !REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
 !INTEGER                 :: lenwrk   ! Length of work array
 !INTEGER                 :: lensav   ! Length of wsave array
 !INTEGER :: n1, n2
 !INTEGER :: dimen
+integer::  i,j
 !
 !dimen = MAX(num(1), num(2), num(3))
 !n1 = num(1) !dimen
@@ -2064,6 +2106,29 @@ ALLOCATE(pattern(num(dsort(1)), num(dsort(2)) ))
 !ALLOCATE(wsave(1:lensav))
 !
 CALL maptofftfd(num, dsort, dsi, pattern)
+!
+dy = 0.5D0/real((num(dsort(2))+1)/2,kind=PREC_DP)
+dx = 0.5D0/real((num(dsort(1))+1)/2,kind=PREC_DP)
+do j=1,(num(dsort(2))+1)/2
+      ty = tukey(0.50D0+dy*(j-1),0.050D0, 1.0D0)
+   do i=1,(num(dsort(1))+1)/2
+      tx = tukey(0.50D0+dx*(i-1),0.050D0, 1.0D0)
+!      pattern(                i,                j) = pattern(i,j)*tx*ty
+!      pattern(num(dsort(1))+1-i,                j) = pattern(i,j)*tx*ty
+!      pattern(                i,num(dsort(2))+1-j) = pattern(i,j)*tx*ty
+!      pattern(num(dsort(1))+1-i,num(dsort(2))+1-j) = pattern(i,j)*tx*ty
+enddo
+enddo
+!open(83,file='pattern.inte', status='unknown')
+!write(83,'(2i8)') num(dsort(1)), num(dsort(2))
+!write(83,'(a)') ' 0.0, 1.0, 0.0, 1.0 '
+!do j=1, num(dsort(2))
+!  write(83,'(5g18.5e3)') (real(pattern(i,j)), i=1, num(dsort(1)))
+! write(83,'(5g18.5e3)') (real(dsi(i)      ), i=(j-1)*num(dsort(1))+1, (j-1)*num(dsort(1))+num(dsort(2)))
+!enddo
+!close(83)
+!write(*,*) ' WROTE PATTERN ', num(dsort(1)), num(dsort(2))
+!read(*,*) i
 !
 !CALL cfft2i (n1, n2, wsave, lensav, ier_num ) ! Initialize wsave
 !CALL cfft2f ( dimen, n1, n2, pattern, wsave, lensav, work, lenwrk, ier_num )
