@@ -143,6 +143,54 @@ END SUBROUTINE get_optional_multi
 !
 !*******************************************************************************
 !
+subroutine eva_optional_multi(opara, lopara, MAXWW, ccpara, wwerte, nums, nnames)
+!-
+!  evaluate an optional parameter that might consist of numerical values and/or character strings
+!+
+!
+use ber_params_mod
+use errlist_mod
+use precision_mod
+!
+implicit none
+!
+character(len=*)  , intent(in) :: opara     ! The optional parameter string
+integer           , intent(in) :: lopara    ! its length
+integer           , intent(in) :: MAXWW     ! Dimensions of the output arrays
+character(len=*)  , dimension(MAXWW), intent(out) ::ccpara     ! The optional parameter string
+real(kind=PREC_DP), dimension(MAXWW), intent(out) :: wwerte    ! The optional parameter string
+integer                             , intent(out) :: nums
+integer                             , intent(out) :: nnames
+!
+integer, parameter :: MAXW = 10
+character(len=PREC_STRING), dimension(MAXW) :: cpara     ! Temporary array for lower routines
+integer                   , dimension(MAXW) :: lpara     ! Temporary array for lower routines
+real(kind=PREC_DP)        , dimension(MAXW) :: werte     ! Temporary array for lower routines
+integer :: ianz
+integer :: i
+!
+if(opara(1:1)=='[') then     ! We seem to have a [1,2] style
+   call sep_optional_multi(MAXW, opara, lopara, cpara, ianz)
+   do i=1,ianz
+      lpara(i) = len_trim(cpara(i))
+   enddo
+   if(ier_num/=0) then
+      ier_msg(1) = 'Optional parameters erroneous'
+      return
+   endif
+else
+   cpara(1) = opara
+   lpara(1) = lopara
+   ianz = 1
+endif
+nums = 0
+nnames = 0
+call eva_params(ianz, cpara, lpara, wwerte, ccpara, MAXW, nums, nnames)
+!
+end subroutine eva_optional_multi
+!
+!*******************************************************************************
+!
 SUBROUTINE sep_optional_multi(MAXW, opara, lopara, cpara, ianz)
 !-
 ! Separates multiple values for the optional parameters as for "dim:[3,3]"
@@ -156,8 +204,8 @@ USE precision_mod
 IMPLICIT NONE
 !
 INTEGER                            , INTENT(IN)    :: MAXW     ! Dimension of cpara
-CHARACTER(LEN=*)                   , INTENT(INOUT) :: opara    ! The string with optional values
-INTEGER                            , INTENT(INOUT) :: lopara   ! length of string
+CHARACTER(LEN=*)                   , INTENT(IN   ) :: opara    ! The string with optional values
+INTEGER                            , INTENT(IN   ) :: lopara   ! length of string
 CHARACTER(LEN=*)  , DIMENSION(MAXW), intent(out)   :: cpara
 INTEGER                            , INTENT(OUT)   :: ianz    ! Number of numerical values
 !
