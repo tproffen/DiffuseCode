@@ -72,7 +72,7 @@ integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
-integer, parameter                        :: ncalc = 3 ! Number of values to calculate 
+integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
 !
 data oname  / 'table'  /
 data loname /  2       /
