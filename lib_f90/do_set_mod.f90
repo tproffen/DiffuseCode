@@ -299,8 +299,8 @@ IF(ier_num==0) THEN
    ELSE
       ier_num = -6
       ier_typ = ER_COMM
-      ier_msg(1) = 'Optional OMP must be omp:use ; omp:parallel'
-      ier_msg(2) = '                  or omp:off ; omp:serial'
+      ier_msg(1) = 'Optional OMP must be useomp:use ; useomp:parallel'
+      ier_msg(2) = '                  or useomp:off ; useomp:serial'
       RETURN
    ENDIF
    IF(par_omp_use) THEN
