@@ -156,8 +156,8 @@ ELSE
 ENDIF
 f_ptr = C_LOC(is_direct)
 CALL H5Screate_f(H5S_SCALAR_F, space, hdferr)
-CALL H5Dcreate_f(file_id, 'is_direct', H5T_STD_I32LE, space, dset, hdferr)
-CALL H5Dwrite_f(dset, H5T_STD_I32LE, f_ptr         , hdferr)
+CALL H5Dcreate_f(file_id, 'is_direct', H5T_STD_I8BE, space, dset, hdferr)
+CALL H5Dwrite_f(dset, H5T_STD_I8BE, f_ptr         , hdferr)
 CALL H5Dclose_f(dset , hdferr)
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

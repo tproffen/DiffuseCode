@@ -316,7 +316,7 @@ dataname = 'is_direct'
 CALL H5Dopen_f(file_id, dataname, dset_id, hdferr)           ! Open the dataset
 CALL H5Dget_space_f(dset_id, space_id, hdferr)
 f_ptr = C_LOC(r_is_direct)
-CALL H5Dread_F(dset_id, H5T_STD_I32LE, f_ptr, hdferr)
+CALL H5Dread_F(dset_id, H5T_STD_I8BE , f_ptr, hdferr)
 CALL H5Dclose_f(dset_id, hdferr)
 h5_direct = 1 == r_is_direct
 !
