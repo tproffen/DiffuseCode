@@ -75,6 +75,30 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2021_Dec
+
+  Atomic form factors
+          Some values for the following elements were wrong:
+          Gd  a4
+          Sm  b4
+          Cr  a4
+          Mo  a2
+          The parameterized values according to Waasmaier & Kirfel,
+          ACA (1995) A51, 416-431 were added and are used as default values.
+          Optional parameters table:waas or table:inter allow to 
+          choose the Waasmaier or the International Tables Volume C.
+  DOMAIN  enabled "orient' and 'shape' to handle format specifiers
+  PLOT    enabled a 'run kill:yes' line, just to kill all previous JMOLs
+  POWDER  FIXED BUG  Corrected corrlin, corrquad action in powder menue
+  FIND    enabled format specifier for atom names
+  FOURIER FIXED BUG, in some circumstances the average intensity output
+          was missing the Friedel pairs.
+  FOURIER Introduced an automatic scaling between Bragg and diffuse
+          intensities that applies to a full 3D-PDF only. Not relevant
+          for 3D-Delta-PDF or plain intensities.
+  MMC     FIXED BUG, Feedback algorithm was always on, even for
+          target "corr" with last parameter set to "ENER".
+  MOLECULARIZE Improved the command by adding optional parameters.
 3  2021_Oct
 
    Changed the reading of structures to enable files without BISO collumn.
@@ -3375,9 +3399,14 @@
    Defines the wave length to be used. Anomalous dispersion will only
    be calculated if the wave length is given as symbol.
 3  xray
-!p xray
+!p xray  [table:{"waass" | "inter"}
 
    Switches to X-ray calculation
+
+   The parameterized values according to Waasmaier & Kirfel,
+   ACA (1995) A51, 416-431 were added and are used as default values.
+   Optional parameters table:waas or table:inter allow to 
+   choose the Waasmaier or the International Tables Volume C.
 2  functions
 
    The following DISCUS specific functions exist. For a listing
@@ -6867,9 +6896,14 @@
    Defines the wave length to be used. Anomalous dispersion will only
    be calculated if the wave length is given as symbol.
 3  xray
-!p xray
+!p xray  [table:{"waass" | "inter"}
 
-   Switches to X-ray calculation.
+   Switches to X-ray calculation
+
+   The parameterized values according to Waasmaier & Kirfel,
+   ACA (1995) A51, 416-431 were added and are used as default values.
+   Optional parameters table:waas or table:inter allow to 
+   choose the Waasmaier or the International Tables Volume C.
 2  private
 !p private List_of_parameters
 
