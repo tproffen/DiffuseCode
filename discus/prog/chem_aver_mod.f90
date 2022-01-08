@@ -42,6 +42,14 @@ REAL   , DIMENSION(  :), ALLOCATABLE :: temp_chem_ave_bese
 REAL   , DIMENSION(3  )              :: temp_chem_ave_pos
 REAL   , DIMENSION(3  )              :: temp_chem_ave_sig
 !
+if(cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms>cr_natoms) then
+   ier_num = -179
+   ier_typ= ER_APPL
+   ier_msg(1) = 'More atoms in the crystal than aver expects'
+   ier_msg(2) = 'Check unit cell, atoms per unit cell, '
+   ier_msg(3) = 'and total atom number'
+   return
+endif
 is = 1
 !
 !IF ( CHEM_MAXAT_CELL   < MAXAT_CELL .or. &
