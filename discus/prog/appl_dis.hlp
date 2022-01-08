@@ -75,30 +75,33 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2021_Jan
+
+   Added a new menu ==> 'perioditize'
 3  2021_Dec
 
-  Atomic form factors
-          Some values for the following elements were wrong:
-          Gd  a4
-          Sm  b4
-          Cr  a4
-          Mo  a2
-          The parameterized values according to Waasmaier & Kirfel,
-          ACA (1995) A51, 416-431 were added and are used as default values.
-          Optional parameters table:waas or table:inter allow to 
-          choose the Waasmaier or the International Tables Volume C.
-  DOMAIN  enabled "orient' and 'shape' to handle format specifiers
-  PLOT    enabled a 'run kill:yes' line, just to kill all previous JMOLs
-  POWDER  FIXED BUG  Corrected corrlin, corrquad action in powder menue
-  FIND    enabled format specifier for atom names
-  FOURIER FIXED BUG, in some circumstances the average intensity output
-          was missing the Friedel pairs.
-  FOURIER Introduced an automatic scaling between Bragg and diffuse
-          intensities that applies to a full 3D-PDF only. Not relevant
-          for 3D-Delta-PDF or plain intensities.
-  MMC     FIXED BUG, Feedback algorithm was always on, even for
-          target "corr" with last parameter set to "ENER".
-  MOLECULARIZE Improved the command by adding optional parameters.
+   Atomic form factors
+           Some values for the following elements were wrong:
+           Gd  a4
+           Sm  b4
+           Cr  a4
+           Mo  a2
+           The parameterized values according to Waasmaier & Kirfel,
+           ACA (1995) A51, 416-431 were added and are used as default values.
+           Optional parameters table:waas or table:inter allow to 
+           choose the Waasmaier or the International Tables Volume C.
+   DOMAIN  enabled "orient' and 'shape' to handle format specifiers
+   PLOT    enabled a 'run kill:yes' line, just to kill all previous JMOLs
+   POWDER  FIXED BUG  Corrected corrlin, corrquad action in powder menue
+   FIND    enabled format specifier for atom names
+   FOURIER FIXED BUG, in some circumstances the average intensity output
+           was missing the Friedel pairs.
+   FOURIER Introduced an automatic scaling between Bragg and diffuse
+           intensities that applies to a full 3D-PDF only. Not relevant
+           for 3D-Delta-PDF or plain intensities.
+   MMC     FIXED BUG, Feedback algorithm was always on, even for
+           target "corr" with last parameter set to "ENER".
+   MOLECULARIZE Improved the command by adding optional parameters.
 3  2021_Oct
 
    Changed the reading of structures to enable files without BISO collumn.
@@ -885,6 +888,7 @@
    read       ! Read structure or unit cell from file or internal storage
    save       ! Save the structure to file or internal storage
    plot       ! Write the structure in a format for plotting
+   perioditize ! Rearrange the atom sequence in a periodic fashion
 
    Modify a structure
    decorate   ! Decorate the surface with ligands
@@ -5967,6 +5971,69 @@
    selected atoms, sizes of moves and minimal allowed distances between
    atom types. Finally the parameter "all" will cause all settings
    to be printed on the screen.
+2  perioditize
+!p perioditize
+
+   Switches to the periodititzer menu. The task in this menu attempts
+   to rearrange a structure to be periodic and to be in the standard
+   DISCUS sequence. Additional "VOIDs" might be introduced to fill 
+   the empty sites in a unit cell
+
+   Further help topics are:
+3  rese
+!p rese
+
+   Reset the menu to start-up conditions.
+3  run
+!p run
+
+   Start the task at hand.
+3  set
+!p set
+
+   Guide the perioditizer by setting:
+   The expected number of unit cells
+   The expected number of atoms per unit cell
+   The expected positions within the unit cell
+4  ncell
+!p ncell {"auto" | <nx>, <ny>, nz>}
+
+   Set the number of unit cells, either explicitely with <nx>, <ny>, nz>
+   or to be determined automatically with "auto"
+4  natoms {"auto" | <natom>}
+
+   Set the number of atoms per unit cells, either explicitely with <natoms>
+   or to be determined automatically with "auto"
+4  site
+!p site atoms:[<names>], pos:[<x>,<y>,<z>] 
+!p      {, number:<value>}
+!p      {, number:"next"}
+
+   Set which atoms are allowed at a site with coordinates pos.
+   Both parameters are required.
+   atoms:[<names>]    Requires a comma delimited list of atom names or
+                      atom type numbers
+   pos:[<x>,<y>,<z>]  Requires a comma delimited position within the 
+                      unit cell.
+
+   number:<value>     Apply the settings to this site number
+   number:next        Apply the settings to the next free site
+4  wyck
+!p wyck atoms:[<names>], pos:[<x>,<y>,<z>]
+
+   Set which atoms are allowed at a Wyckoff site with coordinates pos.
+   Both parameters are required.
+   atoms:[<names>]    Requires a comma delimited list of atom names or
+                      atom type numbers
+   pos:[<x>,<y>,<z>]  Requires a comma delimited position within the 
+                      unit cell.
+
+   All symmetrically equivalent sites are generated for 
+   the current space group!
+3  show
+!p show
+
+   Show the current settings.
 2  plot
 !p plot
 
