@@ -54,6 +54,7 @@ USE prompt_mod
 USE take_param_mod
 USE str_comp_mod
 USE sup_mod
+USE support_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -83,6 +84,7 @@ INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name retu
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: NCALC = 1 ! Number of values to calculate 
+!
 !
 !                                                                       
 !
@@ -225,81 +227,6 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !           CALL do_readfree(befehl,lbef,ianz, maxw, cpara, lpara)
             CALL do_readfree(            ianz, maxw, cpara, lpara, &
                              opara(O_SETTING), lopara(O_SETTING))
-!           CALL rese_cr 
-!           cr_name = 'freely created structure' 
-!           cr_spcgr (1:1)  = 'P' 
-!           cr_spcgr (2:2)  = '1' 
-!           cr_spcgr (3:16) = '              ' 
-!           cr_spcgrno = 1 
-!           cr_syst = 1 
-!           spcgr_para = 1
-!           CALL get_symmetry_matrices 
-!           IF (ianz.eq.0) THEN 
-!              DO i = 1, 3 
-!              cr_a0 (i) = 1.0 
-!              cr_win (i) = 90.0 
-!              ENDDO 
-!           ELSEIF (ianz.eq.6.or. ianz.eq.7 .or. ianz==8) THEN 
-!              iianz = 6
-!              CALL ber_params (iianz, cpara, lpara, werte, maxw) 
-!              CALL del_params (6, ianz, cpara, lpara, maxw) 
-!              IF(ianz.eq.1 .OR. ianz==2) THEN
-!                 iianz = 1
-!                 CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
-!                 IF(ier_num==0) THEN
-!                    cr_spcgrno = NINT(wwerte(1))
-!                    cr_spcgr   = spcgr_name (cr_spcgrno) 
-!                 ELSE
-!                    cr_spcgr = cpara(1)(1:lpara(1))
-!                 ENDIF
-!                 CALL no_error
-!                 CALL del_params (1, ianz, cpara, lpara, maxw) 
-!                 IF(ianz == 1) THEN
-!                    CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
-!                    IF(ier_num==0) THEN
-!                       spcgr_para = nint (wwerte (1) ) 
-!                    ELSE
-!                       ier_num = - 93
-!                       ier_typ = ER_APPL 
-!                       ier_msg (1) = 'Error reading origin choice indicator'
-!                    ENDIF
-!                 ENDIF
-!              ENDIF
-!              DO i = 1, 3 
-!              cr_a0 (i) = werte (i) 
-!              cr_win (i) = werte (i + 3) 
-!              ENDDO 
-!              IF (cr_a0 (1) .le.0.0.or.cr_a0 (2) .le.0.0.or.cr_a0 (3)  &
-!              .le.0.0.or.cr_win (1) .le.0.0.or.cr_win (2)              &
-!              .le.0.0.or.cr_win (3) .le.0.0.or.cr_win (1)              &
-!              .ge.180.0.or.cr_win (2) .ge.180.0.or.cr_win (3)          &
-!              .ge.180.0) THEN                                          
-!                 ier_num = - 93 
-!                 ier_typ = ER_APPL 
-!                 ier_msg (1) = 'Error reading unit cell parameters' 
-!                 GOTO 8888              ! Jump to handle error messages, amd macro conditions
-!              ENDIF 
-!              werte(1)=spcgr_para
-!              CALL spcgr_no(1,maxw,werte)
-!           ELSE 
-!              ier_num = - 6 
-!              ier_typ = ER_COMM 
-!              GOTO 8888              ! Jump to handle error messages, amd macro conditions
-!           ENDIF 
-!           cr_icc (1) = 1 
-!           cr_icc (2) = 1 
-!           cr_icc (3) = 1 
-!           cr_natoms = 0 
-!           cr_ncatoms = 1 
-!           cr_ncreal  = 1 
-!           cr_nscat = 0 
-!           as_natoms = 0 
-!                                                                       
-!     ----reset microdomain status                                      
-!                                                                       
-!           CALL do_stack_rese 
-!           Flag that no Fourier has been calculated yet
-!           four_last = FOUR_NN
 !                                                                       
 !     read an old structure 'stru'                                      
 !                       Ä                                                
@@ -669,8 +596,6 @@ SUBROUTINE do_readstru(strucfile, l_site)
 !
 USE crystal_mod 
 USE chem_mod 
-!USE discus_allocate_appl_mod
-!USE discus_save_mod 
 USE molecule_mod 
 USE read_internal_mod
 !
@@ -684,105 +609,26 @@ CHARACTER(LEN=*), INTENT(INOUT) :: strucfile
 LOGICAL         , INTENT(IN)    :: l_site     ! Differ atoms on sites?
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(strucfile))) :: outfile 
-!INTEGER             :: natoms
-!INTEGER             :: nscats
-!INTEGER             :: n_mole
-!INTEGER             :: n_type
-!INTEGER             :: n_atom
-!INTEGER             :: i,l
-!LOGICAL             :: need_alloc
-!
 !
 CALL rese_cr
 internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
-                  CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
+   CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
 !                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
-                  IF(ier_num/=0) RETURN
-               ELSE internals
-                  CALL import_test(1, strucfile, outfile)
-                  IF(ier_num == 0) THEN
-                     strucfile = outfile
-                  ELSE
-                     RETURN
-                  ENDIF
-               CALL do_readstru_disk(strucfile, l_site)
-!               CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
-!                             n_atom, -1 , .false.)
-                IF (ier_num /= 0) THEN
-                   RETURN                 ! Jump to handle error messages, amd macro conditions
-                ENDIF
-!               need_alloc = .false.
-!               IF(natoms > NMAX) THEN
-!                  natoms = MAX(INT(natoms * 1.1), natoms + 10,NMAX)
-!                  need_alloc = .true.
-!               ENDIF
-!               IF(nscats > MAXSCAT) THEN
-!                  nscats = MAX(INT(nscats * 1.1), nscats + 2, MAXSCAT)
-!                  need_alloc = .true.
-!               ENDIF
-!               IF ( need_alloc ) THEN
-!                  CALL alloc_crystal (nscats, natoms)
-!                  IF ( ier_num /= 0 ) THEN
-!                     RETURN                 ! Jump to handle error messages, amd macro conditions
-!                  ENDIF
-!               ENDIF
-!               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
-!                  n_atom>MOLE_MAX_ATOM                          ) THEN
-!                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
-!                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
-!                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
-!                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
-!                  IF ( ier_num /= 0 )  THEN
-!                     RETURN                 ! Jump to handle error messages, amd macro conditions
-!                  ENDIF
-!               ENDIF
-!!
-!               CALL readstru (NMAX, MAXSCAT, strucfile, cr_name,        &
-!               cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,    &
-!               cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms, &
-!               as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
-!               sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
-!               IF (ier_num.ne.0) THEN 
-!                  RETURN                 ! Jump to handle error messages, amd macro conditions
-!               ENDIF 
-!               mole_num_atom = mole_off (mole_num_mole)  &  !Update number of atoms in molecules
-!                               + mole_len (mole_num_mole)                
-!!                                                                       
-!!     ------Define initial crystal size in fractional coordinates       
-!!                                                                       
-!               DO l = 1, 3 
-!               cr_dim0 (l, 1) = REAL(nint (cr_dim (l, 1) ) ) 
-!               cr_dim0 (l, 2) = REAL(nint (cr_dim (l, 2) ) ) 
-!               ENDDO 
-!!                                                                       
-!!     ------The crystal size was read from the structure file           
-!!                                                                       
-!               IF (sav_r_ncell) THEN 
-!                  DO i = 1, 3 
-!                     cr_icc (i) = sav_ncell (i) 
-!                  ENDDO 
-!                  cr_ncatoms = sav_ncatoms 
-!                  cr_ncreal  = sav_ncatoms 
-!               ELSE 
-!!                                                                       
-!!     ------Define initial crystal size in number of unit cells         
-!!                                                                       
-!                  DO i = 1, 3 
-!                     cr_icc(i) = MAX(1,INT(cr_dim(i,2) - cr_dim(i,1) + 1. ) )                                                
-!                  ENDDO 
-!!                                                                       
-!!     ------Define (average) number of atoms per unit cell              
-!!                                                                       
-!                  cr_ncatoms = MAX(1,cr_natoms / (cr_icc (1) * cr_icc (2)     &
-!                                                * cr_icc (3) ))
-!!                 cr_ncatoms = cr_ncatoms
-!!                              cr_ncatoms = cr_ncatoms
-!                  IF(cr_natoms /= cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms) THEN
-!                     chem_period(:) = .false.
-!                     chem_quick     = .false.
-!                  ENDIF
-!               ENDIF 
-               ENDIF internals
+   IF(ier_num/=0) RETURN
+ELSE internals
+   CALL import_test(1, strucfile, outfile)
+   IF(ier_num == 0) THEN
+      strucfile = outfile
+   ELSE
+      RETURN
+   ENDIF
+   CALL do_readstru_disk(strucfile, l_site)
+!
+   IF (ier_num /= 0) THEN
+      RETURN                 ! Jump to handle error messages, amd macro conditions
+   ENDIF
+!
+ENDIF internals
 !
 chem_purge = .FALSE.    ! No purge was done, period boundary is OK
 CALL test_mole_gap
@@ -820,94 +666,72 @@ INTEGER             :: n_type
 INTEGER             :: n_atom
 INTEGER             :: i,l
 integer, dimension(3) :: n_cells
-LOGICAL             :: need_alloc
 !
 !
-!CALL rese_cr
-!internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
-!                  CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
-!!                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
-!                  IF(ier_num/=0) RETURN
-!               ELSE internals
-!                  CALL import_test(0, strucfile, outfile)
-!                  IF(ier_num == 0) THEN
-!                     strucfile = outfile
-!                  ELSE
-!                    RETURN
-!                  ENDIF
-               CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
-                             n_atom, n_cells, -1 , .false.)
-               IF (ier_num /= 0) THEN
-                  RETURN                 ! Jump to handle error messages, amd macro conditions
-               ENDIF
-               need_alloc = .false.
-               IF(natoms > NMAX) THEN
-                  natoms = MAX(INT(natoms * 1.1), natoms + 10,NMAX)
-                  need_alloc = .true.
-               ENDIF
-               IF(nscats > MAXSCAT) THEN
-                  nscats = MAX(INT(nscats * 1.1), nscats + 2, MAXSCAT)
-                  need_alloc = .true.
-               ENDIF
-               IF ( need_alloc ) THEN
-                  CALL alloc_crystal (nscats, natoms)
-                  IF ( ier_num /= 0 ) THEN
-                     RETURN                 ! Jump to handle error messages, amd macro conditions
-                  ENDIF
-               ENDIF
-               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
-                  n_atom>MOLE_MAX_ATOM                          ) THEN
-                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
-                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
-                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
-                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
-                  IF ( ier_num /= 0 )  THEN
-                     RETURN                 ! Jump to handle error messages, amd macro conditions
-                  ENDIF
-               ENDIF
+CALL test_file(strucfile, natoms, nscats, n_mole, n_type, &
+               n_atom, n_cells, -1 , .false.)
+IF (ier_num /= 0) THEN
+   RETURN                 ! Jump to handle error messages, amd macro conditions
+ENDIF
 !
-               CALL readstru (NMAX, MAXSCAT, strucfile, cr_name,        &
-               cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,    &
-               cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms, &
-               as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
-               sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
-               IF (ier_num.ne.0) THEN 
-                  RETURN                 ! Jump to handle error messages, amd macro conditions
-               ENDIF 
-               mole_num_atom = mole_off (mole_num_mole)  &  !Update number of atoms in molecules
-                               + mole_len (mole_num_mole)                
+IF(natoms > NMAX .or. nscats > MAXSCAT) THEN
+   natoms = MAX(INT(natoms * 1.1), natoms + 10,NMAX)
+   nscats = MAX(INT(nscats * 1.1), nscats + 2, MAXSCAT)
+   CALL alloc_crystal (nscats, natoms)
+   IF ( ier_num /= 0 ) THEN
+      RETURN                 ! Jump to handle error messages, amd macro conditions
+   ENDIF
+ENDIF
+IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
+   n_atom>MOLE_MAX_ATOM                          ) THEN
+   n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
+   n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
+   n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
+   CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
+   IF ( ier_num /= 0 )  THEN
+      RETURN                 ! Jump to handle error messages, amd macro conditions
+   ENDIF
+ENDIF
+!
+CALL readstru(NMAX, MAXSCAT, strucfile, cr_name,        &
+              cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,    &
+              cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms, &
+              as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
+              sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
+IF(ier_num.ne.0) THEN 
+   RETURN                 ! Jump to handle error messages, amd macro conditions
+ENDIF 
+mole_num_atom = mole_off (mole_num_mole)  &  !Update number of atoms in molecules
+                + mole_len (mole_num_mole)                
 !                                                                       
 !     ------Define initial crystal size in fractional coordinates       
 !                                                                       
-               DO l = 1, 3 
-               cr_dim0 (l, 1) = REAL(nint (cr_dim (l, 1) ) ) 
-               cr_dim0 (l, 2) = REAL(nint (cr_dim (l, 2) ) ) 
-               ENDDO 
+DO l = 1, 3 
+   cr_dim0 (l, 1) = REAL(nint (cr_dim (l, 1) ) ) 
+   cr_dim0 (l, 2) = REAL(nint (cr_dim (l, 2) ) ) 
+ENDDO 
 !                                                                       
 !     ------The crystal size was read from the structure file           
 !                                                                       
-               IF (sav_r_ncell) THEN 
-                  DO i = 1, 3 
-                     cr_icc (i) = sav_ncell (i) 
-                  ENDDO 
-                  cr_ncatoms = sav_ncatoms 
-                  cr_ncreal  = sav_ncatoms 
-               ELSE 
+IF (sav_r_ncell) THEN 
+   DO i = 1, 3 
+      cr_icc (i) = sav_ncell (i) 
+   ENDDO 
+   cr_ncatoms = sav_ncatoms 
+   cr_ncreal  = sav_ncatoms 
+ELSE 
 !                                                                       
 !     ------Define initial crystal size in number of unit cells         
 !                                                                       
-                  DO i = 1, 3 
-                     cr_icc(i) = MAX(1,INT(cr_dim(i,2) - cr_dim(i,1) + 1. ) )                                                
-                  ENDDO 
+   DO i = 1, 3 
+      cr_icc(i) = MAX(1,INT(cr_dim(i,2) - cr_dim(i,1) + 1. ) )                                                
+   ENDDO 
 !                                                                       
 !     ------Define (average) number of atoms per unit cell              
 !                                                                       
-                  cr_ncatoms = MAX(1,cr_natoms / (cr_icc (1) * cr_icc (2)     &
-                                                * cr_icc (3) ))
-!                 cr_ncatoms = cr_ncatoms
-!                              cr_ncatoms = cr_ncatoms
-               ENDIF 
-!               ENDIF internals
+   cr_ncatoms = MAX(1,cr_natoms / (cr_icc (1) * cr_icc (2)     &
+                                 * cr_icc (3) ))
+ENDIF 
 !
 IF(cr_natoms /= cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms) THEN
    chem_period(:) = .false.
@@ -916,8 +740,6 @@ ELSE
    chem_period(:) = .TRUE.
    chem_quick     = .TRUE.
 ENDIF
-!chem_purge = .FALSE.    ! No purge was done, period boundary is OK
-!CALL test_mole_gap
 !
 END SUBROUTINE do_readstru_disk
 !
@@ -1134,99 +956,102 @@ four_last = FOUR_NN
 chem_purge = .FALSE.    ! No purge was done, period boundary is OK
 !
 END SUBROUTINE do_readfree
+!
 !********************************************************************** 
+!
 SUBROUTINE readcell (strucfile, l_identical, r_identical) 
 !-                                                                      
 !           This subroutine reads a unit cell.                          
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE molecule_mod 
-      USE prop_para_mod
-      USE discus_save_mod 
-      USE spcgr_apply
-      USE wyckoff_mod
+use atom_line_mod
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE molecule_mod 
+USE prop_para_mod
+USE discus_save_mod 
+USE spcgr_apply
+USE wyckoff_mod
 !
 use blanks_mod
 USE precision_mod
 USE lib_errlist_func
 USE lib_length
 USE str_comp_mod
-      USE string_convert_mod
+USE string_convert_mod
 USE support_mod
-      IMPLICIT none 
 !
+IMPLICIT none 
 !                                                                       
 CHARACTER ( LEN=* ), INTENT(OUT) :: strucfile 
 LOGICAL            , INTENT(IN) :: l_identical
 REAL               , INTENT(IN) :: r_identical
 !
-      CHARACTER(10) befehl 
-      CHARACTER(LEN=PREC_STRING) :: line, zeile 
+CHARACTER(len=10)          :: befehl 
+CHARACTER(LEN=PREC_STRING) :: line, zeile 
 INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER, PARAMETER                   :: ist     = 7
 INTEGER, PARAMETER                   :: MAXW = MAX(AT_MAXP,7)
 !
 INTEGER                              :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
-      INTEGER i, j, ibl, lbef 
-      INTEGER     :: iatom
-      INTEGER     :: n_read = 0
-      INTEGER lline 
-      INTEGER     :: new_nmax
-      INTEGER     :: new_nscat
-      INTEGER     :: io_line
-      INTEGER     :: iimole
-      INTEGER                          :: n_mole 
-      INTEGER                          :: n_type 
-      INTEGER                          :: n_atom 
+INTEGER     :: i, j, ibl, lbef 
+INTEGER     :: iatom
+INTEGER     :: n_read = 0
+INTEGER     :: lline 
+INTEGER     :: new_nmax
+INTEGER     :: new_nscat
+INTEGER     :: io_line
+INTEGER     :: iimole
+INTEGER                          :: n_mole 
+INTEGER                          :: n_type 
+INTEGER                          :: n_atom 
 integer, dimension(3) :: n_cells
-      LOGICAL          :: need_alloc = .false.
-      LOGICAL          :: lcontent
+LOGICAL          :: need_alloc = .false.
+LOGICAL          :: lcontent
 LOGICAL, SAVE          :: at_init = .TRUE.
-      LOGICAL lcell, lout 
-      REAL(KIND=PREC_DP) :: werte (maxw)
+LOGICAL :: lcell, lout 
+REAL(KIND=PREC_DP) :: werte (maxw)
 REAL :: dw1 , occ1
 !                                                                       
-      LOGICAL :: IS_IOSTAT_END
+LOGICAL :: IS_IOSTAT_END
 !                                                                       
-      cr_natoms = 0 
-      lcell     = .true. 
-      lout      = .false. 
-      lcontent  = .false.
-      at_param(:) = ' '
-      at_ianz     = 0
-      n_read      = 0
-      CALL test_file ( strucfile, new_nmax, new_nscat, n_mole, n_type, &
-                             n_atom, n_cells, -1 , .not.cr_newtype)
-      IF (ier_num /= 0) THEN
-         CLOSE (ist)
-         RETURN
-      ENDIF
-      IF( NMAX    < new_nmax .or. &          ! Allocate sufficient atom numbers
-          MAXSCAT < new_nscat     ) THEN     ! Allocate sufficient atom types
-         new_nmax = MAX(new_nmax ,NMAX)
-         new_nscat= MAX(new_nscat,MAXSCAT)
-         CALL alloc_crystal(new_nscat, new_nmax)
-         IF ( ier_num /= 0) THEN
-            CLOSE (IST)
-            RETURN
-         ENDIF
-      ENDIF
-      need_alloc = .false.
-      IF ( n_mole > MOLE_MAX_MOLE  .or.  &
-           n_type > MOLE_MAX_TYPE  .or.  &
-           n_atom > MOLE_MAX_ATOM      ) THEN
-         n_mole = MAX(n_mole,MOLE_MAX_MOLE,1)
-         n_type = MAX(n_type,MOLE_MAX_TYPE,1)
-         n_atom = MAX(n_atom,MOLE_MAX_ATOM,1)
-         CALL alloc_molecule(1, 1, n_mole, n_type, n_atom)
-         IF ( ier_num /= 0) THEN
-            CLOSE (IST)
-            RETURN
-         ENDIF
-      ENDIF
+cr_natoms = 0 
+lcell     = .true. 
+lout      = .false. 
+lcontent  = .false.
+at_param(:) = ' '
+at_ianz     = 0
+n_read      = 0
+CALL test_file(strucfile, new_nmax, new_nscat, n_mole, n_type, &
+               n_atom, n_cells, -1 , cr_newtype)
+IF (ier_num /= 0) THEN
+   CLOSE (ist)
+   RETURN
+ENDIF
+IF( NMAX    < new_nmax .or. &          ! Allocate sufficient atom numbers
+    MAXSCAT < new_nscat     ) THEN     ! Allocate sufficient atom types
+   new_nmax = MAX(new_nmax ,NMAX)
+   new_nscat= MAX(new_nscat,MAXSCAT)
+   CALL alloc_crystal(new_nscat, new_nmax)
+   IF ( ier_num /= 0) THEN
+      CLOSE (IST)
+      RETURN
+   ENDIF
+ENDIF
+need_alloc = .false.
+IF ( n_mole > MOLE_MAX_MOLE  .or.  &
+     n_type > MOLE_MAX_TYPE  .or.  &
+     n_atom > MOLE_MAX_ATOM      ) THEN
+   n_mole = MAX(n_mole,MOLE_MAX_MOLE,1)
+   n_type = MAX(n_type,MOLE_MAX_TYPE,1)
+   n_atom = MAX(n_atom,MOLE_MAX_ATOM,1)
+   CALL alloc_molecule(1, 1, n_mole, n_type, n_atom)
+   IF ( ier_num /= 0) THEN
+      CLOSE (IST)
+      RETURN
+   ENDIF
+ENDIF
 !
 ! To ensure that molecules are placed properly, it best to read as
 ! structure first, shift all molecule origins into the first unit
@@ -1239,207 +1064,212 @@ ENDIF
 !
 ! No molecules, use old readcell, might be phased out ?????
 !
-      CALL oeffne (ist, strucfile, 'old') 
-      IF (ier_num /= 0) THEN
-         CLOSE (ist)
-         RETURN
-      ENDIF
+CALL oeffne (ist, strucfile, 'old') 
+IF (ier_num /= 0) THEN
+   CLOSE (ist)
+   RETURN
+ENDIF
 !
-      DO i = 1, 3 
-         cr_dim (i, 1) =  1.e10 
-         cr_dim (i, 2) = -1.e10 
-      ENDDO 
+cr_dim(:,1) =  1.e10
+cr_dim(:,2) = -1.e10
+!     DO i = 1, 3 
+!        cr_dim (i, 1) =  1.e10 
+!        cr_dim (i, 2) = -1.e10 
+!     ENDDO 
 !                                                                       
 !     --Read header of structure file                                   
 !                                                                       
-         CALL stru_readheader (ist, MAXSCAT, cr_name,      &
+CALL stru_readheader (ist, MAXSCAT, cr_name,      &
          cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)
-      IF (ier_num.ne.0) THEN 
-         ier_msg(1) = 'Structure ' // strucfile
-         CLOSE (ist)
-         RETURN 
-      ENDIF 
-         CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
+IF (ier_num.ne.0) THEN 
+   ier_msg(1) = 'Structure ' // strucfile
+   CLOSE (ist)
+   RETURN 
+ENDIF 
+CALL setup_lattice(cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
          cr_cartesian,                                                  &
-              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+         cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !                                                                       
-      IF (ier_num /= 0) THEN
-         CLOSE (ist)
-         RETURN
-      ENDIF
+IF (ier_num /= 0) THEN
+   CLOSE (ist)
+   RETURN
+ENDIF
 !                                                                       
-      CALL get_symmetry_matrices 
-      IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
-         ier_num = -160
-         ier_typ = ER_APPL
-         ier_msg(1) = 'Non-standard settings are implemented only'
-         ier_msg(2) = 'for orthorhombic space groups '
-         RETURN
-      ENDIF
-      IF( NMAX < spc_n*new_nmax .or.  &      ! Allocate sufficient atom numbers
-          MAXSCAT < new_nscat       ) THEN   ! Allocate sufficient scattering types
-         new_nmax  = MAX(spc_n*new_nmax + 1, NMAX)
-         new_nscat = MAX(new_nscat         , MAXSCAT)
-         CALL alloc_crystal(new_nscat, new_nmax)
-        IF ( ier_num /= 0) THEN
-            CLOSE (IST)
-            RETURN
-         ENDIF
-      ENDIF
-      need_alloc = .false.
-      IF ( n_mole*spc_n > MOLE_MAX_MOLE ) THEN
-         n_mole = n_mole*spc_n
-         need_alloc = .true.
-      ENDIF
-      IF ( n_type > MOLE_MAX_TYPE ) THEN
-         need_alloc = .true.
-      ENDIF
-      IF ( n_atom*spc_n > MOLE_MAX_ATOM ) THEN
-         n_atom = n_atom*spc_n
-         need_alloc = .true.
-      ENDIF
-      IF( need_alloc )  THEN         ! Allocate sufficient molecules
-         CALL alloc_molecule(1, 1, n_mole, n_type, n_atom)
-        IF ( ier_num /= 0) THEN
-            CLOSE (IST)
-            RETURN
-         ENDIF
-      ENDIF
+CALL get_symmetry_matrices 
+IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
+   ier_num = -160
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Non-standard settings are implemented only'
+   ier_msg(2) = 'for orthorhombic space groups '
+   RETURN
+ENDIF
+IF( NMAX < spc_n*new_nmax .or.  &      ! Allocate sufficient atom numbers
+    MAXSCAT < new_nscat       ) THEN   ! Allocate sufficient scattering types
+   new_nmax  = MAX(spc_n*new_nmax + 1, NMAX)
+   new_nscat = MAX(new_nscat         , MAXSCAT)
+   CALL alloc_crystal(new_nscat, new_nmax)
+  IF ( ier_num /= 0) THEN
+      CLOSE (IST)
+      RETURN
+   ENDIF
+ENDIF
+need_alloc = .false.
+IF ( n_mole*spc_n > MOLE_MAX_MOLE ) THEN
+   n_mole = n_mole*spc_n
+   need_alloc = .true.
+ENDIF
+IF ( n_type > MOLE_MAX_TYPE ) THEN
+   need_alloc = .true.
+ENDIF
+IF ( n_atom*spc_n > MOLE_MAX_ATOM ) THEN
+   n_atom = n_atom*spc_n
+   need_alloc = .true.
+ENDIF
+IF( need_alloc )  THEN         ! Allocate sufficient molecules
+   CALL alloc_molecule(1, 1, n_mole, n_type, n_atom)
+  IF ( ier_num /= 0) THEN
+      CLOSE (IST)
+      RETURN
+   ENDIF
+ENDIF
 
 at_init = .TRUE.
 
 main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
-         ier_num = -49 
-         ier_typ = ER_APPL 
-         line = ' ' 
+   ier_num = -49 
+   ier_typ = ER_APPL 
+   line = ' ' 
 !        READ (ist, 2000, end = 2, err = 999) line 
-         READ (ist, 2000, IOSTAT=io_line    ) line 
-         IF(IS_IOSTAT_END(io_line)) THEN    ! Handle End Of File
-            EXIT main
-         ELSEIF(io_line /= 0 ) THEN         ! Handle input error
-            GOTO 999
-         ENDIF
-         lline = len_str (line) 
-         call tab2blank(line, lline)
+   READ (ist, 2000, IOSTAT=io_line    ) line 
+   IF(IS_IOSTAT_END(io_line)) THEN    ! Handle End Of File
+      EXIT main
+   ELSEIF(io_line /= 0 ) THEN         ! Handle input error
+      GOTO 999
+   ENDIF
+   lline = len_str (line) 
+   call tab2blank(line, lline)
 !23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
 empty:   IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!' .AND. line.ne.char (13)) THEN
-            need_alloc = .false.
-            new_nmax   = NMAX
-            new_nscat  = MAXSCAT
-            IF ( NMAX < cr_natoms + spc_n ) THEN     ! Allocate sufficient atom numbers
-               new_nmax  = MAX(NMAX + spc_n + 1, cr_natoms + spc_n+1)
-               need_alloc = .true.
-            ENDIF
-            IF ( MAXSCAT < cr_nscat + 1       ) THEN ! Allocate sufficient atom types
-               new_nscat = MAX(MAXSCAT + 5, INT ( MAXSCAT * 1.025 ) )
-               need_alloc = .true.
-            ENDIF
-            IF( need_alloc ) THEN
-               CALL alloc_crystal(new_nscat, new_nmax)
-               IF ( ier_num /= 0) THEN
-                  CLOSE (IST)
-                  RETURN
-               ENDIF
-               ier_num = -49 
-               ier_typ = ER_APPL 
-            ENDIF
-               lbef = 10 
-               befehl = ' ' 
-               ibl = index (line (1:lline) , ' ') 
-               IF (ibl.eq.0) THEN 
-                  ibl = lline+1 
-               ENDIF 
-               lbef = min (ibl - 1, lbef) 
-               befehl = line (1:lbef) 
-typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
-                   str_comp (befehl, 'domain',   4, lbef, 6) .or.       &
-                   str_comp (befehl, 'object',   4, lbef, 6)     ) THEN
+      need_alloc = .false.
+      new_nmax   = NMAX
+      new_nscat  = MAXSCAT
+      IF ( NMAX < cr_natoms + spc_n ) THEN     ! Allocate sufficient atom numbers
+         new_nmax  = MAX(NMAX + spc_n + 1, cr_natoms + spc_n+1)
+         need_alloc = .true.
+      ENDIF
+      IF ( MAXSCAT < cr_nscat + 1       ) THEN ! Allocate sufficient atom types
+         new_nscat = MAX(MAXSCAT + 5, INT ( MAXSCAT * 1.025 ) )
+         need_alloc = .true.
+      ENDIF
+      IF( need_alloc ) THEN
+         CALL alloc_crystal(new_nscat, new_nmax)
+         IF ( ier_num /= 0) THEN
+            CLOSE (IST)
+            RETURN
+         ENDIF
+         ier_num = -49 
+         ier_typ = ER_APPL 
+      ENDIF
+!
+      lbef = 10 
+      befehl = ' ' 
+      ibl = index (line (1:lline) , ' ') 
+      IF (ibl.eq.0) THEN 
+         ibl = lline+1 
+      ENDIF 
+      lbef = min (ibl - 1, lbef) 
+      befehl = line (1:lbef) 
+typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
+         str_comp (befehl, 'domain',   4, lbef, 6) .or.       &
+         str_comp (befehl, 'object',   4, lbef, 6)     ) THEN
 !                                                                       
 !     ----------Start/End of a molecule                                 
 !                                                                       
-                  CALL no_error 
-                  IF (ibl.le.lline) THEN 
-                     i = lline-ibl 
-                     zeile = line (ibl + 1:lline) 
-                  ELSE 
-                     zeile = ' ' 
-                     i = 0 
-                  ENDIF 
-                  CALL struc_mole_header (zeile, i, .true., lcontent) 
-                  IF (ier_num.ne.0) THEN
-                     CLOSE(IST)
-                     RETURN 
-                  ENDIF
-               ELSE  typus
-                  DO j = 1, MAXW 
-                  werte (j) = 0.0 
-                  ENDDO 
-                  werte (5) = 1.0 
-                  cr_surf(:,cr_natoms+1) = 0
-                  cr_magn(:,cr_natoms+1) = 0.0
-                  CALL read_atom_line (line, ibl, lline, as_natoms, MAXW, werte, &
-                                       AT_MAXP, at_ianz, at_param, at_init)                                          
-                  n_read = n_read + 1
-                  IF (ier_num.ne.0.and.ier_num.ne. -49) THEN 
-                     GOTO 999 
-                  ENDIF 
-                  cr_natoms = cr_natoms + 1 
-                  i = cr_natoms 
-                  IF (.not.mole_l_on .AND. NINT(werte(6))==0 ) THEN 
+         CALL no_error 
+         IF(ibl.le.lline) THEN 
+            i = lline-ibl 
+            zeile = line (ibl + 1:lline) 
+         ELSE 
+            zeile = ' ' 
+            i = 0 
+         ENDIF 
+         CALL struc_mole_header (zeile, i, .true., lcontent) 
+         IF (ier_num.ne.0) THEN
+            CLOSE(IST)
+            RETURN 
+         ENDIF
+      ELSE  typus
+         DO j = 1, MAXW 
+            werte (j) = 0.0 
+         ENDDO 
+         werte (5) = 1.0 
+         cr_surf(:,cr_natoms+1) = 0
+         cr_magn(:,cr_natoms+1) = 0.0
+         as_natoms = as_natoms + 1 
+         call get_atom_werte(as_natoms, MAXW, werte)
+!                  CALL read_atom_line (line, ibl, lline, as_natoms, MAXW, werte, &
+!                                       AT_MAXP, at_ianz, at_param, at_init)                                          
+         n_read = n_read + 1
+         IF (ier_num.ne.0.and.ier_num.ne. -49) THEN 
+            GOTO 999 
+         ENDIF 
+         cr_natoms = cr_natoms + 1 
+         i = cr_natoms 
+         IF (.not.mole_l_on .AND. NINT(werte(6))==0 ) THEN 
 !                                                                       
 !     ------------Transform atom into first unit cell,                  
 !                 if it is not inside a molecule                        
 !                                                                       
-                     CALL firstcell (werte, maxw) 
-                  ENDIF 
-                  IF(NINT(werte(6))>0 .AND. NINT(werte(7))>0) THEN
-                     iimole = NINT(werte(6)) !+ n_mole_old
-                     CALL mole_insert_explicit(cr_natoms, iimole        , NINT(werte(7))) 
-                     cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
-                     cr_mole(cr_natoms) = NINT(werte(6)) !+ n_mole_old
+            CALL firstcell (werte, maxw) 
+         ENDIF 
+         IF(NINT(werte(6))>0 .AND. NINT(werte(7))>0) THEN
+            iimole = NINT(werte(6)) !+ n_mole_old
+            CALL mole_insert_explicit(cr_natoms, iimole        , NINT(werte(7))) 
+            cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
+            cr_mole(cr_natoms) = NINT(werte(6)) !+ n_mole_old
 !                  ELSEIF(mole_l_on) THEN
 !                     CALL mole_insert_current (cr_natoms, mole_num_curr) 
-                  ENDIF 
+         ENDIF 
 !                                                                       
-                  DO j = 1, 3 
-                     cr_pos (j, i) = werte (j) 
-                  ENDDO 
-                  cr_surf(0:3,i) = NINT(werte(9:12))
-                  cr_magn(0:3,i) = 0.0 ! (werte(9:12)) MAGNETIC_WORK
-                  dw1 = werte (4) 
-                  occ1 = werte(8)                       ! WORK OCC
-                  IF(mole_l_on) THEN
-!                    cr_mole (i) = mole_num_mole
-                  ELSE
-                     cr_mole(i) = NINT(werte(6))
-                  ENDIF
-                  cr_prop (i) = NINT(werte(5) ) 
-                  cr_surf(:,i) = 0                      ! Currently no save nor read for surface
-                  cr_magn(:,i) = werte(13:16)           ! Read for MAGNETIC_WORK
-                  IF(MAXVAL(ABS(werte(13:16)))> 0.0) cr_magnetic = .TRUE.  ! Crystal has magnetic atoms
+         DO j = 1, 3 
+            cr_pos (j, i) = werte (j) 
+         ENDDO 
+         cr_surf(0:3,i) = NINT(werte(9:12))
+         cr_magn(0:3,i) = 0.0 ! (werte(9:12)) MAGNETIC_WORK
+         dw1 = werte (4) 
+         occ1 = werte(8)                       ! WORK OCC
+         IF(mole_l_on) THEN
+!           cr_mole (i) = mole_num_mole
+         ELSE
+            cr_mole(i) = NINT(werte(6))
+         ENDIF
+         cr_prop (i) = NINT(werte(5) ) 
+         cr_surf(:,i) = 0                      ! Currently no save nor read for surface
+         cr_magn(:,i) = werte(13:16)           ! Read for MAGNETIC_WORK
+         IF(MAXVAL(ABS(werte(13:16)))> 0.0) cr_magnetic = .TRUE.  ! Crystal has magnetic atoms
 !                                                                       
-                  IF (line (1:ibl) .ne.'    ') THEN 
-                     ibl = ibl - 1 
-                     CALL do_cap (line (1:ibl) ) 
+         if_blk: IF(line(1:ibl) .ne.'    ') THEN 
+            ibl = ibl - 1 
+            CALL do_cap (line (1:ibl) ) 
 !                                                                       
 !------ ----------- New option determines whether all atoms in          
 !------ ----------- asymmetric unit are considered different atom       
 !------ ----------- types ..                                            
 !                                                                       
-                     IF (.not.cr_newtype) THEN 
-                        DO j = 0, cr_nscat 
-                        IF (line (1:ibl)  == cr_at_lis (j)              &
+            IF (.not.cr_newtype) THEN          ! lcell == .true.
+               DO j = 0, cr_nscat 
+                  IF (line (1:ibl)  == cr_at_lis (j)              &
                         .and.dw1 == cr_dw (j)                     &
                         .AND. occ1==cr_occ(j) ) THEN                    
-                           cr_iscat (i) = j 
-                           CALL symmetry 
-                           IF (ier_num.ne.0) THEN 
-                              CLOSE (IST)
-                              RETURN 
-                           ENDIF 
-                           GOTO 22 
+                     cr_iscat (i) = j 
+                     CALL symmetry 
+                     IF (ier_num.ne.0) THEN 
+                        CLOSE (IST)
+                        RETURN 
+                     ENDIF 
+                     GOTO 22 
 !                       ELSEIF(line(1:ibl)=='VOID' .AND. mole_l_on) THEN
 !                          cr_iscat (i) = 0 
 !                          CALL symmetry 
@@ -1448,361 +1278,99 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                             RETURN 
 !                          ENDIF 
 !                          GOTO 22 
-                        ENDIF 
-                        ENDDO 
-                     ENDIF 
+                  ENDIF 
+               ENDDO 
+            ENDIF 
 !                                                                       
 !------ ----------- end new code                                        
 !                                                                       
-                     IF (cr_nscat.lt.maxscat) THEN 
-                        as_natoms = as_natoms + 1 
-!                       IF(line(1:ibl)=='VOID' .AND. mole_l_on) THEN
-!                          cr_iscat (i) = 0 
-!                       ELSE
-                           cr_nscat = cr_nscat + 1 
-                           cr_iscat (i) = cr_nscat 
-                           cr_at_lis (cr_nscat) = line (1:ibl) 
-                           cr_dw (cr_nscat) = dw1 
-                           cr_occ(cr_nscat) = occ1                    ! WORK OCC
+            IF (cr_nscat.lt.maxscat) THEN 
+!ATOM_LINE              as_natoms = as_natoms + 1 
+               cr_nscat = cr_nscat + 1 
+               cr_iscat (i) = cr_nscat 
+               cr_at_lis (cr_nscat) = line (1:ibl) 
+               cr_dw (cr_nscat) = dw1 
+               cr_occ(cr_nscat) = occ1                    ! WORK OCC
 !                                                                       
-                           as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
-                           as_iscat (as_natoms) = cr_iscat (i) 
-                           as_dw (as_natoms) = cr_dw (cr_nscat) 
-                           as_occ(as_natoms) = cr_occ(cr_nscat) 
+!              as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
+!              as_iscat (as_natoms) = cr_iscat (i) 
+!              as_dw (as_natoms) = cr_dw (cr_nscat) 
+!              as_occ(as_natoms) = cr_occ(cr_nscat) 
 !                       ENDIF
-                        DO j = 1, 3 
-                        as_pos (j, as_natoms) = cr_pos (j, i) 
-                        ENDDO 
-                        as_mole (as_natoms) = cr_mole (i) 
-                        as_prop (as_natoms) = cr_prop (i) 
-                        CALL symmetry 
-                        IF (ier_num.ne.0) THEN 
-                           CLOSE(IST)
-                           RETURN 
-                        ENDIF 
-                     ELSE 
-                        ier_num = -26 
-                        ier_typ = ER_APPL 
-                        GOTO 2 
-                     ENDIF 
-   22                CONTINUE 
-                  ENDIF 
-               ENDIF  typus
-            ENDIF empty
-      ENDDO main 
+!              DO j = 1, 3 
+!                 as_pos (j, as_natoms) = cr_pos (j, i) 
+!              ENDDO 
+!              as_mole (as_natoms) = cr_mole (i) 
+!              as_prop (as_natoms) = cr_prop (i) 
+               CALL symmetry 
+               IF (ier_num.ne.0) THEN 
+               CLOSE(IST)
+               RETURN 
+               ENDIF 
+            ELSE 
+               ier_num = -26 
+               ier_typ = ER_APPL 
+               GOTO 2 
+            ENDIF 
+   22       CONTINUE 
+         ENDIF  if_blk
+      ENDIF  typus
+   ENDIF empty
+ENDDO main 
 !
-      CALL test_identical (l_identical, r_identical) ! Test if atoms are too close
+CALL test_identical (l_identical, r_identical) ! Test if atoms are too close
 !                                                                       
-    2    CONTINUE 
-         IF (ier_num.eq. -49) THEN 
-            CALL no_error 
+2    CONTINUE 
+IF (ier_num.eq. -49) THEN 
+   CALL no_error 
 !                                                                       
 !       move first unit cell into lower left corner of crystal          
 !                                                                       
-            DO i = 1, cr_natoms 
-            DO j = 1, 3 
-            cr_pos (j, i) = cr_pos (j, i) - int ( (cr_icc (j) ) / 2) 
+   DO i = 1, cr_natoms 
+      DO j = 1, 3 
+         cr_pos (j, i) = cr_pos (j, i) - int ( (cr_icc (j) ) / 2) 
 !             cr_pos(j,i)=cr_pos(j,i) - int((cr_icc(j)-0.1)/2)          
-            cr_dim (j, 1) = amin1 (cr_dim (j, 1), cr_pos (j, i) ) 
-            cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
-            ENDDO 
-            ENDDO 
-         ELSE
-            CLOSE(IST)
-            WRITE (ier_msg (1), 3000) n_read
-            RETURN
-         ENDIF 
+         cr_dim (j, 1) = amin1 (cr_dim (j, 1), cr_pos (j, i) ) 
+         cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
+      ENDDO 
+   ENDDO 
+ELSE
+   CLOSE(IST)
+   WRITE (ier_msg (1), 3000) n_read
+   RETURN
+ENDIF 
 !     INTEGER     :: iatom
 !
 !     If a molecule containted a "molecule atoms" instruction, we need to
 !     set the molecule flag
 !
-      IF(lcontent) THEN 
-         DO i = 1, mole_num_mole
-            DO j = 1, mole_len (i)
-               iatom          = mole_cont (mole_off (i) + j)
-               cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
-               cr_mole(iatom) = i
-            ENDDO
-         ENDDO
-      ENDIF 
+IF(lcontent) THEN 
+   DO i = 1, mole_num_mole
+      DO j = 1, mole_len (i)
+         iatom          = mole_cont (mole_off (i) + j)
+         cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
+         cr_mole(iatom) = i
+      ENDDO
+   ENDDO
+ENDIF 
 !                                                                       
 !     ENDIF 
 !                                                                       
   999 CONTINUE 
-      CLOSE (ist) 
-      IF (ier_num.eq. - 49) THEN 
-         WRITE (ier_msg (1), 3000) as_natoms + 1 
+CLOSE (ist) 
+IF (ier_num.eq. - 49) THEN 
+   WRITE (ier_msg (1), 3000) as_natoms + 1 
  3000 FORMAT      ('At atom number = ',i8) 
-      ENDIF 
+ENDIF 
 !
-      CALL test_mole_gap
+CALL test_mole_gap
 !                                                                       
  2000 FORMAT    (a) 
-      END SUBROUTINE readcell                       
+!
+END SUBROUTINE readcell                       
+!
 !********************************************************************** 
-SUBROUTINE read_atom_line (line, ibl, length, cr_natoms, maxw, werte, &
-                 AT_MAXP, at_ianz, at_param, at_init)                                                            
-!-                                                                      
-!     reads a line from the cell file/structure file                    
-!+                                                                      
-USE prop_para_mod 
 !
-!use blanks_mod
-USE ber_params_mod
-USE charact_mod
-USE get_params_mod
-USE lib_errlist_func
-USE precision_mod
-IMPLICIT none 
-!                                                                       
-CHARACTER (LEN=*)                   , INTENT(INOUT) :: line 
-INTEGER                             , INTENT(IN)    :: ibl 
-INTEGER                             , INTENT(IN)    :: length 
-INTEGER                             , INTENT(IN)    :: cr_natoms 
-INTEGER                             , INTENT(IN)    :: maxw 
-REAL(KIND=PREC_DP), DIMENSION(MAXW) , INTENT(INOUT) :: werte !(maxw) 
-INTEGER                             , INTENT(IN)    :: AT_MAXP
-INTEGER                             , INTENT(IN )   :: at_ianz
-CHARACTER(LEN=8), DIMENSION(AT_MAXP), INTENT(IN )   :: at_param
-LOGICAL                             , INTENT(INOUT) :: at_init
-!                                                                       
-CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara   ! (maxw) 
-!CHARACTER(LEN=PREC_STRING)                  :: string 
-!CHARACTER(LEN=15)                    :: fff
-INTEGER            , DIMENSION(MAXW) :: lpara   ! (maxw) 
-REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: wwerte  ! (maxw) 
-INTEGER                              :: i, j ,isok, jj! , k
-INTEGER                              :: ianz 
-INTEGER                              :: ios !, ios_grand
-INTEGER                              :: laenge
-INTEGER, SAVE                        :: col_x      = 1 
-INTEGER, SAVE                        :: col_y      = 2 
-INTEGER, SAVE                        :: col_z      = 3 
-INTEGER, SAVE                        :: col_biso   = 4 
-INTEGER, SAVE                        :: col_prop   = 0 
-INTEGER, SAVE                        :: col_moleno = 0 
-INTEGER, SAVE                        :: col_moleat = 0 
-INTEGER, SAVE                        :: col_occ    = 0 
-INTEGER, SAVE                        :: col_surft  = 0    ! Surface type
-INTEGER, SAVE                        :: col_surfh  = 0    ! Surface H
-INTEGER, SAVE                        :: col_surfk  = 0    ! Surface K 
-INTEGER, SAVE                        :: col_surfl  = 0    ! Surface L 
-INTEGER, SAVE                        :: col_magnm  = 0    ! Magnetic moment
-INTEGER, SAVE                        :: col_magnu  = 0    ! Magnetic moment u
-INTEGER, SAVE                        :: col_magnv  = 0    ! Magnetic moment v
-INTEGER, SAVE                        :: col_magnw  = 0    ! Magnetic moment w
-LOGICAL                              :: lcalc     ! Flag if calculation is needed
-!
-IF(line(1:1)=='!' .OR. line(1:1)=='#' .OR. IACHAR(line(1:1))==9 .OR. line==' ') RETURN
-!
-!call tab2blank(line, length)
-!
-! Determine sequence of parameters on the atom line
-!
-IF(at_init) THEN
-   DO i=1,at_ianz
-      IF(at_param(i) == 'X'       ) col_x = i
-      IF(at_param(i) == 'Y'       ) col_y = i
-      IF(at_param(i) == 'Z'       ) col_z = i
-      IF(at_param(i) == 'BISO'    ) col_biso = i
-      IF(at_param(i) == 'PROPERTY') col_prop = i
-      IF(at_param(i) == 'MOLENO'  ) col_moleno = i
-      IF(at_param(i) == 'MOLEAT'  ) col_moleat = i
-      IF(at_param(i) == 'OCC'     ) col_occ = i
-      IF(at_param(i) == 'ST'      ) col_surft = i
-      IF(at_param(i) == 'SH'      ) col_surfh = i
-      IF(at_param(i) == 'SK'      ) col_surfk = i
-      IF(at_param(i) == 'SL'      ) col_surfl = i
-      IF(at_param(i) == 'MM'      ) col_magnm = i
-      IF(at_param(i) == 'MU'      ) col_magnu = i
-      IF(at_param(i) == 'MV'      ) col_magnv = i
-      IF(at_param(i) == 'MW'      ) col_magnw = i
-   ENDDO
-   at_init = .FALSE.
-ENDIF
-wwerte(:)= 0.0
-werte(:) = 0.0
-werte(5) = 1.0    ! Default for property flag
-wwerte(5)= 1.0    ! Default for property flag
-IF(UBOUND(werte,1)>=7) THEN
-   werte(6) = 0.0    ! Default for molecule number
-   werte(7) = 0.0    ! Default for Atom in molecule
-ENDIF
-!IF(UBOUND(wwerte,1)>=7) THEN
-!   wwerte(6) = 0.0    ! Default for molecule number
-!   wwerte(7) = 0.0    ! Default for Atom in molecule
-!ENDIF
-IF(UBOUND(werte,1)>=8) werte(8) = 1.0    ! Default for Occupancy
-IF(UBOUND(wwerte,1)>=8) wwerte(8) = 1.0    ! Default for Occupancy
-!
-laenge = length - ibl + 1
-CALL get_params(line (ibl:length), ianz, cpara, lpara, maxw, laenge)
-params: IF(IANZ.eq.1) THEN
-!                                                                       
-!-----      Deal with old four respectively old five column style       
-!                                                                       
-   READ(line(ibl:length), *, IOSTAT=ios) (werte(j), j = 1, 5)
-   IF(IS_IOSTAT_END(ios))  THEN     ! LESS THAN FIVE PARAMS
-      READ(line(ibl:length), *, IOSTAT=ios) (werte(j), j = 1, 4)
-      IF(IS_IOSTAT_END(ios))  THEN     ! LESS THAN FOUR PARAMS
-         READ(line(ibl:length), *, IOSTAT=ios) (werte(j), j = 1, 3)
-         werte(4) = 0.0
-      ENDIF
-   ENDIF
-   IF(ios /= 0) THEN   ! Error reading
-      ier_num = -49
-      ier_typ = ER_APPL
-      ier_msg(1) = line(1:MIN(UBOUND(ier_msg,1), LEN_TRIM(line)))
-      RETURN
-   ENDIF
-   CALL no_error 
-ELSE params
-!  The line has comma separated parameters, compare to expectation from 'atom' line
-   got_params: IF (ier_num == 0) THEN 
-      IF(ianz>=at_ianz .AND.   & ! Correct minimum parameter number
-         (ianz>=3 .AND. ianz<=12)) THEN 
-!
-         lcalc = .false.
-         check_calc: DO j = 1, ianz 
-            IF(MAX( INDEX(cpara(j),'+') , INDEX(cpara(j),'-'),  &
-                    INDEX(cpara(j),'*') , INDEX(cpara(j),'/') )>1) THEN
-               lcalc = .true.
-               EXIT check_calc
-            ENDIF
-            READ(cpara(j)(1:lpara(j)),*,IOSTAT=isok) wwerte(j)
-            IF(isok /= 0) THEN
-               lcalc = .true.
-               EXIT check_calc
-            ENDIF
-         ENDDO check_calc
-         IF(col_surft >0) THEN
-            SELECT CASE (cpara(col_surft))
-            CASE('_')
-               j = 0
-            CASE('P')
-               j = 1
-            CASE('S')
-               j = 2
-            CASE('Y')
-               j = 3
-            CASE('E')
-               j = 4
-            CASE('C')
-               j = 5
-            CASE('L')
-               j = 6
-            CASE('T')
-               j = 7
-            CASE DEFAULT
-               j = 0
-            END SELECT
-            werte(9) = j
-            cpara(col_surft) = '0'
-         ENDIF
-         IF(lcalc) THEN    ! We need to calculate the parameter value
-            ios = 0
-            calc: DO j = 1, ianz 
-               IF(j==col_prop .OR. j==col_moleno  .OR. j==col_moleat .OR. &
-                  j==col_surfh.OR. j==col_surfk   .OR. j==col_surfl  .OR. &
-                  j==col_magnm                                       .OR. &
-                  j==col_magnu.OR. j==col_magnv   .OR. j==col_magnw ) THEN
-                  READ(cpara(j)(1:lpara(j)),*,err=1111, end=1111,IOSTAT=ios ) jj
-                  wwerte(j) = REAL(jj)
-               ELSE   
-                  READ(cpara(j),'(f8.5)',err=1111, end=1111,IOSTAT=ios ) wwerte(j)
-               ENDIF
-1111              CONTINUE
-               IF(ios/=0) THEN
-                  CALL ber_param  (j   , cpara, lpara, wwerte, maxw) 
-                  IF(ier_num/=0) EXIT calc
-               ENDIF
-            ENDDO  calc
-            IF (ier_num.ne.0) THEN 
-               ier_msg (1) = 'Error calculating atom  ' 
-               ier_msg (2) = 'coordinates for atom '//line (1:ibl) 
-               WRITE (ier_msg (3), 2000) cr_natoms + 1 
-               RETURN 
-            ENDIF 
-         ENDIF 
-         werte(1) = wwerte(col_x)        ! Are always present
-         werte(2) = wwerte(col_y)        ! Are always present
-         werte(3) = wwerte(col_z)        ! Are always present
-         werte(4) = wwerte(col_biso)     ! Are always present
-         IF(col_biso>0) THEN             ! Optional property flag
-            werte(4) = wwerte(col_biso)
-         ELSE
-            werte(4) = 0.0
-         ENDIF
-         IF(col_prop>0) THEN             ! Optional property flag
-            werte(5) = wwerte(col_prop)
-         ELSE
-            werte(5) = 1.0
-         ENDIF
-         IF(col_moleno>0) THEN           ! Optional Molecule number
-            werte(6) = wwerte(col_moleno)
-         ELSE
-            werte(6) = 0.0
-         ENDIF
-         IF(col_moleat>0) THEN           ! Optional Molecule entry number
-            werte(7) = wwerte(col_moleat)
-         ELSE
-            werte(7) = 0.0
-         ENDIF
-         IF(col_occ   >0) THEN           ! Optional Occupancy
-            werte(8) = wwerte(col_occ)
-         ELSE
-            werte(8) = 1.0
-         ENDIF
-         IF(col_surfh >0) THEN
-            werte(10) = wwerte(col_surfh)
-         ENDIF
-         IF(col_surfk >0) THEN
-            werte(11) = wwerte(col_surfk)
-         ENDIF
-         IF(col_surfl >0) THEN
-            werte(12) = wwerte(col_surfl)
-         ENDIF
-         IF(col_magnm >0) THEN
-            werte(13) = wwerte(col_magnm)
-         ENDIF
-         IF(col_magnu >0) THEN
-            werte(14) = wwerte(col_magnu)
-         ENDIF
-         IF(col_magnv >0) THEN
-            werte(15) = wwerte(col_magnv)
-         ENDIF
-         IF(col_magnw >0) THEN
-            werte(16) = wwerte(col_magnw)
-         ENDIF
-         CALL no_error 
-      ELSE 
-         ier_num = - 6
-         ier_typ = ER_COMM 
-         ier_msg (1) = 'Missing coordinates for ' 
-         ier_msg (2) = 'atom '//line (1:ibl) 
-         ier_msg (3) = ' ' 
-         RETURN 
-      ENDIF 
-   ELSE  got_params
-      ier_msg (1) = 'Error reading parameters for' 
-      ier_msg (2) = 'coordinates for atom '//line (1:ibl) 
-      WRITE (ier_msg (3), 2000) cr_natoms + 1 
-      RETURN 
-   ENDIF  got_params
-ENDIF params
-!                                                                       
-!-----      Basic error checks TO FOLLOW                                
-!                                                                       
-IF(NINT(werte(5)) < 0                .or.       &
-   2**(MAXPROP+1)-1  < NINT(werte(5))    ) THEN
-   ier_num = - 102 
-   ier_typ = ER_APPL 
-ENDIF 
-!                                                                       
- 2000 FORMAT    ('Atom Nr. ',i4) 
-END SUBROUTINE read_atom_line                 
-!********************************************************************** 
       SUBROUTINE struc_mole_header (zeile, lp, lcell, lcontent) 
 !-                                                                      
 !     interprets the 'molecule' lines of a structure file               
@@ -2760,6 +2328,7 @@ sym_add_n = 0
       USE molecule_mod 
       USE prop_para_mod
       USE spcgr_apply
+use atom_line_mod
 !
 use blanks_mod
 USE lib_errlist_func
@@ -2879,14 +2448,14 @@ werte = 0.0
             IF ( need_alloc ) THEN
                call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
             ENDIF
-            cr_surf(:,cr_natoms+1) = 0
-            cr_magn(:,cr_natoms+1) = 0.0
-            CALL read_atom_line (line, ibl, lline, as_natoms, MAXW, werte, &
-                 AT_MAXP, at_ianz, at_param, at_init)
+            cr_natoms = cr_natoms + 1 
+            cr_surf(:,cr_natoms) = 0
+            cr_magn(:,cr_natoms) = 0.0
+            call get_atom_werte(cr_natoms, MAXW, werte)
             IF (ier_num.ne.0.and.ier_num.ne. - 49) THEN 
                GOTO 999 
             ENDIF 
-            IF (cr_natoms.eq.nmax) THEN 
+            IF (cr_natoms.eq.nmax+1) THEN 
 !                                                                       
 !     --------Too many atoms in the structure file                      
 !                                                                       
@@ -2894,7 +2463,6 @@ werte = 0.0
                ier_typ = ER_APPL 
                RETURN
             ENDIF 
-            cr_natoms = cr_natoms + 1 
             i = cr_natoms 
             DO j = 1, 3 
             cr_pos (j, i) = werte (j) 
@@ -2937,14 +2505,14 @@ werte = 0.0
                .lt.1.and.0.0.le.cr_pos (3, i) .and.cr_pos (3, i) .lt.1) &
                THEN                                                     
                   as_natoms = as_natoms + 1 
-                  as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
-                  as_iscat (as_natoms) = cr_iscat (i) 
-                  as_dw (as_natoms) = cr_dw (cr_nscat) 
-                  as_occ(as_natoms) = cr_occ(cr_nscat) 
-                  DO j = 1, 3 
-                  as_pos (j, as_natoms) = cr_pos (j, i) 
-                  ENDDO 
-                  as_prop (as_natoms) = cr_prop (i) 
+!                 as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
+!                 as_iscat (as_natoms) = cr_iscat (i) 
+!                 as_dw (as_natoms) = cr_dw (cr_nscat) 
+!                 as_occ(as_natoms) = cr_occ(cr_nscat) 
+!                 DO j = 1, 3 
+!                 as_pos (j, as_natoms) = cr_pos (j, i) 
+!                 ENDDO 
+!                 as_prop (as_natoms) = cr_prop (i) 
                ENDIF 
    11          CONTINUE 
 !                                                                       
@@ -5908,11 +5476,11 @@ USE lib_errlist_func
 !*******************************************************************************
 !
 SUBROUTINE test_file ( strucfile, natoms, ntypes, n_mole, n_type, &
-                       n_atom, n_cells, init, lcell)
+                       n_atom, n_cells, init, l_cell)
 !
 !     Determines the number of atoms and atom types in strucfile
 !
-use aatom_line_mod
+use atom_line_mod
 !
 use blanks_mod
 USE ber_params_mod
@@ -5934,9 +5502,9 @@ INTEGER              , INTENT(INOUT) :: n_type
 INTEGER              , INTENT(INOUT) :: n_atom 
 integer, dimension(3), intent(out)   :: n_cells
 INTEGER              , INTENT(IN)    :: init
-LOGICAL              , INTENT(IN)    :: lcell
+LOGICAL              , INTENT(IN)    :: l_cell         ! If true this is a 'cell' > all atoms differ in type
 !
-INTEGER, PARAMETER                    :: MAXW = 13 
+INTEGER, PARAMETER                    :: MAXW = 16 
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW)  :: cpara (MAXW) 
 INTEGER            , DIMENSION(MAXW)  :: lpara (MAXW) 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW)  :: werte (MAXW) 
@@ -5965,22 +5533,22 @@ INTEGER                               :: imole      ! Mole number on atom line
 INTEGER                               :: inatom     ! Atom in Mole number on atom line
 LOGICAL                               :: in_mole    ! Currently within a molecule
 LOGICAL                               :: l_type     ! RFound molecule type command
+integer :: nlines ! number of line sin input file
 LOGICAL                               :: new
 REAL                                  :: xc,yc,zc,bval
 real(kind=PREC_SP), dimension(3,2)   :: ccdim     ! Crystal dimensions 
-INTEGER, PARAMETER                   :: AT_MAXP = 16
-INTEGER                              :: at_ianz
-LOGICAL                              :: at_init = .TRUE.
-CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 REAL                                 :: occ
+integer, dimension(9) :: ncell_val
 !
-!      LOGICAL           :: is_nan
 LOGICAL           :: IS_IOSTAT_END
 !
+ncell_val  = 0
 natoms     = 0
 nscattypes = 0
 nadptypes  = 0
 nocctypes  = 0
+!n_mole     = 0
+ntypes     = 0
 iblk = 0
 ccdim = 0.0
 IF ( init == -1 ) THEN
@@ -5994,7 +5562,8 @@ IF ( init == -1 ) THEN
 ENDIF
 in_mole = .false.
 !
-!call aatom_get_size(strucfile, nlines)
+call atom_get_size(strucfile, nlines)
+call atom_alloc(nlines)
 !
 CALL oeffne ( 99, strucfile, 'old')
 IF ( ier_num /= 0) THEN
@@ -6004,12 +5573,13 @@ IF ( ier_num /= 0) THEN
 ENDIF
 !
 header: DO
-   READ (99,1000, IOSTAT=ios) line
+   READ (99,'(a)', IOSTAT=ios) line
    IF(ios /= 0) THEN
       ier_num = -6
       ier_typ = ER_IO
       CLOSE ( 99 )
       ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+      call atom_dealloc
       RETURN
    ENDIF
    IF (line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
@@ -6038,6 +5608,7 @@ header: DO
           ier_typ = ER_APPL
           ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
           CLOSE(99)
+      call atom_dealloc
           RETURN
        ENDIF
    ELSEIF (line(1:3) == 'ADP' ) THEN 
@@ -6054,6 +5625,7 @@ header: DO
              ier_typ = ER_APPL
              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
              CLOSE(99)
+      call atom_dealloc
              RETURN
           ENDIF
        ELSE
@@ -6061,6 +5633,7 @@ header: DO
           ier_typ = ER_APPL
           ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
           CLOSE(99)
+      call atom_dealloc
           RETURN
        ENDIF
    ELSEIF (line(1:3) == 'OCC' ) THEN 
@@ -6084,6 +5657,7 @@ header: DO
              ier_typ = ER_APPL
              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
              CLOSE(99)
+      call atom_dealloc
              RETURN
           ENDIF
        ELSE
@@ -6091,6 +5665,7 @@ header: DO
           ier_typ = ER_APPL
           ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
           CLOSE(99)
+      call atom_dealloc
           RETURN
        ENDIF
    ELSEIF (line(1:4) == 'CELL' ) THEN 
@@ -6102,6 +5677,7 @@ header: DO
              ier_typ = ER_APPL
              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
              CLOSE(99)
+      call atom_dealloc
              RETURN
           ENDIF
        ELSE
@@ -6113,6 +5689,7 @@ header: DO
              ier_typ = ER_APPL
              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
              CLOSE(99)
+      call atom_dealloc
              RETURN
           ENDIF
        ENDIF
@@ -6128,6 +5705,7 @@ header: DO
                     ier_typ = ER_APPL
                     ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                     CLOSE(99)
+                    call atom_dealloc
                     RETURN
                  ENDIF
              ENDDO
@@ -6139,11 +5717,13 @@ header: DO
              n_mole = werte(7)
              n_type = werte(8)
              n_atom = werte(9)
+             ncell_val = nint(werte(1:9))
           ELSE
              ier_num = -163
              ier_typ = ER_APPL
              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
              CLOSE(99)
+             call atom_dealloc
              RETURN
           ENDIF
        ELSE
@@ -6151,25 +5731,12 @@ header: DO
           ier_typ = ER_APPL
           ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
           CLOSE(99)
+          call atom_dealloc
           RETURN
        ENDIF
    ENDIF
    IF(line(1:4) == 'ATOM') THEN 
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF(ianz==0)   THEN   ! Pre 5.17.2 style, no params
-         at_ianz = 4       ! At least x,y,z,Biso
-         at_param(1) = 'X'
-         at_param(2) = 'Y'
-         at_param(3) = 'Z'
-         at_param(4) = 'BISO'
-      ELSE
-         DO i=1,ianz
-            CALL do_cap(cpara(i))
-            at_param(i) = cpara(i)(1:MIN(LEN(at_param),lpara(i)))
-         ENDDO
-         at_ianz = ianz
-      ENDIF
-      at_init = .TRUE.
+      call atom_line_inter(zeile, lp)
       EXIT header
    ENDIF
 ENDDO header
@@ -6179,6 +5746,7 @@ IF (nscattypes /= nadptypes ) THEN
    ier_typ = ER_APPL
    ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
    CLOSE(99)
+   call atom_dealloc
    RETURN
 ENDIF
 !
@@ -6190,15 +5758,21 @@ IF(natoms>0) THEN
          n_type = MAX(n_type,1)  ! Ensure values are NOT zero
          n_atom = MAX(n_atom,1)
       ENDIF
-      CLOSE(99)
-      RETURN
+!     CLOSE(99)
+!     RETURN
    ENDIF
 ENDIF
+if(ncell_val(5) > 0) then
+   natoms = 0    ! temporarily set back to zero, as vals are in ncell_val
+   ntypes = 0
+   n_mole = 0
+   n_type = 0
+   n_atom = 0
+endif
 !
 l_type = .FALSE.
-!
 main: DO
-   READ (99,1000, IOSTAT=ios) line
+   READ (99,'(a)', IOSTAT=ios) line
    IF( IS_IOSTAT_END(ios) ) EXIT main
    IF(line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
       line == CHAR (13) )  CYCLE main
@@ -6246,12 +5820,15 @@ main: DO
 !          ELSE
       ENDIF
    ELSE ismole
+      if(at_style==-1) then
+         call atom_line_get_style(line, lbef+1, laenge, MAXW, werte)
+      endif
       iflag  = 0
       imole  = 0
       inatom = 0
       ios = 0
-      CALL read_atom_line (line, lbef+1, laenge, natoms, MAXW, werte, &
-                           AT_MAXP, at_ianz, at_param, at_init)                                          
+      CALL read_atom_line (line, lbef+1, laenge, natoms, MAXW, werte)! , &
+!                           AT_MAXP, at_ianz, at_param, at_init)                                          
       xc     = werte(1)
       yc     = werte(2)
       zc     = werte(3)
@@ -6267,15 +5844,11 @@ main: DO
          WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
          CLOSE(99)
+         call atom_dealloc
          RETURN
       ENDIF
-!          READ (line(5:len_str(line)), *, IOSTAT = ios) xc,yc,zc,bval, iflag, imole, inatom
-!          IF(IS_IOSTAT_END(ios))  THEN     ! iflag, imole, inatom are missing
-!             READ (line(5:len_str(line)), *, IOSTAT = ios) xc,yc,zc,bval
-!          ELSE 
-              n_mole = MAX(n_mole, imole)
-              n_atom = MAX(n_atom, inatom)
-!          ENDIF
+         n_mole = MAX(n_mole, imole)
+         n_atom = MAX(n_atom, inatom)
       IF(is_nan(xc) .OR. is_nan(yc) .OR. is_nan(zc) .OR. is_nan(bval)) THEN
          ios = -1
       ENDIF
@@ -6297,18 +5870,26 @@ main: DO
             n_atom = n_atom + 1
          ENDIF
          new = .true.
+         if(.not.l_cell) then
          types: DO i=1,ntypes
-            IF ( line(1:lbef) == names(i) ) THEN
-               IF ( lcell ) THEN
+               if(line(1:lbef) == names(i) .and.                 &
+                  abs(abs(bval)-abs(bvals(i))) < eps  .and.      &
+                  abs(abs(occ )-abs( occs(i))) < eps        ) then
                   new = .false.
-                  EXIT types
-               ELSEIF(abs(abs(bval)-abs(bvals(i))) < eps .AND.   &
-                      abs(abs(occ )-abs( occs(i))) < eps ) THEN
-                  new = .false.
-                  EXIT types
-               ENDIF
-            ENDIF
+                  exit types
+               endif
+!           IF ( line(1:lbef) == names(i) ) THEN
+!              IF ( l_cell ) THEN
+!                 new = .false.
+!                 EXIT types
+!              ELSEIF(abs(abs(bval)-abs(bvals(i))) < eps .AND.   &
+!                     abs(abs(occ )-abs( occs(i))) < eps ) THEN
+!                 new = .false.
+!                 EXIT types
+!              ENDIF
+!           ENDIF
          ENDDO types
+         endif
          IF ( new ) THEN
             ntypes = ntypes + 1
             names(ntypes) = line(1:lbef)
@@ -6322,6 +5903,7 @@ main: DO
          WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
          CLOSE(99)
+         call atom_dealloc
          RETURN
       ENDIF isatom
    ENDIF ismole
@@ -6333,10 +5915,15 @@ IF(n_mole>0) THEN
    n_type = MAX(n_type,1)  ! Ensure values are NOT zero
    n_atom = MAX(n_atom,1)
 ENDIF
+if(ncell_val(5)>0) then
+   natoms = max(natoms, ncell_val(5))
+   ntypes = max(ntypes, ncell_val(6))
+   n_mole = max(n_mole, ncell_val(7))
+   n_type = max(n_type, ncell_val(8))
+   n_atom = max(n_atom, ncell_val(9))
+endif
 !
 n_cells     = int(ccdim(:,2)-ccdim(:,1)) + 1
-!
-1000  FORMAT(a)
 !
 END SUBROUTINE test_file
 !
@@ -6585,6 +6172,67 @@ CALL save_restore_setting
 CALL store_remove_single(tempfile, ier_num)
 !
 END SUBROUTINE readcell_mole
+!
+!*******************************************************************************
+!
+subroutine read_to_internal(infile, prefix)
+!-
+!   Reads the structure in 'infile' and stores it as prefix//infile in the 
+!   internal storage
+!   The current structure is lost !
+!   Anny calling routine must preserver the old structure!
+!+
+!
+use crystal_mod
+use discus_save_mod
+use prop_para_func
+use prop_para_mod
+use save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc, save_show
+!
+use precision_mod
+!
+implicit none
+!
+character(len=*), intent(in) :: infile
+character(len=*), intent(in) :: prefix
+!
+character(len=PREC_STRING) :: line
+character(len=PREC_STRING) :: getfile
+integer :: length
+logical :: l_site
+!
+call rese_cr
+l_site = .false.
+!
+getfile = infile                    ! Just a local copy
+call do_readstru(getfile, l_site)   ! Read actual file
+if(ier_num/=0) return
+!
+call save_store_setting             ! Backup user "save" setting
+if(ier_num/=0) return
+!
+call save_default_setting           ! Default to full saving
+if(ier_num/=0) return
+!
+line       = 'ignore, all'          ! Ignore all properties
+length     = 11
+call property_select(line, length, sav_sel_prop)
+if(ier_num/=0) return
+!
+line       = 'ignore, all'          ! Ignore all properties for global as well
+length     = 11
+call property_select(line, length,  cr_sel_prop)
+if(ier_num/=0) return
+!                                   ! Prepend with prefix
+getfile = prefix(1:len_trim(prefix)) // infile(1:len_trim(infile))
+!
+call save_internal(getfile)         ! Finally save
+if(ier_num/=0) return
+!
+call save_restore_setting           ! And restore user "save" settings
+if(ier_num/=0) return
+!
+end subroutine read_to_internal
 !
 !*******************************************************************************
 !

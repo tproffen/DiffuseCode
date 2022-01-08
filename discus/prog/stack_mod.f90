@@ -29,8 +29,8 @@ INTEGER ::  ST_MAXQXY    = 1
 INTEGER ::  ST_MAXLAYER  = 1
 INTEGER ::  ST_MAXTYPE   = 1
 !
-CHARACTER (LEN=200), DIMENSION(:)    , ALLOCATABLE :: st_layer        ! (  ST_MAXTYPE)
-CHARACTER (LEN=200), DIMENSION(:)    , ALLOCATABLE :: st_layer_c      ! (  ST_MAXTYPE)
+CHARACTER (LEN=1024), DIMENSION(:)    , ALLOCATABLE :: st_layer        ! (  ST_MAXTYPE)
+CHARACTER (LEN=1024), DIMENSION(:)    , ALLOCATABLE :: st_layer_c      ! (  ST_MAXTYPE)
 INTEGER            , DIMENSION(:)    , ALLOCATABLE :: st_llayer       ! (  ST_MAXTYPE)
 INTEGER            , DIMENSION(:)    , ALLOCATABLE :: st_number       ! (  ST_MAXTYPE)
 INTEGER            , DIMENSION(:)    , ALLOCATABLE :: st_ndisp        ! (  ST_MAXTYPE)
@@ -49,7 +49,7 @@ REAL(kind=PREC_DP) , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_m2   ! (  ST_MA
 !
 COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:)    , ALLOCATABLE :: st_csf          ! (ST_MAXQXY)
 !
-CHARACTER (LEN=200)                        :: st_infile        = ' '
+CHARACTER (LEN=1024)                       :: st_infile        = ' '
 !
 LOGICAL                                    :: st_new_form      = .TRUE.    ! New formfactors need to be copied
 INTEGER                                    :: st_distr         = ST_DIST_MATRIX

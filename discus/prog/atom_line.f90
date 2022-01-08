@@ -1,4 +1,4 @@
-module aatom_line_mod
+module atom_line_mod
 !-
 !   Contains the information on an atom line in the input structure file
 !+
@@ -8,25 +8,31 @@ use precision_mod
 implicit none
 !
 private
-public  aatom_line_inter
-public  aatom_get_size
-public  aatom_line_get_style
-public  read_aatom_line
+!
+public  at_style
+public  atom_line_inter
+public  atom_get_size
+public  atom_line_get_style
+public  read_atom_line
+public  atom_alloc
+public  atom_dealloc
+public   get_atom_werte
 !
 integer, parameter :: AT_MAXP = 16
 !
 character(len=8), dimension(16), PARAMETER :: at_cnam = (/ &
                'X       ', 'Y       ', 'Z       ', 'BISO    ', 'PROPERTY',  &
-               'MOLENO  ', 'MOLAT   ', 'OCC     ', 'ST      ', 'SH      ',  &
+               'MOLENO  ', 'MOLEAT  ', 'OCC     ', 'ST      ', 'SH      ',  &
                'SK      ', 'SL      ', 'MM      ', 'MV      ', 'MU      ',  &
                'MW      '                                                   &
              /)
 character(len=8), dimension(16)      :: at_param
 integer         , dimension(AT_MAXP) :: at_look  ! at_param(i) uses at_cnam(at_look(i))
 integer         , dimension(AT_MAXP) :: at_kool  ! at_cnam(j) is used by at_param(at_kool(j))
-logical         , dimension(AT_MAXP) :: at_user  ! User provided parameters on atom line
+logical         , dimension(0:AT_MAXP) :: at_user  ! User provided parameters on atom line
 integer                              :: at_style ! Aktual style number
 integer                              :: at_ianz
+integer                              :: at_natoms ! Current number of atoms
 integer, parameter :: AT_COMMA     =  1          ! Comma delimited style, full flexibility
 integer, parameter :: AT_XYZ       =  2          ! Just coordinates as pure numbers, no comma
 integer, parameter :: AT_XYZB      =  3          ! Just coordinates, Biso   numbers, no comma
@@ -49,7 +55,7 @@ integer, parameter :: COL_MU       = 14
 integer, parameter :: COL_MV       = 15
 integer, parameter :: COL_MW       = 16
 !
-character(len=4)  , dimension(:,:), allocatable :: at_names   ! All atom names
+character(len=4)  , dimension(:  ), allocatable :: at_names   ! All atom names
 real(kind=PREC_DP), dimension(:,:), allocatable :: at_values  ! All atom coordinates etc
 !
 contains
@@ -62,7 +68,7 @@ contains
 !
 !*******************************************************************************
 !
-subroutine aatom_line_inter(line, length)
+subroutine atom_line_inter(lline, llength)
 !-
 !  Determine the style of the 'atom' line, determine location of parameters etc.
 !+
@@ -73,19 +79,24 @@ use string_convert_mod
 !
 implicit none
 !
-character(len=*), intent(inout) :: line      ! The atom line
-integer         , intent(inout) :: length    ! Its length
+character(len=*), intent(inout) :: lline      ! The atom line
+integer         , intent(inout) :: llength    ! Its length
 !
+character(len=len(lline)) :: line
+integer                   :: length
 character(len=PREC_STRING), dimension(AT_MAXP) :: cpara
 integer                   , dimension(AT_MAXP) :: lpara
 integer :: ianz
 integer :: i, j
 integer :: inew
 !
+line = lline
+length = llength
 call get_params (line, ianz, cpara, lpara, AT_MAXP, length)
 at_param = ' '              ! Ensure pristine state
 at_ianz  = 0
 at_look  = 0
+at_user = .false.
 !
 if(ianz==0) then ! Pre 5.17.2 style, no params
    at_style = -1  ! Undetermined old style
@@ -109,28 +120,30 @@ else
    enddo
    at_ianz = ianz
    inew    = 0
-   loop_names: do j=1,AT_MAXP
-      loop_used: do i=1, at_ianz+inew
+   loop_used: do i=1, at_ianz
+      loop_names: do j=1,AT_MAXP
          if(at_param(i)==at_cnam(j)) then
             at_look(i) = j
             at_kool(j) = i
             at_user(j) = .TRUE.   ! User provide atom parameter J
-            cycle loop_names
+            cycle loop_used
          endif
-         inew = inew + 1
-         at_look(at_ianz+inew)  = j
-         at_kool(j)             = at_ianz+inew
-         at_param(at_ianz+inew) = at_cnam(j)
-         at_user(j) = .FALSE.   ! User did not provide atom parameter J
-      enddo loop_used
-   enddo loop_names
+      enddo loop_names
+   enddo loop_used
+!         inew = inew + 1
+!write(*,*) ' New at ', inew
+!         at_look(inew)  = j
+!         at_kool(j)     = inew
+!         at_param(inew) = at_cnam(j)
+!         at_user(j) = .FALSE.   ! User did not provide atom parameter J
 endif
+at_natoms = 0
 !
-end subroutine aatom_line_inter
+end subroutine atom_line_inter
 !
 !*******************************************************************************
 !
-subroutine aatom_get_size(infile, nlines)
+subroutine atom_get_size(infile, nlines)
 !-
 ! quickly determine number of lines in input file
 !+
@@ -149,7 +162,7 @@ character(len=PREC_STRING) :: tfile
 integer                    :: tfile_l
 integer :: ios       ! I/O status flag
 !
-tfile = tmp_dir(1:tmp_dir_l) // 'discus_atom.lines'
+tfile = tmp_dir(1:tmp_dir_l) // '/discus_atom.lines'
 tfile_l = tmp_dir_l + 17
 !
 line = 'cat ' // infile(1:len_trim(infile)) // ' | wc -l > ' // tfile(1:tfile_l)
@@ -162,11 +175,13 @@ close(IRD)
 line = ' rm -f ' // tfile(1:tfile_l)
 call execute_command_line(line)
 !
-end subroutine aatom_get_size
+at_natoms = 0
+!
+end subroutine atom_get_size
 !
 !*******************************************************************************
 !
-subroutine aatom_line_get_style(line, ibl, length, MAXW, werte)
+subroutine atom_line_get_style(line, ibl, length, MAXW, werte)
 !-
 !  Determine the style of the first line in the input file, only called if the
 !  'atom' line is empty
@@ -205,11 +220,11 @@ else
    endif
 endif
 !
-end subroutine aatom_line_get_style
+end subroutine atom_line_get_style
 !
 !*******************************************************************************
 !
-subroutine aatom_alloc(nlines)
+subroutine atom_alloc(nlines)
 !-
 ! Allocate array atom_values
 !+
@@ -221,13 +236,13 @@ integer, intent(in) :: nlines
 if(allocated(at_values)) deallocate(at_values)
 if(allocated(at_names )) deallocate(at_names )
 allocate(at_values(AT_MAXP, nlines))
-allocate(at_names (AT_MAXP, nlines))
+allocate(at_names (         nlines))
 !
-end subroutine aatom_alloc
+end subroutine atom_alloc
 !
 !*******************************************************************************
 !
-subroutine aatom_dealloc
+subroutine atom_dealloc
 !-
 ! Deallocate array atom_values
 !+
@@ -237,24 +252,27 @@ implicit none
 if(allocated(at_values)) deallocate(at_values)
 if(allocated(at_names )) deallocate(at_names )
 !
-end subroutine aatom_dealloc
+end subroutine atom_dealloc
 !
 !*******************************************************************************
 !
-subroutine read_aatom_line( line, ibl, length, cr_natoms, MAXW, werte)
+subroutine read_atom_line(lline, ibl,llength, cr_natoms, MAXW, werte)
 !-
 !  reads a line from the cell file/structure file                    
 !+
 !
 use errlist_mod
+use ber_params_mod
 use get_params_mod
 use precision_mod
 !
 implicit none
 !
-character(len=*)                     , intent(inout) :: line      ! The atom line
+character(len=*)                     , intent(inout) ::lline      ! The atom line
+character(len=PREC_STRING)                           :: line      ! The atom line
 integer                              , intent(in)    :: ibl       ! Its length
-integer                              , intent(inout) :: length    ! Its length
+integer                              , intent(inout) ::llength    ! Its length
+integer                                              :: length    ! Its length
 integer                              , intent(in)    :: cr_natoms
 integer                              , INTENT(in)    :: MAXW
 real(kind=PREC_DP), dimension(1:MAXW), INTENT(out)   :: werte
@@ -272,64 +290,72 @@ integer :: j      ! Dummy index
 !real(kind=PREC_DP), dimension(1:MAXW) :: wwerte
 real(kind=PREC_DP), dimension(1:1   ) :: wwerte
 !
+line = lline
+length = llength
 werte    = 0.0D0          ! Initialize values
 werte(5) = 1.0D0
 werte(8) = 1.0D0
 !
-if_style: if(at_style==AT_XYZB) then              ! x y z B no comma
-   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 4)
-elseif(at_style==AT_XYZ) then    if_style         ! x y z   no comma
-   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 3)
-elseif(at_style==AT_XYZBP) then  if_style         ! x y z B P   no comma
-   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 5)
-else                             if_style
-   cpara(at_kool(COL_PROPERTY)) = '1.0D0'
-   cpara(at_kool(COL_OCC ))     = '1.0D0'
+if_style: if(at_style==AT_COMMA) then             ! x,y,z,B, ...
+   cpara((COL_PROPERTY)) = '1.0D0'
+   cpara((COL_OCC ))     = '1.0D0'
 !
    laenge = length - ibl + 1
    call get_params(line(ibl:length), ianz, cpara, lpara, MAXW, laenge)
 !
 !  The line has comma separated parameters, compare to expectation from 'atom' line
    got_params: if(ier_num == 0) then
-      if(at_user(at_kool(COL_SURFT))) then  ! User specfied surface type
-         select case(cpara(at_kool(COL_SURFT)))
+      if(at_user((COL_SURFT))) then  ! User specfied surface type
+         select case(cpara((COL_SURFT)))
          case('_')
-            cpara(at_kool(COL_SURFT)) = '0.0D0'
+            cpara((COL_SURFT)) = '0.0D0'
          case('P')
-            cpara(at_kool(COL_SURFT)) = '1.0D0'
+            cpara((COL_SURFT)) = '1.0D0'
          case('S')
-            cpara(at_kool(COL_SURFT)) = '2.0D0'
+            cpara((COL_SURFT)) = '2.0D0'
          case('Y')
-            cpara(at_kool(COL_SURFT)) = '3.0D0'
+            cpara((COL_SURFT)) = '3.0D0'
          case('E')
-            cpara(at_kool(COL_SURFT)) = '4.0D0'
+            cpara((COL_SURFT)) = '4.0D0'
          case('C')
-            cpara(at_kool(COL_SURFT)) = '5.0D0'
+            cpara((COL_SURFT)) = '5.0D0'
          case('L')
-            cpara(at_kool(COL_SURFT)) = '6.0D0'
+            cpara((COL_SURFT)) = '6.0D0'
          case('T')
-            cpara(at_kool(COL_SURFT)) = '7.0D0'
+            cpara((COL_SURFT)) = '7.0D0'
          case default
-            cpara(at_kool(COL_SURFT)) = '0.0D0'
+            cpara((COL_SURFT)) = '0.0D0'
          end select
       endif
       iianz     = 1
       do i=1, AT_MAXP
-         if(at_user(at_kool(i))) then      ! User specified this on 'atom x,y,z, ...' line
-            read(cpara(at_kool(i)),*, iostat=ios) werte(i)
+         if(at_user(at_look(i))) then      ! User specified this on 'atom x,y,z, ...' line
+            read(cpara((i)),*, iostat=ios) werte(at_look(i))
             if(ios/=0) then
-               ccpara(1) = cpara(at_kool(i))
-               llpara(1) = lpara(at_kool(i))
+               ccpara(1) = cpara((i))
+               llpara(1) = lpara((i))
                call ber_params(iianz, ccpara, llpara, wwerte, iianz)
                if(ier_num/=0) exit if_style
-               werte(at_kool(i)) = wwerte(1)
+               werte(at_look(i)) = wwerte(1)
             endif
          endif
       enddo
    else
       exit if_style
    endif got_params
+elseif(at_style==AT_XYZB) then              ! x y z B no comma
+   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 4)
+elseif(at_style==AT_XYZ) then    if_style         ! x y z   no comma
+   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 3)
+elseif(at_style==AT_XYZBP) then  if_style         ! x y z B P   no comma
+   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 5)
+else                             if_style
 endif   if_style
+at_natoms = at_natoms + 1
+at_names(at_natoms) = line(1:ibl-1)
+at_values(:,at_natoms) = werte
+!write(*,*) ' AT_LINE ', line(1:len_trim(line))
+!write(*,'(a,19f8.3)') ' Werte ', werte
 !
 if(ier_num/=0) then
   ier_msg (1) = 'Error reading parameters for'
@@ -337,8 +363,27 @@ if(ier_num/=0) then
   write(ier_msg(3), '(''Atom Nr. '',i4)') cr_natoms + 1
 endif
 !
-end subroutine read_aatom_line
+end subroutine read_atom_line
 !
 !*******************************************************************************
 !
-end module aatom_line_mod
+subroutine get_atom_werte(natom, MAXP, werte)
+!
+use precision_mod
+use errlist_mod
+!
+implicit none
+!
+integer, intent(in) :: natom
+integer, intent(in) :: MAXP
+real(kind=PREC_DP), dimension(MAXP), intent(out) :: werte
+!
+werte(1:AT_MAXP) = at_values(1:MAXP,natom)
+ier_num = 0
+ier_typ = 0
+!
+end subroutine get_atom_werte
+!
+!*******************************************************************************
+!
+end module atom_line_mod

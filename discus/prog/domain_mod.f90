@@ -48,4 +48,31 @@ REAL                                  ::  clu_remove_dist = 0.0! Initial removal
 !
 INTEGER                               ::  clu_size_of! Bytes allocated for DOMAIN
 !
+
+CHARACTER(LEN=  4), DIMENSION(:), ALLOCATABLE  ::  clu_at_lis    ! Pseudo-atom names
+INTEGER                                      :: clu_mole_max_mole
+INTEGER                                      :: clu_mole_max_type
+INTEGER                                      :: clu_mole_max_atom
+INTEGER                                      :: clu_mole_num_mole
+INTEGER                                      :: clu_mole_num_type
+INTEGER                                      :: clu_mole_num_atom
+INTEGER,           DIMENSION(:), allocatable :: clu_mole_len
+INTEGER,           DIMENSION(:), allocatable :: clu_mole_off
+INTEGER,           DIMENSION(:), allocatable :: clu_mole_type
+INTEGER,           DIMENSION(:), allocatable :: clu_mole_char
+CHARACTER(LEN=1024), DIMENSION(:), allocatable :: clu_mole_file
+REAL   ,           DIMENSION(:), allocatable :: clu_mole_dens
+REAL   ,           DIMENSION(:), allocatable :: clu_mole_biso
+REAL   ,           DIMENSION(:), allocatable :: clu_mole_clin
+REAL   ,           DIMENSION(:), allocatable :: clu_mole_cqua
+REAL   ,           DIMENSION(:), allocatable :: clu_mole_fuzzy
+INTEGER,           DIMENSION(:), allocatable :: clu_mole_cont
+REAL                , DIMENSION(3)  :: clu_cr_pos
+INTEGER                             :: clu_cr_iscat
+INTEGER                             :: clu_cr_prop
+INTEGER             , DIMENSION(0:3):: clu_cr_surf
+REAL                , DIMENSION(0:3):: clu_cr_magn
+INTEGER                             :: clu_cr_mole
+INTEGER                             :: clu_cr_moleatom
+!
 END MODULE domain_mod

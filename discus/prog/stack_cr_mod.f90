@@ -13,9 +13,11 @@ INTEGER                             :: ST_MAX_SCAT  = 1
 !
 CHARACTER (LEN=80)                             :: st_name
 CHARACTER (LEN=16)                             :: st_spcgr
+CHARACTER (LEN=16)                             :: st_spcgr_set
 CHARACTER (LEN= 3)                             :: st_set
 CHARACTER (LEN=4 ), DIMENSION(:), ALLOCATABLE  :: st_at_lis ! (0:ST_MAX_SCAT)
 CHARACTER (LEN=4 ), DIMENSION(:), ALLOCATABLE  :: sa_at_lis ! (0:ST_MAX_SCAT)
+integer :: st_iset 
 !
 REAL   , DIMENSION(:,:), ALLOCATABLE :: st_scat  ! (9,0:ST_MAX_SCAT)
 REAL   , DIMENSION(  :), ALLOCATABLE :: st_dw    ! (  0:ST_MAX_SCAT)
@@ -37,6 +39,16 @@ REAL                                 :: st_vr
 REAL   , DIMENSION(3,3)              :: st_rten
 REAL   , DIMENSION(3,3,3)            :: st_reps
 REAL   , DIMENSION(3,2)              :: st_dim
+!
+INTEGER, parameter  ::  st_GEN_ADD_MAX = 192
+INTEGER             ::  st_gen_add_n
+INTEGER             ::  st_gen_add_power(st_GEN_ADD_MAX)
+REAL                ::  st_gen_add(4,4,0:st_GEN_ADD_MAX)
+!
+INTEGER, parameter  ::  st_SYM_ADD_MAX = 192
+INTEGER             ::  st_sym_add_n
+INTEGER             ::  st_sym_add_power(st_sym_ADD_MAX)
+REAL                ::  st_sym_add(4,4,0:st_sym_ADD_MAX)
 !
 INTEGER                              :: sa_natoms
 INTEGER                              :: st_nscat

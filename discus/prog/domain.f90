@@ -614,10 +614,15 @@ USE domain_mod
 USE domaindis_mod 
 USE micro_mod 
 USE molecule_mod
+use prop_para_func
+use prop_para_mod
 USE read_internal_mod
 USE discus_save_mod 
-USE structur, ONLY: stru_readheader, test_file
+USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc, save_show
+USE structur, ONLY: stru_readheader, test_file, read_to_internal
+!
 USE errlist_mod 
+use tensors_mod
 USE precision_mod
 USE prompt_mod
 USE support_mod
@@ -631,6 +636,9 @@ CHARACTER(LEN=PREC_STRING)           :: infile
 INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
+character(len=PREC_STRING)           :: host_file
+character(len=PREC_STRING)           :: strucfile
+character(len=PREC_STRING)           :: line
 !
 LOGICAL ::lend 
 LOGICAL :: l_ok    ! the domain list file contains a correct input pseuodatom
@@ -640,7 +648,8 @@ REAL(PREC_SP), DIMENSION(4,4) :: mc_dimen
 REAL(PREC_SP), DIMENSION(4,4) :: mc_idimen
 REAL(PREC_SP), DIMENSION(4,4) :: mc_matrix
 INTEGER :: natoms_old
-INTEGER               :: i, j, k
+INTEGER               :: i, j, k, l
+integer               :: length
 INTEGER, DIMENSION(5) :: maxdim = 0
 INTEGER  :: natoms  ! Number of atoms in the input file
 INTEGER  :: nscats  ! NUmber of atom types in the input file
@@ -652,6 +661,9 @@ INTEGER  :: n_atom  ! Number of atoms within molecules in the input file
 integer, dimension(3) :: n_cells  ! Number of unit cells in the input file
 integer, dimension(:,:), allocatable :: clu_moles  ! No of molecule and types in each cluster
 !integer, dimension(:,:), allocatable :: clu_mole_tab! No of molecule and types in each cluster
+!integer                              :: clu_mole_num_mole    ! Number of Clusters in case of CLUSTER MODE
+!integer                              :: clu_mole_num_type    ! Number of Clusters in case of CLUSTER MODE
+!integer                              :: clu_mole_num_atom    ! Number of Clusters in case of CLUSTER MODE
 REAL(PREC_SP)               :: shortest
 REAL(PREC_SP), DIMENSION(3) :: vv
 REAL(PREC_SP) :: sgrand  ! grand time
@@ -659,6 +671,102 @@ REAL :: satoms  ! time in read atoms
 REAL :: shead   ! time in read header
 REAL :: srem    ! time in read remove atoms
 REAL :: sstep   ! time step
+!
+nscats = 0
+natoms = 0
+n_mole = 0
+n_type = 0
+n_atom = 0
+maxdim(:) = 0
+clu_mole_num_mole  = 0   ! Number of Clusters in case of CLUSTER MODE
+clu_mole_num_type  = 0   ! Number of Cluster  types in case of CLUSTER MODE
+clu_mole_num_atom  = 0   ! Number of Cluster  atoms in case of CLUSTER MODE
+! Read all content files into internal storage
+!
+! --- Temporarily save current structure into internal
+!
+call save_store_setting             ! Backup user "save" setting
+call save_default_setting           ! Default to full saving
+!
+line       = 'ignore, all'          ! Ignore all properties
+length     = 11 
+call property_select(line, length, sav_sel_prop)
+line       = 'ignore, all'          ! Ignore all properties for global as well
+length     = 11
+call property_select(line, length,  cr_sel_prop)
+host_file = 'internal_domain_host.stru'
+call save_internal(host_file)
+maxdim(1) = max(maxdim(1), cr_natoms, NMAX)
+maxdim(2) = MAX(maxdim(2), nscats, MAXSCAT)
+maxdim(3) = MAX(maxdim(3), n_mole, MOLE_MAX_MOLE)
+maxdim(4) = MAX(maxdim(4), n_type, MOLE_MAX_TYPE)
+maxdim(5) = MAX(maxdim(5), n_atom, MOLE_MAX_ATOM)
+!
+! -- Store list file internally
+!
+strucfile = clu_infile
+!write(*,*) ' CLU_INFILE ', clu_infile(1:len_trim(clu_infile))
+call read_to_internal(strucfile, 'internal_domain_list.')
+if(ier_num/=0) return
+!write(*,*) ' infile : ier_num, ier_typ ', ier_num, ier_typ
+if(clu_mode==CLU_IN_CLUSTER) then
+   CLU_MOLE_MAX_mole = mole_num_mole
+   CLU_MOLE_MAX_type = mole_num_type
+   CLU_MOLE_MAX_atom = mole_num_atom
+   clu_mole_num_mole = mole_num_mole
+   clu_mole_num_type = mole_num_type
+   clu_mole_num_atom = mole_num_atom
+endif
+
+clu_infile = 'internal_domain_list.' // clu_infile(1:len_trim(clu_infile))
+clu_infile_internal = .true.
+maxdim(1) = max(maxdim(1), cr_natoms, NMAX)
+maxdim(2) = MAX(maxdim(2), nscats, MAXSCAT)
+maxdim(3) = MAX(maxdim(3), n_mole, MOLE_MAX_MOLE)
+maxdim(4) = MAX(maxdim(4), n_type, MOLE_MAX_TYPE)
+maxdim(5) = MAX(maxdim(5), n_atom, MOLE_MAX_ATOM)
+MK_MAX_SCAT = MAX(MK_MAX_SCAT, MAXSCAT, nscats)
+MK_MAX_ATOM = MAX(MK_MAX_ATOM, NMAX, natoms)
+n_mole = MAX(n_mole, MOLE_MAX_MOLE)
+n_type = MAX(n_type, MOLE_MAX_TYPE)
+n_atom = MAX(n_atom, MOLE_MAX_ATOM)
+!
+if_clu:if(clu_mode==CLU_IN_CLUSTER) THEN          ! Cluster mode, read content files
+   loop_clu_mole: do i=1, mole_num_mole
+      loop_clu_srch: do j=1, clu_number
+         if(clu_content(j)==mole_file(i)) cycle loop_clu_mole
+      enddo loop_clu_srch
+      clu_number = clu_number + 1
+      clu_content(clu_number) = mole_file(i)
+   enddo loop_clu_mole
+endif if_clu
+!write(*,*) ' READING GUEST FILES '
+!
+! --- Now read all content files from disk 
+!
+loop_read: do i=1, clu_number
+   if(clu_content(i)(1:8)/='internal') then    ! not yet an internal file
+      strucfile = clu_content(i)
+      call read_to_internal(strucfile, 'internal_domain_guest.')
+      if(ier_num/=0) then
+         j = ier_num
+         call readstru_internal(host_file)
+         call save_restore_setting           ! Restore user "save" settings
+         ier_num = j
+         write(ier_msg(1), '(a,i3)') ' Error in content file ', i
+         ier_msg(2) = clu_content(i)(1:min(len(ier_msg), len_trim(clu_content(i))))
+         return
+      endif
+      clu_content(i) = 'internal_domain_guest.' // clu_content(i)(1:len_trim(clu_content(i)))
+   endif
+enddo loop_read
+!write(*,*) ' FINISHED  GUEST FILES '
+!
+call readstru_internal(host_file)   ! Restore original host file
+if(ier_num/=0) return
+call save_restore_setting           ! Restore user "save" settings
+if(ier_num/=0) return
+!-------------------------------------------------------------------------------
 !
 !     TEST FILESIZE OF ALL internal CONTENT FILES
 !
@@ -669,7 +777,6 @@ allocate(clu_moles(2,0:clu_number))
 clu_moles  = 0
 clu_moles(1,0) = mole_num_mole
 clu_moles(2,0) = mole_num_type
-maxdim(:) = 0
 DO i=1, clu_number
    infile = clu_content(i)
    IF(clu_content(i)(1:8)=='internal')THEN
@@ -774,7 +881,6 @@ DO i=1, clu_number
    ENDIF 
 ENDDO
 if(allocated(clu_mole_tab)) deallocate(clu_mole_tab)
-!allocate(clu_mole_tab(maxval(clu_moles(2,1:clu_number))+clu_moles(2,0),1:clu_number))
 allocate(clu_mole_tab(maxval(clu_moles(2,1:clu_number)),1:clu_number))
 clu_mole_tab = 0
 j = clu_moles(2,0)             ! molecule types prior
@@ -784,11 +890,11 @@ do i=1,clu_number
      clu_mole_tab(k,i) = j
    enddo
 enddo
-natoms = maxdim(1)
-nscats = maxdim(2)
-n_mole = maxdim(3)
-n_type = max(maxdim(4), maxval(clu_mole_tab))   ! Previous and cluster molecule types
-n_atom = maxdim(5)
+natoms = max(natoms, maxdim(1))
+nscats = max(nscats, maxdim(2))
+n_mole = max(n_mole, maxdim(3))
+n_type = max(n_type, maxdim(4), maxval(clu_mole_tab))   ! Previous and cluster molecule types
+n_atom = max(n_atom, maxdim(5))
    IF(natoms > MAX(MK_MAX_ATOM, NMAX)    .or. &
       nscats > MAX(MK_MAX_SCAT, MAXSCAT) .or. &
       n_mole > MOLE_MAX_MOLE             .or. &
@@ -804,10 +910,14 @@ n_atom = maxdim(5)
       MK_MAX_SCAT = nscats
    ENDIF
 !
+CALL alloc_crystal (nscats, natoms)
+!
+!
 clu_remove_end = cr_natoms    ! Initially remove only atoms in original crystal
 !                                                                       
 lread = .true. 
 IF ( clu_infile_internal ) THEN
+!write(*,*) ' CLU_INFILE AAA ', clu_infile(1:len_trim(clu_infile))
    CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name,   &
    mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                           &
    mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,       &
@@ -899,7 +1009,7 @@ srem   = 0.0
 sstep  = 0.0
 IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
    infile = ' '
-   CALL micro_read_simple (imd, lend, l_ok, infile, mc_dimen, mc_idimen,&
+   CALL micro_read_simple(imd, lend, l_ok, infile, mc_dimen, mc_idimen,&
    mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
    IF (ier_num.ne.0) THEN 
       CLOSE(imd)
@@ -909,30 +1019,24 @@ IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
 !                                                                       
    read_domains: DO WHILE (.NOT.lend)
       pseudo_ok:  IF(l_ok) THEN
-         IF (mc_type  .lt.0) then 
-!sstep = seknds(0.0)
+         IF(mc_type .lt.0) then 
             CALL micro_read_atoms(infile, mc_idimen, mc_matrix)
-!sstep = seknds(sstep)
-!satoms = satoms + sstep
          ENDIF 
          IF (ier_num.ne.0) THEN 
             CLOSE(imd)
       if(allocated(clu_moles)) deallocate(clu_moles)
             RETURN
          ENDIF
-!!!!!!!!!!!
+!
          IF ( clu_infile_internal ) THEN
-!sstep = seknds(0.0)
             CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name, &
             mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                         &
             mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,     &
             sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
             mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
             mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
-!sstep = seknds(sstep)
-!shead  = shead  + sstep
          ENDIF 
-!!!!!!!!!!!!!
+!
       ENDIF  pseudo_ok
       CALL micro_read_simple (imd, lend, l_ok, infile, mc_dimen, mc_idimen,&
             mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
@@ -962,11 +1066,10 @@ IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
       shortest     = 0.0
       mc_type      = MD_DOMAIN_FUZZY
       IF(md_sep_fuz > 0.0 ) THEN
-!sstep = seknds(0.0)
+!
          CALL micro_fuzzy_rem (mk_dim, natoms_old, mk_natoms, md_sep_fuz,  &
          vv, shortest, mc_type, MD_DOMAIN_FUZZY)                                                     
-!sstep = seknds(sstep)
-!srem   = srem   + sstep
+!
       ENDIF
    ENDIF
 !                                                                       
@@ -974,42 +1077,91 @@ elseif(clu_mode == CLU_IN_IRREG ) then               ! IRREGULAR domain mode
    close(imd)
    call domain_irregular !(imd, lend, infile, mc_dimen, mc_idimen, mc_matrix)
 ELSE 
-   CALL micro_read_micro(imd, lend, infile, mc_dimen, mc_idimen, mc_matrix)                                                     
-   IF (ier_num.ne.0) THEN 
-      CLOSE(imd)
-      if(allocated(clu_moles)) deallocate(clu_moles)
-      RETURN
-   ENDIF
-!                                                                       
-   DO while (.not.lend) 
-      IF (mc_type  .lt.0) then 
-         CALL micro_read_atoms (infile, mc_idimen, mc_matrix)                                                  
-      ENDIF 
-      IF (ier_num.ne.0) THEN 
-         CLOSE(imd)
-         if(allocated(clu_moles)) deallocate(clu_moles)
-         RETURN
-      ENDIF
-      CALL micro_read_micro (imd, lend, infile, mc_dimen, mc_idimen, mc_matrix)
-      IF (ier_num.ne.0) THEN 
-         CLOSE(imd)
-         if(allocated(clu_moles)) deallocate(clu_moles)
-         RETURN
-      ENDIF
-   ENDDO 
+    CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name, &
+            mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                         &
+            mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,     &
+            sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
+            mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
+            mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
+   allocate(clu_at_lis  (  0:MK_MAX_SCAT      ))
+   allocate(clu_mole_len(  0:CLU_MOLE_MAX_MOLE))
+   allocate(clu_mole_off(  0:CLU_MOLE_MAX_MOLE))
+   allocate(clu_mole_type( 0:CLU_MOLE_MAX_MOLE))
+   allocate(clu_mole_char( 0:CLU_MOLE_MAX_MOLE))
+   allocate(clu_mole_file( 0:CLU_MOLE_MAX_MOLE))
+   allocate(clu_mole_dens( 0:CLU_MOLE_MAX_MOLE))
+   allocate(clu_mole_biso( 0:CLU_MOLE_MAX_TYPE))
+   allocate(clu_mole_clin( 0:CLU_MOLE_MAX_TYPE))
+   allocate(clu_mole_cqua( 0:CLU_MOLE_MAX_TYPE))
+   allocate(clu_mole_fuzzy(0:CLU_MOLE_MAX_MOLE))
+   allocate(clu_mole_cont( 0:CLU_MOLE_MAX_ATOM))
+   clu_at_lis = mk_at_lis
+   call stru_internal_molecules(clu_infile, CLU_MOLE_MAX_MOLE,           &
+              CLU_MOLE_MAX_TYPE, CLU_MOLE_MAX_ATOM, CLU_mole_num_mole, CLU_mole_num_type, &
+              CLU_mole_num_atom, CLU_mole_len, CLU_mole_off, CLU_mole_type, CLU_mole_char,    &
+              CLU_mole_file, CLU_mole_dens, CLU_mole_biso, CLU_mole_clin, CLU_mole_cqua,      &
+              CLU_mole_fuzzy, CLU_mole_cont)
+   loop_micro_atoms: do i=1, clu_mole_num_mole
+      mc_matrix = 0.0
+      mc_dimen  = 0.0
+      mc_idimen = 0.0
+      do j=1, 8
+         k = clu_mole_cont(clu_mole_off(i)+j)
+         call struc_read_one_atom_internal(clu_infile, k,  &
+              clu_cr_pos, clu_cr_iscat, clu_cr_prop, clu_cr_surf, &
+              clu_cr_magn, clu_cr_mole, clu_cr_moleatom )
+         if(clu_at_lis(clu_cr_iscat)=='POSI') THEN
+            mc_matrix(1:3,4) = clu_cr_pos(1:3)
+         elseif(clu_at_lis(clu_cr_iscat)=='XAXI') THEN
+            mc_matrix(1,1:3) = clu_cr_pos(1:3)
+         elseif(clu_at_lis(clu_cr_iscat)=='YAXI') THEN
+            mc_matrix(2,1:3) = clu_cr_pos(1:3)
+         elseif(clu_at_lis(clu_cr_iscat)=='ZAXI') THEN
+            mc_matrix(3,1:3) = clu_cr_pos(1:3)
+         elseif(clu_at_lis(clu_cr_iscat)=='CENT') THEN
+            mc_dimen (1:3,4) = clu_cr_pos(1:3)
+         elseif(clu_at_lis(clu_cr_iscat)=='XDIM') THEN
+            mc_dimen (1,1:3) = clu_cr_pos(1:3)
+         elseif(clu_at_lis(clu_cr_iscat)=='YDIM') THEN
+            mc_dimen (2,1:3) = clu_cr_pos(1:3)
+         elseif(clu_at_lis(clu_cr_iscat)=='ZDIM') THEN
+            mc_dimen (3,1:3) = clu_cr_pos(1:3)
+         endif
+      enddo
+      mc_matrix(4,4) = 1.0
+      mc_dimen (4,4) = 1.0
+      DO k = 1, 3 
+         DO l = 1, 3 
+            mc_matrix(k, l) = mc_matrix(k, l) - mc_matrix(l, 4)
+            mc_dimen (k, l) = mc_dimen (k, l) - mc_dimen (l, 4)
+         ENDDO 
+      ENDDO 
+      mc_idimen = mc_dimen
+      CALL invmat4 (mc_idimen) 
+      infile = 'internal_domain_guest.' // clu_mole_file(i)(1:len_trim(clu_mole_file(i)))
+      mc_type    = clu_mole_char(i)              ! Set character for this cluster
+      md_sep_fuz = clu_mole_fuzzy(i)             ! Set fuzzy distance
+      CALL micro_read_atoms(infile, mc_idimen, mc_matrix)                                                  
+   enddo loop_micro_atoms
+!
+   deallocate(clu_at_lis)
+   deallocate(clu_mole_len)
+   deallocate(clu_mole_off)
+   deallocate(clu_mole_type)
+   deallocate(clu_mole_char)
+   deallocate(clu_mole_file)
+   deallocate(clu_mole_dens)
+   deallocate(clu_mole_biso)
+   deallocate(clu_mole_clin)
+   deallocate(clu_mole_cqua)
+   deallocate(clu_mole_fuzzy)
+   deallocate(clu_mole_cont)
 ENDIF 
 IF ( .not. clu_infile_internal ) THEN
    CLOSE (imd) 
       if(allocated(clu_moles)) deallocate(clu_moles)
 ENDIF 
 !
-if(ier_num==0) then
-   sgrand = seknds(sgrand)
-   write(output_io,'(a,f10.4,a)') ' Elapsed time   ', sgrand, ' sec'
-!write(*,'(a,f10.4)') ' Time in atoms', satoms
-!write(*,'(a,f10.4)') ' Time in head ', shead
-!write(*,'(a,f10.4)') ' Time in rem  ', srem
-endif
 !
 chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
                         ! In the rare circumstances that is is the user
@@ -1017,6 +1169,21 @@ chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
 chem_quick = .FALSE.
 chem_period(:) = .FALSE.
 if(allocated(clu_moles)) deallocate(clu_moles)
+!
+! Clean up internal files
+!
+call store_remove_single(host_file, ier_num)
+if(clu_mode==CLU_IN_CLUSTER) THEN
+   strucfile = clu_infile
+   call store_remove_single(strucfile, ier_num)
+endif
+do i=1, clu_number
+   if(clu_content(i)(1:22) == 'internal_domain_guest.') then
+      strucfile = clu_content(i)
+      call store_remove_single(strucfile, ier_num)
+      if(ier_num==-113) ier_num = 0   ! File with equal name lreaned up prior
+   endif
+enddo
 !                                                                       
 END SUBROUTINE micro_filereading              
 !
@@ -1036,6 +1203,7 @@ use chem_mod
 use prop_para_mod
 use structur,  only:do_readstru
 use spcgr_apply
+USE read_internal_mod
 !
 use str_comp_mod
 use string_convert_mod
@@ -1057,12 +1225,22 @@ lout = .false.
 !
 l_site = .FALSE.
 !
-call do_readstru(clu_infile, l_site)
-call setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,             &
-            cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
-            cr_fmat, cr_cartesian,                                      &
-            cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
-call get_symmetry_matrices
+if(clu_infile(1:21) == 'internal_domain_list.') then
+   call readstru_internal(clu_infile)
+else
+   ier_num = -182
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Domain files should have been internal'
+   ier_msg(2) = 'Domain file error 01'
+   return
+!INTER 
+!INTER call do_readstru(clu_infile, l_site)
+!INTER call setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,             &
+!INTER             cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
+!INTER             cr_fmat, cr_cartesian,                                      &
+!INTER             cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+!INTER call get_symmetry_matrices
+endif
 !
 do i=1,3
   if(cr_icc(i)==1) chem_period(i) = .FALSE.
@@ -1072,15 +1250,12 @@ clu_remove_end = cr_natoms     ! Store atom number in original crystal
 nprior = cr_natoms             ! Store atom number in original crystal
 !
 call domain_irreg_conn         ! Create connectivity with closest neighbors
-!write(*,*) ' CLEANING PSEUDO '
 do i=1, 1
    call domain_clean_conn         ! change atoms with 2 or less partners
    call domain_irreg_conn         ! Create connectivity with closest neighbors
 enddo
 !
-!write(*,*) ' Starting LOOP '
 loop_atoms: do iatom = 1, cr_natoms
-!write(*,*) ' AT ATOM ', iatom, cr_prop(iatom), btest(cr_prop(iatom), PROP_TEMP), nprior
    if(cr_iscat(iatom)==0) cycle loop_atoms ! NEEDS WORK 
 !   if(btest(cr_prop(iatom), PROP_TEMP)) cycle loop_atoms   ! Temp property is set already, skip
 !                              ! Determine cluster type for current pseudo atom
@@ -1105,7 +1280,6 @@ loop_atoms: do iatom = 1, cr_natoms
    call domain_irreg_find(iatom, nprior, ii)  ! Replace the domain by guest
    if(ier_num/=0)  return                     ! Error like evaluating the "EXPR" 
 end do loop_atoms
-!write(*,*) ' DID REPLACE '
 !
 end subroutine domain_irregular
 !
@@ -1137,7 +1311,6 @@ do i=1, cr_nscat       ! Loop over all pseudo atoms
             cr_at_lis(i)(1:len_trim(cr_at_lis(i))), ',', &
             cr_at_lis(i)(1:len_trim(cr_at_lis(i))), ', 0.1,', dist, &
             ', cd_',i
-!write(*,*) line(1:len_trim(line))
    lp = len_trim(line)
    call conn_do_set(code_add,line, lp)
 enddo
@@ -1647,213 +1820,6 @@ end subroutine domain_set_matrix
 !
 !*****7*****************************************************************
 !
-SUBROUTINE micro_read_micro (imd, lend, infile, mc_dimen, mc_idimen, mc_matrix)
-!
-USE discus_config_mod 
-USE domaindis_mod 
-USE tensors_mod
-USE ber_params_mod
-USE errlist_mod 
-USE get_params_mod
-USE lib_errlist_func
-USE lib_length
-USE precision_mod
-USE str_comp_mod
-USE string_convert_mod
-!                                                                       
-IMPLICIT none 
-!                                                                       
-INTEGER, PARAMETER :: MAXW = 4
-!                                                                       
-CHARACTER (LEN=* ), INTENT(OUT) :: infile 
-INTEGER           , INTENT(IN)  :: imd 
-LOGICAL           , INTENT(OUT) :: lend 
-REAL              , INTENT(OUT) :: mc_dimen (4, 4) 
-REAL              , INTENT(OUT) :: mc_idimen (4, 4) 
-REAL              , INTENT(OUT) :: mc_matrix (4, 4) 
-!                                                                       
-CHARACTER(LEN=10) :: befehl 
-CHARACTER(LEN=PREC_STRING) :: line, zeile 
-CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-CHARACTER(LEN=PREC_STRING) :: mc_strufile 
-INTEGER :: i, j, ibl, lbef 
-INTEGER :: lline 
-INTEGER :: lp, ianz 
-INTEGER, dimension(MAXW) ::  lpara
-logical :: lexist        ! Flag if host structure file exissts
-REAL(KIND=PREC_DP) :: werte (maxw) 
-!                                                                       
-!                                                                       
-ier_num = - 49 
-ier_typ = ER_APPL 
-!
-mc_matrix = 0.0
-mc_dimen  = 0.0
-      DO i = 1, 4 
-!     DO j = 1, 4 
-!     mc_matrix (i, j) = 0.0 
-!     mc_dimen (i, j) = 0.0 
-!     ENDDO 
-   mc_matrix (i, i) = 1.0 
-   mc_dimen (i, i) = 1.0 
-ENDDO 
-line = ' ' 
-READ (imd, 2000, end = 2, err = 999) line 
-lline = len_str (line) 
-DO while (line.eq.' '.or.line (1:1) .eq.'#'.OR.line(1:1)=='!'.or.line.eq.char (13) ) 
-   READ (imd, 2000, end = 2, err = 999) line 
-   lline = len_str (line) 
-ENDDO 
-!
-ibl = index (line (1:lline) , ' ') + 1 
-lbef = 10 
-befehl = ' ' 
-ibl = index (line, ' ') 
-lbef = min (ibl - 1, lbef) 
-befehl = line (1:lbef) 
-lbef = len_str (befehl) 
-befehl = line (1:lbef) 
-!
-if_domain: IF(str_comp(befehl, 'domain', 4, lbef, 6) ) then 
-!                                                                       
-!     --Start/End of a microdomain descriptor                           
-!                                                                       
-   CALL no_error 
-   zeile = line (ibl:lline) 
-   lp = lline-ibl + 1 
-   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-   IF(ier_num /= 0) return
-   IF(ianz == 0) then               ! First domain line must not have parameters
- 1000          CONTINUE 
-         READ (imd, 2000, end = 998, err = 999) line 
-         lline = len_str (line) 
-         ibl = index (line (1:lline) , ' ') + 1 
-         lbef = 10 
-         befehl = ' ' 
-         ibl = index (line, ' ') 
-         lbef = min (ibl - 1, lbef) 
-         befehl = line (1:lbef) 
-         lbef = len_str (befehl) 
-         befehl = line (1:lbef) 
-         CALL do_cap (befehl) 
-         CALL no_error 
-         zeile = line (ibl:lline) 
-         lp = lline-ibl + 1 
-!                                                                       
-         IF(str_comp(befehl, 'DOMAIN', 4, lbef, 6) ) then 
-            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF(ier_num.eq.0) then 
-               IF(str_comp(cpara(1), 'character', 2, lpara(1), 9) ) then
-                  IF(str_comp(cpara(2), 'domain_sphere', 9, lpara(2), 13) ) then
-                     mc_type = MD_DOMAIN_SPHERE 
-                  ELSEIF(str_comp(cpara(2), 'domain_cube', 10, lpara(2), 11) ) then
-                     mc_type = MD_DOMAIN_CUBE 
-                  ELSEIF(str_comp(cpara(2), 'domain_cylinder', 10, lpara(2), 15) ) then
-                     mc_type = MD_DOMAIN_CYLINDER 
-                  ELSEIF(str_comp(cpara(2), 'domain_fuzzy', 10, lpara(2), 12) ) then
-                     mc_type = MD_DOMAIN_FUZZY 
-                  ENDIF
-               ELSEIF(str_comp(cpara(1), 'content', 2, lpara(1), 7) ) then
-                  CONTINUE 
-               ELSEIF(str_comp(cpara(1), 'file', 2, lpara(1), 4) ) then
-                  mc_strufile = cpara(2)(1:lpara(2))
-                  infile = cpara(2)(1:lpara(2))
-                  inquire(file=infile,exist=lexist)
-                  if(.not.lexist) then
-                     ier_num = -1
-                     ier_typ = ER_IO
-                     ier_msg(1) = 'Content file: ' // infile
-                     return
-                  endif
-               ELSEIF(str_comp(cpara(1), 'fuzzy', 2, lpara(1) , 5) ) then
-                  CALL del_params(1, ianz, cpara, lpara, maxw)
-                  CALL ber_params(ianz, cpara, lpara, werte, maxw)
-                  IF(ier_num.eq.0) then 
-                     md_sep_fuz = werte(1) 
-                  ELSE 
-                     RETURN 
-                  ENDIF
-               ELSEIF(str_comp(cpara(1) , 'end', 3, lpara(1), 3) ) then
-                  DO i = 1, 3 
-                     DO j = 1, 3 
-                        mc_matrix(i, j) = mc_matrix(i, j) - mc_matrix(j, 4)
-                        mc_dimen (i, j) = mc_dimen (i, j) - mc_dimen (j, 4)
-                     ENDDO 
-                  ENDDO 
-                  DO i = 1, 4 
-                     DO j = 1, 4 
-                        mc_idimen (i, j) = mc_dimen (i, j) 
-                     ENDDO 
-                  ENDDO 
-                  CALL invmat4 (mc_idimen) 
-                  lend = .false. 
-                  CALL no_error 
-                  RETURN 
-               ELSE 
-                  ier_num = - 94 
-                  ier_typ = ER_APPL 
-                  ier_msg (1) = 'Error while reading' 
-                  ier_msg (2) = 'the domain input file' 
-               ENDIF
-            ELSE 
-               RETURN 
-            ENDIF
-         ELSEIF(str_comp(befehl, 'POSI', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_matrix (i, 4), i = 1, 3) 
-         ELSEIF(str_comp(befehl, 'XAXI', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_matrix (1, i), i = 1, 3) 
-         ELSEIF(str_comp(befehl, 'YAXI', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_matrix (2, i), i = 1, 3) 
-         ELSEIF(str_comp(befehl, 'ZAXI', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_matrix (3, i), i = 1, 3) 
-         ELSEIF(str_comp(befehl, 'CENT', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_dimen (i, 4), i = 1, 3) 
-         ELSEIF(str_comp(befehl, 'XDIM', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_dimen (1, i), i = 1, 3) 
-         ELSEIF(str_comp(befehl, 'YDIM', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_dimen (2, i), i = 1, 3) 
-         ELSEIF(str_comp(befehl, 'ZDIM', 4, lbef, 8) ) then 
-                  READ (zeile, * ) (mc_dimen (3, i), i = 1, 3) 
-         ELSE 
-                  ier_num = - 96 
-                  ier_typ = ER_APPL 
-                  ier_msg (1) = 'Error while reading' 
-                  ier_msg (2) = 'the domain input file' 
-                  ier_msg(3) =  zeile(1:40)
-         ENDIF
-!                                                                       
-      GOTO 1000 
-   ELSE 
-      ier_num = - 95 
-      ier_typ = ER_APPL 
-      ier_msg (1) = 'Error while reading' 
-      ier_msg (2) = 'the domain input file' 
-   ENDIF
-ELSE  if_domain
-         ier_num = - 96 
-         ier_typ = ER_APPL 
-         ier_msg (1) = 'Error while reading' 
-         ier_msg (2) = 'the domain input file' 
-         ier_msg (3) = befehl
-         RETURN 
-ENDIF if_domain
-      line = ' ' 
-!                                                                       
-    2 CONTINUE 
-      lend = .true. 
-      CALL no_error 
-      RETURN 
-!                                                                       
-      line = ' ' 
-  998 CONTINUE 
-  999 CONTINUE 
-      line = ' ' 
-!                                                                       
- 2000 FORMAT    (a) 
-!                                                                       
-      END SUBROUTINE micro_read_micro               
-!*****7*****************************************************************
-!
 SUBROUTINE micro_read_atoms (infile, mc_idimen, mc_matrix)
 !-
 ! Read the guest atoms and insert into host structure
@@ -1885,26 +1851,26 @@ INTEGER                              :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 LOGICAL  :: lread 
 !                                                                       
-      lread = .true. 
-      IF(infile(1:8)=='internal') THEN
-         mk_infile_internal = .true.
-         CALL stru_readheader_internal (infile, MK_MAX_SCAT, mk_name,   &
+lread = .true. 
+IF(infile(1:8)=='internal') THEN
+   mk_infile_internal = .true.
+   CALL stru_readheader_internal (infile, MK_MAX_SCAT, mk_name,   &
          mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                       &
          mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,   &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
-         mk_iatom = 0
-         at_param(1) = 'X'
-         at_param(2) = 'Y'
-         at_param(3) = 'Z'
-         at_param(4) = 'BISO'
-         at_param(5) = 'PROPERTY'
-         at_param(6) = 'MOLENO'
-         at_param(7) = 'MOLEAT'
-         at_param(8) = 'OCC'
-         at_ianz = 8
-      ELSE
+   mk_iatom = 0
+   at_param(1) = 'X'
+   at_param(2) = 'Y'
+   at_param(3) = 'Z'
+   at_param(4) = 'BISO'
+   at_param(5) = 'PROPERTY'
+   at_param(6) = 'MOLENO'
+   at_param(7) = 'MOLEAT'
+   at_param(8) = 'OCC'
+   at_ianz = 8
+ELSE
          mk_infile_internal = .false.
          CALL oeffne (ist, infile, 'unknown') 
          IF (ier_num.ne.0) return 
@@ -1920,17 +1886,18 @@ LOGICAL  :: lread
             CLOSE(IST)
             RETURN
          ENDIF
-      ENDIF
+ENDIF
 !                                                                       
-      CALL micro_read_atom (ist, infile, mc_idimen, mc_matrix, &
-                            AT_MAXP, at_ianz, at_param) 
-      IF(.not.(infile(1:8)=='internal')) THEN
-         CLOSE (ist) 
-      ENDIF
+CALL micro_read_atom(ist, infile, mc_idimen, mc_matrix, &
+                     AT_MAXP, at_ianz, at_param) 
+IF(.not.(infile(1:8)=='internal')) THEN
+   CLOSE (ist) 
+ENDIF
 !                                                                       
 END SUBROUTINE micro_read_atoms               
 !
 !*****7*****************************************************************
+!
       SUBROUTINE micro_remove_old (mc_idimen) 
 !                                                                       
 !     This routine will become obsolete if the "fuzzy" property is      
@@ -2040,7 +2007,7 @@ USE micro_mod
 USE molecule_mod 
 USE prop_para_mod 
 USE read_internal_mod
-USE structur, ONLY: struc_mole_header, read_atom_line
+USE structur, ONLY: struc_mole_header !, read_atom_line
 USE spcgr_apply, ONLY: mole_insert_current, mole_insert_explicit
 USE trafo_mod
 USE surface_mod 
@@ -2168,6 +2135,14 @@ integer :: is_mole_type  ! Molecule type provided on the 'molecule type line'
          mk_dim (i, 1) = mc_matrix (i, 4) 
          mk_dim (i, 2) = mc_matrix (i, 4) 
       ENDDO 
+!write(*,*) 'MC_MATRIX '
+!do i=1,4
+!  write(*,*)  mc_matrix(i,:)
+!enddo
+!write(*,*) 'MD_IDIM   '
+!do i=1,4
+!  write(*,*)  mc_idimen(i,:)
+!enddo
 !
 !     Does the user want to remove existing atoms at insertion of each domain
 !     which includes atoms inserted by other domains in this run or
@@ -2216,6 +2191,9 @@ is_mole_type = 1
          dummy_moleatom = 0  ! Internal molecule atoms are set further down
          WRITE(line, 3000) mk_at_lis(dummy_iscat), xyz, mk_dw(dummy_iscat), &
                            dummy_prop, dummy_mole, dummy_moleatom, 1.0 ! copy into line
+!write(*,*) 'READING ATOMS ', mk_iatom,'>',line(1:len_trim(line))
+         werte(1:3) = xyz
+         werte(4)   = mk_dw(dummy_iscat)
       ELSE
          READ (ist, 2000, END = 2, ERR = 999) line 
       ENDIF
@@ -2261,8 +2239,8 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
 !write(*,*) ' LINE ', line(1:len_trim(line)), ' INFILE ', infile(1:len_trim(infile))
 !write(*,*) 'at_init', at_init, lline, ibl, at_ianz, AT_MAXP
 !   write(*,*) 'werte, wwerte ', ubound(werte),ubound(at_param)
-            CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
-                 AT_MAXP, at_ianz, at_param, at_init)
+!           CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
+!                AT_MAXP, at_ianz, at_param, at_init)
             n_read_atoms = n_read_atoms + 1
             DO j = 1, 3 
                u (j) = werte (j) 
@@ -2318,6 +2296,7 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
 !               linside = .true. 
             ENDIF 
 inside:     IF (linside) then 
+!write(*,*) ' INSIDE ', v
                IF (cr_natoms.eq.nmax) then 
                   new_nmax = MAX(nmax + 100, int( nmax*1.1 ))
                   CALL alloc_crystal(MAXSCAT, new_nmax)
@@ -2577,7 +2556,8 @@ mole_int: IF(mk_infile_internal) THEN
  3000 FORMAT    (a4, 4(f16.8, ','), 3(i8, ','), f16.8)
  3100 FORMAT    ('Shortest Distance to host ',f12.4) 
  3200 FORMAT    ('Intended fuzzy distance   ',f12.4) 
-      END SUBROUTINE micro_read_atom                
+!
+END SUBROUTINE micro_read_atom                
 !
 !*****7*****************************************************************
 !
@@ -2697,6 +2677,7 @@ ENDIF
 !DBG      ENDDO                                                         
 !DBG2222      format(a10,3(f8.3,2x),2x,f8.3)                            
 clu_current = ii                       ! Transfer current cluster type
+!write(*,*) ' CLU_IATOM', clu_iatom, '>>',infile(1:len_trim(infile)),'<<', dummy_iscat, ier_num, ier_typ
 RETURN 
 !                                                                       
 999 CONTINUE 
