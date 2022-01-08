@@ -165,7 +165,7 @@ integer                             , intent(out) :: nnames
 integer, parameter :: MAXW = 10
 character(len=PREC_STRING), dimension(MAXW) :: cpara     ! Temporary array for lower routines
 integer                   , dimension(MAXW) :: lpara     ! Temporary array for lower routines
-real(kind=PREC_DP)        , dimension(MAXW) :: werte     ! Temporary array for lower routines
+!real(kind=PREC_DP)        , dimension(MAXW) :: werte     ! Temporary array for lower routines
 integer :: ianz
 integer :: i
 !
