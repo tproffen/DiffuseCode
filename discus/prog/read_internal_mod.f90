@@ -650,7 +650,7 @@ END SUBROUTINE readcell_internal
 !
 !  Reads a structure from an internal cystal. The old crystal is overwritten
 !
-   USE discus_allocate_appl_mod
+!  USE discus_allocate_appl_mod
    IMPLICIT NONE
 !
 !
