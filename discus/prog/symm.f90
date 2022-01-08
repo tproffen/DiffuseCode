@@ -567,9 +567,9 @@ loop_menu: DO while (.not.lend)
 !                                                                       
             IF(sym_incl == 'all') sym_end=cr_natoms
 !                    IF(sym_end == -1) sym_end=cr_natoms
-            IF(.NOT. (sym_start >= 1           .AND. &
+            IF(.NOT.((sym_start >= 1           .AND. &
                                sym_end <= cr_natoms     .AND. &
-                               sym_start <= sym_end)          ) THEN
+                               sym_start <= sym_end) .or. sym_incl == 'env')          ) THEN
                ier_num = -19
                ier_typ = ER_APPL
                ier_msg(1) = 'Values for ''inc'' are wrong'
@@ -933,6 +933,7 @@ real(KIND=PREC_DP), dimension(3,3) :: matr
       WRITE (output_io, 3030) sym_angle 
       WRITE (output_io, 3040) sym_trans 
       WRITE (output_io, 3045) sym_or_tr 
+      WRITE (output_io, 3046) sym_trans + sym_or_tr 
       WRITE (output_io, 3050) ( (sym_mat (i, j), j = 1, 4), i = 1, 3) 
 matr = sym_mat(1:3,1:3)
 deter = det3(matr)
@@ -1115,7 +1116,8 @@ res_para(0)   = 18
  3020 FORMAT    ( '   Origin of symmetry element: ',3(2x,f9.4),a) 
  3030 FORMAT    ( '   Rotation angle            : ',  2x,f9.4 ) 
  3040 FORMAT    ( '   Translation part(true)    : ',3(2x,f9.4)) 
- 3045 FORMAT    ( '   Translation part(origin)  : ',3(2x,f9.4)/) 
+ 3045 FORMAT    ( '   Translation part(origin)  : ',3(2x,f9.4)) 
+ 3046 FORMAT    ( '   Grand translation (t+o )  : ',3(2x,f9.4)/) 
  3050 FORMAT    ( '   Real space matrix         : ',4(2x,f9.4)/         &
      &                2( '                             : ',4(2x,f9.4)/))
  3060 FORMAT    ( '   Reciprocal space matrix   : ',3(2x,f9.4)/         &
