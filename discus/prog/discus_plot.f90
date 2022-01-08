@@ -105,16 +105,16 @@ integer, parameter :: OGEOM   = 11
 integer, parameter :: OEXPORT = 12
 !
 DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', &
-              'plot' , 'kill'  , 'keep',  'geom', 'export' /
+              'plot' , 'keep'  , 'kill',  'geom', 'export' /
 DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  5     , &
                4     ,  4      ,  4    ,   4    ,  6       /
 !
 ! Always provide fresh default values, Repeat for each command
 opara  =   (/ '0.000    ', '0.000    ', '0        ', '0        ', 'flat     ', 'solid    ', &
-              'auto     ', 'none     ', 'none     ', 'no       ', '[500,500]', 'none     '/)
+              'auto     ', 'none     ', 'no       ', 'none     ', '[500,500]', 'none     '/)
 !
 lopara =   (/  5         ,  5         ,  1         ,  1         ,  4         ,  5         , &
-               4         ,  4         ,  4         ,  2         ,  9         ,  4         /)
+               4         ,  4         ,  2         ,  4         ,  9         ,  4         /)
 !
 owerte =   (/  0.00      ,  0.00      ,  0.        ,  0.        ,  0.0       ,  0.0       , &
                0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       /)
@@ -567,14 +567,14 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                               ENDDO
                               pl_poly_o(-1) = .FALSE.
                            ENDIF 
-                           IF(owerte(1)>0.0) pl_poly_dmin = owerte(1)
-                           IF(owerte(2)>0.0) pl_poly_dmax = owerte(2)
-                           pl_poly_nmax = NINT(owerte(4))
-                           IF(NINT(owerte(3))==0) owerte(3) = pl_poly_nmax
-                           pl_poly_nmin = NINT(owerte(3))
-                           pl_poly_face = opara(5)=='flat'
-                           pl_poly_hue  = opara(6)=='trans'
-                           pl_poly_col  = opara(7)(1:MIN(LEN(pl_poly_col),lopara(7)))
+                           IF(owerte(ODMIN)>0.0) pl_poly_dmin = owerte(ODMIN)
+                           IF(owerte(ODMAX)>0.0) pl_poly_dmax = owerte(ODMAX)
+                           pl_poly_nmax = NINT(owerte(ONMAX))
+                           IF(NINT(owerte(ONMIN))==0) owerte(ONMIN) = pl_poly_nmax
+                           pl_poly_nmin = NINT(owerte(ONMIN))
+                           pl_poly_face = opara(OFACE)=='flat'
+                           pl_poly_hue  = opara(OHUE )=='trans'
+                           pl_poly_col  = opara(OCOLOR)(1:MIN(LEN(pl_poly_col),lopara(OCOLOR)))
                            pl_poly_n    = 1
                         ENDIF 
                      ENDIF 
@@ -681,8 +681,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'run', 3, lbef, 3) ) then 
 !                 Always provide fresh default values, Repeat for each command
-                  opara (8:11) =   (/ 'none     ', 'none     ', 'no       ', '[500,500]' /)
-                  lopara(8:11) =   (/  4         ,  4         ,  2         ,  9          /)
+                  opara (8:11) =   (/ 'none     ', 'no       ', 'none     ', '[500,500]' /)
+                  lopara(8:11) =   (/  4         ,  2         ,  4         ,  9          /)
                   owerte(8:11) =   (/  0.0       ,  0.0       ,  0.0       ,  0.0        /)
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
@@ -710,12 +710,12 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            CALL plot_test_aon(lnor, labs, lord)
                            IF(ier_num == 0) THEN
                               CALL do_plot 
-                              pl_keep = opara(10)(1:lopara(10))=='yes'
+                              pl_keep = opara(OKEEP)(1:lopara(OKEEP))=='yes'
                               IF(ier_num == 0) THEN
                                  IF(opara(OPLOT)=='inter') THEN
                                     IF(pl_prog=='jmol') THEN
-                                       i = 4
-                                       CALL plot_inter(i,opara(9:12))
+                                       i = 3
+                                       CALL plot_inter(i,opara(10:12))
                                     ELSE
                                        ier_num = -152
                                        ier_typ = ER_APPL 
@@ -1474,6 +1474,9 @@ REAL                :: rr
 REAL(KIND=PREC_DP)                :: beta
 integer, dimension(3) :: scalef
 real                  :: shift    
+integer, parameter :: OKILL   =  1
+integer, parameter :: OGEOM   =  2
+integer, parameter :: OEXPORT =  3
 !
 ! Scale and shift as in CIF file
 scalef(1) =                INT((cr_dim(1,2)-cr_dim(1,1)))+2
@@ -1481,8 +1484,8 @@ scalef(2) =                INT((cr_dim(2,2)-cr_dim(2,1)))+2
 scalef(3) =                INT((cr_dim(3,2)-cr_dim(3,1)))+2
 shift     = 0.01
 !
-kill = opara(1)
-cpara = opara(3)           ! Copy geometry optional parameter
+kill  = opara(OKILL)
+cpara = opara(OGEOM)           ! Copy geometry optional parameter
 lpara = LEN_TRIM(cpara)
 werte = 0.0
 i    = 2
@@ -1779,13 +1782,15 @@ IF(pl_prog=='jmol') THEN
    enddo
 
 !
-   if(opara(4)=='none') then
+   if(opara(OEXPORT)=='none') then
       continue
-   elseif(index(opara(4),'png', .true.)==len_trim(opara(4))-2) then
-      line = 'write IMAGE PNG 2 ''' // path(1:len_trim(path)) // opara(4)(1:len_trim(opara(4))) // ''''
+   elseif(index(opara(OEXPORT),'png', .true.)==len_trim(opara(OEXPORT))-2) then
+      line = 'write IMAGE PNG 2 ''' // path(1:len_trim(path)) // &
+              opara(OEXPORT)(1:len_trim(opara(OEXPORT))) // ''''
       write(ITMP,'(a)') line(1:len_trim(line))
-   elseif(index(opara(4),'pdf', .true.)==len_trim(opara(4))-2) then
-      line = 'write IMAGE PDF 1 ''' // path(1:len_trim(path)) // opara(4)(1:len_trim(opara(4))) // ''''
+   elseif(index(opara(OEXPORT),'pdf', .true.)==len_trim(opara(OEXPORT))-2) then
+      line = 'write IMAGE PDF 1 ''' // path(1:len_trim(path)) // &
+              opara(OEXPORT)(1:len_trim(opara(OEXPORT))) // ''''
       write(ITMP,'(a)') line(1:len_trim(line))
    else
       ier_num = -147
