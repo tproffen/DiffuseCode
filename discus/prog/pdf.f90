@@ -445,7 +445,7 @@ USE str_comp_mod
 !------ Setting up weighting (b(i)b(j)/<b**2>)                          
 !                                                                       
       CALL dlink (ano, lambda, rlambda,  renergy, l_energy, &
-                  pdf_radiation, 4, pdf_power) 
+                  pdf_radiation, RAD_WAAS, pdf_power) 
       bave = 0.0 
       hh = pdf_xq**2 
 !                                                                       
