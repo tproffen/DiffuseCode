@@ -25,6 +25,7 @@ USE jsu_readline
 USE learn_mod 
 USE lib_length
 USE lib_macro_func
+use macro_mod
 USE class_macro_internal 
 USE precision_mod
 USE prompt_mod 
@@ -67,54 +68,17 @@ ier_num = 0
 ier_typ = ER_NONE 
 !                                                                       
 IF (lblock) THEN 
-         CALL do_execute (lreg, input, ll) 
-         IF (ier_num.ne.0.or..not.lreg) RETURN 
-!                                                                       
-!     ELSEIF (lmakro) then !!!RBN!!! .and. .not.lblock_dbg) THEN 
-      ELSEIF (lmakro .and. .not.lblock_dbg) THEN 
-!        CALL do_prompt (prom) 
-         CALL macro_read (input, ll) 
-         IF (ier_num.ne.0) RETURN 
-!                                                                       
-!      ELSEIF (lsocket) THEN 
-!!                                                                       
-!!------ -- Here we get commands via a SOCKET for remote control         
-!!------ -- Send ready message first                                     
-!!                                                                       
-!         IF (.not.lconn) THEN 
-!            il = len_str (s_ipallowed) 
-!            ier_num = socket_accept (s_sock, s_conid, s_ipallowed, il,       &
-!            s_port)                                                     
-!            IF(ier_num < 0) THEN
-!               ier_typ = ER_IO
-!               STOP
-!            ENDIF 
-!            lconn = .true. 
-!         ENDIF 
-!         cready = 'ready' 
-!         lcready = len_str (cready) 
-!         ier_num = socket_send (s_conid, cready, lcready) 
-!         IF(ier_num < 0) THEN
-!            ier_num = -19
-!            RETURN
-!         ELSE
-!            ier_num = 0
-!         ENDIF
-!         first_input = .false. 
-!         ier_num = socket_get (s_conid, input, ll) 
-!         IF(ier_num == -21 ) THEN
-!            input = 'exit'
-!            ll    = 4
-!            ier_num = 0
-!            ier_typ = ER_NONE 
-!         ELSEIF(ier_num /=  0 ) THEN
-!            ier_typ = ER_IO
-!            lremote = .false. 
-!            RETURN
-!         ENDIF
-      ELSE 
-        ier_ctrlc = .FALSE.
-        ier_rep   = .FALSE.
+   CALL do_execute (lreg, input, ll) 
+   IF (ier_num.ne.0.or..not.lreg) RETURN 
+ELSEIF (lmakro .and. .not.lblock_dbg) THEN 
+   CALL macro_read (input, ll) 
+   IF (ier_num.ne.0) RETURN 
+elseif(.not.lblock .and. lmakro .and. lblock_dbg .and. lmakro_dbg) then
+   CALL macro_read (input, ll) 
+   IF (ier_num.ne.0) RETURN 
+ELSE 
+   ier_ctrlc = .FALSE.
+   ier_rep   = .FALSE.
 !                                                                       
 !     --Normal mode, if status is PROMPT_OFF or PROMPT_REDIRECT         
 !---- --we assume non interactive input and use 'normal' FORTRAN      
@@ -122,79 +86,79 @@ IF (lblock) THEN
 !                                                                       
 !        On old Red Hat systems uses of readline for the first input
 !        line caused problems. Seems not to be an issue any longer
-         IF(linteractive) THEN
-            first_input = .false.
-            input = ' '
-            ll    = 0
-            IF (prompt_status.eq.PROMPT_ON.and..not.first_input) THEN 
-               bprom = ' '//prom (1:len_str(prom)) //' > ' 
+   IF(linteractive) THEN
+      first_input = .false.
+      input = ' '
+      ll    = 0
+      IF (prompt_status.eq.PROMPT_ON.and..not.first_input) THEN 
+         bprom = ' '//prom (1:len_str(prom)) //' > ' 
 !                                                                       
 !     ----call the c-routine that enables command history & line editing
 !                                                                       
-               CALL iso_readline (input,bprom) 
-               ll=len_str(input)
-               CALL learn_save(input, ll, llearn, lmakro, ILRN)
-               CALL remove_comment(input, ll) 
-               IF(ll>0) THEN
-                  is_cont1: DO WHILE(input(ll:ll)=='&')
-                     ll = ll - 1
-                     bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
-                     CALL iso_readline(as_typed, bprom)
-                     lt = len_str(as_typed)
-                     CALL learn_save(as_typed, lt, llearn, lmakro, ILRN)
-                     CALL remove_comment(as_typed, lt) 
-                     input = input(1:ll) // ' ' // as_typed(1:lt)
-                     ll = ll + 1 + lt
-                     IF(ll>LEN(input)-100) THEN
-                        ier_num = -16
-                        ier_typ = ER_COMM
-                        RETURN
-                     ENDIF
-                  ENDDO is_cont1
+         CALL iso_readline (input,bprom) 
+         ll=len_str(input)
+         CALL learn_save(input, ll, llearn, lmakro, ILRN)
+         CALL remove_comment(input, ll) 
+         IF(ll>0) THEN
+            is_cont1: DO WHILE(input(ll:ll)=='&')
+               ll = ll - 1
+               bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
+               CALL iso_readline(as_typed, bprom)
+               lt = len_str(as_typed)
+               CALL learn_save(as_typed, lt, llearn, lmakro, ILRN)
+               CALL remove_comment(as_typed, lt) 
+               input = input(1:ll) // ' ' // as_typed(1:lt)
+               ll = ll + 1 + lt
+               IF(ll>LEN(input)-100) THEN
+                  ier_num = -16
+                  ier_typ = ER_COMM
+                  RETURN
                ENDIF
+            ENDDO is_cont1
+         ENDIF
 !                                                                       
 !------ --otherwise use normal READ                                     
 !                                                                       
-            ELSE 
-               CALL do_prompt (prom) 
-               READ ( *, 2000, end = 990, err = 995) input 
-               first_input = .FALSE. 
+      ELSE 
+         CALL do_prompt (prom) 
+         READ ( *, 2000, end = 990, err = 995) input 
+         first_input = .FALSE. 
 !
-               ll=len_str(input)
-               CALL learn_save(input, ll, llearn, lmakro, ILRN)
-               CALL remove_comment (input, ll) 
-               IF(ll>0) THEN
-                  is_cont2: DO WHILE(input(ll:ll)=='&')
-                     ll = ll - 1
-                     bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
-                     CALL do_prompt (bprom) 
-                     READ ( *, 2000, end = 990, err = 995) as_typed 
-                     lt = len_str(as_typed)
-                     CALL learn_save(as_typed, lt, llearn, lmakro, ILRN)
-                     CALL remove_comment(as_typed, lt) 
-                     input = input(1:ll) // ' ' // as_typed(1:lt)
-                     ll = ll + 1 + lt
-                     IF(ll>LEN(input)-100) THEN
-                        ier_num = -16
-                        ier_typ = ER_COMM
-                        RETURN
-                     ENDIF
-                  ENDDO is_cont2
+         ll=len_str(input)
+         CALL learn_save(input, ll, llearn, lmakro, ILRN)
+         CALL remove_comment (input, ll) 
+         IF(ll>0) THEN
+            is_cont2: DO WHILE(input(ll:ll)=='&')
+               ll = ll - 1
+               bprom = ' '//prom (1:len_str(prom)) //'/continuation > '
+               CALL do_prompt (bprom) 
+               READ ( *, 2000, end = 990, err = 995) as_typed 
+               lt = len_str(as_typed)
+               CALL learn_save(as_typed, lt, llearn, lmakro, ILRN)
+               CALL remove_comment(as_typed, lt) 
+               input = input(1:ll) // ' ' // as_typed(1:lt)
+               ll = ll + 1 + lt
+               IF(ll>LEN(input)-100) THEN
+                  ier_num = -16
+                  ier_typ = ER_COMM
+                  RETURN
                ENDIF
-            ENDIF 
-         ELSE 
-            input = input_gui
-         ENDIF 
-!                                                                       
-         ll = len_str (input) 
-         IF (prompt_status.eq.PROMPT_REDIRECT) THEN 
-            IF (ll.gt.0) THEN 
-               WRITE (output_io, 2000) input (1:ll) 
-            ELSE 
-               WRITE (output_io, 2000) 
-            ENDIF 
-         ENDIF 
+            ENDDO is_cont2
+         ENDIF
       ENDIF 
+   ELSE 
+      input = input_gui
+   ENDIF 
+!                                                                       
+   ll = len_str (input) 
+   IF (prompt_status.eq.PROMPT_REDIRECT) THEN 
+      IF (ll.gt.0) THEN 
+         WRITE (output_io, 2000) input (1:ll) 
+      ELSE 
+         WRITE (output_io, 2000) 
+      ENDIF 
+   ENDIF 
+ENDIF 
 !                                                                       
 !     For commands of significant length, remove leading 'white'        
 !     blanks, get the command.                                          
@@ -203,49 +167,49 @@ IF (lblock) THEN
 !
 !     - Learn command for learn sequence                                
 !
-      IF (ll.ne.0) THEN 
-         IF (input (1:1) .ne.'#'.and.input (1:1) .ne.'!') THEN 
-            ll = len_str (input) 
-            CALL remove_comment (input, ll) 
+IF (ll.ne.0) THEN 
+   IF (input (1:1) .ne.'#'.and.input (1:1) .ne.'!') THEN 
+      ll = len_str (input) 
+      CALL remove_comment (input, ll) 
 !                                                                       
 !------ --- Remove leading blanks from 'line'                           
 !                                                                       
-            il = 1 
-            jl = len_str (input) 
-            DO while ( (input (il:il) .eq.' '.or.input (il:il) .eq.TAB) &
-                       .and.il.le.jl)                                              
-               il = il + 1 
-            ENDDO 
-            line = input (il:jl) 
-            ll = len_str (line) 
+      il = 1 
+      jl = len_str (input) 
+      DO while ( (input (il:il) .eq.' '.or.input (il:il) .eq.TAB) &
+                 .and.il.le.jl)                                              
+         il = il + 1 
+      ENDDO 
+      line = input (il:jl) 
+      ll = len_str (line) 
 !                                                                       
 !     - The maximum number of significant characters depends on the     
 !     - length of the character constant befehl.                        
 !                                                                       
-            lbef = len (befehl) 
-            indxb = index (line, ' ') 
-            indxt = index (line, TAB) 
-            if(indxb==0) indxb = len(line) + 2      ! If no blank, set beyond length of befehl
-            if(indxt==0) indxt = len(line) + 2      ! If no tab,   set beyond length of befehl
-            lbef = min (indxb - 1, indxt-1, lbef) 
-            befehl = line (1:lbef) 
+      lbef = len (befehl) 
+      indxb = index (line, ' ') 
+      indxt = index (line, TAB) 
+      if(indxb==0) indxb = len(line) + 2      ! If no blank, set beyond length of befehl
+      if(indxt==0) indxt = len(line) + 2      ! If no tab,   set beyond length of befehl
+      lbef = min (indxb - 1, indxt-1, lbef) 
+      befehl = line (1:lbef) 
 !                                                                       
 !     - command parameters start at the first character following       
 !------ - the blank                                                     
 !                                                                       
-            indxb = min(indxb, indxt)   ! Both have been set to non zero values
-            IF (indxb + 1.le.ll) THEN 
-               zeile = line (indxb + 1:ll) 
-               lp = ll - indxb 
-            ENDIF 
-         ELSE 
-            line = input 
-         ENDIF 
+      indxb = min(indxb, indxt)   ! Both have been set to non zero values
+      IF (indxb + 1.le.ll) THEN 
+         zeile = line (indxb + 1:ll) 
+         lp = ll - indxb 
       ENDIF 
+   ELSE 
+      line = input 
+   ENDIF 
+ENDIF 
 !                                                                       
 !     Normal return                                                     
 !                                                                       
-      RETURN 
+RETURN 
 !                                                                       
 !     EOF in input                                                      
 !                                                                       
@@ -266,7 +230,8 @@ IF (lblock) THEN
       RETURN 
 !                                                                       
  2000 FORMAT     (a) 
-      END SUBROUTINE get_cmd                        
+!
+END SUBROUTINE get_cmd                        
 !
 !*****7*****************************************************************
 !
@@ -333,6 +298,7 @@ ll = LEN_TRIM(line)
 END SUBROUTINE remove_comment                 
 !                                                                       
 !*****7***********************************************************      
+!
 SUBROUTINE do_prompt (prom) 
 !*                                                                      
 !     This routine prints the prompt on the screen                      
