@@ -759,6 +759,7 @@ ENDIF
 NULLIFY(macro_root)                      ! Clear pointer status
 NULLIFY(macro_temp)
 NULLIFY(mac_tree_tail)
+prompt = oprompt
 !
 END SUBROUTINE macro_close
 !
@@ -795,36 +796,36 @@ END SUBROUTINE macro_close_mpi
 !
 !*****7*****************************************************************
 !
-      SUBROUTINE macro_continue (zeile, lcomm)
+SUBROUTINE macro_continue (zeile, lcomm)
 !-
 !     Continues the macro file, that had been interupted for
 !     debugging purposes
 !+
-      USE doact_mod
-      USE errlist_mod
-      USE get_params_mod
-      USE class_macro_internal
+USE doact_mod
+USE errlist_mod
+USE get_params_mod
+USE class_macro_internal
 use lib_errlist_func
 USE lib_length
-      USE macro_mod
+USE macro_mod
 USE precision_mod
-      USE prompt_mod
+USE prompt_mod
 USE str_comp_mod
-      IMPLICIT none
+!
+IMPLICIT none
+!
+CHARACTER (LEN= * ), INTENT(INOUT) :: zeile
+INTEGER            , INTENT(INOUT) :: lcomm
+!
+integer, PARAMETER :: MAXW = 1
+CHARACTER(PREC_STRING), dimension(MAXW) :: cpara !(maxw)
+CHARACTER(LEN=40)                       :: cprompt
+character(len=6)                        :: cdummy
+INTEGER,                dimension(MAXW) :: lpara ! (maxw)
+INTEGER                                 :: ianz
 !
 !
-      CHARACTER (LEN= * ), INTENT(INOUT) :: zeile
-      INTEGER            , INTENT(INOUT) :: lcomm
-      INTEGER maxw
-      PARAMETER (maxw = 1)
-      CHARACTER(PREC_STRING) :: cpara (maxw)
-      CHARACTER(LEN=40)  :: cprompt
-character(len=6) :: cdummy
-      INTEGER lpara (maxw)
-      INTEGER ianz
-!
-!
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm)
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm)
 !
 !     --No parameter for macro or block structures
 !
@@ -837,6 +838,8 @@ IF (ianz == 0) THEN
       if(prompt==prompt_stop) then
          lmakro = .true.
          lmakro_dbg = .false.
+         if(lblock_dbg)   lblock = .true.
+         lblock_dbg = .false.
          lmakro_error = .FALSE.
          lmakro_disp  = .TRUE.    ! Macro display error on
          IF (prompt.ne.'macro ') oprompt = prompt
@@ -870,6 +873,7 @@ IF (ianz == 0) THEN
          IF (lblock_dbg) THEN
             if(prompt==prompt_stop) then
             lblock_dbg = .false.
+            lmakro_dbg = .false.
             lblock = .true.
             else
                ier_num=+2

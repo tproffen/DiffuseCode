@@ -461,6 +461,7 @@ USE class_macro_internal
 USE prompt_mod 
 USE lib_errlist_func
 USE lib_macro_func
+use macro_mod
 USE set_sub_generic_mod
 USE str_comp_mod
 USE sup_mod
@@ -510,6 +511,7 @@ main: DO WHILE (level.gt. - 1.and. (                                    &
             WRITE(output_io, '(a,a1)') '------ > prior to the continue command       ', achar(7) 
             prompt_stop = prompt
             lblock_dbg = .true. 
+            if(lmakro) lmakro_dbg = .true.
             lblock = .false. 
             line = '#' 
             length = 1 

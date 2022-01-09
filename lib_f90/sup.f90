@@ -70,7 +70,8 @@ IF (lblock) THEN
          CALL do_execute (lreg, input, ll) 
          IF (ier_num.ne.0.or..not.lreg) RETURN 
 !                                                                       
-      ELSEIF (lmakro) then !!!RBN!!! .and. .not.lblock_dbg) THEN 
+!     ELSEIF (lmakro) then !!!RBN!!! .and. .not.lblock_dbg) THEN 
+      ELSEIF (lmakro .and. .not.lblock_dbg) THEN 
 !        CALL do_prompt (prom) 
          CALL macro_read (input, ll) 
          IF (ier_num.ne.0) RETURN 
