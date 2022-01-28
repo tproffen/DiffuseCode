@@ -15,7 +15,7 @@ USE errlist_mod
 USE lib_length
 USE lib_macro_func
 USE precision_mod
-!USE sockets_mod
+USE sockets_mod
 USE support_mod
 IMPLICIT none 
 !                                                                       
@@ -25,7 +25,7 @@ INTEGER, PARAMETER :: marg = 20
 !                                                                       
 CHARACTER(LEN=PREC_STRING), DIMENSION(MARG) :: arg ! (marg) 
 CHARACTER(LEN=2048)                  :: line = ' '
-!CHARACTER(LEN=40)                    :: str 
+CHARACTER(LEN=40)                    :: str 
 INTEGER :: iarg, i, j,  ilen , ilena
 LOGICAL :: lexist, lautorun
 !
@@ -91,15 +91,14 @@ IF (iarg.gt.0) THEN
       ENDIF
    ELSE ! all other command line arguments
       DO i = 1, iarg 
-!         IF (index (arg (i) , '-remote') .ne.0) THEN 
-!            lsocket = .true. 
-!         ELSEIF (index (arg (i) , '-port') .ne.0) THEN 
-!            str = arg (i) (index (arg (i) , '=') + 1:len_str (arg (i) ))
-!            READ (str, * ) s_port 
-!         ELSEIF (index (arg (i) , '-access') .ne.0) THEN 
-!            s_ipallowed = arg (i) (index (arg(i),'=')+1:len_str(arg(i)))
-!         ELSEIF (index (arg (i) , '-help') .ne.0) THEN 
-         IF (index (arg (i) , '-help') .ne.0) THEN 
+         IF (index (arg (i) , '-remote') .ne.0) THEN 
+            lsocket = .true. 
+         ELSEIF (index (arg (i) , '-port') .ne.0) THEN 
+            str = arg (i) (index (arg (i) , '=') + 1:len_str (arg (i) ))
+            READ (str, * ) s_port 
+         ELSEIF (index (arg (i) , '-access') .ne.0) THEN 
+            s_ipallowed = arg (i) (index (arg(i),'=')+1:len_str(arg(i)))
+         ELSEIF (index (arg (i) , '-help') .ne.0) THEN 
             IF(local_mpi_myid==0) WRITE ( *, 2000) pname (1:len_str (pname) ) 
          ELSEIF (index (arg (i) , '-debug') .ne.0) THEN 
             IF(local_mpi_myid==0) WRITE ( *, 1500) 
@@ -111,7 +110,7 @@ IF (iarg.gt.0) THEN
          ENDIF 
       ENDDO 
    ENDIF
-!   IF (lsocket) call remote_init 
+   IF (lsocket) call remote_init 
 ENDIF 
 !                                                                       
  1000 FORMAT     (' ------ > Reading macro ',a) 

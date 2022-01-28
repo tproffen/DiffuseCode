@@ -51,9 +51,9 @@ INTEGER :: lt
 LOGICAL lreg 
 LOGICAL :: ldone
 !                                                                       
-!INTEGER socket_accept 
-!INTEGER socket_get 
-!INTEGER socket_send 
+INTEGER socket_accept 
+INTEGER socket_get 
+INTEGER socket_send 
 !                                                                       
 ldone = .FALSE.      ! Learn has not yet been written
 input  = ' ' 

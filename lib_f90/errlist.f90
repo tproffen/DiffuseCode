@@ -109,8 +109,8 @@ USE lib_length
        CHARACTER(LEN=4) , INTENT(IN) :: typ
 !
        INTEGER            :: i
-!      CHARACTER(LEN=80)  :: estr
-!      INTEGER            :: le
+       CHARACTER(LEN=80)  :: estr
+       INTEGER            :: le
 !
 !
        IF(ier_ctrlc) THEN     ! Avoid multiple message in case of a ctrl-c
@@ -138,11 +138,11 @@ USE lib_length
          IF(error_io /=0 ) WRITE(*,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
        ENDIF
 !
-!       IF (lconn .AND. lsocket) THEN
-!         WRITE(estr,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_bg)
-!         le=len_str(estr)
-!         CALL socket_send(s_conid,estr,le)
-!       ENDIF
+       IF (lconn .AND. lsocket) THEN
+         WRITE(estr,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_bg)
+         le=len_str(estr)
+         CALL socket_send(s_conid,estr,le)
+       ENDIF
 !
 !
 1000  FORMAT(a,' ***',a,'*** ',a45,' ***',i4,' ***',a,a1)

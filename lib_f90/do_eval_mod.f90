@@ -34,6 +34,9 @@ INTEGER :: ianz
 INTEGER :: length 
 INTEGER :: indxg = 0
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+!
+CHARACTER(LEN=80)  :: cstr
+INTEGER            :: il
 !                                                                       
 !                                                                       
 IF (line.eq.' ') then 
@@ -71,11 +74,11 @@ ELSE
 !              IF (output_status.eq.OUTPUT_FILE) then 
                   IF(lout) WRITE (output_io, form_s) cpara (i) (1:length), werte ( i)
 !              ENDIF 
-!               IF (lconn.and.lsocket.and.i.eq.1) then 
-!                  IF(lout) WRITE (cstr, form_s) cpara (i) (1:lpara (i) ), werte (i) 
-!                  il = len_str (cstr) 
-!                  CALL socket_send (s_conid, cstr, il) 
-!               ENDIF 
+               IF (lconn.and.lsocket.and.i.eq.1) then 
+                  IF(lout) WRITE (cstr, form_s) cpara (i) (1:lpara (i) ), werte (i) 
+                  il = len_str (cstr) 
+                  CALL socket_send (s_conid, cstr, il) 
+               ENDIF 
                ENDDO 
                WRITE(line,'(G19.10E4)')  werte(1)
                i = LEN_TRIM(line)
