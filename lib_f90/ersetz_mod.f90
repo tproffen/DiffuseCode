@@ -41,7 +41,7 @@ IF(iklz + 1 <= laenge) THEN
    ENDIF 
 ENDIF 
 string = zeile 
-CALL rem_bl (string, lll) 
+CALL rem_insig_bl (string, lll) 
 !
 END SUBROUTINE ersetz2                        
 !
