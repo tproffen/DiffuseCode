@@ -19,6 +19,8 @@ USE phases_mod
 USE powder_mod
 USE powder_tables_mod
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
 INTEGER, INTENT(IN) :: n_layers  ! Number of layers for current layer type
@@ -30,7 +32,7 @@ INTEGER :: n_pts=0    ! Number of points in powder pattern
 INTEGER :: n_scat=0   ! Number of atom types
 INTEGER :: npkt
 !
-REAL( KIND(0.0D0))             :: signum
+REAL(KIND=PREC_DP)            :: signum
 !
 npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
 !
@@ -64,8 +66,9 @@ DO iscat = 1, cr_nscat
 ENDDO
 !
 pha_nscat(pha_curr)  = pha_nscat(pha_curr) + cr_nscat           ! Number of atom types for this phase
-pha_ncreal(pha_curr) = pha_ncreal(pha_curr) + REAL(cr_ncreal)*REAL(n_layers)/REAL(st_nlayer)*st_ncunit ! Add relative amount of 
-pha_nreal(pha_curr)  = pha_nreal(pha_curr) + REAL(cr_nreal)*REAL(n_layers)                 ! Add absolute amount of 
+pha_ncreal(pha_curr) = pha_ncreal(pha_curr) + (cr_ncreal)* &
+                       REAL(n_layers, kind=PREC_DP)/REAL(st_nlayer, kind=PREC_DP)*st_ncunit ! Add relative amount of 
+pha_nreal(pha_curr)  = pha_nreal(pha_curr) + REAL(cr_nreal, kind=PREC_DP)*REAL(n_layers, kind=PREC_DP)  ! Add absolute amount of 
 !write(*,*) 'PHASES_STACK ', pha_n, pha_curr, pha_nscat(pha_curr)
 !write(*,*) 'form         ', pha_form(1, 1:pha_nscat(pha_curr), pha_curr)
 !write(*,*) 'adp          ', pha_adp (   1:pha_nscat(pha_curr), pha_curr)

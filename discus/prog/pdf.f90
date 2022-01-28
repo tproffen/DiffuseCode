@@ -2468,7 +2468,7 @@ USE support_mod
 !
 !------ Convert to cartesian
 !
-      CALL plot_ini_trans (1.0,                                &
+      CALL plot_ini_trans (1.0D0,                              &
                  pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
                  cr_gten, cr_rten, cr_eps)
       CALL powder_trans_atoms_tocart (u)

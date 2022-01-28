@@ -11,16 +11,18 @@ CONTAINS
       USE discus_config_mod 
       USE crystal_mod 
       USE generate_mod 
-      USE trafo_mod
+!     USE trafo_mod
       USE errlist_mod 
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
       INTEGER, INTENT(OUT) :: n_hkl 
       INTEGER, INTENT(IN)  :: max_hkl
-      REAL   , INTENT(OUT) :: hkl (4, max_hkl)
-      REAL   , INTENT(OUT) :: mat_hkl (4, 4, max_hkl) 
+      REAL(kind=PREC_DP)   , INTENT(OUT) :: hkl (4, max_hkl)
+      REAL(kind=PREC_DP)   , INTENT(OUT) :: mat_hkl (4, 4, max_hkl) 
       LOGICAL, INTENT(IN)  :: lfriedel_remove 
       LOGICAL, INTENT(OUT) :: lacentric 
 !                                                                       
@@ -77,7 +79,8 @@ CONTAINS
       x (i) = hkl (i, ii) 
       ENDDO 
       x (4) = 0.0 
-      CALL trans (x, wmat, y, 4) 
+!     CALL trans (x, wmat, y, 4) 
+      y = matmul(wmat, x)
 !                                                                       
 !     ----check for existence with all previously generated hkl's '     
 !                                                                       
@@ -115,7 +118,8 @@ CONTAINS
       x (i) = hkl (i, iaa) 
       ENDDO 
       x (4) = 0.0 
-      CALL trans (x, wmat, y, 4) 
+!     CALL trans (x, wmat, y, 4) 
+      y = matmul(wmat, x)
 !                                                                       
       IF (n_hkl.lt.max_hkl) then 
          n_hkl = n_hkl + 1 

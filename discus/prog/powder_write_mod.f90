@@ -1,10 +1,12 @@
 module powder_period_temp_mod
 !
+use precision_mod
+!
 implicit none
 !
 INTEGER, save   :: npkt_pdf_temp    ! number of points in powder pattern ready to write
-REAL, DIMENSION(:), ALLOCATABLE :: xwrt_pdf_temp ! y-values of powder pattern ready for output
-REAL, DIMENSION(:), ALLOCATABLE :: ywrt_pdf_temp ! y-values of powder pattern ready for output
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: xwrt_pdf_temp ! y-values of powder pattern ready for output
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: ywrt_pdf_temp ! y-values of powder pattern ready for output
 !
 end module powder_period_temp_mod
 !
@@ -69,27 +71,27 @@ INTEGER   :: npkt_wrt    ! number of points in powder pattern ready to write
 INTEGER   :: npkt_fft    ! number of points in powder pattern for Fast Fourier
 LOGICAL   :: lread 
 !!      LOGICAL   :: lconv = .FALSE.  ! Did convolution with profile
-REAL, DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
-REAL, DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
-REAL, DIMENSION(:), ALLOCATABLE :: lpv  ! Values of LP correction versus Q/Theta 
-REAL, DIMENSION(:), ALLOCATABLE :: y2a  ! y-values of splined    powder pattern
-REAL, DIMENSION(:), ALLOCATABLE :: xwrt ! x-values of powder pattern ready for output
-REAL, DIMENSION(:), ALLOCATABLE :: ywrt ! y-values of powder pattern ready for output
-REAL :: ttheta
-REAL :: lpscale      ! Scale factor introduced by LP correction
-REAL :: q=0.0
-REAL      :: normalizer
-REAL xmin, xmax, xdel
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: lpv  ! Values of LP correction versus Q/Theta 
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: y2a  ! y-values of splined    powder pattern
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: xwrt ! x-values of powder pattern ready for output
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: ywrt ! y-values of powder pattern ready for output
+REAL(kind=PREC_DP) :: ttheta
+REAL(kind=PREC_DP) :: lpscale      ! Scale factor introduced by LP correction
+REAL(kind=PREC_DP) :: q=0.0
+REAL(kind=PREC_DP)      :: normalizer
+REAL(kind=PREC_DP) :: xmin, xmax, xdel
 !REAL (PREC_DP)     :: xstart  ! qmin  for sin Theta / lambda calculation
 !REAL (PREC_DP)     :: xdelta  ! qstep for sin Theta / lambda calculation
-REAL      :: xequ    ! x-position of equdistant curve
-REAL      :: yequ    ! y-value    of equdistant curve
-REAL      :: tthmin  ! minimum for equdistant curve
-REAL      :: tthmax  ! minimum for equdistant curve
+REAL(kind=PREC_DP)      :: xequ    ! x-position of equdistant curve
+REAL(kind=PREC_DP)      :: yequ    ! y-value    of equdistant curve
+REAL(kind=PREC_DP)      :: tthmin  ! minimum for equdistant curve
+REAL(kind=PREC_DP)      :: tthmax  ! minimum for equdistant curve
 REAL(KIND=PREC_DP)      ::   qmin  ! minimum for equdistant curve
 REAL(KIND=PREC_DP)      ::   qmax  ! maximum for equdistant curve
 REAL(KIND=PREC_DP)      :: deltaq  ! step    for equdistant curve
-REAL      :: arg
+REAL(kind=PREC_DP)      :: arg
 REAL(KIND=PREC_DP) :: u2aver_scale = 2.00   ! Scale to multiply <u^2> if conversion
 !                     ! with corrlin_corrquad is needed. This increases the calculated
 !                     ! intensity actually by more than the damping by <u^2>, in order
@@ -98,10 +100,10 @@ REAL(KIND=PREC_DP) :: u2aver_scale = 2.00   ! Scale to multiply <u^2> if convers
 REAL(KIND=PREC_DP) :: rmin, rmax, rstep
 REAL(KIND=PREC_DP) :: rminf, rmaxf, rstepf
 INTEGER            :: npkt_pdf, npkt_pdff
-REAL, DIMENSION(:), ALLOCATABLE :: xfour
-REAL, DIMENSION(:), ALLOCATABLE :: yfour
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: xfour
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: yfour
 !
-REAL :: sigma   ! sigma for PDF Corrlin correction
+REAL(kind=PREC_DP) :: sigma   ! sigma for PDF Corrlin correction
 !
 !
 npkt_fft = 2**18
@@ -149,11 +151,11 @@ ENDIF
 !
 IF(value == val_f2aver) THEN          ! Output is f^2 aver
    DO j = 0, npkt
-          ypl (j) = REAL(pow_f2aver(j))
+          ypl (j) = (pow_f2aver(j))
    ENDDO
 ELSEIF(value == val_faver2) THEN     ! Output is faver^2 
    DO j = 0, npkt
-          ypl (j) = REAL(pow_faver2(j))
+          ypl (j) = (pow_faver2(j))
    ENDDO
 ELSEIF(value == val_sq .OR. value == val_fq) THEN
    DO j = 0, npkt
@@ -197,7 +199,7 @@ lpv(0) = 1.0
 !
 DO ii = 0, npkt
    q    = (ii) * xdel + xmin 
-   ttheta = 2.*asind ( REAL(q / 2. /REAL(zpi) *rlambda ))
+   ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
    lpv(ii) = polarisation (ttheta)
 !      lpv(ii ) = lp                         ! For debye to get I(Q) ???
    IF (cpow_form.eq.'tth') THEN 
@@ -254,8 +256,8 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
 !open(unit=67,file='POWDER/clin.data', status='unknown')
          DO j = 0, npkt   
             q = (j)*xdel + xmin
-            ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
-                       - exp(-0.00*q**2*(pow_u2aver/u2aver_scale))   *  &
+            ypl(j) =  (ypl(j)/(pow_faver2(j))/normalizer   &
+                       - exp(-0.00D0*q**2*(pow_u2aver/u2aver_scale))   *  &
                        pow_f2aver(j)/pow_faver2(j)) * q
 !                         - 1.0 *                                 &
 !write(67,'( 4(F16.8,2x))') q, ypl(j), pow_faver2(j), pow_f2aver(j)
@@ -319,9 +321,9 @@ IF( cpow_form == 'tth' ) THEN
       pow_tthmax   = out_user_values(2)
       pow_deltatth = out_user_values(3)
    ELSE                                          ! Convert q limits
-      arg        = xmin/REAL(zpi) * rlambda / 2. ! Directly with arg in asind()
+      arg        = xmin/(zpi) * rlambda / 2.d0 ! Directly with arg in asind()
       pow_tthmin = 2.*asind(arg)                 ! results in error ??????????
-      arg        = MIN(1.0E0,xmax/REAL(zpi) * rlambda / 2.)
+      arg        = MIN(1.0D0,xmax/zpi * rlambda / 2.)
       pow_tthmax = 2.*asind(arg)
       pow_deltatth = xpl(2)-xpl(1)
    ENDIF
@@ -346,7 +348,7 @@ IF( cpow_form == 'tth' ) THEN
    xwrt = 0.0
    ywrt = 0.0
    y2a  = 0.0
-   CALL spline (npkt, xpl, ypl, 1.e31, 1.e31, y2a)
+   CALL spline (npkt, xpl, ypl, 1.d31, 1.d31, y2a)
    DO ii = 0, npkt_equi
       xequ = tthmin + (ii)*pow_deltatth
       CALL splint (npkt, xpl, ypl, y2a, xequ, yequ, ier_num)
@@ -404,7 +406,7 @@ ELSEIF( cpow_form == 'q' .OR. cpow_form == 'r') THEN        ! axis is Q
    xwrt = 0.0
    ywrt = 0.0
    y2a  = 0.0
-   CALL spline (npkt+1, xpl, ypl, 1.e31, 1.e31, y2a)
+   CALL spline (npkt+1, xpl, ypl, 1.d31, 1.d31, y2a)
    DO ii = 0, npkt_equi
       xequ = qmin + (ii)*deltaq
       CALL splint (npkt+1, xpl, ypl, y2a, xequ, yequ, ier_num)
@@ -512,7 +514,7 @@ ELSEIF(value==val_pdf) THEN  place_ywrt  ! Transform F(Q) into PDF
 !close(77)
 !write(*,*) ' <u^2> , B', pow_u2aver, pow_u2aver*8.*3.1415**2
       sigma = 2.0*(pow_u2aver*u2aver_scale)              ! TO BE REPLACED BY ATOMIC B VALUE
-      CALL powder_conv_corrlin(yfour, REAL(rmin),REAL(rmax), REAL(rstep),   &
+      CALL powder_conv_corrlin(yfour, rmin,rmax, rstep,   &
                                sigma, pdf_clin_a, pdf_cquad_a, pdf_rcut, pow_width,   &
                                npkt_pdf)
 !open(77,file='POWDER/post_corrlin.PDF',status='unknown')
@@ -647,6 +649,13 @@ ELSEIF(value==val_pdf) THEN  place_ywrt  ! Transform F(Q) into PDF
 !
 ENDIF place_ywrt
 !
+!write(*,*) ' FINAL WRITE'
+!open(77,file='POWDER/final.write',status='unknown')
+!DO ii=1,npkt_wrt
+!write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
+!enddo
+!close(77)
+!read(*,*) ii
 !     Finally write the pattern
 !
 if(ltemp) then         ! copy pdf into temporary array
@@ -678,7 +687,7 @@ else                   ! normal write
       rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
 !
       ALLOCATE(y2a(0:POW_WR_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
-      call spline(npkt_pdf_temp+1, xwrt_pdf_temp, ywrt_pdf_temp, 1.e31, 1.e31, y2a)
+      call spline(npkt_pdf_temp+1, xwrt_pdf_temp, ywrt_pdf_temp, 1.d31, 1.d31, y2a)
       npkt_wrt = npkt_pdf
 !
       if(allocated(xwrt)) deallocate(xwrt)
@@ -703,6 +712,13 @@ else                   ! normal write
       DEALLOCATE(y2a, stat = all_status)
    endif
 !
+!write(*,*) ' FINAL WRITE'
+!open(77,file='POWDER/final2.write',status='unknown')
+!DO ii=1,npkt_wrt
+!write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
+!enddo
+!close(77)
+!read(*,*) ii
    CALL powder_do_write (outfile, npkt_wrt, xwrt, ywrt)
 endif
 !
@@ -734,16 +750,16 @@ INTEGER :: npkt
 INTEGER :: j
 INTEGER :: nzero      ! number of zeros in intensity
 !
-REAL(KIND=PREC_SP) :: xmin, xmax, xdel, xxmax
-REAL(KIND=PREC_SP) :: scalef
-REAL(KIND=PREC_SP) :: pow_tmp_sum
-REAL(KIND=PREC_SP) :: pow_uuu_sum
+REAL(KIND=PREC_DP) :: xmin, xmax, xdel, xxmax
+REAL(KIND=PREC_DP) :: scalef
+REAL(KIND=PREC_DP) :: pow_tmp_sum
+REAL(KIND=PREC_DP) :: pow_uuu_sum
 !
-REAL           :: ss       ! time
+REAL(KIND=PREC_DP)           :: ss       ! time
 !REAL, EXTERNAL :: seknds
 !
 WRITE (output_io, * ) ' Starting convolution'!, pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w
-ss = seknds (0.0)
+!ss = seknds (0.0)
 !
 xmin  = 0.0 
 xmax  = 0.0 
@@ -793,11 +809,11 @@ IF (pow_four_type.ne.POW_COMPL) THEN
 !                                                              
    IF (npkt    .le.POW_MAXPKT) THEN 
       DO j = 1, npkt    
-         pow_conv (j) = REAL(rsf (j) )     ! Double precision no longer needed
+         pow_conv (j) = (rsf (j) )     ! Double precision no longer needed
       ENDDO 
    ENDIF 
 ELSE
-   pow_conv(:) = 2.0*REAL(pow_qsp(:))   ! Double precision no longer needed, Correct for half space
+   pow_conv(:) = 2.0D0*(pow_qsp(:))   ! Double precision no longer needed, Correct for half space
 ENDIF 
 !open(77,file='POWDER/prae_conv.FQ',status='unknown')
 !DO j=0,npkt
@@ -858,7 +874,7 @@ ELSEIF(pow_four_type==POW_COMPL) THEN
    scalef = 1./xdel
 ENDIF
 pow_conv(:) = pow_conv(:) * scalef
-ss = seknds (ss) 
+!ss = seknds (ss) 
 WRITE (output_io, '(/,'' Elapsed time    : '',G13.6,'' sec'')') ss
 !open(77,file='POWDER/post_conv.FQ',status='unknown')
 !DO j=0,npkt
@@ -871,16 +887,17 @@ END SUBROUTINE powder_convolute
 !*******************************************************************************
 !
 SUBROUTINE four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
+use precision_mod
 !
 USE wink_mod
 !
 INTEGER                       , INTENT(IN) :: npkt_wrt
-REAL   , DIMENSION(1:npkt_wrt), INTENT(IN) :: xwrt
-REAL   , DIMENSION(1:npkt_wrt), INTENT(IN) :: ywrt
+REAL(kind=PREC_DP)   , DIMENSION(1:npkt_wrt), INTENT(IN) :: xwrt
+REAL(kind=PREC_DP)   , DIMENSION(1:npkt_wrt), INTENT(IN) :: ywrt
 REAL(KIND=PREC_DP)            , INTENT(IN) :: rmin, rmax
 INTEGER                       , INTENT(IN) :: npkt_pdf
-REAL   , DIMENSION(1:npkt_pdf), INTENT(OUT) :: xfour
-REAL   , DIMENSION(1:npkt_pdf), INTENT(OUT) :: yfour
+REAL(kind=PREC_DP)   , DIMENSION(1:npkt_pdf), INTENT(OUT) :: xfour
+REAL(kind=PREC_DP)   , DIMENSION(1:npkt_pdf), INTENT(OUT) :: yfour
 !
 INTEGER :: i,j, k, kmax
 REAL(KIND=PREC_DP) :: rr, dr
@@ -906,7 +923,7 @@ ENDDO
 ! Augment straight line from Q=0, F(0)=0 to qmin, F(qmin)
 DO i = 1, npkt_pdf
    rr = rmin + (i-1)*dr
-   xfour(i) = REAL(rr)
+   xfour(i) = (rr)
    yfour(i) = 0.0
    DO j = 1, iqmin
       k = MOD(INT((j-1)*dq*rr*10000.0D0/ZPI),kmax)
@@ -929,16 +946,17 @@ END SUBROUTINE four_fq
 !
 !*******************************************************************************
 !
-      REAL function lorentz (ttheta, flag_fq) 
+      REAL(KIND=PREC_DP) function lorentz (ttheta, flag_fq) 
 !+                                                                      
 !-                                                                      
       USE discus_config_mod 
+use precision_mod
       USE powder_mod 
       USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL   , INTENT(IN) :: ttheta 
+      REAL(KIND=PREC_DP)   , INTENT(IN) :: ttheta 
       INTEGER, INTENT(IN) :: flag_fq
 !                                                                       
 !
@@ -966,16 +984,17 @@ END SUBROUTINE four_fq
 !                                                                       
       END FUNCTION lorentz                          
 !*****7*****************************************************************
-      REAL FUNCTION polarisation (ttheta) 
+      REAL(KIND=PREC_DP) FUNCTION polarisation (ttheta) 
 !+                                                                      
 !-                                                                      
       USE discus_config_mod 
       USE powder_mod 
+use precision_mod
       USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL ttheta 
+      REAL(KIND=PREC_DP) :: ttheta 
 !
 !
 !     REAL cosd 
@@ -996,7 +1015,7 @@ END SUBROUTINE four_fq
 !                                                                       
       END FUNCTION polarisation                     
 !*****7*****************************************************************
-      REAL FUNCTION lorentz_pol (ttheta) 
+      REAL(KIND=PREC_DP) FUNCTION lorentz_pol (ttheta) 
 !+                                                                      
 !-                                                                      
       USE discus_config_mod 
@@ -1005,7 +1024,7 @@ END SUBROUTINE four_fq
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL ttheta 
+      REAL(KIND=PREC_DP) :: ttheta 
 !                                                                       
 !     REAL sind, cosd 
 !                                                                       
@@ -1023,17 +1042,19 @@ END SUBROUTINE four_fq
 !+                                                                      
       USE discus_config_mod 
       USE wink_mod
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
 !
       INTEGER, INTENT(IN) :: POW_MAXPKT
 !                                                                       
-      REAL dat (0:POW_MAXPKT) 
-      REAL tthmin, tthmax, dtth, delta 
+      REAL(kind=PREC_DP) :: dat (0:POW_MAXPKT) 
+      REAL(kind=PREC_DP) :: tthmin, tthmax, dtth, delta 
 !                                                                       
-      REAL dummy (0:POW_MAXPKT) 
-      REAL gauss (0:2 * POW_MAXPKT) 
-      REAL tth
+      REAL(kind=PREC_DP) :: dummy (0:POW_MAXPKT) 
+      REAL(kind=PREC_DP) :: gauss (0:2 * POW_MAXPKT) 
+      REAL(kind=PREC_DP) :: tth
       INTEGER imax, i, j, ii 
       INTEGER max_ps 
 !                                                                       
@@ -1042,7 +1063,7 @@ END SUBROUTINE four_fq
       max_ps = int( (10.0 * delta) / dtth )
       DO i = 0, max_ps 
       tth = i * dtth 
-      gauss (i) = 1.0 / sqrt (REAL(pi)) / delta * exp ( - (tth**2 / delta**2))  
+      gauss (i) = 1.0 / sqrt ((pi)) / delta * exp ( - (tth**2 / delta**2))  
       ENDDO 
 !                                                                       
       DO i = max_ps + 1, 2 * POW_MAXPKT 
@@ -1088,18 +1109,18 @@ IMPLICIT none
 !
 INTEGER, INTENT(IN) :: POW_MAXPKT
 !                                                                       
-REAL, DIMENSION(0:POW_MAXPKT), INTENT(INOUT) ::  dat !(0:POW_MAXPKT) 
-REAL                         , INTENT(IN)    ::  tthmin, tthmax, dtth, eta
-REAL                         , INTENT(IN)    ::  w 
-REAL                         , INTENT(IN)    ::  pow_width 
+REAL(KIND=PREC_DP), DIMENSION(0:POW_MAXPKT), INTENT(INOUT) ::  dat !(0:POW_MAXPKT) 
+REAL(KIND=PREC_DP)                         , INTENT(IN)    ::  tthmin, tthmax, dtth, eta
+REAL(KIND=PREC_DP)                         , INTENT(IN)    ::  w 
+REAL(KIND=PREC_DP)                         , INTENT(IN)    ::  pow_width 
 INTEGER                      , INTENT(IN)    ::  pow_type   ! = 0==COMPl =1==DEBYE
 !
 INTEGER, PARAMETER  :: POW_COMPL = 0
 INTEGER, PARAMETER  :: POW_DEBYE = 1
 !                                                                       
-REAL                               :: fwhm
-REAL, DIMENSION(0:POW_MAXPKT)      :: dummy
-REAL, DIMENSION(0:2 * POW_MAXPKT)  :: psvgt
+REAL(KIND=PREC_DP)                               :: fwhm
+REAL(KIND=PREC_DP), DIMENSION(0:POW_MAXPKT)      :: dummy
+REAL(KIND=PREC_DP), DIMENSION(0:2 * POW_MAXPKT)  :: psvgt
 !REAL                               :: tth
 !REAL(KIND=PREC_DP)                 :: tth_dp
 REAL(KIND=PREC_DP)                 :: eta_dp
@@ -1178,23 +1199,24 @@ SUBROUTINE powder_conv_psvgt_uvw (dat, tthmin, tthmax, dtth, eta0,&
 USE discus_config_mod 
 !
 USE gauss_lorentz_pseudo_mod
+use precision_mod                                                                       
 USE trig_degree_mod
 USE wink_mod
 !
 IMPLICIT none 
 !
 INTEGER, INTENT(IN) :: POW_MAXPKT
-REAL   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat   ! Data to be convoluted
-REAL                            , INTENT(IN)    :: tthmin ! 2Theta min
-REAL                            , INTENT(IN)    :: tthmax ! 2Theta max
-REAL                            , INTENT(IN)    :: dtth   ! 2Theta step
-REAL                            , INTENT(IN)    :: eta0   ! Lor/Gaus mix constant part
-REAL                            , INTENT(IN)    :: eta_l   ! Lor/Gaus mix variable part
-REAL                            , INTENT(IN)    :: eta_q   ! Lor/Gaus mix variable part
-REAL                            , INTENT(IN)    :: u      ! u*tan^2(Theta)
-REAL                            , INTENT(IN)    :: v      ! v*tan  (Theta)
-REAL                            , INTENT(IN)    :: w      ! w
-REAL                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
+REAL(KIND=PREC_DP)   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat   ! Data to be convoluted
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: tthmin ! 2Theta min
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: tthmax ! 2Theta max
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: dtth   ! 2Theta step
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: eta0   ! Lor/Gaus mix constant part
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: eta_l   ! Lor/Gaus mix variable part
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: eta_q   ! Lor/Gaus mix variable part
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: u      ! u*tan^2(Theta)
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: v      ! v*tan  (Theta)
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: w      ! w
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 INTEGER                         , INTENT(IN)    :: pow_type  ! == 0 for COMPLETE, ==1 for Debye
 INTEGER                         , INTENT(IN)    :: axis   ! == 2 for 2theta, == 1 for Q
 !
@@ -1209,7 +1231,7 @@ REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
 REAL(KIND=PREC_DP)    :: ddtth            ! actual eta at current 2Theta
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
 INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
-REAL    :: pseudo          ! scale factor for lookup table
+REAL(KIND=PREC_DP)    :: pseudo          ! scale factor for lookup table
 INTEGER :: max_ps 
 !                                                                       
 !------ Now convolute                                                   
@@ -1314,24 +1336,25 @@ SUBROUTINE powder_conv_psvgt_uvw_asym (dat, tthmin, tthmax, dtth, eta0,&
 USE discus_config_mod 
 !
 USE gauss_lorentz_pseudo_mod
+use precision_mod                                                                       
 USE trig_degree_mod
 USE wink_mod
 !
 IMPLICIT none 
 !
 INTEGER, INTENT(IN) :: POW_MAXPKT
-REAL   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat   ! Data to be convoluted
-REAL                            , INTENT(IN)    :: tthmin ! 2Theta min
-REAL                            , INTENT(IN)    :: tthmax ! 2Theta max
-REAL                            , INTENT(IN)    :: dtth   ! 2Theta step
-REAL                            , INTENT(IN)    :: eta0   ! Lor/Gaus mix constant part
-REAL                            , INTENT(IN)    :: eta_l   ! Lor/Gaus mix variable part
-REAL                            , INTENT(IN)    :: eta_q   ! Lor/Gaus mix variable part
-REAL                            , INTENT(IN)    :: u      ! u*tan^2(Theta)
-REAL                            , INTENT(IN)    :: v      ! v*tan  (Theta)
-REAL                            , INTENT(IN)    :: w      ! w
-REAL   , DIMENSION(4,3)         , INTENT(IN)    :: asym   ! Asymmetry terms p1 to P4
-REAL                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
+REAL(KIND=PREC_DP)   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat   ! Data to be convoluted
+REAL(kind=PREC_DP)              , INTENT(IN)    :: tthmin ! 2Theta min
+REAL(kind=PREC_DP)              , INTENT(IN)    :: tthmax ! 2Theta max
+REAL(kind=PREC_DP)              , INTENT(IN)    :: dtth   ! 2Theta step
+REAL(kind=PREC_DP)              , INTENT(IN)    :: eta0   ! Lor/Gaus mix constant part
+REAL(kind=PREC_DP)              , INTENT(IN)    :: eta_l   ! Lor/Gaus mix variable part
+REAL(kind=PREC_DP)              , INTENT(IN)    :: eta_q   ! Lor/Gaus mix variable part
+REAL(kind=PREC_DP)              , INTENT(IN)    :: u      ! u*tan^2(Theta)
+REAL(kind=PREC_DP)              , INTENT(IN)    :: v      ! v*tan  (Theta)
+REAL(kind=PREC_DP)              , INTENT(IN)    :: w      ! w
+REAL(kind=PREC_DP)   , DIMENSION(4,3)         , INTENT(IN)    :: asym   ! Asymmetry terms p1 to P4
+REAL(kind=PREC_DP)              , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 INTEGER                         , INTENT(IN)    :: pow_type  ! == 0 for COMPLETE, ==1 for Debye
 INTEGER                         , INTENT(IN)    :: axis   ! == 2 for 2theta, == 1 for Q
 !
@@ -1341,15 +1364,15 @@ INTEGER, PARAMETER            :: POW_DEBYE = 1
 REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
 REAL, DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
 REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
-REAL                          :: tantth   ! tan(Theta)
+REAL(kind=PREC_DP)            :: tantth   ! tan(Theta)
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
 REAL(KIND=PREC_DP)    :: tth1            ! Theta values for asymmetry
 REAL(KIND=PREC_DP)    :: tth2            ! Theta values for asymmetry
-REAL                  :: p1, p2, p3, p4  ! 2Theta dependen asymmety parameters
+REAL(kind=PREC_DP)    :: p1, p2, p3, p4  ! 2Theta dependen asymmety parameters
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
 INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
-REAL    :: pseudo          ! scale factor for lookup table
-REAL    :: pra1, pra2      ! Asymmetry pre factors
+REAL(kind=PREC_DP)    :: pseudo          ! scale factor for lookup table
+REAL(kind=PREC_DP)    :: pra1, pra2      ! Asymmetry pre factors
 INTEGER :: max_ps 
 !                                                                       
 !------ Now convolute                                                   
@@ -1475,27 +1498,28 @@ SUBROUTINE powder_conv_psvgt_uvw_asymt(dat, tthmin, tthmax, dtth, eta0,&
 USE discus_config_mod 
 !
 USE gauss_lorentz_pseudo_mod
+use precision_mod                                                                       
 USE trig_degree_mod
 USE wink_mod
 !
 IMPLICIT none 
 !
 INTEGER, INTENT(IN) :: POW_MAXPKT
-REAL   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat   ! Data to be convoluted
-REAL                            , INTENT(IN)    :: tthmin ! 2Theta min
-REAL                            , INTENT(IN)    :: tthmax ! 2Theta max
-REAL                            , INTENT(IN)    :: dtth   ! 2Theta step
-REAL                            , INTENT(IN)    :: eta0   ! Lor/Gaus mix constant part
-REAL                            , INTENT(IN)    :: eta_l   ! Lor/Gaus mix variable part
-REAL                            , INTENT(IN)    :: eta_q   ! Lor/Gaus mix variable part
-REAL                            , INTENT(IN)    :: u      ! u*tan^2(Theta)
-REAL                            , INTENT(IN)    :: v      ! v*tan  (Theta)
-REAL                            , INTENT(IN)    :: w      ! w
-REAL                            , INTENT(IN)    :: p1     ! Asymmetry terms p1 to P4
-REAL                            , INTENT(IN)    :: p2     ! Asymmetry terms p1 to P4
-REAL                            , INTENT(IN)    :: p3     ! Asymmetry terms p1 to P4
-REAL                            , INTENT(IN)    :: p4     ! Asymmetry terms p1 to P4
-REAL                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
+REAL(KIND=PREC_DP)   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat   ! Data to be convoluted
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: tthmin ! 2Theta min
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: tthmax ! 2Theta max
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: dtth   ! 2Theta step
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: eta0   ! Lor/Gaus mix constant part
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: eta_l   ! Lor/Gaus mix variable part
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: eta_q   ! Lor/Gaus mix variable part
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: u      ! u*tan^2(Theta)
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: v      ! v*tan  (Theta)
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: w      ! w
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: p1     ! Asymmetry terms p1 to P4
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: p2     ! Asymmetry terms p1 to P4
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: p3     ! Asymmetry terms p1 to P4
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: p4     ! Asymmetry terms p1 to P4
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 !
 REAL(KIND=PREC_DP)    :: fwhm            ! Current FWHM at Theta
 REAL, DIMENSION(0:POW_MAXPKT) :: dummy  ! temporary data (0:POW_MAXPKT) 
@@ -1587,25 +1611,25 @@ END SUBROUTINE powder_conv_psvgt_uvw_asymt
 !
       INTEGER, INTENT(IN) :: POW_MAXPKT
 !                                                                       
-      REAL dat (0:POW_MAXPKT) 
-      REAL tthmin, tthmax, dtth, eta0, eta_l, eta_q
-      REAL u, v, w 
-      REAL p1, p2, p3, p4 
-      REAL pow_width 
-      REAL rlambda 
+      REAL(KIND=PREC_DP):: dat (0:POW_MAXPKT) 
+      REAL(KIND=PREC_DP):: tthmin, tthmax, dtth, eta0, eta_l, eta_q
+      REAL(KIND=PREC_DP):: u, v, w 
+      REAL(KIND=PREC_DP):: p1, p2, p3, p4 
+      REAL(KIND=PREC_DP):: pow_width 
+      REAL(KIND=PREC_DP):: rlambda 
       INTEGER pow_axis 
       INTEGER POW_AXIS_Q 
 !                                                                       
-      REAL dummy (0:POW_MAXPKT) 
+      REAL(KIND=PREC_DP):: dummy (0:POW_MAXPKT) 
       REAL(KIND=PREC_DP) tth
-      REAL tantth 
+      REAL(KIND=PREC_DP):: tantth 
       REAL(KIND=PREC_DP) tth1 
       REAL(KIND=PREC_DP) tth2 
-      REAL atheta 
-      REAL atwoth 
+      REAL(KIND=PREC_DP):: atheta 
+      REAL(KIND=PREC_DP):: atwoth 
       REAL(KIND=PREC_DP) fwhm1 , fwhm
       REAL(KIND=PREC_DP) eta 
-      REAL pra1, pra2 
+      REAL(KIND=PREC_DP):: pra1, pra2 
       INTEGER imax, i, j, ii 
       INTEGER max_ps 
 !                                                                       
@@ -1621,15 +1645,15 @@ END SUBROUTINE powder_conv_psvgt_uvw_asymt
       tantth = tand (tth * 0.5) 
       atheta = tth * 0.5 
       atwoth = tth 
-      fwhm = sqrt (max (abs (u * tantth**2 + v * tantth + w), 0.00001) ) 
+      fwhm = sqrt (max (abs (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
       fwhm1 = fwhm 
       IF (pow_axis.eq.POW_AXIS_Q) THEN 
-         atheta = asind (tth * rlambda / REAL(fpi)) 
+         atheta = asind (tth * rlambda / (fpi)) 
          tantth = tand (atheta) 
          fwhm1 = sqrt (max (abs (u * tantth**2 + v * tantth + w),       &
          0.00001) )                                                     
-         fwhm = 0.500 * (REAL(fpi) * sind (atheta + 0.5 * fwhm1) / rlambda -  &
-         REAL(fpi) * sind (atheta - 0.5 * fwhm1) / rlambda)                   
+         fwhm = 0.500 * ((fpi) * sind (atheta + 0.5D0 * fwhm1) / rlambda -  &
+         REAL(fpi) * sind (atheta - 0.5D0 * fwhm1) / rlambda)                   
       ENDIF 
       max_ps = int( (pow_width * fwhm) / dtth )
       eta = min (1.0D0, max (0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
@@ -1678,21 +1702,22 @@ SUBROUTINE powder_conv_corrlin_old(dat, tthmin, tthmax, dtth, sigma2, &
 USE discus_config_mod 
 !
 USE gauss_lorentz_pseudo_mod
+use precision_mod                                                                       
 USE trig_degree_mod
 USE wink_mod
 !
 IMPLICIT none 
 !
 INTEGER, INTENT(IN) :: POW_MAXPKT
-REAL   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat       ! Data to be convoluted
-REAL                            , INTENT(IN)    :: tthmin    ! 2Theta min
-REAL                            , INTENT(IN)    :: tthmax    ! 2Theta max
-REAL                            , INTENT(IN)    :: dtth      ! 2Theta step
-REAL                            , INTENT(IN)    :: sigma2    ! Gaussian Sigma^2
-REAL                            , INTENT(IN)    :: corrlin   ! 1/r deppendend width correction
-REAL                            , INTENT(IN)    :: corrquad  ! 1/r^2 deppendend width correction
+REAL(KIND=PREC_DP)   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat       ! Data to be convoluted
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: tthmin    ! 2Theta min
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: tthmax    ! 2Theta max
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: dtth      ! 2Theta step
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: sigma2    ! Gaussian Sigma^2
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: corrlin   ! 1/r deppendend width correction
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: corrquad  ! 1/r^2 deppendend width correction
 REAL(KIND=PREC_SP)              , INTENT(IN)    :: rcut      ! minimum  distance for clin/(r-rmin)
-REAL                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 !
 !REAL(KIND=PREC_DP), PARAMETER :: four_ln2  = 2.772588722239781237669D0
 REAL(KIND=PREC_DP), PARAMETER :: eightln2  = 2.772588722239781237669D0 * 2.0D0
@@ -1704,10 +1729,10 @@ REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data 
 REAL(KIND=PREC_DP)    :: sigmasq          ! actual scaled local sigma**2
 REAL(KIND=PREC_DP)    :: sigmamin         ! minimum       local sigma**2
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
-REAL(KIND=PREC_SP)    :: dist_min  ! minimum  distance for clin/(r-rmin)
+REAL(KIND=PREC_DP)    :: dist_min  ! minimum  distance for clin/(r-rmin)
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
 INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
-REAL    :: pseudo          ! scale factor for lookup table
+REAL(KIND=PREC_DP)    :: pseudo          ! scale factor for lookup table
 INTEGER :: max_ps 
 !                                                                       
 !------ Now convolute                                                   
@@ -1783,21 +1808,23 @@ END SUBROUTINE powder_conv_corrlin_old
 !
 !*****7*****************************************************************
 !
-      REAL function pseudovoigt (dtth, eta, fwhm) 
+      REAL(KIND=PREC_DP) function pseudovoigt (dtth, eta, fwhm) 
 !-                                                                      
 !     calculates the value of a pseudo-voigt function at dtth off the   
 !     central position                                                  
-!                                                                       
+!
+use precision_mod                                                                       
+!
       IMPLICIT none 
-      REAL, INTENT(IN) :: dtth 
-      REAL, INTENT(IN) :: eta 
-      REAL, INTENT(IN) :: fwhm 
+      REAL(KIND=PREC_DP), INTENT(IN) :: dtth 
+      REAL(KIND=PREC_DP), INTENT(IN) :: eta 
+      REAL(KIND=PREC_DP), INTENT(IN) :: fwhm 
 !                                                                       
-      REAL, PARAMETER :: four_ln2  = 2.772588722
-      REAL, PARAMETER :: sq4ln2_pi = 0.939437279
-      REAL, PARAMETER :: two_pi    = 0.636619772
-      REAL            :: pref_g 
-      REAL            :: pref_l 
+      REAL(KIND=PREC_DP), PARAMETER :: four_ln2  = 2.772588722
+      REAL(KIND=PREC_DP), PARAMETER :: sq4ln2_pi = 0.939437279
+      REAL(KIND=PREC_DP), PARAMETER :: two_pi    = 0.636619772
+      REAL(KIND=PREC_DP)            :: pref_g 
+      REAL(KIND=PREC_DP)            :: pref_l 
 !                                                                       
 !                                                                       
       pref_g = sq4ln2_pi / fwhm 
@@ -1809,7 +1836,7 @@ END SUBROUTINE powder_conv_corrlin_old
       END FUNCTION pseudovoigt                      
 !*****7*****************************************************************
 !
-REAL function profile_asymmetry (tth, dtth, fwhm, p1, p2, p3, p4) 
+REAL(KIND=PREC_DP) function profile_asymmetry (tth, dtth, fwhm, p1, p2, p3, p4) 
 !-                                                                      
 !     calculates the asymmetry parameter for the profile function       
 !                                                                       
@@ -1821,10 +1848,10 @@ IMPLICIT none
 REAL(KIND=PREC_DP), INTENT(IN) :: tth 
 REAL(KIND=PREC_DP), INTENT(IN) :: dtth 
 REAL(KIND=PREC_DP), INTENT(IN) :: fwhm 
-REAL, INTENT(IN) :: p1, p2, p3, p4 
+REAL(KIND=PREC_DP), INTENT(IN) :: p1, p2, p3, p4 
 !                                                                       
-REAL :: zz 
-REAL :: fa, fb 
+REAL(KIND=PREC_DP) :: zz 
+REAL(KIND=PREC_DP) :: fa, fb 
 !                                                                       
 !     REAL :: tand 
 !                                                                       
@@ -1934,15 +1961,15 @@ IMPLICIT NONE
 !
 INTEGER                                    , INTENT(IN)    :: npkt
 INTEGER                                    , INTENT(IN)    :: POW_MAXPKT
-REAL                                       , INTENT(IN)    :: pow_ka21
+REAL(KIND=PREC_DP)                         , INTENT(IN)    :: pow_ka21
 LOGICAL                                    , INTENT(IN)    :: pow_ka21_u
-REAL(KIND=PREC_SP), DIMENSION(0:POW_MAXPKT), INTENT(IN)    :: xpl
-REAL(KIND=PREC_SP), DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: ypl
+REAL(KIND=PREC_DP), DIMENSION(0:POW_MAXPKT), INTENT(IN)    :: xpl
+REAL(KIND=PREC_DP), DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: ypl
 !
 !CHARACTER(LEN=4) :: local
 INTEGER :: i,j,l
-REAL    :: int_ratio   ! Ka2/Ka1 intensity ratio
-REAL    :: len_ratio   ! Ka2/Ka1 intensity ratio
+REAL(KIND=PREC_DP)    :: int_ratio   ! Ka2/Ka1 intensity ratio
+REAL(KIND=PREC_DP)    :: len_ratio   ! Ka2/Ka1 intensity ratio
 !
 int_ratio = 0.0
 len_ratio = 1.0

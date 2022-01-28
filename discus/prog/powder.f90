@@ -194,8 +194,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      pow_deltaq_u=pow_deltaq
                      fwhm = SQRT(MAX(ABS(pow_u*pow_qmax**2 + pow_v*pow_qmax + pow_w), 0.00001D0) ) 
                      pow_qmax = pow_qmax + 2.0D0*pow_width*fwhm
-                     pow_ds_max = (pow_qmax+pow_deltaq)/REAL(zpi)
-                     pow_ds_min = pow_qmin/REAL(zpi)
+                     pow_ds_max = (pow_qmax+pow_deltaq)/(zpi)
+                     pow_ds_min = pow_qmin/(zpi)
                      check_dq: DO 
                         IF(NINT( (pow_qmax-pow_qmin)/pow_deltaq+1)>2**18) THEN
                            pow_deltaq = pow_deltaq*2.0D0
@@ -1430,22 +1430,21 @@ LOGICAL :: l_hh_real
 LOGICAL :: l_kk_real 
 LOGICAL :: l_ll_real 
 LOGICAL                   :: calc_f2aver, rept_f2aver
-REAL :: llstart, llend 
-REAL :: llstart2=0.0, llend2=1.0
-REAL (PREC_DP):: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
-REAL :: hh, kk, ll 
-REAL :: rr, rrr, rtm 
-REAL :: hkl (3) 
-REAL :: dstar , q !, ttheta
-REAL (KIND=PREC_DP)  :: inten 
-REAL :: u (3), v (3), w_min (3), w_max (3) 
-REAL :: u2, vv, ww 
-REAL :: aaa, bbb, ccc 
-REAL :: llstartmini 
-REAL :: llendmini 
-REAL :: ss 
+REAL(kind=PREC_DP) :: llstart, llend 
+REAL(kind=PREC_DP) :: llstart2=0.0, llend2=1.0
+REAL(kind=PREC_DP):: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
+REAL(kind=PREC_DP) :: hh, kk, ll 
+REAL(kind=PREC_DP) :: rr, rrr, rtm 
+REAL(kind=PREC_DP), dimension(3) :: hkl (3) 
+REAL(kind=PREC_DP) :: dstar , q !, ttheta
+REAL(KIND=PREC_DP)  :: inten 
+REAL(kind=PREC_DP) :: u (3), v (3), w_min (3), w_max (3) 
+REAL(kind=PREC_DP) :: u2, vv, ww 
+REAL(kind=PREC_DP) :: aaa, bbb, ccc 
+REAL(kind=PREC_DP) :: llstartmini 
+REAL(kind=PREC_DP) :: llendmini 
+REAL(kind=PREC_DP) :: ss 
 !                                                                       
-!REAL, EXTERNAL :: seknds 
 !
 st_new_form = .TRUE.    ! We need new form factors from stack to be placed into phases
 n_qxy   = 1
@@ -1461,7 +1460,7 @@ pow_hkl_max (2) = cr_a0 (2) * pow_ds_max
 pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
 !                                                                       
 !
-ss = seknds (0.0) 
+ss = seknds (0.0D0) 
 !                                                                       
 !     Set Fourier definitions                                           
 !                                                                       
@@ -1834,7 +1833,7 @@ loop_h: DO ih = h_start, h_end
 !                 ENDIF 
 !              ENDIF 
 !                 ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
-                     q = REAL(zpi) * dstar
+                     q = (zpi) * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = nint( (q - pow_qmin) / pow_deltaq )
                         inten = DBLE (csf (i) * conjg (csf (i) ) ) 
@@ -1933,7 +1932,7 @@ loop_h: DO ih = h_start, h_end
 !                    ENDIF 
 !                 ENDIF 
 !                 ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
-                     q = REAL(zpi) * dstar
+                     q = (zpi) * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = nint( (q - pow_qmin) / pow_deltaq )
                         inten = DBLE (csf (i) * conjg (csf (i) ) ) 
@@ -1967,7 +1966,7 @@ ENDDO  loop_h
             pow_faver2(i) = pow_faver2(i) / DBLE(pow_nreal)
          ENDDO
          pow_faver2(:) = pow_faver2(:)**2
-         pow_u2aver = pow_u2aver / pow_nreal /8./REAL(pi**2)
+         pow_u2aver = pow_u2aver / pow_nreal /8./(pi**2)
       ENDIF
 !                                                                       
 CALL dealloc_powder_nmax ! was allocated in powder_getatoms
@@ -2006,7 +2005,7 @@ WRITE (output_io, 4000) ss
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL(PREC_DP) xarg0, xincu, twopi 
+      REAL(kind=PREC_DP) xarg0, xincu, twopi 
       INTEGER iscat 
       INTEGER i, ii, j, k 
       INTEGER(KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iadd 
@@ -2080,7 +2079,7 @@ WRITE (output_io, 4000) ss
       USE precision_mod
       IMPLICIT none 
 !                                                                       
-      REAL(PREC_DP) twopi, xmult, xarg, xt 
+      REAL(kind=PREC_DP) twopi, xmult, xarg, xt 
       INTEGER i 
 !                                                                       
       WRITE (output_io, 1000) 
@@ -2090,7 +2089,7 @@ WRITE (output_io, 4000) ss
 !                                                                       
 !DBG      open(9,file='CEX.DAT',status='unknown')                       
       DO i = 0, MASK 
-      xmult = REAL(i) * xt 
+      xmult = REAL(i, kind=PREC_DP) * xt 
       xarg = twopi * xmult 
       cex (i) = cmplx (int( sin (xarg) ), 0.0) 
 !DBG      write(9,*) xarg,real(cex(i))                                  
@@ -2172,13 +2171,15 @@ WRITE (output_io, 4000) ss
       USE crystal_mod 
       USE diffuse_mod 
       USE metric_mod
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
       INTEGER iscat, i_start 
       INTEGER i, j 
-      REAL u (3), v (3) 
+      REAL(kind=PREC_DP), dimension(3) :: u (3), v (3) 
 !                                                                       
 !     REAL do_blen 
 !                                                                       
@@ -2299,7 +2300,7 @@ WRITE (output_io, 4000) ss
 !                                                                       
        
 !                                                                       
-      REAL(PREC_DP) xarg0, xincu, xincv 
+      REAL(kind=PREC_DP) xarg0, xincu, xincv 
       INTEGER iscat 
       INTEGER i, ii, j, k
       INTEGER(KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iincv, iadd 
@@ -2362,40 +2363,35 @@ WRITE (output_io, 4000) ss
 !                                                                       
       END SUBROUTINE powder_strucfactor             
 !*****7*****************************************************************
-      REAL function calc_preferred (w, pow_pref_type, pow_pref_hkl,     &
+      REAL(kind=PREC_DP) function calc_preferred (w, pow_pref_type, pow_pref_hkl,     &
       pow_pref_g1, pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)          
 !+                                                                      
 !     Here the complex structure factor of 'nxat' identical atoms       
 !     from array 'xat' is computed.                                     
 !-                                                                      
-      USE metric_mod
+use precision_mod
+USE metric_mod
       USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
-      REAL w (3) 
+      REAL(kind=PREC_DP), dimension(3) ::  w (3) 
       INTEGER pow_pref_type 
-      REAL pow_pref_hkl (3) 
-      REAL pow_pref_g1 
-      REAL pow_pref_g2 
+      REAL(kind=PREC_DP), dimension(3) :: pow_pref_hkl (3) 
+      REAL(kind=PREC_DP) :: pow_pref_g1 
+      REAL(kind=PREC_DP) :: pow_pref_g2 
       INTEGER POW_PREF_RIET 
       INTEGER POW_PREF_MARCH 
 !                                                                       
       LOGICAL lspace 
-      REAL null (3) 
-      REAL :: alpha   = 0.0
-      REAL :: alpha2  = 0.0
-!     REAL do_bang 
-!     REAL sind 
-!     REAL cosd 
+      REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
+      REAL(KIND=PREC_DP) :: alpha   = 0.0
+      REAL(KIND=PREC_DP) :: alpha2  = 0.0
 !                                                                       
-      null (1) = 0.0 
-      null (2) = 0.0 
-      null (3) = 0.0 
       lspace = .true. 
 !                                                                       
       calc_preferred = 1.0 
 !                                                                       
-      alpha = do_bang (lspace, w, null, pow_pref_hkl) 
+      alpha = do_bang (lspace, w, NULLV, pow_pref_hkl) 
       IF (pow_pref_type.eq.POW_PREF_RIET) THEN 
          IF (alpha.le.90.) THEN 
             alpha2 = alpha**2 
@@ -2421,22 +2417,19 @@ WRITE (output_io, 4000) ss
       USE discus_config_mod 
       USE crystal_mod 
       USE param_mod 
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      REAL w (3) 
-      REAL pow_pref_hkl (3) 
+      REAL(kind=PREC_DP), DIMENSION(3) :: w (3) 
+      REAL(kind=PREC_DP), dimension(3) :: pow_pref_hkl (3) 
 !                                                                       
       INTEGER i 
       LOGICAL lspace 
-      REAL null (3) 
-      REAL uv, uu, vv 
-!     REAL skalpro 
+      REAL(KIND=PREC_DP) :: uv, uu, vv 
 !                                                                       
-      null (1) = 0.0 
-      null (2) = 0.0 
-      null (3) = 0.0 
       lspace = .true. 
 !                                                                       
 !                                                                       

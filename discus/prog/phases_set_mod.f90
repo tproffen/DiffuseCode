@@ -158,7 +158,7 @@ IMPLICIT NONE
 integer :: i,j
 INTEGER :: k,iscat
 INTEGER :: npkt
-REAL( KIND(0.0D0))             :: signum
+REAL( KIND=PREC_DP)            :: signum
 !character(len=1024) :: ofile
 !
 npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
@@ -195,7 +195,7 @@ stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking 
    DO iscat = 1, cr_nscat
       DO k=0, npkt
          signum = 1.0D0
-         IF(REAL(cfact_pure(1, iscat))< 0.0D0) signum = -1.0D0
+         IF(REAL(cfact_pure(1, iscat),kind=PREC_DP)< 0.0D0) signum = -1.0D0
          pha_form(k, iscat, pha_curr) = SQRT( DBLE (       cfact_pure (powder_istl (k), iscat)   *   &
                                                     CONJG (cfact_pure (powder_istl (k), iscat) )  )  &
                                             )                                                        &
@@ -224,9 +224,9 @@ IF (pow_four_type.eq.POW_COMPL) THEN                 ! Complete powder patterm, 
 !open(66, file='phases.place', status='unknown')
    DO k=0, npkt
       pha_powder(k,pha_curr) = pow_conv(k)                          &
-                    /(REAL(pha_nreal(pha_curr), KIND=PREC_DP))**2 * &
-                      REAL(pha_ncreal(pha_curr) , KIND=PREC_DP)   / &
-                      REAL(cr_v, KIND=PREC_DP)                    * &
+                    /(pha_nreal(pha_curr) )**2 * &
+                      (pha_ncreal(pha_curr) )   / &
+                      (cr_v)                    * &
              20.00D0  ! Needs to be verified where this 20 comes from
 !  pow_tmp = pow_tmp/(REAL(pow_nreal, KIND=PREC_DP))**2 * &
 !                     REAL(pow_ncreal , KIND=PREC_DP)/REAL(cr_v, KIND=PREC_DP) * &
@@ -239,7 +239,7 @@ ELSE                                                 ! Complete powder patterm, 
 !write(*,*) ' COPY ', npkt, num(1)*num(2), num(1:2)
 !open(66, file='phases.place', status='unknown')
    DO k=0, npkt
-      pha_powder(k,pha_curr) = pow_conv(k) / REAL(pha_nreal(pha_curr))
+      pha_powder(k,pha_curr) = pow_conv(k) / (pha_nreal(pha_curr))
 !write(66, '(3F20.6)') pow_qmin + (k-1)*pow_deltaq, pow_conv(k), pha_powder(k,pha_curr)
    ENDDO
 !close(66)
@@ -285,17 +285,17 @@ USE wink_mod
 !
 IMPLICIT NONE
 !
-REAL(KIND=PREC_SP), INTENT(IN) :: xmin      ! Smallest Q-value
-REAL(KIND=PREC_SP), INTENT(IN) :: xdel      ! Q-step
+REAL(KIND=PREC_DP), INTENT(IN) :: xmin      ! Smallest Q-value
+REAL(KIND=PREC_DP), INTENT(IN) :: xdel      ! Q-step
 INTEGER           , INTENT(IN) :: npkt      ! Number of points in powder pattern
 !
-REAL(KIND=PREC_SP), PARAMETER :: EPS = 0.001  ! A small fraction
+REAL(KIND=PREC_DP), PARAMETER :: EPS = 0.001  ! A small fraction
 INTEGER            :: i,j, k
 INTEGER            :: empty                 ! number of empty phases with no atoms
-REAL(KIND=PREC_SP) :: weight                ! Current grand weight
-REAL(KIND=PREC_SP) :: fractions             ! Current grand fractions
-REAL(KIND=PREC_SP) :: q                     ! Temporary number of real atoms per phase
-REAL(KIND=PREC_SP) :: ttheta                ! 2Theta
+REAL(KIND=PREC_DP) :: weight                ! Current grand weight
+REAL(KIND=PREC_DP) :: fractions             ! Current grand fractions
+REAL(KIND=PREC_DP) :: q                     ! Temporary number of real atoms per phase
+REAL(KIND=PREC_DP) :: ttheta                ! 2Theta
 real(kind=PREC_DP) :: sq_scale
 !
 
@@ -346,8 +346,8 @@ DO i=1,pha_n                                ! Sum over all phases
             REAL(pha_niscat(j,i)*pha_occ(j,i)/pha_nreal(i)*pha_scale(i),KIND=PREC_DP)
          pow_fu(k) = pow_fu(k) +                                               &
             pha_form(k,j,i)**2*                                                &
-            REAL(pha_occ(j,i)*pha_scale(i)*EXP(-q**2/8./PI**2*pha_adp(j,i)),KIND=PREC_DP)  &
-           *REAL(pha_niscat(j,i)/pha_nreal(i))                                
+            REAL(pha_occ(j,i)*pha_scale(i)*EXP(-q**2/8.0D0/PI**2*pha_adp(j,i)),KIND=PREC_DP)  &
+           *(pha_niscat(j,i)/pha_nreal(i))                                
       ENDDO
 !write(*,*) 'u2aver ', i,j, pha_adp(j,i), pha_niscat(j,i), pha_nreal(i), pha_occ(j,i), pha_frac(i),pha_scale(i)
       pow_u2aver = pow_u2aver + (pha_adp(j,i)) * pha_niscat(j,i)/pha_nreal(i)*pha_occ(j,i)*pha_scale(i)
@@ -355,7 +355,7 @@ DO i=1,pha_n                                ! Sum over all phases
    ENDIF
 ENDDO
 pow_faver2(:) = pow_faver2(:)**2
-pow_u2aver    = pow_u2aver /8./REAL(PI)**2
+pow_u2aver    = pow_u2aver /8./(PI)**2
 !write(*,*) ' U2aver ', pow_u2aver, pow_u2aver*8*PI**2
 !write(*,*) ' f2aver ', pow_f2aver(0), pow_f2aver(1)
 !write(*,*) ' faver2 ', pow_faver2(0), pow_faver2(1)
@@ -390,7 +390,7 @@ DO i=1,pha_n
 !
       DO k=0, npkt
          q = (k*xdel + xmin)
-         ttheta = 2.*asind ( REAL(q / 2. /REAL(zpi) *rlambda ))
+         ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
          pow_conv(k) = pow_conv(k) + pha_scale(i)*pha_powder(k,i) / q**2 &
                                     * polarisation(ttheta)
       ENDDO
@@ -408,7 +408,7 @@ DO i=1,pha_n
 !
       DO k=0, npkt
          q = (k*xdel + xmin)
-         ttheta = 2.*asind ( REAL(q / 2. /REAL(zpi) *rlambda ))
+         ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
          pow_conv(k) = pow_conv(k) + pha_scale(i)*pha_powder(k,i) &
                                     * polarisation(ttheta)
       ENDDO
@@ -438,7 +438,7 @@ IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution 
               !       (+ 1.0 - exp(-q**2*pow_u2aver))*pow_faver2(k)
    ENDDO
    DO k=0, npkt
-      pow_sq(k) = pow_sq(k) / REAL(pow_faver2(k))                               &
+      pow_sq(k) = pow_sq(k) / (pow_faver2(k))                               &
                   + 1.0 - pow_f2aver(k)/pow_faver2(k)
 !        ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer    &
 !                  + 1.0 - & !exp(-q**2*pow_u2aver*0.25)      * &
@@ -538,15 +538,15 @@ REAL(KIND=PREC_DP) :: u2aver_scale = 2.00D0   ! Scale to multiply <u^2> if conve
 !                     ! intensity actually by more than the damping by <u^2>, in order
 !                     ! to sharpen the distances sufficiently for later broadening
 REAL(KIND=PREC_DP) :: rmin, rmax, rstep
-REAL(KIND=PREC_SP) :: sigma   ! sigma for PDF Corrlin correction
+REAL(KIND=PREC_DP) :: sigma   ! sigma for PDF Corrlin correction
 
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: fq    ! Temporary array, might do inplace replacement later
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: fq    ! Temporary array, might do inplace replacement later
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: f2aver! Temporary array, might do inplace replacement later
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: faver2! Temporary array, might do inplace replacement later
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: fu    ! Temporary array, might do inplace replacement later
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: xq    ! Temporary array, might do inplace replacement later
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: xfour ! Temporary array, might do inplace replacement later
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: yfour ! Temporary array, might do inplace replacement later
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: xq    ! Temporary array, might do inplace replacement later
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: xfour ! Temporary array, might do inplace replacement later
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: yfour ! Temporary array, might do inplace replacement later
 !
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
    RETURN
@@ -574,19 +574,19 @@ DO j=1,pha_nscat(pha_curr)                      ! Sum over the entries for curre
       q = k*pow_deltaq + pow_qmin
       faver2(k) = faver2(k) + &
          pha_form(k,j,pha_curr)   *          &
-         REAL(pha_niscat(j,pha_curr)*pha_occ(j,pha_curr)/pha_nreal(pha_curr),KIND=PREC_DP)
+         (pha_niscat(j,pha_curr)*pha_occ(j,pha_curr)/pha_nreal(pha_curr))
       f2aver(k) = f2aver(k) + &
          pha_form(k,j,pha_curr)**2*          &
-         REAL(pha_niscat(j,pha_curr)*pha_occ(j,pha_curr)/pha_nreal(pha_curr),KIND=PREC_DP)
+         (pha_niscat(j,pha_curr)*pha_occ(j,pha_curr)/pha_nreal(pha_curr))
       fu(k) = fu(k) +                                               &
          pha_form(k,j,pha_curr)**2*                                                &
-         REAL(pha_niscat(j,pha_curr)/pha_nreal(pha_curr))*                                &
-         REAL(pha_occ(j,pha_curr)*EXP(-q**2/8./PI**2*cr_dw(j)),KIND=PREC_DP)
+         (pha_niscat(j,pha_curr)/pha_nreal(pha_curr))*                                &
+         (pha_occ(j,pha_curr)*EXP(-q**2/8./PI**2*cr_dw(j)))
    ENDDO
    u2aver = u2aver + (cr_dw(j)) * pha_niscat(j,pha_curr)/pha_nreal(pha_curr)*pha_occ(j,pha_curr)
 ENDDO
 faver2 = faver2**2
-u2aver = u2aver /8./REAL(PI)**2
+u2aver = u2aver /8./PI**2
 !
 ! Prepare S(Q), initially copy powder pattern and divide by Debye-Waller term
 !
@@ -605,12 +605,12 @@ u2aver = u2aver /8./REAL(PI)**2
 IF(pha_calc(pha_curr) == POW_COMPL) THEN           ! Complete calculation mode
    DO k=0, npkt
       q = k*pow_deltaq + pow_qmin
-      fq(k) = pha_powder(k, pha_curr)/q**2 /EXP(-0.5*(u2aver*u2aver_scale)*q**2)
+      fq(k) = pha_powder(k, pha_curr)/q**2 /EXP(-0.5D0*(u2aver*u2aver_scale)*q**2)
    ENDDO
 ELSEIF(pha_calc(pha_curr) == POW_DEBYE) THEN       ! DEBYE calculation mode
    DO k=0, npkt
       q = k*pow_deltaq + pow_qmin
-      fq(k) = pha_powder(k, pha_curr)      /EXP(-0.5*(u2aver*u2aver_scale)*q**2)
+      fq(k) = pha_powder(k, pha_curr)      /EXP(-0.5D0*(u2aver*u2aver_scale)*q**2)
    ENDDO
 ENDIF
 !
@@ -623,7 +623,7 @@ ENDIF
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
    DO k=0, npkt
       q = k*pow_deltaq + pow_qmin
-      fq(k) = (fq(k) / REAL(faver2(k))                              &
+      fq(k) = (fq(k) / (faver2(k))                              &
                   + 0.0 - f2aver(k)/faver2(k) ) * q
    ENDDO
 ELSE
@@ -658,7 +658,7 @@ npkt_pdf = INT((rmax-rmin)/rstep) + 1
 !   rstep    = pdf_deltaru
 !   npkt_pdf = NINT((rmax-rmin)/pdf_deltaru) + 1
 !ENDIF
-rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
+rstep = ((rmax-rmin)/(npkt_pdf-1))
 !
 ALLOCATE(xfour(1:npkt_pdf))
 ALLOCATE(yfour(1:npkt_pdf))
@@ -768,16 +768,18 @@ END SUBROUTINE phases_corr
 !
 !*******************************************************************************
 !
-REAL function lorentz (ttheta, flag_fq) 
+REAL (kind=PREC_DP) function lorentz (ttheta, flag_fq) 
 !+                                                                      
 !-                                                                      
 USE discus_config_mod 
 USE powder_mod 
+
+use precision_mod
 USE trig_degree_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-REAL   , INTENT(IN) :: ttheta 
+REAL(kind=PREC_DP)   , INTENT(IN) :: ttheta 
 INTEGER, INTENT(IN) :: flag_fq
 !                                                                       
 !                                                                       
@@ -805,16 +807,18 @@ END FUNCTION lorentz
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION polarisation (ttheta) 
+REAL(kind=PREC_DP) FUNCTION polarisation (ttheta) 
 !+                                                                      
 !-                                                                      
 USE discus_config_mod 
 USE powder_mod 
+!
+use precision_mod
 USE trig_degree_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-REAL ttheta 
+REAL(kind=PREC_DP) :: ttheta 
 !
 !
 !                                                                       
@@ -834,18 +838,18 @@ END FUNCTION polarisation
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION lorentz_pol (ttheta) 
+REAL(kind=PREC_DP) FUNCTION lorentz_pol (ttheta) 
 !+                                                                      
 !-                                                                      
 USE discus_config_mod 
 USE powder_mod 
+use precision_mod
 USE trig_degree_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-REAL ttheta 
+REAL(kind=PREC_DP) ttheta 
 !                                                                       
-!     REAL sind, cosd 
 !                                                                       
 IF (pow_four_type.eq.POW_DEBYE) THEN 
    lorentz_pol = 1.0 

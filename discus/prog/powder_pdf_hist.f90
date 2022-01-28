@@ -116,7 +116,7 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: com  ! Center of mass of crystal
 !
    u(:) = 0.0
 !
-   CALL plot_ini_trans (1.0,                          &
+   CALL plot_ini_trans (1.0D0,                        &
         pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
         cr_gten, cr_rten, cr_eps)
 
@@ -1309,21 +1309,21 @@ SUBROUTINE powder_trans_atoms_tocart (uvw_out)
 !
       INTEGER              ::  i
       LOGICAL, PARAMETER   :: lscreen = .false. 
-      REAL, DIMENSION(1:4) :: uvw
-      REAL             :: xmin
-      REAL             :: xmax
-      REAL             :: ymin
-      REAL             :: ymax
-      REAL             :: zmin
-      REAL             :: zmax
+      REAL(kind=PREC_DP), DIMENSION(1:4) :: uvw
+      REAL(kind=PREC_DP)             :: xmin
+      REAL(kind=PREC_DP)             :: xmax
+      REAL(kind=PREC_DP)             :: ymin
+      REAL(kind=PREC_DP)             :: ymax
+      REAL(kind=PREC_DP)             :: zmin
+      REAL(kind=PREC_DP)             :: zmax
 !                                                                       
-      xmin = 0.0
-      xmax = 0.0
-      ymin = 0.0
-      ymax = 0.0
-      zmin = 0.0
-      zmax = 0.0
-      uvw(4) = 1.0
+      xmin = 0.0D0
+      xmax = 0.0D0
+      ymin = 0.0D0
+      ymax = 0.0D0
+      zmin = 0.0D0
+      zmax = 0.0D0
+      uvw(4) = 1.0D0
 !         
       DO i = 1, cr_natoms 
          uvw (1) = cr_pos (1, i) 
@@ -1364,10 +1364,10 @@ SUBROUTINE powder_trans_atoms_fromcart
       INTEGER              :: i 
       LOGICAL, PARAMETER   :: lscreen = .false.
 !                                                                       
-      REAL, DIMENSION(1:4) ::  uvw !(4) 
+REAL(kind=PREC_DP), DIMENSION(1:4) ::  uvw !(4) 
 !                                                                       
 !                                                                       
-      uvw(4) = 1.0
+      uvw(4) = 1.0D0
       DO i = 1, cr_natoms 
          uvw (1) = cr_pos (1, i) 
          uvw (2) = cr_pos (2, i) 

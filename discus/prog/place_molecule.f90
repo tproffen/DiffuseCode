@@ -798,7 +798,7 @@ USE crystal_mod
    USE chem_mod
 USE deco_mod
    USE discus_allocate_appl_mod
-   USE discus_plot_init_mod
+!   USE discus_plot_init_mod
    USE discus_save_mod
    USE domain_menu
    USE domain_mod
@@ -1781,7 +1781,7 @@ USE spcgr_apply
 USE save_menu, ONLY: save_internal
 USE discus_save_mod
 USE structur, ONLY: do_readstru, rese_cr
-USE trafo_mod
+!USE trafo_mod
 !
 use read_internal_mod
 USE precision_mod
@@ -1809,8 +1809,8 @@ CHARACTER (LEN=PREC_STRING)                :: line
 !  INTEGER  :: itype            ! atom scattering type
 !  INTEGER, DIMENSION(0:3)  :: isurface            ! atom surface type
 !  REAL, DIMENSION(3) :: posit  ! atom position
-   REAL, DIMENSION(4) :: posit4 ! atom position
-   REAL, DIMENSION(4) :: uvw4   ! atom position
+   REAL(kind=PREC_DP), DIMENSION(4) :: posit4 ! atom position
+   REAL(kind=PREC_DP), DIMENSION(4) :: uvw4   ! atom position
 !  REAL, DIMENSION(4,4) :: rd_tran_f  ! transformation matrix to cartesian
 !  INTEGER  :: secnd            ! Index of second neighbor
 !  INTEGER  :: iprop            ! atom property 
@@ -1824,11 +1824,11 @@ CHARACTER (LEN=PREC_STRING)                :: line
 INTEGER               :: n_mscat     ! temporary number of molecule scattering types
 INTEGER               :: lll         ! Dummy index
 LOGICAL, PARAMETER    :: lout = .FALSE.
-REAL                  :: dist
-REAL                  :: shortest
-REAL                  :: longest
-REAL, DIMENSION(3)    :: uvw_out
-REAL, DIMENSION(3)    :: w
+REAL(kind=PREC_DP)    :: dist
+REAL(kind=PREC_DP)    :: shortest
+REAL(kind=PREC_DP)    :: longest
+REAL(kind=PREC_DP), DIMENSION(3)    :: uvw_out
+REAL(kind=PREC_DP), DIMENSION(3)    :: w
 !
    strufile = ' '
 !
@@ -2129,7 +2129,7 @@ USE crystal_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
-   USE trafo_mod
+!   USE trafo_mod
 !
    USE param_mod
 USE precision_mod
@@ -2176,25 +2176,25 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER                              :: test_nhkl
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl   ! Temporary array, needed as point_test expects an allocatable
 !
-   REAL   , DIMENSION(1:3) :: surf_normal     ! Normal to work with in uvw
-   REAL   , DIMENSION(1:3) :: surf_normal_r   ! Normal to work with in HKL
-   REAL   , DIMENSION(3)   :: vnull           ! null vector
-   REAL   , DIMENSION(3)   :: origin          ! Symmetry origin
+   REAL(kind=PREC_DP), DIMENSION(1:3) :: surf_normal     ! Normal to work with in uvw
+   REAL(kind=PREC_DP), DIMENSION(1:3) :: surf_normal_r   ! Normal to work with in HKL
+   REAL(kind=PREC_DP), DIMENSION(3)   :: vnull           ! null vector
+   REAL(kind=PREC_DP), DIMENSION(3)   :: origin          ! Symmetry origin
    REAL                    :: normal_l        ! local normal
 
-   REAL   , DIMENSION(3)   :: posit           ! Atom coordinates for read internal
+   REAL(kind=PREC_DP), DIMENSION(3)   :: posit           ! Atom coordinates for read internal
 !  REAL                    :: dw1             ! Atom ADP for read internal
    INTEGER                 :: itype           ! Atom type for read internal
    INTEGER                 :: iprop           ! Atom property for read internal
    INTEGER, DIMENSION(0:3) :: isurface        ! Atom surface for read internal
-   REAL   , DIMENSION(0:3) :: magn_mom        ! Atom magnetic moment for read internal
+   REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom        ! Atom magnetic moment for read internal
    REAL   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
 !  INTEGER                 :: i_m_type
    INTEGER, DIMENSION(4)   :: hkl
    INTEGER                 :: in_mole,in_moleatom
    INTEGER                 :: n_atoms_orig
 !
-   vnull(:) = 0.00
+   vnull(:) = 0.00D0
 !
 !  Determine surface character, if growth is restricted check if we're at proper surface
 !
@@ -2351,7 +2351,7 @@ USE surface_func_mod
 USE symm_menu
 USE symm_mod
 USE symm_sup_mod
-USE trafo_mod
+!USE trafo_mod
 !
 USE precision_mod
 USE param_mod
@@ -2394,8 +2394,8 @@ INTEGER, DIMENSION(3)                   :: surf_kante     ! Edge vector if not a
 INTEGER, DIMENSION(6)                   :: surf_weight    ! Best normal has heighest weight
 INTEGER, DIMENSION(:), ALLOCATABLE      :: all_surface         ! Surface atom type
 !
-REAL   , DIMENSION(1:3)                 :: surf_normal    ! Normal to work with  in UVW
-REAL   , DIMENSION(1:3)                 :: surf_normal_r  ! Normal to work with  in HKL
+REAL(kind=PREC_DP), DIMENSION(1:3)      :: surf_normal    ! Normal to work with  in UVW
+REAL(kind=PREC_DP), DIMENSION(1:3)      :: surf_normal_r  ! Normal to work with  in HKL
 !
 INTEGER, PARAMETER                      :: MINPARA = 2
 INTEGER                                 :: MAXW = MINPARA
@@ -2408,7 +2408,7 @@ INTEGER                                 :: l
 INTEGER                                 :: iprop
 INTEGER                                 :: itype
 INTEGER  , DIMENSION(0:3)               :: isurface
-REAL     , DIMENSION(0:3)               :: magn_mom        ! Atom magnetic moment for read internal
+REAL(kind=PREC_DP)     , DIMENSION(0:3)               :: magn_mom        ! Atom magnetic moment for read internal
 INTEGER                                 :: nold   ! atom number previous to current molecule
 INTEGER  , DIMENSION(1:4)               :: hkl
 !
@@ -2421,10 +2421,13 @@ REAL                                    :: c_ang_ia, c_ang_nei         ! COS/SIN
 REAL                                    :: angle, a_test               ! Dummy angles
 REAL                                    :: dist_m
 REAL     , DIMENSION(1:3)               :: axis_ligand                 ! Initial molecule orientation
-REAL                                    :: rmin, radius, normal_l, b_l, b_n, b_l_min
-REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit
-REAL     , DIMENSION(1:3)               :: vnull
-REAL     , DIMENSION(1:3)               :: pos1, pos2
+REAL(kind=PREC_DP)                      :: rmin, radius, normal_l, b_l, b_n, b_l_min
+REAL(kind=PREC_DP), DIMENSION(1:3)      :: tangent, posit
+real(kind=PREC_DP), dimension(1:3)      :: x
+real(kind=PREC_DP), dimension(1:3)      :: origin
+real(kind=PREC_DP), dimension(1:3)      :: bridge
+REAL(kind=PREC_DP), DIMENSION(1:3)      :: vnull
+REAL(kind=PREC_DP), DIMENSION(1:3)      :: pos1, pos2
 INTEGER             :: m_type_new   ! new molecule types 
 INTEGER             :: in_mole,in_moleatom
 INTEGER             :: n_atoms_orig
@@ -2661,7 +2664,7 @@ USE surface_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
-   USE trafo_mod
+!   USE trafo_mod
 !
    USE param_mod
 USE precision_mod
@@ -2710,7 +2713,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER                                 :: iprop
    INTEGER                                 :: itype
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
-   REAL   , DIMENSION(0:3) :: magn_mom       ! Atom surface
+   REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom       ! Atom surface
    INTEGER                                 :: n_atoms_orig   ! Number of atoms prior to insertion
    INTEGER                                 :: n1,n2          ! number of mol neighbours after insertion
    INTEGER                                 :: success        ! Everything went fine
@@ -2718,18 +2721,24 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    LOGICAL  , DIMENSION(1:3)               :: fp
    LOGICAL                                 :: fq
    LOGICAL, PARAMETER :: lspace = .true.
-   REAL                                    :: rmin, radius, b_l, t_l
+   REAL(kind=PREC_DP)                      :: rmin, radius, b_l, t_l
    REAL                                    :: arg            ! argument for acos
-   REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit, v, w
-   REAL     , DIMENSION(1:3)               :: shift, v1, v2
-   REAL     , DIMENSION(1:3)               :: vnull
+REAL(kind=PREC_DP), DIMENSION(1:3) :: x
+REAL(kind=PREC_DP), DIMENSION(1:3) :: posit
+real(kind=PREC_DP), dimension(1:3) :: v
+real(kind=PREC_DP), dimension(1:3) :: w
+real(kind=PREC_DP), dimension(1:3) :: origin
+real(kind=PREC_DP), dimension(1:3) :: tangent
+real(kind=PREC_DP), dimension(1:3) :: bridge
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: shift, v1, v2
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: vnull
    INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
    INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal in HKL
    INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
    INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
 !
-   REAL   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
-   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
+   REAL(kind=PREC_DP)   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
+   REAL(kind=PREC_DP)   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
 !
    INTEGER                              :: test_nhkl
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
@@ -2739,7 +2748,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER             :: in_mole,in_moleatom
 !
 maxw     = MAX(MINPARA,nanch)
-vnull(:) = 0.00
+vnull(:) = 0.00D0
 success = -1
 n1 = 1
 n2 = 1
@@ -2995,7 +3004,7 @@ USE surface_func_mod
 USE symm_menu
 USE symm_mod
 USE symm_sup_mod
-USE trafo_mod
+!USE trafo_mod
 !
 USE param_mod
 USE precision_mod
@@ -3038,8 +3047,8 @@ INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main n
 INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
 INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
 !
-REAL   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
-REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
+REAL(kind=PREC_DP)   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
+REAL(kind=PREC_DP)   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
 !
 REAL, PARAMETER :: EPS = 1.0E-6
 !
@@ -3048,7 +3057,7 @@ INTEGER                                 :: j, im, laenge
 INTEGER                                 :: iprop
 INTEGER                                 :: itype
 INTEGER, DIMENSION(0:3)                 :: isurface
-REAL   , DIMENSION(0:3)                 :: magn_mom
+REAL(kind=PREC_DP)   , DIMENSION(0:3)                 :: magn_mom
 INTEGER                                 :: nold   ! atom number previous to current molecule
 INTEGER  , DIMENSION(1:4)               :: hkl
 INTEGER                                 :: n1, n2  ! Ligand atoms
@@ -3059,12 +3068,14 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
 LOGICAL, PARAMETER :: lspace = .true.
 REAL                    :: aa, bb, cc, arg  ! Triangle sides for cosine theorem
 REAL                                    :: normal_l
-REAL     , DIMENSION(1:3)               :: x, origin, posit
-REAL     , DIMENSION(1:3)               :: vnull
+REAL(kind=PREC_DP), DIMENSION(1:3)      :: x
+REAL(kind=PREC_DP), DIMENSION(1:3)      :: origin
+REAL(kind=PREC_DP), DIMENSION(1:3)      :: posit
+REAL(kind=PREC_DP), DIMENSION(1:3)      :: vnull
 INTEGER             :: m_type_new   ! new molecule types 
 INTEGER             :: in_mole,in_moleatom
 !
-vnull(:) = 0.00
+vnull(:) = 0.00D0
 nold     = cr_natoms
 !
 !  Determine surface character, if growth is restricted check if we're at proper surface
@@ -3284,7 +3295,7 @@ USE surface_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
-   USE trafo_mod
+!   USE trafo_mod
 !
    USE param_mod
 USE precision_mod
@@ -3338,7 +3349,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER                                 :: iprop
    INTEGER                                 :: itype
    INTEGER, DIMENSION(0:3)                 :: isurface       ! Atom surface
-   REAL   , DIMENSION(0:3)                 :: magn_mom       ! Atom magnetic moment
+   REAL(kind=PREC_DP)   , DIMENSION(0:3)                 :: magn_mom       ! Atom magnetic moment
    INTEGER                                 :: n_atoms_orig   ! Number of atoms prior to insertion
    INTEGER                                 :: n1,n2          ! number of mol neighbours after insertion
    INTEGER                                 :: a1,a2          ! number of mol axis atoms after rotations
@@ -3348,14 +3359,22 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    LOGICAL  , DIMENSION(1:3)               :: fp
    LOGICAL                                 :: fq
    LOGICAL, PARAMETER :: lspace = .true.
-   REAL                                    :: rmin, radius, b_l
+   REAL(kind=PREC_DP)                      :: rmin, radius, b_l
    REAL                                    :: arg
    REAL                                    :: alpha, beta, v_l
-   REAL     , DIMENSION(1:3)               :: x, bridge, base, origin, posit, v, w, u
-   REAL     , DIMENSION(1:3)               :: shift, v1, v2, v3
-   REAL     , DIMENSION(1:3)               :: surf_normal_r ! Normal in HKL
-   REAL     , DIMENSION(1:3)               :: surf_normal   ! Normal in UVW
-   REAL     , DIMENSION(1:3)               :: vnull
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: x
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: bridge
+   REAL(kind=PREC_SP), DIMENSION(1:3)               :: base
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: origin
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: posit
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: vv
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: v
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: w
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: u
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: shift, v1, v2, v3
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: surf_normal_r ! Normal in HKL
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: surf_normal   ! Normal in UVW
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: vnull
    INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
    INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
    INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
@@ -3370,7 +3389,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
 !  REAL                :: r_m_dens
 !
 maxw     = MAX(MINPARA,nanch)
-vnull(:) = 0.00
+vnull(:) = 0.00D0
 success = -1
 n2 = 1
 nold = cr_natoms                           ! Remember original atom number
@@ -3490,6 +3509,7 @@ arg = (dist(1)**2 + dist(2)**2 - b_l**2)/(2.*dist(1)*dist(2))
 IF(ABS(arg)> 1.0) GOTO 9999                ! No suitable solution
 sym_angle  = acos( (dist(1)**2 + dist(2)**2 - b_l**2)/(2.*dist(1)*dist(2)))/REAL(rad)
 v(:) = v(:) *dist(2)/v_l                        ! Scale vector 1st surface to 1st mole to distance2
+vv = v
 !
 sym_orig(:)    = 0.0                       ! Define origin at 0,0,0
 sym_trans(:)   = 0.0                       ! No translation needed
@@ -3504,7 +3524,7 @@ sym_sel_atom   = .true.                    ! Select atoms not molecules
 !CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
 sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 CALL symm_setup
-CALL symm_ca_single (v, .true., .false.)
+CALL symm_ca_single (vv, .true., .false.)
 IF(ier_num /= 0) GOTO 9999                 ! Rotation is erroneous, |Axis| = 0 or similar 
 posit(:) = cr_pos(:,ia) + res_para(1:3)    ! Add rotated vector to 1st surface
 !
@@ -3548,7 +3568,8 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    u(:) =  res_para(1:3)
-   beta = do_bang(lspace, real(sym_uvw, kind=PREC_SP), vnull, u)     ! Calculate angle (rot-axis) to vector product 
+!  beta = do_bang(lspace, real(sym_uvw, kind=PREC_SP), vnull, u)     ! Calculate angle (rot-axis) to vector product 
+   beta = do_bang(lspace,      sym_uvw               , vnull, u)     ! Calculate angle (rot-axis) to vector product 
    IF(beta < 90) THEN                            ! Need to invert rotation axis
       IF(alpha < 90) THEN
          sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
@@ -3646,7 +3667,7 @@ USE surface_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
-   USE trafo_mod
+!   USE trafo_mod
 !
 USE lib_random_func
    USE param_mod
@@ -3682,14 +3703,14 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
 !  REAL, PARAMETER         :: SIGMA_A_H    = 0.001   ! Sigma for Acceptor Hydrogon distance
 !  REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bond
    REAL, PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
-   REAL, DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /) 
+   REAL(kind=PREC_DP), DIMENSION(3), PARAMETER :: VNULL = (/ 0.0D0, 0.0D0, 0.0D0 /) 
    LOGICAL, PARAMETER      :: lspace=.TRUE.
    CHARACTER (LEN=PREC_STRING)    :: line
    INTEGER                 ::    j, im, laenge  ! Dummy index
    INTEGER                 :: n1, n2         ! Atoms that define molecule axis
    INTEGER                 :: itype, iprop   ! Atom types, properties
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
-   REAL   , DIMENSION(0:3) :: magn_mom       ! Atom magnetic moment
+   REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom       ! Atom magnetic moment
    INTEGER                 :: nold           ! atom number previous to current molecule
    INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
    INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
@@ -3701,11 +3722,13 @@ INTEGER                              :: test_nhkl
    REAL                    :: hbond          ! actual hydrogen bond A..H
    REAL                    :: angle          ! Temporary angle
    REAL                    :: solution_1, solution_2 ! Temporary angles
-   REAL   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
-   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
-   REAL   , DIMENSION(3)   :: posit          ! Temporary atom position
-   REAL   , DIMENSION(3)   :: origin         ! Temporary origin for symmetry operations
-   REAL   , DIMENSION(3)   :: u,v,w,up,wp,p, prot  ! Temporary vectors
+   REAL(kind=PREC_DP), DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
+   REAL(kind=PREC_DP), DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
+   REAL(kind=PREC_DP)   , DIMENSION(3)   :: posit          ! Temporary atom position
+   REAL(kind=PREC_DP)   , DIMENSION(3)   :: origin         ! Temporary origin for symmetry operations
+   REAL(kind=PREC_DP), DIMENSION(3)   :: u,v,w  ! Temporary vectors
+   REAL(kind=PREC_DP), DIMENSION(3)   :: up,wp,prot     ! Temporary vectors
+   REAL(kind=PREC_DP), DIMENSION(3)   :: p        ! Temporary vectors
 
    INTEGER, DIMENSION(4) :: hkl
    INTEGER             :: m_type_new   ! new molecule types 
@@ -3921,7 +3944,7 @@ USE surface_mod
 USE symm_menu
 USE symm_mod
 USE symm_sup_mod
-USE trafo_mod
+!USE trafo_mod
 !
 use molecule_mod
 !
@@ -3961,7 +3984,7 @@ INTEGER, PARAMETER      :: MAXW = 2
 REAL, PARAMETER         :: EPS = 1.0E-7
 !REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bond
 !   REAL, PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
-   REAL, DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /) 
+   REAL(kind=PREC_DP), DIMENSION(3), PARAMETER :: VNULL = (/ 0.0D0, 0.0D0, 0.0D0 /) 
    LOGICAL, PARAMETER      :: lspace=.TRUE.
    CHARACTER (LEN=PREC_STRING)    :: line
    INTEGER                 :: ianz
@@ -3969,7 +3992,7 @@ REAL, PARAMETER         :: EPS = 1.0E-7
    INTEGER                 :: n1, n2         ! Atom that define teh molecule axis
    INTEGER                 :: itype, iprop   ! Atom types, properties
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
-   REAL   , DIMENSION(0:3) :: magn_mom       ! Atom magnetic moment
+   REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom       ! Atom magnetic moment
    INTEGER                 :: nold           ! atom number previous to current molecule
    INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
    INTEGER                 :: success        ! Failure or success ?
@@ -3982,14 +4005,14 @@ REAL, PARAMETER         :: EPS = 1.0E-7
    LOGICAL                 :: fq
    REAL                    :: normal_l       ! length of normal vector
    REAL                    :: hbond          ! actual hydrogen bond A..H
-   REAL                    :: rmin, rmax
+   REAL(kind=PREC_DP)      :: rmin, rmax
    REAL                    :: angle          !Temporary angle
    REAL                    :: d2             !Temporary distance
-   REAL   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
-   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
-   REAL   , DIMENSION(3)   :: posit          ! Temporary atom position
-   REAL   , DIMENSION(3)   :: origin         ! Temporary origin for symmetry operations
-   REAL   , DIMENSION(3)   :: u,v,x, w       ! Temporary vectors
+   REAL(kind=PREC_DP)   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
+   REAL(kind=PREC_DP)   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
+   REAL(kind=PREC_DP)   , DIMENSION(3)   :: posit          ! Temporary atom position
+   REAL(kind=PREC_DP)   , DIMENSION(3)   :: origin         ! Temporary origin for symmetry operations
+   REAL(kind=PREC_DP)   , DIMENSION(3)   :: u,v,x, w       ! Temporary vectors
    REAL(KIND=PREC_DP)   , DIMENSION(1:MAXW) :: werte
 
    INTEGER, DIMENSION(4) :: hkl
@@ -4222,8 +4245,8 @@ INTEGER                      , INTENT(IN)    :: MAXTYPE
 INTEGER, DIMENSION(0:MAXTYPE), INTENT(IN)    :: surface
 REAL                         , INTENT(IN)    :: distance
 INTEGER                      , INTENT(IN)    :: ia
-REAL   , DIMENSION(1:3)      , INTENT(IN)    :: normal     ! Surface normal in UVW
-REAL   , DIMENSION(1:3)      , INTENT(OUT)   :: posit
+REAL(kind=PREC_DP), DIMENSION(1:3)      , INTENT(IN)    :: normal     ! Surface normal in UVW
+REAL(kind=PREC_DP)   , DIMENSION(1:3)      , INTENT(OUT)   :: posit
 REAL   , DIMENSION(1:3)      , INTENT(OUT)   :: base
 INTEGER, DIMENSION(1:2)      , INTENT(OUT)   :: is_good
 INTEGER                      , INTENT(INOUT) :: ierror
@@ -4238,15 +4261,15 @@ INTEGER, DIMENSION(0:6,2:MAXAT) :: neig
 LOGICAL, DIMENSION(1:3) :: fp
 LOGICAL                 :: fq
 REAL                    :: alpha, vlen
-REAL                    :: rmin, radius
+REAL(kind=PREC_DP)      :: rmin, radius
 REAL(KIND=PREC_DP)   , DIMENSION(1:MAXTYPE) :: werte
-REAL   , DIMENSION(1:3)    :: x, u,v,w, e1,e2,e3, rnorm
+REAL(kind=PREC_DP)   , DIMENSION(1:3)    :: x, u,v,w, e1,e2,e3, rnorm
 REAL                    :: u_l, v_l, w_l    ! length of vectors in triangle
 REAL                    :: av, sig, av_min, sig_min ! average length  and sigma
 REAL                    :: tx,ty, tz        ! Cartesion coordinates of target position
 REAL                    :: g2x, g2y         ! Cartesion coordinates of atom 3
 REAL                    :: arg
-REAL     , DIMENSION(1:3)               :: vnull
+REAL(kind=PREC_DP), DIMENSION(1:3)               :: vnull
 !
    vnull(:) = 0.00
 !
@@ -4404,20 +4427,20 @@ USE symm_menu
 USE symm_mod
 USE symm_sup_mod
 USE metric_mod
-USE trafo_mod
+!USE trafo_mod
 !
 USE precision_mod
 USE param_mod
 !
 IMPLICIT NONE
 !
-REAL,    DIMENSION(3), INTENT(IN) :: origin          ! Molecule origin
+REAL(kind=PREC_DP), DIMENSION(3), INTENT(IN) :: origin          ! Molecule origin
 REAL                 , INTENT(IN) :: tilt            ! Molecule tilt angle
 REAL,    DIMENSION(3), INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal normal
 INTEGER, DIMENSION(4), INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL              , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL              , INTENT(IN) :: tilt_is_auto    ! Plane defined automatically
-REAL,    DIMENSION(3), INTENT(IN) :: surf_normal     ! Local surface normal
+REAL(kind=PREC_DP), DIMENSION(3), INTENT(IN) :: surf_normal     ! Local surface normal
 INTEGER              , INTENT(IN) :: mole_natoms     ! number of atoms in molecule
 INTEGER              , INTENT(IN) :: n1              ! number of atom that defines rotation axis
 INTEGER              , INTENT(IN) :: n2              ! number of atom that defines rotation axis
@@ -4525,7 +4548,7 @@ USE metric_mod
 USE symm_menu
 USE symm_mod
 USE symm_sup_mod
-USE trafo_mod
+!USE trafo_mod
 USE param_mod
 USE precision_mod
 !
@@ -4535,16 +4558,16 @@ INTEGER                , INTENT(IN) :: n1 ! Neighbor 1 defines rotation axis
 INTEGER                , INTENT(IN) :: n2 ! Neighbor 2 defines rotation axis
 INTEGER                , INTENT(IN) :: n_atoms_orig ! Number of atoms prior to deco
 INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis    ! Axis to straighten up
-REAL   , DIMENSION(1:3), INTENT(IN) :: surf_normal  ! Surface normal at anchor atom
+REAL(kind=PREC_DP), DIMENSION(1:3), INTENT(IN) :: surf_normal  ! Surface normal at anchor atom
 !
 LOGICAL, PARAMETER  :: lspace = .TRUE.
 CHARACTER(LEN=PREC_STRING) :: line
 INTEGER             :: a1, a2          ! absolute atom numbers for rotation axix
 INTEGER             :: laenge
 REAL                :: alpha, beta
-REAL, DIMENSION(3)  :: v1, v2, v3, u, w, vnull   ! Dummy vectors
+REAL(kind=PREC_DP), DIMENSION(3)  :: v1, v2, v3, u, w, vnull   ! Dummy vectors
 !
-vnull(:) = 0.0
+vnull(:) = 0.0D0
 !
 !   Rotate molecule up to straighten molecule axis out
 sym_uvw(:) = cr_pos(:,n2) - cr_pos(:,n1)      ! Rotation axis
@@ -4568,7 +4591,8 @@ WRITE(line,1100) v3,v2                        ! Do vector product (mol_axis) x (
 laenge = LEN_TRIM(line)
 CALL vprod(line, laenge)
 u(:) =  res_para(1:3)
-beta = do_bang(lspace, real(sym_uvw,kind=PREC_SP), vnull, u)     ! Calculate angle (rot-axis) to vector product 
+!beta = do_bang(lspace, real(sym_uvw,kind=PREC_SP), vnull, u)     ! Calculate angle (rot-axis) to vector product 
+beta = do_bang(lspace,      sym_uvw              , vnull, u)     ! Calculate angle (rot-axis) to vector product 
 IF(beta < 90) THEN                            ! Need to invert rotation axis
    IF(alpha < 90) THEN
       sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
@@ -4622,7 +4646,7 @@ USE metric_mod
 USE symm_menu
 USE symm_mod
 USE symm_sup_mod
-USE trafo_mod
+!USE trafo_mod
 USE param_mod
 use errlist_mod
 USE precision_mod
@@ -4632,7 +4656,7 @@ IMPLICIT NONE
 INTEGER                , INTENT(IN) :: neig ! Neighbor 1 defines rotation axis
 INTEGER                , INTENT(IN) :: n_atoms_orig ! Number of atoms prior to deco
 INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis    ! Axis to straighten up
-REAL   , DIMENSION(1:3), INTENT(IN) :: surf_normal  ! Surface normal at anchor atom
+REAL(kind=PREC_DP)   , DIMENSION(1:3), INTENT(IN) :: surf_normal  ! Surface normal at anchor atom
 !
 REAL   , PARAMETER  :: EPS = 1.0E-6
 LOGICAL, PARAMETER  :: lspace = .TRUE.
@@ -4640,9 +4664,9 @@ CHARACTER(LEN=PREC_STRING) :: line
 INTEGER             :: n1              ! absolute atom numbers for neighbor
 INTEGER             :: a1, a2          ! absolute atom numbers for rotation axix
 INTEGER             :: laenge
-REAL, DIMENSION(3)  :: axis_ligand, vnull   ! Dummy vectors
+REAL(kind=PREC_DP), DIMENSION(3)  :: axis_ligand, vnull   ! Dummy vectors
 !
-vnull(:) = 0.0
+vnull(:) = 0.0D0
 !
 ! define rotation operation
 n1 = n_atoms_orig + neig                      ! Absolute number for neighboring atom
@@ -4703,8 +4727,8 @@ LOGICAL, PARAMETER :: LSPACE = .TRUE.
 REAL, PARAMETER    :: rcut   = 1.30
 !
 INTEGER                          :: i, j
-REAL(KIND=PREC_SP), DIMENSION(3) :: u
-REAL(KIND=PREC_SP), DIMENSION(3) :: w
+REAL(KIND=PREC_DP), DIMENSION(3) :: u
+REAL(KIND=PREC_DP), DIMENSION(3) :: w
 !REAL(KIND=PREC_SP), DIMENSION(3), PARAMETER :: vnull =(/0.0, 0.0, 0.0/)
 !
 deco_collision=.FALSE.            ! No Collision as default

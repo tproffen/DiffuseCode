@@ -4,6 +4,8 @@ MODULE rmc_mod
 !-
 USE discus_config_mod
 !
+use precision_mod
+!
 SAVE
 !
 INTEGER                 :: RMC_MAX_PLANES    = 1
@@ -54,7 +56,7 @@ LOGICAL, DIMENSION(:), ALLOCATABLE                 :: rmc_lsite     ! (0:RMC_MAX
 CHARACTER (LEN=80), DIMENSION(:), ALLOCATABLE     :: rmc_fname      ! (RMC_MAX_PLANES)
 CHARACTER (LEN= 4), DIMENSION(:), ALLOCATABLE     :: rmc_lambda     ! (RMC_MAX_PLANES)
 REAL              , DIMENSION(:,:), ALLOCATABLE   :: rmc_xy         ! (4,RMC_MAX_PLANES)
-REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_rlambda    ! (RMC_MAX_PLANES)
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE                :: rmc_rlambda    ! (RMC_MAX_PLANES)
 REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_skal       ! (RMC_MAX_PLANES)
 REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_back       ! (RMC_MAX_PLANES)
 REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_chi2       ! (RMC_MAX_PLANES)
@@ -89,8 +91,8 @@ REAL   , DIMENSION(:)      , ALLOCATABLE           :: rmc_wic       ! (RMC_MAX_Q
 !
 CHARACTER (LEN=80)                                 :: rmc_lname
 !
-REAL                                               :: rmc_mindist_max
-REAL                                               :: rmc_ave
+REAL(kind=PREC_DP)                                 :: rmc_mindist_max
+REAL(kind=PREC_DP)                                 :: rmc_ave
 REAL                                               :: rmc_sigma
 REAL                                               :: rmc_qmin,rmc_qmax
 REAL                                               :: rmc_llim,rmc_ulim
