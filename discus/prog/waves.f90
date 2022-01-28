@@ -1,61 +1,64 @@
 MODULE waves_do_menu
 !
 CONTAINS
+!
+!*******************************************************************************
+!
 SUBROUTINE waves_menu
 !-                                                                      
 !     calculates the displacement of the atoms due to a plane wave      
 !     travelling through the crystal                                    
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE get_iscat_mod
-      USE modify_mod
-      USE molecule_mod 
-      USE discus_show_menu
-      USE waves_mod 
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE get_iscat_mod
+USE modify_mod
+USE molecule_mod 
+USE discus_show_menu
+USE waves_mod 
 !
-      USE ber_params_mod
-      USE calc_expr_mod
-      USE doact_mod 
-      USE do_eval_mod
-      USE do_wait_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE learn_mod 
+USE ber_params_mod
+USE calc_expr_mod
+USE doact_mod 
+USE do_eval_mod
+USE do_wait_mod
+USE errlist_mod 
+USE get_params_mod
+USE learn_mod 
 USE lib_do_operating_mod
 USE lib_echo
 USE lib_errlist_func
 USE lib_help
 USE lib_length
 USE lib_macro_func
-      USE class_macro_internal
+USE class_macro_internal
 USE precision_mod
-      USE prompt_mod 
+USE prompt_mod 
 USE str_comp_mod
-      USE sup_mod
+USE sup_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER, PARAMETER :: MIN_PARA = 26  ! A command requires at least these no of parameters
-      INTEGER maxw 
-      LOGICAL lnew, lold 
+INTEGER, PARAMETER :: MIN_PARA = 26  ! A command requires at least these no of parameters
+INTEGER maxw 
+LOGICAL lnew, lold 
 !                                                                       
-      PARAMETER (lnew = .true., lold = .false.) 
+PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
-      CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
-      REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
-      INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
+REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
+INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
 !
-      CHARACTER(LEN=PREC_STRING) :: line, zeile
-      CHARACTER(LEN=PREC_STRING) :: cdummy 
-      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(5) befehl 
-      INTEGER lp, length, lbef, ldummy 
-      INTEGER indxg, ianz, is 
-      INTEGER         :: nscat = 1
-      INTEGER         :: nsite = 1
-      LOGICAL lend 
+CHARACTER(LEN=PREC_STRING) :: line, zeile
+CHARACTER(LEN=PREC_STRING) :: cdummy 
+CHARACTER(LEN=LEN(prompt)) :: orig_prompt
+CHARACTER(len=5)           :: befehl 
+INTEGER :: lp, length, lbef, ldummy 
+INTEGER :: indxg, ianz, is 
+INTEGER :: nscat = 1
+INTEGER :: nsite = 1
+LOGICAL :: lend 
 !                                                                       
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
@@ -559,9 +562,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       prompt = orig_prompt
 !                                                                       
-      END SUBROUTINE waves_menu
+END SUBROUTINE waves_menu
+!
 !*****7*********************************************************        
-      SUBROUTINE wave_show 
+!
+SUBROUTINE wave_show 
 !-                                                                      
 !     Shows current settiungs in WAVES segment                          
 !+                                                                      
@@ -704,39 +709,41 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  3300 FORMAT     (  '   Sel. atom types     : ',2x,50(a9,1x)) 
  3400 FORMAT     (  '   Sel. molecule types : ',2x,50(i4,1x)) 
 !                                                                       
-      END SUBROUTINE wave_show                      
+END SUBROUTINE wave_show                      
+!
 !*****7*********************************************************        
-      SUBROUTINE wave_run 
+!
+SUBROUTINE wave_run 
 !-                                                                      
 !     Main waves routine                                                
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod 
-      USE crystal_mod 
-      USE quad_mod
-      USE symm_mod 
-      USE update_cr_dim_mod
-      USE trafo_mod
-      USE waves_mod 
-      USE errlist_mod 
+USE discus_config_mod 
+USE discus_allocate_appl_mod 
+USE crystal_mod 
+!USE quad_mod
+use metric_mod, only:skalpro
+USE symm_mod 
+USE update_cr_dim_mod
+!USE trafo_mod
+USE waves_mod 
+USE errlist_mod 
 USE lib_length
+use precision_mod
 USE str_comp_mod
-      USE wink_mod
-      IMPLICIT none 
+USE wink_mod
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      REAL wavec (3), swingc (3) 
-      REAL wavep (3), swingp (3) 
-      REAL ww, rnn 
-      INTEGER i, lbef 
+REAL(kind=PREC_DP), dimension(3) :: wavec (3), swingc (3) 
+REAL(kind=PREC_DP), dimension(3) :: wavep (3), swingp (3) 
+REAL(kind=prec_dp) :: ww, rnn 
+INTEGER :: i, lbef 
 !                                                                       
-      REAL hkl (3), uvw (3), tran (3), orig (3), angle
-      INTEGER start, end, power
-      LOGICAL pmult, mode, new, orig_mol, typ, sel_atom
+REAL(kind=prec_dp) :: hkl (3), uvw (3), tran (3), orig (3), angle
+INTEGER :: start, end, power
+LOGICAL :: pmult, mode, new, orig_mol, typ, sel_atom
 INTEGER :: nsite = 1
 !                                                                       
-!     REAL quad 
       angle = 0.0
       start = 1
       end = 1
@@ -810,11 +817,13 @@ INTEGER :: nsite = 1
 !     normalise wavevector to length 1 A,                               
 !     transform to normalised space                                     
 !                                                                       
-      ww = sqrt (quad (wv_wave, wv_wave, cr_gten) ) 
+!     ww = sqrt (quad (wv_wave, wv_wave, cr_gten) ) 
+      ww = sqrt (skalpro(wv_wave, wv_wave, cr_gten) ) 
       DO i = 1, 3 
          wavec (i) = wv_wave (i) / ww 
       ENDDO 
-      CALL trans (wavec, cr_fmat, wavep, 3) 
+!     CALL trans (wavec, cr_fmat, wavep, 3) 
+      wavep = matmul(cr_fmat, wavec)
 !                                                                       
 !     For density waves set correct values of amp and amp0 depending    
 !     on wave function type                                             
@@ -837,7 +846,8 @@ INTEGER :: nsite = 1
 !     transform to normalised space                                     
 !                                                                       
          IF (wv_iwave.eq.WV_TRANS) then 
-            rnn = sqrt (quad (wv_swing, wv_swing, cr_gten) ) 
+!           rnn = sqrt (quad (real(wv_swing), real(wv_swing), cr_gten) ) 
+            rnn = sqrt (skalpro (wv_swing, wv_swing, cr_gten) ) 
             DO i = 1, 3 
             swingc (i) = wv_swing (i) / rnn 
             ENDDO 
@@ -848,7 +858,8 @@ INTEGER :: nsite = 1
          ENDIF 
       ENDIF 
 !                                                                       
-      CALL trans (swingc, cr_fmat, swingp, 3) 
+!     CALL trans (swingc, cr_fmat, swingp, 3) 
+      swingp = matmul(cr_fmat, swingc)
 !                                                                       
 !------ use all of the crystal (outside)                                
 !                                                                       
@@ -896,36 +907,43 @@ INTEGER :: nsite = 1
          ENDDO 
       ENDIF 
 !                                                                       
-      END SUBROUTINE wave_run                       
+END SUBROUTINE wave_run                       
+!
 !*****7*********************************************************        
-      SUBROUTINE wave_run_all (wavep, swingp, wave_func) 
+!
+SUBROUTINE wave_run_all(wavep, swingp, wave_func) 
 !-                                                                      
 !     Displaces all atoms by the corresponding                          
 !     wave function.                                                    
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE trafo_mod
-      USE waves_mod 
-      USE wink_mod
+USE discus_config_mod 
+USE crystal_mod 
+!USE trafo_mod
+USE waves_mod 
+USE wink_mod
 USE lib_random_func
-      USE random_mod
-      IMPLICIT none 
+USE random_mod
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
+real(kind=PREC_DP), dimension(3), intent(in) :: wavep
+real(kind=PREC_DP), dimension(3), intent(in) :: swingp
+REAL(kind=PREC_DP)                           :: wave_func 
        
 !                                                                       
-      REAL uc (3), up (3), disp (3), disc (3) 
-      REAL wavep (3), swingp (3), arg, dis 
-      INTEGER i, j 
-      INTEGER  :: is_target   ! dummy for target atom type
+REAL(kind=PREC_DP), dimension(3) ::  uc (3), up (3), disp (3), disc (3) 
+REAL(kind=PREC_DP) ::       dis 
+real(kind=PREC_DP) :: arg
+INTEGER :: i, j 
+INTEGER  :: is_target   ! dummy for target atom type
 !                                                                       
 !                                                                       
-      REAL wave_func 
-      EXTERNAL wave_func 
+EXTERNAL wave_func 
 !                                                                       
-      IF (wv_phase_typ.eq.WV_RAND) then 
-         wv_phase = ran1 (idum) * 360.0 
-      ENDIF 
+IF (wv_phase_typ.eq.WV_RAND) then 
+   wv_phase = ran1 (idum) * 360.0 
+ENDIF 
 !                                                                       
 is_density: IF (wv_iwave.eq.WV_DENS) then 
    DO i = 1, cr_natoms 
@@ -938,10 +956,12 @@ is_density: IF (wv_iwave.eq.WV_DENS) then
             uc (j) = cr_pos (j, i) 
          ENDDO 
 !                                                                       
-         CALL trans (uc, cr_fmat, up, 3) 
+!        CALL trans (uc, cr_fmat, up, 3) 
+         up = matmul(cr_fmat, uc)
          arg = up(1) * wavep(1) + up(2) * wavep(2) + up(3) * wavep(3)
-         arg = arg + wv_phase * wv_rlam / 360. 
-         arg = amod (arg, wv_rlam) / wv_rlam 
+         arg = arg + wv_phase * wv_rlam / 360.d0 
+!        arg = amod (arg, wv_rlam) / wv_rlam 
+         arg = dmod (arg, wv_rlam) / wv_rlam 
          dis = wave_func (wv_amp, arg, wv_amp0) 
 !                                                                       
          IF (ran1 (idum) .gt.dis) then 
@@ -960,10 +980,12 @@ is_density: IF (wv_iwave.eq.WV_DENS) then
                uc (j) = cr_pos (j, i) 
             ENDDO 
 !                                                                       
-            CALL trans (uc, cr_fmat, up, 3) 
+!           CALL trans (uc, cr_fmat, up, 3) 
+            up = matmul(cr_fmat, uc)
             arg = up(1) * wavep(1) + up(2) * wavep(2) + up(3) * wavep(3)
             arg = arg + wv_phase * wv_rlam / 360. 
-            arg = amod (arg, wv_rlam) / wv_rlam 
+!           arg = amod (arg, wv_rlam) / wv_rlam 
+            arg = dmod (arg, wv_rlam) / wv_rlam 
             dis = 1.0 - wave_func (wv_amp, arg, wv_amp0) 
 !                                                                       
             IF (ran1 (idum) .gt.dis) then 
@@ -974,6 +996,7 @@ is_density: IF (wv_iwave.eq.WV_DENS) then
    ENDDO
 ELSE is_density
 !                                                                       
+write(*,*) ' WAVEp, wave_phase ', wavep, wv_phase, wv_rlam, wv_amp, wv_amp0
       DO i = 1, cr_natoms 
 !                                                                       
 !------ - Check if atom is a valid selection                            
@@ -984,12 +1007,21 @@ ELSE is_density
             uc (j) = cr_pos (j, i) 
          ENDDO 
 !                                                                       
-         CALL trans (uc, cr_fmat, up, 3) 
+!        CALL trans (uc, cr_fmat, up, 3) 
+         up = matmul(cr_fmat, uc)
          arg = up (1) * wavep (1) + up (2) * wavep (2) + up (3) * wavep &
          (3)                                                            
-         arg = arg + wv_phase * wv_rlam / 360. 
-         arg = amod (arg, wv_rlam) / wv_rlam 
+         arg = arg + wv_phase * wv_rlam / 360.d0
+if(i==5) then
+  write(*,*) ' uc, f(1 ', uc, cr_fmat(1,1)
+  write(*,*) ' up, arg ', up, arg
+endif
+!        arg = amod (arg, wv_rlam) / wv_rlam 
+         arg = dmod (arg, wv_rlam) / wv_rlam 
          dis = wave_func (wv_amp, arg, wv_amp0) 
+if(i==5) then
+  write(*,*) ' UP, arg ', up, arg, dis
+endif
 !                                                                       
          IF (.not.wv_lacoust.and. (index (cr_at_lis (cr_iscat (i) ) ,&
             '-') .gt.0) ) then                                          
@@ -999,7 +1031,8 @@ ELSE is_density
          DO j = 1, 3 
             disp (j) = dis * swingp (j) 
          ENDDO 
-         CALL trans (disp, cr_gmat, disc, 3) 
+!        CALL trans (disp, cr_gmat, disc, 3) 
+         disc = matmul(cr_gmat, disp)
          DO j = 1, 3 
             cr_pos (j, i) = cr_pos (j, i) + disc (j) 
          ENDDO 
@@ -1007,40 +1040,47 @@ ELSE is_density
    ENDDO 
 ENDIF is_density
 !                                                                       
-      END SUBROUTINE wave_run_all                   
+END SUBROUTINE wave_run_all                   
+!
 !*****7*********************************************************        
-      SUBROUTINE wave_run_all_mol (wavep, swingp, wave_func) 
+!
+SUBROUTINE wave_run_all_mol (wavep, swingp, wave_func) 
 !-                                                                      
 !     Displaces all molecules by the corresponding                      
 !     wave function.                                                    
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE prop_para_mod 
-      USE modify_mod
-      USE molecule_mod 
-      USE symm_mod 
-      USE symm_sup_mod
-      USE trafo_mod
-      USE waves_mod 
-      USE wink_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE prop_para_mod 
+USE modify_mod
+USE molecule_mod 
+USE symm_mod 
+USE symm_sup_mod
+!USE trafo_mod
+USE waves_mod 
+USE wink_mod
 USE lib_random_func
-      USE random_mod
-      IMPLICIT none 
+USE random_mod
+use precision_mod
+!
+IMPLICIT none 
+!                                                                             
+real(kind=PREC_DP), dimension(3), intent(in) :: wavep
+real(kind=PREC_DP), dimension(3), intent(in) :: swingp
+REAL(kind=PREC_DP)                           :: wave_func 
+
+REAL(kind=PREC_DP), dimension(3) ::  uc (3), up (3), disp (3), disc (3) 
+REAL(kind=PREC_DP) :: dis 
+real(kind=PREC_DP) :: arg
+INTEGER  :: i, j, ia, ityp, im, il 
+INTEGER  :: is_repl  ! no of a target molecule for density waves
+INTEGER  :: is_src   ! no of a source molecule for density waves
 !                                                                       
-      REAL uc (3), up (3), disp (3), disc (3) 
-      REAL wavep (3), swingp (3), arg, dis 
-      INTEGER i, j, ia, ityp, im, il 
-      INTEGER  :: is_repl  ! no of a target molecule for density waves
-      INTEGER  :: is_src   ! no of a source molecule for density waves
+EXTERNAL wave_func 
 !                                                                       
-!                                                                       
-      REAL wave_func 
-      EXTERNAL wave_func 
-!                                                                       
-      IF (wv_phase_typ.eq.WV_RAND) then 
-         wv_phase = ran1 (idum) * 360.0 
-      ENDIF 
+IF (wv_phase_typ.eq.WV_RAND) then 
+   wv_phase = ran1 (idum) * 360.0 
+ENDIF 
 !                                                                       
 !                                                                       
 !------- ---- Density wave                                              
@@ -1058,10 +1098,12 @@ wave_type: IF (wv_iwave.eq.WV_DENS) then
             uc (j) = cr_pos (j, ia) 
          ENDDO 
 !                                                                       
-         CALL trans (uc, cr_fmat, up, 3) 
+!        CALL trans (uc, cr_fmat, up, 3) 
+         up = matmul(cr_fmat, uc)
          arg = up(1) * wavep(1) + up(2) * wavep(2) + up(3) * wavep(3)                                                            
-         arg = arg + wv_phase * wv_rlam / 360. 
-         arg = amod (arg, wv_rlam) / wv_rlam 
+         arg = arg + wv_phase * wv_rlam / 360.d0
+!        arg = amod (arg, wv_rlam) / wv_rlam 
+         arg = dmod (arg, wv_rlam) / wv_rlam 
          dis = wave_func (wv_amp, arg, wv_amp0) 
          IF (ran1 (idum) .gt.dis) then 
             IF (wv_repl (ityp) .ne.0) then 
@@ -1096,10 +1138,12 @@ find_source:   DO is_repl=1,mole_num_mole
             uc (j) = cr_pos (j, ia) 
          ENDDO 
 !                                                                       
-         CALL trans (uc, cr_fmat, up, 3) 
+!        CALL trans (uc, cr_fmat, up, 3) 
+         up = matmul(cr_fmat, uc)
          arg = up(1) * wavep(1) + up(2) * wavep(2) + up(3) * wavep(3)                                                            
          arg = arg + wv_phase * wv_rlam / 360. 
-         arg = amod (arg, wv_rlam) / wv_rlam 
+!        arg = amod (arg, wv_rlam) / wv_rlam 
+         arg = dmod (arg, wv_rlam) / wv_rlam 
          dis = 1.0 - wave_func (wv_amp, arg, wv_amp0)  ! Replace by opposite probability
          IF (ran1 (idum) .gt.dis) then 
             ityp = mole_type (i) 
@@ -1135,11 +1179,13 @@ ELSE wave_type
             uc (j) = cr_pos (j, ia) 
          ENDDO 
 !                                                                       
-         CALL trans (uc, cr_fmat, up, 3) 
+!        CALL trans (uc, cr_fmat, up, 3) 
+         up = matmul(cr_fmat, uc)
          arg = up (1) * wavep (1) + up (2) * wavep (2) + up (3) * wavep &
          (3)                                                            
          arg = arg + wv_phase * wv_rlam / 360. 
-         arg = amod (arg, wv_rlam) / wv_rlam 
+!        arg = amod (arg, wv_rlam) / wv_rlam 
+         arg = dmod (arg, wv_rlam) / wv_rlam 
          dis = wave_func (wv_amp, arg, wv_amp0) 
 !                                                                       
 !------- ---- Rotational wave                                           
@@ -1163,7 +1209,8 @@ ELSE wave_type
             DO j = 1, 3 
             disp (j) = dis * swingp (j) 
             ENDDO 
-            CALL trans (disp, cr_gmat, disc, 3) 
+!           CALL trans (disp, cr_gmat, disc, 3) 
+            disc = matmul(cr_gmat, disp)
             DO il = 1, mole_len (i) 
             im = mole_cont (mole_off (i) + il) 
             DO j = 1, 3 
@@ -1177,74 +1224,80 @@ ELSE wave_type
 !                                                                       
       END SUBROUTINE wave_run_all_mol               
 !*****7*********************************************************        
-      REAL function sinus (amp, arg, amp0) 
+      REAL(kind=kind(1.0D0)) function sinus (amp, arg, amp0) 
 !-                                                                      
 !     Sinusoidal wave function                                          
 !+                                                                      
-      USE wink_mod
-      IMPLICIT none 
+use precision_mod
+USE wink_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      REAL amp, arg, amp0 
+REAL(kind=PREC_DP), intent(in) :: amp, arg, amp0 
 !                                                                       
 !     arg = arg * zpi 
-      sinus = amp * cos (REAL(zpi)*arg) + amp0 
+sinus = amp * cos (REAL(zpi)*arg) + amp0 
 !                                                                       
-      END FUNCTION sinus                            
+END FUNCTION sinus                            
+!
 !*****7*********************************************************        
-      REAL function box (amp, arg, amp0) 
+!
+REAL(kind=kind(1.0D0)) function box (amp, arg, amp0) 
 !-                                                                      
 !     box shaped wave function                                          
 !+                                                                      
-      USE discus_config_mod 
-      USE waves_mod 
-      USE wink_mod
-      IMPLICIT none 
+USE discus_config_mod 
+USE waves_mod 
+!
+use precision_mod
+USE wink_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      REAL amp, arg, amp0 
+REAL(kind=PREC_DP), intent(in) :: amp, arg, amp0 
 !                                                                       
 !     We have a positive argument 'arg'.                                
 !                                                                       
-      IF (arg.ge.0.0) then 
-         IF (arg.lt. (0.5 * wv_asym) .or.arg.ge. (1.0 - 0.5 * wv_asym) )&
-         then                                                           
-            box = amp0 
-         ELSE 
-            box = amp0 + amp 
-         ENDIF 
+IF (arg.ge.0.0) then 
+   IF(arg.lt.(0.5 * wv_asym) .or.arg.ge.(1.0 - 0.5 * wv_asym)) then
+      box = amp0 
+   ELSE 
+      box = amp0 + amp 
+   ENDIF 
 !                                                                       
 !     For negative argument the exclusions are reversed                 
 !------ to ensure continuity at arg=0.0                                 
 !                                                                       
-      ELSE 
-         IF ( - arg.le. (0.5 * wv_asym) .or. - arg.gt. (1.0 - 0.5 *     &
-         wv_asym) ) then                                                
-            box = amp0 
-         ELSE 
-            box = amp0 + amp 
-         ENDIF 
-      ENDIF 
+ELSE 
+   IF( -arg.le.(0.5 * wv_asym) .or. -arg.gt.(1.0 - 0.5 * wv_asym) ) then
+      box = amp0 
+   ELSE 
+      box = amp0 + amp 
+   ENDIF 
+ENDIF 
 !                                                                       
-      END FUNCTION box                              
+END FUNCTION box                              
+!
 !*****7*********************************************************        
-      REAL function triang (amp, arg, amp0) 
+!
+REAL(kind=kind(1.0D0)) function triang (amp, arg, amp0) 
 !-                                                                      
 !     triangular shaped wave function                                   
 !+                                                                      
-      USE wink_mod
-      IMPLICIT none 
+use precision_mod
+USE wink_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      REAL amp, arg, amp0 
+REAL(KIND=PREC_DP), intent(in) :: amp, arg, amp0 
 !                                                                       
-      IF (arg.ge.0) then 
-         triang = amp0 + amp * arg 
-      ELSE 
-         triang = amp0 + amp * (1. + arg) 
-      ENDIF 
+IF (arg.ge.0) then 
+   triang = amp0 + amp * arg 
+ELSE 
+   triang = amp0 + amp * (1. + arg) 
+ENDIF 
 !                                                                       
-      END FUNCTION triang                           
+END FUNCTION triang                           
 !
 !*****7*********************************************************        
 !

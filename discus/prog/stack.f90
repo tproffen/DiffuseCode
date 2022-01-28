@@ -956,8 +956,8 @@ USE stack_cr_mod
 USE structur
 USE spcgr_apply
 USE symm_sup_mod
-USE tensors_mod
-USE trafo_mod
+!USE tensors_mod
+!USE trafo_mod
 !
 USE errlist_mod 
 USE lib_errlist_func
@@ -1243,7 +1243,7 @@ loop_layer: DO i = 2, st_nlayer
       IF (st_rot_si_no.gt.0.0) then 
          CALL stack_rot_setup ('normal', 6, 1, i - 1, .false.) 
          CALL symm_setup 
-         CALL symm_ca_single (real(st_trans_cur,kind=prec_sp), .true., .false.) 
+         CALL symm_ca_single (st_trans_cur, .true., .false.) 
          DO j = 1, 3 
             st_trans_cur (j) = res_para (j) 
          ENDDO 
@@ -1254,7 +1254,7 @@ loop_layer: DO i = 2, st_nlayer
       IF (st_rot_si_m1.gt.0.0) then 
          CALL stack_rot_setup ('mod1', 4, 1, i - 1, .false.) 
          CALL symm_setup 
-         CALL symm_ca_single (real(st_trans_cur,kind=prec_sp), .true., .false.) 
+         CALL symm_ca_single (st_trans_cur, .true., .false.) 
          DO j = 1, 3 
             st_trans_cur (j) = res_para (j) 
          ENDDO 
@@ -1265,7 +1265,7 @@ loop_layer: DO i = 2, st_nlayer
       IF (st_rot_si_m2.gt.0.0) then 
          CALL stack_rot_setup ('mod2', 4, 1, i - 1, .false.) 
          CALL symm_setup 
-         CALL symm_ca_single (real(st_trans_cur,kind=prec_sp), .true., .false.) 
+         CALL symm_ca_single (st_trans_cur, .true., .false.) 
          DO j = 1, 3 
             st_trans_cur (j) = res_para (j) 
          ENDDO 
@@ -1861,7 +1861,7 @@ USE discus_config_mod
 USE crystal_mod 
 USE symm_mod 
 USE stack_mod 
-USE trafo_mod
+!USE trafo_mod
 USE str_comp_mod
 !                                                                       
 IMPLICIT none 

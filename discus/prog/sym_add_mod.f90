@@ -9,6 +9,8 @@ MODULE sym_add_mod
 !
 !*****7*****************************************************************
 !
+use precision_mod
+!
 SAVE
 !
 INTEGER, PRIVATE    :: ik
@@ -17,7 +19,7 @@ INTEGER, PARAMETER  ::  SYM_ADD_MAX  =  192
 !
 INTEGER                               ::  sym_add_n     = 0
 INTEGER, DIMENSION(SYM_ADD_MAX)       ::  sym_add_power = 1
-REAL   , DIMENSION(4,4,0:SYM_ADD_MAX) ::  sym_add       = &
+REAL(kind=PREC_DP)   , DIMENSION(4,4,0:SYM_ADD_MAX) ::  sym_add       = &
          RESHAPE((/(1.,(0.,0.,0.,0.,1.,ik=1,3),il=0,SYM_ADD_MAX)/),(/4,4,SYM_ADD_MAX+1/))
 !
 END MODULE sym_add_mod

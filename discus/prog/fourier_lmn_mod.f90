@@ -12,29 +12,31 @@ SUBROUTINE fourier_lmn(eck,vi,inc,lmn,off)
 !   are calculated.
 !
 USE errlist_mod
-USE tensors_mod
+!USE tensors_mod
+use matrix_mod
 USE lib_random_func
+use precision_mod
 USE random_mod
 !
 IMPLICIT NONE
 !
-REAL   , DIMENSION(1:3, 1:4), INTENT(IN)  ::  eck
-REAL   , DIMENSION(1:3, 1:3), INTENT(IN)  ::  vi
+REAL(kind=PREC_DP)   , DIMENSION(1:3, 1:4), INTENT(IN)  ::  eck
+REAL(kind=PREC_DP)   , DIMENSION(1:3, 1:3), INTENT(IN)  ::  vi
 INTEGER, DIMENSION(1:3)     , INTENT(IN)  ::  inc
 INTEGER, DIMENSION(1:6)     , INTENT(OUT) ::  lmn
-REAL   , DIMENSION(1:3,1:3) , INTENT(OUT) :: off
+REAL(kind=PREC_DP)   , DIMENSION(1:3,1:3) , INTENT(OUT) :: off
 !
 INTEGER                     :: i,j, j1, j2
 INTEGER                     :: dimen   ! dimension spanned by vi vectors (1, 2, 3)
 INTEGER, DIMENSION(1:3)     :: direc   ! index of directions with inc > 1
 LOGICAL, DIMENSION(1:3)     :: nooff   ! offset vectors
 REAL                        :: dummy
-REAL   , DIMENSION(1:3,1:3) :: mat_a
-REAL   , DIMENSION(1:3)     :: vec_r
-REAL   , DIMENSION(1:3,1:3) :: mat_i
+REAL(kind=PREC_DP)   , DIMENSION(1:3,1:3) :: mat_a
+REAL(kind=PREC_DP)   , DIMENSION(1:3)     :: vec_r
+REAL(kind=PREC_DP)   , DIMENSION(1:3,1:3) :: mat_i
 !
-mat_a(:,:) = 0.0
-mat_i(:,:) = 0.0
+mat_a(:,:) = 0.0d0
+mat_i(:,:) = 0.0d0
 dimen      = 0
 nooff(:)   = .false.
 off  (:,:) = 0.0
@@ -113,7 +115,8 @@ ENDIF
 !   write(*,1000) (mat_a(j,i),i=1,3),'   ',(mat_i(j,i),i=1,3), vi(j,1), vi(j,2),vi(j,3), &
 !   (off(j,i),i=1,3)
 !enddo
-CALL invmat(mat_i, mat_a)
+!CALL invmat(mat_i, mat_a)
+call matinv(mat_a, mat_i)
 !do j=1,3
 !   write(*,1000) (mat_a(j,i),i=1,3),'   ',(mat_i(j,i),i=1,3), vi(j,1), vi(j,2),vi(j,3), &
 !   (off(j,i),i=1,3)

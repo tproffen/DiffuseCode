@@ -4,6 +4,8 @@ MODULE transfrm_mod
 !     variables needed for the unit cell transformations
 !-
 !
+use precision_mod
+!
 INTEGER, PRIVATE    :: ik
 SAVE
 !
@@ -25,13 +27,13 @@ LOGICAL             ::  tran_oold      = .true.
 LOGICAL             ::  tran_sel_atom  = .true.
 REAL                ::  tran_orig(3)   = 0.0
 REAL                ::  tran_det       = 1.0
-REAL                ::  tran_g   (4,4) = &
+REAL(kind=PREC_DP)  ::  tran_g   (4,4) = &
          RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(tran_g ))
-REAL                ::  tran_gi  (4,4) = &
+REAL(kind=PREC_DP)  ::  tran_gi  (4,4) = &
          RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(tran_gi))
-REAL                ::  tran_f   (4,4) = &
+REAL(kind=PREC_DP)  ::  tran_f   (4,4) = &
          RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(tran_f ))
-REAL                ::  tran_fi  (4,4) = &
+REAL(kind=PREC_DP)  ::  tran_fi  (4,4) = &
          RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(tran_fi))
 REAL                ::  tran_deltahkl  = 0.001
 !

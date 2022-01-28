@@ -25,7 +25,7 @@ USE update_cr_dim_mod
 USE discus_show_menu
 USE symm_mod 
 USE symm_sup_mod 
-USE trafo_mod
+!USE trafo_mod
 USE wyckoff_mod
 !
 USE ber_params_mod
@@ -73,7 +73,7 @@ LOGICAL :: l_need_setup
 LOGICAL :: lselect 
 LOGICAL :: lout         ! Screen echo for 'calc' yes/no
 LOGICAL :: success   
-REAL(kind=PREC_SP), dimension(3) :: hkl
+REAL(kind=PREC_DP), dimension(3) :: hkl
 REAL(KIND=PREC_DP), DIMENSION(3) :: vector
 !
 INTEGER, PARAMETER :: NOPTIONAL = 4

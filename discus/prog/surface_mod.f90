@@ -4,6 +4,8 @@ MODULE surface_mod
 !     Surface related definitions
 !-
 !
+use precision_mod
+!
 SAVE
 !
 INTEGER, PARAMETER  ::  SURF_MAXTYPE  =  7
@@ -20,10 +22,10 @@ INTEGER, PARAMETER  ::  SURF_DOMAIN   =  1
 !
 INTEGER             ::  SURF_MAXSCAT  =  0
 !
-REAL                ::  SURF_DIST_DEF =  2.55
+REAL(kind=PREC_DP)  ::  SURF_DIST_DEF =  2.55
 !
-REAL, DIMENSION(:), ALLOCATABLE  ::  surf_ex_dist   !(0:MAXSCAT)
-REAL, DIMENSION(:), ALLOCATABLE  ::  surf_in_dist   !(0:MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE  ::  surf_ex_dist   !(0:MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE  ::  surf_in_dist   !(0:MAXSCAT)
 !
 LOGICAL             ::  surf_local_new = .TRUE.
 !

@@ -1,4 +1,4 @@
-MODULE wyckoff_mod
+module wyckoff_mod
 !
 !
 !     This file contains definitions for the symmetry operations
@@ -6,18 +6,20 @@ MODULE wyckoff_mod
 !
 !*****7****************************************************************
 !
-      SAVE
+use precision_mod
 !
-      INTEGER, PARAMETER  ::   SPC_MAX  =  192
+save
 !
-      CHARACTER(LEN=65)   ::   spc_char(1:SPC_MAX)
-      CHARACTER(LEN=87)   ::   spc_xyz (1:SPC_MAX)
-      INTEGER             ::   spc_n
-      REAL                ::   spc_mat(4,4,1:SPC_MAX)
-      REAL                ::   spc_det (1:SPC_MAX)
-      REAL                ::   spc_spur(1:SPC_MAX)
+integer, PARAMETER  ::   SPC_MAX  =  192
 !
-      INTEGER             ::   wyc_n
-      INTEGER             ::   wyc_list(48)
+character(LEN=65)   ::   spc_char(1:SPC_MAX)
+character(LEN=87)   ::   spc_xyz (1:SPC_MAX)
+integer             ::   spc_n
+real(kind=PREC_DP)  ::   spc_mat(4,4,1:SPC_MAX)
+real(kind=PREC_DP)  ::   spc_det (1:SPC_MAX)
+real(kind=PREC_DP)  ::   spc_spur(1:SPC_MAX)
 !
-END MODULE wyckoff_mod
+integer             ::   wyc_n
+integer             ::   wyc_list(48)
+!
+end module wyckoff_mod

@@ -202,32 +202,34 @@ CALL four_accumulate
  4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
       END SUBROUTINE four_run                       
 !*****7*****************************************************************
-      SUBROUTINE four_aver (lots, ave, csize) 
+!
+SUBROUTINE four_aver (lots, ave, csize) 
 !+                                                                      
 !     This routine calculates the average structure factor <F>.         
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE celltoindex_mod
-      USE diffuse_mod 
-      USE four_strucf_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE celltoindex_mod
+USE diffuse_mod 
+USE four_strucf_mod
 !     USE modify_mod
-      USE random_mod
+USE random_mod
 !                                                                       
 USE lib_random_func
-      USE prompt_mod 
-      USE precision_mod
-      IMPLICIT none 
+USE prompt_mod 
+USE precision_mod
+!
+IMPLICIT none 
        
 !
-      INTEGER, INTENT(IN) :: lots
-      REAL   , INTENT(IN) :: ave 
-      INTEGER, DIMENSION(3), INTENT(IN) :: csize
+INTEGER, INTENT(IN) :: lots
+REAL(kind=PREC_DP)   , INTENT(IN) :: ave 
+INTEGER, DIMENSION(3), INTENT(IN) :: csize
 !                                                                       
-      REAL (KIND=PREC_DP) :: norm
-      INTEGER isite, iatom, iscat, icell (3) 
-      INTEGER scell, ncell, j, ii, jj, kk 
-      LOGICAL, DIMENSION(:,:,:), ALLOCATABLE :: sel_cell
+REAL (KIND=PREC_DP) :: norm
+INTEGER :: isite, iatom, iscat, icell (3) 
+INTEGER :: scell, ncell, j, ii, jj, kk 
+LOGICAL, DIMENSION(:,:,:), ALLOCATABLE :: sel_cell
 !                                                                       
       ave_is_zero: IF (ave.eq.0.0) then 
          RETURN 
@@ -372,9 +374,9 @@ integer               :: isdim      ! Fourier was calculated in 1,2,3 dimensions
 integer               :: ncells
 integer               :: i, j, k, ii
 real(kind=PREC_DP)    :: scalef     ! scale factor to apply to the Bragg reflections
-real(kind=PREC_SP), dimension(3  ) :: hkl     ! base vectors to calculate a volume
-real(kind=PREC_SP), dimension(3,3) :: bases   ! base vectors to calculate a volume
-real(kind=PREC_SP)                 :: voxel
+real(kind=PREC_DP), dimension(3  ) :: hkl     ! base vectors to calculate a volume
+real(kind=PREC_DP), dimension(3,3) :: bases   ! base vectors to calculate a volume
+real(kind=PREC_DP)                 :: voxel
 !
 scalef = 1.0D0
 if_fave:if(fave == 0.000) then
@@ -883,23 +885,26 @@ USE lib_random_func
 !                                                                       
  1000 FORMAT     (' Computing complex exponent table ...') 
       END SUBROUTINE four_cexpt                     
+!
 !*****7*****************************************************************
-      SUBROUTINE four_stltab 
+!
+SUBROUTINE four_stltab 
 !+                                                                      
 !     Sets up an integer array containing the corresponding integers    
 !     to the formfactor table for each sin(theta)/lambda.               
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE diffuse_mod
-      USE quad_mod 
-      USE prompt_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+USE diffuse_mod
+!USE quad_mod 
+use metric_mod ,only: skalpro
+USE prompt_mod 
+use precision_mod
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      REAL q2, h (3) 
-      INTEGER i, j, k, l 
+REAL(kind=PREC_DP) :: q2, h (3) 
+INTEGER :: i, j, k, l 
 !                                                                       
       IF (four_log) then 
          WRITE (output_io, 1000) 
@@ -913,7 +918,8 @@ USE lib_random_func
                           + vin (k) * REAL (j - 1, KIND=KIND(0.0D0)) &
                           + win (k) * REAL (l - 1, KIND=KIND(0.0D0)))
       ENDDO 
-      q2 = quad (h, h, cr_rten) / 4.0 
+!     q2 = quad (h, h, cr_rten) / 4.0 
+      q2 = skalpro (h, h, cr_rten) / 4.0 
 !     k  = (i - 1) * num (2) + j 
       k  = (i - 1) * num (3)* num (2) + (j - 1) * num (3) + l 
 !RBN_3D
@@ -1072,7 +1078,7 @@ END SUBROUTINE four_formtab
 !                                                                       
       INTEGER, INTENT(IN) :: ll
       LOGICAL, INTENT(IN) :: lxray 
-      REAL   , DIMENSION(11,0:MAXSCAT), INTENT(INOUT) :: scat ! (11, 0:maxscat) 
+      REAL(kind=PREC_DP)   , DIMENSION(11,0:MAXSCAT), INTENT(INOUT) :: scat ! (11, 0:maxscat) 
       REAL                            , INTENT(IN)    :: h2
       INTEGER, INTENT(IN) :: power
 !
@@ -1102,13 +1108,15 @@ USE crystal_mod
 USE element_data_mod
 USE chem_aver_mod
 USE param_mod
+use precision_mod
+!
 IMPLICIT none 
 !                                                                       
 !                                                                       
 LOGICAL             , INTENT(IN)   :: ano             ! Anomalous scattering TRUE/FALSE
 CHARACTER (LEN = * ), INTENT(IN)   :: lambda          ! Wavelength symbol
-REAL                , INTENT(OUT)  :: rlambda         ! Wave length value
-REAL                , INTENT(INOUT):: renergy         ! Wave length energy
+REAL(kind=PREC_DP)  , INTENT(OUT)  :: rlambda         ! Wave length value
+REAL(kind=PREC_DP)  , INTENT(INOUT):: renergy         ! Wave length energy
 LOGICAL             , INTENT(IN)   :: l_energy        ! Wave length specified as energy TRUE/FALSE
 INTEGER             , INTENT(IN)   :: diff_radiation  ! xray/neutron/electron
 INTEGER             , INTENT(IN)   :: diff_table      ! International / Waasmaier
@@ -2140,13 +2148,14 @@ USE crystal_mod
 use wyckoff_mod
 !
 USE matrix_mod
+use precision_mod
 !
 IMPLICIT NONE
 !
 INTEGER                  , DIMENSION(3)                     , INTENT(IN)    :: num
 COMPLEX(KIND=KIND(0.0D0)), DIMENSION(num(1), num(2), num(3)), INTENT(INOUT) :: csf_3d
-REAL    , DIMENSION(1:3, 1:4)           ::  eck
-REAL    , DIMENSION(1:3, 1:3)           ::  vi
+REAL(kind=PREC_DP)       , DIMENSION(1:3, 1:4)           ::  eck
+REAL(kind=PREC_DP)       , DIMENSION(1:3, 1:3)           ::  vi
 !
 INTEGER :: n_center     ! Only use this fraction of symmetry operations
 INTEGER :: i
@@ -2262,14 +2271,15 @@ SUBROUTINE four_symm_dsi(num, dsi_3d, eck, vi)
 USE crystal_mod
 use wyckoff_mod
 !
+use precision_mod
 USE matrix_mod
 !
 IMPLICIT NONE
 !
 INTEGER               , DIMENSION(3)                     , INTENT(IN)    :: num
 REAL(KIND=KIND(0.0D0)), DIMENSION(num(1), num(2), num(3)), INTENT(INOUT) :: dsi_3d
-REAL    , DIMENSION(1:3, 1:4)           ::  eck
-REAL    , DIMENSION(1:3, 1:3)           ::  vi
+REAL(kind=PREC_DP)       , DIMENSION(1:3, 1:4)           ::  eck
+REAL(kind=PREC_DP)       , DIMENSION(1:3, 1:3)           ::  vi
 !
 INTEGER :: n_center     ! Only use this fraction of symmetry operations
 INTEGER :: i

@@ -1,13 +1,14 @@
 MODULE zone
 !
+use precision_mod
 IMPLICIT NONE
 !
 PRIVATE
 PUBLIC zone_setup, zone_project
 !
-   REAL, DIMENSION(3)  :: absc
-   REAL, DIMENSION(3)  :: ordi
-   REAL, DIMENSION(3)  :: top
+   REAL(kind=PREC_DP), DIMENSION(3)  :: absc
+   REAL(kind=PREC_DP), DIMENSION(3)  :: ordi
+   REAL(kind=PREC_DP), DIMENSION(3)  :: top
 !
 CONTAINS
    SUBROUTINE zone_setup
@@ -16,7 +17,7 @@ CONTAINS
    USE diffuse_mod 
    USE metric_mod
    USE output_mod
-   USE trafo_mod
+!   USE trafo_mod
 !
    USE param_mod
    USE precision_mod
@@ -33,7 +34,8 @@ CONTAINS
 !
 !     Transform zone axis into reciprocal space
 !
-   CALL trans(zone_uvw, cr_gten, top, 3)
+!  CALL trans(zone_uvw, cr_gten, top, 3)
+   top = matmul(cr_gten, zone_uvw)
 !
 !     Define directions in reciprocal space
 !
@@ -185,9 +187,10 @@ CONTAINS
    USE fourier_sup
    USE metric_mod
    USE output_mod
-   USE tensors_mod
+!  USE tensors_mod
 !
    USE param_mod
+use matrix_mod
    USE precision_mod
 !
    IMPLICIT NONE
@@ -200,8 +203,9 @@ CONTAINS
    INTEGER              :: n_nscat  ! required no of atom types right now
    INTEGER              :: n_natoms ! required no of atoms
 !
-   REAL, DIMENSION(1:3)  :: rvec, rdif, rproj, rres
-   REAL, DIMENSION(3,3)  :: matrix, inverse
+   REAL, DIMENSION(1:3)  :: rvec, rproj, rres
+real(kind=PREC_DP), dimension(1:3) :: rdif
+   REAL(kind=PREC_DP), DIMENSION(3,3)  :: matrix, inverse
    REAL                  :: dstar
    REAL (KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: layer
 !
@@ -238,7 +242,8 @@ CONTAINS
    matrix(:,1) = vi(:,1)
    matrix(:,2) = vi(:,2)
    matrix(:,3) = vi(:,3) 
-   CALL invmat(inverse,matrix)
+!  CALL invmat(inverse,matrix)
+   CALL matinv(matrix, inverse)
 !
    eck(:,:) = 0.0
    hmax     = 1*INT(zone_res*cr_a0(1)+0.)

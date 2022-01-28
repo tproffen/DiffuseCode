@@ -64,10 +64,10 @@ INTEGER :: tran_hlen
 INTEGER :: indxg, ianz, i, j 
 LOGICAL :: lend, lchange, lscreen 
 LOGICAL :: lspace
-REAL(KIND=PREC_SP), DIMENSION(3), PARAMETER :: NULLV = (/ 0.00, 0.00, 0.00 /)
-REAL(KIND=PREC_SP), DIMENSION(3) :: u
-REAL(KIND=PREC_SP)               :: dd
-REAL(KIND=PREC_SP), DIMENSION(4) :: hkl !(4) 
+REAL(KIND=PREC_DP), DIMENSION(3), PARAMETER :: NULLV = (/ 0.00, 0.00, 0.00 /)
+REAL(KIND=PREC_DP), DIMENSION(3) :: u
+REAL(KIND=PREC_DP)               :: dd
+REAL(KIND=PREC_DP), DIMENSION(4) :: hkl !(4) 
 !                                                                       
 !                                                                       
 !                                                                       
@@ -875,8 +875,10 @@ SUBROUTINE tran_setup
 !     See Sands, D.E. Vectors and Tensors in Crystallography Chapt. 4.7 
 !+                                                                      
 USE discus_config_mod 
-USE tensors_mod
+!USE tensors_mod
 USE transfrm_mod 
+!
+use matrix_mod
 USE errlist_mod 
 !                                                                       
 IMPLICIT none 
@@ -907,7 +909,8 @@ IF (tran_inp == TRAN_INP_G) THEN
          tran_gi (i, j) = tran_g (i, j) 
       ENDDO 
    ENDDO 
-   CALL invmat4 (tran_gi) 
+!  CALL invmat4 (tran_gi) 
+   CALL matinv  (tran_g , tran_gi) 
    IF(ier_num/=0) THEN
       ier_msg(2) = 'Check transformation matrices'
       RETURN
@@ -927,7 +930,8 @@ ELSEIF (tran_inp == TRAN_INP_GI) THEN
          tran_g (i, j) = tran_gi (i, j) 
       ENDDO 
    ENDDO 
-   CALL invmat4 (tran_g) 
+!  CALL invmat4 (tran_g) 
+   CALL matinv  (tran_gi, tran_g) 
    DO i = 1, 3 
       DO j = 1, 3 
          tran_f (j, i) = tran_gi (i, j) 
@@ -943,7 +947,8 @@ ELSEIF (tran_inp == TRAN_INP_F) THEN
          tran_fi (i, j) = tran_f (i, j) 
       ENDDO 
    ENDDO 
-   CALL invmat4 (tran_fi) 
+!  CALL invmat4 (tran_fi) 
+   CALL matinv  (tran_f , tran_fi) 
    DO i = 1, 3 
       DO j = 1, 3 
          tran_g (j, i) = tran_fi (i, j) 
@@ -959,7 +964,8 @@ ELSEIF (tran_inp == TRAN_INP_FI) THEN
          tran_f (i, j) = tran_fi (i, j) 
       ENDDO 
    ENDDO 
-   CALL invmat4 (tran_f) 
+!  CALL invmat4 (tran_f) 
+   CALL matinv  (tran_fi, tran_f) 
    DO i = 1, 3 
       DO j = 1, 3 
          tran_g (j, i) = tran_fi (i, j) 
@@ -1016,8 +1022,9 @@ END SUBROUTINE tran_setup
       USE spcgr_apply, ONLY: setup_lattice
       USE update_cr_dim_mod
       USE transfrm_mod 
-      USE trafo_mod
+!      USE trafo_mod
       USE errlist_mod 
+use precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1027,9 +1034,9 @@ END SUBROUTINE tran_setup
       INTEGER i_start, i_end 
       LOGICAL lspace 
       LOGICAL lout 
-      REAL usym (4), ures (4) 
+      REAL(kind=PREC_DP) ::  usym (4), ures (4) 
       REAL werte (5) 
-      REAL u (3), v (3), w (3) 
+      REAL(kind=PREC_DP) :: u (3), v (3), w (3) 
 !                                                                       
 !     REAL do_bang 
 !     REAL skalpro 
@@ -1061,7 +1068,8 @@ END SUBROUTINE tran_setup
 !-----      ----Apply symmetry operation                                
 !                                                                       
          usym (4) = 1.0 
-         CALL trans (usym, tran_f, ures, 4) 
+!        CALL trans (usym, tran_f, ures, 4) 
+         ures = matmul(tran_f, usym)
 !                                                                       
 !     ----Replace original atom by its image                            
 !                                                                       
@@ -1120,7 +1128,7 @@ END SUBROUTINE tran_setup
       USE generate_mod 
       USE gen_add_mod 
       USE sym_add_mod 
-      USE tensors_mod
+!     USE tensors_mod
       USE transfrm_mod 
       USE unitcell_mod 
 !                                                                       
@@ -1132,7 +1140,7 @@ END SUBROUTINE tran_setup
       INTEGER :: i, j, k, n, nn=0, jp, l 
       LOGICAL lequal 
 !                                                                       
-      REAL mat (4, 4), arr (4, 4) 
+      REAL mat (4, 4) !, arr (4, 4) 
       REAL eps 
 !                                                                       
 !                                                                       
@@ -1187,8 +1195,9 @@ END SUBROUTINE tran_setup
       mat (i, j) = gen_add (i, j, n) 
       ENDDO 
       ENDDO 
-      CALL matmul4 (arr, tran_f, mat) 
-      CALL matmul4 (mat, arr, tran_fi) 
+!     CALL matmul4 (arr, tran_f, mat) 
+!     CALL matmul4 (mat, arr, tran_fi) 
+      mat = matmul( matmul(tran_f, mat), tran_fi)
       DO i = 1, 4 
       DO j = 1, 4 
       gen_add (i, j, n) = mat (i, j) 
@@ -1204,8 +1213,9 @@ END SUBROUTINE tran_setup
       mat (i, j) = sym_add (i, j, n) 
       ENDDO 
       ENDDO 
-      CALL matmul4 (arr, tran_f, mat) 
-      CALL matmul4 (mat, arr, tran_fi) 
+!     CALL matmul4 (arr, tran_f, mat) 
+!     CALL matmul4 (mat, arr, tran_fi) 
+      mat = matmul( matmul(tran_f, mat), tran_fi)
       DO i = 1, 4 
       DO j = 1, 4 
       sym_add (i, j, n) = mat (i, j) 
@@ -1225,8 +1235,9 @@ END SUBROUTINE tran_setup
       mat (i, i) = 1.0 
       ENDDO 
       mat (n, 4) = 1.0 
-      CALL matmul4 (arr, tran_f, mat) 
-      CALL matmul4 (mat, arr, tran_fi) 
+!     CALL matmul4 (arr, tran_f, mat) 
+!     CALL matmul4 (mat, arr, tran_fi) 
+      mat = matmul( matmul(tran_f, mat), tran_fi)
       IF (ABS (amod (mat (1, 4), 1.) ) .gt.eps.OR.ABS (amod (mat (2, 4),&
       1.) ) .gt.eps.OR.ABS (amod (mat (3, 4), 1.) ) .gt.eps) THEN       
          IF (gen_add_n + 1.gt.gen_add_MAX) THEN 
@@ -1315,7 +1326,7 @@ END SUBROUTINE tran_setup
 !+                                                                      
       USE discus_config_mod 
       USE transfrm_mod 
-      USE trafo_mod
+!      USE trafo_mod
 !                                                                       
       USE errlist_mod 
       USE param_mod 
@@ -1323,20 +1334,21 @@ END SUBROUTINE tran_setup
       USE prompt_mod 
 USE support_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
+!
+CHARACTER(len=*)  , intent(in) :: infile 
+INTEGER           ,  intent(in) :: infile_l
+REAL(kind=PREC_DP), intent(in) ::  matrix (4, 4) 
 !                                                                       
-      INTEGER ird, iwr, irs 
-      INTEGER i, j 
-      LOGICAL lread, ltest 
+      INTEGER :: ird, iwr, irs 
+      INTEGER :: i, j 
+      LOGICAL :: lread, ltest 
 !                                                                       
-      CHARACTER(20) inten 
-      CHARACTER ( * ) infile 
+      CHARACTER(len=20) :: inten 
       CHARACTER(LEN=PREC_STRING) :: outfile 
       CHARACTER(LEN=PREC_STRING) :: restfile 
-      INTEGER infile_l
-      INTEGER hkl (3) 
-      REAL usym (4), ures (4), utest (3) 
-      REAL matrix (4, 4) 
+      INTEGER :: hkl (3) 
+REAL(kind=PREC_DP) ::  usym (4), ures (4), utest (3) 
 !                                                                       
       DATA ird, iwr, irs / 7, 8, 9 / 
 !                                                                       
@@ -1377,7 +1389,8 @@ USE support_mod
 !                                                                       
 !-----      -- Apply transformation operation                           
 !                                                                       
-      CALL trans (usym, matrix, ures, 4) 
+!     CALL trans (usym, matrix, ures, 4) 
+      ures = matmul(matrix, usym)
 !                                                                       
 !     -- Write new integer reflections to output file, non-integer      
 !        reflections to restfile                                        

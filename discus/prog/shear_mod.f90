@@ -4,6 +4,7 @@ MODULE shear_mod
 !-
 !
 USE discus_config_mod
+use precision_mod
 !
 SAVE
 !
@@ -36,20 +37,20 @@ LOGICAL                 :: shear_orig_mol = .false.
 LOGICAL                 :: shear_sel_atom = .true.
 LOGICAL                 :: shear_dom_mode_atom  = .true.
 LOGICAL                 :: shear_dom_mode_shape = .true.
-REAL   , DIMENSION(3)   :: shear_hkl    = (/0.,1.,0./)
-REAL   , DIMENSION(3)   :: shear_orig   = 0.0
-REAL   , DIMENSION(3)   :: shear_vector = (/1.,0.,0./)
-REAL                    :: shear_length = 0.0
-REAL   , DIMENSION(3)   :: shear_uvw    = (/0.,1.,0./)
-REAL   , DIMENSION(4,4) :: shear_mat    = &
+REAL(kind=PREC_DP), DIMENSION(3)   :: shear_hkl    = (/0.D0,1.D0,0.D0/)
+REAL(kind=PREC_DP), DIMENSION(3)   :: shear_orig   = 0.0
+REAL(kind=PREC_DP), DIMENSION(3)   :: shear_vector = (/1.,0.,0./)
+REAL(kind=PREC_DP)                 :: shear_length = 0.0
+REAL(kind=PREC_DP), DIMENSION(3)   :: shear_uvw    = (/0.D0,1.D0,0.D0/)
+REAL(kind=PREC_DP), DIMENSION(4,4) :: shear_mat    = &
          RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(shear_mat ))
-REAL   , DIMENSION(4,4) :: shear_rmat   = &
+REAL(kind=PREC_DP), DIMENSION(4,4) :: shear_rmat   = &
          RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(shear_rmat))
-REAL   , DIMENSION(3,3) :: shear_eigenv = &
+REAL(kind=PREC_DP), DIMENSION(3,3) :: shear_eigenv = &
          RESHAPE((/1.,(0.,0.,0.,1.,ik=1,2)/),SHAPE(shear_eigenv ))
-REAL   , DIMENSION(3,3) :: shear_eigent = &
+REAL(kind=PREC_DP), DIMENSION(3,3) :: shear_eigent = &
          RESHAPE((/1.,(0.,0.,0.,1.,ik=1,2)/),SHAPE(shear_eigent ))
-REAL   , DIMENSION(3)   :: shear_eigenw = 1.0
+REAL(kind=PREC_DP), DIMENSION(3)   :: shear_eigenw = 1.0
 !
 INTEGER                 :: shear_size_of  = 0 ! Bytes allocated for shear
 !
