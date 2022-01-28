@@ -191,6 +191,51 @@ CALL H5Dclose_f(dset , hdferr)
 CALL H5Sclose_f(space, hdferr)
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Write the step_sizes dataset DISCUS format 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+dim_one = 3
+steps(1) = out_vi(1,1)
+steps(2) = out_vi(2,1)
+steps(3) = out_vi(3,1)
+f_ptr = C_LOC(steps(1))
+CALL H5Screate_simple_f(1, dim_one, space, hdferr)
+CALL H5Dcreate_f(file_id, 'step_sizes_abs',H5T_IEEE_F64BE, space, dset, hdferr)
+CALL H5Dwrite_f(dset, H5T_NATIVE_DOUBLE, f_ptr         , hdferr)
+CALL H5Dclose_f(dset , hdferr)
+CALL H5Sclose_f(space, hdferr)
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Write the step_sizes dataset DISCUS format 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+dim_one = 3
+steps(1) = out_vi(1,2)
+steps(2) = out_vi(2,2)
+steps(3) = out_vi(3,2)
+f_ptr = C_LOC(steps(1))
+CALL H5Screate_simple_f(1, dim_one, space, hdferr)
+CALL H5Dcreate_f(file_id, 'step_sizes_ord',H5T_IEEE_F64BE, space, dset, hdferr)
+CALL H5Dwrite_f(dset, H5T_NATIVE_DOUBLE, f_ptr         , hdferr)
+CALL H5Dclose_f(dset , hdferr)
+CALL H5Sclose_f(space, hdferr)
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Write the step_sizes dataset DISCUS format 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+dim_one = 3
+steps(1) = out_vi(1,3)
+steps(2) = out_vi(2,3)
+steps(3) = out_vi(3,3)
+f_ptr = C_LOC(steps(1))
+CALL H5Screate_simple_f(1, dim_one, space, hdferr)
+CALL H5Dcreate_f(file_id, 'step_sizes_top',H5T_IEEE_F64BE, space, dset, hdferr)
+CALL H5Dwrite_f(dset, H5T_NATIVE_DOUBLE, f_ptr         , hdferr)
+CALL H5Dclose_f(dset , hdferr)
+CALL H5Sclose_f(space, hdferr)
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Write the unit_cell dataset
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
