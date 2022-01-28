@@ -79,9 +79,11 @@ ELSEIF (lcom.eq.7) then
       IF(ier_num==0) THEN
          CALL ersetz2(string, ikl, iklz, ww, 7, lll)
       ENDIF
-   ELSE
-      ier_num = -6
-      ier_typ = ER_FORT
+   ELSE 
+      CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
+!   ELSE
+!      ier_num = -6
+!      ier_typ = ER_FORT
    ENDIF
 ELSEIF (lcom.eq.6) then 
          IF (string (ikl - 6:ikl - 1) .eq.'getcwd') then 
@@ -647,8 +649,8 @@ REAL(KIND=PREC_DP)  :: itwo           ! Ratio Intensity Ka2/Ka1
 LOGICAL             :: axis_theta     ! TRUE==TTH; FALSE=Q
 INTEGER             :: nwave          ! Entry in per_wavel
 CHARACTER  (LEN=4) :: symbol
-REAL               :: lambda1
-REAL               :: lambda2
+REAL(kind=PREC_DP) :: lambda1
+REAL(kind=PREC_DP) :: lambda2
 REAL               :: lam_1_2         ! Ratio lam(Ka1)/lam(Ka2)
 !
 INTEGER, PARAMETER :: NOPTIONAL = 3

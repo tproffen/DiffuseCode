@@ -65,7 +65,7 @@ IMPLICIT NONE
         'PU4+','PU6+','AM  ','CM  ','BK  ','CF  ','E1- ','POSI','XAXI','YAXI','ZAXI','CENT','XDIM','YDIM',&
         'ZDIM' &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fa1 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fa1 = (/ &
           0.000000,  0.493002,  0.489918,  0.897661,  0.493002,  0.897661,  0.873400,  1.128200,  0.696800,  1.591900,&
           6.260300,  2.054500,  2.310000,  2.260690, 12.212600,  3.048500,  4.191600,  4.758000,  3.539200,  3.632200,&
           3.955300,  4.762600,  3.256500,  5.420400,  3.498800,  6.420200,  4.174480,  6.291500,  5.662690,  4.439180,&
@@ -90,7 +90,7 @@ IMPLICIT NONE
          35.649300, 35.173599, 36.670601, 36.648800, 36.788101, 36.918499,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fa2 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fa2 = (/ &
           0.000000,  0.322912,  0.262003,  0.565616,  0.322912,  0.565616,  0.630900,  0.750800,  0.788800,  1.127800,&
           0.884900,  1.332600,  1.020000,  1.561650,  3.132200,  2.286800,  1.639690,  3.637000,  2.641200,  3.510570,&
           3.112500,  3.173600,  3.936200,  2.173500,  3.837800,  1.900200,  3.387600,  3.035300,  3.071640,  3.203450,&
@@ -115,7 +115,7 @@ IMPLICIT NONE
          22.646000, 22.718100, 24.099199, 24.409599, 24.773600, 25.199499,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fa3 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fa3 = (/ &
           0.000000,  0.140191,  0.196767,  0.415815,  0.140191,  0.415815,  0.311200,  0.617500,  0.341400,  0.539100,&
           0.799300,  1.097900,  1.588600,  1.050750,  2.012500,  1.546300,  1.526730,  0.000000,  1.517000,  1.260640,&
           1.454600,  1.267400,  1.399800,  1.226900,  1.328400,  1.593600,  1.202960,  1.989100,  0.000000,  1.194530,&
@@ -140,7 +140,7 @@ IMPLICIT NONE
          13.359500, 14.763500, 17.341499, 17.399000, 17.891899, 18.331699,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fa4 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fa4 = (/ &
           0.000000,  0.040810,  0.049879,  0.116973,  0.040810,  0.116973,  0.178000,  0.465300,  0.156300,  0.702900,&
           0.164700,  0.706800,  0.865000,  0.839259,  1.166300,  0.867000,-20.306999,  0.000000,  1.024300,  0.940706,&
           1.125100,  1.112800,  1.003200,  2.307300,  0.849700,  1.964600,  0.528137,  1.541000,  1.393200,  0.416530,&
@@ -165,7 +165,7 @@ IMPLICIT NONE
           5.188310,  2.286780,  3.493310,  4.216650,  4.232840,  4.243910,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fb1 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fb1 = (/ &
           0.000000, 10.510900, 20.659300, 53.136799, 10.510900, 53.136799,  9.103700,  3.954600,  4.623700, 43.642700,&
           0.002700, 23.218500, 20.843901, 22.690701,  0.005700, 13.277100, 12.857300,  7.831000, 10.282500,  5.277560,&
           8.404200,  3.285000,  2.667100,  2.827500,  2.167600,  3.038700,  1.938160,  2.438600,  2.665200,  1.641670,&
@@ -190,7 +190,7 @@ IMPLICIT NONE
           0.481422,  0.473204,  0.483629,  0.465154,  0.451018,  0.437533,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fb2 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fb2 = (/ &
           0.000000, 26.125700,  7.740390, 15.187000, 26.125700, 15.187000,  3.356800,  1.052400,  1.955700,  1.862300,&
           0.831300,  1.021000, 10.207500,  0.656665,  9.893300,  5.701100,  4.172360, 30.049999,  4.294400, 14.735300,&
           3.426200,  8.842200,  6.115300, 79.261101,  4.754200,  0.742600,  4.145530, 32.333698, 38.663399,  3.437570,&
@@ -215,7 +215,7 @@ IMPLICIT NONE
           2.890200,  2.738480,  3.206470,  3.089970,  3.046190,  3.007750,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fb3 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fb3 = (/ &
           0.000000,  3.142360, 49.551899,286.576004,  3.142360,186.576004, 22.927601, 85.390503,  0.631600,103.483002,&
           2.275800, 60.349800,  0.568700,  9.756180, 28.997499,  0.323900, 47.017899,  0.000000,  0.261500,  0.442258,&
           0.230600,  0.313600,  0.200100,  0.380800,  0.185000, 31.547199,  0.228753,  0.678500,  0.916946,  0.214900,&
@@ -240,7 +240,7 @@ IMPLICIT NONE
          11.316000, 11.553000, 14.313600, 13.434600, 12.894600, 12.404400,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fb4 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fb4 = (/ &
           0.000000, 57.799702,  2.201590,  3.567090, 57.799702,  3.567090,  0.982100,168.261002, 10.095300,  0.542000,&
           5.114600,  0.140300, 51.651199, 55.594898,  0.582600, 32.908901, -0.014040,  0.000000, 26.147600, 47.343700,&
          21.718399,129.423996, 14.039000,  7.193700, 10.141100, 85.088600,  8.285240, 81.693703, 93.545799,  6.653650,&
@@ -265,7 +265,7 @@ IMPLICIT NONE
          21.830099, 20.930300,102.273003, 88.483398, 86.002998, 83.788101,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fc = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fc = (/ &
           0.000000,  0.003038,  0.001305,  0.002389,  0.003038,  0.002389,  0.006400,  0.037700,  0.016700,  0.038500,&
          -6.109200, -0.193200,  0.215600,  0.286977,-11.529000,  0.250800, 21.941200,  1.594000,  0.277600,  0.653396,&
           0.351500,  0.676000,  0.404000,  0.858400,  0.485300,  1.115100,  0.706786,  1.140700,  1.247070,  0.746297,&
@@ -811,7 +811,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
     3.005326000000000164,    0.000000000000000000,    0.000000000000000000,    0.000000000000000000,    0.000000000000000000,&
     0.000000000000000000,    0.000000000000000000,    0.000000000000000000,    0.000000000000000000,    0.000000000000000000 &
 /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_tia1_fp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_tia1_fp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.003500,  0.000000,  0.011700,&
           0.000000,  0.026300,  0.049000,  0.000000,  0.080700,  0.000000,  0.000000,  0.000000,  0.170000,  0.000000,&
           0.225700,  0.280100,  0.000000,  0.329900,  0.000000,  0.376000,  0.000000,  0.392100,  0.000000,  0.000000,&
@@ -837,7 +837,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_cra1_fp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_cra1_fp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.002300,  0.000000,  0.008300,&
           0.000000,  0.019000,  0.036400,  0.000000,  0.060600,  0.000000,  0.000000,  0.000000,  0.132400,  0.000000,&
           0.179300,  0.229500,  0.000000,  0.277800,  0.000000,  0.326000,  0.000000,  0.364700,  0.000000,  0.000000,&
@@ -863,7 +863,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fea1_fp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fea1_fp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.001500,  0.000000,  0.006000,&
           0.000000,  0.014000,  0.027300,  0.000000,  0.046100,  0.000000,  0.000000,  0.000000,  0.103700,  0.000000,&
           0.142600,  0.185700,  0.000000,  0.230900,  0.000000,  0.277400,  0.000000,  0.320900,  0.000000,  0.000000,&
@@ -889,7 +889,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_coa1_fp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_coa1_fp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.001300,  0.000000,  0.005200,&
           0.000000,  0.012100,  0.023700,  0.000000,  0.040300,  0.000000,  0.000000,  0.000000,  0.092000,  0.000000,&
           0.127300,  0.167000,  0.000000,  0.209400,  0.000000,  0.255100,  0.000000,  0.297900,  0.000000,  0.000000,&
@@ -915,7 +915,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_cua1_fp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_cua1_fp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000800,  0.000000,  0.003800,&
           0.000000,  0.009000,  0.018100,  0.000000,  0.031100,  0.000000,  0.000000,  0.000000,  0.072700,  0.000000,&
           0.101900,  0.135300,  0.000000,  0.171900,  0.000000,  0.213000,  0.000000,  0.254100,  0.000000,  0.000000,&
@@ -941,7 +941,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_moa1_fp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_moa1_fp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, -0.000300,  0.000000,  0.000500,&
           0.000000,  0.001300,  0.003300,  0.000000,  0.006100,  0.000000,  0.000000,  0.000000,  0.017100,  0.000000,&
           0.025900,  0.036200,  0.000000,  0.048600,  0.000000,  0.064500,  0.000000,  0.081700,  0.000000,  0.000000,&
@@ -967,7 +967,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_aga1_fp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_aga1_fp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, -0.000400,  0.000000,  0.000100,&
           0.000000,  0.000400,  0.001500,  0.000000,  0.003000,  0.000000,  0.000000,  0.000000,  0.009600,  0.000000,&
           0.015200,  0.021800,  0.000000,  0.029800,  0.000000,  0.040600,  0.000000,  0.052200,  0.000000,  0.000000,&
@@ -993,7 +993,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_taa1_fp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_taa1_fp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, -0.000600,  0.000000, -0.000500,&
           0.000000, -0.000900, -0.001200,  0.000000, -0.002000,  0.000000,  0.000000,  0.000000, -0.002700,  0.000000,&
          -0.002500, -0.002800,  0.000000, -0.003000,  0.000000, -0.002000,  0.000000, -0.001700,  0.000000,  0.000000,&
@@ -1019,7 +1019,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_w_a1_fp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_w_a1_fp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, -0.000600,  0.000000, -0.000500,&
           0.000000, -0.000900, -0.001300,  0.000000, -0.002000,  0.000000,  0.000000,  0.000000, -0.002800,  0.000000,&
          -0.002800, -0.003100,  0.000000, -0.003400,  0.000000, -0.002600,  0.000000, -0.002500,  0.000000,  0.000000,&
@@ -1045,7 +1045,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_aua1_fp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_aua1_fp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, -0.000600,  0.000000, -0.000500,&
           0.000000, -0.001000, -0.001400,  0.000000, -0.002300,  0.000000,  0.000000,  0.000000, -0.003400,  0.000000,&
          -0.003700, -0.004400,  0.000000, -0.005200,  0.000000, -0.005000,  0.000000, -0.005500,  0.000000,  0.000000,&
@@ -1071,7 +1071,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_tia1_fpp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_tia1_fpp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.001300,  0.000000,  0.005000,&
           0.000000,  0.013900,  0.031300,  0.000000,  0.060600,  0.000000,  0.000000,  0.000000,  0.171000,  0.000000,&
           0.262100,  0.382900,  0.000000,  0.536500,  0.000000,  0.728700,  0.000000,  0.961900,  0.000000,  0.000000,&
@@ -1097,7 +1097,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_cra1_fpp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_cra1_fpp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000800,  0.000000,  0.003300,&
           0.000000,  0.009400,  0.021300,  0.000000,  0.041600,  0.000000,  0.000000,  0.000000,  0.119200,  0.000000,&
           0.183700,  0.269900,  0.000000,  0.381200,  0.000000,  0.521200,  0.000000,  0.692100,  0.000000,  0.000000,&
@@ -1123,7 +1123,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fea1_fpp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_fea1_fpp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000600,  0.000000,  0.002300,&
           0.000000,  0.006500,  0.014800,  0.000000,  0.029300,  0.000000,  0.000000,  0.000000,  0.085100,  0.000000,&
           0.131800,  0.195700,  0.000000,  0.276500,  0.000000,  0.380700,  0.000000,  0.508100,  0.000000,  0.000000,&
@@ -1149,7 +1149,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_coa1_fpp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_coa1_fpp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000500,  0.000000,  0.001900,&
           0.000000,  0.005500,  0.012500,  0.000000,  0.024800,  0.000000,  0.000000,  0.000000,  0.072500,  0.000000,&
           0.112600,  0.166700,  0.000000,  0.237300,  0.000000,  0.327600,  0.000000,  0.438400,  0.000000,  0.000000,&
@@ -1175,7 +1175,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_cua1_fpp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_cua1_fpp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000300,  0.000000,  0.001400,&
           0.000000,  0.003900,  0.009100,  0.000000,  0.018000,  0.000000,  0.000000,  0.000000,  0.053400,  0.000000,&
           0.083300,  0.123900,  0.000000,  0.177100,  0.000000,  0.245500,  0.000000,  0.330200,  0.000000,  0.000000,&
@@ -1201,7 +1201,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_moa1_fpp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_moa1_fpp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000100,  0.000000,  0.000200,&
           0.000000,  0.000700,  0.001600,  0.000000,  0.003300,  0.000000,  0.000000,  0.000000,  0.010300,  0.000000,&
           0.016400,  0.024900,  0.000000,  0.036300,  0.000000,  0.051400,  0.000000,  0.070400,  0.000000,  0.000000,&
@@ -1227,7 +1227,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_aga1_fpp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_aga1_fpp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000100,&
           0.000000,  0.000400,  0.000900,  0.000000,  0.001900,  0.000000,  0.000000,  0.000000,  0.006100,  0.000000,&
           0.009800,  0.015000,  0.000000,  0.022000,  0.000000,  0.031300,  0.000000,  0.043100,  0.000000,  0.000000,&
@@ -1253,7 +1253,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_taa1_fpp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_taa1_fpp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000100,  0.000000,  0.000200,  0.000000,  0.000000,  0.000000,  0.000700,  0.000000,&
           0.001200,  0.001900,  0.000000,  0.002800,  0.000000,  0.004000,  0.000000,  0.005600,  0.000000,  0.000000,&
@@ -1279,7 +1279,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_w_a1_fpp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_w_a1_fpp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000100,  0.000000,  0.000200,  0.000000,  0.000000,  0.000000,  0.000700,  0.000000,&
           0.001100,  0.001700,  0.000000,  0.002600,  0.000000,  0.003700,  0.000000,  0.005200,  0.000000,  0.000000,&
@@ -1305,7 +1305,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_aua1_fpp = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_aua1_fpp = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000100,  0.000000,  0.000100,  0.000000,  0.000000,  0.000000,  0.000500,  0.000000,&
           0.000800,  0.001200,  0.000000,  0.001800,  0.000000,  0.002700,  0.000000,  0.003800,  0.000000,  0.000000,&
@@ -1331,7 +1331,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
 !
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_bcoh = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_bcoh = (/ &
           0.000000, -3.739000, -3.739000, -3.739000,  6.671000,  6.671000,  3.260000, -1.900000, -1.900000,  7.790000,&
           7.790000,  5.300000,  6.646000,  6.646000,  9.360000,  5.803000,  5.803000,  5.803000,  5.654000,  5.654000,&
           4.566000,  3.630000,  3.630000,  5.375000,  5.375000,  3.449000,  4.149100,  4.149100,  4.149100,  4.149100,&
@@ -1356,7 +1356,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_radius = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_radius = (/ &
           0.000000,  0.320000,  0.320000,  0.320000,  0.320000,  0.320000,  1.500000,  1.520000,  1.520000,  1.110000,&
           1.110000,  0.820000,  0.770000,  0.770000,  0.700000,  0.660000,  0.660000,  0.660000,  0.640000,  0.640000,&
           1.500000,  1.860000,  1.860000,  1.600000,  1.600000,  1.250000,  1.170000,  1.170000,  1.170000,  1.170000,&
@@ -1381,7 +1381,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           1.800000,  1.800000,  1.800000,  1.800000,  1.800000,  1.800000,  0.000000,  0.000000,  0.000000,  0.000000,&
           0.000000,  0.000000,  0.000000,  0.000000,  0.000000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_ea1 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_ea1 = (/ &
             0.0000,    0.0088,    0.0088,    0.0000,    0.0088,    0.0000,    0.0084,    0.0478,    0.0000,    0.0423,&
             0.0000,    0.0436,    0.0489,    0.0489,    0.0267,    0.0365,    0.0000,    0.0000,    0.0382,    0.0000,&
             0.0380,    0.1260,    0.0000,    0.1130,    0.0000,    0.1165,    0.0000,    0.0567,    0.0567,    0.0000,&
@@ -1406,7 +1406,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
             0.0000,    0.0000,    0.7577,    0.7567,    0.7492,    0.8100,    0.0000,    0.0000,    0.0000,    0.0000,&
             0.0000,    0.0000,    0.0000,    0.0000,    0.0000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_ea2 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_ea2 = (/ &
             0.0000,    0.0449,    0.0449,    0.0000,    0.0449,    0.0000,    0.0443,    0.2048,    0.0000,    0.1874,&
             0.0000,    0.1898,    0.2091,    0.2091,    0.1328,    0.1729,    0.0000,    0.0000,    0.1822,    0.0000,&
             0.1785,    0.6442,    0.0000,    0.5575,    0.0000,    0.5504,    0.0000,    0.3365,    0.3365,    0.0000,&
@@ -1431,7 +1431,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
             0.0000,    0.0000,    2.7264,    2.7565,    2.7267,    3.0001,    0.0000,    0.0000,    0.0000,    0.0000,&
             0.0000,    0.0000,    0.0000,    0.0000,    0.0000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_ea3 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_ea3 = (/ &
             0.0000,    0.1481,    0.1481,    0.0000,    0.1481,    0.0000,    0.1314,    0.5253,    0.0000,    0.6019,&
             0.0000,    0.6788,    0.7537,    0.7537,    0.5301,    0.5805,    0.0000,    0.0000,    0.5972,    0.0000,&
             0.5494,    0.8893,    0.0000,    0.9046,    0.0000,    1.0179,    0.0000,    0.8104,    0.8104,    0.0000,&
@@ -1456,7 +1456,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
             0.0000,    0.0000,    5.4184,    5.4364,    5.3521,    5.4635,    0.0000,    0.0000,    0.0000,    0.0000,&
             0.0000,    0.0000,    0.0000,    0.0000,    0.0000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_ea4 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_ea4 = (/ &
             0.0000,    0.2356,    0.2356,    0.0000,    0.2356,    0.0000,    0.1671,    1.5225,    0.0000,    1.4311,&
             0.0000,    1.3273,    1.1420,    1.1420,    1.1020,    0.8814,    0.0000,    0.0000,    0.7707,    0.0000,&
             0.6942,    1.8197,    0.0000,    2.1580,    0.0000,    2.6295,    0.0000,    2.4960,    2.4960,    0.0000,&
@@ -1481,7 +1481,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
             0.0000,    0.0000,    4.8198,    5.1918,    5.0369,    4.1756,    0.0000,    0.0000,    0.0000,    0.0000,&
             0.0000,    0.0000,    0.0000,    0.0000,    0.0000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_ea5 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_ea5 = (/ &
             0.0000,    0.0914,    0.0914,    0.0000,    0.0914,    0.0000,    0.0666,    0.9853,    0.0000,    0.7891,&
             0.0000,    0.5544,    0.3555,    0.3555,    0.4215,    0.3121,    0.0000,    0.0000,    0.2130,    0.0000,&
             0.1918,    1.2988,    0.0000,    1.4735,    0.0000,    1.5711,    0.0000,    2.1186,    2.1186,    0.0000,&
@@ -1506,7 +1506,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
             0.0000,    0.0000,    4.1013,    3.5643,    3.5321,    3.5066,    0.0000,    0.0000,    0.0000,    0.0000,&
             0.0000,    0.0000,    0.0000,    0.0000,    0.0000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_eb1 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_eb1 = (/ &
             0.0000,    0.1152,    0.1152,    0.0000,    0.1152,    0.0000,    0.0596,    0.2258,    0.0000,    0.1445,&
             0.0000,    0.1207,    0.1140,    0.1140,    0.0541,    0.0652,    0.0000,    0.0000,    0.0613,    0.0000,&
             0.0554,    0.1684,    0.0000,    0.1356,    0.0000,    0.1295,    0.0000,    0.0582,    0.0582,    0.0000,&
@@ -1531,7 +1531,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
             0.0000,    0.0000,    0.1257,    0.1239,    0.1217,    0.1310,    0.0000,    0.0000,    0.0000,    0.0000,&
             0.0000,    0.0000,    0.0000,    0.0000,    0.0000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_eb2 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_eb2 = (/ &
             0.0000,    1.0867,    1.0867,    0.0000,    1.0867,    0.0000,    0.5360,    2.1032,    0.0000,    1.4180,&
             0.0000,    1.1595,    1.0825,    1.0825,    0.5165,    0.6184,    0.0000,    0.0000,    0.5753,    0.0000,&
             0.5087,    1.7150,    0.0000,    1.3579,    0.0000,    1.2619,    0.0000,    0.6155,    0.6155,    0.0000,&
@@ -1556,7 +1556,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
             0.0000,    0.0000,    1.3044,    1.2979,    1.2651,    1.4038,    0.0000,    0.0000,    0.0000,    0.0000,&
             0.0000,    0.0000,    0.0000,    0.0000,    0.0000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_eb3 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_eb3 = (/ &
             0.0000,    4.9755,    4.9755,    0.0000,    4.9755,    0.0000,    2.4274,   12.9349,    0.0000,    8.1165,&
             0.0000,    6.2474,    5.4281,    5.4281,    2.8207,    2.9449,    0.0000,    0.0000,    2.6858,    0.0000,&
             2.2639,    8.8386,    0.0000,    6.9255,    0.0000,    6.8242,    0.0000,    3.2522,    3.2522,    0.0000,&
@@ -1581,7 +1581,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
             0.0000,    0.0000,    7.1035,    7.0798,    6.8101,    7.6057,    0.0000,    0.0000,    0.0000,    0.0000,&
             0.0000,    0.0000,    0.0000,    0.0000,    0.0000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_eb4 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_eb4 = (/ &
             0.0000,   16.5591,   16.5591,    0.0000,   16.5591,    0.0000,    7.7852,   50.7501,    0.0000,   27.9705,&
             0.0000,   21.0460,   17.8811,   17.8811,   10.6297,    9.6298,    0.0000,    0.0000,    8.8214,    0.0000,&
             7.3316,   50.8265,    0.0000,   32.3165,    0.0000,   28.4577,    0.0000,   16.7929,   16.7929,    0.0000,&
@@ -1606,7 +1606,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
             0.0000,    0.0000,   32.4649,   32.7871,   31.6088,   34.0186,    0.0000,    0.0000,    0.0000,    0.0000,&
             0.0000,    0.0000,    0.0000,    0.0000,    0.0000 &
         /)
-   REAL              , DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_eb5 = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_eb5 = (/ &
             0.0000,   43.2743,   43.2743,    0.0000,   43.2743,    0.0000,   20.3126,  136.6280,    0.0000,   74.8684,&
             0.0000,   59.3619,   51.1341,   51.1341,   34.3764,   28.2194,    0.0000,    0.0000,   25.6668,    0.0000,&
            21.6912,  147.2073,    0.0000,   92.1138,    0.0000,   88.4750,    0.0000,   57.6767,   57.6767,    0.0000,&
@@ -1643,7 +1643,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
         'WA1 ','WA2 ','WB  ','W   ','W12 ',&
         'AUA1','AUA2','AUB ','AU  ','AU12' & 
         /)
-   REAL              , DIMENSION(1:PER_MAX_WAVE), PARAMETER :: per_wavel = (/ &
+REAL(kind=PREC_DP)              , DIMENSION(1:PER_MAX_WAVE), PARAMETER :: per_wavel = (/ &
           2.748410,  2.752070,  2.513810,  2.740000,  2.748410,&  ! Ti
           2.289620,  2.293510,  2.084800,  2.290900,  2.289620,&  ! Cr
           1.935970,  1.939910,  1.756530,  1.937300,  1.935970,&  ! Fe
@@ -1655,7 +1655,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
           0.208992,  0.213813,  0.184363,  0.210600,  0.208992,&  ! W 
           0.180185,  0.185064,  0.158971,  0.181800,  0.180185 &  ! Au
         /)
-   REAL              , DIMENSION(1:PER_MAX_WAVE/5), PARAMETER :: per_ratio = (/ &
+   REAL(kind=PREC_DP), DIMENSION(1:PER_MAX_WAVE/5), PARAMETER :: per_ratio = (/ &
           0.500000, &
           0.500000, &
           0.500000, &
@@ -1687,7 +1687,7 @@ real(kind=PREC_DP), dimension(1:PER_MAXELEMENT), parameter :: per_wc  = (/ &
 !       'PU4+','PU6+','AM  ','CM  ','BK  ','CF  ','E1- ','POSI','XAXI','YAXI','ZAXI','CENT','XDIM','YDIM',&
 !       'ZDIM' &
 !       /)
-REAL(KIND=PREC_SP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_mass = (/ &
+REAL(KIND=PREC_DP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_mass = (/ &
   0.000,   1.0079,  1.0079,   1.0079,   2.014,   2.014,  4.0028,   6.9775,   6.9775,   9.0122,   9.0122,  10.813,  12.011,  12.011,&
  14.007,  15.999 ,  15.999,  15.999 ,  18.998,  18.998, 20.180 ,  22.990 ,  22.990 ,  24.305 ,  24.305 ,  26.981,  26.981,  28.085,&
  28.085,  28.085 ,  30.974,  32.067 ,  35.451,  35.451, 39.948 ,  39.098 ,  39.098 ,  40.078 ,  40.078 ,  44.956,  44.956,  47.867,&
@@ -1711,24 +1711,24 @@ REAL(KIND=PREC_SP), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_mass = (/ &
 !
 !*******************************************************************************
 !
-      SUBROUTINE symbf(el_name,el_number)
+SUBROUTINE symbf(el_name,el_number)
 !
 implicit none
 !
-      CHARACTER (LEN=*), INTENT(IN)   :: el_name
-      INTEGER          , INTENT(OUT)  :: el_number
+CHARACTER (LEN=*), INTENT(IN)   :: el_name
+INTEGER          , INTENT(OUT)  :: el_number
 !
-      INTEGER  :: i
+INTEGER  :: i
 !
-      el_number = 0
-      element1: DO i=1,PER_MAXELEMENT
-         IF(per_name(i) == el_name ) THEN
-            el_number = i
-            EXIT element1
-         ENDIF
-      ENDDO element1
-
-      END SUBROUTINE symbf
+el_number = 0
+element1: DO i=1,PER_MAXELEMENT
+   IF(per_name(i) == el_name ) THEN
+      el_number = i
+      EXIT element1
+   ENDIF
+ENDDO element1
+!
+END SUBROUTINE symbf
 !
 !*******************************************************************************
 !
@@ -1755,7 +1755,7 @@ end function
 !
 !*******************************************************************************
 !
-REAL FUNCTION get_mass(el_name)
+REAL(kind=PREC_DP) FUNCTION get_mass(el_name)
 !
 implicit none
 !
@@ -1770,165 +1770,171 @@ END FUNCTION get_mass
 !
 !*******************************************************************************
 !
-      SUBROUTINE get_wave ( lambda , rlambda, energy, l_energy, &
-                            diff_radiation,ier_num, ier_typ )
+SUBROUTINE get_wave ( lambda , rlambda, energy, l_energy, &
+                      diff_radiation,ier_num, ier_typ )
+!
+use precision_mod
 !
 implicit none
 !
-      CHARACTER (LEN=*), INTENT(IN)    :: lambda
-      REAL             , INTENT(OUT)   :: rlambda
-      REAL             , INTENT(INOUT) :: energy
-      LOGICAL          , INTENT(IN)    :: l_energy
-      INTEGER          , INTENT(IN)    :: diff_radiation
-      INTEGER          , INTENT(INOUT) :: ier_num
-      INTEGER          , INTENT(INOUT) :: ier_typ
+CHARACTER (LEN=*), INTENT(IN)    :: lambda
+REAL(kind=PREC_DP)             , INTENT(OUT)   :: rlambda
+REAL(kind=PREC_DP)             , INTENT(INOUT) :: energy
+LOGICAL          , INTENT(IN)    :: l_energy
+INTEGER          , INTENT(IN)    :: diff_radiation
+INTEGER          , INTENT(INOUT) :: ier_num
+INTEGER          , INTENT(INOUT) :: ier_typ
 !
-      REAL, PARAMETER :: planck = 6.62607004   ! E-34 m^2 kg s^-1
-      REAL, PARAMETER :: mass_e = 9.10938356   ! E-31 kg
-      REAL, PARAMETER :: mass_n = 1.67492747   ! E-27 kg
-      REAL, PARAMETER :: light  = 2.99792458   ! E+8  m/s
-      REAL, PARAMETER :: charge = 1.60217656   ! E-19 As
+REAL(kind=PREC_DP), PARAMETER :: planck = 6.62607004   ! E-34 m^2 kg s^-1
+REAL(kind=PREC_DP), PARAMETER :: mass_e = 9.10938356   ! E-31 kg
+REAL(kind=PREC_DP), PARAMETER :: mass_n = 1.67492747   ! E-27 kg
+REAL(kind=PREC_DP), PARAMETER :: light  = 2.99792458   ! E+8  m/s
+REAL(kind=PREC_DP), PARAMETER :: charge = 1.60217656   ! E-19 As
 !
-      INTEGER , PARAMETER  :: RAD_XRAY = 1
-      INTEGER , PARAMETER  :: RAD_NEUT = 2
-      INTEGER , PARAMETER  :: RAD_ELEC = 3
+INTEGER , PARAMETER  :: RAD_XRAY = 1
+INTEGER , PARAMETER  :: RAD_NEUT = 2
+INTEGER , PARAMETER  :: RAD_ELEC = 3
 !
-      INTEGER :: i
+INTEGER :: i
 !
-      IF(l_energy) THEN   ! energy is given instead of wave length
-         IF ( energy > 0.0 ) THEN
-            SELECTCASE(diff_radiation)
-              CASE(RAD_ELEC)        !  neutron scattering
-                 rlambda = planck/sqrt(2.*mass_e*charge*energy*10) / &
-                           sqrt(1.+(charge*energy)/(2*mass_e*light**2*10))
-              CASE(RAD_XRAY)        !  neutron scattering
-                 rlambda = (planck*light/charge ) / energy
-              CASE(RAD_NEUT)        !  neutron scattering
-                 rlambda = planck/sqrt(2.*mass_n*charge*energy/10.)
-            END SELECT
-            ier_num = 0
-            ier_typ = 0
-         ENDIF
-      ELSE
-         IF ( lambda == ' ' .and. rlambda > 0.0 ) THEN
-            SELECTCASE(diff_radiation)
-              CASE(RAD_ELEC)        !  neutron scattering
-                 energy = -10.*mass_e*light**2/charge + &
-                          sqrt( 100.*mass_e**2*light**4/charge**2 + &
-                                ((planck*light)/(charge*rlambda))**2)
-              CASE(RAD_XRAY)        !  neutron scattering
-                 energy = (planck*light/charge) / rlambda
-              CASE(RAD_NEUT)        !  neutron scattering
-                 energy  = planck**2/(2.*mass_n*charge*rlambda**2/10.)
-            END SELECT
-            ier_num = 0
-            ier_typ = 0
-         ELSE
-            wave: do i=1, PER_MAX_WAVE
-                IF ( lambda == per_symwl(i)) THEN
-                   rlambda = per_wavel(i)
-                   energy  = (planck*light/charge) / rlambda
-                   ier_num = 0
-                   ier_typ = 0
-                   EXIT wave
-               ENDIF
-            ENDDO wave
-         ENDIF
-      ENDIF
-      END SUBROUTINE get_wave
-!
-!*******************************************************************************
-!
-      SUBROUTINE get_sym_length(i, symbols, wavelengths)
-!
-      IMPLICIT NONE
-      INTEGER           , INTENT(IN)  :: i
-      CHARACTER  (LEN=4), INTENT(OUT) :: symbols
-      REAL              , INTENT(OUT) :: wavelengths
-!
-      symbols     = per_symwl(i)
-      wavelengths = per_wavel(i)
-!
-      END SUBROUTINE get_sym_length
-!
-!*******************************************************************************
-!
-      INTEGER FUNCTION get_wave_number(lambda)
-!
-!     Returns wave length number for wavelength symbol lambda
-!
-      IMPLICIT NONE
-      CHARACTER (LEN=*), INTENT(IN)    :: lambda
-!
-      INTEGER :: i
-!
-      get_wave_number = 0
+IF(l_energy) THEN   ! energy is given instead of wave length
+   IF ( energy > 0.0 ) THEN
+      SELECTCASE(diff_radiation)
+        CASE(RAD_ELEC)        !  neutron scattering
+           rlambda = planck/sqrt(2.*mass_e*charge*energy*10) / &
+                     sqrt(1.+(charge*energy)/(2*mass_e*light**2*10))
+        CASE(RAD_XRAY)        !  neutron scattering
+           rlambda = (planck*light/charge ) / energy
+        CASE(RAD_NEUT)        !  neutron scattering
+           rlambda = planck/sqrt(2.*mass_n*charge*energy/10.)
+      END SELECT
+      ier_num = 0
+      ier_typ = 0
+   ENDIF
+ELSE
+   IF ( lambda == ' ' .and. rlambda > 0.0 ) THEN
+      SELECTCASE(diff_radiation)
+        CASE(RAD_ELEC)        !  neutron scattering
+           energy = -10.*mass_e*light**2/charge + &
+                    sqrt( 100.*mass_e**2*light**4/charge**2 + &
+                          ((planck*light)/(charge*rlambda))**2)
+        CASE(RAD_XRAY)        !  neutron scattering
+           energy = (planck*light/charge) / rlambda
+        CASE(RAD_NEUT)        !  neutron scattering
+           energy  = planck**2/(2.*mass_n*charge*rlambda**2/10.)
+      END SELECT
+      ier_num = 0
+      ier_typ = 0
+   ELSE
       wave: do i=1, PER_MAX_WAVE
           IF ( lambda == per_symwl(i)) THEN
-             get_wave_number = i
+             rlambda = per_wavel(i)
+             energy  = (planck*light/charge) / rlambda
+             ier_num = 0
+             ier_typ = 0
              EXIT wave
          ENDIF
       ENDDO wave
+   ENDIF
+ENDIF
 !
-      END FUNCTION get_wave_number
+END SUBROUTINE get_wave
+!
+!*******************************************************************************
+!
+SUBROUTINE get_sym_length(i, symbols, wavelengths)
+!
+use precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER           , INTENT(IN)  :: i
+CHARACTER  (LEN=4), INTENT(OUT) :: symbols
+REAL(kind=PREC_DP)              , INTENT(OUT) :: wavelengths
+!
+symbols     = per_symwl(i)
+wavelengths = per_wavel(i)
+!
+END SUBROUTINE get_sym_length
+!
+!*******************************************************************************
+!
+INTEGER FUNCTION get_wave_number(lambda)
+!
+!     Returns wave length number for wavelength symbol lambda
+!
+IMPLICIT NONE
+CHARACTER (LEN=*), INTENT(IN)    :: lambda
+!
+INTEGER :: i
+!
+get_wave_number = 0
+wave: do i=1, PER_MAX_WAVE
+    IF ( lambda == per_symwl(i)) THEN
+       get_wave_number = i
+       EXIT wave
+   ENDIF
+ENDDO wave
+!
+END FUNCTION get_wave_number
 !
 !
 !*******************************************************************************
 !
-      REAL PURE FUNCTION get_ka21_inte(el_number)
+REAL(kind=PREC_DP) PURE FUNCTION get_ka21_inte(el_number)
 !
 !     Return Ka2/ka1 intensity ratio == ~ 0.5
 !
-      IMPLICIT NONE
-      INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
+IMPLICIT NONE
+INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
 !
-      get_ka21_inte = 0.0
-      IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
-         MOD(el_number, 5)==0) THEN
-         get_ka21_inte = per_ratio(el_number/5)
-      ENDIF
+get_ka21_inte = 0.0
+IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
+   MOD(el_number, 5)==0) THEN
+   get_ka21_inte = per_ratio(el_number/5)
+ENDIF
 !
-      END FUNCTION get_ka21_inte
+END FUNCTION get_ka21_inte
 !
 !*******************************************************************************
 !
-      REAL PURE FUNCTION get_ka12_len(el_number)
+REAL(kind=PREC_DP) PURE FUNCTION get_ka12_len(el_number)
 !
 !     Return Ka1/ka2 wave length ratio == < 1.0
 !
-      IMPLICIT NONE
-      INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
+IMPLICIT NONE
+INTEGER, INTENT(IN) :: el_number    ! Entry number if per_symwl shoud be l*5
 !
-      get_ka12_len = 0.0
-      IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
-         MOD(el_number, 5)==0) THEN
-         get_ka12_len = per_wavel(el_number)/ per_wavel(el_number-3)
-      ENDIF
+get_ka12_len = 0.0
+IF(el_number>0 .AND. el_number<PER_MAX_WAVE .AND. &
+   MOD(el_number, 5)==0) THEN
+   get_ka12_len = per_wavel(el_number)/ per_wavel(el_number-3)
+ENDIF
 !
-      END FUNCTION get_ka12_len
+END FUNCTION get_ka12_len
 !
 !*******************************************************************************
 !
-      SUBROUTINE get_scat_xray ( j,temp_scat )
+SUBROUTINE get_scat_xray ( j,temp_scat )
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
-      INTEGER                 , INTENT(IN ) :: j
-      REAL   , DIMENSION(1:11), INTENT(OUT) :: temp_scat
+INTEGER                 , INTENT(IN ) :: j
+REAL   , DIMENSION(1:11), INTENT(OUT) :: temp_scat
 !
-      temp_scat(1) = per_fc   (j)
-      temp_scat(2) = per_fa1  (j)
-      temp_scat(3) = per_fb1  (j)
-      temp_scat(4) = per_fa2  (j)
-      temp_scat(5) = per_fb2  (j)
-      temp_scat(6) = per_fa3  (j)
-      temp_scat(7) = per_fb3  (j)
-      temp_scat(8) = per_fa4  (j)
-      temp_scat(9) = per_fb4  (j)
-      temp_scat(10)= 0.0
-      temp_scat(11)= 0.0
+temp_scat(1) = per_fc   (j)
+temp_scat(2) = per_fa1  (j)
+temp_scat(3) = per_fb1  (j)
+temp_scat(4) = per_fa2  (j)
+temp_scat(5) = per_fb2  (j)
+temp_scat(6) = per_fa3  (j)
+temp_scat(7) = per_fb3  (j)
+temp_scat(8) = per_fa4  (j)
+temp_scat(9) = per_fb4  (j)
+temp_scat(10)= 0.0
+temp_scat(11)= 0.0
 !
-      END SUBROUTINE get_scat_xray
+END SUBROUTINE get_scat_xray
 !
 !*******************************************************************************
 !
@@ -1955,87 +1961,87 @@ END SUBROUTINE get_scat_xray_waas
 !
 !*******************************************************************************
 !
-      SUBROUTINE get_scat_neut ( j, temp_bcoh )
+SUBROUTINE get_scat_neut ( j, temp_bcoh )
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
-      INTEGER                 , INTENT(IN ) :: j
-      REAL                    , INTENT(OUT) :: temp_bcoh
+INTEGER                 , INTENT(IN ) :: j
+REAL                    , INTENT(OUT) :: temp_bcoh
 !
-      temp_bcoh    = per_bcoh (j)
+temp_bcoh    = per_bcoh (j)
 !
-      END SUBROUTINE get_scat_neut
-!
-!*******************************************************************************
-!
-      SUBROUTINE get_scat_ano ( j, lambda, temp_delf )
-!
-      IMPLICIT NONE
-!
-      INTEGER                 , INTENT(IN ) :: j
-      CHARACTER(LEN=4)        , INTENT(IN ) :: lambda
-      REAL   , DIMENSION(1:2) , INTENT(OUT) :: temp_delf
-!
-      SELECTCASE(lambda)
-         CASE('TIA1')
-            temp_delf(1) = per_tia1_fp (j)
-            temp_delf(2) = per_tia1_fpp(j)
-         CASE('CRA1')
-            temp_delf(1) = per_cra1_fp (j)
-            temp_delf(2) = per_cra1_fpp(j)
-         CASE('FEA1')
-            temp_delf(1) = per_fea1_fp (j)
-            temp_delf(2) = per_fea1_fpp(j)
-         CASE('COA1')
-            temp_delf(1) = per_coa1_fp (j)
-            temp_delf(2) = per_coa1_fpp(j)
-         CASE('CUA1')
-            temp_delf(1) = per_cua1_fp (j)
-            temp_delf(2) = per_cua1_fpp(j)
-         CASE('MOA1')
-            temp_delf(1) = per_moa1_fp (j)
-            temp_delf(2) = per_moa1_fpp(j)
-         CASE('AGA1')
-            temp_delf(1) = per_aga1_fp (j)
-            temp_delf(2) = per_aga1_fpp(j)
-         CASE('TAA1')
-            temp_delf(1) = per_taa1_fp (j)
-            temp_delf(2) = per_taa1_fpp(j)
-         CASE('WA1 ')
-            temp_delf(1) = per_w_a1_fp (j)
-            temp_delf(2) = per_w_a1_fpp(j)
-         CASE('AUA1')
-            temp_delf(1) = per_aua1_fp (j)
-            temp_delf(2) = per_aua1_fpp(j)
-         CASE DEFAULT
-            temp_delf(1) = 0.0
-            temp_delf(2) = 0.0
-      END SELECT
-!
-      END SUBROUTINE get_scat_ano
+END SUBROUTINE get_scat_neut
 !
 !*******************************************************************************
 !
-      SUBROUTINE get_scat_elec ( j, temp_scat )
+SUBROUTINE get_scat_ano ( j, lambda, temp_delf )
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
-      INTEGER                 , INTENT(IN ) :: j
-      REAL   , DIMENSION(1:11), INTENT(OUT) :: temp_scat
+INTEGER                 , INTENT(IN ) :: j
+CHARACTER(LEN=4)        , INTENT(IN ) :: lambda
+REAL   , DIMENSION(1:2) , INTENT(OUT) :: temp_delf
 !
-      temp_scat(1) = 0.0
-      temp_scat(2) = per_ea1  (j)
-      temp_scat(3) = per_eb1  (j)
-      temp_scat(4) = per_ea2  (j)
-      temp_scat(5) = per_eb2  (j)
-      temp_scat(6) = per_ea3  (j)
-      temp_scat(7) = per_eb3  (j)
-      temp_scat(8) = per_ea4  (j)
-      temp_scat(9) = per_eb4  (j)
-      temp_scat(10)= per_ea5  (j)
-      temp_scat(11)= per_eb5  (j)
+SELECTCASE(lambda)
+   CASE('TIA1')
+      temp_delf(1) = per_tia1_fp (j)
+      temp_delf(2) = per_tia1_fpp(j)
+   CASE('CRA1')
+      temp_delf(1) = per_cra1_fp (j)
+      temp_delf(2) = per_cra1_fpp(j)
+   CASE('FEA1')
+      temp_delf(1) = per_fea1_fp (j)
+      temp_delf(2) = per_fea1_fpp(j)
+   CASE('COA1')
+      temp_delf(1) = per_coa1_fp (j)
+      temp_delf(2) = per_coa1_fpp(j)
+   CASE('CUA1')
+      temp_delf(1) = per_cua1_fp (j)
+      temp_delf(2) = per_cua1_fpp(j)
+   CASE('MOA1')
+      temp_delf(1) = per_moa1_fp (j)
+      temp_delf(2) = per_moa1_fpp(j)
+   CASE('AGA1')
+      temp_delf(1) = per_aga1_fp (j)
+      temp_delf(2) = per_aga1_fpp(j)
+   CASE('TAA1')
+      temp_delf(1) = per_taa1_fp (j)
+      temp_delf(2) = per_taa1_fpp(j)
+   CASE('WA1 ')
+      temp_delf(1) = per_w_a1_fp (j)
+      temp_delf(2) = per_w_a1_fpp(j)
+   CASE('AUA1')
+      temp_delf(1) = per_aua1_fp (j)
+      temp_delf(2) = per_aua1_fpp(j)
+   CASE DEFAULT
+      temp_delf(1) = 0.0
+      temp_delf(2) = 0.0
+END SELECT
 !
-      END SUBROUTINE get_scat_elec
+END SUBROUTINE get_scat_ano
+!
+!*******************************************************************************
+!
+SUBROUTINE get_scat_elec ( j, temp_scat )
+!
+IMPLICIT NONE
+!
+INTEGER                 , INTENT(IN ) :: j
+REAL   , DIMENSION(1:11), INTENT(OUT) :: temp_scat
+!
+temp_scat(1) = 0.0
+temp_scat(2) = per_ea1  (j)
+temp_scat(3) = per_eb1  (j)
+temp_scat(4) = per_ea2  (j)
+temp_scat(5) = per_eb2  (j)
+temp_scat(6) = per_ea3  (j)
+temp_scat(7) = per_eb3  (j)
+temp_scat(8) = per_ea4  (j)
+temp_scat(9) = per_eb4  (j)
+temp_scat(10)= per_ea5  (j)
+temp_scat(11)= per_eb5  (j)
+!
+END SUBROUTINE get_scat_elec
 !
 !*******************************************************************************
 END MODULE element_data_mod

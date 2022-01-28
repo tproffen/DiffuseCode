@@ -3,7 +3,35 @@ MODULE matrix_mod
 USE errlist_mod
 IMPLICIT NONE
 !
+!interface deter
+!  module procedure det2, det3, det4
+!end interface deter
+!!
+!interface matinv
+!  module procedure matinv2, matinv3, matinv4
+!end interface matinv
+!
 CONTAINS
+!
+!*******************************************************************************
+!
+PURE FUNCTION determinant(a) RESULT(det)
+!
+USE precision_mod
+REAL(KIND=PREC_DP), DIMENSION(:,:), INTENT(IN) :: a
+!
+REAL(KIND=PREC_DP)                             :: det
+!
+det = 0.0D0
+if(    ubound(a,1)==2) then
+  det = det2(a)
+elseif(ubound(a,1)==3) then
+  det = det3(a)
+elseif(ubound(a,1)==4) then
+  det = det4(a)
+endif
+!
+END FUNCTION determinant
 !
 !*******************************************************************************
 !
@@ -21,7 +49,7 @@ END FUNCTION det2
 !*******************************************************************************
 !
 !PURE FUNCTION det3(a) RESULT(det)
-     FUNCTION det3(a) RESULT(det)
+PURE FUNCTION det3(a) RESULT(det)
 !
 USE precision_mod
 REAL(KIND=PREC_DP), DIMENSION(3,3), INTENT(IN) :: a
@@ -50,6 +78,32 @@ det = &
    - A(1,4)*(A(2,1)*(A(3,2)*A(4,3)-A(3,3)*A(4,2))+A(2,2)*(A(3,3)*A(4,1)-A(3,1)*A(4,3))+A(2,3)*(A(3,1)*A(4,2)-A(3,2)*A(4,1))))
 !
 END FUNCTION det4
+!
+!*******************************************************************************
+!
+subroutine matinv(mat, imat)
+!-
+! Performs matrix inversion mat => imat
+! Generic interface to the 2x2, 3x2, 4x4 versions
+!+
+!
+use precision_mod
+!
+implicit none
+real(kind=PREC_DP), dimension(:,:), intent(in) :: mat      !! Matrix
+real(kind=PREC_DP), dimension(:,:), intent(out):: imat     !! Inverse matrix
+!
+imat = 0.0D0
+!
+if(    ubound(mat,1)==2) then
+  call  matinv2(mat, imat)
+elseif(ubound(mat,1)==3) then
+  call  matinv3(mat, imat)
+elseif(ubound(mat,1)==4) then
+  call  matinv4(mat, imat)
+endif
+!
+end subroutine matinv
 !
 !*******************************************************************************
 !

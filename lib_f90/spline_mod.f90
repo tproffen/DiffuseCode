@@ -13,20 +13,20 @@ IMPLICIT NONE
 !
 INTEGER                              , INTENT(IN)  :: nlow
 INTEGER                              , INTENT(IN)  :: npkt
-REAL(KIND=PREC_SP), DIMENSION(nlow:npkt), INTENT(IN)  :: xpl_in
-REAL(KIND=PREC_SP), DIMENSION(nlow:npkt), INTENT(IN)  :: ypl_in
-REAL(KIND=PREC_SP)                   , INTENT(IN)  :: xmin
-REAL(KIND=PREC_SP)                   , INTENT(IN)  :: xmax
-REAL(KIND=PREC_SP)                   , INTENT(IN)  :: xstep
+REAL(KIND=PREC_DP), DIMENSION(nlow:npkt), INTENT(IN)  :: xpl_in
+REAL(KIND=PREC_DP), DIMENSION(nlow:npkt), INTENT(IN)  :: ypl_in
+REAL(KIND=PREC_DP)                   , INTENT(IN)  :: xmin
+REAL(KIND=PREC_DP)                   , INTENT(IN)  :: xmax
+REAL(KIND=PREC_DP)                   , INTENT(IN)  :: xstep
 INTEGER                              , INTENT(IN)  :: npkt_equi
-REAL(KIND=PREC_SP), DIMENSION(nlow:npkt_equi), INTENT(OUT) :: xequi
-REAL(KIND=PREC_SP), DIMENSION(nlow:npkt_equi), INTENT(OUT) :: yequi
+REAL(KIND=PREC_DP), DIMENSION(nlow:npkt_equi), INTENT(OUT) :: xequi
+REAL(KIND=PREC_DP), DIMENSION(nlow:npkt_equi), INTENT(OUT) :: yequi
 !
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: xpl
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: ypl
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: y2a
-REAL(KIND=PREC_SP) :: xequ
-REAL(KIND=PREC_SP) :: yequ
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: xpl
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: ypl
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: y2a
+REAL(KIND=PREC_DP) :: xequ
+REAL(KIND=PREC_DP) :: yequ
 !
 INTEGER :: ii
 INTEGER :: all_status
@@ -50,7 +50,7 @@ y2a  = 0.0
 !write(*,*) ' PREPARE yequ', lbound(xequi), ubound(xequi)
 !write(*,*) ' PREPARE BD n', npkt-1-nlow
 !write(*,*) ' PREPARE xmin', xmin, xstep, xmin + (1 -1)*xstep
-CALL spline (npkt-2-nlow, xpl, ypl, 1.e31, 1.e31, y2a)
+CALL spline (npkt-2-nlow, xpl, ypl, 1.D31, 1.D31, y2a)
 DO ii =  1  , npkt_equi
    xequ = xmin + (ii-1)*xstep
    CALL splint (npkt-2-nlow, xpl, ypl, y2a, xequ, yequ, ier_num)
@@ -77,6 +77,7 @@ SUBROUTINE spline (n, x, y, yp1, ypn, y2)
 !
 ! Prepare the spline y2 values
 !
+USE precision_mod
 !     USE kuplot_config 
 !IMPLICIT integer(i-n)
 !IMPLICIT REAL (a-h, o-z)
@@ -84,16 +85,16 @@ SUBROUTINE spline (n, x, y, yp1, ypn, y2)
 IMPLICIT NONE
 !
 INTEGER           , INTENT(IN) :: n
-REAL, DIMENSION(n), INTENT(IN) :: x
-REAL, DIMENSION(n), INTENT(IN) :: y
-REAL              , INTENT(IN) :: yp1
-REAL              , INTENT(IN) :: ypn
-REAL, DIMENSION(n), INTENT(OUT):: y2
+REAL(kind=PREC_DP), DIMENSION(n), INTENT(IN) :: x
+REAL(kind=PREC_DP), DIMENSION(n), INTENT(IN) :: y
+REAL(kind=PREC_DP)              , INTENT(IN) :: yp1
+REAL(kind=PREC_DP)              , INTENT(IN) :: ypn
+REAL(kind=PREC_DP), DIMENSION(n), INTENT(OUT):: y2
 !
 !     PARAMETER (nmax = maxarray) 
 !     DIMENSION x (n), y (n), y2 (n), u (nmax) 
-REAL, DIMENSION(n) :: u
-REAL    :: sig, p, qn, un
+REAL(kind=PREC_DP), DIMENSION(n) :: u
+REAL(kind=PREC_DP)    :: sig, p, qn, un
 INTEGER :: i, k
 !
 !write(*,*) ' Boundaries n', n
@@ -136,6 +137,7 @@ END SUBROUTINE spline
 SUBROUTINE splint (n, xa, ya, y2a, x, y, ier) 
 !
 use errlist_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -143,15 +145,15 @@ IMPLICIT NONE
 !IMPLICIT REAL (a-h, o-z)
 !      DIMENSION xa (n), ya (n), y2a (n) 
 INTEGER           , INTENT(IN)  :: n
-REAL, DIMENSION(n), INTENT(IN)  :: xa
-REAL, DIMENSION(n), INTENT(IN)  :: ya
-REAL              , INTENT(IN)  :: x
-REAL              , INTENT(OUT) :: y
-REAL, DIMENSION(n), INTENT(IN ) :: y2a
+REAL(kind=PREC_DP), DIMENSION(n), INTENT(IN)  :: xa
+REAL(kind=PREC_DP), DIMENSION(n), INTENT(IN)  :: ya
+REAL(kind=PREC_DP)              , INTENT(IN)  :: x
+REAL(kind=PREC_DP)              , INTENT(OUT) :: y
+REAL(kind=PREC_DP), DIMENSION(n), INTENT(IN ) :: y2a
 INTEGER           , INTENT(OUT) :: ier
 !
 INTEGER :: klo, khi, k
-REAL    :: h,a, b
+REAL(kind=PREC_DP)    :: h,a, b
 !
 klo = 1 
 khi = n 
