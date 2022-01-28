@@ -8,6 +8,8 @@ MODULE atom_class
 !     get_atom        get type, position and property
 !  ==>more are needed to set/get iscat only etc
 !
+use precision_mod
+!
 IMPLICIT none
 !
 PUBLIC cl_atom
@@ -15,10 +17,10 @@ PUBLIC cl_atom
 TYPE :: cl_atom                        ! the basic type definition
    PRIVATE
    INTEGER                :: iscat     ! the scattering type
-   REAL   , DIMENSION(3)  :: pos       ! fractional coordinates
+   REAL(kind=PREC_DP)   , DIMENSION(3)  :: pos       ! fractional coordinates
    INTEGER                :: prop      ! a property flag
    INTEGER, DIMENSION(0:3):: surf      ! surface charcteristics
-   REAL   , DIMENSION(0:3):: magn      ! Magnetic moments
+   REAL(kind=PREC_DP)   , DIMENSION(0:3):: magn      ! Magnetic moments
    INTEGER, DIMENSION(1:2):: in_mole   ! In which molecule are we
 !
 CONTAINS
@@ -44,10 +46,10 @@ CONTAINS
 !
    CLASS (cl_atom)                  :: this  ! work on "this" atoms
    INTEGER,              INTENT(IN) :: itype ! atom type
-   REAL   , DIMENSION(3),INTENT(IN) :: posit ! atom position
+   REAL(kind=PREC_DP)   , DIMENSION(3),INTENT(IN) :: posit ! atom position
    INTEGER,              INTENT(IN) :: iprop ! atom property
    INTEGER, DIMENSION(0:3),INTENT(IN) :: isurface ! atom surface
-   REAL   , DIMENSION(0:3),INTENT(IN) :: magn_mom ! atom surface
+   REAL(kind=PREC_DP)   , DIMENSION(0:3),INTENT(IN) :: magn_mom ! atom surface
    INTEGER, DIMENSION(1:2),INTENT(IN) :: iin_mole   ! In which molecule are we
 !
    this%iscat   = itype
@@ -67,10 +69,10 @@ CONTAINS
 !
    CLASS (cl_atom)                   :: this
    INTEGER,              INTENT(OUT) :: itype
-   REAL   , DIMENSION(3),INTENT(OUT) :: posit
+   REAL(kind=PREC_DP)   , DIMENSION(3),INTENT(OUT) :: posit
    INTEGER,              INTENT(OUT) :: iprop
    INTEGER, DIMENSION(0:3),INTENT(OUT) :: isurface ! atom surface
-   REAL   , DIMENSION(0:3),INTENT(OUT) :: magn_mom ! atom surface
+   REAL(kind=PREC_DP)   , DIMENSION(0:3),INTENT(OUT) :: magn_mom ! atom surface
    INTEGER, DIMENSION(1:2),INTENT(OUT) :: iin_mole   ! In which molecule are we
 !
    itype       = this%iscat

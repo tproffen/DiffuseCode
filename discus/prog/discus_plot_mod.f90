@@ -22,14 +22,14 @@ CHARACTER(LEN=   4)  :: pl_col   = 'xyz'
 LOGICAL                                   :: pl_init      ! Plot was initialized
 REAL                                      :: pl_width     = 1e12
 REAL   , DIMENSION(3,2)                   :: pl_dim       = reshape((/(-1e14,ik=1,3),(1e12,ik=1,3)/),shape(pl_dim)) ! (3,2)
-REAL   , DIMENSION(3)                     :: pl_hkl       = (/0.0,0.0,1.0/)
-REAL   , DIMENSION(3)                     :: pl_uvw       = (/0.0,0.0,1.0/)
-REAL   , DIMENSION(3)                     :: pl_vec       = 0.0
-REAL   , DIMENSION(3)                     :: pl_abs       = (/1.0,0.0,0.0/)
-REAL   , DIMENSION(3)                     :: pl_ord       = (/0.0,1.0,0.0/)
-REAL   , DIMENSION(3,3)                   :: pl_mat       = &
+REAL(kind=PREC_DP), DIMENSION(3)          :: pl_hkl       = (/0.0D0,0.0D0,1.0D0/)
+REAL(kind=PREC_DP), DIMENSION(3)          :: pl_uvw       = (/0.0D0,0.0D0,1.0D0/)
+REAL(kind=PREC_DP), DIMENSION(3)          :: pl_vec       = 0.0
+REAL(kind=PREC_DP), DIMENSION(3)          :: pl_abs       = (/1.0D0,0.0D0,0.0D0/)
+REAL(kind=PREC_DP), DIMENSION(3)          :: pl_ord       = (/0.0D0,1.0D0,0.0D0/)
+REAL(kind=PREC_DP), DIMENSION(3,3)        :: pl_mat       = &
          RESHAPE((/1.,(0.,0.,0.,1.,ik=1,2)/),SHAPE(pl_mat ))
-REAL   , DIMENSION(3,3)                   :: pl_inv       = &
+REAL(kind=PREC_DP), DIMENSION(3,3)        :: pl_inv       = &
          RESHAPE((/1.,(0.,0.,0.,1.,ik=1,2)/),SHAPE(pl_inv ))
 REAL   , DIMENSION(:),     ALLOCATABLE    :: pl_siz       ! (0:MAXSCAT)
 REAL   , DIMENSION(:,:),   ALLOCATABLE    :: pl_rgb       ! (3,0:MAXSCAT)
@@ -41,14 +41,14 @@ REAL   , DIMENSION(:,:,:), ALLOCATABLE    :: pl_bond_col  ! (3,0:MAXSCAT,0:MAXSC
 real   , dimension(:,:,:), allocatable    :: pl_lines 
 integer                                   :: pl_n_lines = 0 ! Number of lines
 REAL                                      :: pl_vrml_scaling = 0.05
-REAL   , DIMENSION(4,4)                   :: pl_tran_g    = &
-         RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(pl_tran_g ))
-REAL   , DIMENSION(4,4)                   :: pl_tran_gi   = &
-         RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(pl_tran_gi))
-REAL   , DIMENSION(4,4)                   :: pl_tran_f    = &
-         RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(pl_tran_f ))
-REAL   , DIMENSION(4,4)                   :: pl_tran_fi   = &
-         RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(pl_tran_fi))
+REAL(kind=PREC_DP)   , DIMENSION(4,4)                   :: pl_tran_g    = &
+         RESHAPE((/1.0D0,(0.0D0,0.0D0,0.0D0,0.0D0,1.0D0,ik=1,3)/),SHAPE(pl_tran_g ))
+REAL(kind=PREC_DP)   , DIMENSION(4,4)                   :: pl_tran_gi   = &
+         RESHAPE((/1.0D0,(0.0D0,0.0D0,0.0D0,0.0D0,1.D0,ik=1,3)/),SHAPE(pl_tran_gi))
+REAL(kind=PREC_DP)   , DIMENSION(4,4)                   :: pl_tran_f    = &
+         RESHAPE((/1.0D0,(0.0D0,0.0D0,0.0D0,0.0D0,1.0D0,ik=1,3)/),SHAPE(pl_tran_f ))
+REAL(kind=PREC_DP)   , DIMENSION(4,4)                   :: pl_tran_fi   = &
+         RESHAPE((/1.0D0,(0.0D0,0.0D0,0.0D0,0.0D0,1.0D0,ik=1,3)/),SHAPE(pl_tran_fi))
 REAL   , DIMENSION(0:1)                   :: pl_scale     = (/-1.0, 1.0/)
 INTEGER, DIMENSION(0:1)                   :: pl_sel_prop  = (/0,0/)
 INTEGER, DIMENSION(:), ALLOCATABLE        :: pl_typ       ! (0:MAXSCAT)

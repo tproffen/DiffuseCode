@@ -11,17 +11,21 @@ CONTAINS
       USE metric_mod
       USE modify_func_mod
       USE discus_plot_mod 
-      USE tensors_mod
+!      USE tensors_mod
       USE errlist_mod 
 USE lib_length
+use matrix_mod
+use precision_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       REAL d, dist, fac 
-      REAL v (3) 
+      REAL(kind=PREC_DP), dimension(3) ::  v (3) 
       INTEGER i, j, iff 
       LOGICAL lno_slice, latom 
+real(kind=PREC_DP), dimension(3) :: pl_uvw_local
+pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !                                                                       
 !                                                                       
       WRITE (iff, 500) cr_name (1:len_str (cr_name) ) 
@@ -38,13 +42,14 @@ USE lib_length
          d = 1.0 
       ELSE 
          lno_slice = .false. 
-         d = sqrt (skalpro (pl_uvw, pl_uvw, cr_gten) ) 
+         d = sqrt (skalpro (pl_uvw_local, pl_uvw_local, cr_gten) ) 
          DO j = 1, 3 
          pl_mat (j, 1) = pl_abs (j) 
          pl_mat (j, 2) = pl_ord (j) 
          pl_mat (j, 3) = pl_uvw (j) 
          ENDDO 
-         CALL invmat (pl_inv, pl_mat) 
+!        CALL invmat (pl_inv, pl_mat) 
+         call matinv3(pl_mat, pl_inv)
          IF (ier_num.eq. - 1) then 
             RETURN 
          ENDIF 
@@ -73,7 +78,7 @@ USE lib_length
             DO j = 1, 3 
             v (j) = cr_pos (j, i) - pl_vec (j) 
             ENDDO 
-            dist = abs (skalpro (pl_uvw, v, cr_gten) ) / d 
+            dist = abs (skalpro (pl_uvw_local, v, cr_gten) ) / d 
 !                                                                       
 !     ------Write atom if inside slice or if slice has been deselected  
 !                                                                       
@@ -117,24 +122,31 @@ USE lib_length
       USE metric_mod
       USE modify_func_mod
       USE discus_plot_mod 
-      USE tensors_mod
+!     USE tensors_mod
       USE errlist_mod 
 USE lib_length
+use matrix_mod
+use precision_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       REAL d, dist, fac 
-      REAL v (3) 
+      REAL(kind=PREC_DP) :: v (3) 
       INTEGER i, j, iff 
       LOGICAL lno_slice, latom 
 !                                                                       
       CHARACTER(12) povcolor (15) 
+!                                                                       
+real(kind=PREC_DP), dimension(3) :: pl_uvw_local
+!
       DATA povcolor / 'Scarlet', 'HuntersGreen', 'MediumBlue',          &
       'Magenta', 'Yellow', 'Black', 'IndianRed', 'DarkGreen',           &
       'MidnightBlue', 'Maroon', 'Gold', 'Gray20', 'Cyan', 'SkyBlue',    &
       'White' /                                                         
 !                                                                       
+pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
+!
       WRITE (iff, 501) cr_name (1:len_str (cr_name) ) 
       WRITE (iff, 511) (cr_a0 (i) * cr_icc (i), i = 1, 3),              &
                        (cr_win (i), i = 1, 3)
@@ -149,13 +161,14 @@ USE lib_length
          d = 1.0 
       ELSE 
          lno_slice = .false. 
-         d = sqrt (skalpro (pl_uvw, pl_uvw, cr_gten) ) 
+         d = sqrt (skalpro (pl_uvw_local, pl_uvw_local, cr_gten) ) 
          DO j = 1, 3 
          pl_mat (j, 1) = pl_abs (j) 
          pl_mat (j, 2) = pl_ord (j) 
          pl_mat (j, 3) = pl_uvw (j) 
          ENDDO 
-         CALL invmat (pl_inv, pl_mat) 
+!        CALL invmat (pl_inv, pl_mat) 
+         call matinv3(pl_mat, pl_inv)
          IF (ier_num.eq. - 1) then 
             RETURN 
          ENDIF 
@@ -184,7 +197,7 @@ USE lib_length
             DO j = 1, 3 
             v (j) = cr_pos (j, i) - pl_vec (j) 
             ENDDO 
-            dist = abs (skalpro (pl_uvw, v, cr_gten) ) / d 
+            dist = abs (skalpro (pl_uvw_local, v, cr_gten) ) / d 
 !                                                                       
 !     ------Write atom if inside slice or if slice has been deselected  
 !                                                                       
@@ -242,8 +255,10 @@ USE crystal_mod
 USE metric_mod
 USE modify_func_mod
 USE discus_plot_mod 
-USE tensors_mod
+!USE tensors_mod
 USE errlist_mod 
+use matrix_mod
+use precision_mod
 USE wink_mod
 use string_convert_mod
 !
@@ -259,11 +274,14 @@ REAL   , PARAMETER   :: eightpisq = 8.*3.14159265**2
 CHARACTER(LEN=16)     :: do_spcgr_w = 'P1'
 character(len=4)      :: atom_i
 REAL                  :: d, dist , shift
-REAL,    DIMENSION(3) :: v
+REAL(kind=PREC_DP),    DIMENSION(3) :: v
 INTEGER, DIMENSION(3) :: scalef
 INTEGER               :: i, j
 LOGICAL               :: lno_slice, latom 
 !                                                                       
+real(kind=PREC_DP), dimension(3) :: pl_uvw_local
+!
+pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !                                                                       
 !     scalef(1) = MAX(cr_icc(1), INT((cr_dim(1,2)-cr_dim(1,1)))+2)
 !     scalef(2) = MAX(cr_icc(2), INT((cr_dim(2,2)-cr_dim(2,1)))+2)
@@ -301,13 +319,14 @@ IF (pl_hkl(1).eq.0.and.pl_hkl(2).eq.0.and.pl_hkl(3).eq.0) then
    d = 1.0 
 ELSE 
    lno_slice = .false. 
-   d = sqrt (skalpro (pl_uvw, pl_uvw, cr_gten) ) 
+   d = sqrt (skalpro (pl_uvw_local, pl_uvw_local, cr_gten) ) 
    DO j = 1, 3 
          pl_mat (j, 1) = pl_abs (j) 
          pl_mat (j, 2) = pl_ord (j) 
          pl_mat (j, 3) = pl_uvw (j) 
    ENDDO 
-   CALL invmat (pl_inv, pl_mat) 
+!  CALL invmat (pl_inv, pl_mat) 
+   call matinv3(pl_mat, pl_inv) 
    IF (ier_num.eq. - 1) then 
       RETURN 
    ENDIF 
@@ -335,7 +354,7 @@ DO i = 1, cr_natoms
          DO j = 1, 3 
             v (j) = cr_pos (j, i) - pl_vec (j) 
          ENDDO 
-         dist = abs (skalpro (pl_uvw, v, cr_gten) ) / d 
+         dist = abs (skalpro (pl_uvw_local, v, cr_gten) ) / d 
 !                                                                       
 !     ------Write atom if inside slice or if slice has been deselected  
 !                                                                       
@@ -395,20 +414,27 @@ END SUBROUTINE plot_cif
       USE metric_mod
       USE modify_func_mod
       USE discus_plot_mod 
-      USE tensors_mod
-      USE trafo_mod
+!      USE tensors_mod
+!      USE trafo_mod
       USE errlist_mod 
+use matrix_mod
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
+!     INTEGER idim 
+!     PARAMETER (idim = 3) 
 !                                                                       
        
 !                                                                       
-      REAL d, dist, ps 
-      REAL v (3), u (3) 
+      REAL(kind=PREC_DP) :: d, dist, ps 
+      REAL(kind=PREC_DP) ::  v (3), u (3) 
       INTEGER i, j, iff, pt, pc 
       LOGICAL lno_slice, latom, lkupl 
+real(kind=PREC_DP), dimension(3) :: pl_uvw_local
+real(kind=PREC_DP), dimension(3,3) :: pl_inv_local
+!
+pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !                                                                       
 !                                                                       
       latom = .false. 
@@ -417,17 +443,19 @@ END SUBROUTINE plot_cif
          d = 1.0 
       ELSE 
          lno_slice = .false. 
-         d = sqrt (skalpro (pl_uvw, pl_uvw, cr_gten) ) 
+         d = sqrt (skalpro (pl_uvw_local, pl_uvw_local, cr_gten) ) 
          DO j = 1, 3 
          pl_mat (j, 1) = pl_abs (j) 
          pl_mat (j, 2) = pl_ord (j) 
          pl_mat (j, 3) = pl_uvw (j) 
          ENDDO 
-         CALL invmat (pl_inv, pl_mat) 
+!        CALL invmat (pl_inv, pl_mat) 
+         call matinv3(pl_mat, pl_inv)
          IF (ier_num.eq. - 1) then 
             RETURN 
          ENDIF 
       ENDIF 
+pl_inv_local = real(pl_inv, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !                                                                       
       DO i = 1, cr_natoms 
 !                                                                       
@@ -452,7 +480,7 @@ END SUBROUTINE plot_cif
             DO j = 1, 3 
             v (j) = cr_pos (j, i) - pl_vec (j) 
             ENDDO 
-            dist = abs (skalpro (pl_uvw, v, cr_gten) ) / d 
+            dist = abs (skalpro (pl_uvw_local, v, cr_gten) ) / d 
 !                                                                       
 !     ------Write atom if inside slice or if slice has been deselected  
 !                                                                       
@@ -468,7 +496,8 @@ END SUBROUTINE plot_cif
                   DO j = 1, 3 
                   u (j) = cr_pos (j, i) 
                   ENDDO 
-                  CALL trans (u, pl_inv, v, idim) 
+!                 CALL trans (u, pl_inv_local, v, idim) 
+                  v = matmul( pl_inv_local, u)
                ENDIF 
 !                                                                       
 !     ------Write atom position in desired sequence of coordinates      
@@ -519,41 +548,49 @@ END SUBROUTINE plot_cif
       USE metric_mod
       USE molecule_mod 
       USE discus_plot_mod 
-      USE tensors_mod
-      USE trafo_mod
+!      USE tensors_mod
+!      USE trafo_mod
       USE errlist_mod 
+use matrix_mod
+use precision_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
+!     INTEGER idim 
+!     PARAMETER (idim = 3) 
 !                                                                       
        
 !                                                                       
-      REAL d, dist, ps 
-      REAL v (3), u (3) 
+      REAL(kind=PREC_DP) :: d, dist, ps 
+      REAL(kind=PREC_DP) ::  v (3), u (3) 
       INTEGER i, j, k, i0, iff, pt, pc 
       INTEGER i_start, i_end, imol 
       LOGICAL lno_slice, latom, lkupl 
+real(kind=PREC_DP), dimension(3) :: pl_uvw_local
+real(kind=PREC_DP), dimension(3,3) :: pl_inv_local
 !                                                                       
 !     REAL skalpro 
 !                                                                       
+pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
       latom = .false. 
       IF (pl_hkl(1).eq.0.and.pl_hkl(2).eq.0.and.pl_hkl(3).eq.0) then
          lno_slice = .true. 
          d = 1.0 
       ELSE 
          lno_slice = .false. 
-         d = sqrt (skalpro (pl_uvw, pl_uvw, cr_gten) ) 
+         d = sqrt (skalpro (pl_uvw_local, pl_uvw_local, cr_gten) ) 
          DO j = 1, 3 
          pl_mat (j, 1) = pl_abs (j) 
          pl_mat (j, 2) = pl_ord (j) 
          pl_mat (j, 3) = pl_uvw (j) 
          ENDDO 
-         CALL invmat (pl_inv, pl_mat) 
+!        CALL invmat (pl_inv, pl_mat) 
+         call matinv3(pl_mat, pl_inv)
          IF (ier_num.eq. - 1) then 
             RETURN 
          ENDIF 
       ENDIF 
+!
+pl_inv_local = real(pl_inv, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !                                                                       
       DO i = 1, mole_num_mole 
 !                                                                       
@@ -578,7 +615,7 @@ END SUBROUTINE plot_cif
             DO j = 1, 3 
             v (j) = cr_pos (j, i0) - pl_vec (j) 
             ENDDO 
-            dist = abs (skalpro (pl_uvw, v, cr_gten) ) / d 
+            dist = abs (skalpro (pl_uvw_local, v, cr_gten) ) / d 
 !                                                                       
 !     ------Write atom if inside slice or if slice has been deselected  
 !                                                                       
@@ -612,7 +649,8 @@ END SUBROUTINE plot_cif
                   DO k = 1, 3 
                   u (k) = cr_pos (k, j) 
                   ENDDO 
-                  CALL trans (u, pl_inv, v, idim) 
+!                 CALL trans (u, pl_inv_local, v, idim) 
+                  v = matmul(pl_inv_local, u)
                ENDIF 
                IF (pl_col.eq.'xyz') then 
                   CALL write_atom (lkupl, iff, j, v (1), v (2), v (3),  &
@@ -656,7 +694,7 @@ USE discus_plot_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-REAL    :: x, y, z, ps 
+REAL(kind=PREC_DP)    :: x, y, z, ps 
 INTEGER :: cr_end 
 INTEGER :: i, pt, pc, iff, iatom, isite, icell (3) 
 LOGICAL :: lkupl 
@@ -709,33 +747,39 @@ END SUBROUTINE write_atom
       USE modify_func_mod
       USE discus_plot_mod 
       USE discus_plot_init_mod
-      USE tensors_mod
+!      USE tensors_mod
       USE trans_sup_mod
       USE errlist_mod 
+use matrix_mod
       USE param_mod 
       USE precision_mod
       IMPLICIT none 
 !                                                                       
+integer, intent(in)  :: iff
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: zeile 
-      INTEGER laenge 
-      INTEGER i, j, k, iff 
-      LOGICAL latom, lspace 
-      LOGICAL lscreen 
-      REAL uvw (4) 
-      REAL absz (3) 
-      REAL xmin (3), xmax (3), null (3) 
-      REAL xx 
+      INTEGER :: laenge 
+      INTEGER :: i, j, k! , iff 
+      LOGICAL :: latom, lspace 
+      LOGICAL :: lscreen 
+REAL(kind=PREC_DP), dimension(4) :: uvw (4) 
+REAL(kind=PREC_DP), dimension(3) :: absz (3) 
+REAL(kind=PREC_DP), dimension(3) :: xmin (3), xmax (3)
+REAL(kind=PREC_DP)               :: xx 
+real(kind=PREC_DP), dimension(3) :: pl_uvw_local
+real(kind=PREC_DP), dimension(3) :: pl_abs_local
+real(kind=PREC_DP), dimension(3), PARAMETER :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /)
 !                                                                       
 !                                                                       
       DATA lscreen / .false. / 
       DATA lspace / .true. / 
-      DATA null / 0.0, 0.0, 0.0 / 
 !                                                                       
-      CALL plot_ini_trans (1.0,                                &
+      CALL plot_ini_trans (1.0D0,                                &
                  pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
                  cr_gten, cr_rten, cr_eps)
-
+!
+pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
+pl_abs_local = real(pl_abs, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !                                                                       
       latom = .false. 
       uvw (4) = 1.0 
@@ -800,7 +844,7 @@ END SUBROUTINE write_atom
 !                                                                       
 !     Check that normal and asbzissa are not parallel                   
 !                                                                       
-      xx = do_bang (lspace, pl_uvw, null, pl_abs) 
+      xx = do_bang (lspace, pl_uvw_local, nullv, pl_abs_local) 
       IF (xx.eq.0.0) then 
          ier_num = - 80 
          ier_typ = ER_APPL 
@@ -814,7 +858,7 @@ END SUBROUTINE write_atom
       absz (2) = res_para (5) 
       absz (3) = res_para (6) 
 !                                                                       
-      xx = do_blen (lspace, pl_uvw, null) 
+      xx = do_blen (lspace, pl_uvw_local, nullv) 
       IF (xx.eq.0.0) then 
          ier_num = - 32 
          ier_typ = ER_APPL 
@@ -828,7 +872,7 @@ END SUBROUTINE write_atom
       pl_tran_gi (3, j) = uvw (j) 
       ENDDO 
 !                                                                       
-      xx = do_blen (lspace, absz, null) 
+      xx = do_blen (lspace, absz, nullv) 
       IF (xx.eq.0.0) then 
          ier_num = - 32 
          ier_typ = ER_APPL 
@@ -854,7 +898,8 @@ END SUBROUTINE write_atom
       ENDDO 
       ENDDO 
 !                                                                       
-      CALL invmat4 (pl_tran_g) 
+!     CALL invmat4 (pl_tran_g) 
+      call matinv(pl_tran_gi, pl_tran_g)
 !                                                                       
 !     write Bond types                                                  
 !                                                                       
@@ -916,21 +961,23 @@ END SUBROUTINE write_atom
       USE trans_sup_mod
       USE errlist_mod 
       USE param_mod 
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
 !                                                                       
       INTEGER i, j, iff 
       LOGICAL latom, lspace 
       LOGICAL lscreen 
-      REAL uvw (4) 
-      REAL xmin (3), xmax (3), null (3) 
-      REAL xx 
+REAL(kind=PREC_DP), dimension(4) :: uvw (4) 
+REAL(kind=PREC_DP), dimension(3) :: xmin (3), xmax (3)!, nullv (3) 
+REAL(kind=PREC_DP)               :: xx 
 !                                                                       
       DATA lscreen / .false. / 
       DATA lspace / .true. / 
-      DATA null / 0.0, 0.0, 0.0 / 
+!     DATA nullv / 0.0, 0.0, 0.0 / 
 !                                                                       
-      CALL plot_ini_trans (1.0,                                &
+      CALL plot_ini_trans (1.0D0,                                &
                  pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
                  cr_gten, cr_rten, cr_eps)
 !                                                                       
@@ -1007,18 +1054,18 @@ END SUBROUTINE write_atom
 !                                                                       
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: zeile 
-      INTEGER laenge 
-      INTEGER i, j, iff 
+      INTEGER :: laenge 
+      INTEGER :: i, j, iff 
       INTEGER :: natoms
-      LOGICAL latom, lspace 
-      LOGICAL lscreen 
-      REAL uvw (4) 
+      LOGICAL :: latom, lspace 
+      LOGICAL :: lscreen 
+REAL(kind=PREC_DP), dimension(4) ::  uvw (4) 
 !                                                                       
 !                                                                       
       DATA lscreen / .false. / 
       DATA lspace / .true. / 
 !                                                                       
-      CALL plot_ini_trans (1.0,                                &
+      CALL plot_ini_trans (1.0D0,                                &
                  pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
                  cr_gten, cr_rten, cr_eps)
 !                                                                       

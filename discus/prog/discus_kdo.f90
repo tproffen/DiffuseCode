@@ -13,6 +13,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE chem_aver_mod, ONLY: get_displacement
       USE conn_mod
       USE demolec
+use discus_3dpdf_mod
       USE do_find_top
       USE domain_menu
       USE fourier_menu
@@ -438,6 +439,11 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'transform', 2, lbef, 9) ) THEN 
             CALL transform 
+!                                                                       
+!     Three-D-PDF interpretation 'three'
+!                                                                       
+         ELSEIF (str_comp (befehl, 'three',2, lbef, 5) ) THEN 
+            CALL three_main
 !                                                                       
 !       Vector Product 'vprod'                                          
 !                                                                       

@@ -207,9 +207,9 @@ INTEGER              :: n_neig      ! Actual number of neighboring atoms
 INTEGER,DIMENSION(:), ALLOCATABLE :: valid_neig       ! Valid neigbors under the scope
 LOGICAL, DIMENSION(3):: fp    ! periodic boundary conditions
 LOGICAL              :: fq    ! quick search algorithm
-REAL                 :: rmin        ! Minimum bond length
-REAL                 :: rmax        ! Maximum bond length
-REAL   , DIMENSION(3)     :: x      ! Atom position
+REAL(kind=PREC_DP)   :: rmin        ! Minimum bond length
+REAL(kind=PREC_DP)   :: rmax        ! Maximum bond length
+REAL(kind=PREC_DP), DIMENSION(3)     :: x      ! Atom position
 !
 maxw = MAX(MIN_PARA, MAXSCAT+1)
 !
@@ -1678,6 +1678,7 @@ USE surface_mod
       USE param_mod 
       USE prompt_mod 
       USE lib_f90_allocate_mod
+use precision_mod
       IMPLICIT none 
 !                                                                       
 !
@@ -1696,7 +1697,7 @@ USE surface_mod
       INTEGER                    :: i, j
       INTEGER                    :: length
       INTEGER                    :: n_res
-      REAL   , DIMENSION(3)      :: u, v
+REAL(kind=PREC_DP)   , DIMENSION(3)      :: u, v
       REAL                       :: distance
 !
 CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
@@ -1918,6 +1919,7 @@ search:        DO i=1, cr_natoms               ! loop until we find the natoms a
    USE crystal_mod 
    USE metric_mod
 USE lib_random_func
+use precision_mod
 !
    IMPLICIT none 
 !
@@ -1947,7 +1949,7 @@ USE lib_random_func
    INTEGER, DIMENSION(3) :: t_offs, in_offs
    INTEGER, DIMENSION(3) :: c2ex_old_offs, s2ex_old_offs
    INTEGER, DIMENSION(3) :: c2ex_new_offs, s2ex_new_offs
-   REAL   , DIMENSION(3) :: u,v, un, vn
+   REAL(kind=PREC_DP)   , DIMENSION(3) :: u,v, un, vn
    REAL                  :: distance, unn, vnn
    INTEGER               :: t_ex, in_ex, in_ref
    INTEGER    :: katom, j_ex, k_ex

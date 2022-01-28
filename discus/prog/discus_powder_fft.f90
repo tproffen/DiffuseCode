@@ -11,18 +11,19 @@ USE fast_fourier_mod
 USE spline_mod
 USE wink_mod
 use errlist_mod
+use precision_mod
 !
 implicit none
 !
 INTEGER                       , INTENT(IN)  :: npkt_wrt
-REAL   , DIMENSION(0:npkt_wrt), INTENT(IN)  :: xwrt
-REAL   , DIMENSION(0:npkt_wrt), INTENT(IN)  :: ywrt
+REAL(kind=PREC_DP)   , DIMENSION(0:npkt_wrt), INTENT(IN)  :: xwrt
+REAL(kind=PREC_DP)   , DIMENSION(0:npkt_wrt), INTENT(IN)  :: ywrt
 REAL(KIND=PREC_DP)            , INTENT(IN)  :: qmin, qmax, deltaq
 REAL(KIND=PREC_DP)            , INTENT(IN)  :: rmin, rmax, rstep
 INTEGER                       , INTENT(IN)  :: npkt_fft !points in powder pattern for Fast Fourier = 2**16
 INTEGER                       , INTENT(IN)  :: npkt_pdf
-REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: xfour
-REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: yfour
+REAL(kind=PREC_DP)   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: xfour
+REAL(kind=PREC_DP)   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: yfour
 !
 INTEGER   :: i
 INTEGER   :: lensav      ! Array size for ip
@@ -35,8 +36,10 @@ REAL(KIND=PREC_DP) :: qmax_l
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: temp   ! Temporary intensities for FFT
 INTEGER           , DIMENSION(:), ALLOCATABLE :: ip
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: w
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: xfft   ! Temporary array for FFT result
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: yfft   ! Temporary array for FFT result
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: xfft   ! Temporary array for FFT result
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: yfft   ! Temporary array for FFT result
+!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: xfour_sp ! Temporary array for spline
+!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: yfour_sp ! Temporary array for spline
 !
 !write(*,*) ' PDF OUT ', npkt_wrt, npkt_fft, npkt_pdf, rmin, rmax, (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
 !write(*,*) ' PDF ste ', (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP), rstep
@@ -90,7 +93,7 @@ DO i=0,npkt_fft-1
 ENDDO
 !close(77)
 !write(*,*) 'DO SPLINE ', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, nlow, npkt_fft+1
-CALL spline_prep(nlow, npkt_fft+1, xfft, yfft, REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, xfour, yfour)
+CALL spline_prep(nlow, npkt_fft+1, xfft, yfft, rmin, rmax, rstep, npkt_pdf, xfour, yfour)
 !
 DEALLOCATE(temp)
 DEALLOCATE(ip)
@@ -117,15 +120,15 @@ USE wink_mod
 IMPLICIT none 
 !
 INTEGER, INTENT(IN) :: POW_MAXPKT
-REAL   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat       ! Data to be convoluted
-REAL                            , INTENT(IN)    :: tthmin    ! 2Theta min
-REAL                            , INTENT(IN)    :: tthmax    ! 2Theta max
-REAL                            , INTENT(IN)    :: dtth      ! 2Theta step
-REAL                            , INTENT(IN)    :: sigma2    ! Gaussian Sigma^2
-REAL                            , INTENT(IN)    :: corrlin   ! 1/r deppendend width correction
-REAL                            , INTENT(IN)    :: corrquad  ! 1/r^2 deppendend width correction
+REAL(kind=PREC_DP)   , DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: dat       ! Data to be convoluted
+REAL(kind=PREC_DP)                            , INTENT(IN)    :: tthmin    ! 2Theta min
+REAL(kind=PREC_DP)                            , INTENT(IN)    :: tthmax    ! 2Theta max
+REAL(kind=PREC_DP)                            , INTENT(IN)    :: dtth      ! 2Theta step
+REAL(kind=PREC_DP)                            , INTENT(IN)    :: sigma2    ! Gaussian Sigma^2
+REAL(kind=PREC_DP)                            , INTENT(IN)    :: corrlin   ! 1/r deppendend width correction
+REAL(kind=PREC_DP)                            , INTENT(IN)    :: corrquad  ! 1/r^2 deppendend width correction
 REAL(KIND=PREC_SP)              , INTENT(IN)    :: rcut      ! minimum  distance for clin/(r-rmin)
-REAL                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
+REAL(kind=PREC_DP)                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 !
 !REAL(KIND=PREC_DP), PARAMETER :: four_ln2  = 2.772588722239781237669D0
 REAL(KIND=PREC_DP), PARAMETER :: eightln2  = 2.772588722239781237669D0 * 2.0D0
@@ -137,7 +140,7 @@ REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data 
 REAL(KIND=PREC_DP)    :: sigmasq          ! actual scaled local sigma**2
 REAL(KIND=PREC_DP)    :: sigmamin         ! minimum       local sigma**2
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
-REAL(KIND=PREC_SP)    :: dist_min  ! minimum  distance for clin/(r-rmin)
+REAL(KIND=PREC_DP)    :: dist_min  ! minimum  distance for clin/(r-rmin)
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
 INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
 REAL    :: pseudo          ! scale factor for lookup table

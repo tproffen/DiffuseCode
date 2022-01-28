@@ -107,6 +107,8 @@ USE diffuse_mod
 USE four_angles_mod
 USE output_mod
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
 INTEGER,                                        INTENT(OUT) :: nfourier
@@ -117,16 +119,16 @@ CHARACTER (LEN=8), DIMENSION(3) :: cradiation
 CHARACTER (LEN=1), DIMENSION(3) :: caxis
 INTEGER                         :: i
 LOGICAL                         :: ltop
-REAL                            ::  angle_vh
-REAL                            ::  ratio_vh
-REAL                            ::   aver_vh
-REAL                            ::  angle_ht
-REAL                            ::  ratio_ht
-REAL                            ::   aver_ht
-REAL                            ::  angle_tv
-REAL                            ::  ratio_tv
-REAL                            ::   aver_tv
-REAL            , DIMENSION(3)  ::  length = (/0.0, 0.0, 0.0/)
+REAL(KIND=PREC_DP)              ::  angle_vh
+REAL(KIND=PREC_DP)              ::  ratio_vh
+REAL(KIND=PREC_DP)              ::   aver_vh
+REAL(KIND=PREC_DP)              ::  angle_ht
+REAL(KIND=PREC_DP)              ::  ratio_ht
+REAL(KIND=PREC_DP)              ::   aver_ht
+REAL(KIND=PREC_DP)              ::  angle_tv
+REAL(KIND=PREC_DP)              ::  ratio_tv
+REAL(KIND=PREC_DP)              ::   aver_tv
+REAL(KIND=PREC_DP), DIMENSION(3) ::  length = (/0.0, 0.0, 0.0/)
 !
 DATA cradiation /'xray    ','neutron ', 'electron'/
 DATA caxis      /'h','k','l'/
