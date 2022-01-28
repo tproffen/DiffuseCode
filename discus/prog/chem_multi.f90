@@ -51,7 +51,7 @@ INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
       REAL bl_sum (0:maxscat, 0:maxscat) 
       REAL bl_s2 (0:maxscat, 0:maxscat) 
       REAL patom (3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT) 
-      REAL u (3), v (3), d (3), di 
+      REAL(kind=PREC_DP) ::  u (3), v (3), d (3), di 
       LOGICAL lfile 
 !                                                                       
 !     REAL do_blen 
@@ -251,7 +251,7 @@ LOGICAL :: tatom (0:MAX_ATOM_ENV_L, MMC_MAX_CENT)
       REAL ba_sum (0:maxscat, 0:maxscat) 
       REAL ba_s2 (0:maxscat, 0:maxscat) 
       REAL patom (3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT) 
-      REAL u (3), v (3), w (3), wi, wis 
+      REAL(kind=PREC_DP) :: u (3), v (3), w (3), wi, wis 
       LOGICAL lfile 
 !                                                                       
 !     REAL do_bang 

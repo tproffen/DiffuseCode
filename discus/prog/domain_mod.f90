@@ -3,6 +3,8 @@ MODULE domain_mod
 !
 !     Variables for the cluster distributions
 !
+use precision_mod
+!
 INTEGER             ::  clu_increment     = 200
 INTEGER             ::  CLU_MAX_TYPE      =   1
 !
@@ -28,10 +30,10 @@ CHARACTER(LEN=  4), DIMENSION(:),     ALLOCATABLE  ::  clu_name      ! Pseudo-at
 logical,            dimension(:,:)  , allocatable  ::  clu_use_expr! are values calculated via "EXPR" (CLU_MAX_TYPE)
 character(len=1024),DIMENSION(:,:,:), ALLOCATABLE  ::  clu_or_expr   ! string with "EXPR" for orient
 INTEGER,            DIMENSION(:)    , ALLOCATABLE  ::  clu_character ! (CLU_MAX_TYPE)
-REAL   ,            DIMENSION(:)    , ALLOCATABLE  ::  clu_fuzzy  ! (CLU_MAX_TYPE)
-REAL   ,            DIMENSION(:,:,:), ALLOCATABLE  ::  clu_orient ! (CLU_MAX_TYPE,3,4)
-REAL   ,            DIMENSION(:,:,:), ALLOCATABLE  ::  clu_shape  ! (CLU_MAX_TYPE,3,4)
-REAL   ,            DIMENSION(:,:  ), ALLOCATABLE  ::  clu_sigma  ! (CLU_MAX_TYPE,3  )
+REAL(kind=PREC_DP), DIMENSION(:)    , ALLOCATABLE  ::  clu_fuzzy  ! (CLU_MAX_TYPE)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE  ::  clu_orient ! (CLU_MAX_TYPE,3,4)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE  ::  clu_shape  ! (CLU_MAX_TYPE,3,4)
+REAL(kind=PREC_DP), DIMENSION(:,:  ), ALLOCATABLE  ::  clu_sigma  ! (CLU_MAX_TYPE,3  )
 INTEGER,            DIMENSION(:,:)  , ALLOCATABLE  ::  clu_mole_tab  ! (CLU_MAX_TYPE)
 INTEGER                               ::  clu_index = 0
 INTEGER                               ::  clu_mode  = CLU_IN_PSEUDO
@@ -44,7 +46,7 @@ INTEGER                               ::  clu_iatom = 0
 !
 INTEGER                               ::  clu_remove_mode = CLU_REMOVE_STRICT   ! Remove initial atoms or include prev domains
 INTEGER                               ::  clu_remove_end  = 1  ! Initial last atom to remove
-REAL                                  ::  clu_remove_dist = 0.0! Initial removal distance
+REAL(kind=PREC_DP)                    ::  clu_remove_dist = 0.0! Initial removal distance
 !
 INTEGER                               ::  clu_size_of! Bytes allocated for DOMAIN
 !
@@ -61,17 +63,17 @@ INTEGER,           DIMENSION(:), allocatable :: clu_mole_off
 INTEGER,           DIMENSION(:), allocatable :: clu_mole_type
 INTEGER,           DIMENSION(:), allocatable :: clu_mole_char
 CHARACTER(LEN=1024), DIMENSION(:), allocatable :: clu_mole_file
-REAL   ,           DIMENSION(:), allocatable :: clu_mole_dens
-REAL   ,           DIMENSION(:), allocatable :: clu_mole_biso
-REAL   ,           DIMENSION(:), allocatable :: clu_mole_clin
-REAL   ,           DIMENSION(:), allocatable :: clu_mole_cqua
-REAL   ,           DIMENSION(:), allocatable :: clu_mole_fuzzy
+REAL(kind=PREC_DP),DIMENSION(:), allocatable :: clu_mole_dens
+REAL(kind=PREC_DP),DIMENSION(:), allocatable :: clu_mole_biso
+REAL(kind=PREC_DP),DIMENSION(:), allocatable :: clu_mole_clin
+REAL(kind=PREC_DP),DIMENSION(:), allocatable :: clu_mole_cqua
+REAL(kind=PREC_DP),DIMENSION(:), allocatable :: clu_mole_fuzzy
 INTEGER,           DIMENSION(:), allocatable :: clu_mole_cont
-REAL                , DIMENSION(3)  :: clu_cr_pos
+REAL(kind=PREC_DP)  , DIMENSION(3)  :: clu_cr_pos
 INTEGER                             :: clu_cr_iscat
 INTEGER                             :: clu_cr_prop
 INTEGER             , DIMENSION(0:3):: clu_cr_surf
-REAL                , DIMENSION(0:3):: clu_cr_magn
+REAL(kind=PREC_DP)  , DIMENSION(0:3):: clu_cr_magn
 INTEGER                             :: clu_cr_mole
 INTEGER                             :: clu_cr_moleatom
 !

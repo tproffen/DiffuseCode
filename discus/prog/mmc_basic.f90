@@ -246,6 +246,7 @@ USE mmc_mod
 !
 USE debug_mod 
 USE errlist_mod 
+use precision_mod
 USE prompt_mod 
 !
 IMPLICIT none 
@@ -279,7 +280,7 @@ INTEGER           , DIMENSION(    :), ALLOCATABLE :: natom ! ( MMC_MAX_CENT)
 INTEGER           , DIMENSION(:,:), ALLOCATABLE :: bl_anz ! (0:DEF_maxscat, 0:DEF_maxscat) 
 REAL(KIND=PREC_SP), DIMENSION(:,:), ALLOCATABLE :: bl_sum ! (0:DEF_maxscat, 0:DEF_maxscat) 
 REAL(KIND=PREC_SP), DIMENSION(:,:), ALLOCATABLE :: bl_s2  ! (0:DEF_maxscat, 0:DEF_maxscat) 
-REAL :: u (3), v (3), d (3) 
+REAL(kind=PREC_DP) :: u (3), v (3), d (3) 
 REAL :: dist 
 real(kind=PREC_SP) :: change    ! Changes in (target-achieved) from feedback to feedback
 real(kind=PREC_SP), dimension(4), save :: conv_val ! Convergence values
@@ -304,7 +305,7 @@ REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: ba_s2  ! (CHEM_MAX_COR * MMC_MA
 INTEGER           , DIMENSION(:), ALLOCATABLE :: ba_anz ! (CHEM_MAX_COR * MMC_MAX_ANGLES) 
 !                                                                       
 INTEGER :: icc (3), jcc (3) 
-REAL :: idir (3), jdir (3), disi (3), disj (3) 
+REAL(kind=PREC_DP) :: idir (3), jdir (3), disi (3), disj (3) 
 REAL :: rdi=1.0, rdj=1.0, dpi=1.0, dpj
 INTEGER           , DIMENSION(:,:), ALLOCATABLE :: xnn !(0:maxscat, 0:maxscat) 
 REAL(KIND=PREC_SP), DIMENSION(:,:), ALLOCATABLE :: xij !(0:maxscat, 0:maxscat) 

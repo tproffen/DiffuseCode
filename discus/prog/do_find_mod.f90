@@ -40,9 +40,9 @@ IMPLICIT none
 integer                            , intent(in) :: ianz
 integer                            , intent(in) :: maxw 
 REAL(KIND=PREC_DP), dimension(MAXW), intent(in) :: werte ! (maxw) 
-REAL              , dimension(3)   , intent(in)  :: x     ! (3) 
-REAL                               , intent(in)  :: rmin
-REAL                               , intent(in)  :: rmax 
+REAL(kind=PREC_DP), dimension(3)   , intent(in)  :: x     ! (3) 
+REAL(kind=PREC_DP)                 , intent(in)  :: rmin
+REAL(kind=PREC_DP)                 , intent(in)  :: rmax 
 LOGICAL                            , intent(in)  :: fq
 LOGICAL           , dimension(3)   , intent(in)  :: fp 
 !                                                                       
@@ -50,12 +50,12 @@ integer :: i, j, k, ii
 integer :: ix, iy, iz
 integer :: ix1, ix2, iy1,iy2, iz1,iz2
 integer :: istart (3), iend (3), iii (3), cell (3), iatom 
-REAL    :: offset (3), nooffset (3) 
+REAL(kind=PREC_DP)    :: offset (3), nooffset (3) 
 LOGICAL :: ltype 
 integer, DIMENSION(  :), ALLOCATABLE :: tmp_ind
 integer, DIMENSION(  :), ALLOCATABLE :: tmp_env
-REAL   , DIMENSION(:,:), ALLOCATABLE :: tmp_pos
-REAL   , DIMENSION(  :), ALLOCATABLE :: tmp_dis
+REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE :: tmp_pos
+REAL(kind=PREC_DP)   , DIMENSION(  :), ALLOCATABLE :: tmp_dis
 !                                                                       
 DATA nooffset / 0.0, 0.0, 0.0 / 
 !                                                                       
@@ -234,12 +234,12 @@ USE precision_mod
 !                                                                       
       integer ianz, maxw 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL x (3) 
-      REAL rmin, rmax 
+      REAL(kind=PREC_DP) :: x (3) 
+      REAL(kind=PREC_DP) :: rmin, rmax 
 !                                                                       
       integer i, j 
 !                                                                       
-      REAL nooffset (3) 
+      REAL(kind=PREC_DP) :: nooffset (3) 
       LOGICAL ltype 
 !                                                                       
       DATA nooffset / 0.0, 0.0, 0.0 / 
@@ -302,7 +302,7 @@ integer               :: jatom                ! Target atom number
 integer               :: i                    ! Dummy index
 logical               :: lok                  ! Flag if boundary is OK
 logical               :: ltype                ! Flag atom is OK
-real(kind=PREC_SP), dimension(3) :: offset    ! in case of periodic boundary conditions, the offset
+real(kind=PREC_DP), dimension(3) :: offset    ! in case of periodic boundary conditions, the offset
 !                      
 atom_env(0) = 0
 !ltype = atom_allowed (iatom, werte, ianz, maxw) .and. &

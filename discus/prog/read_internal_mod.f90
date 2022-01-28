@@ -174,25 +174,25 @@ INTEGER                       :: new_nmax
 INTEGER                       :: new_nscat
 INTEGER, DIMENSION(3)         :: rd_icc     ! Crystal size on 'cell' command line
 INTEGER                       :: itype      ! type of current atom
-REAL   , DIMENSION(3)         :: posit      ! position of current atom
+REAL(kind=PREC_DP), dimension(3)         :: posit      ! position of current atom
 INTEGER, DIMENSION(0:3)       :: isurface   ! surface  of current atom
-REAL   , DIMENSION(0:3)       :: magn_mom   ! Magnetic moment
+REAL(kind=PREC_DP), DIMENSION(0:3)       :: magn_mom   ! Magnetic moment
 INTEGER                       :: iprop      ! property of current atom
 REAL(KIND=PREC_DP), DIMENSION(5)         :: werte      ! temporary array
 !
 CHARACTER (LEN=4)             :: at_name    ! temporary atom name
-REAL                          :: dw1        ! temporary DW factor
-REAL                          :: occ1       ! temporary occupancy factor
+REAL(kind=PREC_DP)                          :: dw1        ! temporary DW factor
+REAL(kind=PREC_DP)                          :: occ1       ! temporary occupancy factor
 !
 INTEGER                       :: i_mole     ! Atoom is part of molecule i_mole
 INTEGER                       :: i_type     ! and this molecule is of type i_type
 INTEGER                       :: i_char     ! and this molecule is of type i_type
 CHARACTER (LEN=200)           :: c_file     ! and this molecule is of type i_type
-REAL                          :: r_fuzzy    ! and this molecule is of type i_type
-REAL                          :: r_dens     ! and this molecule is of type i_type
-REAL                          :: r_biso     ! and this molecule is of type i_type
-REAL                          :: r_clin     ! and this molecule is of type i_type
-REAL                          :: r_cqua     ! and this molecule is of type i_type
+REAL(kind=PREC_DP)                          :: r_fuzzy    ! and this molecule is of type i_type
+REAL(kind=PREC_DP)                          :: r_dens     ! and this molecule is of type i_type
+REAL(kind=PREC_DP)                          :: r_biso     ! and this molecule is of type i_type
+REAL(kind=PREC_DP)                          :: r_clin     ! and this molecule is of type i_type
+REAL(kind=PREC_DP)                          :: r_cqua     ! and this molecule is of type i_type
 !
 
 INTEGER                              :: temp_num_mole
@@ -203,11 +203,11 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_off
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_type
 CHARACTER (LEN=200), DIMENSION(:  ), ALLOCATABLE :: temp_file
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_char
-REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_dens
-REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_biso
-REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_clin
-REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_cqua
-REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_fuzz
+REAL(kind=PREC_DP)   , DIMENSION(:  ), ALLOCATABLE :: temp_dens
+REAL(kind=PREC_DP)   , DIMENSION(:  ), ALLOCATABLE :: temp_biso
+REAL(kind=PREC_DP)   , DIMENSION(:  ), ALLOCATABLE :: temp_clin
+REAL(kind=PREC_DP)   , DIMENSION(:  ), ALLOCATABLE :: temp_cqua
+REAL(kind=PREC_DP)   , DIMENSION(:  ), ALLOCATABLE :: temp_fuzz
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_cont
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_look
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_upd
@@ -448,8 +448,8 @@ CALL no_error
 DO i = 1, cr_natoms 
    DO j = 1, 3 
       cr_pos (j, i) = cr_pos (j, i) - int ( (cr_icc (j) ) / 2) 
-      cr_dim (j, 1) = amin1 (cr_dim (j, 1), cr_pos (j, i) ) 
-      cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
+      cr_dim (j, 1) = min (cr_dim (j, 1), cr_pos (j, i) ) 
+      cr_dim (j, 2) = max (cr_dim (j, 2), cr_pos (j, i) ) 
    ENDDO 
 ENDDO 
 !
@@ -485,6 +485,8 @@ END SUBROUTINE readcell_internal
 !
 !  Copies the header info from the internal crystal 'rd_strucfile' into local variables
 !
+use precision_mod
+!
    IMPLICIT NONE
 !
    CHARACTER (LEN=  * )                         , INTENT(IN   ) :: rd_strucfile 
@@ -495,11 +497,11 @@ END SUBROUTINE readcell_internal
    CHARACTER (LEN=  16)                         , INTENT(INOUT) :: rd_cr_spcgr_set
    CHARACTER (LEN=   3)                         , INTENT(INOUT) :: rd_cr_set
    INTEGER                                      , INTENT(INOUT) :: rd_cr_iset
-   REAL                , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_a0
-   REAL                , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_win
+   REAL(kind=PREC_DP)  , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_a0
+   REAL(kind=PREC_DP)  , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_win
    INTEGER                                      , INTENT(INOUT) :: rd_cr_nscat 
-   REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_dw     ! (0:MAXSCAT) 
-   REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_occ    ! (0:MAXSCAT) 
+   REAL(kind=prec_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_dw     ! (0:MAXSCAT) 
+   REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_occ    ! (0:MAXSCAT) 
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_at_lis ! (0:MAXSCAT) 
    INTEGER             , DIMENSION(3)           , INTENT(INOUT) :: rd_sav_ncell ! (3) 
    LOGICAL                                      , INTENT(INOUT) :: rd_sav_r_ncell 
@@ -510,12 +512,12 @@ END SUBROUTINE readcell_internal
    INTEGER             ::  rd_GEN_ADD_MAX
    INTEGER             ::  rd_gen_add_n
    INTEGER             ::  rd_gen_add_power(rd_GEN_ADD_MAX)
-   REAL                ::  rd_gen_add(4,4,0:rd_GEN_ADD_MAX)
+   REAL(kind=PREC_DP)  ::  rd_gen_add(4,4,0:rd_GEN_ADD_MAX)
 !
    INTEGER             ::  rd_SYM_ADD_MAX
    INTEGER             ::  rd_sym_add_n
    INTEGER             ::  rd_sym_add_power(rd_SYM_ADD_MAX)
-   REAL                ::  rd_sym_add(4,4,0:rd_SYM_ADD_MAX)
+   REAL(kind=PREC_DP)  ::  rd_sym_add(4,4,0:rd_SYM_ADD_MAX)
 !
    NULLIFY(read_from)
    NULLIFY(read_parent)
@@ -542,15 +544,18 @@ END SUBROUTINE readcell_internal
 !  crystal rd_cr_pos. The number of atoms cr_natoms is incremented accordingly
 !
    USE discus_allocate_appl_mod
+!
+use precision_mod
+!
    IMPLICIT NONE
 !
    CHARACTER (LEN=  * )                         , INTENT(IN   ) :: strucfile 
    INTEGER                                      , INTENT(IN   ) :: rd_NMAX 
    INTEGER                                      , INTENT(INOUT) :: rd_cr_natoms
-   REAL                , DIMENSION(3,1:RD_NMAX) , INTENT(INOUT) :: rd_cr_pos
+   REAL(kind=PREC_DP)  , DIMENSION(3,1:RD_NMAX) , INTENT(INOUT) :: rd_cr_pos
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_iscat
    INTEGER             , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT) :: rd_cr_surf
-   REAL                , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT) :: rd_cr_magn
+   REAL(kind=PREC_DP)  , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT) :: rd_cr_magn
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_prop
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_mole
 !
@@ -561,9 +566,9 @@ END SUBROUTINE readcell_internal
    INTEGER                       :: n_type
    INTEGER                       :: n_atom
    INTEGER                       :: itype
-   REAL   , DIMENSION(3)         :: posit
+   REAL(kind=PREC_DP), DIMENSION(3)         :: posit
    INTEGER, DIMENSION(0:3)       :: isurface
-   REAL   , DIMENSION(0:3)       :: magn_mom
+   REAL(kind=PREC_DP)   , DIMENSION(0:3)       :: magn_mom
    INTEGER, DIMENSION(1:2)       :: iin_mole
    INTEGER                       :: iprop
 !
@@ -597,15 +602,17 @@ END SUBROUTINE readcell_internal
 !  This subroutine reads just atom "iatom" from the internal storage.
 !  The atom is copied into internal storage
 !
+use precision_mod
+!
    IMPLICIT NONE
 !
    CHARACTER (LEN=  * )               , INTENT(IN   ) :: strucfile 
    INTEGER                            , INTENT(IN   ) :: iatom
-   REAL                , DIMENSION(3) , INTENT(INOUT) :: rd_cr_pos
+   REAL(kind=PREC_DP)  , DIMENSION(3) , INTENT(INOUT) :: rd_cr_pos
    INTEGER                            , INTENT(INOUT) :: rd_cr_iscat
    INTEGER                            , INTENT(INOUT) :: rd_cr_prop
    INTEGER             , DIMENSION(0:3),INTENT(INOUT) :: rd_cr_surf
-   REAL                , DIMENSION(0:3),INTENT(INOUT) :: rd_cr_magn
+   REAL(kind=PREC_DP)  , DIMENSION(0:3),INTENT(INOUT) :: rd_cr_magn
    INTEGER                             ,INTENT(INOUT) :: rd_cr_mole
    INTEGER                             ,INTENT(INOUT) :: rd_cr_moleatom
 !
@@ -651,7 +658,10 @@ END SUBROUTINE readcell_internal
 !  Reads a structure from an internal cystal. The old crystal is overwritten
 !
 !  USE discus_allocate_appl_mod
-   IMPLICIT NONE
+!
+use precision_mod
+!
+IMPLICIT NONE
 !
 !
    CHARACTER (LEN=*), INTENT(IN) :: strucfile
@@ -666,11 +676,11 @@ END SUBROUTINE readcell_internal
    INTEGER,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_type
    INTEGER,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_char
    CHARACTER (LEN=*), DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_file
-   REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_dens
-   REAL   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_biso
-   REAL   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_clin
-   REAL   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_cqua
-   REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_fuzzy
+   REAL(kind=PREC_DP)   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_dens
+   REAL(kind=PREC_DP)   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_biso
+   REAL(kind=PREC_DP)   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_clin
+   REAL(kind=PREC_DP)   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_cqua
+   REAL(kind=PREC_DP)   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_fuzzy
    INTEGER,           DIMENSION(0:MOLE_MAX_ATOM), INTENT(OUT) :: mole_cont
 !
    INTEGER                       :: natoms

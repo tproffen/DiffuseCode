@@ -459,10 +459,11 @@ SUBROUTINE chem_com (com,lout)
 !
 USE crystal_mod
 USE prompt_mod
+use precision_mod
 !
 IMPLICIT NONE
 !
-REAL, DIMENSION(3), INTENT(OUT) :: com   ! Center of Mass
+REAL(kind=PREC_DP), DIMENSION(3), INTENT(OUT) :: com   ! Center of Mass
 LOGICAL,            INTENT(IN)  :: lout  ! Screen output flag
 !
 INTEGER :: i

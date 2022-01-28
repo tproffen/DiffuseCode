@@ -220,7 +220,7 @@ use mmc_mod
 use molecule_mod
 use symm_mod
 use symm_sup_mod
-use trafo_mod
+!use trafo_mod
 !
 use metric_mod
 !
@@ -313,7 +313,7 @@ subroutine mmc_unmodify_mole(isel, nmoles, orig_pos)
 use crystal_mod
 use mmc_mod
 use molecule_mod
-use trafo_mod
+!use trafo_mod
 !
 use metric_mod
 !
@@ -409,8 +409,8 @@ integer :: j                                     ! Loop index neighbors
 integer :: is, js                                ! Atom types 
 !
 real               :: d
-real, dimension(3) :: u
-real, dimension(3) :: v
+real(kind=PREC_DP), dimension(3) :: u
+real(kind=PREC_DP), dimension(3) :: v
 !              
 !character(len=40) :: string
 !do ia=1,2
