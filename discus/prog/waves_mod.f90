@@ -2,6 +2,7 @@ MODULE waves_mod
 !+
 !     This file contains variables for wave input
 !-
+use precision_mod
 !
 SAVE
 !
@@ -31,17 +32,17 @@ INTEGER             ::  wv_iwave         = WV_LONG
 INTEGER             ::  wv_ifunc         = WV_SINUS
 INTEGER             ::  wv_sel_prop(0:1) = 0
 INTEGER             ::  wv_phase_typ     = WV_FIX
-REAL                ::  wv_wave(3)       = (/1.,0.,0./)
-REAL                ::  wv_swing(3)      = (/0.,1.,0./)
-REAL                ::  wv_rot_uvw(3)    = (/0.,0.,1./)
-REAL                ::  wv_rot_orig(3)   = 0.0
-REAL                ::  wv_amp           = 0.5
-REAL                ::  wv_rlam          =50.0
-REAL                ::  wv_phase         = 0.0
-REAL                ::  wv_amp0          = 0.0
-REAL                ::  wv_plow          = 0.0
-REAL                ::  wv_phigh         = 0.0
-REAL                ::  wv_asym          = 0.5
+REAL(kind=PREC_DP)  ::  wv_wave(3)       = (/1.,0.,0./)
+REAL(kind=PREC_DP)  ::  wv_swing(3)      = (/0.,1.,0./)
+REAL(kind=PREC_DP)  ::  wv_rot_uvw(3)    = (/0.,0.,1./)
+REAL(kind=PREC_DP)  ::  wv_rot_orig(3)   = 0.0
+REAL(kind=PREC_DP)  ::  wv_amp           = 0.5
+REAL(kind=PREC_DP)  ::  wv_rlam          =50.0
+REAL(kind=PREC_DP)  ::  wv_phase         = 0.0
+REAL(kind=PREC_DP)  ::  wv_amp0          = 0.0
+REAL(kind=PREC_DP)  ::  wv_plow          = 0.0
+REAL(kind=PREC_DP)  ::  wv_phigh         = 0.0
+REAL(kind=PREC_DP)  ::  wv_asym          = 0.5
 LOGICAL             ::  wv_sel_atom      = .true.
 LOGICAL             ::  wv_lacoust       = .true.
 LOGICAL             ::  wv_viceversa     = .false.

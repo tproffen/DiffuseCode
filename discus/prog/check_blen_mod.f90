@@ -18,19 +18,20 @@ USE metric_mod
 USE param_mod 
 USE errlist_mod 
 USE lib_f90_allocate_mod 
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-REAL, DIMENSION(3), INTENT(IN) :: x
-INTEGER           , INTENT(IN) :: iatom 
-REAL              , INTENT(IN) :: rmin
-REAL              , INTENT(IN) :: rmax
-REAL, DIMENSION(3), INTENT(IN) :: offset
+REAL(kind=PREC_DP)              , DIMENSION(3), INTENT(IN) :: x
+INTEGER                         , INTENT(IN) :: iatom 
+REAL(kind=PREC_DP)              , INTENT(IN) :: rmin
+REAL(kind=PREC_DP)              , INTENT(IN) :: rmax
+REAL(kind=PREC_DP), DIMENSION(3), INTENT(IN) :: offset
 !
 INTEGER  :: n_res
 !                                                                       
-REAL, DIMENSION(3) :: v
-REAL               :: dist
+REAL(kind=PREC_DP), DIMENSION(3) :: v
+REAL(kind=PREC_DP) :: dist
 INTEGER            :: j 
 LOGICAL, PARAMETER :: lspace = .TRUE.
 !                                                                       
@@ -52,7 +53,7 @@ IF (dist >= rmin.AND.dist <= rmax) THEN
          atom_env(0) = atom_env(0) + 1 
          atom_env(atom_env(0) ) = iatom 
          res_para(atom_env(0) ) = dist 
-         res_para(0) = REAL(NINT(res_para(0) ) + 1) 
+         res_para(0) = REAL(NINT(res_para(0) ) + 1, kind=PREC_DP) 
          DO j = 1, 3 
             atom_pos(j, atom_env(0) ) = v(j) 
          ENDDO 
@@ -86,16 +87,17 @@ USE mole_env_mod
 !
 USE errlist_mod 
 USE param_mod 
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-REAL, DIMENSION(3), INTENT(IN) :: x
-INTEGER           , INTENT(IN) :: imole 
-REAL              , INTENT(IN) :: rmin
-REAL              , INTENT(IN) :: rmax 
-REAL, DIMENSION(3), INTENT(IN) :: offset
+REAL(kind=PREC_DP)              , DIMENSION(3), INTENT(IN) :: x
+INTEGER                         , INTENT(IN) :: imole 
+REAL(kind=PREC_DP)              , INTENT(IN) :: rmin
+REAL(kind=PREC_DP)              , INTENT(IN) :: rmax 
+REAL(kind=PREC_DP), DIMENSION(3), INTENT(IN) :: offset
 !                                                                       
-REAL v (3), dist !, do_blen 
+REAL(kind=PREC_DP) :: v (3), dist !, do_blen 
 INTEGER i, j 
 LOGICAL, PARAMETER :: lspace =.TRUE.
 !                                                                       
@@ -110,7 +112,7 @@ IF (dist >= rmin.AND.dist <= rmax) THEN
       mole_env(0) = mole_env (0) + 1 
       mole_env(mole_env(0) ) = imole 
       res_para(mole_env(0) ) = dist 
-      res_para(0) = REAL(NINT(res_para(0) ) + 1) 
+      res_para(0) = REAL(NINT(res_para(0) ) + 1, kind=PREC_DP) 
       DO j = 1, 3 
          mole_pos (j, mole_env(0) ) = v (j) 
       ENDDO 

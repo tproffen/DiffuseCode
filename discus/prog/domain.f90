@@ -622,7 +622,8 @@ USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, sa
 USE structur, ONLY: stru_readheader, test_file, read_to_internal
 !
 USE errlist_mod 
-use tensors_mod
+!se tensors_mod
+use matrix_mod
 USE precision_mod
 USE prompt_mod
 USE support_mod
@@ -644,9 +645,9 @@ LOGICAL ::lend
 LOGICAL :: l_ok    ! the domain list file contains a correct input pseuodatom
 LOGICAL :: lread 
 LOGICAL :: lmetric 
-REAL(PREC_SP), DIMENSION(4,4) :: mc_dimen
-REAL(PREC_SP), DIMENSION(4,4) :: mc_idimen
-REAL(PREC_SP), DIMENSION(4,4) :: mc_matrix
+REAL(PREC_DP), DIMENSION(4,4) :: mc_dimen
+REAL(PREC_DP), DIMENSION(4,4) :: mc_idimen
+REAL(PREC_DP), DIMENSION(4,4) :: mc_matrix
 INTEGER :: natoms_old
 INTEGER               :: i, j, k, l
 integer               :: length
@@ -664,13 +665,13 @@ integer, dimension(:,:), allocatable :: clu_moles  ! No of molecule and types in
 !integer                              :: clu_mole_num_mole    ! Number of Clusters in case of CLUSTER MODE
 !integer                              :: clu_mole_num_type    ! Number of Clusters in case of CLUSTER MODE
 !integer                              :: clu_mole_num_atom    ! Number of Clusters in case of CLUSTER MODE
-REAL(PREC_SP)               :: shortest
-REAL(PREC_SP), DIMENSION(3) :: vv
-REAL(PREC_SP) :: sgrand  ! grand time
-REAL :: satoms  ! time in read atoms
-REAL :: shead   ! time in read header
-REAL :: srem    ! time in read remove atoms
-REAL :: sstep   ! time step
+REAL(PREC_DP)               :: shortest
+REAL(PREC_DP), DIMENSION(3) :: vv
+REAL(PREC_DP) :: sgrand  ! grand time
+!REAL :: satoms  ! time in read atoms
+!REAL :: shead   ! time in read header
+!REAL :: srem    ! time in read remove atoms
+!REAL :: sstep   ! time step
 !
 nscats = 0
 natoms = 0
@@ -1003,10 +1004,10 @@ IF (mk_spcgr (1:1) .ne.cr_spcgr (1:1) ) then
 ENDIF 
 !                                                                       
 sgrand = seknds(0.0)
-satoms = 0.0
-shead  = 0.0
-srem   = 0.0
-sstep  = 0.0
+!satoms = 0.0
+!shead  = 0.0
+!srem   = 0.0
+!sstep  = 0.0
 IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
    infile = ' '
    CALL micro_read_simple(imd, lend, l_ok, infile, mc_dimen, mc_idimen,&
@@ -1137,7 +1138,8 @@ ELSE
          ENDDO 
       ENDDO 
       mc_idimen = mc_dimen
-      CALL invmat4 (mc_idimen) 
+!     CALL invmat4 (mc_idimen) 
+      CALL matinv  (mc_dimen, mc_idimen) 
       infile = 'internal_domain_guest.' // clu_mole_file(i)(1:len_trim(clu_mole_file(i)))
       mc_type    = clu_mole_char(i)              ! Set character for this cluster
       md_sep_fuz = clu_mole_fuzzy(i)             ! Set fuzzy distance
@@ -1349,9 +1351,9 @@ logical                           :: fq
 logical           , dimension(3)  :: fp
 integer            , dimension(0:MAXSCAT) :: nscats
 real(KIND=PREC_DP) , dimension(MAXSCAT)   :: werte
-real(KIND=PREC_SP) , dimension(3)         :: pos
-real(kind=PREC_SP) :: rmin
-real(kind=PREC_SP) :: rmax
+real(KIND=PREC_DP) , dimension(3)         :: pos
+real(kind=PREC_DP) :: rmin
+real(kind=PREC_DP) :: rmax
 !
 fp(1) = chem_period(1)
 fp(2) = chem_period(2)
@@ -1413,9 +1415,9 @@ integer,           intent(in) :: iclu             ! Cluster type
 logical, parameter :: LSPACE=.TRUE.
 !
 character(len=PREC_STRING)    :: infile               ! Cluster content file
-real                          :: mc_dimen (4, 4) 
-real                          :: mc_idimen(4, 4) 
-real                          :: mc_matrix(4, 4) 
+real(kind=PREC_DP)            :: mc_dimen (4, 4) 
+real(kind=PREC_DP)            :: mc_idimen(4, 4) 
+real(kind=PREC_DP)            :: mc_matrix(4, 4) 
 !
 integer                    :: i,j,k  ! Dummy counter
 integer                    :: is1    ! central atom type
@@ -1426,10 +1428,10 @@ integer, dimension(:,:), allocatable :: c_offs ! Result of connectivity search
 integer, dimension(:),   allocatable :: list   ! List of atoms in the current domain
 integer, dimension(:,:), allocatable :: list_o ! List of atoms in the current domain offsets
 logical                          :: lfound  ! Found new neighbors
-real(kind=PREC_SP)               :: dist    ! dummy distance
+real(kind=PREC_DP)               :: dist    ! dummy distance
 real(kind=PREC_SP)               :: dmin    ! minimum distance
-real(kind=PREC_SP), dimension(3) :: com     ! Center of mass for domain
-real(kind=PREC_SP), dimension(3) :: uu      ! Dummy vector
+real(kind=PREC_DP), dimension(3) :: com     ! Center of mass for domain
+real(kind=PREC_DP), dimension(3) :: uu      ! Dummy vector
 !
 if(cr_iscat(iatom)==0) return           ! Ignore VOIDS  NEEDS WORK ==> FLAG
 !
@@ -1516,7 +1518,7 @@ loop_mgroup: do                        ! Loop over group until all atoms are rep
    mgroup = i - k                      ! k is incremented if no atoms were replace
 !write(*,*) 'MGROUP ', mgroup
    if(mgroup<=0) exit loop_mgroup
-   com = com/real(mgroup, kind=PREC_SP)
+   com = com/real(mgroup, kind=PREC_DP)
    dmin = 1.0E9
    icent = 1
    loop_icent: do i=1, mgroup                    ! Find atom closest to COM
@@ -1647,21 +1649,23 @@ use crystal_mod
 use metric_mod
 use prop_para_mod
 !
+use precision_mod
+!
 implicit none
 !
-real(kind=PREC_SP), dimension(3), intent(inout) :: vv
+real(kind=PREC_DP), dimension(3), intent(inout) :: vv
 logical                         , intent(out)   :: linside
-real :: ddd
+real(kind=PREC_DP) :: ddd
 !
 logical, parameter :: lspace = .TRUE.
 !
 integer            :: i       ! dummy loop index
 integer            :: ishort  ! Index of closest atom
-real(kind=PREC_SP) :: dist    ! distance to pseudo atoms
-real(kind=PREC_SP) :: d       ! distance to pseudo atoms
-real(kind=PREC_SP), dimension(3) :: uu  ! Vector atom to pseudo
-real(kind=PREC_SP), dimension(3) :: NULLV!  ! Null vector
- data NULLV / 0.0, 0.0, 0.0 /
+real(kind=PREC_DP) :: dist    ! distance to pseudo atoms
+real(kind=PREC_DP) :: d       ! distance to pseudo atoms
+real(kind=PREC_DP), dimension(3) :: uu  ! Vector atom to pseudo
+real(kind=PREC_DP), dimension(3) :: NULLV!  ! Null vector
+ data NULLV / 0.0D0, 0.0D0, 0.0D0 /
 !
 linside = .false.                         ! Assume outside
 !
@@ -1726,9 +1730,9 @@ implicit none
 !
 integer, intent(in) :: iclu            ! Current cluster number
 integer, intent(in) :: mc_type         ! Current cluster type
-real   , intent(out)           :: mc_dimen (4, 4) 
-real   , intent(out)           :: mc_idimen(4, 4) 
-real   , intent(out)           :: mc_matrix(4, 4) 
+real(kind=PREC_DP)   , intent(out)           :: mc_dimen (4, 4) 
+real(kind=PREC_DP)   , intent(out)           :: mc_idimen(4, 4) 
+real(kind=PREC_DP)   , intent(out)           :: mc_matrix(4, 4) 
 !
 integer, parameter :: MAXW = 12
 character(len=PREC_STRING), dimension(MAXW) :: cpara
@@ -1832,7 +1836,7 @@ USE micro_mod
 USE read_internal_mod 
 USE discus_save_mod 
 USE structur, ONLY: stru_readheader
-USE trafo_mod
+!USE trafo_mod
 USE errlist_mod 
 USE molecule_mod
 USE support_mod
@@ -1841,8 +1845,8 @@ IMPLICIT none
        
 !                                                                       
 CHARACTER(len=*)     , intent(in) :: infile 
-REAL , dimension(4,4), intent(in) :: mc_idimen
-REAL , dimension(4,4), intent(in) :: mc_matrix
+REAL(kind=PREC_DP) , dimension(4,4), intent(in) :: mc_idimen
+REAL(kind=PREC_DP) , dimension(4,4), intent(in) :: mc_matrix
 !                                                                       
 INTEGER, PARAMETER  :: ist = 46
 !                                                                       
@@ -1909,28 +1913,29 @@ END SUBROUTINE micro_read_atoms
       USE micro_mod 
       USE metric_mod
       USE prop_para_mod 
-      USE trafo_mod
+!      USE trafo_mod
       USE errlist_mod 
+use precision_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      REAL mc_idimen (4, 4) 
+      REAL(kind=PREC_DP) :: mc_idimen (4, 4) 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 4) 
+!     INTEGER idim 
+!     PARAMETER (idim = 4) 
 !                                                                       
       INTEGER i, j 
       LOGICAL lspace 
-      REAL d 
-      REAL u (3), v (3) 
-      REAL u4 (4), v4 (4) 
-      REAL radius (3) 
-      REAL NULL (3) 
+      REAL(kind=PREC_DP) :: d 
+      REAL(kind=PREC_DP) :: u (3), v (3) 
+      REAL(kind=PREC_DP) :: u4 (4), v4 (4) 
+      REAL(kind=PREC_DP) :: radius (3) 
+      REAL(kind=PREC_DP), dimension(3), parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /)
 !                                                                       
 !     REAL do_blen 
 !                                                                       
-      DATA NULL / 0.0, 0.0, 0.0 / 
+!     DATA NULL / 0.0, 0.0, 0.0 / 
 !                                                                       
       IF (mc_type .eq.MD_DOMAIN_FUZZY) then 
          RETURN 
@@ -1955,12 +1960,13 @@ END SUBROUTINE micro_read_atoms
       u4 (j) = cr_pos (j, i) 
       ENDDO 
       u4 (4) = 1.0 
-      CALL trans (u4, mc_idimen, v4, idim) 
+!     CALL trans (u4, mc_idimen, v4, idim) 
+      v4 = matmul(mc_idimen, u4)
       DO j = 1, 3 
       v (j) = v4 (j) 
       ENDDO 
       IF (mc_type  .eq.MD_DOMAIN_SPHERE) then 
-         d = do_blen (lspace, v, NULL) 
+         d = do_blen (lspace, v, NULLV) 
          IF (d.lt.radius (2) ) then 
             cr_iscat (i) = 0 
             cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
@@ -1976,7 +1982,7 @@ END SUBROUTINE micro_read_atoms
       ELSEIF (mc_type  .eq.MD_DOMAIN_CYLINDER) then 
          IF (abs (v (3) ) .le.1) then 
             v (3) = 0.0 
-            d = do_blen (lspace, v, NULL) 
+            d = do_blen (lspace, v, NULLV) 
             IF (d.lt.radius (2) ) then 
                cr_iscat (i) = 0 
                cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
@@ -2009,7 +2015,7 @@ USE prop_para_mod
 USE read_internal_mod
 USE structur, ONLY: struc_mole_header !, read_atom_line
 USE spcgr_apply, ONLY: mole_insert_current, mole_insert_explicit
-USE trafo_mod
+!USE trafo_mod
 USE surface_mod 
 USE errlist_mod 
 !
@@ -2024,15 +2030,15 @@ IMPLICIT none
 !                                                                       
 INTEGER            , INTENT(IN) :: ist 
 CHARACTER (LEN = *), INTENT(IN) :: infile
-REAL               , INTENT(IN) :: mc_idimen (4, 4) 
-REAL               , INTENT(IN) :: mc_matrix (4, 4) 
+REAL(kind=PREC_DP) , INTENT(IN) :: mc_idimen (4, 4) 
+REAL(kind=PREC_DP) , INTENT(IN) :: mc_matrix (4, 4) 
 INTEGER                                  , INTENT(IN)  :: AT_MAXP
 INTEGER                                  , INTENT(IN)  :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN)  :: at_param
 !
 !                                                                       
-      INTEGER idim4 
-      PARAMETER (idim4 = 4) 
+!     INTEGER idim4 
+!     PARAMETER (idim4 = 4) 
       INTEGER maxw 
       PARAMETER (maxw = 12) 
 !                                                                       
@@ -2046,21 +2052,21 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN)  :: at_param
       LOGICAL              :: lcontent
       LOGICAL lspace 
       LOGICAL linside
-      REAL d 
-      REAL u (4), v (4), w (4) 
-      REAL vv (3) , ww(3)
-      REAL radius (3) 
+      REAL(kind=PREC_DP) :: d 
+      REAL(kind=PREC_DP) :: u (4), v (4), w (4) 
+      REAL(kind=PREC_DP) :: vv (3) , ww(3)
+      REAL(kind=PREC_DP) :: radius (3) 
       REAL(KIND=PREC_DP):: werte (maxw)
-      REAL dw1 
-      REAL NULL (3) 
-      REAL shortest 
-      REAL, DIMENSION(3)  :: xyz ! Atom position
+      REAL(kind=PREC_DP) :: dw1 
+      REAL(kind=PREC_DP) ::  NULLV (3) 
+      REAL(kind=PREC_DP) :: shortest 
+      REAL(kind=PREC_DP), DIMENSION(3)  :: xyz ! Atom position
       INTEGER             :: dummy_iscat ! Atom type
       INTEGER             :: dummy_prop ! Atom property
       INTEGER             :: dummy_mole ! Atom is in this molecule
       INTEGER             :: dummy_moleatom ! Atom is in this molecul at number
       INTEGER, DIMENSION(0:3)  :: dummy_surf
-      REAL   , DIMENSION(0:3)  :: dummy_magn
+      REAL(kind=PREC_DP)   , DIMENSION(0:3)  :: dummy_magn
       INTEGER             :: natoms ! Number of molecules
       INTEGER             :: nscat  ! Number of molecule types
       INTEGER             :: TEMP_MAX_MOLE ! Number of molecules
@@ -2075,11 +2081,11 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN)  :: at_param
       INTEGER, DIMENSION(:), ALLOCATABLE :: temp_mole_type
       INTEGER, DIMENSION(:), ALLOCATABLE :: temp_mole_char
       CHARACTER (LEN=200), DIMENSION(:), ALLOCATABLE :: temp_mole_file
-      REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_dens
-      REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_biso
-      REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_clin
-      REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_cqua
-      REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_fuzzy
+      REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: temp_mole_dens
+      REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: temp_mole_biso
+      REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: temp_mole_clin
+      REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: temp_mole_cqua
+      REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: temp_mole_fuzzy
       INTEGER, DIMENSION(:), ALLOCATABLE :: temp_mole_cont
       LOGICAL, DIMENSION(:), ALLOCATABLE :: temp_present
       INTEGER, DIMENSION(:), ALLOCATABLE :: temp_in_crystal
@@ -2095,25 +2101,26 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN)  :: at_param
       LOGICAL, SAVE       :: at_init = .TRUE.
 logical :: lmole_type    ! The molecule has a 'molecule  type' line
 integer :: is_mole_type  ! Molecule type provided on the 'molecule type line'
-      REAL :: d100, d010, d001
+REAL(kind=PREC_DP) :: d100, d010, d001
 !                                                                       
-!     REAL do_blen 
-!                                                                       
-      DATA NULL / 0.0, 0.0, 0.0 / 
+      DATA NULLV / 0.0D0, 0.0D0, 0.0D0 / 
 !
 !     Define distances to domain surfaces
 !
       v(:) = 0.0
       v(1) = surf_in_dist(SURF_MAXSCAT)/cr_a0(1)
-      CALL trans (v, mc_idimen, w, idim4)
+!     CALL trans (v, mc_idimen, w, idim4)
+      w = matmul(mc_idimen, v)
       d100 = sqrt(w(1)*w(1) + w(2)*w(2) + w(3)*w(3) )
       v(:) = 0.0
       v(2) = surf_in_dist(SURF_MAXSCAT)/cr_a0(2)
-      CALL trans (v, mc_idimen, w, idim4)
+!     CALL trans (v, mc_idimen, w, idim4)
+      w = matmul(mc_idimen, v)
       d010 = sqrt(w(1)*w(1) + w(2)*w(2) + w(3)*w(3) )
       v(:) = 0.0
       v(3) = surf_in_dist(SURF_MAXSCAT)/cr_a0(3)
-      CALL trans (v, mc_idimen, w, idim4)
+!     CALL trans (v, mc_idimen, w, idim4)
+      w = matmul(mc_idimen, v)
       d001 = sqrt(w(1)*w(1) + w(2)*w(2) + w(3)*w(3) )
 !
       n_read_atoms = 0
@@ -2127,7 +2134,7 @@ integer :: is_mole_type  ! Molecule type provided on the 'molecule type line'
          u (2) = 0.0 
          u (3) = 0.0 
          u (i) = 1.0 
-         radius (i) = do_blen (lspace, u, v) 
+         radius (i) = do_blen (lspace, u(1:3), v(1:3)) 
       ENDDO 
       i_count = 0 
 !                                                                       
@@ -2246,8 +2253,10 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
                u (j) = werte (j) 
             ENDDO 
             u (4) = 1.0 
-            CALL trans (u, mc_matrix, v, idim4) 
-            CALL trans (v, mc_idimen, w, idim4) 
+!           CALL trans (u, mc_matrix, v, idim4) 
+!           CALL trans (v, mc_idimen, w, idim4) 
+            v = matmul(mc_matrix, u)
+            w = matmul(mc_idimen, v)
             DO j = 1, 3 
                vv (j) = w (j) 
                mk_dim (j, 1) = min (mk_dim (j, 1), v (j) ) 
@@ -2255,7 +2264,7 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
             ENDDO 
             linternal = .FALSE.
             IF (mc_type  .eq.MD_DOMAIN_SPHERE) then 
-               d = do_blen (lspace, vv, NULL) 
+               d = do_blen (lspace, vv, NULLV) 
                linside = (d.lt.radius (2) ) 
                IF(linside) THEN
                  linternal = (radius (2)-d <= surf_in_dist(SURF_MAXSCAT)/cr_a0(2))
@@ -2277,7 +2286,7 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
                IF (abs (vv (3) ) .le.1) then 
                   ww(:) = vv(:)
                   ww (3) = 0.0 
-                  d = do_blen (lspace, ww, NULL) 
+                  d = do_blen (lspace, ww, NULLV) 
                   linside = d.lt.radius (2) 
                ENDIF 
                IF(linside) THEN
@@ -2313,8 +2322,8 @@ inside:     IF (linside) then
                i = cr_natoms 
                DO j = 1, 3 
                cr_pos (j, i) = v (j)
-               cr_dim (j, 1) = amin1 (cr_dim (j, 1), cr_pos (j, i) ) 
-               cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
+               cr_dim (j, 1) = min (cr_dim (j, 1), cr_pos (j, i) ) 
+               cr_dim (j, 2) = max (cr_dim (j, 2), cr_pos (j, i) ) 
                ENDDO 
                dw1 = werte (4) 
 noblank:      IF (line (1:4) .ne.'    ') then 
@@ -2360,7 +2369,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
                   ENDIF
                   cr_at_lis (cr_nscat) = line (1:ibl) 
                   cr_dw (cr_nscat) = dw1 
-                  cr_occ(cr_nscat) = 1.00      !! WORK OCC
+                  cr_occ(cr_nscat) = 1.00D0    !! WORK OCC
 !                                                                       
                   IF (0.0.le.cr_pos (1, i) .and.cr_pos (1, i)           &
                   .lt.1.and.0.0.le.cr_pos (2, i) .and.cr_pos (2, i)     &
@@ -2571,9 +2580,10 @@ USE discus_config_mod
 USE domain_mod 
 USE domaindis_mod 
 USE read_internal_mod 
-USE tensors_mod
+!USE tensors_mod
 USE errlist_mod 
 USE lib_random_func
+use matrix_mod
 USE string_convert_mod
 USE precision_mod
 USE str_comp_mod
@@ -2585,23 +2595,23 @@ INTEGER                                    , INTENT(IN)  :: imd
 LOGICAL                                    , INTENT(OUT) :: lend 
 LOGICAL                                    , INTENT(OUT) :: l_ok 
 CHARACTER (LEN=*)                          , INTENT(OUT) :: infile 
-REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_dimen
-REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_idimen
-REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_matrix
+REAL(kind=PREC_DP),DIMENSION(4,4)          , INTENT(OUT) :: mc_dimen
+REAL(kind=PREC_DP),DIMENSION(4,4)          , INTENT(OUT) :: mc_idimen
+REAL(kind=PREC_DP),DIMENSION(4,4)          , INTENT(OUT) :: mc_matrix
 INTEGER                                    , INTENT(IN)  :: MK_MAX_SCAT
 CHARACTER (LEN=*), DIMENSION(0:MK_MAX_SCAT), INTENT(IN)  :: mk_at_lis
 !                                                                       
 CHARACTER(LEN=PREC_STRING) :: line
 !                                                                       
 INTEGER  :: i, j, ii 
-REAL     :: xyz (3) 
-REAL     :: size_sigma
+REAL(kind=PREC_DP), dimension(3)     :: xyz (3) 
+REAL(kind=PREC_DP) :: size_sigma
 INTEGER  :: dummy_iscat
 INTEGER  :: dummy_prop
 INTEGER  :: dummy_mole
 INTEGER  :: dummy_moleatom
 INTEGER, DIMENSION(0:3)  :: dummy_surf
-REAL   , DIMENSION(0:3)  :: dummy_magn
+REAL(kind=PREC_DP)   , DIMENSION(0:3)  :: dummy_magn
 !                                                                       
 !                                                                       
 ii = 0
@@ -2661,7 +2671,8 @@ IF(line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!'.AND.line.ne.char(13)) T
    mc_dimen (4, i) = 1.0 
    mc_idimen (4, i) = 1.0 
    mc_matrix (4, i) = 1.0 
-   CALL invmat4 (mc_idimen) 
+!  CALL invmat4 (mc_idimen) 
+   CALL matinv  (mc_dimen, mc_idimen) 
    lend = .false. 
    l_ok = .true.       ! Pseudoatom is fine
 ENDIF 
@@ -2701,24 +2712,27 @@ END SUBROUTINE micro_read_simple
       USE molecule_mod 
       USE prop_para_mod 
       USE surface_mod 
+!
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
-      REAL, DIMENSION(3,2), INTENT(IN) ::  mk_dim
+      REAL(kind=PREC_DP), DIMENSION(3,2), INTENT(IN) ::  mk_dim
       INTEGER             , INTENT(in) ::  natoms_old
       INTEGER             , INTENT(IN) ::  mk_natoms 
-      REAL                , INTENT(IN) ::  md_sep_fuz 
-      REAL, DIMENSION(3)  , INTENT(IN) ::  w
-      REAL                , INTENT(OUT)::  shortest 
+      REAL(kind=PREC_DP)  , INTENT(IN) ::  md_sep_fuz 
+      REAL(kind=PREC_DP), DIMENSION(3)  , INTENT(IN) ::  w
+      REAL(kind=PREC_DP)  , INTENT(OUT)::  shortest 
       INTEGER             , INTENT(IN) ::  mc_type
       INTEGER             , INTENT(IN) ::  MD_DOMAIN_FUZZY
        
 !                                                                       
       INTEGER i, j, k 
       LOGICAL lspace 
-      REAL u (3), v (3)
-      REAL a, b, c , d
-      REAL distance 
-      REAL separation
+REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
+      REAL(kind=PREC_DP) :: a, b, c , d
+      REAL(kind=PREC_DP) :: distance 
+      REAL(kind=PREC_DP) :: separation
 !                                                                       
 !     REAL do_blen 
 !                                                                       

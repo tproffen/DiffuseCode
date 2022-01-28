@@ -39,11 +39,11 @@ INTEGER i, ii, ianz, iianz, laenge
 integer :: iatom
 integer, dimension(5) :: vect
 LOGICAL lnew, fq, fp (3) 
-REAL rmin 
-REAL radius 
+REAL(kind=PREC_DP) :: rmin 
+REAL(kind=PREC_DP) :: radius 
 REAL(KIND=PREC_DP) :: werte (maxw) 
 REAL(KIND=PREC_DP) :: wwerte (maxw) 
-REAL x (3) 
+REAL(kind=PREC_DP), dimension(3) :: x (3) 
 !                                                                       
 PARAMETER (lnew = .false.) 
 !
@@ -298,7 +298,7 @@ integer               :: isite                ! Site number for start atom
 integer               :: jsite                ! Site number for end   atom
 integer               :: jatom                ! RTarget atom number
 logical               :: lok                  ! Flag if boundary is OK
-real(kind=PREC_SP), dimension(3) :: offset    ! in case of periodic boundary conditions, the offset
+real(kind=PREC_DP), dimension(3) :: offset    ! in case of periodic boundary conditions, the offset
 !
 call indextocell(iatom, icell, isite)         ! Determine unit cell location
 !

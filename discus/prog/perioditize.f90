@@ -22,8 +22,8 @@ integer           , dimension(3)                  :: pdt_ihig = 0    ! low and h
 logical                                           :: pdt_usr_ncell = .FALSE.  ! True if user fixed number of cells
 logical                                           :: pdt_usr_nsite = .FALSE.  ! True if user fixed number of sites
 logical                                           :: pdt_usr_atom  = .FALSE.  ! True if user fixed atoms at sites
-real(kind=PREC_SP), dimension(3, 2)               :: pdt_dims ! Crystal dimensions
-real(kind=PREC_SP), dimension(:,:)  , allocatable :: pdt_pos  ! Atom positions in average cell
+real(kind=PREC_DP), dimension(3, 2)               :: pdt_dims ! Crystal dimensions
+real(kind=PREC_DP), dimension(:,:)  , allocatable :: pdt_pos  ! Atom positions in average cell
 !
 contains
 !
@@ -325,7 +325,7 @@ if(pdt_nsite>=ubound(pdt_pos,2)) then
    osite = ubound(pdt_pos, 2)
    nsite = max(pdt_nsite, pdt_usite, pdt_asite) + 5
 !write(*,*) 'PRE REALLOC ', ubound(pdt_pos, 2), osite, nsite, pdt_usite
-   call alloc_arr(pdt_pos, 1, 3, 1, nsite, all_status, 0.0E0,  size_of)
+   call alloc_arr(pdt_pos, 1, 3, 1, nsite, all_status, 0.0D0,  size_of)
    call alloc_arr(pdt_lsite, 1, nsite, all_status, .false., size_of)
 endif
 end subroutine perioditize_set_natoms
@@ -367,7 +367,7 @@ integer                   , dimension(MAXSCAT) :: llpara
 real(kind=PREC_DP)        , dimension(MAXSCAT) :: wwerte
 real(kind=PREC_DP)        , dimension(MAXU)    :: uwerte
 real(kind=PREC_DP)        , dimension(4   )    :: v_pos    ! Symmetry resulting position
-real(kind=PREC_SP)        , dimension(3,192 )  :: wyck     ! Symmetry resulting position
+real(kind=PREC_DP)        , dimension(3,192 )  :: wyck     ! Symmetry resulting position
 integer :: iianz          ! Number of parameters
 integer :: jjanz          ! Number of parameters
 integer :: maxww          ! Number of parameters
@@ -530,7 +530,7 @@ if(pdt_usite>=ubound(pdt_pos,2)) then
    osite = ubound(pdt_pos, 2)
    nsite = max(pdt_nsite, pdt_usite, pdt_asite) + 5
 !write(*,*) 'PRE REALLOC ', ubound(pdt_pos, 2), osite, nsite, pdt_usite
-   call alloc_arr(pdt_pos, 1, 3, 1, nsite, all_status, 0.0E0,  size_of)
+   call alloc_arr(pdt_pos, 1, 3, 1, nsite, all_status, 0.0D0,  size_of)
    call alloc_arr(pdt_lsite, 1, nsite, all_status, .false., size_of)
 endif
 if(pdt_usite>=ubound(pdt_itype,2) .or. iianz>ubound(pdt_itype,1)) then
@@ -564,8 +564,8 @@ use precision_mod
 implicit none
 !
 integer, dimension(3) :: ncell_dummy
-real(kind=PREC_SP) :: aver
-real(kind=PREC_SP) :: sigma
+real(kind=PREC_DP) :: aver
+real(kind=PREC_DP) :: sigma
 !
 aver = 0.0
 sigma = 0.0
@@ -667,8 +667,8 @@ use precision_mod
 !
 implicit none
 !
-real(kind=PREC_SP), intent(out) :: aver
-real(kind=PREC_SP), intent(out) :: sigma
+real(kind=PREC_DP), intent(out) :: aver
+real(kind=PREC_DP), intent(out) :: sigma
 !
 integer :: i,j,k, l   ! Dummy counter
 integer :: natoms     ! Total atoms in search window
@@ -706,13 +706,13 @@ enddo
 aver  = 0.0
 sigma = 0.0
 do i=0,maxn
-  aver = aver + real(i*counter(i))
+  aver = aver + real(i*counter(i), kind=PREC_DP)
 enddo
-aver = aver/real(pdt_ncells)
+aver = aver/real(pdt_ncells, kind=PREC_DP)
 do i=0,maxn
    sigma = sigma + counter(i)*(aver-i)**2
 enddo
-sigma = sqrt(sigma)/real(pdt_ncells*(pdt_ncells-1))
+sigma = sqrt(sigma)/real(pdt_ncells*(pdt_ncells-1), kind=PREC_DP)
 !
 deallocate(pdt_cell)
 !
@@ -732,16 +732,16 @@ use errlist_mod
 !
 implicit none
 !
-real(kind=PREC_SP), intent(in) :: aver          ! Average number of atoms per unit cell
+real(kind=PREC_DP), intent(in) :: aver          ! Average number of atoms per unit cell
 !
 logical, parameter :: lspace =.TRUE.
 integer :: i, j, ic, k                 ! Dummy counters
-real(kind=PREC_SP) :: eps              ! Distance to say we are in the same cluster
-real(kind=PREC_SP), dimension(3,2*nint(aver)) :: pdt_temp      ! Positions of the average cell
-real(kind=PREC_SP), dimension(3)              :: uvw           ! fractional coordinates of atom
-real(kind=PREC_SP), dimension(3)              :: u             ! fractional coordinates of atom
-real(kind=PREC_SP) :: dist
-real(kind=PREC_SP) :: dmin
+real(kind=PREC_DP) :: eps              ! Distance to say we are in the same cluster
+real(kind=PREC_DP), dimension(3,2*nint(aver)) :: pdt_temp      ! Positions of the average cell
+real(kind=PREC_DP), dimension(3)              :: uvw           ! fractional coordinates of atom
+real(kind=PREC_DP), dimension(3)              :: u             ! fractional coordinates of atom
+real(kind=PREC_DP) :: dist
+real(kind=PREC_DP) :: dmin
 integer :: istart    ! Start index for atom loop
 integer :: nred      ! Number of sites to remove
 integer                                       :: temp_nsite    ! Initial number of sites
@@ -766,7 +766,7 @@ loop_atoms: do i=istart, cr_natoms
 !  do j=1,3
 !  uvw(:) =  (cr_pos(:,i) + 0.0 + 2*nint(abs(pdt_dims(:,1)))) - &
 !        nint(cr_pos(:,i) + 0.0 + 2*nint(abs(pdt_dims(:,1))))
-   uvw(:) = cr_pos(:,i) - real(int(cr_pos(:,i)), PREC_SP)   ! Create fractionl
+   uvw(:) = cr_pos(:,i) - real(int(cr_pos(:,i)), PREC_DP)   ! Create fractionl
    if(uvw(1) < 0.0E0) uvw(1) = uvw(1) + 1.0                 ! coordinates in 
    if(uvw(2) < 0.0E0) uvw(2) = uvw(2) + 1.0                 ! range [0,1]
    if(uvw(3) < 0.0E0) uvw(3) = uvw(3) + 1.0
@@ -884,24 +884,24 @@ use errlist_mod
 implicit none
 !
 logical, parameter :: lspace =.TRUE.
-real(kind=PREC_SP) :: EPS = 2.5
+real(kind=PREC_DP) :: EPS = 2.5
 logical :: lperiod               ! Test with periodic boundary conditions
 integer :: i,j,k,l,m,n, nn       ! dummy counters
 integer :: nprior                ! Number of atoms in crystal
 integer :: natoms                ! Number of atoms in new crystal
 integer :: ifail                 ! Atom type in case of failure
 integer :: n_max                 ! MAX atom numbers for allocate
-real(kind=PREC_SP) :: dmin
-real(kind=PREC_SP) :: dist
-real(kind=PREC_SP), dimension(3) :: u             ! fractional coordinates of atom
-real(kind=PREC_SP), dimension(3) :: v             ! fractional coordinates of atom
+real(kind=PREC_DP) :: dmin
+real(kind=PREC_DP) :: dist
+real(kind=PREC_DP), dimension(3) :: u             ! fractional coordinates of atom
+real(kind=PREC_DP), dimension(3) :: v             ! fractional coordinates of atom
 !
 integer, dimension(  :), allocatable ::  tmp_iscat  ! (  1:NMAX)  !Atom type 0 to cr_nscat
 integer, dimension(  :), allocatable ::  tmp_prop   ! (  1:NMAX)  !Property flag
 integer, dimension(  :), allocatable ::  tmp_mole   ! (  1:NMAX)  !Atom is in this molecule
 integer, dimension(:,:), allocatable ::  tmp_surf   ! (  1:NMAX)  !Atom is on this surface 
-real   , dimension(:,:), allocatable ::  tmp_magn   ! (  1:NMAX)  !Magnetic moment 
-real   , dimension(:,:), allocatable ::  tmp_pos    ! (3,1:NMAX)  !Atom coordinates
+real(kind=PREC_DP)   , dimension(:,:), allocatable ::  tmp_magn   ! (  1:NMAX)  !Magnetic moment 
+real(kind=PREC_DP)   , dimension(:,:), allocatable ::  tmp_pos    ! (3,1:NMAX)  !Atom coordinates
 !           
 eps = 2.5
 nprior = cr_natoms
@@ -936,9 +936,9 @@ do k=pdt_ilow(3), pdt_ihig(3)
       do i=pdt_ilow(1), pdt_ihig(1)
          do l=1, pdt_nsite
             m = m + 1
-            tmp_pos(1,m) = real(i) + pdt_pos(1,l)
-            tmp_pos(2,m) = real(j) + pdt_pos(2,l)
-            tmp_pos(3,m) = real(k) + pdt_pos(3,l)
+            tmp_pos(1,m) = real(i, kind=PREC_DP) + pdt_pos(1,l)
+            tmp_pos(2,m) = real(j, kind=PREC_DP) + pdt_pos(2,l)
+            tmp_pos(3,m) = real(k, kind=PREC_DP) + pdt_pos(3,l)
          enddo
       enddo
    enddo

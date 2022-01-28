@@ -1,5 +1,8 @@
 MODULE tensors_mod
 !
+!  All routines in tensors have become obsolete
+!
+private 
 CONTAINS
 !*****7*****************************************************************
 !                                                                       

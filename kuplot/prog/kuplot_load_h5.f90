@@ -5,6 +5,8 @@ MODULE kuplot_load_h5
 USE hdf5
 !
 USE kuplot_config
+!
+use hdf5_def_mod
 USE precision_mod
 !
 IMPLICIT NONE
@@ -21,8 +23,11 @@ PUBLIC hdf5_get_layer
 PUBLIC hdf5_get_height
 PUBLIC hdf5_get_direct
 PUBLIC hdf5_get_dims
+PUBLIC hdf5_get_llims
+PUBLIC hdf5_get_steps
 PUBLIC hdf5_get_map
 PUBLIC hdf5_set_map
+PUBLIC hdf5_get_tmap
 PUBLIC hdf5_reset
 !
 CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE :: h5_datasets       ! Names of the data set in file
@@ -45,6 +50,7 @@ TYPE :: h5_data_struc
    REAL(KIND=PREC_SP)   , DIMENSION(:,:,:), ALLOCATABLE  :: h5_data           ! Actual diffraction data
    REAL(KIND=PREC_DP)   , DIMENSION(3)                   :: h5_llims          ! Lower limits
    REAL(KIND=PREC_DP)   , DIMENSION(3)                   :: h5_steps          ! steps in H, K, L
+   REAL(KIND=PREC_DP)   , DIMENSION(3,3)                 :: h5_steps_full     ! steps in H, K, L
    TYPE(h5_data_struc), POINTER                          :: after
 END TYPE h5_data_struc
 !
@@ -65,6 +71,8 @@ INTEGER(KIND=HSIZE_T), DIMENSION(3)                   :: one_maxdims       ! Max
 REAL(KIND=PREC_SP)   , DIMENSION(:,:,:), ALLOCATABLE  :: h5_data           ! Actual diffraction data
 REAL(KIND=PREC_DP)   , DIMENSION(3)                   :: h5_llims          ! Lower limits
 REAL(KIND=PREC_DP)   , DIMENSION(3)                   :: h5_steps          ! steps in H, K, L
+REAL(KIND=PREC_DP)   , DIMENSION(3,3)                 :: h5_steps_full     ! steps in H, K, L
+!                                                                          ! 1.st dim: [hkl], 2nd:[abs, ord, top]
 !
 CONTAINS
 !
@@ -120,7 +128,7 @@ INTEGER, INTENT(IN)    :: output_io   ! KUPLOT array size
 !
 !INTEGER(KIND=SIZE_T), PARAMETER :: f_str_len = 20  ! Length F-string to receive  
 !
-CHARACTER(LEN=12)   :: dataname    ! Dummy name for HDF5 datasets
+CHARACTER(LEN=14)   :: dataname    ! Dummy name for HDF5 datasets
 !CHARACTER(LEN=f_str_len)   :: progname    ! Program that created H5 FILE 
 !CHARACTER(LEN=f_str_len), DIMENSION(:), ALLOCATABLE, TARGET   :: rstring    ! string that is read
 !CHARACTER(LEN=9), DIMENSION(1:1), TARGET ::  rstring
@@ -149,7 +157,8 @@ INTEGER                                     :: ianz
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 INTEGER                   , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
-INTEGER :: j                        ! Dummy loop indices
+REAL(KIND=PREC_DP)        , DIMENSION(3)    :: steps     ! dummy steps in H, K, L
+INTEGER :: i,j                      ! Dummy loop indices
 INTEGER :: nlayer                   ! Layer to place into KUPLOT
 !
 h5_infile = infile
@@ -200,9 +209,19 @@ IF(h5_n_datasets<1) THEN
    RETURN
 ENDIF
 !write(*,*) 'NUMBER of data sets found ', h5_n_datasets
-!DO i=1,h5_n_datasets
+yd_present = .false.              ! Assume all data set missing
+DO i=1,h5_n_datasets
+   loop_ydnd:do j=1, YD_ND
+      if(h5_datasets(i)==yd_datasets(j)) then
+         yd_present(j) = .true.
+         exit loop_ydnd
+      endif
+   enddo loop_ydnd
 !   WRITE(*,*) ' DATASETS ', h5_datasets(i)(1:LEN_TRIM(h5_datasets(i)))
-!ENDDO
+ENDDO
+!do j=1, YD_ND
+!   write(*,*) ' DATASETS ', yd_present(j),yd_datasets(j)
+!enddo
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! get the format identifier
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -289,6 +308,7 @@ CALL H5Dopen_f(file_id, dataname, dset_id, hdferr)           ! Open the dataset
 CALL H5Dget_space_f(dset_id, space_id, hdferr)
 CALL H5Sget_simple_extent_ndims_f(space_id, ndims, hdferr)   ! Get the number of dimensions in data set
 CALL H5Sget_simple_extent_dims_f(space_id, h5_dims, maxdims, hdferr)   ! Get the dimensions in data set
+write(*,*) ' h5_dims ', h5_dims
 IF(ALLOCATED(h5_data)) DEALLOCATE(h5_data)
 ALLOCATE(h5_data(h5_dims(1), h5_dims(2), h5_dims(3)))
 CALL H5Dread_f(dset_id, H5T_NATIVE_REAL, h5_data, h5_dims, hdferr)
@@ -333,6 +353,59 @@ CALL H5Sget_simple_extent_ndims_f(space_id, one_ndims, hdferr)   ! Get the numbe
 CALL H5Sget_simple_extent_dims_f(space_id, one_dims, one_maxdims, hdferr)   ! Get the dimensions in data set
 CALL H5Dread_f(dset_id, H5T_NATIVE_DOUBLE, h5_steps, one_dims, hdferr)
 CALL H5Dclose_f(dset_id, hdferr)                             ! Close the dataset file
+!write(*,*) ' H5_steps      ', h5_steps
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Get the steps DISCUS style
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+if(yd_present(YD_step_sizes_abs)) then
+   dataname = 'step_sizes_abs'
+   one_dims    = 1
+   one_maxdims = 1
+   CALL H5Dopen_f(file_id, dataname, dset_id, hdferr)           ! Open the dataset
+   if(hdferr==0) then
+      CALL H5Dget_space_f(dset_id, space_id, hdferr)
+      CALL H5Sget_simple_extent_ndims_f(space_id, one_ndims, hdferr)   ! Get the number of dimensions in data set
+      CALL H5Sget_simple_extent_dims_f(space_id, one_dims, one_maxdims, hdferr)   ! Get the dimensions in data set
+      CALL H5Dread_f(dset_id, H5T_NATIVE_DOUBLE, steps, one_dims, hdferr)
+      h5_steps_full(:,1) = steps
+      CALL H5Dclose_f(dset_id, hdferr)                             ! Close the dataset file
+   endif
+!write(*,*) ' H5_steps abs  ', h5_steps_full(:,1)
+endif
+!
+if(yd_present(YD_STEP_SIZES_ORD)) then
+   dataname = 'step_sizes_ord'
+   one_dims    = 1
+   one_maxdims = 1
+   CALL H5Dopen_f(file_id, dataname, dset_id, hdferr)           ! Open the dataset
+   if(hdferr==0) then
+      CALL H5Dget_space_f(dset_id, space_id, hdferr)
+      CALL H5Sget_simple_extent_ndims_f(space_id, one_ndims, hdferr)   ! Get the number of dimensions in data set
+      CALL H5Sget_simple_extent_dims_f(space_id, one_dims, one_maxdims, hdferr)   ! Get the dimensions in data set
+      CALL H5Dread_f(dset_id, H5T_NATIVE_DOUBLE, steps, one_dims, hdferr)
+      h5_steps_full(:,2) = steps
+      CALL H5Dclose_f(dset_id, hdferr)                             ! Close the dataset file
+   endif
+!write(*,*) ' H5_steps ord  ', h5_steps_full(:,2)
+endif
+!
+if(yd_present(YD_STEP_SIZES_TOP)) then
+   dataname = 'step_sizes_top'
+   one_dims    = 1
+   one_maxdims = 1
+   CALL H5Dopen_f(file_id, dataname, dset_id, hdferr)           ! Open the dataset
+   if(hdferr==0) then
+      CALL H5Dget_space_f(dset_id, space_id, hdferr)
+      CALL H5Sget_simple_extent_ndims_f(space_id, one_ndims, hdferr)   ! Get the number of dimensions in data set
+      CALL H5Sget_simple_extent_dims_f(space_id, one_dims, one_maxdims, hdferr)   ! Get the dimensions in data set
+      CALL H5Dread_f(dset_id, H5T_NATIVE_DOUBLE, steps, one_dims, hdferr)
+      h5_steps_full(:,3) = steps
+      CALL H5Dclose_f(dset_id, hdferr)                             ! Close the dataset file
+   endif
+!write(*,*) ' H5_steps top  ', h5_steps_full(:,3)
+endif
 !
 CALL h5fclose_f(file_id, hdferr)                             ! Close the input file
 !
@@ -343,7 +416,8 @@ CALL H5close_f(hdferr)                                    ! Close HDF interface
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 CALL hdf5_set_node(h5_infile, h5_layer, h5_direct, ndims, one_ndims, h5_dims, &
-                   maxdims, one_dims, one_maxdims, h5_data, h5_llims, h5_steps)
+                   maxdims, one_dims, one_maxdims, h5_data, h5_llims, h5_steps,&
+                   h5_steps_full)
  
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -448,7 +522,8 @@ END SUBROUTINE hdf5_copy_node
 !*******************************************************************************
 !
 SUBROUTINE hdf5_set_node(l_infile, l_layer, l_direct, l_ndims, l_one_ndims, l_dims, &
-                   l_maxdims, l_one_dims, l_one_maxdims, l_data, l_llims, l_steps)
+                   l_maxdims, l_one_dims, l_one_maxdims, l_data, l_llims, l_steps,  &
+                   l_steps_full)
 !-
 !  Place the temporary values into the current hdf5 node
 !+
@@ -464,6 +539,7 @@ INTEGER(KIND=HSIZE_T), DIMENSION(3), INTENT(IN)       :: l_one_maxdims    ! Maxi
 REAL(KIND=PREC_SP)   , DIMENSION(l_dims(1), l_dims(2), l_dims(3)), INTENT(IN):: l_data           ! Actual diffraction data
 REAL(KIND=PREC_DP)   , DIMENSION(3), INTENT(IN)       :: l_llims          ! Lower limits
 REAL(KIND=PREC_DP)   , DIMENSION(3), INTENT(IN)       :: l_steps          ! steps in H, K, L
+REAL(KIND=PREC_DP)   , DIMENSION(3,3),INTENT(IN)       :: l_steps_full     ! steps in H, K, L
 !
 h5_temp%h5_infile   = l_infile         ! input file
 h5_temp%h5_layer    = l_layer          ! Current layer in data set
@@ -478,6 +554,7 @@ ALLOCATE(h5_temp%h5_data(h5_temp%h5_dims(1), h5_temp%h5_dims(2), h5_temp%h5_dims
 h5_temp%h5_data     = l_data           ! Actual diffraction data
 h5_temp%h5_llims    = l_llims          ! Lower limits
 h5_temp%h5_steps    = l_steps          ! steps in H, K, L
+h5_temp%h5_steps_full    = l_steps_full          ! steps in H, K, L
 !
 END SUBROUTINE hdf5_set_node
 !
@@ -798,6 +875,49 @@ END SUBROUTINE hdf5_get_dims
 !
 !*******************************************************************************
 !
+SUBROUTINE hdf5_get_llims(idata, llims)
+!
+use precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER,               INTENT(IN)  :: idata
+real(kind=PREC_DP), DIMENSION(3), INTENT(OUT) :: llims
+!
+llims = h5_temp%h5_llims
+!
+END SUBROUTINE hdf5_get_llims
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_get_steps(idata, steps)
+!
+use hdf5_def_mod
+use precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER,               INTENT(IN)  :: idata
+real(kind=PREC_DP), DIMENSION(3,3), INTENT(OUT) :: steps
+!
+!write(*,*) yd_present(YD_step_sizes_abs:YD_step_sizes_TOP), &
+!       ALL(yd_present(YD_step_sizes_abs:YD_step_sizes_TOP))
+if(ALL(yd_present(YD_step_sizes_abs:YD_step_sizes_TOP))) then
+   steps = h5_temp%h5_steps_full
+else
+   steps = 0.0D0
+   steps(1,1) = h5_temp%h5_steps(1)
+   steps(2,2) = h5_temp%h5_steps(2)
+   steps(3,3) = h5_temp%h5_steps(3)
+endif
+!write(*,*) ' GETS ', steps(:,1)
+!write(*,*) ' GETS ', steps(:,2)
+!write(*,*) ' GETS ', steps(:,3)
+!
+END SUBROUTINE hdf5_get_steps
+!
+!*******************************************************************************
+!
 SUBROUTINE hdf5_get_map(dims, odata)
 !
 IMPLICIT NONE
@@ -816,6 +936,30 @@ DO i=1, dims(1)
 ENDDO
 !
 END SUBROUTINE hdf5_get_map
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_get_tmap(dims, odata)
+!-
+! Get the matrix in transposed form, which is the regular Fortran style
+!+
+!
+IMPLICIT NONE
+!
+INTEGER,            DIMENSION(3),                         INTENT(IN)  :: dims
+REAL(KIND=PREC_DP), DIMENSION(dims(1), dims(2), dims(3)), INTENT(OUT) :: odata
+!
+INTEGER :: i,j,k
+!
+DO i=1, dims(1)
+   DO j=1, dims(2)
+      DO k=1, dims(3)
+         odata(i,j,k) = h5_temp%h5_data(k,j,i)
+      ENDDO
+   ENDDO
+ENDDO
+!
+END SUBROUTINE hdf5_get_tmap
 !
 !*******************************************************************************
 !

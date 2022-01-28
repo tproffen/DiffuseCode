@@ -876,6 +876,7 @@ cr_spcgrno = 1
 cr_syst = 1 
 spcgr_para = 1
 CALL get_symmetry_matrices    ! Define matrices for default P1
+
 CALL no_error                 ! Ignore errors for the moment
 IF (ianz==0) THEN 
    cr_a0 (:) = 1.0 
@@ -1330,8 +1331,8 @@ IF (ier_num.eq. -49) THEN
       DO j = 1, 3 
          cr_pos (j, i) = cr_pos (j, i) - int ( (cr_icc (j) ) / 2) 
 !             cr_pos(j,i)=cr_pos(j,i) - int((cr_icc(j)-0.1)/2)          
-         cr_dim (j, 1) = amin1 (cr_dim (j, 1), cr_pos (j, i) ) 
-         cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
+         cr_dim (j, 1) = min (cr_dim (j, 1), cr_pos (j, i) ) 
+         cr_dim (j, 2) = max (cr_dim (j, 2), cr_pos (j, i) ) 
       ENDDO 
    ENDDO 
 ELSE
@@ -1722,58 +1723,56 @@ END SUBROUTINE struc_mole_header
 !-                                                                      
 !           this subroutine reads an old structur.                      
 !+                                                                      
-USE support_mod
-      IMPLICIT none 
-!                                                                       
-      INTEGER NMAX 
-      INTEGER MAXSCAT 
-!                                                                       
-CHARACTER(LEN=3), INTENT(INOUT) :: cr_set
 !
-      INTEGER,                       INTENT(INOUT)  :: cr_natoms
-      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
-      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
-      INTEGER, DIMENSION(0:3,1:NMAX),INTENT(INOUT)  :: cr_surf
-      REAL   , DIMENSION(0:3,1:NMAX),INTENT(INOUT)  :: cr_magn
-      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
-      REAL   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
-      LOGICAL , INTENT(INOUT) :: cr_magnetic
+use precision_mod
+USE support_mod
+!
+IMPLICIT none 
 !                                                                       
-      INTEGER sav_ncell (3) 
-      INTEGER sav_ncatoms 
-      LOGICAL sav_r_ncell 
-      LOGICAL lcell 
+INTEGER                                  , intent(in)    :: NMAX 
+INTEGER                                  , intent(inout) :: MAXSCAT 
+CHARACTER(len=*)                         , intent(in)    :: strucfile 
+CHARACTER(len=80)                        , intent(out)   :: cr_name 
+CHARACTER(len=16)                        , intent(out)   :: cr_spcgr 
+CHARACTER(LEN=3)                         , INTENT(INOUT) :: cr_set
+REAL(kind=PREC_DP), dimension(3)         , intent(out)   :: cr_a0 (3) 
+REAL(kind=PREC_DP), dimension(3)         , intent(out)   :: cr_win (3) 
+INTEGER                                  , INTENT(INOUT) :: cr_natoms
+INTEGER                                  , intent(inout) :: cr_nscat 
+REAL(kind=PREC_DP), dimension(0:MAXSCAT) , intent(out  ) :: cr_dw ! (0:MAXSCAT) 
+REAL(kind=PREC_DP), dimension(0:MAXSCAT) , intent(out  ) :: cr_occ ! (0:MAXSCAT) 
+CHARACTER(len=4)  , dimension(0:MAXSCAT) , intent(out  ) :: cr_at_lis ! (0:MAXSCAT) 
+REAL(kind=PREC_DP), DIMENSION(1:3,1:NMAX), INTENT(out  ) :: cr_pos
+INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_mole
+INTEGER           , DIMENSION(0:3,1:NMAX), INTENT(out  ) :: cr_surf
+REAL(kind=PREC_DP), DIMENSION(0:3,1:NMAX), INTENT(out  ) :: cr_magn
+INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_iscat
+INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_prop
+REAL(kind=PREC_DP), dimension(3,2)       , intent(out  ) :: cr_dim ! (3, 2) 
+LOGICAL                                  , INTENT(INOUT) :: cr_magnetic
+INTEGER                                  , intent(inout) :: as_natoms 
+CHARACTER(len=4)  , dimension(0:MAXSCAT) , intent(inout) :: as_at_lis ! (0:MAXSCAT) 
+REAL(kind=PREC_DP), dimension(0:MAXSCAT) , intent(out)   :: as_dw ! (0:MAXSCAT) 
+REAL(kind=PREC_DP), dimension(3, MAXSCAT), intent(out)   :: as_pos ! (3, MAXSCAT) 
+INTEGER           , dimension(MAXSCAT)   , intent(out)   :: as_iscat ! (MAXSCAT) 
+INTEGER           , dimension(MAXSCAT)   , intent(out)   :: as_prop  !(MAXSCAT) 
+INTEGER                                  , intent(inout) :: sav_ncell (3) 
+LOGICAL                                  , intent(inout) :: sav_r_ncell 
+INTEGER                                  , intent(inout) :: sav_ncatoms 
+INTEGER                                  , intent(out)   :: spcgr_ianz 
+INTEGER                                  , intent(out)   :: spcgr_para 
+!
 !                                                                       
-      INTEGER ist 
-      PARAMETER (ist = 7) 
-!                                                                       
-      CHARACTER ( * ) strucfile 
-      CHARACTER(80) cr_name 
-      CHARACTER(16) cr_spcgr 
-      CHARACTER(4) cr_at_lis (0:MAXSCAT) 
-      CHARACTER(4) as_at_lis (0:MAXSCAT) 
+INTEGER, PARAMETER                   :: ist = 7 
 INTEGER, PARAMETER                   :: AT_MAXP = 16
+!
+INTEGER :: i 
 INTEGER                              :: at_ianz
+LOGICAL :: lcell 
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 !                                                                       
-      INTEGER cr_nscat 
-      INTEGER as_natoms 
-      INTEGER as_prop (MAXSCAT) 
-      INTEGER as_iscat (MAXSCAT) 
+REAL(kind=PREC_DP), dimension(0:MAXSCAT) :: as_occ(0:MAXSCAT) 
 !                                                                       
-      INTEGER spcgr_ianz 
-      INTEGER spcgr_para 
-!                                                                       
-      REAL cr_a0 (3) 
-      REAL cr_win (3) 
-      REAL cr_dw (0:MAXSCAT) 
-      REAL cr_occ(0:MAXSCAT) 
-      REAL cr_dim (3, 2) 
-      REAL as_pos (3, MAXSCAT) 
-      REAL as_dw (0:MAXSCAT) 
-      REAL as_occ(0:MAXSCAT) 
-!                                                                       
-      INTEGER i 
 !                                                                       
       cr_natoms = 0 
       lcell = .false. 
@@ -1782,8 +1781,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       CALL oeffne (ist, strucfile, 'old') 
       IF (ier_num.eq.0) THEN 
          DO i = 1, 3 
-         cr_dim (i, 1) = 1.e10 
-         cr_dim (i, 2) = - 1.e10 
+         cr_dim (i, 1) = 1.D10 
+         cr_dim (i, 2) = - 1.D10 
          ENDDO 
 !                                                                       
 !     --Read header of structure file                                   
@@ -1840,10 +1839,10 @@ CHARACTER(LEN=16)                        , INTENT(OUT) :: cr_spcgr
 CHARACTER(LEN= 3)                        , INTENT(OUT) :: cr_set 
 CHARACTER(LEN=4), DIMENSION(0:HD_MAXSCAT), INTENT(OUT) :: cr_at_lis ! (0:HD_MAXSCAT) 
 INTEGER                                  , INTENT(OUT) :: cr_nscat 
-REAL   , DIMENSION(0:HD_MAXSCAT)         , INTENT(OUT) :: cr_dw     ! (0:HD_MAXSCAT) 
-REAL   , DIMENSION(0:HD_MAXSCAT)         , INTENT(OUT) :: cr_occ    ! (0:HD_MAXSCAT) 
-REAL   , DIMENSION(3)                    , INTENT(OUT) :: cr_a0     ! (3) 
-REAL   , DIMENSION(3)                    , INTENT(OUT) :: cr_win    ! (3) 
+REAL(kind=PREC_DP), DIMENSION(0:HD_MAXSCAT)         , INTENT(OUT) :: cr_dw     ! (0:HD_MAXSCAT) 
+REAL(kind=PREC_DP), DIMENSION(0:HD_MAXSCAT)         , INTENT(OUT) :: cr_occ    ! (0:HD_MAXSCAT) 
+REAL(kind=PREC_DP), DIMENSION(3)                    , INTENT(OUT) :: cr_a0     ! (3) 
+REAL(kind=PREC_DP), DIMENSION(3)                    , INTENT(OUT) :: cr_win    ! (3) 
 INTEGER, DIMENSION(3)                    , INTENT(OUT) :: sav_ncell ! (3) 
 INTEGER                                  , INTENT(OUT) :: sav_ncatoms 
 LOGICAL                                  , INTENT(OUT) :: sav_r_ncell 
@@ -1891,7 +1890,7 @@ opara  =  (/ 'abc' /)   ! Always provide fresh default values
 lopara =  (/  3   /)
 owerte =  (/  0.0 /)
 !
-cr_occ(:) = 1.0   !! WORK OCC
+cr_occ(:) = 1.0D0  !! WORK OCC
       xx_nscat = 0 
       xx_nadp = 0 
       xx_nocc = 0 
@@ -2315,19 +2314,19 @@ sym_add_n = 0
  2010 FORMAT    (a16) 
       END SUBROUTINE stru_readheader                
 !********************************************************************** 
-      SUBROUTINE struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
+SUBROUTINE struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,        &
       cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf,     &
       cr_magn, cr_prop, cr_dim, cr_magnetic,                            &
       as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop,   &
-            AT_MAXP, at_ianz, at_param)                      
+      AT_MAXP, at_ianz, at_param)                      
 !-                                                                      
 !           This subroutine reads the list of atoms into the            
 !       crystal array                                                   
 !+                                                                      
-      USE discus_allocate_appl_mod , ONLY: alloc_molecule
-      USE molecule_mod 
-      USE prop_para_mod
-      USE spcgr_apply
+USE discus_allocate_appl_mod , ONLY: alloc_molecule
+USE molecule_mod 
+USE prop_para_mod
+USE spcgr_apply
 use atom_line_mod
 !
 use blanks_mod
@@ -2335,58 +2334,57 @@ USE lib_errlist_func
 USE lib_length
 USE precision_mod
 USE str_comp_mod
-      USE string_convert_mod
-      IMPLICIT none 
-!                                                                       
-      INTEGER                                ,INTENT(IN)    :: NMAX 
-      INTEGER                                ,INTENT(IN)    :: MAXSCAT 
-!                                                                       
+USE string_convert_mod
 !
-      INTEGER                                ,INTENT(INOUT) :: cr_natoms
-      INTEGER                                ,INTENT(INOUT) :: cr_nscat 
-      REAL            , DIMENSION(0:MAXSCAT) ,INTENT(INOUT) :: cr_dw       ! (0:MAXSCAT) 
-      REAL            , DIMENSION(0:MAXSCAT) ,INTENT(INOUT) :: cr_occ      ! (0:MAXSCAT) 
-      CHARACTER(LEN=4), DIMENSION(0:MAXSCAT) ,INTENT(INOUT) :: cr_at_lis   ! (0:MAXSCAT) 
-      REAL            , DIMENSION(1:3,1:NMAX),INTENT(INOUT) :: cr_pos
-      INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_iscat
-      INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_mole 
-      INTEGER         , DIMENSION(0:3,1:NMAX),INTENT(INOUT) :: cr_surf
-      REAL            , DIMENSION(0:3,1:NMAX),INTENT(INOUT) :: cr_magn
-      INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_prop
-      REAL            , DIMENSION(3, 2)      ,INTENT(INOUT) :: cr_dim      ! (3, 2) 
-      LOGICAL                                ,INTENT(INOUT) :: cr_magnetic
-      INTEGER                                ,INTENT(INOUT) :: as_natoms 
-      CHARACTER(LEN=4), DIMENSION(0:MAXSCAT), INTENT(INOUT) :: as_at_lis   ! (0:MAXSCAT) 
-      REAL            , DIMENSION(0:MAXSCAT), INTENT(INOUT) :: as_dw       ! (0:MAXSCAT) 
-      REAL            , DIMENSION(0:MAXSCAT), INTENT(INOUT) :: as_occ      ! (0:MAXSCAT) 
-      REAL            , DIMENSION(3,1:MAXSCAT), INTENT(INOUT) :: as_pos      ! (3, MAXSCAT) 
-      INTEGER         , DIMENSION(1:MAXSCAT), INTENT(INOUT) :: as_iscat    ! (MAXSCAT) 
-      INTEGER         , DIMENSION(1:MAXSCAT), INTENT(INOUT) :: as_prop     ! (MAXSCAT) 
-INTEGER                                  , INTENT(IN)  :: AT_MAXP
-INTEGER                                  , INTENT(IN ) :: at_ianz
-CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN ) :: at_param
+IMPLICIT none 
 !                                                                       
-      INTEGER , PARAMETER :: ist  = 7
-      INTEGER , PARAMETER :: maxw = 16! SHOULD READ : MAX(7, AT_MAXP)
+INTEGER                                   , INTENT(IN)    :: NMAX 
+INTEGER                                   , INTENT(IN)    :: MAXSCAT 
+INTEGER                                   , INTENT(INOUT) :: cr_natoms
+INTEGER                                   , INTENT(INOUT) :: cr_nscat 
+REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_dw       ! (0:MAXSCAT) 
+REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_occ      ! (0:MAXSCAT) 
+CHARACTER(LEN=4)  , DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_at_lis   ! (0:MAXSCAT) 
+REAL(kind=PREC_DP), DIMENSION(1:3,1:NMAX) , INTENT(INOUT) :: cr_pos
+INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_iscat
+INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_mole 
+INTEGER           , DIMENSION(0:3,1:NMAX) , INTENT(INOUT) :: cr_surf
+REAL(kind=PREC_DP), DIMENSION(0:3,1:NMAX) , INTENT(INOUT) :: cr_magn
+INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_prop
+REAL(kind=PREC_DP), DIMENSION(3, 2)       , INTENT(INOUT) :: cr_dim      ! (3, 2) 
+LOGICAL                                   , INTENT(INOUT) :: cr_magnetic
+INTEGER                                   , INTENT(INOUT) :: as_natoms 
+CHARACTER(LEN=4)  , DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: as_at_lis   ! (0:MAXSCAT) 
+REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: as_dw       ! (0:MAXSCAT) 
+REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: as_occ      ! (0:MAXSCAT) 
+REAL(kind=PREC_DP), DIMENSION(3,1:MAXSCAT), INTENT(INOUT) :: as_pos      ! (3, MAXSCAT) 
+INTEGER           , DIMENSION(1:MAXSCAT)  , INTENT(INOUT) :: as_iscat    ! (MAXSCAT) 
+INTEGER           , DIMENSION(1:MAXSCAT)  , INTENT(INOUT) :: as_prop     ! (MAXSCAT) 
+INTEGER                                   , INTENT(IN)    :: AT_MAXP
+INTEGER                                   , INTENT(IN )   :: at_ianz
+CHARACTER(LEN=8)  , DIMENSION(AT_MAXP)    , INTENT(IN )   :: at_param
 !                                                                       
-      CHARACTER(LEN=10)   :: befehl 
-      CHARACTER(LEN=PREC_STRING) ::  line, zeile 
-      INTEGER             :: i, j, ibl, lbef 
-      INTEGER             :: iatom
-      INTEGER             :: iimole
-      INTEGER             :: lline 
-      INTEGER             :: n_gene
-      INTEGER             :: n_symm
-      INTEGER             :: n_mole
-      INTEGER             :: n_type
-      INTEGER             :: n_atom
-      INTEGER             :: n_mole_old = 0    ! previous number of molecules in structure
-      LOGICAL             :: need_alloc = .false.
-      LOGICAL             :: lcontent
-      LOGICAL, SAVE       :: at_init = .TRUE.
-      REAL, PARAMETER     :: eps = 1e-6
-      REAL(KIND=PREC_DP), DIMENSION(maxw) :: werte !(maxw)
-      REAL                :: dw1 , occ1 = 1
+INTEGER , PARAMETER :: ist  = 7
+INTEGER , PARAMETER :: maxw = 16! SHOULD READ : MAX(7, AT_MAXP)
+!                                                                       
+CHARACTER(LEN=10)   :: befehl 
+CHARACTER(LEN=PREC_STRING) ::  line, zeile 
+INTEGER             :: i, j, ibl, lbef 
+INTEGER             :: iatom
+INTEGER             :: iimole
+INTEGER             :: lline 
+INTEGER             :: n_gene
+INTEGER             :: n_symm
+INTEGER             :: n_mole
+INTEGER             :: n_type
+INTEGER             :: n_atom
+INTEGER             :: n_mole_old = 0    ! previous number of molecules in structure
+LOGICAL             :: need_alloc = .false.
+LOGICAL             :: lcontent
+LOGICAL, SAVE       :: at_init = .TRUE.
+REAL, PARAMETER     :: eps = 1e-6
+REAL(KIND=PREC_DP), DIMENSION(maxw) :: werte !(maxw)
+REAL                :: dw1 , occ1 = 1
 !                                                                       
 !                                                                       
       lcontent = .false.
@@ -2466,8 +2464,8 @@ werte = 0.0
             i = cr_natoms 
             DO j = 1, 3 
             cr_pos (j, i) = werte (j) 
-            cr_dim (j, 1) = amin1 (cr_dim (j, 1), cr_pos (j, i) ) 
-            cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
+            cr_dim (j, 1) = min (cr_dim (j, 1), cr_pos (j, i) ) 
+            cr_dim (j, 2) = max (cr_dim (j, 2), cr_pos (j, i) ) 
             ENDDO 
             dw1 = werte (4) 
             occ1 = werte(8)                             ! WORK OCC
@@ -2789,8 +2787,8 @@ cr_magnetic  = .FALSE.
       as_occ(:)    = 1.0
 !
       DO i = 1, 3 
-      cr_dim (i, 1) = 0.0 
-      cr_dim (i, 2) = 0.0 
+      cr_dim (i, 1) = 0.0D0 
+      cr_dim (i, 2) = 0.0D0
       ENDDO 
 !
 cr_amount = 0
@@ -2930,7 +2928,7 @@ USE save_menu, ONLY: save_internal, save_store_setting, &
                      save_restore_setting, save_default_setting, &
                      save_struc, save_show, save_keyword
 USE spcgr_apply
-USE trafo_mod
+!USE trafo_mod
 !
 USE build_name_mod
 USE get_params_mod
@@ -3126,8 +3124,10 @@ IF(ier_num==0) THEN
    DO j=1, cr_natoms
       posit4(1:3) = cr_pos(1:3,j)
       posit4(4)   = 1.0
-      CALL trans(posit4,cr_tran_f ,uvw4, 4)       ! Transform mol to cartesian
-      CALL trans(uvw4  ,host_tran_fi,posit4, 4)   ! Transform cartesian to host_crystal
+!     CALL trans(posit4,cr_tran_f ,uvw4, 4)       ! Transform mol to cartesian
+!     CALL trans(uvw4  ,host_tran_fi,posit4, 4)   ! Transform cartesian to host_crystal
+      uvw4   = matmul(cr_tran_f, posit4)          ! Transform mol to cartesian
+      posit4 = matmul(host_tran_fi, uvw4)         ! Transform cartesian to host_crysta
       cr_pos(1:3,j) = posit4(1:3)
    ENDDO
 !
@@ -4331,12 +4331,13 @@ END SUBROUTINE rmc6f_period
 !     converts a CIF file to DISCUS                   
 !+                                                                      
 !                                                                       
-      USE tensors_mod
+!      USE tensors_mod
       USE build_name_mod
       USE wink_mod
       USE ber_params_mod
       USE blanks_mod
       USE get_params_mod
+use matrix_mod
 USE lib_length
 USE precision_mod
       USE string_convert_mod
@@ -4430,8 +4431,8 @@ USE support_mod
       REAL   , DIMENSION(3) :: rlatt    ! (6) 
       REAL   , DIMENSION(3,3) :: uij ! (6) 
       REAL   , DIMENSION(3,3) :: bij ! (6) 
-      REAL   , DIMENSION(3,3) :: gten ! (6) 
-      REAL   , DIMENSION(3,3) :: rten ! (6) 
+      REAL(kind=PREC_DP)   , DIMENSION(3,3) :: gten ! (6) 
+      REAL(kind=PREC_DP)   , DIMENSION(3,3) :: rten ! (6) 
       REAL   , DIMENSION(4,4) :: symm_mat ! (6) 
       REAL                  :: uiso
       REAL                  :: biso
@@ -4874,7 +4875,8 @@ analyze_anis: DO
          gten(2,1) = gten(1,2)
          gten(3,1) = gten(1,3)
          gten(2,3) = gten(3,2)
-         CALL invmat(rten,gten)
+!        CALL invmat(rten,gten)
+         CALL matinv(gten,rten)
          rlatt(1) = SQRT(rten(1,1))
          rlatt(2) = SQRT(rten(2,2))
          rlatt(3) = SQRT(rten(3,3))
@@ -5934,6 +5936,7 @@ SUBROUTINE test_identical(l_identical, r_identical)
 USE crystal_mod
 USE metric_mod
 USE errlist_mod
+use precision_mod
 IMPLICIT NONE
 !
 LOGICAL         ,                  INTENT(IN) :: l_identical
@@ -5941,7 +5944,7 @@ REAL            ,                  INTENT(IN) :: r_identical
 !
 LOGICAL, PARAMETER :: LSPACE = .TRUE.
 REAL    :: eps
-REAL, DIMENSION(3) :: u,v
+REAL(kind=PREC_DP), DIMENSION(3) :: u,v
 INTEGER :: i, j
 !
 eps = 1.0E-5

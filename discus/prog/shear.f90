@@ -26,7 +26,7 @@ CONTAINS
       USE shear_mod 
       USE discus_show_menu
       USE update_cr_dim_mod
-      USE trafo_mod
+!     USE trafo_mod
 !
       USE ber_params_mod
       USE calc_expr_mod
@@ -71,14 +71,13 @@ USE str_comp_mod
       LOGICAL lend, lspace 
       LOGICAL l_need_setup 
       LOGICAL lselect 
-      REAL hkl (3), h (3), x 
-      REAL NULL (3) 
+      REAL(kind=PREC_DP) :: hkl (3), h (3), x 
+real(kind=PREC_DP), dimension(3), parameter  :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /)
 !                                                                       
 !     REAL do_blen 
 !                                                                       
 !                                                                       
       DATA l_need_setup / .true. / 
-      DATA NULL / 0.0, 0.0, 0.0 / 
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       lend = .false. 
@@ -252,9 +251,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            shear_eigenw (i) = werte (5) 
                            lspace = .true. 
                         ELSE 
-                           shear_eigenw (i) = do_blen (lspace, h, NULL) 
+                           shear_eigenw (i) = do_blen (lspace, h, NULLV) 
                         ENDIF 
-                        x = do_blen (lspace, h, NULL) 
+                        x = do_blen (lspace, h, NULLV) 
                         DO j = 1, 3 
                         shear_eigenv (j, i) = shear_eigenv (j, i)       &
                         / x                                             
@@ -282,10 +281,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         DO i = 1, 3 
                         shear_hkl (i) = werte (i) 
                         ENDDO 
-                        CALL trans (shear_hkl, cr_rten, shear_uvw, 3) 
+!                       CALL trans (shear_hkl, cr_rten, shear_uvw, 3) 
+                        shear_uvw = matmul( cr_rten, shear_hkl)
                         IF (ianz.eq.3) then 
                            lspace = .true. 
-                           shear_length = do_blen (lspace, NULL,        &
+                           shear_length = do_blen (lspace, NULLV,        &
                            shear_uvw)                                   
                         ELSE 
                            shear_length = werte (4) 
@@ -635,10 +635,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         DO i = 1, 3 
                         shear_uvw (i) = werte (i) 
                         ENDDO 
-                        CALL trans (shear_uvw, cr_gten, shear_hkl, 3) 
+!                       CALL trans (shear_uvw, cr_gten, shear_hkl, 3) 
+                        shear_hkl = matmul( cr_gten, shear_uvw)
                         IF (ianz.eq.3) then 
                            lspace = .true. 
-                           shear_length = do_blen (lspace, NULL,        &
+                           shear_length = do_blen (lspace, NULLV,        &
                            shear_uvw)                                   
                         ELSE 
                            shear_length = werte (4) 
@@ -717,12 +718,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER i, j, k 
       LOGICAL lspace 
       REAL det 
-      REAL null (3), u (3), v (3), w (3) 
+real(kind=PREC_DP) ::  u (3), v (3), w (3) 
+real(kind=PREC_DP), dimension(3), parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /)
       REAL w12, w13, w23 
 !                                                                       
 !     REAL do_bang 
 !                                                                       
-      DATA null / 0.0, 0.0, 0.0 / 
       DATA lspace / .true. / 
 !                                                                       
       IF (shear_input.eq.SHEAR_PLANE) then 
@@ -751,9 +752,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          v (j) = shear_eigenv (j, 2) 
          w (j) = shear_eigenv (j, 3) 
          ENDDO 
-         w12 = do_bang (lspace, u, NULL, v) 
-         w13 = do_bang (lspace, u, NULL, w) 
-         w23 = do_bang (lspace, v, NULL, w) 
+         w12 = do_bang (lspace, u, NULLV, v) 
+         w13 = do_bang (lspace, u, NULLV, w) 
+         w23 = do_bang (lspace, v, NULLV, w) 
          WRITE (output_io, 4020) w12, w13, w23 
       ENDIF 
       IF (shear_orig_mol) then 
@@ -852,55 +853,56 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
       END SUBROUTINE shear_show                     
 !*****7*****************************************************************
-      SUBROUTINE shear_setup 
+!
+SUBROUTINE shear_setup 
 !-                                                                      
 !     Defines the deformation matrix in real and reciprocal space       
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE metric_mod
-      USE shear_mod 
-      USE tensors_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE metric_mod
+USE shear_mod 
+!     USE tensors_mod
 !
-      USE errlist_mod 
-      USE param_mod 
-      USE precision_mod
-      USE prompt_mod 
-      IMPLICIT none 
+USE errlist_mod 
+use matrix_mod
+USE param_mod 
+USE precision_mod
+USE prompt_mod 
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      CHARACTER(LEN=PREC_STRING) ::line 
-      INTEGER i, j
-      INTEGER laenge 
-      LOGICAL lspace 
+CHARACTER(LEN=PREC_STRING) ::line 
+INTEGER :: i, j
+INTEGER :: laenge 
+LOGICAL,parameter :: lspace = .true.
 !                                                                       
-      REAL kron (3, 3) 
-      REAL a (3, 3) 
-      REAL b (3, 3) 
-      REAL fd, fn, sca 
-      REAL u (3), v (3), NULL (3), w (3) 
-      REAL inv_eigenv (3, 3) 
+!     REAL kron (3, 3) 
+REAL(kind=PREC_DP) :: a (3, 3) 
+!     REAL b (3, 3) 
+REAL(kind=PREC_DP) :: fd, fn, sca 
+REAL(kind=PREC_DP) :: u (3), v (3), w (3) 
+REAL(kind=PREC_DP), dimension(3), parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /)
+REAL(kind=PREC_DP) :: inv_eigenv (3, 3) 
 !
 !     REAL skalpro 
 !     REAL do_blen 
 !                                                                       
 !                                                                       
-      DATA kron / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
-      DATA NULL / 0.0, 0.0, 0.0 / 
-      DATA lspace / .true. / 
+!     DATA kron / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
+!     DATA lspace / .true. / 
 !                                                                       
-      IF (shear_input.eq.SHEAR_MATRIX) then 
+IF (shear_input.eq.SHEAR_MATRIX) then 
 !                                                                       
 !     --initialize matrix and angle                                     
 !                                                                       
-         DO i = 1, 4 
-         shear_mat (4, i) = 0.0 
-         shear_mat (i, 4) = 0.0 
+   DO i = 1, 4 
+      shear_mat (4, i) = 0.0 
+      shear_mat (i, 4) = 0.0 
 !         shear_rmat(i,4)= 0.0                                          
 !         shear_rmat(4,i)= 0.0                                          
-         ENDDO 
-         shear_mat (4, 4) = 1.0 
+   ENDDO 
+   shear_mat (4, 4) = 1.0 
 !       shear_rmat(4,4)= 0.0                                            
 !                                                                       
 !     --Transform shear operation into reciprocal space                 
@@ -950,63 +952,71 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !           shear_mat(i,j) = a(i,j)                                     
 !         ENDDO                                                         
 !       ENDDO                                                           
-      ELSEIF (shear_input.eq.SHEAR_PLANE) then 
+ELSEIF (shear_input.eq.SHEAR_PLANE) then 
 !                                                                       
 !     --Calculate projections of unit vectors onto uvw                  
 !                                                                       
-         fd = do_blen (lspace, NULL, shear_uvw) 
-         laenge = 95 
-         IF (fd.gt.0.0) then 
-            DO j = 1, 3 
-            v (j) = shear_uvw (j) / fd 
-            v (j) = shear_uvw (j) / fd * shear_length 
-            ENDDO 
-            DO i = 1, 3 
-            u (1) = 1.0 
-            DO j = 1, 3 
-            u (j) = 0.0 
-            ENDDO 
-            u (i) = 1.0 
-            WRITE (line, 4000) v, u 
-            CALL do_proj (line, laenge) 
-            w (1) = res_para (1) 
-            w (2) = res_para (2) 
-            w (3) = res_para (3) 
-            fn = do_blen (lspace, NULL, w) 
-            IF (res_para (7) .le.90) then 
-               sca = fn / shear_length 
-            ELSE 
-               sca = - fn / shear_length 
-            ENDIF 
-            DO j = 1, 3 
-            shear_mat (j, i) = u (j) + sca * shear_vector (j) 
-            ENDDO 
-            ENDDO 
+   fd = do_blen (lspace, NULLV, shear_uvw) 
+   laenge = 95 
+   IF (fd.gt.0.0) then 
+      DO j = 1, 3 
+         v (j) = shear_uvw (j) / fd 
+         v (j) = shear_uvw (j) / fd * shear_length 
+      ENDDO 
+      DO i = 1, 3 
+         u (1) = 1.0D0 
+         DO j = 1, 3 
+            u (j) = 0.0D0 
+         ENDDO 
+         u (i) = 1.0D0 
+         WRITE (line, 4000) v, u 
+         CALL do_proj (line, laenge) 
+         w (1) = res_para (1) 
+         w (2) = res_para (2) 
+         w (3) = res_para (3) 
+         fn = do_blen (lspace, NULLV, w) 
+         IF (res_para (7) .le.90) then 
+            sca = fn / shear_length 
+         ELSE 
+            sca = - fn / shear_length 
          ENDIF 
-      ELSEIF (shear_input.eq.SHEAR_EIGEN) then 
+         DO j = 1, 3 
+            shear_mat (j, i) = u (j) + sca * shear_vector (j) 
+         ENDDO 
+      ENDDO 
+   ENDIF 
+ELSEIF (shear_input.eq.SHEAR_EIGEN) then 
 !                                                                       
 !     --Transform shear operation into direct space                     
 !                                                                       
 !                                                                       
 !     --do transformation q = (Eigenvectors)*S*(inverse Eigenvectors)   
 !                                                                       
-         DO i = 1, 3 
-         DO j = 1, 3 
-         a (i, j) = 0.0 
+!         DO i = 1, 3 
+!         DO j = 1, 3 
+!!        a (i, j) = 0.0 
 !           b(i,j) = 0.0                                                
-         ENDDO 
-         a (i, i) = shear_eigenw (i) 
-!         b(i,i) = shear_eigenw(i)                                      
-         ENDDO 
+!         ENDDO 
+!         a (i, i) = shear_eigenw (i) 
+!!         b(i,i) = shear_eigenw(i)                                      
+!        ENDDO 
+      a = 0.0
+      do i=1,3
+         a(i,i) = shear_eigenw(i)
+      enddo
 !                                                                       
-         CALL invmat (inv_eigenv, shear_eigenv) 
-         CALL matmulx (b, a, inv_eigenv) 
-         CALL matmulx (a, shear_eigenv, b) 
-         DO i = 1, 3 
-         DO j = 1, 3 
-         shear_mat (i, j) = a (i, j) 
-         ENDDO 
-         ENDDO 
+!        CALL invmat (inv_eigenv, shear_eigenv) 
+!        CALL matmulx (b, a, inv_eigenv) 
+!        CALL matmulx (a, shear_eigenv, b) 
+!        DO i = 1, 3 
+!        DO j = 1, 3 
+!        shear_mat (i, j) = a (i, j) 
+!        ENDDO 
+!        ENDDO 
+      shear_mat = 0.0D0
+      call matinv(shear_eigenv, inv_eigenv)
+      shear_mat(1:3,1:3) = matmul(shear_eigenv, matmul(a, inv_eigenv))
+      shear_mat(4,4) = 1.0D0
 !                                                                       
 !     --Transform shear operation into reciprocal space                 
 !                                                                       
@@ -1025,13 +1035,15 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !           shear_rmat(i,j) = a(i,j)                                    
 !         ENDDO                                                         
 !       ENDDO                                                           
-      ENDIF 
+ENDIF 
 !     write (output_io,2000) ((shear_rmat(i,j),j=1,3),i=1,3)            
 ! 2000 FORMAT    (3(3(2x,f10.6)/)) 
  4000 FORMAT    (5(e15.8e2,','),e15.8e2) 
 !                                                                       
-      END SUBROUTINE shear_setup                    
+END SUBROUTINE shear_setup                    
+!
 !*****7*****************************************************************
+!
       SUBROUTINE shear_op_single 
 !-                                                                      
 !     Performs the actual shear operation, single result version        
@@ -1040,7 +1052,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE crystal_mod 
       USE atom_env_mod 
       USE shear_mod 
-      USE trafo_mod
+!     USE trafo_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1088,7 +1100,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !-----      ----Apply shear operation                                   
 !                                                                       
          ushear (4) = 1.0 
-         CALL trans (ushear, shear_mat, ures, 4) 
+!        CALL trans (ushear, shear_mat, ures, 4) 
+         ures = matmul(shear_mat, ushear)
 !                                                                       
 !     ----Add origin                                                    
 !                                                                       
@@ -1115,7 +1128,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod
-      USE trafo_mod
+!     USE trafo_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1180,7 +1193,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !-----      ----- Apply shear operation                                 
 !                                                                       
             ushear (4) = 1.0 
-            CALL trans (ushear, shear_mat, ures, 4) 
+!           CALL trans (ushear, shear_mat, ures, 4) 
+            ures = matmul(shear_mat, ushear)
 !                                                                       
 !     ----- Add origin                                                  
 !                                                                       
@@ -1239,7 +1253,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !-----      ----- Apply shear operation                                 
 !                                                                       
             ushear (4) = 1.0 
-            CALL trans (ushear, shear_mat, ures, 4) 
+!           CALL trans (ushear, shear_mat, ures, 4) 
+            ures = matmul(shear_mat, ushear)
 !                                                                       
 !     ----- Add origin                                                  
 !                                                                       
@@ -1284,7 +1299,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
-      USE trafo_mod
+!     USE trafo_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1347,7 +1362,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !-----      ----- Apply shear operation                                 
 !                                                                       
             ushear (4) = 1.0 
-            CALL trans (ushear, shear_mat, ures, 4) 
+!           CALL trans (ushear, shear_mat, ures, 4) 
+            ures = matmul(shear_mat, ushear)
 !                                                                       
 !     ----- Add origin                                                  
 !                                                                       
@@ -1403,7 +1419,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !-----      ----- Apply shear operation                                 
 !                                                                       
             ushear (4) = 1.0 
-            CALL trans (ushear, shear_mat, ures, 4) 
+!           CALL trans (ushear, shear_mat, ures, 4) 
+            ures = matmul(shear_mat, ushear)
 !                                                                       
 !     ----- Add origin                                                  
 !                                                                       
@@ -1448,7 +1465,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
-      USE trafo_mod
+!     USE trafo_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1514,7 +1531,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !-----      ----- Apply shear operation                                 
 !                                                                       
                ushear (4) = 1.0 
-               CALL trans (ushear, shear_mat, ures, 4) 
+!              CALL trans (ushear, shear_mat, ures, 4) 
+               ures = matmul(shear_mat, ushear)
 !                                                                       
 !     ----- Add origin                                                  
 !                                                                       
@@ -1575,7 +1593,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !-----      ----- Apply shear operation                                 
 !                                                                       
                ushear (4) = 1.0 
-               CALL trans (ushear, shear_mat, ures, 4) 
+!              CALL trans (ushear, shear_mat, ures, 4) 
+               ures = matmul(shear_mat, ushear)
 !                                                                       
 !     ----- Add origin                                                  
 !                                                                       
@@ -1620,17 +1639,18 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !+                                                                      
       USE discus_config_mod 
       USE shear_mod 
-      USE trafo_mod
+!     USE trafo_mod
 !                                                                       
       USE param_mod 
       USE prompt_mod 
       USE errlist_mod 
+use precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER j 
-      LOGICAL lspace 
+      LOGICAL, intent(in) :: lspace 
 !                                                                       
-      REAL uvw (3) 
+      REAL(kind=PREC_DP), intent(in) :: uvw (3) 
       REAL ushear (4), ures (4) 
       REAL werte (5) 
 !                                                                       
@@ -1650,7 +1670,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !-----      --Apply shear operation                                     
 !                                                                       
          ushear (4) = 1.0 
-         CALL trans (ushear, shear_mat, ures, 4) 
+!        CALL trans (ushear, shear_mat, ures, 4) 
+         ures = matmul(shear_mat, ushear)
 !                                                                       
 !     ----Add origin and store result                                   
 !                                                                       

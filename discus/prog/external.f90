@@ -187,6 +187,7 @@ CONTAINS
       USE molecule_mod 
 USE lib_random_func
       USE errlist_mod 
+use precision_mod
       USE trig_degree_mod
       USE wink_mod
       IMPLICIT none 
@@ -195,13 +196,15 @@ USE lib_random_func
       INTEGER i, j, k 
       INTEGER ii, jj 
       INTEGER ij 
-      REAL h (3), hh (3), r (3), z (3) 
+      REAL h (3), hh (3)
+real(kind=PREC_DP), dimension(3) :: r
+real(kind=PREC_DP), dimension(3) :: z
       REAL det 
       REAL phase 
       REAL sf, dr, dz, sfstart 
       REAL qr, qz 
 !                                                                       
-      REAL cartesian (3, 3) 
+      REAL(kind=PREC_DP), dimension(3,3) :: cartesian (3, 3) 
 !                                                                       
 !     REAL skalpro 
 !     REAL cosd, sind 
@@ -268,6 +271,7 @@ USE lib_random_func
       USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
+use precision_mod
       USE trig_degree_mod
       USE wink_mod
       IMPLICIT none 
@@ -278,13 +282,14 @@ USE lib_random_func
       INTEGER i, j, k 
       INTEGER ii, jj 
       INTEGER ij 
-      REAL h (3), hh (3) 
+      REAL h (3)
+real(kind=PREC_DP), dimension(3) :: hh
       REAL det 
       REAL phase 
       REAL ds, sf, sfstart 
       REAL qr 
 !                                                                       
-      REAL cartesian (3, 3) 
+      REAL(kind=PREC_DP), dimension(3,3) ::  cartesian (3, 3) 
 !                                                                       
 !     REAL skalpro 
 !     REAL cosd, sind 

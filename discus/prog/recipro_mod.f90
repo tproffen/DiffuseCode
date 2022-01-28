@@ -1,14 +1,16 @@
-MODULE recipro_mod
+module recipro_mod
 !+
 !
 !     This file contains variables for inverse Fourier and
 !     Patterson input
 !-
-SAVE
+use precision_mod
 !
-INTEGER, PARAMETER  ::  REC_MAX_SYM  =  48
+save
 !
-INTEGER                             :: rec_n_sym
-REAL   , DIMENSION(4,4,REC_MAX_SYM) :: rec_sym
+integer, parameter  ::  REC_MAX_SYM  =  48
 !
-END MODULE recipro_mod
+integer                             :: rec_n_sym
+real(kind=PREC_DP), dimension(4,4,REC_MAX_SYM) :: rec_sym
+!
+end module recipro_mod

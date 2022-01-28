@@ -7,45 +7,45 @@ SUBROUTINE surface_menu
 !-                                                                      
 !     Main menu for surface related operations                          
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE molecule_mod 
-      USE prop_para_mod 
+USE discus_config_mod 
+USE crystal_mod 
+USE molecule_mod 
+USE prop_para_mod 
 !
-      USE calc_expr_mod
-      USE doact_mod 
-      USE do_eval_mod
-      USE do_wait_mod
-      USE errlist_mod 
-      USE learn_mod 
+USE calc_expr_mod
+USE doact_mod 
+USE do_eval_mod
+USE do_wait_mod
+USE errlist_mod 
+USE learn_mod 
 USE lib_do_operating_mod
 USE lib_echo
 USE lib_errlist_func
 USE lib_help
 USE lib_length
 USE lib_macro_func
-      USE class_macro_internal 
+USE class_macro_internal 
 USE precision_mod
-      USE prompt_mod 
+USE prompt_mod 
 USE str_comp_mod
-      USE sup_mod
+USE sup_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      CHARACTER(5) befehl 
-      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(LEN=PREC_STRING) :: line, zeile
-      INTEGER lp, length, lbef 
-      INTEGER indxg
-      LOGICAL lend
+CHARACTER(len=5) :: befehl 
+CHARACTER(LEN=LEN(prompt)) :: orig_prompt
+CHARACTER(LEN=PREC_STRING) :: line, zeile
+INTEGER :: lp, length, lbef 
+INTEGER :: indxg
+LOGICAL :: lend
 !                                                                       
 !                                                                       
-      lend = .false. 
-      CALL no_error 
-      orig_prompt = prompt
-      prompt = prompt (1:len_str (prompt) ) //'/surf' 
+lend = .false. 
+CALL no_error 
+orig_prompt = prompt
+prompt = prompt (1:len_str (prompt) ) //'/surf' 
 !                                                                       
-      DO while (.not.lend) 
+DO while (.not.lend) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
@@ -180,102 +180,104 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             sprompt = ' '
          ENDIF 
       ENDIF 
-      ENDDO 
+ENDDO 
 !
       prompt = orig_prompt
 !                                                                       
-      END SUBROUTINE surface_menu                   
+END SUBROUTINE surface_menu                   
+!
 !*****7*****************************************************************
-      SUBROUTINE surf_do_set (zeile, length) 
+!
+SUBROUTINE surf_do_set (zeile, length) 
 !+                                                                      
 !     This subroutine sets various parameters                           
 !-                                                                      
-      USE discus_config_mod 
-      USE errlist_mod 
-      USE get_params_mod
+USE discus_config_mod 
+USE errlist_mod 
+USE get_params_mod
 USE precision_mod
 USE str_comp_mod
-      IMPLICIT none 
+!                                                                       
+IMPLICIT none 
+!                                                                       
+INTEGER, PARAMETER :: MAXW = 20
+!                                                                       
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER         , intent(inout) :: length 
+!                                                                       
+CHARACTER(LEN=PREC_STRING), dimension(MAXW) :: cpara ! (maxw) 
+INTEGER, dimension(MAXW) :: lpara ! (maxw) 
+INTEGER :: ianz 
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 20) 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+IF (ier_num.ne.0) return 
+IF (ianz.le.0) return 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER length 
+IF (str_comp (cpara (1) , 'distance', 2, lpara (1) , 8) ) then 
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+   CALL surf_set_fuzzy (ianz, cpara, lpara, werte, maxw, 0) 
+ELSEIF(str_comp(cpara(1), 'surface', 2, lpara (1) , 7) ) then 
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+   CALL surf_set_vector(MAXW, ianz, cpara, lpara, werte)
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
 !                                                                       
-      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER ianz 
-      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
-!                                                                       
-!                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.ne.0) return 
-      IF (ianz.le.0) return 
-!                                                                       
-      IF (str_comp (cpara (1) , 'distance', 2, lpara (1) , 8) ) then 
-         CALL del_params (1, ianz, cpara, lpara, maxw) 
-         CALL surf_set_fuzzy (ianz, cpara, lpara, werte, maxw, 0) 
-      ELSEIF(str_comp(cpara(1), 'surface', 2, lpara (1) , 7) ) then 
-         CALL del_params (1, ianz, cpara, lpara, maxw) 
-         CALL surf_set_vector(MAXW, ianz, cpara, lpara, werte)
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE surf_do_set                    
+END SUBROUTINE surf_do_set                    
+!
 !*****7*****************************************************************
-      SUBROUTINE surf_set_fuzzy (ianz, cpara, lpara, werte, maxw, iflag) 
+!
+SUBROUTINE surf_set_fuzzy (ianz, cpara, lpara, werte, maxw, iflag) 
 !+                                                                      
 !     This subroutine sets the distances between atoms and a surface.   
 !-                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE get_iscat_mod
-      USE surface_mod 
-      USE berechne_mod
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE get_iscat_mod
+USE surface_mod 
+USE berechne_mod
 use do_replace_expr_mod
-      USE errlist_mod 
-      USE get_params_mod
+USE errlist_mod 
+USE get_params_mod
 USE precision_mod
 USE str_comp_mod
-      IMPLICIT none 
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      INTEGER ianz 
-      CHARACTER(LEN=*) cpara (maxw) 
-      INTEGER lpara (maxw) 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      INTEGER iflag 
+INTEGER                            , intent(inout) :: ianz 
+INTEGER                            , intent(in)    :: MAXW
+CHARACTER(LEN=*)  , dimension(MAXW), intent(inout) :: cpara  !(maxw) 
+INTEGER           , dimension(MAXW), intent(inout) :: lpara ! (maxw) 
+REAL(KIND=PREC_DP), dimension(MAXW), intent(inout) :: werte ! (maxw) 
+INTEGER                            , intent(in)    :: iflag 
 !                                                                       
-      CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) string 
-      INTEGER laenge 
-      INTEGER i 
-      LOGICAL lold 
-      LOGICAL :: linternal = .true.
-      LOGICAL :: lexternal = .false.
-      REAL distance 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: string 
+INTEGER :: laenge 
+INTEGER :: i 
+LOGICAL :: lold 
+LOGICAL :: linternal = .true.
+LOGICAL :: lexternal = .false.
+REAL(kind=PREC_DP) ::  distance 
 !                                                                       
 !                                                                       
-      lold = .false. 
+lold = .false. 
 !                                                                       
-      IF (ianz.eq.1) then 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-         RETURN 
-      ENDIF 
+IF (ianz.eq.1) then 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN 
+ENDIF 
 !                                                                       
-      IF( MAXSCAT > SURF_MAXSCAT) THEN
-         CALL alloc_surf ( MAXSCAT )
-         IF ( ier_num < 0 ) THEN
-            RETURN
-         ENDIF
-      ENDIF
+IF( MAXSCAT > SURF_MAXSCAT) THEN
+   CALL alloc_surf ( MAXSCAT )
+   IF ( ier_num < 0 ) THEN
+      RETURN
+   ENDIF
+ENDIF
 !
 !     WRITE ( * , * ) 'IFLAG', iflag 
 !     WRITE ( * , * ) 'IANZ ', ianz 
@@ -386,7 +388,7 @@ USE str_comp_mod
          ENDIF 
       ENDIF 
 !                                                                       
-      END SUBROUTINE surf_set_fuzzy                 
+END SUBROUTINE surf_set_fuzzy                 
 !
 !*****7*****************************************************************
 !
@@ -448,7 +450,7 @@ INTEGER, INTENT(IN) :: ifinish
 !
 INTEGER, PARAMETER    :: MAXW = 1
 LOGICAL, PARAMETER    :: LSPACE = .TRUE.
-REAL(KIND=PREC_SP), DIMENSION(1:3), PARAMETER :: VNULL=(/0.0, 0.0, 0.0/)
+REAL(KIND=PREC_DP), DIMENSION(1:3), PARAMETER :: VNULL=(/0.0D0, 0.0D0, 0.0D0/)
 !
 CHARACTER(LEN=PREC_STRING)   :: line
 INTEGER               :: i, j
@@ -461,22 +463,20 @@ LOGICAL, DIMENSION(3) :: fp
 LOGICAL               :: fq
 LOGICAL               :: lsurf
 REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
-REAL(KIND=PREC_SP) , DIMENSION(1:3   ) :: u
-REAL(KIND=PREC_SP) , DIMENSION(1:3   ) :: x
-REAL(KIND=PREC_SP) , DIMENSION(1:3,2 ) :: cofm     ! Center of mass for neighbors
-REAL(KIND=PREC_SP) , DIMENSION(1:3,2 ) :: vect     ! Vectors to Center of mass for neighbors
-REAL :: rmin   = 0.01
-REAL :: rsmall = 2.50
-REAL :: rbig   = 5.00
-REAL :: alpha
-REAL :: alpha_max0 =   0.0
-REAL :: alpha_max1 =   0.0
-REAL :: alpha_max2 =   0.0
-REAL :: alpha_min0 = 200.0
-REAL :: alpha_min1 = 200.0
-REAL :: alpha_min2 = 200.0
-!REAL :: dstar
-!REAL :: umax
+REAL(KIND=PREC_DP) , DIMENSION(1:3   ) :: u
+REAL(KIND=PREC_DP) , DIMENSION(1:3   ) :: x
+REAL(KIND=PREC_DP) , DIMENSION(1:3,2 ) :: cofm     ! Center of mass for neighbors
+REAL(KIND=PREC_DP) , DIMENSION(1:3,2 ) :: vect     ! Vectors to Center of mass for neighbors
+REAL(kind=PREC_DP) :: rmin   = 0.01
+REAL(kind=PREC_DP) :: rsmall = 2.50
+REAL(kind=PREC_DP) :: rbig   = 5.00
+REAL(kind=PREC_DP) :: alpha
+REAL(kind=PREC_DP) :: alpha_max0 =   0.0
+REAL(kind=PREC_DP) :: alpha_max1 =   0.0
+REAL(kind=PREC_DP) :: alpha_max2 =   0.0
+REAL(kind=PREC_DP) :: alpha_min0 = 200.0
+REAL(kind=PREC_DP) :: alpha_min1 = 200.0
+REAL(kind=PREC_DP) :: alpha_min2 = 200.0
 !
 !
 fp(1) = .FALSE.
@@ -517,7 +517,7 @@ main_loop: DO i=istart, ifinish
    DO j=1, atom_env(0)                   ! Calculate Center of mass 
       cofm(:,2) = cofm(:,2) + cr_pos(:,atom_env(j))
    ENDDO
-   cofm(:,2) = cofm(:,2)/REAL(atom_env(0))
+   cofm(:,2) = cofm(:,2)/REAL(atom_env(0), kind=PREC_DP)
    vect(:,2) = x(:) - cofm(:,2)          ! Vector CofM ==> Atom
 !
 !  Same for a smaller shell
@@ -531,7 +531,7 @@ main_loop: DO i=istart, ifinish
    DO j=1, atom_env(0)
       cofm(:,1) = cofm(:,1) + cr_pos(:,atom_env(j))
    ENDDO
-   cofm(:,1) = cofm(:,1)/REAL(atom_env(0))
+   cofm(:,1) = cofm(:,1)/REAL(atom_env(0), kind=PREC_DP)
    vect(:,1) = x(:) - cofm(:,1)
 !
    u(:) = vect(:,1)                      ! If |vect|==0, atom is surrounded, not at surface 
@@ -604,12 +604,12 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
-REAL(KIND=PREC_SP), DIMENSION(3), INTENT(INOUT) :: u
+REAL(KIND=PREC_DP), DIMENSION(3), INTENT(INOUT) :: u
 !
 LOGICAL, PARAMETER    :: LSPACE = .FALSE.
-REAL(KIND=PREC_SP), DIMENSION(1:3), PARAMETER :: VNULL=(/0.0, 0.0, 0.0/)
-REAL :: dstar
-REAL :: umax
+REAL(KIND=PREC_DP), DIMENSION(1:3), PARAMETER :: VNULL=(/0.0D0, 0.0D0, 0.0D0/)
+REAL(kind=PREC_DP) :: dstar
+REAL(kind=PREC_DP) :: umax
 !
 dstar = do_blen (LSPACE, u, VNULL) 
 IF(dstar > 0.0) THEN
@@ -625,55 +625,59 @@ END SUBROUTINE surface_normalize
 !
 !*****7*****************************************************************
 !
-      SUBROUTINE surf_show 
+SUBROUTINE surf_show 
 !+                                                                      
 !     This subroutine shows the surface settings                        
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE surface_mod 
-      USE discus_allocate_appl_mod
-      USE prompt_mod 
-      USE errlist_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+USE surface_mod 
+USE discus_allocate_appl_mod
+USE prompt_mod 
+!
+USE errlist_mod 
+!
+IMPLICIT none 
 !                                                                       
-      INTEGER i 
+INTEGER :: i 
 !                                                                       
-      IF( MAXSCAT > SURF_MAXSCAT) THEN
-         CALL alloc_surf ( MAXSCAT )
-         IF ( ier_num < 0 ) THEN
-            RETURN
-         ENDIF
-      ENDIF
+IF( MAXSCAT > SURF_MAXSCAT) THEN
+   CALL alloc_surf ( MAXSCAT )
+   IF ( ier_num < 0 ) THEN
+      RETURN
+   ENDIF
+ENDIF
 !                                                                       
-      IF (SURF_MAXSCAT==0) THEN
-        WRITE(output_io,*) ' No distances to surfaces have been defined yet'
-        WRITE(output_io,*) ' Set distances first'
-        RETURN
-      ENDIF
-      WRITE (output_io, * ) 
-      WRITE (output_io, 3000) 
-      WRITE (output_io, * ) 
-      DO i = 0, cr_nscat 
-         WRITE (output_io, 3010) cr_at_lis (i), surf_ex_dist (i) 
-      ENDDO 
-      IF (cr_nscat.lt.SURF_MAXSCAT) then 
-         WRITE (output_io, 3010) 'new', surf_ex_dist (SURF_MAXSCAT) 
-      ENDIF 
-      WRITE (output_io, * ) 
-      WRITE (output_io, 3100) 
-      WRITE (output_io, * ) 
-      DO i = 0, cr_nscat 
-         WRITE (output_io, 3010) cr_at_lis (i), surf_in_dist (i) 
-      ENDDO 
-      IF (cr_nscat.lt.SURF_MAXSCAT) then 
-         WRITE (output_io, 3010) 'new', surf_in_dist (SURF_MAXSCAT) 
-      ENDIF 
+IF (SURF_MAXSCAT==0) THEN
+   WRITE(output_io,*) ' No distances to surfaces have been defined yet'
+   WRITE(output_io,*) ' Set distances first'
+   RETURN
+ENDIF
+WRITE (output_io, * ) 
+WRITE (output_io, 3000) 
+WRITE (output_io, * ) 
+DO i = 0, cr_nscat 
+   WRITE (output_io, 3010) cr_at_lis (i), surf_ex_dist (i) 
+ENDDO 
+IF (cr_nscat.lt.SURF_MAXSCAT) then 
+   WRITE (output_io, 3010) 'new', surf_ex_dist (SURF_MAXSCAT) 
+ENDIF 
+WRITE (output_io, * ) 
+WRITE (output_io, 3100) 
+WRITE (output_io, * ) 
+DO i = 0, cr_nscat 
+   WRITE (output_io, 3010) cr_at_lis (i), surf_in_dist (i) 
+ENDDO 
+IF (cr_nscat.lt.SURF_MAXSCAT) then 
+   WRITE (output_io, 3010) 'new', surf_in_dist (SURF_MAXSCAT) 
+ENDIF 
 !                                                                       
  3000 FORMAT (' Distances between atom types and an external surface') 
  3100 FORMAT (' Distances between atom types and an internal surface') 
  3010 FORMAT (' Atom type   ',a4,' at ',f8.3,' Angstroem') 
-      END SUBROUTINE surf_show                      
+!
+END SUBROUTINE surf_show                      
+!
 !*****7*****************************************************************
 !
 SUBROUTINE boundary (zeile, lp) 
@@ -710,7 +714,6 @@ INTEGER, PARAMETER :: NOPTIONAL = 10
 CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
 INTEGER           , INTENT(INOUT) :: lp 
 !                                                                       
-!      REAL, PARAMETER :: EPS = 0.000001
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) :: cpara (maxw) 
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) :: ccpara (maxw) 
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
@@ -751,33 +754,32 @@ LOGICAL lwall           ! True if atom is close to cylinder wall
 LOGICAL ltop            ! True if atom is close to cylinder top
 LOGICAL :: lrem         ! True if cylinder need to remove an atom
 !      LOGICAL l_new 
-REAL, DIMENSION(3) :: wall  !local normal at cylinder wall
-REAL, DIMENSION(3) :: top   !local normal at cylinder top
-REAL h (3), d, dstar, radius, height , dshort
-REAL :: hkl(4)!, hklw(4)
-REAL, DIMENSION(3)    :: center       ! center of the shape
-REAL, DIMENSION(3)    :: com   ! Center of Mass
-REAL, DIMENSION(3, 2) :: special_hkl
-REAL, DIMENSION(:,:), ALLOCATABLE :: point_hkl ! (3,48)
-REAL, DIMENSION(:,:), ALLOCATABLE, SAVE :: accum_hkl ! (3,48)
-REAL, DIMENSION(:,:), ALLOCATABLE ::  temp_hkl ! (3,48)
-REAL, DIMENSION(:  ), ALLOCATABLE ::  dstars   ! d-stars of accumulated surfaces
+REAL(kind=PREC_DP), DIMENSION(3) :: wall  !local normal at cylinder wall
+REAL(kind=PREC_DP), DIMENSION(3) :: top   !local normal at cylinder top
+REAL(kind=PREC_DP) :: h (3), d, dstar, radius, height , dshort
+REAL(kind=PREC_DP) :: hkl(4)!, hklw(4)
+REAL(kind=PREC_DP), DIMENSION(3)    :: center       ! center of the shape
+REAL(kind=PREC_DP), DIMENSION(3)    :: com   ! Center of Mass
+REAL(kind=PREC_DP), DIMENSION(3, 2) :: special_hkl
+REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: point_hkl ! (3,48)
+REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE, SAVE :: accum_hkl ! (3,48)
+REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE ::  temp_hkl ! (3,48)
+REAL(kind=PREC_DP), DIMENSION(:  ), ALLOCATABLE ::  dstars   ! d-stars of accumulated surfaces
 REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_comb    ! Rotation matrix for Cyllinder / Ellipsoid
 REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_combr   ! Rotation matrix for Cyllinder / Ellipsoid
 REAL(KIND=PREC_DP), DIMENSION(4)   :: v4        ! Augmented atom vector
 INTEGER               :: point_n
 INTEGER, SAVE         :: accum_n
-REAL, DIMENSION(3)    :: radius_ell
-REAL v (3) 
+REAL(kind=PREC_DP), DIMENSION(3)    :: radius_ell
+REAL(KIND=PREC_DP), dimension(3) :: v !(3) 
 !      REAL, DIMENSION(3,1) :: col_vec
-REAL null (3) 
-REAL :: thick
+REAL(kind=PREC_DP), dimension(3) :: nullv !(3) 
+REAL(kind=PREC_DP) :: thick
 REAL(KIND=PREC_DP) :: werte (maxw) 
 REAL(KIND=PREC_DP) :: wwerte (maxw) 
 !                                                                       
-!     REAL do_blen 
 !                                                                       
-DATA null / 0.0, 0.0, 0.0 / 
+DATA nullv / 0.0D0, 0.0D0, 0.0D0 / 
 DATA oname  / 'thick',  'centx', 'centy', 'centz',  'center', 'keep ',  'accum', 'exec ', 'long', 'short'/
 DATA loname /  5,       5,       5,        5     ,   6      ,  4     ,   5     ,  4     ,  4    ,  5     /
 !
@@ -922,7 +924,7 @@ IF (str_comp (cpara (1) , 'hkl',  3, lpara (1) , 3)  .OR.  &
       DO i = 1, 3 
       h (i) = werte (i) 
       ENDDO 
-      dstar = do_blen (lspace, h, null) 
+      dstar = do_blen (lspace, h, nullv) 
       IF (dstar.le.0.0) then 
          ier_num = - 32 
          ier_typ = ER_APPL 
@@ -933,12 +935,12 @@ IF (str_comp (cpara (1) , 'hkl',  3, lpara (1) , 3)  .OR.  &
             DO i = 1, 3 
                h (i) = h (i) / dstar *1.0E12
             ENDDO 
-            dstar = do_blen (lspace, h, null) 
+            dstar = do_blen (lspace, h, nullv) 
          ELSE
             DO i = 1, 3 
                h (i) = h (i) / dstar / werte (4) 
             ENDDO 
-            dstar = do_blen (lspace, h, null) 
+            dstar = do_blen (lspace, h, nullv) 
          ENDIF 
       ENDIF 
       IF (dstar.le.0.0) then 
@@ -1107,7 +1109,7 @@ IF (ier_num /= 0) RETURN
 IF ((l_plane .OR. l_form) .AND. str_comp (opara(O_EXEC) , 'run', 3, lopara(O_EXEC) , 3)) THEN
    ALLOCATE(dstars(1:accum_n))
    DO j=1,accum_n
-      dstars(j) = do_blen (lspace, accum_hkl(1:3,j), null)
+      dstars(j) = do_blen (lspace, accum_hkl(1:3,j), nullv)
    ENDDO
 form_loop:     DO i = 1, cr_natoms 
       IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle form_loop 
@@ -1181,7 +1183,7 @@ sphere_loop:   DO i = 1, cr_natoms
          + 2 * v(1) * v(3) * cr_gten(1, 3)    &
          + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
       h(:) = v(:)
-      CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h, -1.0)
+      CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h, -1.0D0)
    ENDDO sphere_loop
 ELSEIF (l_cyl) THEN
 cyl_loop:      DO i = 1, cr_natoms 
@@ -1202,7 +1204,7 @@ cyl_loop:      DO i = 1, cr_natoms
             + 2 * v(1) * v(3) * cr_gten(1, 3)    &
             + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
          h(:) = v(:)
-         CALL boundarize_atom (center, d, i, linside, SURF_CYLINDER, h, -1.0) 
+         CALL boundarize_atom (center, d, i, linside, SURF_CYLINDER, h, -1.0D0) 
          IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
          v (1) = 0.0          !-center(1)
          v (2) = 0.0          !-center(2)
@@ -1214,7 +1216,7 @@ cyl_loop:      DO i = 1, cr_natoms
             + 2 * v(1) * v(3) * cr_gten(1, 3)    & 
             + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
          h(:) = v(:)
-         CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h, -1.0) 
+         CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h, -1.0D0) 
       ELSE                             ! 
          dshort = 1.E8
          lwall =.FALSE.
@@ -1252,15 +1254,15 @@ cyl_loop:      DO i = 1, cr_natoms
          dshort = MIN(dshort, ABS(d))
          IF(.NOT.lrem) dshort = -ABS(dshort)
          IF(lwall .AND. .NOT.ltop) THEN   ! Atom is at wall only
-            CALL boundarize_atom (center, dshort, i, linside, SURF_CYLINDER, wall, -1.0) 
+            CALL boundarize_atom (center, dshort, i, linside, SURF_CYLINDER, wall, -1.0D0) 
          ELSEIF(.NOT.lwall .AND. ltop) THEN   ! Atom is at top  only
-            CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, top, -1.0) 
+            CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, top, -1.0D0) 
          ELSEIF(lwall .AND. ltop) THEN   ! Atom is at edge
             h(:) = v4(1:3) !cr_pos(:,i)
-            CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE , h, -1.0) 
+            CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE , h, -1.0D0) 
          ELSE
             h(:) = v4(1:3) !cr_pos(:,i)
-            CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h, -1.0) 
+            CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h, -1.0D0) 
          ENDIF
       ENDIF
       v4 = MATMUL(m_combr,v4)
@@ -1271,7 +1273,7 @@ cyl_loop:      DO i = 1, cr_natoms
       cr_surf(1:3,i) = NINT(v4(1:3))
    ENDDO cyl_loop
 ELSEIF (l_ell) then 
-   CALL plot_ini_trans (1.0,                          &
+   CALL plot_ini_trans (1.0D0,                        &
      pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
      cr_gten, cr_rten, cr_eps)
    radius = (radius_ell(1)*radius_ell(2)*radius_ell(3))**(1./3.)
@@ -1288,7 +1290,7 @@ ell_loop:      DO i = 1, cr_natoms
                     +(v(2)/radius_ell(2))**2   &
                     +(v(3)/radius_ell(3))**2   ))* radius
       h(:) = v(:)
-      CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h, -1.0)
+      CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h, -1.0D0)
       v4 = MATMUL(m_combr,v4)
       cr_pos(1:3,i) = v4(1:3)
       v4(1:3) = REAL(cr_surf(1:3, i), KIND=PREC_DP)
@@ -1319,9 +1321,11 @@ ENDIF
 CALL symm_restore                      ! Store current symmetry settings
 !                                                                       
 END SUBROUTINE boundary                       
+!
 !*****7*****************************************************************
-      SUBROUTINE boundarize_atom (center, distance, iatom, linside, &
-                                  surface_type, normal, thick) 
+!
+SUBROUTINE boundarize_atom(center, distance, iatom, linside, &
+                           surface_type, normal, thick) 
 !-                                                                      
 !     This subroutine sets the boundary property of the atom            
 !                                                                       
@@ -1330,101 +1334,103 @@ END SUBROUTINE boundary
 !                                                                       
 !     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE metric_mod
-      USE prop_para_mod 
-      USE surface_mod 
-      USE errlist_mod 
-      USE math_sup
-      IMPLICIT none 
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE metric_mod
+USE prop_para_mod 
+USE surface_mod 
+!
+USE errlist_mod 
+USE math_sup
+use precision_mod
 !                                                                       
+IMPLICIT none 
        
 !                                                                       
-      REAL   , DIMENSION(3), INTENT(IN) :: center 
-      REAL                 , INTENT(IN) :: distance 
-      INTEGER              , INTENT(IN) :: iatom 
-      LOGICAL              , INTENT(IN) :: linside 
-      INTEGER              , INTENT(IN) :: surface_type
-      REAL   , DIMENSION(3), INTENT(IN) :: normal
-      REAL                 , INTENT(IN) :: thick
+REAL(kind=PREC_DP)   , DIMENSION(3), INTENT(IN) :: center 
+REAL(kind=PREC_DP)                 , INTENT(IN) :: distance 
+INTEGER              , INTENT(IN) :: iatom 
+LOGICAL              , INTENT(IN) :: linside 
+INTEGER              , INTENT(IN) :: surface_type
+REAL(kind=PREC_DP)   , DIMENSION(3), INTENT(IN) :: normal
+REAL(kind=PREC_DP)                 , INTENT(IN) :: thick
 !
-      REAL, DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /)
-      REAL              , PARAMETER :: TOLERANCE = 5.0   ! Accept a 5 degree tilt for same surface
-      LOGICAL           , PARAMETER :: LSPACE = .FALSE.
+REAL(kind=PREC_DP), DIMENSION(3), PARAMETER :: VNULL = (/ 0.0D0, 0.0D0, 0.0D0 /)
+REAL(kind=PREC_DP)              , PARAMETER :: TOLERANCE = 5.0   ! Accept a 5 degree tilt for same surface
+LOGICAL           , PARAMETER :: LSPACE = .FALSE.
 !
-      INTEGER               :: idiv      ! Largest common divisor for the normal
-      INTEGER, DIMENSION(3) :: hkl
-      REAL   , DIMENSION(3) :: rhkl, u, l_normal
-      REAL                  :: angle, r
+INTEGER               :: idiv      ! Largest common divisor for the normal
+INTEGER, DIMENSION(3) :: hkl
+REAL(kind=PREC_DP)  , DIMENSION(3) :: rhkl, u, l_normal
+REAL(kind=PREC_DP)                 :: angle, r
 !                                                                       
-      IF( cr_nscat > SURF_MAXSCAT) THEN
-         CALL alloc_surf ( cr_nscat )
-         IF ( ier_num < 0 ) THEN
-            RETURN
-         ENDIF
-      ENDIF
+IF( cr_nscat > SURF_MAXSCAT) THEN
+   CALL alloc_surf ( cr_nscat )
+   IF ( ier_num < 0 ) THEN
+      RETURN
+   ENDIF
+ENDIF
 !
-      r = do_blen(.FALSE., VNULL, normal)
-      l_normal(1) = NINT(10.*normal(1)/r)
-      l_normal(2) = NINT(10.*normal(2)/r)
-      l_normal(3) = NINT(10.*normal(3)/r)
+r = do_blen(.FALSE., VNULL, normal)
+l_normal(1) = NINT(10.*normal(1)/r)
+l_normal(2) = NINT(10.*normal(2)/r)
+l_normal(3) = NINT(10.*normal(3)/r)
 !
-      IF((     linside.AND.distance <  0) .OR.  &
-         (.not.linside.AND.distance >  0)      ) THEN                            
-         cr_iscat (iatom) = 0 
-         cr_prop (iatom) = ibclr (cr_prop (iatom), PROP_NORMAL) 
-         cr_prop (iatom) = ibset (cr_prop (iatom), PROP_OUTSIDE) 
-         IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (iatom) )) .OR. &
-             (thick>0 .AND. ABS(distance) <     thick                          )) then 
-            cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
-         ENDIF 
-         cr_surf (:,iatom) = 0
-      ELSE 
-         IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (iatom) )) .OR. &
-             (thick>0 .AND. ABS(distance) < thick                              )) THEN 
-            cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
-            IF(cr_surf(0, iatom) == SURF_NONE) THEN  ! Atom was not yet at a surface
-               cr_surf(0,   iatom) = surface_type 
+IF((     linside.AND.distance <  0) .OR.  &
+   (.not.linside.AND.distance >  0)      ) THEN                            
+   cr_iscat (iatom) = 0 
+   cr_prop (iatom) = ibclr (cr_prop (iatom), PROP_NORMAL) 
+   cr_prop (iatom) = ibset (cr_prop (iatom), PROP_OUTSIDE) 
+   IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (iatom) )) .OR. &
+       (thick>0 .AND. ABS(distance) <     thick                          )) then 
+      cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
+   ENDIF 
+   cr_surf (:,iatom) = 0
+ELSE 
+   IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (iatom) )) .OR. &
+       (thick>0 .AND. ABS(distance) < thick                              )) THEN 
+      cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
+      IF(cr_surf(0, iatom) == SURF_NONE) THEN  ! Atom was not yet at a surface
+         cr_surf(0,   iatom) = surface_type 
                
-               cr_surf(1:3, iatom) = l_normal(:)
-            ELSEIF(cr_surf(0, iatom) < SURF_EDGE) THEN    ! Atom was already at a plane, sphere, cylinder wall
-               IF(surface_type > SURF_CYLINDER) THEN      ! New location is at least an edge
-                  u(:) = cr_pos(:,iatom) - center(:)
-                  CALL pos2hkl(u, cr_gten, hkl)
-                  cr_surf(0,   iatom) = SURF_CORNER
-                  cr_surf(1:3, iatom)  = hkl(1:3)
-               ELSEIF(surface_type > SURF_NONE) THEN      ! Should be all other cases
-                  rhkl(:) = cr_surf(1:3, iatom)           ! get old normal
-                  angle = do_bang(LSPACE, rhkl, VNULL, normal)
-                  IF(angle>TOLERANCE) THEN
-                      u(:) = cr_pos(:,iatom) - center(:)
-                      CALL pos2hkl(u, cr_gten, hkl)
-                      cr_surf(0,   iatom) = SURF_EDGE
-                      cr_surf(1:3, iatom)  = hkl(1:3)
-                  ENDIF
-               ENDIF
-            ELSE                                          ! Atom was at edge or corner
-               u(:) = cr_pos(:,iatom) - center(:)
-               CALL pos2hkl(u, cr_gten, hkl)
-               cr_surf(0,   iatom) = SURF_CORNER
-               cr_surf(1:3, iatom)  = hkl(1:3)
+         cr_surf(1:3, iatom) = l_normal(:)
+      ELSEIF(cr_surf(0, iatom) < SURF_EDGE) THEN    ! Atom was already at a plane, sphere, cylinder wall
+         IF(surface_type > SURF_CYLINDER) THEN      ! New location is at least an edge
+            u(:) = cr_pos(:,iatom) - center(:)
+            CALL pos2hkl(u, cr_gten, hkl)
+            cr_surf(0,   iatom) = SURF_CORNER
+            cr_surf(1:3, iatom)  = hkl(1:3)
+         ELSEIF(surface_type > SURF_NONE) THEN      ! Should be all other cases
+            rhkl(:) = cr_surf(1:3, iatom)           ! get old normal
+            angle = do_bang(LSPACE, rhkl, VNULL, normal)
+            IF(angle>TOLERANCE) THEN
+                u(:) = cr_pos(:,iatom) - center(:)
+                CALL pos2hkl(u, cr_gten, hkl)
+                cr_surf(0,   iatom) = SURF_EDGE
+                cr_surf(1:3, iatom)  = hkl(1:3)
             ENDIF
-            IF(.NOT.linside) cr_surf(:, iatom) = -cr_surf(:, iatom)  !invert for inside pointing surface
-         ENDIF 
-      ENDIF 
-      IF(cr_surf(0, iatom) /= 0) THEN
-         u(1:3) = cr_surf(1:3,iatom)
-         CALL surface_normalize(u)
-         cr_surf(1:3,iatom) = NINT(u(1:3))
-         idiv = gcd(cr_surf(1, iatom), cr_surf(2, iatom), cr_surf(3, iatom))
-         IF(idiv /= 0) THEN
-             cr_surf(1:3, iatom) = cr_surf(1:3, iatom)/IABS(idiv)
          ENDIF
+      ELSE                                          ! Atom was at edge or corner
+         u(:) = cr_pos(:,iatom) - center(:)
+         CALL pos2hkl(u, cr_gten, hkl)
+         cr_surf(0,   iatom) = SURF_CORNER
+         cr_surf(1:3, iatom)  = hkl(1:3)
       ENDIF
+      IF(.NOT.linside) cr_surf(:, iatom) = -cr_surf(:, iatom)  !invert for inside pointing surface
+   ENDIF 
+ENDIF 
+IF(cr_surf(0, iatom) /= 0) THEN
+   u(1:3) = cr_surf(1:3,iatom)
+   CALL surface_normalize(u)
+   cr_surf(1:3,iatom) = NINT(u(1:3))
+   idiv = gcd(cr_surf(1, iatom), cr_surf(2, iatom), cr_surf(3, iatom))
+   IF(idiv /= 0) THEN
+       cr_surf(1:3, iatom) = cr_surf(1:3, iatom)/IABS(idiv)
+   ENDIF
+ENDIF
 !                                                                       
-      END SUBROUTINE boundarize_atom                
+END SUBROUTINE boundarize_atom                
 !
 !*****7*****************************************************************
 !
@@ -1439,7 +1445,7 @@ USE symm_mod
 use symm_menu
 USE symm_sup_mod
 use symm_menu
-USE trafo_mod
+!USE trafo_mod
 !
 USE errlist_mod
 USE ber_params_mod
@@ -1455,14 +1461,14 @@ CHARACTER(LEN=*), INTENT(INOUT) :: o_long
 CHARACTER(LEN=*), INTENT(INOUT) :: o_short
 INTEGER         , INTENT(INOUT) :: lo_long
 INTEGER         , INTENT(INOUT) :: lo_short
-REAL(KIND=PREC_SP), DIMENSION(3), INTENT(IN) :: center
+REAL(KIND=PREC_DP), DIMENSION(3), INTENT(IN) :: center
 REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(OUT) :: m_comb
 REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(OUT) :: m_combr
 !
 !INTEGER, PARAMETER :: MAXW = 3
-REAL(KIND=PREC_SP), DIMENSION(3), PARAMETER :: V_NULL = (/0.0D0, 0.0D0, 0.0D0/)
-REAL(KIND=PREC_SP)              , PARAMETER :: EPS    = 1.0D-4
-REAL(KIND=PREC_SP)              , PARAMETER :: TOL    = 5.0D0
+REAL(KIND=PREC_DP), DIMENSION(3), PARAMETER :: V_NULL = (/0.0D0, 0.0D0, 0.0D0/)
+REAL(KIND=PREC_DP)              , PARAMETER :: EPS    = 1.0D-4
+REAL(KIND=PREC_DP)              , PARAMETER :: TOL    = 5.0D0
 INTEGER :: i
 REAL(KIND=PREC_DP), DIMENSION(3)   :: v_long
 REAL(KIND=PREC_DP), DIMENSION(3)   :: v_short
@@ -1473,7 +1479,7 @@ REAL(KIND=PREC_DP), DIMENSION(3)   :: u         ! Dummy vector
 REAL(KIND=PREC_DP), DIMENSION(3)   :: v         ! Dummy vector
 REAL(KIND=PREC_DP), DIMENSION(4)   :: v4        ! Dummy vector
 REAL(KIND=PREC_DP), DIMENSION(3)   :: ww        ! Dummy vector
-REAL(KIND=PREC_SP), DIMENSION(3)   :: www       ! Dummy vector
+REAL(KIND=PREC_DP), DIMENSION(3)   :: www       ! Dummy vector
 REAL(KIND=PREC_DP)                 :: alpha
 !
 m_comb  = 0.0D0                     ! setup a default matrix
@@ -1505,7 +1511,8 @@ ELSE
    u(2) = 0.0D0
    u(3) = 0.0D0
 !  CALL trans(u, cr_rten, v_short, 3)   ! transform b* into direct space
-   v_short = matmul(real(cr_rten,KIND=PREC_DP), u)
+!  v_short = matmul(real(cr_rten,KIND=PREC_DP), u)
+   v_short = matmul(     cr_rten              , u)
 ENDIF
 !
 m_short = 0.0D0
@@ -1514,7 +1521,8 @@ DO i=1,4
 ENDDO
 !
 IF(l_long .AND. l_short) THEN
-   alpha = do_bang (.TRUE., REAL(v_short,kind=PREC_SP), V_NULL, real(v_long,kind=PREC_SP))
+!  alpha = do_bang (.TRUE., REAL(v_short,kind=PREC_DP), V_NULL, real(v_long,kind=PREC_DP))
+   alpha = do_bang (.TRUE.,      v_short              , V_NULL,      v_long              )
    IF(ABS(alpha-90.0D0)>TOL) THEN                 ! Not at 90 degrees
       ier_num = -171
       ier_typ = ER_APPL
@@ -1526,7 +1534,8 @@ ENDIF
 u(1) = 0.0D0
 u(2) = 0.0D0
 u(3) = 1.0D0
-alpha = do_bang(.TRUE., real(u,kind=PREC_SP), V_NULL, real(v_long,kind=PREC_SP))     ! Angle long to [001]
+!alpha = do_bang(.TRUE., real(u,kind=PREC_DP), V_NULL, real(v_long,kind=PREC_DP))     ! Angle long to [001]
+alpha = do_bang(.TRUE.,      u              , V_NULL, v_long                   )     ! Angle long to [001]
 !
 IF(ABS(alpha)<EPS) THEN                        ! already parallel
    alpha = 0.0D0                               ! Matrix will remain unit
@@ -1543,11 +1552,14 @@ ELSEIF(ABS(180.0D0-alpha)<EPS) THEN             ! at 180 degrees
    v(2) = 1.0D0                             ! Dummy b* vector
    v(3) = 0.0D0
 !  CALL trans(v, cr_rten, ww, 3)            ! transform b* into direct space
-   ww = matmul(real(cr_rten,KIND=PREC_DP), v)
+!  ww = matmul(real(cr_rten,KIND=PREC_DP), v)
+   ww = matmul(     cr_rten              , v)
 ELSE                                        ! Need a rotation
-   CALL vekprod(real(v_long,kind=PREC_SP), real(u,kind=PREC_SP), &
-                     www             , cr_eps, cr_rten)  ! Get rotation axis
+!  CALL vekprod(real(v_long,kind=PREC_DP), real(u,kind=PREC_DP), &
+!                    www             , cr_eps, cr_rten)  ! Get rotation axis
 !               real(ww,kind=PREC_SP), cr_eps, cr_rten)  ! Get rotation axis
+   CALL vekprod(     v_long              ,      u              , &
+                     www             , cr_eps, cr_rten)  ! Get rotation axis
    ww = www
 ENDIF
 !
@@ -1561,7 +1573,8 @@ ENDIF
    sym_power      =  1                         ! Need just a single rotation
    sym_type       = .TRUE.                     ! Proper rotation
 !  CALL trans (sym_uvw, cr_gten, sym_hkl, 3)   ! Make reciprocal space axis
-   sym_hkl = matmul(real(cr_gten,kind=PREC_DP), sym_uvw)
+!  sym_hkl = matmul(real(cr_gten,kind=PREC_DP), sym_uvw)
+   sym_hkl = matmul(     cr_gten              , sym_uvw)
    CALL symm_setup                             ! get all matrices
    m_long   = sym_mat                          ! copy rotation matrix
 !
@@ -1575,7 +1588,8 @@ u(1) = 1.0D0
 u(2) = 0.0D0
 u(3) = 0.0D0
 !alpha = do_bang(.TRUE., u, V_NULL, v)             ! Angle short to [100]
-alpha = do_bang(.TRUE., real(u,kind=PREC_SP), V_NULL, real(v_short,kind=PREC_SP))     ! Angle short to [001]
+!alpha = do_bang(.TRUE., real(u,kind=PREC_DP), V_NULL, real(v_short,kind=PREC_DP))     ! Angle short to [001]
+alpha = do_bang(.TRUE., u, V_NULL, v_short)    ! Angle short to [100]
 CALL symm_reset
 sym_angle      = alpha                         ! Rotation angle
 sym_uvw(1)     = 0.0                           ! Rotation axis [001]
@@ -1586,7 +1600,8 @@ sym_trans(:)   = 0.0                           ! No translation
 sym_power      =  1                            ! Need just a single rotation
 sym_type       = .TRUE.                        ! Proper rotation
 !CALL trans (sym_uvw, cr_gten, sym_hkl, 3)      ! Make reciprocal space axis
-sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
+!sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
+sym_hkl = matmul(     cr_gten              , sym_uvw)
 CALL symm_setup                                ! get all matrices
 m_short   = sym_mat                            ! copy rotation matrix
 m_comb = MATMUL(m_short, m_long)               ! Combine rotations m_short X m_long
@@ -1607,7 +1622,7 @@ SUBROUTINE prep_values(o_long, lo_long, v_long, cname )
 ! Interpret the values for the optional parameter long / short
 !
 USE crystal_mod
-USE trafo_mod
+!USE trafo_mod
 !
 USE errlist_mod
 USE ber_params_mod
@@ -1686,28 +1701,29 @@ END SUBROUTINE prep_values
 !
 !*****7*****************************************************************
 !
-      SUBROUTINE pos2hkl(u, gten, hkl)
+SUBROUTINE pos2hkl(u, gten, hkl)
 !
-      USE metric_mod
-      USE trafo_mod
+USE metric_mod
+!      USE trafo_mod
+use precision_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
-      REAL   , DIMENSION(3)  , INTENT(INOUT) :: u
-      REAL   , DIMENSION(3,3), INTENT(IN )   :: gten
-      INTEGER, DIMENSION(3)  , INTENT(OUT)   :: hkl
+REAL(kind=PREC_DP)   , DIMENSION(3)  , INTENT(INOUT) :: u
+REAL(kind=PREC_DP)   , DIMENSION(3,3), INTENT(IN )   :: gten
+INTEGER, DIMENSION(3)  , INTENT(OUT)   :: hkl
 !
-      REAL   , DIMENSION(3) :: v
-      REAL :: uu
+REAL(kind=PREC_DP)   , DIMENSION(3) :: v
+REAL(kind=PREC_DP) :: uu
 !
-      uu = SQRT(skalpro (u, u, gten) )
+uu = SQRT(skalpro (u, u, gten) )
 !     uu = SQRT(u(1)**2 + u(2)**2 + u(3)**2)  ! Really rough length
-      u(:) = u(:)/uu
+u(:) = u(:)/uu
 !     CALL trans (u, gten, v, 3)              ! Transform into reciprocal space
-      v = matmul(gten, u)
-      hkl(1:3) = NINT(10.*v(1:3))             ! Make an approximate integer vector
+v = matmul(gten, u)
+hkl(1:3) = NINT(10.*v(1:3))             ! Make an approximate integer vector
 !
-      END SUBROUTINE pos2hkl
+END SUBROUTINE pos2hkl
 !
 !*****7*****************************************************************
 !
@@ -1878,11 +1894,11 @@ INTEGER, PARAMETER :: SURF_CORNER =  3
 !
 INTEGER, PARAMETER                     :: MAXW = 1
 !LOGICAL, PARAMETER :: LNEW = .false.
-REAL   , PARAMETER                     :: RADIUS_MIN  = 1.51
-REAL   , PARAMETER                     :: RADIUS_STEP = 1.50
-REAL   , PARAMETER , DIMENSION(3)      :: NULL        = 0.0
-REAL   , PARAMETER                     :: IS_OUTSIDE  = 80.0
-REAL   , PARAMETER                     :: IS_PARALLEL = 15.0
+REAL(kind=PREC_DP)   , PARAMETER                     :: RADIUS_MIN  = 1.51
+REAL(kind=PREC_DP)   , PARAMETER                     :: RADIUS_STEP = 1.50
+REAL(kind=PREC_DP)   , PARAMETER , DIMENSION(3)      :: NULLV = 0.0D0
+REAL(kind=PREC_DP)   , PARAMETER                     :: IS_OUTSIDE  = 80.0
+REAL(kind=PREC_DP)   , PARAMETER                     :: IS_PARALLEL = 15.0
 !
 CHARACTER(LEN=PREC_STRING), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
@@ -1890,8 +1906,8 @@ REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
 !
 CHARACTER(LEN=PREC_STRING)     :: line
 INTEGER  , DIMENSION(:), ALLOCATABLE :: neigh
-REAL     , DIMENSION(:), ALLOCATABLE :: angles
-REAL     , DIMENSION(:), ALLOCATABLE :: sorted
+REAL(kind=PREC_DP)     , DIMENSION(:), ALLOCATABLE :: angles
+REAL(kind=PREC_DP)     , DIMENSION(:), ALLOCATABLE :: sorted
 INTEGER  , DIMENSION(:,:), ALLOCATABLE :: surfaces
 INTEGER                 :: nsurface
 INTEGER                 :: i,j,k,l, ianz
@@ -1904,16 +1920,16 @@ LOGICAL                 :: fq
 LOGICAL                 :: lspace
 LOGICAL                 :: isfound
 LOGICAL                 :: isfirst
-REAL                    :: rmin, radius
-REAL                    :: alpha, beta
-REAL                    :: dstar
-REAL                    :: dist, dmin
-REAL     , DIMENSION(3) :: x         ! Vector from center to atom
-REAL     , DIMENSION(3) :: center    ! Average position of neighboring atoms
-INTEGER  , DIMENSION(3) :: rough     ! rough normal 
-REAL     , DIMENSION(3) :: u,v,w     ! Vectors from central atom to neighbors
-INTEGER  , DIMENSION(3) :: tempsurf  ! Vectors from central atom to neighbors
-REAL     , DIMENSION(3) :: realsurf  ! Vectors from central atom to neighbors
+REAL(kind=PREC_DP)      :: rmin, radius
+REAL(kind=PREC_DP)      :: alpha, beta
+REAL(kind=PREC_DP)      :: dstar
+REAL(kind=PREC_DP)      :: dist, dmin
+REAL(kind=PREC_DP)     , DIMENSION(3) :: x         ! Vector from center to atom
+REAL(kind=PREC_DP)     , DIMENSION(3) :: center    ! Average position of neighboring atoms
+INTEGER                , DIMENSION(3) :: rough     ! rough normal 
+REAL(kind=PREC_DP)     , DIMENSION(3) :: u,v,w     ! Vectors from central atom to neighbors
+INTEGER                , DIMENSION(3) :: tempsurf  ! Vectors from central atom to neighbors
+REAL(kind=PREC_DP)     , DIMENSION(3) :: realsurf  ! Vectors from central atom to neighbors
 !
 INTEGER, DIMENSION(0:1) :: temp_sel_prop = 0
 !
@@ -2019,9 +2035,10 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
                tempsurf(:) = NINT(res_para(1:3))  ! Normal to atom triplet
                                                   ! If necessary invert direction
                lspace = .FALSE.
-               IF(do_blen(lspace, NULL, REAL(tempsurf))>0) THEN
+               IF(do_blen(lspace, NULLV, REAL(tempsurf, kind=PREC_DP    ))>0) THEN
                lspace = .FALSE.
-               IF(do_bang(lspace, REAL(rough), NULL, REAL(tempsurf)) > 90.0) tempsurf(:) = -tempsurf(:)
+               IF(do_bang(lspace, REAL(rough, kind=PREC_DP), NULLV, &
+                                  REAL(tempsurf, kind=PREC_DP)) > 90.0) tempsurf(:) = -tempsurf(:)
                WRITE(line,2010) tempsurf(:)
                laenge = 50
                lspace = .FALSE.
@@ -2033,7 +2050,7 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
                DO k=1, neigsurf
                   v(:) = cr_pos(:,neigh(k))-x(:)
                   lspace = .TRUE.
-                  IF(do_bang(lspace, realsurf, NULL, v)<IS_OUTSIDE) THEN
+                  IF(do_bang(lspace, realsurf, NULLV, v)<IS_OUTSIDE) THEN
                      CYCLE inner ! proceed to next pair
                   ENDIF
                ENDDO
@@ -2041,7 +2058,7 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
                isfound = .FALSE.
                lspace = .FALSE.
                DO k=1, nsurface                  ! Loop over all previous surfaces
-                  alpha = do_bang(lspace, REAL(tempsurf), NULL, REAL(surfaces(1:3,k)) )
+                  alpha = do_bang(lspace, REAL(tempsurf, kind=PREC_DP), NULLV, REAL(surfaces(1:3,k), kind=PREC_DP) )
                   IF(alpha>90.) alpha = 180.-alpha
 !
                   IF(alpha<IS_PARALLEL) THEN
@@ -2077,13 +2094,13 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
                laenge = 106
                CALL do_proj(line, laenge)
                v(:) = res_para(4:6)
-               alpha = do_bang(lspace, u, NULL, v)
+               alpha = do_bang(lspace, u, NULLV, v)
                WRITE(line,2000) u,v
                laenge = 105
                CALL vprod(line, laenge)
                w(:) = res_para(1:3)
-               IF(do_blen(lspace, NULL, w) > 0.0001) THEN
-                  beta = do_bang(lspace, w, NULL, realsurf)
+               IF(do_blen(lspace, NULLV, w) > 0.0001) THEN
+                  beta = do_bang(lspace, w, NULLV, realsurf)
                   IF(beta.gt.90) alpha = 360. - alpha
                ENDIF      
                angles(k) = alpha
@@ -2132,9 +2149,9 @@ ENDIF
 ! Normalize
 lspace = .false.
 DO i=1, MIN(nsurface, UBOUND(surf_weight,1))
-   dstar=do_blen(lspace, NULL, REAL(surfaces(1:3,i)))
+   dstar=do_blen(lspace, NULLV, REAL(surfaces(1:3,i), kind=PREC_DP))
    IF(dstar > 0) THEN
-      surfaces(1:3,i) = NINT(REAL(surfaces(1:3,i))*10./dstar)
+      surfaces(1:3,i) = NINT(REAL(surfaces(1:3,i), kind=PREC_DP)*10./dstar)
       divisor = IABS(gcd(surfaces(1,i),surfaces(2,i),surfaces(3,i)))
       surfaces(1:3,i) = surfaces(1:3,i)/divisor
    ENDIF
@@ -2175,8 +2192,8 @@ ELSEIF(nsurface == 2) THEN
    laenge = 105
    CALL vprod(line, laenge)
    surf_kante(:) = NINT(res_para(1:3)*100)
-   dstar=do_blen(lspace, NULL, REAL(surf_kante(1:3)))
-   surf_kante(1:3) = NINT(REAL(surf_kante(1:3))*10./dstar)
+   dstar=do_blen(lspace, NULLV, REAL(surf_kante(1:3), kind=PREC_DP))
+   surf_kante(1:3) = NINT(REAL(surf_kante(1:3), kind=PREC_DP)*10./dstar)
 ELSEIF(nsurface >  2) THEN
    surf_char = SURF_CORNER
    fill:DO l = 1,6

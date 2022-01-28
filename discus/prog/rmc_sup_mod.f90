@@ -14,10 +14,11 @@ USE chem_mod
 USE diffuse_mod 
 USE fourier_sup
 USE get_iscat_mod
+use metric_mod, only:skalpro
 USE modify_mod
 use molecule_mod
 USE rmc_mod 
-USE quad_mod
+!USE quad_mod
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
@@ -39,7 +40,9 @@ REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: wwerte
 REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: uerte
 INTEGER            , DIMENSION(25                     ) :: lpara
 !
-REAL mmdis, hklmin (3), hklmax (3)
+REAL mmdis !, hklmin (3), hklmax (3)
+real(kind=PREC_DP), dimension(3) :: hklmin
+real(kind=PREC_DP), dimension(3) :: hklmax
 !, quad 
 INTEGER ianz, iianz, jjanz, is, js, i, j, ii, ie1, ie2, ip 
 LOGICAL flag 
@@ -61,7 +64,7 @@ IF (ianz.ge.2) then
          IF (ier_num.eq.0) then 
             IF (werte (1) .ge.0.0.and.werte (1) .le.100.0)     &
                      then                                               
-               rmc_ave = werte (1) * 0.01 
+               rmc_ave = werte (1) * 0.01D0 
                rmc_calc_f = .true. 
             ELSE 
                ier_num = - 1 
@@ -361,9 +364,11 @@ IF (ianz.ge.2) then
          hklmax (1) = werte (4) 
          hklmax (2) = werte (5) 
          hklmax (3) = werte (6) 
-         rmc_llim = sqrt (quad (hklmin, hklmin, cr_rten)       &
+!        rmc_llim = sqrt (quad (hklmin, hklmin, real(cr_rten))       &
+         rmc_llim = sqrt (skalpro (hklmin, hklmin, cr_rten)       &
                   / 4.0)                                                
-         rmc_ulim = sqrt (quad (hklmax, hklmax, cr_rten)       &
+!        rmc_ulim = sqrt (quad (hklmax, hklmax, real(cr_rten))       &
+         rmc_ulim = sqrt (skalpro (hklmax, hklmax, cr_rten)       &
                   / 4.0)                                                
       ELSE 
          ier_num = - 6 
@@ -1245,13 +1250,13 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: line  !Dummy line
       INTEGER i, j, k 
       REAL(KIND=PREC_DP) :: werte (maxw)
 REAL :: d1, d2, d3, d4
-      REAL e1 (3), e2 (3), e3 (3), vi1 (3), vi2 (3), z (3) 
+      REAL(kind=PREC_DP):: e1 (3), e2 (3), e3 (3), vi1 (3), vi2 (3), z (3) 
       REAL qmin, qmax 
-      REAL ee1 (4, max_sym) 
-      REAL ee2 (4, max_sym) 
-      REAL ee3 (4, max_sym) 
-      REAL zone (4, max_sym) 
-      REAL mat (4, 4, max_sym) 
+      REAL(kind=PREC_DP) :: ee1 (4, max_sym) 
+      REAL(kind=PREC_DP) :: ee2 (4, max_sym) 
+      REAL(kind=PREC_DP) :: ee3 (4, max_sym) 
+      REAL(kind=PREC_DP) ::  zone (4, max_sym) 
+      REAL(kind=PREC_DP) :: mat (4, 4, max_sym) 
 !
       INTEGER  :: n_planes=1 ! Number of planes
       INTEGER  :: n_qxy   =1 ! Data points in reciprocal space
@@ -1751,7 +1756,7 @@ IMPLICIT none
       INTEGER i, j, ip, iq, is, iii 
       INTEGER igen, itry, iacc_good, iacc_bad 
       LOGICAL loop, laccept 
-      REAL    ::   rmc_energy = 0.00
+      REAL(kind=PREC_DP)    ::   rmc_energy = 0.00D0
       LOGICAL :: l_rmc_energy = .false.
 !
 !      INTEGER  :: n_qxy   =1 ! Data points in reciprocal space
@@ -1928,7 +1933,7 @@ write(*,*) 'RMC MAIN LOOP STARTED '
             call dlink(rmc_ano(ip),           &
      &                     rmc_lambda(ip),rmc_rlambda(ip),   &
                            rmc_energy, l_rmc_energy,                & 
-                           rmc_radiation(ip), 4, rmc_power(ip))
+                           rmc_radiation(ip), RAD_WAAS, rmc_power(ip))
             DO is=1,isym(ip) 
               call rmc_fcalc (ip,is,natoms,i_new,p_new,isel) 
               call rmc_inten (ip,is,.true.) 
@@ -2112,6 +2117,7 @@ close(77)
       USE rmc_mod 
 !                                                                       
       USE errlist_mod 
+use precision_mod
       USE prompt_mod 
 USE support_mod
       IMPLICIT none 
@@ -2120,7 +2126,7 @@ USE support_mod
       INTEGER isym (rmc_max_planes) 
       INTEGER lbeg (3), ncell 
       INTEGER ip, iscat, nlot, i, k, iii 
-      REAL    ::   rmc_energy = 0.00
+      REAL(kind=PREC_DP)    ::   rmc_energy = 0.00D0
       LOGICAL :: l_rmc_energy = .false.
 !
       CALL four_cexpt 
@@ -2151,7 +2157,7 @@ USE support_mod
 loop_plane: DO ip = 1, rmc_nplane 
          CALL dlink (rmc_ano (ip), rmc_lambda (ip),        &
                      rmc_rlambda (ip),  rmc_energy, l_rmc_energy, &
-                     rmc_radiation(ip), 4, rmc_power(ip) )
+                     rmc_radiation(ip), RAD_WAAS, rmc_power(ip) )
          CALL rmc_formtab (ip, .true.) 
 !                                                                       
 !------ - Loop over all sym. equivalent planes                          
@@ -2594,15 +2600,18 @@ loop_plane: DO ip = 1, rmc_nplane
       USE discus_config_mod 
       USE crystal_mod 
       USE rmc_mod 
-      USE tensors_mod
+!      USE tensors_mod
+!
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: n
-      REAL   , DIMENSION(4,4,n), INTENT(INOUT) :: mat
+      REAL(kind=PREC_DP)   , DIMENSION(4,4,n), INTENT(INOUT) :: mat
       INTEGER, INTENT(IN) :: nsym
 !                                                                       
       INTEGER i, j, k
-      REAL a (3, 3), b (3, 3) 
+      REAL(kind=PREC_DP) a (3, 3), b (3, 3) 
 !                                                                       
       DO i = 1, nsym 
       DO j = 1, 3 
@@ -2611,8 +2620,10 @@ loop_plane: DO ip = 1, rmc_nplane
       ENDDO 
       ENDDO 
 !                                                                       
-      CALL matmulx (b, a, cr_rten) 
-      CALL matmulx (a, cr_gten, b) 
+!     CALL matmulx (b, a, cr_rten) 
+!     CALL matmulx (a, cr_gten, b) 
+      b = matmul(a, cr_rten)
+      b = matmul(cr_rten, b)
       DO j = 1, 3 
       DO k = 1, 3 
       mat (j, k, i) = a (j, k) 
@@ -2630,11 +2641,13 @@ loop_plane: DO ip = 1, rmc_nplane
 !     Compute symmetrically equivalent vectors of 'v' using 'mat'       
 !-                                                                      
       USE discus_config_mod 
+!
+use precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: n
-      REAL   , DIMENSION(4,  n), INTENT(INOUT) :: v
-      REAL   , DIMENSION(4,4,n), INTENT(INOUT) :: mat
+      REAL(kind=PREC_DP)   , DIMENSION(4,  n), INTENT(INOUT) :: v
+      REAL(kind=PREC_DP)   , DIMENSION(4,4,n), INTENT(INOUT) :: mat
       INTEGER, INTENT(IN) :: nsym
 !                                                                       
 !      REAL v (4, n), mat (4, 4, n) 
@@ -2919,7 +2932,7 @@ USE precision_mod
       REAL   , DIMENSION(3,RMC_MAX_ATOM), INTENT(IN)  :: p_new !(3, rmc_max_atom) 
 !                                                                       
       INTEGER i
-      REAL pos (3)
+REAL(kind=PREC_DP), dimension(3):: pos (3)
 REAL(KIND=PREC_DP) :: werte(1) 
 !                                                                       
       werte = - 1 
@@ -2931,7 +2944,7 @@ REAL(KIND=PREC_DP) :: werte(1)
 !                                                                       
       IF (i_new (iatom) .eq.0) return 
 !                                                                       
-      CALL do_find_env (1, werte, 1, pos, 0.1, rmc_mindist_max,         &
+      CALL do_find_env (1, werte, 1, pos, 0.1D0, rmc_mindist_max,         &
       chem_quick, chem_period)                                          
       DO i = 1, atom_env (0) 
       IF (cr_iscat (atom_env (i) ) .ne.0.and.laccept) then 

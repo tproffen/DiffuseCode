@@ -11,22 +11,23 @@ SUBROUTINE trafo (hkl, u, xc, yc, zc, gmat, fmat, dist, eps, gten, rten)
 !     of the crystal.                                                   
 !-                                                                      
 use precision_mod
-USE tensors_mod
-USE quad_mod
+!USE tensors_mod
+!USE quad_mod
+use matrix_mod
 !
 IMPLICIT none 
 !                                                                       
-real(kind=PREC_SP), dimension(3), intent(in) :: hkl
-real(kind=PREC_SP), dimension(3), intent(in) :: u
-real(kind=PREC_SP), dimension(3), intent(out) :: xc
-real(kind=PREC_SP), dimension(3), intent(out) :: yc
-real(kind=PREC_SP), dimension(3), intent(out) :: zc
-real(kind=PREC_SP), dimension(3,3), intent(out) :: gmat
-real(kind=PREC_SP), dimension(3,3), intent(out) :: fmat
-real(kind=PREC_SP),                 intent(out) :: dist
-real(kind=PREC_SP), dimension(3,3,3), intent(in) :: eps
-real(kind=PREC_SP), dimension(3,3), intent(in) :: rten
-real(kind=PREC_SP), dimension(3,3), intent(in) :: gten
+real(kind=PREC_DP), dimension(3), intent(in) :: hkl
+real(kind=PREC_DP), dimension(3), intent(in) :: u
+real(kind=PREC_DP), dimension(3), intent(out) :: xc
+real(kind=PREC_DP), dimension(3), intent(out) :: yc
+real(kind=PREC_DP), dimension(3), intent(out) :: zc
+real(kind=PREC_DP), dimension(3,3), intent(out) :: gmat
+real(kind=PREC_DP), dimension(3,3), intent(out) :: fmat
+real(kind=PREC_DP),                 intent(out) :: dist
+real(kind=PREC_DP), dimension(3,3,3), intent(in) :: eps
+real(kind=PREC_DP), dimension(3,3), intent(in) :: rten
+real(kind=PREC_DP), dimension(3,3), intent(in) :: gten
 !
 INTEGER  :: inull2 (2), i, j, k, l, m, inull 
 !     REAL eps (3, 3, 3), fmat (3, 3), gmat (3, 3)!, gten (3, 3) 
@@ -38,14 +39,16 @@ real(kind=PREC_SP) :: zcc, xcc
 !     Determine achses for transformation                               
 !     Transform reciprocal vector HKL to real space vector ZC           
 !                                                                       
-DO i = 1, 3 
-   zc (i) = 0.0 
-   DO j = 1, 3 
-      zc (i) = zc (i) + rten (i, j) * hkl (j) 
-   ENDDO 
-ENDDO 
+!DO i = 1, 3 
+!   zc (i) = 0.0 
+!   DO j = 1, 3 
+!      zc (i) = zc (i) + rten (i, j) * hkl (j) 
+!   ENDDO 
+!ENDDO 
+zc = matmul(rten, hkl)
 !                                                                       
-zcc = sqrt (quad (zc, zc, gten) ) 
+!zcc = sqrt (quad (real(zc), real(zc), real(gten)) ) 
+zcc = sqrt(dot_product(zc, matmul(gten, zc)))
 IF (zcc.eq.0.0) return 
 inull = 0 
 inull2 (1) = 0 
@@ -79,7 +82,8 @@ ELSE
       xc (2) = - hkl (1) 
    ENDIF 
 ENDIF 
-xcc = sqrt (quad (xc, xc, gten) ) 
+!xcc = sqrt (quad (real(xc), real(xc), real(gten)) ) 
+xcc = sqrt(dot_product(xc, matmul(gten, xc)))
 !                                                                       
 !     normalize XC                                                      
 !                                                                       
@@ -110,15 +114,17 @@ ENDDO
 !                                                                       
 !     calculate distance to origin                                      
 !                                                                       
-CALL invmat (fmat, gmat) 
+!CALL invmat (fmat, gmat) 
+call matinv (gmat, fmat) 
 dist = fmat(3, 1) * u(1) + fmat(3, 2) * u(2) + fmat(3, 3) * u(3)
 !                                                                       
 END SUBROUTINE trafo                          
 !
 !*****7*****************************************************************
 !
-SUBROUTINE trans (uc, gmat, up, idim) 
+SUBROUTINE trans_old (uc, gmat, up, idim) 
 !+                                                                      
+! IS OBSOLETE AND NO LONGER USED
 !     Transforms a point in the crystal space into plot space           
 !     and vice versa                                                    
 !-                                                                      
@@ -127,9 +133,9 @@ USE precision_mod
 IMPLICIT none 
 !                                                                       
 integer, intent(in) :: idim
-REAL(KIND=PREC_SP), dimension(idim,idim), intent(in)  :: gmat
-REAL(KIND=PREC_SP), dimension(idim)     , intent(in)  :: uc
-REAL(KIND=PREC_SP), dimension(idim)     , intent(out) :: up
+REAL(KIND=PREC_DP), dimension(idim,idim), intent(in)  :: gmat
+REAL(KIND=PREC_DP), dimension(idim)     , intent(in)  :: uc
+REAL(KIND=PREC_DP), dimension(idim)     , intent(out) :: up
 !
 INTEGER i, j!, idim 
 !                                                                       
@@ -140,6 +146,6 @@ DO i = 1, idim
    ENDDO 
 ENDDO 
 !                                                                       
-END SUBROUTINE trans                          
+END SUBROUTINE trans_old
 !
 END MODULE trafo_mod

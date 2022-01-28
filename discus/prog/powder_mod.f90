@@ -66,49 +66,49 @@ REAL(KIND=PREC_DP)       :: pow_qmax_u     =  7.0D0    ! "         Actual calcul
 REAL(KIND=PREC_DP)       :: pow_deltaq_u   =  0.0001D0 ! "         qmax * 1.5
 REAL(KIND=PREC_DP)       :: pow_tthmax_buf =  1.0D0    ! additional buffer 
 REAL(KIND=PREC_DP)       :: pow_qmax_buf   =  0.5D0    ! for convolutions
-REAL                     :: pow_ds_max     =  0.0001
-REAL                     :: pow_ds_min     =  0.0001
-REAL                     :: pow_delta      =  0.0
-REAL                     :: pow_lp_fac     =  0.88
-REAL                     :: pow_lp_ang     = 20.0
-REAL                     :: pow_lp_cos     =  0.936
+REAL(kind=PREC_DP)       :: pow_ds_max     =  0.0001
+REAL(kind=PREC_DP)       :: pow_ds_min     =  0.0001
+REAL(kind=PREC_DP)       :: pow_delta      =  0.0
+REAL(kind=PREC_DP)       :: pow_lp_fac     =  0.88
+REAL(kind=PREC_DP)       :: pow_lp_ang     = 20.0
+REAL(kind=PREC_DP)       :: pow_lp_cos     =  0.936
 !
 LOGICAL                  :: pow_lperiod    = .FALSE.
-REAL                     :: pow_period     =  0.000
-REAL                     :: pow_period_cut =  0.800
+REAL(kind=PREC_DP)       :: pow_period     =  0.000
+REAL(kind=PREC_DP)       :: pow_period_cut =  0.800
 !
 !REAL                     :: pow_bvalue     =  0.00
 !
 INTEGER                  :: pow_nback      = 0
-REAL   , DIMENSION(0:5)  :: pow_back       = 0.0
-REAL                     :: pow_scale      = 1.0
+REAL(kind=PREC_DP)   , DIMENSION(0:5)  :: pow_back       = 0.0
+REAL(kind=PREC_DP)       :: pow_scale      = 1.0
 !
-REAL   , DIMENSION(3)    :: pow_hkl_max    = 4.0
-REAL   , DIMENSION(3)    :: pow_hkl_del    = 0.05
-REAL   , DIMENSION(3)    :: pow_hkl_shift  = 0.00
+REAL(kind=PREC_DP)   , DIMENSION(3)    :: pow_hkl_max    = 4.0
+REAL(kind=PREC_DP)   , DIMENSION(3)    :: pow_hkl_del    = 0.05
+REAL(kind=PREC_DP)   , DIMENSION(3)    :: pow_hkl_shift  = 0.00
 !
 LOGICAL                  :: pow_pref       = .false.
 INTEGER                  :: pow_pref_type  = POW_PREF_RIET
-REAL                     :: pow_pref_g1    = 0.0
-REAL                     :: pow_pref_g2    = 0.0
-REAL   , DIMENSION(3)    :: pow_pref_hkl   = (/0., 0., 1./)
+REAL(kind=PREC_DP)       :: pow_pref_g1    = 0.0
+REAL(kind=PREC_DP)       :: pow_pref_g2    = 0.0
+REAL(kind=PREC_DP), DIMENSION(3)    :: pow_pref_hkl   = (/0.0D0, 0.0D0, 1.0D0/)
 !
 INTEGER                  :: pow_profile    = POW_PROFILE_PSVGT
 INTEGER                  :: pow_pr_par     =  0
-REAL                     :: pow_fwhm       =  0.01
-REAL                     :: pow_eta        =  0.5
-REAL                     :: pow_eta_l      =  0.0
-REAL                     :: pow_eta_q      =  0.0
-REAL                     :: pow_u          =  0.0
-REAL                     :: pow_v          =  0.0
-REAL                     :: pow_w          =  0.05
-REAL   , DIMENSION(4,3)  :: pow_asym       =  0.0
+REAL(kind=PREC_DP)       :: pow_fwhm       =  0.01
+REAL(kind=PREC_DP)       :: pow_eta        =  0.5
+REAL(kind=PREC_DP)       :: pow_eta_l      =  0.0
+REAL(kind=PREC_DP)       :: pow_eta_q      =  0.0
+REAL(kind=PREC_DP)       :: pow_u          =  0.0
+REAL(kind=PREC_DP)       :: pow_v          =  0.0
+REAL(kind=PREC_DP)       :: pow_w          =  0.05
+REAL(kind=PREC_DP)   , DIMENSION(4,3)  :: pow_asym       =  0.0D0
 !REAL                     :: pow_p2         =  0.0
 !REAL                     :: pow_p3         =  0.0
 !REAL                     :: pow_p4         =  0.0
-REAL                     :: pow_width      = 20.0
+REAL(kind=PREC_DP)       :: pow_width      = 20.0D0
 !
-REAL                     :: pow_ka21       =  0.0
+REAL(kind=PREC_DP)       :: pow_ka21       =  0.0d0
 LOGICAL                  :: pow_ka21_u     =  .FALSE.
 !
 !
@@ -121,12 +121,12 @@ REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_f2aver  !  (0:POW_MA
 REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_faver2  !  (0:POW_MAXPKT)
 REAL   (KIND=PREC_DP), DIMENSION(:,:)  , ALLOCATABLE :: pow_f2      !  (0:POW_MAXPKT, 0:MAXSCAT)
 REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_fu      !  (0:POW_MAXPKT, 0:MAXSCAT)
-REAL   (KIND=PREC_SP), DIMENSION(:)    , ALLOCATABLE :: pow_conv    !  (0:POW_MAXPKT)
-REAL   (KIND=PREC_SP), DIMENSION(:)    , ALLOCATABLE :: pow_sq      !  (0:POW_MAXPKT)
+REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_conv    !  (0:POW_MAXPKT)
+REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_sq      !  (0:POW_MAXPKT)
 !REAL   (KIND=PREC_SP), DIMENSION(:,:,:), ALLOCATABLE :: pow_phase   !  Results for the different phases (inte, <f2>, <f>2, thermal
 INTEGER                            :: pow_nreal  = 0
 INTEGER                            :: pow_ncreal = 0
-REAL                               :: pow_u2aver = 0.0
+REAL(kind=PREC_DP)                 :: pow_u2aver = 0.0
 !
 INTEGER                  :: pow_size_of  = 0 ! Bytes allocated for powder
 !

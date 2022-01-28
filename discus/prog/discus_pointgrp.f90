@@ -23,11 +23,12 @@ SUBROUTINE point_init_real(hkl, point_hkl, point_n)
 !  Initialize. Delete old arrays make a default size and set input value
 !
 USE wyckoff_mod
+use precision_mod
 !
 IMPLICIT NONE
 !
-REAL, DIMENSION(4)                , INTENT(IN)    :: hkl
-REAL, DIMENSION(:,:), ALLOCATABLE , INTENT(INOUT) :: point_hkl
+REAL(kind=PREC_DP), DIMENSION(4)                , INTENT(IN)    :: hkl
+REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE , INTENT(INOUT) :: point_hkl
 INTEGER                           , INTENT(OUT)   :: point_n
 !
 IF(ALLOCATED(point_hkl)) DEALLOCATE(point_hkl)
@@ -67,18 +68,20 @@ SUBROUTINE point_set_real(hkl, point_hkl, point_n)
 USE crystal_mod
 USE wyckoff_mod
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
-REAL, DIMENSION(4)   , INTENT(IN)  :: hkl
-REAL, DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: point_hkl
+REAL(kind=PREC_DP), DIMENSION(4)   , INTENT(IN)  :: hkl
+REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: point_hkl
 INTEGER              , INTENT(INOUT) :: point_n
 !
-REAL, PARAMETER :: EPS = 0.000001
+REAL(kind=PREC_DP), PARAMETER :: EPS = 0.000001D0
 !
 INTEGER            :: i,j
 LOGICAL            :: l_new
-REAL, DIMENSION(4) :: hklw
-REAL, DIMENSION(:,:), ALLOCATABLE :: temp_hkl
+REAL(kind=PREC_DP), DIMENSION(4) :: hklw
+REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: temp_hkl
 !
 matrix_set: DO j=1, spc_n
    hklw = MATMUL(hkl,spc_mat(:,:,j))
@@ -119,7 +122,7 @@ INTEGER, DIMENSION(4)               , INTENT(IN)  :: hkl
 INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: point_hkl
 INTEGER                             , INTENT(INOUT) :: point_n
 !
-REAL, PARAMETER :: EPS = 0.000001
+REAL(kind=PREC_DP), PARAMETER :: EPS = 0.000001D0
 !
 INTEGER            :: i,j
 LOGICAL            :: l_new
@@ -158,14 +161,16 @@ LOGICAL FUNCTION point_test_real(hkl, point_hkl, point_n, l_form)
 USE crystal_mod
 USE wyckoff_mod
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
-REAL, DIMENSION(4)   , INTENT(IN)  :: hkl
-REAL, DIMENSION(:,:) , INTENT(IN)  :: point_hkl
+REAL(kind=PREC_DP), DIMENSION(4)   , INTENT(IN)  :: hkl
+REAL(kind=PREC_DP), DIMENSION(:,:) , INTENT(IN)  :: point_hkl
 INTEGER              , INTENT(IN)  :: point_n
 LOGICAL              , INTENT(IN)  :: l_form
 !
-REAL, PARAMETER :: EPS = 0.000001
+REAL(kind=PREC_DP), PARAMETER :: EPS = 0.000001D0
 !
 INTEGER :: i
 INTEGER :: last
@@ -198,7 +203,7 @@ INTEGER, DIMENSION(:,:) , INTENT(IN)  :: point_hkl
 INTEGER                 , INTENT(IN)  :: point_n
 LOGICAL                 , INTENT(IN)  :: l_form
 !
-REAL, PARAMETER :: EPS = 0.000001
+REAL(kind=PREC_DP), PARAMETER :: EPS = 0.000001D0
 !
 INTEGER :: i
 INTEGER :: last

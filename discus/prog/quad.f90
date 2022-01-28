@@ -1,5 +1,8 @@
 MODULE quad_mod
 !
+! function quad has become obsolete
+private
+!
 CONTAINS
 !*****7*****************************************************************
       REAL FUNCTION quad (h, k, rten) 
@@ -23,5 +26,5 @@ CONTAINS
             quad = quad+h (i) * k (j) * rten (i, j) 
          ENDDO 
       ENDDO 
-      END FUNCTION quad                             
+      END FUNCTION quad                            
 END MODULE quad_mod

@@ -43,25 +43,25 @@ INTEGER , PARAMETER  :: POWD_DY  =  9  ! Powder pattern Debye Algorithm
 !
 INTEGER                                 ::  DIF_MAXAT    ! current size of array at
 INTEGER                                 ::  DIF_MAXSCAT  ! current size of array at
-COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:, :), ALLOCATABLE  ::  cfact        ! (0:CFPKT, 1:MAXSCAT)
-COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:, :), ALLOCATABLE  ::  cfact_pure   ! (0:CFPKT, 1:MAXSCAT)
-COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  csf          ! (1:MAXQXY)
-COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  tcsf         ! (1:MAXQXY)
-COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  acsf         ! (1:MAXQXY)
-REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  rpdf         ! (1:MAXQXY)
-COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(0:MASK)             ::  cex       = (0.0D0,0.0D0)
-REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi          ! (1:MAXQXY)
-REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi3d        ! (1:MAXQXY)
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(:, :), ALLOCATABLE  ::  cfact        ! (0:CFPKT, 1:MAXSCAT)
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(:, :), ALLOCATABLE  ::  cfact_pure   ! (0:CFPKT, 1:MAXSCAT)
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  csf          ! (1:MAXQXY)
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  tcsf         ! (1:MAXQXY)
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  acsf         ! (1:MAXQXY)
+REAL    (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  rpdf         ! (1:MAXQXY)
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(0:MASK)             ::  cex       = (0.0D0,0.0D0)
+REAL    (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  dsi          ! (1:MAXQXY)
+REAL    (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  dsi3d        ! (1:MAXQXY)
 !
-COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  csf_sum      ! (1:MAXQXY)
-REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi_sum      ! (1:MAXQXY)
-REAL    , DIMENSION(:, :), ALLOCATABLE  ::  xat          ! (1:NMAX, 1:3)
-REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  xm        = 0.0D0
-REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  win       = 0.0D0
-REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  vin       = 0.0D0
-REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  uin       = 0.0D0
-REAL                                    ::  fave      = 0.0
-REAL                                    ::  fave_sca  = 1.0
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  csf_sum      ! (1:MAXQXY)
+REAL    (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  dsi_sum      ! (1:MAXQXY)
+REAL    (KIND=PREC_DP    ) , DIMENSION(:, :), ALLOCATABLE  ::  xat          ! (1:NMAX, 1:3)
+REAL    (KIND=PREC_DP    ), DIMENSION(1:3)                ::  xm        = 0.0D0
+REAL    (KIND=PREC_DP    ), DIMENSION(1:3)                ::  win       = 0.0D0
+REAL    (KIND=PREC_DP    ), DIMENSION(1:3)                ::  vin       = 0.0D0
+REAL    (KIND=PREC_DP    ), DIMENSION(1:3)                ::  uin       = 0.0D0
+REAL    (KIND=PREC_DP    )              ::  fave      = 0.0
+REAL    (KIND=PREC_DP    )              ::  fave_sca  = 1.0
 INTEGER , DIMENSION(:)   , ALLOCATABLE  ::  istl         ! (1:MAXQXY)
 INTEGER , DIMENSION(1:3)                ::  num       = 1
 INTEGER                                 ::  nlots     = 1
@@ -97,19 +97,19 @@ LOGICAL                                 ::  diff_lsingle  = .true.
 INTEGER                                 ::  diff_radiation = RAD_XRAY
 INTEGER                                 ::  diff_table     = RAD_INTER
 INTEGER                                 ::  diff_power     = 4
-REAL    , DIMENSION(1:3, 1:4)           ::  eck      = reshape((/ 0.0, 0.0,  0.0, &
+REAL(kind=PREC_DP)    , DIMENSION(1:3, 1:4)           ::  eck      = reshape((/ 0.0, 0.0,  0.0, &
                                                                   5.0, 0.0,  0.0, &
                                                                   0.0, 5.0,  0.0, &
                                                                   0.0, 0.0,  0.0/),shape(eck))
-REAL    , DIMENSION(1:3, 1:3)           ::  vi       = reshape((/0.05, 0.00, 0.00, &
+REAL(kind=PREC_DP)    , DIMENSION(1:3, 1:3)           ::  vi       = reshape((/0.05, 0.00, 0.00, &
                                                                  0.0 , 0.05, 0.00, &
                                                                  0.00, 0.00, 0.00/),shape(vi))
-REAL    , DIMENSION(1:3, 1:3)           ::  off_shift= 0.00
-REAL                                    ::  renergy  = 17.480782
-REAL                                    ::  rlambda  =  0.709260
+REAL(kind=PREC_DP)    , DIMENSION(1:3, 1:3)           ::  off_shift= 0.00
+REAL(kind=PREC_DP)                      ::  renergy  = 17.480782
+REAL(kind=PREC_DP)                      ::  rlambda  =  0.709260
 LOGICAL                                 ::  l_energy = .false.
-REAL   , DIMENSION(1:3,1:4)             ::  diff_eck_u  = 0.0   ! User supplied corners
-REAL    , DIMENSION(1:3, 1:3)           ::  diff_vi_u   = 0.0
+REAL(kind=PREC_DP)   , DIMENSION(1:3,1:4)             ::  diff_eck_u  = 0.0   ! User supplied corners
+REAL(kind=PREC_DP)    , DIMENSION(1:3, 1:3)           ::  diff_vi_u   = 0.0
 INTEGER , DIMENSION(1:3)                ::  diff_inc_u  = 1
 INTEGER                                 ::  dif_size_of = 0.0
 !

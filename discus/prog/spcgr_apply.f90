@@ -5,8 +5,10 @@ USE errlist_mod
 IMPLICIT NONE
 !
 CONTAINS
+!
 !*****7*****************************************************************
-      SUBROUTINE get_symmetry_matrices
+!
+SUBROUTINE get_symmetry_matrices
 !-                                                                      
 !     Creates all symmetry matrices for the current space group         
 !+                                                                      
@@ -117,7 +119,9 @@ CALL spcgr_get_setting    ! Determine space group setting
 !-----      End of loop over additional symmetry matices                
 !                                                                       
       END SUBROUTINE get_symmetry_matrices         
+!
 !*****7*****************+***********************************************
+!
 SUBROUTINE make_symmetry_matrix (SPC_MAX, spc_n, spc_mat, spc_det,&
       spc_spur, spc_char, spc_xyz, igg, NG, generators, generpower)     
 !-                                                                      
@@ -125,31 +129,33 @@ SUBROUTINE make_symmetry_matrix (SPC_MAX, spc_n, spc_mat, spc_det,&
 !+                                                                      
 USE discus_config_mod 
 USE crystal_mod 
+!
+use precision_mod
+!                                                                       
 IMPLICIT none 
 !                                                                       
-       
+INTEGER                                       , INTENT(IN) :: SPC_MAX 
+INTEGER                                       , intent(inout) :: spc_n 
+REAL(kind=PREC_DP), dimension(4, 4, 1:SPC_MAX), intent(out) :: spc_mat ! (4, 4, 1:SPC_MAX) 
+real(kind=PREC_DP), dimension(1:SPC_MAX)      , intent(out) :: spc_det ! (1:SPC_MAX) 
+real(kind=PREC_DP), dimension(1:SPC_MAX)      , intent(out) :: spc_spur ! (1:SPC_MAX) 
+!
+CHARACTER(len=65), dimension(1:SPC_MAX)       , intent(out) :: spc_char ! (1:SPC_MAX) 
+CHARACTER(len=87), dimension(1:SPC_MAX)       , intent(out) :: spc_xyz  ! (1:SPC_MAX) 
+INTEGER                                       , intent(in) :: igg 
+INTEGER                                       , intent(in) :: NG 
+REAL(kind=PREC_DP)                            , intent(in) :: generators (4, 4, 0:NG) 
+INTEGER                                       , intent(in) :: generpower (NG) 
 !                                                                       
-INTEGER, INTENT(IN) :: SPC_MAX 
-      CHARACTER(65) spc_char (1:SPC_MAX) 
-      CHARACTER(87) spc_xyz (1:SPC_MAX) 
-      INTEGER spc_n 
-      REAL spc_mat (4, 4, 1:SPC_MAX) 
-      REAL spc_det (1:SPC_MAX) 
-      REAL spc_spur (1:SPC_MAX) 
-      INTEGER igg 
-      INTEGER NG 
-      REAL generators (4, 4, 0:NG) 
-REAL :: generator(4, 4) 
-      INTEGER generpower (NG) 
-!                                                                       
-      INTEGER i, j, k 
-      INTEGER ipg 
-      INTEGER imat 
-      INTEGER nmat 
-      LOGICAL             :: lexist = .false.
-      REAL, PARAMETER     :: EPS    = 1.e-5
-      REAL xmat (4, 4) 
-      REAL wmat (4, 4) 
+INTEGER :: i, j, k 
+INTEGER :: ipg 
+INTEGER :: imat 
+INTEGER :: nmat 
+LOGICAL             :: lexist = .false.
+REAL(kind=PREC_DP), PARAMETER     :: EPS    = 1.e-5
+REAL(kind=PREC_DP), dimension(4, 4) :: generator ! (4, 4) 
+REAL(kind=PREC_DP), dimension(4, 4) :: xmat  ! (4, 4) 
+REAL(kind=PREC_DP), dimension(4, 4) :: wmat  ! (4, 4) 
 !                                                                       
 !     For convenience create Identity operator                          
 !
@@ -248,7 +254,7 @@ CALL spcgr_setting(generator, cr_iset)
          ENDDO 
       ENDDO loop_power
 !                                                                       
-      END SUBROUTINE make_symmetry_matrix           
+END SUBROUTINE make_symmetry_matrix           
 !
 !********************************************************************** 
 !
@@ -305,14 +311,16 @@ SUBROUTINE spcgr_setting(generator, icase)
 !
 USE crystal_mod
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
-REAL, DIMENSION(4,4), INTENT(INOUT) :: generator
+REAL(kind=PREC_DP), DIMENSION(4,4), INTENT(INOUT) :: generator
 INTEGER             , INTENT(IN)    :: icase
 !
 INTEGER :: i,j
-REAL, DIMENSION(4,4,6) :: qmat
-REAL, DIMENSION(4,4,6) :: pmat
+REAL(kind=PREC_DP), DIMENSION(4,4,6) :: qmat
+REAL(kind=PREC_DP), DIMENSION(4,4,6) :: pmat
 !
 DATA ((qmat(i,j,1),j=1,4),i=1,4)   &    ! 'abc'
    / 1.00, 0.00, 0.00, 0.00,       &
@@ -393,37 +401,39 @@ END SUBROUTINE spcgr_setting
 !
 !********************************************************************** 
 !
-      SUBROUTINE get_symmetry_type (SPC_MAX, spc_n, spc_mat, spc_spur,  &
+SUBROUTINE get_symmetry_type(SPC_MAX, spc_n, spc_mat, spc_spur,  &
       spc_det, spc_char, spc_xyz)
 !-                                                                      
 !     Determines the xyz triplet, and the letter that describes the     
 !     symmetry operation                                                
 !+                                                                      
-      USE blanks_mod
-      IMPLICIT none 
+USE blanks_mod
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
-      INTEGER SPC_MAX 
-      CHARACTER(65) spc_char (1:SPC_MAX) 
-      CHARACTER(87) spc_xyz (1:SPC_MAX) 
-      INTEGER spc_n 
-      REAL spc_mat (4, 4, 1:SPC_MAX) 
-      REAL spc_det (1:SPC_MAX) 
-      REAL spc_spur (1:SPC_MAX) 
+INTEGER, intent(in) :: SPC_MAX 
+INTEGER, intent(in) :: spc_n 
+REAL(kind=PREC_DP), dimension(4,4, 1:SPC_MAX), intent(in)  :: spc_mat  ! (4, 4, 1:SPC_MAX) 
+REAL(kind=PREC_DP), dimension(     1:SPC_MAX), intent(in)  :: spc_spur ! (1:SPC_MAX) 
+REAL(kind=PREC_DP), dimension(     1:SPC_MAX), intent(in)  :: spc_det  ! (1:SPC_MAX) 
+CHARACTER(len=65),  dimension(     1:SPC_MAX), intent(out) :: spc_char ! (1:SPC_MAX) 
+CHARACTER(len=87),  dimension(     1:SPC_MAX), intent(out) :: spc_xyz  ! (1:SPC_MAX) 
 !                                                                       
-      INTEGER i, j, ii, ja, je 
-      INTEGER pwr ( - 3:3, - 1:1) 
-      INTEGER power 
-      CHARACTER(2) typ ( - 3:3, - 1:1) 
-      CHARACTER(LEN=1) :: xyz (3) = (/'x','y','z'/)
-      CHARACTER(LEN=6) :: vec (-12:12) 
-      REAL work (3, 3) 
-      REAL add (3) 
-      REAL axis (3) 
-      REAL posit (3) 
-      REAL screw (3) 
-      REAL hkl (3) 
-      INTEGER           :: mult
-      REAL              :: fact
+INTEGER :: i, j, ii, ja, je 
+INTEGER, dimension( - 3:3, - 1:1) :: pwr  ! ( - 3:3, - 1:1) 
+INTEGER :: power 
+CHARACTER(len=2), dimension( - 3:3, - 1:1) :: typ  !( - 3:3, - 1:1) 
+CHARACTER(LEN=1), dimension(3), parameter :: xyz = (/'x','y','z'/)
+CHARACTER(LEN=6), dimension(-12:12)       :: vec !(-12:12) 
+REAL(kind=PREC_DP), dimension(3,3) :: work ! (3, 3) 
+REAL(kind=PREC_DP), dimension(3) :: add    ! (3) 
+REAL(kind=PREC_DP), dimension(3) :: axis   ! (3) 
+REAL(kind=PREC_DP), dimension(3) :: posit  ! (3) 
+REAL(kind=PREC_DP), dimension(3) :: screw  ! (3) 
+REAL(kind=PREC_DP), dimension(3) :: hkl    ! (3) 
+INTEGER           :: mult
+REAL(kind=PREC_DP):: fact
 !                                                                       
       DO i = - 3, 3 
          DO j = - 1, 1 
@@ -544,61 +554,59 @@ END SUBROUTINE spcgr_setting
 7100  FORMAT(SP,F6.3    ,', ')
 !
       END SUBROUTINE get_symmetry_type              
+!
 !****&******************************************************************
-      SUBROUTINE get_detail (work, add, w_char, power, axis, screw, &
-      posit, hkl)                                                       
+!
+SUBROUTINE get_detail (work, add, w_char, power, axis, screw, posit, hkl)
 !-                                                                      
 !     Determines the local symmetry of the position given in the line   
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE tensors_mod
-      USE trafo_mod
-!     USE matrix_mod
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+!USE tensors_mod
+!USE trafo_mod
+use matrix_mod
+use precision_mod
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      REAL work (3, 3) 
-      REAL add (3) 
-      CHARACTER(65) w_char 
-      INTEGER power 
-      REAL axis (3) 
-      REAL screw (3) 
-      REAL posit (3) 
-      REAL posit1bar (3) 
-      REAL hkl (3) 
+REAL(kind=PREC_DP), dimension(3, 3), intent(in) :: work ! (3, 3) 
+REAL(kind=PREC_DP), dimension(3)   , intent(in) :: add  ! (3) 
+CHARACTER(len=65)                  , intent(out) :: w_char 
+INTEGER , intent(in) :: power 
+REAL(kind=PREC_DP), dimension(3), intent(out) :: axis (3) 
+REAL(kind=PREC_DP), dimension(3), intent(out) :: screw (3) 
+REAL(kind=PREC_DP), dimension(3), intent(out) :: posit (3) 
+REAL(kind=PREC_DP), dimension(3), intent(out) :: hkl (3) 
 !                                                                       
-      CHARACTER(1) abc (0:3) 
-      CHARACTER(3) xyz (3, - 2:2) 
-      CHARACTER(3) xxx (3, - 2:2) 
-      CHARACTER(3) Oyy (3, - 2:2) 
-      CHARACTER(6) ctrans ( - 24:24) 
-      INTEGER i, j, k, l 
-      INTEGER ia, ie 
-      INTEGER ii, jj, kk 
-      INTEGER :: nnull = 0
-      INTEGER nnullg 
-      INTEGER iglide 
-      LOGICAL lsearch 
-      REAL cp (3, 3) 
-      REAL temp (3, 3) 
-      REAL t2 (3, 3) 
-      REAL sum (3, 3) 
-      REAL imat (3, 3) 
-      REAL vector (3) 
-      REAL p3 (3) 
-      REAL hmin 
-      REAL det 
-      REAL :: factor = 1.0
-      REAL scale 
-      REAL glide 
-      REAL eps 
-!      REAL :: alphaQ, detQ, traceQ
-!REAL, DIMENSION(3) :: axisQ
-!      INTEGER :: ier
+CHARACTER(len=1), dimension(0:3)     :: abc ! (0:3) 
+CHARACTER(len=3), dimension(3, -2:2) :: xyz ! (3, - 2:2) 
+CHARACTER(len=3), dimension(3, -2:2) :: xxx ! (3, - 2:2) 
+CHARACTER(len=3), dimension(3, -2:2) :: Oyy ! (3, - 2:2) 
+CHARACTER(len=6), dimension(-24:24)  :: ctrans ! ( - 24:24) 
+INTEGER :: i, j, k, l 
+INTEGER :: ia, ie 
+INTEGER ::  ii, jj, kk 
+INTEGER :: nnull = 0
+INTEGER :: nnullg 
+INTEGER :: iglide 
+LOGICAL :: lsearch 
+REAL(kind=PREC_DP), dimension(3)   :: posit1bar ! (3) 
+REAL(kind=PREC_DP), dimension(3,3) :: cp ! (3, 3) 
+REAL(kind=PREC_DP), dimension(3,3) :: temp ! (3, 3) 
+REAL(kind=PREC_DP), dimension(3,3) :: t2 ! (3, 3) 
+REAL(kind=PREC_DP), dimension(3,3) :: summe ! (3, 3) 
+REAL(kind=PREC_DP), dimension(3,3) :: imat ! (3, 3) 
+REAL(kind=PREC_DP), dimension(3)   :: vector ! (3) 
+REAL(kind=PREC_DP), dimension(3)   :: p3 ! (3) 
+REAL(kind=PREC_DP) :: hmin 
+REAL(kind=PREC_DP) :: det 
+REAL(kind=PREC_DP) :: factor = 1.0
+REAL(kind=PREC_DP) :: scale 
+REAL(kind=PREC_DP) :: glide 
+REAL(kind=PREC_DP) :: eps 
 !                                                                       
-      DATA eps / 0.0001 / 
+DATA eps / 0.0001 / 
 !                                                                       
       abc (0) = 'm' 
       abc (1) = 'a' 
@@ -728,9 +736,9 @@ END SUBROUTINE spcgr_setting
          DO i = 1, 3 
          DO j = 1, 3 
          temp (i, j) = work (i, j) 
-         sum (i, j) = 0.0 
+         summe (i, j) = 0.0 
          ENDDO 
-         sum (i, i) = 1.0 
+         summe (i, i) = 1.0 
          ENDDO 
 !                                                                       
          factor = 1. 
@@ -819,11 +827,12 @@ END SUBROUTINE spcgr_setting
             DO l = 2, power 
             DO i = 1, 3 
             DO j = 1, 3 
-            sum (i, j) = sum (i, j) + temp (i, j) 
+            summe (i, j) = summe (i, j) + temp (i, j) 
             ENDDO 
             ENDDO 
             IF (l.lt.power) then 
-               CALL matmulx (t2, temp, work) 
+!              CALL matmulx (t2, temp, work) 
+               t2 = matmul(temp, work)
                DO i = 1, 3 
                DO j = 1, 3 
                temp (i, j) = t2 (i, j) 
@@ -834,7 +843,7 @@ END SUBROUTINE spcgr_setting
             DO i = 1, 3 
             screw (i) = 0.0 
             DO j = 1, 3 
-            screw (i) = screw (i) + sum (i, j) * add (j) 
+            screw (i) = screw (i) + summe (i, j) * add (j) 
             ENDDO 
             screw (i) = screw (i) / power 
             ENDDO 
@@ -861,7 +870,8 @@ END SUBROUTINE spcgr_setting
 !                                                                       
          IF (det.ne.0) then 
 !     --This allows to calculate the position directly                  
-            CALL invmat (imat, cp) 
+!           CALL invmat (imat, cp) 
+            call matinv3(cp, imat)
             DO i = 1, 3 
             posit1bar (i) = 0.0 
             DO j = 1, 3 
@@ -873,20 +883,21 @@ END SUBROUTINE spcgr_setting
             DO i = 1, 3 
             DO j = 1, 3 
             temp (i, j) = work (i, j) * factor 
-            sum (i, j) = 0.0 
+            summe (i, j) = 0.0 
             ENDDO 
-            sum (i, i) = power - 1.0 
+            summe (i, i) = power - 1.0 
             ENDDO 
 !                                                                       
 !     --First add (power-l)*M**(l-1) for l = 1 to power-1               
             DO l = 2, power - 1 
             DO i = 1, 3 
             DO j = 1, 3 
-            sum (i, j) = sum (i, j) + (power - l) * temp (i, j) 
+            summe (i, j) = summe (i, j) + (power - l) * temp (i, j) 
             ENDDO 
             ENDDO 
             IF (l.lt.power - 1) then 
-               CALL matmulx (t2, temp, work) 
+!              CALL matmulx (t2, temp, work) 
+               t2 = matmul(temp, work)
                DO i = 1, 3 
                DO j = 1, 3 
                temp (i, j) = t2 (i, j) 
@@ -897,7 +908,7 @@ END SUBROUTINE spcgr_setting
             DO i = 1, 3 
             posit (i) = 0.0 
             DO j = 1, 3 
-            posit (i) = posit (i) + sum (i, j) * vector (j) 
+            posit (i) = posit (i) + summe (i, j) * vector (j) 
             ENDDO 
             posit (i) = posit (i) / power 
             ENDDO 
@@ -935,7 +946,8 @@ END SUBROUTINE spcgr_setting
          w_char (45:45) = ';' 
       ELSEIF (w_char (2:2) .eq.'m') then 
 !     --for mirror plane, convert axis to hkl                           
-         CALL trans (axis, cr_gten, hkl, 3) 
+!        CALL trans (axis, cr_gten, hkl, 3) 
+         hkl = matmul(cr_gten, axis)
          hmin = 1.e10 
          DO i = 1, 3 
          IF (abs (hkl (i) ) .gt.eps) then 
@@ -943,7 +955,7 @@ END SUBROUTINE spcgr_setting
          ENDIF 
          ENDDO 
          DO i = 1, 3 
-         hkl (i) = REAL(nint (hkl (i) / hmin) ) 
+         hkl (i) = REAL(nint (hkl (i) / hmin), kind=PREC_DP ) 
          ENDDO 
       ENDIF 
       IF (w_char (2:2) .ne.'1'.and.w_char (2:2) .ne.'m') then 
@@ -951,10 +963,10 @@ END SUBROUTINE spcgr_setting
 !     --For rotation axis, clean up positions to look like tables       
 !                                                                       
          IF (nnull.eq.0) then 
-            posit (1) = posit (1) - posit (3) * sign (1., axis (1) )    &
-            * sign (1., axis (3) )                                      
-            posit (2) = posit (2) - posit (3) * sign (1., axis (2) )    &
-            * sign (1., axis (3) )                                      
+            posit (1) = posit (1) - posit (3) * sign (1.D0, axis (1) )    &
+                                              * sign (1.D0, axis (3) )                                      
+            posit (2) = posit (2) - posit (3) * sign (1.D0, axis (2) )    &
+                                              * sign (1.D0, axis (3) )                                      
             posit (3) = 0.0 
          ELSE 
             DO l = 1, 3 
@@ -1030,12 +1042,12 @@ END SUBROUTINE spcgr_setting
          posit (i) = posit (i) - int (posit (i) ) 
          ENDDO 
          IF (abs (hkl (1) ) .eq.2..and.abs (hkl (2) ) .eq.1.) then 
-            posit (2) = posit (2) + posit (1) * sign (2., hkl (1) )     &
-            * sign (1., hkl (2) )                                       
+            posit (2) = posit (2) + posit (1) * sign (2.D0, hkl (1) )     &
+                                              * sign (1.D0, hkl (2) )                                       
             posit (1) = 0.0 
          ELSEIF (abs (hkl (1) ) .eq.1..and.abs (hkl (2) ) .eq.2.) then 
-            posit (1) = posit (1) + posit (2) * sign (2., hkl (2) )     &
-            * sign (1., hkl (1) )                                       
+            posit (1) = posit (1) + posit (2) * sign (2.D0, hkl (2) )     &
+                                              * sign (1.D0, hkl (1) )                                       
             posit (2) = 0.0 
          ENDIF 
          DO l = 1, 3 
@@ -1246,24 +1258,26 @@ END SUBROUTINE spcgr_setting
  3100 FORMAT    (' (',a4,',',a4,',',a4,') ') 
  3200 FORMAT    ('  ',a4,',',a4,',',a4,'  ') 
 !                                                                       
-      END SUBROUTINE get_detail                     
+END SUBROUTINE get_detail                     
 !
 !*******************************************************************************
 !
 SUBROUTINE get_detail_axis(work, w_char, axis)
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
-REAL, DIMENSION(3,3), INTENT(IN)  :: work
-CHARACTER(LEN=*)    , INTENT(IN)  :: w_char
-REAL, DIMENSION(3)  , INTENT(OUT) :: axis
+REAL(kind=PREC_DP), DIMENSION(3,3), INTENT(IN)  :: work
+CHARACTER(LEN=*)                  , INTENT(IN)  :: w_char
+REAL(kind=PREC_DP), DIMENSION(3)  , INTENT(OUT) :: axis
 !
-REAL, PARAMETER      :: EPS = 0.0001
-REAL, DIMENSION(3,3) :: cp
-REAL, DIMENSION(3,3) :: sum
-REAL, DIMENSION(3,3) :: temp
-REAL                 :: factor
-REAL                 :: det
+REAL(kind=PREC_DP), PARAMETER      :: EPS = 0.0001
+REAL(kind=PREC_DP), DIMENSION(3,3) :: cp
+REAL(kind=PREC_DP), DIMENSION(3,3) :: sum
+REAL(kind=PREC_DP), DIMENSION(3,3) :: temp
+REAL(kind=PREC_DP)   :: factor
+REAL(kind=PREC_DP)   :: det
 INTEGER              :: i,j,l
 INTEGER              :: ii, jj, kk
 INTEGER              :: nnull 
@@ -1350,36 +1364,37 @@ ENDIF
 END SUBROUTINE get_detail_axis
 !
 !********************************************************************** 
-      SUBROUTINE wyckoff_main (zeile, lp) 
+!
+SUBROUTINE wyckoff_main (zeile, lp) 
 !-                                                                      
 !     Determines the local symmetry of the position given in the line   
 !+                                                                      
-      USE ber_params_mod
-      USE get_params_mod
+USE ber_params_mod
+USE get_params_mod
 USE precision_mod
 USE str_comp_mod
-      IMPLICIT none 
+!                                                                       
+IMPLICIT none 
+!
+CHARACTER(LEN=PREC_STRING), intent(in) :: zeile 
+INTEGER                   , intent(inout) :: lp 
+!                                                                       
+!INTEGER FULL, SYMBOL, XYZ, MATRIX 
+integer, PARAMETER :: FULL   = 0
+integer, PARAMETER :: SYMBOL = 1
+integer, PARAMETER :: XYZ    = 2
+integer, PARAMETER :: MATRIX = 3
 !                                                                       
 !                                                                       
-      INTEGER FULL, SYMBOL, XYZ, MATRIX 
-      PARAMETER (FULL = 0) 
-      PARAMETER (SYMBOL = 1) 
-      PARAMETER (XYZ = 2) 
-      PARAMETER (MATRIX = 3) 
+INTEGER, PARAMETER :: MAXW = 4 
 !                                                                       
-      CHARACTER(LEN=PREC_STRING) :: zeile 
-      INTEGER lp 
-!                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 4) 
-!                                                                       
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER ianz 
-      INTEGER iianz 
-      INTEGER mode 
-      LOGICAL loutput 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
+CHARACTER(LEN=PREC_STRING), dimension(MAXW) :: cpara !(maxw) 
+INTEGER           , dimension(MAXW) :: lpara !(maxw) 
+INTEGER            :: ianz 
+INTEGER            :: iianz 
+INTEGER            :: mode 
+LOGICAL            :: loutput 
+REAL(KIND=PREC_DP), dimension(MAXW) :: werte !(maxw) 
 !                                                                       
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -1412,44 +1427,45 @@ USE str_comp_mod
          ier_typ = ER_COMM 
       ENDIF 
 !                                                                       
-      END SUBROUTINE wyckoff_main                   
+END SUBROUTINE wyckoff_main                   
+!
 !********************************************************************** 
-      SUBROUTINE get_wyckoff (vec, loutput, mode) 
+!
+SUBROUTINE get_wyckoff (vec, loutput, mode) 
 !-                                                                      
 !     Determines the local symmetry of position xyz within the unit cell
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE wyckoff_mod 
-      USE unitcell_mod 
-      USE prompt_mod
-      USE param_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE wyckoff_mod 
+USE unitcell_mod 
+USE prompt_mod
+USE param_mod
 USE precision_mod
-      IMPLICIT none 
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      REAL(KIND=PREC_DP) ::  vec (3) 
-      LOGICAL loutput 
-      INTEGER mode 
+REAL(KIND=PREC_DP), intent(inout) ::  vec (3) 
+LOGICAL           , intent(in) :: loutput 
+INTEGER           , intent(in) :: mode 
 !                                                                       
-      INTEGER FULL, SYMBOL, XYZ, MATRIX 
-      PARAMETER (FULL = 0) 
-      PARAMETER (SYMBOL = 1) 
-      PARAMETER (XYZ = 2) 
-      PARAMETER (MATRIX = 3) 
+!     INTEGER FULL, SYMBOL, XYZ, MATRIX 
+integer,      PARAMETER :: FULL   = 0
+integer,      PARAMETER :: SYMBOL = 1
+integer,      PARAMETER :: XYZ    = 2
+integer,      PARAMETER :: MATRIX = 3
 !                                                                       
-      INTEGER i, j 
-      INTEGER is 
-      INTEGER n_center 
-      INTEGER igroup 
-      INTEGER :: block = 1
-      LOGICAL lident 
-      REAL(KIND=PREC_DP) :: orig (4) 
-      REAL(KIND=PREC_DP) :: copy (4) 
-      REAL eps 
+INTEGER :: i, j 
+INTEGER :: is 
+INTEGER :: n_center 
+INTEGER :: igroup 
+INTEGER :: block = 1
+LOGICAL :: lident 
+REAL(KIND=PREC_DP), dimension(4) :: orig ! (4) 
+REAL(KIND=PREC_DP), dimension(4) :: copy ! (4) 
+REAL(kind=PREC_DP) :: eps 
 !                                                                       
-      DATA eps / 0.00001 / 
+DATA eps / 0.00001 / 
 !                                                                       
       n_center = 1 
       IF (cr_spcgr (1:1) .eq.'P') then 
@@ -1527,8 +1543,8 @@ USE precision_mod
                j, is), j = 1, 4)                                        
             ENDIF 
          ENDIF 
-         res_para(0) = REAL(NINT(res_para(0)+1))
-         res_para(NINT(res_para(0))) = REAL(is)
+         res_para(0) = REAL(NINT(res_para(0)+1), kind=PREC_DP)
+         res_para(NINT(res_para(0))) = REAL(is, kind=PREC_DP)
       ENDIF 
 !                                                                       
       ENDDO 
@@ -1536,9 +1552,9 @@ USE precision_mod
       IF (loutput) then 
          WRITE (output_io, 6000) spc_n / wyc_n, wyc_n, spc_n 
       ENDIF 
-      res_para(1) = REAL(spc_n / wyc_n)
-      res_para(2) = REAL(        wyc_n)
-      res_para(3) = REAL(spc_n        )
+      res_para(1) = REAL(spc_n / wyc_n, kind=PREC_DP)
+      res_para(2) = REAL(        wyc_n, kind=PREC_DP)
+      res_para(3) = REAL(spc_n        , kind=PREC_DP)
 !                                                                       
   900 FORMAT    (/,' Wyckoff symmetry for position ',3f12.6,/) 
  1000 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')') 
@@ -1554,9 +1570,11 @@ USE precision_mod
  6000 FORMAT    (/,' Multiplicity;   No of Sym. Op. in Wyckoff group; ',&
      &  '    Highest Multiplicity',/,i8,20x,i8,20x,i8)                  
 !                                                                       
-      END SUBROUTINE get_wyckoff                    
+END SUBROUTINE get_wyckoff                    
+!
 !********************************************************************** 
-      SUBROUTINE symmetry 
+!
+SUBROUTINE symmetry 
 !-                                                                      
 !     Performs the space group symmetry on the current atom.            
 !     cr_natoms             the current atom number                     
@@ -1565,22 +1583,23 @@ USE precision_mod
 !                           yet symmetrically different atoms           
 !                                                                       
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE generate_mod 
-      USE gen_add_mod 
-      USE molecule_mod 
-      USE sym_add_mod 
-      USE unitcell_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+USE generate_mod 
+USE gen_add_mod 
+USE molecule_mod 
+USE sym_add_mod 
+USE unitcell_mod 
+!
+use precision_mod
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      REAL eps 
-      INTEGER ii, iii, igs, igg 
-      INTEGER iiii 
+REAL(kind=PREC_DP) :: eps 
+INTEGER :: ii, iii, igs, igg 
+INTEGER :: iiii 
 !                                                                       
-      DATA eps / 0.00001 / 
+DATA eps / 0.00001 / 
 !                                                                       
 !     ii is the number of the atom the symmetry is to work on           
 !                                                                       
@@ -1662,7 +1681,8 @@ USE precision_mod
 !                                                                       
       ENDIF 
 !                                                                       
-      END SUBROUTINE symmetry                       
+END SUBROUTINE symmetry                       
+!
 !********************************************************************** 
 !
 SUBROUTINE symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos,    &
@@ -1672,7 +1692,7 @@ SUBROUTINE symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos,    &
 !     Applies the generator to the current atom                         
 !+                                                                      
 USE molecule_mod 
-USE trafo_mod
+!USE trafo_mod
 USE precision_mod
 !
 IMPLICIT none 
@@ -1681,32 +1701,32 @@ INTEGER,                       INTENT(IN)     ::  NMAX
 !
 INTEGER,                       INTENT(INOUT)  :: cr_iset
 INTEGER,                       INTENT(INOUT)  :: cr_natoms
-REAL   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
+REAL(kind=PREC_DP)   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
 INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
 INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
 INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
-REAL   , DIMENSION(0:3,1:NMAX),INTENT(INOUT)  :: cr_magn
+REAL(kind=PREC_DP)   , DIMENSION(0:3,1:NMAX),INTENT(INOUT)  :: cr_magn
 INTEGER                   ,    INTENT(IN)     :: ii
 INTEGER                   ,    INTENT(IN)     :: iii
 INTEGER                   ,    INTENT(IN)     :: iiii 
 INTEGER                       ,INTENT(IN)     :: igg 
 INTEGER                       ,INTENT(IN)     :: NG 
-REAL   , DIMENSION(4,4,0:NG)  ,INTENT(IN)     :: generators! (4, 4, 0:NG) 
+REAL(kind=PREC_DP)   , DIMENSION(4,4,0:NG)  ,INTENT(IN)     :: generators! (4, 4, 0:NG) 
 INTEGER, DIMENSION(NG)        ,INTENT(IN)     :: generpower! (NG) 
 !                                                                       
-REAL(KIND=PREC_SP), DIMENSION(4, 4) :: generator
+REAL(KIND=PREC_DP), DIMENSION(4, 4) :: generator
 !                                                                       
 INTEGER  :: ia, iaa, ipg 
 INTEGER  :: i, j, k 
 LOGICAL  :: lnew 
-REAL(KIND=PREC_SP), DIMENSION(4)   :: x    ! (4)
-REAL(KIND=PREC_SP), DIMENSION(4)   :: y    ! (4)
+REAL(KIND=PREC_DP), DIMENSION(4)   :: x    ! (4)
+REAL(KIND=PREC_DP), DIMENSION(4)   :: y    ! (4)
 REAL(KIND=PREC_DP), DIMENSION(4)   :: yy   ! (4)
-REAL(KIND=PREC_SP), DIMENSION(4)   :: mmi  ! (4)     ! magnetic moment vector
-REAL(KIND=PREC_SP), DIMENSION(4)   :: mm   ! (4)     ! magnetic moment vector
-REAL(KIND=PREC_SP), DIMENSION(4,4) :: wmat ! (4, 4) 
-REAL(KIND=PREC_SP), DIMENSION(4,4) :: xmat ! (4, 4) 
-REAL  :: eps 
+REAL(KIND=PREC_DP), DIMENSION(4)   :: mmi  ! (4)     ! magnetic moment vector
+REAL(KIND=PREC_DP), DIMENSION(4)   :: mm   ! (4)     ! magnetic moment vector
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: wmat ! (4, 4) 
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: xmat ! (4, 4) 
+REAL(kind=PREC_DP)  :: eps 
 REAL(KIND=PREC_DP) :: compare (4), previous (4) 
 !                                                                       
 DATA eps / 0.00001 / 
@@ -1752,18 +1772,20 @@ lp_gener: DO ipg = 1, generpower (igg)
          x(i) = cr_pos(i, iaa) 
       ENDDO 
       x(4) = 1.0 
-      CALL trans(x, wmat, y, 4) 
+!     CALL trans(x, wmat, y, 4) 
+      y = matmul(wmat, x)
       DO i = 1, 3 
          compare(i) = y(i) 
       ENDDO 
       compare(4) = 1.0 
       CALL firstcell(compare, 4) 
-      yy(:) = REAL(y)
+      yy(:) = REAL(y, kind=PREC_DP)
 !
       IF(cr_magn(0,iaa) > 0.0) THEN
          mmi(1:3) = cr_magn(1:3,iaa)    ! Copy magnetic moment, ignore translations
          mmi(4)   = 0.0
-         CALL trans(mmi, wmat, mm, 4) 
+!        CALL trans(mmi, wmat, mm, 4) 
+         mm = matmul(wmat, mmi)
       ELSE
          mm = 0.0
       ENDIF
@@ -1855,7 +1877,7 @@ use precision_mod
 implicit none 
 !                                                                       
 integer                             , intent(in)    :: NNMAX   ! Maximum position numbers
-real(kind=PREC_SP), dimension(NNMAX), intent(inout) :: pos
+real(kind=PREC_DP), dimension(NNMAX), intent(inout) :: pos
 integer                             , intent(out)   :: npos   ! number of generated positions
 !
 INTEGER :: ii, iii, igs, igg 
@@ -1941,7 +1963,7 @@ SUBROUTINE symmetry_orbit (NMAX, cr_iset, npos, pos,    &
 !  Applies the generator to the current position to create a 
 !  full set of Wyckoff positions
 !+                                                                      
-USE trafo_mod
+!USE trafo_mod
 USE precision_mod
 !
 IMPLICIT none 
@@ -1950,25 +1972,25 @@ INTEGER,                       INTENT(IN)     ::  NMAX
 !
 INTEGER,                       INTENT(IN   )  :: cr_iset
 INTEGER,                       INTENT(INOUT)  :: npos
-REAL   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: pos
+REAL(kind=PREC_DP)   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: pos
 INTEGER                   ,    INTENT(IN)     :: ii
 INTEGER                   ,    INTENT(IN)     :: iii
 INTEGER                   ,    INTENT(IN)     :: iiii 
 INTEGER                       ,INTENT(IN)     :: igg 
 INTEGER                       ,INTENT(IN)     :: NG 
-REAL   , DIMENSION(4,4,0:NG)  ,INTENT(IN)     :: generators! (4, 4, 0:NG) 
+REAL(kind=PREC_DP)   , DIMENSION(4,4,0:NG)  ,INTENT(IN)     :: generators! (4, 4, 0:NG) 
 INTEGER, DIMENSION(NG)        ,INTENT(IN)     :: generpower! (NG) 
 !                                                                       
-REAL(KIND=PREC_SP), DIMENSION(4, 4) :: generator
+REAL(KIND=PREC_DP), DIMENSION(4, 4) :: generator
 !                                                                       
 INTEGER  :: ia, iaa, ipg 
 INTEGER  :: i
 LOGICAL  :: lnew 
-REAL(KIND=PREC_SP), DIMENSION(4)   :: x    ! (4)
-REAL(KIND=PREC_SP), DIMENSION(4)   :: y    ! (4)
+REAL(KIND=PREC_DP), DIMENSION(4)   :: x    ! (4)
+REAL(KIND=PREC_DP), DIMENSION(4)   :: y    ! (4)
 REAL(KIND=PREC_DP), DIMENSION(4)   :: yy   ! (4)
-REAL(KIND=PREC_SP), DIMENSION(4,4) :: wmat ! (4, 4) 
-REAL(KIND=PREC_SP), DIMENSION(4,4) :: xmat ! (4, 4) 
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: wmat ! (4, 4) 
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: xmat ! (4, 4) 
 REAL  :: eps 
 REAL(KIND=PREC_DP) :: compare (4), previous (4) 
 !                                                                       
@@ -2002,13 +2024,14 @@ lp_gener: DO ipg = 1, generpower (igg)
          x(i) = pos(i, iaa) 
       ENDDO 
       x(4) = 1.0 
-      CALL trans(x, wmat, y, 4) 
+!     CALL trans(x, wmat, y, 4) 
+      y = matmul(wmat, x)
       DO i = 1, 3 
          compare(i) = y(i) 
       ENDDO 
       compare(4) = 1.0 
       CALL firstcell(compare, 4) 
-      yy(:) = REAL(y)
+      yy(:) = y
 !                                                                       
 !     ------Transform atom into first unit cell,                        
 !                                                                       
@@ -2058,35 +2081,35 @@ ENDDO lp_gener
 end subroutine symmetry_orbit                 
 !
 !********************************************************************** 
-      SUBROUTINE mole_insert (ii) 
+!
+SUBROUTINE mole_insert (ii) 
 !-                                                                      
 !     Sorts the newly created atoms into the correct molecules.         
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE molecule_mod 
-      USE wyckoff_mod 
+USE discus_config_mod 
+USE crystal_mod 
+USE molecule_mod 
+USE wyckoff_mod 
 USE precision_mod
-      IMPLICIT none 
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      INTEGER ii 
+INTEGER :: ii 
 !                                                                       
-      INTEGER i, j, l 
-      INTEGER m
-      INTEGER is 
-      INTEGER ifirst 
-      INTEGER mole_st 
-      INTEGER mole_temp (192) 
+INTEGER :: i, j, l 
+INTEGER :: m
+INTEGER :: is 
+INTEGER :: ifirst 
+INTEGER :: mole_st 
+INTEGER, dimension(192) :: mole_temp ! (192) 
 !                                                                       
-      LOGICAL lsame 
+LOGICAL lsame 
 !                                                                       
-      REAL(KIND=PREC_DP) :: vec (3), orig (4), old (3) 
-      REAL(KIND=PREC_DP) :: first (3) 
-      REAL eps 
+REAL(KIND=PREC_DP) :: vec (3), orig (4), old (3) 
+REAL(KIND=PREC_DP) :: first (3) 
+REAL(kind=PREC_DP) :: eps 
 !                                                                       
-      DATA eps / 0.00001 / 
+DATA eps / 0.00001 / 
 !                                                                       
                                                                         
       DO i = 1, 192 
@@ -2190,30 +2213,33 @@ USE precision_mod
          CALL first_mole (mole_st) 
       ENDIF 
 !                                                                       
-      END SUBROUTINE mole_insert                    
+END SUBROUTINE mole_insert                    
+!
 !********************************************************************** 
-      SUBROUTINE mole_insert_current (iatom, imole) 
+!
+SUBROUTINE mole_insert_current (iatom, imole) 
 !-                                                                      
 !     Inserts the last atom into the molecule list as last atom of      
 !     the specified molecule.                                           
 !+                                                                      
-      USE discus_allocate_appl_mod
-      USE crystal_mod
-      USE molecule_mod 
-      USE prop_para_mod
-      IMPLICIT none 
+USE discus_allocate_appl_mod
+USE crystal_mod
+USE molecule_mod 
+USE prop_para_mod
+!
+IMPLICIT none 
 !                                                                       
+INTEGER, INTENT(IN) :: iatom 
+INTEGER, INTENT(IN) :: imole 
 !                                                                       
-      INTEGER, INTENT(IN) :: iatom 
-      INTEGER, INTENT(IN) :: imole 
-      INTEGER :: n_gene
-      INTEGER :: n_symm
-      INTEGER :: n_mole
-      INTEGER :: n_type
-      INTEGER :: n_atom
-      LOGICAL :: need_alloc = .false.
+INTEGER :: n_gene
+INTEGER :: n_symm
+INTEGER :: n_mole
+INTEGER :: n_type
+INTEGER :: n_atom
+LOGICAL :: need_alloc = .false.
 !                                                                       
-      INTEGER i 
+INTEGER i 
 !                                                                       
 !     Move the content of all molecules after "imole" one down the list 
 !     mole_num_atom : total number of atoms in molecules                
@@ -2290,33 +2316,35 @@ USE precision_mod
       cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
       cr_mole(iatom) = imole
 !                                                                       
-      END SUBROUTINE mole_insert_current            
+END SUBROUTINE mole_insert_current            
+!
 !********************************************************************** 
-      SUBROUTINE mole_insert_explicit (iatom, imole, inatom) 
+!
+SUBROUTINE mole_insert_explicit (iatom, imole, inatom) 
 !-                                                                      
 !     Inserts the last atom into the molecule list as last atom of      
 !     the specified molecule.                                           
 !+                                                                      
-      USE discus_allocate_appl_mod
-      USE crystal_mod
-      USE molecule_mod 
-      USE prop_para_mod
-      IMPLICIT none 
+USE discus_allocate_appl_mod
+USE crystal_mod
+USE molecule_mod 
+USE prop_para_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      INTEGER, INTENT(IN) :: iatom 
-      INTEGER, INTENT(IN) :: imole 
-      INTEGER, INTENT(IN) :: inatom
+INTEGER, INTENT(IN) :: iatom 
+INTEGER, INTENT(IN) :: imole 
+INTEGER, INTENT(IN) :: inatom
 !
-      INTEGER :: n_gene
-      INTEGER :: n_symm
-      INTEGER :: n_mole
-      INTEGER :: n_type
-      INTEGER :: n_atom
-      INTEGER :: ishift
-      LOGICAL :: need_alloc = .false.
+INTEGER :: n_gene
+INTEGER :: n_symm
+INTEGER :: n_mole
+INTEGER :: n_type
+INTEGER :: n_atom
+INTEGER :: ishift
+LOGICAL :: need_alloc = .false.
 !                                                                       
-      INTEGER i 
+INTEGER :: i 
 !                                                                       
 !                                                                       
 !     Move the content of all molecules after "imole" one down the list 
@@ -2401,8 +2429,10 @@ USE precision_mod
       cr_mole(iatom) = imole
 !
 END SUBROUTINE mole_insert_explicit
+!
 !********************************************************************** 
-      SUBROUTINE first_mole (mole_st) 
+!
+SUBROUTINE first_mole (mole_st) 
 !-                                                                      
 !     Moves atoms by +- one unit cell to keep molecules concatenated    
 !     The algorithm of this subroutine is based on the assumption,      
@@ -2418,27 +2448,28 @@ END SUBROUTINE mole_insert_explicit
 !     If the molecule does not include an atom on the highest point     
 !     of the molecule symmetry, you must insert a "void" on this site.  
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE metric_mod
-      USE molecule_mod 
+USE discus_config_mod 
+USE crystal_mod 
+USE metric_mod
+USE molecule_mod 
 !
-      USE prompt_mod
-      IMPLICIT none 
+use precision_mod
+USE prompt_mod
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      LOGICAL lspace 
-      PARAMETER (lspace = .true.) 
+INTEGER, intent(inout) :: mole_st 
+!
+!     LOGICAL lspace 
+logical,       PARAMETER  :: lspace = .true. 
 !                                                                       
-      INTEGER mole_st 
-      INTEGER i, j, k1, k2, k3 
-      INTEGER k1u, k1o, k2u, k2o, k3u, k3o 
-      REAL d, dd 
-      REAL u (3), v (3) 
-      REAL x, y, z 
-      REAL :: d_min
-      REAL, DIMENSION(1:3) :: v_min
+INTEGER :: i, j, k1, k2, k3 
+INTEGER :: k1u, k1o, k2u, k2o, k3u, k3o 
+REAL(kind=PREC_DP) :: d, dd 
+REAL(kind=PREC_DP), dimension(3) :: u,v ! u (3), v (3) 
+REAL(kind=PREC_DP) :: x, y, z 
+REAL(kind=PREC_DP) :: d_min
+REAL(kind=PREC_DP), DIMENSION(1:3) :: v_min
 !                                                                       
 !     REAL do_blen 
 !                                                                       
@@ -2525,9 +2556,9 @@ END SUBROUTINE mole_insert_explicit
       DO k1 = 2, - 2, - 1 
       DO k2 = 2, - 2, - 1 
       DO k3 = 2, - 2, - 1 
-      v (1) = cr_pos (1, mole_cont (mole_off (i) + j) ) + REAL(k1) 
-      v (2) = cr_pos (2, mole_cont (mole_off (i) + j) ) + REAL(k2) 
-      v (3) = cr_pos (3, mole_cont (mole_off (i) + j) ) + REAL(k3) 
+      v (1) = cr_pos (1, mole_cont (mole_off (i) + j) ) + REAL(k1, kind=PREC_DP) 
+      v (2) = cr_pos (2, mole_cont (mole_off (i) + j) ) + REAL(k2, kind=PREC_DP) 
+      v (3) = cr_pos (3, mole_cont (mole_off (i) + j) ) + REAL(k3, kind=PREC_DP) 
       dd = do_blen (lspace, u, v) 
 !DBG                                                                    
 !DBG      write (output_io,5556) u,j,mole_off(i)+j,v,dd                 
@@ -2562,93 +2593,125 @@ END SUBROUTINE mole_insert_explicit
       ENDDO 
       ENDDO 
 !                                                                       
-      END SUBROUTINE first_mole                     
+END SUBROUTINE first_mole                     
+!
 !********************************************************************** 
-      SUBROUTINE mole_firstcell 
+!
+SUBROUTINE mole_firstcell 
 !-                                                                      
 !     Moves molecules whose first atom is outside the unit cell into    
 !     the first unit cell.                                              
 !+                                                                      
-      USE discus_config_mod 
-      USE molecule_mod 
-      USE crystal_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE molecule_mod 
+USE crystal_mod 
+!
+use precision_mod
+IMPLICIT none 
 !                                                                       
-       
+!REAL eps 
+real(kind=PREC_DP),  PARAMETER :: eps = 1.e-5
 !                                                                       
-      REAL eps 
-      PARAMETER (eps = 1.e-5) 
-!                                                                       
-      INTEGER i, j, k 
-      REAL x, x1 
+INTEGER :: i, j, k 
+REAL(kind=PREC_DP) :: x, x1 
 !                                                                       
 !     Loop over all molecules from current to last                      
 !                                                                       
-      DO j = mole_num_curr, mole_num_mole 
-      DO i = 1, 3 
+DO j = mole_num_curr, mole_num_mole 
+   DO i = 1, 3 
       x = cr_pos (i, mole_cont (mole_off (j) + 1) ) 
-      x1 = REAL(int (x) ) 
+      x1 = REAL(int (x) , kind=PREC_DP) 
       IF (x - x1.lt. - eps) x1 = x1 - 1 
       IF (abs (x1) .gt.eps) then 
 !                                                                       
 !     ------Loop over all atoms in molecule j                           
 !                                                                       
          DO k = 1, mole_len (j) 
-         cr_pos (i, mole_cont (mole_off (j) + k) ) = cr_pos (i,         &
-         mole_cont (mole_off (j) + k) ) - x1                            
+            cr_pos (i, mole_cont (mole_off (j) + k) ) = cr_pos (i,         &
+            mole_cont (mole_off (j) + k) ) - x1                            
          ENDDO 
       ENDIF 
-      ENDDO 
-      ENDDO 
-      END SUBROUTINE mole_firstcell                 
+   ENDDO 
+ENDDO 
+!
+END SUBROUTINE mole_firstcell                 
+!
 !********************************************************************** 
-      SUBROUTINE firstcell (y, idim) 
+!
+SUBROUTINE firstcell(y, idim) 
 !-                                                                      
 !     truncates atomic position to fractal position of                  
 !     0.0 <= x < 1                                                      
 !+                                                                      
 USE precision_mod
-      IMPLICIT none 
+!
+IMPLICIT none 
 !                                                                       
-      INTEGER idim, i 
-      REAL(KIND=PREC_DP) :: y (idim) 
+INTEGER, intent(in) :: idim
+REAL(KIND=PREC_DP), dimension(idim), intent(inout) :: y (idim) 
+!
+integer :: i 
 !                                                                       
 !write(*,*) ' IN FIRSTCELL ', y
-      DO i = 1, 3 
-      y (i) = y (i) - REAL(int (y (i) ) ) 
-      IF (y (i) .lt.0.0) y (i) = y (i) + 1 
-      IF (y (i) .eq.1.0) y (i) = 0.0 
-      ENDDO 
+DO i = 1, 3 
+   y (i) = y (i) - REAL(int (y (i) ) , kind=PREC_DP) 
+   IF (y (i) .lt.0.0) y (i) = y (i) + 1 
+   IF (y (i) .eq.1.0) y (i) = 0.0 
+ENDDO 
 !write(*,*) ' DID     CELL ', y
-      END SUBROUTINE firstcell                      
+!
+END SUBROUTINE firstcell                      
+!
 !*****7**************************************************************** 
-      SUBROUTINE setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
+!
+SUBROUTINE setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
       cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat,    &
       cr_cartesian,                                                     &
               cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !-                                                                      
 !     Updates the crystal lattice and symmetry information              
 !+                                                                      
-      USE trafo_mod
-      IMPLICIT none 
+USE trafo_mod
+use precision_mod
 !
-      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_g
-      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_gi
-      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_f
-      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_fi
+IMPLICIT none 
+!
+real(kind=PREC_DP), dimension(3)    , intent(in)    :: cr_a0
+real(kind=PREC_DP), dimension(3)    , intent(out)   :: cr_ar
+real(kind=PREC_DP), dimension(3,3,3), intent(inout) :: cr_eps
+real(kind=PREC_DP), dimension(3,3)  , intent(inout) :: cr_gten
+real(kind=PREC_DP), dimension(3,3,3), intent(inout) :: cr_reps
+real(kind=PREC_DP), dimension(3,3)  , intent(inout) :: cr_rten
+real(kind=PREC_DP), dimension(3)    , intent(in)    :: cr_win
+real(kind=PREC_DP), dimension(3)    , intent(out)   :: cr_wrez
+real(kind=PREC_DP)                  , intent(inout) :: cr_v
+real(kind=PREC_DP)                  , intent(inout) :: cr_vr
+logical                             , intent(in)    :: lout 
+real(kind=PREC_DP), dimension(3,3)  , intent(inout) :: cr_gmat
+real(kind=PREC_DP), dimension(3,3)  , intent(inout) :: cr_fmat
+logical                             , intent(out)   :: cr_cartesian
+real(kind=PREC_DP), dimension(4,4)  , intent(inout) :: cr_tran_g
+real(kind=PREC_DP), dimension(4,4)  , intent(inout) :: cr_tran_gi
+real(kind=PREC_DP), dimension(4,4)  , intent(inout) :: cr_tran_f
+real(kind=PREC_DP), dimension(4,4)  , intent(inout) :: cr_tran_fi
+!
+!
+!     REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_g
+!     REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_gi
+!     REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_f
+!     REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_fi
 !                                                                       
       INTEGER i 
-      LOGICAL lout 
-      LOGICAL cr_cartesian 
-      REAL cr_a0 (3), cr_ar (3), cr_eps (3, 3, 3), cr_gten (3, 3) 
-      REAL cr_reps (3, 3, 3), cr_rten (3, 3), cr_win (3), cr_wrez (3) 
-      REAL cr_v, cr_vr, cr_gmat (3, 3), cr_fmat (3, 3) 
-      REAL hkl (3) 
-      REAL u (3) 
-      REAL xc (3) 
-      REAL yc (3) 
-      REAL zc (3) 
-      REAL dist 
+!     LOGICAL cr_cartesian 
+!     REAL cr_a0 (3), cr_ar (3), cr_eps (3, 3, 3), cr_gten (3, 3) 
+!     REAL cr_reps (3, 3, 3), cr_rten (3, 3), cr_win (3), cr_wrez (3) 
+!     REAL cr_v, cr_vr, cr_gmat (3, 3), cr_fmat (3, 3) 
+      REAL(kind=PREC_DP):: hkl (3) 
+      REAL(kind=PREC_DP):: u (3) 
+      REAL(kind=PREC_DP):: xc (3) 
+      REAL(kind=PREC_DP):: yc (3) 
+      REAL(kind=PREC_DP):: zc (3) 
+      REAL(kind=PREC_DP):: dist 
 !                                                                       
       CALL lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, cr_rten,    &
       cr_win, cr_wrez, cr_v, cr_vr, lout,                               &
@@ -2665,25 +2728,30 @@ USE precision_mod
       cr_gten, cr_rten)                                        
       CALL recip_symm 
 !                                                                       
-      END SUBROUTINE setup_lattice                  
+END SUBROUTINE setup_lattice                  
+!
 !*****7**************************************************************** 
-      SUBROUTINE recip_symm 
+!
+SUBROUTINE recip_symm 
 !-                                                                      
 !     Creates the symmetry matrices in reciprocal space                 
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE recipro_mod 
-      USE rmc_symm_mod
-      USE tensors_mod
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+USE recipro_mod 
+USE rmc_symm_mod
+!USE tensors_mod
+!
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
-      INTEGER i, j, k 
-      LOGICAL lfriedel_remove 
-      LOGICAL lacentric 
-      REAL a (3, 3) 
-      REAL b (3, 3) 
-      REAL h (4, rec_max_sym) 
+INTEGER :: i, j, k 
+LOGICAL :: lfriedel_remove 
+LOGICAL :: lacentric 
+REAL(kind=PREC_DP), dimension(3,3)           :: a ! (3, 3) 
+REAL(kind=PREC_DP), dimension(3,3)           :: b ! (3, 3) 
+REAL(kind=PREC_DP), dimension(4,rec_max_sym) :: h ! (4, rec_max_sym) 
 !                                                                       
 !     Set up a general reflection                                       
 !                                                                       
@@ -2723,8 +2791,10 @@ USE precision_mod
 !                                                                       
 !     --do transformation q = gSg*                                      
 !                                                                       
-      CALL matmulx (b, a, cr_rten) 
-      CALL matmulx (a, cr_gten, b) 
+!     CALL matmulx (b, a, cr_rten) 
+!     CALL matmulx (a, cr_gten, b) 
+      b = matmul(a, cr_rten)
+      a = matmul(cr_gten, b)
       DO i = 1, 3 
       DO j = 1, 3 
       rec_sym (i, j, k) = a (i, j) 
@@ -2739,11 +2809,12 @@ USE precision_mod
 !DBG1010      format(3(f4.1,2x),f7.4)                                   
       ENDDO 
 !                                                                       
-      END SUBROUTINE recip_symm                     
+END SUBROUTINE recip_symm                     
+!
 !*****7*****************************************************************
-      SUBROUTINE lattice (a0, ar, eps, gten, reps, rten, win, wrez, vol,&
-      vr, lout,                                                         &
-              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+!
+SUBROUTINE lattice (a0, ar, eps, gten, reps, rten, win, wrez, vol,              &
+      vr, lout, cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !+                                                                      
 !           Calculates lattice constants, metric and reciprocal metric  
 !           tensor, permutation tensors and unit cell volume.           
@@ -2751,26 +2822,38 @@ USE precision_mod
 !     the direct metric tensor and its inverse.                         
 !-                                                                      
 !                                                                       
-      USE discus_plot_init_mod
-      USE errlist_mod 
-      USE prompt_mod 
-      USE trig_degree_mod
-      USE wink_mod
+USE discus_plot_init_mod
+USE errlist_mod 
+USE prompt_mod 
+USE trig_degree_mod
+USE wink_mod
+use precision_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !
-      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_g
-      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_gi
-      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_f
-      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_fi
+real(kind=PREC_DP), dimension(3)    , intent(in)  :: a0
+real(kind=PREC_DP), dimension(3)    , intent(out) :: ar
+real(kind=PREC_DP), dimension(3,3,3), intent(out) :: eps
+real(kind=PREC_DP), dimension(3,3)  , intent(out) :: gten
+real(kind=PREC_DP), dimension(3,3,3), intent(out) :: reps
+real(kind=PREC_DP), dimension(3,3)  , intent(out) :: rten
+real(kind=PREC_DP), dimension(3)    , intent(in)  :: win
+real(kind=PREC_DP), dimension(3)    , intent(out) :: wrez
+real(kind=PREC_DP)                  , intent(out) :: vol
+real(kind=PREC_DP)                  , intent(out) :: vr
+!
+LOGICAL                             , intent(in)  :: lout 
+REAL(kind=PREC_DP), DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_g
+REAL(kind=PREC_DP), DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_gi
+REAL(kind=PREC_DP), DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_f
+REAL(kind=PREC_DP), DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_fi
 !                                                                       
-      INTEGER i, i1, i2, j 
-      LOGICAL lout 
-      REAL a0 (3), ar (3), eps (3, 3, 3), gten (3, 3) 
-      REAL reps (3, 3, 3), rten (3, 3) 
-      REAL win (3), wrez (3), vol, vr 
-      REAL cosa, cosb, cosg, cos1, cos2, sin1, sin2 
-      REAL cosi!, sind, cosd, acosd 
+      INTEGER :: i, i1, i2, j 
+!     REAL a0 (3), ar (3), eps (3, 3, 3), gten (3, 3) 
+!     REAL reps (3, 3, 3), rten (3, 3) 
+!     REAL win (3), wrez (3), vol, vr 
+      REAL(kind=PREC_DP) :: cosa, cosb, cosg, cos1, cos2, sin1, sin2 
+      REAL(kind=PREC_DP) :: cosi!, sind, cosd, acosd 
 !                                                                       
       cosa = cosd (win (1) ) 
       cosb = cosd (win (2) ) 
@@ -2832,7 +2915,7 @@ USE precision_mod
 !
 !        Initialize trasnformation matrices to cartesian space and back
 !
-         CALL plot_ini_trans (1.0,                          &
+         CALL plot_ini_trans (1.0D0,                        &
               cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi, &
               gten, rten, eps)
 
@@ -2853,32 +2936,42 @@ USE precision_mod
      &           /,6(2X,F9.5),2X,G13.6)                                 
  2004 FORMAT     (/' Reciprocal metric tensor     : '/                  &
      &            (3(' ',3(2X,F11.5)/)))                                
-      END SUBROUTINE lattice                        
+END SUBROUTINE lattice                        
+!
 !*****7*****************************************************************
-      SUBROUTINE tensor (ten, vec, win) 
+!
+SUBROUTINE tensor (ten, vec, win) 
 !+                                                                      
 !     Calculates the metric tensor. Works both for direct and           
 !     reciprocal metric tensor.                                         
 !-                                                                      
-      USE trig_degree_mod
-      IMPLICIT none 
+USE trig_degree_mod
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
+!      INTEGER idim 
+integer, PARAMETER :: idim = 3 
 !                                                                       
-      REAL ten (idim, idim), vec (idim), win (idim) 
+real(kind=PREC_DP), dimension(idim, idim), intent(out) :: ten
+real(kind=PREC_DP), dimension(idim)      , intent(in)  :: vec
+real(kind=PREC_DP), dimension(idim)      , intent(in)  :: win
+!      REAL ten (idim, idim), vec (idim), win (idim) 
 !     REAL cosd 
-      INTEGER i, j 
+INTEGER :: i, j 
 !                                                                       
-      DO i = 1, idim 
-      DO j = 1, idim 
+DO i = 1, idim 
+   DO j = 1, idim 
       IF (i.ne.j) then 
          ten (i, j) = vec (i) * vec (j) * cosd (win (6 - (i + j) ) ) 
       ELSE 
          ten (i, j) = vec (i) * vec (j) 
       ENDIF 
-      ENDDO 
-      ENDDO 
-      END SUBROUTINE tensor                         
+   ENDDO 
+ENDDO 
+!
+END SUBROUTINE tensor                         
+!
 !*****7**************************************************************** 
+!
 END MODULE spcgr_apply

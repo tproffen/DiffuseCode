@@ -1165,6 +1165,8 @@ USE errlist_mod
 USE get_params_mod
 USE precision_mod
 USE str_comp_mod
+use precision_mod
+!
 IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1183,9 +1185,9 @@ INTEGER             :: n_cor  ! Dummy for allocations
 LOGICAL,PARAMETER   :: lold = .true.
 LOGICAL             :: lacentric 
 !                                                                       
-REAL u (3), v (3) 
-REAL uvw (4, max_uvw) 
-REAL uvw_mat (4, 4, max_uvw) 
+REAL(KIND=PREC_DP) :: u (3), v (3) 
+REAL(KIND=PREC_DP) :: uvw (4, max_uvw) 
+REAL(KIND=PREC_DP) :: uvw_mat (4, 4, max_uvw) 
 !                                                                       
 !REAL   , EXTERNAL   :: do_blen 
 !                                                                       
@@ -1612,9 +1614,9 @@ INTEGER :: n_env    ! Dummy number of vectors
 INTEGER :: n_ran    ! Dummy number of vectors
 INTEGER :: n_vec    ! Dummy number of vectors
 INTEGER :: n_atom   ! Dummy number of vectors
-      REAL u (3), v (3) 
-      REAL uvw (4, max_uvw) 
-      REAL uvw_mat (4, 4, max_uvw) 
+      REAL(KIND=PREC_DP) :: u (3), v (3) 
+      REAL(KIND=PREC_DP) :: uvw (4, max_uvw) 
+      REAL(KIND=PREC_DP) :: uvw_mat (4, 4, max_uvw) 
       LOGICAL lacentric, csym 
       LOGICAL :: success = .TRUE.
       LOGICAL :: grand   = .FALSE.
@@ -2057,7 +2059,8 @@ USE str_comp_mod
       INTEGER i, ianz, laenge 
       INTEGER iatom, isite, icell (3) 
       REAL(KIND=PREC_DP) ::  werte (maxw), dummy(1)
-      REAL(KIND=PREC_SP) ::  radius, pos (3) 
+      REAL(KIND=PREC_DP) ::  pos (3) 
+      REAL(KIND=PREC_DP) ::  radius
       LOGICAL latom 
 !                                                                       
 !                                                                       
@@ -2144,7 +2147,7 @@ USE str_comp_mod
       IF (ier_num.ne.0) return 
 !                                                                       
       dummy = - 1 
-      CALL do_find_env (1, dummy, 1, pos, 0.01, radius, chem_quick,     &
+      CALL do_find_env (1, dummy, 1, pos, 0.01D0, radius, chem_quick,     &
       chem_period)                                                      
       IF (ier_num.ne.0) return 
 !                                                                       
@@ -2220,7 +2223,8 @@ USE str_comp_mod
       INTEGER      :: ie_1, ie_2 
       INTEGER      :: ilook  ! Lookup entry in bv_index_table
       REAL(KIND=PREC_DP) ::  werte (maxw), dummy (1)
-      REAL(KIND=PREC_SP) ::  radius, bval, pos (3) 
+      REAL(KIND=PREC_DP) ::  pos (3) 
+      REAL(KIND=PREC_DP) ::  radius, bval
       LOGICAL latom 
 !                                                                       
 !                                                                       
@@ -2295,7 +2299,7 @@ USE str_comp_mod
       IF (ier_num.ne.0) return 
 !                                                                       
       dummy = - 1 
-      CALL do_find_env (1, dummy, 1, pos, 0.01, radius, chem_quick,     &
+      CALL do_find_env (1, dummy, 1, pos, 0.01D0, radius, chem_quick,     &
       chem_period)                                                      
       IF (ier_num.ne.0) return 
 !                                                                       
@@ -3015,11 +3019,11 @@ USE support_mod
       INTEGER xmin, xmax, ymin, ymax 
       INTEGER l, i, ix, iy, ianz, lp 
       REAL(KIND=PREC_DP):: werte (maxw)
-      REAL(KIND=PREC_SP):: nv (3) 
+      REAL(KIND=PREC_DP):: nv (3) 
       REAL(KIND=PREC_SP):: cval (maxval) 
       REAL(KIND=PREC_SP):: back_neig (3, 48, CHEM_MAX_COR) 
-      REAL(KIND=PREC_SP):: back_rmin (CHEM_MAX_COR) 
-      REAL(KIND=PREC_SP):: back_rmax (CHEM_MAX_COR) 
+      REAL(KIND=PREC_DP):: back_rmin (CHEM_MAX_COR) 
+      REAL(KIND=PREC_DP):: back_rmax (CHEM_MAX_COR) 
       LOGICAL locc 
 !                                                                       
 call alloc_mo_ach(chem_ncor)
@@ -3191,7 +3195,9 @@ call alloc_mo_ach(chem_ncor)
 !     Saves/restores current CHEM neighbour settings                    
 !+                                                                      
       USE discus_config_mod 
-      IMPLICIT none 
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
 INTEGER, INTENT(IN) :: CHEM_MAX_COR
 INTEGER, INTENT(IN) :: CHEM_MAX_VEC
@@ -3200,8 +3206,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER b_cvec (5, chem_max_vec) 
       REAL a_neig (3, 48, CHEM_MAX_COR) 
       REAL b_neig (3, 48, CHEM_MAX_COR) 
-      REAL a_rmin (CHEM_MAX_COR), a_rmax (CHEM_MAX_COR) 
-      REAL b_rmin (CHEM_MAX_COR), b_rmax (CHEM_MAX_COR) 
+      REAL(kind=PREC_DP) :: a_rmin (CHEM_MAX_COR), a_rmax (CHEM_MAX_COR) 
+      REAL(kind=PREC_DP) :: b_rmin (CHEM_MAX_COR), b_rmax (CHEM_MAX_COR) 
 !                                                                       
       INTEGER i, j, k 
 !                                                                       
@@ -3233,13 +3239,14 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE chem_mod 
       USE metric_mod
       USE errlist_mod 
+use precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       INTEGER i, j, ix, iy, iv 
       INTEGER cvec (5, chem_max_vec) 
       REAL neig (3, 48, CHEM_MAX_COR) 
-      REAL nv (3), u (3), v (3) 
+      REAL(KIND=PREC_DP) :: nv (3), u (3), v (3) 
 !                                                                       
 !     REAL do_blen 
 !                                                                       
@@ -3352,7 +3359,7 @@ USE support_mod
       REAL bl_sum (0:maxscat, 0:maxscat) 
       REAL bl_s2 (0:maxscat, 0:maxscat) 
       REAL patom (3, 0:MAX_ATOM_ENV) 
-      REAL u (3), v (3), d (3), di 
+      REAL(kind=PREC_DP) ::  u (3), v (3), d (3), di 
       REAL(KIND=PREC_DP) :: wwerte (maxw) 
       LOGICAL lfile 
 !                                                                       
@@ -3501,7 +3508,7 @@ USE support_mod
       INTEGER bl_anz (mole_max_type, mole_max_type) 
       REAL bl_sum (mole_max_type, mole_max_type) 
       REAL bl_s2 (mole_max_type, mole_max_type) 
-      REAL u (3), v (3), d (3), di 
+      REAL(KIND=PREC_DP) :: u (3), v (3), d (3), di 
       LOGICAL lfile 
 !                                                                       
 !     REAL do_blen 
@@ -3667,7 +3674,7 @@ USE support_mod
       REAL ba_sum (0:maxscat, 0:maxscat) 
       REAL ba_s2 (0:maxscat, 0:maxscat) 
       REAL patom (3, 0:MAX_ATOM_ENV) 
-      REAL u (3), v (3), w (3), wi 
+      REAL(kind=PREC_DP) :: u (3), v (3), w (3), wi 
       LOGICAL lfile 
 !                                                                       
 !     REAL do_bang 
@@ -3864,7 +3871,7 @@ USE precision_mod
       INTEGER :: n_res
       REAL patom (3, 0:MAX_ATOM_ENV) 
       REAL(KIND=PREC_DP):: werte (MAXSCAT), wwerte (MAXSCAT) 
-      REAL idir (3), jdir (3), di (3), dj (3) 
+      REAL(KIND=PREC_DP):: idir (3), jdir (3), di (3), dj (3) 
       REAL rdi, rdj, dpi, dpj 
       REAL xij, xi2, xj2 
       LOGICAL lvalid 
@@ -4101,7 +4108,7 @@ USE precision_mod
       INTEGER it1, it2, imol, jmol 
       INTEGER :: n_res
       REAL(KIND=PREC_DP) :: werte (maxww) 
-      REAL idir (3), jdir (3), di (3), dj (3) 
+      REAL(KIND=PREC_DP) ::  idir (3), jdir (3), di (3), dj (3) 
       REAL rdi, rdj, dpi, dpj 
       REAL xij, xi2, xj2 
       LOGICAL lvalid 
@@ -4652,8 +4659,8 @@ USE precision_mod
       INTEGER iatom (0:maxw), jatom, natom, ic 
       REAL patom (3, 0:maxw) 
 !                                                                       
-      REAL u (3), v (3), w (3), uu (3) 
-      REAL offset (3)
+REAL(KIND=PREC_DP):: u (3), v (3), w (3), uu (3) 
+REAL(kind=PREC_DP), dimension(3) :: offset !(3)
 REAL(KIND=PREC_DP) :: dummy(1) 
       INTEGER jcell (3), icell (3), isite, jsite 
       INTEGER i, j, k, ii, iv, katom 
@@ -4963,7 +4970,7 @@ real(kind=PREC_DP), dimension(maxw), intent(in) :: wwerte
 INTEGER i, j, k, l, is, js, ibin 
 INTEGER bl_anz (0:maxscat, 0:maxscat), btot, btottot 
 INTEGER :: n_res
-REAL u (3) 
+REAL(kind=PREC_DP) :: u (3) 
 REAL(KIND=PREC_DP) :: bl_min (0:maxscat, 0:maxscat) 
 REAL(KIND=PREC_DP) :: bl_max (0:maxscat, 0:maxscat) 
 REAL(KIND=PREC_DP) :: bl_sum (0:maxscat, 0:maxscat) 
@@ -5151,7 +5158,7 @@ USE precision_mod
       REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw) 
 !                                                                       
       INTEGER i, j, k, ibin
-      REAL u (3), v (3), dist 
+      REAL(kind=PREC_DP) :: u (3), v (3), dist 
 !
       REAL, DIMENSION(:), ALLOCATABLE :: xwrt
       REAL, DIMENSION(:), ALLOCATABLE :: ywrt
@@ -5257,21 +5264,21 @@ USE precision_mod
       INTEGER ba_env (0:MAX_ATOM_ENV) 
       LOGICAL lspace 
 !
-      REAL, DIMENSION(:), ALLOCATABLE :: xwrt
-      REAL, DIMENSION(:), ALLOCATABLE :: ywrt
+      REAL(kind=PREC_SP) , DIMENSION(:), ALLOCATABLE :: xwrt
+      REAL(kind=PREC_SP) , DIMENSION(:), ALLOCATABLE :: ywrt
       INTEGER                         :: all_status
 !                                                                       
 !     von der relativen Reihenfolge der beiden Statements haengt es ab, 
 !     ob der zweite Nachbar gefunden wird oder nicht !?!?               
 !                                                                       
-      REAL u (3), v (3), w (3), angle 
-      REAL ba_pos (3, MAX_ATOM_ENV) 
+      REAL(kind=PREC_DP) :: u (3), v (3), w (3), angle 
+      REAL(kind=PREC_DP) :: ba_pos (3, MAX_ATOM_ENV) 
                                                                         
-      REAL ba_min (0:maxscat, 0:maxscat) 
-      REAL ba_max (0:maxscat, 0:maxscat) 
-      REAL ba_sum (0:maxscat, 0:maxscat) 
-      REAL ba_s2 (0:maxscat, 0:maxscat) 
-      REAL ba_ave, ba_sig 
+      REAL(kind=PREC_DP) :: ba_min (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) :: ba_max (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) :: ba_sum (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) :: ba_s2 (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) :: ba_ave, ba_sig 
 !                                                                       
       CHARACTER(9) at_name_i 
       CHARACTER(9) at_name_j 
@@ -5393,7 +5400,7 @@ USE precision_mod
       DO i = 1, chem_bin
          xwrt(i) = chem_bang_cut(1) + (chem_bang_cut(2) -chem_bang_cut(1)) * (i-1)/chem_bin
       ENDDO
-      ywrt(1:chem_bin) = chem_hist(1:chem_bin)
+      ywrt(1:chem_bin) = real(chem_hist(1:chem_bin), kind=PREC_DP)
       CALL output_save_file_1d( chem_fname, chem_bin, xwrt, ywrt, 0 )
       DEALLOCATE(xwrt, stat=all_status)
       DEALLOCATE(ywrt, stat=all_status)

@@ -646,8 +646,8 @@ CALL no_error
             .le.cr_natoms) THEN                                         
                cr_pos (1, ww (1) ) = wert 
                l = 1 
-               cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1) ))
-               cr_dim (l, 2) = amax1 (cr_dim (l, 2), cr_pos (l, ww (1) ))
+               cr_dim (l, 1) = min (cr_dim (l, 1), cr_pos (l, ww (1) ))
+               cr_dim (l, 2) = max (cr_dim (l, 2), cr_pos (l, ww (1) ))
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
@@ -663,8 +663,8 @@ CALL no_error
             .le.cr_natoms) THEN                                         
                cr_pos (2, ww (1) ) = wert 
                l = 2 
-               cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1) ))
-               cr_dim (l, 2) = amax1 (cr_dim (l, 2), cr_pos (l, ww (1) ))
+               cr_dim (l, 1) = min (cr_dim (l, 1), cr_pos (l, ww (1) ))
+               cr_dim (l, 2) = max (cr_dim (l, 2), cr_pos (l, ww (1) ))
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
@@ -680,8 +680,8 @@ CALL no_error
             .le.cr_natoms) THEN                                         
                cr_pos (3, ww (1) ) = wert 
                l = 3 
-               cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1)))
-               cr_dim (l, 2) = amax1 (cr_dim (l, 2), cr_pos (l, ww (1)))
+               cr_dim (l, 1) = min (cr_dim (l, 1), cr_pos (l, ww (1)))
+               cr_dim (l, 2) = max (cr_dim (l, 2), cr_pos (l, ww (1)))
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
@@ -947,13 +947,18 @@ USE str_comp_mod
       INTEGER lpara (maxw)
       INTEGER i, j, k, ianz, lcomm, l 
       LOGICAL lspace
-      REAL werte (maxw), u (3), v (3), w (3) 
-      REAL unitmat (3, 3) 
+      REAL werte (maxw)
+real(kind=PREC_DP), dimension(3) :: u
+real(kind=PREC_DP), dimension(3) :: v
+real(kind=PREC_DP), dimension(3) :: w
+real(kind=PREC_DP), dimension(3,3), parameter :: unitmat = reshape((/ 1.0D0, 0.0D0, 0.0D0,  &
+                                                                      0.0D0, 1.0D0, 0.0D0,  &
+                                                                      0.0D0, 0.0D0, 1.0D0 /), shape(unitmat))
 !                                                                       
 !     REAL do_blen, do_bang 
 !     REAL skalpro 
 !                                                                       
-      DATA unitmat / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
+!     DATA unitmat / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
 !                                                                       
       lcomm = length_com (string, ikl) 
       ier_num = - 1 

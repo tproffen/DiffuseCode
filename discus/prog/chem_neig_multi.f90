@@ -45,8 +45,8 @@ INTEGER                                    , INTENT(OUT) :: ncent ! no of centra
       REAL dist (MMC_MAX_CENT) 
       REAL(KIND=PREC_DP) :: werte (MAX_ATOM_ENV) 
 !                                                                       
-      REAL u (3), v (3), w (3), uu (3) 
-      REAL offset (3)
+REAL(kind=PREC_DP), dimension(3) :: u (3), v (3), w (3), uu (3) 
+REAL(kind=PREC_DP), dimension(3) :: offset (3)
 REAL(KIND=PREC_DP) :: dummy(1) 
       INTEGER jcell (3), icell (3), isite, jsite 
       INTEGER i, j, k, l, ii, iv, katom, ianz 

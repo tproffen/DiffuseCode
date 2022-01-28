@@ -2,6 +2,8 @@ MODULE molecule_mod
 !-
 !     Variables needed to describe molecules. 
 !+
+use precision_mod
+!
 INTEGER             ::  MOLE_MAX_MOLE  =       1
 INTEGER             ::  MOLE_MAX_TYPE  =       1
 INTEGER             ::  MOLE_MAX_GENE  =       1
@@ -41,15 +43,15 @@ INTEGER, DIMENSION(:), ALLOCATABLE      ::  mole_char                 ! (  0:MOL
 CHARACTER(LEN=200), DIMENSION(:), ALLOCATABLE :: mole_file            ! (  0:MOLE_MAX_MOLE)
 INTEGER, DIMENSION(:), ALLOCATABLE      ::  mole_cont                 ! (  0:MOLE_MAX_ATOM)
 !
-REAL   , DIMENSION(:,:,:), ALLOCATABLE  ::  mole_gene                 ! (4,4,1:MOLE_MAX_GENE)
+REAL(kind=PREC_DP)   , DIMENSION(:,:,:), ALLOCATABLE  ::  mole_gene                 ! (4,4,1:MOLE_MAX_GENE)
 !        RESHAPE((/(1.,(0.,0.,0.,0.,1.,ik=1,3),il=0,MOLE_MAX_GENE)/),SHAPE(mole_gene ))
-REAL   , DIMENSION(:,:,:), ALLOCATABLE  ::  mole_symm                 ! (4,4,1:MOLE_MAX_SYMM)
+REAL(kind=PREC_DP)   , DIMENSION(:,:,:), ALLOCATABLE  ::  mole_symm                 ! (4,4,1:MOLE_MAX_SYMM)
 !        RESHAPE((/(1.,(0.,0.,0.,0.,1.,ik=1,3),il=0,MOLE_MAX_SYMM)/),SHAPE(mole_symm ))
-REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_dens                 ! (  0:MOLE_MAX_MOLE)
-REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_biso                 ! (  0:MOLE_MAX_TYPE)
-REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_clin                 ! (  0:MOLE_MAX_TYPE)
-REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_cqua                 ! (  0:MOLE_MAX_TYPE)
-REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_fuzzy                ! (  0:MOLE_MAX_MOLE)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE      ::  mole_dens                 ! (  0:MOLE_MAX_MOLE)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE      ::  mole_biso                 ! (  0:MOLE_MAX_TYPE)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE      ::  mole_clin                 ! (  0:MOLE_MAX_TYPE)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE      ::  mole_cqua                 ! (  0:MOLE_MAX_TYPE)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE      ::  mole_fuzzy                ! (  0:MOLE_MAX_MOLE)
 !
 INTEGER                                 :: mol_size_of = 0
 !

@@ -148,6 +148,7 @@ USE diffev_random
 USE population
 USE random_mod
 USE lib_do_operating_mod
+use precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -155,7 +156,7 @@ IMPLICIT none
 CHARACTER(LEN=600)             :: string 
 INTEGER                        :: list_number 
 INTEGER                        :: list_index (2 * MAXPOP) 
-REAL                           :: list_val (2 * MAXPOP) 
+REAL(kind=PREC_DP)             :: list_val (2 * MAXPOP) 
 REAL                           :: best, worst
 !                                                                       
 INTEGER                        :: i, j, k, ii , nb

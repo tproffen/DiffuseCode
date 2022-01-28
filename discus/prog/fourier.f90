@@ -1121,11 +1121,11 @@ REAL(KIND=PREC_DP), DIMENSION(3,3) :: vimat    ! Col wise increment vectors in l
 REAL(KIND=PREC_DP), DIMENSION(3,3) :: simat    ! Col
 REAL(KIND=PREC_DP), DIMENSION(3,3) :: siinv    ! simat^-1
 !REAL(KIND=PREC_DP), DIMENSION(3,3) :: trmat    ! trmat = siinv x vimat
-REAL(KIND=PREC_SP), DIMENSION(3  ) :: u        ! Sigma along columns of simat
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: u        ! Sigma along columns of simat
 REAL(KIND=PREC_DP), DIMENSION(3)   :: uu       ! Length of user si vectors
-REAL(KIND=PREC_SP), DIMENSION(3  ) :: v1       ! Dummy vectors
-REAL(KIND=PREC_SP), DIMENSION(3  ) :: v2       ! Dummy vectors
-REAL(KIND=PREC_SP), DIMENSION(3  ) :: v3       ! Dummy vectors
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: v1       ! Dummy vectors
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: v2       ! Dummy vectors
+REAL(KIND=PREC_DP), DIMENSION(3  ) :: v3       ! Dummy vectors
 !
 DATA oname  / 'sigabs', 'sigord', 'sigtop' /
 DATA loname /  6      ,  6      ,  6       /
@@ -1248,30 +1248,31 @@ END SUBROUTINE four_res_optional
       USE four_angles_mod
       USE metric_mod
       USE output_mod 
+use precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
 !
       LOGICAL, INTENT(IN) :: ltop
 !                                                                       
-      CHARACTER(8) radiation 
+      CHARACTER(len=8) :: radiation 
       CHARACTER (LEN=8), DIMENSION(3), PARAMETER :: c_rad = (/ &
          'X-ray   ', 'neutron ', 'electron' /)
       CHARACTER(LEN=1), DIMENSION(0:3)           ::  extr_achs (0:3) 
 !     REAL            , DIMENSION(3)             ::  hor
 !     REAL            , DIMENSION(3)             ::  ver
 !     REAL            , DIMENSION(3)             ::  top
-      REAL                                       ::  angle_vh
-      REAL                                       ::  ratio_vh
-      REAL                                       ::   aver_vh
-      REAL                                       ::  angle_ht
-      REAL                                       ::  ratio_ht
-      REAL                                       ::   aver_ht
-      REAL                                       ::  angle_tv
-      REAL                                       ::  ratio_tv
-      REAL                                       ::   aver_tv
+      REAL(kind=PREC_DP)                         ::  angle_vh
+      REAL(kind=PREC_DP)                         ::  ratio_vh
+      REAL(kind=PREC_DP)                         ::   aver_vh
+      REAL(kind=PREC_DP)                         ::  angle_ht
+      REAL(kind=PREC_DP)                         ::  ratio_ht
+      REAL(kind=PREC_DP)                         ::   aver_ht
+      REAL(kind=PREC_DP)                         ::  angle_tv
+      REAL(kind=PREC_DP)                         ::  ratio_tv
+      REAL(kind=PREC_DP)                         ::   aver_tv
 !     REAL            , DIMENSION(3)             ::  zero = (/0.0, 0.0, 0.0/)
-      REAL            , DIMENSION(3)             ::  length = (/0.0, 0.0, 0.0/)
+      REAL(kind=PREC_DP), DIMENSION(3)           ::  length = (/0.0, 0.0, 0.0/)
       INTEGER i, j 
 !     LOGICAL lspace 
 !                                                                       

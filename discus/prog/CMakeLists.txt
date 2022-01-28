@@ -14,8 +14,11 @@ find_package(NEXUS)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
+include_directories(${DIFFUSE_SOURCE_DIR}/kuplot/prog)
+include_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
+link_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 
 ###	
 set( SOURCE_MAIN discus.f90 )
@@ -33,7 +36,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	discus_loop.f90 discus_setup.f90 domain.f90 domain_mod.f90 domaindis_mod.f90  domain_irreg_mod.f90
 	discus_err_appl.f90 discus_exit.f90 external.f90 external_mod.f90 extrmc.f90 fourier.f90 fourier_sup.f90
         discus_fft.f90 discus_fit.f90 discus_pointgrp.f90 discus_reset_all.f90
-        discus_powder_fft.f90 discus_xplor.f90
+        discus_powder_fft.f90 discus_3dpdf.f90 discus_xplor.f90
         do_find_mod.f90 find_top.f90
         four_angles_mod.f90 fourier_conv.f90 fourier_lmn_mod.f90 fourier_reset.f90
 	gen_add_mod.f90 generate_mod.f90 graphic.f90 insert.f90 insert_mod.f90 intens_mod.f90
@@ -63,7 +66,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 set( SOURCES_LOCAL discus_pdf_file.f90 discus_powder_file.f90 discus_out_file.f90)
 #set( SOURCES ${SOURCE_MAIN} ${SOURCES_ALL} )
 
-set( LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
+set( LIBS lib_f90 lib_f90c kuplot_all ${DIFFUSE_LIBS})
 
 if (DIFFUSE_HDF5)
   if (DEFINED ENV{HDF5_INC_DIR})
@@ -122,7 +125,7 @@ else (CUDA_FOUND)
 endif (CUDA_FOUND)
 
 add_library (discus_all ${SOURCES_ALL} )
-add_dependencies (discus_all lib_f90 )
+add_dependencies (discus_all kuplot_all lib_f90 )
 
 set ( LIBS discus_all ${LIBS} discus_all ${LIBS_OPT} ) 
 

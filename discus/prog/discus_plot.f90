@@ -22,7 +22,7 @@ USE discus_show_menu
 USE get_iscat_mod
 USE prop_para_func
 USE update_cr_dim_mod
-USE trafo_mod
+!USE trafo_mod
 !
 USE envir_mod
 USE ber_params_mod
@@ -99,8 +99,8 @@ integer, parameter :: OFACE   =  5
 integer, parameter :: OHUE    =  6
 integer, parameter :: OCOLOR  =  7
 integer, parameter :: OPLOT   =  8
-integer, parameter :: OKILL   =  9
-integer, parameter :: OKEEP   = 10
+integer, parameter :: OKEEP   =  9
+integer, parameter :: OKILL   = 10
 integer, parameter :: OGEOM   = 11
 integer, parameter :: OEXPORT = 12
 !
@@ -111,10 +111,10 @@ DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  5     , &
 !
 ! Always provide fresh default values, Repeat for each command
 opara  =   (/ '0.000    ', '0.000    ', '0        ', '0        ', 'flat     ', 'solid    ', &
-              'auto     ', 'none     ', 'no       ', 'none     ', '[500,500]', 'none     '/)
+              'auto     ', 'none     ', 'none     ', 'no       ', '[500,500]', 'none     '/)
 !
 lopara =   (/  5         ,  5         ,  1         ,  1         ,  4         ,  5         , &
-               4         ,  4         ,  2         ,  4         ,  9         ,  4         /)
+               4         ,  4         ,  4         ,  2         ,  9         ,  4         /)
 !
 owerte =   (/  0.00      ,  0.00      ,  0.        ,  0.        ,  0.0       ,  0.0       , &
                0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       /)
@@ -460,7 +460,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         DO i = 1, 3 
                         pl_hkl (i) = werte (i) 
                         ENDDO 
-                        CALL trans (pl_hkl, cr_rten, pl_uvw, 3) 
+!                       CALL trans (pl_hkl, cr_rten, pl_uvw, 3) 
+                        pl_uvw = matmul(cr_rten, pl_hkl)
                         lnor = .TRUE.
                      ELSE 
                         ier_num = - 6 
@@ -851,7 +852,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         DO i = 1, 3 
                         pl_uvw (i) = werte (i) 
                         ENDDO 
-                        CALL trans (pl_uvw, cr_gten, pl_hkl, 3) 
+!                       CALL trans (pl_uvw, cr_gten, pl_hkl, 3) 
+                        pl_hkl = matmul(cr_gten, pl_uvw)
                         lnor = .TRUE.
                      ELSE 
                         ier_num = - 6 
@@ -1082,15 +1084,15 @@ end subroutine do_line
       CHARACTER(32) c_property 
       INTEGER i, j, length 
       LOGICAL lspace 
-      REAL null (3), w_na, w_no, w_ao, aver 
-      REAL u (3), w (3), angl, b_a, b_o 
+      REAL w_na, w_no, w_ao, aver 
+!      REAL u (3), w (3)
+real(kind=PREC_SP) :: angl, b_a, b_o 
+real(kind=PREC_DP), dimension(3) :: u, w
+real(kind=PREC_DP), dimension(3), parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /)
 !                                                                       
 !     REAL do_bang, do_blen 
 !                                                                       
       lspace = .true. 
-      null (1) = 0.0 
-      null (2) = 0.0 
-      null (3) = 0.0 
 !                                                                       
       WRITE (output_io, 3000) pl_prog 
       WRITE (output_io, 3005) pl_out 
@@ -1104,27 +1106,27 @@ end subroutine do_line
       WRITE (output_io, 3021) pl_hkl 
       WRITE (output_io, 3022) pl_uvw 
 !                                                                       
-      IF (do_blen (lspace, null, pl_uvw) .ne.0.0) then 
+      IF (do_blen (lspace, nullv, pl_uvw) .ne.0.0) then 
 !                                                                       
 !     --A slice is to be plottet normal to a vector                     
 !                                                                       
          WRITE (output_io, 3025) pl_abs 
          WRITE (output_io, 3026) pl_ord 
-         w_na = do_bang (lspace, pl_uvw, null, pl_abs) 
-         w_no = do_bang (lspace, pl_uvw, null, pl_ord) 
-         w_ao = do_bang (lspace, pl_abs, null, pl_ord) 
+         w_na = do_bang (lspace, pl_uvw, nullv, pl_abs) 
+         w_no = do_bang (lspace, pl_uvw, nullv, pl_ord) 
+         w_ao = do_bang (lspace, pl_abs, nullv, pl_ord) 
          WRITE (output_io, 3027) w_na, w_no, w_ao 
 !                                                                       
 !     --Make sure that none of the abscissa or ordinate are zero        
 !                                                                       
-         b_o = do_blen (lspace, null, pl_ord) 
+         b_o = do_blen (lspace, nullv, pl_ord) 
          IF (b_o.eq.0) then 
             ier_msg (1) = 'length of ordinate is zero' 
             ier_num = - 32 
             ier_typ = ER_APPL 
             RETURN 
          ENDIF 
-         b_a = do_blen (lspace, null, pl_abs) 
+         b_a = do_blen (lspace, nullv, pl_abs) 
          IF (b_a.eq.0) then 
             ier_msg (1) = 'length of abscissa is zero' 
             ier_num = - 32 
@@ -1147,7 +1149,7 @@ end subroutine do_line
             u (2) = pl_uvw (2) 
             u (3) = pl_uvw (3) 
          ENDIF 
-         b_o = do_blen (lspace, null, u) 
+         b_o = do_blen (lspace, nullv, u) 
          IF (pl_col (1:1) .eq.'x') then 
             w (1) = pl_abs (1) 
             w (2) = pl_abs (2) 
@@ -1161,9 +1163,9 @@ end subroutine do_line
             w (2) = pl_uvw (2) 
             w (3) = pl_uvw (3) 
          ENDIF 
-         b_a = do_blen (lspace, null, w) 
+         b_a = do_blen (lspace, nullv, w) 
          aver = b_o / b_a 
-         angl = do_bang (lspace, u, null, w) 
+         angl = do_bang (lspace, u, nullv, w) 
          WRITE (output_io, 3028) aver 
          WRITE (output_io, 3029) angl 
       ELSE 
@@ -1183,7 +1185,7 @@ end subroutine do_line
             u (2) = 0.0 
             u (3) = 1.0 
          ENDIF 
-         b_o = do_blen (lspace, null, u) 
+         b_o = do_blen (lspace, nullv, u) 
          IF (pl_col (1:1) .eq.'x') then 
             w (1) = 1.0 
             w (2) = 0.0 
@@ -1197,9 +1199,9 @@ end subroutine do_line
             w (2) = 0.0 
             w (3) = 1.0 
          ENDIF 
-         b_a = do_blen (lspace, null, w) 
+         b_a = do_blen (lspace, nullv, w) 
          aver = b_o / b_a 
-         angl = do_bang (lspace, u, null, w) 
+         angl = do_bang (lspace, u, nullv, w) 
          WRITE (output_io, 3028) aver 
          WRITE (output_io, 3029) angl 
       ENDIF 
@@ -1266,7 +1268,7 @@ end subroutine do_line
       USE discus_config_mod 
       USE crystal_mod 
       USE discus_plot_mod 
-      USE discus_plot_init_mod
+!      USE discus_plot_init_mod
       USE discus_plot_export_mod
       USE errlist_mod 
 USE support_mod
@@ -1409,9 +1411,9 @@ USE discus_plot_init_mod
 USE metric_mod
 USE symm_mod
 USE symm_sup_mod
-USE tensors_mod
+!USE tensors_mod
 USE trans_sup_mod
-USE trafo_mod
+!USE trafo_mod
 !
 USE spcgr_apply
 !
@@ -1430,7 +1432,7 @@ use string_convert_mod
 !
 IMPLICIT NONE
 !
-REAL, PARAMETER :: azero = 1.0
+REAL(kind=PREC_DP), PARAMETER :: azero = 1.0d0
 REAL, PARAMETER :: eps   = 1.0E-5
 INTEGER                          , INTENT(IN) :: MAXW
 CHARACTER(LEN=*), DIMENSION(MAXW), INTENT(IN) :: opara
@@ -1457,14 +1459,14 @@ INTEGER             :: length
 LOGICAL             :: lsecond  = .false.
 LOGICAL             :: lunit    = .false.
 INTEGER, SAVE       :: jmol_no  = 0   ! Jmol instance number
-REAL, DIMENSION(4)  :: hkl      !Normal in reciprocal space for augmented matrix
-REAL, DIMENSION(3)  :: n_hkl    !Normal in reciprocal space
-REAL, DIMENSION(3)  :: n_uvw    !Normal in direct space
-REAL, DIMENSION(3)  :: v        !temporary vector
-REAL, DIMENSION(3)  :: u        !temporary vector
+REAL(kind=PREC_DP), DIMENSION(4)  :: hkl      !Normal in reciprocal space for augmented matrix
+REAL(kind=PREC_DP), DIMENSION(3)  :: n_hkl    !Normal in reciprocal space
+REAL(kind=PREC_DP), DIMENSION(3)  :: n_uvw    !Normal in direct space
+REAL(kind=PREC_DP), DIMENSION(3)  :: v        !temporary vector
+REAL(kind=PREC_DP), DIMENSION(3)  :: u        !temporary vector
 REAL(KIND=PREC_DP), DIMENSION(3)  :: axis     !axis for moveto command
-REAL, DIMENSION(3)  :: p_a      !projected abscissa
-REAL, DIMENSION(3)  :: p_o      !projected abscissa
+REAL(kind=PREC_DP), DIMENSION(3)  :: p_a      !projected abscissa
+REAL(kind=PREC_DP), DIMENSION(3)  :: p_o      !projected abscissa
 REAL(KIND=PREC_DP), DIMENSION(3,3):: roti     !Rotation matrix
 REAL(KIND=PREC_DP), DIMENSION(3,3):: rotf     !Rotation matrix
 REAL(KIND=PREC_DP), DIMENSION(3,3):: test     !Test for unit matrix
@@ -1517,7 +1519,8 @@ IF(pl_prog=='jmol') THEN
    hkl(4)   = 0.0
    CALL tran_ca (hkl, pl_tran_fi, lscreen)     ! TRAN_CA works on 4x4 matrix
    n_hkl(1:3) = hkl(1:3)                       ! TRANS works on 3x3 matrix
-   CALL trans (n_hkl, cr_rten, n_uvw, 3)       ! uvw is the normal in caresian space
+!  CALL trans (n_hkl, cr_rten, n_uvw, 3)       ! uvw is the normal in caresian space
+   n_uvw = matmul(cr_rten, n_hkl)
    rr = SQRT(n_uvw(1)**2 + n_uvw(2)**2 + n_uvw(3)**2)
    n_uvw(1) = n_uvw(1) / rr
    n_uvw(2) = n_uvw(2) / rr
@@ -1915,7 +1918,7 @@ IF(ier_num==0) THEN
 ENDIF
 !
 WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
-CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
 IF(did_kill .AND.lfinal) THEN
    WRITE(output_io,*) ' Closed JMOL windows, ignore ''Killed'' messages '
@@ -1932,7 +1935,7 @@ SUBROUTINE plot_test_aon(lnor, labs, lord)
 USE crystal_mod
 USE metric_mod
 USE discus_plot_mod 
-USE trafo_mod
+!USE trafo_mod
 !
 USE errlist_mod
 !
@@ -1944,14 +1947,14 @@ LOGICAL, INTENT(IN) :: lord
 !
 LOGICAL           , PARAMETER :: lspace = .TRUE.
 REAL              , PARAMETER :: EPS  = 1.E-5!A small value
-REAL, DIMENSION(3), PARAMETER :: NULL = (/0.00, 0.00, 0.00/)
+REAL(kind=PREC_DP), DIMENSION(3), PARAMETER :: NULLV = (/0.00D0, 0.00D0, 0.00D0/)
 !
 REAL               :: w_na, w_no, w_ao    ! pairwise angles
-REAL, DIMENSION(3) :: v                   ! a vector
+REAL(kind=PREC_DP), DIMENSION(3) :: v                   ! a vector
 !  Tests if normal, abscissa nad ordinate are parallel, try to correct
-w_na = do_bang (lspace, pl_uvw, NULL, pl_abs) 
-w_no = do_bang (lspace, pl_uvw, NULL, pl_ord) 
-w_ao = do_bang (lspace, pl_abs, NULL, pl_ord) 
+w_na = do_bang (lspace, pl_uvw, NULLV, pl_abs) 
+w_no = do_bang (lspace, pl_uvw, NULLV, pl_ord) 
+w_ao = do_bang (lspace, pl_abs, NULLV, pl_ord) 
 IF(ABS(w_na)<EPS)  THEN     ! Normal and Abscissa are parallel
   IF(lnor) THEN            ! User specified Normal
      IF(labs) THEN         ! User specified Abscissa, Flag error
@@ -2013,7 +2016,8 @@ IF(ABS(w_na)<EPS)  THEN     ! Normal and Abscissa are parallel
            pl_abs(1) = 1.0
            pl_abs(2) = 0.0
            pl_abs(3) = 0.0
-           CALL trans (pl_hkl, cr_rten, pl_uvw, 3) 
+!          CALL trans (pl_hkl, cr_rten, pl_uvw, 3) 
+           pl_uvw = matmul(cr_rten, pl_hkl)
            CALL vekprod (pl_uvw, pl_abs, pl_ord, cr_eps, cr_rten)
            w_na = 90.0
            w_no = 90.0

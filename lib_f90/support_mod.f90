@@ -2,6 +2,10 @@ MODULE support_mod
 !
 ! Contains basic support routines 
 !
+interface seknds
+  module procedure seknds_sp, seknds_dp
+end interface seknds
+!
 CONTAINS
 !
 !*******************************************************************************
@@ -522,20 +526,41 @@ END SUBROUTINE do_rename_file
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION seknds (s) 
+REAL(kind=PREC_SP) FUNCTION seknds_sp (s) 
 !-                                                                      
 !     returns the elapsed user time since the last call or start (s=0)  
 !     im seconds                                                        
+! Single precision version
 !                                                                       
+use precision_mod
 IMPLICIT none 
 !                                                                       
-REAL, INTENT(IN) :: s 
+REAL(kind=PREC_SP), INTENT(IN) :: s 
 REAL :: current
 !                                                                       
 CALL CPU_TIME(current) 
-seknds = current - s
+seknds_sp = current - s
 !
-END FUNCTION seknds                           
+END FUNCTION seknds_sp                           
+!
+!*****7*****************************************************************
+!
+REAL(kind=PREC_DP) FUNCTION seknds_dp (s) 
+!-                                                                      
+!     returns the elapsed user time since the last call or start (s=0)  
+!     im seconds                                                        
+! double precision version
+!                                                                       
+use precision_mod
+IMPLICIT none 
+!                                                                       
+REAL(kind=PREC_DP), INTENT(IN) :: s 
+REAL :: current
+!                                                                       
+CALL CPU_TIME(current) 
+seknds_dp = current - s
+!
+END FUNCTION seknds_dp                           
 !
 !*****7*****************************************************************
 !

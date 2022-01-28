@@ -9,11 +9,13 @@ SUBROUTINE symm_setup
 !     See Sands, D.E. Vectors and Tensors in Crystallography Chapt. 4.7 
 !+                                                                      
 USE discus_config_mod 
+use discus_allocate_appl_mod
 USE crystal_mod 
 USE metric_mod
+use molecule_mod
 USE symm_mod 
-USE tensors_mod
-USE trafo_mod
+!USE tensors_mod
+!USE trafo_mod
 USE wyckoff_mod
 !
 USE errlist_mod 
@@ -23,6 +25,8 @@ use precision_mod
 IMPLICIT none 
 !                                                                       
 INTEGER :: i, j, k, l 
+integer :: nscat
+integer :: nsite
 REAL(kind=PREC_DP) :: length 
 !                                                                       
 REAL(kind=PREC_DP) :: uij 
@@ -37,6 +41,16 @@ REAL(kind=PREC_DP) :: b (3, 3)
 !                                                                       
 DATA kron / 1.0d0, 0.0d0, 0.0d0, 0.0d0, 1.0d0, 0.0d0, 0.0d0, 0.0d0, 1.0d0 / 
 !
+nsite = 1
+!
+IF( cr_nscat > SYM_MAXSCAT .or. mole_num_type > SYM_MAXSCAT) THEN
+   nscat = max ( cr_nscat, mole_num_type)
+   nsite = max ( nsite, cr_ncatoms, SYM_MAXSITE)
+   CALL alloc_symmetry ( nscat, nsite )
+   IF ( ier_num < 0 ) THEN
+      RETURN
+   ENDIF
+ENDIF
 !write(*,*) 'SYM_UVW ', sym_uvw
 !write(*,*) 'SYM_hkl ', sym_hkl
 IF(sym_use == 0) THEN
@@ -251,7 +265,7 @@ end subroutine symm_check_expr
       USE atom_env_mod 
       USE modify_mod
       USE symm_mod 
-      USE trafo_mod
+!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
@@ -361,7 +375,7 @@ END SUBROUTINE symm_op_mult
       USE modify_mod
 use prop_para_mod
       USE symm_mod 
-      USE trafo_mod
+!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
@@ -467,7 +481,7 @@ END SUBROUTINE symm_op_single
       USE molecule_func_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
-      USE trafo_mod
+!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
@@ -676,7 +690,7 @@ USE precision_mod
       USE molecule_func_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
-      USE trafo_mod
+!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
@@ -883,8 +897,8 @@ USE precision_mod
       USE molecule_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
-      USE tensors_mod
-      USE trafo_mod
+!     USE tensors_mod
+!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
@@ -989,8 +1003,10 @@ USE precision_mod
 !     ----Loop over Power of Operation                                  
 !                                                                       
          DO k = 1, sym_power 
-         CALL matmul4 (new_atom, real(sym_mat), mat_atom) 
-         CALL matmul4 (new_dime, real(sym_mat), mat_dime) 
+!        CALL matmul4 (new_atom, real(sym_mat), mat_atom) 
+!        CALL matmul4 (new_dime, real(sym_mat), mat_dime) 
+         new_atom = matmul(sym_mat, mat_atom)
+         new_dime = matmul(sym_mat, mat_dime)
          DO i = 1, 3 
          DO j = 1, 3 
          mat_atom (i, j) = new_atom (i, j) 
@@ -1116,8 +1132,8 @@ USE precision_mod
       USE molecule_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
-      USE tensors_mod
-      USE trafo_mod
+!     USE tensors_mod
+!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
@@ -1218,8 +1234,10 @@ USE precision_mod
          ENDDO 
          mat_atom (4, 4) = 1.0 
          mat_dime (4, 4) = 1.0 
-         CALL matmul4 (new_atom, real(sym_mat), mat_atom) 
-         CALL matmul4 (new_dime, real(sym_mat), mat_dime) 
+!        CALL matmul4 (new_atom, real(sym_mat), mat_atom) 
+!        CALL matmul4 (new_dime, real(sym_mat), mat_dime) 
+         new_atom = matmul(sym_mat, mat_atom)
+         new_dime = matmul(sym_mat, mat_dime)
 !                                                                       
 !     ----Loop over the two origins of the microdomain                  
 !                                                                       
@@ -1328,7 +1346,7 @@ SUBROUTINE symm_ca_mult(uvw, lspace, loutput)
 !+                                                                      
 USE discus_config_mod 
 USE symm_mod 
-USE trafo_mod
+!USE trafo_mod
 !                                                                       
 USE errlist_mod 
 USE param_mod 
@@ -1337,7 +1355,7 @@ USE prompt_mod
 !
 IMPLICIT none 
 !                                                                       
-REAL   , DIMENSION(3), INTENT(INOUT) :: uvw
+REAL(kind=PREC_DP)   , DIMENSION(3), INTENT(INOUT) :: uvw
 LOGICAL,               INTENT(IN)    :: lspace 
 LOGICAL,               INTENT(IN)    :: loutput 
 !
@@ -1426,7 +1444,7 @@ END SUBROUTINE symm_ca_mult
 !+                                                                      
       USE discus_config_mod 
       USE symm_mod 
-      USE trafo_mod
+!      USE trafo_mod
 !                                                                       
       USE errlist_mod 
       USE param_mod 
@@ -1435,7 +1453,7 @@ USE precision_mod
 !
       IMPLICIT none 
 !                                                                       
-      REAL   ,DIMENSION(1:3), INTENT(IN) :: uvw
+      REAL(kind=PREC_DP)   ,DIMENSION(1:3), INTENT(IN) :: uvw
       LOGICAL,                INTENT(IN) :: lspace 
       LOGICAL,                INTENT(IN) :: loutput 
 !                                                                       
@@ -1603,8 +1621,8 @@ REAL              , INTENT(IN) :: radius
 !
 LOGICAL, PARAMETER    ::LSPACE = .TRUE.
 INTEGER               :: i
-REAL   , DIMENSION(3) :: pos
-REAL   , DIMENSION(3) :: vec
+REAL(kind=PREC_DP)   , DIMENSION(3) :: pos
+REAL(kind=PREC_DP)   , DIMENSION(3) :: vec
 !
 pos(:) = werte(2:4)
 symm_occupied = .FALSE.

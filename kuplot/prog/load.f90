@@ -496,6 +496,7 @@ lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,  6     
 owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,  0.0    ,  0.0 /)
 !
 !
+write(*,*) ' STRING >', string(1:laenge), '< ', laenge
 !                                                                       
       istr = 1 
       CALL no_error 

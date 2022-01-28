@@ -15,7 +15,7 @@ CONTAINS
       USE atom_name
       USE molecule_mod 
       USE update_cr_dim_mod
-      USE trafo_mod
+!      USE trafo_mod
 !                                                                       
       USE errlist_mod 
       USE get_params_mod
@@ -37,10 +37,10 @@ USE precision_mod
       INTEGER lpara (maxw) 
       INTEGER i, j, k, is, ii, ianz 
       INTEGER uc_n (0:maxscat) 
-      REAL uc (3), up (3) 
-      REAL uc_max (3, 0:maxscat) 
-      REAL uc_su2 (3, 0:maxscat) 
-      REAL pi2, bfac, a 
+      REAL(kind=PREC_DP) :: uc (3), up (3) 
+      REAL(kind=PREC_DP) :: uc_max (3, 0:maxscat) 
+      REAL(kind=PREC_DP) :: uc_su2 (3, 0:maxscat) 
+      REAL(kind=PREC_DP) :: pi2, bfac, a 
       LOGICAL flag_all, flag_mol 
 !
       flag_all=.true.
@@ -99,7 +99,8 @@ USE precision_mod
             up (ii) = 0.0 
          ENDIF 
          ENDDO 
-            CALL trans (up, cr_gmat, uc, 3) 
+!           CALL trans (up, cr_gmat, uc, 3) 
+            uc = matmul(cr_gmat, up)
             DO j = 1, 3 
                DO k = 1, mole_len (i) 
                   ii = mole_cont (mole_off (i) + k) 
@@ -125,7 +126,8 @@ USE precision_mod
             up (ii) = 0.0 
          ENDIF 
          ENDDO 
-         CALL trans (up, cr_gmat, uc, 3) 
+!        CALL trans (up, cr_gmat, uc, 3) 
+         uc = matmul(cr_gmat, up)
             DO j = 1, 3 
                cr_pos (j, i)  = cr_pos (j, i) + uc (j) 
                uc_max (j, is) = max (uc_max (j, is), abs (up (j) ) ) 
@@ -177,7 +179,7 @@ SUBROUTINE ther_vec(flag_all, a, uc, up)
 !
 USE crystal_mod
 USE metric_mod
-USE trafo_mod
+!USE trafo_mod
 USE lib_random_func
 USE random_mod
 USE precision_mod
@@ -186,8 +188,8 @@ IMPLICIT NONE
 !
 LOGICAL           , INTENT(IN ) :: flag_all
 REAL              , INTENT(IN ) :: a
-REAL, DIMENSION(3), INTENT(OUT) :: uc
-REAL, DIMENSION(3), INTENT(OUT) :: up
+REAL(kind=PREC_DP), DIMENSION(3), INTENT(OUT) :: uc
+REAL(kind=PREC_DP), DIMENSION(3), INTENT(OUT) :: up
 !
 INTEGER            :: i
 REAL               :: disp
@@ -207,11 +209,15 @@ search: DO
    IF(up_length <= 1.0) EXIT search
 ENDDO search
 up_length = SQRT(up_length)
-CALL trans (up, cr_gmat, uc, 3) 
+!CALL trans (up, cr_gmat, uc, 3) 
+uc = matmul(cr_gmat, up)
 length = SQRT(skalpro(uc,uc,cr_gten))
 disp   = gasdev(DBLE(a))
 uc(:)  = uc(:) /length * disp
 up(:)  = up(:) /up_length * disp
 !
 END SUBROUTINE ther_vec
+!
+!*******************************************************************************
+!
 END MODULE thermal_mod

@@ -3566,8 +3566,11 @@ MODULE kuplot_k12
 !-
 !  Data for Kalpha1, 2 Axis
 !+
-REAL               :: lambda1
-REAL               :: lambda2
+!
+use precision_mod
+!
+REAL(kind=PREC_DP) :: lambda1
+REAL(kind=PREC_DP) :: lambda2
 REAL               :: itwo           ! Ratio lam(Ka1)/lam(Ka2)
 LOGICAL            :: axis_tth           ! TRUE==TTH; FALSE=Q
 !

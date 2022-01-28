@@ -69,7 +69,10 @@ USE str_comp_mod
       INTEGER indxg, lbef 
       REAL divis (2) 
       REAL rho_divis (2) 
-      REAL u (3), v (3), w (3), dvi1, dvi2, dvi3, dvi4, dvi5 
+      REAL dvi1, dvi2, dvi3, dvi4, dvi5 
+real(kind=PREC_DP), dimension(3) :: u
+real(kind=PREC_DP), dimension(3) :: v
+real(kind=PREC_DP), dimension(3) :: w
 !                                                                       
 !     REAL do_blen, do_bang 
 !                                                                       
@@ -1235,9 +1238,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE output_mod 
       USE patters_mod 
       USE recipro_mod 
-      USE quad_mod
+use metric_mod, only:skalpro
+!     USE quad_mod
 !
       USE errlist_mod 
+use precision_mod
       USE prompt_mod 
 USE support_mod
       IMPLICIT none 
@@ -1247,7 +1252,7 @@ USE support_mod
 !
       LOGICAL ltwo_files 
       LOGICAL acentric 
-      REAL vr 
+REAL(kind=PREC_DP), intent(in) :: vr 
 !                                                                       
       INTEGER ifa, ifb 
       PARAMETER (ifa = 21, ifb = 22) 
@@ -1262,8 +1267,9 @@ USE support_mod
       INTEGER nx (2), ny (2) 
       INTEGER ihkl (3) 
       LOGICAL l_incl 
-      REAL h (3) 
-      REAL y (3), phase 
+      REAL(kind=PREC_DP), dimension(3) :: h (3) 
+      REAL phase 
+real(kind=PREC_DP), dimension(3) :: y
       REAL xmin (2), xmax (2) 
       REAL ymin (2), ymax (2) 
       REAL x1, x2, y1, y2, zz1, zz2, zz3, zz4 
@@ -1397,18 +1403,21 @@ USE support_mod
          dummy = zz1 
          IF (patt_mode.eq.PATT_NORMAL) then 
             IF (patt_origin.eq.PATT_SUBTRACT) then 
-               dstar2 = quad (h, h, cr_rten) 
+!              dstar2 = quad (h, h, cr_rten) 
+               dstar2 = skalpro(h, h, cr_rten) 
                dummy = zz1 * wilson_scale-fj2 (dstar2) 
             ELSE 
                dummy = zz1 * wilson_scale 
             ENDIF 
             a_b = cmplx (dummy, 0.0) 
          ELSEIF (patt_mode.eq.PATT_SHARP) then 
-            dstar2 = quad (h, h, cr_rten) 
+!           dstar2 = quad (h, h, cr_rten) 
+            dstar2 = skalpro (h, h, cr_rten) 
             j = e_hist (h) 
             e_f = sqrt (abs (zz1) / e_aver_f2 (j) ) 
             IF (patt_origin.eq.PATT_SUBTRACT) then 
-               dstar2 = quad (h, h, cr_rten) 
+!              dstar2 = quad (h, h, cr_rten) 
+               dstar2 = skalpro (h, h, cr_rten) 
                dummy = sqrt (abs (zz1) ) * e_f * sqrt (wilson_scale)    &
                - sqrt (fj2 (dstar2) )                                   
             ELSE 
@@ -1416,7 +1425,8 @@ USE support_mod
             ENDIF 
             a_b = cmplx (dummy, 0.0) 
          ELSEIF (patt_mode.eq.PATT_SUPER) then 
-            dstar2 = quad (h, h, cr_rten) 
+!           dstar2 = quad (h, h, cr_rten) 
+            dstar2 = skalpro (h, h, cr_rten) 
             j = e_hist (h) 
             e_f = sqrt (abs (zz1) / e_aver_f2 (j) ) 
             IF (patt_origin.eq.PATT_SUBTRACT) then 
@@ -1480,7 +1490,8 @@ USE support_mod
          dummy = zz1 
          IF (patt_mode.eq.PATT_NORMAL) then 
             IF (patt_origin.eq.PATT_SUBTRACT) then 
-               dstar2 = quad (y, y, cr_rten) 
+!              dstar2 = quad (y, y, cr_rten) 
+               dstar2 = skalpro (y, y, cr_rten) 
                dummy = zz1 * wilson_scale-fj2 (dstar2) 
             ELSE 
                dummy = zz1 * wilson_scale 
@@ -1488,7 +1499,8 @@ USE support_mod
             a_b = cmplx (dummy, 0.0) 
          ELSEIF (patt_mode.eq.PATT_SHARP) then 
             dummy = 0.0 
-            dstar2 = quad (y, y, cr_rten) 
+!           dstar2 = quad (y, y, cr_rten) 
+            dstar2 = skalpro (y, y, cr_rten) 
             j = e_hist (y) 
             IF (e_aver_f2 (j) .gt.0.0) then 
                e_f = sqrt (abs (zz1) ) / e_aver_f2 (j) 
@@ -1502,7 +1514,8 @@ USE support_mod
             a_b = cmplx (dummy, 0.0) 
          ELSEIF (patt_mode.eq.PATT_SUPER) then 
             dummy = 0.0 
-            dstar2 = quad (y, y, cr_rten) 
+!           dstar2 = quad (y, y, cr_rten) 
+            dstar2 = skalpro (y, y, cr_rten) 
             j = e_hist (y) 
             IF (e_aver_f2 (j) .gt.0.0) then 
                e_f = sqrt (abs (zz1) ) / e_aver_f2 (j) 
@@ -1678,7 +1691,7 @@ USE support_mod
 !                                                                       
        
 !                                                                       
-      REAL h (3) 
+REAL(kind=PREC_DP), dimension(3) :: h (3) 
 !                                                                       
       REAL(PREC_DP) xarg0, xincu, xincv 
       INTEGER (KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iincv, iadd 
@@ -1863,6 +1876,7 @@ USE support_mod
       USE patters_mod 
 !
       USE errlist_mod 
+use precision_mod
       USE prompt_mod 
 USE support_mod
       IMPLICIT none 
@@ -1882,7 +1896,7 @@ USE support_mod
       INTEGER e_io, e_io_hkl 
       LOGICAL io_mode 
       LOGICAL lsuccess 
-      REAL h (3) 
+      REAL(kind=PREC_DP) , dimension(3) :: h (3) 
       REAL zz1, zz2, zz3, zz4 
 !                                                                       
       INTEGER e_graph (0:30) 
@@ -1960,12 +1974,12 @@ USE support_mod
 !                                                                       
 !     INTEGER e_hist 
 !     REAL do_blen 
-      REAL null (3) 
+REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
       REAL dstar 
       LOGICAL lspace 
       PARAMETER (lspace = .false.) 
 !                                                                       
-      DATA null / 0.0, 0.0, 0.0 / 
+!     DATA null / 0.0, 0.0, 0.0 / 
 !                                                                       
       IF (cr_v.le.0.0) then 
          ier_num = - 35 
@@ -2366,7 +2380,7 @@ USE support_mod
          ELSE 
             e_f = 0.0 
          ENDIF 
-         dstar = do_blen (lspace, h, null) 
+         dstar = do_blen (lspace, h, nullv) 
 !                                                                       
          IF (e_io.ne.6) then 
             WRITE (e_io_hkl, 4000) nint (h (1) ), nint (h (2) ),        &
@@ -2718,14 +2732,17 @@ USE support_mod
       USE discus_config_mod 
       USE crystal_mod 
       USE metric_mod
+!
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      REAL h (3) 
+      REAL(kind=PREC_DP), dimension(3) :: h (3) 
 !                                                                       
       INTEGER i 
-      REAL null (3) 
+      REAL(kind=PREC_DP), dimension(3), parameter :: nullv =(/ 0.0D0, 0.0D0, 0.0D0 /) 
       REAL e_hist_limit (20) 
       REAL dstar 
       LOGICAL lspace 
@@ -2733,11 +2750,11 @@ USE support_mod
 !                                                                       
 !     REAL do_blen 
 !                                                                       
-      DATA null / 0.0, 0.0, 0.0 / 
+!     DATA null / 0.0, 0.0, 0.0 / 
       DATA e_hist_limit / 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8,  &
       2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 1e6 /           
 !                                                                       
-      dstar = do_blen (lspace, h, null) 
+      dstar = do_blen (lspace, h, nullv) 
 !                                                                       
       DO i = 1, 20 
       IF (dstar.lt.e_hist_limit (i) ) then 
@@ -2865,10 +2882,12 @@ USE support_mod
       USE fourier_sup
       USE patters_mod 
       USE wink_mod
-      USE quad_mod
+use metric_mod, only:skalpro
+!      USE quad_mod
 !
       USE errlist_mod 
 USE lib_length
+use precision_mod
       USE prompt_mod 
 USE support_mod
       IMPLICIT none 
@@ -2884,7 +2903,7 @@ USE support_mod
       INTEGER i
       INTEGER h (3) 
       INTEGER w_num (MAXW) 
-      REAL hh (3) 
+      REAL(kind=PREC_DP) :: hh (3) 
       REAL rint, sigma 
       REAL dstar2, stl2, fjq 
       REAL dd, dd_o 
@@ -2958,7 +2977,8 @@ USE support_mod
             hh (1) = h (1) 
             hh (2) = h (2) 
             hh (3) = h (3) 
-            i = int (0.25 * quad (hh, hh, cr_rten) * MAXW / 2.) + 1 
+!           i = int (0.25 * quad (hh, hh, cr_rten) * MAXW / 2.) + 1 
+            i = int (0.25 * skalpro (hh, hh, cr_rten) * MAXW / 2.) + 1 
             iimax = max (iimax, i) 
             IF (i.lt.MAXW + 1) then 
                w_aver (i) = w_aver (i) + rint 

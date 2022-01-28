@@ -6,6 +6,8 @@ MODULE chem_mod
 !-
 USE discus_config_mod
 !
+use precision_mod
+!
 SAVE
 !
 INTEGER, PARAMETER      :: CHEM_NONE  = 0
@@ -30,7 +32,7 @@ INTEGER                 :: CHEM_MAX_BIN      = 1
 CHARACTER(LEN=80)                        :: chem_fname     = 'blen.xy'
 INTEGER                                  :: chem_bin       = 601
 INTEGER                                  :: chem_ncor      = 1
-REAL, DIMENSION(2)                       :: chem_blen_cut  = (/1.5,  7.5/)
+REAL(kind=PREC_DP), DIMENSION(2)         :: chem_blen_cut  = (/1.5D0,  7.5D0/)
 REAL, DIMENSION(2)                       :: chem_bang_cut  = (/0.0,180.0/)
 LOGICAL                                  :: chem_quick     = .true.
 LOGICAL                                  :: chem_cluster   = .false.
@@ -51,8 +53,8 @@ INTEGER, DIMENSION(:)    , ALLOCATABLE   :: chem_cran_nshort !  (CHEM_MAX_RAN)
 REAL   , DIMENSION(:,:,:), ALLOCATABLE   :: chem_cran_uvw    !  (3,48,CHEM_MAX_RAN)
 REAL   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_sig    !  (CHEM_MAX_RAN)
 REAL   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_wsig   !  (CHEM_MAX_RAN)
-REAL   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_rmax   !  (CHEM_MAX_RAN)
-REAL   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_rmin   !  (CHEM_MAX_RAN)
+REAL(kind=PREC_DP)   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_rmax   !  (CHEM_MAX_RAN)
+REAL(kind=PREC_DP)   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_rmin   !  (CHEM_MAX_RAN)
 LOGICAL, DIMENSION(:)    , ALLOCATABLE   :: chem_cran_cang   !  (CHEM_MAX_RAN)
 LOGICAL, DIMENSION(:)    , ALLOCATABLE   :: chem_cran_lsym   !  (CHEM_MAX_RAN)
 LOGICAL, DIMENSION(:)    , ALLOCATABLE   :: chem_cran_short  !  (CHEM_MAX_RAN)
@@ -91,8 +93,8 @@ REAL, DIMENSION(:,:,:), ALLOCATABLE                    :: chem_disp_sig    !  (C
 INTEGER, DIMENSION(:,:), ALLOCATABLE                   :: chem_use_env     !  (CHEM_MAX_ENV,CHEM_MAX_COR)
 INTEGER, DIMENSION(:,:), ALLOCATABLE                   :: chem_cenv        !  (0:MAX_ATOM_ENV,CHEM_MAX_ENV)
 INTEGER, DIMENSION(:)  , ALLOCATABLE                   :: chem_env_neig    !  (CHEM_MAX_ENV)
-REAL,    DIMENSION(:)  , ALLOCATABLE                   :: chem_rmax_env    !  (CHEM_MAX_ENV)
-REAL,    DIMENSION(:)  , ALLOCATABLE                   :: chem_rmin_env    !  (CHEM_MAX_ENV)
+REAL(kind=PREC_DP),    DIMENSION(:)  , ALLOCATABLE                   :: chem_rmax_env    !  (CHEM_MAX_ENV)
+REAL(kind=PREC_DP),    DIMENSION(:)  , ALLOCATABLE                   :: chem_rmin_env    !  (CHEM_MAX_ENV)
 !
 INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_nran        !  (CHEM_MAX_COR)
 INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_nvec        !  (CHEM_MAX_COR)
@@ -105,8 +107,8 @@ INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_nenv        !  (C
 !REAL, DIMENSION(3,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT) :: chem_vect_sig    !  (3,12,CHEM_MAX_COR,0:MAXSCAT,0:MAXSCAT)
 REAL, DIMENSION(:, :,:), ALLOCATABLE                   :: chem_neig        !  (3,48,CHEM_MAX_COR)
 REAL, DIMENSION(:,:,:), ALLOCATABLE                    :: chem_dir         !  (3,2,CHEM_MAX_COR)
-REAL, DIMENSION(:), ALLOCATABLE                        :: chem_rmax        !  (CHEM_MAX_COR)
-REAL, DIMENSION(:), ALLOCATABLE                        :: chem_rmin        !  (CHEM_MAX_COR)
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE                        :: chem_rmax        !  (CHEM_MAX_COR)
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE                        :: chem_rmin        !  (CHEM_MAX_COR)
 REAL, DIMENSION(:), ALLOCATABLE                        :: chem_freq_sigma  !  (CHEM_MAX_COR)
 REAL, DIMENSION(:), ALLOCATABLE                        :: chem_wink_sigma  !  (CHEM_MAX_COR)
 LOGICAL, DIMENSION(:), ALLOCATABLE                     :: chem_cang        !  (CHEM_MAX_COR)

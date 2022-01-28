@@ -29,7 +29,7 @@ REAL(KIND=PREC_DP), INTENT(IN)  :: P_fwhm        ! FWHM
 REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym1       ! Asymmetry parameter 1
 REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym2       ! Asymmetry parameter 2
 LOGICAL           , INTENT(IN)  :: axis          ! TRUE if TTH Scale
-REAL(KIND=PREC_SP), INTENT(IN)  :: lambda        ! Wave length
+REAL(KIND=PREC_DP), INTENT(IN)  :: lambda        ! Wave length
 !
 !REAL(KIND=PREC_DP) :: ww
 !

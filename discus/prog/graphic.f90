@@ -963,12 +963,12 @@ LOGICAL                            , INTENT(OUT)   :: l_val_limited ! Limitation
 REAL(KIND=PREC_DP)                 , INTENT(OUT)   :: dsmax    ! Final maximum dstar
 !
 INTEGER, PARAMETER :: MAXP = 3
-REAL(KIND=PREC_SP), DIMENSION(3) :: NULL = (/0.00E0, 0.00E0, 0.00E0/)   ! Null vector
+REAL(KIND=PREC_DP), DIMENSION(3) :: NULLV = (/0.00D0, 0.00D0, 0.00D0/)   ! Null vector
 !
 CHARACTER(LEN=1024)                 :: cpara
 INTEGER                             :: lpara
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte   ! Numerical values
-REAL(KIND=PREC_SP), DIMENSION(MAXW) :: u       ! Numerical values
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: u       ! Numerical values
 INTEGER :: ianz, i
 !
 werte         =  0.0D0
@@ -1008,7 +1008,7 @@ ELSEIF(lpresent(O_HKLMAX) .AND. .NOT. (lpresent(O_DSMAX) .OR. lpresent(O_QMAX)))
    lpara = lopara(O_HKLMAX)
    CALL get_optional_multi(MAXP, cpara, lpara, werte, ianz)
    u = REAL(werte)
-   dsmax = do_blen (.FALSE., u, NULL)
+   dsmax = do_blen (.FALSE., u, NULLV)
    l_val_limited = .TRUE.
 ELSE
    owerte        =  0.0D0
@@ -1931,7 +1931,7 @@ INTEGER :: isdim, i
 INTEGER, DIMENSION(3) :: dsort
 CHARACTER(LEN=PREC_STRING)   :: string
 INTEGER               :: lcomm
-REAL(KIND=PREC_SP), DIMENSION(3)    :: u
+REAL(KIND=PREC_DP), DIMENSION(3)    :: u
 REAL(KIND=PREC_SP)    :: uu
 !
 IF(l_val_limited) THEN
@@ -2248,14 +2248,14 @@ IMPLICIT NONE
 !
 REAL(KIND=PREC_DP), INTENT(IN) :: dsmax
 !
-REAL(KIND=PREC_SP), DIMENSION(3), PARAMETER :: NULL = (/0.0, 0.0, 0.0/)
+REAL(KIND=PREC_DP), DIMENSION(3), PARAMETER :: NULLV = (/0.0D0, 0.0D0, 0.0D0/)
 !
-REAL(KIND=PREC_SP)               :: dstarmax
-REAL(KIND=PREC_SP), DIMENSION(3) :: h
+!REAL(KIND=PREC_DP)               :: dstarmax
+REAL(KIND=PREC_DP), DIMENSION(3) :: h
 INTEGER :: i,j,k,l
 INTEGER :: iii
 !
-dstarmax = REAL(dsmax)
+!dstarmax = REAL(dsmax)
 DO l = 1, inc(3) 
    DO j = 1, inc(2) 
       DO i = 1, inc(1) 
@@ -2263,7 +2263,8 @@ DO l = 1, inc(3)
             h (k) = eck(k, 1) + vi(k, 1) * REAL(i - 1)   &
                               + vi(k, 2) * REAL(j - 1)   &
                               + vi(k, 3) * REAL(l - 1)
-            IF(do_blen(.FALSE., h, NULL)> dstarmax) THEN
+!           IF(do_blen(.FALSE., h, NULLV)> dstarmax) THEN
+            IF(do_blen(.FALSE., h, NULLV)> dsmax   ) THEN
                iii       =  (i - 1) * inc(3)*inc (2) +        &
                             (j - 1) * inc(3)             + l
                acsf(iii) = CMPLX(0.0D0, 0.0D0)

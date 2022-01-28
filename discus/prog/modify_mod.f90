@@ -527,7 +527,7 @@ USE precision_mod
       LOGICAL                              :: need_alloc = .false.
       LOGICAL lkick, lspace 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL w (3), v (3) 
+REAL(kind=PREC_DP), dimension(3) :: w (3), v (3) 
 !     REAL do_blen 
 !                                                                       
       DATA lspace / .true. / 
@@ -802,8 +802,8 @@ USE precision_mod
             cr_prop (cr_natoms) = 0 
             cr_prop (cr_natoms)  = ibset (cr_prop (cr_natoms),  PROP_NORMAL) 
             DO l = 1, 3 
-               cr_dim(l,1) = amin1(cr_dim(l,1), cr_pos(l,cr_natoms))                                                           
-               cr_dim(l,2) = amax1(cr_dim(l,2), cr_pos(l,cr_natoms))                                                           
+               cr_dim(l,1) = min(cr_dim(l,1), cr_pos(l,cr_natoms))                                                           
+               cr_dim(l,2) = max(cr_dim(l,2), cr_pos(l,cr_natoms))                                                           
             ENDDO 
             chem_period(:) = .FALSE.    ! Turn off periodic boundary
             chem_quick     = .FALSE.    ! Turn off quick search mode

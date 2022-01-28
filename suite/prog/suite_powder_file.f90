@@ -9,13 +9,14 @@ USE kuplot_config
 USE kuplot_mod
 USE errlist_mod
 USE lib_length
+use precision_mod
 USE support_mod
 IMPLICIT NONE
 !
 CHARACTER (LEN=*)                , INTENT(IN) :: outfile
 INTEGER                          , INTENT(IN) :: npkt_wrt
-REAL   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: xwrt
-REAL   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: ywrt
+REAL(kind=PREC_DP)   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: xwrt
+REAL(kind=PREC_DP)   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: ywrt
 !
 INTEGER, PARAMETER                            :: iff = 2
 INTEGER :: ii

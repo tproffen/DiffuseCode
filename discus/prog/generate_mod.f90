@@ -20,14 +20,16 @@ MODULE generate_mod
 !                             Original version, centering generators fir
 !                                                                       
 !*****7*****************************************************************
+!
+use precision_mod
 !                                                                       
 INTEGER, PARAMETER  ::  ng  =  98
 INTEGER, PARAMETER  ::  ig  =   7
 !
-REAL, PARAMETER     ::  six1=1./6.
-REAL, PARAMETER     ::  six2=1./3. 
-REAL, PARAMETER     ::  six4=2./3.
-REAL, PARAMETER     ::  six5=5./6. 
+REAL(kind=PREC_DP), PARAMETER     ::  six1=1.0D0/6.0D0
+REAL(kind=PREC_DP), PARAMETER     ::  six2=1.0D0/3.0D0 
+REAL(kind=PREC_DP), PARAMETER     ::  six4=2.0D0/3.0D0
+REAL(kind=PREC_DP), PARAMETER     ::  six5=5.0D0/6.0D0
 !                                                                       
 INTEGER, PRIVATE    ::  i
 INTEGER, PRIVATE    ::  j
@@ -35,7 +37,7 @@ INTEGER, PRIVATE    ::  j
 INTEGER, DIMENSION(ng)       :: generpower         ! (ng)
 INTEGER, DIMENSION(0:ig,309) :: generspcgr         ! (0:ig,309) 
 INTEGER, DIMENSION(0:ig,309) :: generspcgr_center  ! (0:ig,309) 
-REAL   , DIMENSION(4,4,0:ng) :: generators         ! (4,4,0:ng) 
+REAL(kind=PREC_DP), DIMENSION(4,4,0:ng) :: generators         ! (4,4,0:ng) 
 !                                                                       
 !------      List of all generator matrizes used in I.T. Vol. A         
 !                                                                       
