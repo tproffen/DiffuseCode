@@ -16,8 +16,9 @@ USE lib_length
 !                                                                       
 IMPLICIT none 
 !                                                                       
+integer, intent(in) :: iscat
 CHARACTER(len=5) :: istr 
-INTEGER   :: iscat, il, is 
+INTEGER   :: il, is 
 !                                                                       
 !                                                                       
 if(iscat==-1) then
