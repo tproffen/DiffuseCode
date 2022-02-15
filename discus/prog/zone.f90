@@ -17,20 +17,19 @@ CONTAINS
    USE diffuse_mod 
    USE metric_mod
    USE output_mod
-!   USE trafo_mod
 !
    USE param_mod
    USE precision_mod
 !
    IMPLICIT NONE     
 !
-   REAL, PARAMETER :: EPS = 0.0001
+   REAL(kind=PREC_DP), PARAMETER :: EPS = 0.0001
 !
    CHARACTER(LEN=PREC_STRING) :: line
    INTEGER             :: length
-   REAL                :: dstar
-   REAL                :: tthmax
-   REAL                :: lmin, lmax
+   REAL(kind=PREC_DP)  :: dstar
+   REAL(kind=PREC_DP)  :: tthmax
+   REAL(kind=PREC_DP)  :: lmin, lmax
 !
 !     Transform zone axis into reciprocal space
 !
@@ -187,7 +186,6 @@ CONTAINS
    USE fourier_sup
    USE metric_mod
    USE output_mod
-!  USE tensors_mod
 !
    USE param_mod
 use matrix_mod
@@ -203,15 +201,15 @@ use matrix_mod
    INTEGER              :: n_nscat  ! required no of atom types right now
    INTEGER              :: n_natoms ! required no of atoms
 !
-   REAL, DIMENSION(1:3)  :: rvec, rproj, rres
+   REAL(kind=PREC_DP), DIMENSION(1:3)  :: rvec, rproj, rres
 real(kind=PREC_DP), dimension(1:3) :: rdif
    REAL(kind=PREC_DP), DIMENSION(3,3)  :: matrix, inverse
-   REAL                  :: dstar
-   REAL (KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: layer
+   REAL(kind=PREC_DP)    :: dstar
+   REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: layer
 !
    INTEGER, DIMENSION(1:3)     :: z_inc
-   REAL   , DIMENSION(1:3,1:4) :: z_eck
-   REAL   (KIND=PREC_DP), DIMENSION(1:3,1:3) :: z_vi 
+   REAL(kind=PREC_DP), dimension(1:3,1:4) :: z_eck
+   REAL(KIND=PREC_DP), DIMENSION(1:3,1:3) :: z_vi 
 !
    ALLOCATE(layer(1:inc(1),1:inc(2)))
    layer(:,:) = 0.0D0

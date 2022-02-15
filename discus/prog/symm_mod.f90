@@ -43,7 +43,7 @@ LOGICAL                  :: sym_sel_sub    = .FALSE.
 LOGICAL                  :: sym_dom_mode_shape = .false.
 LOGICAL                  :: sym_dom_mode_atom  = .false.
 REAL(KIND=PREC_DP)       :: sym_angle     = 0.0
-REAL                     :: sym_radius    = 1.0E-8
+REAL(KIND=PREC_DP)       :: sym_radius    = 1.0E-8
 REAL(KIND=PREC_DP), DIMENSION(3)       :: sym_hkl       = (/0.0, 0.0, 1.0/)
 REAL(KIND=PREC_DP), DIMENSION(3)       :: sym_orig      = (/0.0, 0.0, 0.0/)
 REAL(KIND=PREC_DP), DIMENSION(3)       :: sym_or_tr     = (/0.0, 0.0, 0.0/)
@@ -83,6 +83,7 @@ MODULE symm_temp_mod
 !-
 !
 !
+use precision_mod
 SAVE
 !
 INTEGER, PARAMETER                           :: SYM_RUN_MOLECULE = 0
@@ -119,15 +120,15 @@ LOGICAL                  :: sym_temp_sel_atom   = .true.
 LOGICAL                  :: sym_temp_sel_sub    = .FALSE.
 LOGICAL                  :: sym_temp_dom_mode_shape = .false.
 LOGICAL                  :: sym_temp_dom_mode_atom  = .false.
-REAL                     :: sym_temp_angle     = 0.0
-REAL                     :: sym_temp_radius    = 1.0E-8
-REAL, DIMENSION(3)       :: sym_temp_hkl       = (/0.0, 0.0, 1.0/)
-REAL, DIMENSION(3)       :: sym_temp_orig      = (/0.0, 0.0, 0.0/)
-REAL, DIMENSION(3)       :: sym_temp_or_tr     = (/0.0, 0.0, 0.0/)
-REAL, DIMENSION(3)       :: sym_temp_trans     = (/0.0, 0.0, 0.0/)
-REAL, DIMENSION(3)       :: sym_temp_uvw       = (/0.0, 0.0, 1.0/)
-REAL, DIMENSION(4,4)     :: sym_temp_mat       = 0.0
-REAL, DIMENSION(4,4)     :: sym_temp_rmat      = 0.0
+REAL(kind=PREC_DP)                 :: sym_temp_angle     = 0.0
+REAL(kind=PREC_DP)                 :: sym_temp_radius    = 1.0E-8
+REAL(kind=PREC_DP), DIMENSION(3)   :: sym_temp_hkl       = (/0.0, 0.0, 1.0/)
+REAL(kind=PREC_DP), DIMENSION(3)   :: sym_temp_orig      = (/0.0, 0.0, 0.0/)
+REAL(kind=PREC_DP), DIMENSION(3)   :: sym_temp_or_tr     = (/0.0, 0.0, 0.0/)
+REAL(kind=PREC_DP), DIMENSION(3)   :: sym_temp_trans     = (/0.0, 0.0, 0.0/)
+REAL(kind=PREC_DP), DIMENSION(3)   :: sym_temp_uvw       = (/0.0, 0.0, 1.0/)
+REAL(kind=PREC_DP), DIMENSION(4,4) :: sym_temp_mat       = 0.0
+REAL(kind=PREC_DP), DIMENSION(4,4) :: sym_temp_rmat      = 0.0
 !
 INTEGER                  :: sym_size_of  ! Bytes allocated for symmetry
 !

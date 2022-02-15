@@ -563,8 +563,6 @@ SUBROUTINE get_detail (work, add, w_char, power, axis, screw, posit, hkl)
 !+                                                                      
 USE discus_config_mod 
 USE crystal_mod 
-!USE tensors_mod
-!USE trafo_mod
 use matrix_mod
 use precision_mod
 !                                                                       
@@ -1692,7 +1690,6 @@ SUBROUTINE symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos,    &
 !     Applies the generator to the current atom                         
 !+                                                                      
 USE molecule_mod 
-!USE trafo_mod
 USE precision_mod
 !
 IMPLICIT none 
@@ -1963,7 +1960,6 @@ SUBROUTINE symmetry_orbit (NMAX, cr_iset, npos, pos,    &
 !  Applies the generator to the current position to create a 
 !  full set of Wyckoff positions
 !+                                                                      
-!USE trafo_mod
 USE precision_mod
 !
 IMPLICIT none 
@@ -1991,10 +1987,10 @@ REAL(KIND=PREC_DP), DIMENSION(4)   :: y    ! (4)
 REAL(KIND=PREC_DP), DIMENSION(4)   :: yy   ! (4)
 REAL(KIND=PREC_DP), DIMENSION(4,4) :: wmat ! (4, 4) 
 REAL(KIND=PREC_DP), DIMENSION(4,4) :: xmat ! (4, 4) 
-REAL  :: eps 
+REAL(KIND=PREC_DP)  :: eps 
 REAL(KIND=PREC_DP) :: compare (4), previous (4) 
 !                                                                       
-DATA eps / 0.00001 / 
+DATA eps / 0.00001D0 / 
 !                                                                       
 !     For convenience create Identity operator                          
 !                                                                       
@@ -2471,7 +2467,6 @@ REAL(kind=PREC_DP) :: x, y, z
 REAL(kind=PREC_DP) :: d_min
 REAL(kind=PREC_DP), DIMENSION(1:3) :: v_min
 !                                                                       
-!     REAL do_blen 
 !                                                                       
 !.......calculate metric and reciprocal metric tensor,reciprocal lattice
 !       constants and permutation tensors                               
@@ -2609,7 +2604,6 @@ USE crystal_mod
 use precision_mod
 IMPLICIT none 
 !                                                                       
-!REAL eps 
 real(kind=PREC_DP),  PARAMETER :: eps = 1.e-5
 !                                                                       
 INTEGER :: i, j, k 
@@ -2695,17 +2689,8 @@ real(kind=PREC_DP), dimension(4,4)  , intent(inout) :: cr_tran_gi
 real(kind=PREC_DP), dimension(4,4)  , intent(inout) :: cr_tran_f
 real(kind=PREC_DP), dimension(4,4)  , intent(inout) :: cr_tran_fi
 !
-!
-!     REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_g
-!     REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_gi
-!     REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_f
-!     REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_fi
 !                                                                       
       INTEGER i 
-!     LOGICAL cr_cartesian 
-!     REAL cr_a0 (3), cr_ar (3), cr_eps (3, 3, 3), cr_gten (3, 3) 
-!     REAL cr_reps (3, 3, 3), cr_rten (3, 3), cr_win (3), cr_wrez (3) 
-!     REAL cr_v, cr_vr, cr_gmat (3, 3), cr_fmat (3, 3) 
       REAL(kind=PREC_DP):: hkl (3) 
       REAL(kind=PREC_DP):: u (3) 
       REAL(kind=PREC_DP):: xc (3) 
@@ -2740,7 +2725,6 @@ USE discus_config_mod
 USE crystal_mod 
 USE recipro_mod 
 USE rmc_symm_mod
-!USE tensors_mod
 !
 use precision_mod
 !
@@ -2849,9 +2833,6 @@ REAL(kind=PREC_DP), DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_f
 REAL(kind=PREC_DP), DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_fi
 !                                                                       
       INTEGER :: i, i1, i2, j 
-!     REAL a0 (3), ar (3), eps (3, 3, 3), gten (3, 3) 
-!     REAL reps (3, 3, 3), rten (3, 3) 
-!     REAL win (3), wrez (3), vol, vr 
       REAL(kind=PREC_DP) :: cosa, cosb, cosg, cos1, cos2, sin1, sin2 
       REAL(kind=PREC_DP) :: cosi!, sind, cosd, acosd 
 !                                                                       
@@ -2950,14 +2931,11 @@ use precision_mod
 !
 IMPLICIT none 
 !                                                                       
-!      INTEGER idim 
 integer, PARAMETER :: idim = 3 
 !                                                                       
 real(kind=PREC_DP), dimension(idim, idim), intent(out) :: ten
 real(kind=PREC_DP), dimension(idim)      , intent(in)  :: vec
 real(kind=PREC_DP), dimension(idim)      , intent(in)  :: win
-!      REAL ten (idim, idim), vec (idim), win (idim) 
-!     REAL cosd 
 INTEGER :: i, j 
 !                                                                       
 DO i = 1, idim 

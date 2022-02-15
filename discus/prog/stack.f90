@@ -956,8 +956,6 @@ USE stack_cr_mod
 USE structur
 USE spcgr_apply
 USE symm_sup_mod
-!USE tensors_mod
-!USE trafo_mod
 !
 USE errlist_mod 
 USE lib_errlist_func
@@ -986,9 +984,9 @@ INTEGER         :: natoms
 INTEGER         :: nscats
 LOGICAL         :: need_alloc = .false.
 LOGICAL         :: lprev 
-REAL(kind=PREC_SP), dimension(ST_MAXTYPE) :: prob  ! (ST_MAXTYPE) 
-REAL(kind=PREC_SP), dimension(ST_MAXTYPE) :: prob_n! (ST_MAXTYPE) 
-REAL(kind=PREC_SP) :: ptot_n 
+REAL(kind=PREC_DP), dimension(ST_MAXTYPE) :: prob  ! (ST_MAXTYPE) 
+REAL(kind=PREC_DP), dimension(ST_MAXTYPE) :: prob_n! (ST_MAXTYPE) 
+REAL(kind=PREC_DP) :: ptot_n 
 REAL(kind=PREC_DP) :: u (3), v (3) 
 REAL(kind=PREC_DP) :: r1, r2 
 REAL(kind=PREC_DP) :: st_trans_cur (3) 
@@ -1416,12 +1414,13 @@ SUBROUTINE st_init_prob (ptot_n, prob_n)
 !+                                                                      
 USE discus_config_mod 
 USE stack_mod 
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
 INTEGER ::  i, j 
-REAL :: prob_n (ST_MAXTYPE) 
-REAL :: ptot_n 
+REAL(kind=PREC_DP) :: prob_n (ST_MAXTYPE) 
+REAL(kind=PREC_DP) :: ptot_n 
 !                                                                       
 ptot_n = 0.0 
 DO i = 1, st_ntypes 
@@ -1447,14 +1446,16 @@ SUBROUTINE stack_prob (ptot_n, prob, prob_n, lprev, l)
 !+                                                                      
 USE discus_config_mod 
 USE stack_mod 
+!
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
 INTEGER :: m, l 
 LOGICAL :: lprev 
-REAL, dimension(ST_MAXTYPE) :: prob  !(ST_MAXTYPE)
-REAL, dimension(ST_MAXTYPE) :: prob_n ! (ST_MAXTYPE) 
-real                        :: ptot_n 
+REAL(kind=PREC_DP), dimension(ST_MAXTYPE) :: prob  !(ST_MAXTYPE)
+REAL(kind=PREC_DP), dimension(ST_MAXTYPE) :: prob_n ! (ST_MAXTYPE) 
+real(kind=PREC_DP)                        :: ptot_n 
 !                                                                       
 IF (lprev) then 
    DO m = 1, st_ntypes 
@@ -1479,13 +1480,15 @@ USE stack_mod
 USE random_mod
 USE errlist_mod 
 USE lib_random_func
+!
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-REAL, dimension(ST_MAXTYPE) :: prob !(ST_MAXTYPE) 
+REAL(kind=PREC_DP), dimension(ST_MAXTYPE) :: prob !(ST_MAXTYPE) 
 !                                                                       
 INTEGER :: i, m 
-REAL :: ad, s, ptot 
+REAL(kind=PREC_DP) :: ad, s, ptot 
 !                                                                       
 ptot = 0.0 
 DO m = 1, st_ntypes 
@@ -1861,7 +1864,6 @@ USE discus_config_mod
 USE crystal_mod 
 USE symm_mod 
 USE stack_mod 
-!USE trafo_mod
 USE str_comp_mod
 !                                                                       
 IMPLICIT none 
@@ -1974,6 +1976,7 @@ USE errlist_mod
 USE prompt_mod 
 USE wink_mod 
 USE support_mod
+use precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -1994,8 +1997,7 @@ LOGICAL, INTENT(IN) :: calc_f2aver
 !
       LOGICAL :: lout 
 !                                                                       
-      REAL :: ss 
-!     REAL :: seknds 
+      REAL(kind=PREC_DP) :: ss 
 !
 !     n_qxy   = 1
 !     n_nscat = 1
@@ -2327,6 +2329,7 @@ ENDIF
       USE structur
       USE spcgr_apply
       USE errlist_mod 
+use precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -2345,7 +2348,7 @@ ENDIF
       INTEGER         :: n_atom  ! number of molecule atoms in input file
 !integer, dimension(3) :: n_cells
 !
-      REAL u (3) 
+      REAL(kind=PREC_DP) :: u (3) 
 !
 !     n_qxy    = 1
 !     n_nscat  = 1

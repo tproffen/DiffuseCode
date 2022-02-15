@@ -11,8 +11,6 @@ SUBROUTINE trafo (hkl, u, xc, yc, zc, gmat, fmat, dist, eps, gten, rten)
 !     of the crystal.                                                   
 !-                                                                      
 use precision_mod
-!USE tensors_mod
-!USE quad_mod
 use matrix_mod
 !
 IMPLICIT none 
@@ -30,11 +28,7 @@ real(kind=PREC_DP), dimension(3,3), intent(in) :: rten
 real(kind=PREC_DP), dimension(3,3), intent(in) :: gten
 !
 INTEGER  :: inull2 (2), i, j, k, l, m, inull 
-!     REAL eps (3, 3, 3), fmat (3, 3), gmat (3, 3)!, gten (3, 3) 
-!     REAL rten (3, 3), u (3), xc (3), yc (3), zc (3), dist 
-!     REAL hkl (3), zcc, xcc
-real(kind=PREC_SP) :: zcc, xcc
-!, quad 
+real(kind=PREC_DP) :: zcc, xcc
 !                                                                       
 !     Determine achses for transformation                               
 !     Transform reciprocal vector HKL to real space vector ZC           
@@ -122,30 +116,30 @@ END SUBROUTINE trafo
 !
 !*****7*****************************************************************
 !
-SUBROUTINE trans_old (uc, gmat, up, idim) 
+!OLD SUBROUTINE trans_old (uc, gmat, up, idim) 
 !+                                                                      
 ! IS OBSOLETE AND NO LONGER USED
 !     Transforms a point in the crystal space into plot space           
 !     and vice versa                                                    
 !-                                                                      
-USE precision_mod
+!OLD USE precision_mod
 !
-IMPLICIT none 
+!OLD IMPLICIT none 
 !                                                                       
-integer, intent(in) :: idim
-REAL(KIND=PREC_DP), dimension(idim,idim), intent(in)  :: gmat
-REAL(KIND=PREC_DP), dimension(idim)     , intent(in)  :: uc
-REAL(KIND=PREC_DP), dimension(idim)     , intent(out) :: up
+!OLD integer, intent(in) :: idim
+!OLD REAL(KIND=PREC_DP), dimension(idim,idim), intent(in)  :: gmat
+!OLD REAL(KIND=PREC_DP), dimension(idim)     , intent(in)  :: uc
+!OLD REAL(KIND=PREC_DP), dimension(idim)     , intent(out) :: up
 !
-INTEGER i, j!, idim 
+!OLD INTEGER i, j!, idim 
 !                                                                       
-DO i = 1, idim 
-   up (i) = 0.0 
-   DO j = 1, idim 
-      up (i) = up (i) + gmat (i, j) * uc (j) 
-   ENDDO 
-ENDDO 
+!OLD DO i = 1, idim 
+!OLD    up (i) = 0.0 
+!OLD    DO j = 1, idim 
+!OLD       up (i) = up (i) + gmat (i, j) * uc (j) 
+!OLD    ENDDO 
+!OLD ENDDO 
 !                                                                       
-END SUBROUTINE trans_old
+!OLD END SUBROUTINE trans_old
 !
 END MODULE trafo_mod

@@ -47,20 +47,20 @@ INTEGER , PARAMETER     :: RMC_RAD_NEUT = 2
 INTEGER , PARAMETER     :: RMC_RAD_ELEC = 3
 !
 INTEGER, DIMENSION(RMC_N_MOVE)          ::  rmc_move_local = 1   !=rmc_local_all  (RMC_N_MOVE)
-REAL   , DIMENSION(RMC_N_MOVE)          ::  rmc_move_prob  = 0.0 ! (RMC_N_MOVE)
-REAL   , DIMENSION(RMC_N_MOVE)          ::  rmc_move_cprob = 0.0 ! (RMC_N_MOVE)
+REAL(kind=PREC_DP)   , DIMENSION(RMC_N_MOVE)          ::  rmc_move_prob  = 0.0 ! (RMC_N_MOVE)
+REAL(kind=PREC_DP)   , DIMENSION(RMC_N_MOVE)          ::  rmc_move_cprob = 0.0 ! (RMC_N_MOVE)
 !
 LOGICAL, DIMENSION(:), ALLOCATABLE                 :: rmc_allowed   ! (0:RMC_MAXSCAT)
 LOGICAL, DIMENSION(:), ALLOCATABLE                 :: rmc_lsite     ! (0:RMC_MAXSCAT)
 !
 CHARACTER (LEN=80), DIMENSION(:), ALLOCATABLE     :: rmc_fname      ! (RMC_MAX_PLANES)
 CHARACTER (LEN= 4), DIMENSION(:), ALLOCATABLE     :: rmc_lambda     ! (RMC_MAX_PLANES)
-REAL              , DIMENSION(:,:), ALLOCATABLE   :: rmc_xy         ! (4,RMC_MAX_PLANES)
+REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE   :: rmc_xy         ! (4,RMC_MAX_PLANES)
 REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE                :: rmc_rlambda    ! (RMC_MAX_PLANES)
-REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_skal       ! (RMC_MAX_PLANES)
-REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_back       ! (RMC_MAX_PLANES)
-REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_chi2       ! (RMC_MAX_PLANES)
-REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_wtot       ! (RMC_MAX_PLANES)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE                :: rmc_skal       ! (RMC_MAX_PLANES)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE                :: rmc_back       ! (RMC_MAX_PLANES)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE                :: rmc_chi2       ! (RMC_MAX_PLANES)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE                :: rmc_wtot       ! (RMC_MAX_PLANES)
 INTEGER, DIMENSION(:), ALLOCATABLE                :: offq           ! (RMC_MAX_PLANES+1)
 INTEGER, DIMENSION(:), ALLOCATABLE                :: rmc_wic_typ    ! (RMC_MAX_PLANES)
 INTEGER, DIMENSION(:), ALLOCATABLE                :: rmc_nsym       ! (RMC_MAX_PLANES)
@@ -72,30 +72,30 @@ LOGICAL, DIMENSION(:), ALLOCATABLE                :: rmc_lxray      ! (RMC_MAX_P
 LOGICAL, DIMENSION(:), ALLOCATABLE                :: rmc_ano        ! (RMC_MAX_PLANES)
 LOGICAL, DIMENSION(:), ALLOCATABLE                :: rmc_ldbw       ! (RMC_MAX_PLANES)
 !
-REAL   , DIMENSION(:,:,:,:), ALLOCATABLE          :: rmc_eck        ! (3,3,RMC_MAX_SYM,RMC_MAX_PLANES)
-REAL   , DIMENSION(:,:,:,:), ALLOCATABLE          :: rmc_vi         ! (3,2,RMC_MAX_SYM,RMC_MAX_PLANES)
+REAL(kind=PREC_DP)   , DIMENSION(:,:,:,:), ALLOCATABLE          :: rmc_eck        ! (3,3,RMC_MAX_SYM,RMC_MAX_PLANES)
+REAL(kind=PREC_DP)   , DIMENSION(:,:,:,:), ALLOCATABLE          :: rmc_vi         ! (3,2,RMC_MAX_SYM,RMC_MAX_PLANES)
 INTEGER, DIMENSION(:,:)    , ALLOCATABLE          :: offsq          ! (RMC_MAX_PLANES+1,RMC_MAX_SYM) 
 
 COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:,:), ALLOCATABLE  :: rcfact         ! (0:CFPKT, DEF_MAXSCAT, RMC_MAX_PLANES)
-REAL   , DIMENSION(:,:)    , ALLOCATABLE          :: rmc_maxmove    ! (3,0:DEF_MAXSCAT)
-REAL   , DIMENSION(:,:)    , ALLOCATABLE          :: rmc_mindist    ! (DEF_MAXSCAT,DEF_MAXSCAT)
+REAL(kind=PREC_DP)   , DIMENSION(:,:)    , ALLOCATABLE          :: rmc_maxmove    ! (3,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP)   , DIMENSION(:,:)    , ALLOCATABLE          :: rmc_mindist    ! (DEF_MAXSCAT,DEF_MAXSCAT)
 !
 COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:)  , ALLOCATABLE  :: rmc_csf       ! (RMC_MAX_SQ, RMC_MAX_LOTS)
 COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:)  , ALLOCATABLE  :: rmc_csf_new   ! (RMC_MAX_SQ, RMC_MAX_LOTS)
 INTEGER, DIMENSION(:)      , ALLOCATABLE           :: ristl         ! (RMC_MAX_SQ)
 INTEGER, DIMENSION(:,:)    , ALLOCATABLE           :: rmc_lots_orig ! (3,RMC_MAX_LOTS)
 !
-REAL   , DIMENSION(:)      , ALLOCATABLE           :: rmc_int       ! (RMC_MAX_Q)
-REAL   , DIMENSION(:)      , ALLOCATABLE           :: rmc_wic       ! (RMC_MAX_Q)
+REAL(kind=PREC_DP)   , DIMENSION(:)      , ALLOCATABLE           :: rmc_int       ! (RMC_MAX_Q)
+REAL(kind=PREC_DP)   , DIMENSION(:)      , ALLOCATABLE           :: rmc_wic       ! (RMC_MAX_Q)
 !
 !
 CHARACTER (LEN=80)                                 :: rmc_lname
 !
 REAL(kind=PREC_DP)                                 :: rmc_mindist_max
 REAL(kind=PREC_DP)                                 :: rmc_ave
-REAL                                               :: rmc_sigma
-REAL                                               :: rmc_qmin,rmc_qmax
-REAL                                               :: rmc_llim,rmc_ulim
+REAL(kind=PREC_DP)                                 :: rmc_sigma
+REAL(kind=PREC_DP)                                 :: rmc_qmin,rmc_qmax
+REAL(kind=PREC_DP)                                 :: rmc_llim,rmc_ulim
 !
 INTEGER                                            :: rmc_nplane
 INTEGER                                            :: rmc_data

@@ -875,16 +875,17 @@ SUBROUTINE tran_setup
 !     See Sands, D.E. Vectors and Tensors in Crystallography Chapt. 4.7 
 !+                                                                      
 USE discus_config_mod 
-!USE tensors_mod
 USE transfrm_mod 
 !
 use matrix_mod
 USE errlist_mod 
+!
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
 INTEGER :: i, j 
-REAL, DIMENSION(3,3) ::  a !(3, 3) 
+REAL(kind=PREC_DP), DIMENSION(3,3) ::  a !(3, 3) 
 !                                                                       
 !     initialize fourth columns and rows                                
 !                                                                       
@@ -1022,7 +1023,6 @@ END SUBROUTINE tran_setup
       USE spcgr_apply, ONLY: setup_lattice
       USE update_cr_dim_mod
       USE transfrm_mod 
-!      USE trafo_mod
       USE errlist_mod 
 use precision_mod
       IMPLICIT none 
@@ -1035,11 +1035,8 @@ use precision_mod
       LOGICAL lspace 
       LOGICAL lout 
       REAL(kind=PREC_DP) ::  usym (4), ures (4) 
-      REAL werte (5) 
+      REAL(kind=PREC_DP) :: werte (5) 
       REAL(kind=PREC_DP) :: u (3), v (3), w (3) 
-!                                                                       
-!     REAL do_bang 
-!     REAL skalpro 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
       DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
@@ -1128,11 +1125,11 @@ use precision_mod
       USE generate_mod 
       USE gen_add_mod 
       USE sym_add_mod 
-!     USE tensors_mod
       USE transfrm_mod 
       USE unitcell_mod 
 !                                                                       
       USE errlist_mod 
+use precision_mod
       USE prompt_mod 
 !
       IMPLICIT none 
@@ -1140,11 +1137,11 @@ use precision_mod
       INTEGER :: i, j, k, n, nn=0, jp, l 
       LOGICAL lequal 
 !                                                                       
-      REAL mat (4, 4) !, arr (4, 4) 
-      REAL eps 
+      REAL(kind=PREC_DP) ::  mat (4, 4) !, arr (4, 4) 
+      REAL(kind=PREC_DP) ::  eps 
 !                                                                       
 !                                                                       
-      DATA eps / 0.001 / 
+      DATA eps / 0.001D0 / 
 !                                                                       
 !------ The original symmetry elements are going to be stored as        
 !       additional                                                      
@@ -1238,8 +1235,9 @@ use precision_mod
 !     CALL matmul4 (arr, tran_f, mat) 
 !     CALL matmul4 (mat, arr, tran_fi) 
       mat = matmul( matmul(tran_f, mat), tran_fi)
-      IF (ABS (amod (mat (1, 4), 1.) ) .gt.eps.OR.ABS (amod (mat (2, 4),&
-      1.) ) .gt.eps.OR.ABS (amod (mat (3, 4), 1.) ) .gt.eps) THEN       
+      IF(ABS(mod(mat(1, 4), 1.D0) ) .gt. eps .OR.  &
+         ABS(mod(mat(2, 4), 1.D0) ) .gt. eps .OR.  &
+         ABS(mod(mat(3, 4), 1.D0) ) .gt. eps      ) THEN       
          IF (gen_add_n + 1.gt.gen_add_MAX) THEN 
             ier_typ = ER_APPL 
             ier_num = - 73 
@@ -1256,8 +1254,8 @@ use precision_mod
 !     ----This loop transforms the translation into 0<=t<1              
 !                                                                       
          DO i = 1, 3 
-         mat (i, 4) = amod (mat (i, 4), 1.0) 
-         IF (mat (i, 4) .lt.0.0) mat (i, 4) = mat (i, 4) + 1.0 
+         mat(i, 4) = mod(mat(i, 4), 1.0D0) 
+         IF(mat(i, 4) .lt.0.0) mat(i, 4) = mat(i, 4) + 1.0 
          ENDDO 
          jp = 1 
          DO WHILE (ABS (jp * mat (1, 4) - NINT (jp * mat (1, 4) ) )     &
@@ -1326,7 +1324,6 @@ use precision_mod
 !+                                                                      
       USE discus_config_mod 
       USE transfrm_mod 
-!      USE trafo_mod
 !                                                                       
       USE errlist_mod 
       USE param_mod 

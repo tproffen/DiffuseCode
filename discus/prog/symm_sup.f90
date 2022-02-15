@@ -14,8 +14,6 @@ USE crystal_mod
 USE metric_mod
 use molecule_mod
 USE symm_mod 
-!USE tensors_mod
-!USE trafo_mod
 USE wyckoff_mod
 !
 USE errlist_mod 
@@ -265,7 +263,6 @@ end subroutine symm_check_expr
       USE atom_env_mod 
       USE modify_mod
       USE symm_mod 
-!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
@@ -277,14 +274,14 @@ USE precision_mod
       INTEGER i, j, k, l 
       INTEGER i_start, i_end 
 !                                                                       
-      REAL usym (4), ures (4) 
+      REAL(KIND=PREC_DP), dimension(4)    :: usym (4), ures (4) 
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte! (5) 
-      REAL   , DIMENSION(4) :: offset
+      REAL(KIND=PREC_DP), DIMENSION(4)    :: offset
 !                                                                       
-      DATA usym / 0.0, 0.0, 0.0, 1.0 / 
+      DATA usym / 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
       DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 1.00D0 / 
 !
-      offset(4) = 0.0
+      offset(4) = 0.0D0
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
@@ -375,7 +372,6 @@ END SUBROUTINE symm_op_mult
       USE modify_mod
 use prop_para_mod
       USE symm_mod 
-!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
@@ -385,14 +381,14 @@ USE precision_mod
       CHARACTER(4) name 
       INTEGER i, j, l 
       INTEGER i_start, i_end 
-      REAL usym (4), ures (4) 
+      REAL(kind=PREC_DP), DIMENSION(4) :: usym (4), ures (4) 
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte !(5) 
-      REAL   , DIMENSION(4) :: offset
+      REAL(kind=PREC_DP), DIMENSION(4) :: offset
 !                                                                       
-      DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 / 
+      DATA usym / 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
+      DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
 !
-      offset(4) = 0.0
+      offset(4) = 0.0D0
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
@@ -481,7 +477,6 @@ END SUBROUTINE symm_op_single
       USE molecule_func_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
-!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
@@ -505,10 +500,10 @@ USE precision_mod
       INTEGER, DIMENSION(:), ALLOCATABLE :: sub_list
       INTEGER, DIMENSION(:), ALLOCATABLE :: excl
 !                                                                       
-      REAL usym (4), ures (4), use_orig (3) 
+      REAL(KIND=PREC_DP) :: usym (4), ures (4), use_orig (3) 
       REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte! (5) 
 !                                                                       
-      DATA usym / 0.0, 0.0, 0.0, 1.0 / 
+      DATA usym / 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
       DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
@@ -690,7 +685,6 @@ USE precision_mod
       USE molecule_func_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
-!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
@@ -712,11 +706,11 @@ USE precision_mod
       INTEGER  :: jatom    ! First atom in sub-molecule
       INTEGER, DIMENSION(:), ALLOCATABLE :: sub_list
       INTEGER, DIMENSION(:), ALLOCATABLE :: excl
-      REAL usym (4), ures (4) 
+      REAL(KIND=PREC_DP) :: usym (4), ures (4) 
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte !(5)
-      REAL, DIMENSION(3)    :: use_orig !(3) 
+      REAL(kind=PREC_DP), DIMENSION(3)    :: use_orig !(3) 
 !                                                                       
-      DATA usym / 0.0, 0.0, 0.0, 1.0 / 
+      DATA usym / 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
       DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0 , 1.0D0/ 
 !                                                                       
 !     Set the appropriate starting end ending number for the molecules  
@@ -897,8 +891,6 @@ USE precision_mod
       USE molecule_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
-!     USE tensors_mod
-!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
@@ -916,12 +908,12 @@ USE precision_mod
       INTEGER  :: n_type   ! Number of molecule types
       INTEGER  :: n_atom   ! Number of atoms in molecules
 !                                                                       
-      REAL mat_atom (4, 4) 
-      REAL mat_dime (4, 4) 
-      REAL new_atom (4, 4) 
-      REAL new_dime (4, 4) 
-      REAL elements (3, 8) 
-      REAL usym (4), ures (4), use_orig (3) 
+      REAL(KIND=PREC_DP) :: mat_atom (4, 4) 
+      REAL(KIND=PREC_DP) :: mat_dime (4, 4) 
+      REAL(KIND=PREC_DP) :: new_atom (4, 4) 
+      REAL(KIND=PREC_DP) :: new_dime (4, 4) 
+      REAL(KIND=PREC_DP) :: elements (3, 8) 
+      REAL(KIND=PREC_DP) :: usym (4), ures (4), use_orig (3) 
       REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte ! (5) 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
@@ -1132,15 +1124,13 @@ USE precision_mod
       USE molecule_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
-!     USE tensors_mod
-!      USE trafo_mod
       USE errlist_mod 
 USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: MAXW = 6
 !                                                                       
-      CHARACTER(4) name 
+      CHARACTER(len=4) name 
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
       INTEGER :: imole, imole_s, imole_t=1
@@ -1149,17 +1139,17 @@ USE precision_mod
       INTEGER  :: n_mole   ! Number of molecules
       INTEGER  :: n_type   ! Number of molecule types
       INTEGER  :: n_atom   ! Number of atoms in molecules
-      REAL mat_atom (4, 4) 
-      REAL mat_dime (4, 4) 
-      REAL new_atom (4, 4) 
-      REAL new_dime (4, 4) 
-      REAL elements (3, 8) 
-      REAL usym (4), ures (4) 
-      REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte! (5), use_orig (3) 
-      REAL , DIMENSION(3)    :: use_orig !(3) 
+      REAL(KIND=PREC_DP) :: mat_atom (4, 4) 
+      REAL(KIND=PREC_DP) :: mat_dime (4, 4) 
+      REAL(KIND=PREC_DP) :: new_atom (4, 4) 
+      REAL(KIND=PREC_DP) :: new_dime (4, 4) 
+      REAL(KIND=PREC_DP) :: elements (3, 8) 
+      REAL(KIND=PREC_DP) :: usym (4), ures (4) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte! (5), use_orig (3) 
+      REAL(KIND=PREC_DP), DIMENSION(3)    :: use_orig !(3) 
 !                                                                       
-      DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 / 
+      DATA usym / 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
+      DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the molecules  
 !                                                                       
@@ -1346,7 +1336,6 @@ SUBROUTINE symm_ca_mult(uvw, lspace, loutput)
 !+                                                                      
 USE discus_config_mod 
 USE symm_mod 
-!USE trafo_mod
 !                                                                       
 USE errlist_mod 
 USE param_mod 
@@ -1361,11 +1350,11 @@ LOGICAL,               INTENT(IN)    :: loutput
 !
 INTEGER :: j, k 
 !                                                                       
-REAL(KIND=PREC_SP), DIMENSION(4) :: usym, ures 
+REAL(KIND=PREC_DP), DIMENSION(4) :: usym, ures 
 REAL(KIND=PREC_DP), DIMENSION(5) :: werte
 !                                                                       
-DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+DATA usym / 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
+DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0 / 
 !                                                                       
 !     real space part                                                   
 !                                                                       
@@ -1444,7 +1433,6 @@ END SUBROUTINE symm_ca_mult
 !+                                                                      
       USE discus_config_mod 
       USE symm_mod 
-!      USE trafo_mod
 !                                                                       
       USE errlist_mod 
       USE param_mod 
@@ -1459,11 +1447,11 @@ USE precision_mod
 !                                                                       
       INTEGER j 
 !
-      REAL usym (4), ures (4) 
+      REAL(kind=PREC_DP) :: usym (4), ures (4) 
       REAL(KIND=PREC_DP) :: werte (5) 
 !                                                                       
-      DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA usym / 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
+      DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0 / 
 !                                                                       
 !     real space part                                                   
 !                                                                       
@@ -1617,7 +1605,7 @@ USE precision_mod
 IMPLICIT NONE
 !
 REAL(KIND=PREC_DP), DIMENSION(5), INTENT(IN) :: werte
-REAL              , INTENT(IN) :: radius
+REAL(KIND=PREC_DP), INTENT(IN) :: radius
 !
 LOGICAL, PARAMETER    ::LSPACE = .TRUE.
 INTEGER               :: i

@@ -22,25 +22,25 @@ CHARACTER (LEN=4 ), DIMENSION(:), ALLOCATABLE  :: sa_at_lis ! (0:ST_MAX_SCAT)
 integer :: st_iset 
 !
 REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: st_scat  ! (9,0:ST_MAX_SCAT)
-REAL(kind=PREC_DP)   , DIMENSION(  :), ALLOCATABLE :: st_dw    ! (  0:ST_MAX_SCAT)
-REAL(kind=PREC_DP)   , DIMENSION(  :), ALLOCATABLE :: st_occ   ! (  0:ST_MAX_SCAT)
+REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: st_dw    ! (  0:ST_MAX_SCAT)
+REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: st_occ   ! (  0:ST_MAX_SCAT)
 REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: sa_dw    ! (  0:ST_MAX_SCAT)
-REAL(kind=PREC_DP)   , DIMENSION(  :), ALLOCATABLE :: sa_occ   ! (  0:ST_MAX_SCAT)
-REAL   , DIMENSION(  :), ALLOCATABLE :: st_delfr ! (  0:ST_MAX_SCAT)
-REAL   , DIMENSION(  :), ALLOCATABLE :: st_delfi ! (  0:ST_MAX_SCAT)
+REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: sa_occ   ! (  0:ST_MAX_SCAT)
+REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: st_delfr ! (  0:ST_MAX_SCAT)
+REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: st_delfi ! (  0:ST_MAX_SCAT)
 REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: st_pos   ! (3,1:ST_MMAX)
 REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: sa_pos   ! (3,1:ST_MAX_SCAT)
-REAL(kind=PREC_DP)   , DIMENSION(3)                :: st_a0
-REAL(kind=PREC_DP)   , DIMENSION(3)                :: st_win
-REAL(kind=PREC_DP)                                 :: st_v
-REAL(kind=PREC_DP)   , DIMENSION(3,3)              :: st_gten
-REAL   , DIMENSION(3,3,3)            :: st_eps
-REAL(kind=PREC_DP)   , DIMENSION(3)                :: st_ar
-REAL(kind=PREC_DP)   , DIMENSION(3)                :: st_wrez
-REAL(kind=PREC_DP)                                 :: st_vr
-REAL(kind=PREC_DP)   , DIMENSION(3,3)              :: st_rten
-REAL(kind=PREC_DP)   , DIMENSION(3,3,3)            :: st_reps
-REAL(kind=PREC_DP)   , DIMENSION(3,2)              :: st_dim
+REAL(kind=PREC_DP), DIMENSION(3)                :: st_a0
+REAL(kind=PREC_DP), DIMENSION(3)                :: st_win
+REAL(kind=PREC_DP)                              :: st_v
+REAL(kind=PREC_DP), DIMENSION(3,3)              :: st_gten
+REAL(kind=PREC_DP), DIMENSION(3,3,3)            :: st_eps
+REAL(kind=PREC_DP), DIMENSION(3)                :: st_ar
+REAL(kind=PREC_DP), DIMENSION(3)                :: st_wrez
+REAL(kind=PREC_DP)                              :: st_vr
+REAL(kind=PREC_DP), DIMENSION(3,3)              :: st_rten
+REAL(kind=PREC_DP), DIMENSION(3,3,3)            :: st_reps
+REAL(kind=PREC_DP), DIMENSION(3,2)              :: st_dim
 !
 INTEGER, parameter  ::  st_GEN_ADD_MAX = 192
 INTEGER             ::  st_gen_add_n

@@ -73,7 +73,7 @@ REAL(KIND=PREC_DP)   , DIMENSION(maxw) ::  werte!, wwerte
 INTEGER          ::   occupancy= 0          ! Apply occupancy upon read cell   ?
 LOGICAL          :: l_identical= .FALSE.    ! Are atoms allowed to be identical?
 LOGICAL          :: l_site     = .FALSE.    ! Treat atoms on different sites as different types?
-REAL             :: r_identical = 1.0E-5
+REAL(KIND=PREC_DP) :: r_identical = 1.0E-5
 INTEGER, PARAMETER :: NOPTIONAL = 5
 INTEGER, PARAMETER :: O_SETTING = 4
 INTEGER, PARAMETER :: O_SITE    = 5
@@ -352,7 +352,7 @@ INTEGER         ,                  INTENT(IN) :: MAXW
 CHARACTER(LEN=*), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER         , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 LOGICAL         ,                  INTENT(IN) :: l_identical
-REAL            ,                  INTENT(IN) :: r_identical
+REAL(KIND=PREC_DP),                INTENT(IN) :: r_identical
 INTEGER         ,                  INTENT(IN) :: occupancy
 LOGICAL         ,                  INTENT(IN) :: l_site
 !
@@ -371,7 +371,7 @@ INTEGER             :: ncells
 INTEGER, DIMENSION(3) :: local_icc
 INTEGER, DIMENSION(3), PARAMETER :: one = (/ 1, 1, 1/)
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
-REAL                :: r
+REAL(KIND=PREC_DP)  :: r
 !
 !
 IF (ianz.ge.1) THEN 
@@ -759,11 +759,11 @@ INTEGER :: i,isite, k, iat, iscat
 INTEGER :: l
 INTEGER :: new_scat
 INTEGER :: n_scat, n_max
-CHARACTER(LEN=4), DIMENSION(0:n_types, n_ncatoms) :: names
-INTEGER         , DIMENSION(0:n_types, n_ncatoms) :: types
-INTEGER         , DIMENSION(0:n_types, n_ncatoms) :: old
-INTEGER         , DIMENSION(           n_ncatoms) :: n_on_site
-REAL            , DIMENSION(0:n_types, n_ncatoms) :: dbw
+CHARACTER(LEN=4)  , DIMENSION(0:n_types, n_ncatoms) :: names
+INTEGER           , DIMENSION(0:n_types, n_ncatoms) :: types
+INTEGER           , DIMENSION(0:n_types, n_ncatoms) :: old
+INTEGER           , DIMENSION(           n_ncatoms) :: n_on_site
+REAL(KIND=PREC_DP), DIMENSION(0:n_types, n_ncatoms) :: dbw
 !
 types = -1
 n_on_site = 0
@@ -986,7 +986,7 @@ IMPLICIT none
 !                                                                       
 CHARACTER ( LEN=* ), INTENT(OUT) :: strucfile 
 LOGICAL            , INTENT(IN) :: l_identical
-REAL               , INTENT(IN) :: r_identical
+REAL(KIND=PREC_DP) , INTENT(IN) :: r_identical
 !
 CHARACTER(len=10)          :: befehl 
 CHARACTER(LEN=PREC_STRING) :: line, zeile 
@@ -1013,7 +1013,7 @@ LOGICAL          :: lcontent
 LOGICAL, SAVE          :: at_init = .TRUE.
 LOGICAL :: lcell, lout 
 REAL(KIND=PREC_DP) :: werte (maxw)
-REAL :: dw1 , occ1
+REAL(KIND=PREC_DP) :: dw1 , occ1
 !                                                                       
 LOGICAL :: IS_IOSTAT_END
 !                                                                       
@@ -2382,9 +2382,9 @@ INTEGER             :: n_mole_old = 0    ! previous number of molecules in struc
 LOGICAL             :: need_alloc = .false.
 LOGICAL             :: lcontent
 LOGICAL, SAVE       :: at_init = .TRUE.
-REAL, PARAMETER     :: eps = 1e-6
+REAL(KIND=PREC_DP), PARAMETER     :: eps = 1e-6
 REAL(KIND=PREC_DP), DIMENSION(maxw) :: werte !(maxw)
-REAL                :: dw1 , occ1 = 1
+REAL(KIND=PREC_DP)                :: dw1 , occ1 = 1
 !                                                                       
 !                                                                       
       lcontent = .false.
@@ -2928,7 +2928,6 @@ USE save_menu, ONLY: save_internal, save_store_setting, &
                      save_restore_setting, save_default_setting, &
                      save_struc, save_show, save_keyword
 USE spcgr_apply
-!USE trafo_mod
 !
 USE build_name_mod
 USE get_params_mod
@@ -2970,17 +2969,17 @@ INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to cal
 DATA oname  / 'metric', 'space', 'sort', 'atom'   /
 DATA loname /  6,        5     ,  4    ,  4       /
 !
-REAL, DIMENSION(1:3) :: host_a0
-REAL, DIMENSION(1:3) :: host_win
-REAL, DIMENSION(4,4) :: host_tran_fi
+REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_a0
+REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_win
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: host_tran_fi
 INTEGER              :: host_syst
 INTEGER              :: host_spcgrno
 CHARACTER(LEN=16)    :: host_spcgr
 CHARACTER(LEN= 3)    :: host_set   = 'abc'
 INTEGER              :: host_iset  =  1
 CHARACTER(LEN=16)    :: host_spcgr_set = 'P1'
-REAL, DIMENSION(4)   :: posit4 ! atom position
-REAL, DIMENSION(4)   :: uvw4   ! atom position
+REAL(KIND=PREC_DP), DIMENSION(4)   :: posit4 ! atom position
+REAL(KIND=PREC_DP), DIMENSION(4)   :: uvw4   ! atom position
 INTEGER              :: j
 LOGICAL              :: lperiod
 !
@@ -3224,12 +3223,12 @@ INTEGER   :: MAX_EADP
 INTEGER   :: n_eadp
       LOGICAL lmole, lmole_wr 
       LOGICAL lcontinue 
-      REAL z, latt (6) 
-      REAL xyz (3) 
-      REAL uiso, uij (6) 
-      REAL gen (3, 4) 
-      REAL fv (NFV) 
-REAL   , DIMENSION(:), ALLOCATABLE :: eadp_values
+      REAL(KIND=PREC_DP) :: z, latt (6) 
+      REAL(KIND=PREC_DP) :: xyz (3) 
+      REAL(KIND=PREC_DP) :: uiso, uij (6) 
+      REAL(KIND=PREC_DP) :: gen (3, 4) 
+      REAL(KIND=PREC_DP) :: fv (NFV) 
+REAL(KIND=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: eadp_values
 !
       INTEGER                               :: iianz      ! Dummy number of parameters
       INTEGER, PARAMETER                    :: MAXP  = 11 ! Dummy number of parameters
@@ -3672,7 +3671,7 @@ CHARACTER(LEN=*)                 , INTENT(OUT)   :: ofile
       INTEGER               :: natoms
       INTEGER               :: nline
       INTEGER               :: length
-      REAL   , DIMENSION(6) :: latt (6) 
+      REAL(KIND=PREC_DP)   , DIMENSION(6) :: latt (6) 
 !                                                                       
 !                                                                       
 !     Create input / output file name
@@ -3923,6 +3922,7 @@ END SUBROUTINE rmcprofile2discus
 SUBROUTINE cssr2discus(ird, iwr)
 !
 USE errlist_mod
+use precision_mod
 !
 IMPLICIT NONE
 !
@@ -3936,8 +3936,8 @@ CHARACTER(LEN=80)     :: title  = ' '
 INTEGER               :: nline
 INTEGER               :: iostatus
 INTEGER               :: natoms
-REAL   , DIMENSION(6) :: latt! (6) 
-REAL   , DIMENSION(3) :: pos ! (6) 
+REAL(KIND=PREC_DP)   , DIMENSION(6) :: latt! (6) 
+REAL(KIND=PREC_DP)   , DIMENSION(3) :: pos ! (6) 
 !
       nline     = 1
 !
@@ -4033,6 +4033,7 @@ SUBROUTINE rmcf62discus(ird, iwr, lperiod)
 USE blanks_mod
 USE errlist_mod
 USE get_params_mod
+use precision_mod
 !
 IMPLICIT NONE
 !
@@ -4044,7 +4045,7 @@ CHARACTER(LEN=256)     :: line   = ' '
 CHARACTER(LEN=256)     :: title  = ' '
 !
 CHARACTER(LEN= 4), DIMENSION(:)  , ALLOCATABLE :: r6_at_name
-REAL             , DIMENSION(:,:), ALLOCATABLE :: r6_pos
+REAL(KIND=PREC_DP)             , DIMENSION(:,:), ALLOCATABLE :: r6_pos
 INTEGER          , DIMENSION(:)  , ALLOCATABLE :: r6_site
 INTEGER          , DIMENSION(:,:), ALLOCATABLE :: r6_cell
 INTEGER, PARAMETER  :: MAXP = 9
@@ -4060,9 +4061,9 @@ INTEGER                :: natoms     ! Current line number for error reports
 INTEGER                :: nsites     ! Numberr of sites in a unit cell
 INTEGER                :: success    !
 INTEGER, DIMENSION(3)  :: super      ! Super cell dimensions
-REAL                   :: density    ! Number density in Atoms / A^3
-REAL   , DIMENSION(6)  :: lattice    ! Unit  cell dimensions For large cell
-REAL   , DIMENSION(3,3):: orient     ! Unit  cell dimensions For large cell
+REAL(KIND=PREC_DP)                   :: density    ! Number density in Atoms / A^3
+REAL(KIND=PREC_DP)   , DIMENSION(6)  :: lattice    ! Unit  cell dimensions For large cell
+REAL(KIND=PREC_DP)  , DIMENSION(3,3):: orient     ! Unit  cell dimensions For large cell
 !
 nline   = 0
 natoms  = 0
@@ -4180,31 +4181,35 @@ END SUBROUTINE rmcf62discus
 !
 SUBROUTINE rmc6f_period(natoms, nsites, lattice, super, r6_at_name, r6_pos, r6_site, r6_cell)
 !
+use precision_mod
+!
+implicit none
+!
 INTEGER                          , INTENT(IN)    :: natoms     ! Number of atoms
 INTEGER                          , INTENT(IN)    :: nsites     ! Number of sites in teh unit cell
 CHARACTER(LEN= 4), DIMENSION(  natoms), INTENT(INOUT) :: r6_at_name
-REAL             , DIMENSION(3       ), INTENT(INOUT) :: lattice
+REAL(KIND=PREC_DP)             , DIMENSION(3       ), INTENT(INOUT) :: lattice
 INTEGER          , DIMENSION(3       ), INTENT(INOUT) :: super
-REAL             , DIMENSION(3,natoms), INTENT(INOUT) :: r6_pos
+REAL(KIND=PREC_DP)             , DIMENSION(3,natoms), INTENT(INOUT) :: r6_pos
 INTEGER          , DIMENSION(  natoms), INTENT(INOUT) :: r6_site
 INTEGER          , DIMENSION(3,natoms), INTENT(INOUT) :: r6_cell
 !
-REAL, PARAMETER :: EPS = 1.E-6
+REAL(KIND=PREC_DP), PARAMETER :: EPS = 1.E-6
 !
-REAL             , DIMENSION(3,2)          :: xyz
-REAL             , DIMENSION(3,    nsites) :: shift
-REAL             , DIMENSION(3, 2, nsites) :: av_pos
-REAL             , DIMENSION(3, 2, nsites) :: si_pos
-REAL             , DIMENSION(3,    nsites) :: ave_pos
-REAL             , DIMENSION(3,    nsites) :: sig_pos
+REAL(KIND=PREC_DP)             , DIMENSION(3,2)          :: xyz
+REAL(KIND=PREC_DP)             , DIMENSION(3,    nsites) :: shift
+REAL(KIND=PREC_DP)             , DIMENSION(3, 2, nsites) :: av_pos
+REAL(KIND=PREC_DP)             , DIMENSION(3, 2, nsites) :: si_pos
+REAL(KIND=PREC_DP)             , DIMENSION(3,    nsites) :: ave_pos
+REAL(KIND=PREC_DP)             , DIMENSION(3,    nsites) :: sig_pos
 INTEGER          , DIMENSION(      nsites) :: nav_pos
 !
 CHARACTER(LEN= 4), DIMENSION(   nsites, super(1), super(2), super(3)) :: dis_atom
-REAL             , DIMENSION(3, nsites, super(1), super(2), super(3)) :: dis_pos
+REAL(KIND=PREC_DP)             , DIMENSION(3, nsites, super(1), super(2), super(3)) :: dis_pos
 !
 INTEGER  :: i,j, i1,i2,i3
 INTEGER, DIMENSION(3) :: k
-REAL   , DIMENSION(3) :: wrap
+REAL(KIND=PREC_DP)   , DIMENSION(3) :: wrap
 !
 av_pos(:,:,:) = 0.00
 si_pos(:,:,:) = 0.00
@@ -4331,7 +4336,6 @@ END SUBROUTINE rmc6f_period
 !     converts a CIF file to DISCUS                   
 !+                                                                      
 !                                                                       
-!      USE tensors_mod
       USE build_name_mod
       USE wink_mod
       USE ber_params_mod
@@ -4352,7 +4356,7 @@ USE support_mod
       CHARACTER(LEN=*)                 , INTENT(OUT)   :: ofile 
 !                                                                       
       REAL(KIND=PREC_DP), PARAMETER :: eightpi2 = 8.D0*3.1415926535897932384626433832795028841971693993751D0**2
-      REAL, PARAMETER :: EPS = 0.00001
+      REAL(KIND=PREC_DP), PARAMETER :: EPS = 0.00001
 !                                                                       
       REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
 !                                                                       
@@ -4426,26 +4430,26 @@ USE support_mod
       LOGICAL               :: l_space_group
       LOGICAL               :: l_numbers
       INTEGER               :: data_i
-      REAL   , DIMENSION(6) :: latt! (6) 
-      REAL   , DIMENSION(3) :: pos ! (6) 
-      REAL   , DIMENSION(3) :: rlatt    ! (6) 
-      REAL   , DIMENSION(3,3) :: uij ! (6) 
-      REAL   , DIMENSION(3,3) :: bij ! (6) 
+      REAL(KIND=PREC_DP)   , DIMENSION(6) :: latt! (6) 
+      REAL(KIND=PREC_DP)   , DIMENSION(3) :: pos ! (6) 
+      REAL(KIND=PREC_DP)   , DIMENSION(3) :: rlatt    ! (6) 
+      REAL(KIND=PREC_DP)   , DIMENSION(3,3) :: uij ! (6) 
+      REAL(KIND=PREC_DP)   , DIMENSION(3,3) :: bij ! (6) 
       REAL(kind=PREC_DP)   , DIMENSION(3,3) :: gten ! (6) 
       REAL(kind=PREC_DP)   , DIMENSION(3,3) :: rten ! (6) 
-      REAL   , DIMENSION(4,4) :: symm_mat ! (6) 
-      REAL                  :: uiso
-      REAL                  :: biso
-      REAL                  :: occ
+      REAL(KIND=PREC_DP)   , DIMENSION(4,4) :: symm_mat ! (6) 
+      REAL(KIND=PREC_DP)                  :: uiso
+      REAL(KIND=PREC_DP)                  :: biso
+      REAL(KIND=PREC_DP)                  :: occ
 !
       TYPE :: atom_list
          CHARACTER (LEN=80) :: label  
          CHARACTER (LEN=80) :: symbol  
          CHARACTER (LEN=4)  :: at_name
-         REAL,DIMENSION(3)  :: at_pos
-         REAL,DIMENSION(6)  :: at_uanis
-         REAL               :: at_bvalue
-         REAL               :: at_occ
+         REAL(KIND=PREC_DP),DIMENSION(3)  :: at_pos
+         REAL(KIND=PREC_DP),DIMENSION(6)  :: at_uanis
+         REAL(KIND=PREC_DP)               :: at_bvalue
+         REAL(KIND=PREC_DP)               :: at_occ
          TYPE(atom_list), POINTER   :: next
       END TYPE atom_list
 !
@@ -5229,15 +5233,9 @@ subroutine lammps2discus(ianz, cpara, lpara, MAXW, &
 !  Presently a very basic routine for a triclinic dump.
 !+                                                                      
 !                                                                       
-!use tensors_mod
 use build_name_mod
-!use wink_mod
-!use ber_params_mod
-!use blanks_mod
 use get_params_mod
-!use lib_length
 use precision_mod
-!use string_convert_mod
 use support_mod
 use trig_degree_mod
 !
@@ -5511,13 +5509,13 @@ CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW)  :: cpara (MAXW)
 INTEGER            , DIMENSION(MAXW)  :: lpara (MAXW) 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW)  :: werte (MAXW) 
 !
-REAL, PARAMETER                       :: eps = 1e-6
+REAL(KIND=PREC_DP), PARAMETER                       :: eps = 1e-6
 CHARACTER (LEN=PREC_STRING)                  :: line
 CHARACTER (LEN=PREC_STRING)                  :: zeile
 CHARACTER (LEN=  20)                  :: bef
 CHARACTER (LEN=   4), DIMENSION(PREC_STRING), SAVE :: names
-REAL                , DIMENSION(PREC_STRING), SAVE :: bvals
-REAL                , DIMENSION(PREC_STRING), SAVE :: occs
+REAL(KIND=PREC_DP)                , DIMENSION(PREC_STRING), SAVE :: bvals
+REAL(KIND=PREC_DP)                , DIMENSION(PREC_STRING), SAVE :: occs
 INTEGER                               :: ios
 INTEGER                               :: i
 INTEGER                               :: iblk
@@ -5537,9 +5535,9 @@ LOGICAL                               :: in_mole    ! Currently within a molecul
 LOGICAL                               :: l_type     ! RFound molecule type command
 integer :: nlines ! number of line sin input file
 LOGICAL                               :: new
-REAL                                  :: xc,yc,zc,bval
-real(kind=PREC_SP), dimension(3,2)   :: ccdim     ! Crystal dimensions 
-REAL                                 :: occ
+REAL(kind=PREC_DP)                    :: xc,yc,zc,bval
+real(kind=PREC_DP), dimension(3,2)   :: ccdim     ! Crystal dimensions 
+REAL(kind=PREC_DP)                   :: occ
 integer, dimension(9) :: ncell_val
 !
 LOGICAL           :: IS_IOSTAT_END
@@ -5684,9 +5682,9 @@ header: DO
           ENDIF
        ELSE
           READ(zeile,*,IOSTAT=ios) (werte(i),i=1,6)
-          IF(ios /=0 .OR. is_nan(REAL(werte(1),KIND=PREC_SP)) .OR. is_nan(REAL(werte(2),KIND=PREC_SP)) &
-                     .OR. is_nan(REAL(werte(3),KIND=PREC_SP)) .OR. is_nan(REAL(werte(4),KIND=PREC_SP)) &
-                     .OR. is_nan(REAL(werte(5),KIND=PREC_SP)) .OR. is_nan(REAL(werte(6),KIND=PREC_SP))) THEN
+          IF(ios /=0 .OR. is_nan(werte(1)) .OR. is_nan(werte(2)) &
+                     .OR. is_nan(werte(3)) .OR. is_nan(werte(4)) &
+                     .OR. is_nan(werte(5)) .OR. is_nan(werte(6))) THEN
              ier_num = -48
              ier_typ = ER_APPL
              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
@@ -5851,12 +5849,13 @@ main: DO
       ENDIF
          n_mole = MAX(n_mole, imole)
          n_atom = MAX(n_atom, inatom)
-      IF(is_nan(xc) .OR. is_nan(yc) .OR. is_nan(zc) .OR. is_nan(bval)) THEN
+      IF(is_nan(xc) .OR. is_nan(yc) .OR.  &
+         is_nan(zc) .OR. is_nan(bval)    ) THEN
          ios = -1
       ENDIF
-      IF(     is_nan(REAL(werte(10),KIND=PREC_SP)) &
-         .OR. is_nan(REAL(werte(11),KIND=PREC_SP)) &
-         .OR. is_nan(REAL(werte(12),KIND=PREC_SP)) ) THEN
+      IF(     is_nan(werte(10)) &
+         .OR. is_nan(werte(11)) &
+         .OR. is_nan(werte(12)) ) THEN
          ios = -1
       ENDIF
 !
@@ -5940,10 +5939,10 @@ use precision_mod
 IMPLICIT NONE
 !
 LOGICAL         ,                  INTENT(IN) :: l_identical
-REAL            ,                  INTENT(IN) :: r_identical
+REAL(KIND=PREC_DP)            ,                  INTENT(IN) :: r_identical
 !
 LOGICAL, PARAMETER :: LSPACE = .TRUE.
-REAL    :: eps
+REAL(KIND=PREC_DP)    :: eps
 REAL(kind=PREC_DP), DIMENSION(3) :: u,v
 INTEGER :: i, j
 !
@@ -6104,7 +6103,7 @@ IMPLICIT none
 !                                                                       
 CHARACTER ( LEN=* ), INTENT(OUT) :: strucfile 
 LOGICAL            , INTENT(IN)  :: l_identical
-REAL               , INTENT(IN)  :: r_identical
+REAL(KIND=PREC_DP)               , INTENT(IN)  :: r_identical
 !
 CHARACTER(LEN=200) :: tempfile
 CHARACTER(LEN=PREC_STRING) :: line
@@ -6112,9 +6111,9 @@ INTEGER :: length
 INTEGER :: im, j, iat
 LOGICAL :: lout
 INTEGER, DIMENSION(3) :: n_unit_cells  ! local copy to survive readstru 
-REAL, DIMENSION(3) :: vec     ! position of first atom in a molecule
-REAL, DIMENSION(3) :: fract   ! shift into first unit cell
-REAL, DIMENSION(3) :: shift   ! shift into first unit cell
+REAL(KIND=PREC_DP), DIMENSION(3) :: vec     ! position of first atom in a molecule
+REAL(KIND=PREC_DP), DIMENSION(3) :: fract   ! shift into first unit cell
+REAL(KIND=PREC_DP), DIMENSION(3) :: shift   ! shift into first unit cell
 !
 n_unit_cells(:) = cr_icc(:)
 lout = .FALSE.
