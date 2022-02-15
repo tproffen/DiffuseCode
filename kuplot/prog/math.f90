@@ -1,6 +1,10 @@
+module kuplot_math_mod
+!
 !*****7**************************************************************   
 !     Here are all the 'math' routines for KUPLOT.                      
 !*****7**************************************************************   
+contains
+!
       SUBROUTINE do_sort (zeile, lp) 
 !+                                                                      
 !     sort xy file after increasing x values                            
@@ -188,6 +192,7 @@ USE precision_mod
       USE wink_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -312,6 +317,7 @@ USE precision_mod
       USE wink_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -982,6 +988,8 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_para_mod
+!
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -1125,6 +1133,8 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_para_mod
+!
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -1299,6 +1309,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
 USE lib_length
 USE precision_mod
 USE support_mod
@@ -1314,7 +1325,7 @@ USE support_mod
       CHARACTER(80) cdummy 
       CHARACTER(6) cout 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL wmax (maxmax) 
+REAL(kind=PREC_DP), dimension(MAXMAX) :: wmax (maxmax) 
       INTEGER lpara (maxw), lp 
       INTEGER ixm (maxmax), iym (maxmax) 
       INTEGER ianz, ifil, im, ima, ik 
@@ -1554,190 +1565,6 @@ USE support_mod
 !                                                                       
       END SUBROUTINE do_glatt_y                     
 !**7*****************************************************************   
-      SUBROUTINE get_extrema_xy_local (i, ymi, yma) 
-!+                                                                      
-!     extrema der kurve ik local bestimmen                              
-!-                                                                      
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      REAL ymi, yma 
-      INTEGER i, ip 
-!                                                                       
-      yma = - 1e38 
-      ymi = 1e38 
-      DO ip = 1, lenc(i) 
-      IF (x (offxy (i - 1) + ip) .ge.ex (iwin, iframe, 1) .and.x (offxy &
-      (i - 1) + ip) .le.ex (iwin, iframe, 2) ) then                     
-         yma = max (yma, y (offxy (i - 1) + ip) ) 
-         ymi = min (ymi, y (offxy (i - 1) + ip) ) 
-      ENDIF 
-      ENDDO 
-!                                                                       
-      END SUBROUTINE get_extrema_xy_local           
-!**7*****************************************************************   
-      SUBROUTINE get_extrema_xy (a, ik, ilen, amin, amax) 
-!+                                                                      
-!     extrema der kurve ik bestimmen                                    
-!-                                                                      
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      REAL a (maxarray) 
-      REAL amax (maxkurvtot), amin (maxkurvtot) 
-      INTEGER ik, ip, ilen 
-!                                                                       
-      amax (ik) = a (offxy (ik - 1) + 1) 
-      amin (ik) = a (offxy (ik - 1) + 1) 
-      DO ip = 2, ilen 
-      amax (ik) = max (amax (ik), a (offxy (ik - 1) + ip) ) 
-      amin (ik) = min (amin (ik), a (offxy (ik - 1) + ip) ) 
-      ENDDO 
-!                                                                       
-      END SUBROUTINE get_extrema_xy                 
-!**7*****************************************************************   
-      SUBROUTINE get_extrema_z (a, ik, nxx, nyy, amin, amax) 
-!+                                                                      
-!     extrema der kurve ik bestimmen                                    
-!-                                                                      
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      REAL a (maxarray) 
-      REAL amax (maxkurvtot), amin (maxkurvtot) 
-      INTEGER ik, nxx, nyy, ikk, i, j 
-!                                                                       
-      amax (ik) = a (offz (ik - 1) + 1) 
-      amin (ik) = a (offz (ik - 1) + 1) 
-      IF (amin (ik) .eq. - 9999.) amin (ik) = 1e+30 
-      DO i = 1, nxx 
-      DO j = 2, nyy 
-      ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
-      amax (ik) = max (amax (ik), a (ikk) ) 
-      IF (a (ikk) .ne. - 9999.) amin (ik) = min (amin (ik), a (ikk) ) 
-      ENDDO 
-      ENDDO 
-!                                                                       
-      END SUBROUTINE get_extrema_z                  
-!**7******************************************************************* 
-      SUBROUTINE do_fmax_xy (ik, wmax, ixm, maxmax, ima) 
-!+                                                                      
-!     maxima bestimmen fuer xy-files                                    
-!-                                                                      
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      INTEGER maxmax 
-      REAL wmax (maxmax) 
-      INTEGER ixm (maxmax), ik, ima 
-      INTEGER ix, jf 
-      LOGICAL max_da 
-!                                                                       
-      ima = 1 
-      DO ix = 1 + ifen, lenc(ik) - ifen 
-      IF (x (offxy (ik - 1) + ix) .ge.ex (iwin, iframe, 1) .and.x (     &
-      offxy (ik - 1) + ix) .le.ex (iwin, iframe, 2) ) then              
-         max_da = .true. 
-         DO jf = - ifen+1, - 1 
-         max_da = max_da.and. (y (offxy (ik - 1) + ix) .ge.    &
-                               y (offxy (ik - 1) + ix + jf) )  &
-                        .AND. (y (offxy (ik - 1) + ix) .gt.    &
-                               y (offxy (ik - 1) + ix + jf-1) )                                              
-         ENDDO 
-         DO jf = 1, ifen -1
-         max_da = max_da.and. (y (offxy (ik - 1) + ix) .ge.    &
-                               y (offxy (ik - 1) + ix + jf) )  &
-                        .AND. (y (offxy (ik - 1) + ix) .gt.    &
-                               y (offxy (ik - 1) + ix + jf+1) )                                              
-         ENDDO 
-!                                                                       
-         IF (max_da) then 
-            wmax (ima) = y (offxy (ik - 1) + ix) 
-            ixm (ima) = ix 
-            ima = ima + 1 
-            IF (ima.gt.maxmax) then 
-               ier_num = - 21 
-               ier_typ = ER_APPL 
-               ima = maxmax 
-               RETURN 
-            ENDIF 
-         ENDIF 
-      ENDIF 
-      ENDDO 
-      ima = ima - 1 
-!                                                                       
-      IF (ima.eq.0) then 
-         ier_num = - 22 
-         ier_typ = ER_APPL 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE do_fmax_xy                     
-!**7******************************************************************* 
-      SUBROUTINE do_fmax_z (ik, wmax, ixm, iym, maxmax, ima) 
-!+                                                                      
-!     maxima bestimmen aus xyz files                                    
-!-                                                                      
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      INTEGER maxmax 
-      REAL wmax (maxmax) 
-      INTEGER ik, ima, ixm (maxmax), iym (maxmax) 
-      INTEGER ikk, iix, ix, iy, jf, kf 
-      LOGICAL max_da 
-!                                                                       
-      ima = 1 
-      ikk = offz (ik - 1) 
-      DO ix = 1 + ifen, nx (ik) - ifen 
-      DO iy = 1 + ifen, ny (ik) - ifen 
-      iix = ix - 1 
-      IF (z (ikk + iix * ny (ik) + iy) .eq. - 9999.0) goto 20 
-      max_da = .true. 
-      DO jf = - ifen, ifen 
-      DO kf = - ifen, ifen 
-      IF (jf.ne.0.or.kf.ne.0) then 
-         max_da = max_da.and. (z (ikk + iix * ny (ik) + iy) ) .ge.z (   &
-         ikk + (iix + jf) * ny (ik) + iy + kf)                          
-         IF (.not.max_da) goto 20 
-      ENDIF 
-      ENDDO 
-      ENDDO 
-      IF (max_da) then 
-         wmax (ima) = z (ikk + iix * ny (ik) + iy) 
-         ixm (ima) = ix 
-         iym (ima) = iy 
-         ima = ima + 1 
-         IF (ima.gt.maxmax) then 
-            ier_num = - 21 
-            ier_typ = ER_APPL 
-            ima = maxmax 
-            RETURN 
-         ENDIF 
-      ENDIF 
-   20 CONTINUE 
-      ENDDO 
-      ENDDO 
-      ima = ima - 1 
-!                                                                       
-      IF (ima.eq.0) then 
-         ier_num = - 22 
-         ier_typ = ER_APPL 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE do_fmax_z                      
-!**7******************************************************************* 
       SUBROUTINE extract_subarray (xf, yf, zf, xmit, ymit, nsize, ik,   &
       ie)                                                               
 !+                                                                      
@@ -1842,8 +1669,13 @@ IMPLICIT REAL (a-h, o-z)
       RETURN 
       END SUBROUTINE polint                         
 !                                                                       
-      SUBROUTINE spline (x, y, n, yp1, ypn, y2) 
-      USE kuplot_config 
+!*******************************************************************************
+!
+SUBROUTINE spline (x, y, n, yp1, ypn, y2) 
+!
+USE kuplot_config 
+use precision_mod
+!
 IMPLICIT integer(i-n)
 IMPLICIT REAL (a-h, o-z)
       PARAMETER (nmax = maxarray) 
@@ -2060,3 +1892,5 @@ IMPLICIT REAL (a-h, o-z)
       IF (A (N, N) .EQ.0.) A (N, N) = TINY 
       RETURN 
       END SUBROUTINE LUDCMP                         
+!
+end module kuplot_math_mod

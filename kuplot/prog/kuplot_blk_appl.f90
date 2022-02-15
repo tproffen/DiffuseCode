@@ -1,3 +1,7 @@
+module kuplot_blk_mod
+!
+contains
+!
 !*****7*****************************************************************
 !                                                                       
       SUBROUTINE kuplot_initarrays 
@@ -14,6 +18,8 @@
 !     USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_color_mod
+use kuplot_init_devices_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -731,3 +737,4 @@ USE support_mod
 !                                                                       
  1000 FORMAT   (1x,'Reading defaults : ',a) 
       END SUBROUTINE kuplot_auto_def                       
+end module kuplot_blk_mod

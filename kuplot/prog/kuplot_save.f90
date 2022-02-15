@@ -1,6 +1,11 @@
+module kuplot_save_mod
+!
 !*****7**************************************************************** 
 !     This file contains subroutines saving files                       
 !*****7**************************************************************** 
+!
+contains
+!
       SUBROUTINE do_save_data (zeile, lp) 
 !-                                                                      
 !       Main menu for save command.                                     
@@ -9,6 +14,7 @@
       USE errlist_mod 
       USE get_params_mod
       USE kuplot_config 
+use kuplot_math_mod
 USE lib_help
 USE precision_mod
 USE str_comp_mod
@@ -80,6 +86,7 @@ USE str_comp_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_low_mod
 USE support_mod
 !                                                                       
       IMPLICIT none 
@@ -90,7 +97,7 @@ USE support_mod
       CHARACTER ( * ) filname 
       INTEGER ikurv, ip 
 !                                                                       
-      LOGICAL k_in_f 
+      !LOGICAL k_in_f 
 !                                                                       
       CALL oeffne (ifil, filname, 'unknown') 
       IF (ier_num.ne.0) return 
@@ -116,6 +123,7 @@ USE support_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_low_mod
 USE lib_length
 USE support_mod
 !                                                                       
@@ -128,7 +136,7 @@ USE support_mod
       CHARACTER(20) connect, marks 
       INTEGER ikurv, ip 
 !                                                                       
-      LOGICAL k_in_f 
+!      LOGICAL k_in_f 
 !                                                                       
       CALL oeffne (ifil, filname, 'unknown') 
       IF (ier_num.ne.0) return 
@@ -423,6 +431,7 @@ USE support_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_math_mod
       USE sup_mod
 USE lib_errlist_func
 USE lib_help
@@ -721,6 +730,8 @@ USE str_comp_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_para_mod
+!
 USE precision_mod
       USE string_convert_mod
 !                                                                       
@@ -815,9 +826,11 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_math_mod
 USE lib_length
-USE precision_mod
 USE support_mod
+use precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1079,3 +1092,5 @@ USE support_mod
  4100 FORMAT     (6(g13.6,1x)) 
  4500 FORMAT     (20(i3,1x)) 
       END SUBROUTINE do_save                        
+!
+end module kuplot_save_mod

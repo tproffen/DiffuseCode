@@ -1,3 +1,7 @@
+!module fit_mache_kdo_mod
+!
+!contains
+!
 SUBROUTINE fit_mache_kdo(line, lend, length)
 !
 USE kuplot_mod
@@ -109,3 +113,5 @@ ELSE
 ENDIF
 !
 END SUBROUTINE fit_mache_kdo
+!
+!end module fit_mache_kdo_mod

@@ -1,3 +1,7 @@
+module kuplot_update_mod
+!
+contains
+!
       SUBROUTINE kuplot_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !       Replaces a substring in an expression by the value of the       
 !       appropriate parameter. Modified version for KUPLOT.             
@@ -7,6 +11,9 @@
       USE param_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_para_mod
+!
       USE variable_mod
       USE lib_upd_mod
 USE lib_length
@@ -17,8 +24,8 @@ USE lib_errlist_func
 !                                                                       
       INTEGER,                    INTENT(IN   ) :: ikl
       INTEGER,                    INTENT(IN   ) :: iklz
-      CHARACTER (LEN=*),          INTENT(OUT  ) :: string 
-      INTEGER,                    INTENT(OUT  ) :: ll
+      CHARACTER (LEN=*),          INTENT(INOUT) :: string 
+      INTEGER,                    INTENT(INOUT) :: ll
       INTEGER,                    INTENT(IN   ) :: maxw
       REAL(KIND=PREC_DP)   , DIMENSION(1:maxw), INTENT(IN   ) :: ww
       INTEGER,                    INTENT(IN   ) :: ianz
@@ -774,13 +781,13 @@ USE precision_mod
 !
       IMPLICIT none 
 !                                                                       
-      CHARACTER (LEN=*), INTENT(IN   ) :: string
+      CHARACTER (LEN=*), INTENT(INOUT) :: string
       CHARACTER (LEN=*), INTENT(INOUT) :: line 
       INTEGER,           INTENT(IN)    :: ikl
       INTEGER,           INTENT(IN)    :: iklz
-      INTEGER,           INTENT(IN)    :: laenge
-      INTEGER,           INTENT(IN)    :: lp
-      REAL(KIND=PREC_DP),INTENT(IN )   :: ww
+      INTEGER,           INTENT(INOUT) :: laenge
+      INTEGER,           INTENT(INOUT) :: lp
+      REAL(KIND=PREC_DP),INTENT(INOUT) :: ww
 !                                                                       
       INTEGER il 
 !                                                                       
@@ -913,3 +920,5 @@ CALL lib_get_var_type(line, length, var_is_type)
 !
 !
 END SUBROUTINE kuplot_get_var_typE
+!
+end module kuplot_update_mod

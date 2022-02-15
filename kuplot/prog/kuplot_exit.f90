@@ -1,3 +1,7 @@
+module kuplot_exit_mod
+!
+contains
+!
 !*****7**************************************************************** 
       SUBROUTINE kuplot_do_exit 
 !                                                                       
@@ -43,3 +47,5 @@
       STOP        ! Terminate program
 !
       END SUBROUTINE kuplot_sigint
+!
+end module kuplot_exit_mod

@@ -135,6 +135,12 @@ SUBROUTINE kpara(MAXW, cpara, lpara, ianz, ipartial)
 !
 USE kuplot_config
 USE kuplot_mod
+use kuplot_frame_mod
+use kuplot_plot_mod
+use kuplot_load_mod
+use kuplot_para_mod
+use kuplot_reset_mod
+!
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
@@ -213,7 +219,7 @@ ENDIF
 ENDIF
 string = ' '
 length = 1
-CALL do_rese (string, length)
+CALL kuplot_do_reset(string, length)
 !
 WRITE(string,'(a,a,a)') 'sc, ',infile(1:len_trim(infile)), ' , 1, 1, 2'
 length = LEN_TRIM(string)
@@ -411,6 +417,13 @@ SUBROUTINE kpar_par(MAXW, cpara, lpara, ianz, ipartial)
 !
 USE kuplot_config
 USE kuplot_mod
+use kuplot_frame_mod
+use kuplot_plot_mod
+use kuplot_load_mod
+use kuplot_para_mod
+use kuplot_reset_mod
+use kuplot_show_mod
+!
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
@@ -583,7 +596,7 @@ ELSE
 ENDIF
 string = ' '
 length = 1
-CALL do_rese (string, length)
+CALL kuplot_do_reset(string, length)
 !
 WRITE(string,'(a,a,a,i5,a)') 'sc, ',infile0(1:len_trim(infile0)), ',', igen,' , 1, 2'
 length = LEN_TRIM(string)
@@ -602,7 +615,7 @@ ENDDO
 !
 string = ' '
 length = 1
-CALL do_rese (string, length)
+CALL kuplot_do_reset(string, length)
 !
 ! Load data sets for parameters 2 and 1
 IF(ipar2 == -1) THEN

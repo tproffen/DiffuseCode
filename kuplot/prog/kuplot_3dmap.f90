@@ -403,6 +403,8 @@ END SUBROUTINE get_yfunc
 SUBROUTINE k3dm_run(line, length)
 !
 USE kuplot_mod
+use kuplot_show_mod
+use kuplot_plot_mod
 !
 USE ber_params_mod
 USE errlist_mod

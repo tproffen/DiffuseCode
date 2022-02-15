@@ -597,6 +597,8 @@ USE lib_length
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE lib_length
 !
       IMPLICIT NONE

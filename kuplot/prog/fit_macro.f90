@@ -57,6 +57,7 @@ SUBROUTINE theory_macro(xx, f, df, i)
 !
 USE kuplot_config
 USE kuplot_mod
+use kuplot_gsas_mod
 USE fit_params_mod
 USE fit_set_sub_mod
 !

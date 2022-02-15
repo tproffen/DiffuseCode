@@ -1,7 +1,12 @@
-!**************************************************************** 
+module kuplot_load_mod
+!
+!*****7**************************************************************** 
 !     Routines to allocate memory for data sets and load data sets      
 !     using different file formats.                                     
 !*****7**************************************************************** 
+!
+contains
+!
 SUBROUTINE do_func (zeile, lp) 
 !                                                                       
 !     Create new data set from given function                           
@@ -14,7 +19,9 @@ use do_replace_expr_mod
       USE param_mod 
       USE kuplot_config 
       USE kuplot_mod 
-USE kuplot_fit6
+use kuplot_show_mod
+!
+USE kuplot_fit6_low_mod
 USE precision_mod
 USE str_comp_mod
 !                                                                       
@@ -322,6 +329,8 @@ ENDIF  nianz
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE lib_errlist_func
 USE precision_mod
 !                                                                       
@@ -496,7 +505,6 @@ lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,  6     
 owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,  0.0    ,  0.0 /)
 !
 !
-write(*,*) ' STRING >', string(1:laenge), '< ', laenge
 !                                                                       
       istr = 1 
       CALL no_error 
@@ -818,6 +826,8 @@ USE lib_length
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -975,6 +985,8 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -1133,6 +1145,8 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -1251,6 +1265,8 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 !
       USE count_col_mod
 USE precision_mod
@@ -1318,6 +1334,8 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 !
 USE precision_mod
 !                                                                       
@@ -1499,6 +1517,8 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE lib_length
 USE precision_mod
 USE str_comp_mod
@@ -1547,7 +1567,7 @@ USE str_comp_mod
       LOGICAL not_found, data_read, lsigma, lend, lall 
       LOGICAL lkev 
 !                                                                       
-      REAL chan2kev 
+!     REAL chan2kev 
 !                                                                       
       lend = .false. 
       yes_limits = .false.
@@ -2247,6 +2267,8 @@ USE lib_length
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE lib_length
 USE precision_mod
       USE string_convert_mod
@@ -2279,7 +2301,7 @@ USE precision_mod
       INTEGER vtype (nbank) 
       LOGICAL lend, lall, liparm, lunits, lnorm 
 !                                                                       
-      INTEGER gsas_no_banks 
+!      INTEGER gsas_no_banks 
 !                                                                       
       filename = fname (iz) 
 !                                                                       
@@ -3277,6 +3299,8 @@ USE errlist_mod
 USE prompt_mod 
 USE kuplot_config 
 USE kuplot_mod 
+use kuplot_show_mod
+!
 USE precision_mod
 !
 USE count_col_mod
@@ -3440,6 +3464,8 @@ USE charact_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE precision_mod
 !
 IMPLICIT NONE
@@ -3611,6 +3637,8 @@ END SUBROUTINE do_read_csv
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -3669,6 +3697,8 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -3753,6 +3783,8 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -3793,6 +3825,8 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -3835,6 +3869,8 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -3885,6 +3921,8 @@ USE precision_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -3930,30 +3968,6 @@ USE precision_mod
       CALL show_data (iz - 1) 
 !                                                                       
       END SUBROUTINE read_z                         
-!*****7**************************************************************** 
-      SUBROUTINE get_extrema 
-!+                                                                      
-!     get max/min values of files                                       
-!-                                                                      
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      INTEGER ik 
-!                                                                       
-      DO ik = 1, iz - 1 
-      IF (lni (ik) ) then 
-         CALL get_extrema_xy (x, ik, nx (ik), xmin, xmax) 
-         CALL get_extrema_xy (y, ik, ny (ik), ymin, ymax) 
-         CALL get_extrema_z (z, ik, nx (ik), ny (ik), zmin, zmax) 
-      ELSE 
-         CALL get_extrema_xy (x, ik, lenc (ik), xmin, xmax) 
-         CALL get_extrema_xy (y, ik, lenc (ik), ymin, ymax) 
-      ENDIF 
-      ENDDO 
-!                                                                       
-      END SUBROUTINE get_extrema                    
 !*****7**************************************************************** 
       SUBROUTINE get_col (zeile, field, nf, colm) 
 !+                                                                      
@@ -4003,6 +4017,8 @@ USE lib_length
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
+!
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -4092,3 +4108,5 @@ USE precision_mod
       mca_par (3)                                                       
 !                                                                       
       END FUNCTION chan2kev                         
+!
+end module kuplot_load_mod

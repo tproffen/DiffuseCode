@@ -1,7 +1,12 @@
+module kuplot_color_mod
+!
 !*****7*****************************************************************
 !     Here are all the routines for color handling for the              
 !     KUPLOT bitmaps.                                                   
 !*****7*****************************************************************
+!
+contains
+!
 SUBROUTINE set_color (zeile, lp) 
 !+                                                                      
 !     Set colours for background & pens                                 
@@ -11,6 +16,7 @@ SUBROUTINE set_color (zeile, lp)
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -586,3 +592,4 @@ USE support_mod
  1000 FORMAT     (' ------ > Writing colour map to file : ',A30) 
  2000 FORMAT     ('#',3z2.2) 
       END SUBROUTINE cmap_write                     
+end module kuplot_color_mod

@@ -43,7 +43,7 @@ INTEGER :: iianz   ! Number in global data set
 INTEGER :: nnpara   ! Number refined parameters used by refine
 INTEGER :: nnfix    ! Number fixed   parameters used by refine
 INTEGER, DIMENSION(3) :: dimen
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: ext_data
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: ext_data
 !
 !
 INTEGER, PARAMETER :: NOPTIONAL = 2

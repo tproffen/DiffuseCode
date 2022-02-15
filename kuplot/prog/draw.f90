@@ -1,28 +1,35 @@
+module kuplot_draw_mod
+!
 !******7****************************************************************
 !     Here are menu and mouse related commands                          
 !******7****************************************************************
-      SUBROUTINE do_mouse (zeile, lp) 
+!
+contains
+!
+!******7****************************************************************
+!
+SUBROUTINE do_mouse (zeile, lp) 
 !+                                                                      
 !     Mouse command ..                                                  
 !-                                                                      
-      USE errlist_mod 
-      USE get_params_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE get_params_mod
+USE kuplot_config 
+USE kuplot_mod 
 !
 USE precision_mod
 USE str_comp_mod
-      IMPLICIT none 
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 4) 
+INTEGER, PARAMETER :: maxw = 4 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER         , intent(inout) :: lp 
 !                                                                       
-      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
-      INTEGER lpara (maxw), ianz 
+CHARACTER(LEN=PREC_STRING), dimension(MAXW) :: cpara ! (maxw) 
+INTEGER                   , dimension(MAXW) :: lpara ! (maxw), ianz 
+integer :: ianz
 !                                                                       
 !                                                                       
       lp = -lp
@@ -63,6 +70,12 @@ USE str_comp_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_draw_low_mod
+use kuplot_draw_tframe_mod
+use kuplot_low_mod
+use kuplot_plot_mod
+use kuplot_plot_low_mod
+
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -71,7 +84,7 @@ USE str_comp_mod
       INTEGER ini 
       LOGICAL lw, lend 
 !                                                                       
-      LOGICAL hit_button, n_in_f 
+!      LOGICAL hit_button, n_in_f 
 !                                                                       
       lw = .true. 
 !                                                                       
@@ -194,150 +207,9 @@ continue
      &                            'command mode ...')                   
  2000 FORMAT     ('skal ',3(G13.6,','),G13.6) 
       END SUBROUTINE do_menu                        
-!******7****************************************************************
-      SUBROUTINE frame_menu 
-!                                                                       
-!     This sets the menu viewport and draws borders ...                 
-!                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      CALL PGSVP (0.0, 0.999, 0.0, 0.999) 
-      CALL PGSWIN (0.0, 1.0, 0.0, 1.0) 
-!                                                                       
-      CALL PGSFS (2) 
-      CALL PGSCI (6) 
-      CALL PGRECT (0.0, 1.0, 0.0, 1.0) 
-!                                                                       
-      END SUBROUTINE frame_menu                     
-!******7****************************************************************
-      SUBROUTINE draw_menu 
-!                                                                       
-!     Draw the different menu parts                                     
-!                                                                       
-      USE errlist_mod 
-      USE prompt_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
-USE lib_length
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      CHARACTER(40) text 
-      REAL xh, yh, xt, yt 
-      INTEGER ini 
-!                                                                       
-      LOGICAL n_in_f 
-!                                                                       
-!------ Draw borders and filling of menu region                         
-!                                                                       
-      CALL PGSVP (0.0, 0.999, 0.0, 0.999) 
-      CALL PGSWIN (0.0, 1.0, 0.0, 1.0) 
-      CALL PGSCI (6) 
-      CALL PGSFS (1) 
-      CALL PGRECT (1.0 - dev_draw (iwin, 1), 1.0, 0.0, 1.0) 
-      CALL PGRECT (0.0, 1.0 - dev_draw (iwin, 1), 0.0, dev_draw (iwin,  &
-      2) )                                                              
-!                                                                       
-!------ Plot KUPLOT logo                                                
-!                                                                       
-      CALL PGSCF (1) 
-      CALL PGSCH (1.0) 
-      CALL PGSCI (1) 
-      xt = 1.0 - 0.50 * dev_draw (iwin, 1) 
-      yt = 0.0 + 0.60 * dev_draw (iwin, 2) 
-      CALL PGQCS (4, xh, yh) 
-      CALL PGPTXT (xt, yt, 0.0, 0.5, 'KUPLOT') 
-      yt = yt - 1.05 * yh 
-      text = 'Version '//version (1:len_str (version) ) 
-      CALL PGPTXT (xt, yt, 0.0, 0.5, text) 
-!                                                                       
-!------ Add menu buttons                                                
-!                                                                       
-      xt = 1.0 - 0.50 * dev_draw (iwin, 1) 
-      yt = dev_draw (iwin, 1) * 0.9 
-!                                                                       
-      CALL def_button (2, 'Coordinates',    xt, 0.95, yt, 0.04) 
-      CALL def_button (8, 'Distances',      xt, 0.90, yt, 0.04) 
-      CALL def_button (3, 'Select region',  xt, 0.80, yt, 0.04) 
-      CALL def_button (4, 'Zoom',           xt, 0.75, yt, 0.04) 
-      CALL def_button (5, 'Move',           xt, 0.70, yt, 0.04) 
-      CALL def_button (6, 'Reset region',   xt, 0.65, yt, 0.04) 
-      CALL def_button (9, 'Select zmin',    xt, 0.55, yt, 0.04) 
-      CALL def_button (10, 'Select zmax',   xt, 0.50, yt, 0.04) 
-      CALL def_button (12, 'Select layer',  xt, 0.60, yt, 0.04) 
-      CALL def_button (7, 'Select frame',   xt, 0.40, yt, 0.04) 
-      CALL def_button (11, 'Enter command', xt, 0.25, yt, 0.04) 
-      CALL def_button (1, 'Exit menu',      xt, 0.20, yt, 0.04) 
-!                                                                       
-      CALL draw_button (1, .false., .false.) 
-      CALL draw_button (2, .false., .false.) 
-      CALL draw_button (3, .false., .false.) 
-      CALL draw_button (4, .false., .false.) 
-      CALL draw_button (5, .false., .false.) 
-      CALL draw_button (6, .false., .false.) 
-      CALL draw_button (7, (iaf (iwin) .eq.1), .false.) 
-      CALL draw_button (8, .false., .false.) 
-      CALL draw_button (9, .not.n_in_f (ini), .false.) 
-      CALL draw_button (10, .not.n_in_f (ini), .false.) 
-      CALL draw_button (11, .false., .false.) 
-      CALL draw_button (12, .not.(n_in_f (ini).AND.lh5(iz-1)), .false.) 
-!                                                                       
-      CALL draw_tframe (' ', ' ', 'Use the EXIT button to return to comm&
-     &and mode ...')                                                    
-!                                                                       
-      END SUBROUTINE draw_menu                      
-!******7****************************************************************
-      SUBROUTINE draw_tframe (tt1, tt2, tt3) 
-!                                                                       
-!     This routine writes the strings tt1-tt3 below plot                
-!                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
-USE lib_length
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      CHARACTER ( * ) tt1, tt2, tt3 
-      CHARACTER(80) t1, t2, t3 
-      REAL xt, yt, xh, yh 
-      INTEGER ltext 
-!                                                                       
-!                                                                       
-      t1 = tt1 
-      t2 = tt2 
-      t3 = tt3 
-!                                                                       
-!------ Remove old text                                                 
-!                                                                       
-      CALL PGSCI (6) 
-      CALL PGSFS (1) 
-      CALL PGRECT (0.0, 1.0 - dev_draw (iwin, 1), 0.0, dev_draw (iwin,  &
-      2) )                                                              
-      CALL frame_menu 
-!                                                                       
-!------ Plot new text                                                   
-!                                                                       
-      CALL PGSCF (1) 
-      CALL PGSCI (0) 
-      CALL PGSCH (1.25) 
-      CALL PGQCS (4, xh, yh) 
-      xt = 0.5 * (1.0 - dev_draw (iwin, 1) ) 
-      yt = dev_draw (iwin, 2) - 1.5 * yh 
-      ltext = len_str (t1) 
-      IF (ltext.gt.0) call PGPTXT (xt, yt, 0.0, 0.5, t1 (1:ltext) ) 
-      yt = yt - 1.1 * yh 
-      ltext = len_str (t2) 
-      IF (ltext.gt.0) call PGPTXT (xt, yt, 0.0, 0.5, t2 (1:ltext) ) 
-      CALL PGSCH (1.0) 
-      CALL PGQCS (4, xh, yh) 
-      yt = yt - 1.5 * yh 
-      ltext = len_str (t3) 
-      IF (ltext.gt.0) call PGPTXT (xt, yt, 0.0, 0.5, t3 (1:ltext) ) 
-!                                                                       
-      END SUBROUTINE draw_tframe                    
+!
+!*******************************************************************************
+!
 !******7****************************************************************
       SUBROUTINE draw_command (cmd, befehl, ic, ib) 
 !                                                                       
@@ -345,6 +217,7 @@ USE lib_length
 !                                                                       
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_draw_tframe_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -428,86 +301,6 @@ USE lib_length
 !                                                                       
       END FUNCTION hit_button                       
 !******7****************************************************************
-      LOGICAL function n_in_f (ini) 
-!                                                                       
-!     Checks for 2D files in current frame                              
-!                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      INTEGER i, ini 
-      LOGICAL k_in_f 
-!                                                                       
-      n_in_f = .false. 
-      DO i = 1, iz - 1 
-      n_in_f = n_in_f.or. (k_in_f (i) .and.lni (i) ) 
-      IF (n_in_f) ini = i 
-      ENDDO 
-!                                                                       
-      END FUNCTION n_in_f                           
-!******7****************************************************************
-      SUBROUTINE def_button (ib, text, xb, yb, wb, hb) 
-!                                                                       
-!     Defines a button for the menu                                     
-!                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      CHARACTER ( * ) text 
-      REAL xb, yb, wb, hb 
-      INTEGER ib 
-!                                                                       
-      btext (ib) = text 
-      bx (ib) = xb 
-      by (ib) = yb 
-      bw (ib) = wb 
-      bh (ib) = hb 
-!                                                                       
-      END SUBROUTINE def_button                     
-!******7****************************************************************
-      SUBROUTINE draw_button (i, ldisabled, lactive) 
-!                                                                       
-!     This routine draws a button on menu panel                         
-!                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      REAL xh, yh, w2, h2 
-      INTEGER i, ib, it 
-      LOGICAL lactive, ldisabled 
-!                                                                       
-      IF (ldisabled) then 
-         ib = 6 
-         it = 6 
-      ELSE 
-         IF (lactive) then 
-            ib = 6 
-            it = 0 
-         ELSE 
-            ib = 0 
-            it = 6 
-         ENDIF 
-      ENDIF 
-!                                                                       
-      w2 = 0.5 * bw (i) 
-      h2 = 0.5 * bh (i) 
-!                                                                       
-      CALL PGSCI (ib) 
-      CALL PGSFS (1) 
-      CALL PGRECT (bx (i) - w2, bx (i) + w2, by (i) - h2, by (i)        &
-      + h2)                                                             
-      CALL PGSFS (2) 
-      CALL PGSCI (it) 
-      CALL PGQCS (4, xh, yh) 
-      CALL PGPTXT (bx (i), by (i) - yh * 0.3, 0.0, 0.5, btext (i) ) 
-!                                                                       
-      END SUBROUTINE draw_button                    
 !******7****************************************************************
       SUBROUTINE do_enter_command (lend) 
 !                                                                       
@@ -520,6 +313,8 @@ USE lib_length
       USE class_macro_internal
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_draw_tframe_mod
+use kuplot_plot_mod
 !
 USE lib_errlist_func
 USE lib_macro_func
@@ -592,6 +387,10 @@ USE str_comp_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_draw_low_mod
+use kuplot_draw_tframe_mod
+use kuplot_low_mod
+use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -599,7 +398,7 @@ USE str_comp_mod
       CHARACTER(1) key 
       REAL wx, wy, hub 
       INTEGER ini 
-      LOGICAL lw, lmin, l2d, n_in_f 
+      LOGICAL lw, lmin, l2d! , n_in_f 
 !                                                                       
       lw = .true. 
       l2d = n_in_f (ini) 
@@ -658,7 +457,11 @@ SUBROUTINE do_layer  (lmin)
 USE errlist_mod 
 USE kuplot_config 
 USE kuplot_mod 
+use kuplot_draw_low_mod
+use kuplot_draw_tframe_mod
 USE kuplot_load_h5
+use kuplot_low_mod
+use kuplot_plot_low_mod
 USE param_mod
 USE prompt_mod
 !                                                                       
@@ -673,7 +476,7 @@ REAL              :: zz     ! Current height
 INTEGER ini 
 INTEGER :: n_layer
 LOGICAL :: is_direct
-LOGICAL :: lw, l2d, n_in_f 
+LOGICAL :: lw, l2d!, n_in_f 
 !                                                                       
 lw = .true. 
 l2d = n_in_f (ini) 
@@ -751,6 +554,9 @@ END SUBROUTINE do_layer
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_draw_low_mod
+use kuplot_draw_tframe_mod
+use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -811,6 +617,9 @@ END SUBROUTINE do_layer
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_draw_low_mod
+use kuplot_draw_tframe_mod
+use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -893,6 +702,9 @@ END SUBROUTINE do_layer
       USE learn_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_draw_low_mod
+use kuplot_draw_tframe_mod
+use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -971,6 +783,9 @@ END SUBROUTINE do_layer
       USE param_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_draw_low_mod
+use kuplot_draw_tframe_mod
+use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1020,6 +835,10 @@ END SUBROUTINE do_layer
       USE param_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_draw_low_mod
+use kuplot_draw_tframe_mod
+use kuplot_low_mod 
+use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1027,7 +846,7 @@ END SUBROUTINE do_layer
       CHARACTER(1) key 
       REAL wx, wy, wz, dxx, dyy 
       INTEGER i, ini, nxx, nyy 
-      LOGICAL l2d, k_in_f 
+      LOGICAL l2d! , k_in_f 
 !                                                                       
       zeile = ' ' 
       ini = 1
@@ -1093,6 +912,9 @@ END SUBROUTINE do_layer
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_low_mod 
+use kuplot_plot_mod
+use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1101,7 +923,7 @@ END SUBROUTINE do_layer
       REAL dxx, dyy 
       INTEGER i, ini, ikey 
       INTEGER nxx, nyy 
-      LOGICAL l2d, k_in_f 
+      LOGICAL l2d! , k_in_f 
 !                                                                       
       ini = 1
       CALL do_plot (lgui (iwin) ) 
@@ -1155,6 +977,8 @@ END SUBROUTINE do_layer
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_plot_mod
+use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1273,3 +1097,5 @@ END SUBROUTINE do_layer
 !                                                                       
    20 RETURN 
       END SUBROUTINE PGRSTR                         
+!
+end module kuplot_draw_mod

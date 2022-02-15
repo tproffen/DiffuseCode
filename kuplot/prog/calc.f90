@@ -1,3 +1,7 @@
+module kuplot_calc_mod
+!
+contains
+!
 SUBROUTINE do_calc (zeile, lp) 
 !*****7*****************************************************************
 !                                                                       
@@ -12,6 +16,8 @@ SUBROUTINE do_calc (zeile, lp)
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_show_mod
       USE string_convert_mod
 USE precision_mod
 !                                                                       
@@ -280,6 +286,7 @@ REAL :: a (maxarray)
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -294,7 +301,7 @@ USE precision_mod
       INTEGER lpara (maxw), lp 
       INTEGER i, ipkt, ianz, ik, ileft, iright
 !                                                                       
-      INTEGER closest_point 
+!      INTEGER closest_point 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -349,7 +356,7 @@ USE precision_mod
             ELSE     ! Data set in inverse sequence from + to -
                lenc(ik) = iright
             ENDIF
-            CALL get_extrema_xy (x, ik, lenc, xmin, xmax) 
+            CALL get_extrema_xy (x, ik, lenc(ik), xmin, xmax) 
 !                                                                       
 !-------- right is outside                                              
 !                                                                       
@@ -366,7 +373,7 @@ USE precision_mod
                ENDDO
                lenc (ik) = lenc (ik) - ileft + 1 
             ENDIF
-            CALL get_extrema_xy (x, ik, lenc, xmin, xmax) 
+            CALL get_extrema_xy (x, ik, lenc(ik), xmin, xmax) 
 !                                                                       
          ELSE 
             ier_num = - 7 
@@ -417,6 +424,8 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_show_mod
 USE precision_mod
 USE str_comp_mod
       USE string_convert_mod
@@ -652,6 +661,8 @@ USE errlist_mod
 USE get_params_mod
 USE kuplot_config 
 USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_show_mod
 USE precision_mod
 USE str_comp_mod
 !                                                                       
@@ -902,6 +913,8 @@ END SUBROUTINE do_merge
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -1039,109 +1052,115 @@ REAL :: bdelta, fraction
       CALL show_data (iz - 1) 
 !                                                                       
       END SUBROUTINE do_rebin                       
+!
 !*****7*****************************************************************
-      SUBROUTINE do_interpolate (zeile, lp) 
+!
+SUBROUTINE do_interpolate(zeile, lp) 
 !+                                                                      
 !     Interpolate data set <ik> on grid of <ig> using spline            
 !-                                                                      
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
+USE kuplot_config 
+USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_math_mod
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 2) 
+INTEGER maxw 
+PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
-      REAL(KIND=PREC_DP) :: werte (maxw)
-REAL :: yyy 
-      REAL xpl (maxarray), ypl (maxarray) 
-      REAL y2a (maxarray) 
-      INTEGER lpara (maxw), lp, maxpp, ntot 
-      INTEGER ianz, ibin, igg, ik, ig, i 
+CHARACTER ( * ) zeile 
+CHARACTER(LEN=PREC_STRING) cpara (maxw) 
+REAL(KIND=PREC_DP) :: werte (maxw)
+REAL(kind=PREC_SP) :: yyy 
+REAL xpl (maxarray), ypl (maxarray) 
+REAL y2a (maxarray) 
+INTEGER :: lpara (maxw), lp, maxpp, ntot 
+INTEGER :: ianz, ibin, igg, ik, ig, i 
 !                                                                       
 !------ space left for new data set ??                                  
 !                                                                       
-      IF (iz.gt.maxkurvtot) then 
-         ier_num = - 1 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
+IF (iz.gt.maxkurvtot) then 
+   ier_num = - 1 
+   ier_typ = ER_APPL 
+   RETURN 
+ENDIF 
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) return 
 !                                                                       
 !------ check arguments                                                 
 !                                                                       
-      IF (ianz.ne.2) then 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-         RETURN 
-      ENDIF 
+IF (ianz.ne.2) then 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN 
+ENDIF 
 !                                                                       
-      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-      IF (ier_num.ne.0) return 
+CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+IF (ier_num.ne.0) return 
 !                                                                       
-      ik = nint (werte (1) ) 
-      ig = nint (werte (2) ) 
+ik = nint (werte (1) ) 
+ig = nint (werte (2) ) 
 !                                                                       
-      IF (ik.lt.1.or.ik.gt.iz.or.lni (ik)                               &
-      .or.ig.lt.1.or.ig.gt.iz.or.lni (ig) .or.ik.eq.ig) then            
-         ier_num = - 4 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
+IF (   ik.lt.1.or.ik.gt.iz.or.lni (ik)                               &
+   .or.ig.lt.1.or.ig.gt.iz.or.lni (ig) .or.ik.eq.ig) then            
+   ier_num = - 4 
+   ier_typ = ER_APPL 
+   RETURN 
+ENDIF 
 !                                                                       
-      maxpp = maxarray - offxy (iz - 1) 
-      ntot = lenc (ig) 
+maxpp = maxarray - offxy (iz - 1) 
+ntot = lenc (ig) 
 !                                                                       
-      IF (ntot.gt.maxpp) then 
-         ier_num = - 6 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
+IF (ntot.gt.maxpp) then 
+   ier_num = - 6 
+   ier_typ = ER_APPL 
+   RETURN 
+ENDIF 
 !                                                                       
 !------ Now we interpolate the data                                     
 !                                                                       
-      DO i = 1, lenc (ik) 
-      xpl (i) = x (offxy (ik - 1) + i) 
-      ypl (i) = y (offxy (ik - 1) + i) 
-      ENDDO 
+DO i = 1, lenc (ik) 
+   xpl (i) = x (offxy (ik - 1) + i) 
+   ypl (i) = y (offxy (ik - 1) + i) 
+ENDDO 
 !                                                                       
-      CALL spline (xpl, ypl, lenc (ik), 1e30, 1e30, y2a) 
+CALL spline(xpl, ypl, lenc (ik), 1e30, 1e30, y2a) 
 !                                                                       
-      DO i = 1, ntot 
-      ibin = offxy (iz - 1) + i 
-      igg = offxy (ig - 1) + i 
-      CALL splint (xpl, ypl, y2a, lenc (ik), x (igg), yyy,ier_num)
-      IF(ier_num /= 0) THEN
+DO i = 1, ntot 
+   ibin = offxy (iz - 1) + i 
+   igg = offxy (ig - 1) + i 
+   CALL splint(xpl, ypl, y2a, lenc (ik), x (igg), yyy,ier_num)
+   IF(ier_num /= 0) THEN
          ier_typ = ER_APPL
          RETURN
-      ENDIF 
+   ENDIF 
 !                                                                       
-      x (ibin) = x (igg) 
-      y (ibin) = yyy 
-      dx (ibin) = 0.0 
-      dy (ibin) = 0.0 
-      ENDDO 
+   x (ibin) = x(igg) 
+   y (ibin) = yyy 
+   dx(ibin) = dx(igg)
+   dy(ibin) = dy(igg)
+ENDDO 
 !                                                                       
-      lenc (iz) = ntot 
-      fform (iz) = fform (ig) 
-      fname (iz) = 'interpolate.dat' 
-      offxy (iz) = offxy (iz - 1) + lenc (iz) 
-      iz = iz + 1 
-      CALL get_extrema_xy (x, iz - 1, lenc (iz), xmin, xmax) 
-      CALL get_extrema_xy (y, iz - 1, lenc (iz), ymin, ymax) 
-      CALL show_data (iz - 1) 
+lenc (iz) = ntot 
+fform (iz) = fform (ig) 
+fname (iz) = 'interpolate.dat' 
+offxy (iz) = offxy (iz - 1) + lenc (iz) 
+iz = iz + 1 
+CALL get_extrema_xy (x, iz - 1, lenc (iz), xmin, xmax) 
+CALL get_extrema_xy (y, iz - 1, lenc (iz), ymin, ymax) 
+CALL show_data (iz - 1) 
 !                                                                       
-      END SUBROUTINE do_interpolate                 
+END SUBROUTINE do_interpolate                 
+!
 !*****7*****************************************************************
       SUBROUTINE do_convolute (zeile, lp) 
 !+                                                                      
@@ -1152,6 +1171,8 @@ REAL :: yyy
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -1258,6 +1279,9 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_math_mod
+use kuplot_show_mod
 USE precision_mod
       USE prompt_mod 
 !                                                                       
@@ -1399,6 +1423,8 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_show_mod
       USE string_convert_mod
 USE precision_mod
 USE str_comp_mod
@@ -1439,7 +1465,7 @@ USE str_comp_mod
       PARAMETER (W_BCK = 8) 
 !                                                                       
 !                                                                       
-      REAL r_wichtung 
+!     REAL r_wichtung 
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
@@ -1613,6 +1639,8 @@ USE str_comp_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_show_mod
 USE lib_length
 USE precision_mod
 !                                                                       
@@ -1936,7 +1964,7 @@ USE str_comp_mod
       REAL sumwrz, sumwrn 
       REAL wght 
 !                                                                       
-      REAL r_wichtung 
+!     REAL r_wichtung 
 !                                                                       
       sumrz = 0.0 
       sumrn = 0.0 
@@ -1982,7 +2010,7 @@ USE str_comp_mod
       REAL sumwrz, sumwrn 
       REAL wght 
 !                                                                       
-      REAL r_wichtung 
+!      REAL r_wichtung 
 !                                                                       
       sumrz = 0.0 
       sumrn = 0.0 
@@ -2072,3 +2100,4 @@ USE str_comp_mod
       ENDIF 
 !                                                                       
       END FUNCTION r_wichtung                       
+end module kuplot_calc_mod

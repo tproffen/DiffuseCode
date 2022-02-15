@@ -71,14 +71,14 @@ SAVE
 !
 !------ Data set information
 !
-      CHARACTER(LEN=200), DIMENSION(MAXKURVTOT) :: fname ! (maxkurvtot)
-      CHARACTER(LEN=  2), DIMENSION(MAXKURVTOT) :: fform ! (maxkurvtot)
-      REAL   , DIMENSION(MAXKURVTOT) :: xmax ! (maxkurvtot)
-      REAL   , DIMENSION(MAXKURVTOT) :: xmin ! (maxkurvtot)
-      REAL   , DIMENSION(MAXKURVTOT) :: ymax ! (maxkurvtot)
-      REAL   , DIMENSION(MAXKURVTOT) :: ymin ! (maxkurvtot)
-      INTEGER, DIMENSION(MAXKURVTOT) :: lenc ! (maxkurvtot)
-      INTEGER                        :: iz
+CHARACTER(LEN=200), DIMENSION(MAXKURVTOT) :: fname ! (maxkurvtot)
+CHARACTER(LEN=  2), DIMENSION(MAXKURVTOT) :: fform ! (maxkurvtot)
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT) :: xmax ! (maxkurvtot)
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT) :: xmin ! (maxkurvtot)
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT) :: ymax ! (maxkurvtot)
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT) :: ymin ! (maxkurvtot)
+INTEGER, DIMENSION(MAXKURVTOT) :: lenc ! (maxkurvtot)
+INTEGER                        :: iz
 !
 !     COMMON      /info/  fname,fform,xmax,xmin,ymax,ymin,len,iz
 !
@@ -245,16 +245,17 @@ SAVE
       REAL x(maxarray),dx(maxarray)
       REAL y(maxarray),dy(maxarray)
       REAL z(maxarray)
-      INTEGER offxy(0:maxkurvtot)
-      INTEGER offz (0:maxkurvtot)
+INTEGER, dimension(0:MAXKURVTOT) :: offxy!(0:maxkurvtot)
+INTEGER, dimension(0:MAXKURVTOT) :: offz !(0:maxkurvtot)
 !
 !     COMMON  /data/ x,y,z,dx,dy,offxy,offz
 !
 !------ GSAS related stuff to remember
 !
-      REAL tof_offset
+REAL(kind=PREC_SP) :: tof_offset
 !
 !     COMMON  /gsas/ tof_offset
 !
-      LOGICAL :: l_two_col = .false.  ! save two column xy-files
+LOGICAL :: l_two_col = .false.  ! save two column xy-files
+!
 END MODULE kuplot_mod

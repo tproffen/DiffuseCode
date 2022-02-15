@@ -1,7 +1,12 @@
+module kuplot_frame_mod
+!
 !*****7*****************************************************************
 !     These routines set the frame parameters for KUPLOT. Each frame    
 !     can be seen as individual plotting area.                          
 !*****7*****************************************************************
+!
+contains
+!
       SUBROUTINE set_window (zeile, lp) 
 !+                                                                      
 !     Sets active window for plotting                                   
@@ -109,6 +114,7 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -213,6 +219,7 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -270,6 +277,7 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
 !
 USE lib_errlist_func
       USE build_name_mod
@@ -341,6 +349,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -729,3 +738,5 @@ USE precision_mod
       ENDDO 
 !                                                                       
       END SUBROUTINE copy_window                    
+!
+end module kuplot_frame_mod

@@ -1,3 +1,6 @@
+module kuplot_errlist_mod
+!
+contains
 !*****7****************************************************************
       SUBROUTINE kuplot_errlist_appl
 !-
@@ -103,3 +106,4 @@ USE lib_errlist_func
       call disp_error ('KUPL',error,iu,io)
       END SUBROUTINE kuplot_errlist_appl
 !*****7****************************************************************
+end module kuplot_errlist_mod
