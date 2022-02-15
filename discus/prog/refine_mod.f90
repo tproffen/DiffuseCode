@@ -3,6 +3,8 @@ MODULE refine_mod
 USE crystal_mod
 USE rmc_mod
 !
+use precision_mod
+!
 PRIVATE
 PUBLIC refine_alloc
 PUBLIC refine_dealloc
@@ -23,8 +25,8 @@ INTEGER, PARAMETER                   :: REF_PDF_SD =30     !PDF Scale Density
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: ref_pdfs_success
 INTEGER                              :: ref_pdfs_success_n
 INTEGER                              :: isuccess
-REAL   , DIMENSION(2)                :: ref_maxlatt
-REAL   , DIMENSION(2)                :: ref_maxpdfsd
+REAL(kind=PREC_DP), DIMENSION(2)                :: ref_maxlatt
+REAL(kind=PREC_DP), DIMENSION(2)                :: ref_maxpdfsd
 !
 CONTAINS
 !
@@ -44,16 +46,16 @@ IF(.not.ALLOCATED(ref_latt_success)) THEN
    ref_latt_success   = 0
    ref_latt_success_n = 0
 ENDIF
-ref_maxlatt(1) = 0.003
-ref_maxlatt(2) = 0.030
+ref_maxlatt(1) = 0.003D0
+ref_maxlatt(2) = 0.030D0
 !
 IF(.not.ALLOCATED(ref_pdfs_success)) THEN
    ALLOCATE(ref_pdfs_success( 0:REF_LAT_INT-1))
    ref_pdfs_success   = 0
    ref_pdfs_success_n = 0
 ENDIF
-ref_maxpdfsd(1) = 0.002
-ref_maxpdfsd(2) = 0.0004
+ref_maxpdfsd(1) = 0.002D0
+ref_maxpdfsd(2) = 0.0004D0
 !
 END SUBROUTINE refine_alloc
 !
