@@ -4,6 +4,8 @@ MODULE population
 !      Variables needed to define the population
 !+
 !
+use precision_mod
+!
 SAVE
 PUBLIC
 !
@@ -59,26 +61,26 @@ LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_refine     !  (MAXDIMX)
 LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_ad_sigma   !  (MAXDIMX)
 LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_ad_lsigma  !  (MAXDIMX)
 !
-REAL    ,DIMENSION(:,:), ALLOCATABLE :: pop_x          !  (MAXDIMX,MAXPOP) Parent parameters
-REAL    ,DIMENSION(:,:), ALLOCATABLE :: pop_t          !  (MAXDIMX,MAXPOP) Trial  parameters
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_para       !  (MAXDIMX)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_xmin       !  (MAXDIMX) Absolute lower boundary
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_xmax       !  (MAXDIMX) Absolute upper boundary
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_pmin       !  (MAXDIMX)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_pmax       !  (MAXDIMX)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_smin       !  (MAXDIMX) Start    lower boundary
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_smax       !  (MAXDIMX) Start    upper boundary
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_sigma      !  (MAXDIMX) Sigma for edge correction
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_lsig       !  (MAXDIMX) Sigma for local search
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_sig_ad     !  (MAXDIMX)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_lsig_ad    !  (MAXDIMX)
+REAL(kind=PREC_DP)    ,DIMENSION(:,:), ALLOCATABLE :: pop_x          !  (MAXDIMX,MAXPOP) Parent parameters
+REAL(kind=PREC_DP)    ,DIMENSION(:,:), ALLOCATABLE :: pop_t          !  (MAXDIMX,MAXPOP) Trial  parameters
+REAL(kind=PREC_DP)    ,DIMENSION(:)  , ALLOCATABLE :: pop_para       !  (MAXDIMX)
+REAL(kind=PREC_DP)    ,DIMENSION(:)  , ALLOCATABLE :: pop_xmin       !  (MAXDIMX) Absolute lower boundary
+REAL(kind=PREC_DP)    ,DIMENSION(:)  , ALLOCATABLE :: pop_xmax       !  (MAXDIMX) Absolute upper boundary
+REAL(kind=PREC_DP)    ,DIMENSION(:)  , ALLOCATABLE :: pop_pmin       !  (MAXDIMX)
+REAL(kind=PREC_DP)    ,DIMENSION(:)  , ALLOCATABLE :: pop_pmax       !  (MAXDIMX)
+REAL(kind=PREC_DP)    ,DIMENSION(:)  , ALLOCATABLE :: pop_smin       !  (MAXDIMX) Start    lower boundary
+REAL(kind=PREC_DP)    ,DIMENSION(:)  , ALLOCATABLE :: pop_smax       !  (MAXDIMX) Start    upper boundary
+REAL(kind=PREC_DP)    ,DIMENSION(:)  , ALLOCATABLE :: pop_sigma      !  (MAXDIMX) Sigma for edge correction
+REAL(kind=PREC_DP)    ,DIMENSION(:)  , ALLOCATABLE :: pop_lsig       !  (MAXDIMX) Sigma for local search
+REAL(kind=PREC_DP)    ,DIMENSION(:)  , ALLOCATABLE :: pop_sig_ad     !  (MAXDIMX)
+REAL(kind=PREC_DP)    ,DIMENSION(:)  , ALLOCATABLE :: pop_lsig_ad    !  (MAXDIMX)
 !
-REAL    ,DIMENSION(:,:), ALLOCATABLE :: child          !  (MAXDIMX,MAXPOP) Child parameters
-REAL    ,DIMENSION(:,:), ALLOCATABLE :: trial          !  (MAXDIMX,MAXPOP) Trial parameters
+REAL(kind=PREC_DP)    ,DIMENSION(:,:), ALLOCATABLE :: child          !  (MAXDIMX,MAXPOP) Child parameters
+REAL(kind=PREC_DP)    ,DIMENSION(:,:), ALLOCATABLE :: trial          !  (MAXDIMX,MAXPOP) Trial parameters
 !
-REAL    ,DIMENSION(:,:), ALLOCATABLE :: child_val      !  (MAXPOP)
-REAL    ,DIMENSION(:,:), ALLOCATABLE :: trial_val      !  (MAXPOP)
-REAL    ,DIMENSION(:,:), ALLOCATABLE :: parent_val     !  (MAXPOP)
+REAL(kind=PREC_DP)    ,DIMENSION(:,:), ALLOCATABLE :: child_val      !  (MAXPOP)
+REAL(kind=PREC_DP)    ,DIMENSION(:,:), ALLOCATABLE :: trial_val      !  (MAXPOP)
+REAL(kind=PREC_DP)    ,DIMENSION(:,:), ALLOCATABLE :: parent_val     !  (MAXPOP)
 !
 CHARACTER (LEN=200),DIMENSION(:)  , ALLOCATABLE :: pop_back_fil ! (MAXBACK)
 CHARACTER (LEN=200),DIMENSION(:)  , ALLOCATABLE :: pop_back_ext ! (MAXBACK)

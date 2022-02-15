@@ -105,6 +105,7 @@ USE variable_mod
 USE define_variable_mod
 !
 use do_variable_mod
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -120,9 +121,9 @@ LOGICAL                        :: l_ok
 LOGICAL                        :: l_success
 LOGICAL                        :: l_unchanged 
 LOGICAL, PARAMETER             :: is_diffev = .TRUE.
-REAL                           :: shift 
-REAL                           :: value 
-REAL                           :: w 
+REAL(kind=PREC_DP)             :: shift 
+REAL(kind=PREC_DP)             :: value 
+REAL(kind=PREC_DP)             :: w 
 !                                                                       
 !write(*,*) 'INTO CREATE_SINGLE ', j, ier_num, ier_typ
 !                                                                       
@@ -551,8 +552,8 @@ INTEGER             :: i, j
 INTEGER             :: n_pop, n_dim
 INTEGER             :: m_pop_gen, m_pop_n, m_pop_c, m_pop_dimx
 LOGICAL             :: l_write
-REAL                :: r1, r2, r3, r4 
-REAL                :: highest_r
+REAL(kind=PREC_DP)  :: r1, r2, r3, r4 
+REAL(kind=PREC_DP)  :: highest_r
 !                                                                       
 CALL oeffne (iwr, pop_genfile, stat) 
 IF ( ier_num/=0) THEN

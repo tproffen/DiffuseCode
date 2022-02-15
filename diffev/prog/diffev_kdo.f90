@@ -1,3 +1,7 @@
+!module diffev_mache_kdo_mod
+!
+!contains
+!
 !*****7*****************************************************************
 !                                                                       
 SUBROUTINE diffev_mache_kdo (line, lend, length) 
@@ -73,7 +77,7 @@ LOGICAL                               :: lbest
 LOGICAL                               :: l_init_x = .true.
 !                                                                       
 REAL(KIND=PREC_DP)  , DIMENSION(MAXW) :: werte = 0.0
-REAL                                  :: value
+REAL(KIND=PREC_DP)                    :: value
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 4
 INTEGER, PARAMETER :: O_PARTIAL = 1
@@ -1134,3 +1138,5 @@ ELSE
 ENDIF 
 !                                                                       
 END SUBROUTINE diffev_mache_kdo                      
+!
+!end module diffev_mache_kdo_mod

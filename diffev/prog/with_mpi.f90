@@ -592,7 +592,7 @@ SUBROUTINE run_mpi_slave
 !
 USE mpi
 USE run_mpi_mod
-USE diffev_setup_mod
+USE diffev_setup_cost_mod
 !
 USE gen_mpi_mod
 USE set_sub_generic_mod

@@ -2,6 +2,7 @@ MODULE diff_evol
 !-
 !      Variables needed to define the differential evolution process
 !+
+use precision_mod
 SAVE
 PUBLIC
 !
@@ -15,9 +16,9 @@ INTEGER, PARAMETER :: SEL_BEST_CHILD = 2
 INTEGER            :: diff_donor_mode
 INTEGER            :: diff_sel_mode
 !
-REAL               :: diff_cr
-REAL               :: diff_f 
-REAL               :: diff_k 
-REAL               :: diff_local
+REAL(kind=PREC_DP) :: diff_cr
+REAL(kind=PREC_DP) :: diff_f 
+REAL(kind=PREC_DP) :: diff_k 
+REAL(kind=PREC_DP) :: diff_local
 !
 END MODULE diff_evol

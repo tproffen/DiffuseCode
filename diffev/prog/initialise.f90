@@ -221,7 +221,7 @@ INTEGER              :: n_tried
 INTEGER              :: length 
 INTEGER              :: i,j,k,l
 LOGICAL              :: l_ok
-REAL                 :: w 
+REAL(kind=PREC_DP)   :: w 
 !                                                                       
 CHARACTER (LEN=7)    :: stat  = 'unknown'
 !
@@ -329,11 +329,13 @@ END SUBROUTINE init_x
    USE create_trial_mod
    USE population
 !
+use precision_mod
+!
    IMPLICIT NONE
 !
 !
    INTEGER, INTENT(IN)  :: lb
-   REAL   , INTENT(IN)  :: value
+   REAL(kind=PREC_DP)   , INTENT(IN)  :: value
 !
    INTEGER              :: j
 !

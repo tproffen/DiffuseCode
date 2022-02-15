@@ -48,7 +48,7 @@ INTEGER                , INTENT(IN) :: indiv
 INTEGER                , INTENT(IN ):: n_rvalue_i
 INTEGER                , INTENT(IN) :: n_rvalue_o
 INTEGER                , INTENT(IN ):: NRVAL
-REAL, DIMENSION(0:NRVAL   ),INTENT(IN):: rvalue
+REAL(kind=PREC_DP), DIMENSION(0:NRVAL   ),INTENT(IN):: rvalue
 LOGICAL                , INTENT(IN):: l_rvalue
 CHARACTER(LEN=output_len), INTENT(IN) :: output
 INTEGER                , INTENT(IN) :: generation
@@ -63,7 +63,7 @@ INTEGER                , INTENT(OUT) :: rd_nseeds
 INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
 LOGICAL                , INTENT(IN ):: l_first_job
 CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_names
-REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_values
+REAL(kind=PREC_DP),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_values
 !
 CHARACTER(LEN=PREC_LSTRING) :: line
 INTEGER             :: job_l
