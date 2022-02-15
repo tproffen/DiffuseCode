@@ -1,4 +1,7 @@
 !
+!  OBSOLETE; standalone no longer supported
+!*******************************************************************************
+!
 ! Version for stan alone DISCUS
 ! The file is always written to hard disk
 !
@@ -12,20 +15,20 @@ USE precision_mod
 IMPLICIT NONE
 !
 CHARACTER (LEN=*), INTENT(IN) :: cdummy
-REAL,              INTENT(IN) :: pdf_rfmin
-REAL,              INTENT(IN) :: pdf_rfmax
-REAL,              INTENT(IN) :: pdf_deltar
+REAL(kind=PREC_DP),              INTENT(IN) :: pdf_rfmin
+REAL(kind=PREC_DP),              INTENT(IN) :: pdf_rfmax
+REAL(kind=PREC_DP),              INTENT(IN) :: pdf_deltar
 INTEGER,           INTENT(IN) :: pdf_us_int
 INTEGER,           INTENT(IN) :: pdf_calc_l
 INTEGER,           INTENT(IN) :: pdf_calc_u
-REAL,              INTENT(IN) :: pdf_skal
+REAL(kind=PREC_DP),              INTENT(IN) :: pdf_skal
 REAL(PREC_DP), DIMENSION(pdf_calc_l:pdf_calc_u), INTENT(IN) :: pdf_calc
 !
 INTEGER   :: nmi
 INTEGER   :: nma
 INTEGER   :: nmd
 INTEGER   :: i
-REAL      :: r
+REAL(kind=PREC_DP)      :: r
 !
 CALL oeffne (57, cdummy, 'unknown') 
 IF (ier_num.eq.0) then 
