@@ -38,6 +38,7 @@ USE crystal_mod
 USE discus_config_mod 
 USE debye_mod 
 USE diffuse_mod 
+use discus_output_powder_mod
 USE output_mod 
 USE phases_mod
 USE phases_set_mod
@@ -63,6 +64,7 @@ logical, intent(in) :: ltemp ! Prepare output in case of periodic boundary condi
 !                                                                       
 INTEGER   :: POW_WR_MAXPKT   ! Maximum number of data points for write
 INTEGER   :: ii, j , iii
+integer   :: istart      ! Index at which user qmin starts
 INTEGER   :: all_status  ! Allocation status
 INTEGER   :: npkt        ! number of points in powder pattern; actual calculation
 INTEGER   :: npkt_u      ! number of points in powder pattern; User input in 'powder'
@@ -70,7 +72,6 @@ INTEGER   :: npkt_equi   ! number of points in equidistant powder pattern
 INTEGER   :: npkt_wrt    ! number of points in powder pattern ready to write
 INTEGER   :: npkt_fft    ! number of points in powder pattern for Fast Fourier
 LOGICAL   :: lread 
-!!      LOGICAL   :: lconv = .FALSE.  ! Did convolution with profile
 REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
 REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
 REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: lpv  ! Values of LP correction versus Q/Theta 
@@ -82,8 +83,6 @@ REAL(kind=PREC_DP) :: lpscale      ! Scale factor introduced by LP correction
 REAL(kind=PREC_DP) :: q=0.0
 REAL(kind=PREC_DP)      :: normalizer
 REAL(kind=PREC_DP) :: xmin, xmax, xdel
-!REAL (PREC_DP)     :: xstart  ! qmin  for sin Theta / lambda calculation
-!REAL (PREC_DP)     :: xdelta  ! qstep for sin Theta / lambda calculation
 REAL(kind=PREC_DP)      :: xequ    ! x-position of equdistant curve
 REAL(kind=PREC_DP)      :: yequ    ! y-value    of equdistant curve
 REAL(kind=PREC_DP)      :: tthmin  ! minimum for equdistant curve
@@ -120,15 +119,30 @@ IF(.NOT. (value == val_inten  .OR. value == val_sq      .OR. &
    RETURN
 ENDIF
 !
-xmin   = pow_qmin_u
-xmax   = pow_qmax_u
-xdel   = pow_deltaq_u
-npkt_u = NINT((xmax+xdel-xmin)/xdel) + 0
+!write(*,*) out_user_limits .and. .not. (cpow_form.eq.'tth'.or.cpow_form=='r'), &
+!out_user_limits, .not. cpow_form.eq.'tth', .not. cpow_form.eq.'r', cpow_form
+if(out_user_limits .and. .not. (cpow_form.eq.'tth'.or.cpow_form=='r')) then     ! Limits in 'output' menu
+!  xmin = out_user_values(1)
+!  xmax = out_user_values(2)
+!  xdel = out_user_values(3)
+   npkt_u = out_user_inc(1)
+else                                                        ! Limits from powder menu
+!  xmin   = pow_qmin_u
+!  xmax   = pow_qmax_u
+!  xdel   = pow_deltaq_u
+!  npkt_u = NINT((xmax+xdel-xmin)/xdel) + 0
+   npkt_u = pow_npkt_u
+endif
 !                                                                       
-xmin = pow_qmin
-xmax = pow_qmax
-xdel = pow_deltaq
+xmin = pow_qmin_c
+xmax = pow_qmax_c
+xdel = pow_deltaq_c
 npkt = NINT((xmax+xdel-xmin)/xdel) + 0            ! Use automatic maximum for write until spline
+!write(*,*) ' INITIAL P  ', npkt, pow_qmin_u, pow_qmax_u, pow_deltaq_u
+!write(*,*) ' INITIAL C  ', npkt, pow_qmin_c, pow_qmax_c, pow_deltaq_c
+!write(*,*) ' INITIAL    ', npkt, pow_qmin  , pow_qmax  , pow_deltaq  
+!write(*,*) ' INITIAL x  ', npkt, xmin, xmax, xdel
+!write(*,*) ' initial u  ', npkt_u, out_user_values(1:3), out_user_inc(1)
 !
 POW_WR_MAXPKT = MAX(npkt, npkt_u, POW_MAXPKT)
 !
@@ -188,6 +202,7 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
 !  write(77,'(2(2x,G17.7E3))') xmin+(ii)*xdel,     ypl(ii)
 !enddo
 !close(77)
+!read(*,*) ii
 !
 !------ copy the powder pattern into output array, if necessary this will be put on
 !       equidistant scale
@@ -197,9 +212,17 @@ lpv(0) = 1.0
 !
 ! Adjust zero point along x-scale
 !
+!write(*,*) ' PRAE  ZERO ', npkt, xpl(1), xpl(npkt-1), xpl(npkt), pow_tthzero
+!write(*,*) ' PRAE       ', pow_npkt_u, out_user_values(1), xmin, xdel, npkt_u
+!write(*,*) ' PRAE TTHmin', 2.D0*asind(pow_qmin_u/2.0D0/zpi*rlambda), pow_qmin_u
+!write(*,*) ' PRAE TTHmax', 2.D0*asind(pow_qmax_u/2.0D0/zpi*rlambda), pow_qmax_u
+!write(*,*) ' PRAE tth0  ', pow_tthzero
+!write(*,*) ' PRAE m,d   ', xmin, xdel
+istart = 0
 DO ii = 0, npkt
    q    = (ii) * xdel + xmin 
-   ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
+   ttheta = 2.D0*asind ( (q / 2.D0 /zpi *rlambda ))
+   if(q<pow_qmin_u) istart = ii
    lpv(ii) = polarisation (ttheta)
 !      lpv(ii ) = lp                         ! For debye to get I(Q) ???
    IF (cpow_form.eq.'tth') THEN 
@@ -210,6 +233,8 @@ DO ii = 0, npkt
       xpl(ii) = q - pow_qzero                ! Initially the x-axis is in Q
    ENDIF 
 ENDDO 
+!write(*,*) ' aft  m,d   ', xmin, xdel
+!write(*,*) ' AFTER ZERO ', npkt, xpl(1), xpl(npkt-1), xpl(npkt), q, npkt_u, ttheta
 !
 IF(value == val_pdf) THEN   ! Divide by average Debye-Waller term
    IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
@@ -304,8 +329,11 @@ ENDIF prsq  !Prepare S(Q), F(Q)
 !enddo
 !close(77)
 !
+
+!write(*,*) ' PRAE  K12  ', npkt, xpl(1), xpl(npkt-1), xpl(npkt), npkt_u
 CALL pow_k12(npkt, POW_WR_MAXPKT, pow_ka21, pow_ka21_u, xpl, ypl)
 rmax     = out_user_values(2)
+!write(*,*) ' AFTER K12I ', npkt, xpl(1), xpl(npkt-1), xpl(npkt), npkt_u
 !DBGCQUAD
 !open(77,file='POWDER/normalized.k12',status='unknown')
 !DO ii=0,npkt
@@ -316,32 +344,42 @@ rmax     = out_user_values(2)
 !
 IF( cpow_form == 'tth' ) THEN
 !
+!write(*,*) ' TTH ', out_user_limits
    IF(out_user_limits .AND. value /= val_pdf) THEN ! User provided values, not for PDF
       pow_tthmin   = out_user_values(1)
       pow_tthmax   = out_user_values(2)
       pow_deltatth = out_user_values(3)
+      npkt_u       = out_user_inc(1)
+!write(*,*) ' PRE   EQUI ', npkt_u, pow_tthmin, pow_tthmax, pow_deltatth
    ELSE                                          ! Convert q limits
-      arg        = xmin/(zpi) * rlambda / 2.d0 ! Directly with arg in asind()
-      pow_tthmin = 2.*asind(arg)                 ! results in error ??????????
-      arg        = MIN(1.0D0,xmax/zpi * rlambda / 2.)
-      pow_tthmax = 2.*asind(arg)
-      pow_deltatth = xpl(2)-xpl(1)
+!!write(*,*) ' NO USER LIMITS ', pow_qmin_u, xmin
+!write(*,*) ' NO user        ', xpl(0), xpl(npkt)
+      arg        = pow_qmin_u/(zpi) * rlambda / 2.d0 ! Directly with arg in asind()
+      pow_tthmin = nint(2.*asind(arg)*1.0D5)/1.0D5     ! results in error ??????????
+      arg        = MIN(1.0D0,pow_qmax_u/zpi * rlambda / 2.)
+      pow_tthmax = nint(2.*asind(arg)*1.0D5)/1.0D5
+      pow_deltatth = xpl(istart+2)-xpl(istart+1)
+      npkt_u     = int((pow_tthmax-pow_tthmin)/pow_deltatth) + 1
    ENDIF
+!write(*,*) ' PRE   equi ', 0        , pow_tthmin, pow_tthmax, pow_deltatth, npkt_u
    IF(pow_tthmin < xpl(0) ) THEN           ! User lower limit too low!
-      tthmin = xpl(0)
-!     tthmin =              (INT( (         arg        )/pow_deltatth) + 1)*pow_deltatth
+      tthmin = nint(xpl(0)*1.0D5)/1.0D5
+      npkt_u = INT((pow_tthmax-tthmin)/pow_deltatth) + 1             
    ELSE
       tthmin = pow_tthmin
    ENDIF
+!write(*,*) ' PRE   equi ', 1        ,     tthmin, pow_tthmax, pow_deltatth, npkt_u
    IF(pow_tthmax > xpl(npkt) ) THEN              ! User upper limit too high!
-      tthmax = xpl(npkt)
-!     tthmax =              (INT( ( arg                )/pow_deltatth) - 1)*pow_deltatth
+      tthmax = nint(xpl(npkt)*1.0D5)/1.0D5
+      npkt_u = INT((tthmax-tthmin)/pow_deltatth) + 1             
    ELSE
       tthmax = pow_tthmax
    ENDIF
-   xmin = tthmin                                  ! Adjust limits needed later to cut 
-   xmax = tthmax                                  ! off rounding errors
+!write(*,*) ' PRE   equi ', 2        ,     tthmin,     tthmax, pow_deltatth, npkt_u
+   xmin = nint(tthmin*1.0D5)/1.0D5               ! Adjust limits needed later to cut 
+   xmax = nint(tthmax*1.0D5)/1.0D5               ! off rounding errors
    npkt_equi =     INT((tthmax-tthmin)/pow_deltatth) + 1             
+!write(*,*) ' PRE   EQUI ', npkt_equi, tthmin, tthmax, pow_deltatth, npkt_u
    ALLOCATE(y2a (0:POW_WR_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
    ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
    ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
@@ -392,13 +430,15 @@ ELSEIF( cpow_form == 'q' .OR. cpow_form == 'r') THEN        ! axis is Q
    ENDIF
    IF(qmin < xpl(0) ) THEN                     ! User lower limit too low!
       qmin =            (INT( (xpl(1)            )/deltaq) + 1)*deltaq
+      npkt_u =     NINT((qmax-qmin)/deltaq) + 1             
    ENDIF
 !
    IF(qmax > xpl(npkt) ) THEN                  ! User upper limit too high!
                qmax =            (INT( (         xpl(npkt))/deltaq) - 1)*deltaq
+      npkt_u =     NINT((qmax-qmin)/deltaq) + 1             
    ENDIF
-   xmin =   qmin                                  ! Adjust limits needed later to cut 
-   xmax =   qmax                                  ! off rounding errors
+   xmin =   nint(qmin/deltaq)*deltaq              ! Adjust limits needed later to cut 
+   xmax =   nint(qmax/deltaq)*deltaq              ! off rounding errors
    npkt_equi =     NINT((qmax-qmin)/deltaq) + 1             
    ALLOCATE(y2a (0:POW_WR_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
    ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
@@ -432,6 +472,10 @@ ELSE                    ! cpow_form ==
    DEALLOCATE( lpv, stat = all_status)
    RETURN
 ENDIF                   ! cpow_form == 
+!write(*,*) ' AFTER EQUI ', npkt_u
+!write(*,*) ' AFTER EQUI ', npkt_wrt, xwrt(0), xwrt(npkt_wrt-1), xwrt(npkt_wrt)
+npkt_wrt = npkt_u -1    ! xwrt is in range [0, npkt_u-1]
+!write(*,*) ' AFTER EQUI ', npkt_wrt, xwrt(0), xwrt(npkt_wrt-1), xwrt(npkt_wrt)
 !!
 !DBGCQUAD
 !open(77,file='POWDER/equistep.inte',status='unknown')
@@ -441,25 +485,35 @@ ENDIF                   ! cpow_form ==
 !enddo
 !close(77)
 !
-cut: DO
-   IF(xwrt(npkt_wrt) > xmax) THEN
-      npkt_wrt = npkt_wrt-1  ! Truncate in case of rounding errors
-   ELSEIF(xwrt(npkt_wrt) < xwrt(npkt_wrt-1)) THEN
-      npkt_wrt = npkt_wrt-1  ! Truncate in case of rounding errors
-   ELSE
-     EXIT cut
-   ENDIF
-ENDDO cut
+!cut: DO
+!   IF(xwrt(npkt_wrt) > xmax) THEN
+!      npkt_wrt = npkt_wrt-1  ! Truncate in case of rounding errors
+!   ELSEIF(xwrt(npkt_wrt) < xwrt(npkt_wrt-1)) THEN
+!      npkt_wrt = npkt_wrt-1  ! Truncate in case of rounding errors
+!   ELSE
+!     EXIT cut
+!   ENDIF
+!ENDDO cut
 !
 !     Scale intensity and add a background
 !
 place_ywrt: IF(value==val_inten) THEN
-   DO ii=0,npkt_wrt
-      ywrt(ii) = pow_scale*ywrt(ii)
-      DO iii=0,pow_nback
-         ywrt(ii) = ywrt(ii) + pow_back(iii)*xwrt(ii)**iii
+   IF( cpow_form == 'tth' ) THEN           ! "theta scale, convert x back to Q for Background parameters
+      DO ii=0,npkt_wrt
+         q = 4.0D0*PI*sind(xwrt(ii))/rlambda
+         ywrt(ii) = pow_scale*ywrt(ii)
+         DO iii=0,pow_nback
+            ywrt(ii) = ywrt(ii) + pow_back(iii)*q**iii
+         ENDDO
       ENDDO
-   ENDDO
+   elseif( cpow_form == 'q' ) THEN
+      DO ii=0,npkt_wrt
+         ywrt(ii) = pow_scale*ywrt(ii)
+         DO iii=0,pow_nback
+            ywrt(ii) = ywrt(ii) + pow_back(iii)*xwrt(ii)**iii
+         ENDDO
+      ENDDO
+   endif
 ELSEIF(value==val_fq) THEN place_ywrt
    DO ii=0,npkt_wrt
       ywrt(ii) = pow_scale*ywrt(ii)
@@ -719,6 +773,7 @@ else                   ! normal write
 !enddo
 !close(77)
 !read(*,*) ii
+!write(*,*) ' FINAL      ', npkt_wrt, xwrt(0), xwrt(npkt_wrt-1), xwrt(npkt_wrt)
    CALL powder_do_write (outfile, npkt_wrt, xwrt, ywrt)
 endif
 !
@@ -756,7 +811,6 @@ REAL(KIND=PREC_DP) :: pow_tmp_sum
 REAL(KIND=PREC_DP) :: pow_uuu_sum
 !
 REAL(KIND=PREC_DP)           :: ss       ! time
-!REAL, EXTERNAL :: seknds
 !
 WRITE (output_io, * ) ' Starting convolution'!, pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w
 !ss = seknds (0.0)
@@ -874,13 +928,15 @@ ELSEIF(pow_four_type==POW_COMPL) THEN
    scalef = 1./xdel
 ENDIF
 pow_conv(:) = pow_conv(:) * scalef
-!ss = seknds (ss) 
+ss = seknds (ss) 
 WRITE (output_io, '(/,'' Elapsed time    : '',G13.6,'' sec'')') ss
+!write(*,*) ' POST CONVOLUTE '
 !open(77,file='POWDER/post_conv.FQ',status='unknown')
 !DO j=0,npkt
 !  write(77,'(2(2x,G17.7E3))')     xmin+j *xdel, pow_conv(j)
 !enddo
 !close(77)
+!read(*,*) j
 !
 END SUBROUTINE powder_convolute                     
 !
@@ -960,8 +1016,6 @@ use precision_mod
       INTEGER, INTENT(IN) :: flag_fq
 !                                                                       
 !
-!     REAL sind
-!                                                                       
       lorentz = 1.0
       
       IF (pow_four_type.eq.POW_DEBYE) THEN 
@@ -997,8 +1051,6 @@ use precision_mod
       REAL(KIND=PREC_DP) :: ttheta 
 !
 !
-!     REAL cosd 
-!                                                                       
       polarisation = 1.0
       
       IF (pow_lp.eq.POW_LP_BRAGG) THEN 
@@ -1025,8 +1077,6 @@ use precision_mod
 !                                                                       
 !                                                                       
       REAL(KIND=PREC_DP) :: ttheta 
-!                                                                       
-!     REAL sind, cosd 
 !                                                                       
       IF (pow_four_type.eq.POW_DEBYE) THEN 
          lorentz_pol = 1.0 
@@ -1121,14 +1171,10 @@ INTEGER, PARAMETER  :: POW_DEBYE = 1
 REAL(KIND=PREC_DP)                               :: fwhm
 REAL(KIND=PREC_DP), DIMENSION(0:POW_MAXPKT)      :: dummy
 REAL(KIND=PREC_DP), DIMENSION(0:2 * POW_MAXPKT)  :: psvgt
-!REAL                               :: tth
-!REAL(KIND=PREC_DP)                 :: tth_dp
 REAL(KIND=PREC_DP)                 :: eta_dp
 REAL(KIND=PREC_DP)                 :: fwhm_dp
 INTEGER                            :: imax, i, j, ii 
 INTEGER                            :: max_ps 
-!                                                                       
-!REAL pseudovoigt 
 !                                                                       
 !------ Setup Pseudo-Voigt                                              
 !                                                                       
@@ -1226,7 +1272,7 @@ INTEGER, PARAMETER  :: POW_DEBYE = 1
 REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
 REAL(kind=PREC_DP), DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
 REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
-REAL                          :: tantth   ! tan(Theta)
+REAL(kind=PREC_DP)            :: tantth   ! tan(Theta)
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
 REAL(KIND=PREC_DP)    :: ddtth            ! actual eta at current 2Theta
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
@@ -1243,11 +1289,11 @@ dummy = 0.0D0   ! dummy(:)
 IF(pow_type==POW_COMPL) THEN     ! Complete, check for zeros in DAT
    main_pts: DO i = 0, imax 
       tth = tthmin + i * ddtth 
-      tantth = tand (tth * 0.5) 
+      tantth = tand (tth * 0.5D0) 
 !
-      fwhm = 0.00001
+      fwhm = 0.00001D0
       IF(axis==2 ) THEN       ! 2Theta axis
-         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
+         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
       ELSEif(axis==1) THEN
          fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
       ENDIF
@@ -1281,11 +1327,11 @@ IF(pow_type==POW_COMPL) THEN     ! Complete, check for zeros in DAT
 ELSEIF(pow_type==POW_DEBYE) THEN     ! DEBYE, do not check for zeros in DAT
    main_pts_deb: DO i = 0, imax 
       tth = tthmin + i * ddtth 
-      tantth = tand (tth * 0.5) 
+      tantth = tand (tth * 0.5D0) 
 !
-      fwhm = 0.00001
+      fwhm = 0.00001D0
       IF(axis==2 ) THEN       ! 2Theta axis
-         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
+         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
       ELSEif(axis==1) THEN
          fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
       ENDIF
@@ -1362,7 +1408,7 @@ INTEGER, PARAMETER            :: POW_COMPL = 0
 INTEGER, PARAMETER            :: POW_DEBYE = 1
 !
 REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
-REAL, DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
+REAL(kind=PREC_DP), DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
 REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
 REAL(kind=PREC_DP)            :: tantth   ! tan(Theta)
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
@@ -1378,15 +1424,15 @@ INTEGER :: max_ps
 !------ Now convolute                                                   
 !                                                                       
 imax = INT( (tthmax - tthmin) / dtth )
-dummy = 0.0
+dummy = 0.0D0
 !
 IF(pow_type==POW_COMPL) THEN
    main_compl: DO i = 0, imax 
       tth = tthmin + i * dtth 
-      tantth = tand (tth * 0.5) 
+      tantth = tand (tth * 0.5D0) 
 !
       IF(axis==2 ) THEN       ! 2Theta axis
-         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
+         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
       ELSEif(axis==1) THEN
          fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
       ENDIF
@@ -1436,10 +1482,10 @@ IF(pow_type==POW_COMPL) THEN
 ELSEIF(pow_type==POW_DEBYE) THEN
    main_debye: DO i = 0, imax 
       tth = tthmin + i * dtth 
-      tantth = tand (tth * 0.5) 
+      tantth = tand (tth * 0.5D0) 
 !
       IF(axis==2 ) THEN       ! 2Theta axis
-         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
+         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
       ELSEif(axis==1) THEN
          fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
       ENDIF
@@ -1522,22 +1568,16 @@ REAL(KIND=PREC_DP)                            , INTENT(IN)    :: p4     ! Asymme
 REAL(KIND=PREC_DP)                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 !
 REAL(KIND=PREC_DP)    :: fwhm            ! Current FWHM at Theta
-REAL, DIMENSION(0:POW_MAXPKT) :: dummy  ! temporary data (0:POW_MAXPKT) 
+REAL(kind=PREC_DP), DIMENSION(0:POW_MAXPKT) :: dummy  ! temporary data (0:POW_MAXPKT) 
 REAL(KIND=PREC_DP)    :: tth             ! Theta within convolution, main data set
-REAL    :: tantth          ! tan(Theta)
+REAL(kind=PREC_DP)    :: tantth          ! tan(Theta)
 REAL(KIND=PREC_DP)    :: tth1            ! Theta values for asymmetry
 REAL(KIND=PREC_DP)    :: tth2            ! Theta values for asymmetry
-!REAL    :: atheta 
-!REAL    :: atwoth 
-!REAL    :: fwhm1 
 REAL(KIND=PREC_DP)    :: eta             ! actual eta at current 2Theta
-REAL    :: pra1, pra2      ! Asymmetry pre factors
+REAL(kind=PREC_DP)    :: pra1, pra2      ! Asymmetry pre factors
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
 INTEGER :: max_ps 
 !                                                                       
-!      REAL pseudovoigt 
-!      REAL profile_asymmetry 
-!      REAL tand
 !write(*,*) ' IN CONV_VARIABLE '
 pra1 = 1.0D0
 pra2 = 1.0D0
@@ -1547,10 +1587,10 @@ pra2 = 1.0D0
 imax = INT( (tthmax - tthmin) / dtth )
 DO i = 0, imax 
    tth = tthmin + i * dtth 
-   tantth = tand (tth * 0.5) 
+   tantth = tand (tth * 0.5D0) 
 !     atheta = tth * 0.5 
 !     atwoth = tth 
-   fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001) ) 
+   fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
 !      fwhm1 = fwhm 
    max_ps = INT((pow_width * fwhm) / dtth )
    eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
@@ -1633,27 +1673,22 @@ END SUBROUTINE powder_conv_psvgt_uvw_asymt
       INTEGER imax, i, j, ii 
       INTEGER max_ps 
 !                                                                       
-!      REAL pseudovoigt 
-!      REAL profile_asymmetry 
-!     REAL tand, sind, asind 
-!                                                                       
 !------ Now convolute                                                   
 !                                                                       
       imax = int( (tthmax - tthmin) / dtth )
       DO i = 0, imax 
       tth = tthmin + i * dtth 
-      tantth = tand (tth * 0.5) 
-      atheta = tth * 0.5 
+      tantth = tand (tth * 0.5D0) 
+      atheta = tth * 0.5D0 
       atwoth = tth 
       fwhm = sqrt (max (abs (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
       fwhm1 = fwhm 
       IF (pow_axis.eq.POW_AXIS_Q) THEN 
          atheta = asind (tth * rlambda / (fpi)) 
          tantth = tand (atheta) 
-         fwhm1 = sqrt (max (abs (u * tantth**2 + v * tantth + w),       &
-         0.00001) )                                                     
-         fwhm = 0.500 * ((fpi) * sind (atheta + 0.5D0 * fwhm1) / rlambda -  &
-         REAL(fpi) * sind (atheta - 0.5D0 * fwhm1) / rlambda)                   
+         fwhm1 = sqrt (max (abs (u * tantth**2 + v * tantth + w), 0.00001D0) )                                                     
+         fwhm = 0.500D0 * ((fpi) * sind (atheta + 0.5D0 * fwhm1) / rlambda -  &
+                fpi * sind (atheta - 0.5D0 * fwhm1) / rlambda)                   
       ENDIF 
       max_ps = int( (pow_width * fwhm) / dtth )
       eta = min (1.0D0, max (0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
@@ -1716,16 +1751,14 @@ REAL(KIND=PREC_DP)                            , INTENT(IN)    :: dtth      ! 2Th
 REAL(KIND=PREC_DP)                            , INTENT(IN)    :: sigma2    ! Gaussian Sigma^2
 REAL(KIND=PREC_DP)                            , INTENT(IN)    :: corrlin   ! 1/r deppendend width correction
 REAL(KIND=PREC_DP)                            , INTENT(IN)    :: corrquad  ! 1/r^2 deppendend width correction
-REAL(KIND=PREC_SP)              , INTENT(IN)    :: rcut      ! minimum  distance for clin/(r-rmin)
+REAL(KIND=PREC_DP)              , INTENT(IN)    :: rcut      ! minimum  distance for clin/(r-rmin)
 REAL(KIND=PREC_DP)                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 !
-!REAL(KIND=PREC_DP), PARAMETER :: four_ln2  = 2.772588722239781237669D0
 REAL(KIND=PREC_DP), PARAMETER :: eightln2  = 2.772588722239781237669D0 * 2.0D0
 !
 REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
-REAL, DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
+REAL(kind=PREC_DP), DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
 REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
-!REAL                          :: tantth   ! tan(Theta)
 REAL(KIND=PREC_DP)    :: sigmasq          ! actual scaled local sigma**2
 REAL(KIND=PREC_DP)    :: sigmamin         ! minimum       local sigma**2
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
@@ -1742,8 +1775,8 @@ sigmasq = sigma2*SQRT(eightln2)
 sigmamin = sigmasq * 0.20D0
 dist_min = REAL(rcut, KIND=PREC_DP)
 !
-eta = 0.0     ! Gaussian function
-dummy = 0.0   ! dummy(:)
+eta = 0.0D0     ! Gaussian function
+dummy = 0.0D0   ! dummy(:)
 !tth = 1.810
 !fwhm = SQRT(MAX(sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin))
 !write(*,7777) ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin
@@ -1853,7 +1886,6 @@ REAL(KIND=PREC_DP), INTENT(IN) :: p1, p2, p3, p4
 REAL(KIND=PREC_DP) :: zz 
 REAL(KIND=PREC_DP) :: fa, fb 
 !                                                                       
-!     REAL :: tand 
 !                                                                       
 zz = dtth / fwhm 
 !                                                                       
