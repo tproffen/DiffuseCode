@@ -19,7 +19,6 @@ PRIVATE
 PUBLIC  :: refine_do_allocate_appl
 PUBLIC  :: refine_do_deallocate_appl
 PUBLIC  :: refine_alloc_default
-!PUBLIC  :: alloc_socket_nprogs
 PUBLIC  :: alloc_params
 PUBLIC  :: alloc_params_fix
 PUBLIC  :: refine_show_config
@@ -90,7 +89,6 @@ INTEGER          , INTENT(INOUT)         :: lcomm     ! command line length
 INTEGER , PARAMETER                      :: MAXW=10
 CHARACTER (LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW)  :: cpara
 INTEGER             , DIMENSION(1:MAXW)  :: lpara
-!      REAL                , DIMENSION(1:MAXW)  :: werte
 INTEGER                                  :: ianz
 !
 !
@@ -178,19 +176,19 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 CALL alloc_arr ( refine_fixed   ,1,n_params, all_status, ' ', size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_range   ,1,n_params, 1, 2, all_status, 1.00000, size_of)
+CALL alloc_arr ( refine_range   ,1,n_params, 1, 2, all_status, 1.00000D0, size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_p       ,1,n_params, all_status, 1.00000, size_of)
+CALL alloc_arr ( refine_p       ,1,n_params, all_status, 1.00000D0, size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000, size_of)
+CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000D0, size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_dp      ,1,n_params, all_status, 0.00000, size_of)
+CALL alloc_arr ( refine_dp      ,1,n_params, all_status, 0.00000D0, size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_shift   ,1,n_params, all_status, 0.00500, size_of)
+CALL alloc_arr ( refine_shift   ,1,n_params, all_status, 0.00500D0, size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
 CALL alloc_arr ( refine_nderiv  ,1,n_params, all_status, 2      , size_of)
@@ -244,7 +242,7 @@ lstat = .TRUE.
 CALL alloc_arr ( refine_fixed   ,1,n_params, all_status, ' ', size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000, size_of)
+CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000D0, size_of)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
 IF( lstat ) THEN                        ! Success

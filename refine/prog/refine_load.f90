@@ -11,6 +11,8 @@ SUBROUTINE refine_load(LDATA, line, length)
 ! Loads the Data set and/or the Sigmas
 ! Either explicitly or with reference to a KUPLOT data set
 !
+use kuplot_load_mod
+!
 USE refine_control_mod
 USE refine_data_mod
 USE errlist_mod
@@ -82,15 +84,16 @@ USE kuplot_mod
 !
 USE errlist_mod
 USE define_variable_mod
+use precision_mod
 !
 IMPLICIT NONE
 !
-LOGICAL, INTENT(IN) :: LDATA   ! Datai==TRUE ot SIGMA == FALSE
+LOGICAL, INTENT(IN)    :: LDATA   ! Datai==TRUE ot SIGMA == FALSE
 INTEGER, INTENT(INOUT) :: ndata   ! no of data set to be transfered from KUPLOT
 !
 LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE. ! Prevents user from deleting variables
 INTEGER :: ix, iy                      ! Dummy loop variables
-REAL    :: step
+REAL(kind=PREC_DP)    :: step
 !
 IF(ndata==-1) ndata = iz-1            ! -1 signals last data set
 !
@@ -205,10 +208,10 @@ ENDIF
 ! Scratch all KUPLOT data beyond current data set
 !
 IF(LDATA) THEN
-   CALL def_set_variable('integer', 'F_DATA', FLOAT(ndata),  IS_DIFFEV)
-   CALL def_set_variable('integer', 'F_SIGMA', FLOAT(ndata), IS_DIFFEV)
+   CALL def_set_variable('integer', 'F_DATA', real(ndata,kind=PREC_DP),  IS_DIFFEV)
+   CALL def_set_variable('integer', 'F_SIGMA', real(ndata, kind=PREC_DP), IS_DIFFEV)
 ELSE
-   CALL def_set_variable('integer', 'F_SIGMA', FLOAT(ndata), IS_DIFFEV)
+   CALL def_set_variable('integer', 'F_SIGMA', real(ndata, kind=PREC_DP), IS_DIFFEV)
 ENDIF
 iz = ndata + 1
 !

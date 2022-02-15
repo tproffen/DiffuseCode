@@ -14,7 +14,7 @@ IMPLICIT NONE
 INTEGER                           , INTENT(IN) :: npara   ! Number of parameters
 CHARACTER(LEN=*)                  , INTENT(IN) :: params  ! Parameter names
 INTEGER                           , INTENT(IN) :: k       ! number to be updated
-REAL                              , INTENT(IN) :: wert    ! Target value
+REAL(kind=PREC_DP)                , INTENT(IN) :: wert    ! Target value
 !
 CHARACTER(LEN=PREC_STRING) :: string   ! dumy string variable
 INTEGER             :: lpname   ! Length of a parameter name

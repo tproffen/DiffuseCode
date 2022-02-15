@@ -147,7 +147,7 @@ CALL show_fit_erg(iounit, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n,   &
            refine_chisqr, refine_conf, &
            refine_lamda, refine_rval, refine_rexp,                        &
            refine_params, refine_p, refine_dp, refine_range, refine_cl,   &
-           refine_fixed, refine_f,                                        &
+           refine_fixed, refine_f, lconv,                                 &
            conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf     &
            )
 !
@@ -160,7 +160,7 @@ END SUBROUTINE refine_do_show
 SUBROUTINE show_fit_erg(iounit, MAXP, MAXF, npara, nfixed, ndata, mac, mac_l,   &
            load, kload, csigma, ksigma, lcovar, chisq, conf, lamda,             &
            r4, re,                                                              &
-           params, pp, dpp, prange, cl, fixed, pf,                              &
+           params, pp, dpp, prange, cl, fixed, pf, lconv,                       &
            conv_status, conv_dp_sig, conv_dchi2, conv_chi2, conv_conf           &
            )
 !+                                                                      
@@ -168,38 +168,40 @@ SUBROUTINE show_fit_erg(iounit, MAXP, MAXF, npara, nfixed, ndata, mac, mac_l,   
 !-                                                                      
 !
 !                                                                       
+use precision_mod
 IMPLICIT none 
 !
-INTEGER, INTENT(IN) :: iounit         ! Output screen / file
-INTEGER, INTENT(IN) :: MAXP           ! Parameter array size
-INTEGER, INTENT(IN) :: MAXF           ! Fixed parameter array size
-INTEGER, INTENT(IN) :: npara          ! Number of refined parameters
-INTEGER, INTENT(IN) :: nfixed         ! Number of fixed parameters
-INTEGER, INTENT(IN) :: ndata          ! Number of data points = ref_dim(1)*ref_dim(2)
-CHARACTER(LEN=*), INTENT(IN) :: mac   ! Refinement macro name
-INTEGER, INTENT(IN)          :: mac_l ! Length of macro name
-CHARACTER(LEN=*), INTENT(IN) :: load  ! Data set loaded as:
-INTEGER, INTENT(IN)          :: kload ! Datas set in KUPLOT number
-CHARACTER(LEN=*), INTENT(IN) :: csigma ! Data set loaded as:
-INTEGER, INTENT(IN)          :: ksigma! Datas set in KUPLOT number
-LOGICAL, INTENT(IN)          :: lcovar! Display full covariance matrix
-REAL, INTENT(IN) :: chisq             ! Chi^2
-REAL, INTENT(IN) :: conf              ! Confidence level
-REAL, INTENT(IN) :: lamda             ! Levenberg-Marquardt Lamda
-REAL, INTENT(IN) :: r4                ! Weighted R-value
-REAL, INTENT(IN) :: re                ! expected R-value
-CHARACTER(LEN=*), DIMENSION(MAXP), INTENT(IN) :: params    ! Parameter names
-REAL            , DIMENSION(MAXP), INTENT(IN) :: pp        ! Parameter values
-REAL            , DIMENSION(MAXP), INTENT(IN) :: dpp       ! Parameter sigmas
-REAL            , DIMENSION(MAXP,2), INTENT(IN) :: prange  ! Parameter range
-REAL            , DIMENSION(NPARA,NPARA), INTENT(IN) :: cl ! Covariance matrix
-CHARACTER(LEN=*), DIMENSION(MAXF), INTENT(IN) :: fixed     ! Fixed parameter names
-REAL            , DIMENSION(MAXF), INTENT(IN) :: pf        ! Fixed parameter values
-LOGICAL                          , INTENT(IN)  :: conv_status ! Apply convergence criteria
-REAL                             , INTENT(IN)  :: conv_dp_sig ! Max parameter shift
-REAL                             , INTENT(IN)  :: conv_dchi2  ! Max Chi^2     shift
-REAL                             , INTENT(IN)  :: conv_chi2   ! Min Chi^2     value 
-REAL                             , INTENT(IN)  :: conv_conf   ! Min confidence level
+INTEGER                                   , INTENT(IN) :: iounit      ! Output screen / file
+INTEGER                                   , INTENT(IN) :: MAXP        ! Parameter array size
+INTEGER                                   , INTENT(IN) :: MAXF        ! Fixed parameter array size
+INTEGER                                   , INTENT(IN) :: npara       ! Number of refined parameters
+INTEGER                                   , INTENT(IN) :: nfixed      ! Number of fixed parameters
+INTEGER                                   , INTENT(IN) :: ndata       ! Number of data points = ref_dim(1)*ref_dim(2)
+CHARACTER(LEN=*)                          , INTENT(IN) :: mac         ! Refinement macro name
+INTEGER                                   , INTENT(IN) :: mac_l       ! Length of macro name
+CHARACTER(LEN=*)                          , INTENT(IN) :: load        ! Data set loaded as:
+INTEGER                                   , INTENT(IN) :: kload       ! Datas set in KUPLOT number
+CHARACTER(LEN=*)                          , INTENT(IN) :: csigma      ! Data set loaded as:
+INTEGER                                   , INTENT(IN) :: ksigma      ! Datas set in KUPLOT number
+LOGICAL                                   , INTENT(IN) :: lcovar      ! Display full covariance matrix
+REAL(kind=PREC_DP)                        , INTENT(IN) :: chisq       ! Chi^2
+REAL(kind=PREC_DP)                        , INTENT(IN) :: conf        ! Confidence level
+REAL(kind=PREC_DP)                        , INTENT(IN) :: lamda       ! Levenberg-Marquardt Lamda
+REAL(kind=PREC_DP)                        , INTENT(IN) :: r4          ! Weighted R-value
+REAL(kind=PREC_DP)                        , INTENT(IN) :: re          ! expected R-value
+CHARACTER(LEN=*)  , DIMENSION(MAXP)       , INTENT(IN) :: params      ! Parameter names
+REAL(kind=PREC_DP), DIMENSION(MAXP)       , INTENT(IN) :: pp          ! Parameter values
+REAL(kind=PREC_DP), DIMENSION(MAXP)       , INTENT(IN) :: dpp         ! Parameter sigmas
+REAL(kind=PREC_DP), DIMENSION(MAXP,2)     , INTENT(IN) :: prange      ! Parameter range
+REAL(kind=PREC_DP), DIMENSION(NPARA,NPARA), INTENT(IN) :: cl          ! Covariance matrix
+CHARACTER(LEN=*)  , DIMENSION(MAXF)       , INTENT(IN) :: fixed       ! Fixed parameter names
+REAL(kind=PREC_DP), DIMENSION(MAXF)       , INTENT(IN) :: pf          ! Fixed parameter values
+LOGICAL           , DIMENSION(3)          , intent(out):: lconv       ! Convergence criteria
+LOGICAL                                   , INTENT(IN) :: conv_status ! Apply convergence criteria
+REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_dp_sig ! Max parameter shift
+REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_dchi2  ! Max Chi^2     shift
+REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_chi2   ! Min Chi^2     value 
+REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_conf   ! Min confidence level
 !                                                                       
 INTEGER :: i, j 
 LOGICAL :: kor 
@@ -231,9 +233,9 @@ IF(conv_status) THEN
 ELSE
    WRITE(iounit, '(a)') '   Convergence      : Criteria are ignored'
 ENDIF
-WRITE(iounit, 4000) conv_dp_sig, conv_conf , conv_dchi2
-WRITE(iounit, 4100) conv_dchi2
-WRITE(iounit, 4200) conv_chi2
+WRITE(iounit, 4000) lconv(1), conv_dp_sig, conv_conf , conv_dchi2
+WRITE(iounit, 4100) lconv(2), conv_dchi2
+WRITE(iounit, 4200) lconv(3), conv_chi2
 !
 IF(chisq>=0.0) THEN
    WRITE(iounit, 1040) chisq, chisq/ndata, conf, chisq/(ndata-npara),  &
@@ -287,12 +289,12 @@ WRITE(iounit, * ) ' '
 3110 FORMAT(' Sigma not defined  '   )
 3120 FORMAT(' Sigma loaded as    : ',a )
 2000 FORMAT(' Refinement macro   : ',a)
-4000 FORMAT('   Convergence 1    : dP/sigma < AND conf >     AND dChi^2 <',/, &
-            '                      ',2(G11.3E3,5x),G11.3E3)
-4100 FORMAT('   Convergence 2    : dChi^2 <   AND dP/sigma > 0.0          ',/, &
-            '                      ',  G11.3E3            )
-4200 FORMAT('   Convergence 3    : Chi^2 <                                ',/, &
-            '                      ',  G11.3E3            )
+4000 FORMAT('   Convergence 1    :   dP/sigma < AND conf >     AND dChi^2 <',/, &
+            '                      ',l1,2(G11.3E3,5x),G11.3E3)
+4100 FORMAT('   Convergence 2    :   dChi^2 <   AND dP/sigma > 0.0          ',/, &
+            '                      ',l1,  G11.3E3            )
+4200 FORMAT('   Convergence 3    :   Chi^2 <                                ',/, &
+            '                      ',l1,  G11.3E3            )
  1040 FORMAT (/,                                                        &
               ' Information about the fit : ',/,                        &
               3x,'Chi^2      : ',g13.6, 5x,' Chi^2/N : ',g13.6 /,       &

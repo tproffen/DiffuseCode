@@ -1,3 +1,7 @@
+!module refine_mache_kdo_mod
+!
+!contains
+!
 !*****7*****************************************************************
 !                                                                       
 SUBROUTINE refine_mache_kdo (line, lend, length) 
@@ -35,6 +39,7 @@ USE learn_mod
 USE lib_errlist_func
 USE lib_macro_func
 USE macro_mod
+use precision_mod
 USE prompt_mod
 USE set_sub_generic_mod
 USE str_comp_mod
@@ -65,7 +70,7 @@ INTEGER                                :: ref_output_status
 !LOGICAL                               :: back_new
 !LOGICAL                               :: lexist
 !                                                                       
-REAL                , DIMENSION(MAXW) :: werte = 0.0
+REAL(kind=PREC_DP)  , DIMENSION(MAXW) :: werte = 0.0
 !                                                                       
 CALL no_error 
 !                                                                 
@@ -218,7 +223,9 @@ ELSE  is_math
    ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) THEN is_befehl
       CALL p_branch (zeile, lcomm, .FALSE.)
 elseif(str_comp (befehl, 'uvw', 3, lbef, 3)) THEN
-call refine_constrain_temp(zeile, lcomm)
+call refine_constrain_temp(zeile, lcomm, .TRUE.)
+elseif(str_comp (befehl, 'eta', 3, lbef, 3)) THEN
+call refine_constrain_temp(zeile, lcomm, .false.)
 !                                                                 
 !------   Try general commands                                    
 !                                                                 
@@ -231,3 +238,5 @@ call refine_constrain_temp(zeile, lcomm)
 ENDIF  is_math
 !                                                                       
 END SUBROUTINE refine_mache_kdo                      
+!
+!end module refine_mache_kdo_mod

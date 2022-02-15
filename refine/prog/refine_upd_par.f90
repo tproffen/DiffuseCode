@@ -1,3 +1,7 @@
+module refine_update_mod
+!
+contains
+!
 SUBROUTINE refine_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
 !                                                                       
 !-                                                                      
@@ -338,3 +342,5 @@ CALL lib_get_var_type(line, length, var_is_type)
 !
 !
 END SUBROUTINE refine_get_var_typE
+!
+end module refine_update_mod
