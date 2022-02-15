@@ -1,3 +1,6 @@
+module discus_errlist_mod
+!
+contains
 !*****7****************************************************************
 !
       SUBROUTINE discus_errlist_appl
@@ -440,3 +443,4 @@ USE lib_errlist_func
 !                                                                       
       CALL disp_error ('CHEM', error, iu, io) 
       END SUBROUTINE errlist_chem                   
+end module discus_errlist_mod
