@@ -24,7 +24,7 @@ set (SOURCES_ALL refine_add_param.f90 refine_allocate_appl.f90 refine_blk_appl.f
              refine_mac_mod.f90 refine_params.f90
              refine_random_mod.f90
              refine_reset.f90 refine_run.f90 refine_show.f90 
-             refine_set.f90 refine_setup.f90 refine_set_param.f90
+             refine_set.f90 refine_setup.f90 refine_setup_sub.f90 refine_set_param.f90
              refine_upd_par.f90)
 
 set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
@@ -43,7 +43,7 @@ else (MPI_Fortran_FOUND AND DIFFEV_MPI)
 endif (MPI_Fortran_FOUND AND DIFFEV_MPI)
 
 add_library (refine_all ${SOURCES_ALL})
-add_dependencies ( refine_all lib_f90 diffev_all)
+add_dependencies ( refine_all lib_f90 diffev_all kuplot_all)
 
 set (LIBS refine_all ${LIBS} refine_all ${LIBS_OPT})
 
