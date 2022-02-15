@@ -2,22 +2,25 @@ MODULE discus_loop_mod
 !
 CONTAINS
 !
+!*****7*****************************************************************
+!                                                                       
 SUBROUTINE discus_loop
 !                                                                       
-   USE discus_exit_mod
-   USE doact_mod 
-   USE errlist_mod 
-   USE learn_mod 
-   USE class_macro_internal 
-   USE mpi_slave_mod
-   USE do_if_mod
+USE discus_exit_mod
+!use discus_mache_kdo_mod
+USE doact_mod 
+USE errlist_mod 
+USE learn_mod 
+USE class_macro_internal 
+USE mpi_slave_mod
+USE do_if_mod
 USE lib_errlist_func
 USE lib_macro_func
 USE precision_mod
-   USE prompt_mod 
-      USE sup_mod
-
-   IMPLICIT none 
+USE prompt_mod 
+USE sup_mod
+!
+IMPLICIT none 
 !
 !*****7*****************************************************************
 !                                                                       
@@ -39,7 +42,7 @@ INTEGER              :: laenge = 1
 INTEGER              :: lp     = 1
 INTEGER              :: lbef   = 1
 !                                                                       
-EXTERNAL             :: discus_mache_kdo    ! Declare DISCUS copy of mache_kdo
+!EXTERNAL             :: discus_mache_kdo    ! Declare DISCUS copy of mache_kdo
 !                                                                       
 lend    = .false. 
 !                                                                       
@@ -125,5 +128,7 @@ ENDIF
      &       '        ****',a1/)
 !                                                                       
 END SUBROUTINE discus_loop
+!                                                                       
+!*****7*****************************************************************
 !
 END MODULE discus_loop_mod

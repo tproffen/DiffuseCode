@@ -21,6 +21,7 @@ SUBROUTINE interactive ()
 !
 USE prompt_mod
 USE discus_setup_mod
+USE discus_setup_sub_mod
 USE discus_loop_mod
 USE set_sub_generic_mod
 !
@@ -52,6 +53,8 @@ SUBROUTINE command (incomming, ier_status)
 ! 
 ! 
 USE discus_setup_mod
+USE discus_setup_sub_mod
+!use discus_mache_kdo_mod
 USE errlist_mod
 USE class_macro_internal
 USE lib_errlist_func
@@ -75,7 +78,7 @@ INTEGER              :: lp
 LOGICAL              :: lend
 !
 !
-EXTERNAL             :: discus_mache_kdo
+!EXTERNAL             :: discus_mache_kdo
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL discus_setup
