@@ -6,141 +6,141 @@ private
 CONTAINS
 !*****7*****************************************************************
 !                                                                       
-      SUBROUTINE matmulx (a, b, c) 
+!OLD  SUBROUTINE matmulx (a, b, c) 
 !+                                                                      
 !     Matrixmultiplication a=b*c                                        
 !-                                                                      
-      IMPLICIT none 
+!OLD  IMPLICIT none 
 !                                                                       
-      INTEGER i, j, k 
-      REAL a (3, 3), b (3, 3), c (3, 3) 
+!OLD  INTEGER i, j, k 
+!OLD  REAL a (3, 3), b (3, 3), c (3, 3) 
 !                                                                       
-      DO i = 1, 3 
-      DO j = 1, 3 
-      a (i, j) = 0.0 
-      DO k = 1, 3 
-      a (i, j) = a (i, j) + b (i, k) * c (k, j) 
-      ENDDO 
-      ENDDO 
-      ENDDO 
-      END SUBROUTINE matmulx                        
+!OLD  DO i = 1, 3 
+!OLD  DO j = 1, 3 
+!OLD  a (i, j) = 0.0 
+!OLD  DO k = 1, 3 
+!OLD  a (i, j) = a (i, j) + b (i, k) * c (k, j) 
+!OLD  ENDDO 
+!OLD  ENDDO 
+!OLD  ENDDO 
+!OLD  END SUBROUTINE matmulx                        
 !*****7*****************************************************************
-      SUBROUTINE matmul4 (a, b, c) 
+!OLD  SUBROUTINE matmul4 (a, b, c) 
 !+                                                                      
 !     Matrixmultiplication a=b*c for (4x4) matrices.                    
 !-                                                                      
-      IMPLICIT none 
+!OLD  IMPLICIT none 
 !                                                                       
-      INTEGER i, j, k 
-      REAL a (4, 4), b (4, 4), c (4, 4) 
+!OLD  INTEGER i, j, k 
+!OLD  REAL a (4, 4), b (4, 4), c (4, 4) 
 !                                                                       
-      DO i = 1, 4 
-      DO j = 1, 4 
-      a (i, j) = 0.0 
-      DO k = 1, 4 
-      a (i, j) = a (i, j) + b (i, k) * c (k, j) 
-      ENDDO 
-      ENDDO 
-      ENDDO 
-      END SUBROUTINE matmul4                        
+!OLD  DO i = 1, 4 
+!OLD  DO j = 1, 4 
+!OLD  a (i, j) = 0.0 
+!OLD  DO k = 1, 4 
+!OLD  a (i, j) = a (i, j) + b (i, k) * c (k, j) 
+!OLD  ENDDO 
+!OLD  ENDDO 
+!OLD  ENDDO 
+!OLD  END SUBROUTINE matmul4                        
 !*****7*****************************************************************
-      SUBROUTINE transmat (mat, idim) 
+!OLD  SUBROUTINE transmat (mat, idim) 
 !-                                                                      
 !     Replaces a matrix by its transpose                                
 !+                                                                      
-      IMPLICIT none 
+!OLD  IMPLICIT none 
 !                                                                       
-      INTEGER idim, i, j 
-      REAL mat (idim, idim), d 
+!OLD  INTEGER idim, i, j 
+!OLD  REAL mat (idim, idim), d 
 !                                                                       
-      DO i = 2, idim 
-      DO j = 1, i - 1 
-      d = mat (i, j) 
-      mat (i, j) = mat (j, i) 
-      mat (j, i) = d 
-      ENDDO 
-      ENDDO 
+!OLD  DO i = 2, idim 
+!OLD  DO j = 1, i - 1 
+!OLD  d = mat (i, j) 
+!OLD  mat (i, j) = mat (j, i) 
+!OLD  mat (j, i) = d 
+!OLD  ENDDO 
+!OLD  ENDDO 
 !                                                                       
-      END SUBROUTINE transmat                       
+!OLDD END SUBROUTINE transmat                       
 !*****7*****************************************************************
-      SUBROUTINE invmat (imat, a) 
+!OLD  SUBROUTINE invmat (imat, a) 
 !                                                                       
 !     calculates the inverse matrix "imat" to input matrix "a"          
 !                                                                       
-      USE errlist_mod 
+!OLD  USE errlist_mod 
 !
-      IMPLICIT none 
+!OLD  IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL imat (3, 3), a (3, 3), det 
+!OLD  REAL imat (3, 3), a (3, 3), det 
 !                                                                       
-      det = a (1, 1) * (a (2, 2) * a (3, 3) - a (2, 3) * a (3, 2) )     &
-      + a (2, 1) * (a (3, 2) * a (1, 3) - a (1, 2) * a (3, 3) ) + a (3, &
-      1) * (a (1, 2) * a (2, 3) - a (1, 3) * a (2, 2) )                 
-                                                                        
-      IF (abs (det) .gt.0.0) then 
-         ier_num = 0 
-         ier_typ = ER_NONE 
+!OLD  det = a (1, 1) * (a (2, 2) * a (3, 3) - a (2, 3) * a (3, 2) )     &
+!OLD  + a (2, 1) * (a (3, 2) * a (1, 3) - a (1, 2) * a (3, 3) ) + a (3, &
+!OLD  1) * (a (1, 2) * a (2, 3) - a (1, 3) * a (2, 2) )                 
+!OLD                                                                    
+!OLD  IF (abs (det) .gt.0.0) then 
+!OLD     ier_num = 0 
+!OLD     ier_typ = ER_NONE 
 !                                                                       
-         imat (1, 1) = (a (2, 2) * a (3, 3) - a (2, 3) * a (3, 2) )     &
-         / det                                                          
-         imat (1, 2) = - (a (1, 2) * a (3, 3) - a (1, 3) * a (3, 2) )   &
-         / det                                                          
-         imat (1, 3) = (a (1, 2) * a (2, 3) - a (1, 3) * a (2, 2) )     &
-         / det                                                          
+!OLD     imat (1, 1) = (a (2, 2) * a (3, 3) - a (2, 3) * a (3, 2) )     &
+!OLD     / det                                                          
+!OLD     imat (1, 2) = - (a (1, 2) * a (3, 3) - a (1, 3) * a (3, 2) )   &
+!OLD     / det                                                          
+!OLD     imat (1, 3) = (a (1, 2) * a (2, 3) - a (1, 3) * a (2, 2) )     &
+!OLD     / det                                                          
 !                                                                       
-         imat (2, 1) = - (a (2, 1) * a (3, 3) - a (3, 1) * a (2, 3) )   &
-         / det                                                          
-         imat (2, 2) = (a (1, 1) * a (3, 3) - a (1, 3) * a (3, 1) )     &
-         / det                                                          
-         imat (2, 3) = - (a (1, 1) * a (2, 3) - a (1, 3) * a (2, 1) )   &
-         / det                                                          
+!OLD     imat (2, 1) = - (a (2, 1) * a (3, 3) - a (3, 1) * a (2, 3) )   &
+!OLD     / det                                                          
+!OLD     imat (2, 2) = (a (1, 1) * a (3, 3) - a (1, 3) * a (3, 1) )     &
+!OLD     / det                                                          
+!OLD     imat (2, 3) = - (a (1, 1) * a (2, 3) - a (1, 3) * a (2, 1) )   &
+!OLD     / det                                                          
 !                                                                       
-         imat (3, 1) = (a (2, 1) * a (3, 2) - a (3, 1) * a (2, 2) )     &
-         / det                                                          
-         imat (3, 2) = - (a (1, 1) * a (3, 2) - a (1, 2) * a (3, 1) )   &
-         / det                                                          
-         imat (3, 3) = (a (1, 1) * a (2, 2) - a (1, 2) * a (2, 1) )     &
-         / det                                                          
+!OLD     imat (3, 1) = (a (2, 1) * a (3, 2) - a (3, 1) * a (2, 2) )     &
+!OLD     / det                                                          
+!OLD     imat (3, 2) = - (a (1, 1) * a (3, 2) - a (1, 2) * a (3, 1) )   &
+!OLD     / det                                                          
+!OLD     imat (3, 3) = (a (1, 1) * a (2, 2) - a (1, 2) * a (2, 1) )     &
+!OLD     / det                                                          
 !                                                                       
-      ELSE 
-         ier_num = - 1 
-         ier_typ = ER_MATH 
-      ENDIF 
+!OLD  ELSE 
+!OLD     ier_num = - 1 
+!OLD     ier_typ = ER_MATH 
+!OLD  ENDIF 
 !                                                                       
-      END SUBROUTINE invmat                         
+!OLD  END SUBROUTINE invmat                         
 !*****7*****************************************************************
-      SUBROUTINE invmat4 (matrix) 
+!OLD  SUBROUTINE invmat4 (matrix) 
 !-                                                                      
 !     inverts a 4*4 Symmetry operation                                  
 !+                                                                      
-      USE errlist_mod 
-      IMPLICIT none 
+!OLD  USE errlist_mod 
+!OLD  IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL matrix (4, 4) 
-      INTEGER i, j 
-      REAL a (3, 3), b (3, 3), t (3) 
+!OLD  REAL matrix (4, 4) 
+!OLD  INTEGER i, j 
+!OLD  REAL a (3, 3), b (3, 3), t (3) 
 !                                                                       
-      DO i = 1, 3 
-      DO j = 1, 3 
-      a (i, j) = matrix (i, j) 
-      ENDDO 
-      t (i) = matrix (i, 4) 
-      ENDDO 
+!OLD  DO i = 1, 3 
+!OLD  DO j = 1, 3 
+!OLD  a (i, j) = matrix (i, j) 
+!OLD  ENDDO 
+!OLD  t (i) = matrix (i, 4) 
+!OLD  ENDDO 
 !                                                                       
-      CALL invmat (b, a) 
+!OLD  CALL invmat (b, a) 
 !                                                                       
-      IF (ier_num.eq.0) then 
-         DO i = 1, 3 
-         matrix (i, 4) = 0.0 
-         DO j = 1, 3 
-         matrix (i, j) = b (i, j) 
-         matrix (i, 4) = matrix (i, 4) - b (i, j) * t (j) 
-         ENDDO 
-         ENDDO 
-      ENDIF 
+!OLD  IF (ier_num.eq.0) then 
+!OLD     DO i = 1, 3 
+!OLD     matrix (i, 4) = 0.0 
+!OLD     DO j = 1, 3 
+!OLD     matrix (i, j) = b (i, j) 
+!OLD     matrix (i, 4) = matrix (i, 4) - b (i, j) * t (j) 
+!OLD     ENDDO 
+!OLD     ENDDO 
+!OLD  ENDIF 
 !                                                                       
-      END SUBROUTINE invmat4                        
+!OLD  END SUBROUTINE invmat4                        
 !*****7*****************************************************************
 END MODULE tensors_mod
