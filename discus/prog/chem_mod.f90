@@ -33,7 +33,7 @@ CHARACTER(LEN=80)                        :: chem_fname     = 'blen.xy'
 INTEGER                                  :: chem_bin       = 601
 INTEGER                                  :: chem_ncor      = 1
 REAL(kind=PREC_DP), DIMENSION(2)         :: chem_blen_cut  = (/1.5D0,  7.5D0/)
-REAL, DIMENSION(2)                       :: chem_bang_cut  = (/0.0,180.0/)
+REAL(kind=PREC_DP), DIMENSION(2)         :: chem_bang_cut  = (/0.0,180.0/)
 LOGICAL                                  :: chem_quick     = .true.
 LOGICAL                                  :: chem_cluster   = .false.
 LOGICAL, DIMENSION(3)                    :: chem_period    = .true.
@@ -50,9 +50,9 @@ INTEGER, DIMENSION(:  ,:), ALLOCATABLE   :: chem_cran_cent   !  (0:CHEM_MAX_ATOM
 INTEGER, DIMENSION(:  ,:), ALLOCATABLE   :: chem_cran_neig   !  (0:CHEM_MAX_ATOM,CHEM_MAX_RAN)
 INTEGER, DIMENSION(:)    , ALLOCATABLE   :: chem_cran_nuvw   !  (CHEM_MAX_RAN)
 INTEGER, DIMENSION(:)    , ALLOCATABLE   :: chem_cran_nshort !  (CHEM_MAX_RAN)
-REAL   , DIMENSION(:,:,:), ALLOCATABLE   :: chem_cran_uvw    !  (3,48,CHEM_MAX_RAN)
-REAL   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_sig    !  (CHEM_MAX_RAN)
-REAL   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_wsig   !  (CHEM_MAX_RAN)
+REAL(kind=PREC_DP)   , DIMENSION(:,:,:), ALLOCATABLE   :: chem_cran_uvw    !  (3,48,CHEM_MAX_RAN)
+REAL(kind=PREC_DP)   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_sig    !  (CHEM_MAX_RAN)
+REAL(kind=PREC_DP)   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_wsig   !  (CHEM_MAX_RAN)
 REAL(kind=PREC_DP)   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_rmax   !  (CHEM_MAX_RAN)
 REAL(kind=PREC_DP)   , DIMENSION(:)    , ALLOCATABLE   :: chem_cran_rmin   !  (CHEM_MAX_RAN)
 LOGICAL, DIMENSION(:)    , ALLOCATABLE   :: chem_cran_cang   !  (CHEM_MAX_RAN)
@@ -74,20 +74,20 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE     :: chem_use_con     !  (CHEM_MAX_CON,CH
 INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_hist        !  (CHEM_MAX_BIN)
 !
 ! Average crystal structure
-INTEGER, DIMENSION(:)  , ALLOCATABLE                   :: chem_ave_n       !  (MAXAT_CELL)
-INTEGER, DIMENSION(:,:), ALLOCATABLE                   :: chem_ave_iscat   !  (MAXAT_CELL,CHEM_MAX_ATOM)
-REAL   , DIMENSION(:,:), ALLOCATABLE                   :: chem_ave_pos     !  (3,MAXAT_CELL)
-REAL   , DIMENSION(:,:), ALLOCATABLE                   :: chem_ave_sig     !  (3,MAXAT_CELL)
-REAL   , DIMENSION(:,:), ALLOCATABLE                   :: chem_ave_bese    !  (MAXAT_CELL,CHEM_MAX_ATOM)
-REAL,    DIMENSION(:,:,:), ALLOCATABLE                 :: chem_ave_posit
-REAL,    DIMENSION(:,:,:), ALLOCATABLE                 :: chem_ave_sigma
+INTEGER           , DIMENSION(:)    , ALLOCATABLE :: chem_ave_n       !  (MAXAT_CELL)
+INTEGER           , DIMENSION(:,:)  , ALLOCATABLE :: chem_ave_iscat   !  (MAXAT_CELL,CHEM_MAX_ATOM)
+REAL(kind=PREC_DP), DIMENSION(:,:)  , ALLOCATABLE :: chem_ave_pos     !  (3,MAXAT_CELL)
+REAL(kind=PREC_DP), DIMENSION(:,:)  , ALLOCATABLE :: chem_ave_sig     !  (3,MAXAT_CELL)
+REAL(kind=PREC_DP), DIMENSION(:,:)  , ALLOCATABLE :: chem_ave_bese    !  (MAXAT_CELL,CHEM_MAX_ATOM)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_posit
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_sigma
 LOGICAL       :: chem_run_aver     = .TRUE.            ! Aver needs to be run
 LOGICAL       :: chem_run_aver_ind = .TRUE.            ! aver_indi needs to be run
 
 !
 ! Displacement correlations
-REAL, DIMENSION(:,:,:), ALLOCATABLE                    :: chem_disp_ave    !  (CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL, DIMENSION(:,:,:), ALLOCATABLE                    :: chem_disp_sig    !  (CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE      :: chem_disp_ave    !  (CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE      :: chem_disp_sig    !  (CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 !
 ! Environment interactions
 INTEGER, DIMENSION(:,:), ALLOCATABLE                   :: chem_use_env     !  (CHEM_MAX_ENV,CHEM_MAX_COR)
@@ -103,14 +103,12 @@ INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_nwin        !  (C
 INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_ctyp        !  (CHEM_MAX_COR)
 INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_nnei        !  (CHEM_MAX_COR)
 INTEGER, DIMENSION(:), ALLOCATABLE                     :: chem_nenv        !  (CHEM_MAX_COR)
-!REAL, DIMENSION(3,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT) :: chem_vect_ave    !  (3,12,CHEM_MAX_COR,0:MAXSCAT,0:MAXSCAT)
-!REAL, DIMENSION(3,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT) :: chem_vect_sig    !  (3,12,CHEM_MAX_COR,0:MAXSCAT,0:MAXSCAT)
-REAL, DIMENSION(:, :,:), ALLOCATABLE                   :: chem_neig        !  (3,48,CHEM_MAX_COR)
-REAL, DIMENSION(:,:,:), ALLOCATABLE                    :: chem_dir         !  (3,2,CHEM_MAX_COR)
-REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE                        :: chem_rmax        !  (CHEM_MAX_COR)
-REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE                        :: chem_rmin        !  (CHEM_MAX_COR)
-REAL, DIMENSION(:), ALLOCATABLE                        :: chem_freq_sigma  !  (CHEM_MAX_COR)
-REAL, DIMENSION(:), ALLOCATABLE                        :: chem_wink_sigma  !  (CHEM_MAX_COR)
+REAL(kind=PREC_DP), DIMENSION(:, :,:), ALLOCATABLE                   :: chem_neig        !  (3,48,CHEM_MAX_COR)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE                    :: chem_dir         !  (3,2,CHEM_MAX_COR)
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE          :: chem_rmax        !  (CHEM_MAX_COR)
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE          :: chem_rmin        !  (CHEM_MAX_COR)
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE          :: chem_freq_sigma  !  (CHEM_MAX_COR)
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE          :: chem_wink_sigma  !  (CHEM_MAX_COR)
 LOGICAL, DIMENSION(:), ALLOCATABLE                     :: chem_cang        !  (CHEM_MAX_COR)
 LOGICAL, DIMENSION(:), ALLOCATABLE                     :: chem_ldall       !  (CHEM_MAX_COR)
 !

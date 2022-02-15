@@ -61,11 +61,11 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
 !
    INTEGER                                          ::  cr_gen_add_n         = 0
    INTEGER                                          ::  cr_gen_add_power(192) = 1
-   REAL              , DIMENSION(:,:,:),ALLOCATABLE ::  cr_gen_add   ! Additional Generator matrices (4,4,0:192)
+   REAL(kind=PREC_DP), DIMENSION(:,:,:),ALLOCATABLE ::  cr_gen_add   ! Additional Generator matrices (4,4,0:192)
 !
    INTEGER                                          ::  cr_sym_add_n         = 0
    INTEGER                                          ::  cr_sym_add_power(192) = 1
-   REAL              , DIMENSION(:,:,:),ALLOCATABLE ::  cr_sym_add   ! Additional Symmetry matrices (4,4,0:192)
+   REAL(kind=PREC_DP), DIMENSION(:,:,:),ALLOCATABLE ::  cr_sym_add   ! Additional Symmetry matrices (4,4,0:192)
 !
    REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE  ::  cr_scat   ! Scattering curves (9,0:MAXSCAT)
    REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE  ::  cr_delfr  ! anomalous scattering real part (  0:MAXSCAT)
@@ -95,7 +95,7 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    INTEGER                                          ::  cr_n_REAL_atoms = 0
 
    REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE  ::  cr_dw      ! (  0:MAXSCAT)
-   REAL              , DIMENSION(  :), ALLOCATABLE  ::  cr_occ     ! (  0:MAXSCAT)
+   REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE  ::  cr_occ     ! (  0:MAXSCAT)
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_lis  ! (  0:MAXSCAT)
    TYPE(cl_atom)     , DIMENSION(:)  , POINTER      ::  atoms            !the actual atoms
 !
@@ -111,11 +111,11 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    INTEGER, DIMENSION(:), ALLOCATABLE               ::  cr_mole_char    ! (  0:MOLE_MAX_MOLE)
    CHARACTER(LEN=200), DIMENSION(:), ALLOCATABLE    ::  cr_mole_file    ! (  0:MOLE_MAX_MOLE)
    INTEGER, DIMENSION(:), ALLOCATABLE               ::  cr_mole_cont    ! (  0:MOLE_MAX_ATOM)
-   REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_dens    ! (  0:MOLE_MAX_MOLE)
-   REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_biso    ! (  0:MOLE_MAX_TYPE)
-   REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_clin    ! (  0:MOLE_MAX_TYPE)
-   REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_cqua    ! (  0:MOLE_MAX_TYPE)
-   REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_fuzzy   ! (  0:MOLE_MAX_MOLE)
+   REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_dens    ! (  0:MOLE_MAX_MOLE)
+   REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_biso    ! (  0:MOLE_MAX_TYPE)
+   REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_clin    ! (  0:MOLE_MAX_TYPE)
+   REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_cqua    ! (  0:MOLE_MAX_TYPE)
+   REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_fuzzy   ! (  0:MOLE_MAX_MOLE)
 !
    LOGICAL                                          ::  latom = .false.  !have atoms been allocated?
 !
@@ -382,13 +382,13 @@ CONTAINS
    IMPLICIT none
 !
    CLASS (cl_cryst)                 :: this
-   INTEGER,              INTENT(IN) :: inum
-   INTEGER,              INTENT(IN) :: itype
-   REAL(kind=PREC_DP)   , DIMENSION(3),INTENT(IN) :: posit
-   INTEGER,              INTENT(IN) :: iprop
-   INTEGER, DIMENSION(0:3),INTENT(IN) :: isurface
-   REAL(kind=PREC_DP)   , DIMENSION(0:3),INTENT(IN) :: magn_mom
-   INTEGER, DIMENSION(1:2),INTENT(IN) :: iin_mole
+   INTEGER,                           INTENT(IN) :: inum
+   INTEGER,                           INTENT(IN) :: itype
+   REAL(kind=PREC_DP), DIMENSION(3),  INTENT(IN) :: posit
+   INTEGER,                           INTENT(IN) :: iprop
+   INTEGER           , DIMENSION(0:3),INTENT(IN) :: isurface
+   REAL(kind=PREC_DP), DIMENSION(0:3),INTENT(IN) :: magn_mom
+   INTEGER           , DIMENSION(1:2),INTENT(IN) :: iin_mole
 !
    CALL this%atoms(inum)%set_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
 !
@@ -401,8 +401,8 @@ CONTAINS
    IMPLICIT none
 !
    CLASS (cl_cryst)                 :: this
-   INTEGER,              INTENT(IN) :: MAXSCAT
-   INTEGER,              INTENT(IN) :: inum
+   INTEGER,                                INTENT(IN) :: MAXSCAT
+   INTEGER,                                INTENT(IN) :: inum
    CHARACTER (LEN=4),DIMENSION(0:MAXSCAT), INTENT(IN) :: cr_at_lis
 !
    INTEGER :: i
@@ -420,9 +420,9 @@ CONTAINS
    IMPLICIT none
 !
    CLASS (cl_cryst)                 :: this
-   INTEGER,              INTENT(IN) :: MAXSCAT
-   INTEGER,              INTENT(IN) :: inum
-   REAL(kind=PREC_DP)   ,DIMENSION(0:MAXSCAT), INTENT(IN) :: cr_dw
+   INTEGER,                                  INTENT(IN) :: MAXSCAT
+   INTEGER,                                  INTENT(IN) :: inum
+   REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT), INTENT(IN) :: cr_dw
 !
    INTEGER :: i
 !
@@ -439,9 +439,9 @@ CONTAINS
    IMPLICIT none
 !
    CLASS (cl_cryst)                 :: this
-   INTEGER,              INTENT(IN) :: MAXSCAT
-   INTEGER,              INTENT(IN) :: inum
-   REAL(kind=PREC_DP)   ,DIMENSION(0:MAXSCAT), INTENT(IN) :: cr_occ
+   INTEGER,                                  INTENT(IN) :: MAXSCAT
+   INTEGER,                                  INTENT(IN) :: inum
+   REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT), INTENT(IN) :: cr_occ
 !
    INTEGER :: i
 !
@@ -459,7 +459,7 @@ CONTAINS
 !
 !
    CLASS (cl_cryst)                  :: this
-   REAL, DIMENSION(4,4), INTENT(OUT) :: cr_tran_f
+   REAL(kind=PREC_DP), DIMENSION(4,4), INTENT(OUT) :: cr_tran_f
 !
    cr_tran_f(:,:) = this%cr_tran_f(:,:)
 !
@@ -500,13 +500,13 @@ use precision_mod
    IMPLICIT none
 !
    CLASS (cl_cryst)                  :: this
-   INTEGER,              INTENT(IN ) :: inum
-   INTEGER,              INTENT(OUT) :: itype
-   REAL(kind=PREC_DP)   , DIMENSION(3),INTENT(OUT) :: posit
-   INTEGER,              INTENT(OUT) :: iprop
-   INTEGER, DIMENSION(0:3),INTENT(OUT) :: isurface
-   REAL(kind=PREC_DP)   , DIMENSION(0:3),INTENT(OUT) :: magn_mom
-   INTEGER, DIMENSION(1:2),INTENT(OUT) :: iin_mole
+   INTEGER,                            INTENT(IN ) :: inum
+   INTEGER,                            INTENT(OUT) :: itype
+   REAL(kind=PREC_DP), DIMENSION(3)  , INTENT(OUT) :: posit
+   INTEGER,                            INTENT(OUT) :: iprop
+   INTEGER           , DIMENSION(0:3), INTENT(OUT) :: isurface
+   REAL(kind=PREC_DP), DIMENSION(0:3), INTENT(OUT) :: magn_mom
+   INTEGER           , DIMENSION(1:2), INTENT(OUT) :: iin_mole
 !
    CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
 !
@@ -892,8 +892,8 @@ use precision_mod
    REAL(kind=PREC_DP)  , DIMENSION(3)           , INTENT(IN) :: rd_cr_wrez
    REAL(kind=PREC_DP)                           , INTENT(IN) :: rd_cr_v
    REAL(kind=PREC_DP)                           , INTENT(IN) :: rd_cr_vr
-   REAL                , DIMENSION(3,2)         , INTENT(IN) :: rd_cr_dim
-   REAL                , DIMENSION(3,2)         , INTENT(IN) :: rd_cr_dim0
+   REAL(kind=PREC_DP)  , DIMENSION(3,2)         , INTENT(IN) :: rd_cr_dim
+   REAL(kind=PREC_DP)  , DIMENSION(3,2)         , INTENT(IN) :: rd_cr_dim0
    INTEGER             , DIMENSION(3)           , INTENT(IN) :: rd_cr_icc
    INTEGER                                      , INTENT(IN) :: rd_cr_nscat 
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_dw     ! (0:MAXSCAT) 
@@ -906,31 +906,23 @@ use precision_mod
    INTEGER                                      , INTENT(IN) :: rd_sav_ncatoms 
    INTEGER                                      , INTENT(IN) :: rd_spcgr_ianz 
    INTEGER                                      , INTENT(IN) :: rd_spcgr_para 
-!  INTEGER                                      , INTENT(IN) :: rd_GEN_ADD_MAX
-!  INTEGER                                      , INTENT(IN) :: rd_GEN_ADD_n
-!  INTEGER           , DIMENSION(rd_GEN_ADD_MAX), INTENT(IN) :: rd_gen_add_power
-!  REAL        , DIMENSION(4,4,0:rd_GEN_ADD_MAX), INTENT(IN) :: rd_gen_add
-!  INTEGER                                      , INTENT(IN) :: rd_SYM_ADD_MAX
-!  INTEGER                                      , INTENT(IN) :: rd_SYM_ADD_n
-!  INTEGER           , DIMENSION(rd_SYM_ADD_MAX), INTENT(IN) :: rd_sym_add_power
-!  REAL        , DIMENSION(4,4,0:rd_SYM_ADD_MAX), INTENT(IN) :: rd_sym_add
-   REAL                , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_gten
-   REAL                , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_rten
-   REAL                , DIMENSION(3,3,3)       , INTENT(IN) :: rd_cr_eps
-   REAL                , DIMENSION(3,3,3)       , INTENT(IN) :: rd_cr_reps
-   REAL                , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_gmat
-   REAL                , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_fmat
-   REAL                , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_g
-   REAL                , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_gi
-   REAL                , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_f
-   REAL                , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_fi
+   REAL(kind=PREC_DP)  , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_gten
+   REAL(kind=PREC_DP)  , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_rten
+   REAL(kind=PREC_DP)  , DIMENSION(3,3,3)       , INTENT(IN) :: rd_cr_eps
+   REAL(kind=PREC_DP)  , DIMENSION(3,3,3)       , INTENT(IN) :: rd_cr_reps
+   REAL(kind=PREC_DP)  , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_gmat
+   REAL(kind=PREC_DP)  , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_fmat
+   REAL(kind=PREC_DP)  , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_g
+   REAL(kind=PREC_DP)  , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_gi
+   REAL(kind=PREC_DP)  , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_f
+   REAL(kind=PREC_DP)  , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_fi
    LOGICAL                                      , INTENT(IN) :: rd_cr_acentric
    LOGICAL                                      , INTENT(IN) :: rd_cr_newtype
    LOGICAL                                      , INTENT(IN) :: rd_cr_cartesian
    INTEGER             , DIMENSION(0:1)         , INTENT(IN) :: rd_cr_sel_prop
-   REAL              ,DIMENSION(11,0:rd_MAXSCAT), INTENT(IN) :: rd_cr_scat   ! (11,0:MAXSCAT)
-   REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_delfr  ! (  0:MAXSCAT)
-   REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_delfi  ! (  0:MAXSCAT)
+   REAL(kind=PREC_DP),DIMENSION(11,0:rd_MAXSCAT), INTENT(IN) :: rd_cr_scat   ! (11,0:MAXSCAT)
+   REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_delfr  ! (  0:MAXSCAT)
+   REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_delfi  ! (  0:MAXSCAT)
    LOGICAL             , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_scat_int  ! (  0:MAXSCAT)
    LOGICAL             , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_scat_equ  ! (  0:MAXSCAT)
    LOGICAL             , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_delf_int  ! (  0:MAXSCAT)
@@ -1205,19 +1197,19 @@ use precision_mod
    CLASS (cl_cryst)                 :: this        ! Work on "this" crystal
 !
 !   INTEGER, INTENT(IN)              ::   n_nscat
-   LOGICAL, INTENT(IN)              ::  sav_scat
-   LOGICAL, INTENT(IN)              ::  sav_adp
-   LOGICAL, INTENT(IN)              ::  sav_occ
-   LOGICAL, INTENT(IN)              ::  sav_gene
-   LOGICAL, INTENT(IN)              ::  sav_symm
-   LOGICAL, INTENT(IN)              ::  sav_w_ncell
-   LOGICAL, INTENT(IN)              ::  sav_obje
-   LOGICAL, INTENT(IN)              ::  sav_doma
-   LOGICAL, INTENT(IN)              ::  sav_mole
-   LOGICAL, INTENT(IN)              ::  sav_prop
-   INTEGER, DIMENSION(0:1),INTENT(IN) ::  sav_sel_prop
-   INTEGER, INTENT(IN)              ::  n_latom
-   LOGICAL, DIMENSION(0:n_latom),INTENT(IN) ::  sav_latom
+   LOGICAL                      , INTENT(IN) ::  sav_scat
+   LOGICAL                      , INTENT(IN) ::  sav_adp
+   LOGICAL                      , INTENT(IN) ::  sav_occ
+   LOGICAL                      , INTENT(IN) ::  sav_gene
+   LOGICAL                      , INTENT(IN) ::  sav_symm
+   LOGICAL                      , INTENT(IN) ::  sav_w_ncell
+   LOGICAL                      , INTENT(IN) ::  sav_obje
+   LOGICAL                      , INTENT(IN) ::  sav_doma
+   LOGICAL                      , INTENT(IN) ::  sav_mole
+   LOGICAL                      , INTENT(IN) ::  sav_prop
+   INTEGER, DIMENSION(0:1)      , INTENT(IN) ::  sav_sel_prop
+   INTEGER                      , INTENT(IN) ::  n_latom
+   LOGICAL, DIMENSION(0:n_latom), INTENT(IN) ::  sav_latom
 !
    INTEGER                          :: i
 !
@@ -1476,14 +1468,14 @@ use precision_mod
 !
    IMPLICIT none
 !
-   INTEGER,                          INTENT(IN)     :: RD_NMAX
-   INTEGER,                          INTENT(INOUT)  :: rd_cr_natoms
-   INTEGER, DIMENSION(1:RD_NMAX),    INTENT(INOUT)  :: rd_cr_iscat
-   INTEGER, DIMENSION(1:RD_NMAX),    INTENT(INOUT)  :: rd_cr_prop
-   REAL(kind=PREC_DP)   , DIMENSION(1:3,1:RD_NMAX),INTENT(INOUT)  :: rd_cr_pos
-   INTEGER, DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT)  :: rd_cr_surf
-   REAL(kind=PREC_DP)   , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT)  :: rd_cr_magn
-   INTEGER, DIMENSION(    1:RD_NMAX),INTENT(INOUT)  :: rd_cr_mole
+   INTEGER,                                      INTENT(IN)     :: RD_NMAX
+   INTEGER,                                      INTENT(INOUT)  :: rd_cr_natoms
+   INTEGER           , DIMENSION(1:RD_NMAX),     INTENT(INOUT)  :: rd_cr_iscat
+   INTEGER           , DIMENSION(1:RD_NMAX),     INTENT(INOUT)  :: rd_cr_prop
+   REAL(kind=PREC_DP), DIMENSION(1:3,1:RD_NMAX), INTENT(INOUT)  :: rd_cr_pos
+   INTEGER           , DIMENSION(0:3,1:RD_NMAX), INTENT(INOUT)  :: rd_cr_surf
+   REAL(kind=PREC_DP), DIMENSION(0:3,1:RD_NMAX), INTENT(INOUT)  :: rd_cr_magn
+   INTEGER           , DIMENSION(    1:RD_NMAX), INTENT(INOUT)  :: rd_cr_mole
 !                                                                       
 
    CLASS (cl_cryst)                 :: this        ! Work on "this" crystal

@@ -37,12 +37,12 @@ INTEGER, INTENT(IN)      ::  MMC_MAX_CENT    ! Maximum array size
 INTEGER, INTENT(IN)      ::  jatom   ! Central atom no, get neighbours around jatom
 INTEGER, INTENT(IN)      ::  ic      ! Use correlation definition no. ic
 INTEGER, DIMENSION(0:maxw, MMC_MAX_CENT)   , INTENT(OUT) :: iatom ! indices of neighbs
-REAL   , DIMENSION(3, 0:maxw, MMC_MAX_CENT), INTENT(OUT) :: patom ! Coordinates
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:maxw, MMC_MAX_CENT), INTENT(OUT) :: patom ! Coordinates
 LOGICAL, DIMENSION(0:maxw, MMC_MAX_CENT)   , INTENT(OUT) :: tatom ! indices of neighbs
 INTEGER, DIMENSION(MMC_MAX_CENT)           , INTENT(OUT) :: natom ! no of neigh
 INTEGER                                    , INTENT(OUT) :: ncent ! no of central atoms
 !
-      REAL dist (MMC_MAX_CENT) 
+      REAL(kind=PREC_DP) :: dist (MMC_MAX_CENT) 
       REAL(KIND=PREC_DP) :: werte (MAX_ATOM_ENV) 
 !                                                                       
 REAL(kind=PREC_DP), dimension(3) :: u (3), v (3), w (3), uu (3) 
@@ -58,10 +58,6 @@ REAL(KIND=PREC_DP) :: dummy(1)
       LOGICAL laccept 
       LOGICAL lok 
       LOGICAL ldbg 
-!                                                                       
-!     LOGICAL atom_allowed 
-!     REAL do_bang 
-!     REAL do_blen 
 !                                                                       
 DO i = 1, MMC_MAX_CENT 
    natom(i) = 0 

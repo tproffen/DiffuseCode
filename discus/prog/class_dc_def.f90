@@ -14,7 +14,7 @@ INTEGER, PARAMETER        :: DC_MAXMODE  = 6  ! We have six decoration modes
 TYPE dc_con
    INTEGER, DIMENSION(:), ALLOCATABLE :: dc_con_surf   ! Surface atom type that is connected to molecule
    INTEGER                :: dc_con_mole   ! Molecule atom no that is connected to surface
-   REAL                   :: dc_con_dist   ! Distance to surface atoms
+   REAL(kind=PREC_DP)     :: dc_con_dist   ! Distance to surface atoms
    TYPE (dc_con), POINTER :: next          ! next connection entry
 END TYPE dc_con
 !
@@ -31,7 +31,7 @@ TYPE dc_def
    INTEGER                  :: dc_def_ltype    = 6       ! Connection type name length (NORMAL, BRIDGE, ...)
    INTEGER,DIMENSION(1:2)   :: dc_def_axis     ! Molecule axis defined by two atoms
    INTEGER,DIMENSION(1:20)  :: dc_def_surfnew  ! Molecule surface atoms
-   REAL                     :: dc_def_dens     = 0.100   ! Molecule density per square Angstroem
+   REAL(kind=PREC_DP)       :: dc_def_dens     = 0.100   ! Molecule density per square Angstroem
    LOGICAL                  :: dc_def_restrict = .FALSE. ! Restriction yes / no
    LOGICAL                  :: dc_def_l_form   = .FALSE. ! Single hkl or form
    INTEGER                  :: dc_def_n_hkl    = 0 ! Number of hkls that make special form
@@ -201,7 +201,7 @@ CONTAINS
    SUBROUTINE dc_set_dens(this, dc_temp_dens)
 !
    TYPE (dc_def), POINTER :: this
-   REAL         , INTENT(IN) :: dc_temp_dens
+   REAL(kind=PREC_DP)         , INTENT(IN) :: dc_temp_dens
 !
    IF(ASSOCIATED(this)) THEN
       this%dc_def_dens  = dc_temp_dens
@@ -411,9 +411,9 @@ CONTAINS
    TYPE (dc_con), POINTER :: this
    INTEGER, DIMENSION(0:4), INTENT(IN) :: surf
    INTEGER, INTENT(IN) :: mole
-   REAL   , INTENT(IN) :: dist
+   REAL(kind=PREC_DP)   , INTENT(IN) :: dist
 !
-   REAL, PARAMETER     :: EPS = 1.E-6
+   REAL(kind=PREC_DP), PARAMETER     :: EPS = 1.E-6
 !
    INTEGER             :: i
 !
@@ -476,7 +476,7 @@ CONTAINS
    TYPE (dc_con), POINTER :: this
    INTEGER, DIMENSION(0:4), INTENT(OUT) :: surf
    INTEGER, INTENT(OUT)   :: mole
-   REAL   , INTENT(OUT)   :: dist
+   REAL(kind=PREC_DP)   , INTENT(OUT)   :: dist
 !
    INTEGER                :: i
 !
@@ -511,7 +511,7 @@ CONTAINS
    IMPLICIT NONE
 !
    TYPE (dc_def), POINTER :: this
-   REAL   , INTENT(OUT)   :: dc_temp_dens
+   REAL(kind=PREC_DP)   , INTENT(OUT)   :: dc_temp_dens
 !
    dc_temp_dens = this%dc_def_dens 
 !

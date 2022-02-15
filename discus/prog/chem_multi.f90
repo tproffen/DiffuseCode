@@ -48,14 +48,11 @@ INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
       INTEGER ja, je 
       INTEGER icent, ncent 
       INTEGER bl_anz (0:maxscat, 0:maxscat) 
-      REAL bl_sum (0:maxscat, 0:maxscat) 
-      REAL bl_s2 (0:maxscat, 0:maxscat) 
-      REAL patom (3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT) 
+      REAL(kind=PREC_DP) :: bl_sum (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) :: bl_s2 (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) :: patom (3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT) 
       REAL(kind=PREC_DP) ::  u (3), v (3), d (3), di 
       LOGICAL lfile 
-!                                                                       
-!     REAL do_blen 
-!     LOGICAL atom_allowed 
 !                                                                       
 !     allocate displacement arrays
 !
@@ -248,14 +245,11 @@ LOGICAL :: tatom (0:MAX_ATOM_ENV_L, MMC_MAX_CENT)
       INTEGER icent, ncent 
       INTEGER lname_1, lname_2, lname_3 
       INTEGER ba_anz (0:maxscat, 0:maxscat) 
-      REAL ba_sum (0:maxscat, 0:maxscat) 
-      REAL ba_s2 (0:maxscat, 0:maxscat) 
-      REAL patom (3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT) 
+      REAL(kind=PREC_DP) :: ba_sum (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) :: ba_s2 (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) :: patom (3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT) 
       REAL(kind=PREC_DP) :: u (3), v (3), w (3), wi, wis 
       LOGICAL lfile 
-!                                                                       
-!     REAL do_bang 
-!     LOGICAL atom_allowed 
 !                                                                       
 !     allocate displacement arrays
 !

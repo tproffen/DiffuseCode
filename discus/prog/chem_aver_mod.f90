@@ -14,6 +14,7 @@ USE atom_name
 USE chem_mod 
 USE errlist_mod 
 USE param_mod 
+use precision_mod
 USE prompt_mod 
 USE lib_f90_allocate_mod
 IMPLICIT none 
@@ -21,10 +22,8 @@ IMPLICIT none
 LOGICAL, INTENT(IN) :: lout    ! Print output if true
 LOGICAL, INTENT(IN) :: lsite   ! Treat different atoms on each site as one 
 !                                                                       
-REAL, DIMENSION(3) ::  p , ez
+REAL(kind=PREC_DP), DIMENSION(3) ::  p , ez
 INTEGER, DIMENSION(3) :: iez
-!REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_posit
-!REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_sigma
 !
 INTEGER            :: i, j, k, ii, jj, kk, ia, is, nvalues
 INTEGER            :: n_res
@@ -36,11 +35,11 @@ INTEGER            :: n_atom_cell  ! Dummy for allocation
 INTEGER            :: n_max_atom   ! Dummy for allocation
 !
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_chem_ave_iscat
-REAL   , DIMENSION(:,:), ALLOCATABLE :: temp_chem_ave_posit
-REAL   , DIMENSION(:,:), ALLOCATABLE :: temp_chem_ave_sigma
-REAL   , DIMENSION(  :), ALLOCATABLE :: temp_chem_ave_bese
-REAL   , DIMENSION(3  )              :: temp_chem_ave_pos
-REAL   , DIMENSION(3  )              :: temp_chem_ave_sig
+REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE :: temp_chem_ave_posit
+REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE :: temp_chem_ave_sigma
+REAL(kind=PREC_DP)   , DIMENSION(  :), ALLOCATABLE :: temp_chem_ave_bese
+REAL(kind=PREC_DP)   , DIMENSION(3  )              :: temp_chem_ave_pos
+REAL(kind=PREC_DP)   , DIMENSION(3  )              :: temp_chem_ave_sig
 !
 if(cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms>cr_natoms) then
    ier_num = -179
@@ -67,8 +66,8 @@ IF(.not. lsite) THEN
    IF(ALLOCATED(chem_ave_sigma)) DEALLOCATE(chem_ave_sigma)
    ALLOCATE(chem_ave_posit(3,n_atom_cell, MAX(12,cr_nscat)))
    ALLOCATE(chem_ave_sigma(3,n_atom_cell, MAX(12,cr_nscat)))
-   chem_ave_posit = 0.0
-   chem_ave_sigma = 0.0
+   chem_ave_posit = 0.0d0
+   chem_ave_sigma = 0.0D0
 ENDIF
 !                                                                       
 !------ reset counters                                                  
@@ -82,9 +81,9 @@ IF (cr_ncatoms.gt.CHEM_MAXAT_CELL) then
    RETURN 
 ENDIF 
 chem_ave_n    = 0    ! (i)   , i=1,cr_ncatoms
-chem_ave_bese = 0.0  ! (i, k), i=1,cr_ncatoms, k = 1,chem_max_ave_atom
-chem_ave_pos  = 0.0  ! (j, i), i=1,cr_ncatoms, j = 1,3
-chem_ave_sig  = 0.0  ! (j, i), i=1,cr_ncatoms, j = 1,3
+chem_ave_bese = 0.0D0  ! (i, k), i=1,cr_ncatoms, k = 1,chem_max_ave_atom
+chem_ave_pos  = 0.0D0  ! (j, i), i=1,cr_ncatoms, j = 1,3
+chem_ave_sig  = 0.0D0  ! (j, i), i=1,cr_ncatoms, j = 1,3
 !     DO i = 1, cr_ncatoms 
 !     chem_ave_n (i) = 0 
 !     DO k = 1, chem_max_atom 
@@ -385,11 +384,12 @@ USE atom_env_mod
       USE param_mod 
       USE prompt_mod 
       USE wink_mod 
+use precision_mod
       IMPLICIT none 
 !
 LOGICAL, INTENT(IN) :: lout 
 !                                                                       
-REAL             :: proz 
+REAL(kind=PREC_DP)             :: proz 
 INTEGER          :: i 
 INTEGER          :: n_res 
 !                                                                       

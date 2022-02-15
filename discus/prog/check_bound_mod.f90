@@ -34,21 +34,21 @@ DO i = 1, 3
 !                                                                       
       IF (cell (i) .lt.1) then 
          IF (cr_icc (i) .eq.1) then 
-            offset (i) = REAL(cell (i) - 1) 
+            offset (i) = REAL(cell (i) - 1, kind=PREC_DP) 
             cell (i) = 1 
          ELSE 
             j = ( - cell (i) / cr_icc (i) + 1) * cr_icc (i) 
             cell (i) = cell (i) + j 
-            offset (i) = - REAL(j) 
+            offset (i) = - REAL(j, kind=PREC_DP) 
          ENDIF 
       ELSEIF (cell (i) .gt.cr_icc (i) ) then 
          IF (cr_icc (i) .eq.1) then 
-            offset (i) = REAL(cell (i) - 1) 
+            offset (i) = REAL(cell (i) - 1, kind=PREC_DP) 
             cell (i) = 1 
          ELSE 
             j = ( (cell (i) - 1) / cr_icc (i) ) * cr_icc (i) 
             cell (i) = cell (i) - j 
-            offset (i) = REAL(j) 
+            offset (i) = REAL(j, kind=PREC_DP) 
          ENDIF 
       ENDIF 
 !                                                                       

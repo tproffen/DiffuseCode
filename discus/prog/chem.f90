@@ -1189,7 +1189,6 @@ REAL(KIND=PREC_DP) :: u (3), v (3)
 REAL(KIND=PREC_DP) :: uvw (4, max_uvw) 
 REAL(KIND=PREC_DP) :: uvw_mat (4, 4, max_uvw) 
 !                                                                       
-!REAL   , EXTERNAL   :: do_blen 
 !                                                                       
 main: IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
          chem_cran_uvw           = 0      ! (i,j,k)
@@ -1679,7 +1678,6 @@ endif
    ENDIF
 !
 !                                                                       
-!     REAL do_blen 
 !                                                                       
       CALL do_cap (cpara (1) ) 
 !                                                                       
@@ -2411,7 +2409,7 @@ USE precision_mod
       CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: cpara (maxw) 
       CHARACTER(9) at_name_i 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL(KIND=PREC_SP) :: pos (3, 0:MAX_ATOM_ENV) 
+      REAL(KIND=PREC_DP) :: pos (3, 0:MAX_ATOM_ENV) 
       INTEGER lpara (maxw) 
       INTEGER ind (0:MAX_ATOM_ENV), iatom, imol 
       INTEGER i, j, n, ic, ianz, laenge 
@@ -2656,7 +2654,7 @@ USE support_mod
       INTEGER itot, ico 
       INTEGER csize (3), lbeg (3) 
       INTEGER i, imol, ibin, il, ia, iup 
-      REAL c, sc, scc, ave_c, sig_c 
+      REAL(kind=PREC_DP) :: c, sc, scc, ave_c, sig_c 
 !                                                                       
 !     LOGICAL atom_allowed, chem_inlot 
 !     LOGICAL chem_inlot 
@@ -2905,12 +2903,13 @@ call alloc_mo_ach(chem_ncor)
       USE crystal_mod 
       USE celltoindex_mod
       USE diffuse_mod 
+use precision_mod
 !     USE modify_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      REAL xtest (3), x0 
+      REAL(kind=PREC_DP) :: xtest (3), x0 
       INTEGER cr_end 
       INTEGER lbeg (3), iz (3), izmin, izmax 
       INTEGER ia, is, i 
@@ -3020,8 +3019,8 @@ USE support_mod
       INTEGER l, i, ix, iy, ianz, lp 
       REAL(KIND=PREC_DP):: werte (maxw)
       REAL(KIND=PREC_DP):: nv (3) 
-      REAL(KIND=PREC_SP):: cval (maxval) 
-      REAL(KIND=PREC_SP):: back_neig (3, 48, CHEM_MAX_COR) 
+      REAL(KIND=PREC_DP):: cval (maxval) 
+      REAL(KIND=PREC_DP):: back_neig (3, 48, CHEM_MAX_COR) 
       REAL(KIND=PREC_DP):: back_rmin (CHEM_MAX_COR) 
       REAL(KIND=PREC_DP):: back_rmax (CHEM_MAX_COR) 
       LOGICAL locc 
@@ -3204,8 +3203,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       INTEGER a_cvec (5, chem_max_vec) 
       INTEGER b_cvec (5, chem_max_vec) 
-      REAL a_neig (3, 48, CHEM_MAX_COR) 
-      REAL b_neig (3, 48, CHEM_MAX_COR) 
+      REAL(kind=PREC_DP) ::  a_neig (3, 48, CHEM_MAX_COR) 
+      REAL(kind=PREC_DP) :: b_neig (3, 48, CHEM_MAX_COR) 
       REAL(kind=PREC_DP) :: a_rmin (CHEM_MAX_COR), a_rmax (CHEM_MAX_COR) 
       REAL(kind=PREC_DP) :: b_rmin (CHEM_MAX_COR), b_rmax (CHEM_MAX_COR) 
 !                                                                       
@@ -3245,10 +3244,9 @@ use precision_mod
 !                                                                       
       INTEGER i, j, ix, iy, iv 
       INTEGER cvec (5, chem_max_vec) 
-      REAL neig (3, 48, CHEM_MAX_COR) 
+      REAL(kind=PREC_DP) ::  neig (3, 48, CHEM_MAX_COR) 
       REAL(KIND=PREC_DP) :: nv (3), u (3), v (3) 
 !                                                                       
-!     REAL do_blen 
 !                                                                       
 !------ Mode VECTOR                                                     
 !                                                                       
@@ -3356,15 +3354,12 @@ USE support_mod
       INTEGER atom (0:MAX_ATOM_ENV), natom 
       INTEGER iianz, jjanz, i, j, k, is, js, ic 
       INTEGER bl_anz (0:maxscat, 0:maxscat) 
-      REAL bl_sum (0:maxscat, 0:maxscat) 
-      REAL bl_s2 (0:maxscat, 0:maxscat) 
-      REAL patom (3, 0:MAX_ATOM_ENV) 
+      REAL(kind=PREC_DP) ::  bl_sum (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) ::  bl_s2 (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) ::  patom (3, 0:MAX_ATOM_ENV) 
       REAL(kind=PREC_DP) ::  u (3), v (3), d (3), di 
       REAL(KIND=PREC_DP) :: wwerte (maxw) 
       LOGICAL lfile 
-!                                                                       
-!     REAL do_blen 
-!     LOGICAL atom_allowed 
 !                                                                       
 !     allocate displacement arrays
 !
@@ -3506,12 +3501,10 @@ USE support_mod
       INTEGER imol, jmol, i, j, k, it1, it2, is, js, ic 
       INTEGER mol (0:maxmol), nmol 
       INTEGER bl_anz (mole_max_type, mole_max_type) 
-      REAL bl_sum (mole_max_type, mole_max_type) 
-      REAL bl_s2 (mole_max_type, mole_max_type) 
+      REAL(kind=PREC_DP) :: bl_sum (mole_max_type, mole_max_type) 
+      REAL(kind=PREC_DP) :: bl_s2 (mole_max_type, mole_max_type) 
       REAL(KIND=PREC_DP) :: u (3), v (3), d (3), di 
       LOGICAL lfile 
-!                                                                       
-!     REAL do_blen 
 !                                                                       
 !     allocate displacement arrays
 !
@@ -3671,14 +3664,11 @@ USE support_mod
       INTEGER lname_1, lname_2, lname_3 
       INTEGER ba_anz (0:maxscat, 0:maxscat) 
       INTEGER :: n_res
-      REAL ba_sum (0:maxscat, 0:maxscat) 
-      REAL ba_s2 (0:maxscat, 0:maxscat) 
-      REAL patom (3, 0:MAX_ATOM_ENV) 
+      REAL(kind=PREC_DP) :: ba_sum (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) :: ba_s2 (0:maxscat, 0:maxscat) 
+      REAL(kind=PREC_DP) :: patom (3, 0:MAX_ATOM_ENV) 
       REAL(kind=PREC_DP) :: u (3), v (3), w (3), wi 
       LOGICAL lfile 
-!                                                                       
-!     REAL do_bang 
-!     LOGICAL atom_allowed 
 !                                                                       
 !     allocate displacement arrays
 !
@@ -3869,17 +3859,14 @@ USE precision_mod
       INTEGER icc (3), jcc (3) 
       INTEGER i, j, ii, is, js, ic, iianz, jjanz, nn 
       INTEGER :: n_res
-      REAL patom (3, 0:MAX_ATOM_ENV) 
+      REAL(kind=PREC_DP) :: patom (3, 0:MAX_ATOM_ENV) 
       REAL(KIND=PREC_DP):: werte (MAXSCAT), wwerte (MAXSCAT) 
       REAL(KIND=PREC_DP):: idir (3), jdir (3), di (3), dj (3) 
-      REAL rdi, rdj, dpi, dpj 
-      REAL xij, xi2, xj2 
+      REAL(kind=PREC_DP) :: rdi, rdj, dpi, dpj 
+      REAL(kind=PREC_DP) :: xij, xi2, xj2 
       LOGICAL lvalid 
       LOGICAL lauto     ! catch autocorrelation of atom to itself
 !                                                                       
-!     REAL skalpro 
-!     LOGICAL atom_allowed, chem_inlot 
-!     LOGICAL chem_inlot 
       lauto = .true.
 !                                                                       
 !------ writing output line                                             
@@ -4109,12 +4096,9 @@ USE precision_mod
       INTEGER :: n_res
       REAL(KIND=PREC_DP) :: werte (maxww) 
       REAL(KIND=PREC_DP) ::  idir (3), jdir (3), di (3), dj (3) 
-      REAL rdi, rdj, dpi, dpj 
-      REAL xij, xi2, xj2 
+      REAL(kind=PREC_DP) :: rdi, rdj, dpi, dpj 
+      REAL(kind=PREC_DP) :: xij, xi2, xj2 
       LOGICAL lvalid 
-!                                                                       
-!     REAL skalpro 
-!     LOGICAL chem_inlot 
 !                                                                       
       CALL ber_params (ianz, cpara, lpara, werte, maxw) 
       IF (ier_num.ne.0) return 
@@ -4315,11 +4299,11 @@ USE precision_mod
       INTEGER i, j, is, js, ic, iianz, jjanz 
       INTEGER nneig 
       INTEGER :: n_res
-      REAL patom (3, 0:MAX_ATOM_ENV) 
+      REAL(kind=PREC_DP) :: patom (3, 0:MAX_ATOM_ENV) 
       REAL(KIND=PREC_DP) :: werte (MAXSCAT), wwerte (MAXSCAT) 
-      REAL pneig (2, 2) 
-      REAL pro00, pro01, pro11 
-      REAL thet 
+      REAL(kind=PREC_DP) :: pneig (2, 2) 
+      REAL(kind=PREC_DP) :: pro00, pro01, pro11 
+      REAL(kind=PREC_DP) :: thet 
       LOGICAL lvalid 
 !                                                                       
 !     LOGICAL atom_allowed, chem_inlot 
@@ -4498,9 +4482,9 @@ USE precision_mod
       INTEGER nneig 
       INTEGER :: n_res
       REAL(KIND=PREC_DP) :: werte (maxww) 
-      REAL pneig (2, 2) 
-      REAL pro00, pro01, pro11 
-      REAL thet 
+      REAL(kind=PREC_DP) :: pneig (2, 2) 
+      REAL(kind=PREC_DP) :: pro00, pro01, pro11 
+      REAL(kind=PREC_DP) :: thet 
       LOGICAL lvalid 
 !                                                                       
 !     LOGICAL chem_inlot 
@@ -4657,7 +4641,7 @@ USE precision_mod
       INTEGER maxw 
 !                                                                       
       INTEGER iatom (0:maxw), jatom, natom, ic 
-      REAL patom (3, 0:maxw) 
+      REAL(kind=PREC_DP) :: patom (3, 0:maxw) 
 !                                                                       
 REAL(KIND=PREC_DP):: u (3), v (3), w (3), uu (3) 
 REAL(kind=PREC_DP), dimension(3) :: offset !(3)
@@ -4665,8 +4649,6 @@ REAL(KIND=PREC_DP) :: dummy(1)
       INTEGER jcell (3), icell (3), isite, jsite 
       INTEGER i, j, k, ii, iv, katom 
       LOGICAL lok 
-!                                                                       
-!     REAL do_bang 
 !                                                                       
       natom = 0 
       dummy = - 1 
@@ -4894,6 +4876,8 @@ USE atom_env_mod
       USE molecule_mod 
       USE rmc_mod 
       USE errlist_mod 
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
        
@@ -4901,7 +4885,7 @@ USE atom_env_mod
       INTEGER maxww!, maxw 
 !     PARAMETER (maxw = chem_max_neig) 
 !                                                                       
-      REAL patom (3, 0:MAX_ATOM_ENV) 
+      REAL(kind=PREC_DP) :: patom (3, 0:MAX_ATOM_ENV) 
       INTEGER imol (0:maxww), jmol, nmol, ic 
       INTEGER iatom (0:MAX_ATOM_ENV), jatom, natom 
       INTEGER i, im 
@@ -4950,6 +4934,7 @@ USE crystal_mod
 USE atom_name 
 USE atom_env_mod 
 USE chem_mod 
+use discus_output_save_mod
 USE do_find_mod
 USE modify_mod
 USE modify_func_mod
@@ -4981,8 +4966,8 @@ logical, dimension(0:maxscat, 0:maxscat) :: lprint   ! Print this pair
 CHARACTER(9) at_name_i 
 CHARACTER(9) at_name_j 
 !
-REAL, DIMENSION(:), ALLOCATABLE :: xwrt
-REAL, DIMENSION(:), ALLOCATABLE :: ywrt
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: xwrt
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: ywrt
 INTEGER                         :: all_status
 !     LOGICAL atom_allowed 
 !                                                                       
@@ -5145,6 +5130,7 @@ ENDDO loop_fst
       USE crystal_mod 
       USE atom_env_mod 
       USE chem_mod 
+use discus_output_save_mod
       USE metric_mod
       USE modify_func_mod
       USE errlist_mod 
@@ -5160,12 +5146,10 @@ USE precision_mod
       INTEGER i, j, k, ibin
       REAL(kind=PREC_DP) :: u (3), v (3), dist 
 !
-      REAL, DIMENSION(:), ALLOCATABLE :: xwrt
-      REAL, DIMENSION(:), ALLOCATABLE :: ywrt
+      REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: xwrt
+      REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: ywrt
       INTEGER                         :: all_status
 !                                                                       
-!     LOGICAL atom_allowed 
-!     REAL do_blen 
 !                                                                       
 !------ write output                                                    
 !                                                                       
@@ -5242,6 +5226,7 @@ USE precision_mod
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+use discus_output_save_mod
       USE atom_name 
       USE atom_env_mod 
       USE chem_mod 
@@ -5264,8 +5249,8 @@ USE precision_mod
       INTEGER ba_env (0:MAX_ATOM_ENV) 
       LOGICAL lspace 
 !
-      REAL(kind=PREC_SP) , DIMENSION(:), ALLOCATABLE :: xwrt
-      REAL(kind=PREC_SP) , DIMENSION(:), ALLOCATABLE :: ywrt
+      REAL(kind=PREC_DP) , DIMENSION(:), ALLOCATABLE :: xwrt
+      REAL(kind=PREC_DP) , DIMENSION(:), ALLOCATABLE :: ywrt
       INTEGER                         :: all_status
 !                                                                       
 !     von der relativen Reihenfolge der beiden Statements haengt es ab, 
@@ -5282,8 +5267,6 @@ USE precision_mod
 !                                                                       
       CHARACTER(9) at_name_i 
       CHARACTER(9) at_name_j 
-!     LOGICAL atom_allowed 
-!     REAL do_bang 
 !                                                                       
       lspace = .true. 
 !                                                                       
@@ -5441,11 +5424,12 @@ USE atom_env_mod
       USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
+use precision_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      REAL proz 
+      REAL(kind=PREC_DP) :: proz 
       INTEGER nmole (0:MOLE_MAX_TYPE) 
       INTEGER i 
       INTEGER :: n_res 
@@ -5631,16 +5615,18 @@ USE chem_mod
 USE molecule_mod
 USE conn_mod
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
 INTEGER, INTENT(IN) :: isel          ! selected atom number
 LOGICAL, INTENT(IN) :: lupdate_conn  ! update the connectivity, if true
 !
-REAL   , PARAMETER  :: DELTA = 0.1
+REAL(kind=PREC_DP)   , PARAMETER  :: DELTA = 0.1
 !
 INTEGER               :: i, j, k, imole
 LOGICAL               :: lshift
-REAL   , DIMENSION(3) :: shift
+REAL(kind=PREC_DP)   , DIMENSION(3) :: shift
 !
 lshift   = .FALSE.
 DO i=1,3
@@ -5780,8 +5766,6 @@ chem_nwin(:) = 0 !  (CHEM_MAX_COR)
 chem_ctyp(:) = 0 !  (CHEM_MAX_COR)
 chem_nnei(:) = 0 !  (CHEM_MAX_COR)
 chem_nenv(:) = 0 !  (CHEM_MAX_COR)
-!REAL, DIMENSION(3,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT) :: chem_vect_ave    !  (3,12,CHEM_MAX_COR,0:MAXSCAT,0:MAXSCAT)
-!REAL, DIMENSION(3,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT) :: chem_vect_sig    !  (3,12,CHEM_MAX_COR,0:MAXSCAT,0:MAXSCAT)
 chem_neig(:,:,:) = 0.0        !  (3,48,CHEM_MAX_COR)
 chem_dir(:,:,:) = -9999.0     !  (3,2,CHEM_MAX_COR)
 chem_rmax(:)     = 0.0        !  (CHEM_MAX_COR)
