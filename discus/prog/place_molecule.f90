@@ -829,7 +829,7 @@ USE precision_mod
    IMPLICIT none
 !
    INTEGER, PARAMETER         :: MAXW = 200  ! not ideal, should be dynamic ....
-   REAL   , PARAMETER         :: EPS = 0.00001 ! Accuracy to locate anchor
+   REAL(KIND=PREC_DP)   , PARAMETER         :: EPS = 0.00001 ! Accuracy to locate anchor
 !
    CHARACTER(LEN=PREC_STRING) :: line      ! a string
    CHARACTER(LEN=PREC_STRING) :: mole_name ! molecule file name
@@ -857,7 +857,7 @@ USE precision_mod
 !   INTEGER, DIMENSION(:), ALLOCATABLE   :: c_list
    INTEGER, DIMENSION(:), ALLOCATABLE   :: temp_iatom  ! temporary storage for host atom number
    INTEGER, DIMENSION(:), ALLOCATABLE   :: temp_iscat  ! temporary storage for anchor types
-   REAL   , DIMENSION(:,:), ALLOCATABLE :: temp_pos    ! temporary storage for anchor positions
+   REAL(KIND=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE :: temp_pos    ! temporary storage for anchor positions
    INTEGER, DIMENSION(:), ALLOCATABLE   :: temp_ident  ! temporary storage for anchor types
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: anch_id  ! Lookup which anchor belongs to which env and surface 
 INTEGER  :: dc_temp_natoms   ! Number of atoms in the ligand molecule
@@ -877,20 +877,19 @@ INTEGER  :: dc_temp_natoms   ! Number of atoms in the ligand molecule
 !INTEGER   :: ier_sta_temp          ! temporary error status
    LOGICAL   :: l_correct              ! A dummy for logical comparisons
    LOGICAL   :: temp_lrestrict         ! Local copy of dcc_lrestict
-   REAL      :: temp_angle             ! Local copy of dcc_angle
+   REAL(KIND=PREC_DP)      :: temp_angle             ! Local copy of dcc_angle
 INTEGER :: nanch
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
-   REAL   , DIMENSION(:), ALLOCATABLE :: temp_prob ! Relative probabilities for a definition
-   REAL                    :: r_anch   ! relative amount of anchor atoms
-   REAL                    :: temp_grand ! sum of all definition probabilities
-!  REAL                    :: temp_choose ! Actual random number for definition choice
-   REAL                    :: density  ! Average ligand density
-   REAL                    :: prob     ! Probability to replace by non_anchor dummy
-   REAL   , DIMENSION(1:3) :: xyz
-   REAL   , DIMENSION(3)   :: host_a0
-   REAL   , DIMENSION(3)   :: host_win
-   REAL   , DIMENSION(4,4) :: host_tran_fi
+   REAL(KIND=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: temp_prob ! Relative probabilities for a definition
+   REAL(KIND=PREC_DP)      :: r_anch   ! relative amount of anchor atoms
+   REAL(KIND=PREC_DP)      :: temp_grand ! sum of all definition probabilities
+   REAL(KIND=PREC_DP)      :: density  ! Average ligand density
+   REAL(KIND=PREC_DP)      :: prob     ! Probability to replace by non_anchor dummy
+   REAL(KIND=PREC_DP)   , DIMENSION(1:3) :: xyz
+   REAL(KIND=PREC_DP)   , DIMENSION(3)   :: host_a0
+   REAL(KIND=PREC_DP)   , DIMENSION(3)   :: host_win
+   REAL(KIND=PREC_DP)   , DIMENSION(4,4) :: host_tran_fi
 !
    IF(MAXVAL(cr_surf(0,:)) == 0 .AND. MINVAL(cr_surf(0,:)) == 0) THEN
       ier_num = -130
@@ -1042,7 +1041,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
       DO j = 1, dc_temp_surf(0)
          r_anch = r_anch + res_para(dc_temp_surf(j)+1)  ! Fractional composition of the anchoring atoms
       ENDDO
-      prob   = MAX(0.0,MIN(1.0,DC_AREA*dc_temp_dens/r_anch)) ! replacement probability
+      prob   = MAX(0.0D0,MIN(1.0D0,DC_AREA*dc_temp_dens/r_anch)) ! replacement probability
 !     Replace anchors by a new atom type
       nscat_tmp = cr_nscat
       IF(cr_nscat+dc_temp_surf(0) > MAXSCAT) THEN                   ! Number of scattering types increased
@@ -1781,16 +1780,15 @@ USE spcgr_apply
 USE save_menu, ONLY: save_internal
 USE discus_save_mod
 USE structur, ONLY: do_readstru, rese_cr
-!USE trafo_mod
 !
 use read_internal_mod
 USE precision_mod
 !
 IMPLICIT none
 !
-REAL, DIMENSION(1:3), INTENT(IN) :: host_a0
-REAL, DIMENSION(1:3), INTENT(IN) :: host_win
-REAL, DIMENSION(4,4), INTENT(IN) :: host_tran_fi
+REAL(KIND=PREC_DP), DIMENSION(1:3), INTENT(IN) :: host_a0
+REAL(KIND=PREC_DP), DIMENSION(1:3), INTENT(IN) :: host_win
+REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(IN) :: host_tran_fi
 CHARACTER (LEN=PREC_STRING)                :: strufile
    CHARACTER (LEN=PREC_STRING)                :: mole_name
 CHARACTER (LEN=PREC_STRING)                :: savefile
@@ -1799,27 +1797,12 @@ CHARACTER (LEN=PREC_STRING)                :: line
    INTEGER  :: mole_length      ! Molecule name length
    INTEGER  :: i,j              ! dummy index
    INTEGER  :: length           ! dummy index
-!  INTEGER  :: istatus          ! status
-!  INTEGER  :: natoms           ! number of atoms in file
-!  INTEGER  :: ntypes           ! number of atom types in file
-!  INTEGER  :: n_mole           ! number of molecules
-!  INTEGER  :: n_type           ! number of molecule types
-!  INTEGER  :: n_atom           ! number of atoms in molecules
-!  INTEGER  :: init   = -1      ! Initialize atom names/types
-!  INTEGER  :: itype            ! atom scattering type
-!  INTEGER, DIMENSION(0:3)  :: isurface            ! atom surface type
-!  REAL, DIMENSION(3) :: posit  ! atom position
    REAL(kind=PREC_DP), DIMENSION(4) :: posit4 ! atom position
    REAL(kind=PREC_DP), DIMENSION(4) :: uvw4   ! atom position
-!  REAL, DIMENSION(4,4) :: rd_tran_f  ! transformation matrix to cartesian
-!  INTEGER  :: secnd            ! Index of second neighbor
-!  INTEGER  :: iprop            ! atom property 
-!  LOGICAL  :: lcell  = .true.  ! Treat atoms with equal name and B as one type
    LOGICAL  :: success= .true.  ! Found matching molecule file name
    INTEGER, DIMENSION(1:2) :: temp_axis
-!  INTEGER, DIMENSION(0:4) :: temp_surf
    INTEGER                 :: temp_neig
-   REAL                    :: temp_dist
+   REAL(KIND=PREC_DP)      :: temp_dist
 !
 INTEGER               :: n_mscat     ! temporary number of molecule scattering types
 INTEGER               :: lll         ! Dummy index
@@ -2129,7 +2112,6 @@ USE crystal_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
-!   USE trafo_mod
 !
    USE param_mod
 USE precision_mod
@@ -2145,25 +2127,25 @@ USE precision_mod
    INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in molecule
    INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
-   REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
-REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
-REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
-REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
+   REAL(KIND=PREC_DP)  , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
+REAL(KIND=PREC_DP),      INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL(KIND=PREC_DP),      INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL(KIND=PREC_DP),      INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
    INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
-   REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
+   REAL(KIND=PREC_DP),      INTENT(IN) :: dist            ! distance to ligand molecule
    INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
    INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
    LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
    INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
 INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
-REAL                      , INTENT(IN) :: tilt            ! Molecule tilt angle
-REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
+REAL(KIND=PREC_DP)        , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL(KIND=PREC_DP),    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
 INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
 INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
 !
-   REAL   , PARAMETER      :: EPS = 1.0E-6
+   REAL(KIND=PREC_DP)   , PARAMETER      :: EPS = 1.0E-6
 !
    CHARACTER (LEN=PREC_STRING)    :: line
    INTEGER                 ::    j, im, laenge ! Dummy variables
@@ -2180,15 +2162,14 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    REAL(kind=PREC_DP), DIMENSION(1:3) :: surf_normal_r   ! Normal to work with in HKL
    REAL(kind=PREC_DP), DIMENSION(3)   :: vnull           ! null vector
    REAL(kind=PREC_DP), DIMENSION(3)   :: origin          ! Symmetry origin
-   REAL                    :: normal_l        ! local normal
+   REAL(KIND=PREC_DP)      :: normal_l        ! local normal
 
    REAL(kind=PREC_DP), DIMENSION(3)   :: posit           ! Atom coordinates for read internal
-!  REAL                    :: dw1             ! Atom ADP for read internal
    INTEGER                 :: itype           ! Atom type for read internal
    INTEGER                 :: iprop           ! Atom property for read internal
    INTEGER, DIMENSION(0:3) :: isurface        ! Atom surface for read internal
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom        ! Atom magnetic moment for read internal
-   REAL   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
+   REAL(KIND=PREC_DP)   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
 !  INTEGER                 :: i_m_type
    INTEGER, DIMENSION(4)   :: hkl
    INTEGER                 :: in_mole,in_moleatom
@@ -2351,7 +2332,6 @@ USE surface_func_mod
 USE symm_menu
 USE symm_mod
 USE symm_sup_mod
-!USE trafo_mod
 !
 USE precision_mod
 USE param_mod
@@ -2367,22 +2347,22 @@ CHARACTER (LEN=PREC_STRING),       INTENT(IN) :: mole_name       ! Molecule file
 INTEGER,                    INTENT(IN) :: mole_natoms     ! Number of atoms in molecule
 INTEGER,                    INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
 CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
-REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
-REAL,                       INTENT(IN) :: r_m_biso        ! Molecular Biso
-REAL,                       INTENT(IN) :: r_m_clin        ! Molecular linear correction
-REAL,                       INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
+REAL(KIND=PREC_DP)  , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
+REAL(KIND=PREC_DP),        INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL(KIND=PREC_DP),         INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL(KIND=PREC_DP),         INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
 INTEGER,                    INTENT(IN) :: nanch           ! Connected to this neighbor in mole
 INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
 INTEGER, DIMENSION(1:2),    INTENT(IN) :: neig            ! Connected to this neighbor in mole
-REAL   , DIMENSION(1:2),    INTENT(IN) :: dist            ! distance to ligand molecule
+REAL(KIND=PREC_DP)   , DIMENSION(1:2),    INTENT(IN) :: dist            ! distance to ligand molecule
 INTEGER,                    INTENT(IN) :: ncon            ! Number of defined bonds
 INTEGER,                    INTENT(IN) :: istart          ! First atom for surface determination
 INTEGER,                    INTENT(IN) :: iend            ! Last  atom for surface determination
 LOGICAL,                    INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
 INTEGER,                    INTENT(IN) :: nhkl            ! Number of faces for the restriction
 INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
-REAL                      , INTENT(IN) :: tilt            ! Molecule tilt angle
-REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
+REAL(KIND=PREC_DP)                      , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL(KIND=PREC_DP),    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
 INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
@@ -2417,10 +2397,10 @@ INTEGER  , DIMENSION(:,:), ALLOCATABLE  :: test_hkl
 !
 LOGICAL  , DIMENSION(1:3)               :: fp
 LOGICAL                                 :: fq
-REAL                                    :: c_ang_ia, c_ang_nei         ! COS/SIN of Angles in ia and nei
-REAL                                    :: angle, a_test               ! Dummy angles
-REAL                                    :: dist_m
-REAL     , DIMENSION(1:3)               :: axis_ligand                 ! Initial molecule orientation
+REAL(KIND=PREC_DP)                      :: c_ang_ia, c_ang_nei         ! COS/SIN of Angles in ia and nei
+REAL(KIND=PREC_DP)                      :: angle, a_test               ! Dummy angles
+REAL(KIND=PREC_DP)                      :: dist_m
+REAL(KIND=PREC_DP)     , DIMENSION(1:3)               :: axis_ligand                 ! Initial molecule orientation
 REAL(kind=PREC_DP)                      :: rmin, radius, normal_l, b_l, b_n, b_l_min
 REAL(kind=PREC_DP), DIMENSION(1:3)      :: tangent, posit
 real(kind=PREC_DP), dimension(1:3)      :: x
@@ -2664,7 +2644,6 @@ USE surface_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
-!   USE trafo_mod
 !
    USE param_mod
 USE precision_mod
@@ -2681,22 +2660,22 @@ USE precision_mod
    INTEGER,                 INTENT(IN) :: mole_natoms     ! Molecule file name length
    INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
-   REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
-REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
-REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
-REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
+   REAL(KIND=PREC_DP)  , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
    INTEGER,                 INTENT(IN) :: nanch           ! Number of anchor types
    INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
    INTEGER, DIMENSION(1:2), INTENT(IN) :: neig            ! Connected to this neighbor in mole
-   REAL   , DIMENSION(1:2), INTENT(IN) :: dist            ! distance to ligand molecule
+   REAL(KIND=PREC_DP)   , DIMENSION(1:2), INTENT(IN) :: dist            ! distance to ligand molecule
    INTEGER,                 INTENT(IN) :: ncon            ! Number of defined bonds
    INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
    INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
    LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
    INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
    INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
-REAL                      , INTENT(IN) :: tilt            ! Molecule tilt angle
-REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
+REAL(KIND=PREC_DP)                      , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL(KIND=PREC_DP),    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
 INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
@@ -2722,7 +2701,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    LOGICAL                                 :: fq
    LOGICAL, PARAMETER :: lspace = .true.
    REAL(kind=PREC_DP)                      :: rmin, radius, b_l, t_l
-   REAL                                    :: arg            ! argument for acos
+   REAL(KIND=PREC_DP)                      :: arg            ! argument for acos
 REAL(kind=PREC_DP), DIMENSION(1:3) :: x
 REAL(kind=PREC_DP), DIMENSION(1:3) :: posit
 real(kind=PREC_DP), dimension(1:3) :: v
@@ -2815,7 +2794,7 @@ search: DO l=2,ncon
    bridge(2) = cr_pos(2,n2) - cr_pos(2,n1)
    bridge(3) = cr_pos(3,n2) - cr_pos(3,n1)
    b_l      = sqrt(skalpro(bridge, bridge, cr_gten))
-   rmin     = MAX( 0.1, b_l - dist(1) - dist(2) )          ! Minimum distance between surface atoms
+   rmin     = MAX( 0.1D0, b_l - dist(1) - dist(2) )          ! Minimum distance between surface atoms
    radius   = b_l + dist(1) + dist(2)                      ! Maximum distance between surface atoms
    ianz = anchor(2,0)
    werte(1:ianz) = anchor(2,1:ianz) 
@@ -3004,7 +2983,6 @@ USE surface_func_mod
 USE symm_menu
 USE symm_mod
 USE symm_sup_mod
-!USE trafo_mod
 !
 USE param_mod
 USE precision_mod
@@ -3021,22 +2999,22 @@ CHARACTER (LEN=PREC_STRING),    INTENT(IN) :: mole_name       ! Molecule file na
 INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in molecule
 INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
 CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
-REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
-REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
-REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
-REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
+REAL(KIND=PREC_DP)                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
 INTEGER,                 INTENT(IN) :: nanch           ! Connected to this neighbor in mole
 INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
 INTEGER, DIMENSION(1:2), INTENT(IN) :: neig            ! Connected to this neighbor in mole
-REAL   , DIMENSION(1:2), INTENT(IN) :: dist            ! distance to ligand molecule
+REAL(KIND=PREC_DP)   , DIMENSION(1:2), INTENT(IN) :: dist            ! distance to ligand molecule
 INTEGER,                 INTENT(IN) :: ncon            ! Number of defined bonds
 INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
 INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
 LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
 INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
 INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
-REAL                      , INTENT(IN) :: tilt            ! Molecule tilt angle
-REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
+REAL(KIND=PREC_DP)                      , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL(KIND=PREC_DP),    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
 INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
@@ -3050,7 +3028,7 @@ INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
 REAL(kind=PREC_DP)   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
 REAL(kind=PREC_DP)   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
 !
-REAL, PARAMETER :: EPS = 1.0E-6
+REAL(KIND=PREC_DP), PARAMETER :: EPS = 1.0E-6
 !
 CHARACTER (LEN=PREC_STRING)                    :: line
 INTEGER                                 :: j, im, laenge
@@ -3066,8 +3044,8 @@ INTEGER                              :: test_nhkl
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
 !
 LOGICAL, PARAMETER :: lspace = .true.
-REAL                    :: aa, bb, cc, arg  ! Triangle sides for cosine theorem
-REAL                                    :: normal_l
+REAL(KIND=PREC_DP)                    :: aa, bb, cc, arg  ! Triangle sides for cosine theorem
+REAL(KIND=PREC_DP)                                    :: normal_l
 REAL(kind=PREC_DP), DIMENSION(1:3)      :: x
 REAL(kind=PREC_DP), DIMENSION(1:3)      :: origin
 REAL(kind=PREC_DP), DIMENSION(1:3)      :: posit
@@ -3295,7 +3273,6 @@ USE surface_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
-!   USE trafo_mod
 !
    USE param_mod
 USE precision_mod
@@ -3312,24 +3289,24 @@ USE precision_mod
    INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in the molecule
    INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
-   REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
-REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
-REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
-REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
+   REAL(KIND=PREC_DP)                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
    INTEGER,                 INTENT(IN) :: nanch           ! Number of anchor types
    INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
 !  INTEGER, DIMENSION(0:4), INTENT(IN) :: surf            ! Surface atom type
    INTEGER, DIMENSION(1:2), INTENT(IN) :: nsites          ! Number of surface anchor positions per bond
    INTEGER, DIMENSION(1:2), INTENT(IN) :: neig            ! Connected to this neighbor in mole
-   REAL   , DIMENSION(1:2), INTENT(IN) :: dist            ! distance to ligand molecule
+   REAL(KIND=PREC_DP)   , DIMENSION(1:2), INTENT(IN) :: dist            ! distance to ligand molecule
    INTEGER,                 INTENT(IN) :: ncon            ! Number of defined bonds
    INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
    INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
    LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
    INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
    INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
-REAL                      , INTENT(IN) :: tilt            ! Molecule tilt angle
-REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
+REAL(KIND=PREC_DP)                      , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL(KIND=PREC_DP),    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
 INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
@@ -3360,11 +3337,11 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    LOGICAL                                 :: fq
    LOGICAL, PARAMETER :: lspace = .true.
    REAL(kind=PREC_DP)                      :: rmin, radius, b_l
-   REAL                                    :: arg
-   REAL                                    :: alpha, beta, v_l
+   REAL(KIND=PREC_DP)                                    :: arg
+   REAL(KIND=PREC_DP)                                    :: alpha, beta, v_l
    REAL(kind=PREC_DP), DIMENSION(1:3)               :: x
    REAL(kind=PREC_DP), DIMENSION(1:3)               :: bridge
-   REAL(kind=PREC_SP), DIMENSION(1:3)               :: base
+   REAL(kind=PREC_DP), DIMENSION(1:3)               :: base
    REAL(kind=PREC_DP), DIMENSION(1:3)               :: origin
    REAL(kind=PREC_DP), DIMENSION(1:3)               :: posit
    REAL(kind=PREC_DP), DIMENSION(1:3)               :: vv
@@ -3381,12 +3358,6 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER             :: nold         ! atom number previous to current molecule
    INTEGER             :: m_type_new   ! new molecule types 
    INTEGER             :: in_mole,in_moleatom
-!  INTEGER             :: i_m_mole
-!   INTEGER             :: i_m_type
-!  INTEGER             :: i_m_char
-!  CHARACTER (LEN=200) :: c_m_file
-!  REAL                :: r_m_fuzzy
-!  REAL                :: r_m_dens
 !
 maxw     = MAX(MINPARA,nanch)
 vnull(:) = 0.00D0
@@ -3465,7 +3436,7 @@ IF(ncon == 2) THEN                            ! We have the second connection
    bridge(2) = cr_pos(2,n2) - cr_pos(2,n1)
    bridge(3) = cr_pos(3,n2) - cr_pos(3,n1)
    b_l      = sqrt(skalpro(bridge, bridge, cr_gten))
-   rmin     = MAX( 0.0, b_l - dist(1) - dist(2) )          ! Minimum distance between surface atoms
+   rmin     = MAX( 0.0D0, b_l - dist(1) - dist(2) )          ! Minimum distance between surface atoms
    radius   = b_l + dist(1) + dist(2)                      ! Maximum distance between surface atoms
    ianz     = 1
    j            = anchor(2,0)
@@ -3568,7 +3539,7 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    u(:) =  res_para(1:3)
-!  beta = do_bang(lspace, real(sym_uvw, kind=PREC_SP), vnull, u)     ! Calculate angle (rot-axis) to vector product 
+!  beta = do_bang(lspace, real(sym_uvw, kind=PREC_DP), vnull, u)     ! Calculate angle (rot-axis) to vector product 
    beta = do_bang(lspace,      sym_uvw               , vnull, u)     ! Calculate angle (rot-axis) to vector product 
    IF(beta < 90) THEN                            ! Need to invert rotation axis
       IF(alpha < 90) THEN
@@ -3667,7 +3638,6 @@ USE surface_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
-!   USE trafo_mod
 !
 USE lib_random_func
    USE param_mod
@@ -3684,25 +3654,22 @@ USE precision_mod
    INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in the molecule
    INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
-   REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
-REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
-REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
-REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
+   REAL(KIND=PREC_DP)                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
    INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
-   REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
+   REAL(KIND=PREC_DP)   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
    INTEGER,                 INTENT(IN) :: temp_secnd      ! Second neighbor atom in molecule
    INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
    INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
    LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
    INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
    INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl         ! actual faces for the restriction
-   REAL   ,                 INTENT(IN) :: dha_angle       ! hydrogen-Bond angle in Hydrogen atom
+   REAL(KIND=PREC_DP)   ,                 INTENT(IN) :: dha_angle       ! hydrogen-Bond angle in Hydrogen atom
 INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
 !
-!  REAL, PARAMETER         :: DIST_A_H     = 1.920   ! Average Acceptor Hydrogon distance
-!  REAL, PARAMETER         :: SIGMA_A_H    = 0.001   ! Sigma for Acceptor Hydrogon distance
-!  REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bond
-   REAL, PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
+   REAL(KIND=PREC_DP), PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
    REAL(kind=PREC_DP), DIMENSION(3), PARAMETER :: VNULL = (/ 0.0D0, 0.0D0, 0.0D0 /) 
    LOGICAL, PARAMETER      :: lspace=.TRUE.
    CHARACTER (LEN=PREC_STRING)    :: line
@@ -3718,10 +3685,10 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
 INTEGER                              :: test_nhkl
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
-   REAL                    :: normal_l       ! length of normal vector
-   REAL                    :: hbond          ! actual hydrogen bond A..H
-   REAL                    :: angle          ! Temporary angle
-   REAL                    :: solution_1, solution_2 ! Temporary angles
+   REAL(KIND=PREC_DP)                    :: normal_l       ! length of normal vector
+   REAL(KIND=PREC_DP)                    :: hbond          ! actual hydrogen bond A..H
+   REAL(KIND=PREC_DP)                    :: angle          ! Temporary angle
+   REAL(KIND=PREC_DP)                    :: solution_1, solution_2 ! Temporary angles
    REAL(kind=PREC_DP), DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
    REAL(kind=PREC_DP), DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
    REAL(kind=PREC_DP)   , DIMENSION(3)   :: posit          ! Temporary atom position
@@ -3944,7 +3911,6 @@ USE surface_mod
 USE symm_menu
 USE symm_mod
 USE symm_sup_mod
-!USE trafo_mod
 !
 use molecule_mod
 !
@@ -3964,26 +3930,22 @@ CHARACTER (LEN=PREC_STRING),    INTENT(IN) :: mole_name       ! Molecule file na
 INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in the molecule
    INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
-   REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
-REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
-REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
-REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
+   REAL(KIND=PREC_DP)                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
 INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
-REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
+REAL(KIND=PREC_DP)   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
 INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
 INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
 LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
 INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
 INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl         ! actual faces for the restriction
-REAL   ,                 INTENT(IN) :: dha_angle       ! hydrogen-Bond angle in Hydrogen atom
+REAL(KIND=PREC_DP)   ,                 INTENT(IN) :: dha_angle       ! hydrogen-Bond angle in Hydrogen atom
 INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
 !
 INTEGER, PARAMETER      :: MAXW = 2
-!  REAL, PARAMETER         :: DIST_A_H     = 1.920   ! Average Acceptor Hydrogon distance
-!  REAL, PARAMETER         :: SIGMA_A_H    = 0.001   ! Sigma for Acceptor Hydrogon distance
-REAL, PARAMETER         :: EPS = 1.0E-7
-!REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bond
-!   REAL, PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
+REAL(KIND=PREC_DP), PARAMETER         :: EPS = 1.0E-7
    REAL(kind=PREC_DP), DIMENSION(3), PARAMETER :: VNULL = (/ 0.0D0, 0.0D0, 0.0D0 /) 
    LOGICAL, PARAMETER      :: lspace=.TRUE.
    CHARACTER (LEN=PREC_STRING)    :: line
@@ -4003,11 +3965,11 @@ REAL, PARAMETER         :: EPS = 1.0E-7
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
    LOGICAL  , DIMENSION(3) :: fp
    LOGICAL                 :: fq
-   REAL                    :: normal_l       ! length of normal vector
-   REAL                    :: hbond          ! actual hydrogen bond A..H
+   REAL(KIND=PREC_DP)                    :: normal_l       ! length of normal vector
+   REAL(KIND=PREC_DP)                    :: hbond          ! actual hydrogen bond A..H
    REAL(kind=PREC_DP)      :: rmin, rmax
-   REAL                    :: angle          !Temporary angle
-   REAL                    :: d2             !Temporary distance
+   REAL(KIND=PREC_DP)                    :: angle          !Temporary angle
+   REAL(KIND=PREC_DP)                    :: d2             !Temporary distance
    REAL(kind=PREC_DP)   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
    REAL(kind=PREC_DP)   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
    REAL(kind=PREC_DP)   , DIMENSION(3)   :: posit          ! Temporary atom position
@@ -4243,11 +4205,11 @@ INTEGER                      , INTENT(IN)    :: natoms_prior
 INTEGER                      , INTENT(IN)    :: MAXAT
 INTEGER                      , INTENT(IN)    :: MAXTYPE
 INTEGER, DIMENSION(0:MAXTYPE), INTENT(IN)    :: surface
-REAL                         , INTENT(IN)    :: distance
+REAL(KIND=PREC_DP)                         , INTENT(IN)    :: distance
 INTEGER                      , INTENT(IN)    :: ia
 REAL(kind=PREC_DP), DIMENSION(1:3)      , INTENT(IN)    :: normal     ! Surface normal in UVW
 REAL(kind=PREC_DP)   , DIMENSION(1:3)      , INTENT(OUT)   :: posit
-REAL   , DIMENSION(1:3)      , INTENT(OUT)   :: base
+REAL(KIND=PREC_DP)   , DIMENSION(1:3)      , INTENT(OUT)   :: base
 INTEGER, DIMENSION(1:2)      , INTENT(OUT)   :: is_good
 INTEGER                      , INTENT(INOUT) :: ierror
 !
@@ -4260,15 +4222,15 @@ INTEGER :: laenge
 INTEGER, DIMENSION(0:6,2:MAXAT) :: neig
 LOGICAL, DIMENSION(1:3) :: fp
 LOGICAL                 :: fq
-REAL                    :: alpha, vlen
+REAL(KIND=PREC_DP)                    :: alpha, vlen
 REAL(kind=PREC_DP)      :: rmin, radius
 REAL(KIND=PREC_DP)   , DIMENSION(1:MAXTYPE) :: werte
 REAL(kind=PREC_DP)   , DIMENSION(1:3)    :: x, u,v,w, e1,e2,e3, rnorm
-REAL                    :: u_l, v_l, w_l    ! length of vectors in triangle
-REAL                    :: av, sig, av_min, sig_min ! average length  and sigma
-REAL                    :: tx,ty, tz        ! Cartesion coordinates of target position
-REAL                    :: g2x, g2y         ! Cartesion coordinates of atom 3
-REAL                    :: arg
+REAL(KIND=PREC_DP)                    :: u_l, v_l, w_l    ! length of vectors in triangle
+REAL(KIND=PREC_DP)                    :: av, sig, av_min, sig_min ! average length  and sigma
+REAL(KIND=PREC_DP)                    :: tx,ty, tz        ! Cartesion coordinates of target position
+REAL(KIND=PREC_DP)                    :: g2x, g2y         ! Cartesion coordinates of atom 3
+REAL(KIND=PREC_DP)                    :: arg
 REAL(kind=PREC_DP), DIMENSION(1:3)               :: vnull
 !
    vnull(:) = 0.00
@@ -4427,7 +4389,6 @@ USE symm_menu
 USE symm_mod
 USE symm_sup_mod
 USE metric_mod
-!USE trafo_mod
 !
 USE precision_mod
 USE param_mod
@@ -4435,8 +4396,8 @@ USE param_mod
 IMPLICIT NONE
 !
 REAL(kind=PREC_DP), DIMENSION(3), INTENT(IN) :: origin          ! Molecule origin
-REAL                 , INTENT(IN) :: tilt            ! Molecule tilt angle
-REAL,    DIMENSION(3), INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal normal
+REAL(KIND=PREC_DP)                 , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL(KIND=PREC_DP),    DIMENSION(3), INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal normal
 INTEGER, DIMENSION(4), INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL              , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL              , INTENT(IN) :: tilt_is_auto    ! Plane defined automatically
@@ -4450,8 +4411,8 @@ INTEGER               :: nold      ! Original number of atoms
 INTEGER               :: laenge
 INTEGER               :: i
 INTEGER, DIMENSION(:), ALLOCATABLE :: list
-REAL   , DIMENSION(3) :: u, v, hkl ! Dummy vectors
-REAL                  :: dist
+REAL(KIND=PREC_DP)   , DIMENSION(3) :: u, v, hkl ! Dummy vectors
+REAL(KIND=PREC_DP)                  :: dist
 !
 IF(ABS(tilt)>0.001) THEN
 nold = cr_natoms - mole_natoms
@@ -4548,7 +4509,6 @@ USE metric_mod
 USE symm_menu
 USE symm_mod
 USE symm_sup_mod
-!USE trafo_mod
 USE param_mod
 USE precision_mod
 !
@@ -4564,7 +4524,7 @@ LOGICAL, PARAMETER  :: lspace = .TRUE.
 CHARACTER(LEN=PREC_STRING) :: line
 INTEGER             :: a1, a2          ! absolute atom numbers for rotation axix
 INTEGER             :: laenge
-REAL                :: alpha, beta
+REAL(KIND=PREC_DP)                :: alpha, beta
 REAL(kind=PREC_DP), DIMENSION(3)  :: v1, v2, v3, u, w, vnull   ! Dummy vectors
 !
 vnull(:) = 0.0D0
@@ -4591,7 +4551,7 @@ WRITE(line,1100) v3,v2                        ! Do vector product (mol_axis) x (
 laenge = LEN_TRIM(line)
 CALL vprod(line, laenge)
 u(:) =  res_para(1:3)
-!beta = do_bang(lspace, real(sym_uvw,kind=PREC_SP), vnull, u)     ! Calculate angle (rot-axis) to vector product 
+!beta = do_bang(lspace, real(sym_uvw,kind=PREC_DP), vnull, u)     ! Calculate angle (rot-axis) to vector product 
 beta = do_bang(lspace,      sym_uvw              , vnull, u)     ! Calculate angle (rot-axis) to vector product 
 IF(beta < 90) THEN                            ! Need to invert rotation axis
    IF(alpha < 90) THEN
@@ -4646,7 +4606,6 @@ USE metric_mod
 USE symm_menu
 USE symm_mod
 USE symm_sup_mod
-!USE trafo_mod
 USE param_mod
 use errlist_mod
 USE precision_mod
@@ -4658,7 +4617,7 @@ INTEGER                , INTENT(IN) :: n_atoms_orig ! Number of atoms prior to d
 INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis    ! Axis to straighten up
 REAL(kind=PREC_DP)   , DIMENSION(1:3), INTENT(IN) :: surf_normal  ! Surface normal at anchor atom
 !
-REAL   , PARAMETER  :: EPS = 1.0E-6
+REAL(KIND=PREC_DP)   , PARAMETER  :: EPS = 1.0E-6
 LOGICAL, PARAMETER  :: lspace = .TRUE.
 CHARACTER(LEN=PREC_STRING) :: line
 INTEGER             :: n1              ! absolute atom numbers for neighbor
@@ -4724,12 +4683,12 @@ INTEGER, INTENT(IN) :: natoms_prior
 INTEGER, INTENT(IN) :: nold
 !
 LOGICAL, PARAMETER :: LSPACE = .TRUE.
-REAL, PARAMETER    :: rcut   = 1.30
+REAL(KIND=PREC_DP), PARAMETER    :: rcut   = 1.30
 !
 INTEGER                          :: i, j
 REAL(KIND=PREC_DP), DIMENSION(3) :: u
 REAL(KIND=PREC_DP), DIMENSION(3) :: w
-!REAL(KIND=PREC_SP), DIMENSION(3), PARAMETER :: vnull =(/0.0, 0.0, 0.0/)
+!REAL(KIND=PREC_DP), DIMENSION(3), PARAMETER :: vnull =(/0.0, 0.0, 0.0/)
 !
 deco_collision=.FALSE.            ! No Collision as default
 !
