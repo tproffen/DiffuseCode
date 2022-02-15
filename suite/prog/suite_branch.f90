@@ -4,13 +4,21 @@ RECURSIVE SUBROUTINE suite_branch(zeile, length, lreset)
 !  Call a section via a branch
 !
 USE diffev_setup_mod
+USE diffev_setup_sub_mod
 USE diffev_loop_mod
+!
 USE discus_setup_mod
+USE discus_setup_sub_mod
 USE discus_loop_mod
 USE discus_reset_all_mod
+!
 USE kuplot_setup_mod
+USE kuplot_setup_sub_mod
 USE kuplot_loop_mod
+use kuplot_reset_mod
+!
 USE refine_setup_mod
+USE refine_setup_sub_mod
 USE refine_loop_mod
 !
 USE blanks_mod
@@ -107,7 +115,7 @@ IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
    IF(lreset) THEN
       line = 'all'
       laenge = 3
-      call do_rese(line, length)
+      call kuplot_do_reset(line, length)
    ENDIF
    var_val(VAR_PROGRAM) = var_val(VAR_KUPLOT)
    var_val(VAR_STATE)   = var_val(VAR_IS_BRANCH)
@@ -196,7 +204,7 @@ ELSEIF(pname=='diffev') THEN  ! Return to DIFFEV branch
       CALL diffev_set_sub ()
 ELSEIF(pname=='kuplot') THEN  ! Return to KUPLOT branch
       CALL kuplot_set_sub ()
-ELSEIF(pname=='refine') THEN  ! Return to KUPLOT branch
+ELSEIF(pname=='refine') THEN  ! Return to REFINE branch
       CALL refine_set_sub ()
 ENDIF
 CALL suite_set_sub_branch ()

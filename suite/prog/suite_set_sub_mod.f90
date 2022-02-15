@@ -8,6 +8,8 @@ SUBROUTINE suite_set_sub
 ! LIB_F90 by their generic names
 !
 USE suite_errlist_func
+!use suite_mache_kdo_mod
+use suite_update_mod
 USE set_sub_generic_mod
 !
 INTERFACE
@@ -18,81 +20,6 @@ INTERFACE
    INTEGER             , INTENT(INOUT) :: length
 !
    END SUBROUTINE suite_mache_kdo
-END INTERFACE
-!
-!
-INTERFACE
-   SUBROUTINE suite_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
-!
-   USE precision_mod
-   CHARACTER (LEN= * )  , INTENT(INOUT) :: string
-   INTEGER              , INTENT(IN   ) :: ikl
-   INTEGER              , INTENT(IN   ) :: iklz
-   INTEGER              , INTENT(INOUT) :: ll
-   INTEGER              , INTENT(IN   ) :: maxw
-   INTEGER              , INTENT(IN   ) :: ianz
-   REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN   ) :: ww
-!
-   END SUBROUTINE suite_ersetz_para
-END INTERFACE
-!
-INTERFACE
-   SUBROUTINE suite_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
-!
-   USE precision_mod
-   CHARACTER (LEN=* ), INTENT(IN   )    :: ctype
-   INTEGER           , INTENT(IN   )    :: maxw
-   INTEGER           , INTENT(IN   )    :: ianz
-   INTEGER           , INTENT(IN   )    :: ww (maxw)
-   REAL(KIND=PREC_DP), INTENT(IN   )    :: wert
-   CHARACTER (LEN=* ), INTENT(IN   )    :: cstring
-   INTEGER, DIMENSION(2), INTENT(IN)    :: substr ! Indices of substring
-!
-   END SUBROUTINE suite_upd_para
-END INTERFACE
-!
-INTERFACE
-   SUBROUTINE suite_get_var_type(line,length, var_is_type)
-!
-   CHARACTER(LEN=*)     , INTENT(IN)  :: line
-   INTEGER              , INTENT(IN)  :: length
-   INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
-!
-   END SUBROUTINE suite_get_var_type
-END INTERFACE
-!
-INTERFACE
-   SUBROUTINE suite_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
-!
-   USE precision_mod
-   CHARACTER (LEN= * ), INTENT(INOUT) :: string
-   CHARACTER (LEN= * ), INTENT(INOUT) :: line
-   INTEGER            , INTENT(IN   ) :: ikl
-   INTEGER            , INTENT(IN   ) :: iklz
-   REAL(KIND=PREC_DP) , INTENT(INOUT) :: ww
-   INTEGER            , INTENT(INOUT) :: laenge
-   INTEGER            , INTENT(INOUT) :: lp
-!
-   END SUBROUTINE suite_calc_intr_spec 
-END INTERFACE
-!
-INTERFACE
-   SUBROUTINE suite_calc_intr_log_spec(string, length)
-!
-   IMPLICIT NONE
-   CHARACTER(LEN=*) , INTENT(INOUT) :: string
-   INTEGER          , INTENT(INOUT) :: length
-!
-   END SUBROUTINE suite_calc_intr_log_spec
-END INTERFACE
-!
-INTERFACE
-   SUBROUTINE suite_validate_var_spec (string, lp)
-!
-   CHARACTER (LEN= * ), INTENT(IN   ) :: string
-   INTEGER            , INTENT(IN   ) :: lp
-!
-   END SUBROUTINE suite_validate_var_spec 
 END INTERFACE
 !
 INTERFACE
@@ -162,6 +89,7 @@ INTERFACE
                             l_first_job,            &
                             ierr )
 !!
+   USE precision_mod
    IMPLICIT NONE
    LOGICAL                , INTENT(IN) :: repeat
    INTEGER                , INTENT(IN) :: prog_len
@@ -181,7 +109,7 @@ INTERFACE
    INTEGER                , INTENT(IN ):: n_rvalue_i
    INTEGER                , INTENT(OUT):: n_rvalue_o
    INTEGER                , INTENT(IN ):: NRVAL
-   REAL, DIMENSION(0:NRVAL), INTENT(OUT):: rvalue
+   REAL(kind=PREC_DP), DIMENSION(0:NRVAL), INTENT(OUT):: rvalue
    LOGICAL                , INTENT(OUT):: l_rvalue
    INTEGER                , INTENT(IN) :: generation
    INTEGER                , INTENT(IN) :: member
@@ -190,7 +118,7 @@ INTERFACE
    INTEGER                , INTENT(IN) :: nindiv
    INTEGER                , INTENT(IN) :: NTRIAL
    CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_n
-   REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
+   REAL(kind=PREC_DP),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
    LOGICAL                , INTENT(IN)  :: l_get_random_state
    INTEGER                , INTENT(OUT) :: rd_nseeds
    INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds

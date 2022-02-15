@@ -1,3 +1,7 @@
+!module suite_mache_kdo_mod
+!
+!contains
+!
 !*****7*****************************************************************
 !                                                                       
 SUBROUTINE suite_mache_kdo (line, lend, length) 
@@ -8,16 +12,25 @@ SUBROUTINE suite_mache_kdo (line, lend, length)
 !-                                                                      
 !USE discus,  discus_interactive => interactive
 USE diffev_setup_mod
+USE diffev_setup_sub_mod
 USE diffev_loop_mod
-USE discus_setup_mod
-USE discus_loop_mod
-USE kuplot_setup_mod
-USE kuplot_loop_mod
-USE discus_reset_all_mod
 USE diffev_reset
+!
+USE discus_setup_mod
+USE discus_setup_sub_mod
+USE discus_loop_mod
+USE discus_reset_all_mod
+!
+USE kuplot_setup_mod
+USE kuplot_setup_sub_mod
+USE kuplot_loop_mod
+use kuplot_reset_mod
+!
 USE refine_reset
 USE refine_setup_mod
+USE refine_setup_sub_mod
 USE refine_loop_mod
+!
 USE suite_init_mod
 USE suite_parallel_mod
 USE suite_setup_mod
@@ -268,8 +281,8 @@ ELSE
 !------   Reset the entire suite
 !                                                                 
    ELSEIF(str_comp(befehl, 'reset', 3, lbef, 5)) THEN
+      CALL kuplot_do_reset( 'all' , 3)
       CALL discus_reset_all
-      CALL do_rese( 'all' , 3)
       CALL diffev_do_reset
       CALL refine_do_reset
 !                                                                 
@@ -281,3 +294,5 @@ ELSE
 ENDIF 
 !                                                                       
 END SUBROUTINE suite_mache_kdo                      
+!
+!end module suite_mache_kdo_mod

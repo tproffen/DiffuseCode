@@ -28,7 +28,7 @@ set (SOURCES_ALL suite_setup_mod.f90 suite_branch.f90 suite_loop.f90
 	suite_err_appl.f90 suite_exit.f90 suite_execute_cost.f90 
 	suite_init_mod.f90 suite_kdo.f90  suite_set_sub_mod.f90
         suite_parallel.f90 suite_upd_par.f90 suite_top.f90 )
-set( SOURCES_LOCAL suite_out_file.f90 suite_pdf_file.f90 suite_powder_file.f90)
+#set( SOURCES_LOCAL suite_out_file.f90 suite_pdf_file.f90 suite_powder_file.f90)
 
 set (LIBS diffev_all refine_all discus_all kuplot_all lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY} )
 
@@ -96,10 +96,12 @@ add_dependencies ( discus_suite_all diffev_all refine_all discus_all kuplot_all 
 
 set (LIBS ${LIBS} discus_suite_all diffev_all refine_all discus_all kuplot_all ${LIBS_GRAPHIC} ${LIBS} ${LIBS_OPT} discus_suite_all )
 
-add_library (discus_suite_full ${SOURCES_ALL} ${SOURCES_LOCAL})
+#add_library (discus_suite_full ${SOURCES_ALL} ${SOURCES_LOCAL})
+add_library (discus_suite_full ${SOURCES_ALL})
 add_dependencies ( discus_suite_full  discus_suite_all diffev_all refine_all discus_all kuplot_all lib_f90  suitehlp)
 
-add_executable(discus_suite ${SOURCE_MAIN} ${SOURCES_LOCAL} )
+#add_executable(discus_suite ${SOURCE_MAIN} ${SOURCES_LOCAL} )
+add_executable(discus_suite ${SOURCE_MAIN})
 target_link_libraries (discus_suite ${LIBS} ${LINK_LIBS})
 
 add_custom_target(suitehlp 

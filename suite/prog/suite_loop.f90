@@ -4,6 +4,7 @@ CONTAINS
 !
 RECURSIVE SUBROUTINE suite_loop
 !                                                                       
+!use suite_mache_kdo_mod
 USE do_exit_mod
 USE doact_mod
 USE errlist_mod 

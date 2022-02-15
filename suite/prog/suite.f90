@@ -4,11 +4,16 @@ USE suite_setup_mod
 USE suite_set_sub_mod
 USE suite_loop_mod
 USE suite_init_mod
+!
 USE discus_setup_mod
+!
 USE kuplot_setup_mod
+!
 USE diffev_setup_mod
+USE diffev_setup_sub_mod
 USE diffev_loop_mod
 USE diffev_mpi_mod
+!
 USE refine_setup_mod
 !
 USE appl_env_mod
