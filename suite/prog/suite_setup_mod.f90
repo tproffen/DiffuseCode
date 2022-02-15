@@ -1,6 +1,9 @@
 MODULE suite_setup_mod
 !
 CONTAINS
+!
+!*******************************************************************************
+!
 SUBROUTINE setup_suite_start
 !-
 ! This routine makes start up setup of DISCUS_SUITE
@@ -30,7 +33,8 @@ CALL appl_env (.TRUE.)
 !
 END SUBROUTINE setup_suite_start
 !
-!*****7*****************************************************************
+!*******************************************************************************
+!
 SUBROUTINE setup_suite
 !                                                                       
 !     This routine makes inital setup of DISCUS_SUITE                         
