@@ -154,7 +154,7 @@ if (DEBUG)
 #   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -std=f2008 -fall-intrinsics -Wall")
 #   set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wall -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wimplicit-interface -Wunused-parameter -fwhole-file -std=f2008 -fimplicit-none  -pedantic")
 #   set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -Wunused-dummy-argument -Wmaybe-uninitialized -Wconversion -fwhole-file -fimplicit-none  -pedantic")
-    set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -fwhole-file -fimplicit-none  -pedantic -Wuninitialized")
+    set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -fwhole-file -fimplicit-none -pedantic -Wuninitialized")
   elseif (IFORT)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
     set (CMAKE_Fortan_FLAGS "-fPIC -cpp -check=all -g -O0 -backtrace")
@@ -164,8 +164,8 @@ endif (DEBUG)
 # Go into directories
 
 add_subdirectory(lib_f90) # this must be first for date.inc
-add_subdirectory(diffev/prog)
 add_subdirectory(kuplot/prog)
+add_subdirectory(diffev/prog)
 add_subdirectory(refine/prog)
 add_subdirectory(discus/prog)
 add_subdirectory(suite/prog)
