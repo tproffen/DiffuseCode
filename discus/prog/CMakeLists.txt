@@ -33,7 +33,9 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	celltoindex.f90
 	deco_mod.f90 demolec.f90 demolec_mod.f90 discus_mrc.f90
 	debye_mod.f90 diffuse_mod.f90
-	discus_loop.f90 discus_setup.f90 domain.f90 domain_mod.f90 domaindis_mod.f90  domain_irreg_mod.f90
+	discus_loop.f90 discus_setup.f90 discus_set_sub.f90 
+        discus_s_out_file.f90 discus_s_pdf_file.f90 discus_s_powder_file.f90
+        domain.f90 domain_mod.f90 domaindis_mod.f90  domain_irreg_mod.f90
 	discus_err_appl.f90 discus_exit.f90 external.f90 external_mod.f90 extrmc.f90 fourier.f90 fourier_sup.f90
         discus_fft.f90 discus_fit.f90 discus_pointgrp.f90 discus_reset_all.f90
         discus_powder_fft.f90 discus_3dpdf.f90 discus_xplor.f90
@@ -63,7 +65,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	waves.f90 waves_mod.f90 wyckoff_mod.f90 quad.f90 qval.f90 utilities.f90 zone.f90
         private.f90
   )
-set( SOURCES_LOCAL discus_pdf_file.f90 discus_powder_file.f90 discus_out_file.f90)
+#set( SOURCES_LOCAL discus_pdf_file.f90 discus_powder_file.f90 discus_out_file.f90)
 #set( SOURCES ${SOURCE_MAIN} ${SOURCES_ALL} )
 
 set( LIBS lib_f90 lib_f90c kuplot_all ${DIFFUSE_LIBS})
