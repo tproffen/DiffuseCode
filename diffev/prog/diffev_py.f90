@@ -10,6 +10,7 @@ SUBROUTINE interactive ()
 !
 USE prompt_mod
 USE diffev_setup_mod
+USE diffev_setup_sub_mod
 USE set_sub_generic_mod
 USE diffev_loop_mod
 !
@@ -41,6 +42,7 @@ SUBROUTINE command (incomming, ier_status)
 ! 
 ! 
 USE diffev_setup_mod
+USE diffev_setup_sub_mod
 USE gen_mpi_mod
 USE diffev_mpi_mod
 USE errlist_mod
@@ -172,12 +174,13 @@ SUBROUTINE send_trial ( trials, member, parameters )
 !
 USE population
 USE diffev_setup_mod
+use precision_mod
 USE prompt_mod
 IMPLICIT NONE
 !
 INTEGER,                             INTENT(IN ) :: member
 INTEGER,                             INTENT(IN ) :: parameters
-REAL, DIMENSION(member, parameters), INTENT(OUT) :: trials
+REAL(kind=PREC_DP), DIMENSION(member, parameters), INTENT(OUT) :: trials
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL diffev_setup(.false.)
@@ -198,11 +201,12 @@ SUBROUTINE cost ( values, children )
 !
 USE population
 USE diffev_setup_mod
+use precision_mod
 USE prompt_mod
 IMPLICIT NONE
 !
 INTEGER,                   INTENT(IN ) :: children
-REAL, DIMENSION(children), INTENT(IN ) :: values
+REAL(kind=PREC_DP), DIMENSION(children), INTENT(IN ) :: values
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL diffev_setup(.false.)
