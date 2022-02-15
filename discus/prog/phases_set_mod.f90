@@ -768,7 +768,7 @@ END SUBROUTINE phases_corr
 !
 !*******************************************************************************
 !
-REAL (kind=PREC_DP) function lorentz (ttheta, flag_fq) 
+REAL(kind=PREC_DP) function lorentz (ttheta, flag_fq) 
 !+                                                                      
 !-                                                                      
 USE discus_config_mod 

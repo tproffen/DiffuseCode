@@ -13,19 +13,20 @@ SUBROUTINE hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
 USE hdf5
 !use diffuse_mod
 !use fourier_sup
+use precision_mod
 !
 IMPLICIT NONE
 !
-INTEGER, PARAMETER:: PREC_DP=SELECTED_REAL_KIND(p=15,r=307)  ! double precision
+!INTEGER, PARAMETER:: PREC_DP=SELECTED_REAL_KIND(p=15,r=307)  ! double precision
 !
 INTEGER, INTENT(IN) :: value
 LOGICAL, INTENT(IN) :: laver
 CHARACTER(LEN=200), INTENT(IN) :: outfile
 INTEGER, DIMENSION(3)  , INTENT(IN) :: out_inc
-REAL   , DIMENSION(3,4), INTENT(IN) :: out_eck ! (3,4)
-REAL   , DIMENSION(3,3), INTENT(IN) :: out_vi 
-REAL   , DIMENSION(3)  , INTENT(IN) :: cr_a0
-REAL   , DIMENSION(3)  , INTENT(IN) :: cr_win
+REAL(kind=PREC_DP)   , DIMENSION(3,4), INTENT(IN) :: out_eck ! (3,4)
+REAL(kind=PREC_DP)   , DIMENSION(3,3), INTENT(IN) :: out_vi 
+REAL(kind=PREC_DP)   , DIMENSION(3)  , INTENT(IN) :: cr_a0
+REAL(kind=PREC_DP)   , DIMENSION(3)  , INTENT(IN) :: cr_win
 INTEGER                , INTENT(IN) :: VAL_PDF
 INTEGER                , INTENT(IN) :: VAL_3DPDF
 REAL(KIND=PREC_DP)     , INTENT(IN)  :: valmax
@@ -67,7 +68,8 @@ REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE, TARGET :: values ! Actual dif
 TYPE(C_PTR)                            :: f_ptr           ! C-type pointer to data array               
 !
 INTERFACE
-  REAL FUNCTION qval(i, value, ix, iy, laver)
+  REAL(kind=PREC_DP) FUNCTION qval(i, value, ix, iy, laver)
+     use precision_mod
      INTEGER, INTENT(IN) :: i
      INTEGER, INTENT(IN) :: value
      INTEGER, INTENT(IN) :: ix
@@ -110,7 +112,7 @@ DO i = 1, out_inc(1)
    DO j = 1, out_inc(2)
       DO k = 1, out_inc(3)
          l = l + 1
-         values(k,j,i) = REAL(qval(l, value, i, j, laver), KIND=PREC_DP)
+         values(k,j,i) = qval(l, value, i, j, laver)
       ENDDO
    ENDDO
 ENDDO

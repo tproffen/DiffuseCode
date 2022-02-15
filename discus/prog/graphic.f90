@@ -73,7 +73,7 @@ integer :: pdf3d_mode  !  3D-PDF mode "normal" / "sharp"
 INTEGER :: indxg 
 LOGICAL :: laver, lread
 LOGICAL :: l_val_limited=.FALSE.    ! for 3D PDF do we limit d-star
-REAL(KIND=PREC_SP) :: xmin, ymin, xmax, ymax 
+REAL(KIND=PREC_DP) :: xmin, ymin, xmax, ymax 
 REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
 REAL(KIND=PREC_DP)                  :: valmax
 REAL(KIND=PREC_DP)                  ::  dsmax = 0.0
@@ -241,7 +241,9 @@ main_if: IF (ier_num.eq.0) THEN
                         lpara(1:2)= 1 
                         CALL ber_params (ianz, cpara, lpara, werte, maxp)
                         IF(ier_num==0) THEN
-                           out_user_values(1:3) = werte(3:5)
+                           out_user_inc         = 0
+                           out_user_values(1:3) = nint(werte(3:5)*1.0D5)/1.0D5
+                           out_user_inc(1)      = nint((out_user_values(2)-out_user_values(1))/out_user_values(3) ) + 1
                            out_user_limits      = .true.
                         ENDIF
                      ENDIF
@@ -397,10 +399,8 @@ main_if: IF (ier_num.eq.0) THEN
                READ (1, * ) (dsi ( (ix - 1) * out_inc (2) + iy),  &
                ix = 1, out_inc (1) )                              
                DO ix = 1, out_inc (1) 
-                  zmax = max (zmax, REAL(dsi ( (ix - 1) * out_inc (2)     &
-                  + iy) ))                                            
-                  zmin = min (zmin, REAL(dsi ( (ix - 1) * out_inc (2)     &
-                  + iy)) )                                            
+                  zmax = max(zmax, REAL(dsi((ix - 1) * out_inc(2) + iy), kind=PREC_DP))
+                  zmin = min(zmin, REAL(dsi((ix - 1) * out_inc(2) + iy), kind=PREC_DP))
                ENDDO 
                ENDDO 
                WRITE (output_io, 1015, advance='no') zmin, zmax 
@@ -585,10 +585,8 @@ main_if: IF (ier_num.eq.0) THEN
                   CALL ber_params (ianz, cpara, lpara, werte,     &
                   maxp)                                           
                   IF (ier_num.eq.0) THEN 
-                     zmin = max (diffumin, diffuave-REAL(werte (1))     &
-                     * diffusig)                                  
-                     zmax = min (diffumax, diffuave+REAL(werte (1))     &
-                     * diffusig)                                  
+                     zmin = max(diffumin, diffuave-REAL(werte(1), kind=PREC_DP) * diffusig)
+                     zmax = min(diffumax, diffuave+REAL(werte(1), kind=PREC_DP) * diffusig)
                      IF (diffumax.ne.0) THEN 
                         ps_high = zmax / diffumax 
                         ps_low = zmin / diffumax 
@@ -597,7 +595,7 @@ main_if: IF (ier_num.eq.0) THEN
                         ps_low = 0.0 
                      ENDIF 
                   ENDIF 
-               ELSEIF (str_comp (cpara (1) , 'zmax', 3, lpara (1) &
+               ELSEIF(str_comp (cpara (1) , 'zmax', 3, lpara (1) &
                , 4) ) THEN                                        
                   CALL del_params (1, ianz, cpara, lpara, maxp) 
                   CALL ber_params (ianz, cpara, lpara, werte,     &
@@ -1007,7 +1005,7 @@ ELSEIF(lpresent(O_HKLMAX) .AND. .NOT. (lpresent(O_DSMAX) .OR. lpresent(O_QMAX)))
    cpara = opara (O_HKLMAX)
    lpara = lopara(O_HKLMAX)
    CALL get_optional_multi(MAXP, cpara, lpara, werte, ianz)
-   u = REAL(werte)
+   u = werte
    dsmax = do_blen (.FALSE., u, NULLV)
    l_val_limited = .TRUE.
 ELSE
@@ -1023,30 +1021,30 @@ END SUBROUTINE value_optional
 !
 !*****7*****************************************************************
 !
-      SUBROUTINE do_post (value, laver) 
+SUBROUTINE do_post (value, laver) 
 !-                                                                      
 !     Writes a POSTSCRIPT file                                          
 !+                                                                      
-      USE discus_config_mod 
-      USE diffuse_mod 
-      USE output_mod 
-      USE qval_mod
-      USE envir_mod 
-      USE errlist_mod 
+USE discus_config_mod 
+USE diffuse_mod 
+USE output_mod 
+USE qval_mod
+USE envir_mod 
+USE errlist_mod 
+use precision_mod
 USE support_mod
-      IMPLICIT none 
+!
+IMPLICIT none 
 !                                                                       
+INTEGER maxcol 
+PARAMETER (maxcol = 256) 
 !                                                                       
-      INTEGER maxcol 
-      PARAMETER (maxcol = 256) 
+CHARACTER(len=6) :: cout (maxqxy) 
+CHARACTER(len=6) :: cfarb (maxcol) 
+INTEGER :: i, ix, iy, iqqq, k, value 
+LOGICAL :: lread, laver 
+REAL(kind=PREC_DP) :: qqq 
 !                                                                       
-      CHARACTER(6) cout (maxqxy) 
-      CHARACTER(6) cfarb (maxcol) 
-      INTEGER i, ix, iy, iqqq, k, value 
-      LOGICAL lread, laver 
-      REAL qqq 
-!                                                                       
-!     REAL qval 
 !                                                                       
 !     Check whether data are 2-dimensional                              
 !                                                                       
@@ -1111,28 +1109,30 @@ USE support_mod
  5000 FORMAT (10A6) 
 !                                                                       
       END SUBROUTINE do_post                        
+!
 !*****7*****************************************************************
-      SUBROUTINE do_pgm (value, laver) 
+!
+SUBROUTINE do_pgm (value, laver) 
 !-                                                                      
 !     Writes the data in a PGM format                                   
 !-                                                                      
-      USE discus_config_mod 
-      USE diffuse_mod 
-      USE output_mod 
-      USE qval_mod
-      USE errlist_mod 
+USE discus_config_mod 
+USE diffuse_mod 
+USE output_mod 
+USE qval_mod
+USE errlist_mod 
+use precision_mod
 USE support_mod
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER maxcol 
-      PARAMETER (maxcol = 255) 
+INTEGER maxcol 
+PARAMETER (maxcol = 255) 
 !                                                                       
-      INTEGER iqqq (maxqxy), ncol, ix, iy, k, value 
-      LOGICAL lread, laver 
-      REAL qqq 
+INTEGER :: iqqq (maxqxy), ncol, ix, iy, k, value 
+LOGICAL :: lread, laver 
+REAL(kind=PREC_DP) ::  qqq 
 !                                                                       
-!     REAL qval 
 !                                                                       
 !     Check whether data are 2-dimensional                              
 !                                                                       
@@ -1160,8 +1160,7 @@ USE support_mod
       ELSEIF (qqq.gt.zmax) THEN 
          qqq = zmax 
       ENDIF 
-      iqqq (ix) = nint (REAL(ncol - 1) * (qqq - zmin) / (zmax - zmin) &
-      )                                                                 
+      iqqq(ix) = nint(REAL(ncol - 1, kind=PREC_DP) * (qqq - zmin) / (zmax - zmin))
       ENDDO 
       WRITE (2, 5000) (iqqq (ix), ix = 1, out_inc (1) ) 
       ENDDO 
@@ -1173,31 +1172,31 @@ USE support_mod
  5000 FORMAT     (7i8) 
 !                                                                       
       END SUBROUTINE do_pgm                         
+!
 !*****7*****************************************************************
-      SUBROUTINE do_ppm (value, laver) 
+!
+SUBROUTINE do_ppm (value, laver) 
 !+                                                                      
 !     Writes the data in a PGM format                                   
 !-                                                                      
-      USE discus_config_mod 
-      USE diffuse_mod 
-      USE output_mod 
-      USE qval_mod
-      USE envir_mod 
-      USE errlist_mod 
+USE discus_config_mod 
+USE diffuse_mod 
+USE output_mod 
+USE qval_mod
+USE envir_mod 
+USE errlist_mod 
 USE support_mod
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER maxcol 
-      PARAMETER (maxcol = 255) 
+INTEGER maxcol 
+PARAMETER (maxcol = 255) 
 !                                                                       
-      INTEGER iqqq (maxqxy), ncol, ix, iy, k, value 
-      INTEGER icolor (maxcol, 3) 
-      INTEGER i, j 
-      LOGICAL lread, laver 
-      REAL qqq 
-!                                                                       
-!     REAL qval 
+INTEGER :: iqqq (maxqxy), ncol, ix, iy, k, value 
+INTEGER :: icolor (maxcol, 3) 
+INTEGER :: i, j 
+LOGICAL :: lread, laver 
+REAL(kind=PREC_DP) :: qqq 
 !                                                                       
       CHARACTER(6) cfarb (256) 
 !                                                                       
@@ -1244,11 +1243,9 @@ USE support_mod
       ELSEIF (qqq.gt.zmax) THEN 
          qqq = zmax 
       ENDIF 
-      iqqq (ix) = nint (REAL(ncol - 1) * (qqq - zmin) / (zmax - zmin) &
-      ) + 1                                                             
+      iqqq (ix) = nint(REAL(ncol-1, kind=PREC_DP) * (qqq-zmin)/(zmax-zmin)) + 1
       ENDDO 
-      WRITE (2, 5000) ( (icolor (iqqq (ix), j), j = 1, 3), ix = 1,      &
-      out_inc (1) )                                                     
+      WRITE(2, 5000) ((icolor(iqqq(ix), j), j=1, 3), ix=1, out_inc(1))
       ENDDO 
 !                                                                       
       CLOSE (2) 
@@ -1257,21 +1254,25 @@ USE support_mod
  2000 FORMAT    (1x,2i4/1x,i8) 
  5000 FORMAT     (15i4) 
 !                                                                       
-      END SUBROUTINE do_ppm                         
+END SUBROUTINE do_ppm                         
+!
 !*****7*****************************************************************
-      SUBROUTINE set_colorfeld (cfarb) 
+!
+SUBROUTINE set_colorfeld (cfarb) 
 !+                                                                      
 !     This routine sets the pseudo color color map                      
 !-                                                                      
-      IMPLICIT NONE
+use precision_mod
 !
-      INTEGER, PARAMETER ::maxcol = 256 
+IMPLICIT NONE
+!
+INTEGER, PARAMETER ::maxcol = 256 
 !                                                                       
-      CHARACTER (LEN=*),DIMENSION(maxcol) :: cfarb !(maxcol) 
-      CHARACTER(LEN=20),DIMENSION(maxcol) :: ccc   ! (256) 
-      INTEGER,          DIMENSION(3)      :: rgb (3) 
-      INTEGER                             :: i,ii,j,ifarb
-      REAL                                :: rh, rp, rq, rt, rf
+CHARACTER (LEN=*),DIMENSION(maxcol) :: cfarb !(maxcol) 
+CHARACTER(LEN=20),DIMENSION(maxcol) :: ccc   ! (256) 
+INTEGER,          DIMENSION(3)      :: rgb (3) 
+INTEGER                             :: i,ii,j,ifarb
+REAL(kind=PREC_DP)                  :: rh, rp, rq, rt, rf
 !                                                                       
       cfarb (1) = '000000' 
 !                                                                       
@@ -1332,69 +1333,73 @@ USE support_mod
  1000 FORMAT     (3(z2)) 
  2000 FORMAT    ('#',a6,'00') 
       END SUBROUTINE set_colorfeld                  
+!
 !*****7*****************************************************************
-      SUBROUTINE do_output (value, laver) 
+!
+SUBROUTINE do_output (value, laver) 
 !-                                                                      
 !     Writes output in standard or GNUPLOT format                       
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE diffuse_mod 
-      USE discus_nipl_header
+USE discus_config_mod 
+USE crystal_mod 
+USE diffuse_mod 
+USE discus_nipl_header
 USE discus_fft_mod
-      USE fourier_sup
-      USE output_mod 
-      USE qval_mod
-      USE envir_mod 
-      USE errlist_mod 
+use discus_output_save_mod
+USE fourier_sup
+USE output_mod 
+USE qval_mod
+USE envir_mod 
+USE errlist_mod 
 USE lib_length
-      USE prompt_mod 
+use precision_mod
+USE prompt_mod 
 USE support_mod
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-       
+integer, intent(out) :: value       
+logical, intent(in) :: laver
 !                                                                       
-      INTEGER iff 
-      PARAMETER (iff = 2) 
+INTEGER iff 
+PARAMETER (iff = 2) 
 !                                                                       
-      CHARACTER(LEN=2024) dummy_file
-      INTEGER HKLF4, LIST5, LIST9 , ASCII3D
-      PARAMETER (HKLF4 = 6, LIST5 = 7, LIST9 = 8, ASCII3D = 9) 
+CHARACTER(LEN=2024) dummy_file
+INTEGER HKLF4, LIST5, LIST9 , ASCII3D
+PARAMETER (HKLF4 = 6, LIST5 = 7, LIST9 = 8, ASCII3D = 9) 
 !                                                                       
-      INTEGER extr_ima, i, j, k, l, value 
-      LOGICAL lread, laver 
-      REAL h (3) 
-      REAL sq, qq, out_fac 
+INTEGER :: extr_ima, i, j, k, l
+LOGICAL :: lread
+REAL(kind=PREC_DP), dimension(3) ::  h (3) 
+REAL(kind=PREC_DP) ::  sq, qq, out_fac 
 !                                                                       
-      INTEGER shel_inc (3) 
-      INTEGER shel_value 
-      REAL shel_eck (3, 4) 
-      REAL shel_vi (3, 3) 
-      REAL shel_000 
-      COMPLEX shel_csf 
-      COMPLEX shel_acsf 
-      REAL shel_dsi 
-      COMPLEX shel_tcsf 
-      REAL factor
+INTEGER shel_inc (3) 
+INTEGER shel_value 
+REAL(kind=PREC_DP) ::  shel_eck (3, 4) 
+REAL(kind=PREC_DP) ::  shel_vi (3, 3) 
+REAL(kind=PREC_DP) ::  shel_000 
+COMPLEX(kind=PREC_DP) ::  shel_csf 
+COMPLEX(kind=PREC_DP) ::  shel_acsf 
+REAL(kind=PREC_DP) ::  shel_dsi 
+COMPLEX(kind=PREC_DP) ::  shel_tcsf 
+REAL(kind=PREC_DP) ::  factor
 !
-      INTEGER                            :: npkt1      ! Points in 1D files standard file format
-      INTEGER                            :: npkt2      ! Points in 2D files standard file format
-      INTEGER                            :: npkt3      ! Points in 3D files standard file format
-      INTEGER                            :: all_status ! Allocation status 
-      INTEGER                            :: is_dim     ! dimension of standard output file
-      INTEGER                            :: is_axis    ! Axis of standard output file
-      INTEGER, DIMENSION(1:3)            :: loop       ! Allows flexible loop index
-      INTEGER, DIMENSION(1:3)            :: out_index  ! Index that is written along axis 
-      REAL   , DIMENSION(1:4)            :: ranges     ! xmin, xmax, ymin, ymax for NIPL files
-      REAL   , DIMENSION(:), ALLOCATABLE :: xwrt  ! 'x' - values for standard 1D files
-      REAL   , DIMENSION(:), ALLOCATABLE :: ywrt  ! 'x' - values for standard 1D files
-      REAL   , DIMENSION(:,:), ALLOCATABLE :: zwrt  ! 'z' - values for standard 2D files
+INTEGER                            :: npkt1      ! Points in 1D files standard file format
+INTEGER                            :: npkt2      ! Points in 2D files standard file format
+INTEGER                            :: npkt3      ! Points in 3D files standard file format
+INTEGER                            :: all_status ! Allocation status 
+INTEGER                            :: is_dim     ! dimension of standard output file
+INTEGER                            :: is_axis    ! Axis of standard output file
+INTEGER, DIMENSION(1:3)            :: loop       ! Allows flexible loop index
+INTEGER, DIMENSION(1:3)            :: out_index  ! Index that is written along axis 
+REAL(kind=PREC_DP), DIMENSION(1:4)            :: ranges     ! xmin, xmax, ymin, ymax for NIPL files
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: xwrt  ! 'x' - values for standard 1D files
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: ywrt  ! 'x' - values for standard 1D files
+REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: zwrt  ! 'z' - values for standard 2D files
 INTEGER :: nnew1, nnew2
 !
-      CHARACTER (LEN=160), DIMENSION(:), ALLOCATABLE :: header_lines
-      INTEGER :: nheader
+CHARACTER (LEN=160), DIMENSION(:), ALLOCATABLE :: header_lines
+INTEGER :: nheader
 !                                                                       
-!     REAL qval 
       factor = 0.0
       npkt3  = 1
 !                                                                       
@@ -1412,9 +1417,9 @@ INTEGER :: nnew1, nnew2
          shel_vi (i, j) = vi (i, j) 
          ENDDO 
          ENDDO 
-         shel_tcsf = CMPLX(csf (1),KIND=KIND(0.0)) 
-         shel_acsf = CMPLX(acsf (1),KIND=KIND(0.0)) 
-         shel_dsi = REAL(dsi (1)) 
+         shel_tcsf = CMPLX(csf (1),KIND=KIND(0.0D0)) 
+         shel_acsf = CMPLX(acsf(1),KIND=KIND(0.0D0)) 
+         shel_dsi = dsi(1) 
          inc (1) = 1 
          inc (2) = 1 
          inc (3) = 1 
@@ -1432,14 +1437,13 @@ INTEGER :: nnew1, nnew2
             value = 2 
          ENDIF 
          CALL four_run 
-         shel_csf = CMPLX(csf (1), KIND=KIND(0.0))
+         shel_csf = CMPLX(csf (1), KIND=KIND(0.0D0))
          shel_000 = qval (1, value, 1, 1, laver) 
-         qq = qval (1, value, 1, 1, laver) / cr_icc (1) / cr_icc (2)    &
-         / cr_icc (3)                                                   
+         qq = qval(1, value, 1, 1, laver) / cr_icc(1)/cr_icc(2)/cr_icc(3)
          IF (ityp.eq.HKLF4) THEN 
-            factor = max (int (log (qq) / log (10.0) ) - 3, 0) 
+            factor = max (int (log (qq) / log (10.0D0) ) - 3, 0) 
          ELSEIF (ityp.eq.LIST5) THEN 
-            factor = max (int (log (qq) / log (10.0) ) - 2, 0) 
+            factor = max (int (log (qq) / log (10.0D0) ) - 2, 0) 
          ENDIF 
          out_fac = 10** ( - factor) 
          csf (1) = shel_tcsf 
@@ -1522,9 +1526,9 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
       DO i = 1, out_inc (is_axis)   ! loop along axis is_axis 
          loop(is_axis) = i
          DO k = 1, 3 
-            h (k) = out_eck(k,1) + out_vi(k,1) * REAL(loop(1)-1)   &
-                                 + out_vi(k,2) * REAL(loop(2)-1)   &
-                                 + out_vi(k,3) * REAL(loop(3)-1)  
+            h (k) = out_eck(k,1) + out_vi(k,1) * REAL(loop(1)-1, kind=PREC_DP)   &
+                                 + out_vi(k,2) * REAL(loop(2)-1, kind=PREC_DP)   &
+                                 + out_vi(k,3) * REAL(loop(3)-1, kind=PREC_DP)  
          ENDDO 
          xwrt(i) = h(out_extr_abs)
          ywrt(i) = qval (i, value, i, j, laver)
@@ -1932,7 +1936,7 @@ INTEGER, DIMENSION(3) :: dsort
 CHARACTER(LEN=PREC_STRING)   :: string
 INTEGER               :: lcomm
 REAL(KIND=PREC_DP), DIMENSION(3)    :: u
-REAL(KIND=PREC_SP)    :: uu
+REAL(KIND=PREC_DP)    :: uu
 !
 IF(l_val_limited) THEN
    CALL output_limit(dsmax)
@@ -2028,8 +2032,8 @@ LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:), ALLOCATABLE  :: pattern  ! the diffraction pattern
-!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
-!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
+!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
+!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
 !INTEGER                 :: lenwrk   ! Length of work array
 !INTEGER                 :: lensav   ! Length of wsave array
 !INTEGER :: n1, n2
@@ -2086,8 +2090,8 @@ real(kind=PREC_DP) :: dx
 real(kind=PREC_DP) :: dy
 real(kind=PREC_DP) :: tx
 real(kind=PREC_DP) :: ty
-!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
-!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
+!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
+!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
 !INTEGER                 :: lenwrk   ! Length of work array
 !INTEGER                 :: lensav   ! Length of wsave array
 !INTEGER :: n1, n2
@@ -2163,8 +2167,8 @@ LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
-!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
-!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
+!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
+!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
 !REAL(KIND=PREC_DP) :: f
 !INTEGER                 :: lenwrk   ! Length of work array
 !INTEGER                 :: lensav   ! Length of wsave array
@@ -2255,7 +2259,6 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: h
 INTEGER :: i,j,k,l
 INTEGER :: iii
 !
-!dstarmax = REAL(dsmax)
 DO l = 1, inc(3) 
    DO j = 1, inc(2) 
       DO i = 1, inc(1) 

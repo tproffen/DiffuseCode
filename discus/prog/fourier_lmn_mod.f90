@@ -12,7 +12,6 @@ SUBROUTINE fourier_lmn(eck,vi,inc,lmn,off)
 !   are calculated.
 !
 USE errlist_mod
-!USE tensors_mod
 use matrix_mod
 USE lib_random_func
 use precision_mod
@@ -30,7 +29,7 @@ INTEGER                     :: i,j, j1, j2
 INTEGER                     :: dimen   ! dimension spanned by vi vectors (1, 2, 3)
 INTEGER, DIMENSION(1:3)     :: direc   ! index of directions with inc > 1
 LOGICAL, DIMENSION(1:3)     :: nooff   ! offset vectors
-REAL                        :: dummy
+REAL(kind=PREC_DP)          :: dummy
 REAL(kind=PREC_DP)   , DIMENSION(1:3,1:3) :: mat_a
 REAL(kind=PREC_DP)   , DIMENSION(1:3)     :: vec_r
 REAL(kind=PREC_DP)   , DIMENSION(1:3,1:3) :: mat_i

@@ -133,7 +133,7 @@ USE precision_mod
 !------ All information must be passed on via these variables, do       
 !------ NOT change any other DISCUS variables !                         
 !                                                                       
-      REAL p_new (3, rmc_max_atom) 
+      REAL(kind=PREC_DP) :: p_new (3, rmc_max_atom) 
       INTEGER i_new (rmc_max_atom) 
       INTEGER isel (rmc_max_atom) 
       INTEGER natoms 

@@ -19,11 +19,7 @@ real(kind=PREC_DP), dimension(3), intent(in) ::  u
 real(kind=PREC_DP), dimension(3), intent(in) ::  v
 !                                                                       
 REAL(kind=PREC_DP), dimension(3) :: w
-!     REAL skalpro 
 !                                                                       
-!DO i = 1, 3 
-!   w (i) = v (i) - u (i) 
-!ENDDO 
 w = v - u
 !                                                                       
 IF (lspace) then 
@@ -55,19 +51,11 @@ real(kind=PREC_DP), dimension(3), intent(in) ::  u
 real(kind=PREC_DP), dimension(3), intent(in) ::  v
 real(kind=PREC_DP), dimension(3), intent(in) ::  w
 !                                                                       
-!     LOGICAL lspace 
-!     REAL u (3), v (3), w (3) 
-!                                                                       
 REAL(kind=PREC_DP) ::  xx, xy, yy, arg 
 REAL(kind=PREC_DP), dimension(3) ::  x (3), y (3) 
-!     REAL skalpro 
 !                                                                       
 do_bang = 0.0D0
 !                                                                       
-!DO i = 1, 3 
-!   x(i) = v(i) - u(i) 
-!   y(i) = v(i) - w(i) 
-!ENDDO 
 x = v - u
 y = v - w
 !                                                                       
@@ -112,15 +100,6 @@ real(kind=PREC_DP), dimension(3),   intent(in) :: h
 real(kind=PREC_DP), dimension(3),   intent(in) :: k
 real(kind=PREC_DP), dimension(3,3), intent(in) :: rten
 !
-!     REAL h (idim), k (idim), rten (idim, idim) 
-!                                                                       
-!                                                                       
-!skalpro = 0.0 
-!   DO i = 1, idim 
-!      DO j = 1, idim 
-!         skalpro = skalpro + h (i) * k (j) * rten (i, j) 
-!   ENDDO 
-!ENDDO 
 skalpro = dot_product(h, matmul(rten, k))
 !                                                                       
 END FUNCTION skalpro                          
@@ -144,7 +123,6 @@ real(kind=PREC_DP), dimension(3,3,3), intent(in)  :: eps
 real(kind=PREC_DP), dimension(3,3),   intent(in)  :: rten
 !
 INTEGER :: i, j, k, l 
-!REAL    :: U (3), V (3), WW (3), EPS (3, 3, 3), RTEN (3, 3) 
 !                                                                       
 DO i = 1, 3 
    ww (i) = 0.0D0 
@@ -167,7 +145,6 @@ SUBROUTINE d2r (line, laenge, lspace)
 !+                                                                      
 USE discus_config_mod 
 USE crystal_mod 
-!     USE trafo_mod
 !
 USE ber_params_mod
 USE errlist_mod 
@@ -254,7 +231,6 @@ SUBROUTINE vprod (line, laenge)
 !+                                                                      
 USE discus_config_mod 
 USE crystal_mod 
-USE trafo_mod
 USE ber_params_mod
 USE errlist_mod 
 USE get_params_mod
@@ -373,7 +349,6 @@ USE get_params_mod
 USE wink_mod
 USE param_mod 
 USE precision_mod
-USE trafo_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -390,8 +365,6 @@ REAL(KIND=PREC_DP) :: werte (maxw)
 REAL(KIND=PREC_DP) :: u (3), v (3), w (3), h (3), x (3) 
 REAL(KIND=PREC_DP) :: vv, uv, uh, hh, uu 
 REAL(KIND=PREC_DP) :: arg 
-!                                                                       
-!     REAL skalpro 
 !                                                                       
 IF (cr_v.le.0.0) then 
    ier_num = - 35 

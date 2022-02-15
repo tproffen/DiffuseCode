@@ -28,12 +28,12 @@ CONTAINS
 !                                                                       
       WRITE (output_io, 1000) 
 !                                                                       
-      xt = 1.0d0 / REAL (I2PI, KIND=KIND(0.0D0)) 
-      twopi = 8.0d0 * datan (1.0d0) 
+      xt = 1.0d0 / REAL(I2PI, KIND=KIND(0.0D0)) 
+      twopi = 8.0d0 * atan(1.0d0) 
 !                                                                       
       sinetab(0) = 0.0D0
       DO i = 1, MASK 
-         xmult       = REAL (i, KIND=KIND(0.0D0)) * xt 
+         xmult       = REAL(i, KIND=KIND(0.0D0)) * xt 
          xarg        = twopi * xmult 
          sinetab (i) = DBLE( dsin (xarg)        )
       ENDDO 
@@ -58,10 +58,10 @@ CONTAINS
       IMPLICIT none 
 !
       INTEGER, INTENT(IN) :: n_points   ! number of points in reciprocal space
-      REAL   (PREC_DP), INTENT(IN) :: xstart     ! starting point in reciprocal space
-      REAL   (PREC_DP), INTENT(IN) :: xdelta     ! starting point in reciprocal space
+      REAL(PREC_DP), INTENT(IN) :: xstart     ! starting point in reciprocal space
+      REAL(PREC_DP), INTENT(IN) :: xdelta     ! starting point in reciprocal space
 !                                                                       
-      REAL q2 
+      REAL(kind=PREC_DP) :: q2 
       INTEGER i
       INTEGER     :: n_qxy   = 1 ! Maximum number of points in reciprocal space 
       INTEGER     :: n_nscat = 1 ! Maximum Number of atom type
@@ -78,6 +78,7 @@ CONTAINS
 !     ENDIF 
 !                                                                       
       IF (n_points > MAX(MAXQXY, MAXDQXY)  .OR.          &
+          n_points > ubound(istl,1)        .or.          &
           cr_nscat>DIF_MAXSCAT              ) THEN
          n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
          n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
@@ -91,8 +92,8 @@ CONTAINS
       powder_istl(:) = 0
 !
       DO i = 0, n_points
-         q2 = REAL(( (xstart + xdelta  * REAL  (i    ,KIND=KIND(0.0D0)) ) **2) / 4.0D0 )
-         istl (i) = nint (sqrt (q2) * (1.0 / CFINC) ) 
+         q2 = ( (xstart + xdelta  * REAL(i,KIND=KIND(0.0D0)) ) **2) / 4.0D0
+         istl (i) = nint(sqrt(q2) * (1.0D0 / CFINC) ) 
 !DBG                                                                    
 !DBG      if(i.eq.150) then                                             
 !DBG        write(*,*) 'q2  ', q2                                       

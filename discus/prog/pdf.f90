@@ -11,6 +11,7 @@ SUBROUTINE pdf
       USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
+use discus_output_pdf_mod
       USE chem_mod 
       USE modify_mod
       USE pdf_mod 
@@ -351,14 +352,13 @@ USE str_comp_mod
       INTEGER, INTENT(IN) :: mode
        
 !                                                                       
-      REAL sincut, rcut, z, bave, hh, rtot, ract 
+      REAL(kind=PREC_DP) :: sincut, rcut, z, bave, hh, rtot, ract 
       REAL(PREC_DP) :: factor
       INTEGER :: max_bnd
       INTEGER i, j, ia, is, js, nn, nnn 
       INTEGER, DIMENSION(0:MAXSCAT) :: pdf_natoms
       LOGICAL ltot 
 !                                                                       
-!     REAL form, quad 
 !                                                                       
       WRITE (output_io, 1000) 
 !                                                                       
@@ -782,6 +782,7 @@ USE str_comp_mod
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+use discus_output_pdf_mod
       USE pdf_mod 
       USE save_menu
 !
@@ -803,7 +804,7 @@ USE support_mod
 !                                                                       
       INTEGER i, nmi, nma, nmd 
       INTEGER ::  pdf_calc_l, pdf_calc_u
-      REAL r 
+      REAL(kind=PREC_DP) :: r 
 !                                                                       
       CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: cdummy, cpara (maxw) 
       INTEGER ianz, lpara (maxw)
@@ -915,8 +916,8 @@ USE support_mod
       INTEGER ianz, ip 
       INTEGER  :: iostatus
       INTEGER  :: n_dat
-      REAL ra, re, dr 
-      REAL                                   :: r_dummy1, r_dummy2
+      REAL(kind=PREC_DP) :: ra, re, dr 
+      REAL(kind=PREC_DP) :: r_dummy1, r_dummy2
       REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -1004,7 +1005,7 @@ main:    DO
 !!!         pdf_us_int = 1
          pdf_deltaru =  (re-ra)/REAL(ip-2)
          IF(pdf_deltaru > pdf_deltari) THEN
-            pdf_us_int = NINT(MAX(pdf_deltaru/pdf_deltari,1.))
+            pdf_us_int = NINT(MAX(pdf_deltaru/pdf_deltari,1.D0))
             pdf_deltar = pdf_deltaru/pdf_us_int ! internal delta R ~ pdf_deltari always
          ELSE
             pdf_deltar = pdf_deltaru
@@ -1534,7 +1535,7 @@ REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw)
 !              pdf_deltar = werte (2) 
                pdf_deltaru= werte (2)   ! user supplied delta R
                IF(pdf_deltaru>pdf_deltari) then
-                  pdf_us_int = NINT(MAX(pdf_deltaru/pdf_deltari,1.))
+                  pdf_us_int = NINT(MAX(pdf_deltaru/pdf_deltari,1.D0))
                   pdf_deltar = pdf_deltaru/pdf_us_int ! internal delta R ~ pdf_deltari always
                ELSE
                   pdf_deltar = pdf_deltaru
@@ -1760,13 +1761,12 @@ USE support_mod
        
 !                                                                       
       REAL(PREC_DP) cc, c, ce, e, ee, wtot, cold, cnew
-!     REAL pdf_old (MAXDAT) 
       REAL(PREC_DP), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
-      REAL sig2, sumbad 
-      REAL prob, psum, p2sum, pave, psig, pmax, pn 
-      REAL start, zeit
-      REAL p_new (3, rmc_max_atom) 
-      REAL p_old (3, rmc_max_atom) 
+      REAL(kind=PREC_DP) :: sig2, sumbad 
+      REAL(kind=PREC_DP) :: prob, psum, p2sum, pave, psig, pmax, pn 
+      REAL(kind=PREC_DP) :: start, zeit
+      REAL(kind=PREC_DP) :: p_new (3, rmc_max_atom) 
+      REAL(kind=PREC_DP) :: p_old (3, rmc_max_atom) 
       INTEGER i_new (rmc_max_atom) 
       INTEGER i_old (rmc_max_atom) 
       INTEGER isel (rmc_max_atom), natoms 
@@ -1907,11 +1907,11 @@ main: DO while (loop)
 !-------- - Calc new PDF and chi2                                       
 !                                                                       
             DO i = 1, natoms 
-               CALL pdf_addcorr (isel (i), - 2.0, sumbad) 
+               CALL pdf_addcorr (isel (i), - 2.0D0, sumbad) 
             ENDDO 
             CALL pdf_makemove (natoms, i_new, p_new, isel, imol) 
             DO i = 1, natoms 
-               CALL pdf_addcorr (isel (i), 2.0, sumbad) 
+               CALL pdf_addcorr (isel (i), 2.0D0, sumbad) 
             ENDDO 
             CALL pdf_convert 
 !                                                                       
@@ -2065,18 +2065,18 @@ USE lib_random_func
       REAL(PREC_DP), INTENT(INOUT) :: cold
       REAL(PREC_DP), INTENT(IN)    :: wtot
       REAL(PREC_DP), INTENT(IN)    :: ee
-      REAL    , INTENT(INOUT) :: psum
-      REAL    , INTENT(INOUT) :: p2sum
-      REAL    , INTENT(INOUT) :: pmax
-      REAL    , INTENT(INOUT) :: pn 
-      REAL    , INTENT(IN)    :: sig2
+      REAL(kind=PREC_DP)    , INTENT(INOUT) :: psum
+      REAL(kind=PREC_DP)    , INTENT(INOUT) :: p2sum
+      REAL(kind=PREC_DP)    , INTENT(INOUT) :: pmax
+      REAL(kind=PREC_DP)    , INTENT(INOUT) :: pn 
+      REAL(kind=PREC_DP)    , INTENT(IN)    :: sig2
 !
       INTEGER  :: i, ip, nmi, nma, ipc
       LOGICAL  :: laccept
       REAL(PREC_DP) :: c, cc, ce, cnew
-      REAL     :: pdf_old_scale
-      REAL     :: pdf_old_rho0 
-      REAL     :: prob
+      REAL(kind=PREC_DP)     :: pdf_old_scale
+      REAL(kind=PREC_DP)     :: pdf_old_rho0 
+      REAL(kind=PREC_DP)     :: prob
       REAL(PREC_DP), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
 !
 !
@@ -2169,18 +2169,18 @@ USE lib_random_func
       REAL(PREC_DP), INTENT(INOUT) :: cold
       REAL(PREC_DP), INTENT(IN)    :: wtot
       REAL(PREC_DP), INTENT(IN)    :: ee
-      REAL    , INTENT(INOUT) :: psum
-      REAL    , INTENT(INOUT) :: p2sum
-      REAL    , INTENT(INOUT) :: pmax
-      REAL    , INTENT(INOUT) :: pn 
-      REAL    , INTENT(IN)    :: sig2
+      REAL(kind=PREC_DP)    , INTENT(INOUT) :: psum
+      REAL(kind=PREC_DP)    , INTENT(INOUT) :: p2sum
+      REAL(kind=PREC_DP)    , INTENT(INOUT) :: pmax
+      REAL(kind=PREC_DP)    , INTENT(INOUT) :: pn 
+      REAL(kind=PREC_DP)    , INTENT(IN)    :: sig2
 !
       INTEGER  :: i, ip, nmi, nma, ipc
       LOGICAL  :: laccept
       REAL(PREC_DP) :: c, cc, ce, cnew
-      REAL, DIMENSION(6) :: pdf_old_lattice
-      REAL     :: sum
-      REAL     :: prob
+      REAL(kind=PREC_DP), DIMENSION(6) :: pdf_old_lattice
+      REAL(kind=PREC_DP)     :: sum
+      REAL(kind=PREC_DP)     :: prob
       REAL(PREC_DP), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
 !
 !
@@ -2245,7 +2245,7 @@ laccept = .false.
 !        Calculate new PDF and chi2
 !
          DO i = 1, cr_natoms 
-            CALL pdf_addcorr (i, 1.0, sum) 
+            CALL pdf_addcorr (i, 1.0D0, sum) 
          ENDDO 
          CALL pdf_convert
          cnew = 0.0d0 
@@ -2303,7 +2303,7 @@ laccept = .false.
             cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
             pdf_corr = 0.0  ! Clear pdf_corr, as we loop over all atoms
             DO i = 1, cr_natoms 
-               CALL pdf_addcorr (i, 1.0, sum) 
+               CALL pdf_addcorr (i, 1.0D0, sum) 
             ENDDO 
             CALL pdf_convert
             CALL refine_adapt_lattice (0)
@@ -2322,7 +2322,7 @@ laccept = .false.
       IMPLICIT none 
 !                                                                       
       INTEGER , INTENT(IN) :: natoms 
-      REAL    , INTENT(IN) :: p_new (3, rmc_max_atom) 
+      REAL(kind=PREC_DP)    , INTENT(IN) :: p_new (3, rmc_max_atom) 
       INTEGER , INTENT(IN) :: i_new (rmc_max_atom) 
       INTEGER , INTENT(IN) :: isel (rmc_max_atom) 
       INTEGER , INTENT(IN) :: imol (rmc_max_atom) 
@@ -2362,19 +2362,20 @@ laccept = .false.
       USE errlist_mod 
       USE prompt_mod 
 USE support_mod
+use precision_mod
       IMPLICIT none 
 !                                                                       
       LOGICAL , INTENT(IN) :: lout 
 !                                                                       
       INTEGER i, j, ia, id 
-      REAL done, sum 
+      REAL(kind=PREC_DP) done, sum 
 !
       INTEGER              :: npoint   !Number of points for histogram in exact mode
       INTEGER              :: nlook    !Number of look up dimensions 
       LOGICAL              :: all_atoms ! Are all atoms included in PDF?
       LOGICAL              :: do_mol   ! Take moleculoar B-values into account
-      REAL, DIMENSION(1:3) :: u        ! Crystal diagonal
-      REAL ss 
+      REAL(kind=PREC_DP), DIMENSION(1:3) :: u        ! Crystal diagonal
+      REAL(kind=PREC_DP) ss 
 !                                                                       
       ss = seknds (0.0) 
       u  = 0.00
@@ -2604,7 +2605,7 @@ USE support_mod
          RETURN     !ERRR, skip convtherm and convert
       ENDIF
 !                                                                       
-      CALL pdf_convtherm (1.0, sum) 
+      CALL pdf_convtherm (1.0D0, sum) 
 !                                                                       
 !------ Convert to proper G(r)                                          
 !                                                                       
@@ -2644,18 +2645,12 @@ USE support_mod
 !                                                                       
       INTEGER i, k, ncc 
       INTEGER :: jpdf_bin
-!     REAL ppp (MAXDAT) 
-!      REAL, DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
-!     REAL(PREC_DP), DIMENSION(:), ALLOCATABLE :: ppp ! (MAXDAT) 
-      REAL norm, r, r0 
-      REAL rr 
-      REAL :: factor,fac4
-      REAL :: c_sphere
-!     REAL(PREC_DP) :: convlv
-!     INTEGER (SELECTED_INT_KIND(9)) :: isign = 1
+      REAL(kind=PREC_DP) norm, r, r0 
+      REAL(kind=PREC_DP) rr 
+      REAL(kind=PREC_DP) :: factor,fac4
+      REAL(kind=PREC_DP) :: c_sphere
 !                                                                       
       rr = 0.0
-!     ALLOCATE(ppp(1:SIZE(pdf_calc)))
       ncc = cr_icc (1) * cr_icc (2) * cr_icc (3) 
       IF (.not.pdf_lrho0) then 
          IF (pdf_lrho0_rel) then 
@@ -2676,7 +2671,7 @@ USE support_mod
       IF(r0>0.0) THEN
          c_sphere = cr_n_real_atoms/(4./3.*pi*(pdf_sphere/2)**3*r0)
       ELSE
-         c_sphere = 1.0
+         c_sphere = 1.0D0
       ENDIF
 ! c_sphere=1.0
       DO i = 1, pdf_bin 
@@ -2689,20 +2684,20 @@ USE support_mod
             DO k = 1, pdf_poly_n 
                rr = rr - pdf_poly (k) * r**k 
             ENDDO 
-            rr = max (0.0, rr) 
+            rr = max (0.0D0, rr) 
          ELSE 
             rr = 0.0 
          ENDIF 
       ELSEIF (pdf_finite.eq.PDF_BACK_SPHERE) then 
          rr = 2.0 * REAL(zpi) * r * r0 * pdf_dnorm 
          IF (r.lt.pdf_sphere) then 
-            rr = rr * (1. - 1.5 * (r / pdf_sphere) + .5 * (r /          &
+            rr = rr * (1.D0 - 1.5D0 * (r / pdf_sphere) + .5D0 * (r /          &
             pdf_sphere) **3)*c_sphere
          ELSE 
-            rr = 0.0 
+            rr = 0.0D0 
          ENDIF 
       ELSEIF (pdf_finite.eq.PDF_BACK_TANH) then 
-         rr = max (0.0, - 2.0 * REAL(zpi) * r * r0 * pdf_dnorm * tanh (       &
+         rr = max (0.0D0, - 2.0D0 * zpi * r * r0 * pdf_dnorm * tanh (       &
          pdf_shape * (r - pdf_diam) ) )                                 
       ENDIF 
       IF (chem_period (1) ) then 
@@ -2780,8 +2775,8 @@ USE support_mod
       IMPLICIT none 
 !                                                                       
       INTEGER , INTENT(IN)  :: ia 
-      REAL    , INTENT(IN)  :: rsign
-      REAL    , INTENT(OUT) :: sum 
+      REAL(kind=PREC_DP)    , INTENT(IN)  :: rsign
+      REAL(kind=PREC_DP)    , INTENT(OUT) :: sum 
 !                                                                       
       INTEGER ig, igaus, ib, ie 
       INTEGER :: jgaus  ! Limit checked igaus
@@ -2790,9 +2785,9 @@ USE support_mod
 !     REAL(PREC_DP) ppp (MAXDAT), gaus ( - MAXDAT:MAXDAT) 
 !      REAL(PREC_DP), DIMENSION( PDF_MAXDAT)            :: ppp   !(MAXDAT)
       REAL(PREC_DP), DIMENSION(-PDF_MAXDAT:PDF_MAXDAT) :: gaus  ! ( - MAXDAT:MAXDAT) 
-      REAL asym, gnorm, dist, dist2 !, rg 
-      REAL sigma, fac , factor, fac4
-      REAL dd (3), d (3), offset (3) 
+      REAL(kind=PREC_DP) asym, gnorm, dist, dist2 !, rg 
+      REAL(kind=PREC_DP) sigma, fac , factor, fac4
+      REAL(kind=PREC_DP) dd (3), d (3), offset (3) 
 !                                                                       
       fac = 1.0 / (2.0 * REAL(zpi)**2) 
 !                                                                       
@@ -2871,7 +2866,7 @@ USE support_mod
 !                     ENDIF
                      sigma = sigma - pdf_cquad_a / dist2 
                      sigma = sigma - pdf_clin_a / dist 
-                     sigma = max (0.0, sigma) 
+                     sigma = max (0.0D0, sigma) 
                   ENDIF 
                   sigma = sigma + pdf_qalp**2 * dist2 
                   sigma = sqrt (sigma) 
@@ -2880,7 +2875,7 @@ USE support_mod
                      sigma = sigma * pdf_srat 
                   ENDIF 
 !                                                                       
-                  igaus = 1 + nint (5.0 * sigma / pdf_deltar) 
+                  igaus = 1 + nint (5.0D0 * sigma / pdf_deltar) 
                   ib = max (1, ibin - igaus + 1) 
                   ie = min (pdf_bin, ibin + igaus - 1) 
 !                                                                       
@@ -2948,8 +2943,8 @@ USE support_mod
       INTEGER  :: ipdf_rmax
       INTEGER istart (3), iend (3), iii (3), cell (3) 
       INTEGER  :: offzero
-      REAL dist
-      REAL dd (3), offset (3)
+      REAL(kind=PREC_DP) dist
+      REAL(kind=PREC_DP) dd (3), offset (3)
 !
       ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
 !
@@ -3059,8 +3054,8 @@ USE support_mod
       INTEGER i, j, k, ii, jj, is, js, ks, iatom, ibin 
       INTEGER istart (3), iend (3), iii (3), cell (3) 
       INTEGER  :: offzero, islook
-      REAL dist, dist2 
-      REAL dd (3), d (3), offset (3) 
+      REAL(kind=PREC_DP) dist, dist2 
+      REAL(kind=PREC_DP) dd (3), d (3), offset (3) 
 !
       is = cr_iscat (ia) 
       IF (pdf_allowed_i (is) .or.pdf_allowed_j (is) ) then 
@@ -3159,8 +3154,8 @@ USE support_mod
       INTEGER   :: id
       INTEGER   :: is, js, ia, iatom, ibin , islook
       INTEGER   :: ipdf_rmax
-      REAL      :: done
-      REAL dd (3)
+      REAL(kind=PREC_DP)      :: done
+      REAL(kind=PREC_DP) dd (3)
 !                                                                       
       id = MAX(100, cr_natoms/5)    ! Progress report 20% or every 100 atoms
       ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
@@ -3224,9 +3219,9 @@ USE support_mod
       INTEGER :: id
       INTEGER :: is, js, ia, iatom, ibin 
       INTEGER   :: ipdf_rmax
-      REAL                  :: done
-      REAL   , DIMENSION(3) :: dd
-      REAL :: ss
+      REAL(kind=PREC_DP)                  :: done
+      REAL(kind=PREC_DP)   , DIMENSION(3) :: dd
+      REAL(kind=PREC_DP) :: ss
 !
       id = MAX(100, cr_natoms/5)    ! Progress report 20% or every 100 atoms
       ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
@@ -3292,9 +3287,9 @@ USE support_mod
       INTEGER, DIMENSION(3) :: ncell
       INTEGER, DIMENSION(3) :: icell
       INTEGER               :: ix,iy,iz   !Loop over periodic boundaries
-      REAL                  :: done, dist
-      REAL   , DIMENSION(3) :: dd
-      REAL :: ss
+      REAL(kind=PREC_DP)                  :: done, dist
+      REAL(kind=PREC_DP)   , DIMENSION(3) :: dd
+      REAL(kind=PREC_DP) :: ss
 !
       icell(1) = MAX(cr_icc(1),NINT(cr_dim0(1,2)-cr_dim0(1,1)))
       icell(2) = MAX(cr_icc(1),NINT(cr_dim0(2,2)-cr_dim0(2,1)))
@@ -3377,9 +3372,9 @@ USE support_mod
       INTEGER :: id
       INTEGER :: is, js, ia, iatom, ibin , islook
       INTEGER   :: ipdf_rmax
-      REAL                  :: done
-      REAL   , DIMENSION(3) :: dd
-      REAL :: ss
+      REAL(kind=PREC_DP)                  :: done
+      REAL(kind=PREC_DP)   , DIMENSION(3) :: dd
+      REAL(kind=PREC_DP) :: ss
 !
       id = MAX(100, cr_natoms/5)    ! Progress report 20% or every 100 atoms
       ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
@@ -3442,17 +3437,17 @@ inner:      DO iatom = ia+1, cr_natoms
       USE precision_mod
       IMPLICIT none 
 !                                                                       
-      REAL , INTENT(IN)  :: rsign
-      REAL , INTENT(OUT) :: sum 
+      REAL(kind=PREC_DP) , INTENT(IN)  :: rsign
+      REAL(kind=PREC_DP) , INTENT(OUT) :: sum 
 !                                                                       
       INTEGER ig, igaus, ib, ie , jgaus
       INTEGER ii, is, js, ibin , ibin1
       INTEGER :: il   ! Index for mole B-values
 !     REAL(PREC_DP) gaus ( - MAXDAT:MAXDAT) 
       REAL(PREC_DP), DIMENSION(- PDF_MAXDAT:PDF_MAXDAT) :: gaus ! ( - MAXDAT:MAXDAT) 
-      REAL asym, gnorm, dist, dist2 !, rg 
-      REAL sigma, fac , factor, fac4
-      REAL :: sqrt_zpi
+      REAL(kind=PREC_DP) asym, gnorm, dist, dist2 !, rg 
+      REAL(kind=PREC_DP) sigma, fac , factor, fac4
+      REAL(kind=PREC_DP) :: sqrt_zpi
 !                                                                       
 !   open(45,file='POWDER/hist.pdf_init',status='unknown')
 !   do ii=1,UBOUND(pdf_temp,1)
@@ -3483,7 +3478,7 @@ inner:      DO iatom = ia+1, cr_natoms
                sigma = fac * (cr_dw (is) + cr_dw (js) + pdf_bvalue_mole(il)) 
                sigma = sigma - pdf_cquad_a / dist2  - pdf_cqua_mole(il)/dist2
                sigma = sigma - pdf_clin_a / dist   - pdf_clin_mole(il)/dist
-               sigma = max (0.0, sigma) 
+               sigma = max (0.0D0, sigma) 
             ENDIF 
             sigma = sigma + pdf_qalp**2 * dist2 
             sigma = sqrt (sigma) 
@@ -3492,7 +3487,7 @@ inner:      DO iatom = ia+1, cr_natoms
                sigma = sigma * pdf_srat 
             ENDIF 
 !                                                                       
-            igaus = 1 + nint (5.0 * sigma / pdf_deltar) 
+            igaus = 1 + nint (5.0D0 * sigma / pdf_deltar) 
             ib = max (1, ibin - igaus + 1) 
             ie = min (pdf_bin, ibin + igaus - 1) 
 !                                                                       

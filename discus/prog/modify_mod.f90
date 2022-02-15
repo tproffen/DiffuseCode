@@ -48,7 +48,7 @@ LOGICAL lexist, lrepl
 REAL(KIND=PREC_DP) :: uerte (maxw) 
 REAL(KIND=PREC_DP) :: verte (maxw) 
 REAL(KIND=PREC_DP) :: werte (maxw) 
-REAL :: prob 
+REAL(kind=PREC_DP) :: prob 
 !                                                                       
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -313,6 +313,8 @@ END SUBROUTINE do_replace
       USE crystal_mod 
       USE molecule_mod 
       USE errlist_mod 
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
        
@@ -321,8 +323,8 @@ END SUBROUTINE do_replace
       INTEGER  :: im, jm    ! molecule number 
       INTEGER  :: ip, jp    ! property values
       INTEGER, DIMENSION(0:3) :: iis, jjs ! Surface values
-      REAL   , DIMENSION(0:3) :: ris, rjs ! Magnetic moments
-      REAL i0pos (3), j0pos (3), ipos (3) 
+      REAL(kind=PREC_DP)   , DIMENSION(0:3) :: ris, rjs ! Magnetic moments
+      REAL(kind=PREC_DP) :: i0pos (3), j0pos (3), ipos (3) 
       LOGICAL lswap 
 !                                                                       
       IF (mole_len (idest) .ne.mole_len (isource) ) then 
@@ -528,7 +530,6 @@ USE precision_mod
       LOGICAL lkick, lspace 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 REAL(kind=PREC_DP), dimension(3) :: w (3), v (3) 
-!     REAL do_blen 
 !                                                                       
       DATA lspace / .true. / 
 !                                                                       
@@ -1179,6 +1180,8 @@ END SUBROUTINE do_purge
       USE molecule_mod 
       USE errlist_mod 
       USE param_mod 
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
       INTEGER :: ndel
@@ -1195,11 +1198,11 @@ END SUBROUTINE do_purge
       INTEGER, DIMENSION(:  ), ALLOCATABLE :: new_type
       CHARACTER (LEN=200), DIMENSION(:  ), ALLOCATABLE :: new_file
       INTEGER, DIMENSION(:  ), ALLOCATABLE :: new_char
-      REAL   , DIMENSION(:  ), ALLOCATABLE :: new_dens
-      REAL   , DIMENSION(:  ), ALLOCATABLE :: new_biso
-      REAL   , DIMENSION(:  ), ALLOCATABLE :: new_clin
-      REAL   , DIMENSION(:  ), ALLOCATABLE :: new_cqua
-      REAL   , DIMENSION(:  ), ALLOCATABLE :: new_fuzz
+      REAL(kind=PREC_DP)   , DIMENSION(:  ), ALLOCATABLE :: new_dens
+      REAL(kind=PREC_DP)   , DIMENSION(:  ), ALLOCATABLE :: new_biso
+      REAL(kind=PREC_DP)   , DIMENSION(:  ), ALLOCATABLE :: new_clin
+      REAL(kind=PREC_DP)   , DIMENSION(:  ), ALLOCATABLE :: new_cqua
+      REAL(kind=PREC_DP)   , DIMENSION(:  ), ALLOCATABLE :: new_fuzz
 !                                                                       
 !                                                                       
       CALL chem_elem (lout) 
@@ -1606,7 +1609,7 @@ USE str_comp_mod
       INTEGER lpara (maxw) 
       INTEGER i, j, ianz, lp, is 
       INTEGER, DIMENSION(0:3) :: iis
-      REAL   , DIMENSION(0:3) :: ris
+      REAL(kind=PREC_DP)   , DIMENSION(0:3) :: ris
 !                                                                       
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 

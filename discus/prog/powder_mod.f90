@@ -14,10 +14,6 @@ INTEGER, PARAMETER  :: POW_STACK           = 1
 !
 INTEGER, PARAMETER  :: POW_COMPL           = 0
 INTEGER, PARAMETER  :: POW_DEBYE           = 1
-!INTEGER, PARAMETER  :: POW_LONG            = 2
-!INTEGER, PARAMETER  :: POW_FAST            = 3
-!INTEGER, PARAMETER  :: POW_HIST            = 4
-!INTEGER, PARAMETER  :: POW_NEW             = 5
 !
 INTEGER, PARAMETER  :: POW_PREF_RIET       = 1
 INTEGER, PARAMETER  :: POW_PREF_MARCH      = 2
@@ -61,6 +57,9 @@ REAL(KIND=PREC_DP)       :: pow_qzero      =  0.0D0
 REAL(KIND=PREC_DP)       :: pow_qmin       =  0.2D0
 REAL(KIND=PREC_DP)       :: pow_qmax       =  7.0D0
 REAL(KIND=PREC_DP)       :: pow_deltaq     =  0.001D0
+REAL(KIND=PREC_DP)       :: pow_qmin_c     =  0.2D0    ! Limits used in actual calculation
+REAL(KIND=PREC_DP)       :: pow_qmax_c     =  7.0D0    ! May vary due to FWHM, zero point
+REAL(KIND=PREC_DP)       :: pow_deltaq_c   =  0.001D0
 REAL(KIND=PREC_DP)       :: pow_qmin_u     =  0.2D0    ! Temporary stored user limits in case of corrlin, corrquad
 REAL(KIND=PREC_DP)       :: pow_qmax_u     =  7.0D0    ! "         Actual calculation will proceed to 
 REAL(KIND=PREC_DP)       :: pow_deltaq_u   =  0.0001D0 ! "         qmax * 1.5
@@ -73,11 +72,10 @@ REAL(kind=PREC_DP)       :: pow_lp_fac     =  0.88
 REAL(kind=PREC_DP)       :: pow_lp_ang     = 20.0
 REAL(kind=PREC_DP)       :: pow_lp_cos     =  0.936
 !
+integer                  :: pow_npkt_u     =  1
 LOGICAL                  :: pow_lperiod    = .FALSE.
 REAL(kind=PREC_DP)       :: pow_period     =  0.000
 REAL(kind=PREC_DP)       :: pow_period_cut =  0.800
-!
-!REAL                     :: pow_bvalue     =  0.00
 !
 INTEGER                  :: pow_nback      = 0
 REAL(kind=PREC_DP)   , DIMENSION(0:5)  :: pow_back       = 0.0
@@ -103,9 +101,6 @@ REAL(kind=PREC_DP)       :: pow_u          =  0.0
 REAL(kind=PREC_DP)       :: pow_v          =  0.0
 REAL(kind=PREC_DP)       :: pow_w          =  0.05
 REAL(kind=PREC_DP)   , DIMENSION(4,3)  :: pow_asym       =  0.0D0
-!REAL                     :: pow_p2         =  0.0
-!REAL                     :: pow_p3         =  0.0
-!REAL                     :: pow_p4         =  0.0
 REAL(kind=PREC_DP)       :: pow_width      = 20.0D0
 !
 REAL(kind=PREC_DP)       :: pow_ka21       =  0.0d0
@@ -116,14 +111,13 @@ logical                               :: pow_l_partial = .FALSE.   ! Default to 
 logical , dimension(:,:), allocatable :: pow_do_partial    ! 0:maxscat, 0:maxscat)
 integer , dimension(:  ), allocatable :: pow_nn_partial    ! 0:maxscat, 0:maxscat)
 !
-REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_qsp     !  (0:POW_MAXPKT)
-REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_f2aver  !  (0:POW_MAXPKT)
-REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_faver2  !  (0:POW_MAXPKT)
-REAL   (KIND=PREC_DP), DIMENSION(:,:)  , ALLOCATABLE :: pow_f2      !  (0:POW_MAXPKT, 0:MAXSCAT)
-REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_fu      !  (0:POW_MAXPKT, 0:MAXSCAT)
-REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_conv    !  (0:POW_MAXPKT)
-REAL   (KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_sq      !  (0:POW_MAXPKT)
-!REAL   (KIND=PREC_SP), DIMENSION(:,:,:), ALLOCATABLE :: pow_phase   !  Results for the different phases (inte, <f2>, <f>2, thermal
+REAL(KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_qsp     !  (0:POW_MAXPKT)
+REAL(KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_f2aver  !  (0:POW_MAXPKT)
+REAL(KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_faver2  !  (0:POW_MAXPKT)
+REAL(KIND=PREC_DP), DIMENSION(:,:)  , ALLOCATABLE :: pow_f2      !  (0:POW_MAXPKT, 0:MAXSCAT)
+REAL(KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_fu      !  (0:POW_MAXPKT, 0:MAXSCAT)
+REAL(KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_conv    !  (0:POW_MAXPKT)
+REAL(KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_sq      !  (0:POW_MAXPKT)
 INTEGER                            :: pow_nreal  = 0
 INTEGER                            :: pow_ncreal = 0
 REAL(kind=PREC_DP)                 :: pow_u2aver = 0.0

@@ -2266,7 +2266,7 @@ INTEGER :: ii, jj
 !                                                                       
 !     Define mimimum energy at infinity distance
 !
-      mmc_rep_low = MIN(mmc_rep_low, REAL(ABS(a)))
+      mmc_rep_low = MIN(mmc_rep_low, ABS(a))
                                                                         
       IF (is /=  - 1.AND.js /=  - 1) THEN 
          mmc_rep_a (ic, is, js) = a 
@@ -2404,7 +2404,7 @@ REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(INOUT) :: werte !(MAXW)
 !                                                                       
 INTEGER :: ianz, imode=MC_MOVE_NONE, i 
 INTEGER :: is 
-REAL :: sump 
+REAL(kind=PREC_DP) :: sump 
 !                                                                       
       IF (ianz >= 1) THEN 
          CALL do_cap (cpara (1) ) 
@@ -2529,13 +2529,13 @@ LOGICAL, INTENT(IN) :: lout_feed     ! Write output upon feedback?
 !                                                                       
 CHARACTER(LEN=24) :: c_energy (0:MC_N_ENERGY) 
 !
-REAL :: start, zeit
-REAL(KIND=PREC_SP), DIMENSION(:,:,:), ALLOCATABLE :: disp !(3, 0:MAX_ATOM_ENV, 2) 
+REAL(kind=PREC_DP) :: start, zeit
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: disp !(3, 0:MAX_ATOM_ENV, 2) 
 REAL(kind=PREC_DP), DIMENSION(3) :: idir, jdir
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: rdi ! (CHEM_MAX_COR) 
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: rdj ! (CHEM_MAX_COR) 
-REAL :: rel_cycl    ! how far are we in the desired number of cycles
-REAL(KIND=PREC_SP), DIMENSION(:,:,:), ALLOCATABLE :: patom ! Cooridnates for neighbors (3, 0:MAX_ATOM_ENV, MMC_MAX_CENT) 
+REAL(kind=PREC_DP) :: rel_cycl    ! how far are we in the desired number of cycles
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: patom ! Cooridnates for neighbors (3, 0:MAX_ATOM_ENV, MMC_MAX_CENT) 
 INTEGER(KIND=PREC_INT_LARGE) :: itry, igen, imodulus
 INTEGER(KIND=PREC_INT_LARGE) :: iitry, iigen
 INTEGER           , DIMENSION(  :,:), ALLOCATABLE :: iatom ! Indizes of neighbors      (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
@@ -2557,12 +2557,12 @@ LOGICAL :: loop, laccept, done
 LOGICAL :: lout, lfinished
 logical :: lmodulus
 !                                                                       
-REAL, DIMENSION(0:MC_N_ENERGY) :: e_old
-REAL, DIMENSION(0:MC_N_ENERGY) :: e_new
+REAL(kind=PREC_DP), DIMENSION(0:MC_N_ENERGY) :: e_old
+REAL(kind=PREC_DP), DIMENSION(0:MC_N_ENERGY) :: e_new
 !
 INTEGER :: tid
 INTEGER(KIND=PREC_INT_LARGE) :: nthreads, nnthreads
-real(kind=PREC_SP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
+real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
 !                                                                       
 DATA c_energy /                    &
      '                        ',   &
@@ -2623,7 +2623,7 @@ ENDIF
 lout = .FALSE. 
 lfinished = .FALSE.
 lfeed = .FALSE.
-CALL mmc_correlations (lout, 0.0, done, lfinished, lfeed, maxdev) 
+CALL mmc_correlations (lout, 0.0D0, done, lfinished, lfeed, maxdev) 
 lfeed = .TRUE.
 IF(ier_num /= 0) RETURN 
 !
@@ -2800,7 +2800,6 @@ ENDIF
 lfinished = .TRUE.
 lfeed     = .FALSE.   ! no feedback algorithm
 done      = .TRUE.
-write(*,*) ' FINAL CORRELATIONS '
 CALL mmc_correlations (lout_feed, rel_cycl, done, lfinished, lfeed, maxdev) 
 !                                                                       
 !     Give average energy changes for the different energy terms        
@@ -2888,21 +2887,21 @@ INTEGER(KIND=PREC_INT_LARGE)      , INTENT(INOUT)  :: igen
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)     :: itry
 INTEGER                           , INTENT(OUT) :: natoms
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: iatom
-REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
 INTEGER, DIMENSION(     MMC_MAX_CENT_L)                 , INTENT(INOUT) :: natom
 LOGICAL, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: tatom
 INTEGER                                                 , INTENT(INOUT) :: ncent
 LOGICAL                           , INTENT(OUT) :: laccept
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdi ! (CHEM_MAX_COR) 
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdj ! (CHEM_MAX_COR) 
-REAL   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_old
-REAL   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_new
+REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_old
+REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_new
 LOGICAL                           , INTENT(INOUT) :: done
 LOGICAL                           , INTENT(OUT) :: loop
 INTEGER                           , INTENT(INOUT)  :: iacc_good
 INTEGER                           , INTENT(INOUT)  :: iacc_neut
 INTEGER                           , INTENT(INOUT)  :: iacc_bad
-REAL                              , INTENT(INOUT)  :: rel_cycl
+REAL(kind=PREC_DP)                              , INTENT(INOUT)  :: rel_cycl
 LOGICAL                           , INTENT(IN ) :: lout_feed
 LOGICAL                           , INTENT(IN ) :: lfeed
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(INout)  :: imodulus
@@ -2916,10 +2915,10 @@ INTEGER, DIMENSION(3)                           :: iz2
 INTEGER                                         :: iselz
 INTEGER                                         :: iselz2
 LOGICAL :: valid_all
-REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz !(3) = 0.0
-REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !(3) = 0.0
-REAL(KIND=PREC_SP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
-real(kind=PREC_SP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:nthreads-1)                     :: posz !(3) = 0.0
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !(3) = 0.0
+REAL(KIND=PREC_DP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
+real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
 !
 IF(tid==0) then
    igen = igen + 1
@@ -3116,21 +3115,21 @@ INTEGER(KIND=PREC_INT_LARGE)      , INTENT(INOUT)  :: igen
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)     :: itry
 INTEGER                           , INTENT(OUT) :: natoms
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: iatom
-REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
 INTEGER, DIMENSION(     MMC_MAX_CENT_L)                 , INTENT(INOUT) :: natom
 INTEGER                                                 , INTENT(INOUT) :: ncent
 LOGICAL, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: tatom
 LOGICAL                           , INTENT(OUT) :: laccept
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdi ! (CHEM_MAX_COR) 
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdj ! (CHEM_MAX_COR) 
-REAL   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_old
-REAL   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_new
+REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_old
+REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_new
 LOGICAL                           , INTENT(INOUT) :: done
 LOGICAL                           , INTENT(OUT) :: loop
 INTEGER                           , INTENT(INOUT)  :: iacc_good
 INTEGER                           , INTENT(INOUT)  :: iacc_neut
 INTEGER                           , INTENT(INOUT)  :: iacc_bad
-REAL                              , INTENT(INOUT)  :: rel_cycl
+REAL(kind=PREC_DP)                              , INTENT(INOUT)  :: rel_cycl
 LOGICAL                           , INTENT(IN ) :: lout_feed
 LOGICAL                           , INTENT(IN ) :: lfeed
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)  :: imodulus
@@ -3173,21 +3172,17 @@ INTEGER :: iaccept                        ! DACounter if we want toaccept correl
 INTEGER, DIMENSION(2) :: wjks             ! Index of Correlation, energy, atom types at worst deviation
 integer, dimension(0:2) :: isnei
 LOGICAL :: valid_e
-!REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz !(3) = 0.0
-!REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !(3) = 0.0
-!REAL(KIND=PREC_SP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
-REAL :: r1
-!REAL, DIMENSION(:,:), ALLOCATABLE :: energies_old
-REAL, DIMENSION(2,0:CHEM_MAX_COR) :: en_old    ! Old energy at position 1,2
-REAL, DIMENSION(2,0:CHEM_MAX_COR) :: en_new    ! New energy at position 1,2
-REAL(KIND=PREC_SP), DIMENSION(2)  :: cold  ! old correlation at atom 1,2
-REAL(KIND=PREC_SP), DIMENSION(2)  :: cnew  ! old correlation at atom 1,2
-REAL(KIND=PREC_SP), DIMENSION(2)  ::ccold  ! old correlation at atom 1,2
-REAL(KIND=PREC_SP), DIMENSION(2)  ::ccnew  ! old correlation at atom 1,2
-real(kind=PREC_SP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
+REAL(kind=PREC_DP) :: r1
+REAL(kind=PREC_DP), DIMENSION(2,0:CHEM_MAX_COR) :: en_old    ! Old energy at position 1,2
+REAL(kind=PREC_DP), DIMENSION(2,0:CHEM_MAX_COR) :: en_new    ! New energy at position 1,2
+REAL(KIND=PREC_DP), DIMENSION(2)  :: cold  ! old correlation at atom 1,2
+REAL(KIND=PREC_DP), DIMENSION(2)  :: cnew  ! old correlation at atom 1,2
+REAL(KIND=PREC_DP), DIMENSION(2)  ::ccold  ! old correlation at atom 1,2
+REAL(KIND=PREC_DP), DIMENSION(2)  ::ccnew  ! old correlation at atom 1,2
+real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
 !integer, dimension(0:3, 0:3, 11) :: rbn_pneig = 0
 !
-REAL :: damp = 1.0
+REAL(kind=PREC_DP) :: damp = 1.0
 !
 damp = 0.01 + 0.99*exp(-4.0*rel_cycl)
 !
@@ -3599,21 +3594,21 @@ INTEGER(KIND=PREC_INT_LARGE)      , INTENT(INOUT)  :: igen
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)     :: itry
 INTEGER                           , INTENT(OUT) :: natoms
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: iatom
-REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
 INTEGER, DIMENSION(     MMC_MAX_CENT_L)                 , INTENT(INOUT) :: natom
 LOGICAL, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: tatom
 INTEGER                                                 , INTENT(INOUT) :: ncent
 LOGICAL                           , INTENT(OUT) :: laccept
-REAL(KIND=PREC_SP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdi ! (CHEM_MAX_COR) 
-REAL(KIND=PREC_SP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdj ! (CHEM_MAX_COR) 
-REAL   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_old
-REAL   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_new
+REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdi ! (CHEM_MAX_COR) 
+REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdj ! (CHEM_MAX_COR) 
+REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_old
+REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_new
 LOGICAL                           , INTENT(INOUT) :: done
 LOGICAL                           , INTENT(OUT) :: loop
 INTEGER                           , INTENT(INOUT)  :: iacc_good
 INTEGER                           , INTENT(INOUT)  :: iacc_neut
 INTEGER                           , INTENT(INOUT)  :: iacc_bad
-REAL                              , INTENT(INOUT)  :: rel_cycl
+REAL(kind=PREC_DP)                              , INTENT(INOUT)  :: rel_cycl
 LOGICAL                           , INTENT(IN ) :: lout_feed
 LOGICAL                           , INTENT(IN ) :: lfeed
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)  :: imodulus
@@ -3622,9 +3617,6 @@ INTEGER, DIMENSION(0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L,2) :: iatom_l      !Neighbor
 INTEGER, DIMENSION(                  MMC_MAX_CENT_L,2) :: natom_l      ! number of neighbors
 INTEGER, DIMENSION(                                 2) :: ncent_l      ! number of centers
 !
-!LOGICAL, PARAMETER :: LOUT=.FALSE.
-!
-!INTEGER :: MAXTEST
 INTEGER, DIMENSION(MMC_MAX_ATOM_L)              :: isel !(chem_max_atom) 
 INTEGER, DIMENSION(2)                           :: is
 INTEGER, DIMENSION(2, 3)                        :: iz
@@ -3633,40 +3625,15 @@ INTEGER, DIMENSION(3)                           :: iz2
 INTEGER                                         :: iselz
 INTEGER                                         :: iselz2
 !
-!INTEGER, DIMENSION(2) :: iposit ! Original atom number at selected position 1,2
-!INTEGER, DIMENSION(2) :: iorig  ! Original atom type at selected position 1,2
-!INTEGER :: i!, j!, k
 INTEGER :: imode = 2  ! Select atom that cannot be improved any further
-!INTEGER :: latom
-!INTEGER :: itest
 INTEGER :: ichoose    ! Which atom within isel to choose
-!INTEGER :: istart     ! Start for loop to search for new atom type
-!INTEGER :: iend       ! End   for loop to search for new atom type
-!INTEGER :: jmin       ! Atom type with minimum energy at selected atom position
-!INTEGER :: ic                             ! Loop index correlations
-!INTEGER :: ie                             ! Loop index energy type
-!INTEGER :: jc                             ! Current correlation to improve
-!INTEGER :: js                             ! Loop index atom type 
-!INTEGER :: ks                             ! Loop index atom type 
-!INTEGER :: nt                             ! Number of targets for chosen energy
-!INTEGER :: it                             ! Loop index over targets for chosen energy
 INTEGER :: wic, wie                       ! Index of Correlation, energy, atom types at worst deviation
 INTEGER :: icent                          ! Current center 
 INTEGER, DIMENSION(2) :: wjks             ! Index of Correlation, energy, atom types at worst deviation
-!integer, dimension(0:2) :: isnei
-!LOGICAL :: valid_e
-!REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz !(3) = 0.0
-!REAL   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !(3) = 0.0
-!REAL(KIND=PREC_SP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
-!REAL :: r1
-!REAL, DIMENSION(:,:), ALLOCATABLE :: energies_old
-!REAL, DIMENSION(2,0:MC_N_ENERGY) :: en_old    ! Old energy at position 1,2
-!REAL, DIMENSION(2,0:MC_N_ENERGY) :: en_new    ! New energy at position 1,2
-REAL(KIND=PREC_SP), DIMENSION(2)  :: cold  ! old correlation at atom 1,2
-REAL(KIND=PREC_SP), DIMENSION(2)  :: cnew  ! old correlation at atom 1,2
-!integer, dimension(0:3, 0:3, 11) :: rbn_pneig = 0
+REAL(KIND=PREC_DP), DIMENSION(2)  :: cold  ! old correlation at atom 1,2
+REAL(KIND=PREC_DP), DIMENSION(2)  :: cnew  ! old correlation at atom 1,2
 !
-REAL :: damp = 1.0
+REAL(kind=PREC_DP) :: damp = 1.0
 !
 !write(*,*) ' IN MMC OSWALD '
 damp = 0.01 + 0.99*exp(-4.0*rel_cycl)
@@ -3735,9 +3702,9 @@ INTEGER :: ks                             ! Loop index atom type
 INTEGER :: nt                             ! Number of targets for chosen energy
 INTEGER :: it                             ! Loop index over targets for chosen energy
 !
-REAL(KIND=PREC_SP) :: deviation           ! Max relative deviation (target-achieved)/target
-REAL(KIND=PREC_SP) :: dev                 ! Relative deviation
-REAL(KIND=PREC_SP) :: r1                  ! Random numberation
+REAL(KIND=PREC_DP) :: deviation           ! Max relative deviation (target-achieved)/target
+REAL(KIND=PREC_DP) :: dev                 ! Relative deviation
+REAL(KIND=PREC_DP) :: r1                  ! Random numberation
 !
 wic  = 0
 wie  = 0
@@ -3862,7 +3829,7 @@ INTEGER                           , INTENT(OUT) :: iselz
 INTEGER                           , INTENT(OUT) :: iselz2
 INTEGER                           , INTENT(OUT) :: natoms
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: iatom
-REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
 INTEGER, DIMENSION(     MMC_MAX_CENT_L)                 , INTENT(INOUT) :: natom
 INTEGER                                                 , INTENT(INOUT) :: ncent
 LOGICAL, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: tatom
@@ -3871,14 +3838,14 @@ INTEGER, DIMENSION(3)             , INTENT(OUT) :: iz1
 INTEGER, DIMENSION(3)             , INTENT(OUT) :: iz2
 LOGICAL                           , INTENT(OUT) :: laccept
 LOGICAL                           , INTENT(OUT) :: loop
-REAL(KIND=PREC_SP), DIMENSION(2)  , INTENT(INOUT) :: cold  ! old correlation at atom 1,2
-REAL(KIND=PREC_SP), DIMENSION(2)  , INTENT(INOUT) :: cnew  ! old correlation at atom 1,2
+REAL(KIND=PREC_DP), DIMENSION(2)  , INTENT(INOUT) :: cold  ! old correlation at atom 1,2
+REAL(KIND=PREC_DP), DIMENSION(2)  , INTENT(INOUT) :: cnew  ! old correlation at atom 1,2
 !
 INTEGER, PARAMETER :: ISANY     = 0
 INTEGER, PARAMETER :: ISWORST   = 1
 INTEGER, PARAMETER :: ISPERFECT = 2
 !
-REAL :: r1
+REAL(kind=PREC_DP) :: r1
 INTEGER :: ngrand                         ! End   atom number for random search
 INTEGER :: istart                         ! Start atom number for random search
 INTEGER :: icounter                       ! End   atom number for random search
@@ -3909,7 +3876,7 @@ grand: DO
 IF(r1<1./2.) THEN                         ! Increment along x-axis
    IF(cr_icc(1) > 1) THEN
       CALL RANDOM_NUMBER(r1)
-      iinc = NINT(SIGN(1.0, r1-0.5))*cr_ncatoms  ! Randomly choose increment -1 or +1 * atoms per unit cell
+      iinc = NINT(SIGN(1.0D0, r1-0.5D0))*cr_ncatoms  ! Randomly choose increment -1 or +1 * atoms per unit cell
       inumber = cr_icc(1)
    ELSE
       CYCLE grand   
@@ -3917,7 +3884,7 @@ IF(r1<1./2.) THEN                         ! Increment along x-axis
 ELSEIF(r1<2./2+1) THEN                      ! Increment along y-axis
    IF(cr_icc(2) > 1) THEN
       CALL RANDOM_NUMBER(r1)
-      iinc = NINT(SIGN(1.0, r1-0.5))*cr_ncatoms*cr_icc(1)  ! Randomly choose increment -1 or +1 * atoms per unit cell
+      iinc = NINT(SIGN(1.0D0, r1-0.5D0))*cr_ncatoms*cr_icc(1)  ! Randomly choose increment -1 or +1 * atoms per unit cell
       inumber = cr_icc(2)
    ELSE
       CYCLE grand   
@@ -4061,7 +4028,7 @@ INTEGER                           , INTENT(OUT) :: iselz
 INTEGER                           , INTENT(OUT) :: iselz2
 INTEGER                           , INTENT(OUT) :: natoms
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: iatom
-REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
 INTEGER, DIMENSION(     MMC_MAX_CENT_L)                 , INTENT(INOUT) :: natom
 INTEGER                                                 , INTENT(INOUT) :: ncent
 LOGICAL, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: tatom
@@ -4070,14 +4037,14 @@ INTEGER, DIMENSION(3)             , INTENT(OUT) :: iz1
 INTEGER, DIMENSION(3)             , INTENT(OUT) :: iz2
 LOGICAL                           , INTENT(OUT) :: laccept
 LOGICAL                           , INTENT(OUT) :: loop
-REAL(KIND=PREC_SP), DIMENSION(2)  , INTENT(INOUT) :: cold  ! old correlation at atom 1,2
-REAL(KIND=PREC_SP), DIMENSION(2)  , INTENT(INOUT) :: cnew  ! old correlation at atom 1,2
+REAL(KIND=PREC_DP), DIMENSION(2)  , INTENT(INOUT) :: cold  ! old correlation at atom 1,2
+REAL(KIND=PREC_DP), DIMENSION(2)  , INTENT(INOUT) :: cnew  ! old correlation at atom 1,2
 !
 INTEGER, PARAMETER :: ISANY     = 0
 INTEGER, PARAMETER :: ISWORST   = 1
 INTEGER, PARAMETER :: ISPERFECT = 2
 !
-REAL :: r1
+REAL(kind=PREC_DP) :: r1
 INTEGER :: ngrand                         ! End   atom number for random search
 INTEGER :: istart                         ! Start atom number for random search
 INTEGER :: icounter                       ! End   atom number for random search
@@ -4107,7 +4074,7 @@ grand: DO
 IF(r1<1./2.) THEN                         ! Increment along x-axis
    IF(cr_icc(1) > 1) THEN
       CALL RANDOM_NUMBER(r1)
-      iinc = NINT(SIGN(1.0, r1-0.5))*cr_ncatoms  ! Randomly choose increment -1 or +1 * atoms per unit cell
+      iinc = NINT(SIGN(1.0D0, r1-0.5D0))*cr_ncatoms  ! Randomly choose increment -1 or +1 * atoms per unit cell
       inumber = cr_icc(1)
    ELSE
       CYCLE grand   
@@ -4115,7 +4082,7 @@ IF(r1<1./2.) THEN                         ! Increment along x-axis
 ELSEIF(r1<2./2+1) THEN                      ! Increment along y-axis
    IF(cr_icc(2) > 1) THEN
       CALL RANDOM_NUMBER(r1)
-      iinc = NINT(SIGN(1.0, r1-0.5))*cr_ncatoms*cr_icc(1)  ! Randomly choose increment -1 or +1 * atoms per unit cell
+      iinc = NINT(SIGN(1.0D0, r1-0.5D0))*cr_ncatoms*cr_icc(1)  ! Randomly choose increment -1 or +1 * atoms per unit cell
       inumber = cr_icc(2)
    ELSE
       CYCLE grand   
@@ -4253,9 +4220,9 @@ LOGICAL                           , INTENT(OUT) :: laccept
 LOGICAL                           , INTENT(OUT) :: loop
 !
 INTEGER  :: i, j
-REAL :: z
+REAL(kind=PREC_DP) :: z
 REAL(kind=PREC_DP), DIMENSION(3) ::  v, u
-REAL :: r1
+REAL(kind=PREC_DP) :: r1
 !
 laccept = .TRUE. 
 j = 0
@@ -4411,20 +4378,20 @@ INTEGER, DIMENSION(2)                                   , INTENT(IN) :: is
 INTEGER                                                 , INTENT(IN) :: natoms
 INTEGER, DIMENSION(2, 3)                                , INTENT(IN) :: iz
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: iatom
-REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
 INTEGER, DIMENSION(     MMC_MAX_CENT_L)                 , INTENT(INOUT) :: natom
 LOGICAL, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: tatom
 INTEGER                                                 , INTENT(INOUT) :: ncent
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR_L)           , INTENT(INOUT) :: rdi
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR_L)           , INTENT(INOUT) :: rdj
 LOGICAL                                                 , INTENT(OUT) :: valid_all
-REAL   , DIMENSION(0:MC_N_ENERGY)                         , INTENT(INOUT) :: e_cur
+REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY)                         , INTENT(INOUT) :: e_cur
 !
 INTEGER :: i      ! Dummy loop variable
 INTEGER :: ia     ! Dummy loop variable for modified atoms
 INTEGER :: ic     ! Dummy loop variable for correlations
 INTEGER :: icent  ! Dummy loop variable for centers
-REAL    :: delta
+REAL(kind=PREC_DP)    :: delta
 REAL(kind=PREC_DP), DIMENSION(3) :: v
 REAL(kind=PREC_DP), DIMENSION(3) :: idir, jdir
 LOGICAL            :: valid_e
@@ -4624,17 +4591,17 @@ IMPLICIT NONE
 !
 INTEGER                                                 , INTENT(IN) :: MMC_MAX_ATOM_L
 INTEGER, DIMENSION(MMC_MAX_ATOM_L), INTENT(IN) :: isel !(chem_max_atom) 
-REAL   , DIMENSION(3)             , INTENT(OUT) :: posz
-REAL   , DIMENSION(3)             , INTENT(OUT) :: posz2
-REAL(KIND=PREC_SP), DIMENSION(3,0:MMC_MAX_ATOM_L,2), INTENT(INOUT) :: disp
+REAL(kind=PREC_DP)   , DIMENSION(3)             , INTENT(OUT) :: posz
+REAL(kind=PREC_DP)   , DIMENSION(3)             , INTENT(OUT) :: posz2
+REAL(KIND=PREC_DP), DIMENSION(3,0:MMC_MAX_ATOM_L,2), INTENT(INOUT) :: disp
 !
 INTEGER :: i, j                 ! Dummy loop indices
 INTEGER :: iscat
 INTEGER, DIMENSION(3) :: iz1
 INTEGER, DIMENSION(3) :: iz2
 INTEGER, DIMENSION(2) :: is
-REAL :: disp1, disp2 
-REAL :: rrrr
+REAL(kind=PREC_DP) :: disp1, disp2 
+REAL(kind=PREC_DP) :: rrrr
 !
 !
 IF (mmc_move == MC_MOVE_DISP) THEN 
@@ -4729,8 +4696,8 @@ IMPLICIT NONE
 !
 INTEGER                           , INTENT(IN) :: MMC_MAX_ATOM_L
 INTEGER, DIMENSION(MMC_MAX_ATOM_L), INTENT(IN) :: isel !(chem_max_atom) 
-REAL   , DIMENSION(3)             , INTENT(IN) :: posz
-REAL   , DIMENSION(3)             , INTENT(IN) :: posz2
+REAL(kind=PREC_DP)   , DIMENSION(3)             , INTENT(IN) :: posz
+REAL(kind=PREC_DP)   , DIMENSION(3)             , INTENT(IN) :: posz2
 !
 INTEGER :: i                 ! Dummy loop indices
 INTEGER :: iscat
@@ -4772,7 +4739,7 @@ END SUBROUTINE mmc_unmodify
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_occ_correl(isel, ia, ic, iatom, icent,  &
+REAL(kind=PREC_DP) FUNCTION mmc_occ_correl(isel, ia, ic, iatom, icent,  &
       natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)                                                   
 !+                                                                      
 !     Calculates the local correlation for chemical disorder                       
@@ -4785,6 +4752,7 @@ USE mmc_mod
 USE modify_mod
 USE modify_func_mod
 USE param_mod 
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -4868,7 +4836,7 @@ END FUNCTION mmc_occ_correl
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_uni_correl(isel, ia, ic, iatom, icent,  &
+REAL(kind=PREC_DP) FUNCTION mmc_uni_correl(isel, ia, ic, iatom, icent,  &
       natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)                                                   
 !+                                                                      
 !     Calculates the local correlation for chemical disorder                       
@@ -4881,6 +4849,7 @@ USE mmc_mod
 USE modify_mod
 USE modify_func_mod
 USE param_mod 
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -4978,7 +4947,7 @@ END FUNCTION mmc_uni_correl
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_occ(isel, ia, ic, iatom, tatom, icent,  &
+REAL(kind=PREC_DP) FUNCTION mmc_energy_occ(isel, ia, ic, iatom, tatom, icent,  &
       natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)                                                   
 !+                                                                      
 !     Calculates the energy for chemical disorder                       
@@ -4991,6 +4960,7 @@ USE mmc_mod
 USE modify_mod
 USE modify_func_mod
 USE param_mod 
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -5111,7 +5081,7 @@ END FUNCTION mmc_energy_occ
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_uni(isel, ia, ic, iatom, tatom, icent,  &
+REAL(kind=PREC_DP) FUNCTION mmc_energy_uni(isel, ia, ic, iatom, tatom, icent,  &
       natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
 !+                                                                      
 !     Calculates the energy for unidirectional chemical disorder                       
@@ -5124,6 +5094,7 @@ USE mmc_mod
 USE modify_mod
 USE modify_func_mod
 USE param_mod 
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -5393,7 +5364,7 @@ END FUNCTION mmc_energy_uni
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_group(isel, ia, ic, iatom, tatom, icent,  &
+REAL(kind=PREC_DP) FUNCTION mmc_energy_group(isel, ia, ic, iatom, tatom, icent,  &
       natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
 !+                                                                      
 !     Calculates the energy for unidirectional chemical disorder                       
@@ -5406,6 +5377,7 @@ USE mmc_mod
 USE modify_mod
 USE modify_func_mod
 USE param_mod 
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -5474,7 +5446,7 @@ END FUNCTION mmc_energy_group
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_occ_mol(ianz, imol, amol, valid_e, MAXMOL) 
+REAL(kind=PREC_DP) FUNCTION mmc_energy_occ_mol(ianz, imol, amol, valid_e, MAXMOL) 
 !+                                                                      
 !     Calculates the energy for occupational disorder for               
 !     molecules.                                                        
@@ -5486,6 +5458,7 @@ USE mc_mod
 USE mmc_mod 
 USE molecule_mod 
 USE rmc_mod 
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -5533,7 +5506,7 @@ END FUNCTION mmc_energy_occ_mol
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_cn(isel, ia, ic, iatom, icent, natom, valid_e,         &
+REAL(kind=PREC_DP) FUNCTION mmc_energy_cn(isel, ia, ic, iatom, icent, natom, valid_e,         &
                             MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)                                                   
 !+                                                                      
 !     Calculates the energy for coordination number
@@ -5631,7 +5604,7 @@ END FUNCTION mmc_energy_cn
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_dis (isel, ia, ic, iatom, icent,  &
+REAL(kind=PREC_DP) FUNCTION mmc_energy_dis (isel, ia, ic, iatom, icent,  &
       natom, jdir, delta, rdj, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L,&
       MMC_MAX_ATOM_L)                                 
 !+                                                                      
@@ -5645,6 +5618,7 @@ USE metric_mod
 USE mc_mod 
 USE mmc_mod 
 USE modify_func_mod
+use precision_mod
 !
 USE precision_mod
 !                                                                       
@@ -5661,7 +5635,7 @@ INTEGER, INTENT(IN) :: icent
 INTEGER , DIMENSION(MMC_MAX_CENT_L) , INTENT(IN) :: natom
 LOGICAL , INTENT(OUT) ::valid_e 
 REAL(KIND=PREC_DP), DIMENSION(3), INTENT(IN) :: jdir
-REAL(KIND=PREC_SP),               INTENT(IN) ::  delta 
+REAL(KIND=PREC_DP),               INTENT(IN) ::  delta 
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(IN) :: rdj
 !                                                                       
 INTEGER :: i, is, js, in, jjs 
@@ -5669,7 +5643,7 @@ INTEGER :: in_a, in_e
 INTEGER :: cell (3), site 
 REAL(kind=PREC_DP) :: u (3)
 !                                                                       
-REAL :: dx 
+REAL(kind=PREC_DP) :: dx 
 !                                                                       
 mmc_energy_dis = 0.0 
 valid_e = .FALSE. 
@@ -5751,7 +5725,7 @@ END FUNCTION mmc_energy_dis
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_spr (isel, ia, ic, iatom, patom, icent,  &
+REAL(kind=PREC_DP) FUNCTION mmc_energy_spr (isel, ia, ic, iatom, patom, icent,  &
       natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)                                  
 !+                                                                      
 !     Calculates the energy for distortions according to                
@@ -5776,7 +5750,7 @@ INTEGER, DIMENSION(MMC_MAX_ATOM_L), INTENT(IN) :: isel
 INTEGER, INTENT(IN) :: ia
 INTEGER, INTENT(IN) :: ic
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(IN) :: iatom
-REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(IN) :: patom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(IN) :: patom
 INTEGER                                                   , INTENT(IN) :: icent 
 INTEGER, DIMENSION(MMC_MAX_CENT)                         , INTENT(IN) :: natom
 LOGICAL, INTENT(OUT) ::  valid_e 
@@ -5852,7 +5826,7 @@ END FUNCTION mmc_energy_spr
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_spr_mol (nmol, imol, valid_e, MAX_ATOM_ENV_L) 
+REAL(kind=PREC_DP) FUNCTION mmc_energy_spr_mol (nmol, imol, valid_e, MAX_ATOM_ENV_L) 
 !+                                                                      
 !     Calculates the energy for distortions for molecules ..            
 !-                                                                      
@@ -5942,7 +5916,7 @@ END FUNCTION mmc_energy_spr_mol
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_len (isel, ia, ic, iatom, patom, icent,  &
+REAL(kind=PREC_DP) FUNCTION mmc_energy_len (isel, ia, ic, iatom, patom, icent,  &
       natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
 !+                                                                      
 !     Calculates the energy for distortions according to a Lennard-Jones
@@ -5968,7 +5942,7 @@ INTEGER, DIMENSION(MMC_MAX_ATOM_L), INTENT(IN) ::  isel !(chem_max_atom)
 INTEGER, INTENT(IN) :: ic
 INTEGER, INTENT(IN) :: ia
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(IN) :: iatom
-REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(IN) :: patom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(IN) :: patom
 INTEGER, INTENT(IN) :: icent 
 INTEGER, DIMENSION(MMC_MAX_CENT_L) , INTENT(IN) :: natom
 LOGICAL, INTENT(OUT) :: valid_e 
@@ -6051,7 +6025,7 @@ END FUNCTION mmc_energy_len
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_rep (isel, ia, ic, iatom, patom, icent,  &
+REAL(kind=PREC_DP) FUNCTION mmc_energy_rep (isel, ia, ic, iatom, patom, icent,  &
       natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
 !+                                                                      
 !     Calculates the energy for distortions according to a Repulsive
@@ -6077,7 +6051,7 @@ INTEGER, DIMENSION(MAX_ATOM_ENV_L) , INTENT(IN) :: isel
 INTEGER, INTENT(IN) :: ia
 INTEGER, INTENT(IN) :: ic
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L), INTENT(IN) :: iatom
-REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L), INTENT(IN) :: patom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L), INTENT(IN) :: patom
 INTEGER, INTENT(IN) :: icent 
 INTEGER, DIMENSION(MMC_MAX_CENT_L) , INTENT(IN) :: natom
 LOGICAL, INTENT(OUT) ::  valid_e 
@@ -6166,7 +6140,7 @@ END FUNCTION mmc_energy_rep
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_buck (isel, ia, ic, iatom, patom, icent, &
+REAL(kind=PREC_DP) FUNCTION mmc_energy_buck (isel, ia, ic, iatom, patom, icent, &
       natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
 !+                                                                      
 !     Calculates the energy for distortions according to a Buckingham   
@@ -6192,7 +6166,7 @@ INTEGER, DIMENSION(MMC_MAX_ATOM_L), INTENT(IN) :: isel ! (chem_max_atom)
 INTEGER, INTENT(IN) :: ia
 INTEGER, INTENT(IN) :: ic
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L), INTENT(IN) :: iatom
-REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L), INTENT(IN) :: patom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L), INTENT(IN) :: patom
 INTEGER, INTENT(IN) :: icent 
 INTEGER, DIMENSION(MMC_MAX_CENT_L) , INTENT(IN) :: natom
 LOGICAL, INTENT(OUT) ::  valid_e 
@@ -6273,7 +6247,7 @@ END FUNCTION mmc_energy_buck
 !
 !*****7*****************************************************************
 !
-REAL FUNCTION mmc_energy_angle (ic, iatom, patom, icent,    &
+REAL(kind=PREC_DP) FUNCTION mmc_energy_angle (ic, iatom, patom, icent,    &
       natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
 !+                                                                      
 !     Calculates the energy for angular deviations according to         
@@ -6297,7 +6271,7 @@ INTEGER, INTENT(IN) :: MMC_MAX_CENT_L
 INTEGER, INTENT(IN) :: MMC_MAX_ATOM_L
 INTEGER, INTENT(IN) :: ic
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L), INTENT(IN) :: iatom
-REAL   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L), INTENT(IN) :: patom
+REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L), INTENT(IN) :: patom
 INTEGER, INTENT(IN) :: icent 
 INTEGER, DIMENSION(MMC_MAX_CENT_L) , INTENT(IN) :: natom
 LOGICAL, INTENT(OUT) ::  valid_e 
@@ -6581,7 +6555,7 @@ LOGICAL, INTENT(OUT) :: laccept
 !                                                                       
 INTEGER :: i, j 
 LOGICAL,PARAMETER ::lspace = .TRUE.
-REAL               :: d 
+REAL(kind=PREC_DP)               :: d 
 REAL(kind=PREC_DP), DIMENSION(3) :: u (3), nullv(3) 
 !                                                                       
 DATA nullv/ 0.0, 0.0, 0.0 / 
@@ -6642,7 +6616,7 @@ INTEGER :: i, j
 INTEGER, DIMENSION(3) :: icell  !(3)
 INTEGER :: isite, nsel 
 INTEGER :: ntrial 
-REAL :: r1
+REAL(kind=PREC_DP) :: r1
 !                                                                       
 !                                                                       
 IF(mmc_l_type == MMC_L_CELLS) THEN 
@@ -6744,8 +6718,6 @@ REAL(KIND=PREC_DP) :: old
 REAL(KIND=PREC_DP) :: new 
 REAL(KIND=PREC_DP) :: minstep 
 !                                                                       
-!     REAL buckingham 
-!                                                                       
       minstep = 0.0001 
 !                                                                       
       last = 10.0 
@@ -6789,7 +6761,7 @@ END SUBROUTINE find_bucking
 !
 !*****7**************************************************************** 
 !
-REAL FUNCTION buckingham(a, rho, b, x) 
+REAL(kind=PREC_DP) FUNCTION buckingham(a, rho, b, x) 
 !-                                                                      
 !     calculates the Buckingham potential at point x                    
 !+                                                                      
@@ -6839,10 +6811,10 @@ REAL(KIND=prec_DP), DIMENSION(3) :: x     ! Atom position
 REAL(KIND=prec_DP), DIMENSION(3) :: werte ! Atom types allowed
 REAL(kind=PREC_DP) :: rmin  ! minimum distance for find_env
 REAL(kind=PREC_DP) :: rmax  ! maximum distance for find_env
-REAL :: rel_cycl    ! how far are we in the desired number of cycles
+REAL(kind=PREC_DP) :: rel_cycl    ! how far are we in the desired number of cycles
 LOGICAL :: lout_feed, done
-REAL :: r1
-real(kind=PREC_SP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
+REAL(kind=PREC_DP) :: r1
+real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
 !
 done = .FALSE.
 rmin = 0.0

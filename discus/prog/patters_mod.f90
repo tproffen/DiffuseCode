@@ -4,6 +4,7 @@ MODULE patters_mod
 !     This file contains variables for inverse Fourier and
 !     Patterson input
 !-
+use precision_mod
 SAVE
 !
 INTEGER, PARAMETER  ::  PATT_INIT      =  0
@@ -23,12 +24,12 @@ INTEGER                 ::  patt_origin   = 0
 INTEGER                 ::  ftyp          = 0
 LOGICAL                 ::  patt_excl9999 = .false.
 LOGICAL                 ::  patt_rsym     = .false.
-REAL   , DIMENSION(3,3) ::  rho_eck       = reshape((/0,0,0, 1,0,0, 0,1,0/),shape(rho_eck))
-REAL   , DIMENSION(3,2) ::  rho_vi        = reshape((/0.02,0.0,0.0, 0.0, 0.02,0.0/),shape(rho_vi))
-REAL                    ::  patt_scale    = 1.0
-REAL                    ::  patt_excl_val = -9999.0
-REAL   , DIMENSION(20)  ::  e_aver_f2     = 0.0
-REAL                    ::  wilson_scale  = 1.0
-REAL                    ::  wilson_b      = 0.0
+REAL(kind=PREC_DP)   , DIMENSION(3,3) ::  rho_eck       = reshape((/0,0,0, 1,0,0, 0,1,0/),shape(rho_eck))
+REAL(kind=PREC_DP)   , DIMENSION(3,2) ::  rho_vi        = reshape((/0.02,0.0,0.0, 0.0, 0.02,0.0/),shape(rho_vi))
+REAL(kind=PREC_DP)                    ::  patt_scale    = 1.0
+REAL(kind=PREC_DP)                    ::  patt_excl_val = -9999.0
+REAL(kind=PREC_DP)   , DIMENSION(20)  ::  e_aver_f2     = 0.0
+REAL(kind=PREC_DP)                    ::  wilson_scale  = 1.0
+REAL(kind=PREC_DP)                    ::  wilson_b      = 0.0
 !
 END MODULE patters_mod

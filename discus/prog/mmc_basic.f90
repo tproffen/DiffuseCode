@@ -137,16 +137,16 @@ IMPLICIT none
 !SAVE
 !                                                                       
 INTEGER, INTENT(INOUT) :: iacc_good, iacc_neut, iacc_bad 
-REAL,    INTENT(IN)    :: e_old (0:MC_N_ENERGY) 
-REAL,    INTENT(IN)    :: e_new (0:MC_N_ENERGY) 
+REAL(kind=PREC_DP),    INTENT(IN)    :: e_old (0:MC_N_ENERGY) 
+REAL(kind=PREC_DP),    INTENT(IN)    :: e_new (0:MC_N_ENERGY) 
 LOGICAL, INTENT(OUT)   :: laccept 
 !                                                                       
 INTEGER :: i 
-REAL    :: e_del 
-real    :: e_neu
-REAL    :: e_ran 
-REAL    :: e_delta 
-REAL    :: r1
+REAL(kind=PREC_DP)    :: e_del 
+real(kind=PREC_DP)    :: e_neu
+REAL(kind=PREC_DP)    :: e_ran 
+REAL(kind=PREC_DP)    :: e_delta 
+REAL(kind=PREC_DP)    :: r1
 !                                                                       
 !                                                                       
 e_del = 0.0
@@ -252,11 +252,11 @@ USE prompt_mod
 IMPLICIT none 
 !                                                                       
 LOGICAL , INTENT(IN) :: lout     ! Flag for output yes/no
-REAL    , INTENT(IN) :: rel_cycl ! Relative progress along cycles
+REAL(kind=PREC_DP)    , INTENT(IN) :: rel_cycl ! Relative progress along cycles
 LOGICAL , INTENT(INOUT) :: done     ! MMC is converged/ stagnates
 LOGICAL , INTENT(IN)    :: lfinished ! MMC is finished
 LOGICAL , INTENT(IN)    :: lfeed     ! Perform feedback algorithm
-real(kind=PREC_SP), dimension(2), intent(inout) :: maxdev
+real(kind=PREC_DP), dimension(2), intent(inout) :: maxdev
 ! 
 !                                                                       
 CHARACTER(LEN=30) :: energy_name (0:MC_N_ENERGY) 
@@ -272,45 +272,40 @@ LOGICAL :: searching
 !LOGICAL   :: lfirst = .TRUE.  ! Flag to write output only at first instance
 !                                                                       
 INTEGER :: ncent 
-REAL(KIND=PREC_SP), DIMENSION(:,:,:), ALLOCATABLE :: patom ! (3, 0:MAX_ATOM_ENV, MMC_MAX_CENT) 
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: patom ! (3, 0:MAX_ATOM_ENV, MMC_MAX_CENT) 
 INTEGER           , DIMENSION(  :,:), ALLOCATABLE :: iatom ! (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
 LOGICAL           , DIMENSION(  :,:), ALLOCATABLE :: tatom ! (0:MAX_ATOM_ENV, MMC_MAX_CENT) 
 INTEGER           , DIMENSION(    :), ALLOCATABLE :: natom ! ( MMC_MAX_CENT) 
 !                                                                       
 INTEGER           , DIMENSION(:,:), ALLOCATABLE :: bl_anz ! (0:DEF_maxscat, 0:DEF_maxscat) 
-REAL(KIND=PREC_SP), DIMENSION(:,:), ALLOCATABLE :: bl_sum ! (0:DEF_maxscat, 0:DEF_maxscat) 
-REAL(KIND=PREC_SP), DIMENSION(:,:), ALLOCATABLE :: bl_s2  ! (0:DEF_maxscat, 0:DEF_maxscat) 
+REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: bl_sum ! (0:DEF_maxscat, 0:DEF_maxscat) 
+REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: bl_s2  ! (0:DEF_maxscat, 0:DEF_maxscat) 
 REAL(kind=PREC_DP) :: u (3), v (3), d (3) 
-REAL :: dist 
-real(kind=PREC_SP) :: change    ! Changes in (target-achieved) from feedback to feedback
-real(kind=PREC_SP), dimension(4), save :: conv_val ! Convergence values
-!REAL :: divisor
+REAL(kind=PREC_DP) :: dist 
+real(kind=PREC_DP) :: change    ! Changes in (target-achieved) from feedback to feedback
+real(kind=PREC_DP), dimension(4), save :: conv_val ! Convergence values
 !
 INTEGER :: n_cn
 INTEGER, DIMENSION(:), ALLOCATABLE :: ncentral
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: p_cn
 !                                                                       
-!INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: pneig ! (0:DEF_MAXSCAT, 0:DEF_MAXSCAT, 1:CHEM_MAX_COR) 
-!INTEGER pair11, pair12, pair21, pair22 
 INTEGER nneigh 
-!REAL :: prob11=0.0, prob12, prob22 
-!REAL :: thet = 0.0
-REAL :: damp = 1.0
+REAL(kind=PREC_DP) :: damp = 1.0
 !                                                                       
-REAL :: wi, wis 
-REAL :: divider 
+REAL(kind=PREC_DP) :: wi, wis 
+REAL(kind=PREC_DP) :: divider 
 !                                                                       
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: ba_sum ! (CHEM_MAX_COR * MMC_MAX_ANGLES) 
-REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: ba_s2  ! (CHEM_MAX_COR * MMC_MAX_ANGLES) 
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: ba_sum ! (CHEM_MAX_COR * MMC_MAX_ANGLES) 
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: ba_s2  ! (CHEM_MAX_COR * MMC_MAX_ANGLES) 
 INTEGER           , DIMENSION(:), ALLOCATABLE :: ba_anz ! (CHEM_MAX_COR * MMC_MAX_ANGLES) 
 !                                                                       
 INTEGER :: icc (3), jcc (3) 
 REAL(kind=PREC_DP) :: idir (3), jdir (3), disi (3), disj (3) 
-REAL :: rdi=1.0, rdj=1.0, dpi=1.0, dpj
+REAL(kind=PREC_DP) :: rdi=1.0, rdj=1.0, dpi=1.0, dpj
 INTEGER           , DIMENSION(:,:), ALLOCATABLE :: xnn !(0:maxscat, 0:maxscat) 
-REAL(KIND=PREC_SP), DIMENSION(:,:), ALLOCATABLE :: xij !(0:maxscat, 0:maxscat) 
-REAL(KIND=PREC_SP), DIMENSION(:,:), ALLOCATABLE :: xi2 !(0:maxscat, 0:maxscat) 
-REAL(KIND=PREC_SP), DIMENSION(:,:), ALLOCATABLE :: xj2 !(0:maxscat, 0:maxscat) 
+REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: xij !(0:maxscat, 0:maxscat) 
+REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: xi2 !(0:maxscat, 0:maxscat) 
+REAL(KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: xj2 !(0:maxscat, 0:maxscat) 
 !
 !                                                                       
 DATA energy_name / 'none', 'Chemical correlation    ', 'Displacement correlation', &
@@ -1032,22 +1027,22 @@ if(lfeed) then
    endif
 !          mmc_pid_pid_n    = mmc_pid_pid_n + 1
    if(mmc_pid_pid(1,2)>0.0) then
-      mmc_pid_pid(1,1) = min(mmc_pid_pid(1,1) * 1.05, 1.000)
+      mmc_pid_pid(1,1) = min(mmc_pid_pid(1,1) * 1.05D0, 1.000D0)
    else
-      mmc_pid_pid(1,1) = max(mmc_pid_pid(1,1) * 0.90, 0.001)
+      mmc_pid_pid(1,1) = max(mmc_pid_pid(1,1) * 0.90D0, 0.001D0)
    endif
    if(mmc_pid_pid(2,2) > 0) then
-      mmc_pid_pid(2,1) = min(mmc_pid_pid(2,1) * 1.025, 1.000)
+      mmc_pid_pid(2,1) = min(mmc_pid_pid(2,1) * 1.025D0, 1.000D0)
    else
-      mmc_pid_pid(2,1) = max(mmc_pid_pid(2,1) * 0.950, 0.001)
+      mmc_pid_pid(2,1) = max(mmc_pid_pid(2,1) * 0.950D0, 0.001D0)
    endif
    if(abs(mmc_pid_pid(3,2)) > mmc_pid_change) then
-      mmc_pid_pid(3,1) = min(mmc_pid_pid(3,1) * 0.950, 1.000)
+      mmc_pid_pid(3,1) = min(mmc_pid_pid(3,1) * 0.950D0, 1.000D0)
    else
       if(mmc_pid_pid(3,1)>0.0) then
-         mmc_pid_pid(3,1) = max(mmc_pid_pid(3,1) * 1.025, 0.001)
+         mmc_pid_pid(3,1) = max(mmc_pid_pid(3,1) * 1.025D0, 0.001D0)
       elseif(mmc_pid_pid(3,1)<0.0) then
-         mmc_pid_pid(3,1) = min(mmc_pid_pid(3,1) * 1.025,-0.001)
+         mmc_pid_pid(3,1) = min(mmc_pid_pid(3,1) * 1.025D0,-0.001D0)
       endif
    endif
    mmc_pid_change = abs(mmc_pid_pid(3,2))
@@ -1251,11 +1246,11 @@ INTEGER, INTENT(IN) :: ic
 INTEGER, INTENT(IN) :: MAXSCAT_L
 INTEGER, INTENT(IN) :: MAX_COR
 INTEGER, DIMENSION(0:MAXSCAT_L, 0:MAXSCAT_L, 1:MAX_COR) , INTENT(IN) :: pneig
-REAL   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
-REAL   , INTENT(IN) :: damp
+REAL(kind=PREC_DP)   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
+REAL(kind=PREC_DP)   , INTENT(IN) :: damp
 LOGICAL, INTENT(IN) :: lout
 LOGICAL, INTENT(IN) :: lfeed
-real(kind=PREC_SP), dimension(2), intent(inout) :: maxdev
+real(kind=PREC_DP), dimension(2), intent(inout) :: maxdev
 !
 !
 INTEGER :: pair11
@@ -1265,10 +1260,10 @@ INTEGER :: pair22
 INTEGER :: is, js, je
 INTEGER :: nneigh
 LOGICAL :: lfirst
-REAL :: prob11, prob12, prob22 
-REAL(PREC_SP) :: thet, thet2
-REAL(PREC_SP) :: divisor
-REAL(PREC_SP) :: change
+REAL(kind=PREC_DP) :: prob11, prob12, prob22 
+REAL(PREC_DP) :: thet, thet2
+REAL(PREC_DP) :: divisor
+REAL(PREC_DP) :: change
 integer :: k
 !
 je = MC_OCC 
@@ -1343,7 +1338,7 @@ corr_pair: DO is = 0, cr_nscat
         IF_FEED: IF(lfeed) THEN
            IF_lfeed: IF(mmc_lfeed(ic,MC_OCC)) THEN
            IF_RELC: IF(rel_cycl>0.0) THEN
-              call calc_change_pid(ic, MC_OCC, is, js, damp, divisor, 1.0, maxdev, change)
+              call calc_change_pid(ic, MC_OCC, is, js, damp, divisor, 1.0D0, maxdev, change)
 !
 !          change = mmc_cfac(ic, MC_OCC) * (mmc_target_corr(ic, MC_OCC, is, js) -      &
 !                                           mmc_ach_corr   (ic, MC_OCC, is, js) ) / 0.1& !divisor &
@@ -1406,14 +1401,14 @@ integer,            intent(in)  :: ic
 integer,            intent(in)  :: ie
 integer,            intent(in)  :: is
 integer,            intent(in)  :: js
-real   ,            intent(in)  :: damp
-real(kind=PREC_SP),               intent(in)    :: divisor
-real(kind=PREC_SP),               intent(in)    :: fact
-real(kind=PREC_SP), dimension(2), intent(inout) :: maxdev
-real(kind=PREC_SP), intent(out) :: change
+real(kind=PREC_DP),            intent(in)  :: damp
+real(kind=PREC_DP),               intent(in)    :: divisor
+real(kind=PREC_DP),               intent(in)    :: fact
+real(kind=PREC_DP), dimension(2), intent(inout) :: maxdev
+real(kind=PREC_DP), intent(out) :: change
 !
-real(kind=PREC_SP) :: mmc_pid_summ
-real(kind=PREC_SP) :: mmc_pid_dddd
+real(kind=PREC_DP) :: mmc_pid_summ
+real(kind=PREC_DP) :: mmc_pid_dddd
 !
 mmc_pid_diff(ic, ie, is, js) = mmc_target_corr(ic, ie, is, js) -                &    ! Proportional
                                    mmc_ach_corr   (ic, ie, is, js) 
@@ -1461,11 +1456,11 @@ INTEGER, INTENT(IN) :: ic
 INTEGER, INTENT(IN) :: MAXSCAT_L
 INTEGER, INTENT(IN) :: MAX_COR
 INTEGER, DIMENSION(0:MAXSCAT_L, 0:MAXSCAT_L, 1:MAX_COR) , INTENT(IN) :: pneig
-REAL   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
-REAL   , INTENT(IN) :: damp
+REAL(kind=PREC_DP)   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
+REAL(kind=PREC_DP)   , INTENT(IN) :: damp
 LOGICAL, INTENT(IN) :: lout
 LOGICAL, INTENT(IN) :: lfeed
-real(kind=PREC_SP), dimension(2), intent(inout) :: maxdev
+real(kind=PREC_DP), dimension(2), intent(inout) :: maxdev
 !
 INTEGER :: pair11
 INTEGER :: pair12
@@ -1474,11 +1469,11 @@ INTEGER :: pair22
 INTEGER :: is, js, je
 INTEGER :: nneigh
 LOGICAL :: lfirst
-      REAL :: prob11=0.0, prob12, prob22 
-REAL(PREC_SP) :: thet
-REAL(PREC_SP) :: divisor
-REAL(PREC_SP) :: change
-REAL(PREC_SP) :: fact
+      REAL(kind=PREC_DP) :: prob11=0.0, prob12, prob22 
+REAL(PREC_DP) :: thet
+REAL(PREC_DP) :: divisor
+REAL(PREC_DP) :: change
+REAL(PREC_DP) :: fact
 !integer :: iwr, j=0
 !
 pair11 = 0
@@ -1624,11 +1619,11 @@ INTEGER, INTENT(IN) :: ic
 INTEGER, INTENT(IN) :: MAXSCAT_L
 INTEGER, INTENT(IN) :: MAX_COR
 INTEGER, DIMENSION(0:MAXSCAT_L, 0:MAXSCAT_L, 1:MAX_COR) , INTENT(IN) :: pneig
-REAL   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
-REAL   , INTENT(IN) :: damp
+REAL(kind=PREC_DP)   , INTENT(IN) :: rel_cycl ! Relative progress along cycles
+REAL(kind=PREC_DP)   , INTENT(IN) :: damp
 LOGICAL, INTENT(IN) :: lout
 LOGICAL, INTENT(IN) :: lfeed
-real(kind=PREC_SP), dimension(2), intent(inout) :: maxdev
+real(kind=PREC_DP), dimension(2), intent(inout) :: maxdev
 !
 INTEGER :: pair11
 INTEGER :: pair12
@@ -1637,14 +1632,14 @@ INTEGER :: pair22
 INTEGER :: is, js, je
 INTEGER :: nneigh
 LOGICAL :: lfirst
-      REAL :: prob11=0.0, prob12, prob22 
-REAL(PREC_SP) :: achieved
-REAL(PREC_SP) :: target_corr
-REAL(PREC_SP) :: depth    
-REAL(PREC_SP) :: thet
-REAL(PREC_SP) :: divisor
-REAL(PREC_SP) :: change
-real(kind=PREC_SP) :: fact
+      REAL(kind=PREC_DP) :: prob11=0.0, prob12, prob22 
+REAL(PREC_DP) :: achieved
+REAL(PREC_DP) :: target_corr
+REAL(PREC_DP) :: depth    
+REAL(PREC_DP) :: thet
+REAL(PREC_DP) :: divisor
+REAL(PREC_DP) :: change
+real(kind=PREC_DP) :: fact
 !integer :: iwr, j=0
 !write(*,*) ' IN GROUP CORRELATIONS ', ic, lout, lfeed
 !
