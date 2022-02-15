@@ -200,6 +200,7 @@ USE envir_mod
 USE errlist_mod 
 USE lib_errlist_func
 USE lib_length
+use precision_mod
 USE prompt_mod 
 USE string_convert_mod
 USE str_comp_mod
@@ -219,7 +220,7 @@ CHARACTER(LEN=80) :: line
 CHARACTER(LEN=80) :: zeile 
 CHARACTER(LEN=12), DIMENSION(nviele) :: viele
 INTEGER :: lev, nl, nbef, ianz, laenge, ll 
-REAL :: werte 
+REAL(kind=PREC_DP) :: werte 
 !                                                                       
 !                                                                       
 !------ Loop over all helpfile levels until entry is found              
@@ -298,11 +299,12 @@ SUBROUTINE hole_zahl (zeile, ianz, werte)
 !+                                                                      
 !     Gets numbers from command line and number of values of input.     
 !-                                                                      
+use precision_mod
 IMPLICIT none 
 !                                                                       
 CHARACTER(LEN=*), INTENT(IN)  :: zeile 
 INTEGER         , INTENT(OUT) :: ianz 
-REAL            , INTENT(OUT) :: werte 
+REAL(kind=PREC_DP), INTENT(OUT) :: werte 
 !                                                                       
 werte = 0.0 
 ianz = 0 
@@ -435,6 +437,7 @@ END SUBROUTINE lese_text
 SUBROUTINE weitere (ihl, nl, viele, nviele, nbef) 
 !                                                                       
 USE lib_length
+use precision_mod
 !
 IMPLICIT none 
 !
@@ -448,7 +451,7 @@ CHARACTER(LEN=80) :: line
 CHARACTER(LEN=80) :: zeile 
 INTEGER :: ianz 
 INTEGER :: ll 
-REAL :: werte 
+REAL(kind=PREC_DP) :: werte 
 !                                                                       
 !                                                                       
 nbef = 0 

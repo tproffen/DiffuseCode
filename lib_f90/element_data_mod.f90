@@ -1917,10 +1917,12 @@ END FUNCTION get_ka12_len
 !
 SUBROUTINE get_scat_xray ( j,temp_scat )
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
 INTEGER                 , INTENT(IN ) :: j
-REAL   , DIMENSION(1:11), INTENT(OUT) :: temp_scat
+REAL(kind=PREC_DP)   , DIMENSION(1:11), INTENT(OUT) :: temp_scat
 !
 temp_scat(1) = per_fc   (j)
 temp_scat(2) = per_fa1  (j)
@@ -1940,10 +1942,12 @@ END SUBROUTINE get_scat_xray
 !
 SUBROUTINE get_scat_xray_waas ( j,temp_scat )
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
 INTEGER                 , INTENT(IN ) :: j
-REAL   , DIMENSION(1:11), INTENT(OUT) :: temp_scat
+REAL(kind=PREC_DP)   , DIMENSION(1:11), INTENT(OUT) :: temp_scat
 !
 temp_scat(1) = per_wc   (j)
 temp_scat(2) = per_wa1  (j)
@@ -1963,10 +1967,12 @@ END SUBROUTINE get_scat_xray_waas
 !
 SUBROUTINE get_scat_neut ( j, temp_bcoh )
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
 INTEGER                 , INTENT(IN ) :: j
-REAL                    , INTENT(OUT) :: temp_bcoh
+REAL(kind=PREC_DP)                    , INTENT(OUT) :: temp_bcoh
 !
 temp_bcoh    = per_bcoh (j)
 !
@@ -1976,11 +1982,13 @@ END SUBROUTINE get_scat_neut
 !
 SUBROUTINE get_scat_ano ( j, lambda, temp_delf )
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
 INTEGER                 , INTENT(IN ) :: j
 CHARACTER(LEN=4)        , INTENT(IN ) :: lambda
-REAL   , DIMENSION(1:2) , INTENT(OUT) :: temp_delf
+REAL(kind=PREC_DP)   , DIMENSION(1:2) , INTENT(OUT) :: temp_delf
 !
 SELECTCASE(lambda)
    CASE('TIA1')
@@ -2024,10 +2032,12 @@ END SUBROUTINE get_scat_ano
 !
 SUBROUTINE get_scat_elec ( j, temp_scat )
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
 INTEGER                 , INTENT(IN ) :: j
-REAL   , DIMENSION(1:11), INTENT(OUT) :: temp_scat
+REAL(kind=PREC_DP)   , DIMENSION(1:11), INTENT(OUT) :: temp_scat
 !
 temp_scat(1) = 0.0
 temp_scat(2) = per_ea1  (j)

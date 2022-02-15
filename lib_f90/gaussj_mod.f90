@@ -11,21 +11,22 @@ SUBROUTINE gausj(NP, a, b)
 ! Modified to work with 1-D arrays b
 !
 USE errlist_mod
+use precision_mod
 !
 IMPLICIT NONE
 !
-INTEGER                  , INTENT(IN)    :: NP  ! Dimensions for matrix a
-REAL   , DIMENSION(NP,NP), INTENT(INOUT) :: a   ! 
-REAL   , DIMENSION(NP   ), INTENT(INOUT) :: b   ! 
+INTEGER                             , INTENT(IN)    :: NP  ! Dimensions for matrix a
+REAL(kind=PREC_DP), DIMENSION(NP,NP), INTENT(INOUT) :: a   ! 
+REAL(kind=PREC_DP), DIMENSION(NP   ), INTENT(INOUT) :: b   ! 
 !
 !
 INTEGER, DIMENSION(NP  ) :: ipiv
 INTEGER, DIMENSION(NP  ) :: indxr
 INTEGER, DIMENSION(NP  ) :: indxc
 INTEGER                  :: j, i, k, l, ll
-REAL                     :: big, dum
+REAL(kind=PREC_DP)       :: big, dum
 INTEGER                  :: irow, icol
-REAL                     :: pivinv
+REAL(kind=PREC_DP)       :: pivinv
 !
 IF(NP==1) THEN
    IF(a(1,1)/=0) THEN

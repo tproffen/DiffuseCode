@@ -69,6 +69,7 @@ SUBROUTINE ini_ran_ix(np, iwerte, iaddit)
 !
 ! Initializes the random sequence or places it at a previous state
 !
+use precision_mod
 USE random_mod
 USE times_mod
 USE support_mod
@@ -84,7 +85,7 @@ INTEGER  :: i
 INTEGER  :: nseeds
 !INTEGER, DIMENSION(:), ALLOCATABLE :: seed_val
 !INTEGER, DIMENSION(12)              :: seed_val
-REAL     :: r
+REAL(kind=PREC_DP)     :: r
 !
 CALL alloc_random()
 nseeds = UBOUND(seed_vals,1)

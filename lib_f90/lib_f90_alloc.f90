@@ -31,7 +31,7 @@ contains
    integer              :: all_status
    integer              :: size_of
 !
-   call alloc_arr(ref_para, 0, n_para, all_status, 0.0, size_of )
+   call alloc_arr(ref_para, 0, n_para, all_status, 0.0D0, size_of )
    MAXPAR_REF = n_para
 !
    end subroutine alloc_ref_para
