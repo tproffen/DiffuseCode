@@ -11,7 +11,6 @@ CONTAINS
       USE metric_mod
       USE modify_func_mod
       USE discus_plot_mod 
-!      USE tensors_mod
       USE errlist_mod 
 USE lib_length
 use matrix_mod
@@ -20,7 +19,7 @@ use precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL d, dist, fac 
+      REAL(kind=PREC_DP) :: d, dist, fac 
       REAL(kind=PREC_DP), dimension(3) ::  v (3) 
       INTEGER i, j, iff 
       LOGICAL lno_slice, latom 
@@ -122,7 +121,6 @@ pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
       USE metric_mod
       USE modify_func_mod
       USE discus_plot_mod 
-!     USE tensors_mod
       USE errlist_mod 
 USE lib_length
 use matrix_mod
@@ -131,7 +129,7 @@ use precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL d, dist, fac 
+      REAL(kind=PREC_DP) :: d, dist, fac 
       REAL(kind=PREC_DP) :: v (3) 
       INTEGER i, j, iff 
       LOGICAL lno_slice, latom 
@@ -255,7 +253,6 @@ USE crystal_mod
 USE metric_mod
 USE modify_func_mod
 USE discus_plot_mod 
-!USE tensors_mod
 USE errlist_mod 
 use matrix_mod
 use precision_mod
@@ -268,12 +265,12 @@ INTEGER, INTENT(IN) :: iff
 LOGICAL, INTENT(IN) :: lplot
 CHARACTER(LEN=*), INTENT(IN) :: do_spcgr
 !                                                                       
-REAL   , PARAMETER   :: eightpisq = 8.*3.14159265**2
+REAL(kind=PREC_DP)   , PARAMETER   :: eightpisq = 8.*3.14159265**2
 !                                                                       
 !                                                                       
 CHARACTER(LEN=16)     :: do_spcgr_w = 'P1'
 character(len=4)      :: atom_i
-REAL                  :: d, dist , shift
+REAL(kind=PREC_DP)    :: d, dist , shift
 REAL(kind=PREC_DP),    DIMENSION(3) :: v
 INTEGER, DIMENSION(3) :: scalef
 INTEGER               :: i, j
@@ -414,8 +411,6 @@ END SUBROUTINE plot_cif
       USE metric_mod
       USE modify_func_mod
       USE discus_plot_mod 
-!      USE tensors_mod
-!      USE trafo_mod
       USE errlist_mod 
 use matrix_mod
 use precision_mod
@@ -548,8 +543,6 @@ pl_inv_local = real(pl_inv, kind=PREC_DP)     ! Prioir to compete migratin to DP
       USE metric_mod
       USE molecule_mod 
       USE discus_plot_mod 
-!      USE tensors_mod
-!      USE trafo_mod
       USE errlist_mod 
 use matrix_mod
 use precision_mod
@@ -568,7 +561,6 @@ use precision_mod
 real(kind=PREC_DP), dimension(3) :: pl_uvw_local
 real(kind=PREC_DP), dimension(3,3) :: pl_inv_local
 !                                                                       
-!     REAL skalpro 
 !                                                                       
 pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
       latom = .false. 
@@ -747,7 +739,6 @@ END SUBROUTINE write_atom
       USE modify_func_mod
       USE discus_plot_mod 
       USE discus_plot_init_mod
-!      USE tensors_mod
       USE trans_sup_mod
       USE errlist_mod 
 use matrix_mod

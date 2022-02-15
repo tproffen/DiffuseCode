@@ -775,7 +775,7 @@ USE precision_mod
                 res_para(diff_power + j) = cr_scat (2 * j + 1, i)
              ENDDO
              res_para(diff_power*2+1) = cr_scat (1        , i)
-             res_para(0) = REAL(diff_power*2+1)
+             res_para(0) = REAL(diff_power*2+1, kind=PREC_DP)
       ENDIF 
       ENDDO 
 !

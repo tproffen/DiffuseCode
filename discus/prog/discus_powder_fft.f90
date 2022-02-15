@@ -38,8 +38,6 @@ INTEGER           , DIMENSION(:), ALLOCATABLE :: ip
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: w
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: xfft   ! Temporary array for FFT result
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: yfft   ! Temporary array for FFT result
-!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: xfour_sp ! Temporary array for spline
-!REAL(KIND=PREC_SP), DIMENSION(:), ALLOCATABLE :: yfour_sp ! Temporary array for spline
 !
 !write(*,*) ' PDF OUT ', npkt_wrt, npkt_fft, npkt_pdf, rmin, rmax, (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
 !write(*,*) ' PDF ste ', (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP), rstep
@@ -127,23 +125,21 @@ REAL(kind=PREC_DP)                            , INTENT(IN)    :: dtth      ! 2Th
 REAL(kind=PREC_DP)                            , INTENT(IN)    :: sigma2    ! Gaussian Sigma^2
 REAL(kind=PREC_DP)                            , INTENT(IN)    :: corrlin   ! 1/r deppendend width correction
 REAL(kind=PREC_DP)                            , INTENT(IN)    :: corrquad  ! 1/r^2 deppendend width correction
-REAL(KIND=PREC_SP)              , INTENT(IN)    :: rcut      ! minimum  distance for clin/(r-rmin)
+REAL(KIND=PREC_DP)              , INTENT(IN)    :: rcut      ! minimum  distance for clin/(r-rmin)
 REAL(kind=PREC_DP)                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 !
-!REAL(KIND=PREC_DP), PARAMETER :: four_ln2  = 2.772588722239781237669D0
 REAL(KIND=PREC_DP), PARAMETER :: eightln2  = 2.772588722239781237669D0 * 2.0D0
 !
 REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
-REAL, DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
+REAL(kind=PREC_DP), DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
 REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
-!REAL                          :: tantth   ! tan(Theta)
 REAL(KIND=PREC_DP)    :: sigmasq          ! actual scaled local sigma**2
 REAL(KIND=PREC_DP)    :: sigmamin         ! minimum       local sigma**2
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
 REAL(KIND=PREC_DP)    :: dist_min  ! minimum  distance for clin/(r-rmin)
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
 INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
-REAL    :: pseudo          ! scale factor for lookup table
+REAL(kind=PREC_DP)    :: pseudo          ! scale factor for lookup table
 INTEGER :: max_ps 
 !                                                                       
 !------ Now convolute                                                   

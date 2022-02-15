@@ -185,9 +185,9 @@ logical                 :: lreal          ! Real space / reciprocal T/F
 logical                 :: lpatt          ! Write patterson overlay T/F
 logical                 :: lpatt_full     ! Write patterson overlay T/F
 integer      , dimension(2) :: isurf       ! Values for surfaces (+, -)
-real(kind=PREC_SP), dimension(2) :: rsurf       ! Values for surfaces (+, -)
-real(kind=PREC_SP), dimension(2) :: extrema     ! Values for surfaces (+, -)
-real(kind=PREC_SP), dimension(:), allocatable :: qvals
+real(kind=PREC_DP), dimension(2) :: rsurf       ! Values for surfaces (+, -)
+real(kind=PREC_DP), dimension(2) :: extrema     ! Values for surfaces (+, -)
+real(kind=PREC_DP), dimension(:), allocatable :: qvals
 real(kind=PREC_DP), dimension(3,3)            :: gmat
 real(kind=PREC_DP), dimension(3,3)            :: rmat
 !
@@ -334,19 +334,19 @@ if(lreal) then
    end if
 else
    if(fave==0) then
-      rsurf(1) = max(0.0, extrema(1)) + (extrema(2)-extrema(1))*0.0025
-      rsurf(2) = max(0.0, extrema(1)) + (extrema(2)-extrema(1))*0.01
+      rsurf(1) = max(0.0D0, extrema(1)) + (extrema(2)-extrema(1))*0.0025D0
+      rsurf(2) = max(0.0D0, extrema(1)) + (extrema(2)-extrema(1))*0.01D0
    else
-      rsurf(1) = max(0.0, extrema(1)) + (extrema(2)-extrema(1))*0.333
-      rsurf(2) = max(0.0, extrema(1)) + (extrema(2)-extrema(1))*0.500
+      rsurf(1) = max(0.0D0, extrema(1)) + (extrema(2)-extrema(1))*0.333D0
+      rsurf(2) = max(0.0D0, extrema(1)) + (extrema(2)-extrema(1))*0.500D0
    end if
       isurf(1) = 1
       isurf(2) = 1
 end if
 !
-gmat(1,:) = out_vi(1,:)*1.0*      (fini(1)-start(1))
-gmat(2,:) = out_vi(2,:)*1.0*      (fini(2)-start(2))
-gmat(3,:) = out_vi(3,:)*1.0*      (fini(3)-start(3))
+gmat(1,:) = out_vi(1,:)*1.0D0*      (fini(1)-start(1))
+gmat(2,:) = out_vi(2,:)*1.0D0*      (fini(2)-start(2))
+gmat(3,:) = out_vi(3,:)*1.0D0*      (fini(3)-start(3))
 call matinv3(gmat, rmat) 
 npx = fini-start
 call vesta_write(file_base, file_ext, lreal, lpatt, lpatt_full, &
@@ -375,7 +375,7 @@ logical         , intent(in) :: lreal          ! Real space / reciprocal T/F
 logical         , intent(in) :: lpatt          ! Write patterson overlay T/F
 logical         , intent(in) :: lpatt_full     ! Write patterson overlay T/F
 integer      , dimension(2), intent(in) :: isurf       ! Values for surfaces (+, -)
-real(kind=PREC_SP), dimension(2), intent(in) :: rsurf       ! Values for surfaces (+, -)
+real(kind=PREC_DP), dimension(2), intent(in) :: rsurf       ! Values for surfaces (+, -)
 real(kind=PREC_DP), dimension(3,3), intent(in)  :: gmat
 real(kind=PREC_DP), dimension(3,3), intent(in)  :: rmat
 integer      , dimension(3), intent(in) :: npx         ! Number of pixels - 1
@@ -637,7 +637,7 @@ logical                           , intent(in) :: lpatt_full     ! Write patters
 character(len=*), intent(in) :: spatt        ! Selected atoms
 character(len=*), intent(in) :: dpatt        ! Deselected atoms
 !
-real(kind=PREC_SP), parameter :: EPS = 1.0e-6
+real(kind=PREC_DP), parameter :: EPS = 1.0e-6
 integer :: npat    ! Number of Patterson maxima
 integer :: i
 integer :: j
@@ -651,8 +651,8 @@ logical :: lsite
 logical :: pat_sel_atom
 logical, dimension(0:MAXSCAT)    :: pat_latom    ! selected atoms
 logical, dimension(1:cr_ncatoms) :: pat_lsite    ! selected sites
-real(kind=PREC_SP), dimension(:,:), allocatable :: pat_pos
-real(kind=PREC_SP), dimension(3)                :: pat_vec
+real(kind=PREC_DP), dimension(:,:), allocatable :: pat_pos
+real(kind=PREC_DP), dimension(3)                :: pat_vec
 !
 ind_pat = 0
 lout  = .true.

@@ -69,6 +69,9 @@ CONTAINS
    USE fourier_sup
    USE output_mod 
    USE qval_mod
+!
+use precision_mod
+!
    IMPLICIT NONE
 !
    INTEGER, INTENT(IN)              :: value
@@ -80,10 +83,8 @@ CONTAINS
    INTEGER                             :: status_al
    INTEGER                             :: i,j
    CHARACTER(LEN=80)                   :: title = 'Default DISCUS title'
-   REAL, DIMENSION(:)    , ALLOCATABLE :: sq
-   REAL, DIMENSION(:)    , ALLOCATABLE :: qabs_h
-!
-!  REAL :: qval
+   REAL(kind=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: sq
+   REAL(kind=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: qabs_h
 !
    ALLOCATE ( sq(dimx),     STAT=status_al)
    ALLOCATE ( qabs_h(dimx), STAT=status_al)
@@ -127,6 +128,9 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cvalue(value)
    USE fourier_sup
    USE output_mod 
    USE qval_mod
+!
+use precision_mod
+!
    IMPLICIT NONE
 !
    INTEGER, INTENT(IN)              :: value
@@ -139,11 +143,9 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cvalue(value)
    INTEGER                             :: status_al
    INTEGER                             :: i,j
    CHARACTER(LEN=80)                   :: title = 'Default DISCUS title'
-   REAL, DIMENSION(:,:  ), ALLOCATABLE :: sq
-   REAL, DIMENSION(:)    , ALLOCATABLE :: qabs_h
-   REAL, DIMENSION(:)    , ALLOCATABLE :: qord_k
-!
-!  REAL :: qval
+   REAL(kind=PREC_DP), DIMENSION(:,:  ), ALLOCATABLE :: sq
+   REAL(kind=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: qabs_h
+   REAL(kind=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: qord_k
 !
    ALLOCATE ( sq(dimy, dimx), STAT=status_al)
    ALLOCATE ( qabs_h(dimx), STAT=status_al)
@@ -198,6 +200,9 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', cvalue(value)
    USE fourier_sup
    USE output_mod 
    USE random_mod
+!
+use precision_mod
+!
    USE qval_mod 
    IMPLICIT NONE
 !
@@ -212,12 +217,10 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', cvalue(value)
    INTEGER                             :: status_al
    INTEGER                             :: i,j,l
    CHARACTER(LEN=80)                   :: title = 'Default DISCUS title'
-   REAL, DIMENSION(:,:,:), ALLOCATABLE :: sq
-   REAL, DIMENSION(:)    , ALLOCATABLE :: qabs_h
-   REAL, DIMENSION(:)    , ALLOCATABLE :: qord_k
-   REAL, DIMENSION(:)    , ALLOCATABLE :: qtop_l
-!
-!  REAL :: qval
+   REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: sq
+   REAL(kind=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: qabs_h
+   REAL(kind=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: qord_k
+   REAL(kind=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: qtop_l
 !
    ALLOCATE ( sq(dimz, dimy, dimx), STAT=status_al)
    ALLOCATE ( qabs_h(dimx), STAT=status_al)

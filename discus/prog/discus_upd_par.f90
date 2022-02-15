@@ -1,3 +1,7 @@
+module discus_update_mod
+!
+contains
+!
 SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
 !                                                                       
 !-                                                                      
@@ -947,18 +951,13 @@ USE str_comp_mod
       INTEGER lpara (maxw)
       INTEGER i, j, k, ianz, lcomm, l 
       LOGICAL lspace
-      REAL werte (maxw)
+REAL(kind=PREC_DP), dimension(MAXW) :: werte !(maxw)
 real(kind=PREC_DP), dimension(3) :: u
 real(kind=PREC_DP), dimension(3) :: v
 real(kind=PREC_DP), dimension(3) :: w
 real(kind=PREC_DP), dimension(3,3), parameter :: unitmat = reshape((/ 1.0D0, 0.0D0, 0.0D0,  &
                                                                       0.0D0, 1.0D0, 0.0D0,  &
                                                                       0.0D0, 0.0D0, 1.0D0 /), shape(unitmat))
-!                                                                       
-!     REAL do_blen, do_bang 
-!     REAL skalpro 
-!                                                                       
-!     DATA unitmat / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
 !                                                                       
       lcomm = length_com (string, ikl) 
       ier_num = - 1 
@@ -1438,11 +1437,11 @@ LOGICAL :: lres
 !
 DATA f_names /'isprop'/
 DATA l_names / 6      /
-INTERFACE
-  LOGICAL FUNCTION is_property(string)
-    CHARACTER(LEN=*), INTENT(IN) :: string
-  END FUNCTION is_property
-END INTERFACE
+!INTERFACE
+!  LOGICAL FUNCTION is_property(string)
+!    CHARACTER(LEN=*), INTENT(IN) :: string
+!  END FUNCTION is_property
+!END INTERFACE
 !
 ier_num = 0
 ier_typ = ER_NONE
@@ -1784,3 +1783,5 @@ CALL lib_get_var_type(line, length, var_is_type)
 !
 !
 END SUBROUTINE discus_get_var_type
+!
+end module discus_update_mod
