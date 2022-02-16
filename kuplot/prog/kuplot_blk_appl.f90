@@ -326,6 +326,14 @@ use kuplot_init_devices_mod
       frame (iw, i, 4) = 1.0 
       ENDDO 
       ENDDO 
+!
+! Fit
+!
+p        = 0.0
+dp       = 0.0
+pinc     = 0.0
+pra(:,1) = +1.0    ! Default to infinite parameter range
+pra(:,2) = -1.0
 !                                                                       
       END SUBROUTINE kuplot_initarrays                     
 !*****7*****************************************************************
