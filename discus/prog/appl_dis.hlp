@@ -4906,23 +4906,6 @@
 !p output
 
    Switches to the output level of discus. All Fourier output is written 
-
-   The first version requires that for atom <central> and all other
-   atoms in the molecule a suitable connectivity list has been prepared,
-   at the connectivity menu, see ==> 'conn' for further details. 
-   You can list  one or more excluded atoms. They and the connectivity 
-   behind these atoms are excluded from the molecule. This in turn 
-   allows you to group a sub section of a full molecule.
-   Internally this algorithm is used within the symmetry menu to
-   rotate a partial molecule.
-
-   The second version places the consecutive range of atoms into 
-   a molecule of type <molecule_type>. 
-   DISCUS will not check how close these atoms are.
-2  output
-!p output
-
-   Switches to the output level of discus. All Fourier output is written 
    at this level. Several graphic formats are available.
 
    Further help topics are:
