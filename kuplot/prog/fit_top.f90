@@ -20,7 +20,7 @@ SUBROUTINE do_f66(zei, lp)
 !                                                                       
 !     Main fitting menu                                                 
 !                                                                       
-!USE kuplot_theory_macro_mod
+USE kuplot_theory_macro_mod
 !
 USE kuplot_config 
 USE kuplot_fit_para
@@ -75,7 +75,7 @@ REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 LOGICAL, DIMENSION(3) :: flag
 LOGICAL               :: sel_func 
 !                                                                       
-real :: f, df(maxpara)
+real(kind=PREC_DP) :: f, df(maxpara)
 !
 empty = ' '
 CALL no_error 
@@ -355,7 +355,7 @@ IF (ier_num.ne.0) RETURN
 !-------Test a recursive call to kuplot_loop                            
 !                                                                       
          ELSEIF (str_comp (befehl, 'test', 2, lbef, 4) ) THEN 
-            CALL theory_macro(1.0,  f, df, 1)
+            CALL theory_macro(1.0D0,  f, df, 1)
 !                                                                  
 !-------Save fit results                                                
 !                                                                       
