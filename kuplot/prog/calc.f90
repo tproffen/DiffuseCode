@@ -1444,6 +1444,7 @@ USE str_comp_mod
       INTEGER iweight 
       INTEGER i, j 
       LOGICAL lback, lskal, lmix 
+real(kind=PREC_SP) :: bck_k = 0.0
 !                                                                       
       INTEGER W_ONE 
       INTEGER W_SQUA 
@@ -1523,6 +1524,7 @@ USE str_comp_mod
          iweight = W_DAT 
       ELSEIF (str_comp (cpara (1) , 'bck', 1, lpara (1) , 3) ) then 
          iweight = W_BCK 
+         iweight = W_DAT 
       ELSE
          ier_num = -27
          ier_typ = ER_APPL 
@@ -1553,7 +1555,7 @@ USE str_comp_mod
          DO ip = 1, lenc (ikc) 
          ikko = offxy (iko - 1) + ip 
          ikkc = offxy (ikc - 1) + ip 
-         wi = r_wichtung (y (ikko), dy (ikko), iweight) 
+         wi = r_wichtung (y (ikko), dy (ikko), iweight, z(ikc), bck_k) 
          wtot = wtot + wi 
          e = e+wi * y (ikko) 
          ee = ee+wi * y (ikko) **2 
@@ -1571,7 +1573,7 @@ USE str_comp_mod
          ikkc = offz (ikc - 1) + (i - 1) * ny (ikc) + j 
          IF (z (ikko) .ne. - 9999.0.and.z (ikko) .ne. - 9999.0.and.z (  &
          ikkc) .ne. - 9999.0.and.z (ikkc) .ne. - 9999.0) then           
-            wi = r_wichtung (z (ikko), 1.0, iweight) 
+            wi = r_wichtung (z (ikko), 1.0, iweight, z(ikc), bck_k) 
             wtot = wtot + wi 
             e = e+wi * z (ikko) 
             ee = ee+wi * z (ikko) **2 
@@ -1778,7 +1780,7 @@ USE str_comp_mod
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
-      PARAMETER (maxw = 4) 
+      PARAMETER (maxw = 5) 
 !                                                                       
       CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
       INTEGER          , INTENT(INOUT) :: lp
@@ -1791,6 +1793,7 @@ USE str_comp_mod
       INTEGER iweight 
       REAL rval 
       REAL wrval 
+real(kind=PREC_SP) :: bck_k
 !                                                                       
       INTEGER W_ONE 
       INTEGER W_SQUA 
@@ -1828,6 +1831,7 @@ USE str_comp_mod
       opara  =  (/ '0.0000'   /) ! Always provide fresh default values
       lopara =  (/  6         /)
       owerte =  (/  0.00      /)
+bck_k = 0.0
 !
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -1873,7 +1877,12 @@ USE str_comp_mod
       ELSEIF (str_comp (cpara (1) , 'dat', 1, lpara (1) , 3) ) then 
          iweight = W_DAT 
       ELSEIF (str_comp (cpara (1) , 'bck', 1, lpara (1) , 3) ) then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         iianz = 1 
+         CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+         bck_k = werte(1)
          iweight = W_BCK 
+write(*,*) ' K ', bck_k
       ELSE
          ier_num = -27
          ier_typ = ER_APPL 
@@ -1884,7 +1893,7 @@ USE str_comp_mod
          IF (lni (ik) .and.lni (il) ) then 
             IF (nx (ik) .eq.nx (il) .and.ny (ik) .eq.ny (il) ) then 
                CALL rvalue_z (z, nx (ik), ny (ik), ik, il, iweight,     &
-               rval, wrval)                                             
+               rval, wrval, bck_k)                                             
                res_para (0) = 2 
                res_para (1) = rval 
                res_para (2) = wrval 
@@ -1899,7 +1908,7 @@ USE str_comp_mod
          ELSEIF (.not.lni (ik) .and..not.lni (il) ) then 
             IF (lenc (ik) .eq.lenc (il) ) then 
                CALL rvalue_y (y, dy, lenc(ik), ik, il,        &
-               iweight, rval, wrval)                                    
+               iweight, rval, wrval, bck_k)                                    
                res_para (0) = 2 
                res_para (1) = rval 
                res_para (2) = wrval 
@@ -1945,7 +1954,7 @@ USE str_comp_mod
  2000 FORMAT    (' weighted R-value : ',f8.4) 
       END SUBROUTINE do_rvalue                      
 !*****7*****************************************************************
-      SUBROUTINE rvalue_z (a, nxx, nyy, ik, il, iweight, rval, wrval) 
+      SUBROUTINE rvalue_z (a, nxx, nyy, ik, il, iweight, rval, wrval, bck_k) 
 !+                                                                      
 !     berechnungen fuer z feld                                          
 !-                                                                      
@@ -1954,6 +1963,8 @@ USE str_comp_mod
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
+!
+REAL(kind=PREC_SP), intent(in) :: bck_k
 !                                                                       
       INTEGER nxx, nyy, ik, il, i, j, ikk, ikl 
       INTEGER iweight 
@@ -1977,7 +1988,7 @@ USE str_comp_mod
       IF (a (ikl) .ne. - 9999.0.and.a (ikk) .ne. - 9999.0) then 
          sumrz = sumrz + abs (a (ikk) - a (ikl) ) 
          sumrn = sumrn + abs (a (ikk) ) 
-         wght = r_wichtung (a (ikk), 1.0, iweight) 
+         wght = r_wichtung (a (ikk), 1.0, iweight, a(ikl), bck_k) 
          sumwrz = sumwrz + wght * (a (ikk) - a (ikl) ) **2 
          sumwrn = sumwrn + wght * (a (ikk) ) **2 
       ENDIF 
@@ -1990,7 +2001,7 @@ USE str_comp_mod
       END SUBROUTINE rvalue_z                       
 !*****7*****************************************************************
       SUBROUTINE rvalue_y (a, da, klen, ik, il, iweight, rval,    &
-      wrval)                                                            
+      wrval, bck_k)                                                            
 !+                                                                      
 !     berechnungen fuer y feld                                          
 !-                                                                      
@@ -1999,6 +2010,8 @@ USE str_comp_mod
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
+!
+REAL(kind=PREC_SP), intent(in) :: bck_k
 !                                                                       
       INTEGER klen, ik, il, i, ikk, ikl 
       INTEGER iweight 
@@ -2021,7 +2034,7 @@ USE str_comp_mod
          ikl    = offxy (il - 1) + i 
          sumrz  = sumrz + abs (a (ikk) - a (ikl) ) **2
          sumrn  = sumrn + abs (a (ikk) ) **2
-         wght   = r_wichtung (a (ikk), da (ikk), iweight) 
+         wght   = r_wichtung (a (ikk), da (ikk), iweight, a(ikl), bck_k) 
          sumwrz = sumwrz + wght * (a (ikk) - a (ikl) ) **2 
          sumwrn = sumwrn + wght * (a (ikk) ) **2 
       ENDDO 
@@ -2031,14 +2044,19 @@ USE str_comp_mod
                                                                         
       END SUBROUTINE rvalue_y                       
 !*****7*****************************************************************
-      REAL function r_wichtung (z, dz, iweight) 
+      REAL function r_wichtung (z, dz, iweight, zc, bck_k) 
 !                                                                       
 !     calculates the weight                                             
 !                                                                       
-      IMPLICIT none 
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
-      REAL z, dz 
-      INTEGER iweight 
+REAL(kind=PREC_SP), intent(in) :: z
+REAL(kind=PREC_SP), intent(in) :: dz 
+INTEGER           , intent(in) :: iweight 
+REAL(kind=PREC_SP), intent(in) :: zc 
+REAL(kind=PREC_SP), intent(in) :: bck_k
 !                                                                       
       INTEGER W_ONE 
       INTEGER W_SQUA 
@@ -2048,7 +2066,7 @@ USE str_comp_mod
       INTEGER W_ISQ 
       INTEGER W_LIN 
       INTEGER W_DAT 
-!     INTEGER W_BCK           ! Currently not used
+INTEGER , parameter :: W_BCK = 8          ! Currently not used
       PARAMETER (W_ONE = 0) 
       PARAMETER (W_SQUA = 1) 
       PARAMETER (W_SQRT = 2) 
@@ -2095,8 +2113,15 @@ USE str_comp_mod
          IF (dz.ne.0) then 
             r_wichtung = 1.0 / dz**2
          ELSE 
-            r_wichtung = 1.0 
+            r_wichtung = 1.0
          ENDIF 
+      elseif(iweight==W_BCK) then
+         if((z-zc)>0.0) then
+            r_wichtung = dz*(0.8*bck_k)
+         else
+            r_wichtung = dz/(0.8*bck_k)
+         endif
+!           r_wichtung = exp(-abs(bck_k)*(z-zc))
       ENDIF 
 !                                                                       
       END FUNCTION r_wichtung                       
