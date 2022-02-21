@@ -204,14 +204,15 @@ INTEGER                        :: iz
       CHARACTER(LEN=3)      wtyp
       CHARACTER(LEN=1)      dummy_spacer
       REAL w(maxarray)
-      REAL p(maxpara),pinc(maxpara),dp(maxpara)
+REAL(kind=PREC_DP), dimension(MAXPARA) :: p !(maxpara)
+real ::pinc(maxpara),dp(maxpara)
       REAL pra(maxpara,2)                        ! Fit range
       REAL p_merk(maxpara),pinc_merk(maxpara)
       REAL cl(maxpara,maxpara)
       REAL urf
       REAL zalt,zwert,zdif
       REAL r4,re,fend
-      REAL            wval
+REAL(kind=PREC_DP) ::            wval
       REAL tmp(maxpara)
       REAL p_origin
       INTEGER ncycle,npara,ikfit,ikfit2,ikcal,ikdif
