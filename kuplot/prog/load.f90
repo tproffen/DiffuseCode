@@ -40,7 +40,11 @@ USE str_comp_mod
       REAL ystart, yend, ydelta 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL df (maxpara) 
-      REAL xx, yy, f, xkk 
+      REAL yy
+real(kind=PREC_DP) :: f
+real(kind=PREC_DP), dimension(MAXPARA) :: ddf
+real(kind=PREC_DP) :: xx
+real(kind=PREC_DP) :: xkk
       LOGICAL ffit
 !                                                                       
 !                                                                       
@@ -107,7 +111,8 @@ nianz: IF (ianz.eq.1) then
          ny(iz) = nx(iref)
          DO i = 1, nx (ikfit) * ny (ikfit)
             xx = REAL(i)
-            CALL kupl_theory (xx, f, df, - i) 
+            CALL kupl_theory (xx, f, ddf, - i) 
+            df = ddf
             z (offz (iz - 1) + i) = f
          ENDDO
          DO ii = 1, nx (iz) 
@@ -127,7 +132,8 @@ nianz: IF (ianz.eq.1) then
       ELSE
          DO i = 1, ii 
             xx = x (offxy (iref - 1) + i) 
-            CALL kupl_theory (xx, f, df, - i) 
+            CALL kupl_theory (xx, f, ddf, - i) 
+            df = ddf
             x (offxy (iz - 1) + i) = xx 
             y (offxy (iz - 1) + i) = f 
             dx (offxy (iz - 1) + i) = 0.0 
@@ -211,7 +217,8 @@ ELSEIF (ianz.eq.3) THEN  nianz
             IF (ffit) then 
                DO i = 1, ii 
                xx = xstart + (i - 1) * xdelta 
-               CALL kupl_theory (xx, f, df, - i) 
+               CALL kupl_theory (xx, f, ddf, - i) 
+               df = ddf
                x (offxy (iz - 1) + i) = xx 
                y (offxy (iz - 1) + i) = f 
                dx (offxy (iz - 1) + i) = 0.0 
@@ -268,9 +275,10 @@ ELSEIF (ianz.eq.6) THEN nianz
                xx = xstart + (ii - 1) * xdelta 
                DO jj = 1, ny (iz) 
                kk = (ii - 1) * ny (iz) + jj 
-               xkk = REAL(kk) 
+               xkk = REAL(kk, kind=PREC_DP) 
                yy = ystart + (jj - 1) * ydelta 
-               CALL kupl_theory (xkk, f, df, - kk) 
+               CALL kupl_theory (xkk, f, ddf, - kk) 
+               df = ddf
                z (offz (iz - 1) + (ii - 1) * ny (iz) + jj) = f 
                x (offxy (iz - 1) + ii) = xx 
                y (offxy (iz - 1) + jj) = yy 
