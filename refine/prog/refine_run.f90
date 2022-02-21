@@ -905,20 +905,22 @@ WRITE(output_io,'(a,10x,a,7x,a,6x,a)') 'Cyc Chi^2/(N-P)   MAX(dP/sig) Par   Conf
 lconvergence = .FALSE.
 icyc = 0
 cycles:DO
-!write(*,*) ' data_sigma', data_sigma(1,1), data_sigma(data_dim(1),data_dim(2)), MINVAL(data_sigma), MAXVAL(data_sigma)
    CALL mrqmin(MAXP, data_dim, data_data, data_sigma, data_x, data_y, p, NPARA, &
                par_names, prange, p_shift, p_nderiv, kupl_last, cl, alpha, beta, chisq, alamda,     &
                lamda_s, lamda_d, lamda_u, lsuccess, dp, rval, rexp)
+   IF(ier_num/=0) EXIT cycles
 !
    IF(lsuccess) THEN
       IF(ref_do_plot) THEN
          CALL refine_do_plot(plmac)
+         IF(ier_num/=0) EXIT cycles
       ENDIF
    ENDIF
 !
    IF(ier_num/=0) EXIT cycles
    IF(lsuccess) THEN ! .OR. rval == 0.0) THEN
       CALL refine_rvalue(rval, rexp, NPARA)
+      IF(ier_num/=0) EXIT cycles
    ENDIF
    last_shift(:) = -1.0                                             ! Set parameter shift / sigma to negative
    DO k=1, NPARA
@@ -938,7 +940,6 @@ cycles:DO
    last_conf(last_i) = conf
    WRITE(*,'(i3,2g13.5e2,i4,f9.4,4x,4g13.5e2)') icyc,chisq/(data_dim(1)*data_dim(2)-NPARA), &
          last_shift(last_i), last_ind, conf, alamda, rval, rexp
-!write(*,'((g13.5e2,1x))') dp(1:NPARA)
 !
 !  CALL refine_rvalue(rval, rexp, NPARA)
 !  DO k = 1, NPARA
@@ -1054,10 +1055,13 @@ REAL(kind=PREC_DP), DIMENSION(MAXP)        :: atry != 0.0
 REAL(kind=PREC_DP), DIMENSION(NPARA)       :: da != 0.0
 REAL(kind=PREC_DP), DIMENSION(NPARA,NPARA) :: cl != 0.0
 REAL(kind=PREC_DP)                            :: ochisq = 0.0
+logical           , dimension(npara)       :: lderiv_ok
+logical                                    :: l_none
 LOGICAL, PARAMETER              :: LDERIV = .TRUE.
 LOGICAL, PARAMETER              :: NDERIV = .FALSE.
 !integer, save :: icyy = 0
 !
+lderiv_ok = .true.                    ! Assume all derivatives went fine
 ochisq = chisq
 IF(alamda < 0) THEN                   ! Initialization
    alamda = lamda_s
@@ -1085,6 +1089,22 @@ DO j=1, NPARA
    covar(j,j) = alpha(j,j)*(1.0+alamda)       ! Adjust by Levenberg-Marquard algorithm
    da(j) = beta(j)
 ENDDO
+l_none = .true.
+do j=1, npara
+   if(covar(j,j) == 0) then                   ! Failed to get derivative for this param
+      covar(j,j) = 1.0D0
+      lderiv_ok(j) = .false.
+   else
+      lderiv_ok(j) = .true.
+      l_none       = .false.
+   endif
+enddo
+if(l_none) then
+   lsuccess = .FALSE.
+   ier_num = -1
+   ier_typ =  5
+   return
+endif
 !
 CALL gausj(NPARA, covar, da)
 IF(ier_num/=0) THEN
@@ -1159,7 +1179,6 @@ ELSE                               ! Failure, reject, keep old params and
    lsuccess = .FALSE.
 ENDIF
 !
-!covar(:,:) = cl(:,:)       ! Restore    covariance
 !
 END SUBROUTINE mrqmin
 !
@@ -1409,13 +1428,8 @@ IF(ref_LOAD/= ' ') THEN           ! Data set was loaded
    do i=2, ianz
       string = string(1:len_trim(string)) // ', ' // cpara(i)(1:lpara(i))
    enddo
-!write(*,*) 'CPARA 1', cpara(1)(1:lpara(1))
-!write(*,*) 'CPARA 2', cpara(2)(1:lpara(2))
-!write(*,*) 'CPARA 3', cpara(3)(1:lpara(3))
    WRITE(IWR, '(a)') 'kuplot'
    WRITE(IWR, '(a)') 'rese'
-!  WRITE(IWR, '(a,a)') 'load ',ref_load(1:LEN_TRIM(ref_load))
-!  WRITE(IWR, '(a,a,a)') 'load ',ref_load(1:i),cpara(1)(1:lpara(1))
    WRITE(IWR, '(a)') string(1:len_trim(string))
    WRITE(IWR, '(a)') 'exit'
    WRITE(IWR, '(a)') '#'
@@ -1432,8 +1446,6 @@ IF(ref_csigma/= ' ') THEN           ! sigma set was loaded
       string = string(1:len_trim(string)) // ', ' // cpara(i)(1:lpara(i))
    enddo
    WRITE(IWR, '(a)') 'kuplot'
-!  WRITE(IWR, '(a)') 'rese'
-!  WRITE(IWR, '(a,a,a)') 'load ',ref_csigma(1:i),ref_csigma(1:LEN_TRIM(ref_csigma))
    WRITE(IWR, '(a)') string(1:len_trim(string))
    WRITE(IWR, '(a)') 'exit'
    WRITE(IWR, '(a)') '#'
