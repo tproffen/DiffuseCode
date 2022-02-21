@@ -713,6 +713,41 @@
 !p urf    : Sets urf value
 !p wait   : Waits for user input (see general help)
 !p wic    : Sets weighting scheme
+3  convergence
+!p convergence ["status:on" | "status:off"] [,"dchi:"<delta>]
+p              [,"pshift:"<max>] [,"conf:"<level>] ["chisq:<value>]
+
+   Allows the user to define convergence criteria.
+
+   If the status is set to "on", the convergence criteria are used.
+   Otherwise the refinement will run for the cycles defined
+   by ==> 'set cycle'.
+
+   dchi:<delta>
+     If the value of Chi^2/(Ndata-Npara) decreases by less than <delta>
+     convergence is reached.
+     Defaults to 0.5
+   pshift:<max>
+     If all refinement parameters change by less then |DeltaP/Sigma|
+     convergence is reached.
+     Defaults to 0.005
+   conf:<level>
+     If the confidence level is greater than <level>
+     convergence is reached.
+     Defaults to 0.010
+   chi2:<level>
+     If the value of Chi^2/(Ndata-Npara) falls below <level>
+     convergence is reached.
+     Defaults to 0.500
+
+   Convergence is reached, if:
+   Either one of the three conditions:
+      (dchi AND pshift AND conf)
+   or
+      (dchi AND pshift>0)
+   or
+      chi2
+   are met.
 3  cycle
 !p cycle <n>
 
