@@ -53,7 +53,7 @@ SUBROUTINE gl_alloc(in_dims)
 !   gl_data(:,:,:,-3)    ! Experimental sigma
 !   gl_data(:,:,:,-2)    ! Experimental data
 !   gl_data(:,:,:,-1)    ! Data from refinement current optimum
-!   gl_data(:,:,:, 0)    ! Data from Cost function current values, my depend on derivative
+!   gl_data(:,:,:, 0)    ! Data from Cost function current values, may depend on derivative
 !   gl_data(:,:,:, 1:)   ! Data from Cost function derivatives 1, 2, 3, ...
 !   
 !+
