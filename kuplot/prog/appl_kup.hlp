@@ -2546,6 +2546,45 @@ p              [,"pshift:"<max>] [,"conf:"<level>] ["chisq:<value>]
 !p tit1 Powder data ZrO2                   : 'Powder data ZrO2'
 !p tit1 "Run #%d / Sample #%d",i[1],i[2]   : 'Run #1 / Sample #5'
 !p                                           (for i[1]=1 & i[2]=5)
+2  torefine
+!p torefine ["kuplot:"<value>] [, "refine:"<value>]
+
+   Transfers data sets from kuplot to the global storage that is 
+   accessible to refine. These data are persistent, even upon a 
+   'reset' in kuplot.
+
+   Possible values are:
+   kuplot:last    Take the last data set 
+   kuplot:1       Take data set "1",  or whatever expression is
+                  used instead of "1".
+
+
+   refine:sigma   The data represent the uncertainties of the
+                  experimental data
+   refine:obs     
+   refine:exp     Both place the kuplot data set into the global
+                  storage as teh "experimental" or absolutely
+                  equivalently " observed" data.
+   refine:cost    The kuplot data set corresponds to the 
+                  "cost" function value, that is the result of
+                  the current Refine parameter set.
+   refine:opti    The kuplot data set is the result of the 
+                  best Refine parameter set. This entry should 
+                  be read only, it is usually set be Refine.
+   refine:1       The kuplot data set represents the derivative
+                  of the cost  function with respect to parameter 1.
+                  Same for parameters 2, 3, etc.
+
+   Instead of the keywords numerical values can be used:
+      sigma == -3
+      obs   == -2
+      exp   == -2
+      opti  == -1
+      cost  ==  0
+
+   Defaults are: 
+      kuplot:last
+      refine:cost
 2  window
 !p window <id> [,<sf>]
 
