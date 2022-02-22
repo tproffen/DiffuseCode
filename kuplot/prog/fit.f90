@@ -256,61 +256,61 @@ REAL(KIND=PREC_DP)        , dimension(MAXW) :: werte ! (maxw)
 INTEGER                   , dimension(MAXW) :: lpara ! (maxw)
 INTEGER :: ianz, iianz
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) RETURN 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (ianz.ge.1) THEN 
-         ftyp = cpara (1) (1:4) 
-         CALL do_cap (ftyp) 
-         IF (ftyp (1:2) .eq.'GS') THEN 
-            IF (ianz.ne.4.and.ianz.ne.5) THEN 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-               RETURN 
-            ELSE 
-               iname = cpara (4) (1:lpara (4) ) 
-               cpara (4) = '0.0' 
-               lpara (4) = 3 
-            ENDIF 
-         ENDIF 
-         IF (ftyp(1:2)=='MA' .AND. ianz==3) THEN
-            CALL del_params (1, ianz, cpara, lpara, maxw) 
-            iianz = 1
-            CALL ber_params (iianz, cpara, lpara, werte, maxw) 
-         ELSEIF (ianz.gt.1) THEN 
-            CALL del_params (1, ianz, cpara, lpara, maxw) 
-            IF(ftyp(1:2) /= 'DP') THEN
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            ENDIF
-         ELSE 
-            ianz = 0 
-         ENDIF 
-      ELSE 
+IF (ianz.ge.1) THEN 
+   ftyp = cpara (1) (1:4) 
+   CALL do_cap (ftyp) 
+   IF (ftyp (1:2) .eq.'GS') THEN 
+      IF (ianz.ne.4.and.ianz.ne.5) THEN 
          ier_num = - 6 
          ier_typ = ER_COMM 
+         RETURN 
+      ELSE 
+         iname = cpara (4) (1:lpara (4) ) 
+         cpara (4) = '0.0' 
+         lpara (4) = 3 
       ENDIF 
+   ENDIF 
+   IF (ftyp(1:2)=='MA' .AND. ianz==3) THEN
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      iianz = 1
+      CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+   ELSEIF (ianz.gt.1) THEN 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF(ftyp(1:2) /= 'DP') THEN
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      ENDIF
+   ELSE 
+      ianz = 0 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
 !                                                                       
-      IF (ier_num.ne.0) RETURN 
+IF (ier_num.ne.0) RETURN 
 !                                                                       
 !------ Polynom (only 2D)                                               
 !                                                                       
-      IF (ftyp (1:2) .eq.'PO') THEN 
-         IF (.not.lni (ikfit) ) THEN 
-            CALL setup_poly (ianz, werte, maxw) 
-         ELSE 
-            ier_num = - 25 
-            ier_typ = ER_APPL 
-         ENDIF 
+IF (ftyp (1:2) .eq.'PO') THEN 
+   IF (.not.lni (ikfit) ) THEN 
+      CALL setup_poly (ianz, werte, maxw) 
+   ELSE 
+      ier_num = - 25 
+      ier_typ = ER_APPL 
+   ENDIF 
 !                                                                       
 !------ Scale + Background Polynom (only 2D)                            
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'BA') THEN 
-         IF (.not.lni (ikfit) ) THEN 
-            CALL setup_backpoly (ianz, werte, maxw) 
-         ELSE 
-            ier_num = - 25 
-            ier_typ = ER_APPL 
-         ENDIF 
+ELSEIF (ftyp (1:2) .eq.'BA') THEN 
+   IF (.not.lni (ikfit) ) THEN 
+      CALL setup_backpoly (ianz, werte, maxw) 
+   ELSE 
+      ier_num = - 25 
+      ier_typ = ER_APPL 
+   ENDIF 
 !                                                                       
 !------ Chebyshev Polynom (only 2D)                                     
 !                                                                       
@@ -334,32 +334,32 @@ INTEGER :: ianz, iianz
 !                                                                       
 !------ Gaussian (xy and xyz data sets)                                 
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'GA') THEN 
-         IF (.not.lni (ikfit) ) THEN 
-            CALL setup_gauss (ianz, werte, maxw) 
-         ELSE 
-            CALL setup_gauss_2d (ianz, werte, maxw) 
-         ENDIF 
+ELSEIF (ftyp (1:2) .eq.'GA') THEN 
+   IF (.not.lni (ikfit) ) THEN 
+      CALL setup_gauss (ianz, werte, maxw) 
+   ELSE 
+      CALL setup_gauss_2d (ianz, werte, maxw) 
+   ENDIF 
 !                                                                       
 !------ Lorenzian (only 2D)                                             
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'LO') THEN 
-         IF (.not.lni (ikfit) ) THEN 
-            CALL setup_lor (ianz, werte, maxw) 
-         ELSE 
-            ier_num = - 25 
-            ier_typ = ER_APPL 
-         ENDIF 
+ELSEIF (ftyp (1:2) .eq.'LO') THEN 
+   IF (.not.lni (ikfit) ) THEN 
+      CALL setup_lor (ianz, werte, maxw) 
+   ELSE 
+      ier_num = - 25 
+      ier_typ = ER_APPL 
+   ENDIF 
 !                                                                       
 !------ Pseudo-Voigt (only 2D)                                          
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'PS') THEN 
-         IF (.not.lni (ikfit) ) THEN 
-            CALL setup_psvgt (ianz, werte, maxw) 
-         ELSE 
-            ier_num = - 25 
-            ier_typ = ER_APPL 
-         ENDIF 
+ELSEIF (ftyp (1:2) .eq.'PS') THEN 
+   IF (.not.lni (ikfit) ) THEN 
+      CALL setup_psvgt (ianz, werte, maxw) 
+   ELSE 
+      ier_num = - 25 
+      ier_typ = ER_APPL 
+   ENDIF 
 !                                                                       
 !------ Double Pseudo-Voigt (only 2D)                                          
 !                                                                       
@@ -418,20 +418,20 @@ INTEGER                   , dimension(MAXW) :: lpara ! (maxw)
 INTEGER :: ianz, i 
 !                                                                       
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) RETURN 
-      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-      IF (ier_num.ne.0) RETURN 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) RETURN 
+CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+IF (ier_num.ne.0) RETURN 
 !                                                                       
-      CALL oeffne (77, cpara (1) , 'unknown') 
-      IF (ier_num.ne.0) RETURN 
-!                                                                       
-      WRITE (output_io, 3000) cpara (1) (1:len_str (cpara (1) ) ) 
-      DO i = 1, npara 
-      WRITE (77, 1000) i 
-      WRITE (77, 2000) i, pinc (i), p (i) 
-      ENDDO 
-      CLOSE (77) 
+CALL oeffne (77, cpara (1) , 'unknown') 
+IF (ier_num.ne.0) RETURN 
+                                                                  
+WRITE (output_io, 3000) cpara (1) (1:len_str (cpara (1) ) ) 
+DO i = 1, npara 
+   WRITE (77, 1000) i 
+   WRITE (77, 2000) i, pinc (i), p (i) 
+ENDDO 
+CLOSE (77) 
 !                                                                       
  1000 FORMAT ('# parameter number ',i3) 
  2000 FORMAT ('par ',i3,',',g13.6,',',f2.0) 
@@ -505,36 +505,34 @@ CHARACTER(len=2)  :: cdummy
 REAL(KIND=PREC_DP) :: werte (maxw) 
 INTEGER :: ianz 
 !                                                                       
-      filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit))))
-      filname = filname (1:len_str (filname) ) //'.erg' 
+filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit))))
+filname = filname (1:len_str (filname) ) //'.erg' 
 !                                                                       
-      CALL oeffne (77, filname, 'unknown') 
-      IF (ier_num.ne.0) RETURN 
+CALL oeffne (77, filname, 'unknown') 
+IF (ier_num.ne.0) RETURN 
 !                                                                       
-      CALL do_fit_info (77, .true., .true., .true.) 
-      WRITE (output_io, 1000) filname (1:len_str (filname) ) 
-      CLOSE (77) 
+CALL do_fit_info (77, .true., .true., .true.) 
+WRITE (output_io, 1000) filname (1:len_str (filname) ) 
+CLOSE (77) 
 !                                                                       
-      WRITE (output_io, 2000) fname (ikcal) (1:len_str (fname (ikcal) ) &
-      )                                                                 
-      cdummy = fform (ikcal) 
-      ianz = 0 
-      CALL check_form (cdummy, ianz, werte, maxw) 
-      CALL do_save (ikcal, fname (ikcal), fform (ikcal), ianz, werte,   &
-      maxw, .false.)                                                    
+WRITE(output_io, 2000)fname(ikcal)(1:len_str(fname(ikcal)))
+cdummy = fform (ikcal) 
+ianz = 0 
+CALL check_form (cdummy, ianz, werte, maxw) 
+CALL do_save(ikcal, fname(ikcal), fform(ikcal), ianz, werte, maxw, .false.)
 !                                                                       
-      WRITE (output_io, 3000) fname (ikdif) (1:len_str (fname (ikdif) ) &
-      )                                                                 
-      cdummy = fform (ikdif) 
-      ianz = 0 
-      CALL check_form (cdummy, ianz, werte, maxw) 
-      CALL do_save (ikdif, fname (ikdif), fform (ikdif), ianz, werte,   &
+WRITE(output_io, 3000) fname(ikdif)(1:len_str(fname(ikdif)))
+cdummy = fform (ikdif) 
+ianz = 0 
+CALL check_form (cdummy, ianz, werte, maxw) 
+CALL do_save (ikdif, fname (ikdif), fform (ikdif), ianz, werte,   &
       maxw, .false.)                                                    
 !                                                                       
  1000 FORMAT (' ---------- > Saving results in file ',a,' ..') 
  2000 FORMAT (' ---------- > Saving calculated data in file ',a,' ..') 
  3000 FORMAT (' ---------- > Saving difference data in file ',a,' ..') 
-      END SUBROUTINE do_fit_save                    
+!
+END SUBROUTINE do_fit_save                    
 !
 !*****7*****************************************************************
 !
@@ -564,43 +562,43 @@ INTEGER                   , dimension(MAXW) :: lpara ! (maxw)
 INTEGER ianz 
 REAL(KIND=PREC_DP)        , dimension(MAXW) :: werte ! (maxw) 
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) RETURN 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (ianz.eq.1) THEN 
-         CALL do_cap (cpara (1) ) 
-         IF (cpara (1) (1:3) .ne.'LOG'.and.cpara (1) (1:3)              &
-         .ne.'SQR'.and.cpara (1) (1:3) .ne.'ONE'.and.cpara (1) (1:3)    &
-         .ne.'LIN'.and.cpara (1) (1:3) .ne.'SQA'.and.cpara (1) (1:3)    &
-         .ne.'INV'.and.cpara (1) (1:3) .ne.'BCK'.and.cpara (1) (1:3)    &
-         .ne.'ISQ'.and.cpara (1) (1:3) .ne.'DAT'                        &
-                   ) THEN                  
-            ier_num = - 27 
-            ier_typ = ER_APPL 
-         ELSE 
-            wtyp = cpara (1) (1:3) 
-            wval = 0.01D0
-         ENDIF 
-      ELSEIF (ianz.eq.2) THEN 
-         CALL do_cap (cpara (1) ) 
-         IF (cpara (1) (1:3) .eq.'BCK') THEN 
-            wtyp = cpara (1) (1:3) 
-            cpara (1) = '(0)' 
-            lpara (1) = 3 
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            IF (ier_num.eq.0) THEN 
-               wval = werte (2) 
-            ENDIF 
-         ELSE 
-            ier_num = - 27 
-            ier_typ = ER_APPL 
-         ENDIF 
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
+IF (ianz.eq.1) THEN 
+   CALL do_cap (cpara (1) ) 
+   IF (cpara (1) (1:3) .ne.'LOG'.and.cpara (1) (1:3)              &
+   .ne.'SQR'.and.cpara (1) (1:3) .ne.'ONE'.and.cpara (1) (1:3)    &
+   .ne.'LIN'.and.cpara (1) (1:3) .ne.'SQA'.and.cpara (1) (1:3)    &
+   .ne.'INV'.and.cpara (1) (1:3) .ne.'BCK'.and.cpara (1) (1:3)    &
+   .ne.'ISQ'.and.cpara (1) (1:3) .ne.'DAT'                        &
+             ) THEN                  
+      ier_num = - 27 
+      ier_typ = ER_APPL 
+   ELSE 
+      wtyp = cpara (1) (1:3) 
+      wval = 0.01D0
+   ENDIF 
+ELSEIF (ianz.eq.2) THEN 
+   CALL do_cap (cpara (1) ) 
+   IF (cpara (1) (1:3) .eq.'BCK') THEN 
+      wtyp = cpara (1) (1:3) 
+      cpara (1) = '(0)' 
+      lpara (1) = 3 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.eq.0) THEN 
+         wval = werte (2) 
       ENDIF 
+   ELSE 
+      ier_num = - 27 
+      ier_typ = ER_APPL 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
 !                                                                       
-      END SUBROUTINE do_fit_wichtung                
+END SUBROUTINE do_fit_wichtung                
 !
 !*****7*****************************************************************
 !
@@ -668,8 +666,8 @@ CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 IF (ier_num.ne.0) RETURN 
 !
-range_low  = +1.             ! Default to unlimited range
-range_high = -1.
+range_low  = +1.D0           ! Default to unlimited range
+range_high = -1.D0
 lrange = .FALSE.
 IF(lpresent(O_RANGE)) THEN
    ccpara = opara( O_RANGE)
@@ -796,65 +794,65 @@ CHARACTER(len=30) :: fitfkt, wictyp
 INTEGER :: lt1, lt2, lf, lfn, lw, ipkt 
 !                                                                       
 !                                                                       
-      IF (ftyp (1:2) .eq.'PO') THEN 
-         fitfkt = 'Polynom' 
-      ELSEIF (ftyp (1:2) .eq.'BA') THEN 
-         fitfkt = 'Background Polynom' 
-      ELSEIF (ftyp (1:2) .eq.'CH') THEN 
-         fitfkt = 'Chebyshev Polynom' 
-      ELSEIF (ftyp (1:2) .eq.'FX') THEN 
-         fitfkt = 'f = '//fit_func (1:fit_lfunc) 
-      ELSEIF (ftyp (1:2) .eq.'LO') THEN 
-         fitfkt = 'Lorenzian' 
-      ELSEIF (ftyp (1:2) .eq.'PS') THEN 
-         fitfkt = 'Pseudo-Voigt' 
-      ELSEIF (ftyp (1:2) .eq.'GA') THEN 
-         IF (lni (ikfit) ) THEN 
-            fitfkt = 'Gaussian (2D)' 
-         ELSE 
-            fitfkt = 'Gaussian (1D)' 
-         ENDIF 
-      ELSEIF (ftyp (1:2) .eq.'MA') THEN 
-         fitfkt = 'f = '//fit_func (1:fit_lfunc) 
-      ELSE 
-         fitfkt = 'not defined' 
-      ENDIF 
+IF (ftyp (1:2) .eq.'PO') THEN 
+   fitfkt = 'Polynom' 
+ELSEIF (ftyp (1:2) .eq.'BA') THEN 
+   fitfkt = 'Background Polynom' 
+ELSEIF (ftyp (1:2) .eq.'CH') THEN 
+   fitfkt = 'Chebyshev Polynom' 
+ELSEIF (ftyp (1:2) .eq.'FX') THEN 
+   fitfkt = 'f = '//fit_func (1:fit_lfunc) 
+ELSEIF (ftyp (1:2) .eq.'LO') THEN 
+   fitfkt = 'Lorenzian' 
+ELSEIF (ftyp (1:2) .eq.'PS') THEN 
+   fitfkt = 'Pseudo-Voigt' 
+ELSEIF (ftyp (1:2) .eq.'GA') THEN 
+   IF (lni (ikfit) ) THEN 
+      fitfkt = 'Gaussian (2D)' 
+   ELSE 
+      fitfkt = 'Gaussian (1D)' 
+   ENDIF 
+ELSEIF (ftyp (1:2) .eq.'MA') THEN 
+   fitfkt = 'f = '//fit_func (1:fit_lfunc) 
+ELSE 
+   fitfkt = 'not defined' 
+ENDIF 
 !                                                                       
-      IF (wtyp (1:3) .eq.'LOG') THEN 
-         wictyp = 'w(i) = log(i)' 
-      ELSEIF (wtyp (1:3) .eq.'SQR') THEN 
-         wictyp = 'w(i) = sqrt(i)' 
-      ELSEIF (wtyp (1:3) .eq.'ONE') THEN 
-         wictyp = 'w(i) = 1.0' 
-      ELSEIF (wtyp (1:3) .eq.'LIN') THEN 
-         wictyp = 'w(i) = i' 
-      ELSEIF (wtyp (1:3) .eq.'SQA') THEN 
-         wictyp = 'w(i) = i**2' 
-      ELSEIF (wtyp (1:3) .eq.'INV') THEN 
-         wictyp = 'w(i) = 1.0/i' 
-      ELSEIF (wtyp (1:3) .eq.'ISQ') THEN 
-         wictyp = 'w(i) = 1.0/sqrt(i)' 
-      ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) THEN 
-         wictyp = 'w(i) = 1/(dy(i))^2 from data ' 
-      ELSEIF (wtyp (1:3) .eq.'BCK') THEN 
-         wictyp = 'w(i) = exp(-WVAL*(Fobs-Fcalc))' 
-      ELSE 
-         wictyp = 'unknown' 
-      ENDIF 
+IF (wtyp (1:3) .eq.'LOG') THEN 
+   wictyp = 'w(i) = log(i)' 
+ELSEIF (wtyp (1:3) .eq.'SQR') THEN 
+   wictyp = 'w(i) = sqrt(i)' 
+ELSEIF (wtyp (1:3) .eq.'ONE') THEN 
+   wictyp = 'w(i) = 1.0' 
+ELSEIF (wtyp (1:3) .eq.'LIN') THEN 
+   wictyp = 'w(i) = i' 
+ELSEIF (wtyp (1:3) .eq.'SQA') THEN 
+   wictyp = 'w(i) = i**2' 
+ELSEIF (wtyp (1:3) .eq.'INV') THEN 
+   wictyp = 'w(i) = 1.0/i' 
+ELSEIF (wtyp (1:3) .eq.'ISQ') THEN 
+   wictyp = 'w(i) = 1.0/sqrt(i)' 
+ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) THEN 
+   wictyp = 'w(i) = 1/(dy(i))^2 from data ' 
+ELSEIF (wtyp (1:3) .eq.'BCK') THEN 
+   wictyp = 'w(i) = exp(-WVAL*(Fobs-Fcalc))' 
+ELSE 
+   wictyp = 'unknown' 
+ENDIF 
 !                                                                       
-      lt1 = max (1, len_str (titel (iwin, iframe, 1) ) ) 
-      lt2 = max (1, len_str (titel (iwin, iframe, 2) ) ) 
-      lf = len_str (fitfkt) 
-      lfn = len_str (fname (ikfit) ) 
-      lw = len_str (wictyp) 
+lt1 = max (1, len_str (titel (iwin, iframe, 1) ) ) 
+lt2 = max (1, len_str (titel (iwin, iframe, 2) ) ) 
+lf = len_str (fitfkt) 
+lfn = len_str (fname (ikfit) ) 
+lw = len_str (wictyp) 
 !                                                                       
-      IF (lni (ikfit) ) THEN 
-         ipkt = nx (ikfit) * ny (ikfit) 
-      ELSE 
-         ipkt = lenc(ikfit) 
-      ENDIF 
+IF (lni (ikfit) ) THEN 
+   ipkt = nx (ikfit) * ny (ikfit) 
+ELSE 
+   ipkt = lenc(ikfit) 
+ENDIF 
 !                                                                       
-      WRITE (idout, 1000) titel (iwin, iframe, 1) (1:lt1), titel (iwin, &
+WRITE (idout, 1000) titel (iwin, iframe, 1) (1:lt1), titel (iwin, &
       iframe, 2) (1:lt2), fitfkt (1:lf), fname (ikfit) (1:lfn), ipkt,   &
       npara, kup_fit6_lamda_s, kup_fit6_lamda_d, kup_fit6_lamda_u,      &
       ncycle, fit_ifen, wictyp (1:lw)                       
@@ -904,7 +902,7 @@ INTEGER, INTENT(IN) :: idout
 INTEGER :: i, j 
 LOGICAL :: kor 
 !
-IF(kup_fit6_chisq>=0.0) THEN
+IF(kup_fit6_chisq>=0.0D0) THEN
    WRITE(idout, 1040) kup_fit6_chisq, kup_fit6_chisq/kup_fit6_ndata,            &
       kup_fit6_conf, kup_fit6_chisq/(kup_fit6_ndata-kup_fit6_npara),            &
       kup_fit6_ndata, kup_fit6_npara, kup_fit6_lamda, kup_fit6_r4, kup_fit6_re 
@@ -951,100 +949,6 @@ WRITE(idout, * ) ' '
 END SUBROUTINE show_fit_erg                   
 !
 !*******************************************************************************
-!!
-!      SUBROUTINE show_fit_erg (idout) 
-!!+                                                                      
-!!     anzeigen der fit-ergebnisse                                       
-!!-                                                                      
-!      USE kuplot_config 
-!      USE kuplot_mod 
-!!                                                                       
-!      IMPLICIT none 
-!!                                                                       
-!      INTEGER idout, i, j 
-!      LOGICAL kor 
-!!                                                                       
-!      WRITE (idout, 1040) zalt, zwert, zdif, fend, r4, re 
-!      WRITE (idout, 1050) 
-!      kor = .false. 
-!      DO i = 2, npara 
-!      DO j = 1, i - 1 
-!      IF (abs (cl (i, j) ) .gt.0.8) THEN 
-!         WRITE (idout, 1070) i, j, cl (i, j) 
-!         kor = .true. 
-!      ENDIF 
-!      ENDDO 
-!      ENDDO 
-!      IF (.not.kor) write (idout, 1060) 
-!      WRITE (idout, * ) ' ' 
-!!                                                                       
-! 1040 FORMAT (' Information about the fit : ',/,                        &
-!     &        3x,'Sum n-1    : ',g12.6,12x,' Sum n   : ',g12.6/,        &
-!     &        3x,'Difference : ',g12.6,/,                               &
-!     &        3x,'Urf final  : ',g12.6,/,                               &
-!     &        3x,'R4 value   : ',g12.6,12x,' R exp   : ',g12.6/)        
-! 1050 FORMAT (' Correlations larger than 0.8 :') 
-! 1060 FORMAT (3x,'** none **') 
-! 1070 FORMAT (3x,'Between p(',i2,') - p(',i2,') : ',f6.3) 
-!!                                                                       
-!      END SUBROUTINE show_fit_erg                   
-!*****7*****************************************************************
-!      SUBROUTINE write_fit 
-!!+                                                                      
-!!     kupl.fit schreiben fuer textframe                                 
-!!-                                                                      
-!      USE errlist_mod 
-!      USE kuplot_config 
-!      USE kuplot_mod 
-!USE support_mod
-!!                                                                       
-!      IMPLICIT none 
-!!                                                                       
-!      INTEGER i, j 
-!      LOGICAL kor 
-!!                                                                       
-!      CALL oeffne (22, 'kupl.fit', 'unknown') 
-!      IF (ier_num.ne.0) RETURN 
-!!                                                                       
-!      WRITE (22, 1000) ftyp, r4 * 100., re * 100. 
-!      kor = .false. 
-!      DO i = 2, npara 
-!      DO j = 1, i - 1 
-!      IF (abs (cl (i, j) ) .gt.0.8) THEN 
-!         WRITE (22, 1070) i, j, cl (i, j) 
-!         kor = .true. 
-!      ENDIF 
-!      ENDDO 
-!      ENDDO 
-!      IF (.not.kor) write (22, 1060) 
-!      WRITE (22, 1100) 
-!      DO i = 1, npara 
-!      IF (pinc (i) .ne.1) THEN 
-!         WRITE (22, 1200) i, p (i) 
-!      ELSE 
-!         WRITE (22, 1210) i, p (i), dp (i) 
-!      ENDIF 
-!      ENDDO 
-!      CLOSE (22) 
-!!                                                                       
-! 1000 FORMAT (/1x,'F i t  -  r e s u l t s',/,                          &
-!     &         1x,'--------------------------------------',/,           &
-!     &         1x,'Fit function : ',a4,/,                               &
-!     &         1x,'R value      : ',f5.1,' %',/                         &
-!     &         1x,'Rexp value   : ',f5.1,' %',/                         &
-!     &         1x,'--------------------------------------',/,           &
-!     &         1x,'Correlations > 0.8 : ',/)                            
-! 1060 FORMAT ( 1x,'** none **') 
-! 1070 FORMAT ( 1x,'betw. p(',i2,') - p(',i2,') : ',f6.3) 
-! 1100 FORMAT ( 1x,'--------------------------------------',/,           &
-!     &         1x,'Resulting parameters: ',/)                           
-! 1200 FORMAT ( 1x,'p(',i2,') = ',g32.6,' fixed') 
-! 1210 FORMAT ( 1x,'p(',i2,') = ',g13.6,' +- ',g13.6) 
-!!                                                                       
-!      CLOSE (22) 
-!!                                                                       
-!      END SUBROUTINE write_fit                      
-!*****7*****************************************************************
 !
 SUBROUTINE do_fit_info (idout, f_se, f_er, f_pa) 
 !+                                                                      
@@ -1060,36 +964,36 @@ LOGICAL, intent(in) :: f_se
 LOGICAL, intent(in) :: f_er
 LOGICAL, intent(in) :: f_pa
 !                                                                       
-      IF (f_se) call show_fit_para (idout) 
-      IF (f_er) call show_fit_erg (idout) 
+IF (f_se) call show_fit_para (idout) 
+IF (f_er) call show_fit_erg (idout) 
 !                                                                       
-      IF (f_pa) THEN 
-         IF (ftyp (1:2) .eq.'PO') THEN 
-            CALL show_poly (idout) 
-         ELSEIF (ftyp (1:2) .eq.'BA') THEN 
-            CALL show_backpoly (idout) 
+IF (f_pa) THEN 
+   IF (ftyp (1:2) .eq.'PO') THEN 
+      CALL show_poly (idout) 
+   ELSEIF (ftyp (1:2) .eq.'BA') THEN 
+      CALL show_backpoly (idout) 
 !        ELSEIF (ftyp (1:2) .eq.'GS') THEN 
 !           CALL show_gsas (idout) 
 !        ELSEIF (ftyp (1:2) .eq.'CH') THEN 
 !           CALL show_poly_cheb (idout) 
-         ELSEIF (ftyp (1:2) .eq.'GA') THEN 
-            IF (.not.lni (ikfit) ) THEN 
-               CALL show_gauss (idout) 
-            ELSE 
-               CALL show_gauss_2d (idout) 
-            ENDIF 
-         ELSEIF (ftyp (1:2) .eq.'LO') THEN 
-            CALL show_lor (idout) 
-         ELSEIF (ftyp (1:2) .eq.'PS') THEN 
-            CALL show_psvgt (idout) 
-         ELSEIF (ftyp (1:2) .eq.'DP') THEN 
-            CALL show_psvgt2(idout) 
-         ELSEIF (ftyp (1:2) .eq.'FX') THEN 
-            CALL show_user (idout) 
-         ELSEIF (ftyp (1:2) .eq.'MA') THEN 
-            CALL show_user_macro (idout) 
-         ENDIF 
+   ELSEIF (ftyp (1:2) .eq.'GA') THEN 
+      IF (.not.lni (ikfit) ) THEN 
+         CALL show_gauss (idout) 
+      ELSE 
+         CALL show_gauss_2d (idout) 
       ENDIF 
+   ELSEIF (ftyp (1:2) .eq.'LO') THEN 
+      CALL show_lor (idout) 
+   ELSEIF (ftyp (1:2) .eq.'PS') THEN 
+      CALL show_psvgt (idout) 
+   ELSEIF (ftyp (1:2) .eq.'DP') THEN 
+      CALL show_psvgt2(idout) 
+   ELSEIF (ftyp (1:2) .eq.'FX') THEN 
+      CALL show_user (idout) 
+   ELSEIF (ftyp (1:2) .eq.'MA') THEN 
+      CALL show_user_macro (idout) 
+   ENDIF 
+ENDIF 
 !                                                                       
 END SUBROUTINE do_fit_info                    
 !
@@ -1244,7 +1148,6 @@ CALL kuplot_mrq(MAXP, nparams, ncycle, kupl_last, par_names, par_ind,           
                 kup_fit6_conv_chi2, kup_fit6_conv_conf, lconvergence, chisq, conf, lamda_fin,     &
                 kup_fit6_lamda_s, kup_fit6_lamda_d, kup_fit6_lamda_u,           &
                 rval, rexp, par_value, prange, dpp, covar, wtyp, wval)
-!OLD  IF (ncycle.gt.0) call fit_kupl (y) 
 !
 ! Copy values back into KUPLOT scheme
 dp(:) = 0.0
@@ -1313,7 +1216,6 @@ ELSE
 ENDIF
 CALL get_extrema 
 !
-
 CALL kup_fit6_set(MAXP, MAXF, nparams, nfixed, data_dim(1)*data_dim(2), chisq, conf, lamda_fin,  &
                   rval, rexp, par_names, par_value, dpp, prange, covar, fixed, pf)
 !                                                                       
@@ -1337,102 +1239,7 @@ DEALLOCATE(pf   )
 !
 END SUBROUTINE do_fit
 !
-!*****7*****************************************************************
-!      SUBROUTINE do_fit_z 
-!!+                                                                      
-!!     der eigentliche fit fuer xyz-files                                
-!!-                                                                      
-!      USE prompt_mod 
-!      USE kuplot_config 
-!      USE kuplot_mod 
-!!                                                                       
-!      IMPLICIT none 
-!!                                                                       
-!      CHARACTER(60) filname 
-!      REAL xx, f, df (maxpara) 
-!      INTEGER i, iii 
-!      INTEGER len_str 
-!!                                                                       
-!      CALL wichtung (z) 
-!!      IF (ncycle.gt.0) call fit_kupl (z) 
-!!                                                                       
-!      DO i = 1, nx (ikfit) * ny (ikfit) 
-!      xx = REAL(i) 
-!!      CALL kupl_theory (xx, f, df, - i) 
-!      z (offz (ikcal - 1) + i) = f 
-!      IF (z (offz (ikfit - 1) + i) .ne. - 9999) THEN 
-!         z (offz (ikdif - 1) + i) = z (offz (ikfit - 1) + i) - f 
-!      ELSE 
-!         z (offz (ikdif - 1) + i) = - 9999.0 
-!      ENDIF 
-!      ENDDO 
-!      DO iii = 1, nx (ikfit) 
-!      x (offxy (ikcal - 1) + iii) = x (offxy (ikfit - 1) + iii) 
-!      x (offxy (ikdif - 1) + iii) = x (offxy (ikfit - 1) + iii) 
-!      ENDDO 
-!      DO iii = 1, ny (ikfit) 
-!      y (offxy (ikcal - 1) + iii) = y (offxy (ikfit - 1) + iii) 
-!      y (offxy (ikdif - 1) + iii) = y (offxy (ikfit - 1) + iii) 
-!      ENDDO 
-!!                                                                       
-!      lni (ikcal) = .true. 
-!      lni (ikdif) = .true. 
-!      lenc (ikcal) = lenc (ikfit) 
-!      lenc (ikdif) = lenc (ikfit) 
-!      nx (ikcal) = nx (ikfit) 
-!      ny (ikcal) = ny (ikfit) 
-!      nx (ikdif) = nx (ikfit) 
-!      ny (ikdif) = ny (ikfit) 
-!      fform (ikcal) = fform (ikfit) 
-!      fform (ikdif) = fform (ikfit) 
-!!                                                                       
-!      filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit)))) 
-!      fname (ikcal) = filname (1:len_str (filname) ) //'.fit' 
-!      fname (ikdif) = filname (1:len_str (filname) ) //'.dif' 
-!      CALL get_extrema 
-!!                                                                       
-!      CALL do_fit_info (output_io, .false., .false., .true.) 
-!      END SUBROUTINE do_fit_z                       
-!*****7*****************************************************************
-!     SUBROUTINE wichtung (a) 
-!+                                                                      
-!     Calculation of weights. Values outside plotting range are         
-!     set to zero if frall is .false.                                   
-!-                                                                      
-!     USE kuplot_config 
-!     USE kuplot_mod 
-!                                                                       
-!     IMPLICIT none 
-!                                                                       
-!     REAL a (maxarray) 
-!     INTEGER i, ii 
-!                                                                       
-!     REAL calc_wic 
-!                                                                       
-!     IF (lni (ikfit) ) THEN 
-!        ii = offz (ikfit - 1) 
-!        DO i = 1, nx (ikfit) * ny (ikfit) 
-!        w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
-!        ENDDO 
-!     ELSE 
-!        ii = offxy (ikfit - 1) 
-!        DO i = 1, len (ikfit) 
-!        IF (frall) THEN 
-!           w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
-!        ELSE 
-!           IF (x (ii + i) .lt.ex (iwin, iframe, 1) .or.x (ii + i)      &
-!           .gt.ex (iwin, iframe, 2) ) THEN                             
-!              w (ii + i) = 0.0 
-!           ELSE 
-!              w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
-!           ENDIF 
-!        ENDIF 
-!        ENDDO 
-!     ENDIF 
-!                                                                       
-!                                                                       
-!     END SUBROUTINE wichtung                       
-!*****7*****************************************************************
+!*******************************************************************************
 !
 REAL(kind=PREC_DP) function calc_wic (val, sig, calc, bck_k) 
 !+                                                                      
@@ -1452,36 +1259,35 @@ real(kind=PREC_DP), intent(in) :: bck_k
 real(kind=PREC_DP) :: aval
 real(kind=PREC_DP) :: wic 
 !                                                                       
-      wic = 0.0D0 
-      IF (val.ne. - 9999.0) THEN 
-         aval = abs (val) 
-         IF (wtyp (1:3) .eq.'LOG') THEN 
-            IF (aval.gt.0.0) wic = log (aval) 
-         ELSEIF (wtyp (1:3) .eq.'SQR') THEN 
-            wic = sqrt (aval) 
-         ELSEIF (wtyp (1:3) .eq.'ONE') THEN 
-            wic = 1.0 
-         ELSEIF (wtyp (1:3) .eq.'LIN') THEN 
-            wic = aval 
-         ELSEIF (wtyp (1:3) .eq.'SQA') THEN 
-            wic = aval**2 
-         ELSEIF (wtyp (1:3) .eq.'INV') THEN 
-            IF (aval.ne.0.0) wic = 1.0 / aval 
-         ELSEIF (wtyp (1:3) .eq.'ISQ') THEN 
-            wic = 1.0 / sqrt (aval) 
-         ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) THEN 
-            IF(sig==0.0) THEN
-               wic = 1.0
-            ELSE
-               wic = 1.0 / (sig *sig)
-            ENDIF 
-         elseif(wtyp(1:3) == 'BCK') then
-            wic = exp(-(abs(bck_k))*(val-calc))
-         ENDIF 
+wic = 0.0D0 
+IF (val.ne. - 9999.0) THEN 
+   aval = abs (val) 
+   IF (wtyp (1:3) .eq.'LOG') THEN 
+      IF (aval.gt.0.0) wic = log (aval) 
+   ELSEIF (wtyp (1:3) .eq.'SQR') THEN 
+      wic = sqrt (aval) 
+   ELSEIF (wtyp (1:3) .eq.'ONE') THEN 
+      wic = 1.0 
+   ELSEIF (wtyp (1:3) .eq.'LIN') THEN 
+      wic = aval 
+   ELSEIF (wtyp (1:3) .eq.'SQA') THEN 
+      wic = aval**2 
+   ELSEIF (wtyp (1:3) .eq.'INV') THEN 
+      IF (aval.ne.0.0) wic = 1.0 / aval 
+   ELSEIF (wtyp (1:3) .eq.'ISQ') THEN 
+      wic = 1.0 / sqrt (aval) 
+   ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) THEN 
+      IF(sig==0.0) THEN
+         wic = 1.0
+      ELSE
+         wic = 1.0 / (sig *sig)
       ENDIF 
+   elseif(wtyp(1:3) == 'BCK') then
+      wic = exp(-(abs(bck_k))*(val-calc))
+   ENDIF 
+ENDIF 
 !                                                                       
-      calc_wic = wic 
-!write(*,*) 'WIC', val, calc, bck_k, wic
+calc_wic = wic 
 !                                                                       
 END FUNCTION calc_wic                         
 !
@@ -1597,8 +1403,6 @@ CHARACTER(LEN=PREC_STRING) cdummy
 REAL(kind=prec_dp) :: dummy
 integer            :: ip
 integer            :: length
-!      INTEGER lpara (maxw) 
-!      INTEGER ianz, ip , length
 !                                                                       
 !                                                                       
 IF (ianz.eq.2) THEN 
@@ -1654,39 +1458,37 @@ REAL(kind=PREC_DP) :: f
 REAL(kind=PREC_DP) :: xx
 !                                                                       
 !                                                                       
-      IF (ianz.eq.2) THEN 
-         ip = nint (werte (1) ) 
-         IF (ip.lt.1.or.ip.gt.maxpara) THEN 
-            ier_num = - 31 
-            ier_typ = ER_APPL 
-            RETURN 
-         ENDIF 
+IF (ianz.eq.2) THEN 
+   ip = nint (werte (1) ) 
+   IF (ip.lt.1.or.ip.gt.maxpara) THEN 
+      ier_num = - 31 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
 !                                                                       
-         npara = ip 
-         fit_func = cpara (2) (1:lpara (2) ) 
-         fit_lfunc = lpara (2) 
-!        cdummy = '('//fit_func (1:fit_lfunc) //')' 
-!        length = fit_lfunc + 2
-!        dummy = berechne (cdummy, length)
-         IF (lni (ikfit) ) THEN 
-            iiw = offz (ikfit - 1) 
-            iix = offxy (ikfit - 1) 
-            m = nx (ikfit) * ny (ikfit) 
-         ELSE 
-            iiw = offxy (ikfit - 1) 
-            iix = offxy (ikfit - 1) 
-            m = lenc (ikfit) 
-         ENDIF 
-         DO i = 1, 1  !!! m 
-            xx = x (iix + i) 
-            CALL theory_macro (xx, f, df, i) 
-            IF(ier_num/=0) RETURN
-         ENDDO
+   npara = ip 
+   fit_func = cpara (2) (1:lpara (2) ) 
+   fit_lfunc = lpara (2) 
+   IF (lni (ikfit) ) THEN 
+      iiw = offz (ikfit - 1) 
+      iix = offxy (ikfit - 1) 
+      m = nx (ikfit) * ny (ikfit) 
+   ELSE 
+      iiw = offxy (ikfit - 1) 
+      iix = offxy (ikfit - 1) 
+      m = lenc (ikfit) 
+   ENDIF 
+   DO i = 1, 1  !!! m 
+      xx = x (iix + i) 
+      CALL theory_macro (xx, f, df, i) 
+      IF(ier_num/=0) RETURN
+   ENDDO
 !                                                                       
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-      ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
+!
 p_kuplot_theory => theory_macro_n
 !                                                                       
 END SUBROUTINE setup_user_macro
@@ -1739,7 +1541,6 @@ CALL theory_macro(xx, f, df, ix)
 ymod             = f
 data_calc(ix,iy) = ymod
 dyda(1:NNPARA)   = df(1:NNPARA)
-!write(*,*) ' f, df ', ix, iy, xx, ' :', data_calc(ix,iy), ' | ', params(1:3)
 !
 END SUBROUTINE theory_macro_n
 !
@@ -1969,26 +1770,6 @@ p(ind) = values
 !
 END SUBROUTINE user_upd_params
 !
-!*****7*****************************************************************
-!     REAL function func (xx) 
-!                                                                       
-!     USE  berechne_mod
-!     USE param_mod 
-!     USE kuplot_config 
-!     USE kuplot_mod 
-!                                                                       
-!     IMPLICIT none 
-!                                                                       
-!     CHARACTER(LEN=1024) :: cdummy 
-!     INTEGER :: length
-!     REAL xx
-!                                                                       
-!     p (np1) = xx 
-!     cdummy = '('//fit_func (1:fit_lfunc) //')' 
-!     length = fit_lfunc + 2
-!     func = berechne (cdummy, length)
-!                                                                       
-!     END FUNCTION func                             
 !*****7*****************************************************************
 !       GSAS profile functions                                          
 !*****7*****************************************************************
@@ -2394,7 +2175,7 @@ IF (ier_num.eq.0) THEN
    ENDDO 
 !                                                                       
    DO i = 1, npara 
-      dp (i) = 0.0 
+      dp (i) = 0.0D0 
    ENDDO 
 ENDIF 
 !
@@ -2441,10 +2222,10 @@ REAL(kind=PREC_DP)    :: o1, fwf, fw, xw, rn
 INTEGER :: ind, na, nu, np, nl, nlauf 
 !                                                                       
 DO ind = 1, npara 
-   dyda(ind) = 0.0 
+   dyda(ind) = 0.0d0
 ENDDO 
 !                                                                       
-o1 = 2.0 * atan (1.0) 
+o1 = 2.00 * atan(1.00D0) 
 nu = 2 
 np = 4 
 nl = (npara-nu)/np  ! np1 
@@ -2509,35 +2290,29 @@ integer, intent(in) :: idout
 REAL(kind=PREC_DP) :: o, sqpio, zz, sint, ds0, ds2, ds3, dsint 
 INTEGER ::  i, iii 
 !                                                                       
-      o = sqrt (4.0 * alog (2.0) ) 
-      sqpio = sqrt (REAL(pi)) / o * 0.5 
+o = sqrt(4.0D0 * log(2.0D0) ) 
+sqpio = sqrt(pi) / o * 0.5D0
 !                                                                       
-      WRITE (idout, 1000) np1 
-      WRITE (idout, 1100) 1, p (1), dp (1), pinc (1) 
-      WRITE (idout, 1200) 2, p (2), dp (2), pinc (2) 
-      DO i = 1, np1 
-      WRITE (idout, 1300) i 
-      iii = 2 + (i - 1) * 4 
-      WRITE (idout, 1400) iii + 1, p (iii + 1), dp (iii + 1), pinc (iii &
-      + 1)                                                              
-      WRITE (idout, 1500) iii + 2, p (iii + 2), dp (iii + 2), pinc (iii &
-      + 2)                                                              
-      WRITE (idout, 1600) iii + 3, p (iii + 3), dp (iii + 3), pinc (iii &
-      + 3)                                                              
-      WRITE (idout, 1700) iii + 4, p (iii + 4), dp (iii + 4), pinc (iii &
-      + 4)                                                              
+WRITE (idout, 1000) np1 
+WRITE (idout, 1100) 1, p (1), dp (1), pinc (1) 
+WRITE (idout, 1200) 2, p (2), dp (2), pinc (2) 
+DO i = 1, np1 
+   WRITE (idout, 1300) i 
+   iii = 2 + (i - 1) * 4 
+   WRITE (idout, 1400) iii + 1, p (iii + 1), dp (iii + 1), pinc (iii + 1)
+   WRITE (idout, 1500) iii + 2, p (iii + 2), dp (iii + 2), pinc (iii + 2)
+   WRITE (idout, 1600) iii + 3, p (iii + 3), dp (iii + 3), pinc (iii + 3)
+   WRITE (idout, 1700) iii + 4, p (iii + 4), dp (iii + 4), pinc (iii + 4)
 !---------integral berechnen                                            
-      zz = p (iii + 3) / p (iii + 4) + p (iii + 3) * p (iii + 4) 
-      sint = p (iii + 1) * sqpio * zz 
-      ds0 = sqpio * zz 
-      ds2 = p (iii + 1) * sqpio * (1.0 / p (iii + 4) + p (iii + 4) ) 
-      ds3 = p (iii + 1) * sqpio * ( - p (iii + 3) / p (iii + 4) **2 + p &
-      (iii + 3) )                                                       
-      dsint = dp (iii + 1) * ds0 + dp (iii + 3) * ds2 + dp (iii + 4)    &
-      * ds3                                                             
-      WRITE (idout, 1800) sint, dsint 
-      ENDDO 
-      WRITE (idout, * ) ' ' 
+   zz = p (iii + 3) / p (iii + 4) + p (iii + 3) * p (iii + 4) 
+   sint = p (iii + 1) * sqpio * zz 
+   ds0 = sqpio * zz 
+   ds2 = p(iii + 1) * sqpio * (1.0/p(iii + 4) + p(iii + 4) ) 
+   ds3 = p(iii + 1) * sqpio * (-p(iii + 3) / p(iii + 4)**2 + p(iii + 3))
+   dsint = dp(iii + 1) * ds0 + dp (iii + 3) * ds2 + dp (iii + 4) * ds3
+   WRITE (idout, 1800) sint, dsint 
+ENDDO 
+WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Gaussian(s) : '/) 
  1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g13.6,' +- ',g13.6,     &
@@ -2582,67 +2357,67 @@ REAL(KIND=PREC_DP), dimension(MAXW)  :: wmax ! (maxmax)
 INTEGER :: ixm (maxmax) 
 INTEGER :: ii, jj, ima, i 
 !                                                                       
-      IF (ianz.eq.0) THEN 
-         npara = 6 
-         np1 = 1 
-      ELSEIF (ianz.eq.1) THEN 
-         ii = nint (werte (1) ) 
-         IF (ii.gt.0.and. (2 + 4 * ii) .le.maxpara) THEN 
-            np1 = ii 
-            npara = 2 + 4 * np1 
-         ELSE 
-            ier_num = - 31 
-            ier_typ = ER_APPL 
-            RETURN 
-         ENDIF 
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-         RETURN 
-      ENDIF 
+IF (ianz.eq.0) THEN 
+   npara = 6 
+   np1 = 1 
+ELSEIF (ianz.eq.1) THEN 
+   ii = nint (werte (1) ) 
+   IF (ii.gt.0.and. (2 + 4 * ii) .le.maxpara) THEN 
+      np1 = ii 
+      npara = 2 + 4 * np1 
+   ELSE 
+      ier_num = - 31 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN 
+ENDIF 
 !                                                                       
-      ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit - 1) + lenc (ikfit) 
+ii = offxy (ikfit - 1) + 1 
+jj = offxy (ikfit - 1) + lenc (ikfit) 
 !                                                                       
-      p (1) = y (ii) 
-      pinc (1) = 1.0 
-      p (2) = (y (jj) - y (ii) ) / (x (jj) - x (ii) ) 
-      pinc (2) = 1.0 
+p (1) = y (ii) 
+pinc (1) = 1.0 
+p (2) = (y (jj) - y (ii) ) / (x (jj) - x (ii) ) 
+pinc (2) = 1.0 
 !                                                                       
-      ifen = fit_ifen 
-      CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
-      IF (ima.lt.np1) THEN 
-         ier_num = - 30 
-         ier_typ = ER_APPL 
-         CALL errlist 
-         DO i = 1, np1 
-         wmax (i) = 1.0 
-         ixm (i) = 1 
-         ENDDO 
-      ELSE 
-         DO i = ima + 1, np1 
-         wmax (i) = wmax (ima) 
-         ixm (i) = ixm (ima) 
-         ENDDO 
-      ENDIF 
-      CALL no_error 
+ifen = fit_ifen 
+CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
+IF (ima.lt.np1) THEN 
+   ier_num = - 30 
+   ier_typ = ER_APPL 
+   CALL errlist 
+   DO i = 1, np1 
+      wmax (i) = 1.0 
+      ixm (i) = 1 
+   ENDDO 
+ELSE 
+   DO i = ima + 1, np1 
+      wmax (i) = wmax (ima) 
+      ixm (i) = ixm (ima) 
+   ENDDO 
+ENDIF 
+CALL no_error 
 !                                                                       
-      IF (ier_num.eq.0) THEN 
-         DO i = 1, np1 
-         p (2 + (i - 1) * 4 + 1) = wmax (i) 
-         pinc (2 + (i - 1) * 4 + 1) = 1.0 
-         p (2 + (i - 1) * 4 + 2) = x (ii + ixm (i) - 1) 
-         pinc (2 + (i - 1) * 4 + 2) = 1.0 
-         p (2 + (i - 1) * 4 + 3) = 0.2 * abs (x (jj) - x (ii) ) 
-         pinc (2 + (i - 1) * 4 + 3) = 1.0 
-         p (2 + (i - 1) * 4 + 4) = 1.0 
-         pinc (2 + (i - 1) * 4 + 4) = 0.0 
-         ENDDO 
+IF (ier_num.eq.0) THEN 
+   DO i = 1, np1 
+      p (2 + (i - 1) * 4 + 1) = wmax (i) 
+      pinc (2 + (i - 1) * 4 + 1) = 1.0 
+      p (2 + (i - 1) * 4 + 2) = x (ii + ixm (i) - 1) 
+      pinc (2 + (i - 1) * 4 + 2) = 1.0 
+      p (2 + (i - 1) * 4 + 3) = 0.2 * abs (x (jj) - x (ii) ) 
+      pinc (2 + (i - 1) * 4 + 3) = 1.0 
+      p (2 + (i - 1) * 4 + 4) = 1.0 
+      pinc (2 + (i - 1) * 4 + 4) = 0.0 
+   ENDDO 
 !                                                                       
-         DO i = 1, npara 
-         dp (i) = 0.0 
-         ENDDO 
-      ENDIF 
+   DO i = 1, npara 
+      dp (i) = 0.0 
+   ENDDO 
+ENDIF 
 !                                                                       
 p_kuplot_theory => theory_gauss
 !
@@ -2696,13 +2471,13 @@ INTEGER ind, nunt, npar
 INTEGER nlauf, na 
 INTEGER :: np1   !  Number of Gauss peaks to fit
 !                                                                       
-o1   = 4.0 * alog (2.0) 
+o1   = 4.0D0 * log(2.0D0) 
 nunt = 2 
 npar = 4 
 np1  = (npara-nunt)/npar   ! Number of Gauss Peaks
 !                                                                       
 DO ind = 1, npara 
-   dyda(ind) = 0.0 
+   dyda(ind) = 0.0D0 
 ENDDO 
 !-------Background
 ymod = params (1) + params (2) * xx 
@@ -2833,7 +2608,7 @@ INTEGER           , DIMENSION(MAXMAX) :: ixm   !(maxmax)
 INTEGER :: ii, jj, ima, i 
 !                                                                       
 nn_backgrd = 2          ! Default to two background P1+P2*x 
-pp_origin  = 0.0        ! Default to origin at x=0.0
+pp_origin  = 0.0D0      ! Default to origin at x=0.0
 !
 IF(ianz.eq.0) THEN      ! No para : onw Pseudovoigt and two Background
    npara = 2 + NNP 
@@ -2957,15 +2732,6 @@ INTEGER                                              , INTENT(IN)  :: kupl_last 
 REAL(kind=PREC_DP)                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
 REAL(kind=PREC_DP)            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
 LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
-!     SUBROUTINE theory_psvgt (xx, f, df, i) 
-!                                                                       
-!     USE kuplot_config 
-!     USE kuplot_mod 
-!                                                                       
-!     IMPLICIT none 
-!                                                                       
-!     REAL xx, f, df (maxpara) 
-!     INTEGER i 
 !                                                                       
 REAL(kind=PREC_DP) :: fw, xw 
 REAL(kind=PREC_DP) :: eta, pseudo 
@@ -2977,18 +2743,12 @@ REAL(kind=PREC_DP) :: dgdpos, dldpos
 REAL(kind=PREC_DP) :: dgdfw, dldfw 
 INTEGER :: j, ind, na, nu, np, nl, nlauf 
 !
-!REAL :: p_origin = 0.0   ! Needs work!!
-!INTEGER :: n_backgrd  = 2
-!                                                                       
-!     REAL tand 
-!                                                                       
 DO ind = 1, npara 
    dyda(ind) = 0.0 
 ENDDO 
 !                                                                       
-!     pi = 4.0 * atan (1.0) 
-vln2 = 4. * alog (2.) 
-gpre = 2. * sqrt (alog (2.) / pi) 
+vln2 = 4.0D0 * log(2.D0) 
+gpre = 2.0D0 * sqrt(log(2.D0) / pi) 
 nu = nn_backgrd 
 np = 6 
 nl = (npara-nu)/np         ! Number of peaks
@@ -3005,7 +2765,7 @@ DO nlauf = 1, nl
    fw = params (na + 3) 
 !---------asymmetry                                                     
    zz = xw / fw 
-   fa = 2. * zz * exp ( - zz**2) 
+   fa = 2. * zz * exp( - zz**2) 
    fb = 2. * (2 * zz**2 - 3.) * fa 
    asym = 1.0 
    asym = asym + (params (na + 4) * fa + params (na + 5) * fb) / tanh(0.5*params (na + 2) )
@@ -3184,9 +2944,6 @@ CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 !
 IF(ier_num/=0) RETURN
-!CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-!write(*,*) ' BER_PARAMS   FOR DOUBLE', ier_num, ier_typ
-!IF(ier_num/=0) RETURN
 !
 axis_tth = .TRUE.
 CALL do_cap(opara(O_AXIS))
@@ -3203,7 +2960,7 @@ ENDIF
 ii         = 1          ! Default to a single Double-peak
 np1        = 1          ! Default to a single Double-peak
 nn_backgrd = 2          ! Default to two background P1+P2*x 
-pp_origin  = 0.0        ! Default to origin at x=0.0
+pp_origin  = 0.0D0      ! Default to origin at x=0.0
 !
 IF(lpresent(O_PEAKS)) THEN
    ii = NINT(owerte(O_PEAKS))
@@ -3220,7 +2977,7 @@ ENDIF
 IF(lpresent(O_ORIGIN)) THEN
    pp_origin = owerte(O_ORIGIN)
 ELSE
-   pp_origin = 0.0
+   pp_origin = 0.0D0
 ENDIF
 !
 IF(lpresent(O_PEAKS)) THEN
@@ -3263,25 +3020,6 @@ IF(symbol(3:4)=='12') THEN            ! Kalpha 1,2 doublet
    lambda2 = lambda2/get_ka12_len(nwave)
 ENDIF
 !                                                                       
-!
-!IF(ianz.eq.0) THEN      ! No para : one Pseudovoigt and two Background
-!   npara = 2 + NNP 
-!   np1 = 1 
-!ELSEIF(ianz.le.3) THEN  ! Three Params: number of PSVGT's, Origin, Number of background params. 
-!   IF (ianz.eq.3) THEN 
-!      nn_backgrd = NINT(werte(3) )    ! Number of background parameters
-!   ENDIF 
-!   IF (ianz.ge.2) THEN 
-!      pp_origin = werte(2)            ! Origin of background polynomial
-!   ENDIF 
-!   ii = NINT(werte(1))                ! number of PSVGT's
-!!        pp_origin = 0.0 
-!!        nn_backgrd = 2 
-!ELSE 
-!   ier_num = -6 
-!   ier_typ = ER_COMM 
-!   RETURN 
-!ENDIF 
 nu = nn_backgrd 
 !                                                                       
 ii = offxy (ikfit - 1) + 1 
@@ -3408,24 +3146,17 @@ REAL(kind=PREC_DP), DIMENSION(2) :: gaus  ! Gaussian          Kalpha1, Kalpha2
 REAL(kind=PREC_DP), DIMENSION(2) :: pseudo! pseudo Voigt      Kalpha1, Kalpha2
 REAL(kind=PREC_DP), DIMENSION(2) :: asym_pos
 REAL(kind=PREC_DP) :: eta!, pseudo 
-!REAL :: asym, lore, lorn
-!REAL :: gaus 
-!REAL :: vln2, gpre 
-!REAL :: zz, fa, fb 
 REAL(kind=PREC_DP) :: dgdpos, dldpos 
 REAL(kind=PREC_DP) :: dgdfw, dldfw 
 INTEGER :: j, ind, na, nu, nl, nlauf 
 INTEGER :: j2   ! End for loop over Kalpha12
 !
-!REAL :: p_origin = 0.0   ! Needs work!!
-!INTEGER :: n_backgrd  = 2
 !                                                                       
 DO ind = 1, npara 
    dyda(ind) = 0.0 
 ENDDO 
 !                                                                       
 nu = nn_backgrd 
-!np = 6 
 nl = (npara-nu)/np         ! Number of peaks
 !-------untergrund                                                      
 ymod = 0 
@@ -3461,7 +3192,6 @@ peaks: DO nlauf = 1, nl
    fb(j) = 2. * (2 * zz(j)**2 - 3.) * fa(j) 
    asym(j) = 1.0 
    asym(j) = asym(j) + (params (na + 4) * fa(j) + params (na + 5) * fb(j)) / asym_pos(j)
-!DBG        asym(j) = asym(j)+(p(na+4)*fa(j) + p(na+5)*fb(j))/tand(p(na+2)*0.5)     
 !     --Lorentzian                                                      
    lorn(j) = (fw * fw + 4.0 * xw(j) * xw(j)) 
    lore(j) = 2. / pi * fw / lorn(j) 
@@ -3537,48 +3267,35 @@ REAL(kind=PREC_DP) ::  o, sqpio, sqpio2
 REAL(kind=PREC_DP) ::  zz_x, zz_y, sint, ds0, ds3, ds4, ds6, ds7, dsint 
 INTEGER :: i, iii 
 !                                                                       
-      o = sqrt (4.0 * alog (2.0) ) 
-      sqpio = sqrt (REAL(pi)) / o * 0.5 
-      sqpio2 = sqpio * sqpio 
+o = sqrt(4.0D0 * log(2.0D0) ) 
+sqpio = sqrt(pi) / o * 0.5D0 
+sqpio2 = sqpio * sqpio 
 !                                                                       
-      WRITE (idout, 1000) np1 
-      WRITE (idout, 1100) 1, p (1), dp (1), pinc (1) 
-      DO i = 1, np1 
-      WRITE (idout, 1300) i 
-      iii = 1 + (i - 1) * 8 
-      WRITE (idout, 1400) iii + 1, p (iii + 1), dp (iii + 1), pinc (iii &
-      + 1)                                                              
-      WRITE (idout, 1410) iii + 2, p (iii + 2), dp (iii + 2), pinc (iii &
-      + 2)                                                              
-      WRITE (idout, 1420) iii + 3, p (iii + 3), dp (iii + 3), pinc (iii &
-      + 3)                                                              
-      WRITE (idout, 1430) iii + 4, p (iii + 4), dp (iii + 4), pinc (iii &
-      + 4)                                                              
-      WRITE (idout, 1440) iii + 5, p (iii + 5), dp (iii + 5), pinc (iii &
-      + 5)                                                              
-      WRITE (idout, 1450) iii + 6, p (iii + 6), dp (iii + 6), pinc (iii &
-      + 6)                                                              
-      WRITE (idout, 1460) iii + 7, p (iii + 7), dp (iii + 7), pinc (iii &
-      + 7)                                                              
-      WRITE (idout, 1470) iii + 8, p (iii + 8), dp (iii + 8), pinc (iii &
-      + 8)                                                              
-      zz_x = p (iii + 4) / p (iii + 7) + p (iii + 4) * p (iii + 7) 
-      zz_y = p (iii + 5) / p (iii + 8) + p (iii + 5) * p (iii + 8) 
-      sint = p (iii + 1) * sqpio2 * zz_x * zz_y 
-      ds0 = sqpio2 * zz_x * zz_y 
-      ds3 = p (iii + 1) * sqpio2 * zz_y * (1.0 / p (iii + 7) + p (iii + &
-      7) )                                                              
-      ds4 = p (iii + 1) * sqpio2 * zz_x * (1.0 / p (iii + 8) + p (iii + &
-      8) )                                                              
-      ds6 = p (iii + 1) * sqpio2 * zz_y * ( - p (iii + 4) / p (iii + 7) &
-      **2 + p (iii + 4) )                                               
-      ds7 = p (iii + 1) * sqpio2 * zz_x * ( - p (iii + 5) / p (iii + 8) &
-      **2 + p (iii + 5) )                                               
-      dsint = dp (iii + 1) * ds0 + dp (iii + 4) * ds3 + dp (iii + 5)    &
-      * ds4 + dp (iii + 7) * ds6 + dp (iii + 8) * ds7                   
-      WRITE (idout, 1800) sint, dsint 
-      ENDDO 
-      WRITE (idout, * ) ' ' 
+WRITE (idout, 1000) np1 
+WRITE (idout, 1100) 1, p (1), dp (1), pinc (1) 
+DO i = 1, np1 
+   WRITE (idout, 1300) i 
+   iii = 1 + (i - 1) * 8 
+   WRITE (idout, 1400) iii + 1, p (iii + 1), dp (iii + 1), pinc (iii + 1)                                                              
+   WRITE (idout, 1410) iii + 2, p (iii + 2), dp (iii + 2), pinc (iii + 2)                                                              
+   WRITE (idout, 1420) iii + 3, p (iii + 3), dp (iii + 3), pinc (iii + 3)                                                              
+   WRITE (idout, 1430) iii + 4, p (iii + 4), dp (iii + 4), pinc (iii + 4)                                                              
+   WRITE (idout, 1440) iii + 5, p (iii + 5), dp (iii + 5), pinc (iii + 5)                                                              
+   WRITE (idout, 1450) iii + 6, p (iii + 6), dp (iii + 6), pinc (iii + 6)                                                              
+   WRITE (idout, 1460) iii + 7, p (iii + 7), dp (iii + 7), pinc (iii + 7)                                                              
+   WRITE (idout, 1470) iii + 8, p (iii + 8), dp (iii + 8), pinc (iii + 8)                                                              
+   zz_x = p (iii + 4) / p (iii + 7) + p (iii + 4) * p (iii + 7) 
+   zz_y = p (iii + 5) / p (iii + 8) + p (iii + 5) * p (iii + 8) 
+   sint = p (iii + 1) * sqpio2 * zz_x * zz_y 
+   ds0 = sqpio2 * zz_x * zz_y 
+   ds3 = p (iii + 1) * sqpio2 * zz_y * (1.0 / p (iii + 7) + p (iii +  7) )
+   ds4 = p (iii + 1) * sqpio2 * zz_x * (1.0 / p (iii + 8) + p (iii +  8) )
+   ds6 = p (iii + 1) * sqpio2 * zz_y * ( - p (iii + 4) / p (iii + 7)  **2 + p (iii + 4) )
+   ds7 = p (iii + 1) * sqpio2 * zz_x * ( - p (iii + 5) / p (iii + 8)  **2 + p (iii + 5) )
+   dsint = dp(iii + 1) * ds0 + dp(iii + 4) * ds3 + dp(iii + 5) * ds4 + dp(iii + 7) * ds6 + dp(iii + 8) * ds7
+   WRITE (idout, 1800) sint, dsint 
+ENDDO 
+WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Gaussian(s) : '/) 
  1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g13.6,' +- ',g13.6,     &
@@ -3629,83 +3346,81 @@ REAL(KIND=PREC_DP), dimension(MAXMAX) :: wmax ! (maxmax)
 INTEGER :: ixm (maxmax), iym (maxmax) 
 INTEGER :: ima, ii, jj, i 
 !                                                                       
-      IF (ianz.eq.0) THEN 
-         npara = 1 + 8 
-         np1 = 1 
-      ELSEIF (ianz.eq.1) THEN 
-         ii = nint (werte (1) ) 
-         IF (ii.gt.0.and. (1 + 8 * ii) .le.maxpara) THEN 
-            np1 = ii 
-            npara = 1 + 8 * np1 
-         ELSE 
-            ier_num = - 31 
-            ier_typ = ER_APPL 
-            RETURN 
-         ENDIF 
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-         RETURN 
-      ENDIF 
+IF (ianz.eq.0) THEN 
+   npara = 1 + 8 
+   np1 = 1 
+ELSEIF (ianz.eq.1) THEN 
+   ii = nint (werte (1) ) 
+   IF (ii.gt.0.and. (1 + 8 * ii) .le.maxpara) THEN 
+      np1 = ii 
+      npara = 1 + 8 * np1 
+   ELSE 
+      ier_num = - 31 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN 
+ENDIF 
 !                                                                       
-      ii = offxy (ikfit - 1) 
-      jj = offz (ikfit - 1) 
+ii = offxy (ikfit - 1) 
+jj = offz (ikfit - 1) 
 !                                                                       
 !-------untergrund = wert li unten                                      
 !                                                                       
-      p (1) = z (jj + 1) 
-      pinc (1) = 1.0 
+p (1) = z (jj + 1) 
+pinc (1) = 1.0 
 !                                                                       
 !-------nach lokalen maxima suchen                                      
 !                                                                       
-      ifen = fit_ifen 
-      CALL do_fmax_z (ikfit, wmax, ixm, iym, maxmax, ima) 
-      IF (ima.lt.np1) THEN 
-         ier_num = - 30 
-         ier_typ = ER_APPL 
-         CALL errlist 
-         DO i = 1, np1 
-         wmax (i) = 1.0 
-         ixm (i) = 1 
-         iym (i) = 1 
-         ENDDO 
-      ELSE 
-         DO i = ima + 1, np1 
-         wmax (i) = wmax (ima) 
-         ixm (i) = ixm (ima) 
-         iym (i) = iym (ima) 
-         ENDDO 
-      ENDIF 
-      CALL no_error 
+ifen = fit_ifen 
+CALL do_fmax_z (ikfit, wmax, ixm, iym, maxmax, ima) 
+IF (ima.lt.np1) THEN 
+   ier_num = - 30 
+   ier_typ = ER_APPL 
+   CALL errlist 
+   DO i = 1, np1 
+      wmax (i) = 1.0 
+      ixm (i) = 1 
+      iym (i) = 1 
+   ENDDO 
+ELSE 
+   DO i = ima + 1, np1 
+      wmax (i) = wmax (ima) 
+      ixm (i) = ixm (ima) 
+      iym (i) = iym (ima) 
+   ENDDO 
+ENDIF 
+CALL no_error 
 !                                                                       
 !-------parameter setzen                                                
 !                                                                       
-      IF (ier_num.eq.0) THEN 
-         DO i = 1, np1 
-         p (1 + (i - 1) * 8 + 1) = wmax (i) 
-         pinc (1 + (i - 1) * 8 + 1) = 1.0 
-         p (1 + (i - 1) * 8 + 2) = x (ii + ixm (i) ) 
-         pinc (1 + (i - 1) * 8 + 2) = 1.0 
-         p (1 + (i - 1) * 8 + 3) = y (ii + iym (i) ) 
-         pinc (1 + (i - 1) * 8 + 3) = 1.0 
-         p (1 + (i - 1) * 8 + 4) = 0.2 * abs (x (ii + nx (ikfit) )      &
-         - x (ii + 1) )                                                 
-         pinc (1 + (i - 1) * 8 + 4) = 1.0 
-         p (1 + (i - 1) * 8 + 5) = 0.2 * abs (y (ii + ny (ikfit) )      &
-         - y (ii + 1) )                                                 
-         pinc (1 + (i - 1) * 8 + 5) = 1.0 
-         p (1 + (i - 1) * 8 + 6) = 0.0 
-         pinc (1 + (i - 1) * 8 + 6) = 0.0 
-         p (1 + (i - 1) * 8 + 7) = 1.0 
-         pinc (1 + (i - 1) * 8 + 7) = 0.0 
-         p (1 + (i - 1) * 8 + 8) = 1.0 
-         pinc (1 + (i - 1) * 8 + 8) = 0.0 
-         ENDDO 
+IF (ier_num.eq.0) THEN 
+   DO i = 1, np1 
+      p (1 + (i - 1) * 8 + 1) = wmax (i) 
+      pinc (1 + (i - 1) * 8 + 1) = 1.0 
+      p (1 + (i - 1) * 8 + 2) = x (ii + ixm (i) ) 
+      pinc (1 + (i - 1) * 8 + 2) = 1.0 
+      p (1 + (i - 1) * 8 + 3) = y (ii + iym (i) ) 
+      pinc (1 + (i - 1) * 8 + 3) = 1.0 
+      p (1 + (i - 1) * 8 + 4) = 0.2 * abs(x(ii + nx(ikfit)) - x (ii + 1) )                                                 
+      pinc (1 + (i - 1) * 8 + 4) = 1.0 
+      p (1 + (i - 1) * 8 + 5) = 0.2 * abs(y(ii + ny(ikfit)) - y (ii + 1) )                                                 
+      pinc (1 + (i - 1) * 8 + 5) = 1.0 
+      p (1 + (i - 1) * 8 + 6) = 0.0 
+      pinc (1 + (i - 1) * 8 + 6) = 0.0 
+      p (1 + (i - 1) * 8 + 7) = 1.0 
+      pinc (1 + (i - 1) * 8 + 7) = 0.0 
+      p (1 + (i - 1) * 8 + 8) = 1.0 
+      pinc (1 + (i - 1) * 8 + 8) = 0.0 
+   ENDDO 
 !                                                                       
-         DO i = 1, npara 
-         dp (i) = 0.0 
-         ENDDO 
-      ENDIF 
+   DO i = 1, npara 
+      dp (i) = 0.0 
+   ENDDO 
+ENDIF 
 !
 p_kuplot_theory => theory_gauss_2d
 !                                                                       
@@ -3748,15 +3463,6 @@ REAL(kind=PREC_DP)                                                 , INTENT(OUT)
 REAL(kind=PREC_DP)            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
 LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
 !
-!*********************************************************************  
-!     SUBROUTINE theory_gauss_2d (xx, f, df, i) 
-!                                                                       
-!     USE kuplot_config 
-!     USE kuplot_mod 
-!                                                                       
-!     IMPLICIT none 
-!                                                                       
-!     REAL xx, f, o1, df (maxpara) 
 REAL(kind=PREC_DP)    :: o1
 REAL(kind=PREC_DP)    :: rx, ry, rxs, rys, fwfx, fwx, fwfy, fwy, cosp, sinp 
 REAL(kind=PREC_DP)    :: exx, eyy, dfxs, dfys 
@@ -3766,7 +3472,7 @@ DO ind = 1, npara
    dyda(ind) = 0.0 
 ENDDO 
 !                                                                       
-o1 = 4.0 * alog (2.0) 
+o1 = 4.0D0 * log(2.0D0) 
 nu = 1 
 np = 8 
 ng = (npara-nu)/np   ! Number of Gauss Peaks  
@@ -4040,7 +3746,7 @@ DO i = 3, npara
 ENDDO 
 !                                                                       
 DO i = 1, npara 
-   dp (i) = 0.0 
+   dp(i) = 0.0d0
 ENDDO 
 !
 p_kuplot_theory => theory_poly
@@ -4087,7 +3793,7 @@ INTEGER :: ind
 !
 ymod = params(1)
 !
-IF(xx /= 0.0) THEN
+IF(xx /= 0.0d0) THEN
    DO ind = 2, npara
       ymod = ymod + params(ind) * (xx**(ind-1))
    ENDDO
@@ -4103,37 +3809,6 @@ data_calc(ix, iy) = ymod
 !
 END SUBROUTINE theory_poly
 !
-!!***7*******************************************************************
-!      SUBROUTINE theory_poly (xx, f, df, iwert) 
-!!                                                                       
-!      USE kuplot_config 
-!      USE kuplot_mod 
-!!                                                                       
-!      IMPLICIT none 
-!!                                                                       
-!      REAL xx, f, df (maxpara) 
-!      INTEGER iwert, ind 
-!!                                                                       
-!      DO ind = 1, npara 
-!      df (ind) = 0.0 
-!      ENDDO 
-!!                                                                       
-!      f = p (1) 
-!      DO ind = 1, np1 
-!      IF (xx.ne.0) f = f + p (ind+1) * (xx**ind) 
-!      ENDDO 
-!!                                                                       
-!!-------Derivatives                                                     
-!!                                                                       
-!      IF (iwert.gt.0) THEN 
-!         DO ind = 0, np1 
-!         IF (pinc (ind+1) .ne.0) THEN 
-!            df (ind+1) = (xx**ind) 
-!         ENDIF 
-!         ENDDO 
-!      ENDIF 
-!                                                                       
-!      END SUBROUTINE theory_poly                    
 !***7*******************************************************************
 !     Scale factor + Background Polynom                                 
 !***7*******************************************************************
@@ -4306,9 +3981,8 @@ data_calc(ix, iy) = ymod
 !                                                                       
 END SUBROUTINE theory_backpoly                
 !
+!
 !*******************************************************************************
-!
-!
 !*******************************************************************************
 !
 SUBROUTINE kuplot_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, par_ind,  &
@@ -4364,16 +4038,16 @@ LOGICAL                                              , INTENT(INOUT) :: lconverg
 REAL(kind=PREC_DP)                                   , INTENT(OUT) :: chisq       ! Chi^2 value
 REAL(kind=PREC_DP)                                   , INTENT(OUT) :: conf        ! Confidence test from Gamma function
 REAL(kind=PREC_DP)                                   , INTENT(OUT) :: lamda_fin   ! Final Marquardt lambda
-REAL(kind=PREC_DP)                                                 , INTENT(IN)  :: lamda_s     ! Start Marquardt lambda
-REAL(kind=PREC_DP)                                                 , INTENT(IN)  :: lamda_d     ! Start Marquardt lambda
-REAL(kind=PREC_DP)                                                 , INTENT(IN)  :: lamda_u     ! Start Marquardt lambda
+REAL(kind=PREC_DP)                                   , INTENT(IN)  :: lamda_s     ! Start Marquardt lambda
+REAL(kind=PREC_DP)                                   , INTENT(IN)  :: lamda_d     ! Start Marquardt lambda
+REAL(kind=PREC_DP)                                   , INTENT(IN)  :: lamda_u     ! Start Marquardt lambda
 REAL(kind=PREC_DP)                                   , INTENT(OUT) :: rval        ! Weighted R-value
 REAL(kind=PREC_DP)                                   , INTENT(OUT) :: rexp        ! Expected R-value
 !
 REAL(kind=PREC_DP), DIMENSION(MAXP)                  , INTENT(INOUT) :: p         ! Parameter array
-REAL(kind=PREC_DP)            , DIMENSION(MAXP,2)                  , INTENT(INOUT) :: prange    ! Parameter range
-REAL(kind=PREC_DP), DIMENSION(MAXP)                    , INTENT(INOUT) :: dp        ! Parameter sigmas
-REAL(kind=PREC_DP), DIMENSION(NPARA, NPARA)            , INTENT(INOUT) :: cl        ! Covariance matrix
+REAL(kind=PREC_DP)            , DIMENSION(MAXP,2)    , INTENT(INOUT) :: prange    ! Parameter range
+REAL(kind=PREC_DP), DIMENSION(MAXP)                  , INTENT(INOUT) :: dp        ! Parameter sigmas
+REAL(kind=PREC_DP), DIMENSION(NPARA, NPARA)          , INTENT(INOUT) :: cl        ! Covariance matrix
 character(len=*)                                     , intent(in)    :: wtyp
 real(kind=PREC_DP)                                   , intent(in)    :: wval
 !
@@ -4400,16 +4074,16 @@ REAL(kind=PREC_DP) , DIMENSION(:,:), ALLOCATABLE :: last_p
 !
 lconv      = .FALSE.
 alamda     = -0.001D0    ! Negative lamda initializes MRQ routine
-rval       = 0.0
-rexp       = 0.0
-cl(:,:)    = 0.0
-alpha(:,:) = 0.0
-beta(:)    = 0.0
-chisq      = 0.0
+rval       = 0.0D0
+rexp       = 0.0D0
+cl(:,:)    = 0.0D0
+alpha(:,:) = 0.0D0
+beta(:)    = 0.0D0
+chisq      = 0.0D0
 last_chi(:)   = HUGE(0.0)
-last_shift(:) = -1.0
+last_shift(:) = -1.0D0
 last_conf(:)  = HUGE(0.0)
-last_i        = 0
+last_i        = 0D0
 !
 ! Set initial parameter values
 !
@@ -4436,7 +4110,7 @@ WRITE(output_io,'(a,10x,a,7x,a,6x,a)') 'Cycle Chi^2/(N-P)   MAX(dP/sig) Par   Co
 !
 lconvergence = .FALSE.
 icyc = 0
-data_calc=0.0
+data_calc=0.0D0
 cycles:DO
    if(wtyp=='BCK' .and. data_dim(2)==1) then 
       do i=1, data_dim(1)
@@ -4474,13 +4148,7 @@ cycles:DO
          last_shift(last_i), last_ind, conf, alamda, rval, rexp
 !
    CALL kuplot_rvalue(data_dim, data_data, data_sigma, data_calc, rval, rexp, NPARA)
-!  CALL kuplot_best(rval)                                              ! Write best macro
-!  IF(ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
-!     last_shift(last_i) < conv_dp_sig                   .AND.   &
-!     last_conf(last_i)  > conv_conf                     .OR.    &
-!     (last_shift(last_i)>0.0 .AND.                              &
-!      ABS(last_chi( last_i)-last_chi(prev_i))<1.E-5)    .OR.    &
-!     last_chi( last_i)  < conv_chi2                   ) THEN
+!
    if(conv_status) then
       lconv(1) = (ABS(last_chi( last_i)-last_chi(prev_i))<conv_dchi2 .AND.   &
                   last_shift(last_i) < conv_dp_sig                   .AND.   &
@@ -4488,11 +4156,11 @@ cycles:DO
       lconv(2) = (last_shift(last_i)>0.0 .AND.                            &
                   ABS(last_chi(last_i)-last_chi(prev_i))<conv_dchi2)
       lconv(3) = last_chi(last_i)  < conv_chi2
-   IF(lconv(1) .OR. lconv(2) .OR. lconv(3)) THEN
-      WRITE(output_io, '(/,a,3L2)') 'Convergence reached ', lconv
-      lconvergence = .TRUE.
-      EXIT cycles
-   ENDIF
+      IF(lconv(1) .OR. lconv(2) .OR. lconv(3)) THEN
+         WRITE(output_io, '(/,a,3L2)') 'Convergence reached ', lconv
+         lconvergence = .TRUE.
+         EXIT cycles
+      ENDIF
    endif
    IF(alamda > 0.5*HUGE(0.0)) THEN
       lconvergence = .FALSE.
@@ -4555,32 +4223,32 @@ USE gaussj_mod
 !
 IMPLICIT NONE
 !
-INTEGER                                             , INTENT(IN)    :: MAXP        ! Array size for parameters
-INTEGER         , DIMENSION(2)                      , INTENT(IN)    :: data_dim    ! no of ata points along x, y
-REAL(kind=PREC_DP)            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_data   ! Data values
-REAL(kind=PREC_DP)            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_sigma ! Data sigmas
-REAL(kind=PREC_DP)            , DIMENSION(data_dim(1)           ) , INTENT(IN)    :: data_x      ! Actual x-coordinates
-REAL(kind=PREC_DP)            , DIMENSION(data_dim(2)           ) , INTENT(IN)    :: data_y      ! Actual y-coordinates
-REAL(kind=PREC_DP)            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT)  :: data_calc   ! Calculated
-INTEGER                                             , INTENT(IN)    :: NPARA       ! number of parameters
-REAL(kind=PREC_DP)            , DIMENSION(MAXP, 2              )  , INTENT(IN)    :: prange      ! Allowed parameter range
-INTEGER                                             , INTENT(IN)    :: kupl_last   ! Last KUPLOT DATA that are needed
+INTEGER                                               , INTENT(IN)    :: MAXP        ! Array size for parameters
+INTEGER           , DIMENSION(2)                      , INTENT(IN)    :: data_dim    ! no of ata points along x, y
+REAL(kind=PREC_DP), DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_data   ! Data values
+REAL(kind=PREC_DP), DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_sigma ! Data sigmas
+REAL(kind=PREC_DP), DIMENSION(data_dim(1)           ) , INTENT(IN)    :: data_x      ! Actual x-coordinates
+REAL(kind=PREC_DP), DIMENSION(data_dim(2)           ) , INTENT(IN)    :: data_y      ! Actual y-coordinates
+REAL(kind=PREC_DP), DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT)  :: data_calc   ! Calculated
+INTEGER                                               , INTENT(IN)    :: NPARA       ! number of parameters
+REAL(kind=PREC_DP), DIMENSION(MAXP, 2              )  , INTENT(IN)    :: prange      ! Allowed parameter range
+INTEGER                                               , INTENT(IN)    :: kupl_last   ! Last KUPLOT DATA that are needed
 REAL(kind=PREC_DP), DIMENSION(MAXP)                   , INTENT(INOUT) :: a           ! Parameter values
-CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)    :: par_names   ! Parameter names
-INTEGER         , DIMENSION(MAXP)                   , INTENT(IN)    :: par_ind     ! Index of param in KUPLOT list
-INTEGER                                             , INTENT(IN)    :: MAXF        ! Fixed Parameter array size
-INTEGER                                             , INTENT(IN)    :: nfixed      ! Number of fixed parameters
-CHARACTER(LEN=*), DIMENSION(MAXF)                   , INTENT(IN)    :: fixed       ! Fixed Parameter names
-INTEGER         , DIMENSION(MAXF)                   , INTENT(IN)    :: fixed_ind   ! Index of fixed param in KUPLOT list
-REAL(kind=PREC_DP)            , DIMENSION(MAXF)                   , INTENT(IN)    :: pf          ! Fixed Parameter array
+CHARACTER(LEN=*)  , DIMENSION(MAXP)                   , INTENT(IN)    :: par_names   ! Parameter names
+INTEGER           , DIMENSION(MAXP)                   , INTENT(IN)    :: par_ind     ! Index of param in KUPLOT list
+INTEGER                                               , INTENT(IN)    :: MAXF        ! Fixed Parameter array size
+INTEGER                                               , INTENT(IN)    :: nfixed      ! Number of fixed parameters
+CHARACTER(LEN=*)  , DIMENSION(MAXF)                   , INTENT(IN)    :: fixed       ! Fixed Parameter names
+INTEGER           , DIMENSION(MAXF)                   , INTENT(IN)    :: fixed_ind   ! Index of fixed param in KUPLOT list
+REAL(kind=PREC_DP), DIMENSION(MAXF)                   , INTENT(IN)    :: pf          ! Fixed Parameter array
 REAL(kind=PREC_DP), DIMENSION(NPARA, NPARA)           , INTENT(OUT)   :: covar       ! Covariance matrix
-REAL(kind=PREC_DP)            , DIMENSION(NPARA, NPARA)           , INTENT(INOUT) :: alpha       ! Temp arrays
-REAL(kind=PREC_DP)            , DIMENSION(NPARA     )             , INTENT(INOUT) :: beta        ! Temp arrays
-REAL(kind=PREC_DP)                                  , INTENT(INOUT) :: chisq       ! Chi Squared
-REAL(kind=PREC_DP)                                  , INTENT(INOUT) :: alamda      ! Levenberg parameter
-REAL(kind=PREC_DP)                                   , INTENT(IN)  :: lamda_s     ! Start Marquardt lambda
-REAL(kind=PREC_DP)                                   , INTENT(IN)  :: lamda_d     ! Start Marquardt lambda
-REAL(kind=PREC_DP)                                   , INTENT(IN)  :: lamda_u     ! Start Marquardt lambda
+REAL(kind=PREC_DP), DIMENSION(NPARA, NPARA)           , INTENT(INOUT) :: alpha       ! Temp arrays
+REAL(kind=PREC_DP), DIMENSION(NPARA     )             , INTENT(INOUT) :: beta        ! Temp arrays
+REAL(kind=PREC_DP)                                    , INTENT(INOUT) :: chisq       ! Chi Squared
+REAL(kind=PREC_DP)                                    , INTENT(INOUT) :: alamda      ! Levenberg parameter
+REAL(kind=PREC_DP)                                    , INTENT(IN)  :: lamda_s     ! Start Marquardt lambda
+REAL(kind=PREC_DP)                                    , INTENT(IN)  :: lamda_d     ! Start Marquardt lambda
+REAL(kind=PREC_DP)                                    , INTENT(IN)  :: lamda_u     ! Start Marquardt lambda
 !
 INTEGER                         :: j     = 0
 INTEGER                         :: k     = 0
@@ -4634,7 +4302,6 @@ do j=1, npara
    endif
 enddo
 if(l_none) then
-!   lsuccess = .FALSE.
    ier_num = -1
    ier_typ =  5
    return
@@ -4681,7 +4348,6 @@ ENDIF
 !
 !
 IF(chisq < ochisq) THEN            ! Success, accept solution
-!  alamda = 0.5*alamda
    alamda = lamda_d*alamda
    ochisq = chisq
    DO j=1,NPARA
@@ -4714,28 +4380,28 @@ USE errlist_mod
 !
 IMPLICIT NONE
 !
-INTEGER                                             , INTENT(IN)  :: MAXP        ! Maximum parameter number
-INTEGER         , DIMENSION(2)                      , INTENT(IN)  :: data_dim    ! Data dimensions
-REAL(kind=PREC_DP)            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)  :: data_data   ! Observables
-REAL(kind=PREC_DP)            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigma
-REAL(kind=PREC_DP)            , DIMENSION(data_dim(1)           ) , INTENT(IN)  :: data_x      ! x-coordinates
-REAL(kind=PREC_DP)            , DIMENSION(data_dim(2)           ) , INTENT(IN)  :: data_y      ! y-coordinates
-REAL(kind=PREC_DP)            , DIMENSION(data_dim(1),data_dim(2)), INTENT(OUT) :: data_calc   ! Calculated data
-INTEGER                                             , INTENT(IN)  :: NPARA       ! Number of refine parameters
+INTEGER                                               , INTENT(IN)  :: MAXP        ! Maximum parameter number
+INTEGER           , DIMENSION(2)                      , INTENT(IN)  :: data_dim    ! Data dimensions
+REAL(kind=PREC_DP), DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)  :: data_data   ! Observables
+REAL(kind=PREC_DP), DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigma
+REAL(kind=PREC_DP), DIMENSION(data_dim(1)           ) , INTENT(IN)  :: data_x      ! x-coordinates
+REAL(kind=PREC_DP), DIMENSION(data_dim(2)           ) , INTENT(IN)  :: data_y      ! y-coordinates
+REAL(kind=PREC_DP), DIMENSION(data_dim(1),data_dim(2)), INTENT(OUT) :: data_calc   ! Calculated data
+INTEGER                                               , INTENT(IN)  :: NPARA       ! Number of refine parameters
 REAL(kind=PREC_DP), DIMENSION(MAXP)                   , INTENT(IN)  :: params      ! Current parameter values
-CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)  :: par_names   ! Parameter names
-INTEGER         , DIMENSION(MAXP)                   , INTENT(IN)  :: par_ind     ! Index of param in KUPLOT list
-REAL(kind=PREC_DP)            , DIMENSION(MAXP, 2              )  , INTENT(IN)  :: prange      ! Allowed parameter range
-INTEGER                                             , INTENT(IN)  :: MAXF        ! Fixed Parameter array size
-INTEGER                                             , INTENT(IN)  :: nfixed      ! Number of fixed parameters
-CHARACTER(LEN=*), DIMENSION(MAXF)                   , INTENT(IN)  :: fixed       ! Fixed Parameter names
-INTEGER         , DIMENSION(MAXF)                   , INTENT(IN)  :: fixed_ind   ! Index of fixed param in KUPLOT list
-REAL(kind=PREC_DP)            , DIMENSION(MAXF)                   , INTENT(IN)  :: pf          ! Fixed Parameter array
-INTEGER                                             , INTENT(IN)  :: kupl_last   ! Last KUPLOT DATA that are needed
-REAL(kind=PREC_DP)            , DIMENSION(NPARA, NPARA)           , INTENT(OUT) :: alpha
-REAL(kind=PREC_DP)            , DIMENSION(NPARA)                  , INTENT(OUT) :: beta
-REAL(kind=PREC_DP)                                  , INTENT(OUT) :: chisq
-LOGICAL                                             , INTENT(IN)  :: LDERIV      ! Derivatives are needed?
+CHARACTER(LEN=*)  , DIMENSION(MAXP)                   , INTENT(IN)  :: par_names   ! Parameter names
+INTEGER           , DIMENSION(MAXP)                   , INTENT(IN)  :: par_ind     ! Index of param in KUPLOT list
+REAL(kind=PREC_DP), DIMENSION(MAXP, 2)                , INTENT(IN)  :: prange      ! Allowed parameter range
+INTEGER                                               , INTENT(IN)  :: MAXF        ! Fixed Parameter array size
+INTEGER                                               , INTENT(IN)  :: nfixed      ! Number of fixed parameters
+CHARACTER(LEN=*)  , DIMENSION(MAXF)                   , INTENT(IN)  :: fixed       ! Fixed Parameter names
+INTEGER           , DIMENSION(MAXF)                   , INTENT(IN)  :: fixed_ind   ! Index of fixed param in KUPLOT list
+REAL(kind=PREC_DP), DIMENSION(MAXF)                   , INTENT(IN)  :: pf          ! Fixed Parameter array
+INTEGER                                               , INTENT(IN)  :: kupl_last   ! Last KUPLOT DATA that are needed
+REAL(kind=PREC_DP), DIMENSION(NPARA, NPARA)           , INTENT(OUT) :: alpha
+REAL(kind=PREC_DP), DIMENSION(NPARA)                  , INTENT(OUT) :: beta
+REAL(kind=PREC_DP)                                    , INTENT(OUT) :: chisq
+LOGICAL                                               , INTENT(IN)  :: LDERIV      ! Derivatives are needed?
 !
 !
 INTEGER                  :: i,j, jj
@@ -4905,8 +4571,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER                              :: ianz
 !
 !
-!
-!
 INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_START   = 1
 INTEGER, PARAMETER :: O_FAIL    = 2
@@ -4968,8 +4632,6 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 !REAL(kind=PREC_DP) , DIMENSION(MAXW) :: werte
 !
 INTEGER                              :: ianz
-!
-!
 !
 !
 INTEGER, PARAMETER :: NOPTIONAL = 5
