@@ -11,169 +11,176 @@ SUBROUTINE do_calc (zeile, lp)
 !                                                                       
 !*****7*****************************************************************
 !                                                                       
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
+USE kuplot_config 
+USE kuplot_mod 
 use kuplot_extrema_mod
 use kuplot_show_mod
-      USE string_convert_mod
+USE string_convert_mod
 USE precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 4) 
+INTEGER , PARAMETER :: maxw = 4
 !                                                                       
-      CHARACTER ( * ) zeile 
-      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
-      CHARACTER(3) oper 
-      CHARACTER(2) unt 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      INTEGER lpara (maxw), lp 
-      INTEGER ianz, ilen, ik 
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp
+! 
+CHARACTER(LEN=PREC_STRING), dimension(maxw) :: cpara ! (maxw) 
+CHARACTER(len=3)                            :: oper 
+CHARACTER(len=2)                            :: unt 
+REAL(KIND=PREC_DP)        , dimension(MAXW) :: werte ! (maxw) 
+INTEGER                   , dimension(MAXW) :: lpara ! (maxw)
+INTEGER :: ianz, ilen, ik 
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) return 
+!                                                                       
+IF (ianz.lt.3.or.ianz.gt.4) then 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN 
+ENDIF 
+!                                                                       
+oper = cpara (1) (1:3) 
+unt = cpara (2) (1:2) 
+CALL do_cap (oper) 
+CALL do_cap (unt) 
+!                                                                       
+CALL del_params (2, ianz, cpara, lpara, maxw) 
+CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+IF (ier_num.ne.0) return 
+!                                                                       
+ik = nint (werte (1) ) 
+IF (ik.gt.0.and.ik.lt.iz) then 
+   ilen = lenc (ik) 
+   IF (unt.eq.'WX') then 
+      IF (lni (ik) ) ilen = nx (ik) 
+      CALL calc_xy (x, ilen, ik, oper, werte, maxw, ianz) 
       IF (ier_num.ne.0) return 
-!                                                                       
-      IF (ianz.lt.3.or.ianz.gt.4) then 
+      CALL get_extrema_xy (x, ik, ilen, xmin, xmax) 
+      CALL show_data (ik) 
+   ELSEIF (unt.eq.'WY') then 
+      IF (lni (ik) ) ilen = ny (ik) 
+      CALL calc_xy (y, ilen, ik, oper, werte, maxw, ianz) 
+      IF (ier_num.ne.0) return 
+      CALL get_extrema_xy (y, ik, ilen, ymin, ymax) 
+      CALL show_data (ik) 
+   ELSEIF (unt.eq.'DX') then 
+      CALL calc_xy (dx, lenc (ik), ik, oper, werte, maxw, ianz) 
+   ELSEIF (unt.eq.'DY') then 
+      CALL calc_xy (dy, lenc (ik), ik, oper, werte, maxw, ianz) 
+   ELSEIF (unt.eq.'WZ') then 
+      IF (lni (ik) ) then 
+         CALL calc_z(z, nx(ik), ny(ik), ik, oper, werte, maxw, ianz)
+         IF (ier_num.ne.0) return 
+         CALL get_extrema_z (z, ik, nx (ik), ny (ik), zmin, zmax) 
+         CALL show_data (ik) 
+      ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
-         RETURN 
       ENDIF 
-!                                                                       
-      oper = cpara (1) (1:3) 
-      unt = cpara (2) (1:2) 
-      CALL do_cap (oper) 
-      CALL do_cap (unt) 
-!                                                                       
-      CALL del_params (2, ianz, cpara, lpara, maxw) 
-      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-      IF (ier_num.ne.0) return 
-!                                                                       
-      ik = nint (werte (1) ) 
-      IF (ik.gt.0.and.ik.lt.iz) then 
-         ilen = lenc (ik) 
-         IF (unt.eq.'WX') then 
-            IF (lni (ik) ) ilen = nx (ik) 
-            CALL calc_xy (x, ilen, ik, oper, werte, maxw, ianz) 
-            IF (ier_num.ne.0) return 
-            CALL get_extrema_xy (x, ik, ilen, xmin, xmax) 
-            CALL show_data (ik) 
-         ELSEIF (unt.eq.'WY') then 
-            IF (lni (ik) ) ilen = ny (ik) 
-            CALL calc_xy (y, ilen, ik, oper, werte, maxw, ianz) 
-            IF (ier_num.ne.0) return 
-            CALL get_extrema_xy (y, ik, ilen, ymin, ymax) 
-            CALL show_data (ik) 
-         ELSEIF (unt.eq.'DX') then 
-            CALL calc_xy (dx, lenc (ik), ik, oper, werte, maxw, ianz) 
-         ELSEIF (unt.eq.'DY') then 
-            CALL calc_xy (dy, lenc (ik), ik, oper, werte, maxw, ianz) 
-         ELSEIF (unt.eq.'WZ') then 
-            IF (lni (ik) ) then 
-               CALL calc_z (z, nx (ik), ny (ik), ik, oper, werte, maxw, &
-               ianz)                                                    
-               IF (ier_num.ne.0) return 
-               CALL get_extrema_z (z, ik, nx (ik), ny (ik), zmin, zmax) 
-               CALL show_data (ik) 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-         ENDIF 
-      ELSE 
-         ier_num = - 4 
-         ier_typ = ER_APPL 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE do_calc                        
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
+ELSE 
+   ier_num = - 4 
+   ier_typ = ER_APPL 
+ENDIF 
+!                                                                  
+END SUBROUTINE do_calc                        
+!
 !*****7*****************************************************************
-      SUBROUTINE calc_xy (a, ilen, ik, op, werte, maxw, ianz) 
+!
+SUBROUTINE calc_xy (a, ilen, ik, op, werte, maxw, ianz) 
 !+                                                                      
 !     berechnungen fuer x und y feld                                    
 !-                                                                      
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
 USE precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) op 
-      INTEGER ilen, ik, ianz, maxw, i 
-      REAL(KIND=PREC_DP) :: werte (maxw)
-REAL :: a (maxarray) 
-      REAL summand, faktor , thresh
+REAL          , dimension(MAXARRAY), intent(inout) :: a ! (maxarray) 
+integer                            , intent(in)    :: ilen
+integer                            , intent(in)    :: ik
+CHARACTER(len=*)                   , intent(in)    :: op 
+integer                            , intent(in)    :: MAXW
+integer                            , intent(in)    :: ianz
+REAL(KIND=PREC_DP), DIMENSION(MAXW), intent(in)    :: werte (maxw)
+      INTEGER :: i 
+REAL(kind=PREC_DP) :: summand, faktor , thresh
 !                                                                       
-      IF (op.eq.'INV') then 
-         DO i = 1, ilen 
-         IF (a (offxy (ik - 1) + i) .ne.0.0) then 
-            a (offxy (ik - 1) + i) = 1.0 / a (offxy (ik - 1) + i) 
-         ELSE 
-            a (offxy (ik - 1) + i) = 0.0 
-         ENDIF 
-         ENDDO 
-      ELSEIF (op.eq.'LOG') then 
-         DO i = 1, ilen 
-         IF (a (offxy (ik - 1) + i) .gt.0.0) then 
-            a (offxy (ik - 1) + i) = log (a (offxy (ik - 1) + i) ) 
-         ELSE 
-            a (offxy (ik - 1) + i) = 0.0 
-         ENDIF 
-         ENDDO 
-      ELSEIF (op.eq.'EXP') then 
-         DO i = 1, ilen 
-         a (offxy (ik - 1) + i) = exp (a (offxy (ik - 1) + i) ) 
-         ENDDO 
-      ELSEIF (op.eq.'SQU') then 
-         DO i = 1, ilen 
-         a (offxy (ik - 1) + i) = a (offxy (ik - 1) + i) * a (offxy (ik &
-         - 1) + i)                                                      
-         ENDDO 
-      ELSEIF (op.eq.'SQR') then 
-         DO i = 1, ilen 
-         IF (a (offxy (ik - 1) + i) .ge.0.0) then 
-            a (offxy (ik - 1) + i) = sqrt (a (offxy (ik - 1) + i) ) 
-         ELSE 
-            a (offxy (ik - 1) + i) = 0.0 
-         ENDIF 
-         ENDDO 
-      ELSEIF (op.eq.'THR') then 
-         thresh = -9999.
-         IF (ianz.eq.2) thresh = werte (2) 
-         DO i = 1, ilen 
-         IF( a(offxy (ik - 1) + i)<= thresh .AND. a(offxy (ik - 1) + i)/=-9999.) THEN
-         a (offxy (ik - 1) + i) = -9999.0
-         ENDIF
-         ENDDO 
-      ELSEIF (op.eq.'ADD') then 
-         summand = 0.0 
-         IF (ianz.eq.2) summand = werte (2) 
-         DO i = 1, ilen 
-         a (offxy (ik - 1) + i) = a (offxy (ik - 1) + i) + summand 
-         ENDDO 
-      ELSEIF (op.eq.'MUL') then 
-         faktor = 1.0 
-         IF (ianz.eq.2) faktor = werte (2) 
-         DO i = 1, ilen 
-         a (offxy (ik - 1) + i) = a (offxy (ik - 1) + i) * faktor 
-         ENDDO 
-      ELSEIF (op.eq.'ABS') then 
-         DO i = 1, ilen 
-         a (offxy (ik - 1) + i) = abs (a (offxy (ik - 1) + i) ) 
-         ENDDO 
+IF(op.eq.'INV') then 
+   DO i = 1, ilen 
+      IF (a (offxy (ik - 1) + i) .ne.0.0) then 
+         a (offxy (ik - 1) + i) = 1.0 / a (offxy (ik - 1) + i) 
       ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
+         a (offxy (ik - 1) + i) = 0.0 
       ENDIF 
+   ENDDO 
+ELSEIF (op.eq.'LOG') then 
+   DO i = 1, ilen 
+      IF (a (offxy (ik - 1) + i) .gt.0.0) then 
+         a (offxy (ik - 1) + i) = log (a (offxy (ik - 1) + i) ) 
+      ELSE 
+         a (offxy (ik - 1) + i) = 0.0 
+      ENDIF 
+   ENDDO 
+ELSEIF (op.eq.'EXP') then 
+   DO i = 1, ilen 
+      a (offxy (ik - 1) + i) = exp (a (offxy (ik - 1) + i) ) 
+   ENDDO 
+ELSEIF (op.eq.'SQU') then 
+   DO i = 1, ilen 
+      a(offxy(ik - 1) + i) = a(offxy(ik - 1) + i) * a(offxy(ik - 1) + i)
+   ENDDO 
+ELSEIF (op.eq.'SQR') then 
+   DO i = 1, ilen 
+      IF (a (offxy (ik - 1) + i) .ge.0.0) then 
+         a (offxy (ik - 1) + i) = sqrt (a (offxy (ik - 1) + i) ) 
+      ELSE 
+         a (offxy (ik - 1) + i) = 0.0 
+      ENDIF 
+   ENDDO 
+ELSEIF (op.eq.'THR') then 
+   thresh = -9999.D0
+   IF (ianz.eq.2) thresh = werte (2) 
+   DO i = 1, ilen 
+      IF( a(offxy (ik - 1) + i)<= thresh .AND. a(offxy (ik - 1) + i)/=-9999.) THEN
+         a (offxy (ik - 1) + i) = -9999.0
+      ENDIF
+   ENDDO 
+ELSEIF (op.eq.'ADD') then 
+   summand = 0.0D0 
+   IF (ianz.eq.2) summand = werte (2) 
+   DO i = 1, ilen 
+      a (offxy (ik - 1) + i) = a (offxy (ik - 1) + i) + summand 
+   ENDDO 
+ELSEIF (op.eq.'MUL') then 
+   faktor = 1.0D0 
+   IF (ianz.eq.2) faktor = werte (2) 
+   DO i = 1, ilen 
+      a (offxy (ik - 1) + i) = a (offxy (ik - 1) + i) * faktor 
+   ENDDO 
+ELSEIF (op.eq.'ABS') then 
+   DO i = 1, ilen 
+      a (offxy (ik - 1) + i) = abs (a (offxy (ik - 1) + i) ) 
+      ENDDO 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
 !                                                                       
-      END SUBROUTINE calc_xy                        
+END SUBROUTINE calc_xy                        
+!
 !*****7*****************************************************************
+!
       SUBROUTINE calc_z (a, nxx, nyy, ik, op, werte, maxw, ianz) 
 !+                                                                      
 !     berechnungen fuer z feld                                          
