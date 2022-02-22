@@ -59,7 +59,7 @@ INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to cal
 !
 DATA oname  / 'refine' , 'kuplot' /
 DATA loname /  6       ,  6     /
-opara  =  (/ 'data    ', 'last    '  /)
+opara  =  (/ 'cost    ', 'last    '  /)
 lopara =  (/ 4         ,  4          /)
 owerte =  (/ -1.000000 ,  -1.0000000 /)
 !
@@ -88,8 +88,14 @@ ENDIF
 !
 ig = 0                                  ! default to last data set
 IF(lpresent(O_REFINE)) THEN
-   IF(opara(O_REFINE)=='data') THEN
+   IF(opara(O_REFINE)=='cost') THEN
       ig = 0
+   elseif(opara(O_REFINE)=='obs' .or. opara(O_REFINE)=='exp') THEN
+      ig = -2
+   elseif(opara(O_REFINE)=='sigma') then
+      ig = -3
+   elseif(opara(O_REFINE)=='opti') then
+      ig = -1
    ELSE
       cpara(1) = opara(O_REFINE)
       lpara(1) = lopara(O_REFINE)
@@ -99,7 +105,7 @@ IF(lpresent(O_REFINE)) THEN
    ENDIF
 ENDIF
 !
-IF(ig<-ABS(nnfix) .OR. ig> nnpara) THEN
+IF(ig<-3          .OR. ig> nnpara) THEN
    ier_num = -6
    ier_typ = ER_FORT
    ier_msg(1) = 'Global data set number outside limits'
