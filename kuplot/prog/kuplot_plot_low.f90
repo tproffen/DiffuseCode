@@ -1130,6 +1130,9 @@ use precision_mod
       USE kuplot_config 
       USE kuplot_mod 
 use kuplot_math_mod
+!
+use precision_mod
+!use spline_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1137,7 +1140,8 @@ use kuplot_math_mod
       REAL xpl (nnpkt), ypl (nnpkt) 
       REAL eex (2), eey (2) 
       REAL y2a (maxarray), xhe (maxsp), yhe (maxsp) 
-      REAL xxx, yyy, xst, xen, dxx 
+      REAL yyy, xst, xen, dxx 
+real(kind=PREC_SP) :: xxx
       INTEGER :: i
       INTEGER :: ninterv
 !                                                                       
@@ -1194,7 +1198,8 @@ use kuplot_math_mod
             ier_num = - 13 
             ier_typ = ER_APPL 
          ELSE 
-            CALL spline (xpl, ypl, npkt, 1e30, 1e30, y2a) 
+            CALL spline_old (xpl, ypl, npkt, 1E30, 1E30, y2a) 
+!           CALL spline (npkt, xpl, ypl, 1D30, 1D30, y2a) 
             xst = max (xmin (ikurv), pex (iwin, iframe, 1) ) 
             xen = min (xmax (ikurv), pex (iwin, iframe, 2) ) 
             dxx = (xen - xst) / maxsp 
@@ -1203,7 +1208,8 @@ use kuplot_math_mod
 !           DO xxx = xst + dxx, xen - dxx, dxx 
             DO i = 0, ninterv
                xxx = (xst+dxx) + i * dxx
-            CALL splint (xpl, ypl, y2a, npkt, xxx, yyy, ier_num)
+            CALL splint_old (xpl, ypl, y2a, npkt, xxx, yyy, ier_num)
+!           CALL splint (npkt, xpl, ypl, y2a, xxx, yyy, ier_num)
             IF(ier_num /= 0) THEN
                ier_typ =ER_APPL
                RETURN 
