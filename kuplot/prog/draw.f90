@@ -221,8 +221,11 @@ use kuplot_draw_tframe_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) cmd, befehl 
-      INTEGER ic, ib 
+CHARACTER(len=*) , intent(out) :: cmd
+CHARACTER(len=*) , intent(out) :: befehl 
+INTEGER , intent(out) :: ic, ib 
+integer :: i6
+!
       REAL xt, yt, xh, yh, x1, x2, y1, y2 
 !                                                                       
       ic = 0 
@@ -250,7 +253,11 @@ use kuplot_draw_tframe_mod
       yt = y2 + 0.40 * yh 
 !                                                                       
       CALL PGPTXT (xt, yt, 0.0, 0.0, 'kuplot >') 
-      CALL PGRSTR (xt + 5.0 * xh, yt, 0.0, 0.0, cmd, ic, 6) 
+      xt = xt + 5.0 * xh
+      x1 = 0.0
+      y1 = 0.0
+      i6 = 6
+      CALL PGRSTR (xt           , yt, x1 , y1 , cmd, ic, i6) 
       CALL extr_befehl (cmd, befehl, ic, ib) 
 !                                                                       
       END SUBROUTINE draw_command                   
@@ -265,8 +272,11 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) cmd, befehl 
-      INTEGER ic, ib, il, ir
+CHARACTER(len=*) , intent(out) :: cmd
+CHARACTER(len=*) , intent(out) :: befehl 
+INTEGER , intent(out) :: ic, ib 
+!
+      INTEGER ::      il, ir
 !                                                                       
       ic = len_str (cmd) 
       il = 1 
@@ -290,8 +300,9 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      REAL mx, my, w2, h2 
-      INTEGER ib 
+      INTEGER , intent(in) :: ib 
+      REAL , intent(in) :: mx, my
+      REAL ::      w2, h2 
 !                                                                       
       w2 = 0.5 * bw (ib) 
       h2 = 0.5 * bh (ib) 
@@ -323,9 +334,10 @@ USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+logical , intent(out) :: lend
       CHARACTER(LEN=PREC_STRING) :: command, befehl 
       INTEGER ic, ib, macro_level_old 
-      LOGICAL lend, lreg 
+      LOGICAL ::    lreg 
 !                                                                       
 !                                                                       
       lend = .false. 
@@ -394,11 +406,13 @@ use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+logical , intent(in) :: lmin
+!
       CHARACTER(80) zeile 
       CHARACTER(1) key 
       REAL wx, wy, hub 
       INTEGER ini 
-      LOGICAL lw, lmin, l2d! , n_in_f 
+      LOGICAL lw, l2d! , n_in_f 
 !                                                                       
       lw = .true. 
       l2d = n_in_f (ini) 
@@ -708,10 +722,11 @@ use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+LOGICAL , intent(in) :: lzoom
       CHARACTER(80) zeile (2), thelp 
       CHARACTER(1) key 
       REAL wx, wy, w2, h2 
-      LOGICAL lzoom, lw 
+      LOGICAL ::     lw 
 !                                                                       
       lw = .true. 
 !                                                                       
@@ -982,9 +997,11 @@ use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+integer, intent(in) :: imode
+!
       CHARACTER(1) key 
       REAL wx1, wy1, wx2, wy2 
-      INTEGER ikey, imode 
+      INTEGER ikey
 !                                                                       
       CALL do_plot (lgui (iwin) ) 
       IF (ier_num.ne.0) return 
@@ -1034,7 +1051,7 @@ use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      REAL wx, wy 
+REAL , intent(inout) :: wx, wy 
 !                                                                       
       IF (shear (iwin, iframe) .ne.90.0) then 
          wx = wx - (wy - ey (iwin, iframe, 1) ) * yskal (iwin, iframe)  &
@@ -1047,9 +1064,10 @@ use kuplot_plot_low_mod
       END SUBROUTINE trans_koor                     
 !******7****************************************************************
       SUBROUTINE PGRSTR (X, Y, ANGLE, FJUST, TEXT, LSTR, BCI) 
-      REAL X, Y, ANGLE, FJUST 
-      CHARACTER ( * ) TEXT 
-      INTEGER LSTR, BCI 
+!
+REAL , intent(inout) :: X, Y, ANGLE, FJUST 
+CHARACTER (len= * ) , intent(inout) :: TEXT 
+INTEGER , intent(inout) :: LSTR, BCI 
 !-----------------------------------------------------------------------
       CHARACTER CH 
       INTEGER CI 

@@ -23,10 +23,12 @@ use kuplot_draw_low_mod
 use kuplot_plot_low_mod
 !                                                                       
       IMPLICIT none 
+!
+logical , intent(in) :: lmenu
 !                                                                       
       REAL x1, x2, y1, y2, width, ratio, dev_sf_old 
       INTEGER ii
-      LOGICAL tfr, lmenu 
+      LOGICAL tfr
 !                                                                       
       INTEGER PGOPEN 
 !                                                                       

@@ -73,10 +73,10 @@ USE kuplot_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-      REAL a (maxarray) 
+REAL    , intent(in) :: a (maxarray) 
 integer , intent(in) :: ik
-REAL(kind=PREC_DP), dimension(MAXKURVTOT), intent(inout) :: amax (maxkurvtot), amin (maxkurvtot) 
 integer , intent(in) :: ilen
+REAL(kind=PREC_DP), dimension(MAXKURVTOT), intent(inout) :: amax (maxkurvtot), amin (maxkurvtot) 
 !
 INTEGER :: ip
 !                                                                       
@@ -99,9 +99,12 @@ END SUBROUTINE get_extrema_xy
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      REAL a (maxarray) 
-      REAL amax (maxkurvtot), amin (maxkurvtot) 
-      INTEGER ik, nxx, nyy, ikk, i, j 
+REAL , intent(in) :: a (maxarray) 
+integer , intent(in) :: nxx
+integer , intent(in) :: nyy
+REAL , intent(out) :: amax (maxkurvtot), amin (maxkurvtot) 
+!
+      INTEGER :: ik, ikk, i, j 
 !                                                                       
       amax (ik) = a (offz (ik - 1) + 1) 
       amin (ik) = a (offz (ik - 1) + 1) 
