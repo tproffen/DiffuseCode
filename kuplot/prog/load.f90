@@ -30,9 +30,12 @@ USE str_comp_mod
       INTEGER maxw 
       PARAMETER (maxw = 7) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+character(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp
+!
+!      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw), cfkt, cdummy 
-      INTEGER lp, lcfkt, lpara (maxw) 
+      INTEGER ::  lcfkt, lpara (maxw) 
       INTEGER ianz, i, ii, jj, kk, iref 
       INTEGER :: length
       INTEGER maxpkt, maxzz 
@@ -474,10 +477,9 @@ USE support_mod
       PARAMETER (ifil = 44) 
       PARAMETER (iwgb = 45) 
 !                                                                       
-      CHARACTER ( * ) string 
-!
-      INTEGER, INTENT(INOUT) :: laenge
-      LOGICAL, INTENT(IN) :: lecho          ! Show extrema after load
+CHARACTER (len=*), intent(in) :: string 
+INTEGER          , INTENT(INOUT) :: laenge
+LOGICAL          , INTENT(IN) :: lecho          ! Show extrema after load
 !
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(LEN=PREC_STRING) :: wname, cdummy 
@@ -754,7 +756,7 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER ifil 
+INTEGER, intent(in) :: ifil 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: line 
       INTEGER is
@@ -806,7 +808,9 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) line, key 
+CHARACTER(len=*), intent(in) :: line
+CHARACTER(len=*), intent(in) :: key 
+!
       INTEGER is, ie, ll, lk 
 !                                                                       
 !                                                                       
@@ -840,18 +844,20 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
+INTEGER, intent(in) :: ifil 
+INTEGER, intent(in) :: ianz 
+INTEGER, intent(in) :: maxw 
+REAL(KIND=PREC_DP), intent(in) :: werte (maxw) 
+LOGICAL, intent(in) :: dens, zz_mod 
 !                                                                       
-      REAL(KIND=PREC_DP) :: werte (maxw) 
 !DBG      real xw,yw,zw                                                 
       REAL xw, yw, ow 
       INTEGER zw 
       REAL deltax, deltay, dxx, dyy 
       INTEGER irec 
       INTEGER np (maxarray) 
-      INTEGER ifil, ixx, iyy, izeig, i 
-      INTEGER maxpkt, maxzz, ianz 
-      LOGICAL dens, zz_mod 
+      INTEGER ::    ixx, iyy, izeig, i 
+      INTEGER maxpkt, maxzz
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
@@ -999,15 +1005,18 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
+INTEGER, intent(in) :: ifil 
+INTEGER, intent(in) :: ianz 
+INTEGER, intent(in) :: maxw 
+REAL(KIND=PREC_DP), intent(in) :: werte (maxw) 
+LOGICAL, intent(in) :: dens, zz_mod 
 !                                                                       
-      REAL(KIND=PREC_DP) :: werte (maxw) 
+!                                                                       
       REAL xw, yw, zw 
       REAL deltax, deltay, dxx, dyy 
       INTEGER np (maxarray) 
-      INTEGER ifil, ixx, iyy, izeig, i 
-      INTEGER maxpkt, maxzz, ianz 
-      LOGICAL dens, zz_mod 
+      INTEGER ::    ixx, iyy, izeig, i 
+      INTEGER maxpkt, maxzz
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
@@ -1159,15 +1168,17 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
+INTEGER, intent(in) :: ifil 
+INTEGER, intent(in) :: ianz 
+INTEGER, intent(in) :: maxw 
+REAL(KIND=PREC_DP), intent(in) :: werte (maxw) 
 !                                                                       
       REAL val (maxz) 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL range (2, 3) 
       REAL dxx, dyy 
       INTEGER np (3), icut (3), iii (3) 
-      INTEGER maxpkt, maxzz, ianz 
-      INTEGER ifil, ival 
+      INTEGER maxpkt, maxzz
+      INTEGER :: ival 
       INTEGER i, j, izeig 
       INTEGER ixx, iyy, izz, jxx, jyy 
 !                                                                       
@@ -1281,13 +1292,17 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+integer, intent(in) :: ifil
+integer, intent(in) :: ix
+integer, intent(in) :: iy
+CHARACTER(len=*), intent(in) :: str1, str2 
+!
       INTEGER maxw 
       PARAMETER (maxw = 20) 
 !                                                                       
-      CHARACTER ( * ) str1, str2 
       CHARACTER(LEN=PREC_STRING) :: line 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      INTEGER ix, iy, ifil, nr, ianz, i, maxpp 
+      INTEGER ::            nr, ianz, i, maxpp 
 !                                                                       
 !------ initial setup                                                   
 !                                                                       
@@ -1349,6 +1364,11 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+integer, intent(in) :: ifil
+integer, intent(in) :: iwgb
+integer, intent(in) :: istr
+logical, intent(in) :: pgm 
+!
       INTEGER mrect
       PARAMETER (mrect = 50) 
 !                                                                       
@@ -1356,10 +1376,10 @@ USE precision_mod
       CHARACTER(5) cmagic, kom 
       REAL rect (mrect, 4) 
       REAL dxx, dyy 
-      INTEGER ifil, iwgb, istr, ir, i, j, zdummy 
+      INTEGER :: ir, i, j, zdummy 
       INTEGER maxpkt, maxzz 
       INTEGER nrect 
-      LOGICAL pgm, inwg 
+      LOGICAL ::   inwg 
 !                                                                       
 !------ if there is a second file containing excluded regions,          
 !------ read its contents                                               
@@ -1533,9 +1553,17 @@ USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !
+integer, intent(in) :: ifil
+integer, intent(inout) :: ianz
+integer, intent(in) :: MAXW
+CHARACTER(len=*)  , dimension(MAXW), intent(inout) :: cpara ! (maxw) 
+INTEGER           , DIMENSION(MAXW), intent(inout) :: lpara
+REAL(KIND=PREC_DP), dimension(MAXW), intent(inout) :: werte ! (maxw) 
+integer                            , intent(in) :: itype
+!
       INTEGER, PARAMETER :: MAXWW = 1
 !                                                                       
-      INTEGER maxw, colm 
+      INTEGER ::    colm 
       INTEGER READ_TYPE_SC 
 !     INTEGER READ_TYPE_ST 
       INTEGER READ_TYPE_SM 
@@ -1545,28 +1573,25 @@ USE str_comp_mod
 !     PARAMETER (READ_TYPE_ST = 1) 
       PARAMETER (READ_TYPE_SM = 2) 
 !                                                                       
-      CHARACTER ( * ) cpara (maxw) 
       CHARACTER (LEN=PREC_STRING), DIMENSION(MAXWW) :: ccpara
-      INTEGER             , DIMENSION(MAXWW) :: llpara
+INTEGER, DIMENSION(MAXWW) :: llpara
       REAL(KIND=PREC_DP)  , DIMENSION(MAXWW) :: wwerte
       CHARACTER(4096) mine, sinfo 
       CHARACTER(200) date, tit 
       CHARACTER(40) field (0:colm), input (colm) 
       CHARACTER(LEN=40) :: scan_type    ! Scan type on #S instruction
       CHARACTER(LEN=40) :: scan_mot     ! Motor type on #S instruction
-      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL col (0:colm), dummy 
       REAL mca_par (3) 
       REAL, DIMENSION(:,:), ALLOCATABLE :: scan_limits
       LOGICAL                           :: yes_limits
       INTEGER counts (8192) 
-      INTEGER lpara (maxw), icell (5) 
-      INTEGER ifil, ianz, iianz, il, ipt 
+      INTEGER ::            icell (5) 
+      INTEGER ::          iianz, il, ipt 
       INTEGER iscan, istart, iend, i, j 
       INTEGER nscan, nr, nf, maxpp 
       INTEGER nmca 
       INTEGER nscans 
-      INTEGER itype 
       INTEGER  :: janz      ! temporary number of parameters
       INTEGER  :: npoints   ! number of data point on the #S instruction
       REAL     :: xstart    ! Start point          on the #S instruction
@@ -2003,20 +2028,24 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER maxw, maxr, maxc 
+integer, intent(in   ) :: ifil
+integer, intent(inout) :: ianz
+integer, intent(in) :: MAXW
+CHARACTER(len=*)  , dimension(MAXW), intent(inout) :: cpara ! (maxw) 
+INTEGER           , DIMENSION(MAXW), intent(inout) :: lpara
+!
+      INTEGER ::  maxr, maxc 
 !                                                                       
       PARAMETER (maxr = 10) 
       PARAMETER (maxc = 15) 
 !                                                                       
-      CHARACTER ( * ) cpara (maxw) 
       CHARACTER(4096) mine 
       CHARACTER(200) date, scan, energy 
       CHARACTER(40) field (0:maxc), field_t (0:maxr, maxc) 
       CHARACTER(40) out_t (5) 
       REAL field_v (0:maxr, maxc), out_v (5) 
-      INTEGER lpara (maxw) 
       INTEGER ic, ir, nf, i, ii 
-      INTEGER ifil, ianz, istart, iend, iscan, nscan 
+      INTEGER ::        istart, iend, iscan, nscan 
       LOGICAL lall, lend 
 !                                                                       
 !                                                                       
@@ -2160,12 +2189,14 @@ USE precision_mod
 USE str_comp_mod
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(in) :: str 
+INTEGER, intent(in) :: length
+INTEGER, intent(out) :: istart, iend 
+LOGICAL, intent(out) :: lall 
+
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) str 
-      INTEGER length, istart, iend 
-      LOGICAL lall 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -2206,9 +2237,9 @@ USE str_comp_mod
 USE lib_length
       IMPLICIT none 
 !                                                                       
-      CHARACTER(4096) mine 
-      INTEGER ifil 
-      INTEGER counts (8192) 
+INTEGER                 , intent(in) :: ifil 
+CHARACTER(len=4096)     , intent(out) ::  mine 
+INTEGER, dimension(8192), intent(out) :: counts !(8192) 
 !                                                                       
       INTEGER nchan 
       INTEGER chana 
@@ -2283,12 +2314,17 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
+INTEGER, intent(in) :: ifil
+INTEGER , intent(inout) :: ianz 
+INTEGER                            , intent(in) :: maxw 
+CHARACTER(len=*)  , dimension(MAXW), intent(inout) :: cpara !(maxw) 
+INTEGER           , dimension(MAXW), intent(inout) :: lpara !(maxw) 
+real(kind=PREC_DP), dimension(MAXW), intent(inout) :: werte
+
       INTEGER nbank 
 !                                                                       
       PARAMETER (nbank = 100) 
 !                                                                       
-      CHARACTER ( * ) cpara (maxw) 
       CHARACTER(LEN=PREC_STRING) :: line 
       CHARACTER(LEN=PREC_STRING) :: iname, gsastit, filename 
       CHARACTER(1) units, cunits 
@@ -2297,13 +2333,10 @@ USE precision_mod
       REAL(8) tzero (nbank) 
       REAL twotheta (nbank) 
       REAL vrange (nbank, 2), vp (nbank, 12) 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL xval (maxarray) 
       REAL yval (maxarray) 
       REAL dyval (maxarray) 
-      INTEGER lpara (maxw) 
       INTEGER bid (nbank) 
-      INTEGER ifil, ianz 
       INTEGER iscan, istart, iend, i 
       INTEGER ndat, maxpp 
       INTEGER vtype (nbank) 
@@ -2470,18 +2503,21 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER nbank 
-!                                                                       
-      REAL xval (maxarray) 
-      REAL yval (maxarray) 
-      REAL dyval (maxarray) 
-      REAL vrange (nbank, 2), vp (nbank, 12) 
+INTEGER, intent(in) :: nbank 
+REAL   , intent(inout) :: xval (maxarray) 
+REAL   , intent(inout) :: yval (maxarray) 
+REAL   , intent(inout) :: dyval (maxarray) 
+INTEGER, intent(out) :: ndat 
+INTEGER, intent(in) :: ib 
+INTEGER, intent(in) :: bid (nbank) 
+INTEGER, intent(in) :: vtype (nbank) 
+REAL   , intent(in) :: vrange (nbank, 2)
+REAL   , intent(in) :: vp (nbank, 12) 
+LOGICAL, intent(in) :: lnor 
+!
       REAL cof (12) 
       REAL i0, tof 
-      INTEGER vtype (nbank) 
-      INTEGER bid (nbank) 
-      INTEGER ndat, i, j, ib, ii 
-      LOGICAL lnor 
+      INTEGER i, j, ii 
 !                                                                       
       IF (.not.lnor) return 
 !                                                                       
@@ -2571,7 +2607,8 @@ USE precision_mod
 !-                                                                      
       IMPLICIT none 
 !                                                                       
-      REAL tof, cof (12) 
+REAL               , intent(in)  :: tof
+REAL, dimension(12), intent(out) :: cof !(12) 
       REAL t 
       INTEGER i 
 !                                                                       
@@ -2599,18 +2636,23 @@ USE lib_length
       USE wink_mod
       USE prompt_mod 
       USE kuplot_config 
+use precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1) units, cunits 
-      REAL(8) difc, difa, tzero 
-      REAL(8) secondterm 
-      REAL xval (maxarray) 
-      REAL yval (maxarray) 
-      REAL dyval (maxarray) 
-      REAL tth, t, d, tsint 
-      INTEGER ndat, j 
-      LOGICAL lunits 
+REAL              , intent(inout) :: xval (maxarray) 
+REAL              , intent(inout) :: yval (maxarray) 
+REAL              , intent(inout) :: dyval (maxarray) 
+INTEGER           , intent(in) :: ndat 
+CHARACTER(len=1)  , intent(out) :: units
+CHARACTER(len=1)  , intent(in) :: cunits
+LOGICAL           , intent(in) ::  lunits 
+REAL(kind=PREC_DP), intent(in) :: difc, difa, tzero 
+REAL(kind=PREC_SP), intent(in) :: tth
+!
+REAL(kind=PREC_DP) :: secondterm 
+REAL(kind=PREC_SP) :: t, d, tsint 
+INTEGER :: j 
 !                                                                       
 !                                                                       
 !------ Keep units                                                      
@@ -2768,7 +2810,7 @@ USE lib_length
      &                   ' file ..')                                    
       END SUBROUTINE convert_units                  
 !*****7**************************************************************** 
-      SUBROUTINE reverse_array (dat, ndat) 
+SUBROUTINE reverse_array (dat, ndat) 
 !+                                                                      
 !     Reverse given array                                               
 !-                                                                      
@@ -2776,9 +2818,11 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      REAL dat (maxarray) 
+integer, intent(in) :: ndat
+REAL   , intent(inout) :: dat (maxarray) 
+
       REAL dummy (maxarray) 
-      INTEGER i, ndat 
+      INTEGER i
 !                                                                       
       DO i = 1, ndat 
       dummy (i) = dat (i) 
@@ -2804,9 +2848,9 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) iname 
-      INTEGER ifil 
-      LOGICAL liparm 
+INTEGER         , intent(in)  :: ifil 
+CHARACTER(len=*), intent(out) :: iname 
+LOGICAL         , intent(out) :: liparm 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: line, dummy 
 !                                                                       
@@ -2852,15 +2896,17 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER nbank 
-!                                                                       
-      CHARACTER ( * ) gsastit 
-      CHARACTER(1) cunits 
-      REAL xval (maxarray) 
-      REAL yval (maxarray) 
-      REAL dyval (maxarray) 
-      INTEGER bid (nbank) 
-      INTEGER ndat, ibank, ifil 
+INTEGER, intent(in) :: ifil 
+INTEGER, intent(in) :: ibank
+INTEGER, intent(in) :: nbank 
+REAL   , intent(out) :: xval (maxarray) 
+REAL   , intent(out) :: yval (maxarray) 
+REAL   , intent(out) :: dyval (maxarray) 
+INTEGER, intent(out) :: ndat 
+INTEGER, intent(out) :: bid (nbank) 
+CHARACTER(len=1), intent(out) :: cunits 
+CHARACTER(len=*), intent(out) :: gsastit 
+!     INTEGER ndat, ibank, ifil 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: line, bank_line 
       REAL clckwdt, onetick, scal 
@@ -3144,7 +3190,7 @@ USE lib_length
 !                                                                       
       END SUBROUTINE read_gsas_data                 
 !*****7**************************************************************** 
-      SUBROUTINE read_iparm (inam, nbank, difc, difa, tzero, twotheta,  &
+SUBROUTINE read_iparm (inam, nbank, difc, difa, tzero, twotheta,  &
       vtype, vrange, vp)                                                
 !+                                                                      
 !     Read GSAS instrument parameter file                               
@@ -3155,21 +3201,24 @@ USE lib_length
       USE kuplot_config 
 USE lib_length
 USE support_mod
+use precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER nbank 
+CHARACTER(len=*), intent(in) :: inam 
+INTEGER         , intent(in) :: nbank 
+REAL(8)         , intent(out) :: difc (nbank) 
+REAL(8)         , intent(out) :: difa (nbank) 
+REAL(8)         , intent(out) :: tzero (nbank) 
+REAL            , intent(out) :: twotheta (nbank) 
+INTEGER         , intent(out) :: vtype (nbank) 
+REAL            , intent(out) :: vrange (nbank, 2)
+REAL            , intent(out) :: vp (nbank, 12) 
 !                                                                       
-      CHARACTER ( * ) inam 
       CHARACTER(80) line 
       CHARACTER(6) search 
-      REAL(8) difc (nbank) 
-      REAL(8) difa (nbank) 
-      REAL(8) tzero (nbank) 
-      REAL vrange (nbank, 2), vp (nbank, 12) 
-      REAL twotheta (nbank) 
+!     REAL vrange (nbank, 2), vp (nbank, 12) 
       REAL dummy 
-      INTEGER vtype (nbank) 
       INTEGER ibank, i, ll 
 !                                                                       
 !                                                                       
@@ -3262,8 +3311,9 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER ifil, nbank 
-      INTEGER bid (nbank) 
+INTEGER, intent(in)  :: ifil
+INTEGER, intent(in)  :: nbank 
+INTEGER, intent(out) :: bid (nbank) 
 !                                                                       
       CHARACTER(80) line 
       INTEGER ibank, ib 
@@ -3651,7 +3701,7 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !
-      INTEGER, INTENT(in) :: ifil
+INTEGER, INTENT(in) :: ifil
 !
       CHARACTER(LEN=PREC_STRING) :: line
       CHARACTER(LEN=1   ) :: sep
@@ -3711,10 +3761,13 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      REAL(KIND=PREC_DP) :: werte (maxw)
+INTEGER, INTENT(in) :: ifil
+INTEGER, INTENT(in) :: ianz
+INTEGER, INTENT(in) :: MAXW
+REAL(KIND=PREC_DP), intent(IN) :: werte (maxw)
+!
       REAL :: xold, xnew, ynew 
-      INTEGER nr, ifil, ianz, iscan, nscan, maxpp 
+      INTEGER nr, iscan, nscan, maxpp 
 !                                                                       
 !------ check parameters                                                
 !                                                                       
@@ -3796,8 +3849,9 @@ use kuplot_show_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+INTEGER, INTENT(in) :: ifil
 !                                                                       
-      INTEGER ifil, nr 
+      INTEGER :: nr 
       INTEGER maxpp 
 !                                                                       
       nr = 1 
@@ -3834,12 +3888,13 @@ use kuplot_show_mod
       USE kuplot_config 
       USE kuplot_mod 
 use kuplot_show_mod
-!
 !                                                                       
       IMPLICIT none 
+!
+INTEGER, INTENT(in) :: ifil
 !                                                                       
       REAL rmsiz, zdummy 
-      INTEGER ifil, imcol, imtyp, nr, iii, maxpp 
+      INTEGER :: imcol, imtyp, nr, iii, maxpp 
 !                                                                       
       nr = 1 
       maxpp = maxarray - offxy (iz - 1) 
@@ -3882,9 +3937,10 @@ use kuplot_show_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
+INTEGER, INTENT(in) :: ifil
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: line 
-      INTEGER ifil, nr, maxpp 
+      INTEGER :: nr, maxpp 
 !                                                                       
 !------ read data                                                       
 !                                                                       
@@ -3934,8 +3990,10 @@ use kuplot_show_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+INTEGER, INTENT(in) :: ifil
+INTEGER, INTENT(in) :: izaehl
       REAL dummy 
-      INTEGER ifil, izaehl, nr, maxpp 
+      INTEGER ::            nr, maxpp 
 !                                                                       
 !------ setup                                                           
 !                                                                       
@@ -3984,10 +4042,12 @@ use kuplot_show_mod
 USE lib_length
       IMPLICIT none 
 !                                                                       
-      INTEGER colm 
 !                                                                       
-      CHARACTER ( * ) zeile, field (0:colm) 
-      INTEGER nf, i, is, ia 
+INTEGER         , intent(in) :: colm 
+CHARACTER(len=*), intent(in) ::  zeile
+INTEGER         , intent(out) :: nf 
+CHARACTER(len=*), intent(out) ::  field (0:colm) 
+      INTEGER ::  i, is, ia 
       LOGICAL ein 
 !                                                                       
 !                                                                       
@@ -4031,12 +4091,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+INTEGER, INTENT(in) :: ifil
+!
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: line 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      INTEGER ifil, j, npkt 
+      INTEGER :: j, npkt 
       INTEGER ianz, i, maxpp 
       REAL tth_anf, tth_del, tth_end, temp 
 !                                                                       
@@ -4104,17 +4166,21 @@ USE precision_mod
  9999 FORMAT     (a) 
 !                                                                       
       END SUBROUTINE read_simref                    
+!
 !*****7**************************************************************** 
-      REAL function chan2kev (channel, mca_par) 
+!
+REAL function chan2kev (channel, mca_par) 
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER channel 
-      REAL mca_par (3) 
+INTEGER, intent(in) :: channel 
+REAL, intent(in) :: mca_par (3) 
 !                                                                       
-      chan2kev = mca_par (1) * channel**2 + mca_par (2) * channel +     &
-      mca_par (3)                                                       
+chan2kev = mca_par (1) * channel**2 + mca_par (2) * channel +     &
+mca_par (3)                                                       
 !                                                                       
-      END FUNCTION chan2kev                         
+END FUNCTION chan2kev                         
+!
+!*****7**************************************************************** 
 !
 end module kuplot_load_mod

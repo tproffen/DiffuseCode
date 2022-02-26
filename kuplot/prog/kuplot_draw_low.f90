@@ -9,14 +9,14 @@ contains
 !
 !*******************************************************************************
 !
-      SUBROUTINE draw_menu 
+SUBROUTINE draw_menu 
 !                                                                       
 !     Draw the different menu parts                                     
 !                                                                       
-      USE errlist_mod 
-      USE prompt_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE prompt_mod 
+USE kuplot_config 
+USE kuplot_mod 
 use kuplot_draw_tframe_mod
 use kuplot_low_mod
 USE lib_length
@@ -87,7 +87,10 @@ USE lib_length
      &and mode ...')                                                    
 !                                                                       
       END SUBROUTINE draw_menu                      
-      SUBROUTINE def_button (ib, text, xb, yb, wb, hb) 
+!
+!*******************************************************************************
+!
+SUBROUTINE def_button (ib, text, xb, yb, wb, hb) 
 !                                                                       
 !     Defines a button for the menu                                     
 !                                                                       
@@ -96,9 +99,9 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) text 
-      REAL xb, yb, wb, hb 
-      INTEGER ib 
+INTEGER, intent(in) :: ib 
+CHARACTER(len=*), intent(in) :: text 
+REAL , intent(in) :: xb, yb, wb, hb 
 !                                                                       
       btext (ib) = text 
       bx (ib) = xb 
@@ -117,9 +120,11 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      REAL xh, yh, w2, h2 
-      INTEGER i, ib, it 
-      LOGICAL lactive, ldisabled 
+integer, intent(in) :: i
+LOGICAL, intent(in) :: lactive, ldisabled 
+!
+      REAL   :: xh, yh, w2, h2 
+      INTEGER :: ib, it 
 !                                                                       
       IF (ldisabled) then 
          ib = 6 

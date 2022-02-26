@@ -24,8 +24,8 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER, intent(inout) :: lp 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       INTEGER lpara (maxw) 
@@ -81,12 +81,14 @@ USE str_comp_mod
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER, intent(inout) :: lp 
+!                                                                       
       CHARACTER(LEN=PREC_STRING) cpara (maxw) 
       REAL(KIND=PREC_DP) werte (maxw) 
 REAL :: zzmin, zzmax
       INTEGER lpara (maxw) 
-      INTEGER ianz, lp 
+      INTEGER ianz
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -147,9 +149,10 @@ REAL :: zzmin, zzmax
 !                                                                       
       IMPLICIT none 
 !                                                                       
+      LOGICAL, intent(in) :: lout 
+!
       REAL dummy (maxcol, 3) 
       INTEGER i 
-      LOGICAL lout 
 !                                                                       
       IF (lout) WRITE(output_io, 1000) 
 !                                                                       
@@ -179,8 +182,9 @@ REAL :: zzmin, zzmax
 !                                                                       
       IMPLICIT none 
 !                                                                       
+LOGICAL, intent(in) :: lout 
+!
       INTEGER i 
-      LOGICAL lout 
 !                                                                       
       IF (lout) WRITE (output_io, 1000) 
 !                                                                       
@@ -203,9 +207,10 @@ REAL :: zzmin, zzmax
 !                                                                       
       IMPLICIT none 
 !                                                                       
+LOGICAL, intent(in) :: lout 
+!
       REAL rh, rf, rq, rp, rt 
       INTEGER i, ifarb 
-      LOGICAL lout 
 !                                                                       
       IF (lout) WRITE (output_io, 1000) 
 !                                                                       
@@ -262,8 +267,9 @@ REAL :: zzmin, zzmax
 !                                                                       
       IMPLICIT none 
 !                                                                       
+LOGICAL, intent(in) :: lout 
+!
       INTEGER i, ii, m 
-      LOGICAL lout 
 !                                                                       
       IF (lout) WRITE (output_io, 1000) 
 !                                                                       
@@ -306,8 +312,10 @@ REAL :: zzmin, zzmax
 !                                                                       
       IMPLICIT none 
 !                                                                       
+LOGICAL, intent(in) :: lout 
+!
       INTEGER i, ii, m 
-      LOGICAL lout 
+!     LOGICAL lout 
 !                                                                       
       IF (lout) WRITE (output_io, 1000) 
 !                                                                       
@@ -528,8 +536,9 @@ USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) filname 
-      INTEGER i, ir, ig, ib 
+CHARACTER(len=*), intent(in) :: filname 
+!
+INTEGER i, ir, ig, ib 
 !                                                                       
       CALL oeffne (33, filname, 'old') 
       IF (ier_num.eq.0) then 
@@ -572,7 +581,8 @@ USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) filname 
+CHARACTER(len=*), intent(in) :: filname 
+!
       INTEGER i, ir, ig, ib 
 !                                                                       
       CALL oeffne (33, filname, 'unknown') 

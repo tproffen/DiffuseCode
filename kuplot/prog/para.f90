@@ -21,18 +21,23 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp
+integer         , intent(in)    :: nia
+integer         , intent(in)    :: nie
+INTEGER         , intent(out)   ::iarray (maxwin, maxframe, nia:nie) 
+CHARACTER(len=*), intent(in   ) :: bef 
+integer         , intent(in)    :: imi
+integer         , intent(in)    :: ima
+LOGICAL         , intent(in)    :: lnull 
       INTEGER maxw 
       PARAMETER (maxw = 3) 
 !                                                                       
-      CHARACTER ( * ) zeile, bef 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      INTEGER nia, nie 
-      INTEGER iarray (maxwin, maxframe, nia:nie) 
-      INTEGER ianz, imi, ima, ik, iw 
-      INTEGER lpara (maxw), lp 
-      LOGICAL lnull 
+      INTEGER ianz, ik, iw 
+      INTEGER lpara (maxw)
 !                                                                       
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -83,15 +88,21 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+integer         , intent(in)    :: nia
+integer         , intent(in)    :: nib
+INTEGER         , intent(out)   :: iarray (maxwin, maxframe, nia, nib)
+CHARACTER(len=*), intent(in)    :: befehl
+integer         , intent(in)    :: imi
+integer         , intent(in)    :: ima
       INTEGER maxw 
       PARAMETER (maxw = 4) 
 !                                                                       
-      CHARACTER ( * ) zeile, befehl 
+!     CHARACTER ( * ) zeile, befehl 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
-      INTEGER nia, nib 
-      INTEGER iarray (maxwin, maxframe, nia, nib), imi, ima 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw), nie
       INTEGER ianz, ik, iw, ip 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -145,15 +156,19 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+REAL            , intent(out)   :: array
+CHARACTER(len=*), intent(in)    :: befehl
+REAL            , intent(in)    :: awert 
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) zeile, befehl 
+!     CHARACTER ( * ) zeile, befehl 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw)
-      REAL :: array, awert 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -184,11 +199,12 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+CHARACTER(len=*), intent(out)   :: string
+!
       INTEGER maxw 
       PARAMETER (maxw = 10) 
-!                                                                       
-      CHARACTER ( * ) zeile, string 
-      INTEGER lp 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), ianz 
@@ -222,16 +238,18 @@ USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+CHARACTER(len=*), intent(out)   :: string
+LOGICAL         , intent(out)   :: lflag
+!
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER ( * ) zeile, string 
-      INTEGER lp 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      LOGICAL lflag
 !                                                                       
       lp = -lp
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -268,12 +286,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 7) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw), cdummy 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik, ic, it 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -344,12 +364,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 6) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ib, ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -414,13 +436,15 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 3) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -463,13 +487,15 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, it 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -512,12 +538,14 @@ USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 3) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !
@@ -588,14 +616,16 @@ USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER ( * ) zeile 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -658,13 +688,15 @@ USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER ( * ) zeile 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -758,12 +790,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -804,12 +838,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -867,12 +903,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -924,12 +962,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ii 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -1128,10 +1168,12 @@ USE str_comp_mod
       INTEGER maxw 
       PARAMETER (maxw = 4) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(LEN=4)  :: bef
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, icol, ifon, ifid 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL fsiz 

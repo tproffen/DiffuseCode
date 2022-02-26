@@ -26,10 +26,12 @@ USE str_comp_mod
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) line 
+CHARACTER(len=*), intent(inout) :: line 
+integer, intent(inout) :: lp
+!
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, iku 
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
@@ -197,7 +199,8 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER iku, ia, ie, ik 
+integer, intent(in) :: iku
+      INTEGER :: ia, ie, ik 
 !                                                                       
 !                                                                       
 !------ check if we want ALL data sets                                  

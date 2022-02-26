@@ -355,10 +355,12 @@ USE support_mod
       PARAMETER (maxw = 5) 
       PARAMETER (idef = 9) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+CHARACTER(len=*), intent(inout) :: zeile 
+integer , intent(inout) :: lp
+!
       CHARACTER(LEN=PREC_STRING) ::cpara (maxw) 
       CHARACTER(80) cdummy 
-      INTEGER lp, ianz 
+      INTEGER :: ianz 
       INTEGER lpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -401,11 +403,13 @@ USE support_mod
       PARAMETER (maxw = 5) 
       PARAMETER (idef = 9) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+CHARACTER(len=*), intent(inout) :: zeile 
+integer , intent(inout) :: lp
+!
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(80) cdummy 
       INTEGER lpara (maxw) 
-      INTEGER lp, ianz 
+      INTEGER ::  ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
 !                                                                       
@@ -439,8 +443,10 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
+integer, intent(in) :: idef
+!
       CHARACTER(1) q 
-      INTEGER idef, i, j, k 
+      INTEGER i, j, k 
 !                                                                       
 !                                                                       
       q = char (39) 
@@ -577,8 +583,10 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
+integer, intent(in) :: idef
+!
       CHARACTER(80) cdummy 
-      INTEGER idef, i1, i2, i3, i4, i5 
+      INTEGER :: i1, i2, i3, i4, i5 
 !                                                                       
       READ (idef, 1, err = 98, end = 99) cdummy 
       READ (idef, 1, err = 98, end = 99) cdummy 

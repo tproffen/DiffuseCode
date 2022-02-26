@@ -69,6 +69,7 @@ CHARACTER(LEN=4)    ::befehl
 CHARACTER(LEN=1)    :: empty 
 INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER :: ll
+integer :: i
 INTEGER :: ianz, indxg, lbef 
 INTEGER :: maxpkt, maxzz 
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
@@ -340,7 +341,8 @@ IF (ier_num.ne.0) RETURN
                ier_typ = ER_APPL 
             ELSE 
                IF(ex(iwin,iframe,1)==ex(iwin,iframe,2)) THEN
-                  CALL set_skal(empty,0)
+                  i = 0
+                  CALL set_skal(empty,i)
                ENDIF
                CALL do_fit
 !              IF (lni (ikfit) ) THEN 

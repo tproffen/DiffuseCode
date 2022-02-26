@@ -1668,9 +1668,23 @@ SUBROUTINE polin2 (x1a, x2a, ya, m, n, x1, x2, y, dy,ier)
 !
 IMPLICIT integer(i-n)
 IMPLICIT REAL (a-h, o-z)
-      PARAMETER (nmax = 50, mmax = 50) 
-      DIMENSION x1a (m), x2a (n), ya (m, n), yntmp (nmax), ymtmp (mmax) 
-      INTEGER :: ier
+!
+integer                , intent(in) :: m
+integer                , intent(in) :: n
+REAL   , dimension(m)  , intent(in) :: x1a
+REAL   , dimension(n)  , intent(in) :: x2a
+REAL   , dimension(m,n), intent(in) :: ya
+REAL                   , intent(in) :: x1
+REAL                   , intent(in) :: x2
+REAL                   , intent(out) :: y
+REAL                   , intent(out) :: dy
+integer                , intent(out) :: ier
+!
+integer, PARAMETER :: nmax = 50
+integer, PARAMETER :: mmax = 50
+!      DIMENSION x1a (m), x2a (n), ya (m, n), 
+real :: yntmp (nmax), ymtmp (mmax) 
+!      INTEGER :: ier
       ier = 0
       DO 12 j = 1, m 
          DO 11 k = 1, n 

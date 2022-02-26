@@ -15,7 +15,8 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) tt1, tt2, tt3 
+CHARACTER(len=*), intent(in) :: tt1, tt2, tt3 
+!
       CHARACTER(80) t1, t2, t3 
       REAL xt, yt, xh, yh 
       INTEGER ltext 
