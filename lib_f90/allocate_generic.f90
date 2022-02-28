@@ -29,7 +29,9 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
                      alloc_3D_char, alloc_3D_int, alloc_3D_log, alloc_3D_real,  alloc_3D_cmplx,  &
                                                                 alloc_3D_real8, alloc_3D_cmplx8, &
                                     alloc_4D_int,               alloc_4D_real,                   &
-                                                                alloc_5D_real
+                                                                alloc_4D_real8,                  &
+                                                                alloc_5D_real,                   &
+                                                                alloc_5D_real8
   END INTERFACE alloc_arr
 !
   CONTAINS
@@ -2200,6 +2202,120 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
    END SUBROUTINE alloc_4D_real
 !
 !
+   SUBROUTINE alloc_4D_real8( array, lb1, ub1, lb2, ub2, &
+                                     lb3, ub3, lb4, ub4, &
+                              all_status, def_value, size_of)
+!
+!     Subroutine to allocate a 4-D array, REAL version
+!
+use precision_mod
+      IMPLICIT NONE
+!
+      REAL(kind=PREC_DP)   , INTENT(INOUT), DIMENSION (:,:,:,:),ALLOCATABLE :: array
+      REAL(kind=PREC_DP)   ,                DIMENSION (:,:,:,:),ALLOCATABLE :: temp
+      REAL(kind=PREC_DP)   , INTENT(IN)    :: def_value
+      INTEGER, INTENT(IN)    :: lb1,  lb2,  lb3,  lb4
+      INTEGER, INTENT(IN)    :: ub1,  ub2,  ub3,  ub4
+      INTEGER, INTENT(INOUT) :: all_status
+      INTEGER, INTENT(OUT)   :: size_of
+!
+      INTEGER, PARAMETER     :: IT = 88
+      INTEGER, DIMENSION(1:4):: o_lower
+      INTEGER, DIMENSION(1:4):: o_upper
+      INTEGER                :: i,j,k,l,length
+      INTEGER                :: tlb1,tlb2,tlb3,tlb4 ! temporary lower boundary
+      INTEGER                :: tub1,tub2,tub3,tub4 ! temporary upper boundary
+      LOGICAL                :: ltemp
+      LOGICAL                :: lrestore
+!
+      all_status = 0
+      size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
+!
+
+      IF ( ub1 < lb1 .or. ub2 < lb2 .or. ub3 < lb3 .or. ub4 < lb4 ) THEN  ! boundaries are wrong; return
+        all_status = -1
+        RETURN
+      ENDIF
+!
+      IF ( allocated(array) ) THEN                ! The array is allocated
+         o_lower = LBOUND(array)
+         o_upper = UBOUND(array)
+      ENDIF
+!
+      tlb1     = MAX ( o_lower(1),lb1)                    ! temporary boundaries to save old data
+      tub1     = MIN ( o_upper(1),ub1)
+      tlb2     = MAX ( o_lower(2),lb2)
+      tub2     = MIN ( o_upper(2),ub2)
+      tlb3     = MAX ( o_lower(3),lb3)
+      tub3     = MIN ( o_upper(3),ub3)
+      tlb4     = MAX ( o_lower(4),lb4)
+      tub4     = MIN ( o_upper(4),ub4)
+      ltemp    = .true.
+!
+      lrestore = .false.
+!
+      IF ( allocated(array) ) THEN                ! The array is allocated
+         IF ( lb1==o_lower(1) .and. ub1==o_upper(1)   .and. &
+              lb2==o_lower(2) .and. ub2==o_upper(2)   .and. &
+              lb3==o_lower(3) .and. ub3==o_upper(3)   .and. &
+              lb4==o_lower(4) .and. ub4==o_upper(4)         ) THEN ! Boundaries are same
+            RETURN
+         ENDIF
+         lrestore =  o_upper(1) >= o_lower(1) .and. tlb1 <= tub1  .and. &
+                     o_upper(2) >= o_lower(2) .and. tlb2 <= tub2  .and. &
+                     o_upper(3) >= o_lower(3) .and. tlb3 <= tub3  .and. &
+                     o_upper(4) >= o_lower(4) .and. tlb4 <= tub4
+         IF ( lrestore ) THEN                     ! There are old data to be saved
+            ALLOCATE ( temp(tlb1:tub1, tlb2:tub2, tlb3:tub3, tlb4:tub4), stat = all_status )
+            IF ( all_status == 0 ) THEN           ! Success, use temporary array
+               temp (tlb1:tub1, tlb2:tub2, tlb3:tub3, tlb4:tub4) = &
+               array(tlb1:tub1, tlb2:tub2, tlb3:tub3, tlb4:tub4)
+               ltemp = .true.
+            ELSE                                  ! Could not allocate temp, try to write to disk
+               INQUIRE ( iolength=length) array(:,1,1,1)
+               OPEN( UNIT=IT, STATUS='scratch', ACCESS='direct', RECL=length, FORM='unformatted')
+               DO l = tlb4,tub4
+               DO k = tlb3,tub3
+                  DO j = tlb2,tub2
+                     WRITE( UNIT=IT, REC=j) (array(i,j,k,l),i=tlb1,tub1)
+                  ENDDO
+               ENDDO
+               ENDDO
+               ltemp = .false.
+            END IF
+         END IF
+         DEALLOCATE ( array)                      ! Deallocate the old array
+      END IF
+      ALLOCATE ( array(lb1:ub1, lb2:ub2, lb3:ub3, lb4:ub4), stat = all_status) ! Allocate with new boundaries
+      IF ( all_status == 0 ) THEN                 ! Success
+         array = def_value
+         IF ( lrestore ) THEN                     ! There are old data to be saved
+            IF ( ltemp ) THEN
+               array(tlb1:tub1,tlb2:tub2,tlb3:tub3,tlb4:tub4) = &
+               temp (tlb1:tub1,tlb2:tub2,tlb3:tub3,tlb4:tub4)
+               DEALlOCATE ( temp )
+            ELSE
+               DO l = tlb4,tub4
+               DO k = tlb3,tub3
+                  DO j = tlb2,tub2
+                     READ ( UNIT=IT, REC=j) (array(i,j,k,l),i=tlb1,tub1)
+                  ENDDO
+               ENDDO
+               ENDDO
+               CLOSE( UNIT=IT)
+            ENDIF
+         ENDIF
+      ENDIF
+!
+      size_of = 1 ! SIZEOF(array)
+!
+      RETURN
+!
+   END SUBROUTINE alloc_4D_real8
+!
+!
    SUBROUTINE alloc_5D_real ( array, lb1, ub1, lb2, ub2, &
                                      lb3, ub3, lb4, ub4, &
                                      lb5, ub5, &
@@ -2322,6 +2438,131 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
       RETURN
 !
    END SUBROUTINE alloc_5D_real
+!
+!
+   SUBROUTINE alloc_5D_real8( array, lb1, ub1, lb2, ub2, &
+                                     lb3, ub3, lb4, ub4, &
+                                     lb5, ub5, &
+                              all_status, def_value, size_of)
+!
+!     Subroutine to allocate a 5-D array, REAL version
+!
+      use precision_mod
+      IMPLICIT NONE
+!
+      REAL(kind=PREC_DP)   , INTENT(INOUT), DIMENSION (:,:,:,:,:),ALLOCATABLE :: array
+      REAL(kind=PREC_DP)   ,                DIMENSION (:,:,:,:,:),ALLOCATABLE :: temp
+      REAL(kind=PREC_DP)   , INTENT(IN)    :: def_value
+      INTEGER, INTENT(IN)    :: lb1,  lb2,  lb3,  lb4,  lb5
+      INTEGER, INTENT(IN)    :: ub1,  ub2,  ub3,  ub4,  ub5
+      INTEGER, INTENT(INOUT) :: all_status
+      INTEGER, INTENT(OUT)   :: size_of
+!
+      INTEGER, PARAMETER     :: IT = 88
+      INTEGER, DIMENSION(1:5):: o_lower
+      INTEGER, DIMENSION(1:5):: o_upper
+      INTEGER                :: i,j,k,l,m,length
+      INTEGER                :: tlb1,tlb2,tlb3,tlb4,tlb5 ! temporary lower boundary
+      INTEGER                :: tub1,tub2,tub3,tub4,tub5 ! temporary upper boundary
+      LOGICAL                :: ltemp
+      LOGICAL                :: lrestore
+!
+      all_status = 0
+      size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
+!
+      IF ( ub1 < lb1 .or. ub2 < lb2 .or. ub3 < lb3 .or.  &
+           ub4 < lb4 .or. ub5 < lb5                    ) THEN  ! boundaries are wrong; return
+        all_status = -1
+        RETURN
+      ENDIF
+!
+      IF ( allocated(array) ) THEN                ! The array is allocated
+         o_lower = LBOUND(array)
+         o_upper = UBOUND(array)
+      ENDIF
+!
+      tlb1     = MAX ( o_lower(1),lb1)                    ! temporary boundaries to save old data
+      tub1     = MIN ( o_upper(1),ub1)
+      tlb2     = MAX ( o_lower(2),lb2)
+      tub2     = MIN ( o_upper(2),ub2)
+      tlb3     = MAX ( o_lower(3),lb3)
+      tub3     = MIN ( o_upper(3),ub3)
+      tlb4     = MAX ( o_lower(4),lb4)
+      tub4     = MIN ( o_upper(4),ub4)
+      tlb5     = MAX ( o_lower(5),lb4)
+      tub5     = MIN ( o_upper(5),ub4)
+      ltemp    = .true.
+!
+      lrestore = .false.
+!
+      IF ( allocated(array) ) THEN                ! The array is allocated
+         IF ( lb1==o_lower(1) .and. ub1==o_upper(1)   .and. &
+              lb2==o_lower(2) .and. ub2==o_upper(2)   .and. &
+              lb3==o_lower(3) .and. ub3==o_upper(3)   .and. &
+              lb4==o_lower(4) .and. ub4==o_upper(4)   .and. &
+              lb5==o_lower(5) .and. ub5==o_upper(5)         ) THEN ! Boundaries are same
+            RETURN
+         ENDIF
+         lrestore =  o_upper(1) >= o_lower(1) .and. tlb1 <= tub1  .and. &
+                     o_upper(2) >= o_lower(2) .and. tlb2 <= tub2  .and. &
+                     o_upper(3) >= o_lower(3) .and. tlb3 <= tub3  .and. &
+                     o_upper(4) >= o_lower(4) .and. tlb4 <= tub4  .and. &
+                     o_upper(5) >= o_lower(5) .and. tlb5 <= tub5
+         IF ( lrestore ) THEN                     ! There are old data to be saved
+            ALLOCATE ( temp(tlb1:tub1, tlb2:tub2, tlb3:tub3,  &
+                            tlb4:tub4, tlb5:tub5), stat = all_status )
+            IF ( all_status == 0 ) THEN           ! Success, use temporary array
+               temp (tlb1:tub1, tlb2:tub2, tlb3:tub3, tlb4:tub4, tlb5:tub5) = &
+               array(tlb1:tub1, tlb2:tub2, tlb3:tub3, tlb4:tub4, tlb5:tub5)
+               ltemp = .true.
+            ELSE                                  ! Could not allocate temp, try to write to disk
+               INQUIRE ( iolength=length) array(:,1,1,1,1)
+               OPEN( UNIT=IT, STATUS='scratch', ACCESS='direct', RECL=length, FORM='unformatted')
+               DO m = tlb5,tub5
+               DO l = tlb4,tub4
+               DO k = tlb3,tub3
+                  DO j = tlb2,tub2
+                     WRITE( UNIT=IT, REC=j) (array(i,j,k,l,m),i=tlb1,tub1)
+                  ENDDO
+               ENDDO
+               ENDDO
+               ENDDO
+               ltemp = .false.
+            END IF
+         END IF
+         DEALLOCATE ( array)                      ! Deallocate the old array
+      END IF
+      ALLOCATE ( array(lb1:ub1, lb2:ub2, lb3:ub3,  &
+                       lb4:ub4, lb5:ub5), stat = all_status) ! Allocate with new boundaries
+      IF ( all_status == 0 ) THEN                 ! Success
+         array = def_value
+         IF ( lrestore ) THEN                     ! There are old data to be saved
+            IF ( ltemp ) THEN
+               array(tlb1:tub1,tlb2:tub2,tlb3:tub3,tlb4:tub4,tlb5:tub5) = &
+               temp (tlb1:tub1,tlb2:tub2,tlb3:tub3,tlb4:tub4,tlb5:tub5)
+               DEALlOCATE ( temp )
+            ELSE
+               DO m = tlb5,tub5
+               DO l = tlb4,tub4
+               DO k = tlb3,tub3
+                  DO j = tlb2,tub2
+                     READ ( UNIT=IT, REC=j) (array(i,j,k,l,m),i=tlb1,tub1)
+                  ENDDO
+               ENDDO
+               ENDDO
+               ENDDO
+               CLOSE( UNIT=IT)
+            ENDIF
+         ENDIF
+      ENDIF
+!
+      size_of = 1 ! SIZEOF(array)
+!
+      RETURN
+!
+   END SUBROUTINE alloc_5D_real8
 !
 !
 END MODULE allocate_generic

@@ -27,11 +27,19 @@ SUBROUTINE suite_execute_cost( repeat,           &
 USE class_internal
 
 USE diffev_setup_mod
+use diffev_setup_sub_mod
+use diffev_setup_cost_mod
+!
 USE discus_setup_mod
+USE discus_setup_sub_mod
 USE discus_loop_mod
 USE structur, ONLY: rese_cr
+!
 USE kuplot_setup_mod
+USE kuplot_setup_sub_mod
 USE kuplot_loop_mod
+use kuplot_reset_mod
+!
 USE suite_setup_mod
 USE suite_set_sub_mod
 !
@@ -41,6 +49,7 @@ USE do_set_mod
 USE errlist_mod
 USE lib_length
 USE mpi_slave_mod
+use precision_mod
 USE prompt_mod
 USE param_mod
 USE random_state_mod
@@ -69,8 +78,7 @@ CHARACTER(LEN=output_len), INTENT(IN) :: output
 INTEGER                , INTENT(IN)  :: n_rvalue_i
 INTEGER                , INTENT(OUT) :: n_rvalue_o
 INTEGER                , INTENT(IN)  :: NRVAL
-REAL, DIMENSION(0:NRVAL), INTENT(OUT) :: rvalue
-!REAL                   , INTENT(OUT):: rvalue
+REAL(kind=PREC_DP), DIMENSION(0:NRVAL), INTENT(OUT) :: rvalue
 LOGICAL                , INTENT(OUT):: l_rvalue
 INTEGER                , INTENT(IN) :: generation
 INTEGER                , INTENT(IN) :: member
@@ -79,7 +87,7 @@ INTEGER                , INTENT(IN) :: parameters
 INTEGER                , INTENT(IN) :: nindiv
 INTEGER                , INTENT(IN) :: NTRIAL
 CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_n
-REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
+REAL(kind=PREC_DP),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
 LOGICAL                , INTENT(IN)  :: l_get_random_state
 INTEGER                , INTENT(OUT) :: rd_nseeds
 INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
@@ -225,7 +233,7 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
    oprompt   = pname
    CALL kuplot_set_sub ()
    CALL suite_set_sub_branch
-   CALL do_rese (empty, length)
+   CALL kuplot_do_reset(empty, length)
 !
 !  Reset DISCUS
 !

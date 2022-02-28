@@ -60,12 +60,16 @@ USE precision_mod
  1100 FORMAT     (' ------ > File ',a,' does NOT exist ...') 
       END SUBROUTINE do_fexist                      
 !*****7***********************************************************      
-      LOGICAL FUNCTION is_nan(x)
 !
-      REAL, INTENT(IN) :: x
+LOGICAL FUNCTION is_nan(x)
 !
-      is_nan = isnan(x)
+use precision_mod
 !
-      END FUNCTION is_nan
+REAL(KIND=PREC_DP), INTENT(IN) :: x
+!
+is_nan = isnan(x)
+!
+END FUNCTION is_nan
+!
 !*****7***********************************************************      
 END MODULE sys_compiler

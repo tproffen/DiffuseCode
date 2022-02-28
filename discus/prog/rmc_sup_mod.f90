@@ -40,12 +40,12 @@ REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: wwerte
 REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: uerte
 INTEGER            , DIMENSION(25                     ) :: lpara
 !
-REAL mmdis !, hklmin (3), hklmax (3)
+REAL(kind=PREC_DP) :: mmdis !, hklmin (3), hklmax (3)
 real(kind=PREC_DP), dimension(3) :: hklmin
 real(kind=PREC_DP), dimension(3) :: hklmax
 !, quad 
-INTEGER ianz, iianz, jjanz, is, js, i, j, ii, ie1, ie2, ip 
-LOGICAL flag 
+INTEGER :: ianz, iianz, jjanz, is, js, i, j, ii, ie1, ie2, ip 
+LOGICAL :: flag 
 !                                                                       
 maxw = MAX(MIN_PARA,MAXSCAT+1)
 maxw = 25
@@ -473,7 +473,7 @@ INTEGER, PARAMETER :: maxww = 4
 INTEGER                             , INTENT(IN)    :: DIMEN
 INTEGER                             , INTENT(IN )   :: MAXW
 INTEGER                             , INTENT(IN )   :: MAXMOVE
-REAL    , DIMENSION(dimen,0:MAXMOVE), INTENT(OUT)   :: move ! (3, 0:MAXSCAT) 
+REAL(kind=PREC_DP)    , DIMENSION(dimen,0:MAXMOVE), INTENT(OUT)   :: move ! (3, 0:MAXSCAT) 
 LOGICAL                             , INTENT(IN )   :: sel_atom 
 INTEGER                             , INTENT(INOUT) :: ianz
 !                                                                       
@@ -584,7 +584,7 @@ IMPLICIT none
 !
       INTEGER :: imode
       INTEGER :: i
-      REAL    :: sump
+      REAL(kind=PREC_DP)    :: sump
 !                                                                       
 IF (ianz.ge.1) then 
    CALL do_cap (cpara (1)(1:lpara(1)) ) 
@@ -663,7 +663,7 @@ END SUBROUTINE rmc_set_mode
 !                                                                       
       INTEGER , INTENT(IN) :: is
       INTEGER , INTENT(IN) :: js
-      REAL    , INTENT(IN) :: dist 
+      REAL(kind=PREC_DP)    , INTENT(IN) :: dist 
 !
       INTEGER :: ii, jj 
 !                                                                       
@@ -704,10 +704,10 @@ END SUBROUTINE rmc_set_mode
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      REAL sumd, sumo, tsumd, tsumo 
-      REAL cint, dint, oo, dd, r4 
-      INTEGER isym (rmc_max_planes) 
-      INTEGER ip, is, iq 
+      REAL(kind=PREC_DP) :: sumd, sumo, tsumd, tsumo 
+      REAL(kind=PREC_DP) :: cint, dint, oo, dd, r4 
+      INTEGER :: isym (rmc_max_planes) 
+      INTEGER :: ip, is, iq 
 !                                                                       
       tsumd = 0.0 
       tsumo = 0.0 
@@ -776,7 +776,7 @@ USE lib_length
       CHARACTER(8) ra 
       INTEGER mol_lis (mole_max_type+1) 
       INTEGER i, j, k, ie
-integer :: imode
+!integer :: imode    ! Not yet used
 real    :: prob
 !                                                                       
       CHARACTER(9) at_name_i, at_name_j 
@@ -1249,9 +1249,9 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))) :: line  !Dummy line
       INTEGER ip, nx, ny, wx, wy 
       INTEGER i, j, k 
       REAL(KIND=PREC_DP) :: werte (maxw)
-REAL :: d1, d2, d3, d4
+REAL(kind=PREC_DP) :: d1, d2, d3, d4
       REAL(kind=PREC_DP):: e1 (3), e2 (3), e3 (3), vi1 (3), vi2 (3), z (3) 
-      REAL qmin, qmax 
+      REAL(kind=PREC_DP) :: qmin, qmax 
       REAL(kind=PREC_DP) :: ee1 (4, max_sym) 
       REAL(kind=PREC_DP) :: ee2 (4, max_sym) 
       REAL(kind=PREC_DP) :: ee3 (4, max_sym) 
@@ -1267,8 +1267,6 @@ REAL :: d1, d2, d3, d4
 !
       LOGICAL lexist 
 !                                                                       
-!     REAL rmc_dowic 
-!
 !
 !------ Allocate RMC PLANES
 !
@@ -1588,11 +1586,11 @@ REAL :: d1, d2, d3, d4
       CALL rmc_layer (1, ip) 
       CALL rmc_stltab (1, ip, .true.) 
 !                                                                       
-      qmin = REAL(REAL(ristl (offsq (ip, 1) + 1),KIND=KIND(0.0D0)) * CFINC )
-      qmax = REAL(REAL(ristl (offsq (ip, 1) + 1),KIND=KIND(0.0D0)) * CFINC )
+      qmin = (REAL(ristl (offsq (ip, 1) + 1),KIND=KIND(0.0D0)) * CFINC )
+      qmax = (REAL(ristl (offsq (ip, 1) + 1),KIND=KIND(0.0D0)) * CFINC )
       DO i = 2, rmc_num (1, ip) * rmc_num (2, ip) 
-      qmin = min (qmin, REAL(REAL(ristl (offsq (ip, 1) + i),KIND=KIND(0.0D0)) * CFINC) )
-      qmax = max (qmax, REAL(REAL(ristl (offsq (ip, 1) + i),KIND=KIND(0.0D0)) * CFINC) )
+      qmin = min (qmin, (REAL(ristl (offsq (ip, 1) + i),KIND=KIND(0.0D0)) * CFINC) )
+      qmax = max (qmax, (REAL(ristl (offsq (ip, 1) + i),KIND=KIND(0.0D0)) * CFINC) )
       ENDDO 
 !                                                                       
       rmc_qmin = min (rmc_qmin, qmin) 
@@ -1638,10 +1636,10 @@ USE precision_mod
       INTEGER, INTENT(IN)    :: ifile
       INTEGER, INTENT(INOUT) :: nx
       INTEGER, INTENT(INOUT) :: ny
-      REAL   , INTENT(OUT)   :: xmin
-      REAL   , INTENT(OUT)   :: xmax
-      REAL   , INTENT(OUT)   :: ymin
-      REAL   , INTENT(OUT)   :: ymax 
+      REAL(kind=PREC_DP), INTENT(OUT)   :: xmin
+      REAL(kind=PREC_DP), INTENT(OUT)   :: xmax
+      REAL(kind=PREC_DP), INTENT(OUT)   :: ymin
+      REAL(kind=PREC_DP), INTENT(OUT)   :: ymax 
 !
       CHARACTER(LEN=PREC_STRING) :: zeile 
       CHARACTER(2) cmagic 
@@ -1678,17 +1676,20 @@ USE precision_mod
  1000 FORMAT    (a) 
       END SUBROUTINE rmc_pgmheader                  
 !*****7*****************************************************************
-      REAL function rmc_dowic (typ, inte) 
+      REAL(kind=PREC_DP) function rmc_dowic (typ, inte) 
 !+                                                                      
 !     Calulates the weight for intensity int                            
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
       USE rmc_mod 
+!
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: typ 
-      REAL   , INTENT(IN) :: inte 
+      REAL(kind=PREC_DP)   , INTENT(IN) :: inte 
       rmc_dowic = 0.0
 !                                                                       
       IF (inte.le.0.0) then 
@@ -1741,13 +1742,13 @@ IMPLICIT none
       REAL(PREC_DP) rmc_cc, rmc_c, rmc_ce 
       REAL(PREC_DP) rmc_e (rmc_max_planes) 
       REAL(PREC_DP) rmc_ee (rmc_max_planes) 
-      REAL chi2_new, chi2_old, sig2 
-      REAL prob, psum, p2sum, pave, psig, pmax, pn 
-      REAL chi2 (rmc_max_planes) 
-      REAL skal (rmc_max_planes) 
-      REAL back (rmc_max_planes) 
-      REAL start, zeit
-      REAL p_new (3, rmc_max_atom) 
+      REAL(kind=PREC_DP) chi2_new, chi2_old, sig2 
+      REAL(kind=PREC_DP) prob, psum, p2sum, pave, psig, pmax, pn 
+      REAL(kind=PREC_DP) chi2 (rmc_max_planes) 
+      REAL(kind=PREC_DP) skal (rmc_max_planes) 
+      REAL(kind=PREC_DP) back (rmc_max_planes) 
+      REAL(kind=PREC_DP) start, zeit
+      REAL(kind=PREC_DP) p_new (3, rmc_max_atom) 
       INTEGER i_new (rmc_max_atom) 
       INTEGER isel (rmc_max_atom), natoms 
       INTEGER imol (rmc_max_atom) 
@@ -1764,7 +1765,7 @@ IMPLICIT none
       INTEGER  :: n_lots  =1 ! DANumber of RMC Lots for Fourier
 !      INTEGER  :: n_natoms=1 ! Maximum number of atoms for DIFFUSE allocation
 !      INTEGER  :: n_nscat =1 ! Maximum number of atoms for DIFFUSE allocation
-REAL :: r1
+REAL(kind=PREC_DP) :: r1
 !                                                                       
 !                                                                       
 igen = 0 
@@ -2409,14 +2410,14 @@ loop_plane: DO ip = 1, rmc_nplane
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: ip 
-      REAL   , INTENT(IN) :: wtot 
+      REAL(kind=PREC_DP)   , INTENT(IN) :: wtot 
 !                                                                       
       REAL(PREC_DP), INTENT(IN) :: c
       REAL(PREC_DP), INTENT(IN) :: cc
       REAL(PREC_DP), INTENT(IN) :: ce
       REAL(PREC_DP), INTENT(IN) :: se
-      REAL    , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: sk !(rmc_max_planes) 
-      REAL    , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: ba !(rmc_max_planes) 
+      REAL(kind=PREC_DP)    , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: sk !(rmc_max_planes) 
+      REAL(kind=PREC_DP)    , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: ba !(rmc_max_planes) 
 !                                                                       
 !------ calculate the values                                            
 !                                                                       
@@ -2600,7 +2601,6 @@ loop_plane: DO ip = 1, rmc_nplane
       USE discus_config_mod 
       USE crystal_mod 
       USE rmc_mod 
-!      USE tensors_mod
 !
 use precision_mod
 !
@@ -2650,8 +2650,6 @@ use precision_mod
       REAL(kind=PREC_DP)   , DIMENSION(4,4,n), INTENT(INOUT) :: mat
       INTEGER, INTENT(IN) :: nsym
 !                                                                       
-!      REAL v (4, n), mat (4, 4, n) 
-!                                                                       
       INTEGER i, j, isym 
 !                                                                       
       DO isym = 2, nsym 
@@ -2674,18 +2672,21 @@ use precision_mod
       USE crystal_mod 
       USE diffuse_mod 
       USE rmc_mod 
+!
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN)  :: ip
       INTEGER, INTENT(IN)  :: is
       INTEGER, INTENT(IN)  :: natoms
-      REAL   , DIMENSION(3, RMC_MAX_ATOM), INTENT(IN) :: p_new !(3, rmc_max_atom) 
+      REAL(kind=PREC_DP)   , DIMENSION(3, RMC_MAX_ATOM), INTENT(IN) :: p_new !(3, rmc_max_atom) 
       INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(IN) :: i_new !(rmc_max_atom) 
       INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(IN) :: isel  !(rmc_max_atom) 
        
 !                                                                       
-      REAL p_old (3, rmc_max_atom) 
-      REAL off (3) 
+      REAL(kind=PREC_DP) :: p_old (3, rmc_max_atom) 
+      REAL(kind=PREC_DP) :: off (3) 
       INTEGER i_old (rmc_max_atom) 
       INTEGER i, il
 !                                                                       
@@ -2729,11 +2730,13 @@ use precision_mod
       USE fourier_sup
       USE four_strucf_mod
       USE rmc_mod 
+!
+use precision_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: iscat
-      REAL   , DIMENSION(3, RMC_MAX_ATOM), INTENT(IN) :: pos !(3, rmc_max_atom)
-      REAL   , DIMENSION(3)              , INTENT(IN) :: off !(3) 
+      REAL(kind=PREC_DP)   , DIMENSION(3, RMC_MAX_ATOM), INTENT(IN) :: pos !(3, rmc_max_atom)
+      REAL(kind=PREC_DP)   , DIMENSION(3)              , INTENT(IN) :: off !(3) 
       INTEGER, INTENT(IN) :: isite
       INTEGER, INTENT(IN) :: is
       INTEGER, INTENT(IN) :: ip
@@ -2775,13 +2778,15 @@ use precision_mod
       USE diffuse_mod 
 !     USE modify_mod
       USE rmc_mod 
+!
+use precision_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER              , INTENT(IN)  :: ia 
       INTEGER              , INTENT(IN)  :: il 
-      REAL   , DIMENSION(3), INTENT(OUT) :: off !(3) 
+      REAL(kind=PREC_DP)   , DIMENSION(3), INTENT(OUT) :: off !(3) 
 !                                                                       
-      REAL xtest (3), x0 
+      REAL(kind=PREC_DP) :: xtest (3), x0 
       INTEGER cr_end 
       INTEGER iz (3), izmin, izmax 
       INTEGER is, i 
@@ -2871,6 +2876,9 @@ use precision_mod
       USE crystal_mod 
       USE molecule_mod 
       USE rmc_mod 
+!
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
        
@@ -2878,7 +2886,7 @@ use precision_mod
       INTEGER                           , INTENT(IN) :: natoms 
 !                                                                       
       INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN) :: i_new !(rmc_max_atom) 
-      REAL   , DIMENSION(3,RMC_MAX_ATOM), INTENT(IN) :: p_new !(3, rmc_max_atom) 
+      REAL(kind=PREC_DP)   , DIMENSION(3,RMC_MAX_ATOM), INTENT(IN) :: p_new !(3, rmc_max_atom) 
       INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN) :: isel  !(rmc_max_atom) 
       INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN) :: imol  !(rmc_max_atom) 
 !                                                                       
@@ -2929,7 +2937,7 @@ USE precision_mod
       INTEGER, INTENT(IN)  :: iatom 
       INTEGER, INTENT(IN)  :: inumber 
       INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN)  :: i_new !(rmc_max_atom)
-      REAL   , DIMENSION(3,RMC_MAX_ATOM), INTENT(IN)  :: p_new !(3, rmc_max_atom) 
+      REAL(kind=PREC_DP)   , DIMENSION(3,RMC_MAX_ATOM), INTENT(IN)  :: p_new !(3, rmc_max_atom) 
 !                                                                       
       INTEGER i
 REAL(kind=PREC_DP), dimension(3):: pos (3)
@@ -2969,6 +2977,7 @@ REAL(KIND=PREC_DP) :: werte(1)
       USE rmc_mod 
 USE lib_random_func
       USE random_mod
+use precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER                         , INTENT(IN)    :: imode
@@ -2986,7 +2995,7 @@ USE lib_random_func
       INTEGER            :: natoms ! Number of actual actoms in connectivity list
 !                                                                       
       INTEGER i,j, ino
-REAL :: r1
+REAL(kind=PREC_DP) :: r1
 !                                                                       
       j = 0
       ino = 1      ! RMC SELECT ALWAYS uses the FIRST connectivity defined for an atom
@@ -3091,16 +3100,16 @@ USE precision_mod
 !
       LOGICAL, INTENT(OUT) :: laccept 
       INTEGER, INTENT(OUT) :: natoms 
-      REAL   , DIMENSION(3, RMC_MAX_ATOM), INTENT(OUT) :: p_new !(3, rmc_max_atom) 
+      REAL(kind=PREC_DP)   , DIMENSION(3, RMC_MAX_ATOM), INTENT(OUT) :: p_new !(3, rmc_max_atom) 
       INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: i_new !(rmc_max_atom) 
       INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: isel  !(rmc_max_atom) 
 !                                                                       
       INTEGER iz1 (3), iz2 (3) 
       INTEGER i, j, is1, is2, il 
-      REAL  :: value
-      REAL disp1, disp2 
-      REAL dummy (3) 
-REAL :: r1
+      REAL(kind=PREC_DP)  :: value
+      REAL(kind=PREC_DP)  ::disp1, disp2 
+      REAL(kind=PREC_DP) :: dummy (3) 
+REAL(kind=PREC_DP) :: r1
       LOGICAL lflag  !, rmc_inlot 
 !
 !------ Randomly select a move
@@ -3255,18 +3264,18 @@ IMPLICIT none
 !
 LOGICAL, INTENT(OUT) :: laccept 
 INTEGER, INTENT(OUT) :: natoms 
-REAL   , DIMENSION(3, RMC_MAX_ATOM), INTENT(OUT) :: p_new !(3, rmc_max_atom) 
+REAL(kind=PREC_DP)   , DIMENSION(3, RMC_MAX_ATOM), INTENT(OUT) :: p_new !(3, rmc_max_atom) 
 INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: i_new !(rmc_max_atom) 
 INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: isel  !(rmc_max_atom) 
 INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: imol !(rmc_max_atom) 
 !                                                                       
 INTEGER :: iz1 (3), iz2 (3) 
 INTEGER :: i, j, k, is1, is2, il, i0, j0 
-REAL(kind=PREC_SP), dimension(3) :: disp1 ! (3), disp2 (3) 
-REAL(kind=PREC_SP), dimension(3) :: disp2 ! (3), disp2 (3) 
-REAL(kind=PREC_SP), dimension(3) ::  dummy ! (3) 
+REAL(kind=PREC_DP), dimension(3) :: disp1 ! (3), disp2 (3) 
+REAL(kind=PREC_DP), dimension(3) :: disp2 ! (3), disp2 (3) 
+REAL(kind=PREC_DP), dimension(3) ::  dummy ! (3) 
 LOGICAL :: lflag  !, rmc_inlot 
-REAL :: r1
+REAL(kind=PREC_DP) :: r1
 !                                                                       
 natoms = 0 
 !

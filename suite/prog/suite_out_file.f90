@@ -1,4 +1,9 @@
 !
+! OBSOLETE
+! content has been moved to discus_s_out_file.f90 
+! Reference has been removed from suite CMakeLists.txt
+!*******************************************************************************
+!
 ! Version for DISCUS SUITE
 ! The file is may be written directly into kuplot if the
 ! filename starts with 'kuplot'
@@ -11,15 +16,16 @@ USE kuplot_config
 USE kuplot_mod
 USE errlist_mod
 USE lib_length
+use precision_mod
 USE support_mod
 !
 IMPLICIT NONE
 !
-CHARACTER (LEN=*),           INTENT(IN) :: outfile
-INTEGER,                     INTENT(IN) :: npkt1
-REAL   , DIMENSION(1:npkt1), INTENT(IN) :: xwrt
-REAL   , DIMENSION(1:npkt1), INTENT(IN) :: ywrt
-integer , intent(in) :: mode
+CHARACTER (LEN=*) ,                     INTENT(IN) :: outfile
+INTEGER           ,                     INTENT(IN) :: npkt1
+REAL(kind=PREC_DP), DIMENSION(1:npkt1), INTENT(IN) :: xwrt
+REAL(kind=PREC_DP), DIMENSION(1:npkt1), INTENT(IN) :: ywrt
+integer                               , intent(in) :: mode
 !
 integer, parameter :: NEW = 0
 integer, parameter :: OLD = 1
@@ -132,10 +138,10 @@ USE support_mod
 IMPLICIT NONE
 !
 CHARACTER (LEN=*),           INTENT(IN) :: outfile
-REAL   , DIMENSION(1:4),     INTENT(IN) :: ranges
+REAL(kind=PREC_DP)   , DIMENSION(1:4),     INTENT(IN) :: ranges
 INTEGER,                     INTENT(IN) :: npkt1
 INTEGER,                     INTENT(IN) :: npkt2
-REAL   , DIMENSION(1:npkt1, 1:npkt2), INTENT(IN) :: zwrt
+REAL(kind=PREC_DP)   , DIMENSION(1:npkt1, 1:npkt2), INTENT(IN) :: zwrt
 INTEGER,                                 INTENT(IN) :: nheader! number of lines in header
 CHARACTER (LEN=160), DIMENSION(nheader), INTENT(IN) :: header_lines
 integer , intent(in) :: mode
@@ -152,7 +158,7 @@ LOGICAL   :: lkuplot
 logical   :: lold_exist
 INTEGER   :: maxpkt
 INTEGER   :: maxzz
-REAL      :: dxx, dyy
+REAL(kind=PREC_DP)      :: dxx, dyy
 !
 !
 lname   = len_str(outfile)

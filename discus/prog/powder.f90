@@ -192,8 +192,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      pow_qmin_u = pow_qmin   !! save user values
                      pow_qmax_u = pow_qmax
                      pow_deltaq_u=pow_deltaq
-                     fwhm = SQRT(MAX(ABS(pow_u*pow_qmax**2 + pow_v*pow_qmax + pow_w), 0.00001D0) ) 
-                     pow_qmax = pow_qmax + 2.0D0*pow_width*fwhm
+                     pow_npkt_u  = nint((pow_qmax_u-pow_qmin_u)/pow_deltaq_u) + 1 ! save user number of points
+                     if(pow_profile/=0) then
+                        fwhm = SQRT(MAX(ABS(pow_u*pow_qmax**2 + pow_v*pow_qmax + pow_w), 0.00001D0) ) 
+                     else
+                        fwhm = 0.0
+                     endif
+                     pow_qmax = pow_qmax + min(5.0D0,2.0D0*pow_width*fwhm + 2*abs(pow_qzero))
+                     pow_qmin = max(0.0d0, pow_qmin - 0.00D0) ! FIXED  for multi phase!
                      pow_ds_max = (pow_qmax+pow_deltaq)/(zpi)
                      pow_ds_min = pow_qmin/(zpi)
                      check_dq: DO 
@@ -204,6 +210,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF
                      ENDDO check_dq
                      CALL powder_qcheck
+                     pow_qmin_c = pow_qmin
+                     pow_qmax_c = pow_qmax
+                     pow_deltaq_c = pow_deltaq
+!write(*,*)
+!write(*,*) ' POWDER  ', pow_npkt_u, pow_qmin_u, pow_qmax_u, pow_deltaq_u
+!write(*,*) ' POWDER  ', pow_npkt_u, pow_qmin_c, pow_qmax_c, pow_deltaq_c
+!write(*,*) ' POWDER  ', nint((pow_qmax-pow_qmin)/pow_deltaq)+ 1, pow_qmin, pow_qmax, pow_deltaq
                      IF(ier_num==0) THEN
                         IF(.NOT.pha_multi) pha_frac(1) = 1.0E0
 !
@@ -224,6 +237,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF 
                      ENDIF 
                      ENDIF 
+                     pow_qmin = pow_qmin_u ! Restore user settings
                      pow_qmax = pow_qmax_u ! Restore user settings
                   ENDIF 
 !                                                                       
@@ -353,14 +367,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       CHARACTER(28) ccalc (0:5) 
       CHARACTER(21) cpref (1:2) 
       CHARACTER(29) cprofile (0:2) 
-!                                                                       
-!     REAL hkl (3), h1, h2, dstar, ttheta 
-!     REAL del_tth_min (3) 
-!     REAL del_tth_max (3) 
-!                                                                       
-!     REAL skalpro 
-!     REAL asind 
-!     REAL sind 
 !                                                                       
       DATA cfour / 'normal Fourier', 'Stacking fault' / 
       DATA ccalc / 'rez. space integration      ', 'Debye formula       &
@@ -650,8 +656,6 @@ INTEGER :: lsymbol
 INTEGER :: ianz 
 INTEGER :: i 
 REAL(KIND=PREC_DP) :: werte (MAXW) 
-!                                                                       
-!     REAL cosd 
 !                                                                       
 opara  =  (/ '0.0000'/)   ! Always provide fresh default values
 lopara =  (/  6      /)
@@ -1255,7 +1259,7 @@ err_para: IF (ier_num.eq.0) THEN
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) THEN 
                   pow_tthzero    = werte(2) 
-                  pow_qtthzero = .TRUE.
+                  pow_qtthzero = .FALSE.
                ENDIF 
             ELSE 
                ier_num = -6 
@@ -1536,16 +1540,20 @@ h_end = int (pow_hkl_max (1) / pow_hkl_del (1) )
 !                                                                       
 loop_h: DO ih = h_start, h_end 
 
-      hh = ih * pow_hkl_del (1) + pow_hkl_shift (1) 
-      hkl (1) = hh 
-      l_hh_real = abs ( (nint (hh) - hh) / pow_hkl_del (1) ) .gt.0.51 
+   hh = ih * pow_hkl_del (1) + pow_hkl_shift (1) 
+   hkl (1) = hh 
+   l_hh_real = abs ( (nint (hh) - hh) / pow_hkl_del (1) ) .gt.0.51 
 !                                                                       
-!     --Produce output to keep the user informed                        
+!  --Produce output to keep the user informed                        
 !                                                                       
-      WRITE (output_io, 5000) hh, pow_hkl_del (1), pow_hkl_max (1) 
+   WRITE (output_io, 5000) hh, pow_hkl_del (1), pow_hkl_max (1) 
 !                                                                       
-!     --NEW LIMITS                                                      
+!  --NEW LIMITS                                                      
 !                                                                       
+   if(hh==0.0) then
+      u=0.0D0
+      u2=0.0D0
+   else
       WRITE (line, 6000) hh 
  6000 FORMAT      (f12.6,',0,0, 1,0,0, rdrr') 
       laenge = 29 
@@ -1554,31 +1562,33 @@ loop_h: DO ih = h_start, h_end
       u (2) = res_para (2) 
       u (3) = res_para (3) 
       u2 = skalpro (u, u, cr_rten) 
-      line = '0,1,0, 1,0,0, ddrr' 
-      laenge = 18 
-      CALL do_proj (line, laenge) 
-      v (1) = res_para (4) 
-      v (2) = res_para (5) 
-      v (3) = res_para (6) 
-      vv = sqrt (skalpro (v, v, cr_rten) ) 
-      v (1) = v (1) / vv 
-      v (2) = v (2) / vv 
-      v (3) = v (3) / vv 
-      rr = pow_ds_max**2 - u2 
+   endif
+!
+   line = '0,1,0, 1,0,0, ddrr' 
+   laenge = 18 
+   CALL do_proj (line, laenge) 
+   v (1) = res_para (4) 
+   v (2) = res_para (5) 
+   v (3) = res_para (6) 
+   vv = sqrt (skalpro (v, v, cr_rten) ) 
+   v (1) = v (1) / vv 
+   v (2) = v (2) / vv 
+   v (3) = v (3) / vv 
+   rr = pow_ds_max**2 - u2 
 !DBG_RBN                                                                
 !DBG      write(*,*) ' Vector u ',u                                     
 !DBG      write(*,*) ' Vector v ',v                                     
 !DBG      write(*,*) ' x*       ',rr                                    
-      IF (rr.ge.0) THEN 
-         w_min (1) = u (1) - sqrt ( (rr) ) * v (1) 
-         w_min (2) = u (2) - sqrt ( (rr) ) * v (2) 
-         w_min (3) = u (3) - sqrt ( (rr) ) * v (3) 
-         ww = sqrt (skalpro (w_min, w_min, cr_rten) ) 
+   IF (rr.ge.0) THEN 
+      w_min (1) = u (1) - sqrt ( (rr) ) * v (1) 
+      w_min (2) = u (2) - sqrt ( (rr) ) * v (2) 
+      w_min (3) = u (3) - sqrt ( (rr) ) * v (3) 
+      ww = sqrt (skalpro (w_min, w_min, cr_rten) ) 
 !DBG        write(*,'(a,5f10.4)') ' k minimum ',w_min, ww,pow_ds_max    
-         w_max (1) = u (1) + sqrt ( (rr) ) * v (1) 
-         w_max (2) = u (2) + sqrt ( (rr) ) * v (2) 
-         w_max (3) = u (3) + sqrt ( (rr) ) * v (3) 
-         ww = sqrt (skalpro (w_max, w_max, cr_rten) ) 
+      w_max (1) = u (1) + sqrt ( (rr) ) * v (1) 
+      w_max (2) = u (2) + sqrt ( (rr) ) * v (2) 
+      w_max (3) = u (3) + sqrt ( (rr) ) * v (3) 
+      ww = sqrt (skalpro (w_max, w_max, cr_rten) ) 
 !DBG        write(*,'(a,5f10.4)') ' k maximum ',w_max, ww,pow_ds_max    
 !DBG        write(line,'(a4,f6.2)') 'hkl.',hh                           
 !DBG        do i=5,14                                                   
@@ -1593,8 +1603,9 @@ loop_h: DO ih = h_start, h_end
 !DBG        open(17,file=line,status='unknown')                         
 !DBG        line(1:3) = 'EEE'                                           
 !DBG        open(18,file=line,status='unknown')                         
-      ENDIF 
-      IF (rr.gt.0) THEN 
+   ENDIF 
+!
+   IF (rr.gt.0) THEN 
          eck (1, 1) = hh 
          eck (1, 2) = hh 
          eck (1, 3) = hh 
@@ -1631,11 +1642,11 @@ loop_h: DO ih = h_start, h_end
 !       write (output_io,5010) kk,pow_hkl_del(2),pow_hkl_max(2)         
 !                                                                       
          aaa = cr_rten (3, 3) 
-         bbb = 2 * (cr_rten (1, 3) * hkl (1) + cr_rten (2, 3) * hkl (2) &
-         )                                                              
-         ccc = cr_rten (1, 1) * hkl (1) **2 + 2. * cr_rten (1, 2)       &
-         * hkl (1) * hkl (2) + cr_rten (2, 2) * hkl (2) **2 -           &
-         pow_ds_max**2                                                  
+         bbb = 2 * (cr_rten(1, 3) * hkl(1) + cr_rten(2, 3) * hkl(2))
+         ccc =      cr_rten(1, 1) * hkl(1)**2 +       &
+               2. * cr_rten(1, 2) * hkl(1)*hkl(2) +   &
+                    cr_rten(2, 2) * hkl(2)**2     -   &
+               pow_ds_max**2                                                  
          rrr = bbb**2 - 4. * aaa * ccc 
 !DBG          if(.not.l_ano .and. ih.eq.0 .and. ik.eq.0) THEN           
 !DBG            write(*,*) ' rrr ',rrr                                  
@@ -1652,9 +1663,10 @@ loop_h: DO ih = h_start, h_end
 !DBGXXX        ww   = sqrt(skalpro(hkl,hkl,cr_rten))                    
 !DBGXXX        write(*,'(a,5f10.4)') ' l maximum ',hkl, ww,pow_ds_max   
 !                                                                       
-            ccc = cr_rten (1, 1) * hkl (1) **2 + 2. * cr_rten (1, 2)    &
-            * hkl (1) * hkl (2) + cr_rten (2, 2) * hkl (2) **2 -        &
-            pow_ds_min**2                                               
+            ccc =      cr_rten(1, 1) * hkl(1)**2     +   &
+                  2. * cr_rten(1, 2) * hkl(1)*hkl(2) +   &
+                       cr_rten(2, 2) * hkl(2)**2     -   &
+                  pow_ds_min**2
             rtm = bbb**2 - 4. * aaa * ccc 
 !DBGXXX          if(ih.eq.0 .and. ik.eq.0) THEN                         
 !DBGXXX            write(*,*) ' llstart ',llstart                       
@@ -2047,8 +2059,7 @@ WRITE (output_io, 4000) ss
       iadd = ISHFT (iarg, - 6) 
       iadd = IAND (iadd, MASK) 
       ii = ii + 1 
-      tcsf (ii) = tcsf (ii) + cex (iadd) / DBLE ( (xarg0 + REAL(j - 1)&
-      * xincu) * twopi)                                                 
+      tcsf(ii) = tcsf(ii) + cex(iadd) / DBLE((xarg0 + REAL(j - 1, kind=PREC_DP) * xincu) * twopi)
 !DBG            iarg = iarg + iincv                                     
 !DBG          ENDDO                                                     
       iarg = iarg0 + iincu * j 
@@ -2084,8 +2095,8 @@ WRITE (output_io, 4000) ss
 !                                                                       
       WRITE (output_io, 1000) 
 !                                                                       
-      xt = 1.0d0 / REAL (I2PI, KIND=KIND(0.0D0)) 
-      twopi = 8.0d0 * datan (1.0d0) 
+      xt = 1.0d0 / REAL(I2PI, KIND=KIND(0.0D0)) 
+      twopi = 8.0d0 * atan(1.0d0) 
 !                                                                       
 !DBG      open(9,file='CEX.DAT',status='unknown')                       
       DO i = 0, MASK 
@@ -2180,8 +2191,6 @@ use precision_mod
       INTEGER iscat, i_start 
       INTEGER i, j 
       REAL(kind=PREC_DP), dimension(3) :: u (3), v (3) 
-!                                                                       
-!     REAL do_blen 
 !                                                                       
       nxat = 0 
 !                                                                       
@@ -2317,6 +2326,10 @@ use precision_mod
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
+!write(*,*) ' NSC ', pow_nscat (iscat), iscat
+!write(*,*) ' xm  ', xm(:), num(1)
+!write(*,*) ' uin ', uin(:)
+!write(*,*) ' vin ', vin(:)
       DO k = 1, pow_nscat (iscat) 
       xarg0 = xm (1) * cr_pos (1, pow_iatom (iscat, k) ) + xm (2)       &
       * cr_pos (2, pow_iatom (iscat, k) ) + xm (3) * cr_pos (3,         &
@@ -2358,6 +2371,7 @@ use precision_mod
 !DBGXXX        do i=1,num(1)*num(2)                                     
          DO i = 1, num (1) 
          tcsf (i) = tcsf (i) * cfact (istl (i), iscat) 
+!write(*,*) ' tcf  ', tcsf(i), cfact (istl (i), iscat)
          ENDDO 
       ENDIF 
 !                                                                       

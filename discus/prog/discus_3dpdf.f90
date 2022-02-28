@@ -230,7 +230,9 @@ subroutine three_load(infile)
 !-
 !  Loads the input file into the H5 via KUPLOT and create a working copy
 !
+!TOBEDEVELOPED use kuplot_load_mod
 use kuplot_load_h5
+use kuplot_load_mod
 !
 use errlist_mod
 use precision_mod
@@ -631,6 +633,7 @@ real(kind=PREC_DP), dimension(3)            :: vect       ! Dummy vector
 real(kind=PREC_DP)                          :: sigma_length  ! Uncertainty in match Patterson vector length
 integer :: i,j,k   ! Dummy loop indices
 integer :: np      ! Dummy loop index
+logical :: success
 !
 type(three_match), pointer :: head
 type(three_match), pointer :: temp
@@ -691,7 +694,7 @@ write(*,*) ' THREE_RES ', ubound(three_res)
 !  Attempt immediate match of an experimental vector to any Patterson vector
 !  in the unit cell
 !
-call three_inter_match(sigma_length)
+call three_inter_match(sigma_length) ! , success)
 !
 !
 ! Test is a site is matched by any 3D-PDF Peak
@@ -767,7 +770,10 @@ enddo
 !
 !  Attempt to match vectors by rotation / displacement of rigid units
 !
-call three_inter_rigid(sigma_length)
+call three_inter_rigid(sigma_length, success)
+if(.not. success) then
+  call three_inter_rigid_shift(sigma_length, success)
+endif
 !
 end subroutine three_inter
 !
@@ -834,7 +840,7 @@ end subroutine three_inter_match
 !
 !*******************************************************************************
 !
-subroutine three_inter_rigid(sigma_length)
+subroutine three_inter_rigid(sigma_length, success)
 !-
 !  Attempt immediate match of an experimental vector to any Patterson vector
 !  in the unit cell
@@ -852,6 +858,7 @@ use precision_mod
 implicit none
 !
 real(kind=PREC_DP), intent(in) :: sigma_length
+logical           , intent(out) :: success
 !
 !real(kind=PREC_SP), dimension(3), parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0/)
 !
@@ -882,25 +889,26 @@ nullify(temp)
 !sigma = 0.002
 !short = 1e9
 !ibest = 0
+success = .false.
 !
 optimum = 1.E9
 quality = 1.E9
 ibest = 0
 pmg = 1
 pmc = 1
-!write(*,*) ' START RIGID '
+i=2
 !
 !  Loop over all positive peaks if they correspond to a rotated Patterson vector
 !  Align molecule accordingly
 !
 loop_npeaks: do i=2, three_npeaks(2)                         ! Loop over positive peaks
    temp => three_res(i,2)%ptr
-   if(.not.associated(temp)) cycle loop_npeaks                        ! This peak doesn't corresponds to a Patterson vector
+   if(.not.associated(temp)) cycle loop_npeaks               ! This peak doesn't corresponds to a Patterson vector
    if(temp%angle < 15.0 .or. temp%angle > 165.0) cycle loop_npeaks    ! If rotation is not in significant range 
 !write(*,'(a, i3,3(2x,f9.4),2(4x,f9.4),2i4)') ' Positive peak', i, three_peaks(1:4,i,2), temp%angle, temp%isite
    jmole = cr_mole(temp%isite(1))
    if(jmole==0) cycle loop_npeaks
-!  loop_pmc: do pmc=1,1 !-1,1,2                                   ! Loop over minus plus Patterson
+!  loop_pmc: do pmc=1,1 !-1,1,2                              ! Loop over minus plus Patterson
    vect = pmc*(cr_pos(:,temp%isite(2)) - cr_pos(:, temp%isite(1))) ! take crystal Patterson vector at +- 
 !     loop_pmg: do pmg=1,1 !! -1,1,2                                   ! Loop over minus plus Patterson
    wect = pmg*three_peaks(1:3,i,2)                       ! Take extra Patterson vector
@@ -909,7 +917,7 @@ loop_npeaks: do i=2, three_npeaks(2)                         ! Loop over positiv
       iatom = mole_cont(mole_off(jmole)+j)
       if(three_matched_site(iatom,2)) cycle loop_iatom
       call three_setup_rot(3, vect, wect, iatom, jmole, extra, .false.)
-      call three_test_neg(iatom, ubound(extra,2),extra, quality)   ! Test if the extra match patterson vectors at negative 3DPDF poits
+      call three_test_neg(iatom, ubound(extra,2),extra, quality, .false.)   ! Test if the extra match patterson vectors at negative 3DPDF poits
 !write(*,*) ' unmatched atom ', iatom, ' peak ', i, ' qual ', quality, optimum
       if(quality<optimum) then
          optimum = quality
@@ -921,6 +929,9 @@ loop_npeaks: do i=2, three_npeaks(2)                         ! Loop over positiv
 !  enddo loop_pmc
 enddo loop_npeaks
 !
+if(ibest(1) == 0) return             ! No solution found
+!
+success = .true.                     ! Founda good solution
 !write(*,*) ' Optimum solution ', ibest, optimum
 temp => three_res(ibest(1),2)%ptr
 jmole = cr_mole(temp%isite(1))
@@ -946,6 +957,135 @@ enddo loop_inmole
 !write(*,*) ' RIGID DONE '
 !
 end subroutine three_inter_rigid
+!
+!*******************************************************************************
+!
+subroutine three_inter_rigid_shift(sigma_length, success)
+!-
+!  Attempt immediate match of an experimental vector to any Patterson vector
+!  in the unit cell, Version including a shift
+!+
+!
+use crystal_mod
+use chem_mod
+use metric_mod
+use molecule_mod
+use symm_mod
+!
+use precision_mod
+!
+implicit none
+!
+real(kind=PREC_DP), intent(in) :: sigma_length
+logical           , intent(out) :: success
+!
+integer :: i,j,l ! dummy loop indices
+integer :: ii    ! Loop index over negative peaks
+integer :: jj    ! Loop index over atoms 
+integer :: pmc, pmg  ! Loop indices plus minus crystal and ghost
+integer, dimension(4) :: ibest
+integer :: jmole
+integer :: iatom       ! Start atom
+integer :: jatom       ! End atom
+!
+real(kind=PREC_DP)                          :: quality
+real(kind=PREC_DP)                          :: optimum
+real(kind=PREC_DP), dimension(3)            :: vect        ! Positive experimental vector
+real(kind=PREC_DP), dimension(3)            :: wect
+real(kind=PREC_DP), dimension(3)            :: nect        ! negative experimental vector
+real(kind=PREC_DP), dimension(:,:), allocatable :: extra
+!
+type(three_match), pointer :: temp
+!
+write(*,*) ' IN RIGID_SHIFT '
+nullify(temp)
+success = .false.
+!
+optimum = 1.E9
+quality = 1.E9
+ibest = 0
+pmg = 1
+pmc = 1
+i=2
+!
+!  Loop over all positive peaks if they correspond to a rotated Patterson vector
+!  Align molecule accordingly
+!
+loop_ppeaks: do i=2, three_npeaks(2)                         ! Loop over positive peaks
+   temp => three_res(i,2)%ptr
+   if(.not.associated(temp)) cycle loop_ppeaks               ! This peak doesn't corresponds to a Patterson vector
+   if(temp%angle < 15.0 .or. temp%angle > 165.0) cycle loop_ppeaks    ! If rotation is not in significant range 
+!write(*,'(a, i3,3(2x,f9.4),2(4x,f9.4),2i4)') ' Positive peak', i, three_peaks(1:4,i,2), temp%angle, temp%isite
+   jmole = cr_mole(temp%isite(1))
+   if(jmole==0) cycle loop_ppeaks
+!  loop_pmc: do pmc=1,1 !-1,1,2                              ! Loop over minus plus Patterson
+   vect = pmc*(cr_pos(:,temp%isite(2)) - cr_pos(:, temp%isite(1))) ! take crystal Patterson vector at +- 
+!     loop_pmg: do pmg=1,1 !! -1,1,2                                   ! Loop over minus plus Patterson
+   wect = pmg*three_peaks(1:3,i,2)                       ! Take extra Patterson vector
+!write(*,'(a,2(2x,(3(2x,f9.4))))') ' Patt, extra ', vect, wect
+   loop_npeaks: do ii = 1, three_npeaks(1)               ! Loop over negative experimental peaks
+      nect = -three_peaks(1:3,ii,1)                      ! Take -negative experimental peak vector
+   loop_iatom: do j=1,mole_len(jmole)                    ! Loop over all atoms in current molecule
+!                                                        ! Start -negative patterson at this atom
+      iatom = mole_cont(mole_off(jmole)+j)
+   loop_jatom: do jj=1,mole_len(jmole)                    ! Loop over all atoms in current molecule
+!                                                        ! End   -negative patterson at this atom
+      jatom = mole_cont(mole_off(jmole)+jj)
+!     if(three_matched_site(iatom,2)) cycle loop_iatom
+      call three_setup_rot_shift(3, vect, wect, nect, iatom, jatom, jmole, extra, .false.)
+      call three_test_neg(0, ubound(extra,2),extra, quality, .false.)   ! Test if the extra match patterson vectors at negative 3DPDF poits
+!write(*,*) ' unmatched atom ', iatom, ' peak ', i, ' qual ', quality, optimum
+!if(quality < 1.0D0) then
+!write(*,'(a,4i3,f10.7,3(2x,f9.4))') ' current solution ', i,j,ii,jj, quality, sym_orig
+!endif
+      if(quality<optimum) then
+         optimum = quality
+         ibest(1) = i
+         ibest(2) = j
+         ibest(3) = ii
+         ibest(4) = jj
+      endif
+   enddo loop_jatom
+   enddo loop_iatom
+   enddo loop_npeaks
+!     enddo loop_pmg
+!  enddo loop_pmc
+enddo loop_ppeaks
+!
+if(ibest(1) == 0) return             ! No solution found
+!
+success = .true.                     ! Founda good solution
+!write(*,*) 
+!write(*,*) ' Optimum solution ', ibest, optimum
+temp => three_res(ibest(1),2)%ptr
+jmole = cr_mole(temp%isite(1))
+vect = pmc*(cr_pos(:,temp%isite(2)) - cr_pos(:, temp%isite(1))) ! take crystal Patterson vector at +
+wect = pmg*three_peaks(1:3,ibest(1),2)                       ! Take extra Patterson vector
+nect =    -three_peaks(1:3,ibest(3),1)                       ! Take extra Patterson vector
+iatom = mole_cont(mole_off(jmole)+ibest(2))
+jatom = mole_cont(mole_off(jmole)+ibest(4))
+!
+call three_setup_rot_shift(3, vect, wect, nect, iatom, jatom, jmole, extra, .false.)
+!
+write(*,*) 
+write(*,'(a)')     ' Good solution to negative peaks with'
+write(*,'(a,1x,2i5,2x,f9.4)') ' Molecule rotated: number, used  atom', jmole, iatom, optimum
+write(*,'(a,3(2x,f9.4))') ' Rotation axis  direct space         ', sym_uvw
+write(*,'(a,3(2x,f9.4))') ' Rotation axis  reciprocal space     ', sym_hkl
+write(*,'(a,3(2x,f9.4))') ' Rotation angle                      ', sym_angle
+write(*,'(a,3(2x,f9.4))') ' Rotation origin                     ', sym_orig 
+write(*,'(a,3(2x,f9.4))') ' Rotation translation                ', sym_trans
+l = 0
+loop_inmole: do i=1, ubound(extra,2)
+!   if(mole_cont(mole_off(jmole)+i)==iatom) cycle loop_inmole
+   j = mole_cont(mole_off(jmole)+i)
+   l = l + 1
+   write(*,'(a,i6, 3(2x,f9.4))') ' Atom number; new position     ', j, extra(1:3,l)
+enddo loop_inmole
+call three_test_neg(0, ubound(extra,2),extra, quality, .true.)   ! Test if the extra match patterson vectors at negative 3DPDF poits
+!write(*,*) ' RIGID DONE '
+!
+end subroutine three_inter_rigid_shift
 !
 !*******************************************************************************
 !
@@ -1017,7 +1157,127 @@ end subroutine three_setup_rot
 !
 !*******************************************************************************
 !
-subroutine three_test_neg(iatom, NDIM, extra, quality)                ! Test if the extra match patterson vectors at negative 3DPDF poits
+subroutine three_setup_rot_shift(NDIM, vect, wect, nect, iatom, jatom, jmole, extra, lout)
+!-
+!  Set up the rotation matrix to rotate vect into wekt
+!+
+!
+use crystal_mod
+use chem_mod
+use metric_mod
+use molecule_mod
+use symm_menu ,only:symm_show
+use symm_mod
+use symm_sup_mod
+!
+use matrix_mod
+use param_mod
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: NDIM              ! Vector dimensions
+real(kind=PREC_DP), dimension(3), intent(in) :: vect
+real(kind=PREC_DP), dimension(3), intent(in) :: wect
+real(kind=PREC_DP), dimension(3), intent(in) :: nect       ! Negative experimental Patterson vector
+integer                         , intent(in) :: iatom      ! Add negative vector to this atom
+integer                         , intent(in) :: jatom      ! End negative vector to this atom
+integer                         , intent(in) :: jmole      ! Atom at origin
+real(kind=PREC_DP), dimension(:,:), allocatable :: extra
+logical, intent(in) :: lout
+!
+real(kind=PREC_DP), dimension(3), parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0/)
+real(kind=PREC_DP), dimension(3,3), parameter :: EMAT  = reshape((/ 1.0D0, 0.0D0, 0.0D0, &
+ 0.0D0, 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0/), shape(emat))
+!
+integer :: k,l    ! Dummy loop index
+real(kind=PREC_DP), dimension(3) :: axis              ! Rotation axis
+real(kind=PREC_DP)               :: angle
+real(kind=PREC_DP), dimension(3) :: w
+real(kind=PREC_DP), dimension(3) :: pos
+real(kind=PREC_DP), dimension(3) :: shift
+real(kind=PREC_DP), dimension(3) :: origin
+real(kind=PREC_DP), dimension(3) :: trans
+real(kind=PREC_DP), dimension(3,3) :: mat
+real(kind=PREC_DP), dimension(3,3) :: imat
+!
+!
+call vekprod (vect, wect, axis, cr_eps, cr_rten)
+angle = do_bang(.true., vect, NULLV, wect)
+!
+sym_uvw    = axis
+sym_angle  = angle
+sym_orig   = 0.0D0                                     ! Initially rotate at 0,0,0
+sym_orig_type  = 0
+sym_trans  = 0.0d0
+sym_type   = .true.             ! Proper rotation
+sym_power  = 1
+sym_sel_atom   = .true.
+sym_start  = 1
+sym_end    = 1
+sym_latom  = .true.
+!
+!
+call symm_setup
+if(lout) call symm_show
+!
+! apply rotation to atom jatom
+pos = chem_ave_pos(:,mole_cont(mole_off(jmole)+jatom))
+call symm_ca_single(pos, .true., .false.  )
+shift =   chem_ave_pos(:,mole_cont(mole_off(jmole)+iatom))   &   ! Position of iatom
+        + nect                                               &   ! + negative peak vector
+        - res_para(1:3)                                          ! - image of jatom
+call get_orig_trans(3, sym_uvw, sym_angle, shift, origin, trans)
+!if(abs(do_bang(.true.,sym_uvw, NULLV, shift)-90.0)> 5.0) return  ! Angle must be close to 90°
+!mat = 0.0D0
+!mat(3,3) = 1.0D0
+!mat(1:2,1:2) = emat(1:2,1:2) - sym_mat(1:2,1:2)
+!call matinv(mat, imat)
+!w = matmul(imat, shift)
+!                               ! Origin determination changes symmetry matrix
+sym_uvw    = axis
+sym_angle  = angle
+sym_orig   = origin             ! Use origin           ! Initially rotate at 0,0,0
+sym_orig_type  = 0
+sym_trans  = trans              ! Use translational part
+sym_type   = .true.             ! Proper rotation
+sym_power  = 1
+sym_sel_atom   = .true.
+sym_start  = 1
+sym_end    = 1
+sym_latom  = .true.
+call symm_setup
+if(lout) call symm_show
+
+if(lout) then
+write(*,'(a, 3(2x, f9.4))') ' VECT ', vect 
+write(*,'(a, 3(2x, f9.4))') ' WECT ', wect 
+write(*,*) ' iatom, jatom', iatom, jatom
+write(*,'(a, 3(2x, f9.4))') ' iatom', chem_ave_pos(:,mole_cont(mole_off(jmole)+iatom))
+write(*,'(a, 3(2x, f9.4))') ' jatom', res_para(1:3)
+write(*,'(a, 3(2x, f9.4))') ' NECT ', nect 
+write(*,'(a, 3(2x, f9.4))') ' SHIFT', shift
+write(*,'(a, 3(2x, f9.4))') ' ORIG ', origin
+write(*,'(a, 3(2x, f9.4))') ' TRANS', trans
+endif
+!
+if(allocated(extra)) deallocate(extra)
+allocate(extra(3,mole_len(jmole)  ))
+l = 0
+loop_inmole: do k=1,mole_len(jmole)               ! Loop over all atoms in molecule to generate new sites
+!  if(mole_cont(mole_off(jmole)+k)==iatom) cycle loop_inmole
+   pos = chem_ave_pos(:,mole_cont(mole_off(jmole)+k))
+   call symm_ca_single(pos, .true., .false.  )
+   l = l + 1
+   extra(:,l) = res_para(1:3) ! + shift             ! Rotation of atom + shift vector
+!write(*,'(a,3(2x,f9.4))') ' Ghost positions ', extra(:,l)
+enddo loop_inmole
+!
+end subroutine three_setup_rot_shift
+!
+!*******************************************************************************
+!
+subroutine three_test_neg(iatom, NDIM, extra, quality, lout)          ! Test if the extra match patterson vectors at negative 3DPDF poits
 !-
 !   Generate Patterson vectors between real atoms and ghost atoms
 !   and see if these match the negative positions
@@ -1036,6 +1296,8 @@ integer                              , intent(in) :: iatom      ! Atom at origin
 integer                              , intent(in)  :: NDIM
 real(kind=PREC_DP), dimension(3,NDIM), intent(in)  :: extra
 real(kind=PREC_DP)                   , intent(out) :: quality
+!integer                              , intent(out) :: nmatched
+logical, intent(in) :: lout
 !
 real(kind=PREC_DP), dimension(3), parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0/)
 !
@@ -1046,31 +1308,44 @@ real(kind=PREC_DP), dimension(3) :: wect
 real(kind=PREC_DP)               :: dist
 real(kind=PREC_DP)               :: dmin
 real(kind=PREC_DP)               :: angle
+real(kind=PREC_DP)               :: minangle
 !
 quality = 0.0
-         dmin = 1.e9
+dmin    = 1.e9
+!nmatched = 0
+!
 do i=1, NDIM
    loop_ncatom: do j=1, cr_ncatoms
       if(j==iatom) cycle loop_ncatom
       vect = extra(:,i) - chem_ave_pos(:,j)
-!write(*,'(a,2i4,3(2x,f9.4))') ' Virtual vector ', i, j, vect
+if(lout) write(*,'(a,2i4,3(2x,f9.4))') ' Virtual vector ', i, j, vect
       iopt = 0
-      angle = 360.
+      minangle = 360.
       dmin = 1.e9
       do k=1, three_npeaks(1) 
-         dist = abs(do_blen(.true., vect, NULLV)-three_peaks(4,k,1))
-!write(*,'(a,11x,3(2x, f9.4),2x, 3(2x,f9.4))') ' teste vers> ', three_peaks(1:3,k,1), dmin, dist, 0.00000
+!        dist = abs(do_blen(.true., vect, NULLV)-three_peaks(4,k,1))
+         dist = abs(do_blen(.true., vect,        three_peaks(1:3,k,1)))
+!if(i==2 .and. j==1) then
+!write(*,'(a,11x,3(2x, f9.4),2x, 3(2x,f9.4))') ' teste vers> ', three_peaks(1:3,k,1), &
+!dmin, dist, do_bang(.true., vect, NULLV,three_peaks(1:3,k,1))
+!endif
          if(dist<dmin) then       ! Found better match
             wect = three_peaks(1:3,k,1)
             angle = do_bang(.true., vect, NULLV, wect)
+            if(angle<minangle) then
             iopt = k
             dmin = dist
+            minangle = angle
+            endif
          endif
       enddo
 !
-!write(*,'(a,11x,3(2x, f9.4),2x, 3(2x,f9.4),i4)') ' BEST        ', &
-!   three_peaks(1:3,iopt,1), dmin, angle, sind(angle), iopt
-!write(*,*) 'Length ', three_peaks(4,iopt,1)
+if(lout) then
+ write(*,'(a,11x,3(2x, f9.4),2x, 3(2x,f9.4),i4, 2x, f9.4)') ' BEST        ', &
+    three_peaks(1:3,iopt,1), dmin, minangle, sind(minangle), iopt, &
+      dmin**2 + (sind(angle)/three_peaks(4,iopt,1))**2
+! write(*,*) 'Length ', three_peaks(4,iopt,1)
+endif
 !
       quality = quality + dmin**2 + (sind(angle)/three_peaks(4,iopt,1))**2
    enddo loop_ncatom
@@ -1171,6 +1446,124 @@ endif if_inmole
 write(*,*) ' DONE  RIGID '
 !
 end subroutine three_inter_rigid_b
+!
+!*******************************************************************************
+!
+subroutine get_orig_trans(dimen, uvw, angle, shift, origin, trans)
+!-
+!  Determine the true origin and the translational component of the operation
+!-
+use crystal_mod
+use metric_mod
+use symm_menu ,only:symm_show
+use symm_mod
+use symm_sup_mod
+!
+use matrix_mod
+use param_mod
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: dimen
+real(kind=PREC_DP), dimension(dimen), intent(in)  :: uvw      ! Original rotation axis
+real(kind=PREC_DP)                  , intent(in)  :: angle    ! Original rotation angle
+real(kind=PREC_DP), dimension(dimen), intent(in)  :: shift    ! Original shift vector
+real(kind=PREC_DP), dimension(dimen), intent(out) :: origin
+real(kind=PREC_DP), dimension(dimen), intent(out) :: trans
+!
+real(kind=PREC_DP), dimension(3)  , parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0/)
+real(kind=PREC_DP), dimension(3)  , parameter :: ZET   = (/ 0.0D0, 0.0D0, 1.0D0/)
+real(kind=PREC_DP), dimension(3,3), parameter :: EMAT  = reshape((/ 1.0D0, 0.0D0, 0.0D0, &
+ 0.0D0, 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0/), shape(emat))
+!
+real(kind=PREC_DP), dimension(2,2) :: mat
+real(kind=PREC_DP), dimension(2,2) :: imat
+real(kind=PREC_DP), dimension(2)   :: ori
+real(kind=PREC_DP), dimension(3)   :: u 
+real(kind=PREC_DP), dimension(3)   :: w 
+real(kind=PREC_DP), dimension(3)   :: v_rot     ! Rotation axis  if uvw not parallel [001]
+real(kind=PREC_DP)                 :: a_rot     ! Rotation angle if uvw not parallel [001]
+logical :: lout = .false.
+!
+!write(*,*) 'GET ORIG ', uvw
+!write(*,*) '   ANGLE ', angle
+!write(*,*) '   SHIFT ', shift
+a_rot = do_bang(.true., uvw, NULLV, zet )
+!write(*,*) '   angle ', a_rot
+!
+if(a_rot>1.0D0) then                 ! The rotation axis deviated significantly from [001]
+                                     ! Rotate shift vector by angle between uvw and [001]
+   call vekprod (uvw, zet, v_rot, cr_eps, cr_rten)
+   sym_uvw    = v_rot                ! Rotate around vector product uvw X [001]
+   sym_angle  = a_rot                ! Rotation angle
+   sym_orig   = 0.0D0                ! Initially rotate at 0,0,0
+   sym_orig_type  = 0
+   sym_trans  = 0.0d0
+   sym_type   = .true.               ! Proper rotation
+   sym_power  = 1
+   sym_sel_atom   = .true.
+   sym_start  = 1
+   sym_end    = 1
+   sym_latom  = .true.
+!
+   call symm_setup
+   if(lout) call symm_show
+   call symm_ca_single(shift, .true., .false.  )          ! Rotate shift vector 
+   w = res_para(1:3)                                      ! New shift vector
+else
+   w = shift                                              ! retain old shift vector
+endif
+!
+trans = 0.0D0
+trans(3) = w(3)                                           ! Translation component is [00z]
+!
+sym_uvw    = zet               ! Set rotation axis to [001]
+sym_angle  = angle             ! Set rotation angle to original angle
+sym_orig   = 0.0D0             ! Initially rotate at 0,0,0
+sym_orig_type  = 0
+sym_trans  = 0.0d0
+sym_type   = .true.            ! Proper rotation
+sym_power  = 1
+sym_sel_atom   = .true.
+sym_start  = 1
+sym_end    = 1
+sym_latom  = .true.
+!
+call symm_setup
+!write(*,*) ' ROTATION AROUND 001'
+if(lout) call symm_show
+!
+mat = 0.0D0
+mat = emat(1:2, 1:2) -  sym_mat(1:2,1:2)   ! As rotation was around [001] we need only these elements 
+call matinv(mat, imat)               ! Origin is at (E-SYMM)^-1 times w ( w= shift vector after rotation)
+!ori = matmul(imat, w(1:2))          ! Origin 
+origin(1:2) = matmul(imat, w(1:2))   ! Calculate origin
+origin(3)   = 0.0D0
+!
+if(a_rot>1.0D0) then                 ! The rotation axis deviated significantly from [001]
+                                     ! Rotate origin and translation back 
+   sym_uvw    = v_rot
+   sym_angle  = -a_rot
+   sym_orig   = 0.0D0                                     ! Initially rotate at 0,0,0
+   sym_orig_type  = 0
+   sym_trans  = 0.0d0
+   sym_type   = .true.             ! Proper rotation
+   sym_power  = 1
+   sym_sel_atom   = .true.
+   sym_start  = 1
+   sym_end    = 1
+   sym_latom  = .true.
+!
+   call symm_setup
+   if(lout) call symm_show
+   call symm_ca_single(origin, .true., .false.  )          ! Rotate origin vector 
+   origin = res_para(1:3)                                       ! New origin vector
+   call symm_ca_single(trans, .true., .false.  )           ! Rotate translation vector 
+   trans = res_para(1:3)                                        ! New translation vector
+endif
+!
+end subroutine get_orig_trans
 !
 !
 !*******************************************************************************

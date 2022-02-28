@@ -91,7 +91,6 @@ INTEGER, PARAMETER :: MAXW = 20
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-!REAL               , DIMENSION(MAXW) :: werte
 !
 INTEGER                              :: ianz
 !
@@ -161,7 +160,6 @@ INTEGER, PARAMETER :: MAXW = 20
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-!REAL               , DIMENSION(MAXW) :: werte
 !
 INTEGER                              :: ianz
 !

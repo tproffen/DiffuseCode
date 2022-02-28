@@ -47,7 +47,7 @@ USE lib_length
    CHARACTER(LEN=PREC_STRING) :: message
    INTEGER            :: i, j,l, irec, ios
    INTEGER            :: l_datei
-   REAL               :: sqq
+   REAL(kind=PREC_DP)               :: sqq
 !
 !
    CALL no_error

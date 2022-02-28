@@ -1,3 +1,7 @@
+module suite_update_mod
+!
+contains
+!
 SUBROUTINE suite_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
 !                                                                       
 !-                                                                      
@@ -69,9 +73,6 @@ USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
-!                                                                       
-INTEGER, PARAMETER   :: maxw = 9
-!                                                                       
 CHARACTER (LEN= * ), INTENT(INOUT) :: string
 CHARACTER (LEN= * ), INTENT(INOUT) :: line 
 INTEGER            , INTENT(IN   ) :: ikl
@@ -80,16 +81,16 @@ INTEGER            , INTENT(INOUT) :: laenge
 INTEGER            , INTENT(INOUT) :: lp
 REAL(KIND=PREC_DP) , INTENT(INOUT) :: ww
 !
-INTEGER              :: i, lcomm
-REAL                 :: werte (maxw)
+INTEGER              :: lcomm
+!REAL(KIND=PREC_DP)   :: werte (maxw)
 !                                                                       
 !                                                                       
 lcomm = length_com (string, ikl) 
 ier_num = - 1 
 ier_typ = ER_FORT 
-DO i = 1, maxw 
-   werte (i) = 0.0 
-ENDDO 
+!DO i = 1, maxw 
+!   werte (i) = 0.0 
+!ENDDO 
 !                                                                 
 IF (lcomm.eq.0) then 
    CALL ersetz2 (string, ikl, iklz, ww, 0, laenge) 
@@ -225,3 +226,5 @@ CALL lib_get_var_type(line, length, var_is_type)
 !
 !
 END SUBROUTINE suite_get_var_typE
+!
+end module suite_update_mod

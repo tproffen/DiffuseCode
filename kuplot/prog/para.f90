@@ -1,67 +1,74 @@
+module kuplot_para_mod
+!
+contains
 !*****7**************************************************************   
 !       Here are all the parameter setting routines ..                  
 !*****7*****************************************************************
-SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
-      lnull)                                                            
+SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, lnull)                                                            
 !+                                                                      
 !     Sets option value in integer arrays(nia:nie)                      
 !-                                                                      
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE kuplot_config 
-      USE kuplot_mod 
-      USE kuplot_words_mod
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
+USE kuplot_config 
+USE kuplot_mod 
+USE kuplot_words_mod
 USE lib_help
 USE lib_length
 USE precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 3) 
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp
+integer         , intent(in)    :: nia
+integer         , intent(in)    :: nie
+INTEGER         , intent(out)   ::iarray (maxwin, maxframe, nia:nie) 
+CHARACTER(len=*), intent(in   ) :: bef 
+integer         , intent(in)    :: imi
+integer         , intent(in)    :: ima
+LOGICAL         , intent(in)    :: lnull 
+!
+INTEGER ,  PARAMETER :: maxw = 3 
 !                                                                       
-      CHARACTER ( * ) zeile, bef 
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      CHARACTER(20) cdummy 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      INTEGER nia, nie 
-      INTEGER iarray (maxwin, maxframe, nia:nie) 
-      INTEGER ianz, imi, ima, ik, iw 
-      INTEGER lpara (maxw), lp 
-      LOGICAL lnull 
+CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+CHARACTER(len=20) :: cdummy 
+REAL(KIND=PREC_DP) :: werte (maxw) 
+INTEGER :: ianz, ik, iw 
+INTEGER :: lpara (maxw)
 !                                                                       
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) return 
 !                                                                       
-      IF (ianz.eq.0) then 
-         cdummy = 'kuplot '//bef 
-         CALL do_hel (cdummy, - len_str (cdummy) ) 
-      ELSEIF (ianz.eq.2) then 
-         CALL get_words  (ianz, cpara, lpara, maxw, 2, bef) 
-         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) return 
-         ik = nint (werte (1) ) 
-         iw = nint (werte (2) ) 
-         IF ( (ik.le. (iz - 1) .and.ik.ge.1) .or. (ik.eq.0.and.lnull) ) &
-         then                                                           
-            IF (iw.ge.imi.and.iw.le.ima) then 
-               iarray (iwin, iframe, ik) = iw 
-            ELSE 
-               ier_num = - 7 
-               ier_typ = ER_APPL 
-            ENDIF 
-         ELSE 
-            ier_num = - 4 
-            ier_typ = ER_APPL 
-         ENDIF 
+IF (ianz.eq.0) then 
+   cdummy = 'kuplot '//bef 
+   CALL do_hel (cdummy, - len_str (cdummy) ) 
+ELSEIF (ianz.eq.2) then 
+   CALL get_words  (ianz, cpara, lpara, maxw, 2, bef) 
+   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+   IF (ier_num.ne.0) return 
+   ik = nint (werte (1) ) 
+   iw = nint (werte (2) ) 
+   IF ( (ik.le. (iz - 1) .and.ik.ge.1) .or. (ik.eq.0.and.lnull) ) then
+      IF (iw.ge.imi.and.iw.le.ima) then 
+         iarray (iwin, iframe, ik) = iw 
       ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
+         ier_num = - 7 
+         ier_typ = ER_APPL 
       ENDIF 
+   ELSE 
+      ier_num = - 4 
+      ier_typ = ER_APPL 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
 !                                                                       
-      END SUBROUTINE para_seti                      
+END SUBROUTINE para_seti                      
+!
 !*****7*****************************************************************
       SUBROUTINE para_setii (zeile, lp, iarray, nia, nib, befehl, imi,  &
       ima)                                                              
@@ -80,15 +87,21 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+integer         , intent(in)    :: nia
+integer         , intent(in)    :: nib
+INTEGER         , intent(out)   :: iarray (maxwin, maxframe, nia, nib)
+CHARACTER(len=*), intent(in)    :: befehl
+integer         , intent(in)    :: imi
+integer         , intent(in)    :: ima
       INTEGER maxw 
       PARAMETER (maxw = 4) 
 !                                                                       
-      CHARACTER ( * ) zeile, befehl 
+!     CHARACTER ( * ) zeile, befehl 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
-      INTEGER nia, nib 
-      INTEGER iarray (maxwin, maxframe, nia, nib), imi, ima 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw), nie
       INTEGER ianz, ik, iw, ip 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -142,15 +155,19 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+REAL            , intent(out)   :: array
+CHARACTER(len=*), intent(in)    :: befehl
+REAL            , intent(in)    :: awert 
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) zeile, befehl 
+!     CHARACTER ( * ) zeile, befehl 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw)
-      REAL :: array, awert 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -181,11 +198,12 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+CHARACTER(len=*), intent(out)   :: string
+!
       INTEGER maxw 
       PARAMETER (maxw = 10) 
-!                                                                       
-      CHARACTER ( * ) zeile, string 
-      INTEGER lp 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), ianz 
@@ -219,16 +237,18 @@ USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+CHARACTER(len=*), intent(out)   :: string
+LOGICAL         , intent(out)   :: lflag
+!
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER ( * ) zeile, string 
-      INTEGER lp 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw), ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      LOGICAL lflag
 !                                                                       
       lp = -lp
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -265,12 +285,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 7) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw), cdummy 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik, ic, it 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -341,12 +363,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 6) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ib, ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -411,13 +435,15 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 3) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -460,13 +486,15 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, it 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -509,12 +537,14 @@ USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 3) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !
@@ -585,14 +615,16 @@ USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER ( * ) zeile 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -649,18 +681,21 @@ USE str_comp_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
 USE precision_mod
 USE str_comp_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER ( * ) zeile 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -754,12 +789,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -800,12 +837,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -863,12 +902,14 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -915,16 +956,19 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ii 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -969,6 +1013,9 @@ USE errlist_mod
 USE get_params_mod
 USE kuplot_config 
 USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_low_mod
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
 IMPLICIT none 
@@ -984,7 +1031,7 @@ REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
 REAL    :: zzmin, zzmax, zhub     ! MIN/MAX/Delta values for date/contour lines
 REAL    :: zlow    ! Minimum value for contour lines
 INTEGER :: ianz, ihl, i 
-LOGICAL :: k_in_f  ! Current data set is in frame
+!LOGICAL :: k_in_f  ! Current data set is in frame
 LOGICAL :: proz    ! User specified a "%" als last parameter
 LOGICAL :: labs    ! Percent scale is Based on zmax only
 !                                                                       
@@ -1111,6 +1158,7 @@ END SUBROUTINE set_hlin
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_words_mod
+use kuplot_show_mod
 USE precision_mod
 USE str_comp_mod
 !                                                                       
@@ -1119,10 +1167,12 @@ USE str_comp_mod
       INTEGER maxw 
       PARAMETER (maxw = 4) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+CHARACTER(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp 
+!
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(LEN=4)  :: bef
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, icol, ifon, ifid 
       REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL fsiz 
@@ -1240,123 +1290,28 @@ USE str_comp_mod
 !                                                                       
       END SUBROUTINE set_font                       
 !****7******************************************************************
-      SUBROUTINE do_rese (zeile, lp) 
-!+                                                                      
-!     Reset KUPLOT                                                      
-!-                                                                      
-      USE errlist_mod 
-      USE get_params_mod
-      USE prompt_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
-      USE param_mod
-USE str_comp_mod
-      USE take_param_mod
-USE kuplot_load_h5, ONLY: hdf5_reset
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 4) 
-!                                                                       
-      CHARACTER ( * ) zeile 
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      INTEGER lpara (maxw), lp 
-      INTEGER ianz 
-      INTEGER iw, i, j 
-!                                                                       
-!------ get parameters                                                  
-!                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
-!                                                                       
-!------ No parameters                                                   
-!                                                                       
-      IF (ianz.eq.0) then 
-         WRITE (output_io, 1000) 
-         iz = 1 
-         iframe = 1 
-!                                                                       
-         DO i = 1, maxkurvtot 
-         lni (i) = .false. 
-         ikfirst (i) = .true. 
-         ENDDO 
-!                                                                       
-         DO iw = 1, maxwin 
-         iaf (iw) = 1 
-         frame (iw, 1, 1) = 0.0 
-         frame (iw, 1, 2) = 0.0 
-         frame (iw, 1, 3) = 1.0 
-         frame (iw, 1, 4) = 1.0 
-!                                                                       
-         DO i = 1, maxframe 
-         ex (iw, i, 1) = - 9999. 
-         ey (iw, i, 1) = - 9999. 
-         lyskal (iw, i) = .false. 
-         t (iw, i, 1) = - 9999.0 
-         t (iw, i, 2) = - 9999.0 
-         frback (iw, i, 1) = 1.0 
-         frback (iw, i, 2) = 1.0 
-         frback (iw, i, 3) = 1.0 
-         fonscal (iw, i) = 1.0 
-         shear (iw, i) = 90.0 
-!                                                                       
-         DO j = 1, maxkurvtot 
-         infra (iw, i, j) = j 
-         ENDDO 
-         ENDDO 
-         ENDDO 
-!                                                                       
-!------ Subcommand                                                      
-!                                                                       
-      ELSE 
-         IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3) ) then 
-            WRITE (output_io, 1100) 
-            CALL kuplot_initarrays 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_APPL 
-         ENDIF 
-      ENDIF 
 !
-dx    = 0.0
-dy    = 0.0
-x     = 0.0
-y     = 0.0
-xmin  = 0.0
-xmax  = 0.0
-ymin  = 0.0
-ymax  = 0.0
-z     = 0.0
-lenc  = 0
-offxy = 0
-offz  = 0
-fname = ' '
-fform = ' '
-!
-CALL hdf5_reset
-!                                                                       
- 1000 FORMAT     (1x,'Resetting ..') 
- 1100 FORMAT     (1x,'Resetting - all parameters ..') 
-      END SUBROUTINE do_rese                        
-!****7******************************************************************
-      SUBROUTINE skalieren 
+SUBROUTINE skalieren 
 !+                                                                      
 !       setting up plotting window                                      
 !-                                                                      
-      USE errlist_mod 
-      USE koordinate_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE koordinate_mod
+USE kuplot_config 
+USE kuplot_mod 
+use kuplot_extrema_mod
+use kuplot_low_mod
+!
+use precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      CHARACTER(8) ct 
-      INTEGER i 
-      REAL dummy_x (2), dummy_y (2) 
-      REAL ymi, yma 
-      REAL     :: delta
-      LOGICAL k_in_f 
+CHARACTER(len=8) :: ct 
+INTEGER :: i 
+REAL               :: dummy_x (2), dummy_y (2) 
+REAL(kind=PREC_DP) :: ymi, yma 
+REAL(kind=PREC_DP) :: delta
+!     LOGICAL k_in_f 
 !                                                                       
 !------ get data set extrema                                            
 !                                                                       
@@ -1477,9 +1432,11 @@ CALL hdf5_reset
       pt (iwin, iframe, 1) = dummy_x (1) 
       pt (iwin, iframe, 2) = dummy_y (1) 
 !                                                                       
-      END SUBROUTINE skalieren                      
+END SUBROUTINE skalieren                      
+!
 !****7******************************************************************
-      SUBROUTINE write_para 
+!
+SUBROUTINE write_para 
 !+                                                                      
 !       write parameter file 'kupl.par'                                 
 !-                                                                      
@@ -1539,3 +1496,7 @@ USE support_mod
  1030 FORMAT     ( 1x,g11.4,1x,g11.4,2x,i2) 
 !                                                                       
       END SUBROUTINE write_para                     
+!
+!*******************************************************************************
+!
+end module kuplot_para_mod

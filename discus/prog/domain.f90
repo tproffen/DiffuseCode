@@ -622,7 +622,6 @@ USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, sa
 USE structur, ONLY: stru_readheader, test_file, read_to_internal
 !
 USE errlist_mod 
-!se tensors_mod
 use matrix_mod
 USE precision_mod
 USE prompt_mod
@@ -661,17 +660,9 @@ INTEGER  :: n_type  ! Number of molecule types  in the input file
 INTEGER  :: n_atom  ! Number of atoms within molecules in the input file
 integer, dimension(3) :: n_cells  ! Number of unit cells in the input file
 integer, dimension(:,:), allocatable :: clu_moles  ! No of molecule and types in each cluster
-!integer, dimension(:,:), allocatable :: clu_mole_tab! No of molecule and types in each cluster
-!integer                              :: clu_mole_num_mole    ! Number of Clusters in case of CLUSTER MODE
-!integer                              :: clu_mole_num_type    ! Number of Clusters in case of CLUSTER MODE
-!integer                              :: clu_mole_num_atom    ! Number of Clusters in case of CLUSTER MODE
 REAL(PREC_DP)               :: shortest
 REAL(PREC_DP), DIMENSION(3) :: vv
 REAL(PREC_DP) :: sgrand  ! grand time
-!REAL :: satoms  ! time in read atoms
-!REAL :: shead   ! time in read header
-!REAL :: srem    ! time in read remove atoms
-!REAL :: sstep   ! time step
 !
 nscats = 0
 natoms = 0
@@ -1303,7 +1294,7 @@ implicit none
 character(len=PREC_STRING) :: line
 integer :: i
 integer :: lp
-real(kind=PREC_SP) :: dist
+real(kind=PREC_DP) :: dist
 !
 call conn_reset        ! Reset all connectivities   (NEEDS WORK save old ?)
 !
@@ -1429,7 +1420,7 @@ integer, dimension(:),   allocatable :: list   ! List of atoms in the current do
 integer, dimension(:,:), allocatable :: list_o ! List of atoms in the current domain offsets
 logical                          :: lfound  ! Found new neighbors
 real(kind=PREC_DP)               :: dist    ! dummy distance
-real(kind=PREC_SP)               :: dmin    ! minimum distance
+real(kind=PREC_DP)               :: dmin    ! minimum distance
 real(kind=PREC_DP), dimension(3) :: com     ! Center of mass for domain
 real(kind=PREC_DP), dimension(3) :: uu      ! Dummy vector
 !
@@ -1836,7 +1827,6 @@ USE micro_mod
 USE read_internal_mod 
 USE discus_save_mod 
 USE structur, ONLY: stru_readheader
-!USE trafo_mod
 USE errlist_mod 
 USE molecule_mod
 USE support_mod
@@ -1913,7 +1903,6 @@ END SUBROUTINE micro_read_atoms
       USE micro_mod 
       USE metric_mod
       USE prop_para_mod 
-!      USE trafo_mod
       USE errlist_mod 
 use precision_mod
       IMPLICIT none 
@@ -1932,10 +1921,6 @@ use precision_mod
       REAL(kind=PREC_DP) :: u4 (4), v4 (4) 
       REAL(kind=PREC_DP) :: radius (3) 
       REAL(kind=PREC_DP), dimension(3), parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /)
-!                                                                       
-!     REAL do_blen 
-!                                                                       
-!     DATA NULL / 0.0, 0.0, 0.0 / 
 !                                                                       
       IF (mc_type .eq.MD_DOMAIN_FUZZY) then 
          RETURN 
@@ -2015,7 +2000,6 @@ USE prop_para_mod
 USE read_internal_mod
 USE structur, ONLY: struc_mole_header !, read_atom_line
 USE spcgr_apply, ONLY: mole_insert_current, mole_insert_explicit
-!USE trafo_mod
 USE surface_mod 
 USE errlist_mod 
 !
@@ -2580,7 +2564,6 @@ USE discus_config_mod
 USE domain_mod 
 USE domaindis_mod 
 USE read_internal_mod 
-!USE tensors_mod
 USE errlist_mod 
 USE lib_random_func
 use matrix_mod
@@ -2657,8 +2640,8 @@ IF(line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!'.AND.line.ne.char(13)) T
    DO i = 1, 3 
       size_sigma = MAX(1. + gasdev(DBLE(clu_sigma(ii,i))), 0.01D0)
       DO j = 1, 4 
-         mc_dimen (i, j)  = MAX(clu_shape (ii, i, j) * size_sigma , 0.001 )
-         mc_idimen (i, j) = MAX(clu_shape (ii, i, j) * size_sigma , 0.001 )
+         mc_dimen (i, j)  = MAX(clu_shape (ii, i, j) * size_sigma , 0.001D0 )
+         mc_idimen (i, j) = MAX(clu_shape (ii, i, j) * size_sigma , 0.001D0 )
          mc_matrix (i, j) = clu_orient (ii, i, j) 
       ENDDO 
       mc_dimen (i, 4) = clu_shape (ii, i, 4) + xyz (i) 
@@ -2733,8 +2716,6 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
       REAL(kind=PREC_DP) :: a, b, c , d
       REAL(kind=PREC_DP) :: distance 
       REAL(kind=PREC_DP) :: separation
-!                                                                       
-!     REAL do_blen 
 !                                                                       
       shortest = 1.0e03 
       separation = 1.0e03

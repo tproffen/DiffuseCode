@@ -125,6 +125,7 @@ INTERFACE
                             l_first_job,            &
                             ierr )
 !
+   USE precision_mod
    IMPLICIT NONE
    LOGICAL                , INTENT(IN) :: repeat
    INTEGER                , INTENT(IN) :: prog_len
@@ -144,7 +145,7 @@ INTERFACE
    INTEGER                , INTENT(IN) :: n_rvalue_i
    INTEGER                , INTENT(OUT) :: n_rvalue_o
    INTEGER                , INTENT(IN) :: NRVAL
-   REAL, DIMENSION(0:NRVAL) , INTENT(OUT):: rvalue
+   REAL(kind=PREC_DP), DIMENSION(0:NRVAL) , INTENT(OUT):: rvalue
    LOGICAL                , INTENT(OUT):: l_rvalue
    INTEGER                , INTENT(IN) :: generation
    INTEGER                , INTENT(IN) :: member
@@ -153,7 +154,7 @@ INTERFACE
    INTEGER                , INTENT(IN) :: nindiv
    INTEGER                , INTENT(IN) :: NTRIAL
    CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_n
-   REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
+   REAL(kind=PREC_DP),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
    LOGICAL                , INTENT(IN)  :: l_get_random_state
    INTEGER                , INTENT(OUT) :: rd_nseeds
    INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds

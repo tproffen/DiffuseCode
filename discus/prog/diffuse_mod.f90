@@ -75,16 +75,16 @@ LOGICAL                                 ::  lperiod   = .true.
 LOGICAL                                 ::  four_log  = .false.
 LOGICAL                                 ::  four_was_run  = .false. ! TRUE if a fourier has been calculated
 !
-REAL                                    ::  braggmax = 0.0
-REAL                                    ::  braggmin = 0.0
-REAL                                    ::  diffuave = 0.0
-REAL                                    ::  diffusig = 0.0
-REAL                                    ::  diffumax = 0.0
-REAL                                    ::  diffumin = 0.0
-REAL                                    ::  ps_low   = 1.20
-REAL                                    ::  ps_high  = 0.01
-REAL                                    ::  zmin     = 0.0
-REAL                                    ::  zmax     = 0.0
+REAL(kind=PREC_DP)                      ::  braggmax = 0.0
+REAL(kind=PREC_DP)                      ::  braggmin = 0.0
+REAL(kind=PREC_DP)                      ::  diffuave = 0.0
+REAL(kind=PREC_DP)                      ::  diffusig = 0.0
+REAL(kind=PREC_DP)                      ::  diffumax = 0.0
+REAL(kind=PREC_DP)                      ::  diffumin = 0.0
+REAL(kind=PREC_DP)                      ::  ps_low   = 1.20
+REAL(kind=PREC_DP)                      ::  ps_high  = 0.01
+REAL(kind=PREC_DP)                      ::  zmin     = 0.0
+REAL(kind=PREC_DP)                      ::  zmax     = 0.0
 !
 CHARACTER(LEN=4)                        ::  lambda   = 'MOA1'
 INTEGER                                 ::  four_exp = 0
@@ -97,19 +97,19 @@ LOGICAL                                 ::  diff_lsingle  = .true.
 INTEGER                                 ::  diff_radiation = RAD_XRAY
 INTEGER                                 ::  diff_table     = RAD_INTER
 INTEGER                                 ::  diff_power     = 4
-REAL(kind=PREC_DP)    , DIMENSION(1:3, 1:4)           ::  eck      = reshape((/ 0.0, 0.0,  0.0, &
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:4) ::  eck      = reshape((/ 0.0, 0.0,  0.0, &
                                                                   5.0, 0.0,  0.0, &
                                                                   0.0, 5.0,  0.0, &
                                                                   0.0, 0.0,  0.0/),shape(eck))
-REAL(kind=PREC_DP)    , DIMENSION(1:3, 1:3)           ::  vi       = reshape((/0.05, 0.00, 0.00, &
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:3) ::  vi       = reshape((/0.05, 0.00, 0.00, &
                                                                  0.0 , 0.05, 0.00, &
                                                                  0.00, 0.00, 0.00/),shape(vi))
-REAL(kind=PREC_DP)    , DIMENSION(1:3, 1:3)           ::  off_shift= 0.00
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:3) ::  off_shift= 0.00
 REAL(kind=PREC_DP)                      ::  renergy  = 17.480782
 REAL(kind=PREC_DP)                      ::  rlambda  =  0.709260
 LOGICAL                                 ::  l_energy = .false.
-REAL(kind=PREC_DP)   , DIMENSION(1:3,1:4)             ::  diff_eck_u  = 0.0   ! User supplied corners
-REAL(kind=PREC_DP)    , DIMENSION(1:3, 1:3)           ::  diff_vi_u   = 0.0
+REAL(kind=PREC_DP), DIMENSION(1:3,1:4)             ::  diff_eck_u  = 0.0   ! User supplied corners
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:3)           ::  diff_vi_u   = 0.0
 INTEGER , DIMENSION(1:3)                ::  diff_inc_u  = 1
 INTEGER                                 ::  dif_size_of = 0.0
 !
@@ -119,10 +119,10 @@ LOGICAL, DIMENSION(1:3)                 ::  diff_l_all     = .FALSE.     ! User 
 INTEGER                                 ::  diff_idim      = 0           ! Which dimension has been cut in half
 !
 LOGICAL                                 ::  l_zone       = .false.
-REAL   , DIMENSION(1:3)                 ::  zone_uvw     = (/ 0.0, 0.0, 1.0/) 
-REAL   , DIMENSION(1:3)                 ::  zone_ewald   = 0.0
-REAL                                    ::  zone_res     = 0.0
-REAL                                    ::  zone_delta_d = 0.015
+REAL(kind=PREC_DP)   , DIMENSION(1:3)   ::  zone_uvw     = (/ 0.0, 0.0, 1.0/) 
+REAL(kind=PREC_DP)   , DIMENSION(1:3)   ::  zone_ewald   = 0.0
+REAL(kind=PREC_DP)                      ::  zone_res     = 0.0
+REAL(kind=PREC_DP)                      ::  zone_delta_d = 0.015
 !
 REAL(KIND=PREC_DP), DIMENSION(4,3)      ::  diff_res             ! Resolution sigma and vectors
 REAL(KIND=PREC_DP), DIMENSION(3,3)      ::  diff_tr              ! Resolution transformation matrix

@@ -4,8 +4,12 @@ USE suite_loop_mod
 USE suite_init_mod
 USE suite_set_sub_mod
 !
-USE refine_setup_mod
 USE kuplot_setup_mod
+USE kuplot_setup_sub_mod
+!
+USE refine_setup_mod
+USE refine_setup_sub_mod
+!
 USE fit_set_sub_mod
 !
 USE appl_env_mod

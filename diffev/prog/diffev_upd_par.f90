@@ -1,3 +1,7 @@
+module diffev_update_mod
+!
+contains
+!
 SUBROUTINE diffev_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
 !                                                                       
 !-                                                                      
@@ -426,7 +430,7 @@ INTEGER, DIMENSION(2), INTENT(IN)    :: substr ! Indices of substring
 !
 INTEGER               :: i
 INTEGER               :: pop_neu
-REAL                  :: highest_r
+REAL(kind=PREC_DP)    :: highest_r
 !
 CALL lib_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
 IF(ier_num==0 .OR. (ier_num==-40 .AND. ier_typ==ER_FORT)) RETURN
@@ -778,7 +782,7 @@ REAL(KIND=PREC_DP) , INTENT(INOUT) :: ww
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(string))), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
-REAL               , DIMENSION(1:MAXW) :: werte
+REAL(kind=PREC_DP) , DIMENSION(1:MAXW) :: werte
 CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: parstring
 INTEGER              :: ianz
 INTEGER              :: i, j, lcomm
@@ -988,3 +992,5 @@ CALL lib_get_var_type(line, length, var_is_type)
 !
 !
 END SUBROUTINE diffev_get_var_typE
+!
+end module diffev_update_mod

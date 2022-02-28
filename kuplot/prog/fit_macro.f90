@@ -1,53 +1,54 @@
-!MODULE kuplot_theory_macro_mod
+MODULE kuplot_theory_macro_mod
 !!
 !!*******************************************************************************
 !!
-!CONTAINS
+CONTAINS
 !!
 !!***********************************************************************
 !!
-SUBROUTINE theory_macro_n(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
-                          prange, l_do_deriv, data_dim, &
-                          data_data, data_sigma, data_x, data_y, &
-                          data_calc, kupl_last,      &
-                          ymod, dyda, LDERIV)
-!
-USE kuplot_config
-!
-! Calculate a theory function using a user supplied macro
-!
-IMPLICIT NONE
-!
-INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
-INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
-INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
-REAL                                                 , INTENT(IN)  :: xx      ! Point value  along x
-REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
-INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
-REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
-CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
-REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
-LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
-INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
-INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
-REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
-REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
-LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
-!
-!REAL                     :: xx
-REAL                     :: f
-REAL, DIMENSION(MAXPARA) :: df
-!INTEGER                  :: ix
-!
-CALL theory_macro(xx, f, df, ix)
-data_calc(ix, iy) = f
-!
-END SUBROUTINE theory_macro_n
+!OLD SUBROUTINE theory_macro_n(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
+!OLD                           prange, l_do_deriv, data_dim, &
+!OLD                           data_data, data_sigma, data_x, data_y, &
+!OLD                           data_calc, kupl_last,      &
+!OLD                           ymod, dyda, LDERIV)
+!OLD !
+!OLD use precision_mod
+!OLD USE kuplot_config
+!OLD !
+!OLD ! Calculate a theory function using a user supplied macro
+!OLD !
+!OLD IMPLICIT NONE
+!OLD !
+!OLD INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
+!OLD INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
+!OLD INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
+!OLD REAL(kind=PREC_DP)                                   , INTENT(IN)  :: xx      ! Point value  along x
+!OLD REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
+!OLD INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
+!OLD REAL(kind=PREC_DP),  DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
+!OLD CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
+!OLD REAL(kind=PREC_DP),  DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+!OLD LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
+!OLD INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
+!OLD REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+!OLD REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_sigma  ! Data sigmas
+!OLD REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+!OLD REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+!OLD REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
+!OLD INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
+!OLD REAL(kind=PREC_DP)                                   , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
+!OLD REAL(kind=PREC_DP),  DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
+!OLD LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
+!OLD !
+!OLD !REAL                     :: xx
+!OLD REAL(kind=PREC_DP)                     :: f
+!OLD REAL(kind=PREC_DP), DIMENSION(MAXPARA) :: df
+!OLD !INTEGER                  :: ix
+!OLD !
+!OLD CALL theory_macro(xx, f, df, ix)
+!OLD data_calc(ix, iy) = f
+!OLD !
+!OLD END SUBROUTINE theory_macro_n
 !
 !*******************************************************************************
 !
@@ -57,6 +58,7 @@ SUBROUTINE theory_macro(xx, f, df, i)
 !
 USE kuplot_config
 USE kuplot_mod
+use kuplot_gsas_mod
 USE fit_params_mod
 USE fit_set_sub_mod
 !
@@ -74,9 +76,9 @@ USE variable_mod
 !
 IMPLICIT NONE
 !
-REAL                    , INTENT(IN)  :: xx
-REAL                    , INTENT(OUT) :: f
-REAL, DIMENSION(MAXPARA), INTENT(OUT) :: df
+REAL(kind=PREC_DP)      , INTENT(IN)  :: xx
+REAL(kind=PREC_DP)      , INTENT(OUT) :: f
+REAL(kind=PREC_DP), DIMENSION(MAXPARA), INTENT(OUT) :: df
 INTEGER                 , INTENT(IN)  :: i
 !
 CHARACTER(LEN=PREC_STRING) :: macro_name
@@ -172,4 +174,7 @@ p_mache_kdo   => kuplot_mache_kdo
 lmacro_close = .TRUE.        ! Do close macros in do-loops
 !
 END SUBROUTINE theory_macro
-!END MODULE kuplot_theory_macro_mod
+!
+!*******************************************************************************
+!
+END MODULE kuplot_theory_macro_mod

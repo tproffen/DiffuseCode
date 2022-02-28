@@ -720,11 +720,9 @@ SUBROUTINE wave_run
 USE discus_config_mod 
 USE discus_allocate_appl_mod 
 USE crystal_mod 
-!USE quad_mod
 use metric_mod, only:skalpro
 USE symm_mod 
 USE update_cr_dim_mod
-!USE trafo_mod
 USE waves_mod 
 USE errlist_mod 
 USE lib_length
@@ -754,9 +752,6 @@ INTEGER :: nsite = 1
       orig_mol=.true.
       typ=.true.
       sel_atom=.true.
-!                                                                       
-!      REAL sinus, box, triang 
-!      EXTERNAL sinus, box, triang 
 !                                                                       
 !------ Setup for rotational mode                                       
 !                                                                       
@@ -918,7 +913,6 @@ SUBROUTINE wave_run_all(wavep, swingp, wave_func)
 !+                                                                      
 USE discus_config_mod 
 USE crystal_mod 
-!USE trafo_mod
 USE waves_mod 
 USE wink_mod
 USE lib_random_func
@@ -1056,7 +1050,6 @@ USE modify_mod
 USE molecule_mod 
 USE symm_mod 
 USE symm_sup_mod
-!USE trafo_mod
 USE waves_mod 
 USE wink_mod
 USE lib_random_func

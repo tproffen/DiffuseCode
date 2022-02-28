@@ -25,7 +25,6 @@ USE update_cr_dim_mod
 USE discus_show_menu
 USE symm_mod 
 USE symm_sup_mod 
-!USE trafo_mod
 USE wyckoff_mod
 !
 USE ber_params_mod
@@ -919,7 +918,7 @@ use param_mod
       CHARACTER(9) at_lis (0:maxscat+1)!, at_name 
       INTEGER mol_lis (maxscat+1)
       INTEGER i, j, k 
-real :: deter
+real(kind=PREC_DP) :: deter
 real(KIND=PREC_DP), dimension(3,3) :: matr 
 !                                                                       
    IF(sym_use==0) THEN

@@ -28,7 +28,7 @@ IMPLICIT NONE
 !
 INTEGER                               , INTENT(IN)  :: par_n
 CHARACTER(LEN=*)  , DIMENSION(1:par_n), INTENT(IN)  :: params
-REAL(KIND=PREC_SP), DIMENSION(1:par_n), INTENT(OUT) :: p
+REAL(KIND=PREC_DP), DIMENSION(1:par_n), INTENT(OUT) :: p
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(params))), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara

@@ -47,13 +47,11 @@ INTEGER  :: lcom
 INTEGER  :: ihyp 
 INTEGER  :: dummy 
 LOGICAL :: BACK   ! FLAG for index intrinsic
-REAL  :: fl1, fl2, fl3, gbox_k, gbox_w, gbox_x 
+REAL(kind=PREC_DP)  :: fl1, fl2, fl3, gbox_k, gbox_w, gbox_x 
 REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP)  :: ww, a , skew
 REAL(KIND=PREC_DP)  :: ww1, ww2
 REAL(KIND=PREC_DP), DIMENSION(MAXW)  :: wwerte
-!     REAL sind, cosd, tand, asind, acosd, atand 
-!     REAL atan2, atan2d 
 !                                                                       
 !
 !                                                                       
@@ -476,7 +474,7 @@ ELSEIF (lcom.eq.4) then
             ww = exp (log (ww1       ) + gasdev (a) ) 
             CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'pois') then 
-            ww = poidev (REAL(ww), idum) 
+            ww = poidev (ww, idum) 
             CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'date') then 
             CALL datum_intrinsic 
@@ -651,7 +649,7 @@ INTEGER             :: nwave          ! Entry in per_wavel
 CHARACTER  (LEN=4) :: symbol
 REAL(kind=PREC_DP) :: lambda1
 REAL(kind=PREC_DP) :: lambda2
-REAL               :: lam_1_2         ! Ratio lam(Ka1)/lam(Ka2)
+REAL(kind=PREC_DP) :: lam_1_2         ! Ratio lam(Ka1)/lam(Ka2)
 !
 INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_ITWO    = 1

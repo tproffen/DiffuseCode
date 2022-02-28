@@ -42,7 +42,7 @@ INTEGER :: length
 INTEGER :: i
 LOGICAL                 :: do_mol      ! Molecules with Biso /= 0.0
 INTEGER                 :: powder_nmol ! Number of look up dimensions molecules
-REAL   , DIMENSION(1:3) :: u
+REAL(kind=PREC_DP)   , DIMENSION(1:3) :: u
 REAL(KIND=PREC_DP), DIMENSION(3) :: com  ! Center of mass of crystal
 !
 !IF (rlambda.ne.0.0) THEN
@@ -173,7 +173,7 @@ implicit none
 character(len=PREC_STRING) :: origstruc
 !
 out_user_values(1) =   0.01
-out_user_values(2) = min(100.0, pow_period/pow_period_cut)
+out_user_values(2) = min(100.0D0, pow_period/pow_period_cut)
 out_user_values(3) =   0.01
 out_user_limits    = .TRUE.
 cpow_form = 'r'
@@ -220,7 +220,7 @@ use times_mod
 USE support_mod
 IMPLICIT none 
 !                                                                       
-REAL,    INTENT(IN)  :: udist(3)
+REAL(KIND=PREC_DP),    INTENT(IN)  :: udist(3)
 INTEGER, INTENT(IN)  :: cr_nscat_temp
 !                                                                       
 INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
@@ -233,25 +233,25 @@ INTEGER                :: n_qxy   = 1
 INTEGER                :: n_nscat = 1
 INTEGER                :: n_natom = 1
 INTEGER                :: n_pha   = 1
-REAL                   :: distance
-REAL (PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
-REAL ss, st
-REAL                   :: shift
+REAL(KIND=PREC_DP)                   :: distance
+REAL(PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
+REAL(KIND=PREC_DP) :: ss, st
+REAL(KIND=PREC_DP)     :: shift
 !logical           , dimension(:,:  ), allocatable :: ldo_partial
 REAL(KIND=PREC_DP), DIMENSION(:,:  ), ALLOCATABLE :: partial
 integer(KIND=PREC_INT_WORD), DIMENSION(:,:  ), ALLOCATABLE :: histogram
 INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
 INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: is_look
-REAL u (3), v (3) 
+REAL(KIND=PREC_DP) :: u (3), v (3) 
 !
 REAL(KIND=PREC_DP) :: deltar    = 0.0D0
-REAL(KIND=PREC_SP) :: qbroad    = 0.0E0
-REAL(KIND=PREC_SP) :: cquad_a   = 0.0E0
-REAL(KIND=PREC_SP) :: clin_a    = 0.0E0
+REAL(KIND=PREC_DP) :: qbroad    = 0.0E0
+REAL(KIND=PREC_DP) :: cquad_a   = 0.0E0
+REAL(KIND=PREC_DP) :: clin_a    = 0.0E0
 INTEGER            :: nmol_type = 0
-REAL(KIND=PREC_SP), DIMENSION(0:0) :: cquad_m  = 0.0D0
-REAL(KIND=PREC_SP), DIMENSION(0:0) :: clin_m   = 0.0D0
-REAL(KIND=PREC_SP), DIMENSION(0:0) :: bval_mol = 0.0D0
+REAL(KIND=PREC_DP), DIMENSION(0:0) :: cquad_m  = 0.0D0
+REAL(KIND=PREC_DP), DIMENSION(0:0) :: clin_m   = 0.0D0
+REAL(KIND=PREC_DP), DIMENSION(0:0) :: bval_mol = 0.0D0
 INTEGER            :: nlook_mol = 0
 !                                                                       
 
@@ -280,10 +280,10 @@ DO i = 1, 3
 ENDDO 
 !
 u (1) = 1.00 
-xm (1) = pow_qmin / REAL(zpi)
-ss = (pow_qmax+pow_qmax_buf) / REAL(zpi) 
-st = (pow_qmax - pow_deltaq) / REAL(zpi )
-uin(1) = pow_deltaq / REAL(zpi )
+xm (1) = pow_qmin / (zpi)
+ss = (pow_qmax+pow_qmax_buf) / zpi 
+st = (pow_qmax - pow_deltaq) / zpi
+uin(1) = pow_deltaq / zpi
 num(1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
 !
 !    Allocate arrays
@@ -527,11 +527,13 @@ IF(deb_conv) THEN
               deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,      &
               bval_mol )
 ENDIF
+!write(*,*) ' POWDER/histogram.conv'
 !open(unit=77,file='POWDER/histogram.conv', status='unknown')
 !do k=1, MAXHIST
 !  write(77,'(4g18.6e3)') 1.*k, histogram(k,:)
 !enddo
 !close(77)
+!read(*,*) k
 !
 !     --- Calculate the Fourier                                         
 !                                                                       
@@ -641,11 +643,13 @@ DEALLOCATE(histogram)
 !
 pow_nn_partial = natom              ! Store composition
 !
+!write(*,*) 'rsf.dat'
 !open(unit=77,file='rsf.dat', status='unknown')
 !do k=1, num(1)
 !  write(77,'(4g18.6e3)') 1.*k, rsf(k)
 !enddo
 !close(77)
+!read(*,*) k
 !
 ss = seknds (ss) 
 WRITE (output_io, 4000) ss 
@@ -686,7 +690,7 @@ USE trig_degree_mod
 USE support_mod
 IMPLICIT none 
 !                                                                       
-REAL,    INTENT(IN)  :: udist(3)
+REAL(KIND=PREC_DP),    INTENT(IN)  :: udist(3)
 INTEGER, INTENT(IN)  :: cr_nscat_temp
 LOGICAL, INTENT(IN)  :: do_mol      ! Molecules with Biso /= 0.0
 INTEGER, INTENT(IN)  :: powder_nmol ! Number of look up dimensions molecules
@@ -707,26 +711,26 @@ INTEGER                :: nlook_mol   ! Number of look up dimensions molecules
 INTEGER                :: islook      ! Actual molecule look up number
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: is_look          ! Inverse lookup for atoms
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: powder_look_mol
-REAL   , DIMENSION(:)  , ALLOCATABLE :: powder_bvalue_mole
-REAL   , DIMENSION(:)  , ALLOCATABLE :: powder_clin_mole
-REAL   , DIMENSION(:)  , ALLOCATABLE :: powder_cqua_mole
-REAL   , DIMENSION(:,:), ALLOCATABLE :: pow_dw
-REAL   , DIMENSION(:,:,:), ALLOCATABLE :: partial
+REAL(KIND=PREC_DP)   , DIMENSION(:)  , ALLOCATABLE :: powder_bvalue_mole
+REAL(KIND=PREC_DP)   , DIMENSION(:)  , ALLOCATABLE :: powder_clin_mole
+REAL(KIND=PREC_DP)   , DIMENSION(:)  , ALLOCATABLE :: powder_cqua_mole
+REAL(KIND=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE :: pow_dw
+REAL(KIND=PREC_DP)   , DIMENSION(:,:,:), ALLOCATABLE :: partial
 integer(KIND=PREC_INT_WORD), DIMENSION(:,:,:), ALLOCATABLE :: histogram
 INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
 REAL(KIND=PREC_DP) :: deltar    = 0.0D0
-REAL(KIND=PREC_SP) :: qbroad    = 0.0E0
-REAL(KIND=PREC_SP) :: cquad_a   = 0.0E0
-REAL(KIND=PREC_SP) :: clin_a    = 0.0E0
-REAL(KIND=PREC_SP), DIMENSION(0:0) :: cquad_m  = 0.0D0
-REAL(KIND=PREC_SP), DIMENSION(0:0) :: clin_m   = 0.0D0
-REAL(KIND=PREC_SP), DIMENSION(0:0) :: bval_mol = 0.0D0
-REAL                   :: distance
-REAL (PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
-REAL ss, st
-REAL                   :: shift
-REAL u (3), v (3) 
-REAL (KIND=PREC_DP) :: arg 
+REAL(KIND=PREC_DP) :: qbroad    = 0.0E0
+REAL(KIND=PREC_DP) :: cquad_a   = 0.0E0
+REAL(KIND=PREC_DP) :: clin_a    = 0.0E0
+REAL(KIND=PREC_DP), DIMENSION(0:0) :: cquad_m  = 0.0D0
+REAL(KIND=PREC_DP), DIMENSION(0:0) :: clin_m   = 0.0D0
+REAL(KIND=PREC_DP), DIMENSION(0:0) :: bval_mol = 0.0D0
+REAL(KIND=PREC_DP)     :: distance
+REAL(PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
+REAL(KIND=PREC_DP) :: ss, st
+REAL(KIND=PREC_DP)     :: shift
+REAL(KIND=PREC_DP) :: u (3), v (3) 
+REAL(KIND=PREC_DP) :: arg 
 !                                                                       
 INTEGER IAND 
 !VARIABLES for OpenMP
@@ -736,8 +740,6 @@ INTEGER           , DIMENSION(:)    , ALLOCATABLE, SAVE :: natom_l   ! Number of
 INTEGER(KIND=PREC_INT_WORD), DIMENSION(:,:,:), ALLOCATABLE, SAVE :: histogram_l
 REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE, SAVE :: partial_l
 !$OMP THREADPRIVATE(natom_l, histogram_l, partial_l)
-!     REAL sind 
-!REAL seknds 
 !                                                                       
 n_qxy   = 1
 n_nscat = 1
@@ -759,10 +761,10 @@ vin   = 0.0
 !   CONTINUE 
 !ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
    u (1) = 1.00 
-   xm (1) = pow_qmin / REAL(zpi) 
-   ss = pow_qmax / REAL(zpi) 
-   st = (pow_qmax - pow_deltaq) / REAL(zpi) 
-   uin (1) = pow_deltaq / REAL(zpi) 
+   xm (1) = pow_qmin / zpi 
+   ss = pow_qmax / zpi 
+   st = (pow_qmax - pow_deltaq) / zpi 
+   uin (1) = pow_deltaq / zpi
    num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
 !ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
 !   u (1) = 1.00 
@@ -1092,7 +1094,7 @@ IF(par_omp_use) THEN
                   arg  = zpi *DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
                   iarg = INT( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
                   iadd = IAND (iarg, MASK) 
-                  partial_l(k,i,il) = partial_l(k,i,il) + REAL(DBLE(histogram(j,i,il)) * sinetab(iadd)/arg)
+                  partial_l(k,i,il) = partial_l(k,i,il) + (DBLE(histogram(j,i,il)) * sinetab(iadd)/arg)
                ENDDO 
             ENDIF 
          ENDDO 
@@ -1119,7 +1121,7 @@ ELSE
                   arg  = zpi *DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
                   iarg = INT( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
                   iadd = IAND (iarg, MASK) 
-                  partial  (k,i,il) = partial  (k,i,il) + REAL(DBLE(histogram(j,i,il)) * sinetab(iadd)/arg)
+                  partial  (k,i,il) = partial  (k,i,il) + (DBLE(histogram(j,i,il)) * sinetab(iadd)/arg)
                ENDDO 
             ENDIF 
          ENDDO 
@@ -1193,16 +1195,13 @@ INTEGER                        , INTENT(INOUT) :: nsrch     ! Actual occupied Hi
 integer(KIND=PREC_INT_WORD), DIMENSION(0:nhist, 1:nlook, 0:nlook_mol), INTENT(INOUT) :: histogram
 INTEGER,DIMENSION(1:2, 1:nlook), INTENT(IN) :: is_look
 REAL(KIND=PREC_DP)             , INTENT(IN) :: deltar    ! Real space step width
-REAL(KIND=PREC_SP)             , INTENT(IN) :: qbroad    ! Resolution broadening
-REAL(KIND=PREC_SP)             , INTENT(IN) :: cquad_a   ! Quadratic correlation term for atoms
-REAL(KIND=PREC_SP)             , INTENT(IN) :: clin_a    ! Linear    correlation term for atoms
-REAL(KIND=PREC_SP), DIMENSION(0:nlook_mol), INTENT(IN) :: cquad_m   ! Linear correlation term for molecules
-REAL(KIND=PREC_SP), DIMENSION(0:nlook_mol), INTENT(IN) :: clin_m    ! Linear correlation term for molecules
+REAL(KIND=PREC_DP)             , INTENT(IN) :: qbroad    ! Resolution broadening
+REAL(KIND=PREC_DP)             , INTENT(IN) :: cquad_a   ! Quadratic correlation term for atoms
+REAL(KIND=PREC_DP)             , INTENT(IN) :: clin_a    ! Linear    correlation term for atoms
+REAL(KIND=PREC_DP), DIMENSION(0:nlook_mol), INTENT(IN) :: cquad_m   ! Linear correlation term for molecules
+REAL(KIND=PREC_DP), DIMENSION(0:nlook_mol), INTENT(IN) :: clin_m    ! Linear correlation term for molecules
 INTEGER                        , INTENT(IN) :: nmol_type ! No of molecule types
-REAL(KIND=PREC_SP), DIMENSION(0:nmol_type), INTENT(IN) :: bval_mol  ! No of molecule types
-!INTEGER                              , INTENT(IN) :: nexp ! Number of points in exponent curve
-!REAL(KIND=PREC_DP), DIMENSION(0:nexp), INTENT(IN) :: expo ! Preset value in Gaussian function
-!REAL(KIND=PREC_DP)                   , INTENT(IN) :: gauss_step  ! step width in Gaussian lookup
+REAL(KIND=PREC_DP), DIMENSION(0:nmol_type), INTENT(IN) :: bval_mol  ! No of molecule types
 !
 INTEGER            :: il            ! Lookup dummy
 INTEGER            :: im            ! molecule dummy
@@ -1221,7 +1220,7 @@ REAL(KIND=PREC_DP) :: sigma         ! Gaussian sigma
 REAL(KIND=PREC_DP) :: gnorm         ! Gaussian normalizer 
 REAL(KIND=PREC_DP) :: factor        ! Gaussian lookup factor
 REAL(KIND=PREC_DP) :: fac4          ! Gaussian terms
-REAL(PREC_DP), DIMENSION(:), ALLOCATABLE :: gauss   ! Gaussian curve
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: gauss   ! Gaussian curve
 !
 IF(.NOT. ALLOCATED(expo)) THEN     ! need to set up exponential lookup table
    CALL expo_set
@@ -1305,7 +1304,7 @@ SUBROUTINE powder_trans_atoms_tocart (uvw_out)
       USE trans_sup_mod
       IMPLICIT none 
 !                                                                       
-      REAL ,DIMENSION(1:3), INTENT(OUT) :: uvw_out !(3)
+      REAL(KIND=PREC_DP) ,DIMENSION(1:3), INTENT(OUT) :: uvw_out !(3)
 !
       INTEGER              ::  i
       LOGICAL, PARAMETER   :: lscreen = .false. 
@@ -1397,10 +1396,10 @@ SUBROUTINE powder_dwmoltab (nlook_mol, pow_dw, powder_bvalue_mole)
       IMPLICIT none 
 !
       INTEGER,                                 INTENT(IN)  :: nlook_mol
-      REAL   , DIMENSION(0:CFPKT,0:nlook_mol), INTENT(OUT) :: pow_dw
-      REAL   , DIMENSION(0:nlook_mol)        , INTENT(IN ) :: powder_bvalue_mole
+      REAL(KIND=PREC_DP)   , DIMENSION(0:CFPKT,0:nlook_mol), INTENT(OUT) :: pow_dw
+      REAL(KIND=PREC_DP)   , DIMENSION(0:nlook_mol)        , INTENT(IN ) :: powder_bvalue_mole
 !                                                                       
-      REAL    :: q2
+      REAL(KIND=PREC_DP)    :: q2
       INTEGER :: iq, iscat 
 !
 !      IF (four_log) THEN 
@@ -1409,7 +1408,7 @@ SUBROUTINE powder_dwmoltab (nlook_mol, pow_dw, powder_bvalue_mole)
 !                                                                       
       DO iscat = 0, nlook_mol 
          DO iq = 0, CFPKT 
-            q2 = (REAL(iq) * REAL(CFINC)) **2 
+            q2 = (REAL(iq) * (CFINC)) **2 
 !
             IF (powder_bvalue_mole(iscat)>0.0) THEN 
                pow_dw (iq, iscat) = exp ( - powder_bvalue_mole ( iscat ) * q2) 

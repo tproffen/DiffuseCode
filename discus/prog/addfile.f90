@@ -27,16 +27,16 @@ USE support_mod
 !                                                                       
 CHARACTER(LEN=*), INTENT(INOUT) :: string 
 INTEGER         , INTENT(INOUT) :: laenge
-      CHARACTER(3) ftyp 
-      CHARACTER(7) stat 
+      CHARACTER(LEN=3) ftyp 
+      CHARACTER(LEN=7) stat 
       CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: datei, line, fname 
       CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: cpara (maxw), ccpara (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER nx (2), ny (2), i, j, ianz
-      INTEGER line_no 
-      LOGICAL lcont, lread 
-      REAL xmin (2), xmax (2), ymin (2), ymax (2), scale 
-      REAL x1, x2, y1, y2, z1, z2, zz1, zz2 
+      INTEGER :: lpara (maxw) 
+      INTEGER :: nx (2), ny (2), i, j, ianz
+      INTEGER :: line_no 
+      LOGICAL :: lcont, lread 
+      REAL(KIND=PREC_DP) :: xmin (2), xmax (2), ymin (2), ymax (2), scale 
+      REAL(KIND=PREC_DP) :: x1, x2, y1, y2, z1, z2, zz1, zz2 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
 !                                                                       
@@ -177,7 +177,7 @@ INTEGER         , INTENT(INOUT) :: laenge
                   ier_num = 0 
                   ier_typ = ER_NONE 
                   DO j = 1, nx (1) 
-                  dsi (j) = real (tcsf (j) ) + scale * dsi (j) 
+                  dsi (j) = real(tcsf (j), kind=PREC_DP ) + scale * dsi (j) 
                   ENDDO 
                   WRITE (if1, 3010) (dsi (j), j = 1, nx (1) ) 
                   WRITE (if1, * ) 

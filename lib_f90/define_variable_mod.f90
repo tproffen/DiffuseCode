@@ -298,7 +298,7 @@ IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN) :: v_type
 CHARACTER(LEN=*), INTENT(IN) :: v_name
-REAL            , INTENT(IN) :: v_value
+REAL(kind=PREC_DP),INTENT(IN) :: v_value
 LOGICAL         , INTENT(IN) :: IS_DIFFEV
 !
 CHARACTER(LEN=PREC_STRING) :: string

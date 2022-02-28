@@ -1,3 +1,7 @@
+module kuplot_gsas_mod
+!
+contains
+!
       SUBROUTINE PRPCALC (HTYPE, TTH, PTYPE, PC, DTOF, FUNC, DV, NMAX) 
                                                                         
 !PURPOSE: Calculating individual peak profile shape function &          
@@ -1952,3 +1956,5 @@ INTEGER, INTENT(IN) :: MAXFIT
       ENDIF 
       RETURN 
       END SUBROUTINE CNVPTP1                        
+!
+end module kuplot_gsas_mod

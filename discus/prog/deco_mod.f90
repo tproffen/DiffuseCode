@@ -26,7 +26,7 @@ INTEGER, PARAMETER                        :: SURF_ATOM   =-1
 INTEGER, PARAMETER                        :: SURF_NONE   = 0
 INTEGER, PARAMETER                        :: SURF_PLANE  = 1
 !
-REAL   , PARAMETER                        :: DC_AREA     = 11.00  ! Estimates area per surface atom in [A^2]
+REAL(kind=PREC_DP)   , PARAMETER                        :: DC_AREA     = 11.00  ! Estimates area per surface atom in [A^2]
 !
 CHARACTER(LEN=8),DIMENSION(0:DC_MAXMODE)  :: dcc_ctype
 !
@@ -45,10 +45,10 @@ CHARACTER(LEN=PREC_STRING), DIMENSION(    :), ALLOCATABLE :: dcc_name           
 CHARACTER(LEN=PREC_STRING), DIMENSION(    :), ALLOCATABLE :: dcc_file            ! Content file name
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_natoms          ! Content number of atoms
 CHARACTER(LEN=4)   , DIMENSION(:,  :), ALLOCATABLE :: dcc_atom_name       ! Content atom names
-REAL               , DIMENSION(:,  :), ALLOCATABLE :: dcc_adp             ! Content ADP's
-REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_biso            ! Content molecule ADP's
-REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_clin            ! Content molecule ADP's
-REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_cqua            ! Content molecule ADP's
+REAL(kind=PREC_DP) , DIMENSION(:,  :), ALLOCATABLE :: dcc_adp             ! Content ADP's
+REAL(kind=PREC_DP) , DIMENSION(    :), ALLOCATABLE :: dcc_biso            ! Content molecule ADP's
+REAL(kind=PREC_DP) , DIMENSION(    :), ALLOCATABLE :: dcc_clin            ! Content molecule ADP's
+REAL(kind=PREC_DP) , DIMENSION(    :), ALLOCATABLE :: dcc_cqua            ! Content molecule ADP's
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_mole_type       ! Content molecule type
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_type            ! definitions type
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_lname           ! Length definitions name
@@ -63,11 +63,11 @@ LOGICAL            , DIMENSION(    :), ALLOCATABLE :: dcc_lrestrict       ! Rest
 LOGICAL            , DIMENSION(    :), ALLOCATABLE :: dcc_lform           ! Restiction by form or hkl
 INTEGER            , DIMENSION(:,:,:), ALLOCATABLE :: dcc_hkl             ! Surface restriction
 INTEGER            , DIMENSION(:,  :), ALLOCATABLE :: dcc_surfnew         ! Molecule atoms as new surface
-REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_dens            ! Molecule density per A^2
-REAL               , DIMENSION(:,  :), ALLOCATABLE :: dcc_dist            ! Bond length in       A
-REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_angle           ! Bond angle for Hydrogen bonds
-REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_tilt            ! Tilt angle for ligand off axis
-REAL               , DIMENSION(:,  :), ALLOCATABLE :: dcc_tilt_hkl        ! Normal to molecule plane
+REAL(kind=PREC_DP) , DIMENSION(    :), ALLOCATABLE :: dcc_dens            ! Molecule density per A^2
+REAL(kind=PREC_DP) , DIMENSION(:,  :), ALLOCATABLE :: dcc_dist            ! Bond length in       A
+REAL(kind=PREC_DP) , DIMENSION(    :), ALLOCATABLE :: dcc_angle           ! Bond angle for Hydrogen bonds
+REAL(kind=PREC_DP) , DIMENSION(    :), ALLOCATABLE :: dcc_tilt            ! Tilt angle for ligand off axis
+REAL(kind=PREC_DP) , DIMENSION(:,  :), ALLOCATABLE :: dcc_tilt_hkl        ! Normal to molecule plane
 INTEGER            , DIMENSION(:,  :), ALLOCATABLE :: dcc_tilt_atom       ! Atoms that form molecule plane
 LOGICAL            , DIMENSION(    :), ALLOCATABLE :: dcc_tilt_is_atom    ! Tilt angle for ligand off axis
 LOGICAL            , DIMENSION(    :), ALLOCATABLE :: dcc_tilt_is_auto    ! Tilt angle for ligand off axis
@@ -85,8 +85,8 @@ INTEGER                                   :: dc_temp_maxsurf ! Maximum number of
 INTEGER                                   :: dc_temp_neig    ! Temporary neighbor atom number for input
 INTEGER, DIMENSION(0:2)                   :: dc_temp_axis    ! Temporary axis for ligand      for input
 INTEGER, DIMENSION(1:40)                  :: dc_temp_surfnew=0 ! Temporary list of new surface atoms
-REAL                                      :: dc_temp_dist    ! Temporary neighbor distance    for input
-REAL                                      :: dc_temp_dens    ! Temporary ligand density       for input
+REAL(kind=PREC_DP)                        :: dc_temp_dist    ! Temporary neighbor distance    for input
+REAL(kind=PREC_DP)                        :: dc_temp_dens    ! Temporary ligand density       for input
 LOGICAL                                   :: dc_temp_restrict = .FALSE. ! Restriction yes / no
 LOGICAL                                   :: dc_temp_l_form   = .FALSE. ! Single hkl or form
 INTEGER                                   :: dc_temp_n_hkl    = 0       ! Number of hkls that make special form

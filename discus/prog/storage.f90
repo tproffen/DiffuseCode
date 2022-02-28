@@ -212,7 +212,6 @@ LOGICAL, PARAMETER :: LSINGLE = .FALSE.
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
-!REAL               , DIMENSION(1:MAXW) :: werte
 INTEGER                                :: ianz
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1

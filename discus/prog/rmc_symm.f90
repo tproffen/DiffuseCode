@@ -11,7 +11,6 @@ CONTAINS
       USE discus_config_mod 
       USE crystal_mod 
       USE generate_mod 
-!     USE trafo_mod
       USE errlist_mod 
 use precision_mod
 !
@@ -26,7 +25,7 @@ use precision_mod
       LOGICAL, INTENT(IN)  :: lfriedel_remove 
       LOGICAL, INTENT(OUT) :: lacentric 
 !                                                                       
-      REAL x (4), y (4), xmat (4, 4), wmat (4, 4), eps 
+      REAL(kind=PREC_DP) :: x (4), y (4), xmat (4, 4), wmat (4, 4), eps 
       INTEGER i, j, k, l, ii, iii, igs, igg, ipg, ia, iaa 
 !                                                                       
 !                                                                       

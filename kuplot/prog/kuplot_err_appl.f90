@@ -1,3 +1,6 @@
+module kuplot_errlist_mod
+!
+contains
 !*****7****************************************************************
       SUBROUTINE kuplot_errlist_appl
 !-
@@ -9,11 +12,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      parameter    (iu=-75,io=0)
+      parameter    (iu=-76,io=0)
 !
       character(LEN=45) ::  error(iu:io)
 !
       data error ( iu: -61) /                      &
+     &  'Color range outside [0.0, 1.0]   ',       &! -76  ! kupl
      &  'Could not open PGPLOT device     ',       &! -75  ! kupl
      &  'Data sets are of different length',       &! -74  ! kupl
      &  'Data sets differ in dimension',           &! -73  ! kupl
@@ -103,3 +107,4 @@ USE lib_errlist_func
       call disp_error ('KUPL',error,iu,io)
       END SUBROUTINE kuplot_errlist_appl
 !*****7****************************************************************
+end module kuplot_errlist_mod

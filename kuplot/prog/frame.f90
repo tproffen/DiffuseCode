@@ -1,7 +1,12 @@
+module kuplot_frame_mod
+!
 !*****7*****************************************************************
 !     These routines set the frame parameters for KUPLOT. Each frame    
 !     can be seen as individual plotting area.                          
 !*****7*****************************************************************
+!
+contains
+!
       SUBROUTINE set_window (zeile, lp) 
 !+                                                                      
 !     Sets active window for plotting                                   
@@ -19,8 +24,8 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER, intent(inout) :: lp 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw) 
@@ -69,8 +74,9 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER, intent(inout) :: lp 
+!                                                                       
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw) 
@@ -109,6 +115,7 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -116,8 +123,9 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 5) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER, intent(inout) :: lp 
+!                                                                       
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw) 
@@ -171,8 +179,8 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = maxframe+2) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER, intent(inout) :: lp 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw) 
@@ -213,6 +221,7 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -220,8 +229,8 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 6) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER, intent(inout) :: lp 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw) 
@@ -270,6 +279,7 @@ USE precision_mod
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
 !
 USE lib_errlist_func
       USE build_name_mod
@@ -280,8 +290,8 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = maxkurvtot + 2) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER, intent(inout) :: lp 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw) 
@@ -341,6 +351,7 @@ USE precision_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_show_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -348,8 +359,8 @@ USE precision_mod
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER, intent(inout) :: lp 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       INTEGER lpara (maxw) 
@@ -483,7 +494,7 @@ USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER if1, if2 
+INTEGER, intent(in) :: if1, if2 
       INTEGER i, j, ihl 
 !                                                                       
       achse (iwin, if2, 1) = achse (iwin, if1, 1) 
@@ -596,7 +607,7 @@ USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER iw1, iw2 
+INTEGER , intent(in) :: iw1, iw2 
       INTEGER i, j, k 
 !                                                                       
       ipara (iw2) = ipara (iw1) 
@@ -729,3 +740,5 @@ USE precision_mod
       ENDDO 
 !                                                                       
       END SUBROUTINE copy_window                    
+!
+end module kuplot_frame_mod

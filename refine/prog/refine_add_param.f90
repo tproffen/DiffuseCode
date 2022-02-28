@@ -8,7 +8,9 @@ CONTAINS
 !
 SUBROUTINE refine_add_param(line, length)
 !
-!  Add a new parameter. values of existing parameters a updated
+!  Add a new parameter. values of existing parameters are updated.
+!  If an optional parameter is omitted, general defaults are applied.
+!  Sepcial parameter names like "P_lat" etc get special defaults.
 !
 USE refine_allocate_appl
 USE refine_params_mod
@@ -34,7 +36,7 @@ INTEGER, PARAMETER :: MAXW = 20
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-!REAL               , DIMENSION(MAXW) :: werte
+!REAL(kind=PREC_DP), DIMENSION(MAXW) :: werte   ! Might be used later on
 !
 INTEGER                              :: n_params    ! temp number of parameters
 INTEGER                              :: ianz, iianz
@@ -50,8 +52,8 @@ INTEGER                              :: ipar         ! enty number for this para
 !
 LOGICAL                              :: lrefine
 !
-REAL                                 :: range_low    ! template for parameter
-REAL                                 :: range_high   ! ranges 
+REAL(kind=PREC_DP)                   :: range_low    ! template for parameter
+REAL(kind=PREC_DP)                   :: range_high   ! ranges 
 LOGICAL, DIMENSION(2)                :: lrange       ! Range is provided
 !
 INTEGER, PARAMETER :: MAXF=2
@@ -72,13 +74,13 @@ INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 3 ! Number of values to calculate
+INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate
 !
 DATA oname  / 'shift'  , 'points' ,  'value ' , 'status'  ,  'range' /
 DATA loname /  5       ,  6       ,   5       ,  6        ,   5      /
-opara  =  (/ '0.005000', '3.000000', '-1.00000', '0.000000',  '0.000000'/)   ! Always provide fresh default values
+opara  =  (/ '0.003000', '3.000000', '-1.00000', 'free    ',  '0.000000'/)   ! Always provide fresh default values
 lopara =  (/  8        ,  8        ,  8        ,  8        ,   8        /)
-owerte =  (/  0.00500  ,  3.0      ,  -1.0     ,  0.0      ,   0.0      /)
+owerte =  (/  0.00300  ,  3.0      ,  -1.0     ,  0.0      ,   0.0      /)
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 IF(ier_num/=0) RETURN
@@ -107,6 +109,18 @@ IF(ier_num/=0) THEN
    RETURN
 ENDIF
 !
+! Check shift for special parameter names
+!
+if_shift: if(.not.lpresent(OSHIFT)) then                            ! User did not specify shift:
+   do i=1,REF_MAXPARAM_SPC                                ! Compare to special parameters
+      if(pname             (1:len_trim(refine_spc_name(i))) ==                  &
+         refine_spc_name(i)(1:len_trim(refine_spc_name(i)))) then
+         owerte(OSHIFT) = refine_spc_shift(i)             ! Take default value for special parameter
+         exit if_shift
+      endif
+   enddo
+endif if_shift
+!
 ! Set starting value for parameter, if 'value:' was given
 !
 temp_val = 0.0D0
@@ -131,18 +145,26 @@ IF(lpresent(OVALUE)) THEN
    ENDIF
 ENDIF
 !
-! Check number of derivative points
+! Check number of derivative points "points:"
 !
-IF(lpresent(ONDERIV)) THEN
+IF(lpresent(ONDERIV)) THEN                            ! User provided "points:"
    IF(.NOT. (NINT(owerte(ONDERIV))==3 .OR.         &
              NINT(owerte(ONDERIV))==5     ) ) THEN
       ier_num = -8
       ier_typ = ER_APPL
       RETURN
    ENDIF
+else
+   loop_nderiv: do i=1,REF_MAXPARAM_SPC                                ! Compare to special parameters
+      if(pname             (1:len_trim(refine_spc_name(i))) ==                  &
+         refine_spc_name(i)(1:len_trim(refine_spc_name(i)))) then
+         owerte(ONDERIV) = real(refine_spc_nderiv(i),kind=PREC_DP)     ! Take default value for special parameter
+         exit loop_nderiv
+      endif
+   enddo loop_nderiv
 ENDIF
 !
-! Set parameter ranges, if 'range:' was given
+! Set parameter ranges, if "range:" was given
 !
 range_low  = +1.0
 range_high = -1.0
@@ -253,11 +275,14 @@ IF(lrefine) THEN
 !      READ(opara(OVALUE)(1:lopara(OVALUE)), *) refine_p(ipar)
       refine_p(ipar) = temp_val
    ENDIF
+!   write(*,'(a,a,f12.6,i3,f12.6)') 'FREE   ',refine_params(ipar), refine_p(ipar), &
+!   refine_nderiv(ipar), refine_shift(ipar)
 !
    fixed: DO i=1, refine_fix_n                 ! Remove from fixed list
       IF(pname == refine_fixed(i)) THEN        ! Found old parameter name
          IF(i==refine_fix_n) THEN              ! This is the last parameter
             refine_fixed(i) = ' '
+            refine_f    (i) = 1.0D0
             refine_fix_n = refine_fix_n - 1
          ELSE                                  ! This is not the last parameter
             DO j=i+1, refine_fix_n
@@ -289,11 +314,20 @@ ELSE
          CALL alloc_params_fix(n_params)
       ENDIF
       refine_fix_n = refine_fix_n + 1
-      refine_fixed(refine_fix_n)   = pname
+      refine_fixed(refine_fix_n) = pname
+      refine_f(refine_fix_n)     = temp_val
    ENDIF
 ENDIF
 !
-CALL gl_set_pnumber(refine_par_n, refine_fix_n, refine_params, refine_fixed)
+CALL gl_set_pnumber(REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refine_fix_n, &
+     refine_params, refine_fixed)
+!!do i=1, max(REF_MAXPARAM,refine_par_n)
+!   write(*,'(a,a,f12.6)') 'FREE   ',refine_params(i), refine_p(i), &
+!   refine_nderiv(i), refine_shift(i)
+!enddo
+!do i=1, max(REF_MAXPARAM_FIX,refine_fix_n)
+!  write(*,'(a,a,f12.6)') 'FIXED  ',refine_fixed(i), refine_f(i)
+!enddo
 !
 END SUBROUTINE refine_add_param
 !

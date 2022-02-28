@@ -1,3 +1,7 @@
+module kuplot_blk_mod
+!
+contains
+!
 !*****7*****************************************************************
 !                                                                       
       SUBROUTINE kuplot_initarrays 
@@ -14,6 +18,8 @@
 !     USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_color_mod
+use kuplot_init_devices_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -320,6 +326,14 @@
       frame (iw, i, 4) = 1.0 
       ENDDO 
       ENDDO 
+!
+! Fit
+!
+p        = 0.0
+dp       = 0.0
+pinc     = 0.0
+pra(:,1) = +1.0    ! Default to infinite parameter range
+pra(:,2) = -1.0
 !                                                                       
       END SUBROUTINE kuplot_initarrays                     
 !*****7*****************************************************************
@@ -341,10 +355,12 @@ USE support_mod
       PARAMETER (maxw = 5) 
       PARAMETER (idef = 9) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+CHARACTER(len=*), intent(inout) :: zeile 
+integer , intent(inout) :: lp
+!
       CHARACTER(LEN=PREC_STRING) ::cpara (maxw) 
       CHARACTER(80) cdummy 
-      INTEGER lp, ianz 
+      INTEGER :: ianz 
       INTEGER lpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -387,11 +403,13 @@ USE support_mod
       PARAMETER (maxw = 5) 
       PARAMETER (idef = 9) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+CHARACTER(len=*), intent(inout) :: zeile 
+integer , intent(inout) :: lp
+!
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(80) cdummy 
       INTEGER lpara (maxw) 
-      INTEGER lp, ianz 
+      INTEGER ::  ianz 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
 !                                                                       
@@ -425,8 +443,10 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
+integer, intent(in) :: idef
+!
       CHARACTER(1) q 
-      INTEGER idef, i, j, k 
+      INTEGER i, j, k 
 !                                                                       
 !                                                                       
       q = char (39) 
@@ -563,8 +583,10 @@ USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
+integer, intent(in) :: idef
+!
       CHARACTER(80) cdummy 
-      INTEGER idef, i1, i2, i3, i4, i5 
+      INTEGER :: i1, i2, i3, i4, i5 
 !                                                                       
       READ (idef, 1, err = 98, end = 99) cdummy 
       READ (idef, 1, err = 98, end = 99) cdummy 
@@ -731,3 +753,4 @@ USE support_mod
 !                                                                       
  1000 FORMAT   (1x,'Reading defaults : ',a) 
       END SUBROUTINE kuplot_auto_def                       
+end module kuplot_blk_mod

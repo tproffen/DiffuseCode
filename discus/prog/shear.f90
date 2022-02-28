@@ -26,7 +26,6 @@ CONTAINS
       USE shear_mod 
       USE discus_show_menu
       USE update_cr_dim_mod
-!     USE trafo_mod
 !
       USE ber_params_mod
       USE calc_expr_mod
@@ -73,8 +72,6 @@ USE str_comp_mod
       LOGICAL lselect 
       REAL(kind=PREC_DP) :: hkl (3), h (3), x 
 real(kind=PREC_DP), dimension(3), parameter  :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /)
-!                                                                       
-!     REAL do_blen 
 !                                                                       
 !                                                                       
       DATA l_need_setup / .true. / 
@@ -717,12 +714,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER mol_lis (maxscat+1) 
       INTEGER i, j, k 
       LOGICAL lspace 
-      REAL det 
+      REAL(kind=PREC_DP) :: det 
 real(kind=PREC_DP) ::  u (3), v (3), w (3) 
 real(kind=PREC_DP), dimension(3), parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /)
-      REAL w12, w13, w23 
-!                                                                       
-!     REAL do_bang 
+      REAL(KIND=PREC_DP) :: w12, w13, w23 
 !                                                                       
       DATA lspace / .true. / 
 !                                                                       
@@ -862,7 +857,6 @@ USE discus_config_mod
 USE crystal_mod 
 USE metric_mod
 USE shear_mod 
-!     USE tensors_mod
 !
 USE errlist_mod 
 use matrix_mod
@@ -877,21 +871,12 @@ INTEGER :: i, j
 INTEGER :: laenge 
 LOGICAL,parameter :: lspace = .true.
 !                                                                       
-!     REAL kron (3, 3) 
 REAL(kind=PREC_DP) :: a (3, 3) 
-!     REAL b (3, 3) 
 REAL(kind=PREC_DP) :: fd, fn, sca 
 REAL(kind=PREC_DP) :: u (3), v (3), w (3) 
 REAL(kind=PREC_DP), dimension(3), parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /)
 REAL(kind=PREC_DP) :: inv_eigenv (3, 3) 
 !
-!     REAL skalpro 
-!     REAL do_blen 
-!                                                                       
-!                                                                       
-!     DATA kron / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
-!     DATA lspace / .true. / 
-!                                                                       
 IF (shear_input.eq.SHEAR_MATRIX) then 
 !                                                                       
 !     --initialize matrix and angle                                     
@@ -1052,19 +1037,18 @@ END SUBROUTINE shear_setup
       USE crystal_mod 
       USE atom_env_mod 
       USE shear_mod 
-!     USE trafo_mod
       USE errlist_mod 
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER :: i, j, l 
+      INTEGER :: i_start, i_end 
+      REAL(kind=PREC_DP) :: ushear (4), ures (4) 
+      REAL(kind=PREC_DP) :: werte (5) 
 !                                                                       
-      INTEGER i, j, l 
-      INTEGER i_start, i_end 
-      REAL ushear (4), ures (4) 
-      REAL werte (5) 
-!                                                                       
-      DATA ushear / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA ushear / 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
+      DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
@@ -1128,21 +1112,20 @@ END SUBROUTINE shear_setup
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod
-!     USE trafo_mod
       USE errlist_mod 
+use precision_mod
+!
       IMPLICIT none 
-!                                                                       
-       
 !                                                                       
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
       INTEGER :: imole_t = 1
-      REAL ushear (4), ures (4) 
-      REAL werte (5), use_orig (3) 
-      REAL diff (3) 
+      REAL(kind=PREC_DP) :: ushear (4), ures (4) 
+      REAL(kind=PREC_DP) :: werte (5), use_orig (3) 
+      REAL(kind=PREC_DP) :: diff (3) 
 !                                                                       
-      DATA ushear / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA ushear / 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
+      DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the molecules  
 !                                                                       
@@ -1299,21 +1282,20 @@ END SUBROUTINE shear_setup
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
-!     USE trafo_mod
       USE errlist_mod 
+use precision_mod
+!
       IMPLICIT none 
-!                                                                       
-       
 !                                                                       
       INTEGER i, j, ii, l, i0 
       INTEGER i_start, i_end 
       INTEGER :: imole_t = 1
-      REAL diff (3) 
-      REAL ushear (4), ures (4) 
-      REAL werte (5) 
+      REAL(kind=PREC_DP) :: diff (3) 
+      REAL(kind=PREC_DP) :: ushear (4), ures (4) 
+      REAL(kind=PREC_DP) :: werte (5) 
 !                                                                       
-      DATA ushear / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA ushear / 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
+      DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the molecules  
 !                                                                       
@@ -1465,21 +1447,20 @@ END SUBROUTINE shear_setup
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
-!     USE trafo_mod
       USE errlist_mod 
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
-       
-!                                                                       
-      INTEGER i, j, ii, l, i0, m 
-      INTEGER i_start, i_end 
+      INTEGER :: i, j, ii, l, i0, m 
+      INTEGER :: i_start, i_end 
       INTEGER :: imole_t=1
-      REAL diff (3) 
-      REAL ushear (4), ures (4) 
-      REAL werte (5) 
+      REAL(kind=PREC_DP) :: diff (3) 
+      REAL(kind=PREC_DP) :: ushear (4), ures (4) 
+      REAL(kind=PREC_DP) :: werte (5) 
 !                                                                       
-      DATA ushear / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA ushear / 0.0D0, 0.0D0, 0.0D0, 1.0 / 
+      DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the molecules  
 !                                                                       
@@ -1639,7 +1620,6 @@ END SUBROUTINE shear_setup
 !+                                                                      
       USE discus_config_mod 
       USE shear_mod 
-!     USE trafo_mod
 !                                                                       
       USE param_mod 
       USE prompt_mod 
@@ -1651,11 +1631,11 @@ use precision_mod
       LOGICAL, intent(in) :: lspace 
 !                                                                       
       REAL(kind=PREC_DP), intent(in) :: uvw (3) 
-      REAL ushear (4), ures (4) 
-      REAL werte (5) 
+      REAL(kind=PREC_DP) :: ushear (4), ures (4) 
+      REAL(kind=PREC_DP) :: werte (5) 
 !                                                                       
-      DATA ushear / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA ushear / 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
+      DATA werte / 0.0D0, 0.0D0, 0.D00, 0.0D0, 0.0D0 / 
 !                                                                       
 !     real space part                                                   
 !                                                                       

@@ -1,3 +1,7 @@
+module kuplot_init_devices_mod
+!
+contains
+!
 !*****7***************************************************************  
 SUBROUTINE init_devices 
 !-                                                                      
@@ -58,3 +62,4 @@ dev_ID(:,x11) = -1
       keyb_r = 'r' 
 !                                                                       
       END SUBROUTINE init_devices                   
+end module kuplot_init_devices_mod

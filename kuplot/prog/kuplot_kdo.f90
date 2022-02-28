@@ -10,8 +10,19 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous)
       USE kuplot_diffev_mod
       USE kuplot_2dm
 !
-USE kuplot_fit_old_mod
+!USE kuplot_fit_old_mod
+use kuplot_blk_mod
+use kuplot_calc_mod
+use kuplot_color_mod
 USE kuplot_fit6
+use kuplot_frame_mod
+use kuplot_load_mod
+use kuplot_math_mod
+use kuplot_para_mod
+use kuplot_plot_mod
+use kuplot_reset_mod
+use kuplot_save_mod
+use kuplot_show_mod
 USE kuplot_toglobal
 !
       USE ber_params_mod
@@ -237,9 +248,9 @@ CHARACTER(LEN=8)           :: bef
 !                                                                       
 !-------  Enter fit sublevel                                            
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
-                 str_comp (bef, 'f55', 3, lbef, 3)       ) THEN
-            CALL do_fit (zei, lc) !, previous) 
+!        ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
+!                str_comp (bef, 'f55', 3, lbef, 3)       ) THEN
+!           CALL do_fit (zei, lc) !, previous) 
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
                  str_comp (bef, 'fit', 3, lbef, 3)       ) THEN
             CALL do_f66 (zei, lc) !, previous) 
@@ -367,8 +378,8 @@ CHARACTER(LEN=8)           :: bef
 !                                                                       
 !-------  Activate mouse menu                                           
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (bef, 'mouse', 3, lbef, 5) ) then 
-            CALL do_mouse (zei, lc) 
+!         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (bef, 'mouse', 3, lbef, 5) ) then 
+!            CALL do_mouse (zei, lc) 
 !                                                                       
 !-------  Calculate averages, ..                                        
 !                                                                       
@@ -483,7 +494,7 @@ CHARACTER(LEN=8)           :: bef
             CALL para_seti (zei, lc, imarktyp, 1, maxkurvtot, bef,      &
             - 3, 5000, .false.)                                         
          ELSEIF (str_comp (bef, 'lcol', 3, lbef, 4) ) then 
-            CALL para_seti (zei, lc, ilinecol, 0, maxkurvtot, bef, 1,   &
+            CALL para_seti (zei, lc, ilinecol, 0, maxkurvtot, bef,-1,   &
             15, .true.)                                                 
          ELSEIF (str_comp (bef, 'mcol', 3, lbef, 4) ) then 
             CALL para_seti (zei, lc, imarkcol, 1, maxkurvtot, bef, 1,   &
@@ -510,7 +521,7 @@ CHARACTER(LEN=8)           :: bef
 !-------  Reset                                                         
 !                                                                       
          ELSEIF (str_comp (bef, 'rese', 3, lbef, 4) ) then 
-            CALL do_rese (zei, lc) 
+            CALL kuplot_do_reset (zei, lc) 
 !                                                                       
 !-------  Set annotations                                               
 !                                                                       

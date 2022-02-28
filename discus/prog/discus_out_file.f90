@@ -1,4 +1,7 @@
 !
+!  OBSOLETE; standalone no longer supported
+!*******************************************************************************
+!
 !  Version for stand alone DISCUS
 !  The file is always written to hard disk
 !  Separate routines for 1D and 2D files
@@ -6,12 +9,13 @@
 SUBROUTINE output_save_file_1d( outfile, npkt1, xwrt, ywrt, mode )
 !
 USE errlist_mod
+use precision_mod
 IMPLICIT NONE
 !
 CHARACTER (LEN=*),           INTENT(IN) :: outfile
 INTEGER,                     INTENT(IN) :: npkt1
-REAL   , DIMENSION(1:npkt1), INTENT(IN) :: xwrt
-REAL   , DIMENSION(1:npkt1), INTENT(IN) :: ywrt
+REAL(kind=PREC_DP)   , DIMENSION(1:npkt1), INTENT(IN) :: xwrt
+REAL(kind=PREC_DP)   , DIMENSION(1:npkt1), INTENT(IN) :: ywrt
 integer                    , intent(in) :: mode
 !
 INTEGER, PARAMETER :: IFF = 2
@@ -34,13 +38,15 @@ SUBROUTINE output_save_file_2d( outfile, ranges, npkt1, npkt2, zwrt, &
            header_lines, nheader)
 !
 USE errlist_mod
+use precision_mod
+!
 IMPLICIT NONE
 !
 CHARACTER (LEN=*),           INTENT(IN) :: outfile
-REAL   , DIMENSION(1:4),     INTENT(IN) :: ranges
+REAL(kind=PREC_DP)   , DIMENSION(1:4),     INTENT(IN) :: ranges
 INTEGER,                     INTENT(IN) :: npkt1
 INTEGER,                     INTENT(IN) :: npkt2
-REAL   , DIMENSION(1:npkt1, 1:npkt2), INTENT(IN) :: zwrt
+REAL(kind=PREC_DP)   , DIMENSION(1:npkt1, 1:npkt2), INTENT(IN) :: zwrt
 CHARACTER (LEN=160), DIMENSION(:), INTENT(IN) :: header_lines
 INTEGER,                           INTENT(IN) :: nheader! number of lines in header
 

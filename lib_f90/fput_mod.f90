@@ -619,7 +619,7 @@ CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: fpara
 CHARACTER(LEN=PREC_STRING)                  :: cstr, line 
 CHARACTER(LEN=1)                     :: quote 
-REAL                     :: wert 
+REAL(KIND=PREC_DP)       :: wert 
 INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER                  :: ianz, lstr, i, ie, ianzz, ii 
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte

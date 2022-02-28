@@ -14,21 +14,22 @@ SUBROUTINE dis_fit_plane(NATOMS, list, hkl, dist)
 USE crystal_mod
 USE errlist_mod
 USE matrix_mod
+use precision_mod
 !
 IMPLICIT NONE
 !
-INTEGER                   , INTENT(IN)  :: NATOMS
-INTEGER, DIMENSION(NATOMS), INTENT(IN)  :: list
-REAL   , DIMENSION(3)     , INTENT(OUT) :: hkl
-REAL                      , INTENT(OUT) :: dist
+INTEGER                              , INTENT(IN)  :: NATOMS
+INTEGER           , DIMENSION(NATOMS), INTENT(IN)  :: list
+REAL(kind=PREC_DP), DIMENSION(3)     , INTENT(OUT) :: hkl
+REAL(kind=PREC_DP)                   , INTENT(OUT) :: dist
 !
 INTEGER :: i
-REAL, DIMENSION(3)                :: com
-REAL, DIMENSION(:,:), ALLOCATABLE :: points
-REAL                              :: sum_xx, sum_yy, sum_zz
-REAL                              :: sum_xy, sum_xz, sum_yz
-REAL                              :: sum_yx, sum_zx, sum_zy
-REAL                              :: det_x, det_y, det_z
+REAL(kind=PREC_DP), DIMENSION(3)                :: com
+REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: points
+REAL(kind=PREC_DP)                              :: sum_xx, sum_yy, sum_zz
+REAL(kind=PREC_DP)                              :: sum_xy, sum_xz, sum_yz
+REAL(kind=PREC_DP)                              :: sum_yx, sum_zx, sum_zy
+REAL(kind=PREC_DP)                              :: det_x, det_y, det_z
 !
 hkl(:) = 0
 dist   = 0.0

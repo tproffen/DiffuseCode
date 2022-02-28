@@ -1,135 +1,235 @@
+module kuplot_color_mod
+!
 !*****7*****************************************************************
 !     Here are all the routines for color handling for the              
 !     KUPLOT bitmaps.                                                   
 !*****7*****************************************************************
+!
+contains
+!
 SUBROUTINE set_color (zeile, lp) 
 !+                                                                      
 !     Set colours for background & pens                                 
 !-                                                                      
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE kuplot_config 
+USE kuplot_mod 
+use kuplot_show_mod
+!
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
 USE precision_mod
+use str_comp_mod
+use take_param_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 5) 
+INTEGER, PARAMETER :: maxw = 5
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER, intent(inout) :: lp 
 !                                                                       
-      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER ianz, icol 
-      REAL(KIND=PREC_DP) werte (maxw) 
+character(len=16) :: string
+character(len=PREC_STRING)                  :: oopara
+CHARACTER(LEN=PREC_STRING), dimension(MAXW) :: cpara ! (maxw) 
+INTEGER                   , dimension(MAXW) :: lpara ! (maxw) 
+INTEGER :: i, j, ianz, icol 
+integer :: length
+integer :: i1, i2         ! Color index range
+REAL(KIND=PREC_DP)        , dimension(MAXW) :: werte ! (maxw) 
+real(kind=PREC_SP), save :: low  = 0.0
+real(kind=PREC_SP), save :: high = 1.0
+!
+integer, parameter :: NOPTIONAL = 2
+integer, parameter :: O_RANGE   = 1
+integer, parameter :: O_CMAP    = 2
+character(LEN=   5), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
+!
+data oname  / 'range', 'map  '  /
+data loname /  5,       3       /
+opara  =  (/ '[0.0,1.0]', 'none     ' /)   ! Always provide fresh default values
+lopara =  (/  9,           9          /)
+owerte =  (/  0.0,         0.0        /)
+!
+!
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) return 
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF (ier_num.ne.0) return 
 !                                                                       
-      IF (ianz.eq.0) then 
-         CALL show_color 
-      ELSEIF (ianz.eq.4) then 
-         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) return 
-         icol = nint (werte (1) ) 
-         IF (icol.lt.0.or.icol.gt.18) then 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-         ELSE 
-            IF (werte (2) .le.1.0.and.werte (2) .ge.0.0.and.werte (3)   &
-            .le.1.0.and.werte (3) .ge.0.0.and.werte (4)                 &
-            .le.1.0.and.werte (4) .ge.0.0) then                         
-               colour (iwin, icol, 1) = werte (2) 
-               colour (iwin, icol, 2) = werte (3) 
-               colour (iwin, icol, 3) = werte (4) 
-            ELSE 
-               ier_num = - 18 
-               ier_typ = ER_APPL 
-            ENDIF 
-         ENDIF 
+IF (ianz.eq.0 .and. .not.lpresent(O_CMAP)) then 
+   CALL show_color 
+ELSEIF (ianz.eq.4 .and. .not.lpresent(O_CMAP)) then 
+   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+   IF (ier_num.ne.0) return 
+   icol = nint (werte (1) ) 
+!  IF (icol.lt.0.or.icol.gt.18) then 
+   IF (icol.lt.0.or.icol.gt.MAXCOL) then 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ELSE 
+      IF (werte(2) .le. 1.0 .and. werte(2) .ge. 0.0 .and.   &
+          werte(3) .le. 1.0 .and. werte(3) .ge. 0.0 .and.   &
+          werte(4) .le. 1.0 .and. werte(4) .ge. 0.0       ) then                         
+         colour (iwin, icol, 1) = werte (2) 
+         colour (iwin, icol, 2) = werte (3) 
+         colour (iwin, icol, 3) = werte (4) 
       ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
+         ier_num = - 18 
+         ier_typ = ER_APPL 
       ENDIF 
+   ENDIF 
+elseif(lpresent(O_CMAP)) then
+!
+   string = ' '
+   string = opara(O_CMAP)(1:lopara(O_CMAP))
+   call PGQCOL(i1, i2)          ! Inquire color index range
+   if(i2==0) then
+      i1 = 0
+      i2 = 99
+   endif
+!
+!  Choose color map
+!
+   if(opara(O_RANGE)/='current') then
+      low  = 0.0
+      high = 1.0
+      oopara = opara(O_RANGE)
+      length = lopara(O_RANGE)
+      call get_optional_multi(MAXW, oopara, length, werte, ianz)
+      if(werte(1)>=0.0 .and. werte(1)<=1.0 .and. &
+         werte(2)>=0.0 .and. werte(2)<=1.0 .and. &
+         werte(1)<= werte(2)                   ) then
+         low  = werte(1)
+         high = werte(2)
+      else
+         ier_num = -76
+         ier_typ = ER_APPL
+         ier_msg(2) = 'Check the ''range:'' parameter'
+         return
+      endif
+   endif
+   werte(1) =  0.0D0
+   werte(2) =  1.0D0
+!  Set color map style
+   if(str_comp(string  , 'fire', 4, len_trim(string), 4) ) then
+      CALL cmap_fire(.false.) 
+   elseif(str_comp(string  , 'gray', 4, len_trim(string), 4) .or. &
+          str_comp(string  , 'grey', 4, len_trim(string), 4)       ) then
+      CALL cmap_gray(.false.) 
+   elseif(str_comp(string  , 'thermal', 4, len_trim(string), 4) ) then
+      CALL cmap_thermal(real(werte(1)), real(werte(2)), .false.) 
+   elseif(str_comp(string  , 'pdf', 3, len_trim(string), 3) ) then
+      CALL cmap_pdf(real(werte(1)), real(werte(2)), .false.) 
+   elseif(str_comp(string  , 'ice', 3, len_trim(string), 3) ) then
+      CALL cmap_ice(.false.) 
+   elseif(str_comp(string  , 'kupl', 4, len_trim(string), 4) ) then
+      CALL cmap_kupl(.false.) 
+   elseif(str_comp(string  , 'user', 4, len_trim(string), 4) ) then
+      continue
+   elseif(str_comp(string  , 'invert', 6, len_trim(string), 6) ) then
+      CALL cmap_invert (.true.)
+   ELSE
+      ier_num = -6
+      ier_typ = ER_COMM
+      ier_msg(1) = 'Unknown color map name specified'
+      ier_msg(2) = 'Check the ''map:'' parameter'
+   endif
+   do i=16, i2 !MAXCOL
+      j = nint(MAXCOL*low+1.) + (i-15)*(nint((MAXCOL-1)*(high-low)))/(i2-15)   ! Map color range onto numbers 16:i2
+      colour(iwin, i, 1:3) = col_map(iwin, j, 1:3) 
+   enddo
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
 !                                                                       
-      END SUBROUTINE set_color                      
+END SUBROUTINE set_color                      
+!
 !*****7*****************************************************************
-      SUBROUTINE set_cmap (zeile, lp) 
+!
+SUBROUTINE set_cmap (zeile, lp) 
 !                                                                       
 !     Set colour map                                                    
 !                                                                       
-      USE errlist_mod 
-      USE get_params_mod
-      USE kuplot_config 
-      USE kuplot_mod
+USE errlist_mod 
+USE get_params_mod
+USE kuplot_config 
+USE kuplot_mod
 ! 
-      USE build_name_mod
+USE build_name_mod
 USE precision_mod
 USE str_comp_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 5) 
+INTEGER, PARAMETER :: maxw = 5
 !                                                                       
-      CHARACTER ( * ) zeile 
-      CHARACTER(LEN=PREC_STRING) cpara (maxw) 
-      REAL(KIND=PREC_DP) werte (maxw) 
+CHARACTER(len=*), intent(inout) :: zeile 
+INTEGER, intent(inout) :: lp 
+!                                                                       
+CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+REAL(KIND=PREC_DP) :: werte (maxw) 
 REAL :: zzmin, zzmax
-      INTEGER lpara (maxw) 
-      INTEGER ianz, lp 
+INTEGER :: lpara (maxw) 
+INTEGER :: ianz
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) return 
 !                                                                       
-      IF (ianz.ge.1) then 
-         IF (str_comp (cpara (1) , 'gray', 3, lpara (1) , 4) ) then 
-            CALL cmap_gray (.true.) 
-            col_map_type(iwin,iframe) = COL_MAP_GRAY
-         ELSEIF (str_comp (cpara (1) , 'ice', 3, lpara (1) , 3) ) then 
-            CALL cmap_ice (.true.) 
-            col_map_type(iwin,iframe) = COL_MAP_ICE
-         ELSEIF (str_comp (cpara (1) , 'fire', 3, lpara (1) , 4) ) then 
-            CALL cmap_fire (.true.) 
-            col_map_type(iwin,iframe) = COL_MAP_FIRE
-         ELSEIF (str_comp (cpara (1) , 'kupl', 3, lpara (1) , 4) ) then 
-            CALL cmap_kupl (.true.) 
-            col_map_type(iwin,iframe) = COL_MAP_KUPL
-         ELSEIF (str_comp (cpara (1) , 'thermal', 3, lpara (1) , 7) ) then 
-            zzmin = z_min (iwin, iframe, 1) 
-            zzmax = nz(iwin, iframe, 1) * z_inc(iwin, iframe, 1) + z_min(iwin, iframe, 1)
-            CALL cmap_thermal (zzmin, zzmax, .true.) 
-            col_map_type(iwin,iframe) = COL_MAP_THER
-         ELSEIF (str_comp (cpara (1) , 'pdf', 3, lpara (1) , 3) ) then 
-            zzmin = z_min (iwin, iframe, 1) 
-            zzmax = nz(iwin, iframe, 1) * z_inc(iwin, iframe, 1) + z_min(iwin, iframe, 1)
-            CALL cmap_pdf (zzmin, zzmax, .true.) 
-            col_map_type(iwin,iframe) = COL_MAP_PDF
-         ELSEIF (str_comp (cpara (1) , 'invert', 3, lpara (1) , 6) )    &
-         then                                                           
-            CALL cmap_invert (.true.) 
-            col_map_type(iwin,iframe) = -col_map_type(iwin,iframe)
-         ELSEIF (str_comp (cpara (1) , 'read', 3, lpara (1) , 4) ) then 
-            CALL do_build_name (ianz, cpara, lpara, werte, maxw, 2) 
-            IF (ier_num.eq.0) call cmap_read (cpara (2) ) 
-            col_map_type(iwin,iframe) = COL_MAP_READ
-         ELSEIF (str_comp (cpara (1) , 'write', 3, lpara (1) , 5) )     &
-         then                                                           
-            CALL do_build_name (ianz, cpara, lpara, werte, maxw, 2) 
-            IF (ier_num.eq.0) call cmap_write (cpara (2) ) 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-         ENDIF 
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-      ENDIF 
+IF (ianz.ge.1) then 
+   IF (str_comp (cpara (1) , 'gray', 3, lpara (1) , 4) ) then 
+      CALL cmap_gray (.true.) 
+      col_map_type(iwin,iframe) = COL_MAP_GRAY
+   ELSEIF (str_comp (cpara (1) , 'ice', 3, lpara (1) , 3) ) then 
+      CALL cmap_ice (.true.) 
+      col_map_type(iwin,iframe) = COL_MAP_ICE
+   ELSEIF (str_comp (cpara (1) , 'fire', 3, lpara (1) , 4) ) then 
+      CALL cmap_fire (.true.) 
+      col_map_type(iwin,iframe) = COL_MAP_FIRE
+   ELSEIF (str_comp (cpara (1) , 'kupl', 3, lpara (1) , 4) ) then 
+      CALL cmap_kupl (.true.) 
+      col_map_type(iwin,iframe) = COL_MAP_KUPL
+   ELSEIF (str_comp (cpara (1) , 'thermal', 3, lpara (1) , 7) ) then 
+      zzmin = z_min (iwin, iframe, 1) 
+      zzmax = nz(iwin, iframe, 1) * z_inc(iwin, iframe, 1) + z_min(iwin, iframe, 1)
+      CALL cmap_thermal (zzmin, zzmax, .true.) 
+      col_map_type(iwin,iframe) = COL_MAP_THER
+   ELSEIF (str_comp (cpara (1) , 'pdf', 3, lpara (1) , 3) ) then 
+      zzmin = z_min (iwin, iframe, 1) 
+      zzmax = nz(iwin, iframe, 1) * z_inc(iwin, iframe, 1) + z_min(iwin, iframe, 1)
+      CALL cmap_pdf (zzmin, zzmax, .true.) 
+      col_map_type(iwin,iframe) = COL_MAP_PDF
+   ELSEIF (str_comp (cpara (1) , 'invert', 3, lpara (1) , 6) )    &
+   then                                                           
+      CALL cmap_invert (.true.) 
+      col_map_type(iwin,iframe) = -col_map_type(iwin,iframe)
+   ELSEIF (str_comp (cpara (1) , 'read', 3, lpara (1) , 4) ) then 
+      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 2) 
+      IF (ier_num.eq.0) call cmap_read (cpara (2) ) 
+      col_map_type(iwin,iframe) = COL_MAP_READ
+   ELSEIF (str_comp (cpara (1) , 'write', 3, lpara (1) , 5) ) then
+      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 2) 
+      IF (ier_num.eq.0) call cmap_write (cpara (2) ) 
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
 !                                                                       
-      END SUBROUTINE set_cmap                       
+END SUBROUTINE set_cmap                       
+!
 !*****7*****************************************************************
       SUBROUTINE cmap_invert (lout) 
 !                                                                       
@@ -141,9 +241,10 @@ REAL :: zzmin, zzmax
 !                                                                       
       IMPLICIT none 
 !                                                                       
+      LOGICAL, intent(in) :: lout 
+!
       REAL dummy (maxcol, 3) 
       INTEGER i 
-      LOGICAL lout 
 !                                                                       
       IF (lout) WRITE(output_io, 1000) 
 !                                                                       
@@ -173,8 +274,9 @@ REAL :: zzmin, zzmax
 !                                                                       
       IMPLICIT none 
 !                                                                       
+LOGICAL, intent(in) :: lout 
+!
       INTEGER i 
-      LOGICAL lout 
 !                                                                       
       IF (lout) WRITE (output_io, 1000) 
 !                                                                       
@@ -197,9 +299,10 @@ REAL :: zzmin, zzmax
 !                                                                       
       IMPLICIT none 
 !                                                                       
+LOGICAL, intent(in) :: lout 
+!
       REAL rh, rf, rq, rp, rt 
       INTEGER i, ifarb 
-      LOGICAL lout 
 !                                                                       
       IF (lout) WRITE (output_io, 1000) 
 !                                                                       
@@ -256,8 +359,9 @@ REAL :: zzmin, zzmax
 !                                                                       
       IMPLICIT none 
 !                                                                       
+LOGICAL, intent(in) :: lout 
+!
       INTEGER i, ii, m 
-      LOGICAL lout 
 !                                                                       
       IF (lout) WRITE (output_io, 1000) 
 !                                                                       
@@ -300,8 +404,10 @@ REAL :: zzmin, zzmax
 !                                                                       
       IMPLICIT none 
 !                                                                       
+LOGICAL, intent(in) :: lout 
+!
       INTEGER i, ii, m 
-      LOGICAL lout 
+!     LOGICAL lout 
 !                                                                       
       IF (lout) WRITE (output_io, 1000) 
 !                                                                       
@@ -522,8 +628,9 @@ USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) filname 
-      INTEGER i, ir, ig, ib 
+CHARACTER(len=*), intent(in) :: filname 
+!
+INTEGER i, ir, ig, ib 
 !                                                                       
       CALL oeffne (33, filname, 'old') 
       IF (ier_num.eq.0) then 
@@ -566,7 +673,8 @@ USE support_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) filname 
+CHARACTER(len=*), intent(in) :: filname 
+!
       INTEGER i, ir, ig, ib 
 !                                                                       
       CALL oeffne (33, filname, 'unknown') 
@@ -586,3 +694,4 @@ USE support_mod
  1000 FORMAT     (' ------ > Writing colour map to file : ',A30) 
  2000 FORMAT     ('#',3z2.2) 
       END SUBROUTINE cmap_write                     
+end module kuplot_color_mod

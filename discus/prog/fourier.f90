@@ -84,8 +84,8 @@ IMPLICIT none
       INTEGER, DIMENSION(3):: csize
       LOGICAL              :: ldim 
       LOGICAL              :: ltop = .false. ! the top left corner has been defined
-      REAL   , DIMENSION(3)::  divis
-      REAL   , DIMENSION(3)::  rhkl
+      REAL(kind=PREC_DP)   , DIMENSION(3)::  divis
+      REAL(kind=PREC_DP)   , DIMENSION(3)::  rhkl
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_MODE    = 1
@@ -1259,9 +1259,6 @@ use precision_mod
       CHARACTER (LEN=8), DIMENSION(3), PARAMETER :: c_rad = (/ &
          'X-ray   ', 'neutron ', 'electron' /)
       CHARACTER(LEN=1), DIMENSION(0:3)           ::  extr_achs (0:3) 
-!     REAL            , DIMENSION(3)             ::  hor
-!     REAL            , DIMENSION(3)             ::  ver
-!     REAL            , DIMENSION(3)             ::  top
       REAL(kind=PREC_DP)                         ::  angle_vh
       REAL(kind=PREC_DP)                         ::  ratio_vh
       REAL(kind=PREC_DP)                         ::   aver_vh
@@ -1271,12 +1268,8 @@ use precision_mod
       REAL(kind=PREC_DP)                         ::  angle_tv
       REAL(kind=PREC_DP)                         ::  ratio_tv
       REAL(kind=PREC_DP)                         ::   aver_tv
-!     REAL            , DIMENSION(3)             ::  zero = (/0.0, 0.0, 0.0/)
       REAL(kind=PREC_DP), DIMENSION(3)           ::  length = (/0.0, 0.0, 0.0/)
       INTEGER i, j 
-!     LOGICAL lspace 
-!                                                                       
-!     REAL do_blen, do_bang 
 !                                                                       
       DATA extr_achs / ' ', 'h', 'k', 'l' / 
 !                                                                       

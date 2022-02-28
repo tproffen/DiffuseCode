@@ -15,7 +15,6 @@ CONTAINS
       USE atom_name
       USE molecule_mod 
       USE update_cr_dim_mod
-!      USE trafo_mod
 !                                                                       
       USE errlist_mod 
       USE get_params_mod
@@ -179,7 +178,6 @@ SUBROUTINE ther_vec(flag_all, a, uc, up)
 !
 USE crystal_mod
 USE metric_mod
-!USE trafo_mod
 USE lib_random_func
 USE random_mod
 USE precision_mod
@@ -187,14 +185,14 @@ USE precision_mod
 IMPLICIT NONE
 !
 LOGICAL           , INTENT(IN ) :: flag_all
-REAL              , INTENT(IN ) :: a
+REAL(kind=PREC_DP), INTENT(IN ) :: a
 REAL(kind=PREC_DP), DIMENSION(3), INTENT(OUT) :: uc
 REAL(kind=PREC_DP), DIMENSION(3), INTENT(OUT) :: up
 !
 INTEGER            :: i
-REAL               :: disp
-REAL               :: length
-REAL               :: up_length
+REAL(kind=PREC_DP) :: disp
+REAL(kind=PREC_DP) :: length
+REAL(kind=PREC_DP) :: up_length
 !
 !
 search: DO

@@ -1,18 +1,21 @@
+module refine_errlist_mod
+!
+contains
 !*****7****************************************************************
 !
 SUBROUTINE refine_errlist_appl
 !-
 !     Displays error Messages for the error type APPLication
 !+
-      USE errlist_mod
+USE errlist_mod
 USE lib_errlist_func
-      IMPLICIT      none
 !
+IMPLICIT      none
 !
-      INTEGER       iu,io
-      PARAMETER    (IU=-13,IO=0)
+INTEGER       iu,io
+PARAMETER    (IU=-13,IO=0)
 !
-      CHARACTER(LEN=45) ERROR(IU:IO)
+CHARACTER(LEN=45) ERROR(IU:IO)
 !
 !
       DATA ERROR ( IU:  0) /                                       &
@@ -32,7 +35,9 @@ USE lib_errlist_func
      &  ' '                                                        & !  0  ! refine
      &     /
 !
-      CALL disp_error ('APPL',error,iu,io)
+CALL disp_error ('APPL',error,iu,io)
 !
-      END SUBROUTINE refine_errlist_appl
+END SUBROUTINE refine_errlist_appl
+!
 !*****7****************************************************************
+end module refine_errlist_mod

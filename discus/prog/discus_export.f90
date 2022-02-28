@@ -245,9 +245,9 @@ CHARACTER (LEN=2), DIMENSION(:), ALLOCATABLE :: unique_names
 CHARACTER (LEN=4), DIMENSION(:), ALLOCATABLE :: shelx_names
 INTEGER          , DIMENSION(:), ALLOCATABLE :: unique_n_atoms 
 LOGICAL                  :: orig_OK =.FALSE.
-REAL                     :: z_unit
+REAL(KIND=PREC_DP)       :: z_unit
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
-REAL   , DIMENSION(3), PARAMETER :: NULL = (/0.00, 0.00, 0.00/)
+REAL(KIND=PREC_DP)   , DIMENSION(3), PARAMETER :: NULL = (/0.00, 0.00, 0.00/)
 !
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
 IF (ier_num.ne.0) THEN
@@ -312,13 +312,13 @@ befehl = 'lcell'
 lbef   = 5
 cpara(1) = origfile
 lpara(1) = 19
-CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0E-5, 0, .FALSE.)
+CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0D-5, 0, .FALSE.)
 CALL chem_elem(.FALSE.)
 z_unit = 192.0
 DO i=1, cr_nscat
    n_atoms(2,i) = NINT(res_para(i+1)*cr_natoms)
    IF(n_atoms(1,i)>0 .AND. n_atoms(2,i)>0) THEN
-      z_unit = MIN(z_unit, REAL(n_atoms(2,i)/n_atoms(1,i)))
+      z_unit = MIN(z_unit, REAL(n_atoms(2,i)/n_atoms(1,i), kind=PREC_DP))
    ENDIF
 ENDDO
 !
@@ -516,7 +516,7 @@ CHARACTER(LEN=*), DIMENSION(natoms  ), INTENT(IN) :: shelx_names
 !
 INTEGER :: stype
 INTEGER :: j
-REAL               :: occup,biso
+REAL(KIND=PREC_DP) :: occup,biso
 REAL(KIND=PREC_DP), DIMENSION(3) :: vec
 !
    stype = 0
@@ -575,7 +575,7 @@ INTEGER                  :: iatom, iscat, is, i, j, ii, ll
 INTEGER                  :: ntypes      ! Actual atom types      to be written to file
 INTEGER                  :: natoms      ! Actual number of atoms to be written to file
 INTEGER, DIMENSION(3)    :: icell 
-REAL   , DIMENSION(3)    :: shift
+REAL(KIND=PREC_DP)   , DIMENSION(3)    :: shift
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !
 ! Build the output file name
@@ -779,7 +779,7 @@ INTEGER         , DIMENSION(:), ALLOCATABLE :: atom_number
 INTEGER                  :: iatom, iscat, i, j, ii, ll
 INTEGER                  :: ntypes      ! Actual atom types      to be written to file
 INTEGER                  :: natoms      ! Actual number of atoms to be written to file
-REAL   , DIMENSION(3)    :: shift
+REAL(KIND=PREC_DP)   , DIMENSION(3)    :: shift
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !
 ! Build the output file name

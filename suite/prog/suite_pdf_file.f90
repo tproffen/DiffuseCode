@@ -1,4 +1,9 @@
 !
+! OBSOLETE
+! content has been moved to discus_s_pdf_file.f90 
+! Reference has been removed from suite CMakeLists.txt
+!*******************************************************************************
+!
 ! Version for DISCUS_SUITE
 ! The file is may be written directly into kuplot if the
 ! filename starts with 'kuplot'
@@ -8,20 +13,23 @@ SUBROUTINE pdf_save_file(cdummy, pdf_rfmin, pdf_rfmax, pdf_deltar, pdf_us_int,&
 !
 USE kuplot_config
 USE kuplot_mod
+use kuplot_extrema_mod
+!TOBEDEVELOPED use kuplot_math_mod
 USE errlist_mod
 USE lib_length
 USE support_mod
+use precision_mod
 !
 IMPLICIT NONE
 !
-CHARACTER (LEN=*), INTENT(IN) :: cdummy
-REAL,              INTENT(IN) :: pdf_rfmin
-REAL,              INTENT(IN) :: pdf_rfmax
-REAL,              INTENT(IN) :: pdf_deltar
-INTEGER,           INTENT(IN) :: pdf_us_int
-INTEGER,           INTENT(IN) :: pdf_calc_l
-INTEGER,           INTENT(IN) :: pdf_calc_u
-REAL,              INTENT(IN) :: pdf_skal
+CHARACTER (LEN=*) , INTENT(IN) :: cdummy
+REAL(kind=PREC_DP), INTENT(IN) :: pdf_rfmin
+REAL(kind=PREC_DP), INTENT(IN) :: pdf_rfmax
+REAL(kind=PREC_DP), INTENT(IN) :: pdf_deltar
+INTEGER,            INTENT(IN) :: pdf_us_int
+INTEGER,            INTENT(IN) :: pdf_calc_l
+INTEGER,            INTENT(IN) :: pdf_calc_u
+REAL(kind=PREC_DP), INTENT(IN) :: pdf_skal
 REAL(KIND(0.d0)), DIMENSION(pdf_calc_l:pdf_calc_u), INTENT(IN) :: pdf_calc
 !
 INTEGER   :: nmi
@@ -30,7 +38,7 @@ INTEGER   :: nmd
 INTEGER   :: i
 INTEGER   :: lname
 LOGICAL   :: lkuplot
-REAL      :: r
+REAL(kind=PREC_DP) :: r
 !
 INTEGER   :: nr
 INTEGER   :: maxpp

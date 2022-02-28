@@ -10,18 +10,20 @@ CONTAINS
 !
 !*******************************************************************************
 !
-REAL FUNCTION gammaq(a, x)
+REAL(kind=PREC_DP) FUNCTION gammaq(a, x)
 !
 ! Incomplete gamma function
 !
+use precision_mod
+!
 IMPLICIT NONE
 !
-REAL, INTENT(IN) :: a
-REAL, INTENT(IN) :: x
+REAL(kind=PREC_DP), INTENT(IN) :: a
+REAL(kind=PREC_DP), INTENT(IN) :: x
 !
-REAL :: gamser
-REAL :: gamcf
-REAL :: gln
+REAL(kind=PREC_DP) :: gamser
+REAL(kind=PREC_DP) :: gamcf
+REAL(kind=PREC_DP) :: gln
 !
 gammaq = 0.0
 !
@@ -45,19 +47,20 @@ END FUNCTION gammaq
 SUBROUTINE gser(a, x, gamser, gln)
 !
 ! 
+use precision_mod
 IMPLICIT NONE
 !
-REAL, INTENT(IN) :: a
-REAL, INTENT(IN) :: x
-REAL, INTENT(OUT) :: gamser
-REAL, INTENT(OUT) :: gln
+REAL(kind=PREC_DP), INTENT(IN) :: a
+REAL(kind=PREC_DP), INTENT(IN) :: x
+REAL(kind=PREC_DP), INTENT(OUT) :: gamser
+REAL(kind=PREC_DP), INTENT(OUT) :: gln
 !
-REAL   , PARAMETER :: EPS = 3.E-7
+REAL(kind=PREC_DP)   , PARAMETER :: EPS = 3.E-7
 INTEGER, PARAMETER :: ITMAX = 1000
 !
-REAL :: ap
-REAL :: sum
-REAL :: del
+REAL(kind=PREC_DP) :: ap
+REAL(kind=PREC_DP) :: sum
+REAL(kind=PREC_DP) :: del
 INTEGER :: n
 !
 gln = gammln(a)
@@ -78,7 +81,7 @@ DO n=1,ITMAX
    del = del*x/ap
    sum = sum + del
    IF(ABS(del) < ABS(sum)*EPS) THEN
-      gamser = sum*EXP(-x+a*ALOG(x)-gln)
+      gamser = sum*EXP(-x+a*LOG(x)-gln)
       RETURN
    ENDIF
 ENDDO
@@ -92,26 +95,27 @@ END SUBROUTINE gser
 SUBROUTINE gcf(a, x, gamcf, gln)
 !
 ! 
+use precision_mod
 IMPLICIT NONE
 !
-REAL, INTENT(IN) :: a
-REAL, INTENT(IN) :: x
-REAL, INTENT(OUT) :: gamcf
-REAL, INTENT(OUT) :: gln
+REAL(kind=PREC_DP), INTENT(IN) :: a
+REAL(kind=PREC_DP), INTENT(IN) :: x
+REAL(kind=PREC_DP), INTENT(OUT) :: gamcf
+REAL(kind=PREC_DP), INTENT(OUT) :: gln
 !
-REAL   , PARAMETER :: EPS = 3.E-7
+REAL(kind=PREC_DP)   , PARAMETER :: EPS = 3.E-7
 INTEGER, PARAMETER :: ITMAX = 1000
 !
-REAL :: a0
-REAL :: a1
-REAL :: b0
-REAL :: b1
-REAL :: fac
-REAL :: g
-REAL :: gold
-REAL :: an
-REAL :: ana
-REAL :: anf
+REAL(kind=PREC_DP) :: a0
+REAL(kind=PREC_DP) :: a1
+REAL(kind=PREC_DP) :: b0
+REAL(kind=PREC_DP) :: b1
+REAL(kind=PREC_DP) :: fac
+REAL(kind=PREC_DP) :: g
+REAL(kind=PREC_DP) :: gold
+REAL(kind=PREC_DP) :: an
+REAL(kind=PREC_DP) :: ana
+REAL(kind=PREC_DP) :: anf
 INTEGER :: n
 !
 gln = gammln(a)
@@ -124,7 +128,7 @@ b1   = 1.0
 fac  = 1.0
 !
 DO n=1,itmax
-   an  = FLOAT(n)
+   an  = real(n, kind=PREC_DP)
    ana = an - a
    a0  = (a1+a0*ana)*fac
    b0  = (b1+b0*ana)*fac
@@ -135,7 +139,7 @@ DO n=1,itmax
       fac = 1./a1
       g   = b1*fac
       IF(ABS((g-gold)/g) < EPS ) THEN
-         gamcf = EXP(-x+a*ALOG(x)-gln)*g
+         gamcf = EXP(-x+a*LOG(x)-gln)*g
          RETURN
       ENDIF
       gold = g
@@ -146,11 +150,12 @@ END SUBROUTINE gcf
 !
 !*******************************************************************************
 !
-REAL FUNCTION gammln(xx)
+REAL(kind=PREC_DP) FUNCTION gammln(xx)
 !
+use precision_mod
 IMPLICIT NONE
 !
-REAL, INTENT(IN) :: xx
+REAL(kind=PREC_DP), INTENT(IN) :: xx
 !
 REAL(KIND=KIND(1.0d0)), DIMENSION(6) :: cof
 REAL(KIND=KIND(1.0d0))               :: stp
@@ -180,7 +185,7 @@ DO j=1,6
    ser = ser + cof(j)/x
 ENDDO
 !
-gammln = REAL(tmp + DLOG(STP*SER))
+gammln = REAL(tmp + DLOG(STP*SER), kind=PREC_DP)
 !
 !
 END FUNCTION gammln

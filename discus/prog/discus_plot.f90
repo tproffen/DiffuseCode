@@ -22,7 +22,6 @@ USE discus_show_menu
 USE get_iscat_mod
 USE prop_para_func
 USE update_cr_dim_mod
-!USE trafo_mod
 !
 USE envir_mod
 USE ber_params_mod
@@ -65,7 +64,7 @@ CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=4) :: hlp_sec = 'plot'
 CHARACTER(5) befehl 
 CHARACTER(1) cdum 
-REAL :: size, rr=0.0, rg=0.0, rb=0.0
+REAL(kind=PREC_DP) :: size, rr=0.0D0, rg=0.0D0, rb=0.0D0
 INTEGER lp, length 
 INTEGER :: ianz, i, j, is, it, ic, lbef 
 !      INTEGER :: npoly     
@@ -101,8 +100,8 @@ integer, parameter :: OCOLOR  =  7
 integer, parameter :: OPLOT   =  8
 integer, parameter :: OKEEP   =  9
 integer, parameter :: OKILL   = 10
-integer, parameter :: OGEOM   = 11
-integer, parameter :: OEXPORT = 12
+!integer, parameter :: OGEOM   = 11    ! Not yet used
+!integer, parameter :: OEXPORT = 12    ! Not yet used
 !
 DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', &
               'plot' , 'keep'  , 'kill',  'geom', 'export' /
@@ -1084,13 +1083,11 @@ end subroutine do_line
       CHARACTER(32) c_property 
       INTEGER i, j, length 
       LOGICAL lspace 
-      REAL w_na, w_no, w_ao, aver 
-!      REAL u (3), w (3)
-real(kind=PREC_SP) :: angl, b_a, b_o 
+REAL(kind=PREC_DP) :: w_na, w_no, w_ao, aver 
+real(kind=PREC_DP) :: angl, b_a, b_o 
 real(kind=PREC_DP), dimension(3) :: u, w
 real(kind=PREC_DP), dimension(3), parameter :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /)
 !                                                                       
-!     REAL do_bang, do_blen 
 !                                                                       
       lspace = .true. 
 !                                                                       
@@ -1411,9 +1408,7 @@ USE discus_plot_init_mod
 USE metric_mod
 USE symm_mod
 USE symm_sup_mod
-!USE tensors_mod
 USE trans_sup_mod
-!USE trafo_mod
 !
 USE spcgr_apply
 !
@@ -1433,7 +1428,7 @@ use string_convert_mod
 IMPLICIT NONE
 !
 REAL(kind=PREC_DP), PARAMETER :: azero = 1.0d0
-REAL, PARAMETER :: eps   = 1.0E-5
+REAL(kind=PREC_DP), PARAMETER :: eps   = 1.0E-5
 INTEGER                          , INTENT(IN) :: MAXW
 CHARACTER(LEN=*), DIMENSION(MAXW), INTENT(IN) :: opara
 CHARACTER(LEN=PREC_STRING)   :: kill
@@ -1472,10 +1467,10 @@ REAL(KIND=PREC_DP), DIMENSION(3,3):: rotf     !Rotation matrix
 REAL(KIND=PREC_DP), DIMENSION(3,3):: test     !Test for unit matrix
 REAL(KIND=PREC_DP) :: det, trace
 INTEGER :: ier
-REAL                :: rr
+REAL(KIND=PREC_DP)  :: rr
 REAL(KIND=PREC_DP)                :: beta
 integer, dimension(3) :: scalef
-real                  :: shift    
+real(KIND=PREC_DP)    :: shift    
 integer, parameter :: OKILL   =  1
 integer, parameter :: OGEOM   =  2
 integer, parameter :: OEXPORT =  3
@@ -1935,7 +1930,6 @@ SUBROUTINE plot_test_aon(lnor, labs, lord)
 USE crystal_mod
 USE metric_mod
 USE discus_plot_mod 
-!USE trafo_mod
 !
 USE errlist_mod
 !
@@ -1946,10 +1940,10 @@ LOGICAL, INTENT(IN) :: labs
 LOGICAL, INTENT(IN) :: lord
 !
 LOGICAL           , PARAMETER :: lspace = .TRUE.
-REAL              , PARAMETER :: EPS  = 1.E-5!A small value
+REAL(KIND=PREC_DP)              , PARAMETER :: EPS  = 1.E-5!A small value
 REAL(kind=PREC_DP), DIMENSION(3), PARAMETER :: NULLV = (/0.00D0, 0.00D0, 0.00D0/)
 !
-REAL               :: w_na, w_no, w_ao    ! pairwise angles
+REAL(KIND=PREC_DP)               :: w_na, w_no, w_ao    ! pairwise angles
 REAL(kind=PREC_DP), DIMENSION(3) :: v                   ! a vector
 !  Tests if normal, abscissa nad ordinate are parallel, try to correct
 w_na = do_bang (lspace, pl_uvw, NULLV, pl_abs) 

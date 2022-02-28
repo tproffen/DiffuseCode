@@ -984,7 +984,7 @@ USE precision_mod
 !
       CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: line
       INTEGER             :: ihyp, ihyp2, i1, i2, length
-      REAL                :: ww
+      REAL(kind=PREC_DP)  :: ww
 !
       i1 = 1
       i2 = LEN_TRIM(string)

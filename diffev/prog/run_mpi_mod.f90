@@ -1,5 +1,6 @@
 MODULE run_mpi_mod
 !
+use precision_mod
 IMPLICIT none
 !
 INTEGER, PARAMETER       :: RUN_MPI_COUNT_INTEGER   =  16
@@ -51,10 +52,8 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    CHARACTER (LEN=100)   :: prog       !269 : 368
    CHARACTER (LEN=100)   :: mac        !369 : 468
    CHARACTER (LEN=100)   :: out        !469 : 568
-!  REAL                  :: rvalue     !569 : 569
-!  REAL                  :: rvalue2    !570 : 570
-   REAL,DIMENSION(1:RUN_MPI_COUNT_TRIAL) :: trial_values   !  (MAXPOP)
-   REAL,DIMENSION(0:RUN_MPI_MAXRVALUE-1) :: rvalue         !  (MAXPOP)
+   REAL(kind=PREC_DP),DIMENSION(1:RUN_MPI_COUNT_TRIAL) :: trial_values   !  (MAXPOP)
+   REAL(kind=PREC_DP),DIMENSION(0:RUN_MPI_MAXRVALUE-1) :: rvalue         !  (MAXPOP)
    CHARACTER(LEN=16),DIMENSION(1:RUN_MPI_COUNT_TRIAL) :: trial_names   !  (MAXPOP)
 END TYPE run_mpi_type
 !

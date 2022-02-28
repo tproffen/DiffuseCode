@@ -38,7 +38,7 @@ INTEGER                              :: ianz
 INTEGER                              :: n_params   ! Number of parameters for allocate
 LOGICAL                              :: lsuccess
 LOGICAL                              :: is_new     ! Parameter name is not yet in list of fixed params
-REAL                                 :: p_val      ! fixed parameter value
+REAL(KIND=PREC_DP)                   :: p_val      ! fixed parameter value
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
 INTEGER, PARAMETER :: OVALUE    = 1
@@ -134,7 +134,8 @@ ELSE
    RETURN
 ENDIF
 !
-CALL gl_set_pnumber(refine_par_n, refine_fix_n, refine_params, refine_fixed)
+CALL gl_set_pnumber(REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refine_fix_n,  &
+     refine_params, refine_fixed)
 !
 END SUBROUTINE refine_fix
 !

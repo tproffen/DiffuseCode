@@ -15,14 +15,15 @@ CONTAINS
       USE molecule_mod 
       USE errlist_mod 
       USE wink_mod
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
       INTEGER i, j, k, l, m, mm 
       INTEGER ij 
       INTEGER iscat 
-      REAL det 
+      REAL(kind=PREC_DP) :: det 
 !                                                                       
-!     REAL skalpro 
 !DBG                                                                    
       exte_orig (1) = 0 
       exte_orig (2) = 0 
@@ -101,7 +102,7 @@ CONTAINS
 !     Finally calclutate DSI                                            
 !                                                                       
       DO ij = 1, num (1) * num (2) 
-      dsi (ij) = real (csf (ij) * conjg (csf (ij) ) ) 
+      dsi (ij) = real(csf (ij) * conjg (csf (ij) ), kind=PREC_DP ) 
       ENDDO 
 !                                                                       
 !DBG3000      format( a30,' : ',4(2x,f9.4)/                             
@@ -123,6 +124,8 @@ CONTAINS
       USE errlist_mod 
       USE trig_degree_mod
       USE wink_mod
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
        
@@ -131,13 +134,10 @@ CONTAINS
       INTEGER i, j, k 
       INTEGER ii, jj 
       INTEGER ij 
-      REAL h (3), hh (3) 
-      REAL det 
-      REAL phase 
-      REAL sf, sfstart 
-!                                                                       
-!     REAL skalpro 
-!     REAL cosd, sind 
+      REAL(KIND=PREC_DP) :: h (3), hh (3) 
+      REAL(KIND=PREC_DP) :: det 
+      REAL(KIND=PREC_DP) :: phase 
+      REAL(KIND=PREC_DP) :: sf, sfstart 
 !                                                                       
 !      -- Loop over all points in reciprocal space                      
 !                                                                       
@@ -196,19 +196,16 @@ use precision_mod
       INTEGER i, j, k 
       INTEGER ii, jj 
       INTEGER ij 
-      REAL h (3), hh (3)
+REAL(kind=PREC_DP), dimension(3) ::  h (3), hh (3)
 real(kind=PREC_DP), dimension(3) :: r
 real(kind=PREC_DP), dimension(3) :: z
-      REAL det 
-      REAL phase 
-      REAL sf, dr, dz, sfstart 
-      REAL qr, qz 
+      REAL(kind=PREC_DP) :: det 
+      REAL(kind=PREC_DP) :: phase 
+      REAL(kind=PREC_DP) :: sf, dr, dz, sfstart 
+      REAL(kind=PREC_DP) :: qr, qz 
 !                                                                       
       REAL(kind=PREC_DP), dimension(3,3) :: cartesian (3, 3) 
 !                                                                       
-!     REAL skalpro 
-!     REAL cosd, sind 
-!     REAL bessj1 
 !                                                                       
       DATA cartesian / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
 !                                                                       
@@ -246,7 +243,7 @@ real(kind=PREC_DP), dimension(3) :: z
       qr = REAL(zpi) * dr 
       sf = sfstart 
       IF (dr.gt.2e-3) then 
-         sf = sf * 2. * bessj1 (qr) / qr 
+         sf = sf * 2. * bessj1(qr) / qr 
       ENDIF 
       IF (dz.gt.2e-3) then 
          sf = sf * sin (qz) / qz 
@@ -282,17 +279,14 @@ use precision_mod
       INTEGER i, j, k 
       INTEGER ii, jj 
       INTEGER ij 
-      REAL h (3)
+      REAL(KIND=PREC_DP) :: h (3)
 real(kind=PREC_DP), dimension(3) :: hh
-      REAL det 
-      REAL phase 
-      REAL ds, sf, sfstart 
-      REAL qr 
+      REAL(KIND=PREC_DP) :: det 
+      REAL(KIND=PREC_DP) :: phase 
+      REAL(KIND=PREC_DP) :: ds, sf, sfstart 
+      REAL(KIND=PREC_DP) :: qr 
 !                                                                       
       REAL(kind=PREC_DP), dimension(3,3) ::  cartesian (3, 3) 
-!                                                                       
-!     REAL skalpro 
-!     REAL cosd, sind 
 !                                                                       
       DATA cartesian / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
 !                                                                       
@@ -343,30 +337,27 @@ real(kind=PREC_DP), dimension(3) :: hh
       USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
+use precision_mod
       USE prompt_mod 
       USE trig_degree_mod
       USE wink_mod
-      IMPLICIT none 
 !                                                                       
-       
+      IMPLICIT none 
 !                                                                       
       INTEGER number 
       INTEGER i, j, k 
       INTEGER ii, jj 
       INTEGER ij 
-      REAL h (3), hh (3) 
-      REAL det 
-      REAL phase 
-      REAL sf, sfstart 
-!DBG_RBN                                                                
-      REAL hmin (3) 
+      REAL(KIND=PREC_DP) :: h (3), hh (3) 
+      REAL(KIND=PREC_DP) :: det 
+      REAL(KIND=PREC_DP) :: phase 
+      REAL(KIND=PREC_DP) :: sf, sfstart 
+      REAL(KIND=PREC_DP) :: hmin (3) 
 !                                                                       
-!     REAL skalpro 
-!     REAL cosd, sind 
 !DBG_RBN                                                                
-      hmin (1) = 0.0 
-      hmin (2) = 0.0 
-      hmin (3) = 0.0 
+      hmin (1) = 0.0D0
+      hmin (2) = 0.0D0
+      hmin (3) = 0.0D0
 !                                                                       
 !      -- Loop over all points in reciprocal space                      
 !                                                                       

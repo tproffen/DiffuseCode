@@ -34,8 +34,8 @@ TYPE :: CONN_DEFS
    INTEGER                            :: intend_no    ! Intended number of neighbors
    INTEGER, DIMENSION(:), ALLOCATABLE :: valid_types  ! Valid atom types in current definition
    INTEGER                            :: mole_scope   ! Scope is limited to a molecule
-   REAL                               :: def_rmin     ! minimum distance for current definition
-   REAL                               :: def_rmax     ! maximum distance for current definition
+   REAL(kind=PREC_DP)                 :: def_rmin     ! minimum distance for current definition
+   REAL(kind=PREC_DP)                 :: def_rmax     ! maximum distance for current definition
    integer                            :: def_nvect    ! Number of vectors for this definition
    integer, dimension(:,:), allocatable :: def_vectors  ! list of vectors for current definition
    TYPE(CONN_DEFS), POINTER           :: def_next     ! next definition

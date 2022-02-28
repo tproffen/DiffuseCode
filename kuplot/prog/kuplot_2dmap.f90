@@ -605,6 +605,11 @@ END SUBROUTINE get_yfunc
 SUBROUTINE k2dm_run(line, length)
 !
 USE kuplot_mod
+use kuplot_color_mod
+use kuplot_plot_mod
+use kuplot_load_mod
+use kuplot_para_mod
+use kuplot_show_mod
 !
 USE ber_params_mod
 USE build_name_mod

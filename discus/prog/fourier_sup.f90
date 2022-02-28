@@ -31,7 +31,7 @@ USE support_mod
 !
 IMPLICIT none 
 !                                                                       
-REAL(KIND=PREC_SP) :: ss!, seknds
+REAL(KIND=PREC_DP) :: ss!, seknds
 REAL(KIND=PREC_DP) :: dnorm
 INTEGER :: lbeg (3), csize (3) 
 INTEGER :: iscat, nlot, ncell, i 
@@ -222,11 +222,11 @@ USE precision_mod
 IMPLICIT none 
        
 !
-INTEGER, INTENT(IN) :: lots
+INTEGER              , INTENT(IN) :: lots
 REAL(kind=PREC_DP)   , INTENT(IN) :: ave 
 INTEGER, DIMENSION(3), INTENT(IN) :: csize
 !                                                                       
-REAL (KIND=PREC_DP) :: norm
+REAL(KIND=PREC_DP) :: norm
 INTEGER :: isite, iatom, iscat, icell (3) 
 INTEGER :: scell, ncell, j, ii, jj, kk 
 LOGICAL, DIMENSION(:,:,:), ALLOCATABLE :: sel_cell
@@ -566,6 +566,9 @@ end subroutine four_weight
       USE celltoindex_mod
       USE diffuse_mod 
 !     USE modify_mod
+!
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN)  :: iscat
@@ -573,8 +576,8 @@ end subroutine four_weight
       INTEGER, DIMENSION(3), INTENT(IN)  :: lbeg
       INTEGER, INTENT(OUT) :: ncell
 !                                                                       
-      REAL offset (3) 
-      REAL x0 (3), xtest (3) 
+      REAL(kind=PREC_DP) :: offset (3) 
+      REAL(kind=PREC_DP) :: x0 (3), xtest (3) 
       INTEGER cr_end 
       INTEGER icell (3), jcell (3) 
       INTEGER i, j, ir, ii, jj, kk, is, ia 
@@ -723,11 +726,13 @@ end subroutine four_weight
       USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: lots
 !                                                                       
-      REAL xtest (3), x0 (3) 
+      REAL(kind=PREC_DP) :: xtest (3), x0 (3) 
       INTEGER ii, jj, kk 
 !                                                                       
       nxat = 0 
@@ -914,9 +919,9 @@ INTEGER :: i, j, k, l
       DO j = 1, num (2) 
       DO i = 1, num (1) 
       DO k = 1, 3 
-      h (k) = REAL(xm (k) + uin (k) * REAL (i - 1, KIND=KIND(0.0D0)) &
-                          + vin (k) * REAL (j - 1, KIND=KIND(0.0D0)) &
-                          + win (k) * REAL (l - 1, KIND=KIND(0.0D0)))
+      h (k) = REAL(xm (k) + uin (k) * REAL(i - 1, KIND=KIND(0.0D0)) &
+                          + vin (k) * REAL(j - 1, KIND=KIND(0.0D0)) &
+                          + win (k) * REAL(l - 1, KIND=KIND(0.0D0)))
       ENDDO 
 !     q2 = quad (h, h, cr_rten) / 4.0 
       q2 = skalpro (h, h, cr_rten) / 4.0 
@@ -957,9 +962,8 @@ USE precision_mod
 IMPLICIT none 
 !
 !                                                                       
-REAL                :: q2
-REAL (KIND=PREC_DP) :: sb, sf, sfp, sfpp 
-!REAL (KIND=PREC_DP) :: dw
+REAL(kind=PREC_DP)  :: q2
+REAL(KIND=PREC_DP) :: sb, sf, sfp, sfpp 
 INTEGER iq, iscat 
 !                                                                       
 IF (four_log) then 
@@ -968,7 +972,7 @@ ENDIF
 !                                                                       
 DO iscat = 1, cr_nscat 
    DO iq = 0, CFPKT 
-      q2 = REAL((REAL (iq, KIND=KIND(0.0D0)) * CFINC) **2 , KIND=KIND(0.0E0))
+      q2 =      (REAL(iq, KIND=KIND(0.0D0)) * CFINC) **2
       sf = DBLE(form (iscat, cr_scat, lxray, q2, diff_power) )
 !                                                                       
       IF (ano) then 
@@ -1001,11 +1005,13 @@ END SUBROUTINE four_formtab
       USE discus_config_mod 
       USE diffuse_mod 
 !                                                                     
+use precision_mod
       USE prompt_mod 
+!
       IMPLICIT none 
 !                                                                       
       INTEGER i, j, k, l, nd 
-      REAL h (3), dsum, dsum2 
+      REAL(kind=PREC_DP) :: h (3), dsum, dsum2 
       LOGICAL lbragg 
 !                                                                       
       braggmax = - 9999.0 
@@ -1025,19 +1031,19 @@ END SUBROUTINE four_formtab
       h (k) = eck (k, 1) + vi (k, 1) * REAL(i - 1) + &
                            vi (k, 2) * REAL(j - 1) + &
                            vi (k, 3) * REAL(l - 1)
-      lbragg = lbragg.and.amod (h (k), 1.0) .eq.0.0 
+      lbragg = lbragg.and.mod(h(k), 1.0D0) .eq.0.0 
       ENDDO 
 !     k = (i - 1) * num (2) + j 
       k = (i - 1) * num (3) * num (2) + (j -1) * num(3) + l 
       IF (lbragg) then 
-         braggmax = max (braggmax, REAL(dsi (k)) ) 
-         braggmin = min (braggmin, REAL(dsi (k)) ) 
+         braggmax = max(braggmax, dsi(k) ) 
+         braggmin = min(braggmin, dsi(k) ) 
       ELSE 
-         diffumax = max (diffumax, REAL(dsi (k)) ) 
-         diffumin = min (diffumin, REAL(dsi (k)) ) 
+         diffumax = max(diffumax, dsi(k) ) 
+         diffumin = min(diffumin, dsi(k) ) 
 !                                                                       
-         dsum  = dsum  + REAL( dsi (k) )
-         dsum2 = dsum2 + REAL( dsi (k) **2) 
+         dsum  = dsum  + dsi(k)
+         dsum2 = dsum2 + dsi(k)**2 
          nd = nd+1 
       ENDIF 
       ENDDO 
@@ -1045,8 +1051,8 @@ END SUBROUTINE four_formtab
       ENDDO 
 !                                                                       
       IF (nd.ne.0) then 
-         diffuave = dsum / REAL(nd) 
-         diffusig = sqrt (dsum2 / REAL(nd) - diffuave**2) 
+         diffuave = dsum / REAL(nd, kind=PREC_DP) 
+         diffusig = sqrt(dsum2 / REAL(nd, kind=PREC_DP) - diffuave**2) 
       ELSE 
          diffuave = 0.0 
          diffusig = 0.0 
@@ -1067,7 +1073,7 @@ END SUBROUTINE four_formtab
  1030 FORMAT     (  '      Average    : ',G13.6,'  +- ',G13.6) 
       END SUBROUTINE four_qinfo                     
 !*****7*****************************************************************
-      REAL FUNCTION form (ll, scat, lxray, h2, power) 
+      REAL(kind=PREC_DP) FUNCTION form (ll, scat, lxray, h2, power) 
 !+                                                                      
 !       calculates the form factor                                      
 !-                                                                      
@@ -1079,7 +1085,7 @@ END SUBROUTINE four_formtab
       INTEGER, INTENT(IN) :: ll
       LOGICAL, INTENT(IN) :: lxray 
       REAL(kind=PREC_DP)   , DIMENSION(11,0:MAXSCAT), INTENT(INOUT) :: scat ! (11, 0:maxscat) 
-      REAL                            , INTENT(IN)    :: h2
+      REAL(kind=PREC_DP)              , INTENT(IN)    :: h2
       INTEGER, INTENT(IN) :: power
 !
       INTEGER   :: i 
@@ -1131,16 +1137,10 @@ LOGICAL, PARAMETER :: LOUT = .FALSE.
 CHARACTER (LEN = 4 ) :: element 
 INTEGER    :: i
 INTEGER    :: j
-REAL   , DIMENSION(1:11)  :: temp_scat  ! a1,b1,---a4,b4,c
-REAL   , DIMENSION(1:2)   :: temp_delf  ! delfr, delfi
-REAL                      :: temp_bcoh  ! b_choherent
+REAL(kind=PREC_DP)   , DIMENSION(1:11)  :: temp_scat  ! a1,b1,---a4,b4,c
+REAL(kind=PREC_DP)   , DIMENSION(1:2)   :: temp_delf  ! delfr, delfi
+REAL(kind=PREC_DP)                      :: temp_bcoh  ! b_choherent
 !
-!     CHARACTER(4) line 
-!     INTEGER element, symwl, kodlp, i, j 
-!     LOGICAL ano, lxray 
-!     REAL fa (4, 8), fb (4, 8), fc (8), rlambda 
-!     REAL delfr, delfi, fneu 
-!     REAL wave 
 !                                                                       
 ier_num = -77 
 ier_typ = ER_APPL 
@@ -1287,12 +1287,12 @@ END SUBROUTINE dlink
 !                                                                       
        
 !                                                                       
-      REAL, DIMENSION(3), INTENT(IN) :: rhkl
+      REAL(kind=PREC_DP), DIMENSION(3), INTENT(IN) :: rhkl
 !
       INTEGER i, j 
       INTEGER shel_inc (3) 
-      REAL shel_eck (3, 4) 
-      REAL shel_vi (3, 3) 
+      REAL(kind=PREC_DP) :: shel_eck (3, 4) 
+      REAL(kind=PREC_DP) :: shel_vi (3, 3) 
       COMPLEX (KIND=PREC_DP) :: shel_acsf 
       REAL    (KIND=PREC_DP) :: shel_dsi 
       COMPLEX (KIND=PREC_DP) :: shel_tcsf 
@@ -1327,8 +1327,8 @@ END SUBROUTINE dlink
 !
       four_log = .false. 
       CALL four_run 
-      res_para (1) =      REAL (csf (1) , KIND=KIND(0.0E0) ) 
-      res_para (2) = REAL(AIMAG(csf (1)), KIND=KIND(0.0E0) ) 
+      res_para (1) =      REAL(csf (1) , KIND=KIND(0.0D0) ) 
+      res_para (2) = REAL(AIMAG(csf (1)), KIND=KIND(0.0D0) ) 
       res_para (3) = res_para (1) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
       res_para (4) = res_para (2) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
       res_para (0) = 4 
@@ -1399,9 +1399,9 @@ USE support_mod
       INTEGER            ::   j_fcalc  = 0
       INTEGER            ::   j_sigf   = 0
       INTEGER            ::   j_flag   = 0
-      REAL               :: rint, sint, wert
-      REAL, DIMENSION(7) :: values
-      REAL, DIMENSION(3) :: rhkl
+      REAL(kind=PREC_DP)               :: rint, sint, wert
+      REAL(kind=PREC_DP), DIMENSION(7) :: values
+      REAL(kind=PREC_DP), DIMENSION(3) :: rhkl
 !
       n_qxy    = 1
       n_natoms = 1
@@ -1571,7 +1571,7 @@ main:    DO
             ENDIF
             IF(IS_IOSTAT_END(iostatus)) EXIT main
             indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1
-            wert = REAL(csf(indx)*CONJG(csf(indx)),KIND=KIND(0.0E0))
+            wert = REAL(csf(indx)*CONJG(csf(indx)),KIND=KIND(0.0D0))
             sint = SQRT(ABS(wert))
             IF(ih==0 .AND. ik==0 .AND. IL==0) THEN
                WRITE(iwr,1000) ih,ik,il, 0.00, 0.00
@@ -1692,10 +1692,10 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
-REAL(PREC_SP), DIMENSION(3) :: rut   ! right upper top corner
-REAL(PREC_SP), DIMENSION(3) :: dia   ! sum of all vi's
-REAL(PREC_SP), DIMENSION(3) :: point ! sum of (left lower bottom) and (right upper top)
-REAL(PREC_SP)               :: EPS = 1.E-6
+REAL(PREC_DP), DIMENSION(3) :: rut   ! right upper top corner
+REAL(PREC_DP), DIMENSION(3) :: dia   ! sum of all vi's
+REAL(PREC_DP), DIMENSION(3) :: point ! sum of (left lower bottom) and (right upper top)
+REAL(PREC_DP)               :: EPS = 1.E-6
 !
 diff_l_friedel = .FALSE.
 IF(.NOT.ano) THEN        ! anomalous scattering is off, test space
@@ -1942,6 +1942,7 @@ SUBROUTINE four_fill_csf
 !  If set aver was used with faver > 0, we need to fill the Bragg intensities
 !+
 USE diffuse_mod
+use precision_mod
 !
 IMPLICIT NONE
 !
@@ -1950,9 +1951,9 @@ COMPLEX(KIND=KIND(0.0D0)), DIMENSION(:,:,:), ALLOCATABLE :: csf_3d
 INTEGER :: h,k,l
 INTEGER :: ii
 INTEGER :: np
-REAL(KIND=KIND(0.0E0)), DIMENSION(3) :: hkl
-REAL(KIND=KIND(0.0E0)), DIMENSION(3) :: step
-COMPLEX(KIND=KIND(0.0D0))            :: aaa
+REAL(KIND=PREC_DP    ), DIMENSION(3) :: hkl
+REAL(KIND=PREC_DP    ), DIMENSION(3) :: step
+COMPLEX(KIND=PREC_DP    )            :: aaa
 !
 IF(fave==0.0 .AND. .NOT. four_symm) RETURN          ! nothing to do
 !
@@ -2052,9 +2053,9 @@ REAL(KIND=KIND(0.0D0))   , DIMENSION(:,:,:), ALLOCATABLE :: dsi_3d
 INTEGER :: h,k,l
 INTEGER :: ii
 INTEGER :: np
-REAL, DIMENSION(3) :: hkl
-REAL, DIMENSION(3) :: step
-REAL(KIND=KIND(0.0D0))               :: aaa
+REAL(kind=PREC_DP), DIMENSION(3) :: hkl
+REAL(kind=PREC_DP), DIMENSION(3) :: step
+REAL(KIND=PREC_DP)               :: aaa
 !
 IF(fave==0.0 .AND. .NOT. four_symm) RETURN          ! nothing to do
 !
@@ -2276,10 +2277,10 @@ USE matrix_mod
 !
 IMPLICIT NONE
 !
-INTEGER               , DIMENSION(3)                     , INTENT(IN)    :: num
-REAL(KIND=KIND(0.0D0)), DIMENSION(num(1), num(2), num(3)), INTENT(INOUT) :: dsi_3d
-REAL(kind=PREC_DP)       , DIMENSION(1:3, 1:4)           ::  eck
-REAL(kind=PREC_DP)       , DIMENSION(1:3, 1:3)           ::  vi
+INTEGER           , DIMENSION(3)                     , INTENT(IN)    :: num
+REAL(KIND=PREC_DP), DIMENSION(num(1), num(2), num(3)), INTENT(INOUT) :: dsi_3d
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:4)           ::  eck
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:3)           ::  vi
 !
 INTEGER :: n_center     ! Only use this fraction of symmetry operations
 INTEGER :: i

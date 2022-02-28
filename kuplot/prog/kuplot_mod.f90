@@ -71,14 +71,14 @@ SAVE
 !
 !------ Data set information
 !
-      CHARACTER(LEN=200), DIMENSION(MAXKURVTOT) :: fname ! (maxkurvtot)
-      CHARACTER(LEN=  2), DIMENSION(MAXKURVTOT) :: fform ! (maxkurvtot)
-      REAL   , DIMENSION(MAXKURVTOT) :: xmax ! (maxkurvtot)
-      REAL   , DIMENSION(MAXKURVTOT) :: xmin ! (maxkurvtot)
-      REAL   , DIMENSION(MAXKURVTOT) :: ymax ! (maxkurvtot)
-      REAL   , DIMENSION(MAXKURVTOT) :: ymin ! (maxkurvtot)
-      INTEGER, DIMENSION(MAXKURVTOT) :: lenc ! (maxkurvtot)
-      INTEGER                        :: iz
+CHARACTER(LEN=200), DIMENSION(MAXKURVTOT) :: fname ! (maxkurvtot)
+CHARACTER(LEN=  2), DIMENSION(MAXKURVTOT) :: fform ! (maxkurvtot)
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT) :: xmax ! (maxkurvtot)
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT) :: xmin ! (maxkurvtot)
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT) :: ymax ! (maxkurvtot)
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT) :: ymin ! (maxkurvtot)
+INTEGER, DIMENSION(MAXKURVTOT) :: lenc ! (maxkurvtot)
+INTEGER                        :: iz
 !
 !     COMMON      /info/  fname,fform,xmax,xmin,ymax,ymin,len,iz
 !
@@ -89,7 +89,8 @@ SAVE
       CHARACTER(LEN=256)      ftext(maxwin,maxframe)
       CHARACTER(LEN=40)      clegend(maxwin,maxframe,maxkurvtot)
       CHARACTER(LEN=40)      antext(maxwin,maxframe,maxan)
-      REAL colour(maxwin,0:20,3)
+!     REAL colour(maxwin,0:20,3)
+REAL(kind=PREC_SP), dimension(MAXWIN, 0:20+MAXCOL,3) ::  colour !(maxwin,0:20,3)
       REAL frame(maxwin,maxframe,4)
       REAL ex(maxwin,maxframe,2),ey(maxwin,maxframe,2)
       REAL pex(maxwin,maxframe,2),pey(maxwin,maxframe,2)
@@ -204,14 +205,15 @@ SAVE
       CHARACTER(LEN=3)      wtyp
       CHARACTER(LEN=1)      dummy_spacer
       REAL w(maxarray)
-      REAL p(maxpara),pinc(maxpara),dp(maxpara)
+REAL(kind=PREC_DP), dimension(MAXPARA) :: p !(maxpara)
+real ::pinc(maxpara),dp(maxpara)
       REAL pra(maxpara,2)                        ! Fit range
       REAL p_merk(maxpara),pinc_merk(maxpara)
       REAL cl(maxpara,maxpara)
       REAL urf
       REAL zalt,zwert,zdif
       REAL r4,re,fend
-      REAL            wval
+REAL(kind=PREC_DP) ::            wval
       REAL tmp(maxpara)
       REAL p_origin
       INTEGER ncycle,npara,ikfit,ikfit2,ikcal,ikdif
@@ -245,16 +247,17 @@ SAVE
       REAL x(maxarray),dx(maxarray)
       REAL y(maxarray),dy(maxarray)
       REAL z(maxarray)
-      INTEGER offxy(0:maxkurvtot)
-      INTEGER offz (0:maxkurvtot)
+INTEGER, dimension(0:MAXKURVTOT) :: offxy!(0:maxkurvtot)
+INTEGER, dimension(0:MAXKURVTOT) :: offz !(0:maxkurvtot)
 !
 !     COMMON  /data/ x,y,z,dx,dy,offxy,offz
 !
 !------ GSAS related stuff to remember
 !
-      REAL tof_offset
+REAL(kind=PREC_SP) :: tof_offset
 !
 !     COMMON  /gsas/ tof_offset
 !
-      LOGICAL :: l_two_col = .false.  ! save two column xy-files
+LOGICAL :: l_two_col = .false.  ! save two column xy-files
+!
 END MODULE kuplot_mod

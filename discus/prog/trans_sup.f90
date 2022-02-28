@@ -9,7 +9,6 @@ SUBROUTINE tran_ca (usym, matrix, lscreen)
 !     atom or reciprocal vector.                                        
 !+                                                                      
 USE discus_config_mod 
-!USE trafo_mod
 !
 USE errlist_mod 
 USE param_mod 
@@ -24,15 +23,10 @@ logical                           , intent(in)    :: lscreen
 !                                                                       
 INTEGER :: j 
 !                                                                       
-!     LOGICAL lscreen 
-!                                                                       
-real(kind=PREC_SP), dimension(4) :: ures
-!     REAL usym (4), ures (4) 
-!     REAL matrix (4, 4) 
+real(kind=PREC_DP), dimension(4) :: ures
 !                                                                       
 !-----      Apply symmetry operation                                    
 !                                                                       
-!CALL trans (usym, matrix, ures, 4) 
 ures = matmul(matrix, usym)
 !                                                                       
 !     Replace original vector and store result                          

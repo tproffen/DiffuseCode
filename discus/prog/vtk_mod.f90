@@ -6,9 +6,10 @@ module vtk_mod
     use crystal_mod
     use output_mod
     use errlist_mod
+use precision_mod
 USE support_mod
     implicit none
-    real                :: dx,dy,dz
+    real(kind=PREC_DP)  :: dx,dy,dz
     
     dx=sqrt(out_vi(1,1)**2+out_vi(2,1)**2+out_vi(3,1)**2)
     dy=sqrt(out_vi(1,2)**2+out_vi(2,2)**2+out_vi(3,2)**2)

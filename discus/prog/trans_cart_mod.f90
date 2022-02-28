@@ -24,7 +24,7 @@ IMPLICIT none
 REAL(kind=PREC_DP) ,DIMENSION(1:3), INTENT(OUT) :: uvw_out !(3)
 INTEGER                   , INTENT(IN)    :: NMAX
 INTEGER                   , INTENT(IN)    :: cr_natoms
-REAL              , DIMENSION(3,NMAX), INTENT(INOUT) :: cr_pos
+REAL(kind=PREC_DP), DIMENSION(3,NMAX), INTENT(INOUT) :: cr_pos
 REAL(kind=PREC_DP), DIMENSION(4,4)   , INTENT(IN   ) :: pl_tran_f
 !
 INTEGER              ::  i

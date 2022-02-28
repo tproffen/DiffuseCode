@@ -1,4 +1,9 @@
 !
+! OBSOLETE
+! content has been moved to discus_s_powder_file.f90 
+! Reference has been removed from suite CMakeLists.txt
+!*******************************************************************************
+!
 ! Version for stand alone DISCUS
 ! The file is may be written directly into kuplot if the
 ! filename starts with 'kuplot'
@@ -7,6 +12,7 @@ SUBROUTINE powder_do_write (outfile, npkt_wrt, xwrt, ywrt)
 !
 USE kuplot_config
 USE kuplot_mod
+use kuplot_extrema_mod
 USE errlist_mod
 USE lib_length
 use precision_mod

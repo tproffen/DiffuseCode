@@ -1,3 +1,6 @@
+module diffev_errlist_mod
+!
+contains
 !*****7****************************************************************
 !
 SUBROUTINE diffev_errlist_appl
@@ -62,3 +65,4 @@ USE lib_errlist_func
 !
       END SUBROUTINE diffev_errlist_appl
 !*****7****************************************************************
+end module diffev_errlist_mod

@@ -149,6 +149,7 @@
       parameters like nano particle diameters larger values like 0.1 to
       0.01 seem to be better. 
       Default: shift:0.003
+               For parameters called "P_dia" the default is 0.01
 
    points:<nderiv>
       REFINE estimates the derivative by calculating the cost function
@@ -158,6 +159,7 @@
       The five point estimate is more accurate and is recommended 
       for parameters like nanoparticle diameters. 
       Default: points:3
+               For FWHM parameters "P_u", "P_v", "P_w" the default is 5
 2  reset
 !p reset
 
@@ -216,8 +218,10 @@
      Defaults to 0.500
 
    Convergence is reached, if:
-   Either
+   Either one of the three conditions:
       (dchi AND pshift AND conf) 
+   or
+      (dchi AND pshift>0)
    or 
       chi2
    are met. 

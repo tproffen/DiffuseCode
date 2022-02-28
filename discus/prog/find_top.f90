@@ -246,7 +246,7 @@ integer , intent(in) ::  ic
 !
 integer, parameter :: MAX_CENT = 2
 integer           , dimension(:, :)   , allocatable :: iatom ! indices of neighbs
-real(kind=PREC_SP), dimension(:, :, :), allocatable :: patom ! Coordinates
+real(kind=PREC_DP), dimension(:, :, :), allocatable :: patom ! Coordinates
 logical           , dimension(:, :)   , allocatable :: tatom ! indices of neighbs
 integer           , dimension(:)      , allocatable :: natom ! no of neigh
 integer                                             :: ncent ! no of central atoms

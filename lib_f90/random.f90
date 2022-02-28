@@ -19,8 +19,8 @@ SAVE
 !                                                                       
 REAL(KIND=PREC_DP), INTENT(IN) ::  sig
 !                                                                       
-REAL(KIND=PREC_SP) ::  v1, v2, r, fac, gset 
-REAL(KIND=PREC_SP) :: r1
+REAL(KIND=PREC_DP) ::  v1, v2, r, fac, gset 
+REAL(KIND=PREC_DP) :: r1
 !                                                                       
 !SAVE gset 
 !                                                                       
@@ -63,13 +63,13 @@ IMPLICIT none
 REAL(KIND=PREC_DP), INTENT(in) :: sig
 REAL(KIND=PREC_DP), INTENT(in) :: skew
 !
-REAL(KIND=PREC_SP)  :: v1, v2, v3
+REAL(KIND=PREC_DP)  :: v1, v2, v3
 !REAL(KIND=PREC_DP)  :: gasdev
 !                                                                       
 v1      = gasdev(1.0D0)
 v2      = gasdev(1.0D0)
 v3      = skew*v1 + SQRT(1.0D0-skew**2)*v2
-gasskew = v3 * SIGN(1.0E0 ,v1)*sig
+gasskew = v3 * SIGN(1.0D0 ,v1)*sig
 !
 END FUNCTION gasskew                           
 !*****7*****************************************************************
@@ -82,7 +82,7 @@ USE precision_mod
 REAL(KIND=PREC_DP), INTENT(IN) :: sig    ! Sigma of Gaussian distribution
 REAL(KIND=PREC_DP), INTENT(IN) :: factor ! iLimit in multiples of sigma
 !
-REAL(KIND=PREC_SP)    :: x
+REAL(KIND=PREC_DP)    :: x
 INTEGER :: counter
 !
 !REAL(KIND=PREC_DP) :: gasdev
@@ -103,19 +103,22 @@ gaslim = x
 !
 END FUNCTION gaslim
 !*****7*****************************************************************
-REAL FUNCTION ran1 (idum)
+REAL(kind=PREC_DP) FUNCTION ran1 (idum)
 !
 !     kept for backwards compatibility, replaces old ran1 from Numerical recipes
 !
-      USE random_state_mod
+use precision_mod
+USE random_state_mod
 !
-      INTEGER, INTENT(IN) :: idum   ! not needed, ...
+INTEGER, INTENT(IN) :: idum   ! not needed, ...
 !
-      REAL :: r
-      CALL RANDOM_NUMBER(r)
-      ran1 = r
+REAL(kind=PREC_DP) :: r
+!
+CALL RANDOM_NUMBER(r)
+ran1 = r
 !
 END FUNCTION ran1                             
+!
 !*****7*****************************************************************
 !     REAL FUNCTION ran1 (idum) 
 !                                                                       
@@ -191,40 +194,47 @@ END FUNCTION ran1
 !     r (j) = (float (ix1) + float (ix2) * rm2) * rm1 
 !     END FUNCTION ran1                             
 !*****7*****************************************************************
-      REAL FUNCTION bessj1 (x) 
+!
+REAL (kind=PREC_DP) FUNCTION bessj1 (x) 
 !                                                                       
-      IMPLICIT none 
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
-      REAL x 
-      REAL ax, xx, z 
-      DOUBLEPRECISION p1, p2, p3, p4, p5, q1, q2, q3, q4, q5, r1, r2,   &
+REAL(kind=PREC_DP) :: x 
+REAL(kind=PREC_DP) :: ax, xx, z 
+real(kind=PREC_DP) ::                                                   &
+                      p1, p2, p3, p4, p5, q1, q2, q3, q4, q5, r1, r2,   &
       r3, r4, r5, r6, s1, s2, s3, s4, s5, s6, y                         
-      SAVE p1, p2, p3, p4, p5, q1, q2, q3, q4, q5, r1, r2, r3, r4, r5,  &
+SAVE p1, p2, p3, p4, p5, q1, q2, q3, q4, q5, r1, r2, r3, r4, r5,  &
       r6, s1, s2, s3, s4, s5, s6                                        
-      DATA r1, r2, r3, r4, r5, r6 / 72362614232.d0, - 7895059235.d0,    &
+DATA r1, r2, r3, r4, r5, r6 / 72362614232.d0, - 7895059235.d0,          &
       242396853.1d0, - 2972611.439d0, 15704.48260d0, - 30.16036606d0 /, &
       s1, s2, s3, s4, s5, s6 / 144725228442.d0, 2300535178.d0,          &
       18583304.74d0, 99447.43394d0, 376.9991397d0, 1.d0 /               
-      DATA p1, p2, p3, p4, p5 / 1.d0, .183105d-2, - .3516396496d-4,     &
+DATA p1, p2, p3, p4, p5 / 1.d0, .183105d-2, - .3516396496d-4,           &
       .2457520174d-5, - .240337019d-6 /, q1, q2, q3, q4, q5 /           &
       .04687499995d0, - .2002690873d-3, .8449199096d-5, - .88228987d-6, &
       .105787412d-6 /                                                   
-      IF (abs (x) .lt.8.) then 
+!
+IF (abs (x) .lt.8.) then 
          y = x**2 
-         bessj1 = REAL(x * (r1 + y * (r2 + y * (r3 + y * (r4 + y * (r5 + y * &
+         bessj1 = (x * (r1 + y * (r2 + y * (r3 + y * (r4 + y * (r5 + y * &
          r6) ) ) ) ) / (s1 + y * (s2 + y * (s3 + y * (s4 + y * (s5 + y *&
          s6) ) ) ) ))                                                    
-      ELSE 
+ELSE 
          ax = abs (x) 
          z = 8. / ax 
          y = z**2 
-         xx = ax - 2.356194491 
-         bessj1 = REAL(sqrt (.636619772 / ax) * (cos (xx) * (p1 + y *   &
-         (p2 + y * (p3 + y * (p4 + y * p5) ) ) ) - z * sin (xx) *       &
-         (q1 + y * (q2 + y * (q3 + y * (q4 + y * q5) ) ) ) ) * sign (1.,&
+         xx = ax - 2.356194491D0 
+bessj1 = (sqrt(.636619772D0 / ax) * (cos(xx) * (p1 + y *                  &
+         (p2 + y * (p3 + y * (p4 + y * p5) ) ) ) - z * sin (xx) *         &
+         (q1 + y * (q2 + y * (q3 + y * (q4 + y * q5) ) ) ) ) * sign (1.D0,&
          x))                                                             
-      ENDIF 
-      END FUNCTION bessj1                           
+ENDIF 
+!
+END FUNCTION bessj1                           
+!
 !*****7*****************************************************************
 REAL(KIND=KIND(1.0E0)) FUNCTION poidev (xm, idum) 
 !                                                                       
@@ -234,11 +244,11 @@ USE precision_mod
 IMPLICIT NONE 
 !                                                                       
 INTEGER, INTENT(IN) :: idum 
-REAL(KIND=PREC_SP), INTENT(IN) :: xm
+REAL(KIND=PREC_DP), INTENT(IN) :: xm
 !
 !U    USES gammln,ran1                                                  
-REAL(KIND=PREC_SP) :: alxm, em, g, oldm, sq, t, y
-!REAL(KIND=PREC_SP) :: gammln
+REAL(KIND=PREC_DP) :: alxm, em, g, oldm, sq, t, y
+!REAL(KIND=PREC_DP) :: gammln
 !REAL               ran1
 SAVE alxm, g, oldm, sq 
 DATA oldm / -1.D0 / 
@@ -276,7 +286,7 @@ USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
-REAL(KIND=PREC_SP), INTENT(IN) ::  xx 
+REAL(KIND=PREC_DP), INTENT(IN) ::  xx 
 !
 INTEGER :: j 
 REAL(KIND=PREC_DP) :: ser, stp, tmp, x, y, cof (6) 
@@ -294,7 +304,7 @@ DO j = 1, 6
    y = y + 1.d0 
    ser = ser + cof(j) / y 
 ENDDO 
-gammln = REAL(tmp + LOG(stp * ser / x) )
+gammln = REAL(tmp + LOG(stp * ser / x) , kind=PREC_DP)
 !
 END FUNCTION gammln                           
 !

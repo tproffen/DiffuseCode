@@ -67,14 +67,13 @@ USE str_comp_mod
       INTEGER                  :: n_nscat  = 1 ! Number of different atom types this run
       INTEGER                  :: n_natom  = 1 ! Number of atoms this run
       INTEGER indxg, lbef 
-      REAL divis (2) 
-      REAL rho_divis (2) 
-      REAL dvi1, dvi2, dvi3, dvi4, dvi5 
+REAL(kind=PREC_DP) :: divis (2) 
+REAL(kind=PREC_DP) :: rho_divis (2) 
+REAL(kind=PREC_DP) :: dvi1, dvi2, dvi3, dvi4, dvi5 
 real(kind=PREC_DP), dimension(3) :: u
 real(kind=PREC_DP), dimension(3) :: v
 real(kind=PREC_DP), dimension(3) :: w
 !                                                                       
-!     REAL do_blen, do_bang 
 !                                                                       
       DATA extr_achs / ' ', 'h', 'k', 'l' / 
       DATA rho_extr_achs / ' ', 'x', 'y', 'z' / 
@@ -94,7 +93,7 @@ diff_lsingle = .TRUE.
 !     n_natom  = 1
 !                                                                       
       IF (cr_natoms.gt.0.and.as_natoms.gt.0) then 
-         patt_scale = REAL(cr_ncatoms) / REAL(cr_natoms) 
+         patt_scale = REAL(cr_ncatoms, kind=PREC_DP) / REAL(cr_natoms, kind=PREC_DP) 
       ELSEIF (patt_scale.eq.0) then 
          patt_scale = 1.0 
       ENDIF 
@@ -112,10 +111,10 @@ diff_lsingle = .TRUE.
 !                                                                       
       CALL no_error 
 !                                                                       
-      divis (1) = REAL(max (1, inc (1) - 1) ) 
-      divis (2) = REAL(max (1, inc (2) - 1) ) 
-      rho_divis (1) = REAL(max (1, rho_inc (1) - 1) ) 
-      rho_divis (2) = REAL(max (1, rho_inc (2) - 1) ) 
+      divis (1) = REAL(max (1, inc (1) - 1) , kind=PREC_DP) 
+      divis (2) = REAL(max (1, inc (2) - 1) , kind=PREC_DP) 
+      rho_divis (1) = REAL(max (1, rho_inc (1) - 1) , kind=PREC_DP) 
+      rho_divis (2) = REAL(max (1, rho_inc (2) - 1) , kind=PREC_DP) 
 !                                                                       
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
@@ -309,8 +308,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDDO 
                         inc (1) = nint (werte (10) ) 
                         inc (2) = nint (werte (11) ) 
-                        divis (1) = REAL(max (1, inc (1) - 1) ) 
-                        divis (2) = REAL(max (1, inc (2) - 1) ) 
+                        divis (1) = REAL(max (1, inc (1) - 1) , kind=PREC_DP) 
+                        divis (2) = REAL(max (1, inc (2) - 1) , kind=PREC_DP) 
                         DO i = 1, 3 
                         vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis (&
                         1)                                              
@@ -384,7 +383,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (ier_num.eq.0) then 
                         IF (werte (1) .gt.0) then 
                            inc (1) = nint (werte (1) ) 
-                           divis (1) = REAL(max (1, inc (1) - 1) ) 
+                           divis (1) = REAL(max (1, inc (1) - 1) , kind=PREC_DP) 
                            DO i = 1, 3 
                            vi (i, 1) = (eck (i, 2) - eck (i, 1) )       &
                            / divis (1)                                  
@@ -411,7 +410,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (ier_num.eq.0) then 
                         IF (werte (1) .gt.0) then 
                            inc (2) = nint (werte (1) ) 
-                           divis (2) = REAL(max (1, inc (2) - 1) ) 
+                           divis (2) = REAL(max (1, inc (2) - 1) , kind=PREC_DP) 
                            DO i = 1, 3 
                            vi (i, 1) = (eck (i, 2) - eck (i, 1) )       &
                            / divis (1)                                  
@@ -482,9 +481,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         rho_inc (1) = nint (werte (10) ) 
                         rho_inc (2) = nint (werte (11) ) 
                         rho_divis (1) = REAL(max (1, rho_inc (1)      &
-                        - 1) )                                          
+                        - 1) , kind=PREC_DP)                                          
                         rho_divis (2) = REAL(max (1, rho_inc (2)      &
-                        - 1) )                                          
+                        - 1) , kind=PREC_DP)                                          
                         DO i = 1, 3 
                         rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i, 1)&
                         ) / rho_divis (1)                               
@@ -560,7 +559,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         IF (werte (1) .gt.0) then 
                            rho_inc (1) = nint (werte (1) ) 
                            rho_divis (1) = REAL(max (1, rho_inc (1)   &
-                           - 1) )                                       
+                           - 1) , kind=PREC_DP)                                       
                            DO i = 1, 3 
                            rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i,&
                            1) ) / rho_divis (1)                         
@@ -590,7 +589,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         IF (werte (1) .gt.0) then 
                            rho_inc (2) = nint (werte (1) ) 
                            rho_divis (2) = REAL(max (1, rho_inc (2)   &
-                           - 1) )                                       
+                           - 1) , kind=PREC_DP)                                       
                            DO i = 1, 3 
                            rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i,&
                            1) ) / rho_divis (1)                         
@@ -1248,11 +1247,10 @@ USE support_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER, INTENT(INOUT)  :: inverse_type
-!
-      LOGICAL ltwo_files 
-      LOGICAL acentric 
+INTEGER, INTENT(INOUT)  :: inverse_type
+LOGICAL           , intent(in) :: ltwo_files 
 REAL(kind=PREC_DP), intent(in) :: vr 
+LOGICAL           , intent(in) ::  acentric 
 !                                                                       
       INTEGER ifa, ifb 
       PARAMETER (ifa = 21, ifb = 22) 
@@ -1268,19 +1266,16 @@ REAL(kind=PREC_DP), intent(in) :: vr
       INTEGER ihkl (3) 
       LOGICAL l_incl 
       REAL(kind=PREC_DP), dimension(3) :: h (3) 
-      REAL phase 
+      REAL(kind=PREC_DP) phase 
 real(kind=PREC_DP), dimension(3) :: y
-      REAL xmin (2), xmax (2) 
-      REAL ymin (2), ymax (2) 
-      REAL x1, x2, y1, y2, zz1, zz2, zz3, zz4 
-      REAL z1 (10000), z2 (10000) 
-      REAL e_f, dummy 
-      REAL dstar2 
+      REAL(kind=PREC_DP) :: xmin (2), xmax (2) 
+      REAL(kind=PREC_DP) :: ymin (2), ymax (2) 
+      REAL(kind=PREC_DP) :: x1, x2, y1, y2, zz1, zz2, zz3, zz4 
+      REAL(kind=PREC_DP) :: z1 (10000), z2 (10000) 
+      REAL(kind=PREC_DP) :: e_f, dummy 
+      REAL(kind=PREC_DP) :: dstar2 
       COMPLEX (KIND=KIND(0.0D0)) ::a_b 
 !                                                                       
-!     INTEGER e_hist 
-!     REAL fj2 
-!     REAL quad 
 !                                                                       
       zz1 = 0.0 
       zz2 = 0.0 
@@ -1481,7 +1476,7 @@ real(kind=PREC_DP), dimension(3) :: y
          IF(iostatus /= 0) THEN
             READ (line, '(3I4,F8.2)', end = 60, err = 900) ihkl, zz1
          ENDIF
-         y(:) = REAL(ihkl(:))
+         y(:) = REAL(ihkl(:), kind=PREC_DP)
 !1111 FORMAT   (3I4,2F10.2,F7.2) 
 !                                                                       
 !     ----Calculate |F|**2, |EF| or |E|**2                              
@@ -1551,8 +1546,8 @@ real(kind=PREC_DP), dimension(3) :: y
 !           write (output_io,*) h(extr_abs),z1(1),z2(1)                 
             j = 1 
             DO k = 1, 3 
-            h (k) = eck (k, 1) + vi (k, 1) * REAL(i - 1) + vi (k, 2)  &
-            * REAL(j - 1)                                             
+            h (k) = eck (k, 1) + vi (k, 1) * REAL(i - 1, kind=PREC_DP) + vi (k, 2)  &
+            * REAL(j - 1, kind=PREC_DP)                                             
             ENDDO 
             CALL set_patt_value (a_b, inverse_type, rho_type, z1, z2, 1,&
             patt_excl9999, patt_excl_val, l_incl)                       
@@ -1606,8 +1601,8 @@ real(kind=PREC_DP), dimension(3) :: y
                   z2, i, patt_excl9999, patt_excl_val, l_incl)          
                   IF (l_incl) then 
                      DO k = 1, 3 
-                     h (k) = eck (k, 1) + vi (k, 1) * REAL(i - 1)     &
-                     + vi (k, 2) * REAL(j - 1)                        
+                     h (k) = eck (k, 1) + vi (k, 1) * REAL(i - 1, kind=PREC_DP)     &
+                     + vi (k, 2) * REAL(j - 1, kind=PREC_DP)                        
                      ENDDO 
                      a_b = a_b * patt_scale * vr 
                      CALL calc_patters (a_b, h) 
@@ -1741,6 +1736,7 @@ REAL(kind=PREC_DP), dimension(3) :: h (3)
       USE intens_mod 
       USE inverse_mod 
       USE trig_degree_mod
+use precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(INOUT)  :: inverse_type
@@ -1748,13 +1744,12 @@ REAL(kind=PREC_DP), dimension(3) :: h (3)
       INTEGER rho_type (2) 
       LOGICAL patt_excl9999 
       LOGICAL l_incl 
-      REAL z1 (10000), z2 (10000) 
-      REAL patt_excl_val 
+      REAL(kind=PREC_DP) :: z1 (10000), z2 (10000) 
+      REAL(kind=PREC_DP) :: patt_excl_val 
       COMPLEX (KIND=KIND(0.0D0)) ::a_b 
 !                                                                       
       INTEGER i
 !                                                                       
-!     REAL cosd, sind 
 !                                                                       
       l_incl = .true. 
       IF (inverse_type.eq.INV_INV) then 
@@ -1830,15 +1825,16 @@ REAL(kind=PREC_DP), dimension(3) :: h (3)
       USE intens_mod 
       USE inverse_mod 
       USE trig_degree_mod
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(INOUT)  :: inverse_type
 !                                                                       
       INTEGER rho_type (2) 
-      REAL zz1, zz2, zz3 
+      REAL(kind=PREC_DP) :: zz1, zz2, zz3 
       COMPLEX (KIND=KIND(0.0D0)) ::a_b 
 !                                                                       
-!     REAL cosd, sind 
 !                                                                       
       IF (inverse_type.eq.INV_INV) then 
          IF (rho_type (1) .eq.AMPLITUDE) then 
@@ -1875,9 +1871,9 @@ REAL(kind=PREC_DP), dimension(3) :: h (3)
       USE metric_mod
       USE patters_mod 
 !
-      USE errlist_mod 
+USE errlist_mod 
 use precision_mod
-      USE prompt_mod 
+USE prompt_mod 
 USE support_mod
       IMPLICIT none 
        
@@ -1897,7 +1893,7 @@ USE support_mod
       LOGICAL io_mode 
       LOGICAL lsuccess 
       REAL(kind=PREC_DP) , dimension(3) :: h (3) 
-      REAL zz1, zz2, zz3, zz4 
+      REAL(kind=PREC_DP) :: zz1, zz2, zz3, zz4 
 !                                                                       
       INTEGER e_graph (0:30) 
       INTEGER e_graph_hk0 (0:30) 
@@ -1927,42 +1923,42 @@ USE support_mod
       INTEGER ifa 
       PARAMETER (ifa = 21) 
 !      real    e_aver_f2    (MAXW)                                      
-      REAL e_aver_f2_hk0 (MAXW) 
-      REAL e_aver_f2_h0l (MAXW) 
-      REAL e_aver_f2_0kl (MAXW) 
-      REAL e_aver_f2_0k0 (MAXW) 
-      REAL e_aver_f2_hhl (MAXW) 
-      REAL e_aver_f2_hMh0l (MAXW) 
-      REAL e_aver_f2_hhM2hl (MAXW) 
-      REAL e_f 
-      REAL e_e1_hkl, e_e2_hkl, e_e3_hkl, e_e4_hkl 
-      REAL e_e5_hkl, e_e6_hkl, e_e2m1_hkl 
-      REAL e_e2m1_2_hkl, e_e2m1_3_hkl, e_abs_e2m1_3_hkl 
-      REAL e_e1_hk0, e_e2_hk0, e_e3_hk0, e_e4_hk0 
-      REAL e_e5_hk0, e_e6_hk0, e_e2m1_hk0 
-      REAL e_e2m1_2_hk0, e_e2m1_3_hk0, e_abs_e2m1_3_hk0 
-      REAL e_e1_h0l, e_e2_h0l, e_e3_h0l, e_e4_h0l 
-      REAL e_e5_h0l, e_e6_h0l, e_e2m1_h0l 
-      REAL e_e2m1_2_h0l, e_e2m1_3_h0l, e_abs_e2m1_3_h0l 
-      REAL e_e1_0k0, e_e2_0k0, e_e3_0k0, e_e4_0k0 
-      REAL e_e5_0k0, e_e6_0k0, e_e2m1_0k0 
-      REAL e_e2m1_2_0k0, e_e2m1_3_0k0, e_abs_e2m1_3_0k0 
-      REAL e_e1_0kl, e_e2_0kl, e_e3_0kl, e_e4_0kl 
-      REAL e_e5_0kl, e_e6_0kl, e_e2m1_0kl 
-      REAL e_e2m1_2_0kl, e_e2m1_3_0kl, e_abs_e2m1_3_0kl 
-      REAL e_e1_hhl, e_e2_hhl, e_e3_hhl, e_e4_hhl 
-      REAL e_e5_hhl, e_e6_hhl, e_e2m1_hhl 
-      REAL e_e2m1_2_hhl, e_e2m1_3_hhl, e_abs_e2m1_3_hhl 
-      REAL e_e1_hMh0l, e_e2_hMh0l, e_e3_hMh0l, e_e4_hMh0l 
-      REAL e_e5_hMh0l, e_e6_hMh0l, e_e2m1_hMh0l 
-      REAL e_e2m1_2_hMh0l, e_e2m1_3_hMh0l, e_abs_e2m1_3_hMh0l 
-      REAL e_e1_hhM2hl, e_e2_hhM2hl, e_e3_hhM2hl, e_e4_hhM2hl 
-      REAL e_e5_hhM2hl, e_e6_hhM2hl, e_e2m1_hhM2hl 
-      REAL e_e2m1_2_hhM2hl, e_e2m1_3_hhM2hl, e_abs_e2m1_3_hhM2hl 
+      REAL(kind=PREC_DP) :: e_aver_f2_hk0 (MAXW) 
+      REAL(kind=PREC_DP) :: e_aver_f2_h0l (MAXW) 
+      REAL(kind=PREC_DP) :: e_aver_f2_0kl (MAXW) 
+      REAL(kind=PREC_DP) :: e_aver_f2_0k0 (MAXW) 
+      REAL(kind=PREC_DP) :: e_aver_f2_hhl (MAXW) 
+      REAL(kind=PREC_DP) :: e_aver_f2_hMh0l (MAXW) 
+      REAL(kind=PREC_DP) :: e_aver_f2_hhM2hl (MAXW) 
+      REAL(kind=PREC_DP) :: e_f 
+      REAL(kind=PREC_DP) :: e_e1_hkl, e_e2_hkl, e_e3_hkl, e_e4_hkl 
+      REAL(kind=PREC_DP) :: e_e5_hkl, e_e6_hkl, e_e2m1_hkl 
+      REAL(kind=PREC_DP) :: e_e2m1_2_hkl, e_e2m1_3_hkl, e_abs_e2m1_3_hkl 
+      REAL(kind=PREC_DP) :: e_e1_hk0, e_e2_hk0, e_e3_hk0, e_e4_hk0 
+      REAL(kind=PREC_DP) :: e_e5_hk0, e_e6_hk0, e_e2m1_hk0 
+      REAL(kind=PREC_DP) :: e_e2m1_2_hk0, e_e2m1_3_hk0, e_abs_e2m1_3_hk0 
+      REAL(kind=PREC_DP) :: e_e1_h0l, e_e2_h0l, e_e3_h0l, e_e4_h0l 
+      REAL(kind=PREC_DP) :: e_e5_h0l, e_e6_h0l, e_e2m1_h0l 
+      REAL(kind=PREC_DP) :: e_e2m1_2_h0l, e_e2m1_3_h0l, e_abs_e2m1_3_h0l 
+      REAL(kind=PREC_DP) :: e_e1_0k0, e_e2_0k0, e_e3_0k0, e_e4_0k0 
+      REAL(kind=PREC_DP) :: e_e5_0k0, e_e6_0k0, e_e2m1_0k0 
+      REAL(kind=PREC_DP) :: e_e2m1_2_0k0, e_e2m1_3_0k0, e_abs_e2m1_3_0k0 
+      REAL(kind=PREC_DP) :: e_e1_0kl, e_e2_0kl, e_e3_0kl, e_e4_0kl 
+      REAL(kind=PREC_DP) :: e_e5_0kl, e_e6_0kl, e_e2m1_0kl 
+      REAL(kind=PREC_DP) :: e_e2m1_2_0kl, e_e2m1_3_0kl, e_abs_e2m1_3_0kl 
+      REAL(kind=PREC_DP) :: e_e1_hhl, e_e2_hhl, e_e3_hhl, e_e4_hhl 
+      REAL(kind=PREC_DP) :: e_e5_hhl, e_e6_hhl, e_e2m1_hhl 
+      REAL(kind=PREC_DP) :: e_e2m1_2_hhl, e_e2m1_3_hhl, e_abs_e2m1_3_hhl 
+      REAL(kind=PREC_DP) :: e_e1_hMh0l, e_e2_hMh0l, e_e3_hMh0l, e_e4_hMh0l 
+      REAL(kind=PREC_DP) :: e_e5_hMh0l, e_e6_hMh0l, e_e2m1_hMh0l 
+      REAL(kind=PREC_DP) :: e_e2m1_2_hMh0l, e_e2m1_3_hMh0l, e_abs_e2m1_3_hMh0l 
+      REAL(kind=PREC_DP) :: e_e1_hhM2hl, e_e2_hhM2hl, e_e3_hhM2hl, e_e4_hhM2hl 
+      REAL(kind=PREC_DP) :: e_e5_hhM2hl, e_e6_hhM2hl, e_e2m1_hhM2hl 
+      REAL(kind=PREC_DP) :: e_e2m1_2_hhM2hl, e_e2m1_3_hhM2hl, e_abs_e2m1_3_hhM2hl 
 !                                                                       
-      REAL i_aver_all 
-      REAL i_aver_C, i_aver_B, i_aver_A, i_aver_F, i_aver_I 
-      REAL i_aver_RO, i_aver_RR 
+      REAL(kind=PREC_DP) :: i_aver_all 
+      REAL(kind=PREC_DP) :: i_aver_C, i_aver_B, i_aver_A, i_aver_F, i_aver_I 
+      REAL(kind=PREC_DP) :: i_aver_RO, i_aver_RR 
 !                                                                       
       INTEGER n_all 
       INTEGER n_C, n_B, n_A, n_F, n_I 
@@ -1972,10 +1968,8 @@ USE support_mod
       LOGICAL latt_C, latt_B, latt_A, latt_F, latt_I 
       LOGICAL latt_RO, latt_RR 
 !                                                                       
-!     INTEGER e_hist 
-!     REAL do_blen 
 REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
-      REAL dstar 
+      REAL(kind=PREC_DP) :: dstar 
       LOGICAL lspace 
       PARAMETER (lspace = .false.) 
 !                                                                       
@@ -2624,8 +2618,8 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph (i) )        &
-         / REAL(e_graph (0) ) / 0.1                                   
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph (i) , kind=PREC_DP)        &
+         / REAL(e_graph (0) , kind=PREC_DP) / 0.1D0                                   
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2635,8 +2629,8 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hk0 (i) )    &
-         / REAL(e_graph_hk0 (0) ) / 0.1                               
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hk0 (i) , kind=PREC_DP)    &
+         / REAL(e_graph_hk0 (0) , kind=PREC_DP) / 0.1D0                               
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2657,8 +2651,8 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_0kl (i) )    &
-         / REAL(e_graph_0kl (0) ) / 0.1                               
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_0kl (i) ,kind=PREC_DP)    &
+         / REAL(e_graph_0kl (0) ,kind=PREC_DP) / 0.1D0                               
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2668,8 +2662,8 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hhl (i) )    &
-         / REAL(e_graph_hhl (0) ) / 0.1                               
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hhl (i) ,kind=PREC_DP)    &
+         / REAL(e_graph_hhl (0) ,kind=PREC_DP) / 0.1                               
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2679,8 +2673,8 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hMh0l (i) )  &
-         / REAL(e_graph_hMh0l (0) ) / 0.1                             
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hMh0l (i) ,kind=PREC_DP)  &
+         / REAL(e_graph_hMh0l (0) ,kind=PREC_DP) / 0.1                             
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2690,8 +2684,8 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE( e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hhM2Hl (i) ) &
-         / REAL(e_graph_hhM2Hl (0) ) / 0.1                            
+         WRITE( e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hhM2Hl (i) ,kind=PREC_DP) &
+         / REAL(e_graph_hhM2Hl (0) ,kind=PREC_DP) / 0.1                            
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2701,8 +2695,8 @@ REAL(kind=PREC_DP), dimension(3), parameter :: nullv = (/ 0.0D0, 0.0D0, 0.0D0 /)
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_0k0 (i) )    &
-         / REAL(e_graph_0k0 (0) ) / 0.1                               
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_0k0 (i),kind=PREC_DP )    &
+         / REAL(e_graph_0k0 (0) ,kind=PREC_DP) / 0.1                               
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2743,14 +2737,11 @@ use precision_mod
 !                                                                       
       INTEGER i 
       REAL(kind=PREC_DP), dimension(3), parameter :: nullv =(/ 0.0D0, 0.0D0, 0.0D0 /) 
-      REAL e_hist_limit (20) 
-      REAL dstar 
+      REAL(kind=PREC_DP) e_hist_limit (20) 
+      REAL(kind=PREC_DP) dstar 
       LOGICAL lspace 
       PARAMETER (lspace = .false.) 
 !                                                                       
-!     REAL do_blen 
-!                                                                       
-!     DATA null / 0.0, 0.0, 0.0 / 
       DATA e_hist_limit / 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8,  &
       2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 1e6 /           
 !                                                                       
@@ -2777,12 +2768,14 @@ use precision_mod
 !                                                                       
 !     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
-      REAL e_f 
-      REAL e_e1_hkl, e_e2_hkl, e_e3_hkl, e_e4_hkl 
-      REAL e_e5_hkl, e_e6_hkl, e_e2m1_hkl 
-      REAL e_e2m1_2_hkl, e_e2m1_3_hkl, e_abs_e2m1_3_hkl 
+      REAL(kind=PREC_DP) e_f 
+      REAL(kind=PREC_DP) e_e1_hkl, e_e2_hkl, e_e3_hkl, e_e4_hkl 
+      REAL(kind=PREC_DP) e_e5_hkl, e_e6_hkl, e_e2m1_hkl 
+      REAL(kind=PREC_DP) e_e2m1_2_hkl, e_e2m1_3_hkl, e_abs_e2m1_3_hkl 
 !                                                                       
       e_e1_hkl = e_e1_hkl + e_f 
       e_e2_hkl = e_e2_hkl + e_f**2 
@@ -2810,6 +2803,8 @@ use precision_mod
 !+                                                                      
       USE do_wait_mod
       USE prompt_mod 
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -2819,11 +2814,11 @@ use precision_mod
       INTEGER lcomm 
       INTEGER n 
       LOGICAL long 
-      REAL e_e1_hkl, e_e2_hkl, e_e3_hkl, e_e4_hkl 
-      REAL e_e5_hkl, e_e6_hkl, e_e2m1_hkl 
-      REAL e_e2m1_2_hkl, e_e2m1_3_hkl, e_abs_e2m1_3_hkl 
+      REAL(kind=PREC_DP) e_e1_hkl, e_e2_hkl, e_e3_hkl, e_e4_hkl 
+      REAL(kind=PREC_DP) e_e5_hkl, e_e6_hkl, e_e2m1_hkl 
+      REAL(kind=PREC_DP) e_e2m1_2_hkl, e_e2m1_3_hkl, e_abs_e2m1_3_hkl 
 !                                                                       
-      REAL cent (10), acent (10) 
+      REAL(kind=PREC_DP) cent (10), acent (10) 
 !                                                                       
       DATA cent / 0.798, 1.000, 1.596, 3.000, 6.383, 15.000, 0.968,     &
       2.000, 8.000, 8.691 /                                             
@@ -2904,20 +2899,17 @@ USE support_mod
       INTEGER h (3) 
       INTEGER w_num (MAXW) 
       REAL(kind=PREC_DP) :: hh (3) 
-      REAL rint, sigma 
-      REAL dstar2, stl2, fjq 
-      REAL dd, dd_o 
-      REAL q 
-      REAL w_aver (MAXW) 
-      REAL sumx, sumx2, sumy, sumy2, sumxy 
-      REAL m, p, number 
+      REAL(kind=PREC_DP) :: rint, sigma 
+      REAL(kind=PREC_DP) :: dstar2, stl2, fjq 
+      REAL(kind=PREC_DP) :: dd, dd_o 
+      REAL(kind=PREC_DP) :: q 
+      REAL(kind=PREC_DP) :: w_aver (MAXW) 
+      REAL(kind=PREC_DP) :: sumx, sumx2, sumy, sumy2, sumxy 
+      REAL(kind=PREC_DP) :: m, p, number 
 !                                                                       
       INTEGER HKLF4
       PARAMETER (HKLF4 = 5) 
 !                                                                       
-!     INTEGER e_hist 
-!     REAL fj2 
-!     REAL quad 
       INTEGER iimax 
       iimax = 0 
 !                                                                       
@@ -3044,7 +3036,7 @@ USE support_mod
 !                                                                       
       END SUBROUTINE wilson_calc                    
 !*****7*****************************************************************
-      REAL function fj2 (dstar2) 
+      REAL(kind=PREC_DP) function fj2 (dstar2) 
 !-                                                                      
 !     Calculates the sum of all formfactors squared                     
 !+                                                                      
@@ -3053,14 +3045,14 @@ USE support_mod
       USE diffuse_mod 
       USE fourier_sup, ONLY: form
       USE errlist_mod 
+use precision_mod
+!
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      REAL dstar2 
+      REAL(kind=PREC_DP):: dstar2 
       INTEGER j 
-!                                                                       
-!     REAL form 
 !                                                                       
       fj2 = 0.0 
       DO j = 1, cr_ncatoms 

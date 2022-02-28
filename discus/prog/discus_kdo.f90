@@ -1,3 +1,7 @@
+!module discus_mache_kdo_mod
+!
+!contains
+!
 !*****7*****************************************************************
 SUBROUTINE discus_mache_kdo (line, lend, length) 
 !+                                                                      
@@ -535,14 +539,15 @@ USE str_comp_mod
 subroutine discus_do_fit(line, length)
 use crystal_mod
 use fit_mod
+use precision_mod
 !
 character(len=*), INTENT(INOUT) :: Line
 integer         , INTENT(INOUT) :: length
 !
 INTEGER, DIMENSION(:), ALLOCATABLE :: list
 INTEGER               :: i
-REAL   , DIMENSION(3) :: hkl
-REAL                  :: dist
+REAL(kind=PREC_DP)   , DIMENSION(3) :: hkl
+REAL(kind=PREC_DP)                  :: dist
 !
 ALLOCATE(list(1:cr_natoms))
          DO i=1,cr_natoms
@@ -552,3 +557,5 @@ ALLOCATE(list(1:cr_natoms))
          DEALLOCATE(list)
 !
 end subroutine discus_do_fit
+!
+!end module discus_mache_kdo_mod

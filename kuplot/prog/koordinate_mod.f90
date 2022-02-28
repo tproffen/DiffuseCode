@@ -16,15 +16,16 @@ END INTERFACE koor_log
 !
 CONTAINS
 !***********************************************************************
-      SUBROUTINE koor_shear_s (npkt, xa, ya) 
+!
+SUBROUTINE koor_shear_s (npkt, xa, ya) 
 !+                                                                      
 !     transformation beim shearen Scalar Version
 !-                                                                      
-      USE wink_mod
-      IMPLICIT none 
+USE wink_mod
+IMPLICIT none 
 !                                                                       
-      INTEGER npkt
-      REAL xa       , ya
+INTEGER, intent(in) ::  npkt
+REAL , intent(inout) ::xa       , ya
 !                                                                       
       IF (shear (iwin, iframe) .ne.90.0.and.sfl (iwin, iframe) ) then 
 !        DO i = 1, npkt 
@@ -38,17 +39,21 @@ CONTAINS
 !        ENDDO 
       ENDIF 
 !                                                                       
-      END SUBROUTINE koor_shear_s
+END SUBROUTINE koor_shear_s
+!
 !***********************************************************************
-      SUBROUTINE koor_shear_1 (npkt, xa, ya) 
+!
+SUBROUTINE koor_shear_1 (npkt, xa, ya) 
 !+                                                                      
 !     transformation beim shearen                                       
 !-                                                                      
-      USE wink_mod
-      IMPLICIT none 
+USE wink_mod
+IMPLICIT none 
 !                                                                       
-      INTEGER npkt, i 
-      REAL xa (npkt), ya (npkt) 
+INTEGER , intent(in) :: npkt
+REAL, intent(inout) :: xa (npkt), ya (npkt) 
+!
+integer :: i
 !                                                                       
       IF (shear (iwin, iframe) .ne.90.0.and.sfl (iwin, iframe) ) then 
          DO i = 1, npkt 
@@ -63,6 +68,7 @@ CONTAINS
       ENDIF 
 !                                                                       
       END SUBROUTINE koor_shear_1
+!
 !***********************************************************************
       SUBROUTINE koor_log_s (npkt, xa, ya) 
 !+                                                                      
@@ -71,9 +77,10 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER npkt
-      REAL xa       , ya
-      REAL log10 
+INTEGER, intent(in) ::  npkt
+REAL , intent(inout) ::xa       , ya
+!
+REAL :: log10 
 !                                                                       
       log10 = log (10.0) 
 !                                                                       
@@ -106,9 +113,12 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER npkt, i 
-      REAL xa (npkt), ya (npkt) 
-      REAL log10 
+INTEGER , intent(in) :: npkt
+REAL    , intent(inout) :: xa (npkt), ya (npkt) 
+!
+INTEGER :: i 
+!      REAL xa (npkt), ya (npkt) 
+REAL :: log10 
 !                                                                       
       log10 = log (10.0) 
 !                                                                       
@@ -132,5 +142,8 @@ CONTAINS
          ENDDO 
       ENDIF 
 !                                                                       
-      END SUBROUTINE koor_log_1                       
+END SUBROUTINE koor_log_1                       
+!
+!*******************************************************************************
+!
 END MODULE koordinate_mod

@@ -536,7 +536,7 @@ use precision_mod
 IMPLICIT none 
 !                                                                       
 REAL(kind=PREC_SP), INTENT(IN) :: s 
-REAL :: current
+REAL(kind=PREC_DP) :: current
 !                                                                       
 CALL CPU_TIME(current) 
 seknds_sp = current - s
@@ -555,7 +555,7 @@ use precision_mod
 IMPLICIT none 
 !                                                                       
 REAL(kind=PREC_DP), INTENT(IN) :: s 
-REAL :: current
+REAL(kind=PREC_DP) :: current
 !                                                                       
 CALL CPU_TIME(current) 
 seknds_dp = current - s
@@ -872,7 +872,9 @@ END SUBROUTINE do_fexist
 !
 LOGICAL FUNCTION is_nan(x)
 !
-REAL, INTENT(IN) :: x
+use precision_mod
+!
+REAL(kind=PREC_DP), INTENT(IN) :: x
 !
 is_nan = isnan(x)
 !

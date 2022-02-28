@@ -5,6 +5,7 @@ MODULE external_mod
 !-
 !
 USE molecule_mod
+use precision_mod
 !
 SAVE
 !
@@ -26,12 +27,12 @@ INTEGER                 ::  exte_npixelb
 INTEGER                 ::  exte_wordord
 INTEGER                 ::  exte_longord
 INTEGER, DIMENSION(3)   ::  exte_orig ! (3)
-REAL                    ::  exte_scale
+REAL(kind=PREC_DP)                    ::  exte_scale
 !
 INTEGER, DIMENSION(3)   ::  exte_iii  ! (3)
-REAL   , DIMENSION(4,4) ::  exte_mat  ! (4,4)
-REAL   , DIMENSION(4,4) ::  exte_rmat ! (4,4)
-REAL   , DIMENSION(4,4) ::  exte_rot  ! (4,4)
-REAL   , DIMENSION(4,4) ::  exte_rrot ! (4,4)
+REAL(kind=PREC_DP)   , DIMENSION(4,4) ::  exte_mat  ! (4,4)
+REAL(kind=PREC_DP)   , DIMENSION(4,4) ::  exte_rmat ! (4,4)
+REAL(kind=PREC_DP)   , DIMENSION(4,4) ::  exte_rot  ! (4,4)
+REAL(kind=PREC_DP)   , DIMENSION(4,4) ::  exte_rrot ! (4,4)
 !
 END MODULE external_mod

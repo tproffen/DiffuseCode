@@ -45,13 +45,14 @@ CONTAINS
    USE diffev_random
    USE population
 USE lib_do_operating_mod
+use precision_mod
 !                                                                       
    IMPLICIT none 
 !
    CHARACTER(LEN=600)             :: string 
    INTEGER                        :: i, j , nb
 INTEGER  :: length
-   REAL                           ::  best, worst 
+   REAL(kind=PREC_DP)             ::  best, worst 
 !                                                                       
    CALL do_read_values(.TRUE.)
    IF ( ier_num /=0) RETURN
@@ -157,7 +158,7 @@ CHARACTER(LEN=600)             :: string
 INTEGER                        :: list_number 
 INTEGER                        :: list_index (2 * MAXPOP) 
 REAL(kind=PREC_DP)             :: list_val (2 * MAXPOP) 
-REAL                           :: best, worst
+REAL(kind=PREC_DP)             :: best, worst
 !                                                                       
 INTEGER                        :: i, j, k, ii , nb
 INTEGER :: length
@@ -328,6 +329,7 @@ END SUBROUTINE compare_best_all
    USE population
    USE support_diffev_mod
 USE support_mod
+use precision_mod
 !                                                                       
    IMPLICIT none 
 !
@@ -338,7 +340,7 @@ USE support_mod
    INTEGER                        :: j 
    INTEGER                        :: iostatus
    INTEGER                        :: len_file 
-   REAL                           :: r 
+   REAL(kind=PREC_DP)             :: r 
 !                                                                       
    silent: IF(pop_result_file_rd) THEN
    DO j = 1, pop_c 
@@ -375,6 +377,7 @@ USE prompt_mod
 USE random_mod
 USE terminal_mod
 USE support_mod
+use precision_mod
 !
 !                                                                       
 IMPLICIT none 
@@ -391,10 +394,10 @@ INTEGER                        :: pop_dimx_old
 INTEGER                        :: iostatus, isuccess
 INTEGER                        :: ieq
 LOGICAL                        :: istda, lcurrent
-REAL                           :: best, worst 
-REAL                           :: r
-REAL                           :: temp_val_min, temp_val_max
-REAL                           :: temp_pop_min, temp_pop_max
+REAL(kind=PREC_DP)             :: best, worst 
+REAL(kind=PREC_DP)             :: r
+REAL(kind=PREC_DP)             :: temp_val_min, temp_val_max
+REAL(kind=PREC_DP)             :: temp_pop_min, temp_pop_max
 !                                                                       
 !
 iostatus = 0
@@ -639,6 +642,7 @@ USE lib_length
 USE precision_mod
 USE variable_mod
 USE support_mod
+use precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -652,9 +656,9 @@ INTEGER                        :: length
 CHARACTER (LEN=PREC_LSTRING)   :: line 
 CHARACTER (LEN=PREC_STRING)    :: fname
 !                                                                       
-REAL                           :: pave, pmin, pmax, psig 
-REAL                           :: sx, sx2, arg 
-REAL                           :: sw, wg
+REAL(kind=PREC_DP)             :: pave, pmin, pmax, psig 
+REAL(kind=PREC_DP)             :: sx, sx2, arg 
+REAL(kind=PREC_DP)             :: sw, wg
 !
 !                                                                       
 changed: IF ( pop_dimx_new ) THEN      ! Dimension has changed, patch parameter and summary file
@@ -1118,6 +1122,7 @@ SUBROUTINE do_dismiss ( lb, ub)
 !  The purpose is to ensure replacement in the next generation
 !
 USE population
+use precision_mod
 !
 IMPLICIT none 
 !
@@ -1128,7 +1133,7 @@ INTEGER, INTENT(IN) :: ub
 INTEGER             :: list_index(MAXPOP)
 !
 INTEGER             :: j
-REAL                :: shift
+REAL(kind=PREC_DP)  :: shift
 !                                                                       
 CALL do_read_values(.TRUE.)       ! If necessary read parameter values from logfile
 IF ( ier_num /=0) RETURN

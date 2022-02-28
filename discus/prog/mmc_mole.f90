@@ -39,8 +39,8 @@ logical                      :: lfinished
 logical                      :: lout
 logical                      :: loop
 LOGICAL, DIMENSION(3)        :: old_chem_period     ! Original periodic boundary conditions
-REAL                         :: rel_cycl
-real(kind=PREC_SP), dimension(2) :: maxdev = (/ 0.0, 0.0/)
+REAL(kind=PREC_DP)                         :: rel_cycl
+real(kind=PREC_DP), dimension(2) :: maxdev = (/ 0.0, 0.0/)
 !
 call mmc_initial(old_chem_period, itry, igen, iacc_good, iacc_neut, iacc_bad, &
            done, loop)
@@ -60,7 +60,7 @@ lfeed = .false.
 lout      = .FALSE.
 lfinished = .FALSE.
 lfeed     = .FALSE.
-CALL mmc_correlations (lout, 0.0, done, lfinished, lfeed, maxdev)
+CALL mmc_correlations (lout, 0.0D0, done, lfinished, lfeed, maxdev)
 !
 !
 call symm_store                                    ! save symmetry settings
@@ -112,7 +112,7 @@ integer                           , intent(INOUT) :: nthreads
 integer                           , intent(INOUT) :: iacc_good
 integer                           , intent(INOUT) :: iacc_neut
 integer                           , intent(INOUT) :: iacc_bad
-REAL                              , INTENT(INOUT) :: rel_cycl
+REAL(kind=PREC_DP)                              , INTENT(INOUT) :: rel_cycl
 LOGICAL                           , INTENT(IN )   :: lout_feed
 LOGICAL                           , INTENT(IN )   :: lfeed       ! Use feedback algorithm  T/F
 INTEGER(KIND=PREC_INT_LARGE)      , INTENT(IN)    :: imodulus
@@ -122,11 +122,11 @@ integer           , dimension(2)             :: isel         ! selected molecule
 integer                                      :: nmoles       ! number of selected molecules 1/2
 integer                                      :: is_move      ! Type of move displacement or switch
 logical                                      :: laccept      ! Accept move T/F
-real(kind=PREC_SP), dimension(0:MC_N_ENERGY) :: e_old        ! old energies
-real(kind=PREC_SP), dimension(0:MC_N_ENERGY) :: e_new        ! new energies
+real(kind=PREC_DP), dimension(0:MC_N_ENERGY) :: e_old        ! old energies
+real(kind=PREC_DP), dimension(0:MC_N_ENERGY) :: e_new        ! new energies
 !
-real(kind=PREC_SP), dimension(:,:), allocatable :: orig_pos  ! original atom positions
-real(kind=PREC_SP), dimension(2) :: maxdev = (/ 0.0, 0.0/)
+real(kind=PREC_DP), dimension(:,:), allocatable :: orig_pos  ! original atom positions
+real(kind=PREC_DP), dimension(2) :: maxdev = (/ 0.0, 0.0/)
 !
 call mmc_select_mole(isel, nmoles, is_move)                                                   ! Select move shift/rotate
 !write(*,*) ' SELECTED MOLE ', isel, 'NM ',nmoles, 'MOVE ',is_move
@@ -182,7 +182,7 @@ integer, parameter :: MAXTRY = 10000                ! Maximum number of searches
 !
 integer :: i                                        ! dummy loop index
 integer :: ntry                                     ! Number of trials so far
-real(kind=PREC_SP) :: r1                            ! a random number
+real(kind=PREC_DP) :: r1                            ! a random number
 !
 ntry = 0
 loop_search: do                                          ! Search until a valid molecule is found
@@ -220,7 +220,6 @@ use mmc_mod
 use molecule_mod
 use symm_mod
 use symm_sup_mod
-!use trafo_mod
 !
 use metric_mod
 !
@@ -234,10 +233,10 @@ implicit none
 integer, dimension(2), intent(in) :: isel            ! selected molecule numbers
 integer              , intent(in) :: nmoles          ! number of selected molecules 1/2
 integer              , intent(in) :: is_move         ! Type of move displacement or switch
-real(kind=PREC_SP), dimension(:, :), allocatable, intent(OUT) :: orig_pos  ! original atom positions
+real(kind=PREC_DP), dimension(:, :), allocatable, intent(OUT) :: orig_pos  ! original atom positions
 !
 integer :: i
-real(kind=PREC_SP), dimension(3)    :: disp  ! Displacement vector
+real(kind=PREC_DP), dimension(3)    :: disp  ! Displacement vector
 real(kind=PREC_DP), dimension(3, 3) :: matr  ! Rotation matrix
 !real(kind=PREC_DP), dimension(3, 3) :: invm  ! Rotation matrix
 real(kind=PREC_DP), dimension(3)    :: u                     ! Dummy vector 
@@ -313,7 +312,6 @@ subroutine mmc_unmodify_mole(isel, nmoles, orig_pos)
 use crystal_mod
 use mmc_mod
 use molecule_mod
-!use trafo_mod
 !
 use metric_mod
 !
@@ -323,7 +321,7 @@ implicit none
 !
 integer, dimension(2), intent(in) :: isel            ! selected molecule numbers
 integer              , intent(in) :: nmoles          ! number of selected molecules 1/2
-real(kind=PREC_SP), dimension(:, :), allocatable, intent(INOUT) :: orig_pos  ! original atom positions
+real(kind=PREC_DP), dimension(:, :), allocatable, intent(INOUT) :: orig_pos  ! original atom positions
 !
 integer :: i
 !
@@ -357,7 +355,7 @@ integer              , intent(in ) :: MAXCOR          ! MAXIMUM number correlati
 integer              , intent(in ) :: N_ENERGY        ! Maximum number energies
 logical, dimension(0:MAXCOR, 0:N_ENERGY), intent(in) :: mmc_cor_energy 
 integer              , intent(in ) :: is_move         ! Type of move displacement or switch
-real(kind=PREC_SP)   , dimension(0:N_ENERGY), intent(OUT) :: e_cur        ! current energies
+real(kind=PREC_DP)   , dimension(0:N_ENERGY), intent(OUT) :: e_cur        ! current energies
 !
 integer :: im                                         ! Counter molecules
 integer :: ic                                         ! Counter correlations/targets
@@ -391,7 +389,7 @@ use precision_mod
 !
 implicit none
 !
-real(kind=PREC_SP)  :: e_len
+real(kind=PREC_DP)  :: e_len
 integer, intent(in) :: im                               ! Molecule number
 integer, intent(in) :: ic                               ! Target   number
 !
@@ -400,7 +398,7 @@ integer, parameter ::  MAX_CENT = 1    ! Maximum array size
 !                                                                       
 integer ::  jatom   ! Central atom no, get neighbours around jatom
 integer, dimension(   0:MAXW, MAX_CENT) :: iatom ! indices of neighbs
-real   , dimension(3, 0:maxw, MAX_CENT) :: patom ! Coordinates
+real(kind=PREC_DP)   , dimension(3, 0:maxw, MAX_CENT) :: patom ! Coordinates
 logical, dimension(   0:maxw, MAX_CENT) :: tatom ! indices of neighbs
 integer, dimension(           MAX_CENT) :: natom ! no of neigh
 integer                                 :: ncent ! no of central atoms
@@ -408,7 +406,7 @@ integer :: ia                                    ! Loop index molecule content
 integer :: j                                     ! Loop index neighbors
 integer :: is, js                                ! Atom types 
 !
-real               :: d
+real(kind=PREC_DP)               :: d
 real(kind=PREC_DP), dimension(3) :: u
 real(kind=PREC_DP), dimension(3) :: v
 !              

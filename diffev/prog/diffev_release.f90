@@ -33,9 +33,9 @@ INTEGER                               :: lb, d_lb, d_ub
 LOGICAL                               :: lexist
 LOGICAL                               :: l_init_x
 LOGICAL                               :: ldismiss
-REAL                                  :: set_value
-REAL                                  :: set_xmin
-REAL                                  :: set_xmax
+REAL(KIND=PREC_DP)                    :: set_value
+REAL(KIND=PREC_DP)                    :: set_xmin
+REAL(KIND=PREC_DP)                    :: set_xmax
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 5
 INTEGER, PARAMETER :: O_RANGE = 1

@@ -2,6 +2,7 @@ MODULE output_mod
 !-
 !     Common Block und Definitionen der Outputvariablen fuers INCLUDE
 !+
+use precision_mod
 SAVE
 !
 CHARACTER(LEN=200)      ::  outfile      = 'fcalc.dat'
@@ -20,12 +21,13 @@ INTEGER                 ::  out_lrange   = 0   ! 0=No limit; 1=center; 2=quad
 INTEGER                 ::  out_lcenter  = 0   ! 0=middle; 1=user
 INTEGER                 ::  out_lpixel   = 0   ! 0=all pixels, 1 = user values
 CHARACTER(LEN=3)        ::  out_quad = '   '
-INTEGER, DIMENSION(3)   ::  out_inc ! (2)
-REAL   , DIMENSION(3,4) ::  out_eck ! (3,4)
-REAL   , DIMENSION(3,3) ::  out_vi  ! (3,3)
+INTEGER, DIMENSION(3)   ::  out_inc ! Number of data points along dimension h,k,l or Q/Theta (2)
+REAL(kind=PREC_DP), DIMENSION(3,4) ::  out_eck ! (3,4)
+REAL(kind=PREC_DP), DIMENSION(3,3) ::  out_vi  ! (3,3)
 CHARACTER(LEN=  3)      ::  cpow_form    = 'tth'
 LOGICAL                 ::  out_user_limits = .false.
-REAL   , DIMENSION(3)   ::  out_user_values = (/1.0, 10.0, 0.01/)
+REAL(kind=PREC_DP), DIMENSION(3)   ::  out_user_values = (/1.0D0, 10.0D0, 0.01D0/) ! User Qmin, Qmax, Qstep
+INTEGER           , DIMENSION(3)   ::  out_user_inc ! Number of data points along dimension h,k,l or Q/Theta (2)
 integer                 ::  out_mode = 0       ! Output mode if KUPLOT 0;1;2 == new, old, add
 !
 END MODULE output_mod

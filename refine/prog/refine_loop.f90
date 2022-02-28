@@ -4,6 +4,7 @@ CONTAINS
 !
 SUBROUTINE refine_loop
 !
+!use refine_mache_kdo_mod
 USE diffev_mpi_mod
 USE gen_mpi_mod
 USE mpi_slave_mod

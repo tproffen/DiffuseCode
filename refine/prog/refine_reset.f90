@@ -35,6 +35,8 @@ CALL refine_initarrays
 refine_autoconstr =.TRUE.   ! Do automatic constraints
 refine_fwhm       = .FALSE. ! u,v,w, are refined=TRUE or fixed=FALSE
 refine_fwhm_ind   = HUGE(0)
+refine_eta        = .FALSE. ! eta    are refined=TRUE or fixed=FALSE
+refine_eta_ind    = HUGE(0)
 refine_par_n    = 0 ! number of parameters
 refine_fix_n    = 0 
 ref_dim(1)      = 1
@@ -57,6 +59,7 @@ conv_dchi2      = 0.5   ! Maximum Chi^2 change for convergence
 conv_chi2       = 0.5   ! Minimum Chi^2 value  for convergence
 conv_conf       = 0.01  ! Minimum confidence level
 lconvergence    = .FALSE. ! Convergence has been reached
+lconv           = .FALSE. ! Convergence has been reached
 refine_lamda_s  = 0.001   ! MRQ lamda start
 refine_lamda_u  = 16.00   ! MRQ lamda Increase (up)
 refine_lamda_d  = 0.500   ! MRQ lamda Decrease (down)

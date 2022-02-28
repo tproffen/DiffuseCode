@@ -65,9 +65,9 @@ INTEGER                              :: natom
 INTEGER, DIMENSION(:), ALLOCATABLE   :: iatoms
 INTEGER                              :: itype
 INTEGER                              :: i
-REAL                                 :: biso
-REAL                                 :: clin
-REAL                                 :: cqua
+REAL(kind=PREC_DP)                   :: biso
+REAL(kind=PREC_DP)                   :: clin
+REAL(kind=PREC_DP)                   :: cqua
 character(len=PREC_STRING), dimension(:), allocatable :: con_name
 integer                   , dimension(:), allocatable :: con_ino
 integer :: con_nnums    ! Number of connectivities stated with numbers
@@ -353,9 +353,9 @@ INTEGER,          DIMENSION(1:con_nnums),  INTENT(IN)  :: con_ino
 INTEGER,                                   INTENT(IN)  :: con_nnames
 character(len=*), DIMENSION(1:con_nnames), INTENT(IN)  :: con_name
 integer                                  , intent(in)  :: itype
-REAL                                     , intent(in)  :: biso
-REAL                                     , intent(in)  :: clin
-REAL                                     , intent(in)  :: cqua
+REAL(kind=PREC_DP)                                     , intent(in)  :: biso
+REAL(kind=PREC_DP)                       , intent(in)  :: clin
+REAL(kind=PREC_DP)                       , intent(in)  :: cqua
 !
 INTEGER   :: jatom
 !
@@ -591,7 +591,7 @@ loop_ino: DO ino = 1, ino_max                        ! Loop over all connectivit
 !        Apply periodic boundary shifts to keep molecule contiguous
          IF(c_offs(1,i)/=0 .OR. c_offs(2,i)/=0 .OR. c_offs(3,i)/=0 ) THEN
             cr_pos(:,latom) = cr_pos(:,latom) + c_offs(:,i)
-            CALL conn_update(latom, REAL(c_offs(:,i)))
+            CALL conn_update(latom, REAL(c_offs(:,i),kind=PREC_DP))
          ENDIF
          CALL mol_add_conn(latom, loc_nnums, loc_ino)
       ENDIF
@@ -640,8 +640,8 @@ DO ino = 1, ino_max                        ! Loop over all connectivity types
          latom = c_list(i)                 ! Now search current neighbor for further ones
 !        Apply periodic boundary shifts to keep molecule contiguous
          IF(c_offs(1,i)/=0 .OR. c_offs(2,i)/=0 .OR. c_offs(3,i)/=0 ) THEN
-            cr_pos(:,latom) = cr_pos(:,latom) + c_offs(:,i)
-            CALL conn_update(latom, REAL(c_offs(:,i)))
+            cr_pos(:,latom) = cr_pos(:,latom) + real(c_offs(:,i), kind=PREC_DP)
+            CALL conn_update(latom, REAL(c_offs(:,i),kind=PREC_DP))
          ENDIF
          CALL mol_add_excl(latom, n_excl, excl)
       ENDIF
@@ -668,9 +668,9 @@ IMPLICIT NONE
 INTEGER, INTENT(IN)  :: istart
 INTEGER, INTENT(IN)  :: ifinish
 INTEGER, INTENT(IN)  :: new_type
-REAL   , INTENT(IN)  :: biso
-REAL   , INTENT(IN)  :: clin
-REAL   , INTENT(IN)  :: cqua
+REAL(kind=PREC_DP)   , INTENT(IN)  :: biso
+REAL(kind=PREC_DP)   , INTENT(IN)  :: clin
+REAL(kind=PREC_DP)   , INTENT(IN)  :: cqua
 !
 INTEGER   :: n_new,n_atom, n_type, n_mole
 INTEGER   :: i, j

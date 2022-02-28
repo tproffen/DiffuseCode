@@ -363,16 +363,17 @@ USE lib_length
      &                  '****')                                         
       END SUBROUTINE do_rename_file                 
 !*****7*****************************************************************
-      REAL FUNCTION seknds (s) 
+      REAL(KIND=PREC_DP) FUNCTION seknds (s) 
 !-                                                                      
 !     returns the elapsed user time since the last call or start (s=0)  
 !     im seconds                                                        
 !                                                                       
+USE precision_mod
       IMPLICIT none 
 !                                                                       
-      REAL s 
-      REAL time (2), res 
-      REAL :: current
+      REAL(KIND=PREC_DP), intent(in) :: s 
+      REAL(KIND=PREC_DP) :: time (2), res 
+      REAL(KIND=PREC_DP) :: current
 !                                                                       
 !     CALL etime (time, res) 
 !     seknds = time (1) - s 
@@ -655,9 +656,10 @@ USE precision_mod
 !*****7***********************************************************      
       LOGICAL FUNCTION is_nan(x)
 !
+USE precision_mod
       USE ieee_arithmetic
 !
-      REAL, INTENT(IN) :: x
+      REAL(KIND=PREC_DP), INTENT(IN) :: x
 !
       is_nan = ieee_is_nan(x)
 !

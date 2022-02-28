@@ -772,7 +772,6 @@ INTEGER               :: point_n
 INTEGER, SAVE         :: accum_n
 REAL(kind=PREC_DP), DIMENSION(3)    :: radius_ell
 REAL(KIND=PREC_DP), dimension(3) :: v !(3) 
-!      REAL, DIMENSION(3,1) :: col_vec
 REAL(kind=PREC_DP), dimension(3) :: nullv !(3) 
 REAL(kind=PREC_DP) :: thick
 REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -1445,7 +1444,6 @@ USE symm_mod
 use symm_menu
 USE symm_sup_mod
 use symm_menu
-!USE trafo_mod
 !
 USE errlist_mod
 USE ber_params_mod
@@ -1551,13 +1549,8 @@ ELSEIF(ABS(180.0D0-alpha)<EPS) THEN             ! at 180 degrees
    v(1) = 0.0D0
    v(2) = 1.0D0                             ! Dummy b* vector
    v(3) = 0.0D0
-!  CALL trans(v, cr_rten, ww, 3)            ! transform b* into direct space
-!  ww = matmul(real(cr_rten,KIND=PREC_DP), v)
    ww = matmul(     cr_rten              , v)
 ELSE                                        ! Need a rotation
-!  CALL vekprod(real(v_long,kind=PREC_DP), real(u,kind=PREC_DP), &
-!                    www             , cr_eps, cr_rten)  ! Get rotation axis
-!               real(ww,kind=PREC_SP), cr_eps, cr_rten)  ! Get rotation axis
    CALL vekprod(     v_long              ,      u              , &
                      www             , cr_eps, cr_rten)  ! Get rotation axis
    ww = www
@@ -1622,7 +1615,6 @@ SUBROUTINE prep_values(o_long, lo_long, v_long, cname )
 ! Interpret the values for the optional parameter long / short
 !
 USE crystal_mod
-!USE trafo_mod
 !
 USE errlist_mod
 USE ber_params_mod
@@ -1674,7 +1666,6 @@ IF(o_long(1:1) == '[' .AND. o_long(lo_long:lo_long) == ']') THEN
             v_long(2) = werte(2)
             v_long(3) = werte(3)
             IF(.NOT.ldirect) THEN
-!              CALL trans (REAL(werte,KIND=PREC_SP), cr_rten, v_long, 3)     ! Make direct space axis
                v_long = matmul(real(cr_rten, kind=PREC_DP), werte(1:3))
             ENDIF
          ELSE
@@ -1704,7 +1695,6 @@ END SUBROUTINE prep_values
 SUBROUTINE pos2hkl(u, gten, hkl)
 !
 USE metric_mod
-!      USE trafo_mod
 use precision_mod
 !
 IMPLICIT NONE

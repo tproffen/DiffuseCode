@@ -63,7 +63,6 @@ INTEGER         , INTENT(INOUT) :: lcomm
       INTEGER indxg, ianz
       INTEGER sav_flen 
       LOGICAL lend 
-!      REAL, DIMENSION(SAV_MAXSCAT) :: repl ! Dummy variable needed for atom_select
 !                                                                       
 !                                                                       
       DATA sav_flen / 1 / 
@@ -617,7 +616,7 @@ INTEGER :: wr_cont = 0
 INTEGER :: wr_doma_current = 0               ! Current domain number
 LOGICAL :: active_domain    =.FALSE.         ! Are we writing a domain
 INTEGER, DIMENSION(0:3) :: wr_surf
-REAL   , DIMENSION(0:3) :: wr_magn
+REAL(KIND=PREC_DP)   , DIMENSION(0:3) :: wr_magn
 LOGICAL lread 
 LOGICAL                            :: lsave
 LOGICAL, DIMENSION(:), ALLOCATABLE :: lwrite ! flag if atom needs write

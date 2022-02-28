@@ -4,6 +4,8 @@ CONTAINS
 !
       SUBROUTINE kuplot_loop
 !                                                                       
+use kuplot_exit_mod
+use kuplot_draw_mod
       USE doact_mod 
       USE errlist_mod 
       USE learn_mod 
@@ -26,26 +28,30 @@ USE lib_macro_func
       CHARACTER(4) befehl 
       LOGICAL lend 
       INTEGER lbef, lp, ll 
+integer :: length
 !
       EXTERNAL  :: kuplot_mache_kdo
 !                                                                       
       lend = .false.
 !                                                                       
 !                                                                       
-      main: DO WHILE (.NOT.lend) 
-      CALL get_cmd (line, ll, befehl, lbef, zeile, lp, prompt) 
-      ok: IF (ier_num.eq.0.and.ll.gt.0) THEN 
-         IF (.NOT.(line==' ' .OR. line(1:1)=='#' .OR. line(1:1)=='!')) THEN
+main: DO WHILE (.NOT.lend) 
+   CALL get_cmd (line, ll, befehl, lbef, zeile, lp, prompt) 
+   ok: IF (ier_num.eq.0.and.ll.gt.0) THEN 
+      IF (.NOT.(line==' ' .OR. line(1:1)=='#' .OR. line(1:1)=='!')) THEN
 !                                                                       
 !------ --- Execute command                                             
 !                                                                       
-         IF (befehl (1:3) .eq.'do '.or.befehl (1:2) .eq.'if') THEN 
+         if((linteractive.OR.lblock.OR.lmakro) .AND.befehl(1:3) == 'mou') then
+            length = len_trim(zeile)
+            call do_mouse(zeile, length)
+         ELSEIF(befehl (1:3) .eq.'do '.or.befehl (1:2) .eq.'if') THEN 
             CALL do_loop (line, lend, ll) !, kuplot_mache_kdo) 
          ELSE 
             CALL kuplot_mache_kdo (line, lend, ll) !, previous) 
          ENDIF 
-         ENDIF 
-      ENDIF ok
+      ENDIF 
+   ENDIF ok
 !                                                                       
 !     - Handle error message                                            
 !                                                                       

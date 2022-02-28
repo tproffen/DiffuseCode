@@ -1,8 +1,12 @@
+module kuplot_show_mod
+!
 !*****7*****************************************************************
 !     This routine shows all settings of KUPLOT parameters. Some        
 !     parameter settings can also be displayed by entering the          
 !     corresponding command without parameters.                         
 !*****7*****************************************************************
+contains
+!
       SUBROUTINE kuplot_do_show (line, lp) 
 !                                                                       
 !     Main show menu                                                    
@@ -22,10 +26,12 @@ USE str_comp_mod
       INTEGER maxw 
       PARAMETER (maxw = 2) 
 !                                                                       
-      CHARACTER ( * ) line 
+CHARACTER(len=*), intent(inout) :: line 
+integer, intent(inout) :: lp
+!
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, iku 
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
@@ -188,11 +194,13 @@ USE str_comp_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_extrema_mod
 USE lib_length
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER iku, ia, ie, ik 
+integer, intent(in) :: iku
+      INTEGER :: ia, ie, ik 
 !                                                                       
 !                                                                       
 !------ check if we want ALL data sets                                  
@@ -493,6 +501,7 @@ USE lib_length
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use kuplot_low_mod
 USE lib_length
 !                                                                       
       IMPLICIT none 
@@ -501,7 +510,7 @@ USE lib_length
       INTEGER i, j, ik 
       LOGICAL d2, d3 
 !                                                                       
-      LOGICAL k_in_f 
+!      LOGICAL k_in_f 
 !                                                                       
       d3 = .false. 
       d2 = .false. 
@@ -587,3 +596,5 @@ USE lib_length
  2200 FORMAT(3x,i3,5x,i2,4x,4(i1,','),i1,4x,4(i1,','),i1,3x,f5.2,5x,a) 
 !                                                                       
       END SUBROUTINE show_style                     
+!
+end module kuplot_show_mod

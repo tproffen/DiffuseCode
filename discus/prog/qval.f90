@@ -30,41 +30,42 @@ DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
             /
 CONTAINS
 !*****7*****************************************************************
-      REAL FUNCTION qval (i, value, ix, iy, laver) 
+!
+REAL(kind=PREC_DP) FUNCTION qval (i, value, ix, iy, laver) 
 !-                                                                      
 !     transforms the real and imaginary part of the Fourier transform   
 !     into the desired output format                                    
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE diffuse_mod 
-      USE output_mod 
+USE discus_config_mod 
+USE crystal_mod 
+USE diffuse_mod 
+USE output_mod 
 USE lib_random_func
-      USE random_mod
-      USE trig_degree_mod
-      USE wink_mod
-      IMPLICIT none 
+use precision_mod
+USE random_mod
+USE trig_degree_mod
+USE wink_mod
+!
+IMPLICIT none 
 !                                                                       
-      REAL DELTA 
-      PARAMETER (DELTA = 0.000001) 
+REAL(kind=PREC_DP), PARAMETER :: DELTA = 0.000001d0
 !                                                                       
 !                                                                       
-      INTEGER, INTENT(IN) :: i
-      INTEGER, INTENT(IN) :: value
-      INTEGER, INTENT(IN) :: ix
-      INTEGER, INTENT(IN) :: iy 
-      LOGICAL, INTENT(IN) :: laver
+INTEGER, INTENT(IN) :: i
+INTEGER, INTENT(IN) :: value
+INTEGER, INTENT(IN) :: ix
+INTEGER, INTENT(IN) :: iy 
+LOGICAL, INTENT(IN) :: laver
 ! 
-      INTEGER k 
+INTEGER k 
 !                                                                       
-      COMPLEX(KIND=KIND(0.0D0)) :: f 
-      REAL h (3) 
-      REAL      :: q2     = 0.0
-      REAL      :: faver2 = 0.0
-      REAL      :: f2aver = 0.0
-      REAL      :: signum = 1.0
+COMPLEX(KIND=KIND(0.0D0)) :: f 
+REAL(kind=PREC_DP), dimension(3) :: h (3) 
+REAL(kind=PREC_DP)      :: q2     = 0.0
+REAL(kind=PREC_DP)      :: faver2 = 0.0
+REAL(kind=PREC_DP)      :: f2aver = 0.0
+REAL(kind=PREC_DP)      :: signum = 1.0
 !                                                                       
-!     REAL atan2d 
       qval   = 0.0
       f2aver = 0.0
       faver2 = 0.0
@@ -85,39 +86,39 @@ USE lib_random_func
 !                                                                       
       IF (value == val_inten) THEN 
          IF (laver) THEN 
-            qval = REAL (f * CONJG (f) , KIND=KIND(1.0E0)) 
+            qval = REAL(f * CONJG (f) , KIND=KIND(1.0D0)) 
          ELSE 
-            qval = REAL(dsi (i),KIND=KIND(0.0E0)) 
+            qval = REAL(dsi (i),KIND=KIND(0.0D0)) 
          ENDIF 
 !
 !     Calculate 3DPDF
 !
       ELSEIF (value == val_3DPDF .or. value == val_3DBETA) THEN
-         qval = REAL(rpdf(i), KIND=KIND(0.0E0))
+         qval = REAL(rpdf(i), KIND=KIND(0.0D0))
 !                                                                       
 !     Calculate amplitude 'amplitude'                                   
 !                                                                       
       ELSEIF (value == val_ampli) THEN 
-         qval = SQRT (REAL (f * CONJG (f) , KIND=KIND(1.0E0) )) 
+         qval = SQRT (REAL(f * CONJG (f) , KIND=KIND(1.0D0) )) 
 !                                                                       
 !     Calculate phase 'phase'                                           
 !                                                                       
       ELSEIF (value == val_phase) THEN 
          IF (f.eq. (0, 0) ) THEN 
-            qval = 0.0 
+            qval = 0.0D0 
          ELSE 
-            qval = REAL(atan2d (AIMAG (f), REAL (f) ) )
+            qval = REAL(atan2d(DIMAG(f), REAL(f, kind=PREC_DP) ), kind=PREC_DP )
          ENDIF 
 !                                                                       
 !     Calculate real part 'real'                                        
 !                                                                       
       ELSEIF (value == val_real) THEN 
-         qval = REAL (f, KIND=KIND(1.0E0)) 
+         qval = REAL(f, KIND=KIND(1.0D0)) 
 !                                                                       
 !     Calculate imaginary part 'imaginary'                              
 !                                                                       
       ELSEIF (value == val_imag) THEN 
-         qval = REAL(AIMAG (f))
+         qval = REAL(DIMAG (f))
 !                                                                       
 !     Calculate phase 'phase', random, except for integer hkl           
 !                                                                       
@@ -130,25 +131,25 @@ USE lib_random_func
              ABS (h (2) - NINT (h (2) ) ) .lt.DELTA.AND. &
              ABS (h (3) - NINT (h (3) ) ) .lt.DELTA) THEN                                                
             IF (f.eq. (0, 0) ) THEN 
-               qval = 0.0 
+               qval = 0.0D0
             ELSE 
-               qval = REAL(atan2d (AIMAG (f), REAL (f) ) )
+               qval = atan2d (DIMAG(f), REAL(f, kind=PREC_DP) )
             ENDIF 
          ELSE 
-            qval = (ran1 (idum) - 0.5) * 360. 
+            qval = (ran1 (idum) - 0.5D0) * 360.D0 
          ENDIF 
 !
 !     Calculate S(Q) = I/<f>^2/N + 1-e^(q^2*u^2) normalized intensity plus inelastic part 
 !
       ELSEIF (value == val_sq) THEN
          IF (laver) THEN 
-            qval = REAL (f * CONJG (f), KIND=KIND(0.0E0) ) 
+            qval = f * CONJG(f)
          ELSE 
-            qval = REAL(dsi (i) , KIND=KIND(1.0E0))
+            qval = dsi(i)
          ENDIF 
          DO k=1,cr_nscat
             signum = 1.0
-            IF(REAL(cfact_pure(1,k))<0.0) signum = -1.0
+            IF(REAL(cfact_pure(1,k), kind=PREC_DP)<0.0) signum = -1.0D0
 !           faver2 = faver2 + (REAL(cfact_pure(istl(i),k), KIND=KIND(0.0E0)))*cr_amount(k)
             faver2 = faver2 +                                    &
                      SQRT(DBLE (       cfact_pure(istl(i), k)  * &
@@ -164,9 +165,9 @@ USE lib_random_func
 !
       ELSEIF (value == val_iq) THEN
          IF (laver) THEN 
-            qval = REAL (f * CONJG (f),KIND=KIND(0.0E0) ) 
+            qval = f * CONJG (f)
          ELSE 
-            qval = REAL(dsi (i), KIND=KIND(0.0E0))
+            qval = dsi (i)
          ENDIF 
          qval = qval        / cr_n_real_atoms 
 !

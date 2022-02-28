@@ -30,7 +30,7 @@ INTEGER         , INTENT(INOUT) :: lp
 !
 INTEGER, PARAMETER    :: MAXW = 20
 INTEGER, PARAMETER    :: IWR = 91
-REAL   , PARAMETER    :: EPS =  0.001
+REAL(kind=PREC_DP)   , PARAMETER    :: EPS =  0.001
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
 INTEGER,             DIMENSION(MAXW) :: lpara
@@ -50,12 +50,12 @@ LOGICAL, DIMENSION(:),ALLOCATABLE :: old_vector
 LOGICAL               :: lisite, ljsite
 LOGICAL               :: lisnew
 LOGICAL               :: lout
-REAL   , DIMENSION(4) :: ri
-REAL   , DIMENSION(4) :: rj
-REAL   , DIMENSION(4) :: ri_n
-REAL   , DIMENSION(4) :: rj_n
-REAL   , DIMENSION(4) :: ri_f
-REAL   , DIMENSION(4) :: rj_f
+REAL(kind=PREC_DP)   , DIMENSION(4) :: ri
+REAL(kind=PREC_DP)   , DIMENSION(4) :: rj
+REAL(kind=PREC_DP)   , DIMENSION(4) :: ri_n
+REAL(kind=PREC_DP)   , DIMENSION(4) :: rj_n
+REAL(kind=PREC_DP)   , DIMENSION(4) :: ri_f
+REAL(kind=PREC_DP)   , DIMENSION(4) :: rj_f
 !
 ri(:) = 0.0
 rj(:) = 0.0

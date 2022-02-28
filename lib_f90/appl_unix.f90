@@ -1153,7 +1153,6 @@ INTEGER             :: exit_msg
 INTEGER             :: length
 !
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
-!REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 INTEGER           , DIMENSION(MAXW) :: lpara
 INTEGER                             :: ianz
 INTEGER, PARAMETER :: NOPTIONAL = 3

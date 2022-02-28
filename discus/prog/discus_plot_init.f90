@@ -12,12 +12,7 @@ SUBROUTINE plot_ini_trans (azero,                        &
 !     with unit cell length 'azero', which should be "1" for XBS and    
 !     DIAMOND.                                                          
 !+                                                                      
-!     USE discus_config_mod 
-!     USE crystal_mod 
 USE metric_mod
-!     USE discus_plot_mod 
-!     USE tensors_mod
-!     USE trafo_mod
 USE errlist_mod 
 use matrix_mod
 use precision_mod
@@ -36,10 +31,6 @@ REAL(kind=PREC_DP), DIMENSION(3,3,3), INTENT(IN ) :: cr_eps
 INTEGER               :: i
 REAL(kind=PREC_DP)    :: dwert 
 REAL(kind=PREC_DP)   , DIMENSION(3) :: u, v ,w !, null 
-!                                                                       
-!     REAL do_blen 
-!                                                                       
-!      DATA null / 0.0, 0.0, 0.0 / 
 !                                                                       
 !     cartesian b-axis is parallel to b, length = 1                     
 !                                                                       
@@ -151,8 +142,6 @@ SUBROUTINE plot_ini_jmol  (azero,                        &
 ! z: c*
 !+                                                                      
 USE metric_mod
-!USE tensors_mod
-!USE trafo_mod
 USE errlist_mod 
 use matrix_mod
 use precision_mod
@@ -171,10 +160,6 @@ REAL(kind=PREC_DP), DIMENSION(3,3,3), INTENT(IN ) :: cr_eps
 INTEGER               :: i
 REAL(kind=PREC_DP)    :: dwert 
 REAL(kind=PREC_DP)   , DIMENSION(3) :: u, v ,w !, null 
-!                                                                       
-!     REAL do_blen 
-!                                                                       
-!DATA null / 0.0, 0.0, 0.0 / 
 !                                                                       
 !     cartesian a-axis is parallel to a, length = 1                     
 !                                                                       

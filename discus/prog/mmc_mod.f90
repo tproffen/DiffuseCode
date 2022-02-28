@@ -57,66 +57,65 @@ LOGICAL             ::  mmc_style          = MMC_IS_ATOM
 !
 !LOGICAL             ::  mmc_algo           = MMC_GROWTH         ! MMC Algorithm == CLASSIC or GROWTH
 LOGICAL             ::  mmc_algo           = MMC_CLASSIC        ! MMC Algorithm == CLASSIC or GROWTH
-REAL                ::  mmc_g_rate         = 0.05     ! Use unlikely atoms in growth select
-REAL                ::  mmc_g_bad          = 0.05     ! Accept bad moved   in growth
-REAL                ::  mmc_g_neut         = 0.25     ! Accept neutral moved   in growth
+REAL(kind=PREC_DP)  ::  mmc_g_rate         = 0.05     ! Use unlikely atoms in growth select
+REAL(kind=PREC_DP)  ::  mmc_g_bad          = 0.05     ! Accept bad moved   in growth
+REAL(kind=PREC_DP)  ::  mmc_g_neut         = 0.25     ! Accept neutral moved   in growth
 INTEGER             ::  mmc_move           =  0
 INTEGER ::  mmc_select_mode
 !
 INTEGER, DIMENSION(MC_N_MOVE)          ::  mmc_local      = 1   !=rmc_local_all  (MC_N_MOVE)
-REAL   , DIMENSION(MC_N_MOVE)          ::  mmc_move_prob  = 0.0 ! (MC_N_MOVE)
-REAL   , DIMENSION(MC_N_MOVE)          ::  mmc_move_cprob = 0.0 ! (MC_N_MOVE)
+REAL(kind=PREC_DP)   , DIMENSION(MC_N_MOVE)          ::  mmc_move_prob  = 0.0 ! (MC_N_MOVE)
+REAL(kind=PREC_DP)   , DIMENSION(MC_N_MOVE)          ::  mmc_move_cprob = 0.0 ! (MC_N_MOVE)
 !
 INTEGER, DIMENSION(0:MC_N_ENERGY)      ::  n_e_av_p       = 0   ! (0:MC_N_ENERGY)
 INTEGER, DIMEnSION(0:MC_N_ENERGY)      ::  n_e_av_m       = 0   ! (0:MC_N_ENERGY)
 INTEGER, DIMEnSION(0:MC_N_ENERGY)      ::  n_e_av_z       = 0   ! (0:MC_N_ENERGY)
-REAL   , DIMEnSION(0:MC_N_ENERGY)      ::  e_aver_p       = 0.0 ! (0:MC_N_ENERGY)
-REAL   , DIMEnSION(0:MC_N_ENERGY)      ::  e_aver_m       = 0.0 ! (0:MC_N_ENERGY)
+REAL(kind=PREC_DP)   , DIMEnSION(0:MC_N_ENERGY)      ::  e_aver_p       = 0.0 ! (0:MC_N_ENERGY)
+REAL(kind=PREC_DP)   , DIMEnSION(0:MC_N_ENERGY)      ::  e_aver_m       = 0.0 ! (0:MC_N_ENERGY)
 !
 INTEGER ::  mmc_n_angles        =  0
 LOGICAL ::  mmc_l_constrains    = .false.
 LOGICAL ::  mmc_sel_atom        = .true.
 INTEGER ::  mmc_sel_prop(0:1)   =  0
 INTEGER ::  mmc_constrain_type
-REAL    ::  mmc_c_min(3)        = -1.E10
-REAL    ::  mmc_c_max(3)        =  1.E10
-REAL    ::  mmc_c_rad
+REAL(kind=PREC_DP)    ::  mmc_c_min(3)        = -1.E10
+REAL(kind=PREC_DP)    ::  mmc_c_max(3)        =  1.E10
+REAL(kind=PREC_DP)    ::  mmc_c_rad
 !
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE ::  mmc_nvec        ! (CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 !
-REAL , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_target_corr ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_depth       ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ach_corr    ! (CHEM_MAX_COR,0:MC_N_ENERGY,-1:DEF_MAXSCAT,-1:DEF_MAXSCAT)
-REAL , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ach_sigm    ! (CHEM_MAX_COR,0:MC_N_ENERGY,-1:DEF_MAXSCAT,-1:DEF_MAXSCAT)
-!REAL,DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_vec         ! (4,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_const       ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
-REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cfac        ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
+REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_target_corr ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_depth       ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ach_corr    ! (CHEM_MAX_COR,0:MC_N_ENERGY,-1:DEF_MAXSCAT,-1:DEF_MAXSCAT)
+REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ach_sigm    ! (CHEM_MAX_COR,0:MC_N_ENERGY,-1:DEF_MAXSCAT,-1:DEF_MAXSCAT)
+REAL(kind=PREC_DP) , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_const       ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
+REAL(kind=PREC_DP) , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cfac        ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 logical, DIMENSION(:,:)    , ALLOCATABLE ::  mmc_lfeed       ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
-REAL , DIMENSION(:)      , ALLOCATABLE ::  mmc_depth_def   ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
-REAL , DIMENSION(:,:,:,:)  , ALLOCATABLE ::  mmc_pid_diff    ! PID Difference term
-REAL , DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_pid_inte    ! PID Integral term
-REAL , DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_pid_deri    ! PID Differential term
-REAL , DIMENSION(3,2)                    ::  mmc_pid_pid     ! PID PID parameters, Average of (diff, inte,dervi)
+REAL(kind=PREC_DP) , DIMENSION(:)      , ALLOCATABLE ::  mmc_depth_def   ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
+REAL(kind=PREC_DP) , DIMENSION(:,:,:,:)  , ALLOCATABLE ::  mmc_pid_diff    ! PID Difference term
+REAL(kind=PREC_DP) , DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_pid_inte    ! PID Integral term
+REAL(kind=PREC_DP) , DIMENSION(:,:,:,:,:), ALLOCATABLE ::  mmc_pid_deri    ! PID Differential term
+REAL(kind=PREC_DP) , DIMENSION(3,2)                    ::  mmc_pid_pid     ! PID PID parameters, Average of (diff, inte,dervi)
 integer                                  :: mmc_pid_pid_n    ! Number of correlations contributing
-real(kind=PREC_SP) :: mmc_pid_change = 0.0
-REAL , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_pre_corr    ! Previous correlation 
+real(kind=PREC_DP) :: mmc_pid_change = 0.0
+REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_pre_corr    ! Previous correlation 
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE ::  mmc_pneig       ! (0:DEF_MAXSCAT, 0:DEF_MAXSCAT, 1:CHEM_MAX_COR)
 !
 logical                                :: mmc_feed_auto=.FALSE.  ! Set Feedback cycles automatically
-REAL, DIMENSION(:,:)     , ALLOCATABLE :: mmc_h_diff             ! history of achieved correlation differences
+REAL(kind=PREC_DP), DIMENSION(:,:)     , ALLOCATABLE :: mmc_h_diff             ! history of achieved correlation differences
 INTEGER                                :: mmc_h_number= 0        ! Number of achieved targets
 INTEGER                                :: mmc_h_ctarg = 0        ! Number of current  target 
 INTEGER                                :: mmc_h_index = 0        ! Current cycle entry in achieved history
 INTEGER                                :: mmc_m_index = 0        ! Maximum number of feedback cycles so far
 INTEGER                                :: mmc_h_ncycl = 0        ! Number of feedback cycles achieved
-REAL, DIMENSION(:)       , ALLOCATABLE :: mmc_h_targ             ! Target values
-REAL, DIMENSION(:)       , ALLOCATABLE :: mmc_h_aver             ! average changes from cycle to cycle
-REAL, DIMENSION(:)       , ALLOCATABLE :: mmc_h_aver_r           ! average changes from cycle to cycle
-REAL, DIMENSION(:,:)     , ALLOCATABLE :: mmc_h_maxd             ! Maximum change from cycle to cycle
-REAL                                   :: mmc_h_conv_m = 1.0E10  ! convergence Maximum difference to target over last cycles
-REAL                                   :: mmc_h_conv_r = 1.0E10  ! convergence Maximum difference to target over last cycles
-REAL                                   :: mmc_h_conv_c = 1.0E10  ! convergence Maximum change in difference over last cycles
-REAL                                   :: mmc_h_conv_a = 1.0E10  ! convergence average change in difference over last cycles
+REAL(kind=PREC_DP), DIMENSION(:)       , ALLOCATABLE :: mmc_h_targ             ! Target values
+REAL(kind=PREC_DP), DIMENSION(:)       , ALLOCATABLE :: mmc_h_aver             ! average changes from cycle to cycle
+REAL(kind=PREC_DP), DIMENSION(:)       , ALLOCATABLE :: mmc_h_aver_r           ! average changes from cycle to cycle
+REAL(kind=PREC_DP), DIMENSION(:,:)     , ALLOCATABLE :: mmc_h_maxd             ! Maximum change from cycle to cycle
+REAL(kind=PREC_DP)                                   :: mmc_h_conv_m = 1.0E10  ! convergence Maximum difference to target over last cycles
+REAL(kind=PREC_DP)                                   :: mmc_h_conv_r = 1.0E10  ! convergence Maximum difference to target over last cycles
+REAL(kind=PREC_DP)                                   :: mmc_h_conv_c = 1.0E10  ! convergence Maximum change in difference over last cycles
+REAL(kind=PREC_DP)                                   :: mmc_h_conv_a = 1.0E10  ! convergence average change in difference over last cycles
 LOGICAL                                :: mmc_h_stop   = .TRUE.  ! stop upon cycles==F or convergence==T
 LOGICAL                                :: mmc_h_log    = .FALSE. ! Screen log on / off 
 INTEGER                                :: mmc_h_nfeed  = 0       ! Number of feed back this run
@@ -131,27 +130,27 @@ LOGICAL, DIMENSION(:),       ALLOCATABLE ::  mmc_allowed   ! (0:DEF_MAXSCAT)
 !
 !
 INTEGER, DIMENSION(:), ALLOCATABLE     ::  mmc_angles     ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
-REAL   , DIMENSION(:), ALLOCATABLE     ::  mmc_target_angl! (CHEM_MAX_COR*MMC_MAX_ANGLES)
-REAL   , DIMENSION(:), ALLOCATABLE     ::  mmc_depth_angl ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
-REAL   , DIMENSION(:), ALLOCATABLE     ::  mmc_ach_angl   ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
-REAL   , DIMENSION(:), ALLOCATABLE     ::  mmc_ang_sigm   ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE     ::  mmc_target_angl! (CHEM_MAX_COR*MMC_MAX_ANGLES)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE     ::  mmc_depth_angl ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE     ::  mmc_ach_angl   ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE     ::  mmc_ang_sigm   ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
 !
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_len_a      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_len_b      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_len_m      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_len_n      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_len_a      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_len_b      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_len_m      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_len_n      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 !
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_rep_a      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_rep_b      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_rep_c      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_rep_m      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL                                   ::  mmc_rep_low = 1e9
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_rep_a      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_rep_b      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_rep_c      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_rep_m      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP)                                   ::  mmc_rep_low = 1e9
 !
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_buck_a     ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_buck_rho   ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_buck_b     ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_buck_rmin  ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL, DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_buck_atmin ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_buck_a     ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_buck_rho   ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_buck_b     ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_buck_rmin  ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_buck_atmin ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 !
 LOGICAL ::  mmc_l_limited
 INTEGER ::  mmc_l_type

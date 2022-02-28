@@ -1,5 +1,7 @@
 MODULE conn_type_mod
 !
+use precision_mod
+!
 ! TYPE NEIGHBORS  is a linear chain to be filled with the actual neighboring atoms
 !                 currently only the neighbor number is stored no further info, as
 !                 I do not want to update this list all the time.
@@ -19,8 +21,8 @@ TYPE :: NEIGHBORHOOD
    INTEGER                      :: conn_name_l        ! Connectivity name length
    INTEGER                      :: mmc_sel            ! This connectivity may be used by mmc to select
    INTEGER                      :: mmc_ene            ! This connectivity may be used by mmc energy
-   REAL                         :: distance_min       ! minimum distance to neighbors
-   REAL                         :: distance_max       ! maximum distance to neighbors
+   REAL(kind=PREC_DP)           :: distance_min       ! minimum distance to neighbors
+   REAL(kind=PREC_DP)           :: distance_max       ! maximum distance to neighbors
    INTEGER                      :: natoms             ! number of neighbors
    TYPE (NEIGHBORS), POINTER    :: nachbar            ! The actual list of neighboring atoms
    TYPE (NEIGHBORHOOD), POINTER :: next_neighborhood  ! A next neighborhood
