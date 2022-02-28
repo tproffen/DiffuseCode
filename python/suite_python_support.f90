@@ -19,6 +19,7 @@ USE kuplot_setup_mod
 USE diffev_setup_mod
 USE diffev_mpi_mod
 USE run_mpi_mod
+USE gen_mpi_mod
 USE appl_env_mod
 !
 USE prompt_mod
@@ -50,7 +51,7 @@ ELSE
    prompt    = pname
    hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:LEN(TRIM(pname)))//'.hlp'
    hlpfile_l = LEN(TRIM(hlpfile))
-   IF(.NOT.run_mpi_active) THEN
+   IF(.NOT.gen_mpi_active) THEN
       CALL suite_set_sub_cost ()
    ENDIF
    lsetup_done = .TRUE.
