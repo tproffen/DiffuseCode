@@ -1,26 +1,35 @@
 module kuplot_plot_low_mod
 !
+!  Low level plotting routines, 
+!  All Real variables are single precsion to ease transfer to PGPLOT
+!
 contains
 !
 !*****7*****************************************************************
 !
-      SUBROUTINE colour_setup 
+SUBROUTINE colour_setup 
 !+                                                                      
 !     This sets the default KUPLOT colours ...                          
 !-                                                                      
-      USE kuplot_config 
-      USE kuplot_mod 
+USE kuplot_config 
+USE kuplot_mod 
+use kuplot_color_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER ic 
+character(len=PREC_STRING) :: string
+INTEGER :: ic 
 !                                                                       
-      DO ic = 0, 15 
-      CALL PGSCR (ic, colour (iwin, ic, 1), colour (iwin, ic, 2),       &
-      colour (iwin, ic, 3) )                                            
-      ENDDO 
+string = 'map:user, range:current'
+ic = 23
+call set_color(string, ic) !  Ensure that the current color map is used for this device
+!DO ic = 0, 15 
+DO ic = 0, ubound(colour, 2)    ! Up to maximum color index in colour array
+   CALL PGSCR (ic, colour (iwin, ic, 1), colour (iwin, ic, 2),       &
+   colour (iwin, ic, 3) )                                            
+ENDDO 
 !                                                                       
-      END SUBROUTINE colour_setup                   
+END SUBROUTINE colour_setup                   
 !
 !*****7*****************************************************************
 !
@@ -28,49 +37,48 @@ SUBROUTINE open_frame (ii, lwhite)
 !+                                                                      
 !     This routine sets background and border for frame ii              
 !-                                                                      
-      USE kuplot_config 
-      USE kuplot_mod 
+USE kuplot_config 
+USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
 integer, intent(in) :: ii
 LOGICAL, intent(in) :: lwhite 
 !
-      REAL x1, x2, y1, y2 
-      INTEGER :: ic
+REAL(kind=PREC_SP) :: x1, x2, y1, y2 
+INTEGER :: ic
 !                                                                       
 !------ Plot border and background colour if required                   
 !                                                                       
-      x1 = frame (iwin, ii, 1) * (1.0 - dev_draw (iwin, 1) ) 
-      x2 = frame (iwin, ii, 3) * (1.0 - dev_draw (iwin, 1) ) 
-      y1 = frame (iwin, ii, 2) * (1.0 - dev_draw (iwin, 2) ) + dev_draw &
-      (iwin, 2)                                                         
-      y2 = frame (iwin, ii, 4) * (1.0 - dev_draw (iwin, 2) ) + dev_draw &
-      (iwin, 2)                                                         
+x1 = frame (iwin, ii, 1) * (1.0 - dev_draw (iwin, 1) ) 
+x2 = frame (iwin, ii, 3) * (1.0 - dev_draw (iwin, 1) ) 
+y1 = frame (iwin, ii, 2) * (1.0 - dev_draw (iwin, 2) ) + dev_draw (iwin, 2)
+y2 = frame (iwin, ii, 4) * (1.0 - dev_draw (iwin, 2) ) + dev_draw (iwin, 2)
 !                                                                       
-      IF (y2.ge.1.0) y2 = y2 - 0.001 
-      IF (x2.ge.1.0) x2 = x2 - 0.001 
+IF (y2.ge.1.0) y2 = y2 - 0.001 
+IF (x2.ge.1.0) x2 = x2 - 0.001 
+
+CALL PGSVP (x1, x2, y1, y2) 
+CALL PGSWIN (0.0, 1.0, 0.0, 1.0) 
 !                                                                       
-      CALL PGSVP (x1, x2, y1, y2) 
-      CALL PGSWIN (0.0, 1.0, 0.0, 1.0) 
+IF( frback(iwin, ii, 1) .ne. 1.0 .or. frback (iwin, ii, 2) .ne. 1.0  .or.   &
+    frback(iwin, ii, 3) .ne. 1.0 .or. lwhite                         ) then           
+   ic = ii + 15 
+   CALL PGSCR(ic, frback(iwin, ii, 1), frback(iwin, ii, 2), frback (iwin, ii, 3) )
+   IF (lwhite) then 
+      CALL PGSCI (0) 
+   ELSE 
+      CALL PGSCI (ic) 
+   ENDIF 
+   CALL PGSFS (1) 
+   CALL PGRECT (0.0, 1.0, 0.0, 1.0) 
+ENDIF 
 !                                                                       
-      IF (frback (iwin, ii, 1) .ne.1.0.or.frback (iwin, ii, 2)          &
-      .ne.1.0.or.frback (iwin, ii, 3) .ne.1.0.or.lwhite) then           
-         ic = ii + 15 
-         CALL PGSCR (ic, frback (iwin, ii, 1), frback (iwin, ii, 2),    &
-         frback (iwin, ii, 3) )                                         
-         IF (lwhite) then 
-            CALL PGSCI (0) 
-         ELSE 
-            CALL PGSCI (ic) 
-         ENDIF 
-         CALL PGSFS (1) 
-         CALL PGRECT (0.0, 1.0, 0.0, 1.0) 
-      ENDIF 
+IF (tot_frame (iwin) ) call border_frame (ii, 1, 0.0) 
 !                                                                       
-      IF (tot_frame (iwin) ) call border_frame (ii, 1, 0.0) 
-!                                                                       
-      END SUBROUTINE open_frame                     
+END SUBROUTINE open_frame                     
 !
 !*****7*****************************************************************
 !
@@ -78,124 +86,120 @@ SUBROUTINE border_frame (ii, icol, delta)
 !+                                                                      
 !     This routine draws border around frame ii                         
 !-                                                                      
-      USE kuplot_config 
-      USE kuplot_mod 
+USE kuplot_config 
+USE kuplot_mod 
+!
+use precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 integer, intent(in) :: ii
 integer, intent(in) :: icol
 REAL   , intent(in) :: delta
 !
-      REAL x1, x2, y1, y2, deltay 
-!      INTEGER ii, icol 
+REAL(kind=PREC_SP) :: x1, x2, y1, y2, deltay 
 !                                                                       
 !------ Plot border and background colour if required                   
 !                                                                       
-      x1 = frame (iwin, ii, 1) * (1.0 - dev_draw (iwin, 1) ) 
-      x2 = frame (iwin, ii, 3) * (1.0 - dev_draw (iwin, 1) ) 
-      y1 = frame (iwin, ii, 2) * (1.0 - dev_draw (iwin, 2) ) + dev_draw &
-      (iwin, 2)                                                         
-      y2 = frame (iwin, ii, 4) * (1.0 - dev_draw (iwin, 2) ) + dev_draw &
-      (iwin, 2)                                                         
+x1 = frame (iwin, ii, 1) * (1.0 - dev_draw (iwin, 1) ) 
+x2 = frame (iwin, ii, 3) * (1.0 - dev_draw (iwin, 1) ) 
+y1 = frame (iwin, ii, 2) * (1.0 - dev_draw (iwin, 2) ) + dev_draw (iwin, 2)
+y2 = frame (iwin, ii, 4) * (1.0 - dev_draw (iwin, 2) ) + dev_draw (iwin, 2)
 !                                                                       
-      IF (y2.ge.1.0) y2 = y2 - 0.001 
-      IF (x2.ge.1.0) x2 = x2 - 0.001 
+IF (y2.ge.1.0) y2 = y2 - 0.001 
+IF (x2.ge.1.0) x2 = x2 - 0.001 
 !                                                                       
-      deltay = (y2 - y1) / (x2 - x1) 
-      deltay = delta / deltay 
+deltay = (y2 - y1) / (x2 - x1) 
+deltay = delta / deltay 
 !                                                                       
-      CALL PGSVP (x1, x2, y1, y2) 
-      CALL PGSWIN (0.0, 1.0, 0.0, 1.0) 
+CALL PGSVP (x1, x2, y1, y2) 
+CALL PGSWIN (0.0, 1.0, 0.0, 1.0) 
 !                                                                       
-      CALL PGSCI (icol) 
-      CALL PGSFS (2) 
-      CALL PGRECT (0.0 + delta, 1.0 - delta, 0.0 + deltay, 1.0 - deltay) 
+CALL PGSCI (icol) 
+CALL PGSFS (2) 
+CALL PGRECT (0.0 + delta, 1.0 - delta, 0.0 + deltay, 1.0 - deltay) 
 !                                                                       
-      END SUBROUTINE border_frame                   
+END SUBROUTINE border_frame                   
+!
 !*****7*****************************************************************
-      SUBROUTINE open_viewport 
+!
+SUBROUTINE open_viewport 
 !+                                                                      
 !     This routine sets the viewport and window for the current         
 !     frame (-> iframe)                                                 
 !-                                                                      
-      USE koordinate_mod
-      USE wink_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE koordinate_mod
+USE wink_mod
+USE kuplot_config 
+USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-!     REAL wxmi, wxma, wymi, wyma 
-      REAL xx, yy, x1, x2, y1, y2, vl, vr, vb, vt, yf, off 
+REAL(kind=PREC_SP) :: xx, yy, x1, x2, y1, y2, vl, vr, vb, vt, yf, off 
 !                                                                       
 !------ Set viewport for current frame                                  
 !                                                                       
-      vl = min (1.0, (frame (iwin, iframe, 1) + ibuf (iwin, iframe, 1) )&
-      )                                                                 
-      vr = max (0.0, (frame (iwin, iframe, 3) - ibuf (iwin, iframe, 2) )&
-      )                                                                 
-      vb = min (1.0, (frame (iwin, iframe, 2) + ibuf (iwin, iframe, 3) )&
-      )                                                                 
-      vt = max (0.0, (frame (iwin, iframe, 4) - ibuf (iwin, iframe, 4) )&
-      )                                                                 
+vl = min (1.0, (frame (iwin, iframe, 1) + ibuf (iwin, iframe, 1) ))
+vr = max (0.0, (frame (iwin, iframe, 3) - ibuf (iwin, iframe, 2) ))
+vb = min (1.0, (frame (iwin, iframe, 2) + ibuf (iwin, iframe, 3) ))
+vt = max (0.0, (frame (iwin, iframe, 4) - ibuf (iwin, iframe, 4) ))
 !                                                                       
-      vl = vl * (1.0 - dev_draw (iwin, 1) ) 
-      vr = vr * (1.0 - dev_draw (iwin, 1) ) 
-      vb = vb * (1.0 - dev_draw (iwin, 2) ) + dev_draw (iwin, 2) 
-      vt = vt * (1.0 - dev_draw (iwin, 2) ) + dev_draw (iwin, 2) 
+vl = vl * (1.0 - dev_draw (iwin, 1) ) 
+vr = vr * (1.0 - dev_draw (iwin, 1) ) 
+vb = vb * (1.0 - dev_draw (iwin, 2) ) + dev_draw (iwin, 2) 
+vt = vt * (1.0 - dev_draw (iwin, 2) ) + dev_draw (iwin, 2) 
 !                                                                       
-      CALL PGSVP (vl, vr, vb, vt) 
+CALL PGSVP (vl, vr, vb, vt) 
 !                                                                       
 !------ Force user defined aspect ratio if required                     
 !                                                                       
-      IF (.not.lyskal (iwin, iframe) .and.shear (iwin, iframe) .ne.90.0)&
-      then                                                              
-         lyskal (iwin, iframe) = .true. 
-         yskal_u (iwin, iframe) = 1.0 
-      ENDIF 
+IF(.not.lyskal(iwin, iframe) .and. shear(iwin, iframe) .ne.90.0) then
+   lyskal (iwin, iframe) = .true. 
+   yskal_u (iwin, iframe) = 1.0 
+ENDIF 
 !                                                                       
-      yf = sin (REAL(rad) * shear (iwin, iframe) ) 
-      IF (lyskal (iwin, iframe) ) then 
-         yskal (iwin, iframe) = yskal_u (iwin, iframe) * yf 
-         xx = pex (iwin, iframe, 2) - pex (iwin, iframe, 1) 
-         yy = pey (iwin, iframe, 2) - pey (iwin, iframe, 1) 
-         x1 = pex (iwin, iframe, 2) 
-         y1 = pey (iwin, iframe, 2) 
-         CALL koor_shear (1, x1, y1) 
-         off = x1 - pex (iwin, iframe, 2) 
-         CALL PGWNAD (0.0, 1.0, 0.0, (yy / (xx + abs (off) ) ) * yskal (&
-         iwin, iframe) )                                                
-      ELSE 
-         CALL PGQVP (2, x1, x2, y1, y2) 
-         yskal (iwin, iframe) = (y2 - y1) / (x2 - x1) 
-         yskal_u (iwin, iframe) = yskal (iwin, iframe) / yf 
-      ENDIF 
+yf = sin (REAL(rad) * shear (iwin, iframe) ) 
+IF (lyskal (iwin, iframe) ) then 
+   yskal (iwin, iframe) = yskal_u (iwin, iframe) * yf 
+   xx = pex (iwin, iframe, 2) - pex (iwin, iframe, 1) 
+   yy = pey (iwin, iframe, 2) - pey (iwin, iframe, 1) 
+   x1 = pex (iwin, iframe, 2) 
+   y1 = pey (iwin, iframe, 2) 
+   CALL koor_shear (1, x1, y1) 
+   off = x1 - pex (iwin, iframe, 2) 
+   CALL PGWNAD(0.0, 1.0, 0.0, (yy / (xx + abs (off) ) ) * yskal(iwin, iframe) )
+ELSE 
+   CALL PGQVP (2, x1, x2, y1, y2) 
+   yskal (iwin, iframe) = (y2 - y1) / (x2 - x1) 
+   yskal_u (iwin, iframe) = yskal (iwin, iframe) / yf 
+ENDIF 
 !                                                                       
 !------ Set coordinates for current frame                               
 !                                                                       
-      x1 = pex (iwin, iframe, 2) 
-      y1 = pey (iwin, iframe, 2) 
-      CALL koor_shear (1, x1, y1) 
-      off = x1 - pex (iwin, iframe, 2) 
+x1 = pex (iwin, iframe, 2) 
+y1 = pey (iwin, iframe, 2) 
+CALL koor_shear (1, x1, y1) 
+off = x1 - pex (iwin, iframe, 2) 
 !                                                                       
-      IF (shear (iwin, iframe) .le.90.0) then 
-         CALL PGSWIN (pex (iwin, iframe, 1), pex (iwin, iframe, 2)      &
-         + off, pey (iwin, iframe, 1), pey (iwin, iframe, 2) )          
-      ELSE 
-         CALL PGSWIN (pex (iwin, iframe, 1) + off, pex (iwin, iframe, 2)&
-         , pey (iwin, iframe, 1), pey (iwin, iframe, 2) )               
-      ENDIF 
+IF (shear (iwin, iframe) .le.90.0) then 
+   CALL PGSWIN (pex(iwin, iframe, 1), pex(iwin, iframe, 2) + off,               &
+                pey(iwin, iframe, 1), pey(iwin, iframe, 2) )          
+ELSE 
+   CALL PGSWIN(pex (iwin, iframe, 1) + off, pex (iwin, iframe, 2),              &
+               pey (iwin, iframe, 1), pey (iwin, iframe, 2) )               
+ENDIF 
 !                                                                       
-      END SUBROUTINE open_viewport                  
+END SUBROUTINE open_viewport                  
+!
 !*********************************************************************  
-      SUBROUTINE draw_frame (ii, lmenu) 
+!
+SUBROUTINE draw_frame (ii, lmenu) 
 !+                                                                      
 !     Here we actually do the plotting ...                              
 !-                                                                      
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
 use kuplot_low_mod
 use kuplot_para_mod
 !
@@ -207,21 +211,19 @@ IMPLICIT none
 integer, intent(in) :: ii
 LOGICAL, intent(in) :: lmenu 
 !
-      INTEGER ik, iframe_old 
-!     LOGICAL k_in_f, lmenu 
-!     LOGICAL         lmenu 
+INTEGER :: ik, iframe_old 
 !                                                                       
-      CALL PGBBUF 
+CALL PGBBUF 
 !                                                                       
-      iframe_old = iframe 
-      iframe = ii 
+iframe_old = iframe 
+iframe = ii 
 !                                                                       
-      CALL open_frame (iframe, lmenu) 
+CALL open_frame (iframe, lmenu) 
 main: IF (infra (iwin, iframe, 1) .eq. - 1) then 
    CALL draw_text_frame 
 ELSE main
-         CALL skalieren 
-         CALL open_viewport 
+   CALL skalieren 
+   CALL open_viewport 
    DO ik = 1, iz - 1 
       IF(k3dm_ik==ik) THEN
          CALL kuplot_draw_3d_static(ik)
@@ -231,17 +233,19 @@ ELSE main
          iframe, ik) .eq.3) .and.k_in_f (ik) .and.lni (ik) ) call       &
          draw_bitmap (ik)                                               
       ENDIF
-         ENDDO 
-         CALL draw_werte 
-         CALL draw_rahmen 
-      ENDIF main 
+   ENDDO 
+   CALL draw_werte 
+   CALL draw_rahmen 
+ENDIF main 
 !                                                                       
-      iframe = iframe_old 
+iframe = iframe_old 
 !                                                                       
-      CALL PGEBUF 
+CALL PGEBUF 
 !                                                                       
-      END SUBROUTINE draw_frame                     
+END SUBROUTINE draw_frame                     
+!
 !****7******************************************************************
+!
 SUBROUTINE draw_text_frame 
 !+                                                                      
 !       plot text frame                                                 
@@ -261,34 +265,34 @@ USE support_mod
 IMPLICIT none 
 !                                                                       
 CHARACTER(len=PREC_STRING) :: zeile, filname 
-REAL :: xh, yh, xt, yt 
+REAL(kind=PREC_SP) :: xh, yh, xt, yt 
 INTEGER :: i 
 !                                                                       
 !                                                                       
-      filname = ftext (iwin, iframe) 
-      CALL do_cap (filname) 
+filname = ftext (iwin, iframe) 
+CALL do_cap (filname) 
 !                                                                       
-      IF (filname.eq.'PARA'.or.filname.eq.'KUPL.PAR') then 
-         CALL write_para 
-         filname = 'kupl.par' 
-      ELSEIF (filname.eq.'FIT'.or.filname.eq.'KUPL.FIT') then 
-         CALL write_fit 
-         filname = 'kupl.fit' 
-      ELSE 
-         filname = ftext (iwin, iframe) 
-      ENDIF 
+IF (filname.eq.'PARA'.or.filname.eq.'KUPL.PAR') then 
+   CALL write_para 
+   filname = 'kupl.par' 
+ELSEIF (filname.eq.'FIT'.or.filname.eq.'KUPL.FIT') then 
+   CALL write_fit 
+   filname = 'kupl.fit' 
+ELSE 
+   filname = ftext (iwin, iframe) 
+ENDIF 
 !                                                                       
-      CALL oeffne (21, filname, 'unknown') 
-      IF (ier_num.ne.0) return 
+CALL oeffne (21, filname, 'unknown') 
+IF (ier_num.ne.0) return 
 !                                                                       
-      CALL PGSCI (foncol (iwin, iframe, 5) ) 
-      CALL PGSLW (nint (linewid (iwin, iframe, 0) / 0.13) ) 
-      CALL PGSCF (fon_id (iwin, iframe, 5) ) 
-      CALL PGSCH (fonscal (iwin, iframe) * fonsize (iwin, iframe, 5)    &
+CALL PGSCI (foncol (iwin, iframe, 5) ) 
+CALL PGSLW (nint (linewid (iwin, iframe, 0) / 0.13) ) 
+CALL PGSCF (fon_id (iwin, iframe, 5) ) 
+CALL PGSCH (fonscal (iwin, iframe) * fonsize (iwin, iframe, 5)    &
       / 120.0)                                                          
-      CALL PGQCS (4, xh, yh) 
+CALL PGQCS (4, xh, yh) 
 !                                                                       
-      i = 0 
+i = 0 
    10 CONTINUE 
       READ (21, '(a)', end = 20) zeile 
       IF (frjust (iwin, iframe) .eq.if_left) then 
@@ -303,9 +307,10 @@ INTEGER :: i
       i = i + 1 
       GOTO 10 
    20 CONTINUE 
-      CLOSE (21) 
+CLOSE (21) 
 !                                                                       
-      END SUBROUTINE draw_text_frame                
+END SUBROUTINE draw_text_frame                
+!
 !*****7*****************************************************************
       SUBROUTINE draw_rahmen 
 !+                                                                      
@@ -932,7 +937,7 @@ REAL , intent(inout) :: xpl (npkt), ypl (npkt)
 !     REAL xfill (maxarray), yfill (maxarray) 
       REAL xfill (npkt), yfill (npkt) 
       REAL x1, x2, y1, y2, yb 
-      INTEGER ip, np 
+INTEGER :: ip, np, i1,i2
 !                                                                       
       CALL koor_shear (npkt, xpl, ypl) 
       CALL koor_log (npkt, xpl, ypl) 
@@ -1016,14 +1021,20 @@ REAL , intent(inout) :: xpl (npkt), ypl (npkt)
 !                                                                       
 !------ Draw the line                                                   
 !                                                                       
-      IF (abs(ilinetyp(iwin, iframe, ikurv)) .gt.0) then 
-         CALL PGSLS (abs(ilinetyp (iwin, iframe, ikurv)) ) 
-         CALL PGSLW (nint (linewid (iwin, iframe, ikurv) / 0.13) ) 
-         CALL PGSCI (ilinecol (iwin, iframe, ikurv) ) 
-         CALL PGLINE (npkt, xpl, ypl) 
-      ENDIF 
+IF (abs(ilinetyp(iwin, iframe, ikurv)) .gt.0) then 
+   CALL PGSLS (abs(ilinetyp (iwin, iframe, ikurv)) ) 
+   CALL PGSLW (nint (linewid (iwin, iframe, ikurv) / 0.13) ) 
+   if(ilinecol (iwin, iframe, ikurv) > 0 ) then    ! Predefined colors
+      CALL PGSCI (ilinecol (iwin, iframe, ikurv) ) 
+   elseif(ilinecol (iwin, iframe, ikurv) == -1) then    ! Color map 
+      call PGQCOL(i1, i2)
+      np = (ikurv-1)*(i2-16)/(iz-2) + 16
+      CALL PGSCI(np)
+   endif
+   CALL PGLINE (npkt, xpl, ypl) 
+ENDIF 
 !                                                                       
-      END SUBROUTINE draw_line                      
+END SUBROUTINE draw_line                      
 !****7******************************************************************
 !
 SUBROUTINE draw_poly (xpl, ypl, npkt, ikurv) 

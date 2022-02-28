@@ -541,12 +541,32 @@
    deactivates the listed windows. You may then close them.  
 2  color
 !p color <ic>,<r>,<g>,<b>
+!p color map:<name> [, range:[<min>,<max>]"
+!p color map:<name> [, range:current"
 
    This command allows the user to change the color settings for
    the different pens. The parameter <ic> gives the pen number
    (0 for background) and <r>,<g>,<b> are the red, green and blue
    values to be uses ranging from 0.0 to 1.0. If no parameters are
    given, the current settings are displayed.
+
+   The second command form allows to use a color map for the lines.
+   The first line will receive the lowest color entry in the color 
+   map, the last line will receive the highest color index. Thus
+   The colors of multiple lines will change gradually. 
+
+   Color maps are "fire", "ice", "pdf", "thermal", "kupl", "gray"
+   color map:invert   Reverses the color sequence.
+
+   The command "color:user" will use the current color map that 
+   has been build with ==> set color" or by explicitely defining
+   the entries in the KUPLOT ==> variable "cmap"
+
+   The optional range allows to limit the colors to a section of the
+   full color map. Specify the limits in the range 0. to 1.0
+   Defaults to  "range:[0.0, 1.0]"
+   Given this default, the option "range:current" will use the 
+   last user specified range.
 2  conv
 !p conv <ik1>,<ik2>
 

@@ -2,6 +2,13 @@ MODULE kuplot_words_mod
 !
 IMPLICIT NONE
 !
+!INTEGER, PARAMETER :: user         = -6
+!INTEGER, PARAMETER :: kupl         = -5
+!INTEGER, PARAMETER :: thermal      = -4
+!INTEGER, PARAMETER :: pdf          = -3
+!INTEGER, PARAMETER :: ice          = -2
+!INTEGER, PARAMETER :: fire         = -1
+INTEGER, PARAMETER :: map          = -1
 INTEGER, PARAMETER :: none         =  0
 INTEGER, PARAMETER :: red          =  1
 INTEGER, PARAMETER :: green        =  2
@@ -114,7 +121,28 @@ USE str_comp_mod
 !
 !
    CALL do_cap(cpara(item))   ! Lets not worry about capitalization
-   IF(str_comp (cpara(item),     'NONE', 2, lpara(item) , 4)) THEN
+!  IF(str_comp (cpara(item),     'USER', 4, lpara(item) , 4)) THEN
+!      WRITE(cpara(item),'(i3)') user
+!      lpara(item) = 3
+!  ELSEIF(str_comp (cpara(item),     'KUPL', 4, lpara(item) , 4)) THEN
+!      WRITE(cpara(item),'(i3)') kupl
+!      lpara(item) = 3
+!  ELSEIF(str_comp (cpara(item),     'THERMAL', 4, lpara(item) , 7)) THEN
+!      WRITE(cpara(item),'(i3)') thermal
+!      lpara(item) = 3
+!  ELSEIF(str_comp (cpara(item),     'PDF' , 2, lpara(item) , 4)) THEN
+!      WRITE(cpara(item),'(i3)') pdf 
+!      lpara(item) = 3
+!  ELSEIF(str_comp (cpara(item),     'ICE' , 2, lpara(item) , 4)) THEN
+!      WRITE(cpara(item),'(i3)') ice 
+!      lpara(item) = 3
+!  ELSEIF(str_comp (cpara(item),     'FIRE', 2, lpara(item) , 4)) THEN
+!      WRITE(cpara(item),'(i3)') fire
+!      lpara(item) = 3
+       IF(str_comp (cpara(item),     'MAP' , 3, lpara(item) , 3)) THEN
+       WRITE(cpara(item),'(i3)') map
+       lpara(item) = 3
+   ELSEIF(str_comp (cpara(item),     'NONE', 2, lpara(item) , 4)) THEN
        WRITE(cpara(item),'(i3)') none
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'RED', 2, lpara(item) , 3)) THEN

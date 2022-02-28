@@ -494,7 +494,7 @@ CHARACTER(LEN=8)           :: bef
             CALL para_seti (zei, lc, imarktyp, 1, maxkurvtot, bef,      &
             - 3, 5000, .false.)                                         
          ELSEIF (str_comp (bef, 'lcol', 3, lbef, 4) ) then 
-            CALL para_seti (zei, lc, ilinecol, 0, maxkurvtot, bef, 1,   &
+            CALL para_seti (zei, lc, ilinecol, 0, maxkurvtot, bef,-1,   &
             15, .true.)                                                 
          ELSEIF (str_comp (bef, 'mcol', 3, lbef, 4) ) then 
             CALL para_seti (zei, lc, imarkcol, 1, maxkurvtot, bef, 1,   &
