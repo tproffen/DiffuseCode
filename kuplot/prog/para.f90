@@ -4,22 +4,21 @@ contains
 !*****7**************************************************************   
 !       Here are all the parameter setting routines ..                  
 !*****7*****************************************************************
-SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
-      lnull)                                                            
+SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, lnull)                                                            
 !+                                                                      
 !     Sets option value in integer arrays(nia:nie)                      
 !-                                                                      
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE kuplot_config 
-      USE kuplot_mod 
-      USE kuplot_words_mod
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
+USE kuplot_config 
+USE kuplot_mod 
+USE kuplot_words_mod
 USE lib_help
 USE lib_length
 USE precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 CHARACTER(len=*), intent(inout) :: zeile
 integer         , intent(inout) :: lp
@@ -30,46 +29,46 @@ CHARACTER(len=*), intent(in   ) :: bef
 integer         , intent(in)    :: imi
 integer         , intent(in)    :: ima
 LOGICAL         , intent(in)    :: lnull 
-      INTEGER maxw 
-      PARAMETER (maxw = 3) 
+!
+INTEGER ,  PARAMETER :: maxw = 3 
 !                                                                       
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      CHARACTER(20) cdummy 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      INTEGER ianz, ik, iw 
-      INTEGER lpara (maxw)
+CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+CHARACTER(len=20) :: cdummy 
+REAL(KIND=PREC_DP) :: werte (maxw) 
+INTEGER :: ianz, ik, iw 
+INTEGER :: lpara (maxw)
 !                                                                       
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) return 
 !                                                                       
-      IF (ianz.eq.0) then 
-         cdummy = 'kuplot '//bef 
-         CALL do_hel (cdummy, - len_str (cdummy) ) 
-      ELSEIF (ianz.eq.2) then 
-         CALL get_words  (ianz, cpara, lpara, maxw, 2, bef) 
-         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) return 
-         ik = nint (werte (1) ) 
-         iw = nint (werte (2) ) 
-         IF ( (ik.le. (iz - 1) .and.ik.ge.1) .or. (ik.eq.0.and.lnull) ) &
-         then                                                           
-            IF (iw.ge.imi.and.iw.le.ima) then 
-               iarray (iwin, iframe, ik) = iw 
-            ELSE 
-               ier_num = - 7 
-               ier_typ = ER_APPL 
-            ENDIF 
-         ELSE 
-            ier_num = - 4 
-            ier_typ = ER_APPL 
-         ENDIF 
+IF (ianz.eq.0) then 
+   cdummy = 'kuplot '//bef 
+   CALL do_hel (cdummy, - len_str (cdummy) ) 
+ELSEIF (ianz.eq.2) then 
+   CALL get_words  (ianz, cpara, lpara, maxw, 2, bef) 
+   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+   IF (ier_num.ne.0) return 
+   ik = nint (werte (1) ) 
+   iw = nint (werte (2) ) 
+   IF ( (ik.le. (iz - 1) .and.ik.ge.1) .or. (ik.eq.0.and.lnull) ) then
+      IF (iw.ge.imi.and.iw.le.ima) then 
+         iarray (iwin, iframe, ik) = iw 
       ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
+         ier_num = - 7 
+         ier_typ = ER_APPL 
       ENDIF 
+   ELSE 
+      ier_num = - 4 
+      ier_typ = ER_APPL 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
 !                                                                       
-      END SUBROUTINE para_seti                      
+END SUBROUTINE para_seti                      
+!
 !*****7*****************************************************************
       SUBROUTINE para_setii (zeile, lp, iarray, nia, nib, befehl, imi,  &
       ima)                                                              
