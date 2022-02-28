@@ -120,9 +120,9 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
              .AND. .NOT. (str_comp (befehl, 'fput', 2, lbef, 4) )       &
              .AND. .NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR.    &
                           str_comp (befehl, '?   ', 2, lbef, 4) )       &
+             .AND. .NOT. (str_comp (befehl, 'socket', 2, lbef, 5) )     &
              .AND. INDEX(line,'==') == 0                            ) THEN      
 !                                                                       
-!             .AND. .NOT. (str_comp (befehl, 'socket', 2, lbef, 5) )     &
 !-------Zuweisung eines Funktionswertes                                 
 !                                                                       
          CALL do_math (line, indxg, length) 

@@ -1930,58 +1930,58 @@
    You tried to open a file with ==> 'fopen', whose file name is of
    length zero.
    Check the statement for the missing filename, or an additional comma.
-!% 5  -15
-!%    No socket connected
-!% 
-!%    Apparently you tried to use a ==> 'socket' command prior to opening
-!%    a connection to the remote computer. 
-!%    Use a 'socket open' command first.
-!% 5  -16
-!%    Could not resolve hostname for socket
-!% 
-!%    The hostname to which you want to connect could not be resolved into
-!%    an IP address. 
-!%    Check the host name for typing errors and the Internet access of your
-!%    computer.
-!% 5  -17
-!%    Could not grab socket
-!% 
-!%    Internal socket debug message.
-!% 5  -18
-!%    Could not open socket connection
-!% 
-!%    Internal socket debug message.
+5  -15
+   No socket connected
+
+   Apparently you tried to use a ==> 'socket' command prior to opening
+   a connection to the remote computer. 
+   Use a 'socket open' command first.
+5  -16
+   Could not resolve hostname for socket
+
+   The hostname to which you want to connect could not be resolved into
+   an IP address. 
+   Check the host name for typing errors and the Internet access of your
+   computer.
+5  -17
+   Could not grab socket
+
+   Internal socket debug message.
+5  -18
+   Could not open socket connection
+
+   Internal socket debug message.
 5  -19
-!%    Problem sending to socket
-!% 
-!%    Internal socket debug message.
-!% 5  -20
-!%    Problem receiving from socket
-!% 
-!%    Internal socket debug message.
-!% 5  -21
-!%    Received null string from socket receive
-!% 
-!%    The remote computer send back an answer of zero length. Apparently 
-!%    the connection was terminated prematurely.
-!% 
-!%    Try to connect again.
-!% 5  -22
-!%    Socket accept problem
-!% 
-!%    Internal socket debug message.
-!% 5  -23
-!%    Scocket: Rejected connection
-!% 
-!%    Internal socket debug message.
-!% 5  -24
-!%    Socket bind problem
-!% 
-!%    Internal socket debug message.
-!% 5  -25
-!%    Socket listen problem
-!% 
-!%    Internal socket debug message.
+   Problem sending to socket
+
+   Internal socket debug message.
+5  -20
+   Problem receiving from socket
+
+   Internal socket debug message.
+5  -21
+   Received null string from socket receive
+
+   The remote computer send back an answer of zero length. Apparently 
+   the connection was terminated prematurely.
+
+   Try to connect again.
+5  -22
+   Socket accept problem
+
+   Internal socket debug message.
+5  -23
+   Scocket: Rejected connection
+
+   Internal socket debug message.
+5  -24
+   Socket bind problem
+
+   Internal socket debug message.
+5  -25
+   Socket listen problem
+
+   Internal socket debug message.
 5  -26
    Second parameter must be >= first Param.
 

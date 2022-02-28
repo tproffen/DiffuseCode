@@ -125,14 +125,14 @@ IF(str_comp(output(1:output_l), '/dev/null', 9, output_l, 9)) THEN
    CALL do_set(line, job_l)
 ELSEIF(str_comp(output(1:output_l),'on',2,output_l,2)) THEN
 !   prompt_status = PROMPT_REDIRECT
-!   socket_status = PROMPT_REDIRECT
+   socket_status = PROMPT_REDIRECT
    IF(output_IO==37) THEN
       CLOSE(OUTPUT_IO)
    ENDIF
    output_io = 6
 ELSE
 !   prompt_status = PROMPT_REDIRECT
-!   socket_status = PROMPT_REDIRECT
+   socket_status = PROMPT_REDIRECT
    output_io = 37
    logfile   = output(1:output_l)
    OPEN(UNIT=output_IO, FILE=logfile, STATUS='unknown', IOSTAT=ios)

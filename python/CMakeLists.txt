@@ -25,4 +25,3 @@ include_directories(${DIFFUSE_BINARY_DIR}/lib_f90/)
 # Build the module
 
 add_f2py_module(suite_python ${SOURCES})
-

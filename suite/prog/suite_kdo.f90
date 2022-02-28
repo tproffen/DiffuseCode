@@ -94,8 +94,8 @@ IF (indxg.ne.0.and.                                              &
          .not. (str_comp (befehl, 'fput',  2, lbef, 4) ) .and.   &
          .not. (str_comp (befehl, 'help',  2, lbef, 4) .or.      &
           str_comp (befehl, '?   ',  2, lbef, 4) )       .AND.   &
+         .not. (str_comp (befehl, 'socket',2, lbef, 5) ) .and.   &
          INDEX(line,'==') == 0                                ) THEN      
-!         .not. (str_comp (befehl, 'socket',2, lbef, 5) ) .and.   &
 !                                                                 
 !-------Zuweisung eines Funktionswertes                           
 !                                                                 
