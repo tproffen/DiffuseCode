@@ -32,6 +32,11 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2022_March
+
+   Adapted optional parameters to handle format specifiers in 
+   situations like:
+   optional:"Nice %c", value
 4  2020_December
 
    The socket connections have been removed.
