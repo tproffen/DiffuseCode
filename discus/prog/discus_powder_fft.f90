@@ -68,7 +68,7 @@ ENDDO
 temp(iqmin:iqmin+npkt_wrt-1) = ywrt(1:npkt_wrt) ! Add actual powder pattern
 !open(77,file='POWDER/prae_fft.FQ',status='unknown')
 !DO i=0,iqmin+npkt_wrt-1
-!  write(77,'(2(2x,G17.7E3))') (i),temp(i)
+!  write(77,'(2(2x,G17.7E3))') (i)*dq,temp(i)
 !enddo
 !close(77)
 !
@@ -89,9 +89,14 @@ DO i=0,npkt_fft-1
   xfft (i) = (i+0.50)*PI/qmax_l
   yfft (i) = temp(i  )*2/PI*dq
 ENDDO
+!write(*,*) ' xfft ', lbound(xfft), ubound(xfft), minval(xfft), maxval(xfft)
+!write(*,*) ' yfft ', lbound(yfft), ubound(yfft), minval(yfft), maxval(yfft)
 !close(77)
 !write(*,*) 'DO SPLINE ', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, nlow, npkt_fft+1
 CALL spline_prep(nlow, npkt_fft+1, xfft, yfft, rmin, rmax, rstep, npkt_pdf, xfour, yfour)
+!write(*,*) ' IER ', ier_num, ier_typ
+!write(*,*) ' xfour ', lbound(xfour), ubound(xfour), minval(xfour), maxval(xfour)
+!write(*,*) ' yfour ', lbound(yfour), ubound(yfour), minval(yfour), maxval(yfour)
 !
 DEALLOCATE(temp)
 DEALLOCATE(ip)
