@@ -7,6 +7,7 @@ MODULE kuplot_fit6
 !
 PRIVATE
 PUBLIC do_f66!, kupl_theory, write_fit
+public fit_init
 !
 CONTAINS
 !MODULE kuplot_fit_mod
@@ -71,7 +72,6 @@ INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER :: ll
 integer :: i
 INTEGER :: ianz, indxg, lbef 
-INTEGER :: maxpkt, maxzz 
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 LOGICAL, DIMENSION(3) :: flag
 LOGICAL               :: sel_func 
@@ -107,76 +107,9 @@ IF (ier_num.ne.0) RETURN
          RETURN 
       ENDIF 
 !                                                                       
-      IF (ikfirst (ikfit) ) THEN 
-!                                                                       
-!----- -- Check if there is enough space left                           
-!                                                                       
-         maxpkt = maxarray - offxy (iz - 1) 
-         maxzz = maxarray - offz (iz - 1) 
-!                                                                       
-         IF (lni (ikfit) ) THEN 
-            IF ( (2.0 * nx (iz - 1) * ny (iz - 1) .gt.maxzz) .or. (max (&
-            nx (iz - 1), ny (iz - 1) ) .gt.maxpkt) ) THEN               
-               ier_num = - 6 
-               ier_typ = ER_APPL 
-               RETURN 
-            ENDIF 
-!                                                                       
-            ikcal = iz 
-            ikdif = iz + 1 
-            offxy (ikcal) = offxy (iz - 1) + max (nx (iz - 1), ny (iz - &
-            1) )                                                        
-            offxy (ikdif) = offxy (ikcal) + max (nx (iz - 1), ny (iz -  &
-            1) )                                                        
-            offz (ikcal) = offz (iz - 1) + nx (iz - 1) * ny (iz - 1) 
-            offz (ikdif) = offz (ikcal) + nx (iz - 1) * ny (iz - 1) 
-            nx (ikcal) = nx (ikfit) 
-            nx (ikdif) = nx (ikfit) 
-            ny (ikcal) = ny (ikfit) 
-            ny (ikdif) = ny (ikfit) 
-            xmin (ikcal) = xmin (ikfit) 
-            xmin (ikdif) = xmin (ikfit) 
-            ymin (ikcal) = ymin (ikfit) 
-            ymin (ikdif) = ymin (ikfit) 
-            xmax (ikcal) = xmax (ikfit) 
-            xmax (ikdif) = xmax (ikfit) 
-            ymax (ikcal) = ymax (ikfit) 
-            ymax (ikdif) = ymax (ikfit) 
-            iz = iz + 2 
-         ELSE 
-            IF (2.0 * lenc(iz - 1) .gt.maxpkt) THEN 
-               ier_num = - 6 
-               ier_typ = ER_APPL 
-               RETURN 
-            ENDIF 
-!                                                                       
-            ikcal = iz 
-            ikdif = iz + 1 
-            offxy (ikcal) = offxy (iz - 1) + lenc(iz - 1) 
-            offxy (ikdif) = offxy (ikcal) + lenc(iz - 1) 
-            offz (ikcal) = offz (iz - 1) 
-            offz (ikdif) = offz (ikcal) 
-            lenc(ikcal) = lenc(ikfit) 
-            lenc(ikdif) = lenc(ikfit) 
-            xmin (ikcal) = xmin (ikfit) 
-            xmin (ikdif) = xmin (ikfit) 
-            xmax (ikcal) = xmax (ikfit) 
-            xmax (ikdif) = xmax (ikfit) 
-            iz = iz + 2 
-         ENDIF 
-!                                                                       
-!----- -- Everything ok so far ..                                       
-!                                                                       
-         ikfirst (ikfit) = .false. 
-         fit_ikcal (ikfit) = ikcal 
-         fit_ikdif (ikfit) = ikdif 
-!                                                                       
-!----- -- Restore previous fit setting                                  
-!                                                                       
-      ELSE 
-         ikcal = fit_ikcal (ikfit) 
-         ikdif = fit_ikdif (ikfit) 
-      ENDIF 
+   call fit_init
+   if(ier_num /= 0) return
+!
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/fit' 
 !                                                                       
@@ -474,5 +407,95 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
  2100 FORMAT     (1x,'Refinement mode: ',a) 
       END SUBROUTINE do_f66                         
+!
+!*******************************************************************************
+!
+subroutine fit_init
+!-
+!  perform initial setup
+!+
+use kuplot_mod
+!use fit_mod
+!
+use errlist_mod
+!
+implicit none
+!
+integer :: maxpkt
+integer :: maxzz 
+!
+IF (ikfirst (ikfit) ) THEN 
+!                                                                       
+!----- -- Check if there is enough space left                           
+!                                                                       
+   maxpkt = maxarray - offxy (iz - 1) 
+   maxzz = maxarray - offz (iz - 1) 
+!                                                                       
+   IF (lni (ikfit) ) THEN 
+      IF((2.0 * nx (iz - 1) * ny (iz - 1)  .gt. maxzz) .or.     &
+         (max ( nx (iz - 1), ny (iz - 1) ) .gt. maxpkt)     ) THEN
+         ier_num = - 6 
+         ier_typ = ER_APPL 
+         RETURN 
+      ENDIF 
+!                                                                       
+      ikcal = iz 
+      ikdif = iz + 1 
+      offxy (ikcal) = offxy (iz - 1) + max (nx (iz - 1), ny (iz -  1) )
+      offxy (ikdif) = offxy (ikcal) + max (nx (iz - 1), ny (iz -   1) )
+      offz (ikcal) = offz (iz - 1) + nx (iz - 1) * ny (iz - 1) 
+      offz (ikdif) = offz (ikcal) + nx (iz - 1) * ny (iz - 1) 
+      nx (ikcal) = nx (ikfit) 
+      nx (ikdif) = nx (ikfit) 
+      ny (ikcal) = ny (ikfit) 
+      ny (ikdif) = ny (ikfit) 
+      xmin (ikcal) = xmin (ikfit) 
+      xmin (ikdif) = xmin (ikfit) 
+      ymin (ikcal) = ymin (ikfit) 
+      ymin (ikdif) = ymin (ikfit) 
+      xmax (ikcal) = xmax (ikfit) 
+      xmax (ikdif) = xmax (ikfit) 
+      ymax (ikcal) = ymax (ikfit) 
+      ymax (ikdif) = ymax (ikfit) 
+      iz = iz + 2 
+   ELSE 
+      IF (2.0 * lenc(iz - 1) .gt.maxpkt) THEN 
+         ier_num = - 6 
+         ier_typ = ER_APPL 
+         RETURN 
+      ENDIF 
+!                                                                       
+      ikcal = iz 
+      ikdif = iz + 1 
+      offxy (ikcal) = offxy (iz - 1) + lenc(iz - 1) 
+      offxy (ikdif) = offxy (ikcal) + lenc(iz - 1) 
+      offz (ikcal) = offz (iz - 1) 
+      offz (ikdif) = offz (ikcal) 
+      lenc(ikcal) = lenc(ikfit) 
+      lenc(ikdif) = lenc(ikfit) 
+      xmin (ikcal) = xmin (ikfit) 
+      xmin (ikdif) = xmin (ikfit) 
+      xmax (ikcal) = xmax (ikfit) 
+      xmax (ikdif) = xmax (ikfit) 
+      iz = iz + 2 
+   ENDIF 
+!                                                                       
+!----- -- Everything ok so far ..                                       
+!                                                                       
+   ikfirst (ikfit) = .false. 
+   fit_ikcal (ikfit) = ikcal 
+   fit_ikdif (ikfit) = ikdif 
+!                                                                       
+!----- -- Restore previous fit setting                                  
+!                                                                       
+ELSE 
+   ikcal = fit_ikcal (ikfit) 
+   ikdif = fit_ikdif (ikfit) 
+ENDIF 
+!
+end subroutine fit_init
+!
+!*******************************************************************************
+!
 !
 end MODULE kuplot_fit6
