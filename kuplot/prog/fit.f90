@@ -1147,7 +1147,7 @@ CALL kuplot_mrq(MAXP, nparams, ncycle, kupl_last, par_names, par_ind,           
                 kup_fit6_conv_dp_sig, kup_fit6_conv_dchi2, &
                 kup_fit6_conv_chi2, kup_fit6_conv_conf, lconvergence, chisq, conf, lamda_fin,     &
                 kup_fit6_lamda_s, kup_fit6_lamda_d, kup_fit6_lamda_u,           &
-                rval, rexp, par_value, prange, dpp, covar, wtyp, wval)
+                rval, rexp, par_value, prange, dpp, covar, wtyp, wval, fstart)
 !
 ! Copy values back into KUPLOT scheme
 dp(:) = 0.0
@@ -1219,7 +1219,7 @@ CALL get_extrema
 CALL kup_fit6_set(MAXP, MAXF, nparams, nfixed, data_dim(1)*data_dim(2), chisq, conf, lamda_fin,  &
                   rval, rexp, par_names, par_value, dpp, prange, covar, fixed, pf)
 !                                                                       
-CALL do_fit_info (output_io, .false., .false., .true.) 
+if(fstart) CALL do_fit_info (output_io, .false., .false., .true.) 
 !
 DEALLOCATE(data_calc)
 DEALLOCATE(data_data)
@@ -3994,7 +3994,7 @@ SUBROUTINE kuplot_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, par_ind,  &
                       lconvergence,                                        &
                       chisq, conf, lamda_fin,       &
                 lamda_s, lamda_d, lamda_u,          &
-rval, rexp, p, prange, dp, cl, wtyp, wval)
+rval, rexp, p, prange, dp, cl, wtyp, wval, lout)
 !+                                                                      
 !   This routine runs the refinement cycles, interfaces with the 
 !   Levenberg-Marquardt routine modified after Numerical Recipes
@@ -4050,6 +4050,7 @@ REAL(kind=PREC_DP), DIMENSION(MAXP)                  , INTENT(INOUT) :: dp      
 REAL(kind=PREC_DP), DIMENSION(NPARA, NPARA)          , INTENT(INOUT) :: cl        ! Covariance matrix
 character(len=*)                                     , intent(in)    :: wtyp
 real(kind=PREC_DP)                                   , intent(in)    :: wval
+logical                                              , intent(in)    :: lout
 !
 INTEGER :: icyc
 INTEGER :: k, i
@@ -4105,8 +4106,10 @@ ALLOCATE(last_p(0:2,NPARA))
 last_p(2,:) = p(1:NPARA)
 prev_i = 2
 !
+if(lout) then
 WRITE(output_io,'(a,10x,a,7x,a,6x,a)') 'Cycle Chi^2/(N-P)   MAX(dP/sig) Par   Conf',&
                                        'Lambda', 'wRvalue', 'Rexp'
+endif
 !
 lconvergence = .FALSE.
 icyc = 0
@@ -4144,8 +4147,10 @@ cycles:DO
    conf = gammaq(REAL((data_dim(1)*data_dim(2)-2)*0.5,kind=PREC_DP), REAL(chisq*0.5,kind=PREC_DP))
    last_chi( last_i) = chisq/(data_dim(1)*data_dim(2)-NPARA)        ! Store Chi^2/(NDATA-NPARA)
    last_conf(last_i) = conf
+   if(lout) then
    WRITE(output_io,'(i5,2g13.5e2,i4,4g13.5e2)') icyc,chisq/(data_dim(1)*data_dim(2)-NPARA),  &
          last_shift(last_i), last_ind, conf, alamda, rval, rexp
+   endif
 !
    CALL kuplot_rvalue(data_dim, data_data, data_sigma, data_calc, rval, rexp, NPARA)
 !
@@ -4157,7 +4162,9 @@ cycles:DO
                   ABS(last_chi(last_i)-last_chi(prev_i))<conv_dchi2)
       lconv(3) = last_chi(last_i)  < conv_chi2
       IF(lconv(1) .OR. lconv(2) .OR. lconv(3)) THEN
-         WRITE(output_io, '(/,a,3L2)') 'Convergence reached ', lconv
+         if(lout) then
+            WRITE(output_io, '(/,a,3L2)') 'Convergence reached ', lconv
+         endif
          lconvergence = .TRUE.
          EXIT cycles
       ENDIF
@@ -4173,10 +4180,12 @@ cycles:DO
 ENDDO cycles
 !
 IF(.NOT. lconvergence) THEN
-   IF(icyc==ncycle) THEN
-      WRITE(output_io,'(/,a)') ' Maximum cycle is reached without convergence'
-   ELSEIF(alamda > HUGE(0.0)/lamda_u) THEN
-      WRITE(output_io,'(/,a)') ' MRQ Parameter reached infinity'
+   if(lout) then
+      IF(icyc==ncycle) THEN
+         WRITE(output_io,'(/,a)') ' Maximum cycle is reached without convergence'
+      ELSEIF(alamda > HUGE(0.0)/lamda_u) THEN
+         WRITE(output_io,'(/,a)') ' MRQ Parameter reached infinity'
+      ENDIF
    ENDIF
 ENDIF
 !
