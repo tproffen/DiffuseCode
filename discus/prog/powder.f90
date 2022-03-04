@@ -62,7 +62,6 @@ INTEGER :: ianz
 INTEGER :: lp, length, lbef 
 INTEGER :: indxg
 LOGICAL :: lend
-real(kind=PREC_DP) :: fwhm  ! FWHM at Qmax
 !
 integer, parameter :: NOPTIONAL = 1
 integer, parameter :: O_TABLE   = 1
@@ -184,62 +183,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----run transformation 'run'                                      
 !                                                                       
                ELSEIF(str_comp(befehl, 'run ', 2, lbef, 4)) THEN 
-                  CALL dlink(ano, lambda, rlambda, renergy, l_energy, &
-                             diff_radiation, diff_table, diff_power) 
-                  IF(ier_num.eq.0) THEN 
-                     CALL phases_set(zeile, lp)
-                     CALL pow_conv_limits
-                     pow_qmin_u = pow_qmin   !! save user values
-                     pow_qmax_u = pow_qmax
-                     pow_deltaq_u=pow_deltaq
-                     pow_npkt_u  = nint((pow_qmax_u-pow_qmin_u)/pow_deltaq_u) + 1 ! save user number of points
-                     if(pow_profile/=0) then
-                        fwhm = SQRT(MAX(ABS(pow_u*pow_qmax**2 + pow_v*pow_qmax + pow_w), 0.00001D0) ) 
-                     else
-                        fwhm = 0.0
-                     endif
-                     pow_qmax = pow_qmax + min(5.0D0,2.0D0*pow_width*fwhm + 2*abs(pow_qzero))
-                     pow_qmin = max(0.0d0, pow_qmin - 0.00D0) ! FIXED  for multi phase!
-                     pow_ds_max = (pow_qmax+pow_deltaq)/(zpi)
-                     pow_ds_min = pow_qmin/(zpi)
-                     check_dq: DO 
-                        IF(NINT( (pow_qmax-pow_qmin)/pow_deltaq+1)>2**18) THEN
-                           pow_deltaq = pow_deltaq*2.0D0
-                        ELSE
-                           EXIT check_dq
-                        ENDIF
-                     ENDDO check_dq
-                     CALL powder_qcheck
-                     pow_qmin_c = pow_qmin
-                     pow_qmax_c = pow_qmax
-                     pow_deltaq_c = pow_deltaq
-!write(*,*)
-!write(*,*) ' POWDER  ', pow_npkt_u, pow_qmin_u, pow_qmax_u, pow_deltaq_u
-!write(*,*) ' POWDER  ', pow_npkt_u, pow_qmin_c, pow_qmax_c, pow_deltaq_c
-!write(*,*) ' POWDER  ', nint((pow_qmax-pow_qmin)/pow_deltaq)+ 1, pow_qmin, pow_qmax, pow_deltaq
-                     IF(ier_num==0) THEN
-                        IF(.NOT.pha_multi) pha_frac(1) = 1.0E0
-!
-                     IF(pow_four_type.eq.POW_DEBYE) THEN 
-                        CALL pow_pdf_hist
-                     ELSE
-                        CALL powder_complete 
-                     ENDIF
-                     IF(ier_num == 0) THEN
-                        four_was_run = .true.
-                        CALL powder_convolute   ! convolute with profile
-                        CALL phases_place       ! Copy current powder pattern into proper phase entry
-                        IF (pow_four_type.eq.POW_DEBYE) THEN 
-                           four_last = POWD_DY
-                           if(pow_lperiod) call pow_pdf_hist_prep_period
-                        ELSE
-                           four_last = POWD_CO
-                        ENDIF 
-                     ENDIF 
-                     ENDIF 
-                     pow_qmin = pow_qmin_u ! Restore user settings
-                     pow_qmax = pow_qmax_u ! Restore user settings
-                  ENDIF 
+                  call powder_run(zeile, lp)
 !                                                                       
 !     ----show current parameters 'show'                                
 !                                                                       
@@ -342,7 +286,90 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       prompt = orig_prompt
 !                                                                       
       END SUBROUTINE do_powder                      
+!
 !*****7*****************************************************************
+!
+subroutine powder_run(zeile, lp)
+!
+use diffuse_mod
+use fourier_sup
+use powder_mod
+use powder_pdf_hist_mod
+use powder_write_mod
+use phases_mod
+USE phases_set_mod
+!
+use errlist_mod
+use precision_mod
+use wink_mod
+!
+implicit none
+!
+character(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp
+!
+real(kind=PREC_DP) :: fwhm
+!
+!
+                  CALL dlink(ano, lambda, rlambda, renergy, l_energy, &
+                             diff_radiation, diff_table, diff_power) 
+                  IF(ier_num.eq.0) THEN 
+                     CALL phases_set(zeile, lp)
+                     CALL pow_conv_limits
+                     pow_qmin_u = pow_qmin   !! save user values
+                     pow_qmax_u = pow_qmax
+                     pow_deltaq_u=pow_deltaq
+                     pow_npkt_u  = nint((pow_qmax_u-pow_qmin_u)/pow_deltaq_u) + 1 ! save user number of points
+                     if(pow_profile/=0) then
+                        fwhm = SQRT(MAX(ABS(pow_u*pow_qmax**2 + pow_v*pow_qmax + pow_w), 0.00001D0) ) 
+                     else
+                        fwhm = 0.0
+                     endif
+                     pow_qmax = pow_qmax + min(5.0D0,2.0D0*pow_width*fwhm + 2*abs(pow_qzero))
+                     pow_qmin = max(0.0d0, pow_qmin - 0.00D0) ! FIXED  for multi phase!
+                     pow_ds_max = (pow_qmax+pow_deltaq)/(zpi)
+                     pow_ds_min = pow_qmin/(zpi)
+                     check_dq: DO 
+                        IF(NINT( (pow_qmax-pow_qmin)/pow_deltaq+1)>2**18) THEN
+                           pow_deltaq = pow_deltaq*2.0D0
+                        ELSE
+                           EXIT check_dq
+                        ENDIF
+                     ENDDO check_dq
+                     CALL powder_qcheck
+                     pow_qmin_c = pow_qmin
+                     pow_qmax_c = pow_qmax
+                     pow_deltaq_c = pow_deltaq
+!write(*,*)
+!write(*,*) ' POWDER  ', pow_npkt_u, pow_qmin_u, pow_qmax_u, pow_deltaq_u
+!write(*,*) ' POWDER  ', pow_npkt_u, pow_qmin_c, pow_qmax_c, pow_deltaq_c
+!write(*,*) ' POWDER  ', nint((pow_qmax-pow_qmin)/pow_deltaq)+ 1, pow_qmin, pow_qmax, pow_deltaq
+                     IF(ier_num==0) THEN
+                        IF(.NOT.pha_multi) pha_frac(1) = 1.0E0
+!
+                     IF(pow_four_type.eq.POW_DEBYE) THEN 
+                        CALL pow_pdf_hist
+                     ELSE
+                        CALL powder_complete 
+                     ENDIF
+                     IF(ier_num == 0) THEN
+                        four_was_run = .true.
+                        CALL powder_convolute   ! convolute with profile
+                        CALL phases_place       ! Copy current powder pattern into proper phase entry
+                        IF (pow_four_type.eq.POW_DEBYE) THEN 
+                           four_last = POWD_DY
+                           if(pow_lperiod) call pow_pdf_hist_prep_period
+                        ELSE
+                           four_last = POWD_CO
+                        ENDIF 
+                     ENDIF 
+                     ENDIF 
+                     pow_qmin = pow_qmin_u ! Restore user settings
+                     pow_qmax = pow_qmax_u ! Restore user settings
+                  ENDIF 
+!
+end subroutine powder_run
+!
       SUBROUTINE pow_show 
 !-                                                                      
 !     Prints summary of powder diffraction settings                     
