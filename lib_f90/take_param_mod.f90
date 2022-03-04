@@ -21,6 +21,8 @@ SUBROUTINE get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL, ncalc, &
 !  remaining parameters will not be calculated, and the routine returns
 !  the strings only.
 !
+use build_name_mod
+use get_params_mod
 USE ber_params_mod
 use charact_mod
 USE errlist_mod
@@ -41,10 +43,16 @@ CHARACTER(LEN=*), DIMENSION(NOPTIONAL), INTENT(INOUT) :: opara     ! with defaul
 INTEGER,          DIMENSION(NOPTIONAL), INTENT(INOUT) :: lopara    ! length of results
 LOGICAL,          DIMENSION(NOPTIONAL), INTENT(OUT)   :: lpresent  ! Is param present ?
 REAL(KIND=PREC_DP),DIMENSION(NOPTIONAL), INTENT(INOUT) :: owerte    ! calc. results with default values
+character(len=PREC_STRING), dimension(:), allocatable :: cfpara    ! optional parameters with format string
+integer                   , dimension(:), allocatable :: lfpara    ! optional parameters with format string
+real(kind=PREC_DP)        , dimension(:), allocatable ::  fwerte   ! optional parameters with format string
+integer                                               :: fanz
 !
-INTEGER :: i,j, iopt, istart
+INTEGER :: i,j, k, iopt, istart
 INTEGER :: letter
 INTEGER :: icolon
+integer :: nper                    ! number of '%' in optional parameter
+integer :: maxf                    ! maximum format specifiers found
 INTEGER :: len_look, len_user, l0
 LOGICAL :: ascii                   ! Test if we have letters only
 !
@@ -52,6 +60,7 @@ LOGICAL :: ascii                   ! Test if we have letters only
 lpresent(:) = .FALSE.
 IF(ianz==0) RETURN           ! No parameters at all
 !
+maxf = 0
 istart = ianz
 search: DO i=istart,1, -1     ! Count backwards
    icolon = INDEX(cpara(i)(1:lpara(i)),':')
@@ -79,11 +88,28 @@ search: DO i=istart,1, -1     ! Count backwards
             lpresent(iopt) = .TRUE.
             cpara(i) = ' '      ! clear parameter, this avoids issue for parameter ianz
             lpara(i) = 0
-            DO j = i+1, ianz    ! shift subsequent parameters down
-               cpara(j-1) = cpara(j)
-               lpara(j-1) = lpara(j)
-            ENDDO
-            ianz = ianz - 1
+            nper = 0            ! Assume no '%' in parameter string
+!           ! Test if parameter is like "...%..."
+            if(opara(iopt)(1:1)=='"' .and. opara(iopt)(lopara(iopt):lopara(iopt))=='"') then
+               maxf = 1
+               do j=2,lopara(iopt)       ! Search for '%' in parameter string
+                  if(opara(iopt)(j:j)=='%') then    ! Found a format specifier
+                     maxf = maxf + 1                ! Increment number of format specifiers
+                     nper = nper + 1                ! Increment and concatenate
+                     opara(iopt) = opara(iopt)(1:lopara(iopt)) //','// cpara(i+nper)(1:lpara(i+nper))
+                     lopara(iopt) = len_trim(opara(iopt))
+                     cpara(i+nper) = ' '
+                     lpara(i+nper) = 0
+                  endif
+               enddo
+            endif
+            do k=0, nper           ! Shift format parameters down as well
+               DO j = i+1, ianz    ! shift subsequent parameters down
+                  cpara(j-1) = cpara(j)
+                  lpara(j-1) = lpara(j)
+               ENDDO
+               ianz = ianz - 1
+            enddo
             CYCLE search
          ENDIF
       ENDDO look
@@ -98,6 +124,28 @@ ENDDO search
 !  Calculate numerical values for the first ncalc parameters
 !
 CALL ber_params (ncalc, opara, lopara, owerte, NOPTIONAL)
+!
+!  If parameters ncalc+ start with '"', build name
+if(maxf>0) then
+   allocate(cfpara(1:maxf))
+   allocate(lfpara(1:maxf))
+   allocate(fwerte(1:maxf))
+!
+   loop_form:do i=ncalc+1, NOPTIONAL
+      if(opara(i)(1:1) == '"') then      ! Format string
+         call get_params(opara(i), fanz, cfpara, lfpara, MAXF, lopara(i))
+         if(ier_num /= 0) exit loop_form
+         j = 1
+         call do_build_name(fanz, cfpara, lfpara, fwerte, MAXF, j)
+         if(ier_num /= 0) exit loop_form
+         opara(i) = cfpara(j)
+         lopara(i) = len_trim(opara(i))
+      endif
+   enddo loop_form
+   deallocate(cfpara)
+   deallocate(lfpara)
+   deallocate(fwerte)
+endif
 !
 !
 END SUBROUTINE get_optional
