@@ -13,11 +13,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-182,IO=7)
+      PARAMETER    (IU=-183,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -181) /                          &
+     &  'Unknown radiation                            ', & !-183 ! discus
      &  'Internal error, please document and report   ', & !-182 ! discus
      &  'EXCLUDE requires single atom: START=FINISH   '  & !-181 ! discus
      &  /
