@@ -448,46 +448,49 @@ LOGICAL         , INTENT(IN)    :: lecho
       ENDIF 
 !                                                                       
       END SUBROUTINE do_allocate                    
+!
 !*****7**************************************************************** 
-      SUBROUTINE do_load (string, laenge, lecho) 
+!
+SUBROUTINE do_load (string, laenge, lecho) 
 !                                                                       
 !     Load various file formats                                         
 !                                                                       
-      USE ber_params_mod
-      USE build_name_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE prompt_mod 
-      USE times_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE ber_params_mod
+use blanks_mod
+USE build_name_mod
+USE errlist_mod 
+USE get_params_mod
+USE prompt_mod 
+USE times_mod 
+USE kuplot_config 
+USE kuplot_mod 
 USE kuplot_load_h5
 USE lib_errlist_func
 USE lib_length
 USE precision_mod
-      USE take_param_mod
+USE take_param_mod
 USE str_comp_mod
-      USE string_convert_mod
+USE string_convert_mod
 USE support_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw, ifil, iwgb 
-      PARAMETER (maxw = 100) 
-      PARAMETER (ifil = 44) 
-      PARAMETER (iwgb = 45) 
+INTEGER maxw, ifil, iwgb 
+PARAMETER (maxw = 100) 
+PARAMETER (ifil = 44) 
+PARAMETER (iwgb = 45) 
 !                                                                       
 CHARACTER (len=*), intent(in) :: string 
 INTEGER          , INTENT(INOUT) :: laenge
 LOGICAL          , INTENT(IN) :: lecho          ! Show extrema after load
 !
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      CHARACTER(LEN=PREC_STRING) :: wname, cdummy 
-      CHARACTER(4) unter 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER ii, ll, ianz, istr, nfile 
-      LOGICAL zz_mod 
+CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+CHARACTER(LEN=PREC_STRING) :: wname, cdummy 
+CHARACTER(4) unter 
+REAL(KIND=PREC_DP) :: werte (maxw) 
+INTEGER lpara (maxw) 
+INTEGER ii, ll, ianz, istr, nfile 
+LOGICAL zz_mod 
 !                                                                       
 INTEGER ifiles
 !
@@ -516,19 +519,24 @@ owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,  0.0   
 !
 !
 !                                                                       
-      istr = 1 
-      CALL no_error 
-      CALL get_params (string, ianz, cpara, lpara, maxw, laenge) 
-      IF (ier_num.ne.0) return 
-      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                        oname, loname, opara, lopara, lpresent, owerte)
-      IF(ier_num/=0) RETURN
-      IF (ianz.ge.2) then 
+istr = 1 
+CALL no_error 
+CALL get_params (string, ianz, cpara, lpara, maxw, laenge) 
+IF (ier_num.ne.0) return 
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF(ier_num/=0) RETURN
+IF (ianz.ge.2) then 
 !                                                                       
 !------- -get file typ                                                  
 !                                                                       
-         unter = cpara (1) (1:4) 
-         CALL do_cap (unter) 
+   call rem_bl(cpara(1), lpara(1))
+   if(cpara(1)(1:1)=='"' .and. cpara(1)(lpara(1):lpara(1))=='"') then
+      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+      IF(ier_num /= 0) return 
+   endif
+   unter = cpara(1)(1:4) 
+   CALL do_cap (unter) 
 !                                                                       
 !------- -build first filename                                          
 !                                                                       
@@ -831,18 +839,19 @@ CHARACTER(len=*), intent(in) :: key
 !                                                                       
       END SUBROUTINE extract_key                    
 !*****7**************************************************************** 
-      SUBROUTINE read_ext (ifil, ianz, werte, maxw, dens, zz_mod) 
+!
+SUBROUTINE read_ext (ifil, ianz, werte, maxw, dens, zz_mod) 
 !+                                                                      
 !     Load MPAUS extract files ..                                       
 !-                                                                      
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
 use kuplot_show_mod
 !
 USE precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 INTEGER, intent(in) :: ifil 
 INTEGER, intent(in) :: ianz 
@@ -851,13 +860,13 @@ REAL(KIND=PREC_DP), intent(in) :: werte (maxw)
 LOGICAL, intent(in) :: dens, zz_mod 
 !                                                                       
 !DBG      real xw,yw,zw                                                 
-      REAL xw, yw, ow 
-      INTEGER zw 
-      REAL deltax, deltay, dxx, dyy 
-      INTEGER irec 
-      INTEGER np (maxarray) 
-      INTEGER ::    ixx, iyy, izeig, i 
-      INTEGER maxpkt, maxzz
+REAL(kind=PREC_DP) :: xw, yw, ow 
+INTEGER :: zw 
+REAL(kind=PREC_DP) :: deltax, deltay, dxx, dyy 
+INTEGER :: irec 
+INTEGER :: np (maxarray) 
+INTEGER ::    ixx, iyy, izeig, i 
+INTEGER maxpkt, maxzz
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
@@ -1012,8 +1021,8 @@ REAL(KIND=PREC_DP), intent(in) :: werte (maxw)
 LOGICAL, intent(in) :: dens, zz_mod 
 !                                                                       
 !                                                                       
-      REAL xw, yw, zw 
-      REAL deltax, deltay, dxx, dyy 
+REAL(kind=PREC_DP) :: xw, yw, zw 
+REAL(kind=PREC_DP) :: deltax, deltay, dxx, dyy 
       INTEGER np (maxarray) 
       INTEGER ::    ixx, iyy, izeig, i 
       INTEGER maxpkt, maxzz
