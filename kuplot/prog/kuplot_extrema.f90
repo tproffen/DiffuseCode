@@ -55,8 +55,8 @@ ymi = 1e38
 DO ip = 1, lenc(i) 
    IF (x (offxy (i - 1) + ip) .ge.ex (iwin, iframe, 1) .and.x (offxy &
       (i - 1) + ip) .le.ex (iwin, iframe, 2) ) then                     
-      yma = max (yma, y (offxy (i - 1) + ip) ) 
-      ymi = min (ymi, y (offxy (i - 1) + ip) ) 
+      yma = max (yma, real(y (offxy (i - 1) + ip), kind=PREC_DP) ) 
+      ymi = min (ymi, real(y (offxy (i - 1) + ip), kind=PREC_DP) ) 
    ENDIF 
 ENDDO 
 !                                                                       
@@ -83,8 +83,8 @@ INTEGER :: ip
 amax (ik) = a (offxy (ik - 1) + 1) 
 amin (ik) = a (offxy (ik - 1) + 1) 
 DO ip = 2, ilen 
-   amax (ik) = max (amax (ik), a (offxy (ik - 1) + ip) ) 
-   amin (ik) = min (amin (ik), a (offxy (ik - 1) + ip) ) 
+   amax (ik) = max (amax (ik), real(a (offxy (ik - 1) + ip), kind=PREC_DP) ) 
+   amin (ik) = min (amin (ik), real(a (offxy (ik - 1) + ip), kind=PREC_DP) ) 
 ENDDO 
 !                                                                       
 END SUBROUTINE get_extrema_xy                 
