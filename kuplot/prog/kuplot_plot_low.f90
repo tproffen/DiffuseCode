@@ -1232,8 +1232,8 @@ integer :: iss
          ELSE 
             CALL spline_old (xpl, ypl, npkt, 1E30, 1E30, y2a) 
 !           CALL spline (npkt, xpl, ypl, 1D30, 1D30, y2a) 
-            xst = max (xmin (ikurv), pex (iwin, iframe, 1) ) 
-            xen = min (xmax (ikurv), pex (iwin, iframe, 2) ) 
+            xst = max (xmin (ikurv), real(pex (iwin, iframe, 1), kind=PREC_DP) ) 
+            xen = min (xmax (ikurv), real(pex (iwin, iframe, 2), kind=PREC_DP) ) 
             dxx = (xen - xst) / maxsp 
             is = 1
             ninterv = IABS( NINT( ((xen-dxx)-(xst+dxx))/dxx )) 

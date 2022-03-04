@@ -166,7 +166,7 @@ INTEGER              :: success
 INTEGER              :: length
 LOGICAL              :: lname
 LOGICAL              :: lexist
-REAL                 :: rval_min, r_val, par_val, parval_min
+REAL(kind=PREC_DP)   :: rval_min, r_val, par_val, parval_min
 !INTEGER              :: rval_indx
 REAL(KIND=PREC_DP)   , DIMENSION(1:MAXW) :: werte
 !
