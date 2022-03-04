@@ -101,7 +101,7 @@ integer         , intent(in)    :: ima
 !     CHARACTER ( * ) zeile, befehl 
       CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
       CHARACTER(20) cdummy 
-      INTEGER lpara (maxw), nie
+      INTEGER lpara (maxw)!, nie
       INTEGER ianz, ik, iw, ip 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
@@ -1324,8 +1324,8 @@ REAL(kind=PREC_DP) :: delta
          ex (iwin, iframe, 2) = - 1.0e19 
          DO i = 1, iz - 1 
          IF (k_in_f (i) ) then 
-            ex (iwin, iframe, 1) = min (ex (iwin, iframe, 1), xmin (i) ) 
-            ex (iwin, iframe, 2) = max (ex (iwin, iframe, 2), xmax (i) ) 
+            ex (iwin, iframe, 1) = min (real(ex (iwin, iframe, 1),kind=PREC_DP), xmin (i) ) 
+            ex (iwin, iframe, 2) = max (real(ex (iwin, iframe, 2),kind=PREC_DP), xmax (i) ) 
          ENDIF 
          ENDDO 
       ENDIF 
@@ -1341,8 +1341,8 @@ REAL(kind=PREC_DP) :: delta
             ELSE
               CALL get_extrema_xy_local (i, ymi, yma) 
             ENDIF
-            ey (iwin, iframe, 1) = min (ey (iwin, iframe, 1), ymi) 
-            ey (iwin, iframe, 2) = max (ey (iwin, iframe, 2), yma) 
+            ey (iwin, iframe, 1) = min (real(ey (iwin, iframe, 1),kind=PREC_DP), ymi) 
+            ey (iwin, iframe, 2) = max (real(ey (iwin, iframe, 2),kind=PREC_DP), yma) 
          ENDIF 
          ENDDO 
       ENDIF 
