@@ -9,89 +9,91 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !     command is identified here and the corresponding subroutine       
 !     executed. A leading @ indicates a macro.                          
 !-                                                                      
-      USE addfile_mod
-      USE discus_allocate_appl_mod
-      USE discus_reset_all_mod
-      USE charact_mod 
-      USE chem_menu
-      USE chem_aver_mod, ONLY: get_displacement
-      USE conn_mod
-      USE demolec
+USE addfile_mod
+USE discus_allocate_appl_mod
+USE discus_reset_all_mod
+USE charact_mod 
+USE chem_menu
+USE chem_aver_mod, ONLY: get_displacement
+USE conn_mod
+USE demolec
 use discus_3dpdf_mod
-      USE do_find_top
-      USE domain_menu
-      USE fourier_menu
-      USE insert_menu
-      USE metric_mod
-      USE mmc_menu
-      USE interpret_menu
-      USE inverse_mod 
-      USE modify_mod
-      USE molecule_func_mod
-      USE mole_surf_mod
-      USE output_menu
-      USE patters_menu
-      use perioditize_mod
-      USE pdf_menu
-      USE discus_plot_menu
-      USE powder
-      USE prop_para_func
-      USE rmc_menu
-      USE save_menu
-      USE discus_show_menu
-      USE stack_menu
-      USE symm_menu
-      USE shear
-      USE structur
-      USE spcgr_apply, ONLY: wyckoff_main
-      USE surface_func_mod
-      USE thermal_mod
-      USE transform_menu
-      USE waves_do_menu
-      USE discus_init_mod
-      USE discus_export
-      USE storage_menu_mod
+USE do_find_top
+USE domain_menu
+use exp2pdf_menu
+USE fourier_menu
+USE insert_menu
+USE metric_mod
+USE mmc_menu
+USE interpret_menu
+USE inverse_mod 
+USE modify_mod
+USE molecule_func_mod
+USE mole_surf_mod
+USE output_menu
+USE patters_menu
+use perioditize_mod
+USE pdf_menu
+USE discus_plot_menu
+USE powder
+USE prop_para_func
+USE rmc_menu
+USE save_menu
+USE discus_show_menu
+USE stack_menu
+USE symm_menu
+USE shear
+USE structur
+USE spcgr_apply, ONLY: wyckoff_main
+USE surface_func_mod
+USE thermal_mod
+USE transform_menu
+USE waves_do_menu
+USE discus_init_mod
+USE discus_export
+USE storage_menu_mod
 !
 use private_mod
 !
-      USE blanks_mod
-      USE calc_expr_mod
-      USE doact_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE class_macro_internal
-      USE kdo_all_mod
-      USE learn_mod 
+USE blanks_mod
+USE calc_expr_mod
+USE doact_mod
+USE errlist_mod 
+USE get_params_mod
+USE class_macro_internal
+USE kdo_all_mod
+USE learn_mod 
 USE lib_errlist_func
 USE lib_do_operating_mod
 USE lib_macro_func
-      USE precision_mod
-      USE prompt_mod
-      USE variable_mod
-      USE set_sub_generic_mod
+USE precision_mod
+USE prompt_mod
+USE variable_mod
+USE set_sub_generic_mod
 USE str_comp_mod
-      IMPLICIT none 
+!
+IMPLICIT none 
 !                                                                       
-      CHARACTER (LEN= * ), INTENT(INOUT) :: line 
-      LOGICAL            , INTENT(OUT)   :: lend
-      INTEGER            , INTENT(INOUT) :: length 
+CHARACTER (LEN= * ), INTENT(INOUT) :: line 
+LOGICAL            , INTENT(OUT)   :: lend
+INTEGER            , INTENT(INOUT) :: length 
 !                                                                       
-      CHARACTER(LEN=MAX(PREC_STRING, LEN(line))) :: zeile 
-      CHARACTER(5) befehl 
-      INTEGER indxb, indxg, lcomm, lbef 
-      INTEGER                  :: indxt ! position of a TAB
-      INTEGER                  ::  inverse_type
-      LOGICAL lout_rho, lkick 
+CHARACTER(LEN=MAX(PREC_STRING, LEN(line))) :: zeile 
+CHARACTER(len=5) :: befehl 
+INTEGER :: indxb, indxg, lcomm, lbef 
+INTEGER                  :: indxt ! position of a TAB
+INTEGER                  ::  inverse_type
+LOGICAL :: lout_rho, lkick 
 !                                                                       
-      DATA lout_rho / .false. / 
+DATA lout_rho / .false. / 
 !                                                                       
-      CALL no_error 
+CALL no_error 
 
 !                                                                       
 !-------If a commentary return immediately                              
 !                                                                       
-      IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
-          line == char(13) .or. line(1:1) == '!'  ) RETURN
+IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
+    line == char(13) .or. line(1:1) == '!'  ) RETURN
 !                                                                       
 !     Only the first 5 characters are significant. The command consists 
 !     of the four nonblank characters                                   
@@ -232,9 +234,14 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
             lout_rho = .true. 
             CALL patterson (inverse_type) 
 !                                                                       
+!-------Transform epsrimental powder pattern to PDF 'exp2pdf'
+!                                                                       
+         ELSEIF (str_comp (befehl, 'exp2pdf', 5, lbef, 7) ) THEN 
+            CALL exp2pdf
+!                                                                       
 !-------export a file from discus format 'export'                  
 !                                                                       
-         ELSEIF (str_comp (befehl, 'export', 3, lbef, 6) ) THEN 
+         ELSEIF (str_comp (befehl, 'export', 6, lbef, 6) ) THEN 
             CALL do_export (zeile, lcomm) 
 !                                                                       
 !-------Terminate DISCUS 'exit'                                         
