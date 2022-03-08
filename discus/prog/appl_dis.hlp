@@ -37,6 +37,7 @@
 !p define     ! Define DISCUS specific settings
 !p diff-four  ! Enter DIFFERENCE FOURIER transform level
 !p domain     ! Enter the DOMAIN level
+!p exp2pdf    ! Transform experimental powder pattern into PDF
 !p find       ! Find atoms around a given point
 !p four       ! Enter FOURIER transform level
 !p import     ! Imports other formats into DISCUS cells
@@ -47,6 +48,7 @@
 !p output     ! Enter output level (save results)
 !p patterson  ! Enter PATTERSON level
 !p pdf        ! Enter PAIR DISTRIBUTION FUNCTION level
+!p perioditize ! Transform a structure into a period ic array
 !p plot       ! Enter PLOT level (export crystal for plotting)
 !p powder     ! Enter POWDER diffraction level
 !p project    ! Calculate projections in real and reciprocal space
@@ -2271,6 +2273,170 @@
    absolute positions <x>,<y>,<z> in crystal space, if <s> is "r", a
    relative motion copies the atom number <n> to the sum of present
    position and vector <x>,<y>,<z>.
+2  exp2pdf
+!p exp2pdf
+
+   Menu to transform an experimental powder pattern into a powder PDF
+
+   DISCUS performs an empirical transformation similar to 
+   Billinge & Farrow, J.Phys:Condens. Matter (2013), 25, 454202.
+
+   The (optional, scaled) background data are subtracted from the
+   intensity.
+      I_pure(Q) = I(Q) - Back(Q)
+   The remaining intensity is divided by the square of 
+   the average form factors <f>^2, and point wise multiplied by Q.
+      F_init(Q) = I_pure(Q) / <f>^2 * Q
+   A polynomial is fitted through the resulting intensity, and 
+   this polynomial is subtracted from the resulting intensity.
+      F(Q) = F_init(Q) - SUM_1^N p_i^N * Q
+   Finally G(r) is calculated as sine Fourier transform of F(Q).
+      G(r) = Int F(q) sin(Qr) dQ
+      Integration limits are zero to a user defined Qmax.
+
+   As this empirical algorithm lacks a proper scaling of S(Q)
+   DISCUS performs an empirical scaling to get S(Q), F(Q) and 
+   G(r) onto an approximate absolute scale.
+
+3  back
+!p back  xy,  <background_file>  [, scale:<background_scale>]
+!p back  csv, <background_file>  [, scale:<background_scale>]
+!p back "kuplot", <data_set_number>
+
+   Load a file with the background to the ==> 'data' file.
+   The file need not to be on the same Q-scale and step width as the 
+   'data' file, yet its lower and upper limit must include the 
+   Q-range of the 'data' file.
+
+   The intensity on teh data file will be multiplied by the 
+   optional 'scale' parameter.
+   Defaults to 1.0
+3  composition
+!p composition composition:<string>
+!p composition             <string>
+
+   Defines the samples composition.
+   Specify the composition string as Atom names, followed by the 
+   relative abundance:
+   examples:   
+   Pure gold        : Au
+   Ceria            : CeO2
+   Ceriai           : Ce O2.0
+   Nonstoiciometric : Fe1.0 O0.978 
+
+   Blanks are not relevant. 
+   Atom names must have a first capital letter and a 
+   lower case second letter.
+3  data
+!p data  xy,  <data_file>
+!p data  csv, <data_file>
+!p data "kuplot", <data_set_number>
+
+   Load a file with the powder diffraction pattern.
+   At the moment the file has to be on  a Q-scale. 
+   The Q-scale does not have to be equidistant.
+3  exit
+!p exit
+
+   Return to the main DISCUS menu
+3  limits
+!p limits [inst:<qmax>], [fourier:<qmax_user>], [qmin:<qmin>]
+
+   Defines optional limits in which to handle the observed intensity.
+
+   As the intensity data might become very noisy at high Q, or might 
+   be subject to detector problems, you can limit the upper limit 
+   that is used for the empitical polynomial fit with
+   [inst:<qmax>]
+   Defaults to the maximum Q-value in the data
+
+   For similar reasons you might want to limit the upper Q limit 
+   that is used in the sine-Fourier transformation of F(Q) into the
+   PDF. DISCUS will take the user supplied value and find a point
+   nearby at which F(Q) is of value zero. This reduces Fourier 
+   ripples in G(r).
+   fourier:<qmax_user>
+   Defaults to the maximum instrumental Q-value of inst:<qmax>.
+
+   In most cases DISCUS will automatically detect a suitable lower
+   Q limit, from which the F(Q) data are extrapolated to the point 
+   Q=0, F(0) = 0. In the rare cases that this might fail, you 
+   can specify this Qmin limit with
+   qmin:<qmin>.
+   Defaults to the lowest Q-value in the data.
+3  outfile
+!p outf  [gr:<GR_obs_file>] [,rmin:<value>] [,rmax:<value>] [,rstep:<value>]
+!p outputfile  [gr:<GR_obs_file>] [,rmin:<value>] [,rmax:<value>] [,rstep:<value>]
+!p outputfile  [iq:<Intensity_file>]
+!p outputfile  [sq:<Normalized_Intensity_file>]
+!p outputfile  [fq:<Reduced_normalized_Intensity_file>]
+
+   Defines the output to be written. 
+   For all values, the commands 'outf' and 'outputfile' are
+   equivalent.
+
+   gr:<GR_obs_file>  
+       Defines the observed PDF file. The file is
+       Written as simple 2-column file: r G(r)
+       Always written, defaults to "discus.grobs"
+
+   For the PDF, optionally limits can be specified with
+   rmin:<value>    Lowest R-value in [Angstroem]
+   rmax:<value>    Largest R-value in [Angstroem]
+   rstep:<value>   Step interval   in [Angstroem]
+   Default to 0.01, 100.0, 0.01 respectively
+
+   iq:<Intensity_file>]
+       Defines the observed intensity file to be written. This is
+       I - Back, on an equdistant Q-scale
+       Written is present, defaults to "discus.iqobs"
+   [sq:<Normalized_Intensity_file>]
+       Defines the observed normalized intensity S(Q).
+       Written is present, defaults to "discus.sqobs"
+   [fq:<Reduced_normalized_Intensity_file>]
+       Defines the reduced observed normalized intensity F(Q).
+       F(Q) = Q*[S(Q) - 1].
+       Written is present, defaults to "discus.fqobs"
+3  poly
+!p poly order:<value>
+
+   Defines the order of the polynomial fitted through F(Q) to
+   ensure that F(Q) oscillates around F(Q)= zero.
+   Usually a vale around 7 to 9 will be fine.
+   Defaults to 7.
+3  radiation
+!p radiation "xray"
+!p radiation "neutron"
+!p radiation "electron"
+
+   Defines the radiation that was used to measure the observed
+   intensity.
+3  run
+!p run
+!p run  [mode:silent]
+!p run  [mode:inter]
+
+   Perform the actual calculation.
+
+   The optional parameter mode enables to run the calculation 
+   silently without intermediate screen output, or with
+   graphical and screen output.
+   Defaults to mode:silent.
+3  qscale
+!p qscale qcrystal:<value> [, qobs:<value>]
+!p qscale dcrystal:<value> [, qobs:<value>]
+
+   For electron diffraction data you might need to correct the 
+   effective camera length. 
+   Provide either the expected Q-value "qcrystal" (in [A^-1]) or the
+   expected d-value "dcrystal" (in [A]). 
+   Optionally you can provide the (approximate) experimental 
+   Q value "qobs".
+
+   DISCUS will search for a maximum in F(Q) near "qcrystal" or
+   "qobs" and scale the Q-axis by a factor
+   qcrystal / qobs , where qobs will be the actual peak position
+   found near qobs.
 2  export
 !p export "cif",<file{".cif"]> [, "spcgr:original"]
 !p export "shelx",<file{".ins"]>
