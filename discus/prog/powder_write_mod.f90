@@ -1175,6 +1175,8 @@ REAL(KIND=PREC_DP)                 :: eta_dp
 REAL(KIND=PREC_DP)                 :: fwhm_dp
 INTEGER                            :: imax, i, j, ii 
 INTEGER                            :: max_ps 
+!
+if(w<1.E8) return         ! FWHM == zero, no convolution
 !                                                                       
 !------ Setup Pseudo-Voigt                                              
 !                                                                       
@@ -1184,6 +1186,7 @@ psvgt = 0.0
 eta_dp  = REAL(eta,KIND=PREC_DP)
 fwhm_dp = REAL(fwhm,KIND=PREC_DP)
 !open(77,file='pseudo.comp', status='unknown')
+write(*,*) ' SETUP PS ', max_ps, eta_dp, fwhm_dp
 DO i = 0, max_ps 
    ii = MIN(INT(i*dtth/fwhm*GLP_NPT), GLP_MAX)
    psvgt (i) = glp_pseud_indx(ii  , eta_dp, fwhm_dp)
