@@ -2635,8 +2635,8 @@ loop = .TRUE.
 IF(mo_cyc == 0) loop = .FALSE. 
 !
 lserial = .FALSE.
-check_conn: DO IC = 1, chem_ncor         ! Check is we have a connectivity
-   IF(chem_ctyp(ic) == CHEM_CON) THEN    ! if so, we need serial computation
+check_conn: DO IC = 1, chem_ncor         ! Check is we have a connectivity, or Environment
+   IF(chem_ctyp(ic) == CHEM_CON .or. chem_ctyp(ic) == CHEM_ENVIR) THEN    ! if so, we need serial computation
       lserial = .TRUE.                   ! Needs serious debugging...
       EXIT check_conn
    ENDIF
