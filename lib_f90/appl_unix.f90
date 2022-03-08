@@ -510,7 +510,7 @@ CALL lib_f90_findterminal
  1500 FORMAT     (1x,'News at each section/Command_lang in  : ','help News')
  1600 FORMAT     (1x,'Change font size with                 : ','CTRL + /CTRL -')
  1700 FORMAT     (1x,'Preferences: Right click + Preferences: ' )
- 1750 FORMAT     (1x,'Ubuntu will be updated at DISCUS exit : ')
+ 1750 FORMAT     (1x,'Recommend to update Ubuntu at DISCUS exit : ')
  1800 FORMAT     (1x,'New DISCUS version available at GIThub: ',a)
  1900 FORMAT     (1x,a,'Manual files in  : ',a,a,a) 
  2000 FORMAT     (1x,a,'User macros in   : ',a,a,a) 
@@ -521,7 +521,7 @@ CALL lib_f90_findterminal
  2500 FORMAT     (1x,a,'News at each section/Command_lang in  : ',a,'help News',a)
  2600 FORMAT     (1x,a,'Change font size with                 : ',a,'CTRL + /CTRL -',a)
  2700 FORMAT     (1x,a,'Preferences:',a,' Right click + Preferences',a,':')
- 2750 FORMAT     (1x,a,'Ubuntu will be updated at DISCUS exit : ',a)
+ 2750 FORMAT     (1x,a,'Recommend to update Ubuntu at DISCUS exit : ',a)
  2800 FORMAT     (1x,a,'New DISCUS version available at GIThub: ',a,a,a)
 !
 END SUBROUTINE write_appl_env                       

@@ -9,12 +9,14 @@ SUBROUTINE exit_all
 !     This part contains all the program independent commands.          
 !                                                                       
 USE appl_env_mod
+use blanks_mod
 USE envir_mod
 USE errlist_mod 
 USE lib_errlist_func
 USE operating_mod
 USE precision_mod
 USE prompt_mod 
+use string_convert_mod
 USE terminal_mod
 !                                                                       
 IMPLICIT none 
@@ -22,6 +24,8 @@ IMPLICIT none
 CHARACTER(LEN=PREC_STRING) :: tempfile   ! jmol script files to remove
 CHARACTER(LEN=PREC_STRING) :: line       ! temporary string
 !INTEGER             :: socket_send
+integer          :: ios
+integer          :: ll
 LOGICAL             :: lpresent
 INTEGER           :: old_version
 INTEGER           :: new_version
@@ -44,7 +48,21 @@ IF(new_version > old_version ) THEN
 ENDIF
 IF(operating == OS_LINUX_WSL) THEN
    IF(since_update>7) THEN
-      CALL lib_f90_update_ubuntu
+      write(*,*)
+      write(*,'(a)' ) ' Last Ubuntu update >7 days ago, '
+      write(*,'(a)' ) ' Operating system update is strongly recommended'
+      write(*,'(a)', advance='no' ) ' Update Ubuntu now ? Yes/No : '
+      read(*, '(a)', iostat=ios) line
+      call do_cap(line)
+      ll = len_trim(line)
+      call rem_leading_bl(line, ll)
+      if(is_iostat_end(ios) .or. line(1:3)=='YES') then
+         CALL lib_f90_update_ubuntu
+      else
+         write(*,*)
+         write(*,'(A)') 'Ubuntu update deferred for right now'
+         write(*,*)
+      endif
    ENDIF
 ENDIF
 !
