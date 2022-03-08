@@ -735,7 +735,7 @@
 !p wic    : Sets weighting scheme
 3  convergence
 !p convergence ["status:on" | "status:off"] [,"dchi:"<delta>]
-p              [,"pshift:"<max>] [,"conf:"<level>] ["chisq:<value>]
+!p             [,"pshift:"<max>] [,"conf:"<level>] ["chisq:<value>]
 
    Allows the user to define convergence criteria.
 
