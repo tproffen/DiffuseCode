@@ -465,13 +465,16 @@ use set_sub_generic_mod
 !
 implicit none
 !
-integer, parameter :: MAXMAX =  2
+integer, parameter :: MAXMAX =  10
 !
 character(len=PREC_STRING) :: string
 integer :: i          ! Dummy index
+integer :: ii         ! Dummy index
+integer :: j          ! Dummy index
 integer :: length     ! Dummy index
 integer :: iqmin      ! (rough) index for Qmax
 integer :: iqmax      ! (rough) index for Qmax
+integer :: iqfirst    !         index for first maximum in F(Q)
 integer :: istep      ! Step direction for "zero" search
 integer :: nstep      ! Limit for "zero" search
 integer :: ik         ! Data set number in KUPLOT
@@ -480,6 +483,7 @@ integer   :: npkt_fft    ! number of points in powder pattern for Fast Fourier
 logical            :: lsuccess
 real(kind=PREC_DP) :: qmax   ! User supplied Qmax
 real(kind=PREC_DP) :: qmin   ! qmin into FFT
+real(kind=PREC_DP) :: scalex ! Scale factr for Q-axis
 real(kind=PREC_DP) :: scalef ! Magic scale factor to approximate absolute scale
 real(kind=PREC_DP), dimension(:), allocatable :: x_wrt
 real(kind=PREC_DP), dimension(:), allocatable :: y_wrt
@@ -502,10 +506,14 @@ call do_glat (string, length, .true.)
 !
 if(exp_inter) call exp2pdf_plot_fq(1) ! Display F(Q) in interactive mode
 !
-iqmax = int((exp_qmax_f-exp_temp_x(1))/exp_qstep) + 1
+iqmax = nint((exp_qmax_f-exp_temp_x(1))/exp_qstep) + 1
 !
 ! Get slope in smoothed data
 !
+if(iqmax>exp_nstep-3) then
+   istep = -1
+   nstep =  2
+else
 if((y(offxy(ik-2)+iqmax-1) - y(offxy(ik-2)+iqmax))>=0 .and. exp_temp_y(iqmax)>=0) then ! Previous point higher, above zero
    istep =  1                ! Positive steps
    nstep = exp_nstep-1       ! Upper limit
@@ -521,6 +529,7 @@ elseif((y(offxy(ik-2)+iqmax-1) - y(offxy(ik-2)+iqmax))<=0 .and. exp_temp_y(iqmax
 else
    istep = -1                ! Default to negative direction
    nstep =  2
+endif
 endif
 !
 !  Get zero point in smoothed data
@@ -545,22 +554,53 @@ else
 endif
 exp_qmax_f = exp_temp_x(iqmax)
 !
-! Find first minimum for Qmin extrapolation
-!
 iframe = 1
 y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik)) = y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik))* (-1.0D0)
 !
-ikk = ik - 1
+ikk = ik -1                  ! Search in smoothed data
 ifen = 251
 allocate(wmax(maxmax))
 allocate(ixm (maxmax))
 call do_fmax_xy(ikk, wmax, ixm, maxmax, ima)
 call no_error             ! Usually more than the MAXMAX=2 extrema are found ignore this error
 iqmin = ixm(1)
+!
+y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik)) = y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik))*( -1.0D0)
+!
+! Find first maximum above Qmax for electron camera length correction
+!
+j = 0
+if(exp_qfirst_o > 0.0) then    ! Only if user specified a Qfirst
+!
+! Find first minimum for Qmin extrapolation
+   if(exp_inter) call exp2pdf_plot_qscale
+   ikk = ik - 1                  ! Search in smoothed data
+   call do_fmax_xy(ikk, wmax, ixm, maxmax, ima)
+   call no_error             ! Usually more than the MAXMAX=2 extrema are found ignore this error
+   iqfirst = nint((exp_qfirst_c-exp_x(1))/exp_qstep) + 1
+   ii      = exp_nstep + 1
+   loop_first:do i=1, ima
+      if(abs(ixm(i)-iqfirst) <= ii) then
+         j       = ixm(1)
+         ii = abs(ixm(i)-iqfirst)
+      endif
+   enddo loop_first
+   iqfirst = j
+   if(iqfirst> 0) then    ! A maximum was found, correct Q-scale
+      scalex = exp_qfirst_c/exp_temp_x(iqfirst)
+      exp_qfirst_o  = exp_x(iqfirst)
+      x(offxy(ik-1)+1:offxy(ik-1)+lenc(ik  )) = x(offxy(ik-1)+1:offxy(ik-1)+lenc(ik  ))*scalex
+      x(offxy(ik-2)+1:offxy(ik-2)+lenc(ik-1)) = x(offxy(ik-2)+1:offxy(ik-2)+lenc(ik-1))*scalex
+      exp_qfirst_o  = exp_qfirst_o * scalex
+      exp_temp_x    = exp_temp_x * scalex
+      exp_x         = exp_x      * scalex
+      exp_qmax_f    = exp_qmax_f * scalex
+   endif
+endif
+
 deallocate(wmax)
 deallocate(ixm )
 !
-y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik)) = y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik))*( -1.0D0)
 !
 if(allocated(x_wrt)) deallocate(x_wrt)
 if(allocated(y_wrt)) deallocate(y_wrt)
@@ -592,6 +632,8 @@ if(exp_inter) call exp2pdf_plot_fq(2) ! Display F(Q) in interactive mode
 exp_npdf = int( (exp_rmax-exp_rmin)/exp_rstep) + 1
 allocate(xfour(0: exp_npdf     ))
 allocate(yfour(0: exp_npdf     ))
+!
+!write(*,*) exp_qmin, exp_qfirst_o, exp_qmax_f, exp_qmax
 !
 call fft_fq(npkt_wrt, x_wrt, y_wrt, qmin, qmax, exp_qstep, exp_rmin, exp_rmax, exp_rstep, &
                   npkt_fft, exp_npdf, xfour, yfour)
@@ -668,6 +710,7 @@ subroutine  exp2pdf_plot_fq(istep)
 !+
 use exp2pdf_data_mod
 !
+use kuplot_mod
 use envir_mod
 use prompt_mod
 use precision_mod
@@ -681,6 +724,32 @@ integer, parameter :: itmp = 77
 character(len=PREC_STRING) :: tempfile
 character(len=PREC_STRING) :: string
 integer :: length
+integer :: ios
+integer, save :: ikk = 0
+real(kind=PREC_DP) :: mstep
+real(kind=PREC_DP) :: xx
+real(kind=PREC_DP), save :: ytic
+!
+if((exp_temp_x(exp_nstep)-exp_temp_x(1))>40.0D0) then
+   mstep = 10.0D0
+elseif((exp_temp_x(exp_nstep)-exp_temp_x(1))>20.0D0) then
+   mstep = 5.0D0
+elseif((exp_temp_x(exp_nstep)-exp_temp_x(1))>10.0) then
+   mstep = 2.0D0
+elseif((exp_temp_x(exp_nstep)-exp_temp_x(1))>7.0) then
+   mstep = 1.0D0
+else
+   mstep = 0.5D0
+endif
+if(exp_qfirst_o>0.0) then
+  xx = exp_qfirst_o
+else
+  xx = exp_qmin_u
+endif
+if(ikk==0) then
+   ikk  = iz -1
+   ytic   = (ymax(ikk)-ymin(ikk))*0.25
+endif
 !
 if(istep==1) then                   ! F(Q) initial step 
    tempfile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/exp2pdf_qmax.mac'
@@ -692,58 +761,68 @@ if(istep==1) then                   ! F(Q) initial step
    write(itmp, '(a)') 'sfra 2, 0.0, 0.00, 1.0, 0.55'
    write(itmp, '(a)') 'alloc line, 3'
    write(itmp, '(a)') 'alloc line, 3'
+   write(itmp, '(a)') 'alloc line, 3'
+   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,1] = ', xx
+   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,2] = ', xx
+   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,3] = ', xx
+   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,1] =    ymin[n[1]-3]'
+   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,2] = ', 0.0
+   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,3] =    ymax[n[1]-3]' !y[n[1]-3,max(1,nint((2.0000000000)-xmin[n[1]-3]/0.001))]'
    write(itmp, '(a,G12.6e3)') 'x[n[1]-1,1] = ', exp_qmin_u
    write(itmp, '(a,G12.6e3)') 'x[n[1]-1,2] = ', exp_qmin_u
    write(itmp, '(a,G12.6e3)') 'x[n[1]-1,3] = ', exp_qmin_u
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,1] =    ymin[n[1]-2]'
+   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,1] =    ymin[n[1]-3]'
    write(itmp, '(a,G12.6e3)') 'y[n[1]-1,2] = ', 0.0
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,3] =    ymax[n[1]-2]'
+   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,3] =    ymax[n[1]-3]'
    write(itmp, '(a,G12.6e3)') 'x[n[1]  ,1] = ', exp_qmax_f
    write(itmp, '(a,G12.6e3)') 'x[n[1]  ,2] = ', exp_qmax_f
    write(itmp, '(a,G12.6e3)') 'x[n[1]  ,3] = ', exp_qmax_f
-   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,1] =    ymin[n[1]-2]'
+   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,1] =    ymin[n[1]-3]'
    write(itmp, '(a,G12.6e3)') 'y[n[1]  ,2] = ', 0.0
-   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,3] =    ymax[n[1]-2]'
-   write(itmp, '(a)') 'kfra 1, n[1], n[1]-1, n[1]-2, n[1]-3'
-   write(itmp, '(a)') 'kfra 2, n[1], n[1]-1, n[1]-2, n[1]-3'
+   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,3] =    ymax[n[1]-3]'
+   write(itmp, '(a)') 'kfra 1, n[1], n[1]-1, n[1]-2, n[1]-3, n[1]-4'
+   write(itmp, '(a)') 'kfra 2, n[1], n[1]-1, n[1]-2, n[1]-3, n[1]-4'
    write(itmp, '(a)') '#####################'
    write(itmp, '(a)') 'afra 1'
    write(itmp, '(a)') 'skal'
-   write(itmp, '(a)') 'mark 5.0'
+   write(itmp, '(a, f4.1, a, G20.2e3)') 'mark ', mstep, ', ',ytic
    write(itmp, '(a)') 'achx Q [\A\u-1\d]'
    write(itmp, '(a)') 'achy F(Q)'
    write(itmp, '(a)') 'fnam off'
    write(itmp, '(a)') 'grid off'
    write(itmp, '(a)') 'tit1 Final F(Q)'
    write(itmp, '(a)') 'tit2 vertical lines mark Q\dmin\u and Q\dmax\u'
-   write(itmp, '(a)') 'lcol n[1]-3 , red'
-   write(itmp, '(a)') 'lcol n[1]-2 , blue'
+   write(itmp, '(a)') 'lcol n[1]-4 , blue'
+   write(itmp, '(a)') 'lcol n[1]-3 , blue'
+   write(itmp, '(a)') 'lcol n[1]-2 , green'
    write(itmp, '(a)') 'lcol n[1]-1 , red'
    write(itmp, '(a)') 'lcol n[1]   , red'
+   write(itmp, '(a)') 'mtyp n[1]-4, 0'
    write(itmp, '(a)') 'mtyp n[1]-3, 0'
    write(itmp, '(a)') 'mtyp n[1]-2, 0'
    write(itmp, '(a)') 'mtyp n[1]-1, 0'
    write(itmp, '(a)') 'mtyp n[1]  , 0'
+   write(itmp, '(a)') 'ltyp n[1]-4, 1'
    write(itmp, '(a)') 'ltyp n[1]-3, 1'
    write(itmp, '(a)') 'ltyp n[1]-2, 1'
    write(itmp, '(a)') 'ltyp n[1]-1, 1'
    write(itmp, '(a)') 'ltyp n[1]  , 1'
    write(itmp, '(a)') '#####################'
    write(itmp, '(a)') 'afra 2'
-   write(itmp, '(a)') 'kfra 2, n[1]-2 '
-   write(itmp, '(a)') 'skal xmax[n[1]-2]-4, xmax[n[1]-2]'
-   write(itmp, '(a)') 'kfra 2, n[1], n[1]-1, n[1]-2, n[1]-3'
-   write(itmp, '(a)') 'mark 0.5'
+   write(itmp, '(a)') 'kfra 2, n[1]-3 '
+   write(itmp, '(a)') 'skal xmax[n[1]-3]-4, xmax[n[1]-3]+0.1'
+   write(itmp, '(a)') 'kfra 2, n[1], n[1]-1, n[1]-2, n[1]-3, n[1]-4'
+   write(itmp, '(a, G20.2e3)') 'mark 0.5, ', ytic
    write(itmp, '(a)') 'grid on'
    write(itmp, '(a)') 'tit1'
    write(itmp, '(a)') 'tit2'
    write(itmp, '(a)') 'achx Q [\A\u-1\d]'
    write(itmp, '(a)') 'achy'
-   write(itmp, '(a)') 'lcol n[1]-3 , red'
-   write(itmp, '(a)') 'lcol n[1]-2 , blue'
+   write(itmp, '(a)') 'lcol n[1]-4 , red'
+   write(itmp, '(a)') 'lcol n[1]-3 , blue'
    write(itmp, '(a)') 'lcol n[1]-1 , red'
    write(itmp, '(a)') 'lcol n[1]   , red'
-   write(itmp, '(a)') 'lwid n[1]-3, 0.9'
+   write(itmp, '(a)') 'lwid n[1]-4, 0.9'
    write(itmp, '(a)') 'fnam'
    write(itmp, '(a)') 'plot'
    write(itmp, '(a)') '#'
@@ -759,8 +838,13 @@ if(istep==1) then                   ! F(Q) initial step
 !
       write(output_io,'(a)') 'Choose approximate Qmax in lower frame'
       write(output_io,'(a)') 'EXP2PDF will set Qmax to nearest Q at which F(Q) = 0.0'
-      write(output_io, '(a)', advance='no') ' Qmax = '
-      read(*,*) exp_qmax_f
+      write(output_io,'(a, f8.3)') 'Current value  : ', exp_qmax_f
+      write(output_io, '(a)', advance='no') ' Type new value or Enter to accept current Qmax = '
+      string = ' '
+      read(*,'(a)', iostat=ios) string
+      if(.not.is_iostat_end(ios)) then
+         if(string /= ' ') read(string,*) exp_qmax_f
+      endif
 !
    else
       string = 'return'
@@ -778,27 +862,35 @@ elseif(istep==2) then
    write(itmp, '(a)') 'set prompt, off'
    write(itmp, '(a)') 'afra 1'
    write(itmp, '(a)') 'skal'
-   write(itmp, '(a)') 'mark 5.0'
+   write(itmp, '(a, f4.1, a, G20.2e3)') 'mark ', mstep, ', ',ytic
    write(itmp, '(a)') 'afra 2'
-   write(itmp, '(a)') 'kfra 2, n[1]-2 '
-   write(itmp, '(a)') 'skal xmax[n[1]-2]-4, xmax[n[1]-2]'
-   write(itmp, '(a)') 'kfra 2, n[1], n[1]-1, n[1]-2, n[1]-3'
-   write(itmp, '(a)') 'mark 0.5'
+   write(itmp, '(a)') 'kfra 2, n[1]-3 '
+   write(itmp, '(a)') 'skal xmax[n[1]-3]-4, xmax[n[1]-3]'
+   write(itmp, '(a)') 'kfra 2, n[1], n[1]-1, n[1]-2, n[1]-3, n[1]-4'
+   write(itmp, '(a, G20.2e3)') 'mark 0.5, ', ytic
+   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,1] = ', xx
+   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,2] = ', xx
+   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,3] = ', xx
+   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,1] =    ymin[n[1]-3]'
+   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,2] = ', 0.0
+   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,3] =    ymax[n[1]-3]' !y[n[1]-3,max(1,nint((exp_qfirst_o)-xmin[n[1]-3]]/exp_qstep))'
    write(itmp, '(a,G12.6e3)') 'x[n[1]-1,1] = ', exp_qmin
    write(itmp, '(a,G12.6e3)') 'x[n[1]-1,2] = ', exp_qmin
    write(itmp, '(a,G12.6e3)') 'x[n[1]-1,3] = ', exp_qmin
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,1] =    ymin[n[1]-2]'
+   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,1] =    ymin[n[1]-3]'
    write(itmp, '(a,G12.6e3)') 'y[n[1]-1,2] = ', 0.0
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,3] =    ymax[n[1]-2]'
+   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,3] =    ymax[n[1]-3]'
    write(itmp, '(a,G12.6e3)') 'x[n[1]  ,1] = ', exp_qmax_f
    write(itmp, '(a,G12.6e3)') 'x[n[1]  ,2] = ', exp_qmax_f
    write(itmp, '(a,G12.6e3)') 'x[n[1]  ,3] = ', exp_qmax_f
-   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,1] =    ymin[n[1]-2]'
+   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,1] =    ymin[n[1]-3]'
    write(itmp, '(a,G12.6e3)') 'y[n[1]  ,2] = ', 0.0
-   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,3] =    ymax[n[1]-2]'
+   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,3] =    ymax[n[1]-3]'
    write(itmp, '(a)') 'tit1 Final F(Q)'
    write(itmp, '(a)') 'tit2 vertical lines mark Q\dmin\u and Q\dmax\u'
    write(itmp, '(a)') 'plot'
+!  write(itmp, '(a)') 'save ps, fq_final.ps'
+   write(itmp, '(a)') 'n[1] = n[1]-3'    ! effectively delete the last three temproary data sets
    write(itmp, '(a)') 'exit'
    write(itmp, '(a)') 'set prompt, on'
    close(unit=itmp)
@@ -813,6 +905,8 @@ elseif(istep==2) then
 !
    write(string,'(a,a)')  'rm -f ', tempfile(1:len_trim(tempfile))
    call execute_command_line(string)
+!
+   ikk = 0
 endif
 !
 end subroutine exp2pdf_plot_fq
@@ -841,20 +935,26 @@ integer :: length
 tempfile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/exp2pdf_init.mac'
 open(unit=itmp, file=tempfile, status='unknown')
 write(itmp, '(a)') 'set prompt, off'
-write(itmp, '(a)') 'set prompt, on '
 write(itmp, '(a)') 'nfra 1'
 if(exp_kback>0) then                   ! With background
-   write(itmp, '(a)') 'kfra 1, n[1], n[1]-1'
-   write(itmp, '(a)') 'skal xmin[n[1]-1], xmax[n[1]-1], 0.0, ymax[n[1]-1]*1.025'
-   write(itmp, '(a)') 'lcol n[1], red '
-   write(itmp, '(a)') 'lcol n[1]-1, blue '
-   write(itmp, '(a)') 'ltyp n[1]  , 1'
-   write(itmp, '(a)') 'ltyp n[1]-1, 1'
+   write(itmp, '(a)') 'variable integer, exp_kload'
+   write(itmp, '(a)') 'variable integer, exp_kback'
+   write(itmp, '(a,i3)') 'exp_kload = ',exp_kload
+   write(itmp, '(a,i3)') 'exp_kback = ',exp_kback
+   write(itmp, '(a)') 'kfra 1,  exp_kload, exp_kback'
+   write(itmp, '(a)') 'skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025'
+   write(itmp, '(a)') 'lcol exp_kback, red '
+   write(itmp, '(a)') 'lcol exp_kload, blue '
+   write(itmp, '(a)') 'ltyp exp_kload, 1'
+   write(itmp, '(a)') 'ltyp exp_kback, 1'
 else
-   write(itmp, '(a)') 'kfra 1, n[1]'
-   write(itmp, '(a)') 'skal xmin[n[1]], xmax[n[1]], 0.0, ymax[n[1]]*1.025'
-   write(itmp, '(a)') 'lcol n[1], blue'
-   write(itmp, '(a)') 'ltyp n[1]  , 1'
+!   write(itmp, '(a)') 'kfra 1, n[1]'
+   write(itmp, '(a)') 'variable integer, exp_kload'
+   write(itmp, '(a,i3)') 'exp_kload = ',exp_kload
+   write(itmp, '(a,i3, a, i3)') 'kfra 1, ', exp_kload
+   write(itmp, '(a)') 'skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025'
+   write(itmp, '(a)') 'lcol exp_kload, blue '
+   write(itmp, '(a)') 'ltyp exp_kload, 1'
 endif
 write(itmp, '(a)') 'mark 5.0'
 write(itmp, '(a)') 'tit1 Initial intensity'
@@ -862,8 +962,8 @@ write(itmp, '(a)') 'tit2                  '
 write(itmp, '(a)') 'fnam on               '
 write(itmp, '(a)') 'achx Q [\A\u-1\d]'
 write(itmp, '(a)') 'achy Intensity'
-
 write(itmp, '(a)') 'plot'
+!write(itmp, '(a)') 'save ps, iq_initial.ps'
 write(itmp, '(a)') 'exit'
 write(itmp, '(a)') 'set prompt, on'
 close(unit=itmp)
@@ -880,6 +980,76 @@ write(string,'(a,a)')  'rm -f ', tempfile(1:len_trim(tempfile))
 call execute_command_line(string)
 !
 end subroutine exp2pdf_plot_init
+!
+!*******************************************************************************
+!
+subroutine exp2pdf_plot_qscale
+!-
+!  Interactive plot for Q-scale
+!+
+use exp2pdf_data_mod
+!
+use kuplot_mod
+!
+use envir_mod
+use precision_mod
+use prompt_mod
+use set_sub_generic_mod
+use do_wait_mod
+!
+implicit none
+!
+integer, parameter :: itmp = 77
+character(len=PREC_STRING) :: tempfile
+character(len=PREC_STRING) :: string
+integer :: length
+integer :: ios
+integer :: ikk
+real(kind=PREC_DP) :: ytic
+!
+ikk  = max(1,iz - 4)
+ytic   = (ymax(ikk)-ymin(ikk))*0.25
+!
+tempfile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/exp2pdf_qscale.mac'
+open(unit=itmp, file=tempfile, status='unknown')
+write(itmp, '(a)') 'set prompt, off'
+write(itmp, '(a)') 'afra 2'
+write(itmp, '(a)') 'kfra 2, n[1]-3, n[1]-2'
+write(itmp, '(a,G12.6e3,a, G12.6e3)') 'skal ', exp_qfirst_o-1.0D0, ',', exp_qfirst_o+1.0D0
+write(itmp, '(a)') 'lcol n[1]-3, blue'
+write(itmp, '(a)') 'lcol n[1]-2, green'
+write(itmp, '(a)') 'plot '
+write(itmp, '(a)') 'set prompt, on'
+write(itmp, '(a)') 'exit '
+close(unit=itmp)
+!
+write(string,'(a,a)')  'kuplot -macro ', tempfile(1:len_trim(tempfile))
+length = len_trim(string)
+call p_branch(string, length, .FALSE.)
+!
+!
+if(.not. exp_qfirst_l) then        ! User did NOT provide Qobs for Qscale 
+!
+   write(output_io,'(a)') ' '
+   write(output_io,'(a)') ' Choose approximate Q for Q-scale in lower frame'
+   write(output_io,'(a)') ' EXP2PDF will set Q to highest peak nearby'
+   write(output_io,'(a, f8.3)') ' Current value: ', exp_qfirst_o
+   write(output_io, '(a)', advance='no') ' Type new value or Enter to accept current Qscale = '
+   read(*,'(a)', iostat=ios) string
+   if(.not. is_iostat_end(ios)) then
+      if(string /= ' ') read(*,*) exp_qfirst_o
+   endif
+else
+   string = 'return'
+   length = 6
+   call do_input(string,length)
+endif
+!
+!
+write(string,'(a,a)')  'rm -f ', tempfile(1:len_trim(tempfile))
+call execute_command_line(string)
+!
+end subroutine exp2pdf_plot_qscale
 !
 !*******************************************************************************
 !
@@ -930,6 +1100,8 @@ exp_outfq_l      = .false.        ! Write FQ
 exp_outsq_l      = .false.        ! Write SQ
 exp_rmax         = 100.01D0       ! PDF Rmax
 exp_rstep        =   0.01D0       ! PDF Rstep
+exp_qfirst_o     = 0.00000        ! Q value at first maximum
+exp_qfirst_c     = 0.00000        ! Q value at first maximum
 exp_npdf         = 0              ! Number data points in PDF
 !
 end subroutine exp2pdf_reset

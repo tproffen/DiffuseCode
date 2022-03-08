@@ -147,6 +147,12 @@ loop_main: DO while (.not.lend)                 ! Main exp2pdf loop
 !
    ELSEIF (str_comp (befehl, 'run', 2, lbef, 3) ) then
       call exp2pdf_run(zeile, lp)
+      call exp2pdf_init
+!
+!  --- Correct camera length error 'qscale'
+!
+   elseif(str_comp (befehl, 'qscale', 2, lbef, 6)) then
+      call exp2pdf_qscale(zeile, lp)
 !
 !     ----Set qmax limits 'qmax'
 !

@@ -40,6 +40,9 @@ real(kind=PREC_DP)                                        :: exp_qmax_u = 1.0D9 
 real(kind=PREC_DP)                                        :: exp_qmax_f = 1.0D9 ! User supplied Qmax for Fourier
 logical                                                   :: exp_qmax_ul= .false. ! User supplied Qmax for adhoc correction
 logical                                                   :: exp_qmax_fl= .false. ! User supplied Qmax for Fourier
+logical                                                   :: exp_qfirst_l =  .false.  ! Qvalue at first maximum
+real(kind=PREC_DP)                                        :: exp_qfirst_o =  0.000D0  ! Qvalue at first maximum
+real(kind=PREC_DP)                                        :: exp_qfirst_c =  0.000D0  ! Qvalue at first maximum
 real(kind=PREC_DP)                                        :: exp_qstep =   0.001D0  ! Internal Q-step usually 0.001
 real(kind=PREC_DP)                                        :: exp_rmin  =   0.01D0   ! PDF Rmin
 !

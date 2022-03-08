@@ -376,4 +376,95 @@ end subroutine exp2pdf_poly
 !
 !*******************************************************************************
 !
+subroutine exp2pdf_qscale(line, length)
+!
+! Set the outputfile and the PDF range
+!
+USE exp2pdf_data_mod
+!
+USE errlist_mod
+use ber_params_mod
+USE get_params_mod
+use take_param_mod
+use wink_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: length
+!
+INTEGER, PARAMETER :: MAXW = 10
+!
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
+INTEGER           , DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+!
+INTEGER                              :: ianz
+!
+integer, parameter :: NOPTIONAL = 3
+integer, parameter :: O_QVAL    = 1
+integer, parameter :: O_DVAL    = 2
+integer, parameter :: O_QOBS    = 3
+character(LEN=   8), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 3 ! Number of values to calculate 
+!
+data oname  / 'qcrystal' , 'dcrystal', 'qobs' /
+data loname /  8         ,  8        ,  4  /
+opara  =  (/ '0.000', '0.000', '0.000' /) ! Always provide fresh default values
+lopara =  (/  5     ,  5     ,  5      /)
+owerte =  (/  0.000 ,  0.000 ,  0.00   /)
+!
+call get_params(line, ianz, cpara, lpara, MAXW, length)
+if(ier_num/=0) return
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+if(ier_num/=0) return
+!
+if(lpresent(O_QOBS)) then
+   exp_qfirst_o   = owerte(O_QOBS)
+   exp_qfirst_l   = .true.
+   if(lpresent(O_QVAL) ) then
+      exp_qfirst_c   = owerte(O_QVAL)
+   elseif(lpresent(O_DVAL)) then
+      exp_qfirst_c   = 2.0D0*PI/owerte(O_QVAL)
+   endif
+else
+   exp_qfirst_l   = .false.
+   if(lpresent(O_QVAL) ) then
+      exp_qfirst_o   = owerte(O_QVAL)
+      exp_qfirst_c   = owerte(O_QVAL)
+   elseif(lpresent(O_DVAL)) then
+      exp_qfirst_o   = 2.0D0*PI/owerte(O_QVAL)
+      exp_qfirst_c   = 2.0D0*PI/owerte(O_QVAL)
+   endif
+endif
+!
+end subroutine exp2pdf_qscale
+!
+!*******************************************************************************
+!
+subroutine exp2pdf_init
+!-
+!  Initializes flags to write I(Q), S(Q), F(Q) and q-scale correction
+!+
+!
+use exp2pdf_data_mod
+!
+implicit none
+!
+exp_outiq_l = .false.
+exp_outsq_l = .false.
+exp_outfq_l = .false.
+exp_qfirst_o = 0.0D0
+exp_qfirst_c = 0.0D0
+!
+end subroutine exp2pdf_init
+!
+!*******************************************************************************
+!
 end module exp2pdf_supp_mod

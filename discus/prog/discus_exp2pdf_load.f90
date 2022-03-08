@@ -235,7 +235,7 @@ ENDIF
          exp_sigma (ix,1,1) = ABS(dy(offxy(ndata - 1) + ix))
          exp_x(ix)          = x(offxy(ndata - 1) + ix)
       ENDDO
-      exp_kload = iz - 1
+      exp_kload = ndata 
       exp_y(1) = 1.0
 !     CALL def_set_variable('real', 'F_XMIN', exp_x(1),          IS_DIFFEV)
 !     CALL def_set_variable('real', 'F_XMAX', exp_x(exp_dim(1)), IS_DIFFEV)
@@ -264,7 +264,7 @@ ENDIF
             exp_back(ix,1,1) = y(offxy(ndata - 1) + ix)
             exp_xb( ix)      = x(offxy(ndata - 1) + ix)
          ENDDO
-         exp_kback = iz - 1
+         exp_kback = ndata
       elseif(itype==3) then
 !
          IF(exp_dim(1) /= nx(ndata)) THEN
