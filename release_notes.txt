@@ -4,6 +4,11 @@ General
   'stop'  Enabled execution of macros in stopped mode.
 
 DISCUS
+  PERIODITIZE New menu to transforma structure into a periodic 
+          array, possibly with inclusions of voids
+  EXP2PDF New menu to transform an experimental powder diffraction 
+          pattern into a powder PDF.
+
   DOMAIN  enabled "orient' and 'shape' to handle format specifiers
   PLOT    enabled a 'run kill:yes' line, just to kill all previous JMOLs
   POWDER  FIXED BUG  Corrected corrlin, corrquad action in powder menue
@@ -16,6 +21,8 @@ DISCUS
   MMC     FIXED BUG, Feedback algorithm was always on, even for 
           target "corr" with last parameter set to "ENER".
   MOLECULARIZE Improved the command by adding optional parameters.
+  READ    Improved input speed for larger structures
+  SURRFACE FIXED BUG, orientation of ellipsoids did not follow instructions
 
   Atomic Form factors
   Corrected values for the Elements:, International Tables Table 1.1.1.3
@@ -28,6 +35,14 @@ DISCUS
           Ru4+  xray            b3  was wrong in ITC 
           Bi5+  xray            b2  was wrong in ITC 
           Implemented Waasmaier & Kirfel Parameters
+KUPLOT
+  load    enabled the type parameter to be given as a formatted string
+          load "%c",'xy'
+  fit     Improved handling of stagnant parameters
+  color   Added option to set the line colors to a color map
+REFINE
+          Thorough improvements to handle parameters with zero derivative,
+          better default settings
 
 6.08.02  RELEASED 2021_18
 
