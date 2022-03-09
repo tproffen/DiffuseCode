@@ -156,6 +156,8 @@ if(allocated(exp_back)) then    ! User provided a background file
    endif
 !
    npkt = exp_dim_b(1)
+   deallocate(y2a) 
+   allocate(y2a(1:npkt))
    call spline(npkt, exp_xb(1:exp_dim_b(1)), exp_back(1:exp_dim_b(1), 1, 1), 1.d31, 1.d31, y2a)
 !
 !open(77,file='temp.equi', status='unknown')
