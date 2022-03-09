@@ -60,6 +60,7 @@ USE diffev_setup_mod
 USE diffev_mpi_mod
 USE run_mpi_mod
 !
+USE gen_mpi_mod
 USE charact_mod
 USE prompt_mod
 USE envir_mod
@@ -70,7 +71,7 @@ IMPLICIT NONE
 INTEGER, PARAMETER :: master = 0 ! Master ID for MPI
 EXTERNAL :: suite_sigint
 !
-run_mpi_myid      = 0
+gen_mpi_myid      = 0
 lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !
 IF( .NOT. lsetup_done ) THEN    ! ! If necessary do initial setup
@@ -88,7 +89,7 @@ IF( .NOT. lsetup_done ) THEN    ! ! If necessary do initial setup
    prompt    = pname
    hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:LEN(TRIM(pname)))//'.hlp'
    hlpfile_l = LEN(TRIM(hlpfile))
-   IF(.NOT.run_mpi_active) THEN
+   IF(.NOT.gen_mpi_active) THEN
       CALL suite_set_sub_cost ()
    ENDIF
    lsetup_done = .TRUE.
@@ -545,14 +546,18 @@ END SUBROUTINE discus_get_wave_number
 SUBROUTINE discus_get_wave_symbol(i,symbols, wavelengths)
 !
 USE element_data_mod
+use precision_mod
+!
 IMPLICIT NONE
 !
 INTEGER, PARAMETER :: MAX_WAVE = 40
 INTEGER           , INTENT(IN ) :: i
 CHARACTER  (LEN=4), INTENT(OUT) :: symbols
 REAL              , INTENT(OUT) :: wavelengths
+REAL(kind=PREC_DP)              :: wavelengths_DP
 !
-CALL get_sym_length(i,symbols, wavelengths)  ! Get names and values from element module
+CALL get_sym_length(i,symbols, wavelengths_DP)  ! Get names and values from element module
+wavelengths = wavelengths_DP
 !
 END SUBROUTINE discus_get_wave_symbol
 !
@@ -705,7 +710,7 @@ INTEGER, DIMENSION(1:3)      , INTENT(OUT) :: lot_dim
 INTEGER                      , INTENT(OUT) :: lot_per
 !
 CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-            diff_radiation, diff_power) 
+            diff_radiation, RAD_WAAS, diff_power) 
 corners    = TRANSPOSE(eck)
 increment  = inc
 radiation  = diff_radiation - 1   ! Python counts 0 to 2
@@ -835,7 +840,7 @@ INTEGER                      , INTENT(OUT) :: lp
 REAL (8)                     , INTENT(OUT) :: lp_fac
 REAL (8)                     , INTENT(OUT) :: lp_ang
 !
-IF(pow_four_type==POW_HIST) THEN
+IF(pow_four_type==POW_DEBYE) THEN
    calc_mode  = 0
 ELSE
    calc_mode = 1
@@ -846,7 +851,7 @@ ELSEIF(pow_axis==POW_AXIS_TTH) THEN
    axis       = 1
 ENDIF
 CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-            diff_radiation, diff_power) 
+            diff_radiation, RAD_WAAS, diff_power) 
 radiation  = diff_radiation - 1   ! Python counts 0 to 2
 element    = lambda
 wavelength = rlambda
@@ -876,10 +881,10 @@ profile_eta    = pow_eta
 profile_uvw(1) = pow_u
 profile_uvw(2) = pow_v
 profile_uvw(3) = pow_w
-profile_asy(1) = pow_p1
-profile_asy(2) = pow_p2
-profile_asy(3) = pow_p3
-profile_asy(4) = pow_p4
+profile_asy(1) = pow_asym(1,1)
+profile_asy(2) = pow_asym(2,1)
+profile_asy(3) = pow_asym(3,1)
+profile_asy(4) = pow_asym(4,1)
 profile_width  = pow_width
 profile_delta  = pow_delta
 IF(pow_pref) THEN
@@ -928,7 +933,7 @@ REAL (8)                     , INTENT(OUT) :: qbroad
 REAL (8)                     , INTENT(OUT) :: qdamp
 !
 CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-            diff_radiation, diff_power) 
+            diff_radiation, RAD_WAAS, diff_power) 
 radiation  = pdf_radiation - 1   ! Python counts 0 to 2
 IF(pdf_gauss) THEN
    use_adp = 1
