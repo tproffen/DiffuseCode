@@ -1,5 +1,6 @@
 include(UseF2Py)
 
+find_package(Python 3  REQUIRED)
 find_package(NumPy  REQUIRED)
 find_package(PGPLOT REQUIRED)
 
