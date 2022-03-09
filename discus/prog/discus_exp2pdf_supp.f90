@@ -397,7 +397,7 @@ INTEGER, PARAMETER :: MAXW = 10
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER           , DIMENSION(MAXW) :: lpara
-REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+!REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !
 INTEGER                              :: ianz
 !
@@ -460,6 +460,8 @@ implicit none
 exp_outiq_l = .false.
 exp_outsq_l = .false.
 exp_outfq_l = .false.
+!
+exp_qfirst_l =.false.
 exp_qfirst_o = 0.0D0
 exp_qfirst_c = 0.0D0
 !

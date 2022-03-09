@@ -93,86 +93,101 @@ subroutine exp2pdf_spline
 use exp2pdf_data_mod
 !
 use errlist_mod
-use spline_mod
 use precision_mod
 !
 implicit none
 !
-integer :: i          ! Dummy index
-integer :: npkt       ! Data points in experimental field
+integer :: d_nequi    ! Data points in data equidistant steps
+integer :: b_nequi    ! Data points in background equidistant steps
+integer :: id_low
+integer :: id_high
+integer :: ib_low
+integer :: ib_high
+!
 real(kind=PREC_DP) :: q1   ! Dummy Q values
 real(kind=PREC_DP) :: q2
-real(kind=PREC_DP), dimension(:), allocatable :: y2a   ! Splined intensities
+real(kind=PREC_DP) :: q3
+real(kind=PREC_DP), dimension(:), allocatable :: d_x   ! Data Q-values
+real(kind=PREC_DP), dimension(:), allocatable :: d_y   ! Data Intensities
+real(kind=PREC_DP), dimension(:), allocatable :: b_x   ! Back Q-values
+real(kind=PREC_DP), dimension(:), allocatable :: b_y   ! Back Intensities
 !
-! 1st task, spline data onto an equidistant grid in Q
-!
-q1 = (int(exp_x(1)  /exp_qstep) + 1) * exp_qstep
-q2 = (int(exp_qmin_u/exp_qstep) + 1) * exp_qstep
-!
-exp_qmin = max(q1, q2)
-q1 = (int(exp_x(exp_dim(1))/exp_qstep) - 1) * exp_qstep
-q2 = (int(exp_qmax_u       /exp_qstep) - 1) * exp_qstep
-!
-exp_qmax = min(q1, q2)
-exp_qmax_f = min(exp_qmax_f, exp_qmax)
+if(exp_inter) call exp2pdf_plot_init
 !
 if(allocated(exp_temp_x)) deallocate(exp_temp_x)
 if(allocated(exp_temp_y)) deallocate(exp_temp_y)
-if(allocated(exp_temp_b)) deallocate(exp_temp_b)
-if(allocated(y2a   )) deallocate(y2a   )
 !
-npkt = exp_dim(1)
-allocate(y2a(1:npkt))
-
-exp_nstep = nint( (exp_qmax-exp_qmin)/exp_qstep) + 1
-allocate(exp_temp_x(exp_nstep))
-allocate(exp_temp_y(exp_nstep))
-allocate(exp_temp_b(exp_nstep))
-exp_temp_b = 0.0D0
+! 1st task, spline data onto an equidistant grid in Q
 !
-! Spline Data
+call exp2pdf_spline_dummy(exp_x(1), exp_x(exp_dim(1)), exp_qstep, exp_dim(1), &
+                          exp_x, exp_data(:,1,1) , d_nequi, d_x, d_y)
 !
-call spline(npkt, exp_x(1:exp_dim(1)), exp_data(1:exp_dim(1), 1, 1), 1.d31, 1.d31, y2a)
-!
-!open(77,file='temp.equi', status='unknown')
-do i=1, exp_nstep
-   q1 = exp_qmin + exp_qstep*real(i-1, kind=PREC_DP)
-   call splint (npkt, exp_x(1:exp_dim(1)), exp_data(1:exp_dim(1), 1, 1), y2a, q1, q2, ier_num)
-   exp_temp_x(i) = q1
-   exp_temp_y(i) = q2
-!write(77, '(2(2x,g20.8e3))')  exp_temp_x(i), exp_temp_y(i)
-enddo
-!close (77)
-!
-! Spline Background
+! If user provided background use, otherwise take data as is
+! The qmin/qmax limits are restricted to the smallest interval
+! between maximum Q of qmin in (data, background , user qmin)  
+! and     minimum Q of qmax in (data, background , user qmax)  
 !
 if(allocated(exp_back)) then    ! User provided a background file
 !
-   if(exp_xb(1) > exp_qmin+0.49*exp_qstep .or.   &
-      exp_xb(exp_dim_b(1)) < exp_qmax-0.49*exp_qstep ) then
-      ier_num = -6
-      ier_typ = ER_COMM
-      return
-   endif
+! Spline Background
 !
-   npkt = exp_dim_b(1)
-   deallocate(y2a) 
-   allocate(y2a(1:npkt))
-   call spline(npkt, exp_xb(1:exp_dim_b(1)), exp_back(1:exp_dim_b(1), 1, 1), 1.d31, 1.d31, y2a)
+   call exp2pdf_spline_dummy(exp_xb(1), exp_xb(exp_dim(1)), exp_qstep, exp_dim_b(1), &
+                             exp_xb, exp_back(:,1,1) , b_nequi, b_x, b_y)
 !
-!open(77,file='temp.equi', status='unknown')
-   do i=1, exp_nstep
-      q1 = exp_qmin + exp_qstep*real(i-1, kind=PREC_DP)
-      call splint (npkt, exp_xb(1:exp_dim_b(1)), exp_back(1:exp_dim_b(1), 1, 1), y2a, q1, q2, ier_num)
-!  exp_temp_xb(i) = q1
-      exp_temp_b(i) = q2
-!write(77, '(2(2x,g20.8e3))'), exp_temp_x(i), exp_temp_y(i)
-   enddo
-!close (77)
+   q1 = d_x(1)                                          ! Lowest Q in equidistant data
+   q2 = (int(exp_qmin_u/exp_qstep) + 1) * exp_qstep     ! User Qmin
+   q3 = b_x(1)                                          ! Lowest Q in equidistant background
+   exp_qmin = max(q1, q2, q3)                           ! Effective Qmin
+   id_low = nint( (exp_qmin-d_x(1))/exp_qstep) + 1      ! First index in equidistant data
+   ib_low = nint( (exp_qmin-b_x(1))/exp_qstep) + 1      ! First index in equidistant background
+!
+   q1 = d_x(d_nequi)                                    ! Highest Q in equidistant data
+   q2 = (int(exp_qmax_u/exp_qstep) - 1) * exp_qstep     ! User Qmax
+   q3 = b_x(d_nequi)                                    ! Highest Q in equidistant background
+   exp_qmax = min(q1, q2, q3)                           ! Effective Qmax
+   id_high= nint( (exp_qmax-d_x(1))/exp_qstep) + 1      ! First index in equidistant data
+   ib_high= nint( (exp_qmax-b_x(1))/exp_qstep) + 1      ! First index in equidistant background
+!
+   exp_nstep = id_high -id_low + 1
+!
+   allocate(exp_temp_x(1:exp_nstep))
+   allocate(exp_temp_y(1:exp_nstep))
+   exp_temp_x = d_x(id_low:id_high)
+   exp_temp_y = d_y(id_low:id_high) - b_y(ib_low:ib_high)
+   deallocate(d_x)
+   deallocate(d_y)
+   deallocate(b_x)
+   deallocate(b_y)
+!
+   exp_qmax_f = min(exp_qmax_f, exp_qmax)
+!
+else
+!
+! No background 
+!
+   q1 = d_x(1)                                          ! Lowest Q in equidistant data
+   q2 = (int(exp_qmin_u/exp_qstep) + 1) * exp_qstep     ! User Qmin
+   exp_qmin = max(q1, q2)                               ! Effective Qmin
+   id_low = nint( (exp_qmin-d_x(1))/exp_qstep) + 1      ! First index in equidistant data
+!
+   q1 = d_x(d_nequi)                                    ! Highest Q in equidistant data
+   q2 = (int(exp_qmax_u/exp_qstep) - 1) * exp_qstep     ! User Qmax
+   exp_qmax = min(q1, q2)                               ! Effective Qmax
+   id_high= nint( (exp_qmax-d_x(1))/exp_qstep) + 1      ! First index in equidistant data
+!
+   exp_nstep = id_high -id_low + 1
+write(*,*) ' NO   BACKGROUND ', id_low, id_high, id_high -id_low + 1
+!
+   allocate(exp_temp_x(1:exp_nstep))
+   allocate(exp_temp_y(1:exp_nstep))
+   exp_temp_x = d_x(id_low:id_high)
+   exp_temp_y = d_y(id_low:id_high)
+   deallocate(d_x)
+   deallocate(d_y)
+!
+   exp_qmax_f = min(exp_qmax_f, exp_qmax)
+!
 endif
-if(exp_inter) call exp2pdf_plot_init                  ! show intermediate plot
-!
-exp_temp_y = exp_temp_y - exp_bscale*exp_temp_b       ! Subtract background
 !
 ! Replace input data by splined data
 !
@@ -183,12 +198,58 @@ allocate(exp_x     (exp_nstep))
 exp_x   (:    ) = exp_temp_x
 exp_data(:,1,1) = exp_temp_y
 !
-deallocate(y2a)
 !
 end subroutine exp2pdf_spline
 !
 !*******************************************************************************
 !
+subroutine exp2pdf_spline_dummy(x_min, x_max, x_step, npkt, x, y, nequi, xequi, yequi)
+!-
+!   Spline the data onto an equidistant grid
+!+
+use spline_mod
+use precision_mod
+!
+implicit none
+!
+real(kind=PREC_DP)                           , intent(in) :: x_min
+real(kind=PREC_DP)                           , intent(in) :: x_max
+real(kind=PREC_DP)                           , intent(in) :: x_step
+integer                                      , intent(in) :: npkt   ! Original number
+real(kind=PREC_DP), dimension(npkt)          , intent(in) :: x      ! Original x
+real(kind=PREC_DP), dimension(npkt)          , intent(in) :: y      ! Original y
+integer                                      , intent(out) :: nequi  ! Equidistant number
+real(kind=PREC_DP), dimension(:), allocatable, intent(out) :: xequi  ! Equidistant x
+real(kind=PREC_DP), dimension(:), allocatable, intent(out) :: yequi  ! Equidistant y
+!
+integer :: i
+integer :: ier_num
+real(kind=PREC_DP), dimension(:), allocatable :: y2a   ! Splined intensities
+real(kind=PREC_DP) :: q1
+real(kind=PREC_DP) :: q2
+real(kind=PREC_DP) :: q
+!
+q1    = (nint(x_min/x_step) + 1) * x_step
+q2    = (nint(x_max/x_step) - 1) * x_step
+nequi = nint( (q2-q1)/x_step) + 1
+allocate(xequi(nequi))      !Temporary data x
+allocate(yequi(nequi))      !Temporary data y
+allocate(y2a(1:npkt))
+call spline(npkt, x, y, 1.d31, 1.d31, y2a)
+!
+do i=1, nequi
+   q = q1 + x_step*real(i-1, kind=PREC_DP)
+   call splint (npkt, x, y, y2a, q, q2, ier_num)
+   xequi(i) = q
+   yequi(i) = q2
+!write(77, '(2(2x,g20.8e3))')  exp_temp_x(i), exp_temp_y(i)
+enddo
+!
+deallocate(y2a)
+!
+end subroutine exp2pdf_spline_dummy
+!
+!*******************************************************************************
 !
 subroutine exp2pdf_init_aver
 !
@@ -467,7 +528,7 @@ use set_sub_generic_mod
 !
 implicit none
 !
-integer, parameter :: MAXMAX =  10
+integer, parameter :: MAXMAX =  20
 !
 character(len=PREC_STRING) :: string
 integer :: i          ! Dummy index
@@ -579,18 +640,22 @@ if(exp_qfirst_o > 0.0) then    ! Only if user specified a Qfirst
    ikk = ik - 1                  ! Search in smoothed data
    call do_fmax_xy(ikk, wmax, ixm, maxmax, ima)
    call no_error             ! Usually more than the MAXMAX=2 extrema are found ignore this error
-   iqfirst = nint((exp_qfirst_c-exp_x(1))/exp_qstep) + 1
+   if(exp_qfirst_o< 0.01) then
+      iqfirst = nint((exp_qfirst_c-exp_temp_x(1))/exp_qstep) + 1
+   else
+      iqfirst = nint((exp_qfirst_o-exp_temp_x(1))/exp_qstep) + 1
+   endif
    ii      = exp_nstep + 1
    loop_first:do i=1, ima
       if(abs(ixm(i)-iqfirst) <= ii) then
-         j       = ixm(1)
+         j       = ixm(i)
          ii = abs(ixm(i)-iqfirst)
       endif
    enddo loop_first
    iqfirst = j
    if(iqfirst> 0) then    ! A maximum was found, correct Q-scale
       scalex = exp_qfirst_c/exp_temp_x(iqfirst)
-      exp_qfirst_o  = exp_x(iqfirst)
+      exp_qfirst_o  = exp_temp_x(iqfirst)
       x(offxy(ik-1)+1:offxy(ik-1)+lenc(ik  )) = x(offxy(ik-1)+1:offxy(ik-1)+lenc(ik  ))*scalex
       x(offxy(ik-2)+1:offxy(ik-2)+lenc(ik-1)) = x(offxy(ik-2)+1:offxy(ik-2)+lenc(ik-1))*scalex
       exp_qfirst_o  = exp_qfirst_o * scalex
@@ -698,9 +763,9 @@ if(allocated(exp_xb    )) deallocate ( exp_xb     ) ! x-values of background set
 if(allocated(exp_faver2)) deallocate ( exp_faver2 ) ! Calculated <f>**2
 if(allocated(exp_temp_x)) deallocate ( exp_temp_x ) ! the actual data set
 if(allocated(exp_temp_y)) deallocate ( exp_temp_y ) ! the actual data set
-if(allocated(exp_temp_b)) deallocate ( exp_temp_b ) !
-if(allocated(exp_temp_b)) deallocate ( exp_pdf_x  ) !
-if(allocated(exp_temp_b)) deallocate ( exp_pdf_y  ) !
+!if(allocated(exp_temp_b)) deallocate ( exp_temp_b ) !
+if(allocated(exp_pdf_x )) deallocate ( exp_pdf_x  ) !
+if(allocated(exp_pdf_y )) deallocate ( exp_pdf_y  ) !
 !
 end subroutine exp2pdf_deallocate
 !
@@ -1039,7 +1104,7 @@ if(.not. exp_qfirst_l) then        ! User did NOT provide Qobs for Qscale
    write(output_io, '(a)', advance='no') ' Type new value or Enter to accept current Qscale = '
    read(*,'(a)', iostat=ios) string
    if(.not. is_iostat_end(ios)) then
-      if(string /= ' ') read(*,*) exp_qfirst_o
+      if(string /= ' ') read(string,*) exp_qfirst_o
    endif
 else
    string = 'return'
