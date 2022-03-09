@@ -31,7 +31,7 @@ REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_xb     ! x-valu
 REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_faver2 ! Calculated <f>**2
 REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_temp_x ! the actual data set
 REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_temp_y ! the actual data set
-REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_temp_b ! the actual background
+!REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_temp_b ! the actual background
 real(kind=PREC_DP)                                        :: exp_bscale = 1.0D0 ! Background scale
 real(kind=PREC_DP)                                        :: exp_qmin   ! Internal      Qmin
 real(kind=PREC_DP)                                        :: exp_qmax   ! Internal      Qmax
