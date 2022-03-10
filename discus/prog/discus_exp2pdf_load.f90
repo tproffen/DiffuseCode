@@ -257,11 +257,14 @@ ENDIF
          exp_dim_b(2) = 1
          exp_dim_b(3) = 1
          IF(ALLOCATED(exp_back))   DEALLOCATE(exp_back)
+         IF(ALLOCATED(exp_sigmab)) DEALLOCATE(exp_sigmab)
          IF(ALLOCATED(exp_xb  ))   DEALLOCATE(exp_xb  )
          ALLOCATE(exp_back  (exp_dim_b(1),exp_dim_b(2), exp_dim_b(3)))
+         ALLOCATE(exp_sigmab(exp_dim_b(1),exp_dim_b(2), exp_dim_b(3)))
          ALLOCATE(exp_xb    (exp_dim_b(1)))
          DO ix=1,exp_dim_b(1)
             exp_back(ix,1,1) = y(offxy(ndata - 1) + ix)
+            exp_sigmab(ix,1,1) = ABS(dy(offxy(ndata - 1) + ix))
             exp_xb( ix)      = x(offxy(ndata - 1) + ix)
          ENDDO
          exp_kback = ndata

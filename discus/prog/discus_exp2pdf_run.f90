@@ -111,16 +111,23 @@ real(kind=PREC_DP), dimension(:), allocatable :: d_x   ! Data Q-values
 real(kind=PREC_DP), dimension(:), allocatable :: d_y   ! Data Intensities
 real(kind=PREC_DP), dimension(:), allocatable :: b_x   ! Back Q-values
 real(kind=PREC_DP), dimension(:), allocatable :: b_y   ! Back Intensities
+real(kind=PREC_DP), dimension(:), allocatable :: s_x   ! Sigma Data Q-values
+real(kind=PREC_DP), dimension(:), allocatable :: s_y   ! Sigma Data Intensities
+real(kind=PREC_DP), dimension(:), allocatable :: p_x   ! Sigma Back Q-values
+real(kind=PREC_DP), dimension(:), allocatable :: p_y   ! Sigma Back Intensities
 !
 if(exp_inter) call exp2pdf_plot_init
 !
-if(allocated(exp_temp_x)) deallocate(exp_temp_x)
-if(allocated(exp_temp_y)) deallocate(exp_temp_y)
+if(allocated(exp_temp_x))  deallocate(exp_temp_x)
+if(allocated(exp_temp_y))  deallocate(exp_temp_y)
+if(allocated(exp_temp_dy)) deallocate(exp_temp_dy)
 !
 ! 1st task, spline data onto an equidistant grid in Q
 !
 call exp2pdf_spline_dummy(exp_x(1), exp_x(exp_dim(1)), exp_qstep, exp_dim(1), &
                           exp_x, exp_data(:,1,1) , d_nequi, d_x, d_y)
+call exp2pdf_spline_dummy(exp_x(1), exp_x(exp_dim(1)), exp_qstep, exp_dim(1), &
+                          exp_x, exp_sigma(:,1,1) , d_nequi, s_x, s_y)
 !
 ! If user provided background use, otherwise take data as is
 ! The qmin/qmax limits are restricted to the smallest interval
@@ -133,6 +140,8 @@ if(allocated(exp_back)) then    ! User provided a background file
 !
    call exp2pdf_spline_dummy(exp_xb(1), exp_xb(exp_dim(1)), exp_qstep, exp_dim_b(1), &
                              exp_xb, exp_back(:,1,1) , b_nequi, b_x, b_y)
+   call exp2pdf_spline_dummy(exp_xb(1), exp_xb(exp_dim(1)), exp_qstep, exp_dim_b(1), &
+                             exp_xb, exp_sigmab(:,1,1) , b_nequi, p_x, p_y)
 !
    q1 = d_x(1)                                          ! Lowest Q in equidistant data
    q2 = (int(exp_qmin_u/exp_qstep) + 1) * exp_qstep     ! User Qmin
@@ -150,14 +159,20 @@ if(allocated(exp_back)) then    ! User provided a background file
 !
    exp_nstep = id_high -id_low + 1
 !
-   allocate(exp_temp_x(1:exp_nstep))
-   allocate(exp_temp_y(1:exp_nstep))
+   allocate(exp_temp_x( 1:exp_nstep))
+   allocate(exp_temp_y( 1:exp_nstep))
+   allocate(exp_temp_dy(1:exp_nstep))
    exp_temp_x = d_x(id_low:id_high)
-   exp_temp_y = d_y(id_low:id_high) - b_y(ib_low:ib_high)
+   exp_temp_y = d_y(id_low:id_high) - b_y(ib_low:ib_high) * exp_bscale
+   exp_temp_dy= s_y(id_low:id_high) + p_y(ib_low:ib_high) * exp_bscale
    deallocate(d_x)
    deallocate(d_y)
    deallocate(b_x)
    deallocate(b_y)
+   deallocate(s_x)
+   deallocate(s_y)
+   deallocate(p_x)
+   deallocate(p_y)
 !
    exp_qmax_f = min(exp_qmax_f, exp_qmax)
 !
@@ -176,12 +191,13 @@ else
    id_high= nint( (exp_qmax-d_x(1))/exp_qstep) + 1      ! First index in equidistant data
 !
    exp_nstep = id_high -id_low + 1
-write(*,*) ' NO   BACKGROUND ', id_low, id_high, id_high -id_low + 1
 !
-   allocate(exp_temp_x(1:exp_nstep))
-   allocate(exp_temp_y(1:exp_nstep))
+   allocate(exp_temp_x( 1:exp_nstep))
+   allocate(exp_temp_y( 1:exp_nstep))
+   allocate(exp_temp_dy(1:exp_nstep))
    exp_temp_x = d_x(id_low:id_high)
    exp_temp_y = d_y(id_low:id_high)
+   exp_temp_dy= s_y(id_low:id_high)
    deallocate(d_x)
    deallocate(d_y)
 !
@@ -193,10 +209,13 @@ endif
 !
 deallocate(exp_data)
 deallocate(exp_x   )
+deallocate(exp_sigma)
 allocate(exp_data  (exp_nstep, 1, 1))
+allocate(exp_sigma (exp_nstep, 1, 1))
 allocate(exp_x     (exp_nstep))
-exp_x   (:    ) = exp_temp_x
-exp_data(:,1,1) = exp_temp_y
+exp_x   (:    )  = exp_temp_x
+exp_data(:,1,1)  = exp_temp_y
+exp_sigma(:,1,1) = exp_temp_dy
 !
 !
 end subroutine exp2pdf_spline
@@ -439,11 +458,14 @@ character(len=PREC_STRING) :: tempfile
 integer :: length     ! Dummy index
 integer :: ik         ! Data set number in KUPLOT
 !
-exp_temp_y = exp_temp_y/exp_faver2            ! Divide by <f>^2
-exp_temp_y = exp_temp_y*exp_temp_x            ! Multiply by Q 
+exp_temp_y  = exp_temp_y /exp_faver2            ! Divide by <f>^2
+exp_temp_dy = exp_temp_dy/exp_faver2            ! Divide by <f>^2
+exp_temp_y  = exp_temp_y *exp_temp_x            ! Multiply by Q 
+exp_temp_dy = exp_temp_dy*exp_temp_x            ! Multiply by Q 
 !
 ik = iz - 1
-y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik)) = exp_temp_y   ! Replace <f>^2 in KUPLOT by I/<f>^2
+y( offxy(ik-1)+1:offxy(ik-1)+lenc(ik)) = exp_temp_y   ! Replace <f>^2 in KUPLOT by I/<f>^2
+dy(offxy(ik-1)+1:offxy(ik-1)+lenc(ik)) = exp_temp_dy  ! Replace <f>^2 in KUPLOT by I/<f>^2
 !
 ! Fit a polynomial through temporary F(Q)
 !
@@ -546,7 +568,7 @@ integer   :: npkt_fft    ! number of points in powder pattern for Fast Fourier
 logical            :: lsuccess
 real(kind=PREC_DP) :: qmax   ! User supplied Qmax
 real(kind=PREC_DP) :: qmin   ! qmin into FFT
-real(kind=PREC_DP) :: scalex ! Scale factr for Q-axis
+real(kind=PREC_DP) :: scalex ! Scale factor for Q-axis
 real(kind=PREC_DP) :: scalef ! Magic scale factor to approximate absolute scale
 real(kind=PREC_DP), dimension(:), allocatable :: x_wrt
 real(kind=PREC_DP), dimension(:), allocatable :: y_wrt
