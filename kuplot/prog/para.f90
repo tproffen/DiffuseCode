@@ -1028,8 +1028,8 @@ INTEGER,          INTENT(INOUT) :: lp       ! length
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
 INTEGER                   , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
-REAL    :: zzmin, zzmax, zhub     ! MIN/MAX/Delta values for date/contour lines
-REAL    :: zlow    ! Minimum value for contour lines
+REAL(kind=PREC_SP)    :: zzmin, zzmax, zhub     ! MIN/MAX/Delta values for date/contour lines
+REAL(kind=PREC_SP)    :: zlow    ! Minimum value for contour lines
 INTEGER :: ianz, ihl, i 
 !LOGICAL :: k_in_f  ! Current data set is in frame
 LOGICAL :: proz    ! User specified a "%" als last parameter
@@ -1078,8 +1078,8 @@ ELSE
                zzmin =  1.e19 
                DO i = 1, iz - 1 
                   IF(k_in_f(i) ) THEN 
-                     zzmax = max (zzmax, zmax (i) ) 
-                     zzmin = min (zzmin, zmin (i) ) 
+                     zzmax = max (zzmax, real(zmax (i)) ) 
+                     zzmin = min (zzmin, real(zmin (i)) ) 
                   ENDIF 
                ENDDO 
 !                                                                       

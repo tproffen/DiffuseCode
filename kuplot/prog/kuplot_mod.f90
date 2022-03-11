@@ -170,7 +170,7 @@ REAL(kind=PREC_SP), dimension(MAXWIN, 0:20+MAXCOL,3) ::  colour !(maxwin,0:20,3)
 !
 !------ 3D data set information
 !
-      REAL zmax(maxkurvtot),zmin(maxkurvtot) 
+REAL(kind=PREC_DP) ::  zmax(maxkurvtot),zmin(maxkurvtot) 
       REAL z_min(maxwin,maxframe,maxhl)
       REAL z_inc(maxwin,maxframe,maxhl)
       REAL pgmlow,pgmhigh
@@ -244,9 +244,9 @@ REAL(kind=PREC_DP) ::            wval
 !
 !------ Data
 !
-      REAL x(maxarray),dx(maxarray)
-      REAL y(maxarray),dy(maxarray)
-      REAL z(maxarray)
+REAL(kind=PREC_DP), dimension(MAXARRAY) ::  x(maxarray),dx(maxarray)
+REAL(kind=PREC_DP), dimension(MAXARRAY) ::  y(maxarray),dy(maxarray)
+REAL(kind=PREC_DP), dimension(MAXARRAY) ::  z !(maxarray)
 INTEGER, dimension(0:MAXKURVTOT) :: offxy!(0:maxkurvtot)
 INTEGER, dimension(0:MAXKURVTOT) :: offz !(0:maxkurvtot)
 !

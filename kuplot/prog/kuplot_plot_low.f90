@@ -312,24 +312,27 @@ CLOSE (21)
 END SUBROUTINE draw_text_frame                
 !
 !*****7*****************************************************************
-      SUBROUTINE draw_rahmen 
+!
+SUBROUTINE draw_rahmen 
 !+                                                                      
 !     This routine draws the labeled frame around the plot.             
 !-                                                                      
-      USE koordinate_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE koordinate_mod
+USE kuplot_config 
+USE kuplot_mod 
+!
+use precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      CHARACTER(2) cal, car, cax 
-      CHARACTER(1) clx, cly 
-      REAL ax1, ay1, off, off0, adis 
-      REAL rj, xt, yt, ltx, lty 
-      REAL xpl (2), ypl (2) 
-      REAL xh (5), yh (5) 
-      INTEGER  :: ninterv
-      INTEGER  :: i
+CHARACTER(len=2)   :: cal, car, cax 
+CHARACTER(len=1)   :: clx, cly 
+REAL(kind=PREC_SP) :: ax1, ay1, off, off0, adis 
+REAL(kind=PREC_SP) :: rj, xt, yt, ltx, lty 
+REAL(kind=PREC_SP) :: xpl (2), ypl (2) 
+REAL(kind=PREC_SP) :: xh (5), yh (5) 
+INTEGER  :: ninterv
+INTEGER  :: i
 !                                                                       
       ax1 = pex (iwin, iframe, 2) 
       ay1 = pey (iwin, iframe, 2) 
@@ -585,46 +588,53 @@ END SUBROUTINE draw_text_frame
       yt = yt + 1.1 * yh (1) 
       CALL PGPTXT (xt, yt, 0.0, rj, titel (iwin, iframe, 1) ) 
 !                                                                       
-      END SUBROUTINE draw_rahmen                    
+END SUBROUTINE draw_rahmen                    
+!
 !*****7*****************************************************************
-      SUBROUTINE draw_werte 
+!
+SUBROUTINE draw_werte 
 !+                                                                      
 !     This routine plots the datasets ...                               
 !-                                                                      
-      USE koordinate_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE koordinate_mod
+USE kuplot_config 
+USE kuplot_mod 
 use kuplot_extrema_mod
 use kuplot_low_mod
 USE lib_length
 !
 use precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxmax 
-      PARAMETER (maxmax = 50) 
+INTEGER, PARAMETER :: maxmax = 50
 !                                                                       
-      CHARACTER(80) text 
-      REAL xpl (maxarray), ypl (maxarray) 
-      REAL(kind=PREC_DP), dimension(MAXMAX) :: wmax !(maxmax) 
-      REAL eex (2), eey (2) 
-      REAL xleg, yleg, xfehl (2), yfehl (2) 
-      REAL rj, xh, yh, xp, yp, xt, yt, sx, sy, xma, yma, delx 
-      INTEGER ixm (maxmax), iym (maxmax) 
-      INTEGER ikurv, ipkt, npkt 
-      INTEGER il, ima, ikr, iityp, iicol 
+CHARACTER(len=80) :: text 
+REAL(kind=PREC_SP), dimension(:), allocatable :: xpl ! (maxarray)
+REAL(kind=PREC_SP), dimension(:), allocatable :: ypl ! (maxarray)
+REAL(kind=PREC_DP), dimension(MAXMAX) :: wmax !(maxmax) 
+REAL(kind=PREC_SP) :: eex (2), eey (2) 
+REAL(kind=PREC_SP) :: xleg, yleg, xfehl (2), yfehl (2) 
+REAL(kind=PREC_SP) :: rj, xh, yh, xp, yp, xt, yt, sx, sy, xma, yma, delx 
+INTEGER :: ixm (maxmax), iym (maxmax) 
+INTEGER :: ikurv, ipkt, npkt 
+INTEGER :: il, ima, ikr, iityp, iicol 
 !      LOGICAL k_in_f 
-      INTEGER :: jkurv
-      REAL    :: max_value, min_value, range, factor, sma
+INTEGER :: jkurv
+integer :: MAXARRAY_XPL    ! Local size for plot array
+REAL(kind=PREC_SP)    :: max_value, min_value, range, factor, sma
 !                                                                       
 !      LOGICAL inrect 
 !                                                                       
 !------ Loop over all data sets                                         
 !                                                                       
-      ikr = 0 
-      DO ikurv = 1, iz - 1 
-      IF (.not.k_in_f (ikurv) ) goto 999 
+MAXARRAY_XPL = maxval(lenc(1:iz-1))
+allocate(xpl(1:MAXARRAY_XPL))
+allocate(ypl(1:MAXARRAY_XPL))
+!
+ikr = 0 
+loop_curves: DO ikurv = 1, iz - 1 
+   IF (.not.k_in_f (ikurv) ) goto 999 
 !                                                                       
 !-------- draw lines                                                    
 !                                                                       
@@ -679,8 +689,8 @@ use precision_mod
                   min_value = ABS(x (offxy (ikurv - 1) + 1))
                   range = 0.0
                   DO ipkt = 1, lenc(ikurv)
-                     max_value = MAX(max_value, ABS(x (offxy (ikurv - 1) + ipkt)))
-                     min_value = MIN(min_value, ABS(x (offxy (ikurv - 1) + ipkt)))
+                     max_value = MAX(max_value, ABS(real(x (offxy (ikurv - 1) + ipkt))))
+                     min_value = MIN(min_value, ABS(real(x (offxy (ikurv - 1) + ipkt))))
                   ENDDO
                   IF(max_value==min_value) THEN
                       range = 1.0
@@ -701,8 +711,8 @@ use precision_mod
                   min_value = ABS(y (offxy (ikurv - 1) + 1))
                   range = 0.0
                   DO ipkt = 1, lenc(ikurv)
-                     max_value = MAX(max_value, ABS(y (offxy (ikurv - 1) + ipkt)))
-                     min_value = MIN(min_value, ABS(y (offxy (ikurv - 1) + ipkt)))
+                     max_value = MAX(max_value, ABS(real(y (offxy (ikurv - 1) + ipkt))))
+                     min_value = MIN(min_value, ABS(real(y (offxy (ikurv - 1) + ipkt))))
                   ENDDO
                   IF(max_value==min_value) THEN
                       range = 1.0
@@ -724,8 +734,8 @@ use precision_mod
                   min_value = ABS(y (offxy (jkurv - 1) + 1))
                   range = 0.0
                   DO ipkt = 1, lenc(jkurv)
-                     max_value = MAX(max_value, ABS(y (offxy (jkurv - 1) + ipkt)))
-                     min_value = MIN(min_value, ABS(y (offxy (jkurv - 1) + ipkt)))
+                     max_value = MAX(max_value, ABS(real(y (offxy (jkurv - 1) + ipkt))))
+                     min_value = MIN(min_value, ABS(real(y (offxy (jkurv - 1) + ipkt))))
                   ENDDO
                   IF(max_value==min_value) THEN
                       range = 1.0
@@ -874,23 +884,23 @@ use precision_mod
       ENDIF 
 !                                                                       
   999 CONTINUE 
-      ENDDO 
+ENDDO  loop_curves
 !                                                                       
 !------ plot possible annotations                                       
 !                                                                       
-      eex (1) = pex (iwin, iframe, 1) 
-      eex (2) = pex (iwin, iframe, 2) 
-      eey (1) = pey (iwin, iframe, 1) 
-      eey (2) = pey (iwin, iframe, 2) 
+eex (1) = pex (iwin, iframe, 1) 
+eex (2) = pex (iwin, iframe, 2) 
+eey (1) = pey (iwin, iframe, 1) 
+eey (2) = pey (iwin, iframe, 2) 
 !                                                                       
-      CALL PGSCI (foncol (iwin, iframe, 6) ) 
-      CALL PGSLW (nint (linewid (iwin, iframe, 0) / 0.13) ) 
-      CALL PGSCF (fon_id (iwin, iframe, 6) ) 
-      CALL PGSCH (fonscal (iwin, iframe) * fonsize (iwin, iframe, 6)    &
-      / 120.0)                                                          
-      CALL PGQCS (4, xh, yh) 
-      DO ipkt = 1, maxan 
-      IF (antext (iwin, iframe, ipkt) (1:3) .ne.'OFF') then 
+CALL PGSCI (foncol (iwin, iframe, 6) ) 
+CALL PGSLW (nint (linewid (iwin, iframe, 0) / 0.13) ) 
+CALL PGSCF (fon_id (iwin, iframe, 6) ) 
+CALL PGSCH (fonscal (iwin, iframe) * fonsize (iwin, iframe, 6) / 120.0)
+CALL PGQCS (4, xh, yh) 
+!
+DO ipkt = 1, maxan 
+   IF (antext (iwin, iframe, ipkt) (1:3) .ne.'OFF') then 
          il = len_str (antext (iwin, iframe, ipkt) ) 
          xt = antx (iwin, iframe, ipkt) 
          yt = anty (iwin, iframe, ipkt) 
@@ -911,10 +921,14 @@ use precision_mod
             CALL PGPTXT (xt, yt, anangle (iwin, iframe, ipkt), rj,      &
             antext (iwin, iframe, ipkt) (1:il) )                        
          ENDIF 
-      ENDIF 
-      ENDDO 
+   ENDIF 
+ENDDO 
+!
+deallocate(xpl)
+deallocate(ypl)
 !                                                                       
-      END SUBROUTINE draw_werte                     
+END SUBROUTINE draw_werte                     
+!
 !****7******************************************************************
 !
 SUBROUTINE draw_line (xpl, ypl, npkt, ikurv) 
@@ -927,6 +941,7 @@ SUBROUTINE draw_line (xpl, ypl, npkt, ikurv)
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+use precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -935,8 +950,8 @@ INTEGER, intent(in) :: ikurv
 REAL , intent(inout) :: xpl (npkt), ypl (npkt) 
 !                                                                       
 !     REAL xfill (maxarray), yfill (maxarray) 
-      REAL xfill (npkt), yfill (npkt) 
-      REAL x1, x2, y1, y2, yb 
+REAL(kind=PREC_SP) xfill (npkt), yfill (npkt) 
+REAL(kind=PREC_SP) x1, x2, y1, y2, yb 
 INTEGER :: ip, np, i1,i2
 !                                                                       
       CALL koor_shear (npkt, xpl, ypl) 
@@ -1041,22 +1056,24 @@ SUBROUTINE draw_poly (xpl, ypl, npkt, ikurv)
 !+                                                                      
 !     The drawing and filling itself                                    
 !-                                                                      
-      USE koordinate_mod
+USE koordinate_mod
 !
-      USE debug_mod 
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE debug_mod 
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
+!
+use precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 INTEGER, intent(in) :: npkt, ikurv 
 REAL   , intent(inout) :: xpl (npkt), ypl (npkt) 
 !                                                                       
-      REAL xfill (npkt), yfill (npkt) 
+REAL(kind=PREC_SP) :: xfill (npkt), yfill (npkt) 
 !     REAL xfill (maxarray), yfill (maxarray) 
-      REAL x1, x2, y1, y2, yb 
-      INTEGER ip, np 
+REAL(kind=PREC_SP) :: x1, x2, y1, y2, yb 
+INTEGER :: ip, np 
 !                                                                       
       CALL koor_shear (npkt, xpl, ypl) 
       CALL koor_log (npkt, xpl, ypl) 
@@ -1147,35 +1164,37 @@ REAL   , intent(inout) :: xpl (npkt), ypl (npkt)
          CALL PGLINE (npkt, xpl, ypl) 
       ENDIF 
 !                                                                       
-      END SUBROUTINE draw_poly                      
+END SUBROUTINE draw_poly                      
+!
 !****7******************************************************************
-      SUBROUTINE draw_points (xpl, ypl, nnpkt, ikurv) 
+!
+SUBROUTINE draw_points (xpl, ypl, nnpkt, ikurv) 
 !+                                                                      
 !     Draws line as simple line, step or spline                         
 !-                                                                      
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
 use kuplot_math_mod
 !
 use precision_mod
 !use spline_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 INTEGER, intent(in) :: nnpkt, ikurv 
 REAL   , intent(inout) :: xpl (nnpkt), ypl (nnpkt) 
 !                                                                       
 INTEGER :: npkt, is, ipkt 
 !      REAL xpl (nnpkt), ypl (nnpkt) 
-      REAL eex (2), eey (2) 
+REAL(kind=PREC_SP) :: eex (2), eey (2) 
 !     REAL y2a (maxarray), xhe (maxsp), yhe (maxsp) 
-      REAL y2a (nnpkt), xhe (maxsp), yhe (maxsp) 
-      REAL yyy, xst, xen, dxx 
+REAL(kind=PREC_SP) :: y2a (nnpkt), xhe (maxsp), yhe (maxsp) 
+REAL(kind=PREC_SP) :: yyy, xst, xen, dxx 
 real(kind=PREC_SP) :: xxx
-      INTEGER :: i
+INTEGER :: i
 integer :: iss
-      INTEGER :: ninterv
+INTEGER :: ninterv
 !                                                                       
       eex (1) = pex (iwin, iframe, 1) 
       eex (2) = pex (iwin, iframe, 2) 
@@ -1259,20 +1278,22 @@ integer :: iss
          ENDIF 
       ENDIF 
 !                                                                       
-      END SUBROUTINE draw_points                    
+END SUBROUTINE draw_points                    
+!
 !****7******************************************************************
 !
 SUBROUTINE draw_marker (px, py, ityp, icol, size) 
 !+                                                                      
 !     Draws marker of typ ityp and color icol at px,py                  
 !-                                                                      
-      USE koordinate_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE koordinate_mod
+USE kuplot_config 
+USE kuplot_mod 
 use kuplot_low_mod
 !
+use precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 REAL   , intent(inout) :: px
 REAL   , intent(inout) :: py
@@ -1280,11 +1301,11 @@ integer, intent(in)   :: ityp
 integer, intent(in)   :: icol
 REAL   , intent(in   ) :: size
 !
-      CHARACTER(40) xstr, ystr 
+CHARACTER(len=40) :: xstr, ystr 
 !      REAL px, py, size 
-      REAL eex (2), eey (2) 
-      REAL xh, yh, tx, ty 
-      INTEGER ix, iy, iptyp 
+REAL(kind=PREC_SP) :: eex (2), eey (2) 
+REAL(kind=PREC_SP) :: xh, yh, tx, ty 
+INTEGER ix, iy, iptyp 
 !      LOGICAL inrect 
 !                                                                       
       eex (1) = pex (iwin, iframe, 1) 
@@ -1403,26 +1424,31 @@ REAL   , intent(in   ) :: size
          ENDIF 
       ENDIF 
 !                                                                       
-      END SUBROUTINE draw_marker                    
+END SUBROUTINE draw_marker                    
+!
 !****7******************************************************************
-      SUBROUTINE draw_bonds (ikurv) 
+!
+SUBROUTINE draw_bonds (ikurv) 
 !+                                                                      
 !     Draws bonds                                                       
 !-                                                                      
-      USE errlist_mod 
-      USE koordinate_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE koordinate_mod
+USE kuplot_config 
+USE kuplot_mod 
 use kuplot_low_mod
 !
+use precision_mod
+!
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 INTEGER, intent(in) ::  ikurv 
-      INTEGER ib, iii, jjj, ipkt, jpkt 
-      REAL xpl (2), ypl (2), dist 
-      REAL eex (2), eey (2) 
-      REAL blow, bhigh 
+!
+INTEGER ::ib, iii, jjj, ipkt, jpkt 
+REAL(kind=PREC_SP) :: xpl (2), ypl (2), dist 
+REAL(kind=PREC_SP) :: eex (2), eey (2) 
+REAL(kind=PREC_SP) :: blow, bhigh 
 !                                                                       
 !     LOGICAL inrect 
 !                                                                       
@@ -1470,30 +1496,33 @@ INTEGER, intent(in) ::  ikurv
       ENDIF 
       ENDDO 
 !                                                                       
-      END SUBROUTINE draw_bonds                     
+END SUBROUTINE draw_bonds                     
+!
 !*****7*****************************************************************
-      SUBROUTINE draw_bitmap (ik) 
+!
+SUBROUTINE draw_bitmap (ik) 
 !+                                                                      
 !     This routine draws the bitmaps                                    
 !-                                                                      
-      USE kuplot_config 
-      USE kuplot_mod 
+USE kuplot_config 
+USE kuplot_mod 
 use kuplot_color_mod
 !
-      USE debug_mod 
-      USE errlist_mod 
-      USE prompt_mod 
-      USE wink_mod
+USE debug_mod 
+USE errlist_mod 
+USE prompt_mod 
+USE wink_mod
+use precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 integer, intent(in) :: ik
 !
-      REAL zpl (maxz, maxz), tr (6) 
-      REAL rc, rdx, rdy, yf 
-      REAL zzmin, zzmax, x1, x2 
-      INTEGER i, ic, ix, iy, ikk 
-      INTEGER nx_min, nx_max, ny_min, ny_max 
+REAL(kind=PREC_SP) :: zpl (maxz, maxz), tr (6) 
+REAL(kind=PREC_SP) :: rc, rdx, rdy, yf 
+REAL(kind=PREC_SP) :: zzmin, zzmax, x1, x2 
+INTEGER :: i, ic, ix, iy, ikk 
+INTEGER :: nx_min, nx_max, ny_min, ny_max 
 !                                                                       
       rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
       rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
@@ -1603,28 +1632,30 @@ integer, intent(in) :: ik
          3) )                                                           
       ENDIF 
 !                                                                       
-      END SUBROUTINE draw_bitmap                    
+END SUBROUTINE draw_bitmap                    
+!
 !*****7*****************************************************************
-      SUBROUTINE draw_contour (ik) 
+!
+SUBROUTINE draw_contour (ik) 
 !+                                                                      
 !     This routine draws the contour lines                              
 !-                                                                      
-      USE debug_mod 
-      USE errlist_mod 
-      USE prompt_mod 
-      USE wink_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE debug_mod 
+USE errlist_mod 
+USE prompt_mod 
+USE wink_mod
+USE kuplot_config 
+USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 integer, intent(in) :: ik
 !
-      CHARACTER(25) label 
-      REAL zpl (maxz, maxz), tr (6) 
-      REAL rdx, rdy, zm, zi, h, log10, yf 
-      INTEGER il, ic, ix, iy, ikk, ihp, ihl, lmi, lin 
-      INTEGER nx_min, nx_max, ny_min, ny_max 
+CHARACTER(len=25) :: label 
+REAL(kind=PREC_SP) :: zpl (maxz, maxz), tr (6) 
+REAL(kind=PREC_SP) :: rdx, rdy, zm, zi, h, log10, yf 
+INTEGER :: il, ic, ix, iy, ikk, ihp, ihl, lmi, lin 
+INTEGER :: nx_min, nx_max, ny_min, ny_max 
 !                                                                       
       rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
       rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
@@ -1718,14 +1749,15 @@ integer, intent(in) :: ik
       ENDIF 
       ENDDO 
 !                                                                       
-      END SUBROUTINE draw_contour                   
+END SUBROUTINE draw_contour                   
+!
 !*****7*****************************************************************
 !
 SUBROUTINE realtostr (r, str, ll) 
 !+                                                                      
 !     Converts real number to string                                    
 !-                                                                      
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 REAL            , intent(in)    :: r 
 CHARACTER(len=*), intent(inout) :: str 
@@ -1747,23 +1779,25 @@ INTEGER ::  pp, mm
 !                                                                       
       CALL PGNUMB (mm, pp, 0, str, ll) 
 !                                                                       
-      END SUBROUTINE realtostr                      
+END SUBROUTINE realtostr                      
+!
 !*****7*****************************************************************
 !
 SUBROUTINE clip_array (ex, ey, ax, ay, npkt) 
 !                                                                       
 use kuplot_low_mod
+use precision_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 integer, intent(inout) :: npkt
-REAL   , intent(in) :: ex (2), ey (2)
-REAL   , intent(inout) ::  ax (npkt), ay (npkt) 
+REAL(kind=PREC_SP)   , intent(in) :: ex (2), ey (2)
+REAL(kind=PREC_SP)   , intent(inout) ::  ax (npkt), ay (npkt) 
 !
-      INTEGER :: i, j
+INTEGER :: i, j
 !     LOGICAL inrect, in1, in2, in3, sf 
-      LOGICAL ::         in1, in2, in3, sf 
-      REAL :: xs, ys, axp, ayp 
+LOGICAL ::         in1, in2, in3, sf 
+REAL(kind=PREC_SP) :: xs, ys, axp, ayp 
 !                                                                       
       IF (npkt.lt.2) return 
 !                                                                       
@@ -1840,7 +1874,8 @@ REAL   , intent(inout) ::  ax (npkt), ay (npkt)
 !                                                                       
       npkt = j - 1 
 !                                                                       
-      END SUBROUTINE clip_array                     
+END SUBROUTINE clip_array                     
+!
 !***********************************************************************
 !
 SUBROUTINE schnitt (ex, ey, x1, y1, x2, y2, xs, ys, sflag) 
@@ -1848,15 +1883,17 @@ SUBROUTINE schnitt (ex, ey, x1, y1, x2, y2, xs, ys, sflag)
 !           Calculates the intersection of the line from x1,y1 to x2,y2 
 !           with rectangle given by ex(2),ey(2)                         
 !+                                                                      
-      IMPLICIT none 
+use precision_mod
+!
+IMPLICIT none 
 !                                                                       
-REAL , intent(in) :: ex (2), ey (2) 
-REAL , intent(in ) :: x1
-REAL , intent(in ) :: y1
-REAL , intent(in ) :: x2
-REAL , intent(in ) :: y2
-REAL , intent(out) :: xs
-REAL , intent(out) :: ys
+REAL(kind=PREC_SP) , intent(in) :: ex (2), ey (2) 
+REAL(kind=PREC_SP) , intent(in ) :: x1
+REAL(kind=PREC_SP) , intent(in ) :: y1
+REAL(kind=PREC_SP) , intent(in ) :: x2
+REAL(kind=PREC_SP) , intent(in ) :: y2
+REAL(kind=PREC_SP) , intent(out) :: xs
+REAL(kind=PREC_SP) , intent(out) :: ys
 LOGICAL , intent(out) :: sflag 
 !
 !     REAL xs, ys, x1, y1, x2, y2 
@@ -1896,24 +1933,26 @@ SUBROUTINE cross (lam, mue, x1, x2, x3, x4, y1, y2, y3, y4, xs, ys)
 !           Calculates intersection of two vectors : 12 and 34          
 !           if singulaer lam and mue are set to  -20.                   
 !+                                                                      
-      IMPLICIT none 
-!                                                                       
-REAL , intent(out)   :: lam
-REAL , intent(out)   :: mue
-REAL , intent(in)    :: x1
-REAL , intent(in)    :: x2
-REAL , intent(in)    :: x3
-REAL , intent(in)    :: x4
-REAL , intent(in)    :: y1
-REAL , intent(in)    :: y2
-REAL , intent(in)    :: y3
-REAL , intent(in)    :: y4
-REAL , intent(out)   :: xs
-REAL , intent(out)   :: ys
+use precision_mod
 !
-      REAL x21, x43, x13 
-      REAL y21, y43, y13 
-      REAL det 
+IMPLICIT none 
+!                                                                       
+REAL(kind=PREC_SP) , intent(out)   :: lam
+REAL(kind=PREC_SP) , intent(out)   :: mue
+REAL(kind=PREC_SP) , intent(in)    :: x1
+REAL(kind=PREC_SP) , intent(in)    :: x2
+REAL(kind=PREC_SP) , intent(in)    :: x3
+REAL(kind=PREC_SP) , intent(in)    :: x4
+REAL(kind=PREC_SP) , intent(in)    :: y1
+REAL(kind=PREC_SP) , intent(in)    :: y2
+REAL(kind=PREC_SP) , intent(in)    :: y3
+REAL(kind=PREC_SP), intent(in)    :: y4
+REAL(kind=PREC_SP) , intent(out)   :: xs
+REAL(kind=PREC_SP) , intent(out)   :: ys
+!
+REAL(kind=PREC_SP) x21, x43, x13 
+REAL(kind=PREC_SP) y21, y43, y13 
+REAL(kind=PREC_SP) det 
 !                                                                       
       x21 = x2 - x1 
       x43 = x4 - x3 
@@ -1940,15 +1979,15 @@ SUBROUTINE write_fit
 !+                                                                      
 !     kupl.fit schreiben fuer textframe                                 
 !-                                                                      
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
 USE support_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER i, j 
-      LOGICAL kor 
+INTEGER :: i, j 
+LOGICAL :: kor 
 !                                                                       
       CALL oeffne (22, 'kupl.fit', 'unknown') 
       IF (ier_num.ne.0) RETURN 
@@ -1990,7 +2029,7 @@ USE support_mod
 !                                                                       
       CLOSE (22) 
 !                                                                       
-      END SUBROUTINE write_fit                      
+END SUBROUTINE write_fit                      
 !
 !*******************************************************************************
 !

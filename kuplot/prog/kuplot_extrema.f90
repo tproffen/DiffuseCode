@@ -73,7 +73,7 @@ USE kuplot_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-REAL    , intent(in) :: a (maxarray) 
+REAL(kind=PREC_DP), intent(in) :: a (maxarray) 
 integer , intent(in) :: ik
 integer , intent(in) :: ilen
 REAL(kind=PREC_DP), dimension(MAXKURVTOT), intent(inout) :: amax (maxkurvtot), amin (maxkurvtot) 
@@ -90,34 +90,38 @@ ENDDO
 END SUBROUTINE get_extrema_xy                 
 !
 !**7*****************************************************************   
-      SUBROUTINE get_extrema_z (a, ik, nxx, nyy, amin, amax) 
+!
+SUBROUTINE get_extrema_z (a, ik, nxx, nyy, amin, amax) 
+!
 !+                                                                      
 !     extrema der kurve ik bestimmen                                    
 !-                                                                      
-      USE kuplot_config 
-      USE kuplot_mod 
+USE kuplot_config 
+USE kuplot_mod 
+!
+use precision_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-REAL , intent(in) :: a (maxarray) 
+REAL(kind=PREC_DP) , intent(in) :: a (maxarray) 
 integer , intent(in) :: nxx
 integer , intent(in) :: nyy
-REAL , intent(out) :: amax (maxkurvtot), amin (maxkurvtot) 
+REAL (kind=PREC_DP), intent(out) :: amax (maxkurvtot), amin (maxkurvtot) 
 !
-      INTEGER :: ik, ikk, i, j 
+INTEGER :: ik, ikk, i, j 
 !                                                                       
-      amax (ik) = a (offz (ik - 1) + 1) 
-      amin (ik) = a (offz (ik - 1) + 1) 
-      IF (amin (ik) .eq. - 9999.) amin (ik) = 1e+30 
-      DO i = 1, nxx 
-      DO j = 2, nyy 
+amax (ik) = a (offz (ik - 1) + 1) 
+amin (ik) = a (offz (ik - 1) + 1) 
+IF (amin (ik) .eq. - 9999.) amin (ik) = 1e+30 
+DO i = 1, nxx 
+   DO j = 2, nyy 
       ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
       amax (ik) = max (amax (ik), a (ikk) ) 
       IF (a (ikk) .ne. - 9999.) amin (ik) = min (amin (ik), a (ikk) ) 
-      ENDDO 
-      ENDDO 
+   ENDDO 
+ENDDO 
 !                                                                       
-      END SUBROUTINE get_extrema_z                  
+END SUBROUTINE get_extrema_z                  
 !
 !**7******************************************************************* 
 !
