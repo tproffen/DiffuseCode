@@ -165,11 +165,12 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
-   SUBROUTINE branch(zeile, length, lreset)
+   SUBROUTINE branch(zeile, length, lreset, lloop)
 !
 CHARACTER (LEN=*), INTENT(IN) :: zeile
 INTEGER          , INTENT(IN) :: length
 LOGICAL          , INTENT(IN) :: lreset
+integer          , INTENT(IN) :: lloop
 !
    END SUBROUTINE branch
 END INTERFACE
