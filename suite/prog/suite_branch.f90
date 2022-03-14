@@ -1,4 +1,4 @@
-RECURSIVE SUBROUTINE suite_branch(zeile, length, lreset)
+RECURSIVE SUBROUTINE suite_branch(zeile, length, lreset, lloop)
 !
 !  Specific SUITE Version of a branch subroutine
 !  Call a section via a branch
@@ -35,10 +35,12 @@ USE str_comp_mod
 USE variable_mod
 !
 IMPLICIT NONE
+save
 !
 CHARACTER (LEN=*), INTENT(IN) :: zeile
 INTEGER          , INTENT(IN) :: length
 LOGICAL          , INTENT(IN) :: lreset
+integer          , INTENT(IN) :: lloop 
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile)))  :: line
 CHARACTER(LEN= 7   ) :: br_pname_old,br_pname_cap_old
@@ -49,6 +51,7 @@ INTEGER              :: lbef, laenge
 INTEGER              :: lcomm
 LOGICAL              :: lmacro
 !
+if(lloop>=0) then
 !
 IF(str_comp(zeile, pname, LEN_TRIM(pname), length, LEN_TRIM(pname))) THEN
    ier_num = -15         ! branch to identical section
@@ -57,6 +60,7 @@ IF(str_comp(zeile, pname, LEN_TRIM(pname), length, LEN_TRIM(pname))) THEN
                 ' to ' // pname(1:LEN_TRIM(pname))
    RETURN
 ENDIF
+!
 !
 ! Get parameters on command line
 !
@@ -123,17 +127,9 @@ IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
       line = line(1:lcomm)
       CALL file_kdo(line,lcomm)
    ENDIF
-   IF(ier_num == 0) THEN     ! If no error in macro do interactive session
+   IF(lloop==0 .and. ier_num == 0) THEN     ! If no error in macro do interactive session
        CALL kuplot_loop    ()
    ENDIF
-   pname      = br_pname_old
-   pname_cap  = br_pname_cap_old
-   prompt     = pname
-   oprompt    = pname
-   prompt_status = br_prompt_status_old
-   ier_sta       = br_ier_sta_old
-   var_val(VAR_PROGRAM) = br_progr_old
-   var_val(VAR_STATE)   = br_state_old
 ELSEIF(str_comp(zeile, 'discus', 3, length, 6)) THEN
    IF(suite_discus_init) then
       pname     = 'discus'
@@ -153,17 +149,9 @@ ELSEIF(str_comp(zeile, 'discus', 3, length, 6)) THEN
    IF(lmacro) THEN           ! Execute "command line macro"
       CALL file_kdo(line(1:lcomm),lcomm)
    ENDIF
-   IF(ier_num == 0) THEN     ! If no error in macro do interactive session
+   IF(lloop==0 .and. ier_num == 0) THEN     ! If no error in macro do interactive session
        CALL discus_loop    ()
    ENDIF
-   pname      = br_pname_old
-   pname_cap  = br_pname_cap_old
-   prompt     = pname
-   oprompt    = pname
-   prompt_status = br_prompt_status_old
-   ier_sta       = br_ier_sta_old
-   var_val(VAR_PROGRAM) = br_progr_old
-   var_val(VAR_STATE)   = br_state_old
 ELSEIF(str_comp(zeile, 'diffev', 3, length, 6)) THEN
    IF(suite_diffev_init) then
       pname     = 'diffev'
@@ -182,9 +170,37 @@ ELSEIF(str_comp(zeile, 'diffev', 3, length, 6)) THEN
    IF(lmacro) THEN           ! Execute "command line macro"
       CALL file_kdo(line(1:lcomm),lcomm)
    ENDIF
-   IF(ier_num == 0) THEN     ! If no error in macro do interactive session
+   IF(lloop==0 .and. ier_num == 0) THEN     ! If no error in macro do interactive session
        CALL diffev_loop    ()
    ENDIF
+ELSEIF(str_comp(zeile, 'refine', 3, length, 6)) THEN
+   IF(suite_diffev_init) then
+      pname     = 'refine'
+      pname_cap = 'REFINE'
+      prompt    = pname
+      oprompt   = pname
+      CALL program_files ()
+   ELSE
+      CALL refine_setup   (lstandalone)
+      suite_refine_init = .TRUE.
+   ENDIF
+   CALL refine_set_sub ()
+   CALL suite_set_sub_branch ()
+   var_val(VAR_PROGRAM) = var_val(VAR_REFINE)
+   var_val(VAR_STATE)   = var_val(VAR_IS_BRANCH)
+   IF(lmacro) THEN           ! Execute "command line macro"
+      CALL file_kdo(line(1:lcomm),lcomm)
+   ENDIF
+   IF(lloop==0 .and. ier_num == 0) THEN     ! If no error in macro do interactive session
+       CALL refine_loop    ()
+   ENDIF
+ELSE
+   ier_num = -7
+   ier_typ = ER_COMM
+ENDIF
+endif
+!
+if(lloop<=0) then
    pname      = br_pname_old
    pname_cap  = br_pname_cap_old
    prompt     = pname
@@ -193,10 +209,6 @@ ELSEIF(str_comp(zeile, 'diffev', 3, length, 6)) THEN
    ier_sta       = br_ier_sta_old
    var_val(VAR_PROGRAM) = br_progr_old
    var_val(VAR_STATE)   = br_state_old
-ELSE
-   ier_num = -7
-   ier_typ = ER_COMM
-ENDIF
 !
 IF(pname=='discus') THEN      ! Return to DISCUS branch
       CALL discus_set_sub ()
@@ -215,5 +227,6 @@ IF(ier_num == -9 .AND. ier_typ == 1) THEN
 ELSE
    CALL program_files ()
 ENDIF
+endif
 !
 END SUBROUTINE suite_branch
