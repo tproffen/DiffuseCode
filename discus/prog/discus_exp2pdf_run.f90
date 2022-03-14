@@ -442,6 +442,7 @@ use kuplot_para_mod
 use kuplot_extrema_mod
 use kuplot_show_mod
 !
+use do_set_mod
 use envir_mod
 use errlist_mod
 use spline_mod
@@ -501,28 +502,25 @@ if(exp_inter) then
 !   CALL do_fit_info (output_io, .false., .false., .false.)
 endif
 !
-tempfile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/exp2pdf_fit.mac'
-open(unit=itmp, file=tempfile, status='unknown')
-write(itmp, '(a)') 'set prompt, off'
-write(itmp, '(a)') 'fit n[1] - 2'
-write(itmp, '(a)') 'output off'
-write(itmp, '(a)') 'run'
-write(itmp, '(a)') 'exit'
-write(itmp, '(a)') 'exit'
-write(itmp, '(a)') 'set prompt, on'
-close(unit=itmp)
+fstart = .false.          ! ! no output
+string = 'prompt, off'
+length = 11
+call do_set(string,length)
+string = 'kuplot'
+length = 6
+call p_branch(string, length, .FALSE., 1)  ! Initialize into KUPLOT
+CALL do_fit
+call p_branch(string, length, .FALSE.,-1)  ! Return from     KUPLOT
+string = 'prompt, on'
+length = 10
+call do_set(string,length)
+!   CALL do_fit_info (output_io, .true., .true., .true.)
 !
-write(string,'(a,a)')  'kuplot -macro ', tempfile(1:len_trim(tempfile))
-length = len_trim(string)
-call p_branch(string, length, .FALSE.)
 call get_extrema
 !
 ik = iz - 1
 exp_temp_y(1:exp_nstep) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik)) !  Get F(Q)-poly
 !
-! Delete fit macro file
-write(string,'(a,a)')  'rm -f ', tempfile(1:len_trim(tempfile))
-call execute_command_line(string)
 !
 end subroutine exp2pdf_convert
 !
@@ -800,6 +798,12 @@ subroutine  exp2pdf_plot_fq(istep)
 use exp2pdf_data_mod
 !
 use kuplot_mod
+use kuplot_extrema_mod
+use kuplot_frame_mod
+use kuplot_para_mod
+use kuplot_plot_mod
+!
+use errlist_mod
 use envir_mod
 use prompt_mod
 use precision_mod
@@ -809,15 +813,18 @@ use do_wait_mod
 implicit none
 integer, intent(in) :: istep
 !
-integer, parameter :: itmp = 77
-character(len=PREC_STRING) :: tempfile
 character(len=PREC_STRING) :: string
 integer :: length
+!integer :: i
 integer :: ios
 integer, save :: ikk = 0
 real(kind=PREC_DP) :: mstep
 real(kind=PREC_DP) :: xx
 real(kind=PREC_DP), save :: ytic
+!
+string = 'kuplot'
+length = 6
+call p_branch(string, length, .FALSE., 1     )        ! Initialize into KUPLOT 
 !
 if((exp_temp_x(exp_nstep)-exp_temp_x(1))>40.0D0) then
    mstep = 10.0D0
@@ -837,91 +844,114 @@ else
 endif
 if(ikk==0) then
    ikk  = iz -1
-   ytic   = (ymax(ikk)-ymin(ikk))*0.25
+   ytic   = 10.0**real(nint((log(abs((ymax(ikk)-ymin(ikk))*0.5))/log(10.0))))
 endif
 !
 if(istep==1) then                   ! F(Q) initial step 
-   tempfile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/exp2pdf_qmax.mac'
-   open(unit=itmp, file=tempfile, status='unknown')
 !
-   write(itmp, '(a)') 'set prompt, off'
-   write(itmp, '(a)') 'nfra 2'
-   write(itmp, '(a)') 'sfra 1, 0.0, 0.45, 1.0, 1.0'
-   write(itmp, '(a)') 'sfra 2, 0.0, 0.00, 1.0, 0.55'
-   write(itmp, '(a)') 'alloc line, 3'
-   write(itmp, '(a)') 'alloc line, 3'
-   write(itmp, '(a)') 'alloc line, 3'
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,1] = ', xx
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,2] = ', xx
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,3] = ', xx
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,1] =    ymin[n[1]-3]'
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,2] = ', 0.0
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,3] =    ymax[n[1]-3]' !y[n[1]-3,max(1,nint((2.0000000000)-xmin[n[1]-3]/0.001))]'
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-1,1] = ', exp_qmin_u
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-1,2] = ', exp_qmin_u
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-1,3] = ', exp_qmin_u
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,1] =    ymin[n[1]-3]'
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,2] = ', 0.0
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,3] =    ymax[n[1]-3]'
-   write(itmp, '(a,G12.6e3)') 'x[n[1]  ,1] = ', exp_qmax_f
-   write(itmp, '(a,G12.6e3)') 'x[n[1]  ,2] = ', exp_qmax_f
-   write(itmp, '(a,G12.6e3)') 'x[n[1]  ,3] = ', exp_qmax_f
-   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,1] =    ymin[n[1]-3]'
-   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,2] = ', 0.0
-   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,3] =    ymax[n[1]-3]'
-   write(itmp, '(a)') 'kfra 1, n[1], n[1]-1, n[1]-2, n[1]-3, n[1]-4'
-   write(itmp, '(a)') 'kfra 2, n[1], n[1]-1, n[1]-2, n[1]-3, n[1]-4'
-   write(itmp, '(a)') '#####################'
-   write(itmp, '(a)') 'afra 1'
-   write(itmp, '(a)') 'skal'
-   write(itmp, '(a, f4.1, a, G20.2e3)') 'mark ', mstep, ', ',ytic
-   write(itmp, '(a)') 'achx Q [\A\u-1\d]'
-   write(itmp, '(a)') 'achy F(Q)'
-   write(itmp, '(a)') 'fnam off'
-   write(itmp, '(a)') 'grid off'
-   write(itmp, '(a)') 'tit1 Final F(Q)'
-   write(itmp, '(a)') 'tit2 vertical lines mark Q\dmin\u and Q\dmax\u'
-   write(itmp, '(a)') 'lcol n[1]-4 , blue'
-   write(itmp, '(a)') 'lcol n[1]-3 , blue'
-   write(itmp, '(a)') 'lcol n[1]-2 , green'
-   write(itmp, '(a)') 'lcol n[1]-1 , red'
-   write(itmp, '(a)') 'lcol n[1]   , red'
-   write(itmp, '(a)') 'mtyp n[1]-4, 0'
-   write(itmp, '(a)') 'mtyp n[1]-3, 0'
-   write(itmp, '(a)') 'mtyp n[1]-2, 0'
-   write(itmp, '(a)') 'mtyp n[1]-1, 0'
-   write(itmp, '(a)') 'mtyp n[1]  , 0'
-   write(itmp, '(a)') 'ltyp n[1]-4, 1'
-   write(itmp, '(a)') 'ltyp n[1]-3, 1'
-   write(itmp, '(a)') 'ltyp n[1]-2, 1'
-   write(itmp, '(a)') 'ltyp n[1]-1, 1'
-   write(itmp, '(a)') 'ltyp n[1]  , 1'
-   write(itmp, '(a)') '#####################'
-   write(itmp, '(a)') 'afra 2'
-   write(itmp, '(a)') 'kfra 2, n[1]-3 '
-   write(itmp, '(a)') 'skal xmax[n[1]-3]-4, xmax[n[1]-3]+0.1'
-   write(itmp, '(a)') 'kfra 2, n[1], n[1]-1, n[1]-2, n[1]-3, n[1]-4'
-   write(itmp, '(a, G20.2e3)') 'mark 0.5, ', ytic
-   write(itmp, '(a)') 'grid on'
-   write(itmp, '(a)') 'tit1'
-   write(itmp, '(a)') 'tit2'
-   write(itmp, '(a)') 'achx Q [\A\u-1\d]'
-   write(itmp, '(a)') 'achy'
-   write(itmp, '(a)') 'lcol n[1]-4 , red'
-   write(itmp, '(a)') 'lcol n[1]-3 , blue'
-   write(itmp, '(a)') 'lcol n[1]-1 , red'
-   write(itmp, '(a)') 'lcol n[1]   , red'
-   write(itmp, '(a)') 'lwid n[1]-4, 0.9'
-   write(itmp, '(a)') 'fnam'
-   write(itmp, '(a)') 'plot'
-   write(itmp, '(a)') '#'
-   write(itmp, '(a)') 'exit'
-   write(itmp, '(a)') 'set prompt, on'
-   close(unit=itmp)
-!
-   write(string,'(a,a)')  'kuplot -macro ', tempfile(1:len_trim(tempfile))
+   iaf(iwin) = 2
+   frame(iwin, 1, 1) = 0.00                ! sfra 1, 0.0, 0.45, 1.0, 1.0
+   frame(iwin, 1, 2) = 0.45
+   frame(iwin, 1, 3) = 1.00
+   frame(iwin, 1, 4) = 1.00
+   frame(iwin, 2, 1) = 0.00                ! sfra 2, 0.0, 0.00, 1.0, 0.55
+   frame(iwin, 2, 2) = 0.00
+   frame(iwin, 2, 3) = 1.00
+   frame(iwin, 2, 4) = 0.55
+!  Allocate vertical line for qscale
+   fname(iz) = 'qscale'
+   fform(iz) = 'XY'
+   lni(iz)   = .false.
+   lh5(iz)   = .false.
+   lenc(iz)  = 3
+   offxy(iz) = offxy(iz-1) + lenc(iz)
+   x(offxy(iz - 1) + 1) = xx
+   x(offxy(iz - 1) + 2) = xx
+   x(offxy(iz - 1) + 3) = xx
+   y(offxy(iz - 1) + 1) = ymin(ikk )
+   y(offxy(iz - 1) + 3) = 0.0
+   y(offxy(iz - 1) + 3) = ymax(ikk )
+   offz(iz)             = offz(iz - 1)
+   iz = iz + 1
+!  Allocate vertical line for qmin
+   fname(iz) = 'qmin_u'
+   fform(iz) = 'XY'
+   lni(iz)   = .false.
+   lh5(iz)   = .false.
+   lenc(iz)  = 3
+   offxy(iz) = offxy(iz-1) + lenc(iz)
+   x(offxy(iz - 1) + 1) = exp_qmin_u
+   x(offxy(iz - 1) + 2) = exp_qmin_u
+   x(offxy(iz - 1) + 3) = exp_qmin_u
+   y(offxy(iz - 1) + 1) = ymin(ikk )
+   y(offxy(iz - 1) + 3) = 0.0
+   y(offxy(iz - 1) + 3) = ymax(ikk )
+   offz(iz)             = offz(iz - 1)
+   iz = iz + 1
+!  Allocate vertical line for qmax_f
+   fname(iz) = 'qmax_f'
+   fform(iz) = 'XY'
+   lni(iz)   = .false.
+   lh5(iz)   = .false.
+   lenc(iz)  = 3
+   offxy(iz) = offxy(iz-1) + lenc(iz)
+   x(offxy(iz - 1) + 1) = exp_qmax_f
+   x(offxy(iz - 1) + 2) = exp_qmax_f
+   x(offxy(iz - 1) + 3) = exp_qmax_f
+   y(offxy(iz - 1) + 1) = ymin(ikk )
+   y(offxy(iz - 1) + 3) = 0.0
+   y(offxy(iz - 1) + 3) = ymax(ikk )
+   offz(iz)             = offz(iz - 1)
+   iz = iz + 1
+   CALL get_extrema
+!do i=1, iz-1
+!write(*,*) ' DATA SET ', i, xmin(i), xmax(i), ymin(i), ymax(i)
+!enddo
+   iaf(iwin)        = 2                ! nfra 2
+   infra(iwin,1:2, :) = 0              ! Remove all data sets from frame
+!  Set range for frame 2
+   infra(iwin, 2, 1) = ikk
+   iframe = 2
+   write(string,'(a,i4,a,i4,a)')  'xmax[', ikk , ']-4.0, xmax[' , ikk , ']+0.1'
    length = len_trim(string)
-   call p_branch(string, length, .FALSE.)
+   call set_skal(string,length)
+   iframe = 1
+   infra(iwin,1:2, :) = 0              ! Remove all data sets from frame
+   infra(iwin,1:2, 1) = iz - 1         ! Set vertival line, F(Q) and F(Q) smoothed
+   infra(iwin,1:2, 2) = iz - 2         ! Set vertival line, F(Q) and F(Q) smoothed
+   infra(iwin,1:2, 3) = iz - 3         ! Set vertival line, F(Q) and F(Q) smoothed
+   infra(iwin,1:2, 4) = iz - 4         ! Set vertival line, F(Q) and F(Q) smoothed
+!  AFRA 1
+   ex(iwin, 1, 1) = -9999.0            ! skal in frame 1
+   ey(iwin, 1, 1) = -9999.0
+   t(iwin, 1, 1)     = mstep
+   t(iwin, 1, 2)     = ytic
+   titel(iwin, 1, 1) = 'Intermediate F(Q)'
+   titel(iwin, 1, 2) = 'vertical lines mark Q\dmin\u and Q\dmax\u'
+   achse(iwin, 1:2, 1) = 'Q [\A\u-1\d]'
+   achse(iwin, 1:2, 2) = 'F(Q)'
+   ifname(iwin, 1)   = .false.                     ! 'fname on'
+   ilinecol(iwin, 1:2, iz -1)  = 1   ! lcol qmax_f, red
+   ilinecol(iwin, 1:2, iz -2)  = 1   ! lcol qmin_u, red
+   ilinecol(iwin, 1:2, iz -3)  = 2   ! lcol qscale, green
+   ilinecol(iwin, 1:2, iz -4)  = 3   ! lcol F(Q)  , blue
+   ilinecol(iwin,   2, iz -5)  = 1   ! lcol F(Q)  , blue
+   ilinetyp(iwin, 1:2, iz-4:iz-1)  = 1   ! ltyp : , 1
+   imarktyp(iwin, 1:2, iz-4:iz-1)  = 0   ! mtyp : , 1
+   igrid(iwin, 1)    = .false.
+!  AFRA 2
+   titel(iwin, 2, 1) = ' '
+   titel(iwin, 2, 1) = ' '
+   t(iwin, 2, 1)     = 0.5
+   t(iwin, 2, 2)     = ytic
+   igrid(iwin, 2)    = .true.
+   ifname(iwin, 2)   = .false.                    ! 'fname off'
+!
+   CALL do_plot(.false.)
+!
+   string = 'kuplot'
+   length = 6
+   call p_branch(string, length, .FALSE.,-1     )        ! Return    from  KUPLOT 
 !
    if(.not. exp_qmax_fl) then        ! User did NOT provide Qmax for Fourier
 !
@@ -941,59 +971,55 @@ if(istep==1) then                   ! F(Q) initial step
       call do_input(string,length)
    endif
 !
-   write(string,'(a,a)')  'rm -f ', tempfile(1:len_trim(tempfile))
-   call execute_command_line(string)
 elseif(istep==2) then
-
-   tempfile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/exp2pdf_qmax2.mac'
-   open(unit=itmp, file=tempfile, status='unknown')
 !
-   write(itmp, '(a)') 'set prompt, off'
-   write(itmp, '(a)') 'afra 1'
-   write(itmp, '(a)') 'skal'
-   write(itmp, '(a, f4.1, a, G20.2e3)') 'mark ', mstep, ', ',ytic
-   write(itmp, '(a)') 'afra 2'
-   write(itmp, '(a)') 'kfra 2, n[1]-3 '
-   write(itmp, '(a)') 'skal xmax[n[1]-3]-4, xmax[n[1]-3]'
-   write(itmp, '(a)') 'kfra 2, n[1], n[1]-1, n[1]-2, n[1]-3, n[1]-4'
-   write(itmp, '(a, G20.2e3)') 'mark 0.5, ', ytic
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,1] = ', xx
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,2] = ', xx
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-2,3] = ', xx
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,1] =    ymin[n[1]-3]'
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,2] = ', 0.0
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-2,3] =    ymax[n[1]-3]' !y[n[1]-3,max(1,nint((exp_qfirst_o)-xmin[n[1]-3]]/exp_qstep))'
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-1,1] = ', exp_qmin
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-1,2] = ', exp_qmin
-   write(itmp, '(a,G12.6e3)') 'x[n[1]-1,3] = ', exp_qmin
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,1] =    ymin[n[1]-3]'
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,2] = ', 0.0
-   write(itmp, '(a,G12.6e3)') 'y[n[1]-1,3] =    ymax[n[1]-3]'
-   write(itmp, '(a,G12.6e3)') 'x[n[1]  ,1] = ', exp_qmax_f
-   write(itmp, '(a,G12.6e3)') 'x[n[1]  ,2] = ', exp_qmax_f
-   write(itmp, '(a,G12.6e3)') 'x[n[1]  ,3] = ', exp_qmax_f
-   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,1] =    ymin[n[1]-3]'
-   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,2] = ', 0.0
-   write(itmp, '(a,G12.6e3)') 'y[n[1]  ,3] =    ymax[n[1]-3]'
-   write(itmp, '(a)') 'tit1 Final F(Q)'
-   write(itmp, '(a)') 'tit2 vertical lines mark Q\dmin\u and Q\dmax\u'
-   write(itmp, '(a)') 'plot'
-!  write(itmp, '(a)') 'save ps, fq_final.ps'
-   write(itmp, '(a)') 'n[1] = n[1]-3'    ! effectively delete the last three temproary data sets
-   write(itmp, '(a)') 'exit'
-   write(itmp, '(a)') 'set prompt, on'
-   close(unit=itmp)
-!
-   write(string,'(a,a)')  'kuplot -macro ', tempfile(1:len_trim(tempfile))
+   iaf(iwin)        = 2                ! nfra 2
+   infra(iwin,1:2, :) = 0              ! Remove all data sets from frame
+!  Set range for frame 2
+   infra(iwin, 2, 1) = ikk
+   iframe = 2
+   write(string,'(a,i4,a,i4,a)')  'xmax[', ikk , ']-4.0, xmax[' , ikk , ']+0.1'
    length = len_trim(string)
-   call p_branch(string, length, .FALSE.)
+   call set_skal(string,length)
+   iframe = 1
+   infra(iwin,1:2, :) = 0              ! Remove all data sets from frame
+   infra(iwin,1:2, 1) = iz - 1         ! Set vertival line, F(Q) and F(Q) smoothed
+   infra(iwin,1:2, 2) = iz - 2         ! Set vertival line, F(Q) and F(Q) smoothed
+   infra(iwin,1:2, 3) = iz - 3         ! Set vertival line, F(Q) and F(Q) smoothed
+   infra(iwin,1:2, 4) = iz - 4         ! Set vertival line, F(Q) and F(Q) smoothed
+!
+   x(offxy(ikk +0) + 1) = xx
+   x(offxy(ikk +0) + 2) = xx
+   x(offxy(ikk +0) + 3) = xx
+   x(offxy(ikk +1) + 1) = exp_qmin
+   x(offxy(ikk +1) + 2) = exp_qmin
+   x(offxy(ikk +1) + 3) = exp_qmin
+   x(offxy(ikk +2) + 1) = exp_qmax_f
+   x(offxy(ikk +2) + 2) = exp_qmax_f
+   x(offxy(ikk +2) + 3) = exp_qmax_f
+   call get_extrema
+!
+   infra(iwin,1:2, :) = 0              ! Remove all data sets from frame
+   infra(iwin,1:2, 1) = ikk - 1        ! Set vertival line, F(Q) and F(Q) smoothed
+   infra(iwin,1:2, 2) = ikk            ! Set vertival line, F(Q) and F(Q) smoothed
+   infra(iwin,1:2, 3) = ikk + 1        ! Set vertival line, F(Q) and F(Q) smoothed
+   infra(iwin,1:2, 4) = ikk + 2        ! Set vertival line, F(Q) and F(Q) smoothed
+   infra(iwin,1:2, 5) = ikk + 3        ! Set vertival line, F(Q) and F(Q) smoothed
+!
+   CALL do_plot(.false.)
+!
+   string = 'kuplot'
+   length = 6
+   call p_branch(string, length, .FALSE.,-1     )        ! Return    from  KUPLOT 
+!
+!
+   write(output_io, *)
+   write(output_io,'(a)') 'Final F(Q) with user defined values for Qmin, Qmax'
+   write(output_io, *)
 !
    string = 'return'
    length = 6
    call do_input(string,length)
-!
-   write(string,'(a,a)')  'rm -f ', tempfile(1:len_trim(tempfile))
-   call execute_command_line(string)
 !
    ikk = 0
 endif
@@ -1008,65 +1034,63 @@ subroutine exp2pdf_plot_init
 !+
 use exp2pdf_data_mod
 !
-use envir_mod
-use prompt_mod
+use kuplot_mod
+use kuplot_plot_mod
+!
 use precision_mod
 use set_sub_generic_mod
 use do_wait_mod
 !
 implicit none
 !
-integer, parameter :: itmp = 77
-character(len=PREC_STRING) :: tempfile
 character(len=PREC_STRING) :: string
 integer :: length
 !
-tempfile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/exp2pdf_init.mac'
-open(unit=itmp, file=tempfile, status='unknown')
-write(itmp, '(a)') 'set prompt, off'
-write(itmp, '(a)') 'nfra 1'
-if(exp_kback>0) then                   ! With background
-   write(itmp, '(a)') 'variable integer, exp_kload'
-   write(itmp, '(a)') 'variable integer, exp_kback'
-   write(itmp, '(a,i3)') 'exp_kload = ',exp_kload
-   write(itmp, '(a,i3)') 'exp_kback = ',exp_kback
-   write(itmp, '(a)') 'kfra 1,  exp_kload, exp_kback'
-   write(itmp, '(a)') 'skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025'
-   write(itmp, '(a)') 'lcol exp_kback, red '
-   write(itmp, '(a)') 'lcol exp_kload, blue '
-   write(itmp, '(a)') 'ltyp exp_kload, 1'
-   write(itmp, '(a)') 'ltyp exp_kback, 1'
-else
-!   write(itmp, '(a)') 'kfra 1, n[1]'
-   write(itmp, '(a)') 'variable integer, exp_kload'
-   write(itmp, '(a,i3)') 'exp_kload = ',exp_kload
-   write(itmp, '(a,i3, a, i3)') 'kfra 1, ', exp_kload
-   write(itmp, '(a)') 'skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025'
-   write(itmp, '(a)') 'lcol exp_kload, blue '
-   write(itmp, '(a)') 'ltyp exp_kload, 1'
-endif
-write(itmp, '(a)') 'mark 5.0'
-write(itmp, '(a)') 'tit1 Initial intensity'
-write(itmp, '(a)') 'tit2                  '
-write(itmp, '(a)') 'fnam on               '
-write(itmp, '(a)') 'achx Q [\A\u-1\d]'
-write(itmp, '(a)') 'achy Intensity'
-write(itmp, '(a)') 'plot'
-!write(itmp, '(a)') 'save ps, iq_initial.ps'
-write(itmp, '(a)') 'exit'
-write(itmp, '(a)') 'set prompt, on'
-close(unit=itmp)
+iaf(iwin)         = 1                  ! 'nfra 1'
+frame(iwin, 1, 1) = 0.0                !Standard region for a single frame
+frame(iwin, 1, 2) = 0.0
+frame(iwin, 1, 3) = 1.0
+frame(iwin, 1, 4) = 1.0
 !
-write(string,'(a,a)')  'kuplot -macro ', tempfile(1:len_trim(tempfile))
-length = len_trim(string)
-call p_branch(string, length, .FALSE.)
+if(exp_kback>0) then                   ! With background
+   infra(iwin,1, :) = 0                ! Remove all data sets from frame
+   infra(iwin,1, 1) = exp_kload        ! Set exp_kload and exp_back into frame 1
+   infra(iwin,1, 2) = exp_kback
+   ex(iwin, 1, 1  ) = xmin(exp_kload)  ! Set skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025
+   ex(iwin, 1, 2  ) = xmax(exp_kload)
+   ey(iwin, 1, 1  ) = 0.0
+   ey(iwin, 1, 2  ) = ymax(exp_kload)*1.025
+   ilinecol(iwin, 1, exp_kback)  = 1   ! lcol exp_kback, red
+   ilinecol(iwin, 1, exp_kload)  = 3   ! lcol exp_kload, blue
+   ilinetyp(iwin, 1, exp_kback)  = 1   ! lcol exp_kback, red
+   ilinetyp(iwin, 1, exp_kload)  = 1   ! lcol exp_kload, blue
+else
+   infra(iwin,1, :) = 0                ! Remove all data sets from frame
+   infra(iwin,1, 1) = exp_kload        ! Set exp_kload and exp_back into frame 1
+   ex(iwin, 1, 1  ) = xmin(exp_kload)  ! Set skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025
+   ex(iwin, 1, 2  ) = xmax(exp_kload)
+   ey(iwin, 1, 1  ) = 0.0
+   ey(iwin, 1, 2  ) = ymax(exp_kload)*1.025
+   ilinecol(iwin, 1, exp_kload)  = 3   ! lcol exp_kload, blue
+   ilinetyp(iwin, 1, exp_kload)  = 1   ! lcol exp_kload, blue
+endif
+!
+t(iwin, 1, 1)     = 5.0
+t(iwin, 1, 2)     = 10.0**real(nint(log(abs(ymax(exp_kload)*1.025)/5.0)/log(10.0)))
+titel(iwin, 1, 1) = 'tit1 Initial intensity'
+titel(iwin, 1, 2) = ' '
+achse(iwin, 1, 1) = 'Q [\A\u-1\d]'
+achse(iwin, 1, 2) = 'Intensity'
+ifname(iwin, 1)   = .true.                     ! 'fname on'
+string            = 'kuplot'
+length = 6
+call p_branch(string, length, .FALSE., 1)      ! initialize into KUPLOT
+CALL do_plot(.false.)
+call p_branch(string, length, .FALSE.,-1)      ! Retrurn from    KUPLOT
 !
 string = 'return'
 length = 6
 call do_input(string,length)
-!
-write(string,'(a,a)')  'rm -f ', tempfile(1:len_trim(tempfile))
-call execute_command_line(string)
 !
 end subroutine exp2pdf_plot_init
 !
@@ -1079,6 +1103,8 @@ subroutine exp2pdf_plot_qscale
 use exp2pdf_data_mod
 !
 use kuplot_mod
+use kuplot_plot_mod
+use kuplot_para_mod
 !
 use envir_mod
 use precision_mod
@@ -1088,8 +1114,6 @@ use do_wait_mod
 !
 implicit none
 !
-integer, parameter :: itmp = 77
-character(len=PREC_STRING) :: tempfile
 character(len=PREC_STRING) :: string
 integer :: length
 integer :: ios
@@ -1099,23 +1123,20 @@ real(kind=PREC_DP) :: ytic
 ikk  = max(1,iz - 4)
 ytic   = (ymax(ikk)-ymin(ikk))*0.25
 !
-tempfile = tmp_dir(1:LEN_TRIM(tmp_dir)) // '/exp2pdf_qscale.mac'
-open(unit=itmp, file=tempfile, status='unknown')
-write(itmp, '(a)') 'set prompt, off'
-write(itmp, '(a)') 'afra 2'
-write(itmp, '(a)') 'kfra 2, n[1]-3, n[1]-2'
-write(itmp, '(a,G12.6e3,a, G12.6e3)') 'skal ', exp_qfirst_o-1.0D0, ',', exp_qfirst_o+1.0D0
-write(itmp, '(a)') 'lcol n[1]-3, blue'
-write(itmp, '(a)') 'lcol n[1]-2, green'
-write(itmp, '(a)') 'plot '
-write(itmp, '(a)') 'set prompt, on'
-write(itmp, '(a)') 'exit '
-close(unit=itmp)
-!
-write(string,'(a,a)')  'kuplot -macro ', tempfile(1:len_trim(tempfile))
+iframe          = 2      ! afra 2
+infra(iwin,2,:) = 0
+infra(iwin,2,1) = ikk
+infra(iwin,2,2) = ikk + 1
+write(string,'(f8.3,a, f8.3)' ) exp_qfirst_o-1.0D0, ',', exp_qfirst_o+1.0D0
 length = len_trim(string)
-call p_branch(string, length, .FALSE.)
-!
+call set_skal(string,length)
+ilinecol(iwin, 2, ikk  ) = 3
+ilinecol(iwin, 2, ikk+1) = 2
+string = 'kuplot'
+length = 6
+call p_branch(string, length, .FALSE., 1     )     ! Initialize into KUPLOT
+call do_plot(.false.)
+call p_branch(string, length, .FALSE.,-1     )     ! Retrurn from    KUPLOT
 !
 if(.not. exp_qfirst_l) then        ! User did NOT provide Qobs for Qscale 
 !
@@ -1133,10 +1154,6 @@ else
    length = 6
    call do_input(string,length)
 endif
-!
-!
-write(string,'(a,a)')  'rm -f ', tempfile(1:len_trim(tempfile))
-call execute_command_line(string)
 !
 end subroutine exp2pdf_plot_qscale
 !
