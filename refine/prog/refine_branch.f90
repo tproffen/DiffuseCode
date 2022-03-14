@@ -1,4 +1,4 @@
-SUBROUTINE refine_branch(zeile, length, lreset)
+SUBROUTINE refine_branch(zeile, length, lreset, lloop)
 !
 !  Specific REFINE Version of a branch subroutine
 !  Call DISCUS/KUPLOT via system
@@ -12,6 +12,7 @@ IMPLICIT NONE
 CHARACTER (LEN=*), INTENT(IN) :: zeile
 INTEGER          , INTENT(IN) :: length
 LOGICAL          , INTENT(IN) :: lreset
+integer          , INTENT(IN) :: lloop
 !
 ier_num = -7
 ier_typ = ER_COMM

@@ -707,7 +707,7 @@ length = 22
 CALL do_set(string, length)
 kline = 'kuplot -macro ' // plmac(1:LEN_TRIM(plmac))
 lcomm = LEN_TRIM(kline)
-CALL p_branch (kline, lcomm, .FALSE.)
+CALL p_branch (kline, lcomm, .FALSE., 0     )
 string = 'prompt, on,on'
 length = 13
 CALL do_set(string, length)

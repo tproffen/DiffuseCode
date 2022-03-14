@@ -221,7 +221,7 @@ ELSE  is_math
 !       Branch to DISCUS/ KUPLOT (standalone call system, suite do branch)
 !                                                                       
    ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) THEN is_befehl
-      CALL p_branch (zeile, lcomm, .FALSE.)
+      CALL p_branch (zeile, lcomm, .FALSE., 0     )
 elseif(str_comp (befehl, 'uvw', 3, lbef, 3)) THEN
 call refine_constrain_temp(zeile, lcomm, .TRUE.)
 elseif(str_comp (befehl, 'eta', 3, lbef, 3)) THEN
