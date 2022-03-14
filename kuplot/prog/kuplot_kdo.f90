@@ -568,7 +568,7 @@ CHARACTER(LEN=8)           :: bef
 !       Branch to DISCUS (standalone call system, suite do branch)
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (bef, 'branch', 2, lbef, 6) ) then 
-            CALL p_branch (zei, lc, .FALSE.) 
+            CALL p_branch (zei, lc, .FALSE., 0     ) 
 !                                                                       
 !-------  Check for generic command                                     
 !                                                                       
