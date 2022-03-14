@@ -110,7 +110,7 @@ USE support_mod
                pop_random(0  ,i) = l
                run_mpi_senddata%seeds(1:l) = seeds(1:l)
             ENDIF
-            CALL p_branch(zeile, lzeile, .TRUE.)
+            CALL p_branch(zeile, lzeile, .TRUE., 0     )
             IF(rvalue_yes) THEN
                trial_val(run_mpi_senddata%kid,0) = rvalues(2,0)
             ENDIF

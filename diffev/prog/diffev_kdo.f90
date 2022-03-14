@@ -1125,7 +1125,7 @@ ELSE
 !       Branch to DISCUS/ KUPLOT (standalone call system, suite do branch)
 !                                                                       
          ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) THEN
-            CALL p_branch (zeile, lcomm, .FALSE.)
+            CALL p_branch (zeile, lcomm, .FALSE., 0     )
 !                                                                 
 !------   Try general commands                                    
 !                                                                 
