@@ -2340,30 +2340,38 @@
 
    Return to the main DISCUS menu
 3  limits
-!p limits [inst:<qmax>], [fourier:<qmax_user>], [qmin:<qmin>]
+!p limits inst:[<qmin>,<qmax>], [fourier:<qmin>,<qmax>]
 
    Defines optional limits in which to handle the observed intensity.
 
-   As the intensity data might become very noisy at high Q, or might 
-   be subject to detector problems, you can limit the upper limit 
-   that is used for the empitical polynomial fit with
-   [inst:<qmax>]
-   Defaults to the maximum Q-value in the data
+   The intensity data might become very noisy at high Q, or might 
+   be subject to detector problems. Especially for electron diffraction
+   data the low Q-section might be overshadowed by the primary beam 
+   or contain spurious signal. To avoid these sctions, you can limit 
+   the lower and upper Q-range that is used for the empitical polynomial 
+   fit with
+   [inst:<qlow>, <qmax>]
+   Defaults: <qlow> lower Q-value in the data 
+             <qmax> upper Q-value in the data
 
-   For similar reasons you might want to limit the upper Q limit 
+   For similar reasons you might want to limit the lower/upper Q limit 
    that is used in the sine-Fourier transformation of F(Q) into the
-   PDF. DISCUS will take the user supplied value and find a point
-   nearby at which F(Q) is of value zero. This reduces Fourier 
-   ripples in G(r).
-   fourier:<qmax_user>
+   PDF. 
+   At low Q DISCUS will take the user supplied value or if this is 
+   omitted the position where F(Q) is minimum. 
+   Ar the high Q limit, DISCUS will take the user supplied value and
+   find a point nearby at which F(Q) is of value zero. This reduces 
+   Fourier ripples in G(r).
+   fourier:[<qmin>, <qmax>]
    Defaults to the maximum instrumental Q-value of inst:<qmax>.
 
-   In most cases DISCUS will automatically detect a suitable lower
-   Q limit, from which the F(Q) data are extrapolated to the point 
-   Q=0, F(0) = 0. In the rare cases that this might fail, you 
-   can specify this Qmin limit with
-   qmin:<qmin>.
-   Defaults to the lowest Q-value in the data.
+   For each optional parameter you can omit either of the two values,
+   illustrated for inst:
+!p inst:[,<qmax>]   == inst:[0.0, <qmax>]
+!p inst:[<qmax>]    == inst:[0.0, <qmax>]
+!p inst:<qmax>      == inst:[0.0, <qmax>]
+!p inst:[<qmin>,]   == inst:[<qmin>, <upper Q limit of experimental data >]
+
 3  outfile
 !p outf  [gr:<GR_obs_file>] [,rmin:<value>] [,rmax:<value>] [,rstep:<value>]
 !p outputfile  [gr:<GR_obs_file>] [,rmin:<value>] [,rmax:<value>] [,rstep:<value>]
