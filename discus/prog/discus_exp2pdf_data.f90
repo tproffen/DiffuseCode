@@ -14,6 +14,7 @@ integer                                                   :: exp_natom = 0    ! 
 INTEGER                                                   :: exp_kload = 0    ! Data set within KUPLOT
 INTEGER                                                   :: exp_kback = 0    ! Data set within KUPLOT
 INTEGER                                                   :: exp_ksigma= 0    ! Sigma set within KUPLOT
+INTEGER                                                   :: exp_kfq   = 0    ! Sigma set within KUPLOT
 INTEGER                                                   :: exp_kupl  = 0    ! Data set within KUPLOT that needs to be kept
 INTEGER                   , DIMENSION(3)                  :: exp_dim    ! Dimensions of data set
 INTEGER                   , DIMENSION(3)                  :: exp_dim_b  ! Dimensions of data set
@@ -37,14 +38,18 @@ REAL(kind=PREC_DP)        , DIMENSION(:    ), ALLOCATABLE :: exp_temp_dy ! the a
 real(kind=PREC_DP)                                        :: exp_bscale = 1.0D0 ! Background scale
 real(kind=PREC_DP)                                        :: exp_qmin   ! Internal      Qmin
 real(kind=PREC_DP)                                        :: exp_qmax   ! Internal      Qmax
-real(kind=PREC_DP)                                        :: exp_qmin_u = 0.0D0   ! User supplied Qmin
-real(kind=PREC_DP)                                        :: exp_qmax_u = 1.0D9 ! User supplied Qmax for adhoc correction
+real(kind=PREC_DP)                                        :: exp_qmin_i = 0.0D0   ! User supplied "instrumental" Qmin
+real(kind=PREC_DP)                                        :: exp_qmin_f = 0.0D0   ! User supplied Qmin for Fourier
 real(kind=PREC_DP)                                        :: exp_qmax_f = 1.0D9 ! User supplied Qmax for Fourier
-logical                                                   :: exp_qmax_ul= .false. ! User supplied Qmax for adhoc correction
+real(kind=PREC_DP)                                        :: exp_qmax_u = 1.0D9 ! User supplied Qmax for adhoc correction
+logical                                                   :: exp_qmin_il= .false. ! User supplied Qmin for adhoc correction
+logical                                                   :: exp_qmin_fl= .false. ! User supplied Qmin for Fourier
 logical                                                   :: exp_qmax_fl= .false. ! User supplied Qmax for Fourier
+logical                                                   :: exp_qmax_ul= .false. ! User supplied Qmax for adhoc correction
 logical                                                   :: exp_qfirst_l =  .false.  ! Qvalue at first maximum
 real(kind=PREC_DP)                                        :: exp_qfirst_o =  0.000D0  ! Qvalue at first maximum
 real(kind=PREC_DP)                                        :: exp_qfirst_c =  0.000D0  ! Qvalue at first maximum
+real(kind=PREC_DP)                                        :: exp_qscale   =  0.000D0  ! Qvalue at first maximum
 real(kind=PREC_DP)                                        :: exp_qstep =   0.001D0  ! Internal Q-step usually 0.001
 real(kind=PREC_DP)                                        :: exp_rmin  =   0.01D0   ! PDF Rmin
 !

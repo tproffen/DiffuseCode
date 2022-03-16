@@ -260,6 +260,7 @@ subroutine exp2pdf_qmax(line, length)
 !
 USE exp2pdf_data_mod
 !
+use blanks_mod
 USE errlist_mod
 USE get_params_mod
 use take_param_mod
@@ -269,51 +270,124 @@ IMPLICIT NONE
 CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: length
 !
-INTEGER, PARAMETER :: MAXW = 3
+INTEGER, PARAMETER :: MAXW = 4
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER           , DIMENSION(MAXW) :: lpara
-!REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !
 INTEGER                              :: ianz
+integer :: icomma
 !
-integer, parameter :: NOPTIONAL = 3
-integer, parameter :: O_QMAX_I  = 1
-integer, parameter :: O_QMAX_F  = 2
-integer, parameter :: O_QMIN    = 3
+integer, parameter :: NOPTIONAL = 2
+integer, parameter :: O_QINST   = 1
+integer, parameter :: O_QFOUR   = 2
 character(LEN=   7), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
-integer, parameter                        :: ncalc = 3 ! Number of values to calculate 
+integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
 !
-data oname  / 'inst', 'fourier', 'qmin' /
-data loname /  4     , 7       ,  4     /
-opara  =  (/ '1.0D9',  '1.0D9', '0.0D0' /) ! Always provide fresh default values
-lopara =  (/  5     ,   5     ,  5      /)
-owerte =  (/  1.0D9  ,  1.0D9 ,  0.0D0  /)
+data oname  / 'inst', 'fourier' /
+data loname /  4     , 7        /
+opara  =  (/ '[0.0D0,1.0D9]',  '[0.0D0,1.0D9]' /) ! Always provide fresh default values
+lopara =  (/  13    ,   13     /)
+owerte =  (/  1.0D9  ,  1.0D9  /)
 !
+call rem_bl(line,length)
 call get_params(line, ianz, cpara, lpara, MAXW, length)
 if(ier_num/=0) return
 call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 if(ier_num/=0) return
 !
-if(lpresent(O_QMAX_I) ) then
-   exp_qmax_u  = owerte(O_QMAX_I)
-   exp_qmax_ul = .true. 
+exp_qmin_il = .false.
+exp_qmax_ul = .false.
+exp_qmin_fl = .false.
+exp_qmax_fl = .false.
+!
+if(lpresent(O_QINST ) ) then
+   if(opara(O_QINST)(1:1)=='[' .and. opara(O_QINST)(lopara(O_QINST):lopara(O_QINST))==']') then
+      icomma = index(opara(O_QINST)(1:lopara(O_QINST)),',')
+      if(icomma>0) then                    ! User provided a ','
+         if(icomma==2) then                ! User provided upper parameter only [,number]
+            exp_qmin_il = .false.
+            exp_qmax_ul = .true.
+            opara(O_QINST) = '[0.0D0' // opara(O_QINST)(2:lopara(O_QINST))
+            lopara(O_QINST)= lopara(O_QINST) + 5
+         elseif(icomma==lopara(O_QINST)-1) then       ! User provided lower parameter only [number,]
+            exp_qmin_il = .true.
+            exp_qmax_ul = .false.
+            opara(O_QINST) = opara(O_QINST)(1:lopara(O_QINST)-1) // '1.0D9]'
+            lopara(O_QINST)= lopara(O_QINST) + 5
+         else                              ! User provided both [number,number]
+            exp_qmin_il = .true.
+            exp_qmax_ul = .true.
+         endif
+      else                                 ! User provided upper parameter only [number]
+         exp_qmin_il = .false.
+         exp_qmax_ul = .true.
+         opara(O_QINST) = '[0.0D0,' // opara(O_QINST)(2:lopara(O_QINST)) 
+         lopara(O_QINST)= lopara(O_QINST) + 6
+      endif
+   else                                   ! User provided upper parameter only   number
+      exp_qmin_il = .false.
+      exp_qmax_ul = .true.
+      opara(O_QINST) = '[0.0D0,' // opara(O_QINST)(1:lopara(O_QINST)) // ']'
+      lopara(O_QINST)= lopara(O_QINST) + 8
+   endif
+else                                      ! User provided no parameters at all
+   exp_qmin_il = .false.
+   exp_qmax_ul = .false.
 endif
 !
-if(lpresent(O_QMAX_F) ) then
-   exp_qmax_f  = owerte(O_QMAX_F)
-   exp_qmax_fl = .true. 
+call get_optional_multi(MAXW, opara(O_QINST), lopara(O_QINST), werte, ianz)
+if(ier_num/=0) return
+exp_qmin_i = werte(1)
+exp_qmax_u = werte(2)
+!
+if(lpresent(O_QFOUR ) ) then
+   if(opara(O_QFOUR)(1:1)=='[' .and. opara(O_QFOUR)(lopara(O_QFOUR):lopara(O_QFOUR))==']') then
+      icomma = index(opara(O_QFOUR)(1:lopara(O_QFOUR)),',')
+      if(icomma>0) then                    ! User provided a ','
+         if(icomma==2) then                ! User provided upper parameter only [,number]
+            exp_qmin_fl = .false.
+            exp_qmax_fl = .true.
+            opara(O_QFOUR) = '[0.0D0' // opara(O_QFOUR)(2:lopara(O_QFOUR))
+            lopara(O_QFOUR)= lopara(O_QFOUR) + 5
+         elseif(icomma==lopara(O_QFOUR)-1) then       ! User provided lower parameter only [number,]
+            exp_qmin_fl = .true.
+            exp_qmax_fl = .false.
+            opara(O_QFOUR) = opara(O_QFOUR)(1:lopara(O_QFOUR)-1) // '1.0D9]'
+            lopara(O_QFOUR)= lopara(O_QFOUR) + 5
+         else                              ! User provided both [number,number]
+            exp_qmin_fl = .true.
+            exp_qmax_fl = .true.
+         endif
+      else                                 ! User provided upper parameter only [number]
+         exp_qmin_fl = .false.
+         exp_qmax_fl = .true.
+         opara(O_QFOUR) = '[0.0D0,' // opara(O_QFOUR)(2:lopara(O_QFOUR)) 
+         lopara(O_QFOUR)= lopara(O_QFOUR) + 6
+      endif
+   else                                   ! User provided upper parameter only   number
+      exp_qmin_fl = .false.
+      exp_qmax_fl = .true.
+      opara(O_QFOUR) = '[0.0D0,' // opara(O_QFOUR)(1:lopara(O_QFOUR)) // ']'
+      lopara(O_QFOUR)= lopara(O_QFOUR) + 8
+   endif
+else                                      ! User provided no parameters at all
+   exp_qmin_fl = .false.
+   exp_qmax_fl = .false.
 endif
 !
-if(lpresent(O_QMIN  ) ) then
-   exp_qmin_u  = owerte(O_QMIN  )
-endif
+call get_optional_multi(MAXW, opara(O_QFOUR), lopara(O_QFOUR), werte, ianz)
+if(ier_num/=0) return
+exp_qmin_f = werte(1)
+exp_qmax_f = werte(2)
+!
 !
 end subroutine exp2pdf_qmax
 !
@@ -460,6 +534,11 @@ implicit none
 exp_outiq_l = .false.
 exp_outsq_l = .false.
 exp_outfq_l = .false.
+!
+exp_qmin_il  = .false.
+exp_qmin_fl  = .false.
+exp_qmax_fl  = .false.
+exp_qmax_ul  = .false.
 !
 exp_qfirst_l =.false.
 exp_qfirst_o = 0.0D0

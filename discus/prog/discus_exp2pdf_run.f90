@@ -144,7 +144,7 @@ if(allocated(exp_back)) then    ! User provided a background file
                              exp_xb, exp_sigmab(:,1,1) , b_nequi, p_x, p_y)
 !
    q1 = d_x(1)                                          ! Lowest Q in equidistant data
-   q2 = (int(exp_qmin_u/exp_qstep) + 1) * exp_qstep     ! User Qmin
+   q2 = (int(exp_qmin_i/exp_qstep) + 1) * exp_qstep     ! User Qmin
    q3 = b_x(1)                                          ! Lowest Q in equidistant background
    exp_qmin = max(q1, q2, q3)                           ! Effective Qmin
    id_low = nint( (exp_qmin-d_x(1))/exp_qstep) + 1      ! First index in equidistant data
@@ -181,7 +181,7 @@ else
 ! No background 
 !
    q1 = d_x(1)                                          ! Lowest Q in equidistant data
-   q2 = (int(exp_qmin_u/exp_qstep) + 1) * exp_qstep     ! User Qmin
+   q2 = (int(exp_qmin_i/exp_qstep) + 1) * exp_qstep     ! User Qmin
    exp_qmin = max(q1, q2)                               ! Effective Qmin
    id_low = nint( (exp_qmin-d_x(1))/exp_qstep) + 1      ! First index in equidistant data
 !
@@ -520,6 +520,7 @@ call get_extrema
 !
 ik = iz - 1
 exp_temp_y(1:exp_nstep) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik)) !  Get F(Q)-poly
+exp_kfq = ik                                          ! Data set F(Q) in KUPLOT
 !
 !
 end subroutine exp2pdf_convert
@@ -580,7 +581,7 @@ integer :: ima
 !
 npkt_fft = 2**18
 !
-ik = iz - 1
+ik = exp_kfq    ! F(Q) in KUPLOT
 y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik)) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik)) ! Copy into previous data set
 ! Smooth previous dat set
 write(string, '(i3, a)') ik-1, ',151'
@@ -637,18 +638,48 @@ else
 endif
 exp_qmax_f = exp_temp_x(iqmax)
 !
-iframe = 1
-y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik)) = y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik))* (-1.0D0)
+ik = exp_kfq    ! F(Q) in KUPLOT
+y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik)) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik)) ! Copy into previous data set
+! Smooth previous dat set
+write(string, '(i3, a)') ik-1, ', 51'
+length = len_trim(string)
+call do_glat (string, length, .true.)
 !
+!
+iframe = 1
 ikk = ik -1                  ! Search in smoothed data
-ifen = 251
+!ikk = ik -0                  ! Search in smoothed data
+y(offxy(ikk-1)+1:offxy(ikk-1)+lenc(ik)) = y(offxy(ikk-1)+1:offxy(ikk-1)+lenc(ik))* (-1.0D0)
+!
+ifen =  75
 allocate(wmax(maxmax))
 allocate(ixm (maxmax))
 call do_fmax_xy(ikk, wmax, ixm, maxmax, ima)
 call no_error             ! Usually more than the MAXMAX=2 extrema are found ignore this error
-iqmin = ixm(1)
+!write(*,*) ' QMIN ', exp_qmin_i, exp_qmin_f, exp_qmin, exp_qmin_il, exp_qmin_fl
+if(exp_qmin_fl) then
+   iqmin = max(1,nint((exp_qmin_f-exp_temp_x(1))/exp_qstep))
+!write(*,*) ' TRUE ', exp_qmin_f, exp_temp_x(1), exp_qstep
+else
+   loop_qmin: do i=1, ima
+      if(y(offxy(ik-2)+ixm(i))>0.0) then
+         iqmin = ixm(i)
+         exit loop_qmin
+      endif
+   enddo loop_qmin
+!write(*,*) ' FALSE ', ixm(1)
+   exp_qmin_f = exp_temp_x(iqmin)
+endif
+!write(*,*) ' IQMIN ', iqmin, exp_qmin_fl, ixm(1),exp_temp_x(iqmin), exp_qmin_f
+!read(*,*) j
+y(offxy(ikk-1)+1:offxy(ikk-1)+lenc(ik)) = y(offxy(ikk-1)+1:offxy(ikk-1)+lenc(ik))*( -1.0D0)
 !
-y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik)) = y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik))*( -1.0D0)
+if(exp_inter) then
+   exp_qmin_f = max(exp_temp_x(1), exp_qmin_i, exp_qmin_f)
+   call exp2pdf_plot_qmin        ! Display F(Q) in interactive mode
+   iqmin = max(1,nint((exp_qmin_f-exp_temp_x(1))/exp_qstep))
+endif
+!
 !
 ! Find first maximum above Qmax for electron camera length correction
 !
@@ -675,10 +706,11 @@ if(exp_qfirst_o > 0.0) then    ! Only if user specified a Qfirst
    iqfirst = j
    if(iqfirst> 0) then    ! A maximum was found, correct Q-scale
       scalex = exp_qfirst_c/exp_temp_x(iqfirst)
+      exp_qscale = exp_qfirst_c/exp_temp_x(iqfirst)
       exp_qfirst_o  = exp_temp_x(iqfirst)
       x(offxy(ik-1)+1:offxy(ik-1)+lenc(ik  )) = x(offxy(ik-1)+1:offxy(ik-1)+lenc(ik  ))*scalex
       x(offxy(ik-2)+1:offxy(ik-2)+lenc(ik-1)) = x(offxy(ik-2)+1:offxy(ik-2)+lenc(ik-1))*scalex
-      exp_qfirst_o  = exp_qfirst_o * scalex
+!     exp_qfirst_o  = exp_qfirst_o * scalex
       exp_temp_x    = exp_temp_x * scalex
       exp_x         = exp_x      * scalex
       exp_qmax_f    = exp_qmax_f * scalex
@@ -709,7 +741,8 @@ qmax     = exp_qmax_f
 scalef = (0.40/(sum(abs(y_wrt))*exp_qstep/sqrt(maxval(y_wrt))/exp_qmax) ) **2
 y_wrt = y_wrt * scalef
 !
-if(exp_inter) call exp2pdf_plot_fq(2) ! Display F(Q) in interactive mode
+if(exp_inter) call exp2pdf_plot_final ! Display F(Q) in interactive mode
+!
 !
 !open(77, file='TEMP/temp_final.fq', status='unknown')
 !do i=0, npkt_wrt
@@ -838,16 +871,12 @@ else
    mstep = 0.5D0
 endif
 if(exp_qfirst_o>0.0) then
-  xx = exp_qfirst_o
+  xx = max(exp_temp_x(1), exp_qfirst_o)
 else
-  xx = exp_qmin_u
+  xx = max(0.0, exp_temp_x(1)) !qmin_f
 endif
-if(ikk==0) then
-   ikk  = iz -1
-   ytic   = 10.0**real(nint((log(abs((ymax(ikk)-ymin(ikk))*0.5))/log(10.0))))
-endif
+ikk = exp_kfq
 !
-if(istep==1) then                   ! F(Q) initial step 
 !
    iaf(iwin) = 2
    frame(iwin, 1, 1) = 0.00                ! sfra 1, 0.0, 0.45, 1.0, 1.0
@@ -880,9 +909,9 @@ if(istep==1) then                   ! F(Q) initial step
    lh5(iz)   = .false.
    lenc(iz)  = 3
    offxy(iz) = offxy(iz-1) + lenc(iz)
-   x(offxy(iz - 1) + 1) = exp_qmin_u
-   x(offxy(iz - 1) + 2) = exp_qmin_u
-   x(offxy(iz - 1) + 3) = exp_qmin_u
+   x(offxy(iz - 1) + 1) = max(exp_temp_x(1), exp_qmin_f)
+   x(offxy(iz - 1) + 2) = max(exp_temp_x(1), exp_qmin_f)
+   x(offxy(iz - 1) + 3) = max(exp_temp_x(1), exp_qmin_f)
    y(offxy(iz - 1) + 1) = ymin(ikk )
    y(offxy(iz - 1) + 3) = 0.0
    y(offxy(iz - 1) + 3) = ymax(ikk )
@@ -895,9 +924,9 @@ if(istep==1) then                   ! F(Q) initial step
    lh5(iz)   = .false.
    lenc(iz)  = 3
    offxy(iz) = offxy(iz-1) + lenc(iz)
-   x(offxy(iz - 1) + 1) = exp_qmax_f
-   x(offxy(iz - 1) + 2) = exp_qmax_f
-   x(offxy(iz - 1) + 3) = exp_qmax_f
+   x(offxy(iz - 1) + 1) = min(exp_temp_x(exp_nstep), exp_qmax_f)
+   x(offxy(iz - 1) + 2) = min(exp_temp_x(exp_nstep), exp_qmax_f)
+   x(offxy(iz - 1) + 3) = min(exp_temp_x(exp_nstep), exp_qmax_f)
    y(offxy(iz - 1) + 1) = ymin(ikk )
    y(offxy(iz - 1) + 3) = 0.0
    y(offxy(iz - 1) + 3) = ymax(ikk )
@@ -921,11 +950,19 @@ if(istep==1) then                   ! F(Q) initial step
    infra(iwin,1:2, 2) = iz - 2         ! Set vertival line, F(Q) and F(Q) smoothed
    infra(iwin,1:2, 3) = iz - 3         ! Set vertival line, F(Q) and F(Q) smoothed
    infra(iwin,1:2, 4) = iz - 4         ! Set vertival line, F(Q) and F(Q) smoothed
+!
 !  AFRA 1
-   ex(iwin, 1, 1) = -9999.0            ! skal in frame 1
-   ey(iwin, 1, 1) = -9999.0
+   iframe = 1
+!  ex(iwin, 1, 1) = -9999.0            ! skal in frame 1
+!  ey(iwin, 1, 1) = -9999.0
+write(string,'(2(f7.3,a), g12.3e3,a, g12.3e3)') xmin(ikk), ',', xmax(ikk), ',', ymin(ikk), ',', ymax(ikk)
+length = len_trim(string)
+   call set_skal(string,length)
+   ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
+   ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
+   t(1,iframe,2) = ytic
    t(iwin, 1, 1)     = mstep
-   t(iwin, 1, 2)     = ytic
+!  t(iwin, 1, 2)     = ytic
    titel(iwin, 1, 1) = 'Intermediate F(Q)'
    titel(iwin, 1, 2) = 'vertical lines mark Q\dmin\u and Q\dmax\u'
    achse(iwin, 1:2, 1) = 'Q [\A\u-1\d]'
@@ -939,13 +976,17 @@ if(istep==1) then                   ! F(Q) initial step
    ilinetyp(iwin, 1:2, iz-4:iz-1)  = 1   ! ltyp : , 1
    imarktyp(iwin, 1:2, iz-4:iz-1)  = 0   ! mtyp : , 1
    igrid(iwin, 1)    = .false.
+!
 !  AFRA 2
-   titel(iwin, 2, 1) = ' '
-   titel(iwin, 2, 1) = ' '
-   t(iwin, 2, 1)     = 0.5
-   t(iwin, 2, 2)     = ytic
-   igrid(iwin, 2)    = .true.
-   ifname(iwin, 2)   = .false.                    ! 'fname off'
+   iframe = 2
+   titel(iwin, iframe, 1) = ' '
+   titel(iwin, iframe, 1) = ' '
+   t(iwin, iframe, 1)     = 0.5
+   ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
+   ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
+   t(1,iframe,iframe) = ytic
+   igrid(iwin, iframe)    = .true.
+   ifname(iwin, iframe)   = .false.                    ! 'fname off'
 !
    CALL do_plot(.false.)
 !
@@ -953,11 +994,11 @@ if(istep==1) then                   ! F(Q) initial step
    length = 6
    call p_branch(string, length, .FALSE.,-1     )        ! Return    from  KUPLOT 
 !
-   if(.not. exp_qmax_fl) then        ! User did NOT provide Qmax for Fourier
+!  if(.not. exp_qmax_fl) then        ! User did NOT provide Qmax for Fourier
 !
-      write(output_io,'(a)') 'Choose approximate Qmax in lower frame'
-      write(output_io,'(a)') 'EXP2PDF will set Qmax to nearest Q at which F(Q) = 0.0'
-      write(output_io,'(a, f8.3)') 'Current value  : ', exp_qmax_f
+      write(output_io,'(a)') ' Choose approximate Qmax in lower frame'
+      write(output_io,'(a)') ' EXP2PDF will set Qmax to nearest Q at which F(Q) = 0.0'
+      write(output_io,'(a, f8.3)') ' Current value  : ', exp_qmax_f
       write(output_io, '(a)', advance='no') ' Type new value or Enter to accept current Qmax = '
       string = ' '
       read(*,'(a)', iostat=ios) string
@@ -965,66 +1006,202 @@ if(istep==1) then                   ! F(Q) initial step
          if(string /= ' ') read(string,*) exp_qmax_f
       endif
 !
-   else
-      string = 'return'
-      length = 6
-      call do_input(string,length)
-   endif
+!  else
+!     string = 'return'
+!     length = 6
+!     call do_input(string,length)
+!  endif
 !
-elseif(istep==2) then
-!
-   iaf(iwin)        = 2                ! nfra 2
-   infra(iwin,1:2, :) = 0              ! Remove all data sets from frame
-!  Set range for frame 2
-   infra(iwin, 2, 1) = ikk
-   iframe = 2
-   write(string,'(a,i4,a,i4,a)')  'xmax[', ikk , ']-4.0, xmax[' , ikk , ']+0.1'
-   length = len_trim(string)
-   call set_skal(string,length)
-   iframe = 1
-   infra(iwin,1:2, :) = 0              ! Remove all data sets from frame
-   infra(iwin,1:2, 1) = iz - 1         ! Set vertival line, F(Q) and F(Q) smoothed
-   infra(iwin,1:2, 2) = iz - 2         ! Set vertival line, F(Q) and F(Q) smoothed
-   infra(iwin,1:2, 3) = iz - 3         ! Set vertival line, F(Q) and F(Q) smoothed
-   infra(iwin,1:2, 4) = iz - 4         ! Set vertival line, F(Q) and F(Q) smoothed
-!
-   x(offxy(ikk +0) + 1) = xx
-   x(offxy(ikk +0) + 2) = xx
-   x(offxy(ikk +0) + 3) = xx
-   x(offxy(ikk +1) + 1) = exp_qmin
-   x(offxy(ikk +1) + 2) = exp_qmin
-   x(offxy(ikk +1) + 3) = exp_qmin
-   x(offxy(ikk +2) + 1) = exp_qmax_f
-   x(offxy(ikk +2) + 2) = exp_qmax_f
-   x(offxy(ikk +2) + 3) = exp_qmax_f
-   call get_extrema
-!
-   infra(iwin,1:2, :) = 0              ! Remove all data sets from frame
-   infra(iwin,1:2, 1) = ikk - 1        ! Set vertival line, F(Q) and F(Q) smoothed
-   infra(iwin,1:2, 2) = ikk            ! Set vertival line, F(Q) and F(Q) smoothed
-   infra(iwin,1:2, 3) = ikk + 1        ! Set vertival line, F(Q) and F(Q) smoothed
-   infra(iwin,1:2, 4) = ikk + 2        ! Set vertival line, F(Q) and F(Q) smoothed
-   infra(iwin,1:2, 5) = ikk + 3        ! Set vertival line, F(Q) and F(Q) smoothed
-!
-   CALL do_plot(.false.)
-!
-   string = 'kuplot'
-   length = 6
-   call p_branch(string, length, .FALSE.,-1     )        ! Return    from  KUPLOT 
-!
-!
-   write(output_io, *)
-   write(output_io,'(a)') 'Final F(Q) with user defined values for Qmin, Qmax'
-   write(output_io, *)
-!
-   string = 'return'
-   length = 6
-   call do_input(string,length)
-!
-   ikk = 0
-endif
 !
 end subroutine exp2pdf_plot_fq
+!
+!*******************************************************************************
+!
+subroutine  exp2pdf_plot_final
+!-
+!  In interactive mode plot F(Q) final data
+!+
+use exp2pdf_data_mod
+!
+use kuplot_mod
+use kuplot_extrema_mod
+use kuplot_frame_mod
+use kuplot_para_mod
+use kuplot_plot_mod
+!
+use errlist_mod
+use envir_mod
+use prompt_mod
+use precision_mod
+use set_sub_generic_mod
+use do_wait_mod
+!
+implicit none
+!
+character(len=PREC_STRING) :: string
+integer :: length
+!integer :: i
+integer :: ios
+integer, save :: ikk = 0
+real(kind=PREC_DP) :: mstep
+real(kind=PREC_DP) :: xx
+real(kind=PREC_DP), save :: ytic
+!
+string = 'kuplot'
+length = 6
+call p_branch(string, length, .FALSE., 1     )        ! Initialize into KUPLOT 
+!
+if((exp_temp_x(exp_nstep)-exp_temp_x(1))>40.0D0) then
+   mstep = 10.0D0
+elseif((exp_temp_x(exp_nstep)-exp_temp_x(1))>20.0D0) then
+   mstep = 5.0D0
+elseif((exp_temp_x(exp_nstep)-exp_temp_x(1))>10.0) then
+   mstep = 2.0D0
+elseif((exp_temp_x(exp_nstep)-exp_temp_x(1))>7.0) then
+   mstep = 1.0D0
+else
+   mstep = 0.5D0
+endif
+if(exp_qfirst_o>0.0) then
+  xx = max(exp_temp_x(1), exp_qfirst_c)
+else
+!  xx = max(0.0, exp_temp_x(1)) !qmin_f
+  xx = 0.0D0
+endif
+ikk = exp_kfq !max(exp_kload, exp_kback) + 3
+ytic   = 10.0**real(int((log(abs((ymax(ikk)-ymin(ikk))*0.5))/log(10.0))))
+!
+!
+iaf(iwin)        = 3                ! nfra 2
+frame(iwin, 1, 1) = 0.00                ! sfra 1, 0.0, 0.45, 1.0, 1.0
+frame(iwin, 1, 2) = 0.45
+frame(iwin, 1, 3) = 1.00
+frame(iwin, 1, 4) = 1.00
+!
+frame(iwin, 2, 1) = 0.00                ! sfra 2, 0.0, 0.00, 1.0, 0.55
+frame(iwin, 2, 2) = 0.00
+frame(iwin, 2, 3) = 0.58
+frame(iwin, 2, 4) = 0.55
+!
+frame(iwin, 3, 1) = 0.42                ! sfra 2, 0.0, 0.00, 1.0, 0.55
+frame(iwin, 3, 2) = 0.00
+frame(iwin, 3, 3) = 1.00
+frame(iwin, 3, 4) = 0.55
+!
+infra(iwin,1:3, :) = 0              ! Remove all data sets from frame
+!  Set range for frame 2
+infra(iwin, 2, 1) = ikk
+iframe = 2
+write(string,'(f8.3,a, f8.3)' ) max(0.0D0,exp_temp_x(1) - 0.25D0), ',',max(exp_temp_x(1), exp_qmin_f) + 2.5
+length = len_trim(string)
+call set_skal(string,length)
+!
+!  Set range for frame 3
+infra(iwin, 3, 1) = ikk
+iframe = 3
+write(string,'(f8.3,a, f8.3)' ) min(exp_qmax_f-2.0D0, xmax(ikk)-4.0), ',', min(exp_qmax_f+2.0D0, xmax(ikk)+0.1)
+!write(string,'(a,i4,a,i4,a)')  'xmax[', ikk , ']-4.0, xmax[' , ikk , ']+0.1'
+length = len_trim(string)
+write(*,*) ' STRING >', string(1:len_trim(string)), '<'
+call set_skal(string,length)
+!
+if(ey(1,2,2)/ey(1,3,2) > ey(1,2,1)/ey(1,3,1)) then
+   ey(1,2,1) = abs(ey(1,2,1))/ey(1,2,1) * abs(ey(1,2,2)) * abs(ey(1,3,1)/ey(1,3,2))
+elseif(ey(1,2,2)/ey(1,3,2) < ey(1,2,1)/ey(1,3,1)) then
+   ey(1,2,2) = abs(ey(1,2,2))/ey(1,2,2) * abs(ey(1,2,1)) * abs(ey(1,3,2)/ey(1,3,1))
+endif
+!
+iframe = 1
+infra(iwin,1:3, :) = 0              ! Remove all data sets from frame
+infra(iwin,1:3, 1) = ikk + 3        ! Set vertival line, F(Q) and F(Q) smoothed
+infra(iwin,1:3, 2) = ikk + 2        ! Set vertival line, F(Q) and F(Q) smoothed
+infra(iwin,1:3, 3) = ikk + 1        ! Set vertival line, F(Q) and F(Q) smoothed
+infra(iwin,1:3, 4) = ikk            ! Set vertival line, F(Q) and F(Q) smoothed
+!
+x(offxy(ikk +0) + 1) = xx
+x(offxy(ikk +0) + 2) = xx
+x(offxy(ikk +0) + 3) = xx
+x(offxy(ikk +1) + 1) = exp_qmin
+x(offxy(ikk +1) + 2) = exp_qmin
+x(offxy(ikk +1) + 3) = exp_qmin
+x(offxy(ikk +2) + 1) = exp_qmax_f
+x(offxy(ikk +2) + 2) = exp_qmax_f
+x(offxy(ikk +2) + 3) = exp_qmax_f
+call get_extrema
+!
+!  AFRA 1
+iframe = 1
+write(string,'(2(f7.3,a), g12.3e3,a, g12.3e3)') xmin(ikk), ',', xmax(ikk), ',', ymin(ikk), ',', ymax(ikk)
+length = len_trim(string)
+call set_skal(string,length)
+ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
+ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
+t(iwin, iframe, 1)     = mstep
+t(iwin, iframe, 2)     = ytic
+titel(iwin, iframe, 1) = 'Final F(Q)'
+if(exp_qfirst_o>0.0D0) then
+   titel(iwin, iframe, 2) = 'vertical red lines mark Q\dmin\u and Q\dmax\u; green line marks Q\dscale_o\u'
+else
+   titel(iwin, iframe, 2) = 'vertical red lines mark Q\dmin\u and Q\dmax\u'
+endif
+achse(iwin, 1:3, 1) = 'Q [\A\u-1\d]'
+achse(iwin, 1:3, 2) = 'F(Q)'
+ifname(iwin, iframe)   = .false.                     ! 'fname on'
+ilinecol(iwin, 1:3, ikk+3)  = 1   ! lcol qmax_f, red
+ilinecol(iwin, 1:3, ikk+2)  = 1   ! lcol qmin_u, red
+ilinecol(iwin, 1:3, ikk+1)  = 2   ! lcol qscale, green
+ilinecol(iwin, 1:3, ikk  )  = 3   ! lcol F(Q)  , blue
+ilinetyp(iwin, 1:3, ikk :ikk+3) = 1   ! ltyp : , 1
+imarktyp(iwin, 1:3, ikk :ikk+2) = 0   ! mtyp : , 1
+igrid(iwin, iframe)    = .false.
+ibox (iwin, iframe)    = 3
+!
+!  AFRA 2
+iframe = 2
+titel(iwin, iframe, 1) = ' '
+titel(iwin, iframe, 1) = ' '
+ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
+ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
+t(iwin, iframe, 1)     = 0.5
+t(iwin, iframe, 2)     = ytic
+igrid (iwin, iframe)   = .true.
+ifname(iwin, iframe)   = .false.                    ! 'fname off'
+ibox  (iwin, iframe)   = 3
+!
+!  AFRA 3
+iframe = 3
+titel(iwin, iframe, 1) = ' '
+titel(iwin, iframe, 1) = ' '
+ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
+ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
+t(iwin, iframe, 1)     = 1.0
+t(iwin, iframe, 2)     = ytic
+igrid (iwin, iframe)   = .true.
+ifname(iwin, iframe)   = .false.                    ! 'fname off'
+ibox  (iwin, iframe)   = -3
+!
+CALL do_plot(.false.)
+!
+string = 'kuplot'
+length = 6
+call p_branch(string, length, .FALSE.,-1     )        ! Return    from  KUPLOT 
+!
+!
+write(output_io, *)
+write(output_io,'(2(a,f7.3),a)') ' Final F(Q) with user defined values for Qmin, Qmax [ ', &
+   exp_qmin_f,', ', exp_qmax_f, ' ]'
+if(exp_qfirst_o>0.0D0) then
+   write(output_io,'(2(a,f7.3),a, f7.3)') ' Q-scale adapted with:   Qscale_obs, Qscale_crystal [ ', &
+   exp_qfirst_o,', ', exp_qfirst_c, ' ] ', exp_qscale
+endif
+write(output_io, *)
+!
+string = 'return'
+length = 6
+call do_input(string,length)
+!
+!
+end subroutine exp2pdf_plot_final
 !
 !*******************************************************************************
 !
@@ -1038,6 +1215,7 @@ use kuplot_mod
 use kuplot_plot_mod
 !
 use precision_mod
+use prompt_mod
 use set_sub_generic_mod
 use do_wait_mod
 !
@@ -1045,54 +1223,134 @@ implicit none
 !
 character(len=PREC_STRING) :: string
 integer :: length
+real(kind=PREC_DP) :: ytic
 !
 iaf(iwin)         = 1                  ! 'nfra 1'
-frame(iwin, 1, 1) = 0.0                !Standard region for a single frame
-frame(iwin, 1, 2) = 0.0
-frame(iwin, 1, 3) = 1.0
-frame(iwin, 1, 4) = 1.0
+iframe = 1
+frame(iwin, iframe, 1) = 0.0                !Standard region for a single frame
+frame(iwin, iframe, 2) = 0.0
+frame(iwin, iframe, 3) = 1.0
+frame(iwin, iframe, 4) = 1.0
 !
 if(exp_kback>0) then                   ! With background
-   infra(iwin,1, :) = 0                ! Remove all data sets from frame
-   infra(iwin,1, 1) = exp_kload        ! Set exp_kload and exp_back into frame 1
-   infra(iwin,1, 2) = exp_kback
-   ex(iwin, 1, 1  ) = xmin(exp_kload)  ! Set skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025
-   ex(iwin, 1, 2  ) = xmax(exp_kload)
-   ey(iwin, 1, 1  ) = 0.0
-   ey(iwin, 1, 2  ) = ymax(exp_kload)*1.025
-   ilinecol(iwin, 1, exp_kback)  = 1   ! lcol exp_kback, red
-   ilinecol(iwin, 1, exp_kload)  = 3   ! lcol exp_kload, blue
-   ilinetyp(iwin, 1, exp_kback)  = 1   ! lcol exp_kback, red
-   ilinetyp(iwin, 1, exp_kload)  = 1   ! lcol exp_kload, blue
+   infra(iwin,iframe, :) = 0                ! Remove all data sets from frame
+   infra(iwin,iframe, 1) = exp_kload        ! Set exp_kload and exp_back into frame 1
+   infra(iwin,iframe, 2) = exp_kback
+   ex(iwin, iframe, 1  ) = xmin(exp_kload)  ! Set skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025
+   ex(iwin, iframe, 2  ) = xmax(exp_kload)
+   ey(iwin, iframe, 1  ) = 0.0
+   ey(iwin, iframe, 2  ) = ymax(exp_kload)*1.025
+   ilinecol(iwin, iframe, exp_kback)  = 1   ! lcol exp_kback, red
+   ilinecol(iwin, iframe, exp_kload)  = 3   ! lcol exp_kload, blue
+   ilinetyp(iwin, iframe, exp_kback)  = 1   ! lcol exp_kback, red
+   ilinetyp(iwin, iframe, exp_kload)  = 1   ! lcol exp_kload, blue
 else
-   infra(iwin,1, :) = 0                ! Remove all data sets from frame
-   infra(iwin,1, 1) = exp_kload        ! Set exp_kload and exp_back into frame 1
-   ex(iwin, 1, 1  ) = xmin(exp_kload)  ! Set skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025
-   ex(iwin, 1, 2  ) = xmax(exp_kload)
-   ey(iwin, 1, 1  ) = 0.0
-   ey(iwin, 1, 2  ) = ymax(exp_kload)*1.025
-   ilinecol(iwin, 1, exp_kload)  = 3   ! lcol exp_kload, blue
-   ilinetyp(iwin, 1, exp_kload)  = 1   ! lcol exp_kload, blue
+   infra(iwin,iframe, :) = 0                ! Remove all data sets from frame
+   infra(iwin,iframe, 1) = exp_kload        ! Set exp_kload and exp_back into frame 1
+   ex(iwin, iframe, 1  ) = xmin(exp_kload)  ! Set skal xmin[exp_kload], xmax[exp_kload], 0.0, ymax[exp_kload]*1.025
+   ex(iwin, iframe, 2  ) = xmax(exp_kload)
+   ey(iwin, iframe, 1  ) = 0.0
+   ey(iwin, iframe, 2  ) = ymax(exp_kload)*1.025
+   ilinecol(iwin, iframe, exp_kload)  = 3   ! lcol exp_kload, blue
+   ilinetyp(iwin, iframe, exp_kload)  = 1   ! lcol exp_kload, blue
 endif
 !
-t(iwin, 1, 1)     = 5.0
-t(iwin, 1, 2)     = 10.0**real(nint(log(abs(ymax(exp_kload)*1.025)/5.0)/log(10.0)))
-titel(iwin, 1, 1) = 'tit1 Initial intensity'
-titel(iwin, 1, 2) = ' '
-achse(iwin, 1, 1) = 'Q [\A\u-1\d]'
-achse(iwin, 1, 2) = 'Intensity'
-ifname(iwin, 1)   = .true.                     ! 'fname on'
+t(iwin, iframe, 1)     = 5.0
+t(iwin, iframe, 2)     = 10.0**real(nint(log(abs(ymax(exp_kload)*1.025)/5.0)/log(10.0)))
+ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
+ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
+t(iwin, iframe, 2)     = ytic
+titel(iwin, iframe, 1) = 'Initial intensity'
+titel(iwin, iframe, 2) = ' '
+achse(iwin, iframe, 1) = 'Q [\A\u-1\d]'
+achse(iwin, iframe, 2) = 'Intensity'
+ifname(iwin, iframe)   = .true.                     ! 'fname on'
 string            = 'kuplot'
 length = 6
 call p_branch(string, length, .FALSE., 1)      ! initialize into KUPLOT
 CALL do_plot(.false.)
 call p_branch(string, length, .FALSE.,-1)      ! Retrurn from    KUPLOT
 !
+write(output_io,'(a)') ' '
+write(output_io,'(a)') ' Observed intensity '
+if(exp_kback>0) write(output_io,'(a)') '  and unscaled background '
+!
 string = 'return'
 length = 6
 call do_input(string,length)
 !
 end subroutine exp2pdf_plot_init
+!
+!*******************************************************************************
+!
+subroutine exp2pdf_plot_qmin
+!-
+!  Interactive plot for Q-scale
+!+
+use exp2pdf_data_mod
+!
+use kuplot_mod
+use kuplot_plot_mod
+use kuplot_para_mod
+!
+use envir_mod
+use precision_mod
+use prompt_mod
+use set_sub_generic_mod
+use do_wait_mod
+!
+implicit none
+!
+character(len=PREC_STRING) :: string
+integer :: length
+integer :: ios
+integer :: ikk
+real(kind=PREC_DP) :: ytic
+!
+ikk = exp_kfq
+!ytic   = (ymax(ikk)-ymin(ikk))*0.25
+!
+iframe          = 2      ! afra 2
+infra(iwin,iframe,:) = 0
+infra(iwin,iframe,1) = ikk
+!infra(iwin,iframe,3) = ikk-1
+write(string,'(f8.3,a, f8.3)' ) max(0.0D0,exp_temp_x(1) - 0.25D0), ',',max(exp_temp_x(1), exp_qmin_f) + 2.5
+length = len_trim(string)
+call set_skal(string,length)
+ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
+ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
+t(1,iframe,iframe) = ytic
+!
+infra(iwin,iframe,2) = ikk + 2
+ilinecol(iwin, iframe, ikk  ) = 3
+ilinecol(iwin, iframe, ikk+2) = 1
+x(offxy(ikk +1) + 1) = max(exp_temp_x(1), exp_qmin_f)
+x(offxy(ikk +1) + 2) = max(exp_temp_x(1), exp_qmin_f)
+x(offxy(ikk +1) + 3) = max(exp_temp_x(1), exp_qmin_f)
+
+string = 'kuplot'
+length = 6
+call p_branch(string, length, .FALSE., 1     )     ! Initialize into KUPLOT
+call do_plot(.false.)
+call p_branch(string, length, .FALSE.,-1     )     ! Retrurn from    KUPLOT
+!
+!if(.not. exp_qfirst_l) then        ! User did NOT provide Qobs for Qscale 
+!
+   write(output_io,'(a)') ' '
+   write(output_io,'(a)') ' Choose approximate Qmin for Fourier in lower frame'
+   write(output_io,'(a, f8.3)') ' Current value: ', exp_qmin_f
+   write(output_io, '(a)', advance='no') ' Type new value or Enter to accept current Qmin = '
+   read(*,'(a)', iostat=ios) string
+   if(.not. is_iostat_end(ios)) then
+      if(string /= ' ') read(string,*) exp_qmin_f
+   endif
+!else
+!   string = 'return'
+!   length = 6
+!   call do_input(string,length)
+!endif
+!
+end subroutine exp2pdf_plot_qmin
 !
 !*******************************************************************************
 !
@@ -1120,18 +1378,25 @@ integer :: ios
 integer :: ikk
 real(kind=PREC_DP) :: ytic
 !
-ikk  = max(1,iz - 4)
-ytic   = (ymax(ikk)-ymin(ikk))*0.25
+ikk = exp_kfq
 !
 iframe          = 2      ! afra 2
-infra(iwin,2,:) = 0
-infra(iwin,2,1) = ikk
-infra(iwin,2,2) = ikk + 1
+infra(iwin,iframe,:) = 0
+infra(iwin,iframe,1) = ikk
+infra(iwin,iframe,2) = ikk + 1
 write(string,'(f8.3,a, f8.3)' ) exp_qfirst_o-1.0D0, ',', exp_qfirst_o+1.0D0
 length = len_trim(string)
 call set_skal(string,length)
-ilinecol(iwin, 2, ikk  ) = 3
-ilinecol(iwin, 2, ikk+1) = 2
+ytic =     10.0**real(int(log(abs(ey(1,iframe,2)-ey(1,iframe,1)    ))/log(10.0)))
+ytic = ytic * max(1,int(abs(ey(1,iframe,2)-ey(1,iframe,1))/ytic))*0.25
+t(iwin, iframe, 1)     = 0.5
+t(iwin, iframe, 2)     = ytic
+!
+x(offxy(ikk +0) + 1) = max(exp_temp_x(1), exp_qfirst_o)
+x(offxy(ikk +0) + 2) = max(exp_temp_x(1), exp_qfirst_o)
+x(offxy(ikk +0) + 3) = max(exp_temp_x(1), exp_qfirst_o)
+ilinecol(iwin, iframe, ikk  ) = 3
+ilinecol(iwin, iframe, ikk+1) = 2
 string = 'kuplot'
 length = 6
 call p_branch(string, length, .FALSE., 1     )     ! Initialize into KUPLOT
@@ -1176,6 +1441,7 @@ if(allocated(exp_atocc )) deallocate(exp_atocc)             ! Occupancies
 exp_natom        = 0              ! Number of atom types
 exp_kload        = 0              ! Data set within KUPLOT
 exp_kback        = 0              ! Data set within KUPLOT
+exp_kfq          = 0              ! F(Q) set within KUPLOT
 exp_ksigma       = 0              ! Sigma set within KUPLOT
 exp_kupl         = 0              ! Data set within KUPLOT that needs to be kept
 exp_dim          = 0              ! Dimensions of data set
@@ -1188,11 +1454,16 @@ exp_inter        = .true.         ! Show intermittent plots
 exp_bscale        = 1.0D0         ! Background scale
 exp_qmin         = 0.0            ! Internal      Qmin
 exp_qmax         = 0.0            ! Internal      Qmax
-exp_qmin_u       = 0.0D0          ! User supplied Qmin
-exp_qmax_u       = 1.0D9          ! User supplied Qmax for adhoc correction
+exp_qmin_i       = 0.0D0          ! User supplied Qmin
+exp_qmin_f       = 0.0D0          ! User supplied Qmin
 exp_qmax_f       = 1.0D9          ! User supplied Qmax for Fourier
+exp_qmax_u       = 1.0D9          ! User supplied Qmax for adhoc correction
+!
+exp_qmin_il      = .false.        ! User supplied Qmin for adhoc correction
+exp_qmin_fl      = .false.        ! User supplied Qmin for Fourier
 exp_qmax_ul      = .false.        ! User supplied Qmax for adhoc correction
 exp_qmax_fl      = .false.        ! User supplied Qmax for Fourier
+!
 exp_qstep        =   0.001D0      ! Internal Q-step usually 0.001
 exp_rmin         =   0.01D0       ! PDF Rmin
 !
@@ -1208,6 +1479,7 @@ exp_rmax         = 100.01D0       ! PDF Rmax
 exp_rstep        =   0.01D0       ! PDF Rstep
 exp_qfirst_o     = 0.00000        ! Q value at first maximum
 exp_qfirst_c     = 0.00000        ! Q value at first maximum
+exp_qscale       = 1.0D0          ! Q-scale factor
 exp_npdf         = 0              ! Number data points in PDF
 !
 end subroutine exp2pdf_reset
