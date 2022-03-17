@@ -1468,7 +1468,8 @@ INTEGER, intent(in) :: MC
 REAL(kind=PREC_SP), intent(in) :: cc (mc) 
 LOGICAL, intent(in) :: lsm 
 !                                                                       
-REAL(kind=PREC_DP), DIMENSION(MAXARRAY) :: a (maxarray)
+!REAL(kind=PREC_DP), DIMENSION(MAXARRAY) :: a (maxarray)
+REAL(kind=PREC_DP), DIMENSION(:), allocatable :: a !(maxarray)
 REAL(kind=PREC_DP) :: xnw, s 
 !     INTEGER ik, np, nxx, nyy 
 INTEGER :: nd, na, ne, ip, jp, im, jm, i, j, k 
@@ -1481,6 +1482,7 @@ na = nd+1
 !     IF (.not.gx) goto 222 
 if_gx: if(gx) then
    ne = nxx - nd 
+   allocate(a(na:ne))
    DO j = 1, nyy 
       DO i = na, ne 
          xnw = np 
@@ -1510,6 +1512,7 @@ if_gx: if(gx) then
          z (offz (ik - 1) + (i - 1) * ny (ik) + j) = a (i) 
       ENDDO 
    ENDDO 
+   deallocate(a)
 endif if_gx
 !                                                                       
 !------ glaettung in y-richtung                                         
@@ -1518,6 +1521,7 @@ endif if_gx
 !     IF (.not.gy) goto 333 
 if_gy: if(gy) then
    ne = nyy - nd 
+   allocate(a(na:ne))
    DO i = 1, nxx 
       DO j = na, ne 
          xnw = np 
@@ -1546,6 +1550,7 @@ if_gy: if(gy) then
          z (offz (ik - 1) + (i - 1) * ny (ik) + j) = a (j) 
       ENDDO 
    ENDDO 
+   deallocate(a)
 endif if_gy
 !                                                                       
 ! 333 CONTINUE 
@@ -1571,13 +1576,17 @@ INTEGER, intent(in) :: MC
 REAL(kind=PREC_SP), dimension(MC), intent(in)  :: cc (mc) 
 LOGICAL, intent(in) :: lsm 
 !
-REAL(kind=PREC_DP) :: ay (maxarray), ady (maxarray)! , cc (mc) 
+!REAL(kind=PREC_DP) :: ay (maxarray), ady (maxarray)! , cc (mc) 
+REAL(kind=PREC_DP), dimension(:), allocatable :: ay  !(nd+1:ne)
+REAL(kind=PREC_DP), dimension(:), allocatable :: ady !(nd+1:ne)! , cc (mc) 
 REAL(kind=PREC_DP) :: s, ds, xnw 
 INTEGER :: na, ne, nd, ic, i, k, kk 
 !                                                                       
 nd = (ip - 1) / 2 
 na = nd+1 
 ne = llen - nd 
+allocate(ay(na:ne))
+allocate(ady(na:ne))
 !                                                                       
 DO i = na, ne 
    xnw = ip 
@@ -1611,8 +1620,11 @@ DO i = na, ne
    y (offxy (ik - 1) + i) = ay (i) 
    dy (offxy (ik - 1) + i) = ady (i) 
 ENDDO 
+!
+deallocate(ay) 
+deallocate(ady)
 !                                                                       
-   END SUBROUTINE do_glatt_y                     
+END SUBROUTINE do_glatt_y                     
 !
 !**7*****************************************************************   
 !
