@@ -1,4 +1,16 @@
-6.08.03  DRAFT
+6.09.02  DRAFT
+
+DISCUS
+  EXP2PDF  Continued development, improved limit selection, 
+           fine tuned graphics
+6.09.01  RELEASED 2022_03_10
+
+Minor BUG FIX compared to v.6.09.01
+
+DISCUS
+  EXP2PDF  improved handling of data and background of various lengths
+                     Corrected error related to qscale 
+6.09.00  RELEASED 2022_03_08
 
 General
   'stop'  Enabled execution of macros in stopped mode.
