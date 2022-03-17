@@ -326,6 +326,7 @@ real(kind=PREC_DP) :: fwhm
                         fwhm = 0.0
                      endif
                      pow_qmax = pow_qmax + min(5.0D0,2.0D0*pow_width*fwhm + 2*abs(pow_qzero))
+pow_qmax = min(pow_qmax, 2.*zpi/rlambda-0.0001)
                      pow_qmin = max(0.0d0, pow_qmin - 0.00D0) ! FIXED  for multi phase!
                      pow_ds_max = (pow_qmax+pow_deltaq)/(zpi)
                      pow_ds_min = pow_qmin/(zpi)
