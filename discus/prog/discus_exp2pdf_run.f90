@@ -508,9 +508,9 @@ length = 11
 call do_set(string,length)
 string = 'kuplot'
 length = 6
-call p_branch(string, length, .FALSE., 1)  ! Initialize into KUPLOT
+call p_branch_io(string, length, .FALSE., 1)  ! Initialize into KUPLOT
 CALL do_fit
-call p_branch(string, length, .FALSE.,-1)  ! Return from     KUPLOT
+call p_branch_io(string, length, .FALSE.,-1)  ! Return from     KUPLOT
 string = 'prompt, on'
 length = 10
 call do_set(string,length)
@@ -559,6 +559,7 @@ integer :: length     ! Dummy index
 integer :: iqmin      ! (rough) index for Qmax
 integer :: iqmax      ! (rough) index for Qmax
 integer :: iqfirst    !         index for first maximum in F(Q)
+integer :: iqerstes   !         index for first maximum in F(Q)
 integer :: istep      ! Step direction for "zero" search
 integer :: nstep      ! Limit for "zero" search
 integer :: ik         ! Data set number in KUPLOT
@@ -569,6 +570,7 @@ real(kind=PREC_DP) :: qmax   ! User supplied Qmax
 real(kind=PREC_DP) :: qmin   ! qmin into FFT
 real(kind=PREC_DP) :: scalex ! Scale factor for Q-axis
 real(kind=PREC_DP) :: scalef ! Magic scale factor to approximate absolute scale
+real(kind=PREC_DP) :: ydummy ! dummy intensity
 real(kind=PREC_DP), dimension(:), allocatable :: x_wrt
 real(kind=PREC_DP), dimension(:), allocatable :: y_wrt
 real(kind=PREC_DP), dimension(:), allocatable :: xfour
@@ -576,7 +578,9 @@ real(kind=PREC_DP), dimension(:), allocatable :: yfour
 !
 integer :: ikk
 real(kind=PREC_DP), dimension(:), allocatable :: wmax
-integer           , dimension(:), allocatable :: ixm 
+real(kind=PREC_DP), dimension(:), allocatable :: wmin
+integer           , dimension(:), allocatable :: ixmax
+integer           , dimension(:), allocatable :: ixmin
 integer :: ima
 !
 npkt_fft = 2**18
@@ -638,8 +642,37 @@ else
 endif
 exp_qmax_f = exp_temp_x(iqmax)
 !
+!  Determine qmin for Fourier
+!
+!  First search for maxima in broadly smoothed data
+!
+ifen = 251
+allocate(wmax( maxmax))
+allocate(ixmax(maxmax))
+!
+ik = exp_kfq    ! F(Q) in KUPLOT
+ikk = ik - 1
+y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik)) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik)) ! Copy into previous data set
+iframe = 2
+call get_extrema
+ex(iwin, iframe, 1) = xmin(ikk)
+ex(iwin, iframe, 2) = xmax(ikk)
+ey(iwin, iframe, 1) = ymin(ikk)
+ey(iwin, iframe, 2) = ymax(ikk)
+!
+call do_fmax_xy(ikk, wmax, ixmax, maxmax, ima)
+call no_error             ! Usually more than the MAXMAX=2 extrema are found ignore this error
+iqerstes = 0
+loop_qmax: do j=1, ima
+  if(exp_temp_y(ixmax(j))>0.0D0 .and. exp_temp_y(ixmax(j))>ymax(ikk)*0.05) then
+    iqerstes = ixmax(j)
+    exit loop_qmax
+  endif
+enddo loop_qmax
+!
 ik = exp_kfq    ! F(Q) in KUPLOT
 y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik)) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik)) ! Copy into previous data set
+!
 ! Smooth previous dat set
 write(string, '(i3, a)') ik-1, ', 51'
 length = len_trim(string)
@@ -652,26 +685,28 @@ ikk = ik -1                  ! Search in smoothed data
 y(offxy(ikk-1)+1:offxy(ikk-1)+lenc(ik)) = y(offxy(ikk-1)+1:offxy(ikk-1)+lenc(ik))* (-1.0D0)
 !
 ifen =  75
-allocate(wmax(maxmax))
-allocate(ixm (maxmax))
-call do_fmax_xy(ikk, wmax, ixm, maxmax, ima)
+allocate(wmin( maxmax))
+allocate(ixmin(maxmax))
+call do_fmax_xy(ikk, wmin, ixmin, maxmax, ima)
 call no_error             ! Usually more than the MAXMAX=2 extrema are found ignore this error
 !write(*,*) ' QMIN ', exp_qmin_i, exp_qmin_f, exp_qmin, exp_qmin_il, exp_qmin_fl
 if(exp_qmin_fl) then
    iqmin = max(1,nint((exp_qmin_f-exp_temp_x(1))/exp_qstep))
 !write(*,*) ' TRUE ', exp_qmin_f, exp_temp_x(1), exp_qstep
 else
+   ydummy = -1.D9
+   iqmin = 1
    loop_qmin: do i=1, ima
-      if(y(offxy(ik-2)+ixm(i))>0.0) then
-         iqmin = ixm(i)
-         exit loop_qmin
+      if(x(offxy(ik-2)+ixmin(i))>x(offxy(ik-2)+iqerstes)) exit loop_qmin
+      if(y(offxy(ik-2)+ixmin(i))>ydummy .and. y(offxy(ik-2)+ixmin(i))>0.0) then
+         iqmin = ixmin(i)
+         ydummy = y(offxy(ik-2)+ixmin(i))
+!         exit loop_qmin
       endif
    enddo loop_qmin
-!write(*,*) ' FALSE ', ixm(1)
+!write(*,*) ' FALSE ', ixmin(1)
    exp_qmin_f = exp_temp_x(iqmin)
 endif
-!write(*,*) ' IQMIN ', iqmin, exp_qmin_fl, ixm(1),exp_temp_x(iqmin), exp_qmin_f
-!read(*,*) j
 y(offxy(ikk-1)+1:offxy(ikk-1)+lenc(ik)) = y(offxy(ikk-1)+1:offxy(ikk-1)+lenc(ik))*( -1.0D0)
 !
 if(exp_inter) then
@@ -689,7 +724,7 @@ if(exp_qfirst_o > 0.0) then    ! Only if user specified a Qfirst
 ! Find first minimum for Qmin extrapolation
    if(exp_inter) call exp2pdf_plot_qscale
    ikk = ik - 1                  ! Search in smoothed data
-   call do_fmax_xy(ikk, wmax, ixm, maxmax, ima)
+   call do_fmax_xy(ikk, wmin, ixmin, maxmax, ima)
    call no_error             ! Usually more than the MAXMAX=2 extrema are found ignore this error
    if(exp_qfirst_o< 0.01) then
       iqfirst = nint((exp_qfirst_c-exp_temp_x(1))/exp_qstep) + 1
@@ -698,9 +733,9 @@ if(exp_qfirst_o > 0.0) then    ! Only if user specified a Qfirst
    endif
    ii      = exp_nstep + 1
    loop_first:do i=1, ima
-      if(abs(ixm(i)-iqfirst) <= ii) then
-         j       = ixm(i)
-         ii = abs(ixm(i)-iqfirst)
+      if(abs(ixmin(i)-iqfirst) <= ii) then
+         j       = ixmin(i)
+         ii = abs(ixmin(i)-iqfirst)
       endif
    enddo loop_first
    iqfirst = j
@@ -717,8 +752,10 @@ if(exp_qfirst_o > 0.0) then    ! Only if user specified a Qfirst
    endif
 endif
 
+deallocate(wmin)
+deallocate(ixmin )
 deallocate(wmax)
-deallocate(ixm )
+deallocate(ixmax )
 !
 !
 if(allocated(x_wrt)) deallocate(x_wrt)
@@ -857,7 +894,7 @@ real(kind=PREC_DP), save :: ytic
 !
 string = 'kuplot'
 length = 6
-call p_branch(string, length, .FALSE., 1     )        ! Initialize into KUPLOT 
+call p_branch_io(string, length, .FALSE., 1     )        ! Initialize into KUPLOT 
 !
 if((exp_temp_x(exp_nstep)-exp_temp_x(1))>40.0D0) then
    mstep = 10.0D0
@@ -992,7 +1029,7 @@ length = len_trim(string)
 !
    string = 'kuplot'
    length = 6
-   call p_branch(string, length, .FALSE.,-1     )        ! Return    from  KUPLOT 
+   call p_branch_io(string, length, .FALSE.,-1     )        ! Return    from  KUPLOT 
 !
 !  if(.not. exp_qmax_fl) then        ! User did NOT provide Qmax for Fourier
 !
@@ -1049,7 +1086,7 @@ real(kind=PREC_DP), save :: ytic
 !
 string = 'kuplot'
 length = 6
-call p_branch(string, length, .FALSE., 1     )        ! Initialize into KUPLOT 
+call p_branch_io(string, length, .FALSE., 1     )        ! Initialize into KUPLOT 
 !
 if((exp_temp_x(exp_nstep)-exp_temp_x(1))>40.0D0) then
    mstep = 10.0D0
@@ -1102,7 +1139,6 @@ iframe = 3
 write(string,'(f8.3,a, f8.3)' ) min(exp_qmax_f-2.0D0, xmax(ikk)-4.0), ',', min(exp_qmax_f+2.0D0, xmax(ikk)+0.1)
 !write(string,'(a,i4,a,i4,a)')  'xmax[', ikk , ']-4.0, xmax[' , ikk , ']+0.1'
 length = len_trim(string)
-write(*,*) ' STRING >', string(1:len_trim(string)), '<'
 call set_skal(string,length)
 !
 if(ey(1,2,2)/ey(1,3,2) > ey(1,2,1)/ey(1,3,1)) then
@@ -1184,7 +1220,7 @@ CALL do_plot(.false.)
 !
 string = 'kuplot'
 length = 6
-call p_branch(string, length, .FALSE.,-1     )        ! Return    from  KUPLOT 
+call p_branch_io(string, length, .FALSE.,-1     )        ! Return    from  KUPLOT 
 !
 !
 write(output_io, *)
@@ -1267,9 +1303,9 @@ achse(iwin, iframe, 2) = 'Intensity'
 ifname(iwin, iframe)   = .true.                     ! 'fname on'
 string            = 'kuplot'
 length = 6
-call p_branch(string, length, .FALSE., 1)      ! initialize into KUPLOT
+call p_branch_io(string, length, .FALSE., 1)      ! initialize into KUPLOT
 CALL do_plot(.false.)
-call p_branch(string, length, .FALSE.,-1)      ! Retrurn from    KUPLOT
+call p_branch_io(string, length, .FALSE.,-1)      ! Retrurn from    KUPLOT
 !
 write(output_io,'(a)') ' '
 write(output_io,'(a)') ' Observed intensity '
@@ -1330,9 +1366,9 @@ x(offxy(ikk +1) + 3) = max(exp_temp_x(1), exp_qmin_f)
 
 string = 'kuplot'
 length = 6
-call p_branch(string, length, .FALSE., 1     )     ! Initialize into KUPLOT
+call p_branch_io(string, length, .FALSE., 1     )     ! Initialize into KUPLOT
 call do_plot(.false.)
-call p_branch(string, length, .FALSE.,-1     )     ! Retrurn from    KUPLOT
+call p_branch_io(string, length, .FALSE.,-1     )     ! Retrurn from    KUPLOT
 !
 !if(.not. exp_qfirst_l) then        ! User did NOT provide Qobs for Qscale 
 !
@@ -1399,9 +1435,9 @@ ilinecol(iwin, iframe, ikk  ) = 3
 ilinecol(iwin, iframe, ikk+1) = 2
 string = 'kuplot'
 length = 6
-call p_branch(string, length, .FALSE., 1     )     ! Initialize into KUPLOT
+call p_branch_io(string, length, .FALSE., 1     )     ! Initialize into KUPLOT
 call do_plot(.false.)
-call p_branch(string, length, .FALSE.,-1     )     ! Retrurn from    KUPLOT
+call p_branch_io(string, length, .FALSE.,-1     )     ! Retrurn from    KUPLOT
 !
 if(.not. exp_qfirst_l) then        ! User did NOT provide Qobs for Qscale 
 !
