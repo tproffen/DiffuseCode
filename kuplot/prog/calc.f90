@@ -58,13 +58,21 @@ IF (ik.gt.0.and.ik.lt.iz) then
    ilen = lenc (ik) 
    IF (unt.eq.'WX') then 
       IF (lni (ik) ) ilen = nx (ik) 
-      CALL calc_xy (x, ilen, ik, oper, werte, maxw, ianz) 
+      if(oper=='SIG') then
+         CALL calc_xy_d (x,dx, ilen, ik) 
+      else
+         CALL calc_xy (x, ilen, ik, oper, werte, maxw, ianz) 
+      endif
       IF (ier_num.ne.0) return 
       CALL get_extrema_xy (x, ik, ilen, xmin, xmax) 
       CALL show_data (ik) 
    ELSEIF (unt.eq.'WY') then 
       IF (lni (ik) ) ilen = ny (ik) 
-      CALL calc_xy (y, ilen, ik, oper, werte, maxw, ianz) 
+      if(oper=='SIG') then
+         CALL calc_xy_d (y,dy, ilen, ik)
+      else
+         CALL calc_xy (y, ilen, ik, oper, werte, maxw, ianz) 
+      endif
       IF (ier_num.ne.0) return 
       CALL get_extrema_xy (y, ik, ilen, ymin, ymax) 
       CALL show_data (ik) 
@@ -178,6 +186,32 @@ ELSE
 ENDIF 
 !                                                                       
 END SUBROUTINE calc_xy                        
+!
+!*****7*****************************************************************
+!
+SUBROUTINE calc_xy_d (a, da, ilen, ik) 
+!+                                                                      
+!     berechnungen fuer x und y feld                                    
+!-                                                                      
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
+use lib_random_func
+USE precision_mod
+!                                                                       
+IMPLICIT none 
+!                                                                       
+REAL(kind=PREC_DP), dimension(MAXARRAY), intent(inout) :: a ! (maxarray) 
+REAL(kind=PREC_DP), dimension(MAXARRAY), intent(in   ) :: da! (maxarray) 
+integer                                , intent(in)    :: ilen
+integer                                , intent(in)    :: ik
+INTEGER :: i 
+!                                                                       
+do i = 1, ilen
+  a(offxy(ik - 1) + i) = a(offxy(ik - 1) + i) + gasdev(da(offxy(ik - 1) + i))
+enddo
+!                                                                       
+END SUBROUTINE calc_xy_d
 !
 !*****7*****************************************************************
 !
