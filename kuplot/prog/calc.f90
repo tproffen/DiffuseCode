@@ -1147,8 +1147,10 @@ CHARACTER(LEN=PREC_STRING) :: cpara (maxw)
 REAL(KIND=PREC_DP) :: werte (maxw)
 REAL(kind=PREC_DP) :: x_igg 
 REAL(kind=PREC_DP) :: yyy 
-REAL(kind=PREC_DP) :: xpl (maxarray), ypl (maxarray) 
-REAL(kind=PREC_DP) :: y2a (maxarray) 
+REAL(kind=PREC_DP),dimension(:), allocatable :: xpl !(maxarray)
+REAL(kind=PREC_DP),dimension(:), allocatable :: ypl !(maxarray)
+REAL(kind=PREC_DP),dimension(:), allocatable :: y2a !(maxarray)
+!REAL(kind=PREC_DP) :: y2a (maxarray) 
 INTEGER :: lpara (maxw), maxpp, ntot 
 INTEGER :: ianz, ibin, igg, ik, ig, i 
 !                                                                       
@@ -1194,6 +1196,10 @@ IF (ntot.gt.maxpp) then
    ier_typ = ER_APPL 
    RETURN 
 ENDIF 
+!
+allocate(xpl(1:lenc(ik)))
+allocate(ypl(1:lenc(ik)))
+allocate(y2a(1:lenc(ik)))
 !                                                                       
 !------ Now we interpolate the data                                     
 !                                                                       
@@ -1221,6 +1227,10 @@ DO i = 1, ntot
    dx(ibin) = dx(igg)
    dy(ibin) = dy(igg)
 ENDDO 
+!
+deallocate(xpl)
+deallocate(ypl)
+deallocate(y2a)
 !                                                                       
 lenc (iz) = ntot 
 fform (iz) = fform (ig) 
