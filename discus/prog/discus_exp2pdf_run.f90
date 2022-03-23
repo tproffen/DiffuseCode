@@ -452,10 +452,7 @@ use set_sub_generic_mod
 !
 implicit none
 !
-integer, parameter :: itmp = 77
-!
 character(len=PREC_STRING) :: string
-character(len=PREC_STRING) :: tempfile
 integer :: length     ! Dummy index
 integer :: ik         ! Data set number in KUPLOT
 !
@@ -910,7 +907,7 @@ endif
 if(exp_qfirst_o>0.0) then
   xx = max(exp_temp_x(1), exp_qfirst_o)
 else
-  xx = max(0.0, exp_temp_x(1)) !qmin_f
+  xx = max(0.0D0, exp_temp_x(1)) !qmin_f
 endif
 ikk = exp_kfq
 !
@@ -1040,7 +1037,10 @@ length = len_trim(string)
       string = ' '
       read(*,'(a)', iostat=ios) string
       if(.not.is_iostat_end(ios)) then
-         if(string /= ' ') read(string,*) exp_qmax_f
+         if(string /= ' ') then
+            read(string,*) exp_qmax_f
+            exp_qmax_f = min(exp_qmax_f, exp_temp_x(exp_nstep), exp_qmax)
+         endif
       endif
 !
 !  else
@@ -1077,8 +1077,6 @@ implicit none
 !
 character(len=PREC_STRING) :: string
 integer :: length
-!integer :: i
-integer :: ios
 integer, save :: ikk = 0
 real(kind=PREC_DP) :: mstep
 real(kind=PREC_DP) :: xx
@@ -1378,7 +1376,10 @@ call p_branch_io(string, length, .FALSE.,-1     )     ! Retrurn from    KUPLOT
    write(output_io, '(a)', advance='no') ' Type new value or Enter to accept current Qmin = '
    read(*,'(a)', iostat=ios) string
    if(.not. is_iostat_end(ios)) then
-      if(string /= ' ') read(string,*) exp_qmin_f
+      if(string /= ' ') then
+         read(string,*) exp_qmin_f
+         exp_qmin_f = max(exp_qmin_f, exp_temp_x(1), exp_qmin)
+      endif
    endif
 !else
 !   string = 'return'
