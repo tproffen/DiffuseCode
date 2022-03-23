@@ -429,9 +429,9 @@ integer, parameter                        :: ncalc = 1 ! Number of values to cal
 !
 data oname  / 'order' /
 data loname /  5      /
-opara  =  (/ '7.000' /) ! Always provide fresh default values
+opara  =  (/ '9.000' /) ! Always provide fresh default values
 lopara =  (/  5          /)
-owerte =  (/  7.000  /)
+owerte =  (/  9.000  /)
 !
 call get_params(line, ianz, cpara, lpara, MAXW, length)
 if(ier_num/=0) return
