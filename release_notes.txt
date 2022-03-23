@@ -1,8 +1,15 @@
-6.09.02  DRAFT
+6.09.03  DRAFT
+6.09.02  RELEASED 2022_03_23
 
 DISCUS
   EXP2PDF  Continued development, improved limit selection, 
            fine tuned graphics
+
+KUPLOT
+  ccal     Added a further parameter "sig", which will add a
+           Gaussian distributed nois to the data set.
+  fft      Added a FastFourier transform
+
 6.09.01  RELEASED 2022_03_10
 
 Minor BUG FIX compared to v.6.09.01
