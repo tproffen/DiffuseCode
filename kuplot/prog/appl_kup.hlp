@@ -97,6 +97,15 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2022_March
+
+   The fit routine has been made more stable
+
+   A new parameter "sig" on the ccal command allows to create a
+   data set with noise.
+
+   The FFT algorithm has been finished.
+
 3  2021_October
 
    All picture output is first written as postscript file and 
@@ -1358,6 +1367,17 @@
    'grid' (-> grid). The variable axis[i,j] allows one to change 
    various details of the axes and frame (-> variables). Note that the
    values are given in character height units.
+2  fft
+!p fft real:<ir>, imag:<ii>
+
+   This command calculates a Fast Fourier.
+   The real part of the data reside in data set number <ik>, 
+   the imaginary in data set number <ii>
+   At least one part (real or imaginary has to be given. The results are 
+   placed into the next two available data sets. 
+
+   The data can be 1D, 2D or 3D. Both real and imaginary data 
+   have to be of the same dimension. 
 2  four
 !p four <ik> [,<Qmin>, <Qmax>, <deltaQ>] [,<code>]
 
