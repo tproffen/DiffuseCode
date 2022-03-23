@@ -515,12 +515,11 @@ CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
 IF(ier_num /= 0) RETURN
 !
 isdim = 1
-write(*,*) ' HDF5 ? ', lh5((1))
 IF(lpresent(O_REAL) .AND. lpresent(O_IMAG)) THEN        ! User specified REAL and IMAG
    idata(1) = NINT(owerte(O_REAL))
    idata(2) = NINT(owerte(O_IMAG))
-   IF(lh5(idata(1)).EQV.lh5(idata(2))  .AND.   &        ! Both DATA equivalent ?
-      lni(idata(1)).EQV.lni(idata(2))        ) THEN     ! Both DATA equivalent ?
+   IF((lh5(idata(1)).EQV.lh5(idata(2)))  .AND.   &        ! Both DATA equivalent ?
+      (lni(idata(1)).EQV.lni(idata(2)))        ) THEN     ! Both DATA equivalent ?
       IF(lh5(idata(1))) THEN                            ! Both are 3D
          isdim = 3
       ELSEIF(lni(idata(1))) THEN                        ! Both are 2D
