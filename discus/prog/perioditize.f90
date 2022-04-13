@@ -140,7 +140,7 @@ loop_menu: do
 !
 ! - Test common menu entries
 !
-   CALL discus_kdo_common(befehl, lbef, line, length, zeile, lp, 'symm' , &
+   CALL discus_kdo_common(befehl, lbef, line, length, zeile, lp, 'peri' , &
                           lend, success)
    if(lend) exit loop_menu
    if(success) cycle loop_menu
@@ -737,7 +737,7 @@ real(kind=PREC_DP), intent(in) :: aver          ! Average number of atoms per un
 logical, parameter :: lspace =.TRUE.
 integer :: i, j, ic, k                 ! Dummy counters
 real(kind=PREC_DP) :: eps              ! Distance to say we are in the same cluster
-real(kind=PREC_DP), dimension(3,2*nint(aver)) :: pdt_temp      ! Positions of the average cell
+real(kind=PREC_DP), dimension(3,4*nint(aver)) :: pdt_temp      ! Positions of the average cell
 real(kind=PREC_DP), dimension(3)              :: uvw           ! fractional coordinates of atom
 real(kind=PREC_DP), dimension(3)              :: u             ! fractional coordinates of atom
 real(kind=PREC_DP) :: dist
@@ -745,8 +745,8 @@ real(kind=PREC_DP) :: dmin
 integer :: istart    ! Start index for atom loop
 integer :: nred      ! Number of sites to remove
 integer                                       :: temp_nsite    ! Initial number of sites
-integer           , dimension(  2*nint(aver)) :: pdt_temp_n    ! Number of atoms per site
-logical           , dimension(  2*nint(aver)) :: is_valid      ! This site is OK T/F
+integer           , dimension(  4*nint(aver)) :: pdt_temp_n    ! Number of atoms per site
+logical           , dimension(  4*nint(aver)) :: is_valid      ! This site is OK T/F
 !
 pdt_nsite = aver                       ! Initialize number of sites per unit cell
 eps = 0.30                             ! Start with 0.5 Angstroem
@@ -786,6 +786,13 @@ loop_atoms: do i=istart, cr_natoms
          pdt_temp_n( ic) = pdt_temp_n( ic) + 1
       else                                 ! To far , new cluster
          pdt_asite = pdt_asite + 1
+         if(pdt_asite>ubound(pdt_temp, 2)) then
+            ier_num = -184
+            ier_typ = ER_APPL
+            write(ier_msg(1),'(a,i6,a)') 'More than ',pdt_asite,' sites'
+            ier_msg(2) = 'Structure appears too disordered to perioditize'
+            return
+         endif
          pdt_temp(:, pdt_asite) = uvw
          pdt_temp_n( pdt_asite) = 1
       endif
