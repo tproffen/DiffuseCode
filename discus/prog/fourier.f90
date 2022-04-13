@@ -737,8 +737,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDDO 
                         cpara (1) = '0.0' 
                         lpara (1) = 3 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxw)                                           
+                        CALL ber_params (ianz, cpara, lpara, werte, maxw)
                         IF (ier_num.eq.0) then 
                            DO k = 1, i 
                            DO i = 2, ianz-1 
@@ -757,8 +756,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   i = 1 
                   CALL get_iscat (i, cpara, lpara, werte, maxw, lold) 
                   IF (ier_num.eq.0) then 
-                     IF (str_comp (cpara (2) , 'internal', 2, lpara (1) &
-                     , 8) ) then                                        
+                     IF(str_comp(cpara(2), 'internal', 2, lpara(2), 8)) then
                         IF (werte (1) .gt.0.0D0) then 
                            k = nint (werte (1) ) 
                            cr_scat_int (k) = .true. 
