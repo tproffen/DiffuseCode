@@ -1,4 +1,11 @@
 6.09.03  DRAFT
+
+DISCUS
+  perioditize BUG FIX, help did not work
+  export      BUG FIX, command could not be reached
+  import      BUG FIX, increased flexibility for RMC6f formats
+  transform   BUG FIX, did not run if new lattice parameters were given
+
 6.09.02  RELEASED 2022_03_23
 
 DISCUS
