@@ -79,7 +79,7 @@ LOGICAL            , INTENT(OUT)   :: lend
 INTEGER            , INTENT(INOUT) :: length 
 !                                                                       
 CHARACTER(LEN=MAX(PREC_STRING, LEN(line))) :: zeile 
-CHARACTER(len=5) :: befehl 
+CHARACTER(len=7) :: befehl 
 INTEGER :: indxb, indxg, lcomm, lbef 
 INTEGER                  :: indxt ! position of a TAB
 INTEGER                  ::  inverse_type
@@ -104,7 +104,7 @@ IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   &
       indxb = index (line, ' ')       ! find a blank
       IF(indxb==0) indxb = length + 1
       indxb = MIN(indxb,indxt)
-      lbef = min (indxb - 1, 5) 
+      lbef = min (indxb - 1, len(befehl)) 
       befehl = line (1:lbef) 
 !                                                                       
 !------ command parameters start at the first character following       
