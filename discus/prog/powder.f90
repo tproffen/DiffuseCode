@@ -353,23 +353,48 @@ pow_qmax = min(pow_qmax, 2.*zpi/rlambda-0.0001)
                      ELSE
                         CALL powder_complete 
                      ENDIF
-                     IF(ier_num == 0) THEN
-                        four_was_run = .true.
-                        CALL powder_convolute   ! convolute with profile
-                        CALL phases_place       ! Copy current powder pattern into proper phase entry
-                        IF (pow_four_type.eq.POW_DEBYE) THEN 
-                           four_last = POWD_DY
-                           if(pow_lperiod) call pow_pdf_hist_prep_period
-                        ELSE
-                           four_last = POWD_CO
-                        ENDIF 
-                     ENDIF 
+   call powder_run_post
                      ENDIF 
                      pow_qmin = pow_qmin_u ! Restore user settings
                      pow_qmax = pow_qmax_u ! Restore user settings
                   ENDIF 
 !
 end subroutine powder_run
+!
+!*******************************************************************************
+!
+subroutine powder_run_post
+!-
+!  Perform the post powder calculation processes:
+!  convolution
+!  place into phases
+!+
+use diffuse_mod
+use powder_mod
+use powder_pdf_hist_mod
+use powder_write_mod
+use phases_mod
+USE phases_set_mod
+!
+use errlist_mod
+!
+implicit none
+!
+IF(ier_num == 0) THEN
+   four_was_run = .true.
+   CALL powder_convolute   ! convolute with profile
+   CALL phases_place       ! Copy current powder pattern into proper phase entry
+   IF (pow_four_type.eq.POW_DEBYE) THEN 
+      four_last = POWD_DY
+      if(pow_lperiod) call pow_pdf_hist_prep_period
+   ELSE
+      four_last = POWD_CO
+   ENDIF 
+ENDIF 
+!
+end subroutine powder_run_post
+!
+!*******************************************************************************
 !
       SUBROUTINE pow_show 
 !-                                                                      
