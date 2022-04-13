@@ -16,6 +16,7 @@ USE lib_errlist_func
 USE operating_mod
 USE precision_mod
 USE prompt_mod 
+use str_comp_mod
 use string_convert_mod
 USE terminal_mod
 !                                                                       
@@ -56,7 +57,8 @@ IF(operating == OS_LINUX_WSL) THEN
       call do_cap(line)
       ll = len_trim(line)
       call rem_leading_bl(line, ll)
-      if(is_iostat_end(ios) .or. line(1:3)=='YES') then
+      if(is_iostat_end(ios) .or. line(1:3)=='YES' .or. &
+         str_comp(line, 'Y', 1, ll, 1)                ) then
          CALL lib_f90_update_ubuntu
       else
          write(*,*)
