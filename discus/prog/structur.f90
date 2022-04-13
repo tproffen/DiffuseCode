@@ -4033,6 +4033,7 @@ SUBROUTINE rmcf62discus(ird, iwr, lperiod)
 USE blanks_mod
 USE errlist_mod
 USE get_params_mod
+use param_mod
 use precision_mod
 !
 IMPLICIT NONE
@@ -4048,11 +4049,22 @@ CHARACTER(LEN= 4), DIMENSION(:)  , ALLOCATABLE :: r6_at_name
 REAL(KIND=PREC_DP)             , DIMENSION(:,:), ALLOCATABLE :: r6_pos
 INTEGER          , DIMENSION(:)  , ALLOCATABLE :: r6_site
 INTEGER          , DIMENSION(:,:), ALLOCATABLE :: r6_cell
-INTEGER, PARAMETER  :: MAXP = 9
+INTEGER, PARAMETER  :: MAXP = 11
 INTEGER                               :: ianz
 CHARACTER(LEN=1024),DIMENSION(1:MAXP) :: cpara
 INTEGER            ,DIMENSION(1:MAXP) :: lpara
 INTEGER                               :: length
+integer                :: col_num       ! Column with atom namem
+integer                :: col_name      ! Column with atom name
+integer                :: col_bracket   ! Column with [ ]
+integer                :: col_x         ! Column with x coordinate
+integer                :: col_y         ! Column with y coordinate
+integer                :: col_z         ! Column with z coordinate
+integer                :: col_site      ! Column with site number
+integer                :: col_c_x       ! Column with unit cell x
+integer                :: col_c_y       ! Column with unit cell y
+integer                :: col_c_z       ! Column with unit cell z
+logical                :: lsite         ! Site info is present
 !
 INTEGER                :: i, inumber ! Dummy index
 INTEGER                :: iostatus   ! Current line number for error reports
@@ -4116,9 +4128,75 @@ ALLOCATE(r6_site   (    1:natoms))
 ALLOCATE(r6_cell   (1:3,1:natoms))
 r6_at_name(  :) = ' '
 r6_pos    (:,:) = 0.0
-r6_site   (  :) = 0
-r6_cell   (:,:) = 0
-atoms:DO i=1,natoms
+r6_site   (  :) = -1
+r6_cell   (:,:) = -1
+!
+! Read first atom line to determine rmc6f format details
+i = 1
+nline = nline + 1
+READ(ird,'(a)',iostat=iostatus) line
+length = LEN_TRIM(line)
+CALL get_params_blank (line, ianz, cpara, lpara, MAXP, length)
+IF ( IS_IOSTAT_END(iostatus )) THEN
+   WRITE(ier_msg(1),'(a,i8)') 'Error in line ', nline
+   ier_num = -6
+   ier_typ = ER_IO
+   RETURN
+ENDIF
+col_num     =  1
+col_name    =  2
+col_bracket =  3
+col_x       =  4
+col_y       =  5
+col_z       =  6
+col_site    =  7
+col_c_x     =  8
+col_c_y     =  9
+col_c_z     = 10
+lsite       = .TRUE.
+if(index(cpara(3), '[')/=0) then  ! column 3 is [ ]
+   col_bracket = 3
+   col_x       = 4
+   col_y       = 5
+   col_z       = 6
+   if(ianz==10) then
+      lsite = .TRUE.
+      col_site =  7
+      col_c_x  =  8
+      col_c_y  =  9
+      col_c_z  = 10
+   else
+      lsite = .FALSE.
+   endif
+else                              !column 3 is x-position
+   col_bracket = 11 
+   col_x       =  3
+   col_y       =  4
+   col_z       =  5
+   if(ianz== 9) then
+      lsite = .TRUE.
+      col_site =  6
+      col_c_x  =  7
+      col_c_y  =  8
+      col_c_z  =  9
+   else
+      lsite = .FALSE.
+   endif
+endif
+READ(cpara(col_num ) ,*) inumber
+READ(cpara(col_name), '(a)') r6_at_name(i)
+READ(cpara(col_x   ), *) r6_pos(1,i)
+READ(cpara(col_y   ), *) r6_pos(2,i)
+READ(cpara(col_z   ), *) r6_pos(3,i)
+if(lsite) then
+   READ(cpara(col_site), *) r6_site(i)
+   READ(cpara(col_c_x ), *) r6_cell(1,i)
+   READ(cpara(col_c_y ), *) r6_cell(2,i)
+   READ(cpara(col_c_z ), *) r6_cell(3,i)
+   nsites = MAX(nsites, r6_site(i))
+endif
+!
+atoms:DO i=2,natoms
    nline = nline + 1
    READ(ird,'(a)',iostat=iostatus) line
    length = LEN_TRIM(line)
@@ -4129,31 +4207,35 @@ atoms:DO i=1,natoms
       ier_typ = ER_IO
       RETURN
    ENDIF
-   length = LEN_TRIM(line)
-   CALL get_params_blank (line, ianz, cpara, lpara, MAXP, length)
-   IF(ier_num/=0) then
-      WRITE(ier_msg(1),'(a,i8)') 'Error in line ', nline
-      RETURN
-   ENDIF
-   READ(cpara(1) ,*) inumber
-   READ(cpara(2), '(a)') r6_at_name(i)
-   READ(cpara(3), *) r6_pos(1,i)
-   READ(cpara(4), *) r6_pos(2,i)
-   READ(cpara(5), *) r6_pos(3,i)
-   READ(cpara(6), *) r6_site(i)
-   READ(cpara(7), *) r6_cell(1,i)
-   READ(cpara(8), *) r6_cell(2,i)
-   READ(cpara(9), *) r6_cell(3,i)
-   nsites = MAX(nsites, r6_site(i))
+!  length = LEN_TRIM(line)
+!  CALL get_params_blank (line, ianz, cpara, lpara, MAXP, length)
+!  IF(ier_num/=0) then
+!     WRITE(ier_msg(1),'(a,i8)') 'Error in line ', nline
+!     RETURN
+!  ENDIF
+   READ(cpara(col_num ) ,*) inumber
+   READ(cpara(col_name), '(a)') r6_at_name(i)
+   READ(cpara(col_x   ), *) r6_pos(1,i)
+   READ(cpara(col_y   ), *) r6_pos(2,i)
+   READ(cpara(col_z   ), *) r6_pos(3,i)
+   if(lsite) then
+      READ(cpara(col_site), *) r6_site(i)
+      READ(cpara(col_c_x ), *) r6_cell(1,i)
+      READ(cpara(col_c_y ), *) r6_cell(2,i)
+      READ(cpara(col_c_z ), *) r6_cell(3,i)
+      nsites = MAX(nsites, r6_site(i))
+   endif
 ENDDO atoms
 !
-IF(lperiod) THEN
-   CALL rmc6f_period(natoms, nsites, lattice, super, r6_at_name, r6_pos, r6_site, r6_cell)
+IF(lperiod .and. lsite) THEN
+   CALL rmc6f_period(natoms, nsites, lattice, super, r6_at_name, r6_pos, r6_site, r6_cell, lsite)
+else
+   nsites = natoms
 ENDIF
 WRITE(iwr, 1000) title(1:LEN_TRIM(title))
 WRITE(iwr, 1100)
 WRITE(iwr, 1200) lattice
-IF(lperiod) THEN
+IF(lperiod .and. lsite) THEN
    WRITE(iwr, 1250) super, nsites
 ELSE
    WRITE(iwr, 1250) 1,1,1, natoms
@@ -4162,6 +4244,36 @@ WRITE(iwr, 1300)
 watoms: DO i=1,natoms
    WRITE(iwr, 2000) r6_at_name(i), r6_pos(:,i)
 ENDDO watoms
+!
+if(ier_num==-146) then        ! Error in rmc6f_period
+   res_para(1)   = 0.0D0   ! Failure to perioditize
+   res_para(2:4) = super
+   res_para(5)   = natoms
+   res_para(6)   = natoms
+   res_para(0)   = 6
+else
+   if(lperiod) then              ! User instructed to perioditize
+      if(lsite) then             ! Site info was present, success
+         res_para(1)   = 1.0D0   ! Success
+            res_para(2:4) = super
+         res_para(5)   = nsites
+         res_para(6)   = natoms
+         res_para(0)   = 6
+      else
+         res_para(1)   = 0.0D0   ! Failure to perioditize
+         res_para(2:4) = super
+         res_para(5)   = natoms
+         res_para(6)   = natoms
+         res_para(0)   = 6
+      endif
+   else
+      res_para(1)   = -1.0D0     ! Success to import but no perioditize
+      res_para(2:4) = super
+      res_para(5)   = natoms
+      res_para(6)   = natoms
+      res_para(0)   = 6
+   endif
+endif
 !
 DEALLOCATE(r6_at_name)
 DEALLOCATE(r6_pos    )
@@ -4179,20 +4291,21 @@ END SUBROUTINE rmcf62discus
 !
 !*******************************************************************************
 !
-SUBROUTINE rmc6f_period(natoms, nsites, lattice, super, r6_at_name, r6_pos, r6_site, r6_cell)
+SUBROUTINE rmc6f_period(natoms, nsites, lattice, super, r6_at_name, r6_pos, r6_site, r6_cell, lsite)
 !
 use precision_mod
 !
 implicit none
 !
-INTEGER                          , INTENT(IN)    :: natoms     ! Number of atoms
-INTEGER                          , INTENT(IN)    :: nsites     ! Number of sites in teh unit cell
-CHARACTER(LEN= 4), DIMENSION(  natoms), INTENT(INOUT) :: r6_at_name
-REAL(KIND=PREC_DP)             , DIMENSION(3       ), INTENT(INOUT) :: lattice
-INTEGER          , DIMENSION(3       ), INTENT(INOUT) :: super
-REAL(KIND=PREC_DP)             , DIMENSION(3,natoms), INTENT(INOUT) :: r6_pos
-INTEGER          , DIMENSION(  natoms), INTENT(INOUT) :: r6_site
-INTEGER          , DIMENSION(3,natoms), INTENT(INOUT) :: r6_cell
+INTEGER                                , INTENT(IN)    :: natoms     ! Number of atoms
+INTEGER                                , INTENT(IN)    :: nsites     ! Number of sites in the unit cell
+CHARACTER(LEN= 4) , DIMENSION(  natoms), INTENT(INOUT) :: r6_at_name
+REAL(KIND=PREC_DP), DIMENSION(3       ), INTENT(INOUT) :: lattice
+INTEGER           , DIMENSION(3       ), INTENT(INOUT) :: super
+REAL(KIND=PREC_DP), DIMENSION(3,natoms), INTENT(INOUT) :: r6_pos
+INTEGER           , DIMENSION(  natoms), INTENT(INOUT) :: r6_site
+INTEGER           , DIMENSION(3,natoms), INTENT(INOUT) :: r6_cell
+logical                                , intent(in)    :: lsite      ! Site /unit cell info is present
 !
 REAL(KIND=PREC_DP), PARAMETER :: EPS = 1.E-6
 !
