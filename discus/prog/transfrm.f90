@@ -899,6 +899,8 @@ DO i = 1, 4
       tran_fi (i, 4) = 0.0 
       tran_fi (4, i) = 0.0 
 ENDDO 
+tran_g (4, 4) = 1.0 
+tran_gi (4, 4) = 1.0 
 tran_f (4, 4) = 1.0 
 tran_fi (4, 4) = 1.0 
 !                                                                       
