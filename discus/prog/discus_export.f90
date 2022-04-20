@@ -210,7 +210,7 @@ USE molecule_mod
 USE prop_para_func
 USE prop_para_mod
 USE structur
-USE save_menu, ONLY: save_internal
+USE save_menu !, ONLY: save_internal
 USE wyckoff_mod
 !
 USE build_name_mod
@@ -249,6 +249,13 @@ REAL(KIND=PREC_DP)       :: z_unit
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP)   , DIMENSION(3), PARAMETER :: NULL = (/0.00, 0.00, 0.00/)
 !
+if(maxval(cr_icc)>1) then
+  ier_num = -185
+  ier_typ = ER_APPL
+  ier_msg(1) = 'To save as SHELX instruction file the '
+  ier_msg(2) = 'must consist of a single unit cell only!'
+  return
+endif
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
 IF (ier_num.ne.0) THEN
    RETURN
@@ -295,6 +302,19 @@ IF(cr_spcgr_set(1:1)=='C') lattice = 7
 !
 ! Temporarily save the original structure
 !
+call save_store_setting
+sav_w_gene = .true.
+sav_w_ncell= .true.
+sav_w_symm = .true.
+sav_w_scat = .true.
+sav_w_adp  = .true.
+sav_w_occ  = .true.
+sav_w_surf = .true.
+sav_w_magn = .FALSE.   ! MAGNETIC_WORK
+sav_w_mole = .true.
+sav_w_obje = .true.
+sav_w_doma = .true.
+sav_w_prop = .true.
 origfile  = 'internal.shelx_orig'
 line       = 'ignore, all'          ! Ignore all properties
 length     = 11
@@ -325,8 +345,10 @@ ENDDO
 ! Restore original structure
 !
 CALL do_readstru(origfile, .FALSE.)
+call save_restore_setting
 CALL store_remove_single(origfile, ier_num)
 IF(ier_num/=0) THEN
+   call save_restore_setting
    ier_typ = ER_APPL
    ier_msg(1) = 'Could not remove temporary internal storage'
    ier_msg(2) = 'in shelx export'
@@ -475,6 +497,7 @@ DEALLOCATE(unique_names)
 DEALLOCATE(shelx_names)
 CLOSE(IWR)
 !
+!
 1010 FORMAT('TITL ',a,' in ',a,' setting: ',a3,' == ',a16)
 1000 FORMAT('TITL ',a,' in ',a)
 1100 FORMAT('CELL ',f7.5,3f11.6,3f9.4)
@@ -495,6 +518,7 @@ CLOSE(IWR)
 2450 FORMAT('MOLE ',i3 )
 2600 FORMAT('HKLF 4'   )
 2700 FORMAT('END   '   )
+!
 !
 END SUBROUTINE discus2ins
 !
