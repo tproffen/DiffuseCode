@@ -1,9 +1,13 @@
-6.09.03  DRAFT
+6.09.04  DRAFT
+6.09.03  RELEASE 2022_04_20
 
 DISCUS
   perioditize BUG FIX, help did not work
   export      BUG FIX, command could not be reached
+              BUG FIX, Added error messege to 'shelxl' if crystal > 1 unit cell
+                       Modified unit cell size to avoid atoms at coordinates == 1.0
   import      BUG FIX, increased flexibility for RMC6f formats
+              BUG FIX, shelxl import did not recognize SYMM
   transform   BUG FIX, did not run if new lattice parameters were given
 
 6.09.02  RELEASED 2022_03_23
