@@ -3183,6 +3183,7 @@ USE blanks_mod
 USE build_name_mod
 USE get_params_mod
 USE lib_length
+use string_convert_mod
 USE wink_mod
 USE precision_mod
 USE support_mod
@@ -3381,6 +3382,7 @@ eadp_values(:) = 0.0
 !        WRITE (iwr, 2500) (c_atom (i) , ',', i = 1, ntyp - 1) , c_atom &
 !        (ntyp)                                                         
       ELSEIF (command.eq.'SYMM') THEN 
+         call do_cap(line)
          lp = length - 5 
          CALL get_params (line (6:length), ianz, cpara, lpara, maxw, lp) 
          IF (ianz.eq.3) THEN 
