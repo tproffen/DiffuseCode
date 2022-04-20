@@ -13,11 +13,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-184,IO=7)
+      PARAMETER    (IU=-185,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -181) /                          &
+     &  'Crystal consists of more than one unit cell  ', & !-185 ! discus
      &  'Too many sites in unit cell                  ', & !-184 ! discus
      &  'Unknown radiation                            ', & !-183 ! discus
      &  'Internal error, please document and report   ', & !-182 ! discus
