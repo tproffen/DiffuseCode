@@ -291,7 +291,7 @@ IF(lplot) THEN
 ELSE
    DO i=1,3
       IF(NINT(cr_dim(i,2)-cr_dim(i,1))-(cr_dim(i,2)-cr_dim(i,1))== 0.000) THEN
-         scalef(i) = MAX(1,NINT((cr_dim(i,2)-cr_dim(i,1))))
+         scalef(i) = MAX(1,NINT((cr_dim(i,2)-cr_dim(i,1)))+1)
       ELSE
          scalef(i) =  INT((cr_dim(i,2)-cr_dim(i,1))) + 1
       ENDIF
