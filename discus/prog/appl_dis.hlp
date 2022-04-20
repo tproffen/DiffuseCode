@@ -888,6 +888,7 @@
 
    Read/save a structure
    read       ! Read structure or unit cell from file or internal storage
+   import     ! Import a crystal structure from various formats
    save       ! Save the structure to file or internal storage
    plot       ! Write the structure in a format for plotting
    perioditize ! Rearrange the atom sequence in a periodic fashion
