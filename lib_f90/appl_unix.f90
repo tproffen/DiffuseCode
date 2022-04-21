@@ -948,7 +948,8 @@ IF(lda) THEN
    line = "rm -f /" // cfile(1:LEN_TRIM(cfile))
    CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
-line = "curl --silent ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
+! 140.82.121.3 = github.com
+line = "curl --silent --connect-timeout 3 --max-time 3 ""https://140.82.121.3/tproffen/DiffuseCode/releases/latest"" > " &
        // cfile(1:LEN_TRIM(cfile))
 CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 CALL no_error                         ! Checked and printed in ==> write_appl_env
