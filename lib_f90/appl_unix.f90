@@ -941,6 +941,7 @@ CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
 LOGICAL             :: lda
 !
+if(.not. check_github() ) return    ! no www network access 
 WRITE(cfile,'(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_CURRENT.', PID ! Initiate search for new version
 !
 INQUIRE(FILE=cfile, EXIST=lda)
@@ -949,7 +950,7 @@ IF(lda) THEN
    CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 ! 140.82.121.3 = github.com
-line = "curl --silent --connect-timeout 3 --max-time 3 ""https://140.82.121.3/tproffen/DiffuseCode/releases/latest"" > " &
+line = "curl --silent --connect-timeout 3 --max-time 3 ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
        // cfile(1:LEN_TRIM(cfile))
 CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 CALL no_error                         ! Checked and printed in ==> write_appl_env
@@ -1078,6 +1079,7 @@ integer             :: ios
 logical             :: lonline
 logical             :: lda
 !
+if(.not. check_github() ) return    ! no www network access 
 lonline = .TRUE.
 WRITE(cfile,        '(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_UBUNTU.', PID ! Test file to see if we are on-line
 string = "curl --silent ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
@@ -1446,6 +1448,74 @@ length = LEN_TRIM(line)
 CALL do_operating(line, length)
 !
 END SUBROUTINE lib_f90_findterminal
+!
+!*******************************************************************************
+!
+logical function check_github() result(lnetz)
+!-
+!  Check if a ping to github.com = 140.82.121.3 is successfull with less than 
+!  100% packet loss
+!  analyses lines like: 
+!  "1 packets transmitted, 0 packets received, 100% packet loss"
+!  "1 packets transmitted, 1 packets received, 0% packet loss"
+!  "1 packets transmitted, 0 packets received, 100.0% packet loss"   ! Mac Version
+!  "1 packets transmitted, 1 packets received, 0.0% packet loss"     ! Mac Version
+!  Results are language dependent!, search for number prior to "%"
+!+
+!
+use errlist_mod
+use envir_mod
+use precision_mod
+!
+implicit none
+!
+integer, parameter         :: IRD = 33
+!
+character(len=PREC_STRING) :: string    ! Generic string
+character(len=PREC_STRING) :: cfile     ! temporary file
+CHARACTER(LEN=PREC_STRING) :: message   ! execute_command_line message
+integer                    :: exit_msg  ! execute_command_line message
+integer                    :: ios       ! read error number
+integer                    :: iper      ! location of percent sign
+integer                    :: icom      ! prior location of ','
+integer                    :: idec      ! location of decimal point needed for MacOS!
+integer                    :: i         ! packet loss percentage Linux WSL version
+real(kind=PREC_SP)         :: r         ! packet loss percentage MacOs     version
+!
+lnetz = .false.
+r = 0.0
+i = 0
+cfile = tmp_dir(1:tmp_dir_l) // '/check_github.txt'
+string = 'ping -c 1 -W 3 140.82.121.3 2> /dev/null > '// cfile(1:len_trim(cfile))
+! Include a wait, to make reasonably sure that the temp file is written
+call EXECUTE_COMMAND_LINE(string, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg, wait=.true.)
+!
+open(unit=ird, file=cfile, status='old')
+loop_check: do                          ! Loop to find the line
+   read(ird, '(a)', iostat=ios) string
+   if(is_iostat_end(ios)) exit loop_check
+   iper = index(string, '%')            ! Locate percent sign
+   if(iper>0) then 
+      icom = index(string(1:iper-1),',', back=.TRUE.)  ! Locate prior comma
+      idec = index(string(icom+1:iper-1),'.')          ! Mac has decimal point!
+      if(idec>0) then
+         read(string(icom+1:iper-1),*) r               ! Real value for Mac
+         i = nint(r)
+      else
+         read(string(icom+1:iper-1),*) i               ! Integernumber for Linux / WSL
+      endif
+      if(i<100) then                                   ! Less than 100% loss, found network
+         lnetz = .true.
+      endif
+      exit loop_check
+   endif
+enddo loop_check
+!
+close(unit=ird)
+string = "rm -f " // cfile(1:LEN_TRIM(cfile))          ! Remove temporary file
+call EXECUTE_COMMAND_LINE(string, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!
+end function check_github
 !
 !*******************************************************************************
 !
