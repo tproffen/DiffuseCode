@@ -99,8 +99,8 @@ CONTAINS
 !      ENDDO 
 !mo_disp = 0.0
 mo_maxmove(:,0) = 0.0
-mo_maxmove(:,1:) = 0.2
-mo_maxmove(4,1:) = 0.0
+!mo_maxmove(:,1:) = 0.2
+!mo_maxmove(4,1:) = 0.0
 !mo_const(1:)     = 0.0
 !mo_const(0 )     = 1.0
 !mo_cfac          = 1.0
