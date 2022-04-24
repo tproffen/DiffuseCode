@@ -798,6 +798,7 @@ USE crystal_mod
    USE chem_mod
 USE deco_mod
    USE discus_allocate_appl_mod
+use discus_init_mod
 !   USE discus_plot_init_mod
    USE discus_save_mod
    USE domain_menu
@@ -1291,6 +1292,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
          IF(ier_num/=0 .AND. .NOT.(ier_num==-2 .AND.ier_typ==ER_MMC)) THEN
             i = ier_num
             j = ier_typ
+            call mmc_init
             CALL save_restore_setting
             CALL no_error
             CALL readstru_internal( corefile)   ! Read  original core file
@@ -1304,6 +1306,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
          ENDIF
       ENDIF ! (n_repl > 2 ) THEN                           ! Need at least two anchors for sorting
       ENDIF ! dcc_spread(dc_temp_id)   ! Spread if requested
+   call mmc_init
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
    CALL property_select(line, length, sav_sel_prop)
