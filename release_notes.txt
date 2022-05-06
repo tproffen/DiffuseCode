@@ -14,6 +14,7 @@ DISCUS
               Added FWHM function for powder diffraction with an area detectors 
               as in Chernyshov et al. ActaCryst A77, 497-505,
               doi 10.1107/S2053273321007506
+  powder      BUG FIX corrected Lorentz correction for complete mode
 6.09.04  RELEASE 2022_04_21
 
 Superseeds 03
