@@ -138,9 +138,9 @@ if(allocated(exp_back)) then    ! User provided a background file
 !
 ! Spline Background
 !
-   call exp2pdf_spline_dummy(exp_xb(1), exp_xb(exp_dim(1)), exp_qstep, exp_dim_b(1), &
+   call exp2pdf_spline_dummy(exp_xb(1), exp_xb(exp_dim_b(1)), exp_qstep, exp_dim_b(1), &
                              exp_xb, exp_back(:,1,1) , b_nequi, b_x, b_y)
-   call exp2pdf_spline_dummy(exp_xb(1), exp_xb(exp_dim(1)), exp_qstep, exp_dim_b(1), &
+   call exp2pdf_spline_dummy(exp_xb(1), exp_xb(exp_dim_b(1)), exp_qstep, exp_dim_b(1), &
                              exp_xb, exp_sigmab(:,1,1) , b_nequi, p_x, p_y)
 !
    q1 = d_x(1)                                          ! Lowest Q in equidistant data
