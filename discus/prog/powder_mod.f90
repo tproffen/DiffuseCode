@@ -21,6 +21,9 @@ INTEGER, PARAMETER  :: POW_PREF_MARCH      = 2
 INTEGER, PARAMETER  :: POW_PROFILE_GAUSS   = 1
 INTEGER, PARAMETER  :: POW_PROFILE_PSVGT   = 2
 !
+INTEGER, PARAMETER  :: POW_PROFILE_CAGLIOTTI = 1
+INTEGER, PARAMETER  :: POW_PROFILE_AREA      = 2
+!
 INTEGER, PARAMETER  :: POW_AXIS_DSTAR      = 0
 INTEGER, PARAMETER  :: POW_AXIS_Q          = 1
 INTEGER, PARAMETER  :: POW_AXIS_TTH        = 2
@@ -92,6 +95,7 @@ REAL(kind=PREC_DP)       :: pow_pref_g2    = 0.0
 REAL(kind=PREC_DP), DIMENSION(3)    :: pow_pref_hkl   = (/0.0D0, 0.0D0, 1.0D0/)
 !
 INTEGER                  :: pow_profile    = POW_PROFILE_PSVGT
+INTEGER                  :: pow_pr_fwhm    = POW_PROFILE_CAGLIOTTI
 INTEGER                  :: pow_pr_par     =  0
 REAL(kind=PREC_DP)       :: pow_fwhm       =  0.01
 REAL(kind=PREC_DP)       :: pow_eta        =  0.5
@@ -100,7 +104,7 @@ REAL(kind=PREC_DP)       :: pow_eta_q      =  0.0
 REAL(kind=PREC_DP)       :: pow_u          =  0.0
 REAL(kind=PREC_DP)       :: pow_v          =  0.0
 REAL(kind=PREC_DP)       :: pow_w          =  0.05
-REAL(kind=PREC_DP)   , DIMENSION(4,3)  :: pow_asym       =  0.0D0
+REAL(kind=PREC_DP)   , DIMENSION(4,-1:2)  :: pow_asym       =  0.0D0
 REAL(kind=PREC_DP)       :: pow_width      = 20.0D0
 !
 REAL(kind=PREC_DP)       :: pow_ka21       =  0.0d0

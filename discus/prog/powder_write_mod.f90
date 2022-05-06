@@ -885,6 +885,7 @@ DO j=1,npkt
    if(pow_conv(j) == 0.0) nzero = nzero + 1
 ENDDO
 !lconv = .FALSE.
+write(*,*) 'TYPE CONVOLUTE ', pow_four_type, pow_u,pow_v,pow_w, pow_axis, pow_pr_fwhm
 IF (pow_profile == POW_PROFILE_GAUSS) THEN 
    IF (pow_delta.gt.0.0) THEN 
       xxmax = xmax + xdel
@@ -895,15 +896,17 @@ IF (pow_profile == POW_PROFILE_GAUSS) THEN
 ELSEIF (pow_profile == POW_PROFILE_PSVGT) THEN 
    IF(pow_u/=0.0 .OR. pow_v/=0.0 .OR. pow_eta_l/=0.0 .OR. pow_eta_q/=0.0) THEN
       xxmax = xmax + xdel
-      IF(pow_asym(1,1)/=0.0 .OR. pow_asym(2,1)/=0.0 .OR.                 &
-         pow_asym(3,1)/=0.0 .OR. pow_asym(3,1)/=0.0            ) THEN       
+!     IF(pow_asym(1,1)/=0.0 .OR. pow_asym(2,1)/=0.0 .OR.                 &
+!        pow_asym(3,1)/=0.0 .OR. pow_asym(3,1)/=0.0            ) THEN       
+      if(maxval(pow_asym)>0.0 .or. minval(pow_asym)<0.0) then
          CALL powder_conv_psvgt_uvw_asym(pow_conv, xmin,xxmax, xdel,   &
          pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_asym,  &
-         pow_width, POW_MAXPKT, pow_four_type, pow_axis)
+         pow_width, POW_MAXPKT, pow_four_type, pow_axis, rlambda, pow_pr_fwhm)
       ELSE          ! Symmetric case
+              write(*,*) ' POWDER_CONV_PSVGT_UVW'
          CALL powder_conv_psvgt_uvw(pow_conv, xmin,xxmax, xdel,   &
          pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_width,  &
-         POW_MAXPKT, pow_four_type, pow_axis)
+         POW_MAXPKT, pow_four_type, pow_axis, rlambda, pow_pr_fwhm)
       ENDIF
    ELSE 
       xxmax = xmax + xdel
@@ -999,92 +1002,92 @@ ENDDO
 DEALLOCATE(sine)
 !
 END SUBROUTINE four_fq
-!
-!*******************************************************************************
-!
-      REAL(KIND=PREC_DP) function lorentz (ttheta, flag_fq) 
-!+                                                                      
-!-                                                                      
-      USE discus_config_mod 
-use precision_mod
-      USE powder_mod 
-      USE trig_degree_mod
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      REAL(KIND=PREC_DP)   , INTENT(IN) :: ttheta 
-      INTEGER, INTENT(IN) :: flag_fq
-!                                                                       
-!
-      lorentz = 1.0
-      
-      IF (pow_four_type.eq.POW_DEBYE) THEN 
-         lorentz = 1.0 
-      ELSE 
-         IF(flag_fq==0) THEN
-         IF (pow_lp.eq.POW_LP_BRAGG) THEN 
-            lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
-         ELSEIF (pow_lp.eq.POW_LP_NEUT) THEN 
-            lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
-         ELSEIF (pow_lp.eq.POW_LP_NONE) THEN 
-            lorentz = 1.0 
-         ELSEIF (pow_lp.eq.POW_LP_SYNC) THEN 
-            lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
-         ENDIF 
-         ELSEIF(flag_fq==1) THEN 
-            lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
-         ENDIF 
-      ENDIF 
-!                                                                       
-      END FUNCTION lorentz                          
+!Q!
+!Q!*******************************************************************************
+!Q!
+!Q      REAL(KIND=PREC_DP) function lorentz (ttheta, flag_fq) 
+!Q!+                                                                      
+!Q!-                                                                      
+!Q      USE discus_config_mod 
+!Quse precision_mod
+!Q      USE powder_mod 
+!Q      USE trig_degree_mod
+!Q      IMPLICIT none 
+!Q!                                                                       
+!Q!                                                                       
+!Q      REAL(KIND=PREC_DP)   , INTENT(IN) :: ttheta 
+!Q      INTEGER, INTENT(IN) :: flag_fq
+!Q!                                                                       
+!Q!
+!Q!Q      lorentz = 1.0
+!Q      
+!Q      IF (pow_four_type.eq.POW_DEBYE) THEN 
+!Q         lorentz = 1.0 
+!Q      ELSE 
+!Q         IF(flag_fq==0) THEN
+!Q         IF (pow_lp.eq.POW_LP_BRAGG) THEN 
+!Q            lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
+!Q         ELSEIF (pow_lp.eq.POW_LP_NEUT) THEN 
+!Q            lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
+!Q         ELSEIF (pow_lp.eq.POW_LP_NONE) THEN 
+!Q            lorentz = 1.0 
+!Q         ELSEIF (pow_lp.eq.POW_LP_SYNC) THEN 
+!Q            lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
+!Q         ENDIF 
+!Q         ELSEIF(flag_fq==1) THEN 
+!Q            lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
+!Q         ENDIF 
+!Q      ENDIF 
+!Q!                                                                       
+!Q      END FUNCTION lorentz                          
 !*****7*****************************************************************
-      REAL(KIND=PREC_DP) FUNCTION polarisation (ttheta) 
-!+                                                                      
-!-                                                                      
-      USE discus_config_mod 
-      USE powder_mod 
-use precision_mod
-      USE trig_degree_mod
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      REAL(KIND=PREC_DP) :: ttheta 
-!
-!
-      polarisation = 1.0
-      
-      IF (pow_lp.eq.POW_LP_BRAGG) THEN 
-         polarisation = (1. + (cosd (ttheta) ) **2 * pow_lp_fac)        &
-         / (1. + pow_lp_fac)                                            
-      ELSEIF (pow_lp.eq.POW_LP_NEUT) THEN 
-         polarisation = 1.0 
-      ELSEIF (pow_lp.eq.POW_LP_NONE) THEN 
-         polarisation = 1.0 
-      ELSEIF (pow_lp.eq.POW_LP_SYNC) THEN 
-         polarisation = pow_lp_fac + (1. - pow_lp_fac) * (cosd (ttheta) &
-         ) **2 * pow_lp_cos                                             
-      ENDIF 
-!                                                                       
-      END FUNCTION polarisation                     
-!*****7*****************************************************************
-      REAL(KIND=PREC_DP) FUNCTION lorentz_pol (ttheta) 
-!+                                                                      
-!-                                                                      
-      USE discus_config_mod 
-      USE powder_mod 
-      USE trig_degree_mod
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      REAL(KIND=PREC_DP) :: ttheta 
-!                                                                       
-      IF (pow_four_type.eq.POW_DEBYE) THEN 
-         lorentz_pol = 1.0 
-      ELSE
-         lorentz_pol = (1-pow_lp_fac+pow_lp_fac*(cosd(pow_lp_ang))**2*(cosd(ttheta))**2)/ &
-                       (2.*(sind(0.5*ttheta))**2*cosd(0.5*ttheta))
-      ENDIF
-      END FUNCTION lorentz_pol
+!Q      REAL(KIND=PREC_DP) FUNCTION polarisation (ttheta) 
+!Q!+                                                                      
+!Q!-                                                                      
+!Q      USE discus_config_mod 
+!Q      USE powder_mod 
+!Quse precision_mod
+!Q      USE trig_degree_mod
+!Q      IMPLICIT none 
+!Q!                                                                       
+!Q!                                                                       
+!Q      REAL(KIND=PREC_DP) :: ttheta 
+!Q!
+!Q!
+!Q      polarisation = 1.0
+!Q      
+!Q      IF (pow_lp.eq.POW_LP_BRAGG) THEN 
+!Q         polarisation = (1. + (cosd (ttheta) ) **2 * pow_lp_fac)        &
+!Q         / (1. + pow_lp_fac)                                            
+!Q      ELSEIF (pow_lp.eq.POW_LP_NEUT) THEN 
+!Q         polarisation = 1.0 
+!Q      ELSEIF (pow_lp.eq.POW_LP_NONE) THEN 
+!Q         polarisation = 1.0 
+!Q      ELSEIF (pow_lp.eq.POW_LP_SYNC) THEN 
+!Q         polarisation = pow_lp_fac + (1. - pow_lp_fac) * (cosd (ttheta) &
+!Q         ) **2 * pow_lp_cos                                             
+!Q      ENDIF 
+!Q!                                                                       
+!Q      END FUNCTION polarisation                     
+!Q!*****7*****************************************************************
+!Q      REAL(KIND=PREC_DP) FUNCTION lorentz_pol (ttheta) 
+!Q!+                                                                      
+!Q!-                                                                      
+!Q      USE discus_config_mod 
+!Q      USE powder_mod 
+!Q      USE trig_degree_mod
+!Q      IMPLICIT none 
+!Q!                                                                       
+!Q!                                                                       
+!Q      REAL(KIND=PREC_DP) :: ttheta 
+!Q!                                                                       
+!Q      IF (pow_four_type.eq.POW_DEBYE) THEN 
+!Q         lorentz_pol = 1.0 
+!Q      ELSE
+!Q         lorentz_pol = (1-pow_lp_fac+pow_lp_fac*(cosd(pow_lp_ang))**2*(cosd(ttheta))**2)/ &
+!Q                       (2.*(sind(0.5*ttheta))**2*cosd(0.5*ttheta))
+!Q      ENDIF
+!Q      END FUNCTION lorentz_pol
 !*****7*****************************************************************
       SUBROUTINE powder_conv_res (dat, tthmin, tthmax, dtth, delta, POW_MAXPKT)
 !-                                                                      
@@ -1236,7 +1239,8 @@ ENDDO
 END SUBROUTINE powder_conv_psvgt_fix          
 !*****7*****************************************************************
 SUBROUTINE powder_conv_psvgt_uvw (dat, tthmin, tthmax, dtth, eta0,&
-      eta_l, eta_q, u, v, w, pow_width, POW_MAXPKT, pow_type, axis)
+      eta_l, eta_q, u, v, w, pow_width, POW_MAXPKT, pow_type, axis, &
+      rlambda, pow_pr_fwhm )
 !-
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
 !     FWHM according to caglioti equation, Constant eta                 
@@ -1267,16 +1271,22 @@ REAL(KIND=PREC_DP)                            , INTENT(IN)    :: w      ! w
 REAL(KIND=PREC_DP)                            , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 INTEGER                         , INTENT(IN)    :: pow_type  ! == 0 for COMPLETE, ==1 for Debye
 INTEGER                         , INTENT(IN)    :: axis   ! == 2 for 2theta, == 1 for Q
+REAL(KIND=PREC_DP)                            , INTENT(IN)    :: rlambda ! Wavelength
+INTEGER                                       , INTENT(IN)    :: pow_pr_fwhm   ! == 1 for Cagliotti, 2 for area 
 !
 INTEGER, PARAMETER  :: POW_COMPL = 0
 INTEGER, PARAMETER  :: POW_DEBYE = 1
+INTEGER, PARAMETER  :: POW_PROFILE_CAGLIOTTI  = 1
+INTEGER, PARAMETER  :: POW_PROFILE_AREA       = 2
 !
 REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
 REAL(kind=PREC_DP), DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
-REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
+REAL(KIND=PREC_DP)            :: theta    ! Real angle Theta for Q-axis
+REAL(KIND=PREC_DP)            :: tth      ! 2Theta within convolution, main data set
 REAL(kind=PREC_DP)            :: tantth   ! tan(Theta)
+REAL(kind=PREC_DP)            :: costth   ! cos(2Theta)
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
-REAL(KIND=PREC_DP)    :: ddtth            ! actual eta at current 2Theta
+REAL(KIND=PREC_DP)    :: ddtth            ! actual stepwidth  at current 2Theta
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
 INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
 REAL(KIND=PREC_DP)    :: pseudo          ! scale factor for lookup table
@@ -1288,16 +1298,33 @@ ddtth = 0.001D0
 imax = INT( (tthmax - tthmin) / dtth )
 !
 dummy = 0.0D0   ! dummy(:)
+write(*,*) 'TYPE ', pow_type==POW_COMPL, u,v,w, axis, pow_pr_fwhm
+
 IF(pow_type==POW_COMPL) THEN     ! Complete, check for zeros in DAT
    main_pts: DO i = 0, imax 
-      tth = tthmin + i * ddtth 
-      tantth = tand (tth * 0.5D0) 
 !
       fwhm = 0.00001D0
-      IF(axis==2 ) THEN       ! 2Theta axis
-         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
+!
+      tth = tthmin + i * ddtth       ! This is tth(axis=2) or Q(axis=1)
+      tantth = tand (tth * 0.5D0)    ! tan(Theta) = tan(2Theta/2)
+      IF(axis==2 ) THEN              ! 2Theta axis
+         if(pow_pr_fwhm==POW_PROFILE_CAGLIOTTI) then
+            fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
+         elseif(pow_pr_fwhm==POW_PROFILE_AREA) then
+            costth = cosd(tth)
+            fwhm = sqrt(max(abs(u*costth**4 + v*costth**2 + w), 0.00001D0))
+         endif
       ELSEif(axis==1) THEN
-         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
+         if(pow_pr_fwhm==POW_PROFILE_CAGLIOTTI) then
+            theta  = asind(tth*rlambda*0.2500D0/PI) ! Theta = asin(Q*lamnda/4pi)
+            tantth = tand (theta                  ) ! tan(Theta) = tan( asin(Q*lamnda/4pi)
+            fwhm = SQRT( MAX( ABS( u*tantth**2 + v*tantth + w), 0.00001D0) ) * &
+                   PI**2/90.0D0/rlambda*cosd(theta)
+         elseif(pow_pr_fwhm==POW_PROFILE_AREA) then
+            costth = cosd(tth)
+            fwhm = sqrt(max(abs(u*costth**4 + v*costth**2 + w), 0.00001D0)) * &
+                   PI**2/90.0D0/rlambda*cosd(theta)
+         endif
       ENDIF
 !
       max_ps = INT((pow_width * fwhm) / ddtth )
@@ -1309,7 +1336,7 @@ IF(pow_type==POW_COMPL) THEN     ! Complete, check for zeros in DAT
                              -glp_pseud_indx(i2, eta, fwhm))                             
 !
       ii = MAX (i - 1 - max_ps + 1, 0) 
-      first:DO j = ii, i - 1 
+      first:DO j = ii, i !- 1 
          IF(dat(j)==0.0) CYCLE first
          i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * ddtth
          i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * ddtth
@@ -1328,15 +1355,39 @@ IF(pow_type==POW_COMPL) THEN     ! Complete, check for zeros in DAT
    ENDDO main_pts
 ELSEIF(pow_type==POW_DEBYE) THEN     ! DEBYE, do not check for zeros in DAT
    main_pts_deb: DO i = 0, imax 
-      tth = tthmin + i * ddtth 
-      tantth = tand (tth * 0.5D0) 
 !
       fwhm = 0.00001D0
-      IF(axis==2 ) THEN       ! 2Theta axis
-         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
+!
+      tth = tthmin + i * ddtth       ! This is tth(axis=2) or Q(axis=1)
+      tantth = tand (tth * 0.5D0)    ! tan(Theta) = tan(2Theta/2)
+      IF(axis==2 ) THEN              ! 2Theta axis
+         if(pow_pr_fwhm==POW_PROFILE_CAGLIOTTI) then
+            fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
+         elseif(pow_pr_fwhm==POW_PROFILE_AREA) then
+            costth = cosd(tth)
+            fwhm = sqrt(max(abs(u*costth**4 + v*costth**2 + w), 0.00001D0))
+         endif
       ELSEif(axis==1) THEN
-         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
+         if(pow_pr_fwhm==POW_PROFILE_CAGLIOTTI) then
+            theta  = asind(tth*rlambda*0.2500D0/PI) ! Theta = asin(Q*lamnda/4pi)
+            tantth = tand (theta                  ) ! tan(Theta) = tan( asin(Q*lamnda/4pi)
+            fwhm = SQRT( MAX( ABS( u*tantth**2 + v*tantth + w), 0.00001D0) ) * &
+                   PI**2/90.0D0/rlambda*cosd(theta)
+         elseif(pow_pr_fwhm==POW_PROFILE_AREA) then
+            costth = cosd(tth)
+            fwhm = sqrt(max(abs(u*costth**4 + v*costth**2 + w), 0.00001D0)) * &
+                   PI**2/90.0D0/rlambda*cosd(theta)
+         endif
       ENDIF
+!      tth = tthmin + i * ddtth   ! This is tth(axis=2) or Q(axis=1)
+!      tantth = tand (tth * 0.5D0) 
+!!
+!      fwhm = 0.00001D0
+!      IF(axis==2 ) THEN       ! 2Theta axis
+!         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
+!      ELSEif(axis==1) THEN
+!         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
+!      ENDIF
 !
       max_ps = INT((pow_width * fwhm) / ddtth )
       eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
@@ -1374,7 +1425,7 @@ END SUBROUTINE powder_conv_psvgt_uvw
 !
 SUBROUTINE powder_conv_psvgt_uvw_asym (dat, tthmin, tthmax, dtth, eta0,&
       eta_l, eta_q, u, v, w, asym          , pow_width, POW_MAXPKT,    &
-      pow_type, axis)
+      pow_type, axis, rlambda, pow_pr_fwhm)
 !-
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
 !     FWHM according to caglioti equation, Constant eta                 
@@ -1401,19 +1452,26 @@ REAL(kind=PREC_DP)              , INTENT(IN)    :: eta_q   ! Lor/Gaus mix variab
 REAL(kind=PREC_DP)              , INTENT(IN)    :: u      ! u*tan^2(Theta)
 REAL(kind=PREC_DP)              , INTENT(IN)    :: v      ! v*tan  (Theta)
 REAL(kind=PREC_DP)              , INTENT(IN)    :: w      ! w
-REAL(kind=PREC_DP)   , DIMENSION(4,3)         , INTENT(IN)    :: asym   ! Asymmetry terms p1 to P4
+REAL(kind=PREC_DP)   , DIMENSION(4,-1:2)      , INTENT(IN)    :: asym   ! Asymmetry terms p1 to P4
 REAL(kind=PREC_DP)              , INTENT(IN)    :: pow_width ! Number of FWHM's to calculate
 INTEGER                         , INTENT(IN)    :: pow_type  ! == 0 for COMPLETE, ==1 for Debye
 INTEGER                         , INTENT(IN)    :: axis   ! == 2 for 2theta, == 1 for Q
+REAL(KIND=PREC_DP)              , INTENT(IN)    :: rlambda ! Wavelength
+INTEGER                         , INTENT(IN)    :: pow_pr_fwhm   ! == 1 for Cagliotti, 2 for area 
 !
-INTEGER, PARAMETER            :: POW_COMPL = 0
-INTEGER, PARAMETER            :: POW_DEBYE = 1
+INTEGER, PARAMETER  :: POW_COMPL = 0
+INTEGER, PARAMETER  :: POW_DEBYE = 1
+INTEGER, PARAMETER  :: POW_PROFILE_CAGLIOTTI  = 1
+INTEGER, PARAMETER  :: POW_PROFILE_AREA       = 2
 !
 REAL(KIND=PREC_DP)            :: fwhm     ! Current FWHM at Theta
 REAL(kind=PREC_DP), DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_MAXPKT) 
 REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
+REAL(KIND=PREC_DP)            :: theta    ! Real angle Theta for Q-axis
 REAL(kind=PREC_DP)            :: tantth   ! tan(Theta)
+REAL(kind=PREC_DP)            :: costth   ! cos(2Theta)
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
+REAL(KIND=PREC_DP)    :: ddtth            ! actual stepwidth  at current 2Theta
 REAL(KIND=PREC_DP)    :: tth1            ! Theta values for asymmetry
 REAL(KIND=PREC_DP)    :: tth2            ! Theta values for asymmetry
 REAL(kind=PREC_DP)    :: p1, p2, p3, p4  ! 2Theta dependen asymmety parameters
@@ -1430,14 +1488,38 @@ dummy = 0.0D0
 !
 IF(pow_type==POW_COMPL) THEN
    main_compl: DO i = 0, imax 
-      tth = tthmin + i * dtth 
-      tantth = tand (tth * 0.5D0) 
 !
-      IF(axis==2 ) THEN       ! 2Theta axis
-         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
+      fwhm = 0.00001D0
+!
+      tth = tthmin + i * ddtth       ! This is tth(axis=2) or Q(axis=1)
+      tantth = tand (tth * 0.5D0)    ! tan(Theta) = tan(2Theta/2)
+      IF(axis==2 ) THEN              ! 2Theta axis
+         if(pow_pr_fwhm==POW_PROFILE_CAGLIOTTI) then
+            fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
+         elseif(pow_pr_fwhm==POW_PROFILE_AREA) then
+            costth = cosd(tth)
+            fwhm = sqrt(max(abs(u*costth**4 + v*costth**2 + w), 0.00001D0))
+         endif
       ELSEif(axis==1) THEN
-         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
+         if(pow_pr_fwhm==POW_PROFILE_CAGLIOTTI) then
+            theta  = asind(tth*rlambda*0.2500D0/PI) ! Theta = asin(Q*lamnda/4pi)
+            tantth = tand (theta                  ) ! tan(Theta) = tan( asin(Q*lamnda/4pi)
+            fwhm = SQRT( MAX( ABS( u*tantth**2 + v*tantth + w), 0.00001D0) ) * &
+                   PI**2/90.0D0/rlambda*cosd(theta)
+         elseif(pow_pr_fwhm==POW_PROFILE_AREA) then
+            costth = cosd(tth)
+            fwhm = sqrt(max(abs(u*costth**4 + v*costth**2 + w), 0.00001D0)) * &
+                   PI**2/90.0D0/rlambda*cosd(theta)
+         endif
       ENDIF
+!      tth = tthmin + i * dtth 
+!      tantth = tand (tth * 0.5D0) 
+!!
+!      IF(axis==2 ) THEN       ! 2Theta axis
+!         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
+!      ELSEif(axis==1) THEN
+!         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
+!      ENDIF
 !
       max_ps = INT((pow_width * fwhm) / dtth )
       eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
@@ -1446,10 +1528,10 @@ IF(pow_type==POW_COMPL) THEN
       i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
       tth1 = 0 * dtth 
       tth2 = 2 * i * dtth 
-      p1 = asym(1,1) + asym(1,2)*tth + tth*asym(1,3)*tth**2
-      p2 = asym(2,1) + asym(2,2)*tth + tth*asym(2,3)*tth**2
-      p3 = asym(3,1) + asym(3,2)*tth + tth*asym(3,3)*tth**2
-      p4 = asym(4,1) + asym(4,2)*tth + tth*asym(4,3)*tth**2
+      p1 = asym(1,0) + asym(1,1)*tth +     asym(1,2)*tth**2 + asym(1,-1)/tth
+      p2 = asym(2,0) + asym(2,1)*tth +     asym(2,2)*tth**2 + asym(2,-1)/tth
+      p3 = asym(3,0) + asym(3,1)*tth +     asym(3,2)*tth**2 + asym(3,-1)/tth
+      p4 = asym(4,0) + asym(4,1)*tth +     asym(4,2)*tth**2 + asym(4,-1)/tth
       pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
       pra2 = profile_asymmetry (tth, tth2, fwhm, p1, p2, p3, p4) 
       dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)*pra1  &
@@ -1483,14 +1565,38 @@ IF(pow_type==POW_COMPL) THEN
    ENDDO main_compl
 ELSEIF(pow_type==POW_DEBYE) THEN
    main_debye: DO i = 0, imax 
+!
+      fwhm = 0.00001D0
+!
+      tth = tthmin + i * ddtth       ! This is tth(axis=2) or Q(axis=1)
+      tantth = tand (tth * 0.5D0)    ! tan(Theta) = tan(2Theta/2)
+      IF(axis==2 ) THEN              ! 2Theta axis
+         if(pow_pr_fwhm==POW_PROFILE_CAGLIOTTI) then
+            fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
+         elseif(pow_pr_fwhm==POW_PROFILE_AREA) then
+            costth = cosd(tth)
+            fwhm = sqrt(max(abs(u*costth**4 + v*costth**2 + w), 0.00001D0))
+         endif
+      ELSEif(axis==1) THEN
+         if(pow_pr_fwhm==POW_PROFILE_CAGLIOTTI) then
+            theta  = asind(tth*rlambda*0.2500D0/PI) ! Theta = asin(Q*lamnda/4pi)
+            tantth = tand (theta                  ) ! tan(Theta) = tan( asin(Q*lamnda/4pi)
+            fwhm = SQRT( MAX( ABS( u*tantth**2 + v*tantth + w), 0.00001D0) ) * &
+                   PI**2/90.0D0/rlambda*cosd(theta)
+         elseif(pow_pr_fwhm==POW_PROFILE_AREA) then
+            costth = cosd(tth)
+            fwhm = sqrt(max(abs(u*costth**4 + v*costth**2 + w), 0.00001D0)) * &
+                   PI**2/90.0D0/rlambda*cosd(theta)
+         endif
+      ENDIF
       tth = tthmin + i * dtth 
       tantth = tand (tth * 0.5D0) 
 !
-      IF(axis==2 ) THEN       ! 2Theta axis
-         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
-      ELSEif(axis==1) THEN
-         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
-      ENDIF
+!      IF(axis==2 ) THEN       ! 2Theta axis
+!         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
+!      ELSEif(axis==1) THEN
+!         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
+!      ENDIF
 !
       max_ps = INT((pow_width * fwhm) / dtth )
       eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
