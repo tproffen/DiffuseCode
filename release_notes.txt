@@ -1,4 +1,19 @@
-6.09.05  DRAFT
+6.10.00  DRAFT
+
+General
+  installation scripts BUG FIX fixed issues with 'curl' commands
+  the 'update' command crashed the program, FIXED
+  At WSL the Ubuntu update did not work, FIXED
+
+DISCUS
+  mmc         BUG FIX, A 'reset' did not set all shifts to zero
+  deco        BUG FIX, added a 'mmc reset' to avoid unexpected siide effects to mmc
+  powder      Modified the profile parameters uvw to give the same FWHM irrespective
+              of the axis used in the calculation. Values correspond to FHWM with respect
+              to a 2Theta scale.
+              Added FWHM function for powder diffraction with an area detectors 
+              as in Chernyshov et al. ActaCryst A77, 497-505,
+              doi 10.1107/S2053273321007506
 6.09.04  RELEASE 2022_04_21
 
 Superseeds 03
