@@ -6899,6 +6899,8 @@
    "bragg" [,<theta_mono>]
    Bragg-Brentano powder diffraction geometry is set. Optionally you can
    specify the monochromator angle <theta_mono>.
+   If the diffractometer does not have a monochromator, set the
+   value of <theta_mono> to zero. This corresponds to unpolarized radiation.
 
    "neutron"
    A neutron powder diffractometer in Debye-Scherrer geometry is used.
@@ -6954,7 +6956,7 @@
 4  profile
 !p set profile,{"off" | "gauss" | "pseudo"}
 !p set profile,"eta",<eta>
-!p set profile,"uvw",<u>,<v>,<w>
+!p set profile,"uvw",<u>,<v>,<w> ["form:cagliotti" | form:area" ] 
 !p set profile,"asym",<a1>,<b1>,<a2>,<b2>
 !p set profile,"asym_l",<a1_l>,<b1_l>,<a2_l>,<b2_l>
 !p set profile,"asym_q",<a1_q>,<b1_q>,<a2_q>,<b2_q>
@@ -6980,8 +6982,18 @@
    Defines the mixing parameter ETA for the Pseudo-Voigt function
 
    "uvw"
-   Defines the FWHM for the Pseudo-Voigt function. The FWHM is 
-   calculated as FWHM = sqrt( u*tan(2theta)**2 + v*tan(2theta) + w)
+   Defines the FWHM for the Pseudo-Voigt function. 
+   As default or with the optional parameter "form:cagliotti", the FWHM is 
+   calculated as:
+   FWHM = sqrt( u*tan(2theta)**2 + v*tan(2theta) + w).
+
+   With "form:area", the FWHM is calculated as:
+   FWHM = sqrt( u*cos(2theta)**4 + v*cos(2theta)**2 + w), 
+   as defined in Chernyshov et al, Acta Cryst.A77, 497-505;
+   doi 10.1107/S2053273321007506 .
+
+   Internally the parameters are transformed to give the identical 
+   FWHM for a Q-scale and a 2Theta-scale.
 
    "asym"
    The Asymmetry or the Pseudo-Voigt function is calculated according 
