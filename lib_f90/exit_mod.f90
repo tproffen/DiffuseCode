@@ -49,6 +49,7 @@ IF(new_version > old_version ) THEN
 ENDIF
 IF(operating == OS_LINUX_WSL) THEN
    IF(since_update>7) THEN
+      line = 'NO'
       write(*,*)
       write(*,'(a)' ) ' Last Ubuntu update >7 days ago, '
       write(*,'(a)' ) ' Operating system update is strongly recommended'

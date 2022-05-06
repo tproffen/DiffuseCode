@@ -950,7 +950,7 @@ IF(lda) THEN
    CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 ! 140.82.121.3 = github.com
-line = "curl --silent --connect-timeout 3 --max-time 3 ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
+line = "curl --silent --location --connect-timeout 3 --max-time 3 ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
        // cfile(1:LEN_TRIM(cfile))
 CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 CALL no_error                         ! Checked and printed in ==> write_appl_env
@@ -1082,7 +1082,7 @@ logical             :: lda
 if(.not. check_github() ) return    ! no www network access 
 lonline = .TRUE.
 WRITE(cfile,        '(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_UBUNTU.', PID ! Test file to see if we are on-line
-string = "curl --silent ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
+string = "curl --silent --location ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
        // cfile(1:LEN_TRIM(cfile))                                                      ! The actual command
 call execute_command_line(string, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 INQUIRE(FILE=cfile,EXIST=lda)
@@ -1091,8 +1091,8 @@ IF_LDA: IF(lda) THEN
    string = ' '
    read(IRD,'(a)', iostat=ios) string
    if(is_iostat_end(ios)) lonline = .FALSE.    ! Apparently offline
-   if(string(1:88) /= '<html><body>You are being <a href="https://github.com/tproffen/DiffuseCode/releases/tag/') &
-      lonline = .FALSE.                        ! Apparently offline
+!  if(string(1:88) /= '<html><body>You are being <a href="https://github.com/tproffen/DiffuseCode/releases/tag/') &
+!     lonline = .FALSE.                        ! Apparently offline
    on_line: if(lonline) then
 !
    IF(operating == OS_LINUX .OR. operating == OS_LINUX_WSL) THEN
@@ -1147,12 +1147,13 @@ CHARACTER(LEN=PREC_STRING) :: inst_str          ! optional "install=" string
 CHARACTER(LEN=PREC_STRING) :: prep_str          ! optional "prepare=" string
 CHARACTER(LEN=128)          :: discus_version
 CHARACTER(LEN=128)         :: discus_power
-CHARACTER(LEN= 9)          :: grep
+CHARACTER(LEN=32)          :: grep
 CHARACTER(LEN=40)          :: script
 CHARACTER(LEN=20)          :: verstring
 CHARACTER(LEN=PREC_STRING) :: command
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
+integer             :: ios                      ! I/O status
 INTEGER             :: length
 !
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
@@ -1243,7 +1244,7 @@ IF(terminal_wrp /= ' ') THEN
 ENDIF
 !
 IF(operating == OS_LINUX .or. operating == OS_LINUX_WSL) THEN
-   grep    = 'grep -Poe'
+   grep    = 'grep -m 1 -Poe'
    script  = 'bbb_install_script.sh'
    command = terminal_emu(1:LEN_TRIM(terminal_emu)) // ' '// &
              terminal_exe(1:LEN_TRIM(terminal_exe)) // ' '// &
@@ -1266,13 +1267,14 @@ IF(operating == OS_LINUX .or. operating == OS_LINUX_WSL) THEN
 !   command = '/mnt/c/Windows/System32/WindowsPowerShell/'             //        &
 !             verstring(1:LEN_TRIM(verstring)) // '/'                  //        &
 !             'powershell.exe -NoProfile -ExecutionPolicy Unrestricted ' //      &
+CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !             '-Command "& {Start-Process PowerShell -ArgumentList ''' //        &
 !             '-NoProfile -ExecutionPolicy Unrestricted -File ""'      //        &
 !             'C:\Users\' // user_name(1:LEN_TRIM(user_name)) // '\'   //        &
 !             '\Downloads\' // script(1:LEN_TRIM(script)) // '""'' -Verb RunAs}";'
 ELSEIF(operating == OS_MACOSX) THEN
    WRITE(discus_version,'(a,a)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_VERSION' ! Initiate search for new version
-   grep    = 'grep -oe '
+   grep    = 'grep -m 1 -oe '
    script  = 'bbb_install_script_mac.sh'
 !  command ='$HOME./' // script(1:LEN_TRIM(script)) // ' started=native'
 !  command = terminal_emu(1:LEN_TRIM(terminal_emu)) // ' '// &
@@ -1294,13 +1296,20 @@ ENDIF
 !
 ! Get latest DISCUS Version
 !
-string = 'curl --silent https://github.com/tproffen/DiffuseCode/releases/latest ' // &
-         '| ' // grep(1:LEN_TRIM(grep)) // ' ''v.[0-9]*.[0-9]*.[0-9]*'' > ' //  discus_version
+string = 'curl --silent --location https://github.com/tproffen/DiffuseCode/releases/latest ' // &
+         '| grep "Release " ' // &
+         '| ' // grep(1:LEN_TRIM(grep)) // ' ''v\.[0-9]*\.[0-9]*\.[0-9]*'' > ' //  discus_version
 CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
 OPEN(UNIT=IRD,FILE=discus_version, STATUS='old')
-READ(IRD,'(a)') verstring
+READ(IRD,'(a)', iostat=ios) verstring
 CLOSE(UNIT=IRD)
+if(ios/=0) then
+   ier_num =  -18
+   ier_typ = ER_COMM
+   ier_msg(1) = 'No internet connection ?'
+   return
+endif
 !
 ! Download latest installation script
 !

@@ -185,12 +185,13 @@ USE lib_length
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -18
+       INTEGER, PARAMETER :: iu = -19
        INTEGER, PARAMETER :: io =   0
 !
        CHARACTER(LEN=45)  error(IU:IO)
 !
        DATA ERROR ( iu:-01) /                         &
+     &  'Failed to get new version number',         & !-19  ! command
      &  'Number of threads must be >= 1',           & !-18  ! command
      &  'Too many parameters',                      & !-17  ! command
      &  'Continued line is too long (> 512 charac.',& !-16  ! command
