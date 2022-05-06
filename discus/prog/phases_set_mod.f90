@@ -292,6 +292,8 @@ INTEGER           , INTENT(IN) :: npkt      ! Number of points in powder pattern
 REAL(KIND=PREC_DP), PARAMETER :: EPS = 0.001  ! A small fraction
 INTEGER            :: i,j, k
 INTEGER            :: empty                 ! number of empty phases with no atoms
+logical            :: l_all_complete = .TRUE. ! All pattern were done with "complete" mode
+logical            :: l_all_debye    = .TRUE. ! All pattern were done with "debye" mode
 REAL(KIND=PREC_DP) :: weight                ! Current grand weight
 REAL(KIND=PREC_DP) :: fractions             ! Current grand fractions
 REAL(KIND=PREC_DP) :: q                     ! Temporary number of real atoms per phase
@@ -382,27 +384,38 @@ pow_u2aver    = pow_u2aver /8./(PI)**2
 !enddo
 pow_conv = 0.0
 pow_sq   = 0.0
+l_all_complete = .TRUE.
+l_all_debye    = .TRUE.
+!write(*,*) 'INTEGRAL ', sum(pha_powder(:,1)), sum(pow_faver2),  &
+!                        sum(pha_powder(:,1))/ sum(pow_faver2)
 DO i=1,pha_n
    IF(pha_nreal(i)>0.0) THEN
    IF(pha_calc(i) == POW_COMPL) THEN           ! Complete calculation mode
+     l_all_debye    = .false.
 !
 !     Prepare intensity output
 !
       DO k=0, npkt
          q = (k*xdel + xmin)
          ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
-         pow_conv(k) = pow_conv(k) + pha_scale(i)*pha_powder(k,i) / q**2 &
-                                    * polarisation(ttheta)
+         pow_conv(k) = pow_conv(k) + pha_scale(i)*pha_powder(k,i)  & ! / q**2 &
+                                    * polarisation(ttheta)               &
+                                    * lorentz(ttheta, 0)
+!write(87, '(3(f16.6,2x))') ttheta, polarisation(ttheta), lorentz(ttheta, 0)
       ENDDO
 !
 !     Prepare S(Q)      output
 !
       DO k=0, npkt
          q = (k*xdel + xmin)
-         pow_sq(k) = pow_sq(k) + pha_scale(i)* pha_powder(k,i) / q**2
+         ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
+         pow_sq(k) = pow_sq(k) + pha_scale(i)* pha_powder(k,i)  &  ! / q**2
+                                    * polarisation(ttheta)               &
+                                    * lorentz(ttheta, 0)
       ENDDO
 !
    ELSEIF(pha_calc(i) == POW_DEBYE) THEN           ! Complete calculation mode
+      l_all_complete = .false.
 !
 !     Prepare intensity output
 !
@@ -422,6 +435,9 @@ DO i=1,pha_n
    ENDIF
    ENDIF
 ENDDO
+!write(*,*) 'INTEGRAL ', sum(pow_sq         ), sum(pow_faver2),  &
+!                        sum(pow_sq         )/ sum(pow_faver2)
+!close(87)
 !open(87,file='POWDER/multi_average.conv1', status='unknown')
 !do k= 0, npkt
 !q = ((k)*xdel + xmin)
@@ -430,6 +446,21 @@ ENDDO
 !close(87)
 !
 !write(*,*) ' IN PHASES ', deb_conv .OR. .NOT.ldbw, deb_conv , .NOT.ldbw
+if(l_all_complete) then                       ! Complete data calculation 
+!write(*,*) ' COMPLETE CALCULATION '
+   DO k=0, npkt
+      q = ((k)*xdel + xmin)
+      pow_conv(k) = pow_conv(k)  !+                                               &
+              !       (+ 1.0 - exp(-q**2*pow_u2aver))*pow_faver2(k)
+   ENDDO
+   pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_faver2))    ! Correct intensity effect of LP Correction
+!write(*,*) 'INTEGRAL ', sum(pow_sq         ), sum(pow_faver2),  &
+!                        sum(pow_sq         )/ sum(pow_faver2)
+   do k=0, npkt
+      pow_sq(k) =   1.0 + (pow_sq(k) - pow_fu(k))/pow_faver2(k)  &
+                  + 0.0 - exp(-q**2*pow_u2aver)
+   enddo
+else                                          ! DEBYE calculation
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
 !write(*,*) ' DEBYE was     done  with conv '
    DO k=0, npkt
@@ -460,28 +491,38 @@ ELSE
 !        ypl(j) = 1.0 + (ypl(j) -pow_fu(j)                     )/pow_faver2(j)
    ENDDO
 ENDIF
+endif                                       ! End complete / debye
+!write(*,*) ' POW_U2AVER ', pow_u2aver
+!open(87,file='POWDER/multi_average.conv2', status='unknown')
+!do k= 0, npkt
+!q = ((k)*xdel + xmin)
+!write(87,'(5(f16.6,2x))') q,      pow_conv(k), pow_sq(k), pow_fu(k), pow_faver2(k)
+!enddo
+!close(87)
 !  Fine tune average value of S(Q) => 1 for large Q, slight deviations arrise
 !  due to convolution
-sq_scale = 0.0D0
-if(npkt*xdel>25.0) then 
-   i = nint((20.0-xmin)/xdel)
-   if(pow_sq(i) > 1.0) then       !Find a point at S(Q) = 1.0
-      do while(pow_sq(i) > 1.0)
-         i = i-1
+!if(l_all_debye) then
+   sq_scale = 0.0D0
+   if(npkt*xdel>25.0) then 
+      i = nint((20.0-xmin)/xdel)
+      if(pow_sq(i) > 1.0) then       !Find a point at S(Q) = 1.0
+         do while(pow_sq(i) > 1.0)
+            i = i-1
+         enddo
+      elseif(pow_sq(i) < 1.0) then       !Find a point at S(Q) = 1.0
+         do while(pow_sq(i) < 1.0)
+            i = i-1
+         enddo
+      endif
+      j = nint(0.9*npkt)
+      do k=i,j
+         sq_scale = sq_scale + pow_sq(k)
       enddo
-   elseif(pow_sq(i) < 1.0) then       !Find a point at S(Q) = 1.0
-      do while(pow_sq(i) < 1.0)
-         i = i-1
-      enddo
-   endif
-   j = nint(0.9*npkt)
-   do k=i,j
-      sq_scale = sq_scale + pow_sq(k)
-   enddo
-   sq_scale = sq_scale/(j-i+1)
+      sq_scale = sq_scale/(j-i+1)
 !write(*,*) 'scale ',sq_scale, i, j, npkt
-   pow_sq = pow_sq / sq_scale
-endif
+      pow_sq = pow_sq / sq_scale
+   endif
+!endif
 !
 !open(87,file='POWDER/multi_average.conv', status='unknown')
 !do k= 0, npkt
@@ -770,6 +811,9 @@ END SUBROUTINE phases_corr
 !
 REAL(kind=PREC_DP) function lorentz (ttheta, flag_fq) 
 !+                                                                      
+!  Calculate the Lorentz correction factor for various geometries
+!
+! Bragg Brentano : 1. / ( sin(Theta)*sin(2Theta) )
 !-                                                                      
 USE discus_config_mod 
 USE powder_mod 
@@ -790,16 +834,16 @@ IF (pow_four_type.eq.POW_DEBYE) THEN
 ELSE 
    IF(flag_fq==0) THEN
       IF (pow_lp.eq.POW_LP_BRAGG) THEN 
-         lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
+         lorentz = 1.0 / sind (0.5 * ttheta) / sind (ttheta) 
       ELSEIF (pow_lp.eq.POW_LP_NEUT) THEN 
-         lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
+         lorentz = 1.0 / sind (0.5 * ttheta) / sind (ttheta) 
       ELSEIF (pow_lp.eq.POW_LP_NONE) THEN 
          lorentz = 1.0 
       ELSEIF (pow_lp.eq.POW_LP_SYNC) THEN 
-         lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
+         lorentz = 1.0 / sind (0.5 * ttheta) / sind (ttheta) 
       ENDIF 
    ELSEIF(flag_fq==1) THEN 
-      lorentz = 0.5 / sind (0.5 * ttheta) / sind (ttheta) 
+      lorentz = 1.0 / sind (0.5 * ttheta) / sind (ttheta) 
    ENDIF 
 ENDIF 
 !                                                                       
@@ -809,6 +853,9 @@ END FUNCTION lorentz
 !
 REAL(kind=PREC_DP) FUNCTION polarisation (ttheta) 
 !+                                                                      
+!  Calculate the polarisation factor for different geometries
+!
+!  Bragg Brentano:   (1 + cos^2(2Theta) * cos^2(2Theta_mono)) / 2
 !-                                                                      
 USE discus_config_mod 
 USE powder_mod 
@@ -825,7 +872,8 @@ REAL(kind=PREC_DP) :: ttheta
 polarisation = 1.0
       
 IF (pow_lp.eq.POW_LP_BRAGG) THEN 
-   polarisation = (1. + (cosd(ttheta))**2 * pow_lp_fac)/(1. + pow_lp_fac)
+   polarisation = (1.0D0 + (cosd(ttheta))**2 * pow_lp_fac)*0.5D0
+!  polarisation = (1. + (cosd(ttheta))**2 * pow_lp_fac)/(1. + pow_lp_fac)
 ELSEIF (pow_lp.eq.POW_LP_NEUT) THEN 
    polarisation = 1.0 
 ELSEIF (pow_lp.eq.POW_LP_NONE) THEN 
