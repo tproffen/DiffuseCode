@@ -4649,9 +4649,10 @@
    does not use the feedback mechanism and the value <number> given
    here only determines the output interval.
 4  finish
-!p set "finish" [, feed:<nfeed>] [, diff:<maxdiff>] [, rdiff:<maxrdiff] 
+!p set "finish" [  {stop:cycles | stop:converge}]
+!p              [, feed:<nfeed>] [, diff:<maxdiff>] [, rdiff:<maxrdiff] 
 !p              [, change:<maxchange>] [, aver:<maxaver>]
-!p              [, {log:none}| log:screen]
+!p              [, {log:none | log:screen}]
 
    Set criteria that MMC uses to finish the cycles.
 
