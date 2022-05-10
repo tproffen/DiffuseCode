@@ -1027,7 +1027,6 @@ ELSEIF (str_comp (cpara (1) , 'profile', 2, lpara (1) , 7) ) THEN
       ELSEIF(str_comp(cpara(2), 'uvw', 2, lpara(2), 3)) THEN
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, lpresent, owerte)
-                   write(*,*) ' FORM ', opara(O_CAGL)(1:len_trim(opara(O_CAGL))), ier_num, ier_typ
          IF (ier_num /= 0) return
          pow_pr_fwhm = POW_PROFILE_CAGLIOTTI
          if(str_comp(opara(O_CAGL), 'cagliotti', 3, lopara(O_CAGL), 9)) THEN
@@ -1039,9 +1038,6 @@ ELSEIF (str_comp (cpara (1) , 'profile', 2, lpara (1) , 7) ) THEN
          lpara (1) = 1 
          cpara (2) = '0' 
          lpara (2) = 1 
-         write(*,*) ' cpara 3 ', cpara(3)(1:lpara(3))
-         write(*,*) ' cpara 4 ', cpara(4)(1:lpara(4))
-         write(*,*) ' cpara 5 ', cpara(5)(1:lpara(5))
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          IF (ier_num.eq.0) THEN 
             pow_u = werte (3) 

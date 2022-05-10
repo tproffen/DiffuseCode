@@ -885,7 +885,6 @@ DO j=1,npkt
    if(pow_conv(j) == 0.0) nzero = nzero + 1
 ENDDO
 !lconv = .FALSE.
-write(*,*) 'TYPE CONVOLUTE ', pow_four_type, pow_u,pow_v,pow_w, pow_axis, pow_pr_fwhm
 IF (pow_profile == POW_PROFILE_GAUSS) THEN 
    IF (pow_delta.gt.0.0) THEN 
       xxmax = xmax + xdel
@@ -903,7 +902,6 @@ ELSEIF (pow_profile == POW_PROFILE_PSVGT) THEN
          pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_asym,  &
          pow_width, POW_MAXPKT, pow_four_type, pow_axis, rlambda, pow_pr_fwhm)
       ELSE          ! Symmetric case
-              write(*,*) ' POWDER_CONV_PSVGT_UVW'
          CALL powder_conv_psvgt_uvw(pow_conv, xmin,xxmax, xdel,   &
          pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_width,  &
          POW_MAXPKT, pow_four_type, pow_axis, rlambda, pow_pr_fwhm)
@@ -1298,7 +1296,6 @@ ddtth = 0.001D0
 imax = INT( (tthmax - tthmin) / dtth )
 !
 dummy = 0.0D0   ! dummy(:)
-write(*,*) 'TYPE ', pow_type==POW_COMPL, u,v,w, axis, pow_pr_fwhm
 
 IF(pow_type==POW_COMPL) THEN     ! Complete, check for zeros in DAT
    main_pts: DO i = 0, imax 
