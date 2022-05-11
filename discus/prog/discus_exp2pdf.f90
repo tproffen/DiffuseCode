@@ -8,6 +8,7 @@ SUBROUTINE exp2pdf
 !  Convert an experimental powder diffraction pattern to a PDF
 !-                                                                      
 use discus_config_mod 
+use discus_kdo_common_mod
 use exp2pdf_load_mod
 use exp2pdf_supp_mod
 use exp2pdf_run_mod
@@ -36,6 +37,7 @@ CHARACTER(LEN=PREC_STRING) :: line, zeile
 INTEGER :: lp, length, lbef 
 INTEGER :: indxg
 LOGICAL :: lend
+logical :: success
 !
 !                                                                       
 maxw = MIN_PARA
@@ -99,6 +101,13 @@ loop_main: DO while (.not.lend)                 ! Main exp2pdf loop
             CALL do_math(line, indxg, length) 
       cycle loop_main
    endif
+!
+!
+! - Test common menu entries
+!
+   CALL discus_kdo_common(befehl, lbef, line, length, zeile, lp, 'exp2pdf' , &
+                          lend, success)
+   if(success) cycle loop_main
 !
 !--EXP2PDF specific commands
 !
