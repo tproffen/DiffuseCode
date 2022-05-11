@@ -933,6 +933,7 @@ USE lib_length
       USE param_mod 
 USE precision_mod
 USE str_comp_mod
+use wink_mod
 !
       IMPLICIT none 
 !                                                                       
@@ -1095,11 +1096,11 @@ real(kind=PREC_DP), dimension(3,3), parameter :: unitmat = reshape((/ 1.0D0, 0.0
             ier_num = - 3 
             ier_typ = ER_FORT 
          ENDIF 
-      ELSEIF (lcomm.eq.5) THEN 
+ELSEIF (lcomm.eq.5) THEN 
 !                                                                       
 !     Calculate reciprocal length or d-star value, respectivly          
 !                                                                       
-         IF (string (ikl - 5:ikl - 1) .eq.'dstar') THEN 
+   IF (string (ikl - 5:ikl - 1) .eq.'dstar') THEN 
             CALL get_params (line, ianz, cpara, lpara, 6, lp) 
             IF (ier_num.eq.0) THEN 
                IF (ianz.eq.3.or.ianz.eq.6) THEN 
@@ -1130,11 +1131,50 @@ real(kind=PREC_DP), dimension(3,3), parameter :: unitmat = reshape((/ 1.0D0, 0.0
                   ier_typ = ER_COMM 
                ENDIF 
             ENDIF 
+!                                                                       
+!     Calculate reciprocal length or Q-star value, respectivly          
+!                                                                       
+   elseIF(string (ikl - 5:ikl - 1) .eq.'qstar') THEN 
+      CALL get_params (line, ianz, cpara, lpara, 6, lp) 
+      IF (ier_num.eq.0) THEN 
+         IF (ianz==1 .or. ianz.eq.3.or.ianz.eq.6) THEN 
+            DO i = 1, ianz 
+               CALL eval (cpara (i), lpara (i) ) 
+               IF (ier_num.ne.0) THEN 
+                  GOTO 999 
+               ENDIF 
+               werte (i) = do_read_number (cpara (i), lpara (i) ) 
+               IF (ier_num.ne.0) THEN 
+                  GOTO 999 
+               ENDIF 
+            ENDDO 
+            if(ianz==1) then
+               ww = werte(1)*zpi
+            else
+               IF (ianz.eq.3) THEN 
+               DO i = 4, 6 
+                  werte (i) = 0.0 
+               ENDDO 
+            ENDIF 
+            DO i = 1, 3 
+               u (i) = werte (i) 
+               v (i) = werte (i + 3) 
+            ENDDO 
+            lspace = .false. 
+            ww = do_blen (lspace, u, v) * zpi
+            endif
+            CALL ersetz2 (string, ikl, iklz, ww, 5, laenge) 
          ELSE 
-            ier_num = - 3 
-            ier_typ = ER_FORT 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
          ENDIF 
-      ELSEIF (lcomm.eq.4) THEN 
+      ENDIF 
+   ELSE 
+      ier_num = - 3 
+      ier_typ = ER_FORT 
+   ENDIF 
+!
+ELSEIF (lcomm.eq.4) THEN 
 !                                                                       
 !     Calculate a bond angle                                            
 !                                                                       
