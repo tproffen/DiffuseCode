@@ -457,6 +457,7 @@ if(l_all_complete) then                       ! Complete data calculation
 !write(*,*) 'INTEGRAL ', sum(pow_sq         ), sum(pow_faver2),  &
 !                        sum(pow_sq         )/ sum(pow_faver2)
    do k=0, npkt
+      q = ((k)*xdel + xmin)
       pow_sq(k) =   1.0 + (pow_sq(k) - pow_fu(k))/pow_faver2(k)  &
                   + 0.0 - exp(-q**2*pow_u2aver)
    enddo
