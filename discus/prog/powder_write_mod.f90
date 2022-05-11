@@ -1468,7 +1468,7 @@ REAL(KIND=PREC_DP)            :: theta    ! Real angle Theta for Q-axis
 REAL(kind=PREC_DP)            :: tantth   ! tan(Theta)
 REAL(kind=PREC_DP)            :: costth   ! cos(2Theta)
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
-REAL(KIND=PREC_DP)    :: ddtth            ! actual stepwidth  at current 2Theta
+!REAL(KIND=PREC_DP)    :: ddtth            ! actual stepwidth  at current 2Theta
 REAL(KIND=PREC_DP)    :: tth1            ! Theta values for asymmetry
 REAL(KIND=PREC_DP)    :: tth2            ! Theta values for asymmetry
 REAL(kind=PREC_DP)    :: p1, p2, p3, p4  ! 2Theta dependen asymmety parameters
@@ -1488,7 +1488,7 @@ IF(pow_type==POW_COMPL) THEN
 !
       fwhm = 0.00001D0
 !
-      tth = tthmin + i * ddtth       ! This is tth(axis=2) or Q(axis=1)
+      tth = tthmin + i *  dtth       ! This is tth(axis=2) or Q(axis=1)
       tantth = tand (tth * 0.5D0)    ! tan(Theta) = tan(2Theta/2)
       IF(axis==2 ) THEN              ! 2Theta axis
          if(pow_pr_fwhm==POW_PROFILE_CAGLIOTTI) then
@@ -1565,7 +1565,7 @@ ELSEIF(pow_type==POW_DEBYE) THEN
 !
       fwhm = 0.00001D0
 !
-      tth = tthmin + i * ddtth       ! This is tth(axis=2) or Q(axis=1)
+      tth = tthmin + i *  dtth       ! This is tth(axis=2) or Q(axis=1)
       tantth = tand (tth * 0.5D0)    ! tan(Theta) = tan(2Theta/2)
       IF(axis==2 ) THEN              ! 2Theta axis
          if(pow_pr_fwhm==POW_PROFILE_CAGLIOTTI) then
