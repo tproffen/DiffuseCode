@@ -37,7 +37,7 @@ INTEGER :: lbeg (3), csize (3)
 INTEGER :: iscat, nlot, ncell, i 
 INTEGER :: ii          ! Dummy variable
 !                                                                       
-ier_num = 0 
+!ier_num = 0    ! STRANGE BUG on MacAir with M1 chip ??? 2022-May-11
 !                                                                       
 !------ preset some values                                              
 !                                                                       
