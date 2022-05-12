@@ -23,7 +23,7 @@ link_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 ###	
 set( SOURCE_MAIN discus.f90 )
 set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
-	atom_line.f90 atom_name.f90 discus_blk_appl.f90 bv_data_mod.f90 
+	atom_line.f90 atom_name.f90 discus_blk_appl.f90 discus_bragg.f90 bv_data_mod.f90 
 	chem.f90 chem_mod.f90 chem_aver_mod.f90 chem_symm_mod.f90 chem_multi.f90 chem_neig_multi.f90
         discus_config_mod.f90
 	discus_branch.f90 discus_crystal.f90 discus_export.f90 discus_nipl_header.f90

@@ -12,6 +12,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 USE addfile_mod
 USE discus_allocate_appl_mod
 USE discus_reset_all_mod
+use bragg_mod
 USE charact_mod 
 USE chem_menu
 USE chem_aver_mod, ONLY: get_displacement
@@ -171,6 +172,11 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
          ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) THEN 
             CALL show_asym 
+!                                                                       
+!-------do Bragg's equation 'bragg'
+!                                                                       
+         ELSEIF (str_comp (befehl, 'bragg', 2, lbef, 5) ) THEN 
+            CALL bragg_eq(zeile, lcomm) 
 !                                                                       
 !-------remove atomes outside a boundary 'boundary'                     
 !                                                                       
