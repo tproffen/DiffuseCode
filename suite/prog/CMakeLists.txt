@@ -21,7 +21,8 @@ link_directories(${DIFFUSE_BINARY_DIR}/discus/prog)
 link_directories(${DIFFUSE_BINARY_DIR}/diffev/prog)
 link_directories(${DIFFUSE_BINARY_DIR}/refine/prog)
 link_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
-link_directories(${PGPLOT_LIBRARIES})
+#link_directories(${PGPLOT_LIBRARIES})
+link_directories(${PGPLOT_DIR})
 
 set (SOURCE_MAIN suite.f90)
 set (SOURCES_ALL suite_setup_mod.f90 suite_branch.f90 suite_loop.f90
@@ -47,6 +48,8 @@ if( DISCUS_OMP)
 else(DISCUS_OMP)
   message (status " building SUITE without openmp")
 endif(DISCUS_OMP)
+message (status " PGPLOT DIR      " ${PGPLOT_DIR} )
+message (status " PGPLOT LIBRARY  " ${PGPLOT_LIBRARIES} )
 
 if (MPI_Fortran_FOUND AND DIFFEV_MPI)
   message (status " building SUITE with MPI")
