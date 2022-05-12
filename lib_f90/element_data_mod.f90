@@ -1778,7 +1778,7 @@ use precision_mod
 implicit none
 !
 CHARACTER (LEN=*), INTENT(IN)    :: lambda
-REAL(kind=PREC_DP)             , INTENT(OUT)   :: rlambda
+REAL(kind=PREC_DP)             , INTENT(INOUT) :: rlambda
 REAL(kind=PREC_DP)             , INTENT(INOUT) :: energy
 LOGICAL          , INTENT(IN)    :: l_energy
 INTEGER          , INTENT(IN)    :: diff_radiation
@@ -1826,6 +1826,8 @@ ELSE
       ier_num = 0
       ier_typ = 0
    ELSE
+      ier_num = -77
+      ier_typ = 6  
       wave: do i=1, PER_MAX_WAVE
           IF ( lambda == per_symwl(i)) THEN
              rlambda = per_wavel(i)
