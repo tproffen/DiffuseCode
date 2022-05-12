@@ -612,33 +612,33 @@ SUBROUTINE discus_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
 !       updates the parameter specified by ctype, index ww  to the      
 !       new value of wert                                               
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE atom_env_mod 
-      USE molecule_mod 
-      USE do_molecule_alloc
-      USE prop_para_mod 
-      USE spcgr_apply, ONLY: setup_lattice
+USE discus_config_mod 
+USE crystal_mod 
+USE atom_env_mod 
+USE molecule_mod 
+USE do_molecule_alloc
+USE prop_para_mod 
+USE spcgr_apply, ONLY: setup_lattice
 USE surface_mod
 !
-      USE errlist_mod 
-      USE param_mod 
+USE errlist_mod 
+USE param_mod 
 USE lib_errlist_func
-      USE lib_upd_mod
+USE lib_upd_mod
 USE precision_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      CHARACTER (LEN=*),          INTENT(IN) :: ctype 
-      INTEGER,                    INTENT(IN) :: maxw
-      INTEGER,                    INTENT(IN) :: ianz 
-      INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
-      REAL(KIND=PREC_DP)        , INTENT(IN) :: wert 
-      CHARACTER (LEN=*),          INTENT(IN) :: cstring
+CHARACTER (LEN=*),          INTENT(IN) :: ctype 
+INTEGER,                    INTENT(IN) :: maxw
+INTEGER,                    INTENT(IN) :: ianz 
+INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
+REAL(KIND=PREC_DP)        , INTENT(IN) :: wert 
+CHARACTER (LEN=*),          INTENT(IN) :: cstring
 INTEGER, DIMENSION(2), INTENT(IN)    :: substr ! Indices of substring
 !
-      INTEGER :: l
-      INTEGER :: iwert, owert
+INTEGER :: l
+INTEGER :: iwert, owert
 !
 CALL lib_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
 IF(ier_num==0 .OR. (ier_num==-40 .AND. ier_typ==ER_FORT)) RETURN
@@ -911,7 +911,9 @@ CALL no_error
       ENDIF 
  8000 FORMAT    (a) 
       END SUBROUTINE discus_upd_para                       
+!
 !*****7***************************************************************  
+!
 SUBROUTINE discus_calc_intr_spec(string, line, ikl, iklz, ww, laenge, lp)
 !-                                                                      
 !     These are special intrinsic function for the DISCUS. Any          
@@ -919,39 +921,50 @@ SUBROUTINE discus_calc_intr_spec(string, line, ikl, iklz, ww, laenge, lp)
 !     is found in this subroutine.                                      
 !+                                                                      
 !
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE do_read_number_mod
-      USE ersetz_mod
-      USE atom_env_mod 
-      USE metric_mod
-      USE molecule_mod 
-      USE calc_expr_mod
-      USE errlist_mod 
-      USE get_params_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE atom_env_mod 
+USE metric_mod
+USE molecule_mod 
+!
+USE calc_expr_mod
+USE errlist_mod 
+USE ersetz_mod
+USE ber_params_mod
+USE get_params_mod
+use element_data_mod, only:get_wave
 USE lib_length
-      USE param_mod 
+USE param_mod 
+USE do_read_number_mod
 USE precision_mod
 USE str_comp_mod
+use take_param_mod
+use trig_degree_mod
 use wink_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      CHARACTER (LEN=*), INTENT(INOUT) :: string
-      CHARACTER (LEN=*), INTENT(INOUT) :: line 
-      INTEGER,           INTENT(IN)    :: ikl
-      INTEGER,           INTENT(IN)    :: iklz
-      REAL(KIND=PREC_DP),INTENT(INOUT) :: ww
-      INTEGER,           INTENT(INOUT) :: laenge
-      INTEGER,           INTENT(INOUT) :: lp
+CHARACTER (LEN=*), INTENT(INOUT) :: string
+CHARACTER (LEN=*), INTENT(INOUT) :: line 
+INTEGER,           INTENT(IN)    :: ikl
+INTEGER,           INTENT(IN)    :: iklz
+REAL(KIND=PREC_DP),INTENT(INOUT) :: ww
+INTEGER,           INTENT(INOUT) :: laenge
+INTEGER,           INTENT(INOUT) :: lp
        
 !                                                                       
-      INTEGER, PARAMETER :: maxw = 9
+INTEGER, PARAMETER :: maxw = 9
 !                                                                       
-      CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) cpara (maxw) 
-      INTEGER lpara (maxw)
-      INTEGER i, j, k, ianz, lcomm, l 
-      LOGICAL lspace
+character(len=4) :: symbol
+CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) cpara (maxw) 
+INTEGER lpara (maxw)
+INTEGER i, j, k, ianz, lcomm, l 
+integer :: lsymbol
+LOGICAL :: lspace
+logical :: l_energy
+integer :: diff_radiation
+real(kind=PREC_DP) :: energy
+real(kind=PREC_DP) :: rlambda
 REAL(kind=PREC_DP), dimension(MAXW) :: werte !(maxw)
 real(kind=PREC_DP), dimension(3) :: u
 real(kind=PREC_DP), dimension(3) :: v
@@ -959,15 +972,37 @@ real(kind=PREC_DP), dimension(3) :: w
 real(kind=PREC_DP), dimension(3,3), parameter :: unitmat = reshape((/ 1.0D0, 0.0D0, 0.0D0,  &
                                                                       0.0D0, 1.0D0, 0.0D0,  &
                                                                       0.0D0, 0.0D0, 1.0D0 /), shape(unitmat))
+!
+integer, parameter :: NOPTIONAL = 4
+integer, parameter :: O_THETA   = 1
+!integer, parameter :: O_Q       = 2
+!integer, parameter :: O_DSTAR   = 3
+integer, parameter :: O_LAMBDA  = 4
+character(LEN=   6), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 3 ! Number of values to calculate 
+!
+data oname  / 'theta', 'q    ',  'dstar',  'lambda'   /
+data loname /  5     ,  1     ,   5     ,   6         /
+opara  =  (/ '0.0000', '0.0000', '0.0000', 'CUA1  ' /)   ! Always provide fresh default values
+lopara =  (/  6,        6,        6      ,  4       /)
+owerte =  (/  0.0,      0.0,      0.0    ,  1.540510/)
+!
+!
 !                                                                       
-      lcomm = length_com (string, ikl) 
-      ier_num = - 1 
-      ier_typ = ER_FORT 
-      DO i = 1, maxw 
-      werte (i) = 0.0 
-      ENDDO 
+lcomm = length_com (string, ikl) 
+ier_num = - 1 
+ier_typ = ER_FORT 
+ werte = 0.0D0
+!     DO i = 1, maxw 
+!     werte (i) = 0.0 
+!     ENDDO 
 !                                                                       
-      IF (lcomm.eq.9) THEN 
+cond_lcomm: IF (lcomm.eq.9) THEN 
 !                                                                       
 !     Calculate average density of a fractional coordinate              
 !                                                                       
@@ -1000,7 +1035,7 @@ real(kind=PREC_DP), dimension(3,3), parameter :: unitmat = reshape((/ 1.0D0, 0.0
             ier_typ = ER_FORT 
          ENDIF 
 !                                                                       
-      ELSEIF (lcomm.eq.8) THEN 
+ELSEIF (lcomm.eq.8) THEN  cond_lcomm
 !                                                                       
          IF (string (ikl - 8:ikl - 1) .eq.'mol_test') THEN 
             CALL get_params (line, ianz, cpara, lpara, 6, lp) 
@@ -1040,7 +1075,7 @@ real(kind=PREC_DP), dimension(3,3), parameter :: unitmat = reshape((/ 1.0D0, 0.0
             ier_num = - 3 
             ier_typ = ER_FORT 
          ENDIF 
-      ELSEIF (lcomm.eq.7) THEN 
+ELSEIF (lcomm.eq.7) THEN  cond_lcomm
 !                                                                       
 !     Calculate scalar product                                          
 !                                                                       
@@ -1096,85 +1131,58 @@ real(kind=PREC_DP), dimension(3,3), parameter :: unitmat = reshape((/ 1.0D0, 0.0
             ier_num = - 3 
             ier_typ = ER_FORT 
          ENDIF 
-ELSEIF (lcomm.eq.5) THEN 
+ELSEIF (lcomm.eq.5) THEN  cond_lcomm
 !                                                                       
 !     Calculate reciprocal length or d-star value, respectivly          
 !                                                                       
-   IF (string (ikl - 5:ikl - 1) .eq.'dstar') THEN 
-            CALL get_params (line, ianz, cpara, lpara, 6, lp) 
-            IF (ier_num.eq.0) THEN 
-               IF (ianz.eq.3.or.ianz.eq.6) THEN 
-                  DO i = 1, ianz 
-                  CALL eval (cpara (i), lpara (i) ) 
-                  IF (ier_num.ne.0) THEN 
-                     GOTO 999 
-                  ENDIF 
-                  werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                  IF (ier_num.ne.0) THEN 
-                     GOTO 999 
-                  ENDIF 
-                  ENDDO 
-                  IF (ianz.eq.3) THEN 
-                     DO i = 4, 6 
-                     werte (i) = 0.0 
-                     ENDDO 
-                  ENDIF 
-                  DO i = 1, 3 
-                  u (i) = werte (i) 
-                  v (i) = werte (i + 3) 
-                  ENDDO 
-                  lspace = .false. 
-                  ww = do_blen (lspace, u, v) 
-                  CALL ersetz2 (string, ikl, iklz, ww, 5, laenge) 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-            ENDIF 
-!                                                                       
-!     Calculate reciprocal length or Q-star value, respectivly          
-!                                                                       
-   elseIF(string (ikl - 5:ikl - 1) .eq.'qstar') THEN 
+   IF (string (ikl - 5:ikl - 1) .eq.'dstar' .or.      &
+       string (ikl - 5:ikl - 1) .eq.'qstar'       ) THEN 
       CALL get_params (line, ianz, cpara, lpara, 6, lp) 
-      IF (ier_num.eq.0) THEN 
-         IF (ianz==1 .or. ianz.eq.3.or.ianz.eq.6) THEN 
-            DO i = 1, ianz 
-               CALL eval (cpara (i), lpara (i) ) 
-               IF (ier_num.ne.0) THEN 
-                  GOTO 999 
-               ENDIF 
-               werte (i) = do_read_number (cpara (i), lpara (i) ) 
-               IF (ier_num.ne.0) THEN 
-                  GOTO 999 
-               ENDIF 
-            ENDDO 
-            if(ianz==1) then
-               ww = werte(1)*zpi
-            else
-               IF (ianz.eq.3) THEN 
-               DO i = 4, 6 
-                  werte (i) = 0.0 
-               ENDDO 
-            ENDIF 
-            DO i = 1, 3 
-               u (i) = werte (i) 
-               v (i) = werte (i + 3) 
-            ENDDO 
-            lspace = .false. 
-            ww = do_blen (lspace, u, v) * zpi
-            endif
-            CALL ersetz2 (string, ikl, iklz, ww, 5, laenge) 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-         ENDIF 
+      IF (ier_num /= 0) exit cond_lcomm
+      call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, lpresent, owerte)
+      IF (ier_num /= 0) exit cond_lcomm
+      CALL ber_params(ianz, cpara, lpara, werte, maxw)
+      IF (ier_num /= 0) exit cond_lcomm
+      IF (ianz.eq.3.or.ianz.eq.6) THEN 
+         DO i = 1, 3 
+            u (i) = werte (i) 
+            v (i) = werte (i + 3) 
+         ENDDO 
+         lspace = .false. 
+         ww = do_blen (lspace, u, v) 
+      elseif(lpresent(O_THETA) .and. lpresent(O_LAMBDA)) then
+         symbol  = opara(O_LAMBDA)(1:lopara(O_LAMBDA))
+         lsymbol = lopara(O_LAMBDA)
+         cpara(1) = opara(O_LAMBDA)
+         lpara(1) = lopara(O_LAMBDA)
+         ianz     = 1
+         CALL ber_params(ianz, cpara, lpara, werte, maxw)
+         IF (ier_num == 0) then
+            rlambda = werte(1)
+         else
+            diff_radiation = 1
+            l_energy = .false.
+            energy = 0.0
+            call get_wave ( symbol , rlambda, energy, l_energy, &
+                      diff_radiation,ier_num, ier_typ )
+            if(ier_num/=0) exit cond_lcomm
+         endif
+         ww = 2.0*sind(owerte(O_THETA))/rlambda
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
       ENDIF 
+      if(ier_num==0) then
+         if(string (ikl - 5:ikl - 1) .eq.'qstar') ww = ww * zpi
+         CALL ersetz2 (string, ikl, iklz, ww, 5, laenge) 
+      endif
    ELSE 
       ier_num = - 3 
       ier_typ = ER_FORT 
    ENDIF 
 !
-ELSEIF (lcomm.eq.4) THEN 
+ELSEIF (lcomm.eq.4) THEN  cond_lcomm
 !                                                                       
 !     Calculate a bond angle                                            
 !                                                                       
@@ -1431,22 +1439,23 @@ ELSEIF (lcomm.eq.4) THEN
             ier_num = - 3 
             ier_typ = ER_FORT 
          ENDIF 
-      ELSEIF (lcomm.eq.0) THEN 
+      ELSEIF (lcomm.eq.0) THEN cond_lcomm
          CALL ersetz2 (string, ikl, iklz, ww, 0, laenge) 
-      ELSE 
+      ELSE cond_lcomm
          ier_num = - 3 
          ier_typ = ER_FORT 
-      ENDIF 
+      ENDIF cond_lcomm
 !                                                                       
   999 CONTINUE 
 !                                                                       
-      IF (ier_num.ne.0) THEN 
-         WRITE (ier_msg (1), 9000) string (1:min (40, laenge) ) 
-         WRITE (ier_msg (1), 9000) line (1:min (40, laenge) ) 
-      ENDIF 
+IF (ier_num.ne.0) THEN 
+   WRITE (ier_msg (1), 9000) string (1:min (40, laenge) ) 
+   WRITE (ier_msg (1), 9000) line (1:min (40, laenge) ) 
+ENDIF 
 !                                                                       
  9000 FORMAT    (a) 
-      END SUBROUTINE discus_calc_intr_spec                 
+!
+END SUBROUTINE discus_calc_intr_spec                 
 !
 !*****7**************************************************************** 
 !
