@@ -738,7 +738,7 @@ INTEGER          , INTENT(INOUT) :: lp
 INTEGER maxw 
 PARAMETER (maxw = MAXKURVTOT) 
 !                                                                       
-CHARACTER(LEN=PREC_STRING) cpara (maxw) 
+CHARACTER(LEN=PREC_STRING), dimension(:), allocatable :: cpara !(maxw) 
 REAL(KIND=PREC_DP) :: werte (maxw) 
 REAL(kind=PREC_DP) :: mdelta, mmin, mmax 
 REAL(kind=PREC_DP) ::  mdeltay, mminy, mmaxy 
@@ -759,11 +759,16 @@ IF (iz.gt.maxkurvtot) then
    ier_typ = ER_APPL 
    RETURN 
 ENDIF 
+!
+allocate(cpara(maxw))
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-IF (ier_num.ne.0) return 
+IF (ier_num.ne.0) then
+   deallocate(cpara)
+   return 
+endif
 !                                                                       
 ladd = str_comp (cpara (ianz) , 'add', 1, lpara (ianz) , 3) 
 IF (ladd) ianz = ianz - 1 
@@ -771,10 +776,14 @@ IF (ladd) ianz = ianz - 1
 lall = str_comp (cpara (ianz) , 'all', 1, lpara (ianz) , 3) 
 IF (lall) then 
    werte (1) = - 1 
+   deallocate(cpara)
 ELSE 
 !                                                                       
    CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-   IF (ier_num.ne.0) return 
+   deallocate(cpara)
+   IF (ier_num.ne.0) then
+      return 
+   endif
 ENDIF 
 !                                                                       
 !------ check arguments                                                 

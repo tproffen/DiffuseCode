@@ -293,11 +293,12 @@ USE precision_mod
 CHARACTER(len=*), intent(inout) :: zeile 
 INTEGER, intent(inout) :: lp 
 !                                                                       
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+      CHARACTER(LEN=PREC_STRING), dimension(:), allocatable :: cpara !(maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, ifr, ikk, i 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
+allocate(cpara(maxw))
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
 !                                                                       
@@ -306,7 +307,10 @@ INTEGER, intent(inout) :: lp
       ELSEIF (ianz.ge.2) then 
          CALL ber_params (1, cpara, lpara, werte, maxw) 
          ifr = nint (werte (1) ) 
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) then
+            deallocate(cpara)
+            return 
+         endif
          IF (ifr.lt.1.or.ifr.gt.iaf (iwin) ) then 
             ier_num = - 15 
             ier_typ = ER_APPL 
@@ -338,6 +342,7 @@ INTEGER, intent(inout) :: lp
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+      deallocate(cpara)
 !                                                                       
       END SUBROUTINE set_kfra                       
 !*****7*****************************************************************

@@ -1518,7 +1518,8 @@ IMPLICIT none
 !                                                                       
 integer, intent(in) :: ik
 !
-REAL(kind=PREC_SP) :: zpl (maxz, maxz), tr (6) 
+REAL(kind=PREC_SP), dimension(:,:), allocatable :: zpl !(maxz, maxz)
+REAL(kind=PREC_SP) ::                   tr (6) 
 REAL(kind=PREC_SP) :: rc, rdx, rdy, yf 
 REAL(kind=PREC_SP) :: zzmin, zzmax, x1, x2 
 INTEGER :: i, ic, ix, iy, ikk 
@@ -1545,6 +1546,7 @@ INTEGER :: nx_min, nx_max, ny_min, ny_max
 !                                                                       
 !------ Copy array and call drawing routine                             
 !                                                                       
+allocate(zpl(nx_max, ny_max))
       zzmin = z_min (iwin, iframe, 1) 
       zzmax = nz (iwin, iframe, 1) * z_inc (iwin, iframe, 1) + z_min (  &
       iwin, iframe, 1)                                                  
@@ -1618,7 +1620,7 @@ INTEGER :: nx_min, nx_max, ny_min, ny_max
       ENDDO 
 !                                                                       
       CALL PGSITF (0) 
-      CALL PGIMAG (zpl, maxz, maxz, nx_min, nx_max, ny_min, ny_max,     &
+      CALL PGIMAG (zpl, nx_max, ny_max, nx_min, nx_max, ny_min, ny_max,     &
       zzmin, zzmax, tr)                                                 
 !                                                                       
 !------ Plot wedge next to plot if required                             
@@ -1631,6 +1633,7 @@ INTEGER :: nx_min, nx_max, ny_min, ny_max
          CALL PGWEDG ('RI', 0.5, 2.5, zzmin, zzmax, achse (iwin, iframe,&
          3) )                                                           
       ENDIF 
+deallocate(zpl)
 !                                                                       
 END SUBROUTINE draw_bitmap                    
 !
@@ -1652,7 +1655,8 @@ IMPLICIT none
 integer, intent(in) :: ik
 !
 CHARACTER(len=25) :: label 
-REAL(kind=PREC_SP) :: zpl (maxz, maxz), tr (6) 
+REAL(kind=PREC_SP), dimension(:,:), allocatable :: zpl ! (maxz, maxz)
+REAL(kind=PREC_SP) ::                   tr (6) 
 REAL(kind=PREC_SP) :: rdx, rdy, zm, zi, h, log10, yf 
 INTEGER :: il, ic, ix, iy, ikk, ihp, ihl, lmi, lin 
 INTEGER :: nx_min, nx_max, ny_min, ny_max 
@@ -1684,6 +1688,7 @@ INTEGER :: nx_min, nx_max, ny_min, ny_max
 !                                                                       
 !------ Copy array and call drawing routine                             
 !                                                                       
+allocate(zpl(nx_max, ny_max))
       DO iy = ny_min, ny_max 
       DO ix = nx_min, nx_max 
       ikk = offz (ik - 1) + (ix - 1) * ny (ik) + iy 
@@ -1727,7 +1732,7 @@ INTEGER :: nx_min, nx_max, ny_min, ny_max
          DO ihl = 1, nz (iwin, iframe, ihp) 
          h = zm + (ihl - 1) * zi 
          CALL PGSCI (hlinecol (iwin, iframe, ik, ihp) ) 
-         CALL PGCONT (zpl, maxz, maxz, nx_min, nx_max, ny_min, ny_max,  &
+         CALL PGCONT (zpl, nx_max, ny_max, nx_min, nx_max, ny_min, ny_max,  &
          h, - 1, tr)                                                    
 !                                                                       
          IF (hlabel (iwin, iframe, ik) .ne.0) then 
@@ -1740,7 +1745,7 @@ INTEGER :: nx_min, nx_max, ny_min, ny_max
                CALL PGSCH (fonscal (iwin, iframe) * fonsize (iwin,      &
                iframe, 4) / 160.0)                                      
                CALL PGSTBG (ic) 
-               CALL PGCONL (zpl, maxz, maxz, nx_min, nx_max, ny_min,    &
+               CALL PGCONL (zpl, nx_max, ny_max, nx_min, nx_max, ny_min,    &
                ny_max, h, tr, label, lin, lmi)                          
                CALL PGSTBG ( - 1) 
             ENDIF 
@@ -1748,6 +1753,7 @@ INTEGER :: nx_min, nx_max, ny_min, ny_max
          ENDDO 
       ENDIF 
       ENDDO 
+deallocate(zpl)
 !                                                                       
 END SUBROUTINE draw_contour                   
 !

@@ -230,16 +230,20 @@ CHARACTER(len= *), intent(in) :: iname
 !                                                                       
 CHARACTER(len=200) :: outstr 
 CHARACTER(len=2) :: eol 
-REAL :: gdat (MAXGSAS) 
-REAL :: gsig (MAXGSAS) 
+REAL   , dimension(:), allocatable :: gdat  !(MAXGSAS) 
+REAL   , dimension(:), allocatable :: gsig  !(MAXGSAS) 
 REAL :: delt 
-INTEGER :: tmap (MAXGSAS) 
-INTEGER :: tof (MAXGSAS) 
+INTEGER, dimension(:), allocatable :: tmap  !(MAXGSAS) 
+INTEGER, dimension(:), allocatable :: tof  !(MAXGSAS) 
 INTEGER :: ig, il, ixx 
 INTEGER :: j, k, ibeg, ifin, imap, ioff, itof 
 INTEGER :: ntmap, nrec, irec
 LOGICAL::  lfile, lnew 
 !                                                                       
+allocate(gdat(MAXGSAS))
+allocate(gsig(MAXGSAS))
+allocate(tmap(MAXGSAS))
+allocate( tof(MAXGSAS))
 !                                                                       
 eol = char (13) //char (10) 
 irec = 1 
@@ -342,11 +346,19 @@ DO ig = 1, iz - 1
 ENDDO 
 !                                                                       
 CLOSE (ifil) 
+deallocate(gdat)
+deallocate(gsig)
+deallocate(tmap)
+deallocate( tof)
 RETURN 
 !                                                                       
   999 CONTINUE 
       ier_num = - 2 
       ier_typ = ER_IO 
+deallocate(gdat)
+deallocate(gsig)
+deallocate(tmap)
+deallocate( tof)
 !                                                                       
  1000 FORMAT    (a) 
  1040 FORMAT    ('Instrument parameter file: ',a) 
@@ -869,7 +881,7 @@ REAL :: xsteig, xabsch, xanf, xend, xdel
 REAL :: xxx, yyy, zzz, dzzz 
 REAL :: wx_min, wx_max, wy_min, wy_max 
 INTEGER :: ixm (maxmax), iym (maxmax) 
-INTEGER :: ipg (maxarray) 
+INTEGER, dimension(:), allocatable :: ipg ! (maxarray) 
 INTEGER :: i, ix, iy, ie, k 
 INTEGER :: ninterv  ! number of (points-1)==no of intervals writen to file
 INTEGER :: ispk, ixxx, ikk, ima, nma 
@@ -1047,6 +1059,7 @@ ELSEIF (form (1:2) .eq.'PG'.and.lni (ik) ) then
    WRITE (isa, 2000) '# PGM-file created by KUPLOT' 
    WRITE (isa, * ) nx_max - nx_min + 1, ny_max - ny_min + 1 
    WRITE (isa, * ) 255 
+   allocate(ipg(maxarray))
    DO iy = ny_max, ny_min, - 1 
       DO ix = nx_min, nx_max 
          k = offz (ik - 1) + (ix - 1) * ny (ik) + iy 
@@ -1063,6 +1076,7 @@ ELSEIF (form (1:2) .eq.'PG'.and.lni (ik) ) then
       ENDDO 
       WRITE (isa, 4500) (ipg (ix), ix = 1, nx_max - nx_min + 1) 
    ENDDO 
+   deallocate(ipg)
 !                                                                       
 !-------nipl-file abspeichern (aktueller ausschnitt)                    
 !                                                                       

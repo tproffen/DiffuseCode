@@ -1794,8 +1794,10 @@ use precision_mod
 !
 IMPLICIT integer(i-n)
 IMPLICIT REAL (a-h, o-z)
-      PARAMETER (nmax = maxarray) 
-      DIMENSION x (n), y (n), y2 (n), u (nmax) 
+!     PARAMETER (nmax = maxarray) 
+      DIMENSION x (n), y (n), y2 (n) 
+!dimension u (nmax) 
+dimension u (n   ) 
       IF (yp1.gt..99e30) then 
          y2 (1) = 0. 
          u (1) = 0. 

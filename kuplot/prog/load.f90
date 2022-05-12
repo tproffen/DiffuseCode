@@ -484,7 +484,7 @@ CHARACTER (len=*), intent(in) :: string
 INTEGER          , INTENT(INOUT) :: laenge
 LOGICAL          , INTENT(IN) :: lecho          ! Show extrema after load
 !
-CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+CHARACTER(LEN=PREC_STRING), dimension(:), allocatable :: cpara !(maxw) 
 CHARACTER(LEN=PREC_STRING) :: wname, cdummy 
 CHARACTER(4) unter 
 REAL(KIND=PREC_DP) :: werte (maxw) 
@@ -518,14 +518,21 @@ lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,  6     
 owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,  0.0    ,  0.0 /)
 !
 !
+allocate(cpara(maxw))
 !                                                                       
 istr = 1 
 CALL no_error 
 CALL get_params (string, ianz, cpara, lpara, maxw, laenge) 
-IF (ier_num.ne.0) return 
+IF (ier_num.ne.0) then
+   deallocate(cpara)
+   return
+endif 
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
-IF(ier_num/=0) RETURN
+IF (ier_num.ne.0) then
+   deallocate(cpara)
+   return
+endif 
 IF (ianz.ge.2) then 
 !                                                                       
 !------- -get file typ                                                  
@@ -533,7 +540,10 @@ IF (ianz.ge.2) then
    call rem_bl(cpara(1), lpara(1))
    if(cpara(1)(1:1)=='"' .and. cpara(1)(lpara(1):lpara(1))=='"') then
       CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-      IF(ier_num /= 0) return 
+      IF (ier_num.ne.0) then
+         deallocate(cpara)
+         return
+      endif 
    endif
    unter = cpara(1)(1:4) 
    CALL do_cap (unter) 
@@ -545,6 +555,10 @@ IF (ianz.ge.2) then
 !                                                                       
          nfile = ifiles (cpara (2), lpara (2) ) 
          IF (nfile.eq.0) then 
+            IF (ier_num.ne.0) then
+               deallocate(cpara)
+               return
+            endif 
             ier_num = - 1 
             ier_typ = ER_IO 
             RETURN 
@@ -557,6 +571,7 @@ IF (ianz.ge.2) then
                            xmin, xmax, ymin, ymax, offxy, offz, lni, lh5, lenc, &
                            ier_num, ier_typ, UBOUND(ier_msg,1), ier_msg, ER_APPL, &
                            ER_IO, output_io)
+            deallocate(cpara)
             RETURN
          ENDIF
 !                                                                       
@@ -586,6 +601,7 @@ IF (ianz.ge.2) then
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.ne.0) return 
             ELSE 
+               deallocate(cpara)
                ier_num = - 6 
                ier_typ = ER_COMM 
                RETURN 
@@ -603,6 +619,7 @@ IF (ianz.ge.2) then
             ENDIF 
          ENDIF 
       ELSE 
+         deallocate(cpara)
          ier_num = - 6 
          ier_typ = ER_COMM 
          RETURN 
@@ -616,6 +633,7 @@ IF (ianz.ge.2) then
          ier_num = - 1 
          ier_typ = ER_APPL 
          CALL freefiles 
+         deallocate(cpara)
          RETURN 
       ENDIF 
 !                                                                       
@@ -739,6 +757,7 @@ IF (ianz.ge.2) then
       IF (istr.eq.2) close (iwgb) 
       ENDDO 
       CALL freefiles 
+      deallocate(cpara)
       RETURN 
 !                                                                       
       CLOSE (ifil) 
@@ -746,6 +765,7 @@ IF (ianz.ge.2) then
 !                                                                       
       ier_num = - 40 
       ier_typ = ER_APPL 
+      deallocate(cpara)
 !                                                                       
  2000 FORMAT    (1x,'Reading file ',a,' ..') 
 !                                                                       
@@ -864,9 +884,11 @@ REAL(kind=PREC_DP) :: xw, yw, ow
 INTEGER :: zw 
 REAL(kind=PREC_DP) :: deltax, deltay, dxx, dyy 
 INTEGER :: irec 
-INTEGER :: np (maxarray) 
+INTEGER, dimension(:), allocatable :: np !(maxarray) 
 INTEGER ::    ixx, iyy, izeig, i 
 INTEGER maxpkt, maxzz
+!
+allocate(np(maxarray))
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
@@ -915,6 +937,7 @@ INTEGER maxpkt, maxzz
 !------ check dimensions                                                
 !                                                                       
       IF (xmin (iz) .eq.xmax (iz) .or.ymin (iz) .eq.ymax (iz) ) then 
+         deallocate(np)
          ier_num = - 29 
          ier_typ = ER_APPL 
          RETURN 
@@ -929,6 +952,7 @@ INTEGER maxpkt, maxzz
 !                                                                       
       IF ( (nx (iz) * ny (iz) .gt.maxzz) .or. (max (nx (iz), ny (iz) )  &
       .gt.maxpkt) ) then                                                
+         deallocate(np)
          ier_num = - 6 
          ier_typ = ER_APPL 
          RETURN 
@@ -998,6 +1022,7 @@ INTEGER maxpkt, maxzz
       offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
       iz = iz + 1 
       CALL show_data (iz - 1) 
+      deallocate(np)
 !                                                                       
       END SUBROUTINE read_ext                       
 !*****7**************************************************************** 
@@ -1023,9 +1048,11 @@ LOGICAL, intent(in) :: dens, zz_mod
 !                                                                       
 REAL(kind=PREC_DP) :: xw, yw, zw 
 REAL(kind=PREC_DP) :: deltax, deltay, dxx, dyy 
-      INTEGER np (maxarray) 
+INTEGER, dimension(:), allocatable :: np !(maxarray) 
       INTEGER ::    ixx, iyy, izeig, i 
       INTEGER maxpkt, maxzz
+!
+allocate(np(maxarray))
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
@@ -1072,6 +1099,7 @@ REAL(kind=PREC_DP) :: deltax, deltay, dxx, dyy
 !------ check dimensions                                                
 !                                                                       
       IF (xmin (iz) .eq.xmax (iz) .or.ymin (iz) .eq.ymax (iz) ) then 
+         deallocate(np)
          ier_num = - 29 
          ier_typ = ER_APPL 
          RETURN 
@@ -1086,6 +1114,7 @@ REAL(kind=PREC_DP) :: deltax, deltay, dxx, dyy
 !                                                                       
       IF ( (nx (iz) * ny (iz) .gt.maxzz) .or. (max (nx (iz), ny (iz) )  &
       .gt.maxpkt) ) then                                                
+         deallocate(np)
          ier_num = - 6 
          ier_typ = ER_APPL 
          RETURN 
@@ -1160,6 +1189,7 @@ REAL(kind=PREC_DP) :: deltax, deltay, dxx, dyy
       offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
       iz = iz + 1 
       CALL show_data (iz - 1) 
+      deallocate(np)
 !                                                                       
       END SUBROUTINE read_xyz                       
 !*****7**************************************************************** 
@@ -2342,9 +2372,9 @@ real(kind=PREC_DP), dimension(MAXW), intent(inout) :: werte
       REAL(8) tzero (nbank) 
       REAL twotheta (nbank) 
       REAL vrange (nbank, 2), vp (nbank, 12) 
-      REAL xval (maxarray) 
-      REAL yval (maxarray) 
-      REAL dyval (maxarray) 
+      REAL, dimension(:), allocatable :: xval  ! (maxarray) 
+      REAL, dimension(:), allocatable :: yval  ! (maxarray) 
+      REAL, dimension(:), allocatable :: dyval ! (maxarray) 
       INTEGER bid (nbank) 
       INTEGER iscan, istart, iend, i 
       INTEGER ndat, maxpp 
@@ -2491,6 +2521,9 @@ real(kind=PREC_DP), dimension(MAXW), intent(inout) :: werte
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+if(allocated(xval)) deallocate(xval)
+if(allocated(yval)) deallocate(yval)
+if(allocated(dyval)) deallocate(dyval)
 !                                                                       
  1000 FORMAT     (' Reading GSAS instrument parameter file ',a, ' ..') 
  2000 FORMAT     (a,'.Bank_',i1) 
@@ -2819,29 +2852,34 @@ INTEGER :: j
      &                   ' file ..')                                    
       END SUBROUTINE convert_units                  
 !*****7**************************************************************** 
+!
 SUBROUTINE reverse_array (dat, ndat) 
 !+                                                                      
 !     Reverse given array                                               
 !-                                                                      
-      USE kuplot_config 
+USE kuplot_config 
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 integer, intent(in) :: ndat
-REAL   , intent(inout) :: dat (maxarray) 
+REAL   , intent(inout) :: dat (ndat) 
+!REAL   , intent(inout) :: dat (maxarray) 
 
-      REAL dummy (maxarray) 
-      INTEGER i
+REAL, dimension(:), allocatable :: dummy !(maxarray) 
+INTEGER :: i
 !                                                                       
-      DO i = 1, ndat 
-      dummy (i) = dat (i) 
-      ENDDO 
+allocate(dummy(1:ndat))
+DO i = 1, ndat 
+   dummy (i) = dat (i) 
+ENDDO 
 !                                                                       
-      DO i = 1, ndat 
-      dat (i) = dummy (ndat - i + 1) 
-      ENDDO 
+DO i = 1, ndat 
+   dat (i) = dummy (ndat - i + 1) 
+ENDDO 
+deallocate(dummy)
 !                                                                       
-      END SUBROUTINE reverse_array                  
+END SUBROUTINE reverse_array                  
+!
 !*****7**************************************************************** 
       SUBROUTINE get_iparm_name (ifil, iname, liparm) 
 !+                                                                      
@@ -2908,9 +2946,9 @@ USE lib_length
 INTEGER, intent(in) :: ifil 
 INTEGER, intent(in) :: ibank
 INTEGER, intent(in) :: nbank 
-REAL   , intent(out) :: xval (maxarray) 
-REAL   , intent(out) :: yval (maxarray) 
-REAL   , intent(out) :: dyval (maxarray) 
+REAL   , dimension(:), allocatable, intent(out) :: xval !(maxarray) 
+REAL   , dimension(:), allocatable,intent(out) :: yval !(maxarray) 
+REAL   , dimension(:), allocatable,intent(out) :: dyval! (maxarray) 
 INTEGER, intent(out) :: ndat 
 INTEGER, intent(out) :: bid (nbank) 
 CHARACTER(len=1), intent(out) :: cunits 
@@ -2921,7 +2959,9 @@ CHARACTER(len=*), intent(out) :: gsastit
       REAL clckwdt, onetick, scal 
       REAL c_min, c_d, monitor 
       REAL gtmin, gtmax, gtlog, xdelta 
-      INTEGER tmap (3, maxarray), tmap3i, ntmax 
+!     INTEGER tmap (3, maxarray), tmap3i, ntmax 
+      INTEGER, dimension(:,:), allocatable :: tmap !(3, maxarray)
+integer :: tmap3i, ntmax 
       INTEGER i, j, ll, ib, nc, nr, iq, lt 
       INTEGER idummy, itmap, icons, ilog 
       INTEGER itmap1i, itmap2i, itmap3i 
@@ -2936,6 +2976,9 @@ CHARACTER(len=*), intent(out) :: gsastit
       lbank = .false. 
       lmon = .false. 
 !                                                                       
+itmap = 0
+ilog  = 0
+icons = 0
       REWIND (ifil) 
 !                                                                       
 !----- Read title line                                                  
@@ -3033,6 +3076,13 @@ CHARACTER(len=*), intent(out) :: gsastit
          ENDIF 
       ENDIF 
       IF (.not.lbank) goto 20 
+!
+if(allocated(xval)) deallocate(xval)
+if(allocated(yval)) deallocate(yval)
+if(allocated(dyval)) deallocate(dyval)
+allocate(xval(1:nc))
+allocate(yval(1:nc))
+allocate(dyval(1:nc))
 !                                                                       
 !----- Now we can read the data                                         
 !                                                                       
@@ -3115,6 +3165,8 @@ CHARACTER(len=*), intent(out) :: gsastit
             READ (line (9:lt), *, err = 998) it_no, it_nval, it_nrec 
             READ (line (lt + 9:ll), *, err = 998) clckwdt 
             maxmapu = (it_nval - 1) / 3 
+if(allocated(tmap)) deallocate(tmap)
+allocate(tmap(3, maxmapu))
             READ (ifil, '(10i8)', err = 998, end = 998) ( (tmap (j, i) ,&
             j = 1, 3) , i = 1, maxmapu) , ntmax                         
             ltmap = .true. 
@@ -3171,14 +3223,17 @@ CHARACTER(len=*), intent(out) :: gsastit
          ENDDO 
       ENDIF 
       ndat = nc - 1 
+if(allocated(tmap)) deallocate(tmap)
       RETURN 
 !                                                                       
   510 CONTINUE 
+if(allocated(tmap)) deallocate(tmap)
       ier_num = - 50 
       ier_typ = ER_APPL 
       RETURN 
 !                                                                       
   998 CONTINUE 
+if(allocated(tmap)) deallocate(tmap)
       ier_num = - 3 
       ier_typ = ER_IO 
       RETURN 
