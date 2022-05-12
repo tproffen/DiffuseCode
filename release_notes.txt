@@ -1,4 +1,8 @@
-6.10.00  DRAFT
+6.11.00  DRAFT
+
+DISCUS
+  bragg       New command to convert between parameters in Braggs law
+6.10.00  RELEASE 2022_05_06
 
 General
   installation scripts BUG FIX fixed issues with 'curl' commands
