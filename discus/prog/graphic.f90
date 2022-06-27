@@ -223,8 +223,8 @@ main_if: IF (ier_num.eq.0) THEN
                         cpow_form = 'tth' 
                      ELSEIF(str_comp(cpara(2), 'q', 1, lpara(2), 1)) THEN
                         cpow_form = 'q  ' 
-!                    ELSEIF(str_comp(cpara(2), 'r', 1, lpara(2), 1)) THEN
-!                       cpow_form = 'r  ' 
+                     ELSEIF(str_comp(cpara(2), 'tof', 3, lpara(2), 3)) THEN
+                        cpow_form = 'tof' 
 !                    ELSEIF(str_comp(cpara(2), 'stl', 2, lpara(2), 3) ) THEN
 !                       cpow_form = 'stl' 
 !                    ELSEIF(str_comp(cpara(2), 'dst', 2, lpara(2), 3)) THEN
@@ -484,7 +484,11 @@ main_if: IF (ier_num.eq.0) THEN
             ELSEIF (ityp.eq.4) THEN 
                CALL do_ppm (value, laver) 
             ELSEIF (ityp.eq.5) THEN 
-               CALL powder_out (value, .false.)
+               if(cpow_form == 'tof') then
+                  call powder_out_tof(value, .false.)
+               else
+                  CALL powder_out (value, .false.)
+               endif
             ELSEIF (ityp.eq.6) THEN 
                CALL do_output (value, laver) 
             ELSEIF (ityp.eq.7) THEN 
