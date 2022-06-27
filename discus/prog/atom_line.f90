@@ -149,6 +149,7 @@ subroutine atom_get_size(infile, nlines)
 !+
 !
 use envir_mod
+use errlist_mod
 use precision_mod
 !
 implicit none
@@ -158,24 +159,42 @@ integer         , intent(out) :: nlines
 !
 integer, parameter :: IRD = 63
 character(len=PREC_STRING) :: line
-character(len=PREC_STRING) :: tfile
-integer                    :: tfile_l
+!character(len=PREC_STRING) :: tfile
+!integer                    :: tfile_l
 integer :: ios       ! I/O status flag
 !
-tfile = tmp_dir(1:tmp_dir_l) // '/discus_atom.lines'
-tfile_l = tmp_dir_l + 17
+open(unit=ird, file=infile, status='old', iostat=ios)
+if(ios/=0) then
+   ier_num = -2
+   ier_typ =ER_IO
+   ier_msg(1) = 'Cannot open structure file '
+   ier_msg(2) = infile(1:min(40,len_trim(infile)))
+   return
+endif
+ios = 0
+nlines = 0
+loop_main: do
+  read(ird,'(a)', iostat=ios) line
+  if(is_iostat_end(ios)) exit loop_main
+  nlines = nlines + 1
+enddo loop_main
+close(unit=ird)
+return
 !
-line = 'cat ' // infile(1:len_trim(infile)) // ' | wc -l > ' // tfile(1:tfile_l)
-call execute_command_line(line)
-!
-open(IRD, file=tfile(1:tfile_l), status='old')
-read(IRD, *, iostat=ios) nlines
-close(IRD)
-!
-line = ' rm -f ' // tfile(1:tfile_l)
-call execute_command_line(line)
-!
-at_natoms = 0
+!tfile = tmp_dir(1:tmp_dir_l) // '/discus_atom.lines'
+!tfile_l = tmp_dir_l + 17
+!!
+!line = 'cat ' // infile(1:len_trim(infile)) // ' | wc -l > ' // tfile(1:tfile_l)
+!call execute_command_line(line)
+!!
+!open(IRD, file=tfile(1:tfile_l), status='old')
+!read(IRD, *, iostat=ios) nlines
+!close(IRD)
+!!
+!line = ' rm -f ' // tfile(1:tfile_l)
+!call execute_command_line(line)
+!!
+!at_natoms = 0
 !
 end subroutine atom_get_size
 !
