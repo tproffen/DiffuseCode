@@ -80,6 +80,9 @@
 3  2022_June
 
    bragg       New command to convert between parameters in Braggs law
+   powder      Added new Time of flight neutron profile function
+               Modified interperation of uvw parameters, added a new
+               style "fwhm:poly".
 3  2022_May
 
    mmc         BUG FIX, A 'reset' did not set all shifts to zero
@@ -7065,13 +7068,15 @@
    alpha**2  is the square of the acute angle between the vector h and the
              preferred orientation axis hkl. alpha is measured in degrees
 4  profile
-!p set profile,{"off" | "gauss" | "pseudo"}
+!p set profile,{"off" | "gauss" | "pseudo" | "tof"}
 !p set profile,"eta",<eta>
-!p set profile,"uvw",<u>,<v>,<w> ["form:cagliotti" | form:area" ] 
+!p set profile,"uvw",<u>,<v>,<w> ["form:cagliotti" | "form:area" | "form:poly"]
 !p set profile,"asym",<a1>,<b1>,<a2>,<b2>
 !p set profile,"asym_l",<a1_l>,<b1_l>,<a2_l>,<b2_l>
 !p set profile,"asym_q",<a1_q>,<b1_q>,<a2_q>,<b2_q>
 !p set profile,"width",<width>
+!p set profile,"bank", difc:<P_difc>, difa:<P_difa>, difb:<P_difb>,
+!p                     zero:<P_zero>, angle:<P_angle>
 
    Defines the instrumental profile function. 
 
@@ -7089,6 +7094,10 @@
    A Pseudo-Voigt function defined as eta*Lorentzian + (1-eta)*Gaussian
    is used.
 
+   "tof"
+   The neutron time-of-flight profile function as defined in GSAS-II 
+   is used-
+
    "eta"
    Defines the mixing parameter ETA for the Pseudo-Voigt function
 
@@ -7104,7 +7113,11 @@
    doi 10.1107/S2053273321007506 .
 
    Internally the parameters are transformed to give the identical 
-   FWHM for a Q-scale and a 2Theta-scale.
+   FWHM for a Q-scale and a 2Theta-scale. The input values u,v,w 
+   must be given based on a 2Theta scale.
+
+   With "form:poly", a purely empirical FWHM is calculated as
+   FWHM = sqrt( u*Q**2 + v*Q + w)
 
    "asym"
    The Asymmetry or the Pseudo-Voigt function is calculated according 
@@ -7121,6 +7134,29 @@
    function is applied. The <width> defaults to 20*FWHM. This is a 
    reasonable compromise between cut of errors at the tail of a peak 
    and computational time.
+
+   bank"
+   Defines the location and distances of the detector bank.
+   The time-of-flight is calculated as:
+      TOF = difc*d^1 + difa*d^2 + zero + difb/d
+   where d is the d-spacing of a reflection:
+      d = 2pi/Q = 1/d* = lambda/(2sin(Theta))
+   The angle is the banks central 2Theta and is used for the
+   Lorentz correction L = d^4 * sin(Theta) 
+
+   "tab"
+   Defines the alpha and beta parameter of the TOF profile function.
+
+   "tsig"
+   Defines the sigma parameter of the TOF profile function.
+
+   "tgam"
+   Defines the gamma parameter of the TOF profile function.
+   Note in GSAS-II the parameters gamma0, gamma1 and gamma2 are 
+   called Z,Y, X
+   The "size" parameter is in microns and defaults to 100my_m 
+   which results in no appreciable line broadening.
+   The strain parameter defaults to zero.
 4  refine
 !p set refine, scale
 !p set refine, density
