@@ -1161,7 +1161,8 @@ REAL(kind=PREC_DP),dimension(:), allocatable :: ypl !(maxarray)
 REAL(kind=PREC_DP),dimension(:), allocatable :: y2a !(maxarray)
 !REAL(kind=PREC_DP) :: y2a (maxarray) 
 INTEGER :: lpara (maxw), maxpp, ntot 
-INTEGER :: ianz, ibin, igg, ik, ig, i 
+INTEGER :: ianz, ibin, igg, ik, ig, i , j, k
+!logical :: ascend        ! x-data increase=true or decrease=false
 !                                                                       
 !------ space left for new data set ??                                  
 !                                                                       
@@ -1212,20 +1213,50 @@ allocate(y2a(1:lenc(ik)))
 !                                                                       
 !------ Now we interpolate the data                                     
 !                                                                       
-DO i = 1, lenc (ik) 
-   xpl (i) = x (offxy (ik - 1) + i) 
-   ypl (i) = y (offxy (ik - 1) + i) 
-ENDDO 
+!ascend = x (offxy (ik - 1) +1) < x (offxy (ik - 1) + lenc(ik))
+!write(*,*) 'x(1), x(E) ', x (offxy (ik - 1) +1), x (offxy (ik - 1) + lenc(ik))
+!write(*,*) 'min , max K', xmin(ik), xmax(ik), ascend
+!write(*,*) 'min , max G', xmin(ig), xmax(ig)
+j = 0
+loop_copy: DO i = 1, lenc (ik) 
+!   if(ascend) then
+      if(x (offxy (ik - 1) + i) < xmin(ig)              ) cycle loop_copy
+      if(x (offxy (ik - 1) + i) > xmax(ig)              ) exit  loop_copy
+!   else
+!      if(x (offxy (ik - 1) + i) < xmax(ig)              ) cycle loop_copy
+!      if(x (offxy (ik - 1) + i) > xmin(ig)              ) exit  loop_copy
+!   endif
+   j = j + 1
+   xpl (j) = x (offxy (ik - 1) + i) 
+   ypl (j) = y (offxy (ik - 1) + i) 
+ENDDO loop_copy
+!write(*,*) 'lengths ', lenc(ik), lenc(ig), j
+!write(*,*) 'x(1), x(E) ', x (offxy (ig - 1) +1), x (offxy (ig - 1) + lenc(ig))
+!write(*,*) 'xpl , xpl  ', xpl(1), xpl(j)
 !                                                                       
 !CALL spline(xpl, ypl, lenc (ik), 1D30, 1D30, y2a) 
-CALL spline(lenc(ik), xpl, ypl, 1D30, 1D30, y2a) 
+!CALL spline(lenc(ik), xpl, ypl, 1D30, 1D30, y2a) 
+CALL spline(j       , xpl, ypl, 1D30, 1D30, y2a) 
 !                                                                       
-DO i = 1, ntot 
-   ibin = offxy (iz - 1) + i 
+k = 0
+loop_spline:DO i = 1, ntot 
+!   if(ascend) then
+!     if(x(offxy (ig - 1) + i)<minval(xpl)) cycle loop_spline
+!     if(x(offxy (ig - 1) + i)>maxval(xpl)) exit  loop_spline
+      if(x(offxy (ig - 1) + i)<xpl(1)     ) cycle loop_spline
+      if(x(offxy (ig - 1) + i)>xpl(j)     ) exit  loop_spline
+!   else
+!      if(x(offxy (ig - 1) + i)<xpl(j)     ) cycle loop_spline
+!      if(x(offxy (ig - 1) + i)>xpl(1)     ) exit  loop_spline
+!   endif
+   k = k + 1
+!  ibin = offxy (iz - 1) + i 
+   ibin = offxy (iz - 1) + k
    igg = offxy (ig - 1) + i 
 !  CALL splint(xpl, ypl, y2a, lenc (ik), x (igg), yyy,ier_num)
    x_igg = real(x(igg), kind=PREC_DP)
-   CALL splint(lenc(ik), xpl, ypl, y2a, x_igg, yyy,ier_num)
+!  CALL splint(lenc(ik), xpl, ypl, y2a, x_igg, yyy,ier_num)
+   CALL splint(j       , xpl, ypl, y2a, x_igg, yyy,ier_num)
    IF(ier_num /= 0) THEN
          ier_typ = ER_APPL
          RETURN
@@ -1235,13 +1266,15 @@ DO i = 1, ntot
    y (ibin) = yyy 
    dx(ibin) = dx(igg)
    dy(ibin) = dy(igg)
-ENDDO 
+ENDDO loop_spline
+!write(*,*) ' LENC  ', k
 !
 deallocate(xpl)
 deallocate(ypl)
 deallocate(y2a)
 !                                                                       
-lenc (iz) = ntot 
+!lenc (iz) = ntot 
+lenc (iz) = k 
 fform (iz) = fform (ig) 
 fname (iz) = 'interpolate.dat' 
 offxy (iz) = offxy (iz - 1) + lenc (iz) 
