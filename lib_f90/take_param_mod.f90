@@ -68,10 +68,11 @@ search: DO i=istart,1, -1     ! Count backwards
       ascii = .TRUE.
       DO j=1, icolon-1    ! Check if all characters are small letters
          letter = IACHAR(cpara(i)(j:j))
-         ascii = ascii .AND. (a<=letter .AND. letter<=z)
+         ascii = ascii .AND. ( (a<=letter .AND. letter<=z)  .or.                &
+                               (zero<=letter .and. letter<=nine) )
       ENDDO
       IF(.NOT.ascii) THEN
-!CYCLE search  ! String contains non-(a..z) skip this parameter
+!CYCLE search  ! String contains non-(a..z, 0..9) skip this parameter
          ier_num = -12
          ier_typ = ER_COMM
          ier_msg(1) = 'Offending parameter name:'
