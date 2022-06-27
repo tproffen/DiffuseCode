@@ -555,6 +555,11 @@ CHARACTER(LEN=8)           :: bef
          ELSEIF (str_comp (bef, 'skal', 3, lbef, 4) ) then 
             CALL set_skal (zei, lc) 
 !                                                                       
+!-------  Solve zero points in a polynomial                             
+!                                                                       
+         ELSEIF (str_comp (bef, 'solve', 3, lbef, 5) ) then 
+            CALL do_solve(zei, lc) 
+!                                                                       
 !-------  Sort data set (up in x)                                       
 !                                                                       
          ELSEIF (str_comp (bef, 'sort', 3, lbef, 4) ) then 
