@@ -305,7 +305,9 @@ INTEGER ianz, i, igl, ii, ianzz
 INTEGER ia, ie, itab , ll
 INTEGER :: k1, k2, length, idot
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 1
+integer, parameter :: O_FORM = 1
+integer, parameter :: O_HASH = 2
+INTEGER, PARAMETER :: NOPTIONAL = 2
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -315,18 +317,18 @@ REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 !
-DATA oname  / 'form'   /
-DATA loname /  4       /
-opara  =  (/ '*'       /)   ! Always provide fresh default values
-lopara =  (/  1        /)
-owerte =  (/  0.0      /)
+DATA oname  / 'form', 'hash'   /
+DATA loname /  4    ,  4   /
+opara  =  (/ '*   ' , 'skip'   /)   ! Always provide fresh default values
+lopara =  (/  1     ,  4       /)
+owerte =  (/  0.0   ,  0.0    /)
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
 IF (ier_num.ne.0) RETURN 
 !
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
-IF(opara(1)/='*') THEN
+IF(opara(O_FORM)/='*') THEN
    line(1:lopara(1)-2) = opara(1)(2:lopara(1)-1)
    lp = lopara(1) - 2
    CALL get_params (line, ianzz, fpara, lpara, MAXW, lp)
@@ -359,7 +361,7 @@ ENDIF
 !                                                                       
 IF (ianz.gt.0) THEN 
    READ (io_unit (ii) , '(a)', err = 998, end = 999) string 
-   DO while (string (1:1) .eq.'#') 
+   DO while (string (1:1) .eq.'#' .and. opara(O_HASH)=='skip') 
       READ (io_unit (ii) , '(a)', err = 998, end = 999) string 
    ENDDO 
    lstr = len_str (string) 
