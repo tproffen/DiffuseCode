@@ -111,6 +111,46 @@ END SUBROUTINE do_sort
 !
 !*****7**************************************************************   
 !
+SUBROUTINE do_solve (zeile, lp) 
+!+                                                                      
+!     solve a polynomial for zero points
+!-                                                                      
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
+use math_sup
+use param_mod
+use precision_mod
+!                                                                       
+IMPLICIT none 
+!                                                                       
+INTEGER maxw 
+PARAMETER (maxw = 5) 
+!                                                                       
+CHARACTER(len=*), intent(inout) :: zeile 
+integer         , intent(inout) :: lp
+!
+CHARACTER(LEN=PREC_STRING), dimension(MAXW) :: cpara
+INTEGER                   , dimension(MAXW) :: lpara
+INTEGER :: ianz
+REAL(KIND=PREC_DP)        , dimension(MAXW) :: werte
+REAL(KIND=PREC_DP)        , dimension(3   ) :: root
+!
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) return 
+CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+IF (ier_num.ne.0) return 
+!
+call math_solve_poly(werte(1), werte(2), werte(3), werte(4), ianz, root)
+res_para(0) = ianz
+res_para(1) = root(1)
+res_para(2) = root(2)
+res_para(3) = root(3)
+!
+end SUBROUTINE do_solve
+!
+!*****7**************************************************************   
+!
 SUBROUTINE do_four (zeile, lp) 
 !+                                                                      
 !     Calculates simple discrete Fourier Transform from                 
