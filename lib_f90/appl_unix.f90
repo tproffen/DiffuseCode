@@ -950,7 +950,7 @@ IF(lda) THEN
    CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 ! 140.82.121.3 = github.com
-line = "curl --silent --location --connect-timeout 3 --max-time 3 ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
+line = "curl -k --silent --location --connect-timeout 3 --max-time 3 ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
        // cfile(1:LEN_TRIM(cfile))
 CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 CALL no_error                         ! Checked and printed in ==> write_appl_env
@@ -1082,7 +1082,7 @@ logical             :: lda
 if(.not. check_github() ) return    ! no www network access 
 lonline = .TRUE.
 WRITE(cfile,        '(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_UBUNTU.', PID ! Test file to see if we are on-line
-string = "curl --silent --location ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
+string = "curl -k --silent --location ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
        // cfile(1:LEN_TRIM(cfile))                                                      ! The actual command
 call execute_command_line(string, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 INQUIRE(FILE=cfile,EXIST=lda)
@@ -1296,7 +1296,7 @@ ENDIF
 !
 ! Get latest DISCUS Version
 !
-string = 'curl --silent --location https://github.com/tproffen/DiffuseCode/releases/latest ' // &
+string = 'curl -k --silent --location https://github.com/tproffen/DiffuseCode/releases/latest ' // &
          '| grep "Release " ' // &
          '| ' // grep(1:LEN_TRIM(grep)) // ' ''v\.[0-9]*\.[0-9]*\.[0-9]*'' > ' //  discus_version
 CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
@@ -1313,7 +1313,7 @@ endif
 !
 ! Download latest installation script
 !
-string = 'curl -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
+string = 'curl -k -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
          ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
          verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
 CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
@@ -1329,7 +1329,7 @@ IF(operating == OS_LINUX_WSL) THEN
 !
 ! Download latest installation script
 !
-   string = 'curl -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
+   string = 'curl -k -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
             ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
             verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
    CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
