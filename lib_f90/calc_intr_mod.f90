@@ -479,6 +479,9 @@ ELSEIF (lcom.eq.4) then
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'date') then 
             CALL datum_intrinsic 
             CALL ersetzc (string, ikl, iklz, f_date, 24, 4, lll) 
+   ELSEIF (string (ikl - 4:ikl - 1) .eq.'toft') then 
+      CALL intr_tof3(line, lp, ww)
+      CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
          ELSE 
             CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
          ENDIF 
@@ -738,6 +741,158 @@ ELSE
 ENDIF
 !
 END SUBROUTINE intr_psvgt
+!
+!*****7************************************************************************* 
+!
+subroutine intr_tof3(line, lp, ww)
+!-
+! Calculate the TOF 3 profile  function as in GSAS
+! Full version, where all parameters alpha, beta, sigma, gamma are calculated 
+! from the fundamental parameters
+!+
+!
+use ber_params_mod
+use errlist_mod
+use get_params_mod
+use precision_mod
+use profile_tof_mod
+use take_param_mod
+use wink_mod
+!
+implicit none
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: lp
+REAL(KIND=PREC_DP), INTENT(OUT)   :: ww
+!
+!real(kind=PREC_DP), parameter :: EIGHTLN2 = sqrt(8.0D0*log(2.0D0))
+integer, parameter :: MAXW = 30
+CHARACTER(LEN=MAX(PREC_STRING,LEN(LINE))), DIMENSION(MAXW) :: cpara
+INTEGER                                  , DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP)                       , DIMENSION(MAXW) :: werte
+integer                                                    :: ianz
+! 
+integer, parameter :: NOPTIONAL = 15
+integer, parameter :: O_ALP0    =  1
+integer, parameter :: O_ALP1    =  2
+integer, parameter :: O_BET0    =  3
+integer, parameter :: O_BET1    =  4
+integer, parameter :: O_BETQ    =  5
+integer, parameter :: O_SIG0    =  6 
+integer, parameter :: O_SIG1    =  7
+integer, parameter :: O_SIG2    =  8
+integer, parameter :: O_SIGQ    =  9
+integer, parameter :: O_GAM0    = 10   ! = Z
+integer, parameter :: O_GAM1    = 11   ! = Y
+integer, parameter :: O_GAM2    = 12   ! = X
+integer, parameter :: O_SIZE    = 13   !
+integer, parameter :: O_STRAIN  = 14   !
+integer, parameter :: O_DIFC    = 15   !
+character(LEN=   6), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 15 ! Number of values to calculate 
+!
+data oname  / 'al0   ', 'al1   ', 'be0   ', 'be1   ', 'beq   ', 'si0   ', 'si1   ', &
+              'si2   ', 'siq   ', 'z     ', 'y     ', 'x     ', 'size  ', 'strain', & 
+              'difc  '                                                                /
+data loname /  3     ,   3      ,  3      ,  3      ,  3      ,  3     ,   3      , &
+               3     ,   3      ,  1      ,  1      ,  1      ,  4      ,  6      , &
+               4 /
+
+!
+real(kind=PREC_DP) :: dt        ! Delta time in [mys]
+real(kind=PREC_DP) :: d         ! d-value in [Angstrom]
+real(kind=PREC_DP) :: alpha     ! [         / mys]
+real(kind=PREC_DP) :: beta      ! [         / mys]
+real(kind=PREC_DP) :: sg        ! [             mys  ] sqrt ( big_gamma/(8 ln(2))
+real(kind=PREC_DP) :: sg2       ! [             mys^2]        big_gamma/(8 ln(2))
+!real(kind=PREC_DP) :: gamma     ! [             mys  ]
+real(kind=PREC_DP) :: pre_g   ! Prefactor Gaussian   (1-eta)* NORM
+real(kind=PREC_DP) :: pre_l   ! Prefactor Lorentzian  2*eta * NORM/PI
+!
+real(kind=PREC_DP) :: alpha0     ! [         / mys]
+real(kind=PREC_DP) :: alpha1     ! [         / mys]
+real(kind=PREC_DP) :: beta0      ! [         / mys]
+real(kind=PREC_DP) :: beta1      ! [         / mys]
+real(kind=PREC_DP) :: betaq      ! [         / mys]
+real(kind=PREC_DP) :: sigma02   ! [             mys  ]
+real(kind=PREC_DP) :: sigma12   ! [             mys^2]
+real(kind=PREC_DP) :: sigma22   ! [             mys^2]
+real(kind=PREC_DP) :: sigmaq    ! [             mys^2]
+real(kind=PREC_DP) :: gamma0    ! [             mys  ]
+real(kind=PREC_DP) :: gamma1    ! [             mys  ]
+real(kind=PREC_DP) :: gamma2    ! [             mys  ]
+real(kind=PREC_DP) :: gsize     ! [             mys  ]
+real(kind=PREC_DP) :: gstrain   ! [             mys  ]
+real(kind=PREC_DP) :: difc      ! [             mys  ]
+real(kind=PREC_DP) :: big_gamma    ! [             mys  ]
+!
+!   oname  / 'al0   ', 'al1   ', 'be0   ', 'be1   ', 'beq   ', 'si0   ', 'si1   ', &
+!            'si2   ', 'siq   ', 'z     ', 'y     ', 'x     ', 'size  ', 'strain', &
+!            'difc'                                                                /
+opara  =  (/ '0.0000', '0.1125', '0.0586', '0.0953', '0.0000', '0.0000', '43.854', &
+             '122.73', '0.0000', '1.8126', '21.436', '4.3264', '1.0000', '0000.0', &
+             '9041.8'                          /)   ! Always provide fresh default values
+lopara =  (/  6      ,  6      ,  6      ,  6      ,  6      ,  6      ,  6      , &
+              6      ,  6      ,  6      ,  6      ,  6      ,  6      ,  6      , &
+              6                                                                     /)
+owerte =  (/  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    , &
+              0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    , &
+              0.0                                                                    /)
+!
+call get_params (line, ianz, cpara, lpara, MAXW, lp) 
+if(ier_num/=0) return
+!
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+if(ier_num/=0) return
+!
+call ber_params(ianz, cpara, lpara, werte, MAXW)
+if(ier_num/=0) return
+!
+dt = werte(1)
+d  = werte(2)
+!
+alpha0  =  owerte(O_ALP0)
+alpha1  =  owerte(O_ALP1)
+beta0   =  owerte(O_BET0)
+beta1   =  owerte(O_BET1)
+betaq   =  owerte(O_BETQ)
+sigma02 =  owerte(O_SIG0)
+sigma12 =  owerte(O_SIG1)
+sigma22 =  owerte(O_SIG2)
+sigmaq  =  owerte(O_SIGQ)
+gamma0  =  owerte(O_GAM0)
+gamma1  =  owerte(O_GAM1)
+gamma2  =  owerte(O_GAM2)
+gsize   =  owerte(O_SIZE)
+gstrain =  owerte(O_STRAIN)
+difc    =  owerte(O_DIFC)
+!
+call tof3_para( d, alpha0, alpha1, beta0, beta1, betaq, sigma02, sigma12, sigma22, sigmaq, gamma0, gamma1, gamma2, &
+                gsize, gstrain, difc,                                                       &
+                alpha, beta, sg, sg2, big_gamma, pre_g, pre_l) 
+!
+ww = profile_tof3(dt, d, alpha, beta, sg, &
+     sg2, big_gamma, pre_g, pre_l)
+!
+!write(*,*) ' dt, d   ', dt, d
+!write(*,*) ' a0, a1, ', alpha0, alpha1
+!write(*,*) ' b0,b1, q', beta0, beta1, betaq
+!write(*,*) ' s0,s1,s2', sigma02, sigma12, sigma22, sigmaq
+!write(*,*) ' g0,g1,g2', gamma0 , gamma1 , gamma2 
+!write(*,*) ' si,st, d', gsize, gstrain, difc
+!write(*,*) 
+!write(*,*) ' a,b,s^2 ', alpha, beta
+!write(*,*) ' BG s s2 ', big_gamma, sg, sg2
+!write(*,*) ' g , l   ', pre_g, pre_l
+!write(*,*) ' ENDE_tof3 ', ier_num, ier_typ
+!
+end subroutine intr_tof3
 !
 !*****7************************************************************************* 
 !
