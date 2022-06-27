@@ -510,7 +510,6 @@ h5_temp%h5_dims     = h5_find%h5_dims           ! Actual dimensions
 h5_temp%maxdims     = h5_find%maxdims        ! Maximum dimensions
 h5_temp%one_dims    = h5_find%one_dims       ! Actual dimensions
 h5_temp%one_maxdims = h5_find%one_maxdims    ! Maximum dimensions
-ALLOCATE(h5_temp%h5_data(h5_temp%h5_dims(1), h5_temp%h5_dims(2), h5_temp%h5_dims(3)))
 h5_temp%h5_data     = h5_find%h5_data           ! Actual diffraction data
 h5_temp%h5_llims    = h5_find%h5_llims          ! Lower limits
 h5_temp%h5_steps    = h5_find%h5_steps          ! steps in H, K, L
@@ -550,7 +549,7 @@ h5_temp%h5_dims     = l_dims           ! Actual dimensions
 h5_temp%maxdims     = l_maxdims        ! Maximum dimensions
 h5_temp%one_dims    = l_one_dims       ! Actual dimensions
 h5_temp%one_maxdims = l_one_maxdims    ! Maximum dimensions
-ALLOCATE(h5_temp%h5_data(h5_temp%h5_dims(1), h5_temp%h5_dims(2), h5_temp%h5_dims(3)))
+!ALLOCATE(h5_temp%h5_data(h5_temp%h5_dims(1), h5_temp%h5_dims(2), h5_temp%h5_dims(3)))
 h5_temp%h5_data     = l_data           ! Actual diffraction data
 h5_temp%h5_llims    = l_llims          ! Lower limits
 h5_temp%h5_steps    = l_steps          ! steps in H, K, L
