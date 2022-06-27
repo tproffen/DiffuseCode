@@ -32,6 +32,11 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2022_June
+
+   fget
+   Added an optional parameter "hash:sikp" / "hash:read" to sikp/read
+   lines starting with a hashh "#". 
 4  2022_March
 
    Adapted optional parameters to handle format specifiers in 
@@ -652,7 +657,8 @@
 !p Example: fform 1,F7.3
 3  fget
 !p fget <number>,<p1>,<p2>,..
-!p               [, form:'<string>'] 
+!p               [, "form:'<string>'"] 
+!p               [, "hash:skip | hash:read"]]
 
    This command allows the user to read data from a file that had been 
    opened with 'fopen <number>. If no parameters are given, a line is
@@ -680,6 +686,11 @@
    f<length>         As in "f8" or "f12"
    a<length>         Character = alphanumeric string
                      As in "a20"
+
+   The optional parameter "hash" determins how lines that start with a
+   hash "#" are treated. By default or "hash:skip" these lines are 
+   skipped and fget automatically reas the next line. With "hash:read" 
+   the lines are read into the input variable. 
 
    Example: 
    Assume a file "example.text" with the following content:
