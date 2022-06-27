@@ -400,7 +400,7 @@ DO i=1,pha_n
          ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
          pow_conv(k) = pow_conv(k) + pha_scale(i)*pha_powder(k,i)  & ! / q**2 &
                                     * polarisation(ttheta)               &
-                                    * lorentz(ttheta, 0)
+                                    * lorentz(ttheta, q, pow_bangle, 0)
 !write(87, '(3(f16.6,2x))') ttheta, polarisation(ttheta), lorentz(ttheta, 0)
       ENDDO
 !
@@ -411,7 +411,7 @@ DO i=1,pha_n
          ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
          pow_sq(k) = pow_sq(k) + pha_scale(i)* pha_powder(k,i)  &  ! / q**2
                                     * polarisation(ttheta)               &
-                                    * lorentz(ttheta, 0)
+                                    * lorentz(ttheta, pow_bangle, q, 0)
       ENDDO
 !
    ELSEIF(pha_calc(i) == POW_DEBYE) THEN           ! Complete calculation mode
@@ -810,7 +810,7 @@ END SUBROUTINE phases_corr
 !
 !*******************************************************************************
 !
-REAL(kind=PREC_DP) function lorentz (ttheta, flag_fq) 
+REAL(kind=PREC_DP) function lorentz (ttheta, q, bangle, flag_fq) 
 !+                                                                      
 !  Calculate the Lorentz correction factor for various geometries
 !
@@ -820,11 +820,14 @@ USE discus_config_mod
 USE powder_mod 
 
 use precision_mod
-USE trig_degree_mod
+use trig_degree_mod
+use wink_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
 REAL(kind=PREC_DP)   , INTENT(IN) :: ttheta 
+REAL(kind=PREC_DP)   , INTENT(IN) :: q 
+REAL(kind=PREC_DP)   , INTENT(IN) :: bangle 
 INTEGER, INTENT(IN) :: flag_fq
 !                                                                       
 !                                                                       
@@ -842,6 +845,8 @@ ELSE
          lorentz = 1.0 
       ELSEIF (pow_lp.eq.POW_LP_SYNC) THEN 
          lorentz = 1.0 / sind (0.5 * ttheta) / sind (ttheta) 
+      elseif(pow_lp == POW_LP_TOF) then
+         lorentz = (zpi/q)**4 * sind(0.5*bangle)
       ENDIF 
    ELSEIF(flag_fq==1) THEN 
       lorentz = 1.0 / sind (0.5 * ttheta) / sind (ttheta) 
@@ -881,6 +886,8 @@ ELSEIF (pow_lp.eq.POW_LP_NONE) THEN
    polarisation = 1.0 
 ELSEIF (pow_lp.eq.POW_LP_SYNC) THEN 
    polarisation = pow_lp_fac + (1. - pow_lp_fac) * (cosd(ttheta))**2 * pow_lp_cos
+ELSEIF (pow_lp.eq.POW_LP_TOF) THEN 
+   polarisation = 1.0 
 ENDIF 
 !                                                                       
 END FUNCTION polarisation                     
