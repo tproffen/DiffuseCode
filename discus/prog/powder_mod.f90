@@ -20,9 +20,11 @@ INTEGER, PARAMETER  :: POW_PREF_MARCH      = 2
 !
 INTEGER, PARAMETER  :: POW_PROFILE_GAUSS   = 1
 INTEGER, PARAMETER  :: POW_PROFILE_PSVGT   = 2
+INTEGER, PARAMETER  :: POW_PROFILE_TOF     = 3
 !
 INTEGER, PARAMETER  :: POW_PROFILE_CAGLIOTTI = 1
 INTEGER, PARAMETER  :: POW_PROFILE_AREA      = 2
+INTEGER, PARAMETER  :: POW_PROFILE_POLY      = 3
 !
 INTEGER, PARAMETER  :: POW_AXIS_DSTAR      = 0
 INTEGER, PARAMETER  :: POW_AXIS_Q          = 1
@@ -36,6 +38,7 @@ INTEGER, PARAMETER  :: POW_LP_BRAGG        = 1
 INTEGER, PARAMETER  :: POW_LP_NEUT         = 2
 INTEGER, PARAMETER  :: POW_LP_SYNC         = 3
 INTEGER, PARAMETER  :: POW_LP_CORRE        = 4
+INTEGER, PARAMETER  :: POW_LP_TOF          = 5
 !
 INTEGER                  :: pow_axis       = POW_AXIS_Q
 INTEGER                  :: pow_npkt       = 1           ! Actual number of powder data points
@@ -47,6 +50,10 @@ INTEGER                  :: pow_four_type  = POW_COMPL
 INTEGER                  :: pow_lp         = POW_LP_BRAGG
 !
 LOGICAL                  :: pow_l_all      = .true.
+logical                  :: pow_constlam   = .true.    ! Constant lambda(==true) or TOF(==false)
+LOGICAL                  :: pow_ltimemin   = .TRUE.    ! User  provided Qmin(==true) TTHmin(=false)
+LOGICAL                  :: pow_ltimemax   = .TRUE.    ! User  provided Qmax(==true) TTHmax(=false)
+LOGICAL                  :: pow_ltimestp   = .TRUE.    ! User  provided Qmax(==true) TTHmax(=false)
 LOGICAL                  :: pow_qtthmin    = .TRUE.    ! User  provided Qmin(==true) TTHmin(=false)
 LOGICAL                  :: pow_qtthmax    = .TRUE.    ! User  provided Qmax(==true) TTHmax(=false)
 LOGICAL                  :: pow_deltaqtth  = .TRUE.    ! User  provided Qstp(==true) TTHstp(=false)
@@ -125,6 +132,32 @@ REAL(KIND=PREC_DP), DIMENSION(:)    , ALLOCATABLE :: pow_sq      !  (0:POW_MAXPK
 INTEGER                            :: pow_nreal  = 0
 INTEGER                            :: pow_ncreal = 0
 REAL(kind=PREC_DP)                 :: pow_u2aver = 0.0
+!
+!*******************************************************************************
+! Time of Flight neutron parameters
+!******************************************************************************
+real(kind=PREC_DP) :: pow_timemin
+real(kind=PREC_DP) :: pow_timemax
+real(kind=PREC_DP) :: pow_timestp
+real(kind=PREC_DP) :: pow_difa   = 1.0d0  ! TIME =   difa * d**2 
+real(kind=PREC_DP) :: pow_difb   = 0.0D0  !        + difb * d**-1
+real(kind=PREC_DP) :: pow_difc   = 0.0D0  !        + difc * d
+real(kind=PREC_DP) :: pow_tzero  = 0.0D0  !        + tzero
+real(kind=PREC_DP) :: pow_bangle = 0.0D0  ! 2Theta angle for bank
+real(kind=PREC_DP) :: pow_tof_a0 = 0.0d0    ! TOF alpha0  ALPHA =   a0
+real(kind=PREC_DP) :: pow_tof_a1 = 0.122511 ! TOF alpha0          + a1 / d
+real(kind=PREC_DP) :: pow_tof_b0 = 0.058640 ! TOF beta    BETA  =   b0
+real(kind=PREC_DP) :: pow_tof_b1 = 0.095311 !                     + b1 / d**4
+real(kind=PREC_DP) :: pow_tof_bq = 0.000000 !                     + bq / d**2
+real(kind=PREC_DP) :: pow_tof_s0 = 0.000000E+000  ! SIGMA^2 =   so 
+real(kind=PREC_DP) :: pow_tof_s1 = 43.864000      !           + s1 * d**2
+real(kind=PREC_DP) :: pow_tof_s2 = 122.734000     !           + s2 * d**4
+real(kind=PREC_DP) :: pow_tof_sq =   0.000000     !           + sq * d
+real(kind=PREC_DP) :: pow_tof_z  = 1.812640    ! == gamma 0  GAMMA =   Z
+real(kind=PREC_DP) :: pow_tof_y  = 21.436200   ! == gamma 1          + Y * d
+real(kind=PREC_DP) :: pow_tof_x  = 4.326450    ! == gamma 2          + X * d**2
+real(kind=PREC_DP) :: pow_tof_siz= 10.00000    ! == size [mym]       + 1e-4*DIFC * d**2 / Size_parameter
+real(kind=PREC_DP) :: pow_tof_str= 1000.000    ! == strain           + 1e-6*DIFC * d    * Size_parameter
 !
 INTEGER                  :: pow_size_of  = 0 ! Bytes allocated for powder
 !
