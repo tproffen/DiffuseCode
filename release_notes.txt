@@ -1,4 +1,16 @@
-6.11.00  DRAFT
+6.12.01  DRAFT
+6.12.00  RELEASE 2022_06_30
+
+General
+  Revised WSL installation scrips to reduce admin needs as much as possible
+              Added a new installation script
+              bbb_install_suite_WINDOWS10_WSL.bat
+              to avoid powershell execution policy issues
+DISCUS
+  powder      Added an empirical uvw form as polynomial on Q
+              Started to add TOF profile functions
+6.11.01  RELEASE 2022_05_24
+6.11.00  RELEASE 2022_05_24
 
 DISCUS
   bragg       New command to convert between parameters in Braggs law
