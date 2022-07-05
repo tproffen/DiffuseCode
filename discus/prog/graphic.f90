@@ -29,6 +29,7 @@ USE doact_mod
 USE do_eval_mod
 USE do_wait_mod
 USE errlist_mod 
+use gen_hdf_write_mod
 USE get_params_mod
 USE learn_mod 
 USE lib_help
@@ -75,6 +76,7 @@ LOGICAL :: laver, lread
 LOGICAL :: l_val_limited=.FALSE.    ! for 3D PDF do we limit d-star
 REAL(KIND=PREC_DP) :: xmin, ymin, xmax, ymax 
 REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), allocatable :: qvalues
 REAL(KIND=PREC_DP)                  :: valmax
 REAL(KIND=PREC_DP)                  ::  dsmax = 0.0
 ! 
@@ -504,9 +506,24 @@ main_if: IF (ier_num.eq.0) THEN
             ELSEIF (ityp.eq.12) THEN
                CALL mrc_write (value, laver)
             ELSEIF (ityp.eq.13) THEN
-               CALL hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
-                       cr_a0, cr_win, qval,val_pdf, val_3Dpdf, valmax,           &
+               if(allocated(qvalues)) deallocate(qvalues)
+               allocate(qvalues(out_inc(1), out_inc(2), out_inc(3)))
+l = 0                                                       ! Copy proper "value"
+DO i = 1, out_inc(1)
+   DO j = 1, out_inc(2)
+      DO k = 1, out_inc(3)
+         l = l + 1
+         qvalues(i,j,k) = qval(l, value, i, j, laver)
+      ENDDO
+   ENDDO
+ENDDO
+               CALL gen_hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
+                       cr_a0, cr_win, qvalues,val_pdf, val_3Dpdf, valmax,           &
                        ier_num, ier_typ, ER_IO, ER_APPL)
+               deallocate(qvalues)
+!              CALL hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
+!                      cr_a0, cr_win, qval,val_pdf, val_3Dpdf, valmax,           &
+!                      ier_num, ier_typ, ER_IO, ER_APPL)
             ELSEIF (ityp.eq.14) THEN
                CALL xplor_write (value, laver)
             ELSEIF (ityp.eq.15) THEN
@@ -2034,37 +2051,19 @@ IMPLICIT NONE
 !
 LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
+integer :: i
 !
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:), ALLOCATABLE  :: pattern  ! the diffraction pattern
-!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
-!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
-!INTEGER                 :: lenwrk   ! Length of work array
-!INTEGER                 :: lensav   ! Length of wsave array
-!INTEGER :: n1, n2
-!INTEGER :: dimen
-!
-!dimen = MAX(num(1), num(2), num(3))
-!n1 = dimen
-!n2 = dimen
-!lenwrk = 2*n1*n2
-!lensav = 2*(n1*n2) + INT(LOG(REAL(n1))/LOG( 2.0E+00 ))       &
-!                   + INT(LOG(REAL(n2))/LOG( 2.0E+00 )) + 8.
 !
 ALLOCATE(pattern(num(dsort(1))))
-!ALLOCATE(work(1:lenwrk))
-!ALLOCATE(wsave(1:lensav))
 !
 CALL maptofftfd(num, dsort, dsi, pattern)
 !
-!CALL cfft2i (n1, n2, wsave, lensav, ier_num ) ! Initialize wsave
-!CALL cfft2f ( dimen, n1, n2, pattern, wsave, lensav, work, lenwrk, ier_num )
 pattern = fft(pattern) / SQRT(REAL(num(1)))
 !
 CALL mapfftfdtoline(num, dsort, rpdf, pattern)
 !
 DEALLOCATE(pattern)
-!DEALLOCATE(work)
-!DEALLOCATE(wsave)
 !
 END SUBROUTINE out_prep_3dpdf_1d
 !
@@ -2094,59 +2093,17 @@ real(kind=PREC_DP) :: dx
 real(kind=PREC_DP) :: dy
 real(kind=PREC_DP) :: tx
 real(kind=PREC_DP) :: ty
-!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
-!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
-!INTEGER                 :: lenwrk   ! Length of work array
-!INTEGER                 :: lensav   ! Length of wsave array
-!INTEGER :: n1, n2
-!INTEGER :: dimen
 integer::  i,j
 !
-!dimen = MAX(num(1), num(2), num(3))
-!n1 = num(1) !dimen
-!n2 = num(2) !dimen
-!lenwrk = 2*n1*n2
-!lensav = 2*(n1*n2) + INT(LOG(REAL(n1))/LOG( 2.0E+00 ))       &
-!                   + INT(LOG(REAL(n2))/LOG( 2.0E+00 )) + 8.
-!
 ALLOCATE(pattern(num(dsort(1)), num(dsort(2)) ))
-!ALLOCATE(work(1:lenwrk))
-!ALLOCATE(wsave(1:lensav))
 !
 CALL maptofftfd(num, dsort, dsi, pattern)
 !
-dy = 0.5D0/real((num(dsort(2))+1)/2,kind=PREC_DP)
-dx = 0.5D0/real((num(dsort(1))+1)/2,kind=PREC_DP)
-do j=1,(num(dsort(2))+1)/2
-      ty = tukey(0.50D0+dy*(j-1),0.050D0, 1.0D0)
-   do i=1,(num(dsort(1))+1)/2
-      tx = tukey(0.50D0+dx*(i-1),0.050D0, 1.0D0)
-!      pattern(                i,                j) = pattern(i,j)*tx*ty
-!      pattern(num(dsort(1))+1-i,                j) = pattern(i,j)*tx*ty
-!      pattern(                i,num(dsort(2))+1-j) = pattern(i,j)*tx*ty
-!      pattern(num(dsort(1))+1-i,num(dsort(2))+1-j) = pattern(i,j)*tx*ty
-enddo
-enddo
-!open(83,file='pattern.inte', status='unknown')
-!write(83,'(2i8)') num(dsort(1)), num(dsort(2))
-!write(83,'(a)') ' 0.0, 1.0, 0.0, 1.0 '
-!do j=1, num(dsort(2))
-!  write(83,'(5g18.5e3)') (real(pattern(i,j)), i=1, num(dsort(1)))
-! write(83,'(5g18.5e3)') (real(dsi(i)      ), i=(j-1)*num(dsort(1))+1, (j-1)*num(dsort(1))+num(dsort(2)))
-!enddo
-!close(83)
-!write(*,*) ' WROTE PATTERN ', num(dsort(1)), num(dsort(2))
-!read(*,*) i
-!
-!CALL cfft2i (n1, n2, wsave, lensav, ier_num ) ! Initialize wsave
-!CALL cfft2f ( dimen, n1, n2, pattern, wsave, lensav, work, lenwrk, ier_num )
 pattern = fft(pattern) / SQRT(REAL(num(1)*num(2)))
 !
 CALL mapfftfdtoline(num, dsort, rpdf, pattern)
 !
 DEALLOCATE(pattern)
-!DEALLOCATE(work)
-!DEALLOCATE(wsave)
 !
 END SUBROUTINE out_prep_3dpdf_2d
 !
