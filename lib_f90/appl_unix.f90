@@ -953,6 +953,7 @@ ENDIF
 line = "curl -k --silent --location --connect-timeout 3 --max-time 3 ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
        // cfile(1:LEN_TRIM(cfile))
 CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!call execute_command_line ('cat /tmp/DISCUS_CURRENT*')
 CALL no_error                         ! Checked and printed in ==> write_appl_env
 END SUBROUTINE lib_f90_init_updates
 !
@@ -983,6 +984,7 @@ INTEGER             :: exit_msg
 INTEGER             :: idot1, idot2
 INTEGER             :: iquote
 INTEGER             :: itag
+INTEGER             :: icode
 INTEGER             :: idate
 INTEGER             :: i, j, k
 INTEGER             :: ios
@@ -1005,14 +1007,16 @@ new_version = 0
 !
 lonline = .FALSE.                 ! Assume offline
 INQUIRE(FILE=cfile, EXIST=lda)
+!
 ON_LINE: IF(lda) THEN
    OPEN(UNIT=IRD, FILE=cfile, STATUS='OLD')
-   IF(ier_num==0) THEN    ! CURRENT file was found
+   LOOP_SEARCH: do
       READ(IRD,'(a)', iostat=ios) string
       if(is_iostat_end(ios)) exit ON_LINE
       lonline = .TRUE.                 ! We are online
       itag = INDEX(string,'tag')
-      IF(itag>0) THEN
+      icode = index(string,'DiffuseCode')
+      IF(itag>0 .and. icode>0) THEN
          iquote = itag + INDEX(string(itag:LEN_TRIM(string)),'"') - 1
          cversion = string (itag+6:iquote-1)
          idot1 = INDEX(cversion, '.')
@@ -1021,16 +1025,19 @@ ON_LINE: IF(lda) THEN
          READ(cversion(idot1+1:idot2-1), *) j
          READ(cversion(idot2+1:LEN_TRIM(cversion)), *) k
          new_version = i*10000 + j*100 + k
+         exit ON_LINE
       ENDIF
-      idot1 = INDEX(version, '.')
-      idot2 = INDEX(version, '.', .TRUE.)
-      READ(version(1:idot1-1), *) i
-      READ(version(idot1+1:idot2-1), *) j
-      READ(version(idot2+1:LEN_TRIM(version)), *) k
-      old_version = i*10000 + j*100 + k
-   ENDIF
+   enddo LOOP_SEARCH
 ENDIF ON_LINE
 CLOSE(UNIT=IRD)
+!
+idot1 = INDEX(version, '.')
+idot2 = INDEX(version, '.', .TRUE.)
+READ(version(1:idot1-1), *) i
+READ(version(idot1+1:idot2-1), *) j
+READ(version(idot2+1:LEN_TRIM(version)), *) k
+old_version = i*10000 + j*100 + k
+!
 string = "rm -f " // cfile(1:LEN_TRIM(cfile))
 CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 CALL no_error
@@ -1481,6 +1488,7 @@ implicit none
 integer, parameter         :: IRD = 33
 !
 character(len=PREC_STRING) :: string    ! Generic string
+character(len=PREC_STRING) :: string_e  ! Generic string
 character(len=PREC_STRING) :: cfile     ! temporary file
 CHARACTER(LEN=PREC_STRING) :: message   ! execute_command_line message
 integer                    :: exit_msg  ! execute_command_line message
@@ -1495,32 +1503,39 @@ lnetz = .false.
 r = 0.0
 i = 0
 cfile = tmp_dir(1:tmp_dir_l) // '/check_github.txt'
-string = 'ping -c 1 -W 3 140.82.121.3 2> /dev/null > '// cfile(1:len_trim(cfile))
+string = 'ping -c 1 -W 3 140.82.121.3 2> /dev/null > '// cfile(1:len_trim(cfile)) &
+         // '; echo $? >> ' // cfile(1:len_trim(cfile)) 
 ! Include a wait, to make reasonably sure that the temp file is written
 call EXECUTE_COMMAND_LINE(string, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg, wait=.true.)
 !
+string_e = '2'
 open(unit=ird, file=cfile, status='old')
 loop_check: do                          ! Loop to find the line
    read(ird, '(a)', iostat=ios) string
    if(is_iostat_end(ios)) exit loop_check
-   iper = index(string, '%')            ! Locate percent sign
-   if(iper>0) then 
-      icom = index(string(1:iper-1),',', back=.TRUE.)  ! Locate prior comma
-      idec = index(string(icom+1:iper-1),'.')          ! Mac has decimal point!
-      if(idec>0) then
-         read(string(icom+1:iper-1),*) r               ! Real value for Mac
-         i = nint(r)
-      else
-         read(string(icom+1:iper-1),*) i               ! Integernumber for Linux / WSL
-      endif
-      if(i<100) then                                   ! Less than 100% loss, found network
-         lnetz = .true.
-      endif
-      exit loop_check
-   endif
+   string_e = string
+!  iper = index(string, '%')            ! Locate percent sign
+!  if(iper>0) then 
+!     icom = index(string(1:iper-1),',', back=.TRUE.)  ! Locate prior comma
+!     idec = index(string(icom+1:iper-1),'.')          ! Mac has decimal point!
+!     if(idec>0) then
+!        read(string(icom+1:iper-1),*) r               ! Real value for Mac
+!        i = nint(r)
+!     else
+!        read(string(icom+1:iper-1),*) i               ! Integernumber for Linux / WSL
+!     endif
+!     if(i<100) then                                   ! Less than 100% loss, found network
+!        lnetz = .true.
+!     endif
+!     exit loop_check
+!  endif
 enddo loop_check
 !
 close(unit=ird)
+i = 2
+read(string_e,'(i1)', iostat=ios) i
+lnetz = i==0
+!write(*,*) ' ERROR CODE ', string_e(1:len_trim(string_e)), i, lnetz
 string = "rm -f " // cfile(1:LEN_TRIM(cfile))          ! Remove temporary file
 call EXECUTE_COMMAND_LINE(string, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
