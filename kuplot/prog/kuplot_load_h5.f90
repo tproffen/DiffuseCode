@@ -308,7 +308,7 @@ CALL H5Dopen_f(file_id, dataname, dset_id, hdferr)           ! Open the dataset
 CALL H5Dget_space_f(dset_id, space_id, hdferr)
 CALL H5Sget_simple_extent_ndims_f(space_id, ndims, hdferr)   ! Get the number of dimensions in data set
 CALL H5Sget_simple_extent_dims_f(space_id, h5_dims, maxdims, hdferr)   ! Get the dimensions in data set
-write(*,*) ' h5_dims ', h5_dims
+!write(*,*) ' h5_dims ', h5_dims
 IF(ALLOCATED(h5_data)) DEALLOCATE(h5_data)
 ALLOCATE(h5_data(h5_dims(1), h5_dims(2), h5_dims(3)))
 CALL H5Dread_f(dset_id, H5T_NATIVE_REAL, h5_data, h5_dims, hdferr)
@@ -453,10 +453,17 @@ ELSE
    ENDIF
 ENDIF
 !
-CALL hdf5_place_kuplot(nlayer, .TRUE.,.TRUE., .TRUE.,               &
-   MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
-   xmin, xmax, ymin, ymax, &
-   offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
+if(h5_temp%h5_dims(1)==1 .and. h5_temp%h5_dims(2)==1) then
+   CALL hdf5_place_kuplot_1d(nlayer, .TRUE.,.TRUE., .TRUE.,               &
+      MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
+      xmin, xmax, ymin, ymax, &
+      offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
+else
+   CALL hdf5_place_kuplot(nlayer, .TRUE.,.TRUE., .TRUE.,               &
+      MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
+      xmin, xmax, ymin, ymax, &
+      offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
+endif
 !
 DEALLOCATE(h5_datasets)
 DEALLOCATE(h5_data)
@@ -775,6 +782,103 @@ IF(lshow) THEN
 ENDIF
 !
 END SUBROUTINE hdf5_place_kuplot
+!
+!*******************************************************************************
+!
+SUBROUTINE hdf5_place_kuplot_1d(nlayer, lset, lnew, lshow,                &
+   MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
+   xmin, xmax, ymin, ymax, &
+   offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
+!
+!-
+! PLace a 1D curve into the kuplot section, 
+! IF lset==TRUE set absolute layer , else increment
+! IF lnew==TRUE, make new curve, 
+! IF lshow = TRUE display data
+!+
+!
+use kuplot_show_mod
+use precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: nlayer    ! Cut this layer from the data
+LOGICAL, INTENT(IN) :: lset      ! absolute layer setting
+LOGICAL, INTENT(IN) :: lnew      ! make new curve
+LOGICAL, INTENT(IN) :: lshow     ! show data
+INTEGER, INTENT(IN)    :: MAXARRAY     ! KUPLOT array size
+INTEGER, INTENT(IN)    :: MAXKURVTOT   ! KUPLOT array size
+CHARACTER(LEN=200), DIMENSION(MAXKURVTOT), INTENT(INOUT) :: fname
+INTEGER, INTENT(INOUT) :: iz     ! KUPLOT data set number
+REAL(kind=PREC_DP), DIMENSION(MAXARRAY)  , INTENT(INOUT) :: x
+REAL(kind=PREC_DP), DIMENSION(MAXARRAY)  , INTENT(INOUT) :: y
+REAL(kind=PREC_DP), DIMENSION(MAXARRAY)  , INTENT(INOUT) :: z
+INTEGER, DIMENSION(MAXKURVTOT), INTENT(INOUT) :: nx
+INTEGER, DIMENSION(MAXKURVTOT), INTENT(INOUT) :: ny
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT), INTENT(INOUT) :: xmax ! (maxkurvtot)
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT), INTENT(INOUT) :: xmin ! (maxkurvtot)
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT), INTENT(INOUT) :: ymax ! (maxkurvtot)
+REAL(kind=PREC_DP), DIMENSION(MAXKURVTOT), INTENT(INOUT) :: ymin
+INTEGER, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: offxy
+INTEGER, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: offz
+LOGICAL, DIMENSION(maxkurvtot), INTENT(INOUT) :: lni
+LOGICAL, DIMENSION(maxkurvtot), INTENT(INOUT) :: lh5
+INTEGER, DIMENSION(MAXKURVTOT), INTENT(INOUT) :: lenc
+INTEGER, INTENT(IN)    :: output_io   ! KUPLOT array size
+!
+INTEGER,                 INTENT(OUT) :: ier_num
+INTEGER,                 INTENT(OUT) :: ier_typ
+!
+INTEGER :: i,j,k, ll             ! dummy indices
+INTEGER :: izz
+INTEGER :: node_number
+!
+IF(lnew) THEN            ! This is a new data set, from 'load' command
+   izz = iz
+   h5_h5_is_ku(h5_number) = izz
+   h5_ku_is_h5(izz      ) = h5_number
+   node_number = h5_number
+ELSE                     ! Overwrite current KUPLOT data set
+   izz = iz - 1
+ENDIF
+!                        ! Locate this data set in the h5 storage
+IF(.NOT. ASSOCIATED(h5_root)) THEN
+   ier_num = -74         ! Root node does not exist !
+   ier_typ =   6         ! ER_APPL
+   RETURN
+ENDIF
+CALL hdf5_set_pointer(izz, ier_num, ier_typ, node_number)
+!
+IF(lset) THEN
+  h5_temp%h5_layer = nlayer
+ELSE
+  h5_temp%h5_layer = MAX(1,MIN(INT(h5_temp%h5_dims(1)), h5_temp%h5_layer+nlayer))
+ENDIF
+!
+lenc(izz) = h5_temp%h5_dims(3)
+xmin(izz) = h5_temp%h5_llims(1)
+xmax(izz) = h5_temp%h5_llims(1) + (lenc(izz)-1)*h5_temp%h5_steps(1)
+DO i = 1, h5_temp%h5_dims(3)
+  x(offxy(izz - 1) + i) = xmin(izz) + (i - 1) * h5_temp%h5_steps(1)
+  y(offxy(izz - 1) + i) = h5_temp%h5_data(1,1,i)
+ENDDO
+!
+ymin(izz) = minval(h5_temp%h5_data(1,1,1:h5_temp%h5_dims(3)))
+ymax(izz) = maxval(h5_temp%h5_data(1,1,1:h5_temp%h5_dims(3)))
+!
+lni (izz) = .false.
+lh5 (izz) = .true. 
+offxy(izz) = offxy(izz - 1) + lenc(izz)
+fname(izz) = h5_temp%h5_infile(1:LEN_TRIM(h5_temp%h5_infile))
+h5_h5_is_ku(node_number) = izz       ! H5 Data set 1 is stored in Kuplot as number izz
+h5_ku_is_h5(izz        ) = node_number ! Kuplot data set izz is stored in H5 number 1
+IF(lnew) iz = iz + 1
+!
+IF(lshow) THEN
+   CALL show_data(iz - 1)!
+ENDIF
+!
+END SUBROUTINE hdf5_place_kuplot_1d
 !
 !*******************************************************************************
 !
