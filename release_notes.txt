@@ -1,4 +1,11 @@
 6.12.01  DRAFT
+
+General
+  BUG FIX     Internal test for internet connection was language dependent.
+  BUG FIX     Search for newer DISCUS version did not work after curl adaptations
+
+  KUPLOT      Started HDF5 write
+              BUX FIX corrected load of 1D HDF5 files
 6.12.00  RELEASE 2022_06_30
 
 General
