@@ -784,6 +784,16 @@ IF (form.eq.'XY'.or.form.eq.'DY') then
       ier_num = - 6 
       ier_typ = ER_COMM 
    ENDIF 
+elseif (form=='H5') then
+   if (ianz.eq.0) then 
+      werte (1) = ex (iwin, iframe, 1) 
+      werte (2) = ex (iwin, iframe, 2) 
+      werte (3) = ey (iwin, iframe, 1) 
+      werte (4) = ey (iwin, iframe, 2) 
+      ianz = 4 
+   elseif(ianz==2 .or. ianz==4) then
+      continue
+   endif
 !                                                                       
 !------ gn,ni,pg files : parameters: xmin, xmax, ymin, ymax             
 !                                                                       
@@ -857,6 +867,8 @@ USE kuplot_config
 USE kuplot_mod 
 use kuplot_extrema_mod
 use kuplot_math_mod
+!
+use gen_hdf_write_mod
 USE lib_length
 USE support_mod
 use precision_mod
@@ -880,15 +892,27 @@ REAL :: rdx, rdy
 REAL :: xsteig, xabsch, xanf, xend, xdel 
 REAL :: xxx, yyy, zzz, dzzz 
 REAL :: wx_min, wx_max, wy_min, wy_max 
+logical                              :: hh5_laver
+real(kind=PREC_DP)                   :: hh5_valmax
+integer                              :: hh5_value
+integer                              :: HH5_VAL_PDF
+integer                              :: HH5_VAL_3DPDF
+INTEGER              , DIMENSION(3)  :: hh5_out_inc
+REAL(kind=PREC_DP)   , DIMENSION(3,4):: hh5_out_eck ! (3,4)
+REAL(kind=PREC_DP)   , DIMENSION(3,3):: hh5_out_vi
+REAL(kind=PREC_DP)   , DIMENSION(3)  :: hh5_cr_a0
+REAL(kind=PREC_DP)   , DIMENSION(3)  :: hh5_cr_win
 INTEGER :: ixm (maxmax), iym (maxmax) 
 INTEGER, dimension(:), allocatable :: ipg ! (maxarray) 
 INTEGER :: i, ix, iy, ie, k 
+integer :: iix, iiy
 INTEGER :: ninterv  ! number of (points-1)==no of intervals writen to file
 INTEGER :: ispk, ixxx, ikk, ima, nma 
 INTEGER :: nx_min, nx_max, ny_min, ny_max, nx_s, ny_s 
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: qvalues
 !                                                                       
 !                                                                       
-CALL oeffne (isa, filname, 'unknown') 
+if(form(1:2) /= 'H5') CALL oeffne (isa, filname, 'unknown') 
 IF (ier_num.ne.0) return 
 !                                                                       
 !-------xy-kurve abspeichern                                            
@@ -1096,8 +1120,86 @@ ELSEIF (form (1:2) .eq.'NI'.and.lni (ik) ) then
    DO iy = ny_min, ny_max 
       WRITE (isa, 4000) (z (offz (ik - 1) + (ix - 1) * ny (ik) + iy), ix = nx_min, nx_max)
       ENDDO 
-   ENDIF 
-   CLOSE (isa) 
+elseif(form(1:2)=='H5') then
+   hh5_value     = 1              ! regular data
+   HH5_VAL_PDF   = 1              ! regular data
+   HH5_VAL_3DPDF = 1              ! regular data
+   hh5_laver     = .false.        ! No averaged intensities
+  
+   if(allocated(qvalues)) deallocate(qvalues)
+   if(lni(ik)) then               ! 2D- Nipl file
+!
+      rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
+      rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
+      nx_min = max (1, nint ( ( (werte (1) - xmin (ik) ) / rdx) ) + 1)
+      nx_max = min (nx (ik), nint ( ( (werte (2) - xmin (ik) ) / rdx) ) + 1)
+      ny_min = max (1, nint ( ( (werte (3) - ymin (ik) ) / rdy) ) + 1)
+      ny_max = min (ny (ik), nint ( ( (werte (4) - ymin (ik) ) / rdy) ) + 1)
+      wx_min = xmin (ik) + (nx_min - 1) * rdx 
+      wx_max = xmin (ik) + (nx_max - 1) * rdx 
+      wy_min = ymin (ik) + (ny_min - 1) * rdy 
+      wy_max = ymin (ik) + (ny_max - 1) * rdy 
+!
+      hh5_out_inc(1) = nx_max - nx_min + 1
+      hh5_out_inc(2) = ny_max - ny_min + 1
+      hh5_out_inc(3) = 1
+      hh5_out_eck      = 0.0D0
+      hh5_out_eck(1,1) = wx_min
+      hh5_out_eck(2,1) = wy_min
+!
+      hh5_out_vi       = 0.0D0
+      hh5_out_vi (1,1) = rdx
+      hh5_out_vi (2,2) = rdy
+!
+      hh5_cr_a0        =  1.0D0    ! Make cartesian space
+      hh5_cr_win       = 90.0D0
+      hh5_valmax       =  0.0D0
+!
+      allocate(qvalues(hh5_out_inc(1), hh5_out_inc(2), hh5_out_inc(3)))
+      iiy = 0
+      do iy = ny_min, ny_max
+        iiy = iiy + 1
+        iix = 0
+        do ix = nx_min, nx_max
+           iix = iix + 1
+          qvalues(iix, iiy,1) = (z (offz (ik - 1) + (ix - 1) * ny (ik) + iy))
+         enddo
+      enddo
+   else                               ! 1D-      file
+!
+      rdx = (xmax (ik) - xmin (ik) ) / REAL(lenc (ik) - 1) 
+      nx_min = max (1, nint ( ( (werte (1) - xmin (ik) ) / rdx) ) + 1)
+      nx_max = min (lenc(ik), nint ( ( (werte (2) - xmin (ik) ) / rdx) ) + 1)
+      wx_min = xmin (ik) + (nx_min - 1) * rdx 
+      wx_max = xmin (ik) + (nx_max - 1) * rdx 
+!
+      hh5_out_inc(1) = nx_max - nx_min + 1
+      hh5_out_inc(2) = 1
+      hh5_out_inc(3) = 1
+      hh5_out_eck      = 0.0D0
+      hh5_out_eck(1,1) = wx_min
+!
+      hh5_out_vi       = 0.0D0
+      hh5_out_vi (1,1) = rdx
+!
+      hh5_cr_a0        =  1.0D0    ! Make cartesian space
+      hh5_cr_win       = 90.0D0
+      hh5_valmax       =  0.0D0
+!
+      allocate(qvalues(hh5_out_inc(1), hh5_out_inc(2), hh5_out_inc(3)))
+      iix = 0
+      do ix = nx_min, nx_max
+         iix = iix + 1
+         qvalues(iix,  1, 1) = y(offxy(ik - 1) + ix)
+      enddo
+   endif
+   call gen_hdf5_write (hh5_value, hh5_laver, filname, hh5_out_inc, hh5_out_eck, hh5_out_vi, &
+                        hh5_cr_a0, hh5_cr_win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax, &
+                        ier_num, ier_typ, ER_IO, ER_APPL)
+   deallocate(qvalues)
+!
+ENDIF 
+if(form(1:2) /= 'H5') CLOSE (isa) 
 !                                                                       
  2000 FORMAT     (a) 
  3000 FORMAT     ('#',a) 
