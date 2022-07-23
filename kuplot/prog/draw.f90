@@ -473,7 +473,8 @@ USE kuplot_config
 USE kuplot_mod 
 use kuplot_draw_low_mod
 use kuplot_draw_tframe_mod
-USE kuplot_load_h5
+USE kuplot_place
+use lib_data_struc_h5
 use kuplot_low_mod
 use kuplot_plot_low_mod
 USE param_mod
@@ -488,6 +489,7 @@ CHARACTER(LEN=1)  :: key
 REAL              :: wx, wy!, hub 
 REAL              :: zz     ! Current height
 INTEGER ini 
+integer, dimension(3) :: h5_dims
 INTEGER :: n_layer
 LOGICAL :: is_direct
 LOGICAL :: lw, l2d!, n_in_f 
@@ -495,6 +497,7 @@ LOGICAL :: lw, l2d!, n_in_f
 lw = .true. 
 l2d = n_in_f (ini) 
 !                                                                       
+call hdf5_get_dims(0, h5_dims)
 main_loop: DO
    n_layer   = hdf5_get_layer()
    zz        = hdf5_get_height()
@@ -519,13 +522,13 @@ main_loop: DO
    IF (key == butt_m .OR. key==keyb_m) then 
       EXIT main_loop
    ELSEIF (key == butt_l .OR. key==keyb_l) then 
-      CALL hdf5_place_kuplot(-1, .FALSE., .FALSE., .FALSE.,                &
+      CALL place_kuplot(h5_dims, -1, .FALSE., .FALSE., .FALSE.,                &
    MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, xmin, xmax, ymin, ymax,     &
-   offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
+   offxy, offz, lni, lh5, ku_ndims, lenc, ier_num, ier_typ, output_io)
    ELSEIF (key == butt_r .OR. key==keyb_r) then 
-      CALL hdf5_place_kuplot( 1, .FALSE., .FALSE., .FALSE.,                &
+      CALL place_kuplot(h5_dims,  1, .FALSE., .FALSE., .FALSE.,                &
    MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, xmin, xmax, ymin, ymax,     &
-   offxy, offz, lni, lh5, lenc, ier_num, ier_typ, output_io)
+   offxy, offz, lni, lh5, ku_ndims, lenc, ier_num, ier_typ, output_io)
    ENDIF 
    CALL draw_frame (iframe, lw) 
 ENDDO main_loop
