@@ -6,18 +6,19 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               calc_expr_mod.f90  calc_intr_mod.f90 cmdline_args_mod.f90
               constants_mod.f90
               get_params_mod.f90 count_col_mod.f90 
+              data_struc.f90
               define_variable_mod.f90 dkdo.f90 do_echo_mod.f90 do_eval_mod.f90
               do_execute_mod.f90 do_read_number_mod.f90 do_replace_expr.f90
               do_show_mod.f90 do_set_mod.f90
               do_string_alloc_mod.f90 do_variable_mod.f90 do_wait_mod.f90
               element_data_mod.f90
-              errlist.f90 ersetz_mod.f90 ersetzl_mod.f90 exit_mod.f90
+              errlist.f90 ersetz_mod.f90 ersetzl_mod.f90 exit_mod.f90 exit_para.f90
               fast_fourier_mod.f90 fftpack6.0.f90 fft_singleton.f90
               fput_mod.f90 help.f90 jsu_readline.f90 kdo_all_mod.f90 learn.f90 
               gauss_lorentz_pseudo.f90
               gamma_mod.f90 gaussj_mod.f90 gen_mpi_mod.f90 global_data.f90
               hdf5_def.f90 
-              length_string_mod.f90 lib_get_var_type.f90 lib_f90_profile.f90
+              length_string_mod.f90 lib_f90_config.f90 lib_get_var_type.f90 lib_f90_profile.f90
               lib_upd_mod.f90 
               macro.f90  matrix_mod.f90 map_1dtofield.f90 
               operating_mod.f90 reserved_mod.f90
@@ -89,10 +90,10 @@ if (DIFFUSE_HDF5)
   if (DEFINED ENV{HDF5_INC_DIR})
     include_directories($ENV{HDF5_INC_DIR})
   endif ()
-  set (FSOURCES ${FSOURCES} hdf_write.f90)
+  set (FSOURCES ${FSOURCES} hdf_write.f90 hdf5_read.f90 hdf5_params.f90)
   message (LIB_F90 " HDF5 is ON  ${DIFFUSE_HDF5} ")
 else (DIFFUSE_HDF5)
-  set (FSOURCES ${FSOURCES} hdf_write_no.f90)
+  set (FSOURCES ${FSOURCES} hdf_write_no.f90 hdf5_params_no.f90)
   message (LIB_F90 " HDF5 is OFF ${DIFFUSE_HDF5} ")
 endif ()
 
