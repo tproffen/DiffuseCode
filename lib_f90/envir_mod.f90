@@ -21,6 +21,7 @@ USE precision_mod
    CHARACTER(LEN=PREC_STRING) :: mac_dir
    CHARACTER(LEN=PREC_STRING) :: man_dir
    CHARACTER(LEN=PREC_STRING) :: tmp_dir
+   CHARACTER(LEN=PREC_STRING) :: discus_dir
    CHARACTER(LEN=PREC_STRING) :: umac_dir
    CHARACTER(LEN=PREC_STRING) :: start_dir
    CHARACTER(LEN=PREC_STRING) :: start_line
@@ -53,16 +54,56 @@ USE precision_mod
    INTEGER             :: colorfile_l
    INTEGER             :: mac_dir_l
    INTEGER             :: tmp_dir_l
+   INTEGER             :: discus_dir_l
    INTEGER             :: umac_dir_l
    INTEGER             :: start_dir_l
    INTEGER             :: start_line_l
    INTEGER             :: current_dir_l
    INTEGER             :: user_name_l
    INTEGER             :: lines
-   INTEGER             :: last_update = 0 ! Laste date of system update
+   INTEGER             :: last_update = 0 ! Last date of system update
    INTEGER             :: PID             ! Process ID of discus_suite
    INTEGER             :: PPID            ! Parent Process ID of discus_suite
    LOGICAL             :: term_scheme_exists = .FALSE.
    LOGICAL             :: envir_done         = .FALSE.
+integer, dimension(12) :: days
+data days/ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334/
+!
+contains
+!
+!*******************************************************************************
+!
+integer function day_of_year(yy, mm, dd) result(today)
+!-
+!  Calculates the day of the year
+!+
+!
+integer, intent(in) :: yy    ! year
+integer, intent(in) :: mm    ! month
+integer, intent(in) :: dd    ! day
+!
+today = days(mm) + dd
+if(mod(yy,4)==0 .and. mm>2) today = today + 1  ! Leap year
+!
+end function day_of_year
+!
+!*******************************************************************************
+!
+integer function days_since(yy, mm, dd) result(since)
+!-
+!  Calculates days since 2020-12-31
+!
+integer, intent(in) :: yy    ! year
+integer, intent(in) :: mm    ! month
+integer, intent(in) :: dd    ! day
+!
+integer :: today
+!
+today = day_of_year(yy, mm, dd)
+since = today + (yy-2021)*365 + ((yy-2021)/4)
+!
+end function days_since
+!
+!*******************************************************************************
 !
 END MODULE envir_mod
