@@ -60,6 +60,7 @@ USE blanks_mod
 USE calc_expr_mod
 USE doact_mod
 USE errlist_mod 
+use exit_para_mod
 USE get_params_mod
 USE class_macro_internal
 USE kdo_all_mod
@@ -491,9 +492,13 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
             ENDIF
          ENDIF 
       ENDIF 
+!
+if(ex_do_exit) lend = .true.   ! A global exit was flagged
 !                                                                       
-      END SUBROUTINE discus_mache_kdo                      
+END SUBROUTINE discus_mache_kdo                      
+!
 !*****7**************************************************************** 
+!
       SUBROUTINE do_define (zeile, lp) 
 !-                                                                      
 !     Sets the value of status variables, DISCUS specific routine       
