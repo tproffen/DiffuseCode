@@ -220,8 +220,14 @@ lpv(0) = 1.0
 !write(*,*) ' PRAE tth0  ', pow_tthzero
 !write(*,*) ' PRAE m,d   ', xmin, xdel
 istart = 0
-DO ii = 0, npkt
+j      = 0  ! Flag for tth > 180
+loop_zero: DO ii = 0, npkt
    q    = (ii) * xdel + xmin 
+   arg = (q / 2.D0 /zpi *rlambda )
+   if(arg>1.00D0) then
+      j = ii
+      exit loop_zero
+   endif
    ttheta = 2.D0*asind ( (q / 2.D0 /zpi *rlambda ))
    if(q<pow_qmin_u) istart = ii
    lpv(ii) = polarisation (ttheta)
@@ -233,7 +239,11 @@ DO ii = 0, npkt
    ELSEIF (cpow_form.eq.'r  ') THEN 
       xpl(ii) = q - pow_qzero                ! Initially the x-axis is in Q
    ENDIF 
-ENDDO 
+ENDDO loop_zero 
+!
+if(j>0) then     ! 2Theta > 180°
+   npkt = j -1
+endif
 !write(*,*) ' aft  m,d   ', xmin, xdel
 !write(*,*) ' AFTER ZERO ', npkt, xpl(1), xpl(npkt-1), xpl(npkt), q, npkt_u, ttheta
 !
@@ -358,7 +368,11 @@ IF( cpow_form == 'tth' ) THEN
       arg        = pow_qmin_u/(zpi) * rlambda / 2.d0 ! Directly with arg in asind()
       pow_tthmin = nint(2.*asind(arg)*1.0D5)/1.0D5     ! results in error ??????????
       arg        = MIN(1.0D0,pow_qmax_u/zpi * rlambda / 2.)
-      pow_tthmax = nint(2.*asind(arg)*1.0D5)/1.0D5
+      if(arg>1.0D0) then
+         pow_tthmax = 180.0D0
+      else
+         pow_tthmax = nint(2.*asind(arg)*1.0D5)/1.0D5
+      endif
       pow_deltatth = xpl(istart+2)-xpl(istart+1)
       npkt_u     = int((pow_tthmax-pow_tthmin)/pow_deltatth) + 1
    ENDIF
@@ -858,7 +872,7 @@ REAL(KIND=PREC_DP) :: pow_uuu_sum
 REAL(KIND=PREC_DP)           :: ss       ! time
 !
 WRITE (output_io, * ) ' Starting convolution'!, pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w
-!ss = seknds (0.0)
+ss = seknds (0.0)
 !
 xmin  = 0.0 
 xmax  = 0.0 
