@@ -13,6 +13,7 @@ use blanks_mod
 USE envir_mod
 USE errlist_mod 
 USE lib_errlist_func
+use lib_config
 USE operating_mod
 USE precision_mod
 USE prompt_mod 
@@ -24,9 +25,11 @@ IMPLICIT none
 !
 CHARACTER(LEN=PREC_STRING) :: tempfile   ! jmol script files to remove
 CHARACTER(LEN=PREC_STRING) :: line       ! temporary string
+character(len=8)           :: frm
 !INTEGER             :: socket_send
 integer          :: ios
 integer          :: ll
+integer          :: i
 LOGICAL             :: lpresent
 INTEGER           :: old_version
 INTEGER           :: new_version
@@ -48,25 +51,54 @@ IF(new_version > old_version ) THEN
    WRITE(output_io,*)
 ENDIF
 IF(operating == OS_LINUX_WSL) THEN
-   IF(since_update>7) THEN
-      line = 'NO'
-      write(*,*)
-      write(*,'(a)' ) ' Last Ubuntu update >7 days ago, '
-      write(*,'(a)' ) ' Operating system update is strongly recommended'
-      write(*,'(a)', advance='no' ) ' Update Ubuntu now ? Yes/No : '
-      read(*, '(a)', iostat=ios) line
-      call do_cap(line)
-      ll = len_trim(line)
-      call rem_leading_bl(line, ll)
-      if(is_iostat_end(ios) .or. line(1:3)=='YES' .or. &
-         str_comp(line, 'Y', 1, ll, 1)                ) then
-         CALL lib_f90_update_ubuntu
-      else
+   if(generic_get_interval()>0) then
+      IF(since_update>generic_get_interval()) THEN
+         line = 'NO'
          write(*,*)
-         write(*,'(A)') 'Ubuntu update deferred for right now'
-         write(*,*)
-      endif
-   ENDIF
+         write(*,'(a,i4,a)' ) ' Last Ubuntu update >',generic_get_interval(), ' days ago, '
+         write(*,'(a)' ) ' Operating system update is strongly recommended'
+         write(*,'(a)', advance='no' ) ' Update Ubuntu now ? Yes/No/Never/New Interval in days : '
+         read(*, '(a)', iostat=ios) line
+         call do_cap(line)
+         ll = len_trim(line)
+         call rem_leading_bl(line, ll)
+         if(is_iostat_end(ios) .or. line(1:3)=='YES' .or. &
+            str_comp(line, 'Y', 1, ll, 1)                ) then
+            CALL lib_f90_update_ubuntu
+         elseif(line(1:2)=='NO' .or. str_comp(line, 'NO', 2, ll, 2)) then
+            write(*,*)
+            write(*,'(A)') ' Ubuntu update deferred for right now'
+            write(*,*)
+         elseif(line(1:2)=='NE' .or. str_comp(line, 'NE', 2, ll, 2)) then
+            write(*,*)
+            write(*,'(A)') ' DISCUS will not update Ubuntu any longer' 
+            write(*,'(A)') ' Regular updates are strongly recommended' 
+            write(*,*)
+            call generic_set_interval(-1)
+            call generic_write_config(discus_dir, discus_dir_l)
+         else
+            write(frm,'(a,i1,a)') '(i',len_trim(line),')'
+            read(line,fmt=frm,iostat=ios) i
+            if(ios==0) then
+               if(i>0) then
+                  call generic_set_interval(i)
+                  call generic_write_config(discus_dir, discus_dir_l)
+                  write(*,*)
+                  write(*,'(A)') ' Ubuntu update deferred for right now'
+                  write(*,'(a, i4, a)') ' DISCUS will ask again in ',i, ' days'
+                  write(*,*)
+               else
+                  write(*,*)
+                  write(*,'(A)') ' DISCUS will not update Ubuntu any longer' 
+                  write(*,'(A)') ' Regular updates are strongly recommended' 
+                  write(*,*)
+                  call generic_set_interval(-1)
+                  call generic_write_config(discus_dir, discus_dir_l)
+               endif
+            endif
+         endif
+      ENDIF
+   endif
 ENDIF
 !
 !------ Delete JMOL scripts
