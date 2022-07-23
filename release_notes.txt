@@ -1,4 +1,18 @@
-6.12.01  DRAFT
+6.12.02  DRAFT
+General
+              Starting to move KUPLOT data into a global data structure format
+              Moved HDF5 read/write into lib_f90; no effect on user
+
+  Windows Version  Modified the check for Ubuntu update
+KUPLOT        Added 1d and 2D to 'fft' command
+DISCUS
+  mmc         BUG FIX, "set disallow, all" did not work
+              Added a new modification mode "swneig" to exchange neighbors
+                    still under development
+              Improved on "coordination number" energy, added this to help
+                    still under development
+  
+6.12.01  RELEASE 2022_07_05
 
 General
   BUG FIX     Internal test for internet connection was language dependent.
