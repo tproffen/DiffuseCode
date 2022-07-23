@@ -44,6 +44,7 @@ USE appl_env_mod
 USE doact_mod
 USE calc_expr_mod
 USE errlist_mod 
+use exit_para_mod
 USE class_macro_internal
 USE kdo_all_mod
 USE learn_mod 
@@ -290,8 +291,11 @@ ELSE
 !                                                                 
    ELSE 
       CALL kdo_all (befehl, lbef, zeile, lcomm) 
+      if(zeile=='stop') lend = .true.
    ENDIF 
 ENDIF 
+!
+if(ex_do_exit) lend = .true.
 !                                                                       
 END SUBROUTINE suite_mache_kdo                      
 !
