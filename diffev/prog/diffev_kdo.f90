@@ -34,6 +34,7 @@ USE build_name_mod
 use calc_expr_mod
 USE define_variable_mod
 USE errlist_mod 
+use exit_para_mod
 USE gen_mpi_mod
 USE get_params_mod
 USE kdo_all_mod
@@ -1136,6 +1137,8 @@ ELSE
       ENDIF 
    ENDIF 
 ENDIF 
+!
+if(ex_do_exit) lend = .true.   ! A global exit was flagged
 !                                                                       
 END SUBROUTINE diffev_mache_kdo                      
 !

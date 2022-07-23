@@ -32,6 +32,7 @@ use calc_expr_mod
 USE charact_mod 
 USE define_variable_mod
 USE errlist_mod 
+use exit_para_mod
 USE gen_mpi_mod
 USE get_params_mod
 USE kdo_all_mod
@@ -237,6 +238,8 @@ call refine_constrain_temp(zeile, lcomm, .false.)
    ENDIF  is_befehl
 ENDIF  is_math
 !                                                                       
+if(ex_do_exit) lend = .true.   ! A global exit was flagged
+!
 END SUBROUTINE refine_mache_kdo                      
 !
 !end module refine_mache_kdo_mod
