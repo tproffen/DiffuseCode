@@ -227,7 +227,12 @@ IMPLICIT none
 !------ Update Discus
 !
       ELSEIF (str_comp (bef, 'update', 3, lbef, 6) ) THEN 
+         if(prompt=='suite') then
          CALL lib_f90_update_discus(zei, lc)
+         ELSE 
+            ier_num = -8 
+            ier_typ = ER_COMM 
+         ENDIF 
 !                                                                       
 !------ definition of variables                                         
 !                                                                       
