@@ -4806,9 +4806,8 @@
 
    The "set limit, OFF" command switched the limitation off.
 4  mode
-!p set "mode",<prob>,{ "shi[ft]" | "swc[hem]" | "swd[isp]" | "ext[ernal]" },
-!p           [{ "a[ll]"   | "l[ocal]"  | "sl[ocal]" | "si[te]"     }
-!p            , [<atom_list>] ]
+!p set "mode", <probability>, <modification_type>,
+!p             [ <site_selection> [ , <atom_list>] ] 
 
    This command determines the type of MMC move used for modifying
    the crystal. You can simultaneously use any of the moves. The 
@@ -4816,6 +4815,41 @@
    scaled to add up to one and give the probability for each type
    of move. The settings are explained in the RMC section under
    -> set mode.
+
+   The possible modes are:
+
+!p "shift"    : The selected atoms are displaced by a random move. The
+!p              maximum size of a move can be specified via "set move .."
+!p              command.
+!p "swchem"   : Here two atoms are selected at random and their chemistry
+!p              is switched (if the atoms are selected via "sel" command).
+!p              If your structure consists of only ONE atom type this mode
+!p              will just waste computer time :-)
+!p "swneig"   : Two central atoms are selected. During the modification
+!p              two of their neighbors are exchanged.
+!p "swdisp"   : Here the displacement from the average structure of two
+!p              selected atoms of the SAME type are switched. The mode
+!p              can only properly work, if there are initial displacements
+!p              generated e.g. by the "therm" command.
+!p "external" : The modification of the structure for each RMC move is done
+!p              using an user supplied external subroutine. Check the
+!p              source file 'extrmc.f90' for details how to supply such a
+!p              subroutine.
+
+   The third optional parameter specifies if the pair of the atoms to
+   be selected for the SWCHEM and SWDISP mode should be restricted in
+   any way. The following settings are valid, the setting "all" is the
+   default, which will be taken if no second parameter is entered.
+
+!p "all"      : Any atom within the crystal can be chosen as second atom.
+!p "local"    : Only atoms within +-1 unit cell from the first selected
+!p              atom will be chosen.
+!p "slocal"   : Same as "local" only the second atom must be on the same
+!p              site within the unit cell as the first one.
+!p "site"     : Atom on the same site in any unit cell are allowed as
+!p              second atom.
+!p
+
    If the atom list is given, the fourth parameter that specifies the 
    site must also be present. The atom list allows you to "move" or
    "exchange" atoms, even if they are not involved in any of the 
@@ -4911,6 +4945,9 @@
 !p set "target",<ic>,"unid",    ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
 !p                              ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
 !p                               <correlation>, <energy>, {"CORR" | "ENER"}
+!p set "target", <ic>,"cn",     ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+!p                              ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+!p                               <coordination_number>, <energy> 
 !p set "target",<ic>,"cd",       {<number> | <name> | "all"},
 !p                               {<number> | <name> | "all"},
 !p                               <correlation>, <energy>, {"CORR" | "ENER"}
@@ -4997,6 +5034,17 @@
    over all other pairs (A => A; B =>B; B =>A). 
    This energy works best for "vector" neighborhoods, and you 
    should only use a given vector and not the opposite vector.
+
+!p set "target", <ic>,"cn",     ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+!p                              ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+!p                               <coordination_number>, <energy> 
+
+   This energy form drives the structure into neighborhoods with
+   user defined coordination numbers. 
+   The first atom is considered the central atom, the second atom is
+   considered the preferred atom type within the neighborhood. 
+   The program sorts by switching atoms between the neighborhoods
+   of two central atoms. 
 
    set "target",<ic>,"cd",   {<number> | <name> | "all"},
                              {<number> | <name> | "all"},
@@ -7977,7 +8025,7 @@
 !p              generated e.g. by the "therm" command.
 !p "external" : The modification of the structure for each RMC move is done
 !p              using an user supplied external subroutine. Check the
-!p              source file 'extrmc.f' for details how to supply such a
+!p              source file 'extrmc.f90' for details how to supply such a
 !p              subroutine.
 
    The third optional parameter specifies if the pair of the atoms to
