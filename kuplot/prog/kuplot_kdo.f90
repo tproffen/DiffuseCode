@@ -30,6 +30,7 @@ USE kuplot_toglobal
       USE calc_expr_mod
       USE doact_mod
       USE errlist_mod 
+use exit_para_mod
       USE get_params_mod
       USE class_macro_internal
       USE kdo_all_mod
@@ -584,6 +585,8 @@ CHARACTER(LEN=8)           :: bef
             ENDIF 
          ENDIF 
       ENDIF 
+!
+if(ex_do_exit) lend = .true.   ! A global exit was flagged
 !                                                                       
  2000 FORMAT     (' ****WARN**** Redundant command, do not use',        &
      &          13x,'**** -99 ****')                                    
