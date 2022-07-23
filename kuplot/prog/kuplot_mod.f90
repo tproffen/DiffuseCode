@@ -182,8 +182,9 @@ REAL(kind=PREC_DP) ::  zmax(maxkurvtot),zmin(maxkurvtot)
       INTEGER hlineart(maxwin,maxframe,maxkurvtot)
       INTEGER hlabel(maxwin,maxframe,maxkurvtot)
       INTEGER         exclude9999
-      LOGICAL lni(maxkurvtot)
-      LOGICAL :: lh5(maxkurvtot) = .FALSE.
+      integer :: ku_ndims(maxkurvtot) = 1
+      LOGICAL :: lni(maxkurvtot)
+      LOGICAL :: lh5(0:maxkurvtot) = .FALSE.
 !
 !     COMMON /nipl/ lni,iho,nz,z_min,z_inc,nx,ny,zmin,zmax,             &
 !    &              hlinecol,hlinetyp,hlineart,pgmlow,pgmhigh,          &
