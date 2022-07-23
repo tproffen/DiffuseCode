@@ -1362,6 +1362,7 @@ CHARACTER(LEN=PREC_STRING) :: cpara (maxw)
 REAL(KIND=PREC_DP) :: werte (maxw)
 REAL(kind=PREC_DP) :: x_igg 
 REAL(kind=PREC_DP) :: yyy 
+REAL(kind=PREC_DP) :: deltax
 REAL(kind=PREC_DP),dimension(:), allocatable :: xpl !(maxarray)
 REAL(kind=PREC_DP),dimension(:), allocatable :: ypl !(maxarray)
 REAL(kind=PREC_DP),dimension(:), allocatable :: y2a !(maxarray)
@@ -1443,14 +1444,15 @@ ENDDO loop_copy
 !CALL spline(xpl, ypl, lenc (ik), 1D30, 1D30, y2a) 
 !CALL spline(lenc(ik), xpl, ypl, 1D30, 1D30, y2a) 
 CALL spline(j       , xpl, ypl, 1D30, 1D30, y2a) 
+deltax = abs((xpl(2)   -xpl(1)     )*1.0D-2)
 !                                                                       
 k = 0
 loop_spline:DO i = 1, ntot 
 !   if(ascend) then
 !     if(x(offxy (ig - 1) + i)<minval(xpl)) cycle loop_spline
 !     if(x(offxy (ig - 1) + i)>maxval(xpl)) exit  loop_spline
-      if(x(offxy (ig - 1) + i)<xpl(1)     ) cycle loop_spline
-      if(x(offxy (ig - 1) + i)>xpl(j)     ) exit  loop_spline
+      if(x(offxy (ig - 1) + i)<xpl(1)-deltax ) cycle loop_spline
+      if(x(offxy (ig - 1) + i)>xpl(j)+deltax ) exit  loop_spline
 !   else
 !      if(x(offxy (ig - 1) + i)<xpl(j)     ) cycle loop_spline
 !      if(x(offxy (ig - 1) + i)>xpl(1)     ) exit  loop_spline
