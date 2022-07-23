@@ -299,6 +299,7 @@ REAL(KIND=PREC_DP) :: fractions             ! Current grand fractions
 REAL(KIND=PREC_DP) :: q                     ! Temporary number of real atoms per phase
 REAL(KIND=PREC_DP) :: ttheta                ! 2Theta
 real(kind=PREC_DP) :: sq_scale
+real(kind=PREC_DP) :: arg
 !
 
 pow_f2aver(:)    = 0.0D0
@@ -377,17 +378,18 @@ pow_u2aver    = pow_u2aver /8./(PI)**2
 ! Distinguish if calculation mode was COMPLETE or DEBYE
 ! Make separate results for intensities and S(Q) [F(Q) and PDF will work with S(Q)]
 !
-!open(87,file='POWDER/multi_average.conv0', status='unknown')
-!do k= 0, npkt
-!q = ((k)*xdel + xmin)
-!write(87,'(2(f16.6,2x))') q,      pha_powder(k,1)!, pow_sq(k)
-!enddo
 pow_conv = 0.0
 pow_sq   = 0.0
+!open(87,file='POWDER/multi_average.conv0', status='unknown')
+!do k= 0, ubound(pow_conv,1) !npkt
+!q = ((k)*xdel + xmin)
+!write(87,'(4(f16.6,2x))') q,      pha_powder(k,1), pow_conv(k), pow_sq(k) 
+!enddo
 l_all_complete = .TRUE.
 l_all_debye    = .TRUE.
 !write(*,*) 'INTEGRAL ', sum(pha_powder(:,1)), sum(pow_faver2),  &
 !                        sum(pha_powder(:,1))/ sum(pow_faver2)
+!open(87,file='POWDER/lp.dat', status='unknown')
 DO i=1,pha_n
    IF(pha_nreal(i)>0.0) THEN
    IF(pha_calc(i) == POW_COMPL) THEN           ! Complete calculation mode
@@ -395,36 +397,42 @@ DO i=1,pha_n
 !
 !     Prepare intensity output
 !
-      DO k=0, npkt
+      loop_inte:DO k=0, npkt
          q = (k*xdel + xmin)
+         arg = (q / 2.D0 /(zpi) *rlambda )
+         if(arg >  1.0D0) exit loop_inte
          ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
          pow_conv(k) = pow_conv(k) + pha_scale(i)*pha_powder(k,i)  & ! / q**2 &
                                     * polarisation(ttheta)               &
                                     * lorentz(ttheta, q, pow_bangle, 0)
-!write(87, '(3(f16.6,2x))') ttheta, polarisation(ttheta), lorentz(ttheta, 0)
-      ENDDO
+!write(87, '(3(f16.6,2x))') ttheta, polarisation(ttheta), lorentz(ttheta, q, pow_bangle, 0)
+      ENDDO loop_inte
 !
 !     Prepare S(Q)      output
 !
-      DO k=0, npkt
+      loop_sq: DO k=0, npkt
          q = (k*xdel + xmin)
+         arg = (q / 2.D0 /(zpi) *rlambda )
+         if(arg >  1.0D0) exit loop_sq
          ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
          pow_sq(k) = pow_sq(k) + pha_scale(i)* pha_powder(k,i)  &  ! / q**2
                                     * polarisation(ttheta)               &
-                                    * lorentz(ttheta, pow_bangle, q, 0)
-      ENDDO
+                                    * lorentz(ttheta, q, pow_bangle, 0)
+      ENDDO loop_sq
 !
    ELSEIF(pha_calc(i) == POW_DEBYE) THEN           ! Complete calculation mode
       l_all_complete = .false.
 !
 !     Prepare intensity output
 !
-      DO k=0, npkt
+      loop_inte_d: DO k=0, npkt
          q = (k*xdel + xmin)
+         arg = (q / 2.D0 /(zpi) *rlambda )
+         if(arg >  1.0D0) exit loop_inte_d
          ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
          pow_conv(k) = pow_conv(k) + pha_scale(i)*pha_powder(k,i) &
                                     * polarisation(ttheta)
-      ENDDO
+      ENDDO loop_inte_d
 !
 !     Prepare S(Q)      output
 !
@@ -438,6 +446,12 @@ ENDDO
 !write(*,*) 'INTEGRAL ', sum(pow_sq         ), sum(pow_faver2),  &
 !                        sum(pow_sq         )/ sum(pow_faver2)
 !close(87)
+!write(*,*) 'PHASES_AVERAGE ', npkt
+!write(*,*) 'pha_powder     ', lbound(pha_powder),  '<>',ubound(pha_powder)
+!write(*,*) 'pow_conv       ', lbound(pow_conv,1), ubound(pow_conv,1)
+!write(*,*) 'pow_sq         ', lbound(pow_sq,1), ubound(pow_sq,1)
+!write(*,*) 'pow_fu         ', lbound(pow_fu,1), ubound(pow_fu,1)
+!write(*,*) 'pow_faver2     ', lbound(pow_faver2,1), ubound(pow_faver2,1)
 !open(87,file='POWDER/multi_average.conv1', status='unknown')
 !do k= 0, npkt
 !q = ((k)*xdel + xmin)
