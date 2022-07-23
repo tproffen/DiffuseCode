@@ -18,7 +18,7 @@ SUBROUTINE kuplot_do_reset(zeile, lp)
       USE param_mod
 USE str_comp_mod
       USE take_param_mod
-USE kuplot_load_h5, ONLY: hdf5_reset
+!USE kuplot_load_h5, ONLY: hdf5_reset
 use kuplot_blk_mod
 !                                                                       
       IMPLICIT none 
@@ -101,7 +101,7 @@ offz  = 0
 fname = ' '
 fform = ' '
 !
-CALL hdf5_reset
+!CALL hdf5_reset
 !                                                                       
  1000 FORMAT     (1x,'Resetting ..') 
  1100 FORMAT     (1x,'Resetting - all parameters ..') 
