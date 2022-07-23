@@ -2925,7 +2925,6 @@ REAL(kind=PREC_DP)   , DIMENSION(3, 0:nthreads-1)                     :: posz !(
 REAL(kind=PREC_DP)   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !(3) = 0.0
 REAL(KIND=PREC_DP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
 real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
-integer :: kk
 !
 IF(tid==0) then
    igen = igen + 1

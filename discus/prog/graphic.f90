@@ -2051,7 +2051,7 @@ IMPLICIT NONE
 !
 LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
-integer :: i
+!integer :: i
 !
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:), ALLOCATABLE  :: pattern  ! the diffraction pattern
 !
@@ -2089,11 +2089,11 @@ LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
-real(kind=PREC_DP) :: dx
-real(kind=PREC_DP) :: dy
-real(kind=PREC_DP) :: tx
-real(kind=PREC_DP) :: ty
-integer::  i,j
+!real(kind=PREC_DP) :: dx
+!real(kind=PREC_DP) :: dy
+!real(kind=PREC_DP) :: tx
+!real(kind=PREC_DP) :: ty
+!integer::  i,j
 !
 ALLOCATE(pattern(num(dsort(1)), num(dsort(2)) ))
 !
