@@ -565,12 +565,15 @@ IF (ianz.ge.2) then
          ENDIF 
 !
          IF(unter=='H5') THEN    ! HDF5 file
-            CALL hdf5_read(cpara(2),lpara(2), O_LAYER, NOPTIONAL, opara,        &
+            CALL hdf5_read_kuplot(cpara(2),lpara(2), O_LAYER, NOPTIONAL, opara,        &
                            lopara, lpresent, owerte ,                           &
                            MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny,    &
-                           xmin, xmax, ymin, ymax, offxy, offz, lni, lh5, lenc, &
+                           xmin, xmax, ymin, ymax, offxy, offz, lni, lh5, ku_ndims, lenc, &
                            ier_num, ier_typ, UBOUND(ier_msg,1), ier_msg, ER_APPL, &
                            ER_IO, output_io)
+WRITE(*,*) ' LOAD '
+write(*,*) ' LH5 lbound', lbound(lh5), ubound(lh5)
+write(*,*) ' ku_ndims  ', lbound(ku_ndims), ubound(ku_ndims), ' > ', ku_ndims(:4)
             deallocate(cpara)
             RETURN
          ENDIF
@@ -1954,7 +1957,7 @@ INTEGER, DIMENSION(MAXWW) :: llpara
             ENDIF 
             GOTO 10 
          ENDIF 
-         IF (istart.ne.0) then 
+         IF (istart.ne.0 .or. itype.eq.READ_TYPE_SC) then 
             READ (mine, *, end = 20, err = 30) (col (i), i = 1, nf) 
          ENDIF 
          IF (itype.ne.READ_TYPE_SM) THEN 
