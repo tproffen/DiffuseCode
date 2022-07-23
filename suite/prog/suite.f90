@@ -19,6 +19,7 @@ USE refine_setup_mod
 USE appl_env_mod
 USE envir_mod
 USE errlist_mod
+use lib_errlist_func
 USE gen_mpi_mod
 USE prompt_mod
 USE variable_mod
@@ -43,6 +44,7 @@ lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !lstandalone       = .true.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !
 CALL setup_suite_start           ! Do start up procedures
+if(ier_num/=0) call errlist
 !
 CALL run_mpi_init    ! Do the initial MPI configuration for slave DIFFEV
 IF(ier_num/=0) THEN
