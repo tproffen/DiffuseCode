@@ -14,6 +14,7 @@ SUBROUTINE appl_env (standalone) !, local_mpi_myid)
 USE blanks_mod
 USE errlist_mod
 USE envir_mod 
+use lib_config
 USE lib_errlist_func
 USE lib_length
 USE terminal_mod
@@ -22,6 +23,7 @@ USE precision_mod
 USE prompt_mod 
 USE string_convert_mod
 USE support_mod
+use sys_compiler
 USE lib_do_operating_mod
 !
 IMPLICIT none 
@@ -43,7 +45,11 @@ INTEGER ico, ice, iii, i, j
 INTEGER :: length
 INTEGER :: ios ! I/O status
 INTEGER pname_l 
-LOGICAL lpresent
+!INTEGER, PARAMETER                        :: MAXW = 1
+!CHARACTER (LEN=PREC_STRING), DIMENSION(1) :: cpara
+!INTEGER                    , DIMENSION(1) :: lpara
+LOGICAL :: lpresent
+!logical :: lexist
 !INTEGER :: lib_f90_getpid
 !
 IF(envir_done) RETURN
@@ -416,6 +422,23 @@ PPID = lib_f90_getppid(PID)
 CALL lib_f90_getpname(PID,PPID, parent_name)
 !
 envir_done = .TRUE.
+write(*,*) ' HOME >',home_dir(1:home_dir_l),'<'
+!
+! test for and create "${HOME}/.DISCUS"
+!
+discus_dir = home_dir(1:home_dir_l) // '.DISCUS/'
+discus_dir_l = home_dir_l + 8
+!cpara(1) = discus_dir
+!lpara(1) = discus_dir_l
+!call sys_inquire_directory(MAXW, cpara, lpara,lexist)
+!if(.not.lexist) then
+!   line = 'mkdir -p ' // discus_dir(1:discus_dir_l)
+!   call execute_command_line(line)
+!!else
+!!  write(*,*) ' DISCUS DIR :>', discus_dir(1:discus_dir_l),'< exists'
+!endif
+!
+call generic_read_config(discus_dir, discus_dir_l)   ! Read generic preferences
 !                                                                       
 END SUBROUTINE appl_env                       
 !
@@ -428,6 +451,7 @@ SUBROUTINE write_appl_env (standalone, local_mpi_myid)
 USE envir_mod
 USE errlist_mod
 USE lib_errlist_func
+use lib_config
 USE precision_mod
 USE prompt_mod
 USE support_mod
@@ -466,10 +490,12 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       WRITE ( *, 2600) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
       IF(operating == OS_LINUX_WSL) THEN
          WRITE ( *, 2700) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
-         IF(since_update>7) THEN
+         if(generic_get_interval()>0) then
+         IF(since_update>generic_get_interval()) THEN
             WRITE(*,*)
             WRITE(*,2750) TRIM(color_bg),TRIM(color_fg)
          ENDIF
+         endif
       ENDIF
       IF(new_version > old_version ) THEN
          WRITE(*,*)
@@ -488,10 +514,12 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       WRITE ( *, 1600)
       IF(operating == OS_LINUX_WSL) THEN
          WRITE ( *, 1700)
-         IF(since_update>7) THEN
+         if(generic_get_interval()>0) then
+         IF(since_update>generic_get_interval()) THEN
             WRITE(*,*)
             WRITE(*,1750) 
          ENDIF
+         endif
       ENDIF
       IF(new_version > old_version ) THEN
          WRITE(*,*)
@@ -995,6 +1023,10 @@ CHARACTER(LEN=8) :: date
 CHARACTER(LEN=10):: time
 CHARACTER(LEN=5) :: zone
 INTEGER, DIMENSION(8) :: values
+!integer, dimension(12) :: days
+integer :: iyear
+!
+!data days/ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334/
 !                                                                       
 CALL DATE_AND_TIME (date, time, zone, values)
 !
@@ -1047,20 +1079,28 @@ if(.not. lonline) return
 !
 last_update = 0
 since_update = 0
-IF(operating==OS_LINUX_WSL) THEN
+!
+cond_update: IF(operating==OS_LINUX_WSL) THEN
+   string = 'stat /var/cache/apt/pkgcache.bin > '// discus_update(1:len_trim(discus_update))
+   call execute_command_line(string, cmdstat=ier_num, cmdmsg=message, exitstat=exit_msg)
+   call no_error
+!   call execute_command_line('cat /tmp/DISCUS_UPDATE')
    INQUIRE(FILE=discus_update,EXIST=lda)
    IF(lda) THEN
       OPEN(UNIT=IRD, FILE=discus_update, STATUS='old')
-      READ(IRD,'(a)', IOSTAT=ios) string
-      IF(ios==0) THEN
-         READ(string,'(i4,1x,i2,1x,i2)') i,j,k
-         last_update= i*10000 + j*100 + k    ! Compound date
-      ENDIF
+      do i=1, 6
+         READ(IRD,'(a)', IOSTAT=ios) string
+         if(ios/=0) exit cond_update
+      enddo
+      iyear=index(string,'20')
+      READ(string(iyear:iyear+9),'(i4,1x,i2,1x,i2)') i,j,k
+      last_update = days_since(i,j,k)
       CLOSE(IRD)
    ENDIF
-   READ(date,*) idate
+   READ(date,'(i4,i2,i2)') i,j,k
+   idate = days_since(i,j,k)
    since_update = idate-last_update
-ENDIF
+ENDIF cond_update
 !
 END SUBROUTINE lib_f90_test_updates
 !
@@ -1131,6 +1171,7 @@ SUBROUTINE lib_f90_update_discus(zeile, lp)
 !
 USE envir_mod
 USE errlist_mod
+use exit_para_mod
 USE get_params_mod
 USE precision_mod
 USE prompt_mod
@@ -1157,6 +1198,7 @@ CHARACTER(LEN=128)         :: discus_power
 CHARACTER(LEN=32)          :: grep
 CHARACTER(LEN=40)          :: script
 CHARACTER(LEN=20)          :: verstring
+CHARACTER(LEN= 8)          :: flag
 CHARACTER(LEN=PREC_STRING) :: command
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
@@ -1250,7 +1292,7 @@ IF(terminal_wrp /= ' ') THEN
    CALL EXECUTE_COMMAND_LINE(line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 !
-IF(operating == OS_LINUX .or. operating == OS_LINUX_WSL) THEN
+IF(operating == OS_LINUX) then
    grep    = 'grep -m 1 -Poe'
    script  = 'bbb_install_script.sh'
    command = terminal_emu(1:LEN_TRIM(terminal_emu)) // ' '// &
@@ -1261,24 +1303,22 @@ IF(operating == OS_LINUX .or. operating == OS_LINUX_WSL) THEN
              code_str(1:LEN_TRIM(code_str)) // ' ' //        &
              prep_str(1:LEN_TRIM(prep_str)) // ' ' //        &
              inst_str(1:LEN_TRIM(inst_str))
-!ELSEIF(operating == OS_LINUX_WSL) THEN
-!   grep    = 'grep -Poe'
-!   script  = 'bbb_install_suite_Windows10_WSL.ps1'
-!   string  = 'ls /mnt/c/Windows/System32/WindowsPowerShell/ > ' // discus_power
-!   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-!!
-!   OPEN(UNIT=IRD,FILE=discus_power, STATUS='old')
-!   READ(IRD,'(a)') verstring
-!   CLOSE(UNIT=IRD)
-!!
-!   command = '/mnt/c/Windows/System32/WindowsPowerShell/'             //        &
-!             verstring(1:LEN_TRIM(verstring)) // '/'                  //        &
-!             'powershell.exe -NoProfile -ExecutionPolicy Unrestricted ' //      &
-CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-!             '-Command "& {Start-Process PowerShell -ArgumentList ''' //        &
-!             '-NoProfile -ExecutionPolicy Unrestricted -File ""'      //        &
-!             'C:\Users\' // user_name(1:LEN_TRIM(user_name)) // '\'   //        &
-!             '\Downloads\' // script(1:LEN_TRIM(script)) // '""'' -Verb RunAs}";'
+!
+elseif(operating == OS_LINUX_WSL) then
+   grep    = 'grep -m 1 -Poe'
+   script  = 'bbb_install_script.sh'
+   command = terminal_emu(1:LEN_TRIM(terminal_emu)) // ' '// &
+             terminal_exe(1:LEN_TRIM(terminal_exe)) // ' '// &
+             terminal_wrp(1:LEN_TRIM(terminal_wrp)) // ' '// &
+             ' $HOME/' // script(1:LEN_TRIM(script)) //      &
+             ' started=powershell ' //                       &
+             code_str(1:LEN_TRIM(code_str)) // ' ' //        &
+             prep_str(1:LEN_TRIM(prep_str)) // ' ' //        &
+             inst_str(1:LEN_TRIM(inst_str))
+   command = 'wt.exe ''' // 'C:\Users\' //  &
+              user_name(1:LEN_TRIM(user_name))  &
+              // '\Downloads\bbb_install_suite_Windows10_WSL.bat'' '
+!
 ELSEIF(operating == OS_MACOSX) THEN
    WRITE(discus_version,'(a,a)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_VERSION' ! Initiate search for new version
    grep    = 'grep -m 1 -oe '
@@ -1332,10 +1372,18 @@ CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=me
 !
 ! For LINUX_WSL we need to step into 'C:\Users\...\Downloads'
 IF(operating == OS_LINUX_WSL) THEN
-   script  = 'bbb_install_suite_Windows10_WSL.ps1'
 !
 ! Download latest installation script
 !
+   script  = 'bbb_install_suite_Windows10_WSL.ps1'
+   string = 'curl -k -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
+            ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
+            verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
+   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   string = 'cp $HOME/' // script(1:LEN_TRIM(script)) // ' /mnt/c/Users/' //          &
+            user_name(1:LEN_TRIM(user_name)) // '/Downloads'  
+   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   script  = 'bbb_install_suite_Windows10_WSL.bat'
    string = 'curl -k -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
             ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
             verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
@@ -1348,43 +1396,177 @@ IF(operating == OS_LINUX_WSL) THEN
 !   CALL do_chdir (string, length, .FALSE.)
 ENDIF
 !
+! Check for other DISCUS instances / pgxwin_server
+!
+call lib_terminate(flag)
+ex_do_exit = .false.
+!
+if(flag=='CONTINUE') then
+!
 ! Finally run the DISCUS update via the installation script
 !
-cdir = current_dir
-line = home_dir
-length = len_trim(line)
-CALL do_chdir(line,length,.FALSE.)     ! Go to home dir
-!CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), WAIT=.FALSE., CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), WAIT=.FALSE.) !,                  CMDMSG=message, EXITSTAT=exit_msg)
+   cdir = current_dir
+   if(operating == OS_LINUX_WSL) then
+      line = '/mnt/c/Users/' // user_name(1:LEN_TRIM(user_name)) // '/Downloads'
+   else
+      line = home_dir
+   endif
+   length = len_trim(line)
+   CALL do_chdir(line,length,.FALSE.)     ! Go to home dir
+   CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), WAIT=.FALSE.) !,                  CMDMSG=message, EXITSTAT=exit_msg)
 !
 ! As installation script updated the operating system, touch update file
 !
-IF(operating == OS_LINUX .OR. operating == OS_LINUX_WSL) THEN
-   string = 'date --iso-8601 > ' // tmp_dir(1:LEN_TRIM(tmp_dir)) // '/DISCUS_UPDATE'
-ELSEIF(operating == OS_MACOSX) THEN
-   string = 'date +%Y-%m-%d > ' // tmp_dir(1:LEN_TRIM(tmp_dir)) // '/DISCUS_UPDATE'
-ENDIF
-CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-string = 'chmod ugo+rw ' // tmp_dir(1:len_trim(tmp_dir)) // '/DISCUS_UPDATE'
-CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-IF(operating == OS_LINUX_WSL) THEN
-   WRITE(output_io,*) ' This DISCUS Window will stop now. '
-   WRITE(output_io,*) ' The new version will be started '
-   WRITE(output_io,*) ' once the update is finished. '
-   STOP
-ELSE
-  IF(operating_name=="ManjaroLinux" ) THEN
-     WRITE(output_io,*) ' This DISCUS Window will stop now. '
-     STOP
-  ELSE
-  WRITE(output_io,*) ' started script'
-  ENDIF
-ENDIF
-line = cdir                           ! Return to old current directory
-length = len_trim(line)
-CALL do_chdir(line,length,.FALSE.)
+!   IF(operating == OS_LINUX .OR. operating == OS_LINUX_WSL) THEN
+!      string = 'date --iso-8601 > ' // tmp_dir(1:LEN_TRIM(tmp_dir)) // '/DISCUS_UPDATE'
+!   ELSEIF(operating == OS_MACOSX) THEN
+!      string = 'date +%Y-%m-%d > ' // tmp_dir(1:LEN_TRIM(tmp_dir)) // '/DISCUS_UPDATE'
+!   ENDIF
+!   CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!   string = 'chmod ugo+rw ' // tmp_dir(1:len_trim(tmp_dir)) // '/DISCUS_UPDATE'
+!   CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   IF(operating == OS_LINUX_WSL) THEN
+      WRITE(output_io,'(a)') ' '
+      WRITE(output_io,'(a)') ' This DISCUS Window will stop now. '
+      WRITE(output_io,'(a)') ' The new version will be started '
+      WRITE(output_io,'(a)') ' once the update is finished. '
+      WRITE(output_io,'(a)') ' '
+      close(output_io)
+      zeile = 'stop'
+      ex_do_exit = .true.
+   ELSE
+!    IF(operating_name=="ManjaroLinux" ) THEN
+      WRITE(output_io,'(a)') ' '
+      WRITE(output_io,'(a)') 'This DISCUS Window will stop now. '
+      WRITE(output_io,'(a)') 'You might need an ENTER to recover the terminal prompt '
+      WRITE(output_io,'(a)') ' '
+      close(output_io)
+      ex_do_exit = .true.
+!    ELSE
+!    WRITE(output_io,*) ' started script'
+!    ENDIF
+   ENDIF
+!  line = cdir                           ! Return to old current directory
+!  length = len_trim(line)
+!  CALL do_chdir(line,length,.FALSE.)
+endif
 !
 END SUBROUTINE lib_f90_update_discus
+!
+!*******************************************************************************
+!
+subroutine lib_terminate(flag)
+!-
+!  Checks if other discus_instances are running and asks to close these 
+!  respectively asks if its OK to kill
+!  If all are closed, pgxwin_server is closed
+!+
+!
+use blanks_mod
+use envir_mod
+use precision_mod
+use prompt_mod
+use string_convert_mod
+use str_comp_mod
+!
+implicit none
+character(len=*), intent(out) :: flag
+!
+integer, parameter :: IRD = 37
+!
+character(len=PREC_STRING) :: pid_file
+character(len=PREC_STRING) :: string
+character(len=PREC_STRING) :: line
+integer :: j
+integer :: ll
+integer :: ios
+logical :: lsingle
+!
+pid_file = tmp_dir(1:len_trim(tmp_dir)) // '/DISCUS.PIDS'
+flag = 'CONTINUE'
+!
+loop_check: do
+   lsingle = .true.
+   if(operating == OS_LINUX_WSL) then
+      string = 'ps --cols 1024 aux | fgrep discus_suite | fgrep -v grep '       &
+               // '| grep -v ubuntu | grep -v terminal | awk ''{print $2} '' > ' &
+               // pid_file(1:len_trim(pid_file))
+   else
+      string = 'ps --cols 1024 aux | fgrep discus_suite | fgrep -v grep '       &
+               //                                    ' | awk ''{print $2} '' > ' &
+               // pid_file(1:len_trim(pid_file))
+   endif
+   call execute_command_line(string)
+!  call execute_command_line('cat /tmp/DISCUS.PIDS')
+   open(unit=IRD, file=pid_file, status='old')
+   loop_test: do
+      read(IRD,'(a)', iostat=ios) string
+      if(is_iostat_end(ios)) exit loop_test
+      read(string,*) j
+      if(j /= PID ) then
+         lsingle = .false.
+         exit loop_test
+      endif
+   enddo loop_test
+   close(unit=IRD)
+   if(lsingle) then
+      flag = 'CONTINUE'
+      exit loop_check
+   endif
+!
+   flag = 'CANCEL'
+   line = 'ENTER'
+   write(output_io,'(a)') ' '
+   write(output_io,'(a)') ' Other DISCUS instances are running, which need to be closed.'
+   write(output_io,'(a)') ' Close all other windows and hit ENTER key in this window'
+   write(output_io,'(a)') ' or enter ''kill'' to have other instances stopped without save!'
+   write(output_io,'(a)') ' or enter ''cancel'' to cancel the update'
+   write(output_io,'(a)', advance='NO') ' Enter / Kill / Cancel '
+   read(*, '(a)', iostat=ios) line
+   call do_cap(line)
+   ll = len_trim(line)
+   call rem_leading_bl(line, ll)
+   if(str_comp(line, 'CANCEL', 1, len_trim(line), 6)) then
+      flag = 'CANCEL'
+      exit loop_check
+   elseif(str_comp(line, 'KILL', 1, len_trim(line), 4)) then
+      open(unit=IRD, file=pid_file, status='old')
+      loop_kill: do
+         read(IRD,'(a)', iostat=ios) string
+         if(is_iostat_end(ios)) exit loop_kill
+         read(string,*) j
+         if(j /= PID ) then
+            write(line,'(a,i8)') 'kill -9 ',j
+            call execute_command_line(line)
+         endif
+      enddo loop_kill
+      close(IRD)
+      flag = 'CONTINUE'
+      exit loop_check
+   endif
+enddo loop_check
+!
+!  Close down pgxwin_server
+!
+if(flag=='CONTINUE') then       ! KIll pgxwin_server
+   string = 'ps --cols  256 aux | fgrep pgxwin_server | fgrep -v grep | awk ''{print $2} '' > ' &
+            // pid_file(1:len_trim(pid_file))
+   call execute_command_line(string)
+   open(unit=IRD, file=pid_file, status='old')
+   loop_pgx: do                 ! In case the server runs multiple times
+      string = ' '
+      read(IRD,'(a)', iostat=ios) string
+      if(is_iostat_end(ios)) exit loop_pgx
+      read(string,*) j
+      if(j /= PID ) then
+         write(line,'(a,i8)') 'kill -9 ',j
+         call execute_command_line(line)
+      endif
+   enddo loop_pgx
+   close(IRD)
+endif
+!
+end subroutine lib_terminate
 !
 !*******************************************************************************
 !
@@ -1493,9 +1675,9 @@ character(len=PREC_STRING) :: cfile     ! temporary file
 CHARACTER(LEN=PREC_STRING) :: message   ! execute_command_line message
 integer                    :: exit_msg  ! execute_command_line message
 integer                    :: ios       ! read error number
-integer                    :: iper      ! location of percent sign
-integer                    :: icom      ! prior location of ','
-integer                    :: idec      ! location of decimal point needed for MacOS!
+!integer                    :: iper      ! location of percent sign
+!integer                    :: icom      ! prior location of ','
+!integer                    :: idec      ! location of decimal point needed for MacOS!
 integer                    :: i         ! packet loss percentage Linux WSL version
 real(kind=PREC_SP)         :: r         ! packet loss percentage MacOs     version
 !
