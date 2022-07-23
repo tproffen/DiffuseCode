@@ -291,7 +291,8 @@ CHARACTER (LEN=20), DIMENSION(MC_N_MOVE)    :: c_move = & !  (MC_N_MOVE)
       'switch displacement ', &
       'shift atom          ', &
       'inverse displacement', &
-      'rotate molecule     '  &
+      'rotate molecule     ', &
+      'switch neighbors    '  &
    /)
 CHARACTER (LEN=20), DIMENSION(5)            :: c_site = & !(4) 
    (/ 'all                 ', &
@@ -482,7 +483,7 @@ IF(mmc_cor_energy(0, MC_COORDNUM) ) THEN
             DO j = 0, cr_nscat 
                at_name_i = at_name (i) 
                at_name_j = at_name (j) 
-               IF (mmc_target_corr (k, MC_COORDNUM, i, j)  /= 0.0) THEN 
+               IF (mmc_depth (k, MC_COORDNUM, i, j)  /= 0.0) THEN 
                   WRITE (output_io, 7300) at_name_i, at_name_j, k,         &
                   mmc_target_corr (k, MC_COORDNUM, i, j),                    &
                   mmc_depth (k,MC_COORDNUM, i, j)
@@ -745,7 +746,7 @@ ENDIF
      &         12x,'Pairs',10x,'neigh. #',3x,'correl. ',7x,'depth')     
  2200 FORMAT (/,' Desired correlations for Displacement : ',/,/,        &
      &         12x,'Pairs',10x,'neigh. #',3x,'correl. ',7x,'depth')     
- 2400 FORMAT (/,' Desired Rcoordination numbers  : ',/,/,               &
+ 2400 FORMAT (/,' Desired coordination numbers   : ',/,/,               &
      &         12x,'Pairs',10x,'neigh. #',3x,'coordno.',7x,'depth')     
  2300 FORMAT (/,' Desired distortions for SPRING : ',/,/,               &
      &         12x,'Pairs',10x,'neigh. #',3x,'distance',7x,'depth')     
@@ -905,7 +906,7 @@ IF (ier_num == 0) THEN
                CALL get_iscat (ianz, cpara, lpara, werte,     &
                         maxw, .FALSE.)                                  
                IF (NINT(werte(1)) == -1) THEN
-                  mmc_allowed = .TRUE.
+                  mmc_allowed = .false.
                ELSE
                   DO i=1,ianz
                      mmc_allowed(nint(werte(i))) = .FALSE.
@@ -2414,6 +2415,8 @@ REAL(kind=PREC_DP) :: sump
             imode = MC_MOVE_SWDISP 
          ELSEIF (cpara (1) (1:3)  == 'SWC') THEN 
             imode = MC_MOVE_SWCHEM 
+         ELSEIF (cpara (1) (1:3)  == 'SWN') THEN 
+            imode = MC_MOVE_SWNEIG 
          ELSEIF (cpara (1) (1:3)  == 'INV') THEN 
             imode = MC_MOVE_INVDISP 
          ELSEIF (cpara (1) (1:3)  == 'ROT') THEN 
@@ -2590,6 +2593,9 @@ ALLOCATE(rdj(CHEM_MAX_COR))
 ALLOCATE(iatom(   0:MAX_ATOM_ENV, MMC_MAX_CENT))
 ALLOCATE(tatom(   0:MAX_ATOM_ENV, MMC_MAX_CENT))
 ALLOCATE(natom(                    MMC_MAX_CENT))
+if(mmc_cor_energy (0, MC_DISP)) then
+   call alloc_chem_dir(chem_ncor)
+endif
 !
 !                                                                       
 !     Normalize the correlation directions                              
@@ -2919,6 +2925,7 @@ REAL(kind=PREC_DP)   , DIMENSION(3, 0:nthreads-1)                     :: posz !(
 REAL(kind=PREC_DP)   , DIMENSION(3, 0:nthreads-1)                     :: posz2 !(3) = 0.0
 REAL(KIND=PREC_DP), DIMENSION(3,0:MAX_ATOM_ENV_l,2) :: disp
 real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
+integer :: kk
 !
 IF(tid==0) then
    igen = igen + 1
@@ -2964,8 +2971,8 @@ valid_all = .FALSE.
 !write(*,*) ' CALL ENERGIES OLD'
 CALL mmc_energies(isel, is, iz, natoms, iatom, patom, tatom, natom, ncent, &
                   rdi, rdj, valid_all, e_old, CHEM_MAX_COR,         &
-                  MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
-!write(*,*) ' Old Energy ', e_old(MC_UNI)
+                  MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, .true.)
+!write(*,*) ' Old Energy ', e_old(MC_COORDNUM)
 IF(ier_num/=0) THEN             ! Error, cycle to end of loop
    done = .TRUE.
    RETURN
@@ -2991,8 +2998,8 @@ IF(valid_all) THEN
 !write(*,*) ' CALL ENERGIES NEW'
    CALL mmc_energies(isel, is, iz, natoms, iatom, patom, tatom, natom, ncent, &
                      rdi, rdj, valid_all, e_new, CHEM_MAX_COR,         &
-                     MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
-!write(*,*) ' New Energy ', e_new(MC_UNI)
+                     MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, .false.)
+!write(*,*) ' New Energy ', e_new(MC_COORDNUM)
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
       done = .TRUE.
       RETURN
@@ -3016,9 +3023,6 @@ IF(valid_all) THEN
       done = .TRUE.
       RETURN
    ENDIF
-!write(*,*) 'New - Old ', e_new(MC_UNI)-e_old(MC_UNI), laccept, &
-!iacc_good, iacc_neut, iacc_bad
-!read(*,*) kk
 !                                                                       
 !     ----The move was not accepted, move atoms back to old places      
 !                                                                       
@@ -3031,6 +3035,11 @@ IF(valid_all) THEN
          CALL chem_apply_period(iselz, .TRUE.)
       ENDIF 
    ENDIF 
+!if(e_new(MC_COORDNUM)-e_old(MC_COORDNUM)>0.0d0) then
+!write(*,*) 'New - Old ', e_new(MC_COORDNUM)-e_old(MC_COORDNUM), laccept, &
+!iacc_good, iacc_neut, iacc_bad
+!!read(*,*) kk
+!endif
    IF(ier_num/=0) THEN             ! Error, cycle to end of loop
       done = .TRUE.
       RETURN
@@ -4308,7 +4317,8 @@ main: DO
                    check_select_status(isel(1),.TRUE., cr_prop(isel(1) ), cr_sel_prop) .AND.&
                    check_select_status(isel(2),.TRUE., cr_prop(isel(2) ), cr_sel_prop) .AND.&
                    skalpro(u, v, cr_gten) < 0.0
-      ELSEIF (mmc_move == MC_MOVE_SWCHEM) THEN 
+      ELSEIF (mmc_move == MC_MOVE_SWCHEM  .or.                       &
+              mmc_move == MC_MOVE_SWNEIG) THEN 
          natoms = 2 
          CALL rmc_select (mo_local, isel, iz1, iz2, is (1), is (2) , &
                           NALLOWED, MMC_MAX_ATOM, mmc_allowed)                                                       
@@ -4345,6 +4355,7 @@ main: DO
       ENDIF 
       IF(laccept) EXIT main
 ENDDO main
+!write(*,'(a, 2i7, a, 2i3, a, 2i7)') ' SELECTED PAIR ', isel(1:2), ' | ', cr_iscat(isel(1:2)), ' || ', isel(3:4)
 !
 END SUBROUTINE mmc_select_atoms
 !
@@ -4352,7 +4363,7 @@ END SUBROUTINE mmc_select_atoms
 !
 SUBROUTINE mmc_energies(isel, is, iz, natoms, iatom, patom, tatom, natom, ncent, &
                         rdi, rdj, valid_all, e_cur, CHEM_MAX_COR_L,       &
-                        MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)
+                        MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L, is_old)
 !-
 !
 !+
@@ -4373,7 +4384,7 @@ INTEGER                                                 , INTENT(IN) :: MAX_ATOM
 INTEGER                                                 , INTENT(IN) :: MMC_MAX_CENT_L
 INTEGER                                                 , INTENT(IN) :: MMC_MAX_ATOM_L
 INTEGER                                                 , INTENT(IN) :: CHEM_MAX_COR_L
-INTEGER, DIMENSION(MMC_MAX_ATOM_L)                      , INTENT(IN) :: isel !(chem_max_atom) 
+INTEGER, DIMENSION(MMC_MAX_ATOM_L)                      , INTENT(inout) :: isel !(chem_max_atom) 
 INTEGER, DIMENSION(2)                                   , INTENT(IN) :: is
 INTEGER                                                 , INTENT(IN) :: natoms
 INTEGER, DIMENSION(2, 3)                                , INTENT(IN) :: iz
@@ -4386,16 +4397,19 @@ REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR_L)           , INTENT(INOUT) :: rdi
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR_L)           , INTENT(INOUT) :: rdj
 LOGICAL                                                 , INTENT(OUT) :: valid_all
 REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY)                         , INTENT(INOUT) :: e_cur
+logical                                                 , intent(in)    :: is_old
 !
 INTEGER :: i      ! Dummy loop variable
 INTEGER :: ia     ! Dummy loop variable for modified atoms
 INTEGER :: ic     ! Dummy loop variable for correlations
 INTEGER :: icent  ! Dummy loop variable for centers
 REAL(kind=PREC_DP)    :: delta
+REAL(kind=PREC_DP)    :: x             ! random number
 REAL(kind=PREC_DP), DIMENSION(3) :: v
 REAL(kind=PREC_DP), DIMENSION(3) :: idir, jdir
 LOGICAL            :: valid_e
 !
+!write(*,'(a, 2i7, 3x,2i3, a, i3)') ' MMC_ENERGIES  ', isel(1:2), cr_iscat(isel(1:2)), ' | ', natoms
 !                                                                       
 !     ----Loop over all modified atoms                                  
 !                                                                       
@@ -4473,6 +4487,12 @@ loop_natoms:DO ia = 1, natoms
                e_cur(MC_COORDNUM) = e_cur(MC_COORDNUM) + mmc_energy_cn ( &
                isel, ia, ic, iatom, icent, natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L)       
                valid_all = valid_all.OR.valid_e 
+               call random_number(x)
+               if(is_old) then
+               isel(ia+2) = iatom(int(natom(icent)*x) + 1, icent)
+!write(*,'(a, i3, i6, i3, i3, a, 7i7,a, i7)') ' ENERGIES    ', ia, isel(ia), icent, natom(icent), ' | ', &
+! iatom(0:6, icent),  ' > ',isel(ia+2)
+               endif
             ENDIF 
 !                                                                       
 !     ------- Displacement correlation                                  
@@ -4669,6 +4689,20 @@ ELSEIF (mmc_move == MC_MOVE_SWCHEM) THEN
    iscat            = cr_prop(isel(2)) 
    cr_prop(isel(2)) = cr_prop(isel(1)) 
    cr_prop(isel(1)) = iscat 
+ELSEIF (mmc_move == MC_MOVE_SWNEIG) THEN 
+!                                                                       
+!     ------Switch the Chemistry of two selected neighbor atoms                  
+!                                                                       
+!write(*,'(a,4i7)') '   modify PRIOR MOVE ', isel(1:4)
+!write(*,'(a,4i7)') '          atom types ', cr_iscat(isel(1:4))
+   iscat             = cr_iscat(isel(4)) 
+   cr_iscat(isel(4)) = cr_iscat(isel(3)) 
+   cr_iscat(isel(3)) = iscat 
+   iscat            = cr_prop(isel(4)) 
+   cr_prop(isel(4)) = cr_prop(isel(3)) 
+   cr_prop(isel(3)) = iscat 
+!write(*,'(a,4i7)') '   modify POST  MOVE ', isel(1:4)
+!write(*,'(a,4i7)') '          atom types ', cr_iscat(isel(1:4))
 !                                                                       
 !--End of Modification of atoms according to different moves
 !                                                                       
@@ -4730,6 +4764,20 @@ ELSEIF (mmc_move == MC_MOVE_SWCHEM) THEN
    iscat            = cr_prop(isel(2)) 
    cr_prop(isel(2)) = cr_prop(isel(1)) 
    cr_prop(isel(1)) = iscat 
+ELSEIF (mmc_move == MC_MOVE_SWNEIG) THEN 
+!                                                                       
+!     ------Switch the Chemistry of two selected atoms                  
+!                                                                       
+!write(*,'(a,4i7)') ' UNMODIFY PRIOR MOVE ', isel(1:4)
+!write(*,'(a,4i7)') '          atom types ', cr_iscat(isel(1:4))
+   iscat             = cr_iscat(isel(4)) 
+   cr_iscat(isel(4)) = cr_iscat(isel(3)) 
+   cr_iscat(isel(3)) = iscat 
+   iscat            = cr_prop(isel(4)) 
+   cr_prop(isel(4)) = cr_prop(isel(3)) 
+   cr_prop(isel(3)) = iscat 
+!write(*,'(a,4i7)') ' UNMODIFY POST  MOVE ', isel(1:4)
+!write(*,'(a,4i7)') '          atom types ', cr_iscat(isel(1:4))
 !                                                                       
 !--End of Modification of atoms according to different moves
 !                                                                       
@@ -5598,6 +5646,9 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
    ENDIF 
 ENDIF 
 valid_e = .TRUE. 
+!write(*,'(a, i3, i6, i3, i3, a, 7i7,a,5i2, f10.2)') &
+!' energy_cn   ', ia, isel(ia), icent, natom(icent), ' | ', &
+! cr_iscat(iatom(0:6, icent)),  ' > ', n_neig(0:4), mmc_energy_cn
 DEALLOCATE(n_neig)
 !                                                                       
 END FUNCTION mmc_energy_cn                   
