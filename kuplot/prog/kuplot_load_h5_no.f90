@@ -59,7 +59,7 @@ REAL   , DIMENSION(MAXKURVTOT), INTENT(INOUT) :: ymin
 INTEGER, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: offxy
 INTEGER, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: offz
 LOGICAL, DIMENSION(maxkurvtot), INTENT(INOUT) :: lni
-LOGICAL, DIMENSION(maxkurvtot), INTENT(INOUT) :: lh5
+LOGICAL, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: lh5
 INTEGER, DIMENSION(MAXKURVTOT), INTENT(INOUT) :: lenc
 !
 INTEGER,                            INTENT(OUT)   :: ier_num
@@ -110,7 +110,7 @@ REAL   , DIMENSION(MAXKURVTOT), INTENT(INOUT) :: ymin
 INTEGER, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: offxy
 INTEGER, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: offz
 LOGICAL, DIMENSION(maxkurvtot), INTENT(INOUT) :: lni
-LOGICAL, DIMENSION(maxkurvtot), INTENT(INOUT) :: lh5
+LOGICAL, DIMENSION(0:maxkurvtot), INTENT(INOUT) :: lh5
 INTEGER, DIMENSION(MAXKURVTOT), INTENT(INOUT) :: lenc
 INTEGER,                 INTENT(OUT) :: ier_num
 INTEGER,                 INTENT(OUT) :: ier_typ
