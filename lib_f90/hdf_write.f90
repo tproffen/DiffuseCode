@@ -277,7 +277,6 @@ CALL H5Fclose_f(file_id , hdferr)
 CALL h5close_f(hdferr)
 DEALLOCATE(values)
 !
-write(*,*) ' DID GENERIC HDF5_WRITE '
 END SUBROUTINE gen_hdf5_write
 !
 !*****7*****************************************************************
