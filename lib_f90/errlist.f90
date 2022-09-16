@@ -228,12 +228,15 @@ USE lib_length
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -55
+       INTEGER, PARAMETER :: iu = -58
        INTEGER, PARAMETER :: io =   2
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
        DATA ERROR ( iu:-41) /                       &
+     &  'mask:edge needs radius as well',           & !-58  ! fortran
+     &  'No sigma defined for data set',            & !-57  ! fortran
+     &  'Array dimensions differ ',                 & !-56  ! fortran
      &  'Error calculating spline',                 & !-55  ! fortran
      &  'Error evaluating EXPR',                    & !-54  ! fortran
      &  'EXPR seem to reference cyclically',        & !-53  ! fortran
