@@ -473,7 +473,7 @@ if(l_all_complete) then                       ! Complete data calculation
    do k=0, npkt
       q = ((k)*xdel + xmin)
       pow_sq(k) =   1.0 + (pow_sq(k) - pow_fu(k))/pow_faver2(k)  &
-                  + 0.0 - exp(-q**2*pow_u2aver)
+                  + 1.0 - exp(-q**2*pow_u2aver)
    enddo
 else                                          ! DEBYE calculation
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
@@ -521,11 +521,11 @@ endif                                       ! End complete / debye
    if(npkt*xdel>25.0) then 
       i = nint((20.0-xmin)/xdel)
       if(pow_sq(i) > 1.0) then       !Find a point at S(Q) = 1.0
-         do while(pow_sq(i) > 1.0)
+         do while(pow_sq(i) > 1.0 .and. i>1)
             i = i-1
          enddo
       elseif(pow_sq(i) < 1.0) then       !Find a point at S(Q) = 1.0
-         do while(pow_sq(i) < 1.0)
+         do while(pow_sq(i) < 1.0 .and. i>1)
             i = i-1
          enddo
       endif
