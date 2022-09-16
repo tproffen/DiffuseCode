@@ -2,8 +2,8 @@
 General
               Continued move of KUPLOT data to global storage; no effect on user yet.
 DISCUS
-              BUG FIX Stacking faults with 'create' and no 'run' caused crash, FIXED
-              BUG FIX Modifies cif file output to adhere to CIF standard, unique atom labels
+  stack       BUG FIX Stacking faults with 'create' and no 'run' caused crash, FIXED
+  plot        BUG FIX Modifies cif file output to adhere to CIF standard, unique atom labels
                       This caused Jmol versions 14.32.59 and later to make faulty plot.
 
 6.12.02  RELEASE 2022_07_23
