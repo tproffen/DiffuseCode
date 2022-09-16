@@ -1121,6 +1121,9 @@ ELSEIF (form (1:2) .eq.'NI'.and.lni (ik) ) then
       WRITE (isa, 4000) (z (offz (ik - 1) + (ix - 1) * ny (ik) + iy), ix = nx_min, nx_max)
       ENDDO 
 elseif(form(1:2)=='H5') then
+   if(lh5(ik)) then
+      call do_save_global(ik, filname)
+   else
    hh5_value     = 1              ! regular data
    HH5_VAL_PDF   = 1              ! regular data
    HH5_VAL_3DPDF = 1              ! regular data
@@ -1197,6 +1200,7 @@ elseif(form(1:2)=='H5') then
                         hh5_cr_a0, hh5_cr_win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax, &
                         ier_num, ier_typ, ER_IO, ER_APPL)
    deallocate(qvalues)
+   endif
 !
 ENDIF 
 if(form(1:2) /= 'H5') CLOSE (isa) 
@@ -1208,6 +1212,92 @@ if(form(1:2) /= 'H5') CLOSE (isa)
  4500 FORMAT     (20(i3,1x)) 
 !
 END SUBROUTINE do_save                        
+!
+!*******************************************************************************
+!
+subroutine do_save_global(ik, filname)
+!-
+!  Save a data set from the global storage into an HDF5 File
+!+
+!
+!use kuplot_global
+!
+use lib_data_struc_h5
+use gen_hdf_write_mod
+use errlist_mod
+use precision_mod
+!
+implicit none
+!
+integer         , intent(in) :: ik        ! Data set number
+character(len=*), intent(in) :: filname   ! Outrput file name
+!
+logical                              :: hh5_laver
+real(kind=PREC_DP)                   :: hh5_valmax
+integer                              :: hh5_value
+integer                              :: HH5_VAL_PDF
+integer                              :: HH5_VAL_3DPDF
+real(kind=PREC_DP), dimension(:)    , allocatable :: c_x
+real(kind=PREC_DP), dimension(:)    , allocatable :: c_y
+real(kind=PREC_DP), dimension(:)    , allocatable :: c_z
+real(kind=PREC_DP), dimension(:)    , allocatable :: c_dx
+real(kind=PREC_DP), dimension(:)    , allocatable :: c_dy
+real(kind=PREC_DP), dimension(:)    , allocatable :: c_dz
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: qvalues
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: sigma
+!
+character(len=PREC_STRING)                         :: infile
+integer                                            :: node_number  ! Node in global data
+integer                                            :: nlayer       ! Current layer (3-D only
+logical                                            :: is_direct    ! date in direct / reciprocal space
+integer                                            :: ndims        ! Number of dimensions
+integer, dimension(3)                              :: dims         ! Dimensions global array
+logical                                            :: is_grid      ! date in direct / reciprocal space
+logical                                            :: has_dxyz     ! date in direct / reciprocal space
+logical                                            :: has_dval     ! date in direct / reciprocal space
+REAL(kind=PREC_DP)   , DIMENSION(3,4)              :: corners      ! steps along each axis
+REAL(kind=PREC_DP)   , DIMENSION(3,3)              :: vectors      ! steps along each axis
+REAL(kind=PREC_DP)   , DIMENSION(3)                :: a0           ! Lower limits
+REAL(kind=PREC_DP)   , DIMENSION(3)                :: win          ! Lower limits
+REAL(kind=PREC_DP)   , DIMENSION(3)                :: llims        ! Lower limits
+REAL(kind=PREC_DP)   , DIMENSION(3)                :: steps        ! steps along each axis
+REAL(kind=PREC_DP)   , DIMENSION(3,3)              :: steps_full   ! steps along each axis
+REAL(kind=PREC_DP)   , DIMENSION(2)                :: minmaxval    ! steps along each axis
+REAL(kind=PREC_DP)   , DIMENSION(3,2)              :: minmaxcoor   ! steps along each axis
+!
+call data2local(ik, ier_num, ier_typ, node_number, infile, nlayer, is_direct,   &
+                ndims, dims, is_grid, has_dxyz, has_dval, corners, vectors,     &
+                a0, win, c_x, c_y, c_z, c_dx, c_dy,c_dz, qvalues, sigma, llims, &
+                steps, steps_full, minmaxval, minmaxcoor)
+!
+   if(is_direct) then
+      hh5_value     = 1              ! Direct space data
+      HH5_VAL_PDF   = 1              ! Direct space data
+      HH5_VAL_3DPDF = 1              ! Direct space data
+      hh5_laver     = .false.        ! No averaged intensities
+   else
+      hh5_value     = 0              ! reciprocal data
+      HH5_VAL_PDF   = 0              ! reciprocal data
+      HH5_VAL_3DPDF = 0              ! reciprocal data
+      hh5_laver     = .false.        ! No averaged intensities
+   endif
+!
+hh5_valmax      = 0.0D0
+!
+!  
+call gen_hdf5_write(hh5_value, hh5_laver, filname, dims, corners, vectors,      &
+                    a0, win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax,   &
+                    ier_num, ier_typ, ER_IO, ER_APPL)
+deallocate(qvalues)
+if(allocated(c_x)) deallocate( c_x)
+if(allocated(c_y)) deallocate( c_y)
+if(allocated(c_z)) deallocate( c_z)
+if(allocated(c_dx)) deallocate( c_dx)
+if(allocated(c_dy)) deallocate( c_dy)
+if(allocated(c_dz)) deallocate( c_dz)
+if(allocated(sigma)) deallocate( sigma)
+!
+end subroutine do_save_global
 !
 !*******************************************************************************
 !

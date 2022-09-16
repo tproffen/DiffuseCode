@@ -9,7 +9,10 @@ subroutine place_kuplot(h5_dims, nlayer, lset, lnew, lshow,                     
       xmin, xmax, ymin, ymax, &
       offxy, offz, lni, lh5, ku_ndims, lenc, ier_num, ier_typ, output_io)
 !-
-! Place into 1D or 2D field
+! Place into 1D or 2D or 3D field
+! IF lset==TRUE set absolute layer , else increment
+! IF lnew==TRUE, make new curve, 
+! IF lshow = TRUE display data
 !
 !use errlist_mod
 use precision_mod
@@ -45,29 +48,24 @@ INTEGER                                    ,                 INTENT(OUT) :: ier_
 INTEGER, INTENT(IN)    :: output_io   ! KUPLOT array size
 !
 !if(h5_temp%h5_dims(1)==1 .and. h5_temp%h5_dims(2)==1) then
-write(*,*) ' H5_DIMS place-kuplot ', h5_dims(:)
-if(h5_dims(1)==1 .and. h5_dims(2)==1) then
-   CALL hdf5_place_kuplot_1d(nlayer, lset  , lnew, lshow  ,               &
+if(h5_dims(2)==1 .and. h5_dims(3)==1) then
+   CALL dgl5_place_kuplot_1d(nlayer, lset  , lnew, lshow  ,               &
       MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
       xmin, xmax, ymin, ymax, &
       offxy, offz, lni, lh5, ku_ndims, lenc, ier_num, ier_typ, output_io)
 else
-write(*,*) ' CALLING Ndimensional '
-   CALL hdf5_place_kuplot(nlayer,  lset, lnew, lshow,                     &
+   CALL dgl5_place_kuplot(nlayer,  lset, lnew, lshow,                     &
       MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
       xmin, xmax, ymin, ymax, &
       offxy, offz, lni, lh5, ku_ndims, lenc, ier_num, ier_typ, output_io)
 endif
-write(*,*) ' LOADED    ', ku_ndims(:4)
-write(*,*) ' LH5 lbound', lbound(lh5), ubound(lh5)
-write(*,*) ' ku_ndims  ', lbound(ku_ndims), ubound(ku_ndims)
 !
 !
 END SUBROUTINE place_kuplot
 !
 !*******************************************************************************
 !
-SUBROUTINE hdf5_place_kuplot(nlayer, lset, lnew, lshow,                &
+SUBROUTINE dgl5_place_kuplot(nlayer, lset, lnew, lshow,                &
    MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
    xmin, xmax, ymin, ymax, &
    offxy, offz, lni, lh5, ku_ndims, lenc, ier_num, ier_typ, output_io)
@@ -125,50 +123,49 @@ real(kind=PREC_DP), dimension(3) :: h5_llims
 real(kind=PREC_DP), dimension(3,3) :: h5_steps
 !
 IF(lnew) THEN            ! This is a new data set, from 'load' command
-   h5_number = hdf5_get_number()
+   h5_number = dgl5_get_number()
    izz = iz
 !  h5_h5_is_ku(h5_number) = izz
 !  h5_ku_is_h5(izz      ) = h5_number
-   call hdf5_set_h5_is_ku(h5_number, izz)
-   call hdf5_set_ku_is_h5(izz, h5_number)
+   call dgl5_set_h5_is_ku(h5_number, izz)
+   call dgl5_set_ku_is_h5(izz, h5_number)
    node_number = h5_number
 ELSE                     ! Overwrite current KUPLOT data set
    izz = iz - 1
 ENDIF
 !                        ! Locate this data set in the h5 storage
-CALL hdf5_set_pointer(izz, ier_num, ier_typ, node_number)
+CALL dgl5_set_pointer(izz, ier_num, ier_typ, node_number)
 if(ier_num /= 0) return
 !
-call hdf5_get_dims(node_number, h5_dims)
-call hdf5_get_llims(node_number, h5_llims)
-call hdf5_get_steps(node_number, h5_steps)
-call hdf5_get_infile(node_number, h5_infile)
+call dgl5_get_dims(node_number, h5_dims)
+call dgl5_get_llims(node_number, h5_llims)
+call dgl5_get_steps(node_number, h5_steps)
+call dgl5_get_infile(node_number, h5_infile)
 !
-write(*,*) ' h5_DIMS ', h5_dims(:), ' IZZ ', izz
 if(h5_dims(1)>1 .and. h5_dims(2)>1 .and. h5_dims(3)>1) then
   ku_ndims(izz) = 3
-elseif(h5_dims(1)==1 .and. h5_dims(2)>1 .and. h5_dims(3)>1) then
+elseif(h5_dims(3)==1 .and. h5_dims(2)>1 .and. h5_dims(1)>1) then
   ku_ndims(izz) = 2
 endif
 !
 IF(lset) THEN
-  call hdf5_set_layer(nlayer)
+  call dgl5_set_layer(nlayer)
   h5_layer = nlayer
 ELSE
-  h5_layer =  hdf5_get_layer()
-  h5_layer = MAX(1,MIN(INT(           h5_dims(1)),         h5_layer+nlayer))
+  h5_layer =  dgl5_get_layer()
+  h5_layer = MAX(1,MIN(INT(           h5_dims(3)),         h5_layer+nlayer))
 ENDIF
 ll = 0
 k = h5_layer
 !
-DO i = 1, h5_dims(3)
-  DO j = 1, h5_dims(2)
-     ll = ll + 1
-     z(offz(izz - 1) + ll ) = hdf5_get_data(i,j,k)
-  ENDDO
+DO j = 1, h5_dims(2)
+   DO i = 1, h5_dims(1)
+      ll = ll + 1
+      z(offz(izz - 1) + ll ) = dgl5_get_data(i,j,k)
+   ENDDO
 ENDDO
 !
-nx(izz) =            h5_dims(3)
+nx(izz) =            h5_dims(1)
 ny(izz) =            h5_dims(2)
 xmin(izz) = h5_llims(1)
 xmax(izz) = h5_llims(1) + (nx(izz)-1)*h5_steps(1,1)
@@ -187,25 +184,24 @@ lenc(izz) = MAX(nx(izz), ny(izz))
 offxy(izz) = offxy(izz - 1) + lenc(izz)
 offz (izz) = offz (izz - 1) + nx(izz) * ny(izz)
 fname(izz) = h5_infile(1:LEN_TRIM(h5_infile))
-call hdf5_set_h5_is_ku(node_number, izz) ! H5 Data set 1 is stored in Kuplot as number izz
-call hdf5_set_h5_is_ku(izz, node_number) ! Kuplot data set izz is stored in H5 number 1
-call hdf5_set_layer(h5_layer)
+call dgl5_set_h5_is_ku(node_number, izz) ! H5 Data set 1 is stored in Kuplot as number izz
+call dgl5_set_h5_is_ku(izz, node_number) ! Kuplot data set izz is stored in H5 number 1
+call dgl5_set_layer(h5_layer)
 IF(lnew) iz = iz + 1
 !
 IF(lshow) THEN
    CALL show_data(iz - 1)!
-   WRITE(output_io,1000) h5_dims(3), h5_dims(2), h5_dims(1)
+   WRITE(output_io,1000) h5_dims(1), h5_dims(2), h5_dims(3)
    WRITE(output_io,1100) nlayer
    1000 FORMAT('   Full size:', 2(i7,' x'), i7, ' points')
    1100 FORMAT('   At  layer:',   i7      ,/)
 ENDIF
-write(*,*) ' h5_ku_N   ', ku_ndims(:4)
 !
-END SUBROUTINE hdf5_place_kuplot
+END SUBROUTINE dgl5_place_kuplot
 !
 !*******************************************************************************
 !
-SUBROUTINE hdf5_place_kuplot_1d(nlayer, lset, lnew, lshow,                &
+SUBROUTINE dgl5_place_kuplot_1d(nlayer, lset, lnew, lshow,                &
    MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
    xmin, xmax, ymin, ymax, &
    offxy, offz, lni, lh5, ku_ndims, lenc, ier_num, ier_typ, output_io)
@@ -263,36 +259,36 @@ real(kind=PREC_DP), dimension(3,3) :: h5_steps
 !
 !
 IF(lnew) THEN            ! This is a new data set, from 'load' command
-   h5_number = hdf5_get_number()
+   h5_number = dgl5_get_number()
    izz = iz
-   call hdf5_set_h5_is_ku(h5_number, izz)
-   call hdf5_set_ku_is_h5(izz, h5_number)
+   call dgl5_set_h5_is_ku(h5_number, izz)
+   call dgl5_set_ku_is_h5(izz, h5_number)
    node_number = h5_number
 ELSE                     ! Overwrite current KUPLOT data set
    izz = iz - 1
 ENDIF
 !                        ! Locate this data set in the h5 storage
-CALL hdf5_set_pointer(izz, ier_num, ier_typ, node_number)
+CALL dgl5_set_pointer(izz, ier_num, ier_typ, node_number)
 if(ier_num /= 0) return
 !
-call hdf5_get_dims(node_number, h5_dims)
-call hdf5_get_llims(node_number, h5_llims)
-call hdf5_get_steps(node_number, h5_steps)
-call hdf5_get_infile(node_number, h5_infile)
+call dgl5_get_dims(node_number, h5_dims)
+call dgl5_get_llims(node_number, h5_llims)
+call dgl5_get_steps(node_number, h5_steps)
+call dgl5_get_infile(node_number, h5_infile)
 !
 IF(lset) THEN
-  call hdf5_set_layer(nlayer)
+  call dgl5_set_layer(nlayer)
 ELSE
-  h5_layer =  hdf5_get_layer()
+  h5_layer =  dgl5_get_layer()
   h5_layer = MAX(1,MIN(INT(           h5_dims(1)),         h5_layer+nlayer))
 ENDIF
 !
-lenc(izz) = h5_dims(3)
+lenc(izz) = h5_dims(1)
 xmin(izz) = h5_llims(1)
 xmax(izz) = h5_llims(1) + (lenc(izz)-1)*h5_steps(1,1)
-DO i = 1, h5_dims(3)
+DO i = 1, h5_dims(1)
   x(offxy(izz - 1) + i) = xmin(izz) + (i - 1) * h5_steps(1,1)
-  y(offxy(izz - 1) + i) = hdf5_get_data  (i,1,1)
+  y(offxy(izz - 1) + i) = dgl5_get_data  (i,1,1)
 ENDDO
 !
 ymin(izz) = minval(y(offxy(izz - 1) + 1: offxy(izz - 1) + lenc(izz)))
@@ -303,15 +299,15 @@ lni (izz) = .false.
 lh5 (izz) = .true. 
 offxy(izz) = offxy(izz - 1) + lenc(izz)
 fname(izz) = h5_infile(1:LEN_TRIM(h5_infile))
-call hdf5_set_h5_is_ku(node_number, izz) ! H5 Data set 1 is stored in Kuplot as number izz
-call hdf5_set_h5_is_ku(izz, node_number) ! Kuplot data set izz is stored in H5 number 1
+call dgl5_set_h5_is_ku(node_number, izz) ! H5 Data set 1 is stored in Kuplot as number izz
+call dgl5_set_h5_is_ku(izz, node_number) ! Kuplot data set izz is stored in H5 number 1
 IF(lnew) iz = iz + 1
 !
 IF(lshow) THEN
    CALL show_data(iz - 1)!
 ENDIF
 !
-END SUBROUTINE hdf5_place_kuplot_1d
+END SUBROUTINE dgl5_place_kuplot_1d
 !
 !*******************************************************************************
 !

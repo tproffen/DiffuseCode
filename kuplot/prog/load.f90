@@ -566,14 +566,11 @@ IF (ianz.ge.2) then
 !
          IF(unter=='H5') THEN    ! HDF5 file
             CALL hdf5_read_kuplot(cpara(2),lpara(2), O_LAYER, NOPTIONAL, opara,        &
-                           lopara, lpresent, owerte ,                           &
-                           MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny,    &
-                           xmin, xmax, ymin, ymax, offxy, offz, lni, lh5, ku_ndims, lenc, &
+                           lopara, lpresent, owerte , iz, ku_ndims,                 &
                            ier_num, ier_typ, UBOUND(ier_msg,1), ier_msg, ER_APPL, &
                            ER_IO, output_io)
-WRITE(*,*) ' LOAD '
-write(*,*) ' LH5 lbound', lbound(lh5), ubound(lh5)
-write(*,*) ' ku_ndims  ', lbound(ku_ndims), ubound(ku_ndims), ' > ', ku_ndims(:4)
+!XX!                       MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny,    &
+!XX!                       xmin, xmax, ymin, ymax, offxy, offz, lni, lh5, ku_ndims, lenc, &
             deallocate(cpara)
             RETURN
          ENDIF

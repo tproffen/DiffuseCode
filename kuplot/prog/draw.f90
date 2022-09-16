@@ -497,11 +497,11 @@ LOGICAL :: lw, l2d!, n_in_f
 lw = .true. 
 l2d = n_in_f (ini) 
 !                                                                       
-call hdf5_get_dims(0, h5_dims)
+call dgl5_get_dims(0, h5_dims)
 main_loop: DO
-   n_layer   = hdf5_get_layer()
-   zz        = hdf5_get_height()
-   is_direct = hdf5_get_direct()
+   n_layer   = dgl5_get_layer()
+   zz        = dgl5_get_height()
+   is_direct = dgl5_get_direct()
    IF(is_direct) THEN
       WRITE(zeile,'(''Currently at layer:'',i7,2x,'' w = '',F10.4)') n_layer, zz
    ELSE
@@ -536,9 +536,9 @@ ENDDO main_loop
 CALL draw_frame (iframe, lw) 
 CALL frame_menu 
 !
-n_layer   = hdf5_get_layer()
-zz        = hdf5_get_height()
-is_direct = hdf5_get_direct()
+n_layer   = dgl5_get_layer()
+zz        = dgl5_get_height()
+is_direct = dgl5_get_direct()
 IF(is_direct) THEN
    WRITE (zeile, 1000)  n_layer, zz
    string = 'layer in res[1], height in res[2], direct==1 in res[3]'

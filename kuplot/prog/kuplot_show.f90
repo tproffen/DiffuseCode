@@ -195,12 +195,19 @@ integer, intent(inout) :: lp
       USE kuplot_config 
       USE kuplot_mod 
 use kuplot_extrema_mod
+use lib_data_struc_h5
 USE lib_length
+use precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
 integer, intent(in) :: iku
       INTEGER :: ia, ie, ik 
+integer :: node_number
+integer           ,dimension(3)   :: dims
+real(kind=PREC_DP),dimension(2)   :: minmax
+real(kind=PREC_DP),dimension(3)   :: llims
+real(kind=PREC_DP),dimension(3,3) :: steps
 !                                                                       
 !                                                                       
 !------ check if we want ALL data sets                                  
@@ -220,7 +227,18 @@ integer, intent(in) :: iku
 !                                                                       
 !------ Print information                                               
 !                                                                       
-      DO ik = ia, ie 
+DO ik = ia, ie 
+   if(ku_ndims(ik)==3) then
+      call dgl5_set_pointer(ik, ier_num, ier_typ, node_number)
+      call dgl5_get_dims (node_number, dims )
+      call dgl5_get_llims(node_number, llims)
+      call dgl5_get_steps(node_number, steps)
+      call dgl5_get_minmax(node_number, minmax)
+      write(output_io, 1020) ik, fname (ik) (1:len_str (fname (ik))), dims,     &
+           llims(1), llims(1)+(dims(1)-1)*steps(1,1),                           &
+           llims(2), llims(2)+(dims(2)-1)*steps(2,2),                           &
+           llims(3), llims(3)+(dims(3)-1)*steps(3,3), minmax
+   else
       IF (lni (ik) ) then 
          CALL get_extrema_xy (x, ik, nx (ik), xmin, xmax) 
          CALL get_extrema_xy (y, ik, ny (ik), ymin, ymax) 
@@ -234,19 +252,27 @@ integer, intent(in) :: iku
          WRITE (output_io, 1010) ik, fname (ik) (1:len_str (fname (ik) )&
          ), lenc(ik), xmin (ik), xmax (ik), ymin (ik), ymax (ik)        
       ENDIF 
-      ENDDO 
+   endif
+ENDDO 
 !                                                                       
  1000 FORMAT     (' Data set no.: ',i3,//,                              &
      &            3x,'Filename : ',a,/                                  &
      &                     3x,'Size     : ',i6,' x ',i6,' points',//    &
      &            3x,'Range  x : ',g12.4,' to ',g12.4/                  &
      &            3x,'Range  y : ',g12.4,' to ',g12.4/                  &
-     &            3x,'Range  z : ',g12.4,' to ',g12.4,/)                
+     &            3x,'Range  z : ',g12.4,' to ',g12.4,/)
  1010 FORMAT     (' Data set no.: ',i3,//,                              &
      &            3x,'Filename : ',a,/                                  &
      &                     3x,'Size     : ',i6,' points',//             &
      &            3x,'Range  x : ',g12.4,' to ',g12.4/                  &
      &            3x,'Range  y : ',g12.4,' to ',g12.4,/)                
+1020 format(' Data set no.: ',i3,//,                                            &
+     &            3x,'Filename : ',a,/                                          &
+     &      3x,'Size     : ',i6,' x ',i6,' x ',i6,' points',//                  &
+     &      3x,'Range  x : ',g12.4,' to ',g12.4/                                &
+     &      3x,'Range  y : ',g12.4,' to ',g12.4/                                &
+     &      3x,'Range  z : ',g12.4,' to ',g12.4/                                &
+     &      3x,'Range val: ',g12.4,' to ',g12.4,/)                
 !                                                                       
       END SUBROUTINE show_data                      
 !*****7**************************************************************** 

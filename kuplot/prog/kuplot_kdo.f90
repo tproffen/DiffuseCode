@@ -162,6 +162,8 @@ CHARACTER(LEN=8)           :: bef
 !                                                                       
 !-------  Perform calculations, merge and rebin                         
 !                                                                       
+         elseif(str_comp (bef, 'mergeg',6, lbef, 6)) then
+            call do_merge (zei, lc, .true.)
          ELSEIF (str_comp (bef, 'ccal', 3, lbef, 4) ) then 
             CALL do_calc (zei, lc) 
          ELSEIF (str_comp (bef, 'conv', 3, lbef, 4) ) then 
@@ -171,7 +173,7 @@ CHARACTER(LEN=8)           :: bef
          ELSEIF (str_comp (bef, 'kcal', 3, lbef, 4) ) then 
             CALL do_kmath (zei, lc) 
          ELSEIF (str_comp (bef, 'merge', 3, lbef, 5) ) then 
-            CALL do_merge (zei, lc) 
+            CALL do_merge (zei, lc, .false.) 
          ELSEIF (str_comp (bef, 'rebin', 3, lbef, 5) ) then 
             CALL do_rebin (zei, lc) 
          ELSEIF(str_comp (bef, 'close', 3, lbef, 5)) THEN
