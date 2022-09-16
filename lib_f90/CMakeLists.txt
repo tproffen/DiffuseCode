@@ -18,7 +18,8 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               gauss_lorentz_pseudo.f90
               gamma_mod.f90 gaussj_mod.f90 gen_mpi_mod.f90 global_data.f90
               hdf5_def.f90 
-              length_string_mod.f90 lib_f90_config.f90 lib_get_var_type.f90 lib_f90_profile.f90
+              length_string_mod.f90 lib_f90_config.f90 lib_get_var_type.f90 
+              lib_math.f90 lib_f90_profile.f90 lib_weights.f90
               lib_upd_mod.f90 
               macro.f90  matrix_mod.f90 map_1dtofield.f90 
               operating_mod.f90 reserved_mod.f90
