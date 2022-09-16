@@ -33,7 +33,7 @@ integer         , intent(inout) :: lp
 ! 
 CHARACTER(LEN=PREC_STRING), dimension(maxw) :: cpara ! (maxw) 
 CHARACTER(len=3)                            :: oper 
-CHARACTER(len=2)                            :: unt 
+CHARACTER(len=3)                            :: unt 
 REAL(KIND=PREC_DP)        , dimension(MAXW) :: werte ! (maxw) 
 INTEGER                   , dimension(MAXW) :: lpara ! (maxw)
 INTEGER :: ianz, ilen, ik 
@@ -51,7 +51,7 @@ IF (ianz.lt.3.or.ianz.gt.4) then
 ENDIF 
 !                                                                       
 oper = cpara (1) (1:3) 
-unt = cpara (2) (1:2) 
+unt = cpara (2) (1:min(3,lpara(2))) 
 CALL do_cap (oper) 
 CALL do_cap (unt) 
 !                                                                       
@@ -60,10 +60,10 @@ CALL ber_params (ianz, cpara, lpara, werte, maxw)
 IF (ier_num.ne.0) return 
 !                                                                       
 ik = nint (werte (1) ) 
-write(*,*) ' H5 ? ', ik, lh5(ik), lni(ik)
 IF (ik.gt.0.and.ik.lt.iz) then 
    cond_h5: if(lh5(ik)) then                  ! Data in Global HDF5 storage
       call calc_h5(ik, unt, oper, MAXW, werte, ianz, ndims, dims, nlayer)
+      if(ier_num/=0) return
    else cond_h5
    ilen = lenc (ik) 
    IF (unt.eq.'WX') then 
@@ -109,12 +109,12 @@ ELSE
    ier_num = - 4 
    ier_typ = ER_APPL 
 ENDIF 
-cond_h5_e: if(lh5(ik)) then                  ! Data in Global HDF5 storage
-  call place_kuplot(dims, nlayer, .true., .false., .false.,             &
-   MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
-      xmin, xmax, ymin, ymax, &
-      offxy, offz, lni, lh5, ku_ndims, lenc, ier_num, ier_typ, output_io)
-endif cond_h5_e
+!cond_h5_e: if(lh5(ik)) then                  ! Data in Global HDF5 storage
+!  call place_kuplot(dims, nlayer, .true., .false., .false.,             &
+!   MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, &
+!      xmin, xmax, ymin, ymax, &
+!      offxy, offz, lni, lh5, ku_ndims, lenc, ier_num, ier_typ, output_io)
+!endif cond_h5_e
 !                                                                  
 END SUBROUTINE do_calc                        
 !
@@ -344,11 +344,14 @@ END SUBROUTINE calc_z
 !
 subroutine calc_h5(ik, unt, oper, MAXW, werte, ianz, ndims, dims, nlayer)
 !+
-!   Do all calculations for N-dimensional dat stored in the global HDF5 
+!   Do all calculations for N-dimensional data stored in the global HDF5 
 !-
+use kuplot_mod
+use kuplot_global
 !
 use errlist_mod
 use lib_data_struc_h5
+use lib_math_mod
 use precision_mod
 !
 implicit none
@@ -363,171 +366,19 @@ integer                            , intent(out) :: ndims
 integer           , dimension(3)   , intent(out) :: dims
 integer                            , intent(out) :: nlayer
 !
-integer :: node_number
+integer :: lik 
 !
-call hdf5_set_pointer(ik, ier_num, ier_typ, node_number)
-nlayer = hdf5_get_layer()
-if(ier_num/=0) return
-!
-write(*,*) ' Data in kuplot, node ', ik, node_number, ier_num, ier_typ 
-cond_field: IF (unt.eq.'WI') then
-   call calc_h5_wi(ik,oper, MAXW, werte, ianz, node_number, ndims, dims)
+lik  = ik
+cond_field: IF (unt=='VAL' .or. unt=='SIG') then
+   call calc_h5_val_global(lik, unt, oper, MAXW, werte, ianz)   !
+else
+   call calc_h5_coord_global(lik, unt, oper, MAXW, werte, ianz) !
+
 endif cond_field
+if(ier_num/=0) return
+call data2kuplot(lik, fname(ik), .false.) 
 !
 end subroutine calc_h5
-!
-!*****7*****************************************************************
-!
-subroutine calc_h5_wi(ik, oper, MAXW, werte, ianz, node_number, ndims, dims)
-!+                                                                      
-!     Calculations for a (3D) data set stored in the (HDF5)-type general storage
-!-                                                                      
-!                                                                       
-USE kuplot_config 
-!
-use errlist_mod
-use lib_data_struc_h5
-use precision_mod
-!
-implicit none
-!
-integer                            , intent(in) :: ik     ! Kuplot data set number 
-character(len=*)                   , intent(in) :: oper   ! Calculation command like 'add', 'mul'...
-integer                            , intent(in) :: MAXW   ! Dimension of werte
-real(kind=PREC_DP), dimension(MAXW), intent(in) :: werte  ! Value do be added, multiplied etc.
-integer                            , intent(in) :: ianz   ! Number parameters in werte
-integer                            , intent(in) :: node_number
-integer                            , intent(out) :: ndims
-integer           , dimension(3)   , intent(out) :: dims
-!
-!INTEGER :: i, j, ikk 
-REAL(kind=PREC_DP) :: factor, summand !, thresh
-!
-real(kind=PREC_DP), dimension(:,:,:), allocatable :: odata
-!
-ndims = hdf5_get_ndims()
-call hdf5_get_dims(node_number, dims)
-allocate(odata(dims(1), dims(2), dims(3)))
-call hdf5_get_map(dims, odata)
-!                                                                       
-if(oper=='ADD') then
-   summand = 0.0D0
-   if(ianz==2) summand = werte(2)
-   odata = odata + summand
-elseif(oper.eq.'EXP') then 
-   odata = exp(odata)
-elseif(oper.eq.'INV') then 
-   where(odata/=0.0D0)
-      odata = 1.0D0/odata
-   end where 
-elseif(oper.eq.'LOG') then 
-   where(odata>=0.0D0)
-      odata = log(odata)
-   end where 
-elseif(oper=='MUL') then
-   factor = 1.0D0
-   if(ianz==2) factor = werte(2)
-   odata = odata * factor
-elseif(oper.eq.'SQR') then 
-   where(odata>=0.0D0)
-      odata = sqrt(odata)
-   end where 
-elseif(oper.eq.'SQU') then 
-   odata = odata **2
-else
-   ier_num = -6
-   ier_typ = ER_COMM
-endif
-!
-if(ier_num==0) then
-   call hdf5_set_map(dims, odata)
-endif
-deallocate(odata)
-   
-!IF (op.eq.'INV') then 
-!   DO i = 1, nxx 
-!      DO j = 1, nyy 
-!         ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
-!         IF (a (ikk) .ne.0.0.and.a (ikk) .ne. - 9999.0) then 
-!            a (ikk) = 1.0 / a (ikk) 
-!         ENDIF 
-!      ENDDO 
-!   ENDDO 
-!ELSEIF (op.eq.'LOG') then 
-!   DO i = 1, nxx 
-!      DO j = 1, nyy 
-!         ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
-!         IF (a (ikk) .ne.0.0.and.a (ikk) .ne. - 9999.0) then 
-!            a (ikk) = log (a (ikk) ) 
-!         ENDIF 
-!      ENDDO 
-!   ENDDO 
-!ELSEIF (op.eq.'EXP') then 
-!   DO i = 1, nxx 
-!      DO j = 1, nyy 
-!         ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
-!         IF (a (ikk) .ne. - 9999.0) then 
-!            a (ikk) = exp (a (ikk) ) 
-!         ENDIF 
-!      ENDDO 
-!   ENDDO 
-!ELSEIF (op.eq.'SQU') then 
-!   DO i = 1, nxx 
-!      DO j = 1, nyy 
-!         ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
-!         IF (a (ikk) .ne. - 9999.0) then 
-!            a (ikk) = a (ikk) **2 
-!         ENDIF 
-!      ENDDO 
-!   ENDDO 
-!ELSEIF (op.eq.'SQR') then 
-!   DO i = 1, nxx 
-!      DO j = 1, nyy 
-!         ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
-!         IF (a (ikk) .ge.0.0.and.a (ikk) .ne. - 9999.0) then 
-!            a (ikk) = sqrt (a (ikk) ) 
-!         ENDIF 
-!      ENDDO 
-!   ENDDO 
-!ELSEIF (op.eq.'THR') then 
-!   thresh = -9999.00
-!   IF (ianz.eq.2) thresh = werte (2) 
-!   DO i = 1, nxx 
-!      DO j = 1, nyy 
-!         ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
-!         IF (a (ikk) <= thresh.and.a (ikk) .ne. - 9999.0) then 
-!            a (ikk) =  -9999.0
-!         ENDIF 
-!      ENDDO 
-!   ENDDO 
-!ELSEIF (op.eq.'ADD') then 
-!   summand = 0.0 
-!   IF (ianz.eq.2) summand = werte (2) 
-!   DO i = 1, nxx 
-!      DO j = 1, nyy 
-!         ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
-!         IF (a (ikk) .ne. - 9999.0) then 
-!            a (ikk) = a (ikk) + summand 
-!         ENDIF 
-!      ENDDO 
-!   ENDDO 
-!ELSEIF (op.eq.'MUL') then 
-!   faktor = 1.0 
-!   IF (ianz.eq.2) faktor = werte (2) 
-!   DO i = 1, nxx 
-!      DO j = 1, nyy 
-!         ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
-!         IF (a (ikk) .ne. - 9999.0) then 
-!            a (ikk) = a (ikk) * faktor 
-!         ENDIF 
-!      ENDDO 
-!   ENDDO 
-!ELSE 
-!   ier_num = - 6 
-!   ier_typ = ER_COMM 
-!ENDIF 
-!                                                                       
-END SUBROUTINE calc_h5_wi
 !
 !*****7*****************************************************************
 !
@@ -683,17 +534,20 @@ SUBROUTINE do_kmath (zeile, lp)
 !+                                                                      
 !     Arithmetic between complete data sets                             
 !-                                                                      
-USE ber_params_mod
-USE errlist_mod 
-USE get_params_mod
-USE prompt_mod 
-USE kuplot_config 
-USE kuplot_mod 
+use kuplot_config 
+use kuplot_mod 
 use kuplot_extrema_mod
+use kuplot_global
 use kuplot_show_mod
-USE precision_mod
-USE str_comp_mod
-USE string_convert_mod
+!
+use ber_params_mod
+use errlist_mod 
+use get_params_mod
+use lib_math_mod
+use prompt_mod 
+use precision_mod
+use str_comp_mod
+use string_convert_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -784,11 +638,18 @@ IF (loverwrite) then
    WRITE (output_io, 5000) ik3 
 ELSE 
    ik3 = iz 
+   fname(ik3) = 'Result'
    WRITE (output_io, 5100) ik3 
 ENDIF 
 !                                                                       
  5000 FORMAT    (1x,'Result overwrites dataset ',i3,' ..') 
  5100 FORMAT    (1x,'Result creates new dataset ',i3,' ..') 
+if(lh5(ik1) .and. lh5(ik2)) then
+   call kmath_h5_global(ik1, ik2, oper, ik3) 
+   if(ier_num/=0) return
+   ku_ndims(ik3) = ku_ndims(ik1)
+   call data2kuplot(ik3, fname(ik3), .false.) 
+else
 !                                                                       
 !------ if we have a 3d data set                                        
 !                                                                       
@@ -917,22 +778,26 @@ ELSE
    ier_num = - 23 
    ier_typ = ER_APPL 
 ENDIF 
+endif
 !                                                                       
 END SUBROUTINE do_kmath                       
 !
 !*****7*****************************************************************
 !
-SUBROUTINE do_merge (zeile, lp) 
+SUBROUTINE do_merge (zeile, lp, lglobal) 
 !+                                                                      
 !     Merge different data sets                                         
 !-                                                                      
-USE ber_params_mod
-USE errlist_mod 
-USE get_params_mod
 USE kuplot_config 
 USE kuplot_mod 
 use kuplot_extrema_mod
 use kuplot_show_mod
+use kuplot_global
+!
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
+use lib_math_mod
 USE precision_mod
 USE str_comp_mod
 !                                                                       
@@ -940,6 +805,7 @@ IMPLICIT none
 !                                                                       
 CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
 INTEGER          , INTENT(INOUT) :: lp
+logical          , INTENT(IN   ) :: lglobal
 !
 INTEGER maxw 
 PARAMETER (maxw = MAXKURVTOT) 
@@ -956,6 +822,7 @@ INTEGER :: ix, iy       ! Dummy loop indices
 INTEGER :: ind_in, ind_out     ! Indices in inout and output 2D data
 INTEGER, DIMENSION(:), ALLOCATABLE :: npt ! number of data points
 LOGICAL :: lvalid, ladd, lall 
+integer :: ik3
 !                                                                       
 !                                                                       
 !------ space left for new data set ??                                  
@@ -965,6 +832,15 @@ IF (iz.gt.maxkurvtot) then
    ier_typ = ER_APPL 
    RETURN 
 ENDIF 
+!
+if(lglobal) then
+   ik3 = iz
+   ku_ndims(ik3) = ku_ndims(1)
+   call do_merge_global(zeile, lp, ik3)
+   if(ier_num/=0) return
+   call data2kuplot(ik3, fname(ik3), .false.) 
+   return
+endif
 !
 allocate(cpara(maxw))
 !                                                                       
@@ -1162,6 +1038,7 @@ ELSE                               ! 2D Data sets
       y(offxy(iz-1)+iy) = mminy + (iy-1)*mdeltay
    ENDDO
 !
+   lh5(iz)   = .false.
    lni(iz)   = .TRUE.
    fname(iz) = 'merge.dat' 
    fform(iz) = fform(NINT(werte(1)))
