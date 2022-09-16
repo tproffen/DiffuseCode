@@ -41,7 +41,8 @@ INTEGER               :: iline
 INTEGER               :: iseof
 INTEGER               :: istatus
 LOGICAL               :: is_stored
-INTEGER               :: lslash          ! position os slash in filename
+INTEGER               :: lslash          ! position of slash in filename
+INTEGER               :: bslash          ! position of slash in filename
 !
 !
 is_stored = .false.                     ! assume macro does not exist in storage
@@ -54,12 +55,41 @@ CALL build_macro_name(line, ilen, filename, MAXW, ianz, cpara, lpara, werte)
 !  Copy filename, if no '/' within prepend with current directory
 !
 lslash = INDEX ( filename , '/' )
+bslash = INDEX ( filename , '\' )
 macrofile = ' '
-IF ( lslash == 0 ) THEN       ! No slash in filename
-   macrofile = current_dir(1:current_dir_l) // filename(1:LEN_TRIM(filename)) ! Copy filename
-ELSE
-   macrofile = filename       ! Copy filename
-ENDIF
+if(operating==OS_LINUX_WSL) then
+   if(current_dir(1:1)=='\') then
+   IF ( bslash == 0 ) THEN       ! No back slash in filename
+      if(current_dir(current_dir_l:current_dir_l)/='\') then
+         macrofile = current_dir(1:current_dir_l) // '\' // filename(1:LEN_TRIM(filename)) ! Copy filename
+      else
+         macrofile = current_dir(1:current_dir_l) // filename(1:LEN_TRIM(filename)) ! Copy filename
+      endif
+   else
+      macrofile = filename       ! Copy filename
+   endif
+   elseif(current_dir(1:1)=='/') then
+   IF ( lslash == 0 ) THEN       ! No slash in filename
+      if(current_dir(current_dir_l:current_dir_l)/='/' ) then
+         macrofile = current_dir(1:current_dir_l) // '/' // filename(1:LEN_TRIM(filename)) ! Copy filename
+      else
+         macrofile = current_dir(1:current_dir_l) // filename(1:LEN_TRIM(filename)) ! Copy filename
+      endif
+   ELSE
+      macrofile = filename       ! Copy filename
+   ENDIF
+   endif
+else
+   IF ( lslash == 0 ) THEN       ! No slash in filename
+      if(current_dir(current_dir_l:current_dir_l)/='/' ) then
+         macrofile = current_dir(1:current_dir_l) // '/' // filename(1:LEN_TRIM(filename)) ! Copy filename
+      else
+         macrofile = current_dir(1:current_dir_l) // filename(1:LEN_TRIM(filename)) ! Copy filename
+      endif
+   ELSE
+      macrofile = filename       ! Copy filename
+   ENDIF
+endif
 !
 !  Let's first test if macro is stored internally
 !
@@ -104,7 +134,8 @@ IF(ASSOCIATED(macro_root)) THEN       ! We do have macros in storage, test for e
       ENDIF
    ENDIF
 ELSE           ! No internal storage yet, make new storage, and add
-   CALL inquire_macro_name(fileda, filename)  ! We need to locate the macro on the disk
+!   CALL inquire_macro_name(fileda, filename)  ! We need to locate the macro on the disk
+   CALL inquire_macro_name(fileda, macrofile)  ! We need to locate the macro on the disk
    file_length = len_str(filename)
    IF(fileda) THEN   ! FILE EXISTS make storage
 !
@@ -331,10 +362,17 @@ INTEGER                  :: filename_length ! length of filename string
 INTEGER                  :: infile_length   ! length of filename string
 INTEGER                  :: lc
 INTEGER                  :: lslash          ! position os slash in filename
+integer :: i
 !
 !
 ldir        = current_dir       ! Build current file name
 ldir_length = current_dir_l
+do i=1, ldir_length
+   if(ldir(i:i)=='\') ldir(i:i) = '/'
+enddo
+do i=1, len_trim(infile)
+   if(infile(i:i)=='\') infile(i:i) = '/'
+enddo
 !
 build: IF (ier_num == 0) THEN
 !
