@@ -51,7 +51,7 @@ CHARACTER(LEN=sdim), DIMENSION(1:dim0), TARGET ::  wdata = (/"Yell 1.0"/) ! Writ
 LOGICAL                                :: isda            ! File foud yes/no
 INTEGER                                :: i,j,k,l         ! Dummy indices
 INTEGER                                :: hdferr          ! Error returned by HDF5
-INTEGER, TARGET                        :: is_direct       ! Das are 3DPDF or diffraction pattern
+INTEGER, TARGET                        :: is_direct       ! Data are 3DPDF or diffraction pattern
 !
 INTEGER(KIND=HSIZE_T), DIMENSION(1)    :: str_dims = (/dim0 /)      ! "Dimensions of the string "DISCSU60" 
 INTEGER(KIND=HSIZE_T), DIMENSION(2)    :: data_dims = (/sdim,dim0/) ! "Dimensions of the string "Yell 1.0" 
@@ -116,7 +116,6 @@ DO i = 1, out_inc(1)
    DO j = 1, out_inc(2)
       DO k = 1, out_inc(3)
          l = l + 1
-!        values(k,j,i) = qval(l, value, i, j, laver)
          values(k,j,i) = qvalues(i,j,k)
       ENDDO
    ENDDO
