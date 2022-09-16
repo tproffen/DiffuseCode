@@ -245,7 +245,7 @@ pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
 SUBROUTINE plot_cif (iff, lplot, do_spcgr) 
 !-                                                                      
 !     Writes the selected atoms as cif file (one unit cell)             
-!     If lpolt is true, a unit cell for plotting is written,
+!     If lplot is true, a unit cell for plotting is written,
 !     else the unit cell is as small as possible.
 !+                                                                      
 USE discus_config_mod 
@@ -253,6 +253,8 @@ USE crystal_mod
 USE metric_mod
 USE modify_func_mod
 USE discus_plot_mod 
+!
+use blanks_mod
 USE errlist_mod 
 use matrix_mod
 use precision_mod
@@ -268,6 +270,7 @@ CHARACTER(LEN=*), INTENT(IN) :: do_spcgr
 REAL(kind=PREC_DP)   , PARAMETER   :: eightpisq = 8.*3.14159265**2
 !                                                                       
 !                                                                       
+character(len=PREC_STRING) :: atom_l
 CHARACTER(LEN=16)     :: do_spcgr_w = 'P1'
 character(len=4)      :: atom_i
 REAL(kind=PREC_DP)    :: d, dist , shift
@@ -368,7 +371,10 @@ DO i = 1, cr_natoms
             latom = .true. 
             atom_i = cr_at_lis(cr_iscat(i))
             call do_str(atom_i)               ! Remove non-character 
-            WRITE (iff, 1000) atom_i,                                &
+            write(atom_l,'(a,i8)') atom_i(1:len_trim(atom_i)), i
+            j = len_trim(atom_l)
+            call rem_bl(atom_l,j)
+            WRITE (iff, 1000) atom_l(1:len_trim(atom_l)), atom_i,    &
                 ( (v (j) - cr_dim (j, 1) ) / scalef (j), j = 1, 3),  &
                  cr_dw ( cr_iscat (i) )/eightpisq
          ENDIF 
@@ -392,11 +398,12 @@ ENDIF
      &        '_symmetry_space_group_name_H-M   ''',a,'''',//           &
      &        'loop_',/                                                 &
      &        '_atom_site_label',/                                      &
+     &        '_atom_site_symbol',/                                     &
      &        '_atom_site_fract_x',/                                    &
      &        '_atom_site_fract_y',/                                    &
      &        '_atom_site_fract_z',/                                    &
      &        '_atom_site_u_iso_or_equiv')                              
- 1000 FORMAT (a4,3x,3(f11.6,1x),4x,f8.6) 
+ 1000 FORMAT (a,3x,a,3x,3(f11.6,1x),4x,f8.6) 
 !
 END SUBROUTINE plot_cif                       
 !
