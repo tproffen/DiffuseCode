@@ -5494,6 +5494,8 @@
 !p
 !p valu { "f2aver"  | "faver2" }
 !p
+!p valu { "f2averb"  | "faver2b" }
+!p
 !p valu { "pdf" }
 !p
 !p valu { "3DPDF" } {, "dsmax:"<value> | "qmax:"<value> 
@@ -5533,7 +5535,11 @@
 !p "I(Q)":   Intensity divided by the number of atoms.
 !p "f2aver": Squared atomic form factors , averaged over all atoms
 !p "faver2": Average atomic form factor squared aver average
-   The last five values are available for powder output only and require
+!p "f2averb": Squared atomic form factors , averaged over all atoms 
+!p            Multiplied by averaged DebyeWaller term
+!p "faver2b": Average atomic form factor squared aver average
+!p            Multiplied by averaged DebyeWaller term
+   The last seven values are available for powder output only and require
    a Q axis. 
 
    The file name is not adapted automatically!
