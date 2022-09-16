@@ -1,4 +1,12 @@
-6.12.02  DRAFT
+6.12.03  DRAFT
+General
+              Continued move of KUPLOT data to global storage; no effect on user yet.
+DISCUS
+              BUG FIX Stacking faults with 'create' and no 'run' caused crash, FIXED
+              BUG FIX Modifies cif file output to adhere to CIF standard, unique atom labels
+                      This caused Jmol versions 14.32.59 and later to make faulty plot.
+
+6.12.02  RELEASE 2022_07_23
 General
               Starting to move KUPLOT data into a global data structure format
               Moved HDF5 read/write into lib_f90; no effect on user
