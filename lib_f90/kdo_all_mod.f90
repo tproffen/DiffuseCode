@@ -28,6 +28,7 @@ USE lib_do_operating_mod
 USE lib_echo
 USE lib_help
 USE lib_macro_func
+use lib_math_mod
 USE precision_mod
 USE prompt_mod 
 !USE sockets_mod
@@ -66,6 +67,16 @@ IMPLICIT none
 !                                                                       
       ELSEIF (str_comp (bef, 'echo', 2, lbef, 4) ) THEN 
          CALL echo (zei, lc) 
+!
+!----- Edge filter
+!
+elseif(str_comp(bef, 'edge2zero', 2, lbef, 9)) then
+   call edge2zero(zei,lc)
+!
+!----- Edge filter
+!
+elseif(str_comp(bef, 'minabs', 2, lbef, 6)) then
+   call filter_minabs(zei,lc)
 !                                                                       
 !------ Echo a string to *
 !                                                                       
