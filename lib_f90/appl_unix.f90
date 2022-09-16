@@ -450,6 +450,7 @@ SUBROUTINE write_appl_env (standalone, local_mpi_myid)
 !+
 USE envir_mod
 USE errlist_mod
+use gen_mpi_mod
 USE lib_errlist_func
 use lib_config
 USE precision_mod
@@ -471,7 +472,9 @@ IF(local_mpi_myid/=0) RETURN
 !
 !  Analyse if new version is avalable at GIThub
 !
-CALL lib_f90_test_updates(old_version, new_version, cversion, since_update)
+if(.not.gen_mpi_active) then
+   CALL lib_f90_test_updates(old_version, new_version, cversion, since_update)
+endif
 old_version = 0
 new_version = 0
 !
@@ -959,6 +962,7 @@ SUBROUTINE lib_f90_init_updates
 USE envir_mod
 USE errlist_mod
 USE lib_errlist_func
+use gen_mpi_mod
 USE precision_mod
 !
 IMPLICIT NONE
@@ -969,6 +973,7 @@ CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
 LOGICAL             :: lda
 !
+if(gen_mpi_active) return               ! No update checks while mpi is active
 if(.not. check_github() ) return    ! no www network access 
 WRITE(cfile,'(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_CURRENT.', PID ! Initiate search for new version
 !
@@ -992,6 +997,7 @@ SUBROUTINE lib_f90_test_updates(old_version, new_version, cversion, since_update
 USE envir_mod
 USE errlist_mod
 USE lib_errlist_func
+use gen_mpi_mod
 USE precision_mod
 USE prompt_mod
 !
@@ -1028,6 +1034,7 @@ integer :: iyear
 !
 !data days/ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334/
 !                                                                       
+if(gen_mpi_active) return               ! No update checks while mpi is active
 CALL DATE_AND_TIME (date, time, zone, values)
 !
 !  Analyse if new version is available at GIThub
@@ -1111,6 +1118,7 @@ SUBROUTINE lib_f90_update_ubuntu
 USE envir_mod
 USE errlist_mod
 USE lib_errlist_func
+use gen_mpi_mod
 USE precision_mod
 USE prompt_mod
 !
@@ -1126,6 +1134,7 @@ integer             :: ios
 logical             :: lonline
 logical             :: lda
 !
+if(gen_mpi_active) return               ! No update checks while mpi is active
 if(.not. check_github() ) return    ! no www network access 
 lonline = .TRUE.
 WRITE(cfile,        '(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_UBUNTU.', PID ! Test file to see if we are on-line
@@ -1173,6 +1182,7 @@ USE envir_mod
 USE errlist_mod
 use exit_para_mod
 USE get_params_mod
+use gen_mpi_mod
 USE precision_mod
 USE prompt_mod
 USE string_convert_mod
@@ -1226,6 +1236,7 @@ opara  =  (/ 'pre      ', 'fetch    '  , 'libraries'/)   ! Always provide fresh 
 lopara =  (/  3,           5           ,  9         /)
 owerte =  (/  0.0,         0.0         ,  0.0       /)
 !
+if(gen_mpi_active) return               ! No update checks while mpi is active
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp)
 IF (ier_num.ne.0) RETURN
