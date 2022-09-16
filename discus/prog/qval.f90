@@ -16,17 +16,21 @@ INTEGER, PARAMETER :: val_iq     = 13
 INTEGER, PARAMETER :: val_pdf    = 14
 INTEGER, PARAMETER :: val_3DPDF  = 15
 INTEGER, PARAMETER :: val_3DBETA = 16
+INTEGER, PARAMETER :: val_f2averb= 17
+INTEGER, PARAMETER :: val_faver2b= 18
+INTEGER, PARAMETER :: val_faverb = 19
 !
-INTEGER, PARAMETER :: MAXVALS = 16
+INTEGER, PARAMETER :: MAXVALS = 19
 !
-CHARACTER(LEN=14) :: cvalue (0:MAXVALS)
+CHARACTER(LEN=17) :: cvalue (0:MAXVALS)
 !
-DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
-              'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
-              'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
-              'f2aver = <f^2>', 'faver2 = <f>^2', 'faver = <f>   ',&
-              'Normal Inten  ', 'I(Q)          ', 'PDF           ',&
-              '3DPDF         ', '3DBETA        '                   &
+DATA cvalue / 'undefined        ', 'Intensity        ', 'Amplitude        ',&
+              'Phase angle      ', 'Real Part        ', 'Imaginary Part   ',&
+              'Random Phase     ', 'S(Q)             ', 'F(Q)             ',&
+              'f2aver = <f^2>   ', 'faver2 = <f>^2   ', 'faver = <f>      ',&
+              'Normal Inten     ', 'I(Q)             ', 'PDF              ',&
+              '3DPDF            ', '3DBETA           ', 'f2averb=<f^2>*DBW',&
+              'faver2b=<f>^2*DBW', 'faverb = <F>     '                      &
             /
 CONTAINS
 !*****7*****************************************************************
@@ -209,7 +213,49 @@ REAL(kind=PREC_DP)      :: signum = 1.0
                    * cr_amount(k) * signum
          ENDDO
          qval = qval / cr_n_real_atoms
-      ENDIF 
+!
+!     Calculate average squared atomic form factor <f**2>
+!
+ELSEIF (value == val_f2averb) THEN
+   DO k=1,cr_nscat
+!           qval = qval + REAL(cfact_pure(istl(i),k)**2,KIND=KIND(0.0E0))*cr_amount(k)
+      qval = qval +                                     &
+                DBLE (       cfact     (istl(i), k)  *  &
+                       conjg (cfact     (istl(i), k)))  &
+             *cr_amount(k)
+   ENDDO
+   qval = qval / cr_n_real_atoms
+!
+!     Calculate average atomic form factor squared <f>**2
+!
+ELSEIF (value == val_faver2b) THEN
+   DO k=1,cr_nscat
+!           qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
+      signum = 1.0
+      IF(REAL(cfact_pure(1,k))<0.0) signum = -1.0
+      qval = qval +                                     &
+            SQRT(DBLE (       cfact     (istl(i), k)  * &
+                       conjg (cfact     (istl(i), k)))) &
+            * cr_amount(k) * signum
+   ENDDO
+   qval = qval / cr_n_real_atoms
+   qval = qval**2
+!
+!     Calculate average atomic form factor <f>
+!
+ELSEIF (value == val_faverb) THEN
+   DO k=1,cr_nscat
+!           qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
+      qval = qval +                                      &
+             SQRT(DBLE (       cfact     (istl(i), k)  * &
+                        conjg (cfact     (istl(i), k)))) &
+             * cr_amount(k) * signum
+   ENDDO
+   qval = qval / cr_n_real_atoms
+ENDIF 
 !                                                                       
-      END FUNCTION qval                             
+END FUNCTION qval                             
+!
+!*******************************************************************************
+!
 END MODULE qval_mod

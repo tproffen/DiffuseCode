@@ -696,10 +696,16 @@ ENDDO
 !     ----Calculate F(Q)=Q(S(Q)-1) 'F(Q)     '                          
          ELSEIF (cpara (1) (ix:ix + 3) .eq.'F(Q)') THEN 
             value = val_fq 
+         ELSEIF (cpara (1) (ix:ix + 6) == 'f2averb') THEN
+            value = val_f2averb
+         ELSEIF (cpara (1) (ix:ix + 6) == 'faver2b') THEN
+            value = val_faver2b
          ELSEIF (cpara (1) (ix:ix + 5) == 'f2aver') THEN
             value = val_f2aver
          ELSEIF (cpara (1) (ix:ix + 5) == 'faver2') THEN
             value = val_faver2
+         ELSEIF (cpara (1) (ix:ix + 5) == 'faverb') THEN
+            value = val_faverb
          ELSEIF (cpara (1) (ix:ix + 4) == 'faver') THEN
             value = val_faver
 !     ----Calculate S(Q)           'N(Q) = S(Q) without thermal part    '                          
