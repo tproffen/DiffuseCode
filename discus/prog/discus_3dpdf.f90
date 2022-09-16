@@ -260,14 +260,14 @@ lecho  = .true.
 
 call do_load (string, length, lecho)
 node_number = 1
-call hdf5_find_node(node_number, ier_num, ier_typ)
-call hdf5_get_dims(node_number, h5_dims)
-three_dims(1) = h5_dims(3)
+call dgl5_find_node(node_number, ier_num, ier_typ)
+call dgl5_get_dims(node_number, h5_dims)
+three_dims(1) = h5_dims(1)
 three_dims(2) = h5_dims(2)
-three_dims(3) = h5_dims(1)
-call hdf5_get_llims(node_number, three_llims)
-call hdf5_get_steps(node_number, three_steps)
-!call hdf5_get_steps(node_number, three_steps)
+three_dims(3) = h5_dims(3)
+call dgl5_get_llims(node_number, three_llims)
+call dgl5_get_steps(node_number, three_steps)
+!call dgl5_get_steps(node_number, three_steps)
 !three_steps      = 0.0D0
 !three_steps(1,1) = steps(1)
 !three_steps(2,2) = steps(2)
@@ -276,7 +276,7 @@ call hdf5_get_steps(node_number, three_steps)
 if(allocated(three_map)) deallocate(three_map)
 !
 allocate(three_map(three_dims(1),three_dims(2), three_dims(3)))
-call hdf5_get_tmap(three_dims, three_map)
+call dgl5_get_map(three_dims, three_map)
 !
 if(allocated(three_map_temp)) deallocate(three_map_temp)
 allocate(three_map_temp(three_dims(1),three_dims(2), three_dims(3)))
