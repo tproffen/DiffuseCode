@@ -1027,19 +1027,19 @@ end SUBROUTINE alloc_conn_vect
       as_at_lis(0) = 'VOID'
       cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( as_mole ,       1,n_scat,  all_status,  0 , size_of)
+      CALL alloc_arr ( as_mole ,       0,n_scat,  all_status,  0 , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( as_prop ,       1,n_scat,  all_status,  0 , size_of)
+      CALL alloc_arr ( as_prop ,       0,n_scat,  all_status,  0 , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_niscat,      1,n_scat,  all_status,  0 , size_of)
+      CALL alloc_arr ( cr_niscat,      0,n_scat,  all_status,  0 , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( as_iscat,       1,n_scat,  all_status,  0 , size_of)
+      CALL alloc_arr ( as_iscat,       0,n_scat,  all_status,  0 , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
@@ -1055,7 +1055,7 @@ end SUBROUTINE alloc_conn_vect
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( as_pos, 1,3,1,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( as_pos, 1,3,0,n_scat,  all_status, 0.0D0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
