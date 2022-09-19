@@ -370,6 +370,7 @@ INTEGER             :: n_type
 INTEGER             :: ncells
 INTEGER, DIMENSION(3) :: local_icc
 INTEGER, DIMENSION(3), PARAMETER :: one = (/ 1, 1, 1/)
+logical :: lda
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP)  :: r
 !
@@ -402,6 +403,14 @@ IF (ianz.ge.1) THEN
 !                        IF (ier_num /= 0) THEN
 !                           RETURN
 !                        ENDIF
+            inquire(file=strucfile, exist=lda)
+            if(.not.lda) then
+                ier_num = -2
+                ier_typ = ER_IO
+                ier_msg(1) = 'Cell file does not exist'
+                ier_msg(2) = 'Check filename and path '
+                return
+            endif
             CALL import_test(0, strucfile, outfile)
             IF(ier_num == 0) THEN
                strucfile = outfile
@@ -609,6 +618,7 @@ CHARACTER(LEN=*), INTENT(INOUT) :: strucfile
 LOGICAL         , INTENT(IN)    :: l_site     ! Differ atoms on sites?
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(strucfile))) :: outfile 
+logical :: lda
 !
 CALL rese_cr
 internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
@@ -616,6 +626,14 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
    IF(ier_num/=0) RETURN
 ELSE internals
+   inquire(file=strucfile, exist=lda)
+   if(.not.lda) then
+      ier_num = -2
+      ier_typ = ER_IO
+      ier_msg(1) = 'Cell file does not exist'
+      ier_msg(2) = 'Check filename and path '
+      return
+   endif
    CALL import_test(1, strucfile, outfile)
    IF(ier_num == 0) THEN
       strucfile = outfile
@@ -5678,6 +5696,9 @@ ENDIF
 in_mole = .false.
 !
 call atom_get_size(strucfile, nlines)
+IF ( ier_num /= 0) THEN
+   return
+endif
 call atom_alloc(nlines)
 !
 CALL oeffne ( 99, strucfile, 'old')
