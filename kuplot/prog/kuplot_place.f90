@@ -158,8 +158,8 @@ ENDIF
 ll = 0
 k = h5_layer
 !
-DO j = 1, h5_dims(2)
-   DO i = 1, h5_dims(1)
+DO i = 1, h5_dims(1)
+   DO j = 1, h5_dims(2)
       ll = ll + 1
       z(offz(izz - 1) + ll ) = dgl5_get_data(i,j,k)
    ENDDO
