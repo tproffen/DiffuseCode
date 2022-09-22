@@ -14,7 +14,7 @@ USE crystal_mod
 USE discus_config_mod 
 USE diffuse_mod 
 USE nexus_discus
-USE discus_mrc
+!USE discus_mrc
 USE discus_xplor
 USE vtk_mod
 USE output_mod 
@@ -38,6 +38,7 @@ USE lib_echo
 USE lib_errlist_func
 USE lib_length
 USE lib_macro_func
+use lib_mrc_mod
 USE class_macro_internal
 USE take_param_mod
 USE precision_mod
@@ -100,6 +101,9 @@ INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name retu
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
+integer, parameter, dimension(3) :: nxyzstart = (/0,0,0/)
+integer           , dimension(3) :: nxxxstart = (/0,0,0/)
+integer :: mode
 !                                                                       
 DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax', 'patt'  ,'sel', 'des', 'mode', 'type' /
 DATA loname /  6      ,  5      ,  4      ,  6      ,  4      , 3   ,  3   ,  4    ,  4     /
@@ -504,19 +508,33 @@ main_if: IF (ier_num.eq.0) THEN
             ELSEIF (ityp.eq.11) THEN
                CALL vtk_write ()
             ELSEIF (ityp.eq.12) THEN
-               CALL mrc_write (value, laver)
+               if(allocated(qvalues)) deallocate(qvalues)
+               allocate(qvalues(out_inc(1), out_inc(2), out_inc(3)))
+               l = 0                                                       ! Copy proper "value"
+               DO i = 1, out_inc(1)
+                  DO j = 1, out_inc(2)
+                     DO k = 1, out_inc(3)
+                        l = l + 1
+                        qvalues(i,j,k) = qval(l, value, i, j, laver)
+                     ENDDO
+                  ENDDO
+               ENDDO
+               call mrc_write(outfile,                                                   &
+                    out_inc, 2, nxyzstart, cr_ar, cr_wrez, extr_abs, extr_ord,   &
+                    extr_top, qvalues                                            &
+                    )
             ELSEIF (ityp.eq.13) THEN
                if(allocated(qvalues)) deallocate(qvalues)
                allocate(qvalues(out_inc(1), out_inc(2), out_inc(3)))
-l = 0                                                       ! Copy proper "value"
-DO i = 1, out_inc(1)
-   DO j = 1, out_inc(2)
-      DO k = 1, out_inc(3)
-         l = l + 1
-         qvalues(i,j,k) = qval(l, value, i, j, laver)
-      ENDDO
-   ENDDO
-ENDDO
+               l = 0                                                       ! Copy proper "value"
+               DO i = 1, out_inc(1)
+                  DO j = 1, out_inc(2)
+                     DO k = 1, out_inc(3)
+                        l = l + 1
+                        qvalues(i,j,k) = qval(l, value, i, j, laver)
+                     ENDDO
+                  ENDDO
+               ENDDO
                CALL gen_hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
                        cr_a0, cr_win, qvalues,val_pdf, val_3Dpdf, valmax,           &
                        ier_num, ier_typ, ER_IO, ER_APPL)
