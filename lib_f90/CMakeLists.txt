@@ -22,6 +22,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               lib_math.f90 lib_f90_profile.f90 lib_weights.f90
               lib_upd_mod.f90 
               macro.f90  matrix_mod.f90 map_1dtofield.f90 
+              mrc_data.f90
               operating_mod.f90 reserved_mod.f90
               random.f90 random_state_mod.f90 str_comp_mod.f90 
               string_convert_mod.f90
