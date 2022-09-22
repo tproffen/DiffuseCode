@@ -1338,11 +1338,14 @@ CHARACTER(LEN=PREC_STRING), dimension(:), allocatable :: cpara !(maxw)
 REAL(KIND=PREC_DP) :: werte (maxw) 
 REAL(kind=PREC_DP) :: mdelta, mmin, mmax 
 REAL(kind=PREC_DP) ::  mdeltay, mminy, mmaxy 
+REAL(kind=PREC_DP) ::  mdeltaz, mminz, mmaxz 
 INTEGER :: lpara (maxw)
 INTEGER :: ianz, ik, ibin, i, ip, ntot
 integer :: ibiny
+integer :: ibinz
 INTEGER :: ntoty
-INTEGER :: ix, iy       ! Dummy loop indices
+INTEGER :: ntotz
+INTEGER :: ix, iy, iz       ! Dummy loop indices
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: npt ! number of data points
 LOGICAL :: lvalid, ladd, lall 
 !                                                                       
@@ -1545,7 +1548,7 @@ elseif(ik1_ndims==2) then                ! 2-D data sets
    if(allocated(ik1_data))  deallocate(ik1_data)
    if(allocated(ik1_sigma)) deallocate(ik1_sigma)
    ik1_dims(1) = ntot
-   ik1_dims(2) = 1
+   ik1_dims(2) = ntoty
    ik1_dims(3) = 1
    allocate(ik1_x(1:ik1_dims(1)))
    allocate(ik1_y(1:ik1_dims(2)))
@@ -1570,9 +1573,9 @@ elseif(ik1_ndims==2) then                ! 2-D data sets
       do iy = 1, ik2_dims(2)
       do ix = 1, ik2_dims(1)
          ibin  = nint((ik1_x(ix) - mmin ) / mdelta ) + 1
-         ibiny = nint((ik1_x(iy) - mminy) / mdeltay) + 1
+         ibiny = nint((ik1_y(iy) - mminy) / mdeltay) + 1
          ik1_data(ibin,ibiny,1) = ik1_data(ibin,ibiny,1) + ik2_data(ix,iy,1)
-         if(ik2_has_dval) ik1_sigma(ibin,ibiny,1) = ik1_sigma(ibin,ibiny,1) + ik2_sigma(ibin,ibiny,1)**2
+         if(ik2_has_dval) ik1_sigma(ibin,ibiny,1) = ik1_sigma(ibin,ibiny,1) + ik2_sigma(ix,iy,1)**2
          npt(ibin, ibiny, 1) = npt(ibin, ibiny, 1) + 1
       enddo
       enddo
@@ -1606,10 +1609,184 @@ elseif(ik1_ndims==2) then                ! 2-D data sets
 !
    call math_clean
    deallocate(npt)
+!
+elseif(ik1_ndims==3) then                ! 2-D data sets
+!
+   mdelta  = (ik1_x(ik1_dims(1)) - ik1_x(1) )/real(ik1_dims(1)-1,kind=PREC_DP)
+   mdeltay = (ik1_y(ik1_dims(2)) - ik1_y(1) )/real(ik1_dims(2)-1,kind=PREC_DP)
+   mdeltaz = (ik1_z(ik1_dims(3)) - ik1_z(1) )/real(ik1_dims(3)-1,kind=PREC_DP)
+   mmin    = ik1_minmaxcoor(1,1)
+   mminy   = ik1_minmaxcoor(2,1)
+   mminz   = ik1_minmaxcoor(3,1)
+   mmax    = ik1_minmaxcoor(1,2)
+   mmaxy   = ik1_minmaxcoor(2,2)
+   mmaxz   = ik1_minmaxcoor(3,2)
+!
+   lvalid = .true. 
+   loop_valid_3d: do i = 1, ianz 
+      ik = nint(werte(i))
+      call data2local(ik      , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+           ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
+           ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+           ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
+           ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
+      lvalid = lvalid .and. ik2_ndims==2
+      if(.not.lvalid) exit loop_valid_3d
+      mmin   = min(mmin , ik2_minmaxcoor(1,1))
+      mminy  = min(mminy, ik2_minmaxcoor(2,1))
+      mminz  = min(mminz, ik2_minmaxcoor(3,1))
+      mmax   = max(mmax , ik2_minmaxcoor(1,2))
+      mmaxy  = max(mmaxy, ik2_minmaxcoor(2,2))
+      mmaxz  = max(mmaxz, ik2_minmaxcoor(3,2))
+   enddo loop_valid_3d
+!
+   IF (.not.lvalid) then 
+      ier_num = - 4 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+!
+   ntot  = nint((mmax  - mmin)  / mdelta ) + 1 
+   ntoty = nint((mmaxy - mminy) / mdeltay) + 1 
+   ntotz = nint((mmaxz - mminz) / mdeltaz) + 1 
+!   
+   deallocate(ik1_x)
+   deallocate(ik1_y)
+   deallocate(ik1_z)
+   if(allocated(ik1_x)) deallocate(ik1_x)
+   if(allocated(ik1_y)) deallocate(ik1_y)
+   if(allocated(ik1_z)) deallocate(ik1_z)
+   if(allocated(ik1_data))  deallocate(ik1_data)
+   if(allocated(ik1_sigma)) deallocate(ik1_sigma)
+   ik1_dims(1) = ntot
+   ik1_dims(2) = ntoty
+   ik1_dims(3) = ntotz
+   allocate(ik1_x(1:ik1_dims(1)))
+   allocate(ik1_y(1:ik1_dims(2)))
+   allocate(ik1_z(1:ik1_dims(2)))
+   allocate(ik1_data( ik1_dims(1), ik1_dims(2), ik1_dims(3)))
+   allocate(ik1_sigma(ik1_dims(1), ik1_dims(2), ik1_dims(3)))
+   allocate(npt      (ik1_dims(1), ik1_dims(2), ik1_dims(3)))
+   ik1_x = 0.0D0
+   ik1_y = 0.0D0
+   ik1_z = 0.0D0
+   npt   = 0
+   ik1_data  = 0.0D0
+   ik1_sigma = 0.0D0
+!
+   loop_merge_3d: do i=1, ianz    ! Merge values of all data
+      ik = nint(werte(i))
+      call data2local(ik      , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+           ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
+           ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+           ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
+           ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
+      do iz = 1, ik2_dims(3)
+      do iy = 1, ik2_dims(2)
+      do ix = 1, ik2_dims(1)
+         ibin  = nint((ik1_x(ix) - mmin ) / mdelta ) + 1
+         ibiny = nint((ik1_y(iy) - mminy) / mdeltay) + 1
+         ibinz = nint((ik1_x(iy) - mminz) / mdeltaz) + 1
+         ik1_data(ibin,ibiny,ibinz) = ik1_data(ibin,ibiny,ibinz) + ik2_data(ix,iy,iz)
+         if(ik2_has_dval) ik1_sigma(ibin,ibiny,ibinz) = ik1_sigma(ibin,ibiny,ibinz) + ik2_sigma(ix,iy,iz)**2
+         npt(ibin, ibiny, 1) = npt(ibin, ibiny, 1) + 1
+      enddo
+      enddo
+      enddo
+   enddo loop_merge_3d
+   if(.not.ladd) then                      !Merge data, not just add
+      do ibin=1, ntot
+         do ibiny=1, ntoty
+         do ibinz=1, ntotz
+         if(npt(ibin, ibiny, ibinz)>0) then 
+            ik1_data(ibin,ibiny,ibinz)  = ik1_data(ibin,ibiny,ibinz)/npt(ibin, ibiny, ibinz)
+            ik1_sigma(ibin,ibiny,ibinz) = sqrt(ik1_data(ibin,ibiny,ibinz))/npt(ibin, ibiny, ibinz)
+         endif
+         enddo
+         enddo
+      enddo
+   endif
+   do ibin=1, ntot
+      ik1_x(ibin) = mmin + (ibin - 1) * mdelta 
+   ENDDO 
+   do ibiny=1, ntoty
+      ik1_y(ibiny) = mminy + (ibiny - 1) * mdeltay 
+   ENDDO 
+   do ibinz=1, ntotz
+      ik1_z(ibinz) = mminz + (ibinz - 1) * mdeltaz 
+   ENDDO 
+   deallocate(npt)
+   ik1_is_grid = .true.
+   ik1_infile = 'merged.dat'
+!
+   ik1_node_number = 0
+   call local2data(ik3, ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_nlayer,  &
+        ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid, ik1_has_dxyz,             &
+        ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
+        ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma, ik1_llims, ik1_steps,  &
+        ik1_steps_full)
+!
+   call math_clean
+   deallocate(npt)
 ENDIF
 !
 !                                                                       
 END SUBROUTINE do_merge_global
+!
+!*******************************************************************************
+!
+subroutine do_interpolate_global(zeile, lp)
+!-
+!     Interpolate data set <ik> on grid of <ig> using spline            
+!-
+!
+use ber_params_mod
+use errlist_mod
+use get_params_mod
+use lib_data_struc_h5
+use precision_mod
+!                                                                       
+character (len=*), intent(inout) :: zeile
+integer          , intent(inout) :: lp
+!
+integer, parameter :: MAXW = 2
+!
+character(len=PREC_STRING), dimension(MAXW) :: cpara
+integer                   , dimension(MAXW) :: lpara
+integer                    :: ianz
+real(kind=PREC_DP)        , dimension(MAXW) :: werte
+!
+integer :: ik, ig     ! Data set numbers
+!
+!                                                                       
+!------ get parameters                                                  
+!                                                                       
+call get_params (zeile, ianz, cpara, lpara, MAXW, lp)
+if(ier_num.ne.0) return
+!
+                                                                       
+!------ check arguments                                                 
+!                                                                       
+if(ianz /= 2) then
+   ier_num = - 6
+   ier_typ = ER_COMM
+   return
+endif
+!                                                                       
+call ber_params(ianz, cpara, lpara, werte, MAXW)
+IF (ier_num.ne.0) return
+!                                                                       
+ik = nint(werte (1) )
+ig = nint(werte (2) )
+!
+if(ik<1 .or. ik>dgl5_get_number() .or. &
+   ik<1 .or. ik>dgl5_get_number()      ) then
+   ier_num = - 4
+   ier_typ = ER_APPL
+   return
+endif
+!
+end subroutine do_interpolate_global
 !
 !*******************************************************************************
 !
