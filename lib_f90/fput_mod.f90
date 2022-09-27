@@ -1,5 +1,15 @@
 MODULE fput_mod
 !
+private
+!
+public do_fopen
+public do_fclose
+public do_fend
+public do_fget
+public do_fformat
+public do_fgetsub
+public do_fput
+!
 CONTAINS
 !
 !*****7***********************************************************      
