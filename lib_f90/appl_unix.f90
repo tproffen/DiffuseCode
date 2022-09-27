@@ -1,5 +1,16 @@
 MODULE appl_env_mod
 !
+private
+!
+public appl_env
+public color_set_scheme
+public lib_f90_init_updates
+public lib_f90_test_updates
+public lib_f90_update_discus
+PUBLIC lib_f90_update_ubuntu
+public program_files
+public write_appl_env
+!
 !*****7***************************************************************  
 !                                                                       
 CONTAINS

@@ -1,5 +1,9 @@
 MODULE cmdline_args_mod
 !
+private
+!
+public cmdline_args
+!
 CONTAINS
 !                                                                       
 !*****7*****************************************************************

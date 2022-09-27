@@ -19,6 +19,10 @@ TYPE cl_macro
    PROCEDURE, PUBLIC, PASS :: finalize_macro     ! Finalize the cl_macro class
 END TYPE cl_macro
 !
+private
+!
+public cl_macro
+!
 CONTAINS
 !
 !******************************************************************************

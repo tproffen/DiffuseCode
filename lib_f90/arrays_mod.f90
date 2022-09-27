@@ -4,6 +4,14 @@ MODULE arrays_mod
 !
 IMPLICIT NONE
 !
+private
+!
+public arr_detmat
+public arr_invmat
+public arr_matadd
+public arr_matmul
+public arr_transpose
+!
 CONTAINS
 !
 !*******************************************************************************

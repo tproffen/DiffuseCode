@@ -1,5 +1,9 @@
 MODULE build_name_mod
 !
+private
+!
+public do_build_name
+!
 CONTAINS
 !
 !*****7***************************************************************  

@@ -1,5 +1,9 @@
 MODULE count_col_mod
 !
+private
+!
+public count_col
+!
 CONTAINS
 !
 !*****7***************************************************************  

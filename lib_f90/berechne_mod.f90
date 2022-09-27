@@ -1,6 +1,10 @@
 MODULE berechne_mod
 !
 USE precision_mod
+private
+public berechne
+public berechne_char
+!
 CONTAINS
 !
 !****7***************************************************************** 

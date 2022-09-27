@@ -1,5 +1,13 @@
 MODULE blanks_mod
 !
+private
+!
+public rem_bl
+public rem_dbl_bl
+public rem_leading_bl
+public rem_insig_bl
+public tab2blank
+!
 CONTAINS
 !
 !*****7**************************************************************** 

@@ -1,5 +1,11 @@
 module ber_params_mod
 !
+private
+!
+public ber_params
+public ber_param
+public eva_params
+!
 contains
 !
 !*****7***************************************************************  

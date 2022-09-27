@@ -1,5 +1,9 @@
 MODULE lib_init_mod
 !
+private
+!
+public init_sysarrays
+!
 CONTAINS
 !                                                                       
 !     Application independent blockdat for command language and         

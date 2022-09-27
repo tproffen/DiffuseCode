@@ -1,5 +1,9 @@
 MODULE calc_expr_mod
 !
+private
+!
+public do_math
+!
 CONTAINS
 !
 !****7***************************************************************** 
