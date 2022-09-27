@@ -1,5 +1,9 @@
 MODULE ersetzl_mod
 !
+private
+!
+public ersetzl
+!
 CONTAINS
 !
 !*****7**************************************************************** 

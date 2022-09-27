@@ -1,5 +1,9 @@
 MODULE exit_mod
 !
+private
+!
+public exit_all
+!
 CONTAINS
 !
 !*****7*****************************************************************

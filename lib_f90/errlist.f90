@@ -1,5 +1,14 @@
 MODULE lib_errlist_func
 !
+private
+!
+public errlist
+public errlist_none
+public errlist_save
+public errlist_restore
+public no_error
+public disp_error
+!
 CONTAINS
 SUBROUTINE errlist
 !*****7****************************************************************
