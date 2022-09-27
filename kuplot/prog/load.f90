@@ -493,6 +493,7 @@ INTEGER ii, ll, ianz, istr, nfile
 LOGICAL zz_mod 
 !                                                                       
 INTEGER ifiles
+integer :: node_number
 !
 INTEGER, PARAMETER :: NOPTIONAL = 8
 !INTEGER, PARAMETER :: O_SKIP      = 1
@@ -574,7 +575,7 @@ IF (ianz.ge.2) then
             deallocate(cpara)
             RETURN
          elseif(unter=='MRC') then
-            call mrc_read_kuplot(cpara(2),lpara(2))
+            call mrc_read_kuplot(cpara(2),lpara(2), node_number, ii)
             return
 !
          ENDIF
@@ -4251,7 +4252,7 @@ END FUNCTION chan2kev
 !
 !*****7**************************************************************** 
 !
-subroutine mrc_read_kuplot(line, length)
+subroutine mrc_read_kuplot(line, length, node_number, ik)
 !
 USE kuplot_config
 use kuplot_mod
@@ -4264,6 +4265,8 @@ use precision_mod
 !
 character(len=*), intent(in) :: line
 integer         , intent(in) :: length
+integer         , intent(inout) :: node_number
+integer         , intent(inout) :: ik
 !
 character(len=PREC_STRING) :: outfile
 integer, dimension(3)     :: dims
@@ -4271,23 +4274,17 @@ integer                   :: mode
 integer, dimensioN(3)     :: nxyzstart
 real(kind=PREC_DP), dimension(3) :: cr_a
 real(kind=PREC_DP), dimension(3) :: cr_win
-integer                          :: extr_abs
-integer                          :: extr_ord
-integer                          :: extr_top
 !
-integer               :: node_number = 0
 !integer               :: iz
-integer               :: ik
 integer               :: ndims
 logical               :: lout = .true.
 !
 iz = 1
 outfile = line(1:length)
 !
-call mrc_read(outfile,                                                   &
-                     dims, mode, nxyzstart, cr_a, cr_win)
+node_number = 0
+call mrc_read(outfile, node_number)
 !
-node_number = 1
 ndims = 3
 call dgl5_set_h5_is_ku(iz, node_number)
 call dgl5_set_ku_is_h5(node_number, iz)
