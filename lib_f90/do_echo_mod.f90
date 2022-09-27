@@ -1,5 +1,10 @@
 MODULE lib_echo
 !
+private
+!
+public echo
+public do_flush
+!
 CONTAINS
 !
 !*****7*****************************************************************

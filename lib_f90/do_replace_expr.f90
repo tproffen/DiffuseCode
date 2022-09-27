@@ -3,6 +3,12 @@ module do_replace_expr_mod
 !   Replace any "EXPR[]" string by the appropriate character string 
 !+
 !
+private
+!
+public do_replace_expr
+public do_use_expr
+public do_evaluate_expr
+!
 contains
 !
 !*******************************************************************************

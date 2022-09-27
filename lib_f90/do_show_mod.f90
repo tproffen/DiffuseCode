@@ -1,5 +1,10 @@
 MODULE do_show_mod
 !
+private
+!
+public do_show_generic
+public do_show_res
+!
 CONTAINS
 !*****7**************************************************************** 
 !

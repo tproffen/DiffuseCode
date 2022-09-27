@@ -1,5 +1,16 @@
 MODULE do_variable_mod
 !
+private
+!
+public ersetz_variable
+public index_mask
+public del_variables
+public upd_variable
+public show_variables
+public rese_variables
+public validate_variable
+!
+!
 CONTAINS
 !*****7**************************************************************** 
 SUBROUTINE ersetz_variable (line, length, lmask, amask) 

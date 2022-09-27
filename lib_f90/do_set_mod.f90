@@ -1,5 +1,10 @@
 MODULE do_set_mod
 !
+private
+!
+public do_set
+!
+!
 CONTAINS
 !*****7***********************************************************      
 SUBROUTINE do_set (zeile, lp) 

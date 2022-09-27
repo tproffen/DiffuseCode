@@ -1,5 +1,10 @@
 module do_string_alloc_mod
 !
+private
+!
+public do_string_alloc
+public do_set_expression
+!
 contains
 !
 !****7***************************************************************** 

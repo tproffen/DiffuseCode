@@ -1,5 +1,10 @@
 MODULE do_execute_mod
 !
+private
+!
+public do_execute
+public if_test
+!
 CONTAINS
 !
 !*****7**************************************************************** 

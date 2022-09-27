@@ -1,5 +1,9 @@
 MODULE do_if_mod
 !
+private
+!
+public do_loop
+!
 CONTAINS
 !+                                                                      
 !     Handling of blockstructures and all math functions                

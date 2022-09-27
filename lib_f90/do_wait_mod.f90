@@ -1,6 +1,12 @@
 MODULE do_wait_mod
 !
 LOGICAL :: wait_active = .TRUE.
+!
+private
+!
+public wait_active
+public do_input
+!
 CONTAINS
 !                                                                       
 ! Process the 'wait' command

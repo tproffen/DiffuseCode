@@ -1,5 +1,9 @@
 MODULE dummy_loop_mpi_mod
 !
+private
+!
+public dummy_loop_mpi
+!
 CONTAINS
 !
 SUBROUTINE dummy_loop_mpi(prog_n, prog_l, mac_n, mac_l, out_n, out_l, repeat, nindiv)

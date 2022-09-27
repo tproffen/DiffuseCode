@@ -1,5 +1,10 @@
 MODULE define_variable_mod
 !
+private
+!
+public define_variable
+public def_set_variable
+!
 CONTAINS
 !
 !*****7**************************************************************** 

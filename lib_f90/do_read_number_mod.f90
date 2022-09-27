@@ -2,6 +2,11 @@ MODULE do_read_number_mod
 !
 USE precision_mod
 !
+private
+!
+public do_read_number
+public eval
+!
 CONTAINS
 !
 !*****7**************************************************************** 
