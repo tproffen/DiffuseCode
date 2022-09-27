@@ -6,7 +6,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               calc_expr_mod.f90  calc_intr_mod.f90 cmdline_args_mod.f90
               constants_mod.f90
               get_params_mod.f90 count_col_mod.f90 
-              data_struc.f90
+              data_struc.f90 data_struc_type.f90
               define_variable_mod.f90 dkdo.f90 do_echo_mod.f90 do_eval_mod.f90
               do_execute_mod.f90 do_read_number_mod.f90 do_replace_expr.f90
               do_show_mod.f90 do_set_mod.f90
@@ -79,7 +79,7 @@ elseif( DISCUS_OMP)
   if (PGF)
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mp")
   elseif (IFORT)
-    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -openmp")
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -qopenmp")
   else (PGF) # Else assume gfortran
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fopenmp")
   endif (PGF)

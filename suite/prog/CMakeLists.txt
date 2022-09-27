@@ -41,7 +41,7 @@ if( DISCUS_OMP)
   if (PGF)
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mp")
   elseif (IFORT)
-    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -openmp")
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -qopenmp")
   else (PGF) # Else assume gfortran
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fopenmp")
   endif (PGF)
