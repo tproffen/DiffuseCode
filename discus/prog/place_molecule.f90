@@ -798,7 +798,7 @@ USE crystal_mod
    USE chem_mod
 USE deco_mod
    USE discus_allocate_appl_mod
-use discus_init_mod
+!use discus_init_mod
 !   USE discus_plot_init_mod
    USE discus_save_mod
    USE domain_menu
