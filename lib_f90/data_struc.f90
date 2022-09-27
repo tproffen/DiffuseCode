@@ -3,6 +3,7 @@ module lib_data_struc_h5
 !  Contains routines to build the lib_f90 data structure, based on HDF5
 !+
 use lib_hdf5_params_mod
+use lib_data_struc_type_mod
 !
 use hdf5_def_mod
 use precision_mod
@@ -57,35 +58,35 @@ integer, dimension(MAXKURVTOT)                        :: h5_ku_is_h5 = 0   ! Poi
 integer, dimension(MAXKURVTOT)                        :: h5_h5_is_ku = 0   ! Pointer from h5 number to kuplot number
 integer                                               :: h5_number   = 0   ! Currently loaded h5 data sets
 !
-type :: h5_data_struc
-   integer                                               :: data_num       ! Current data set number
-   character(len=PREC_STRING)                            :: infile         ! input file
-   integer                                               :: layer=1        ! Current layer in data set
-   LOGICAL                                               :: direct         ! Direct space == TRUE
-   integer                                               :: ndims          ! Number of dimensions
-   integer              , dimension(3)                   :: dims           ! Actual dimensions
-   logical                                               :: is_grid        ! Data have grid like coordinates
-   logical                                               :: has_dxyz       ! Data have uncertainties in xyz
-   logical                                               :: has_dval       ! Data have uncertainties in value
-   real(kind=PREC_DP)   , dimension(3,4)                 :: corners ! (3,4)
-   real(kind=PREC_DP)   , dimension(3,3)                 :: vectors
-   real(kind=PREC_DP)   , dimension(3)                   :: cr_a0
-   real(kind=PREC_DP)   , dimension(3)                   :: cr_win
-   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: x              ! Actual x-coordinates
-   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: y              ! Actual y-coordinates
-   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: z              ! Actual z-coordinates
-   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: dx             ! Actual x-coordinates uncertainties
-   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: dy             ! Actual y-coordinates uncertainties
-   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: dz             ! Actual z-coordinates uncertainties
-   real(kind=PREC_DP)   , dimension(:,:,:), allocatable  :: datamap        ! Actual diffraction data
-   real(kind=PREC_DP)   , dimension(:,:,:), allocatable  :: sigma          ! Actual diffraction data uncertainties
-   real(kind=PREC_DP)   , dimension(3)                   :: llims          ! Lower limits
-   real(kind=PREC_DP)   , dimension(3)                   :: steps          ! steps in H, K, L
-   real(kind=PREC_DP)   , dimension(3,3)                 :: steps_full     ! steps in H, K, L
-   real(kind=PREC_DP)   , dimension(2)                   :: minmaxval      ! data extreme values
-   real(kind=PREC_DP)   , dimension(3,2)                 :: minmaxcoor     ! coordinates extreme values
-   type(h5_data_struc), pointer                          :: after
-end type h5_data_struc
+!type :: h5_data_struc
+!   integer                                               :: data_num       ! Current data set number
+!   character(len=PREC_STRING)                            :: infile         ! input file
+!   integer                                               :: layer=1        ! Current layer in data set
+!   LOGICAL                                               :: direct         ! Direct space == TRUE
+!   integer                                               :: ndims          ! Number of dimensions
+!   integer              , dimension(3)                   :: dims           ! Actual dimensions
+!   logical                                               :: is_grid        ! Data have grid like coordinates
+!!   logical                                               :: has_dxyz       ! Data have uncertainties in xyz
+!   logical                                               :: has_dval       ! Data have uncertainties in value
+!   real(kind=PREC_DP)   , dimension(3,4)                 :: corners ! (3,4)
+!   real(kind=PREC_DP)   , dimension(3,3)                 :: vectors
+!   real(kind=PREC_DP)   , dimension(3)                   :: cr_a0
+!   real(kind=PREC_DP)   , dimension(3)                   :: cr_win
+!   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: x              ! Actual x-coordinates
+!   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: y              ! Actual y-coordinates
+!   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: z              ! Actual z-coordinates
+!   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: dx             ! Actual x-coordinates uncertainties
+!   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: dy             ! Actual y-coordinates uncertainties
+!   real(kind=PREC_DP)   , dimension(:)    , allocatable  :: dz             ! Actual z-coordinates uncertainties
+!   real(kind=PREC_DP)   , dimension(:,:,:), allocatable  :: datamap        ! Actual diffraction data
+!   real(kind=PREC_DP)   , dimension(:,:,:), allocatable  :: sigma          ! Actual diffraction data uncertainties
+!   real(kind=PREC_DP)   , dimension(3)                   :: llims          ! Lower limits
+!   real(kind=PREC_DP)   , dimension(3)                   :: steps          ! steps in H, K, L
+!   real(kind=PREC_DP)   , dimension(3,3)                 :: steps_full     ! steps in H, K, L
+!   real(kind=PREC_DP)   , dimension(2)                   :: minmaxval      ! data extreme values
+!   real(kind=PREC_DP)   , dimension(3,2)                 :: minmaxcoor     ! coordinates extreme values
+!   type(h5_data_struc), pointer                          :: after
+!end type h5_data_struc
 !
 type(h5_data_struc), pointer                          :: h5_root => NULL()
 type(h5_data_struc), pointer                          :: h5_temp => NULL()
@@ -137,7 +138,7 @@ call dgl5_find_node(old, ier_num, ier_typ)
 call dgl5_new_node
 h5_temp%infile     = h5_find%infile         ! input file
 h5_temp%layer      = h5_find%layer          ! Current layer in data set
-h5_temp%direct     = h5_find%direct         ! Direct space == TRUE
+h5_temp%is_direct     = h5_find%is_direct         ! Direct space == TRUE
 h5_temp%ndims      = h5_find%ndims          ! Number of dimensions
 h5_temp%dims       = h5_find%dims           ! Actual dimensions
 h5_temp%is_grid    = h5_find%is_grid        ! Data are on periodic grid
@@ -201,7 +202,7 @@ real(kind=PREC_DP), dimension(3,3)      , intent(in) :: l_steps_full     ! steps
 !
 h5_temp%infile   = l_infile         ! input file
 h5_temp%layer    = l_layer          ! Current layer in data set
-h5_temp%direct   = l_direct         ! Direct space == TRUE
+h5_temp%is_direct   = l_direct         ! Direct space == TRUE
 h5_temp%ndims    = l_ndims          ! Number of dimensions
 h5_temp%dims     = l_dims           ! Actual dimensions
 h5_temp%is_grid  = l_is_grid        ! Actual dimensions
@@ -281,7 +282,7 @@ real(kind=PREC_DP), dimension(3,2)           , intent(out) :: l_minmaxcoor      
 !
 l_infile   = h5_temp%infile         ! input file
 l_layer    = h5_temp%layer          ! Current layer in data set
-l_direct   = h5_temp%direct         ! Direct space == TRUE
+l_direct   = h5_temp%is_direct         ! Direct space == TRUE
 l_ndims    = h5_temp%ndims          ! Number of dimensions
 l_dims     = h5_temp%dims           ! Actual dimensions
 l_is_grid  = h5_temp%is_grid        ! Actual dimensions
@@ -473,7 +474,7 @@ LOGICAL function dgl5_get_direct()
 !
 implicit none
 !
-dgl5_get_direct = h5_temp%direct
+dgl5_get_direct = h5_temp%is_direct
 !
 end function dgl5_get_direct
 !
