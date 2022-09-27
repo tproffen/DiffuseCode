@@ -196,7 +196,7 @@ REAL(kind=PREC_DP), DIMENSION(MAXP,2)     , INTENT(IN) :: prange      ! Paramete
 REAL(kind=PREC_DP), DIMENSION(NPARA,NPARA), INTENT(IN) :: cl          ! Covariance matrix
 CHARACTER(LEN=*)  , DIMENSION(MAXF)       , INTENT(IN) :: fixed       ! Fixed parameter names
 REAL(kind=PREC_DP), DIMENSION(MAXF)       , INTENT(IN) :: pf          ! Fixed parameter values
-LOGICAL           , DIMENSION(3)          , intent(out):: lconv       ! Convergence criteria
+LOGICAL           , DIMENSION(3)          , intent(in) :: lconv       ! Convergence criteria
 LOGICAL                                   , INTENT(IN) :: conv_status ! Apply convergence criteria
 REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_dp_sig ! Max parameter shift
 REAL(kind=PREC_DP)                        , INTENT(IN) :: conv_dchi2  ! Max Chi^2     shift
