@@ -102,8 +102,6 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
 integer, parameter, dimension(3) :: nxyzstart = (/0,0,0/)
-integer           , dimension(3) :: nxxxstart = (/0,0,0/)
-integer :: mode
 !                                                                       
 DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax', 'patt'  ,'sel', 'des', 'mode', 'type' /
 DATA loname /  6      ,  5      ,  4      ,  6      ,  4      , 3   ,  3   ,  4    ,  4     /
