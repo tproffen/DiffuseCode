@@ -11,6 +11,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous)
       USE kuplot_2dm
 !
 !USE kuplot_fit_old_mod
+use kuplot_adt_mod
 use kuplot_blk_mod
 use kuplot_calc_mod
 use kuplot_color_mod
@@ -152,6 +153,8 @@ CHARACTER(LEN=8)           :: bef
 !-------  Start of KUPLOT specific commands                             
 !-------  Allocate memory for new dataset                               
 !                                                                       
+         elseif(str_comp(bef, 'adt', 3, lbef, 3)) then
+            call adt_menu()
          ELSEIF (str_comp (bef, 'allocate', 2, lbef, 8) ) then 
             CALL do_allocate (zei, lc, .TRUE.) 
 !                                                                       

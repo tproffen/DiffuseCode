@@ -13,6 +13,7 @@ set (SOURCE_MAIN kuplot.f90 )
 set (SOURCES_ALL kuplot_blk_appl.f90 calc.f90 color.f90 draw.f90 
 	kuplot_err_appl.f90 kuplot_exit.f90 fit_top.f90 fit.f90 frame.f90 gsas.f90 
 	fit_macro.f90 fit_mache_kdo.f90 fit_params_mod.f90 fit_set_sub_mod.f90
+        kuplot_adt.f90 kuplot_kdo_common.f90
         kuplot_diffev_plot.f90 kuplot_draw_low.f90 kuplot_draw_tframe.f90
         kuplot_extrema.f90 kuplot_global.f90
 	kuplot_kdo.f90 koordinate_mod.f90 kuplot_loop.f90  kuplot_low.f90
