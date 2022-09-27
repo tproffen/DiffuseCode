@@ -348,8 +348,8 @@ use precision_mod
 !
 implicit none
 !
-integer, dimension(2), intent(out) :: isel            ! selected molecule numbers
-integer              , intent(out) :: nmoles          ! number of selected molecules 1/2
+integer, dimension(2), intent(in ) :: isel            ! selected molecule numbers
+integer              , intent(in ) :: nmoles          ! number of selected molecules 1/2
 integer              , intent(in ) :: n_corr          ! Number of correlations defined by user
 integer              , intent(in ) :: MAXCOR          ! MAXIMUM number correlations
 integer              , intent(in ) :: N_ENERGY        ! Maximum number energies

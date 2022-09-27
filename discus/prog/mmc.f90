@@ -2903,7 +2903,7 @@ REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdj ! (CHEM_MAX_CO
 REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_old
 REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_new
 LOGICAL                           , INTENT(INOUT) :: done
-LOGICAL                           , INTENT(OUT) :: loop
+LOGICAL                           , INTENT(in ) :: loop
 INTEGER                           , INTENT(INOUT)  :: iacc_good
 INTEGER                           , INTENT(INOUT)  :: iacc_neut
 INTEGER                           , INTENT(INOUT)  :: iacc_bad
@@ -3133,7 +3133,7 @@ REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdj ! (CHEM_MAX_CO
 REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_old
 REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_new
 LOGICAL                           , INTENT(INOUT) :: done
-LOGICAL                           , INTENT(OUT) :: loop
+LOGICAL                           , INTENT(in ) :: loop
 INTEGER                           , INTENT(INOUT)  :: iacc_good
 INTEGER                           , INTENT(INOUT)  :: iacc_neut
 INTEGER                           , INTENT(INOUT)  :: iacc_bad
@@ -3606,13 +3606,13 @@ REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(I
 INTEGER, DIMENSION(     MMC_MAX_CENT_L)                 , INTENT(INOUT) :: natom
 LOGICAL, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: tatom
 INTEGER                                                 , INTENT(INOUT) :: ncent
-LOGICAL                           , INTENT(OUT) :: laccept
+LOGICAL                           , INTENT(in ) :: laccept
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdi ! (CHEM_MAX_COR) 
 REAL(KIND=PREC_DP), DIMENSION(CHEM_MAX_COR), INTENT(INOUT) :: rdj ! (CHEM_MAX_COR) 
 REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_old
 REAL(kind=PREC_DP)   , DIMENSION(0:MC_N_ENERGY) , INTENT(INOUT) :: e_new
 LOGICAL                           , INTENT(INOUT) :: done
-LOGICAL                           , INTENT(OUT) :: loop
+LOGICAL                           , INTENT(in ) :: loop
 INTEGER                           , INTENT(INOUT)  :: iacc_good
 INTEGER                           , INTENT(INOUT)  :: iacc_neut
 INTEGER                           , INTENT(INOUT)  :: iacc_bad
@@ -3832,20 +3832,20 @@ INTEGER, DIMENSION(2)             , INTENT(IN)  :: wjks            ! Index of Co
 INTEGER                           , INTENT(IN)  :: ichoose         ! Which atom to choose within isel
 INTEGER                           , INTENT(IN)  :: imode           ! How to chose an atom 
 INTEGER, DIMENSION(MMC_MAX_ATOM_L), INTENT(OUT) :: isel !(chem_max_atom) 
-INTEGER, DIMENSION(2)             , INTENT(OUT) :: is
-INTEGER                           , INTENT(OUT) :: iselz
-INTEGER                           , INTENT(OUT) :: iselz2
-INTEGER                           , INTENT(OUT) :: natoms
+INTEGER, DIMENSION(2)             , INTENT(in ) :: is
+INTEGER                           , INTENT(in ) :: iselz
+INTEGER                           , INTENT(in ) :: iselz2
+INTEGER                           , INTENT(in ) :: natoms
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: iatom
 REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
 INTEGER, DIMENSION(     MMC_MAX_CENT_L)                 , INTENT(INOUT) :: natom
 INTEGER                                                 , INTENT(INOUT) :: ncent
 LOGICAL, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: tatom
-INTEGER, DIMENSION(2, 3)          , INTENT(OUT) :: iz
-INTEGER, DIMENSION(3)             , INTENT(OUT) :: iz1
-INTEGER, DIMENSION(3)             , INTENT(OUT) :: iz2
-LOGICAL                           , INTENT(OUT) :: laccept
-LOGICAL                           , INTENT(OUT) :: loop
+INTEGER, DIMENSION(2, 3)          , INTENT(in ) :: iz
+INTEGER, DIMENSION(3)             , INTENT(in ) :: iz1
+INTEGER, DIMENSION(3)             , INTENT(in ) :: iz2
+LOGICAL                           , INTENT(in ) :: laccept
+LOGICAL                           , INTENT(in ) :: loop
 REAL(KIND=PREC_DP), DIMENSION(2)  , INTENT(INOUT) :: cold  ! old correlation at atom 1,2
 REAL(KIND=PREC_DP), DIMENSION(2)  , INTENT(INOUT) :: cnew  ! old correlation at atom 1,2
 !
@@ -3864,7 +3864,7 @@ INTEGER :: latom                          ! Current atom number
 !INTEGER :: ie                             ! Loop index energy type
 !INTEGER :: jc                             ! Current correlation to improve
 !INTEGER :: js                             ! Loop index atom type 
-!INTEGER :: ks                             ! Loop index atom type 
+!INTEGER :: ks                             ! Loop iin x atom type 
 !INTEGER :: i                              ! Dummy loop index
 INTEGER :: ia                             ! Dummy loop index
 INTEGER :: icent                          ! Dummy loop index
@@ -4031,20 +4031,20 @@ INTEGER, DIMENSION(2)             , INTENT(IN)  :: wjks            ! Index of Co
 INTEGER                           , INTENT(IN)  :: ichoose         ! Which atom to choose within isel
 INTEGER                           , INTENT(IN)  :: imode           ! How to chose an atom 
 INTEGER, DIMENSION(MMC_MAX_ATOM_L), INTENT(OUT) :: isel !(chem_max_atom) 
-INTEGER, DIMENSION(2)             , INTENT(OUT) :: is
-INTEGER                           , INTENT(OUT) :: iselz
-INTEGER                           , INTENT(OUT) :: iselz2
-INTEGER                           , INTENT(OUT) :: natoms
+INTEGER, DIMENSION(2)             , INTENT(in ) :: is
+INTEGER                           , INTENT(in ) :: iselz
+INTEGER                           , INTENT(in ) :: iselz2
+INTEGER                           , INTENT(in ) :: natoms
 INTEGER, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: iatom
 REAL(kind=PREC_DP)   , DIMENSION(3, 0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: patom
 INTEGER, DIMENSION(     MMC_MAX_CENT_L)                 , INTENT(INOUT) :: natom
 INTEGER                                                 , INTENT(INOUT) :: ncent
 LOGICAL, DIMENSION(   0:MAX_ATOM_ENV_L, MMC_MAX_CENT_L) , INTENT(INOUT) :: tatom
-INTEGER, DIMENSION(2, 3)          , INTENT(OUT) :: iz
-INTEGER, DIMENSION(3)             , INTENT(OUT) :: iz1
-INTEGER, DIMENSION(3)             , INTENT(OUT) :: iz2
-LOGICAL                           , INTENT(OUT) :: laccept
-LOGICAL                           , INTENT(OUT) :: loop
+INTEGER, DIMENSION(2, 3)          , INTENT(in ) :: iz
+INTEGER, DIMENSION(3)             , INTENT(in ) :: iz1
+INTEGER, DIMENSION(3)             , INTENT(in ) :: iz2
+LOGICAL                           , INTENT(in ) :: laccept
+LOGICAL                           , INTENT(in ) :: loop
 REAL(KIND=PREC_DP), DIMENSION(2)  , INTENT(INOUT) :: cold  ! old correlation at atom 1,2
 REAL(KIND=PREC_DP), DIMENSION(2)  , INTENT(INOUT) :: cnew  ! old correlation at atom 1,2
 !
@@ -4225,7 +4225,7 @@ INTEGER, DIMENSION(2, 3)          , INTENT(OUT) :: iz
 INTEGER, DIMENSION(3)             , INTENT(OUT) :: iz1
 INTEGER, DIMENSION(3)             , INTENT(OUT) :: iz2
 LOGICAL                           , INTENT(OUT) :: laccept
-LOGICAL                           , INTENT(OUT) :: loop
+LOGICAL                           , INTENT(in ) :: loop
 !
 INTEGER  :: i, j
 REAL(kind=PREC_DP) :: z
