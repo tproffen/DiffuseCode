@@ -1,5 +1,11 @@
 MODULE get_params_mod
 !
+private
+!
+public get_params
+public get_params_blank
+public del_params
+!
 CONTAINS
 !
 !*****7***************************************************************  

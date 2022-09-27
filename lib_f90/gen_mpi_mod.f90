@@ -6,6 +6,8 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
+public
+!
 INTEGER                  :: gen_mpi_myid        ! Id of master or slave
 INTEGER                  :: gen_mpi_numprocs    ! Number of available processors 
 !
