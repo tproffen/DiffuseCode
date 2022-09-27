@@ -282,7 +282,7 @@ use exp2pdf_data_mod
 use fourier_sup
 use output_mod
 use pdf_mod
-use powder
+use powder_top_mod , only:powder_run, pow_show, pow_conv_limits
 use powder_mod
 use powder_write_mod
 use qval_mod

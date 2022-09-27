@@ -1,4 +1,4 @@
-MODULE powder
+MODULE powder_top_mod
 !
 USE errlist_mod 
 !
@@ -2944,4 +2944,4 @@ END SUBROUTINE powder_reset
 !
 !*******************************************************************************
 !
-END MODULE powder
+END MODULE powder_top_mod

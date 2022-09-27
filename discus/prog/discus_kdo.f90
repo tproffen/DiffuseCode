@@ -36,7 +36,7 @@ USE patters_menu
 use perioditize_mod
 USE pdf_menu
 USE discus_plot_menu
-USE powder
+USE powder_top_mod
 USE prop_para_func
 USE rmc_menu
 USE save_menu
