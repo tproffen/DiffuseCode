@@ -59,7 +59,7 @@ character(LEN=PREC_STRING) :: line
 character(LEN=PREC_STRING) :: message
 integer            :: i, j,l, irec, ios
 integer            :: l_datei
-real(kind=PREC_DP)               :: sqq
+!real(kind=PREC_DP)               :: sqq
 !
 !
 call no_error
@@ -140,9 +140,12 @@ end subroutine mrc_write
 !
 !*******************************************************************************
 !
-subroutine mrc_read(outfile,                                                   &
-                     dims, mode, nxyzstart, cr_a, cr_win                       &
-                    )
+subroutine mrc_read(outfile, node_number)
+!                                       &
+! ) 
+!                    dims, mode, nxyzstart, cr_a, cr_win                       &
+! ) 
+!                   )
 !
 use envir_mod
 use errlist_mod
@@ -153,20 +156,16 @@ use precision_mod
 !
 implicit none
 !
-character(len=*)                , intent(in) :: outfile
-integer           , dimension(3), intent(out) :: dims
-integer                         , intent(out) :: mode
-integer           , dimension(3), intent(out) :: nxyzstart
-real(kind=PREC_DP), dimension(3), intent(out) :: cr_a
-real(kind=PREC_DP), dimension(3), intent(out) :: cr_win
-integer           , dimension(3)              :: origin
+character(len=*)                , intent(in)  :: outfile
+integer                         , intent(out) :: node_number      ! Node in global storage
+!
 real(kind=PREC_DP), dimension(:,:,:), allocatable              :: odata
-character(len=3 )                             :: cmap
+!character(len=3 )                             :: cmap
 integer                                       :: ispg
 integer           , dimension(3)              :: dims_step
-integer :: machst
+!integer :: machst
 integer :: extend_b        ! extended header in Bytes
-integer :: extend_w        ! extended header in word
+!integer :: extend_w        ! extended header in word
 integer(kind=PREC_INT_BYTE) :: ibyte
 !
 integer, parameter :: IMRC = 97
@@ -177,8 +176,8 @@ integer, parameter :: IMRC = 97
 !integer, parameter :: nystart = 0
 !integer, parameter :: nzstart = 0
 !
-integer, parameter :: record   =    4   ! Record is four Byte long
-integer, parameter :: base_hdr =  256   ! Standard header size in Words=1024 Byte
+!integer, parameter :: record   =    4   ! Record is four Byte long
+!integer, parameter :: base_hdr =  256   ! Standard header size in Words=1024 Byte
 !integer, parameter :: extend_b = 3072   ! = (1024 - 256)*4 extended in Bytes
 !                                          ! extend_b must be multiple of 4
 !integer, parameter :: extend_w = extend_b/record ! =(1024 - 256)   extended in Words
@@ -187,23 +186,27 @@ character(LEN=PREC_STRING) :: filename
 character(LEN=PREC_STRING) :: line
 character(LEN=PREC_STRING) :: message
 character(len=80)  :: label
-integer            :: i, j,l, irec, ios
+integer            :: i, ios
 integer            :: l_datei
 integer            :: ilabel      ! Number of text labels in header
+integer           , dimension(3) :: dims
+integer                          :: mode
+integer           , dimension(3) :: nxyzstart
+real(kind=PREC_DP), dimension(3) :: cr_a
+real(kind=PREC_DP), dimension(3) :: cr_win
 integer           , dimension(3) :: extr_abs
 real(kind=PREC_SP), dimension(3) :: m_cr_a
 real(kind=PREC_SP), dimension(3) :: m_cr_win
 integer(kind=PREC_INT_SHORT), dimension(2) :: short       ! If MODE==1  16 Bit signed integer
 integer(kind=PREC_INT_SHORT)               :: numint      ! If MODE==1  16 Bit signed integer
 integer(kind=PREC_INT_SHORT)               :: numfloat    ! If MODE==1  16 Bit signed integer
-real(kind=PREC_SP)               :: sqq         ! IF MODE==2  32Byte floating
+!real(kind=PREC_SP)               :: sqq         ! IF MODE==2  32Byte floating
 real(kind=PREC_SP)               :: maxdata, mindata
 real(kind=PREC_SP)               :: avdata
 integer(kind=PREC_INT_SHORT), dimension(:,:,:), allocatable :: short_map
 !
 ! Variable for global storage
 !
-integer   :: node_number      ! Node in global storage
 integer   :: nndims          ! Number of dimensions 
 integer                 :: mrc_layer
 logical                 :: mrc_direct
@@ -246,7 +249,7 @@ if(ios/=0) then
    return
 endif
 !
-!  Write header is identical to all 
+!  Read header; is identical to all 
 !
 read(IMRC) dims                 ! Dimension column, row, slices
 read(IMRC) mode                 ! Data type = 2 32-bit real
@@ -261,94 +264,71 @@ read(IMRC) avdata                                            ! Average density
 read(IMRC) short(1)             ! 0 = image
 read(IMRC) short(2)             ! number of bytes for storing symmetry information
 ispg = short(1)
-write(*,*) ' MRC DIMS     ', dims
-write(*,*) ' MRC MODE     ', mode
-write(*,*) ' MRC START    ', nxyzstart
-write(*,*) ' MRC STEPS    ', dims_step
-write(*,*) ' MRC A0       ', m_cr_a
-write(*,*) ' MRC win      ', m_cr_win
-write(*,*) ' MRC EXTR     ', extr_abs
-write(*,*) ' MRC min      ', mindata
-write(*,*) ' MRC max      ', maxdata
-write(*,*) ' MRC ave      ',  avdata
-write(*,*) ' MRC ispg     ', 88, ispg
-write(*,*) ' MRC symm     ', 90, short(2)
+!write(*,*) ' MRC DIMS     ', dims
+!write(*,*) ' MRC MODE     ', mode
+!write(*,*) ' MRC START    ', nxyzstart
+!write(*,*) ' MRC STEPS    ', dims_step
+!write(*,*) ' MRC A0       ', m_cr_a
+!write(*,*) ' MRC win      ', m_cr_win
+!write(*,*) ' MRC EXTR     ', extr_abs
+!write(*,*) ' MRC min      ', mindata
+!write(*,*) ' MRC max      ', maxdata
+!write(*,*) ' MRC ave      ',  avdata
+!write(*,*) ' MRC ispg     ', 88, ispg
+!write(*,*) ' MRC symm     ', 90, short(2)
 read(IMRC) extend_b                ! Extended header length in Bytes
-write(*,*) ' MRC Extended ', 92, extend_b
+!write(*,*) ' MRC Extended ', 92, extend_b
 read(IMRC) short(1)             ! 0 = image
-write(*,*) ' MRC Creator  ', 96, short(1)
+!write(*,*) ' MRC Creator  ', 96, short(1)
 do i = 98,127
    read(IMRC) ibyte             ! 0
 !  write(*,*) ' MRC BYTE     ',  i, ibyte
 enddo
 read(IMRC) numint, numfloat    ! 0 = image
-write(*,*) ' MRC NI NF    ', 128, numint, numfloat
+!write(*,*) ' MRC NI NF    ', 128, numint, numfloat
 do i = 132, 219
    read(IMRC) ibyte             ! 0
 !  write(*,*) ' MRC BYTE     ',  i, ibyte
 enddo
 read(IMRC) ilabel
-write(*,*) ' MRC LABELS   ', 220, ilabel
+!write(*,*) ' MRC LABELS   ', 220, ilabel
 do i=1, ilabel
    read(IMRC) label
-   write(*,*) ' MRC LABELS   ', 224 +(i-1)*80, label
+!   write(*,*) ' MRC LABELS   ', 224 +(i-1)*80, label
 enddo
 do i=1, 10-ilabel
    read(IMRC) label
 enddo
-write(*,*) 'Starting to read extended header'
-!  End of standard header
+!write(*,*) 'Starting to read extended header'
+!  End of standard header at 1024 Bytes
 do i=1,extend_b
    read(IMRC) ibyte
 enddo
 !!
-write(*,*) 'Starting to read map'
+!write(*,*) 'Starting to read map'
 allocate(odata(dims(1), dims(2), dims(3)))
 odata = 0.0D0
-!irec = base_hdr + extend_w              ! Image is after base + extended header
-!irec = 256
 !
 if(mode==1) then                         ! Image is short integer
    allocate(short_map(dims(1), dims(2), dims(3)))
+   short_map = 0
    read(IMRC) short_map
    odata = real(short_map, kind=PREC_DP)
-write(*,*) 'Finished to read map'
-!   do l = 1, dims(3)
-!      do j = 1, dims(2)
-!         do i = 1, dims(1), 2
-!            irec = irec + 1
-!            read(IMRC,rec=irec) short(1:2)
-!!write(*,*) ' i,j,l ', i,j,l, sqq
-!            odata(i  ,j,l) = real(short(1),kind=PREC_DP)
-!            odata(i+1,j,l) = real(short(2),kind=PREC_DP)
-!         enddo
-!      enddo
-!   enddo
 elseif(mode==2) then
    read(IMRC) odata
-   do l = 1, dims(3)
-      do j = 1, dims(2)
-         do i = 1, dims(1)
-            irec = irec + 1
-            read(IMRC,rec=irec) sqq 
-!write(*,*) ' i,j,l ', i,j,l, sqq
-            odata(i,j,l) = real(sqq,kind=PREC_DP)
-         enddo
-      enddo
-   enddo
 endif
 close(imrc)
-write(*,*) ' S_MAP ', minval(short_map), maxval(short_map)
-write(*,*) ' ODATA ', minval(odata), maxval(odata)
-open(IMRC,file='discus_frame.301', status='unknown')
-write(IMRC,'(2i8)')  dims(1), dims(2)
-write(IMRC,'(4f8.1)') 1.0, dims(1)*1.0, 1.0, dims(2)*1.0
+!write(*,*) ' S_MAP ', minval(short_map), maxval(short_map)
+!write(*,*) ' ODATA ', minval(odata), maxval(odata)
+!open(IMRC,file='discus_frame.301', status='unknown')
+!write(IMRC,'(2i8)')  dims(1), dims(2)
+!write(IMRC,'(4f8.1)') 1.0, dims(1)*1.0, 1.0, dims(2)*1.0
 !write(IMRC,'(4f8.1)') 1024.0,  1024.+600., 1024.-300., 1024+300.
 !do i=1024-300 , 1024+300
-do i=1, dims(2)
-  write(IMRC, '(10f12.1)')  (short_map(j,i,301)*1.0,j=1, dims(1))
-enddo
-close(IMRC)
+!do i=1, dims(2)
+!  write(IMRC, '(10f12.1)')  (short_map(j,i,301)*1.0,j=1, dims(1))
+!enddo
+!close(IMRC)
 !
 !  Place into global storage
 !
@@ -428,13 +408,13 @@ do i=1, dims(3)
   mrc_z(i) = mrc_llims(3) + (i-1)*mrc_steps_full(3,3)
 enddo
 !
-write(*,*) ' MAKE GLOBAL STORAGE '
+!write(*,*) ' MAKE GLOBAL STORAGE '
 call dgl5_set_node(filename , mrc_layer, mrc_direct, nndims,    dims ,         &
                    mrc_is_grid, mrc_has_dxyz, mrc_has_dval, mrc_corners, mrc_vectors,&
                    mrc_unit(1:3), mrc_unit(4:6), mrc_x, mrc_y, mrc_z, mrc_dx, mrc_dy,  &
                    mrc_dz,        odata               ,   osigma, mrc_llims,      &
                    mrc_steps, mrc_steps_full)
-write(*,*) ' DONE GLOBAL STORAGE '
+!write(*,*) ' DONE GLOBAL STORAGE '
 !
 deallocate(mrc_x)
 deallocate(mrc_y)
