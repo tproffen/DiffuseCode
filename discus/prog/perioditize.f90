@@ -630,9 +630,9 @@ do i=1, cr_natoms
    pdt_dims(3,2) = max(pdt_dims(3,2), cr_pos(3,i))
 enddo
 !
-write(*,'(a, f9.5, 2x, f9.5)') ' dims x ', pdt_dims(1,:)
-write(*,'(a, f9.5, 2x, f9.5)') ' dims y ', pdt_dims(2,:)
-write(*,'(a, f9.5, 2x, f9.5)') ' dims z ', pdt_dims(3,:)
+!write(*,'(a, f9.5, 2x, f9.5)') ' dims x ', pdt_dims(1,:)
+!write(*,'(a, f9.5, 2x, f9.5)') ' dims y ', pdt_dims(2,:)
+!write(*,'(a, f9.5, 2x, f9.5)') ' dims z ', pdt_dims(3,:)
 !
 pdt_ilow = 0
 pdt_ihig = 0
@@ -649,7 +649,7 @@ do i=1, 3
    endif
    pdt_ncells = pdt_ncells * (pdt_ihig(i)-pdt_ilow(i)+1)
    ncell_out(i) = (pdt_ihig(i)-pdt_ilow(i)+1)
-write(*,'( i3,  i3, i3 )' ) i, pdt_ilow(i), pdt_ihig(i)
+!write(*,'( i3,  i3, i3 )' ) i, pdt_ilow(i), pdt_ihig(i)
 enddo
 pdt_usr_ncell = .false.              ! Unit cells were estimates automatically
 !
