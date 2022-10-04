@@ -15,6 +15,10 @@ INTEGER, PARAMETER ::       ST_F_SUB = 2
 INTEGER, PARAMETER ::       ST_DIST_MATRIX = 0
 INTEGER, PARAMETER ::       ST_DIST_FILE   = 1
 INTEGER, PARAMETER ::       ST_DIST_LIST   = 2
+!     
+integer, parameter ::       ST_ATOM_OFF    =  0
+integer, parameter ::       ST_ATOM_ON     =  1
+integer, parameter ::       ST_ATOM_STRICT = -1
 !
 INTEGER            ::  st_layer_increment  = 5
 !
@@ -60,6 +64,7 @@ INTEGER                                    :: st_nchem         = 0
 INTEGER                                    :: st_first         = 0
 integer                                    :: st_ncunit        = 1  ! Number of layers per unit translation
 LOGICAL                                    :: st_mod_sta       = .false.
+integer                                    :: st_mod_atom      = 0
 LOGICAL                                    :: st_tra_aver      = .false.
 LOGICAL                                    :: st_rot_mode      = .false.
 LOGICAL                                    :: st_rot_status    = .false.

@@ -688,56 +688,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !     ----Set parameters                    'set'                       
 !                                                                       
    ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.eq.0) then 
-         IF (str_comp (cpara (1) , 'aver', 1, lpara (1) , 4)) then                                             
-            IF (ianz.eq.2) then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               ianz = 1 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw)                                        
-               IF (ier_num.eq.0) then 
-                  st_aver = werte (1) 
-               ENDIF 
-            ELSEIF (ianz.eq.1) then 
-               st_aver = 0.0 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'modu', 1, lpara (1) , 4) ) then                                        
-            IF (ianz.eq.2) then 
-               IF (str_comp (cpara (2) , 'off', 2, lpara (2) , 3) ) then                                  
-                  st_mod_sta = .false. 
-               ELSEIF (str_comp (cpara (2) , 'on', 2, lpara &
-               (2) , 2) ) then                              
-                  st_mod_sta = .true. 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'tran', 1, lpara (1) , 4) ) then                                        
-            IF (ianz.eq.2) then 
-               IF(str_comp(cpara(2), 'aver', 1, lpara(2), 4) ) then
-                  st_tra_aver = .true. 
-               ELSEIF (str_comp (cpara (2) , 'fixed', 1, lpara (2) , 5) ) then                        
-                  st_tra_aver = .false. 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-         ENDIF 
-      ENDIF 
+      call stack_set(zeile, lp)
 !                                                                       
 !     ----show current parameters 'show'                                
 !                                                                       
@@ -813,6 +764,153 @@ ENDDO loop_main
 prompt = orig_prompt
 !                                                                       
 END SUBROUTINE stack                          
+!
+!*****7*****************************************************************
+!
+subroutine stack_set(zeile, lp)
+!-
+!   Perform all 'set' commands for stack
+!+
+use stack_mod
+!
+use ber_params_mod
+use errlist_mod
+use get_params_mod
+use precision_mod
+use str_comp_mod
+use take_param_mod
+!
+implicit none
+!
+character(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp
+!
+integer, parameter :: MAXW = 6
+!                                                                       
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara
+INTEGER                   , DIMENSION(MAXW) :: lpara
+REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
+integer                                     :: ianz
+!
+!
+integer, parameter :: NOPTIONAL = 4
+integer, parameter :: O_AVER    = 1
+integer, parameter :: O_MOD     = 2
+integer, parameter :: O_TRANS   = 3
+integer, parameter :: O_ATOM    = 4
+character(LEN=   7), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 1 ! Number of values to calculate 
+!
+data oname  / 'aver', 'modulus',  'trans',  'atoms'   /
+data loname /  2    ,  7       ,   4     ,   5       /
+opara  =  (/ '0.0000', 'on    ', 'fixed ', 'off   ' /)   ! Always provide fresh default values
+lopara =  (/  6,        2,        5      ,  3       /)
+owerte =  (/  0.0D0,    1.0D0,    1.0D0  ,  real(ST_ATOM_OFF,KIND=PREC_DP) /)
+!
+!
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num /= 0) then 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   return
+ENDIF 
+!
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF (ier_num /= 0) then 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   return
+ENDIF 
+!
+         IF (str_comp (cpara (1) , 'aver', 1, lpara (1) , 4)) then                                             
+            IF (ianz.eq.2) then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               ianz = 1 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw)                                        
+               IF (ier_num.eq.0) then 
+                  st_aver = werte (1) 
+               ENDIF 
+            ELSEIF (ianz.eq.1) then 
+               st_aver = 0.0 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ELSEIF (str_comp (cpara (1) , 'modu', 1, lpara (1) , 4) ) then                                        
+            IF (ianz.eq.2) then 
+               IF (str_comp (cpara (2) , 'off', 2, lpara (2) , 3) ) then                                  
+                  st_mod_sta = .false. 
+               ELSEIF (str_comp (cpara (2) , 'on', 2, lpara &
+               (2) , 2) ) then                              
+                  st_mod_sta = .true. 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ELSEIF (str_comp (cpara (1) , 'tran', 1, lpara (1) , 4) ) then                                        
+            IF (ianz.eq.2) then 
+               IF(str_comp(cpara(2), 'aver', 1, lpara(2), 4) ) then
+                  st_tra_aver = .true. 
+               ELSEIF (str_comp (cpara (2) , 'fixed', 1, lpara (2) , 5) ) then                        
+                  st_tra_aver = .false. 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+else     ! optional parameter style was used
+   if(lpresent(O_AVER)) then
+      st_aver = owerte(O_AVER)
+   endif
+   if(lpresent(O_MOD )) then
+      if(str_comp(opara(O_MOD), 'off', 3, lopara(O_MOD), 3)) then
+         st_mod_sta = .false.
+      elseif(str_comp(opara(O_MOD), 'on', 2, lopara(O_MOD), 2)) then
+         st_mod_sta = .true.
+      else
+         ier_num = - 6
+         ier_typ = ER_COMM
+      endif
+   endif
+   if(lpresent(O_TRANS )) then
+      if(str_comp(opara(O_TRANS), 'aver', 1, lopara(O_TRANS), 4)) then
+         st_tra_aver = .true.
+      elseif(str_comp(opara(O_TRANS), 'fixed', 1, lopara(O_TRANS), 5)) then
+         st_tra_aver = .false.
+      else
+         ier_num = - 6
+         ier_typ = ER_COMM
+      endif
+   endif
+ENDIF 
+st_mod_atom = nint(owerte(O_ATOM))
+if(lpresent(O_ATOM)) then
+   if(str_comp(opara(O_ATOM), 'off', 3, lopara(O_ATOM), 3)) then
+      st_mod_atom = ST_ATOM_OFF
+   elseif(str_comp(opara(O_ATOM), 'strict', 3, lopara(O_ATOM), 6)) then
+      st_mod_atom = ST_ATOM_STRICT
+   elseif(str_comp(opara(O_ATOM), 'on', 2, lopara(O_ATOM), 2)) then
+      st_mod_atom = ST_ATOM_ON 
+   else
+      ier_num = - 6
+      ier_typ = ER_COMM
+   endif
+endif
+!
+end subroutine stack_set
 !
 !*****7*****************************************************************
 !
@@ -1273,9 +1371,14 @@ loop_layer: DO i = 2, st_nlayer
 !     --Add translation vector to last origin                           
 !  Adding the modulo vector ensures that origins stay in [0,1[ range
 !                                                                       
-   st_origin (1, i) = st_origin (1, i - 1) + st_trans_cur (1) + st_mod(1,1) + st_mod(1,2) 
-   st_origin (2, i) = st_origin (2, i - 1) + st_trans_cur (2) + st_mod(2,1) + st_mod(2,2)
-   st_origin (3, i) = st_origin (3, i - 1) + st_trans_cur (3) + st_mod(3,1) + st_mod(3,2)
+   st_origin (1, i) = st_origin (1, i - 1) + st_trans_cur (1) !+ st_mod(1,1) + st_mod(1,2) 
+   st_origin (2, i) = st_origin (2, i - 1) + st_trans_cur (2) !+ st_mod(2,1) + st_mod(2,2)
+   st_origin (3, i) = st_origin (3, i - 1) + st_trans_cur (3) !+ st_mod(3,1) + st_mod(3,2)
+   if(st_mod_sta) then      ! Stack modulo is on, add modulo 
+      st_origin (1, i) = st_origin (1, i) + st_mod(1,1) + st_mod(1,2)
+      st_origin (2, i) = st_origin (2, i) + st_mod(2,1) + st_mod(2,2)
+      st_origin (3, i) = st_origin (3, i) + st_mod(3,1) + st_mod(3,2)
+   endif
    IF (.not.lprev) then 
 !DBG                                                                    
 !         IF (i.eq.2) then 
@@ -1522,7 +1625,8 @@ USE sym_add_mod
 USE molecule_mod 
 USE read_internal_mod
 USE discus_save_mod 
-use perioditize_mod, ONLY : estimate_ncells
+use dis_estimate_mod, ONLY : estimate_ncells
+!use save_menu       , only: save_store_setting, save_default_setting, save_restore_setting, save_internal
 USE stack_mod  
 USE structur  
 USE symm_sup_mod
@@ -1545,14 +1649,25 @@ INTEGER          :: nscats=0, max_nscats=0
 INTEGER          ::         max_n_mole=0
 INTEGER          ::         max_n_type=0
 INTEGER          ::         max_n_atom=0
-INTEGER         :: i, j, k
+INTEGER         :: i, j, k, m
 INTEGER         :: iatom 
 INTEGER         :: n_mole=0  ! number of molecules in input file
 INTEGER         :: n_type=0  ! number of molecule types in input file
 INTEGER         :: n_atom=0  ! number of molecule atoms in input file
+integer         :: ndel      ! number of atoms to delete if atom modulus is on
 integer, dimension(3) :: n_cells
 LOGICAL         :: lread, lout 
 LOGICAL           :: need_alloc = .false. 
+!
+! needed for estimate_ncells
+real(kind=PREC_DP), dimension(3, 2):: pdt_dims
+integer           , dimension(3)   :: pdt_ilow      ! Unit cell dimensions in periodic
+integer           , dimension(3)   :: pdt_ihig      ! low and high inidce
+integer                            :: pdt_ncells    ! Number of cells in periodic crystal volume
+!
+real(kind=PREC_DP), dimension(3,2) :: st_dims       ! Crystal dimensions to restrict if module(atom) is active
+integer           , dimension(3)   :: st_idims
+real(kind=PREC_DP), dimension(3)   :: st_adims
 !                                                                       
 !                                                                       
 !     ----read corresponding layer                                      
@@ -1568,6 +1683,28 @@ IF ( MAXVAL(st_number) == 0 ) then
    ier_msg(2) = 'Use the ''create'' command prior to ''run'' '
    RETURN
 ENDIF
+!
+st_dims(:,1) = -huge(1.0D0)
+st_dims(:,2) =  huge(1.0D0)
+if(st_mod_atom/=ST_ATOM_OFF) then          ! Atom modulo function is active
+   do i=1,st_ntypes                        ! Get layer dimensions
+     call stru_internal_get_cr_dim(st_layer(i), cr_dim)
+     st_dims(:,1) = max(st_dims(:,1), cr_dim(:,1))
+     st_dims(:,2) = min(st_dims(:,2), cr_dim(:,2))
+   enddo                                   ! Current maximum dimensions, used for modulo_shift
+   st_adims(:) = real(nint(real(ceiling(st_dims(:,2)),kind=PREC_DP) - &
+                           real(floor  (st_dims(:,1)),kind=PREC_DP)))
+!
+   if(st_mod_atom==ST_ATOM_ON) then        ! Keepd current dimensions
+      st_dims(:,1) = real(floor  (st_dims(:,1)),kind=PREC_DP)
+      st_dims(:,2) = real(ceiling(st_dims(:,2)),kind=PREC_DP)
+!
+   elseif(st_mod_atom==ST_ATOM_STRICT) then  ! Cut crystal 1 to 2 cells smaller for stricter smoothness
+      st_dims(:,1) = real(ceiling(st_dims(:,1)),kind=PREC_DP)
+      st_dims(:,2) = real(floor  (st_dims(:,2)),kind=PREC_DP)
+   endif
+   st_idims(:) = nint(st_dims(:,2)-st_dims(:,1))
+endif
 !
 more1: IF (st_nlayer.ge.1) then 
 !
@@ -1611,7 +1748,9 @@ more1: IF (st_nlayer.ge.1) then
    ENDIF
    IF( need_alloc) THEN
       CALL alloc_crystal (nscats, natoms)
-      IF ( ier_num /= 0 ) RETURN
+      IF ( ier_num /= 0 ) then
+         RETURN
+      endif
    ENDIF
 !
 !        IF more molecules have been read than were allocated
@@ -1622,7 +1761,9 @@ more1: IF (st_nlayer.ge.1) then
       n_type = MAX(max_n_type +10 ,MOLE_MAX_TYPE)
       n_atom = MAX(max_n_atom +200,MOLE_MAX_ATOM)
       CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
-      IF ( ier_num /= 0 ) RETURN
+      IF ( ier_num /= 0 ) then
+         RETURN
+      endif
    ENDIF
 !
 !                                                                       
@@ -1698,6 +1839,7 @@ more1: IF (st_nlayer.ge.1) then
          CALL symm_op_single 
       ENDIF 
    ENDIF 
+   call stack_atom_modulo(iatom, st_dims, st_idims, st_adims)
 !write(*,*)' MOLECULES ' , mole_num_mole, mole_num_curr, mole_num_atom, mole_num_type
 !do j= 1, mole_num_mole
 !  write(*,*) ' mole_len, mole_typ, mole_off ',mole_len(j), mole_type(j), mole_off(j)
@@ -1822,36 +1964,121 @@ more1: IF (st_nlayer.ge.1) then
 !  write(*,*) ' mole_len, mole_typ, mole_off ',mole_len(j), mole_type(j), mole_off(j)
 !  write(*,*) ' mole_cont ', (mole_cont(mole_off(j)+k),k=1, mole_len(j))
 !enddo
+!     Check if user wants atom modulo as well
+      call stack_atom_modulo(iatom, st_dims, st_idims, st_adims)
    ENDDO layers
 ENDIF more1
 !                                                                       
 CLOSE (ist) 
+!
+if(ier_num==0) then           ! No errors occured
 !                                                                       
 !     Update Crystal dimension                                          
 !                                                                       
-CALL update_cr_dim 
-chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
-                              ! In the rare circumstances that is is the user
+   CALL update_cr_dim 
+   chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
+                              ! In the rare circumstances that it is the user
                               ! has to turn this on explicitly
-chem_quick = .FALSE.
-chem_period(:) = .FALSE.
+   chem_quick = .FALSE.
+   chem_period(:) = .FALSE.
 !
-call estimate_ncells(n_cells)        ! Estimate number of unit cells in the crystal
-n_cells = max(n_cells,1)
-cr_icc = n_cells
-cr_ncatoms = nint(real(cr_natoms) /real(n_cells(1)*n_cells(2)*n_cells(3)))
+   call estimate_ncells(n_cells, pdt_dims, pdt_ilow, pdt_ihig, pdt_ncells) ! Estimate number of unit cells in the crystal
+   n_cells = max(n_cells,1)
+   cr_icc = n_cells
+   cr_ncatoms = nint(real(cr_natoms) /real(n_cells(1)*n_cells(2)*n_cells(3)))
 !
 ! --- Clean up internal memory
 !                                                                       
-loop_clean: do i = 1, st_ntypes           ! Read all layers into internal memory
-   if(st_layer(i)(1:21)=='internal_stack_layer.') then         ! An internal file, delete
-      strucfile = st_layer(i)
-      call store_remove_single(strucfile, ier_num)
-      if(ier_num==-113) ier_num = 0          ! File might have been cleaned up already
-   endif
-enddo loop_clean
+   loop_clean: do i = 1, st_ntypes           ! Read all layers into internal memory
+      if(st_layer(i)(1:21)=='internal_stack_layer.') then         ! An internal file, delete
+         strucfile = st_layer(i)
+         call store_remove_single(strucfile, ier_num)
+         if(ier_num==-113) ier_num = 0          ! File might have been cleaned up already
+      endif
+   enddo loop_clean
+endif
+!
 !                                                                       
 END SUBROUTINE do_stack_fill                  
+!
+!*****7*****************************************************************
+!
+subroutine  stack_atom_modulo(iatom, st_dims, st_idims, st_adims)
+!-
+!  Perform the modulo function for atom positions
+!  If an atom slides outside the intended crystal size st_dim, its removes.
+!+
+!
+use crystal_mod
+use stack_mod
+!
+implicit none
+!
+integer, intent(in) :: iatom
+real(kind=PREC_DP), dimension(3,2), intent(in) :: st_dims       ! Crystal dimensions to restrict if module(atom) is active
+integer           , dimension(3)  , intent(in) :: st_idims
+real(kind=PREC_DP), dimension(3)  , intent(in) :: st_adims
+!
+integer :: j,m
+integer :: ndel
+!
+if(st_mod_sta .and. st_mod_atom/=ST_ATOM_OFF) then
+   loop_atom_mod: do j = iatom, cr_natoms      ! Loop over all atoms in current layer
+      loop_dim: do m=1,3                       ! xyz dimensions
+         if(cr_pos(m,j) < st_dims(m,1)) then   ! Atom is too low shift upward
+            cr_pos(m,j) = cr_pos(m,j) + st_adims(m)
+            if(cr_pos(m,j)>=st_dims(m,2)) then ! Atom is outside flag to delete
+               cr_iscat(j) = -9
+               cycle loop_atom_mod
+            endif
+         elseif(cr_pos(m,j) >= st_dims(m,2) .and. st_idims(m)>0) then  ! Atom is too high
+            cr_pos(m,j) = cr_pos(m,j) - st_adims(m)
+            if(cr_pos(m,j) <st_dims(m,1)) then ! Atom is outside flag to delete
+               cr_iscat(j) = -9
+               cycle loop_atom_mod
+            endif
+         endif
+      enddo loop_dim
+   enddo loop_atom_mod
+!
+   ndel = 0
+   j = iatom
+!
+   loop_atom_rem: do                          ! Loop to remove atoms
+      loop_m:do                               ! Find next atoms with iscat == -9
+         if(cr_iscat(j+ndel)==-9) then        ! Found a candidate
+            ndel = ndel + 1                   ! Need to remove another one
+            if(j+ndel==cr_natoms) then        ! Last atom to delete is last in crystal
+               if(cr_iscat(j+ndel)==-9) then  !   and needs to be removed
+                  ndel = ndel + 1
+                  exit loop_atom_rem
+               else                           !   but is a good atom
+                  exit loop_m
+               endif
+            endif
+         else
+            exit loop_m
+         endif
+      enddo loop_m
+!
+      if(ndel>0) then                         ! We need to remove atoms within the list
+         cr_pos  (:,j   ) = cr_pos  (:,j+ndel)
+         cr_iscat(  j   ) = cr_iscat(  j+ndel)
+         cr_mole (  j   ) = cr_mole (  j+ndel)
+         cr_surf (:,j   ) = cr_surf (:,j+ndel)
+         cr_magn (:,j   ) = cr_magn (:,j+ndel)
+         cr_prop (  j   ) = cr_prop (  j+ndel)
+      endif
+      j = j + 1                               ! Test next atom
+      if(j     ==cr_natoms) then              ! We are at the crystals's end
+         if(cr_iscat(j)==-9) ndel = ndel + 1  !   But this one needs to be removed as well
+         exit loop_atom_rem
+      endif
+   enddo loop_atom_rem
+   cr_natoms = cr_natoms - ndel               ! Update actual atom number
+endif
+!
+end subroutine  stack_atom_modulo
 !
 !*****7*****************************************************************
 !
