@@ -1017,8 +1017,11 @@ SUBROUTINE do_purge (line, length)
 !     Purges the list of atoms from all deleted atoms                   
 !+                                                                      
 USE discus_config_mod 
+use crystal_mod
+use chem_mod
 USE conn_mod
 USE molecule_mod 
+use dis_estimate_mod     , only: estimate_ncells
 USE update_cr_dim_mod
 !
 USE errlist_mod 
@@ -1038,7 +1041,13 @@ INTEGER             :: ianz
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(maxw) :: cpara
 INTEGER            , DIMENSION(maxw) :: lpara
+integer, dimension(3) :: n_cells
 !REAL(KIND=PREC_DP) , DIMENSION(maxw) :: werte
+! needed for estimate_ncells
+real(kind=PREC_DP), dimension(3, 2):: pdt_dims
+integer           , dimension(3)   :: pdt_ilow        ! Unit cell dimensions in periodic
+integer           , dimension(3)   :: pdt_ihig        ! low and high inidce
+integer                            :: pdt_ncells     ! Number of cells in periodic crystal volume
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
 INTEGER, PARAMETER :: O_TYPE    = 1
@@ -1075,6 +1084,12 @@ IF(opara(O_TYPE) == 'yes') THEN
    CALL do_purge_types
 ENDIF
 CALL update_cr_dim
+if(chem_purge) then           ! Crystal is messed up
+   call estimate_ncells(n_cells, pdt_dims, pdt_ilow, pdt_ihig, pdt_ncells)        ! Estimate number of unit cells in the crystal
+   n_cells = max(n_cells,1)
+   cr_icc = n_cells
+   cr_ncatoms = nint(real(cr_natoms) /real(n_cells(1)*n_cells(2)*n_cells(3)))
+endif
 !
 END SUBROUTINE do_purge                       
 !
