@@ -152,6 +152,7 @@ use errlist_mod
 use lib_errlist_func
 use lib_data_struc_h5
 use lib_length
+use param_mod
 use precision_mod
 !
 implicit none
@@ -226,6 +227,8 @@ real(kind=PREC_DP), dimension(:,:,:), allocatable :: osigma
 real(kind=PREC_DP), dimension(3  ) :: mrc_llims
 real(kind=PREC_DP), dimension(3  ) :: mrc_steps
 real(kind=PREC_DP), dimension(3,3) :: mrc_steps_full
+real(kind=PREC_DP)                 :: mrc_pixel_size
+real(kind=PREC_SP) :: pxsize
 !
 !
 call no_error
@@ -301,7 +304,12 @@ do i=1, 10-ilabel
 enddo
 !write(*,*) 'Starting to read extended header'
 !  End of standard header at 1024 Bytes
-do i=1,extend_b
+do i=1,44   ! Ignore initial 44 bytes
+   read(IMRC) ibyte
+enddo
+   read(IMRC) pxsize
+!write(*,*) ' pixel size ' , pxsize*1.0E-10 ,' a^-1/pixel'
+do i=1,extend_b - 48
    read(IMRC) ibyte
 enddo
 !!
@@ -318,17 +326,6 @@ elseif(mode==2) then
    read(IMRC) odata
 endif
 close(imrc)
-!write(*,*) ' S_MAP ', minval(short_map), maxval(short_map)
-!write(*,*) ' ODATA ', minval(odata), maxval(odata)
-!open(IMRC,file='discus_frame.301', status='unknown')
-!write(IMRC,'(2i8)')  dims(1), dims(2)
-!write(IMRC,'(4f8.1)') 1.0, dims(1)*1.0, 1.0, dims(2)*1.0
-!write(IMRC,'(4f8.1)') 1024.0,  1024.+600., 1024.-300., 1024+300.
-!do i=1024-300 , 1024+300
-!do i=1, dims(2)
-!  write(IMRC, '(10f12.1)')  (short_map(j,i,301)*1.0,j=1, dims(1))
-!enddo
-!close(IMRC)
 !
 !  Place into global storage
 !
@@ -407,6 +404,8 @@ enddo
 do i=1, dims(3)
   mrc_z(i) = mrc_llims(3) + (i-1)*mrc_steps_full(3,3)
 enddo
+mrc_pixel_size = pxsize*1.0E-10
+rpara(500) = mrc_pixel_size
 !
 !write(*,*) ' MAKE GLOBAL STORAGE '
 call dgl5_set_node(filename , mrc_layer, mrc_direct, nndims,    dims ,         &
