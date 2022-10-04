@@ -137,7 +137,7 @@ ENDIF
 lsetup_done = .false.
 !
 CALL operating_exit   ! Exit for operating system
-write(*,'(a,a)') COLOR_BG_DEFAULT, COLOR_FG_DEFAULT
+!write(*,'(a,a)') COLOR_BG_DEFAULT, COLOR_FG_DEFAULT
 !
 1000 FORMAT(' New DISCUS version available at GIThub : ',a)
 1100 FORMAT(' To update start DISCUS again and use     '  )
