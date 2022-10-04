@@ -143,6 +143,7 @@ CONTAINS
    PROCEDURE, PUBLIC, PASS :: set_crystal_save_flags    ! Set the "save" flags in the crystal type
    PROCEDURE, PUBLIC, PASS :: get_header_from_crystal   ! Copy from a crystal type into DISCUS standard
    PROCEDURE, PUBLIC, PASS :: get_header_to_local       ! Copy from a crystal type into a local copy
+   PROCEDURE, PUBLIC, PASS :: get_cr_dim_from_crystal ! Copy from a crystal type into DISCUS standard
    PROCEDURE, PUBLIC, PASS :: get_atoms_from_crystal    ! Copy from a crystal type into DISCUS standard
    PROCEDURE, PUBLIC, PASS :: get_atoms_to_local        ! Copy from a crystal type into a local copy
    PROCEDURE, PUBLIC, PASS :: get_molecules_from_crystal ! Copy from a crystal type into DISCUS standard
@@ -1421,6 +1422,19 @@ use precision_mod
    rd_sym_add      = this%cr_sym_add
 !
    END SUBROUTINE get_header_to_local
+!
+!******************************************************************************
+!
+   subroutine get_cr_dim_from_crystal( this, cr_dim)
+!-
+!  Get the crystal dimensions from "this" crystal
+!
+   CLASS (cl_cryst)                 :: this        ! Work on "this" crystal
+   real(kind=PREC_DP), dimension(3,2), intent(out) :: cr_dim
+!
+   cr_dim = this%cr_dim
+!
+   end subroutine get_cr_dim_from_crystal
 !******************************************************************************
    SUBROUTINE get_atoms_from_crystal   ( this)
 !
