@@ -740,6 +740,41 @@ IMPLICIT NONE
 !  DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
 !
    END SUBROUTINE testfile_internal
+!
+!*******************************************************************************
+!
+subroutine stru_internal_get_cr_dim(strucfile, cr_dim)
+!-
+!  Read the crystal dimensions of the internal structure strucfile
+!+
+!
+use precision_mod
+!
+character(len=*), intent(in) :: strucfile
+real(kind=PREC_DP), dimension(3,2), intent(out) :: cr_dim
+!
+integer ier
+!
+NULLIFY(read_from)
+NULLIFY(read_parent)
+IF(.NOT.ASSOCIATED(store_root)) THEN
+   ier_num = -113
+   ier_typ = ER_APPL
+   RETURN
+ENDIF
+CALL store_find_node(store_root, read_from, strucfile, read_temp, read_parent, ier ) ! Find the proper node
+IF ( ier /= 0 .OR. .NOT.ASSOCIATED(read_temp)) THEN
+   ier_num = -113
+   ier_typ = ER_APPL
+   RETURN
+ENDIF
+!
+call read_temp%crystal%get_cr_dim_from_crystal(cr_dim)
+nullify(read_from)
+nullify(read_parent)
+nullify(read_temp)
+!
+end subroutine stru_internal_get_cr_dim
 !*******************************************************************************
 
 END MODULE read_internal_mod
