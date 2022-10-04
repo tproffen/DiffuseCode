@@ -3,8 +3,17 @@ General
               Continued move of KUPLOT data to global storage; no effect on user yet.
 DISCUS
   stack       BUG FIX Stacking faults with 'create' and no 'run' caused crash, FIXED
+  stack       BUG FIX if modulus was off, yet modulo vector were set, these were 
+                      erroneously added to the layers. FIXED
+  stack       Added option to apply the modulo function to atoms as well, creating a
+                      smoother surface
   plot        BUG FIX Modifies cif file output to adhere to CIF standard, unique atom labels
                       This caused Jmol versions 14.32.59 and later to make faulty plot.
+  export      BUG FIX Corrected super cell dimensions 
+                      Corrected file name for version 7
+                      Corrected internal BUG that prevented multiple use.
+  purge       Improved estimation of crystal size
+  perioditize BUG FIX Correctes estimate of unit cell numbers (y dimension was wrong)
 
 6.12.02  RELEASE 2022_07_23
 General
