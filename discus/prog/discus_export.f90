@@ -567,6 +567,7 @@ SUBROUTINE discus2rmc6f (ianz, cpara, lpara, MAXW, rmcversion)
 !  Exports the current structure in RMC6F format
 !
 USE crystal_mod
+use chem_mod
 USE celltoindex_mod
 USE modify_func_mod
 !
@@ -599,6 +600,8 @@ INTEGER                  :: iatom, iscat, is, i, j, ii, ll
 INTEGER                  :: ntypes      ! Actual atom types      to be written to file
 INTEGER                  :: natoms      ! Actual number of atoms to be written to file
 INTEGER, DIMENSION(3)    :: icell 
+integer, dimension(:,:,:), allocatable :: isites
+integer              , DIMENSION(3)    :: scalef
 REAL(KIND=PREC_DP)   , DIMENSION(3)    :: shift
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !
@@ -609,9 +612,15 @@ IF (ier_num.ne.0) THEN
    RETURN
 ENDIF
 ofile = cpara (1)
-IF(.NOT.(ofile(lpara(1)-5:lpara(1)) == '.rmc6f')) THEN
-  ofile = cpara (1) (1:lpara (1) ) //'.rmc6f'
-ENDIF
+if(rmcversion==7) then
+   IF(.NOT.(ofile(lpara(1)-5:lpara(1)) == '.rmc7f')) THEN
+      ofile = cpara (1) (1:lpara (1) ) //'.rmc7f'
+   ENDIF
+elseif(rmcversion==6) then
+   IF(.NOT.(ofile(lpara(1)-5:lpara(1)) == '.rmc6f')) THEN
+      ofile = cpara (1) (1:lpara (1) ) //'.rmc6f'
+   ENDIF
+endif
 CALL oeffne (IWR, ofile, 'unknown')
 IF (ier_num.ne.0) THEN
    CLOSE(IWR)
@@ -678,6 +687,13 @@ ENDDO count
 DO i=1,MAXSCAT
    IF(atom_number(i) > 0 ) ntypes = ntypes + 1
 ENDDO
+DO i=1,3
+   IF(NINT(cr_dim(i,2)-cr_dim(i,1))-(cr_dim(i,2)-cr_dim(i,1))== 0.000) THEN
+      scalef(i) = MAX(1,NINT((cr_dim(i,2)-cr_dim(i,1)))+1)
+   ELSE
+      scalef(i) =  INT((cr_dim(i,2)-cr_dim(i,1))) + 1
+   ENDIF
+ENDDO
 !
 ! Write the actual file
 !
@@ -708,26 +724,38 @@ WRITE(IWR, '(a)')   'Number of moves accepted:                   0'
 WRITE(IWR, '(a)')   'Number of prior configuration saves: 0'
 WRITE(IWR, 1200 )   natoms
 WRITE(IWR, 1300 )   REAL(natoms)/(REAL(cr_icc(1)*cr_icc(2)*cr_icc(3))*cr_v)
-WRITE(IWR, 1400 )   cr_icc(:)
-WRITE(IWR, 1500 )   (cr_a0 (i)*REAL(cr_icc(i)),i=1,3), cr_win(:)
+WRITE(IWR, 1400 )   scalef(:)
+!WRITE(IWR, 1400 )   cr_icc(:)
+!WRITE(IWR, 1500 )   (cr_a0 (i)*REAL(cr_icc(i)),i=1,3), cr_win(:)
+WRITE(IWR, 1500 )   (cr_a0 (i)*REAL(scalef(i)),i=1,3), cr_win(:)
 WRITE(IWR, '(a)')   'Lattice vectors (Ang):'
 IF(cr_syst==cr_ortho .OR. cr_syst==cr_tetragonal .OR. cr_syst==cr_cubic) THEN
    WRITE(IWR, 1600 )   cr_a0(1)*REAL(cr_icc(1)), 0.000000,                  0.000000
    WRITE(IWR, 1600 )   0.000000,                  cr_a0(2)*REAL(cr_icc(2)), 0.000000
    WRITE(IWR, 1600 )   0.000000,                  0.000000,                  cr_a0(3)*REAL(cr_icc(3))
 ELSE
-   WRITE(IWR, 1600 )   cr_a0(1)*REAL(cr_icc(1)), 0.000000, 0.00000
-   WRITE(IWR, 1600 )   cr_a0(2)*REAL(cr_icc(2))*cosd(cr_win(3))                     , &
-                       cr_a0(2)*REAL(cr_icc(2))*sind(cr_win(3)), 0.000000
-   WRITE(IWR, 1600 )   cr_a0(3)*REAL(cr_icc(3))*cosd(cr_win(2))                     , &
-                       cr_a0(3)*REAL(cr_icc(3))*sind(cr_win(2))*cosd(cr_win(1))     , &
-                       cr_v    *REAL(cr_icc(3))/(cr_a0(1)*cr_a0(2)*sind(cr_win(3)))
+!  WRITE(IWR, 1600 )   cr_a0(1)*REAL(cr_icc(1)), 0.000000, 0.00000
+!  WRITE(IWR, 1600 )   cr_a0(2)*REAL(cr_icc(2))*cosd(cr_win(3))                     , &
+!                      cr_a0(2)*REAL(cr_icc(2))*sind(cr_win(3)), 0.000000
+!  WRITE(IWR, 1600 )   cr_a0(3)*REAL(cr_icc(3))*cosd(cr_win(2))                     , &
+!                      cr_a0(3)*REAL(cr_icc(3))*sind(cr_win(2))*cosd(cr_win(1))     , &
+!                      cr_v    *REAL(cr_icc(3))/(cr_a0(1)*cr_a0(2)*sind(cr_win(3)))
+   WRITE(IWR, 1600 )   cr_a0(1)*REAL(scalef(1)), 0.000000, 0.00000
+   WRITE(IWR, 1600 )   cr_a0(2)*REAL(scalef(2))*cosd(cr_win(3))                     , &
+                       cr_a0(2)*REAL(scalef(2))*sind(cr_win(3)), 0.000000
+   WRITE(IWR, 1600 )   cr_a0(3)*REAL(scalef(3))*cosd(cr_win(2))                     , &
+                       cr_a0(3)*REAL(scalef(3))*sind(cr_win(2))*cosd(cr_win(1))     , &
+                       cr_v    *REAL(scalef(3))/(cr_a0(1)*cr_a0(2)*sind(cr_win(3)))
 ENDIF
 WRITE(IWR, '(a)')   'Atoms:'
 !
 ! Finished header, loop over all atom types and all atoms
 ! Property induced selection rules hold, VOIDS are never written
 !
+if(.not.chem_quick) then                                 ! Nonperiodic strucure 
+   allocate(isites(scalef(1),scalef(2),scalef(3)))       ! we need to set the sites
+   isites = 0
+endif
 shift(:) = REAL(NINT(cr_dim(:,1)))
 ii       = 0
 DO iscat=1,MAXSCAT
@@ -736,14 +764,20 @@ DO iscat=1,MAXSCAT
          IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
             IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
                ii = ii + 1                               ! increment atom number for RMCprofile sequence
-               CALL indextocell (iatom, icell, is)
+               if(chem_quick) then                       ! Structure is periodic
+                  CALL indextocell (iatom, icell, is)
+               else                                      ! Nonperiodic cell, use coordinates
+                  icell(:) = int(cr_pos(:, iatom)-cr_dim(:,1)) + 1 
+                  isites(icell(1),icell(2),icell(3)) = isites(icell(1),icell(2),icell(3)) + 1
+                  is = isites(icell(1),icell(2),icell(3))
+               endif
                IF(rmcversion==6) THEN
                   WRITE(IWR, 1700) ii, atom_names(cr_iscat(iatom))(1:2),   &
-                     ((cr_pos(i,iatom)-shift(i))/REAL(cr_icc(i)),i=1,3),  &
+                     ((cr_pos(i,iatom)-shift(i))/REAL(scalef(i)),i=1,3),  &
                      is, icell(1)-1, icell(2)-1, icell(3)-1
                ELSE
                   WRITE(IWR, 1800) ii, atom_names(cr_iscat(iatom))(1:9),   &
-                     ((cr_pos(i,iatom)-shift(i))/REAL(cr_icc(i)),i=1,3),  &
+                     ((cr_pos(i,iatom)-shift(i))/REAL(scalef(i)),i=1,3),  &
                      is, icell(1)-1, icell(2)-1, icell(3)-1
                ENDIF
             ENDIF
@@ -754,6 +788,8 @@ ENDDO
 !
 CLOSE(IWR)
 DEALLOCATE(atom_names)
+DEALLOCATE(atom_number)
+if(allocated(isites)) deallocate(isites)
 !
 1100 FORMAT('Metadate date:      ',I2.2,'-',I2.2,'-',I4)
 1110 FORMAT('Number of types of atoms: ', I27)
