@@ -13,6 +13,8 @@ integer, parameter         :: ADT_SPACE = 3
 integer, parameter         :: ADT_BRAGG = 4
 character(len=PREC_STRING) :: adt_data        ! Input MRC file
 character(len=PREC_STRING) :: adt_cell        ! Input MRC cell information
+character(len=PREC_STRING) :: adt_logfile     ! Output file for extraction
+logical                            :: adt_log  = .false. ! Extract log on / off
 integer                            :: adt_mode = 0! Extraction mode rods, plane, bulk
 integer                            :: adt_node = 0! Node in global data structure
 integer                            :: adt_ik   = 0! AData set in kuplot
@@ -24,11 +26,13 @@ real(kind=PREC_DP), dimension(3,3) :: adt_gten    ! Metric tensor
 real(kind=PREC_DP), dimension(3,3) :: adt_rten    ! Reciprocal Metric tensor
 real(kind=PREC_DP), dimension(6)   :: adt_px_cell ! Reciprocel cell in Pixels, degrees
 real(kind=PREC_DP), dimension(6)   :: adt_di_cell ! Direct     cell in Angstr, degrees
+real(kind=PREC_DP), dimension(6)   :: adt_re_cell ! Reciprocal cell in Angstr, degrees
 real(kind=PREC_DP), dimension(3)   :: adt_limits  ! Upper limits in reciprocal space
 real(kind=PREC_DP), dimension(3)   :: adt_rod     ! Rod directions to extract
 real(kind=PREC_DP), dimension(3)   :: adt_sigma   ! Sigma in reciprocal units for extraction
 real(kind=PREC_DP), dimension(3)   :: adt_steps   ! Steps in reciprocal units for extraction
 real(kind=PREC_DP), dimension(3)   :: adt_zero    ! Pixel location of zero point
+real(kind=PREC_DP)                 :: adt_resol   ! Resolution A^-1 pro pixel
 !
 contains
 !
@@ -145,8 +149,10 @@ loop_menu: do
       cycle loop_menu
    endif if_rese
 !
-   if(str_comp (befehl, 'run', 2, lbef, 3) ) then
-      call adt_run
+!  if(str_comp (befehl, 'run', 2, lbef, 3) ) then
+!     call adt_run
+       if(str_comp (befehl, 'get', 2, lbef, 3) ) then
+      call adt_get(zeile, lp)
    elseif(str_comp (befehl, 'show', 2, lbef, 4) ) then
       call adt_show
    elseif(str_comp (befehl, 'set', 2, lbef, 3) ) then
@@ -169,39 +175,6 @@ end subroutine adt_menu
 !
 !*******************************************************************************
 !
-subroutine adt_run
-!
-use kuplot_load_mod, only:mrc_read_kuplot
-!
-use errlist_mod
-!
-implicit none
-!
-integer :: length
-!
-write(*,*) ' ADT RUN '
-!
-if(adt_data == ' ') then
-   ier_num = -6
-   ier_typ = ER_COMM
-   ier_msg(1) = 'ADT data file name is blank'
-   return
-endif
-!
-write(*,*) ' ADT DATA : ', adt_data(1:len_trim(adt_data))
-if(adt_data(len_trim(adt_data)-3:len_trim(adt_data)) /= '.mrc') then
-   adt_data(len_trim(adt_data)+1:len_trim(adt_data)+4) = '.mrc'
-endif
-
-write(*,*) ' ADT DATA : ', adt_data(1:len_trim(adt_data))
-!
-length = len_trim(adt_data)
-call mrc_read_kuplot(adt_data, length, adt_node, adt_ik) 
-!
-end subroutine adt_run
-!
-!*******************************************************************************
-!
 subroutine adt_show
 !
 use prompt_mod
@@ -215,20 +188,26 @@ write(output_io,'(a,15x,a,3x,a,13x,a)')    ' Orientation','Vectors in pixels','|
 write(output_io,'(a,2(2x,3(2x,f10.4)))') ' a*            :', adt_omat(1,:),adt_invmat(1,:)
 write(output_io,'(a,2(2x,3(2x,f10.4)))') ' b*            :', adt_omat(2,:),adt_invmat(2,:)
 write(output_io,'(a,2(2x,3(2x,f10.4)))') ' c*            :', adt_omat(3,:),adt_invmat(3,:)
+write(output_io,'(a,15x,a,3x,a,13x,a)')    ' TRANSPOSED ','Vectors in pixels','|','Inverse matrix'
+write(output_io,'(a,2(2x,3(2x,f10.4)))') ' a*            :', adt_omat_t(1,:),adt_invmat_t(1,:)
+write(output_io,'(a,2(2x,3(2x,f10.4)))') ' b*            :', adt_omat_t(2,:),adt_invmat_t(2,:)
+write(output_io,'(a,2(2x,3(2x,f10.4)))') ' c*            :', adt_omat_t(3,:),adt_invmat_t(3,:)
 if(adt_mode==ADT_RODS) then
   write(output_io, *) 
   write(output_io, '(a)') ' Extracting rods in reciprocal space'
   write(output_io, '(a, 2x,3(2x,f10.4))') ' Rods parallel :', adt_rod
+elseif(adt_mode==ADT_BRAGG) then
+  write(output_io, '(a)') ' Extracting integrated Bragg data'
+endif
   write(output_io, '(a, 2x,3(2x,f10.4))') ' Limits        :', adt_limits
   write(output_io, '(a, 2x,3(2x,f10.4))') ' steps         :', adt_steps
   write(output_io, '(a, 2x,3(2x,f10.4))') ' sigmas        :', adt_sigma
-endif
 !
 end subroutine adt_show
 !
 !*******************************************************************************
 !
-subroutine adt_set(zeile, length)
+subroutine adt_get(zeile, length)
 !
 !
 use ber_params_mod , only:ber_params
@@ -236,6 +215,7 @@ use errlist_mod
 use get_params_mod , only:get_params
 use precision_mod
 use str_comp_mod   , only:str_comp
+use take_param_mod
 !
 implicit none
 !
@@ -250,58 +230,168 @@ integer                   , dimension(MAXW) :: lpara
 real(kind=PREC_DP)        , dimension(MAXW) :: werte
 integer :: ianz          ! Number of parameters
 !
-write(*,*) ' ADT SET '
+integer, parameter :: NOPTIONAL = 2
+integer, parameter :: O_DATA    = 1
+integer, parameter :: O_CELL    = 2
+character(LEN=   4), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
+!
+data oname  / 'data', 'cell' /
+data loname /  4    ,  4     /
+opara  =  (/ 'unknown','unknown' /)   ! Always provide fresh default values
+lopara =  (/  7,        7        /)
+owerte =  (/  0.0,      0.0      /)
+!
+!
 !
 call get_params(zeile, ianz, cpara, lpara, maxw, length)
 if(ier_num/=0) return
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+if(ier_num/=0) return
 !
-if(str_comp(cpara(1), 'data', 3, lpara(1), 4)) then
-   adt_data = cpara(2)(1:lpara(2))
-elseif(str_comp(cpara(1), 'cell', 3, lpara(1), 4)) then
-   adt_cell = cpara(2)(1:lpara(2))
-   call adt_read_cell
-elseif(str_comp(cpara(1), 'limits', 3, lpara(1), 6)) then
-   cpara(1) = '0.0'
-   lpara(1) = 3
-   call ber_params(ianz, cpara, lpara, werte, MAXW)
-   if(ier_num/=0) then
-      ier_msg(1) = 'Error calculating limits'
-      return
-   endif
-   adt_limits = werte(2:4)
-elseif(str_comp(cpara(1), 'bragg', 3, lpara(1), 5)) then
-   adt_mode = ADT_BRAGG
-elseif(str_comp(cpara(1), 'rod', 3, lpara(1), 3)) then
-   cpara(1) = '0.0'
-   lpara(1) = 3
-   call ber_params(ianz, cpara, lpara, werte, MAXW)
-   if(ier_num/=0) then
-      ier_msg(1) = 'Error calculating rod'
-      return
-   endif
-   adt_rod  = abs(werte(2:4))
-   adt_mode = ADT_RODS
-elseif(str_comp(cpara(1), 'steps', 3, lpara(1), 5)) then
-   cpara(1) = '0.0'
-   lpara(1) = 3
-   call ber_params(ianz, cpara, lpara, werte, MAXW)
-   if(ier_num/=0) then
-      ier_msg(1) = 'Error calculating steps'
-      return
-   endif
-   adt_steps = abs(werte(2:4))
-elseif(str_comp(cpara(1), 'sigma', 3, lpara(1), 5)) then
-   cpara(1) = '0.0'
-   lpara(1) = 3
-   call ber_params(ianz, cpara, lpara, werte, MAXW)
-   if(ier_num/=0) then
-      ier_msg(1) = 'Error calculating sigma'
-      return
-   endif
-   adt_sigma = abs(werte(2:4))
+if(lpresent(O_DATA)) then
+   adt_data = opara(O_DATA)(1:lopara(O_DATA))
+   if(adt_data /= 'unknown') call adt_read_data
 endif
 !
+if(lpresent(O_CELL)) then
+   adt_cell = opara(O_CELL)(1:lopara(O_CELL))
+   if(adt_cell /= 'unknown') call adt_read_cell
+endif
+!
+end subroutine adt_get
+!
+!*******************************************************************************
+!
+subroutine adt_set(zeile, length)
+!
+!
+use ber_params_mod , only:ber_params
+use errlist_mod
+use get_params_mod , only:get_params
+use precision_mod
+use str_comp_mod   , only:str_comp
+use take_param_mod
+!
+implicit none
+!
+character(len=*), intent(inout) :: zeile         ! input line
+integer         , intent(inout) :: length        ! input length
+!
+!integer, parameter :: MIN_PARA = 3               ! Minimum parameter numbers
+integer, parameter :: MAXW = 4                   ! Actual parameter number
+!
+character(len=PREC_STRING), dimension(MAXW) :: cpara
+integer                   , dimension(MAXW) :: lpara
+real(kind=PREC_DP)        , dimension(MAXW) :: werte
+integer :: ianz          ! Number of parameters
+!
+integer, parameter :: NOPTIONAL = 6
+integer, parameter :: O_MODE    = 1
+integer, parameter :: O_LIMITS  = 2
+integer, parameter :: O_STEPS   = 3
+integer, parameter :: O_SIGMA   = 4
+integer, parameter :: O_RODS    = 5
+integer, parameter :: O_LOGFILE = 6
+character(LEN=   6), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
+!
+data oname  / 'mode', 'limits', 'steps', 'sigma', 'rod', 'log' /
+data loname /  4    ,  6      ,  4     ,  5     ,  3   ,  3 /
+opara  =  (/ 'rods         ','[1.0,1.0,1.0]', '[1.0,1.0,0.1]', '[0.2,0.2,0.0]', &
+             '[0.0,0.0,1.0]' ,'bragg.data   '/) !Provide fresh default values
+lopara =  (/  4             , 13            ,  13            ,  13            , &
+              13            , 10             /)
+owerte =  (/  0.0           , 0.0           ,  0.0           ,  0.0           , &
+              0.0           , 0.0            /)
+!
+!
+call get_params(zeile, ianz, cpara, lpara, maxw, length)
+if(ier_num/=0) return
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+if(ier_num/=0) return
+!
+if(lpresent(O_MODE)) then
+   if(opara(O_MODE)=='rods') then
+      adt_mode = ADT_RODS
+   elseif(opara(O_MODE)=='bragg') then
+      adt_mode = ADT_BRAGG
+   endif
+   if(lpresent(O_LOGFILE)) then
+      adt_logfile = opara(O_LOGFILE)
+      adt_log = .true.
+   else
+      adt_log = .false.
+   endif
+write(*,*) ' LOG ', adt_log, adt_logfile
+endif
+!
+if(lpresent(O_LIMITS)) then
+   call get_optional_multi(MAXW, opara(O_LIMITS), lopara(O_LIMITS), werte, ianz)
+   adt_limits = werte(1:3)
+endif
+!
+if(lpresent(O_SIGMA )) then
+   call get_optional_multi(MAXW, opara(O_SIGMA ), lopara(O_SIGMA ), werte, ianz)
+   adt_sigma  = werte(1:3)
+endif
+!
+if(lpresent(O_STEPS )) then
+   call get_optional_multi(MAXW, opara(O_STEPS ), lopara(O_STEPS ), werte, ianz)
+   adt_steps  = werte(1:3)
+endif
+!
+if(lpresent(O_RODS )) then
+   call get_optional_multi(MAXW, opara(O_RODS ), lopara(O_RODS ), werte, ianz)
+   adt_rod    = werte(1:3)
+endif
+!
+if(ier_num/=0) return
+!
 end subroutine adt_set
+!
+!*******************************************************************************
+!
+subroutine adt_read_data
+!
+use kuplot_load_mod, only:mrc_read_kuplot
+!
+use errlist_mod
+use param_mod
+!
+implicit none
+!
+integer :: length
+!
+if(adt_data == ' ') then
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'ADT data file name is blank'
+   return
+endif
+!
+if(adt_data(len_trim(adt_data)-3:len_trim(adt_data)) /= '.mrc') then
+   adt_data(len_trim(adt_data)+1:len_trim(adt_data)+4) = '.mrc'
+endif
+!
+length = len_trim(adt_data)
+call mrc_read_kuplot(adt_data, length, adt_node, adt_ik) 
+adt_resol = rpara(500)
+!write(*,'(a,3(2x,f12.8))') ' res A^-1/px', adt_resol
+!
+end subroutine adt_read_data
 !
 !*******************************************************************************
 !
@@ -310,7 +400,7 @@ subroutine adt_read_cell
 use errlist_mod
 use matrix_mod     , only:matinv
 use support_mod    , only:oeffne
-use trig_degree_mod, only: cosd
+use trig_degree_mod, only: cosd, acosd
 !
 implicit none
 !
@@ -326,12 +416,10 @@ if(adt_data == ' ') then
    return
 endif
 !
-write(*,*) ' ADT CELL : ', adt_cell(1:len_trim(adt_cell))
 if(adt_cell(len_trim(adt_cell)-4:len_trim(adt_cell)) /= '.cell') then
    adt_cell(len_trim(adt_cell)+1:len_trim(adt_cell)+5) = '.cell'
 endif
 
-write(*,*) ' ADT CELL : ', adt_cell(1:len_trim(adt_cell))
 !
 call oeffne(IRD, adt_cell, 'old')
 if(ier_num/=0) then
@@ -360,16 +448,18 @@ adt_omat(:,2) = -1.0D0*adt_omat(:,2)
 read(IRD,'(a)', iostat=ios) string    !# reciprocal space cell (pixels, deg)
 read(IRD,'(a)', iostat=ios) string
 read(string,*) adt_px_cell(1:3)       ! Length in pixels
+read(IRD,'(a)', iostat=ios) string
 read(string,*) adt_px_cell(4:6)       ! angles in degrees
 read(IRD,'(a)', iostat=ios) string
+read(IRD,'(a)', iostat=ios) string
 read(string,*) adt_di_cell(1:3)       ! Direct space unit cell in Angstroem (?)
+read(IRD,'(a)', iostat=ios) string
 read(string,*) adt_di_cell(4:6)       ! angles in degrees
 !
 call matinv(adt_omat, adt_invmat)
 adt_omat_t   = TRANSPOSE(adt_omat)
 adt_invmat_t = TRANSPOSE(adt_invmat)
 !
-adt_di_cell(1:3) = adt_di_cell(1:3)*0.25D0   ! WARNING Only for current false binning!
 adt_gten(1,1) = adt_di_cell(1)**2
 adt_gten(2,2) = adt_di_cell(2)**2
 adt_gten(3,3) = adt_di_cell(3)**2
@@ -379,7 +469,50 @@ adt_gten(2,3) = adt_di_cell(2)*adt_di_cell(3)*cosd(adt_di_cell(4))
 adt_gten(2,1) = adt_gten(1,2)
 adt_gten(3,1) = adt_gten(1,3)
 adt_gten(3,2) = adt_gten(2,3)
-call matinv(adt_gten, adt_rten)
+if(adt_resol/=0.0D0) then               ! Data were read, use resol from data
+   adt_re_cell(1:3) = adt_px_cell(1:3)*adt_resol
+   adt_re_cell(4:6) = adt_px_cell(4:6)       ! angles in degrees
+   adt_rten(1,1) = adt_re_cell(1)**2
+   adt_rten(2,2) = adt_re_cell(2)**2
+   adt_rten(3,3) = adt_re_cell(3)**2
+   adt_rten(1,2) = adt_re_cell(1)*adt_re_cell(2)*cosd(adt_re_cell(6))
+   adt_rten(1,3) = adt_re_cell(1)*adt_re_cell(3)*cosd(adt_re_cell(5))
+   adt_rten(2,3) = adt_re_cell(2)*adt_re_cell(3)*cosd(adt_re_cell(4))
+   adt_rten(2,1) = adt_rten(1,2)
+   adt_rten(3,1) = adt_rten(1,3)
+   adt_rten(3,2) = adt_rten(2,3)
+!  write(*,*)
+!  write(*,'(a,3(2x,f12.4))') ' RECIPROCAL ', adt_re_cell(1:3)
+!  write(*,*)
+else                                   ! No data present, calc rec. lattice params
+   call matinv(adt_gten, adt_rten)
+   adt_re_cell(1) = sqrt(adt_rten(1,1))
+   adt_re_cell(2) = sqrt(adt_rten(2,2))
+   adt_re_cell(3) = sqrt(adt_rten(3,3))
+   adt_re_cell(4) = acosd(adt_rten(2,3)/adt_re_cell(2)/adt_re_cell(3))
+   adt_re_cell(5) = acosd(adt_rten(1,3)/adt_re_cell(1)/adt_re_cell(3))
+   adt_re_cell(6) = acosd(adt_rten(1,2)/adt_re_cell(1)/adt_re_cell(2))
+endif
+write(*,*)
+write(*,'(a,3(2x,f12.4))') ' Direct     ', adt_di_cell(1:3)
+write(*,'(a,3(2x,f12.4))') ' Direct     ', adt_di_cell(4:6)
+write(*,*)
+write(*,'(a,3(2x,f12.4))') ' gten       ', adt_gten   (1,:)
+write(*,'(a,3(2x,f12.4))') ' gten       ', adt_gten   (2,:)
+write(*,'(a,3(2x,f12.4))') ' gten       ', adt_gten   (3,:)
+write(*,*)
+write(*,*)
+write(*,'(a,3(2x,f12.4))') ' Reciprocal ', adt_re_cell(1:3)
+write(*,'(a,3(2x,f12.4))') ' Reciprocal ', adt_re_cell(4:6)
+write(*,*)
+write(*,'(a,3(2x,f12.4))') ' rten       ', adt_rten   (1,:)
+write(*,'(a,3(2x,f12.4))') ' rten       ', adt_rten   (2,:)
+write(*,'(a,3(2x,f12.4))') ' rten       ', adt_rten   (3,:)
+write(*,*)
+write(*,*)
+!adt_resol = (adt_re_cell(1)/adt_px_cell(1) + adt_re_cell(2)/adt_px_cell(2) + &
+!             adt_re_cell(3)/adt_px_cell(3) ) / 3.0D0
+!write(*,'(a,3(2x,f12.8))') ' res A^-1/px', adt_resol
 !
 close(IRD)
 !
@@ -401,7 +534,6 @@ implicit none
 character(len=*), intent(inout) :: zeile         ! input line
 integer         , intent(inout) :: length        ! input length
 !
-!integer, parameter :: MIN_PARA = 3               ! Minimum parameter numbers
 integer, parameter :: MAXW = 6                   ! Actual parameter number
 !
 character(len=PREC_STRING), dimension(MAXW) :: cpara
@@ -412,7 +544,6 @@ integer :: ianz          ! Number of parameters
 real(kind=PREC_DP)        , dimension(3) :: pixel
 real(kind=PREC_DP)        , dimension(3) :: zero
 real(kind=PREC_DP)        , dimension(3) :: hkl
-write(*,*) ' ADT trans '
 !
 call get_params(zeile, ianz, cpara, lpara, MAXW, length)
 if(ier_num/=0) return
@@ -434,15 +565,21 @@ subroutine adt_extract
 !  Extract the selected volume into the next data set
 !+
 !
+use kuplot_mod
+!
 use errlist_mod
 use lib_data_struc_type_mod
-use lib_data_struc_h5 , only:data2local
+use lib_data_struc_h5 , only:data2local, local2data
+use support_mod       , only:oeffne
 !
 implicit none
 !
+integer, parameter :: IWR = 95
 character(len=PREC_STRING) :: string
 integer                                    :: i,j,k      ! Loop indices
 integer                                    :: ii,jj,kk   ! Loop indices
+integer                                    :: ikk        ! Kuplot data set result
+integer                                    :: nref       ! Reflection counter
 integer                   , dimension(3)   :: idims      ! Deimensions of resulting grid
 integer                   , dimension(3)   :: ipixel     ! Coordinates in ADT data
 real(kind=PREC_DP)        , dimension(3)   :: pixel      ! Coordinates in ADT data
@@ -469,6 +606,7 @@ pix_lim(2,:) = -HUGE(1)
 hkl_lim = adt_limits + adt_sigma     ! Set grand HKL limits
 !
 adt_zero = ik1%dims/2
+write(*,*) ' ADT_zero at : ', adt_zero
 !
 ! Transform the eight corners of +-hkl_lim to obtain Pixel limits
 !
@@ -512,14 +650,14 @@ ipixel = int(matmul(adt_omat_t,hkl) + adt_zero)
 pix_lim(1,:) = min(pix_lim(1,:), ipixel)
 pix_lim(2,:) = max(pix_lim(2,:), ipixel)
 !
-pix_lim(1,:) = max(   1, pix_lim(1,:)  )
-pix_lim(2,:) = min(1024, pix_lim(2,:)+1)
+pix_lim(1,:) = max(          1, pix_lim(1,:)  )
+pix_lim(2,:) = min(ik1%dims(:), pix_lim(2,:)+1)
 !
-write(*,'(a,3(2x,i6   ))') ' MIN PIXEL', pix_lim(1,:)
-write(*,'(a,3(2x,i6   ))') ' MAX PIXEL', pix_lim(2,:)
+!write(*,'(a,3(2x,i6   ))') ' MIN PIXEL', pix_lim(1,:)
+!write(*,'(a,3(2x,i6   ))') ' MAX PIXEL', pix_lim(2,:)
 !
 idims = nint(2*adt_limits/adt_steps)+1
-write(*,*) ' DIMENSIONS ', idims
+!write(*,*) ' DIMENSIONS ', idims
 !
 if(adt_mode==ADT_RODS) then       ! Extract all rods
 !
@@ -551,6 +689,40 @@ if(adt_mode==ADT_RODS) then       ! Extract all rods
       enddo
    enddo
 !
+   ikk = iz
+   ik2%data_num = 0
+   ik2%infile = 'extracted_rods'
+   ik2%layer = idims(3)/2
+   ik2%is_direct = .false.
+   ik2%ndims     = 3
+   ik2%is_grid   = .true.
+   ik2%has_dxyz  = .false.
+   ik2%has_dval  = .false.
+   ik2%corners(:,1) = -hkl_lim            ! Lower Left
+   ik2%corners(:,2) = -hkl_lim            ! Lower right
+   ik2%corners(1,2) = -ik2%corners(1,2)
+   ik2%corners(:,3) = -hkl_lim            ! Upper left
+   ik2%corners(2,3) = -ik2%corners(2,2)
+   ik2%corners(:,4) = -hkl_lim            ! Top left
+   ik2%corners(3,4) = -ik2%corners(3,4)
+   ik2%vectors(:,1) = ik2%corners(:,2) - ik2%corners(:,1)
+   ik2%vectors(:,2) = ik2%corners(:,3) - ik2%corners(:,1)
+   ik2%vectors(:,3) = ik2%corners(:,4) - ik2%corners(:,1)
+   ik2%cr_a0           = adt_di_cell(1:3)
+   ik2%cr_win          = adt_di_cell(4:6)
+   ik2%llims        = -hkl_lim
+   ik2%steps(1)     = ik2%vectors(1,1)/real(ik2%dims(1),kind=PREC_DP)
+   ik2%steps(2)     = ik2%vectors(2,2)/real(ik2%dims(2),kind=PREC_DP)
+   ik2%steps(3)     = ik2%vectors(3,3)/real(ik2%dims(3),kind=PREC_DP)
+   ik2%steps_full(:,1)= ik2%vectors(:,1)/real(ik2%dims(1),kind=PREC_DP)
+   ik2%steps_full(:,2)= ik2%vectors(:,2)/real(ik2%dims(2),kind=PREC_DP)
+   ik2%steps_full(:,3)= ik2%vectors(:,3)/real(ik2%dims(3),kind=PREC_DP)
+   call local2data(ikk, ier_num, ier_typ, ik2%data_num, ik2%infile, ik2%layer,  &
+        ik2%is_direct, ik2%ndims, ik2%dims, ik2%is_grid, ik2%has_dxyz,             &
+        ik2%has_dval, ik2%corners, ik2%vectors, ik2%cr_a0, ik2%cr_win, ik2%x, ik2%y,     &
+        ik2%z, ik2%dx, ik2%dy, ik2%dz, ik2%datamap, ik2%sigma, ik2%llims, ik2%steps,  &
+        ik2%steps_full)
+!
 write(*,*) ' FINISHED extraction'
 do j=1,7
 do i=1,7
@@ -567,7 +739,13 @@ enddo
 enddo
 !
 elseif(adt_mode==ADT_BRAGG) then
-   open(96,file='bragg.list', status='unknown')
+   nref = 0
+   if(adt_log) then
+      call oeffne(IWR, adt_logfile, 'unknown')
+      write(IWR,'(a, 43x,a,17x,a,17x,a,13x,a)') '#', 'Observed', 'Calculated', 'Calculated', 'Nominal'
+      write(IWR,'(a6,1x,a,1x,a,8x,a,12x,a,21x,a,23x,a,16x,a)') '#   Nr',        &
+      'Target', 'dummy', 'Weight', 'Pixel', 'Pixel', 'hkl', 'H   K   L'
+   endif
    do k=-nint(adt_limits(3)), nint(adt_limits(3))
    do j=-nint(adt_limits(2)), nint(adt_limits(2))
    do i=-nint(adt_limits(1)), nint(adt_limits(1))
@@ -576,6 +754,9 @@ if(mod(i+j,2)==0) then
       hkl(2) = real(j, kind=PREC_DP)
       hkl(1) = real(i, kind=PREC_DP)
       pixel = matmul(adt_omat_t, hkl) + adt_zero
+      if(pixel(1)>5.0 .and. pixel(1)<ik1%dims(1)-5.0  .and. &
+         pixel(2)>5.0 .and. pixel(2)<ik1%dims(2)-5.0  .and. &
+         pixel(3)>5.0 .and. pixel(3)<ik1%dims(3)-5.0  ) then  
       com = 0.0D0
       weight = 0.0D0
       do kk = nint(pixel(3)-5), nint(pixel(3)+5)
@@ -590,15 +771,20 @@ if(mod(i+j,2)==0) then
       enddo
       if(weight>1) then
          com = com/weight
-      hkl = matmul(adt_invmat_t, (com-adt_zero))
-      write(96,'(3i4,3(3f8.2,2x),f18.2)') i,j,k,com, pixel, hkl, weight
-      write(* ,'(3i4,3(3f8.2,2x),f18.2)') i,j,k,com, pixel, hkl, weight
+         hkl = matmul(adt_invmat_t, (com-adt_zero))
+         nref = nref + 1
+         weight = weight/11.**3
+         if(adt_log) then
+         write(95,'(i6, 2(f5.1,2x),f15.6,3(3f8.2,2x),2x,3i4)') nref, 1.0, 0.0,  &
+         1./weight, com, pixel, hkl, i,j,k
+         endif
+      endif
       endif
 endif
    enddo
    enddo
    enddo
-   close(96)
+   close(IWR)
 endif
 !
 call adt_clean(ik1)
