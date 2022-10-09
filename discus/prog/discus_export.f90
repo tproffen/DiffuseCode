@@ -613,8 +613,8 @@ IF (ier_num.ne.0) THEN
 ENDIF
 ofile = cpara (1)
 if(rmcversion==7) then
-   IF(.NOT.(ofile(lpara(1)-5:lpara(1)) == '.rmc7f')) THEN
-      ofile = cpara (1) (1:lpara (1) ) //'.rmc7f'
+   IF(.NOT.(ofile(lpara(1)-4:lpara(1)) == '.rmc7')) THEN
+      ofile = cpara (1) (1:lpara (1) ) //'.rmc7'
    ENDIF
 elseif(rmcversion==6) then
    IF(.NOT.(ofile(lpara(1)-5:lpara(1)) == '.rmc6f')) THEN
