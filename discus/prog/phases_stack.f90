@@ -50,6 +50,13 @@ CALL crystal_calc_mass
 pha_weight(pha_curr) = pha_weight(pha_curr) + cr_mass   ! accumulate masses of layer types
 pha_calc (pha_curr)  = pow_four_type      ! Fourier type Complete / Debye
 !
+!write(*,*) ' cfact_pure ', allocated(cfact_pure) 
+!write(*,*) ' pha_form   ', allocated(pha_form) 
+!write(*,*) ' powder_istl', allocated(powder_istl) 
+!write(*,*) ' cfact_pure ', allocated(cfact_pure), lbound(cfact_pure), ubound(cfact_pure)
+!write(*,*) ' pha_form   ', allocated(pha_form)  , lbound(pha_form)  , ubound(pha_form) 
+!write(*,*) ' powder_istl', allocated(powder_istl)  , lbound(powder_istl)  , ubound(powder_istl) 
+!write(*,*) ' npkt   ', npkt
 DO iscat = 1, cr_nscat
    jscat = pha_nscat(pha_curr) + iscat
    DO k=0, npkt
