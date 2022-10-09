@@ -518,13 +518,13 @@ CLOSE (77)
 WRITE(output_io, 2000)fname(ikcal)(1:len_str(fname(ikcal)))
 cdummy = fform (ikcal) 
 ianz = 0 
-CALL check_form (cdummy, ianz, werte, maxw) 
+CALL check_form (ikcal, cdummy, ianz, werte, maxw) 
 CALL do_save(ikcal, fname(ikcal), fform(ikcal), ianz, werte, maxw, .false.)
 !                                                                       
 WRITE(output_io, 3000) fname(ikdif)(1:len_str(fname(ikdif)))
 cdummy = fform (ikdif) 
 ianz = 0 
-CALL check_form (cdummy, ianz, werte, maxw) 
+CALL check_form (ikdif, cdummy, ianz, werte, maxw) 
 CALL do_save (ikdif, fname (ikdif), fform (ikdif), ianz, werte,   &
       maxw, .false.)                                                    
 !                                                                       

@@ -508,7 +508,7 @@ cond_ianz: IF(ianz.eq.1) then
          form.eq.'GS'.or.form.eq.'SM') form = 'XY'                                 
       IF(form.eq.'ZZ'.or.form.eq.'DA'.or.form.eq.'AS'.or.form.eq.'MP') form = 'PG'
       iianz = 0 
-      CALL check_form (form, iianz, wwerte, maxw) 
+      CALL check_form (ik, form, iianz, wwerte, maxw) 
       pgmlow = zmin (ik) 
       pgmhigh = zmax (ik) 
 !
@@ -583,7 +583,7 @@ cond_ianz: IF(ianz.eq.1) then
                ELSE 
                   ianz = 0 
                ENDIF 
-               CALL check_form (cdummy, ianz, werte, maxw) 
+               CALL check_form (ik, cdummy, ianz, werte, maxw) 
                IF (ier_num.eq.0) then 
                   form = cdummy 
                   iianz = ianz 
@@ -746,7 +746,7 @@ END SUBROUTINE do_ksav
 !
 !*****7************************************************************     
 !
-SUBROUTINE check_form (form, ianz, werte, maxw) 
+SUBROUTINE check_form (ikk, form, ianz, werte, maxw) 
 !+                                                                      
 !     This routine checks if file format and parameters                 
 !     are valid.                                                        
@@ -761,6 +761,7 @@ USE string_convert_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
+integer         , intent(in)    :: ikk          ! ksav ikk
 CHARACTER(len=*), intent(inout) :: form 
 integer         , intent(inout) :: ianz
 integer         , intent(in) :: MAXW
@@ -813,11 +814,18 @@ ELSEIF (form.eq.'GN'.or.form.eq.'NI'.or.form.eq.'PG') then
 !                                                                       
 !------ sx, sy files : parameter: cutting at x/y                        
 !                                                                       
-ELSEIF (form.eq.'SX'.or.form.eq.'SY') then 
-   IF (ianz.ne.1) then 
-      ier_num = - 6 
-      ier_typ = ER_COMM 
-   ENDIF 
+ELSEIF (form.eq.'SX'.or.form.eq.'SY' .or. form=='SZ') then 
+   if(lh5(ikk)) then
+      if (ianz /= 2) then 
+         ier_num = -6 
+         ier_typ = ER_COMM 
+      endif 
+   else
+      if (ianz.ne.1) then 
+         ier_num = -6 
+         ier_typ = ER_COMM 
+      endif 
+   endif
 !                                                                       
 !------ mx, my files : parameter: cutting through max no.               
 !                                                                       
@@ -911,6 +919,10 @@ INTEGER :: ispk, ixxx, ikk, ima, nma
 INTEGER :: nx_min, nx_max, ny_min, ny_max, nx_s, ny_s 
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: qvalues
 !                                                                       
+if(lh5(ik)) then
+   call do_save_global(ik, filname, form, MAXW, werte)
+   return
+endif
 !                                                                       
 if(form(1:2) /= 'H5') CALL oeffne (isa, filname, 'unknown') 
 IF (ier_num.ne.0) return 
@@ -1122,7 +1134,7 @@ ELSEIF (form (1:2) .eq.'NI'.and.lni (ik) ) then
       ENDDO 
 elseif(form(1:2)=='H5') then
    if(lh5(ik)) then
-      call do_save_global(ik, filname)
+      call do_save_global(ik, filname, form, MAXW, werte)
    else
    hh5_value     = 1              ! regular data
    HH5_VAL_PDF   = 1              ! regular data
@@ -1215,7 +1227,7 @@ END SUBROUTINE do_save
 !
 !*******************************************************************************
 !
-subroutine do_save_global(ik, filname)
+subroutine do_save_global(ik, filname, form, MAXW, werte)
 !-
 !  Save a data set from the global storage into an HDF5 File
 !+
@@ -1225,13 +1237,18 @@ subroutine do_save_global(ik, filname)
 use lib_data_struc_h5
 use gen_hdf_write_mod
 use errlist_mod
+USE support_mod       , only:oeffne
 use precision_mod
 !
 implicit none
 !
 integer         , intent(in) :: ik        ! Data set number
-character(len=*), intent(in) :: filname   ! Outrput file name
+character(len=*), intent(in) :: filname   ! Output file name
+character(len=*), intent(in) :: form      ! Output file format
+integer         , intent(in) :: MAXW      ! Werte dimension
+real(kind=PREC_DP), dimension(MAXW), intent(in) :: werte
 !
+integer, PARAMETER :: IWR = 43
 logical                              :: hh5_laver
 real(kind=PREC_DP)                   :: hh5_valmax
 integer                              :: hh5_value
@@ -1245,6 +1262,8 @@ real(kind=PREC_DP), dimension(:)    , allocatable :: c_dy
 real(kind=PREC_DP), dimension(:)    , allocatable :: c_dz
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: qvalues
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: sigma
+!
+integer :: i,j,k ! Dummy loop indices
 !
 character(len=PREC_STRING)                         :: infile
 integer                                            :: node_number  ! Node in global data
@@ -1270,6 +1289,15 @@ call data2local(ik, ier_num, ier_typ, node_number, infile, nlayer, is_direct,   
                 a0, win, c_x, c_y, c_z, c_dx, c_dy,c_dz, qvalues, sigma, llims, &
                 steps, steps_full, minmaxval, minmaxcoor)
 !
+if(form/='H5') then
+   call oeffne(IWR, filname, 'unknown')
+   if(ier_num/=0) then
+      return
+   endif
+endif
+!
+if(form=='H5')then
+!
    if(is_direct) then
       hh5_value     = 1              ! Direct space data
       HH5_VAL_PDF   = 1              ! Direct space data
@@ -1282,12 +1310,57 @@ call data2local(ik, ier_num, ier_typ, node_number, infile, nlayer, is_direct,   
       hh5_laver     = .false.        ! No averaged intensities
    endif
 !
-hh5_valmax      = 0.0D0
+   hh5_valmax      = 0.0D0
 !
 !  
-call gen_hdf5_write(hh5_value, hh5_laver, filname, dims, corners, vectors,      &
-                    a0, win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax,   &
-                    ier_num, ier_typ, ER_IO, ER_APPL)
+   call gen_hdf5_write(hh5_value, hh5_laver, filname, dims, corners, vectors,      &
+                       a0, win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax,   &
+                       ier_num, ier_typ, ER_IO, ER_APPL)
+elseif(form=='SX') then
+   j = 1
+   k = 1
+   if(dims(2)>1) then
+      j = nint( (werte(1)-c_y(1))/steps(2)) + 1
+   endif
+   if(dims(3)>1) then
+      k = nint( (werte(2)-c_z(1))/steps(3)) + 1
+   endif
+   write(IWR, '(a)') '#'
+   write(IWR, '(a)') '#'
+   do i=1, dims(1)
+      write(IWR, 4000) c_x(i), qvalues(i,j,k), 0.0, 0.0
+   enddo
+elseif(form=='SY') then
+   i = 1
+   k = 1
+   if(dims(1)>1) then
+      i = nint( (werte(1)-c_x(1))/steps(1)) + 1
+   endif
+   if(dims(3)>1) then
+      k = nint( (werte(2)-c_z(1))/steps(3)) + 1
+   endif
+   write(IWR, '(a)') '#'
+   write(IWR, '(a)') '#'
+   do j=1, dims(2)
+      write(IWR, 4000) c_y(j), qvalues(i,j,k), 0.0, 0.0
+   enddo
+elseif(form=='SZ') then
+   i = 1
+   j = 1
+   if(dims(1)>1) then
+      i = nint( (werte(1)-c_x(1))/steps(1)) + 1
+   endif
+   if(dims(2)>1) then
+      j = nint( (werte(2)-c_y(1))/steps(2)) + 1
+   endif
+write(*,*) ' SCHNITT AT ', i,j, werte(1:2)
+   write(IWR, '(a)') '#'
+   write(IWR, '(a)') '#'
+   do k=1, dims(3)
+      write(IWR, 4000) c_z(k), qvalues(i,j,k), 0.0, 0.0
+   enddo
+endif
+!
 deallocate(qvalues)
 if(allocated(c_x)) deallocate( c_x)
 if(allocated(c_y)) deallocate( c_y)
@@ -1296,6 +1369,12 @@ if(allocated(c_dx)) deallocate( c_dx)
 if(allocated(c_dy)) deallocate( c_dy)
 if(allocated(c_dz)) deallocate( c_dz)
 if(allocated(sigma)) deallocate( sigma)
+!
+if(form/='H5') then
+  close(IWR)
+endif
+!
+4000 format(4(g15.8e3,2x)) 
 !
 end subroutine do_save_global
 !
