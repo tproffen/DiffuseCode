@@ -7,8 +7,8 @@ use precision_mod
 !
 private
 public perioditize_menu
-public estimate_ncells
-public estimate_ncatom
+!public estimate_ncells
+!public estimate_ncatom
 !
 integer :: pdt_ncells     ! Number of cells in periodic crystal volume
 integer :: pdt_nsite = 0  ! Number of sites in an averaged unit cell
