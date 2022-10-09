@@ -4279,15 +4279,15 @@ real(kind=PREC_DP), dimension(3) :: cr_win
 integer               :: ndims
 logical               :: lout = .true.
 !
-iz = 1
+!iz = 1
 outfile = line(1:length)
 !
 node_number = 0
 call mrc_read(outfile, node_number)
 !
 ndims = 3
-call dgl5_set_h5_is_ku(iz, node_number)
-call dgl5_set_ku_is_h5(node_number, iz)
+!call dgl5_set_h5_is_ku(iz, node_number)
+!call dgl5_set_ku_is_h5(node_number, iz)
 if(ier_num/=0) return
 !
 ku_ndims(iz) = ndims
@@ -4296,6 +4296,8 @@ call dgl5_set_ku_is_h5(iz, node_number)
 call dgl5_set_h5_is_ku(node_number, iz)
 !
 call data2kuplot(ik,outfile, lout)
+write(*,*) ' READ MRC  data set is : ', ik, iz
+
 !
 end subroutine mrc_read_kuplot
 !
