@@ -19,6 +19,7 @@ USE stack_mod
 USE stack_rese_mod 
 USE spcgr_apply
 use structur, ONLY:read_to_internal
+use stack_cr_mod
 !
 USE ber_params_mod
 USE calc_expr_mod
@@ -683,6 +684,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !     ----run stacking faults 'run'                                     
 !                                                                       
    ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
+write(*,*) ' ST SIZES ', ST_MAXTYPE, ST_MMAX, ST_MAX_SCAT
       CALL do_stack_fill 
 !                                                                       
 !     ----Set parameters                    'set'                       
@@ -1628,6 +1630,7 @@ USE discus_save_mod
 use dis_estimate_mod, ONLY : estimate_ncells
 !use save_menu       , only: save_store_setting, save_default_setting, save_restore_setting, save_internal
 USE stack_mod  
+use stack_cr_mod
 USE structur  
 USE symm_sup_mod
 USE spcgr_apply
@@ -1649,12 +1652,11 @@ INTEGER          :: nscats=0, max_nscats=0
 INTEGER          ::         max_n_mole=0
 INTEGER          ::         max_n_type=0
 INTEGER          ::         max_n_atom=0
-INTEGER         :: i, j, k, m
+INTEGER         :: i, j, k, kk
 INTEGER         :: iatom 
 INTEGER         :: n_mole=0  ! number of molecules in input file
 INTEGER         :: n_type=0  ! number of molecule types in input file
 INTEGER         :: n_atom=0  ! number of molecule atoms in input file
-integer         :: ndel      ! number of atoms to delete if atom modulus is on
 integer, dimension(3) :: n_cells
 LOGICAL         :: lread, lout 
 LOGICAL           :: need_alloc = .false. 
@@ -1695,7 +1697,7 @@ if(st_mod_atom/=ST_ATOM_OFF) then          ! Atom modulo function is active
    st_adims(:) = real(nint(real(ceiling(st_dims(:,2)),kind=PREC_DP) - &
                            real(floor  (st_dims(:,1)),kind=PREC_DP)))
 !
-   if(st_mod_atom==ST_ATOM_ON) then        ! Keepd current dimensions
+   if(st_mod_atom==ST_ATOM_ON) then        ! Keep current dimensions
       st_dims(:,1) = real(floor  (st_dims(:,1)),kind=PREC_DP)
       st_dims(:,2) = real(ceiling(st_dims(:,2)),kind=PREC_DP)
 !
@@ -1735,6 +1737,10 @@ more1: IF (st_nlayer.ge.1) then
       max_n_type = MAX(max_n_type, n_type)
       max_n_atom = MAX(max_n_atom, n_atom)
    ENDDO
+   call alloc_stack_crystal(max_nscats, max_natoms)
+   ST_MMAX     = max_natoms
+   ST_MAX_SCAT = max_nscats
+!
    natoms = st_nlayer * max_natoms
    nscats = max_nscats
    need_alloc = .false.
@@ -1781,11 +1787,11 @@ more1: IF (st_nlayer.ge.1) then
          RETURN 
       ENDIF 
    ELSE 
-         ier_num = -182
-         ier_typ = ER_APPL
-         ier_msg(1) = 'Stacking faults should have been internal'
-         ier_msg(2) = 'Stacking fault layer file error 03'
-         return
+      ier_num = -182
+      ier_typ = ER_APPL
+      ier_msg(1) = 'Stacking faults should have been internal'
+      ier_msg(2) = 'Stacking fault layer file error 03'
+      return
 !           CALL readstru (NMAX, MAXSCAT, st_layer (st_type (i) ), cr_name,&
 !           cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_at_lis,&
 !           cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms, as_at_lis, as_dw,&
@@ -1795,11 +1801,11 @@ more1: IF (st_nlayer.ge.1) then
 !              RETURN 
 !           ENDIF 
    ENDIF 
+!
 !                                                                       
    CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
    cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
-   cr_cartesian,                                                  &
-        cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+   cr_cartesian, cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !                                                                       
    iatom = 1 
 !                                                                       
@@ -1857,9 +1863,9 @@ more1: IF (st_nlayer.ge.1) then
 !                                                                       
          gen_add_n = 0 
          sym_add_n = 0 
-         CALL stru_readheader_internal (st_layer(st_type(i)), MAXSCAT, cr_name, &
-               cr_spcgr, cr_spcgr_set, cr_set, cr_iset,                         &
-               cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win,               &
+         CALL stru_readheader_internal (st_layer(st_type(i)), MAXSCAT, st_name, &
+               st_spcgr, st_spcgr_set, st_set, st_iset,                         &
+               st_at_lis, st_nscat, st_dw, st_occ, st_a0, st_win,               &
                sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para,     &
                GEN_ADD_MAX, gen_add_n, gen_add_power, gen_add,                  &
                SYM_ADD_MAX, sym_add_n, sym_add_power, sym_add)
@@ -1874,8 +1880,9 @@ more1: IF (st_nlayer.ge.1) then
          ier_num = 0 
          ier_typ = ER_NONE 
 !                                                                       
+         st_natoms = 0
          CALL struc_read_atoms_internal (st_layer(st_type(i)),NMAX,&
-                     cr_natoms, cr_pos, cr_iscat, cr_prop, cr_surf, cr_magn, cr_mole)
+                     st_natoms, st_pos, st_iscat, st_prop, st_surf, st_magn, st_mole)
          CLOSE (ist) 
          IF (ier_num.ne.0) then 
             RETURN 
@@ -1923,13 +1930,40 @@ more1: IF (st_nlayer.ge.1) then
 !INTERN            ENDIF 
       ENDIF internal
 !                                                                       
+!     -------Copy atoms from st_array
 !     ------Add origin of layer                                         
 !                                                                       
-      DO j = iatom, cr_natoms 
+      DO j = 1    , st_natoms 
+         kk = -1
+         loop_type: do k=1,cr_nscat
+            if(cr_at_lis(k)==st_at_lis(st_iscat(j)) .and. cr_dw(k)== st_dw(st_iscat(j))) then
+               kk = k
+               exit loop_type
+            endif
+         enddo loop_type
+         if(kk<0) then         ! Atom type was not found, need new type 
+!           if(cr_nscat==MAXSCAT) then          ! Need to allocate
+!              nscat = max(cr_nscat+1, MAXSCAT)
+!              natom = max(cr_natoms+st_natoms, NMAX)
+!              call alloc_crystal(nscat, nmax)
+!              MAXSCAT = nscat
+!              NMAX    = nmax
+!           endif
+            kk       = cr_nscat + 1
+            cr_nscat = cr_nscat + 1                  ! Increment atom types
+            cr_at_lis(kk) = st_at_lis(j)             ! Set new atom type
+            cr_dw    (kk) = st_dw(j )                ! Set new ADP
+         endif
+         cr_iscat(iatom-1+j) = kk 
+         cr_prop (iatom-1+j) = st_prop(j)
+         cr_surf (:,iatom-1+j) = 0                   ! Not on a surface
+         cr_magn (:,iatom-1+j) = st_magn(:,j)
+         cr_mole (  iatom-1+j) = 0 !st_mole(  j)        ! MOLECULE NEEDS WORK
          DO k = 1, 3 
-            cr_pos (k, j) = cr_pos (k, j) + st_origin (k, i) 
+            cr_pos (k, iatom-1+j) = st_pos (k, j) + st_origin (k, i) 
          ENDDO 
       ENDDO 
+      cr_natoms = cr_natoms + st_natoms
 !                                                                       
 !     ------Initialise rotation disorder                                
 !                                                                       
@@ -1992,7 +2026,7 @@ if(ier_num==0) then           ! No errors occured
    loop_clean: do i = 1, st_ntypes           ! Read all layers into internal memory
       if(st_layer(i)(1:21)=='internal_stack_layer.') then         ! An internal file, delete
          strucfile = st_layer(i)
-         call store_remove_single(strucfile, ier_num)
+!        call store_remove_single(strucfile, ier_num)
          if(ier_num==-113) ier_num = 0          ! File might have been cleaned up already
       endif
    enddo loop_clean
