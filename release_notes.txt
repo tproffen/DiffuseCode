@@ -1,7 +1,8 @@
-6.12.03  DRAFT
+6.12.04  RELEASE 2022_10_09
 General
               Continued move of KUPLOT data to global storage; no effect on user yet.
 DISCUS
+  stack       BUG FIX Layers with differing chemical composition were not recognized
   stack       BUG FIX Stacking faults with 'create' and no 'run' caused crash, FIXED
   stack       BUG FIX if modulus was off, yet modulo vector were set, these were 
                       erroneously added to the layers. FIXED
