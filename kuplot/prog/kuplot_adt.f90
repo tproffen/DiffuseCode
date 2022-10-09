@@ -292,13 +292,14 @@ integer                   , dimension(MAXW) :: lpara
 real(kind=PREC_DP)        , dimension(MAXW) :: werte
 integer :: ianz          ! Number of parameters
 !
-integer, parameter :: NOPTIONAL = 6
+integer, parameter :: NOPTIONAL = 7
 integer, parameter :: O_MODE    = 1
 integer, parameter :: O_LIMITS  = 2
 integer, parameter :: O_STEPS   = 3
 integer, parameter :: O_SIGMA   = 4
-integer, parameter :: O_RODS    = 5
-integer, parameter :: O_LOGFILE = 6
+integer, parameter :: O_ZERO    = 5
+integer, parameter :: O_RODS    = 6
+integer, parameter :: O_LOGFILE = 7
 character(LEN=   6), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -307,14 +308,14 @@ logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
 integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
 !
-data oname  / 'mode', 'limits', 'steps', 'sigma', 'rod', 'log' /
-data loname /  4    ,  6      ,  4     ,  5     ,  3   ,  3 /
+data oname  / 'mode', 'limits', 'steps', 'sigma', 'zero', 'rod', 'log' /
+data loname /  4    ,  6      ,  4     ,  5     ,  4    ,  3   ,  3 /
 opara  =  (/ 'rods         ','[1.0,1.0,1.0]', '[1.0,1.0,0.1]', '[0.2,0.2,0.0]', &
-             '[0.0,0.0,1.0]' ,'bragg.data   '/) !Provide fresh default values
+             '[-1.,-1.,-1.]','[0.0,0.0,1.0]' ,'bragg.data   '/) !Provide fresh default values
 lopara =  (/  4             , 13            ,  13            ,  13            , &
-              13            , 10             /)
-owerte =  (/  0.0           , 0.0           ,  0.0           ,  0.0           , &
-              0.0           , 0.0            /)
+              13            , 13            , 10             /)
+owerte =  (/  0.0           , 0.0           , 0.0           ,  0.0           , &
+              0.0           , 0.0           , 0.0            /)
 !
 !
 call get_params(zeile, ianz, cpara, lpara, maxw, length)
@@ -353,6 +354,11 @@ if(lpresent(O_STEPS )) then
    adt_steps  = werte(1:3)
 endif
 !
+if(lpresent(O_ZERO )) then
+   call get_optional_multi(MAXW, opara(O_ZERO ), lopara(O_ZERO ), werte, ianz)
+   adt_zero   = werte(1:3)
+endif
+!
 if(lpresent(O_RODS )) then
    call get_optional_multi(MAXW, opara(O_RODS ), lopara(O_RODS ), werte, ianz)
    adt_rod    = werte(1:3)
@@ -366,6 +372,7 @@ end subroutine adt_set
 !
 subroutine adt_read_data
 !
+use kuplot_mod
 use kuplot_load_mod, only:mrc_read_kuplot
 !
 use errlist_mod
@@ -387,7 +394,9 @@ if(adt_data(len_trim(adt_data)-3:len_trim(adt_data)) /= '.mrc') then
 endif
 !
 length = len_trim(adt_data)
+write(*,*) ' iz ', iz
 call mrc_read_kuplot(adt_data, length, adt_node, adt_ik) 
+write(*,*) ' iz ', iz
 adt_resol = rpara(500)
 !write(*,'(a,3(2x,f12.8))') ' res A^-1/px', adt_resol
 !
@@ -566,10 +575,11 @@ subroutine adt_extract
 !+
 !
 use kuplot_mod
+use kuplot_global
 !
 use errlist_mod
 use lib_data_struc_type_mod
-use lib_data_struc_h5 , only:data2local, local2data
+use lib_data_struc_h5 , only:data2local, local2data, dgl5_set_h5_is_ku, dgl5_set_ku_is_h5
 use support_mod       , only:oeffne
 !
 implicit none
@@ -590,6 +600,7 @@ integer                   , dimension(2,3) :: pix_lim    ! PIXEL Limits includin
 type(h5_data_struc) :: ik1
 type(h5_data_struc) :: ik2
 !
+logical :: lout = .true.
 real(kind=PREC_DP), dimension(3) :: com
 real(kind=PREC_DP) :: weight
 !
@@ -605,8 +616,10 @@ pix_lim(1,:) =  HUGE(1)
 pix_lim(2,:) = -HUGE(1)
 hkl_lim = adt_limits + adt_sigma     ! Set grand HKL limits
 !
-adt_zero = ik1%dims/2
-write(*,*) ' ADT_zero at : ', adt_zero
+if(ALL(adt_zero<0.0D0)) then
+   adt_zero = ik1%dims/2
+endif
+!write(*,*) ' ADT_zero at : ', adt_zero
 !
 ! Transform the eight corners of +-hkl_lim to obtain Pixel limits
 !
@@ -661,8 +674,15 @@ idims = nint(2*adt_limits/adt_steps)+1
 !
 if(adt_mode==ADT_RODS) then       ! Extract all rods
 !
+!write(*,*) ' DIMENSION ', ik1%dims, ' RODS ', idims 
+!write(*,*) ' PIXEL LIM ', pix_lim(:,1)
+!write(*,*) ' PIXEL LIM ', pix_lim(:,2)
+!write(*,*) ' PIXEL LIM ', pix_lim(:,3)
+!read(*,*) i
    allocate(ik2%datamap(idims(1), idims(2), idims(3)))
    ik2%datamap = 0.0D0
+!write(*,*) ' ALLOCATED '
+!read(*,*) i
    do k=pix_lim(1,3), pix_lim(2,3)
       pixel(3) = real(k,kind=PREC_DP)
       do j=pix_lim(1,2), pix_lim(2,2)
@@ -689,44 +709,75 @@ if(adt_mode==ADT_RODS) then       ! Extract all rods
       enddo
    enddo
 !
+!write(*,*) ' DONE WITH LOOP '
+!
    ikk = iz
    ik2%data_num = 0
    ik2%infile = 'extracted_rods'
    ik2%layer = idims(3)/2
    ik2%is_direct = .false.
    ik2%ndims     = 3
+   ik2%dims      = idims
    ik2%is_grid   = .true.
    ik2%has_dxyz  = .false.
    ik2%has_dval  = .false.
-   ik2%corners(:,1) = -hkl_lim            ! Lower Left
-   ik2%corners(:,2) = -hkl_lim            ! Lower right
+   ik2%corners(:,1) = -adt_limits         ! Lower Left
+   ik2%corners(:,2) = -adt_limits         ! Lower right
    ik2%corners(1,2) = -ik2%corners(1,2)
-   ik2%corners(:,3) = -hkl_lim            ! Upper left
+   ik2%corners(:,3) = -adt_limits         ! Upper left
    ik2%corners(2,3) = -ik2%corners(2,2)
-   ik2%corners(:,4) = -hkl_lim            ! Top left
+   ik2%corners(:,4) = -adt_limits         ! Top left
    ik2%corners(3,4) = -ik2%corners(3,4)
    ik2%vectors(:,1) = ik2%corners(:,2) - ik2%corners(:,1)
    ik2%vectors(:,2) = ik2%corners(:,3) - ik2%corners(:,1)
    ik2%vectors(:,3) = ik2%corners(:,4) - ik2%corners(:,1)
-   ik2%cr_a0           = adt_di_cell(1:3)
-   ik2%cr_win          = adt_di_cell(4:6)
-   ik2%llims        = -hkl_lim
-   ik2%steps(1)     = ik2%vectors(1,1)/real(ik2%dims(1),kind=PREC_DP)
-   ik2%steps(2)     = ik2%vectors(2,2)/real(ik2%dims(2),kind=PREC_DP)
-   ik2%steps(3)     = ik2%vectors(3,3)/real(ik2%dims(3),kind=PREC_DP)
-   ik2%steps_full(:,1)= ik2%vectors(:,1)/real(ik2%dims(1),kind=PREC_DP)
-   ik2%steps_full(:,2)= ik2%vectors(:,2)/real(ik2%dims(2),kind=PREC_DP)
-   ik2%steps_full(:,3)= ik2%vectors(:,3)/real(ik2%dims(3),kind=PREC_DP)
+   ik2%cr_a0          = adt_di_cell(1:3)
+   ik2%cr_win         = adt_di_cell(4:6)
+   ik2%llims          = -adt_limits
+   ik2%steps(1)       = ik2%vectors(1,1)/(real(ik2%dims(1),kind=PREC_DP)-1.0D0)
+   ik2%steps(2)       = ik2%vectors(2,2)/(real(ik2%dims(2),kind=PREC_DP)-1.0D0)
+   ik2%steps(3)       = ik2%vectors(3,3)/(real(ik2%dims(3),kind=PREC_DP)-1.0D0)
+   ik2%steps_full(:,1)= ik2%vectors(:,1)/(real(ik2%dims(1),kind=PREC_DP)-1.0D0)
+   ik2%steps_full(:,2)= ik2%vectors(:,2)/(real(ik2%dims(2),kind=PREC_DP)-1.0D0)
+   ik2%steps_full(:,3)= ik2%vectors(:,3)/(real(ik2%dims(3),kind=PREC_DP)-1.0D0)
+!write(*,*) ' ABOUT TO SAVE ' 
+!write(*,*) ' ik2 data_num  ', ik2%data_num
+!write(*,*) ' ik2 nlayer    ', ik2%layer 
+!write(*,*) ' ik2 ndim      ', ik2%ndims
+!write(*,*) ' ik2  dim      ', ik2%dims
+!write(*,*) ' ik2  x        ', allocated(ik2%x)
+!write(*,*) ' ik2  ll       ', ik2%corners(:,1)
+!write(*,*) ' ik2  lr       ', ik2%corners(:,2)
+!write(*,*) ' ik2  ul       ', ik2%corners(:,3)
+!write(*,*) ' ik2  tl       ', ik2%corners(:,4)
+!write(*,*) ' ik2  vec x    ', ik2%vectors(:,1)
+!write(*,*) ' ik2  vec y    ', ik2%vectors(:,2)
+!write(*,*) ' ik2  vec z    ', ik2%vectors(:,3)
+!write(*,*) ' ik2  steps    ', ik2%steps
+!write(*,*) ' ik2  full     ', ik2%steps_full(1,1), ik2%steps_full(2,2) , ik2%steps_full(3,3)
+!write(*,*) ' ik2  data     ', allocated(ik2%datamap)
+!write(*,*) ' ik2  sigma    ', allocated(ik2%sigma)
+!write(*,*) ' ik2  data     ', lbound(ik2%datamap), ubound(ik2%datamap)
+!write(*,*) ' setp into local2data '
+!read(*,*) i
+write(*,*) ' ikk ' , ikk, iz
    call local2data(ikk, ier_num, ier_typ, ik2%data_num, ik2%infile, ik2%layer,  &
         ik2%is_direct, ik2%ndims, ik2%dims, ik2%is_grid, ik2%has_dxyz,             &
         ik2%has_dval, ik2%corners, ik2%vectors, ik2%cr_a0, ik2%cr_win, ik2%x, ik2%y,     &
         ik2%z, ik2%dx, ik2%dy, ik2%dz, ik2%datamap, ik2%sigma, ik2%llims, ik2%steps,  &
         ik2%steps_full)
+write(*,*) ' ikk ' , ikk, iz, ik2%data_num
+   call dgl5_set_h5_is_ku(iz, ik2%data_num)
+   call dgl5_set_ku_is_h5(ik2%data_num, iz)
+   ku_ndims(iz) = ik2%ndims
+   string = 'adt_rods.inte'
+   call data2kuplot(ikk, string, lout)
+write(*,*) ' ikk ' , ikk, iz, ik2%data_num
 !
-write(*,*) ' FINISHED extraction'
-do j=1,7
-do i=1,7
-write(string,'(a,i3.3,a,i3.3,a)') 'rod_',abs(-4+i),'_',abs(-4+j),'_L.inte'
+!write(*,*) ' FINISHED extraction'
+do j=1,idims(2)
+do i=1,idims(1)
+write(string,'(a,i3.3,a,i3.3,a)') 'RODS/rod_',abs(-4+i),'_',abs(-4+j),'_L.inte'
 if((-4+i)<0) string(5:5)='-'
 if((-4+j)<0) string(9:9)='-'
 
@@ -775,7 +826,7 @@ if(mod(i+j,2)==0) then
          nref = nref + 1
          weight = weight/11.**3
          if(adt_log) then
-         write(95,'(i6, 2(f5.1,2x),f15.6,3(3f8.2,2x),2x,3i4)') nref, 1.0, 0.0,  &
+         write(95,'(f6.0, 2(f5.1,2x),f15.6,3(3f8.2,2x),2x,3i4)') real(nref), 1.0, 0.0,  &
          1./weight, com, pixel, hkl, i,j,k
          endif
       endif

@@ -304,14 +304,16 @@ do i=1, 10-ilabel
 enddo
 !write(*,*) 'Starting to read extended header'
 !  End of standard header at 1024 Bytes
-do i=1,44   ! Ignore initial 44 bytes
-   read(IMRC) ibyte
-enddo
-   read(IMRC) pxsize
-!write(*,*) ' pixel size ' , pxsize*1.0E-10 ,' a^-1/pixel'
-do i=1,extend_b - 48
-   read(IMRC) ibyte
-enddo
+if(extend_b>0) then    ! There is an extended header
+   do i=1,44   ! Ignore initial 44 bytes
+      read(IMRC) ibyte
+   enddo
+      read(IMRC) pxsize
+!   write(*,*) ' pixel size ' , pxsize*1.0E-10 ,' a^-1/pixel'
+   do i=1,extend_b - 48
+      read(IMRC) ibyte
+   enddo
+endif
 !!
 !write(*,*) 'Starting to read map'
 allocate(odata(dims(1), dims(2), dims(3)))
