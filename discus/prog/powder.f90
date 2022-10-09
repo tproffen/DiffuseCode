@@ -2077,7 +2077,7 @@ loop_h: DO ih = h_start, h_end
 !              ENDIF 
             ELSEIF (pow_four_mode.eq.POW_STACK) THEN 
                CALL st_fourier(rept_f2aver)
-               rept_f2aver = .false.   ! No further calculations needed
+!              rept_f2aver = .false.   ! No further calculations needed
             ENDIF 
             IF(ier_ctrlc) THEN
                ier_num = -14
