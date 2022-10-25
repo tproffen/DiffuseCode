@@ -155,7 +155,7 @@ END SUBROUTINE pow_pdf_hist
 !
 !*****7*************************************************************************
 !
-subroutine pow_pdf_hist_prep_period
+subroutine pow_pdf_hist_prep_period(ltemp)
 !
 use output_mod
 use powder_mod
@@ -170,12 +170,17 @@ use precision_mod
 !
 implicit none
 !
+logical, intent(in) :: ltemp
+!
 character(len=PREC_STRING) :: origstruc
 !
-out_user_values(1) =   0.01
-out_user_values(2) = min(100.0D0, pow_period/pow_period_cut)
-out_user_values(3) =   0.01
-out_user_limits    = .TRUE.
+if(ltemp.or. .not.out_user_limits) then
+   out_user_values(1) =   0.01
+      out_user_values(2) = min(100.0D0, pow_period*pow_period_cut)
+   out_user_values(3) =   0.01
+   out_user_limits    = .TRUE.
+endif
+!
 cpow_form = 'r'
 call powder_out(val_pdf, .TRUE.)
 CALL errlist_save                   ! Keep error status 

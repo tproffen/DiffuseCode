@@ -746,14 +746,14 @@ else                   ! normal write
          rmin     = out_user_values(1)
          rmax     = out_user_values(2)
          rstep    = out_user_values(3)
-         npkt_pdf = NINT((out_user_values(2)-out_user_values(1))/out_user_values(3)) + 1
+         npkt_pdf = NINT((out_user_values(2)-out_user_values(1))/out_user_values(3))! + 1
       ELSE
          rmin     = pdf_rminu
          rmax     = pdf_rmaxu
          rstep    = pdf_deltaru
-         npkt_pdf = NINT((rmax-rmin)/pdf_deltaru) + 1
+         npkt_pdf = NINT((rmax-rmin)/pdf_deltaru)! + 1
       ENDIF
-      rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
+!     rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
 !
       ALLOCATE(y2a(0:POW_WR_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
       call spline(npkt_pdf_temp+1, xwrt_pdf_temp, ywrt_pdf_temp, 1.d31, 1.d31, y2a)

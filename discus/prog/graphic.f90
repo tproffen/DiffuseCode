@@ -18,7 +18,9 @@ USE nexus_discus
 USE discus_xplor
 USE vtk_mod
 USE output_mod 
+use powder_mod           , only:pow_lperiod
 USE powder_write_mod
+use powder_pdf_hist_mod  , only:pow_pdf_hist_prep_period
 USE chem_aver_mod
 USE qval_mod
 !
@@ -488,6 +490,9 @@ main_if: IF (ier_num.eq.0) THEN
             ELSEIF (ityp.eq.4) THEN 
                CALL do_ppm (value, laver) 
             ELSEIF (ityp.eq.5) THEN 
+if(pow_lperiod .and. value==VAL_PDF) then
+   call pow_pdf_hist_prep_period(.false.)   ! In case of periodic boundary conditions 
+endif
                if(cpow_form == 'tof') then
                   call powder_out_tof(value, .false.)
                else

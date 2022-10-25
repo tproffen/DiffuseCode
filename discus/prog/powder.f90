@@ -386,7 +386,8 @@ IF(ier_num == 0) THEN
    CALL phases_place       ! Copy current powder pattern into proper phase entry
    IF (pow_four_type.eq.POW_DEBYE) THEN 
       four_last = POWD_DY
-      if(pow_lperiod) call pow_pdf_hist_prep_period
+! Moved to graphic.f90 tohandel multiple phases 
+!!     if(pow_lperiod) call pow_pdf_hist_prep_period
    ELSE
       four_last = POWD_CO
    ENDIF 
