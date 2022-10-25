@@ -1,8 +1,18 @@
-6.12.04  RELEASE 2022_10_09
+6.12.06  DRAFT
+6.12.05  RELEASE 2022_10_10
+
+DISCUS
+  powder      The combination of Debye-Scattering-Equation with periodic boundary
+              conditions and multiple phases did not work.
+6.12.04  RELEASE 2022_10_10
 General
               Continued move of KUPLOT data to global storage; no effect on user yet.
 DISCUS
-  stack       BUG FIX Layers with differing chemical composition were not recognized
+              stack BUG FIX Layers with differing chemical composition were not recognized
+6.12.03  RELEASE 2022_09_16
+General
+              Continued move of KUPLOT data to global storage; no effect on user yet.
+DISCUS
   stack       BUG FIX Stacking faults with 'create' and no 'run' caused crash, FIXED
   stack       BUG FIX if modulus was off, yet modulo vector were set, these were 
                       erroneously added to the layers. FIXED
