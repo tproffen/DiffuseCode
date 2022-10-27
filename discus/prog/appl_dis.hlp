@@ -3567,6 +3567,10 @@
    ellipsoid are independent. The directions <h>, <k>, <l> can be 
    omitted. In this case the directions default to the abscissa, 
    ordinate and top axis of the Fourier calculation.
+
+   The folowing information is stored in the variable res[] in order: Diffuse
+   intensity minimun, maximum, average, standard deviation and Bragg intensity
+   minimum and maximum.
 3  scat
 !p scat { <name> | <number> },<a1>,<b1>,<a2>,<b2>,<a3>,<b3>,<a4>,<b4>,<c>
 !p scat { <name> | <number> | "all" }, <name>

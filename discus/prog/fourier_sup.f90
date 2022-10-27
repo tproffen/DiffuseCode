@@ -1005,7 +1005,8 @@ END SUBROUTINE four_formtab
       USE discus_config_mod 
       USE diffuse_mod 
 !                                                                     
-use precision_mod
+      USE precision_mod
+      USE param_mod
       USE prompt_mod 
 !
       IMPLICIT none 
@@ -1066,6 +1067,14 @@ use precision_mod
          WRITE (output_io, 1020) diffumin, diffumax 
          WRITE (output_io, 1030) diffuave, diffusig 
       ENDIF 
+!
+      res_para(0) = 6
+      res_para(1) = diffumin
+      res_para(2) = diffumax
+      res_para(3) = diffuave
+      res_para(4) = diffusig
+      res_para(5) = braggmin
+      res_para(6) = braggmax
 !                                                                       
  1000 FORMAT     (/,' ') 
  1010 FORMAT     (  ' Bragg scat.     : ',G13.6,'  -> ',G13.6) 
