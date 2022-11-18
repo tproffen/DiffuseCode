@@ -684,7 +684,6 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !     ----run stacking faults 'run'                                     
 !                                                                       
    ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
-write(*,*) ' ST SIZES ', ST_MAXTYPE, ST_MMAX, ST_MAX_SCAT
       CALL do_stack_fill 
 !                                                                       
 !     ----Set parameters                    'set'                       
