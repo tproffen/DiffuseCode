@@ -902,7 +902,7 @@ INTEGER, INTENT(IN) :: idout
 INTEGER :: i, j 
 LOGICAL :: kor 
 !
-IF(kup_fit6_chisq>=0.0D0) THEN
+IF(kup_fit6_chisq>=0.0D0 .and. kup_fit6_ndata> 0) THEN
    WRITE(idout, 1040) kup_fit6_chisq, kup_fit6_chisq/kup_fit6_ndata,            &
       kup_fit6_conf, kup_fit6_chisq/(kup_fit6_ndata-kup_fit6_npara),            &
       kup_fit6_ndata, kup_fit6_npara, kup_fit6_lamda, kup_fit6_r4, kup_fit6_re 
@@ -2353,8 +2353,8 @@ integer, intent(in) :: ianz
 INTEGER, intent(in) :: maxw 
 REAL(KIND=PREC_DP), intent(in), dimension(MAXW) :: werte ! (maxw) 
 !
-REAL(KIND=PREC_DP), dimension(MAXW)  :: wmax ! (maxmax) 
-INTEGER :: ixm (maxmax) 
+REAL(KIND=PREC_DP), dimension(MAXMAX)  :: wmax ! (maxmax) 
+INTEGER           , dimension(MAXMAX)  :: ixm  ! (maxmax) 
 INTEGER :: ii, jj, ima, i 
 !                                                                       
 IF (ianz.eq.0) THEN 
@@ -2385,7 +2385,14 @@ p (2) = (y (jj) - y (ii) ) / (x (jj) - x (ii) )
 pinc (2) = 1.0 
 !                                                                       
 ifen = fit_ifen 
+wmax = 0.0D0                            ! Initialize wmax, ixm
+ixm  = 0
+ima=1                                   ! Start values for 1st maximum
+wmax(1) = x(offxy (ikfit - 1) + 1)
+ixm (1) = 1
 CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
+!
+call no_error                           ! do_fma_xy might have found too many maxima
 IF (ima.lt.np1) THEN 
    ier_num = - 30 
    ier_typ = ER_APPL 

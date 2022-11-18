@@ -165,15 +165,15 @@ DO ix = 1 + ifen, lenc(ik) - ifen
       ENDDO 
 !                                                                       
       IF (max_da) then 
-         wmax (ima) = y (offxy (ik - 1) + ix) 
-         ixm (ima) = ix 
-         ima = ima + 1 
          IF (ima.gt.maxmax) then 
             ier_num = - 21 
             ier_typ = ER_APPL 
             ima = maxmax 
             RETURN 
          ENDIF 
+         wmax (ima) = y (offxy (ik - 1) + ix) 
+         ixm (ima) = ix 
+         ima = ima + 1 
       ENDIF 
    ENDIF 
 ENDDO 
