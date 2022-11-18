@@ -349,8 +349,8 @@ DO i=1,pha_n                                ! Sum over all phases
             REAL(pha_niscat(j,i)*pha_occ(j,i)/pha_nreal(i)*pha_scale(i),KIND=PREC_DP)
          pow_fu(k) = pow_fu(k) +                                               &
             pha_form(k,j,i)**2*                                                &
-            REAL(pha_occ(j,i)*pha_scale(i)*EXP(-q**2/8.0D0/PI**2*pha_adp(j,i)),KIND=PREC_DP)  &
-           *(pha_niscat(j,i)/pha_nreal(i))                                
+            REAL(pha_occ(j,i)*pha_scale(i)*EXP(-(q**2/8.0D0/PI**2*pha_adp(j,i))),KIND=PREC_DP)  &
+           *(1.0D0*pha_niscat(j,i)/(1.0D0*pha_nreal(i)))                                
       ENDDO
 !write(*,*) 'u2aver ', i,j, pha_adp(j,i), pha_niscat(j,i), pha_nreal(i), pha_occ(j,i), pha_frac(i),pha_scale(i)
       pow_u2aver = pow_u2aver + (pha_adp(j,i)) * pha_niscat(j,i)/pha_nreal(i)*pha_occ(j,i)*pha_scale(i)
@@ -389,7 +389,7 @@ l_all_complete = .TRUE.
 l_all_debye    = .TRUE.
 !write(*,*) 'INTEGRAL ', sum(pha_powder(:,1)), sum(pow_faver2),  &
 !                        sum(pha_powder(:,1))/ sum(pow_faver2)
-!open(87,file='POWDER/lp.dat', status='unknown')
+!IF(pha_calc(1) == POW_COMPL) open(87,file='POWDER/lp.dat', status='unknown')
 DO i=1,pha_n
    IF(pha_nreal(i)>0.0) THEN
    IF(pha_calc(i) == POW_COMPL) THEN           ! Complete calculation mode
@@ -403,9 +403,9 @@ DO i=1,pha_n
          if(arg >  1.0D0) exit loop_inte
          ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
          pow_conv(k) = pow_conv(k) + pha_scale(i)*pha_powder(k,i)  & ! / q**2 &
-                                    * polarisation(ttheta)               &
-                                    * lorentz(ttheta, q, pow_bangle, 0)
-!write(87, '(3(f16.6,2x))') ttheta, polarisation(ttheta), lorentz(ttheta, q, pow_bangle, 0)
+                                    * lorentz(ttheta, q, pow_bangle, 0)  &
+                                    * polarisation(ttheta)
+!write(87, '(4(f16.6,2x))') q,ttheta, polarisation(ttheta), lorentz(ttheta, q, pow_bangle, 0)
       ENDDO loop_inte
 !
 !     Prepare S(Q)      output
@@ -416,9 +416,10 @@ DO i=1,pha_n
          if(arg >  1.0D0) exit loop_sq
          ttheta = 2.*asind ( (q / 2.D0 /(zpi) *rlambda ))
          pow_sq(k) = pow_sq(k) + pha_scale(i)* pha_powder(k,i)  &  ! / q**2
-                                    * polarisation(ttheta)               &
-                                    * lorentz(ttheta, q, pow_bangle, 0)
+                                    * lorentz(ttheta, q, pow_bangle, 0)!  &
+!                                   * polarisation(ttheta)
       ENDDO loop_sq
+      pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_fu    ))    ! Scale S(Q) onto absolute scale
 !
    ELSEIF(pha_calc(i) == POW_DEBYE) THEN           ! Complete calculation mode
       l_all_complete = .false.
@@ -439,13 +440,15 @@ DO i=1,pha_n
       DO k=0, npkt
          pow_sq(k) = pow_sq(k) + pha_scale(i)* pha_powder(k,i)
       ENDDO
+!     pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_fu    ))    ! Scale S(Q) onto absolute scale
 !
    ENDIF
    ENDIF
 ENDDO
-!write(*,*) 'INTEGRAL ', sum(pow_sq         ), sum(pow_faver2),  &
-!                        sum(pow_sq         )/ sum(pow_faver2)
-!close(87)
+!write(*,'(a,5F14.3)') 'INTEGRAL ', sum(pow_sq         ), sum(pow_faver2),  &
+!                        sum(pow_sq         )/ sum(pow_faver2), sum(pow_fu), &
+!                        sum(pow_sq         )/ sum(pow_fu)
+!IF(pha_calc(1) == POW_COMPL) close(87)
 !write(*,*) 'PHASES_AVERAGE ', npkt
 !write(*,*) 'pha_powder     ', lbound(pha_powder),  '<>',ubound(pha_powder)
 !write(*,*) 'pow_conv       ', lbound(pow_conv,1), ubound(pow_conv,1)
@@ -453,7 +456,7 @@ ENDDO
 !write(*,*) 'pow_fu         ', lbound(pow_fu,1), ubound(pow_fu,1)
 !write(*,*) 'pow_faver2     ', lbound(pow_faver2,1), ubound(pow_faver2,1)
 !open(87,file='POWDER/multi_average.conv1', status='unknown')
-!do k= 0, npkt
+!do k= 0, min(30990,npkt)
 !q = ((k)*xdel + xmin)
 !write(87,'(5(f16.6,2x))') q,      pow_conv(k), pow_sq(k), pow_fu(k), pow_faver2(k)
 !enddo
@@ -461,23 +464,33 @@ ENDDO
 !
 !write(*,*) ' IN PHASES ', deb_conv .OR. .NOT.ldbw, deb_conv , .NOT.ldbw
 if(l_all_complete) then                       ! Complete data calculation 
-!write(*,*) ' COMPLETE CALCULATION '
+!write(*,*) ' COMPLETE CALCULATION ', pow_u2aver
    DO k=0, npkt
       q = ((k)*xdel + xmin)
-      pow_conv(k) = pow_conv(k)  !+                                               &
-              !       (+ 1.0 - exp(-q**2*pow_u2aver))*pow_faver2(k)
+      pow_conv(k) = pow_conv(k)  +                                               &
+                    (+ 1.0 - exp(-q**2*pow_u2aver))*pow_faver2(k)
    ENDDO
-   pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_faver2))    ! Correct intensity effect of LP Correction
+!  pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_faver2))    ! Correct intensity effect of LP Correction
+!  pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_fu    ))    ! Scale S(Q) onto absolute scale
 !write(*,*) 'INTEGRAL ', sum(pow_sq         ), sum(pow_faver2),  &
 !                        sum(pow_sq         )/ sum(pow_faver2)
    do k=0, npkt
       q = ((k)*xdel + xmin)
-      pow_sq(k) =   1.0 + (pow_sq(k) - pow_fu(k))/pow_faver2(k)  &
-                  + 1.0 - exp(-q**2*pow_u2aver)
+!     pow_sq(k) =   1.0 + (pow_sq(k) - pow_fu(k))/pow_faver2(k)  &
+!                 + 1.0 - exp(-q**2*pow_u2aver)
+!     pow_sq(k) =   1.0 + (pow_sq(k)/10.0 - pow_fu(k))/pow_faver2(k)! &
+!                 + 1.0 - exp(-q**2*pow_u2aver)
+!     pow_sq(k) =   1.0 + (pow_sq(k)/20.0 - pow_f2aver(k))/pow_faver2(k)! &
+!                 + 1.0 - exp(-q**2*pow_u2aver)
+!!    pow_sq(k) =   1.0 + (pow_sq(k)/10.0            )/pow_faver2(k)   &
+!!                      - exp(-(q**2*pow_u2aver))                      &
+!!                       +                   pow_fu(k)/pow_faver2(k)
+      pow_sq(k) = 1.0D0 + (pow_sq(k) - pow_fu(k))/pow_faver2(k) 
+      pow_sq(k) = pow_sq(k) / (1.0D0 + 0.5D0*pow_fu(k)/pow_faver2(k))
    enddo
 else                                          ! DEBYE calculation
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
-!write(*,*) ' DEBYE was     done  with conv '
+!write(*,*) ' DEBYE was     done  with conv ', deb_conv, .NOT.ldbw
    DO k=0, npkt
       q = ((k)*xdel + xmin)
       pow_conv(k) = pow_conv(k)  !+                                               &
@@ -486,12 +499,9 @@ IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution 
    DO k=0, npkt
       pow_sq(k) = pow_sq(k) / (pow_faver2(k))                               &
                   + 1.0 - pow_f2aver(k)/pow_faver2(k)
-!        ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer    &
-!                  + 1.0 - & !exp(-q**2*pow_u2aver*0.25)      * &
-!                   pow_f2aver(j)/pow_faver2(j))
    ENDDO
 ELSE
-!write(*,*) ' DEBYE was not done  with conv '
+!write(*,*) ' DEBYE was not done  with conv ', deb_conv, .NOT.ldbw
 ! .NOT. (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0), &
 ! pdf_clin_a/=0.0, pdf_cquad_a/=0.0
 !  IF(.NOT. (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0)) THEN
@@ -503,7 +513,6 @@ ELSE
 !  ENDIF
    DO k=0, npkt
       pow_sq(k) = 1.0 + (pow_sq(k) - pow_fu(k))/pow_faver2(k) 
-!        ypl(j) = 1.0 + (ypl(j) -pow_fu(j)                     )/pow_faver2(j)
    ENDDO
 ENDIF
 endif                                       ! End complete / debye
@@ -511,9 +520,11 @@ endif                                       ! End complete / debye
 !open(87,file='POWDER/multi_average.conv2', status='unknown')
 !do k= 0, npkt
 !q = ((k)*xdel + xmin)
-!write(87,'(5(f16.6,2x))') q,      pow_conv(k), pow_sq(k), pow_fu(k), pow_faver2(k)
+!write(87,'(5(f16.6,2x))') q,      pow_conv(k), pow_sq(k), pow_fu(k)/ pow_faver2(k) &
+!                          ,(+ 1.0 - exp(-q**2*pow_u2aver))
 !enddo
 !close(87)
+!read(*,*) k
 !  Fine tune average value of S(Q) => 1 for large Q, slight deviations arrise
 !  due to convolution
 !if(l_all_debye) then
@@ -535,7 +546,7 @@ endif                                       ! End complete / debye
       enddo
       sq_scale = sq_scale/(j-i+1)
 !write(*,*) 'scale ',sq_scale, i, j, npkt
-      pow_sq = pow_sq / sq_scale
+!     pow_sq = pow_sq / sq_scale
    endif
 !endif
 !
@@ -545,6 +556,7 @@ endif                                       ! End complete / debye
 !write(87,'(3(f16.6,2x))') q,      pow_conv(k), pow_sq(k)
 !enddo
 !close(87)
+!read(*,*) k
 !write(*,*) ' PHASES_FIN ', pha_powder(0, 1), pha_powder(1, 1), pha_powder(4300, 1), pha_powder(npkt, 1)
 !write(*,*) ' PHASES_FIN ', pow_conv(0), pow_conv(1), pow_conv(4300), pow_conv(npkt)
 !write(*,*) ' PHASES_FIN ', pow_sq(0), pow_sq(1), pow_sq(4300), pow_sq(npkt)
