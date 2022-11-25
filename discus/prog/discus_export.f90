@@ -6,11 +6,13 @@ SUBROUTINE do_export(line, lp)
 !
 ! Exports a structure in different formats
 !
-USE errlist_mod
-USE get_params_mod
-USE precision_mod
-USE take_param_mod
-USE str_comp_mod
+use update_cr_dim_mod
+!
+use errlist_mod
+use get_params_mod
+use precision_mod
+use take_param_mod
+use str_comp_mod
 !
 IMPLICIT NONE
 !
@@ -51,6 +53,7 @@ CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 IF(ier_num/=0) RETURN
 !
+CALL update_cr_dim
 !                                                                       
 IF (ianz.ge.1) THEN
    IF (str_comp (cpara (1) , 'cif', 2, lpara (1) , 3) ) THEN
