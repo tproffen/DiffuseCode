@@ -254,6 +254,7 @@ ENDIF
 ! Adjust powder pattern if clin or cquad are non-zero
 !
 ! Currently the sine fourier is not reversible need to find the issue at hand
+!write(*,*) ' CALLINC PHASE_CORR '
 !IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
 !  CALL phases_corr(npkt)
 !ENDIF
@@ -306,7 +307,7 @@ pow_f2aver(:)    = 0.0D0
 pow_faver2(:)    = 0.0D0
 pow_fu    (:)    = 0.0D0
 pow_f2    (:,:)  = 0.0D0
-pow_u2aver       = 0.0
+pow_u2aver       = 0.0D0
 !
 weight = SUM(pha_weight(1:pha_n))           ! Calculate grand weight
 fractions = SUM(pha_frac(1:pha_n))          ! Sum up all phase fractions
@@ -359,6 +360,13 @@ DO i=1,pha_n                                ! Sum over all phases
 ENDDO
 pow_faver2(:) = pow_faver2(:)**2
 pow_u2aver    = pow_u2aver /8./(PI)**2
+!
+!open(77,file='POWDER/phases_average.faver',status='unknown')
+!DO k =1,npkt
+!      q = (k-1)*pow_deltaq + pow_qmin
+!write(77,'(2(2x,G17.7E3))') q, pow_faver2(k), pow_f2aver(k), pow_fu(k)
+!enddo
+!close(77)
 !write(*,*) ' U2aver ', pow_u2aver, pow_u2aver*8*PI**2
 !write(*,*) ' f2aver ', pow_f2aver(0), pow_f2aver(1)
 !write(*,*) ' faver2 ', pow_faver2(0), pow_faver2(1)
@@ -607,6 +615,9 @@ REAL(KIND=PREC_DP) :: u2aver_scale = 2.00D0   ! Scale to multiply <u^2> if conve
 !                     ! to sharpen the distances sufficiently for later broadening
 REAL(KIND=PREC_DP) :: rmin, rmax, rstep
 REAL(KIND=PREC_DP) :: sigma   ! sigma for PDF Corrlin correction
+REAL(KIND=PREC_DP) :: ttheta                ! 2Theta
+real(kind=prec_DP) :: arg
+!*******************************************************************************
 
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: fq    ! Temporary array, might do inplace replacement later
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: f2aver! Temporary array, might do inplace replacement later
@@ -616,9 +627,12 @@ REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: xq    ! Temporary array, might 
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: xfour ! Temporary array, might do inplace replacement later
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: yfour ! Temporary array, might do inplace replacement later
 !
+write(*,*) ' deb_conv ', deb_conv
+write(*,*) ' not ldbw ', .not. ldbw
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
    RETURN
 ENDIF
+write(*,*) ' WILL CONTINUE '
 !
 npkt_fft = 2**18
 !
@@ -632,6 +646,12 @@ DO k=0, npkt
    q = k*pow_deltaq + pow_qmin
    xq(k) = q
 ENDDO
+!
+fq      = 0.0D0
+faver2  = 0.0D0
+f2aver  = 0.0D0
+fu      = 0.0D0
+xq      = 0.0D0
 !
 ! Prepare average displacement factor
 !
@@ -655,6 +675,12 @@ DO j=1,pha_nscat(pha_curr)                      ! Sum over the entries for curre
 ENDDO
 faver2 = faver2**2
 u2aver = u2aver /8./PI**2
+!open(77,file='POWDER/prae_corrlin.faver',status='unknown')
+!DO k =1,npkt
+!      q = (k-1)*pow_deltaq + pow_qmin
+!write(77,'(2(2x,G17.7E3))') q, faver2(k), f2aver(k), fu(k)
+!enddo
+!close(77)
 !
 ! Prepare S(Q), initially copy powder pattern and divide by Debye-Waller term
 !
@@ -668,64 +694,69 @@ u2aver = u2aver /8./PI**2
 !enddo
 !close(77)
 !
-!write(*,*) ' EXPONENT PH ? ', u2aver*u2aver_scale, 0.5*(u2aver*u2aver_scale)*q**2, EXP(-0.5*(u2aver*u2aver_scale)*q**2)
-!read(*,*) k
-IF(pha_calc(pha_curr) == POW_COMPL) THEN           ! Complete calculation mode
-   DO k=0, npkt
-      q = k*pow_deltaq + pow_qmin
-      fq(k) = pha_powder(k, pha_curr)/q**2 /EXP(-0.5D0*(u2aver*u2aver_scale)*q**2)
-   ENDDO
-ELSEIF(pha_calc(pha_curr) == POW_DEBYE) THEN       ! DEBYE calculation mode
-   DO k=0, npkt
-      q = k*pow_deltaq + pow_qmin
-      fq(k) = pha_powder(k, pha_curr)      /EXP(-0.5D0*(u2aver*u2aver_scale)*q**2)
-   ENDDO
-ENDIF
-!
-!open(87,file='POWDER/prae_corrlin.INTERMEDIATE', status='unknown')
-!DO k=1, npkt
-!      q = (k-1)*pow_deltaq + pow_qmin
-!write(87,'(5F16.6)') q, fq(k)
-!enddo
-!close(87)
-IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
-   DO k=0, npkt
-      q = k*pow_deltaq + pow_qmin
-      fq(k) = (fq(k) / (faver2(k))                              &
-                  + 0.0 - f2aver(k)/faver2(k) ) * q
-   ENDDO
-ELSE
+!*******************************************************************************
+!   Step 1:
+!   Calculate S(Q)/F(Q)/PDF
+!   Part 1 calculate F(Q)
+!   After this step COMPLETE and DEBYE are identical
+!*******************************************************************************
+if(pha_calc(pha_curr) == POW_DEBYE) then
+   IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
+      DO k=0, npkt
+         q = k*pow_deltaq + pow_qmin
+         fq(k) = (fq(k) / (faver2(k))                              &
+                     + 0.0 - f2aver(k)/faver2(k) ) * q
+      ENDDO
+   ELSE
 !write(*,*) ' DO CORRECTION FOR CLIN '
-   DO k=0, npkt
-      q = k*pow_deltaq + pow_qmin
-      fq(k) = ((fq(k) - f2aver(k))/faver2(k) ) * q
-   ENDDO
-ENDIF
-!open(87,file='phases.clin_fq1', status='unknown')
+      DO k=0, npkt
+         q = k*pow_deltaq + pow_qmin
+         fq(k) = ((fq(k) - f2aver(k))/faver2(k) ) * q
+         fq(k) = ((pha_powder(k,pha_curr) - fu(k))/faver2(k)) * q
+      ENDDO
+   ENDIF
+endif
+!write(*,*) 'Wrote phases.clin.fq1'
+!open(87,file='POWDER/phases.clin_fq1', status='unknown')
 !DO k=1, npkt
 !      q = (k-1)*pow_deltaq + pow_qmin
 !write(87,'(5F16.6)') q, faver2(k), f2aver(k), fu(k) , fq(k)
 !enddo
 !close(87)
+!!
+!*******************************************************************************
+!   Step 2:
+!   Divide by an artificial Debye-Waller term
+!*******************************************************************************
+!write(*,*) ' EXPONENT PH ? ', u2aver,u2aver_scale
+!write(*,*) ' EXPONENT PH ? ', u2aver*u2aver_scale, 0.5*(u2aver*u2aver_scale)*q**2, EXP(-0.5*(u2aver*u2aver_scale)*q**2)
+!read(*,*) k
 !
-! Set limits for PDF calculation
+   DO k=0, npkt
+      q = k*pow_deltaq + pow_qmin
+      xq(k) = q
+      fq(k) = fq(k)/EXP(-0.5D0*(u2aver*u2aver_scale)*q**2)
+   ENDDO
+!
+!write(*,*) 'Wrote phases.clin_fq2'
+!open(87,file='POWDER/phases.clin_fq2', status='unknown')
+!DO k=1, npkt
+!      q = (k-1)*pow_deltaq + pow_qmin
+!write(87,'(5F16.6)') q, fq(k)
+!enddo
+!close(87)
+!
+!*******************************************************************************
+!   Step 3:
+!   Calculate PDF
+!   Part 1: Set limits for PDF calculation
+!*******************************************************************************
 !
 rmin = 0.01D0
 rmax = 400.0D0
 rstep = 0.01D0
 npkt_pdf = INT((rmax-rmin)/rstep) + 1
-!IF(out_user_limits) THEN
-!   rmin     = 0.50 ! out_user_values(1)
-!   rmax     = out_user_values(2)*1.25
-!   rstep    = out_user_values(3)
-!   npkt_pdf = NINT((out_user_values(2)*1.25-0.5000000000000000)/out_user_values(3)) + 1
-!!        npkt_pdf = NINT((out_user_values(2)*1.25-out_user_values(1))/out_user_values(3)) + 1
-!ELSE
-!   rmin     = pdf_rminu
-!   rmax     = pdf_rmaxu*1.25
-!   rstep    = pdf_deltaru
-!   npkt_pdf = NINT((rmax-rmin)/pdf_deltaru) + 1
-!ENDIF
+!
 rstep = ((rmax-rmin)/(npkt_pdf-1))
 !
 ALLOCATE(xfour(1:npkt_pdf))
@@ -742,41 +773,71 @@ zero_last1: DO ii = npkt,2,-1
    ENDIF
 ENDDO zero_last1
 !
-!open(87,file='phases.clin_fq', status='unknown')
+!write(*,*) 'Wrote phases.clin_fq3'
+!open(87,file='POWDER/phases.clin_fq3', status='unknown')
 !DO k=1, npkt !_pdf
-!write(87,'(5F16.6)') xq(k), fq(k) 
+!!  q = (k-1)*pow_deltaq + pow_qmin
+!  write(87,'(5F16.6)') xq(k), fq(k) 
 !enddo
 !close(87)
+!
+!*******************************************************************************
+!   Step 3:
+!   Calculate PDF
+!   Part 2: Do fft
+!*******************************************************************************
 !write(*,*) ' START FFT'
 CALL fft_fq(npkt, xq, fq, pow_qmin, pow_qmax, pow_deltaq, rmin, rmax, rstep, &
             npkt_fft, npkt_pdf, xfour, yfour)
-!open(87,file='phases.clin_grcalc', status='unknown')
+!open(87,file='POWDER/phases.clin_grcalc', status='unknown')
 !DO k=1, npkt_pdf
 !write(87,'(5F16.6)') xfour(k), yfour(k) 
 !enddo
 !close(87)
 !write(*,*) ' FINISHED FFT'
+!
+!*******************************************************************************
+!   Step 3:
+!   Calculate PDF
+!   Part 3: Do Distant dependent convolution
+!*******************************************************************************
 sigma = 2.0*(u2aver*u2aver_scale)              ! TO BE REPLACED BY ATOMIC B VALUE
-!CALL powder_conv_corrlin(yfour, REAL(rmin),REAL(rmax), REAL(rstep),   &
-!                         sigma, pdf_clin_a, pdf_cquad_a, pdf_rcut, pow_width,   &
-!                         npkt_pdf)
+!sigma = 2.0*(u2aver             )              ! TO BE REPLACED BY ATOMIC B VALUE
+CALL powder_conv_corrlin(yfour, rmin, rmax, rstep,                              &
+                         sigma, pdf_clin_a, pdf_cquad_a, pdf_rcut, pow_width,   &
+                         npkt_pdf)
 !open(77,file='POWDER/post_corrlin.PDF',status='unknown')
 !DO ii=1,npkt_pdf
 !write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
 !enddo
 !close(77)
 !
-! NOw start the process back to the original powder intensity
+!*******************************************************************************
+!   Step 3 BACK:
+!   Now start the process back to the original powder intensity
+!   Transform PDF back to F(Q)
+!*******************************************************************************
 !
 !write(*,*) ' GOING BACKWARDS '
 CALL fft_fq(npkt_pdf, xfour, yfour, rmin, rmax, rstep, &
             pow_qmin, pow_qmax, pow_deltaq, npkt_fft, npkt, xq, fq)
+fq = fq * PI*0.5D0
+xq(npkt) = xq(npkt-1) + (xq(npkt-1)-xq(npkt-2))   ! FFT messes up last point
+fq(npkt) = fq(npkt-1) 
 !open(77,file='POWDER/post_corrlin.FQ',status='unknown')
 !DO ii=1,npkt
 !write(77,'(2(2x,G17.7E3))') xq(ii), fq(ii)
 !enddo
 !write(*,*) ' FINISHED FFT'
 !close(77)
+!
+!*******************************************************************************
+!   Step 2 BACK:
+!   Now start the process back to the original powder intensity
+!   Transform F(Q) back to S(Q)
+!   Divide by Q
+!*******************************************************************************
+!
 DO k=1, npkt
    fq(k) = fq(k)/xq(k)
 ENDDO
@@ -793,18 +854,31 @@ fq = fq + 1.0
 !enddo
 !close(77)
 !write(*,*) ' FINISHED POST_SQ'
-DO k=0, npkt
-   q = k*pow_deltaq + pow_qmin
-!  fq(k) = ((fq(k) - f2aver(k))/faver2(k) ) * q
-   fq(k) = (fq(k)  - &
-                    (+ 1.0 - exp(-q**2*u2aver)))*faver2(k)
-ENDDO
+!
+!*******************************************************************************
+!   Step 2 BACK:
+!   Now start the process back to the original powder intensity
+!   Transform F(Q) back to S(Q)
+!   Multiply by faver2; add fu
+!*******************************************************************************
+!
+fq = fq * faver2 + fu
+!
+!OLDDO k=0, npkt
+!OLD   q = k*pow_deltaq + pow_qmin
+!OLD!  fq(k) = ((fq(k) - f2aver(k))/faver2(k) ) * q
+!OLD   fq(k) = (fq(k)  - &
+!OLD                    (+ 1.0 - exp(-q**2*u2aver)))*faver2(k)
+!OLDENDDO
 !open(87,file='POWDER/post_corrlin.INTERMEDIATE', status='unknown')
 !DO k=1, npkt
 !      q = (k-1)*pow_deltaq + pow_qmin
 !write(87,'(5F16.6)') q, fq(k)
 !enddo
 !close(87)
+!read(*,*) k
+!return
+!
 IF(pha_calc(pha_curr) == POW_COMPL) THEN           ! Complete calculation mode
    DO k=0, npkt
       q = k*pow_deltaq + pow_qmin
