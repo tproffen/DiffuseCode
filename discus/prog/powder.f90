@@ -784,6 +784,7 @@ ELSEIF(str_comp(cpara(1), 'corrlin', 5, lpara(1), 7)) THEN
          ENDIF 
       ENDIF  err_opt1
 ELSEIF(str_comp(cpara(1), 'corrquad', 5, lpara(1), 8)) THEN
+   if(ianz>2) then
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                         oname, loname, opara, lopara, lpresent, owerte)
       err_opt2: IF (ier_num.eq.0) THEN 
@@ -800,6 +801,18 @@ ELSEIF(str_comp(cpara(1), 'corrquad', 5, lpara(1), 8)) THEN
             ier_typ = ER_COMM 
          ENDIF 
       ENDIF  err_opt2
+   elseif(ianz==2) then
+      cpara (1) = '0' 
+      lpara (1) = 1 
+      CALL ber_params(ianz, cpara, lpara, werte, maxw) 
+      IF(ier_num == 0) THEN 
+         pdf_cquad_a = werte(2)
+         pdf_rcut   = owerte(O_RCUT)
+      ENDIF
+   else
+      ier_num = - 6
+      ier_typ = ER_COMM
+   endif
 ELSEIF(str_comp(cpara(1), 'delta', 2, lpara(1), 5)) THEN
             IF (ianz.eq.2) THEN 
                cpara (1) = '0' 

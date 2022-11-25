@@ -95,8 +95,8 @@ ENDDO
 !write(*,*) 'DO SPLINE ', REAL(rmin), REAL(rmax), REAL(rstep), npkt_pdf, nlow, npkt_fft+1
 CALL spline_prep(nlow, npkt_fft+1, xfft, yfft, rmin, rmax, rstep, npkt_pdf, xfour, yfour)
 !write(*,*) ' IER ', ier_num, ier_typ
-!write(*,*) ' xfour ', lbound(xfour), ubound(xfour), minval(xfour), maxval(xfour)
-!write(*,*) ' yfour ', lbound(yfour), ubound(yfour), minval(yfour), maxval(yfour)
+write(*,*) ' xfour ', lbound(xfour), ubound(xfour), minval(xfour), maxval(xfour), xfour(ubound(xfour,1))
+write(*,*) ' yfour ', lbound(yfour), ubound(yfour), minval(yfour), maxval(yfour), yfour(ubound(yfour,1))
 !
 DEALLOCATE(temp)
 DEALLOCATE(ip)
