@@ -1,9 +1,21 @@
 6.12.06  DRAFT
+
+DISCUS
+  GENERAL     Corrected wave length CuKa1, 2 to 1.54092 and 1.544343 accroding to
+              Mendenhal et al. J.Physics B (2017), 50, 115004
+              DOI 10.1088/1361-6455/aa6c4a
+  powder      BUG FIX Corrected calculation of S(Q), F(Q), PDF for complete mode
+  powder      BUG FIX Asymmetry correction was permanently off.
+  powder      BUG FIX Kalpha 1/2 correction was slightly off.
+  export      Enforced updatas of crystal dimensions
+
+KUPLOT
+  fit         BUX FIX Corrected maxima search for Gauss and Lorentz
 6.12.05  RELEASE 2022_10_10
 
 DISCUS
   powder      The combination of Debye-Scattering-Equation with periodic boundary
-              conditions and multiple phases did not work.
+              conditions and multiple phases ddi not work well.
 6.12.04  RELEASE 2022_10_10
 General
               Continued move of KUPLOT data to global storage; no effect on user yet.
