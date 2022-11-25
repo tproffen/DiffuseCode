@@ -211,6 +211,9 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
 lpv    = 0.0
 lpv(0) = 1.0
 !
+!write(*,*) ' STEP INTO K12 ', xmin, xdel, ubound(xpl)
+CALL pow_k12(npkt, POW_WR_MAXPKT, pow_ka21, pow_ka21_u, xmin, xdel, xpl, ypl)
+!
 ! Adjust zero point along x-scale
 !
 !write(*,*) ' PRAE  ZERO ', npkt, xpl(1), xpl(npkt-1), xpl(npkt), pow_tthzero
@@ -342,7 +345,6 @@ ENDIF prsq  !Prepare S(Q), F(Q)
 !
 
 !write(*,*) ' PRAE  K12  ', npkt, xpl(1), xpl(npkt-1), xpl(npkt), npkt_u
-CALL pow_k12(npkt, POW_WR_MAXPKT, pow_ka21, pow_ka21_u, xpl, ypl)
 rmax     = out_user_values(2)
 !write(*,*) ' AFTER K12I ', npkt, xpl(1), xpl(npkt-1), xpl(npkt), npkt_u
 !DBGCQUAD
@@ -539,7 +541,13 @@ ELSEIF(value==val_pdf) THEN  place_ywrt  ! Transform F(Q) into PDF
 ! treat for correlated motion effects
 !
 !write(*,*) ' PDF CORRLIN ? ', pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0
-   corr_if: IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
+!write(*,*) ' NPKT_WRT ', npkt_wrt, xwrt(npkt_wrt)
+!open(77,file='POWDER/init_corrlin.FQ',status='unknown')
+!DO ii=1,npkt_wrt
+!write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
+!enddo
+!close(77)
+   corr_if: if(2==3) then !  TEMPORARILY TURNED OFF;  IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
       IF(out_user_limits) THEN
          rmin     = 0.50 ! out_user_values(1)
          rmax     = out_user_values(2)*1.25
@@ -1785,7 +1793,6 @@ IF(pow_type==POW_COMPL) THEN
       tth = tthmin + i * dtth        ! This is tth(axis=2) or Q(axis=1)
       fwhm = powder_calc_fwhm_symm(i, tth, axis, u,v,w, rlambda, pow_pr_fwhm)
 !
-!     eta    = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
       eta  = powder_calc_eta      (i, tth, axis, eta_q,eta_l,eta0, rlambda, pow_pr_fwhm)
       pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
       max_ps = min(INT((pow_width * fwhm) / dtth ), int(GLP_MAX/pseudo))
@@ -1800,50 +1807,10 @@ IF(pow_type==POW_COMPL) THEN
       i2 = min(   i+max_ps, imax)
       first: do j = i1, i2
          ii = abs(j-i)*pseudo
+         tth1 = (j-i-1)*dtth
+         pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
          dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)*pra1
       enddo first
-!
-!Q      max_ps = INT((pow_width * fwhm) / dtth )
-!Q      eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
-!Q      pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
-!Q      i1 = 0                               ! == 0 * dtth
-!Q      i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
-!Q      tth1 = 0 * dtth 
-!Q      tth2 = 2 * i * dtth 
-!Q      p1 = asym(1,0) + asym(1,1)*tth +     asym(1,2)*tth**2 + asym(1,-1)/tth
-!Q      p2 = asym(2,0) + asym(2,1)*tth +     asym(2,2)*tth**2 + asym(2,-1)/tth
-!Q      p3 = asym(3,0) + asym(3,1)*tth +     asym(3,2)*tth**2 + asym(3,-1)/tth
-!Q      p4 = asym(4,0) + asym(4,1)*tth +     asym(4,2)*tth**2 + asym(4,-1)/tth
-!Q      pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
-!Q      pra2 = profile_asymmetry (tth, tth2, fwhm, p1, p2, p3, p4) 
-!Q      dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)*pra1  &
-!Q                             -glp_pseud_indx(i2, eta, fwhm)*pra2)                             
-!Q!
-!Q      ii = MAX (i - 1 - max_ps + 1, 0) 
-!Q      first_compl: DO j = ii, i - 1 
-!Q         IF(dat(j)==0.0) CYCLE first_compl
-!Q            i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * dtth
-!Q         i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * dtth
-!Q         tth1 = (i - j) * dtth 
-!Q         tth2 = (i + j) * dtth 
-!Q         pra1 = profile_asymmetry(tth, tth1, fwhm, p1, p2, p3, p4) 
-!Q         pra2 = profile_asymmetry(tth, tth2, fwhm, p1, p2, p3, p4) 
-!Q         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)*pra1  &
-!Q                                        -glp_pseud_indx(i2, eta, fwhm)*pra2)                    
-!Q      ENDDO first_compl
-!Q!
-!Q      ii = MIN(i + 1 + max_ps - 1, imax) 
-!Q      secnd_compl: DO j = i + 1, ii 
-!Q         IF(dat(j)==0.0) CYCLE secnd_compl
-!Q         i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * dtth
-!Q         i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * dtth
-!Q         tth1 = (j - i) * dtth 
-!Q         tth2 = (j + i) * dtth 
-!Q         pra1 = profile_asymmetry (tth, - tth1, fwhm, p1, p2, p3, p4) 
-!Q         pra2 = profile_asymmetry (tth, - tth2, fwhm, p1, p2, p3, p4) 
-!Q         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)*pra1  &
-!Q                                        -glp_pseud_indx(i2, eta, fwhm)*pra2)
-!Q      ENDDO secnd_compl
    ENDDO main_compl
 ELSEIF(pow_type==POW_DEBYE) THEN
    main_debye: DO i = 0, imax 
@@ -1851,7 +1818,6 @@ ELSEIF(pow_type==POW_DEBYE) THEN
       tth = tthmin + i * dtth        ! This is tth(axis=2) or Q(axis=1)
       fwhm = powder_calc_fwhm_symm(i, tth, axis, u,v,w, rlambda, pow_pr_fwhm)
 !
-!     eta    = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
       eta  = powder_calc_eta      (i, tth, axis, eta_q,eta_l,eta0, rlambda, pow_pr_fwhm)
       pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
       max_ps = min(INT((pow_width * fwhm) / dtth ), int(GLP_MAX/pseudo))
@@ -1861,55 +1827,14 @@ ELSEIF(pow_type==POW_DEBYE) THEN
       p2 = asym(2,0) + asym(2,1)*tth +     asym(2,2)*tth**2 + asym(2,-1)/tth
       p3 = asym(3,0) + asym(3,1)*tth +     asym(3,2)*tth**2 + asym(3,-1)/tth
       p4 = asym(4,0) + asym(4,1)*tth +     asym(4,2)*tth**2 + asym(4,-1)/tth
-      pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
       i1 = max(0, i-max_ps)
       i2 = min(   i+max_ps, imax)
       first_deb: do j = i1, i2
          ii = abs(j-i)*pseudo
+         tth1 = (j-i-1)*dtth
+         pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
          dummy(j) = dummy(j) + dat(i) * glp_pseud_indx(ii, eta, fwhm)*pra1
       enddo first_deb
-!
-!      IF(axis==2 ) THEN       ! 2Theta axis
-!         fwhm = SQRT (MAX (ABS (u * tantth**2 + v * tantth + w), 0.00001D0) ) 
-!      ELSEif(axis==1) THEN
-!         fwhm = SQRT( MAX( ABS( u*tth**2 + v*tth + w), 0.00001D0) )
-!      ENDIF
-!
-!Q      max_ps = INT((pow_width * fwhm) / dtth )
-!Q      eta = MIN(1.0D0, MAX(0.0D0, eta0 + eta_l * tth + eta_q*tth**2) ) 
-!Q      pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
-!Q      i1 = 0                               ! == 0 * dtth
-!Q      i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
-!Q      tth1 = 0 * dtth 
-!Q      tth2 = 2 * i * dtth 
-!Q      pra1 = profile_asymmetry (tth, tth1, fwhm, p1, p2, p3, p4) 
-!Q      pra2 = profile_asymmetry (tth, tth2, fwhm, p1, p2, p3, p4) 
-!Q      dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)*pra1  &
-!Q                             -glp_pseud_indx(i2, eta, fwhm)*pra2)                             
-!Q!
-!Q      ii = MAX (i - 1 - max_ps + 1, 0) 
-!Q      first_debye: DO j = ii, i - 1 
-!Q         i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * dtth
-!Q         i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * dtth
-!Q         tth1 = (i - j) * dtth 
-!Q         tth2 = (i + j) * dtth 
-!Q         pra1 = profile_asymmetry(tth, tth1, fwhm, p1, p2, p3, p4) 
-!Q         pra2 = profile_asymmetry(tth, tth2, fwhm, p1, p2, p3, p4) 
-!Q         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)*pra1  &
-!Q                                        -glp_pseud_indx(i2, eta, fwhm)*pra2)                    
-!Q      ENDDO first_debye
-!Q!
-!Q      ii = MIN(i + 1 + max_ps - 1, imax) 
-!Q      secnd_debye: DO j = i + 1, ii 
-!Q         i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * dtth
-!Q         i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * dtth
-!Q         tth1 = (j - i) * dtth 
-!Q         tth2 = (j + i) * dtth 
-!Q         pra1 = profile_asymmetry (tth, - tth1, fwhm, p1, p2, p3, p4) 
-!Q         pra2 = profile_asymmetry (tth, - tth2, fwhm, p1, p2, p3, p4) 
-!Q         dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)*pra1  &
-!Q                                        -glp_pseud_indx(i2, eta, fwhm)*pra2)
-!Q      ENDDO secnd_debye
    ENDDO main_debye
 ENDIF
 !                                                                       
@@ -2498,15 +2423,19 @@ END SUBROUTINE powder_f2aver
 !
 !*******************************************************************************
 !
-SUBROUTINE pow_k12(npkt, POW_MAXPKT, pow_ka21, pow_ka21_u, xpl, ypl)
+SUBROUTINE pow_k12(npkt, POW_MAXPKT, pow_ka21, pow_ka21_u, xmin, xdel, xpl, ypl)
 !-
 ! Add Kalpha1/2
 ! at this point xpl is on Q-scale
+! The powder pattern is scaled by q/len_ratio. The original data are added 
+! to the two data points j, j` with weights according to the location of q2
+! between these two indices.
 !+
 USE diffuse_mod
 USE element_data_mod
 !
 USE precision_mod
+use param_mod
 !
 IMPLICIT NONE
 !
@@ -2514,6 +2443,8 @@ INTEGER                                    , INTENT(IN)    :: npkt
 INTEGER                                    , INTENT(IN)    :: POW_MAXPKT
 REAL(KIND=PREC_DP)                         , INTENT(IN)    :: pow_ka21
 LOGICAL                                    , INTENT(IN)    :: pow_ka21_u
+REAL(KIND=PREC_DP)                         , INTENT(IN)    :: xmin   ! Q min
+REAL(KIND=PREC_DP)                         , INTENT(IN)    :: xdel   ! Q Step 
 REAL(KIND=PREC_DP), DIMENSION(0:POW_MAXPKT), INTENT(IN)    :: xpl
 REAL(KIND=PREC_DP), DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: ypl
 !
@@ -2521,9 +2452,13 @@ REAL(KIND=PREC_DP), DIMENSION(0:POW_MAXPKT), INTENT(INOUT) :: ypl
 INTEGER :: i,j,l
 REAL(KIND=PREC_DP)    :: int_ratio   ! Ka2/Ka1 intensity ratio
 REAL(KIND=PREC_DP)    :: len_ratio   ! Ka2/Ka1 intensity ratio
+REAL(KIND=PREC_DP)    :: part1       ! Ka2/Ka1 intensity ratio
+REAL(KIND=PREC_DP)    :: part2       ! Ka2/Ka1 intensity ratio
+REAL(KIND=PREC_DP)    :: q1, q2      ! Ka2/Ka1 intensity ratio
 !
 int_ratio = 0.0
 len_ratio = 1.0
+!
 IF(lambda(3:4)=='12' .OR. lambda=='W12 ') THEN    ! Only for explicit a12
    l = get_wave_number(lambda)
    IF(l==0) RETURN             ! Not a listed wave length
@@ -2534,11 +2469,20 @@ IF(lambda(3:4)=='12' .OR. lambda=='W12 ') THEN    ! Only for explicit a12
       int_ratio = get_ka21_inte(l)
    ENDIF
    len_ratio = get_ka12_len(l)
+!   len_ratio = 1./rpara(499)
 !
    DO i=npkt,1,-1
-      j = NINT(i*len_ratio)
-      IF(j > 0) THEN
-         ypl(i) = ypl(i) + int_ratio*ypl(j)
+      q1 = (xmin + xdel * real(i,kind=PREC_DP))            ! Original Q
+      q2 = (xmin + xdel * real(i,kind=PREC_DP))/len_ratio  ! Q at Kalpha2
+      j = int((q2-xmin)/xdel)                              ! Lower pixel
+      part1 = 1.0D0 - ((q2-xmin)/xdel - j)                 ! Weight for lower pixel
+      part2 = 1.0D0 - part1                                ! Weight for upper pixel
+      if(j < npkt) THEN
+         ypl(j) = ypl(j) + int_ratio*ypl(i)*part1          ! Add to lower pixel
+         j = j + 1
+         if(j < npkt) THEN
+            ypl(j) = ypl(j) + int_ratio*ypl(i)*part2       ! Add to upper pixel
+         ENDIF
       ENDIF
    ENDDO
 ENDIF
