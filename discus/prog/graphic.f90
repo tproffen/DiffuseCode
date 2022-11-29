@@ -240,6 +240,7 @@ main_if: IF (ier_num.eq.0) THEN
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
+                        exit main_if
                      ENDIF 
                      out_user_limits      = .false.
                      IF(ianz==5) THEN
