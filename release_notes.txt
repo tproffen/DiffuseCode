@@ -1,4 +1,9 @@
-6.12.06  DRAFT
+6.12.08  DRAFT
+6.12.07  RELEASE 2022_11_29
+
+  General     Improved installation scripts on resolve issue of github.com 
+
+6.12.06  RELEASE 2022_11_27
 
 DISCUS
   GENERAL     Corrected wave length CuKa1, 2 to 1.54092 and 1.544343 accroding to
