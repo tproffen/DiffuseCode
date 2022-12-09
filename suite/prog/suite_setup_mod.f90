@@ -43,6 +43,7 @@ SUBROUTINE setup_suite
 !USE blk_appl
 !
 USE appl_env_mod
+use charact_mod
 USE cmdline_args_mod
 USE gen_mpi_mod
 USE prompt_mod
@@ -60,6 +61,7 @@ CHARACTER(LEN=37)  :: string
 LOGICAL                        :: lend
 INTEGER, PARAMETER  :: np = 1
 !REAL, DIMENSION(np) :: werte = 0.0
+integer :: i
 INTEGER, DIMENSION(np) :: iwerte = 0
 INTEGER :: tid, nthreads
 !                                                                       
@@ -121,6 +123,9 @@ version   = aktuell
       STRING =               'OpenMP is inactive                   '
    ENDIF
    WRITE ( *, 1000) version, is_debug, string, cdate
+   do i=1, len_trim(version)
+      if(iachar(version(i:i))<0 .or. iachar(version(i:i))>nine) version(i:i) = ' ' ! Eliminate characters
+   enddo
    CALL write_appl_env (.TRUE., gen_mpi_myid)
 ENDIF
 !                                                                       

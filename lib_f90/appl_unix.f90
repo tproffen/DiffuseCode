@@ -1005,6 +1005,7 @@ END SUBROUTINE lib_f90_init_updates
 !
 SUBROUTINE lib_f90_test_updates(old_version, new_version, cversion, since_update)
 !
+use charact_mod
 USE envir_mod
 USE errlist_mod
 USE lib_errlist_func
@@ -1080,6 +1081,10 @@ ON_LINE: IF(lda) THEN
    enddo LOOP_SEARCH
 ENDIF ON_LINE
 CLOSE(UNIT=IRD)
+!
+do i=1, len_trim(version)
+   if(iachar(version(i:i))<0 .or. iachar(version(i:i))>nine) version(i:i) = ' ' ! Eliminate characters
+enddo
 !
 idot1 = INDEX(version, '.')
 idot2 = INDEX(version, '.', .TRUE.)
