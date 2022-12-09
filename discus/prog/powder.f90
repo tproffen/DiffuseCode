@@ -397,41 +397,44 @@ end subroutine powder_run_post
 !
 !*******************************************************************************
 !
-      SUBROUTINE pow_show 
+SUBROUTINE pow_show 
 !-                                                                      
 !     Prints summary of powder diffraction settings                     
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE diffuse_mod 
-      USE metric_mod
-      USE powder_mod 
-      USE trig_degree_mod
-      USE wink_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE diffuse_mod 
+USE metric_mod
+USE powder_mod 
+USE trig_degree_mod
+USE wink_mod
 !
-      USE prompt_mod 
-      IMPLICIT none 
+USE prompt_mod 
+!
+IMPLICIT none 
 !                                                                       
-       
-!                                                                       
-      CHARACTER(8) radiation 
-      CHARACTER (LEN=8), DIMENSION(3), PARAMETER :: c_rad = (/ &
+CHARACTER(8) radiation 
+CHARACTER (LEN=8), DIMENSION(3), PARAMETER :: c_rad = (/ &
          'X-ray   ', 'neutron ', 'electron' /)
-      CHARACTER(14) cfour (0:1) 
-      CHARACTER(28) ccalc (0:5) 
-      CHARACTER(21) cpref (1:2) 
-      CHARACTER(29) cprofile (0:3) 
+CHARACTER(14) cfour (0:1) 
+CHARACTER(28) ccalc (0:5) 
+CHARACTER(21) cpref (1:2) 
+CHARACTER(29) cprofile (0:4) 
 !                                                                       
-      DATA cfour / 'normal Fourier', 'Stacking fault' / 
-      DATA ccalc / 'rez. space integration      ', 'Debye formula       &
-     &        ', 'Debye formula long          ', 'Debye formula fast    &
-     &      ', 'Debye formula via histogram ', 'new integration       ' &
+DATA cfour / 'normal Fourier', 'Stacking fault' / 
+DATA ccalc / 'rez. space integration     ', &
+             'Debye formula              ', &
+     &       'Debye formula long         ', &
+             'Debye formula fast         ', &
+     &       'Debye formula via histogram', &
+             'new integration            '  &
      &/                                                                 
       DATA cpref / 'Rietveld Toraya model', 'Modified March model ' / 
 DATA cprofile / 'Profile function switched off', &
                 'Gaussian                     ', &
                 'Pseudo-Voigt                 ', &                
-                'Neutron Time-of-Flight       ' /                 
+                'Neutron Time-of-Flight       ', &                
+                'Pearson Type VII             ' /                 
 !                                                                       
 CALL pow_conv_limits
 !
@@ -557,7 +560,8 @@ CALL pow_conv_limits
          ELSEIF (pow_profile.eq.POW_PROFILE_GAUSS) THEN 
             WRITE (output_io, 1235) pow_delta 
             WRITE (output_io, 2125) pow_width 
-         ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) THEN 
+         ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT .or.    &
+                 pow_profile.eq.POW_PROFILE_PEARS) THEN 
             WRITE (output_io, 2120) pow_u, pow_v, pow_w 
             WRITE (output_io, 2121) pow_eta, pow_eta_l, pow_eta_q
             WRITE (output_io, 2219) pow_asym(:,-1)
@@ -1473,6 +1477,9 @@ IF(str_comp(cpara(2), 'off', 2, lpara(2), 3)) THEN
    pow_eta = 0.5 
 ELSEIF(str_comp(cpara(2), 'gauss', 2, lpara(2), 5)) THEN
    pow_profile = POW_PROFILE_GAUSS 
+   pow_constlam = .true.
+ELSEIF(str_comp(cpara(2), 'pears', 2, lpara(2) , 5)) THEN
+   pow_profile = POW_PROFILE_PEARS 
    pow_constlam = .true.
 ELSEIF(str_comp(cpara(2), 'pseudo', 2, lpara(2) , 6)) THEN
    pow_profile = POW_PROFILE_PSVGT 
