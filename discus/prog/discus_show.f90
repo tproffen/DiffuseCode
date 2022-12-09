@@ -13,6 +13,7 @@ USE discus_allocate_appl_mod
 USE crystal_mod 
 USE conn_mod
 USE conn_sup_mod
+use update_cr_dim_mod
 !                                                                       
 USE ber_params_mod
 USE errlist_mod 
@@ -112,6 +113,7 @@ IF(ier_num.eq.0) THEN
 !     ----Show the dimensions              'cdim'                       
 !                                                                       
    ELSEIF(str_comp(cpara(1), 'cdim', 2, lpara(1), 4)) THEN 
+      CALL update_cr_dim
       WRITE(output_io, 2000) ((cr_dim(j, i), i = 1, 2), j = 1, 3)
 !                                                                       
 !     ----Show a domain                    'domain'                     
