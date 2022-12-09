@@ -3,6 +3,7 @@ MODULE gamma_mod
 private
 !
 public gammaq
+public func_beta
 !
 !*******************************************************************************
 !
@@ -193,6 +194,21 @@ gammln = REAL(tmp + DLOG(STP*SER), kind=PREC_DP)
 !
 !
 END FUNCTION gammln
+!
+!*******************************************************************************
+!
+REAL(kind=PREC_DP) function func_beta(z, w)
+!
+use precision_mod
+!
+implicit none
+!
+real(kind=PREC_DP), intent(in) :: z
+real(kind=PREC_DP), intent(in) :: w
+!
+func_beta = exp(gammln(z) + gammln(w) - gammln(z+w))
+!
+end function func_beta
 !
 !*******************************************************************************
 !
