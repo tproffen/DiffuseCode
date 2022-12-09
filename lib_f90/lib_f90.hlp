@@ -850,6 +850,21 @@
 !p                                   same as for DISCUS powder / Fourier 
 !p                                   calculations.
 
+!p pears(<x>,<m>,<integral>, <pos>, <FWHM> [, <asym_1>, <asym_2>]
+!p       ,wave:<symbol>, itwo:<Int2/int1>  )
+!p                                   Returns a Pearson Type VII function
+!p                                   with shape parameter <m>
+!p                                   with integral intensity <integral>
+!p                                   at position <pos> and FWHM
+!p                                   Two optional asymmetry parameters allow 
+!p                                   to calculate an asymmetric profile shape.
+!p                                   at asym=0 a symmetric profile results.
+!p                                   The combination of "wave" and "itwo"
+!p                                   will generate a doublet like Copper
+!p                                   Kalpha1,2. Allowed wave length are
+!p                                   same as for DISCUS powder / Fourier 
+!p                                   calculations.
+
 !p tukey(x, <alpha> [, <width>])
 !p                                   Returns a Tukey window function
 !p                                   1/2[1-cos/2PIx/(alpha*width))
