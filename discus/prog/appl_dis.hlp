@@ -4670,6 +4670,7 @@
 !p mode    : Setting of MMC mode (crystal modification)
 !p move    : Setting size of generated SHIFT moves
 !p neig    : Setting of the neighbor definitions
+!p output  : Setting of output during mmc run
 !p range   : Setting of the neighboring ranges
 !p target  : Setting of correlations values to be achieved
 !p temp    : Setting of MMC simulation temperature
@@ -4933,6 +4934,20 @@
    speed up the MMC runs. In case molecules are selected <number> specifies
    the molecule type, otherwise atoms are addressed by their <number> or
    <name>.
+4  output
+!p output "feed:on"  , "final:on"
+!p output "feed:off" , "final:off"
+
+   Sets the amount of output written to screen during an MMC run.
+   Default is to write output during the run and a summary after the
+   run is finished. 
+
+   set output, feed:off
+      Turn output off during the run 
+
+   set output, final:off
+      Turn output off at the end of the run
+
 4  range
 !p set "range"
 
