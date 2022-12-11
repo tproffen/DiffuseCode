@@ -842,9 +842,11 @@ INTEGER                :: n_mole ! Dummy for allocation
 INTEGER                :: n_angles ! Dummy for allocation
 LOGICAL :: is_corr ! Current target is correlation energy
 !
-INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_TYPE    = 1
-CHARACTER(LEN=   4), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+INTEGER, PARAMETER :: O_FEED    = 2
+INTEGER, PARAMETER :: O_FINAL   = 3
+CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -852,11 +854,11 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'type'   /
-DATA loname /  4       /
-opara  =  (/ 'atoms'  /)   ! Always provide fresh default values
-lopara =  (/  5       /)
-owerte =  (/  0.0     /)
+DATA oname  / 'type ', 'feed ', 'final'   /
+DATA loname /  4     ,  4     ,   5       /
+opara  =  (/ 'atoms', 'on   ', 'on   '  /)   ! Always provide fresh default values
+lopara =  (/  5     ,  3     ,  3       /)
+owerte =  (/  0.0   ,  1.0   ,  1.0     /)
 !
 !
 !                                                                       
@@ -869,8 +871,8 @@ CALL get_params (zeile, ianz, cpara, lpara, maxw, lp)
 IF (ier_num == 0) THEN 
    CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                      oname, loname, opara, lopara, lpresent, owerte)
-   IF (ianz >= 2) THEN 
-      CALL do_cap (cpara (1) ) 
+   CALL do_cap(cpara(1))
+   IF (ianz >= 2 .or. str_comp(cpara(1), 'OUTPUT', 2, lpara(1), 6)) THEN 
 !
 !------ --- 'set allowed', set which atom are allowed in a move
 !
@@ -1007,6 +1009,31 @@ IF (ier_num == 0) THEN
             CALL rmc_set_move(mo_maxmove_mole, .FALSE.,  &
                  ianz, cpara, werte, lpara, maxw, 4, MOLE_MAX_TYPE)
          ENDIF
+!
+!------ --- Output log
+!
+      elseif(str_comp(cpara(1), 'OUTPUT', 2, lpara(1), 6)) then
+         if(str_comp(opara(O_FEED), 'on', 2, lopara(O_FEED), 2)) then
+            mmc_out_feed = .true.
+         elseif(str_comp(opara(O_FEED), 'off', 2, lopara(O_FEED), 3)) then
+            mmc_out_feed = .false.
+         else
+            ier_num = -6
+            ier_typ = ER_COMM
+            ier_msg(1) = 'Feedback parameter must be ''on'' or ''off'''
+            return
+         endif
+!
+         if(str_comp(opara(O_FINAL), 'on', 2, lopara(O_FINAL), 2)) then
+            mmc_out_final = .true.
+         elseif(str_comp(opara(O_FINAL), 'off', 2, lopara(O_FINAL), 3)) then
+            mmc_out_final = .false.
+         else
+            ier_num = -6
+            ier_typ = ER_COMM
+            ier_msg(1) = 'Feedback parameter must be ''on'' or ''off'''
+            return
+         endif
 !                                                                       
 !------ --- 'set rota': sets maxmove for molecule rotation MMC mode                 
 !                                                                       
@@ -2492,7 +2519,7 @@ END SUBROUTINE mmc_set_mode
 !
 !*****7*****************************************************************
 !
-SUBROUTINE mmc_run_multi (lout_feed)
+SUBROUTINE mmc_run_multi (lout_feed_in)
 !+                                                                      
 !     This is the MC routine for multiple energy calculations           
 !-                                                                      
@@ -2528,7 +2555,7 @@ USE support_mod
 !                                                                       
 IMPLICIT none 
 !
-LOGICAL, INTENT(IN) :: lout_feed     ! Write output upon feedback?
+LOGICAL, INTENT(IN) :: lout_feed_in     ! Write output upon feedback?
 !                                                                       
 CHARACTER(LEN=24) :: c_energy (0:MC_N_ENERGY) 
 !
@@ -2555,6 +2582,7 @@ INTEGER :: NALLOWED   ! Current size mmc_allowed
 INTEGER :: zh, zm, zs 
 LOGICAL, DIMENSION(3) :: old_chem_period
 LOGICAL :: lserial    ! serial calculation if TRUE
+logical :: lout_feed  ! Output on/off as combination of system and user settings
 LOGICAL :: lfeed      ! Perform feedback algorithm
 LOGICAL :: loop, laccept, done 
 LOGICAL :: lout, lfinished
@@ -2647,6 +2675,22 @@ check_conn: DO IC = 1, chem_ncor         ! Check is we have a connectivity, or E
       EXIT check_conn
    ENDIF
 ENDDO check_conn
+!                                                                       
+!------ Loop will be started                                            
+!                                                                       
+lout_feed = lout_feed_in .and. mmc_out_feed    ! Combine system and user feedback settings
+lfinished = .false.
+done      = .false.
+CALL mmc_correlations (.false., rel_cycl, done, lfinished, lfeed, maxdev) 
+mmc_ini_corr = mmc_ach_corr 
+mmc_ini_sigm = mmc_ach_sigm 
+mmc_ini_angl = mmc_ach_angl 
+mmc_ini_sang = mmc_ang_sigm 
+if(lout_feed) then
+   call mmc_correlation_write
+endif
+!write(output_io, '(a)') '---------------------------------------------'
+!
 tid = 0
 nthreads = 1
 IF(.NOT.lserial .AND. par_omp_use) THEN
@@ -2795,11 +2839,22 @@ IF(ier_num/=0) THEN
    chem_period = old_chem_period
    RETURN      ! An error occured or CTRL-C
 ENDIF
+!
+lout_feed = lout_feed_in .and. mmc_out_final  ! Combine system and user final output setting
+!
+if(lout_feed) then
+   write(output_io,*)
+   write(output_io,'(a)')  ' ---------------------------------------------'
+   write(output_io,'(a)')  ' --- multiple energy simulation is finished---'
+   write(output_io,'(a)')  ' ---------------------------------------------'
+   write(output_io,*)
+   call mmc_correlation_write
+endif
 !                                                                       
 !------ Loop finished                                                   
 !                                                                       
 IF(lout_feed) THEN
-   WRITE (output_io, 3000) 
+   WRITE (output_io, 3000)
    WRITE (output_io, 2000) igen, itry, iacc_good, iacc_neut, iacc_bad 
 ENDIF
 !     lout = .TRUE. 
@@ -2818,8 +2873,10 @@ DO i = 1, MC_N_ENERGY
    IF(n_e_av_m(i) > 0) THEN 
       e_aver_m(i) = e_aver_m(i) / REAL(n_e_av_m(i) ) 
    ENDIF 
-   IF(lout_feed) WRITE(output_io, 5010) c_energy(i), n_e_av_m(i), e_aver_m(i),        &
+   IF(lout_feed) then
+      WRITE(output_io, 5010) c_energy(i), n_e_av_m(i), e_aver_m(i),             & 
                                         n_e_av_z(i), n_e_av_p(i), e_aver_p(i)
+   endif
    n_e_av_p (i) = 0 
    n_e_av_m (i) = 0 
    n_e_av_z (i) = 0 
@@ -2850,6 +2907,7 @@ chem_period = old_chem_period
 !                                                                       
  2000 FORMAT (/,' Gen: ',I10,' try: ',I10,' acc: (g/n/b): ',I8,        &
      &          ' / ',I8,' / ',I8,'  MC moves ')                                 
+ 2500 FORMAT (/,' --- Initial multiple energy configuration ---') 
  3000 FORMAT (/,' --- Final multiple energy configuration ---') 
  4000 FORMAT (/,' Elapsed time : ',I4,' h ',I2,' min ',I2,' sec ',/     &
      &          ' Time/cycle   : ',F9.3,' sec',/)                       
@@ -2864,7 +2922,7 @@ END SUBROUTINE mmc_run_multi
 !
 SUBROUTINE mmc_run_loop(tid, nthreads, igen, itry, &
                         natoms, &
-                        iatom, patom, tatom, natom,ncent, laccept,                       &
+                        iatom, patom, tatom, natom,ncent, laccept,                &
                         rdi, rdj,         e_old, e_new, done, loop,               &
                         iacc_good, iacc_neut, iacc_bad, rel_cycl,                 &
                         lout_feed, lfeed, imodulus, lmodulus,                     &

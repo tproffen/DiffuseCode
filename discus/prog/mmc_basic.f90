@@ -251,7 +251,7 @@ USE prompt_mod
 !
 IMPLICIT none 
 !                                                                       
-LOGICAL , INTENT(IN) :: lout     ! Flag for output yes/no
+LOGICAL , INTENT(IN) :: lout        ! Flag for output yes/no
 REAL(kind=PREC_DP)    , INTENT(IN) :: rel_cycl ! Relative progress along cycles
 LOGICAL , INTENT(INOUT) :: done     ! MMC is converged/ stagnates
 LOGICAL , INTENT(IN)    :: lfinished ! MMC is finished
@@ -267,7 +267,6 @@ INTEGER :: iis, jjs, lls, iic, kk
 INTEGER :: i, j, k, l 
 INTEGER :: icent 
 !
-!                                                                       
 LOGICAL :: searching 
 !LOGICAL   :: lfirst = .TRUE.  ! Flag to write output only at first instance
 !                                                                       
@@ -314,6 +313,8 @@ DATA energy_name / 'none', 'Chemical correlation    ', 'Displacement correlation
      'Lennard Jones potential ',     'Buckingham    potential ', & 
      'Repulsive     potential ',     'Coordination number     ', &
      'Unidirectional corr     ',     'Groupwise    correlation' /         
+!
+!lout = lout_in .and. mmc_out_feed    ! Combine system and user settings
 !
 mmc_pid_pid(:,2) = 0.0    ! Reset all average (diff, inte, deriv) terms
 mmc_pid_pid_n    = 0      ! Reset counter of contributing correlations
@@ -1384,6 +1385,272 @@ ENDDO corr_pair
      &        10x,f7.3,3x,f7.3,3x,i8)
 !
 END SUBROUTINE mmc_correlations_occ
+!
+!*****7*************************************************************************
+!
+SUBROUTINE mmc_correlation_write!(lcurrent)
+!-                                                                      
+!     Determines the achieved correlations                              
+!                                                                       
+!+                                                                      
+USE crystal_mod 
+USE chem_mod 
+!USE chem_menu
+!USE chem_aver_mod
+!USE chem_neig_multi_mod
+!USE atom_env_mod
+!USE celltoindex_mod
+!USE metric_mod
+!USE mc_mod 
+USE mmc_mod 
+!
+!USE debug_mod 
+!USE errlist_mod 
+use precision_mod
+USE prompt_mod 
+!
+IMPLICIT none 
+!
+!logical, intent(in) :: lcurrent
+!
+integer :: ic
+integer :: is, js, je
+logical :: lfirst
+real(kind=PREC_DP) :: divisor
+!
+write(*,'(a)') ' --- Initial multiple energy configuration ---'
+write(output_io,*)
+write(output_io,410)
+!
+main_corr: do ic = 1, chem_ncor 
+!
+!  OCCUPATION CORRELATION 
+!
+   je = MC_OCC 
+   call mmc_correlation_write_corr(ic, je, 'Occupancy', .false.)
+!
+!  Unidirectional OCCUPATION CORRELATION 
+!
+   je = MC_UNI 
+   call mmc_correlation_write_corr(ic, je, 'Unidirect', .false.)
+!
+!  Group OCCUPATION CORRELATION 
+!
+   je = MC_GROUP 
+   lfirst = .TRUE.
+   IF (mmc_cor_energy (0, MC_GROUP)) THEN
+   is = MAXLOC(mmc_left( ic, MC_GROUP,:), 1) - 1
+   js = MAXLOC(mmc_right(ic, MC_GROUP,:), 1) - 1
+   IF(mmc_target_corr(ic, je, is, js) /= 0.0) then
+      divisor = ABS(mmc_target_corr(ic, je, is, js))
+   ELSE
+      divisor = 1.0
+   ENDIF
+   write(output_io, 3100) ic, 'Group cor', cr_at_lis (is), cr_at_lis (js),         &
+      mmc_target_corr(ic, je, is, js),                                &
+      mmc_ini_corr   (ic, je, is, js),                                &
+      mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js), &
+      (mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js))/divisor
+   endif
+!
+!  Unidirectional OCCUPATION CORRELATION 
+!
+   je = MC_COORDNUM
+   call mmc_correlation_write_corr(ic, je, 'Coor num ', .false.)
+!
+!  Displacement correlations
+!
+   je = MC_DISP 
+   call mmc_correlation_write_corr(ic, je, 'Disp.Cor.', .true.)
+!
+!  Angle potentials
+!
+   je = MC_ANGLE 
+   call mmc_correlation_write_angl(ic, je, 'Angular  ', .true.)
+!
+!  Spring       correlations
+!
+   je = MC_SPRING 
+   call mmc_correlation_write_pote(ic, je, 'Hooke    ', .true.)
+!
+!  Lennard Jones Potential s
+!
+   je = MC_LENNARD
+   call mmc_correlation_write_pote(ic, je, 'Lennard  ', .true.)
+!
+!  Repulsive Potential
+!
+   je = MC_REPULSIVE
+   call mmc_correlation_write_pote(ic, je, 'Repulsive', .true.)
+!
+enddo main_corr
+!
+write(output_io,*)
+write(output_io,'(a)') ' ---------------------------------------------'
+!
+!                                                                       
+  410 FORMAT ( 45x,'Correlations/',/                                    &
+     &   ' Neig.- Energy-',7x,'Atoms',11x,'Target',2x,'Distance/',4x,   &
+     &    'Sigma',5x,'Diff',6x,'Diff/',5x,'Number',/                               &
+     &    ' Def.   Type    central  Neighbors',13x,'Angle'              &
+     &   ,27x,'Target  of pairs')                                               
+!
+ 3100 FORMAT (1x,i3,3x,a9,a5,3x,a5,      8x,2(f7.3,3x),        &
+     &        10x,f7.3,3x,f7.3,3x,i8)
+!
+end subroutine mmc_correlation_write
+!
+!*******************************************************************************
+!
+subroutine mmc_correlation_write_corr(ic, je, title, luse_all)
+!-
+!  Write a specific correlation for chemical coordination
+!+
+!
+use crystal_mod
+use chem_mod
+use mmc_mod
+!
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer         , intent(in) :: ic         ! Correlations number
+integer         , intent(in) :: je         ! Energy type
+character(len=*), intent(in) :: title      ! Energy name
+logical         , intent(in) :: luse_all ! Do not exist at first pair
+!
+integer :: is, js
+logical :: lfirst
+real(kind=PREC_DP) :: divisor
+!
+cond_ener: IF(mmc_cor_energy (ic, je) ) THEN 
+   lfirst = .TRUE.
+   loop_type: do is = 0, cr_nscat 
+      do js = is, cr_nscat 
+         if(mmc_pair(ic,je,is,js) < 0 .AND. lfirst) then
+            if(mmc_target_corr (ic, je, is, js) /= 0.0) then
+               divisor = ABS(mmc_target_corr (ic, je, is, js))
+            else
+               divisor = 1.0
+            endif
+            if     (mmc_pair (ic, je, is, js) /=  0 ) then 
+            lfirst = luse_all
+            write(output_io, 3100) ic, title      , cr_at_lis (is), cr_at_lis (js),         &
+                mmc_target_corr(ic, je, is, js),                                &
+                mmc_ini_corr   (ic, je, is, js),                                &
+                mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js), &
+               (mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js))/divisor
+            endif
+         endif
+      enddo
+   enddo loop_type
+endif cond_ener
+!
+ 3100 FORMAT (1x,i3,3x,a9,a5,3x,a5,      8x,2(f7.3,3x),        &
+     &        10x,f7.3,3x,f7.3,3x,i8)
+!
+end subroutine mmc_correlation_write_corr
+!
+!*******************************************************************************
+!
+subroutine mmc_correlation_write_pote(ic, je, title, luse_all)
+!-
+!  Write a specific correlation for chemical coordination
+!+
+!
+use crystal_mod
+use chem_mod
+use mmc_mod
+!
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer         , intent(in) :: ic         ! Correlations number
+integer         , intent(in) :: je         ! Energy type
+character(len=*), intent(in) :: title      ! Energy name
+logical         , intent(in) :: luse_all ! Do not exist at first pair
+!
+integer :: is, js
+logical :: lfirst
+real(kind=PREC_DP) :: divisor
+!
+cond_ener: IF(mmc_cor_energy (ic, je) ) THEN 
+   lfirst = .TRUE.
+   loop_type: do is = 0, cr_nscat 
+      do js = is, cr_nscat 
+         if(mmc_pair(ic,je,is,js) < 0 .AND. lfirst) then
+            if(mmc_target_corr (ic, je, is, js) /= 0.0) then
+               divisor = ABS(mmc_target_corr (ic, je, is, js))
+            else
+               divisor = 1.0
+            endif
+            if     (mmc_pair (ic, je, is, js) /=  0 ) then 
+            lfirst = luse_all
+            write(output_io, 3100) ic, title      , cr_at_lis (is), cr_at_lis (js),         &
+                mmc_target_corr(ic, je, is, js),                                &
+                mmc_ini_corr   (ic, je, is, js),                                &
+                mmc_ini_sigm (ic, je, is, js),                                     &
+                mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js), &
+               (mmc_target_corr(ic, je, is, js) - mmc_ini_corr (ic,je, is, js))/divisor
+            endif
+         endif
+      enddo
+   enddo loop_type
+endif cond_ener
+!
+ 3100 FORMAT (1x,i3,3x,a9,a5,3x,a5,      8x,5(f7.3,3x)         &
+     &             ,i8)                                                 
+!
+end subroutine mmc_correlation_write_pote
+!
+!*******************************************************************************
+!
+subroutine mmc_correlation_write_angl(ic, je, title, luse_all)
+!-                                                                       
+!     -- Loop over all defined angle correlations                       
+!+                                                                       
+!
+use crystal_mod
+use chem_mod
+use mmc_mod
+!
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer         , intent(in) :: ic         ! Correlations number
+integer         , intent(in) :: je         ! Energy type
+character(len=*), intent(in) :: title      ! Energy name
+logical         , intent(in) :: luse_all ! Do not exist at first pair
+!
+integer :: k
+integer :: iic, kk, iis, jjs, lls
+real(kind=PREC_DP) :: divisor
+!
+cond_ener: IF(mmc_cor_energy (ic, je) ) THEN 
+   DO k = 1, mmc_n_angles 
+      CALL index2angles (mmc_angles (k), iic, kk, iis, jjs, lls, MAXSCAT)
+      IF(mmc_target_angl(k               )/=0.0) THEN
+         divisor = mmc_target_angl(k)
+      ELSE
+         divisor = 1.0
+      ENDIF
+      WRITE (output_io, 3400) ic, cr_at_lis (iis),  cr_at_lis (jjs), &
+         cr_at_lis (lls),  mmc_target_angl (k),  mmc_ini_angl (k),   &
+         mmc_ini_sang (k),                                           &
+         mmc_target_angl (k)  - mmc_ini_angl (k),                    &
+         (mmc_target_angl (k)  - mmc_ini_angl (k))/divisor
+   enddo
+endif cond_ener
+!
+ 3400 FORMAT (1x,i3,3x,'Angle    ',a5,3x,a5,2x,a5,1x,5(f7.3,3x))
+!
+end subroutine mmc_correlation_write_angl
 !
 !*******************************************************************************
 !

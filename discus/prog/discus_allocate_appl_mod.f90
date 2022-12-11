@@ -1637,7 +1637,21 @@ integer :: i_scat
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mmc_size_of = mmc_size_of + size_of
 !
+      CALL alloc_arr ( mmc_ini_corr    ,1,n_corr , &
+                                        0,n_ener , &
+                                       -1,n_scat , &
+                                       -1,n_scat , &
+                                      all_status, 0.0D0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mmc_size_of = mmc_size_of + size_of
+!
       CALL alloc_arr ( mmc_ach_sigm    ,1,n_corr ,  0,n_ener , &
+                                       -1,n_scat , -1,n_scat , &
+                                      all_status, 0.0D0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mmc_size_of = mmc_size_of + size_of
+!
+      CALL alloc_arr ( mmc_ini_sigm    ,1,n_corr ,  0,n_ener , &
                                        -1,n_scat , -1,n_scat , &
                                       all_status, 0.0D0  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -1872,6 +1886,16 @@ END SUBROUTINE alloc_mmc_move
       mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_ang_sigm  ,1,n_size ,  &
+                                      all_status, 0.0D0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mmc_size_of = mmc_size_of + size_of
+!
+      CALL alloc_arr ( mmc_ini_angl  ,1,n_size ,  &
+                                      all_status, 0.0D0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mmc_size_of = mmc_size_of + size_of
+!
+      CALL alloc_arr ( mmc_ini_sang  ,1,n_size ,  &
                                       all_status, 0.0D0  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mmc_size_of = mmc_size_of + size_of

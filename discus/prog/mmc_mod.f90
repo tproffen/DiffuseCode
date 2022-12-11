@@ -64,6 +64,9 @@ REAL(kind=PREC_DP)  ::  mmc_g_neut         = 0.25     ! Accept neutral moved   i
 INTEGER             ::  mmc_move           =  0
 INTEGER ::  mmc_select_mode
 !
+logical             :: mmc_out_feed  = .true.         ! Screen output during feedbacks
+logical             :: mmc_out_final = .true.         ! Screen after loop
+!
 INTEGER, DIMENSION(MC_N_MOVE)          ::  mmc_local      = 1   !=rmc_local_all  (MC_N_MOVE)
 REAL(kind=PREC_DP)   , DIMENSION(MC_N_MOVE)          ::  mmc_move_prob  = 0.0 ! (MC_N_MOVE)
 REAL(kind=PREC_DP)   , DIMENSION(MC_N_MOVE)          ::  mmc_move_cprob = 0.0 ! (MC_N_MOVE)
@@ -87,8 +90,10 @@ INTEGER, DIMENSION(:,:,:), ALLOCATABLE ::  mmc_nvec        ! (CHEM_MAX_COR,0:DEF
 !
 REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_target_corr ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_depth       ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ach_corr    ! (CHEM_MAX_COR,0:MC_N_ENERGY,-1:DEF_MAXSCAT,-1:DEF_MAXSCAT)
+REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE, target ::  mmc_ach_corr    ! (CHEM_MAX_COR,0:MC_N_ENERGY,-1:DEF_MAXSCAT,-1:DEF_MAXSCAT)
+REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE, target ::  mmc_ini_corr    ! (CHEM_MAX_COR,0:MC_N_ENERGY,-1:DEF_MAXSCAT,-1:DEF_MAXSCAT)
 REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ach_sigm    ! (CHEM_MAX_COR,0:MC_N_ENERGY,-1:DEF_MAXSCAT,-1:DEF_MAXSCAT)
+REAL(kind=PREC_DP) , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ini_sigm    ! (CHEM_MAX_COR,0:MC_N_ENERGY,-1:DEF_MAXSCAT,-1:DEF_MAXSCAT)
 REAL(kind=PREC_DP) , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_const       ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 REAL(kind=PREC_DP) , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cfac        ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 logical, DIMENSION(:,:)    , ALLOCATABLE ::  mmc_lfeed       ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
@@ -135,6 +140,8 @@ REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE     ::  mmc_target_angl! (CHEM_
 REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE     ::  mmc_depth_angl ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
 REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE     ::  mmc_ach_angl   ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
 REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE     ::  mmc_ang_sigm   ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE     ::  mmc_ini_angl   ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
+REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE     ::  mmc_ini_sang   ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
 !
 REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_len_a      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
 REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE    ::  mmc_len_b      ! (0:CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)

@@ -237,6 +237,11 @@ mo_maxmove(:,0) = 0.0
 !     DO j = 0, MC_N_ENERGY 
       mmc_target_corr = 0.0 
       mmc_ach_corr    = 0.0 
+      mmc_ach_angl    = 0.0 
+      mmc_ach_sigm    = 0.0 
+      mmc_ini_corr    = 0.0 
+      mmc_ini_angl    = 0.0 
+      mmc_ini_sigm    = 0.0 
       mmc_pair        = 0
 !     ENDDO 
 !     ENDDO 
