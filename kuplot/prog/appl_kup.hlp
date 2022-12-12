@@ -2125,15 +2125,17 @@
    the best match between of data set <ic> to <io>. The first command
    determines whether only a scale ("scal") or offset ("offset") or
    both ("all") will be calculated. Data set <ic> is then modified 
-   using these values. This command is currently only available for
-   2D data sets (e.g. xy files). NOTE: This command assumes that a
-   given data point i in both data sets <io> and <ic> corresponds to
-   the same x-value, i.e. the data sets must be equal with respect to 
-   their x-values !
+   using these values. 
+   NOTE: This command assumes that a given data point i in both data 
+   sets <io> and <ic> corresponds to the same x-value, i.e. the data 
+   sets must be equal with respect to their x-values ! Equivalently, 
+   xy-z data are assumed to be on identical grid points in (x,y).
 
    If the first parameter is set to "mix" then data set <io> is matched
    by f*<i1>+(1-f)*<i2>. The result is added as new data set. All data 
    sets <io>, <i1> and <i2> need to have identical x data points.
+   This command second command version "mix" is currently only available
+   for 2D data sets (e.g. xy files). 
 
    The scale factor and the offset are written into the result variable 
    as entries 1 and 2. res[0] is set to 2
