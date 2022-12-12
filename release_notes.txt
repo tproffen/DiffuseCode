@@ -1,4 +1,12 @@
 6.12.08  DRAFT
+
+DISCUS
+  mmc         Added an optionto controu amount of output during / after mmc loop
+  powder      Added a Pearson Type VII profile function
+General
+              Added a Pearson Type VII profile function
+KUPLOT
+  help        Corrected entry for 'match' command
 6.12.07  RELEASE 2022_11_29
 
   General     Improved installation scripts on resolve issue of github.com 
