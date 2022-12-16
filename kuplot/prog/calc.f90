@@ -1869,6 +1869,7 @@ REAL(KIND=PREC_DP), dimension(MAXW) :: werte ! (maxw)
 !                                                                       
 REAL(kind=PREC_DP) :: a, b, aa, bb, ab, ao, bo, fra 
 INTEGER :: ip, iko, ik1, ik2, iik, ii1, ii2, iio 
+integer :: ipx, ipy
 !                                                                       
 !                                                                       
 !------ space left for new data set ??                                  
@@ -1893,74 +1894,152 @@ iko = nint (werte (1) )
 ik1 = nint (werte (2) ) 
 ik2 = nint (werte (3) ) 
 !                                                                       
-IF (iko.lt.1.or.iko.gt.iz.or.lni (iko) .or.                          &
-    ik1.lt.1.or.ik1.gt.iz.or.lni (ik1) .or.                           &
-    ik2.lt.1.or.ik2.gt.iz.or.lni (ik2) .or.                           &
-    iko.eq.ik1.or.iko.eq.ik2.or.ik1.eq.ik2) then                  
+IF(iko.lt.1.or.iko.gt.iz .or.                           &
+   ik1.lt.1.or.ik1.gt.iz .or.                           &
+   ik2.lt.1.or.ik2.gt.iz .or.                           &
+   iko.eq.ik1.or.iko.eq.ik2.or.ik1.eq.ik2) then                  
    ier_num = - 4 
    ier_typ = ER_APPL 
+   ier_msg(1) = 'Data type numbers are equal or outside range'
    RETURN 
 ENDIF 
+!
+IF (.not.lni (iko) .and..not.lni (ik1) .and..not.lni(ik2)) then           ! all x.y data
 !                                                                       
-IF (lenc (iko) .ne.lenc (ik1) .or.lenc (iko) .ne.lenc (ik2) .or.lenc ( &
-      ik1) .ne.lenc (ik2) .or.xmin (ik1) .ne.xmin (iko) .or.xmin (ik2)   &
-      .ne.xmin (iko) .or.xmin (ik1) .ne.xmin (ik2) .or.xmax (ik1)       &
-      .ne.xmax (iko) .or.xmax (ik2) .ne.xmax (iko) .or.xmax (ik1)       &
-      .ne.xmax (ik2) ) then                                             
-   ier_num = - 44 
-   ier_typ = ER_APPL 
-   RETURN 
-ENDIF 
+   IF(lenc(iko).ne.lenc(ik1) .or. lenc(iko).ne.lenc(ik2) .or. lenc(ik1).ne.lenc(ik2) .or. &
+      xmin(ik1).ne.xmin(iko) .or. xmin(ik2).ne.xmin(iko) .or. xmin(ik1).ne.xmin(ik2) .or. &
+      xmax(ik1).ne.xmax(iko) .or. xmax(ik2).ne.xmax(iko) .or. xmax(ik1).ne.xmax(ik2) ) then
+      ier_num = - 44 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
 !                                                                       
 !------ Now we calculate mixing fraction                                
 !                                                                       
-a = 0.0 
-b = 0.0 
-aa = 0.0 
-ao = 0.0 
-bo = 0.0 
-ab = 0.0 
-bb = 0.0 
+   a = 0.0 
+   b = 0.0 
+   aa = 0.0 
+   ao = 0.0 
+   bo = 0.0 
+   ab = 0.0 
+   bb = 0.0 
 !                                                                       
-DO ip = 1, lenc (iko) 
-   iik = offxy (iz - 1) + ip 
-   ii1 = offxy (ik1 - 1) + ip 
-   ii2 = offxy (ik2 - 1) + ip 
-   iio = offxy (iko - 1) + ip 
+   DO ip = 1, lenc (iko) 
+!     iik = offxy (iz - 1) + ip 
+      ii1 = offxy (ik1 - 1) + ip 
+      ii2 = offxy (ik2 - 1) + ip 
+      iio = offxy (iko - 1) + ip 
 !                                                                       
-   a = a + y (ii1) 
-   b = b + y (ii2) 
-   aa = aa + y (ii1) **2 
-   bb = bb + y (ii2) **2 
-   ao = ao + y (ii1) * y (iio) 
-   bo = bo + y (ii2) * y (iio) 
-   ab = ab + y (ii1) * y (ii2) 
-ENDDO 
+      a = a + y (ii1) 
+      b = b + y (ii2) 
+      aa = aa + y (ii1) **2 
+      bb = bb + y (ii2) **2 
+      ao = ao + y (ii1) * y (iio) 
+      bo = bo + y (ii2) * y (iio) 
+      ab = ab + y (ii1) * y (ii2) 
+   ENDDO 
 !                                                                       
-fra = (bb + ao - ab - bo) / (aa - 2.0 * ab + bb) 
+   fra = (bb + ao - ab - bo) / (aa - 2.0 * ab + bb) 
 !                                                                       
-WRITE (output_io, 1000) fra, fname (ik1) (1:len_str (fname (ik1))), &
-       (1.0 - fra), fname (ik2) (1:len_str (fname (ik2) ) )           
+   WRITE (output_io, 1000) fra, fname (ik1) (1:len_str (fname (ik1))), &
+          (1.0 - fra), fname (ik2) (1:len_str (fname (ik2) ) )           
 !                                                                       
 !------ Create new data set                                             
 !                                                                       
-DO ip = 1, lenc (iko) 
-   iik = offxy (iz - 1) + ip 
-   ii1 = offxy (ik1 - 1) + ip 
-   ii2 = offxy (ik2 - 1) + ip 
-   iio = offxy (iko - 1) + ip 
-   x (iik) = x (iio) 
-   y (iik) = fra * y (ii1) + (1.0 - fra) * y (ii2) 
-ENDDO 
+   DO ip = 1, lenc (iko) 
+      iik = offxy (iz - 1) + ip 
+      ii1 = offxy (ik1 - 1) + ip 
+      ii2 = offxy (ik2 - 1) + ip 
+      iio = offxy (iko - 1) + ip 
+      x (iik) = x (iio) 
+      y (iik) = fra * y (ii1) + (1.0 - fra) * y (ii2) 
+   ENDDO 
 !                                                                       
-lenc (iz) = lenc (iko) 
-fform (iz) = fform (iko) 
-fname (iz) = 'mix.dat' 
-offxy (iz) = offxy (iz - 1) + lenc (iz) 
-iz = iz + 1 
-CALL get_extrema_xy (x, iz - 1, lenc (iz), xmin, xmax) 
-CALL get_extrema_xy (y, iz - 1, lenc (iz), ymin, ymax) 
-CALL show_data (iz - 1) 
+   lenc (iz) = lenc (iko) 
+   fform (iz) = fform (iko) 
+   fname (iz) = 'mix.dat' 
+   offxy (iz) = offxy (iz - 1) + lenc (iz) 
+   iz = iz + 1 
+   CALL get_extrema_xy (x, iz - 1, lenc (iz), xmin, xmax) 
+   CALL get_extrema_xy (y, iz - 1, lenc (iz), ymin, ymax) 
+   CALL show_data (iz - 1) 
+elseif(lni(iko) .and. lni(ik1) .and. lni(ik2)) then           ! all nipl data
+   if(.not. (nx(iko)==nx(ik1)     .and. nx(iko)==nx(ik2)     .and. &
+             xmin(iko)==xmin(ik1) .and. xmin(iko)==xmin(ik2) .and. &
+             xmax(iko)==xmax(ik1) .and. xmax(iko)==xmax(ik2) )) then  !  Sizes and ranges  do not match
+      ier_num = - 4 
+      ier_typ = ER_APPL 
+      ier_msg(1) = 'Data are of different size or different range'
+      RETURN 
+   endif
+!                                                                       
+!------ Now we calculate mixing fraction                                
+!                                                                       
+   a = 0.0 
+   b = 0.0 
+   aa = 0.0 
+   ao = 0.0 
+   bo = 0.0 
+   ab = 0.0 
+   bb = 0.0 
+!
+   do ip=1, nx(iko)*ny(iko)
+      ii1 = offz(ik1 - 1) + ip 
+      ii2 = offz(ik2 - 1) + ip 
+      iio = offz(iko - 1) + ip 
+!                                                                       
+      a = a + z(ii1) 
+      b = b + z(ii2) 
+      aa = aa + z(ii1) **2 
+      bb = bb + z(ii2) **2 
+      ao = ao + z(ii1) * z(iio) 
+      bo = bo + z(ii2) * z(iio) 
+      ab = ab + z(ii1) * z(ii2) 
+   enddo
+!                                                                       
+   fra = (bb + ao - ab - bo) / (aa - 2.0 * ab + bb) 
+!                                                                       
+   WRITE (output_io, 1000) fra, fname (ik1) (1:len_str (fname (ik1))), &
+          (1.0 - fra), fname (ik2) (1:len_str (fname (ik2) ) )           
+!                                                                       
+!------ Create new data set                                             
+!                                                                       
+   do ip=1, nx(iko)
+      iik = offxy(iz  - 1) + ip 
+      iio = offxy(iko - 1) + ip 
+      x(iik) = x(iio) 
+   enddo
+   do ip=1, ny(iko)
+      iik = offxy(iz  - 1) + ip 
+      iio = offxy(iko - 1) + ip 
+      y(iik) = y(iio) 
+   enddo
+   do ip=1, nx(iko)*ny(iko)
+      iik = offz(iz  - 1) + ip 
+      ii1 = offz(ik1 - 1) + ip 
+      ii2 = offz(ik2 - 1) + ip 
+!     iio = offz(iko - 1) + ip 
+      z(iik) = fra * z(ii1) + (1.0 - fra) * z(ii2) 
+   ENDDO 
+!                                                                       
+   lni  (iz) = .true.
+   nx   (iz) = nx(iko)
+   ny   (iz) = ny(iko)
+   lenc (iz) = lenc (iko) 
+   fform(iz) = fform (iko) 
+   fname(iz) = 'mix.dat' 
+   offxy(iz) = offxy(iz - 1) + lenc (iz) 
+   offz (iz) = offz (iz - 1) + nx(iko)*ny(iko)
+   iz = iz + 1 
+   CALL get_extrema
+   CALL show_data (iz - 1) 
+!                                                                       
+else
+   ier_num = - 4 
+   ier_typ = ER_APPL 
+   ier_msg(1) = 'Data are of different shapes'
+   RETURN 
+endif
 !                                                                       
  1000 FORMAT     (' ------ > Mix = ',f12.5,' * ',a,' + ',               &
      &                              f12.5,' * ',a/)                     
