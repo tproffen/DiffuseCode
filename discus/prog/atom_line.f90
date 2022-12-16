@@ -111,7 +111,7 @@ if(ianz==0) then ! Pre 5.17.2 style, no params
       at_kool(i) = i
    enddo
    at_user(1:4) = .TRUE.
-   at_user(4: ) = .FALSE.
+   at_user(5: ) = .FALSE.
 else
    at_style = AT_COMMA
    do i=1, ianz
@@ -220,17 +220,24 @@ real(kind=PREC_DP), dimension(1:MAXW), INTENT(out)   :: werte
 integer :: j      ! Dummy index
 integer :: ios       ! I/O status flag
 !
+at_user = .false.
 read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 5)   !Try to read 5 params
 if(.not.is_iostat_end(ios)) then        ! five paramters
    at_style = AT_XYZBP
+   at_user(1:5) = .true.
+   if(index(line(ibl:length),',')>0) at_style=AT_COMMA
 else
    read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 4)   !Try to read 4 params
    if(.not.is_iostat_end(ios)) then        ! four paramters
       at_style = AT_XYZB
+      at_user(1:4) = .true.
+      if(index(line(ibl:length),',')>0) at_style=AT_COMMA
    else
       read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 3)   !Try to read 3 params
       if(.not.is_iostat_end(ios)) then        ! four paramters
          at_style = AT_XYZ
+         at_user(1:3) = .true.
+         if(index(line(ibl:length),',')>0) at_style=AT_COMMA
       else
          ier_num = -49
          ier_typ = ER_APPL
@@ -296,6 +303,7 @@ integer                              , intent(in)    :: cr_natoms
 integer                              , INTENT(in)    :: MAXW
 real(kind=PREC_DP), dimension(1:MAXW), INTENT(out)   :: werte
 !
+character(len=12) :: cform
 character(len=max(PREC_STRING,len(line))), dimension(MAXW) :: cpara
 integer                                  , dimension(MAXW) :: lpara
 character(len=max(PREC_STRING,len(line))), dimension(1   ) :: ccpara
@@ -349,7 +357,12 @@ if_style: if(at_style==AT_COMMA) then             ! x,y,z,B, ...
       iianz     = 1
       do i=1, AT_MAXP
          if(at_user(at_look(i))) then      ! User specified this on 'atom x,y,z, ...' line
-            read(cpara((i)),*, iostat=ios) werte(at_look(i))
+            if(index(cpara(i)(1:lpara(i)),'.')==0) then
+               cform = '(*)'
+            else
+               write(cform,'(a2,i4.4,a1,i4.4,a1)') '(f',lpara(i), '.',lpara(i)-index(cpara(i)(1:lpara(i)),'.'),')'
+            endif
+            read(cpara((i)),cform, iostat=ios) werte(at_look(i))
             if(ios/=0) then
                ccpara(1) = cpara((i))
                llpara(1) = lpara((i))
