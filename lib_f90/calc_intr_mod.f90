@@ -1106,89 +1106,89 @@ end subroutine intr_tukey
 !
 !END MODULE calc_intr_mod
 !
-module profile_pointer
-!
-contains
-!
-subroutine set_profile_pointer(iprofile)
-!-
-!  Set the pointer to the chosen profile function
-!+
-use precision_mod
-!
-integer, intent(in) :: iprofile
-!
-integer, parameter :: PSEUDO = 1
-integer, parameter :: PEARS  = 2
-!
-interface
-   real(kind=PREC_DP) function profile_function(xx, P_eta, P_inte, P_pos,     &
-                         P_fwhm, P_asym1, P_asym2, &
-                         axis, lambda) result(ww)
-!
-   use precision_mod
-!
-   REAL(KIND=PREC_DP), INTENT(IN)  :: xx            ! Position at which to calculate Pseduovoigt
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_eta         ! Profile Mixing parameter
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_inte        ! Integrated intensity
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_pos         ! Position
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_fwhm        ! FWHM
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym1       ! Asymmetry parameter 1
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym2       ! Asymmetry parameter 2
-   LOGICAL           , INTENT(IN)  :: axis          ! TRUE if TTH Scale
-   REAL(KIND=PREC_DP), INTENT(IN)  :: lambda        ! Wave length
-!
-   end function profile_function
-end interface
-!
-interface
-   real(kind=PREC_DP) function pseudo_voigt(xx, P_eta, P_inte, P_pos,     &
-                         P_fwhm, P_asym1, P_asym2, &
-                         axis, lambda) result(ww)
-!
-   use precision_mod
-!
-   REAL(KIND=PREC_DP), INTENT(IN)  :: xx            ! Position at which to calculate Pseduovoigt
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_eta         ! Profile Mixing parameter
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_inte        ! Integrated intensity
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_pos         ! Position
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_fwhm        ! FWHM
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym1       ! Asymmetry parameter 1
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym2       ! Asymmetry parameter 2
-   LOGICAL           , INTENT(IN)  :: axis          ! TRUE if TTH Scale
-   REAL(KIND=PREC_DP), INTENT(IN)  :: lambda        ! Wave length
-!
-   end function pseudo_voigt
-end interface
-!
-interface
-   real(kind=PREC_DP) function pearson_vii (xx, P_eta, P_inte, P_pos,     &
-                         P_fwhm, P_asym1, P_asym2, &
-                         axis, lambda) result(ww)
-!
-   use precision_mod
-!
-   REAL(KIND=PREC_DP), INTENT(IN)  :: xx            ! Position at which to calculate Pseduovoigt
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_eta         ! Profile Mixing parameter
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_inte        ! Integrated intensity
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_pos         ! Position
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_fwhm        ! FWHM
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym1       ! Asymmetry parameter 1
-   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym2       ! Asymmetry parameter 2
-   LOGICAL           , INTENT(IN)  :: axis          ! TRUE if TTH Scale
-   REAL(KIND=PREC_DP), INTENT(IN)  :: lambda        ! Wave length
-!
-   end function pearson_vii 
-end interface
-!
-procedure(profile_function), pointer :: p_profile_function => NULL()
-!
-if(iprofile==PSEUDO) then
-   p_profile_function => pseudo_voigt
-elseif(iprofile==PEARS ) then
-   p_profile_function => pearson_vii
-endif
-!
-end subroutine set_profile_pointer
-!
-end module profile_pointer
+!module profile_pointer
+!!
+!contains
+!!
+!subroutine set_profile_pointer(iprofile)
+!!-
+!!  Set the pointer to the chosen profile function
+!!+
+!use precision_mod
+!!
+!integer, intent(in) :: iprofile
+!!
+!integer, parameter :: PSEUDO = 1
+!integer, parameter :: PEARS  = 2
+!!
+!interface
+!   real(kind=PREC_DP) function profile_function(xx, P_eta, P_inte, P_pos,     &
+!                         P_fwhm, P_asym1, P_asym2, &
+!                         axis, lambda) result(ww)
+!!
+!   use precision_mod
+!!
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: xx            ! Position at which to calculate Pseduovoigt
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_eta         ! Profile Mixing parameter
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_inte        ! Integrated intensity
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_pos         ! Position
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_fwhm        ! FWHM
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym1       ! Asymmetry parameter 1
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym2       ! Asymmetry parameter 2
+!   LOGICAL           , INTENT(IN)  :: axis          ! TRUE if TTH Scale
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: lambda        ! Wave length
+!!
+!   end function profile_function
+!end interface
+!!
+!interface
+!   real(kind=PREC_DP) function pseudo_voigt(xx, P_eta, P_inte, P_pos,     &
+!                         P_fwhm, P_asym1, P_asym2, &
+!                         axis, lambda) result(ww)
+!!
+!   use precision_mod
+!!
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: xx            ! Position at which to calculate Pseduovoigt
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_eta         ! Profile Mixing parameter
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_inte        ! Integrated intensity
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_pos         ! Position
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_fwhm        ! FWHM
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym1       ! Asymmetry parameter 1
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym2       ! Asymmetry parameter 2
+!   LOGICAL           , INTENT(IN)  :: axis          ! TRUE if TTH Scale
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: lambda        ! Wave length
+!!
+!   end function pseudo_voigt
+!end interface
+!!
+!interface
+!   real(kind=PREC_DP) function pearson_vii (xx, P_eta, P_inte, P_pos,     &
+!                         P_fwhm, P_asym1, P_asym2, &
+!                         axis, lambda) result(ww)
+!!
+!   use precision_mod
+!!
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: xx            ! Position at which to calculate Pseduovoigt
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_eta         ! Profile Mixing parameter
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_inte        ! Integrated intensity
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_pos         ! Position
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_fwhm        ! FWHM
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym1       ! Asymmetry parameter 1
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: P_asym2       ! Asymmetry parameter 2
+!   LOGICAL           , INTENT(IN)  :: axis          ! TRUE if TTH Scale
+!   REAL(KIND=PREC_DP), INTENT(IN)  :: lambda        ! Wave length
+!!
+!   end function pearson_vii 
+!end interface
+!!
+!!procedure(profile_function), pointer :: p_profile_function => NULL()
+!!
+!if(iprofile==PSEUDO) then
+!   p_profile_function => pseudo_voigt
+!elseif(iprofile==PEARS ) then
+!   p_profile_function => pearson_vii
+!endif
+!!
+!end subroutine set_profile_pointer
+!!
+!!end module profile_pointer
