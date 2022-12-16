@@ -1950,8 +1950,8 @@ more1: IF (st_nlayer.ge.1) then
 !           endif
             kk       = cr_nscat + 1
             cr_nscat = cr_nscat + 1                  ! Increment atom types
-            cr_at_lis(kk) = st_at_lis(j)             ! Set new atom type
-            cr_dw    (kk) = st_dw(j )                ! Set new ADP
+            cr_at_lis(kk) = st_at_lis(st_iscat(j))             ! Set new atom type
+            cr_dw    (kk) = st_dw(st_iscat(j) )                ! Set new ADP
          endif
          cr_iscat(iatom-1+j) = kk 
          cr_prop (iatom-1+j) = st_prop(j)
@@ -2058,6 +2058,7 @@ integer :: ndel
 if(st_mod_sta .and. st_mod_atom/=ST_ATOM_OFF) then
    loop_atom_mod: do j = iatom, cr_natoms      ! Loop over all atoms in current layer
       loop_dim: do m=1,3                       ! xyz dimensions
+         if(st_idims(m)==1) cycle loop_dim     ! Single unit cell, skip
          if(cr_pos(m,j) < st_dims(m,1)) then   ! Atom is too low shift upward
             cr_pos(m,j) = cr_pos(m,j) + st_adims(m)
             if(cr_pos(m,j)>=st_dims(m,2)) then ! Atom is outside flag to delete
