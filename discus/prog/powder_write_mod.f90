@@ -726,7 +726,6 @@ ELSEIF(value==val_pdf) THEN  place_ywrt  ! Transform F(Q) into PDF
 !
 ENDIF place_ywrt
 !
-!write(*,*) ' FINAL WRITE'
 !open(77,file='POWDER/final.write',status='unknown')
 !DO ii=1,npkt_wrt
 !write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
@@ -1257,7 +1256,7 @@ REAL(KIND=PREC_DP)                 :: eta_dp
 REAL(KIND=PREC_DP)                 :: fwhm_dp
 INTEGER                            :: imax, i, j, ii 
 INTEGER                            :: max_ps 
-write(*,*) ' CONVOLUTION WITH PSEUDO      ', maxval(dat), pow_type==POW_COMPL, imax
+!write(*,*) ' CONVOLUTION WITH PSEUDO      ', maxval(dat), pow_type==POW_COMPL, imax
 !
 if(w<1.E-8) return         ! FWHM == zero, no convolution
 !                                                                       
@@ -1562,7 +1561,7 @@ INTEGER :: imax, i, j, ii  ! Dummy loop indices
 INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
 REAL(KIND=PREC_DP)    :: pseudo          ! scale factor for lookup table
 INTEGER :: max_ps 
-write(*,*) ' CONVOLUTION WITH PSEUDO      ', maxval(dat), pow_type==POW_COMPL, imax
+!write(*,*) ' CONVOLUTION WITH PSEUDO      ', maxval(dat), pow_type==POW_COMPL, imax
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
