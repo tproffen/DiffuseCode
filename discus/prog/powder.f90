@@ -2776,16 +2776,32 @@ IMPLICIT NONE
 !
 !
 if(pow_constlam) then           ! Constant lambda instrument
-   IF(pow_qtthmin) THEN
-      pow_tthmin = 2.0D0*asind(pow_qmin*rlambda/fpi)
+   IF(pow_qtthmin) THEN         ! Negative 2TH_zero, adjust lower limits
+      if(pow_tthzero<0) then
+         pow_tthmin = max(0.0D0, 2.0D0*asind(pow_qmin*rlambda/fpi) + pow_tthzero)
+      else
+         pow_tthmin = max(0.0D0, 2.0D0*asind(pow_qmin*rlambda/fpi))
+      endif
    ELSE
-      pow_qmin = fpi*sind(pow_tthmin*0.5D0)/rlambda
+      if(pow_tthzero<0) then    ! Negative 2TH_zero, adjust lower limits
+         pow_qmin = max(0.0D0, fpi*sind((pow_tthmin+pow_tthzero)*0.5D0)/rlambda)
+      else
+         pow_qmin = max(0.0D0, fpi*sind((pow_tthmin            )*0.5D0)/rlambda)
+      endif
    ENDIF
 !
    IF(pow_qtthmax) THEN
-      pow_tthmax = 2.0D0*asind(pow_qmax*rlambda/fpi)
+      if(pow_tthzero>0) then    ! positive 2TH_zero, adjust upper limits
+         pow_tthmax = 2.0D0*asind(pow_qmax*rlambda/fpi) + pow_tthmax
+      else
+         pow_tthmax = 2.0D0*asind(pow_qmax*rlambda/fpi)
+      endif
    ELSE
-      pow_qmax = fpi*sind(pow_tthmax*0.5D0)/rlambda
+      if(pow_tthzero>0) then    ! positive 2TH_zero, adjust upper limits
+         pow_qmax = fpi*sind((pow_tthmax+pow_tthzero)*0.5D0)/rlambda
+      else
+         pow_qmax = fpi*sind(pow_tthmax*0.5D0)/rlambda
+      endif
    ENDIF
 !
    IF(pow_deltaqtth) THEN
