@@ -9272,17 +9272,20 @@
 !p set "aver",<value>
 !p set "modulus" , { "off" | "on" }
 !p set "trans" , { "calculate" | "fixed" }
+!p set "aver:"<value>
+!p set {"modulus:off" | "modulus:on" }
+!p set {"trans:"calculate" | "trans:fixed" }
+!p set {atoms:off} | "atoms:on" | "atoms:strict" }
 
 !p set "aver",<value>
+!p set "aver:"<value>
    If the value of <value> is not equal to zero, the average <F> is
    subtracted from the actual structure factor F. 
    Otherwise the average <F> is calculated using the whole crystal
    and subtracted from the actual F.
 
-!p ==> "four"
-!p ==> "discus four set aver"
-
 !p set "modulus" , { "off" | "on" }
+!p set {"modulus:off" | "modulus:on" }
    If the modulus is set "off", each origin is calculated by adding
    the corresponding translation vector to the previous origin. This
    way the crystal grows along the average translation vector. The 
@@ -9300,12 +9303,29 @@
    the average vector ==> 'set trans', ==> 'aver'.
 
 !p set "trans" , { "calculate" | "fixed" }
+!p set {"trans:"calculate" | "trans:fixed" }
    You have two choices to restrict the crystal growth once the 
    modulus is set on.
    The average translation can be fixed to the value given by
    ==> 'aver' by setting the parameter of the 'set trans' command to
    "fixed". Alternatively the average translation is computed using
    the array of the translation vectors and the correlation matrix.
+
+!p set {atoms:off} | "atoms:on" | "atoms:strict" }
+   In adition to shifting the whole layer according to the modulus
+   vectors, DISCUS allows to shift individual atoms at the edge of the
+   crystal. 
+   DISCUS calculates the extend of the crystal. If individual atoms are
+   shifted outside the original dimensions, periodic boundary conditions
+   are applied for "set atoms:on". This will give a smoother edge of 
+   the crystal.
+   Due to rounding issues, a more stringent reshape operation is applied
+   with "set atoms:strict". In this case DISCUS will reduce the overall
+   dimensions of all layers in the final crystal by 2 unit cells, 
+   one at the lower, one at the upper edge. Atoms in these outer shell
+   are shifted using periodic boundary conditions or removed to restrict 
+   the crystal edges to the smaller number of unit cells. This ensures
+   a smooth edge.
 3  show
 !p show
 
