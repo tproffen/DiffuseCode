@@ -1,11 +1,15 @@
-6.12.08  DRAFT
+6.13.00  DRAFT
 
+6.12.08  Draft
 DISCUS
-  mmc         Added an optionto controu amount of output during / after mmc loop
+  mmc         Added an option to control amount of output during / after mmc loop
   powder      Added a Pearson Type VII profile function
+  stack       BUG FIX: Improved atom modulo function.
+                       Corrected possible crash if 2nd layer had more atoms than previous.
 General
               Added a Pearson Type VII profile function
 KUPLOT
+  match       Extended 'match mix' to xyz files
   help        Corrected entry for 'match' command
 6.12.07  RELEASE 2022_11_29
 
