@@ -1,6 +1,5 @@
 6.13.00  DRAFT
 
-6.12.08  Draft
 DISCUS
   mmc         Added an option to control amount of output during / after mmc loop
   powder      Added a Pearson Type VII profile function
