@@ -361,15 +361,15 @@ if(lpresent(O_LLB)) then              ! User provided Left Lower Bottom
    if(str_comp(ccpara, 'auto', 4, llpara, 4)) then
       new_eck_user(1) = .false.
    else
-   call get_optional_multi(MAXP, ccpara, llpara, wwerte, ianz)
-   if(ier_num/=0) return
+      call get_optional_multi(MAXP, ccpara, llpara, wwerte, ianz)
+      if(ier_num/=0) return
       if(ianz==3) then
          new_eck(:,1) = wwerte(1:3)
          new_eck_user(1) = .true.
-         ier_msg(1) = 'Wrong number of LL corner coordinates'
       else
          ier_num = -6
          ier_typ = ER_COMM
+         ier_msg(1) = 'Wrong number of LL corner coordinates'
          return
       endif
    endif
@@ -381,15 +381,15 @@ if(lpresent(O_RLB)) then              ! User provided Right Lower Bottom = lr = 
    if(str_comp(ccpara, 'auto', 4, llpara, 4)) then
       new_eck_user(1) = .false.
    else
-   call get_optional_multi(MAXP, ccpara, llpara, wwerte, ianz)
-   if(ier_num/=0) return
+      call get_optional_multi(MAXP, ccpara, llpara, wwerte, ianz)
+      if(ier_num/=0) return
       if(ianz==3) then
          new_eck(:,2) = wwerte(1:3)
          new_eck_user(2) = .true.
-         ier_msg(1) = 'Wrong number of LR corner coordinates'
       else
          ier_num = -6
          ier_typ = ER_COMM
+         ier_msg(1) = 'Wrong number of LR corner coordinates'
          return
       endif
    endif
@@ -401,8 +401,8 @@ if(lpresent(O_LUB)) then              ! User provided Left Upper Bottom = ul = u
    if(str_comp(ccpara, 'auto', 4, llpara, 4)) then
       new_eck_user(1) = .false.
    else
-   call get_optional_multi(MAXP, ccpara, llpara, wwerte, ianz)
-   if(ier_num/=0) return
+      call get_optional_multi(MAXP, ccpara, llpara, wwerte, ianz)
+      if(ier_num/=0) return
       if(ianz==3) then
          new_eck(:,3) = wwerte(1:3)
          new_eck_user(3) = .true.
@@ -421,8 +421,8 @@ if(lpresent(O_LLT)) then              ! User provided Left Lower Top = tl = top 
    if(str_comp(ccpara, 'auto', 4, llpara, 4)) then
       new_eck_user(1) = .false.
    else
-   call get_optional_multi(MAXP, ccpara, llpara, wwerte, ianz)
-   if(ier_num/=0) return
+      call get_optional_multi(MAXP, ccpara, llpara, wwerte, ianz)
+      if(ier_num/=0) return
       if(ianz==3) then
          new_eck(:,4) = wwerte(1:3)
          new_eck_user(4) = .true.
@@ -526,6 +526,10 @@ real(kind=PREC_DP)               :: new_valmax   ! Pixel vector in new system
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: weight         ! Weights for pixels in new data
 !
 !new_vi = vz
+!write(*,*) ' MAIN inc ', new_INC_user
+!write(*,*) ' MAIN eck ', new_eck_user
+!write(*,*) ' MAIN vi  ', new_vi_user
+!write(*,*) ' MAIN zone', new_zone_user
 call build_new(old_inc, old_eck, old_vi, old_icenter, cr_a0, cr_win, &
                lib_tr_mat, lib_in_mat,                 &
                new_inc, new_eck, new_vi, new_zone, new_icenter,  &
@@ -536,6 +540,21 @@ allocate(new_data(new_inc(1), new_inc(2), new_inc(3)))
 allocate(weight  (new_inc(1), new_inc(2), new_inc(3)))
 new_data = 0.0
 weight   = 0.0
+!write(*,*) ' START TRANSFORMATION '
+!write(*,*) ' old_inc ', old_inc
+!write(*,*) ' old_icen', old_icenter
+!write(*,*) ' Matrix  ', lib_tr_mat(:,1)
+!write(*,*) ' Matrix  ', lib_tr_mat(:,2)
+!write(*,*) ' Matrix  ', lib_tr_mat(:,3)
+!write(*,*) ' new_inc ', new_inc
+!write(*,*) ' new_icen', new_icenter
+!write(*,*) ' new_LLB ', new_eck(:,1)
+!write(*,*) ' new_RLB ', new_eck(:,2)
+!write(*,*) ' new_LUB ', new_eck(:,3)
+!write(*,*) ' new_LLT ', new_eck(:,4)
+!write(*,*) ' new_abs ', new_vi (:,1)
+!write(*,*) ' new_ord ', new_vi (:,2)
+!write(*,*) ' new_top ', new_vi (:,3)
 do kk=1, old_inc(3)
    k = kk - old_icenter(3)
    vect(3) = real(k,kind=PREC_DP)
@@ -547,7 +566,7 @@ do kk=1, old_inc(3)
          vect(1) = real(i,kind=PREC_DP)
          resl = matmul(lib_tr_mat, vect)
          lmn = int(resl(:)) + new_icenter(:)
-         if(all(lmn>0) .and. all(lmn<new_inc)) then
+         if(all(lmn>0) .and. all(lmn<=new_inc)) then
             new_data(lmn(1), lmn(2), lmn(3)) = new_data(lmn(1), lmn(2), lmn(3)) + &
                                                qvalues(ii,jj,kk)
             weight(lmn(1), lmn(2), lmn(3)) = weight(lmn(1), lmn(2), lmn(3)) + 1.0D0
@@ -577,10 +596,10 @@ end subroutine lib_trans_main
 !
 !*******************************************************************************
 !
-subroutine build_new(old_inc, old_eck, old_vi, old_icenter, cr_a0, cr_win, &
+subroutine build_new(orig_old_inc, orig_old_eck, orig_old_vi, old_icenter, cr_a0, cr_win, &
                      lib_tr_mat, lib_in_mat,                &
                      new_inc, new_eck, new_vi, new_zone, new_icenter, &
-                     new_inc_user, new_eck_user, new_vi_user, new_zone_user)
+                     orig_new_inc_user, orig_new_eck_user, orig_new_vi_user, orig_new_zone_user)
 !-
 ! Calculate the new : Number data points
 !                     Corners
@@ -594,29 +613,39 @@ use precision_mod
 !
 implicit none
 !
-integer           , dimension(3)  , intent(in)    :: old_inc       ! Old pixel numbers
-real(kind=PREC_DP), dimension(3,3), intent(in)    :: old_vi        ! Old increment vectors
-real(kind=PREC_DP), dimension(3,4), intent(in)    :: old_eck       ! Old Corners (ll, lr, ul, tl) 
+integer           , dimension(3)  , intent(in)    :: orig_old_inc  ! Old pixel numbers
+real(kind=PREC_DP), dimension(3,4), intent(in)    :: orig_old_eck  ! Old Corners (ll, lr, ul, tl) 
+real(kind=PREC_DP), dimension(3,3), intent(in)    :: orig_old_vi   ! Old increment vectors
 integer           , dimension(3)  , intent(out)   :: old_icenter   ! Old center in pixels
-real(kind=PREC_DP), dimension(3)  , intent(in)    :: cr_a0     ! Lattice parameters 
-real(kind=PREC_DP), dimension(3)  , intent(in)    :: cr_win    ! Lattice angles 
-real(kind=PREC_DP), dimension(3,3), intent(out)   :: lib_tr_mat   ! Transformation matrix old => new
-real(kind=PREC_DP), dimension(3,3), intent(out)   :: lib_in_mat   ! Transformation matrix new => old
-integer           , dimension(3)  , intent(inout)   :: new_inc       ! New pixel numbers
-real(kind=PREC_DP), dimension(3,3), intent(inout)   :: new_vi        ! New increment vectors
-real(kind=PREC_DP), dimension(3,4), intent(inout)   :: new_eck       ! New Corners (ll, lr, ul, tl) 
-real(kind=PREC_DP), dimension(3)  , intent(inout)   :: new_zone      ! New zone axis
+real(kind=PREC_DP), dimension(3)  , intent(in)    :: cr_a0         ! Lattice parameters 
+real(kind=PREC_DP), dimension(3)  , intent(in)    :: cr_win        ! Lattice angles 
+real(kind=PREC_DP), dimension(3,3), intent(out)   :: lib_tr_mat    ! Transformation matrix old => new
+real(kind=PREC_DP), dimension(3,3), intent(out)   :: lib_in_mat    ! Transformation matrix new => old
+integer           , dimension(3)  , intent(inout) :: new_inc       ! New pixel numbers
+real(kind=PREC_DP), dimension(3,3), intent(inout) :: new_vi        ! New increment vectors
+real(kind=PREC_DP), dimension(3,4), intent(inout) :: new_eck       ! New Corners (ll, lr, ul, tl) 
+real(kind=PREC_DP), dimension(3)  , intent(inout) :: new_zone      ! New zone axis
 integer           , dimension(3)  , intent(out)   :: new_icenter   ! New center in pixels
-logical           , dimension(3)  , intent(in)    :: new_inc_user  ! Try to determine inc's automatically?
-logical           , dimension(4)  , intent(in)    :: new_eck_user  ! Try to determine eck's automatically?
-logical           , dimension(3)  , intent(in)    :: new_vi_user   ! Try to determine vi's automatically?
-logical                           , intent(in)    :: new_zone_user ! Try to determine vi's automatically?
+logical           , dimension(3)  , intent(in)    :: orig_new_inc_user  ! Try to determine inc's automatically?
+logical           , dimension(4)  , intent(in)    :: orig_new_eck_user  ! Try to determine eck's automatically?
+logical           , dimension(3)  , intent(in)    :: orig_new_vi_user   ! Try to determine vi's automatically?
+logical                           , intent(in)    :: orig_new_zone_user ! Try to determine vi's automatically?
 !
 real(kind=PREC_DP), parameter      :: TOL=1.0D-5   ! An uncertainty
 !
 character(len=3), dimension(3), parameter :: cname= (/ 'abs', 'ord', 'top'/)
 integer               :: i
+integer               :: ndims               ! Reciprocal space i 1-; 2-; 3-D
 integer, dimension(3) :: points
+!   Local copies of old_* This allows modification without changing the original
+integer           , dimension(3)   :: old_inc       ! Old pixel numbers
+real(kind=PREC_DP), dimension(3,3) :: old_vi        ! Old increment vectors
+real(kind=PREC_DP), dimension(3,4) :: old_eck       ! Old Corners (ll, lr, ul, tl) 
+logical           , dimension(3)   :: new_inc_user  ! Try to determine inc's automatically?
+logical           , dimension(4)   :: new_eck_user  ! Try to determine eck's automatically?
+logical           , dimension(3)   :: new_vi_user   ! Try to determine vi's automatically?
+logical                            :: new_zone_user ! Try to determine vi's automatically?
+!
 real(kind=PREC_DP), dimension(3,3) :: gten   ! Direct metric tensor
 real(kind=PREC_DP), dimension(3,3) :: rten   ! reciprocal metric tensor
 real(kind=PREC_DP), dimension(3,3,3) :: eps  ! Direct space espilon tensor
@@ -625,34 +654,42 @@ real(kind=PREC_DP), dimension(3  ) :: new_zone_r   ! Direct metric tensor
 real(kind=PREC_DP), dimension(3  ) :: new_zone_rn  ! Direct metric tensor
 real(kind=PREC_DP)                 :: angle        ! An angle
 !
-if(.not.( all(new_eck_user) .or. (all(.not.new_eck_user)))) then
-   ier_num = -6
-   ier_typ = ER_COMM
-   ier_msg(1) = 'Not all new corners were provided'
-   return
-endif
+!  Start by setting up a metric based on input data
 !
-if(.not.((new_inc_user(1).eqv.new_inc_user(2)) .or. (new_inc_user(1).eqv.new_inc_user(3)) )) then
-   ier_num = -6
-   ier_typ = ER_COMM
-   ier_msg(1) = 'Not all new number of points were provided'
-   return
-endif
+call lib_tensor(gten, cr_a0, cr_win)
+call matinv(gten, rten)
+call lib_eps(gten, eps)
+call lib_eps(rten, reps)
 !
-if(.not.((new_vi_user(1).and. new_zone_user) .or.  &
-         ((new_vi_user(1).eqv.new_vi_user(2)) .and. (new_vi_user(1).eqv.new_vi_user(3))) )) then
-   ier_num = -6
-   ier_typ = ER_COMM
-   ier_msg(1) = 'Not all new increment vectors were provided'
-   return
-endif
+old_inc = orig_old_inc
+old_eck = orig_old_eck
+old_vi  = orig_old_vi
 !
-if(new_zone_user .and. .not. new_vi_user(1)) then
-   ier_num = -6
-   ier_typ = ER_COMM
-   ier_msg(1) = 'Zone axis mode, but abscissa is missing'
-   return
-endif
+new_inc_user = orig_new_inc_user
+new_eck_user = orig_new_eck_user
+new_vi_user  = orig_new_vi_user
+new_zone_user  = orig_new_zone_user
+!
+!write(*,*) ' INC U  ', new_inc_user
+!write(*,*) ' ECK U  ', new_eck_user
+!write(*,*) ' VI  U  ', new_vi_user
+!write(*,*) ' ZON U  ', new_zone_user
+ndims = 0                           ! Determine dimension
+if(old_inc(1)>1) ndims=ndims+1
+if(old_inc(2)>1) ndims=ndims+1
+if(old_inc(3)>1) ndims=ndims+1
+!write(*,*) ' DIMENSION ', ndims
+call augment_dimension(ndims, old_inc, old_eck, old_vi,           &      ! Make dummy 3D
+                              new_inc, new_eck, new_vi, new_zone, &  
+                              gten, rten, eps, reps,              &
+                       new_inc_user, new_eck_user, new_vi_user, new_zone_user)
+!
+!write(*,*) ' AUGMENT INC U  ', new_inc_user
+!write(*,*) ' AUGMENT ECK U  ', new_eck_user
+!write(*,*) ' AUGMENT VI  U  ', new_vi_user
+!write(*,*) ' AUGMENT ZON U  ', new_zone_user
+!
+call error_check(ndims, new_inc_user, new_eck_user, new_vi_user, new_zone_user)
 !
 do i=1, 3
    if(mod(old_inc(i),2)==0) then
@@ -662,14 +699,8 @@ do i=1, 3
    endif
 enddo
 !
-!  Start by setting up a metric based on input data
-!
-call lib_tensor(gten, cr_a0, cr_win)
-call matinv(gten, rten)
-call lib_eps(gten, eps)
-call lib_eps(rten, reps)
-!
 if_zone:if(new_zone_user) then                  ! User provided zone axis
+!write(*,*) ' MODE ZONE AXIS '
    call lib_d2r(gten, rten, new_zone, new_zone_r, new_zone_rn)  ! Transform Zone axis into reciprocal space
    call lib_vector_product(new_zone_rn, new_vi(:,1), new_vi(:,2), reps, gten)  ! Build direction of ordinate
    new_vi(:,2) = new_vi(:,2)/lib_blen(rten,new_vi(:,2))*lib_blen(rten,new_vi(:,1)) !Initially take, abs, ord, zone_rn
@@ -694,10 +725,11 @@ if_zone:if(new_zone_user) then                  ! User provided zone axis
                       new_inc, new_eck, new_vi, new_icenter)
 else  if_zone                                   ! No Zone axis mode
    if_corners:if(all(new_eck_user)) then         ! User provided all corners
+!write(*,*) ' MODE Corners   '
       if(all(new_inc_user)) then      ! User provided all increment numbers
-         new_vi(:,1) = (new_eck(:, 2) - new_eck(:,1))/real(new_inc(1)-1,kind=PREC_DP)   ! Abscissa vector
-         new_vi(:,2) = (new_eck(:, 3) - new_eck(:,1))/real(new_inc(2)-1,kind=PREC_DP)   ! Ordinate vector
-         new_vi(:,3) = (new_eck(:, 4) - new_eck(:,1))/real(new_inc(3)-1,kind=PREC_DP)   ! Top      vector
+         if(new_inc(1)>1) new_vi(:,1) = (new_eck(:, 2) - new_eck(:,1))/real(new_inc(1)-1,kind=PREC_DP)   ! Abscissa vector
+         if(new_inc(2)>1) new_vi(:,2) = (new_eck(:, 3) - new_eck(:,1))/real(new_inc(2)-1,kind=PREC_DP)   ! Ordinate vector
+         if(new_inc(3)>1) new_vi(:,3) = (new_eck(:, 4) - new_eck(:,1))/real(new_inc(3)-1,kind=PREC_DP)   ! Top      vector
       elseif(all(new_vi_user)) then   ! User provided all vectors
 !       Check if vectors are parallel and determine new_inc
          do i=1,3
@@ -738,18 +770,23 @@ else  if_zone                                   ! No Zone axis mode
 !      write(*,*) ' BUILD FROM vectors '
       call build_trans(old_vi, new_vi, lib_tr_mat, lib_in_mat)
       if(all(new_inc_user)) then      ! User provided number of data points as well, build corners
-         new_eck(:,1) = real(-1*new_inc(1),kind=PREC_DP)*new_vi(:,1) +             &
-                        real(-1*new_inc(2),kind=PREC_DP)*new_vi(:,2) +             &
-                           real(-1*new_inc(3),kind=PREC_DP)*new_vi(:,3)
-         new_eck(:,2) = real(   new_inc(1),kind=PREC_DP)*new_vi(:,1) +             &
-                        real(-1*new_inc(2),kind=PREC_DP)*new_vi(:,2) +             &
-                        real(-1*new_inc(3),kind=PREC_DP)*new_vi(:,3)
-         new_eck(:,3) = real(-1*new_inc(1),kind=PREC_DP)*new_vi(:,1) +             &
-                        real(   new_inc(2),kind=PREC_DP)*new_vi(:,2) +             &
-                        real(-1*new_inc(3),kind=PREC_DP)*new_vi(:,3)
-         new_eck(:,4) = real(-1*new_inc(1),kind=PREC_DP)*new_vi(:,1) +             &
-                        real(-1*new_inc(2),kind=PREC_DP)*new_vi(:,2) +             &
-                        real(   new_inc(3),kind=PREC_DP)*new_vi(:,3)
+!write(*,*) ' CORN abs    ', new_vi(:,1), new_inc(1)
+!write(*,*) ' CORN ord    ', new_vi(:,2), new_inc(2)
+!write(*,*) ' CORN top    ', new_vi(:,3), new_inc(3)
+!write(*,*)
+!
+         new_eck(:,1) = real(-1*(new_inc(1)-1)/2,kind=PREC_DP)*new_vi(:,1) +             &
+                        real(-1*(new_inc(2)-1)/2,kind=PREC_DP)*new_vi(:,2) +             &
+                        real(-1*(new_inc(3)-1)/2,kind=PREC_DP)*new_vi(:,3)
+         new_eck(:,2) = real(   (new_inc(1)-1)/2,kind=PREC_DP)*new_vi(:,1) +             &
+                        real(-1*(new_inc(2)-1)/2,kind=PREC_DP)*new_vi(:,2) +             &
+                        real(-1*(new_inc(3)-1)/2,kind=PREC_DP)*new_vi(:,3)
+         new_eck(:,3) = real(-1*(new_inc(1)-1)/2,kind=PREC_DP)*new_vi(:,1) +             &
+                        real(   (new_inc(2)-1)/2,kind=PREC_DP)*new_vi(:,2) +             &
+                        real(-1*(new_inc(3)-1)/2,kind=PREC_DP)*new_vi(:,3)
+         new_eck(:,4) = real(-1*(new_inc(1)-1)/2,kind=PREC_DP)*new_vi(:,1) +             &
+                        real(-1*(new_inc(2)-1)/2,kind=PREC_DP)*new_vi(:,2) +             &
+                        real(   (new_inc(3)-1)/2,kind=PREC_DP)*new_vi(:,3)
          do i=1, 3
             if(mod(old_inc(i),2)==0) then
                new_icenter(i) = new_inc(i)/2
@@ -765,7 +802,269 @@ else  if_zone                                   ! No Zone axis mode
    endif  if_corners
 endif  if_zone
 !
+!write(*,*) ' INC U  ', new_inc_user
+!write(*,*) ' ECK U  ', new_eck_user
+!write(*,*) ' VI  U  ', new_vi_user
+!write(*,*) ' ZON U  ', new_zone_user
+!
+!write(*,*) ' abs    ', new_vi(:,1)
+!write(*,*) ' ord    ', new_vi(:,2)
+!write(*,*) ' top    ', new_vi(:,3)
+!write(*,*)
+!
+!write(*,*) ' LLB    ', new_eck(:,1)
+!write(*,*) ' RLB    ', new_eck(:,2)
+!write(*,*) ' LUB    ', new_eck(:,3)
+!write(*,*) ' LLT    ', new_eck(:,4)
+!write(*,*)
+!
+!write(*,*) ' ZONE   ', new_zone
+!write(*,*)
+!
+!write(*,*) ' INC    ', new_inc
+!write(*,*)
+!write(*,*) ' TRANS  ', lib_tr_mat(:,1)
+!write(*,*) ' TRANS  ', lib_tr_mat(:,2)
+!write(*,*) ' TRANS  ', lib_tr_mat(:,3)
+!write(*,*)
+!
 end subroutine build_new
+!
+!*******************************************************************************
+!
+subroutine augment_dimension(ndims, old_inc, old_eck, old_vi,                   &
+                                    new_inc, new_eck, new_vi, new_zone,         &
+                                    gten, rten, eps, reps,                      &
+                       new_inc_user, new_eck_user, new_vi_user, new_zone_user)
+!-
+!  For 2-D and 1D data add missing coordinates 
+!+
+!
+use lib_metric_mod
+use precision_mod
+!
+implicit none
+!
+integer                           ,   intent(inout) :: ndims    ! Dimension
+integer           , dimension(3)  ,   intent(inout) :: old_inc  ! Old pixel numbers
+real(kind=PREC_DP), dimension(3,4),   intent(inout) :: old_eck  ! Old Corners (ll, lr, ul, tl) 
+real(kind=PREC_DP), dimension(3,3),   intent(inout) :: old_vi   ! Old increment vectors
+integer           , dimension(3)  ,   intent(inout) :: new_inc  ! New pixel numbers
+real(kind=PREC_DP), dimension(3,4),   intent(inout) :: new_eck  ! New Corners (ll, lr, ul, tl) 
+real(kind=PREC_DP), dimension(3,3),   intent(inout) :: new_vi   ! New increment vectors
+real(kind=PREC_DP), dimension(3)  ,   intent(inout) :: new_zone ! New zone axis
+real(kind=PREC_DP), dimension(3,3),   intent(in)    :: gten     ! Direct metric tensor
+real(kind=PREC_DP), dimension(3,3),   intent(in)    :: rten     ! reciprocal metric tensor
+real(kind=PREC_DP), dimension(3,3,3), intent(in)    :: eps      ! Direct metric tensor
+real(kind=PREC_DP), dimension(3,3,3), intent(in)    :: reps     ! reciprocal metric tensor
+logical           , dimension(3)    , intent(inout) :: new_inc_user  ! Try to determine inc's automatically?
+logical           , dimension(4)    , intent(inout) :: new_eck_user  ! Try to determine eck's automatically?
+logical           , dimension(3)    , intent(inout) :: new_vi_user   ! Try to determine vi's automatically?
+logical                             , intent(inout) :: new_zone_user ! Try to determine vi's automatically?
+!
+real(kind=PREC_DP), dimension(3) :: u ! a vector
+real(kind=PREC_DP), dimension(3) :: w ! a vector
+real(kind=PREC_DP) :: r1 ! a random number
+integer :: isflat
+!
+if(ndims==3) return          !  3D; nothing to do
+!
+if(ndims==2) then            ! 2D  
+   isflat = minloc(old_inc, 1)
+!   write(*,*) ' FLAT is ', isflat
+   if(isflat==3) then
+!      write(*,*) ' abs    ', old_vi(:,1)
+!      write(*,*) ' ord    ', old_vi(:,2)
+      call lib_vector_product(old_vi(:,1), old_vi(:,2), u, reps, gten)  ! Build direction of top axis
+!      write(*,*) ' Normal ', u
+      old_vi (:,3) = u
+      old_eck(:,4) = old_eck(:,1) + u
+      old_inc(3) = 1
+      new_vi (:,3) = old_vi(:,3)
+      new_eck(:,4) = old_eck(:,4)
+      new_inc(3)   = 1
+      new_zone     = u
+!
+      new_inc_user(3) = new_inc_user(2)   ! Copy user mode
+      new_eck_user(4) = new_eck_user(3)   ! Copy user mode
+      new_vi_user (3) = new_vi_user(2)    ! Copy user mode
+   elseif(isflat==2) then
+!      write(*,*) ' abs    ', old_vi(:,1)
+!      write(*,*) ' top    ', old_vi(:,3)
+      call lib_vector_product(old_vi(:,3), old_vi(:,1), u, reps, gten)  ! Build direction of ordinate
+!      write(*,*) ' Normal ', u
+      old_vi (:,2) = u
+      old_eck(:,3) = old_eck(:,1) + u
+      old_inc(2) = 1
+      new_vi (:,2) = old_vi(:,2)
+      new_eck(:,3) = old_eck(:,3)
+      new_inc(2)   = 1
+      new_zone     = u
+!
+      new_inc_user(2) = new_inc_user(3)   ! Copy user mode
+      new_eck_user(3) = new_eck_user(4)   ! Copy user mode
+      new_vi_user (2) = new_vi_user(3)    ! Copy user mode
+   elseif(isflat==1) then
+!      write(*,*) ' ord    ', old_vi(:,2)
+!      write(*,*) ' top    ', old_vi(:,3)
+      call lib_vector_product(old_vi(:,2), old_vi(:,3), u, reps, gten)  ! Build direction of ordinate
+!      write(*,*) ' Normal ', u
+      old_vi (:,1) = u
+      old_eck(:,2) = old_eck(:,1) + u
+      old_inc(1) = 1
+      new_vi (:,1) = old_vi(:,1)
+      new_eck(:,2) = old_eck(:,2)
+      new_inc(1)   = 1
+      new_zone     = u
+!
+      new_inc_user(1) = new_inc_user(2)   ! Copy user mode
+      new_eck_user(2) = new_eck_user(3)   ! Copy user mode
+      new_vi_user (1) = new_vi_user(2)    ! Copy user mode
+   endif
+elseif(ndims==1) then            ! 1D  
+   isflat = maxloc(old_inc, 1)
+!   write(*,*) ' FLAT is ', isflat
+   if(isflat==1) then         ! Abscissa is non-flat
+      call random_number(r1)
+      w(1) = r1
+      call random_number(r1)
+      w(2) = r1
+      call random_number(r1)
+      w(3) = r1
+      call lib_vector_product(old_vi(:,1), w, u, reps, gten)  ! Build a normal vector
+      old_vi(:,2) = u
+      old_eck(:,3) = old_eck(:,1) + u
+      call lib_vector_product(old_vi(:,1), old_vi(:,2), u, reps, gten)  ! Build a normal vector
+      old_vi(:,3) = u
+      old_eck(:,4) = old_eck(:,1) + u
+      old_inc(2) = 1
+      old_inc(3) = 1
+      new_inc(2) = 1
+      new_inc(3) = 1
+      new_eck(:,3) = old_eck(:,3)
+      new_eck(:,4) = old_eck(:,4)
+      new_vi (:,2) = old_vi (:,2)
+      new_vi (:,3) = old_vi (:,3)
+      new_inc_user(2:3) = new_inc_user(1)
+      new_eck_user(3:4) = new_eck_user(1)
+      new_vi_user (2:3) = new_vi_user(1)
+      new_zone_user = .false.
+   elseif(isflat==2) then     ! Ordinate is non-flat
+      call random_number(r1)
+      w(1) = r1
+      call random_number(r1)
+      w(2) = r1
+      call random_number(r1)
+      w(3) = r1
+      call lib_vector_product(old_vi(:,2), w, u, reps, gten)  ! Build a normal vector
+      old_vi(:,3) = u
+      old_eck(:,4) = old_eck(:,1) + u
+      call lib_vector_product(old_vi(:,2), old_vi(:,3), u, reps, gten)  ! Build a normal vector
+      old_vi(:,1) = u
+      old_eck(:,2) = old_eck(:,1) + u
+      old_inc(3) = 1
+      old_inc(1) = 1
+      new_inc(3) = 1
+      new_inc(1) = 1
+      new_eck(:,4) = old_eck(:,4)
+      new_eck(:,2) = old_eck(:,2)
+      new_vi (:,3) = old_vi (:,3)
+      new_vi (:,1) = old_vi (:,1)
+      new_inc_user(1  ) = new_inc_user(2)
+      new_inc_user(3  ) = new_inc_user(2)
+      new_eck_user(2  ) = new_eck_user(3)
+      new_eck_user(4  ) = new_eck_user(3)
+      new_vi_user (1  ) = new_vi_user(2)
+      new_vi_user (3  ) = new_vi_user(2)
+      new_zone_user = .false.
+   elseif(isflat==3) then     ! Top axis is non-flat
+      call random_number(r1)
+      w(1) = r1
+      call random_number(r1)
+      w(2) = r1
+      call random_number(r1)
+      w(3) = r1
+      call lib_vector_product(old_vi(:,3), w, u, reps, gten)  ! Build a normal vector
+      old_vi(:,1) = u
+      old_eck(:,2) = old_eck(:,1) + u
+      call lib_vector_product(old_vi(:,3), old_vi(:,1), u, reps, gten)  ! Build a normal vector
+      old_vi(:,2) = u
+      old_eck(:,3) = old_eck(:,1) + u
+      old_inc(1) = 1
+      old_inc(2) = 1
+      new_inc(1) = 1
+      new_inc(2) = 1
+      new_eck(:,2) = old_eck(:,2)
+      new_eck(:,3) = old_eck(:,3)
+      new_vi (:,1) = old_vi (:,1)
+      new_vi (:,2) = old_vi (:,2)
+      new_inc_user(1  ) = new_inc_user(3)
+      new_inc_user(2  ) = new_inc_user(3)
+      new_eck_user(2  ) = new_eck_user(4)
+      new_eck_user(3  ) = new_eck_user(4)
+      new_vi_user (1  ) = new_vi_user(3)
+      new_vi_user (2  ) = new_vi_user(3)
+      new_zone_user = .false.
+   endif
+endif
+!write(*,*) ' Augented  inc ', new_inc, new_inc_user
+!write(*,*) ' Augented  eck ', new_eck(:,1), new_eck_user(1)
+!write(*,*) ' Augented  eck ', new_eck(:,2), new_eck_user(2)
+!write(*,*) ' Augented  eck ', new_eck(:,3), new_eck_user(3)
+!write(*,*) ' Augented  eck ', new_eck(:,4), new_eck_user(4)
+!write(*,*) ' Augented  inc ', new_vi, new_vi_user
+!write(*,*) ' Augented  zon ', new_zone, new_zone_user
+!
+end subroutine augment_dimension
+!
+!*******************************************************************************
+!
+subroutine error_check(ndims, new_inc_user, new_eck_user, new_vi_user,   &
+                       new_zone_user)
+!-
+! Perform error check on value completion and consistency
+!+
+!
+use errlist_mod
+!
+implicit none
+!
+integer                           , intent(in)    :: ndims
+logical           , dimension(3)  , intent(in)    :: new_inc_user  ! Try to determine inc's automatically?
+logical           , dimension(4)  , intent(in)    :: new_eck_user  ! Try to determine eck's automatically?
+logical           , dimension(3)  , intent(in)    :: new_vi_user   ! Try to determine vi's automatically?
+logical                           , intent(in)    :: new_zone_user ! Try to determine vi's automatically?
+!
+if(.not.( all(new_eck_user) .or. (all(.not.new_eck_user)))) then
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'Not all new corners were provided'
+   return
+endif
+!
+if(.not.((new_inc_user(1).eqv.new_inc_user(2)) .or. (new_inc_user(1).eqv.new_inc_user(3)) )) then
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'Not all new number of points were provided'
+   return
+endif
+!
+if(.not.((new_vi_user(1).and. new_zone_user) .or.  &
+         ((new_vi_user(1).eqv.new_vi_user(2)) .and. (new_vi_user(1).eqv.new_vi_user(3))) )) then
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'Not all new increment vectors were provided'
+   return
+endif
+!
+if(new_zone_user .and. .not. new_vi_user(1)) then
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'Zone axis mode, but abscissa is missing'
+   return
+endif
+!
+end subroutine error_check
 !
 !*******************************************************************************
 !
