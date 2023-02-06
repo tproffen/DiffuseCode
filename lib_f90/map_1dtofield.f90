@@ -1,5 +1,7 @@
 MODULE map_1dtofield
 !
+use iso_c_binding
+!
 !  Contains routines to map a 1D line onto an N-dimensional field and reverse
 !
 INTERFACE maptofftfd
@@ -135,9 +137,9 @@ IMPLICIT NONE
 !
 INTEGER, DIMENSION(3)                                , INTENT(IN) :: dimen
 INTEGER, DIMENSION(3)                                , INTENT(IN) :: dsort
-COMPLEX(KIND=KIND(0.0D0)), DIMENSION(1:dimen(1)*dimen(2)                        &
+COMPLEX(KIND=KIND(1.0D0)), DIMENSION(1:dimen(1)*dimen(2)                        &
                                                )     , INTENT(IN) :: linear
-COMPLEX(KIND=KIND(0.0D0)), DIMENSION(1:dimen(dsort(1)),                         &
+COMPLEX(KIND=KIND(1.0D0)), DIMENSION(1:dimen(dsort(1)),                         &
                                      1:dimen(dsort(2))), INTENT(OUT) :: fftfd
 !
 INTEGER :: loop, ii,jj, i,j
