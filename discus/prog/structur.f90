@@ -1835,6 +1835,7 @@ SUBROUTINE stru_readheader (ist, HD_MAXSCAT, cr_name,   &
 !-                                                                      
 !     This subroutine reads the header of a structure file              
 !+                                                                      
+use atom_line_mod
 USE gen_add_mod 
 USE sym_add_mod 
 !
@@ -2261,6 +2262,30 @@ sym_add_n = 0
             ENDIF 
             CALL struc_mole_header (zeile, i, .false., lcontent) 
             IF (ier_num.ne.0) return 
+   ELSEIF (str_comp(befehl, 'format', 6, lbef, 6) ) THEN 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num.eq.0) THEN 
+         call do_cap(cpara(1))
+         if(cpara(1) == 'NUMBERS') then
+            at_number = .true.
+         elseif(cpara(1) == 'VARIABLES') then
+            at_number = .false.
+         endif
+         if(cpara(2) == 'XYZBPMMOS') then
+            at_vals = AT_XYZBPMMOS
+         elseif(cpara(2) == 'XYZBP') then
+            at_vals = AT_XYZBP
+         elseif(cpara(2) == 'XYZB') then
+            at_vals = AT_XYZB
+         elseif(cpara(2) == 'XYZ') then
+            at_vals = AT_XYZ
+         endif
+      ELSE
+!         ier_num = -163
+!         ier_typ = ER_APPL
+!         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+         RETURN
+      ENDIF
          ELSEIF (str_comp (befehl, 'atoms', 2, lbef, 5) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF(ianz==0)   THEN   ! Pre 5.17.2 style, no params
@@ -5644,6 +5669,7 @@ REAL(KIND=PREC_DP) , DIMENSION(MAXW)  :: werte (MAXW)
 !
 REAL(KIND=PREC_DP), PARAMETER                       :: eps = 1e-6
 CHARACTER (LEN=PREC_STRING)                  :: line
+CHARACTER (LEN=PREC_STRING)                  :: line_low   ! in lower case for atom line
 CHARACTER (LEN=PREC_STRING)                  :: zeile
 CHARACTER (LEN=  20)                  :: bef
 CHARACTER (LEN=   4), DIMENSION(PREC_STRING), SAVE :: names
@@ -5694,6 +5720,8 @@ IF ( init == -1 ) THEN
    n_atom     = 0
 ENDIF
 in_mole = .false.
+at_style = 0       ! Unknown atom style
+at_number = .false.  ! Assume variables in atom lists
 !
 call atom_get_size(strucfile, nlines)
 IF ( ier_num /= 0) THEN
@@ -5870,8 +5898,34 @@ header: DO
           call atom_dealloc
           RETURN
        ENDIF
+   ELSEIF (line(1:6) == 'FORMAT' ) THEN 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num.eq.0) THEN 
+         call do_cap(cpara(1))
+         if(cpara(1) == 'NUMBERS') then
+            at_number = .true.
+         elseif(cpara(1) == 'VARIABLES') then
+            at_number = .false.
+         endif
+         if(cpara(2) == 'XYZBPMMOS') then
+            at_vals = AT_XYZBPMMOS
+         elseif(cpara(2) == 'XYZBP') then
+            at_vals = AT_XYZBP
+         elseif(cpara(2) == 'XYZB') then
+            at_vals = AT_XYZB
+         elseif(cpara(2) == 'XYZ') then
+            at_vals = AT_XYZ
+         endif
+      ELSE
+         ier_num = -163
+         ier_typ = ER_APPL
+         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+         CLOSE(99)
+         call atom_dealloc
+         RETURN
+      ENDIF
    ENDIF
-   IF(line(1:4) == 'ATOM') THEN 
+   IF(line(1:4) == 'ATOM') then ! .and. .not.at_number) THEN 
       call atom_line_inter(zeile, lp)
       EXIT header
    ENDIF
@@ -5908,7 +5962,8 @@ endif
 !
 l_type = .FALSE.
 main: DO
-   READ (99,'(a)', IOSTAT=ios) line
+   READ (99,'(a)', IOSTAT=ios) line_low
+   line = line_low
    IF( IS_IOSTAT_END(ios) ) EXIT main
    IF(line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
       line == CHAR (13) )  CYCLE main
@@ -5963,8 +6018,14 @@ main: DO
       imole  = 0
       inatom = 0
       ios = 0
-      CALL read_atom_line (line, lbef+1, laenge, natoms, MAXW, werte)! , &
+      CALL read_atom_line (line_low, lbef+1, laenge, natoms, MAXW, werte)! , &
 !                           AT_MAXP, at_ianz, at_param, at_init)                                          
+      if(ier_num/=0) then
+         close(99)
+         call atom_dealloc
+write(*,*) ' ERROR READING ATOM LINE '
+         return
+      endif
       xc     = werte(1)
       yc     = werte(2)
       zc     = werte(3)
