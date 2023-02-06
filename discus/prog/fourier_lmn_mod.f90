@@ -19,12 +19,13 @@ USE random_mod
 !
 IMPLICIT NONE
 !
-REAL(kind=PREC_DP)   , DIMENSION(1:3, 1:4), INTENT(IN)  ::  eck
-REAL(kind=PREC_DP)   , DIMENSION(1:3, 1:3), INTENT(IN)  ::  vi
-INTEGER, DIMENSION(1:3)     , INTENT(IN)  ::  inc
-INTEGER, DIMENSION(1:6)     , INTENT(OUT) ::  lmn
-REAL(kind=PREC_DP)   , DIMENSION(1:3,1:3) , INTENT(OUT) :: off
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:4), INTENT(IN)  ::  eck   ! Corners in reciprocal space
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:3), INTENT(IN)  ::  vi    ! increment vectors
+INTEGER           , DIMENSION(1:3)     , INTENT(IN)  ::  inc   ! Number data points
+INTEGER           , DIMENSION(1:6)     , INTENT(OUT) ::  lmn   ! eck(:,1) is at lmn*vi
+REAL(kind=PREC_DP), DIMENSION(1:3,1:3) , INTENT(OUT) :: off    ! Additional phase shift vector
 !
+!INTEGER, DIMENSION(1:3)     ::  opq
 INTEGER                     :: i,j, j1, j2
 INTEGER                     :: dimen   ! dimension spanned by vi vectors (1, 2, 3)
 INTEGER, DIMENSION(1:3)     :: direc   ! index of directions with inc > 1
@@ -32,6 +33,8 @@ LOGICAL, DIMENSION(1:3)     :: nooff   ! offset vectors
 REAL(kind=PREC_DP)          :: dummy
 REAL(kind=PREC_DP)   , DIMENSION(1:3,1:3) :: mat_a
 REAL(kind=PREC_DP)   , DIMENSION(1:3)     :: vec_r
+!REAL(kind=PREC_DP)   , DIMENSION(1:3)     :: vec_s
+REAL(kind=PREC_DP)   , DIMENSION(1:3)     :: vec_t
 REAL(kind=PREC_DP)   , DIMENSION(1:3,1:3) :: mat_i
 !
 mat_a(:,:) = 0.0d0
@@ -114,37 +117,41 @@ ENDIF
 !   write(*,1000) (mat_a(j,i),i=1,3),'   ',(mat_i(j,i),i=1,3), vi(j,1), vi(j,2),vi(j,3), &
 !   (off(j,i),i=1,3)
 !enddo
-!CALL invmat(mat_i, mat_a)
+!
 call matinv(mat_a, mat_i)
 !do j=1,3
 !   write(*,1000) (mat_a(j,i),i=1,3),'   ',(mat_i(j,i),i=1,3), vi(j,1), vi(j,2),vi(j,3), &
 !   (off(j,i),i=1,3)
 !enddo
 !1000 FORMAT(3(f9.5,1x),a,3(f9.2,1x),2(2x, 3(f9.5,1x)))
+!
 lmn(:) = 0
-vec_r(:) = 0.0
-!write(*,*)
-!write(*,*) ' eck(j,1) =   vi(j,1) *  lambda +   vi(j,2) *      my +   vi(j,3) *      ny'
-DO j=1,3
-   DO i=1,3
-      vec_r(j) = vec_r(j) + mat_i(j,i)*eck(i,1)
-   ENDDO
-ENDDO
-lmn(1:3) = NINT(vec_r(1:3))
+vec_r = matmul(mat_i, eck(:,1))
+!lmn(1:3) = NINT(vec_r(1:3))
+!
+lmn(1:3) =  int(vec_r(1:3))        ! lmn(1:3) is integer part only, frac goes into off
+vec_t = matmul(mat_a, vec_r - int(vec_r))   ! Fractional part of vi's
+!
 DO j=1,3
    IF(.NOT.nooff(j)) THEN     ! We need an offset vector
       lmn(j+3) = lmn(j)
       lmn(j  ) = 0
+   else                       ! No offset, just regular phase shift;
+!                             !  eck(:,1) is at non-integer multiple of vi's
+      off(j,j) = off(j,j) + vec_t(j)
+      lmn(3+j) = 1
    ENDIF
 ENDDO
+!write(*,*)
+!write(*,*) ' eck(j,1) =   vi(j,1) *  lambda +   vi(j,2) *      my +   vi(j,3) *      ny'
 !do j=1,3
 !   write(*,2000) eck(j,1), vi(j,1), lmn(1), vi(j,2), lmn(2), vi(j,3), lmn(3)
 !enddo
 !do j=1,3
 !   write(*,3000)          off(j,1), lmn(4),off(j,2), lmn(5),off(j,3), lmn(6)
 !enddo
-!2000 FORMAT('(',f9.5,')=(',f9.5,')*',i8,' +(',f9.5,')*',i8,' +(',f9.5,')*',i8)
-!3000 FORMAT(12x,       '(',f9.5,')*',i8,' +(',f9.5,')*',i8,' +(',f9.5,')*',i8)
+2000 FORMAT('(',f9.5,')=(',f9.5,')*',i8,' +(',f9.5,')*',i8,' +(',f9.5,')*',i8)
+3000 FORMAT(12x,       '(',f9.5,')*',i8,' +(',f9.5,')*',i8,' +(',f9.5,')*',i8)
 !
 END SUBROUTINE fourier_lmn
 END MODULE fourier_lmn_mod
