@@ -50,18 +50,21 @@ SUBROUTINE four_conv_1D(dsort)     ! Convolute original diffraction pattern
 !
 USE diffuse_mod
 !
+use lib_f90_fftw3
 USE map_1dtofield
 USE precision_mod
-USE singleton
 USE wink_mod
+!
+use iso_c_binding
 !
 IMPLICIT NONE
 !
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
-COMPLEX(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE  :: profile  ! the profile function
-COMPLEX(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE  :: pattern  ! the diffraction pattern
-COMPLEX(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE  :: temp     ! A temporary pattern
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:), ALLOCATABLE  :: profile  ! the profile function
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:), ALLOCATABLE  ::  in_pattern  ! the diffraction pattern
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:), ALLOCATABLE  :: out_pattern  ! the diffraction pattern
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:), ALLOCATABLE  :: temp     ! A temporary pattern
 REAL(KIND=PREC_DP) :: dreal
 REAL(KIND=PREC_DP) :: dimag
 REAL(KIND=PREC_DP), DIMENSION(3  ) :: vector   ! Position = vimat x vector; vector [i,j,k]
@@ -71,8 +74,12 @@ REAL(KIND=PREC_DP), DIMENSION(3  ) :: sigma    ! Sigma along columns of simat
 INTEGER :: i, i1
 INTEGER :: ipos
 !
+type(c_ptr) :: plan    ! FFWT3 plan
+!
 ALLOCATE(profile(num(1) ))        ! Allocate profile in regular dimensions
-ALLOCATE(pattern(num(dsort(1)) )) ! Allocated pattern in sorted dimensions
+ALLOCATE(temp   (num(1) ))        ! Allocate profile in regular dimensions
+ALLOCATE( in_pattern(num(dsort(1)) )) ! Allocated pattern in sorted dimensions
+ALLOCATE(out_pattern(num(dsort(1)) )) ! Allocated pattern in sorted dimensions
 !
 !  Build profile function
 !
@@ -94,23 +101,35 @@ DO i=1, num(1)
    profile(i) = CMPLX(dreal, dimag)
 ENDDO
 !
-profile   = fft(profile  ) / SQRT(REAL(num(1)))    ! FFT profile
+plan = fftw_plan_dft_1d(num(1)        , in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
+!
+!profile   = fft(profile  ) / SQRT(REAL(num(1)))    ! FFT profile
+call   fftw_execute_dft(plan, profile, temp)          ! FFT profile
+temp = temp / SQRT(REAL(num(1)))                      ! Normalize Fourier of profile
+!
 !
 IF(ilots.eq.LOT_OFF) THEN
-   CALL maptofftfd(num, dsort, csf, pattern)          ! Use complex structure factor
-   pattern   = fft(pattern)   / SQRT(REAL(num(1)))    ! FFT pattern
-   temp      = profile  *pattern                      ! Multiply the Fouriers
-   temp      = fft(temp)      / SQRT(REAL(num(1)))    ! FFT multiplied pattern
-   CALL mapfftfdtoline(num, dsort, csf, temp)
+   CALL maptofftfd(num, dsort, csf, in_pattern)       ! Use complex structure factor
+!   pattern   = fft(pattern)   / SQRT(REAL(num(1)))    ! FFT pattern
+   call   fftw_execute_dft(plan, in_pattern, out_pattern)
+   out_pattern = temp     * out_pattern               ! Multiply the Fouriers
+!  temp      = fft(temp)      / SQRT(REAL(num(1)))    ! FFT multiplied pattern
+   call   fftw_execute_dft(plan, out_pattern,  in_pattern)
+   in_pattern =  in_pattern/(real(num(1),kind=PREC_DP)) ! Scale for H 
+   CALL mapfftfdtoline(num, dsort, csf, in_pattern)
 ENDIF
 !
-CALL maptofftfd(num, dsort, dsi, pattern)          ! Use intensities
-pattern   = fft(pattern)   / SQRT(REAL(num(1)))    ! FFT pattern
-temp      = profile  *pattern                      ! Multiply the Fouriers
-temp      = fft(temp)      / SQRT(REAL(num(1)))    ! FFT multiplied pattern
-CALL mapfftfdtoline(num, dsort, dsi, temp)
+CALL maptofftfd(num, dsort, dsi, in_pattern)       ! Use intensities
+call   fftw_execute_dft(plan, in_pattern, out_pattern)
+out_pattern = temp  * out_pattern                 ! Multiply the Fouriers
+call   fftw_execute_dft(plan, out_pattern,  in_pattern)
+in_pattern =  in_pattern/(real(num(1),kind=PREC_DP)) ! Scale for H 
+CALL mapfftfdtoline(num, dsort, dsi, in_pattern)
 !
-DEALLOCATE(pattern)
+call   fftw_destroy_plan(plan)
+!
+DEALLOCATE( in_pattern)
+DEALLOCATE(out_pattern)
 DEALLOCATE(temp)
 DEALLOCATE(profile)
 !
@@ -122,19 +141,22 @@ SUBROUTINE four_conv_2D(dsort)     ! Convolute original diffraction pattern
 !
 USE diffuse_mod
 !
+use lib_f90_fftw3
 USE map_1dtofield
 USE precision_mod
-USE singleton
 USE wink_mod
+!
+use iso_c_binding
 !
 IMPLICIT NONE
 !
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
-COMPLEX(KIND=PREC_DP) , DIMENSION(:,:), ALLOCATABLE  :: profile  ! the profile function
-COMPLEX(KIND=PREC_DP) , DIMENSION(:,:), ALLOCATABLE  :: profile_t! the profile function
-COMPLEX(KIND=PREC_DP) , DIMENSION(:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
-COMPLEX(KIND=PREC_DP) , DIMENSION(:,:), ALLOCATABLE  :: temp     ! A temporary pattern
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:), ALLOCATABLE  :: profile  ! the profile function
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:), ALLOCATABLE  :: profile_t! the profile function
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:), ALLOCATABLE  :: in_pattern  ! the diffraction pattern
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:), ALLOCATABLE  :: out_pattern  ! the diffraction pattern
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:), ALLOCATABLE  :: temp     ! A temporary pattern
 REAL(KIND=PREC_DP) :: dreal
 REAL(KIND=PREC_DP) :: dimag
 REAL(KIND=PREC_DP), DIMENSION(3  ) :: vector   ! Position = vimat x vector; vector [i,j,k]
@@ -144,8 +166,12 @@ REAL(KIND=PREC_DP), DIMENSION(3  ) :: sigma    ! Sigma along columns of simat
 INTEGER :: i,j, i1, j1
 INTEGER :: ipos
 !
+type(c_ptr) :: plan    ! FFWT3 plan
+type(c_ptr) :: plan_p  ! FFWT3 plan for PROFILE
+!
 ALLOCATE(profile(num(1), num(2) ))               ! Allocate profile in regular dimensions
-ALLOCATE(pattern(num(dsort(1)), num(dsort(2)) )) ! Allocated pattern in sorted dimensions
+ALLOCATE( in_pattern(num(dsort(1)), num(dsort(2)) )) ! Allocated pattern in sorted dimensions
+ALLOCATE(out_pattern(num(dsort(1)), num(dsort(2)) )) ! Allocated pattern in sorted dimensions
 !
 !  Build profile function
 !
@@ -173,39 +199,59 @@ DO j=1, num(2)
 ENDDO
 !
 ALLOCATE(profile_t(num(dsort(1)), num(dsort(2))))     ! Allocate array for FFT
+ALLOCATE(temp     (num(dsort(1)), num(dsort(2))))     ! Allocate array for FFT
 IF(dsort(1)==1) THEN   ! 1st coordinate is largest
    profile_t = profile
 ELSE                   ! 2nd coordinate is largest, transpose profile
    profile_t = TRANSPOSE(profile)
 ENDIF
 !
-profile_t = fft(profile_t) / SQRT(REAL(num(1)*num(2)))    ! FFT profile
+plan_p = fftw_plan_dft_2d(num(dsort(2)), num(dsort(1)), profile_t, temp, FFTW_FORWARD, FFTW_ESTIMATE)  ! Plan for PROFILE
+plan   = fftw_plan_dft_2d(num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)  ! Plan for diffraction
+!profile_t = fft(profile_t) / SQRT(REAL(num(1)*num(2)))    ! FFT profile
+call   fftw_execute_dft(plan_p, profile_t, temp)
+temp = temp/sqrt(real(num(dsort(1))*num(dsort(2)),kind=PREC_DP))
+!
 !
 IF(ilots.eq.LOT_OFF) THEN
-   CALL maptofftfd(num, dsort, csf, pattern)                 ! Use complex structure factor
-   pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
-   temp      = profile_t*pattern                             ! Multiply the Fouriers
-   temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))    ! FFT multiplied pattern
-   CALL mapfftfdtoline(num, dsort, csf, temp)
+   CALL maptofftfd(num, dsort, csf, in_pattern)              ! Use complex structure factor
+!   pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
+   call   fftw_execute_dft(plan, in_pattern, out_pattern)
+   out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
+!   temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))   ! FFT multiplied pattern
+   call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
+   in_pattern = in_pattern / (REAL(num(1)*num(2)))
+   CALL mapfftfdtoline(num, dsort, csf, in_pattern)          ! Map back into complex structure factor
 ENDIF
 !
-CALL maptofftfd(num, dsort, dsi, pattern)                 ! Use intensities
-pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
-temp      = profile_t*pattern                             ! Multiply the Fouriers
-temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))    ! FFT multiplied pattern
-CALL mapfftfdtoline(num, dsort, dsi, temp)                ! Resore convoluted intensities
+CALL maptofftfd(num, dsort, dsi, in_pattern)              ! Use intensities
+!pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
+!temp      = profile_t*pattern                             ! Multiply the Fouriers
+!temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))    ! FFT multiplied pattern
+call   fftw_execute_dft(plan, in_pattern, out_pattern)    ! FFT Diffraction pattern
+out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
+call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
+in_pattern = in_pattern / (REAL(num(1)*num(2)))
+CALL mapfftfdtoline(num, dsort, dsi, in_pattern)          ! Restore convoluted intensities
 !
 !
-CALL maptofftfd(num, dsort, acsf, pattern)                 ! Use intensities
-pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
-temp      = profile_t*pattern                             ! Multiply the Fouriers
-temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))    ! FFT multiplied pattern
-CALL mapfftfdtoline(num, dsort, acsf, temp)                ! Resore convoluted intensities
+CALL maptofftfd(num, dsort, acsf, in_pattern)             ! Use average complex structure factor
+!pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
+!temp      = profile_t*pattern                             ! Multiply the Fouriers
+!temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))    ! FFT multiplied pattern
+call   fftw_execute_dft(plan, in_pattern, out_pattern)    ! FFT Diffraction pattern
+out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
+call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
+in_pattern = in_pattern / (REAL(num(1)*num(2)))
+CALL mapfftfdtoline(num, dsort, acsf, in_pattern)         ! Restore convoluted average complex structure factor
 !
-DEALLOCATE(pattern)
+DEALLOCATE(in_pattern)
+DEALLOCATE(out_pattern)
 DEALLOCATE(temp)
 DEALLOCATE(profile_t)
 DEALLOCATE(profile)
+call   fftw_destroy_plan(plan  )
+call   fftw_destroy_plan(plan_p)
 !
 END SUBROUTINE four_conv_2D     ! Convolute original diffraction pattern
 !
@@ -215,19 +261,23 @@ SUBROUTINE four_conv_3D(dsort)     ! Convolute original diffraction pattern
 !
 USE diffuse_mod
 !
+use lib_f90_fftw3
 USE map_1dtofield
 USE precision_mod
-USE singleton
+!USE singleton
 USE wink_mod
+!
+use iso_c_binding
 !
 IMPLICIT NONE
 !
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
-COMPLEX(KIND=PREC_DP) , DIMENSION(:,:,:), ALLOCATABLE  :: profile  ! the profile function
-COMPLEX(KIND=PREC_DP) , DIMENSION(:,:,:), ALLOCATABLE  :: profile_t! the profile function
-COMPLEX(KIND=PREC_DP) , DIMENSION(:,:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
-COMPLEX(KIND=PREC_DP) , DIMENSION(:,:,:), ALLOCATABLE  :: temp     ! A temporary pattern
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:,:), ALLOCATABLE  :: profile  ! the profile function
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:,:), ALLOCATABLE  :: profile_t! the profile function
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:,:), ALLOCATABLE  ::  in_pattern  ! the diffraction pattern
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:,:), ALLOCATABLE  :: out_pattern  ! the diffraction pattern
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:,:), ALLOCATABLE  :: temp     ! A temporary pattern
 REAL(KIND=PREC_DP) :: dreal
 REAL(KIND=PREC_DP) :: dimag
 REAL(KIND=PREC_DP), DIMENSION(3  ) :: vector   ! Position = vimat x vector; vector [i,j,k]
@@ -238,8 +288,12 @@ INTEGER :: i,j, k, i1, j1, k1
 INTEGER, DIMENSION(3) :: ientry
 INTEGER :: ipos
 !
+type(c_ptr) :: plan    ! FFWT3 plan
+type(c_ptr) :: plan_p  ! FFWT3 plan for PROFILE
+!
 ALLOCATE(profile(num(1), num(2), num(3) ))                     ! Allocate profile in regular dimensions
-ALLOCATE(pattern(num(dsort(1)), num(dsort(2)), num(dsort(3)))) ! Allocated pattern in sorted dimensions
+ALLOCATE(in_pattern(num(dsort(1)), num(dsort(2)), num(dsort(3)))) ! Allocated pattern in sorted dimensions
+ALLOCATE(out_pattern(num(dsort(1)), num(dsort(2)), num(dsort(3)))) ! Allocated pattern in sorted dimensions
 !
 !  Build profile function
 !
@@ -284,23 +338,35 @@ DO k=1, num(3)
    ENDDO
 ENDDO
 !
-profile_t = fft(profile_t) / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT profile
+!profile_t = fft(profile_t) / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT profile
+plan_p = fftw_plan_dft_3d(num(dsort(3)), num(dsort(2)), num(dsort(1)), profile_t, temp, FFTW_FORWARD, FFTW_ESTIMATE)  ! Plan for PROFILE
+plan   = fftw_plan_dft_3d(num(dsort(3)), num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)  ! Plan for diffraction
+temp = temp/sqrt(real(num(dsort(1))*num(dsort(2))*num(dsort(3)),kind=PREC_DP))
 !
 IF(ilots.eq.LOT_OFF) THEN
-   CALL maptofftfd(num, dsort, csf, pattern)              ! Use complex structure factor
-   pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT pattern
-   temp      = profile_t*pattern                                    ! Multiply the Fouriers
-   temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT multiplied pattern
-   CALL mapfftfdtoline(num, dsort, csf, temp)
+   CALL maptofftfd(num, dsort, csf, in_pattern)              ! Use complex structure factor
+!  pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT pattern
+!  temp      = profile_t*pattern                                    ! Multiply the Fouriers
+!  temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT multiplied pattern
+   call   fftw_execute_dft(plan, in_pattern, out_pattern)
+   out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
+   call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
+   in_pattern = in_pattern / (REAL(num(1)*num(2)*num(3)))
+   CALL mapfftfdtoline(num, dsort, csf, in_pattern)
 ENDIF
 !
-CALL maptofftfd(num, dsort, dsi, pattern)              ! Use intensities
-pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT pattern
-temp      = profile_t*pattern                                    ! Multiply the Fouriers
-temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT multiplied pattern
-CALL mapfftfdtoline(num, dsort, dsi, temp)
+CALL maptofftfd(num, dsort, dsi, in_pattern)              ! Use intensities
+!pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT pattern
+!temp      = profile_t*pattern                                    ! Multiply the Fouriers
+!temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT multiplied pattern
+call   fftw_execute_dft(plan, in_pattern, out_pattern)    ! FFT pattern
+out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
+call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
+in_pattern = in_pattern / (REAL(num(1)*num(2)*num(3)))
+CALL mapfftfdtoline(num, dsort, dsi, in_pattern)
 !
-DEALLOCATE(pattern)
+DEALLOCATE( in_pattern)
+DEALLOCATE(out_pattern)
 DEALLOCATE(temp)
 DEALLOCATE(profile_t)
 DEALLOCATE(profile)
