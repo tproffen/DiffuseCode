@@ -556,7 +556,7 @@ endif
                if(lpresent(O_TRANS) .and.                                       &
                   str_comp(opara(O_TRANS), 'yes', 3, lopara(O_trans),3)) then
 
-                  call lib_trans_menu(-1, value, laver, 'new_'//outfile, out_inc, out_eck, out_vi,            &
+                  call lib_trans_menu(-1, value, laver, outfile, out_inc, out_eck, out_vi,            &
                        cr_a0, cr_win, qvalues,VAL_PDF, VAL_3DPDF,       &
                        new_outfile, new_inc, new_eck, new_vi, new_qvalues)
 !
@@ -2119,6 +2119,7 @@ plan = fftw_plan_dft_1d(num(1)        , in_pattern, out_pattern, FFTW_FORWARD, F
 call   fftw_execute_dft(plan, in_pattern, out_pattern)
 call   fftw_destroy_plan(plan)
 !
+out_pattern = out_pattern / sqrt(real(num(1), kind=PREC_DP))  ! Normalize PDF
 !
 CALL mapfftfdtoline(num, dsort, rpdf, out_pattern)
 !
@@ -2161,6 +2162,8 @@ plan = fftw_plan_dft_2d(num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, F
 call   fftw_execute_dft(plan, in_pattern, out_pattern)
 call   fftw_destroy_plan(plan)
 !
+out_pattern = out_pattern / sqrt(real(num(dsort(2))*num(dsort(1)), kind=PREC_DP))  ! Normalize PDF
+!
 CALL mapfftfdtoline(num, dsort, rpdf, out_pattern)
 !
 DEALLOCATE(in_pattern)
@@ -2187,7 +2190,6 @@ IMPLICIT NONE
 LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
-!COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  ::  in_pattern  ! the diffraction pattern
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: out_pattern  ! the diffraction pattern
 type(c_ptr) :: plan    ! FFWT3 plan
@@ -2199,9 +2201,9 @@ CALL maptofftfd(num, dsort, dsi, in_pattern)
 !
 plan = fftw_plan_dft_3d(num(dsort(3)), num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
 call   fftw_execute_dft(plan, in_pattern, out_pattern)
-call   fftw_destroy_plan(plan)
 !
-!pattern = fft(pattern) / SQRT(REAL(num(1)*num(2)*num(3)))
+out_pattern = out_pattern / sqrt(real(num(1)*num(2)*num(3),kind=PREC_DP))
+call   fftw_destroy_plan(plan)
 !
 CALL mapfftfdtoline(num, dsort, rpdf, out_pattern)
 !
