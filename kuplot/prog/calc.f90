@@ -1869,7 +1869,7 @@ REAL(KIND=PREC_DP), dimension(MAXW) :: werte ! (maxw)
 !                                                                       
 REAL(kind=PREC_DP) :: a, b, aa, bb, ab, ao, bo, fra 
 INTEGER :: ip, iko, ik1, ik2, iik, ii1, ii2, iio 
-integer :: ipx, ipy
+!integer :: ipx, ipy
 !                                                                       
 !                                                                       
 !------ space left for new data set ??                                  
@@ -2059,17 +2059,19 @@ SUBROUTINE do_rvalue(zeile, lp, lout)
 !                                                                       
 !*****7*****************************************************************
 !                                                                       
-USE ber_params_mod
-USE errlist_mod 
-USE get_params_mod
-USE param_mod 
-USE prompt_mod 
-USE kuplot_config 
-USE kuplot_mod 
-USE take_param_mod
-USE string_convert_mod
-USE precision_mod
-USE str_comp_mod
+use kuplot_config 
+use kuplot_mod 
+!
+use ber_params_mod
+use errlist_mod 
+use get_params_mod
+use lib_math_mod
+use param_mod 
+use prompt_mod 
+use take_param_mod
+use string_convert_mod
+use precision_mod
+use str_comp_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -2174,7 +2176,10 @@ ELSE
    RETURN 
 ENDIF 
 !                                                                       
-IF (ik.gt.0.and.ik.lt.iz.and.il.gt.0.and.il.lt.iz) then 
+IF (ik.gt.0.and.ik.lt.iz.and.il.gt.0.and.il.lt.iz) then       ! Data numbers are in range
+   if_hdf5:if(lh5(ik) .and. lh5(il)) then                              ! Both data set are HDF5
+      call rvalue_h5_global(ik, il, iweight, bck_k, rval, wrval)
+   else  if_hdf5
    IF (lni (ik) .and.lni (il) ) then 
       IF (nx (ik) .eq.nx (il) .and.ny (ik) .eq.ny (il) ) then 
          CALL rvalue_z (z, nx (ik), ny (ik), ik, il, iweight,     &
@@ -2210,6 +2215,7 @@ IF (ik.gt.0.and.ik.lt.iz.and.il.gt.0.and.il.lt.iz) then
       ier_typ = ER_COMM 
       RETURN 
    ENDIF 
+   endif if_hdf5
 ELSE 
    ier_num = - 6 
    ier_typ = ER_COMM 
