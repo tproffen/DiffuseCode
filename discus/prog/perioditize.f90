@@ -14,7 +14,7 @@ integer :: pdt_ncells     ! Number of cells in periodic crystal volume
 integer :: pdt_nsite = 0  ! Number of sites in an averaged unit cell
 integer :: pdt_usite = 0  ! Number of sites in an averaged unit cell, defined by user with 'set site'
 integer :: pdt_asite = 0  ! Achieved sites either from set site or find_aver
-integer           , dimension(:,:,:), allocatable :: pdt_cell     ! Atoms per cell
+!integer           , dimension(:,:,:), allocatable :: pdt_cell     ! Atoms per cell
 logical           , dimension(:    ), allocatable :: pdt_lsite    ! This site has been defined
 integer           , dimension(:,  :), allocatable :: pdt_itype    ! Atom types at each site
 integer           , dimension(3)                  :: pdt_ilow = 0    ! Unit cell dimensions in periodic
