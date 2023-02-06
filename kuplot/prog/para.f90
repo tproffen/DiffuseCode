@@ -1566,7 +1566,7 @@ if(ik>0 .and. ik<iz) then
    werte(2) = angle_vh
 else
    ier_num = -4
-   ier_num = ER_APPL
+   ier_typ = ER_APPL
 endif
 !
 end subroutine get_aver_angle
