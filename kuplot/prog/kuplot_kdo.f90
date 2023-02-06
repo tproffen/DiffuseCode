@@ -6,9 +6,9 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous)
 !                                                                       
 !     Main menu for KUPLOT                                              
 !                                                                       
-      USE nexus_kuplot
-      USE kuplot_diffev_mod
-      USE kuplot_2dm
+USE nexus_kuplot
+USE kuplot_diffev_mod
+USE kuplot_2dm
 !
 !USE kuplot_fit_old_mod
 use kuplot_adt_mod
@@ -26,28 +26,29 @@ use kuplot_save_mod
 use kuplot_show_mod
 USE kuplot_toglobal
 !
-      USE ber_params_mod
-      USE blanks_mod
-      USE calc_expr_mod
-      USE doact_mod
-      USE errlist_mod 
+USE ber_params_mod
+USE blanks_mod
+USE calc_expr_mod
+USE doact_mod
+USE errlist_mod 
 use exit_para_mod
-      USE get_params_mod
-      USE class_macro_internal
-      USE kdo_all_mod
-      USE learn_mod 
-      USE prompt_mod 
-      USE param_mod 
+USE get_params_mod
+USE class_macro_internal
+USE kdo_all_mod
+USE learn_mod 
+USE prompt_mod 
+USE param_mod 
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
+USE kuplot_config 
+USE kuplot_mod 
 !     USE kuplot_fit_mod
 USE lib_errlist_func
 USE lib_macro_func
 USE precision_mod
-      USE set_sub_generic_mod
+USE set_sub_generic_mod
 USE str_comp_mod
-      USE variable_mod
+use take_param_mod
+USE variable_mod
 !
       IMPLICIT none 
 !                                                                       
@@ -56,8 +57,8 @@ USE str_comp_mod
       INTEGER            , INTENT(INOUT) :: length 
 !     CHARACTER (LEN= * ), DIMENSION(3), INTENT(INOUT) :: previous
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 1) 
+integer, parameter :: maxw  = 2
+!      PARAMETER (maxw = 2) 
 !                                                                       
 CHARACTER(LEN=PREC_STRING) :: zei
 CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
@@ -69,6 +70,23 @@ CHARACTER(LEN=8)           :: bef
       INTEGER ianz, indxg, indxb , indxt
       LOGICAL ldummy 
 !                                                                       
+integer, parameter :: NOPTIONAL = 1
+integer, parameter :: O_DATA    = 1
+character(len=4), dimension(NOPTIONAL) :: oname
+character(len=MAX(PREC_STRING,len(line))), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 1 ! Number of values to calculate
+!
+data  oname / 'data' /
+data loname / 1      /
+!
+opara  = (/'1'    /)
+lopara = (/ 1     /)
+owerte = (/ 1.0D0 /)
+
 !                                                                       
       CALL no_error 
 !                                                                       
@@ -484,12 +502,28 @@ CHARACTER(LEN=8)           :: bef
 !-------  Commands 'mass','aver',...                                    
 !                                                                       
          ELSEIF (str_comp (bef, 'aver', 3, lbef, 4) ) then 
-            CALL para_setr (zei, lc, yskal_u (iwin, iframe), bef,       &
-            - 9999.)                                                    
-            lyskal (iwin, iframe) = (yskal_u (iwin, iframe) .ne. -      &
-            9999.)                                                      
+            call get_params (zei, ianz, cpara, lpara, maxw, lc) 
+            call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                              oname, loname, opara, lopara, lpresent, owerte)
+            if(lpresent(O_DATA)) then       ! Optional parameter data: 
+               j = nint(owerte(O_DATA))
+               call get_aver_angle(MAXW, j, werte)
+               yskal_u(iwin, iframe) = werte(1)
+            else
+               CALL para_setr(zei, lc, yskal_u(iwin, iframe), bef, -9999.)
+            endif
+            lyskal(iwin, iframe) = (yskal_u(iwin, iframe) /=  -9999.)
          ELSEIF (str_comp (bef, 'angle', 3, lbef, 5) ) then 
-            CALL para_setr (zei, lc, shear (iwin, iframe), bef, 90.0) 
+            call get_params (zei, ianz, cpara, lpara, maxw, lc) 
+            call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                              oname, loname, opara, lopara, lpresent, owerte)
+            if(lpresent(O_DATA)) then       ! Optional parameter data: 
+               j = nint(owerte(O_DATA))
+               call get_aver_angle(MAXW, j, werte)
+               shear(iwin, iframe) = werte(2)
+            else
+               CALL para_setr (zei, lc, shear (iwin, iframe), bef, 90.0) 
+            endif
 !                                                                       
 !-------  Commands 'ltyp','lcol','mtyp','mcol',...                      
 !                                                                       
