@@ -580,15 +580,7 @@ endif
 ipad = nint(uwerte)
 !
 call do_cap(opara(O_STYLE))
-xscale = ZPI
-yscale = 1.0D0/sqrt(ZPI)
-if(opara(O_STYLE) == 'Q') then
-   xscale = ZPI
-   yscale = 1.0D0/sqrt(ZPI)
-elseif(opara(O_STYLE) == 'H') then
-   xscale = 1.0D0
-   yscale = 1.0D0
-endif
+!
 !
 isdim = 1
 IF(lpresent(O_REAL) .AND. lpresent(O_IMAG)) THEN        ! User specified REAL and IMAG
@@ -645,6 +637,16 @@ ELSE
    RETURN
 ENDIF
 !
+xscale = ZPI
+yscale = 1.0D0/sqrt(ZPI)
+if(opara(O_STYLE) == 'Q') then
+   xscale = ZPI
+   yscale = 1.0D0/(sqrt(ZPI))**isdim
+elseif(opara(O_STYLE) == 'H') then
+   xscale = 1.0D0
+   yscale = 1.0D0
+endif
+!
 lh5(0) = .true.
 IF(isdim==3) THEN                                          ! 2D FFT
 !  CALL kuplot_do_fft_3D(idata, odata, xscale, yscale, ipad)
@@ -694,8 +696,10 @@ use kuplot_show_mod
 !
 use errlist_mod
 USE map_1dtofield
-USE singleton
 USE wink_mod
+use lib_f90_fftw3
+!
+use iso_c_binding
 !
 IMPLICIT NONE
 !
@@ -710,9 +714,11 @@ INTEGER :: length             ! Data set length
 INTEGER, DIMENSION(3) :: num  ! DATA set dimensions
 INTEGER, DIMENSION(3) :: dsort
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:), ALLOCATABLE  :: k_data   ! The Kuplot in data set)
-COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:), ALLOCATABLE  :: pattern  ! The Curve to be FFT'd
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:), ALLOCATABLE  ::  in_pattern  ! The Curve to be FFT'd
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:), ALLOCATABLE  :: out_pattern  ! The Result   of FFT
 REAL :: xrange
 REAL :: xstep
+type(c_ptr) :: plan    ! FFWT3 plan
 !
 !write(*,*) ' IDATA(1)',     (idata(1))
 !write(*,*) ' LENC(1) ', lenc(idata(1)), ' :', lenc(lbound(lenc,1):4)
@@ -732,7 +738,8 @@ dsort(1) = 1
 dsort(2) = 2
 dsort(3) = 3
 ALLOCATE(k_data (length))
-ALLOCATE(pattern(length))
+ALLOCATE( in_pattern(length))
+ALLOCATE(out_pattern(length))
 IF(idata(1)>0 .and. idata(2)>0) THEN            ! Got real and imag part
    DO i=1,length
       k_data(i) = CMPLX(y(offxy(idata(1)-1)+i), y(offxy(idata(2)-1)+i))
@@ -747,17 +754,20 @@ ELSEIF(idata(2)>0) THEN                         ! Got imag only
    ENDDO
 ENDIF
 !
-CALL maptofftfd(num, dsort, k_data, pattern)
+CALL maptofftfd(num, dsort, k_data, in_pattern)
 !
-pattern = fft(pattern) / SQRT(REAL(num(1))) * yscale
+plan = fftw_plan_dft_1d(length        , in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
+call   fftw_execute_dft(plan, in_pattern, out_pattern)
+call   fftw_destroy_plan(plan)
+out_pattern = out_pattern/sqrt(real(length,kind=PREC_DP)) * yscale ! Scale for H or Q scale
 !
-CALL mapfftfdtoline(num, dsort, k_data, pattern)
+CALL mapfftfdtoline(num, dsort, k_data, out_pattern)
 !
 offxy(iz  ) = offxy(iz-1) +   length
 offxy(iz+1) = offxy(iz-1) + 2*length
 !
 xrange = xmax(idata(kdat)) - xmin(idata(kdat))
-xstep  = xrange/REAL(lenc(idata(kdat)))
+xstep  = xrange/REAL(lenc(idata(kdat))-1, kind=PREC_DP)
 DO i=1,length
    y(offxy(iz-1)+i) = REAL(k_data(i))*SQRT(xrange*xstep)!    * yscale
    y(offxy(iz  )+i) = IMAG(k_data(i))*SQRT(xrange*xstep)!    * yscale
@@ -777,7 +787,8 @@ call show_data(iz-2)
 call show_data(iz-1)
 !
 DEALLOCATE(k_data )
-DEALLOCATE(pattern)
+DEALLOCATE( in_pattern)
+DEALLOCATE(out_pattern)
 !
 END SUBROUTINE kuplot_do_fft_1D
 !
@@ -789,9 +800,10 @@ SUBROUTINE kuplot_do_fft_2D(idata, odata, xscale, yscale)
 !+
 !
 USE kuplot_mod
+use kuplot_extrema_mod
 !
+use lib_f90_fftw3
 USE map_1dtofield
-USE singleton
 USE wink_mod
 !
 IMPLICIT NONE
@@ -807,11 +819,13 @@ INTEGER :: length             ! Data set length == nx * ny
 INTEGER, DIMENSION(3) :: num  ! DATA set dimensions
 INTEGER, DIMENSION(3) :: dsort
 COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:),   ALLOCATABLE  :: k_data   ! The Kuplot in data set)
-COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:), ALLOCATABLE  :: pattern  ! The Curve to be FFT'd
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:), ALLOCATABLE  ::  in_pattern  ! The Curve to be FFT'd
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:), ALLOCATABLE  :: out_pattern  ! The result of   FFT
 REAL :: xrange
 REAL :: xstep
 REAL :: yrange
 REAL :: ystep
+type(c_ptr) :: plan    ! FFWT3 plan
 !
 !
 !  Determine sequence of array dimensions 
@@ -843,7 +857,9 @@ num = -num
 !write(*,*) ' length ', length
 !read(*,*) i
 ALLOCATE(k_data (length))
-ALLOCATE(pattern(num(dsort(1)), num(dsort(2)) ))
+!ALLOCATE(pattern(num(dsort(1)), num(dsort(2)) ))
+ALLOCATE( in_pattern(num(dsort(1)), num(dsort(2)) ))
+ALLOCATE(out_pattern(num(dsort(1)), num(dsort(2)) ))
 IF(idata(1)>0 .and. idata(2)>0) THEN            ! Got real and imag part
    DO i=1,length
       k_data(i) = CMPLX(z(offz(idata(1)-1)+i), z(offz(idata(2)-1)+i))
@@ -858,21 +874,24 @@ ELSEIF(idata(2)>0) THEN                         ! Got imag only
    ENDDO
 ENDIF
 !
-CALL maptofftfd(num, dsort, k_data, pattern)
+CALL maptofftfd(num, dsort, k_data, in_pattern)
 !
-pattern = fft(pattern) / SQRT(REAL(num(1)*num(2))) * yscale
+plan = fftw_plan_dft_2d(num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
+call   fftw_execute_dft(plan, in_pattern, out_pattern)
+call   fftw_destroy_plan(plan)
+out_pattern = out_pattern/sqrt(real(num(dsort(1))*num(dsort(2)),kind=PREC_DP)) * yscale ! Scale for H or Q scale
 !
-CALL mapfftfdtoline(num, dsort, k_data, pattern)
+CALL mapfftfdtoline(num, dsort, k_data, out_pattern)
 !
-offxy(iz  ) = offxy(iz-1) +   num(1)
-offxy(iz+1) = offxy(iz-1) + 2*num(1)
+offxy(iz  ) = offxy(iz-1) +   max(num(1), num(2))
+offxy(iz+1) = offxy(iz-1) + 2*max(num(1), num(2))
 offz (iz  ) = offz(iz-1) +   length
 offz (iz+1) = offz(iz-1) + 2*length
 !
 xrange = xmax(idata(kdat)) - xmin(idata(kdat))
-xstep  = xrange/REAL(lenc(idata(kdat)))
+xstep  = xrange/REAL(nx(idata(kdat))-1,kind=PREC_DP)
 yrange = ymax(idata(kdat)) - ymin(idata(kdat))
-ystep  = yrange/REAL(lenc(idata(kdat)))
+ystep  = yrange/REAL(ny(idata(kdat))-1, kind=PREC_DP)
 !
 DO i=1,length
    z(offz(iz-1)+i) = REAL(k_data(i))*SQRT(xrange*xstep*yrange*ystep)
@@ -883,7 +902,7 @@ DO i =1, nx(idata(kdat))
    x(offxy(iz  ) +i) = x(offxy(idata(kdat)-1)+i)/(xrange*xstep) * xscale
 ENDDO
 DO i =1, ny(idata(kdat))
-   y(offxy(iz-1) +i) = y(offxy(idata(kdat)-1)+i)/(xrange*ystep) * xscale
+   y(offxy(iz-1) +i) = y(offxy(idata(kdat)-1)+i)/(yrange*ystep) * xscale
    y(offxy(iz  ) +i) = y(offxy(idata(kdat)-1)+i)/(yrange*ystep) * xscale
 ENDDO
 fform(iz  ) = 'NI'
@@ -900,13 +919,20 @@ lenc(iz  ) = MAX(nx  (iz), ny(iz))
 lenc(iz+1) = MAX(nx  (iz), ny(iz))
 fname(iz  ) = 'Fourier_real'
 fname(iz+1) = 'Fourier_imag'
+CALL get_extrema_xy (x, iz, nx (iz), xmin, xmax)
+CALL get_extrema_xy (y, iz, ny (iz), ymin, ymax)
+CALL get_extrema_z  (z, iz, nx (iz), ny (iz), zmin, zmax)
+CALL get_extrema_xy (x, iz+1, nx (iz+1), xmin, xmax)
+CALL get_extrema_xy (y, iz+1, ny (iz+1), ymin, ymax)
+CALL get_extrema_z  (z, iz+1, nx (iz+1), ny (iz+1), zmin, zmax)
 iz = iz + 2
 !write(*,*) ' OFFXY   ', offxy(0:4)
 !write(*,*) ' OFFZ    ', offz (0:4)
 !write(*,*) ' IZ      ', iz
 !
 DEALLOCATE(k_data)
-DEALLOCATE(pattern)
+DEALLOCATE( in_pattern)
+DEALLOCATE(out_pattern)
 !
 END SUBROUTINE kuplot_do_fft_2D
 !
