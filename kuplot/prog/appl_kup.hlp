@@ -97,6 +97,17 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2022_February
+
+   Extensive internal revisions;
+   added many options to work on 3D+value data
+   3D-+value data are in a global storage
+
+   Added an optional data transformation to the load h5 command
+
+   Modified all FFT to use FFTW library, much faster  
+
+   R-value works on 3-D data
 3  2022_March
 
    The fit routine has been made more stable
