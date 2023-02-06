@@ -698,7 +698,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   IF (four_mode.eq.INTERNAL) then 
                      IF (ier_num.eq.0) then 
                         four_log = .true. 
-                        CALL four_run 
+                        if(four_tech == FOUR_TURBO) then
+                           CALL four_run 
+                        elseif(four_tech == FOUR_NUFFT) then
+                           call four_run_nufft
+                        endif
                      ENDIF 
                   ELSE 
                      four_log = .true. 
@@ -944,6 +948,22 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_typ = ER_COMM 
                   ENDIF 
                ENDIF 
+!
+!     Set Fourier technique
+!
+            elseif(str_comp(befehl, 'technique', 4, lbef, 9)) then
+               call get_params (zeile, ianz, cpara, lpara, maxw, lp)
+               if(ianz == 1) then 
+                  if(str_comp(cpara(1), 'turbo', 5, lpara(1), 5)) then
+                     four_tech = FOUR_TURBO
+                  elseif(str_comp(cpara(1), 'nufft', 5, lpara(1), 5)) then
+                     four_tech = FOUR_NUFFT
+                  else
+                     ier_num = - 6
+                     ier_typ = ER_COMM
+                     ier_msg(1) = 'Fourier technique must be ''turbo'' or ''nufft'''
+                  endif
+               endif 
 !                                                                       
 !     set the wave length to be used 'wvle'                             
 !                                                                       
@@ -1160,6 +1180,7 @@ IF(uu(2)< EPS) THEN
    diff_res(2:4,2) = vi(1:3,2)        ! User vector was NULL, use ordinate
    u = diff_res(2:4,2)
    uu(2) = SQRT (skalpro (u, u, cr_rten) )
+   diff_res(1  ,2) = 0.001
 ENDIF
 !
 u = diff_res(2:4,3)
@@ -1271,11 +1292,19 @@ use precision_mod
 !                                                                       
       DATA extr_achs / ' ', 'h', 'k', 'l' / 
 !                                                                       
-      IF (fave.eq.0.0) then 
-         WRITE (output_io, 1010) 
-      ELSE 
-         WRITE (output_io, 1020) fave * 100.0 
-      ENDIF 
+if(four_tech==FOUR_TURBO) then
+   IF (fave.eq.0.0) then 
+      WRITE (output_io, 1010) 
+   ELSE 
+      WRITE (output_io, 1020) fave * 100.0 
+   ENDIF 
+elseif(four_tech==FOUR_NUFFT) then
+   IF (fave.eq.0.0) then 
+      WRITE (output_io, 1015) 
+   ELSE 
+      WRITE (output_io, 1025) fave * 100.0 
+   ENDIF 
+endif
       IF (four_mode.eq.INTERNAL) then 
          WRITE (output_io, 1030) 'atom form factors' 
       ELSEIF (four_mode.eq.EXTERNAL) then 
@@ -1390,7 +1419,10 @@ use precision_mod
       ENDIF
 !                                                                       
  1010 FORMAT (  ' Fourier technique    : turbo Fourier') 
+ 1015 FORMAT (  ' Fourier technique    : Non-uniform FFT Fourier') 
  1020 FORMAT (  ' Fourier technique    : turbo Fourier, minus <F>',     &
+     &          ' (based on ',F5.1,'% of cryst.)')                      
+ 1025 FORMAT (  ' Fourier technique    : Non-uniform FFT Fourier, minus <F>',     &
      &          ' (based on ',F5.1,'% of cryst.)')                      
  1030 FORMAT (  ' Fourier calculated by: ',a) 
  1100 FORMAT (  '   Fourier volume     : complete crystal') 
