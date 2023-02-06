@@ -654,10 +654,12 @@ subroutine fft_1D_global(idata, odata, xscale, yscale, ipad)
 !+
 !
 use lib_data_struc_h5
+use lib_f90_fftw3
 use errlist_mod
 use map_1dtofield
-use singleton
 use wink_mod
+!
+use iso_c_binding
 !
 implicit none
 !
@@ -674,10 +676,12 @@ integer :: istart             ! first index in case of padding
 integer, dimension(3) :: num  ! DATA set dimensions
 integer, dimension(3) :: dsort
 complex(kind=kind(0.0D0)) , dimension(:), allocatable  :: k_data   ! The Kuplot in data set)
-complex(kind=kind(0.0D0)) , dimension(:), allocatable  :: pattern  ! The Curve to be FFT'd
+!complex(kind=kind(0.0D0)) , dimension(:), allocatable  :: pattern  ! The Curve to be FFT'd
+complex(kind=C_DOUBLE_COMPLEX) , dimension(:), allocatable  ::  in_pattern  ! The Curve to be FFT'd
+complex(kind=C_DOUBLE_COMPLEX) , dimension(:), allocatable  :: out_pattern  ! The Curve to be FFT'd
 logical, dimension(3) :: leven            ! Make original pattern symmetric around 0,0,0
 integer, dimension(3) :: peven            ! Make original pattern symmetric around 0,0,0
-!
+type(c_ptr) :: plan    ! FFWT3 plan
 !
 if(idata(1)>0) then                             !  User provided real par
    call data2local(idata(1), ier_num, ier_typ, ik1_node_number, ik1_infile,     &
@@ -732,7 +736,8 @@ dsort(1) = 1                       ! 1D does not need sort
 dsort(2) = 2
 dsort(3) = 3
 allocate(k_data (num(1)))          ! Complex array for FFT
-allocate(pattern(num(1)))          ! Complex array for FFT in shifted sequence           
+allocate( in_pattern(num(1)))          ! Complex array for FFT in shifted sequence           
+allocate(out_pattern(num(1)))          ! Complex array for FFT in shifted sequence           
 !
 k_data = cmplx(0.0D0, 0.0D0)
 do i=1, ik1_dims(1)
@@ -742,11 +747,15 @@ if(leven(1)) then
    k_data(istart+ik1_dims(1)+1) = k_data(istart+1)
 endif
 !
-call maptofftfd(num, dsort, k_data, pattern)           ! Shifts origin to (1,1,1)
+call maptofftfd(num, dsort, k_data, in_pattern)        ! Shifts origin to (1,1,1)
 !
-pattern = fft(pattern) / SQRT(REAL(num(1))) * yscale   ! Actual fft routine
+!pattern = fft(pattern) / SQRT(REAL(num(1))) * yscale   ! Actual fft routine
+plan = fftw_plan_dft_1d(num(1)          , in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
+call   fftw_execute_dft(plan, in_pattern, out_pattern)
+call   fftw_destroy_plan(plan)
+out_pattern = out_pattern/sqrt(real(num(1),kind=PREC_DP)) * yscale ! Scale for H or Q scale
 !
-call mapfftfdtoline(num, dsort, k_data, pattern)       ! Shift backinto discus sequence
+call mapfftfdtoline(num, dsort, k_data, out_pattern)   ! Shift backinto discus sequence
 !
 !  Convert limits (currently the assumption is that the origininal data are -x...0...+x
 !  
@@ -778,7 +787,8 @@ call fft2data(odata(1), ier_num, ier_typ, ik1_node_number, ik1_nlayer,          
      ik1_steps_full, res_im_data, ik2_sigma)
 !
 deallocate(k_data )
-deallocate(pattern)
+deallocate(in_pattern)
+deallocate(out_pattern)
 deallocate(res_rl_data)
 deallocate(res_im_data)
 call math_clean
@@ -794,10 +804,12 @@ subroutine fft_2D_global(idata, odata, xscale, yscale, ipad)
 !+
 !
 use lib_data_struc_h5
+use lib_f90_fftw3
 use errlist_mod
 use map_1dtofield
-use singleton
 use wink_mod
+!
+use iso_c_binding
 !
 implicit none
 !
@@ -813,11 +825,13 @@ integer :: length             ! Data set length == nx * ny
 integer, dimension(3) :: num  ! DATA set dimensions
 integer, dimension(3) :: dsort
 complex(kind=kind(0.0D0)) , dimension(:,:), allocatable  :: k_data   ! The Kuplot in data set)
-complex(kind=kind(0.0D0)) , dimension(:,:), allocatable  :: pattern  ! The Curve to be FFT'd
+complex(kind=C_DOUBLE_COMPLEX) , dimension(:,:), allocatable  ::  in_pattern  ! The Curve to be FFT'd
+complex(kind=C_DOUBLE_COMPLEX) , dimension(:,:), allocatable  :: out_pattern  ! The Curve to be FFT'd
 integer :: istart  ! Entry at which data start in k_data due to padding
 integer :: jstart  ! Entry at which data start in k_data due to padding
 logical, dimension(3) :: leven            ! Make original pattern symmetric around 0,0,0
 integer, dimension(3) :: peven            ! Make original pattern symmetric around 0,0,0
+type(c_ptr) :: plan    ! FFWT3 plan
 !
 !
 if(idata(1)>0) then                             !  User provided real part
@@ -896,7 +910,8 @@ num = -num
 !
 allocate(k_data (num(1), num(2)))
 k_data = cmplx(0.0D0,0.0D0)
-allocate(pattern(num(dsort(1)), num(dsort(2)) ))
+allocate( in_pattern(num(dsort(1)), num(dsort(2)) ))
+allocate(out_pattern(num(dsort(1)), num(dsort(2)) ))
 do j=1, ik1_dims(2)
    do i=1, ik1_dims(1)
       k_data(istart+i,jstart+j) = CMPLX(ik1_data(i,j,1), ik2_data(i,j,1))
@@ -913,11 +928,15 @@ if(leven(2)) then
    enddo
 endif
 !
-call maptofftfd(num, dsort, k_data, pattern)
+call maptofftfd(num, dsort, k_data, in_pattern)
 !
-pattern = fft(pattern) / SQRT(REAL(num(1)*num(2))) * yscale
+!pattern = fft(pattern) / SQRT(REAL(num(1)*num(2))) * yscale
+plan = fftw_plan_dft_2d(num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
+call   fftw_execute_dft(plan, in_pattern, out_pattern)
+call   fftw_destroy_plan(plan)
+out_pattern = out_pattern/sqrt(real(num(dsort(1))*num(dsort(2)),kind=PREC_DP)) * yscale ! Scale for H or Q scale
 !
-call mapfftfdtoline(num, dsort, k_data, pattern)
+call mapfftfdtoline(num, dsort, k_data, out_pattern)
 !
 ft_start(1:2) = -0.5D0/ik1_steps(1:2)
 ft_start(3)   =  0.00D0
@@ -946,7 +965,8 @@ call fft2data(odata(1), ier_num, ier_typ, ik1_node_number, ik1_nlayer,          
 !
 !
 deallocate(k_data)
-deallocate(pattern)
+deallocate( in_pattern)
+deallocate(out_pattern)
 deallocate(res_rl_data)
 deallocate(res_im_data)
 call math_clean
@@ -961,12 +981,14 @@ SUBROUTINE fft_3D_global(idata, odata, xscale, yscale, ipad)
 !+
 !
 use lib_data_struc_h5
+use lib_f90_fftw3
 !
 USE errlist_mod
 USE map_1dtofield
 USE prompt_mod
-USE singleton
 USE wink_mod
+!
+use iso_c_binding
 !
 IMPLICIT NONE
 !
@@ -982,12 +1004,14 @@ INTEGER :: length             ! Data set length == nx * ny
 INTEGER, DIMENSION(3) :: num  ! DATA set dimensions
 INTEGER, DIMENSION(3) :: dsort
 complex(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: k_data   ! The Kuplot in data set)
-COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: pattern  ! The Curve to be FFT'd
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:,:), ALLOCATABLE  ::  in_pattern  ! The Curve to be FFT'd
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:,:,:), ALLOCATABLE  :: out_pattern  ! The Curve to be FFT'd
 integer :: istart  ! Entry at which data start in k_data due to padding
 integer :: jstart  ! Entry at which data start in k_data due to padding
 integer :: kstart  ! Entry at which data start in k_data due to padding
 logical, dimension(3) :: leven            ! Make original pattern symmetric around 0,0,0
 integer, dimension(3) :: peven            ! Make original pattern symmetric around 0,0,0
+type(c_ptr) :: plan    ! FFWT3 plan
 !
 !
 if(idata(1)>0) then                             !  User provided real part
@@ -1077,7 +1101,8 @@ num = -num
 !
 !
 ALLOCATE(k_data (num(1)       , num(2)       ,num(3)         ))
-ALLOCATE(pattern(num(dsort(1)), num(dsort(2)), num(dsort(3)) ))
+ALLOCATE( in_pattern(num(dsort(1)), num(dsort(2)), num(dsort(3)) ))
+ALLOCATE(out_pattern(num(dsort(1)), num(dsort(2)), num(dsort(3)) ))
 !
 k_data = cmplx(0.0D0,0.0D0)        ! Initialize for padding
 do k=1, ik1_dims(3)
@@ -1120,11 +1145,15 @@ enddo
 endif
 !
 !
-CALL maptofftfd(num, dsort, k_data, pattern)
+CALL maptofftfd(num, dsort, k_data, in_pattern)
 !
-pattern = fft(pattern) / SQRT(REAL(num(1)*num(2)*num(3))) * yscale
+plan = fftw_plan_dft_3d(num(dsort(3)), num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
+call   fftw_execute_dft(plan, in_pattern, out_pattern)
+call   fftw_destroy_plan(plan)
+out_pattern = out_pattern/sqrt(real(num(dsort(1))*num(dsort(2))*num(dsort(3)),kind=PREC_DP)) * yscale ! Scale for H or Q scale
 !
-CALL mapfftfdtoline(num, dsort, k_data, pattern)
+!
+CALL mapfftfdtoline(num, dsort, k_data, out_pattern)
 !
 !  Convert limits, copy into result array
 !
@@ -1156,7 +1185,8 @@ call fft2data(odata(1), ier_num, ier_typ, ik1_node_number, ik1_nlayer,          
      ik1_steps_full, res_im_data, ik2_sigma)
 !
 DEALLOCATE(k_data)
-DEALLOCATE(pattern)
+DEALLOCATE( in_pattern)
+DEALLOCATE(out_pattern)
 deallocate(res_rl_data)
 deallocate(res_im_data)
 call math_clean
