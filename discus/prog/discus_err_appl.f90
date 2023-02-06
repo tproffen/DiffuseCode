@@ -13,11 +13,14 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-185,IO=7)
+      PARAMETER    (IU=-188,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -181) /                          &
+     &  'Reciprocal grid does not include zero point  ', & !-188 ! DISCUS    
+     &  '1./Increment vector /= N                     ', & !-187 ! DISCUS    
+     &  'Increment vector /= N/crystal_dimension      ', & !-186 ! DISCUS
      &  'Crystal consists of more than one unit cell  ', & !-185 ! discus
      &  'Too many sites in unit cell                  ', & !-184 ! discus
      &  'Unknown radiation                            ', & !-183 ! discus
