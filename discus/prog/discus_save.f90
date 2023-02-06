@@ -734,7 +734,8 @@ IF (sav_w_ncell) THEN
    mole_num_mole, mole_num_type, mole_num_atom
 ENDIF 
 !
-WRITE (ist, 3900) 
+write(ist, 3800)
+WRITE(ist, 3900) 
 !
 ALLOCATE(lwrite(1:cr_natoms))
 lwrite(:) = .true.
@@ -853,6 +854,7 @@ DEALLOCATE(lwrite)
  3121 FORMAT    (('adp   ', f9.6)) 
  3220 FORMAT    (('occ   ', f9.6,6(',',5x,f9.6))) 
  3221 FORMAT    (('occ   ', f9.6)) 
+ 3800 format    ('format numbers,XYZBPMMOS')
  3900 FORMAT    ('atoms      x,',14x,'y,',14x,'z,',13x,'Biso,', 4x,'Property,', &
                  2x,'MoleNo,  MoleAt,   Occ,     St,  Sh,  Sk,  Sl')
  4000 FORMAT    (a) 
