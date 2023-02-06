@@ -193,8 +193,8 @@ integer            :: ilabel      ! Number of text labels in header
 integer           , dimension(3) :: dims
 integer                          :: mode
 integer           , dimension(3) :: nxyzstart
-real(kind=PREC_DP), dimension(3) :: cr_a
-real(kind=PREC_DP), dimension(3) :: cr_win
+!real(kind=PREC_DP), dimension(3) :: cr_a
+!real(kind=PREC_DP), dimension(3) :: cr_win
 integer           , dimension(3) :: extr_abs
 real(kind=PREC_SP), dimension(3) :: m_cr_a
 real(kind=PREC_SP), dimension(3) :: m_cr_win
