@@ -41,7 +41,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
         discus_fft.f90 discus_fit.f90 discus_pointgrp.f90 discus_reset_all.f90
         discus_powder_fft.f90 discus_3dpdf.f90 discus_xplor.f90
         do_find_mod.f90 find_top.f90
-        four_angles_mod.f90 fourier_conv.f90 fourier_lmn_mod.f90 fourier_reset.f90
+        four_angles_mod.f90 fourier_conv.f90 fourier_finufft.f90 fourier_lmn_mod.f90 fourier_reset.f90
 	gen_add_mod.f90 generate_mod.f90 graphic.f90 insert.f90 insert_mod.f90 intens_mod.f90
         get_iscat_mod.f90 
 	inter_readstru.f90
@@ -126,6 +126,7 @@ else (CUDA_FOUND)
   set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
 
 endif (CUDA_FOUND)
+set (SOURCES_ALL ${SOURCES_ALL} "${DIFFUSE_SOURCE_DIR}/../finufft/include/finufft_mod.f90")
 
 add_library (discus_all ${SOURCES_ALL} )
 add_dependencies (discus_all kuplot_all lib_f90 )
