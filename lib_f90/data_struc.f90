@@ -26,6 +26,7 @@ public dgl5_get_is_grid
 public dgl5_get_ndims
 public dgl5_get_infile
 public dgl5_get_dims
+public dgl5_get_lattice
 public dgl5_get_llims
 public dgl5_get_steps
 public dgl5_get_minmax
@@ -510,6 +511,20 @@ integer, dimension(3), intent(out) :: dims
 dims = h5_temp%dims
 !
 end subroutine dgl5_get_dims
+!
+!*******************************************************************************
+!
+subroutine dgl5_get_lattice(idata, lattice)
+!
+implicit none
+!
+integer,                          intent(in)  :: idata
+real(kind=PREC_DP), dimension(6), intent(out) :: lattice
+!
+lattice(1:3) = h5_temp%cr_a0
+lattice(4:6) = h5_temp%cr_win
+!
+end subroutine dgl5_get_lattice
 !
 !*******************************************************************************
 !
