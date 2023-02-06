@@ -495,7 +495,7 @@ LOGICAL zz_mod
 INTEGER ifiles
 integer :: node_number
 !
-INTEGER, PARAMETER :: NOPTIONAL = 8
+INTEGER, PARAMETER :: NOPTIONAL = 9
 !INTEGER, PARAMETER :: O_SKIP      = 1
 !INTEGER, PARAMETER :: O_COLX      = 2
 !INTEGER, PARAMETER :: O_COLY      = 3
@@ -504,6 +504,7 @@ INTEGER, PARAMETER :: NOPTIONAL = 8
 INTEGER, PARAMETER :: O_LAYER     = 6
 !INTEGER, PARAMETER :: O_SEPARATOR = 7
 !INTEGER, PARAMETER :: O_DECIMAL   = 8
+INTEGER, PARAMETER :: O_TRANS     = 9
 CHARACTER(LEN=          9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -512,11 +513,14 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate 
 !
-DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'layer', 'separator', 'decimal'  /
-DATA loname /  4    ,  4    ,   4    ,   5     ,  5     ,  5     ,  9         ,  7  /
-opara  =  (/ '25.000', '1.0000', '2.0000', '0.0000', '0.0000', 'middle', ';     ', 'period' /)   ! Always provide fresh default values
-lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,  6      ,  6   /)
-owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,  0.0    ,  0.0 /)
+DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'layer', 'separator', 'decimal', 'trans'  /
+DATA loname /  4    ,  4    ,   4    ,   5     ,  5     ,  5     ,  9         ,  7       ,  5       /
+opara  =  (/ '25.000', '1.0000', '2.0000', '0.0000', '0.0000', 'middle',        &
+             ';     ', 'period', 'no    '   /)   ! Always provide fresh default values
+lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,        &
+              6      ,  6      ,  2   /)
+owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,        &
+             0.0     ,  0.0,      0.0 /)
 !
 !
 allocate(cpara(maxw))
@@ -566,8 +570,14 @@ IF (ianz.ge.2) then
          ENDIF 
 !
          IF(unter=='H5') THEN    ! HDF5 file
-            CALL hdf5_read_kuplot(cpara(2),lpara(2), O_LAYER, NOPTIONAL, opara,        &
-                           lopara, lpresent, owerte , iz, ku_ndims,                 &
+!           if(lpresent(O_TRANS) .and.                                            &
+!                 str_comp(opara(O_TRANS), 'yes', 3, lopara(O_trans),3)) then
+!              ltrans = .true.
+!           else
+!              ltrans = .false.
+!           endif
+            CALL hdf5_read_kuplot(cpara(2),lpara(2), O_LAYER, O_TRANS, NOPTIONAL, opara,   &
+                           lopara, lpresent, owerte , iz, ku_ndims,               &
                            ier_num, ier_typ, UBOUND(ier_msg,1), ier_msg, ER_APPL, &
                            ER_IO, output_io)
 !XX!                       MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny,    &
@@ -4269,11 +4279,11 @@ integer         , intent(inout) :: node_number
 integer         , intent(inout) :: ik
 !
 character(len=PREC_STRING) :: outfile
-integer, dimension(3)     :: dims
-integer                   :: mode
-integer, dimensioN(3)     :: nxyzstart
-real(kind=PREC_DP), dimension(3) :: cr_a
-real(kind=PREC_DP), dimension(3) :: cr_win
+!integer, dimension(3)     :: dims
+!integer                   :: mode
+!integer, dimensioN(3)     :: nxyzstart
+!real(kind=PREC_DP), dimension(3) :: cr_a
+!real(kind=PREC_DP), dimension(3) :: cr_win
 !
 !integer               :: iz
 integer               :: ndims

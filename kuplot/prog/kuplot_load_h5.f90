@@ -22,7 +22,7 @@ CONTAINS
 !
 !*******************************************************************************
 !
-SUBROUTINE hdf5_read_kuplot(infile, length, O_LAYER, NOPTIONAL, opara, lopara,         &
+SUBROUTINE hdf5_read_kuplot(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte, iz, ku_ndims,     &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !
@@ -33,10 +33,11 @@ use lib_data_struc_h5
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=1024), INTENT(IN) :: infile
-INTEGER            , INTENT(IN) :: length
-INTEGER            , INTENT(IN) :: O_LAYER
-INTEGER            , INTENT(IN) :: NOPTIONAL
+CHARACTER(LEN=1024)                      , INTENT(INOUT) :: infile
+INTEGER                                  , INTENT(IN) :: length
+INTEGER                                  , INTENT(IN) :: O_LAYER
+INTEGER                                  , INTENT(IN) :: O_TRANS
+INTEGER                                  , INTENT(IN) :: NOPTIONAL
 CHARACTER(LEN=*)   , DIMENSION(NOPTIONAL), INTENT(IN) :: opara
 INTEGER            , DIMENSION(NOPTIONAL), INTENT(IN) :: lopara
 LOGICAL            , DIMENSION(NOPTIONAL), INTENT(IN) :: lpresent
@@ -55,7 +56,6 @@ INTEGER, INTENT(IN)    :: output_io   ! KUPLOT array size
 !
 CHARACTER(LEN=14)   :: dataname    ! Dummy name for HDF5 datasets
 !
-integer, dimension(3) :: h5_dims
 integer               :: node_number = 0
 integer               :: ndims = 0
 integer               :: ik
@@ -65,7 +65,7 @@ logical               :: lout = .TRUE.
 dataname = ' '
 !
 
-call hdf5_read(infile, length, O_LAYER, NOPTIONAL, opara, lopara,         &
+call hdf5_read(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
                      node_number,ndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
