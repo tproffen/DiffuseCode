@@ -41,6 +41,11 @@ INTEGER , PARAMETER  :: PATT_3D  =  7
 INTEGER , PARAMETER  :: POWD_CO  =  8  ! Powder pattern complete 
 INTEGER , PARAMETER  :: POWD_DY  =  9  ! Powder pattern Debye Algorithm
 !
+integer , parameter  :: FOUR_TURBO = 0 ! Standard Turbo mode
+integer , parameter  :: FOUR_NUFFT = 1 ! RNon uniform FFT mode
+!
+integer                                 :: four_tech = FOUR_TURBO    ! Fourier technique
+!
 INTEGER                                 ::  DIF_MAXAT    ! current size of array at
 INTEGER                                 ::  DIF_MAXSCAT  ! current size of array at
 COMPLEX (KIND=PREC_DP    ) , DIMENSION(:, :), ALLOCATABLE  ::  cfact        ! (0:CFPKT, 1:MAXSCAT)
@@ -88,6 +93,7 @@ REAL(kind=PREC_DP)                      ::  zmax     = 0.0
 !
 CHARACTER(LEN=4)                        ::  lambda   = 'MOA1'
 INTEGER                                 ::  four_exp = 0
+INTEGER , DIMENSION(1:3)                ::  diff_inc_hkl  = (/ 1, 1,  1 /)   ! Data points for <f> 
 INTEGER , DIMENSION(1:3)                ::  inc      = (/ 121, 121,  1 /)
 INTEGER , DIMENSION(1:6)                ::  lmn      = 0
 LOGICAL                                 ::  ano      = .false.
@@ -97,14 +103,21 @@ LOGICAL                                 ::  diff_lsingle  = .true.
 INTEGER                                 ::  diff_radiation = RAD_XRAY
 INTEGER                                 ::  diff_table     = RAD_INTER
 INTEGER                                 ::  diff_power     = 4
-REAL(kind=PREC_DP), DIMENSION(1:3, 1:4) ::  eck      = reshape((/ 0.0, 0.0,  0.0, &
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:4) ::  eck      = reshape((/ 0.0, 0.0,  0.0, &    ! (hkl, corner_number)
                                                                   5.0, 0.0,  0.0, &
                                                                   0.0, 5.0,  0.0, &
                                                                   0.0, 0.0,  0.0/),shape(eck))
-REAL(kind=PREC_DP), DIMENSION(1:3, 1:3) ::  vi       = reshape((/0.05, 0.00, 0.00, &
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:3) ::  vi       = reshape((/0.05, 0.00, 0.00, &   ! (hkl, number_abs_od_top)
                                                                  0.0 , 0.05, 0.00, &
                                                                  0.00, 0.00, 0.00/),shape(vi))
-REAL(kind=PREC_DP), DIMENSION(1:3, 1:3) ::  off_shift= 0.00
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:4) ::  diff_eck_hkl = reshape((/ 0.0, 0.0,  0.0, &
+                                                                  5.0, 0.0,  0.0, &
+                                                                  0.0, 5.0,  0.0, &
+                                                                  0.0, 0.0,  0.0/),shape(diff_eck_hkl))
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:3) ::  diff_vi_hkl  = reshape((/1.00, 0.00, 0.00, &
+                                                                 0.0 , 1.00, 0.00, &
+                                                                 0.00, 0.00, 0.00/),shape(diff_vi_hkl))
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:3) ::  off_shift= 0.00              ! (hkl, abs_ord_top)
 REAL(kind=PREC_DP)                      ::  renergy  = 17.480782
 REAL(kind=PREC_DP)                      ::  rlambda  =  0.709260
 LOGICAL                                 ::  l_energy = .false.
