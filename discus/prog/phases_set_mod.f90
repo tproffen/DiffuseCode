@@ -615,8 +615,8 @@ REAL(KIND=PREC_DP) :: u2aver_scale = 2.00D0   ! Scale to multiply <u^2> if conve
 !                     ! to sharpen the distances sufficiently for later broadening
 REAL(KIND=PREC_DP) :: rmin, rmax, rstep
 REAL(KIND=PREC_DP) :: sigma   ! sigma for PDF Corrlin correction
-REAL(KIND=PREC_DP) :: ttheta                ! 2Theta
-real(kind=prec_DP) :: arg
+!REAL(KIND=PREC_DP) :: ttheta                ! 2Theta
+!real(kind=prec_DP) :: arg
 !*******************************************************************************
 
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: fq    ! Temporary array, might do inplace replacement later
