@@ -9,7 +9,14 @@ implicit none
 !
 private
 !
+public  at_number
 public  at_style
+public  at_vals
+public  AT_COMMA
+public  AT_XYZ
+public  AT_XYZB
+public  AT_XYZBP
+public  AT_XYZBPMMOS
 public  atom_line_inter
 public  atom_get_size
 public  atom_line_get_style
@@ -30,13 +37,16 @@ character(len=8), dimension(16)      :: at_param
 integer         , dimension(AT_MAXP) :: at_look  ! at_param(i) uses at_cnam(at_look(i))
 integer         , dimension(AT_MAXP) :: at_kool  ! at_cnam(j) is used by at_param(at_kool(j))
 logical         , dimension(0:AT_MAXP) :: at_user  ! User provided parameters on atom line
+logical                              :: at_number ! Atom lines contain numbers only
 integer                              :: at_style ! Aktual style number
+integer                              :: at_vals  ! Aktual values present 
 integer                              :: at_ianz
 integer                              :: at_natoms ! Current number of atoms
 integer, parameter :: AT_COMMA     =  1          ! Comma delimited style, full flexibility
 integer, parameter :: AT_XYZ       =  2          ! Just coordinates as pure numbers, no comma
 integer, parameter :: AT_XYZB      =  3          ! Just coordinates, Biso   numbers, no comma
 integer, parameter :: AT_XYZBP     =  4          ! Just coordinates, Biso, Property, no comma
+integer, parameter :: AT_XYZBPMMOS =  5          ! All the way to Surface in DISCUS sequence
 !
 integer, parameter :: COL_X        =  1
 integer, parameter :: COL_Y        =  2
@@ -136,6 +146,15 @@ else
 !         at_kool(j)     = inew
 !         at_param(inew) = at_cnam(j)
 !         at_user(j) = .FALSE.   ! User did not provide atom parameter J
+  if(line=='     x,              y,              z,             Biso,    Property,  MoleNo,  MoleAt,   Occ,     St,  Sh,  Sk,  Sl') then
+    at_vals = AT_XYZBPMMOS
+  elseif(line=='     x,              y,              z,             Biso,    Property') then
+    at_vals = AT_XYZBP
+  elseif(line=='     x,              y,              z,             Biso'             ) then
+    at_vals = AT_XYZB
+  elseif(line=='     x,              y,              z'                               ) then
+    at_vals = AT_XYZ
+  endif
 endif
 at_natoms = 0
 !
@@ -223,19 +242,19 @@ integer :: ios       ! I/O status flag
 at_user = .false.
 read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 5)   !Try to read 5 params
 if(.not.is_iostat_end(ios)) then        ! five paramters
-   at_style = AT_XYZBP
+   at_vals = AT_XYZBP
    at_user(1:5) = .true.
    if(index(line(ibl:length),',')>0) at_style=AT_COMMA
 else
    read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 4)   !Try to read 4 params
    if(.not.is_iostat_end(ios)) then        ! four paramters
-      at_style = AT_XYZB
+      at_vals = AT_XYZB
       at_user(1:4) = .true.
       if(index(line(ibl:length),',')>0) at_style=AT_COMMA
    else
       read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 3)   !Try to read 3 params
       if(.not.is_iostat_end(ios)) then        ! four paramters
-         at_style = AT_XYZ
+         at_vals = AT_XYZ
          at_user(1:3) = .true.
          if(index(line(ibl:length),',')>0) at_style=AT_COMMA
       else
@@ -304,10 +323,12 @@ integer                              , INTENT(in)    :: MAXW
 real(kind=PREC_DP), dimension(1:MAXW), INTENT(out)   :: werte
 !
 character(len=12) :: cform
+character(len=1 ) :: csurf
 character(len=max(PREC_STRING,len(line))), dimension(MAXW) :: cpara
 integer                                  , dimension(MAXW) :: lpara
 character(len=max(PREC_STRING,len(line))), dimension(1   ) :: ccpara
 integer                                  , dimension(1   ) :: llpara
+integer                                  , dimension(6   ) :: iwerte
 integer :: laenge ! length of significant string
 integer :: ianz   ! Number of comma delimited values in the line
 integer :: iianz   ! Number of comma delimited values in the line
@@ -322,6 +343,43 @@ length = llength
 werte    = 0.0D0          ! Initialize values
 werte(5) = 1.0D0
 werte(8) = 1.0D0
+!
+if_number: if(at_number) then                                ! Numbers only in DISCUS format
+   if(at_vals==AT_XYZBPMMOS) then                           ! Line with X,y,Z,B,Prop, Mole, mole, Occ, Surface
+      read(line(5:length), 44444, &
+      iostat=ios) werte(1:4), iwerte(1:3), werte(8), csurf, iwerte(4:6)
+44444 FORMAT(3(1x,f14.6,1x ),4x,f10.6,1x ,i8, 1x , I8, 1x , I8,2x  , F10.6,2x  ,A1,3(2x  ,I3))
+      if(ios/=0) then
+         ier_num = -49 ! 
+         ier_typ = ER_APPL
+         ier_msg(1) = 'File format specified as numbers only'
+         ier_msg(2) = 'Check atom line starting with '
+         ier_msg(3)(1:40) = line(1:40)
+         return
+      endif
+      werte( 5: 7) = real(iwerte(1:3),kind=PREC_DP)
+      select case(csurf)
+         case('_')
+            werte(9) = 0.0D0
+         case('P')
+            werte(9) = 1.0D0
+         case('S')
+            werte(9) = 2.0D0
+         case('Y')
+            werte(9) = 3.0D0
+         case('E')
+            werte(9) = 4.0D0
+         case('C')
+            werte(9) = 5.0D0
+         case('L')
+            werte(9) = 6.0D0
+         case('T')
+            werte(9) = 7.0D0
+         case default
+      end select
+      werte(10:12) = real(iwerte(4:6),kind=PREC_DP)
+   endif
+else if_number                                               ! Might contain variables
 !
 if_style: if(at_style==AT_COMMA) then             ! x,y,z,B, ...
    cpara((COL_PROPERTY)) = '1.0D0'
@@ -375,14 +433,17 @@ if_style: if(at_style==AT_COMMA) then             ! x,y,z,B, ...
    else
       exit if_style
    endif got_params
-elseif(at_style==AT_XYZB) then              ! x y z B no comma
-   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 4)
-elseif(at_style==AT_XYZ) then    if_style         ! x y z   no comma
-   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 3)
-elseif(at_style==AT_XYZBP) then  if_style         ! x y z B P   no comma
-   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 5)
 else                             if_style
+    if(at_vals==AT_XYZB) then              ! x y z B no comma
+   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 4)
+   elseif(at_vals==AT_XYZ) then!   if_style         ! x y z   no comma
+   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 3)
+   elseif(at_vals==AT_XYZBP) then! if_style         ! x y z B P   no comma
+   read(line(ibl:length), *, iostat=ios) (werte(j), j = 1, 5)
+   endif
+!else                             if_style
 endif   if_style
+endif if_number
 at_natoms = at_natoms + 1
 at_names(at_natoms) = line(1:ibl-1)
 at_values(:,at_natoms) = werte
