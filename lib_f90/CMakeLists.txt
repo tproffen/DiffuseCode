@@ -13,13 +13,13 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               do_string_alloc_mod.f90 do_variable_mod.f90 do_wait_mod.f90
               element_data_mod.f90
               errlist.f90 ersetz_mod.f90 ersetzl_mod.f90 exit_mod.f90 exit_para.f90
-              fast_fourier_mod.f90 fftpack6.0.f90 fft_singleton.f90
+              fast_fourier_mod.f90
               fput_mod.f90 help.f90 jsu_readline.f90 kdo_all_mod.f90 learn.f90 
               gauss_lorentz_pseudo.f90
               gamma_mod.f90 gaussj_mod.f90 gen_mpi_mod.f90 global_data.f90
               hdf5_def.f90 
-              length_string_mod.f90 lib_f90_config.f90 lib_get_var_type.f90 
-              lib_math.f90 lib_f90_profile.f90 lib_weights.f90
+              length_string_mod.f90 lib_f90_config.f90 lib_f90_fftw3.f90 lib_get_var_type.f90 
+              lib_math.f90 lib_metric.f90 lib_f90_profile.f90 lib_trans.f90 lib_weights.f90
               lib_upd_mod.f90 
               macro.f90  matrix_mod.f90 map_1dtofield.f90 
               mrc_data.f90
@@ -98,6 +98,8 @@ else (DIFFUSE_HDF5)
   set (FSOURCES ${FSOURCES} hdf_write_no.f90 hdf5_params_no.f90)
   message (LIB_F90 " HDF5 is OFF ${DIFFUSE_HDF5} ")
 endif ()
+
+include_directories(${FFTW_INCLUDE_DIRS})
 
 
 # This macro modified from http://www.cmake.org/pipermail/cmake/2010-November/041034.html
