@@ -1,4 +1,10 @@
-6.13.00  DRAFT
+6.13.01  DRAFT
+
+DISCUS
+  save/read   Added a format specifier. Files with this format can be read much faster
+  fourier     BUG FIX for grid that did not include 0,0,0 in reciprocal space, the phase
+              of data points was off by half a grid point.
+6.13.00  RELEASE 2022_12_19
 
 DISCUS
   mmc         Added an option to control amount of output during / after mmc loop
