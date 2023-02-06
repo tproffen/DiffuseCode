@@ -1499,4 +1499,78 @@ USE support_mod
 !
 !*******************************************************************************
 !
+subroutine get_aver_angle(idim, ik, werte)
+!-
+!  Calculate aver for global 3D data set 
+!+
+!
+use kuplot_mod
+!
+use errlist_mod
+use lib_data_struc_h5
+use lib_metric_mod
+use matrix_mod
+use precision_mod
+!
+implicit none
+!
+integer                            , intent(in)    :: idim
+integer                            , intent(in)    :: ik
+real(kind=PREC_DP), dimension(idim), intent(inout) :: werte   ! IN: data number; OUT: aver
+!
+integer                            :: node_number  ! Global Data node number
+logical                            :: is_direct    ! Direct or reciprocal space
+integer           , dimension(3)   :: inc          ! Number data points along the three axes
+logical                            :: ltop         ! top vector exists for 3D data
+real(kind=PREC_DP), dimension(6)   :: lattice      ! Lattice parameters
+real(kind=PREC_DP), dimension(3,3) :: gten         ! metric tensot     
+real(kind=PREC_DP), dimension(3,3) :: rten         ! reciprocal metric tensor
+real(kind=PREC_DP), dimension(3,3) :: vi           ! Vectors along the three axes
+real(kind=PREC_DP), DIMENSION(3)   ::  length
+real(kind=PREC_DP)            ::  angle_vh
+real(kind=PREC_DP)            ::  ratio_vh
+real(kind=PREC_DP)            ::   aver_vh
+real(kind=PREC_DP)            ::  angle_ht
+real(kind=PREC_DP)            ::  ratio_ht
+real(kind=PREC_DP)            ::   aver_ht
+real(kind=PREC_DP)            ::  angle_tv
+real(kind=PREC_DP)            ::  ratio_tv
+real(kind=PREC_DP)            ::   aver_tv
+!
+!
+ltop = .false.
+if(ik>0 .and. ik<iz) then
+   call dgl5_set_pointer(ik , ier_num, ier_typ, node_number)
+   if(ier_num /= 0) return
+   if(dgl5_get_ndims()==3) ltop = .true.
+   is_direct = dgl5_get_direct()
+   call dgl5_get_lattice(ik, lattice)
+   call lib_tensor(gten, lattice(1:3), lattice(4:6))
+   call matinv(gten, rten)
+   call dgl5_get_dims(ik, inc)
+   call dgl5_get_steps(ik, vi)
+   if(is_direct) then
+      call lib_angles(ltop, length, &
+               angle_vh, ratio_vh, aver_vh, &
+               angle_ht, ratio_ht, aver_ht, &
+               angle_tv, ratio_tv, aver_tv, &
+               gten, inc, vi)
+   else
+      call lib_angles(ltop, length, &
+               angle_vh, ratio_vh, aver_vh, &
+               angle_ht, ratio_ht, aver_ht, &
+               angle_tv, ratio_tv, aver_tv, &
+               rten, inc, vi)
+   endif
+   werte(1) = aver_vh
+   werte(2) = angle_vh
+else
+   ier_num = -4
+   ier_num = ER_APPL
+endif
+!
+end subroutine get_aver_angle
+!
+!*******************************************************************************
+!
 end module kuplot_para_mod
