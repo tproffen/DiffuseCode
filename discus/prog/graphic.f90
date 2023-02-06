@@ -50,6 +50,8 @@ USE sup_mod
 USE support_mod
 !
 use fourier_sup
+!
+use lib_trans_mod
 !                                                                       
 IMPLICIT none 
 LOGICAL, INTENT(IN) :: linverse
@@ -82,8 +84,14 @@ REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
 REAL(KIND=PREC_DP), DIMENSION(:,:,:), allocatable :: qvalues
 REAL(KIND=PREC_DP)                  :: valmax
 REAL(KIND=PREC_DP)                  ::  dsmax = 0.0
+!                                                                          ! All new are dummy, not used in output menu
+character(len=PREC_STRING)                                :: new_outfile   ! New file name  from transformed HDF5 data
+integer                   , dimension(3)                  :: new_inc       ! New dimensions from transformed HDF5 data
+real(kind=PREC_DP)        , dimension(3,4)                :: new_eck       ! New corners    from transformed HDF5 data
+real(kind=PREC_DP)        , dimension(3,3)                :: new_vi        ! New vectors    from transformed HDF5 data
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: new_qvalues   ! New data       from transformed HDF5 data
 ! 
-INTEGER, PARAMETER :: NOPTIONAL = 9
+INTEGER, PARAMETER :: NOPTIONAL = 10
 INTEGER, PARAMETER :: O_MAXVAL  = 1                  ! Current SCALE for maxvalue
 INTEGER, PARAMETER :: O_DSMAX   = 2                  ! Maximum d-star
 INTEGER, PARAMETER :: O_QMAX    = 3                  ! Maximum Q
@@ -93,6 +101,7 @@ INTEGER, PARAMETER :: O_SPATT   = 6                  ! Optional Patteron overlay
 INTEGER, PARAMETER :: O_DPATT   = 7                  ! Optional Patteron overlay for Vesta
 INTEGER, PARAMETER :: O_MODE    = 8                  ! Mode if written into KUPLOT
 INTEGER, PARAMETER :: O_SHARP   = 9                  ! 3D-PDF type normal/sharpened
+INTEGER, PARAMETER :: O_TRANS   = 10                 ! Transform 3D data into different orientation
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 character(len=8)                          :: cpatt   ! Optional patterson overlay
 character(len=PREC_STRING)                :: spatt   ! Atoms selected for Patterson overlay
@@ -104,9 +113,10 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
 integer, parameter, dimension(3) :: nxyzstart = (/0,0,0/)
+!
 !                                                                       
-DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax', 'patt'  ,'sel', 'des', 'mode', 'type' /
-DATA loname /  6      ,  5      ,  4      ,  6      ,  4      , 3   ,  3   ,  4    ,  4     /
+DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax', 'patt'  ,'sel', 'des', 'mode', 'type','trans' /
+DATA loname /  6      ,  5      ,  4      ,  6      ,  4      , 3   ,  3   ,  4    ,  4    , 5      /
 DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
                 'Portable Any Map', 'Powder Pattern', 'SHELX',          &
                 'SHELXL List 5', 'SHELXL List 5 real HKL' ,             &
@@ -122,9 +132,9 @@ DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
 DATA value / 1 / 
 DATA laver / .false. / 
 !
-opara  = (/'data  ', '0.00  ', '0.00  ', '0.00  ', 'none  ', 'all   ', 'none  ', 'new   ', 'normal' /)
-lopara = (/  4     ,  5      ,  4      ,  6      ,  6      ,  3      ,  4      ,  3      ,  6       /)
-owerte = (/ -1.000 ,  0.000  ,  0.000  ,  0.000  ,  0.00   ,  0.000  ,  0.000  ,  0.00   ,  0.00    /)
+opara  = (/'data  ', '0.00  ', '0.00  ', '0.00  ', 'none  ', 'all   ', 'none  ', 'new   ', 'normal' , 'no    '/)
+lopara = (/  4     ,  5      ,  4      ,  6      ,  6      ,  3      ,  4      ,  3      ,  6       ,  2      /)
+owerte = (/ -1.000 ,  0.000  ,  0.000  ,  0.000  ,  0.00   ,  0.000  ,  0.000  ,  0.00   ,  0.00    ,  0.0    /)
 zmin = ps_low * diffumax 
 zmax = ps_high * diffumax 
 orig_prompt = prompt
@@ -459,7 +469,7 @@ main_if: IF (ier_num.eq.0) THEN
                   ier_num = -180
                   ier_typ = ER_APPL
                   ier_msg(1) = 'No Fourier has been calculated '
-                  ier_msg(2) = 'or 3d-PDF has been written since last calculation'
+                  ier_msg(2) = 'or 3D-PDF has been written since last calculation'
                   return
                endif
                dsi = dsi3d
@@ -527,7 +537,7 @@ endif
                     out_inc, 2, nxyzstart, cr_ar, cr_wrez, extr_abs, extr_ord,   &
                     extr_top, qvalues                                            &
                     )
-            ELSEIF (ityp.eq.13) THEN
+            ELSEIF (ityp.eq.13) THEN                           ! HDF5 output
                if(allocated(qvalues)) deallocate(qvalues)
                allocate(qvalues(out_inc(1), out_inc(2), out_inc(3)))
                l = 0                                                       ! Copy proper "value"
@@ -539,9 +549,23 @@ endif
                      ENDDO
                   ENDDO
                ENDDO
-               CALL gen_hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
-                       cr_a0, cr_win, qvalues,val_pdf, val_3Dpdf, valmax,           &
-                       ier_num, ier_typ, ER_IO, ER_APPL)
+               CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
+               IF (ier_num.eq.0) THEN 
+               CALL get_optional(ianz, MAXP, cpara, lpara, NOPTIONAL,  ncalc, &
+                                 oname, loname, opara, lopara, lpresent, owerte)
+               if(lpresent(O_TRANS) .and.                                       &
+                  str_comp(opara(O_TRANS), 'yes', 3, lopara(O_trans),3)) then
+
+                  call lib_trans_menu(-1, value, laver, 'new_'//outfile, out_inc, out_eck, out_vi,            &
+                       cr_a0, cr_win, qvalues,VAL_PDF, VAL_3DPDF,       &
+                       new_outfile, new_inc, new_eck, new_vi, new_qvalues)
+!
+               else
+                  CALL gen_hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
+                          cr_a0, cr_win, qvalues,val_pdf, val_3Dpdf, valmax,            &
+                          ier_num, ier_typ, ER_IO, ER_APPL)
+               endif
+               endif
                deallocate(qvalues)
 !              CALL hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
 !                      cr_a0, cr_win, qval,val_pdf, val_3Dpdf, valmax,           &
@@ -2007,7 +2031,6 @@ isdim = 3
 IF(num(1)==1) isdim = isdim - 1
 IF(num(2)==1) isdim = isdim - 1
 IF(num(3)==1) isdim = isdim - 1
-!write(*,*) ' IN out_prep_3dpdf', num, isdim
 !read(*,*) i
 IF(isdim==1) THEN
    CALL out_prep_3dpdf_1d(laver, dsort)
@@ -2025,8 +2048,8 @@ ENDIF
 !write(*,*) ' vi   ', vi(:,3)
 DO i = 1, 3
    u(1) = INT((num(1)-1))*1.00D0*vi(1,i)
-   u(2) = INT((num(1)-1))*1.00D0*vi(2,i)
-   u(3) = INT((num(1)-1))*1.00D0*vi(3,i)
+   u(2) = INT((num(2)-1))*1.00D0*vi(2,i)
+   u(3) = INT((num(3)-1))*1.00D0*vi(3,i)
    uu = skalpro (u, u, cr_rten)
    IF( uu > 0.0) THEN
       WRITE(string,'(2(F16.9,'',''), F16.9)') u
@@ -2070,10 +2093,9 @@ SUBROUTINE out_prep_3dpdf_1d(laver, dsort)
 USE diffuse_mod
 !
 USE errlist_mod
-!USE fftpack_mod
 USE precision_mod
-USE singleton
 USE map_1dtofield
+use lib_f90_fftw3
 !
 IMPLICIT NONE
 !
@@ -2081,17 +2103,27 @@ LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !integer :: i
 !
-COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:), ALLOCATABLE  :: pattern  ! the diffraction pattern
+!COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:), ALLOCATABLE  :: pattern  ! the diffraction pattern
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:), ALLOCATABLE  :: in_pattern  ! the diffraction pattern
+COMPLEX(KIND=C_DOUBLE_COMPLEX) , DIMENSION(:), ALLOCATABLE  ::out_pattern  ! the diffraction pattern
+type(c_ptr) :: plan    ! FFWT3 plan
 !
-ALLOCATE(pattern(num(dsort(1))))
+ALLOCATE(in_pattern(num(dsort(1))))
+ALLOCATE(out_pattern(num(dsort(1))))
 !
-CALL maptofftfd(num, dsort, dsi, pattern)
+CALL maptofftfd(num, dsort, dsi, in_pattern)
 !
-pattern = fft(pattern) / SQRT(REAL(num(1)))
+!pattern = fft(pattern) / SQRT(REAL(num(1)))
 !
-CALL mapfftfdtoline(num, dsort, rpdf, pattern)
+plan = fftw_plan_dft_1d(num(1)        , in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
+call   fftw_execute_dft(plan, in_pattern, out_pattern)
+call   fftw_destroy_plan(plan)
 !
-DEALLOCATE(pattern)
+!
+CALL mapfftfdtoline(num, dsort, rpdf, out_pattern)
+!
+DEALLOCATE( in_pattern)
+DEALLOCATE(out_pattern)
 !
 END SUBROUTINE out_prep_3dpdf_1d
 !
@@ -2100,38 +2132,39 @@ END SUBROUTINE out_prep_3dpdf_1d
 SUBROUTINE out_prep_3dpdf_2d(laver, dsort)
 !-
 !  Calculate the 3DPDF value via FFT
+!  Uses FFTW3 library
 !+
 !
 USE diffuse_mod
 !
 USE errlist_mod
-!USE fftpack_mod
 USE precision_mod
-USE singleton
 USE map_1dtofield
 use lib_f90_profile
+use lib_f90_fftw3
 !
 IMPLICIT NONE
 !
 LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
-COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
-!real(kind=PREC_DP) :: dx
-!real(kind=PREC_DP) :: dy
-!real(kind=PREC_DP) :: tx
-!real(kind=PREC_DP) :: ty
-!integer::  i,j
+COMPLEX(KIND=C_DOUBLE_COMPLEX)  , DIMENSION(:,:), ALLOCATABLE  :: in_pattern  ! the diffraction pattern!
+COMPLEX(KIND=C_DOUBLE_COMPLEX)  , DIMENSION(:,:), ALLOCATABLE  :: out_pattern  ! the diffraction pattern!
+type(c_ptr) :: plan    ! FFWT3 plan
 !
-ALLOCATE(pattern(num(dsort(1)), num(dsort(2)) ))
+ALLOCATE( in_pattern(num(dsort(1)) , num(dsort(2)) ))
+ALLOCATE( out_pattern(num(dsort(1)), num(dsort(2)) ))
 !
-CALL maptofftfd(num, dsort, dsi, pattern)
+CALL maptofftfd(num, dsort, dsi, in_pattern)
 !
-pattern = fft(pattern) / SQRT(REAL(num(1)*num(2)))
+plan = fftw_plan_dft_2d(num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
+call   fftw_execute_dft(plan, in_pattern, out_pattern)
+call   fftw_destroy_plan(plan)
 !
-CALL mapfftfdtoline(num, dsort, rpdf, pattern)
+CALL mapfftfdtoline(num, dsort, rpdf, out_pattern)
 !
-DEALLOCATE(pattern)
+DEALLOCATE(in_pattern)
+DEALLOCATE(out_pattern)
 !
 END SUBROUTINE out_prep_3dpdf_2d
 !
@@ -2145,47 +2178,35 @@ SUBROUTINE out_prep_3dpdf_3d(laver, dsort)
 USE diffuse_mod
 !
 USE errlist_mod
-!USE fftpack_mod
 USE precision_mod
-USE singleton
 USE map_1dtofield
+use lib_f90_fftw3
 !
 IMPLICIT NONE
 !
 LOGICAL              , INTENT(IN) :: laver
 INTEGER, DIMENSION(3), INTENT(IN) :: dsort
 !
-COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
-!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: work   ! temporary array
-!REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: wsave  ! temporary array
-!REAL(KIND=PREC_DP) :: f
-!INTEGER                 :: lenwrk   ! Length of work array
-!INTEGER                 :: lensav   ! Length of wsave array
-!INTEGER :: n1, n2
-!INTEGER :: dimen
+!COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: pattern  ! the diffraction pattern
+COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  ::  in_pattern  ! the diffraction pattern
+COMPLEX(KIND=KIND(0.0D0)) , DIMENSION(:,:,:), ALLOCATABLE  :: out_pattern  ! the diffraction pattern
+type(c_ptr) :: plan    ! FFWT3 plan
 !
-!dimen = MAX(num(1), num(2), num(3))
-!n1 = dimen
-!n2 = dimen
-!lenwrk = 2*n1*n2
-!lensav = 2*(n1*n2) + INT(LOG(REAL(n1))/LOG( 2.0E+00 ))       &
-!                   + INT(LOG(REAL(n2))/LOG( 2.0E+00 )) + 8.
+ALLOCATE( in_pattern(num(dsort(1)), num(dsort(2)), num(dsort(3))))
+ALLOCATE(out_pattern(num(dsort(1)), num(dsort(2)), num(dsort(3))))
 !
-ALLOCATE(pattern(num(dsort(1)), num(dsort(2)), num(dsort(3))))
-!ALLOCATE(work(1:lenwrk))
-!ALLOCATE(wsave(1:lensav))
+CALL maptofftfd(num, dsort, dsi, in_pattern)
 !
-CALL maptofftfd(num, dsort, dsi, pattern)
+plan = fftw_plan_dft_3d(num(dsort(3)), num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
+call   fftw_execute_dft(plan, in_pattern, out_pattern)
+call   fftw_destroy_plan(plan)
 !
-!CALL cfft2i (n1, n2, wsave, lensav, ier_num ) ! Initialize wsave
-!CALL cfft2f ( dimen, n1, n2, pattern, wsave, lensav, work, lenwrk, ier_num )
-pattern = fft(pattern) / SQRT(REAL(num(1)*num(2)*num(3)))
+!pattern = fft(pattern) / SQRT(REAL(num(1)*num(2)*num(3)))
 !
-CALL mapfftfdtoline(num, dsort, rpdf, pattern)
+CALL mapfftfdtoline(num, dsort, rpdf, out_pattern)
 !
-DEALLOCATE(pattern)
-!DEALLOCATE(work)
-!DEALLOCATE(wsave)
+DEALLOCATE( in_pattern)
+DEALLOCATE(out_pattern)
 !
 END SUBROUTINE out_prep_3dpdf_3d
 !
