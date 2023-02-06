@@ -39,7 +39,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 6)
 set (DIFFUSE_VERSION_MINOR 13)
-set (DIFFUSE_VERSION_PATCH 00)
+set (DIFFUSE_VERSION_PATCH 01)
 
 # Readline required for all programs
 
@@ -47,6 +47,8 @@ find_package(Readline REQUIRED)
 find_package(X11 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(FFTW REQUIRED)
+find_package(FINUFFT REQUIRED)
 
 option(DISCUS_OMP    "Switch for compiling DISCUS_SUITE with OpenMP" ON)
 if (DISCUS_OMP)
@@ -126,7 +128,8 @@ endif ()
 
 # Set common libraries
 
-set (DIFFUSE_LIBS ${READLINE_LIBRARY})
+set (DIFFUSE_LIBS ${READLINE_LIBRARY}  ${FINUFFT_LIB})
+set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ${FFTW_DOUBLE_LIB} ${FFTW_DOUBLE_OPENMP_LIB} )
 
 # Set Compiler Flags
 
