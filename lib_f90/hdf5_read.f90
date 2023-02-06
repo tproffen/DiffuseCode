@@ -48,22 +48,24 @@ CONTAINS
 !
 !*******************************************************************************
 !
-SUBROUTINE hdf5_read(infile, length, O_LAYER, NOPTIONAL, opara, lopara,         &
+SUBROUTINE hdf5_read(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte,               &
                      node_number, nndims, dims, &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !
-USE hdf5
-USE iso_c_binding
+use hdf5
+use iso_c_binding
 !
-USE ber_params_mod
+use ber_params_mod
+use lib_trans_mod
 use precision_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=1024), INTENT(IN) :: infile
+CHARACTER(LEN=1024), INTENT(INOUT) :: infile
 INTEGER            , INTENT(IN) :: length
-INTEGER            , INTENT(IN) :: O_LAYER
+INTEGER            , INTENT(IN) :: O_LAYER    ! Number optional parameter "layer:"
+INTEGER            , INTENT(IN) :: O_TRANS    ! Number optional parameter "trans:"
 INTEGER            , INTENT(IN) :: NOPTIONAL
 CHARACTER(LEN=*)   , DIMENSION(NOPTIONAL), INTENT(IN) :: opara
 INTEGER            , DIMENSION(NOPTIONAL), INTENT(IN) :: lopara
@@ -114,6 +116,31 @@ INTEGER                   , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP)        , DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP)        , DIMENSION(3)    :: steps     ! dummy steps in H, K, L
 INTEGER :: i,j,k                    ! Dummy loop indices
+!
+integer, parameter :: VAL_PDF   = 14
+integer, parameter :: VAL_3DPDF = 15
+integer :: value  ! Intensity = 1; VAL_PDF or VAL_3DPDF
+!
+!                                                                          ! If data are transformed upon input use "new"
+character(len=PREC_STRING)                                :: new_outfile   ! New file name  from transformed HDF5 data
+integer                   , dimension(3)                  :: new_inc       ! New dimensions from transformed HDF5 data
+real(kind=PREC_DP)        , dimension(3,4)                :: new_eck       ! New corners    from transformed HDF5 data
+real(kind=PREC_DP)        , dimension(3,3)                :: new_vi        ! New vectors    from transformed HDF5 data
+real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: new_data      ! New data       from transformed HDF5 data
+!
+! Make sure all old data are gone
+!
+if(allocated(h5_datasets)) deallocate(h5_datasets)
+if(allocated(h5_data)) deallocate(h5_data)
+if(allocated(d5_data)) deallocate(d5_data)
+if(allocated(h5_sigma)) deallocate(h5_sigma)
+if(allocated(d5_sigma)) deallocate(d5_sigma)
+if(allocated(h5_x)) deallocate(h5_x)
+if(allocated(h5_y)) deallocate(h5_y)
+if(allocated(h5_z)) deallocate(h5_z)
+if(allocated(h5_dx)) deallocate(h5_dx)
+if(allocated(h5_dy)) deallocate(h5_dy)
+if(allocated(h5_dz)) deallocate(h5_dz)
 !
 h5_infile = infile
 dataname = ' '
@@ -391,24 +418,6 @@ d5_dims(3) = int(h5_dims(1))
 h5_is_grid  = .true.
 h5_has_dxyz = .false.
 h5_has_dval = .false.
-allocate(h5_x(1:d5_dims(1)))
-allocate(h5_y(1:d5_dims(2)))
-allocate(h5_z(1:d5_dims(3)))
-allocate(h5_dx(1:d5_dims(1)))
-allocate(h5_dy(1:d5_dims(2)))
-allocate(h5_dz(1:d5_dims(3)))
-h5_dx = 0.0D0
-h5_dy = 0.0D0
-h5_dz = 0.0D0
-do i=1, d5_dims(1)
-  h5_x(i) = h5_llims(1) + (i-1)*h5_steps_full(1,1)
-enddo
-do i=1, d5_dims(2)
-  h5_y(i) = h5_llims(2) + (i-1)*h5_steps_full(2,2)
-enddo
-do i=1, d5_dims(3)
-  h5_z(i) = h5_llims(3) + (i-1)*h5_steps_full(3,3)
-enddo
 !
 allocate(d5_data(d5_dims(1), d5_dims(2), d5_dims(3)))
 do i=1, d5_dims(1)
@@ -434,6 +443,52 @@ h5_corners(:,1) = h5_llims                                          ! Lower left
 h5_corners(:,2) = h5_corners(:,1) + (h5_dims(1)-1)* h5_vectors(:,1)   ! Lower right
 h5_corners(:,3) = h5_corners(:,1) + (h5_dims(2)-1)* h5_vectors(:,2)   ! Upper left
 h5_corners(:,4) = h5_corners(:,1) + (h5_dims(3)-1)* h5_vectors(:,3)   ! Top left
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! If requested transform into new orientation
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+if(opara(O_TRANS)=='yes') then    ! Transform into different orientation
+   value = 1                      ! Assume Intensity in reciprocal space
+   if(h5_direct) value = VAL_PDF  ! Direct space 
+   call lib_trans_menu(0, value, .false., h5_infile, d5_dims, h5_corners, h5_vectors, h5_unit(1:3),    &
+           h5_unit(4:6), d5_data, VAL_PDF, VAL_3DPDF , &
+        new_outfile, new_inc, new_eck, new_vi, new_data)
+   deallocate(d5_data)
+   if(ier_num/=0) then
+!
+      if(allocated(h5_datasets)) deallocate(h5_datasets)
+      if(allocated(h5_data)) deallocate(h5_data)
+      if(allocated(d5_data)) deallocate(d5_data)
+      if(allocated(h5_sigma)) deallocate(h5_sigma)
+      if(allocated(d5_sigma)) deallocate(d5_sigma)
+      if(allocated(h5_x)) deallocate(h5_x)
+      if(allocated(h5_y)) deallocate(h5_y)
+      if(allocated(h5_z)) deallocate(h5_z)
+      if(allocated(h5_dx)) deallocate(h5_dx)
+      if(allocated(h5_dy)) deallocate(h5_dy)
+      if(allocated(h5_dz)) deallocate(h5_dz)
+      if(allocated(new_data)) deallocate(new_data)
+      return
+   endif
+   h5_infile     = new_outfile
+      infile     = new_outfile
+   h5_llims(1)   = new_eck(1,1)
+   h5_llims(2)   = new_eck(2,1)
+   h5_llims(3)   = new_eck(3,1)
+   h5_dims       = new_inc
+   d5_dims       = new_inc
+   h5_corners    = new_eck
+   h5_vectors    = new_vi
+   h5_steps_full = new_vi
+   h5_steps(1)   = new_vi(1,1)
+   h5_steps(2)   = new_vi(2,2)
+   h5_steps(3)   = new_vi(3,3)
+   allocate(d5_data(d5_dims(1), d5_dims(2), d5_dims(3)))
+   d5_data       = new_data
+   deallocate(new_data)
+   if(allocated(d5_sigma)) deallocate(d5_sigma)
+   allocate(d5_sigma(d5_dims(1), d5_dims(2), d5_dims(3)))
+   d5_sigma = 0.0    ! Currently sigmas are not treated properly
+endif
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Copy into KUPLOT array
@@ -442,9 +497,9 @@ h5_corners(:,4) = h5_corners(:,1) + (h5_dims(3)-1)* h5_vectors(:,3)   ! Top left
 IF(opara(O_LAYER)=='bottom') THEN
    h5_layer = 1
 ELSEIF(opara(O_LAYER)=='middle') THEN
-   h5_layer = INT((h5_dims(1)+1)/2)
+   h5_layer = INT((h5_dims(3)+1)/2)
 ELSEIF(opara(O_LAYER)=='top') THEN
-   h5_layer = h5_dims(1)
+   h5_layer = h5_dims(3)
 ELSE
    cpara(1) = opara(O_LAYER)
    lpara(1) = lopara(O_LAYER)
@@ -463,6 +518,25 @@ ELSE
       ier_msg(2) = 'FILE '//h5_infile (1:LEN(ier_msg)-5)
    ENDIF
 ENDIF
+!
+allocate(h5_x(1:d5_dims(1)))
+allocate(h5_y(1:d5_dims(2)))
+allocate(h5_z(1:d5_dims(3)))
+allocate(h5_dx(1:d5_dims(1)))
+allocate(h5_dy(1:d5_dims(2)))
+allocate(h5_dz(1:d5_dims(3)))
+h5_dx = 0.0D0
+h5_dy = 0.0D0
+h5_dz = 0.0D0
+do i=1, d5_dims(1)
+  h5_x(i) = h5_llims(1) + (i-1)*h5_steps_full(1,1)
+enddo
+do i=1, d5_dims(2)
+  h5_y(i) = h5_llims(2) + (i-1)*h5_steps_full(2,2)
+enddo
+do i=1, d5_dims(3)
+  h5_z(i) = h5_llims(3) + (i-1)*h5_steps_full(3,3)
+enddo
 !
 if(ier_num==0) then
 !
@@ -483,17 +557,17 @@ else
    dims  = 0
 endif
 !
-DEALLOCATE(h5_datasets)
-DEALLOCATE(h5_data)
-DEALLOCATE(d5_data)
+if(allocated(h5_datasets)) deallocate(h5_datasets)
+if(allocated(h5_data)) deallocate(h5_data)
+if(allocated(d5_data)) deallocate(d5_data)
 if(allocated(h5_sigma)) deallocate(h5_sigma)
 if(allocated(d5_sigma)) deallocate(d5_sigma)
-deallocate(h5_x)
-deallocate(h5_y)
-deallocate(h5_z)
-deallocate(h5_dx)
-deallocate(h5_dy)
-deallocate(h5_dz)
+if(allocated(h5_x)) deallocate(h5_x)
+if(allocated(h5_y)) deallocate(h5_y)
+if(allocated(h5_z)) deallocate(h5_z)
+if(allocated(h5_dx)) deallocate(h5_dx)
+if(allocated(h5_dy)) deallocate(h5_dy)
+if(allocated(h5_dz)) deallocate(h5_dz)
 !
 END SUBROUTINE hdf5_read
 !
