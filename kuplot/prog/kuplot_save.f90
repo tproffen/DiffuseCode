@@ -900,6 +900,7 @@ REAL :: rdx, rdy
 REAL :: xsteig, xabsch, xanf, xend, xdel 
 REAL :: xxx, yyy, zzz, dzzz 
 REAL :: wx_min, wx_max, wy_min, wy_max 
+real(kind=PREC_DP) :: TOL    ! Tolerance at xmin,xmax... set to 0.1*x(2)-x(1)
 logical                              :: hh5_laver
 real(kind=PREC_DP)                   :: hh5_valmax
 integer                              :: hh5_value
@@ -926,9 +927,20 @@ endif
 !                                                                       
 if(form(1:2) /= 'H5') CALL oeffne (isa, filname, 'unknown') 
 IF (ier_num.ne.0) return 
+!
+! Tolerance as 1/10 of step width
+TOL = abs(x(offxy(ik - 1) + 2) - x(offxy(ik - 1) + 1))*0.1D0
 !                                                                       
 !-------xy-kurve abspeichern                                            
 !                                                                       
+!write(*,*) ' KSAV ', form(1:2), lni(ik), lh5(ik), epsilon(x), epsilon(werte)
+!write(*,*) ' LENC ', lenc(ik), werte(1), werte(2)
+!i = 1
+!write(*,*) ' x(1) ', x(offxy(ik - 1) + i), x(offxy(ik - 1) + i)-werte(1), x(offxy(ik - 1) + i) .ge. werte(1), &
+!x(offxy(ik - 1) + i)-werte(1)>-TOL
+!i = lenc(ik)
+!write(*,*) ' x(1) ', x(offxy(ik - 1) + i), werte(2)-x(offxy(ik - 1) + i), x(offxy(ik - 1) + i) .le. werte(2), &
+!x(offxy(ik - 1) + i)-werte(2)<TOL
 IF (form (1:2) .eq.'XY'.and..not.lni (ik) ) then 
    WRITE (isa, 3000) titel (iwin, iframe, 1) (1:len_str (titel (  &
          iwin, iframe, 1) ) )                                           
@@ -936,13 +948,15 @@ IF (form (1:2) .eq.'XY'.and..not.lni (ik) ) then
          iwin, iframe, 2) ) )                                           
    IF(l_two_col) THEN
       DO i = 1, lenc(ik) 
-         IF(x(offxy(ik - 1) + i) .ge. werte(1) .and. x(offxy(ik - 1) + i) .le.werte(2) ) then
+!        IF(x(offxy(ik - 1) + i) .ge. werte(1) .and. x(offxy(ik - 1) + i) .le.werte(2) ) then
+         if(x(offxy(ik - 1) + i)-werte(1)>-TOL .and. x(offxy(ik - 1) + i)-werte(2)<TOL) then
             WRITE(isa, 4000) x(offxy(ik - 1) + i), y(offxy(ik - 1) + i)
          ENDIF 
       ENDDO 
    ELSE
       DO i = 1, lenc(ik) 
-         IF(x(offxy(ik - 1) + i) .ge. werte(1) .and. x(offxy(ik - 1) + i) .le. werte(2)) then
+!        IF(x(offxy(ik - 1) + i) .ge. werte(1) .and. x(offxy(ik - 1) + i) .le. werte(2)) then
+         if(x(offxy(ik - 1) + i)-werte(1)>-TOL .and. x(offxy(ik - 1) + i)-werte(2)<TOL) then
             WRITE(isa, 4000) x (offxy(ik - 1) + i), y (offxy(ik - 1) + i), & 
                              dx(offxy(ik - 1) + i), dy(offxy(ik - 1) + i)      
          ENDIF 
@@ -953,7 +967,8 @@ ELSEIF (form (1:2) .eq.'DY'.and..not.lni (ik) ) then
    WRITE(isa, 3000) titel(iwin, iframe, 1)(1:len_str(titel(iwin, iframe, 1)))
    WRITE(isa, 3000) titel(iwin, iframe, 2)(1:len_str(titel(iwin, iframe, 2)))
    DO i = 1, lenc(ik) 
-      IF(x(offxy(ik - 1) + i) .ge. werte(1) .and. x(offxy(ik - 1) + i) .le. werte(2)) then
+!     IF(x(offxy(ik - 1) + i) .ge. werte(1) .and. x(offxy(ik - 1) + i) .le. werte(2)) then
+      if(x(offxy(ik - 1) + i)-werte(1)>-TOL .and. x(offxy(ik - 1) + i)-werte(2)<TOL) then
          WRITE(isa, 4000) x(offxy (ik - 1) + i), y(offxy(ik - 1) + i),          &
                           dy(offxy (ik - 1) + i)
       ENDIF 
