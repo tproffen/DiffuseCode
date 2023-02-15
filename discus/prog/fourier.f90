@@ -87,11 +87,12 @@ IMPLICIT none
       REAL(kind=PREC_DP)   , DIMENSION(3)::  divis
       REAL(kind=PREC_DP)   , DIMENSION(3)::  rhkl
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 3
+INTEGER, PARAMETER :: NOPTIONAL = 4
 INTEGER, PARAMETER :: O_MODE    = 1
 INTEGER, PARAMETER :: O_SYMM    = 2
 INTEGER, PARAMETER :: O_TABLE   = 3
-CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+INTEGER, PARAMETER :: O_TECHN   = 4
+CHARACTER(LEN=   9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -99,11 +100,11 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'mode', 'symm'  , 'table'/
-DATA loname /  4    ,  4      ,  5     /
-opara  =  (/ '0.0000', '0.0000', 'waas  ' /)   ! Always provide fresh default values
-lopara =  (/  6      ,  6      ,  4       /)
-owerte =  (/  0.0    ,  0.0    ,  0.0     /)
+DATA oname  / 'mode', 'symm'  , 'table', 'technique'/
+DATA loname /  4    ,  4      ,  5     ,  9         /
+opara  =  (/ '0.0000', '0.0000', 'waas  ', 'turbo ' /)   ! Always provide fresh default values
+lopara =  (/  6      ,  6      ,  4      ,  5       /)
+owerte =  (/  0.0    ,  0.0    ,  0.0    ,  0.0     /)
 !
 !
 !
@@ -810,6 +811,17 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                     four_symm = .FALSE.
                  ENDIF
               ENDIF
+              if(lpresent(O_TECHN)) then
+                 if(opara(O_TECHN)=='turbo') then
+                    four_tech = FOUR_TURBO
+                 elseif(opara(O_TECHN)=='nufft') then
+                    four_tech = FOUR_NUFFT
+                 else
+                    ier_num = -6
+                    ier_typ = ER_COMM
+                    ier_msg(1) = 'Fourier technique must be ''turbo'' or ''nufft'''
+                 endif
+              endif
               IF(lpresent(O_MODE)) THEN       ! set mode: 
                  IF(opara(O_MODE)=='single') THEN
                     four_accum = 0
@@ -835,7 +847,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                   IF(four_symm) CALL four_accumulate  ! Call to apply symmetry
                  ENDIF
               ENDIF
-                 IF((lpresent(O_MODE) .OR. lpresent(O_SYMM)).AND. ianz==0) THEN
+                 IF((lpresent(O_MODE) .OR. lpresent(O_SYMM) .or. lpresent(O_TECHN)).AND. ianz==0) THEN
                     CONTINUE
                  ELSE
                  IF(ianz.ge.1.and.ianz.le.2) then 
@@ -951,19 +963,19 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 !     Set Fourier technique
 !
-            elseif(str_comp(befehl, 'technique', 4, lbef, 9)) then
-               call get_params (zeile, ianz, cpara, lpara, maxw, lp)
-               if(ianz == 1) then 
-                  if(str_comp(cpara(1), 'turbo', 5, lpara(1), 5)) then
-                     four_tech = FOUR_TURBO
-                  elseif(str_comp(cpara(1), 'nufft', 5, lpara(1), 5)) then
-                     four_tech = FOUR_NUFFT
-                  else
-                     ier_num = - 6
-                     ier_typ = ER_COMM
-                     ier_msg(1) = 'Fourier technique must be ''turbo'' or ''nufft'''
-                  endif
-               endif 
+!           elseif(str_comp(befehl, 'technique', 4, lbef, 9)) then
+!              call get_params (zeile, ianz, cpara, lpara, maxw, lp)
+!              if(ianz == 1) then 
+!                 if(str_comp(cpara(1), 'turbo', 5, lpara(1), 5)) then
+!                    four_tech = FOUR_TURBO
+!                 elseif(str_comp(cpara(1), 'nufft', 5, lpara(1), 5)) then
+!                    four_tech = FOUR_NUFFT
+!                 else
+!                    ier_num = - 6
+!                    ier_typ = ER_COMM
+!                    ier_msg(1) = 'Fourier technique must be ''turbo'' or ''nufft'''
+!                 endif
+!              endif 
 !                                                                       
 !     set the wave length to be used 'wvle'                             
 !                                                                       
