@@ -77,6 +77,51 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2023_February
+   save/read   Added a format specifier. Files with this format can be read much faster
+   fourier     BUG FIX for grid that did not include 0,0,0 in reciprocal space, the phase
+               of data points was off by half a grid point.
+   fourier     Preparation for major update
+   mmc         Added an option to display initial status
+   output      Added an option to transform data upon write
+   read        Added a new optional parameter to offer more detailed
+               control over the assignemnt of atom types
+   stack       BUG FIX, Layers with many different atom types could cause a crash
+3  2023_January
+   mmc         Added an option to control amount of output during / 
+               after mmc loop
+   powder      Added a Pearson Type VII profile function
+   stack       BUG FIX: Improved atom modulo function.
+               Corrected possible crash if 2nd layer had more atoms than previous
+3  2022_November
+   GENERAL     Corrected wave length CuKa1, 2 to 1.54092 and 1.544343 according to
+               Mendenhal et al. J.Physics B (2017), 50, 115004
+               DOI 10.1088/1361-6455/aa6c4a
+   powder      BUG FIX Corrected calculation of S(Q), F(Q), PDF for complete mode
+   powder      BUG FIX Asymmetry correction was permanently off.
+   powder      BUG FIX Kalpha 1/2 correction was slightly off.
+   export      Enforced updatas of crystal dimensions
+3  2022_October
+   stack       BUG FIX Layers with differing chemical composition were not recognized
+3  2022_September
+   stack       BUG FIX Stacking faults with 'create' and no 'run' caused crash, FIXED
+   stack       BUG FIX if modulus was off, yet modulo vector were set, these were
+                   erroneously added to the layers. FIXED
+   stack       Added option to apply the modulo function to atoms as well, creating a
+                   smoother surface
+   plot        BUG FIX Modifies cif file output to adhere to CIF standard, unique atom labels
+                   This caused Jmol versions 14.32.59 and later to make faulty plot.
+   export      BUG FIX Corrected super cell dimensions
+                   Corrected file name for version 7
+                   Corrected internal BUG that prevented multiple use.
+   purge       Improved estimation of crystal size
+   perioditize BUG FIX Correctes estimate of unit cell numbers (y dimension was wrong)
+3  2022_July
+     mmc      BUG FIX, "set disallow, all" did not work
+              Added a new modification mode "swneig" to exchange neighbors
+                    still under development
+              Improved on "coordination number" energy, added this to help
+                    still under development
 3  2022_June
 
    bragg       New command to convert between parameters in Braggs law
@@ -7580,6 +7625,7 @@
 !p       [,"identical:"{"tolerate"|"none"}]
 !p       [,"radius:"<value>]
 !p       [,"occupancy:"{"clear"|"apply"|"ignore"}]
+!p       [,"unique:"{"site"|"name"|"charge"|"biso"|"occ"}]
 
    Reads the contents of a single asymmetric unit from file <name> and
    then generates the unit cell.
@@ -7618,13 +7664,41 @@
    "keep"  The occupancies are kept at the values specified
            in the input file. The actual atom list will be that
            of a fully occupied crystal.
+
+!p       [,"unique:"{"site"|"name"|"charge"|"biso"|"occ"}]
+   This optional parameter defines if atoms are assigned to a new 
+   atom type or are considered uniqe new atom types
+   "site"    With this parameter or without the optional parameter
+             each atom in the input file is treated as a new 
+             atom type.
+   "name"    All atoms, whose elemental symbol are identical are
+             treated as one atom type 
+   "charge"  All atoms, whose elemental symbol and charge (if present)
+             are identical are treated as one atom type 
+   "biso"    In addition to name, charge the B-value must be identical
+   "occ"     In addition to all other the occupancies must be identical
 3  lcell
 !p lcell <name> [,<nx> [,<ny> [,<nz>]]]
+!p       [,"unique:"{"site"|"name"|"charge"|"biso"|"occ"}]
 
    This command is similar to -> cell, however in contrast to 'cell'
    only those atoms are treated as new atom type that have a different
    name or B value. This allows one to read large asymmetric units
    (e.g. from a protein) without creating that many different atom types.
+
+!p       [,"unique:"{"site"|"name"|"charge"|"biso"|"occ"}]
+   This optional parameter defines more in detail if atoms are 
+   assigned to a new atom type or are considered uniqe new atom types
+   "site"    With this parameter or without the optional parameter
+             each atom in the input file is treated as a new 
+             atom type. Essentially the command acts as a "cell" with
+             default conditions
+   "name"    All atoms, whose elemental symbol are identical are
+             treated as one atom type 
+   "charge"  All atoms, whose elemental symbol and charge (if present)
+             are identical are treated as one atom type 
+   "biso"    In addition to name, charge the B-value must be identical
+   "occ"     In addition to all other the occupancies must be identical
 3  free
 !p free [<a>,<b>,<c>,<alpha>,<beta>,<gamma> [,<name> | <number> [, "2"]]
 !p      [, setting:abc]
@@ -7649,6 +7723,7 @@
    abc,   bca,   cab,   acb,   cba,   bac
 3  stru
 !p stru <name> [, site:{"differ"|"equal"}]
+!p       [,"unique:"{"site"|"name"|"charge"|"biso"|"occ"}]
 
    Reads a whole structure from file <name>.
    The space group information is ignored, nor is a check for consistency
@@ -7667,6 +7742,20 @@
    atom types. The option is only applied, if the crystal consists of a
    total number of atoms that is an integer multiple of the number of
    atoms per unit cell.
+
+!p       [,"unique:"{"site"|"name"|"charge"|"biso"|"occ"}]
+   This optional parameter defines if atoms are assigned to a new 
+   atom type or are considered uniqe new atom types
+   "site"    With this parameter each atom in the input file is  
+             treated as a new atom type. Be aware that this might
+             result in a huge number of atom types beyond the
+             memory capabilities of you computer
+   "name"    All atoms, whose elemental symbol are identical are
+             treated as one atom type 
+   "charge"  All atoms, whose elemental symbol and charge (if present)
+             are identical are treated as one atom type 
+   "biso"    In addition to name, charge the B-value must be identical
+   "occ"     In addition to all other the occupancies must be identical
 3  exit
 !p exit
 
