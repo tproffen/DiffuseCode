@@ -230,6 +230,7 @@ CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !
 INTEGER, PARAMETER :: IWR = 35
+integer, parameter :: MAXMASK = 4
 !
 CHARACTER(LEN=    PREC_STRING            )      :: ofile = ' '
 CHARACTER(LEN=    PREC_STRING            )      :: line = ' '
@@ -248,9 +249,13 @@ CHARACTER (LEN=2), DIMENSION(:), ALLOCATABLE :: unique_names
 CHARACTER (LEN=4), DIMENSION(:), ALLOCATABLE :: shelx_names
 INTEGER          , DIMENSION(:), ALLOCATABLE :: unique_n_atoms 
 LOGICAL                  :: orig_OK =.FALSE.
+logical, dimension(0:MAXMASK) :: uni_mask
 REAL(KIND=PREC_DP)       :: z_unit
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP)   , DIMENSION(3), PARAMETER :: NULL = (/0.00, 0.00, 0.00/)
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
 !
 if(maxval(cr_icc)>1) then
   ier_num = -185
@@ -335,7 +340,7 @@ befehl = 'lcell'
 lbef   = 5
 cpara(1) = origfile
 lpara(1) = 19
-CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0D-5, 0, .FALSE.)
+CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0D-5, 0, .FALSE., MAXMASK, uni_mask)
 CALL chem_elem(.FALSE.)
 z_unit = 192.0
 DO i=1, cr_nscat
@@ -347,7 +352,7 @@ ENDDO
 !
 ! Restore original structure
 !
-CALL do_readstru(origfile, .FALSE.)
+CALL do_readstru(MAXMASK, origfile, .FALSE., uni_mask)
 call save_restore_setting
 CALL store_remove_single(origfile, ier_num)
 IF(ier_num/=0) THEN

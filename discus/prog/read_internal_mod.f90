@@ -15,7 +15,9 @@ IMPLICIT NONE
 !  testfile_internal  ! Test internal file for number of atoms, scattering curves
 !
 CONTAINS
+!
 !*******************************************************************************
+!
    SUBROUTINE readstru_size_int(strucfile, natoms, & 
               nscat, n_mole, n_type, n_atom)
 !
@@ -56,99 +58,107 @@ integer ier
    n_atom = read_temp%crystal%get_n_atom()
 !
    END SUBROUTINE readstru_size_int
+!
 !*******************************************************************************
-   SUBROUTINE readstru_internal(strucfile) !,NMAX, MAXSCAT, MOLE_MAX_MOLE, &
+!
+SUBROUTINE readstru_internal(MAXMASK, strucfile, uni_mask) !,NMAX, MAXSCAT, MOLE_MAX_MOLE, &
 !              mole_max_TYPE, MOLE_MAX_ATOM)
 !
 !  Reads a structure from an internal cystal. The old crystal is overwritten
 !
-   USE discus_allocate_appl_mod
-   USE chem_mod
-   USE crystal_mod
-   USE prop_para_mod
-   USE molecule_mod
+USE discus_allocate_appl_mod
+USE chem_mod
+USE crystal_mod
+USE prop_para_mod
+USE molecule_mod
+use reduce_atoms_mod
+use reduce_atoms_mod
 !   USE class_internal
-   IMPLICIT NONE
+!
+IMPLICIT NONE
+!
+integer          , intent(in) :: MAXMASK
+CHARACTER (LEN=*), INTENT(IN) :: strucfile
+logical,dimension(0:MAXMASK), intent(in) :: uni_mask   ! Unique atom type mask
 !
 !
-   CHARACTER (LEN=*), INTENT(IN) :: strucfile
-!  INTEGER          , INTENT(IN) :: NMAX
-!  INTEGER          , INTENT(IN) :: MAXSCAT
-!  INTEGER          , INTENT(IN) :: MOLE_MAX_MOLE
-!  INTEGER          , INTENT(IN) :: MOLE_MAX_TYPE
-!  INTEGER          , INTENT(IN) :: MOLE_MAX_ATOM
+INTEGER                       :: natoms
+INTEGER                       :: nscat
+INTEGER                       :: n_mole
+INTEGER                       :: n_type
+INTEGER                       :: n_atom
+INTEGER                       :: i,j
+INTEGER                       :: iatom
 !
-   INTEGER                       :: natoms
-   INTEGER                       :: nscat
-   INTEGER                       :: n_mole
-   INTEGER                       :: n_type
-   INTEGER                       :: n_atom
-   INTEGER                       :: i,j
-   INTEGER                       :: iatom
-!
-   CALL readstru_size_int(strucfile, natoms, & 
-                   nscat, n_mole, n_type, n_atom)
-   IF ( ier_num /= 0) THEN                        ! Could not find the internal storage file
-      RETURN
-   ENDIF
+CALL readstru_size_int(strucfile, natoms, & 
+                nscat, n_mole, n_type, n_atom)
+IF ( ier_num /= 0) THEN                        ! Could not find the internal storage file
+   RETURN
+ENDIF
 !
 !  Allocate sufficient space
-   IF(natoms > NMAX .or. nscat > MAXSCAT ) THEN
-      natoms = MAX(natoms, NMAX)
-      nscat  = MAX(nscat , MAXSCAT)
-      CALL alloc_crystal (nscat, natoms)
-      IF ( ier_num /= 0 ) THEN
-         ier_num = -114
-         ier_typ = ER_APPL
-         ier_msg(1) = 'Standard crystal could not be allocated'
-         ier_msg(2) = 'In readstru_internal'
-         RETURN
-      ENDIF
+IF(natoms > NMAX .or. nscat > MAXSCAT ) THEN
+   natoms = MAX(natoms, NMAX)
+   nscat  = MAX(nscat , MAXSCAT)
+   CALL alloc_crystal (nscat, natoms)
+   IF ( ier_num /= 0 ) THEN
+      ier_num = -114
+      ier_typ = ER_APPL
+      ier_msg(1) = 'Standard crystal could not be allocated'
+      ier_msg(2) = 'In readstru_internal'
+      RETURN
    ENDIF
-   IF ( n_mole > MOLE_MAX_MOLE .or. n_type > MOLE_MAX_TYPE .or. &
-        n_atom > MOLE_MAX_MOLE                                ) THEN  ! If molecules were present in internal file
-      n_mole = MAX(n_mole, MOLE_MAX_MOLE)
-      n_type = MAX(n_type, MOLE_MAX_TYPE)
-      n_atom = MAX(n_atom, MOLE_MAX_ATOM)
-      CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
-      IF ( ier_num /= 0 ) THEN
-         ier_num = -114
-         ier_typ = ER_APPL
-         ier_msg(1) = 'Standard crystal could not be allocated'
-         ier_msg(2) = 'In readstru_internal'
-         RETURN
-      ENDIF
+ENDIF
+IF ( n_mole > MOLE_MAX_MOLE .or. n_type > MOLE_MAX_TYPE .or. &
+     n_atom > MOLE_MAX_MOLE                                ) THEN  ! If molecules were present in internal file
+   n_mole = MAX(n_mole, MOLE_MAX_MOLE)
+   n_type = MAX(n_type, MOLE_MAX_TYPE)
+   n_atom = MAX(n_atom, MOLE_MAX_ATOM)
+   CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
+   IF ( ier_num /= 0 ) THEN
+      ier_num = -114
+      ier_typ = ER_APPL
+      ier_msg(1) = 'Standard crystal could not be allocated'
+      ier_msg(2) = 'In readstru_internal'
+      RETURN
    ENDIF
+ENDIF
 !
 !  Now copy from crystal to standard
 !
-   CALL read_temp%crystal%get_header_from_crystal()
-   CALL read_temp%crystal%get_atoms_from_crystal()
-   CALL read_temp%crystal%get_molecules_from_crystal(mole_max_mole,       &
-              mole_max_type, mole_max_atom, mole_num_mole, mole_num_type, &
-              mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
-              mole_file, mole_dens, mole_biso, mole_clin, mole_cqua,      &
-              mole_fuzzy, mole_cont)
-   DO i = 1, mole_num_mole       ! set molecule number for each atom
-      DO j = 1, mole_len (i)
-         iatom          = mole_cont (mole_off (i) + j)
-         cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
-         cr_mole(iatom) = i
-      ENDDO
+CALL read_temp%crystal%get_header_from_crystal()
+CALL read_temp%crystal%get_atoms_from_crystal()
+CALL read_temp%crystal%get_molecules_from_crystal(mole_max_mole,       &
+           mole_max_type, mole_max_atom, mole_num_mole, mole_num_type, &
+           mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
+           mole_file, mole_dens, mole_biso, mole_clin, mole_cqua,      &
+           mole_fuzzy, mole_cont)
+DO i = 1, mole_num_mole       ! set molecule number for each atom
+   DO j = 1, mole_len (i)
+      iatom          = mole_cont (mole_off (i) + j)
+      cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
+      cr_mole(iatom) = i
    ENDDO
+ENDDO
 !
-   chem_purge = .FALSE.                          ! No purge, period boundary is OK
+chem_purge = .FALSE.                          ! No purge, period boundary is OK
 !
-   END SUBROUTINE readstru_internal
+!enddo
+if(uni_mask(0)) then            ! User requested reduction
+   call reduce_atoms(MAXMASK, uni_mask)
+endif
+!
+END SUBROUTINE readstru_internal
 !
 !*******************************************************************************
 !
-SUBROUTINE readcell_internal ( strucfile )
+SUBROUTINE readcell_internal (MAXMASK, strucfile, uni_mask)
 !-
 !  Reads a unit cell from an internal cystal. The old crystal is overwritten
 !+
 !
 USE discus_allocate_appl_mod
+use atom_line_mod
 USE chem_mod
 USE cryst_class
 USE crystal_mod
@@ -160,7 +170,9 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
+integer          , intent(in) :: MAXMASK
 CHARACTER (LEN=*), INTENT(IN) :: strucfile
+logical, dimension(0:MAXMASK) :: uni_mask
 !
 INTEGER                       :: i,j,k        ! Dummy
 INTEGER                       :: ia         ! Dummy; atoms in internal crystal
@@ -181,6 +193,7 @@ INTEGER                       :: iprop      ! property of current atom
 REAL(KIND=PREC_DP), DIMENSION(5)         :: werte      ! temporary array
 !
 CHARACTER (LEN=4)             :: at_name    ! temporary atom name
+CHARACTER (LEN=4)             :: nw_name    ! temporary atom name
 REAL(kind=PREC_DP)                          :: dw1        ! temporary DW factor
 REAL(kind=PREC_DP)                          :: occ1       ! temporary occupancy factor
 !
@@ -393,21 +406,39 @@ main: do ia = 1, natoms
       ENDIF in_mole
    ENDIF mole_exist
    scat_dw: IF ( new_type ) THEN                     ! force each atom to be a new type 
+      nw_name = at_name
+      if(uni_mask(0)) then       ! Use unique mask
+               itype = atom_get_type(MAXSCAT, 0, cr_nscat, MAXMASK,   &
+                                 cr_at_lis, cr_dw, cr_occ,        &
+                                 nw_name, dw1, occ1, uni_mask)
+      else
+         itype = -1                  ! No unique mask, ==> New atom type
+      endif
+      IF ( itype == -1 ) THEN
       cr_nscat = cr_nscat + 1
-      cr_at_lis(cr_nscat) = at_name
+      cr_at_lis(cr_nscat) = nw_name
       cr_dw    (cr_nscat) = dw1
       cr_occ   (cr_nscat) = occ1
       itype               = cr_nscat
+      endif
    ELSE scat_dw                                ! check for previous atom types
-      itype = -1
-      do_scat_dw: DO k = 1,cr_nscat
-         IF( at_name == cr_at_lis(k) .AND.  &
-             dw1     == cr_dw    (k) .AND.  &
-             occ1    == cr_occ   (k)   ) THEN
-            itype = k
-            EXIT do_scat_dw
-         ENDIF
-      ENDDO do_scat_dw
+      nw_name = at_name
+      if(uni_mask(0)) then       ! Use unique mask
+               itype = atom_get_type(MAXSCAT, 0, cr_nscat, MAXMASK,   &
+                                 cr_at_lis, cr_dw, cr_occ,        &
+                                 nw_name, dw1, occ1, uni_mask)
+      else
+         itype = -1                  ! No unique mask, ==> New atom type
+      endif
+!     itype = -1
+!     do_scat_dw: DO k = 1,cr_nscat
+!        IF( at_name == cr_at_lis(k) .AND.  &
+!            dw1     == cr_dw    (k) .AND.  &
+!            occ1    == cr_occ   (k)   ) THEN
+!           itype = k
+!           EXIT do_scat_dw
+!        ENDIF
+!     ENDDO do_scat_dw
       IF ( itype == -1 ) THEN
          cr_nscat = cr_nscat + 1               ! Atom type does not exist, create a new one
          cr_at_lis(cr_nscat) = at_name

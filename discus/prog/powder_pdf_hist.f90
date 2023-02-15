@@ -172,7 +172,13 @@ implicit none
 !
 logical, intent(in) :: ltemp
 !
+integer, parameter :: MAXMASK = 4
 character(len=PREC_STRING) :: origstruc
+logical,dimension(0:MAXMASK) :: uni_mask
+!
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
 !
 if(ltemp.or. .not.out_user_limits) then
    out_user_values(1) =   0.01
@@ -188,7 +194,7 @@ CALL errlist_save                   ! Keep error status
 CALL save_restore_setting
 CALL no_error
 origstruc   = 'internal.powderback.stru' ! internal user files always start with 'internal'
-CALL readstru_internal(origstruc)   ! Read  core file
+CALL readstru_internal(MAXMASK, origstruc, uni_mask)   ! Read  core file
 CALL errlist_restore                ! Restore error status
 !
 END SUBROUTINE pow_pdf_hist_prep_period

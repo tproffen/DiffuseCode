@@ -59,6 +59,7 @@ USE support_mod
 IMPLICIT none 
 !                                                                       
 INTEGER , PARAMETER :: MAXW = 11
+INTEGER , PARAMETER :: MAXMASK =  4
 !                                                                       
 CHARACTER(LEN=PREC_STRING)        :: line, zeile, cpara (maxw) 
 CHARACTER(LEN=PREC_STRING)        :: strucfile 
@@ -73,10 +74,13 @@ REAL(KIND=PREC_DP)   , DIMENSION(maxw) ::  werte!, wwerte
 INTEGER          ::   occupancy= 0          ! Apply occupancy upon read cell   ?
 LOGICAL          :: l_identical= .FALSE.    ! Are atoms allowed to be identical?
 LOGICAL          :: l_site     = .FALSE.    ! Treat atoms on different sites as different types?
+logical, dimension(0:MAXMASK) :: uni_mask           ! Mask for unique atom types
 REAL(KIND=PREC_DP) :: r_identical = 1.0E-5
-INTEGER, PARAMETER :: NOPTIONAL = 5
+INTEGER, PARAMETER :: NOPTIONAL = 6
+integer, parameter :: O_OCC     = 2
 INTEGER, PARAMETER :: O_SETTING = 4
 INTEGER, PARAMETER :: O_SITE    = 5
+INTEGER, PARAMETER :: O_UNIQUE  = 6
 CHARACTER(LEN=   9)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -88,12 +92,12 @@ INTEGER, PARAMETER                        :: NCALC = 1 ! Number of values to cal
 !
 !                                                                       
 !
-DATA oname  / 'radius' , 'occupancy', 'identical', 'setting', 'site'   /
-DATA loname /  9       ,  9         ,  6         ,  7       ,  4       /
+DATA oname  / 'radius' , 'occupancy', 'identical', 'setting', 'site'   ,'unique'/
+DATA loname /  9       ,  9         ,  6         ,  7       ,  4       , 6      /
 !
-opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '   , 'abc   ' , 'equal ' /)   ! Always provide fresh default values
-lopara =  (/  6        ,  6         ,  6         ,  6       ,  6       /)
-owerte =  (/  1.0E-5   ,  0.0       ,  0.0       ,  0.0     ,  0.0     /)
+opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '   , 'abc   ' , 'equal ' , 'biso  '/)   ! Always provide fresh default values
+lopara =  (/  6        ,  6         ,  6         ,  6       ,  6       ,  4      /)
+owerte =  (/  1.0E-5   ,  0.0       ,  0.0       ,  0.0     ,  0.0     ,  0.0    /)
 !
 !
 !                                                                       
@@ -180,9 +184,9 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !
 !      --Get optional parameters
 !
-         opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '   , 'abc   ' , 'equal ' /)   ! Always provide fresh default values
-         lopara =  (/  6        ,  6         ,  6         ,  6       ,  6       /)
-         owerte =  (/  1.0E-5   ,  0.0       ,  0.0       ,  0.0     ,  0.0     /)
+         opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '   , 'abc   ' , 'equal ', 'biso  ' /)   ! Always provide fresh default values
+         lopara =  (/  6        ,  6         ,  6         ,  6       ,  6      ,  4       /)
+         owerte =  (/  1.0E-5   ,  0.0       ,  0.0       ,  0.0     ,  0.0    ,  0.0     /)
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, lpresent, owerte)
          IF(ier_num/=0) GOTO 8888              ! Jump to handle error messages, amd macro conditions
@@ -197,6 +201,27 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
          ENDDO 
          ENDDO 
          ENDDO 
+         if(lpresent(O_UNIQUE)) then
+            uni_mask(0) = .true.
+            if(str_comp(opara(O_UNIQUE), 'site', 4, lopara(O_UNIQUE), 4)) then
+               uni_mask(1:)  = .false.
+            elseif(str_comp(opara(O_UNIQUE), 'name', 4, lopara(O_UNIQUE), 4)) then
+               uni_mask(2:)  = .false.
+               uni_mask(1)   = .true.
+            elseif(str_comp(opara(O_UNIQUE), 'charge', 6, lopara(O_UNIQUE), 6)) then
+               uni_mask(3:)  = .false.
+               uni_mask(1:2) = .true.
+            elseif(str_comp(opara(O_UNIQUE), 'biso', 4, lopara(O_UNIQUE), 4)) then
+               uni_mask(4:)  = .false.
+               uni_mask(1:3) = .true.
+            elseif(str_comp(opara(O_UNIQUE), 'occ', 3, lopara(O_UNIQUE), 3)) then
+               uni_mask(1:)  = .true.
+            endif
+         else
+            uni_mask(0)   = .false.
+            uni_mask(1:3) = .true.
+            uni_mask(4)   = .false.
+         endif
 !                                                                       
 !     read in old cell, use space group symbol to generate cell         
 !     content 'cell'                                                    
@@ -205,11 +230,11 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
              str_comp (befehl, 'lcell', 1, lbef, 5)      ) THEN                                    
             l_identical = str_comp (opara(3), 'tolerate', 5, lopara(3), 8)
             r_identical = owerte(1)
-            IF(opara(2)=='clear')  THEN
+            IF(opara(O_OCC)=='clear')  THEN
                occupancy = 0
-            ELSEIF(opara(2)=='apply')  THEN
+            ELSEIF(opara(O_OCC)=='apply')  THEN
                occupancy = 1
-            ELSEIF(opara(2)=='keep')  THEN
+            ELSEIF(opara(O_OCC)=='keep')  THEN
                occupancy = -1
             ELSE
                ier_num = -13
@@ -217,9 +242,20 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
                RETURN
             ENDIF
             l_site = opara(O_SITE) == 'differ'
+            if(.not.uni_mask(0)) then            ! User did not provide a mask
+               if(str_comp (befehl, 'lcell', 1, lbef, 5)) then ! For lcell apply mask
+                  uni_mask(0)   = .false.
+                  uni_mask(1:3) = .true.
+                  uni_mask(4)   = .false.
+               else
+                  uni_mask(:)   = .false.
+               endif
+            endif
+write(*,*) ' BEFEHL ', befehl
+write(*,*) ' MASK   ', uni_mask(0), ' | ', uni_mask(1:)
             CALL do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, &
                              l_identical, r_identical, occupancy,  &
-                             l_site)
+                             l_site, MAXMASK, uni_mask)
 !                                                                       
 !     Free style editing of a structure 'free'                          
 !                                                                       
@@ -236,7 +272,8 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
                sav_r_ncell = .false. 
                strucfile = cpara (1)(1:lpara(1))
                l_site = opara(O_SITE) == 'differ'
-               CALL do_readstru(strucfile, l_site)
+               uni_mask(0) = .true.                   ! Always apply unique mask
+               CALL do_readstru(MAXMASK, strucfile, l_site, uni_mask)
                IF(ier_num /= 0) THEN
                   IF(ier_msg(3) == ' ') THEN
                      ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
@@ -326,7 +363,7 @@ END SUBROUTINE read_struc
 !*******************************************************************************
 !
 SUBROUTINE do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, l_identical, &
-                       r_identical, occupancy, l_site)
+                       r_identical, occupancy, l_site, MAXMASK, uni_mask)
 !
 USE discus_allocate_appl_mod
 USE chem_mod 
@@ -355,6 +392,8 @@ LOGICAL         ,                  INTENT(IN) :: l_identical
 REAL(KIND=PREC_DP),                INTENT(IN) :: r_identical
 INTEGER         ,                  INTENT(IN) :: occupancy
 LOGICAL         ,                  INTENT(IN) :: l_site
+integer                          , intent(in) :: MAXMASK
+logical, dimension(0:MAXMASK)    , intent(in) :: uni_mask           ! Mask for unique atom types
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: strucfile
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: outfile
@@ -396,7 +435,7 @@ IF (ianz.ge.1) THEN
       local_icc(:) = cr_icc(:)
       IF (ier_num.eq.0) THEN 
          internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
-            CALL readcell_internal(strucfile)
+            CALL readcell_internal(MAXMASK, strucfile, uni_mask)
          ELSE internalcell
 !                        CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
 !                                         n_atom, -1 , .false.)
@@ -414,7 +453,7 @@ IF (ianz.ge.1) THEN
             CALL import_test(0, strucfile, outfile)
             IF(ier_num == 0) THEN
                strucfile = outfile
-               CALL readcell (strucfile, l_identical, r_identical) 
+               CALL readcell (strucfile, l_identical, r_identical, MAXMASK, uni_mask) 
                cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
             ENDIF
          ENDIF internalcell
@@ -599,7 +638,7 @@ END SUBROUTINE do_readcell
 !
 !*******************************************************************************
 !
-SUBROUTINE do_readstru(strucfile, l_site)
+SUBROUTINE do_readstru(MAXMASK, strucfile, l_site, uni_mask)
 !
 ! Do the full job for a 'read stru ' command
 !
@@ -614,15 +653,17 @@ USE str_comp_mod
 !
 IMPLICIT NONE
 !
+integer                    , intent(in)    :: MAXMASK    ! Dimension uni_mask
 CHARACTER(LEN=*), INTENT(INOUT) :: strucfile
 LOGICAL         , INTENT(IN)    :: l_site     ! Differ atoms on sites?
+logical, dimension(0:MAXMASK), intent(in) :: uni_mask
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(strucfile))) :: outfile 
 logical :: lda
 !
 CALL rese_cr
 internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
-   CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
+   CALL readstru_internal(MAXMASK, strucfile, uni_mask) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
 !                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
    IF(ier_num/=0) RETURN
 ELSE internals
@@ -640,7 +681,7 @@ ELSE internals
    ELSE
       RETURN
    ENDIF
-   CALL do_readstru_disk(strucfile, l_site)
+   CALL do_readstru_disk(MAXMASK, strucfile, l_site, uni_mask)
 !
    IF (ier_num /= 0) THEN
       RETURN                 ! Jump to handle error messages, amd macro conditions
@@ -659,7 +700,7 @@ END SUBROUTINE do_readstru
 !
 !*******************************************************************************
 !
-SUBROUTINE do_readstru_disk(strucfile, l_site)
+SUBROUTINE do_readstru_disk(MAXMASK, strucfile, l_site, uni_mask)
 !
 ! Do the readstru part for a file on disk
 !
@@ -674,8 +715,10 @@ USE errlist_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=*), INTENT(INOUT) :: strucfile
-LOGICAL         , INTENT(IN)    :: l_site     ! Differ atoms on sites?
+integer                    , intent(in)    :: MAXMASK    ! Dimension uni_mask
+CHARACTER(LEN=*)           , INTENT(INOUT) :: strucfile
+LOGICAL                    , INTENT(IN)    :: l_site     ! Differ atoms on sites?
+logical, dimension(0:MAXMASK), intent(in)    :: uni_mask   ! Unique atom type 
 !
 INTEGER             :: natoms
 INTEGER             :: nscats
@@ -687,7 +730,7 @@ integer, dimension(3) :: n_cells
 !
 !
 CALL test_file(strucfile, natoms, nscats, n_mole, n_type, &
-               n_atom, n_cells, -1 , .false.)
+               n_atom, n_cells, -1 , .false., MAXMASK, uni_mask)
 IF (ier_num /= 0) THEN
    RETURN                 ! Jump to handle error messages, amd macro conditions
 ENDIF
@@ -711,11 +754,11 @@ IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
    ENDIF
 ENDIF
 !
-CALL readstru(NMAX, MAXSCAT, strucfile, cr_name,        &
+CALL readstru(NMAX, MAXSCAT, MAXMASK, strucfile, cr_name,        &
               cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,    &
               cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms, &
               as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
-              sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
+              sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, uni_mask)        
 IF(ier_num.ne.0) THEN 
    RETURN                 ! Jump to handle error messages, amd macro conditions
 ENDIF 
@@ -978,7 +1021,7 @@ END SUBROUTINE do_readfree
 !
 !********************************************************************** 
 !
-SUBROUTINE readcell (strucfile, l_identical, r_identical) 
+SUBROUTINE readcell (strucfile, l_identical, r_identical, MAXMASK, uni_mask) 
 !-                                                                      
 !           This subroutine reads a unit cell.                          
 !+                                                                      
@@ -993,6 +1036,7 @@ USE spcgr_apply
 USE wyckoff_mod
 !
 use blanks_mod
+use charact_mod
 USE precision_mod
 USE lib_errlist_func
 USE lib_length
@@ -1005,7 +1049,10 @@ IMPLICIT none
 CHARACTER ( LEN=* ), INTENT(OUT) :: strucfile 
 LOGICAL            , INTENT(IN) :: l_identical
 REAL(KIND=PREC_DP) , INTENT(IN) :: r_identical
+integer                    , intent(in) :: MAXMASK
+logical, dimension(0:MAXMASK), intent(in) :: uni_mask
 !
+character(len=4)           :: nw_name
 CHARACTER(len=10)          :: befehl 
 CHARACTER(LEN=PREC_STRING) :: line, zeile 
 INTEGER, PARAMETER                   :: AT_MAXP = 16
@@ -1030,6 +1077,7 @@ LOGICAL          :: need_alloc = .false.
 LOGICAL          :: lcontent
 LOGICAL, SAVE          :: at_init = .TRUE.
 LOGICAL :: lcell, lout 
+logical, dimension(0:MAXMASK)  :: local_mask
 REAL(KIND=PREC_DP) :: werte (maxw)
 REAL(KIND=PREC_DP) :: dw1 , occ1
 !                                                                       
@@ -1042,8 +1090,10 @@ lcontent  = .false.
 at_param(:) = ' '
 at_ianz     = 0
 n_read      = 0
+local_mask(0)  = .false.       ! For test_file use a local mask
+local_mask(1:) = .true.        ! Set such that all atoms will be different types
 CALL test_file(strucfile, new_nmax, new_nscat, n_mole, n_type, &
-               n_atom, n_cells, -1 , cr_newtype)
+               n_atom, n_cells, -1 , cr_newtype, MAXMASK, local_mask)
 IF (ier_num /= 0) THEN
    CLOSE (ist)
    RETURN
@@ -1168,9 +1218,11 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
       GOTO 999
    ENDIF
    lline = len_str (line) 
-   call tab2blank(line, lline)
 !23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
-empty:   IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!' .AND. line.ne.char (13)) THEN
+   if(line==' ' .or. line(1:1)=='!' .or. line(1:1)=='#' .or.    &
+      line(1:1)==TAB .or. line(1:1)==char(13)) cycle main
+!   empty:   IF(line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!' .AND. line.ne.char (13)) THEN
+      call tab2blank(line, lline)
       need_alloc = .false.
       new_nmax   = NMAX
       new_nscat  = MAXSCAT
@@ -1277,18 +1329,27 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !------ ----------- asymmetric unit are considered different atom       
 !------ ----------- types ..                                            
 !                                                                       
-            IF (.not.cr_newtype) THEN          ! lcell == .true.
-               DO j = 0, cr_nscat 
-                  IF (line (1:ibl)  == cr_at_lis (j)              &
-                        .and.dw1 == cr_dw (j)                     &
-                        .AND. occ1==cr_occ(j) ) THEN                    
-                     cr_iscat (i) = j 
-                     CALL symmetry 
-                     IF (ier_num.ne.0) THEN 
-                        CLOSE (IST)
-                        RETURN 
-                     ENDIF 
-                     GOTO 22 
+            nw_name = line(1:ibl)              ! Default to user provided atom name
+            IF (.not.cr_newtype) THEN          ! lcell == .true.; always apply unique mask 
+               j = atom_get_type(MAXSCAT, 0, cr_nscat, MAXMASK,   &
+                                 cr_at_lis, cr_dw, cr_occ,        &
+                                 nw_name, dw1, occ1, uni_mask)
+               if(j>-1) then              ! Old atom type
+                  cr_iscat(i) = j
+                  call symmetry
+                  goto 22
+               endif
+!              DO j = 0, cr_nscat 
+!                 IF (line (1:ibl)  == cr_at_lis (j)              &
+!                       .and.dw1 == cr_dw (j)                     &
+!                       .AND. occ1==cr_occ(j) ) THEN                    
+!                    cr_iscat (i) = j 
+!                    CALL symmetry 
+!                    IF (ier_num.ne.0) THEN 
+!                       CLOSE (IST)
+!                       RETURN 
+!                    ENDIF 
+!                    GOTO 22 
 !                       ELSEIF(line(1:ibl)=='VOID' .AND. mole_l_on) THEN
 !                          cr_iscat (i) = 0 
 !                          CALL symmetry 
@@ -1297,8 +1358,22 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                             RETURN 
 !                          ENDIF 
 !                          GOTO 22 
-                  ENDIF 
-               ENDDO 
+!                 ENDIF 
+!              ENDDO 
+            else                          !lcell = .false. Use optional parameter
+               if(uni_mask(0)) then       ! Use unique mask, if requested
+                  nw_name = line(1:ibl)
+                  j = atom_get_type(MAXSCAT, 0, cr_nscat, MAXMASK,   &
+                                    cr_at_lis, cr_dw, cr_occ,        &
+                                    nw_name, dw1, occ1, uni_mask)
+               else
+                  j = -1                  ! No unique mask, ==> New atom type
+               endif
+               if(j>-1)  then              ! Old atom type
+                  cr_iscat(i) = j
+                  call symmetry
+                  goto 22
+               endif
             ENDIF 
 !                                                                       
 !------ ----------- end new code                                        
@@ -1307,7 +1382,8 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !ATOM_LINE              as_natoms = as_natoms + 1 
                cr_nscat = cr_nscat + 1 
                cr_iscat (i) = cr_nscat 
-               cr_at_lis (cr_nscat) = line (1:ibl) 
+!              cr_at_lis (cr_nscat) = line (1:ibl) 
+               cr_at_lis (cr_nscat) = nw_name
                cr_dw (cr_nscat) = dw1 
                cr_occ(cr_nscat) = occ1                    ! WORK OCC
 !                                                                       
@@ -1334,7 +1410,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
    22       CONTINUE 
          ENDIF  if_blk
       ENDIF  typus
-   ENDIF empty
+!  ENDIF empty
 ENDDO main 
 !
 CALL test_identical (l_identical, r_identical) ! Test if atoms are too close
@@ -1730,14 +1806,14 @@ ENDIF
 !                                                                       
 END SUBROUTINE struc_mole_header              
 !********************************************************************** 
-      SUBROUTINE readstru (NMAX, MAXSCAT, strucfile, cr_name, cr_spcgr, &
+      SUBROUTINE readstru (NMAX, MAXSCAT, MAXMASK, strucfile, cr_name, cr_spcgr, &
       cr_set,                                                           &
       cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_at_lis, cr_pos,     &
       cr_mole, cr_surf, cr_magn,                                        &
       cr_iscat, cr_prop, cr_dim, cr_magnetic,                           &
       as_natoms, as_at_lis, as_dw, as_pos,   &
       as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,           &
-      spcgr_ianz, spcgr_para)                                           
+      spcgr_ianz, spcgr_para, uni_mask)                                           
 !-                                                                      
 !           this subroutine reads an old structur.                      
 !+                                                                      
@@ -1749,6 +1825,7 @@ IMPLICIT none
 !                                                                       
 INTEGER                                  , intent(in)    :: NMAX 
 INTEGER                                  , intent(inout) :: MAXSCAT 
+INTEGER                                  , intent(in)    :: MAXMASK
 CHARACTER(len=*)                         , intent(in)    :: strucfile 
 CHARACTER(len=80)                        , intent(out)   :: cr_name 
 CHARACTER(len=16)                        , intent(out)   :: cr_spcgr 
@@ -1779,6 +1856,7 @@ LOGICAL                                  , intent(inout) :: sav_r_ncell
 INTEGER                                  , intent(inout) :: sav_ncatoms 
 INTEGER                                  , intent(out)   :: spcgr_ianz 
 INTEGER                                  , intent(out)   :: spcgr_para 
+logical           , dimension(0:MAXMASK)   , intent(in)    :: uni_mask
 !
 !                                                                       
 INTEGER, PARAMETER                   :: ist = 7 
@@ -1811,11 +1889,11 @@ REAL(kind=PREC_DP), dimension(0:MAXSCAT) :: as_occ(0:MAXSCAT)
 !                                                                       
          IF (ier_num.eq.0) THEN 
 !                                                                       
-            CALL struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
+            CALL struc_read_atoms (NMAX, MAXSCAT, MAXMASK, cr_natoms, cr_nscat,  &
             cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, &
             cr_magn, cr_prop, cr_dim, cr_magnetic, &
             as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop, &
-            AT_MAXP, at_ianz, at_param)     
+            AT_MAXP, at_ianz, at_param, uni_mask)     
          else
             ier_msg(1) = 'Structure ' // strucfile
          ENDIF 
@@ -2301,6 +2379,8 @@ sym_add_n = 0
                   at_param(i) = cpara(i)(1:MIN(LEN(at_param),lpara(i)))
                ENDDO
                at_ianz = ianz
+               call atom_verify_param
+               if(ier_num/=0) return
             ENDIF
          ELSE 
             ier_num = - 89 
@@ -2356,12 +2436,14 @@ sym_add_n = 0
  2000 FORMAT    (a) 
  2010 FORMAT    (a16) 
       END SUBROUTINE stru_readheader                
+!
 !********************************************************************** 
-SUBROUTINE struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,        &
+!
+subroutine struc_read_atoms (NMAX, MAXSCAT, MAXMASK, cr_natoms, cr_nscat,        &
       cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf,     &
       cr_magn, cr_prop, cr_dim, cr_magnetic,                            &
       as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop,   &
-      AT_MAXP, at_ianz, at_param)                      
+      AT_MAXP, at_ianz, at_param, uni_mask)                      
 !-                                                                      
 !           This subroutine reads the list of atoms into the            
 !       crystal array                                                   
@@ -2373,6 +2455,7 @@ USE spcgr_apply
 use atom_line_mod
 !
 use blanks_mod
+use charact_mod
 USE lib_errlist_func
 USE lib_length
 USE precision_mod
@@ -2383,6 +2466,7 @@ IMPLICIT none
 !                                                                       
 INTEGER                                   , INTENT(IN)    :: NMAX 
 INTEGER                                   , INTENT(IN)    :: MAXSCAT 
+integer                                   , intent(in)    :: MAXMASK 
 INTEGER                                   , INTENT(INOUT) :: cr_natoms
 INTEGER                                   , INTENT(INOUT) :: cr_nscat 
 REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_dw       ! (0:MAXSCAT) 
@@ -2406,10 +2490,12 @@ INTEGER           , DIMENSION(1:MAXSCAT)  , INTENT(INOUT) :: as_prop     ! (MAXS
 INTEGER                                   , INTENT(IN)    :: AT_MAXP
 INTEGER                                   , INTENT(IN )   :: at_ianz
 CHARACTER(LEN=8)  , DIMENSION(AT_MAXP)    , INTENT(IN )   :: at_param
+logical           , dimension(0:MAXMASK)    , intent(in)    :: uni_mask
 !                                                                       
 INTEGER , PARAMETER :: ist  = 7
 INTEGER , PARAMETER :: maxw = 16! SHOULD READ : MAX(7, AT_MAXP)
 !                                                                       
+character(len=4)    :: nw_name     ! temporary atom name
 CHARACTER(LEN=10)   :: befehl 
 CHARACTER(LEN=PREC_STRING) ::  line, zeile 
 INTEGER             :: i, j, ibl, lbef 
@@ -2425,161 +2511,156 @@ INTEGER             :: n_mole_old = 0    ! previous number of molecules in struc
 LOGICAL             :: need_alloc = .false.
 LOGICAL             :: lcontent
 LOGICAL, SAVE       :: at_init = .TRUE.
-REAL(KIND=PREC_DP), PARAMETER     :: eps = 1e-6
+!
 REAL(KIND=PREC_DP), DIMENSION(maxw) :: werte !(maxw)
 REAL(KIND=PREC_DP)                :: dw1 , occ1 = 1
 !                                                                       
 !                                                                       
-      lcontent = .false.
-      at_init = .TRUE.
-      IF(cr_natoms == 0) THEN 
-         n_mole_old = 0  ! For empty crystal reset number of old molecules
-      ELSE
-         n_mole_old = mole_num_mole
-      ENDIF
+lcontent = .false.
+at_init = .TRUE.
+IF(cr_natoms == 0) THEN 
+   n_mole_old = 0  ! For empty crystal reset number of old molecules
+ELSE
+   n_mole_old = mole_num_mole
+ENDIF
 werte = 0.0
- 1000 CONTINUE 
-      ier_num = - 49 
-      ier_typ = ER_APPL 
-      line = ' ' 
-      READ (ist, 2000, end = 2, err = 999) line 
-      lline = len_str (line) 
-      call tab2blank(line, lline)
-      IF (line.ne.' '.and.line (1:1) .ne.'#'.and. line(1:1) /= '!' .AND. &
-          line.ne.char (13) )  THEN
-         ibl = index (line (1:lline) , ' ') + 1 
-         lbef = 10 
-         befehl = ' ' 
-         ibl = index (line (1:lline) , ' ') 
-         IF (ibl.eq.0) THEN 
-            ibl = lline+1 
-         ENDIF 
-         lbef = min (ibl - 1, lbef) 
-         befehl = line (1:lbef) 
-         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .OR. &
-             str_comp (befehl, 'domain',   4, lbef, 6) .OR. &
-             str_comp (befehl, 'object',   4, lbef, 6)     ) THEN
+!
+loop_main: do          ! Loop to read all atom lines
+   ier_num = - 49 
+   ier_typ = ER_APPL 
+   line = ' ' 
+   READ(ist, '(a)', end = 2, err = 999) line 
+   lline = len_str (line) 
+!
+   if(line==' ' .or. line(1:1)=='#' .or. line(1:1)=='!' .or. &
+      line(1:1)== TAB .or. line(1:1)==char(13)) cycle loop_main  ! Empty line
+!
+   call tab2blank(line, lline)
+!
+   ibl = index (line (1:lline) , ' ') + 1 
+   lbef = 10 
+   befehl = ' ' 
+   ibl = index (line (1:lline) , ' ') 
+   IF (ibl.eq.0) THEN 
+      ibl = lline+1 
+   ENDIF 
+   lbef = min (ibl - 1, lbef) 
+   befehl = line (1:lbef) 
+   cond_mol:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .OR. &
+               str_comp (befehl, 'domain',   4, lbef, 6) .OR. &
+               str_comp (befehl, 'object',   4, lbef, 6)     ) THEN
 !                                                                       
 !     ------Start/End of a molecule                                     
 !                                                                       
-            CALL no_error 
-            IF (ibl.le.lline) THEN 
-               zeile = line (ibl:lline) 
-               i = lline-ibl + 1 
-            ELSE 
-               zeile = ' ' 
-               i = 0 
-            ENDIF 
-            CALL struc_mole_header (zeile, i, .false., lcontent) 
-            IF (ier_num.ne.0) return 
-         ELSE 
+      CALL no_error 
+      IF (ibl.le.lline) THEN 
+         zeile = line (ibl:lline) 
+         i = lline-ibl + 1 
+      ELSE 
+         zeile = ' ' 
+         i = 0 
+      ENDIF 
+      CALL struc_mole_header (zeile, i, .false., lcontent) 
+      IF (ier_num.ne.0) return 
+   ELSE cond_mol
 !                                                                       
 !        --Make sure we have enough space for molecule atoms
 !                                                                       
-            need_alloc = .false.
-            n_gene = MAX( 1, MOLE_MAX_GENE)
-            n_symm = MAX( 1, MOLE_MAX_SYMM)
-            n_mole =         MOLE_MAX_MOLE
-            n_type =         MOLE_MAX_TYPE
-            n_atom =         MOLE_MAX_ATOM
-            IF ((mole_off(mole_num_mole)+mole_len(mole_num_mole)) >= MOLE_MAX_ATOM ) THEN
-               n_atom = (mole_off(mole_num_mole)+mole_len(mole_num_mole)) + 200
-               need_alloc = .true.
-            ENDIF
-            IF ( need_alloc ) THEN
-               call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
-            ENDIF
-            cr_natoms = cr_natoms + 1 
-            cr_surf(:,cr_natoms) = 0
-            cr_magn(:,cr_natoms) = 0.0
-            call get_atom_werte(cr_natoms, MAXW, werte)
-            IF (ier_num.ne.0.and.ier_num.ne. - 49) THEN 
-               GOTO 999 
-            ENDIF 
-            IF (cr_natoms.eq.nmax+1) THEN 
+      need_alloc = .false.
+      n_gene = MAX( 1, MOLE_MAX_GENE)
+      n_symm = MAX( 1, MOLE_MAX_SYMM)
+      n_mole =         MOLE_MAX_MOLE
+      n_type =         MOLE_MAX_TYPE
+      n_atom =         MOLE_MAX_ATOM
+      IF ((mole_off(mole_num_mole)+mole_len(mole_num_mole)) >= MOLE_MAX_ATOM ) THEN
+         n_atom = (mole_off(mole_num_mole)+mole_len(mole_num_mole)) + 200
+         need_alloc = .true.
+      ENDIF
+      IF ( need_alloc ) THEN
+         call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+      ENDIF
+      cr_natoms = cr_natoms + 1 
+      cr_surf(:,cr_natoms) = 0
+      cr_magn(:,cr_natoms) = 0.0
+      call get_atom_werte(cr_natoms, MAXW, werte)
+      IF (ier_num.ne.0.and.ier_num.ne. - 49) THEN 
+         exit loop_main
+      ENDIF 
+      IF (cr_natoms.eq.nmax+1) THEN 
 !                                                                       
 !     --------Too many atoms in the structure file                      
 !                                                                       
-               ier_num = - 10 
-               ier_typ = ER_APPL 
-               RETURN
-            ENDIF 
-            i = cr_natoms 
-            DO j = 1, 3 
-            cr_pos (j, i) = werte (j) 
-            cr_dim (j, 1) = min (cr_dim (j, 1), cr_pos (j, i) ) 
-            cr_dim (j, 2) = max (cr_dim (j, 2), cr_pos (j, i) ) 
-            ENDDO 
-            dw1 = werte (4) 
-            occ1 = werte(8)                             ! WORK OCC
-            cr_surf(0:3,i) = NINT(werte(9:12))          ! copy surface
-            cr_magn(0:3,i) = werte(13:16)               ! MAGNETIC_WORK
-            IF(MAXVAL(ABS(werte(13:16)))>0.0) cr_magnetic = .TRUE.
-            cr_prop (i) = nint (werte (5) ) 
-      IF (line (1:ibl) .ne.'    ') THEN 
-               ibl = ibl - 1 
-               CALL do_cap (line (1:ibl) ) 
-               DO j = 0, cr_nscat 
-                  IF (line (1:ibl) .eq.cr_at_lis (j) .and. &
-                      ABS(dw1-cr_dw(j)).lt.eps       .AND. &
-                      ABS(occ1-cr_occ(j))<eps             ) THEN
-                     cr_iscat (i) = j 
-                     GOTO 11 
-                  ENDIF 
-               ENDDO 
-               IF (cr_nscat.eq.MAXSCAT) THEN 
+         ier_num = - 10 
+         ier_typ = ER_APPL 
+         RETURN
+      ENDIF 
+      i = cr_natoms 
+      DO j = 1, 3 
+         cr_pos(j, i) = werte(j) 
+         cr_dim(j, 1) = min(cr_dim(j, 1), cr_pos(j, i) ) 
+         cr_dim(j, 2) = max(cr_dim(j, 2), cr_pos(j, i) ) 
+      ENDDO 
+      dw1 = werte (4) 
+      occ1 = werte(8)                             ! WORK OCC
+      cr_surf(0:3,i) = NINT(werte(9:12))          ! copy surface
+      cr_magn(0:3,i) = werte(13:16)               ! MAGNETIC_WORK
+      IF(MAXVAL(ABS(werte(13:16)))>0.0) cr_magnetic = .TRUE.
+      cr_prop (i) = nint (werte (5) ) 
+!
+      ibl = ibl - 1 
+      CALL do_cap (line (1:ibl) ) 
+      nw_name = line(1:ibl)
+      j = atom_get_type(MAXSCAT, 0, cr_nscat, MAXMASK,   &
+                        cr_at_lis, cr_dw, cr_occ,        &
+                        nw_name, dw1, occ1, uni_mask)
+      cond_new: if(j==-1) then           ! New atom type
+         IF (cr_nscat.eq.MAXSCAT) THEN 
 !                                                                       
 !     --------  Too many atom types in the structure file               
 !                                                                       
-                  ier_num = -72 
-                  ier_typ = ER_APPL 
-                  RETURN
-               ENDIF 
-               cr_nscat = cr_nscat + 1 
-               cr_iscat (i) = cr_nscat 
-               cr_at_lis (cr_nscat) = line (1:ibl) 
-               cr_dw (cr_nscat) = dw1 
-               cr_occ(cr_nscat) = occ1    ! WORK OCC
+            ier_num = -72 
+            ier_typ = ER_APPL 
+            RETURN
+         ENDIF 
+         cr_nscat = cr_nscat + 1 
+         cr_iscat (i) = cr_nscat 
+         cr_at_lis (cr_nscat) = nw_name            ! Use "unique" atom name
+         cr_dw (cr_nscat) = dw1 
+         cr_occ(cr_nscat) = occ1    ! WORK OCC
 !                                                                       
-               IF (0.0.le.cr_pos (1, i) .and.cr_pos (1, i)              &
+         IF (0.0.le.cr_pos (1, i) .and.cr_pos (1, i)              &
                .lt.1.and.0.0.le.cr_pos (2, i) .and.cr_pos (2, i)        &
                .lt.1.and.0.0.le.cr_pos (3, i) .and.cr_pos (3, i) .lt.1) &
                THEN                                                     
-                  as_natoms = as_natoms + 1 
-!                 as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
-!                 as_iscat (as_natoms) = cr_iscat (i) 
-!                 as_dw (as_natoms) = cr_dw (cr_nscat) 
-!                 as_occ(as_natoms) = cr_occ(cr_nscat) 
-!                 DO j = 1, 3 
-!                 as_pos (j, as_natoms) = cr_pos (j, i) 
-!                 ENDDO 
-!                 as_prop (as_natoms) = cr_prop (i) 
-               ENDIF 
-   11          CONTINUE 
-!                                                                       
+            as_natoms = as_natoms + 1 
+         ENDIF 
+      else
+         cr_iscat(i) = j
+      endif cond_new
+!
 !     --------If we are reading a molecule insert atom into current     
 !                                                                       
-               IF (mole_l_on) THEN 
-                  CALL mole_insert_current (cr_natoms, mole_num_curr) 
-                  IF (ier_num.lt.0.and.ier_num.ne. - 49) THEN 
-                     GOTO 999 
-                  ENDIF 
-                  cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
-                  cr_mole(cr_natoms) = mole_num_curr
-               ELSE             ! No molecule header, but explicit info on line
-                  IF(NINT(werte(6))>0 .AND. NINT(werte(7))>0) THEN
-                     iimole = NINT(werte(6)) + n_mole_old
-                     CALL mole_insert_explicit(cr_natoms, iimole        , NINT(werte(7))) 
-                     cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
-                     cr_mole(cr_natoms) = NINT(werte(6)) + n_mole_old
-                  ENDIF 
-               ENDIF 
-            ENDIF 
+      IF(mole_l_on) THEN 
+         CALL mole_insert_current (cr_natoms, mole_num_curr) 
+         IF (ier_num.lt.0.and.ier_num.ne. - 49) THEN 
+            exit loop_main
+         ENDIF 
+         cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
+         cr_mole(cr_natoms) = mole_num_curr
+      ELSE             ! No molecule header, but explicit info on line
+         IF(NINT(werte(6))>0 .AND. NINT(werte(7))>0) THEN
+            iimole = NINT(werte(6)) + n_mole_old
+            CALL mole_insert_explicit(cr_natoms, iimole        , NINT(werte(7))) 
+            cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
+            cr_mole(cr_natoms) = NINT(werte(6)) + n_mole_old
          ENDIF 
       ENDIF 
-      GOTO 1000 
+!
+   ENDIF  cond_mol
+!
+enddo loop_main
 !                                                                       
-    2 CONTINUE 
+2 CONTINUE 
 !                                                                       
   999 CONTINUE 
 !
@@ -2602,11 +2683,11 @@ werte = 0.0
 !     cr_surf(:,:) = 0    ! Currently no surface save nor read
 !
       CLOSE (ist) 
-!                                                                       
- 2000 FORMAT    (a) 
-      END SUBROUTINE struc_read_atoms               
+!
+end subroutine struc_read_atoms               
+!
 !********************************************************************** 
-!********************************************************************** 
+!
 SUBROUTINE spcgr_no (ianz, maxw, werte) 
 !-                                                                      
 !     Interprets the space group symbol. Returns the space group no.    
@@ -2985,6 +3066,7 @@ CHARACTER(LEN=*), INTENT(INOUT) :: zeile
 INTEGER         , INTENT(INOUT) :: lp 
 !                                                                       
 INTEGER, PARAMETER :: MAXW = 5 
+integer, parameter :: MAXMASK = 4
 !                                                                       
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) ::  ofile
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) ::  line
@@ -2996,11 +3078,12 @@ INTEGER :: length
 !
 CHARACTER(LEN= 200) :: hostfile  ! original structure file name
 !
-INTEGER, PARAMETER :: NOPTIONAL = 4
+INTEGER, PARAMETER :: NOPTIONAL = 5
 INTEGER, PARAMETER :: O_METRIC  = 1
 INTEGER, PARAMETER :: O_SPACE   = 2
 INTEGER, PARAMETER :: O_SORT    = 3
 INTEGER, PARAMETER :: O_ATOM    = 4     ! For LAMMPS
+integer, parameter :: O_UNIQUE  = 5
 CHARACTER(LEN=   6)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -3009,8 +3092,8 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'metric', 'space', 'sort', 'atom'   /
-DATA loname /  6,        5     ,  4    ,  4       /
+DATA oname  / 'metric', 'space', 'sort', 'atom', 'unique'   /
+DATA loname /  6,        5     ,  4    ,  4    ,  6         /
 !
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_a0
 REAL(KIND=PREC_DP), DIMENSION(1:3) :: host_win
@@ -3025,13 +3108,14 @@ REAL(KIND=PREC_DP), DIMENSION(4)   :: posit4 ! atom position
 REAL(KIND=PREC_DP), DIMENSION(4)   :: uvw4   ! atom position
 INTEGER              :: j
 LOGICAL              :: lperiod
+logical, dimension(0:MAXMASK) :: uni_mask
 !
 LOGICAL :: lout = .FALSE.
 !
 !
-opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ' /)   ! Always provide fresh default values
-lopara =  (/  6,        6      ,  6      ,  6       /)
-owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0     /)
+opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'bval  ' /)   ! Always provide fresh default values
+lopara =  (/  6,        6      ,  6      ,  6      ,  6       /)
+owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0    ,  0.0     /)
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
 IF (ier_num.ne.0) THEN 
@@ -3045,6 +3129,26 @@ IF (ier_num.ne.0) THEN
 ENDIF 
 !
 lperiod=.FALSE.
+!
+if(lpresent(O_UNIQUE)) then
+   uni_mask(0) = .true.
+   if(str_comp(opara(O_UNIQUE), 'name', 4, lopara(O_UNIQUE), 4)) then
+      uni_mask(2:)= .false.
+      uni_mask(1) = .true.
+   elseif(str_comp(opara(O_UNIQUE), 'charge', 6, lopara(O_UNIQUE), 6)) then
+      uni_mask(3:)  = .false.
+      uni_mask(1:2) = .true.
+   elseif(str_comp(opara(O_UNIQUE), 'bval', 4, lopara(O_UNIQUE), 4)) then
+      uni_mask(4:)  = .false.
+      uni_mask(1:3) = .true.
+   elseif(str_comp(opara(O_UNIQUE), 'occ', 3, lopara(O_UNIQUE), 3)) then
+      uni_mask = .true.
+   endif
+else
+   uni_mask(0)   = .false.
+   uni_mask(1:3) = .true.
+   uni_mask(4)   = .false.
+endif
 !
 IF (ianz.ge.1) THEN 
    IF (str_comp (cpara (1) , 'shelx', 2, lpara (1) , 5) ) THEN 
@@ -3155,7 +3259,7 @@ IF(ier_num==0) THEN
    host_spcgr_set = cr_spcgr_set
 !
    CALL rese_cr 
-   CALL do_readstru_disk(ofile, .FALSE.)
+   CALL do_readstru_disk(MAXMASK, ofile, .FALSE., uni_mask)
    CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
         cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,  &
         cr_fmat, cr_cartesian,                                 &
@@ -3209,7 +3313,7 @@ IF(ier_num==0) THEN
 !
    CALL save_restore_setting
    CALL no_error
-   CALL readstru_internal( hostfile)   ! Read  core file
+   CALL readstru_internal(MAXMASK, hostfile, uni_mask)   ! Read  core file
    CALL errlist_restore                ! Restore error status
 
   ENDIF
@@ -5634,12 +5738,13 @@ USE lib_errlist_func
 !*******************************************************************************
 !
 SUBROUTINE test_file ( strucfile, natoms, ntypes, n_mole, n_type, &
-                       n_atom, n_cells, init, l_cell)
+                       n_atom, n_cells, init, l_cell, MAXMASK, uni_mask)
 !
 !     Determines the number of atoms and atom types in strucfile
 !
 use atom_line_mod
 !
+use allocate_generic
 use blanks_mod
 USE ber_params_mod
 USE charact_mod
@@ -5661,20 +5766,24 @@ INTEGER              , INTENT(INOUT) :: n_atom
 integer, dimension(3), intent(out)   :: n_cells
 INTEGER              , INTENT(IN)    :: init
 LOGICAL              , INTENT(IN)    :: l_cell         ! If true this is a 'cell' > all atoms differ in type
+integer              , intent(in)    :: MAXMASK
+logical, dimension(0:MAXMASK), intent(in)    :: uni_mask      !  User mask test (name, charge, b, occ)
 !
 INTEGER, PARAMETER                    :: MAXW = 16 
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW)  :: cpara (MAXW) 
 INTEGER            , DIMENSION(MAXW)  :: lpara (MAXW) 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW)  :: werte (MAXW) 
 !
-REAL(KIND=PREC_DP), PARAMETER                       :: eps = 1e-6
+!REAL(KIND=PREC_DP), PARAMETER                       :: eps = 1e-6
 CHARACTER (LEN=PREC_STRING)                  :: line
 CHARACTER (LEN=PREC_STRING)                  :: line_low   ! in lower case for atom line
 CHARACTER (LEN=PREC_STRING)                  :: zeile
 CHARACTER (LEN=  20)                  :: bef
-CHARACTER (LEN=   4), DIMENSION(PREC_STRING), SAVE :: names
-REAL(KIND=PREC_DP)                , DIMENSION(PREC_STRING), SAVE :: bvals
-REAL(KIND=PREC_DP)                , DIMENSION(PREC_STRING), SAVE :: occs
+character(len=4)                          :: nw_name
+CHARACTER(LEN=   4), DIMENSION(:), allocatable, SAVE :: names
+REAL(KIND=PREC_DP) , DIMENSION(:), allocatable, SAVE :: bvals
+REAL(KIND=PREC_DP) , DIMENSION(:), allocatable, SAVE :: occs
+integer                               :: MAXSCAT    ! Max number atom types
 INTEGER                               :: ios
 INTEGER                               :: i
 INTEGER                               :: iblk
@@ -5693,11 +5802,13 @@ INTEGER                               :: inatom     ! Atom in Mole number on ato
 LOGICAL                               :: in_mole    ! Currently within a molecule
 LOGICAL                               :: l_type     ! RFound molecule type command
 integer :: nlines ! number of line sin input file
-LOGICAL                               :: new
+!LOGICAL                               :: new
 REAL(kind=PREC_DP)                    :: xc,yc,zc,bval
 real(kind=PREC_DP), dimension(3,2)   :: ccdim     ! Crystal dimensions 
 REAL(kind=PREC_DP)                   :: occ
 integer, dimension(9) :: ncell_val
+integer :: all_status
+integer :: size_of
 !
 LOGICAL           :: IS_IOSTAT_END
 !
@@ -5711,6 +5822,13 @@ ntypes     = 0
 iblk = 0
 ccdim = 0.0
 IF ( init == -1 ) THEN
+   if(allocated(names)) deallocate(names)
+   if(allocated(bvals)) deallocate(bvals)
+   if(allocated(occs )) deallocate(occs )
+   MAXSCAT = 50
+   allocate(names(MAXSCAT))
+   allocate(bvals(MAXSCAT))
+   allocate(occs (MAXSCAT))
    names(:)  = ' '
    bvals(:)  = 0.0
    occs(:)   = 1.0
@@ -5733,6 +5851,9 @@ CALL oeffne ( 99, strucfile, 'old')
 IF ( ier_num /= 0) THEN
    ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
    CLOSE ( 99 )
+   if(allocated(names)) deallocate(names)
+   if(allocated(bvals)) deallocate(bvals)
+   if(allocated(occs )) deallocate(occs )
    RETURN
 ENDIF
 !
@@ -5744,6 +5865,9 @@ header: DO
       CLOSE ( 99 )
       ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
       call atom_dealloc
+      if(allocated(names)) deallocate(names)
+      if(allocated(bvals)) deallocate(bvals)
+      if(allocated(occs )) deallocate(occs )
       RETURN
    ENDIF
    IF (line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
@@ -5761,20 +5885,23 @@ header: DO
       lp    = 1
    ENDIF
    IF (line(1:4) == 'SCAT' ) THEN 
-       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-       IF (ier_num.eq.0) THEN 
-          DO i = 1,ianz
-              names(nscattypes+i) = cpara(i)(1:lpara(i))
-          ENDDO
-          nscattypes = nscattypes + ianz
-       ELSE
-          ier_num = -111
-          ier_typ = ER_APPL
-          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-          CLOSE(99)
-      call atom_dealloc
-          RETURN
-       ENDIF
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num.eq.0) THEN 
+         DO i = 1,ianz
+             names(nscattypes+i) = cpara(i)(1:lpara(i))
+         ENDDO
+         nscattypes = nscattypes + ianz
+      ELSE
+         ier_num = -111
+         ier_typ = ER_APPL
+         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+         CLOSE(99)
+         call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
+         RETURN
+      ENDIF
    ELSEIF (line(1:3) == 'ADP' ) THEN 
        CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
        IF (ier_num.eq.0) THEN 
@@ -5790,6 +5917,9 @@ header: DO
              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
              CLOSE(99)
       call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
              RETURN
           ENDIF
        ELSE
@@ -5798,6 +5928,9 @@ header: DO
           ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
           CLOSE(99)
       call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
           RETURN
        ENDIF
    ELSEIF (line(1:3) == 'OCC' ) THEN 
@@ -5811,6 +5944,9 @@ header: DO
                     ier_typ = ER_APPL
                     ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                     CLOSE(99)
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
                     RETURN
                  ENDIF
                  occs (nocctypes+i) = werte(i)
@@ -5822,6 +5958,9 @@ header: DO
              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
              CLOSE(99)
       call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
              RETURN
           ENDIF
        ELSE
@@ -5830,6 +5969,9 @@ header: DO
           ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
           CLOSE(99)
       call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
           RETURN
        ENDIF
    ELSEIF (line(1:4) == 'CELL' ) THEN 
@@ -5842,6 +5984,9 @@ header: DO
              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
              CLOSE(99)
       call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
              RETURN
           ENDIF
        ELSE
@@ -5854,6 +5999,9 @@ header: DO
              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
              CLOSE(99)
       call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
              RETURN
           ENDIF
        ENDIF
@@ -5870,6 +6018,9 @@ header: DO
                     ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                     CLOSE(99)
                     call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
                     RETURN
                  ENDIF
              ENDDO
@@ -5888,6 +6039,9 @@ header: DO
              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
              CLOSE(99)
              call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
              RETURN
           ENDIF
        ELSE
@@ -5896,6 +6050,9 @@ header: DO
           ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
           CLOSE(99)
           call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
           RETURN
        ENDIF
    ELSEIF (line(1:6) == 'FORMAT' ) THEN 
@@ -5922,6 +6079,9 @@ header: DO
          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
          CLOSE(99)
          call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
          RETURN
       ENDIF
    ENDIF
@@ -5937,6 +6097,9 @@ IF (nscattypes /= nadptypes ) THEN
    ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
    CLOSE(99)
    call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
    RETURN
 ENDIF
 !
@@ -5966,7 +6129,7 @@ main: DO
    line = line_low
    IF( IS_IOSTAT_END(ios) ) EXIT main
    IF(line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
-      line == CHAR (13) )  CYCLE main
+      line(1:1) == TAB .or. line == CHAR (13) )  CYCLE main
    laenge = len_str(line)
    call tab2blank(line, laenge)
 !
@@ -6022,8 +6185,10 @@ main: DO
 !                           AT_MAXP, at_ianz, at_param, at_init)                                          
       if(ier_num/=0) then
          close(99)
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
          call atom_dealloc
-write(*,*) ' ERROR READING ATOM LINE '
          return
       endif
       xc     = werte(1)
@@ -6041,6 +6206,9 @@ write(*,*) ' ERROR READING ATOM LINE '
          WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
          CLOSE(99)
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
          call atom_dealloc
          RETURN
       ENDIF
@@ -6067,29 +6235,33 @@ write(*,*) ' ERROR READING ATOM LINE '
          IF ( in_mole ) THEN
             n_atom = n_atom + 1
          ENDIF
-         new = .true.
-         if(.not.l_cell) then
-         types: DO i=1,ntypes
-               if(line(1:lbef) == names(i) .and.                 &
-                  abs(abs(bval)-abs(bvals(i))) < eps  .and.      &
-                  abs(abs(occ )-abs( occs(i))) < eps        ) then
-                  new = .false.
-                  exit types
-               endif
-!           IF ( line(1:lbef) == names(i) ) THEN
-!              IF ( l_cell ) THEN
+!        new = .true.
+!        if(.not.l_cell) then
+!        types: DO i=1,ntypes
+!              if(line(1:lbef) == names(i) .and.                 &
+!                 abs(abs(bval)-abs(bvals(i))) < eps  .and.      &
+!                 abs(abs(occ )-abs( occs(i))) < eps        ) then
 !                 new = .false.
-!                 EXIT types
-!              ELSEIF(abs(abs(bval)-abs(bvals(i))) < eps .AND.   &
-!                     abs(abs(occ )-abs( occs(i))) < eps ) THEN
-!                 new = .false.
-!                 EXIT types
-!              ENDIF
-!           ENDIF
-         ENDDO types
+!                 exit types
+!              endif
+!        ENDDO types
+!        endif
+         nw_name = line(1:lbef)
+         if(uni_mask(0)) then
+            i = atom_get_type(MAXSCAT, 1, ntypes, MAXMASK, names, bvals, occs, &
+                              nw_name, bval, occ, uni_mask)
+         else
+            i = -1
          endif
-         IF ( new ) THEN
+!        IF ( new ) THEN
+         if(i==-1) then   ! New atom type
             ntypes = ntypes + 1
+            if(ntypes==MAXSCAT) then
+               MAXSCAT = MAXSCAT + 10
+               call alloc_arr(names, 1, MAXSCAT, all_status, ' ',   size_of)
+               call alloc_arr(bvals, 1, MAXSCAT, all_status, 0.5D0, size_of)
+               call alloc_arr(occs , 1, MAXSCAT, all_status, 1.0D0, size_of)
+            endif
             names(ntypes) = line(1:lbef)
             bvals(ntypes) = bval
             occs(ntypes) = occ 
@@ -6101,6 +6273,9 @@ write(*,*) ' ERROR READING ATOM LINE '
          WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
          CLOSE(99)
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
          call atom_dealloc
          RETURN
       ENDIF isatom
@@ -6122,6 +6297,7 @@ if(ncell_val(5)>0) then
 endif
 !
 n_cells     = int(ccdim(:,2)-ccdim(:,1)) + 1
+!
 !
 END SUBROUTINE test_file
 !
@@ -6302,11 +6478,13 @@ CHARACTER ( LEN=* ), INTENT(OUT) :: strucfile
 LOGICAL            , INTENT(IN)  :: l_identical
 REAL(KIND=PREC_DP)               , INTENT(IN)  :: r_identical
 !
+integer, parameter :: MAXMASK = 4
 CHARACTER(LEN=200) :: tempfile
 CHARACTER(LEN=PREC_STRING) :: line
 INTEGER :: length
 INTEGER :: im, j, iat
 LOGICAL :: lout
+logical, dimension(0:MAXMASK) :: uni_mask
 INTEGER, DIMENSION(3) :: n_unit_cells  ! local copy to survive readstru 
 REAL(KIND=PREC_DP), DIMENSION(3) :: vec     ! position of first atom in a molecule
 REAL(KIND=PREC_DP), DIMENSION(3) :: fract   ! shift into first unit cell
@@ -6314,8 +6492,11 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: shift   ! shift into first unit cell
 !
 n_unit_cells(:) = cr_icc(:)
 lout = .FALSE.
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
 !
-CALL do_readstru(strucfile, .FALSE.)
+CALL do_readstru(MAXMASK, strucfile, .FALSE., uni_mask)
 IF(ier_num/=0) THEN
    IF(ier_num /= 0) THEN
       IF(ier_msg(3) == ' ') THEN
@@ -6366,7 +6547,7 @@ tempfile = 'internal'//'RBN_READMOLE'
 CALL save_internal(tempfile)
 CALL no_error
 cr_icc(:) = n_unit_cells(:)         ! Restore intended number of unit cells
-CALL readcell_internal(tempfile)
+CALL readcell_internal(MAXMASK, tempfile, uni_mask)
 CALL save_restore_setting
 CALL store_remove_single(tempfile, ier_num)
 !
@@ -6395,16 +6576,21 @@ implicit none
 character(len=*), intent(in) :: infile
 character(len=*), intent(in) :: prefix
 !
+integer, parameter :: MAXMASK = 4
 character(len=PREC_STRING) :: line
 character(len=PREC_STRING) :: getfile
 integer :: length
 logical :: l_site
+logical, dimension(0:MAXMASK) :: uni_mask
 !
 call rese_cr
 l_site = .false.
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
 !
 getfile = infile                    ! Just a local copy
-call do_readstru(getfile, l_site)   ! Read actual file
+call do_readstru(MAXMASK, getfile, l_site, uni_mask)   ! Read actual file
 if(ier_num/=0) return
 !
 call save_store_setting             ! Backup user "save" setting

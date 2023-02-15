@@ -631,6 +631,7 @@ USE times_mod
 IMPLICIT none 
 !                                                                       
 INTEGER, PARAMETER :: IMD = 45 
+integer, parameter :: MAXMASK = 4
 !                                                                       
 CHARACTER(LEN=PREC_STRING)           :: infile 
 INTEGER, PARAMETER                   :: AT_MAXP = 16
@@ -660,6 +661,7 @@ INTEGER  :: n_type  ! Number of molecule types  in the input file
 INTEGER  :: n_atom  ! Number of atoms within molecules in the input file
 integer, dimension(3) :: n_cells  ! Number of unit cells in the input file
 integer, dimension(:,:), allocatable :: clu_moles  ! No of molecule and types in each cluster
+logical, dimension(0:MAXMASK) :: uni_mask
 REAL(PREC_DP)               :: shortest
 REAL(PREC_DP), DIMENSION(3) :: vv
 REAL(PREC_DP) :: sgrand  ! grand time
@@ -673,6 +675,9 @@ maxdim(:) = 0
 clu_mole_num_mole  = 0   ! Number of Clusters in case of CLUSTER MODE
 clu_mole_num_type  = 0   ! Number of Cluster  types in case of CLUSTER MODE
 clu_mole_num_atom  = 0   ! Number of Cluster  atoms in case of CLUSTER MODE
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
 ! Read all content files into internal storage
 !
 ! --- Temporarily save current structure into internal
@@ -742,7 +747,7 @@ loop_read: do i=1, clu_number
       call read_to_internal(strucfile, 'internal_domain_guest.')
       if(ier_num/=0) then
          j = ier_num
-         call readstru_internal(host_file)
+         call readstru_internal(MAXMASK, host_file, uni_mask)
          call save_restore_setting           ! Restore user "save" settings
          ier_num = j
          write(ier_msg(1), '(a,i3)') ' Error in content file ', i
@@ -754,7 +759,7 @@ loop_read: do i=1, clu_number
 enddo loop_read
 !write(*,*) ' FINISHED  GUEST FILES '
 !
-call readstru_internal(host_file)   ! Restore original host file
+call readstru_internal(MAXMASK, host_file, uni_mask)   ! Restore original host file
 if(ier_num/=0) return
 call save_restore_setting           ! Restore user "save" settings
 if(ier_num/=0) return
@@ -806,7 +811,7 @@ DO i=1, clu_number
          endif
    ELSE
       CALL test_file(infile ,natoms, &
-              nscats, n_mole, n_type, n_atom, n_cells, -1 , .false.)
+              nscats, n_mole, n_type, n_atom, n_cells, -1 , .false., MAXMASK, uni_mask)
       clu_moles(1,i) = n_mole
       clu_moles(2,i) = n_type
       IF (ier_num.ne.0) THEN
@@ -931,7 +936,7 @@ IF ( clu_infile_internal ) THEN
    at_param(8) = 'OCC'
    at_ianz = 8
 ELSE
-   CALL test_file(clu_infile, natoms, nscats, n_mole, n_type, n_atom, n_cells, -1 , .false.)
+   CALL test_file(clu_infile, natoms, nscats, n_mole, n_type, n_atom, n_cells, -1 , .false., MAXMASK, uni_mask)
    IF(natoms > MAX(MK_MAX_ATOM, NMAX)    .or. &
       nscats > MAX(MK_MAX_SCAT, MAXSCAT) .or. &
       n_mole > MOLE_MAX_MOLE             .or. &
@@ -1205,21 +1210,26 @@ use string_convert_mod
 implicit none
 !
 !
+integer, parameter :: MAXMASK = 4
 character(len=4) :: line   ! dummy line
 integer :: i, ii         ! Dummy loop index
 integer :: iatom         ! Dummy atom number
 integer :: nprior        ! number of atoms prior to replacement
 logical :: l_site
 logical :: lout
+logical, dimension(0:MAXMASK) :: uni_mask
 !
 lout = .false.
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .true.
 !
 !***  Read the list of pseudoatoms as structure 
 !
 l_site = .FALSE.
 !
 if(clu_infile(1:21) == 'internal_domain_list.') then
-   call readstru_internal(clu_infile)
+   call readstru_internal(MAXMASK, clu_infile, uni_mask)
 else
    ier_num = -182
    ier_typ = ER_APPL

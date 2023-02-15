@@ -891,6 +891,8 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    REAL(KIND=PREC_DP)   , DIMENSION(3)   :: host_a0
    REAL(KIND=PREC_DP)   , DIMENSION(3)   :: host_win
    REAL(KIND=PREC_DP)   , DIMENSION(4,4) :: host_tran_fi
+integer, parameter :: MAXMASK=4
+logical, dimension(0:MAXMASK) :: uni_mask
 !
    IF(MAXVAL(cr_surf(0,:)) == 0 .AND. MINVAL(cr_surf(0,:)) == 0) THEN
       ier_num = -130
@@ -912,6 +914,10 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    anch_id(:,:) = 0
 !  ALLOCATE(anch_id(1:dc_temp_id*dc_temp_maxsurf,1:2))   ! make lookup for anchors
    temp_grand = 1.0
+!
+uni_mask(0)   = .false.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
 !
 !  Section for automatic distribution of all surface anchors
 !
@@ -969,7 +975,7 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
 
       CALL save_restore_setting
       CALL no_error
-      CALL readstru_internal( corefile)   ! Read  core file
+      CALL readstru_internal(MAXMASK, corefile, uni_mask)   ! Read  core file
       CALL errlist_restore                ! Restore error status
       DEALLOCATE(anch_id)
       RETURN
@@ -993,7 +999,7 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
 
       CALL save_restore_setting
       CALL no_error
-      CALL readstru_internal( corefile)   ! Read  core file
+      CALL readstru_internal(MAXMASK, corefile, uni_mask)   ! Read  core file
       CALL errlist_restore                ! Restore error status
       DEALLOCATE(anch_id)
       RETURN
@@ -1018,7 +1024,7 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
 CALL rese_cr
 CALL no_error
 !
-CALL readstru_internal(shellfile)   ! Read shell file
+CALL readstru_internal(MAXMASK, shellfile, uni_mask)   ! Read shell file
 !
 cr_icc(:) = 1                       ! The shell is not periodic, 
 cr_ncatoms = cr_natoms              ! place all atoms into one "unit" cell
@@ -1098,7 +1104,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
    IF(n_repl==0) THEN
       CALL save_restore_setting
       CALL no_error
-      CALL readstru_internal( corefile)   ! Read  core file
+      CALL readstru_internal(MAXMASK, corefile, uni_mask)   ! Read  core file
       ier_num = -131
       ier_typ = ER_APPL
       ier_msg(1) = 'Is the surface very small, just a few atoms?'
@@ -1295,7 +1301,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
             call mmc_init
             CALL save_restore_setting
             CALL no_error
-            CALL readstru_internal( corefile)   ! Read  original core file
+            CALL readstru_internal(MAXMASK, corefile, uni_mask)   ! Read  original core file
             ier_num = i
             ier_typ = j
             ier_msg(1) = 'Sorting the anchors failed. Structure empty?'
@@ -1366,7 +1372,7 @@ CALL no_error
    line       = 'ignore, all'          ! Ignore all properties for global as well
    length     = 11
    CALL property_select(line, length,  cr_sel_prop)
-CALL readstru_internal( corefile)   ! Read  original core file
+CALL readstru_internal(MAXMASK, corefile, uni_mask)   ! Read  original core file
 !
 IF(cr_natoms == 0 ) THEN
    ier_num = -27
@@ -1406,7 +1412,7 @@ ENDDO loop_anchor
 IF(MAXVAL(temp_iatom)==0) THEN
    CALL save_restore_setting
    CALL no_error
-   CALL readstru_internal( corefile)   ! Read  original core file
+   CALL readstru_internal(MAXMASK, corefile, uni_mask)   ! Read  original core file
    ier_num = -131
    ier_typ = ER_APPL
    ier_msg(1) = 'Is the surface very small, just a few atoms?'
@@ -1644,13 +1650,13 @@ CYCLE main_loop
            CALL save_restore_setting
            ier_num = 0
            ier_typ = 0
-           CALL readstru_internal(corefile)   ! Read core file
+           CALL readstru_internal(MAXMASK, corefile, uni_mask)   ! Read core file
            ier_num = -158
            ier_typ = ER_APPL
          ELSEIF(cr_natoms == natoms_prior) THEN    ! No atoms added Failure
            CALL save_restore_setting
            CALL no_error
-           CALL readstru_internal(corefile)   ! Read core file
+           CALL readstru_internal(MAXMASK, corefile, uni_mask)   ! Read core file
            ier_num = -131
            ier_typ = ER_APPL
            ier_msg(1) = 'Is the surface very small, just a few atoms?'
@@ -1679,7 +1685,7 @@ CYCLE main_loop
       ELSE     ! n_repl > 0   !! No anchor atoms found
         CALL save_restore_setting
         CALL no_error
-        CALL readstru_internal( corefile)   ! Read  core file
+        CALL readstru_internal(MAXMASK, corefile, uni_mask)   ! Read  core file
         ier_num = -131
         ier_typ = ER_APPL
         ier_msg(1) = 'Is the surface very small, just a few atoms?'
@@ -1690,7 +1696,7 @@ CYCLE main_loop
      CALL rese_cr
      CALL save_restore_setting
      CALL no_error
-     CALL readstru_internal( corefile)   ! Read  core file
+     CALL readstru_internal(MAXMASK, corefile, uni_mask)   ! Read  core file
      ier_num = -130
      ier_typ = ER_APPL
      ier_msg(1) = 'Possible reasons: no boundary was used to cut'
@@ -1792,6 +1798,9 @@ IMPLICIT none
 REAL(KIND=PREC_DP), DIMENSION(1:3), INTENT(IN) :: host_a0
 REAL(KIND=PREC_DP), DIMENSION(1:3), INTENT(IN) :: host_win
 REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(IN) :: host_tran_fi
+!
+integer, parameter :: MAXMASK = 4
+!
 CHARACTER (LEN=PREC_STRING)                :: strufile
    CHARACTER (LEN=PREC_STRING)                :: mole_name
 CHARACTER (LEN=PREC_STRING)                :: savefile
@@ -1803,6 +1812,7 @@ CHARACTER (LEN=PREC_STRING)                :: line
    REAL(kind=PREC_DP), DIMENSION(4) :: posit4 ! atom position
    REAL(kind=PREC_DP), DIMENSION(4) :: uvw4   ! atom position
    LOGICAL  :: success= .true.  ! Found matching molecule file name
+logical, dimension(0:MAXMASK) :: uni_mask
    INTEGER, DIMENSION(1:2) :: temp_axis
    INTEGER                 :: temp_neig
    REAL(KIND=PREC_DP)      :: temp_dist
@@ -1817,6 +1827,9 @@ REAL(kind=PREC_DP), DIMENSION(3)    :: uvw_out
 REAL(kind=PREC_DP), DIMENSION(3)    :: w
 !
    strufile = ' '
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
 !
 main: DO i=1, dcc_num
 !
@@ -1829,7 +1842,7 @@ main: DO i=1, dcc_num
    strufile     = mole_name
    success = .FALSE.
    CALL rese_cr
-   CALL do_readstru(strufile, .FALSE.)
+   CALL do_readstru(MAXMASK, strufile, .FALSE., uni_mask)
    IF(ier_num /= 0) RETURN
    CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
