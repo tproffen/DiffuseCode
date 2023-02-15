@@ -251,8 +251,6 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
                   uni_mask(:)   = .false.
                endif
             endif
-write(*,*) ' BEFEHL ', befehl
-write(*,*) ' MASK   ', uni_mask(0), ' | ', uni_mask(1:)
             CALL do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, &
                              l_identical, r_identical, occupancy,  &
                              l_site, MAXMASK, uni_mask)
