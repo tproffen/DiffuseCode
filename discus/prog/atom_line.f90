@@ -24,6 +24,8 @@ public  read_atom_line
 public  atom_alloc
 public  atom_dealloc
 public   get_atom_werte
+public  atom_verify_param
+public  atom_get_type
 !
 integer, parameter :: AT_MAXP = 16
 !
@@ -141,7 +143,6 @@ else
       enddo loop_names
    enddo loop_used
 !         inew = inew + 1
-!write(*,*) ' New at ', inew
 !         at_look(inew)  = j
 !         at_kool(j)     = inew
 !         at_param(inew) = at_cnam(j)
@@ -476,6 +477,118 @@ ier_num = 0
 ier_typ = 0
 !
 end subroutine get_atom_werte
+!
+!*******************************************************************************
+!
+subroutine atom_verify_param
+!-
+! Check that all user parameters on the "atoms" line are valid names
+!+
+!
+use errlist_mod
+!
+implicit none
+!
+integer :: i   ! Loop index
+integer :: j   ! Loop index
+!
+do_param: do i= 1, at_ianz
+   do_allowed: do j=1, AT_MAXP
+      if(at_param(i)==at_cnam(j)) cycle do_param
+   enddo do_allowed
+   ier_num = -189
+   ier_typ = ER_APPL
+   ier_msg(3) = 'Illegal : ' // at_param(i)(1:len_trim(at_param(i)))
+   return
+enddo do_param
+end subroutine atom_verify_param
+!
+!*******************************************************************************
+!
+function atom_get_type(MAXSCAT, nscat_start, nscat, MAXMASK,      &
+                       at_lis, at_dw, at_occ,        &
+                       nw_name, nw_dw, nw_occ, mask) &
+         result(is_type)
+!-
+!  Determine atom type from name, charge, Bval, (occ) 
+!+
+!
+use precision_mod
+use string_convert_mod
+!
+implicit none
+!
+integer, intent(in) :: MAXSCAT
+integer, intent(in) :: nscat_start
+integer, intent(in) :: nscat
+integer, intent(in) :: MAXMASK
+character(len=4)  , dimension(nscat_start:MAXSCAT), intent(in) :: at_lis
+real(kind=PREC_DP), dimension(nscat_start:MAXSCAT), intent(in) :: at_dw
+real(kind=PREC_DP), dimension(nscat_start:MAXSCAT), intent(in) :: at_occ
+character(len=*)  ,                       intent(inout) :: nw_name
+real(kind=PREC_DP),                       intent(in) :: nw_dw
+real(kind=PREC_DP),                       intent(in) :: nw_occ
+logical           , dimension(0:MAXMASK), intent(in) :: mask
+!
+real(kind=PREC_DP), parameter :: TOL = 1.0D-5
+integer :: is_type
+!
+character(len=4) :: local_name
+character(len=4) :: local_full
+integer :: i   ! Loop index
+integer :: j   ! Loop index
+!
+is_type = -1
+!
+if(.not.any(mask(1:))) return       ! No masking at all; all are new atom types
+!
+j = len_trim(nw_name)
+if(nw_name(j:j)=='+' .or. nw_name(j:j)=='-')  j = j - 2 ! Shorten name
+local_name = nw_name(1:j)
+local_full = nw_name
+call do_cap(local_name)       ! Capitalized, pure atom name
+call do_cap(local_full)       ! Capitalized, full atom name
+!
+do_search: do i=nscat_start, nscat
+   if(mask(4)) then           ! name, charge, Bval and occ are required
+      if(at_lis(i)==local_full .and. abs(at_dw(i)-nw_dw)<TOL .and. abs(at_occ(i)-nw_occ)<TOL) then
+         is_type = i
+         exit do_search
+      else
+         cycle do_search
+      endif
+   elseif(mask(3)) then       ! name, charge, Bval are required
+      if(at_lis(i)==local_full .and. abs(at_dw(i)-nw_dw)<TOL) then
+         is_type = i
+         exit do_search
+      else
+         cycle do_search
+      endif
+   elseif(mask(2)) then       ! name, charge
+      if(at_lis(i)==local_full) then
+         is_type = i
+         exit do_search
+      else
+         cycle do_search
+      endif
+   elseif(mask(1)) then       ! name
+      if(at_lis(i)(1:j)==local_name(1:j)) then
+         is_type = i
+         nw_name = local_name
+         exit do_search
+      else
+         cycle do_search
+      endif
+   else
+      is_type = i
+      exit do_search
+   endif
+enddo do_search
+if(is_type==-1 .and. .not.mask(2)) then   ! New atom type and ignore charge
+   nw_name = local_name
+endif
+!
+end function atom_get_type
 !
 !*******************************************************************************
 !
