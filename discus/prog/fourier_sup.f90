@@ -739,6 +739,8 @@ subroutine four_aver_hkl
 !  Calculate average structure factor; just at HKL integer for finufft
 !+
 !
+USE chem_mod
+use chem_aver_mod
 use crystal_mod
 use diffuse_mod
 USE fourier_lmn_mod
@@ -748,6 +750,7 @@ implicit none
 !
 integer :: iscat    ! Loop index scattering types
 integer :: iatom    ! Loop index scattering types
+integer :: k
 integer           , dimension(1:3)      ::  tmp_inc      ! Temporary storage to preserve user settings
 real(kind=PREC_DP), dimension(1:3, 1:4) ::  tmp_eck
 real(kind=PREC_DP), dimension(1:3, 1:3) ::  tmp_vi
@@ -774,12 +777,31 @@ acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0))
 !------ ----- Loop over all atom types                                  
 !
 !allocate(xat(cr_natoms,3))
+call chem_aver(.true., .false.)
+!loop_iscat: do iscat = 1, cr_nscat 
+   loop_atoms2: do iatom = 1, cr_ncatoms
+      do k = 1, chem_ave_n(iatom)
+      nxat = 1
+!        if(chem_ave_iscat (iatom, k) == iscat) then
+            xat(nxat,:) = chem_ave_pos(:,iatom)
+!        endif
+      iscat = chem_ave_iscat(iatom, k)
+      call four_strucf(iscat, .true.)
+      acsf = acsf + tcsf * chem_ave_bese(iatom, k)
+      enddo
+   enddo loop_atoms2
+!acsf = acsf * cr_icc(1)*cr_icc(2)*cr_icc(3)
+k = (ubound(acsf,1)-1)/2
+!enddo loop_iscat
+ csf     = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0)) 
+acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0)) 
+!
 loop_iscat: do iscat = 1, cr_nscat 
    nxat = 0 
    loop_atoms: do iatom = 1, cr_natoms
       if(cr_iscat(iatom) == iscat) then 
          nxat = nxat + 1
-         xat(nxat,:) = cr_pos(:, iatom) ! - real(icell(:) - 1,kind=PREC_DP) - cr_dim0(:, 1)
+         xat(nxat,:) = cr_pos(:, iatom) -floor(cr_pos(:, iatom)) ! - real(icell(:) - 1,kind=PREC_DP) - cr_dim0(:, 1)
       endif
    enddo loop_atoms
    call four_strucf(iscat, .true.) 
