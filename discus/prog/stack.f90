@@ -1068,6 +1068,7 @@ USE precision_mod
 IMPLICIT none 
 
 !                                                                       
+integer, parameter :: MAXMASK = 4
 real(kind=PREC_DP), parameter :: EPS = 1.0D-8
 CHARACTER(LEN=23), PARAMETER :: tempfile ='internal.temporary.stru'
 CHARACTER(LEN=23), PARAMETER :: stackfile='internal.stacklist.stru'
@@ -1081,6 +1082,7 @@ INTEGER         :: n_atom  ! number of molecule atoms in input file
 INTEGER         :: natoms
 !integer, dimension(3) :: n_cells
 INTEGER         :: nscats
+logical,dimension(0:MAXMASK) :: uni_mask
 LOGICAL         :: need_alloc = .false.
 LOGICAL         :: lprev 
 REAL(kind=PREC_DP), dimension(ST_MAXTYPE) :: prob  ! (ST_MAXTYPE) 
@@ -1099,6 +1101,10 @@ DO i = 1, ST_MAXTYPE
    st_number (i) = 0 
 ENDDO 
 !                                                                       
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
+!
 !     Read layer types from file or create from probability matrix      
 !                                                                       
 if_distr: IF(st_distr.eq.ST_DIST_MATRIX) then 
@@ -1483,7 +1489,7 @@ DO i=1,st_nlayer
    cr_pos(3,i) = REAL(i-1)
 ENDDO
 CALL save_internal(stacksimple)
-CALL readstru_internal(tempfile)    ! Restore current structure
+CALL readstru_internal(MAXMASK, tempfile, uni_mask)    ! Restore current structure
 CALL store_remove_single(tempfile, ier_num)  ! Cleanup internal storage
 IF(ier_num/=0) THEN
    ier_typ = ER_APPL
@@ -1642,10 +1648,14 @@ USE support_mod
 !
 IMPLICIT none 
 !                                                                       
+integer, parameter :: MAXMASK = 4
 INTEGER, PARAMETER                   :: ist = 7 
+real(kind=PREC_DP), parameter        :: TOL=1.0D-5
 !                                                                       
 character(len=PREC_STRING) :: strucfile
 !                                                                       
+integer          :: natom = 0
+integer          :: nscat = 0
 INTEGER          :: natoms=0, max_natoms=0
 INTEGER          :: nscats=0, max_nscats=0
 INTEGER          ::         max_n_mole=0
@@ -1659,6 +1669,7 @@ INTEGER         :: n_atom=0  ! number of molecule atoms in input file
 integer, dimension(3) :: n_cells
 LOGICAL         :: lread, lout 
 LOGICAL           :: need_alloc = .false. 
+logical,dimension(0:MAXMASK) :: uni_mask
 !
 ! needed for estimate_ncells
 real(kind=PREC_DP), dimension(3, 2):: pdt_dims
@@ -1685,8 +1696,14 @@ IF ( MAXVAL(st_number) == 0 ) then
    RETURN
 ENDIF
 !
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
+!
 st_dims(:,1) = -huge(1.0D0)
 st_dims(:,2) =  huge(1.0D0)
+st_nscat = 0
+st_natoms = 0
 if(st_mod_atom/=ST_ATOM_OFF) then          ! Atom modulo function is active
    do i=1,st_ntypes                        ! Get layer dimensions
      call stru_internal_get_cr_dim(st_layer(i), cr_dim)
@@ -1730,6 +1747,7 @@ more1: IF (st_nlayer.ge.1) then
 !                                n_type, n_atom, n_cells, -1*i, .false.)
       ENDIF
       If(ier_num/=0) RETURN
+!
       max_natoms = MAX(max_natoms, natoms)
       max_nscats = MAX(max_nscats, nscats)
       max_n_mole = MAX(max_n_mole, n_mole)
@@ -1779,7 +1797,7 @@ more1: IF (st_nlayer.ge.1) then
    lout = .false. 
 !
    IF(st_internal(st_type(i)) ) THEN
-      CALL readstru_internal (st_layer (st_type (i) ))!, &
+      CALL readstru_internal(MAXMASK, st_layer(st_type(i)), uni_mask)!, &
 !                 NMAX, MAXSCAT, MOLE_MAX_MOLE, &
 !                 MOLE_MAX_TYPE, MOLE_MAX_ATOM )
       IF (ier_num.ne.0) then 
@@ -1850,6 +1868,43 @@ more1: IF (st_nlayer.ge.1) then
 !  write(*,*) ' mole_len, mole_typ, mole_off ',mole_len(j), mole_type(j), mole_off(j)
 !  write(*,*) ' mole_cont ', (mole_cont(mole_off(j)+k),k=1, mole_len(j))
 !enddo
+!
+!  Read all headers of all layer types once, to get global list of atom types
+!
+!write(*,*) ' READING LAYER TYPES 1: ', st_ntypes, st_nscat
+!read(*,*) i
+   do i=1, st_ntypes
+         CALL stru_readheader_internal (st_layer(        i ), MAXSCAT, st_name, &
+               st_spcgr, st_spcgr_set, st_set, st_iset,                         &
+               st_at_lis, st_nscat, st_dw, st_occ, st_a0, st_win,               &
+               sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para,     &
+               GEN_ADD_MAX, gen_add_n, gen_add_power, gen_add,                  &
+               SYM_ADD_MAX, sym_add_n, sym_add_power, sym_add)
+!
+!write(*,*) ' LAYER TYPE ', i, st_nscat, cr_nscat, ubound(st_at_lis), MAXSCAT
+      do j=1, st_nscat     ! Loop over all atom types in this layer type
+         kk = -1
+         loop_type_i: do k=1,cr_nscat
+            if(cr_at_lis(k)==st_at_lis(j) .and. abs(cr_dw(k)-st_dw(j))<TOL) then
+               kk = k
+               exit loop_type_i
+            endif
+         enddo loop_type_i
+         if(kk<0) then         ! Atom type was not found, need new type 
+            if(cr_nscat==MAXSCAT) then          ! Need to allocate
+               nscat = max(cr_nscat+1, MAXSCAT)
+               natom = max(cr_natoms+st_natoms, NMAX)
+               call alloc_crystal(nscat, nmax)
+               MAXSCAT = nscat
+               NMAX    = nmax
+            endif
+            kk       = cr_nscat + 1
+            cr_nscat = cr_nscat + 1                  ! Increment atom types
+            cr_at_lis(kk) = st_at_lis(j)             ! Set new atom type
+            cr_dw    (kk) = st_dw(j )                ! Set new ADP
+         endif
+      enddo
+   enddo
 !                                                                       
 !     --Loop over all layers in crystal                                 
 !                                                                       
@@ -1935,19 +1990,19 @@ more1: IF (st_nlayer.ge.1) then
       DO j = 1    , st_natoms 
          kk = -1
          loop_type: do k=1,cr_nscat
-            if(cr_at_lis(k)==st_at_lis(st_iscat(j)) .and. cr_dw(k)== st_dw(st_iscat(j))) then
+            if(cr_at_lis(k)==st_at_lis(st_iscat(j)) .and. abs(cr_dw(k)-st_dw(st_iscat(j)))<TOL) then
                kk = k
                exit loop_type
             endif
          enddo loop_type
          if(kk<0) then         ! Atom type was not found, need new type 
-!           if(cr_nscat==MAXSCAT) then          ! Need to allocate
-!              nscat = max(cr_nscat+1, MAXSCAT)
-!              natom = max(cr_natoms+st_natoms, NMAX)
-!              call alloc_crystal(nscat, nmax)
-!              MAXSCAT = nscat
-!              NMAX    = nmax
-!           endif
+            if(cr_nscat==MAXSCAT) then          ! Need to allocate
+               nscat = max(cr_nscat+1, MAXSCAT)
+               natom = max(cr_natoms+st_natoms, NMAX)
+               call alloc_crystal(nscat, nmax)
+               MAXSCAT = nscat
+               NMAX    = nmax
+            endif
             kk       = cr_nscat + 1
             cr_nscat = cr_nscat + 1                  ! Increment atom types
             cr_at_lis(kk) = st_at_lis(st_iscat(j))             ! Set new atom type
@@ -2243,6 +2298,8 @@ IMPLICIT none
 !                                                                       
 LOGICAL, INTENT(IN) :: calc_f2aver
 !                                                                       
+integer, parameter :: MAXMASK = 4
+!
       INTEGER i, j, l 
       INTEGER iscat 
       INTEGER lbeg (3)
@@ -2254,6 +2311,7 @@ LOGICAL, INTENT(IN) :: calc_f2aver
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
+logical,dimension(0:MAXMASK) :: uni_mask
 !integer, dimension(3) :: n_cells
 !
       LOGICAL :: lout 
@@ -2262,6 +2320,9 @@ LOGICAL, INTENT(IN) :: calc_f2aver
 !
 !     n_qxy   = 1
 !     n_nscat = 1
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
 !                                                                       
 !     If there are any layers in the crystal read each layer            
 !                                                                       
@@ -2347,7 +2408,7 @@ ENDIF
                ENDIF
 !
          IF(st_internal(st_type(1)) ) THEN
-            CALL readstru_internal (st_layer (st_type (1) ))!, &
+            CALL readstru_internal(MAXMASK, st_layer (st_type (1) ), uni_mask)!, &
          ELSE
             ier_num = -182
             ier_typ = ER_APPL
@@ -2439,7 +2500,7 @@ ENDIF
                ENDIF
 !
             IF(st_layer_c(l)(1:8)=='internal') THEN
-               CALL readstru_internal (st_layer_c (l ))
+               CALL readstru_internal(MAXMASK, st_layer_c(l), uni_mask)
             ELSE
                ier_num = -182
                ier_typ = ER_APPL
@@ -2596,6 +2657,7 @@ use precision_mod
 !                                                                       
        
 !                                                                       
+integer, parameter :: MAXMASK = 4
       INTEGER i, j, l 
       INTEGER iscat 
       INTEGER lbeg (3)
@@ -2607,6 +2669,7 @@ use precision_mod
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
+logical, dimension(0:MAXMASK) :: uni_mask
 !integer, dimension(3) :: n_cells
 !
       REAL(kind=PREC_DP) :: u (3) 
@@ -2614,6 +2677,9 @@ use precision_mod
 !     n_qxy    = 1
 !     n_nscat  = 1
 !     n_natoms = 1
+uni_mask(0)   = .true.
+uni_mask(1:3) = .true.
+uni_mask(4)   = .false.
 !                                                                       
 !------ preset some values                                              
 !                                                                       
@@ -2683,7 +2749,7 @@ use precision_mod
                ENDIF
 !
             IF(st_layer(1)(1:8)=='internal') THEN
-               CALL readstru_internal (st_layer(1))
+               CALL readstru_internal(MAXMASK, st_layer(1), uni_mask)
             ELSE
                ier_num = -182
                ier_typ = ER_APPL
@@ -2815,7 +2881,7 @@ use precision_mod
                ENDIF
 ! 
             IF(st_layer(l)(1:8)=='internal') THEN
-               CALL readstru_internal (st_layer(l))
+               CALL readstru_internal(MAXMASK, st_layer(l), uni_mask)
             ELSE
                ier_num = -182
                ier_typ = ER_APPL
