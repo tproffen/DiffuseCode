@@ -8,7 +8,11 @@ DISCUS
               of data points was off by half a grid point.
   fourier     Preparation for major update
   mmc         Added an option to display initial status
-  output      Added option to transfrom data upon write
+  output      Added an option to transform data upon write
+  read        Added an option to fine-tune which atoms are considered individual unique atom types
+  stack       BUG FIX, Layers with many different atom types could cause a crash
+KUPLOT
+  save        Added a tolerance test to avoid rounding errors
 6.13.00  RELEASE 2022_12_19
 
 DISCUS
@@ -42,7 +46,7 @@ KUPLOT
 
 DISCUS
   powder      The combination of Debye-Scattering-Equation with periodic boundary
-              conditions and multiple phases ddi not work well.
+              conditions and multiple phases did not work well.
 6.12.04  RELEASE 2022_10_10
 General
               Continued move of KUPLOT data to global storage; no effect on user yet.
