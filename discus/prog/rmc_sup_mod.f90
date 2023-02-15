@@ -588,7 +588,7 @@ IMPLICIT none
 !                                                                       
 IF (ianz.ge.1) then 
    CALL do_cap (cpara (1)(1:lpara(1)) ) 
-write(*,*) ' CPARA(!) ', cpara(1)(1:4)
+!write(*,*) ' CPARA(!) ', cpara(1)(1:4)
    IF (cpara (1) (1:3) .eq.'SHI') then 
       imode = rmc_mode_shift 
    ELSEIF (cpara (1) (1:3) .eq.'SWD') then 
@@ -604,7 +604,7 @@ write(*,*) ' CPARA(!) ', cpara(1)(1:4)
       ier_num = - 9 
       RETURN
    ENDIF 
-write(*,*) ' IMODE ', imode
+!write(*,*) ' IMODE ', imode
 !                                                                       
    IF (ianz.eq.2) then 
       CALL do_cap (cpara(2)(1:lpara(2)) ) 
@@ -1782,9 +1782,9 @@ pn = 0.0
 !                                                                       
 !------ check consistency of input data                                 
 !                                                                       
-write(*,*) 'RMC CHECK INPUT '
+!write(*,*) 'RMC CHECK INPUT '
 CALL rmc_check_input 
-write(*,*) 'RMC CHECK INPUT done'
+!write(*,*) 'RMC CHECK INPUT done'
 IF (ier_num.ne.0) return 
 !
 !------	Allocate arrays related to SQ, LOTS
@@ -1902,7 +1902,7 @@ IF (ier_num.ne.0) return
 !                                                                       
       sig2 = rmc_sigma**2/2.0 
 !                                                                       
-write(*,*) 'RMC MAIN LOOP STARTED '
+!write(*,*) 'RMC MAIN LOOP STARTED '
       DO while (loop) 
         IF(ier_ctrlc) THEN
            ier_num = -14
@@ -3392,7 +3392,7 @@ elseif(rmc_mode == rmc_mode_rotate) then
 !                                                                       
    IF (laccept) then 
       natoms = mole_len(imol(1)) 
-write(*,*) ' imol ', imol(1), mole_len(imol(1)), mole_off(imol(1))
+!write(*,*) ' imol ', imol(1), mole_len(imol(1)), mole_off(imol(1))
 !
 !  CALL RANDOM_NUMBER(r1)
 !  sym_uvw(1) = 2.0D0*(r1-1)

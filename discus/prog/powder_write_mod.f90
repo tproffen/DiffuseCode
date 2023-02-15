@@ -1267,8 +1267,8 @@ max_ps = int( (pow_width * fwhm) / dtth )
 psvgt = 0.0
 eta_dp  = REAL(eta,KIND=PREC_DP)
 fwhm_dp = REAL(fwhm,KIND=PREC_DP)
-write(*,'(8(f8.5,1x))') eta_dp, fwhm_dp
-write(*,*)
+!write(*,'(8(f8.5,1x))') eta_dp, fwhm_dp
+!write(*,*)
 !open(77,file='pseudo.comp', status='unknown')
 DO i = 0, max_ps 
    ii = MIN(INT(i*dtth/fwhm*GLP_NPT), GLP_MAX)
@@ -1286,7 +1286,7 @@ dummy = 0.0
 !
 IF(pow_type==POW_COMPL) THEN
    DO i = 0, imax 
-if(dat(i)>10.) write(*,'(i5,f7.3,f14.5)') i, tthmin + i*dtth, dat(i)
+!if(dat(i)>10.) write(*,'(i5,f7.3,f14.5)') i, tthmin + i*dtth, dat(i)
       dummy (i) = dat (i) * (psvgt (0) - psvgt (2 * i) ) 
       ii = max (i - 1 - max_ps + 1, 0  ) 
       first: DO j = ii, i - 1 

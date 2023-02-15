@@ -1418,7 +1418,7 @@ integer :: is, js, je
 logical :: lfirst
 real(kind=PREC_DP) :: divisor
 !
-write(*,'(a)') ' --- Initial multiple energy configuration ---'
+write(output_io,'(a)') ' --- Initial multiple energy configuration ---'
 write(output_io,*)
 write(output_io,410)
 !

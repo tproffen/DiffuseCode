@@ -627,12 +627,12 @@ REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: xq    ! Temporary array, might 
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: xfour ! Temporary array, might do inplace replacement later
 REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: yfour ! Temporary array, might do inplace replacement later
 !
-write(*,*) ' deb_conv ', deb_conv
-write(*,*) ' not ldbw ', .not. ldbw
+!write(*,*) ' deb_conv ', deb_conv
+!write(*,*) ' not ldbw ', .not. ldbw
 IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
    RETURN
 ENDIF
-write(*,*) ' WILL CONTINUE '
+!write(*,*) ' WILL CONTINUE '
 !
 npkt_fft = 2**18
 !
