@@ -22,6 +22,7 @@ USE lib_random_func
       USE prompt_mod 
       USE random_mod
 USE precision_mod
+use wink_mod
 !
       IMPLICIT none 
        
@@ -41,6 +42,16 @@ USE precision_mod
       REAL(kind=PREC_DP) :: uc_su2 (3, 0:maxscat) 
       REAL(kind=PREC_DP) :: pi2, bfac, a 
       LOGICAL flag_all, flag_mol 
+real(kind=prec_dp) :: sigma
+real(kind=PREC_DP), dimension(3,4) :: prin     ! Principal axes and sigma
+!
+prin = 0.0D0
+prin(1,1) = 1.0D0     ! Simple a-axis
+prin(2,2) = 1.0D0     ! Simple b-axis
+prin(3,3) = 1.0D0     ! Simple c-axis
+prin(1,4) =     (1.30/8.0/PI**2)
+prin(2,4) =     (0.90/8.0/PI**2)
+prin(3,4) =     (0.90/8.0/PI**2)
 !
       flag_all=.true.
       flag_mol=.false.
@@ -118,15 +129,38 @@ USE precision_mod
             is = cr_iscat (i) 
             a  = sqrt (bfac * cr_dw (is) ) 
 !           CALL ther_vec(flag_all, a, uc, up)
+!if(is==1) then    ! FOR GE 
+!   call ther_anis(prin,uc, up, i)
+!!if(i==1) then 
+!   write(*,'(a,3f8.4,2x, f8.4)') 'THRMAL ANISO', cr_dw(is), a
+!   write(*,'(a,4f8.4,2x, f8.4)') 'PRIN 1    ', prin(1,:), sqrt(prin(1,4))
+!   write(*,'(a,4f8.4,2x, f8.4)') 'PRIN 2    ', prin(2,:), sqrt(prin(2,4))
+!   write(*,'(a,4f8.4,2x, f8.4)') 'PRIN 3    ', prin(3,:), sqrt(prin(3,4))
+!   write(*,'(a,3f8.4,2x, f8.4)') 'VECTOR uc ', uc
+!endif
+!else
          DO ii = 1, 3 
+sigma = a
+!if(cr_iscat(i)==1) then
+!  if(ii==1) sigma = a*1.15
+!  if(ii==2) sigma = a*1.00
+!  if(ii==3) sigma = a*1.00
+!endif
          IF (flag_all.or.cr_icc (ii) .ne.1) THEN 
-            up (ii) = gasdev (DBLE(a)) 
+!           up (ii) = gasdev (DBLE(a)) 
+            up (ii) = gasdev (DBLE(sigma)) 
          ELSE 
             up (ii) = 0.0 
          ENDIF 
          ENDDO 
 !        CALL trans (up, cr_gmat, uc, 3) 
          uc = matmul(cr_gmat, up)
+!if(i==5) then
+!write(*,'(a,1f8.4,2x, f8.4, i8)') 'THRMAL ANISO', cr_dw(is), a, is
+!write(*,'(a,3f8.4,2x, f8.4)') 'VECTOR up ', up
+!write(*,'(a,3f8.4,2x, f8.4)') 'VECTOR uc ', uc
+!endif
+!endif
             DO j = 1, 3 
                cr_pos (j, i)  = cr_pos (j, i) + uc (j) 
                uc_max (j, is) = max (uc_max (j, is), abs (up (j) ) ) 
@@ -215,6 +249,57 @@ uc(:)  = uc(:) /length * disp
 up(:)  = up(:) /up_length * disp
 !
 END SUBROUTINE ther_vec
+!
+!*******************************************************************************
+!
+subroutine ther_anis(prin, uc, up, jj)
+!-
+!  Calculate an anisotropic displacement
+!+
+!
+use crystal_mod
+use metric_mod
+use precision_mod
+!use random_mod
+use lib_random_func
+use wink_mod
+!
+real(kind=PREC_DP), dimension(3, 4), intent(in)  :: prin  ! prin(i,1:3) vectors, prin(i,4) <u>**2
+real(kind=PREC_DP), dimension(3)   , intent(out) :: uc
+real(kind=PREC_DP), dimension(3)   , intent(out) :: up
+integer :: jj
+!
+integer                            :: i     ! Loop index
+real(kind=PREC_DP), dimension(3,3) :: ud    ! Displacement vector along prinipal axis
+!real(kind=PREC_DP), dimension(3  ) :: up    ! Displacement vector  in Angstroem
+real(kind=PREC_DP)                 :: length  ! length of principal vector ( WILL BE DONE UPSTREAMS)
+real(kind=prec_dp) :: sigma                 ! Sigma for Gaussian
+real(kind=prec_dp) :: disp                  ! actual displacement
+!
+ud = 0.0D0
+up = 0.0D0
+!
+do i=1, 3
+   ud(i,:) = prin(i,1:3)    ! Copy principal vector
+!  length = sqrt(dot_product(u, matmul(gten, u)))
+!  ud(i,:) = ud(i,:) / length         ! Normalize to unit length
+!
+   sigma = sqrt(prin(i,4))
+   disp  = gasdev(sigma)
+   ud(i,:) = ud(i,:) * disp
+!if(jj==1) then
+!write(*,'(a,4f8.4,2x, f8.4)') ' DISP ', prin(i,4), sigma, disp
+!write(*,'(a,4f8.4,2x, f8.4)') ' vect ', ud(i,:)
+!endif
+   up = up + ud(i,:)
+enddo
+!
+uc = matmul(cr_gmat, up)
+!if(jj==1) then
+!write(*,'(a,4f8.4,2x, f8.4)') ' UP   ', up(:)
+!endif
+!
+end subroutine ther_anis
 !
 !*******************************************************************************
 !
