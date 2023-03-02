@@ -123,7 +123,7 @@ real(kind=prec_DP) :: t1
 real(kind=prec_DP) :: t2
 real(kind=prec_DP) :: arg
 !
-write(*,*) ' a,b,c,d', a,b,c,d
+!write(*,*) ' a,b,c,d', a,b,c,d
 if(abs(a)<eps) then         ! Not a cubic equations, but a quadratic
    call math_quadratic(b, c, d, n, root)
    return
@@ -131,22 +131,22 @@ endif
 p     = ( 9.0D0*a*c -3.0D0*b**2)/(9.0D0*a**2)
 q     = (-9.0D0*a*b*c + 27.0D0*a**2*d + 2.0D0*b**3)/(27.0D0*a**3)
 delta = (18.0D0*a*b*c*d - 4.0D0*a*c**3 - 27.0D0*a**2*d**2 + b**2*c**2 - 4.0D0*b**3*d)/(108.D0*a**4)
-write(*,*) ' p, q, d', p,q, delta
+!write(*,*) ' p, q, d', p,q, delta
 !
 if(abs(delta)< EPS .and. abs(p)<EPS) then            ! Case A Triple solution
-write(*,*) ' CASE A '
+!write(*,*) ' CASE A '
    root(1) = -b/3.0D0
    root(2) = -b/3.0D0
    root(3) = -b/3.0D0
    n       = 1
 elseif(abs(delta)< EPS .and. abs(p)>=EPS) then       ! Case B a single and a double solution
-write(*,*) ' CASE B '
+!write(*,*) ' CASE B '
    root(1) = (b**3 - 4.0D0*a*b*c + 9.0D0*a**2*d) / (3.0D0*a**2*c - a*b**2)
    root(2) = (b*c  - 9.0D0*a*d) / (6.0D0*a*c - 2.0D0*b**2)
    root(3) = (b*c  - 9.0D0*a*d) / (6.0D0*a*c - 2.0D0*b**2)
    n       = 2
 elseif(delta<0.0D0) then                             ! Case C a single solution
-write(*,*) ' CASE C '
+!write(*,*) ' CASE C '
    t1   = -q/2. + sqrt(-delta)
    t2   = -q/2. - sqrt(-delta)
    u    =  ((abs(t1))**(1./3.))
@@ -163,13 +163,13 @@ write(*,*) ' CASE C '
    n       = 1
 elseif(delta>0.0D0) then                            ! Case D Three solutions
    arg =               (-0.5D0*q*sqrt(-27.D0/p**3))
-write(*,*) ' ARG 1 ', arg
+!write(*,*) ' ARG 1 ', arg
    if(arg<-1.0D0) arg = -1.0D0
    if(arg> 1.0D0) arg =  1.0D0
    root(1) = -b/a/3.0D0 + sqrt(-4.D0/3.D0*p)*cos(1.D0/3.D0*acos(arg)          )
    root(2) = -b/a/3.0D0 - sqrt(-4.D0/3.D0*p)*cos(1.D0/3.D0*acos(arg)+ pi/3.0D0)
    root(3) = -b/a/3.0D0 - sqrt(-4.D0/3.D0*p)*cos(1.D0/3.D0*acos(arg)- pi/3.0D0)
-write(*,*) ' CASE D ', root
+!write(*,*) ' CASE D ', root
    n       = 3
 endif
 !
