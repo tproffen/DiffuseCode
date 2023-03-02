@@ -124,7 +124,7 @@ IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   &
 !                                                                       
 indxg = index (line, '=') 
 IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
-             .AND. .NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )       &
+             .AND. .NOT. (str_comp (befehl, 'system', 2, lbef,6) )       &
              .AND. .NOT. (str_comp (befehl, 'fput', 2, lbef, 4) )       &
              .AND. .NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR.    &
                           str_comp (befehl, '?   ', 2, lbef, 4) )       &
