@@ -433,7 +433,7 @@ PPID = lib_f90_getppid(PID)
 CALL lib_f90_getpname(PID,PPID, parent_name)
 !
 envir_done = .TRUE.
-write(*,*) ' HOME >',home_dir(1:home_dir_l),'<'
+!write(*,*) ' HOME >',home_dir(1:home_dir_l),'<'
 !
 ! test for and create "${HOME}/.DISCUS"
 !
