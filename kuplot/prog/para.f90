@@ -1148,147 +1148,145 @@ ENDIF
 END SUBROUTINE set_hlin                       
 !
 !*****7*****************************************************************
-      SUBROUTINE set_font (zeile, lp) 
+!
+SUBROUTINE set_font (zeile, lp) 
 !+                                                                      
 !     Setting of font size, type and color                              
 !-                                                                      
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE kuplot_config 
-      USE kuplot_mod 
-      USE kuplot_words_mod
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
+USE kuplot_config 
+USE kuplot_mod 
+USE kuplot_words_mod
 use kuplot_show_mod
 USE precision_mod
 USE str_comp_mod
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 4) 
+INTEGER, PARAMETER :: maxw = 4 
 !                                                                       
 CHARACTER(len=*), intent(inout) :: zeile
 integer         , intent(inout) :: lp 
 !
-      CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-      CHARACTER(LEN=4)  :: bef
-      INTEGER lpara (maxw)
-      INTEGER ianz, icol, ifon, ifid 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      REAL fsiz 
+CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
+CHARACTER(LEN=4)           :: bef
+INTEGER            :: lpara (maxw)
+INTEGER            :: ianz, icol, ifon, ifid 
+REAL(KIND=PREC_DP) :: werte (maxw) 
+REAL               :: fsiz 
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) return 
 !                                                                       
 !------ no parameters : show actual settings                            
 !                                                                       
-      IF (ianz.eq.0) then 
-         CALL show_font 
-      ELSEIF (ianz.ge.2) then 
+IF (ianz.eq.0) then 
+   CALL show_font 
+   return
+endif
+!
+!------ Actual parameters
+!
+IF (ianz.ge.2) then 
 !                                                                       
 !------ - set font size                                                 
 !                                                                       
-         IF (str_comp (cpara (1) , 'size', 2, lpara (1) , 4) ) then 
-            CALL del_params (1, ianz, cpara, lpara, maxw) 
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            IF (ier_num.ne.0) return 
-            IF (ianz.eq.2) then 
-               ifon = nint (werte (1) ) 
-               fsiz = werte (2) 
-      IF (ifon.gt.0.and.ifon.le.nfon.and.fsiz.ge.4.0.and.fsiz.le.128.0) &
-     &then                                                              
-                  fonsize (iwin, iframe, ifon) = 10.0 * fsiz 
-               ELSE 
-                  ier_num = - 7 
-                  ier_typ = ER_APPL 
-               ENDIF 
-            ELSEIF (ianz.eq.1) then 
-               fonscal (iwin, iframe) = werte (1) 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-!                                                                       
-!------ - set font color                                                
-!                                                                       
-         ELSEIF (str_comp (cpara (1) , 'color', 2, lpara (1) , 5) )     &
-         then                                                           
-            CALL del_params (1, ianz, cpara, lpara, maxw) 
-            bef = 'fcol'
-            CALL get_words  (ianz, cpara, lpara, maxw, 2, bef) 
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            IF (ier_num.ne.0) return 
-            IF (ianz.eq.2) then 
-               ifon = nint (werte (1) ) 
-               icol = nint (werte (2) ) 
-               IF (                                                     &
-               ifon.gt.0.and.ifon.le.nfon.and.icol.gt.0.and.icol.le.15) &
-               then                                                     
-                  foncol (iwin, iframe, ifon) = icol 
-               ELSE 
-                  ier_num = - 7 
-                  ier_typ = ER_APPL 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-!                                                                       
-!------ - set font typ                                                  
-!                                                                       
-         ELSEIF (str_comp (cpara (1) , 'typ', 2, lpara (1) , 3) ) then 
-            CALL del_params (1, ianz, cpara, lpara, maxw) 
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            IF (ier_num.ne.0) return 
-            IF (ianz.eq.2) then 
-               ifon = nint (werte (1) ) 
-               ifid = nint (werte (2) ) 
-               IF (                                                     &
-               ifon.gt.0.and.ifon.le.nfon.and.ifid.gt.0.and.ifid.le.4)  &
-               then                                                     
-                  fon_id (iwin, iframe, ifon) = ifid 
-               ELSE 
-                  ier_num = - 7 
-                  ier_typ = ER_APPL 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-!                                                                       
-!------ - set text justification for title / textframes                 
-!                                                                       
-         ELSEIF (str_comp (cpara (1) , 'just', 2, lpara (1) , 4) ) then 
-            IF (ier_num.ne.0) return 
-            IF (ianz.eq.2) then 
-               IF (str_comp (cpara (2) , 'cen', 1, lpara (2) , 3) )     &
-               then                                                     
-                  frjust (iwin, iframe) = if_centre 
-               ELSEIF (str_comp (cpara (2) , 'left', 1, lpara (2) , 4) )&
-               then                                                     
-                  frjust (iwin, iframe) = if_left 
-               ELSE 
-                  ier_num = - 7 
-                  ier_typ = ER_APPL 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-!                                                                       
+   IF (str_comp (cpara (1) , 'size', 2, lpara (1) , 4) ) then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+      IF (ianz.eq.2) then 
+         ifon = nint (werte (1) ) 
+         fsiz = werte (2) 
+      IF (ifon.gt.0.and.ifon.le.nfon.and.fsiz.ge.4.0.and.fsiz.le.128.0) then
+            fonsize (iwin, iframe, ifon) = 10.0 * fsiz 
          ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
+            ier_num = - 7 
+            ier_typ = ER_APPL 
          ENDIF 
-!                                                                       
+      ELSEIF (ianz.eq.1) then 
+         fonscal (iwin, iframe) = werte (1) 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
 !                                                                       
-      END SUBROUTINE set_font                       
+!------ - set font color                                                
+!                                                                       
+   ELSEIF(str_comp(cpara(1), 'color', 2, lpara(1), 5)) then
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      bef = 'fcol'
+      CALL get_words  (ianz, cpara, lpara, maxw, 2, bef) 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+      IF (ianz.eq.2) then 
+         ifon = nint (werte (1) ) 
+         icol = nint (werte (2) ) 
+         IF(ifon.gt.0.and.ifon.le.nfon.and.icol.gt.0.and.icol.le.15) then
+            foncol (iwin, iframe, ifon) = icol 
+         ELSE 
+            ier_num = - 7 
+            ier_typ = ER_APPL 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!------ - set font typ                                                  
+!                                                                       
+   ELSEIF (str_comp (cpara (1) , 'typ', 2, lpara (1) , 3) ) then 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+      IF (ianz.eq.2) then 
+         ifon = nint (werte (1) ) 
+         ifid = nint (werte (2) ) 
+         IF(ifon.gt.0.and.ifon.le.nfon.and.ifid.gt.0.and.ifid.le.4) then                                                     
+            fon_id (iwin, iframe, ifon) = ifid 
+         ELSE 
+            ier_num = - 7 
+            ier_typ = ER_APPL 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!------ - set text justification for title / textframes                 
+!                                                                       
+   ELSEIF (str_comp (cpara (1) , 'just', 2, lpara (1) , 4) ) then 
+      IF (ier_num.ne.0) return 
+      IF (ianz.eq.2) then 
+         IF(str_comp (cpara (2) , 'cen', 1, lpara (2) , 3) ) then
+                  frjust (iwin, iframe) = if_centre 
+         ELSEIF(str_comp(cpara(2), 'left', 1, lpara(2), 4)) then
+            frjust (iwin, iframe) = if_left 
+         ELSE 
+            ier_num = - 7 
+            ier_typ = ER_APPL 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
+!                                                                       
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
+!                                                                       
+END SUBROUTINE set_font                       
+!
 !****7******************************************************************
 !
 SUBROUTINE skalieren 
