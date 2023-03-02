@@ -1799,7 +1799,7 @@ IF(pl_prog=='jmol') THEN
    IF(operating=='Linux') THEN
       WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), geom,' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
-write(*,*) line(1:len_trim(line))
+!write(*,*) line(1:len_trim(line))
    ELSEIF(operating=='Linux_WSL') THEN
       WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), geom,' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
