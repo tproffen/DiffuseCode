@@ -636,7 +636,7 @@ zero  = werte(4:6)
 !
 hkl = matmul(adt_invmat_t,(pixel-zero))
 !
-write(*,'(a, 3(1x,f10.4))') ' HKL ', hkl
+!write(*,'(a, 3(1x,f10.4))') ' HKL ', hkl
 !
 end subroutine adt_trans
 !
