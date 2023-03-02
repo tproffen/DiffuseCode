@@ -8,11 +8,15 @@ LOGICAL FUNCTION str_comp (a, b, j, la, lb)
 !     compares the first non blank characters of the two strings        
 !     for equality. At least j characters must be identical.            
 !+                                                                      
+!
+use precision_mod
 IMPLICIT none 
 !                                                                       
 CHARACTER(LEN=*), INTENT(IN) :: a, b 
 INTEGER         , INTENT(IN) :: j, la, lb
 !
+!character(len=PREC_STRING) :: aa
+!character(len=PREC_STRING) :: bb
 INTEGER i, ia, ib 
 !                                                                       
 IF (la == 0 .OR. lb == 0) THEN 
@@ -27,12 +31,25 @@ ELSE
       ib = lb 
    ENDIF 
    i = MIN (ia, ib) 
+   i = max (ia, ib) 
    i = MIN (i, la) 
    i = MIN (i, lb) 
+!
+!   aa = ' '
+!   bb = ' '
+!   aa = a(1:len_trim(a))
+!   bb = b(1:len_trim(b))
+!   i  = max(len_trim(aa), len_trim(bb))
+!if(bb(1:3)=='var') then
+!write(*,*) ' AA >',aa(1:len_trim(aa)),'<>', i, ' >>',aa(1:i),'<<'
+!write(*,*) ' BB >',bb(1:len_trim(bb)),'<>', j, ' >>',bb(1:i),'<<'
+!write(*,*) ' ==  ', aa(1:i) .eq.bb(1:i)
+!endif
    IF (i <  j) THEN 
       str_comp = .false. 
    ELSE 
       str_comp = a (1:i) .eq.b (1:i) 
+!     str_comp = aa(1:i) .eq.bb(1:i) 
    ENDIF 
 ENDIF 
 !                                                                       
