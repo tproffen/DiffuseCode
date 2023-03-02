@@ -129,8 +129,8 @@ ELSEif(opara(1)(1:1) == '[' .AND. opara(1)(lopara(1):lopara(1)) == ']') THEN
 ENDIF
 !                                                                       
 iftype: IF(str_comp(cpara (1) , 'real', 3, lpara (1) , 4) .or.  &
-   str_comp(cpara (1) , 'inte', 2, lpara (1) , 4) .or.  &
-   str_comp(cpara (1) , 'char', 2, lpara (1) , 4) ) THEN                                  
+   str_comp(cpara (1) , 'integer',   2, lpara (1) , 7) .or.  &
+   str_comp(cpara (1) , 'character', 2, lpara (1) , 9) ) THEN                                  
 !                                                                       
 !     --A new variable is being defined                                 
 !                                                                       
@@ -153,9 +153,9 @@ iftype: IF(str_comp(cpara (1) , 'real', 3, lpara (1) , 4) .or.  &
          werte (1) = 0.0 
          IF (str_comp (c_type, 'real', 3, l_type, 4) ) THEN 
             ccc_type =       IS_REAL 
-         ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
+         ELSEIF (str_comp (c_type, 'integer', 2, l_type, 7) ) THEN 
             ccc_type = IS_INTE 
-         ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) THEN 
+         ELSEIF (str_comp (c_type, 'character', 2, l_type, 9) ) THEN 
             ccc_type =       IS_CHAR 
          ENDIF 
          l_init = .false. 
