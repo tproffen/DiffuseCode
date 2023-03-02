@@ -24,6 +24,7 @@ USE fourier_conv_mod
 USE four_strucf_mod
 USE fourier_lmn_mod
 !                                                                       
+use param_mod
 USE prompt_mod 
 USE precision_mod 
 !USE times_mod
@@ -168,17 +169,19 @@ call four_rese_friedel
 !if(allocated(dsi3d)) deallocate(dsi3d)
 !allocate(dsi3d(1:ubound(dsi,1)))
 !dsi3d = dsi
-call four_weight               ! Correct the relative weight of Bragg and diffuse
-!
-      call four_conv           ! Convolute diffraction pattern
-!                                                                       
-      call four_qinfo 
-      ss = seknds (ss) 
-      IF (four_log) then 
-         WRITE (output_io, 4000) ss 
-      ENDIF 
+call four_conv           ! Convolute diffraction pattern
 !
 call four_accumulate
+call four_weight               ! Correct the relative weight of Bragg and diffuse
+!                                                                       
+call four_qinfo 
+ss = seknds (ss) 
+IF (four_log) then 
+   WRITE (output_io, 4000) ss 
+   res_para(1) = ss
+   res_para(0) = 1
+ENDIF 
+!
 !
 !write(*,*) ' eck ll ', eck(:,1)
 !write(*,*) ' eck lr ', eck(:,2)
@@ -212,9 +215,13 @@ subroutine four_run_nufft
 use crystal_mod
 use diffuse_mod
 use four_finufft 
+USE fourier_conv_mod
 use fourier_lmn_mod
+use symmetrize_mod
 !
+use do_lanczos_mod
 use errlist_mod
+use param_mod
 use precision_mod
 use prompt_mod
 use support_mod
@@ -223,7 +230,8 @@ implicit none
 !
 real(kind=PREC_DP), parameter :: EPS=1.0D-8
 real(kind=PREC_DP), parameter :: MAXSCALE=3.0D0      ! Maximum scale allowed by FINUFFT
-integer               :: i, j     ! Dummy index
+integer               :: i, j, k  ! Dummy index
+integer               :: ii       ! Dummy index
 integer               :: iscat    ! Dummy scattering type
 integer               :: nat      ! Atom number
 integer               :: is_dim   ! Crystal is of this dimension
@@ -239,6 +247,14 @@ real(kind=PREC_DP)   , dimension(:), allocatable :: xpos    ! atom coordinates, 
 real(kind=PREC_DP)   , dimension(:), allocatable :: ypos    ! atom coordinates, fractional
 real(kind=PREC_DP)   , dimension(:), allocatable :: zpos    ! atom coordinates, fractional
 complex(kind=PREC_DP), dimension(:), allocatable :: fcsf    ! complex structure factor from FINUFFT
+!
+real(kind=PREC_DP)   , dimension(:    ), allocatable :: infield_1d    ! input into LANCZOS
+real(kind=PREC_DP)   , dimension(:,:  ), allocatable :: infield_2d    ! input into LANCZOS
+real(kind=PREC_DP)   , dimension(:,:,:), allocatable :: infield_3d    ! input into LANCZOS
+real(kind=PREC_DP)   , dimension(:    ), allocatable ::outfield_1d    ! input into LANCZOS
+real(kind=PREC_DP)   , dimension(:,:  ), allocatable ::outfield_2d    ! input into LANCZOS
+real(kind=PREC_DP)   , dimension(:,:,:), allocatable ::outfield_3d    ! input into LANCZOS
+!
 character(len=1), dimension(3) :: c_hkl
 character(len=8), dimension(3) :: c_axes
 data c_axes /'abscissa', 'ordinate', 'top axis'/
@@ -262,6 +278,7 @@ iscales = 1                                               ! Default to scale 1
 scales(1) = abs(vi(1,1)*real(cr_icc(1), kind=PREC_DP))    ! Currently parallel a*!
 scales(2) = abs(vi(2,2)*real(cr_icc(2), kind=PREC_DP))    ! Currently parallel b*!
 scales(3) = abs(vi(3,3)*real(cr_icc(3), kind=PREC_DP))    ! Currently parallel c*!
+!write(*,*) ' SCALES ', scales
 do j=1,3
    if(scales(j)>MAXSCALE) then                            ! Scales must be < MAXSCALE
       iscales(j) = int((scales(j)+EPS)/MAXSCALE) + 1      ! Adapt iscales to smallest possible integer
@@ -427,6 +444,7 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
 !                                                ! Add to complex structure factor
       csf(1:num(1)*num(2)*num(3)) = csf(1:num(1)*num(2)*num(3)) + fcsf(1:num(1)*num(2)*num(3)) 
    enddo loop_scat2
+!
    deallocate(xpos)
    deallocate(ypos)
    deallocate(zpos)
@@ -459,13 +477,95 @@ endif cond_dim
 !
 deallocate(fcsf)
 !
+!
+! Calculate average structure factor
+!
+!AV!if(fave > 0.0D0) then
+!AV!   call four_aver_finufft(is_dim, ll_dim)
+!AV!write(*,*) ' DONE  FINUFFT 2D AVERAGE', ier_num
+!AV!   if(ier_num/=0) return
+!AV!else
+!AV!   acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0))
+!AV!endif
 csf = csf - acsf
 dsi = dble(csf * conjg(csf)) 
+!
+if(four_filter==FOUR_FILTER_LANCZOS) then
+   cond_dim_b: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
+      allocate( infield_3d(num(1), num(2), num(3)))
+      allocate(outfield_3d(num(1), num(2), num(3)))
+      ii = 0
+      do i=1, num(1)
+         do j=1, num(2)
+            do k=1, num(3)
+               ii = ii + 1
+               infield_3d(i,j,k) = dsi(ii)
+            enddo
+         enddo
+      enddo
+      call do_lanczos(four_rscale, four_damp, four_width, num, infield_3d,   &
+                   num, outfield_3d, .true.)
+      ii = 0
+      do i=1, num(1)
+         do j=1, num(2)
+            do k=1, num(2)
+               ii = ii + 1
+               dsi(ii) = outfield_3d(i,j,k) 
+            enddo
+         enddo
+      enddo
+      deallocate( infield_3d)
+      deallocate(outfield_3d)
+   elseif(is_dim==2) then  cond_dim_b
+      allocate( infield_2d(num(1), num(2)))
+      allocate(outfield_2d(num(1), num(2)))
+      ii = 0
+      do i=1, num(1)
+         do j=1, num(2)
+            ii = ii + 1
+            infield_2d(i,j) = dsi(ii)
+         enddo
+      enddo
+      call do_lanczos(four_rscale, four_damp, four_width, num(1:2), infield_2d,   &
+                   num(1:2), outfield_2d, .true.)
+      ii = 0
+      do i=1, num(1)
+         do j=1, num(2)
+            ii = ii + 1
+            dsi(ii) = outfield_2d(i,j) 
+         enddo
+      enddo
+      deallocate( infield_2d)
+      deallocate(outfield_2d)
+   elseif(is_dim==1) then  cond_dim_b
+      allocate( infield_1d(num(1)))
+      allocate(outfield_1d(num(1)))
+      ii = 0
+      do i=1, num(1)
+         ii = ii + 1
+         infield_1d(i) = dsi(ii)
+      enddo
+      call do_lanczos(four_rscale, four_damp, four_width, num(1), infield_1d,   &
+                   num(1), outfield_1d, .true.)
+      ii = 0
+      do i=1, num(1)
+         ii = ii + 1
+         dsi(ii) = outfield_1d(i) 
+      enddo
+      deallocate( infield_1d)
+      deallocate(outfield_1d)
+   endif cond_dim_b
+endif
+!
+call four_conv           ! Convolute diffraction pattern
+call four_accumulate
 call four_weight               ! Correct the relative weight of Bragg and diffuse
 !
 ss = seknds (ss) 
 if(four_log) then 
    write(output_io, 4000) ss 
+   res_para(1) = ss
+   res_para(0) = 1
 endif 
 !
  4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
@@ -596,6 +696,42 @@ if(lform) then
 endif
 !
 end subroutine tcsf_form
+!
+!*****7*****************************************************************
+!
+subroutine tcsf_form_3D(iscat, lform, idims, ffcsf)
+!-
+!------ Now we multiply with formfactor                                 
+!+
+!
+use diffuse_mod
+!
+implicit none
+!
+integer, intent(in) :: iscat        ! Current scattering type
+logical, intent(in) :: lform        ! Use form factor
+integer, dimension(3), intent(in) :: idims            ! Current scattering type
+complex(kind=PREC_DP), dimension(idims(1), idims(2), idims(3)) :: ffcsf  ! complex structure factor from FINUFFT
+!
+integer :: i   ! dummy loop index
+integer :: h,k,l ! dummy loop index
+!
+if(lform) then 
+!   do  i = 1, num (1) * num (2) * num(3)
+   i = 0
+   do h=1, inc(1)
+   do k=1, inc(2)
+   do l=1, inc(3)
+   i = i + 1
+!  FORALL( i = 1: num (1) * num (2) * num(3))   !!! DO Loops seem to be faster!
+      ffcsf(h,k,l) = ffcsf(h,k,l) * cfact(istl(i), iscat) 
+!  END FORALL
+   enddo
+   enddo
+   enddo
+endif
+!
+end subroutine tcsf_form_3D
 !
 !*****7*****************************************************************
 !
@@ -777,7 +913,7 @@ acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0))
 !------ ----- Loop over all atom types                                  
 !
 !allocate(xat(cr_natoms,3))
-call chem_aver(.true., .false.)
+call chem_aver(.false., .false.)
 !loop_iscat: do iscat = 1, cr_nscat 
    loop_atoms2: do iatom = 1, cr_ncatoms
       do k = 1, chem_ave_n(iatom)
@@ -2722,7 +2858,7 @@ weight = 1
 csf_sym = csf_3d                     ! Effectively operation 1
 !
 !
-DO i = 2, 1!spc_n/n_center             ! only apply numbers 2 for P centered part
+DO i = 2, spc_n/n_center             ! only apply numbers 2 for P centered part
    sym_mat=spc_mat(1:3,1:3,i)        ! Copy symmetry matrix to local copy
    DO l = 1, num (3) 
       hkl(3) = l - izero(3)
@@ -2840,7 +2976,7 @@ ALLOCATE(weight (num(1), num(2), num(3)))      ! Weight counts the number that s
 weight = 1
 !
 dsi_sym = dsi_3d                     ! Effectively operation 1
-!
+!!!
 DO i = 2, spc_n/n_center             ! only apply numbers 2 for P centered part
    sym_mat=spc_mat(1:3,1:3,i)        ! Copy symmetry matrix to local copy
 !write(*,'(a, 3F6.1)') ' SYMM ', sym_mat(1,:)
