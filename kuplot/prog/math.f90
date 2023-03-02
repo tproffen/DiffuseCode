@@ -953,11 +953,12 @@ USE kuplot_config
 USE kuplot_mod 
 USE precision_mod
 USE string_convert_mod
+use take_param_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
 INTEGER maxw, maxsm 
-PARAMETER (maxw = 4) 
+PARAMETER (maxw = 5) 
 PARAMETER (maxsm = 501) 
 !                                                                       
 CHARACTER(len=*), intent(inout) :: zeile 
@@ -971,6 +972,26 @@ REAL(KIND=PREC_DP)        , dimension(MAXW)  :: werte (maxw)
 REAL(kind=PREC_SP)        , dimension(MAXSM) :: cc (maxsm) 
 INTEGER :: ianz, ik, ip, im, il 
 LOGICAL :: gx, gy 
+!
+integer, parameter :: NOPTIONAL = 4
+!integer, parameter :: O_NSCALE  = 1
+!integer, parameter :: O_DAMP    = 2
+!integer, parameter :: O_WIDTH   = 3
+integer, parameter :: O_SMOOTH  = 4
+character(len=   9), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(len=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 3 ! Number of values to calculate 
+!
+data oname  / 'scale', 'damp', 'width ',  'filter' /
+data loname /  5     ,  4    ,  5      ,   6       /
+opara  =  (/ '1.0000', '0.5000', '4.0000', 'smooth' /)   ! Always provide fresh default values
+lopara =  (/  6,        6,        6      ,  6       /)
+owerte =  (/  0.0,      0.0,      0.0    ,  0.0     /)
+!
 !                                                                       
 IF (lsmooth) then 
    DO ip = 1, maxsm 
@@ -986,6 +1007,13 @@ ENDIF
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
 IF (ier_num.ne.0) return 
+!
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+if(lpresent(O_SMOOTH) .and. opara(O_SMOOTH)=='lanczos') then
+   call smooth_lanczos(ianz, cpara, lpara, NOPTIONAL, opara, lpresent, owerte)
+   return
+endif
 !                                                                       
 IF (ianz.eq.2.or.ianz.eq.3.or.ianz.eq.4) then 
    IF (lsmooth.and.ianz.eq.4) then 
@@ -1684,6 +1712,149 @@ deallocate(ay)
 deallocate(ady)
 !                                                                       
 END SUBROUTINE do_glatt_y                     
+!
+!**7*****************************************************************   
+!
+subroutine smooth_lanczos(ianz, cpara, lpara, NOPTIONAL, opara, lpresent, owerte)
+!-
+!  interface to Lanczos smoothing
+!+
+!
+use kuplot_config 
+use kuplot_global
+use kuplot_mod 
+use kuplot_show_mod
+!
+use errlist_mod
+use ber_params_mod
+use do_lanczos_mod
+use lib_math_mod
+use precision_mod
+!
+implicit none
+!
+integer                                 , intent(in)    :: ianz    ! Number regular parameters
+character(len=*)  , dimension(ianz)     , intent(inout) :: cpara   ! regular parameters
+integer           , dimension(ianz)     , intent(inout) :: lpara   ! regular parameters
+integer                                 , intent(in)    :: NOPTIONAL ! Number optional parameters
+character(len=*)  , dimension(NOPTIONAL), intent(inout) :: opara     ! optional parameters
+logical           , dimension(NOPTIONAL), intent(inout) :: lpresent  ! Optional parameter is present
+real(kind=PREC_DP), dimension(NOPTIONAL), intent(inout) :: owerte    ! Optional value
+!
+integer, parameter :: O_NSCALE  = 1
+integer, parameter :: O_DAMP    = 2
+integer, parameter :: O_WIDTH   = 3
+!
+integer :: ik
+integer :: ik3
+integer                             :: nscale   ! New data are this much bigger
+integer                             :: m        ! Smooth over +-m infield points
+real(kind=PREC_DP)                  :: rcut     ! damping parameter
+real(kind=PREC_DP)                  :: rscale   ! Scale as real
+real(kind=PREC_DP), dimension(ianz) :: werte    ! Optional value
+!
+integer                                         :: isdim      ! Data are of this diemension (1,2,3)
+integer                                         :: i, j, k     ! Loop index 
+integer                                         :: i1, i2, i3  ! loop indices dimensions
+integer           , dimension(3)                :: inc        ! Original dimensions
+integer           , dimension(3)                :: idims      ! Resulting dimensions
+real(kind=PREC_DP), dimension(:  ), allocatable :: infield_1d ! Original data 
+real(kind=PREC_DP), dimension(:,:), allocatable :: infield_2d ! Original data 
+real(kind=PREC_DP), dimension(:  ), allocatable ::outfield_1d ! Resulting data 
+real(kind=PREC_DP), dimension(:,:), allocatable ::outfield_2d ! Resulting data 
+!
+CALL ber_params(1, cpara, lpara, werte, ianz) 
+if(ier_num/=0) return
+!
+ik = nint(werte(1))
+nscale = nint(owerte(O_NSCALE))
+rscale =      owerte(O_NSCALE)
+m      = nint(owerte(O_WIDTH ))
+rcut   =      owerte(O_DAMP  )
+!
+if(lh5(ik)) then       ! Internal data storage
+   ik3 = iz
+   isdim = ku_ndims(ik)
+   call lanc_global(ik, ik3, nscale, rscale, rcut, m)
+   if(isdim==3) then
+      call data3nipl(ik3, 'smooth.lanc', .true.)
+   elseif(isdim==2) then
+      call data2nipl(ik3, 'smooth.lanc', .true.)
+   elseif(isdim==1) then
+      call data2line(ik3, 'smooth.lanc', .true.)
+   endif
+else
+   if(lni(ik)) then    ! 2-D data field
+      inc(1) = nx(ik)
+      inc(2) = ny(ik)
+      allocate(infield_2d(nx(ik), ny(ik)))
+      idims(1) = (inc(1)-1) * nscale + 1
+      idims(2) = (inc(2)-1) * nscale + 1
+      allocate(outfield_2d(idims(1), idims(2)))
+      i = 0
+      do i1  = 1, inc(1)          ! Copy data from old KUPLOT to 2D temporary array
+         do i2  = 1, inc(2)
+            i = i+1
+            infield_2d(i1,i2) = z(offz(ik - 1) + i)
+         enddo
+      enddo
+      call do_lanczos(rscale, rcut, m, inc(1:2), infield_2d, idims(1:2), outfield_2d)
+      do i=1, idims(1)
+         x(offxy(iz-1)+i) = xmin(ik) + real((i-1),kind=PREC_DP)*(xmax(ik)-xmin(ik))/(inc(1)-1)/rscale
+        dx(offxy(iz-1)+i) = 0.0d0
+      enddo
+      do i=1, idims(2)
+         y(offxy(iz-1)+i) = ymin(ik) + real((i-1),kind=PREC_DP)*(ymax(ik)-ymin(ik))/(inc(1)-1)/rscale
+        dy(offxy(iz-1)+i) = 0.0d0
+      enddo
+      k = 0
+      do i=1, idims(1)
+         do j=1, idims(2)
+            k=k+1
+            z(offz(iz-1)+k) = outfield_2d(i,j)
+         enddo
+      enddo
+      nx(iz) = idims(1)
+      ny(iz) = idims(2)
+      lenc(iz) = max(idims(1),idims(2))
+      offxy(iz) = offxy(iz-1)+ lenc(iz)
+      offz (iz) = offz (iz-1) + idims(1)*idims(2)
+      fname (iz) = 'smoothed.lanc'
+      fform (iz) = 'NI'
+      lni(iz)  = .true.
+      lh5 (iz) = .false.
+      iz = iz + 1
+      call show_data(iz-1)
+   else
+      inc(1) = lenc(ik)
+      allocate(infield_1d(nx(ik)))
+      idims(1) = (inc(1)-1) * nscale + 1
+      allocate(outfield_1d(idims(1)))
+      infield_1d = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
+      call do_lanczos(rscale, rcut, m, inc(1), infield_1d, idims(1), outfield_1d)
+!
+      lenc(iz) = idims(1)               ! Length of new data set
+      do i=1, idims(1)
+         x(offxy(iz-1)+i) = xmin(ik) + real((i-1),kind=PREC_DP)*(xmax(ik)-xmin(ik))/(inc(1)-1)/rscale
+      enddo
+      y(offxy(iz-1)+1:offxy(iz-1)+idims(1)) = outfield_1d
+      offxy(iz) = offxy(iz-1) + lenc(iz)
+      offz (iz) = offz (iz-1)
+      fname(iz) = 'smoothed.lanc'
+      fform(iz) = 'XY'
+      lni(iz) = .false.
+      lh5(iz) = .false.
+      iz = iz + 1
+      call show_data(iz-1)
+   endif
+endif
+!
+if(allocated(infield_1d))  deallocate(infield_1d)
+if(allocated(outfield_1d)) deallocate(outfield_1d)
+if(allocated(infield_2d))  deallocate(infield_2d)
+if(allocated(outfield_2d)) deallocate(outfield_2d)
+!
+end subroutine smooth_lanczos
 !
 !**7*****************************************************************   
 !
