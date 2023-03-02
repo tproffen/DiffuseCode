@@ -990,7 +990,7 @@ is_density: IF (wv_iwave.eq.WV_DENS) then
    ENDDO
 ELSE is_density
 !                                                                       
-write(*,*) ' WAVEp, wave_phase ', wavep, wv_phase, wv_rlam, wv_amp, wv_amp0
+!write(*,*) ' WAVEp, wave_phase ', wavep, wv_phase, wv_rlam, wv_amp, wv_amp0
       DO i = 1, cr_natoms 
 !                                                                       
 !------ - Check if atom is a valid selection                            
@@ -1006,16 +1006,16 @@ write(*,*) ' WAVEp, wave_phase ', wavep, wv_phase, wv_rlam, wv_amp, wv_amp0
          arg = up (1) * wavep (1) + up (2) * wavep (2) + up (3) * wavep &
          (3)                                                            
          arg = arg + wv_phase * wv_rlam / 360.d0
-if(i==5) then
-  write(*,*) ' uc, f(1 ', uc, cr_fmat(1,1)
-  write(*,*) ' up, arg ', up, arg
-endif
+!if(i==5) then
+!  write(*,*) ' uc, f(1 ', uc, cr_fmat(1,1)
+!  write(*,*) ' up, arg ', up, arg
+!endif
 !        arg = amod (arg, wv_rlam) / wv_rlam 
          arg = dmod (arg, wv_rlam) / wv_rlam 
          dis = wave_func (wv_amp, arg, wv_amp0) 
-if(i==5) then
-  write(*,*) ' UP, arg ', up, arg, dis
-endif
+!if(i==5) then
+!  write(*,*) ' UP, arg ', up, arg, dis
+!endif
 !                                                                       
          IF (.not.wv_lacoust.and. (index (cr_at_lis (cr_iscat (i) ) ,&
             '-') .gt.0) ) then                                          
