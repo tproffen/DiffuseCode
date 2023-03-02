@@ -12,21 +12,21 @@ SUBROUTINE get_symmetry_matrices
 !-                                                                      
 !     Creates all symmetry matrices for the current space group         
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE generate_mod 
-      USE gen_add_mod 
-      USE sym_add_mod 
-      USE unitcell_mod 
-      USE wyckoff_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+USE generate_mod 
+USE gen_add_mod 
+USE sym_add_mod 
+USE unitcell_mod 
+USE wyckoff_mod 
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
+real(kind=PREC_DP), parameter :: TOL=1.0D-6   ! Tolerance for matrix equality
 !                                                                       
-      INTEGER igs 
-      INTEGER igg 
-      INTEGER i, j, k 
+INTEGER :: igs       ! Loop index generators
+INTEGER :: igg       ! Loop index generators
+INTEGER :: i, j, k   ! Loop indices
 !
 CALL spcgr_get_setting    ! Determine space group setting
 !                                                                       
@@ -118,7 +118,21 @@ CALL spcgr_get_setting    ! Determine space group setting
       ENDDO 
 !-----      End of loop over additional symmetry matices                
 !                                                                       
-      END SUBROUTINE get_symmetry_matrices         
+!
+!----- Get matrices for point group
+!
+spc_point = .false.
+spc_point(1) = .true.     ! Identity is always element of point group
+loop_point:do i=2, spc_n             ! Test all further symmetry matrices
+   loop_comp: do j=1, i-1
+      if(all(abs (spc_mat(1:3,1:3,i)-spc_mat(1:3,1:3,j))<TOL)) then   ! Matrices are equal
+         cycle loop_point
+      endif
+   enddo loop_comp
+   spc_point(i) = .true.    ! Did not find an identical
+enddo loop_point
+
+END SUBROUTINE get_symmetry_matrices         
 !
 !*****7*****************+***********************************************
 !
