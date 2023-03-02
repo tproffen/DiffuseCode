@@ -798,93 +798,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     set desired mode of Fourier transform 'set'                       
 !                                                                       
-        ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
-           CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-           CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                    oname, loname, opara, lopara, lpresent, owerte)
-           IF (ier_num.eq.0) then 
-              four_symm = .FALSE.
-              IF(lpresent(O_SYMM)) THEN       ! set mode: 
-                 IF(opara(O_symm)=='apply') THEN
-                    four_symm = .TRUE.
-                 ELSE
-                    four_symm = .FALSE.
-                 ENDIF
-              ENDIF
-              if(lpresent(O_TECHN)) then
-                 if(opara(O_TECHN)=='turbo') then
-                    four_tech = FOUR_TURBO
-                 elseif(opara(O_TECHN)=='nufft') then
-                    four_tech = FOUR_NUFFT
-                 else
-                    ier_num = -6
-                    ier_typ = ER_COMM
-                    ier_msg(1) = 'Fourier technique must be ''turbo'' or ''nufft'''
-                 endif
-              endif
-              IF(lpresent(O_MODE)) THEN       ! set mode: 
-                 IF(opara(O_MODE)=='single') THEN
-                    four_accum = 0
-!                   IF(four_symm) CALL four_accumulate  ! Call to apply symmetry
-                 ELSEIF(opara(O_MODE)=='init') THEN
-                    four_accum = -1
-                    CALL four_accumulate      ! Call to clear arrays
-                    four_accum =  1           ! Toggle to accumulate
-                 ELSEIF(opara(O_MODE)=='accumulate') then
-                    IF(four_accum==0) THEN    ! First accumulate, initialize
-                       four_accum = -1
-                       CALL four_accumulate      ! Call to clear arrays
-                    ENDIF
-                    four_accum =  1           ! Toggle to accumulate
-                 ELSEIF(opara(O_MODE)=='finish') THEN
-                    four_accum =  2
-                    CALL four_accumulate      ! Call to clear arrays
-                    four_accum = 0
-                 ENDIF
-              ELSE                            ! No 'set mode:' parameter present
-                 IF(lpresent(O_SYMM)) THEN       ! set mode: 
-                    four_accum = 0
-!                   IF(four_symm) CALL four_accumulate  ! Call to apply symmetry
-                 ENDIF
-              ENDIF
-                 IF((lpresent(O_MODE) .OR. lpresent(O_SYMM) .or. lpresent(O_TECHN)).AND. ianz==0) THEN
-                    CONTINUE
-                 ELSE
-                 IF(ianz.ge.1.and.ianz.le.2) then 
-                    IF(str_comp(cpara(1), 'aver', 1, lpara(1), 4)) THEN
-                      IF(ianz.eq.1) THEN 
-                         fave = 0.0 
-                      ELSE 
-                         CALL del_params (1, ianz, cpara, lpara, maxw) 
-                         CALL ber_params(ianz, cpara, lpara, werte, maxw)
-                         IF (ier_num.eq.0) then 
-                             IF(werte(1) .ge.0.0D0 .AND. werte(1).le.100.0D0) THEN                           
-                                fave = werte (1) * 0.01 
-                             ELSE 
-                                ier_num = - 1 
-                                ier_typ = ER_FOUR 
-                             ENDIF 
-!                             IF(ianz==2) THEN
-!                                fave_sca = werte(2)
-!                             ELSE
-!                                fave_sca = 1.0
-!                             ENDIF 
-                          ENDIF 
-                       ENDIF 
-                    ELSEIF(str_comp(cpara(1), 'extern', 1, lpara(1), 6) ) THEN
-                        four_mode = EXTERNAL 
-                    ELSEIF(str_comp(cpara(1), 'intern', 1, lpara(1), 6) ) THEN
-                       four_mode = INTERNAL 
-                    ELSE 
-                       ier_num = - 1 
-                       ier_typ = ER_FOUR 
-                    ENDIF 
-                 ELSE 
-                    ier_num = - 6 
-                    ier_typ = ER_COMM 
-                 ENDIF 
-              ENDIF 
-           ENDIF 
+ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
+  call fourier_set(zeile, lp)
 !                                                                       
 !     Show the current settings for the Fourier 'show'                  
 !                                                                       
@@ -1108,6 +1023,168 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 !*****7*****************************************************************
 !
+subroutine fourier_set(zeile, lp)
+!-
+!  Do the fourier set comand
+!+
+!
+use diffuse_mod
+use fourier_sup
+!
+use ber_params_mod
+use errlist_mod
+use get_params_mod
+use precision_mod
+use str_comp_mod
+use take_param_mod
+!
+implicit none
+!
+character(len=*) , intent(inout) :: zeile
+integer          , intent(inout) :: lp
+!
+integer, parameter :: MAXW = 10
+!
+character(len=PREC_STRING), dimension(MAXW) :: cpara
+integer                   , dimension(MAXW) :: lpara
+real(kind=PREC_DP)        , dimension(MAXW) :: werte
+!
+integer :: ianz
+!                                                                       
+integer, parameter :: NOPTIONAL = 8
+integer, parameter :: O_SCALE   = 1
+integer, parameter :: O_DAMP    = 2
+integer, parameter :: O_WIDTH   = 3
+integer, parameter :: O_FILTER  = 4
+integer, parameter :: O_MODE    = 5
+integer, parameter :: O_SYMM    = 6
+integer, parameter :: O_TABLE   = 7
+integer, parameter :: O_TECHN   = 8
+character(len=   9), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(len=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 3 ! Number of values to calculate 
+!
+data oname  / 'scale', 'damp', 'width ',  'filter', 'mode', 'symm'  , 'table', 'technique'/
+data loname /  5     ,  4    ,  5      ,   6      ,  4    ,  4      ,  5     ,  9         /
+opara  =  (/ '1.0000', '0.5000', '4.0000', 'off   ', '0.0000', '0.0000', 'waas  ', 'turbo ' /)   ! Always provide fresh default values
+lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,  4      ,  5       /)
+owerte =  (/  0.0,      0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0     /)
+
+call get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+if(ier_num/=  0) return
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+	  oname, loname, opara, lopara, lpresent, owerte)
+if(ier_num/=  0) return
+!
+!four_symm = .FALSE.
+IF(lpresent(O_SYMM)) then       ! set mode: 
+IF(opara(O_symm)=='apply') then
+four_symm = .TRUE.
+else
+four_symm = .FALSE.
+endif
+endif
+!
+if(lpresent(O_TECHN)) then
+if(opara(O_TECHN)=='turbo') then
+four_tech = FOUR_TURBO
+elseif(opara(O_TECHN)=='nufft') then
+four_tech = FOUR_NUFFT
+else
+ier_num = -6
+ier_typ = ER_COMM
+ier_msg(1) = 'Fourier technique must be ''turbo'' or ''nufft'''
+endif
+endif
+!
+if(lpresent(O_FILTER)) then
+if(opara(O_FILTER)=='lanczos') then
+four_filter = FOUR_FILTER_LANCZOS
+else
+four_filter = FOUR_FILTER_OFF
+endif
+endif
+!
+if(lpresent(O_SCALE)) then
+four_nscale = nint(owerte(O_SCALE))
+four_rscale =      owerte(O_SCALE) 
+endif
+!
+if(lpresent(O_DAMP )) then
+four_damp   =      owerte(O_DAMP ) 
+endif
+!
+if(lpresent(O_WIDTH)) then
+four_width  = nint(owerte(O_WIDTH))
+endif
+!
+if(lpresent(O_MODE)) then       ! set mode: 
+if(opara(O_MODE)=='single') then
+four_accum = 0
+!                   IF(four_symm) call four_accumulate  ! Call to apply symmetry
+elseif(opara(O_MODE)=='init') then
+four_accum = -1
+call four_accumulate      ! Call to clear arrays
+four_accum =  1           ! Toggle to accumulate
+elseif(opara(O_MODE)=='accumulate') then
+if(four_accum==0) then    ! First accumulate, initialize
+ four_accum = -1
+ call four_accumulate      ! Call to clear arrays
+endif
+four_accum =  1           ! Toggle to accumulate
+elseif(opara(O_MODE)=='finish') then
+four_accum =  2
+call four_accumulate      ! Call to clear arrays
+four_accum = 0
+endif
+else                            ! No 'set mode:' parameter present
+if(lpresent(O_SYMM)) then       ! set mode: 
+four_accum = 0
+!                   IF(four_symm) call four_accumulate  ! Call to apply symmetry
+endif
+endif
+!
+if(any(lpresent) .and. ianz==0) then
+CONTINUE
+else
+if(ianz>=1 .and. ianz <= 2) then 
+if(str_comp(cpara(1), 'aver', 1, lpara(1), 4)) then
+ if(ianz == 1) then 
+    fave = 0.0 
+ else 
+    call del_params (1, ianz, cpara, lpara, maxw) 
+    call ber_params(ianz, cpara, lpara, werte, maxw)
+    if (ier_num.eq.0) then 
+	if(werte(1) .ge.0.0D0 .AND. werte(1).le.100.0D0) then                           
+	   fave = werte (1) * 0.01 
+	else 
+	   ier_num = -1 
+	   ier_typ = ER_FOUR 
+	endif 
+     endif 
+  endif 
+elseif(str_comp(cpara(1), 'extern', 1, lpara(1), 6) ) then
+  four_mode = EXTERNAL 
+elseif(str_comp(cpara(1), 'intern', 1, lpara(1), 6) ) then
+ four_mode = INTERNAL 
+else 
+ ier_num = - 1 
+ ier_typ = ER_FOUR 
+endif 
+else 
+ier_num = - 6 
+ier_typ = ER_COMM 
+endif 
+endif 
+!
+end subroutine fourier_set
+!
+!*****7*****************************************************************
+!
 SUBROUTINE four_resolution(line, lp)
 !-
 !  Interpret the optional parameters on the run command to set the resolution
@@ -1166,14 +1243,14 @@ IF (ier_num.ne.0) RETURN
 IF(ianz==0) RETURN        ! No params, use  default NULL matrix
 !
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                              oname, loname, opara, lopara, lpresent, owerte)
+		      oname, loname, opara, lopara, lpresent, owerte)
 !
 CALL four_res_optional(lpresent(O_SIGABS), 1, MAXW, opara(O_SIGABS), &
-                       lopara(O_SIGABS), werte, iianz)
+	       lopara(O_SIGABS), werte, iianz)
 CALL four_res_optional(lpresent(O_SIGORD), 2, MAXW, opara(O_SIGORD), &
-                       lopara(O_SIGORD), werte, iianz)
+	       lopara(O_SIGORD), werte, iianz)
 CALL four_res_optional(lpresent(O_SIGTOP), 3, MAXW, opara(O_SIGTOP), &
-                       lopara(O_SIGTOP), werte, iianz)
+	       lopara(O_SIGTOP), werte, iianz)
 !
 ! Build simat
 !
@@ -1181,29 +1258,29 @@ CALL four_res_optional(lpresent(O_SIGTOP), 3, MAXW, opara(O_SIGTOP), &
 u = diff_res(2:4,1)
 uu(1) = SQRT (skalpro (u, u, cr_rten) )
 IF(uu(1)< EPS) THEN
-   diff_res(2:4,1) = vi(1:3,1)        ! User vector was NULL, use abscissa
-   u = diff_res(2:4,1)
-   uu(1) = SQRT (skalpro (u, u, cr_rten) )
+diff_res(2:4,1) = vi(1:3,1)        ! User vector was NULL, use abscissa
+u = diff_res(2:4,1)
+uu(1) = SQRT (skalpro (u, u, cr_rten) )
 ENDIF
 !
 u = diff_res(2:4,2)
 uu(2) = SQRT (skalpro (u, u, cr_rten) )
 IF(uu(2)< EPS) THEN
-   diff_res(2:4,2) = vi(1:3,2)        ! User vector was NULL, use ordinate
-   u = diff_res(2:4,2)
-   uu(2) = SQRT (skalpro (u, u, cr_rten) )
-   diff_res(1  ,2) = 0.001
+diff_res(2:4,2) = vi(1:3,2)        ! User vector was NULL, use ordinate
+u = diff_res(2:4,2)
+uu(2) = SQRT (skalpro (u, u, cr_rten) )
+diff_res(1  ,2) = 0.001
 ENDIF
 !
 u = diff_res(2:4,3)
 uu(3) = SQRT (skalpro (u, u, cr_rten) )
 IF(uu(3)< EPS) THEN
-   v1 = diff_res(2:4,1)
-   v2 = diff_res(2:4,2)
-   CALL vekprod(v1, v2, v3, cr_reps, cr_gten)   ! Build a vecor normal to sigabs and sigord
-   uu(3) = SQRT (skalpro (v3, v3, cr_rten) )
-   diff_res(2:4,3) = v3
-   diff_res(1  ,3) = 0.001
+v1 = diff_res(2:4,1)
+v2 = diff_res(2:4,2)
+CALL vekprod(v1, v2, v3, cr_reps, cr_gten)   ! Build a vecor normal to sigabs and sigord
+uu(3) = SQRT (skalpro (v3, v3, cr_rten) )
+diff_res(2:4,3) = v3
+diff_res(1  ,3) = 0.001
 ENDIF
 !
 simat(1:3, 1) = diff_res(2:4,1) * diff_res(1,1) / uu(1)
@@ -1224,7 +1301,7 @@ END SUBROUTINE four_resolution
 !*****7*****************************************************************
 !
 SUBROUTINE four_res_optional(lpresent, ientry, MAXW, opara, &
-                             lopara, werte, ianz)
+		     lopara, werte, ianz)
 !
 USE diffuse_mod
 !
@@ -1244,25 +1321,25 @@ INTEGER                            , INTENT(OUT)   :: ianz    ! Number of numeri
 
 ianz = 0
 IF(lpresent) THEN                ! Sigmais present
-   CALL get_optional_multi(MAXW, opara, lopara, werte, ianz)
-   IF(ier_num==0) THEN
-      IF(ianz>0) THEN
-         diff_res(1,ientry) =werte(1)
-         IF(ianz==4) THEN
-            diff_res(2:4,ientry) = werte(2:4)
-         ELSE
-            diff_res(2,ientry) = 0.0D0
-            diff_res(3,ientry) = 0.0D0
-            diff_res(4,ientry) = 0.0D0
-         ENDIF
-      ELSE
-         diff_res(:,ientry) = 0.00D0
-      ENDIF
-   ELSE
-      RETURN
-   ENDIF
+CALL get_optional_multi(MAXW, opara, lopara, werte, ianz)
+IF(ier_num==0) THEN
+IF(ianz>0) THEN
+ diff_res(1,ientry) =werte(1)
+ IF(ianz==4) THEN
+    diff_res(2:4,ientry) = werte(2:4)
+ ELSE
+    diff_res(2,ientry) = 0.0D0
+    diff_res(3,ientry) = 0.0D0
+    diff_res(4,ientry) = 0.0D0
+ ENDIF
 ELSE
-   diff_res(:,ientry) = 0.0D0
+ diff_res(:,ientry) = 0.00D0
+ENDIF
+ELSE
+RETURN
+ENDIF
+ELSE
+diff_res(:,ientry) = 0.0D0
 ENDIF
 !
 !
@@ -1270,101 +1347,101 @@ END SUBROUTINE four_res_optional
 !
 !*****7*****************************************************************
 !
-      SUBROUTINE four_show ( ltop )
+SUBROUTINE four_show ( ltop )
 !+                                                                      
 !     prints summary of current fourier settings                        
 !-                                                                      
-      USE discus_config_mod 
-      USE diffuse_mod 
-      USE four_angles_mod
-      USE metric_mod
-      USE output_mod 
+USE discus_config_mod 
+USE diffuse_mod 
+USE four_angles_mod
+USE metric_mod
+USE output_mod 
 use precision_mod
-      USE prompt_mod 
-      IMPLICIT none 
+USE prompt_mod 
+IMPLICIT none 
 !                                                                       
 !
-      LOGICAL, INTENT(IN) :: ltop
+LOGICAL, INTENT(IN) :: ltop
 !                                                                       
-      CHARACTER(len=8) :: radiation 
-      CHARACTER (LEN=8), DIMENSION(3), PARAMETER :: c_rad = (/ &
-         'X-ray   ', 'neutron ', 'electron' /)
-      CHARACTER(LEN=1), DIMENSION(0:3)           ::  extr_achs (0:3) 
-      REAL(kind=PREC_DP)                         ::  angle_vh
-      REAL(kind=PREC_DP)                         ::  ratio_vh
-      REAL(kind=PREC_DP)                         ::   aver_vh
-      REAL(kind=PREC_DP)                         ::  angle_ht
-      REAL(kind=PREC_DP)                         ::  ratio_ht
-      REAL(kind=PREC_DP)                         ::   aver_ht
-      REAL(kind=PREC_DP)                         ::  angle_tv
-      REAL(kind=PREC_DP)                         ::  ratio_tv
-      REAL(kind=PREC_DP)                         ::   aver_tv
-      REAL(kind=PREC_DP), DIMENSION(3)           ::  length = (/0.0, 0.0, 0.0/)
-      INTEGER i, j 
+CHARACTER(len=8) :: radiation 
+CHARACTER (LEN=8), DIMENSION(3), PARAMETER :: c_rad = (/ &
+ 'X-ray   ', 'neutron ', 'electron' /)
+CHARACTER(LEN=1), DIMENSION(0:3)           ::  extr_achs (0:3) 
+REAL(kind=PREC_DP)                         ::  angle_vh
+REAL(kind=PREC_DP)                         ::  ratio_vh
+REAL(kind=PREC_DP)                         ::   aver_vh
+REAL(kind=PREC_DP)                         ::  angle_ht
+REAL(kind=PREC_DP)                         ::  ratio_ht
+REAL(kind=PREC_DP)                         ::   aver_ht
+REAL(kind=PREC_DP)                         ::  angle_tv
+REAL(kind=PREC_DP)                         ::  ratio_tv
+REAL(kind=PREC_DP)                         ::   aver_tv
+REAL(kind=PREC_DP), DIMENSION(3)           ::  length = (/0.0, 0.0, 0.0/)
+INTEGER i, j 
 !                                                                       
-      DATA extr_achs / ' ', 'h', 'k', 'l' / 
+DATA extr_achs / ' ', 'h', 'k', 'l' / 
 !                                                                       
 if(four_tech==FOUR_TURBO) then
-   IF (fave.eq.0.0) then 
-      WRITE (output_io, 1010) 
-   ELSE 
-      WRITE (output_io, 1020) fave * 100.0 
-   ENDIF 
+IF (fave.eq.0.0) then 
+WRITE (output_io, 1010) 
+ELSE 
+WRITE (output_io, 1020) fave * 100.0 
+ENDIF 
 elseif(four_tech==FOUR_NUFFT) then
-   IF (fave.eq.0.0) then 
-      WRITE (output_io, 1015) 
-   ELSE 
-      WRITE (output_io, 1025) fave * 100.0 
-   ENDIF 
+IF (fave.eq.0.0) then 
+WRITE (output_io, 1015) 
+ELSE 
+WRITE (output_io, 1025) fave * 100.0 
+ENDIF 
 endif
-      IF (four_mode.eq.INTERNAL) then 
-         WRITE (output_io, 1030) 'atom form factors' 
-      ELSEIF (four_mode.eq.EXTERNAL) then 
-         WRITE (output_io, 1030) 'object form factors' 
-      ENDIF 
+IF (four_mode.eq.INTERNAL) then 
+ WRITE (output_io, 1030) 'atom form factors' 
+ELSEIF (four_mode.eq.EXTERNAL) then 
+ WRITE (output_io, 1030) 'object form factors' 
+ENDIF 
 !                                                                       
-      IF (ilots.eq.LOT_OFF) then 
-         WRITE (output_io, 1100) 
-      ELSEIF (ilots.eq.LOT_BOX) then 
-         WRITE (output_io, 1110) nlots 
-         WRITE (output_io, 1130) (ls_xyz (i), i = 1, 3), lperiod 
-      ELSEIF (ilots.eq.LOT_ELI) then 
-         WRITE (output_io, 1120) nlots 
-         WRITE (output_io, 1130) (ls_xyz (i), i = 1, 3), lperiod 
-      ENDIF 
-      radiation = 'neutron' 
-      IF (lxray) radiation = 'x-ray' 
-      radiation = c_rad(diff_radiation)
-      IF (lambda.eq.' ') then 
-         IF(diff_radiation==2) THEN
-            IF(renergy>999.) THEN
-               WRITE (output_io, 1202) radiation, rlambda , renergy*0.001
-            ELSE 
-               WRITE (output_io, 1201) radiation, rlambda , renergy
-            ENDIF 
-         ELSE 
-            WRITE (output_io, 1200) radiation, rlambda , renergy
-         ENDIF 
-      ELSE 
-         WRITE (output_io, 1210) radiation, lambda, rlambda 
-      ENDIF 
+IF (ilots.eq.LOT_OFF) then 
+ WRITE (output_io, 1100) 
+ELSEIF (ilots.eq.LOT_BOX) then 
+ WRITE (output_io, 1110) nlots 
+ WRITE (output_io, 1130) (ls_xyz (i), i = 1, 3), lperiod 
+ELSEIF (ilots.eq.LOT_ELI) then 
+ WRITE (output_io, 1120) nlots 
+ WRITE (output_io, 1130) (ls_xyz (i), i = 1, 3), lperiod 
+ENDIF 
+radiation = 'neutron' 
+IF (lxray) radiation = 'x-ray' 
+radiation = c_rad(diff_radiation)
+IF (lambda.eq.' ') then 
+ IF(diff_radiation==2) THEN
+    IF(renergy>999.) THEN
+       WRITE (output_io, 1202) radiation, rlambda , renergy*0.001
+    ELSE 
+       WRITE (output_io, 1201) radiation, rlambda , renergy
+    ENDIF 
+ ELSE 
+    WRITE (output_io, 1200) radiation, rlambda , renergy
+ ENDIF 
+ELSE 
+ WRITE (output_io, 1210) radiation, lambda, rlambda 
+ENDIF 
 !                                                                       
-      IF (ldbw) then 
-         WRITE (output_io, 1300) 'used' 
-      ELSE 
-         WRITE (output_io, 1300) 'ignored' 
-      ENDIF 
+IF (ldbw) then 
+ WRITE (output_io, 1300) 'used' 
+ELSE 
+ WRITE (output_io, 1300) 'ignored' 
+ENDIF 
 !                                                                       
-      IF (ano) then 
-         WRITE (output_io, 1310) 'used' 
-      ELSE 
-         WRITE (output_io, 1310) 'ignored' 
-      ENDIF 
+IF (ano) then 
+ WRITE (output_io, 1310) 'used' 
+ELSE 
+ WRITE (output_io, 1310) 'ignored' 
+ENDIF 
 !
-      IF(l_zone) THEN
-         WRITE( output_io, 1500) zone_uvw(:)
-         WRITE( output_io, 1510) zone_res
-      ENDIF
+IF(l_zone) THEN
+ WRITE( output_io, 1500) zone_uvw(:)
+ WRITE( output_io, 1510) zone_res
+ENDIF
 !                                                                       
 !    !DO i = 1, 3 
 !    !u (i) = vi (i, 1) 
@@ -1392,9 +1469,9 @@ endif
 !        dvi4 = 0.0 
 !        dvi5 = 0.0 
 !     ENDIF 
-      CALL four_angles(ltop, length, angle_vh, ratio_vh, aver_vh, &
-                               angle_ht, ratio_ht, aver_ht, &
-                               angle_tv, ratio_tv, aver_tv)
+CALL four_angles(ltop, length, angle_vh, ratio_vh, aver_vh, &
+		       angle_ht, ratio_ht, aver_ht, &
+		       angle_tv, ratio_tv, aver_tv)
 !
 !     Calculate lengths in Ang-1
 !
@@ -1418,58 +1495,58 @@ endif
 !                    ratio_tv, aver_tv)
 !      ENDIF
 !!                                                                       
-      WRITE (output_io, 1400) ( (eck (i, j), i = 1, 3), j = 1, 4) 
-      WRITE (output_io, 1410) (vi (i, 1), i = 1, 3), length(1), &
-                              (vi (i, 2), i = 1, 3), length(2), &
-                              (vi (i, 3), i = 1, 3), length(3)
-      WRITE (output_io, 1420) (inc (i), i = 1, 3), extr_achs (extr_abs),&
-      extr_achs (extr_ord), extr_achs(extr_top)                          
-      WRITE (output_io, 1430) 'v/h',angle_vh, ratio_vh, aver_vh
-      IF(ltop .AND. inc(3)>1) THEN
-         WRITE (output_io, 1430) 'h/t',angle_ht, ratio_ht, aver_ht
-         WRITE (output_io, 1430) 't/v',angle_tv, ratio_tv, aver_tv
-      ENDIF
+WRITE (output_io, 1400) ( (eck (i, j), i = 1, 3), j = 1, 4) 
+WRITE (output_io, 1410) (vi (i, 1), i = 1, 3), length(1), &
+		      (vi (i, 2), i = 1, 3), length(2), &
+		      (vi (i, 3), i = 1, 3), length(3)
+WRITE (output_io, 1420) (inc (i), i = 1, 3), extr_achs (extr_abs),&
+extr_achs (extr_ord), extr_achs(extr_top)                          
+WRITE (output_io, 1430) 'v/h',angle_vh, ratio_vh, aver_vh
+IF(ltop .AND. inc(3)>1) THEN
+ WRITE (output_io, 1430) 'h/t',angle_ht, ratio_ht, aver_ht
+ WRITE (output_io, 1430) 't/v',angle_tv, ratio_tv, aver_tv
+ENDIF
 !                                                                       
- 1010 FORMAT (  ' Fourier technique    : turbo Fourier') 
- 1015 FORMAT (  ' Fourier technique    : Non-uniform FFT Fourier') 
- 1020 FORMAT (  ' Fourier technique    : turbo Fourier, minus <F>',     &
-     &          ' (based on ',F5.1,'% of cryst.)')                      
- 1025 FORMAT (  ' Fourier technique    : Non-uniform FFT Fourier, minus <F>',     &
-     &          ' (based on ',F5.1,'% of cryst.)')                      
- 1030 FORMAT (  ' Fourier calculated by: ',a) 
- 1100 FORMAT (  '   Fourier volume     : complete crystal') 
- 1110 FORMAT (  '   Fourier volume     : ',I4,' box shaped lots') 
- 1120 FORMAT (  '   Fourier volume     : ',I4,' ellipsoid shaped lots') 
- 1130 FORMAT (  '   Lot size           : ',I3,' x ',I3,' x ',I3,        &
-     &          ' unit cells (periodic boundaries = ',L1,')')           
- 1200 FORMAT (  '   Radiation          : ',A,', wavelength = ',         &
-     &          F7.4,' A == ', F8.4,'keV')                                              
- 1201 FORMAT (  '   Radiation          : ',A,', wavelength = ',         &
-     &          F7.4,' A == ', F8.4,'meV')                                              
- 1202 FORMAT (  '   Radiation          : ',A,', wavelength = ',         &
-     &          F7.4,' A == ', F8.4,' eV')                                              
- 1210 FORMAT (  '   Radiation          : ',A,', wavelength = ',A4,      &
-     &          ' = ',F7.4,' A')                                        
- 1300 FORMAT (  '   Temp. factors      : ',A) 
- 1310 FORMAT (  '   Anomalous scat.    : ',A) 
- 1400 FORMAT (/,' Reciprocal layer     : ',/                            &
-     &          '   lower left  corner : ',3(2x,f9.4),/                 &
-     &          '   lower right corner : ',3(2x,f9.4),/                 &
-     &          '   upper left  corner : ',3(2x,f9.4),/                 &
-     &          '   top   left  corner : ',3(2x,f9.4))                  
- 1410 FORMAT (/,'   hor. increment     : ',3(2x,f9.4),2x,               &
-     &          ' -> ',f9.4,' A**-1',/                                  &
-     &          '   vert. increment    : ',3(2x,f9.4),2x,               &
-     &          ' -> ',f9.4,' A**-1',/                                  &
-     &          '   top   increment    : ',3(2x,f9.4),2x,               &
-     &          ' -> ',f9.4,' A**-1')                                   
- 1420 FORMAT (  '   # of points        :  ',I5,' x',I5,' x',I5,'  (',   &
-     &          A1,',',A1,',',A1,')')                                          
- 1430 FORMAT (  '   Angle Ratio Aver ',a3, 3x,f9.4,' degrees',3x        &
-     &                                    ,2(2x,f9.4))                  
- 1500 FORMAT (/,' Zone axis pattern',/                                   &
-               ,'   axis [uvw]         : ',3(2x,f9.4))  
- 1510 FORMAT (  '   resolution         : ',  2x,f9.4, '  2sin(theta)/lambda')  
-      END SUBROUTINE four_show 
+1010 FORMAT (  ' Fourier technique    : turbo Fourier') 
+1015 FORMAT (  ' Fourier technique    : Non-uniform FFT Fourier') 
+1020 FORMAT (  ' Fourier technique    : turbo Fourier, minus <F>',     &
+&          ' (based on ',F5.1,'% of cryst.)')                      
+1025 FORMAT (  ' Fourier technique    : Non-uniform FFT Fourier, minus <F>',     &
+&          ' (based on ',F5.1,'% of cryst.)')                      
+1030 FORMAT (  ' Fourier calculated by: ',a) 
+1100 FORMAT (  '   Fourier volume     : complete crystal') 
+1110 FORMAT (  '   Fourier volume     : ',I4,' box shaped lots') 
+1120 FORMAT (  '   Fourier volume     : ',I4,' ellipsoid shaped lots') 
+1130 FORMAT (  '   Lot size           : ',I3,' x ',I3,' x ',I3,        &
+&          ' unit cells (periodic boundaries = ',L1,')')           
+1200 FORMAT (  '   Radiation          : ',A,', wavelength = ',         &
+&          F7.4,' A == ', F8.4,'keV')                                              
+1201 FORMAT (  '   Radiation          : ',A,', wavelength = ',         &
+&          F7.4,' A == ', F8.4,'meV')                                              
+1202 FORMAT (  '   Radiation          : ',A,', wavelength = ',         &
+&          F7.4,' A == ', F8.4,' eV')                                              
+1210 FORMAT (  '   Radiation          : ',A,', wavelength = ',A4,      &
+&          ' = ',F7.4,' A')                                        
+1300 FORMAT (  '   Temp. factors      : ',A) 
+1310 FORMAT (  '   Anomalous scat.    : ',A) 
+1400 FORMAT (/,' Reciprocal layer     : ',/                            &
+&          '   lower left  corner : ',3(2x,f9.4),/                 &
+&          '   lower right corner : ',3(2x,f9.4),/                 &
+&          '   upper left  corner : ',3(2x,f9.4),/                 &
+&          '   top   left  corner : ',3(2x,f9.4))                  
+1410 FORMAT (/,'   hor. increment     : ',3(2x,f9.4),2x,               &
+&          ' -> ',f9.4,' A**-1',/                                  &
+&          '   vert. increment    : ',3(2x,f9.4),2x,               &
+&          ' -> ',f9.4,' A**-1',/                                  &
+&          '   top   increment    : ',3(2x,f9.4),2x,               &
+&          ' -> ',f9.4,' A**-1')                                   
+1420 FORMAT (  '   # of points        :  ',I5,' x',I5,' x',I5,'  (',   &
+&          A1,',',A1,',',A1,')')                                          
+1430 FORMAT (  '   Angle Ratio Aver ',a3, 3x,f9.4,' degrees',3x        &
+&                                    ,2(2x,f9.4))                  
+1500 FORMAT (/,' Zone axis pattern',/                                   &
+       ,'   axis [uvw]         : ',3(2x,f9.4))  
+1510 FORMAT (  '   resolution         : ',  2x,f9.4, '  2sin(theta)/lambda')  
+END SUBROUTINE four_show 
 !
 END MODULE fourier_menu
