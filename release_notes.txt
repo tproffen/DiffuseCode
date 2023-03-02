@@ -1,4 +1,12 @@
-6.13.01  DRAFT
+6.14.01  DRAFT
+
+GENERAL
+              Removed a few unnecessary debug output lines
+DISCUS
+  fourier     Set symm:apply was not fully active
+              BUG FIX The absence of "sigtop" caused trouble
+  show        Added a flag to indicate whic symmetry elements are part of the point group
+6.14.00  RELEASE 2023_02_15
 GENERAL
               Moved all FFT's to the FFTW library which is much faster
 
