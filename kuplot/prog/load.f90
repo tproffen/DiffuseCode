@@ -4306,7 +4306,7 @@ call dgl5_set_ku_is_h5(iz, node_number)
 call dgl5_set_h5_is_ku(node_number, iz)
 !
 call data2kuplot(ik,outfile, lout)
-write(*,*) ' READ MRC  data set is : ', ik, iz
+!write(*,*) ' READ MRC  data set is : ', ik, iz
 
 !
 end subroutine mrc_read_kuplot
