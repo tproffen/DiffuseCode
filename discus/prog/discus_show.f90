@@ -886,15 +886,22 @@ INTEGER, INTENT(IN) :: is
 INTEGER, INTENT(IN) :: mode 
 !
 !                                                                       
-      INTEGER FULL, SYMBOL, XYZ, MATRIX 
-      PARAMETER (FULL = 0) 
-      PARAMETER (SYMBOL = 1) 
-      PARAMETER (XYZ = 2) 
-      PARAMETER (MATRIX = 3) 
+integer, parameter :: FULL   = 0
+integer, parameter :: SYMBOL = 1
+integer, parameter :: XYZ    = 2
+integer, parameter :: MATRIX = 3
+!     PARAMETER (FULL = 0) 
+!     PARAMETER (SYMBOL = 1) 
+!     PARAMETER (XYZ = 2) 
+!     PARAMETER (MATRIX = 3) 
+character(len=1) :: cpoint
 INTEGER :: j 
 INTEGER :: n_center 
 INTEGER :: igroup 
 INTEGER :: block = 1
+!
+cpoint = ' '
+if(spc_point(is)) cpoint='*'
 !
       n_center = 1 
       IF (cr_spcgr (1:1) .eq.'P') THEN 
@@ -923,32 +930,33 @@ INTEGER :: block = 1
          igroup = (is - 1) / block + 1 
       ENDIF 
 !
-      IF (mode.eq.FULL) THEN 
-         WRITE (output_io, 2200) is, igroup 
-         WRITE (output_io, 2300) (spc_mat (1, j, is), j = 1, 4), spc_char (is),&
-         (spc_mat (2, j, is), j = 1, 4), (spc_mat (3, j, is), j = 1, 4),&
-         spc_xyz (is)                                                   
-      ELSEIF (mode.eq.SYMBOL) THEN 
-         WRITE (output_io, 3200) is, igroup, spc_char (is) 
-      ELSEIF (mode.eq.XYZ) THEN 
-         WRITE (output_io, 4200) is, igroup, spc_xyz (is) 
-      ELSEIF (mode.eq.MATRIX) THEN 
-         WRITE (output_io, 5200) is, igroup, (spc_mat (1, j, is),       &
-         j = 1, 4), (spc_mat (2, j, is), j = 1, 4), (spc_mat (3, j, is),&
-         j = 1, 4)                                                      
-      ENDIF 
-      IF (gen_sta.eq.GEN_SYMM.and.n_center.gt.1.and.mod (is - 1, spc_n /&
-      n_center) + 1.eq.block) THEN                                      
-         WRITE (output_io, * ) 
-      ENDIF 
+IF (mode.eq.FULL) THEN 
+   WRITE (output_io, 2200) is, igroup, cpoint 
+   WRITE (output_io, 2300) (spc_mat (1, j, is), j = 1, 4), spc_char (is),&
+   (spc_mat (2, j, is), j = 1, 4), (spc_mat (3, j, is), j = 1, 4),&
+   spc_xyz (is)                                                   
+ELSEIF (mode.eq.SYMBOL) THEN 
+   WRITE (output_io, 3200) is, igroup, cpoint, spc_char (is) 
+ELSEIF (mode.eq.XYZ) THEN 
+   WRITE (output_io, 4200) is, igroup, cpoint, spc_xyz (is) 
+ELSEIF (mode.eq.MATRIX) THEN 
+   WRITE (output_io, 5200) is, igroup, cpoint,                                  &
+         (spc_mat (1, j, is), j = 1, 4),                                        &
+         (spc_mat (2, j, is), j = 1, 4),                                        &
+         (spc_mat (3, j, is), j = 1, 4)                                                      
+ENDIF 
+IF (gen_sta.eq.GEN_SYMM.and.n_center.gt.1.and.                                  &
+    mod (is - 1, spc_n / n_center) + 1.eq.block) THEN                                      
+   WRITE (output_io, * ) 
+ENDIF 
 !                                                                       
- 2200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')') 
+ 2200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')',a1) 
  2300 FORMAT    (  ' ( ',3(f4.1,', '),f8.5,' )','  ',a65,/,             &
      &                    ' ( ',3(f4.1,', '),f8.5,' )',/,               &
      &                    ' ( ',3(f4.1,', '),f8.5,' )','  ',a87,/)      
- 3200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')  ',a65) 
- 4200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')  ',a87) 
- 5200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')  ',              &
+ 3200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')',a1,' ',a65) 
+ 4200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')',a1,' ',a87) 
+ 5200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')',a1,' ',         &
      &                    ' ( ',3(f4.1,', '),f8.5,' )',/,               &
      &                32x,' ( ',3(f4.1,', '),f8.5,' )',/,               &
      &                32x,' ( ',3(f4.1,', '),f8.5,' )'   )              
