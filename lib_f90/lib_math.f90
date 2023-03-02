@@ -88,6 +88,7 @@ public fft_3D_global
 public kmath_h5_global
 public rvalue_h5_global
 public do_merge_global
+public lanc_global
 !
 contains
 !
@@ -1817,6 +1818,190 @@ if(ik<1 .or. ik>dgl5_get_number() .or. &
 endif
 !
 end subroutine do_interpolate_global
+!
+!*******************************************************************************
+!
+subroutine lanc_global(ik, iz , nscale, rscale, rcut, m)
+!-
+!  Perform a Lanczos filter on global data set ik
+!+
+!
+use do_lanczos_mod
+use errlist_mod
+use lib_data_struc_h5
+use precision_mod
+!
+use support_mod
+!
+implicit none
+!
+integer           , intent(in) :: ik      ! Input data set
+integer           , intent(in) :: iz      ! Output data number
+integer           , intent(in) :: nscale  ! Output field is this times larger
+real(kind=PREC_DP), intent(in) :: rscale  ! Real valued nscale
+real(kind=PREC_DP), intent(in) :: rcut    ! Damping term
+integer           , intent(in) :: m       ! Smooth ofer +- m data points
+!
+integer :: i
+real(kind=PREC_DP), dimension(:)    , allocatable :: outfield_1d
+real(kind=PREC_DP), dimension(:,:)  , allocatable :: outfield_2d
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: outfield_3d
+!
+real(kind=prec_dp) :: ss
+!
+call data2local(ik      , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+     ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
+     ik1_has_dxyz, ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
+     ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
+     ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
+!
+   if(allocated(ik2_data)) deallocate(ik2_data)
+   if(allocated(ik2_x)) deallocate(ik2_x)
+   if(allocated(ik2_y)) deallocate(ik2_y)
+   if(allocated(ik2_z)) deallocate(ik2_z)
+!
+if(ik1_ndims==3) then                ! 3-D data sets
+   ik2_dims(1) = (ik1_dims(1)-1) * nscale + 1
+   ik2_dims(2) = (ik1_dims(2)-1) * nscale + 1
+   ik2_dims(3) = (ik1_dims(3)-1) * nscale + 1
+   allocate(outfield_3d(ik2_dims(1), ik2_dims(2), ik2_dims(3)))
+!   ss = seknds(0.0)
+!   call do_lanczos(rscale, rcut, m, ik1_dims, ik1_data, & !(1:ik1_dims(1),1:ik1_dims(2),1:ik2_dims(3)),   &
+!                   ik2_dims, outfield_3d)
+!   ss = seknds(ss )
+!write(*,*) ' FULL', ss
+   ss = seknds(0.0)
+   call do_lanczos(rscale, rcut, m, ik1_dims, ik1_data, & !(1:ik1_dims(1),1:ik1_dims(2),1:ik2_dims(3)),   &
+                   ik2_dims, outfield_3d, .true.)
+   ss = seknds(ss )
+!write(*,*) ' FFT ', ss
+   ss = seknds(0.0)
+   ik2_nlayer     = ik2_dims(3)/2
+   ik2_vectors    = ik1_vectors/rscale
+   allocate(ik2_x(1:ik2_dims(1)))
+   allocate(ik2_y(1:ik2_dims(2)))
+   allocate(ik2_z(1:ik2_dims(3)))
+   allocate(ik2_data(ik2_dims(1), ik2_dims(2), ik2_dims(3)))
+   do i=1, ik2_dims(1)
+      ik2_x(i) = ik1_x(1) + (i-1) * ik1_steps(1)/rscale
+   enddo
+   do i=1, ik2_dims(2)
+      ik2_y(i) = ik1_y(1) + (i-1) * ik1_steps(2)/rscale
+   enddo
+   do i=1, ik2_dims(2)
+      ik2_z(i) = ik1_z(1) + (i-1) * ik1_steps(3)/rscale
+   enddo
+   ik2_dy         = ik2_dy
+   ik2_dz         = ik2_dz
+   ik2_data        = outfield_3d
+   ik2_llims      = ik1_llims
+   ik2_steps      = ik1_steps/rscale
+   ik2_steps_full = ik1_steps_full/rscale
+   ik2_minmaxval(1) = minval(outfield_3d)
+   ik2_minmaxval(2) = maxval(outfield_3d)
+   ik2_minmaxcoor      = ik1_minmaxcoor
+   ik2_minmaxcoor(1,1) = minval(ik2_x)
+   ik2_minmaxcoor(1,2) = maxval(ik2_x)
+   ik2_minmaxcoor(2,1) = minval(ik2_y)
+   ik2_minmaxcoor(2,2) = maxval(ik2_y)
+   ik2_minmaxcoor(2,1) = minval(ik2_z)
+   ik2_minmaxcoor(2,2) = maxval(ik2_z)
+elseif(ik1_ndims==2) then            ! 2-D data sets
+   ik2_dims(1) = (ik1_dims(1)-1) * nscale + 1
+   ik2_dims(2) = (ik1_dims(2)-1) * nscale + 1
+   ik2_dims(3) = 1
+   allocate(outfield_2d(ik2_dims(1), ik2_dims(2)))
+!   ss = seknds(0.0)
+!   call do_lanczos(rscale, rcut, m, ik1_dims(1:2), ik1_data(1:ik1_dims(1),1:ik1_dims(2),1),   &
+!                   ik2_dims(1:2), outfield_2d)
+!   ss = seknds(ss )
+!write(*,*) ' FULL', ss
+   ss = seknds(0.0)
+   call do_lanczos(rscale, rcut, m, ik1_dims(1:2), ik1_data(1:ik1_dims(1),1:ik1_dims(2),1),   &
+                   ik2_dims(1:2), outfield_2d, .true.)
+   ss = seknds(ss )
+!write(*,*) ' FFT ', ss
+   ik2_nlayer     = 1
+   ik2_vectors    = ik1_vectors/rscale
+   allocate(ik2_x(1:ik2_dims(1)))
+   allocate(ik2_y(1:ik2_dims(2)))
+   allocate(ik2_z(1:1))
+   allocate(ik2_data(ik2_dims(1), ik2_dims(2), ik2_dims(3)))
+   do i=1, ik2_dims(1)
+      ik2_x(i) = ik1_x(1) + (i-1) * ik1_steps(1)/rscale
+   enddo
+   do i=1, ik2_dims(2)
+      ik2_y(i) = ik1_y(1) + (i-1) * ik1_steps(2)/rscale
+   enddo
+   ik2_z          = ik2_z
+   ik2_dy         = ik2_dy
+   ik2_dz         = ik2_dz
+   ik2_data(:,:,1) = outfield_2d
+   ik2_llims      = ik1_llims
+   ik2_steps      = ik1_steps/rscale
+   ik2_steps_full = ik1_steps_full/rscale
+   ik2_minmaxval(1) = minval(outfield_2d)
+   ik2_minmaxval(2) = maxval(outfield_2d)
+   ik2_minmaxcoor      = ik1_minmaxcoor
+   ik2_minmaxcoor(1,1) = minval(ik2_x)
+   ik2_minmaxcoor(1,2) = maxval(ik2_x)
+   ik2_minmaxcoor(2,1) = minval(ik2_y)
+   ik2_minmaxcoor(2,2) = maxval(ik2_y)
+elseif(ik1_ndims==1) then            ! 1-D data sets
+   ik2_dims(1) = (ik1_dims(1)-1) * nscale + 1
+   ik2_dims(2) = 1
+   ik2_dims(3) = 1
+   allocate(outfield_1d(ik2_dims(1)))
+   call do_lanczos(rscale, rcut, m, ik1_dims(1), ik1_data(1:ik1_dims(1),1,1),   &
+                   ik2_dims(1), outfield_1d, .true.)
+!  call do_lanczos(rscale, rcut, m, ik1_dims(1), ik1_data(1:ik1_dims(1),1,1),   &
+!                  ik2_dims(1), outfield_1d)
+   ik2_nlayer     = 1
+   ik2_vectors    = ik1_vectors/rscale
+   allocate(ik2_x(1:ik2_dims(1)))
+   allocate(ik2_y(1:1))
+   allocate(ik2_z(1:1))
+   allocate(ik2_data(ik2_dims(1), ik2_dims(2), ik2_dims(3)))
+   do i=1, ik2_dims(1)
+      ik2_x(i) = ik1_x(1) + (i-1) * ik1_steps(1)/rscale
+   enddo
+   ik2_y          = ik2_y
+   ik2_z          = ik2_z
+   ik2_dy         = ik2_dy
+   ik2_dz         = ik2_dz
+   ik2_data(:,1,1) = outfield_1d
+   ik2_llims      = ik1_llims
+   ik2_steps      = ik1_steps/rscale
+   ik2_steps_full = ik1_steps_full/rscale
+   ik2_minmaxval(1) = minval(outfield_1d)
+   ik2_minmaxval(2) = maxval(outfield_1d)
+   ik2_minmaxcoor      = ik1_minmaxcoor
+   ik2_minmaxcoor(1,1) = minval(ik2_x)
+   ik2_minmaxcoor(1,2) = maxval(ik2_x)
+endif
+   ik2_infile = 'smoothed.lanc'
+   ik2_is_direct = ik1_is_direct
+   ik2_ndims     = ik1_ndims
+   ik2_is_grid   = ik1_is_grid
+   ik2_has_dxyz  = .false.
+   ik2_has_dval  = .false.
+   ik2_corners   = ik1_corners
+   ik2_a0        = ik1_a0
+   ik2_win       = ik1_win
+!
+   ik2_node_number = 0
+   call local2data(iz , ier_num, ier_typ, ik2_node_number, ik2_infile, ik2_nlayer,  &
+        ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid, ik2_has_dxyz,             &
+        ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win, ik2_x, ik2_y,     &
+        ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma, ik2_llims, ik2_steps,  &
+        ik2_steps_full)
+!
+if(allocated(outfield_1d)) deallocate(outfield_1d)
+if(allocated(outfield_2d)) deallocate(outfield_2d)
+if(allocated(outfield_3d)) deallocate(outfield_3d)
+call math_clean
+!
+end subroutine lanc_global
 !
 !*******************************************************************************
 !
