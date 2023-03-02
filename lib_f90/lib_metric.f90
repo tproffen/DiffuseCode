@@ -30,6 +30,8 @@ pure function lib_blen(gten, u) result(blen)
 !+
 use precision_mod
 !
+implicit none
+!
 real(kind=PREC_DP) :: blen
 !
 real(kind=PREC_DP), dimension(3,3), intent(in) :: gten
@@ -49,6 +51,8 @@ pure function lib_bang(gten, u, v) result(bang)
 !+
 use precision_mod
 use wink_mod
+!
+implicit none
 !
 real(kind=PREC_DP) :: bang
 !
