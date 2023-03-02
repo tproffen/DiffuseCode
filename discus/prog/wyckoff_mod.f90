@@ -18,6 +18,7 @@ integer             ::   spc_n
 real(kind=PREC_DP)  ::   spc_mat(4,4,1:SPC_MAX)
 real(kind=PREC_DP)  ::   spc_det (1:SPC_MAX)
 real(kind=PREC_DP)  ::   spc_spur(1:SPC_MAX)
+logical, dimension(1:SPC_MAX) :: spc_point        ! Rotation matrix is part of point grup symmetry
 !
 integer             ::   wyc_n
 integer             ::   wyc_list(48)
