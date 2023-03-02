@@ -149,4 +149,14 @@ INTEGER, PARAMETER :: FOUR_ACCUM_FINISHED =  2
 INTEGER                                 :: four_accum = 0        ! Run a single Fourier (-1==init, 0==single, 1==add, 2==finished)
 LOGICAL                                 :: four_symm  = .FALSE.  ! Run a single Fourier (-1==init, 0==single, 1==add, 2==finished)
 !
+! Filter parameter
+!
+integer, parameter :: FOUR_FILTER_OFF     = 0
+integer, parameter :: FOUR_FILTER_LANCZOS = 1
+integer            :: four_filter
+integer            :: four_nscale
+integer            :: four_width
+real(kind=PREC_DP) :: four_rscale
+real(kind=PREC_DP) :: four_damp
+!
 END MODULE diffuse_mod
