@@ -76,7 +76,7 @@ ELSEIF(str_comp (befehl, 'continue', 2, lbef, 8) ) THEN
 !                                                                       
 !     ----list atoms present in the crystal 'chem'                      
 !                                                                       
-ELSEIF(str_comp (befehl, 'chem', 2, lbef, 4) ) THEN
+ELSEIF(str_comp (befehl, 'chemistry', 2, lbef, 9) ) THEN
    CALL show_chem
    success = .TRUE.
 !
@@ -88,7 +88,7 @@ ELSEIF(str_comp (befehl, 'echo', 2, lbef, 4) ) THEN
 !
 !---Evaluate an expression, just for interactive check 'eval'     
 !
-ELSEIF(str_comp (befehl, 'eval', 2, lbef, 4) ) THEN
+ELSEIF(str_comp (befehl, 'evaluate', 2, lbef, 8) ) THEN
    CALL do_eval (zeile, lp, .TRUE.)
    success = .TRUE.
 !
@@ -126,7 +126,7 @@ ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN
 !
 !------- -Operating System Kommandos 'syst'                             
 !
-ELSEIF(str_comp (befehl, 'syst', 2, lbef, 4) ) THEN
+ELSEIF(str_comp (befehl, 'system', 2, lbef, 6) ) THEN
    IF (zeile /= ' ') THEN
       CALL do_operating (zeile (1:lp), lp)
       success = .TRUE.

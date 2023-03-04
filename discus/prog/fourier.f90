@@ -67,7 +67,7 @@ IMPLICIT none
       INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: lpara ! (MIN(10,MAXSCAT))
       INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: jj    ! (MAXSCAT) 
       REAL(KIND=PREC_DP)  , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: werte ! (MAXSCAT)
-      CHARACTER(5) befehl 
+      CHARACTER(len=10) :: befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(LEN=PREC_STRING) :: zeile
       CHARACTER(LEN=PREC_STRING) :: line 
@@ -137,10 +137,10 @@ diff_lsingle = .TRUE.
 !     search for "="                                                    
 !                                                                       
 indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
+IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+              .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+              .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                          str_comp (befehl, '?   ',   2, lbef, 4) )    &
               .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     --evaluatean expression and assign the value to a variabble       
@@ -163,7 +163,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     reset all fourier settings 'reset'
 !                                                                       
-            ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) then 
                CALL fourier_reset
 !                                                                       
 !     continues a macro 'continue'                                      
@@ -178,7 +178,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !      Evaluate an expression, just for interactive check 'eval'        
 !                                                                       
-            ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
                CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     Terminate Fourier 'exit'                                          
@@ -200,7 +200,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !-------Operating System Kommandos 'syst'                               
 !                                                                       
-            ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
                IF (zeile.ne.' ') then 
                   CALL do_operating (zeile (1:lp), lp) 
                ELSE 
@@ -219,7 +219,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     Define the ascissa 'absc'                                         
 !                                                                       
-            IF (str_comp (befehl, 'absc', 1, lbef, 4) ) then 
+            IF (str_comp (befehl, 'abscissa', 1, lbef, 8) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.1) then 
                   IF (cpara (1) .eq.'h') then 
@@ -239,7 +239,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     calculate at a single reciprocal point 'calc'                     
 !                                                                       
-            ELSEIF (str_comp (befehl, 'calc', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'calculate', 2, lbef, 9) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.3) then 
@@ -333,7 +333,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     Switch dispersion on/off 'disp' second parameter 'anom' or 'off'  
 !                                                                       
-            ELSEIF (str_comp (befehl, 'disp', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'dispersion', 2, lbef, 10) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.1) then 
@@ -413,7 +413,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define the whole layer 'laye'                                     
 !                                                                       
-            ELSEIF (str_comp (befehl, 'laye', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'layer', 2, lbef, 5) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.11) then 
@@ -447,20 +447,20 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define the corners 'll', 'lr', 'ul'                               
 !                                                                       
-      ELSEIF (str_comp (befehl, 'll  ', 2, lbef, 4) .or. &
-              str_comp (befehl, 'lr  ', 2, lbef, 4) .or. &
-              str_comp (befehl, 'ul  ', 2, lbef, 4) .or. &
-              str_comp (befehl, 'tl  ', 2, lbef, 4) ) then                                                              
+      ELSEIF (str_comp (befehl, 'll', 2, lbef, 2) .or. &
+              str_comp (befehl, 'lr', 2, lbef, 2) .or. &
+              str_comp (befehl, 'ul', 2, lbef, 2) .or. &
+              str_comp (befehl, 'tl', 2, lbef, 2) ) then                                                              
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.3) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      IF (ier_num.eq.0) then 
-                        IF (str_comp (befehl, 'll  ', 2, lbef, 4) ) j = 1 
-                        IF (str_comp (befehl, 'lr  ', 2, lbef, 4) ) j = 2 
-                        IF (str_comp (befehl, 'ul  ', 2, lbef, 4) ) j = 3 
-                        IF (str_comp (befehl, 'tl  ', 2, lbef, 4) ) j = 4 
-                        IF (str_comp (befehl, 'tl  ', 2, lbef, 4) ) ltop = .true.
+                        IF (str_comp (befehl, 'll', 2, lbef, 2) ) j = 1 
+                        IF (str_comp (befehl, 'lr', 2, lbef, 2) ) j = 2 
+                        IF (str_comp (befehl, 'ul', 2, lbef, 2) ) j = 3 
+                        IF (str_comp (befehl, 'tl', 2, lbef, 2) ) j = 4 
+                        IF (str_comp (befehl, 'tl', 2, lbef, 2) ) ltop = .true.
                         DO i = 1, 3 
                            eck (i, j) = werte (i) 
                         ENDDO 
@@ -570,7 +570,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     switch to neutron diffraction 'neut'                              
 !                                                                       
-            ELSEIF (str_comp (befehl, 'neut', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'neutron', 2, lbef, 7) ) then 
                lxray = .false. 
                diff_radiation = RAD_NEUT
                diff_table     = RAD_INTER
@@ -633,7 +633,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define the ordinate  'ordi'                                       
 !                                                                       
-            ELSEIF (str_comp (befehl, 'ordi', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'ordinate', 2, lbef, 8) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.1) then 
                   IF (cpara (1) .eq.'h') then 
@@ -894,7 +894,7 @@ ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then
 !                                                                       
 !     set the wave length to be used 'wvle'                             
 !                                                                       
-            ELSEIF (str_comp (befehl, 'wvle', 1, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'wvlength', 1, lbef, 8) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.1) then 
                   symbol  = cpara(1)
@@ -1077,7 +1077,7 @@ owerte =  (/  0.0,      0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0   
 call get_params (zeile, ianz, cpara, lpara, maxw, lp) 
 if(ier_num/=  0) return
 call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-	  oname, loname, opara, lopara, lpresent, owerte)
+     oname, loname, opara, lopara, lpresent, owerte)
 if(ier_num/=  0) return
 !
 !four_symm = .FALSE.
@@ -1159,17 +1159,17 @@ if(str_comp(cpara(1), 'aver', 1, lpara(1), 4)) then
     call del_params (1, ianz, cpara, lpara, maxw) 
     call ber_params(ianz, cpara, lpara, werte, maxw)
     if (ier_num.eq.0) then 
-	if(werte(1) .ge.0.0D0 .AND. werte(1).le.100.0D0) then                           
-	   fave = werte (1) * 0.01 
-	else 
-	   ier_num = -1 
-	   ier_typ = ER_FOUR 
-	endif 
+        if(werte(1) .ge.0.0D0 .AND. werte(1).le.100.0D0) then                           
+           fave = werte (1) * 0.01 
+        else 
+           ier_num = -1 
+           ier_typ = ER_FOUR 
+        endif 
      endif 
   endif 
-elseif(str_comp(cpara(1), 'extern', 1, lpara(1), 6) ) then
+elseif(str_comp(cpara(1), 'external', 1, lpara(1), 8) ) then
   four_mode = EXTERNAL 
-elseif(str_comp(cpara(1), 'intern', 1, lpara(1), 6) ) then
+elseif(str_comp(cpara(1), 'internal', 1, lpara(1), 8) ) then
  four_mode = INTERNAL 
 else 
  ier_num = - 1 
@@ -1243,14 +1243,14 @@ IF (ier_num.ne.0) RETURN
 IF(ianz==0) RETURN        ! No params, use  default NULL matrix
 !
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-		      oname, loname, opara, lopara, lpresent, owerte)
+      oname, loname, opara, lopara, lpresent, owerte)
 !
 CALL four_res_optional(lpresent(O_SIGABS), 1, MAXW, opara(O_SIGABS), &
-	       lopara(O_SIGABS), werte, iianz)
+       lopara(O_SIGABS), werte, iianz)
 CALL four_res_optional(lpresent(O_SIGORD), 2, MAXW, opara(O_SIGORD), &
-	       lopara(O_SIGORD), werte, iianz)
+       lopara(O_SIGORD), werte, iianz)
 CALL four_res_optional(lpresent(O_SIGTOP), 3, MAXW, opara(O_SIGTOP), &
-	       lopara(O_SIGTOP), werte, iianz)
+       lopara(O_SIGTOP), werte, iianz)
 !
 ! Build simat
 !
@@ -1301,7 +1301,7 @@ END SUBROUTINE four_resolution
 !*****7*****************************************************************
 !
 SUBROUTINE four_res_optional(lpresent, ientry, MAXW, opara, &
-		     lopara, werte, ianz)
+           lopara, werte, ianz)
 !
 USE diffuse_mod
 !
@@ -1470,8 +1470,8 @@ ENDIF
 !        dvi5 = 0.0 
 !     ENDIF 
 CALL four_angles(ltop, length, angle_vh, ratio_vh, aver_vh, &
-		       angle_ht, ratio_ht, aver_ht, &
-		       angle_tv, ratio_tv, aver_tv)
+       angle_ht, ratio_ht, aver_ht, &
+       angle_tv, ratio_tv, aver_tv)
 !
 !     Calculate lengths in Ang-1
 !
@@ -1497,8 +1497,8 @@ CALL four_angles(ltop, length, angle_vh, ratio_vh, aver_vh, &
 !!                                                                       
 WRITE (output_io, 1400) ( (eck (i, j), i = 1, 3), j = 1, 4) 
 WRITE (output_io, 1410) (vi (i, 1), i = 1, 3), length(1), &
-		      (vi (i, 2), i = 1, 3), length(2), &
-		      (vi (i, 3), i = 1, 3), length(3)
+      (vi (i, 2), i = 1, 3), length(2), &
+      (vi (i, 3), i = 1, 3), length(3)
 WRITE (output_io, 1420) (inc (i), i = 1, 3), extr_achs (extr_abs),&
 extr_achs (extr_ord), extr_achs(extr_top)                          
 WRITE (output_io, 1430) 'v/h',angle_vh, ratio_vh, aver_vh

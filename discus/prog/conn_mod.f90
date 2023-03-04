@@ -495,9 +495,9 @@ ELSE
 ENDIF
 !
 conn_mode = CONN_DIST
-if(    str_comp(opara(O_MODE), 'dist', 4, lopara(O_MODE), 4)) then
+if(    str_comp(opara(O_MODE), 'distance', 4, lopara(O_MODE), 8)) then
    conn_mode = CONN_DIST
-elseif(str_comp(opara(O_MODE), 'vect', 4, lopara(O_MODE), 4)) then
+elseif(str_comp(opara(O_MODE), 'vector', 4, lopara(O_MODE), 6)) then
    conn_mode = CONN_VECT
 endif
 !
@@ -914,7 +914,7 @@ USE str_comp_mod
       INTEGER, PARAMETER :: MIN_PARA = 4
       INTEGER maxw 
 !                                                                       
-      CHARACTER(5) befehl 
+      CHARACTER(len=8) :: befehl 
 !     CHARACTER(50) prom 
       CHARACTER(LEN=LEN(PROMPT)) :: orig_prompt 
       CHARACTER(LEN=PREC_STRING) :: line, zeile
@@ -951,7 +951,7 @@ loop_main: DO while (.not.lend)
             indxg = index (line, '=') 
             IF (indxg.ne.0.AND.                                      &
                 .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) .AND. &
-                .NOT. (str_comp (befehl, 'syst', 2, lbef, 4) ) .AND. &
+                .NOT. (str_comp (befehl, 'system', 2, lbef, 6) ) .AND. &
                 .NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR.    &
                        str_comp (befehl, '?   ', 2, lbef, 4) ) .AND. &
                 INDEX(line, '==') == 0                               &
@@ -987,7 +987,7 @@ loop_main: DO while (.not.lend)
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
                   CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
@@ -1009,7 +1009,7 @@ loop_main: DO while (.not.lend)
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
                   IF (zeile.ne.' ') then 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 
@@ -1330,7 +1330,7 @@ IF ( ianz==0) THEN
    CALL conn_show 
 !                  CALL conn_test  For debug only
 ELSE
-   IF (str_comp (cpara(1), 'connect', 3, lpara(1), 7) ) then
+   IF (str_comp (cpara(1), 'connectivity', 3, lpara(1), 12) ) then
       CALL del_params (1, ianz, cpara, lpara, maxw)
       IF(str_comp (cpara(ianz), 'long',3, lpara(ianz), 4)) THEN
          long = .true.
@@ -1360,7 +1360,7 @@ ELSE
          ier_num = -105
          ier_typ = ER_APPL 
       ENDIF
-   ELSEIF (str_comp (cpara(1), 'res', 3, lpara(1), 3) ) THEN
+   ELSEIF (str_comp (cpara(1), 'result', 3, lpara(1), 4) ) THEN
       CALL do_show_res                                    ! Show result variable
    ELSE 
       ier_num = - 6 
@@ -2218,7 +2218,7 @@ if(ier_num/=0) return
 if(ianz==7) then
    call del_params(1, ianz, cpara, lpara, MAXW)
    if(ier_num/=0) return
-   if(str_comp(cpara(1), 'rese', 2, lpara(1), 4) ) then
+   if(str_comp(cpara(1), 'reset', 2, lpara(1), 5) ) then
       n_vec = 1
       call alloc_conn_vect(n_vec)        ! Do dummy allocation to 1 element
       conn_nvect = 0                     ! no vectors defined

@@ -49,7 +49,7 @@ USE str_comp_mod
       INTEGER maxw 
       PARAMETER (maxw = 20) 
 !                                                                       
-      CHARACTER(5) befehl 
+CHARACTER(len=13) :: befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(LEN=PREC_STRING) line, zeile, cpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw), wwwerte (maxw) 
@@ -76,7 +76,7 @@ USE str_comp_mod
 !                                                                       
 indxg = index (line, '=') 
 IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
-               .AND. .NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
+               .AND. .NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
                .AND. .NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
                             str_comp (befehl, '?   ', 2, lbef, 4) )    &
                .AND. INDEX(line, '==') == 0                        ) THEN
@@ -92,7 +92,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
 !
 !------ command 'symmetry'
 !
-         ELSEIF (str_comp (befehl, 'apply_symm', 2, lbef, 10) ) then
+         ELSEIF (str_comp (befehl, 'apply_symmetry', 2, lbef, 13) ) then
             CALL chem_symm(zeile, lp)
 !                                                                       
 !------ Calculate average structure and sigmas 'aver'                   
@@ -223,7 +223,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
 !                                                                       
 !------ Show relative amounts of elements 'elem'                        
 !                                                                       
-         ELSEIF (str_comp (befehl, 'elem', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'element', 2, lbef, 7) ) then 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ianz.eq.1) then 
                CALL do_cap (cpara (1) ) 
@@ -371,8 +371,8 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
 !                                                                       
 !     help 'help','?'                                                   
 !                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
+      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.&
+              str_comp (befehl, '?   ', 1, lbef, 4) ) then
             IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
                lp = lp + 7 
                CALL do_hel ('discus '//zeile, lp) 
@@ -383,7 +383,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
 !                                                                       
 !------ reset all parameters for 'chem' section: 'reset'                   
 !                                                                       
-         ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) then 
             CALL chem_reset
 !                                                                       
 !------ set most parameters for 'chem' section: 'set'                   
@@ -399,7 +399,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
 !                                                                       
 !-------Operating System Kommandos 'syst'                               
 !                                                                       
-         ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
             IF (zeile.ne.' ') then 
                CALL do_operating (zeile (1:lp), lp) 
             ELSE 
@@ -962,7 +962,7 @@ INTEGER     :: n_vec  ! Dummy for allocations
 INTEGER     :: n_cor  ! Dummy for allocations
 !                                                                       
 !                                                                       
-IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
+IF (str_comp (cpara (1) , 'reset', 2, lpara (1) , 5) ) then 
    chem_cvec           =     0 ! all elements (i,j)
    chem_cvec    (1, :) = -9999 ! column (1,*)
    chem_use_vec        =     1 ! all elements (i,j)
@@ -1056,7 +1056,7 @@ USE str_comp_mod
 !                                                                       
 !                                                                       
    lold = .true.
-   IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
+   IF (str_comp (cpara (1) , 'reset', 2, lpara (1) , 5) ) then 
       chem_ccon           =     0 ! all elements (i,j)
       chem_ccon    (1, :) = -9999 ! column (1,*)
       chem_use_con        =     1 ! all elements (i,j)
@@ -1190,7 +1190,7 @@ REAL(KIND=PREC_DP) :: uvw (4, max_uvw)
 REAL(KIND=PREC_DP) :: uvw_mat (4, 4, max_uvw) 
 !                                                                       
 !                                                                       
-main: IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
+main: IF (str_comp (cpara (1) , 'reset', 2, lpara (1) , 5) ) then 
          chem_cran_uvw           = 0      ! (i,j,k)
          chem_cran_uvw (1, 1, :) = - 9999 
          chem_cran_sig           = 0.00   ! (i)
@@ -1427,7 +1427,7 @@ INTEGER     :: n_ang  ! Dummy for allocations
 INTEGER     :: n_cor  ! Dummy for allocations
 !                                                                       
 !                                                                       
-IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
+IF (str_comp (cpara (1) , 'reset', 2, lpara (1) , 5) ) then 
    chem_cwin        =     0 ! All elements (i,j)
    chem_cwin (1, :) = -9999 ! Row (1,*)
    chem_use_win     =     1 ! All elements  (i,j)
@@ -1521,7 +1521,7 @@ USE str_comp_mod
       INTEGER            :: n_cor
 !                                                                       
 !                                                                       
-      IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
+      IF (str_comp (cpara (1) , 'reset', 2, lpara (1) , 5) ) then 
         chem_cenv           =     0 ! all elements (i,j)
         chem_cvec    (1, :) = -9999 ! column (1,*)
         chem_use_env        =     1 ! all elements (i,j)

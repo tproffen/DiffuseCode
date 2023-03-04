@@ -31,7 +31,7 @@ IMPLICIT none
 INTEGER, PARAMETER :: MIN_PARA = 99  ! A command requires at least these no of parameters
 INTEGER :: maxw 
 !                                                                       
-CHARACTER(len=5)           :: befehl 
+CHARACTER(len=11)          :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=PREC_STRING) :: line, zeile
 INTEGER :: lp, length, lbef 
@@ -90,10 +90,10 @@ loop_main: DO while (.not.lend)                 ! Main exp2pdf loop
 !                                                                       
    indxg = index (line, '=') 
    IF (indxg.ne.0                                              &
-        .AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
-        .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-        .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                    str_comp (befehl, '?   ', 2, lbef, 4) )    &
+        .AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )    &
+        .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+        .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                    str_comp (befehl, '?   ',   2, lbef, 4) )    &
         .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     ------evaluate an expression and assign the value to a variable   
@@ -118,7 +118,7 @@ loop_main: DO while (.not.lend)                 ! Main exp2pdf loop
 !
 !  --- Experimental composition 'comp'
 !
-   elseif(str_comp (befehl, 'comp', 2, lbef, 4)) then
+   elseif(str_comp (befehl, 'composition', 2, lbef, 11)) then
       call exp2pdf_composition(zeile, lp)
 !
 !  --- Experimental data file
@@ -133,7 +133,7 @@ loop_main: DO while (.not.lend)                 ! Main exp2pdf loop
 !
 !     ----Set output file and PDF range
 !
-   ELSEIF (str_comp (befehl, 'outf', 2, lbef, 4) .or.              &
+   ELSEIF (str_comp (befehl, 'outfile', 2, lbef, 7) .or.              &
            str_comp (befehl, 'outputfile', 2, lbef, 10) ) then
       call exp2pdf_outfile(zeile, lp)
 !

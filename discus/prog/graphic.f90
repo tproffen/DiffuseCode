@@ -65,7 +65,7 @@ integer, parameter :: ADD = 2
 integer, parameter :: PDF3D_NORMAL = 0
 integer, parameter :: PDF3D_SHARP  = 1
 !                                                                       
-CHARACTER(LEN=5) :: befehl 
+CHARACTER(LEN=8) :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 !CHARACTER(LEN=14) :: cvalue (0:15) 
 CHARACTER(LEN=22) :: cgraphik (0:MAXFORM) 
@@ -157,10 +157,10 @@ main_if: IF (ier_num.eq.0) THEN
 !     search for "="                                                    
 !                                                                       
    indxg = index (line, '=') 
-   IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-                 .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-                 .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                             str_comp (befehl, '?   ', 2, lbef, 4) )    &
+   IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+                 .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+                 .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                             str_comp (befehl, '?   ',   2, lbef, 4) )    &
                  .AND. INDEX(line,'==') == 0                            ) THEN
 !
 !     --evaluate an expression and assign the value to a variabble       
@@ -193,7 +193,7 @@ main_if: IF (ier_num.eq.0) THEN
 !                                                                       
 !     Evaluate an expression, just for interactive check 'eval'         
 !                                                                       
-      ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+      ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) THEN 
          CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     Terminate output 'exit'                                           
@@ -203,7 +203,7 @@ main_if: IF (ier_num.eq.0) THEN
 !                                                                       
 !     Determine format for output 'format'                              
 !                                                                       
-      ELSEIF (str_comp (befehl, 'form', 1, lbef, 4) ) THEN 
+      ELSEIF (str_comp (befehl, 'format', 1, lbef, 6) ) THEN 
          CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
          IF (ier_num.eq.0) THEN 
             CALL get_optional(ianz, MAXP, cpara, lpara, NOPTIONAL,  ncalc, &
@@ -301,7 +301,7 @@ main_if: IF (ier_num.eq.0) THEN
 !                                                                       
 !     ------Switch output type to Shelx 'shel', or 'hklf4'              
 !                                                                       
-               ELSEIF(str_comp(cpara(1),'shel',2,lpara(1),4)) THEN                                        
+               ELSEIF(str_comp(cpara(1),'shelx',2,lpara(1),5)) THEN                                        
                   ityp = 6 
                ELSEIF(str_comp(cpara(1),'hklf4',2,lpara(1),5)) THEN                                        
                   ityp = 6 
@@ -399,7 +399,7 @@ main_if: IF (ier_num.eq.0) THEN
 !                                                                       
 !     read an old output file (only for standard file type' 'inpu'      
 !                                                                       
-      ELSEIF (str_comp (befehl, 'inpu', 1, lbef, 4) ) THEN 
+      ELSEIF (str_comp (befehl, 'input', 1, lbef, 5) ) THEN 
          CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
          IF (ier_num.eq.0) THEN 
             infile = cpara (1) 
@@ -429,7 +429,7 @@ main_if: IF (ier_num.eq.0) THEN
 !                                                                       
 !     define name of output file 'outf'                                 
 !                                                                       
-      ELSEIF (str_comp (befehl, 'outf', 1, lbef, 4) ) THEN 
+      ELSEIF (str_comp (befehl, 'outfile', 1, lbef, 7) ) THEN 
          CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
          IF (ier_num.eq.0) THEN 
             CALL get_optional(ianz, MAXP, cpara, lpara, NOPTIONAL,  ncalc, &
@@ -454,7 +454,7 @@ main_if: IF (ier_num.eq.0) THEN
 !                                                                       
 !     Reset output 'reset'
 !                                                                       
-      ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+      ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) THEN 
          CALL output_reset
 !                                                                       
 !     write output file 'run'                                           
@@ -614,7 +614,7 @@ endif
 !                                                                       
 !-------Operating System Kommandos 'syst'                               
 !                                                                       
-      ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+      ELSEIF (str_comp (befehl, 'system', 2, lbef, 5) ) THEN 
          IF (zeile.ne.' ') THEN 
             CALL do_operating (zeile (1:lp), lp) 
          ELSE 
@@ -624,7 +624,7 @@ endif
 !                                                                       
 !     Set threshold for intensity written to bitmaps 'thresh'           
 !                                                                       
-      ELSEIF (str_comp (befehl, 'thre', 2, lbef, 4) ) THEN 
+      ELSEIF (str_comp (befehl, 'threshold', 2, lbef, 9) ) THEN 
          CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
          IF (ier_num.eq.0) THEN 
             IF (ianz.eq.2) THEN 
@@ -1016,7 +1016,7 @@ USE metric_mod
 USE errlist_mod
 USE ber_params_mod
 USE precision_mod
-USE str_comp_mod
+!USE str_comp_mod
 USE take_param_mod
 USE wink_mod
 !

@@ -43,7 +43,7 @@ USE str_comp_mod
 !
    IMPLICIT none
 !
-   CHARACTER (LEN=5)                       :: befehl! command on input line
+   CHARACTER (LEN=8)                       :: befehl! command on input line
    CHARACTER(LEN=LEN(prompt))              :: orig_prompt  ! original prompt
    CHARACTER (LEN=PREC_STRING)                    :: line  ! input line
    CHARACTER (LEN=PREC_STRING)                    :: zeile ! remainder with parameters
@@ -84,10 +84,10 @@ main_loop: DO
 !                                                                       
          indxg = index (line, '=') 
          is_math: IF(indxg.ne.0                                             &
-                     .AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
-                     .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-                     .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                                 str_comp (befehl, '?   ', 2, lbef, 4) )    &
+                     .AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )    &
+                     .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+                     .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                                 str_comp (befehl, '?   ',   2, lbef, 4) )    &
                      .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 ! ------evaluate an expression and assign the value to a variabble      
@@ -120,7 +120,7 @@ main_loop: DO
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-              ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+              ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 4) ) THEN 
                   CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
@@ -143,7 +143,7 @@ main_loop: DO
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-              ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+              ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) THEN 
                   IF (zeile.ne.' '.and.zeile.ne.char (13) ) THEN 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 
@@ -156,7 +156,7 @@ main_loop: DO
               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
                   CALL do_input (zeile, lp) 
 !
-              ELSEIF (str_comp (befehl, 'reset', 3, lbef, 4)) THEN
+              ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5)) THEN
                   CALL deco_reset
                   if(ier_num == 0) ladd = .true.   ! allow new add command
               ELSE    ! macro, reset or all other commands
@@ -222,12 +222,12 @@ main_loop: DO
                      ier_typ = ER_APPL
                  ENDIF
 !
-              ELSEIF (str_comp (befehl, 'sel', 3, lbef, 3) .or.  &
-                      str_comp (befehl, 'del', 3, lbef, 3)     ) THEN
+              ELSEIF (str_comp (befehl, 'select',   3, lbef, 6) .or.  &
+                      str_comp (befehl, 'deselect', 3, lbef, 8)     ) THEN
                   CALL atom_select (zeile, lp, 0,  DC_MAXSCAT,  dc_latom, &
                   dc_lsite, 0, DC_MAXSITE,                                &
                   dc_sel_atom , lold  ,   &
-                  str_comp (befehl, 'sel', 2, lbef, 3) )
+                  str_comp (befehl, 'select', 2, lbef, 6) )
 !
               ELSEIF (str_comp (befehl, 'set', 3, lbef, 3)) THEN
 !                IF(dc_temp_type /= DC_NONE) THEN

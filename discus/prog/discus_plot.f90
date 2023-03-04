@@ -62,7 +62,7 @@ CHARACTER(LEN=PREC_STRING) :: line, zeile
 CHARACTER(LEN=PREC_STRING) :: tempfile
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
 CHARACTER(LEN=4) :: hlp_sec = 'plot'
-CHARACTER(5) befehl 
+CHARACTER(len=9) :: befehl 
 CHARACTER(1) cdum 
 REAL(kind=PREC_DP) :: size, rr=0.0D0, rg=0.0D0, rb=0.0D0
 INTEGER lp, length 
@@ -152,7 +152,7 @@ main: DO while (.not.lend)                                        !  Main loop
 !                                                                       
             indxg = index (line, '=') 
 if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-                       .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) ) &
+                       .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) ) &
                        .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4)   &
                        .OR.        str_comp (befehl, '?   ', 2, lbef, 4) ) &
                        .AND. INDEX(line,'==') == 0                        ) THEN   ! DO_MATH?
@@ -187,7 +187,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ ----list atoms present in the crystal 'chem'                    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'chemistry', 2, lbef, 9) ) then 
                   CALL show_chem 
 !                                                                       
 !------ ----Echo a string, just for interactive check in a macro 'echo' 
@@ -214,7 +214,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !-----  ------Operating System Kommandos 'syst'                         
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
                   IF (zeile.ne.' ') then 
                      length=LEN_TRIM(zeile)
                      CALL do_operating(zeile, length) 
@@ -255,7 +255,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Select the abscissa for a projection onto a to plot           
 !           slice 'absc'                                                
 !                                                                       
-               IF (str_comp (befehl, 'absc', 2, lbef, 4) ) THEN 
+               IF (str_comp (befehl, 'abscissa', 2, lbef, 8) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0.and.ianz.eq.3) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -276,7 +276,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Set the sequence of columns 'colu'                            
 !                                                                       
-               ELSEIF (str_comp (befehl, 'colu', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'columns', 3, lbef, 7) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.1) then 
@@ -315,21 +315,21 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ --selecting/deselecting atoms                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) .or.       &
-                        str_comp (befehl, 'dese', 2, lbef, 4) ) then
+               ELSEIF (str_comp (befehl, 'select',   3, lbef, 6) .or.       &
+                       str_comp (befehl, 'deselect', 2, lbef, 8) ) then
 !                                                                       
                   CALL atom_select (zeile, lp, 0, PL_MAXSCAT, pl_latom, &
                   pl_lsite, 0, PL_MAXSITE, &
                   pl_sel_atom, lold,        &
-                  str_comp (befehl, 'sele', 3, lbef, 4) )               
+                  str_comp (befehl, 'select', 3, lbef, 6) )               
 !                                                                       
 !------ --selecting/deselecting of molecules                            
 !                                                                       
-               ELSEIF (str_comp (befehl, 'msel', 2, lbef, 4) .or.       &
-                       str_comp (befehl, 'mdes', 2, lbef, 4) ) then
+               ELSEIF (str_comp (befehl, 'mselect',   2, lbef, 7) .or.       &
+                       str_comp (befehl, 'mdeselect', 2, lbef, 9) ) then
 !                   
                   CALL mole_select (zeile, lp, 0, PL_MAXSCAT, pl_latom, &
-                  pl_sel_atom, str_comp (befehl, 'msel', 2, lbef, 4) )
+                  pl_sel_atom, str_comp (befehl, 'mselect', 2, lbef, 9) )
 !                                                                       
 !------ --Handle property settings 'property'                           
 !                                                                       
@@ -412,7 +412,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select the extend of crystal space to be plotted 'exte'       
 !                                                                       
-               ELSEIF (str_comp (befehl, 'exte', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'extend', 3, lbef, 6) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.1.and.cpara (1) (1:3) .eq.'all') then 
@@ -473,7 +473,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Define output of complete molecules/only origin               
 !                                                                       
-               ELSEIF (str_comp (befehl, 'mole', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'molecules', 2, lbef, 9) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.1) then 
@@ -488,7 +488,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Select the ordinate for a projection onto a to plot           
 !           slice 'ordi'                                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'ordi', 2, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'ordinate', 2, lbef, 8) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0.and.ianz.eq.3) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -508,7 +508,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ define name of output file 'outf'                               
 !                                                                       
-               ELSEIF (str_comp (befehl, 'outf', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'outfile', 1, lbef, 7) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
@@ -519,7 +519,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 !     ----Select the Polyhedra to be plotted by Jmol 'poly'
 !
-               ELSEIF (str_comp (befehl, 'poly', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'polyhedra', 3, lbef, 9) ) then 
 !
       ! Always provide fresh default values, Repeat for each command
       opara (1:7) =   (/ '0.000', '0.000', '0    ', '0    ', 'flat ', 'solid', 'auto ' /)
@@ -583,7 +583,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select plotting program 'prog'                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'prog', 4, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'program', 4, lbef, 7) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0.and.ianz.eq.1.or.ianz.eq.2) then 
                      CALL do_cap (cpara (1) ) 
@@ -605,8 +605,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            IF (str_comp (cpara (2) , 'init', 1,      &
                                lpara ( 2) , 4) ) then
                               pl_append = .false. 
-                           ELSEIF (str_comp (cpara (2) , 'appe', 1,  &
-                           lpara (2) , 4) ) then
+                           ELSEIF (str_comp (cpara (2) , 'append', 1,  &
+                           lpara (2) , 6) ) then
                               pl_append = .true. 
                            ELSEIF (ianz.eq.1) then 
                               pl_append = .true. 
@@ -815,7 +815,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Thickness of the plot slice in Angstroem 'thickness'          
 !                                                                       
-               ELSEIF (str_comp (befehl, 'thic', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'thickness', 2, lbef, 9) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0.and.ianz.eq.1) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -865,7 +865,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select a point in direct space within the plot slice 'vec'    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'vect', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'vector', 1, lbef, 6) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0.and.ianz.eq.3) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 

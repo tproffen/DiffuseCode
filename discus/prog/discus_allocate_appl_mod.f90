@@ -119,11 +119,11 @@ USE str_comp_mod
                CALL dealloc_save    
             ELSE IF (str_comp (cpara (1) , 'shear'     , 3, lpara (1) , 5) )  THEN
                CALL dealloc_shear
-            ELSE IF (str_comp (cpara (1) , 'surf'      , 3, lpara (1) , 4) )  THEN
+            ELSE IF (str_comp (cpara (1) , 'surface'   , 3, lpara (1) , 7) )  THEN
                CALL dealloc_surf
-            ELSE IF (str_comp (cpara (1) , 'symm'      , 3, lpara (1) , 4) )  THEN
+            ELSE IF (str_comp (cpara (1) , 'symmetry'  , 3, lpara (1) , 8) )  THEN
                CALL dealloc_symmetry
-            ELSE IF (str_comp (cpara (1) , 'trans'     , 3, lpara (1) , 5) )  THEN
+            ELSE IF (str_comp (cpara (1) , 'transform' , 3, lpara (1) , 9) )  THEN
                CALL dealloc_transfrm
             ELSE IF (str_comp (cpara (1) , 'waves'     , 3, lpara (1) , 5) )  THEN
                CALL dealloc_waves

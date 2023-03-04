@@ -1242,7 +1242,7 @@ ELSEIF (lcomm.eq.4) THEN  cond_lcomm
                         ENDIF 
                      ENDIF 
 !     --------Input are atom numbers in an environment
-                  ELSEIF (str_comp(cpara(1), 'envi', 1, lpara(1), 4)) THEN
+                  ELSEIF (str_comp(cpara(1), 'environment', 1, lpara(1), 11)) THEN
                      DO i = 2, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 
@@ -1345,7 +1345,7 @@ ELSEIF (lcomm.eq.4) THEN  cond_lcomm
                         v (3) = cr_pos (3, j) 
                      ENDIF 
 !     --------Input are atom numbers in an environment                                   
-                  ELSEIF (str_comp (cpara(1), 'envi', 1, lpara(1), 4)) THEN
+                  ELSEIF (str_comp (cpara(1), 'environment', 1, lpara(1), 11)) THEN
                      DO i = 2, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
                      IF (ier_num.ne.0) THEN 

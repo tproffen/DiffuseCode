@@ -44,7 +44,7 @@ USE str_comp_mod
 !                                                                       
       INTEGER, PARAMETER  :: maxw =  30
 !                                                                       
-      CHARACTER(LEN=5)                  :: befehl 
+      CHARACTER(LEN=9)                  :: befehl 
       CHARACTER(LEN=8), DIMENSION(-1:1) :: ctype
       CHARACTER(LEN=LEN(prompt))        :: orig_prompt
       CHARACTER(LEN=PREC_STRING)               :: line
@@ -73,10 +73,10 @@ USE str_comp_mod
 !     ----search for "="                                                
 !                                                                       
 indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
+IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+              .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+              .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                          str_comp (befehl, '?   ',   2, lbef, 4) )    &
               .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     ------evaluatean expression and assign the value to a variabble   
@@ -197,7 +197,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Enter the Center of atoms within a domain 'cent'              
 !                                                                       
-               ELSEIF (str_comp (befehl, 'cent', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'center', 3, lbef, 6) ) then 
                   IF (itype.lt.0) then 
                      CALL get_params (zeile, ianz, cpara, lpara, maxw,  &
                      lp)                                                
@@ -527,7 +527,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Reset insert menu 'rese'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) then 
                   CALL insert_reset
 !                                                                       
 !     ----run shear 'run'                                               
@@ -575,7 +575,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----list atoms present in the crystal 'chem'                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'chemistry', 2, lbef, 9) ) then 
                   CALL show_chem 
 !                                                                       
 !------ ----Echo a string, just for interactive check in a macro 'echo' 
@@ -585,12 +585,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
                   CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
                   IF (zeile.ne.' ') then 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 

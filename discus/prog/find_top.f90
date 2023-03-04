@@ -73,7 +73,7 @@ fq = chem_quick
 CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
 IF (ier_num.eq.0) then 
 !
-   IF(str_comp(cpara(1), 'env', 1, lpara(1), 3) ) then 
+   IF(str_comp(cpara(1), 'environment', 1, lpara(1), 11) ) then 
 !                                                                       
 !     ----Find environment                                              
 !                                                                       
@@ -115,7 +115,7 @@ IF (ier_num.eq.0) then
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
-   ELSEIF(str_comp(cpara(1) , 'menv', 1, lpara(1), 4) ) then 
+   ELSEIF(str_comp(cpara(1) , 'menvironment', 1, lpara(1), 12) ) then 
 !                                                                       
 !     ----Find molecular environment                                    
 !                                                                       
@@ -160,7 +160,7 @@ IF (ier_num.eq.0) then
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
-   elseif(str_comp(cpara(1), 'conn', 1, lpara(1), 4) ) then 
+   elseif(str_comp(cpara(1), 'connectivity', 1, lpara(1), 12) ) then 
       call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                         oname, loname, opara, lopara, lpresent, owerte)
       if(ianz>=2) then
@@ -188,7 +188,7 @@ IF (ier_num.eq.0) then
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
-   elseif(str_comp(cpara(1), 'neig', 1, lpara(1), 4) ) then 
+   elseif(str_comp(cpara(1), 'neighbor', 1, lpara(1), 8) ) then 
       if(ianz==3) then
          call del_params(1, ianz, cpara, lpara, maxw)
          if(ier_num==0) then
@@ -201,7 +201,7 @@ IF (ier_num.eq.0) then
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
-   elseif(str_comp(cpara(1), 'vect', 1, lpara(1), 4) ) then 
+   elseif(str_comp(cpara(1), 'vector', 1, lpara(1), 6) ) then 
       if(ianz==7) then
          call del_params(1, ianz, cpara, lpara, maxw)
          if(ier_num==0) then

@@ -53,7 +53,7 @@ USE str_comp_mod
 !
       CHARACTER(1) extr_achs (0:3) 
       CHARACTER(1) rho_extr_achs (0:3) 
-      CHARACTER(5) befehl 
+      CHARACTER(len=10) :: befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(14) cvalue (0:6) 
       CHARACTER(15) cgraphik (0:5) 
@@ -125,7 +125,7 @@ diff_lsingle = .TRUE.
 !                                                                       
 indxg = index (line, '=') 
 IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
+              .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
               .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
                           str_comp (befehl, '?   ', 2, lbef, 4) )    &
               .AND. INDEX(line,'==') == 0                            ) THEN
@@ -150,7 +150,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     Define the ascissa 'absc'                                         
 !                                                                       
-            ELSEIF (str_comp (befehl, 'absc', 1, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'abscissa', 1, lbef, 8) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.1) then 
                   IF (cpara (1) .eq.'h') then 
@@ -180,7 +180,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !      Evaluate an expression, just for interactive check 'eval'        
 !                                                                       
-            ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
                CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     Terminate invers Fourier / Patterson 'exit'                       
@@ -220,7 +220,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     Determine format for input 'format'                               
 !                                                                       
-            ELSEIF (str_comp (befehl, 'form', 1, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'format', 1, lbef, 6) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.1.or.ianz.eq.2) then 
@@ -295,7 +295,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define the whole layer 'laye'                                     
 !                                                                       
-            ELSEIF (str_comp (befehl, 'laye', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'layer', 2, lbef, 5) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.11) then 
@@ -430,7 +430,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define the ordinate  'ordi'                                       
 !                                                                       
-            ELSEIF (str_comp (befehl, 'ordi', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'ordinate', 2, lbef, 8) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.1) then 
                   IF (cpara (1) .eq.'h') then 
@@ -447,7 +447,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     Define the real space ascissa 'rhoabsc'                           
 !                                                                       
-            ELSEIF (str_comp (befehl, 'rhoab', 4, lbef, 5) ) then 
+            ELSEIF (str_comp (befehl, 'rhoabs', 4, lbef, 6) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.1) then 
                   IF (cpara (1) .eq.'x') then 
@@ -467,7 +467,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     define the whole real space layer 'rholayer'                      
 !                                                                       
-            ELSEIF (str_comp (befehl, 'rhola', 5, lbef, 5) ) then 
+            ELSEIF (str_comp (befehl, 'rholayer', 5, lbef, 8) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.11) then 
@@ -651,7 +651,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     Reset the Fourier settings 'reset'
 !                                                                       
-            ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) then 
                CALL fourier_reset
 !                                                                       
 !     start the inverse Fourier transform 'run'                         
@@ -758,7 +758,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     Run statistics on the normalized structure factor 'stat'          
 !                                                                       
-            ELSEIF (str_comp (befehl, 'stat', 1, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'statistics', 1, lbef, 10) ) then 
                IF (cr_v.le.0.0) then 
                   ier_num = - 35 
                   ier_typ = ER_APPL 
@@ -807,11 +807,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         RETURN
                      ENDIF 
                      IF (ier_num.eq.0) then 
-                        IF (str_comp (cpara (2) , 'inten', 2, lpara (2) &
-                        , 5) ) then                                     
+                        IF (str_comp (cpara (2) , 'intensity', 2, lpara (2) &
+                        , 9) ) then                                     
                            rho_type (i) = INTENSITY 
-                        ELSEIF (str_comp (cpara (2) , 'ampli', 1, lpara &
-                        (2) , 5) ) then                                 
+                        ELSEIF (str_comp (cpara (2) , 'amplitude', 1, lpara &
+                        (2) , 9) ) then                                 
                            rho_type (i) = AMPLITUDE 
                         ELSEIF (str_comp (cpara (2) , 'phase', 1, lpara &
                         (2) , 5) ) then                                 
@@ -819,8 +819,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ELSEIF (str_comp (cpara (2) , 'real ', 1, lpara &
                         (2) , 5) ) then                                 
                            rho_type (i) = REAL_PART 
-                        ELSEIF (str_comp (cpara (2) , 'imagi', 2, lpara &
-                        (2) , 5) ) then                                 
+                        ELSEIF (str_comp (cpara (2) , 'imaginary', 2, lpara &
+                        (2) , 9) ) then                                 
                            rho_type (i) = IMAG_PART 
                         ELSEIF (str_comp (cpara (2) , 'fobs', 2, lpara (&
                         2) , 4) ) then                                  
@@ -866,8 +866,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ------set mode for accumulation 'accu'                            
 !           either initialize or add to previous patterson.             
 !                                                                       
-                     IF (str_comp (cpara (1) , 'accu', 1, lpara (1) , 4)&
-                     ) then                                             
+                     IF (str_comp (cpara (1) , 'accumulate', 1, lpara (1) , 10)) then
                         IF (str_comp (cpara (2) , 'init', 1, lpara (2) ,&
                         4) ) then                                       
                            patt_accu = PATT_INIT 
@@ -878,8 +877,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            ier_num = - 6 
                            ier_typ = ER_COMM 
                         ENDIF 
-                     ELSEIF (str_comp (cpara (1) , 'excl', 1, lpara (1) &
-                     , 4) ) then                                        
+                     ELSEIF (str_comp (cpara (1) , 'exclude', 1, lpara (1), 7) ) then                                        
                         IF (str_comp (cpara (2) , 'none', 1, lpara (2) ,&
                         4) ) then                                       
                            patt_excl9999 = .false. 
@@ -895,8 +893,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF 
                      ELSEIF (str_comp (cpara (1) , 'mode', 1, lpara (1) &
                      , 4) ) then                                        
-                        IF (str_comp (cpara (2) , 'normal', 1, lpara (2)&
-                        , 4) ) then                                     
+                        IF (str_comp (cpara (2) , 'normal', 1, lpara (2) , 6) ) then                                     
                            patt_mode = PATT_NORMAL 
                         ELSEIF (str_comp (cpara (2) , 'sharp', 1, lpara &
                         (2) , 3) ) then                                 
@@ -908,13 +905,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            ier_num = - 6 
                            ier_typ = ER_COMM 
                         ENDIF 
-                     ELSEIF (str_comp (cpara (1) , 'origin', 1, lpara ( &
-                     1) , 4) ) then                                     
-                        IF (str_comp (cpara (2) , 'normal', 1, lpara (2)&
-                        , 4) ) then                                     
+                     ELSEIF (str_comp (cpara (1) , 'origin', 1, lpara (1) , 6) ) then
+                        IF (str_comp (cpara (2) , 'normal', 1, lpara (2) , 6) ) then
                            patt_origin = PATT_NORMAL 
-                        ELSEIF (str_comp (cpara (2) , 'subtract', 1,    &
-                        lpara (2) , 3) ) then                           
+                        ELSEIF (str_comp (cpara (2) , 'subtract', 1, lpara (2) , 8) ) then                           
                            patt_origin = PATT_SUBTRACT 
                         ELSE 
                            ier_num = - 6 
@@ -922,11 +916,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF 
                      ELSEIF (str_comp (cpara (1) , 'rsym', 1, lpara (1) &
                      , 4) ) then                                        
-                        IF (str_comp (cpara (2) , 'igno', 1, lpara (2) ,&
-                        4) ) then                                       
+                        IF (str_comp (cpara (2) , 'ignore', 1, lpara (2) , 6) ) then 
                            patt_rsym = .false. 
-                        ELSEIF (str_comp (cpara (2) , 'appl', 1, lpara (&
-                        2) , 4) ) then                                  
+                        ELSEIF (str_comp (cpara (2) , 'apply', 1, lpara (2) , 5) ) then
                            patt_rsym = .true. 
                         ENDIF 
                      ELSE 
@@ -1138,7 +1130,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !-------Operating System Kommandos 'syst'                               
 !                                                                       
-            ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
                IF (zeile.ne.' ') then 
                   CALL do_operating (zeile (1:lp), lp) 
                ELSE 

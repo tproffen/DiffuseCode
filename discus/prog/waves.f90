@@ -53,7 +53,7 @@ INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
 CHARACTER(LEN=PREC_STRING) :: line, zeile
 CHARACTER(LEN=PREC_STRING) :: cdummy 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-CHARACTER(len=5)           :: befehl 
+CHARACTER(len=10)          :: befehl 
 INTEGER :: lp, length, lbef, ldummy 
 INTEGER :: indxg, ianz, is 
 INTEGER :: nscat = 1
@@ -77,10 +77,10 @@ LOGICAL :: lend
 !     --- search for "="                                                
 !                                                                       
 indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
+IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+              .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+              .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                          str_comp (befehl, '?   ',   2, lbef, 4) )    &
               .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     ----- evaluate an expression and assign value a variabble         
@@ -108,7 +108,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- list atoms present in the crystal 'chem'                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'chemistry', 2, lbef, 8) ) then 
                   CALL show_chem 
 !                                                                       
 !     --- continues a macro 'continue'                                  
@@ -123,7 +123,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !      -- Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
                   CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     --- exit 'exit'                                                   
@@ -145,7 +145,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ --- operating System Kommandos 'syst'                           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
                   IF (zeile.ne.' ') then 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 
@@ -160,7 +160,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 !     --- reset waves 'rese'                                               
 !
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) then 
                   CALL waves_reset
  
                ELSE
@@ -179,12 +179,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- accoustic wave 'acco'                                         
 !                                                                       
-                   IF (str_comp (befehl, 'acco', 2, lbef, 4) ) then 
+                   IF (str_comp (befehl, 'accoustic', 2, lbef, 9) ) then 
                   wv_lacoust = .true. 
 !                                                                       
 !     --- amplitude of wave 'ampl'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'ampl', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'amplitude', 2, lbef, 9) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.1) then 
@@ -201,13 +201,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- density wave 'dens'                                           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'dens', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'density', 3, lbef, 7) ) then 
                   wv_iwave = WV_DENS 
 !                                                                       
 !     --- select/deselect molecules                                     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'msel', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'mdes', 2, lbef, 4) ) then         
+               ELSEIF (str_comp (befehl, 'mselect', 2, lbef, 7)            &
+                   .or.str_comp (befehl, 'mdeselect', 2, lbef, 9) ) then         
 !                                                                       
                   CALL mole_select (zeile, lp, 0, WV_MAXSCAT, wv_latom, &
                   wv_sel_atom,         &
@@ -215,18 +215,18 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- select which atoms are copied to their image 'sele'           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'sele', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'dese', 2, lbef, 4) ) then         
+               ELSEIF (str_comp (befehl, 'select', 2, lbef, 6)            &
+                   .or.str_comp (befehl, 'deselect', 2, lbef, 8) ) then         
 !                                                                       
                   CALL atom_select (zeile, lp, 0, WV_MAXSCAT, wv_latom, &
                   wv_lsite, 0, WV_MAXSITE,                              &
                   wv_sel_atom, lold,        &
-                  str_comp (befehl, 'sele', 2, lbef, 4) )               
+                  str_comp (befehl, 'select', 2, lbef, 6) )               
 !                                                                       
 !     --- wave function 'func'                                          
 !------ --- possible functions are 'box', 'sinusoidal', 'triangular'    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'func', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'function', 1, lbef, 8) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.1.or.ianz.eq.2) then 
@@ -253,8 +253,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         (1) , 5) ) then                                 
                            wv_func = cpara (1) (1:lpara(1))
                            wv_ifunc = WV_SINUS 
-                        ELSEIF (str_comp (cpara (1) , 'trian', 3, lpara &
-                        (1) , 5) ) then                                 
+                        ELSEIF (str_comp (cpara (1) , 'triangle', 3, lpara &
+                        (1) , 8) ) then                                 
                            wv_func = cpara (1) (1:lpara(1))
                            wv_ifunc = WV_TRIANGLE 
                         ELSE 
@@ -269,7 +269,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- wave length 'leng'                                            
 !                                                                       
-               ELSEIF (str_comp (befehl, 'leng', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'length', 2, lbef, 6) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.1) then 
@@ -291,7 +291,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----optical wave 'opti'                                           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'opti', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'optical', 2, lbef, 7) ) then 
                   wv_lacoust = .false. 
 !                                                                       
 !     --- direction of oscillation 'osci'                               
@@ -315,12 +315,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- initial phase 'phas'                                          
 !                                                                       
-               ELSEIF (str_comp (befehl, 'phas', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'phase', 3, lbef, 5) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.1) then 
-                        IF (str_comp (cpara (1) , 'rand', 1, lpara (1) ,&
-                        4) ) then                                       
+                        IF (str_comp (cpara (1) , 'random', 1, lpara (1) , 6) ) then                                       
                            wv_phase_typ = WV_RAND 
                         ELSE 
                            wv_phase_typ = WV_FIX 
@@ -338,7 +337,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- upper limit of probability for density waves 'phig'           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'phig', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'phigh', 3, lbef, 5) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.1) then 
@@ -372,7 +371,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- Select which molecules are repl. by density wave 'mrepl'      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'mrepl', 2, lbef, 5) ) then 
+               ELSEIF (str_comp (befehl, 'mreplace', 2, lbef, 8) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF(ianz==3) THEN
@@ -406,7 +405,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- Select which atoms are repl. by density wave 'repl'           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'repl', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'replace', 2, lbef, 7) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF(ianz==3) THEN
@@ -439,7 +438,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- select rotation mode for molecules                            
 !                                                                       
-               ELSEIF (str_comp (befehl, 'rot', 2, lbef, 3) ) then 
+               ELSEIF (str_comp (befehl, 'rotation', 2, lbef, 8) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.3.or.ianz.eq.6) then 
@@ -468,12 +467,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- run waves 'run'                                               
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'run', 2, lbef, 3) ) then 
                   CALL wave_run 
 !                                                                       
 !     --- set constant shift 'shif'                                     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'shif', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'shift', 3, lbef, 5) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.1) then 
@@ -495,12 +494,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     --- transversal wave 'tran'                                       
 !                                                                       
-               ELSEIF (str_comp (befehl, 'tran', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'transverse', 1, lbef, 10) ) then 
                   wv_iwave = WV_TRANS 
 !                                                                       
 !     --- direction of wave vector 'vect'                               
 !                                                                       
-               ELSEIF (str_comp (befehl, 'vect', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'vector', 1, lbef, 6) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.3) then 
@@ -831,7 +830,7 @@ INTEGER :: nsite = 1
          ELSEIF (str_comp (wv_func, 'sinus', 1, lbef, 5) ) then 
             wv_amp = (wv_phigh - wv_plow) * 0.5 
             wv_amp0 = (wv_phigh + wv_plow) * 0.5 
-         ELSEIF (str_comp (wv_func, 'trian', 1, lbef, 5) ) then 
+         ELSEIF (str_comp (wv_func, 'triangle', 1, lbef, 8) ) then 
             wv_amp = wv_phigh - wv_plow 
             wv_amp0 = wv_plow 
          ENDIF 

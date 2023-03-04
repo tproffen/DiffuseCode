@@ -59,7 +59,7 @@ USE str_comp_mod
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
 !
-      CHARACTER(5) befehl 
+      CHARACTER(len=9) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(LEN=PREC_STRING) :: line, zeile
       INTEGER lp, length, lbef 
@@ -91,10 +91,10 @@ real(kind=PREC_DP), dimension(3), parameter  :: NULLV = (/ 0.0D0, 0.0D0, 0.0D0 /
 !     ----search for "="                                                
 !                                                                       
 indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
+IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+              .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 4) )    &
+              .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                          str_comp (befehl, '?   ',   2, lbef, 4) )    &
               .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     ------evaluatean expression and assign the value to a variabble   
@@ -127,7 +127,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----list atoms present in the crystal 'chem'                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'chemstry', 2, lbef, 8) ) then 
                   CALL show_chem 
 !                                                                       
 !------ ----Echo a string, just for interactive check in a macro 'echo' 
@@ -137,7 +137,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
                   CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
@@ -159,7 +159,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
                   IF (zeile.ne.' ') then 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 
@@ -187,7 +187,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 !     ----Reset shear 'rese'                                               
 !
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) then 
                   CALL shear_reset
 !                                                                       
 !     ----calculate a single shear operation                            
@@ -300,7 +300,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select range of atoms within crystal to be included 'incl'    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'incl', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'include', 1, lbef, 7) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.2) then 
@@ -364,8 +364,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Select range of molecules ore generalized objects within      
 !         crystal to be included 'mincl'|'oincl'                        
 !                                                                       
-               ELSEIF (str_comp (befehl, 'mincl', 3, lbef, 5)           &
-               .or.str_comp (befehl, 'oincl', 3, lbef, 5) ) then        
+               ELSEIF (str_comp (befehl, 'minclude', 3, lbef, 8) .or.      &
+                       str_comp (befehl, 'oinclude', 3, lbef, 8) ) then        
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.2) then 
@@ -376,10 +376,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            shear_start = nint (werte (1) ) 
                            shear_end = nint (werte (2) ) 
                         ENDIF 
-                        IF (str_comp (befehl, 'mincl', 3, lbef, 5) )    &
+                        IF (str_comp (befehl, 'minclude', 3, lbef, 8) )    &
                         then                                            
                            shear_mode = SHEAR_MOLECULE 
-                        ELSEIF (str_comp (befehl, 'oincl', 3, lbef, 5) )&
+                        ELSEIF (str_comp (befehl, 'oinclude', 3, lbef, 8) )&
                         then                                            
                            shear_mode = SHEAR_OBJECT 
                         ENDIF 
@@ -405,15 +405,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.1.or.ianz.eq.2) then 
-                        IF (str_comp (cpara (1) , 'atom', 1, lpara (1) ,&
-                        4) ) then                                       
+                        IF(str_comp(cpara (1), 'atom', 1, lpara(1), 4) ) then
                            shear_mode = SHEAR_ATOM 
                            l_need_setup = .true. 
-                        ELSEIF (str_comp (cpara (1) , 'mole', 1, lpara (&
-                        1) , 4) ) then                                  
+                        ELSEIF(str_comp(cpara(1), 'molecule', 1, lpara ( 1) , 8) ) then                                  
                            shear_mode = SHEAR_MOLECULE 
-                        ELSEIF (str_comp (cpara (1) , 'obje', 1, lpara (&
-                        1) , 4) ) then                                  
+                        ELSEIF(str_comp(cpara(1), 'object', 1, lpara ( 1) , 6) ) then                                  
                            shear_mode = SHEAR_OBJECT 
                            l_need_setup = .true. 
                         ELSE 
@@ -428,35 +425,30 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'domain', 2, lbef, 4) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
-                     IF (str_comp (cpara (1) , 'select', 2, lpara (1) , &
-                     6) .or.str_comp (cpara (1) , 'deselect', 2, lpara (&
-                     1) , 8) ) then                                     
+                     IF(str_comp(cpara(1), 'select', 2, lpara(1), 6) .or. &
+                        str_comp(cpara(1), 'deselect', 2, lpara(1) , 8) ) then                                     
                         line = ' ' 
                         indxc = index (zeile, ',') 
                         line = zeile (indxc + 1:lp) 
                         lp = len_str (line) 
 !                                                                       
-                        lselect = str_comp (cpara (1) , 'select', 2,    &
-                        lpara (1) , 6) .or.str_comp (cpara (1) ,        &
-                        'deselect', 2, lpara (1) , 8)                   
+                        lselect = str_comp(cpara(1), 'select',   2, lpara(1) , 6) .or. &
+                                  str_comp(cpara(1), 'deselect', 2, lpara(1) , 8)                   
                         CALL mole_select (line, lp, 0, SHEAR_MAXSCAT,   &
                         shear_latom, shear_sel_atom, lselect)
                         shear_mode = SHEAR_DOMAIN 
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'include', 3, lpara (&
-                     1) , 7) ) then                                     
+                     ELSEIF (str_comp (cpara (1) , 'include', 3, lpara ( 1) , 7) ) then                                     
                         CALL del_params (1, ianz, cpara, lpara, maxw) 
                         IF (ianz.eq.2) then 
-                           CALL ber_params (ianz, cpara, lpara, werte,  &
-                           maxw)                                        
+                           CALL ber_params (ianz, cpara, lpara, werte, maxw)                                        
                            IF (ier_num.eq.0) then 
                               shear_sel_atom = .false. 
                               shear_start = nint (werte (1) ) 
                               shear_end = nint (werte (2) ) 
                            ENDIF 
                         ELSEIF (ianz.eq.1) then 
-                           IF (str_comp (cpara (1) , 'all', 1, lpara (1)&
-                           , 3) ) then                                  
+                           IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3) ) then                                  
                               shear_sel_atom = .false. 
                               shear_start = 1 
                               shear_end = - 1 
@@ -468,33 +460,29 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            ier_num = - 6 
                            ier_typ = ER_COMM 
                         ENDIF 
-                     ELSEIF (str_comp (cpara (1) , 'atoms', 2, lpara (1)&
-                     , 4) ) then                                        
-                        shear_dom_mode_atom = str_comp (cpara (2) ,     &
-                        'apply', 2, lpara (2) , 5)                      
-                     ELSEIF (str_comp (cpara (1) , 'shape', 2, lpara (2)&
-                     , 5) ) then                                        
-                        shear_dom_mode_shape = str_comp (cpara (2) ,    &
-                        'apply', 2, lpara (2) , 5)                      
+                     ELSEIF (str_comp (cpara (1) , 'atoms', 2, lpara (1) , 4) ) then                                        
+                        shear_dom_mode_atom = str_comp (cpara (2) , 'apply', 2, lpara (2) , 5)                      
+                     ELSEIF (str_comp (cpara (1) , 'shape', 2, lpara (2) , 5) ) then                                        
+                        shear_dom_mode_shape = str_comp (cpara (2) , 'apply', 2, lpara (2) , 5)                      
                      ENDIF 
                   ENDIF 
 !                                                                       
 !     ----Select/deselect molecules                                     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'msel', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'mdes', 2, lbef, 4) .or.str_comp ( &
-               befehl, 'osel', 2, lbef, 4) .or.str_comp (befehl, 'odes',&
-               2, lbef, 4) ) then                                       
+               ELSEIF (str_comp (befehl, 'mselect', 2, lbef, 7) .or.       &
+                       str_comp (befehl, 'mdeselect', 2, lbef, 9) .or.     &
+                       str_comp (befehl, 'oselect', 2, lbef, 7) .or.       &
+                       str_comp (befehl, 'odeselect', 2, lbef, 9) ) then                                       
 !                                                                       
-                  lselect = str_comp (befehl, 'msel', 2, lbef, 4)       &
-                  .or.str_comp (befehl, 'osel', 2, lbef, 4)             
+                  lselect = str_comp (befehl, 'mselect', 2, lbef, 7)       &
+                        .or.str_comp (befehl, 'oselect', 2, lbef, 7)             
                   CALL mole_select (zeile, lp, 0, SHEAR_MAXSCAT,        &
                        shear_latom, shear_sel_atom, lselect)
-                  IF (str_comp (befehl, 'msel', 3, lbef, 5)             &
-                  .or.str_comp (befehl, 'mdes', 3, lbef, 5) ) then      
+                  IF (str_comp (befehl, 'mseliect', 3, lbef, 7)             &
+                  .or.str_comp (befehl, 'mdeselect', 3, lbef, 9) ) then      
                      shear_mode = SHEAR_MOLECULE 
-                  ELSEIF (str_comp (befehl, 'osel', 3, lbef, 5)         &
-                  .or.str_comp (befehl, 'odes', 3, lbef, 5) ) then      
+                  ELSEIF (str_comp (befehl, 'oselect', 3, lbef, 7)         &
+                      .or.str_comp (befehl, 'odeselect', 3, lbef, 9) ) then      
                      shear_mode = SHEAR_OBJECT 
                   ENDIF 
 !                                                                       
@@ -504,9 +492,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0.and. (ianz.eq.3.or.ianz.eq.4) ) then 
                      IF (ianz.eq.4) then 
-                        shear_orig_mol = str_comp (cpara (4) , 'mol', 1,&
-                        lpara (4) , 3) .or.str_comp (cpara (4) , 'obj', &
-                        1, lpara (4) , 3)                               
+                        shear_orig_mol = str_comp(cpara(4), 'molecule', 1, lpara(4), 8) .or. &
+                                         str_comp(cpara(4), 'object',   1, lpara(4), 6)                               
                         ianz = 3 
                      ENDIF 
 !                                                                       
@@ -583,13 +570,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select which atoms are copied to their image 'sele'           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'sele', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'dese', 2, lbef, 4) ) then         
+               ELSEIF (str_comp (befehl, 'select', 2, lbef, 6)            &
+               .or.str_comp (befehl, 'deselect', 2, lbef, 7) ) then         
 !                                                                       
                   CALL atom_select (zeile, lp, 0, SHEAR_MAXSCAT, shear_latom, &
                   shear_lsite, 0, SHEAR_MAXSITE,                              &
                   shear_sel_atom, &
-                  lold, str_comp (befehl, 'sele', 2, lbef, 4) )         
+                  lold, str_comp (befehl, 'select', 2, lbef, 6) )         
                   shear_mode = SHEAR_ATOM 
 !                                                                       
 !     ----show current parameters 'show'                                
@@ -603,7 +590,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select the shear vector parallel to the plane 'vector'        
 !                                                                       
-               ELSEIF (str_comp (befehl, 'vector', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'vector', 2, lbef, 6) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0.and.ianz.eq.3) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 

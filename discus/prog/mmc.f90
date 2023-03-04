@@ -45,7 +45,7 @@ IMPLICIT none
 INTEGER, PARAMETER :: MIN_PARA =  20 ! A command requires at least these no of parameters
 INTEGER            :: maxw           ! Array size for cpara, lpara, werte
 !                                                                       
-CHARACTER(LEN=5)    :: befehl 
+CHARACTER(LEN=10)   :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=40)   :: cdummy 
 CHARACTER(LEN=PREC_STRING) :: line, zeile 
@@ -90,10 +90,10 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
 !------ search for "="                                                  
 !                                                                       
 indxg = index (line, '=') 
-IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
+IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+              .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+              .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                          str_comp (befehl, '?   ',   2, lbef, 4) )    &
               .AND. INDEX(line,'==') == 0                            ) THEN
             CALL do_math (line, indxg, length) 
 !                                                                       
@@ -116,7 +116,7 @@ IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ Evaluate an expression                                          
 !                                                                       
-         ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) THEN 
             CALL do_eval (zeile, lp,.TRUE.) 
 !                                                                       
 !     exit 'exit'                                                       
@@ -138,7 +138,7 @@ IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !-------Operating System Kommandos 'syst'                               
 !                                                                       
-         ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) THEN 
             cdummy = ' ' 
             IF (zeile /= ' ') THEN 
                cdummy (1:lp) = zeile (1:lp) 
@@ -159,7 +159,7 @@ IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ command 'rese'                                                  
 !                                                                       
-         ELSEIF (str_comp (befehl, 'rese', 2, lbef, 3) ) THEN 
+         ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) THEN 
             CALL mmc_init 
 !                                                                       
 !------ command 'run'                                                   
@@ -183,8 +183,8 @@ IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ command 'sel' selecting/deselecting atoms                       
 !                                                                       
-         ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) .OR.   &
-                 str_comp (befehl, 'dese', 2, lbef, 4) ) THEN
+         ELSEIF (str_comp (befehl, 'select', 3, lbef, 6) .OR.   &
+                 str_comp (befehl, 'deselect', 2, lbef, 8) ) THEN
 !                                                                       
             CALL atom_select (zeile, lp, 0, MMC_MAX_SCAT, mmc_latom, &
             mmc_lsite, 0, MMC_MAX_SITE,            &
@@ -935,7 +935,8 @@ IF (ier_num == 0) THEN
 !                                                                       
 !------ --- 'set cyc' : setting number of MC moves                      
 !                                                                       
-      ELSEIF (cpara (1) (1:2)  == 'CY') THEN 
+!     ELSEIF (cpara (1) (1:2)  == 'CY') THEN 
+      elseif(str_comp(cpara(1), 'CYCLE', 2, lpara(1), 5)) then
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                mo_cyc = NINT(werte (1), PREC_INT_LARGE ) 
@@ -1551,7 +1552,7 @@ winit = -1.0D0*werte(1)  - 3.0D0*werte(1)**5
                         mmc_cor_energy (ic, MC_REPULSIVE) = .TRUE. 
                         mmc_cor_energy (0, MC_REPULSIVE) = .TRUE. 
                      ELSEIF (str_comp (cpara (2) , 'bucking', 2,        &
-                                       lpara (2) , 6)           )THEN
+                                       lpara (2) , 7)           )THEN
                         CALL del_params (2, ianz, cpara, lpara, maxw) 
                         iianz = 1 
                         jjanz = 1 
@@ -1670,7 +1671,7 @@ winit = -1.0D0*werte(1)  - 3.0D0*werte(1)**5
                   mmc_c_min (3) = werte (1) 
                   mmc_c_max (3) = werte (2) 
                   mmc_constrain_type = MMC_C_XYZ 
-               ELSEIF (str_comp (cpara (1) , 'RAD', 1, lpara (1) , 3) ) &
+               ELSEIF (str_comp (cpara (1) , 'RADIUS', 1, lpara (1) , 6) ) &
                THEN                                                     
                   CALL del_params (1, ianz, cpara, lpara, maxw) 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -1777,7 +1778,6 @@ USE mmc_mod
 !
 USE errlist_mod
 USE precision_mod
-USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE

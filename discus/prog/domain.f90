@@ -47,7 +47,7 @@ INTEGER, PARAMETER :: MAXW = 9
 CHARACTER(len=PREC_STRING) :: line    ! Command string
 integer                    :: lp      ! length of command string
 !
-CHARACTER(len=5) :: befehl            ! Command verb
+CHARACTER(len=11) :: befehl            ! Command verb
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt  ! Prompt prior to this menu
 CHARACTER(LEN=MAX(PREC_STRING,LEN(LINE))) :: zeile        ! Dummy string
 CHARACTER(LEN=MAX(PREC_STRING,LEN(LINE))), dimension(MAXW) :: cpara    ! Dummy strings for parameters
@@ -81,10 +81,10 @@ loop_main: DO while (.not.lend)         ! Main "DOMAIN" loop
 !     ----search for "="                                                
 !                                                                       
          indxg = index (line, '=') 
-         IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-                       .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-                       .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                                   str_comp (befehl, '?   ', 2, lbef, 4) )    &
+         IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+                       .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+                       .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                                   str_comp (befehl, '?   ',   2, lbef, 4) )    &
                        .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 ! ------evaluate an expression and assign the value to a variabble      
@@ -112,7 +112,7 @@ loop_main: DO while (.not.lend)         ! Main "DOMAIN" loop
 !                                                                       
 !------ ----list atoms present in the crystal 'chem'                    
 !                                                                       
-            ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'chemistry', 2, lbef, 9) ) then 
                CALL show_chem 
 !                                                                       
 !     ----continues a macro 'continue'                                  
@@ -127,7 +127,7 @@ loop_main: DO while (.not.lend)         ! Main "DOMAIN" loop
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-            ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
                CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
@@ -149,7 +149,7 @@ loop_main: DO while (.not.lend)         ! Main "DOMAIN" loop
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-            ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
                IF (zeile.ne.' '.and.zeile.ne.char (13) ) then 
                   CALL do_operating (zeile (1:lp), lp) 
                ELSE 
@@ -164,7 +164,7 @@ loop_main: DO while (.not.lend)         ! Main "DOMAIN" loop
 !
 !     ----Reset the distribution of domains 'rese'                       
 !
-            ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) then 
                CALL domain_reset 
 
 !                                                                       
@@ -188,7 +188,7 @@ loop_main: DO while (.not.lend)         ! Main "DOMAIN" loop
 !                                                                       
 !     ----set orientation for the current type 'orientation'            
 !                                                                       
-               ELSEIF (str_comp (befehl, 'orie', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'orientation', 1, lbef, 11) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -231,7 +231,7 @@ loop_main: DO while (.not.lend)         ! Main "DOMAIN" loop
                         clu_mode = CLU_IN_CLUSTER 
                      ELSEIF(str_comp(cpara(1), 'pseudo', 1, lbef, 6)) then
                         clu_mode = CLU_IN_PSEUDO 
-                     ELSEIF(str_comp(cpara(1), 'irreg' , 1, lbef, 5)) then
+                     ELSEIF(str_comp(cpara(1), 'irregular' , 1, lbef, 9)) then
                         clu_mode = CLU_IN_IRREG 
                      ENDIF 
                   ENDIF 
@@ -393,7 +393,7 @@ IF (ianz.ge.3) then
          clu_character(clu_index) = CLU_CHAR_CYLINDER
       ELSEIF(str_comp(cpara(3), 'fuzzy', 1, lpara(3), 5)) then
          clu_character(clu_index) = CLU_CHAR_FUZZY
-      ELSEIF(str_comp(cpara(3), 'irreg', 1, lpara(3), 5)) then
+      ELSEIF(str_comp(cpara(3), 'irregular', 1, lpara(3), 9)) then
          clu_character(clu_index) = CLU_CHAR_IRREG
       ELSEIF(str_comp(cpara(3), 'sphere', 2, lpara(3), 6)) then
          clu_character(clu_index) = CLU_CHAR_SPHERE
@@ -414,7 +414,7 @@ IF (ianz.ge.3) then
             clu_fuzzy(clu_index) = werte (1) 
          ENDIF 
       ENDIF 
-   ELSEIF(str_comp(cpara(1), 'orient', 1, lpara(1), 6) ) then   ! Orientation of guest within host
+   ELSEIF(str_comp(cpara(1), 'orientation', 1, lpara(1), 11) ) then   ! Orientation of guest within host
       CALL del_params(2, ianz, cpara, lpara, maxw) 
       IF (ier_num.eq.0) then 
          werte(:) = 0.0

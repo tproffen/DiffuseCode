@@ -56,7 +56,7 @@ INTEGER         , INTENT(INOUT) :: lcomm
       REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
 !
       CHARACTER ( LEN=MAX(PREC_STRING,LEN(string)) ) :: zeile 
-      CHARACTER(5) befehl 
+      CHARACTER(len=9) :: befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
       CHARACTER(LEN=MAX(PREC_STRING,LEN(string))) :: line
       INTEGER lp, length, lbef 
@@ -124,7 +124,7 @@ main: DO while (.not.lend)
 !                                                                       
 indxg = index (line, '=') 
 IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
+              .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
               .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
                           str_comp (befehl, '?   ', 2, lbef, 4) )    &
               .AND. INDEX(line,'==') == 0                            ) THEN
@@ -159,7 +159,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----list atoms present in the crystal 'chem'                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'chemistry', 2, lbef, 9) ) THEN 
                   CALL show_chem 
 !                                                                       
 !------ ----Echo a string, just for interactive check in a macro 'echo' 
@@ -169,7 +169,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) THEN 
                   CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
@@ -207,7 +207,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 !     ----Reset save menu 'rese'n'                                      
 !
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) THEN 
                   CALL save_reset
                ELSE
 !
@@ -220,7 +220,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Deselect which atoms are included in the wave 'dese'          
 !                                                                       
-               IF (str_comp (befehl, 'dese', 1, lbef, 4) ) THEN 
+               IF (str_comp (befehl, 'deselect', 1, lbef, 8) ) THEN 
                    CALL atom_select (zeile, lp, 0, SAV_MAXSCAT, sav_latom, &
                    sav_lsite, 0, SAV_MAXSITE,                              &
                    sav_sel_atom, .false., .false.)              
@@ -251,8 +251,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (str_comp (cpara (1) , 'keyword', 1, lpara (1) ,&
                      7) ) THEN                                          
                         sav_keyword = .true. 
-                     ELSEIF (str_comp (cpara (1) , 'nokeywo', 1, lpara (&
-                     1) , 7) ) THEN                                     
+                     ELSEIF (str_comp (cpara (1) , 'nokeyword', 1, lpara(1), 9) ) THEN
                         sav_keyword = .false. 
                      ELSE 
                         ier_num = - 6 
@@ -262,7 +261,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select range of atoms within crystal to be included 'incl'    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'incl', 1, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'include', 1, lbef, 7) ) THEN 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -313,29 +312,29 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_w_mole = .false. 
                         sav_w_doma = .false. 
                         sav_w_prop = .false. 
-                     ELSEIF(str_comp(cpara(1), 'gene', 1, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'generator', 1, lpara(1), 9) ) THEN
                         sav_w_gene = .false. 
-                     ELSEIF(str_comp(cpara (1), 'mole', 1, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'molecules', 1, lpara(1), 9) ) THEN
                         sav_w_mole = .false. 
-                     ELSEIF(str_comp(cpara (1), 'obje', 1, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'objects', 1, lpara(1), 7) ) THEN
                         sav_w_obje = .false. 
-                     ELSEIF(str_comp(cpara (1), 'doma', 1, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'domains', 1, lpara(1), 7) ) THEN
                         sav_w_doma = .false. 
-                     ELSEIF(str_comp(cpara (1), 'ncell', 1, lpara(1), 5) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'ncell', 1, lpara(1), 5) ) THEN
                         sav_w_ncell = .false. 
-                     ELSEIF(str_comp(cpara (1), 'symm', 2, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'symmetry', 2, lpara(1), 8) ) THEN
                         sav_w_symm = .false. 
-                     ELSEIF(str_comp(cpara (1), 'scat', 2, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'scat', 2, lpara(1), 4) ) THEN
                         sav_w_scat = .false. 
-                     ELSEIF(str_comp(cpara (1), 'adp', 1, lpara(1), 3) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'adp', 1, lpara(1), 3) ) THEN
                         sav_w_adp = .false. 
-                     ELSEIF(str_comp(cpara (1), 'occ', 1, lpara(1), 3) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'occ', 1, lpara(1), 3) ) THEN
                         sav_w_occ = .false. 
-                     ELSEIF(str_comp(cpara (1), 'surf', 1, lpara(1), 3) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'surface', 1, lpara(1), 7) ) THEN
                         sav_w_surf = .false. 
-                     ELSEIF(str_comp(cpara (1), 'magn', 1, lpara(1), 3) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'magnetic', 1, lpara(1), 8) ) THEN
                         sav_w_magn = .false. 
-                     ELSEIF(str_comp(cpara (1), 'prop', 1, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara(1), 'property', 1, lpara(1), 8) ) THEN
                         sav_w_prop = .false. 
                      ELSE 
                         ier_num = - 6 
@@ -387,7 +386,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select which atoms are copied to their image 'sele'           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'sele', 2, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'select', 2, lbef, 6) ) THEN 
                    CALL atom_select (zeile, lp, 0, SAV_MAXSCAT, sav_latom, &
                    sav_lsite, 0, SAV_MAXSITE,                              &
                    sav_sel_atom, .false., .true.)               
@@ -433,29 +432,29 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_w_obje = .true. 
                         sav_w_doma = .true. 
                         sav_w_prop = .true. 
-                     ELSEIF(str_comp(cpara (1), 'gene', 1, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'generator', 1, lpara(1), 9) ) THEN
                         sav_w_gene = .true. 
-                     ELSEIF(str_comp(cpara (1), 'mole', 1, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'molecules', 1, lpara(1), 9) ) THEN
                         sav_w_mole = .true. 
-                     ELSEIF(str_comp(cpara (1), 'obje', 1, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'objects',   1, lpara(1), 7) ) THEN
                         sav_w_obje = .true. 
-                     ELSEIF(str_comp(cpara (1), 'doma', 1, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'domains',   1, lpara(1), 7) ) THEN
                         sav_w_doma = .true. 
-                     ELSEIF(str_comp(cpara (1), 'ncell', 1, lpara(1), 5) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'ncell',     1, lpara(1), 5) ) THEN
                         sav_w_ncell = .true. 
-                     ELSEIF(str_comp(cpara (1), 'symm', 2, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'symmetry',  2, lpara(1), 8) ) THEN
                         sav_w_symm = .true. 
-                     ELSEIF(str_comp(cpara (1), 'scat', 2, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'scat',      2, lpara(1), 4) ) THEN
                         sav_w_scat = .true. 
-                     ELSEIF(str_comp(cpara (1), 'adp', 1, lpara(1),3) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'adp',       1, lpara(1), 3) ) THEN
                         sav_w_adp = .true. 
-                     ELSEIF(str_comp(cpara (1), 'occ', 1, lpara(1),3) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'occ',       1, lpara(1), 3) ) THEN
                         sav_w_occ = .true. 
-                     ELSEIF(str_comp(cpara (1), 'surf', 1, lpara(1),3) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'surface',   1, lpara(1), 7) ) THEN
                         sav_w_surf = .true. 
-                     ELSEIF(str_comp(cpara (1), 'magn', 1, lpara(1),3) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'magnetic',  1, lpara(1), 8) ) THEN
                         sav_w_magn = .FALSE.    ! MAGNETIC_WORK
-                     ELSEIF(str_comp(cpara (1), 'prop', 1, lpara(1), 4) ) THEN
+                     ELSEIF(str_comp(cpara (1), 'property',  1, lpara(1), 8) ) THEN
                         sav_w_prop = .true. 
                      ELSE 
                         ier_num = - 6 

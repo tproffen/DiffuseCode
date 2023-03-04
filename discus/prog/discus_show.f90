@@ -74,7 +74,7 @@ IF(ier_num.eq.0) THEN
 !                                                                       
 !     ----Show the chemistry               'chem'                       
 !                                                                       
-   ELSEIF(str_comp(cpara(1), 'chem', 2, lpara(1), 4) ) THEN 
+   ELSEIF(str_comp(cpara(1), 'chemistry', 2, lpara(1), 9) ) THEN 
       CALL show_chem 
 !                                                                       
 !     ----Show current configuration       'config'                     
@@ -84,7 +84,7 @@ IF(ier_num.eq.0) THEN
 !                                                                       
 !     ----Show connectivity around an atom 'connect'                     
 !                                                                       
-   ELSEIF(str_comp(cpara(1), 'connect', 4, lpara(1), 7)) THEN
+   ELSEIF(str_comp(cpara(1), 'connectivity', 4, lpara(1), 12)) THEN
       CALL del_params (1, ianz, cpara, lpara, maxw)
       IF(str_comp (cpara(ianz), 'long',3, lpara(ianz), 4)) THEN
          long = .true.
@@ -123,7 +123,7 @@ IF(ier_num.eq.0) THEN
 !                                                                       
 !     ----Show the atom environment        'envi'                       
 !                                                                       
-   ELSEIF(str_comp(cpara(1), 'envi', 2, lpara(1), 4)) THEN
+   ELSEIF(str_comp(cpara(1), 'environment', 2, lpara(1), 11)) THEN
       CALL do_show_env 
       cpara (2) = 'envi' 
       lpara (2) = 4 
@@ -131,7 +131,7 @@ IF(ier_num.eq.0) THEN
 !                                                                       
 !     ----Show the molecular environment        'menvi'                 
 !                                                                       
-   ELSEIF(str_comp(cpara(1), 'menvi', 3, lpara(1), 5)) THEN
+   ELSEIF(str_comp(cpara(1), 'menvironment', 3, lpara(1), 12)) THEN
 !                                                                       
 !     ----Show the crystal mass                 'mass'                 
 !                                                                       
@@ -401,7 +401,7 @@ IF(ier_num == 0) THEN
 !                                                                       
 !     --List atom environment                                           
 !                                                                       
-   IF(str_comp(cpara(2), 'envi', 1, lpara(2), 4) ) THEN 
+   IF(str_comp(cpara(2), 'environment', 1, lpara(2), 11) ) THEN 
       IF(cr_magnetic) THEN
          WRITE(output_io, 4000) 
       ELSE
@@ -582,7 +582,7 @@ USE str_comp_mod
 !                                                                       
 !     --List molecular environment                                      
 !                                                                       
-         ELSEIF (str_comp (cpara (2) , 'envi', 1, lpara (2) , 4) ) THEN 
+         ELSEIF (str_comp (cpara (2) , 'environment', 1, lpara (2) , 11) ) THEN 
             WRITE (output_io, 3000) 
             DO i = 1, mole_env (0) 
             WRITE (output_io, 3000) mole_env (i), mole_type (mole_env ( &

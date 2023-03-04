@@ -126,10 +126,10 @@ loop_menu: do
 !     ----search for "="                                                
 !                                                                       
    indxg = index (line, '=') 
-   IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-                 .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-                 .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                             str_comp (befehl, '?   ', 2, lbef, 4) )    &
+   IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+                 .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+                 .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                             str_comp (befehl, '?   ',   2, lbef, 4) )    &
                  .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     ---evaluate an expression and assign the value to a variabble   
@@ -147,7 +147,7 @@ loop_menu: do
 !                                                                       
 !     ----run symmetry 'rese'                                            
 !                                                                       
-   if_rese: IF(str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+   if_rese: IF(str_comp (befehl, 'reset', 2, lbef, 5) ) THEN 
       call perioditize_reset
       cycle loop_menu
    endif if_rese
@@ -224,7 +224,7 @@ elseif(str_comp (cpara(1), 'natoms', 2, lpara(1), 6) ) then
    call perioditize_set_natoms(ianz, cpara, lpara, werte, maxw)
 elseif(str_comp (cpara(1), 'site', 2, lpara(2), 4) ) then
    call perioditize_set_site  (ianz, cpara, lpara, werte, maxw, .false.)
-elseif(str_comp (cpara(1), 'wyck', 2, lpara(2), 4) ) then
+elseif(str_comp (cpara(1), 'wyckoff', 2, lpara(2), 7) ) then
    call perioditize_set_site  (ianz, cpara, lpara, werte, maxw, .true.)
 endif
 !

@@ -55,7 +55,7 @@ CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAXSC
 INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAXSCAT)
 REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAXSCAT) 
 !
-CHARACTER(LEN=5) :: befehl 
+CHARACTER(LEN=8) :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=PREC_STRING) :: line, zeile
 CHARACTER(LEN=PREC_STRING) :: tran_hfile 
@@ -90,10 +90,10 @@ main: DO WHILE (.NOT.lend)
 !     ----search for "="                                                
 !                                                                       
          indxg = index (line, '=') 
-         IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
-                       .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-                       .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                                   str_comp (befehl, '?   ', 2, lbef, 4) )    &
+         IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )    &
+                       .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+                       .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                                   str_comp (befehl, '?   ',   2, lbef, 4) )    &
                        .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     ------evaluatean expression and assign the value to a variabble   
@@ -126,7 +126,7 @@ main: DO WHILE (.NOT.lend)
 !                                                                       
 !     ----list atoms present in the crystal 'chem'                      
 !                                                                       
-         ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'chemstry', 2, lbef, 8) ) THEN 
                   CALL show_chem 
 !                                                                       
 !------ ----Echo a string, just for interactive check in a macro 'echo' 
@@ -136,7 +136,7 @@ main: DO WHILE (.NOT.lend)
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-         ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) THEN 
                   CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
@@ -158,7 +158,7 @@ main: DO WHILE (.NOT.lend)
 !                                                                       
 !     ----reset transformation 'reset'                                      
 !                                                                       
-         ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) THEN 
                   CALL tran_reset
          ELSE
 !--------------------------------------------------------------------------------
@@ -382,7 +382,7 @@ main: DO WHILE (.NOT.lend)
 !                                                                       
 !     ----Deselect which atoms are included in the wave 'dese'          
 !                                                                       
-               ELSEIF (str_comp (befehl, 'dese', 1, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'deselect', 1, lbef, 8) ) THEN 
                   CALL atom_select (zeile, lp, 0, TRAN_MAXSCAT, tran_latom, &
                   tran_lsite, 0, TRAN_MAXSITE,                              &
                   tran_sel_atom, lold,.FALSE.)
@@ -469,7 +469,7 @@ main: DO WHILE (.NOT.lend)
 !                                                                       
 !     ----Select range of atoms within crystal to be included 'incl'    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'incl', 1, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'include', 1, lbef, 7) ) THEN 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -551,7 +551,7 @@ main: DO WHILE (.NOT.lend)
 !                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'run', 2, lbef, 4) ) THEN 
                   IF (lchange) THEN 
                      CALL tran_setup 
                   ENDIF 
@@ -560,7 +560,7 @@ main: DO WHILE (.NOT.lend)
 !                                                                       
 !     ----Select which atoms are copied to their image 'sele'           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'select', 3, lbef, 6) ) THEN 
                   CALL atom_select (zeile, lp, 0, TRAN_MAXSCAT, tran_latom, &
                   tran_lsite, 0, TRAN_MAXSITE,                              &
                   tran_sel_atom, lold,.TRUE.)
@@ -651,7 +651,7 @@ main: DO WHILE (.NOT.lend)
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) THEN 
                   IF (zeile /= ' ') THEN 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 

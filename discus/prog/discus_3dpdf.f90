@@ -80,7 +80,7 @@ character(len=PREC_STRING), dimension(MIN_PARA) :: cpara   ! Array for parameter
 integer                   , dimension(MIN_PARA) :: lpara   ! Array for parameter lengths
 real(kind=PREC_DP)        , dimension(MIN_PARA) :: werte   ! Array for parameter lengths
 !
-character(len=5)           :: befehl           ! The main command verb
+character(len=6)           :: befehl           ! The main command verb
 character(len=len(prompt)) :: orig_prompt      ! Prompt in previous menu
 character(len=PREC_STRING) :: line             ! Dummy character string
 character(len=PREC_STRING) :: zeile            ! Dummy character string
@@ -145,10 +145,10 @@ loop_main: do while(.not.lend)
 !                                                                       
    indxg = index (line, '=')
    IF (indxg.ne.0                                              &
-        .and..not. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
-        .and..not. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-        .and..not. (str_comp (befehl, 'help', 2, lbef, 4) .or. &
-                    str_comp (befehl, '?   ', 2, lbef, 4) )    &
+        .and..not. (str_comp (befehl, 'echo',   2, lbef, 4) )    &
+        .and..not. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+        .and..not. (str_comp (befehl, 'help',   2, lbef, 4) .or. &
+                    str_comp (befehl, '?   ',   2, lbef, 4) )    &
         .and. index(line,'==') == 0                            ) then
 !                                                                       
 !     ------evaluate an expression and assign the value to a variable   
@@ -181,7 +181,7 @@ loop_main: do while(.not.lend)
 !
 !--- Reset everything 'rese'
 !
-   elseif(str_comp(befehl, 'rese', 3, lbef, 4)) then
+   elseif(str_comp(befehl, 'reset', 3, lbef, 5)) then
       call three_reset
       linit = .true.
 !

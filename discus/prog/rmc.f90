@@ -42,7 +42,7 @@ USE str_comp_mod
 !                                                                       
       INTEGER, PARAMETER :: MAXW = 2
 !                                                                       
-      CHARACTER(5) befehl 
+      CHARACTER(len=8) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(40) cdummy 
       CHARACTER(LEN=PREC_STRING) :: line, zeile
@@ -68,10 +68,10 @@ USE str_comp_mod
 !------ search for "="                                                  
 !                                                                       
 indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
+IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+              .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+              .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                          str_comp (befehl, '?   ',   2, lbef, 4) )    &
               .AND. INDEX(line,'==') == 0                            ) THEN
 !
             CALL do_math (line, indxg, length) 
@@ -96,7 +96,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ Evaluate an expression                                          
 !                                                                       
-         ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
             CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     exit 'exit'                                                       
@@ -118,7 +118,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !-------Operating System Kommandos 'syst'                               
 !                                                                       
-         ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
             cdummy = ' ' 
             IF (zeile.ne.' ') then 
                cdummy (1:lp) = zeile (1:lp) 
@@ -145,27 +145,27 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ reset rmc setting 'rese'                                        
 !                                                                       
-             IF (str_comp (befehl, 'rese', 3, lbef, 4) ) then 
+             IF (str_comp (befehl, 'reset', 3, lbef, 5) ) then 
             CALL rmc_reset
 !                                                                       
 !------ selecting/deselecting atoms                                     
 !                                                                       
-         ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) .or.str_comp (   &
-         befehl, 'dese', 2, lbef, 4) ) then                             
+         ELSEIF (str_comp (befehl, 'select',   3, lbef, 6) .or. &
+                 str_comp (befehl, 'deselect', 2, lbef, 8) ) then
 !                                                                       
             CALL atom_select (zeile, lp, 0, RMC_MAXSCAT, rmc_allowed, &
             rmc_lsite, 0, RMC_MAXSITE,                                &
             rmc_sel_atom, .false., str_comp (  &
-            befehl, 'sele', 3, lbef, 4) )                               
+            befehl, 'select', 3, lbef, 6) )                               
 !                                                                       
 !------ selecting/deselecting of molecules                              
 !                                                                       
-         ELSEIF (str_comp (befehl, 'msel', 2, lbef, 4) .or.str_comp (   &
-         befehl, 'mdes', 2, lbef, 4) ) then                             
+         ELSEIF (str_comp (befehl, 'mselect', 2, lbef,   7) .or.  &
+                 str_comp (befehl, 'mdeselect', 2, lbef, 8) ) then                             
 !                                                                       
             CALL mole_select (zeile, lp, 0, RMC_MAXSCAT, rmc_allowed, &
             rmc_sel_atom, str_comp (  &
-            befehl, 'msel', 2, lbef, 4) )                               
+            befehl, 'mselect', 2, lbef, 7) )                               
 !                                                                       
 !------ read experimental data 'data'                                   
 !                                                                       

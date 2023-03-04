@@ -43,7 +43,7 @@ USE str_comp_mod
 !                                                                       
       INTEGER maxw 
 !                                                                       
-      CHARACTER(5) befehl 
+      CHARACTER(len=8) :: befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(LEN=PREC_STRING) :: line, zeile
       INTEGER lp, length, lbef 
@@ -66,10 +66,10 @@ USE str_comp_mod
 !     ----search for "="                                                
 !                                                                       
 indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
+IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+              .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+              .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                          str_comp (befehl, '?   ',   2, lbef, 4) )    &
               .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     ------evaluatean expression and assign the value to a variabble   
@@ -101,7 +101,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
                   CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
@@ -123,7 +123,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) then 
                   IF (zeile.ne.' ') then 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 

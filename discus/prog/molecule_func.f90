@@ -246,7 +246,7 @@ endif
 !     Start actual work
 !
 IF(IANZ == 1 ) THEN
-   IF(str_comp(cpara(1), 'conn', 1, lpara(1), 4)) THEN
+   IF(str_comp(cpara(1), 'connectivity', 1, lpara(1), 12)) THEN
       if(allocated(iatoms)) then        ! singel atom with exclusion
          iatoms(1) = istart
          CALL molecularize(natom,iatoms, cen_ino, con_nnums, con_ino, &
@@ -265,7 +265,7 @@ IF(IANZ == 1 ) THEN
       CALL molecularize_numbers(istart, ifinish, itype, biso, clin, cqua)
    endif
 ELSEIF(IANZ > 0 ) THEN
-   IF(str_comp(cpara (1) , 'conn', 1, lpara (1) , 4)) THEN
+   IF(str_comp(cpara (1) , 'connectivity', 1, lpara (1) , 12)) THEN
       CALL del_params (1, ianz, cpara, lpara, maxw)
       CALL ber_params (ianz, cpara, lpara, werte, maxw)
       IF(ier_num == 0) THEN

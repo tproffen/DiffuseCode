@@ -32,7 +32,7 @@ USE sup_mod
 !
 IMPLICIT none
 !
-CHARACTER (LEN=5)                       :: befehl! command on input line
+CHARACTER (LEN=8)                       :: befehl! command on input line
 CHARACTER(LEN=LEN(prompt))              :: orig_prompt  ! original prompt
 CHARACTER (LEN=PREC_STRING)             :: line  ! input line
 CHARACTER (LEN=PREC_STRING)             :: zeile ! remainder with parameters
@@ -61,7 +61,7 @@ main_loop: do
 !                                                                       
       indxg = index (line, '=') 
       is_math: IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-                    .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
+                    .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
                     .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
                                 str_comp (befehl, '?   ', 2, lbef, 4) )    &
                     .AND. INDEX(line,'==') == 0                            ) THEN
@@ -95,7 +95,7 @@ main_loop: do
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-           ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+           ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) THEN 
                CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
@@ -118,7 +118,7 @@ main_loop: do
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-           ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+           ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) THEN 
                IF (zeile.ne.' '.and.zeile.ne.char (13) ) THEN 
                   CALL do_operating (zeile (1:lp), lp) 
                ELSE 
@@ -137,7 +137,7 @@ main_loop: do
            ELSEIF (str_comp (befehl, 'remove',3, lbef, 5)) THEN
               CALL storage_reset(zeile, lp)
 !
-           ELSEIF (str_comp (befehl, 'reset', 3, lbef, 4)) THEN
+           ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5)) THEN
               CALL storage_reset(zeile, lp)
 !
            ELSEIF (str_comp (befehl, 'show', 3, lbef, 4)) THEN

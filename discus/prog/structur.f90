@@ -64,7 +64,7 @@ INTEGER , PARAMETER :: MAXMASK =  4
 CHARACTER(LEN=PREC_STRING)        :: line, zeile, cpara (maxw) 
 CHARACTER(LEN=PREC_STRING)        :: strucfile 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-CHARACTER(LEN=5)           :: befehl 
+CHARACTER(LEN=9)           :: befehl 
 INTEGER, DIMENSION(MAXW)   :: lpara
 INTEGER          :: lp, length 
 INTEGER          :: lstr, i, j, k
@@ -264,7 +264,7 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !                                                                       
 !     read an old structure 'stru'                                      
 !                       Ä                                                
-         ELSEIF (str_comp (befehl, 'stru', 1, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'structure', 1, lbef, 9) ) THEN 
             IF (ianz.eq.1) THEN 
                CALL rese_cr 
                sav_r_ncell = .false. 
@@ -1623,7 +1623,7 @@ IF (ier_num.eq.0) THEN
             ENDIF 
          ENDIF 
 !                                                                       
-      ELSEIF(str_comp(cpara(1),'clin',3,lpara(1),3)) THEN                                                        
+      ELSEIF(str_comp(cpara(1),'clin',3,lpara(1),4)) THEN                                                        
 !                                                                       
 !     ------Define the isotropic molecular B-Value
 !                                                                       
@@ -1639,7 +1639,7 @@ IF (ier_num.eq.0) THEN
             ENDIF 
          ENDIF 
 !                                                                       
-      ELSEIF(str_comp(cpara(1),'cqua',3,lpara(1),3)) THEN                                                        
+      ELSEIF(str_comp(cpara(1),'cquad',3,lpara(1),5)) THEN                                                        
 !                                                                       
 !     ------Define the isotropic molecular B-Value
 !                                                                       
@@ -1954,7 +1954,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: line, cpara (maxw) 
       CHARACTER(LEN=PREC_STRING) :: zeile 
-      CHARACTER(LEN=6) :: befehl 
+      CHARACTER(LEN=9) :: befehl 
       INTEGER i, ll, j, islash 
       INTEGER ianz 
 !DBG      integer             spcgr_ianz                                
@@ -2138,7 +2138,7 @@ sym_add_n = 0
 !                                                                       
 !     ----Additional symmetry generators 'generator'                    
 !                                                                       
-         ELSEIF (str_comp (befehl, 'gene', 1, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'generator', 1, lbef, 9) ) THEN 
             IF (gen_add_n.lt.GEN_ADD_MAX) THEN 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) THEN 
@@ -2289,7 +2289,7 @@ sym_add_n = 0
 !                                                                       
 !     ----Additional symmetry operations 'symmetry'                     
 !                                                                       
-         ELSEIF (str_comp (befehl, 'symm', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'symmetry', 2, lbef, 8) ) THEN 
             IF (sym_add_n.lt.SYM_ADD_MAX) THEN 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) THEN 

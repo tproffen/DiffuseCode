@@ -67,7 +67,7 @@ ENDIF
 !                                                                       
 !------ Here are molecule manipulations                                 
 !                                                                       
-IF (str_comp (cpara (3) , 'mol', 2, lpara (3) , 3) ) then 
+IF (str_comp (cpara (3) , 'molecule', 2, lpara (3) , 8) ) then 
 !                                                                       
 !------ - Single molecule will be changed                               
 !                                                                       
@@ -877,7 +877,7 @@ IF(ier_num.eq.0) THEN
       lpara (2) = lpara (1) 
       ianz = ianz + 1 
    ENDIF 
-   IF(ianz.gt.4 .AND. str_comp (cpara (4) , 'type', 1, lpara (4) , 8) ) THEN
+   IF(ianz.gt.4 .AND. str_comp (cpara (4) , 'type', 1, lpara (4) , 4) ) THEN
       cpara (4) = '0' 
       lpara (4) = 1 
       l_type = .true. 
@@ -1633,7 +1633,7 @@ USE str_comp_mod
 !------ Molecules                                                       
 !                                                                       
       IF (ianz.eq.3) then 
-         IF (str_comp (cpara (3) , 'mol', 2, lpara (3) , 3) ) then 
+         IF (str_comp (cpara (3) , 'molecule', 2, lpara (3) , 8) ) then 
             ianz = ianz - 1 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             i = nint (werte (1) ) 

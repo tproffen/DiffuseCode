@@ -53,7 +53,7 @@ CHARACTER(LEN=PREC_STRING), DIMENSION(MIN_PARA) :: cpara
 INTEGER            , DIMENSION(MIN_PARA) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MIN_PARA) :: werte
 !
-CHARACTER(len=5)           :: befehl 
+CHARACTER(len=12)          :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=PREC_STRING) :: line, zeile
 CHARACTER(LEN=PREC_STRING) :: strucfile    ! Dummy for input files
@@ -117,10 +117,10 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                                                                       
    indxg = index (line, '=') 
    IF (indxg.ne.0                                              &
-        .AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
-        .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-        .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                    str_comp (befehl, '?   ', 2, lbef, 4) )    &
+        .AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )    &
+        .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+        .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                    str_comp (befehl, '?   ',   2, lbef, 4) )    &
         .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     ------evaluate an expression and assign the value to a variable   
@@ -141,7 +141,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                                                                       
 !     ----Determine if average translation is calculated or set 'aver'  
 !                                                                       
-   IF (str_comp (befehl, 'aver', 1, lbef, 4) ) then 
+   IF (str_comp (befehl, 'average', 1, lbef, 7) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.3) then 
@@ -174,13 +174,13 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
          lp = lp + 12 
          CALL do_hel ('discus stack '//zeile, lp) 
       ENDIF 
-   ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) then 
       CALL do_stack_rese 
       linit = .TRUE.
 !                                                                       
 !     ----Read a single collumn of the correlation matrix 'ccolumn'     
 !                                                                       
-   ELSEIF (str_comp (befehl, 'ccol', 2, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'ccolumn', 2, lbef, 7) ) then 
       CALL get_params(zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
          IF (st_ntypes.lt.ianz.and.ianz.le.ST_MAXTYPE+1) then                                               
@@ -204,7 +204,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                                                                       
 !     ----Read a single element of the correlation matrix 'celement'    
 !                                                                       
-   ELSEIF (str_comp (befehl, 'cele', 2, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'celement', 2, lbef, 8) ) then 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
          IF (ianz.eq.3) then 
@@ -228,7 +228,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                                                                       
 !     ----create list of origins 'create'                               
 !                                                                       
-   ELSEIF (str_comp (befehl, 'crea', 3, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'create', 3, lbef, 6) ) then 
 !
 !                 If necessary allocate array sizes
 !
@@ -264,7 +264,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                                                                       
 !     ----Define distribution type                                      
 !                                                                       
-   ELSEIF (str_comp (befehl, 'dist', 1, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'distribution', 1, lbef, 12) ) then 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ianz.ge.1) then 
          IF(str_comp(cpara(1), 'matrix', 1, lpara(1), 6) ) then
@@ -311,7 +311,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                                                                       
 !     ----Determine type of first layer 'first' 'random'| <number>      
 !                                                                       
-   ELSEIF (str_comp (befehl, 'firs', 1, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'first', 1, lbef, 5) ) then 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
          IF (ianz.eq.1) then 
@@ -338,7 +338,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !      ---Calculate the Fourier transform of the decorated              
 !           s.f. 'fourier'                                              
 !                                                                       
-   ELSEIF (str_comp (befehl, 'four', 1, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'fourier', 1, lbef, 7) ) then 
       four_log = .true. 
       CALL st_fourier (.false.)
       if(ier_num==0) then
@@ -347,7 +347,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                                                                       
 !     ----read the name of a new layer type                'layer'      
 !                                                                       
-   ELSEIF (str_comp (befehl, 'laye', 1, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'layer', 1, lbef, 5) ) then 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
          CALL do_build_name(ianz, cpara, lpara, werte, maxw, 1)
@@ -401,7 +401,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                                                                       
 !     ----read the modulus for the translation             'modulus'    
 !                                                                       
-   ELSEIF (str_comp (befehl, 'modu', 1, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'modulus', 1, lbef, 7) ) then 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
          IF (ianz.eq.6) then 
@@ -421,7 +421,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !     ----read the number of layers to be created in the                
 !           crystal 'number'                                            
 !                                                                       
-   ELSEIF (str_comp (befehl, 'numb', 1, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'number', 1, lbef, 6) ) then 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
          IF (ianz.eq.1) then 
@@ -441,7 +441,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
    ELSEIF (str_comp (befehl, 'random', 2, lbef, 6) ) then 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
-         IF(str_comp(cpara(1), 'prob', 1, lpara(1), 4)) then
+         IF(str_comp(cpara(1), 'probability', 1, lpara(1), 11)) then
 !                                                                       
 !     ----------Random stacking fault probability                       
 !                                                                       
@@ -727,7 +727,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                                                                       
 !     ----Select translational vector 'trans'                           
 !                                                                       
-   ELSEIF (str_comp (befehl, 'trans', 1, lbef, 5) ) then 
+   ELSEIF (str_comp (befehl, 'translation', 1, lbef, 11) ) then 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
          IF (ianz.eq.5) then 
@@ -843,7 +843,7 @@ ENDIF
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'modu', 1, lpara (1) , 4) ) then                                        
+         ELSEIF (str_comp (cpara (1) , 'modulus', 1, lpara (1) , 7) ) then                                        
             IF (ianz.eq.2) then 
                IF (str_comp (cpara (2) , 'off', 2, lpara (2) , 3) ) then                                  
                   st_mod_sta = .false. 
@@ -858,9 +858,9 @@ ENDIF
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF (str_comp (cpara (1) , 'tran', 1, lpara (1) , 4) ) then                                        
+         ELSEIF (str_comp (cpara (1) , 'translation', 1, lpara (1) , 11) ) then                                        
             IF (ianz.eq.2) then 
-               IF(str_comp(cpara(2), 'aver', 1, lpara(2), 4) ) then
+               IF(str_comp(cpara(2), 'average', 1, lpara(2), 7) ) then
                   st_tra_aver = .true. 
                ELSEIF (str_comp (cpara (2) , 'fixed', 1, lpara (2) , 5) ) then                        
                   st_tra_aver = .false. 
@@ -887,7 +887,7 @@ else     ! optional parameter style was used
       endif
    endif
    if(lpresent(O_TRANS )) then
-      if(str_comp(opara(O_TRANS), 'aver', 1, lopara(O_TRANS), 4)) then
+      if(str_comp(opara(O_TRANS), 'average', 1, lopara(O_TRANS), 7)) then
          st_tra_aver = .true.
       elseif(str_comp(opara(O_TRANS), 'fixed', 1, lopara(O_TRANS), 5)) then
          st_tra_aver = .false.

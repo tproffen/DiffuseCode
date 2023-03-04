@@ -51,7 +51,7 @@ USE wink_mod
 IMPLICIT none 
 !                                                                       
 INTEGER, PARAMETER :: MIN_PARA= 5
-CHARACTER(LEN=5) :: befehl 
+CHARACTER(LEN=8) :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=PREC_STRING) :: line, zeile
 CHARACTER (LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: cpara ! (MIN(10,MAXSCAT)) 
@@ -65,7 +65,7 @@ LOGICAL :: lend
 !
 integer, parameter :: NOPTIONAL = 1
 integer, parameter :: O_TABLE   = 1
-character(LEN=   5), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=   9), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -96,10 +96,10 @@ main: DO while (.not.lend)
 !     ----search for "="                                                
 !                                                                       
 indxg = index (line, '=') 
-IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
+IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+              .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+              .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                          str_comp (befehl, '?   ',   2, lbef, 4) )    &
               .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     ------evaluatean expression and assign the value to a variabble   
@@ -131,7 +131,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----list atoms present in the crystal 'chem'                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'chemistry', 2, lbef, 9) ) THEN 
                   CALL show_chem 
 !                                                                       
 !------ ----Echo a string, just for interactive check in a macro 'echo' 
@@ -141,7 +141,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) THEN 
                   CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
@@ -170,19 +170,19 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     switch to neutron diffraction 'neut'                              
 !                                                                       
-               ELSEIF (str_comp (befehl, 'neut', 1, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'neutron', 1, lbef, 7) ) THEN 
                   lxray = .false. 
                   diff_radiation = RAD_NEUT
                   diff_table = RAD_INTER
 !
 !     ----rese powder patter settings 'rese'
 !
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) THEN 
                   CALL powder_reset
 !                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
-               ELSEIF(str_comp(befehl, 'run ', 2, lbef, 4)) THEN 
+               ELSEIF(str_comp(befehl, 'run', 2, lbef, 3)) THEN 
                   call powder_run(zeile, lp)
 !                                                                       
 !     ----show current parameters 'show'                                
@@ -211,7 +211,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) THEN 
                   IF (zeile.ne.' ') THEN 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 
@@ -744,9 +744,9 @@ ELSEIF (str_comp (cpara (1) , 'back', 2, lpara (1) , 4) ) THEN
          ENDIF 
 ELSEIF(str_comp(cpara(1), 'bragg', 2, lpara(1), 5)) THEN
          IF (ianz.eq.2) THEN 
-            IF (str_comp(cpara(2), 'incl', 1, lpara(2), 4) ) THEN
+            IF (str_comp(cpara(2), 'include', 1, lpara(2), 7) ) THEN
                pow_l_all = .true. 
-            ELSEIF(str_comp(cpara(2), 'excl', 1, lpara(2), 4) ) THEN
+            ELSEIF(str_comp(cpara(2), 'exclude', 1, lpara(2), 7) ) THEN
                pow_l_all = .false. 
             ELSE 
                ier_num = - 6 
@@ -756,9 +756,9 @@ ELSEIF(str_comp(cpara(1), 'bragg', 2, lpara(1), 5)) THEN
             ier_num = - 6 
             ier_typ = ER_COMM 
          ENDIF 
-ELSEIF(str_comp (cpara (1) , 'disp', 2, lpara (1) , 4) ) THEN 
+ELSEIF(str_comp (cpara (1) , 'dispersion', 2, lpara (1) , 10) ) THEN 
          IF(ianz.eq.2) THEN 
-            IF(str_comp(cpara(2), 'anom', 1, lpara(2), 4) ) THEN
+            IF(str_comp(cpara(2), 'anomalous', 1, lpara(2), 9) ) THEN
                ano = .true. 
             ELSEIF(str_comp (cpara (2) , 'off', 1, lpara (2) , 3) ) THEN
                ano = .false. 
@@ -958,7 +958,7 @@ ELSEIF(str_comp(cpara(1), 'period', 4, lpara(1), 6)) THEN
                ier_typ = ER_COMM 
             ENDIF 
 !
-ELSEIF (str_comp (cpara (1) , 'pref', 2, lpara (1) , 4) ) THEN 
+ELSEIF (str_comp (cpara (1) , 'preferred', 2, lpara (1) , 9) ) THEN 
             IF (ianz.ge.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
@@ -966,12 +966,11 @@ ELSEIF (str_comp (cpara (1) , 'pref', 2, lpara (1) , 4) ) THEN
                THEN                                                     
                   pow_pref = .false. 
                ELSE 
-                  IF (str_comp (cpara (2) , 'riet', 2, lpara (2) , 4) ) &
+                  IF (str_comp (cpara (2) , 'rietveld', 2, lpara (2) , 8) ) &
                   THEN                                                  
                      pow_pref_type = POW_PREF_RIET 
                      pow_pref = .true. 
-                  ELSEIF (str_comp (cpara (2) , 'march', 2, lpara (2) , &
-                  4) ) THEN                                             
+                  ELSEIF (str_comp(cpara(2), 'march', 2, lpara(2), 5) ) THEN
                      pow_pref_type = POW_PREF_MARCH 
                      pow_pref = .true. 
                   ELSEIF (str_comp (cpara (2) , 'damp', 2, lpara (2) ,  &
@@ -992,7 +991,7 @@ ELSEIF (str_comp (cpara (1) , 'pref', 2, lpara (1) , 4) ) THEN
                      IF (ier_num.eq.0) THEN 
                         pow_pref_g2 = werte (3) 
                      ENDIF 
-                  ELSEIF (str_comp (cpara (2) , 'hkl', 2, lpara (2) , 7)&
+                  ELSEIF (str_comp (cpara (2) , 'hkl', 2, lpara (2) , 3)&
                   ) THEN                                                
                      cpara (2) = '0' 
                      lpara (2) = 1 
@@ -1078,7 +1077,7 @@ ELSEIF (str_comp (cpara (1) , 'sl', 2, lpara (1) , 2) ) THEN
 !                                                                       
 ELSEIF (str_comp (cpara (1) , 'calc', 1, lpara (1) , 4) ) THEN 
             IF (ianz.ge.2) THEN 
-               IF (str_comp (cpara (2) , 'comp', 1, lpara (2) , 4) )    &
+               IF (str_comp (cpara (2) , 'complete', 1, lpara (2) , 8) )    &
                THEN                                                     
                   pow_four_type = POW_COMPL 
                ELSEIF (str_comp (cpara (2) , 'debye', 1, lpara (2) , 5) ) THEN                                                   
@@ -1092,9 +1091,9 @@ ELSEIF (str_comp (cpara (1) , 'calc', 1, lpara (1) , 4) ) THEN
 !------ Switch Fourier mode between normal Fourier and Stacking         
 !       Fault 'four'                                                    
 !                                                                       
-ELSEIF (str_comp (cpara (1) , 'four', 1, lpara (1) , 4) ) THEN 
+ELSEIF (str_comp (cpara (1) , 'fourier', 1, lpara (1) , 7) ) THEN 
             IF (ianz.eq.2) THEN 
-               IF (str_comp (cpara (2) , 'four', 1, lpara (2) , 4) )    &
+               IF (str_comp (cpara (2) , 'fourier', 1, lpara (2) , 7) )    &
                THEN                                                     
                   pow_four_mode = POW_FOURIER 
                ELSEIF (str_comp (cpara (2) , 'stack', 1, lpara (2) , 5) &
@@ -1184,7 +1183,7 @@ ELSEIF (str_comp (cpara (1) , 'lpcor', 1, lpara (1) , 5) ) THEN
 !                                                                       
 ELSEIF (str_comp (cpara (1) , 'temp', 1, lpara (1) , 4) ) THEN 
             IF (ianz.eq.2) THEN 
-               IF (str_comp (cpara (2) , 'igno', 1, lpara (2) , 4) )    &
+               IF (str_comp (cpara (2) , 'ignore', 1, lpara (2) , 7) )    &
                THEN                                                     
                   ldbw = .false. 
                ELSEIF (str_comp (cpara (2) , 'use', 1, lpara (2) , 3) ) &
@@ -1243,7 +1242,7 @@ ELSEIF(str_comp(cpara(1), 'tthmin', 5, lpara(1), 6)) THEN
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-ELSEIF(str_comp(cpara(1), 'tthzero', 4, lpara(1), 4)) THEN 
+ELSEIF(str_comp(cpara(1), 'tthzero', 4, lpara(1), 7)) THEN 
             IF(ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
@@ -1331,7 +1330,7 @@ ELSEIF (str_comp (cpara (1) , 'qmin', 4, lpara (1) , 4) ) THEN
                ier_num = -6 
                ier_typ = ER_COMM 
             ENDIF 
-ELSEIF(str_comp(cpara(1), 'qzero', 4, lpara(1), 4)) THEN 
+ELSEIF(str_comp(cpara(1), 'qzero', 4, lpara(1), 5)) THEN 
             IF(ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
@@ -1348,7 +1347,7 @@ ELSEIF(str_comp(cpara(1), 'qzero', 4, lpara(1), 4)) THEN
 !                                                                       
 !     set the wave length to be used 'wvle'                             
 !                                                                       
-ELSEIF (str_comp (cpara (1) , 'wvle', 1, lpara (1) , 4) ) THEN 
+ELSEIF (str_comp (cpara (1) , 'wvlength', 1, lpara (1) , 8) ) THEN 
             IF (ianz.eq.2) THEN 
                cpara (1) = '0' 
                lpara (1) = 1 
@@ -1478,7 +1477,7 @@ IF(str_comp(cpara(2), 'off', 2, lpara(2), 3)) THEN
 ELSEIF(str_comp(cpara(2), 'gauss', 2, lpara(2), 5)) THEN
    pow_profile = POW_PROFILE_GAUSS 
    pow_constlam = .true.
-ELSEIF(str_comp(cpara(2), 'pears', 2, lpara(2) , 5)) THEN
+ELSEIF(str_comp(cpara(2), 'pearson', 2, lpara(2) , 7)) THEN
    pow_profile = POW_PROFILE_PEARS 
    pow_constlam = .true.
 ELSEIF(str_comp(cpara(2), 'pseudo', 2, lpara(2) , 6)) THEN

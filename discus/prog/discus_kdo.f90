@@ -81,7 +81,7 @@ LOGICAL            , INTENT(OUT)   :: lend
 INTEGER            , INTENT(INOUT) :: length 
 !                                                                       
 CHARACTER(LEN=MAX(PREC_STRING, LEN(line))) :: zeile 
-CHARACTER(len=7) :: befehl 
+CHARACTER(len=14) :: befehl 
 INTEGER :: indxb, indxg, lcomm, lbef 
 INTEGER                  :: indxt ! position of a TAB
 INTEGER                  ::  inverse_type
@@ -123,11 +123,11 @@ IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   &
 !-------Suche nach einem "="                                            
 !                                                                       
 indxg = index (line, '=') 
-IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
+IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )       &
              .AND. .NOT. (str_comp (befehl, 'system', 2, lbef,6) )       &
-             .AND. .NOT. (str_comp (befehl, 'fput', 2, lbef, 4) )       &
-             .AND. .NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR.    &
-                          str_comp (befehl, '?   ', 2, lbef, 4) )       &
+             .AND. .NOT. (str_comp (befehl, 'fput',   2, lbef, 4) )       &
+             .AND. .NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR.    &
+                          str_comp (befehl, '?   ',   2, lbef, 4) )       &
              .AND. INDEX(line,'==') == 0                            ) THEN      
 !                                                                       
 !             .AND. .NOT. (str_comp (befehl, 'socket', 2, lbef, 5) )     &
@@ -160,12 +160,12 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !-------add two files 'addf'                                            
 !                                                                       
-         ELSEIF (str_comp (befehl, 'addf', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'addfile', 2, lbef, 7) ) THEN 
             CALL do_addfile (zeile, lcomm) 
 !                                                                       
 !     append a new atom 'appe'                                          
 !                                                                       
-         ELSEIF (str_comp (befehl, 'appe', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'append', 2, lbef, 6) ) THEN 
             lkick = .false. 
             CALL do_app (zeile, lcomm, lkick) 
 !                                                                       
@@ -191,12 +191,14 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !-------show the atoms present in the crystal 'chem'                    
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'chem', 3, lbef, 4) ) THEN 
+         ELSEIF((linteractive.OR.lblock.OR.lmakro) .AND.  &
+                str_comp (befehl, 'chemistry', 3, lbef, 8) ) THEN 
             CALL chem 
 !                                                                       
 !-------go to the connectivity menue  'connectivity'                    
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'connectivity', 3, lbef, 12) ) THEN 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND.  &
+                str_comp (befehl, 'connectivity', 3, lbef, 12) ) THEN 
             CALL conn_menu 
 !                                                                       
 !-------Define some DISCUS parameters 'define'                          
@@ -206,12 +208,14 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !-------Decorate a surface by molecules 'decorate'                      
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'decorate', 3, lbef, 8) ) THEN 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND.  &
+                str_comp (befehl, 'decorate', 3, lbef, 8) ) THEN 
             CALL do_place_molecule
 !
 !-------Demolecularize
 !
-        ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'demolec', 3, lbef, 7) ) THEN
+        ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND.  &
+                str_comp (befehl, 'demolecularize', 3, lbef, 14) ) THEN
            CALL demolecularize
 !                                                                       
 !-------Handling of domains within the host structure 'domain'          
@@ -226,7 +230,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !-------Determine displacement of an atom 'displacement'                
 !                                                                       
-         ELSEIF (str_comp (befehl, 'displace', 3, lbef, 8) ) THEN 
+         ELSEIF (str_comp (befehl, 'displacent', 3, lbef, 10) ) THEN 
             CALL get_displacement (zeile, lcomm) 
 !                                                                       
 !     Transform vector from direct to reciprocal space                  
@@ -268,7 +272,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !-------Fourier transform 'four'                                        
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'four', 2, lbef, 4) ) THEN 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'fourier', 2, lbef, 7) ) THEN 
             lout_rho = .false. 
             CALL fourier 
 !                                                                       
@@ -284,7 +288,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !     inserte a new atom 'inse'                                         
 !                                                                       
-         ELSEIF (str_comp (befehl, 'inse', 3, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'insert', 3, lbef, 6) ) THEN 
             IF (str_comp (zeile, 'domain', 3, lcomm, 6) ) THEN 
                CALL insert ( - 1) 
             ELSEIF (str_comp (zeile, 'molecule', 3, lcomm, 8) ) THEN 
@@ -297,12 +301,12 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !     interpret an electron density 'interpret'                         
 !                                                                       
-         ELSEIF (str_comp (befehl, 'inte', 3, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'interpret', 3, lbef, 9) ) THEN 
             CALL interpret 
 !                                                                       
 !     inverse Fourier 'inverse'                                         
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'inve', 3, lbef, 4) ) THEN 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'inverse', 3, lbef, 7) ) THEN 
             inverse_type = INV_INV 
             lout_rho = .true. 
             CALL patterson (inverse_type) 
@@ -315,17 +319,17 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !     group atoms into a molecule 'molecularize'
 !                                                                       
-         ELSEIF (str_comp (befehl, 'molec', 2, lbef, 5) ) THEN 
+         ELSEIF (str_comp (befehl, 'molecularize', 2, lbef, 12) ) THEN 
             CALL do_molecularize (zeile, lcomm)
 !                                                                       
 !     Output routines 'outp'                                            
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'outp', 1, lbef, 4) ) THEN 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'output', 1, lbef, 6) ) THEN 
             CALL do_niplps (lout_rho) 
 !                                                                       
 !     Patterson 'patterson'                                             
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'patt', 2, lbef, 4) ) THEN 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'patterson', 2, lbef, 9) ) THEN 
             inverse_type = INV_PATT 
             lout_rho = .true. 
             CALL patterson (inverse_type) 
@@ -352,12 +356,12 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !     Project a vector onto another and onto a plane 'proj'             
 !                                                                       
-         ELSEIF (str_comp (befehl, 'proj', 4, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'project', 4, lbef, 7) ) THEN 
             CALL do_proj (zeile, lcomm) 
 !                                                                       
 !     Pivat user subroutine 'privat'
 !                                                                       
-         ELSEIF(str_comp(befehl, 'private', 6, lbef, 6) ) THEN 
+         ELSEIF(str_comp(befehl, 'private', 6, lbef, 7) ) THEN 
             CALL do_private(zeile)
 !                                                                       
 !     Go to property menu 'property'                                    
@@ -399,7 +403,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !
 !     reset discus to system start
 !
-         ELSEIF (str_comp(befehl, 'rese', 3, lbef, 4)) THEN
+         ELSEIF (str_comp(befehl, 'reset', 3, lbef, 5)) THEN
             CALL discus_initarrays
             CALL discus_reset_all
 !                                                                       
@@ -450,7 +454,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !     Thermal displacement of all atoms 'ther'                          
 !                                                                       
-         ELSEIF (str_comp (befehl, 'ther', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'thermal', 2, lbef, 7) ) THEN 
             CALL ther_displ (zeile, lcomm) 
 !                                                                       
 !     unit cell transformations      'tran'                             
@@ -470,7 +474,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !------   Waves traveling through the crystal 'wave'                    
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'wave', 3, lbef, 4) ) THEN 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'waves', 3, lbef, 5) ) THEN 
             CALL waves_menu
 !                                                                       
 !       Determine Wyckoff symmetry                                      
@@ -526,7 +530,7 @@ USE str_comp_mod
 !                                                                       
 !----- ---- define error                                                
 !                                                                       
-            IF (str_comp (cpara (1) , 'gener', 1, lpara (1) , 5) ) THEN 
+            IF (str_comp (cpara (1) , 'generator', 1, lpara (1) , 9) ) THEN 
                IF (ianz.eq.2) THEN 
                   IF (str_comp (cpara (2) , 'center', 2, lpara (2) , 5) &
                   ) THEN                                                

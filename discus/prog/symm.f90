@@ -59,7 +59,7 @@ CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
 REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
 INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
 !
-CHARACTER(len=5) :: befehl 
+CHARACTER(len=11) :: befehl 
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=PREC_STRING) :: line, zeile
 INTEGER :: lp, length, lbef 
@@ -147,10 +147,10 @@ loop_menu: DO while (.not.lend)
 !     ----search for "="                                                
 !                                                                       
    indxg = index (line, '=') 
-   IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-                 .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-                 .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                             str_comp (befehl, '?   ', 2, lbef, 4) )    &
+   IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+                 .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+                 .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                             str_comp (befehl, '?   ',   2, lbef, 4) )    &
                  .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 !     ---evaluate an expression and assign the value to a variabble   
@@ -167,7 +167,7 @@ loop_menu: DO while (.not.lend)
 !                                                                       
 !     ----run symmetry 'rese'                                            
 !                                                                       
-   if_rese: IF(str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+   if_rese: IF(str_comp (befehl, 'reset', 2, lbef, 5) ) THEN 
       CALL symm_reset
       cycle loop_menu
    endif if_rese
@@ -274,7 +274,7 @@ loop_menu: DO while (.not.lend)
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
-         ELSEIF(str_comp(cpara(1), 'atoms', 2, lpara(1), 4) ) THEN
+         ELSEIF(str_comp(cpara(1), 'atoms', 2, lpara(1), 5) ) THEN
             sym_dom_mode_atom = str_comp(cpara(2), 'apply', 2, lpara(2), 5)
          ELSEIF(str_comp (cpara(1), 'shape', 2, lpara(2), 5) ) THEN
             sym_dom_mode_shape = str_comp(cpara(2), 'apply', 2, lpara(2), 5)
@@ -294,7 +294,7 @@ loop_menu: DO while (.not.lend)
 !                                                                       
 !     ----Select range of atoms within crystal to be included 'incl'    
 !                                                                       
-   ELSEIF (str_comp (befehl, 'incl', 1, lbef, 4) ) THEN 
+   ELSEIF (str_comp (befehl, 'include', 1, lbef, 7) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) THEN 
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  &   !get optional 'mode:'
@@ -350,8 +350,8 @@ loop_menu: DO while (.not.lend)
 !     ----Select range of molecules within crystal to be included       
 !         'mincl'                                                       
 !                                                                       
-   ELSEIF (str_comp (befehl, 'mincl', 3, lbef, 5) .OR.      &
-           str_comp (befehl, 'oincl', 3, lbef, 5) ) THEN
+   ELSEIF (str_comp (befehl, 'minclude', 3, lbef, 8) .OR.      &
+           str_comp (befehl, 'oinclude', 3, lbef, 8) ) THEN
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) THEN
          sym_sel_sub  = .FALSE.
@@ -434,7 +434,7 @@ loop_menu: DO while (.not.lend)
                IF(str_comp(cpara(1), 'copy', 1, lpara(1), 4) ) THEN
                   sym_mode = .true. 
                   l_need_setup = .true. 
-               ELSEIF(str_comp(cpara(1), 'repl', 1, lpara(1), 4) ) THEN
+               ELSEIF(str_comp(cpara(1), 'replace', 1, lpara(1), 7) ) THEN
                   sym_mode = .false. 
                   l_need_setup = .true. 
                ELSE 
@@ -460,13 +460,13 @@ loop_menu: DO while (.not.lend)
 !                                                                       
 !     ----Select/deselect molecules                                     
 !                                                                       
-   ELSEIF(     str_comp (befehl, 'msel', 2, lbef, 4)            &
-          .OR. str_comp (befehl, 'mdes', 2, lbef, 4) &
-          .OR. str_comp (befehl, 'osel', 2, lbef, 4) &
-          .OR. str_comp (befehl, 'odes', 2, lbef, 4) ) THEN                                       
+   ELSEIF(     str_comp (befehl, 'mselect', 2, lbef, 7)            &
+          .OR. str_comp (befehl, 'mdeselect', 2, lbef, 9) &
+          .OR. str_comp (befehl, 'oselect', 2, lbef, 7) &
+          .OR. str_comp (befehl, 'odeselect', 2, lbef, 9) ) THEN                                       
 !                                                                       
-      lselect =     str_comp (befehl, 'msel', 2, lbef, 4)       &
-                .OR.str_comp (befehl, 'osel', 2, lbef, 4)             
+      lselect =     str_comp (befehl, 'mselect', 2, lbef, 7)       &
+                .OR.str_comp (befehl, 'oselect', 2, lbef, 7)             
 !                                                                       
       CALL mole_select(zeile, lp, 0, SYM_MAXSCAT, sym_latom, sym_sel_atom, lselect)
 !                                                                       
@@ -494,7 +494,7 @@ loop_menu: DO while (.not.lend)
          ELSEIF ((ianz.eq.3.or.ianz.eq.4) ) THEN 
             sym_orig_mol = .FALSE.
             IF (ianz.eq.4) THEN 
-               sym_orig_mol = str_comp(cpara(4), 'mol', 1, lpara(4), 3)
+               sym_orig_mol = str_comp(cpara(4), 'molecule', 1, lpara(4), 8)
                indxc = index(zeile(1:lp),',', .true.)   ! Find last comma
                zeile(indxc:) = ' '                      ! Delete comman and rest
                lp = indxc-1 
@@ -525,14 +525,14 @@ loop_menu: DO while (.not.lend)
 !                                                                       
 !     ----Set the power of the symmetry operation  'power'              
 !                                                                       
-   ELSEIF (str_comp (befehl, 'power', 1, lbef, 6) ) THEN 
+   ELSEIF (str_comp (befehl, 'power', 1, lbef, 5) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF(ier_num.eq.0) THEN 
          IF(ianz.eq.1.or.ianz.eq.2) THEN 
             IF(ianz.eq.2) THEN 
-               IF(str_comp(cpara(2), 'mult', 1, lpara(2), 4) ) THEN
+               IF(str_comp(cpara(2), 'multiple', 1, lpara(2), 8) ) THEN
                   sym_power_mult = .true. 
-               ELSEIF(str_comp(cpara(2), 'sing', 1, lpara(2), 4) ) THEN
+               ELSEIF(str_comp(cpara(2), 'single', 1, lpara(2), 6) ) THEN
                   sym_power_mult = .false. 
                ELSE 
                   ier_num = - 6 
@@ -639,12 +639,12 @@ loop_menu: DO while (.not.lend)
 !                                                                       
 !     ----Select which atoms are copied to their image 'sele'           
 !                                                                       
-   ELSEIF(     str_comp (befehl, 'sele', 2, lbef, 4)            &
-          .OR. str_comp (befehl, 'dese', 2, lbef, 4) ) THEN         
+   ELSEIF(     str_comp (befehl, 'select', 2, lbef, 6)            &
+          .OR. str_comp (befehl, 'deselect', 2, lbef, 8) ) THEN         
 !                                                                       
       CALL atom_select(zeile, lp, 0, SYM_MAXSCAT, sym_latom,              &
                        sym_lsite, 0, SYM_MAXSITE, sym_sel_atom, lold,     &
-                       str_comp (befehl, 'sele', 2, lbef, 4)           )               
+                       str_comp (befehl, 'select', 2, lbef, 6)           )               
 !                                                                       
 !     ----show current parameters 'show'                                
 !                                                                       
@@ -656,7 +656,7 @@ loop_menu: DO while (.not.lend)
 !                                                                       
 !     ----Select translational part of the symmetry operation 'trans'   
 !                                                                       
-   ELSEIF (str_comp (befehl, 'trans', 2, lbef, 5) ) THEN 
+   ELSEIF (str_comp (befehl, 'translation', 2, lbef, 11) ) THEN 
        call symm_set_trans(zeile, lp, 8, MAXV, vector, l_need_setup)
        if(ier_num==0) sym_trans = vector
 !                                                                       
@@ -682,7 +682,7 @@ loop_menu: DO while (.not.lend)
 !                                                                       
 !     ----Select the direct space direction of the symmetry axis 'uvw'  
 !                                                                       
-   ELSEIF (str_comp (befehl, 'uvw ', 2, lbef, 3) ) THEN 
+   ELSEIF (str_comp (befehl, 'uvw', 2, lbef, 3) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) THEN
          IF(str_comp(cpara(1), 'atoms', 1, lpara(1), 5)) THEN
@@ -746,7 +746,7 @@ loop_menu: DO while (.not.lend)
 !                                                                       
 !     ----Select a space group symmetry matrix 'use'  
 !                                                                       
-   ELSEIF (str_comp (befehl, 'use ', 2, lbef, 3) ) THEN 
+   ELSEIF (str_comp (befehl, 'use', 2, lbef, 3) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) THEN
          IF(ianz==1) THEN

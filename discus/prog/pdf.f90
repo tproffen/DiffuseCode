@@ -46,7 +46,7 @@ USE str_comp_mod
       CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       INTEGER        , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
 !
-      CHARACTER(5) befehl 
+      CHARACTER(len=10) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(LEN=PREC_STRING) :: line, zeile, cdummy 
       INTEGER lp, length
@@ -79,10 +79,10 @@ USE str_comp_mod
 !                                                                       
          indxg = index (line, '=') 
       IF (indxg.ne.0.and.                                      &
-          .not. (str_comp (befehl, 'echo', 2, lbef, 4) ) .and. &
-          .not. (str_comp (befehl, 'syst', 2, lbef, 4) ) .and. &
-          .not. (str_comp (befehl, 'help', 2, lbef, 4)   .or.  &
-                 str_comp (befehl, '?   ', 2, lbef, 4) ) ) then                                              
+          .not. (str_comp (befehl, 'echo',   2, lbef, 4) ) .and. &
+          .not. (str_comp (befehl, 'system', 2, lbef, 6) ) .and. &
+          .not. (str_comp (befehl, 'help',   2, lbef, 4)   .or.  &
+                 str_comp (befehl, '?   ',   2, lbef, 4) ) ) then                                              
             CALL do_math (line, indxg, length) 
 !                                                                       
 !------ execute a macro file                                            
@@ -105,7 +105,7 @@ USE str_comp_mod
 !                                                                       
 !------ Evaluate an expression 'eval'                                   
 !                                                                       
-         ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) then 
             CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     exit 'exit'                                                       
@@ -127,7 +127,7 @@ USE str_comp_mod
 !                                                                       
 !-------Operating System Kommandos 'syst'                               
 !                                                                       
-         ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'system', 2, lbef, 5) ) then 
             cdummy = ' ' 
             IF (zeile.ne.' ') then 
                cdummy (1:lp) = zeile (1:lp) 
@@ -144,7 +144,7 @@ USE str_comp_mod
 !                                                                       
 !------ Reset PDF segement                                              
 !                                                                       
-         ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'reset', 2, lbef, 5) ) THEN 
             pdf_ldata = .false. 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ier_num.eq.0) then 
@@ -233,16 +233,16 @@ USE str_comp_mod
 !                                                                       
 !------ selecting/deselecting atoms for PDF calculation                 
 !                                                                       
-         ELSEIF (str_comp (befehl, 'isele', 3, lbef, 5) .or.        &
-                 str_comp (befehl, 'idese', 3, lbef, 5) ) then                            
+         ELSEIF (str_comp (befehl, 'iselect',   3, lbef, 7) .or.        &
+                 str_comp (befehl, 'ideselect', 3, lbef, 9) ) then                            
 !                                                                       
             CALL atom_select (zeile, lp, 0, MAXSCAT, pdf_allowed_i,    &
             pdf_lsite_i, 0, PDF_MAXSITE,                   &
             ldummy, .false., str_comp (befehl,             &
             'isele', 3, lbef, 5) )                                      
 !                                                                       
-         ELSEIF (str_comp (befehl, 'jsele', 3, lbef, 5) .or.        &
-                 str_comp (befehl, 'jdese', 3, lbef, 5) ) then                            
+         ELSEIF (str_comp (befehl, 'jselect',   3, lbef, 7) .or.        &
+                 str_comp (befehl, 'jdeselect', 3, lbef, 9) ) then                            
 !                                                                       
             CALL atom_select (zeile, lp, 0, MAXSCAT, pdf_allowed_j, &
             pdf_lsite_j, 0, PDF_MAXSITE,                   &
@@ -252,8 +252,8 @@ USE str_comp_mod
 !                                                                       
 !------ selecting/deselecting atoms                                     
 !                                                                       
-         ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) .or.         &
-                 str_comp (befehl, 'dese', 2, lbef, 4) ) then                             
+         ELSEIF (str_comp (befehl, 'seleect',  3, lbef, 6) .or.         &
+                 str_comp (befehl, 'deselect', 2, lbef, 8) ) then                             
 !                                                                       
 !           This might be the first time RMC arrays are referenced
             IF(cr_nscat > RMC_MAXSCAT .or. MAXSCAT > RMC_MAXSCAT) THEN
@@ -267,16 +267,16 @@ USE str_comp_mod
             CALL atom_select (zeile, lp, 0, MAXSCAT, rmc_allowed, &
             rmc_lsite  , 0, RMC_MAXSITE,                   &
             rmc_sel_atom, .false., str_comp (              &
-            befehl, 'sele', 3, lbef, 4) )                               
+            befehl, 'select', 3, lbef, 6) )                               
 !                                                                       
 !------ selecting/deselecting of molecules                              
 !                                                                       
-         ELSEIF (str_comp (befehl, 'msel', 2, lbef, 4) .or.   &
-                 str_comp (befehl, 'mdes', 2, lbef, 4) ) then                             
+         ELSEIF (str_comp (befehl, 'mselect',   2, lbef, 7) .or.   &
+                 str_comp (befehl, 'mdeselect', 2, lbef, 9) ) then                             
 !                                                                       
             CALL mole_select (zeile, lp, 0, MAXSCAT, rmc_allowed, &
             rmc_sel_atom, str_comp (  &
-            befehl, 'msel', 2, lbef, 4) )                               
+            befehl, 'mselelect', 2, lbef, 9) )                               
 !                                                                       
 !------ no command found                                                
 !                                                                       
@@ -1205,8 +1205,8 @@ REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw)
                ENDIF
                pdf_2d = str_comp (cpara (3),'2D',1,lpara(3), 2) .OR. &
                         str_comp (cpara (4),'2D',1,lpara(4), 2)
-               pdf_lexact = str_comp (cpara (3),'exact',1,lpara(3), 2) .OR. &
-                            str_comp (cpara (4),'exact',1,lpara(4), 2)
+               pdf_lexact = str_comp (cpara (3),'exact',1,lpara(3), 5) .OR. &
+                            str_comp (cpara (4),'exact',1,lpara(4), 5)
                IF (chem_period(1) ) THEN
                   IF (pdf_2d) THEN 
                      IF (pdf_lexact) THEN 
@@ -1695,7 +1695,7 @@ REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw)
 !                                                                       
          ELSEIF (str_comp(cpara (1),'THERMAL',3,lpara(1),7)) THEN
             IF (ianz.eq.2) then 
-               pdf_gauss = str_comp (cpara(2),'gaus',3,lpara(2), 4)                                                       
+               pdf_gauss = str_comp (cpara(2),'gauss',3,lpara(2), 5)                                                       
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
