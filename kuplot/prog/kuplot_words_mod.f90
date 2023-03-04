@@ -84,19 +84,19 @@ USE str_comp_mod
    INTEGER :: lbef
 !
    lbef = LEN_TRIM(bef)
-   IF(str_comp(bef, 'lcol', 3, lbef, 4 ) .OR.  &
-      str_comp(bef, 'hcol', 3, lbef, 4 ) .OR.  &
-      str_comp(bef, 'mcol', 3, lbef, 4 ) .OR.  &
-      str_comp(bef, 'fcol', 3, lbef, 4 ) .OR.  &
-      str_comp(bef, 'ecol', 3, lbef, 4 )     ) THEN
+   IF(str_comp(bef, 'lcolor', 3, lbef, 6 ) .OR.  &
+      str_comp(bef, 'hcolor', 3, lbef, 6 ) .OR.  &
+      str_comp(bef, 'mcolor', 3, lbef, 6 ) .OR.  &
+      str_comp(bef, 'fcolor', 3, lbef, 6 ) .OR.  &
+      str_comp(bef, 'ecolor', 3, lbef, 6 )     ) THEN
       CALL get_colors (ianz, cpara, lpara, maxw, item)
-   ELSEIF(str_comp(bef, 'mtyp', 3, lbef, 4 ) .OR. &
-          str_comp(bef, 'ptyp', 3, lbef, 4 ))  THEN
+   ELSEIF(str_comp(bef, 'mtype', 3, lbef, 5 ) .OR. &
+          str_comp(bef, 'ptype', 3, lbef, 5 ))  THEN
       CALL get_marker (ianz, cpara, lpara, maxw, item)
-   ELSEIF(str_comp(bef, 'ltyp', 3, lbef, 4 ) .OR. &
-          str_comp(bef, 'htyp', 3, lbef, 4 ))  THEN
+   ELSEIF(str_comp(bef, 'ltype', 3, lbef, 5 ) .OR. &
+          str_comp(bef, 'htype', 3, lbef, 5 ))  THEN
       CALL get_linetype(ianz, cpara, lpara, maxw, item)
-   ELSEIF(str_comp(bef, 'etyp', 3, lbef, 4 ))  THEN 
+   ELSEIF(str_comp(bef, 'etype', 3, lbef, 5 ))  THEN 
       CALL get_err_type(ianz, cpara, lpara, maxw, item)
    ELSEIF(str_comp(bef, 'fill', 3, lbef, 4 ))  THEN 
       CALL get_filltype(ianz, cpara, lpara, maxw, item)

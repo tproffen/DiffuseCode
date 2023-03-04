@@ -66,7 +66,7 @@ CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) ::cpara
 CHARACTER(LEN=PREC_STRING) :: line, zeile
 CHARACTER(LEN=40  ) :: orig_prompt 
 CHARACTER(LEN=40)   ::cdummy 
-CHARACTER(LEN=4)    ::befehl 
+CHARACTER(LEN=11)   ::befehl 
 CHARACTER(LEN=1)    :: empty 
 INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER :: ll
@@ -125,9 +125,10 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
          indxg = index (line, '=') 
       IF (indxg.ne.0                                            &
-         .and..not. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
-         .and..not. (str_comp (befehl, 'help', 2, lbef, 4) .or. &
-                     str_comp (befehl, '?   ', 2, lbef, 4) )    &
+         .and..not. (str_comp (befehl, 'echo',   2, lbef, 4) )    &
+         .and..not. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+         .and..not. (str_comp (befehl, 'help',   2, lbef, 4) .or. &
+                     str_comp (befehl, '?   ',   2, lbef, 4) )    &
          .AND. INDEX(line,'==') == 0                          )THEN
             CALL do_math (line, indxg, ll) 
 !                                                                       
@@ -166,7 +167,7 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
 !------ Evaluate an expression                                          
 !                                                                       
-         ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) THEN 
             CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     exit 'exit'                                                       
@@ -176,7 +177,7 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
 !     Define fit function 'func'                                        
 !                                                                       
-         ELSEIF (str_comp (befehl, 'func', 3, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'function', 3, lbef, 8) ) THEN 
             lturn_off = .FALSE.
             CALL do_fit_fkt (zeile, lp) 
             IF (ier_num.eq.0) sel_func = .true. 
@@ -230,7 +231,7 @@ IF (ier_num.ne.0) RETURN
          ELSEIF (str_comp (befehl, 'range', 2, lbef, 5) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ianz.eq.1) THEN 
-               frall = str_comp (cpara (1) , 'all', 2, lpara (1) , 2) 
+               frall = str_comp (cpara (1) , 'all', 2, lpara (1) , 3) 
             ELSE 
                IF (frall) THEN 
                   WRITE (output_io, 2100) 'complete range' 
@@ -241,7 +242,7 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
 !-------Set parameters                                                  
 !                                                                       
-         ELSEIF (str_comp (befehl, 'par', 2, lbef, 3) ) THEN 
+         ELSEIF (str_comp (befehl, 'parameter', 2, lbef, 9) ) THEN 
             CALL do_fit_par (zeile, lp) 
 !                                                                       
 !-------Plot result                                                     
@@ -256,12 +257,13 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
 !-------Set convergence criteria 'conv'
 !                                                                       
-         ELSEIF (str_comp (befehl, 'conv', 2, lbef, 5) ) THEN 
+         ELSEIF (str_comp (befehl, 'convergence', 2, lbef, 11) ) THEN 
             CALL kuplot_set_convergence(zeile, lp)
 !                                                                       
 !------ Set scale                                                       
 !                                                                       
-         ELSEIF (str_comp (befehl, 'skal', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'skal',  2, lbef, 4) .or. &
+                 str_comp (befehl, 'scale', 2, lbef, 5) ) THEN 
             CALL set_skal (zeile, lp) 
 !                                                                       
 !-------Run fit                                                         
@@ -324,7 +326,7 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
 !-------Operating System Kommandos 'syst'                               
 !                                                                       
-         ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+         ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) THEN 
             cdummy = ' ' 
             IF (zeile.ne.' ') THEN 
                cdummy (1:lp) = zeile (1:lp) 

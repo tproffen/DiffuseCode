@@ -4570,7 +4570,6 @@ USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
 USE precision_mod
-USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -4633,7 +4632,6 @@ USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
 USE precision_mod
-USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE

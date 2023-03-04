@@ -53,7 +53,7 @@ integer, intent(inout) :: lp
 !                                                                       
 !------ - Contour line information                                      
 !                                                                       
-         IF (str_comp (cpara (1) , 'hlin', 2, lpara (1) , 4) ) then 
+         IF (str_comp (cpara (1) , 'hline', 2, lpara (1) , 5) ) then 
             CALL show_hlin 
 !                                                                       
 !------ - Data information                                              
@@ -81,7 +81,7 @@ integer, intent(inout) :: lp
 !                                                                       
 !------ - Show annotations                                              
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'annot', 2, lpara (1) , 5) )     &
+         ELSEIF (str_comp (cpara (1) , 'annotations', 2, lpara (1) , 11) )     &
          then                                                           
             CALL show_annotation 
 !                                                                       

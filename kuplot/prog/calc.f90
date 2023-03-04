@@ -571,8 +571,7 @@ LOGICAL :: loverwrite
 !                                                                       
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
 IF (ier_num.ne.0) return 
-loverwrite = str_comp (cpara (ianz) , 'overwrite', 2, lpara (ianz)&
-      , 9)                                                              
+loverwrite = str_comp(cpara(ianz), 'overwrite', 2, lpara(ianz), 9)
 IF (loverwrite) then 
    ianz = ianz - 1 
 ENDIF 

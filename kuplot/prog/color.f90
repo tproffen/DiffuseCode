@@ -125,13 +125,13 @@ elseif(lpresent(O_CMAP)) then
    elseif(str_comp(string  , 'gray', 4, len_trim(string), 4) .or. &
           str_comp(string  , 'grey', 4, len_trim(string), 4)       ) then
       CALL cmap_gray(.false.) 
-   elseif(str_comp(string  , 'thermal', 4, len_trim(string), 4) ) then
+   elseif(str_comp(string  , 'thermal', 4, len_trim(string), 7) ) then
       CALL cmap_thermal(real(werte(1)), real(werte(2)), .false.) 
    elseif(str_comp(string  , 'pdf', 3, len_trim(string), 3) ) then
       CALL cmap_pdf(real(werte(1)), real(werte(2)), .false.) 
    elseif(str_comp(string  , 'ice', 3, len_trim(string), 3) ) then
       CALL cmap_ice(.false.) 
-   elseif(str_comp(string  , 'kupl', 4, len_trim(string), 4) ) then
+   elseif(str_comp(string  , 'kuplot', 4, len_trim(string), 6) ) then
       CALL cmap_kupl(.false.) 
    elseif(str_comp(string  , 'user', 4, len_trim(string), 4) ) then
       continue
@@ -195,7 +195,7 @@ IF (ianz.ge.1) then
    ELSEIF (str_comp (cpara (1) , 'fire', 3, lpara (1) , 4) ) then 
       CALL cmap_fire (.true.) 
       col_map_type(iwin,iframe) = COL_MAP_FIRE
-   ELSEIF (str_comp (cpara (1) , 'kupl', 3, lpara (1) , 4) ) then 
+   ELSEIF (str_comp (cpara (1) , 'kuplot', 3, lpara (1) , 6) ) then 
       CALL cmap_kupl (.true.) 
       col_map_type(iwin,iframe) = COL_MAP_KUPL
    ELSEIF (str_comp (cpara (1) , 'thermal', 3, lpara (1) , 7) ) then 

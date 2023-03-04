@@ -476,7 +476,7 @@ CHARACTER(LEN=PREC_STRING) :: cpara (maxw)
 CHARACTER(LEN=PREC_STRING) :: zeile, line 
 CHARACTER(LEN=PREC_STRING) :: filname 
 CHARACTER(LEN=40         ) :: orig_prompt
-CHARACTER(len=4) :: befehl, czeile 
+CHARACTER(len=11) :: befehl, czeile 
 CHARACTER(len=2) :: form, cdummy 
 INTEGER :: lpara (maxw), lbef 
 INTEGER :: i, ianz, iianz, ik, length 
@@ -550,7 +550,7 @@ cond_ianz: IF(ianz.eq.1) then
 !                                                                       
 !------ --- subcommand 'outfile'                                        
 !                                                                       
-            ELSEIF (str_comp (befehl, 'outf', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'outfile', 2, lbef, 7) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.ge.1) then 
                   CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
@@ -564,7 +564,7 @@ cond_ianz: IF(ianz.eq.1) then
 !                                                                       
 !------ --- subcommand 'form'                                           
 !                                                                       
-            ELSEIF (str_comp (befehl, 'form', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'format', 2, lbef, 6) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                cdummy = cpara (1) (1:2)
                IF(cdummy=='xy') THEN
@@ -618,7 +618,7 @@ cond_ianz: IF(ianz.eq.1) then
 !                                                                       
 !     --- Set threshold for PGM files (0..255)                          
 !                                                                       
-            ELSEIF (str_comp (befehl, 'thre', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'threshold', 2, lbef, 9) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.2) then 

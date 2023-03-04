@@ -62,7 +62,7 @@ integer, parameter :: maxw  = 2
 !                                                                       
 CHARACTER(LEN=PREC_STRING) :: zei
 CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
-CHARACTER(LEN=8)           :: bef 
+CHARACTER(LEN=11)          :: bef 
       REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       REAL dummy 
       INTEGER lpara (maxw) 
@@ -123,7 +123,7 @@ owerte = (/ 1.0D0 /)
       indxg = index (line, '=') 
       IF (indxg.ne.0  &
          .and..not. (str_comp (bef, 'echo', 2, lbef, 4) )   &
-         .and..not. (str_comp (bef, 'syst', 2, lbef, 4) )   &
+         .and..not. (str_comp (bef, 'system', 2, lbef, 6) )   &
          .and..not. (str_comp (bef, 'achx', 2, lbef, 4) )   &
          .and..not. (str_comp (bef, 'achy', 2, lbef, 4) )   &
          .and..not. (str_comp (bef, 'tit1', 2, lbef, 4) )   &
@@ -187,7 +187,7 @@ owerte = (/ 1.0D0 /)
             call do_merge (zei, lc, .true.)
          ELSEIF (str_comp (bef, 'ccal', 3, lbef, 4) ) then 
             CALL do_calc (zei, lc) 
-         ELSEIF (str_comp (bef, 'conv', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'convolute', 3, lbef, 9) ) then 
             CALL do_convolute (zei, lc) 
          ELSEIF (str_comp (bef, 'exclude', 3, lbef, 7) ) then 
             CALL do_exclude (zei, lc) 
@@ -228,12 +228,12 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Set colours                                                   
 !                                                                       
-         ELSEIF (str_comp (bef, 'color', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'color', 3, lbef, 5) ) then 
             CALL set_color (zei, lc) 
 !                                                                       
 !------- define a cost function value to be returned to diffev
 !                                                                       
-         ELSEIF (str_comp (bef, 'costvalue', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'costvalue', 3, lbef, 9) ) then 
             CALL get_params (zei, ianz, cpara, lpara, maxw, lc) 
             IF(ianz>= 1) then
                CALL ber_params(ianz, cpara, lpara, werte, maxw)
@@ -287,7 +287,7 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Plot filenames on plot                                        
 !                                                                       
-         ELSEIF (str_comp (bef, 'fnam', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'fname', 3, lbef, 5) ) then 
             CALL get_params (zei, ianz, cpara, lpara, maxw, lc) 
             IF (ier_num.ne.0) return 
             ifname (iwin, iframe) = str_comp (cpara (1) , 'on', 2,      &
@@ -305,7 +305,7 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Plot frame around plot/frames                                 
 !                                                                       
-         ELSEIF (str_comp (bef, 'fram', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'frame', 3, lbef, 5) ) then 
             CALL get_params (zei, ianz, cpara, lpara, maxw, lc) 
             IF (ier_num.ne.0) return 
             tot_frame (iwin) = str_comp (cpara (1) , 'on', 2, lpara (1) &
@@ -313,7 +313,7 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Calculate Fourier Transform from data set                     
 !                                                                       
-         ELSEIF (str_comp (bef, 'four', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'fourier', 2, lbef, 7) ) then 
             CALL do_four (zei, lc) 
          ELSEIF (str_comp (bef, 'fft' , 2, lbef, 3) ) then 
             CALL kuplot_do_fft (zei, lc) 
@@ -352,15 +352,16 @@ owerte = (/ 1.0D0 /)
          ELSEIF (str_comp (bef, 'hcol', 3, lbef, 4) ) then 
             CALL para_setii (zei, lc, hlinecol, maxkurvtot, maxhl, bef, &
             1, 15)                                                      
-         ELSEIF (str_comp (bef, 'htyp', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'htype', 3, lbef, 5) ) then 
             CALL para_setii (zei, lc, hlinetyp, maxkurvtot, maxhl, bef, &
             0, 5)                                                       
-         ELSEIF (str_comp (bef, 'hpak', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'hpak', 3, lbef, 4)    .or. &
+                 str_comp (bef, 'hpackage', 3, lbef, 8) ) then 
             CALL set_hpak (zei, lc) 
 !                                                                       
 !-------  calculate integral                                            
 !                                                                       
-         ELSEIF (str_comp (bef, 'inte', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'integral', 2, lbef, 8) ) then 
             CALL do_inte (zei, lc) 
 !                                                                       
 !-------  Interpolate function on grid of other function                
@@ -370,9 +371,9 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  save data set                                                 
 !                                                                       
-         ELSEIF (str_comp (bef, 'ksav', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'ksave', 3, lbef, 5) ) then 
             CALL do_ksav (zei, lc) 
-         ELSEIF (str_comp (bef, 'dsav', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'dsave', 3, lbef, 5) ) then 
             CALL do_save_data (zei, lc) 
 !                                                                       
 !-------  Load files 'load'                                             
@@ -387,7 +388,7 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Set line width                                                
 !                                                                       
-         ELSEIF (str_comp (bef, 'lwid', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'lwidth', 2, lbef, 6) ) then 
             CALL set_linewidth (zei, lc) 
 !                                                                       
 !-------  Set tick marks                                                
@@ -397,7 +398,7 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Match data sets                                               
 !                                                                       
-         ELSEIF (str_comp (bef, 'match', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'match', 3, lbef, 5) ) then 
             CALL do_match (zei, lc) 
 !                                                                       
 !-------  Activate mouse menu                                           
@@ -428,11 +429,10 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  set landscape / portrait orientation                          
 !                                                                       
-         ELSEIF (str_comp (bef, 'orient', 3, lbef, 6) ) then 
+         ELSEIF (str_comp (bef, 'orientation', 3, lbef, 11) ) then 
             CALL get_params (zei, ianz, cpara, lpara, maxw, lc) 
             IF (ier_num.ne.0) return 
-            ldummy = str_comp (cpara (1) , 'landscape', 1, lpara (1) ,  &
-            9)                                                          
+            ldummy = str_comp(cpara(1), 'landscape', 1, lpara(1), 9)
             IF (ldummy.neqv.orient (iwin) ) then 
                orient (iwin) = ldummy 
                dummy = dev_width (iwin) 
@@ -442,7 +442,7 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Calculate the residual of two data sets                       
 !                                                                       
-         ELSEIF (str_comp (bef, 'rval', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'rvalue', 3, lbef, 6) ) then 
             CALL do_rvalue (zei, lc, .TRUE.) 
 !                                                                       
 !-------  Setting plotting window                                       
@@ -452,17 +452,17 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Here are all frame related commands: nfra,afra,kfra,...       
 !                                                                       
-         ELSEIF (str_comp (bef, 'nfra', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'nframe', 2, lbef, 6) ) then 
             CALL set_nfra (zei, lc) 
-         ELSEIF (str_comp (bef, 'kfra', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'kframe', 2, lbef, 6) ) then 
             CALL set_kfra (zei, lc) 
-         ELSEIF (str_comp (bef, 'sfra', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'sframe', 2, lbef, 6) ) then 
             CALL set_sfra (zei, lc) 
-         ELSEIF (str_comp (bef, 'afra', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'aframe', 2, lbef, 6) ) then 
             CALL set_afra (zei, lc) 
-         ELSEIF (str_comp (bef, 'cfra', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'cframe', 2, lbef, 6) ) then 
             CALL set_cfra (zei, lc) 
-         ELSEIF (str_comp (bef, 'bfra', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'bframe', 2, lbef, 6) ) then 
             CALL set_bfra (zei, lc) 
          ELSEIF (str_comp (bef, 'mass', 3, lbef, 4) ) then 
             WRITE (output_io, 2000) 
@@ -474,8 +474,8 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Save or print graphic                                         
 !                                                                       
-         ELSEIF (str_comp (bef, 'save', 2, lbef, 4) .or.str_comp (bef,  &
-         'prin', 2, lbef, 4) ) then                                     
+         ELSEIF (str_comp (bef, 'save', 2, lbef, 4) .or. &
+                 str_comp (bef, 'print', 2, lbef, 5) ) then                                     
             CALL do_hardcopy (bef, zei, lbef, lc) 
 !                                                                       
 !-------  Commands 'achx','achy','tit1' and 'tit2'                      
@@ -527,19 +527,19 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Commands 'ltyp','lcol','mtyp','mcol',...                      
 !                                                                       
-         ELSEIF (str_comp (bef, 'ltyp', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'ltype', 3, lbef, 5) ) then 
             CALL para_seti (zei, lc, ilinetyp, 1, maxkurvtot, bef,-5, 5,&
             .false.)                                                    
-         ELSEIF (str_comp (bef, 'mtyp', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'mtype', 3, lbef, 5) ) then 
             CALL para_seti (zei, lc, imarktyp, 1, maxkurvtot, bef,      &
             - 3, 5000, .false.)                                         
-         ELSEIF (str_comp (bef, 'lcol', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'lcolor', 3, lbef, 6) ) then 
             CALL para_seti (zei, lc, ilinecol, 0, maxkurvtot, bef,-1,   &
             15, .true.)                                                 
-         ELSEIF (str_comp (bef, 'mcol', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'mcolor', 3, lbef, 6) ) then 
             CALL para_seti (zei, lc, imarkcol, 1, maxkurvtot, bef, 1,   &
             15, .false.)                                                
-         ELSEIF (str_comp (bef, 'ecol', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'ecolor', 3, lbef, 6) ) then 
             CALL para_seti (zei, lc, ierrcol, 1, maxkurvtot, bef, 1, 15,&
             .false.)                                                    
          ELSEIF (str_comp (bef, 'lart', 3, lbef, 4) ) then 
@@ -551,16 +551,16 @@ owerte = (/ 1.0D0 /)
          ELSEIF (str_comp (bef, 'hlab', 3, lbef, 4) ) then 
             CALL para_seti (zei, lc, hlabel, 1, maxkurvtot, bef, 0, 99, &
             .false.)                                                    
-         ELSEIF (str_comp (bef, 'ptyp', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'ptype', 3, lbef, 5) ) then 
             CALL para_seti (zei, lc, imarkmax, 1, maxkurvtot, bef,      &
             - 3, 5000, .false.)                                         
-         ELSEIF (str_comp (bef, 'etyp', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'etype', 3, lbef, 5) ) then 
             CALL para_seti (zei, lc, ierr, 1, maxkurvtot, bef, 0, 3,    &
             .false.)                                                    
 !                                                                       
 !-------  Reset                                                         
 !                                                                       
-         ELSEIF (str_comp (bef, 'rese', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'reset', 3, lbef, 5) ) then 
             CALL kuplot_do_reset (zei, lc) 
 !                                                                       
 !-------  Set annotations                                               
@@ -587,12 +587,13 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Set buffer around plotting window                             
 !                                                                       
-         ELSEIF (str_comp (bef, 'buff', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'buffer', 3, lbef, 6) ) then 
             CALL set_buff (zei, lc) 
 !                                                                       
 !-------  Set plotting window                                           
 !                                                                       
-         ELSEIF (str_comp (bef, 'skal', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'skal', 3, lbef, 4)   .or. &
+                 str_comp (bef, 'scale', 3, lbef, 5) ) then 
             CALL set_skal (zei, lc) 
 !                                                                       
 !-------  Solve zero points in a polynomial                             
@@ -612,7 +613,8 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !       Branch to DISCUS (standalone call system, suite do branch)
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (bef, 'branch', 2, lbef, 6) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
+            str_comp (bef, 'branch', 2, lbef, 6) ) then 
             CALL p_branch (zei, lc, .FALSE., 0     ) 
 !                                                                       
 !-------  Check for generic command                                     

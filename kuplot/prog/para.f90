@@ -727,14 +727,11 @@ integer         , intent(inout) :: lp
                   anty (iwin, iframe, ik) = werte (2) 
 !                                                                       
                   IF (ianz.ge.3) then 
-                     IF (str_comp (cpara (3) , 'left', 1, lpara (3) , 4)&
-                     ) then                                             
+                     IF (str_comp (cpara (3) , 'left', 1, lpara (3) , 4)) then
                         anjust (iwin, iframe, ik) = if_left 
-                     ELSEIF (str_comp (cpara (3) , 'righ', 1, lpara (3) &
-                     , 4) ) then                                        
+                     ELSEIF (str_comp (cpara (3) , 'right', 1, lpara (3) , 5) ) then
                         anjust (iwin, iframe, ik) = if_right 
-                     ELSEIF (str_comp (cpara (3) , 'cent', 1, lpara (3) &
-                     , 4) ) then                                        
+                     ELSEIF (str_comp (cpara (3) , 'center', 1, lpara (3) , 6) ) then
                         anjust (iwin, iframe, ik) = if_centre 
                      ELSE 
                         ier_num = - 6 
@@ -1239,7 +1236,7 @@ IF (ianz.ge.2) then
 !                                                                       
 !------ - set font typ                                                  
 !                                                                       
-   ELSEIF (str_comp (cpara (1) , 'typ', 2, lpara (1) , 3) ) then 
+   ELSEIF (str_comp (cpara (1) , 'type', 2, lpara (1) , 4) ) then 
       CALL del_params (1, ianz, cpara, lpara, maxw) 
       CALL ber_params (ianz, cpara, lpara, werte, maxw) 
       IF (ier_num.ne.0) return 
@@ -1259,10 +1256,10 @@ IF (ianz.ge.2) then
 !                                                                       
 !------ - set text justification for title / textframes                 
 !                                                                       
-   ELSEIF (str_comp (cpara (1) , 'just', 2, lpara (1) , 4) ) then 
+   ELSEIF (str_comp (cpara (1) , 'justification', 2, lpara (1) , 13) ) then 
       IF (ier_num.ne.0) return 
       IF (ianz.eq.2) then 
-         IF(str_comp (cpara (2) , 'cen', 1, lpara (2) , 3) ) then
+         IF(str_comp (cpara (2) , 'center', 1, lpara (2) , 6) ) then
                   frjust (iwin, iframe) = if_centre 
          ELSEIF(str_comp(cpara(2), 'left', 1, lpara(2), 4)) then
             frjust (iwin, iframe) = if_left 

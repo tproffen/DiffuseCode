@@ -35,7 +35,7 @@ USE take_param_mod
 !
 IMPLICIT NONE
 !
-CHARACTER (LEN=5)                       :: befehl! command on input line
+CHARACTER (LEN=8)                       :: befehl! command on input line
 CHARACTER(LEN=LEN_TRIM(prompt))         :: orig_prompt  ! original prompt
 CHARACTER (LEN=PREC_STRING)                    :: line  ! input line
 CHARACTER (LEN=PREC_STRING)                    :: zeile ! remainder with parameters
@@ -63,10 +63,10 @@ main_loop: DO
 !                                                                       
          indxg = index (line, '=') 
          is_math: IF(indxg.ne.0                                             &
-                     .AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
-                     .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-                     .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                                 str_comp (befehl, '?   ', 2, lbef, 4) )    &
+                     .AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )    &
+                     .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+                     .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                                 str_comp (befehl, '?   ',   2, lbef, 4) )    &
                      .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 ! ------evaluate an expression and assign the value to a variabble      
@@ -98,7 +98,7 @@ main_loop: DO
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-            ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+            ELSEIF (str_comp (befehl, 'evaluate', 2, lbef, 8) ) THEN 
                CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
@@ -121,7 +121,7 @@ main_loop: DO
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-            ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN is_generic
+            ELSEIF (str_comp (befehl, 'system', 2, lbef, 6) ) THEN is_generic
                 IF (zeile.ne.' '.and.zeile.ne.char (13) ) THEN
                    CALL do_operating (zeile (1:lp), lp) 
                 ELSE 
@@ -134,7 +134,7 @@ main_loop: DO
             ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN  is_generic
                 CALL do_input (zeile, lp) 
 !
-            ELSEIF (str_comp (befehl, 'reset', 3, lbef, 4)) THEN is_generic
+            ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5)) THEN is_generic
                CALL k2dm_reset
             ELSE is_generic    ! macro, reset or all other commands is_generic
 !
@@ -365,7 +365,6 @@ USE errlist_mod
 USE get_params_mod
 USE lib_errlist_func
 USE precision_mod
-USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -464,7 +463,6 @@ USE ber_params_mod
 USE get_params_mod
 USE lib_errlist_func
 USE precision_mod
-USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -549,7 +547,6 @@ USE ber_params_mod
 USE get_params_mod
 USE lib_errlist_func
 USE precision_mod
-USE str_comp_mod
 USE take_param_mod
 !
 IMPLICIT NONE
