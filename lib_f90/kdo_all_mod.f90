@@ -85,7 +85,7 @@ elseif(str_comp(bef, 'minabs', 2, lbef, 6)) then
 !                                                                       
 !     Evaluate an expression, just for interactive check 'eval'         
 !                                                                       
-      ELSEIF (str_comp (bef, 'eval', 2, lbef, 4) ) THEN 
+      ELSEIF (str_comp (bef, 'evaluate', 2, lbef, 8) ) THEN 
          CALL do_eval (zei, lc, .TRUE.) 
 !                                                                       
 !------ IO commands                                                     
@@ -137,7 +137,7 @@ elseif(str_comp(bef, 'minabs', 2, lbef, 6)) then
 !                                                                       
 !------ start learning a macro 'learn'                                  
 !                                                                       
-      ELSEIF (str_comp (bef, 'lear', 3, lbef, 4) ) THEN 
+      ELSEIF (str_comp (bef, 'learn', 3, lbef, 5) ) THEN 
          CALL start_learn (zei, lc) 
 !                                                                       
 !------ end learning a macro 'lend'                                     

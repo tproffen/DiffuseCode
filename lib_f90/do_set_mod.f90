@@ -56,7 +56,7 @@ IF (zeile.ne.' ') THEN
             ianz = ianz -1
          ENDIF
          IF(ianz.eq.2) THEN 
-            IF(str_comp(cpara(2), 'cont', 2, lpara(2), 4)) THEN
+            IF(str_comp(cpara(2), 'continue', 2, lpara(2), 8)) THEN
                ier_sta = ER_S_CONT 
             ELSEIF(str_comp(cpara(2), 'exit', 2, lpara (2), 4)) THEN
                ier_sta = ER_S_EXIT 
@@ -96,7 +96,7 @@ IF (zeile.ne.' ') THEN
                prompt_status = PROMPT_ON 
 !               socket_status = PROMPT_ON 
 !                                                                       
-            ELSEIF(str_comp(cpara(2), 'off', 2, lpara(2), 2)) THEN
+            ELSEIF(str_comp(cpara(2), 'off', 2, lpara(2), 3)) THEN
                prompt_status = PROMPT_OFF 
 !               socket_status = PROMPT_OFF 
 !                                                                       

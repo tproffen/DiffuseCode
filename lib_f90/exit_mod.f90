@@ -73,7 +73,7 @@ IF(operating == OS_LINUX_WSL) THEN
             write(*,*)
             write(*,'(A)') ' Ubuntu update deferred for right now'
             write(*,*)
-         elseif(line(1:2)=='NE' .or. str_comp(line, 'NE', 2, ll, 2)) then
+         elseif(line(1:2)=='NEVER' .or. str_comp(line, 'NEVER', 2, ll, 5)) then
             write(*,*)
             write(*,'(A)') ' DISCUS will not update Ubuntu any longer' 
             write(*,'(A)') ' Regular updates are strongly recommended' 

@@ -140,10 +140,10 @@ loop_menu: do
 !     ----search for "="                                                
 !                                                                       
    indxg = index (line, '=')
-   IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-                 .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-                 .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                             str_comp (befehl, '?   ', 2, lbef, 4) )    &
+   IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
+                 .AND..NOT. (str_comp (befehl, 'system', 2, lbef, 6) )    &
+                 .AND..NOT. (str_comp (befehl, 'help',   2, lbef, 4) .OR. &
+                             str_comp (befehl, '?   ',   2, lbef, 4) )    &
                  .AND. INDEX(line,'==') == 0                            ) then
 !                                                                       
 !     ---evaluate an expression and assign the value to a variabble   
@@ -154,7 +154,7 @@ loop_menu: do
 !
 !     ----run transformation 'rese'                                            
 !                                                                       
-   if_rese: IF(str_comp (befehl, 'rese', 2, lbef, 4) ) then
+   if_rese: IF(str_comp (befehl, 'reset', 2, lbef, 5) ) then
       call lib_trans_reset(outfile, lib_tr_mat, lib_in_mat, new_outfile,        &
            old_inc, old_eck, old_vi, new_inc, new_eck, new_vi, new_zone, new_icenter,     &
            new_inc_user, new_eck_user, new_vi_user, new_zone_user, new_data)

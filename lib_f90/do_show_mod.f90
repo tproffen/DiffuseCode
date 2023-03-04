@@ -30,7 +30,7 @@ ELSEIF (str_comp (cpara (1) , 'parallel', 2, lpara (1) , 8) ) THEN
 !                                                                       
 !     ----Show result array                'result'                     
 !                                                                       
-ELSEIF (str_comp (cpara (1) , 'res', 1, lpara (1) , 3) ) THEN 
+ELSEIF (str_comp (cpara (1) , 'result', 1, lpara (1) , 6) ) THEN 
    CALL do_show_res 
 !                                                                       
 !     ----Show variables                   'variables'                  

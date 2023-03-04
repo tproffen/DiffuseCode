@@ -254,14 +254,14 @@ iftype: IF(str_comp(cpara (1) , 'real', 3, lpara (1) , 4) .or.  &
                 var_field(place)%var_value(:,:) = werte(1)
             ENDIF
             var_diff (i) = is_diffev      ! true if refine param from diffev
-         ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
+         ELSEIF (str_comp (c_type, 'integer', 2, l_type, 7) ) THEN 
             var_type (i) =       IS_INTE 
             var_val  (i) = NINT(werte (1) ) 
             IF(n_data>0) THEN             ! We have an array
                 var_field(place)%var_value(:,:) = NINT(werte(1))
             ENDIF
             var_diff (i) = is_diffev      ! true if refine param from diffev
-         ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) THEN 
+         ELSEIF (str_comp (c_type, 'character', 2, l_type, 9) ) THEN 
             var_type (i) =       IS_CHAR 
             var_val  (i) = 0.0 
             var_char (i) = c_init (1:len(var_char))
