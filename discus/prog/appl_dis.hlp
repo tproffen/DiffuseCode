@@ -1751,9 +1751,9 @@
 !p system  ! Executes operating system command (see main help)
 !p trans   ! Transforms between atom-index and unit-cell/site
 !p wait    ! Waits for user input (see main help level)
-3  angl
-!p angl { <name>|<number>|"all"},{<name>|<number>|"all" },
-!p      {<name>|<number>|"all" } [,<file>]
+3  angle
+!p angle {<name>|<number>|"all"},{<name>|<number>|"all" },
+!p       {<name>|<number>|"all" } [,<file>]
 
    This command calculates the average bond angles and sigmas for the
    specified triplets of atom types for the given neighbors. The neighbor
@@ -1914,8 +1914,8 @@
    -> 'set vec'. If an additional parameter <file> is given, all difference
    vectors (in lattice units) are written to the corresponding file
    for possible further analysis or plotting.
-3  elem
-!p elem [ { "on" | "off" } ]
+3  element
+!p element [ { "on" | "off" } ]
 
    Displays information about elements in the model crystal like 
    relative abundances of the elements. 'void' stands for a vacancy.
@@ -5835,7 +5835,7 @@
 !p set "excl",{"none"|<value>}
 !p set "mode",{"normal"|"sharp"|"super"}
 !p set "origin",{"normal"|"subtract"}
-!p set "rsym",{appl"|"igno"}
+!p set "rsym",{"apply"|"ignore"}
 
    Set defines various parameters.
 
