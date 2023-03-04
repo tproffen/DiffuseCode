@@ -47,7 +47,7 @@ IF(str_comp (cpara(1), 'cycles', 3, lpara(1), 6) ) THEN
    CALL ber_params(ianz, cpara, lpara, werte, MAXW)
    IF(ier_num/= 0) RETURN
    refine_cycles = NINT(werte(2))
-ELSEIF(str_comp (cpara(1), 'conver', 3, lpara(1), 6) ) THEN
+ELSEIF(str_comp (cpara(1), 'convergence', 3, lpara(1), 11) ) THEN
    CALL refine_set_convergence(line, length)
 ELSEIF(str_comp (cpara(1), 'relax', 3, lpara(1), 5) ) THEN
    CALL refine_set_lamda(line, length)
@@ -149,7 +149,6 @@ USE ber_params_mod
 USE get_params_mod
 USE precision_mod
 USE take_param_mod
-USE str_comp_mod
 !
 IMPLICIT NONE
 !
