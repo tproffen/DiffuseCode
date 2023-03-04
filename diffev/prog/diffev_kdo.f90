@@ -60,7 +60,7 @@ INTEGER             , INTENT(INOUT) :: length
 !
 CHARACTER (LEN=PREC_STRING)                  :: zeile   = ' '
 CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW) :: cpara   = ' '
-CHARACTER (LEN=   9)                  :: befehl  = ' '
+CHARACTER (LEN=  11)                  :: befehl  = ' '
 CHARACTER (LEN=PREC_STRING)                  :: string  = ' '
 INTEGER                               :: indxb, indxg, lcomm, lbef, indxt 
 INTEGER                               :: i, j, k, ii , nb
@@ -134,10 +134,10 @@ ENDIF
 !                                                                 
 indxg = index (line, '=') 
 IF (indxg.ne.0.and.                                              &
-    &    .not. (str_comp (befehl, 'echo',  2, lbef, 4) ) .and.   &
-    &    .not. (str_comp (befehl, 'syst',  2, lbef, 4) ) .and.   &
-    &    .not. (str_comp (befehl, 'fput',  2, lbef, 4) ) .and.   &
-    &    .not. (str_comp (befehl, 'help',  2, lbef, 4) .or.      &
+    &    .not. (str_comp (befehl, 'echo',    2, lbef, 4) ) .and.   &
+    &    .not. (str_comp (befehl, 'system',  2, lbef, 6) ) .and.   &
+    &    .not. (str_comp (befehl, 'fput',    2, lbef, 4) ) .and.   &
+    &    .not. (str_comp (befehl, 'help',    2, lbef, 4) .or.      &
     &     str_comp (befehl, '?   ',  2, lbef, 4) )       .AND.   &
           INDEX(line,'==') == 0                               ) THEN      
 !    &    .not. (str_comp (befehl, 'socket',2, lbef, 5) ) .and.   &
@@ -352,7 +352,7 @@ ELSE
 !                                                                 
 !     -- Define a hard constraint 'constraint'                    
 !                                                                 
-   ELSEIF (str_comp (befehl, 'const', 3, lbef, 5) ) THEN 
+   ELSEIF (str_comp (befehl, 'constraint', 3, lbef, 10) ) THEN 
       IF(constr_number >= MAX_CONSTR) THEN
          CALL alloc_constraint ( constr_number + 1)
          IF(ier_num < 0) THEN
