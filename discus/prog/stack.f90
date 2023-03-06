@@ -492,7 +492,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                                                                       
 !     ----Select values for rotational disorder    'rotation'           
 !                                                                       
-   ELSEIF (str_comp (befehl, 'rotation', 2, lbef, 8) ) then 
+   ELSEIF (str_comp (befehl, 'rotate', 2, lbef, 7) ) then 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
 !
