@@ -617,6 +617,10 @@ CALL pow_conv_limits
          WRITE (output_io, 1530) pow_lp_fac, pow_lp_ang 
       ENDIF 
       WRITE (output_io, 1600) ccalc (pow_four_type) 
+if(pow_four_type==0 .or. pow_four_type==5) then
+  write(output_io, 1610) pow_hkl_del
+  write(output_io, 1620) pow_hkl_shift
+endif
 !                                                                       
  1000 FORMAT    ( ' Settings for Powder Diffraction segment :') 
  1200 FORMAT    ( '   Radiation               : ',A,', wavelength = ',  &
@@ -668,6 +672,8 @@ CALL pow_conv_limits
      &                   '   Polarisation fraction   : ',f10.5,/        &
      &                   '   2-Theta Monochromator   : ',f10.5)         
  1600 FORMAT    ( '   Fourier calculation via : ',A) 
+ 1610 format    ( '   HKL steps               : ', 3(f10.5,2x))
+ 1620 format    ( '   HKL shift               : ', 3(f10.5,2x))
       END SUBROUTINE pow_show                       
 !
 !*****7*****************************************************************
