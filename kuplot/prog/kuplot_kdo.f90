@@ -185,13 +185,13 @@ owerte = (/ 1.0D0 /)
 !                                                                       
          elseif(str_comp (bef, 'mergeg',6, lbef, 6)) then
             call do_merge (zei, lc, .true.)
-         ELSEIF (str_comp (bef, 'ccal', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'ccalc', 3, lbef, 5) ) then 
             CALL do_calc (zei, lc) 
          ELSEIF (str_comp (bef, 'convolute', 3, lbef, 9) ) then 
             CALL do_convolute (zei, lc) 
          ELSEIF (str_comp (bef, 'exclude', 3, lbef, 7) ) then 
             CALL do_exclude (zei, lc) 
-         ELSEIF (str_comp (bef, 'kcal', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'kcalc', 3, lbef, 5) ) then 
             CALL do_kmath (zei, lc) 
          ELSEIF (str_comp (bef, 'merge', 3, lbef, 5) ) then 
             CALL do_merge (zei, lc, .false.) 
@@ -281,9 +281,9 @@ owerte = (/ 1.0D0 /)
 !           CALL do_fit (zei, lc) !, previous) 
 !           previous(1) = 'fit 1'
 !           previous(2) = 'run'
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
-                 str_comp (bef, 'f66', 3, lbef, 3)       ) THEN
-            CALL do_f66 (zei, lc) !, previous) 
+!        ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
+!                str_comp (bef, 'f66', 3, lbef, 3)       ) THEN
+!           CALL do_f66 (zei, lc) !, previous) 
 !                                                                       
 !-------  Plot filenames on plot                                        
 !                                                                       
@@ -320,7 +320,7 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  Create data set from function                                 
 !                                                                       
-         ELSEIF (str_comp (bef, 'func', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'function', 2, lbef, 8) ) then 
             CALL do_func (zei, lc) 
 !                                                                       
 !-------  smooth data 'glat' and 'smooth'                               
@@ -347,9 +347,9 @@ owerte = (/ 1.0D0 /)
 !                                                                       
 !-------  set contour line parameters                                   
 !                                                                       
-         ELSEIF (str_comp (bef, 'hlin', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'hline', 3, lbef, 5) ) then 
             CALL set_hlin (zei, lc) 
-         ELSEIF (str_comp (bef, 'hcol', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (bef, 'hcolor', 3, lbef, 6) ) then 
             CALL para_setii (zei, lc, hlinecol, maxkurvtot, maxhl, bef, &
             1, 15)                                                      
          ELSEIF (str_comp (bef, 'htype', 3, lbef, 5) ) then 
