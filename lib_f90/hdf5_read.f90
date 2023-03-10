@@ -497,9 +497,13 @@ endif
 IF(opara(O_LAYER)=='bottom') THEN
    h5_layer = 1
 ELSEIF(opara(O_LAYER)=='middle') THEN
-   h5_layer = INT((h5_dims(3)+1)/2)
+   if(mod(d5_dims(3),2)==0) then
+      h5_layer = INT((d5_dims(3)+1)/2)
+   else
+      h5_layer = INT((d5_dims(3)  )/2)
+   endif
 ELSEIF(opara(O_LAYER)=='top') THEN
-   h5_layer = h5_dims(3)
+   h5_layer = d5_dims(3)
 ELSE
    cpara(1) = opara(O_LAYER)
    lpara(1) = lopara(O_LAYER)
@@ -511,7 +515,7 @@ ELSE
       ier_typ = ER_APPL
       ier_msg(1) = 'Layer number <= 0'
       ier_msg(2) = 'FILE '//h5_infile (1:LEN(ier_msg)-5)
-   ELSEIF(h5_layer  >  h5_dims(1)) THEN
+   ELSEIF(h5_layer  >  d5_dims(3)) THEN
       ier_num = -71
       ier_typ = ER_APPL
       WRITE(ier_msg(1),'(a,i4)') 'Layer number > ', h5_layer
