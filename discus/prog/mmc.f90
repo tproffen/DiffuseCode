@@ -815,32 +815,14 @@ INTEGER         , INTENT(INOUT) :: lp
 !                                                                       
 INTEGER, PARAMETER :: maxw = 200 
 !
-CHARACTER(LEN=PREC_STRING)                 :: line
-INTEGER                               :: length
-INTEGER                               :: ianz1
-INTEGER                               :: ianz2
 !                                                                       
 CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW) ::  cpara !(maxw) 
-CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW) ::  cpara1 !(maxw) 
-CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW) ::  cpara2 !(maxw) 
-REAL(KIND=PREC_DP) :: uerte (maxw) 
-REAL(KIND=PREC_DP) :: verte (maxw) 
 REAL(KIND=PREC_DP) :: werte (maxw) 
-REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte1 (maxw) 
-REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte2 (maxw) 
-REAL(KIND=PREC_DP) :: a, b 
-real(kind=PREC_DP) :: winit
 INTEGER lpara (maxw) 
-INTEGER, DIMENSION(MAXW) :: lpara1 ! (maxw) 
-INTEGER, DIMENSION(MAXW) :: lpara2 ! (maxw) 
-INTEGER ianz, iianz, jjanz, kkanz, is, js, ls, ic, i, j 
-INTEGER is_start, is_end 
+INTEGER :: ianz  !, iianz, jjanz, kkanz, is, js, ls, ic, i, j 
+integer :: i,j
 INTEGER                :: n_corr ! Dummy for allocation
 INTEGER                :: n_scat ! Dummy for allocation
-INTEGER                :: n_site ! Dummy for allocation
-INTEGER                :: n_mole ! Dummy for allocation
-INTEGER                :: n_angles ! Dummy for allocation
-LOGICAL :: is_corr ! Current target is correlation energy
 !
 INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_TYPE    = 1
@@ -1073,554 +1055,7 @@ IF (ier_num == 0) THEN
 !------ --- 'set target' : setting of target correlations               
 !                                                                       
       ELSEIF (cpara (1) (1:2)  == 'TA') THEN 
-         IF (ianz >= 3) THEN 
-            is = - 2 
-            js = - 2 
-            ls = - 2 
-            werte  = 0.0
-            uerte  = 0.0
-            verte  = 0.0
-            werte1 = 0.0
-            werte2 = 0.0
-            CALL del_params (1, ianz, cpara, lpara, maxw) 
-            CALL ber_params (1, cpara, lpara, werte, maxw) 
-            ic = nint (werte (1) ) 
-            IF( ic > CHEM_MAX_COR .OR. ic > MMC_MAX_CORR ) THEN
-!
-!                      Basic allocation
-!
-               n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR)
-               n_scat = MAX(MAXSCAT, MMC_MAX_SCAT, 3)
-               n_site = MAX(MAXSCAT, MMC_MAX_SITE)
-               n_mole = MOLE_MAX_TYPE
-               ! call alloc_chem ! NEEDS WORK
-               CALL alloc_mmc ( n_corr, MC_N_ENERGY, n_scat, n_site )
-               CALL alloc_mmc_move(n_corr, n_scat, n_mole)
-            ENDIF
-            IF (ic > 0.AND.ic <= chem_ncor) THEN 
-               IF (str_comp (cpara (2) , 'corr', 2, lpara (2) , 4) .OR.  &
-                   str_comp (cpara (2) , 'unid', 2, lpara (2) , 4)) THEN                                             
-                  is_corr= str_comp (cpara (2) , 'corr', 2, lpara (2) , 4)
-                  CALL del_params (2, ianz, cpara, lpara, maxw) 
-!                       Get atom types in the two allowed groups
-!                       Allowed parameters are: Au, Cu            ! OLd style 
-!                                               (Au), (Cu)        ! New style  :binary correlation
-!                                               (Au,Pt), (Cu,Zn)  ! New style  :quaternary correlation
-                  IF ( cpara(1)(1:1)=='(' .AND. cpara(1)(lpara(1):lpara(1))==')') THEN
-                     line   = cpara(1)(2:lpara(1)-1)
-                     length = lpara(1)-2
-                     CALL get_params (line, ianz1, cpara1, lpara1, maxw, length) 
-                     CALL get_iscat (ianz1, cpara1, lpara1, werte1, maxw, .FALSE.)                                  
-                  ELSEIF ( cpara(1)(1:1)/='(' .AND. cpara(1)(lpara(1):lpara(1))/=')') THEN
-                     ianz1 = 1 
-                     CALL get_iscat (ianz1, cpara, lpara, werte1, maxw, .FALSE.)                                  
-                  ELSE
-                     ier_num = -6
-                     ier_typ = ER_COMM
-                     RETURN
-                  ENDIF
-                  CALL del_params (1, ianz, cpara, lpara, maxw) 
-                  IF ( cpara(1)(1:1)=='(' .AND. cpara(1)(lpara(1):lpara(1))==')') THEN
-                     line   = cpara(1)(2:lpara(1)-1)
-                     length = lpara(1)-2
-                     CALL get_params (line, ianz2, cpara2, lpara2, maxw, length) 
-                     CALL get_iscat (ianz2, cpara2, lpara2, werte2, maxw, .FALSE.)                                  
-                  ELSEIF ( cpara(1)(1:1)/='(' .AND. cpara(1)(lpara(1):lpara(1))/=')') THEN
-                     ianz2 = 1 
-                     CALL get_iscat (ianz2, cpara, lpara, werte2, maxw, .FALSE.)                                  
-                  ELSE
-                     ier_num = -6
-                     ier_typ = ER_COMM
-                     RETURN
-                  ENDIF
-!
-                  IF(is_corr                                    ) THEN                                             
-                     CALL del_params (1, ianz, cpara, lpara, maxw) 
-                     IF (cpara (ianz) (1:2)  == 'CO') THEN 
-                        mmc_cfac (ic, MC_OCC) =  1.0 
-                        mmc_lfeed(ic, MC_OCC) =  .true.
-                        ianz = ianz - 1 
-                     ELSEIF (cpara (ianz) (1:2)  == 'EN') THEN 
-                        mmc_cfac (ic, MC_OCC) = 0.0 
-                        mmc_lfeed(ic, MC_OCC) =  .false.
-                        ianz = ianz - 1 
-                     ENDIF 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw)
-                     IF (mmc_cfac (ic, MC_OCC) > 0.0) THEN 
-                        winit = -2.0D0*werte(1) - 3.0D0*werte(1)**5
-winit = -1.0D0*werte(1)  - 3.0D0*werte(1)**5
-                        CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
-                             MAXW, werte1, werte2, werte(1) , winit)
-                           mmc_depth (ic, MC_OCC, 0, 0) = winit
-                     ELSEIF (mmc_cfac (ic, MC_OCC) ==0.0) THEN 
-                     CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
-                             MAXW, werte1, werte2, werte(1) , werte(2) )                                   
-                           mmc_depth (ic, MC_OCC, 0, 0) = werte (2) 
-                     ENDIF
-                     mmc_cor_energy (ic, MC_OCC) = .TRUE. 
-                     mmc_cor_energy (0, MC_OCC) = .TRUE. 
-                  ELSE
-                     CALL del_params (1, ianz, cpara, lpara, maxw) 
-                     IF (cpara (ianz) (1:2)  == 'CO') THEN 
-                        mmc_cfac (ic, MC_UNI) =  1.0 
-                        mmc_lfeed(ic, MC_UNI) =  .true.
-                        ianz = ianz - 1 
-                     ELSEIF (cpara (ianz) (1:2)  == 'EN') THEN 
-                        mmc_cfac (ic, MC_UNI) = 0.0 
-                        mmc_lfeed(ic, MC_UNI) =  .false.
-                        ianz = ianz - 1 
-                     ENDIF 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw)
-                     IF (mmc_cfac (ic, MC_UNI) > 0.0) THEN 
-                        winit = -2.0D0*werte(1) - 3.0D0*werte(1)**5
-                        CALL mmc_set_unid_occ (ic, MC_UNI, ianz1, ianz2, &
-                             MAXW, werte1, werte2, werte(1) , winit)
-                             mmc_depth (ic, MC_UNI, 0, 0) = winit
-                     ELSEIF (mmc_cfac (ic, MC_UNI) ==0.0) THEN 
-                        CALL mmc_set_unid_occ (ic, MC_UNI, ianz1, ianz2, &
-                             MAXW, werte1, werte2, werte(1) , werte(2) )                                   
-                             mmc_depth (ic, MC_UNI, 0, 0) = werte (2) 
-                     ENDIF
-                     mmc_cor_energy (ic, MC_UNI) = .TRUE. 
-                     mmc_cor_energy (0, MC_UNI) = .TRUE. 
-                  ENDIF
-               ELSEIF(str_comp(cpara(2), 'group', 2, lpara(2) , 5)) THEN   ! Group wise correlations
-                  CALL set_target_group(MAXW, ianz, cpara, lpara, werte, ic)
-               ELSEIF (str_comp (cpara (2) , 'cd', 2, lpara (2) , &
-                     2) ) THEN                                          
-                        CALL del_params (2, ianz, cpara, lpara, maxw) 
-                        iianz = 1 
-                        jjanz = 1 
-                        CALL get_iscat (iianz, cpara, lpara, uerte,     &
-                        maxw, .FALSE.)                                  
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL get_iscat (jjanz, cpara, lpara, verte,     &
-                        maxw, .FALSE.)                                  
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        IF (cpara (ianz) (1:2)  == 'CO') THEN 
-                           mmc_cfac (ic, MC_DISP) =  1.00 
-                           mmc_lfeed(ic, MC_DISP) =  .true.
-                           ianz = ianz - 1 
-                        ELSEIF (cpara (ianz) (1:2)  == 'EN') THEN 
-                           mmc_cfac (ic, MC_DISP) = 0.0 
-                           mmc_lfeed(ic, MC_DISP) =  .false.
-                           ianz = ianz - 1 
-                        ENDIF 
-                        CALL ber_params (2, cpara, lpara, werte, maxw) 
-                        IF (mmc_cfac (ic, MC_DISP) /= 0.0) THEN 
-                           werte(2) = -500.*werte(1)
-                        ENDIF
-                        DO i = 1, iianz 
-                        DO j = 1, jjanz 
-                        is = nint (uerte (i) ) 
-                        js = nint (verte (j) ) 
-                           IF(is<0 .OR. is>cr_nscat .OR. &
-                              js<0 .OR. js>cr_nscat)  THEN
-                              ier_num = -97
-                              ier_typ = ER_APPL
-                              WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
-                              WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
-                              ier_msg(3) = 'Check parameter list for wrong/missing atoms'
-                              RETURN
-                           ENDIF
-                           mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
-                           mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
-                        CALL mmc_set_disp (ic, MC_DISP, is, js, werte ( &
-                        1), werte (2) )                                 
-                        ENDDO 
-                        ENDDO 
-                        chem_ldall (ic) = .TRUE. 
-                        IF (ianz > 2) THEN 
-                           CALL del_params (2, ianz, cpara, lpara, maxw) 
-                           IF (cpara (1) (1:3)  == 'all') THEN 
-                              chem_ldall (ic) = .TRUE. 
-                           ELSE 
-                              CALL ber_params (ianz, cpara, lpara,      &
-                              werte, maxw)                              
-                              IF (ier_num /= 0) return 
-!                                                                       
-                              IF (ianz == 3) THEN 
-                                 chem_ldall (ic) = .FALSE. 
-                                 chem_dir (1, 1, ic) = werte (1) 
-                                 chem_dir (2, 1, ic) = werte (2) 
-                                 chem_dir (3, 1, ic) = werte (3) 
-                                 chem_dir (1, 2, ic) = werte (1) 
-                                 chem_dir (2, 2, ic) = werte (2) 
-                                 chem_dir (3, 2, ic) = werte (3) 
-                              ELSEIF (ianz == 6) THEN 
-                                 chem_ldall (ic) = .FALSE. 
-                                 chem_dir (1, 1, ic) = werte (1) 
-                                 chem_dir (2, 1, ic) = werte (2) 
-                                 chem_dir (3, 1, ic) = werte (3) 
-                                 chem_dir (1, 2, ic) = werte (4) 
-                                 chem_dir (2, 2, ic) = werte (5) 
-                                 chem_dir (3, 2, ic) = werte (6) 
-                              ELSE 
-                                 ier_num = - 6 
-                                 ier_typ = ER_COMM 
-                              ENDIF 
-                           ENDIF 
-                        ENDIF 
-                        mmc_cor_energy (ic, MC_DISP) = .TRUE. 
-                        mmc_cor_energy (0, MC_DISP) = .TRUE. 
-                     ELSEIF(str_comp(cpara(2) , 'cn', 2, lpara(2), 2) ) THEN   !Coordination number
-                        CALL del_params (2, ianz, cpara, lpara, maxw) 
-!                       Get atom types in the two allowed groups
-!                       Allowed parameters are: Au, Cu            ! OLd style 
-!                                               (Au), (Cu)        ! New style  :binary correlation
-!                                               (Au,Pt), (Cu,Zn)  ! New style  :quaternary correlation
-                        IF ( cpara(1)(1:1)=='(' .AND. cpara(1)(lpara(1):lpara(1))==')') THEN
-                           line   = cpara(1)(2:lpara(1)-1)
-                           length = lpara(1)-2
-                           CALL get_params (line, ianz1, cpara1, lpara1, maxw, length) 
-                           CALL get_iscat (ianz1, cpara1, lpara1, werte1, maxw, .FALSE.)                                  
-                        ELSEIF ( cpara(1)(1:1)/='(' .AND. cpara(1)(lpara(1):lpara(1))/=')') THEN
-                           ianz1 = 1 
-                           CALL get_iscat (ianz1, cpara, lpara, werte1, maxw, .FALSE.)                                  
-                        ELSE
-                           ier_num = -6
-                           ier_typ = ER_COMM
-                           RETURN
-                        ENDIF
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        IF ( cpara(1)(1:1)=='(' .AND. cpara(1)(lpara(1):lpara(1))==')') THEN
-                           line   = cpara(1)(2:lpara(1)-1)
-                           length = lpara(1)-2
-                           CALL get_params (line, ianz2, cpara2, lpara2, maxw, length) 
-                           CALL get_iscat (ianz2, cpara2, lpara2, werte2, maxw, .FALSE.)                                  
-                        ELSEIF ( cpara(1)(1:1)/='(' .AND. cpara(1)(lpara(1):lpara(1))/=')') THEN
-                           ianz2 = 1 
-                           CALL get_iscat (ianz2, cpara, lpara, werte2, maxw, .FALSE.)                                  
-                        ELSE
-                           ier_num = -6
-                           ier_typ = ER_COMM
-                           RETURN
-                        ENDIF
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL ber_params (2, cpara, lpara, werte, maxw) 
-!                       DO i = 1, iianz 
-!                       DO j = 1, jjanz 
-!                       is = nint (uerte (i) ) 
-!                       js = nint (verte (j) ) 
-!                          IF(is<0 .OR. is>cr_nscat .OR. &
-!                             js<0 .OR. js>cr_nscat)  THEN
-!                             ier_num = -97
-!                             ier_typ = ER_APPL
-!                             WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
-!                             WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
-!                             ier_msg(3) = 'Check parameter list for wrong/missing atoms'
-!                             RETURN
-!                          ENDIF
-!                          mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
-!                          mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
-                           CALL mmc_set_cn(ic, MC_COORDNUM, ianz1, ianz2, MAXW, werte1, werte2, werte(1), werte(2)) 
-!                       ENDDO 
-!                       ENDDO 
-                        mmc_cor_energy (ic, MC_COORDNUM) = .TRUE. 
-                        mmc_cor_energy (0, MC_COORDNUM) = .TRUE. 
-                        mmc_cfac (ic, MC_COORDNUM) = 1.0 
-                     ELSEIF (str_comp (cpara (2) , 'spring', 2, lpara ( &
-                     2) , 6) ) THEN                                     
-                        CALL del_params (2, ianz, cpara, lpara, maxw) 
-                        iianz = 1 
-                        jjanz = 1 
-                        CALL get_iscat (iianz, cpara, lpara, uerte,     &
-                        maxw, .FALSE.)                                  
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL get_iscat (jjanz, cpara, lpara, verte,     &
-                        maxw, .FALSE.)                                  
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL ber_params (2, cpara, lpara, werte, maxw) 
-                        DO i = 1, iianz 
-                        DO j = 1, jjanz 
-                        is = nint (uerte (i) ) 
-                        js = nint (verte (j) ) 
-                           IF(is<0 .OR. is>cr_nscat .OR. &
-                              js<0 .OR. js>cr_nscat)  THEN
-                              ier_num = -97
-                              ier_typ = ER_APPL
-                              WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
-                              WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
-                              ier_msg(3) = 'Check parameter list for wrong/missing atoms'
-                              RETURN
-                           ENDIF
-                           mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
-                           mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
-                        CALL mmc_set_disp (ic, MC_SPRING, is, js, werte &
-                        (1), werte (2) )                                
-                        ENDDO 
-                        ENDDO 
-                        mmc_cor_energy (ic, MC_SPRING) = .TRUE. 
-                        mmc_cor_energy (0, MC_SPRING) = .TRUE. 
-                     ELSEIF (str_comp (cpara (2) , 'angle', 2, lpara (2)&
-                     , 5) ) THEN                                        
-!                                                                       
-!     ------------Three atom names are listed on the target instruction 
-!                 Required for angular correlations                     
-!                                                                       
-                        IF (mmc_n_angles == 0          .OR.     &
-                            mmc_n_angles >= MMC_MAX_ANGLES) THEN 
-                           n_angles = max(mmc_n_angles+20, int(MMC_MAX_ANGLES*1.025))
-                           CALL alloc_mmc_angle (CHEM_MAX_COR,n_angles)
-                        ENDIF
-                        IF (mmc_n_angles < MMC_MAX_ANGLES) THEN 
-                           CALL del_params (2, ianz, cpara, lpara, maxw) 
-                           mmc_n_angles = mmc_n_angles + 1 
-                           iianz = 1 
-                           jjanz = 1 
-                           kkanz = 1 
-                           CALL get_iscat (iianz, cpara, lpara, uerte,  &
-                           maxw, .FALSE.)                               
-                           IF (uerte (1)  ==  - 1) THEN 
-                              is_start = 0 
-                              is_end = cr_nscat 
-                              mmc_allowed = .TRUE.           ! all atoms are allowed in mmc moves
-                           ELSE 
-                              is_start = int( uerte (1) )
-                              is_end = int( uerte (1) )
-                              mmc_allowed(is_start) = .TRUE. ! this atom is allowed in mmc moves
-                           ENDIF 
-                           is = int( uerte (1) )
-                           CALL del_params (1, ianz, cpara, lpara, maxw) 
-                           CALL get_iscat (jjanz, cpara, lpara, uerte,  &
-                           maxw, .FALSE.)                               
-                           CALL del_params (1, ianz, cpara, lpara, maxw) 
-                           CALL get_iscat (kkanz, cpara, lpara, verte,  &
-                           maxw, .FALSE.)                               
-                           js = min (uerte (1), verte (1) ) 
-                           ls = max (uerte (1), verte (1) ) 
-                           mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
-                           mmc_allowed(ls) = .TRUE. ! this atom is allowed in mmc moves
-                           i = angles2index (ic, mmc_n_angles, is, js,  &
-                           ls, MAXSCAT)                 
-                           mmc_angles (mmc_n_angles) = i 
-                           CALL index2angles (i, ic, mmc_n_angles, is,  &
-                           js, ls, MAXSCAT)             
-                           CALL del_params (1, ianz, cpara, lpara, maxw) 
-                           CALL ber_params (2, cpara, lpara, werte,     &
-                           maxw)                                        
-                           mmc_target_angl (mmc_n_angles) = werte (1) 
-                           mmc_target_corr (ic, MC_ANGLE, js, ls)       &
-                           = werte (1)                                  
-                           mmc_target_corr (ic, MC_ANGLE, ls, js)       &
-                           = werte (1)                                  
-                           mmc_depth_angl (mmc_n_angles) = werte (2) 
-                           mmc_depth (ic, MC_ANGLE, js, ls) = werte (2) 
-                           mmc_depth (ic, MC_ANGLE, ls, js) = werte (2) 
-                           mmc_cor_energy (ic, MC_ANGLE) = .TRUE. 
-                           mmc_cor_energy (0, MC_ANGLE) = .TRUE. 
-                        ENDIF 
-!DBG_VEC For later development                                          
-!                    ELSEIF (str_comp (cpara (2) , 'vector', 2, lpara ( &
-!                    2) , 6) ) THEN                                     
-!                       CALL del_params (2, ianz, cpara, lpara, maxw) 
-!                       iianz = 1 
-!                       jjanz = 1 
-!                       CALL get_iscat (iianz, cpara, lpara, uerte,     &
-!                       maxw, .FALSE.)                                  
-!                       CALL del_params (1, ianz, cpara, lpara, maxw) 
-!                       CALL get_iscat (jjanz, cpara, lpara, verte,     &
-!                       maxw, .FALSE.)                                  
-!                       CALL del_params (1, ianz, cpara, lpara, maxw) 
-!                       CALL ber_params (4, cpara, lpara, werte, maxw) 
-!                       DO i = 1, iianz 
-!                       DO j = 1, jjanz 
-!                       is = nint (uerte (i) ) 
-!                       js = nint (verte (j) ) 
-!                       CALL mmc_set_vec (ic, is, js, werte, maxw) 
-!                       ENDDO 
-!                       ENDDO 
-!                       mmc_cor_energy (ic, MC_VECTOR) = .TRUE. 
-!                       mmc_cor_energy (0, MC_VECTOR) = .TRUE. 
-                     ELSEIF (str_comp (cpara (2) , 'lennard', 2, lpara (&
-                     2) , 6) ) THEN                                     
-                        CALL del_params (2, ianz, cpara, lpara, maxw) 
-                        iianz = 1 
-                        jjanz = 1 
-                        CALL get_iscat (iianz, cpara, lpara, uerte,     &
-                        maxw, .FALSE.)                                  
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL get_iscat (jjanz, cpara, lpara, verte,     &
-                        maxw, .FALSE.)                                  
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxw)                                           
-                        IF (ianz == 3) THEN 
-                           werte (4) = 12.0 
-                           werte (5) = 6.0 
-                        ENDIF 
-                        IF(ic > MMC_LENN_CORR .OR.  & ! Allocate Lennard
-                           ic > CHEM_MAX_COR  .OR.  &
-                           MAXSCAT > MMC_LENN_SCAT   ) THEN
-                           n_corr = MAX(n_corr, CHEM_MAX_COR, &
-                                                MMC_LENN_CORR)
-                           n_scat = MAX(MAXSCAT,MMC_LENN_SCAT)
-                           call alloc_mmc_lenn (n_corr, n_scat)
-                           IF(ier_num /= 0) THEN
-                              RETURN
-                           ENDIF
-                        ENDIF
-                        DO i = 1, iianz 
-                        DO j = 1, jjanz 
-                        is = nint (uerte (i) ) 
-                        js = nint (verte (j) ) 
-                           IF(is<0 .OR. is>cr_nscat .OR. &
-                              js<0 .OR. js>cr_nscat)  THEN
-                              ier_num = -97
-                              ier_typ = ER_APPL
-                              WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
-                              WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
-                              ier_msg(3) = 'Check parameter list for wrong/missing atoms'
-                              RETURN
-                           ENDIF
-                           mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
-                           mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
-                        CALL mmc_set_disp (ic, MC_LENNARD, is, js,      &
-                        ABS(werte (1)), werte (2) )                          
-                        a = - ABS(werte(2)) * werte(4) / (werte(4)       &
-                        - werte (3) ) * werte (1) **werte (3)           
-                        b = - ABS(werte(2)) * werte(3) / (werte(4)       &
-                        - werte (3) ) * werte (1) **werte (4)           
-                        CALL mmc_set_lenn (ic, is, js, a, b,&
-                        werte (3), werte (4) )                          
-                        ENDDO 
-                        ENDDO 
-                        mmc_cor_energy (ic, MC_LENNARD) = .TRUE. 
-                        mmc_cor_energy (0, MC_LENNARD) = .TRUE. 
-                     ELSEIF (str_comp (cpara (2) , 'repulsive', 2, &
-                                       lpara (2) , 9)        ) THEN                                     
-                        CALL del_params (2, ianz, cpara, lpara, maxw) 
-                        iianz = 1 
-                        jjanz = 1 
-                        CALL get_iscat (iianz, cpara, lpara, uerte,     &
-                        maxw, .FALSE.)                                  
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL get_iscat (jjanz, cpara, lpara, verte,     &
-                        maxw, .FALSE.)                                  
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        IF (ianz >  0) THEN 
-                          CALL ber_params (ianz, cpara, lpara, werte,   &
-                                           maxw)
-                        ENDIF
-                        IF (ianz == 0) THEN 
-                           werte (1) =  0.0 
-                           werte (2) =  1.0 
-                           werte (3) =  0.0 
-                           werte (4) =  1.0 
-                        ELSEIF (ianz == 1) THEN 
-                           werte (2) =  1.0 
-                           werte (3) =  0.0 
-                           werte (4) =  1.0 
-                        ELSEIF (ianz == 2) THEN 
-                           werte (3) =  0.0 
-                           werte (4) =  1.0 
-                        ELSEIF (ianz == 3) THEN 
-                           werte (4) =  1.0 
-                        ENDIF 
-                        IF(ic > MMC_REP_CORR .OR.  & ! Allocate Repulsive
-                           ic > CHEM_MAX_COR  .OR.  &
-                           MAXSCAT > MMC_REP_SCAT   ) THEN
-                           n_corr = MAX(n_corr, CHEM_MAX_COR, &
-                                                MMC_REP_CORR)
-                           n_scat = MAX(MAXSCAT,MMC_REP_SCAT)
-                           call alloc_mmc_rep (n_corr, n_scat)
-                           IF(ier_num /= 0) THEN
-                              RETURN
-                           ENDIF
-                        ENDIF
-                        DO i = 1, iianz 
-                        DO j = 1, jjanz 
-                        is = nint (uerte (i) ) 
-                        js = nint (verte (j) ) 
-                           IF(is<0 .OR. is>cr_nscat .OR. &
-                              js<0 .OR. js>cr_nscat)  THEN
-                              ier_num = -97
-                              ier_typ = ER_APPL
-                              WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
-                              WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
-                              ier_msg(3) = 'Check parameter list for wrong/missing atoms'
-                              RETURN
-                           ENDIF
-                           mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
-                           mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
-                        CALL mmc_set_disp (ic, MC_REPULSIVE, is, js,    &
-                        100.0D0    , ABS(werte (1)) )                          
-                        CALL mmc_set_rep  (ic, is, js,    &
-                        ABS(werte (1)), werte(2) , werte(3), werte(4) )                          
-                        ENDDO 
-                        ENDDO 
-                        mmc_cor_energy (ic, MC_REPULSIVE) = .TRUE. 
-                        mmc_cor_energy (0, MC_REPULSIVE) = .TRUE. 
-                     ELSEIF (str_comp (cpara (2) , 'bucking', 2,        &
-                                       lpara (2) , 7)           )THEN
-                        CALL del_params (2, ianz, cpara, lpara, maxw) 
-                        iianz = 1 
-                        jjanz = 1 
-                        CALL get_iscat (iianz, cpara, lpara, uerte,     &
-                        maxw, .FALSE.)                                  
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL get_iscat (jjanz, cpara, lpara, verte,     &
-                        maxw, .FALSE.)                                  
-                        CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxw)                                           
-                        IF(ic > MMC_BUCK_CORR .OR.  & ! Allocate Buckingham
-                           ic > CHEM_MAX_COR  .OR.  &
-                           MAXSCAT > MMC_BUCK_SCAT   ) THEN
-                           n_corr = MAX(n_corr, CHEM_MAX_COR, &
-                                                MMC_BUCK_CORR)
-                           n_scat = MAX(MAXSCAT,MMC_BUCK_SCAT)
-                           call alloc_mmc_buck (n_corr, n_scat)
-                           IF(ier_num /= 0) THEN
-                              RETURN
-                           ENDIF
-                        ENDIF
-                        DO i = 1, iianz 
-                        DO j = 1, jjanz 
-                        is = nint (uerte (i) ) 
-                        js = nint (verte (j) ) 
-                           IF(is<0 .OR. is>cr_nscat .OR. &
-                              js<0 .OR. js>cr_nscat)  THEN
-                              ier_num = -97
-                              ier_typ = ER_APPL
-                              WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
-                              WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
-                              ier_msg(3) = 'Check parameter list for wrong/missing atoms'
-                              RETURN
-                           ENDIF
-                           mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
-                           mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
-                        mmc_buck_a (ic, is, js) = werte (2) 
-                        mmc_buck_rho (ic, is, js) = werte (3) 
-                        mmc_buck_b (ic, is, js) = werte (4) 
-                        mmc_buck_a (ic, js, is) = werte (2) 
-                        mmc_buck_rho (ic, js, is) = werte (3) 
-                        mmc_buck_b (ic, js, is) = werte (4) 
-                        CALL find_bucking (werte, MAXW) 
-                        mmc_buck_rmin (ic, js, is) = werte (7) 
-                        mmc_buck_atmin (ic, js, is) = werte (8) 
-                        mmc_buck_rmin (ic, is, js) = werte (7) 
-                        mmc_buck_atmin (ic, is, js) = werte (8) 
-                        CALL mmc_set_disp (ic, MC_BUCKING, is, js,      &
-                        werte (5), abs (werte (6) ) )                   
-                        ENDDO 
-                        ENDDO 
-                        mmc_cor_energy (ic, MC_BUCKING) = .TRUE. 
-                        mmc_cor_energy (0, MC_BUCKING) = .TRUE. 
-                     ELSE 
-                        ier_num = - 6 
-                        ier_typ = ER_COMM 
-                     ENDIF 
-!                                                                       
-                  ELSE 
-                     ier_num = - 14 
-                     ier_typ = ER_CHEM 
-                  ENDIF 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-               IF(ier_num==0) mmc_h_number = mmc_h_number + 1
+         call mmc_set_target(ianz, cpara, lpara, MAXW)
 !                                                                       
 !------ --- 'set temp' : setting kT for MC simulation                   
 !                                                                       
@@ -1692,6 +1127,675 @@ winit = -1.0D0*werte(1)  - 3.0D0*werte(1)**5
       ENDIF 
 !                                                                       
 END SUBROUTINE mmc_set                        
+!
+!*******************************************************************************
+!
+subroutine mmc_set_target(ianz, cpara, lpara, MAXW)
+!
+! Handle 'set target' instruction
+!+
+use chem_mod
+use crystal_mod
+use discus_allocate_appl_mod
+use mmc_mod
+use mmc_basic_mod
+use molecule_mod
+!
+use ber_params_mod
+use get_params_mod
+use get_iscat_mod
+use errlist_mod
+use precision_mod
+use str_comp_mod
+!
+implicit none
+!
+integer                          , intent(inout) :: ianz
+integer                          , intent(in   ) :: MAXW
+character(len=*), dimension(MAXW), intent(inout) :: cpara
+integer         , dimension(MAXW), intent(inout) :: lpara
+!
+character(len=PREC_STRING) :: line
+character(len=PREC_STRING), dimension(:), allocatable :: cpara1
+character(len=PREC_STRING), dimension(:), allocatable :: cpara2
+integer                   , dimension(:), allocatable :: lpara1
+integer                   , dimension(:), allocatable :: lpara2
+integer :: MAXW2
+integer :: ianz1, ianz2, iianz, jjanz, kkanz
+integer :: i, j         ! Loop index
+integer :: is, js, ls   ! Atoms on site is, js, ls
+integer :: ic           ! Correlation number
+integer :: length       ! A string length
+integer :: n_corr
+integer :: n_scat
+integer :: n_site
+integer :: n_mole
+integer :: n_angles
+integer :: is_start, is_end
+logical :: is_corr
+real(kind=PREC_DP) :: a, b 
+real(kind=PREC_DP) :: winit
+real(kind=PREC_DP), dimension(MAXW)           :: werte
+real(kind=PREC_DP), dimension(:), allocatable :: uerte
+real(kind=PREC_DP), dimension(:), allocatable :: verte
+real(kind=PREC_DP), dimension(:), allocatable :: werte1
+real(kind=PREC_DP), dimension(:), allocatable :: werte2
+!
+if(ianz<3) then
+   ier_num = -6
+   ier_typ = ER_COMM
+   return
+endif
+!        IF (ianz >= 3) THEN 
+n_corr = 0
+n_scat = 0
+!
+is = - 2 
+js = - 2 
+ls = - 2 
+CALL del_params (1, ianz, cpara, lpara, maxw) 
+CALL ber_params (1, cpara, lpara, werte, maxw) 
+ic = nint (werte (1) ) 
+!
+IF( ic > CHEM_MAX_COR .OR. ic > MMC_MAX_CORR ) THEN
+!
+!  Basic allocation
+!
+   n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR)
+   n_scat = MAX(MAXSCAT, MMC_MAX_SCAT, 3)
+   n_site = MAX(MAXSCAT, MMC_MAX_SITE)
+   n_mole = MOLE_MAX_TYPE
+   ! call alloc_chem ! NEEDS WORK
+   CALL alloc_mmc ( n_corr, MC_N_ENERGY, n_scat, n_site )
+   CALL alloc_mmc_move(n_corr, n_scat, n_mole)
+ENDIF
+!
+if(ic<=0 .or. ic>chem_ncor) then
+   ier_num = - 14 
+   ier_typ = ER_CHEM 
+   return
+endif
+!
+MAXW2 = cr_nscat+1
+allocate(cpara1(1:cr_nscat+1))
+allocate(cpara2(1:cr_nscat+1))
+allocate(lpara1(1:cr_nscat+1))
+allocate(lpara2(1:cr_nscat+1))
+allocate(werte1(1:cr_nscat+1))
+allocate(werte2(1:cr_nscat+1))
+allocate(uerte (1:cr_nscat+1))
+allocate(verte (1:cr_nscat+1))
+werte  = 0.0D0
+uerte  = 0.0D0
+verte  = 0.0D0
+werte1 = 0.0D0
+werte2 = 0.0D0
+!
+!           IF (ic > 0.AND.ic <= chem_ncor) THEN 
+cond_type: IF(str_comp(cpara(2), 'corr', 2, lpara(2), 4) .OR.  &
+   str_comp(cpara(2), 'unid', 2, lpara(2), 4)) THEN
+!
+   is_corr= str_comp (cpara (2) , 'corr', 2, lpara (2) , 4)
+   CALL del_params (2, ianz, cpara, lpara, maxw) 
+!     Get atom typeDA(ianz, cpara, lpara, MAXW)s in the two allowed groups
+!     Allowed parameters are: Au, Cu            ! OLd style 
+!                             (Au), (Cu)        ! New style  :binary correlation
+!                             (Au,Pt), (Cu,Zn)  ! New style  :quaternary correlation
+   IF ( cpara(1)(1:1)=='(' .AND. cpara(1)(lpara(1):lpara(1))==')') THEN
+      line   = cpara(1)(2:lpara(1)-1)
+      length = lpara(1)-2
+      CALL get_params (line, ianz1, cpara1, lpara1, MAXW2, length) 
+      CALL get_iscat (ianz1, cpara1, lpara1, werte1, MAXW2, .FALSE.)                                  
+   ELSEIF ( cpara(1)(1:1)/='(' .AND. cpara(1)(lpara(1):lpara(1))/=')') THEN
+      ianz1 = 1 
+      CALL get_iscat(ianz1, cpara, lpara, werte1, MAXW2, .FALSE.)                                  
+   ELSE
+      ier_num = -6
+      ier_typ = ER_COMM
+      exit cond_type
+   ENDIF
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+   IF ( cpara(1)(1:1)=='(' .AND. cpara(1)(lpara(1):lpara(1))==')') THEN
+      line   = cpara(1)(2:lpara(1)-1)
+      length = lpara(1)-2
+      CALL get_params (line, ianz2, cpara2, lpara2, MAXW2, length) 
+      CALL get_iscat (ianz2, cpara2, lpara2, werte2, MAXW2, .FALSE.)                                  
+   ELSEIF ( cpara(1)(1:1)/='(' .AND. cpara(1)(lpara(1):lpara(1))/=')') THEN
+      ianz2 = 1 
+      CALL get_iscat (ianz2, cpara, lpara, werte2, MAXW2, .FALSE.)                                  
+   ELSE
+      ier_num = -6
+      ier_typ = ER_COMM
+      exit cond_type
+   ENDIF
+!
+   IF(is_corr                                    ) THEN                                             
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (cpara (ianz) (1:2)  == 'CO') THEN 
+         mmc_cfac (ic, MC_OCC) =  1.0 
+         mmc_lfeed(ic, MC_OCC) =  .true.
+         ianz = ianz - 1 
+      ELSEIF (cpara (ianz) (1:2)  == 'EN') THEN 
+         mmc_cfac (ic, MC_OCC) = 0.0 
+         mmc_lfeed(ic, MC_OCC) =  .false.
+         ianz = ianz - 1 
+      ENDIF 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw)
+      IF (mmc_cfac (ic, MC_OCC) > 0.0) THEN 
+         winit = -2.0D0*werte(1) - 3.0D0*werte(1)**5
+         winit = -1.0D0*werte(1)  - 3.0D0*werte(1)**5
+         CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
+                          MAXW2, werte1, werte2, werte(1) , winit)
+                        mmc_depth (ic, MC_OCC, 0, 0) = winit
+      ELSEIF (mmc_cfac (ic, MC_OCC) ==0.0) THEN 
+         CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
+                          MAXW2, werte1, werte2, werte(1) , werte(2) )                                   
+         mmc_depth (ic, MC_OCC, 0, 0) = werte (2) 
+      ENDIF
+      mmc_cor_energy (ic, MC_OCC) = .TRUE. 
+      mmc_cor_energy (0, MC_OCC) = .TRUE. 
+   ELSE
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF (cpara (ianz) (1:2)  == 'CO') THEN 
+         mmc_cfac (ic, MC_UNI) =  1.0 
+         mmc_lfeed(ic, MC_UNI) =  .true.
+         ianz = ianz - 1 
+      ELSEIF (cpara (ianz) (1:2)  == 'EN') THEN 
+         mmc_cfac (ic, MC_UNI) = 0.0 
+         mmc_lfeed(ic, MC_UNI) =  .false.
+         ianz = ianz - 1 
+      ENDIF 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw)
+      IF (mmc_cfac (ic, MC_UNI) > 0.0) THEN 
+         winit = -2.0D0*werte(1) - 3.0D0*werte(1)**5
+         CALL mmc_set_unid_occ (ic, MC_UNI, ianz1, ianz2, &
+                       MAXW2, werte1, werte2, werte(1) , winit)
+                       mmc_depth (ic, MC_UNI, 0, 0) = winit
+      ELSEIF (mmc_cfac (ic, MC_UNI) ==0.0) THEN 
+         CALL mmc_set_unid_occ (ic, MC_UNI, ianz1, ianz2, &
+                       MAXW2, werte1, werte2, werte(1) , werte(2) )                                   
+                       mmc_depth (ic, MC_UNI, 0, 0) = werte (2) 
+      ENDIF
+      mmc_cor_energy (ic, MC_UNI) = .TRUE. 
+      mmc_cor_energy (0, MC_UNI) = .TRUE. 
+   ENDIF
+ELSEIF(str_comp(cpara(2), 'group', 2, lpara(2) , 5)) THEN  cond_type ! Group wise correlations
+   CALL set_target_group(MAXW, ianz, cpara, lpara, werte, ic)
+ELSEIF(str_comp(cpara(2), 'cd', 2, lpara(2), 2) ) THEN     cond_type 
+   CALL del_params (2, ianz, cpara, lpara, maxw) 
+   iianz = 1 
+   jjanz = 1 
+   CALL get_iscat(iianz, cpara, lpara, uerte, MAXW2, .FALSE.)
+   CALL del_params(1, ianz, cpara, lpara, maxw) 
+   CALL get_iscat (jjanz, cpara, lpara, verte, MAXW2, .FALSE.)
+   CALL del_params(1, ianz, cpara, lpara, maxw) 
+   IF (cpara (ianz) (1:2)  == 'CO') THEN 
+      mmc_cfac (ic, MC_DISP) =  1.00 
+      mmc_lfeed(ic, MC_DISP) =  .true.
+      ianz = ianz - 1 
+   ELSEIF (cpara (ianz) (1:2)  == 'EN') THEN 
+      mmc_cfac (ic, MC_DISP) = 0.0 
+      mmc_lfeed(ic, MC_DISP) =  .false.
+      ianz = ianz - 1 
+   ENDIF 
+   CALL ber_params (2, cpara, lpara, werte, maxw) 
+   IF (mmc_cfac (ic, MC_DISP) /= 0.0) THEN 
+      werte(2) = -500.*werte(1)
+   ENDIF
+   DO i = 1, iianz 
+      DO j = 1, jjanz 
+         is = nint(uerte (i) ) 
+         js = nint(verte (j) ) 
+            IF(is<0 .OR. is>cr_nscat .OR. &
+               js<0 .OR. js>cr_nscat)  THEN
+               ier_num = -97
+               ier_typ = ER_APPL
+               WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+               WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+               ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+               exit cond_type
+            ENDIF
+            mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
+            mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
+         CALL mmc_set_disp (ic, MC_DISP, is, js, werte ( &
+                        1), werte (2) )                                 
+      ENDDO 
+   ENDDO 
+!
+   chem_ldall (ic) = .TRUE. 
+   IF (ianz > 2) THEN 
+      CALL del_params (2, ianz, cpara, lpara, maxw) 
+      IF (cpara (1) (1:3)  == 'all') THEN 
+         chem_ldall (ic) = .TRUE. 
+      ELSE 
+         CALL ber_params (ianz, cpara, lpara,      &
+         werte, maxw)                              
+         IF (ier_num /= 0) return 
+!                                                                       
+         IF (ianz == 3) THEN 
+            chem_ldall (ic) = .FALSE. 
+            chem_dir (1, 1, ic) = werte (1) 
+            chem_dir (2, 1, ic) = werte (2) 
+            chem_dir (3, 1, ic) = werte (3) 
+            chem_dir (1, 2, ic) = werte (1) 
+            chem_dir (2, 2, ic) = werte (2) 
+            chem_dir (3, 2, ic) = werte (3) 
+         ELSEIF (ianz == 6) THEN 
+            chem_ldall (ic) = .FALSE. 
+            chem_dir (1, 1, ic) = werte (1) 
+            chem_dir (2, 1, ic) = werte (2) 
+            chem_dir (3, 1, ic) = werte (3) 
+            chem_dir (1, 2, ic) = werte (4) 
+            chem_dir (2, 2, ic) = werte (5) 
+            chem_dir (3, 2, ic) = werte (6) 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+   ENDIF 
+   mmc_cor_energy (ic, MC_DISP) = .TRUE. 
+   mmc_cor_energy (0, MC_DISP) = .TRUE. 
+ELSEIF(str_comp(cpara(2) , 'cn', 2, lpara(2), 2) ) THEN  cond_type  !Coordination number
+   CALL del_params (2, ianz, cpara, lpara, maxw) 
+!  Get atom types in the two allowed groups
+!  Allowed parameters are: Au, Cu            ! OLd style 
+!                          (Au), (Cu)        ! New style  :binary correlation
+!                          (Au,Pt), (Cu,Zn)  ! New style  :quaternary correlation
+   IF ( cpara(1)(1:1)=='(' .AND. cpara(1)(lpara(1):lpara(1))==')') THEN
+      line   = cpara(1)(2:lpara(1)-1)
+      length = lpara(1)-2
+      CALL get_params (line, ianz1, cpara1, lpara1, MAXW2, length) 
+      CALL get_iscat (ianz1, cpara1, lpara1, werte1, MAXW2, .FALSE.)                                  
+   ELSEIF ( cpara(1)(1:1)/='(' .AND. cpara(1)(lpara(1):lpara(1))/=')') THEN
+      ianz1 = 1 
+      CALL get_iscat (ianz1, cpara, lpara, werte1, MAXW2, .FALSE.)                                  
+   ELSE
+      ier_num = -6
+      ier_typ = ER_COMM
+      exit cond_type
+   ENDIF
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+   IF ( cpara(1)(1:1)=='(' .AND. cpara(1)(lpara(1):lpara(1))==')') THEN
+      line   = cpara(1)(2:lpara(1)-1)
+      length = lpara(1)-2
+      CALL get_params (line, ianz2, cpara2, lpara2, maxw, length) 
+      CALL get_iscat (ianz2, cpara2, lpara2, werte2, maxw, .FALSE.)                                  
+   ELSEIF ( cpara(1)(1:1)/='(' .AND. cpara(1)(lpara(1):lpara(1))/=')') THEN
+      ianz2 = 1 
+      CALL get_iscat (ianz2, cpara, lpara, werte2, maxw, .FALSE.)                                  
+   ELSE
+      ier_num = -6
+      ier_typ = ER_COMM
+      exit cond_type
+   ENDIF
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+   CALL ber_params (2, cpara, lpara, werte, maxw) 
+!                       DO i = 1, iianz 
+!                       DO j = 1, jjanz 
+!                       is = nint (uerte (i) ) 
+!                       js = nint (verte (j) ) 
+!                          IF(is<0 .OR. is>cr_nscat .OR. &
+!                             js<0 .OR. js>cr_nscat)  THEN
+!                             ier_num = -97
+!                             ier_typ = ER_APPL
+!                             WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+!                             WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+!                             ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+!                             RETURN
+!                          ENDIF
+!                          mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
+!                          mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
+                           CALL mmc_set_cn(ic, MC_COORDNUM, ianz1, ianz2, MAXW2, werte1, werte2, werte(1), werte(2)) 
+!                       ENDDO 
+!                       ENDDO 
+   mmc_cor_energy (ic, MC_COORDNUM) = .TRUE. 
+   mmc_cor_energy (0, MC_COORDNUM) = .TRUE. 
+   mmc_cfac (ic, MC_COORDNUM) = 1.0 
+ELSEIF(str_comp(cpara(2), 'spring', 2, lpara(2), 6) ) THEN cond_type
+   CALL del_params (2, ianz, cpara, lpara, maxw) 
+   iianz = 1 
+   jjanz = 1 
+   CALL get_iscat (iianz, cpara, lpara, uerte,     &
+                        MAXW2, .FALSE.)                                  
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+   CALL get_iscat (jjanz, cpara, lpara, verte,     &
+                        MAXW2, .FALSE.)                                  
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+   CALL ber_params (2, cpara, lpara, werte, maxw) 
+!
+   if(iianz==1 .and. nint(uerte(1))==-1) then   ! 'all' atom typs selected
+      do i=0,cr_nscat
+         uerte(i+1) = real(i,kind=PREC_DP)
+      enddo
+      iianz = cr_nscat+1
+   endif
+   if(jjanz==1 .and. nint(verte(1))==-1) then   ! 'all' atom typs selected
+      do i=0,cr_nscat
+         verte(i+1) = real(i,kind=PREC_DP)
+      enddo
+      jjanz = cr_nscat+1
+   endif
+   DO i = 1, iianz 
+      DO j = 1, jjanz 
+         is = nint (uerte (i) ) 
+         js = nint (verte (j) ) 
+         IF(is<0 .OR. is>cr_nscat .OR. &
+            js<0 .OR. js>cr_nscat)  THEN
+            ier_num = -97
+            ier_typ = ER_APPL
+            WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+            WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+            ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+            exit cond_type
+         ENDIF
+         mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
+         mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
+         CALL mmc_set_disp (ic, MC_SPRING, is, js, werte &
+                        (1), werte (2) )                                
+      ENDDO 
+   ENDDO 
+   mmc_cor_energy (ic, MC_SPRING) = .TRUE. 
+   mmc_cor_energy (0, MC_SPRING) = .TRUE. 
+ELSEIF(str_comp(cpara(2) , 'angle', 2, lpara(2), 5) ) THEN cond_type
+!                                                                       
+!     ------------Three atom names are listed on the target instruction 
+!                 Required for angular correlations                     
+!                                                                       
+   IF (mmc_n_angles == 0          .OR.     &
+       mmc_n_angles >= MMC_MAX_ANGLES) THEN 
+      n_angles = max(mmc_n_angles+20, int(MMC_MAX_ANGLES*1.025))
+      CALL alloc_mmc_angle (CHEM_MAX_COR,n_angles)
+   ENDIF
+   IF (mmc_n_angles < MMC_MAX_ANGLES) THEN 
+      CALL del_params (2, ianz, cpara, lpara, maxw) 
+      mmc_n_angles = mmc_n_angles + 1 
+      iianz = 1 
+      jjanz = 1 
+      kkanz = 1 
+      CALL get_iscat(iianz, cpara, lpara, uerte, maxw, .FALSE.)
+      IF (uerte (1)  ==  - 1) THEN 
+         is_start = 0 
+         is_end = cr_nscat 
+         mmc_allowed = .TRUE.           ! all atoms are allowed in mmc moves
+      ELSE 
+         is_start = int( uerte (1) )
+         is_end = int( uerte (1) )
+         mmc_allowed(is_start) = .TRUE. ! this atom is allowed in mmc moves
+      ENDIF 
+      is = int( uerte (1) )
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      CALL get_iscat (jjanz, cpara, lpara, uerte, MAXW2, .FALSE.)                               
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      CALL get_iscat (kkanz, cpara, lpara, verte, MAXW2, .FALSE.)                               
+      js = min (uerte (1), verte (1) ) 
+      ls = max (uerte (1), verte (1) ) 
+      mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
+      mmc_allowed(ls) = .TRUE. ! this atom is allowed in mmc moves
+      i = angles2index (ic, mmc_n_angles, is, js, ls, MAXSCAT)                 
+      mmc_angles (mmc_n_angles) = i 
+      CALL index2angles (i, ic, mmc_n_angles, is,  js, ls, MAXSCAT)             
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      CALL ber_params (2, cpara, lpara, werte, maxw)                                        
+      mmc_target_angl (mmc_n_angles) = werte (1) 
+      mmc_target_corr (ic, MC_ANGLE, js, ls) = werte (1)                                  
+      mmc_target_corr (ic, MC_ANGLE, ls, js) = werte (1)                                  
+      mmc_depth_angl (mmc_n_angles) = werte (2) 
+      mmc_depth (ic, MC_ANGLE, js, ls) = werte (2) 
+      mmc_depth (ic, MC_ANGLE, ls, js) = werte (2) 
+      mmc_cor_energy (ic, MC_ANGLE) = .TRUE. 
+      mmc_cor_energy (0, MC_ANGLE) = .TRUE. 
+   ENDIF 
+!DBG_VEC For later development                                          
+!                    ELSEIF (str_comp (cpara (2) , 'vector', 2, lpara ( &
+!                    2) , 6) ) THEN                                     
+!                       CALL del_params (2, ianz, cpara, lpara, maxw) 
+!                       iianz = 1 
+!                       jjanz = 1 
+!                       CALL get_iscat (iianz, cpara, lpara, uerte,     &
+!                       maxw, .FALSE.)                                  
+!                       CALL del_params (1, ianz, cpara, lpara, maxw) 
+!                       CALL get_iscat (jjanz, cpara, lpara, verte,     &
+!                       maxw, .FALSE.)                                  
+!                       CALL del_params (1, ianz, cpara, lpara, maxw) 
+!                       CALL ber_params (4, cpara, lpara, werte, maxw) 
+!                       DO i = 1, iianz 
+!                       DO j = 1, jjanz 
+!                       is = nint (uerte (i) ) 
+!                       js = nint (verte (j) ) 
+!                       CALL mmc_set_vec (ic, is, js, werte, maxw) 
+!                       ENDDO 
+!                       ENDDO 
+!                       mmc_cor_energy (ic, MC_VECTOR) = .TRUE. 
+!                       mmc_cor_energy (0, MC_VECTOR) = .TRUE. 
+ELSEIF(str_comp(cpara(2), 'lennard', 2, lpara(2), 6) ) THEN cond_type
+   CALL del_params (2, ianz, cpara, lpara, maxw) 
+   iianz = 1 
+   jjanz = 1 
+   CALL get_iscat(iianz, cpara, lpara, uerte, MAXW2, .FALSE.)                                  
+   CALL del_params(1, ianz, cpara, lpara, maxw) 
+   CALL get_iscat(jjanz, cpara, lpara, verte, MAXW2, .FALSE.)                                  
+   CALL del_params(1, ianz, cpara, lpara, maxw) 
+   CALL ber_params(ianz, cpara, lpara, werte, maxw)                                           
+!
+   if(iianz==1 .and. nint(uerte(1))==-1) then   ! 'all' atom typs selected
+      do i=0,cr_nscat
+         uerte(i+1) = real(i,kind=PREC_DP)
+      enddo
+      iianz = cr_nscat+1
+   endif
+   if(jjanz==1 .and. nint(verte(1))==-1) then   ! 'all' atom typs selected
+      do i=0,cr_nscat
+         verte(i+1) = real(i,kind=PREC_DP)
+      enddo
+      jjanz = cr_nscat+1
+   endif
+!
+   IF (ianz == 3) THEN 
+      werte(4) = 12.0D0
+      werte(5) = 6.0D0
+   ENDIF 
+   IF(ic > MMC_LENN_CORR .OR.  & ! Allocate Lennard
+      ic > CHEM_MAX_COR  .OR.  &
+      MAXSCAT > MMC_LENN_SCAT   ) THEN
+      n_corr = MAX(n_corr, CHEM_MAX_COR, &
+                           MMC_LENN_CORR)
+      n_scat = MAX(MAXSCAT,MMC_LENN_SCAT)
+      call alloc_mmc_lenn (n_corr, n_scat)
+      IF(ier_num /= 0) THEN
+         exit cond_type
+      ENDIF
+   ENDIF
+   DO i = 1, iianz 
+      DO j = 1, jjanz 
+         is = nint (uerte (i) ) 
+         js = nint (verte (j) ) 
+            IF(is<0 .OR. is>cr_nscat .OR. &
+               js<0 .OR. js>cr_nscat)  THEN
+               ier_num = -97
+               ier_typ = ER_APPL
+               WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+               WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+               ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+               exit cond_type
+            ENDIF
+            mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
+            mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
+         CALL mmc_set_disp (ic, MC_LENNARD, is, js,      &
+                        ABS(werte (1)), werte (2) )                          
+         a = - ABS(werte(2)) * werte(4) / (werte(4)       &
+                        - werte (3) ) * werte (1) **werte (3)           
+         b = - ABS(werte(2)) * werte(3) / (werte(4)       &
+                        - werte (3) ) * werte (1) **werte (4)           
+         CALL mmc_set_lenn (ic, is, js, a, b,&
+         werte (3), werte (4) )                          
+      ENDDO 
+   ENDDO 
+   mmc_cor_energy (ic, MC_LENNARD) = .TRUE. 
+   mmc_cor_energy (0, MC_LENNARD) = .TRUE. 
+ELSEIF(str_comp(cpara(2), 'repulsive', 2, lpara(2), 9)        ) THEN cond_type
+   CALL del_params (2, ianz, cpara, lpara, maxw) 
+   iianz = 1 
+   jjanz = 1 
+   CALL get_iscat (iianz, cpara, lpara, uerte, MAXW2, .FALSE.)                                  
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+   CALL get_iscat (jjanz, cpara, lpara, verte, MAXW2, .FALSE.)                                  
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+!
+   if(iianz==1 .and. nint(uerte(1))==-1) then   ! 'all' atom typs selected
+      do i=0,cr_nscat
+         uerte(i+1) = real(i,kind=PREC_DP)
+      enddo
+      iianz = cr_nscat+1
+   endif
+   if(jjanz==1 .and. nint(verte(1))==-1) then   ! 'all' atom typs selected
+      do i=0,cr_nscat
+         verte(i+1) = real(i,kind=PREC_DP)
+      enddo
+      jjanz = cr_nscat+1
+   endif
+!
+   IF (ianz >  0) THEN 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw)
+   ENDIF
+   IF (ianz == 0) THEN 
+      werte (1) =  0.0 
+      werte (2) =  1.0 
+      werte (3) =  0.0 
+      werte (4) =  1.0 
+             ELSEIF (ianz == 1) THEN 
+      werte (2) =  1.0 
+      werte (3) =  0.0 
+      werte (4) =  1.0 
+   ELSEIF (ianz == 2) THEN 
+      werte (3) =  0.0 
+      werte (4) =  1.0 
+   ELSEIF (ianz == 3) THEN 
+      werte (4) =  1.0 
+   ENDIF 
+   IF(ic > MMC_REP_CORR .OR.  & ! Allocate Repulsive
+      ic > CHEM_MAX_COR  .OR.  &
+      MAXSCAT > MMC_REP_SCAT   ) THEN
+      n_corr = MAX(n_corr, CHEM_MAX_COR, &
+                           MMC_REP_CORR)
+      n_scat = MAX(MAXSCAT,MMC_REP_SCAT)
+      call alloc_mmc_rep (n_corr, n_scat)
+      IF(ier_num /= 0) THEN
+         exit cond_type
+      ENDIF
+   ENDIF
+   DO i = 1, iianz 
+      DO j = 1, jjanz 
+         is = nint (uerte (i) ) 
+         js = nint (verte (j) ) 
+         IF(is<0 .OR. is>cr_nscat .OR. &
+            js<0 .OR. js>cr_nscat)  THEN
+            ier_num = -97
+            ier_typ = ER_APPL
+            WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+            WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+            ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+            exit cond_type
+         ENDIF
+         mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
+         mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
+         CALL mmc_set_disp (ic, MC_REPULSIVE, is, js, 100.0D0, ABS(werte(1)) )                          
+         CALL mmc_set_rep(ic, is, js, ABS(werte(1)), werte(2) , werte(3), werte(4))
+      ENDDO 
+   ENDDO 
+   mmc_cor_energy (ic, MC_REPULSIVE) = .TRUE. 
+   mmc_cor_energy (0, MC_REPULSIVE) = .TRUE. 
+ELSEIF(str_comp(cpara(2), 'bucking', 2, lpara(2), 7) ) THEN cond_type
+   CALL del_params (2, ianz, cpara, lpara, maxw) 
+   iianz = 1 
+   jjanz = 1 
+   CALL get_iscat (iianz, cpara, lpara, uerte, MAXW2, .FALSE.)                                  
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+   CALL get_iscat (jjanz, cpara, lpara, verte, MAXW2, .FALSE.)                                  
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+   CALL ber_params (ianz, cpara, lpara, werte, maxw)                                           
+!
+   if(iianz==1 .and. nint(uerte(1))==-1) then   ! 'all' atom typs selected
+      do i=0,cr_nscat
+         uerte(i+1) = real(i,kind=PREC_DP)
+      enddo
+      iianz = cr_nscat+1
+   endif
+   if(jjanz==1 .and. nint(verte(1))==-1) then   ! 'all' atom typs selected
+      do i=0,cr_nscat
+         verte(i+1) = real(i,kind=PREC_DP)
+      enddo
+      jjanz = cr_nscat+1
+   endif
+!
+   IF(ic > MMC_BUCK_CORR .OR.  & ! Allocate Buckingham
+      ic > CHEM_MAX_COR  .OR.  &
+      MAXSCAT > MMC_BUCK_SCAT   ) THEN
+      n_corr = MAX(n_corr, CHEM_MAX_COR, MMC_BUCK_CORR)
+      n_scat = MAX(MAXSCAT,MMC_BUCK_SCAT)
+      call alloc_mmc_buck (n_corr, n_scat)
+      IF(ier_num /= 0) THEN
+         exit cond_type
+      ENDIF
+   ENDIF
+   DO i = 1, iianz 
+      DO j = 1, jjanz 
+         is = nint (uerte (i) ) 
+         js = nint (verte (j) ) 
+         IF(is<0 .OR. is>cr_nscat .OR. &
+            js<0 .OR. js>cr_nscat)  THEN
+            ier_num = -97
+            ier_typ = ER_APPL
+            WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+            WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+            ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+            exit cond_type
+         ENDIF
+         mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
+         mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
+         mmc_buck_a (ic, is, js) = werte (2) 
+         mmc_buck_rho (ic, is, js) = werte (3) 
+         mmc_buck_b (ic, is, js) = werte (4) 
+         mmc_buck_a (ic, js, is) = werte (2) 
+         mmc_buck_rho (ic, js, is) = werte (3) 
+         mmc_buck_b (ic, js, is) = werte (4) 
+         CALL find_bucking (werte, MAXW) 
+         mmc_buck_rmin (ic, js, is) = werte (7) 
+         mmc_buck_atmin (ic, js, is) = werte (8) 
+         mmc_buck_rmin (ic, is, js) = werte (7) 
+         mmc_buck_atmin (ic, is, js) = werte (8) 
+         CALL mmc_set_disp(ic, MC_BUCKING, is, js, werte(5), abs(werte(6) ) )
+      ENDDO 
+   ENDDO 
+   mmc_cor_energy (ic, MC_BUCKING) = .TRUE. 
+   mmc_cor_energy (0, MC_BUCKING) = .TRUE. 
+ELSE  cond_type
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF  cond_type
+!                                                                       
+!                 ELSE 
+!                    ier_num = - 14 
+!                    ier_typ = ER_CHEM 
+!                 ENDIF 
+!              ELSE 
+!                 ier_num = - 6 
+!                 ier_typ = ER_COMM 
+!              ENDIF 
+!
+if(ier_num==0) mmc_h_number = mmc_h_number + 1
+!
+write(*,*) ' CLEANING UP '
+deallocate(cpara1)
+deallocate(cpara2)
+deallocate(lpara1)
+deallocate(lpara2)
+deallocate(werte1)
+deallocate(werte2)
+deallocate(uerte )
+deallocate(verte )
+!
+end subroutine mmc_set_target
 !
 !*****7*****************************************************************
 !
@@ -2224,6 +2328,7 @@ INTEGER :: ii, jj
 !                                                                       
                                                                         
       IF (is /=  - 1.AND.js /=  - 1) THEN 
+write(*,*) ' ic, is, js', ic, is, js, a, b, m, n
          mmc_len_a (ic, is, js) = a 
          mmc_len_b (ic, is, js) = b 
          mmc_len_m (ic, is, js) = m 
