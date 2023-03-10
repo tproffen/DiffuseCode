@@ -1368,7 +1368,6 @@ elseif(form=='SZ') then
    if(dims(2)>1) then
       j = nint( (werte(2)-c_y(1))/steps(2)) + 1
    endif
-write(*,*) ' SCHNITT AT ', i,j, werte(1:2)
    write(IWR, '(a)') '#'
    write(IWR, '(a)') '#'
    do k=1, dims(3)

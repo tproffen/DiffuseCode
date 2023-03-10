@@ -1362,7 +1362,6 @@ ELSEIF (ftyp (1:2) .eq.'MA') THEN
    p_kuplot_theory => theory_macro_n
 ENDIF 
 !
-write(*,*) npara, p(1:npara)
 kupl_last  = iz-1
 CALL p_kuplot_theory(npara, ix, iy, xx, yy, npara, p, par_names,   &
                    prange, l_do_deriv, &
