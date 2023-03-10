@@ -38,3 +38,12 @@ void FCreadline(int len, char *myline, char prompt[]){
    /* free memory used to return line from readline(3c) */
    free(line);       
 }
+/* -------------------------------------------------------------------------- */
+void FCreadline_add(int len, char myline[] ){
+/* Add line "myline" to the readline history -------------------------------- */
+
+   using_history();  
+   if(strlen(myline) >0) {            
+      add_history(myline);
+   }
+}

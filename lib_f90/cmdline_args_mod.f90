@@ -21,6 +21,7 @@ USE lib_macro_func
 USE precision_mod
 !USE sockets_mod
 USE support_mod
+use jsu_readline
 IMPLICIT none 
 !                                                                       
 INTEGER, INTENT(IN) :: local_mpi_myid
@@ -29,6 +30,7 @@ INTEGER, PARAMETER :: marg = 20
 !                                                                       
 CHARACTER(LEN=PREC_STRING), DIMENSION(MARG) :: arg ! (marg) 
 CHARACTER(LEN=2048)                  :: line = ' '
+CHARACTER(LEN=2048)                  :: string = ' '
 !CHARACTER(LEN=40)                    :: str 
 INTEGER :: iarg, i, j,  ilen , ilena
 LOGICAL :: lexist, lautorun
@@ -74,6 +76,8 @@ IF (iarg.gt.0) THEN
    IF (index (arg (1) , '-macro') .ne. 0) THEN ! execute a macro with optional parameters
       IF (iarg.gt.1) THEN 
          ilena = len_str(arg(2)) ! arg2 is the actual macro name
+         inquire(file=arg(2)(1:len_trim(arg(2))), exist=lexist)
+         if(lexist) then         ! Macro file was found
          IF(iarg > 2) THEN       ! There are macro parameter(s)
             line  = arg(2)(1:ilena) // ' '
             ilen  = ilena + 1
@@ -90,8 +94,13 @@ IF (iarg.gt.0) THEN
                ilen = ilen + 1
             ENDIF
          ENDDO
+         string = '@' // line(1:len_trim(line))
+         call iso_readline_add(string)
          IF(local_mpi_myid==0) WRITE ( *, 1000) line (1:ilen)
          CALL file_kdo(line(1:ilen), ilen) ! Execute macro and return to normal prompt
+         else
+            IF(local_mpi_myid==0) WRITE(*, 1100) arg(2)(1:len_trim(arg(2)))
+         endif
       ENDIF
    ELSE ! all other command line arguments
       DO i = 1, iarg 
@@ -119,6 +128,7 @@ IF (iarg.gt.0) THEN
 ENDIF 
 !                                                                       
  1000 FORMAT     (' ------ > Reading macro ',a) 
+ 1100 FORMAT     (' ------ > Did not find macro ',a) 
  1500 FORMAT     (' ------ > Running in debug mode ..') 
  2000 FORMAT     (' Usage: ',a,' [-remote] [-debug] [-port=p]',         &
      &                   ' [-access=ip]')                               
