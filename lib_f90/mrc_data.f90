@@ -302,14 +302,15 @@ enddo
 do i=1, 10-ilabel
    read(IMRC) label
 enddo
-!write(*,*) 'Starting to read extended header'
+pxsize = 0.0D0
+!write(*,*) 'Starting to read extended header', pxsize
 !  End of standard header at 1024 Bytes
 if(extend_b>0) then    ! There is an extended header
    do i=1,44   ! Ignore initial 44 bytes
       read(IMRC) ibyte
    enddo
       read(IMRC) pxsize
-!   write(*,*) ' pixel size ' , pxsize*1.0E-10 ,' a^-1/pixel'
+!    write(*,*) ' pixel size ' , pxsize*1.0E-10 ,' a^-1/pixel'
    do i=1,extend_b - 48
       read(IMRC) ibyte
    enddo
@@ -337,7 +338,11 @@ nndims = 0
 if(dims(3)>1) nndims = nndims + 1
 if(dims(2)>1) nndims = nndims + 1
 if(dims(1)>1) nndims = nndims + 1
-mrc_layer = dims(3)/2
+if(mod(dims(3),2)==0) then
+   mrc_layer = dims(3)/2
+else
+   mrc_layer = (dims(3)+1)/2
+endif
 mrc_direct = .false.
 mrc_is_grid  = .true.
 mrc_has_dxyz = .false.
