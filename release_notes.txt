@@ -2,10 +2,13 @@
 
 GENERAL
               Removed a few unnecessary debug output lines
+              the macro on the command line has been added to the command history
 DISCUS
   fourier     Set symm:apply was not fully active
               BUG FIX The absence of "sigtop" caused trouble
-  show        Added a flag to indicate whic symmetry elements are part of the point group
+  mmc         BUG FIX Corrected the "all" atom types parameters on 'set target'
+  powder      Added missing output on hkl steps for complete mode
+  show        Added a flag to indicate which symmetry elements are part of the point group
 6.14.00  RELEASE 2023_02_15
 GENERAL
               Moved all FFT's to the FFTW library which is much faster
