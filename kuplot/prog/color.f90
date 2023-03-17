@@ -544,6 +544,7 @@ INTEGER :: i, m, n
 INTEGER :: ii
 INTEGER :: istart
 REAL    :: scalef
+real    :: adjust
 !REAL    :: red, green!, blue
 !
 !  CALL cmap_fire(lout)
@@ -568,6 +569,8 @@ ELSE
    istart = (maxcol+1)/2
 ENDIF
 !
+col_map(iwin,:,:) = 1.0
+!
    m = (maxcol-istart) / 3 
 n = MOD((maxcol-istart),3)
    ii = istart
@@ -575,20 +578,21 @@ n = MOD((maxcol-istart),3)
    DO i = 1, m 
       col_map (iwin, ii, 1) = 1.0 
       col_map (iwin, ii, 2) = 1.0 
-      col_map (iwin, ii, 3) = 1.0 - REAL(3 * i) / REAL(maxcol) 
+      col_map (iwin, ii, 3) = max(0.0, 1.0 - REAL(3 * i) / REAL(maxcol) )
       ii = ii + 1 
    ENDDO 
 !                                                                       
    DO i = 1, m 
       col_map (iwin, ii, 1) = 1.0 
-      col_map (iwin, ii, 2) = 1.0 - REAL(3 * i) / REAL(maxcol) 
+      col_map (iwin, ii, 2) = max(0.0, 1.0 - REAL(3 * i) / REAL(maxcol) )
       col_map (iwin, ii, 3) = 0.0 
       ii = ii + 1 
    ENDDO 
 !                                                                       
+adjust = 1.0/(REAL(3 * (m + n + 1)) / REAL(maxcol))
 final:   DO i = 1, m + n + 1
       if(ii>maxcol) EXIT final
-      col_map (iwin, ii, 1) = 1.0 - REAL(3 * i) / REAL(maxcol) 
+      col_map (iwin, ii, 1) = max(0.0, 1.0 - REAL(3 * i) / REAL(maxcol) *adjust)
       col_map (iwin, ii, 2) = 0.0 
       col_map (iwin, ii, 3) = 0.0 
       ii = ii + 1 
