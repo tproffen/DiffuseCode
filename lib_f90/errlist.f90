@@ -73,15 +73,18 @@ ENDIF
          res_para(2) = ier_typ
        ENDIF
 !
+if(ier_num/=0 .and. ier_sta/=ER_S_LIVE .and. mpi_is_slave) then
+   return
+else
        CALL no_error
+endif
 !
-1000  FORMAT(' ****EXIT**** Program terminated by error status',        &
-     &       '        ****',a1/)
-2000 FORMAT(a,' ***MAC *** Error in macro line: ',i5,' Level ',i3, &
-            '          ***',a,/,                              &
+1000  FORMAT(' ****EXIT**** Program terminated by error status', '        ****',a1/)
+2000 FORMAT(a,' ***MAC *** Error in macro line: ',i5,' Level ',i3, '          ***',a,/, &
             a,' ***MAC *** ',a,a                                   &
      )
-       END
+
+END
 !*****7****************************************************************
 !
 SUBROUTINE no_error
