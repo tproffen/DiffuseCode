@@ -137,7 +137,8 @@ ELSE
                cr_nscat = cr_nscat + 1 
                cr_at_lis (cr_nscat) = cpara (2) (1:lpara(2))
 !DBG                   cr_dw(cr_nscat)     = cr_dw(nint(uerte(i)))         
-               cr_dw (cr_nscat) = 0.05 
+               cr_dw (cr_nscat) = 0.05D0
+               cr_occ(cr_nscat) = 1.00D0
                CALL no_error 
                verte (i) = REAL(cr_nscat) 
             ELSE 
@@ -235,6 +236,7 @@ ELSE
             CALL del_params (2, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             cr_dw (cr_nscat) = werte (1) 
+            cr_occ(cr_nscat) = 1.0D0
             is1 = cr_nscat 
             CALL no_error 
          ELSE 
@@ -270,6 +272,7 @@ ELSE
                cr_nscat = cr_nscat + 1 
                cr_at_lis (cr_nscat) = cc(1:ccl)
                cr_dw (cr_nscat) = werte (1) 
+               cr_occ(cr_nscat) = 1.0D0
                is1 = cr_nscat 
                CALL no_error 
             ELSE 
@@ -785,8 +788,8 @@ USE precision_mod
                   cr_nscat = cr_nscat + 1 
                   cr_iscat (cr_natoms) = cr_nscat 
                   cr_at_lis (cr_nscat) = name 
-                  cr_dw (cr_nscat) = werte (5) 
-                  cr_occ(cr_nscat) = 1.0
+                  cr_dw (cr_nscat) = werte(5) 
+                  cr_occ(cr_nscat) = 1.0D0
                ELSE 
                   ier_num = - 26 
                   ier_typ = ER_APPL 
@@ -1575,12 +1578,11 @@ USE precision_mod
             zeile (1:4) = cr_at_lis (cr_iscat (ind) ) 
             zeile (5:5) = ',' 
             IF (mode            ==  'a') then 
-               WRITE (zeile (7:58), 3000) (werte (i), i = 3, 5),        &
-               cr_dw (cr_iscat (ind) )                                  
+               WRITE(zeile(7:58), 3000) (werte(i), i=3,5), cr_dw(cr_iscat(ind))
                lp = 58 
             ELSEIF (mode            ==  'r') then 
-               WRITE (zeile (7:58), 3000) (werte (i) + cr_pos (i - 2,   &
-               ind), i = 3, 5), cr_dw (cr_iscat (ind) )                 
+               WRITE(zeile(7:58), 3000) (werte(i) + cr_pos(i-2, ind), i = 3, 5), &
+                    cr_dw(cr_iscat(ind))                 
                lp = 58 
             ELSE 
                ier_num = - 6 
