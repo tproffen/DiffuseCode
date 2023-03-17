@@ -500,10 +500,10 @@ rec_hand: DO   ! i = 1, num_hand
    IF(run_mpi_senddata%ierr /=0 ) THEN
       CALL diffev_error_macro              ! Write a recovery macro
       ier_msg(1) = 'A slave program exited with error message'
-      WRITE(ier_msg(2), 2000)  sender, ier_num
+      WRITE(ier_msg(2), 2000)  sender, ier_num, run_mpi_senddata%ierr
       ier_num = -26
       ier_typ = ER_APPL
-2000 FORMAT('Error message from slave ',I4,' is ',i8)
+2000 FORMAT('Error message from slave ',I4,' is ',i4,' ',i4)
       EXIT rec_hand
    ENDIF
 !   IF(run_mpi_senddata%use_socket ) THEN   ! SOCKET option is active
