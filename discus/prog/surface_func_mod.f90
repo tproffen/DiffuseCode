@@ -714,6 +714,7 @@ INTEGER, PARAMETER :: NOPTIONAL = 10
 CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
 INTEGER           , INTENT(INOUT) :: lp 
 !                                                                       
+real(kind=PREC_DP), parameter :: TOL = 1.0d-9
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) :: cpara (maxw) 
 CHARACTER(LEN=MAX(PREC_STRING,LEN(ZEILE))) :: ccpara (maxw) 
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
@@ -930,7 +931,7 @@ IF (str_comp (cpara (1) , 'hkl',  3, lpara (1) , 3)  .OR.  &
          RETURN 
       ENDIF 
       IF (ianz.eq.4) then 
-         IF(NINT(werte(4)) == 0) THEN
+         IF(abs(werte(4)) < TOL) THEN
             DO i = 1, 3 
                h (i) = h (i) / dstar *1.0E12
             ENDDO 
