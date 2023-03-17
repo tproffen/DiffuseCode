@@ -77,6 +77,9 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2023_March
+   fourier     Started implementation of a Non-Uniform FFT
+   output      Started implementation of a transformation menu upon output
 3  2023_February
    save/read   Added a format specifier. Files with this format can be read much faster
    fourier     BUG FIX for grid that did not include 0,0,0 in reciprocal space, the phase
@@ -2180,10 +2183,10 @@
      set neig, number:1, vec, 1, 2
    or increment the neighborhood number with
      set neig, number:next, vec, 1, 2
-5  rese
-!p set "neig","rese"
+5  reset
+!p set "neig","reset"
 
-   "Rese" resets the list of correlation vector/distances definitions.
+   "reset" resets the list of correlation vector/distances definitions.
 5  vec
 !p set "neig","vec",<iv1> [,<iv2>,..]
 !p set "neig","ang",<iv1> ,<iv2>, "range"
@@ -2259,15 +2262,15 @@
       Creates a connectivity for atom type 3 only.
 
 3  Commands
-!p add     ! Adds a new definition 
-!p create  ! Creates the actual connectivity list for each atom
-!p delete  ! Deletes the connectivity list around atoms
-!p recreate  ! Recreates the actual connectivity list for each atom
-!p remove  ! Removes an individual connectivity definition
-!p reset   ! Resets to program start, removes all def.s and the 
-!p         !        connectivity list
-!p set     ! Sets an individual definition
-!p show    ! Shows the current definitions
+!p add      ! Adds a new definition 
+!p create   ! Creates the actual connectivity list for each atom
+!p delete   ! Deletes the connectivity list around atoms
+!p recreate ! Recreates the actual connectivity list for each atom
+!p remove   ! Removes an individual connectivity definition
+!p reset    ! Resets to program start, removes all def.s and the 
+!p          !        connectivity list
+!p set      ! Sets an individual definition
+!p show     ! Shows the current definitions
 3  add
 !p add <central_atom_type>, <neigh types>, <rmin>, <rmax> 
        [,<max_neig], <def_name>, 
@@ -3412,11 +3415,13 @@
    crystal structure. The algorithm to speed up the explicit Fourier is 
    based on the program 'diffuse' by B.D. Butler. See also: B.D. Butler & 
    T.R. Welberry, (1992).  J. Appl. Cryst. 25, 391-399.
+   An even faster algorithm was introduced in Versions 6.15. This uses a 
+   non-uniform FFT.
 
-   The program allows to calculate X-ray and neutron scattering including
-   isotropic temperature factors and anomalous scattering. The program
-   also allows to subtract the structure factor of the average structure
-   from the calculated diffraction pattern. 
+   The program allows to calculate X-ray, electron and neutron scattering
+   including isotropic temperature factors and anomalous scattering.
+   The program also allows to subtract the structure factor of the average
+   structure from the calculated diffraction pattern. 
 
    You may calculate a single line through reciprocal space, a layer
    or a three dimensional volume.
@@ -3452,7 +3457,7 @@
 !p reset   ! Reset and clear all definitions
 !p run     ! starts the calculation
 !p scat    ! defines the scattering factor for an element
-!p set     ! sets Fourier mode
+!p set     ! sets Fourier mode, calculation technique
 !p show    ! shows the current settings for the Fourier transform
 !p stop    ! stops execution of a macro (see main help level)
 !p system  ! executes operating system command (see main help)
@@ -3646,7 +3651,9 @@
 !p set "aver" [, <per>]
 !p set {"external"|"internal"}
 !p     {"mode:single" | "mode:init" | "mode:accumulate" | "mode:finish"}
-!p     "symm:apply"
+!p     {"symm:apply"}
+!p     {"technique:turbo" | "technique:nufft"}
+!p     {"filter:lanczos", "damp:"<r>, "width:"<npoints>, "scale:"<factoor>yy}
 
 !p set "aver" [, <per>]
 
@@ -3699,6 +3706,43 @@
    cubes, cylinders, and spheres. Their Fourier transform is calculated
    using the appropriate analytical expression. In order to activate
    this state, you must set the Fourier to "external".
+
+!p set {"technique:turbo"}
+!p set {"technique:nufft"}
+
+   DISCUS offers two techniques for the Fourier calculation. 
+   The "turbo" technique is based on the algorithm described in 
+   Butler and Welberry. Its acceleration is based on a tabulated 
+   cos/sine function and quick addressing of the corresponding 
+   Fourier parameters.
+   The "nufft" technique uses the Non-Uniform FFT. It is about two 
+   orders of magnitude faster than the "turbo" technique. Currently the
+   technique is restricted to a Fourier volume/plane/line that is parallel
+   to the three reciprocal base vectors. Correspondingly the original 
+   crystal must consist of a block terminated by the {100}; {010} and {001}
+   facets. 
+   The "turbo" mode in combination with the ==> 'lots' option relies on the
+   crystal to consist of a block shaped crystal with identical atom numbers 
+   per unit cell. 
+   The "nufft" mode does not require all unit cells to have the same amount
+   of atoms per unit cell, this holds for the subtraction of the Bragg 
+   scattering as well.
+
+!p     {"filter:lanczos", "damp:"<r>, "width:"<npoints>, "scale:"<factor>}
+
+   The nufft techniques calculates the FFT based on all atoms of the crystal.
+   This will often give rise to high frequency oscillations that arise from
+   correlations between atoms at large distances. These distances are in 
+   most cases beyond the intended correlation length achieved for example  
+   in the ==> 'mmc' menu. To avoid these oscillations a Langzos filter can
+   be used. 
+   The parameter "damp:" defines the dampening of points at larger distance.
+   A smaller value will reduce the influence of points further away.
+   The parameter "width:" determines how many neighboring points are included 
+   in the filter operation. 
+   The "scale:" parameter allows to create a new grid that is finer by the
+   <factor>, i.e. has <factor> times more data points. "scale" must be an
+   integer number >=1
 3  show
 !p show
 !p show "scat", {<name> | <number> } [, {<name> | <number> }...]
@@ -3979,7 +4023,7 @@
 !p file       ! Defines the file name with the actual domain content
 !p fuzzy      ! Defines the distance between domain atoms and host atoms
 !p origin     ! Places the origin of the object/domain in real space coordinates
-!p reset   ! Reset and clear all definitions
+!p reset      ! Reset and clear all definitions
 !p run        ! Does the actual insertion
 !p show       ! Show the current parameters
 !p type       ! Defines the object type number
@@ -4679,11 +4723,6 @@
 
    If the optional <output_file> is given, DISCUS will write the
    original "set vec, ..." and the generated ones into this file.
-3  rese
-!p rese
-
-   Resets the value of all internal variables, counters, etc to the 
-   startup default values.
 3  reset
 !p reset
 
@@ -4960,7 +4999,7 @@
    set neig, number:4,    vec, 1,6,range
 
    Old examples:
-   set neigh, rese              ! Back to initial state
+   set neigh, reset             ! Back to initial state
    set neig, vec, 1,2           ! use the listed vectors
    set neig, add                ! Increment number of neighborhoods
    set neig, vec, 1,2,8,7
@@ -5523,10 +5562,126 @@
    Reset all output definitions back to the default values at 
    system start. 
 3  run
-!p run
+!p run  {"trans:yes" | "trans:no"}
 
    Starts writing the output file. Without this command the output file
    is not written!
+
+   The optional parameter "trans:" applies to a 3D Fourier volume 
+   or a 3D PDF only. 
+   If the optional paramter is "trans:yes", a transformation menu is enterd.
+   Within this menu the transformation to a different coordinate system is
+   specified. The commands at this menu level are:
+4  Examples
+!p Examples
+
+   All examples assume a 3D volume parallel a*; b*; c*. In all examples
+   the new data set is transformed to an orientation with the z-axis 
+   parallel to [1,1,1] and the abscissa parallel to [1, -1, 0].
+
+   Sensible combinations of the optional parameters are:
+   1) Define an abscissa and a zone axis
+   2) Define the abscissa, ordinate and top axis
+   3) define the corners in space as:
+        ll = lower_left  = left_lower_bottom
+        lr = lower_right = right_lower_bottom
+        ul = upper_right = left_upper_bottom
+        tl = top_left    = left_lower_top
+
+   1) Define an abscissa and a zone axis
+   set abs:[0.04, -0.04, 0.00], zone:[1,1,1]
+
+   The new zone axis is set to [111], the abscissa is in steps of 
+   [0.04, -0.04, 0.00]. The ordinate will be calculated as vector product
+   zone * abs, steps along the abscissa are of equal length as along the 
+   abscissa. The number of data points is determined by transformation of 
+   the hkl limits in the original data set.
+
+   set abs:[0.04, -0.04, 0.00], zone:[1,1,1]
+   set npoints:[251,251, 125]
+
+   Same as above. The number of data points is given by the user. Along the
+   abscissa the maximum value will be [0.04, -0.04, 0.00]*(125), where
+   125 = (251-1)/2. Same for the other three axes. 
+   Datza points in the new data set outside the original data receive 
+   values of zero.
+
+   2) Define the abscissa, ordinate and top axis
+   set abs:[0.04, -0.04, 0.00]
+   set ord:[0.04,  0.04,-0.08]
+   set top:[0.04,  0.04, 0.04]
+
+   The new axes are all explicitely given as increment vectors. 
+   hkl limits and number of data points are derived from the orginal
+   data set.
+
+   set abs:[0.04, -0.04, 0.00]
+   set ord:[0.04,  0.04,-0.08]
+   set top:[0.04,  0.04, 0.04]
+   set npoints:[251,251, 125]
+
+   Same as above. The number of data points is given by the user.
+
+
+   3) define the corners in space as:
+   set ll:[-15.0,  -3.0,   9.0]
+   set lr:[ -3.0, -15.0,   9.0]
+   set ul:[ -3.0,   9.0, -15.0]
+   set tl:[ -9.0,   3.0,  15.0]
+   set npoints:[251,251,  25
+
+   Four new corners are defined and the number of data points along the 
+   abscissa, ordinate and top axis are provided.
+
+4  set
+!p set "abs:["<h>, <k>, <l>"]"
+!p set "ord:["<h>, <k>, <l>"]"
+!p set "zone:["<h>, <k>, <l>"]"
+!p set "ll:["<h>, <k>, <l>"]"
+!p set "lr:["<h>, <k>, <l>"]"
+!p set "ul:["<h>, <k>, <l>"]"
+!p set "tl:["<h>, <k>, <l>"]"
+!p set "npoints:["<h>, <k>, <l>"]"
+
+   Specified details of the intended transformation
+
+!p set "abs:["<h>, <k>, <l>"]"
+
+   Sets the new abscissa
+
+!p set "ord:["<h>, <k>, <l>"]"
+
+   Sets the new ordinate
+
+!p set "zone:["<h>, <k>, <l>"]"
+   Sets the new zone axis. The zone axis will be the "top" coordinate of the
+   transformed data. 
+
+!p set "ll:["<h>, <k>, <l>"]"
+!p set "lr:["<h>, <k>, <l>"]"
+!p set "ul:["<h>, <k>, <l>"]"
+!p set "tl:["<h>, <k>, <l>"]"
+
+   The combination of these four settings define the new 3D volume.
+   The new axes are the vectors from the lower left "ll" corner to:
+   abscissa :: lower right "lr"
+   ordinate :: upper left  "ul"
+   top axis :: top   left  "tl"
+   
+!p set "npoints:["<nx>, <ny>, <nz>"]"
+
+   Set the number of data points in the new transformed grid.
+
+4  reset
+!p reset
+
+   Set all values back to program start.
+4  run
+   Perform the actual transformation.
+4  exit
+!p exit
+   Go back to the output menu.
+   
 3  show
 !p show
 
@@ -6053,8 +6208,8 @@
    the calculation of differential or partial PDFs. The two commands
    allow one to select atom types for each atom in a pair 'ij'
    contributing to the PDF calculation.
-3  rese
-!p rese
+3  reset
+!p reset
 
    This command resets most PDF module settings.
 3  run
@@ -6370,8 +6525,8 @@
    the empty sites in a unit cell
 
    Further help topics are:
-3  rese
-!p rese
+3  reset
+!p reset
 
    Reset the menu to start-up conditions.
 3  run
@@ -7852,7 +8007,7 @@
 !p help    ! Gives on-line help for 'rmc' (see main help)
 !p mdes    ! Deselects molecules
 !p msel    ! Selects molecules for RMC refinement
-!p rese    ! Reset RMC settings (i.e. reset plane counter)
+!p reset   ! Reset RMC settings (i.e. reset plane counter)
 !p run     ! Start RMC fit
 !p save    ! Saves structure or intensity to given file
 !p sele    ! Selects the atom types allowed for RMC moves/switches (-> dese)
@@ -7913,8 +8068,8 @@
 
    This command deselects all or individual molecule types used in
    the RMC refinement.
-3  rese
-!p rese { "all" }
+3  reset
+!p reset { "all" }
 
    This command resets the RMC parameters. In this version only the
    'plane counter' is reset and the 'data' command will start reading
@@ -9097,7 +9252,7 @@
 !p modulus ! Reads the modulus vector of the translation
 !p number  ! Reads the number of layers to be created
 !p random  ! Sets values for random stacking faults
-!p rese    ! Resets the number of layers to zero
+!p reset   ! Resets the number of layers to zero
 !p rotate  ! Set values for rotational disorder of the layers
 !p reset   ! Reset and clear all definitions
 !p run     ! Decorates the list of origins with atoms to create the crystal
@@ -9288,8 +9443,8 @@
 !p random sigma ,<su>,<sv>,<sw>
    Specifies the sigma's for a Gaussian distribution applied to the 
    components of the offset.
-3  rese
-!p rese
+3  reset
+!p reset
 
    Sets the number of layers and layer types back to zero.
 3  rotate
