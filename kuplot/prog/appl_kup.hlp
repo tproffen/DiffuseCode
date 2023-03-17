@@ -79,7 +79,7 @@
 !p ptyp          : Set marker type for maxima
 !p rdef          : Read KUPLOT settings from file
 !p rebin         : Allows rebinning data to user defined grid
-!p rese          : Reset
+!p reset         : Reset
 !p sann          : Set text annotations for plot
 !p save          : Save plot as hardcopy
 !p sdef          : Store KUPLOT settings on disk
@@ -97,6 +97,9 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2023_March
+
+   Added a Lanczos Fitrer to the 'smooth' command
 3  2022_February
 
    Extensive internal revisions;
@@ -437,6 +440,201 @@
 
 !p achx 2 Theta       : will label x-axis with '2 Theta'
 !p achy "PSD #%d",43  : will label y-axis with 'PSD #43'
+2  adt
+!p adt
+
+   Menu to read and transform a volume of reciprocal space data from ADT
+   treatment.
+3  Examples
+!p Examples
+
+   To extract a volume into a normalized orientation use:
+ 
+   get cell:name.cell, log:screen
+   get data:name.mrc
+   set mode:volume
+   set limits:[6.0,6.0, 6.0]
+   set sigma:[0.00,0.00, 0.00]
+   set steps:[0.05,0.05, 0.05]
+   show
+   extract
+
+   The volume will be extracted up to +- hkl as defined by set limit:
+   The new grid will have steps in reciprocal space as defined by
+   'set steps:', here steps are 0.05 reciprocal lattice units along
+   each of the axes a*; b*; c*.
+   Data are placed into the next data set with a*; b*; c* parallel
+   to the 'x', 'y', 'z' axes of the data set. 
+
+   To extract a set of planes:
+
+   get cell:name.cell, log:screen
+   get data:name.mrc
+   set mode:plane
+   set normal:[0.0,0.0,1.0,  1.00, 4.0]
+   set sigma:[0.15]
+   set abs:[0.05,0.0, 0.0,  6.0, 0.0, 0.0]
+   set ord:[0.0, 0.05,0.0,  0.0, 6.0, 0.0]
+   set zero:[152, 098,  50]
+   show
+   extract
+
+   In this example planes normal to [uvw] = [001] will be extracted.
+   The individual planes are defined by [uvw]*[hkl] in steps of 1, the
+   fourth parameter of the "set normal:[...] command. In this example, 
+   layers up to +- [uvw]*[hkl] = 4 (the fifth parameter) will be extracted.
+   Within each plane data are sampled at steps defined by "set abs:[]" 
+   and set ord:[]. Here steps are [0.05, 0,0] and [0, 0.05, 0] respectively.
+   Within each plane the maximum hk0 is +- 6. 
+   Along the normal data are integrated in a range of 
+   [uvw]*[hkl] as +- sigma around each plane.
+   The new data set will consist of 'continous' intensity distribution
+   with each plane along the "x" and "y" coordinates and discrete 
+   steps along "z", each "z" corresponding to an individual plane.
+
+   To extract a set of rods:
+
+   get cell:name.cell, log:screen
+   get data:name.mrc
+   set mode:rods
+   set rods:[0.00, 0.00, 0.05,  85.]
+   set sigma:[0.15, 0.15]
+   set abs:[1.00, 0.00, 0.00,  6.0, 0.0, 0.0]
+   set ord:[0.00, 1.00, 0.00,  0.0, 6.0, 0.0]
+   set zero:[152, 098,  50]
+   show
+   extract
+
+   Rods will be extracted parallel [001] in steps of [0.0, 0.0, 0.05], 
+   up to +- [0.0, 0.0, 0.05]*85 = +- [0, 0, 4.25].
+   Within the hk0 plane integer steps along h and k are perfomed as
+   defined by the  'set abs:[]' and 'set:ord:[]' commands. Rods to 
+   +- h=6; k=6 are extracted. 
+   Around each rod data are integrated in the plane normal to the rod 
+   by  delta h = +- 0.15 and delta k = +- 0.15. 
+   In the new data set the "x" and "y" coordinates will be discrete
+   steps from rod to rod while the "z" coordinate will be the 'continuous'
+   intensity distribution along each rod.
+   
+   Integrated Bragg reflections will be extracted with:
+
+   get cell:name.cell, log:screen
+   get data:name.mrc
+   set mode:bragg
+   set lattice:P
+   set sigma:[0.15, 0.15, 0.15]
+   set steps:[1.00, 1.00, 1.00]
+   set limits:[6,6,6]
+   set output:bragg.data
+
+   All Bragg reflections to hkl = +- 6 will be extracted. Reciprocal space
+   is integerated in the volume of +- sigma around each integer hkl position.
+   Only Bragg reflections that are allowed for a P-centered lattice are 
+   extracted. 
+
+3  extract
+!p extract
+
+   Extract the volume, planes, rods, Bragg reflections as defined be the current
+   setting.
+3  get
+!p get cell:<cell_file>
+
+   Read the adt cell file. DISCUS assumes this to be a plain ASCII text file 
+   that contains the orientation matrix for the data in the ==> 'data' file.
+!p get data:<file_name>
+
+   Read the adt data file. DISCUS assumes this to be a MRC file format that has
+   been processed to contain a reconstructed reciprocal space volume.
+3  show
+!p show
+
+   Show the current settings.
+3  set 
+!p set {"mode:planes" | "mode:rods" | "mode:volume", | "mode:bragg"}
+!p set {"sigma:"<value"]"}
+!p set {"abs:[",<h>,<k>,<l>, <maxh>, <maxk>, <maxl>"]"}
+!p set {"ord:[",<h>,<k>,<l>, <maxh>, <maxk>, <maxl>"]"}
+!p set {"normal:[",<u>,<v>,<w>, <steps>, <maxsteps>"]"}
+!p set {"rods:[",<h>,<k>,<l>, <nsteps>"]"}
+!p set {"lattice:"<Bravais>"]"}
+!p set {"zero:[",<ix>, <iy>, <iz>"]"}
+!p set ["output:"<file_name>}
+
+!p "mode:volume"
+
+   Reciprocal volume will be extracted from the data and placed into the next 
+   data set. 
+   Within this data set the "x", "y" and "z" axes will be parallel to 
+   a*; b* and c*. 
+
+!p "mode:planes"
+
+   Reciprocal planes will be extracted from the data and placed into the next 
+   data set. 
+   Within this data set the abscissa and ordinates within the planes will be the
+   "x" and "y" axes while the zone axis will be the "z" axis. Each plane will
+   have been integrated along the zone axis.
+
+!p "mode:rods"
+
+   Reciprocal rods will be extracted from the data and placed into the next
+   data set.
+   Within this data set the abscissa and ordinates from rod to rod will be the
+   "x" and "y" axes while the 'continuous' intensity along each rod will be the
+   "z" axis. Each rod will have been integrated within the plane normal to the
+   rod at a width set by "sigma:"
+
+!p "mode:bragg"
+
+   Integerated Bragg reflection instensities ae extracted.
+
+!p set {"abs:[",<h>,<k>,<l>, <maxh>, <maxk>, <maxl>"]"}
+
+   Set the abscissa increment vector with a plane and its maximum value.
+
+!p set {"ord:[",<h>,<k>,<l>, <maxh>, <maxk>, <maxl>"]"}
+
+   Set the ordinate increment vector with a plane and its maximum value.
+
+!p set {"normal:[",<u>,<v>,<w>, <steps>, <maxsteps>"]"}
+
+   Set the normal vector to a plane. Coordinates of this vector are in
+   direct space coordinates. 
+   Reciprocal points that fulfill [uvw]*[hkl] = N*steps +- sigma are 
+   considered to be part of the plane. 
+   All planes to [uvw]*[hkl] = +- maxsteps are extracted
+
+!p set {"rods:[",<dh>,<dk>,<dl>, <nsteps>"]"}
+!p set {"rods:[",<h>,<k>,<l>, <dh>,<dk>,<dl>, <nsteps>"]"}
+!p set {"rods:[",<dh>,<dk>,<dl>, <mh>,<mk>,<ml>"]"}
+
+   Set the rod direction in reciprocal space.  
+   The format "rods:[",<dh>,<dk>,<dl>, <nsteps>"]" is understood as steps along
+   the rods. Data up to +- [dh, dk, dl]*nstepsd will be extracted.
+
+   The  format "rods:[",<h>,<k>,<l>, <dh>,<dk>,<dl>, <nsteps>"]" is 
+   understood as rods parallel to [hkl] at steps [dh, dk, dl]. Vectors
+   [hkl] and [dh, dk, dl] must be parallel. 
+   Data up to +- [hkl]*nstepsd will be extracted.
+
+!p The format "rods:[",<dh>,<dk>,<dl>, <mh>,<mk>,<ml>"]" is understood as
+   steps along the rods. Data up to +- [mh, mk, ml] will be extracted.
+   The vectors [dh, dk, dl] and [mh, mk, ml] must be parallel.
+
+!p set {"zero:[",<ix>, <iy>, <iz>"]"}
+
+   By default reciprocal origin is assumed to be at the central pixel of the
+   input data file. This command allows to adapt the zero point.
+
+!p set ["output:"<file_name>}
+
+   The integrated Bragg reflections can be written into a file with 
+   16 columns:
+   No.,  1.00,   0.00,  Weight, observed pixels( x,y,z), Calculated pixels(x, y,z)
+   Calculated real valued (h, k, l) , Nominal integer (h,k,l)
+   This file predominantly serves to refine the orientation matrix. 
+   The weight is 1/integrated intensity.
 2  alloc
 !p alloc <name>,<len>
 !p alloc <name>,<x>,<y>
@@ -1843,9 +2041,6 @@
    array (see PDFFIT 'read data' for details). The parameter <fname>
    can also be a valid expression such as "*.asc" just as a directory
    command.
-
-   Here is a list of the available formats:
-
 3  4d
 !p load 4d,<file>,<ix>,<iy>,<iz>,<ival>
 
@@ -1943,6 +2138,117 @@
    The optional parameter "trans" give you the choice to step into a 
    transformation menu that allows to transform the 3D-data into a new 
    orientation. 
+   The commands at this menu level are:
+4  Examples
+!p Examples
+
+   All examples assume a 3D volume parallel a*; b*; c*. In all examples
+   the new data set is transformed to an orientation with the z-axis 
+   parallel to [1,1,1] and the abscissa parallel to [1, -1, 0].
+
+   Sensible combinations of the optional parameters are:
+   1) Define an abscissa and a zone axis
+   2) Define the abscissa, ordinate and top axis
+   3) define the corners in space as:
+        ll = lower_left  = left_lower_bottom
+        lr = lower_right = right_lower_bottom
+        ul = upper_right = left_upper_bottom
+        tl = top_left    = left_lower_top
+
+   1) Define an abscissa and a zone axis
+   set abs:[0.04, -0.04, 0.00], zone:[1,1,1]
+
+   The new zone axis is set to [111], the abscissa is in steps of 
+   [0.04, -0.04, 0.00]. The ordinate will be calculated as vector product
+   zone * abs, steps along the abscissa are of equal length as along the 
+   abscissa. The number of data points is determined by transformation of 
+   the hkl limits in the original data set.
+
+   set abs:[0.04, -0.04, 0.00], zone:[1,1,1]
+   set npoints:[251,251, 125]
+
+   Same as above. The number of data points is given by the user. Along the
+   abscissa the maximum value will be [0.04, -0.04, 0.00]*(125), where
+   125 = (251-1)/2. Same for the other three axes. 
+   Datza points in the new data set outside the original data receive 
+   values of zero.
+
+   2) Define the abscissa, ordinate and top axis
+   set abs:[0.04, -0.04, 0.00]
+   set ord:[0.04,  0.04,-0.08]
+   set top:[0.04,  0.04, 0.04]
+
+   The new axes are all explicitely given as increment vectors. 
+   hkl limits and number of data points are derived from the orginal
+   data set.
+
+   set abs:[0.04, -0.04, 0.00]
+   set ord:[0.04,  0.04,-0.08]
+   set top:[0.04,  0.04, 0.04]
+   set npoints:[251,251, 125]
+
+   Same as above. The number of data points is given by the user.
+
+
+   3) define the corners in space as:
+   set ll:[-15.0,  -3.0,   9.0]
+   set lr:[ -3.0, -15.0,   9.0]
+   set ul:[ -3.0,   9.0, -15.0]
+   set tl:[ -9.0,   3.0,  15.0]
+   set npoints:[251,251,  25
+
+   Four new corners are defined and the number of data points along the 
+   abscissa, ordinate and top axis are provided.
+
+4  set
+!p set "abs:["<h>, <k>, <l>"]"
+!p set "ord:["<h>, <k>, <l>"]"
+!p set "zone:["<h>, <k>, <l>"]"
+!p set "ll:["<h>, <k>, <l>"]"
+!p set "lr:["<h>, <k>, <l>"]"
+!p set "ul:["<h>, <k>, <l>"]"
+!p set "tl:["<h>, <k>, <l>"]"
+!p set "npoints:["<h>, <k>, <l>"]"
+
+   Specified details of the intended transformation
+
+!p set "abs:["<h>, <k>, <l>"]"
+
+   Sets the new abscissa
+
+!p set "ord:["<h>, <k>, <l>"]"
+
+   Sets the new ordinate
+
+!p set "zone:["<h>, <k>, <l>"]"
+   Sets the new zone axis. The zone axis will be the "top" coordinate of the
+   transformed data. 
+
+!p set "ll:["<h>, <k>, <l>"]"
+!p set "lr:["<h>, <k>, <l>"]"
+!p set "ul:["<h>, <k>, <l>"]"
+!p set "tl:["<h>, <k>, <l>"]"
+
+   The combination of these four settings define the new 3D volume.
+   The new axes are the vectors from the lower left "ll" corner to:
+   abscissa :: lower right "lr"
+   ordinate :: upper left  "ul"
+   top axis :: top   left  "tl"
+   
+!p set "npoints:["<nx>, <ny>, <nz>"]"
+
+   Set the number of data points in the new transformed grid.
+
+4  reset
+!p reset
+
+   Set all values back to program start.
+4  run
+   Perform the actual transformation.
+4  exit
+!p exit
+   Go back to the output menu.
+   
 3  ma
 !p load ma,<file>
 
@@ -2589,7 +2895,7 @@
    optional parameter "x" or "y". An normal gliding average smoothing 
    is available via the command -> glat.     
 
-   The filter:lanczos version starts a Lanczos filter. 
+   The "filter:lanczos" version starts a Lanczos filter. 
    This will include the +- <points> data points. Default: 4
    The damping determines how much further data points are weighted, 
    a smaller <radius> will use less of the data points further away.
