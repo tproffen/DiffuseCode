@@ -9,6 +9,8 @@ DISCUS
   mmc         BUG FIX Corrected the "all" atom types parameters on 'set target'
   powder      Added missing output on hkl steps for complete mode
   show        Added a flag to indicate which symmetry elements are part of the point group
+  surface     Surfaces closer then 0.5 A to the origin cut off all atoms. 
+              Modified to a much smaller tolerance of 10^-9A.
 6.14.00  RELEASE 2023_02_15
 GENERAL
               Moved all FFT's to the FFTW library which is much faster
