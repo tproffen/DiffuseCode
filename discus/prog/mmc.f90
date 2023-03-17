@@ -813,12 +813,12 @@ IMPLICIT none
 CHARACTER(LEN=*), INTENT(INOUT) :: zeile 
 INTEGER         , INTENT(INOUT) :: lp 
 !                                                                       
-INTEGER, PARAMETER :: maxw = 200 
+INTEGER :: maxw = 200 
 !
 !                                                                       
-CHARACTER (LEN=PREC_STRING), DIMENSION(MAXW) ::  cpara !(maxw) 
-REAL(KIND=PREC_DP) :: werte (maxw) 
-INTEGER lpara (maxw) 
+CHARACTER(LEN=PREC_STRING), DIMENSION(:), allocatable :: cpara !(maxw) 
+REAL(KIND=PREC_DP)        , dimension(:), allocatable :: werte ! (maxw) 
+integer                   , dimension(:), allocatable :: lpara! (maxw) 
 INTEGER :: ianz  !, iianz, jjanz, kkanz, is, js, ls, ic, i, j 
 integer :: i,j
 INTEGER                :: n_corr ! Dummy for allocation
@@ -842,6 +842,10 @@ opara  =  (/ 'atoms', 'on   ', 'on   '  /)   ! Always provide fresh default valu
 lopara =  (/  5     ,  3     ,  3       /)
 owerte =  (/  0.0   ,  1.0   ,  1.0     /)
 !
+MAXW = cr_nscat+10
+allocate(cpara(MAXW))
+allocate(lpara(MAXW))
+allocate(werte(MAXW))
 !
 !                                                                       
 !     INTEGER angles2index 
@@ -1125,6 +1129,10 @@ IF (ier_num == 0) THEN
             ier_typ = ER_COMM 
          ENDIF 
       ENDIF 
+!
+deallocate(cpara)
+deallocate(lpara)
+deallocate(werte)
 !                                                                       
 END SUBROUTINE mmc_set                        
 !
@@ -1160,7 +1168,6 @@ character(len=PREC_STRING), dimension(:), allocatable :: cpara1
 character(len=PREC_STRING), dimension(:), allocatable :: cpara2
 integer                   , dimension(:), allocatable :: lpara1
 integer                   , dimension(:), allocatable :: lpara2
-integer :: MAXW2
 integer :: ianz1, ianz2, iianz, jjanz, kkanz
 integer :: i, j         ! Loop index
 integer :: is, js, ls   ! Atoms on site is, js, ls
@@ -1216,15 +1223,14 @@ if(ic<=0 .or. ic>chem_ncor) then
    return
 endif
 !
-MAXW2 = cr_nscat+1
-allocate(cpara1(1:cr_nscat+1))
-allocate(cpara2(1:cr_nscat+1))
-allocate(lpara1(1:cr_nscat+1))
-allocate(lpara2(1:cr_nscat+1))
-allocate(werte1(1:cr_nscat+1))
-allocate(werte2(1:cr_nscat+1))
-allocate(uerte (1:cr_nscat+1))
-allocate(verte (1:cr_nscat+1))
+allocate(cpara1(MAXW))
+allocate(cpara2(MAXW))
+allocate(lpara1(MAXW))
+allocate(lpara2(MAXW))
+allocate(werte1(MAXW))
+allocate(werte2(MAXW))
+allocate(uerte (MAXW))
+allocate(verte (MAXW))
 werte  = 0.0D0
 uerte  = 0.0D0
 verte  = 0.0D0
@@ -1244,11 +1250,11 @@ cond_type: IF(str_comp(cpara(2), 'corr', 2, lpara(2), 4) .OR.  &
    IF ( cpara(1)(1:1)=='(' .AND. cpara(1)(lpara(1):lpara(1))==')') THEN
       line   = cpara(1)(2:lpara(1)-1)
       length = lpara(1)-2
-      CALL get_params (line, ianz1, cpara1, lpara1, MAXW2, length) 
-      CALL get_iscat (ianz1, cpara1, lpara1, werte1, MAXW2, .FALSE.)                                  
+      CALL get_params (line, ianz1, cpara1, lpara1, MAXW, length) 
+      CALL get_iscat (ianz1, cpara1, lpara1, werte1, MAXW, .FALSE.)                                  
    ELSEIF ( cpara(1)(1:1)/='(' .AND. cpara(1)(lpara(1):lpara(1))/=')') THEN
       ianz1 = 1 
-      CALL get_iscat(ianz1, cpara, lpara, werte1, MAXW2, .FALSE.)                                  
+      CALL get_iscat(ianz1, cpara, lpara, werte1, MAXW, .FALSE.)                                  
    ELSE
       ier_num = -6
       ier_typ = ER_COMM
@@ -1258,11 +1264,11 @@ cond_type: IF(str_comp(cpara(2), 'corr', 2, lpara(2), 4) .OR.  &
    IF ( cpara(1)(1:1)=='(' .AND. cpara(1)(lpara(1):lpara(1))==')') THEN
       line   = cpara(1)(2:lpara(1)-1)
       length = lpara(1)-2
-      CALL get_params (line, ianz2, cpara2, lpara2, MAXW2, length) 
-      CALL get_iscat (ianz2, cpara2, lpara2, werte2, MAXW2, .FALSE.)                                  
+      CALL get_params (line, ianz2, cpara2, lpara2, MAXW, length) 
+      CALL get_iscat (ianz2, cpara2, lpara2, werte2, MAXW, .FALSE.)                                  
    ELSEIF ( cpara(1)(1:1)/='(' .AND. cpara(1)(lpara(1):lpara(1))/=')') THEN
       ianz2 = 1 
-      CALL get_iscat (ianz2, cpara, lpara, werte2, MAXW2, .FALSE.)                                  
+      CALL get_iscat (ianz2, cpara, lpara, werte2, MAXW, .FALSE.)                                  
    ELSE
       ier_num = -6
       ier_typ = ER_COMM
@@ -1285,11 +1291,11 @@ cond_type: IF(str_comp(cpara(2), 'corr', 2, lpara(2), 4) .OR.  &
          winit = -2.0D0*werte(1) - 3.0D0*werte(1)**5
          winit = -1.0D0*werte(1)  - 3.0D0*werte(1)**5
          CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
-                          MAXW2, werte1, werte2, werte(1) , winit)
+                          MAXW, werte1, werte2, werte(1) , winit)
                         mmc_depth (ic, MC_OCC, 0, 0) = winit
       ELSEIF (mmc_cfac (ic, MC_OCC) ==0.0) THEN 
          CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
-                          MAXW2, werte1, werte2, werte(1) , werte(2) )                                   
+                          MAXW, werte1, werte2, werte(1) , werte(2) )                                   
          mmc_depth (ic, MC_OCC, 0, 0) = werte (2) 
       ENDIF
       mmc_cor_energy (ic, MC_OCC) = .TRUE. 
@@ -1309,11 +1315,11 @@ cond_type: IF(str_comp(cpara(2), 'corr', 2, lpara(2), 4) .OR.  &
       IF (mmc_cfac (ic, MC_UNI) > 0.0) THEN 
          winit = -2.0D0*werte(1) - 3.0D0*werte(1)**5
          CALL mmc_set_unid_occ (ic, MC_UNI, ianz1, ianz2, &
-                       MAXW2, werte1, werte2, werte(1) , winit)
+                       MAXW, werte1, werte2, werte(1) , winit)
                        mmc_depth (ic, MC_UNI, 0, 0) = winit
       ELSEIF (mmc_cfac (ic, MC_UNI) ==0.0) THEN 
          CALL mmc_set_unid_occ (ic, MC_UNI, ianz1, ianz2, &
-                       MAXW2, werte1, werte2, werte(1) , werte(2) )                                   
+                       MAXW, werte1, werte2, werte(1) , werte(2) )                                   
                        mmc_depth (ic, MC_UNI, 0, 0) = werte (2) 
       ENDIF
       mmc_cor_energy (ic, MC_UNI) = .TRUE. 
@@ -1325,9 +1331,9 @@ ELSEIF(str_comp(cpara(2), 'cd', 2, lpara(2), 2) ) THEN     cond_type
    CALL del_params (2, ianz, cpara, lpara, maxw) 
    iianz = 1 
    jjanz = 1 
-   CALL get_iscat(iianz, cpara, lpara, uerte, MAXW2, .FALSE.)
+   CALL get_iscat(iianz, cpara, lpara, uerte, MAXW, .FALSE.)
    CALL del_params(1, ianz, cpara, lpara, maxw) 
-   CALL get_iscat (jjanz, cpara, lpara, verte, MAXW2, .FALSE.)
+   CALL get_iscat (jjanz, cpara, lpara, verte, MAXW, .FALSE.)
    CALL del_params(1, ianz, cpara, lpara, maxw) 
    IF (cpara (ianz) (1:2)  == 'CO') THEN 
       mmc_cfac (ic, MC_DISP) =  1.00 
@@ -1405,11 +1411,11 @@ ELSEIF(str_comp(cpara(2) , 'cn', 2, lpara(2), 2) ) THEN  cond_type  !Coordinatio
    IF ( cpara(1)(1:1)=='(' .AND. cpara(1)(lpara(1):lpara(1))==')') THEN
       line   = cpara(1)(2:lpara(1)-1)
       length = lpara(1)-2
-      CALL get_params (line, ianz1, cpara1, lpara1, MAXW2, length) 
-      CALL get_iscat (ianz1, cpara1, lpara1, werte1, MAXW2, .FALSE.)                                  
+      CALL get_params (line, ianz1, cpara1, lpara1, MAXW, length) 
+      CALL get_iscat (ianz1, cpara1, lpara1, werte1, MAXW, .FALSE.)                                  
    ELSEIF ( cpara(1)(1:1)/='(' .AND. cpara(1)(lpara(1):lpara(1))/=')') THEN
       ianz1 = 1 
-      CALL get_iscat (ianz1, cpara, lpara, werte1, MAXW2, .FALSE.)                                  
+      CALL get_iscat (ianz1, cpara, lpara, werte1, MAXW, .FALSE.)                                  
    ELSE
       ier_num = -6
       ier_typ = ER_COMM
@@ -1446,7 +1452,7 @@ ELSEIF(str_comp(cpara(2) , 'cn', 2, lpara(2), 2) ) THEN  cond_type  !Coordinatio
 !                          ENDIF
 !                          mmc_allowed(is) = .TRUE. ! this atom is allowed in mmc moves
 !                          mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
-                           CALL mmc_set_cn(ic, MC_COORDNUM, ianz1, ianz2, MAXW2, werte1, werte2, werte(1), werte(2)) 
+                           CALL mmc_set_cn(ic, MC_COORDNUM, ianz1, ianz2, MAXW, werte1, werte2, werte(1), werte(2)) 
 !                       ENDDO 
 !                       ENDDO 
    mmc_cor_energy (ic, MC_COORDNUM) = .TRUE. 
@@ -1457,10 +1463,10 @@ ELSEIF(str_comp(cpara(2), 'spring', 2, lpara(2), 6) ) THEN cond_type
    iianz = 1 
    jjanz = 1 
    CALL get_iscat (iianz, cpara, lpara, uerte,     &
-                        MAXW2, .FALSE.)                                  
+                        MAXW, .FALSE.)                                  
    CALL del_params (1, ianz, cpara, lpara, maxw) 
    CALL get_iscat (jjanz, cpara, lpara, verte,     &
-                        MAXW2, .FALSE.)                                  
+                        MAXW, .FALSE.)                                  
    CALL del_params (1, ianz, cpara, lpara, maxw) 
    CALL ber_params (2, cpara, lpara, werte, maxw) 
 !
@@ -1525,9 +1531,9 @@ ELSEIF(str_comp(cpara(2) , 'angle', 2, lpara(2), 5) ) THEN cond_type
       ENDIF 
       is = int( uerte (1) )
       CALL del_params (1, ianz, cpara, lpara, maxw) 
-      CALL get_iscat (jjanz, cpara, lpara, uerte, MAXW2, .FALSE.)                               
+      CALL get_iscat (jjanz, cpara, lpara, uerte, MAXW, .FALSE.)                               
       CALL del_params (1, ianz, cpara, lpara, maxw) 
-      CALL get_iscat (kkanz, cpara, lpara, verte, MAXW2, .FALSE.)                               
+      CALL get_iscat (kkanz, cpara, lpara, verte, MAXW, .FALSE.)                               
       js = min (uerte (1), verte (1) ) 
       ls = max (uerte (1), verte (1) ) 
       mmc_allowed(js) = .TRUE. ! this atom is allowed in mmc moves
@@ -1572,9 +1578,9 @@ ELSEIF(str_comp(cpara(2), 'lennard', 2, lpara(2), 6) ) THEN cond_type
    CALL del_params (2, ianz, cpara, lpara, maxw) 
    iianz = 1 
    jjanz = 1 
-   CALL get_iscat(iianz, cpara, lpara, uerte, MAXW2, .FALSE.)                                  
+   CALL get_iscat(iianz, cpara, lpara, uerte, MAXW, .FALSE.)                                  
    CALL del_params(1, ianz, cpara, lpara, maxw) 
-   CALL get_iscat(jjanz, cpara, lpara, verte, MAXW2, .FALSE.)                                  
+   CALL get_iscat(jjanz, cpara, lpara, verte, MAXW, .FALSE.)                                  
    CALL del_params(1, ianz, cpara, lpara, maxw) 
    CALL ber_params(ianz, cpara, lpara, werte, maxw)                                           
 !
@@ -1637,9 +1643,9 @@ ELSEIF(str_comp(cpara(2), 'repulsive', 2, lpara(2), 9)        ) THEN cond_type
    CALL del_params (2, ianz, cpara, lpara, maxw) 
    iianz = 1 
    jjanz = 1 
-   CALL get_iscat (iianz, cpara, lpara, uerte, MAXW2, .FALSE.)                                  
+   CALL get_iscat (iianz, cpara, lpara, uerte, MAXW, .FALSE.)                                  
    CALL del_params (1, ianz, cpara, lpara, maxw) 
-   CALL get_iscat (jjanz, cpara, lpara, verte, MAXW2, .FALSE.)                                  
+   CALL get_iscat (jjanz, cpara, lpara, verte, MAXW, .FALSE.)                                  
    CALL del_params (1, ianz, cpara, lpara, maxw) 
 !
    if(iianz==1 .and. nint(uerte(1))==-1) then   ! 'all' atom typs selected
@@ -1709,9 +1715,9 @@ ELSEIF(str_comp(cpara(2), 'bucking', 2, lpara(2), 7) ) THEN cond_type
    CALL del_params (2, ianz, cpara, lpara, maxw) 
    iianz = 1 
    jjanz = 1 
-   CALL get_iscat (iianz, cpara, lpara, uerte, MAXW2, .FALSE.)                                  
+   CALL get_iscat (iianz, cpara, lpara, uerte, MAXW, .FALSE.)                                  
    CALL del_params (1, ianz, cpara, lpara, maxw) 
-   CALL get_iscat (jjanz, cpara, lpara, verte, MAXW2, .FALSE.)                                  
+   CALL get_iscat (jjanz, cpara, lpara, verte, MAXW, .FALSE.)                                  
    CALL del_params (1, ianz, cpara, lpara, maxw) 
    CALL ber_params (ianz, cpara, lpara, werte, maxw)                                           
 !
@@ -1785,7 +1791,6 @@ ENDIF  cond_type
 !
 if(ier_num==0) mmc_h_number = mmc_h_number + 1
 !
-write(*,*) ' CLEANING UP '
 deallocate(cpara1)
 deallocate(cpara2)
 deallocate(lpara1)
