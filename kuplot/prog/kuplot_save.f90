@@ -1311,7 +1311,7 @@ if(form/='H5') then
    endif
 endif
 !
-if(form=='H5')then
+cond_choices: if(form=='H5')then
 !
    if(is_direct) then
       hh5_value     = 1              ! Direct space data
@@ -1331,7 +1331,7 @@ if(form=='H5')then
    call gen_hdf5_write(hh5_value, hh5_laver, filname, dims, corners, vectors,      &
                        a0, win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax,   &
                        ier_num, ier_typ, ER_IO, ER_APPL)
-elseif(form=='SX') then
+elseif(form=='SX') then cond_choices
    j = 1
    k = 1
    if(dims(2)>1) then
@@ -1340,12 +1340,19 @@ elseif(form=='SX') then
    if(dims(3)>1) then
       k = nint( (werte(2)-c_z(1))/steps(3)) + 1
    endif
+   if(j<1 .or. j>dims(2) .or. k<1 .or. k>dims(3)) then
+      ier_num = -6
+      ier_typ = ER_COMM
+      ier_msg(1) = 'y/z cooordinates outside data range'
+      write(ier_msg(2),'(a, i4, a)') 'Check range with ''show data, ', ik,''''
+      exit cond_choices
+   endif
    write(IWR, '(a)') '#'
    write(IWR, '(a)') '#'
    do i=1, dims(1)
       write(IWR, 4000) c_x(i), qvalues(i,j,k), 0.0, 0.0
    enddo
-elseif(form=='SY') then
+elseif(form=='SY') then cond_choices
    i = 1
    k = 1
    if(dims(1)>1) then
@@ -1354,12 +1361,19 @@ elseif(form=='SY') then
    if(dims(3)>1) then
       k = nint( (werte(2)-c_z(1))/steps(3)) + 1
    endif
+   if(i<1 .or. i>dims(1) .or. k<1 .or. k>dims(3)) then
+      ier_num = -6
+      ier_typ = ER_COMM
+      ier_msg(1) = 'x/z cooordinates outside data range'
+      write(ier_msg(2),'(a, i4, a)') 'Check range with ''show data, ', ik,''''
+      exit cond_choices
+   endif
    write(IWR, '(a)') '#'
    write(IWR, '(a)') '#'
    do j=1, dims(2)
       write(IWR, 4000) c_y(j), qvalues(i,j,k), 0.0, 0.0
    enddo
-elseif(form=='SZ') then
+elseif(form=='SZ') then cond_choices
    i = 1
    j = 1
    if(dims(1)>1) then
@@ -1368,12 +1382,19 @@ elseif(form=='SZ') then
    if(dims(2)>1) then
       j = nint( (werte(2)-c_y(1))/steps(2)) + 1
    endif
+   if(i<1 .or. i>dims(1) .or. j<1 .or. j>dims(2)) then
+      ier_num = -6
+      ier_typ = ER_COMM
+      ier_msg(1) = 'x/y cooordinates outside data range'
+      write(ier_msg(2),'(a, i4, a)') 'Check range with ''show data, ', ik,''''
+      exit cond_choices
+   endif
    write(IWR, '(a)') '#'
    write(IWR, '(a)') '#'
    do k=1, dims(3)
       write(IWR, 4000) c_z(k), qvalues(i,j,k), 0.0, 0.0
    enddo
-endif
+endif cond_choices
 !
 deallocate(qvalues)
 if(allocated(c_x)) deallocate( c_x)
