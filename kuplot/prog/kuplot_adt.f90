@@ -256,7 +256,7 @@ integer, parameter :: MAXW = 4                   ! Actual parameter number
 !
 character(len=PREC_STRING), dimension(MAXW) :: cpara
 integer                   , dimension(MAXW) :: lpara
-real(kind=PREC_DP)        , dimension(MAXW) :: werte
+!real(kind=PREC_DP)        , dimension(MAXW) :: werte
 integer :: ianz          ! Number of parameters
 logical :: lout
 !
@@ -789,39 +789,39 @@ use support_mod       , only:oeffne
 !
 implicit none
 !
-integer, parameter :: IWR = 95
+!integer, parameter :: IWR = 95
 character(len=PREC_STRING) :: string
 integer                                    :: i,j,k      ! Loop indices
 integer                                    :: ii,jj,kk   ! Loop indices
-integer                                    :: ni, nj     ! Loop limits
+!integer                                    :: ni, nj     ! Loop limits
 integer                                    :: ikk        ! Kuplot data set result
-integer                                    :: nref       ! Reflection counter
+!integer                                    :: nref       ! Reflection counter
 integer                   , dimension(3)   :: idims      ! Deimensions of resulting grid
 integer                   , dimension(3)   :: ipixel     ! Coordinates in ADT data
 real(kind=PREC_DP)        , dimension(3)   :: pixel      ! Coordinates in ADT data
 real(kind=PREC_DP)        , dimension(3)   :: ppixel      ! Coordinates in ADT data
-real(kind=PREC_DP)        , dimension(8)   :: pweight    ! Weight for the eight corners
+!real(kind=PREC_DP)        , dimension(8)   :: pweight    ! Weight for the eight corners
 real(kind=PREC_DP)        , dimension(3)   :: hkl
 real(kind=PREC_DP)        , dimension(3)   :: hkl_lim    ! HKL Limits including sigma
 real(kind=PREC_DP)                         :: lsteps     ! Max Steps along the rods
 integer                   , dimension(2,3) :: pix_lim    ! PIXEL Limits including sigma
-real(kind=PREC_DP), dimension(:,:,:), allocatable :: cweight
+!real(kind=PREC_DP), dimension(:,:,:), allocatable :: cweight
 !
-type bragg
-   real(kind=PREC_DP)               :: weight
-   real(kind=PREC_DP), dimension(3) :: com
-   real(kind=PREC_DP), dimension(3) :: pixel
-   real(kind=PREC_DP), dimension(3) :: hkl
-   integer           , dimension(3) :: ihkl
-end type bragg
-type(bragg), dimension(:), allocatable :: bragg_list
+!type bragg
+!   real(kind=PREC_DP)               :: weight
+!   real(kind=PREC_DP), dimension(3) :: com
+!   real(kind=PREC_DP), dimension(3) :: pixel
+!   real(kind=PREC_DP), dimension(3) :: hkl
+!   integer           , dimension(3) :: ihkl
+!end type bragg
+!type(bragg), dimension(:), allocatable :: bragg_list
 !
 type(h5_data_struc) :: ik1
 type(h5_data_struc) :: ik2
 !
 logical :: lout = .true.
-real(kind=PREC_DP), dimension(3) :: com
-real(kind=PREC_DP) :: weight
+!real(kind=PREC_DP), dimension(3) :: com
+!real(kind=PREC_DP) :: weight
 !
 ! Load the grid into a local data copy
 !
@@ -1096,41 +1096,41 @@ use lib_write_mod
 !
 implicit none
 !
-integer, parameter :: IWR = 95
+!integer, parameter :: IWR = 95
 character(len=PREC_STRING) :: string
 integer                                    :: i,j,k      ! Loop indices
 integer                                    :: ii,jj,kk   ! Loop indices
-integer                                    :: ni, nj     ! Loop limits
+!integer                                    :: ni, nj     ! Loop limits
 integer                                    :: ikk        ! Kuplot data set result
-integer                                    :: nref       ! Reflection counter
+!integer                                    :: nref       ! Reflection counter
 integer                   , dimension(3)   :: idims      ! Deimensions of resulting grid
 integer                   , dimension(3)   :: ipixel     ! Coordinates in ADT data
 real(kind=PREC_DP)        , dimension(3)   :: pixel      ! Coordinates in ADT data
 real(kind=PREC_DP)        , dimension(3)   :: ppixel      ! Coordinates in ADT data
-real(kind=PREC_DP)        , dimension(8)   :: pweight    ! Weight for the eight corners
+!real(kind=PREC_DP)        , dimension(8)   :: pweight    ! Weight for the eight corners
 real(kind=PREC_DP)        , dimension(3)   :: hkl
 real(kind=PREC_DP)        , dimension(3)   :: hkl_lim    ! HKL Limits including sigma
 real(kind=PREC_DP)                         :: rlayer     ! Current  [uvw] X [hkl] 
 real(kind=PREC_DP)                         :: steps      ! Steps in [uvw] X [hkl] 
 real(kind=PREC_DP)                         :: lsteps     ! Max Steps in [uvw] X [hkl] 
 integer                   , dimension(2,3) :: pix_lim    ! PIXEL Limits including sigma
-real(kind=PREC_DP), dimension(:,:,:), allocatable :: cweight
+!real(kind=PREC_DP), dimension(:,:,:), allocatable :: cweight
 !
-type bragg
-   real(kind=PREC_DP)               :: weight
-   real(kind=PREC_DP), dimension(3) :: com
-   real(kind=PREC_DP), dimension(3) :: pixel
-   real(kind=PREC_DP), dimension(3) :: hkl
-   integer           , dimension(3) :: ihkl
-end type bragg
-type(bragg), dimension(:), allocatable :: bragg_list
+!type bragg
+!   real(kind=PREC_DP)               :: weight
+!   real(kind=PREC_DP), dimension(3) :: com
+!   real(kind=PREC_DP), dimension(3) :: pixel
+!   real(kind=PREC_DP), dimension(3) :: hkl
+!   integer           , dimension(3) :: ihkl
+!end type bragg
+!type(bragg), dimension(:), allocatable :: bragg_list
 !
 type(h5_data_struc) :: ik1
 type(h5_data_struc) :: ik2
 !
 logical :: lout = .true.
-real(kind=PREC_DP), dimension(3) :: com
-real(kind=PREC_DP) :: weight
+!real(kind=PREC_DP), dimension(3) :: com
+!real(kind=PREC_DP) :: weight
 !
 ! Load the grid into a local data copy
 !
@@ -1446,13 +1446,13 @@ use support_mod       , only:oeffne
 !
 implicit none
 !
-integer, parameter :: IWR = 95
+!integer, parameter :: IWR = 95
 character(len=PREC_STRING) :: string
 integer                                    :: i,j,k      ! Loop indices
 integer                                    :: ii,jj,kk   ! Loop indices
-integer                                    :: ni, nj     ! Loop limits
+!integer                                    :: ni, nj     ! Loop limits
 integer                                    :: ikk        ! Kuplot data set result
-integer                                    :: nref       ! Reflection counter
+!integer                                    :: nref       ! Reflection counter
 integer                   , dimension(3)   :: idims      ! Deimensions of resulting grid
 integer                   , dimension(3)   :: ipixel     ! Coordinates in ADT data
 real(kind=PREC_DP)        , dimension(3)   :: pixel      ! Coordinates in ADT data
@@ -1463,21 +1463,21 @@ real(kind=PREC_DP)        , dimension(3)   :: hkl_lim    ! HKL Limits including 
 integer                   , dimension(2,3) :: pix_lim    ! PIXEL Limits including sigma
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: cweight
 !
-type bragg
-   real(kind=PREC_DP)               :: weight
-   real(kind=PREC_DP), dimension(3) :: com
-   real(kind=PREC_DP), dimension(3) :: pixel
-   real(kind=PREC_DP), dimension(3) :: hkl
-   integer           , dimension(3) :: ihkl
-end type bragg
-type(bragg), dimension(:), allocatable :: bragg_list
+!type bragg
+!   real(kind=PREC_DP)               :: weight
+!   real(kind=PREC_DP), dimension(3) :: com
+!   real(kind=PREC_DP), dimension(3) :: pixel
+!   real(kind=PREC_DP), dimension(3) :: hkl
+!   integer           , dimension(3) :: ihkl
+!end type bragg
+!type(bragg), dimension(:), allocatable :: bragg_list
 !
 type(h5_data_struc) :: ik1
 type(h5_data_struc) :: ik2
 !
 logical :: lout = .true.
-real(kind=PREC_DP), dimension(3) :: com
-real(kind=PREC_DP) :: weight
+!real(kind=PREC_DP), dimension(3) :: com
+!real(kind=PREC_DP) :: weight
 !
 ! Load the grid into a local data copy
 !
@@ -1717,35 +1717,35 @@ use support_mod       , only:oeffne
 implicit none
 !
 integer, parameter :: IWR = 95
-character(len=PREC_STRING) :: string
+!character(len=PREC_STRING) :: string
 integer                                    :: i,j,k      ! Loop indices
 integer                                    :: ii,jj,kk   ! Loop indices
-integer                                    :: ni, nj     ! Loop limits
-integer                                    :: ikk        ! Kuplot data set result
+!integer                                    :: ni, nj     ! Loop limits
+!integer                                    :: ikk        ! Kuplot data set result
 integer                                    :: nref       ! Reflection counter
-integer                   , dimension(3)   :: idims      ! Deimensions of resulting grid
-integer                   , dimension(3)   :: ipixel     ! Coordinates in ADT data
+!integer                   , dimension(3)   :: idims      ! Deimensions of resulting grid
+!integer                   , dimension(3)   :: ipixel     ! Coordinates in ADT data
 real(kind=PREC_DP)        , dimension(3)   :: pixel      ! Coordinates in ADT data
-real(kind=PREC_DP)        , dimension(3)   :: ppixel      ! Coordinates in ADT data
-real(kind=PREC_DP)        , dimension(8)   :: pweight    ! Weight for the eight corners
+!real(kind=PREC_DP)        , dimension(3)   :: ppixel      ! Coordinates in ADT data
+!real(kind=PREC_DP)        , dimension(8)   :: pweight    ! Weight for the eight corners
 real(kind=PREC_DP)        , dimension(3)   :: hkl
-real(kind=PREC_DP)        , dimension(3)   :: hkl_lim    ! HKL Limits including sigma
-integer                   , dimension(2,3) :: pix_lim    ! PIXEL Limits including sigma
-real(kind=PREC_DP), dimension(:,:,:), allocatable :: cweight
+!real(kind=PREC_DP)        , dimension(3)   :: hkl_lim    ! HKL Limits including sigma
+!integer                   , dimension(2,3) :: pix_lim    ! PIXEL Limits including sigma
+!real(kind=PREC_DP), dimension(:,:,:), allocatable :: cweight
 !
-type bragg
-   real(kind=PREC_DP)               :: weight
-   real(kind=PREC_DP), dimension(3) :: com
-   real(kind=PREC_DP), dimension(3) :: pixel
-   real(kind=PREC_DP), dimension(3) :: hkl
-   integer           , dimension(3) :: ihkl
-end type bragg
-type(bragg), dimension(:), allocatable :: bragg_list
+!type bragg
+!   real(kind=PREC_DP)               :: weight
+!   real(kind=PREC_DP), dimension(3) :: com
+!   real(kind=PREC_DP), dimension(3) :: pixel
+!   real(kind=PREC_DP), dimension(3) :: hkl
+!   integer           , dimension(3) :: ihkl
+!end type bragg
+!type(bragg), dimension(:), allocatable :: bragg_list
 !
 type(h5_data_struc) :: ik1
-type(h5_data_struc) :: ik2
+!type(h5_data_struc) :: ik2
 !
-logical :: lout = .true.
+!logical :: lout = .true.
 real(kind=PREC_DP), dimension(3) :: com
 real(kind=PREC_DP) :: weight
 !

@@ -1755,7 +1755,7 @@ real(kind=PREC_DP), dimension(ianz) :: werte    ! Optional value
 !
 integer                                         :: isdim      ! Data are of this diemension (1,2,3)
 integer                                         :: i, j, k     ! Loop index 
-integer                                         :: i1, i2, i3  ! loop indices dimensions
+integer                                         :: i1, i2      ! loop indices dimensions
 integer           , dimension(3)                :: inc        ! Original dimensions
 integer           , dimension(3)                :: idims      ! Resulting dimensions
 real(kind=PREC_DP), dimension(:  ), allocatable :: infield_1d ! Original data 
