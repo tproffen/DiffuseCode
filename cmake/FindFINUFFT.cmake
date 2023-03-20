@@ -59,6 +59,13 @@ find_package_handle_standard_args(FINUFFT
     REQUIRED_VARS FINUFFT_LIB
     HANDLE_COMPONENTS
     )
+FIND_PATH( FINUFFT_DIR "libfinufft.so" "libfinufft.dylib"
+        PATHS   ${FINUFFT_DIR}
+                ${FINUFFT_SEARCH_PATHS}
+                ${DEFAULT_PACKAGE_DIRS}
+                ${DEFAULT_INCLUDE_DIRS}
+)
+        MESSAGE( STATUS "Looking for FINUFFT: directory (${FINUFFT_DIR})" )
 
 mark_as_advanced(
    FINUFFT_LIB
