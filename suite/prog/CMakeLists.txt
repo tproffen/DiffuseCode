@@ -3,6 +3,7 @@
 find_package(MPI)
 find_package(NEXUS)
 find_package(PGPLOT REQUIRED)
+find_package(FINUFFT REQUIRED)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_SOURCE_DIR}/diffev/prog)
@@ -23,6 +24,7 @@ link_directories(${DIFFUSE_BINARY_DIR}/refine/prog)
 link_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 #link_directories(${PGPLOT_LIBRARIES})
 link_directories(${PGPLOT_DIR})
+link_directories(${FINUFFT_DIR})
 
 set (SOURCE_MAIN suite.f90)
 set (SOURCES_ALL suite_setup_mod.f90 suite_branch.f90 suite_loop.f90
@@ -50,6 +52,9 @@ else(DISCUS_OMP)
 endif(DISCUS_OMP)
 message (status " PGPLOT DIR      " ${PGPLOT_DIR} )
 message (status " PGPLOT LIBRARY  " ${PGPLOT_LIBRARIES} )
+message (status " FINUFFT DIR     " ${FINUFFT_DIR} )
+message (status " FINUFFT LIBRARY " ${FINUFFT_LIB} )
+message (status " ALL     LIBRARY " ${LIBS} )
 
 if (MPI_Fortran_FOUND AND DIFFEV_MPI)
   message (status " building SUITE with MPI")
@@ -125,6 +130,8 @@ add_custom_target(suitehlp
 
 install (TARGETS discus_suite DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/suite/prog/suite.hlp DESTINATION share)
+#install (FILES ${DIFFUSE_BINARY_DIR}/suite/prog/discus_suite DESTINATION bin 
+#         PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE )
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/suite/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION share/suite)
 
