@@ -36,7 +36,7 @@ character(len=4)                     :: nw_name
 real(kind=PREC_DP)                   :: nw_dw
 real(kind=PREC_DP)                   :: nw_occ
 !
-integer :: i,j   ! Loop indices
+integer :: i     ! Loop indices
 integer :: is_type ! Derived atom type
 integer :: nscat ! number atom types as to unique mask
 integer :: nscat_start
