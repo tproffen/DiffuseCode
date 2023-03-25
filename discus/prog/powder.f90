@@ -712,7 +712,7 @@ INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
 DATA oname  / 'rcut ' /
 DATA loname /  4      /
