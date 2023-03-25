@@ -1,8 +1,9 @@
-6.14.01  DRAFT
+6.14.02  DRAFT
+6.14.01  RELEASE 2023_03_21
 
 GENERAL
               Removed a few unnecessary debug output lines
-              the macro on the command line has been added to the command history
+              The macro on the command line has been added to the command history
 DISCUS
   fourier     Set symm:apply was not fully active
               BUG FIX The absence of "sigtop" caused trouble
