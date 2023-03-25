@@ -15,6 +15,7 @@ USE discus_config_mod
 USE discus_allocate_appl_mod
 USE crystal_mod 
 USE diffuse_mod 
+use fourier_conv_mod
 USE stack_mod 
 USE stack_rese_mod 
 USE spcgr_apply
@@ -339,10 +340,12 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !           s.f. 'fourier'                                              
 !                                                                       
    ELSEIF (str_comp (befehl, 'fourier', 1, lbef, 7) ) then 
+      CALL four_resolution(zeile, lp)
       four_log = .true. 
       CALL st_fourier (.false.)
       if(ier_num==0) then
          four_was_run = .true.
+         call four_conv           ! Convolute diffraction pattern
       endif
 !                                                                       
 !     ----read the name of a new layer type                'layer'      
@@ -1258,10 +1261,11 @@ DO i = 1, 3
 ENDDO 
 !
 CALL matinv3(st_mod, st_inv) 
-IF (ier_num.eq. - 1) then 
+IF (ier_num == -45) then 
    CALL no_error 
    ier_num = - 56 
    ier_typ = ER_APPL 
+   ier_msg(1) = 'Check modulus vectors and average direction'
    RETURN 
 ENDIF 
 !                                                                       
@@ -1277,7 +1281,7 @@ ENDIF
 !     Loop over all layers                                              
 !                                                                       
 !DBG                                                                    
-WRITE (output_io, * ) ' Start Loop' , st_nlayer
+WRITE (output_io, * ) ' Start Loop' , st_nlayer, ier_num, ier_typ
 WRITE (output_io, 2000) ' Origins', st_type (1), st_origin(1, 1)&
                         , st_origin(2, 1), st_origin(3, 1)                             
 loop_layer: DO i = 2, st_nlayer 
