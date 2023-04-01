@@ -77,6 +77,8 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2023_April
+   export      Added an optional style command to "scatty"
 3  2023_March
    fourier     Started implementation of a Non-Uniform FFT
    output      Started implementation of a transformation menu upon output
@@ -2609,7 +2611,7 @@
 !p export "rmcprofile",<file{".rmc6f"]>  [version:{"6"|"7"}]
 !p export "vasp",<file]>
 !p export "poscar",<file]>
-!p export "scatty",<file]>
+!p export "scatty",<file]> [,site:{"average","indiv"}]
 
    cif
    Exports the atoms of the current structure as a minimal CIF
@@ -2632,10 +2634,15 @@
    poscar
    Exports the atoms of the current structure as a VASP "POSCAR" file. 
 
-   scatty
+   scatty  [,site:{"average","indiv"}]
    Exports the atoms of the current structure as a SCATTY file
    Only the "*_atoms_01.txt" file is written. The user has to edit his
    "scatty_config.txt" file individually.
+   The optional parameter lets you write a file, in which either:
+   the "site" lines in the scatty file correspond to the positions in the 
+   average unit cell, the default, or
+   the "site" lines correspond to each individual atom "site:indiv". 
+   In this version, the displacements on the atom lines are all set to zero.
 2  d2r
 !p d2r <u>,<v>,<w>
 
