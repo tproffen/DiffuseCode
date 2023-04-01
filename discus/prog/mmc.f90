@@ -842,7 +842,7 @@ opara  =  (/ 'atoms', 'on   ', 'on   '  /)   ! Always provide fresh default valu
 lopara =  (/  5     ,  3     ,  3       /)
 owerte =  (/  0.0   ,  1.0   ,  1.0     /)
 !
-MAXW = cr_nscat+10
+MAXW = max(200,cr_nscat+10)
 allocate(cpara(MAXW))
 allocate(lpara(MAXW))
 allocate(werte(MAXW))
