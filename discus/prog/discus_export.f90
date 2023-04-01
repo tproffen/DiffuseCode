@@ -23,9 +23,10 @@ INTEGER, PARAMETER :: MAXW = 5
 CHARACTER(LEN=    PREC_STRING           ), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER  :: ianz
-INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_RMCVS   = 1
 INTEGER, PARAMETER :: O_SPCGR   = 2
+INTEGER, PARAMETER :: O_SITE    = 3
 CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=    PREC_STRING           ), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -35,28 +36,29 @@ REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
 INTEGER  :: rmcversion
+integer  :: scatty_site
 !
 !
-DATA oname  / 'version', 'spcgr  '         /
-DATA loname /  7       ,  7                /
+DATA oname  / 'version', 'spcgr  ', 'site   ' /
+DATA loname /  7       ,  5       ,  4        /
 !
-opara  =  (/ '6.0000', 'P1    ' /)   ! Always provide fresh default values
-lopara =  (/  6      ,  6       /)
-owerte =  (/  6.0    ,  0.0     /)
+opara  =  (/ '6.00000', 'P1     ', 'average' /)   ! Always provide fresh default values
+lopara =  (/  7       ,  7      ,  7        /)
+owerte =  (/  6.0D0   ,  0.0D0  ,  0.0D0 /)
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, lp)
 IF (ier_num.ne.0) THEN
    RETURN
 ENDIF
 !
-CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                  oname, loname, opara, lopara, lpresent, owerte)
-IF(ier_num/=0) RETURN
-!
 CALL update_cr_dim
 !                                                                       
 IF (ianz.ge.1) THEN
    IF (str_comp (cpara (1) , 'cif', 2, lpara (1) , 3) ) THEN
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, lpresent, owerte)
+      IF(ier_num/=0) RETURN
+!
       IF (ianz >= 2) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) RETURN
@@ -78,6 +80,10 @@ IF (ianz.ge.1) THEN
          ier_typ = ER_COMM
       ENDIF
    ELSEIF (str_comp (cpara (1) , 'rmcprofile', 2, lpara (1) , 10) ) THEN
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, lpresent, owerte)
+      IF(ier_num/=0) RETURN
+!
       IF (ianz >= 2) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) RETURN
@@ -88,10 +94,24 @@ IF (ianz.ge.1) THEN
          ier_typ = ER_COMM
       ENDIF
    ELSEIF (str_comp (cpara (1) , 'scatty', 2, lpara (1) , 6) ) THEN
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, lpresent, owerte)
+      IF(ier_num/=0) RETURN
+!
       IF (ianz >= 2) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) RETURN
-         CALL discus2scatty (ianz, cpara, lpara, MAXW)
+         if(opara(O_SITE)(1:lopara(O_SITE))=='average') then
+            scatty_site = 0
+         elseif(opara(O_SITE)(1:lopara(O_SITE))=='indiv') then
+            scatty_site = 1
+         else
+            ier_num = - 6
+            ier_typ = ER_COMM
+            ier_msg(1) = 'site parameter must be ''average'' or ''indiv'' '
+            return
+         endif
+         CALL discus2scatty (ianz, cpara, lpara, MAXW, scatty_site)
       ELSE
          ier_num = - 6
          ier_typ = ER_COMM
@@ -962,7 +982,7 @@ DEALLOCATE(atom_names)
 !
 END SUBROUTINE discus2poscar
 !
-SUBROUTINE discus2scatty(ianz, cpara, lpara, MAXW)
+SUBROUTINE discus2scatty(ianz, cpara, lpara, MAXW, scatty_site)
 !
 ! Write the current structure in format for SCATTY (Joe Paddison)
 ! 
@@ -977,6 +997,7 @@ USE errlist_mod
 USE string_convert_mod
 USE precision_mod
 USE support_mod
+!use take_param_mod
 !
 IMPLICIT NONE
 !
@@ -984,6 +1005,7 @@ INTEGER            ,                  INTENT(IN)    :: MAXW
 INTEGER            ,                  INTENT(INOUT) :: ianz
 CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+integer                             , intent(in)    :: scatty_site
 !
 INTEGER, PARAMETER :: IWR = 35
 !LOGICAL, PARAMETER :: lold = .FALSE.
@@ -1000,6 +1022,7 @@ INTEGER                  :: isite
 INTEGER, DIMENSION(3)    :: icell
 !INTEGER                  :: nscat
 REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(3   ) :: vec
 !
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
 IF (ier_num.ne.0) THEN
@@ -1026,45 +1049,88 @@ CALL chem_aver(lout, lsite)
 WRITE(IWR, '(a,a)') 'TITLE ',cr_name
 WRITE(IWR, '(a, 6(2x,f12.5))') 'CELL', cr_a0(:), cr_win(:)
 WRITE(IWR, '(a, 3(3x,i6))')    'BOX ', cr_icc(:)
-DO i=1, cr_ncatoms
-   WRITE(IWR, '(a,3(1x,f15.12))') 'SITE ',chem_ave_pos(:,i)
-ENDDO
 !
 ia = cr_icc(1)*cr_icc(2)*cr_icc(3)
-DO i=1, cr_ncatoms
-   line = 'OCC '
-   types: DO k=1, chem_ave_n(i)
-      string = ' '
-      at_name_i = cr_at_lis(chem_ave_iscat(i,k))
-      IF(at_name_i=='VOID') CYCLE types
-      CALL do_cap(at_name_i(1:1))
-      CALL do_low(at_name_i(2:4))
-      WRITE(string,'(a4,1x,f8.4)') at_name_i, chem_ave_bese(i,k)/REAL(ia)
-      line = line(1:LEN_TRIM(line))// ' ' // string(1:11)
-   ENDDO types
-   WRITE(IWR, '(a)') line(1:LEN_TRIM(line))
-ENDDO
+if(scatty_site==0) then                   !use average sites 
+   DO i=1, cr_ncatoms
+      WRITE(IWR, '(a,3(1x,f15.12))') 'SITE ',chem_ave_pos(:,i)
+   ENDDO
+   DO i=1, cr_ncatoms
+      line = 'OCC '
+      types: DO k=1, chem_ave_n(i)
+         string = ' '
+         at_name_i = cr_at_lis(chem_ave_iscat(i,k))
+         IF(at_name_i=='VOID') CYCLE types
+         CALL do_cap(at_name_i(1:1))
+         CALL do_low(at_name_i(2:4))
+         WRITE(string,'(a4,1x,f8.4)') at_name_i, chem_ave_bese(i,k)/REAL(ia)
+         line = line(1:LEN_TRIM(line))// ' ' // string(1:11)
+      ENDDO types
+      WRITE(IWR, '(a)') line(1:LEN_TRIM(line))
+   ENDDO
 !
 ! Write atom list
 !
-atoms: DO i=1, cr_natoms
-   at_name_i = cr_at_lis(cr_iscat(i))
-   IF(at_name_i=='VOID') CYCLE atoms
-   CALL do_cap(at_name_i(1:1))
-   CALL do_low(at_name_i(2:4))
-   icell = 0
-   isite = 0
-   CALL indextocell(i, icell, isite)
-   WRITE(IWR, '(a,4i12,3(1x,g26.12e3),1x,a4)') 'ATOM ', &
-        isite, icell(1)-1, icell(2)-1, icell(3)-1, &
-        (cr_pos(1,i) - chem_ave_pos(1,isite))  - &
-   NINT((cr_pos(1,i) - chem_ave_pos(1,isite)))  ,&
-        (cr_pos(2,i) - chem_ave_pos(2,isite))  - &
-   NINT((cr_pos(2,i) - chem_ave_pos(2,isite)))  ,&
-        (cr_pos(3,i) - chem_ave_pos(3,isite))  - &
-   NINT((cr_pos(3,i) - chem_ave_pos(3,isite))),  &
-   at_name_i(1:4)
-ENDDO atoms
+   atoms: DO i=1, cr_natoms
+      at_name_i = cr_at_lis(cr_iscat(i))
+      IF(at_name_i=='VOID') CYCLE atoms
+      CALL do_cap(at_name_i(1:1))
+      CALL do_low(at_name_i(2:4))
+      icell = 0
+      isite = 0
+      CALL indextocell(i, icell, isite)
+      WRITE(IWR, '(a,4i12,3(1x,g26.12e3),1x,a4)') 'ATOM ', &
+           isite, icell(1)-1, icell(2)-1, icell(3)-1, &
+           (cr_pos(1,i) - chem_ave_pos(1,isite))  - &
+      NINT((cr_pos(1,i) - chem_ave_pos(1,isite)))  ,&
+           (cr_pos(2,i) - chem_ave_pos(2,isite))  - &
+      NINT((cr_pos(2,i) - chem_ave_pos(2,isite)))  ,&
+           (cr_pos(3,i) - chem_ave_pos(3,isite))  - &
+      NINT((cr_pos(3,i) - chem_ave_pos(3,isite))),  &
+      at_name_i(1:4)
+   ENDDO atoms
+else                       ! Use all atom positions
+   DO i=1, cr_natoms
+      vec = cr_pos(:,i) - real(int(cr_pos(:,i)),kind=PREC_DP)
+      if(vec(1)<0.0D0) vec(1:) = vec(1) + 1.0D0
+      if(vec(2)<0.0D0) vec(2:) = vec(2) + 1.0D0
+      if(vec(3)<0.0D0) vec(3:) = vec(3) + 1.0D0
+      WRITE(IWR, '(a,3(1x,f15.12))') 'SITE ',vec
+   ENDDO
+   atoms3: DO i=1, cr_natoms
+      line = 'OCC '
+      string = ' '
+      at_name_i = cr_at_lis(cr_iscat(i))
+      IF(at_name_i=='VOID') CYCLE atoms3
+      CALL do_cap(at_name_i(1:1))
+      CALL do_low(at_name_i(2:4))
+      WRITE(string,'(a4,1x,f8.4)') at_name_i, 1.0D0
+      line = line(1:LEN_TRIM(line))// ' ' // string(1:11)
+      WRITE(IWR, '(a)') line(1:LEN_TRIM(line))
+   ENDDO atoms3
+!
+! Write atom list
+!
+   atoms2: DO i=1, cr_natoms
+      at_name_i = cr_at_lis(cr_iscat(i))
+      IF(at_name_i=='VOID') CYCLE atoms2
+      CALL do_cap(at_name_i(1:1))
+      CALL do_low(at_name_i(2:4))
+      icell = 0
+      isite = 0
+      CALL indextocell(i, icell, isite)
+      WRITE(IWR, '(a,4i12,3(1x,g26.12e3),1x,a4)') 'ATOM ', &
+           isite, icell(1)-1, icell(2)-1, icell(3)-1, &
+           0.0D0, 0.0D0, 0.0D0, at_name_i(1:4)
+!          (cr_pos(1,i) - chem_ave_pos(1,isite))  - &
+!     NINT((cr_pos(1,i) - chem_ave_pos(1,isite)))  ,&
+!          (cr_pos(2,i) - chem_ave_pos(2,isite))  - &
+!     NINT((cr_pos(2,i) - chem_ave_pos(2,isite)))  ,&
+!          (cr_pos(3,i) - chem_ave_pos(3,isite))  - &
+!     NINT((cr_pos(3,i) - chem_ave_pos(3,isite))),  &
+!     at_name_i(1:4)
+   ENDDO atoms2
+endif
 !
 CLOSE(IWR)
 !
