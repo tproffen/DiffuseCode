@@ -1589,6 +1589,8 @@ do k=pix_lim(1,3), pix_lim(2,3)
 ! write(*,*) ' II JJ KK', ii,jj,kk
 ! write(*,*) ' PREV    ', ik2%datamap(ii  ,jj  ,kk  ) , ' + ', ik1%datamap(i,j,k)
 ! endif
+                  if(ii>0 .and. ii<idims(1)  .and. jj>0 .and. jj<idims(2) .and.  & 
+                     kk>0 .and. kk<idims(3)                                      ) then
                   ik2%datamap(ii  ,jj  ,kk  ) = ik2%datamap(ii  ,jj  ,kk  ) + ik1%datamap(i,j,k) * pweight(1)
                   cweight    (ii  ,jj  ,kk  ) = cweight    (ii  ,jj  ,kk  ) +                      pweight(1)
                   ik2%datamap(ii+1,jj  ,kk  ) = ik2%datamap(ii+1,jj  ,kk  ) + ik1%datamap(i,j,k) * pweight(2)
@@ -1605,6 +1607,7 @@ do k=pix_lim(1,3), pix_lim(2,3)
                   cweight    (ii  ,jj+1,kk+1) = cweight    (ii  ,jj+1,kk+1) +                      pweight(7)
                   ik2%datamap(ii+1,jj+1,kk+1) = ik2%datamap(ii+1,jj+1,kk+1) + ik1%datamap(i,j,k) * pweight(8)
                   cweight    (ii+1,jj+1,kk+1) = cweight    (ii+1,jj+1,kk+1) +                      pweight(8)
+                  endif
 !                 ii = nint((hkl(1)+adt_limits(1))/adt_steps(1))+1
 !                 jj = nint((hkl(2)+adt_limits(2))/adt_steps(2))+1
 !                 kk = nint((hkl(3)+adt_limits(3))/adt_steps(3))+1
