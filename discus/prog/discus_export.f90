@@ -1017,7 +1017,7 @@ CHARACTER(LEN=    PREC_STRING            )      :: line  = ' '
 CHARACTER(LEN=    PREC_STRING            )      :: string= ' '
 CHARACTER(LEN=   4)      :: at_name_i = ' '
 !INTEGER                  :: lp
-INTEGER                  :: i, k, ia
+INTEGER                  :: i, j, k, ia
 INTEGER                  :: isite
 INTEGER, DIMENSION(3)    :: icell
 !INTEGER                  :: nscat
@@ -1047,11 +1047,11 @@ CALL chem_aver(lout, lsite)
 ! Ready to write the structure
 !
 WRITE(IWR, '(a,a)') 'TITLE ',cr_name
-WRITE(IWR, '(a, 6(2x,f12.5))') 'CELL', cr_a0(:), cr_win(:)
-WRITE(IWR, '(a, 3(3x,i6))')    'BOX ', cr_icc(:)
 !
 ia = cr_icc(1)*cr_icc(2)*cr_icc(3)
 if(scatty_site==0) then                   !use average sites 
+   WRITE(IWR, '(a, 6(2x,f12.5))') 'CELL', cr_a0(:), cr_win(:)
+   WRITE(IWR, '(a, 3(3x,i6))')    'BOX ', cr_icc(:)
    DO i=1, cr_ncatoms
       WRITE(IWR, '(a,3(1x,f15.12))') 'SITE ',chem_ave_pos(:,i)
    ENDDO
@@ -1090,37 +1090,43 @@ if(scatty_site==0) then                   !use average sites
       at_name_i(1:4)
    ENDDO atoms
 else                       ! Use all atom positions
-   DO i=1, cr_natoms
+   WRITE(IWR, '(a, 6(2x,f12.5))') 'CELL', cr_icc*cr_a0, cr_win
+   WRITE(IWR, '(a, 3(3x,i6))')    'BOX ', 1,1,1
+   loop_atoms3:DO i=1, cr_natoms
+      at_name_i = cr_at_lis(cr_iscat(i))
+      IF(at_name_i=='VOID') CYCLE loop_atoms3
       vec = cr_pos(:,i) - real(int(cr_pos(:,i)),kind=PREC_DP)
       if(vec(1)<0.0D0) vec(1:) = vec(1) + 1.0D0
       if(vec(2)<0.0D0) vec(2:) = vec(2) + 1.0D0
       if(vec(3)<0.0D0) vec(3:) = vec(3) + 1.0D0
       WRITE(IWR, '(a,3(1x,f15.12))') 'SITE ',vec
-   ENDDO
-   atoms3: DO i=1, cr_natoms
+   ENDDO loop_atoms3
+   loop_atoms4: DO i=1, cr_natoms
       line = 'OCC '
       string = ' '
       at_name_i = cr_at_lis(cr_iscat(i))
-      IF(at_name_i=='VOID') CYCLE atoms3
+      IF(at_name_i=='VOID') CYCLE loop_atoms4
       CALL do_cap(at_name_i(1:1))
       CALL do_low(at_name_i(2:4))
       WRITE(string,'(a4,1x,f8.4)') at_name_i, 1.0D0
       line = line(1:LEN_TRIM(line))// ' ' // string(1:11)
       WRITE(IWR, '(a)') line(1:LEN_TRIM(line))
-   ENDDO atoms3
+   ENDDO loop_atoms4
 !
 ! Write atom list
 !
+   k = 0
    atoms2: DO i=1, cr_natoms
       at_name_i = cr_at_lis(cr_iscat(i))
       IF(at_name_i=='VOID') CYCLE atoms2
       CALL do_cap(at_name_i(1:1))
       CALL do_low(at_name_i(2:4))
+      k = k + 1
       icell = 0
       isite = 0
       CALL indextocell(i, icell, isite)
       WRITE(IWR, '(a,4i12,3(1x,g26.12e3),1x,a4)') 'ATOM ', &
-           isite, icell(1)-1, icell(2)-1, icell(3)-1, &
+           k, 0, 0, 0, &
            0.0D0, 0.0D0, 0.0D0, at_name_i(1:4)
 !          (cr_pos(1,i) - chem_ave_pos(1,isite))  - &
 !     NINT((cr_pos(1,i) - chem_ave_pos(1,isite)))  ,&
