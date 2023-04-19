@@ -658,8 +658,6 @@
    If the data in data set <idata> were read as HDF5 files, KUPLOT
    can calculate the angle from the internal values for this
    data set. this allows an automatic angle.
-2  bond
-!p bond
 2  aver
 !p aver [<yx>]
 !p aver data:<idata>
