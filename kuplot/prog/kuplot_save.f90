@@ -1000,8 +1000,11 @@ ELSEIF (form (1:2) .eq.'SL'.and.lni (ik) ) then
    xend = ex (iwin, iframe, 2) 
    xdel = (werte (3) - werte (1) ) / werte (5) 
    ninterv = NINT((xend-xanf)/xdel)
+   k = 1
+   if(ninterv < 0 ) k = -1
 !         DO xxx = xanf, xend, xdel
-   DO i = 0, ninterv
+write(*,*) ' IN SL', ninterv
+   DO i = 0, ninterv, k
       xxx = xanf + i* xdel
       yyy = xsteig * xxx + xabsch 
       CALL extract_subarray (xf, yf, zf, xxx, yyy, maxf, ik, ie) 
@@ -1286,9 +1289,13 @@ integer                                            :: nlayer       ! Current lay
 logical                                            :: is_direct    ! date in direct / reciprocal space
 integer                                            :: ndims        ! Number of dimensions
 integer, dimension(3)                              :: dims         ! Dimensions global array
+integer                                            :: nx_min, nx_max  ! min max indices for NIPL File
+integer                                            :: ny_min, ny_max  ! min max indices for NIPL File
 logical                                            :: is_grid      ! date in direct / reciprocal space
 logical                                            :: has_dxyz     ! date in direct / reciprocal space
 logical                                            :: has_dval     ! date in direct / reciprocal space
+real(kind=PREC_DP)                                 :: wx_min, wy_min ! Lower corners for nipl files
+real(kind=PREC_DP)                                 :: wx_max, wy_max ! Upper corners for nipl files
 REAL(kind=PREC_DP)   , DIMENSION(3,4)              :: corners      ! steps along each axis
 REAL(kind=PREC_DP)   , DIMENSION(3,3)              :: vectors      ! steps along each axis
 REAL(kind=PREC_DP)   , DIMENSION(3)                :: a0           ! Lower limits
@@ -1331,6 +1338,40 @@ cond_choices: if(form=='H5')then
    call gen_hdf5_write(hh5_value, hh5_laver, filname, dims, corners, vectors,      &
                        a0, win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax,   &
                        ier_num, ier_typ, ER_IO, ER_APPL)
+elseif(form=='NI') then cond_choices
+   k = nlayer
+k = 1
+!  rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
+!  rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
+!  nx_min = max (1, nint ( ( (werte (1) - xmin (ik) ) / rdx) ) + 1)
+!  nx_max = min (nx (ik), nint ( ( (werte (2) - xmin (ik) ) / rdx) ) + 1)
+!  ny_min = max (1, nint ( ( (werte (3) - ymin (ik) ) / rdy) ) + 1)
+!  ny_max = min (ny (ik), nint ( ( (werte (4) - ymin (ik) ) / rdy) ) + 1)
+!  wx_min = xmin (ik) + (nx_min - 1) * rdx 
+!  wx_max = xmin (ik) + (nx_max - 1) * rdx 
+!  wy_min = ymin (ik) + (ny_min - 1) * rdy 
+!  wy_max = ymin (ik) + (ny_max - 1) * rdy 
+   nx_min = max(1, nint((werte(1) - c_x(1))/steps(1))+1)
+   nx_max = min(dims(1), nint((werte(2) - c_x(1))/steps(1))+1)
+   ny_min = max(1, nint((werte(3) - c_y(1))/steps(2))+1)
+   ny_max = min(dims(2), nint((werte(4) - c_y(1))/steps(2))+1)
+   wx_min = c_x(1) + (nx_min - 1)*steps(1)
+   wx_max = c_x(1) + (nx_max - 1)*steps(1)
+   wy_min = c_y(1) + (ny_min - 1)*steps(2)
+   wy_max = c_y(1) + (ny_max - 1)*steps(2)
+write(*,*) ' DIMENS', dims
+write(*,*) ' LAYER ', nlayer
+write(*,*) ' Pixel x', nx_min, nx_max
+write(*,*) ' Pixel y', ny_min, ny_max
+write(*,*) nx_max - nx_min + 1, ny_max - ny_min + 1
+write(*,4000) wx_min, wx_max, wy_min, wy_max
+   WRITE (IWR, * ) nx_max - nx_min + 1, ny_max - ny_min + 1 
+   WRITE (IWR, 4000) wx_min, wx_max, wy_min, wy_max 
+   DO j  = ny_min, ny_max 
+      write(IWR, 4000) (qvalues(i,j,k), i=nx_min, nx_max)
+!     WRITE (IWR, 4000) (z (offz (ik - 1) + (ix - 1) * ny (ik) + iy), ix = nx_min, nx_max)
+   ENDDO 
+   
 elseif(form=='SX') then cond_choices
    j = 1
    k = 1
