@@ -110,6 +110,7 @@ INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name retu
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate
+logical, save :: INIT = .true.
 !
 !
 DATA oname  / 'dchi  ' , 'pshift'  ,  'conf '   ,  'chisq ' , 'status'  /
@@ -117,6 +118,13 @@ DATA loname /  4       ,  6        ,   4        ,  5        ,  6        /
 opara  =  (/ '0.500000', '0.005000',  '0.010000', '0.500000', 'on      '/)   ! Always provide fresh default values
 lopara =  (/  8        ,  8        ,   8        ,  8        ,  8        /)
 owerte =  (/  0.500000 ,  0.005000 ,   0.010000 ,  0.005000 ,  0.000000 /)
+if(INIT) then
+   conv_dchi2    = owerte(O_DCHI)
+   conv_dp_sig   = owerte(O_PSHIFT)
+   conv_conf     = owerte(O_CONF)
+   conv_chi2     = owerte(O_CHI)
+   INIT          = .false.
+endif
 !
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 IF(ier_num/=0) RETURN
@@ -125,11 +133,11 @@ IF(IANZ>=1) THEN
    CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                      oname, loname, opara, lopara, lpresent, owerte)
    IF(ier_num/=0) RETURN
-   conv_status   = str_comp(opara(O_STATUS), 'on', 2, lopara(1), 2)
-   conv_dchi2    = owerte(O_DCHI)
-   conv_dp_sig   = owerte(O_PSHIFT)
-   conv_conf     = owerte(O_CONF)
-   conv_chi2     = owerte(O_CHI)
+   if(lpresent(O_STATUS)) conv_status   = str_comp(opara(O_STATUS), 'on', 2, lopara(1), 2)
+   if(lpresent(O_DCHI))   conv_dchi2    = owerte(O_DCHI)
+   if(lpresent(O_PSHIFT)) conv_dp_sig   = owerte(O_PSHIFT)
+   if(lpresent(O_CONF))   conv_conf     = owerte(O_CONF)
+   if(lpresent(O_CHI))    conv_chi2     = owerte(O_CHI)
 ELSE
    ier_num = -6
    ier_typ = ER_FORT
