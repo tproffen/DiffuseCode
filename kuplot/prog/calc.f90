@@ -1012,8 +1012,14 @@ ELSE                               ! 2D Data sets
             ind_in = offz(ik-1)+(ix-1)*ny(ik) + iy
             ind_out=  (NINT((x(offxy(ik-1)+ix)-mmin )/mdelta )  )*ntoty &
                      +(NINT((y(offxy(ik-1)+iy)-mminy)/mdeltay)+1)
-!write(*,'(7i3,3f6.1,i3)') i,ix, iy, ind_in, ind_out, (NINT((x(offxy(ik-1)+ix)-mmin )/mdelta )  )*ntoty &
-! , (NINT((y(offxy(ik-1)+iy)-mminy)/mdeltay)+1), x(offxy(ik-1)+ix), mmin,mdelta, ntoty
+!if(ix==1 .and. iy==1) then
+!write(*,*) ' AT ',ik, ind_in, ind_out, offz(iz-1), ind_out + offz(iz-1)
+! write(*,'(7i8,6f8.3,1x,i3)') i,ix, iy, ind_in, ind_out, (NINT((x(offxy(ik-1)+ix)-mmin )/mdelta )  )*ntoty &
+!  , (NINT((y(offxy(ik-1)+iy)-mminy)/mdeltay)+1), x(offxy(ik-1)+ix), y(offxy(ik-1)+iy), mmin,mdelta, mminy, mdeltay, ntoty
+! write(*,*) (x(offxy(ik-1)+ix)      )       , (y(offxy(ik-1)+iy)      )
+! write(*,*) (x(offxy(ik-1)+ix)-mmin )       , (y(offxy(ik-1)+iy)-mminy)
+! write(*,*) (x(offxy(ik-1)+ix)-mmin )/mdelta, (y(offxy(ik-1)+iy)-mminy)/mdeltay
+!endif
             npt(ind_out) = npt(ind_out) + 1             ! Increment number of contribution data
             ind_out      = ind_out + offz(iz-1)
             z(ind_out)   = z(ind_out) + z(ind_in)
@@ -1026,6 +1032,7 @@ ELSE                               ! 2D Data sets
          ind_out = offz(iz-1) + ibin
          z(ind_out) = z(ind_out) / npt(ibin)
       ENDIF
+if(ibin==1) write(*,*) 'ED ', iz, ind_out, ind_out
    ENDDO
 !
    DEALLOCATE(npt)
