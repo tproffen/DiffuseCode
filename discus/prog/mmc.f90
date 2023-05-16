@@ -2333,7 +2333,6 @@ INTEGER :: ii, jj
 !                                                                       
                                                                         
       IF (is /=  - 1.AND.js /=  - 1) THEN 
-write(*,*) ' ic, is, js', ic, is, js, a, b, m, n
          mmc_len_a (ic, is, js) = a 
          mmc_len_b (ic, is, js) = b 
          mmc_len_m (ic, is, js) = m 
