@@ -1003,7 +1003,6 @@ ELSEIF (form (1:2) .eq.'SL'.and.lni (ik) ) then
    k = 1
    if(ninterv < 0 ) k = -1
 !         DO xxx = xanf, xend, xdel
-write(*,*) ' IN SL', ninterv
    DO i = 0, ninterv, k
       xxx = xanf + i* xdel
       yyy = xsteig * xxx + xabsch 
@@ -1359,12 +1358,6 @@ k = 1
    wx_max = c_x(1) + (nx_max - 1)*steps(1)
    wy_min = c_y(1) + (ny_min - 1)*steps(2)
    wy_max = c_y(1) + (ny_max - 1)*steps(2)
-write(*,*) ' DIMENS', dims
-write(*,*) ' LAYER ', nlayer
-write(*,*) ' Pixel x', nx_min, nx_max
-write(*,*) ' Pixel y', ny_min, ny_max
-write(*,*) nx_max - nx_min + 1, ny_max - ny_min + 1
-write(*,4000) wx_min, wx_max, wy_min, wy_max
    WRITE (IWR, * ) nx_max - nx_min + 1, ny_max - ny_min + 1 
    WRITE (IWR, 4000) wx_min, wx_max, wy_min, wy_max 
    DO j  = ny_min, ny_max 
