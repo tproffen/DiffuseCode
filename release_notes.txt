@@ -1,5 +1,12 @@
-6.14.02  DRAFT
-6.14.01  RELEASE 2023_03_21
+6.14.03  DRAFT
+6.14.02  RELEASE 2023_05_16
+
+GENERAL
+              Removed a few unnecessary debug output lines
+DISCUS
+  mmc         BUG FIX Very long lines on 'set vec' did not work
+  export      Added output options for scatty
+O6.14.01  RELEASE 2023_03_21
 
 GENERAL
               Removed a few unnecessary debug output lines
