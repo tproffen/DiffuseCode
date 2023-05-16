@@ -1451,6 +1451,7 @@ character(len=4)           :: atom_j
 INTEGER             :: i,j,k
 INTEGER             :: px, py
 INTEGER             :: length
+integer, dimension(2) :: pl_min_pos
 LOGICAL             :: lsecond  = .false.
 LOGICAL             :: lunit    = .false.
 INTEGER, SAVE       :: jmol_no  = 0   ! Jmol instance number
@@ -1797,19 +1798,29 @@ IF(pl_prog=='jmol') THEN
    endif
    CLOSE(ITMP)
    IF(operating=='Linux') THEN
+      pl_min_pos(1) = 74
+      pl_min_pos(2) =  6
       WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), geom,' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
 !write(*,*) line(1:len_trim(line))
    ELSEIF(operating=='Linux_WSL') THEN
+      pl_min_pos(1) = 40
+      pl_min_pos(2) = 40
       WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), geom,' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
    ELSEIF(operating(1:6)=='darwin') THEN
+      pl_min_pos(1) =  0
+      pl_min_pos(2) = 25
       WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), geom,' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
    ELSEIF(operating(1:6)=='cygwin') THEN
+      pl_min_pos(1) = 40
+      pl_min_pos(2) = 40
       WRITE(line,'(a,a,a,i10.10,a,i10.10,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
             geom,' -s jmol.', PID, '.',jmol_no, '.mol  > /dev/null &'
    ELSEIF(operating(1:7)=='Windows') THEN
+      pl_min_pos(1) = 40
+      pl_min_pos(2) = 40
       WRITE(line,'(a,a,a,i10.10,a,i10.10,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), &
             geom,' -s ../../tmp/jmol.', PID, '.',jmol_no, '.mol  > /dev/null &'
 !
@@ -1817,6 +1828,9 @@ IF(pl_prog=='jmol') THEN
    WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
    CALL EXECUTE_COMMAND_LINE(line)
 ENDIF
+!
+pl_jmol_used = .true.
+!
 END SUBROUTINE plot_inter
 !
 !*****7*****************************************************************
@@ -2097,6 +2111,7 @@ pl_bond(:,:) = .FALSE.      ! (0:MAXSCAT,0:MAXSCAT)
 pl_append    = .FALSE.
 pl_ext_all   = .TRUE.
 pl_n_lines   = 0
+pl_jmol_used = .false.
 !
 END SUBROUTINE plot_reset
 !

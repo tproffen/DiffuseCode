@@ -74,5 +74,6 @@ LOGICAL, DIMENSION(:,:), ALLOCATABLE      :: pl_bond      ! (0:MAXSCAT,0:MAXSCAT
 LOGICAL                                   :: pl_append    = .false.
 LOGICAL, DIMENSION(3)                     :: pl_ext_all   = .true.
 INTEGER                                   :: pl_size_of   = 0      ! Bytes allocates for plot
+logical                                   :: pl_jmol_used = .false.
 !
 END MODULE discus_plot_mod
