@@ -613,7 +613,7 @@ else
 ans = refine_constrain_test_eta(werte(1),werte(2), werte(3), 1.0D-5, werte(4), werte(5))
 endif
 
-write(*,'('' TEST == '', L1)') ans
+!write(*,'('' TEST == '', L1)') ans
 !
 end subroutine refine_constrain_temp
 !
