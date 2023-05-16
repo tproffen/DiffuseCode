@@ -61,6 +61,7 @@ USE precision_mod
    INTEGER             :: current_dir_l
    INTEGER             :: user_name_l
    INTEGER             :: lines
+   integer,dimension(2):: screen_size
    INTEGER             :: last_update = 0 ! Last date of system update
    INTEGER             :: PID             ! Process ID of discus_suite
    INTEGER             :: PPID            ! Parent Process ID of discus_suite

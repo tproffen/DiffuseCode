@@ -44,6 +44,8 @@ LOGICAL, INTENT(IN) :: standalone
 !                                                                       
 INTEGER, PARAMETER :: idef = 68
 !
+character(len=PREC_STRING) :: get_screen_size
+character(len=PREC_STRING) :: get_screen_file
 CHARACTER(len=255) :: cdummy
 CHARACTER(LEN=12), DIMENSION(7), PARAMETER :: tmp_test = (/                     &
 '/private/tmp', '/tmp        ', '/TMP        ',                                 &
@@ -64,6 +66,8 @@ LOGICAL :: lpresent
 !INTEGER :: lib_f90_getpid
 !
 IF(envir_done) RETURN
+!
+get_screen_size = ' '
 !                                                                       
 ! Get the PID of the DISCUS Process
 !
@@ -411,6 +415,8 @@ ENDIF
             start_dir   = start_dir(1:start_dir_l) // '/'
             start_dir_l = start_dir_l + 1
          ENDIF
+         get_screen_file = tmp_dir(1:tmp_dir_l)//'/discus_suite_screen.txt'
+         get_screen_size = 'xdpyinfo | grep dimensions > '//get_screen_file(1:len_trim(get_screen_file))
       ELSE
 !                                                                       
          CALL do_cwd (start_dir, start_dir_l) 
@@ -418,6 +424,14 @@ ENDIF
             start_dir   = start_dir(1:start_dir_l) // '/'
             start_dir_l = start_dir_l + 1
          ENDIF
+         if(operating==OS_LINUX) then
+           get_screen_file = tmp_dir(1:tmp_dir_l)//'/discus_suite_screen.txt'
+           get_screen_size = 'xdpyinfo | grep dimensions > '//get_screen_file(1:len_trim(get_screen_file))
+         elseif(operating==OS_MACOSX) then
+           get_screen_file = tmp_dir(1:tmp_dir_l)//'/discus_suite_screen.txt'
+           get_screen_size = 'xrandr -q | grep "\*" | awk ''{" dimensions: " print $1 " pixels"; }'' >' &
+                             //get_screen_file(1:len_trim(get_screen_file))
+         endif
       ENDIF
       current_dir   = start_dir
       current_dir_l = start_dir_l
@@ -450,6 +464,22 @@ discus_dir_l = home_dir_l + 8
 !endif
 !
 call generic_read_config(discus_dir, discus_dir_l)   ! Read generic preferences
+!
+!call execute_command_line(get_screen_size)
+!open(unit=idef,file=get_screen_file,action='READ')
+!read(idef, '(a)', iostat=ios) line
+!close(idef)
+!if(ios==0) then
+!  write(*,*) ' SCREEN ', line(1:len_trim(line))
+!  i=index(line,':')
+!  j = index(line(i+1:),'x')
+!  write(*,'(a,a, i5, i5)') 'XDIM ', line(i+1:i+j-1), i, j
+!  read(line(i+1:i+j-1), *, iostat=ios) screen_size(1)
+!  iii=index(line(i+j+1:),' pix')
+!  write(*,'(a,a, i5, i5, i5)') 'YDIM ', line(i+j+1:i+j+1+iii-1), j,i, iii
+!  read(line(i+j+1:i+j+1+iii-1), *, iostat=ios) screen_size(2)
+!endif
+!write(*,*) ' SCREEN SIZE ', screen_size
 !                                                                       
 END SUBROUTINE appl_env                       
 !
