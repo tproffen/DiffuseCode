@@ -81,7 +81,7 @@ LOGICAL :: lnor = .FALSE.
 !
 !                                                                       
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 12
+INTEGER, PARAMETER :: NOPTIONAL = 13
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -100,23 +100,27 @@ integer, parameter :: OCOLOR  =  7
 integer, parameter :: OPLOT   =  8
 integer, parameter :: OKEEP   =  9
 integer, parameter :: OKILL   = 10
-!integer, parameter :: OGEOM   = 11    ! Not yet used
-!integer, parameter :: OEXPORT = 12    ! Not yet used
+!integer, parameter :: OGEOM   = 11    ! used in plot_inter
+!integer, parameter :: OEXPORT = 12    ! used in plot_inter
+!integer, parameter :: OPOSIT  = 13    ! used in plot_inter
 !
 DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', &
-              'plot' , 'keep'  , 'kill',  'geom', 'export' /
+              'plot' , 'keep'  , 'kill',  'geom', 'export', 'posit'  /
 DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  5     , &
-               4     ,  4      ,  4    ,   4    ,  6       /
+               4     ,  4      ,  4    ,   4    ,  6     , 5  /
 !
 ! Always provide fresh default values, Repeat for each command
 opara  =   (/ '0.000    ', '0.000    ', '0        ', '0        ', 'flat     ', 'solid    ', &
-              'auto     ', 'none     ', 'none     ', 'no       ', '[500,500]', 'none     '/)
+              'auto     ', 'none     ', 'none     ', 'no       ', '[500,500]', 'none     ', &
+              'default  '                                                                 /)
 !
 lopara =   (/  5         ,  5         ,  1         ,  1         ,  4         ,  5         , &
-               4         ,  4         ,  4         ,  2         ,  9         ,  4         /)
+               4         ,  4         ,  4         ,  2         ,  9         ,  4         , &
+               7                                                                          /)
 !
 owerte =   (/  0.00      ,  0.00      ,  0.        ,  0.        ,  0.0       ,  0.0       , &
-               0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       /)
+               0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       , &
+               0.0                                                                        /)
 !
 IF(pl_init) THEN
    labs = .FALSE.
@@ -714,8 +718,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                               IF(ier_num == 0) THEN
                                  IF(opara(OPLOT)=='inter') THEN
                                     IF(pl_prog=='jmol') THEN
-                                       i = 3
-                                       CALL plot_inter(i,opara(10:12))
+                                       i = 4
+                                       CALL plot_inter(i,opara(10:13))
                                     ELSE
                                        ier_num = -152
                                        ier_typ = ER_APPL 
@@ -1475,6 +1479,7 @@ real(KIND=PREC_DP)    :: shift
 integer, parameter :: OKILL   =  1
 integer, parameter :: OGEOM   =  2
 integer, parameter :: OEXPORT =  3
+!integer, parameter :: OPOSIT  =  4   ! used in plot_jmol_pos
 !
 ! Scale and shift as in CIF file
 scalef(1) =                INT((cr_dim(1,2)-cr_dim(1,1)))+2
@@ -1504,6 +1509,10 @@ IF(pl_prog=='jmol') THEN
    IF(kill=='yes') THEN
       CALL jmol_kill(.TRUE., .FALSE.)
    ENDIF
+!
+! Determine window position and size
+!
+   call plot_jmol_pos(MAXW, opara, px, py, jmol_no)
 !
 ! Determine moveto command
 !
@@ -1832,6 +1841,149 @@ ENDIF
 pl_jmol_used = .true.
 !
 END SUBROUTINE plot_inter
+!
+!*****7*****************************************************************
+!
+subroutine plot_jmol_pos(MAXW, opara, px, py, jmol_no)
+!-
+! Get old position from $HOME/.jmol/history
+! If desired by user replace with values or default
+! pos:default   => plxd, plyd
+!+
+!
+use blanks_mod
+use envir_mod
+use errlist_mod
+use precision_mod
+use take_param_mod
+!
+implicit none
+!
+integer                          , intent(in) :: MAXW
+character(len=*), dimension(MAXW), intent(in) :: opara
+integer                          , intent(in) :: px
+integer                          , intent(in) :: py
+integer                          , intent(in) :: jmol_no
+!
+integer, parameter :: IRD = 77
+integer, parameter :: IWR = 88
+!
+integer, parameter :: OKILL   =  1
+!integer, parameter :: OGEOM   =  2    ! Dummy to keep list
+!integer, parameter :: OEXPORT =  3    ! Dummy to keep list
+integer, parameter :: OPOSIT  =  4
+!
+integer, parameter :: PLXD = 70
+integer, parameter :: PLYD = 70
+!
+character(len=PREC_STRING) :: cpara
+character(len=len(opara)), dimension(MAXW) :: oopara
+character(len=PREC_STRING) :: tmp_file
+character(len=PREC_STRING) :: jmol_hist
+character(len=PREC_STRING) :: line
+integer               :: lpara
+integer               :: ianz
+integer               :: i
+integer               :: ios
+integer, dimension(2) :: pl_pos
+logical, dimension(2) :: got_pos
+real(kind=PREC_DP), dimension(2) :: werte
+!
+write(*,*) ' JMOL_NO ', jmol_no
+!
+if(opara(OKILL)=='yes' .or. jmol_no==0) then      ! with kill:yes or 1st JMOL: the position goes to 'default', or []
+   if(opara(OPOSIT)(1:1)=='[') then
+      oopara(OPOSIT) = opara(OPOSIT)   ! User supplied :[...,...]
+   elseif(opara(OPOSIT)=='step') then
+      oopara(OPOSIT) = 'old'
+   elseif(opara(OPOSIT)=='old') then
+      oopara(OPOSIT) = opara(OPOSIT)   ! User supplied :old
+   else
+      oopara(OPOSIT) = 'default'
+   endif
+else
+   oopara(OPOSIT) = opara(OPOSIT)
+endif
+!
+if(oopara(OPOSIT)=='default') then
+   pl_pos(1) = PLXD
+   pl_pos(2) = PLXD
+elseif(oopara(OPOSIT)=='old') then
+   pl_pos(1) = -1
+   pl_pos(2) = -1
+elseif(oopara(OPOSIT)=='step') then
+   pl_pos(1) = -2
+   pl_pos(2) = -2
+else
+   cpara = oopara(OPOSIT)           ! Copy geometry optional parameter
+   lpara = LEN_TRIM(cpara)
+   werte = 0.0
+   i    = 2
+   ianz = 2
+   call get_optional_multi(i, cpara, lpara, werte, ianz)
+   if(ier_num/=0) then
+      ier_msg(1) = 'Error calculation jmol position'
+      ier_msg(2) = 'Check posit:[,] parameter'
+      return
+   endif
+   pl_pos = werte(1:2)
+endif
+!
+tmp_file = tmp_dir(1:tmp_dir_l)//'/discus_jmol_pos.txt'
+jmol_hist = home_dir(1:home_dir_l)//'.jmol/history'
+!
+open(unit=ird, file=jmol_hist, status='unknown')
+open(unit=iwr, file=tmp_file , status='unknown')
+got_pos = .false.
+!
+read(IRD, '(a)', iostat=ios) line
+!
+loop_read: do
+   if(is_iostat_end(ios)) exit loop_read
+!
+   if(line(1:18)=='Jmol.window.Jmol.x') then
+      read(line(20:len_trim(line)),*, iostat=ios) i
+      got_pos(1) = .true.
+      if(oopara(OPOSIT)=='default') then
+         pl_pos(1) = PLXD
+      elseif(oopara(OPOSIT)=='old') then
+         pl_pos(1) = min(max(PLXD, i),screen_size(1)-px-70)
+      elseif(oopara(OPOSIT)=='step') then
+         pl_pos(1) =     max(PLXD, i+ 30)
+         if(pl_pos(1)>screen_size(1)-px-70) pl_pos(1) = PLXD
+      else
+         pl_pos(1) = nint(werte(1))
+      endif
+      write(line(20:),'(i8)') pl_pos(1)
+      i = len_trim(line)
+      call rem_bl(line, i)
+   elseif(line(1:18)=='Jmol.window.Jmol.y') then
+      read(line(20:len_trim(line)),*, iostat=ios) i
+      got_pos(2) = .true.
+      if(oopara(OPOSIT)=='default') then
+         pl_pos(2) = PLYD
+      elseif(oopara(OPOSIT)=='old') then
+         pl_pos(2) = min(max(PLYD, i),screen_size(2)-py-70)
+      elseif(oopara(OPOSIT)=='step') then
+         pl_pos(2) =     max(PLYD, i+ 30)
+         if(pl_pos(2)>screen_size(2)-py-70) pl_pos(2) = PLYD
+      else
+         pl_pos(2) = nint(werte(2))
+      endif
+      write(line(20:),'(i8)') pl_pos(2)
+      i = len_trim(line)
+      call rem_bl(line, i)
+   endif
+   write(IWR, '(a)') line(1:len_trim(line))
+   read(IRD, '(a)', iostat=ios) line
+enddo loop_read
+close(IRD)
+close(IWR)
+!
+line = 'cp '//tmp_file(1:len_trim(tmp_file))//' '//jmol_hist(1:len_trim(jmol_hist))
+call execute_command_line(line)
+!
+end subroutine plot_jmol_pos
 !
 !*****7*****************************************************************
 !

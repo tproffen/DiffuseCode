@@ -1017,7 +1017,7 @@ CHARACTER(LEN=    PREC_STRING            )      :: line  = ' '
 CHARACTER(LEN=    PREC_STRING            )      :: string= ' '
 CHARACTER(LEN=   4)      :: at_name_i = ' '
 !INTEGER                  :: lp
-INTEGER                  :: i, j, k, ia
+INTEGER                  :: i, k, ia
 INTEGER                  :: isite
 INTEGER, DIMENSION(3)    :: icell
 !INTEGER                  :: nscat

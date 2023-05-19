@@ -89,10 +89,10 @@ IMPLICIT none
       REAL(kind=PREC_DP)   , DIMENSION(3)::  rhkl
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 4
-INTEGER, PARAMETER :: O_MODE    = 1
-INTEGER, PARAMETER :: O_SYMM    = 2
+!INTEGER, PARAMETER :: O_MODE    = 1   ! used in subroutines
+!INTEGER, PARAMETER :: O_SYMM    = 2   ! used in subroutines
 INTEGER, PARAMETER :: O_TABLE   = 3
-INTEGER, PARAMETER :: O_TECHN   = 4
+!INTEGER, PARAMETER :: O_TECHN   = 4   ! used in subroutines
 CHARACTER(LEN=   9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -1059,7 +1059,7 @@ integer, parameter :: O_WIDTH   = 3
 integer, parameter :: O_FILTER  = 4
 integer, parameter :: O_MODE    = 5
 integer, parameter :: O_SYMM    = 6
-integer, parameter :: O_TABLE   = 7
+!integer, parameter :: O_TABLE   = 7     ! Used in subroutine
 integer, parameter :: O_TECHN   = 8
 character(len=   9), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(len=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
