@@ -29,6 +29,9 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    INTEGER               :: kid        !  6  !  6
    INTEGER               :: indiv      !  7  !  7
    INTEGER               :: ierr       !  8  !  8
+   INTEGER               :: ierr_typ   !  8  !  8   ! SEQUENCE ?!?
+   INTEGER               :: ierr_msg_l     !  8  !  8   ! SEQUENCE ?!?
+   INTEGER               :: ierr_msg_n     !  8  !  8   ! SEQUENCE ?!?
    INTEGER               :: direc_l    !  9  !  9
    INTEGER               :: prog_l     ! 10  ! 10
    INTEGER               :: mac_l      ! 11  ! 11
@@ -48,6 +51,7 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    LOGICAL               :: l_first_job! 26  ! 26
    LOGICAL               :: spacer2    ! 27  ! 27
    LOGICAL               :: spacer3    ! 28  ! 28
+   character(len=80), dimension(7) :: ierr_msg
    CHARACTER (LEN=240)   :: direc      ! 29 : 268
    CHARACTER (LEN=100)   :: prog       !269 : 368
    CHARACTER (LEN=100)   :: mac        !369 : 468

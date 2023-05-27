@@ -31,7 +31,8 @@ INTERFACE
                             l_get_random_state,     &
                             rd_nseeds,rd_seeds,     &
                             l_first_job,            &
-                            ierr )
+                            ierr, ierr_typ,         &
+                            ierr_msg_l, ierr_msg_n, ierr_msg )
 !
    USE precision_mod
    IMPLICIT NONE
@@ -68,6 +69,10 @@ INTERFACE
    INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
    LOGICAL                , INTENT(IN ) :: l_first_job
    INTEGER                , INTENT(OUT):: ierr 
+   INTEGER                , INTENT(OUT):: ierr_typ
+   integer                , INTENT(in)  :: ierr_msg_l
+   integer                , INTENT(in)  :: ierr_msg_n
+   character(len=ierr_msg_l),dimension(ierr_msg_n) :: ierr_msg
 !
    END SUBROUTINE diffev_execute_cost
 END INTERFACE

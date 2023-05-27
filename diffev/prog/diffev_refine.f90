@@ -38,9 +38,9 @@ USE support_mod
 
    INTEGER  :: i, j, l, k
 !
-   INTEGER                 :: ierr
+!  INTEGER                 :: ierr
 !
-   ierr = 0
+!  ierr = 0
 !
 !  Do a serial loop over all CHILDREN*NINDIV
 !  Transfer the trial parameters to r[201...]
@@ -136,7 +136,9 @@ USE support_mod
                  run_mpi_senddata%l_get_state,                           &
                  run_mpi_senddata%nseeds, run_mpi_senddata%seeds,        &
                  run_mpi_senddata%l_first_job,                           &
-                 ierr )
+                 run_mpi_senddata%ierr, run_mpi_senddata%ierr_typ,       &
+                 run_mpi_senddata%ierr_msg_l, run_mpi_senddata%ierr_msg_n, &
+                 run_mpi_senddata%ierr_msg )
                  IF(rvalue_yes) THEN
                     trial_val(run_mpi_senddata%kid,0) = run_mpi_senddata%rvalue(0)
                  ENDIF
@@ -148,9 +150,9 @@ USE support_mod
             ENDIF
          ENDIF
          mpi_is_slave = .false.
-         IF(ierr/=0) THEN
+         IF(run_mpi_senddata%ierr/=0) THEN
             ier_msg(1) = 'A slave section exited with error message'
-            WRITE(ier_msg(2), 2000)  i,j, ierr
+            WRITE(ier_msg(2), 2000)  i,j, run_mpi_senddata%ierr
             ier_num = -26
             ier_typ = ER_APPL
             EXIT kids_loop

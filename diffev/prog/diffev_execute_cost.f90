@@ -18,7 +18,8 @@ SUBROUTINE diffev_execute_cost( repeat,    &
                          l_get_random_state,     &
                          rd_nseeds,rd_seeds,     &
                          l_first_job,            &
-                         ierr )
+                         ierr, ierr_typ,         &
+                         ierr_msg_l, ierr_msg_n, ierr_msg )
 !
 ! specific funtion to execute the cost function from diffev
 !
@@ -57,6 +58,10 @@ INTEGER                , INTENT(IN) :: children
 INTEGER                , INTENT(IN) :: parameters
 INTEGER                , INTENT(IN) :: nindiv
 INTEGER                , INTENT(OUT):: ierr 
+INTEGER                , INTENT(OUT):: ierr_typ
+integer                , INTENT(in)  :: ierr_msg_l
+integer                , INTENT(in)  :: ierr_msg_n
+character(len=ierr_msg_l),dimension(ierr_msg_n) :: ierr_msg
 INTEGER                , INTENT(IN) :: NTRIAL
 LOGICAL                , INTENT(IN)  :: l_get_random_state
 INTEGER                , INTENT(OUT) :: rd_nseeds
@@ -93,6 +98,7 @@ ELSE
 ENDIF
 job_l = len_str(line)
 ierr  = system( line(1:job_l))
+ierr_typ = 1
 !
 2000 FORMAT ( a,' -macro ',a,' ',a,i8,2x,i8,' > ',a)
 2100 FORMAT ( a,' -macro ',a,' ',a,i8,      ' > ',a)

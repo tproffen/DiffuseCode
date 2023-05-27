@@ -291,6 +291,7 @@ USE population
 USE run_mpi_mod
 USE gen_mpi_mod
 USE errlist_mod
+USE lib_errlist_func
 USE precision_mod
 USE prompt_mod
 USE support_mod
@@ -363,6 +364,8 @@ sdl_length = 1 !580! + 200
 CALL do_cwd ( send_direc, send_direc_l )        ! Get current working directory
 run_mpi_senddata%direc_l = send_direc_l         ! Copy directory into send structure
 run_mpi_senddata%direc   = send_direc(1:MIN(send_direc_l,200))
+run_mpi_senddata%ierr_msg_l = 80
+run_mpi_senddata%ierr_msg_n =  7
 !
 !
 IF(pop_gen /= lastgen) THEN                   ! New GENERATION , new job distribution
@@ -498,9 +501,15 @@ rec_hand: DO   ! i = 1, num_hand
 !
    sender = run_mpi_status(MPI_SOURCE)     ! Identify the slave
    IF(run_mpi_senddata%ierr /=0 ) THEN
+      ier_num = run_mpi_senddata%ierr
+      ier_typ = run_mpi_senddata%ierr_typ
+      ier_msg = run_mpi_senddata%ierr_msg
+      call errlist
+      ier_num = 0
+      ier_typ = 0
       CALL diffev_error_macro              ! Write a recovery macro
       ier_msg(1) = 'A slave program exited with error message'
-      WRITE(ier_msg(2), 2000)  sender, ier_num, run_mpi_senddata%ierr
+      WRITE(ier_msg(2), 2000)  sender, run_mpi_senddata%ierr, run_mpi_senddata%ierr_typ
       ier_num = -26
       ier_typ = ER_APPL
 2000 FORMAT('Error message from slave ',I4,' is ',i4,' ',i4)
@@ -807,12 +816,15 @@ slave: DO
                            run_mpi_senddata%l_get_state,                           &
                            run_mpi_senddata%nseeds, run_mpi_senddata%seeds,        &
                            run_mpi_senddata%l_first_job,                           &
-                           ierr )
+                           run_mpi_senddata%ierr, run_mpi_senddata%ierr_typ,        &
+                           run_mpi_senddata%ierr_msg_l, run_mpi_senddata%ierr_msg_n,&
+                           run_mpi_senddata%ierr_msg )
 !   ENDIF use_socket
 !
 !  Answer back to master)
 !
-   run_mpi_senddata%ierr     = ierr
+!  run_mpi_senddata%ierr     = ierr
+!  run_mpi_senddata%ierr_typ = ierr_typ
    run_mpi_senddata%s_remote = s_remote
    run_mpi_senddata%port     = port
 !
