@@ -818,9 +818,6 @@ call fft_fq(npkt_wrt, x_wrt, y_wrt, qmin, qmax, exp_qstep, exp_rmin, exp_rmax, e
 !  write(77, '(2(2x, g12.8e3))') xfour(i), yfour(i)
 !enddo
 !close(77)
-write(*,*) ' Summary '
-write(*,*) ' Limits  ', qmin, qmax
-write(*,*) ' PDF     ', exp_rmin, exp_rmax, exp_rstep
 !
 if(exp_outgr_l) then
    call exp2pdf_header(exp_outgr, 'G(r)', exp_load, exp_cback, exp_csigma, &
