@@ -383,7 +383,6 @@ ENDIF
          CALL do_chdir ( start_dir, start_dir_l, .FALSE.)
       ELSEIF(operating==OS_LINUX_WSL) THEN
          CALL do_cwd (start_dir, start_dir_l) 
-         IF(start_dir == '/mnt/c/Users' ) THEN
 !
 !           Started from Icon set start directory to
 !           User HOME
@@ -398,8 +397,12 @@ ENDIF
             IF(i/=0) THEN
                j = INDEX(line(i+13:),'/')
                IF(j/=0) THEN
-                  user_name = ' '
-                  user_name = line(i+13:i+13+j-2)
+                  user_profile = ' '
+                  user_profile = line(i+13:i+13+j-2)
+               ENDIF
+            ENDIF
+         IF(start_dir == '/mnt/c/Users' ) THEN
+            user_name = user_profile
                   IF(start_dir(start_dir_l:start_dir_l)=='/') THEN
                      start_dir_l = start_dir_l - 1
                   ENDIF
@@ -408,8 +411,6 @@ ENDIF
                   start_dir_l = LEN_TRIM(start_dir)
                   CALL do_chdir(start_dir, start_dir_l, .FALSE.) 
                   start_dir_l = LEN_TRIM(start_dir)
-               ENDIF
-            ENDIF
          ENDIF
          IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
             start_dir   = start_dir(1:start_dir_l) // '/'
@@ -429,7 +430,7 @@ ENDIF
            get_screen_size = 'xdpyinfo | grep dimensions > '//get_screen_file(1:len_trim(get_screen_file))
          elseif(operating==OS_MACOSX) then
            get_screen_file = tmp_dir(1:tmp_dir_l)//'/discus_suite_screen.txt'
-           get_screen_size = 'xrandr -q | grep "\*" | awk ''{" dimensions: " print $1 " pixels"; }'' >' &
+           get_screen_size = 'xrandr -q | grep "\*" | awk ''{print " dimensions: " $1 " pixels"; }'' >' &
                              //get_screen_file(1:len_trim(get_screen_file))
          endif
       ENDIF
@@ -465,21 +466,18 @@ discus_dir_l = home_dir_l + 8
 !
 call generic_read_config(discus_dir, discus_dir_l)   ! Read generic preferences
 !
-!call execute_command_line(get_screen_size)
-!open(unit=idef,file=get_screen_file,action='READ')
-!read(idef, '(a)', iostat=ios) line
-!close(idef)
-!if(ios==0) then
-!  write(*,*) ' SCREEN ', line(1:len_trim(line))
-!  i=index(line,':')
-!  j = index(line(i+1:),'x')
-!  write(*,'(a,a, i5, i5)') 'XDIM ', line(i+1:i+j-1), i, j
-!  read(line(i+1:i+j-1), *, iostat=ios) screen_size(1)
-!  iii=index(line(i+j+1:),' pix')
-!  write(*,'(a,a, i5, i5, i5)') 'YDIM ', line(i+j+1:i+j+1+iii-1), j,i, iii
-!  read(line(i+j+1:i+j+1+iii-1), *, iostat=ios) screen_size(2)
-!endif
-!write(*,*) ' SCREEN SIZE ', screen_size
+screen_size = 300    !  A very rough default
+call execute_command_line(get_screen_size)
+open(unit=idef,file=get_screen_file,action='READ')
+read(idef, '(a)', iostat=ios) line
+close(idef)
+if(ios==0) then
+   i = index(line,':')
+   j = index(line(i+1:),'x')
+   read(line(i+1:i+j-1), *, iostat=ios) screen_size(1)
+   iii=index(line(i+j+1:),' pix')
+   read(line(i+j+1:i+j+1+iii-1), *, iostat=ios) screen_size(2)
+endif
 !                                                                       
 END SUBROUTINE appl_env                       
 !
@@ -1373,8 +1371,8 @@ elseif(operating == OS_LINUX_WSL) then
              prep_str(1:LEN_TRIM(prep_str)) // ' ' //        &
              inst_str(1:LEN_TRIM(inst_str))
    command = 'wt.exe ''' // 'C:\Users\' //  &
-              user_name(1:LEN_TRIM(user_name))  &
-              // '\Downloads\bbb_install_suite_Windows10_WSL.bat'' '
+              user_profile(1:LEN_TRIM(user_profile))  &
+              // '\DISCUS_INSTALLATION\ccc_install_suite_Windows10_WSL.bat'' '
 !
 ELSEIF(operating == OS_MACOSX) THEN
    WRITE(discus_version,'(a,a)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_VERSION' ! Initiate search for new version
@@ -1427,7 +1425,7 @@ CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=me
 !string = 'ls -l $HOME/' // script(1:LEN_TRIM(script))
 !CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
-! For LINUX_WSL we need to step into 'C:\Users\...\Downloads'
+! For LINUX_WSL we need to step into 'C:\Users\...\DISCUS_INSTALLATION\'
 IF(operating == OS_LINUX_WSL) THEN
 !
 ! Download latest installation script
@@ -1438,20 +1436,24 @@ IF(operating == OS_LINUX_WSL) THEN
             verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
    CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
    string = 'cp $HOME/' // script(1:LEN_TRIM(script)) // ' /mnt/c/Users/' //          &
-            user_name(1:LEN_TRIM(user_name)) // '/Downloads'  
+            user_profile(1:LEN_TRIM(user_profile)) // '/DISCUS_INSTALLATION/'  
    CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-   script  = 'bbb_install_suite_Windows10_WSL.bat'
+   script  = 'ccc_install_suite_Windows10_WSL.bat'
    string = 'curl -k -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
             ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
             verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
+   string = 'curl -k -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
+            ' -fSL https://github.com/rneder/DiffuseSuplement/releases/download/v.1.0.0/'  &
+            // script(1:LEN_TRIM(script))
    CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
    string = 'cp $HOME/' // script(1:LEN_TRIM(script)) // ' /mnt/c/Users/' //          &
-            user_name(1:LEN_TRIM(user_name)) // '/Downloads'  
+            user_profile(1:LEN_TRIM(user_profile)) // '/DISCUS_INSTALLATION/'  
    CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
-!   string = '/mnt/c/Users/' // user_name(1:LEN_TRIM(user_name)) // '/Downloads'
+!   string = '/mnt/c/Users/' // user_profile(1:LEN_TRIM(user_profile)) // '/DISCUS_INSTALLATION\'
 !   length = LEN_TRIM(string)
 !   CALL do_chdir (string, length, .FALSE.)
 ENDIF
+!write(*,*) 'POW : >', command(1:len_trim(command)),'<<'
 !
 ! Check for other DISCUS instances / pgxwin_server
 !
@@ -1464,7 +1466,7 @@ if(flag=='CONTINUE') then
 !
    cdir = current_dir
    if(operating == OS_LINUX_WSL) then
-      line = '/mnt/c/Users/' // user_name(1:LEN_TRIM(user_name)) // '/Downloads'
+      line = '/mnt/c/Users/' // user_profile(1:LEN_TRIM(user_profile)) // '/DISCUS_INSTALLATION'
    else
       line = home_dir
    endif
