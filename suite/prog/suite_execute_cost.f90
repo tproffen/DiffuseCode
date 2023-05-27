@@ -22,7 +22,8 @@ SUBROUTINE suite_execute_cost( repeat,           &
                          l_get_random_state,     &
                          rd_nseeds,rd_seeds,     &
                          l_first_job,            &
-                         ierr )
+                         ierr, ierr_typ,         &
+                         ierr_msg_l, ierr_msg_n, ierr_msg )
 !
 USE class_internal
 
@@ -93,6 +94,10 @@ INTEGER                , INTENT(OUT) :: rd_nseeds
 INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
 LOGICAL                , INTENT(IN ) :: l_first_job
 INTEGER                , INTENT(OUT):: ierr
+INTEGER                , INTENT(OUT):: ierr_typ
+integer                , INTENT(in)  :: ierr_msg_l
+integer                , INTENT(in)  :: ierr_msg_n
+character(len=ierr_msg_l),dimension(ierr_msg_n) :: ierr_msg
 !
 LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE.
 CHARACTER(LEN=PREC_LSTRING) :: line
@@ -115,6 +120,9 @@ INTEGER             :: np
 INTEGER, DIMENSION(1) :: idummy = (/0 /)
 !
 ier_mpi = .TRUE.
+ierr     = 0
+ierr_typ = 0
+ierr_msg = ' '
 !
 CALL do_chdir(direc,direc_l,.FALSE.)    ! Set current directory as passed from master
 !
@@ -145,6 +153,14 @@ ELSE
    logfile   = output(1:output_l)
    OPEN(UNIT=output_IO, FILE=logfile, STATUS='unknown', IOSTAT=ios)
    IF(ios/=0) THEN
+write(line,'(a,i4.4)') 'ERROR.',kid
+open(77,file=line(1:len_trim(line)), status='unknown')
+write(77, '(a,a)' ) ' ERROR FOR ', output(1:output_l)
+close(77)
+      ierr    = -2
+      ierr_typ = ER_IO
+      ierr_msg(1) = logfile(1:80)
+      ierr_msg(2) = 'Check spelling, existence of directories'
       ier_num = -2
       ier_typ = ER_IO
       ier_msg(1) = logfile(1:80)
@@ -276,6 +292,8 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
    ENDIF
 !
    mpi_slave_error = ier_num
+   mpi_slave_err_typ = ier_typ
+   mpi_slave_msg = ier_msg
    CALL macro_close_mpi(mac, mac_l)
    IF(ier_num /= 0) mpi_slave_error = ier_num
 !
@@ -298,10 +316,16 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
             ier_typ = ER_FORT
          ENDIF
       ENDDO
-      IF(ier_num /= 0) mpi_slave_error = ier_num
+      IF(ier_num /= 0) then
+         mpi_slave_error = ier_num
+         mpi_slave_err_typ = ier_typ
+         mpi_slave_msg = ier_msg
+      endif
    ENDIF
 ELSE
    mpi_slave_error = ier_num
+   mpi_slave_err_typ = ier_typ
+   mpi_slave_msg = ier_msg
 ENDIF
 !
 IF(output_IO==37) THEN
@@ -309,6 +333,8 @@ IF(output_IO==37) THEN
 ENDIF
 !
 ierr = mpi_slave_error
+ierr_typ = mpi_slave_err_typ
+ierr_msg = mpi_slave_msg
 !
 ! Restore old program secion settings, i.e. always DIFFEV...
 !
