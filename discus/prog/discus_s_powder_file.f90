@@ -13,7 +13,7 @@ contains
 !
 !*******************************************************************************
 !
-SUBROUTINE powder_do_write_2col (outfile, npkt_wrt, xwrt, ywrt)
+SUBROUTINE powder_do_write_2col (outfile, npkt_wrt, xwrt, ywrt, file_pos)
 !
 USE kuplot_config
 USE kuplot_mod
@@ -28,6 +28,7 @@ CHARACTER (LEN=*)                , INTENT(IN) :: outfile
 INTEGER                          , INTENT(IN) :: npkt_wrt
 REAL(kind=PREC_DP)   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: xwrt
 REAL(kind=PREC_DP)   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: ywrt
+character(len=*)                               , intent(in), optional :: file_pos
 !
 INTEGER, PARAMETER                            :: iff = 2
 INTEGER :: ii
@@ -70,7 +71,11 @@ IF(lkuplot) THEN      ! 'write' into kuplot array
    CALL get_extrema_xy (x, ik, lenc(ik), xmin, xmax)
    fname(ik) = outfile                    ! store filename
 ELSE
-   CALL oeffne (iff, outfile, 'unknown') 
+   if(present(file_pos) .and. file_pos=='append') then
+      CALL oeffne_append (iff, outfile, 'unknown') 
+   else
+      CALL oeffne (iff, outfile, 'unknown') 
+   endif
    IF(ier_num == 0) THEN
       DO ii = 0,npkt_wrt
          WRITE( iff, *) xwrt(ii),ywrt(ii)
@@ -83,7 +88,8 @@ END SUBROUTINE powder_do_write_2col
 !
 !*******************************************************************************
 !
-SUBROUTINE powder_do_write_4col (outfile, npkt_wrt, xwrt, ywrt, dxwrt, dywrt)
+SUBROUTINE powder_do_write_4col (outfile, npkt_wrt, xwrt, ywrt, dxwrt, dywrt, &
+           file_pos)
 !
 USE kuplot_config
 USE kuplot_mod
@@ -100,6 +106,7 @@ REAL(kind=PREC_DP)   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: xwrt
 REAL(kind=PREC_DP)   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: ywrt
 REAL(kind=PREC_DP)   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: dxwrt
 REAL(kind=PREC_DP)   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: dywrt
+character(len=*)                               , intent(in), optional :: file_pos
 !
 INTEGER, PARAMETER                            :: iff = 2
 INTEGER :: ii
@@ -142,7 +149,11 @@ IF(lkuplot) THEN      ! 'write' into kuplot array
    CALL get_extrema_xy (x, ik, lenc(ik), xmin, xmax)
    fname(ik) = outfile                    ! store filename
 ELSE
-   CALL oeffne (iff, outfile, 'unknown') 
+   if(present(file_pos) .and. file_pos=='append') then
+      CALL oeffne_append (iff, outfile, 'unknown') 
+   else
+      CALL oeffne (iff, outfile, 'unknown') 
+   endif
    IF(ier_num == 0) THEN
       DO ii = 0,npkt_wrt
          WRITE( iff, *) xwrt(ii),ywrt(ii), dxwrt(ii), dywrt(ii)

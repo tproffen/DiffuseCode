@@ -52,6 +52,9 @@ real(kind=PREC_DP)                                        :: exp_qfirst_c =  0.0
 real(kind=PREC_DP)                                        :: exp_qscale   =  0.000D0  ! Qvalue at first maximum
 real(kind=PREC_DP)                                        :: exp_qstep =   0.001D0  ! Internal Q-step usually 0.001
 real(kind=PREC_DP)                                        :: exp_rmin  =   0.01D0   ! PDF Rmin
+integer                                                   :: exp_is_rad  = 1
+real(kind=PREC_DP)                                        :: exp_rlambda = 0.10D0   ! Lambda
+real(kind=PREC_DP)                                        :: exp_renergy = 123.9842004D0   ! Energy
 !
 CHARACTER(LEN=PREC_STRING)                                :: exp_outgr   = 'discus.grobs' ! Write GROBS
 CHARACTER(LEN=PREC_STRING)                                :: exp_outiq   = 'discus.iqobs' ! Radiation 'xray', 'neutron', 'electron'

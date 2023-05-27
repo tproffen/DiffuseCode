@@ -137,7 +137,7 @@ loop_main: DO while (.not.lend)                 ! Main exp2pdf loop
            str_comp (befehl, 'outputfile', 2, lbef, 10) ) then
       call exp2pdf_outfile(zeile, lp)
 !
-!     ----Set radiation 'radiation'
+!     ----Set polynomial 'poly'
 !
    ELSEIF (str_comp (befehl, 'poly', 2, lbef, 4) ) then
       call exp2pdf_poly(zeile, lp)

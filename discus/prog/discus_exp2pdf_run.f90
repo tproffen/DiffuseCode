@@ -380,6 +380,15 @@ elseif(exp_radiation=='neutron') then
    lambda = ' '
    l_energy = .false.
 endif
+if(exp_is_rad==1) then
+   rlambda = exp_rlambda
+   lambda = ' '
+   l_energy = .false.
+elseif(exp_is_rad==2) then
+   renergy = exp_renergy
+   lambda = ' '
+   l_energy = .true.
+endif
 !
 pow_axis     = POW_AXIS_Q
 ano          = .false.
@@ -416,6 +425,8 @@ string = ' '
 i      = 0
 call powder_run(string, i)
 !
+exp_rlambda = rlambda
+exp_renergy = renergy
 outfile = 'kuplot.exp2pdf.faver2'
 outvalue = val_faver2
 cpow_form = 'q  '
@@ -426,6 +437,9 @@ if(allocated(exp_faver2)) deallocate(exp_faver2)
 allocate(exp_faver2(1:exp_nstep))
 ik = iz - 1
 exp_faver2(1:exp_nstep) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik))
+!
+exp_rlambda = rlambda
+exp_renergy = renergy
 !
 end subroutine exp2pdf_init_aver
 !
@@ -474,9 +488,13 @@ write(string,'(a,i3)') 'poly, ', exp_npoly           ! func : 'poly, 7'
 length =  len_trim(string)
 call do_fit_fkt(string, length)
 !
-string = 'para 1, 1, 0.0'
+string = '     1, 1, 0.0'
 length = len_trim(string)
 call do_fit_par(string, length)
+!
+!string = '     3, 1, 0.0007'
+!length = len_trim(string)
+!call do_fit_par(string, length)
 !
 string = 'one'
 length = len_trim(string)
@@ -493,11 +511,12 @@ length = 0
 call set_skal(string, length)
 call get_extrema
 !
-if(exp_inter) then
-   CALL do_fit_info (output_io, .true., .true., .true.)
-!else
-!   CALL do_fit_info (output_io, .false., .false., .false.)
-endif
+!if(exp_inter) then
+!   CALL do_fit_info (output_io, .true., .true., .true.)
+!!else
+!!   CALL do_fit_info (output_io, .false., .false., .false.)
+!!call show_poly(output_io)
+!endif
 !
 fstart = .false.          ! ! no output
 string = 'prompt, off'
@@ -508,6 +527,9 @@ length = 6
 call p_branch_io(string, length, .FALSE., 1)  ! Initialize into KUPLOT
 CALL do_fit
 call p_branch_io(string, length, .FALSE.,-1)  ! Return from     KUPLOT
+if(exp_inter) then
+   CALL do_fit_info (output_io, .true., .true., .true.)
+endif
 string = 'prompt, on'
 length = 10
 call do_set(string,length)
@@ -585,7 +607,7 @@ npkt_fft = 2**18
 ik = exp_kfq    ! F(Q) in KUPLOT
 y(offxy(ik-2)+1:offxy(ik-2)+lenc(ik)) = y(offxy(ik-1)+1:offxy(ik-1)+lenc(ik)) ! Copy into previous data set
 ! Smooth previous dat set
-write(string, '(i3, a)') ik-1, ',151'
+write(string, '(i3, a)') ik-1, ',filter:lanczos, width:151, damp:0.005'
 length = len_trim(string)
 call do_glat (string, length, .true.)
 !
@@ -796,9 +818,20 @@ call fft_fq(npkt_wrt, x_wrt, y_wrt, qmin, qmax, exp_qstep, exp_rmin, exp_rmax, e
 !  write(77, '(2(2x, g12.8e3))') xfour(i), yfour(i)
 !enddo
 !close(77)
+write(*,*) ' Summary '
+write(*,*) ' Limits  ', qmin, qmax
+write(*,*) ' PDF     ', exp_rmin, exp_rmax, exp_rstep
 !
 if(exp_outgr_l) then
-   call powder_do_write(exp_outgr  , exp_npdf-1, xfour, yfour)
+   call exp2pdf_header(exp_outgr, 'G(r)', exp_load, exp_cback, exp_csigma, &
+                exp_bscale, &
+                exp_radiation, exp_rlambda, exp_renergy, &
+                exp_natom, exp_atname, exp_atocc,  &
+                exp_npoly, exp_qmin_i, exp_qmax_u, &
+                exp_qmin_f, exp_qmax_f, qmin, qmax, &
+                exp_npdf , &
+                xfour(0), xfour(exp_npdf-1), (xfour(exp_npdf-1)-xfour(0))/(real(exp_npdf-1) )   )
+   call powder_do_write(exp_outgr  , exp_npdf-1, xfour, yfour, file_pos='append')
 endif
 !
 if(exp_outfq_l) then
@@ -1458,6 +1491,97 @@ else
 endif
 !
 end subroutine exp2pdf_plot_qscale
+!
+!*******************************************************************************
+!
+subroutine exp2pdf_header(exp_outgr, cvalue, exp_load, exp_cback, exp_csigma, &
+           exp_bscale, &
+           exp_radiation, exp_rlambda, exp_renergy ,  &
+           exp_natom, exp_atname, exp_atocc,  &
+           exp_npoly, exp_qmin_i, exp_qmax_u, &
+           exp_qmin_f, exp_qmax_f, exp_qmin, exp_qmax, &
+           out_np, out_min, out_max, out_step &
+        )
+!-
+!  Writes the header for the output files
+!+
+use blanks_mod
+use precision_mod
+use support_mod
+!
+implicit none
+!
+integer, parameter :: LCOMP = 11
+character(len=*), intent(in) :: exp_outgr
+character(len=*), intent(in) :: cvalue
+character(len=*), intent(in) :: exp_load
+character(len=*), intent(in) :: exp_cback
+character(len=*), intent(in) :: exp_csigma
+real(kind=PREC_DP), intent(in) :: exp_bscale
+character(len=*), intent(in) :: exp_radiation
+real(kind=PREC_DP), intent(in) :: exp_rlambda
+real(kind=PREC_DP), intent(in) :: exp_renergy
+integer           , intent(in) :: exp_natom
+character(len=*),   dimension(exp_natom), intent(in) :: exp_atname
+real(kind=PREC_DP), dimension(exp_natom), intent(in) :: exp_atocc
+integer           , intent(in) :: exp_npoly
+real(kind=PREC_DP), intent(in) :: exp_qmin_i
+real(kind=PREC_DP), intent(in) :: exp_qmax_u
+real(kind=PREC_DP), intent(in) :: exp_qmin_f
+real(kind=PREC_DP), intent(in) :: exp_qmax_f
+real(kind=PREC_DP), intent(in) :: exp_qmin
+real(kind=PREC_DP), intent(in) :: exp_qmax
+integer           , intent(in) :: out_np
+real(kind=PREC_DP), intent(in) :: out_min
+real(kind=PREC_DP), intent(in) :: out_max
+real(kind=PREC_DP), intent(in) :: out_step
+!
+integer, parameter :: IWR = 77
+!
+character(len=PREC_STRING) :: outfile
+character(len=PREC_STRING) :: composition
+integer :: i,j
+!
+outfile = exp_outgr(1:len_trim(exp_outgr))
+call oeffne(IWR, outfile, 'unknown')
+composition = ' '
+do i=1, exp_natom
+   j = (i-1) * LCOMP + 1
+   write(composition(j:j+LCOMP-1),'(a4,f7.3)') exp_atname(i), exp_atocc(i)
+enddo
+i = LCOMP*exp_natom
+call rem_bl(composition,i)
+!
+write(IWR, '(a)')            '# HEADER : lines, sec  ;2I::     27,    5 '
+write(IWR, '(a)')            '# HEADER : section     ;1C:: DATA'
+write(IWR, '(a)')            '# HEADER : section     ;1C:: EXPER'
+write(IWR, '(a)')            '# HEADER : section     ;1C:: SAMPLE'
+write(IWR, '(a)')            '# HEADER : section     ;1C:: CORREC'
+write(IWR, '(a)')            '# HEADER : section     ;1C:: OUTPUT'
+write(IWR, '(a)'  )          '# DATA   : lines       ;2I::      5'
+write(IWR, '(a,a)')          '# DATA   : type, data  ;2C:: ',exp_load(1:len_trim(exp_load))
+write(IWR, '(a,a)')          '# DATA   : type, back  ;2C:: ',exp_cback(1:len_trim(exp_cback))
+write(IWR, '(a,f9.3)')       '# DATA   : back scale  ;1R:: ',exp_bscale
+write(IWR, '(a,a)')          '# DATA   : type, sigma ;2C:: ',exp_csigma(1:len_trim(exp_csigma))
+write(IWR, '(a)'  )          '# EXPER  : lines       ;2I::      4'
+write(IWR, '(a,a)')          '# EXPER  : radiation   ;1C:: ',exp_radiation(1:len_trim(exp_radiation))
+write(IWR, '(a,f15.7)')      '# EXPER  : lambda      ;1R:: ',exp_rlambda
+write(IWR, '(a,f15.7)')      '# EXPER  : energy      ;1R:: ',exp_renergy
+write(IWR, '(a)'  )          '# SAMPLE : lines       ;2I::      2'
+write(IWR, '(a,a)')          '# SAMPLE : composition ;1C:: ',composition(1:len_trim(composition))
+write(IWR, '(a)'  )          '# CORREC : lines       ;2I::      5'
+write(IWR, '(a,i4)')         '# CORREC : npoly       ;1I:: ',exp_npoly
+write(IWR, '(a,2(2x,f9.3))') '# CORREC : lim_instr.  ;2R:: ',exp_qmin_i, exp_qmax_u
+write(IWR, '(a,2(2x,f9.3))') '# CORREC : lim_four_usr;2R:: ',exp_qmin_f, exp_qmax_f
+write(IWR, '(a,2(2x,f9.3))') '# CORREC : lim_four_app;2R:: ',exp_qmin  , exp_qmax  
+write(IWR, '(a)'  )          '# OUTPUT : lines       ;2I::      5'
+write(IWR, '(a,a)')          '# OUTPUT : file        ;1C:: ',exp_outgr(1:len_trim(exp_outgr))
+write(IWR, '(a,a)')          '# OUTPUT : value       ;1C:: ',cvalue(1:len_trim(cvalue))
+write(IWR, '(a,i8   )')      '# OUTPUT : n_points    ;1I:: ',out_np
+write(IWR, '(a,3f11.5)')     '# OUTPUT : min,max,step;3R:: ',out_min  , out_max  , out_step
+close (IWR)
+
+end subroutine exp2pdf_header
 !
 !*******************************************************************************
 !

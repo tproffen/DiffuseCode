@@ -140,18 +140,51 @@ SUBROUTINE exp2pdf_radiation(line, length)
 use exp2pdf_data_mod
 !
 use errlist_mod
+use get_params_mod
 use str_comp_mod
+use take_param_mod
 !
 implicit none
 !
 CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: length
 !
-if(str_comp(line, 'xray',  2, length, 4) ) then
+INTEGER, PARAMETER :: MAXW = 3 
+!
+character(len=max(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
+integer                             :: ianz
+INTEGER           , DIMENSION(MAXW) :: lpara
+!REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+!
+integer, parameter :: NOPTIONAL = 2
+integer, parameter :: O_LAMBDA  = 1
+integer, parameter :: O_ENERGY  = 2
+character(len=   6), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(len=PREC_STRING),dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 2 ! Number of values to calculate 
+!
+data oname  / 'lambda', 'energy'/
+data loname /  6      ,  6      /
+opara  =  (/ '0.0000', '0.0000' /)   ! Always provide fresh default values
+lopara =  (/  6,        6       /)
+owerte =  (/  0.1,    123.9842004    /)
+!
+call get_params(line, ianz, cpara, lpara, MAXW, length)
+if(ier_num/=0) return
+!
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+!
+!
+if(str_comp(cpara(1), 'xray',  2, lpara(1), 4) ) then
    exp_radiation = 'xray'
-elseif(str_comp(line, 'electron',  2, length, 8) ) then
+elseif(str_comp(cpara(1), 'electron',  2, lpara(1), 8) ) then
    exp_radiation = 'electron'
-elseif(str_comp(line, 'neutron',  2, length, 7) ) then
+elseif(str_comp(cpara(1), 'neutron',  2, lpara(1), 7) ) then
    exp_radiation = 'neutron'
 else
    ier_num = -183
@@ -159,6 +192,22 @@ else
    ier_msg(1) = 'Must be either ''xray'', ''neutron'' or '
    ier_msg(2) = '               ''electron'' '
 endif
+!
+if(lpresent(O_LAMBDA) .and. .not.lpresent(O_ENERGY)) then
+   exp_is_rad = 1
+   exp_rlambda = owerte(O_LAMBDA)
+elseif(.not.lpresent(O_LAMBDA) .and. lpresent(O_ENERGY)) then
+   exp_is_rad = 2
+   exp_renergy = owerte(O_ENERGY)
+elseif(lpresent(O_LAMBDA) .and. lpresent(O_ENERGY)) then
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'Only one of ''lambda:''; ''energy'' may be present'
+   return
+else
+   exp_is_rad = 0
+endif
+!
 !
 end SUBROUTINE exp2pdf_radiation
 !
