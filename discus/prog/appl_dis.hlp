@@ -77,6 +77,8 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2023_May
+   plot        Added a "posit:" optional parameter to the plot => run command
 3  2023_April
    export      Added an optional style command to "scatty"
 3  2023_March
@@ -6961,6 +6963,8 @@
 3  run
 !p run  ["plot:inter"] [, "geom:"[<px>,<py>]]
         [, "kill:"["yes"|"no"]] [,"keep:"["yes"|"no"]]
+        [, {"posit:default" | "posit:old" | "posit:step" | posit:[<px>,<py>] }]
+        [, {"export:file.png" | "export:file.pdf" } ]
 
    Starts writing of the structure. If no output file name has been provided
    or no atoms been selected, an error message is given.
@@ -6972,6 +6976,18 @@
 
    The default jmol window size is 500 by 500 pixels. You can change this
    via the optional "geom" parameter.
+
+   The default jmol window position is at pixels:[70,70]. You can change
+   the position with the optional "posit:" parameter:
+      "posit:old"  Use the previous window position
+      "posit:step" Increment the window by [+30,+30], Jumps to top/left 
+                   at too large values
+      "posit:["<px>,<py>"]"  Place at user provided pixel positions
+                   Example posit:[200,300]
+
+   The optional parameter "export:" lets you export the initial jmol image
+   into a file of type "png" or "pdf". Substitute "file" with a file name
+   of your choice.
 
    If previous instances of "JMOL" are to be terminated prior to the
    new plat provide the optional parameter "kill:yes".
