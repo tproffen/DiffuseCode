@@ -30,6 +30,9 @@ IMPLICIT none
 CHARACTER(LEN=PREC_STRING) :: tempfile   ! jmol script files to remove
 CHARACTER(LEN=PREC_STRING) :: line       ! temporary string
 character(len=8)           :: frm
+character(len=PREC_STRING) :: message
+integer          :: exit_msg
+integer          :: ier_cmd
 !INTEGER             :: socket_send
 integer          :: ios
 integer          :: ll
@@ -44,7 +47,7 @@ INTEGER           :: since_update
 IF (ier_num.ne.0) THEN 
    CALL errlist 
 ENDIF 
-CALL lib_f90_init_updates
+!CALL lib_f90_init_updates
 CALL lib_f90_test_updates(old_version, new_version, cversion, since_update)
 IF(new_version > old_version ) THEN
    WRITE(output_io,*)
@@ -111,7 +114,37 @@ WRITE(tempfile, '(a,i10.10,a,i10.10,a)') '/tmp/jmol.',PID,'.',1,'.mol'
 INQUIRE(FILE=tempfile,EXIST=lpresent)
 IF(lpresent) THEN
    line = 'rm -f ' // tempfile(1:len_trim(tempfile)-9) // '*.mol'
-   CALL system(line)
+   call execute_command_line(line(1:LEN_TRIM(line)), wait=.false., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
+ENDIF
+!
+WRITE(tempfile, '(a,i10.10,a,i10.10,a)') '/tmp/jmol.',PID,'.',1,'.pid'
+INQUIRE(FILE=tempfile,EXIST=lpresent)
+!write(*,*) ' JMOL ', tempfile(1:len_trim(tempfile)), ' ', lpresent
+IF(lpresent) THEN
+   line = 'rm -f ' // tempfile(1:len_trim(tempfile)-9) // '*.pid'
+   call execute_command_line(line(1:LEN_TRIM(line)), wait=.false., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
+ENDIF
+!
+WRITE(tempfile, '(a,i10.10,a)') '/tmp/jmol.',PID,'.pid'
+INQUIRE(FILE=tempfile,EXIST=lpresent)
+!write(*,*) ' JMOL ', tempfile(1:len_trim(tempfile)), ' ', lpresent
+IF(lpresent) THEN
+   line = 'rm -f ' // tempfile(1:len_trim(tempfile))
+   call execute_command_line(line(1:LEN_TRIM(line)), wait=.false., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
+ENDIF
+!
+!-- Delete temporary DISCUS*PID files
+!
+WRITE(tempfile, '(a,i10.10)') '/tmp/DISCUS.UFILE.',PID
+INQUIRE(FILE=tempfile,EXIST=lpresent)
+!write(*,*) ' UFIL ', tempfile(1:len_trim(tempfile)), ' ', lpresent
+IF(lpresent) THEN
+   line = 'rm -f ' // tempfile(1:len_trim(tempfile))
+   call execute_command_line(line(1:LEN_TRIM(line)), wait=.false., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 !                                                                       
 !------ Close output file                                               
