@@ -1,4 +1,13 @@
 6.14.03  DRAFT
+
+GENERAL
+  WINDOWS     For Windows 11 and wsl version 2 the VcXsrv is no longer needed
+
+DISCUS
+  plot        Added options to place Jmol window
+
+DIFFEV
+  run_mpi     Improved error message transfer from slaves
 6.14.02  RELEASE 2023_05_16
 
 GENERAL
