@@ -39,8 +39,10 @@ integer, parameter :: MAXW = 1
 !
 character(len=PREC_STRING)               :: line
 character(len=PREC_STRING), dimension(1) :: cpara
+character(len=PREC_STRING)               :: message
 integer                   , dimension(1) :: lpara
 integer :: ios
+integer :: ier_cmd
 logical :: lexist
 !
 call no_error
@@ -50,7 +52,8 @@ lexist = .false.
 call sys_inquire_directory(MAXW, cpara, lpara, lexist)
 if(.not.lexist) then                    ! Directory did not exist, create
    line = 'mkdir -p ' // discus_dir(1:discus_dir_l)
-   call execute_command_line(line, exitstat=ios)
+   call execute_command_line(line, wait=.true.,                                  &
+        cmdstat=ier_cmd, cmdmsg=message, exitstat=ios)
    if(ios/=0) then
       ier_num    = -2
       ier_typ    = ER_IO

@@ -228,12 +228,14 @@ IMPLICIT none
 CHARACTER (LEN=*), INTENT(IN) :: command 
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER :: exit_msg
+integer :: ier_cmd
 !
 INTEGER length
 !                                                                       
 !     CALL system (command(1:len_str(command)), ier_num) 
 length = LEN_TRIM(command)
-CALL EXECUTE_COMMAND_LINE (command(1:length), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg) 
+call execute_command_line (command(1:length), wait=.true., &
+     CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg) 
 IF (ier_num.eq.0) then 
    ier_typ = ER_NONE 
 ELSE 
@@ -453,7 +455,9 @@ CHARACTER (LEN=*), INTENT(INOUT) :: name
 !
 CHARACTER(LEN=PREC_STRING) :: command 
 CHARACTER(LEN=PREC_STRING) :: message
-INTEGER :: laenge 
+INTEGER :: laenge
+integer :: exit_msg 
+integer :: ier_cmd
 !                                                                       
 laenge = len_str (name) 
 CALL rem_bl (name, laenge) 
@@ -463,7 +467,8 @@ command = ' '
 !                                                                       
 command (1:6) = 'rm -f ' 
 command (7:7 + laenge) = name (1:laenge) 
-CALL EXECUTE_COMMAND_LINE (command(1:7+laenge), CMDSTAT=ier_num, CMDMSG=message) 
+call execute_command_line (command(1:7+laenge), wait=.false.,  &
+     CMDSTAT=ier_cmd, CMDMSG=message, exitstat=exit_msg) 
 IF (ier_num.eq.0) then 
    ier_typ = ER_NONE 
 ELSE 
@@ -496,7 +501,9 @@ CHARACTER (LEN=*), INTENT(OUT)   :: namenew
 !
 CHARACTER(LEN=80)          :: command 
 CHARACTER(LEN=PREC_STRING) :: message
-INTEGER :: lo, ln 
+INTEGER :: lo, ln
+integer :: exit_msg
+integer :: ier_cmd
 !                                                                       
 lo = len_str (nameold) 
 CALL rem_bl (nameold, lo) 
@@ -511,7 +518,8 @@ command (4:3 + lo) = nameold (1:lo)
 command (4 + lo:4 + lo) = ' ' 
 command (5 + lo:4 + lo + ln) = namenew (1:ln) 
 !                                                                       
-CALL EXECUTE_COMMAND_LINE (command(1:4+lo+ln), CMDSTAT=ier_num, CMDMSG=message) 
+call execute_command_line (command(1:4+lo+ln), wait=.true., &
+     CMDSTAT=ier_cmd, CMDMSG=message, exitstat=exit_msg) 
 IF (ier_num.eq.0) then 
    ier_typ = ER_NONE 
 ELSE 
@@ -912,6 +920,8 @@ CHARACTER(LEN=1) :: drive
 CHARACTER(LEN=6) :: mntdrive
 CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=PREC_STRING) :: message
+integer :: exit_msg
+integer :: ier_cmd
 INTEGER :: length
 INTEGER :: ios
 LOGICAL :: lda
@@ -929,12 +939,12 @@ IF(operating == OS_LINUX_WSL) THEN    ! Only for WSL
    IF(.NOT. lda) THEN     ! Need to build a '/mnt/X' file
       WRITE(output_io,*) 'Access to drives requires Ubuntu password'
       string='sudo mkdir -p '// mntdrive
-      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), &
-                              CMDSTAT=ier_num, CMDMSG=message) 
+      call execute_command_line (string(1:LEN_TRIM(string)), wait=.true., &
+                              CMDSTAT=ier_cmd, CMDMSG=message, exitstat=exit_msg) 
       CALL do_cap(drive)
       string = 'sudo mount -t drvfs ' // drive // ': ' // mntdrive
-      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), &
-                                 CMDSTAT=ier_num, CMDMSG=message) 
+      call execute_command_line (string(1:LEN_TRIM(string)), wait=.true., &
+                                 CMDSTAT=ier_cmd, CMDMSG=message, exitstat=exit_msg) 
    ELSE
       CALL do_cap(drive)
       OPEN(UNIT=IRD, FILE='/proc/mounts', STATUS='OLD', ACTION='READ')
@@ -953,8 +963,8 @@ IF(operating == OS_LINUX_WSL) THEN    ! Only for WSL
       IF(.NOT.lmounted) THEN
          WRITE(output_io,*) 'Access to drives may require Ubuntu password'
          string = 'sudo mount -t drvfs ' // drive // ': ' // mntdrive
-         CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), &
-                                    CMDSTAT=ier_num, CMDMSG=message) 
+         call execute_command_line (string(1:LEN_TRIM(string)), wait=.true., &
+                                    CMDSTAT=ier_cmd, CMDMSG=message, exitstat=exit_msg) 
       ENDIF
    ENDIF
 ENDIF
@@ -982,6 +992,8 @@ CHARACTER(LEN=1) :: drive
 CHARACTER(LEN=6) :: mntdrive
 CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=PREC_STRING) :: message
+integer :: exit_msg
+integer :: ier_cmd
 INTEGER :: length
 LOGICAL :: lda
 !
@@ -998,8 +1010,8 @@ IF(operating == OS_LINUX_WSL) THEN    ! Only for WSL
    IF(lda) THEN       ! Drive letter exists, otherwise silently leave
       WRITE(output_io,*) 'Access to drives may require Ubuntu password'
       string = 'sudo umount ' // mntdrive
-      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), &
-                                 CMDSTAT=ier_num, CMDMSG=message) 
+      call execute_command_line (string(1:LEN_TRIM(string)), wait=.true., &
+           CMDSTAT=ier_cmd, CMDMSG=message, exitstat=exit_msg) 
    ENDIF
 ENDIF
 !

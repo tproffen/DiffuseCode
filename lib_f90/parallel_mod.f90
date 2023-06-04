@@ -53,6 +53,7 @@ END SUBROUTINE get_cores
 !
 INTEGER FUNCTION read_phys(string, ofile, ianz)
 !
+use precision_mod
 USE support_mod
 !
 IMPLICIT NONE
@@ -63,13 +64,16 @@ INTEGER         , INTENT(IN) :: ianz
 !
 INTEGER, PARAMETER :: IRD = 88
 !
+character(len=prec_STRING) :: message
+integer :: ier_cmd, exit_msg
 INTEGER :: j
 INTEGER :: k
 INTEGER :: ios
 !
 read_phys = 1
 DO k=1,ianz
-   CALL EXECUTE_COMMAND_LINE(string(k))
+   call execute_command_line(string(k), wait=.true.,                             &
+        cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
 ENDDO
 CALL oeffne(IRD, ofile, 'old')
 !
@@ -81,7 +85,8 @@ DO k=1,ianz
 ENDDO
 CLOSE(IRD)
 WRITE(string(1),'(a,a)') 'rm -f ', ofile(1:LEN_TRIM(ofile))
-CALL EXECUTE_COMMAND_LINE(string(1))
+call execute_command_line(string(1), wait=.false.,                               &
+     cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
 !
 END FUNCTION read_phys
 !

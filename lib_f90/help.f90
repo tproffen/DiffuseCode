@@ -547,6 +547,7 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
+integer             :: exit_msg
 INTEGER             :: ianz
 INTEGER             :: laenge, i
 INTEGER             :: ierror
@@ -662,7 +663,8 @@ IF(operating(1:7)=='Windows' .OR. operating(1:6)=='cygwin') THEN
                 '"'// &
                 man_dir(1:LEN_TRIM(man_dir))//manual(1:LEN_TRIM(manual))//'_man.pdf"  &'
       laenge=LEN_TRIM(command)
-      CALL EXECUTE_COMMAND_LINE (command(1:laenge),  CMDSTAT=ierror, CMDMSG=message)
+      call execute_command_line (command(1:laenge), wait=.false., &
+           CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
    ENDIF
 ELSEIF(operating(1:6)=='darwin') THEN 
 !
@@ -672,20 +674,23 @@ ELSEIF(operating(1:6)=='darwin') THEN
    command = viewer(1:LEN_TRIM(viewer))//' '// &
              man_dir(1:LEN_TRIM(man_dir))//manual(1:LEN_TRIM(manual))//'_man.pdf &'
    laenge=LEN_TRIM(command)
-   CALL EXECUTE_COMMAND_LINE (command(1:laenge),  CMDSTAT=ierror, CMDMSG=message)
+   call execute_command_line (command(1:laenge),  wait=.false., &
+        CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
 ELSE
 !
 ! LINUX Choose viewer
 !
    command = 'which '//opara(2)(1:lopara(2))   ! Try opional parameter first
-   CALL EXECUTE_COMMAND_LINE (command(1:LEN_TRIM(command)),  CMDSTAT=ierror, CMDMSG=message)
+   call execute_command_line (command(1:LEN_TRIM(command)),  wait=.true., &
+        CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
 !
    IF(ierror == 0 ) THEN  ! Default / User option did not work try list
       viewer = opara(2)(1:lopara(2))
    ELSE
       search: DO i=1, N_VIEWER
          command = 'which '//pdf_viewer(i)(1:LEN_TRIM(pdf_viewer(i)))
-         CALL EXECUTE_COMMAND_LINE (command(1:LEN_TRIM(command)),  CMDSTAT=ierror, CMDMSG=message)
+         call execute_command_line (command(1:LEN_TRIM(command)),  wait=.true., &
+              CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
          IF(ierror ==0)  THEN
             viewer = pdf_viewer(i)
             EXIT search
@@ -697,7 +702,8 @@ ELSE
       command = viewer(1:LEN_TRIM(viewer))//' '// &
                 man_dir(1:LEN_TRIM(man_dir))//manual(1:LEN_TRIM(manual))//'_man.pdf &'
       laenge=LEN_TRIM(command)
-      CALL EXECUTE_COMMAND_LINE (command(1:laenge),  CMDSTAT=ierror, CMDMSG=message)
+      call execute_command_line (command(1:laenge),  wait=.false., &
+           CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
    ENDIF
 ENDIF
 IF(ierror/=0) THEN     ! Error ??
