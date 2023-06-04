@@ -41,10 +41,12 @@ INTEGER(KIND= SIZE_T), PARAMETER       :: sdimd= 8        ! String length of "DI
 INTEGER(KIND=2         ), PARAMETER    :: SHORT_NULL = 0  ! a 32 bit 0 for "is_direct"
 INTEGER(KIND=2         ), PARAMETER    :: SHORT_ONE  = 1  ! a 32 bit 1 for "is_direct"
 !
-CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=PREC_STRING ) :: line
+CHARACTER(LEN=PREC_STRING ) :: message
 CHARACTER(LEN=4), PARAMETER :: dataset = "data"           ! Dummy name for HDF5
 CHARACTER(LEN=sdim), DIMENSION(1:dim0), TARGET ::  wdata = (/"Yell 1.0"/) ! Write buffer
 LOGICAL                                :: isda            ! File foud yes/no
+integer                                :: ier_cmd, exit_msg
 INTEGER                                :: i,j,k,l         ! Dummy indices
 INTEGER                                :: hdferr          ! Error returned by HDF5
 INTEGER, TARGET                        :: is_direct       ! Das are 3DPDF or diffraction pattern
@@ -88,7 +90,8 @@ ENDIF
 INQUIRE(FILE=outfile, EXIST=isda)                         ! If file exists, remove
 IF(ISDA) THEN
    line = 'rm -f '//outfile(1:LEN_TRIM(outfile))
-   CALL EXECUTE_COMMAND_LINE(line, WAIT=.TRUE.)
+   CALL EXECUTE_COMMAND_LINE(line, WAIT=.TRUE.,   &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 !
 CALL H5Fcreate_f(outfile, H5F_ACC_TRUNC_f, file_id, hdferr)    ! Create output file
