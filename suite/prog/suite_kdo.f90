@@ -279,6 +279,11 @@ ELSE
          CALL suite_do_parallel (zeile, lcomm)
 !!!      CALL do_deallocate_appl (zeile, lcomm)
 !                                                                 
+!     -- Test a simple plot
+!
+   ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'testplot', 8, lbef, 8) ) then
+      call suite_test_plot(zeile, lcomm, lend)
+!                                                                 
 !------   Reset the entire suite
 !                                                                 
    ELSEIF(str_comp(befehl, 'reset', 3, lbef, 5)) THEN
@@ -297,6 +302,89 @@ ENDIF
 !
 if(ex_do_exit) lend = .true.
 !                                                                       
-END SUBROUTINE suite_mache_kdo                      
+END SUBROUTINE suite_mache_kdo
+!
+!*******************************************************************************
+!
+subroutine suite_test_plot(zeile, lcomm, lend)
+!-
+! Do an automatic plot , serves to test if plot works
+!+
+!
+use kuplot_setup_mod
+use kuplot_setup_sub_mod
+use kuplot_loop_mod
+use kuplot_reset_mod
+use kuplot_load_mod
+use kuplot_plot_mod
+use kuplot_mod
+use kuplot_para_mod
+!
+use suite_init_mod
+use suite_parallel_mod
+use suite_setup_mod
+use suite_set_sub_mod
+!
+use appl_env_mod
+use errlist_mod
+use learn_mod 
+use prompt_mod
+use precision_mod
+use variable_mod
+!
+implicit none
+character(len=*), intent(in)    :: zeile
+integer         , intent(in)    :: lcomm
+logical         , intent(  out) :: lend 
+!
+character(len=PREC_STRING) :: line
+integer                    :: lp
+!
+if(suite_kuplot_init) then
+   pname     = 'kuplot'
+   pname_cap = 'KUPLOT'
+   prompt    = pname
+   oprompt   = pname
+   call program_files ()
+else
+   call kuplot_setup   (lstandalone)
+   suite_kuplot_init = .TRUE.
+endif
+var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
+var_val(VAR_PROGRAM) = var_val(VAR_KUPLOT)
+call kuplot_set_sub ()
+call suite_set_sub_branch
+if(zeile /= ' ') then
+   line = zeile(1:lcomm)
+   lp = lcomm
+else
+   line = 'sind(r[0]), 0,720,1'
+   lp = 19
+endif
+call do_func(line, lp)
+line = ' '
+lp = 1
+call set_skal(line, lp)
+call set_mark(line, lp)
+call do_plot (.false.)
+iz = iz - 1
+!      call kuplot_loop    ()
+lend   = .false.
+pname  = 'suite'
+pname_cap = 'SUITE'
+prompt = pname
+oprompt   = pname
+var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
+var_val(VAR_PROGRAM) = var_val(VAR_SUITE)
+call suite_set_sub
+if(ier_num == -9 .and. ier_typ == 1) then
+   call program_files ()
+   ier_num = -9
+   ier_typ = ER_COMM
+else
+   call program_files ()
+endif
+!
+end subroutine suite_test_plot
 !
 !end module suite_mache_kdo_mod
