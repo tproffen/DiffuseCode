@@ -2415,7 +2415,7 @@ mole_int: IF(mk_infile_internal) THEN
        CALL testfile_internal (infile, natoms, &        ! Get size of internal structure
               nscat, TEMP_MAX_MOLE, TEMP_MAX_TYPE, TEMP_MAX_ATOM)
        temp_num_mole = TEMP_MAX_MOLE
-       temp_num_type = TEMP_MAX_TYPE
+       temp_num_type = max(TEMP_MAX_TYPE, maxval(clu_mole_tab))
        temp_num_atom = TEMP_MAX_ATOM
        ALLOCATE ( temp_mole_len  (0:temp_num_mole), STAT = istatus) ! Allocate temporary
        ALLOCATE ( temp_mole_off  (0:temp_num_mole), STAT = istatus) ! molecule arrays
