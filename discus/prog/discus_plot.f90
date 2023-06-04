@@ -55,6 +55,7 @@ INTEGER maxw
 LOGICAL lold 
 PARAMETER (lold = .false.) 
 !                                                                       
+character(len=PREC_STRING) :: message
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAX(10,MAXSCAT)) 
 REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAX(10,MAXSCAT)) 
 INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAX(10,MAXSCAT))
@@ -66,6 +67,7 @@ CHARACTER(len=9) :: befehl
 CHARACTER(1) cdum 
 REAL(kind=PREC_DP) :: size, rr=0.0D0, rg=0.0D0, rb=0.0D0
 INTEGER lp, length 
+integer :: ier_cmd, exit_msg
 INTEGER :: ianz, i, j, is, it, ic, lbef 
 !      INTEGER :: npoly     
 INTEGER indxg 
@@ -642,7 +644,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            WRITE(line,'(a,a,a,i10.10)')  'which jmol > ', &
                            tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
                         ENDIF
-                           CALL EXECUTE_COMMAND_LINE(line)
+                           CALL execute_command_line(line, wait = .true.,    &
+                                cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
                            CALL oeffne( ITMP, tempfile, 'old')
                            IF(ier_NUM==0) THEN
                               READ(ITMP,'(a)',IOSTAT=ios) pl_jmol
@@ -674,7 +677,8 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                               ENDIF
                            ENDIF
                         WRITE(line,'(a,a)') 'rm -f ', tempfile(1:LEN_TRIM(tempfile))
-                        CALL EXECUTE_COMMAND_LINE(line)
+                        CALL execute_command_line(line, wait=.true.,   &
+                             cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -1449,6 +1453,7 @@ CHARACTER(LEN=PREC_STRING) :: tempfile
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: line_move
 character(LEN=PREC_STRING) :: path
+character(LEN=PREC_STRING) :: message
 CHARACTER(LEN=12         ) :: geom
 character(len=4)           :: atom_i
 character(len=4)           :: atom_j
@@ -1471,6 +1476,7 @@ REAL(KIND=PREC_DP), DIMENSION(3,3):: roti     !Rotation matrix
 REAL(KIND=PREC_DP), DIMENSION(3,3):: rotf     !Rotation matrix
 REAL(KIND=PREC_DP), DIMENSION(3,3):: test     !Test for unit matrix
 REAL(KIND=PREC_DP) :: det, trace
+integer :: ier_cmd, exit_msg
 INTEGER :: ier
 REAL(KIND=PREC_DP)  :: rr
 REAL(KIND=PREC_DP)                :: beta
@@ -1835,7 +1841,8 @@ IF(pl_prog=='jmol') THEN
 !
    ENDIF
    WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
-   CALL EXECUTE_COMMAND_LINE(line)
+   CALL execute_command_line(line, wait=.true., &
+        cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
 ENDIF
 !
 pl_jmol_used = .true.
@@ -1876,11 +1883,13 @@ integer, parameter :: OPOSIT  =  4
 integer, parameter :: PLXD = 70
 integer, parameter :: PLYD = 70
 !
+character(len=PREC_STRING) :: message
 character(len=PREC_STRING) :: cpara
 character(len=len(opara)), dimension(MAXW) :: oopara
 character(len=PREC_STRING) :: tmp_file
 character(len=PREC_STRING) :: jmol_hist
 character(len=PREC_STRING) :: line
+integer               :: ier_cmd, exit_msg
 integer               :: lpara
 integer               :: ianz
 integer               :: i
@@ -1981,7 +1990,8 @@ close(IRD)
 close(IWR)
 !
 line = 'cp '//tmp_file(1:len_trim(tmp_file))//' '//jmol_hist(1:len_trim(jmol_hist))
-call execute_command_line(line)
+call execute_command_line(line, wait=.true.,                                     & 
+     cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
 !
 end subroutine plot_jmol_pos
 !
@@ -2011,7 +2021,7 @@ CHARACTER(LEN=PREC_STRING) :: message
 !
 INTEGER             :: jmol_pid   ! jmol Process identifier
 INTEGER             :: ios
-INTEGER             :: exit_msg
+INTEGER             :: ier_cmd, exit_msg
 !
 LOGICAL :: lpresent
 LOGICAL :: did_kill
@@ -2020,7 +2030,7 @@ WRITE(kill_file, '(a,a,I10.10,a)') tmp_dir(1:LEN_TRIM(tmp_dir)),'/jmol.',PID,'.p
 INQUIRE(FILE=kill_file, EXIST=lpresent)
 IF(lpresent) THEN
    WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
-   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(line, wait=.true., CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 !
 IF(lfinal) THEN
@@ -2031,24 +2041,24 @@ did_kill = .FALSE.
 IF(operating=='Linux') THEN
 !   WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
 !         '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep '
-!   CALL EXECUTE_COMMAND_LINE(line)
+!   CALL execute_command_line(line)
 !   WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' '//&
 !        '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep | awk ''{print $2}'' '
-!   CALL EXECUTE_COMMAND_LINE(line)
+!   CALL execute_command_line(line)
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' ' // &
         '| grep -F ''.mol'' | grep -F ''java'' | grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(line, wait=.true., CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 ELSEIF(operating=='Linux_WSL') THEN
    WRITE(line,'(a,i10,a,a)') 'ps --cols 256 j | grep ',PID,' | grep -F ''jmol'' ' // &
         '| grep -F ''.mol'' | grep -F ''java'' | grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(line, CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 ELSEIF(operating(1:6)=='darwin') THEN
    WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep -F ''jmol'' ' // &
          '| grep -F ''.mol'' | grep -F ''java'' |  grep -v grep | awk ''{print $2}'' >> ', &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(line, wait=.true., CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 
 ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
 !  WRITE(line,'(a,I5.5,a,a)') 'ps aux | grep ''jmol -s /tmp/jmol.',PID, &
@@ -2058,7 +2068,7 @@ ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
 !  line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1, $3}'' '
    line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1, $3}'' >> ' //  &
          kill_file(1:LEN_TRIM(kill_file))
-   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(line, wait=.true., CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 !
 CALL oeffne( ITMP, kill_file, 'old')
@@ -2067,7 +2077,7 @@ IF(ier_num==0) THEN
    DO WHILE (.NOT.IS_IOSTAT_END(ios)) 
 !     IF(jppid==PID .OR. jppid==PPID) THEN                    ! Current discus_suite has started jmol
          WRITE(line,'(a,i12,a)') 'kill -9 ',jmol_pid, ' > /dev/null'
-         CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+         CALL execute_command_line(line, wait=.true., CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
          did_kill = .TRUE.
 !     ENDIF
       READ(ITMP,*,IOSTAT=ios) jmol_pid!, jppid
@@ -2079,7 +2089,7 @@ IF(ier_num==0) THEN
 ENDIF
 !
 WRITE(line, '(a,a)') 'rm -f ', kill_file(1:LEN_TRIM(kill_file))
-!CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+!CALL execute_command_line(line, CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 !
 IF(did_kill .AND.lfinal) THEN
    WRITE(output_io,*) ' Closed JMOL windows, ignore ''Killed'' messages '
