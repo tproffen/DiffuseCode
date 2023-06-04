@@ -65,6 +65,7 @@ CALL set_signal
 !CALL SIGNAL(2, -1)
 !CALL SIGNAL(2, suite_sigint)
 !
+call start_pgxwin
 IF(gen_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    CALL program_files ()
    CALL discus_setup   (lstandalone)
