@@ -17,6 +17,7 @@ include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 include_directories(${DIFFUSE_SOURCE_DIR}/kuplot/prog)
 include_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 
+link_directories(${DIFFUSE_BINARY_DIR}/finufft)
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 link_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 
@@ -126,7 +127,7 @@ else (CUDA_FOUND)
   set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
 
 endif (CUDA_FOUND)
-set (SOURCES_ALL ${SOURCES_ALL} "${DIFFUSE_SOURCE_DIR}/../finufft/include/finufft_mod.f90")
+set (SOURCES_ALL ${SOURCES_ALL} "${DIFFUSE_SOURCE_DIR}/finufft/include/finufft_mod.f90")
 
 add_library (discus_all ${SOURCES_ALL} )
 add_dependencies (discus_all kuplot_all lib_f90 )
