@@ -10,6 +10,7 @@ public lib_f90_update_discus
 PUBLIC lib_f90_update_ubuntu
 public program_files
 public write_appl_env
+public start_pgxwin
 !
 !*****7***************************************************************  
 !                                                                       
@@ -54,6 +55,9 @@ CHARACTER(LEN=PREC_LSTRING) :: line
 CHARACTER(LEN=PREC_LSTRING) :: pathfile
 CHARACTER(LEN=PREC_LSTRING) :: ufile
 CHARACTER(LEN=15), PARAMETER :: etc_os_release = '/etc/os-release'
+character(len=PREC_STRING) :: message
+integer             :: exit_msg
+integer             :: ier_cmd
 INTEGER ico, ice, iii, i, j
 INTEGER :: length
 INTEGER :: ios ! I/O status
@@ -402,7 +406,7 @@ ENDIF
                ENDIF
             ENDIF
          IF(start_dir == '/mnt/c/Users' ) THEN
-            user_name = user_profile
+            user_name = user_profile(1:len(user_name))
                   IF(start_dir(start_dir_l:start_dir_l)=='/') THEN
                      start_dir_l = start_dir_l - 1
                   ENDIF
@@ -467,7 +471,8 @@ discus_dir_l = home_dir_l + 8
 call generic_read_config(discus_dir, discus_dir_l)   ! Read generic preferences
 !
 screen_size = 300    !  A very rough default
-call execute_command_line(get_screen_size)
+call execute_command_line(get_screen_size(1:len_trim(get_screen_size)) , WAIT=.true., &
+     cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
 open(unit=idef,file=get_screen_file,action='READ')
 read(idef, '(a)', iostat=ios) line
 close(idef)
@@ -480,6 +485,50 @@ if(ios==0) then
 endif
 !                                                                       
 END SUBROUTINE appl_env                       
+!
+!*******************************************************************************!
+!
+subroutine start_pgxwin
+!-
+! Start the pgxwin server 
+!+
+!
+use precision_mod
+use envir_mod
+use errlist_mod
+!
+integer, parameter :: IDEF = 68
+character(len=PREC_STRING) :: line
+character(len=PREC_STRING) :: message
+integer             :: exit_msg
+integer             :: ier_cmd
+integer :: ios
+!
+if(operating==OS_LINUX_WSL) THEN
+   line = 'ps aux| fgrep -v grep | fgrep pgxwin_server > /tmp/DISCUS.PGXWIN'
+   call execute_command_line(line(1:len_trim(line)) , WAIT=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
+   open(unit=idef, file='/tmp/DISCUS.PGXWIN', iostat=ios, status='old')
+   line = ' '
+   if(ios==0) then
+      read(idef, '(a)', iostat=ios) line
+   endif
+   close(idef)
+   if(index(line,'pgxwin_server')==0.or. is_iostat_end(ios)) then
+      open(unit=idef, file='/tmp/DISCUS.PGXWIN', iostat=ios, status='unknown')
+      write(idef,'(a)') '#!/bin/bash'
+      write(idef,'(a)') 'pgxwin_server & '
+      close(idef)
+      line   = 'chmod ugo+rwx ' // '/tmp/DISCUS.PGXWIN'
+      call execute_command_line(line(1:LEN_TRIM(line)), WAIT=.true.,  &
+           CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
+      line = '/tmp/DISCUS.PGXWIN &'
+      call execute_command_line(line(1:len_trim(line)), WAIT=.false., &
+           CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
+   endif
+endif
+!                                                                       
+END SUBROUTINE start_pgxwin                       
 !
 !*******************************************************************************!
 !
@@ -895,6 +944,9 @@ INTEGER, PARAMETER  :: ITMP     = 79  ! temporary unit number
 !
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: temp_file
+character(len=PREC_STRING) :: message
+integer             :: exit_msg
+integer             :: ier_cmd
 INTEGER             :: tpid           ! temporary pid for current process for verification
 INTEGER             :: tppid          ! temporary ppid for current process for verification
 INTEGER             :: ios            ! I/O status 
@@ -907,15 +959,18 @@ WRITE(temp_file, '(a,I10.10)') '/tmp/getppid.', cpid
 IF(operating(1:6)=='darwin') THEN
    WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep -v grep | awk ''{print $2, $3}'' >> ', &
        temp_file(1:LEN_TRIM(temp_file))
-   CALL system(line)
+   call execute_command_line(line(1:len_trim(line)) , WAIT=.true., &
+        cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
 ELSEIF(operating==OS_WINDOWS .OR. operating==OS_CYGWIN64 .OR. operating==OS_CYGWIN32) THEN
    WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep discus  | awk ''{print $1, $2}'' >> ', &
        temp_file(1:LEN_TRIM(temp_file))
-   CALL system(line)
+   call execute_command_line(line(1:len_trim(line)) , WAIT=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 ELSE
    WRITE(line,'(a,i10,a,a)') 'ps j | grep ',PID,' | grep -v grep | awk ''{print $2, $1}'' >> ', &
        temp_file(1:LEN_TRIM(temp_file))
-   CALL system(line)
+   call execute_command_line(line(1:len_trim(line)) , WAIT=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 !
 CALL oeffne( ITMP, temp_file, 'old')
@@ -928,7 +983,8 @@ IF(ier_num==0) THEN
 ENDIF
 CLOSE(ITMP)
 line = 'rm -f ' // temp_file(1:len_trim(temp_file))
-CALL SYSTEM(line)                    ! remove temporary file
+call execute_command_line(line(1:len_trim(line)) , WAIT=.true., &
+     CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 !
 lib_f90_getppid = tppid
 !
@@ -953,6 +1009,9 @@ INTEGER, PARAMETER  :: ITMP     = 79  ! temporary unit number
 !
 CHARACTER(LEN=PREC_STRING) :: line           ! Dummy line
 CHARACTER(LEN=PREC_STRING) :: temp_file      ! temporary file
+character(len=PREC_STRING) :: message
+integer             :: exit_msg
+integer             :: ier_cmd
 INTEGER             :: ios            ! I/O status 
 INTEGER             :: islash         ! I/O status 
 !
@@ -973,7 +1032,8 @@ ELSEIF(operating==OS_LINUX) THEN
 ELSEIF(operating==OS_LINUX_WSL) THEN
    WRITE(line,'(a,I10,a,a)') 'ps -p ',tpid, ' -o comm= > ',temp_file(1:LEN_TRIM(temp_file))
 ENDIF
-CALL system(line)
+call execute_command_line(line(1:len_trim(line)) , WAIT=.true., &
+     cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
 !
 tpname = ' '
 OPEN(UNIT=ITMP,FILE=temp_file,STATUS='old')
@@ -990,7 +1050,8 @@ ELSE
 ENDIF
 CLOSE(ITMP)
 line = 'rm -f ' // temp_file(1:len_trim(temp_file))
-CALL SYSTEM(line)                    ! remove temporary file
+call execute_command_line(line(1:len_trim(line)) , WAIT=.true., &
+     cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
 
 END SUBROUTINE lib_f90_getpname
 !
@@ -1006,10 +1067,13 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
+integer, parameter :: IWR = 68
 CHARACTER(LEN=128        ) :: cfile
+character(len=PREC_STRING) :: ufile
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
+INTEGER             :: ier_cmd
 LOGICAL             :: lda
 !
 if(gen_mpi_active) return               ! No update checks while mpi is active
@@ -1019,12 +1083,23 @@ WRITE(cfile,'(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_CURRENT.', PID
 INQUIRE(FILE=cfile, EXIST=lda)
 IF(lda) THEN 
    line = "rm -f /" // cfile(1:LEN_TRIM(cfile))
-   CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line (line(1:LEN_TRIM(line)), wait=.true.,  &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 ! 140.82.121.3 = github.com
 line = "curl -k --silent --location --connect-timeout 3 --max-time 3 ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
        // cfile(1:LEN_TRIM(cfile))
-CALL EXECUTE_COMMAND_LINE (line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+write(ufile,'(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)), '/DISCUS.UFILE.', PID
+open(unit=IWR, file=ufile, status='unknown')
+write(IWR, '(a)') '#!/bin/bash'
+write(IWR, '(a)') line(1:len_trim(line))
+close(IWR)
+line   = 'chmod ugo+rwx ' // ufile(1:len_trim(ufile))
+CALL execute_command_line (line(1:LEN_TRIM(line)), wait=.true.,  &
+     CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
+line = ufile(1:len_trim(ufile)) // ' & '
+CALL execute_command_line (line(1:LEN_TRIM(line)), WAIT=.false., &
+     CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 !call execute_command_line ('cat /tmp/DISCUS_CURRENT*')
 CALL no_error                         ! Checked and printed in ==> write_appl_env
 END SUBROUTINE lib_f90_init_updates
@@ -1055,6 +1130,7 @@ CHARACTER(LEN=128        ) :: discus_update
 CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
+INTEGER             :: ier_cmd
 INTEGER             :: idot1, idot2
 INTEGER             :: iquote
 INTEGER             :: itag
@@ -1122,7 +1198,7 @@ READ(version(idot2+1:LEN_TRIM(version)), *) k
 old_version = i*10000 + j*100 + k
 !
 string = "rm -f " // cfile(1:LEN_TRIM(cfile))
-CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+CALL execute_command_line (string(1:LEN_TRIM(string)), CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 CALL no_error
 if(.not. lonline) return
 !
@@ -1133,7 +1209,8 @@ since_update = 0
 !
 cond_update: IF(operating==OS_LINUX_WSL) THEN
    string = 'stat /var/cache/apt/pkgcache.bin > '// discus_update(1:len_trim(discus_update))
-   call execute_command_line(string, cmdstat=ier_num, cmdmsg=message, exitstat=exit_msg)
+   call execute_command_line(string, wait=.true., &
+        cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
    call no_error
 !   call execute_command_line('cat /tmp/DISCUS_UPDATE')
    INQUIRE(FILE=discus_update,EXIST=lda)
@@ -1174,6 +1251,7 @@ CHARACTER(LEN=PREC_STRING) :: string
 CHARACTER(LEN=PREC_STRING) :: cfile
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
+integer             :: ier_cmd
 integer             :: ios
 logical             :: lonline
 logical             :: lda
@@ -1184,7 +1262,8 @@ lonline = .TRUE.
 WRITE(cfile,        '(a,a,i10.10)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_UBUNTU.', PID ! Test file to see if we are on-line
 string = "curl -k --silent --location ""https://github.com/tproffen/DiffuseCode/releases/latest"" > " &
        // cfile(1:LEN_TRIM(cfile))                                                      ! The actual command
-call execute_command_line(string, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+call execute_command_line(string, wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 INQUIRE(FILE=cfile,EXIST=lda)
 IF_LDA: IF(lda) THEN
    open(unit=IRD, file=cfile, status='OLD')
@@ -1199,20 +1278,25 @@ IF_LDA: IF(lda) THEN
       WRITE(output_io, '(a)') 
       WRITE(output_io, '(a)')  ' Your Ubuntu system will be updated '
       string = 'sudo apt update'
-      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+      CALL execute_command_line (string(1:LEN_TRIM(string)), wait=.true., &
+           CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
       string = 'sudo apt upgrade -y'
-      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+      CALL execute_command_line (string(1:LEN_TRIM(string)), wait=.true., &
+           CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
       string = 'date --iso-8601 > '// tmp_dir(1:LEN_TRIM(tmp_dir)) // '/DISCUS_UPDATE'
-      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+      CALL execute_command_line (string(1:LEN_TRIM(string)), wait=.true., &
+           CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
       string = 'chmod ugo+rw ' // tmp_dir(1:len_trim(tmp_dir)) // '/DISCUS_UPDATE'
-      CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+      CALL execute_command_line (string(1:LEN_TRIM(string)), wait=.true., &
+           CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
       WRITE(output_io, '(a)') 
    ENDIF
    endif on_line
 !
    string = "rm -f " // cfile(1:LEN_TRIM(cfile))
 !
-   CALL EXECUTE_COMMAND_LINE (string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line (string(1:LEN_TRIM(string)), wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
    CALL no_error
 endif if_lda             ! test file is present
 !
@@ -1256,6 +1340,7 @@ CHARACTER(LEN= 8)          :: flag
 CHARACTER(LEN=PREC_STRING) :: command
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
+integer             :: ier_cmd
 integer             :: ios                      ! I/O status
 INTEGER             :: length
 !
@@ -1344,7 +1429,8 @@ IF(terminal_wrp /= ' ') THEN
    WRITE(IRD, '(a)') 'stty -icanon; dd ibs=1 count=1 >/dev/null 2>&1 '
    CLOSE(UNIT=IRD)
    line = 'chmod ugo+rwx ' // terminal_wrp(1:LEN_TRIM(terminal_wrp))
-   CALL EXECUTE_COMMAND_LINE(line(1:LEN_TRIM(line)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(line(1:LEN_TRIM(line)), wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 ENDIF
 !
 IF(operating == OS_LINUX) then
@@ -1392,7 +1478,8 @@ ELSEIF(operating == OS_MACOSX) THEN
    WRITE(IWR, '(a)' ) command(1:LEN_TRIM(command))
    CLOSE(UNIT=IWR)
    command = 'chmod 700 /tmp/bbb.sh'
-   CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(command(1:LEN_TRIM(command)), wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
    command = 'open -b com.apple.terminal /tmp/bbb.sh' 
 ENDIF
 !
@@ -1401,7 +1488,8 @@ ENDIF
 string = 'curl -k --silent --location https://github.com/tproffen/DiffuseCode/releases/latest ' // &
          '| grep "Release " ' // &
          '| ' // grep(1:LEN_TRIM(grep)) // ' ''v\.[0-9]*\.[0-9]*\.[0-9]*'' > ' //  discus_version
-CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+CALL execute_command_line(string(1:LEN_TRIM(string)), wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 !
 OPEN(UNIT=IRD,FILE=discus_version, STATUS='old')
 READ(IRD,'(a)', iostat=ios) verstring
@@ -1418,10 +1506,12 @@ endif
 string = 'curl -k -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
          ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
          verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
-CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+CALL execute_command_line(string(1:LEN_TRIM(string)), wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 !
 string = 'chmod 700 $HOME/' // script(1:LEN_TRIM(script))
-CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+call execute_command_line(string(1:LEN_TRIM(string)), wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 !string = 'ls -l $HOME/' // script(1:LEN_TRIM(script))
 !CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
 !
@@ -1434,10 +1524,12 @@ IF(operating == OS_LINUX_WSL) THEN
    string = 'curl -k -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
             ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
             verstring(1:LEN_TRIM(verstring)) // '/' // script(1:LEN_TRIM(script))
-   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(string(1:LEN_TRIM(string)), wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
    string = 'cp $HOME/' // script(1:LEN_TRIM(script)) // ' /mnt/c/Users/' //          &
             user_profile(1:LEN_TRIM(user_profile)) // '/DISCUS_INSTALLATION/'  
-   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(string(1:LEN_TRIM(string)), wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
    script  = 'ccc_install_suite_Windows10_WSL.bat'
    string = 'curl -k -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
             ' -fSL https://github.com/tproffen/DiffuseCode/releases/download/' //   &
@@ -1445,10 +1537,12 @@ IF(operating == OS_LINUX_WSL) THEN
    string = 'curl -k -o $HOME/' // script(1:LEN_TRIM(script)) //                       &
             ' -fSL https://github.com/rneder/DiffuseSuplement/releases/download/v.1.0.0/'  &
             // script(1:LEN_TRIM(script))
-   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(string(1:LEN_TRIM(string)), wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
    string = 'cp $HOME/' // script(1:LEN_TRIM(script)) // ' /mnt/c/Users/' //          &
             user_profile(1:LEN_TRIM(user_profile)) // '/DISCUS_INSTALLATION/'  
-   CALL EXECUTE_COMMAND_LINE(string(1:LEN_TRIM(string)), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(string(1:LEN_TRIM(string)), wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 !   string = '/mnt/c/Users/' // user_profile(1:LEN_TRIM(user_profile)) // '/DISCUS_INSTALLATION\'
 !   length = LEN_TRIM(string)
 !   CALL do_chdir (string, length, .FALSE.)
@@ -1472,7 +1566,7 @@ if(flag=='CONTINUE') then
    endif
    length = len_trim(line)
    CALL do_chdir(line,length,.FALSE.)     ! Go to home dir
-   CALL EXECUTE_COMMAND_LINE(command(1:LEN_TRIM(command)), WAIT=.FALSE.) !,                  CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(command(1:LEN_TRIM(command)), WAIT=.FALSE.) !,                  CMDMSG=message, EXITSTAT=exit_msg)
 !
 ! As installation script updated the operating system, touch update file
 !
@@ -1536,6 +1630,9 @@ integer, parameter :: IRD = 37
 character(len=PREC_STRING) :: pid_file
 character(len=PREC_STRING) :: string
 character(len=PREC_STRING) :: line
+character(len=PREC_STRING) :: message
+integer :: exit_msg
+integer :: ier_cmd
 integer :: j
 integer :: ll
 integer :: ios
@@ -1555,7 +1652,8 @@ loop_check: do
                //                                    ' | awk ''{print $2} '' > ' &
                // pid_file(1:len_trim(pid_file))
    endif
-   call execute_command_line(string)
+   call execute_command_line(string, wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 !  call execute_command_line('cat /tmp/DISCUS.PIDS')
    open(unit=IRD, file=pid_file, status='old')
    loop_test: do
@@ -1596,7 +1694,8 @@ loop_check: do
          read(string,*) j
          if(j /= PID ) then
             write(line,'(a,i8)') 'kill -9 ',j
-            call execute_command_line(line)
+            call execute_command_line(line, wait=.true., &
+                 CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
          endif
       enddo loop_kill
       close(IRD)
@@ -1610,7 +1709,8 @@ enddo loop_check
 if(flag=='CONTINUE') then       ! KIll pgxwin_server
    string = 'ps --cols  256 aux | fgrep pgxwin_server | fgrep -v grep | awk ''{print $2} '' > ' &
             // pid_file(1:len_trim(pid_file))
-   call execute_command_line(string)
+   call execute_command_line(string, wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
    open(unit=IRD, file=pid_file, status='old')
    loop_pgx: do                 ! In case the server runs multiple times
       string = ' '
@@ -1619,7 +1719,8 @@ if(flag=='CONTINUE') then       ! KIll pgxwin_server
       read(string,*) j
       if(j /= PID ) then
          write(line,'(a,i8)') 'kill -9 ',j
-         call execute_command_line(line)
+         call execute_command_line(line, wait=.true., &
+              CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
       endif
    enddo loop_pgx
    close(IRD)
@@ -1649,6 +1750,7 @@ CHARACTER(LEN=128        ) :: cfile
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER             :: exit_msg
+integer             :: ier_cmd   ! execute_command_line message
 INTEGER :: ios
 INTEGER :: length
 INTEGER :: i,j
@@ -1683,7 +1785,8 @@ WRITE(cfile,'(a,a,i10.10)') tmp_dir(1:LEN_TRIM(tmp_dir)), '/DISCUS_TERM.', PID
 main_loop: DO i=istart, istart+MAXTERM
    j = MOD(i,MAXTERM)
    line = 'which ' // terminals(j) // ' > ' // cfile
-   CALL EXECUTE_COMMAND_LINE(line, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+   CALL execute_command_line(line, wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
    OPEN(UNIT=IDEF, FILE=cfile, STATUS='OLD', IOSTAT=ios)
    IF(ios/=0) CYCLE main_loop
    line = ' '
@@ -1733,6 +1836,7 @@ character(len=PREC_STRING) :: string_e  ! Generic string
 character(len=PREC_STRING) :: cfile     ! temporary file
 CHARACTER(LEN=PREC_STRING) :: message   ! execute_command_line message
 integer                    :: exit_msg  ! execute_command_line message
+integer                    :: ier_cmd   ! execute_command_line message
 integer                    :: ios       ! read error number
 !integer                    :: iper      ! location of percent sign
 !integer                    :: icom      ! prior location of ','
@@ -1747,7 +1851,7 @@ cfile = tmp_dir(1:tmp_dir_l) // '/check_github.txt'
 string = 'ping -c 1 -W 3 140.82.121.3 2> /dev/null > '// cfile(1:len_trim(cfile)) &
          // '; echo $? >> ' // cfile(1:len_trim(cfile)) 
 ! Include a wait, to make reasonably sure that the temp file is written
-call EXECUTE_COMMAND_LINE(string, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg, wait=.true.)
+call execute_command_line(string, CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg, wait=.true.)
 !
 string_e = '2'
 open(unit=ird, file=cfile, status='old')
@@ -1778,7 +1882,8 @@ read(string_e,'(i1)', iostat=ios) i
 lnetz = i==0
 !write(*,*) ' ERROR CODE ', string_e(1:len_trim(string_e)), i, lnetz
 string = "rm -f " // cfile(1:LEN_TRIM(cfile))          ! Remove temporary file
-call EXECUTE_COMMAND_LINE(string, CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
+call execute_command_line(string, wait=.true., &
+        CMDSTAT=ier_cmd, CMDMSG=message, EXITSTAT=exit_msg)
 !
 end function check_github
 !
