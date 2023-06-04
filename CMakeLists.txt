@@ -38,8 +38,8 @@ endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 6)
-set (DIFFUSE_VERSION_MINOR 14)
-set (DIFFUSE_VERSION_PATCH 02)
+set (DIFFUSE_VERSION_MINOR 15)
+set (DIFFUSE_VERSION_PATCH 01)
 
 # Readline required for all programs
 
@@ -48,28 +48,27 @@ find_package(X11 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(FFTW REQUIRED)
-find_package(FINUFFT REQUIRED)
 
 option(DISCUS_OMP    "Switch for compiling DISCUS_SUITE with OpenMP" ON)
 if (DISCUS_OMP)
-if(APPLE)
-if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    set(OpenMP_C "${CMAKE_C_COMPILER}" CACHE STRING "" FORCE)
-    set(OpenMP_C_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument" CACHE STRING "" FORCE)
-    set(OpenMP_C_LIB_NAMES "libomp" "libgomp" "libiomp5" CACHE STRING "" FORCE)
-    set(OpenMP_libomp_LIBRARY ${OpenMP_C_LIB_NAMES} CACHE STRING "" FORCE)
-    set(OpenMP_libgomp_LIBRARY ${OpenMP_C_LIB_NAMES} CACHE STRING "" FORCE)
-    set(OpenMP_libiomp5_LIBRARY ${OpenMP_C_LIB_NAMES} CACHE STRING "" FORCE)
-endif()
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(OpenMP_CXX "${CMAKE_CXX_COMPILER}" CACHE STRING "" FORCE)
-  set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument" CACHE STRING "" FORCE)
-  set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5" CACHE STRING "" FORCE)
-  set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES} CACHE STRING "" FORCE)
-  set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES} CACHE STRING "" FORCE)
-  set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES} CACHE STRING "" FORCE)
-endif()
-endif()
+  if(APPLE)
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+      set(OpenMP_C "${CMAKE_C_COMPILER}" CACHE STRING "" FORCE)
+      set(OpenMP_C_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument" CACHE STRING "" FORCE)
+      set(OpenMP_C_LIB_NAMES "libomp" "libgomp" "libiomp5" CACHE STRING "" FORCE)
+      set(OpenMP_libomp_LIBRARY ${OpenMP_C_LIB_NAMES} CACHE STRING "" FORCE)
+      set(OpenMP_libgomp_LIBRARY ${OpenMP_C_LIB_NAMES} CACHE STRING "" FORCE)
+      set(OpenMP_libiomp5_LIBRARY ${OpenMP_C_LIB_NAMES} CACHE STRING "" FORCE)
+  endif()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(OpenMP_CXX "${CMAKE_CXX_COMPILER}" CACHE STRING "" FORCE)
+    set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument" CACHE STRING "" FORCE)
+    set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5" CACHE STRING "" FORCE)
+    set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES} CACHE STRING "" FORCE)
+    set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES} CACHE STRING "" FORCE)
+    set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES} CACHE STRING "" FORCE)
+  endif()
+  endif()
   find_package(OpenMP REQUIRED)
 endif (DISCUS_OMP)
 
@@ -86,38 +85,8 @@ option(DIFFUSE_HDF5 "DIFFUSE_HDF5" ON )
 
 if ( DIFFUSE_HDF5 )
   find_package(HDF5 COMPONENTS Fortran REQUIRED)
-#HDF5_RBN  if ( NOT DEFINED ENV{HDF5_FORTRAN_SHARED_LIBRARY} )
-#HDF5_RBN    message(FATAL_ERROR "The environment variable HDF5_FORTRAN_SHARED_LIBRARY is not set
-#HDF5_RBN    Best execute the following two commands:
-#HDF5_RBN    source $HOME/DIFFUSE_INSTALL/find_user.sh
-#HDF5_RBN    source $HOME/DIFFUSE_INSTALL/prepare_hdf5.sh
-#HDF5_RBN    ")
-#HDF5_RBN#
-#HDF5_RBN  else ()
-#HDF5_RBN    if ( NOT DEFINED ENV{HDF5_FORTRAN_INCLUDE_DIR}) 
-#HDF5_RBN      message(FATAL_ERROR "The environment variable HDF5_FORTRAN_INCLUDE_DIR is not set
-#HDF5_RBN      Best execute the following two commands:
-#HDF5_RBN      source $HOME/DIFFUSE_INSTALL/find_user.sh
-#HDF5_RBN      source $HOME/DIFFUSE_INSTALL/prepare_hdf5.sh
-#HDF5_RBN      ")
-#HDF5_RBN    else ()
-#HDF5_RBN      set (HDF5_FORTRAN_SHARED_LIBRARY "$ENV{HDF5_FORTRAN_SHARED_LIBRARY}")
-#HDF5_RBN      set (HDF5_FORTRAN_INCLUDE_PATH "$ENV{HDF5_INC_DIR}")
-#HDF5_RBN      message (STATUS " HDF5_FORTRAN_SHARED_LIBRARY ${HDF5_FORTRAN_SHARED_LIBRARY}")
-#HDF5_RBN      message (STATUS " HDF5_FORTRAN_INCLUDE_PATH $ENV{HDF5_INC_DIR}")
-#HDF5_RBN      set (LINK_LIBS ${LINK_LIBS} "${HDF5_FORTRAN_SHARED_LIBRARY}" )
-#HDF5_RBN      INCLUDE_DIRECTORIES ("${HDF5_FORTRAN_INCLUDE_PATH}")
-#HDF5_RBN    endif ()
-#HDF5_RBN  endif ()
-#HDF5_RBN#  
-# message (status " HDF5_FORTRAN_INCLUDE_DIRS ${HDF5_INCLUDE_INCLUDE_PATH} ")
-# message (status " HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS} ")
-# message (status " HDF5_LIBRARIES    ${HDF5_LIBRARIES}")
-# message (status " HDF5_ForLIB       ${HDF5_FORTRAN_SHARED_LIBRARY}")
   set (LINK_LIBS ${LINK_LIBS} "${HDF5_LIBRARIES}" )
   INCLUDE_DIRECTORIES ("${HDF5_INCLUDE_DIRS}")
-# set (LINK_LIBS ${LINK_LIBS} "${HDF5_FORTRAN_SHARED_LIBRARY}" )
-# INCLUDE_DIRECTORIES ("${HDF5_FORTRAN_INCLUDE_PATH}")
   message (status " HDF5 is ON  ${DIFFUSE_HDF5} ")
 # message (status " LINK_LIBS ${LINK_LIBS}")
 # message (status " HDF5_LIBRARY ${HDF5_FORTRAN_SHARED_LIBRARY}" )
@@ -128,12 +97,12 @@ endif ()
 
 # Set common libraries
 
-set (DIFFUSE_LIBS ${READLINE_LIBRARY}  ${FINUFFT_LIB})
+set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ${FFTW_DOUBLE_LIB} ${FFTW_DOUBLE_OPENMP_LIB} )
 
 # Set Compiler Flags
 
-set (CMAKE_CXX_FLAGS "-fPIC")
+set (CMAKE_CXX_FLAGS "-fPIC -funroll-loops -march=native -fcx-limited-range -std=c++14 -fopenmp")
 set (CMAKE_C_FLAGS "-fPIC")
 #
 if ( ISGNU )
@@ -166,6 +135,7 @@ endif (DEBUG)
 
 # Go into directories
 
+add_subdirectory(finufft)
 add_subdirectory(lib_f90) # this must be first for date.inc
 add_subdirectory(kuplot/prog)
 add_subdirectory(diffev/prog)
