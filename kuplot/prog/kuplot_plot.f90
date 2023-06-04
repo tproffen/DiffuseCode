@@ -139,6 +139,8 @@ integer         , intent(inout) :: lp
 CHARACTER(LEN=PREC_STRING) :: cpara (maxw), prnbef , line
 CHARACTER(len=256) :: filname, uname , outname
 CHARACTER(len=256), dimension(2) :: conv_opt
+character(len=PREC_STRING) :: message
+integer :: exit_msg
 REAL(KIND=PREC_DP) :: werte (maxw) 
 REAL(kind=PREC_SP) :: width, ratio 
 INTEGER :: lpara (maxw) 
@@ -358,7 +360,8 @@ if(udev/=lat)  then           ! No need if latex
       if (lrena) call do_rename_file (filname, uname) 
    elseif(udev==eps) then
       line = 'ps2eps '//filname(1:len(filname))// ' -f ' //uname(1:len(uname))
-      call system(line, ier_num)
+      call execute_command_line(line(1:LEN_TRIM(line)), wait=.true., &
+           CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
    else                       ! All other picture types (pdf, png, gif)
 !     ! Write the options for convert: density=Pixel per inch and 
 !     !                                transparency
@@ -397,9 +400,11 @@ if(udev/=lat)  then           ! No need if latex
           outname(1:len_trim(outname))
 !         ' -density 300 -units PixelsPerInch ',                                 &
 !         ' -background white -alpha off  -alpha remove ',     &
-      CALL system(line, ier_num)
+      call execute_command_line(line(1:LEN_TRIM(line)), wait=.true., &
+           CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
       line = 'rm -r kuplot_temp.ps'
-      CALL system(line, ier_num)
+      call execute_command_line(line(1:LEN_TRIM(line)), wait=.false., &
+           CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg)
    endif
 endif
 !                                                                       
