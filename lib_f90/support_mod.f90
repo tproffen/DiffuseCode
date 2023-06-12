@@ -440,7 +440,7 @@ END SUBROUTINE do_cwd
 !
 !*****7*****************************************************************
 !
-SUBROUTINE do_del_file (name) 
+SUBROUTINE do_del_file (name, wait_stat) 
 !+                                                                      
 !     Deletes a file                                                    
 !-                                                                      
@@ -452,13 +452,20 @@ IMPLICIT none
 !                                                                       
 !                                                                       
 CHARACTER (LEN=*), INTENT(INOUT) :: name 
+logical          , intent(in), optional :: wait_stat   ! User provided true/false
 !
 CHARACTER(LEN=PREC_STRING) :: command 
 CHARACTER(LEN=PREC_STRING) :: message
 INTEGER :: laenge
 integer :: exit_msg 
 integer :: ier_cmd
+logical :: wait_local
 !                                                                       
+!
+wait_local = .true.             ! Default to wait
+if(present(wait_stat)) then     ! use optional user parameter
+   wait_local = wait_stat
+endif
 laenge = len_str (name) 
 CALL rem_bl (name, laenge) 
 command = ' ' 
@@ -467,7 +474,7 @@ command = ' '
 !                                                                       
 command (1:6) = 'rm -f ' 
 command (7:7 + laenge) = name (1:laenge) 
-call execute_command_line (command(1:7+laenge), wait=.false.,  &
+call execute_command_line (command(1:7+laenge), wait=wait_local,  &
      CMDSTAT=ier_cmd, CMDMSG=message, exitstat=exit_msg) 
 IF (ier_num.eq.0) then 
    ier_typ = ER_NONE 
@@ -648,6 +655,7 @@ INTEGER :: ios
 INTEGER :: l_datei 
 LOGICAL :: lda
 !                                                                       
+message = ' '
 !                                                                       
 datei = in_datei
 ios     = 0
@@ -661,8 +669,7 @@ IF (l_datei.gt.0) then
    ier_typ = ER_IO 
    IF (stat.eq.'unknown') then 
 !
-      OPEN (UNIT=inum, FILE = datei , STATUS = stat, IOSTAT =&
-      ios, IOMSG=message)
+      OPEN (UNIT=inum, FILE=datei , STATUS=stat, IOSTAT=ios, IOMSG=message)
       IF(ios==0) THEN
          ier_num = 0 
          ier_typ = ER_NONE 
