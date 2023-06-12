@@ -49,34 +49,28 @@ USE support_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-INTEGER, PARAMETER :: ITMP     = 78  ! temporary unit number
 INTEGER, PARAMETER :: MIN_PARA = 20  ! A command requires at leaset these no of parameters
 INTEGER maxw 
 LOGICAL lold 
 PARAMETER (lold = .false.) 
 !                                                                       
-character(len=PREC_STRING) :: message
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAX(10,MAXSCAT)) 
 REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAX(10,MAXSCAT)) 
 INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAX(10,MAXSCAT))
 CHARACTER(LEN=PREC_STRING) :: line, zeile
-CHARACTER(LEN=PREC_STRING) :: tempfile
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
 CHARACTER(LEN=4) :: hlp_sec = 'plot'
 CHARACTER(len=9) :: befehl 
 CHARACTER(1) cdum 
 REAL(kind=PREC_DP) :: size, rr=0.0D0, rg=0.0D0, rb=0.0D0
 INTEGER lp, length 
-integer :: ier_cmd, exit_msg
 INTEGER :: ianz, i, j, is, it, ic, lbef 
-!      INTEGER :: npoly     
 INTEGER indxg 
 INTEGER         :: nscat = 1
 INTEGER         :: nsite = 1
 INTEGER         :: nline = 1
-INTEGER         :: ios
 
-LOGICAL lend, l_select , success
+LOGICAL lend, success
 LOGICAL :: labs = .FALSE.
 LOGICAL :: lord = .FALSE.
 LOGICAL :: lnor = .FALSE.
@@ -99,9 +93,9 @@ integer, parameter :: ONMAX   =  4
 integer, parameter :: OFACE   =  5
 integer, parameter :: OHUE    =  6
 integer, parameter :: OCOLOR  =  7
-integer, parameter :: OPLOT   =  8
-integer, parameter :: OKEEP   =  9
-integer, parameter :: OKILL   = 10
+!integer, parameter :: OPLOT   =  8    ! used in test_jmol
+!integer, parameter :: OKEEP   =  9    ! used in test_jmol
+!integer, parameter :: OKILL   = 10    ! used in test_jmol
 !integer, parameter :: OGEOM   = 11    ! used in plot_inter
 !integer, parameter :: OEXPORT = 12    ! used in plot_inter
 !integer, parameter :: OPOSIT  = 13    ! used in plot_inter
@@ -624,61 +618,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ELSEIF (cpara(1)(1:1) .eq.'D'.and.ianz.eq.1) then
                         pl_prog = 'diamond' 
                      ELSEIF (cpara(1)(1:1) .eq.'J'.and.ianz.eq.1) then
-                        pl_prog = 'jmol' 
-!                       Test existence of jmol / java 
-                        WRITE(tempfile, '(a, a,i10.10)') tmp_dir(1:LEN_TRIM(tmp_dir)), &
-                           '/which_jmol.', PID
-                        IF(operating=='Linux') THEN                      
-                           WRITE(line,'(a,a,a,i10.10)')  'which jmol > ', &
-                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
-                        ELSEIF(operating=='Linux_WSL') THEN                      
-                           WRITE(line,'(a,a,a,i10.10)')  'which jmol > ', &
-                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
-                        ELSEIF(operating=='Windows') THEN                      
-                           WRITE(line,'(a,a,a,i10.10)')  'which java > ', &
-                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
-                        ELSEIF(operating(1:6)=='cygwin') THEN                      
-                           WRITE(line,'(a,a,a,i10.10)')  'which java > ', &
-                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
-                        ELSEIF(operating(1:6)=='darwin') THEN                      
-                           WRITE(line,'(a,a,a,i10.10)')  'which jmol > ', &
-                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
-                        ENDIF
-                           CALL execute_command_line(line, wait = .true.,    &
-                                cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
-                           CALL oeffne( ITMP, tempfile, 'old')
-                           IF(ier_NUM==0) THEN
-                              READ(ITMP,'(a)',IOSTAT=ios) pl_jmol
-                              CLOSE(ITMP)
-                              IF(IS_IOSTAT_END(ios)) THEN
-                                 ier_num = -152
-                                 ier_typ = ER_APPL
-                                 pl_jmol = ' '
-                              ELSE
-                                 IF(operating(1:6)=='cygwin' ) THEN !   &
-                                    i = LEN_TRIM(pl_jmol)
-                                    IF(pl_jmol(i-3:i) == 'java') THEN
-                                       pl_jmol = 'cd /tmp      && java -Xmx512m -jar ./Jmol.jar ' 
-                                    ELSEIF(pl_jmol(1:14) == 'which: no java') THEN
-                                       ier_num = -152
-                                       ier_typ = ER_APPL
-                                       pl_jmol = ' '
-                                    ENDIF
-                                 ELSEIF(operating(1:7)=='Windows'    ) THEN
-                                    i = LEN_TRIM(pl_jmol)
-                                    IF(pl_jmol(i-3:i) == 'java') THEN
-                                       pl_jmol = 'cd /opt/jmol && java -Xmx512m -jar ./Jmol.jar ' 
-                                    ELSEIF(pl_jmol(1:14) == 'which: no java') THEN
-                                       ier_num = -152
-                                       ier_typ = ER_APPL
-                                       pl_jmol = ' '
-                                    ENDIF
-                                 ENDIF
-                              ENDIF
-                           ENDIF
-                        WRITE(line,'(a,a)') 'rm -f ', tempfile(1:LEN_TRIM(tempfile))
-                        CALL execute_command_line(line, wait=.true.,   &
-                             cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
+                        call  plot_test_jmol(pl_prog, pl_jmol)
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -688,64 +628,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----run plot 'run'                                                
 !                                                                       
                ELSEIF (str_comp (befehl, 'run', 3, lbef, 3) ) then 
-!                 Always provide fresh default values, Repeat for each command
-                  opara (8:11) =   (/ 'none     ', 'no       ', 'none     ', '[500,500]' /)
-                  lopara(8:11) =   (/  4         ,  2         ,  4         ,  9          /)
-                  owerte(8:11) =   (/  0.0       ,  0.0       ,  0.0       ,  0.0        /)
-                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                                    oname, loname, opara, lopara, lpresent, owerte)
-                  IF (ier_num.eq.0.and.ianz.eq.0) then 
-                  IF (pl_out.ne.' ') then 
-                     CALL update_cr_dim 
-                     DO i = 1, 3 
-                     IF (pl_ext_all (i) ) then 
-                        DO j = 1, 2 
-                        pl_dim (i, j) = cr_dim (i, j) 
-                        ENDDO 
-                     ENDIF 
-                     ENDDO 
-                     IF (.not. (pl_dim (1, 1) .eq.pl_dim (1, 2) .and. &
-                                pl_dim (2, 1) .eq.pl_dim (2, 2) .and. &
-                                pl_dim(3, 1) .eq.pl_dim (3, 2) ) ) then
-                        l_select = .false. 
-                        DO i = 0, cr_nscat 
-                        IF (pl_latom (i) ) then 
-                           l_select = .true. 
-                        ENDIF 
-                        ENDDO 
-                        IF (l_select) then 
-                           CALL plot_test_aon(lnor, labs, lord)
-                           IF(ier_num == 0) THEN
-                              CALL do_plot 
-                              pl_keep = opara(OKEEP)(1:lopara(OKEEP))=='yes'
-                              IF(ier_num == 0) THEN
-                                 IF(opara(OPLOT)=='inter') THEN
-                                    IF(pl_prog=='jmol') THEN
-                                       i = 4
-                                       CALL plot_inter(i,opara(10:13))
-                                    ELSE
-                                       ier_num = -152
-                                       ier_typ = ER_APPL 
-                                    ENDIF
-                                 elseif(opara(OKILL)=='yes') THEN
-                                    call jmol_kill(.TRUE. , .FALSE.)
-                                 ENDIF
-                              ENDIF
-                           ENDIF
-                        ELSE 
-                           ier_num = - 3 
-                           ier_typ = ER_APPL 
-                        ENDIF 
-                     ELSE 
-                        ier_num = - 4 
-                        ier_typ = ER_APPL 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 37 
-                     ier_typ = ER_APPL 
-                  ENDIF 
-                     ENDIF 
+                  call plot_run(zeile, lp)
 !                                                                       
 !     ----set atom representation for KUPLOT                            
 !                                                                       
@@ -948,6 +831,215 @@ ENDDO  main                 ! Main loop
 prompt = orig_prompt
 !
 END SUBROUTINE plot                           
+!
+!*****7*****************************************************************
+!
+subroutine plot_test_jmol(pl_prog, pl_jmol)
+!-
+! Test existence of jmol / java
+!
+use envir_mod
+use errlist_mod
+use precision_mod
+use support_mod
+!
+implicit none
+!
+INTEGER, PARAMETER :: ITMP     = 78  ! temporary unit number
+character(len=*), intent(inout) :: pl_prog
+character(len=*), intent(inout) :: pl_jmol
+integer :: i
+integer :: ios
+integer :: ier_cmd
+integer :: exit_msg
+character(len=PREC_STRING) :: tempfile
+character(len=PREC_STRING) :: message
+character(len=PREC_STRING) :: line
+!
+                        pl_prog = 'jmol' 
+!                       Test existence of jmol / java 
+                        WRITE(tempfile, '(a, a,i10.10)') tmp_dir(1:LEN_TRIM(tmp_dir)), &
+                           '/which_jmol.', PID
+                        IF(operating=='Linux') THEN                      
+                           WRITE(line,'(a,a,a,i10.10)')  'which jmol > ', &
+                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
+                        ELSEIF(operating=='Linux_WSL') THEN                      
+                           WRITE(line,'(a,a,a,i10.10)')  'which jmol > ', &
+                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
+                        ELSEIF(operating=='Windows') THEN                      
+                           WRITE(line,'(a,a,a,i10.10)')  'which java > ', &
+                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
+                        ELSEIF(operating(1:6)=='cygwin') THEN                      
+                           WRITE(line,'(a,a,a,i10.10)')  'which java > ', &
+                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
+                        ELSEIF(operating(1:6)=='darwin') THEN                      
+                           WRITE(line,'(a,a,a,i10.10)')  'which jmol > ', &
+                           tmp_dir(1:LEN_TRIM(tmp_dir)),'/which_jmol.', PID
+                        ENDIF
+                           CALL execute_command_line(line, wait = .true.,    &
+                                cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
+                           CALL oeffne( ITMP, tempfile, 'old')
+                           IF(ier_NUM==0) THEN
+                              READ(ITMP,'(a)',IOSTAT=ios) pl_jmol
+                              CLOSE(ITMP)
+                              IF(IS_IOSTAT_END(ios)) THEN
+                                 ier_num = -152
+                                 ier_typ = ER_APPL
+                                 pl_jmol = ' '
+                              ELSE
+                                 IF(operating(1:6)=='cygwin' ) THEN !   &
+                                    i = LEN_TRIM(pl_jmol)
+                                    IF(pl_jmol(i-3:i) == 'java') THEN
+                                       pl_jmol = 'cd /tmp      && java -Xmx512m -jar ./Jmol.jar ' 
+                                    ELSEIF(pl_jmol(1:14) == 'which: no java') THEN
+                                       ier_num = -152
+                                       ier_typ = ER_APPL
+                                       pl_jmol = ' '
+                                    ENDIF
+                                 ELSEIF(operating(1:7)=='Windows'    ) THEN
+                                    i = LEN_TRIM(pl_jmol)
+                                    IF(pl_jmol(i-3:i) == 'java') THEN
+                                       pl_jmol = 'cd /opt/jmol && java -Xmx512m -jar ./Jmol.jar ' 
+                                    ELSEIF(pl_jmol(1:14) == 'which: no java') THEN
+                                       ier_num = -152
+                                       ier_typ = ER_APPL
+                                       pl_jmol = ' '
+                                    ENDIF
+                                 ENDIF
+                              ENDIF
+                           ENDIF
+                        WRITE(line,'(a,a)') 'rm -f ', tempfile(1:LEN_TRIM(tempfile))
+                        CALL execute_command_line(line, wait=.true.,   &
+                             cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg)
+!
+end subroutine plot_test_jmol
+!
+!*****7*****************************************************************
+!
+subroutine plot_run(zeile, lp)
+!-
+! Perform the run command
+!+
+!
+use crystal_mod
+use discus_plot_mod
+use update_cr_dim_mod
+!
+USE get_params_mod
+use errlist_mod
+use take_param_mod
+!
+implicit none
+!
+character(len=*), intent(inout) :: zeile
+integer         , intent(inout) :: lp
+!
+integer, parameter :: MAXW = 13
+CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW                   ) :: cpara ! (MAX(10,MAXSCAT)) 
+!REAL(KIND=PREC_DP) , DIMENSION(MAXW                   ) :: werte ! (MAX(10,MAXSCAT)) 
+INTEGER            , DIMENSION(MAXW                   ) :: lpara ! (MAX(10,MAXSCAT))
+integer :: ianz
+integer :: i,j
+LOGICAL :: labs = .FALSE.
+LOGICAL :: lord = .FALSE.
+LOGICAL :: lnor = .FALSE.
+logical :: l_select
+!
+INTEGER, PARAMETER :: NOPTIONAL = 13
+CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
+!
+!integer, parameter :: ODMIN   =  1
+!integer, parameter :: ODMAX   =  2
+!integer, parameter :: ONMIN   =  3
+!integer, parameter :: ONMAX   =  4
+!integer, parameter :: OFACE   =  5
+!integer, parameter :: OHUE    =  6
+!integer, parameter :: OCOLOR  =  7   ! used in plot_menu
+integer, parameter :: OPLOT   =  8
+integer, parameter :: OKEEP   =  9
+integer, parameter :: OKILL   = 10
+!integer, parameter :: OGEOM   = 11    ! used in plot_inter
+!integer, parameter :: OEXPORT = 12    ! used in plot_inter
+!integer, parameter :: OPOSIT  = 13    ! used in plot_inter
+!
+DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', &
+              'plot' , 'keep'  , 'kill',  'geom', 'export', 'posit'  /
+DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  5     , &
+               4     ,  4      ,  4    ,   4    ,  6     , 5  /
+!
+opara  =   (/ '0.000    ', '0.000    ', '0        ', '0        ', 'flat     ', 'solid    ', &
+              'auto     ', 'none     ', 'none     ', 'no       ', '[500,500]', 'none     ', &
+              'default  '                                                                 /)
+!
+lopara =   (/  5         ,  5         ,  1         ,  1         ,  4         ,  5         , &
+               4         ,  4         ,  4         ,  2         ,  9         ,  4         , &
+               7                                                                          /)
+!
+owerte =   (/  0.00      ,  0.00      ,  0.        ,  0.        ,  0.0       ,  0.0       , &
+               0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       ,  0.0       , &
+               0.0                                                                        /)
+!                 Always provide fresh default values, Repeat for each command
+                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+                  CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                                    oname, loname, opara, lopara, lpresent, owerte)
+                  IF (ier_num.eq.0.and.ianz.eq.0) then 
+                  IF (pl_out.ne.' ') then 
+                     CALL update_cr_dim 
+                     DO i = 1, 3 
+                     IF (pl_ext_all (i) ) then 
+                        DO j = 1, 2 
+                        pl_dim (i, j) = cr_dim (i, j) 
+                        ENDDO 
+                     ENDIF 
+                     ENDDO 
+                     IF (.not. (pl_dim (1, 1) .eq.pl_dim (1, 2) .and. &
+                                pl_dim (2, 1) .eq.pl_dim (2, 2) .and. &
+                                pl_dim(3, 1) .eq.pl_dim (3, 2) ) ) then
+                        l_select = .false. 
+                        DO i = 0, cr_nscat 
+                        IF (pl_latom (i) ) then 
+                           l_select = .true. 
+                        ENDIF 
+                        ENDDO 
+                        IF (l_select) then 
+                           CALL plot_test_aon(lnor, labs, lord)
+                           IF(ier_num == 0) THEN
+                              CALL do_plot 
+                              pl_keep = opara(OKEEP)(1:lopara(OKEEP))=='yes'
+                              IF(ier_num == 0) THEN
+                                 IF(opara(OPLOT)=='inter') THEN
+                                    IF(pl_prog=='jmol') THEN
+                                       i = 4
+                                       CALL plot_inter(i,opara(10:13))
+                                    ELSE
+                                       ier_num = -152
+                                       ier_typ = ER_APPL 
+                                    ENDIF
+                                 elseif(opara(OKILL)=='yes') THEN
+                                    call jmol_kill(.TRUE. , .FALSE.)
+                                 ENDIF
+                              ENDIF
+                           ENDIF
+                        ELSE 
+                           ier_num = - 3 
+                           ier_typ = ER_APPL 
+                        ENDIF 
+                     ELSE 
+                        ier_num = - 4 
+                        ier_typ = ER_APPL 
+                     ENDIF 
+                  ELSE 
+                     ier_num = - 37 
+                     ier_typ = ER_APPL 
+                  ENDIF 
+                     ENDIF 
+end subroutine plot_run
 !
 !*****7*****************************************************************
 !
@@ -1898,7 +1990,6 @@ integer, dimension(2) :: pl_pos
 logical, dimension(2) :: got_pos
 real(kind=PREC_DP), dimension(2) :: werte
 !
-write(*,*) ' JMOL_NO ', jmol_no
 !
 if(opara(OKILL)=='yes' .or. jmol_no==0) then      ! with kill:yes or 1st JMOL: the position goes to 'default', or []
    if(opara(OPOSIT)(1:1)=='[') then
