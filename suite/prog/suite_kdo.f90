@@ -278,7 +278,12 @@ ELSE
    ELSEIF (str_comp (befehl, 'parallel', 3, lbef, 8) ) then
          CALL suite_do_parallel (zeile, lcomm)
 !!!      CALL do_deallocate_appl (zeile, lcomm)
-!                                                                 
+!
+!     -- Test a simple jmol plot
+!
+   ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'testjmol', 8, lbef, 8) ) then
+      call suite_test_jmol(zeile, lcomm, lend)
+!
 !     -- Test a simple plot
 !
    ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'testplot', 8, lbef, 8) ) then
@@ -387,4 +392,165 @@ endif
 !
 end subroutine suite_test_plot
 !
+!
+!*******************************************************************************
+!
+subroutine suite_test_jmol(zeile, lcomm, lend)
+!-
+! Do an automatic jmol plot , serves to test if jmol works
+!+
+!
+use discus_setup_mod
+use discus_setup_sub_mod
+use discus_loop_mod
+use discus_reset_all_mod
+!
+use crystal_mod
+use discus_plot_mod
+use discus_plot_menu
+use modify_mod
+USE spcgr_apply
+use structur
+!use kuplot_load_mod
+!use kuplot_plot_mod
+!use kuplot_mod
+!use kuplot_para_mod
+!
+use suite_init_mod
+use suite_parallel_mod
+use suite_setup_mod
+use suite_set_sub_mod
+!
+use appl_env_mod
+use errlist_mod
+use learn_mod 
+use prompt_mod
+use precision_mod
+use variable_mod
+!
+implicit none
+character(len=*), intent(in)    :: zeile
+integer         , intent(in)    :: lcomm
+logical         , intent(  out) :: lend 
+!
+character(len=PREC_STRING) :: line
+integer                    :: lp
+!
+if(suite_discus_init) then
+   pname     = 'discus'
+   pname_cap = 'DISCUS'
+   prompt    = pname
+   oprompt   = pname
+   call program_files ()
+else
+   call discus_setup   (lstandalone)
+   suite_discus_init = .TRUE.
+endif
+var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
+var_val(VAR_PROGRAM) = var_val(VAR_DISCUS)
+call discus_set_sub ()
+call suite_set_sub_branch
+!
+CALL rese_cr
+cr_name = 'freely created structure'
+cr_spcgr (1:1)  = 'P'
+cr_spcgr (2:2)  = '1'
+cr_spcgr (3:16) = '              '
+cr_set          = 'abc'
+cr_spcgrno = 1
+cr_syst = 1
+spcgr_para = 1
+CALL get_symmetry_matrices    ! Define matrices for default P1
+cr_a0 = 3.5000D0
+cr_win = 90.0D0
+cr_icc (1) = 1
+cr_icc (2) = 1
+cr_icc (3) = 1
+cr_natoms = 0
+cr_ncatoms = 1
+cr_ncreal  = 1
+cr_nscat = 0
+as_natoms = 0
+line = 'Ni, 0.00, 0.00, 0.00, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 0.50, 0.50, 0.00, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 1.00, 0.00, 0.00, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 0.00, 1.00, 0.00, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 1.00, 1.00, 0.00, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 0.50, 0.00, 0.50, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 0.00, 0.50, 0.50, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 0.50, 1.00, 0.50, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 1.00, 0.50, 0.50, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 0.00, 0.00, 1.00, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 0.50, 0.50, 1.00, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 1.00, 0.00, 1.00, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 0.00, 1.00, 1.00, 0.5'
+lp = 32
+call do_ins(line, lp)
+line = 'Ni, 1.00, 1.00, 1.00, 0.5'
+lp = 32
+call do_ins(line, lp)
+!
+call  plot_reset
+!
+pl_out = 'dummy_plot.cif'
+line = 'all'
+lp = 3
+CALL atom_select (line, lp, 0, PL_MAXSCAT, pl_latom, &
+                  pl_lsite, 0, PL_MAXSITE, &
+                  pl_sel_atom, .true., .true.)
+!
+pl_ext_all = .true.
+pl_prog = 'jmol'
+call plot_test_jmol(pl_prog, pl_jmol)
+!
+line = 'plot:inter, kill:yes'
+lp = 20
+call plot_run(line, lp)
+!
+call plot_reset
+call rese_cr
+!
+lend   = .false.
+pname  = 'suite'
+pname_cap = 'SUITE'
+prompt = pname
+oprompt   = pname
+var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
+var_val(VAR_PROGRAM) = var_val(VAR_SUITE)
+call suite_set_sub
+if(ier_num == -9 .and. ier_typ == 1) then
+   call program_files ()
+   ier_num = -9
+   ier_typ = ER_COMM
+else
+   call program_files ()
+endif
+!
+end subroutine suite_test_jmol
+!
+!*******************************************************************************
 !end module suite_mache_kdo_mod
