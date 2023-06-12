@@ -413,7 +413,7 @@ var_val( var_ref+4) = jt
 IF(pop_trial_file_wrt) THEN
    len_file = pop_ltrialfile 
    CALL make_file (pop_trialfile, len_file, 4, jt) 
-   CALL do_del_file (pop_trialfile) 
+   CALL do_del_file (pop_trialfile, .true.) 
    CALL oeffne (iwr, pop_trialfile, stat) 
 !                                                                       
    WRITE (iwr, 2000) pop_gen, pop_n, pop_c, pop_dimx 
@@ -452,8 +452,9 @@ CHARACTER (LEN=16)  :: string
 INTEGER             :: i, j
 INTEGER :: nseed_run    ! Actual number of seed used by compiler
 !                                                                       
-CALL do_del_file (pop_genfile) 
+CALL do_del_file (pop_genfile, .true.)   ! Delete file and wait
 CALL oeffne (iwr, pop_genfile, stat) 
+!
 WRITE (iwr, 1000) pop_gen, pop_n, pop_c, pop_dimx 
 WRITE (iwr, 1100) pop_trialfile (1:LEN_TRIM(pop_trialfile)) 
 WRITE (iwr, 1200) trial_results (1:LEN_TRIM(trial_results))
