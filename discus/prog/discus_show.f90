@@ -895,6 +895,7 @@ integer, parameter :: MATRIX = 3
 !     PARAMETER (XYZ = 2) 
 !     PARAMETER (MATRIX = 3) 
 character(len=1) :: cpoint
+character(len=3) :: cgen
 INTEGER :: j 
 INTEGER :: n_center 
 INTEGER :: igroup 
@@ -930,13 +931,18 @@ if(spc_point(is)) cpoint='*'
          igroup = (is - 1) / block + 1 
       ENDIF 
 !
+if(spc_gen(is) >0) then
+   cgen='GEN'
+else
+  cgen=' '
+endif
 IF (mode.eq.FULL) THEN 
-   WRITE (output_io, 2200) is, igroup, cpoint 
+   WRITE (output_io, 2200) is, igroup, cpoint , cgen, spc_center(is)
    WRITE (output_io, 2300) (spc_mat (1, j, is), j = 1, 4), spc_char (is),&
    (spc_mat (2, j, is), j = 1, 4), (spc_mat (3, j, is), j = 1, 4),&
    spc_xyz (is)                                                   
 ELSEIF (mode.eq.SYMBOL) THEN 
-   WRITE (output_io, 3200) is, igroup, cpoint, spc_char (is) 
+   WRITE (output_io, 3200) is, igroup, cpoint, spc_char (is) , cgen, spc_center(is), is
 ELSEIF (mode.eq.XYZ) THEN 
    WRITE (output_io, 4200) is, igroup, cpoint, spc_xyz (is) 
 ELSEIF (mode.eq.MATRIX) THEN 
@@ -950,11 +956,11 @@ IF (gen_sta.eq.GEN_SYMM.and.n_center.gt.1.and.                                  
    WRITE (output_io, * ) 
 ENDIF 
 !                                                                       
- 2200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')',a1) 
+ 2200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')',a1,1x, a3, 1x, l1) 
  2300 FORMAT    (  ' ( ',3(f4.1,', '),f8.5,' )','  ',a65,/,             &
      &                    ' ( ',3(f4.1,', '),f8.5,' )',/,               &
      &                    ' ( ',3(f4.1,', '),f8.5,' )','  ',a87,/)      
- 3200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')',a1,' ',a65) 
+ 3200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')',a1,' ',a65, a3, 1x, l1, i5)
  4200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')',a1,' ',a87) 
  5200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')',a1,' ',         &
      &                    ' ( ',3(f4.1,', '),f8.5,' )',/,               &

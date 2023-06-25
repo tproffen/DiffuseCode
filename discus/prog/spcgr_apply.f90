@@ -19,6 +19,7 @@ USE gen_add_mod
 USE sym_add_mod 
 USE unitcell_mod 
 USE wyckoff_mod 
+use precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -27,6 +28,16 @@ real(kind=PREC_DP), parameter :: TOL=1.0D-6   ! Tolerance for matrix equality
 INTEGER :: igs       ! Loop index generators
 INTEGER :: igg       ! Loop index generators
 INTEGER :: i, j, k   ! Loop indices
+real(kind=PREC_DP), dimension(4,4) :: dummy   ! A dammy matrix
+real(kind=PREC_DP), dimension(4,4) :: imat    ! A unit  matrix
+!
+spc_gen = .false.
+spc_point = .false.
+imat = 0.0D0
+imat(1,1) = 1.0D0
+imat(2,2) = 1.0D0
+imat(3,3) = 1.0D0
+imat(4,4) = 1.0D0
 !
 CALL spcgr_get_setting    ! Determine space group setting
 !                                                                       
@@ -35,7 +46,7 @@ CALL spcgr_get_setting    ! Determine space group setting
       DO k = 1, SPC_MAX 
       DO i = 1, 4 
       DO j = 1, 4 
-      spc_mat (i, j, k) = 0.0 
+      spc_mat (i, j, k) = 0.0D0
       ENDDO 
       ENDDO 
       ENDDO 
@@ -43,6 +54,7 @@ CALL spcgr_get_setting    ! Determine space group setting
 !     The first symmetry matrix is the identity matrix                  
 !                                                                       
       spc_n = 1 
+spc_gen(1) = 1
 !                                                                       
       DO i = 1, 4 
       DO j = 1, 4 
@@ -69,6 +81,26 @@ CALL spcgr_get_setting    ! Determine space group setting
          RETURN 
       ENDIF 
       ENDDO 
+!
+! Check which matrices are generator matices
+!
+spc_center = .false.
+loop_isgen: do i= 2, spc_n
+   dummy= 0.0D0
+   dummy(1:3,1:3) = spc_mat(1:3,1:3,i) - imat(1:3,1:3)
+   if(maxval(abs(dummy))<TOL) then
+      spc_center(i) = .true.
+   endif
+   do igs=1, generspcgr (0, cr_spcgrno)
+      j = generspcgr(igs,cr_spcgrno)
+      dummy = spc_mat(:,:,i) - generators(:,:,j)
+      if(maxval(abs(dummy))<TOL) then
+         spc_gen(i) = igs
+         cycle loop_isgen
+      endif
+   enddo
+enddo loop_isgen
+! 
 !-----      End of loop over all generators                             
 !                                                                       
 !     Loop over all additional generators                               
@@ -1602,6 +1634,7 @@ USE gen_add_mod
 USE molecule_mod 
 USE sym_add_mod 
 USE unitcell_mod 
+use wyckoff_mod
 !
 use precision_mod
 !                                                                       
@@ -2964,6 +2997,105 @@ ENDDO
 !
 END SUBROUTINE tensor                         
 !
-!*****7**************************************************************** 
+!*****7*************************************************************************
+!
+subroutine get_is_sym
+!-
+!  Determine which symmetry operation creates a site from the corresponding first
+!  site within symmetrically equivalent sites
+!+
+use crystal_mod
+use discus_allocate_appl_mod
+use wyckoff_mod
+!
+implicit none
+!
+real(kind=PREC_DP), parameter :: TOL = 1.0E-7
+integer :: iatom
+integer :: i, j                        ! Dummy indices
+logical :: is_first
+logical :: lsame                       ! Atoms coordinates are identical
+real(kind=PREC_DP), dimension(4) :: u  ! 1st atom for an orbit
+real(kind=PREC_DP), dimension(4) :: v  ! 2nd atom for an orbit
+real(kind=PREC_DP), dimension(4) :: vec! 2nd atom for an orbit
+!
+call alloc_unitcell(cr_ncatoms)
+cr_is_sym = 0
+!
+is_first = .true.
+iatom = 0
+!
+loop_main: do                    ! Loop over all atoms in first unit cell
+   iatom = iatom + 1
+   if(iatom==cr_ncatoms+1) exit loop_main
+!
+   if(is_first) then
+      cr_is_sym(iatom) = 1
+      u = cr_pos(:, iatom)       ! Use as original vector
+      u(4) = 1.0D0
+      call firstcell(u, 4) 
+      is_first = .false.         ! Assume next atom to be a copy
+      cycle loop_main
+   endif
+!
+   v = cr_pos(:,iatom)           ! Use as secondary vector
+   v(4) = 1.0D0
+   call firstcell(v, 4) 
+   loop_cen:do i=2, spc_n     ! Loop over all centering symmetry elements
+      if(spc_center(i)) then
+      vec = matmul(spc_mat(:,:, i), v)
+      call firstcell(vec, 4) 
+      lsame = .true.
+      do j=1, 3
+          lsame = lsame .and.                              &
+               (    abs(u(j) - vec(j) )        .lt.TOL .OR.  & 
+                abs(abs(u(j) - vec(j) )-1.0D0) .lt.TOL       )
+      enddo
+      if(lsame) then
+         cr_is_sym(iatom) = i
+         cycle loop_main
+      endif
+      endif
+   enddo loop_cen
+!
+   loop_gen:do i=2, spc_n     ! Loop over all generating elements
+      if(spc_gen(i)>0) then
+      vec = matmul(spc_mat(:,:, i), v)
+      call firstcell(vec, 4) 
+      lsame = .true.
+      do j=1, 3
+          lsame = lsame .and.                              &
+               (    abs(u(j) - vec(j) )        .lt.TOL .OR.  & 
+                abs(abs(u(j) - vec(j) )-1.0D0) .lt.TOL       )
+      enddo
+      if(lsame) then
+         cr_is_sym(iatom) = i
+         cycle loop_main
+      endif
+      endif
+   enddo loop_gen
+!
+   loop_sym:do i=2, spc_n     ! Loop over all symmetry elements
+      vec = matmul(spc_mat(:,:, i), v)
+      call firstcell(vec, 4) 
+      lsame = .true.
+      do j=1, 3
+          lsame = lsame .and.                              &
+               (    abs(u(j) - vec(j) )        .lt.TOL .OR.  & 
+                abs(abs(u(j) - vec(j) )-1.0D0) .lt.TOL       )
+      enddo
+      if(lsame) then
+         cr_is_sym(iatom) = i
+         cycle loop_main
+      endif
+   enddo loop_sym
+!
+   is_first = .true.            ! No match to symmetry , new first atom in an orbit
+   iatom = iatom - 1            ! We need to do the is_first block  again
+enddo loop_main
+!
+end subroutine get_is_sym
+!
+!*****7*************************************************************************
 !
 END MODULE spcgr_apply
