@@ -303,13 +303,28 @@ main_if: IF (ier_num.eq.0) THEN
 !                                                                       
                ELSEIF(str_comp(cpara(1),'shelx',2,lpara(1),5)) THEN                                        
                   ityp = 6 
+                  CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, NOPTIONAL, opara, &
+                       lopara, werte)
+                  IF(ier_num == 0) THEN
+                     valmax = werte(O_MAXVAL)
+                  ENDIF
                ELSEIF(str_comp(cpara(1),'hklf4',2,lpara(1),5)) THEN                                        
                   ityp = 6 
+                  CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, NOPTIONAL, opara, &
+                       lopara, werte)
+                  IF(ier_num == 0) THEN
+                     valmax = werte(O_MAXVAL)
+                  ENDIF
 !                                                                       
 !     ------Switch output type to Shelx LIST 5   'list5'                
 !                                                                       
                ELSEIF(str_comp(cpara(1),'list5',2,lpara(1),5)) THEN                                        
                   ityp = 7 
+                  CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, NOPTIONAL, opara, &
+                       lopara, werte)
+                  IF(ier_num == 0) THEN
+                     valmax = werte(O_MAXVAL)
+                  ENDIF
 !                                                                       
 !     ------Switch output type to Shelx LIST 5   'list9'                
 !                                                                       
@@ -337,7 +352,11 @@ main_if: IF (ier_num.eq.0) THEN
                   CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, NOPTIONAL, opara, &
                        lopara, werte)
                   IF(ier_num == 0) THEN
-                     valmax = werte(O_MAXVAL)
+                     if(nint(werte(O_MAXVAL))==-2) then
+                        valmax = 10000.0D0
+                     else
+                        valmax = werte(O_MAXVAL)
+                     endif
                      ityp = 13 
                   ENDIF
 !                                                                       
@@ -491,13 +510,13 @@ main_if: IF (ier_num.eq.0) THEN
                CALL out_prep_3dpdf(laver, l_val_limited, dsmax)
             ENDIF
             IF (ityp.eq.0) THEN 
-               CALL do_output (value, laver) 
+               CALL do_output (value, laver, valmax) 
             ELSEIF (ityp.eq.1) THEN 
                CALL do_post (value, laver) 
             ELSEIF (ityp.eq.2) THEN 
                CALL do_pgm (value, laver) 
             ELSEIF (ityp.eq.3) THEN 
-               CALL do_output (value, laver) 
+               CALL do_output (value, laver, valmax) 
             ELSEIF (ityp.eq.4) THEN 
                CALL do_ppm (value, laver) 
             ELSEIF (ityp.eq.5) THEN 
@@ -510,13 +529,13 @@ endif
                   CALL powder_out (value, .false.)
                endif
             ELSEIF (ityp.eq.6) THEN 
-               CALL do_output (value, laver) 
+               CALL do_output (value, laver, valmax) 
             ELSEIF (ityp.eq.7) THEN 
-               CALL do_output (value, laver) 
+               CALL do_output (value, laver, valmax) 
             ELSEIF (ityp.eq.8) THEN 
-               CALL do_output (value, laver) 
+               CALL do_output (value, laver, valmax) 
             ELSEIF (ityp.eq.9) THEN 
-               CALL do_output (value, laver) 
+               CALL do_output (value, laver, valmax) 
             ELSEIF (ityp.eq.10) THEN 
                CALL nexus_write (value, laver) 
             ELSEIF (ityp.eq.11) THEN
@@ -989,9 +1008,9 @@ INTEGER :: ianz
 ianz = ientry
 IF(lpresent) THEN
    IF(str_comp(opara(ientry), 'auto', 4, lopara(ientry), 4) ) THEN
-      werte(ientry) = 10000
+      werte(ientry) = -2.0D0
    ELSEIF(str_comp(opara(ientry), 'data', 4, lopara(ientry), 4) ) THEN
-      werte(ientry) = -1
+      werte(ientry) = -1.0D0
    ELSE
       CALL ber_params (ianz, opara, lopara, werte, MAXW)
    ENDIF
@@ -1409,7 +1428,7 @@ REAL(kind=PREC_DP)                  :: rh, rp, rq, rt, rf
 !
 !*****7*****************************************************************
 !
-SUBROUTINE do_output (value, laver) 
+SUBROUTINE do_output (value, laver, valmax) 
 !-                                                                      
 !     Writes output in standard or GNUPLOT format                       
 !+                                                                      
@@ -1432,6 +1451,8 @@ IMPLICIT none
 !                                                                       
 integer, intent(out) :: value       
 logical, intent(in) :: laver
+real(kind=PREC_DP), intent(in) :: valmax      
+!real(kind=PREC_DP) :: valmax      
 !                                                                       
 INTEGER iff 
 PARAMETER (iff = 2) 
@@ -1440,7 +1461,7 @@ CHARACTER(LEN=2024) dummy_file
 INTEGER HKLF4, LIST5, LIST9 , ASCII3D
 PARAMETER (HKLF4 = 6, LIST5 = 7, LIST9 = 8, ASCII3D = 9) 
 !                                                                       
-INTEGER :: extr_ima, i, j, k, l
+INTEGER :: extr_ima, i, j, k, l, m
 LOGICAL :: lread
 REAL(kind=PREC_DP), dimension(3) ::  h (3) 
 REAL(kind=PREC_DP) ::  sq, qq, out_fac 
@@ -1472,13 +1493,16 @@ INTEGER :: nnew1, nnew2
 !
 CHARACTER (LEN=160), DIMENSION(:), ALLOCATABLE :: header_lines
 INTEGER :: nheader
+real(kind=PREC_DP) :: qqmax
 !                                                                       
       factor = 0.0
       npkt3  = 1
+m = nint(valmax)
+out_fac = 1.0D0   ! Default to no scaling
 !                                                                       
 !     If output type is shelx, calculate qval(000) for scaling          
 !                                                                       
-      IF (ityp.eq.HKLF4.or.ityp.eq.LIST5) THEN 
+IF (m==-1 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with 000
          DO i = 1, 3 
          shel_inc (i) = inc (i) 
          ENDDO 
@@ -1533,9 +1557,41 @@ INTEGER :: nheader
          vi (i, j) = shel_vi (i, j) 
          ENDDO 
          ENDDO 
-      ENDIF 
+elseif(m==-2 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with largest BRAG /= 000
+   qqmax = 0.0D0
+   if(ityp==HKLF4) then
+      shel_value = value 
+   elseif(ityp==LIST5) then
+      shel_value = 2 
+   endif
+   DO l = 1, out_inc (3) 
+      DO j = 1, out_inc (2) 
+         DO i = 1, out_inc (1) 
+            DO k = 1, 3 
+               h (k) = out_eck (k, 1) + out_vi (k, 1) * REAL(i - 1)   &
+                                      + out_vi (k, 2) * REAL(j - 1)   &
+                                      + out_vi (k, 3) * REAL(l - 1)
+            ENDDO 
+            IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
+!              k  = (i - 1) * out_inc (2) + j 
+               k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
+               qq = qval (k, shel_value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
+               qqmax = max(qqmax, qq)
+            ENDIF
+         ENDDO 
+      ENDDO 
+   ENDDO 
+   if(ityp==HKLF4) then
+      factor = max (int (log (qqmax) / log (10.0D0) ) - 3, 0) 
+   elseif(ityp==LIST5) then
+      factor =      int (log (qqmax) / log (10.0D0) ) - 3
+   endif
+   out_fac = 10** ( - factor) 
+elseif(m>  0 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with User value
+  out_fac = valmax
+ENDIF 
 !                                                                       
-      extr_ima = 6 - out_extr_abs - out_extr_ord 
+extr_ima = 6 - out_extr_abs - out_extr_ord 
 !                                                                       
 IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
 !                               Write data to temporary data structure 
@@ -1733,7 +1789,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
 !              k  = (i - 1) * out_inc (2) + j 
                k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3) * out_fac
+               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
                sq = sqrt (qq) 
                WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), qq, sq
             ENDIF
@@ -1741,7 +1797,6 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                ENDDO 
                ENDDO 
             ELSEIF (ityp.eq.LIST5) THEN                     ! SHELXS HKL Fobs Fcalc File
-               shel_value = 3 
                DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
@@ -1753,10 +1808,10 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
                k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
                shel_value = 2 
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3) * out_fac
+               qq = qval (k, shel_value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
                shel_value = 3 
                sq = qval (k, shel_value, i, j, laver) 
-               IF(sq < 0.0 ) sq = sq + 360.0
+               IF(sq < 0.0D0 ) sq = sq + 360.0D0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), qq, qq, sq
             ENDIF
                ENDDO 
