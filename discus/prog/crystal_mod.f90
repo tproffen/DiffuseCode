@@ -43,6 +43,10 @@ REAL(kind=PREC_DP), DIMENSION(3,3)          ::  cr_rten     = &
 REAL(kind=PREC_DP), DIMENSION(3,3,3)        ::  cr_reps
 REAL(kind=PREC_DP), DIMENSION(3,3)          ::  cr_fmat     = &
    RESHAPE((/1.0D0,0.0D0,0.0D0, 0.0D0,1.0D0,0.0D0, 0.0D0,0.0D0,1.0D0/),SHAPE(cr_fmat))
+REAL(kind=PREC_DP), DIMENSION(3,3)          ::  cr_dmat     = &
+   RESHAPE((/1.0D0,0.0D0,0.0D0, 0.0D0,1.0D0,0.0D0, 0.0D0,0.0D0,1.0D0/),SHAPE(cr_fmat))
+REAL(kind=PREC_DP), DIMENSION(3,3)          ::  cr_dimat     = &
+   RESHAPE((/1.0D0,0.0D0,0.0D0, 0.0D0,1.0D0,0.0D0, 0.0D0,0.0D0,1.0D0/),SHAPE(cr_fmat))
 REAL(kind=PREC_DP), DIMENSION(4,4)          ::  cr_tran_g   = 0.0D0
 REAL(kind=PREC_DP), DIMENSION(4,4)          ::  cr_tran_gi  = 0.0D0
 REAL(kind=PREC_DP), DIMENSION(4,4)          ::  cr_tran_f   = 0.0D0
@@ -89,6 +93,11 @@ REAL(kind=PREC_DP)   , DIMENSION(  :), ALLOCATABLE  ::  cr_occ ! (  0:MAXSCAT)
 REAL(kind=PREC_DP)   , DIMENSION(  :), ALLOCATABLE  ::  as_occ ! (  0:MAXSCAT)
 REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE  ::  as_pos ! (3,1:MAXSCAT)
 REAL(kind=PREC_DP)   , DIMENSION(  :), ALLOCATABLE  ::  as_dw  ! (  0:MAXSCAT)
+integer              , dimension(  :), allocatable  ::  cr_is_sym ! Site was created by Sym.Elem no. i 
+REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE  ::  cr_anis! U(ij) ADP anis  ! 0: MAXSCAT
+REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE  ::  cr_anis_full! U(ij) ADP anis  ! 0: number of atoms per unit cell
+REAL(kind=PREC_DP)   , DIMENSION(:,:,:), ALLOCATABLE  ::  cr_prin ! Eigenvectors    ! 0: number of atoms per unit cell
+REAL(kind=PREC_DP)   , DIMENSION(:,  :), ALLOCATABLE  ::  cr_u2   ! <u^2> Anisotrop ! 0: number of atoms per unit cell
 !
 INTEGER, DIMENSION(  :), ALLOCATABLE  ::  cr_amount ! (  0:MAXSCAT)
 REAL(kind=PREC_DP)                    ::  cr_u2aver

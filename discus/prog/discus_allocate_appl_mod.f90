@@ -289,6 +289,8 @@ USE str_comp_mod
       CALL alloc_chem_hist( 1            )
       CALL alloc_conn_vect( 1            )
       CALL alloc_crystal  ( 1,  1        )
+      call alloc_unitcell ( 1 )
+      call alloc_anis     ( 1 )
       CALL alloc_deco     ( 1,  1,  4,  3,   3, 2 , 3)
       CALL alloc_debye    ( 1,  1,  1, ONE )
       CALL alloc_demol    ( 1,  1        ) 
@@ -1047,6 +1049,10 @@ end SUBROUTINE alloc_conn_vect
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
+      CALL alloc_arr ( cr_anis, 1, 6,  0,n_scat,  all_status, 0.0D0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      cry_size_of = cry_size_of + size_of
+!
       CALL alloc_arr ( cr_occ,         0,n_scat,  all_status, 1.0D0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
@@ -1101,6 +1107,49 @@ end SUBROUTINE alloc_conn_vect
       END IF
     END SUBROUTINE alloc_crystal
 !
+!*******************************************************************************
+!
+subroutine alloc_unitcell(n_atoms)
+!-
+!  Allocate arrays specific fo a single unit cell
+!+
+use crystal_mod
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: n_atoms  ! Number atoms per unit cell
+!
+integer :: all_status
+integer :: size_of
+!
+call alloc_arr(cr_is_sym, 1, n_atoms, all_status, 0, size_of)
+!
+end subroutine alloc_unitcell
+!
+!*******************************************************************************
+!
+subroutine alloc_anis(n_atoms)
+!-
+!  Allocate arrays specific fo a single unit cell
+!+
+use crystal_mod
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: n_atoms  ! Number atoms per unit cell
+!
+integer :: all_status
+integer :: size_of
+!
+call alloc_arr(cr_anis_full, 1, 6, 1, n_atoms, all_status, 1.0D0, size_of)
+call alloc_arr(cr_prin, 1, 3, 1, 3,  1, n_atoms, all_status, 1.0D0, size_of)
+call alloc_arr(cr_u2  , 1, 3, 1, n_atoms, all_status, 1.0D0, size_of)
+!
+end subroutine alloc_anis
+!
+!*******************************************************************************
 !
     SUBROUTINE alloc_debye ( n_scat, n_hist, n_qxy, MASK )
 !-
@@ -1535,6 +1584,10 @@ END SUBROUTINE alloc_demol
        mic_size_of =   mic_size_of + size_of
 !
        CALL alloc_arr ( mk_dw         ,0,n_scat,  all_status, 0.0D0, size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       mic_size_of =   mic_size_of + size_of
+!
+       CALL alloc_arr ( mk_anis, 1, 6 ,0,n_scat,  all_status, 0.0D0, size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        mic_size_of =   mic_size_of + size_of
 !

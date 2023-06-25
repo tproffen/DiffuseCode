@@ -844,7 +844,7 @@ DO i=1, clu_number
 !     Read the input file header                                        
 !                                                                       
       CALL stru_readheader (imd, MK_MAX_SCAT, mk_name,     &
-      mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
+      mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_a0, mk_win, sav_ncell,   &
       sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
       AT_MAXP, at_ianz, at_param)           
       CLOSE(imd)
@@ -961,7 +961,7 @@ ELSE
 !     Read the input file header                                        
 !                                                                       
    CALL stru_readheader (imd, MK_MAX_SCAT, mk_name,     &
-   mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
+   mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_a0, mk_win, sav_ncell,   &
    sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
    AT_MAXP, at_ianz, at_param)           
 ENDIF
@@ -1882,7 +1882,7 @@ ELSE
 !     Read the input file header                                        
 !                                                                       
          CALL stru_readheader (ist, MK_MAX_SCAT, mk_name,     &
-         mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
+         mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_a0, mk_win, sav_ncell,   &
          sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
          AT_MAXP, at_ianz, at_param)           
          IF(ier_num /= 0) THEN

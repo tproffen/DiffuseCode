@@ -13,11 +13,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-189,IO=7)
+      PARAMETER    (IU=-190,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -181) /                          &
+     &  'Error reading ANIS instruction',                & !-190 ! discus
      &  'Parameter name on ''atom'' line is invalid   ', & !-189 ! DISCUS    
      &  'Reciprocal grid does not include zero point  ', & !-188 ! DISCUS    
      &  '1./Increment vector /= N                     ', & !-187 ! DISCUS    

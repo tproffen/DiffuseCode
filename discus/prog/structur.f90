@@ -368,9 +368,11 @@ USE chem_mod
 USE crystal_mod
 USE diffuse_mod
 USE molecule_mod
+use prep_anis_mod
 USE prop_para_mod
 USE read_internal_mod
 USE stack_rese_mod
+use spcgr_apply, only:get_is_sym
 USE update_cr_dim_mod
 !
 USE ber_params_mod
@@ -412,129 +414,124 @@ REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 REAL(KIND=PREC_DP)  :: r
 !
 !
-IF (ianz.ge.1) THEN 
-   cr_newtype = str_comp (befehl, 'cell', 1, lbef, 4) 
-   CALL rese_cr 
-   strucfile = cpara(1) (1:lpara(1))
-   IF (ier_num.eq.0) THEN 
+if(ianz==0) return
+!
+cr_newtype = str_comp(befehl, 'cell', 1, lbef, 4) 
+CALL rese_cr 
+strucfile = cpara(1)(1:lpara(1))
+ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
 !                                                                       
 !     --------if necessary get crystal size                             
 !                                                                       
-      IF (ianz.gt.1) THEN 
-         cpara (1) = '0.0' 
-         lpara (1) = 3 
-         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.eq.0) THEN 
-            DO i = 1, ianz - 1 
-               cr_icc (i) = nint (werte (i + 1) ) 
-            ENDDO 
-         ENDIF 
-      ENDIF 
-      local_icc(:) = cr_icc(:)
-      IF (ier_num.eq.0) THEN 
-         internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
-            CALL readcell_internal(MAXMASK, strucfile, uni_mask)
-         ELSE internalcell
-!                        CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
-!                                         n_atom, -1 , .false.)
-!                        IF (ier_num /= 0) THEN
-!                           RETURN
-!                        ENDIF
-            inquire(file=strucfile, exist=lda)
-            if(.not.lda) then
-                ier_num = -2
-                ier_typ = ER_IO
-                ier_msg(1) = 'Cell file does not exist'
-                ier_msg(2) = 'Check filename and path '
-                return
-            endif
-            CALL import_test(0, strucfile, outfile)
-            IF(ier_num == 0) THEN
-               strucfile = outfile
-               CALL readcell (strucfile, l_identical, r_identical, MAXMASK, uni_mask) 
-               cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
-            ENDIF
-         ENDIF internalcell
+IF (ianz.gt.1) THEN 
+   cpara (1) = '0.0' 
+   lpara (1) = 3 
+   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+   if(ier_num /= 0) then 
+      ier_msg(2) = 'Error evaluating no. of unit cells'
+      return
+   endif 
+   DO i = 1, ianz - 1 
+      cr_icc (i) = nint (werte (i + 1) ) 
+   ENDDO 
+ENDIF 
+local_icc(:) = cr_icc(:)
+!     cond_ier: IF (ier_num.eq.0) THEN 
+internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
+   CALL readcell_internal(MAXMASK, strucfile, uni_mask)
+ELSE internalcell
 !
-         IF (ier_num.eq.0) THEN 
+   inquire(file=strucfile, exist=lda)
+      if(.not.lda) then
+      ier_num = -2
+      ier_typ = ER_IO
+      ier_msg(1) = 'Cell file does not exist'
+      ier_msg(2) = 'Check filename and path '
+      return
+   endif
+   call import_test(0, strucfile, outfile)
+   if(ier_num /= 0) then
+      ier_msg(2) = 'Error testing cell file'
+      return
+   endif
+   strucfile = outfile
+   CALL readcell (strucfile, l_identical, r_identical, MAXMASK, uni_mask) 
+   cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
+ENDIF internalcell
+!
+!
+!cond_ier:         IF (ier_num.eq.0) THEN 
 !                                                                       
 !     ----------check whether total number of atoms fits into available 
 !     ----------space                                                   
 !                                                                       
-            iatom = cr_icc (1) * cr_icc (2) * cr_icc (3) * cr_natoms
-            IF (iatom.gt.nmax) THEN 
-               CALL alloc_crystal ( MAXSCAT, INT(iatom * 1.1))
-               IF (ier_num < 0 ) THEN
-                  ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-                  RETURN                 ! Jump to handle error messages, amd macro conditions
-!                 GOTO 8888              ! Jump to handle error messages, amd macro conditions
-               ENDIF
-            ENDIF
+iatom = cr_icc (1) * cr_icc (2) * cr_icc (3) * cr_natoms
+if(iatom.gt.nmax) then 
+   call alloc_crystal( MAXSCAT, INT(iatom * 1.1))
+   if(ier_num < 0 ) then
+      ier_msg(2) = 'Error allocating number of atoms'
+      ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+      return                 ! Jump to handle error messages, amd macro conditions
+   endif
+endif
 !
-!                          ier_num = - 10 
-!                          ier_typ = ER_APPL 
-!                          WRITE (ier_msg (1), 3000) cr_icc (1),        &
-!                          cr_icc (2), cr_icc (3)                       
-!                          WRITE (ier_msg (2), 3100) cr_natoms 
-!                          WRITE (ier_msg (3), 3200) iatom, nmax 
-!3000 FORMAT                ('Unit cells   : ',3(i4,2x)) 
-!3100 FORMAT                ('Atoms / cell : ',i10) 
-!3200 FORMAT                ('Total / max  : ',i10,'/',i10) 
-!                          RETURN 
-!                       ENDIF 
-            ce_natoms = cr_natoms 
-            cr_ncatoms = cr_natoms 
-            cr_ncreal  = 0   ! Non void atoms in unit cell
-            DO n=1,cr_natoms
-               IF(cr_at_lis(cr_iscat(n))/='VOID') cr_ncreal = cr_ncreal + 1
-            ENDDO
-            IF(l_site) CALL differ_site(cr_nscat, cr_ncatoms, ONE)
-            cr_natoms = 0 
-            DO k = 1, cr_icc (3) 
-               DO j = 1, cr_icc (2) 
-                  DO i = 1, cr_icc (1) 
-                     DO n = 1, ce_natoms 
-                        cr_natoms = cr_natoms + 1 
-                        cr_iscat (cr_natoms) = cr_iscat (n) 
-                        cr_pos (1, cr_natoms) = cr_pos (1, n) + REAL( i - 1)
-                        cr_pos (2, cr_natoms) = cr_pos (2, n) + REAL( j - 1)
-                        cr_pos (3, cr_natoms) = cr_pos (3, n) + REAL( k - 1)
-                        cr_mole (cr_natoms) = cr_mole (n)
-                        cr_prop (cr_natoms) = cr_prop (n)
-                        cr_surf(:,cr_natoms) = cr_surf(:,n)
-                        cr_magn(:,cr_natoms) = cr_magn(:,n)
-                     ENDDO 
-                  ENDDO 
-               ENDDO 
-            ENDDO 
+ce_natoms = cr_natoms 
+cr_ncatoms = cr_natoms 
+cr_ncreal  = 0   ! Non void atoms in unit cell
+DO n=1,cr_natoms
+   IF(cr_at_lis(cr_iscat(n))/='VOID') cr_ncreal = cr_ncreal + 1
+ENDDO
+IF(l_site) CALL differ_site(cr_nscat, cr_ncatoms, ONE)
+!
+call get_is_sym         ! Determine the symmetry operation that created an atom
+call prep_anis          ! Prepare anisotropic U's 
+!
+cr_natoms = 0 
+DO k = 1, cr_icc (3) 
+   DO j = 1, cr_icc (2) 
+      DO i = 1, cr_icc (1) 
+         DO n = 1, ce_natoms 
+            cr_natoms = cr_natoms + 1 
+            cr_iscat (cr_natoms) = cr_iscat (n) 
+            cr_pos (1, cr_natoms) = cr_pos (1, n) + REAL( i - 1)
+            cr_pos (2, cr_natoms) = cr_pos (2, n) + REAL( j - 1)
+            cr_pos (3, cr_natoms) = cr_pos (3, n) + REAL( k - 1)
+            cr_mole (cr_natoms) = cr_mole (n)
+            cr_prop (cr_natoms) = cr_prop (n)
+            cr_surf(:,cr_natoms) = cr_surf(:,n)
+            cr_magn(:,cr_natoms) = cr_magn(:,n)
+         ENDDO 
+      ENDDO 
+   ENDDO 
+ENDDO 
 !
 !     ---------- Apply occupancy
 !
-            IF(occupancy == 0) THEN     ! Clear occupancies on read cell
-               cr_occ(:) = 1.0
-            ELSEIF(occupancy==1) THEN   ! Apply occupancies
-               DO i=1, cr_natoms
-                  IF(cr_occ(cr_iscat(i))<1.0) THEN
-                     CALL RANDOM_NUMBER(r)
-                     IF(r > cr_occ(cr_iscat(i))) THEN
-                        cr_iscat(i) = 0
-                        cr_prop (i)  = ibclr (cr_prop (i),  PROP_NORMAL)
-                     ENDIF
-                  ENDIF
-               ENDDO
-               cr_occ(:) = 1.0
-            ELSEIF(occupancy==-1) THEN   ! Ignore occupancies but keep values
-               CONTINUE
-            ENDIF
+IF(occupancy == 0) THEN     ! Clear occupancies on read cell
+   cr_occ(:) = 1.0
+ELSEIF(occupancy==1) THEN   ! Apply occupancies
+   DO i=1, cr_natoms
+      IF(cr_occ(cr_iscat(i))<1.0) THEN
+         CALL RANDOM_NUMBER(r)
+         IF(r > cr_occ(cr_iscat(i))) THEN
+            cr_iscat(i) = 0
+            cr_prop (i)  = ibclr (cr_prop (i),  PROP_NORMAL)
+         ENDIF
+      ENDIF
+   ENDDO
+   cr_occ(:) = 1.0
+ELSEIF(occupancy==-1) THEN   ! Ignore occupancies but keep values
+   CONTINUE
+ENDIF
 !                                                                       
 !     ----------Update crystal dimensions                               
 !                                                                       
-            CALL update_cr_dim 
-            ncells = cr_icc (1) * cr_icc (2)* cr_icc (3)
+CALL update_cr_dim 
+ncells = cr_icc (1) * cr_icc (2)* cr_icc (3)
 !                                                                       
 !     ----------If molecules were read                                  
 !                                                                       
-            IF (mole_num_mole.gt.0) THEN 
+cond_mole:IF (mole_num_mole.gt.0) THEN 
                need_alloc = .false.
                n_gene = MAX( 1, MOLE_MAX_GENE)
                n_symm = MAX( 1, MOLE_MAX_SYMM)
@@ -586,7 +583,7 @@ IF (ianz.ge.1) THEN
                   RETURN                 ! Jump to handle error messages, amd macro conditions
 !                 GOTO 8888              ! Jump to handle error messages, amd macro conditions
                ENDIF 
-            ENDIF 
+ENDIF  cond_mole
 !                                                                       
 !     ----------Define initial crystal size in fractional coordinates   
 !               cr_dim0(:,1) is often used as the coordinate of the lower left
@@ -595,44 +592,36 @@ IF (ianz.ge.1) THEN
 !               sticks out of the unit cell, although its center is within the 
 !               unit cell, the offset was calculated wrong. cr_dim(:,2) is hardly used. 
 !               To reflect the intention of cr_dim0(:,1) it is now calculated from cr_icc.
-            DO l = 1, 3 
-!              cr_dim0 (l, 1) = REAL(nint (cr_dim (l, 1) ) ) 
-!              cr_dim0 (l, 2) = REAL(nint (cr_dim (l, 2) ) ) 
-               IF(MOD(cr_icc(l),2)==0) THEN
-                              
-!                             cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)-1)/2)
-!                             cr_dim0 (l, 2) = FLOAT((cr_icc(l)+1)/2)+1
-                  cr_dim0(l,1) = FLOAT(-cr_icc(l)/2)
-                  cr_dim0(l,2) = cr_dim0(l,1) + cr_icc(l) - 1
-               ELSE
-!                 cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)  )/2)
-!                 cr_dim0 (l, 2) = FLOAT((cr_icc(l)  )/2)+1
-                  cr_dim0(l,1) = FLOAT(-(cr_icc(l)+1)/2 + 1)
-                  cr_dim0(l,2) = cr_dim0(l,1) + cr_icc(l) - 1
-               ENDIF 
-            ENDDO 
-         ENDIF 
-      ENDIF 
+DO l = 1, 3 
+   IF(MOD(cr_icc(l),2)==0) THEN
+      cr_dim0(l,1) = FLOAT(-cr_icc(l)/2)
+      cr_dim0(l,2) = cr_dim0(l,1) + cr_icc(l) - 1
+   ELSE
+      cr_dim0(l,1) = FLOAT(-(cr_icc(l)+1)/2 + 1)
+      cr_dim0(l,2) = cr_dim0(l,1) + cr_icc(l) - 1
    ENDIF 
-ENDIF 
-IF (ier_num.eq.0) THEN 
+ENDDO 
+!
+!
+if(ier_num.eq.0) then 
 !                                                                       
 !     ------reset microdomain status                                    
 !                                                                       
-   CALL do_stack_rese 
+   call do_stack_rese 
 !  Flag that no Fourier has been calculated yet
    four_last = FOUR_NN
-ELSE
-   IF(ier_msg(3) == ' ') THEN
-      ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
-   ENDIF 
-ENDIF 
+   ier_msg(3) = ' '
 !
-chem_purge = .FALSE.    ! No purge was done, period boundary is OK
-chem_period(:) = .TRUE.
-chem_quick     = .TRUE.
+   chem_purge = .FALSE.    ! No purge was done, period boundary is OK
+   chem_period(:) = .TRUE.
+   chem_quick     = .TRUE.
+!ELSE
+!   IF(ier_msg(3) == ' ') THEN
+!      ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+!   ENDIF 
+endif 
 !
-END SUBROUTINE do_readcell
+end subroutine do_readcell
 !
 !*******************************************************************************
 !
@@ -753,7 +742,7 @@ IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
 ENDIF
 !
 CALL readstru(NMAX, MAXSCAT, MAXMASK, strucfile, cr_name,        &
-              cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,    &
+              cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_anis,   &
               cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms, &
               as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
               sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, uni_mask)        
@@ -1147,7 +1136,7 @@ cr_dim(:,2) = -1.e10
 !     --Read header of structure file                                   
 !                                                                       
 CALL stru_readheader (ist, MAXSCAT, cr_name,      &
-         cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
+         cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_anis, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)
 IF (ier_num.ne.0) THEN 
    ier_msg(1) = 'Structure ' // strucfile
@@ -1806,7 +1795,7 @@ END SUBROUTINE struc_mole_header
 !********************************************************************** 
       SUBROUTINE readstru (NMAX, MAXSCAT, MAXMASK, strucfile, cr_name, cr_spcgr, &
       cr_set,                                                           &
-      cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_at_lis, cr_pos,     &
+      cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_anis, cr_at_lis, cr_pos,     &
       cr_mole, cr_surf, cr_magn,                                        &
       cr_iscat, cr_prop, cr_dim, cr_magnetic,                           &
       as_natoms, as_at_lis, as_dw, as_pos,   &
@@ -1834,6 +1823,7 @@ INTEGER                                  , INTENT(INOUT) :: cr_natoms
 INTEGER                                  , intent(inout) :: cr_nscat 
 REAL(kind=PREC_DP), dimension(0:MAXSCAT) , intent(out  ) :: cr_dw ! (0:MAXSCAT) 
 REAL(kind=PREC_DP), dimension(0:MAXSCAT) , intent(out  ) :: cr_occ ! (0:MAXSCAT) 
+REAL(kind=PREC_DP), dimension(1,6,0:MAXSCAT) , intent(out  ) :: cr_anis! (0:MAXSCAT) 
 CHARACTER(len=4)  , dimension(0:MAXSCAT) , intent(out  ) :: cr_at_lis ! (0:MAXSCAT) 
 REAL(kind=PREC_DP), DIMENSION(1:3,1:NMAX), INTENT(out  ) :: cr_pos
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_mole
@@ -1882,7 +1872,7 @@ REAL(kind=PREC_DP), dimension(0:MAXSCAT) :: as_occ(0:MAXSCAT)
 !     --Read header of structure file                                   
 !                                                                       
          CALL stru_readheader (ist, MAXSCAT, cr_name,      &
-         cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
+         cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_anis,  cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)
 !                                                                       
          IF (ier_num.eq.0) THEN 
@@ -1906,7 +1896,7 @@ REAL(kind=PREC_DP), dimension(0:MAXSCAT) :: as_occ(0:MAXSCAT)
       END SUBROUTINE readstru                       
 !********************************************************************** 
 SUBROUTINE stru_readheader (ist, HD_MAXSCAT, cr_name,   &
-      cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,   &
+      cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_anis, cr_a0, cr_win, sav_ncell,   &
       sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)                 
 !-                                                                      
 !     This subroutine reads the header of a structure file              
@@ -1926,7 +1916,7 @@ USE take_param_mod
 USE str_comp_mod
 !
 IMPLICIT none 
-!                                                                       
+!                                                                      
 INTEGER                                  , INTENT(IN)  :: ist
 INTEGER                                  , INTENT(IN)  :: HD_MAXSCAT 
 CHARACTER(LEN=80)                        , INTENT(OUT) :: cr_name 
@@ -1936,6 +1926,7 @@ CHARACTER(LEN=4), DIMENSION(0:HD_MAXSCAT), INTENT(OUT) :: cr_at_lis ! (0:HD_MAXS
 INTEGER                                  , INTENT(OUT) :: cr_nscat 
 REAL(kind=PREC_DP), DIMENSION(0:HD_MAXSCAT)         , INTENT(OUT) :: cr_dw     ! (0:HD_MAXSCAT) 
 REAL(kind=PREC_DP), DIMENSION(0:HD_MAXSCAT)         , INTENT(OUT) :: cr_occ    ! (0:HD_MAXSCAT) 
+REAL(kind=PREC_DP), DIMENSION(6,0:HD_MAXSCAT)       , intent(out) :: cr_anis   ! (0:HD_MAXSCAT) 
 REAL(kind=PREC_DP), DIMENSION(3)                    , INTENT(OUT) :: cr_a0     ! (3) 
 REAL(kind=PREC_DP), DIMENSION(3)                    , INTENT(OUT) :: cr_win    ! (3) 
 INTEGER, DIMENSION(3)                    , INTENT(OUT) :: sav_ncell ! (3) 
@@ -1966,24 +1957,26 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !DBG      real            spcgr_para                                    
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !
-INTEGER, PARAMETER :: NOPTIONAL = 1
-INTEGER, PARAMETER :: O_SETTING = 1
+INTEGER, PARAMETER :: NOPTIONAL = 3
+INTEGER, PARAMETER :: O_TYPE    = 1
+INTEGER, PARAMETER :: O_VALUES  = 2
+INTEGER, PARAMETER :: O_SETTING = 3
 CHARACTER(LEN=   7)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !                                                                       
 !                                                                       
 !
-DATA oname  / 'setting' /
-DATA loname /  7        /
+DATA oname  / 'type   ', 'value  ','setting' /
+DATA loname /  4       ,  5       , 7        /
 !
-opara  =  (/ 'abc' /)   ! Always provide fresh default values
-lopara =  (/  3   /)
-owerte =  (/  0.0 /)
+opara  =  (/ '0.00', '0.00', 'abc ' /)   ! Always provide fresh default values
+lopara =  (/  4    ,  4    ,  3     /)
+owerte =  (/  0.00D0, 0.00D0, 0.0D0 /)
 !
 cr_occ(:) = 1.0D0  !! WORK OCC
       xx_nscat = 0 
@@ -2239,6 +2232,31 @@ sym_add_n = 0
                ier_typ = ER_COMM 
                RETURN
             ENDIF 
+!
+!     ---- Anisotropc displacement paramewters
+!
+        elseif(str_comp (befehl, 'anis', 4, lbef, 4)) then
+            call get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            if(ier_num==0) then
+               CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                                 oname, loname, opara, lopara, lpresent, owerte)
+               if(ier_num == 0) then
+                  call get_optional_multi(MAXW, opara(O_VALUES), lopara(O_VALUES), werte, ianz)
+                  if(ier_num==0) then
+                     if(lpresent(O_TYPE) .and. lpresent(O_VALUES)) then
+                        i = nint(owerte(O_TYPE))
+                        if(i>=0 .and. i<=HD_MAXSCAT) then
+                           cr_anis(:,i) = werte(1:ianz)
+                        endif
+                     endif
+                  endif
+               endif
+            endif
+            if(ier_num/=0) then
+               ier_num = -112
+               ier_typ = ER_COMM 
+               return
+            endif 
 !                                                                       
 !     ----Occupancy parameters to setup specific sequence of         
 !                                    scattering curves 'occ'            
@@ -2881,6 +2899,7 @@ INTEGER             :: lp
       INTEGER i 
 !
 CALL alloc_crystal(1,1)                                                                       
+call alloc_unitcell(1)
 !
       cr_natoms = 0 
       as_natoms = 0 
@@ -5752,6 +5771,7 @@ USE precision_mod
 USE str_comp_mod
 USE string_convert_mod
 USE support_mod
+use take_param_mod
 !
 IMPLICIT NONE
 !
@@ -5780,6 +5800,7 @@ CHARACTER (LEN=  20)                  :: bef
 character(len=4)                          :: nw_name
 CHARACTER(LEN=   4), DIMENSION(:), allocatable, SAVE :: names
 REAL(KIND=PREC_DP) , DIMENSION(:), allocatable, SAVE :: bvals
+real(KIND=PREC_DP) , dimension(:,:), allocatable, save :: anis
 REAL(KIND=PREC_DP) , DIMENSION(:), allocatable, SAVE :: occs
 integer                               :: MAXSCAT    ! Max number atom types
 INTEGER                               :: ios
@@ -5810,6 +5831,24 @@ integer :: size_of
 !
 LOGICAL           :: IS_IOSTAT_END
 !
+INTEGER, PARAMETER :: NOPTIONAL = 2
+integer, parameter :: O_TYPE    = 1
+INTEGER, PARAMETER :: O_VALUES  = 2
+CHARACTER(LEN=   5)       , DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: NCALC = 1 ! Number of values to calculate 
+!
+DATA oname  / 'type ' , 'value'/
+DATA loname /  4       ,  5    /
+!
+opara  =  (/ '0.0000' , '0.0000' /)   ! Always provide fresh default values
+lopara =  (/  6       ,  6       /)
+owerte =  (/  0.0D0   ,  0.0D0   /)
+!
 ncell_val  = 0
 natoms     = 0
 nscattypes = 0
@@ -5823,10 +5862,12 @@ IF ( init == -1 ) THEN
    if(allocated(names)) deallocate(names)
    if(allocated(bvals)) deallocate(bvals)
    if(allocated(occs )) deallocate(occs )
+   if(allocated(anis )) deallocate(anis )
    MAXSCAT = 50
    allocate(names(MAXSCAT))
    allocate(bvals(MAXSCAT))
    allocate(occs (MAXSCAT))
+   allocate(anis (6,MAXSCAT))
    names(:)  = ' '
    bvals(:)  = 0.0
    occs(:)   = 1.0
@@ -5852,6 +5893,7 @@ IF ( ier_num /= 0) THEN
    if(allocated(names)) deallocate(names)
    if(allocated(bvals)) deallocate(bvals)
    if(allocated(occs )) deallocate(occs )
+   if(allocated(anis )) deallocate(anis )
    RETURN
 ENDIF
 !
@@ -5866,6 +5908,7 @@ header: DO
       if(allocated(names)) deallocate(names)
       if(allocated(bvals)) deallocate(bvals)
       if(allocated(occs )) deallocate(occs )
+      if(allocated(anis )) deallocate(anis )
       RETURN
    ENDIF
    IF (line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
@@ -5898,6 +5941,7 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
          RETURN
       ENDIF
    ELSEIF (line(1:3) == 'ADP' ) THEN 
@@ -5918,6 +5962,7 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
              RETURN
           ENDIF
        ELSE
@@ -5929,6 +5974,7 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
           RETURN
        ENDIF
    ELSEIF (line(1:3) == 'OCC' ) THEN 
@@ -5945,6 +5991,7 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
                     RETURN
                  ENDIF
                  occs (nocctypes+i) = werte(i)
@@ -5959,6 +6006,7 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
              RETURN
           ENDIF
        ELSE
@@ -5970,8 +6018,32 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
           RETURN
        ENDIF
+   elseif(line(1:4) == 'ANIS' ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      if(ier_num == 0) then
+         CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                           oname, loname, opara, lopara, lpresent, owerte)
+         if(ier_num == 0) then
+            call get_optional_multi(MAXW, opara(O_VALUES), lopara(O_VALUES), werte, ianz)
+         endif
+      endif
+      if(ier_num/=0) then
+         ier_num = -190
+         ier_typ = ER_APPL
+         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+         close(99)
+         call atom_dealloc
+         if(allocated(names)) deallocate(names)
+         if(allocated(bvals)) deallocate(bvals)
+         if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
+         return
+       endif
+       anis(:,nint(owerte(O_TYPE))) = werte(1:6)
+write(*,'(a,i4, 2(6(f6.3,2x)))') ' GOT ANIS', nint(owerte(O_TYPE)), werte(1:ianz), anis(:,nint(owerte(O_TYPE)))
    ELSEIF (line(1:4) == 'CELL' ) THEN 
        CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
        IF (ier_num.eq.0 .AND. ianz == 6) THEN 
@@ -5985,6 +6057,7 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
              RETURN
           ENDIF
        ELSE
@@ -6000,6 +6073,7 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
              RETURN
           ENDIF
        ENDIF
@@ -6019,6 +6093,7 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
                     RETURN
                  ENDIF
              ENDDO
@@ -6040,6 +6115,7 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
              RETURN
           ENDIF
        ELSE
@@ -6051,6 +6127,7 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
           RETURN
        ENDIF
    ELSEIF (line(1:6) == 'FORMAT' ) THEN 
@@ -6080,6 +6157,7 @@ header: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
          RETURN
       ENDIF
    ENDIF
@@ -6098,6 +6176,7 @@ IF (nscattypes /= nadptypes ) THEN
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
    RETURN
 ENDIF
 !
@@ -6186,6 +6265,7 @@ main: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
          call atom_dealloc
          return
       endif
@@ -6207,6 +6287,7 @@ main: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
          call atom_dealloc
          RETURN
       ENDIF
@@ -6259,10 +6340,12 @@ main: DO
                call alloc_arr(names, 1, MAXSCAT, all_status, ' ',   size_of)
                call alloc_arr(bvals, 1, MAXSCAT, all_status, 0.5D0, size_of)
                call alloc_arr(occs , 1, MAXSCAT, all_status, 1.0D0, size_of)
+               call alloc_arr(anis , 1,6, 1, MAXSCAT, all_status, 1.0D0, size_of)
             endif
             names(ntypes) = line(1:lbef)
             bvals(ntypes) = bval
             occs(ntypes) = occ 
+!           anis(:,ntypes) = 0.0D0
          ENDIF
       ELSE isatom
          ier_num = -49
@@ -6274,6 +6357,7 @@ main: DO
          if(allocated(names)) deallocate(names)
          if(allocated(bvals)) deallocate(bvals)
          if(allocated(occs )) deallocate(occs )
+         if(allocated(anis )) deallocate(anis )
          call atom_dealloc
          RETURN
       ENDIF isatom
