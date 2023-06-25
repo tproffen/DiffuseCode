@@ -303,6 +303,8 @@ ELSE
 ENDIF
 IF(do_spcgr=='original') THEN
    do_spcgr_w = cr_spcgr   ! needs a copy as it is called with a fixed string from plot
+else
+   do_spcgr_w = do_spcgr
 ENDIF
 !
 WRITE (iff, 500) 
