@@ -348,6 +348,7 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
       DO j=1, temp_len(i)
          ia = temp_cont(temp_off(i)+j)
          temp_look(ia) = i            !atom(iatom) is in molecule i
+!write(*,*) ' UPD, LOOK ', temp_upd(i), temp_look(ia), i, j
       ENDDO
    ENDDO
 ELSE
@@ -382,7 +383,8 @@ main: do ia = 1, natoms
    CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
                  i_char, c_file, r_fuzzy, r_dens, r_biso, r_clin, r_cqua)
       in_mole: IF ( temp_look(ia) /= 0 ) THEN            ! This atom belongs to a molecule
-         IF ( .not. mole_l_on .OR. temp_upd(temp_look(ia))> mole_num_curr ) THEN  ! Right now we are not in a molecule
+!        IF ( .not. mole_l_on .OR. temp_upd(temp_look(ia))> mole_num_curr ) THEN  ! Right now we are not in a molecule
+         IF ( .not. mole_l_on .OR. temp_upd(temp_look(ia))> mole_num_mole ) THEN  ! Right now we are not in a molecule
             mole_l_on    = .true.              ! Turn molecule on
             mole_l_first = .true.              ! This is the first atom in the molecule
             mole_gene_n  = 0                   ! No molecule generators
@@ -458,8 +460,13 @@ main: do ia = 1, natoms
       cr_pos(j,cr_natoms) = werte(j)           ! strore in actual crystal
    ENDDO
    cr_iscat(cr_natoms) = itype                 ! set the atom type
-!  cr_mole (cr_natoms) = i_mole                ! set the molecule number
-   cr_mole (cr_natoms) = 0                     ! set the molecule number
+   if(mole_l_on) then
+      mole_num_curr = temp_look(ia)
+   endif
+!     cr_mole (cr_natoms) = i_mole                ! set the molecule number
+!  else
+      cr_mole (cr_natoms) = 0                     ! set the molecule number
+!  endif
    cr_surf(:,cr_natoms) = isurface               ! set the property flag
    cr_magn(:,cr_natoms) = magn_mom               ! set magnetic vector
    cr_prop (cr_natoms) = iprop                 ! set the property flag
@@ -471,6 +478,7 @@ main: do ia = 1, natoms
       enddo
    endif
 ENDDO main
+!
 !
 CALL no_error 
 !                                                                       
