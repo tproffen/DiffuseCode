@@ -1,10 +1,21 @@
 6.14.03  DRAFT
+6.15.01  DRAFT
 
 GENERAL
   WINDOWS     For Windows 11 and wsl version 2 the VcXsrv is no longer needed
+              Improvement of installation scripts, added option to place 
+              a terminal icon and a startup script
+
+DISCUS/KUPLOT BUG FIX, Improved storage/interpretation in HDF5 files, relevant
+              for oblique layers
 
 DISCUS
   plot        Added options to place Jmol window
+  output      Added better scaling options to "shelx", "hklf4", "list5" files
+  export      Improved storage of original space group into CIF file
+  read/cell   BUG FIX, multiple molecule were not properly recognized after 
+              a save
+  show/symm   Added a flag to indicated generator matrices
 
 DIFFEV
   run_mpi     Improved error message transfer from slaves
