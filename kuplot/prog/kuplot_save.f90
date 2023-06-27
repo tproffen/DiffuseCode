@@ -1226,6 +1226,7 @@ elseif(form(1:2)=='H5') then
       enddo
    endif
    call gen_hdf5_write (hh5_value, hh5_laver, filname, hh5_out_inc, hh5_out_eck, hh5_out_vi, &
+                        1, 2, 3, &
                         hh5_cr_a0, hh5_cr_win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax, &
                         ier_num, ier_typ, ER_IO, ER_APPL)
    deallocate(qvalues)
@@ -1335,6 +1336,7 @@ cond_choices: if(form=='H5')then
 !
 !  
    call gen_hdf5_write(hh5_value, hh5_laver, filname, dims, corners, vectors,      &
+                       1, 2, 3,                                                    &
                        a0, win, qvalues, HH5_VAL_PDF, HH5_VAL_3DPDF, hh5_valmax,   &
                        ier_num, ier_typ, ER_IO, ER_APPL)
 elseif(form=='NI') then cond_choices

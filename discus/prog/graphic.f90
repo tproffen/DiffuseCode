@@ -581,6 +581,7 @@ endif
 !
                else
                   CALL gen_hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
+                          out_extr_abs, out_extr_ord, out_extr_top,                     &
                           cr_a0, cr_win, qvalues,val_pdf, val_3Dpdf, valmax,            &
                           ier_num, ier_typ, ER_IO, ER_APPL)
                endif

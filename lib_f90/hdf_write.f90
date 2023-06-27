@@ -10,6 +10,7 @@ CONTAINS
 !*****7*****************************************************************
 !
 SUBROUTINE gen_hdf5_write (value, laver, outfile, out_inc, out_eck, out_vi, &
+                       extr_abs, extr_ord, extr_top,                       &
                        cr_a0, cr_win, qvalues, VAL_PDF, VAL_3DPDF, valmax, &
                        ier_num, ier_typ, ER_IO, ER_APPL)
 !
@@ -28,6 +29,9 @@ CHARACTER(LEN=200), INTENT(IN) :: outfile
 INTEGER, DIMENSION(3)  , INTENT(IN) :: out_inc
 REAL(kind=PREC_DP)   , DIMENSION(3,4), INTENT(IN) :: out_eck ! (3,4)
 REAL(kind=PREC_DP)   , DIMENSION(3,3), INTENT(IN) :: out_vi 
+integer                              , intent(in) :: extr_abs
+integer                              , intent(in) :: extr_ord
+integer                              , intent(in) :: extr_top
 REAL(kind=PREC_DP)   , DIMENSION(3)  , INTENT(IN) :: cr_a0
 REAL(kind=PREC_DP)   , DIMENSION(3)  , INTENT(IN) :: cr_win
 REAL(kind=PREC_DP)   , DIMENSION(out_inc(1), out_inc(2), out_inc(3)), INTENT(IN) :: qvalues
@@ -190,9 +194,9 @@ CALL H5Sclose_f(space, hdferr)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 dim_one = 3
-steps(1) = out_vi(1,1)
-steps(2) = out_vi(2,2)
-steps(3) = out_vi(3,3)
+steps(1) = out_vi(extr_abs,1)
+steps(2) = out_vi(extr_ord,2)
+steps(3) = out_vi(extr_top,3)
 f_ptr = C_LOC(steps(1))
 CALL H5Screate_simple_f(1, dim_one, space, hdferr)
 CALL H5Dcreate_f(file_id, 'step_sizes',H5T_IEEE_F64BE, space, dset, hdferr)

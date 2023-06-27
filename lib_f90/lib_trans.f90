@@ -512,6 +512,9 @@ logical           , dimension(3)  , intent(in)    :: new_vi_user   ! Try to dete
 logical                           , intent(in)    :: new_zone_user ! Try to determine vi's automatically?
 real(kind=PREC_DP), dimension(:,:,:), allocatable, intent(out) :: new_data       ! New data set
 !
+real(kind=PREC_DP), dimension(3,3) :: temp_vi    ! Temporary copy
+integer :: extr_abs, extr_ord, extr_top
+!
 !
 integer           , dimension(3)     :: old_icenter            ! Old center in pixels
 !integer           , dimension(3)     :: new_icenter            ! Old center in pixels
@@ -583,7 +586,19 @@ new_valmax = maxval(new_data)
 !                        ! new_* to calling routine, everything will be deallocated 
 !                        ! in the calling routine
 if(idata < 0 ) then      ! Pure output data, write and deallocate
+   temp_vi = new_vi
+   extr_abs = maxloc(abs(temp_vi(:,1)), dim=1)
+   temp_vi(extr_abs,2) = 0.0D0
+   extr_ord = maxloc(abs(temp_vi(:,2)), dim=1)
+   if(    extr_abs==1 .and. extr_ord==2) then
+      extr_top = 3
+   elseif(extr_abs==1 .and. extr_ord==3) then
+      extr_top = 2
+   elseif(extr_abs==2 .and. extr_ord==3) then
+      extr_top = 1
+   endif
 CALL gen_hdf5_write (value, laver, new_outfile, new_inc, new_eck, new_vi, &
+                     extr_abs, extr_ord, extr_top, &
                      cr_a0, cr_win, new_data,val_pdf, val_3Dpdf, new_valmax,  &
                      ier_num, ier_typ, ER_IO, ER_APPL)
 !

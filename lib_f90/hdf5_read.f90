@@ -128,6 +128,9 @@ real(kind=PREC_DP)        , dimension(3,4)                :: new_eck       ! New
 real(kind=PREC_DP)        , dimension(3,3)                :: new_vi        ! New vectors    from transformed HDF5 data
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: new_data      ! New data       from transformed HDF5 data
 !
+real(kind=PREC_DP), dimension(3,3) :: temp_vi    ! Temporary copy
+integer :: extr_abs, extr_ord, extr_top
+!
 ! Make sure all old data are gone
 !
 if(allocated(h5_datasets)) deallocate(h5_datasets)
@@ -407,6 +410,27 @@ endif
 CALL h5fclose_f(file_id, hdferr)                             ! Close the input file
 !
 CALL H5close_f(hdferr)                                    ! Close HDF interface
+!
+!  If full data are present, anylyse to get good estimates for the short 
+!  version of the steps
+if(yd_present(YD_STEP_SIZES_ABS) .and. yd_present(YD_STEP_SIZES_ORD) .and. &
+   yd_present(YD_STEP_SIZES_TOP) ) then
+      temp_vi = h5_steps_full
+   extr_abs = maxloc(abs(temp_vi(:,1)), dim=1)
+   temp_vi(extr_abs,2) = 0.0D0
+   extr_ord = maxloc(abs(temp_vi(:,2)), dim=1)
+   if(    extr_abs==1 .and. extr_ord==2) then
+      extr_top = 3
+   elseif(extr_abs==1 .and. extr_ord==3) then
+      extr_top = 2
+   elseif(extr_abs==2 .and. extr_ord==3) then
+      extr_top = 1
+   endif
+   h5_steps(1) = h5_steps_full(extr_abs,1)
+   h5_steps(2) = h5_steps_full(extr_ord,2)
+   h5_steps(3) = h5_steps_full(extr_top,3)
+endif
+
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Copy into H5 storage
