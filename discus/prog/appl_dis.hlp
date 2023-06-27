@@ -5385,8 +5385,9 @@
 !p form {"gnu" | "pgm" | "ppm" | 
 !p       "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
 !p       "pdf" [,"r" [,<min>,<max>,<step>] ] 
-!p     | "post" | "shel" | "stan" | "hklf4" | "list5" | "nexus" |
+!p     | "post" | "stan" | "nexus" |
 !p       "vtk" | "mrc" | "vesta" | "xplor" 
+!p     | {"shel"|"hklf4"@"list5"} [,"maxval:"{"auto"|"data"|<value>"]" }
 !p     | "hdf5" [,"maxval:"{"auto"|"data"|<value>"]" }
 
    Defines the output format that will be used. 
@@ -5496,6 +5497,14 @@
    F(000) respectively and scales the data such that I(000) is less than
    10**6 to fit into the format. The sigma is just the square root of the
    final intensity after scaling.
+
+   By default or "maxval:data" the intensities are scaled such that 
+   the intensity of Bragg reflection 000 fits into the output format.
+   With "maxval:bragg" the data are scaled such that the most intense
+   Bragg intensity fits into the format. Be aware that this might cause
+   a different scale factor if the range of hkl is changed.
+   Otherwise maxval:<value> will scale the Bragg intensities by 
+   user suplied factor, even if this might cause an overflow.
 
 !p "stan" 
    Sets the output to standard file format, which is used by KUPLOT. 
