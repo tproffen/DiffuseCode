@@ -77,6 +77,13 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2023_July
+   surface     Changed the names of the optional ellipsoid parameters:
+               long  ==> third
+               short ==> first
+               Added the optional cylinder parameter
+               axis
+               Warnig this is not backward compatible.
 3  2023_May
    plot        Added a "posit:" optional parameter to the plot => run command
 3  2023_April
@@ -9709,18 +9716,27 @@
                                     Defaults to "run"
                                     See description below
 
-            Optional parameters for the "cylinder" and "ellipsoid" style
-            are:
-            "long:[",<u>,<v>,<w>,{"d"|"r"} "]"
+            Optional parameters for the "cylinder" style are:
+            "axis:[",<u>,<v>,<w>,{"d"|"r"} "]"
                                     Defines the direction of the cylinder axis,
-                                    or the third principal "ellipsoid" axis.
                                     <u>,<v>,<w> are fractional components of
                                     the direction vector.
                                     The fourth parameter is optional and
                                     defaults to "d". It specifies if the
                                     components of the vector are in direct
                                     or reciprocal space.
-            "short:[",<u>,<v>,<w>,{"d"|"r"} "]"
+
+            Optional parameters for the "ellipsoid" style are:
+            "third:[",<u>,<v>,<w>,{"d"|"r"} "]"
+                                    Defines the direction 
+                                    of the third principal "ellipsoid" axis.
+                                    <u>,<v>,<w> are fractional components of
+                                    the direction vector.
+                                    The fourth parameter is optional and
+                                    defaults to "d". It specifies if the
+                                    components of the vector are in direct
+                                    or reciprocal space.
+            "first:[",<u>,<v>,<w>,{"d"|"r"} "]"
                                     Same for the first principal axis of the
                                     "ellipsoid". For the "cylinder" its 
                                     meaningless, as it results in a rotation 
