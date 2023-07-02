@@ -709,7 +709,7 @@ IMPLICIT none
 !                                                                       
 INTEGER, PARAMETER :: maxw = 12
 INTEGER, PARAMETER :: maxww = 3
-INTEGER, PARAMETER :: NOPTIONAL = 10
+INTEGER, PARAMETER :: NOPTIONAL = 11
 !                                                                       
 CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
 INTEGER           , INTENT(INOUT) :: lp 
@@ -732,8 +732,9 @@ INTEGER, PARAMETER :: O_CENTER  = 5
 INTEGER, PARAMETER :: O_KEEP    = 6
 INTEGER, PARAMETER :: O_ACCUM   = 7
 INTEGER, PARAMETER :: O_EXEC    = 8
-INTEGER, PARAMETER :: O_LONG    = 9
-INTEGER, PARAMETER :: O_SHORT   = 10
+INTEGER, PARAMETER :: O_THIRD   = 9
+INTEGER, PARAMETER :: O_FIRST   = 10
+INTEGER, PARAMETER :: O_AXIS    = 11
 INTEGER lpara (maxw) 
 integer, dimension(1:MAXWW) :: llpara
 INTEGER :: i, j, k, ianz 
@@ -780,12 +781,17 @@ REAL(KIND=PREC_DP) :: wwerte (maxw)
 !                                                                       
 !                                                                       
 DATA nullv / 0.0D0, 0.0D0, 0.0D0 / 
-DATA oname  / 'thick',  'centx', 'centy', 'centz',  'center', 'keep ',  'accum', 'exec ', 'long', 'short'/
-DATA loname /  5,       5,       5,        5     ,   6      ,  4     ,   5     ,  4     ,  4    ,  5     /
+DATA oname  / 'thick', 'centx', 'centy', 'centz',  'center', 'keep ',&
+              'accum', 'exec ', 'third', 'first',  'axis' /
+DATA loname /  5,       5,       5,       5     ,   6      ,  4     ,&
+               5     ,  4     ,  5     ,  5     ,   4 /
 !
-opara  =  (/ '-2.550 ', '0.0000 ', '0.0000 ', '0.0000 ','0.0000 ','inside ', 'init   ', 'run    ', '[0,0,1]', '[1,0,0]'  /)   ! Always provide fresh default values
-lopara =  (/  6,         6,         6       ,  6       ,  6       ,  6      ,  4       ,  3       ,  7       ,  7         /)
-owerte =  (/ -2.55,      0.0,       0.0     ,  0.00    ,  0.0     ,  0.0    ,  0.0     ,  0.0     ,  0.0     ,  0.0       /)
+opara  =  (/ '-2.550 ', '0.0000 ', '0.0000 ', '0.0000 ','0.0000 ','inside ',    &
+             'init   ', 'run    ', '[0,0,1]', '[1,0,0]','[0,0,1]'  /)   ! Always provide fresh default values
+lopara =  (/  6,         6,         6       ,  6       ,  6       ,  6,         &
+              4       ,  3       ,  7       ,  7       ,  7        /)
+owerte =  (/ -2.55,      0.0,       0.0     ,  0.00    ,  0.0     ,  0.0,        &
+              0.0     ,  0.0     ,  0.0     ,  0.0     ,  0.0  /)
 !
 CALL symm_store                      ! Store current symmetry settings
 !                                                                       
@@ -1099,8 +1105,10 @@ ELSE
 ENDIF 
 !
 IF(l_cyl .OR. l_ell) THEN
-   CALL prep_rotation(lpresent(O_LONG), lpresent(O_SHORT),                      &
-        opara(O_LONG), opara(O_short), lopara(O_LONG), lopara(O_SHORT), center, &
+write(*,*) ' FIRST, THIRD ', lpresent(O_FIRST), lpresent(O_THIRD), lpresent(O_AXIS)
+   CALL prep_rotation(lpresent(O_THIRD), lpresent(O_FIRST), lpresent(O_AXIS),   &
+        opara(O_THIRD), opara(O_FIRST), opara(O_AXIS),                          &
+        lopara(O_THIRD), lopara(O_FIRST), lopara(O_AXIS), center,               &
         m_comb, m_combr)
    IF(ier_num/=0) RETURN
 ENDIF
@@ -1434,7 +1442,8 @@ END SUBROUTINE boundarize_atom
 !
 !*****7*****************************************************************
 !
-SUBROUTINE prep_rotation(l_long, l_short, o_long, o_short,lo_long, lo_short,    &
+SUBROUTINE prep_rotation(l_third, l_first, l_axis, o_third, o_first, o_axis, &
+                         lo_third, lo_first, lo_axis,                        &
                          center, m_comb, m_combr)
 !-
 !  Prepares the rotation of the crystal
@@ -1454,12 +1463,15 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
-LOGICAL         , INTENT(IN)    :: l_long
-LOGICAL         , INTENT(IN)    :: l_short
-CHARACTER(LEN=*), INTENT(INOUT) :: o_long
-CHARACTER(LEN=*), INTENT(INOUT) :: o_short
-INTEGER         , INTENT(INOUT) :: lo_long
-INTEGER         , INTENT(INOUT) :: lo_short
+LOGICAL         , INTENT(IN)    :: l_third
+LOGICAL         , INTENT(IN)    :: l_first
+LOGICAL         , INTENT(IN)    :: l_axis
+CHARACTER(LEN=*), INTENT(INOUT) :: o_third
+CHARACTER(LEN=*), INTENT(INOUT) :: o_first
+CHARACTER(LEN=*), INTENT(INOUT) :: o_axis
+INTEGER         , INTENT(INOUT) :: lo_third
+INTEGER         , INTENT(INOUT) :: lo_first
+INTEGER         , INTENT(INOUT) :: lo_axis
 REAL(KIND=PREC_DP), DIMENSION(3), INTENT(IN) :: center
 REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(OUT) :: m_comb
 REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(OUT) :: m_combr
@@ -1469,10 +1481,10 @@ REAL(KIND=PREC_DP), DIMENSION(3), PARAMETER :: V_NULL = (/0.0D0, 0.0D0, 0.0D0/)
 REAL(KIND=PREC_DP)              , PARAMETER :: EPS    = 1.0D-4
 REAL(KIND=PREC_DP)              , PARAMETER :: TOL    = 5.0D0
 INTEGER :: i
-REAL(KIND=PREC_DP), DIMENSION(3)   :: v_long
-REAL(KIND=PREC_DP), DIMENSION(3)   :: v_short
-REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_long
-REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_short
+REAL(KIND=PREC_DP), DIMENSION(3)   :: v_third
+REAL(KIND=PREC_DP), DIMENSION(3)   :: v_first
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_third
+REAL(KIND=PREC_DP), DIMENSION(4,4) :: m_first
 !
 REAL(KIND=PREC_DP), DIMENSION(3)   :: u         ! Dummy vector
 REAL(KIND=PREC_DP), DIMENSION(3)   :: v         ! Dummy vector
@@ -1488,40 +1500,48 @@ DO i=1,4
    m_combr(i,i) = 1.0D0
 ENDDO
 !
-IF(l_long) THEN                    ! long axis is present
-   CALL prep_values(o_long, lo_long, v_long, 'long')
+IF(l_third .and. .not.l_axis) THEN                    ! third axis is present
+   CALL prep_values(o_third, lo_third, v_third, 'third')
    IF(ier_num/=0) RETURN
+elseif(.not.l_third .and. l_axis) THEN                    ! axis is present
+   CALL prep_values(o_axis , lo_axis , v_third, 'axis')
+   IF(ier_num/=0) RETURN
+elseif(l_third .and. l_axis) THEN                    ! axis is present
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'Only one of ''third'' and ''axis'' may be present'
+   return
 ELSE
-   v_long(1) = 0.0D0
-   v_long(2) = 0.0D0
-   v_long(3) = 1.0D0
+   v_third(1) = 0.0D0
+   v_third(2) = 0.0D0
+   v_third(3) = 1.0D0
 ENDIF
 !
-m_long = 0.0D0
+m_third = 0.0D0
 DO i=1,4
-   m_long(i,i) = 1.0D0
+   m_third(i,i) = 1.0D0
 ENDDO
 !
-IF(l_short) THEN                    ! short axis is present
-   CALL prep_values(o_short, lo_short, v_short, 'short')
+IF(l_first) THEN                    ! first axis is present
+   CALL prep_values(o_first, lo_first, v_first, 'first')
    IF(ier_num/=0) RETURN
 ELSE
    u(1) = 1.0D0
    u(2) = 0.0D0
    u(3) = 0.0D0
-!  CALL trans(u, cr_rten, v_short, 3)   ! transform b* into direct space
-!  v_short = matmul(real(cr_rten,KIND=PREC_DP), u)
-   v_short = matmul(     cr_rten              , u)
+!  CALL trans(u, cr_rten, v_first, 3)   ! transform b* into direct space
+!  v_first = matmul(real(cr_rten,KIND=PREC_DP), u)
+   v_first = matmul(     cr_rten              , u)
 ENDIF
 !
-m_short = 0.0D0
+m_first = 0.0D0
 DO i=1,4
-   m_short(i,i) = 1.0D0
+   m_first(i,i) = 1.0D0
 ENDDO
 !
-IF(l_long .AND. l_short) THEN
-!  alpha = do_bang (.TRUE., REAL(v_short,kind=PREC_DP), V_NULL, real(v_long,kind=PREC_DP))
-   alpha = do_bang (.TRUE.,      v_short              , V_NULL,      v_long              )
+IF(l_third .AND. l_first) THEN
+!  alpha = do_bang (.TRUE., REAL(v_first,kind=PREC_DP), V_NULL, real(v_third,kind=PREC_DP))
+   alpha = do_bang (.TRUE.,      v_first              , V_NULL,      v_third              )
    IF(ABS(alpha-90.0D0)>TOL) THEN                 ! Not at 90 degrees
       ier_num = -171
       ier_typ = ER_APPL
@@ -1533,14 +1553,14 @@ ENDIF
 u(1) = 0.0D0
 u(2) = 0.0D0
 u(3) = 1.0D0
-!alpha = do_bang(.TRUE., real(u,kind=PREC_DP), V_NULL, real(v_long,kind=PREC_DP))     ! Angle long to [001]
-alpha = do_bang(.TRUE.,      u              , V_NULL, v_long                   )     ! Angle long to [001]
+!alpha = do_bang(.TRUE., real(u,kind=PREC_DP), V_NULL, real(v_third,kind=PREC_DP))     ! Angle third to [001]
+alpha = do_bang(.TRUE.,      u              , V_NULL, v_third                   )     ! Angle third to [001]
 !
 IF(ABS(alpha)<EPS) THEN                        ! already parallel
    alpha = 0.0D0                               ! Matrix will remain unit
-   m_long = 0.0D0
+   m_third = 0.0D0
    DO i=1,4
-      m_long(i,i) = 1.0D0
+      m_third(i,i) = 1.0D0
    ENDDO
    ww(1) = 0.0D0
    ww(1) = 0.0D0
@@ -1552,7 +1572,7 @@ ELSEIF(ABS(180.0D0-alpha)<EPS) THEN             ! at 180 degrees
    v(3) = 0.0D0
    ww = matmul(     cr_rten              , v)
 ELSE                                        ! Need a rotation
-   CALL vekprod(     v_long              ,      u              , &
+   CALL vekprod(     v_third              ,      u              , &
                      www             , cr_eps, cr_rten)  ! Get rotation axis
    ww = www
 ENDIF
@@ -1570,20 +1590,20 @@ ENDIF
 !  sym_hkl = matmul(real(cr_gten,kind=PREC_DP), sym_uvw)
    sym_hkl = matmul(     cr_gten              , sym_uvw)
    CALL symm_setup                             ! get all matrices
-   m_long   = sym_mat                          ! copy rotation matrix
+   m_third   = sym_mat                          ! copy rotation matrix
 !
-!  CALL matinv4(m_long, m_longr)               ! Invert matrix for backwards operation
+!  CALL matinv4(m_third, m_longr)               ! Invert matrix for backwards operation
 !
-v4(1:3) = v_short(1:3)
+v4(1:3) = v_first(1:3)
 v4(4)   = 0.00D0
-v4 = MATMUL(m_long, v4)                        ! Rotate short axis by op for long axis
-v(1:3) = v4(1:3)                               ! Copy current short axis
+v4 = MATMUL(m_third, v4)                        ! Rotate first axis by op for third axis
+v(1:3) = v4(1:3)                               ! Copy current first axis
 u(1) = 1.0D0
 u(2) = 0.0D0
 u(3) = 0.0D0
-!alpha = do_bang(.TRUE., u, V_NULL, v)             ! Angle short to [100]
-!alpha = do_bang(.TRUE., real(u,kind=PREC_DP), V_NULL, real(v_short,kind=PREC_DP))     ! Angle short to [001]
-alpha = do_bang(.TRUE., u, V_NULL, v_short)    ! Angle short to [100]
+!alpha = do_bang(.TRUE., u, V_NULL, v)             ! Angle first to [100]
+!alpha = do_bang(.TRUE., real(u,kind=PREC_DP), V_NULL, real(v_first,kind=PREC_DP))     ! Angle first to [001]
+alpha = do_bang(.TRUE., u, V_NULL, v_first)    ! Angle first to [100]
 CALL symm_reset
 sym_angle      = alpha                         ! Rotation angle
 sym_uvw(1)     = 0.0                           ! Rotation axis [001]
@@ -1597,8 +1617,8 @@ sym_type       = .TRUE.                        ! Proper rotation
 !sym_hkl = matmul(real(cr_gten,KIND=PREC_DP), sym_uvw)
 sym_hkl = matmul(     cr_gten              , sym_uvw)
 CALL symm_setup                                ! get all matrices
-m_short   = sym_mat                            ! copy rotation matrix
-m_comb = MATMUL(m_short, m_long)               ! Combine rotations m_short X m_long
+m_first   = sym_mat                            ! copy rotation matrix
+m_comb = MATMUL(m_first, m_third)               ! Combine rotations m_first X m_third
 !
 v4(1:3) = center(1:3)                          ! Finally run computation for center
 v4(4) = 0.00D0
@@ -1611,9 +1631,9 @@ END SUBROUTINE prep_rotation
 !
 !*****7*****************************************************************
 !
-SUBROUTINE prep_values(o_long, lo_long, v_long, cname )
+SUBROUTINE prep_values(o_third, lo_third, v_third, cname )
 !
-! Interpret the values for the optional parameter long / short
+! Interpret the values for the optional parameter third / first
 !
 USE crystal_mod
 !
@@ -1624,14 +1644,14 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=*)  , INTENT(INOUT) :: o_long
-INTEGER           , INTENT(INOUT) :: lo_long
-REAL(KIND=PREC_DP),DIMENSION(3), INTENT(OUT) ::  v_long
+CHARACTER(LEN=*)  , INTENT(INOUT) :: o_third
+INTEGER           , INTENT(INOUT) :: lo_third
+REAL(KIND=PREC_DP),DIMENSION(3), INTENT(OUT) ::  v_third
 CHARACTER(LEN=*)  , INTENT(IN) :: cname 
 !
 INTEGER, PARAMETER :: MAXW = 4
 !
-CHARACTER(LEN=MAX(PREC_STRING,LEN(o_long))), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=MAX(PREC_STRING,LEN(o_third))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER                              :: ianz 
 REAL(KIND=PREC_DP), DIMENSION(MAXW)  :: werte
@@ -1640,10 +1660,10 @@ LOGICAL :: ldirect
 !
 ldirect = .TRUE.
 length = LEN_TRIM(cname)
-IF(o_long(1:1) == '[' .AND. o_long(lo_long:lo_long) == ']') THEN
-   o_long(1:1) = ' '
-   o_long(lo_long:lo_long) = ' '
-   CALL get_params(o_long, ianz, cpara, lpara, MAXW, lo_long) 
+IF(o_third(1:1) == '[' .AND. o_third(lo_third:lo_third) == ']') THEN
+   o_third(1:1) = ' '
+   o_third(lo_third:lo_third) = ' '
+   CALL get_params(o_third, ianz, cpara, lpara, MAXW, lo_third) 
    IF(ier_num==0) THEN
       IF(ianz==4) THEN          ! 'd', 'r' is present 
          IF(cpara(4) == 'd') THEN
@@ -1663,11 +1683,11 @@ IF(o_long(1:1) == '[' .AND. o_long(lo_long:lo_long) == ']') THEN
          IF(ianz==3) THEN
          CALL ber_params (ianz, cpara, lpara, werte, MAXW) 
          IF(ier_num==0) THEN
-            v_long(1) = werte(1)
-            v_long(2) = werte(2)
-            v_long(3) = werte(3)
+            v_third(1) = werte(1)
+            v_third(2) = werte(2)
+            v_third(3) = werte(3)
             IF(.NOT.ldirect) THEN
-               v_long = matmul(real(cr_rten, kind=PREC_DP), werte(1:3))
+               v_third = matmul(real(cr_rten, kind=PREC_DP), werte(1:3))
             ENDIF
          ELSE
             ier_msg(1) = 'Optional parameter '//cname(1:length)//' failed '
