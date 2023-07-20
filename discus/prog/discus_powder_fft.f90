@@ -140,6 +140,7 @@ REAL(kind=PREC_DP), DIMENSION(0:POW_MAXPKT) :: dummy    ! temporary data (0:POW_
 REAL(KIND=PREC_DP)            :: tth      ! Theta within convolution, main data set
 REAL(KIND=PREC_DP)    :: sigmasq          ! actual scaled local sigma**2
 REAL(KIND=PREC_DP)    :: sigmamin         ! minimum       local sigma**2
+REAL(KIND=PREC_DP)    :: sigmaminsq       ! minimum       local sigma
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
 REAL(KIND=PREC_DP)    :: dist_min  ! minimum  distance for clin/(r-rmin)
 INTEGER :: imax, i, j, ii  ! Dummy loop indices
@@ -154,10 +155,13 @@ imax = INT( (tthmax - tthmin) / dtth )
 sigmasq = sigma2!*SQRT(eightln2)
 sigmamin = sigmasq * 0.20D0
 sigmamin = sigmasq * 0.020D0
+sigmaminsq = sqrt(sigmamin)
 dist_min = REAL(rcut, KIND=PREC_DP)
 !
 eta = 0.0     ! Gaussian function
 dummy = 0.0   ! dummy(:)
+!write(*,*) ' IN CONV ', imax, tthmin, tthmax, dtth
+!write(*,*) ' CQ      ', corrquad, sigmasq, dist_min
 !tth = 1.810
 !fwhm = SQRT(MAX(sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin))
 !write(*,7777) ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin
@@ -180,7 +184,7 @@ dummy = 0.0   ! dummy(:)
 !tth = tthmax
 !fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, 0.00001))
 !write(*,*) ' FWHM FINAL ',tth, fwhm 
-!!open(45,file='POWDER/new.pdf', status='unknown')
+!open(45,file='POWDER/new.pdf', status='unknown')
 main_pts: DO i = 0, imax 
    tth = tthmin + i * dtth 
    IF(tth<0.50) THEN
@@ -189,9 +193,17 @@ main_pts: DO i = 0, imax
    ENDIF
 !
 !  fwhm = SQRT(MAX(sigmasq - corrlin/tth -corrquad/tth**2, 0.00001))
+   fwhm = sigmaminsq
+   if(tth>dist_min) &
    fwhm = SQRT(MAX((sigmasq - corrlin/(tth-dist_min) -corrquad/(tth-dist_min)**2)*sqrt(eightln2), sigmamin))
+!write(45,'(f8.3,2x, g20.8e3)') tth, fwhm
 !
-   max_ps = INT((pow_width * fwhm) / dtth )
+!if(abs(tth-2.2)<0.005) then
+!  write(*,*) ' TTH FWHM ', tth-dist_min, corrquad/(tth-dist_min), fwhm, sqrt(sigmasq)
+!read(*,*) max_ps
+!endif
+!
+   max_ps = max(21,INT((pow_width * fwhm) / dtth ))
    pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
    i1 = 0                               ! == 0 * dtth
    i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
@@ -219,7 +231,7 @@ DO i = 0, imax
    dat (i) = dummy (i) * dtth   ! scale with stepwidth
 !!   write(45,'(2f18.8)') i*dtth+tthmin, dat(i)
 ENDDO 
-!!close(45)
+!close(45)
 !                                                                       
 END SUBROUTINE powder_conv_corrlin          
 !
