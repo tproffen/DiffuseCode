@@ -43,6 +43,8 @@ REAL(KIND=PREC_DP)   , DIMENSION(:,:,:), ALLOCATABLE  :: d5_sigma          ! Act
 REAL(KIND=PREC_DP)   , DIMENSION(3)                   :: h5_llims          ! Lower limits
 REAL(KIND=PREC_DP)   , DIMENSION(3)                   :: h5_steps          ! steps in H, K, L
 REAL(KIND=PREC_DP)   , DIMENSION(3,3)                 :: h5_steps_full     ! steps in H, K, L
+logical                                               :: h5_calc_coor      ! TRUE: Need to calculate coordinates
+integer              , dimension(3)                   :: h5_use_coor       ! Use this index for x, y, z, coordinates
 !
 CONTAINS
 !
@@ -58,6 +60,7 @@ use iso_c_binding
 !
 use ber_params_mod
 use lib_trans_mod
+use lib_use_coor_mod
 use precision_mod
 !
 IMPLICIT NONE
@@ -322,7 +325,8 @@ CALL H5Dget_space_f(dset_id, space_id, hdferr)
 f_ptr = C_LOC(r_is_direct)
 CALL H5Dread_F(dset_id, H5T_STD_I8BE , f_ptr, hdferr)
 CALL H5Dclose_f(dset_id, hdferr)
-h5_direct = 1 == r_is_direct
+h5_direct = 1 == (r_is_direct-8192)
+!write(*,*) ' H5 is_direct ', r_is_direct, (r_is_direct-8192), 1 == (r_is_direct-8192), h5_direct
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Get the unit cell
@@ -419,6 +423,7 @@ if(yd_present(YD_STEP_SIZES_ABS) .and. yd_present(YD_STEP_SIZES_ORD) .and. &
    extr_abs = maxloc(abs(temp_vi(:,1)), dim=1)
    temp_vi(extr_abs,2) = 0.0D0
    extr_ord = maxloc(abs(temp_vi(:,2)), dim=1)
+   extr_top = 3
    if(    extr_abs==1 .and. extr_ord==2) then
       extr_top = 3
    elseif(extr_abs==1 .and. extr_ord==3) then
@@ -518,13 +523,14 @@ endif
 ! Copy into KUPLOT array
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
+!write(*,*) ' D5_DIMS ', d5_dims, opara(O_LAYER)(1:6), INT((d5_dims(3)+1)/2), INT((d5_dims(3)  )/2)
 IF(opara(O_LAYER)=='bottom') THEN
    h5_layer = 1
 ELSEIF(opara(O_LAYER)=='middle') THEN
    if(mod(d5_dims(3),2)==0) then
       h5_layer = INT((d5_dims(3)+1)/2)
    else
-      h5_layer = INT((d5_dims(3)  )/2)
+      h5_layer = INT((d5_dims(3)+1)/2)
    endif
 ELSEIF(opara(O_LAYER)=='top') THEN
    h5_layer = d5_dims(3)
@@ -566,6 +572,26 @@ do i=1, d5_dims(3)
   h5_z(i) = h5_llims(3) + (i-1)*h5_steps_full(3,3)
 enddo
 !
+!write(*,'(a,l2)') ' DIRECT ', h5_direct
+!write(*,'(a,i5)') ' LAYER  ', h5_layer
+!write(*,'(a,3i5)') ' nndims ',    nndims
+!write(*,'(a,3i5)') '   dims ', d5_dims
+!write(*,'(a,3l2)') ' GRID   ', h5_is_grid, h5_has_dxyz, h5_has_dval
+!write(*,'(a,3f12.5,3f8.1)') ' UNIT   ', h5_unit
+!write(*,'(a,3f12.5)') ' Vector1', h5_vectors(:,1)
+!write(*,'(a,3f12.5)') ' Vector2', h5_vectors(:,2)
+!write(*,'(a,3f12.5)') ' Vector3', h5_vectors(:,3)
+!write(*,'(a,3f12.5)') ' Steps 1', h5_steps_full(:,1)
+!write(*,'(a,3f12.5)') ' Steps 2', h5_steps_full(:,2)
+!write(*,'(a,3f12.5)') ' Steps 3', h5_steps_full(:,3)
+!write(*,'(a,3f12.5)') ' L L B  ', h5_corners(:,1)
+!write(*,'(a,3f12.5)') ' R L B  ', h5_corners(:,2)
+!write(*,'(a,3f12.5)') ' L U B  ', h5_corners(:,3)
+!write(*,'(a,3f12.5)') ' L L T  ', h5_corners(:,4)
+!write(*,'(a,3f12.5)') ' x X    ', h5_x(1), h5_x(d5_dims(1))
+!write(*,'(a,3f12.5)') ' y Y    ', h5_y(1), h5_y(d5_dims(2))
+!write(*,'(a,3f12.5)') ' z Z    ', h5_z(1), h5_z(d5_dims(3))
+call lib_get_use_coor(h5_vectors, h5_calc_coor, h5_use_coor)
 if(ier_num==0) then
 !
    call dgl5_new_node
@@ -576,7 +602,8 @@ if(ier_num==0) then
    if(d5_dims(1)>1) nndims = nndims + 1
    dims   = d5_dims
    call dgl5_set_node(h5_infile, h5_layer, h5_direct, nndims, d5_dims ,         &
-                   h5_is_grid, h5_has_dxyz, h5_has_dval, h5_corners, h5_vectors,&
+                   h5_is_grid, h5_has_dxyz, h5_has_dval, h5_calc_coor, h5_use_coor, &
+                   h5_corners, h5_vectors,&
                    h5_unit(1:3), h5_unit(4:6), h5_x, h5_y, h5_z, h5_dx, h5_dy,  &
                    h5_dz,      d5_data               , d5_sigma, h5_llims,      &
                    h5_steps, h5_steps_full)
@@ -606,6 +633,7 @@ INTEGER FUNCTION op_func(loc_id, name, info, operator_data) bind(C)
     USE allocate_generic
     USE HDF5
     USE ISO_C_BINDING
+use trig_degree_mod
     IMPLICIT NONE
      
     INTEGER, PARAMETER ::MAXSTR = 1024

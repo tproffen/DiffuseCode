@@ -27,6 +27,7 @@ public dgl5_get_ndims
 public dgl5_get_infile
 public dgl5_get_dims
 public dgl5_get_lattice
+public dgl5_get_corners
 public dgl5_get_llims
 public dgl5_get_steps
 public dgl5_get_minmax
@@ -36,6 +37,7 @@ public dgl5_get_tmap
 public dgl5_get_x
 public dgl5_get_y
 public dgl5_get_z
+public dgl5_get_calccoor
 public dgl5_get_data
 public dgl5_get_number
 public dgl5_set_is_grid
@@ -51,6 +53,8 @@ public dgl5_set_z
 public data2local
 public local2data
 public fft2data
+public dgl5_calc_coor
+public dgl5_get_xyz
 public dgl5_reset
 !
 integer, parameter ::  maxkurvtot = 200      ! Relic from KUPLOT
@@ -145,6 +149,8 @@ h5_temp%dims       = h5_find%dims           ! Actual dimensions
 h5_temp%is_grid    = h5_find%is_grid        ! Data are on periodic grid
 h5_temp%has_dxyz   = h5_find%has_dxyz       ! Data have uncertainties on coordinates
 h5_temp%has_dval   = h5_find%has_dval       ! Data have uncertainties in valu
+h5_temp%calc_coor  = h5_find%calc_coor      ! Need to calculate coordinates
+h5_temp%use_coor   = h5_find%use_coor       ! Use these indices
 h5_temp%corners    = h5_find%corners        ! 
 h5_temp%vectors    = h5_find%vectors        ! 
 h5_temp%cr_a0      = h5_find%cr_a0
@@ -170,7 +176,8 @@ end subroutine dgl5_copy_node
 !*******************************************************************************
 !
 subroutine dgl5_set_node(l_infile, l_layer, l_direct, l_ndims, l_dims, &
-                   l_is_grid,l_has_dxyz, l_has_dval, l_corners, l_vectors, l_cr_a0, l_cr_win, &
+                   l_is_grid,l_has_dxyz, l_has_dval, l_calc_coor, l_use_coor, &
+                   l_corners, l_vectors, l_cr_a0, l_cr_win, &
                    l_x, l_y, l_z, l_dx, l_dy, l_dz,                 &
                    l_data, l_sigma, l_llims, l_steps,  &
                    l_steps_full)
@@ -184,6 +191,8 @@ integer                                 , intent(in) :: l_ndims          ! Numbe
 integer           , dimension(3)        , intent(in) :: l_dims           ! Actual dimensions
 logical                                 , intent(in) :: l_is_grid        ! Data on periodic grid
 logical                                 , intent(in) :: l_has_dxyz       ! Data on periodic grid
+logical                                 , intent(in) :: l_calc_coor      ! Need to calculate coordinates
+integer           , dimension(3)        , intent(in) :: l_use_coor       ! Use these coordinates
 logical                                 , intent(in) :: l_has_dval       ! Data on periodic grid
 real(kind=PREC_DP), dimension(3,4)      , intent(in) :: l_corners        ! 
 real(kind=PREC_DP), dimension(3,3)      , intent(in) :: l_vectors        ! 
@@ -209,6 +218,8 @@ h5_temp%dims     = l_dims           ! Actual dimensions
 h5_temp%is_grid  = l_is_grid        ! Actual dimensions
 h5_temp%has_dxyz = l_has_dxyz       ! Actual dimensions
 h5_temp%has_dval = l_has_dval       ! Actual dimensions
+h5_temp%calc_coor= l_calc_coor      ! Actual dimensions
+h5_temp%use_coor = l_use_coor       ! Actual dimensions
 h5_temp%corners  = l_corners        ! Actual dimensions
 h5_temp%vectors  = l_vectors        ! Actual dimensions
 h5_temp%cr_a0    = l_cr_a0          ! Lattice parameters
@@ -248,7 +259,8 @@ end subroutine dgl5_set_node
 !*******************************************************************************
 !
 subroutine dgl5_get_node(l_infile, l_layer, l_direct, l_ndims, l_dims, &
-                   l_is_grid,l_has_dxyz, l_has_dval, l_corners, l_vectors, l_cr_a0, l_cr_win, &
+                   l_is_grid,l_has_dxyz, l_has_dval, l_calc_coor, l_use_coor, &
+                   l_corners, l_vectors, l_cr_a0, l_cr_win, &
                    l_x, l_y, l_z, l_dx, l_dy, l_dz,                 &
                    l_data, l_sigma, l_llims, l_steps,  &
                    l_steps_full,l_minmaxval, l_minmaxcoor)
@@ -263,6 +275,8 @@ integer           , dimension(3)             , intent(out) :: l_dims           !
 logical                                      , intent(out) :: l_is_grid        ! Data on periodic grid
 logical                                      , intent(out) :: l_has_dxyz       ! Data on periodic grid
 logical                                      , intent(out) :: l_has_dval       ! Data on periodic grid
+logical                                      , intent(out) :: l_calc_coor      ! Need to calculate coordinates
+integer           , dimension(3)             , intent(out) :: l_use_coor       ! Use these coordinates
 real(kind=PREC_DP), dimension(3,4)           , intent(out) :: l_corners        ! 
 real(kind=PREC_DP), dimension(3,3)           , intent(out) :: l_vectors        ! 
 real(kind=PREC_DP), dimension(3)             , intent(out) :: l_cr_a0          ! 
@@ -289,6 +303,8 @@ l_dims     = h5_temp%dims           ! Actual dimensions
 l_is_grid  = h5_temp%is_grid        ! Actual dimensions
 l_has_dxyz = h5_temp%has_dxyz       ! Actual dimensions
 l_has_dval = h5_temp%has_dval       ! Actual dimensions
+l_calc_coor= h5_temp%calc_coor      ! Actual dimensions
+l_use_coor = h5_temp%use_coor       ! Actual dimensions
 l_corners  = h5_temp%corners        ! Actual dimensions
 l_vectors  = h5_temp%vectors        ! Actual dimensions
 l_cr_a0    = h5_temp%cr_a0          ! Lattice parameters
@@ -301,7 +317,10 @@ allocate(l_z(1:h5_temp%dims(3)))
    l_x        = h5_temp%x              ! Actual x-coordinates
    l_y        = h5_temp%y              ! Actual y-coordinates
    l_z        = h5_temp%z              ! Actual z-coordinates
-!endif
+if(h5_temp%calc_coor) then               ! Need to calculate coordinates
+   call dgl5_calc_coor(l_dims, l_layer, l_corners, l_vectors, &
+                       l_use_coor, l_x,l_y,l_z)
+endif
 !if(h5_temp%has_dxyz) then
    l_dx        = h5_temp%dx              ! Actual x-coordinates uncertainties
    l_dy        = h5_temp%dy              ! Actual y-coordinates uncertainties
@@ -323,9 +342,12 @@ l_minmaxcoor(2,1) = minval(h5_temp%y)
 l_minmaxcoor(2,2) = maxval(h5_temp%y)
 l_minmaxcoor(3,1) = minval(h5_temp%z)
 l_minmaxcoor(3,2) = maxval(h5_temp%z)
-!write(*,*) ' get_node   ' , allocated(l_x), allocated(h5_temp%dx), h5_temp%data_num
-!write(*,*) ' X in NODE ', minval(h5_temp%x), maxval(h5_temp%x)
-!write(*,*) ' X in NODE ', minval(l_x), maxval(l_x)
+h5_temp%minmaxcoor(1,1) = minval(l_x)    ! Update minmax coordinates in node
+h5_temp%minmaxcoor(1,2) = maxval(l_x)
+h5_temp%minmaxcoor(2,1) = minval(l_y)
+h5_temp%minmaxcoor(2,2) = maxval(l_y)
+h5_temp%minmaxcoor(3,1) = minval(l_z)
+h5_temp%minmaxcoor(3,2) = maxval(l_z)
 !
 end subroutine dgl5_get_node
 !
@@ -543,6 +565,21 @@ end subroutine dgl5_get_llims
 !
 !*******************************************************************************
 !
+subroutine dgl5_get_corners(idata, corners)
+!
+use precision_mod
+!
+implicit none
+!
+integer,               intent(in)  :: idata
+real(kind=PREC_DP), dimension(3,4), intent(out) ::  corners
+!
+corners = h5_temp%corners
+!
+end subroutine dgl5_get_corners
+!
+!*******************************************************************************
+!
 subroutine dgl5_get_minmax(idata, minmax)
 !
 use precision_mod
@@ -632,6 +669,20 @@ real(kind=PREC_DP), dimension(dims(1)), intent(out) :: z
 z = h5_temp%z
 !
 end subroutine dgl5_get_z
+!
+!*******************************************************************************
+!
+subroutine dgl5_get_calccoor(calc_coor, use_coor)
+!
+implicit none
+!
+logical                         ,       intent(out)  :: calc_coor
+integer,            dimension(3),       intent(out)  :: use_coor
+!
+calc_coor = h5_temp%calc_coor
+ use_coor = h5_temp%use_coor
+!
+end subroutine dgl5_get_calccoor
 !
 !*******************************************************************************
 !
@@ -875,6 +926,8 @@ integer                  , dimension(3)                 , intent(out) :: dims   
 logical                                                 , intent(out)    :: is_grid     ! Data on periodic grid 
 logical                                                 , intent(out)    :: has_dxyz    ! Data on periodic grid 
 logical                                                 , intent(out)    :: has_dval    ! Data on periodic grid 
+logical                                                                  :: calc_coor ! Need to calculate coordinates
+integer                  , dimension(3)                                  :: use_coor  ! Use these axes for coordinates
 real(kind=PREC_DP)       , dimension(3,4)               , intent(out)    :: corners    ! Lattice parameter
 real(kind=PREC_DP)       , dimension(3,3)               , intent(out)    :: vectors    ! Lattice parameter
 real(kind=PREC_DP)       , dimension(3)                 , intent(out)    :: a0          ! Lattice parameter
@@ -899,11 +952,11 @@ layer = dgl5_get_layer()
 if(ier_num/=0) return
 !
 call dgl5_get_node(infile, layer, is_direct, ndims, dims,                    &
-                      is_grid, has_dxyz, has_dval, corners, vectors, a0, win,   &
+                      is_grid, has_dxyz, has_dval, calc_coor, use_coor,      &
+                      corners, vectors, a0, win,   &
                       x, y, z, dx, dy, dz,                                      &
                       odata, sigma, llims, steps,                               &
                       steps_full, minmaxval, minmaxcoor)
-!write(*,*) ' DATA2local ' , allocated(x)
 !
 end subroutine data2local
 !
@@ -939,6 +992,8 @@ integer                  , dimension(3)                 , intent(in) :: dims    
 logical                                                 , intent(in)    :: is_grid     ! Data on periodic grid 
 logical                                                 , intent(in)    :: has_dxyz    ! Data on periodic grid 
 logical                                                 , intent(in)    :: has_dval    ! Data on periodic grid 
+logical                                                                 :: calc_coor ! Need to calculate coordinates
+integer                  , dimension(3)                                 :: use_coor  ! Use these axes for coordinates
 real(kind=PREC_DP)       , dimension(3,4)               , intent(in)    :: corners    ! Lattice parameter
 real(kind=PREC_DP)       , dimension(3,3)               , intent(in)    :: vectors    ! Lattice parameter
 real(kind=PREC_DP)       , dimension(3)                 , intent(in)    :: a0          ! Lattice parameter
@@ -1000,7 +1055,8 @@ dz = 0.0D0
 call dgl5_set_ku_is_h5(ik, node_number)
 call dgl5_set_h5_is_ku(node_number, ik)
 call dgl5_set_node(infile, layer, is_direct, ndims, dims, &
-                   is_grid, has_dxyz, has_dval, corners, vectors,  &
+                   is_grid, has_dxyz, has_dval, calc_coor, use_coor, &
+                   corners, vectors,  &
                    a0, win, x, y, z, dx, dy, dz, &
                    odata, sigma, llims, steps,  &
                    steps_full)
@@ -1140,6 +1196,70 @@ h5_h5_is_ku = 0
 h5_ku_is_h5 = 0
 !
 end subroutine dgl5_reset
+!
+!*******************************************************************************
+!
+subroutine dgl5_get_xyz(i,j,k, xyz)
+!-
+!  Calculate coordinates for pixel i,j,k
+!+
+use precision_mod
+!
+implicit none
+!
+integer , intent(in) :: i
+integer , intent(in) :: j
+integer , intent(in) :: k
+real(kind=PREC_DP), dimension(3), intent(out) :: xyz
+!
+xyz = h5_temp%corners(:,1) + (i-1)*h5_temp%vectors(:,1)    &
+                           + (j-1)*h5_temp%vectors(:,2)    &
+                           + (k-1)*h5_temp%vectors(:,3)
+!
+end subroutine dgl5_get_xyz
+!
+!*******************************************************************************
+!
+subroutine dgl5_calc_coor(l_dims, l_layer, l_corners, l_vectors, &
+           l_use_coor, l_x,l_y,l_z)
+!-
+!  Calculate 2D coordinates for the current layer
+!
+use precision_mod
+!
+implicit none
+!
+integer           , dimension(3)        , intent(in)  :: l_dims  ! Dimensions
+integer                                 , intent(in)  :: l_layer ! At this layer
+real(kind=PREC_DP), dimension(3,4)      , intent(in)  :: l_corners   ! Corners of space
+real(kind=PREC_DP), dimension(3,3)      , intent(in)  :: l_vectors   ! Vectors along abs, ord, top
+integer           , dimension(3)        , intent(in)  :: l_use_coor  ! Dimensions
+real(kind=PREC_DP), dimension(l_dims(1)), intent(out) :: l_x
+real(kind=PREC_DP), dimension(l_dims(2)), intent(out) :: l_y
+real(kind=PREC_DP), dimension(l_dims(3)), intent(out) :: l_z
+integer :: i
+real(kind=PREC_DP), dimension(3) :: vect
+!
+   do i=1, l_dims(1)
+      vect = l_corners(:,1) + (i-1)            *l_vectors(:,1)  &
+                            + ((l_dims(2)+1)/2)*l_vectors(:,2)  &
+                            + (l_layer-1)      *l_vectors(:,3)
+      l_x(i) = vect(l_use_coor(1))
+   enddo
+   do i=1, l_dims(2)
+      vect = l_corners(:,1) + (i-1)            *l_vectors(:,2)  &
+                            + ((l_dims(1)+1)/2)*l_vectors(:,1)  &
+                            + (l_layer-1)      *l_vectors(:,3)
+      l_y(i) = vect(l_use_coor(2))
+   enddo
+   do i=1, l_dims(3)
+      vect = l_corners(:,1) + (i-1)            *l_vectors(:,3)  &
+                            + ((l_dims(1)+1)/2)*l_vectors(:,1)  &
+                            + ((l_dims(2)+1)/2)*l_vectors(:,2)
+      l_z(i) = vect(l_use_coor(3))
+   enddo
+!
+end subroutine dgl5_calc_coor
 !
 !*******************************************************************************
 !

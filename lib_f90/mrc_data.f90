@@ -214,6 +214,8 @@ logical                 :: mrc_direct
 logical                 :: mrc_is_grid
 logical                 :: mrc_has_dxyz
 logical                 :: mrc_has_dval
+logical                 :: mrc_calc_coor
+integer, dimension(3)   :: mrc_use_coor
 real(kind=PREC_DP), dimension(3,4) :: mrc_corners
 real(kind=PREC_DP), dimension(3,4) :: mrc_vectors
 real(kind=PREC_DP), dimension(6  ) :: mrc_unit
@@ -414,9 +416,12 @@ enddo
 mrc_pixel_size = pxsize*1.0E-10
 rpara(500) = mrc_pixel_size
 !
+mrc_calc_coor = .false.
+mrc_use_coor = (/ 1, 2, 3/)
 !write(*,*) ' MAKE GLOBAL STORAGE '
 call dgl5_set_node(filename , mrc_layer, mrc_direct, nndims,    dims ,         &
-                   mrc_is_grid, mrc_has_dxyz, mrc_has_dval, mrc_corners, mrc_vectors,&
+                   mrc_is_grid, mrc_has_dxyz, mrc_has_dval, &
+                   mrc_calc_coor, mrc_use_coor, mrc_corners, mrc_vectors,&
                    mrc_unit(1:3), mrc_unit(4:6), mrc_x, mrc_y, mrc_z, mrc_dx, mrc_dy,  &
                    mrc_dz,        odata               ,   osigma, mrc_llims,      &
                    mrc_steps, mrc_steps_full)

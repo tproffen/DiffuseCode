@@ -283,8 +283,31 @@ CALL H5Fclose_f(file_id , hdferr)
 !
 CALL h5close_f(hdferr)
 DEALLOCATE(values)
+!call gen_hdf5_show(outfile, uc_hdf, out_vi)
 !
 END SUBROUTINE gen_hdf5_write
+!
+!*****7*****************************************************************
+!
+subroutine gen_hdf5_show(outfile, uc_hdf, out_vi)
+!-
+! Show values written into HDF5 FILE
+!+
+use prompt_mod
+!
+implicit none
+!
+character(len=*), intent(in) :: outfile
+real(kind=PREC_DP), dimension(1:6), intent(in)     :: uc_hdf  ! Unit cell dimensions
+REAL(kind=PREC_DP)   , DIMENSION(3,3), INTENT(IN) :: out_vi 
+!
+write(output_io, '(a, a)')          ' Outputfile : ', outfile(1:len_trim(outfile))
+write(output_io, '(a, 6(2x,f8.4))') ' Unit cell  : ', uc_hdf
+write(output_io, '(a, 6(2x,f8.4))') ' Abscissa   : ', out_vi(:,1)
+write(output_io, '(a, 6(2x,f8.4))') ' Ordinate   : ', out_vi(:,2)
+write(output_io, '(a, 6(2x,f8.4))') ' Top axis   : ', out_vi(:,3)
+
+end subroutine gen_hdf5_show
 !
 !*****7*****************************************************************
 !

@@ -15,6 +15,8 @@ type :: h5_data_struc
    logical                                               :: is_grid        ! Data have grid like coordinates
    logical                                               :: has_dxyz       ! Data have uncertainties in xyz
    logical                                               :: has_dval       ! Data have uncertainties in value
+   logical                                               :: calc_coor      ! Coordinates must be calculated from scratch
+   integer              , dimension(3)                   :: use_coor       ! Which index is used for x,y,z axes
    real(kind=PREC_DP)   , dimension(3,4)                 :: corners ! (3,4)
    real(kind=PREC_DP)   , dimension(3,3)                 :: vectors
    real(kind=PREC_DP)   , dimension(3)                   :: cr_a0

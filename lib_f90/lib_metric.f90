@@ -214,7 +214,7 @@ SUBROUTINE  lib_angles(ltop, length, &
    angle_vh, ratio_vh, aver_vh, &
                                      angle_ht, ratio_ht, aver_ht, &
                                      angle_tv, ratio_tv, aver_tv, &
-   gten, inc, vi)
+   gten, inc, vi, use_coor)
 !
 !USE diffuse_mod 
 !USE metric_mod
@@ -237,11 +237,12 @@ REAL(KIND=PREC_DP)            , INTENT(OUT)::   aver_tv
 REAL(kind=PREC_DP), DIMENSION(3,3), intent(in) :: gten   ! Direct or reciprocal metric tensor
 integer           , dimension(3)  , intent(in) :: inc
 REAL(kind=PREC_DP), DIMENSION(3,3), intent(in) :: vi     ! Direct or reciprocal metric tensor
+integer           , dimension(3)  , intent(in) :: use_coor  ! Use this index for coordinates
 !
 !
-integer, parameter :: extr_abs = 1
-integer, parameter :: extr_ord = 2
-integer, parameter :: extr_top = 3
+integer  :: extr_abs = 1
+integer  :: extr_ord = 2
+integer  :: extr_top = 3
 REAL(kind=PREC_DP), DIMENSION(3)             ::  hor
 REAL(kind=PREC_DP), DIMENSION(3)             ::  ver
 REAL(kind=PREC_DP), DIMENSION(3)             ::  top
@@ -252,12 +253,25 @@ hor(:) = vi(:,1)
 ver(:) = vi(:,2)
 top(:) = vi(:,3)
 length(:) = 0.0
+extr_abs = use_coor(1)
+extr_ord = use_coor(2)
+extr_top = use_coor(3)
 IF(inc(1)>1) length(1) = lib_blen(gten,hor)
 IF(inc(2)>1) length(2) = lib_blen(gten,ver)
 IF(inc(3)>1) length(3) = lib_blen(gten,top)
+!write(*,'(a,3f12.8)') ' Tensor   1 ', gten(:,1)
+!write(*,'(a,3f12.8)') ' Tensor   2 ', gten(:,2)
+!write(*,'(a,3f12.8)') ' Tensor   3 ', gten(:,3)
+!write(*,'(a,3f12.8)') ' vi       1 ', vi  (:,1)
+!write(*,'(a,3f12.8)') ' vi       2 ', vi  (:,2)
+!write(*,'(a,3f12.8)') ' vi       3 ', vi  (:,3)
+!write(*,'(a,3f12.8)') ' Lengths vi ', length
+!write(*,'(a,3i3)')    ' Use        ', extr_abs, extr_ord,extr_top
 CALL lib_angle(angle_vh, inc(2), inc(1), ver, hor,        &
            length(2), length(1), extr_ord, extr_abs,  &
            ratio_vh, aver_vh, gten)
+!write(*,'(a,3f12.5)') ' angle rat aver ', angle_vh,ratio_vh, aver_vh 
+!write(*,'(a,3f12.5)') ' angle rat aver ', angle_vh,ratio_vh*(inc(2)-1)/(inc(1)-1)
 IF(ltop .AND. inc(3)>1 .AND.length(3)>0.0) THEN
    CALL lib_angle(angle_ht, inc(3), inc(1), hor, top,        &
               length(1), length(3), extr_abs, extr_top,  &

@@ -523,17 +523,20 @@ integer :: i,j,k   ! Indices in old data set
 integer :: ii,jj,kk   ! Indices in old data set
 !integer :: l,m,n   ! Indices in new data set
 integer, dimension(3) :: lmn   ! Indices in new data set
+logical               :: is_direct         ! Direct=TRUE
 real(kind=PREC_DP), dimension(3) :: vect   ! Pixel vector in old system
 real(kind=PREC_DP), dimension(3) :: resl   ! Pixel vector in new system
 real(kind=PREC_DP)               :: new_valmax   ! Pixel vector in new system
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: weight         ! Weights for pixels in new data
 !
 !new_vi = vz
+is_direct = value==VAL_PDF .or. value==VAL_3DPDF
 !write(*,*) ' MAIN inc ', new_INC_user
 !write(*,*) ' MAIN eck ', new_eck_user
 !write(*,*) ' MAIN vi  ', new_vi_user
 !write(*,*) ' MAIN zone', new_zone_user
 call build_new(old_inc, old_eck, old_vi, old_icenter, cr_a0, cr_win, &
+               is_direct, &
                lib_tr_mat, lib_in_mat,                 &
                new_inc, new_eck, new_vi, new_zone, new_icenter,  &
                new_inc_user, new_eck_user, new_vi_user, new_zone_user )
@@ -546,18 +549,26 @@ weight   = 0.0
 !write(*,*) ' START TRANSFORMATION '
 !write(*,*) ' old_inc ', old_inc
 !write(*,*) ' old_icen', old_icenter
-!write(*,*) ' Matrix  ', lib_tr_mat(:,1)
-!write(*,*) ' Matrix  ', lib_tr_mat(:,2)
-!write(*,*) ' Matrix  ', lib_tr_mat(:,3)
-!write(*,*) ' new_inc ', new_inc
-!write(*,*) ' new_icen', new_icenter
-!write(*,*) ' new_LLB ', new_eck(:,1)
-!write(*,*) ' new_RLB ', new_eck(:,2)
-!write(*,*) ' new_LUB ', new_eck(:,3)
-!write(*,*) ' new_LLT ', new_eck(:,4)
-!write(*,*) ' new_abs ', new_vi (:,1)
-!write(*,*) ' new_ord ', new_vi (:,2)
-!write(*,*) ' new_top ', new_vi (:,3)
+!write(*,'(a,3(f10.5,2x))') ' Matrix  ', lib_tr_mat(:,1)
+!write(*,'(a,3(f10.5,2x))') ' Matrix  ', lib_tr_mat(:,2)
+!write(*,'(a,3(f10.5,2x))') ' Matrix  ', lib_tr_mat(:,3)
+!write(*,'(a,3(i5      ))') ' new_inc ', new_inc
+!write(*,'(a,3(i5      ))') ' new_icen', new_icenter
+i = new_inc(1)/2
+j = new_inc(2)/2
+k = new_inc(3)/2
+vect =  -i*new_vi(:,1)  -j*new_vi(:,2) -k*new_vi(:,3)
+!write(*,'(a,2(3(f10.5,2x),4x))') ' new_LLB ', new_eck(:,1), vect
+vect =  +i*new_vi(:,1)  -j*new_vi(:,2) -k*new_vi(:,3)
+!write(*,'(a,2(3(f10.5,2x),4x))') ' new_RLB ', new_eck(:,2), vect
+vect =  -i*new_vi(:,1)  +j*new_vi(:,2) -k*new_vi(:,3)
+!write(*,'(a,2(3(f10.5,2x),4x))') ' new_LUB ', new_eck(:,3), vect
+vect =  -i*new_vi(:,1)  -j*new_vi(:,2) +k*new_vi(:,3)
+!write(*,'(a,2(3(f10.5,2x),4x))') ' new_LLT ', new_eck(:,4), vect
+
+!write(*,'(a,3(f10.5,2x))') ' new_abs ', new_vi (:,1)
+!write(*,'(a,3(f10.5,2x))') ' new_ord ', new_vi (:,2)
+!write(*,'(a,3(f10.5,2x))') ' new_top ', new_vi (:,3)
 do kk=1, old_inc(3)
    k = kk - old_icenter(3)
    vect(3) = real(k,kind=PREC_DP)
@@ -569,6 +580,10 @@ do kk=1, old_inc(3)
          vect(1) = real(i,kind=PREC_DP)
          resl = matmul(lib_tr_mat, vect)
          lmn = int(resl(:)) + new_icenter(:)
+!if(kk==old_icenter(3) .and. jj==old_icenter(2) .and. ii==old_icenter(1)) then
+!   write(*,'(2(a, 3i6))') ' At indices ', ii,jj,kk, ' ',i,j,k
+!   write(*,'(2(a, 3i6))') ' New ind    ', lmn, ' ', nint(resl)
+!endif
          if(all(lmn>0) .and. all(lmn<=new_inc)) then
             new_data(lmn(1), lmn(2), lmn(3)) = new_data(lmn(1), lmn(2), lmn(3)) + &
                                                qvalues(ii,jj,kk)
@@ -599,7 +614,7 @@ if(idata < 0 ) then      ! Pure output data, write and deallocate
    endif
 CALL gen_hdf5_write (value, laver, new_outfile, new_inc, new_eck, new_vi, &
                      extr_abs, extr_ord, extr_top, &
-                     cr_a0, cr_win, new_data,val_pdf, val_3Dpdf, new_valmax,  &
+                     cr_a0, cr_win, new_data,VAL_PDF, VAL_3DPDF, new_valmax,  &
                      ier_num, ier_typ, ER_IO, ER_APPL)
 !
 deallocate(new_data)
@@ -612,6 +627,7 @@ end subroutine lib_trans_main
 !*******************************************************************************
 !
 subroutine build_new(orig_old_inc, orig_old_eck, orig_old_vi, old_icenter, cr_a0, cr_win, &
+                     is_direct, &
                      lib_tr_mat, lib_in_mat,                &
                      new_inc, new_eck, new_vi, new_zone, new_icenter, &
                      orig_new_inc_user, orig_new_eck_user, orig_new_vi_user, orig_new_zone_user)
@@ -634,6 +650,7 @@ real(kind=PREC_DP), dimension(3,3), intent(in)    :: orig_old_vi   ! Old increme
 integer           , dimension(3)  , intent(out)   :: old_icenter   ! Old center in pixels
 real(kind=PREC_DP), dimension(3)  , intent(in)    :: cr_a0         ! Lattice parameters 
 real(kind=PREC_DP), dimension(3)  , intent(in)    :: cr_win        ! Lattice angles 
+logical                           , intent(in)    :: is_direct     ! Direct space == TRUE
 real(kind=PREC_DP), dimension(3,3), intent(out)   :: lib_tr_mat    ! Transformation matrix old => new
 real(kind=PREC_DP), dimension(3,3), intent(out)   :: lib_in_mat    ! Transformation matrix new => old
 integer           , dimension(3)  , intent(inout) :: new_inc       ! New pixel numbers
@@ -676,6 +693,11 @@ call matinv(gten, rten)
 call lib_eps(gten, eps)
 call lib_eps(rten, reps)
 !
+!write(*,*) ' METRIC '
+!write(*,'(2(3(f6.3,2x),2x))') gten(1,:), rten(1,:)
+!write(*,'(2(3(f6.3,2x),2x))') gten(2,:), rten(2,:)
+!write(*,'(2(3(f6.3,2x),2x))') gten(3,:), rten(3,:)
+!
 old_inc = orig_old_inc
 old_eck = orig_old_eck
 old_vi  = orig_old_vi
@@ -715,11 +737,16 @@ do i=1, 3
 enddo
 !
 if_zone:if(new_zone_user) then                  ! User provided zone axis
-!write(*,*) ' MODE ZONE AXIS '
-   call lib_d2r(gten, rten, new_zone, new_zone_r, new_zone_rn)  ! Transform Zone axis into reciprocal space
-   call lib_vector_product(new_zone_rn, new_vi(:,1), new_vi(:,2), reps, gten)  ! Build direction of ordinate
+   if(is_direct) then
+      call lib_d2r(rten, gten, new_zone, new_zone_r, new_zone_rn)  ! Transform Zone axis into direct    space
+      call lib_vector_product(new_zone_rn, new_vi(:,1), new_vi(:,2),  eps, rten)  ! Build direction of ordinate
+   else
+      call lib_d2r(gten, rten, new_zone, new_zone_r, new_zone_rn)  ! Transform Zone axis into reciprocal space
+      call lib_vector_product(new_zone_rn, new_vi(:,1), new_vi(:,2), reps, gten)  ! Build direction of ordinate
+   endif
    new_vi(:,2) = new_vi(:,2)/lib_blen(rten,new_vi(:,2))*lib_blen(rten,new_vi(:,1)) !Initially take, abs, ord, zone_rn
    new_vi(:,3) = new_zone_rn/lib_blen(rten,new_zone_rn)*lib_blen(rten,new_vi(:,1)) !Initially take, abs, ord, zone_rn
+   call right_check(new_vi)      ! Check righthandedness and positive exes
    call build_trans(old_vi, new_vi, lib_tr_mat, lib_in_mat) ! Build a temporary transformation matrix
 !  Use build corners to determine temporary number of data points
    call build_corners(old_eck, old_inc, old_icenter, lib_tr_mat, lib_in_mat, &
@@ -735,9 +762,15 @@ if_zone:if(new_zone_user) then                  ! User provided zone axis
          new_vi(:,i) = new_vi(:,i)*real(points (i),kind=PREC_DP)/real(old_inc(i),kind=PREC_DP)
       enddo
    endif
+!write(*,'(a,2(3(f6.3,2x),2x))') ' OLD_VI  NEW_VI', old_vi(:,1),  new_vi(:,1) 
+!write(*,'(a,2(3(f6.3,2x),2x))') ' OLD_VI  NEW_VI', old_vi(:,2),  new_vi(:,2) 
+!write(*,'(a,2(3(f6.3,2x),2x))') ' OLD_VI  NEW_VI', old_vi(:,3),  new_vi(:,3) 
    call build_trans(old_vi, new_vi, lib_tr_mat, lib_in_mat) ! Build a temporary transformation matrix
    call build_corners(old_eck, old_inc, old_icenter, lib_tr_mat, lib_in_mat, &
                       new_inc, new_eck, new_vi, new_icenter)
+!write(*,'(a,2(3(f6.3,2x),2x))') ' OLD_VI  NEW_VI', old_vi(:,1),  new_vi(:,1) 
+!write(*,'(a,2(3(f6.3,2x),2x))') ' OLD_VI  NEW_VI', old_vi(:,2),  new_vi(:,2) 
+!write(*,'(a,2(3(f6.3,2x),2x))') ' OLD_VI  NEW_VI', old_vi(:,3),  new_vi(:,3) 
 else  if_zone                                   ! No Zone axis mode
    if_corners:if(all(new_eck_user)) then         ! User provided all corners
 !write(*,*) ' MODE Corners   '
@@ -822,15 +855,15 @@ endif  if_zone
 !write(*,*) ' VI  U  ', new_vi_user
 !write(*,*) ' ZON U  ', new_zone_user
 !
-!write(*,*) ' abs    ', new_vi(:,1)
-!write(*,*) ' ord    ', new_vi(:,2)
-!write(*,*) ' top    ', new_vi(:,3)
-!write(*,*)
+!write(*,'(a,3(f10.4,2x))') ' abs    ', new_vi(:,1)
+!write(*,'(a,3(f10.4,2x))') ' ord    ', new_vi(:,2)
+!write(*,'(a,3(f10.4,2x))') ' top    ', new_vi(:,3)
+!write(*,'(a,3(f10.4,2x))')
 !
-!write(*,*) ' LLB    ', new_eck(:,1)
-!write(*,*) ' RLB    ', new_eck(:,2)
-!write(*,*) ' LUB    ', new_eck(:,3)
-!write(*,*) ' LLT    ', new_eck(:,4)
+!write(*,'(a,3(f10.4,2x))') ' LLB    ', new_eck(:,1)
+!write(*,'(a,3(f10.4,2x))') ' RLB    ', new_eck(:,2)
+!write(*,'(a,3(f10.4,2x))') ' LUB    ', new_eck(:,3)
+!write(*,'(a,3(f10.4,2x))') ' LLT    ', new_eck(:,4)
 !write(*,*)
 !
 !write(*,*) ' ZONE   ', new_zone
@@ -838,9 +871,9 @@ endif  if_zone
 !
 !write(*,*) ' INC    ', new_inc
 !write(*,*)
-!write(*,*) ' TRANS  ', lib_tr_mat(:,1)
-!write(*,*) ' TRANS  ', lib_tr_mat(:,2)
-!write(*,*) ' TRANS  ', lib_tr_mat(:,3)
+!write(*,'(a,3(f10.4,2x))') ' TRANS  ', lib_tr_mat(:,1)
+!write(*,'(a,3(f10.4,2x))') ' TRANS  ', lib_tr_mat(:,2)
+!write(*,'(a,3(f10.4,2x))') ' TRANS  ', lib_tr_mat(:,3)
 !write(*,*)
 !
 end subroutine build_new
@@ -1083,6 +1116,42 @@ end subroutine error_check
 !
 !*******************************************************************************
 !
+subroutine right_check(vi)
+!-
+! Check righthandedness and positive axes
+!+
+!
+use matrix_mod
+use lib_use_coor_mod
+use precision_mod
+!
+implicit none
+!
+real(kind=PREC_DP), dimension(3,3), intent(inout) :: vi ! Vectors abs, ord, top
+!
+logical                           :: calc_coor  ! Need to calculate coordinates
+integer           , dimension(3)  :: use_coor   ! Indices for A, O, T
+!
+call lib_get_use_coor(vi, calc_coor, use_coor)  ! Determine indices for abs, ord, top
+!
+if(vi(use_coor(1),1)< 0.0D0) then               ! Negative index at abscissa
+   vi(:,1) = -vi(:,1)                           ! Invert abscissa
+   vi(:,3) = -vi(:,3)                           ! Invert top axis
+endif
+!
+if(vi(use_coor(2),2)< 0.0D0) then               ! Negative index at ordinate
+   vi(:,2) = -vi(:,2)                           ! Invert ordinate
+   vi(:,3) = -vi(:,3)                           ! Invert top axis
+endif
+!
+if(determinant(vi)<0.0D0) then                  ! Test Righthanded
+   vi(:,3) = -vi(:,3)                           ! Invert top axis
+endif
+!
+end subroutine right_check
+!
+!*******************************************************************************
+!
 subroutine build_trans(vi, vz, lib_tr_mat, lib_in_mat)
 !-
 !  Calculate the transformation matrix from old vi-vectors to new vectors
@@ -1138,7 +1207,7 @@ real(kind=PREC_DP), dimension(3,3), intent(in)   :: lib_in_mat   ! Transformatio
 integer           , dimension(3)  , intent(out)  :: new_inc      ! New Number data points  original
 real(kind=PREC_DP), dimension(3,4), intent(out)  :: new_eck      ! The new corners (ll, lr, ul, tl)
 real(kind=PREC_DP), dimension(3,3)  , intent(in) :: new_vi       ! New increment vectors
-integer           , dimension(3)  , intent(out)  :: new_icenter  ! Old center in pixels
+integer           , dimension(3)  , intent(out)  :: new_icenter  ! New center in pixels
 !
 integer :: i, j   ! Dummy index
 integer           , dimension(3,1:8) :: lib_iocorners ! Old corners in pixels away from center
@@ -1155,6 +1224,15 @@ lib_ocorners(:,5)   =          eck(:,4)                          ! left  lower t
 lib_ocorners(:,6)   = lib_ocorners(:,5) + (eck(:,2) - eck(:,1))  ! right lower top
 lib_ocorners(:,7)   = lib_ocorners(:,5) + (eck(:,3) - eck(:,1))  ! left  upper top
 lib_ocorners(:,8)   = lib_ocorners(:,4) + (eck(:,4) - eck(:,1))  ! right upper top
+!write(*,*) ' OLD CORNERS ', inc
+!write(*,'(a,3(f7.3,2x))') ' Left  Low    Bottom ', lib_ocorners(:,1)
+!write(*,'(a,3(f7.3,2x))') ' Right Low    Bottom ', lib_ocorners(:,2)
+!write(*,'(a,3(f7.3,2x))') ' Left  Upper  Bottom ', lib_ocorners(:,3)
+!write(*,'(a,3(f7.3,2x))') ' Right Upper  Bottom ', lib_ocorners(:,4)
+!write(*,'(a,3(f7.3,2x))') ' Left  Low    Top    ', lib_ocorners(:,5)
+!write(*,'(a,3(f7.3,2x))') ' Right Low    Top    ', lib_ocorners(:,6)
+!write(*,'(a,3(f7.3,2x))') ' Left  Upper  Top    ', lib_ocorners(:,7)
+!write(*,'(a,3(f7.3,2x))') ' Right Upper  Top    ', lib_ocorners(:,8)
 !
 ! Corners with respect to new coordinate system
 do i=1, 8
@@ -1168,6 +1246,16 @@ do i=1, 3
       old_icenter(i) = (inc(i)+1)/2
    endif
 enddo
+!write(*,*) ' OLD CENTER ', old_icenter
+!write(*,*) ' NEW CORNERS '
+!write(*,'(a,3(f7.3,2x))') ' Left  Low    Bottom ', lib_ncorners(:,1)
+!write(*,'(a,3(f7.3,2x))') ' Right Low    Bottom ', lib_ncorners(:,2)
+!write(*,'(a,3(f7.3,2x))') ' Left  Upper  Bottom ', lib_ncorners(:,3)
+!write(*,'(a,3(f7.3,2x))') ' Right Upper  Bottom ', lib_ncorners(:,4)
+!write(*,'(a,3(f7.3,2x))') ' Left  Low    Top    ', lib_ncorners(:,5)
+!write(*,'(a,3(f7.3,2x))') ' Right Low    Top    ', lib_ncorners(:,6)
+!write(*,'(a,3(f7.3,2x))') ' Left  Upper  Top    ', lib_ncorners(:,7)
+!write(*,'(a,3(f7.3,2x))') ' Right Upper  Top    ', lib_ncorners(:,8)
 !
 lib_iocorners(:, 1) =  (/1     -old_icenter(1), 1     -old_icenter(2), 1     -old_icenter(3)/)  ! left  lower bottom
 lib_iocorners(:, 2) =  (/inc(1)-old_icenter(1), 1     -old_icenter(2), 1     -old_icenter(3)/)  ! right lower bottom
@@ -1195,6 +1283,7 @@ do i=1, 3
       new_icenter(i) = (new_inc(i)+1)/2
    endif
 enddo
+!write(*,*) ' NEW INC CEN ', new_inc, '   ', new_icenter
 !
 new_icorners(:, 1) =  (/1         - new_icenter(1), 1         - new_icenter(2), 1         - new_icenter(3)/)  ! left  lower bottom
 new_icorners(:, 2) =  (/new_inc(1)- new_icenter(1), 1         - new_icenter(2), 1         - new_icenter(3)/)  ! right lower bottom
