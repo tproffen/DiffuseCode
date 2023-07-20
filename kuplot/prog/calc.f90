@@ -1032,7 +1032,6 @@ ELSE                               ! 2D Data sets
          ind_out = offz(iz-1) + ibin
          z(ind_out) = z(ind_out) / npt(ibin)
       ENDIF
-if(ibin==1) write(*,*) 'ED ', iz, ind_out, ind_out
    ENDDO
 !
    DEALLOCATE(npt)
