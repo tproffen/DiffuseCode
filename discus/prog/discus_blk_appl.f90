@@ -205,6 +205,7 @@ mo_maxmove(:,0) = 0.0
 !                                                                       
 !     /mmcbl/                                                   
 !                                                                       
+mmc_style = MMC_IS_ATOM
       mmc_move = 0 
 !     DO i = 1, MC_N_MOVE 
       mmc_local       = rmc_local_all 
