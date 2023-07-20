@@ -193,7 +193,6 @@ use kuplot_plot_low_mod
          ELSEIF (hit_button (12, mx, my) ) THEN
             CALL draw_button (12, .false., .true.) 
             CALL do_layer(.true.)
-continue
             CALL draw_button (12, .false., .false.) 
          ENDIF 
       ENDIF 
@@ -473,6 +472,7 @@ USE kuplot_config
 USE kuplot_mod 
 use kuplot_draw_low_mod
 use kuplot_draw_tframe_mod
+use kuplot_para_mod
 USE kuplot_place
 use lib_data_struc_h5
 use kuplot_low_mod
@@ -487,25 +487,34 @@ LOGICAL, INTENT(IN) :: lmin
 CHARACTER(LEN=80) :: zeile, string 
 CHARACTER(LEN=1)  :: key 
 REAL              :: wx, wy!, hub 
-REAL              :: zz     ! Current height
 INTEGER ini 
 integer, dimension(3) :: h5_dims
 INTEGER :: n_layer
 LOGICAL :: is_direct
 LOGICAL :: lw, l2d!, n_in_f 
+real(kind=prec_DP), dimension(2) :: exy
+real(kind=prec_DP), dimension(3) :: pos
 !                                                                       
 lw = .true. 
 l2d = n_in_f (ini) 
+!
+exy(1) = xmin(iz-1)              ! Current lowest x
+exy(2) = ymin(iz-1)              ! Current lowest y
+
 !                                                                       
 call dgl5_get_dims(0, h5_dims)
 main_loop: DO
    n_layer   = dgl5_get_layer()
-   zz        = dgl5_get_height()
+!  zz        = dgl5_get_height()
    is_direct = dgl5_get_direct()
+   call dgl5_get_xyz( (h5_dims(1)+1)/2, (h5_dims(2)+1)/2 , n_layer         , pos)
    IF(is_direct) THEN
-      WRITE(zeile,'(''Currently at layer:'',i7,2x,'' w = '',F10.4)') n_layer, zz
+!     WRITE(zeile,'(''Currently at layer:'',i7,2x,'' w = '',F10.4)') n_layer, zz
+      WRITE(zeile, 1100)  'At',n_layer, 'uvw', pos
    ELSE
-      WRITE(zeile,'(''Currently at layer:'',i7,2x,'' l = '',F10.4)') n_layer, zz
+!     WRITE(zeile,'(''Currently at layer:'',i7,2x,'' l = '',F10.4)') n_layer, zz
+!     WRITE(zeile,'(''At layer:'',i7,2x,'' hkl = ['', 2(f8.3,1x), f8.3'']'')') n_layer, pos
+      WRITE(zeile, 1100)  'At',n_layer, 'hkl', pos
    ENDIF
    CALL frame_menu 
    CALL draw_tframe (zeile(1:LEN_TRIM(zeile)), &
@@ -530,6 +539,13 @@ main_loop: DO
    MAXARRAY, MAXKURVTOT, fname, iz, x, y, z, nx, ny, xmin, xmax, ymin, ymax,     &
    offxy, offz, lni, lh5, ku_ndims, lenc, ier_num, ier_typ, output_io)
    ENDIF 
+      ex (iwin, iframe, 1) = ex (iwin, iframe, 1) + ( xmin(iz - 1) - exy(1) )
+      ex (iwin, iframe, 2) = ex (iwin, iframe, 2) + ( xmin(iz - 1) - exy(1) )
+      ey (iwin, iframe, 1) = ey (iwin, iframe, 1) + ( ymin(iz - 1) - exy(2) )
+      ey (iwin, iframe, 2) = ey (iwin, iframe, 2) + ( ymin(iz - 1) - exy(2) )
+   call skalieren
+   exy(1) = xmin(iz-1)              ! Current lowest x
+   exy(2) = ymin(iz-1)              ! Current lowest y
    CALL draw_frame (iframe, lw) 
 ENDDO main_loop
 !                                                                       
@@ -537,28 +553,29 @@ CALL draw_frame (iframe, lw)
 CALL frame_menu 
 !
 n_layer   = dgl5_get_layer()
-zz        = dgl5_get_height()
+!zz        = dgl5_get_height()
+call dgl5_get_xyz( (h5_dims(1)+1)/2, (h5_dims(2)+1)/2 , n_layer, pos)
 is_direct = dgl5_get_direct()
 IF(is_direct) THEN
-   WRITE (zeile, 1000)  n_layer, zz
-   string = 'layer in res[1], height in res[2], direct==1 in res[3]'
+   WRITE (zeile, 1100)  'New', n_layer, 'uvw', pos
+   string = 'layer in res[1], height in res[2:4], direct==1 in res[5]'
 ELSE
-   WRITE (zeile, 1100)  n_layer, zz
-   string = 'layer in res[1], height in res[2], reciprocal==0 in res[3]'
+   WRITE (zeile, 1100)  'New', n_layer, 'hkl', pos
+   string = 'layer in res[1], height in res[2:4], reciprocal==0 in res[5]'
 ENDIF
 !                                                                       
 CALL draw_tframe (zeile, ' ', string)
-res_para(1) = REAL(n_layer)
-res_para(2) = zz
+res_para(1)   = real(n_layer)
+res_para(2:4) = pos
 IF(is_direct) THEN
-   res_para(3) = 1.0
+   res_para(5) = 1.0D0
 ELSE
-   res_para(3) = 0.0
+   res_para(5) = 0.0D0
 ENDIF
-res_para(0) = 3.0
+res_para(0) = 5.0D0
 !                                                                       
- 1000 FORMAT     ('New layer  : ',I7,2x, 'w = ', F10.4) 
- 1100 FORMAT     ('New layer  : ',I7,2x, 'l = ', F10.4) 
+!1000 FORMAT     ('New layer  : ',I7,2x, 'w = ', F10.4) 
+ 1100 FORMAT     (a,' layer  : ',I7,2x, a3,' = [', 2(f8.3,1x), f8.3,']') 
 !                                                                       
 END SUBROUTINE do_layer                      
 !
