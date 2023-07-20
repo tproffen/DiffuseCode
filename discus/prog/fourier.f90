@@ -84,7 +84,8 @@ IMPLICIT none
       INTEGER              :: istyle   ! Type of hkl file at 'hkl'
       INTEGER, DIMENSION(3):: csize
       LOGICAL              :: ldim 
-      LOGICAL              :: ltop = .false. ! the top left corner has been defined
+logical              :: ltop_c = .false. ! the top left corner coordinates have been defined
+logical              :: ltop_n = .false. ! the top left corner point number has been defined
       REAL(kind=PREC_DP)   , DIMENSION(3)::  divis
       REAL(kind=PREC_DP)   , DIMENSION(3)::  rhkl
 !                                                                       
@@ -109,12 +110,12 @@ owerte =  (/  0.0    ,  0.0    ,  0.0    ,  0.0     /)
 !
 !
 !
-      maxw     = MAX(MIN_PARA,MAXSCAT+1)
-      n_qxy    = 1
-      n_nscat  = 1
-      n_natoms = 1
-      orig_prompt = prompt
-      prompt = prompt (1:len_str (prompt) ) //'/fourier' 
+maxw     = MAX(MIN_PARA,MAXSCAT+1)
+n_qxy    = 1
+n_nscat  = 1
+n_natoms = 1
+orig_prompt = prompt
+prompt = prompt (1:len_str (prompt) ) //'/fourier' 
 diff_lsingle = .TRUE.
 !                                                                       
    10 CONTINUE 
@@ -461,14 +462,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                         IF (str_comp (befehl, 'lr', 2, lbef, 2) ) j = 2 
                         IF (str_comp (befehl, 'ul', 2, lbef, 2) ) j = 3 
                         IF (str_comp (befehl, 'tl', 2, lbef, 2) ) j = 4 
-                        IF (str_comp (befehl, 'tl', 2, lbef, 2) ) ltop = .true.
+                        IF (str_comp (befehl, 'tl', 2, lbef, 2) ) ltop_c = .true.
                         DO i = 1, 3 
                            eck (i, j) = werte (i) 
                         ENDDO 
                         DO i = 1, 3 
-                           vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis ( 1)                                              
-                           vi (i, 2) = (eck (i, 3) - eck (i, 1) ) / divis ( 2)                                              
-                           vi (i, 3) = (eck (i, 4) - eck (i, 1) ) / divis ( 3)                                              
+                           vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis ( 1)
+                           vi (i, 2) = (eck (i, 3) - eck (i, 1) ) / divis ( 2)
+                           vi (i, 3) = (eck (i, 4) - eck (i, 1) ) / divis ( 3)
                         ENDDO 
                      ENDIF 
                   ELSE 
@@ -620,7 +621,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                            vi (i, 2) = (eck (i, 3) - eck (i, 1) ) / divis (2)
                            vi (i, 3) = (eck (i, 4) - eck (i, 1) ) / divis (3)                                  
                            ENDDO 
-                           ltop = .true.
+                           ltop_n = .true.
                         ELSE 
                            ier_num = - 12 
                            ier_typ = ER_APPL 
@@ -668,15 +669,21 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                   ier_msg(2) = 'number of atoms in the crystal differs from '
                   ier_msg(3) = 'value set by ''set crystal''. Check dimensions.'
                ELSE   
-               IF(.not.ltop) THEN           ! The three-D corner was never defined, assume 2D
+               IF(.not.ltop_c ) then
+                  if( (.not.ltop_n) .or. inc(3)==1) THEN         ! The three-D corner was never defined, assume 2D
                   eck(1,4) = eck(1,1)       ! This is a layer
-                  eck(2,4) = eck(2,1)       ! Set verticval corner
+                  eck(2,4) = eck(2,1)       ! Set vertical corner
                   eck(3,4) = eck(3,1)       ! to lower left values
                   vi (1,3) = 0.00
                   vi (2,3) = 0.00
                   vi (3,3) = 0.00
                   inc(3)   = 1
                   divis(3) = 1
+                  else                   ! Three-D corner not defined but inc(3)/=1
+                     ier_num = -191
+                     ier_typ = ER_APPL
+                     ier_msg(1) = 'Use ''show'' to check values'
+                  endif
                ENDIF
                IF (inc(1) * inc(2) *inc(3) .gt. MAXQXY  .OR.    &
                    cr_natoms > DIF_MAXAT                .OR.    &
@@ -817,15 +824,21 @@ ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then
                   ELSEIF (ianz==  1) THEN 
                      CALL do_show_generic (cpara, lpara, maxw)
                   ELSEIF(ianz==0) THEN
-                     IF(.not.ltop) THEN           ! The three-D corner was never defined, assume 2D
+                     IF(.not.ltop_c) THEN         ! The three-D corner was never defined, assume 2D
+                        if( (.not.ltop_n) .or. inc(3)==1) THEN   ! The three-D corner was never defined, assume 2D
                         eck(1,4) = eck(1,1)       ! This is a layer
-                        eck(2,4) = eck(2,1)       ! Set verticval corner
+                        eck(2,4) = eck(2,1)       ! Set vertical corner
                         eck(3,4) = eck(3,1)       ! to lower left values
                         vi (1,3) = 0.00
                         vi (2,3) = 0.00
                         vi (3,3) = 0.00
                         inc(3)   = 1
                         divis(3) = 1
+                        else                   ! Three-D corner not defined but inc(3)/=1
+                           ier_num = -191
+                           ier_typ = ER_APPL
+                           ier_msg(1) = 'Use ''show'' to check values'
+                        endif
                      ENDIF
                      CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                                  diff_radiation, diff_table, diff_power) 
@@ -833,7 +846,7 @@ ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then
                        RETURN
                      ENDIF
                      IF(l_zone) CALL zone_setup     ! Setup zone axis pattern
-                     CALL four_show  ( ltop )
+                     CALL four_show  ( ltop_c )
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
@@ -940,7 +953,7 @@ ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then
                IF (str_comp (cpara(1), 'OFF', 3, lpara(1), 3) ) then 
                   l_zone = .false.
                   inc(3) =   1
-                  ltop   = .true.
+                  ltop_c   = .true.
                ELSE
                   IF (ianz.eq.4) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -959,7 +972,7 @@ ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then
                      inc(1)       = 512
                      inc(2)       = 512
                      inc(3)       =   1
-                     ltop         = .true.
+                     ltop_c       = .true.
                      renergy      = 200.00   ! Default to 200 keV
                      l_energy     = .true.
                      l_zone       = .true.
