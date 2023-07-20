@@ -78,12 +78,20 @@
 
    Here you find a list of recent changes, additions, bug corrections
 3  2023_July
+   mmc         Improved speed of the molecule version
    surface     Changed the names of the optional ellipsoid parameters:
                long  ==> third
                short ==> first
                Added the optional cylinder parameter
                axis
                Warnig this is not backward compatible.
+3  2023_June
+   plot        Added options to place Jmol window
+   output      Added better scaling options to "shelx", "hklf4", "list5" files
+   export      Improved storage of original space group into CIF file
+   read/cell   BUG FIX, multiple molecule were not properly recognized after
+               a save
+   show/symm   Added a flag to indicated generator matrices
 3  2023_May
    plot        Added a "posit:" optional parameter to the plot => run command
 3  2023_April
