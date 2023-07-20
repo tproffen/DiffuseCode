@@ -31,7 +31,7 @@ INTEGER :: i, j, k   ! Loop indices
 real(kind=PREC_DP), dimension(4,4) :: dummy   ! A dammy matrix
 real(kind=PREC_DP), dimension(4,4) :: imat    ! A unit  matrix
 !
-spc_gen = .false.
+spc_gen =  0
 spc_point = .false.
 imat = 0.0D0
 imat(1,1) = 1.0D0
@@ -3031,14 +3031,14 @@ loop_main: do                    ! Loop over all atoms in first unit cell
 !
    if(is_first) then
       cr_is_sym(iatom) = 1
-      u = cr_pos(:, iatom)       ! Use as original vector
+      u(1:3) = cr_pos(:, iatom)       ! Use as original vector
       u(4) = 1.0D0
       call firstcell(u, 4) 
       is_first = .false.         ! Assume next atom to be a copy
       cycle loop_main
    endif
 !
-   v = cr_pos(:,iatom)           ! Use as secondary vector
+   v(1:3) = cr_pos(:,iatom)           ! Use as secondary vector
    v(4) = 1.0D0
    call firstcell(v, 4) 
    loop_cen:do i=2, spc_n     ! Loop over all centering symmetry elements
