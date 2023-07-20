@@ -2060,7 +2060,8 @@ LOGICAL           , INTENT(IN) :: laver
 LOGICAL           , INTENT(IN) :: l_val_limited
 REAL(KIND=PREC_DP), INTENT(IN) :: dsmax
 !
-INTEGER :: isdim, i
+real(kind=PREC_DP), parameter :: EPS = 1.0e-6
+INTEGER :: isdim, i,j
 INTEGER, DIMENSION(3) :: dsort
 CHARACTER(LEN=PREC_STRING)   :: string
 INTEGER               :: lcomm
@@ -2119,23 +2120,36 @@ DO i = 1, 3
 !write(*,*) ' res ', res_para(4:6)
    ENDIF
 ENDDO
+out_vi      = 0.0D0
+do i=1, 3
+  do j= 1, 3
+    if(abs(vi(j,i)) > EPS) out_vi(j,i) = 1.0D0/(vi(j,i)*(num(i)-1))
+  enddo
+enddo
+!out_vi(1,1) = 0.125D0
+!out_vi(2,2) = 0.125D0
+!out_vi(3,3) = 0.125D0
 DO i=1, 3
    out_eck(i,1) = (- out_vi(i,1)*INT((num(1)-1)/2) - out_vi(i,2)*INT((num(2)-1)/2) - out_vi(i,3)*INT((num(3)-1)/2))  ! lower left
    out_eck(i,2) = (+ out_vi(i,1)*INT((num(1)-1)/2) - out_vi(i,2)*INT((num(2)-1)/2) - out_vi(i,3)*INT((num(3)-1)/2))  ! lower left
    out_eck(i,3) = (- out_vi(i,1)*INT((num(1)-1)/2) + out_vi(i,2)*INT((num(2)-1)/2) - out_vi(i,3)*INT((num(3)-1)/2))  ! lower left
    out_eck(i,4) = (- out_vi(i,1)*INT((num(1)-1)/2) - out_vi(i,2)*INT((num(2)-1)/2) + out_vi(i,3)*INT((num(3)-1)/2))  ! lower left
 ENDDO
-!write(*,*) ' num ', num
-!write(*,*) ' out_abs  ', out_vi(:,1)
-!write(*,*) ' out_ord  ', out_vi(:,2)
-!write(*,*) ' out_top  ', out_vi(:,3)
-!write(*,*) 'eck_ll  ', out_eck(:,1)
-!write(*,*) 'eck_lr  ', out_eck(:,2)
-!write(*,*) 'eck_ul  ', out_eck(:,3)
-!write(*,*) 'eck_tl  ', out_eck(:,4)
-!write(*,*) 'cal lru ', out_eck(1,1)+(num(1)-1)*out_vi(1,1)
-!write(*,*) 'cal ulv ', out_eck(2,1)+(num(2)-1)*out_vi(2,2)
-!write(*,*) 'cal tlw ', out_eck(3,1)+(num(3)-1)*out_vi(3,3)
+!write(*,'(a,3i5   )') ' num ', num
+!write(*,'(a,3f12.5)') '     abs  ',     vi(:,1)
+!write(*,'(a,3f12.5)') '     ord  ',     vi(:,2)
+!write(*,'(a,3f12.5)') '     top  ',     vi(:,3)
+!write(*,'(a,3f12.5)') ' out_abs  ', out_vi(:,1)
+!write(*,'(a,3f12.5)') ' out_ord  ', out_vi(:,2)
+!write(*,'(a,3f12.5)') ' out_top  ', out_vi(:,3)
+!write(*,'(a,3f12.5)') 'eck_ll  ', out_eck(:,1)
+!write(*,'(a,3f12.5)') 'eck_lr  ', out_eck(:,2)
+!write(*,'(a,3f12.5)') 'eck_ul  ', out_eck(:,3)
+!write(*,'(a,3f12.5)') 'eck_tl  ', out_eck(:,4)
+!write(*,'(a,3f12.5)') 'cal lru ', out_eck(1,1)+(num(1)-1)*out_vi(1,1)
+!write(*,'(a,3f12.5)') 'cal ulv ', out_eck(2,1)+(num(2)-1)*out_vi(2,2)
+!write(*,'(a,3f12.5)') 'cal tlw ', out_eck(3,1)+(num(3)-1)*out_vi(3,3)
+!read(*,*) i
 !
 END SUBROUTINE out_prep_3dpdf
 !
