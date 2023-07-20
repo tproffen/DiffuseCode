@@ -344,7 +344,6 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
          ENDIF 
       ENDIF 
    ENDDO 
-!write(*,*) ' FOUND NEIGHBORS ', natom(ncent)
 !do i=1, natom(ncent)
 !write(*,'(a,i3,2(a3,i8,i2, 3f6.1),1x,l1, a,10 i8)') 'CORR ',ic, ' c', jatom, cr_iscat(jatom), patom(1:3, 0, ncent),  &
 !                                      ' n', katom, cr_iscat(katom), patom(1:3, i, ncent), &
