@@ -331,7 +331,6 @@ real(kind=PREC_DP) :: p                        ! 6p = SUM(b(i,j)^2)
 real(kind=PREC_DP) :: q                        ! 2q = DET(a - mI)
 real(kind=PREC_DP) :: m                        !  m = Tr(a)
 real(kind=PREC_DP) :: det                      ! a determinant
-real(kind=PREC_DP) :: length2                  ! vector length ^2
 real(kind=PREC_DP) :: length                   ! a vector length
 real(kind=PREC_DP) :: cphi                     ! cos(phi) length
 real(kind=PREC_DP) :: sphi                     ! sin(phi) length
