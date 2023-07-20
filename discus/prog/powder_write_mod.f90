@@ -178,18 +178,12 @@ ELSEIF(value == val_sq .OR. value == val_fq) THEN
                                   ! After phases_average
    ENDDO
 ELSEIF(value == val_pdf) THEN
-   IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
-      DO j = 0, npkt
-             ypl (j) = pow_conv(j) & ! copy from convoluted pattern
-                  -  (+ 1.0 - exp(-q**2*pow_u2aver))*pow_faver2(j)
-                                     ! After phases_average
-      ENDDO
-   ELSE
-      DO j = 0, npkt
-             ypl (j) = pow_sq  (j)   ! copy from convoluted pattern
-                                     ! After phases_average
-      ENDDO
-   ENDIF
+!
+!  Read S(Q) for PDF
+   DO j = 0, npkt
+          ypl (j) = pow_sq  (j)   ! copy from convoluted pattern
+                                  ! After phases_average
+   ENDDO
 ELSE                              ! All other output is  inte
    DO j = 0, npkt
           ypl (j) = pow_conv(j)   ! copy from convoluted pattern
@@ -250,24 +244,27 @@ endif
 !write(*,*) ' aft  m,d   ', xmin, xdel
 !write(*,*) ' AFTER ZERO ', npkt, xpl(1), xpl(npkt-1), xpl(npkt), q, npkt_u, ttheta
 !
-IF(value == val_pdf) THEN   ! Divide by average Debye-Waller term
-   IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
+!IF(value == val_pdf) THEN   ! Divide by average Debye-Waller term
+!   IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
 !open(77,file='POWDER/normal.inte',status='unknown')
 !DO ii=1,npkt
 !write(77,'(2(2x,G17.7E3))') xmin+(ii-1)*xdel, ypl(ii)
 !enddo
 !close(77)
-      DO ii=0, npkt
-         ypl(ii) = ypl(ii)/EXP(-0.5*(pow_u2aver*u2aver_scale)*xpl(ii)**2)
-      ENDDO
-   ENDIF
+!write(*,*) ' POWD_u2 ', pow_u2aver, u2aver_scale, pow_u2aver*u2aver_scale
+!write(*,*) ' POWD_u2 ', -0.5*(pow_u2aver*u2aver_scale)*xpl(npkt)**2, &
+!                   exp(-0.5*(pow_u2aver*u2aver_scale)*xpl(npkt)**2)
+!      DO ii=0, npkt
+!         ypl(ii) = ypl(ii)/EXP(-0.5*(pow_u2aver*u2aver_scale)*xpl(ii)**2)
+!      ENDDO
+!   ENDIF
 !open(77,file='POWDER/divided.inte',status='unknown')
 !DO ii=1,npkt
 !               q = ((ii-1)*xdel + xmin)
 !write(77,'(2(2x,G17.7E3))') q               , ypl(ii)
 !enddo
 !close(77)
-ENDIF        ! Output is if_block if(value==val_f2aver)
+!ENDIF        ! Output is if_block if(value==val_f2aver)
 lpscale = 1.0
 !
 !     Prepare S(Q) or F(Q)
@@ -285,31 +282,36 @@ prsq: IF(value == val_sq .or. value == val_fq   .OR. value == val_inten  .OR. &
          ypl(j) = ypl(j) * q
       ENDDO
    ELSEIF(value == val_pdf) THEN  valq               ! Calc PDF IF
+!open(77,file='POWDER/fq.inte',status='unknown')
+      ypl = ypl - 1.0
+      DO j = 0, npkt   
+         q = (j)*xdel + xmin
+         ypl(j) = ypl(j) * q
+!write(77,'(2(2x,G17.7E3))') q               , ypl(j)
+      ENDDO
+!close(77)
 !write(*,*) ' F(Q) PREP ', .NOT. (deb_conv .OR. .NOT.ldbw), deb_conv, ldbw, cr_natoms
+!
       IF(pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0) THEN
-!      IF(.NOT. (deb_conv .OR. .NOT.ldbw)  & ! THEN   ! DEBYE was done with convolution of ADP
-!         .AND.   &
-!           (pdf_clin_a/=0.0 .OR. pdf_cquad_a/=0.0))THEN
-! NEEDS WORK  !!!!!
+!
+!        Divide by Debye-Waller
+!
+         DO ii=0, npkt
+            ypl(ii) = ypl(ii)/EXP(-0.5*(pow_u2aver*u2aver_scale)*xpl(ii)**2)
+         ENDDO
 !write(*,*) ' SHOULD PREPARE FQ) ? ? ', pow_u2aver, u2aver_scale, normalizer
 !open(unit=67,file='POWDER/clin.data', status='unknown')
-         DO j = 0, npkt   
-            q = (j)*xdel + xmin
-            ypl(j) =  (ypl(j)/(pow_faver2(j))/normalizer   &
-                       - exp(-0.00D0*q**2*(pow_u2aver/u2aver_scale))   *  &
-                       pow_f2aver(j)/pow_faver2(j)) * q
+!        DO j = 0, npkt   
+!           q = (j)*xdel + xmin
+!           ypl(j) =  (ypl(j)/(pow_faver2(j))/normalizer   &
+!                      - exp(-0.00D0*q**2*(pow_u2aver/u2aver_scale))   *  &
+!                      pow_f2aver(j)/pow_faver2(j)) * q
 !                         - 1.0 *                                 &
 !write(67,'( 4(F16.8,2x))') q, ypl(j), pow_faver2(j), pow_f2aver(j)
-         ENDDO
+!         ENDDO
 !close(67)
-      ELSE
-!write(*,*) ' DIREKT (YPL -1 ) * q', normalizer
-         ypl = ypl - 1.0
-         DO j = 0, npkt   
-            q = (j)*xdel + xmin
-            ypl(j) = ypl(j) * q
-         ENDDO
-      ENDIF
+       endif
+!
    ELSEIF(value == val_iq) THEN   valq              ! Calc F(Q)IF
          lpscale = 1.0
          IF(deb_conv .OR. .NOT.ldbw) THEN              ! DEBYE was done with convolution of ADP
@@ -497,7 +499,7 @@ npkt_wrt = npkt_u -1    ! xwrt is in range [0, npkt_u-1]
 !DBGCQUAD
 !open(77,file='POWDER/equistep.inte',status='unknown')
 !DO ii=1,npkt_wrt
-!!               q = ((ii-1)*xdel + xmin)
+!!!               q = ((ii-1)*xdel + xmin)
 !write(77,'(2(2x,G17.7E3))') xwrt(ii)         , ywrt(ii)
 !enddo
 !close(77)
@@ -542,21 +544,24 @@ ELSEIF(value==val_pdf) THEN  place_ywrt  ! Transform F(Q) into PDF
 !
 !write(*,*) ' PDF CORRLIN ? ', pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0
 !write(*,*) ' NPKT_WRT ', npkt_wrt, xwrt(npkt_wrt)
+!write(*,*) ' PDF_C*   ', pdf_clin_a, pdf_cquad_a
 !open(77,file='POWDER/init_corrlin.FQ',status='unknown')
 !DO ii=1,npkt_wrt
 !write(77,'(2(2x,G17.7E3))') xwrt(ii), ywrt(ii)
 !enddo
 !close(77)
-   corr_if: if(2==3) then !  TEMPORARILY TURNED OFF;  IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
+!  corr_if: if(2==3) then !  TEMPORARILY TURNED OFF;  IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
+!write(*,*) ' CORRQUAD ', pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0
+   corr_if: IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
       IF(out_user_limits) THEN
-         rmin     = 0.50 ! out_user_values(1)
-         rmax     = out_user_values(2)*1.25
+         rmin     = 0.50D0 ! out_user_values(1)
+         rmax     = out_user_values(2)*1.25D0
          rstep    = out_user_values(3)
-         npkt_pdf = NINT((out_user_values(2)*1.25-0.5000000000000000)/out_user_values(3)) + 1
+         npkt_pdf = NINT((out_user_values(2)*1.25D0-0.5000000000000000D0)/out_user_values(3)) + 1
 !        npkt_pdf = NINT((out_user_values(2)*1.25-out_user_values(1))/out_user_values(3)) + 1
       ELSE
          rmin     = pdf_rminu
-         rmax     = pdf_rmaxu*1.25
+         rmax     = pdf_rmaxu*1.25D0
          rstep    = pdf_deltaru
          npkt_pdf = NINT((rmax-rmin)/pdf_deltaru) + 1
       ENDIF
@@ -2224,7 +2229,7 @@ INTEGER :: max_ps
 !                                                                       
 imax = INT( (tthmax - tthmin) / dtth )
 sigmasq = sigma2*SQRT(eightln2)
-sigmamin = sigmasq * 0.20D0
+sigmamin = sigmasq * 0.020D0
 dist_min = REAL(rcut, KIND=PREC_DP)
 !
 eta = 0.0D0     ! Gaussian function
