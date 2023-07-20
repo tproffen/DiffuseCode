@@ -206,8 +206,9 @@ integer, intent(in) :: iku
 integer :: node_number
 integer           ,dimension(3)   :: dims
 real(kind=PREC_DP),dimension(2)   :: minmax
-real(kind=PREC_DP),dimension(3)   :: llims
-real(kind=PREC_DP),dimension(3,3) :: steps
+!real(kind=PREC_DP),dimension(3)   :: llims
+!real(kind=PREC_DP),dimension(3,3) :: steps
+real(kind=PREC_DP),dimension(3,2) :: minmaxcoor  ! Coordinate extreme in data set
 !                                                                       
 !                                                                       
 !------ check if we want ALL data sets                                  
@@ -231,13 +232,17 @@ DO ik = ia, ie
    if(ku_ndims(ik)==3) then
       call dgl5_set_pointer(ik, ier_num, ier_typ, node_number)
       call dgl5_get_dims (node_number, dims )
-      call dgl5_get_llims(node_number, llims)
-      call dgl5_get_steps(node_number, steps)
+      call dgl5_get_minmaxcoor(node_number, minmaxcoor)
+!     call dgl5_get_steps(node_number, steps)
       call dgl5_get_minmax(node_number, minmax)
       write(output_io, 1020) ik, fname (ik) (1:len_str (fname (ik))), dims,     &
-           llims(1), llims(1)+(dims(1)-1)*steps(1,1),                           &
-           llims(2), llims(2)+(dims(2)-1)*steps(2,2),                           &
-           llims(3), llims(3)+(dims(3)-1)*steps(3,3), minmax
+           minmaxcoor(1,1), minmaxcoor(1,2), &
+           minmaxcoor(2,1), minmaxcoor(2,2), &
+           minmaxcoor(3,1), minmaxcoor(3,2), &
+           minmax
+!          llims(1), llims(1)+(dims(1)-1)*steps(1,1),                           &
+!          llims(2), llims(2)+(dims(2)-1)*steps(2,2),                           &
+!          llims(3), llims(3)+(dims(3)-1)*steps(3,3), minmax
    else
       IF (lni (ik) ) then 
          CALL get_extrema_xy (x, ik, nx (ik), xmin, xmax) 

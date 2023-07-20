@@ -334,11 +334,13 @@ if(ier_num == 0) then
    ku_ndims(ik  ) = 3
 !
    do i =1, dims(1)
-      x(offxy(ik-1) +i) = llims(1)   + (i-1)*steps(1)
+!     x(offxy(ik-1) +i) = llims(1)   + g_x(i)    ! (i-1)*steps(1)
+      x(offxy(ik-1) +i) =            + g_x(i)    ! (i-1)*steps(1)
    enddo
 !
    do i =1, dims(2)
-      y(offxy(ik-1) +i) = llims(2)   + (i-1)*steps(2)
+!     y(offxy(ik-1) +i) = llims(2)   + g_y(i)    ! (i-1)*steps(2)
+      y(offxy(ik-1) +i) =            + g_y(i)    ! (i-1)*steps(2)
    enddo
 !
 !  Reminder, data are stored in z along y-collumns!
@@ -356,8 +358,10 @@ if(ier_num == 0) then
    ny  (ik)   = dims(2)
    xmin(ik  ) = x(offxy(ik-1) + 1)
    ymin(ik  ) = y(offxy(ik-1) + 1)
-   xmax(ik  ) = x(offxy(ik-1) + 1) + (dims(1) -1) * steps(1)
-   ymax(ik  ) = y(offxy(ik-1) + 1) + (dims(2) -1) * steps(2)
+   xmax(ik  ) = x(offxy(ik-1) + dims(1))
+   ymax(ik  ) = y(offxy(ik-1) + dims(2))
+!  xmax(ik  ) = x(offxy(ik-1) + 1) + (dims(1) -1) * steps(1)
+!  ymax(ik  ) = y(offxy(ik-1) + 1) + (dims(2) -1) * steps(2)
    lni (ik)   = .TRUE.
    lh5 (ik)   = .true.
    lenc(ik  ) = max(nx  (ik), ny(ik))

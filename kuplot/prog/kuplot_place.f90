@@ -120,7 +120,14 @@ integer, dimension(3)            :: h5_dims
 integer                          :: h5_layer
 integer                          :: h5_number
 real(kind=PREC_DP), dimension(3) :: h5_llims
+real(kind=PREC_DP), dimension(3,4) :: h5_corners
 real(kind=PREC_DP), dimension(3,3) :: h5_steps
+real(kind=PREC_DP), dimension(:), allocatable :: l_x
+real(kind=PREC_DP), dimension(:), allocatable :: l_y
+real(kind=PREC_DP), dimension(:), allocatable :: l_z
+!
+logical                             :: calc_coor  ! Need to calculate coordinates
+integer           , dimension(3)    :: use_coor   ! Use these in dices for axes
 !
 IF(lnew) THEN            ! This is a new data set, from 'load' command
    h5_number = dgl5_get_number()
@@ -155,6 +162,8 @@ ELSE
   h5_layer =  dgl5_get_layer()
   h5_layer = MAX(1,MIN(INT(           h5_dims(3)),         h5_layer+nlayer))
 ENDIF
+call dgl5_get_calccoor(calc_coor, use_coor)      ! Need to calculate coordinates
+call dgl5_get_corners(node_number, h5_corners)
 ll = 0
 k = h5_layer
 !
@@ -167,16 +176,22 @@ ENDDO
 !
 nx(izz) =            h5_dims(1)
 ny(izz) =            h5_dims(2)
-xmin(izz) = h5_llims(1)
-xmax(izz) = h5_llims(1) + (nx(izz)-1)*h5_steps(1,1)
-ymin(izz) = h5_llims(2)
-ymax(izz) = h5_llims(2) + (ny(izz)-1)*h5_steps(2,2)
+!
+allocate(l_x(1:h5_dims(1)))
+allocate(l_y(1:h5_dims(2)))
+allocate(l_z(1:h5_dims(3)))
+call dgl5_calc_coor(h5_dims, h5_layer, h5_corners, h5_steps, &
+           use_coor, l_x,l_y,l_z)
+xmin(izz) = l_x(1)
+xmax(izz) = l_x(h5_dims(1))
+ymin(izz) = l_y(1)
+ymax(izz) = l_y(h5_dims(2))
 !
 DO i = 1, nx(izz)
-    x(offxy(izz - 1) + i) = xmin(izz) + (i - 1) * h5_steps(1,1)
+   x(offxy(izz - 1) + i) = l_x(i)
 ENDDO
 DO i = 1, ny(izz)
-   y(offxy(izz - 1) + i) = ymin(izz) + (i - 1) * h5_steps(2,2)
+   y(offxy(izz - 1) + i) = l_y(i)
 ENDDO
 lni (izz) = .TRUE.
 lh5 (izz) = .TRUE.
@@ -196,6 +211,9 @@ IF(lshow) THEN
    1000 FORMAT('   Full size:', 2(i7,' x'), i7, ' points')
    1100 FORMAT('   At  layer:',   i7      ,/)
 ENDIF
+deallocate(l_x)
+deallocate(l_z)
+deallocate(l_y)
 !
 END SUBROUTINE dgl5_place_kuplot
 !

@@ -1103,7 +1103,6 @@ ELSE
                      IF (zhub.eq.0) zhub = 100.0 
                      z_min(iwin, iframe, ihl) = -0.50 * zhub * ABS(werte(2))
                      z_inc(iwin, iframe, ihl) =  0.01 * zhub * ABS(werte(2))
-!write(*,*) ' User specified "delta, n, %" Positive and negative values ', zhub
                   ELSE                     ! Negative values only
                      zhub = -zzmin 
                      IF (zhub.eq.0) zhub = 100.0 
@@ -1517,6 +1516,8 @@ integer                            :: node_number  ! Global Data node number
 logical                            :: is_direct    ! Direct or reciprocal space
 integer           , dimension(3)   :: inc          ! Number data points along the three axes
 logical                            :: ltop         ! top vector exists for 3D data
+logical                            :: calc_coor    ! Need to calculate coordinates
+integer           , dimension(3)   :: use_coor     ! Use these indices for abs, ord, top
 real(kind=PREC_DP), dimension(6)   :: lattice      ! Lattice parameters
 real(kind=PREC_DP), dimension(3,3) :: gten         ! metric tensot     
 real(kind=PREC_DP), dimension(3,3) :: rten         ! reciprocal metric tensor
@@ -1544,20 +1545,22 @@ if(ik>0 .and. ik<iz) then
    call matinv(gten, rten)
    call dgl5_get_dims(ik, inc)
    call dgl5_get_steps(ik, vi)
+   call dgl5_get_calccoor(calc_coor, use_coor)
    if(is_direct) then
       call lib_angles(ltop, length, &
                angle_vh, ratio_vh, aver_vh, &
                angle_ht, ratio_ht, aver_ht, &
                angle_tv, ratio_tv, aver_tv, &
-               gten, inc, vi)
+               gten, inc, vi, use_coor)
    else
       call lib_angles(ltop, length, &
                angle_vh, ratio_vh, aver_vh, &
                angle_ht, ratio_ht, aver_ht, &
                angle_tv, ratio_tv, aver_tv, &
-               rten, inc, vi)
+               rten, inc, vi, use_coor)
    endif
    werte(1) = aver_vh
+!  werte(1) = ratio_vh*(inc(2)-1)/(inc(1)-1) !aver_vh
    werte(2) = angle_vh
 else
    ier_num = -4
