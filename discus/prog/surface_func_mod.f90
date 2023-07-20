@@ -1105,7 +1105,6 @@ ELSE
 ENDIF 
 !
 IF(l_cyl .OR. l_ell) THEN
-write(*,*) ' FIRST, THIRD ', lpresent(O_FIRST), lpresent(O_THIRD), lpresent(O_AXIS)
    CALL prep_rotation(lpresent(O_THIRD), lpresent(O_FIRST), lpresent(O_AXIS),   &
         opara(O_THIRD), opara(O_FIRST), opara(O_AXIS),                          &
         lopara(O_THIRD), lopara(O_FIRST), lopara(O_AXIS), center,               &
