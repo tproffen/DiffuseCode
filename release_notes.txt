@@ -1,4 +1,14 @@
-6.15.01  DRAFT
+6.15.02  DRAFT
+6.15.01  RELEASE 2023_07_20
+
+GENERAL
+              Improved the handling and transformation of 3D intensities/PDF
+DISCUS
+  surface     The names for optional placement of the ellipdois/cylinder axes
+              were not ideal. The parameter names have been changed to 
+              "first:" and "third".
+  mmc         The molecule modification part will now use internal
+              parallel processing as well.
 6.15.00  RELEASE 2023_06_27
 
 GENERAL
