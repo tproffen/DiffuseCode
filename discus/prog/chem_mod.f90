@@ -29,6 +29,7 @@ INTEGER                 :: CHEM_MAX_CON      = 1
 INTEGER                 :: CHEM_MAX_ENV      = 1
 INTEGER                 :: CHEM_MAX_BIN      = 1
 !
+integer, dimension(0:6)                  :: chem_ndef      = 0    ! Number of user definitions for vec, con...
 CHARACTER(LEN=80)                        :: chem_fname     = 'blen.xy'
 INTEGER                                  :: chem_bin       = 601
 INTEGER                                  :: chem_ncor      = 1

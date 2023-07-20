@@ -961,6 +961,7 @@ INTEGER     :: is1, is2, iv
 INTEGER     :: n_vec  ! Dummy for allocations
 INTEGER     :: n_cor  ! Dummy for allocations
 !                                                                       
+iv = 0
 !                                                                       
 IF (str_comp (cpara (1) , 'reset', 2, lpara (1) , 5) ) then 
    chem_cvec           =     0 ! all elements (i,j)
@@ -1015,6 +1016,8 @@ ELSE
    ier_num = - 6 
    ier_typ = ER_COMM 
 ENDIF 
+!
+chem_ndef(CHEM_VEC) = max(chem_ndef(CHEM_VEC), iv)
 !                                                                       
 END SUBROUTINE chem_set_vec                   
 !*****7*****************************************************************
@@ -1145,6 +1148,8 @@ USE str_comp_mod
    ENDIF nparams
    ENDIF                              ! use all connectivities ???
 !
+!
+chem_ndef(CHEM_CON) = max(chem_ndef(CHEM_CON), iv)
 !                                                                       
 END SUBROUTINE chem_set_con                   
 !*****7*****************************************************************
@@ -1189,6 +1194,7 @@ REAL(KIND=PREC_DP) :: u (3), v (3)
 REAL(KIND=PREC_DP) :: uvw (4, max_uvw) 
 REAL(KIND=PREC_DP) :: uvw_mat (4, 4, max_uvw) 
 !                                                                       
+iv = 0
 !                                                                       
 main: IF (str_comp (cpara (1) , 'reset', 2, lpara (1) , 5) ) then 
          chem_cran_uvw           = 0      ! (i,j,k)
@@ -1397,6 +1403,8 @@ ELSE main
          ier_msg (1) = cpara (1) 
    ENDIF second
 ENDIF  main
+!
+chem_ndef(CHEM_RANGE) = max(chem_ndef(CHEM_RANGE), iv)
 !                                                                       
       END SUBROUTINE chem_set_ranges                
 !*****7*****************************************************************
@@ -1426,6 +1434,7 @@ INTEGER            :: is1, is2, is3, iv
 INTEGER     :: n_ang  ! Dummy for allocations
 INTEGER     :: n_cor  ! Dummy for allocations
 !                                                                       
+iv = 0
 !                                                                       
 IF (str_comp (cpara (1) , 'reset', 2, lpara (1) , 5) ) then 
    chem_cwin        =     0 ! All elements (i,j)
@@ -1487,6 +1496,8 @@ ELSE
    ier_num = - 6 
    ier_typ = ER_COMM 
 ENDIF 
+!
+chem_ndef(CHEM_ANG) = max(chem_ndef(CHEM_ANG), iv)
 !                                                                       
       END SUBROUTINE chem_set_angle                 
 !*****7*****************************************************************
@@ -1574,6 +1585,8 @@ USE str_comp_mod
       chem_cenv (i - 1, iv) = nint (werte (1) ) 
       CALL del_params (1, ianz, cpara, lpara, maxw) 
       ENDDO 
+!
+chem_ndef(CHEM_ENVIR) = max(chem_ndef(CHEM_ENVIR), iv)
 !                                                                       
       END SUBROUTINE chem_set_envir                 
 !*****7*****************************************************************
@@ -1653,11 +1666,13 @@ endif
    IF(chem_ncor >= CHEM_MAX_COR) THEN      ! Need to allocate more correlations
       n_cor = CHEM_MAX_COR + 10
       CALL alloc_chem_correlation(n_cor)
-      IF(MAXVAL(chem_nvec) > 0) THEN       ! Need to allocate vectors
+!     IF(MAXVAL(chem_nvec) > 0) THEN       ! Need to allocate vectors
+      if(chem_ndef(CHEM_VEC)>0) then       ! Need to allocate vectors
          n_vec = CHEM_MAX_VEC
          CALL alloc_chem_vec(n_vec, n_cor)
       ENDIF
-      IF(MAXVAL(chem_ncon) > 0) THEN       ! Need to allocate vectors
+!     IF(MAXVAL(chem_ncon) > 0) THEN       ! Need to allocate vectors
+      if(chem_ndef(CHEM_CON)>0) then       ! Need to allocate Connectivities
          n_con = CHEM_MAX_CON
          CALL alloc_chem_con(n_con, n_cor)
       ENDIF
@@ -5694,6 +5709,7 @@ CHEM_MAX_RAN      = 0
 CHEM_MAX_CON      = 1
 CHEM_MAX_ENV      = 1
 !
+chem_ndef      = 0
 chem_fname     = 'blen.xy'
 chem_bin       = 601
 chem_ncor      =   0
