@@ -1981,7 +1981,7 @@
 !p discus/chem> set neig,vec,1
 !p discus/chem> field zr,void,corr.xy,0,20
 3  homo
-!p homo "occ",<atom>,<file>
+!p homo "occ",<atom>,<file> [, site:site_selection]
 !p homo "cor",{"occ" | "dis"},<at1>,<at2>,<file>
 
    This command computes the concentration or correlation distribution
@@ -1993,6 +1993,12 @@
    "occ": Here the concentration distribution of the atom <atom> is
    computed. The resulting histogram is written to the file named
    <file>. 
+   The optional parameter site:selection can take on the forms:
+      site:all          ! all sites will be searched, Default
+      site:<number>     ! Only atoms on the site <number> are counted
+      site:[<number>]   ! Only atoms on the site <number> are counted
+                        ! More than one site may be specified as in
+                        ! site:[1, 3, 4]
 
    "cor": Here the correlation distribution for all defined neighbors
    is computed. The third parameter determines whether occupational 
