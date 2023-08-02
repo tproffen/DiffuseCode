@@ -24,6 +24,7 @@ USE precision_mod
    CHARACTER(LEN=PREC_STRING) :: discus_dir
    CHARACTER(LEN=PREC_STRING) :: umac_dir
    CHARACTER(LEN=PREC_STRING) :: start_dir
+   CHARACTER(LEN=PREC_STRING) :: win_dir
    CHARACTER(LEN=PREC_STRING) :: start_line
    CHARACTER(LEN=PREC_STRING) :: current_dir
    CHARACTER(LEN=PREC_STRING) :: terminal_emu = ' '
@@ -57,6 +58,7 @@ USE precision_mod
    INTEGER             :: discus_dir_l
    INTEGER             :: umac_dir_l
    INTEGER             :: start_dir_l
+   INTEGER             ::   win_dir_l
    INTEGER             :: start_line_l
    INTEGER             :: current_dir_l
    INTEGER             :: user_name_l
