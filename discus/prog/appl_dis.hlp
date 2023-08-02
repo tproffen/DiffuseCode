@@ -77,6 +77,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2023_August
+   chem        Added an optional parameter "site:" to homo
+   powder      Improved handling of corrlin and corrquad for a powder PDF
+   plot        BUG FIX, Avoiding crash if jmol had never been used before
 3  2023_July
    mmc         Improved speed of the molecule version
    surface     Changed the names of the optional ellipsoid parameters:
