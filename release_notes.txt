@@ -1,4 +1,10 @@
 6.15.02  DRAFT
+GENERAL
+  Windows10   BUG FIX update command crashed if WindowsTerminal was not installed
+DISCUS
+  chem        Added an optional parameter "site:" to homo
+  powder      Improved handling of corrlin and corrquad for a powder PDF
+  plot        BUG FIX, Avoiding crash if jmol had never been used before
 6.15.01  RELEASE 2023_07_20
 
 GENERAL
