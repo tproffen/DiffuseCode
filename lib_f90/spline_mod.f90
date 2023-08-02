@@ -70,6 +70,8 @@ ENDDO
 !write(*,*) ' POST yequi  ', yequi(0), yequi(1), yequi(2)
 !
 DEALLOCATE(y2a, stat = all_status)
+deallocate(xpl)
+deallocate(ypl)
 !
 END SUBROUTINE spline_prep
 !                                                                       
