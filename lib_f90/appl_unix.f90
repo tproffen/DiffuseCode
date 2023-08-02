@@ -422,6 +422,20 @@ ENDIF
          ENDIF
          get_screen_file = tmp_dir(1:tmp_dir_l)//'/discus_suite_screen.txt'
          get_screen_size = 'xdpyinfo | grep dimensions > '//get_screen_file(1:len_trim(get_screen_file))
+!
+         if(start_dir(1:4)=='/mnt') then
+            win_dir = "C:\" // start_dir(8:)
+            i =      index(  win_dir,'/')
+            do while(i>0)
+               win_dir(i:i) = '\'
+               i = index(  win_dir,'/')
+            enddo
+            win_dir_l = len_trim(win_dir)
+            if(win_dir(win_dir_l:win_dir_l)/='\') then
+               win_dir = win_dir(1:win_dir_l) // '\'
+               win_dir_l = len_trim(win_dir)
+            endif
+         endif
       ELSE
 !                                                                       
          CALL do_cwd (start_dir, start_dir_l) 
@@ -1456,9 +1470,15 @@ elseif(operating == OS_LINUX_WSL) then
              code_str(1:LEN_TRIM(code_str)) // ' ' //        &
              prep_str(1:LEN_TRIM(prep_str)) // ' ' //        &
              inst_str(1:LEN_TRIM(inst_str))
-   command = 'wt.exe ''' // 'C:\Users\' //  &
-              user_profile(1:LEN_TRIM(user_profile))  &
-              // '\DISCUS_INSTALLATION\ccc_install_suite_Windows10_WSL.bat'' '
+!  command = 'powershell.exe -ExecutionPolicy Bypass -WindowStyle Normal -Command ''' &
+!             // 'C:\Users\' //  &
+!             user_profile(1:LEN_TRIM(user_profile))  &
+!             // '\DISCUS_INSTALLATION\bbb_install_suite_Windows10_WSL.ps1'' '
+   write(output_io,'(a)') ' '
+   write(output_io,'(a)') ' On Windows10 you might get a warning from the ''terminator'' program'
+   write(output_io,'(a)') ' If this warning shows, please do not close this window until the '
+   write(output_io,'(a)') ' update process has finished in the other terminal'
+   write(output_io,'(a)') ' '
 !
 ELSEIF(operating == OS_MACOSX) THEN
    WRITE(discus_version,'(a,a)') tmp_dir(1:len_trim(tmp_dir)),'/DISCUS_VERSION' ! Initiate search for new version
