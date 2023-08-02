@@ -528,6 +528,7 @@ INTEGER, PARAMETER  :: MAXW     = 2
 INTEGER, PARAMETER  :: MAX_MAN  = 6
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) :: string, zeile
 CHARACTER(LEN=    PREC_STRING           ) :: command, message
+CHARACTER(LEN=    PREC_STRING           ) :: man_path
 CHARACTER(LEN=128 ), DIMENSION(N_VIEWER)  :: pdf_viewer  ! List of possible viewers
 CHARACTER(LEN=128 ), DIMENSION(W_VIEWER)  :: win_test_v  ! List of possible viewers
 CHARACTER(LEN=128 ), DIMENSION(W_VIEWER)  :: win_viewer  ! List of possible viewers
@@ -539,6 +540,8 @@ CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara   !parameter
 INTEGER            , DIMENSION(MAXW) :: lpara   !parameters
 !
 INTEGER, PARAMETER :: NOPTIONAL = 2
+integer, parameter :: O_SECTION = 1
+integer, parameter :: O_VIEWER  = 2
 CHARACTER(LEN=    PREC_STRING           ), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
@@ -560,18 +563,18 @@ DATA loname /  7       , 6 /
 DATA pdf_viewer / 'qpdfview  ', 'evince    ', 'xpdf      ',   &
                   'okular    ', 'acroread  '/ 
 DATA win_test_v /                                             &
-'/cygdrive/c/Program Files (x86)/Foxit Software/Foxit Reader/FoxitReader.exe   ', &
-'/cygdrive/c/Program Files (x86)/STDU Viewer/STDUViewerApp.exe   ', &
-'/cygdrive/c/Program Files/SumatraPDF/SumatraPDF.exe      ', &
-'/cygdrive/c/Program Files/Internet Explorer/iexplore.exe',  &
-'/cygdrive/c/Program Files/Mozilla Firefox/firefox.exe   '   &
+'/mnt/c/Program Files (x86)/Foxit Software/Foxit Reader/FoxitReader.exe   ', &
+'/mnt/c/Program Files (x86)/STDU Viewer/STDUViewerApp.exe   ', &
+'/mnt/c/Program Files/SumatraPDF/SumatraPDF.exe      ', &
+'/mnt/c/Program Files/Internet Explorer/iexplore.exe',  &
+'/mnt/c/Program Files/Mozilla Firefox/firefox.exe   '   &
 /
 DATA win_viewer /                                             &
-'/cygdrive/c/Program\ Files\ \(x86\)/Foxit\ Software/Foxit\ Reader/FoxitReader.exe', &
-'/cygdrive/c/Program\ Files\ \(x86\)/STDU\ Viewer/STDUViewerApp.exe', &
-'/cygdrive/c/Program\ Files/SumatraPDF/SumatraPDF.exe      ', &
-'/cygdrive/c/Program\ Files/Internet\ Explorer/iexplore.exe', &
-'/cygdrive/c/Program\ Files/Mozilla\ Firefox/firefox.exe   '  &
+'/mnt/c/Program Files (x86)/Foxit Software/Foxit Reader/FoxitReader.exe', &
+'/mnt/c/Program Files (x86)/STDU Viewer/STDUViewerApp.exe', &
+'/mnt/c/Program Files/SumatraPDF/SumatraPDF.exe      ', &
+'/mnt/c/Program Files/Internet Explorer/iexplore.exe', &
+'/mnt/c/Program Files/Mozilla Firefox/firefox.exe   '  &
 /
 DATA c_manual / 'suite'  ,'discus' , 'diffev' ,'kuplot',      &
                 'package','refine'  /
@@ -601,8 +604,8 @@ manual  = opara(1)(1:MIN(LEN(manual),lopara(1)))    ! defaults to section name
 ier_num = -6
 ier_typ = ER_COMM
 man: DO i=1,MAX_MAN
-   IF(str_comp (opara(1), c_manual(i), 3, lopara(1), LEN_TRIM(c_manual(i)))) THEN
-      manual  = opara(1)(1:MIN(LEN(manual),lopara(1)))
+   IF(str_comp (opara(O_SECTION), c_manual(i), 3, lopara(O_SECTION), LEN_TRIM(c_manual(i)))) THEN
+      manual  = opara(O_SECTION)(1:MIN(LEN(manual),lopara(O_SECTION)))
       ier_num = 0
       ier_typ = ER_NONE
       EXIT man
@@ -617,7 +620,52 @@ IF(ier_num /=0) THEN
    RETURN
 ENDIF
 !
-IF(operating(1:7)=='Windows' .OR. operating(1:6)=='cygwin') THEN 
+IF(operating==OS_LINUX_WSL ) then
+   ierror = -6
+   if(lpresent(O_VIEWER)) then   ! User provided a viewer
+      ierror = -6
+      if(index(opara(O_VIEWER),'qpdfview')>0) then
+         viewer = '/usr/bin/qpdfview'
+         man_path = man_dir
+      elseif(index(opara(O_VIEWER),'foxit')>0) then
+         viewer = win_viewer(1)
+         man_path = win_dir(1:win_dir_l) // 'DISCUS_INSTALLATION\DiscusWSL\doc\'
+      elseif(index(opara(O_VIEWER),'summatra')>0) then
+         viewer = win_viewer(3)
+         man_path = win_dir(1:win_dir_l) // 'DISCUS_INSTALLATION\DiscusWSL\doc\'
+      elseif(index(opara(O_VIEWER),'plorer')>0) then
+         viewer = win_viewer(4)
+         man_path = win_dir(1:win_dir_l) // 'DISCUS_INSTALLATION\DiscusWSL\doc\'
+      elseif(index(opara(O_VIEWER),'firefox')>0) then
+         viewer = win_viewer(5)(1:len_trim(win_viewer(5)))
+         man_path = win_dir(1:win_dir_l) // 'DISCUS_INSTALLATION\DiscusWSL\doc\'
+      else
+      endif
+      INQUIRE(FILE=viewer,EXIST=lexist)
+      if(lexist) then
+         ierror = 0
+      else
+         viewer = '/usr/bin/qpdfview'
+         man_path = man_dir
+      endif
+   else
+      viewer = '/usr/bin/qpdfview'
+      man_path = man_dir
+      ierror = 0
+   endif
+   IF(ierror==0) THEN     ! Finally, everything is fine let's do it
+      write(output_io,'(a)') ' '
+      write(output_io,'(a)') ' The pdfviewer might produce warnings, obscure the prompt'
+      write(output_io,'(a)') ' Just hit the Enter/Return key to proceed'
+      write(output_io,'(a)') ' '
+      command = ''''//viewer(1:LEN_TRIM(viewer))//''''//' '// &
+                '''' // &
+                man_path(1:LEN_TRIM(man_path))//manual(1:LEN_TRIM(manual))//'_man.pdf'' &'
+      laenge=LEN_TRIM(command)
+      call execute_command_line (command(1:laenge),  wait=.false., &
+           CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
+   ENDIF
+elseIF(operating(1:7)=='Windows' .OR. operating(1:6)=='cygwin') THEN 
    ierror = -6
    win_opt: DO i=1,W_VIEWER
       string = (win_viewer(i))
@@ -680,30 +728,58 @@ ELSE
 !
 ! LINUX Choose viewer
 !
-   command = 'which '//opara(2)(1:lopara(2))   ! Try opional parameter first
-   call execute_command_line (command(1:LEN_TRIM(command)),  wait=.true., &
-        CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
-!
-   IF(ierror == 0 ) THEN  ! Default / User option did not work try list
-      viewer = opara(2)(1:lopara(2))
-   ELSE
-      search: DO i=1, N_VIEWER
-         command = 'which '//pdf_viewer(i)(1:LEN_TRIM(pdf_viewer(i)))
-         call execute_command_line (command(1:LEN_TRIM(command)),  wait=.true., &
-              CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
-         IF(ierror ==0)  THEN
-            viewer = pdf_viewer(i)
-            EXIT search
-         ENDIF
-      ENDDO search
-   ENDIF
+   if(lpresent(O_VIEWER)) then   ! User provided a viewer
+      ierror = -6
+      if(index(opara(O_VIEWER),'qpdfview')>0) then
+         viewer = '/usr/bin/qpdfview'
+      elseif(index(opara(O_VIEWER),'evince')>0) then
+         viewer = '/usr/bin/evince'
+      elseif(index(opara(O_VIEWER),'firefox')>0) then
+         viewer = '/usr/bin/firefox'
+      else
+      endif
+      INQUIRE(FILE=viewer,EXIST=lexist)
+      if(lexist) then
+         ierror = 0
+      endif
+   else
+!write(*,*) ' SETTTING QPDFVIEW'
+      viewer = '/usr/bin/qpdfview'
+      ierror = 0
+   endif
+!write(*,*) ' LINUX ', viewer(1:len_trim(viewer)), ' ', ierror, ier_num, ier_typ, lexist
+!   ierror = 0
+!   command = 'which '//opara(2)(1:lopara(2))   ! Try opional parameter first
+!   call execute_command_line (command(1:LEN_TRIM(command)),  wait=.true., &
+!        CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
+!!
+!write(*,*) ' QPDFVIEW >', command(1:len_trim(command)), '< ERR ',ierror, ier_num, ier_typ, exit_msg
+!   IF(ierror == 0 ) THEN  ! Default / User option did not work try list
+!      viewer = opara(2)(1:lopara(2))
+!   ELSE
+!      search: DO i=1, N_VIEWER
+!         command = 'which '//pdf_viewer(i)(1:LEN_TRIM(pdf_viewer(i)))
+!         call execute_command_line (command(1:LEN_TRIM(command)),  wait=.true., &
+!              CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
+!write(*,*) '     VIEW >', i, command(1:len_trim(command)), '< ERR ',ierror, ier_num, ier_typ
+!         IF(ierror ==0)  THEN
+!            viewer = pdf_viewer(i)
+!            EXIT search
+!         ENDIF
+!      ENDDO search
+!   ENDIF
 !
    IF(ierror==0) THEN     ! Finally, everything is fine let's do it
+      write(output_io,'(a)') ' '
+      write(output_io,'(a)') ' The pdfviewer might produce warnings, obscure the prompt'
+      write(output_io,'(a)') ' Just hit the Enter/Return key to proceed'
+      write(output_io,'(a)') ' '
       command = viewer(1:LEN_TRIM(viewer))//' '// &
                 man_dir(1:LEN_TRIM(man_dir))//manual(1:LEN_TRIM(manual))//'_man.pdf &'
       laenge=LEN_TRIM(command)
       call execute_command_line (command(1:laenge),  wait=.false., &
            CMDSTAT=ierror, CMDMSG=message, exitstat=exit_msg)
+!write(*,*) ' VIEW >', command(1:len_trim(command)), '< ERR ',ierror, ier_num, ier_typ
    ENDIF
 ENDIF
 IF(ierror/=0) THEN     ! Error ??
