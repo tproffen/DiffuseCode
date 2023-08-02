@@ -89,6 +89,8 @@ DO i=0,npkt_fft-1
   xfft (i) = (i+0.50)*PI/qmax_l
   yfft (i) = temp(i  )*2/PI*dq
 ENDDO
+!write(*,*) ' temp ', allocated(temp)
+!write(*,*) ' temp ', lbound(temp), ubound(temp), minval(temp), maxval(temp)
 !write(*,*) ' xfft ', lbound(xfft), ubound(xfft), minval(xfft), maxval(xfft)
 !write(*,*) ' yfft ', lbound(yfft), ubound(yfft), minval(yfft), maxval(yfft)
 !close(77)
@@ -98,6 +100,7 @@ CALL spline_prep(nlow, npkt_fft+1, xfft, yfft, rmin, rmax, rstep, npkt_pdf, xfou
 !write(*,*) ' xfour ', lbound(xfour), ubound(xfour), minval(xfour), maxval(xfour), xfour(ubound(xfour,1))
 !write(*,*) ' yfour ', lbound(yfour), ubound(yfour), minval(yfour), maxval(yfour), yfour(ubound(yfour,1))
 !
+!write(*,*) ' temp ', allocated(temp), allocated(ip)
 DEALLOCATE(temp)
 DEALLOCATE(ip)
 DEALLOCATE(w)
@@ -143,7 +146,7 @@ REAL(KIND=PREC_DP)    :: sigmamin         ! minimum       local sigma**2
 REAL(KIND=PREC_DP)    :: sigmaminsq       ! minimum       local sigma
 REAL(KIND=PREC_DP)    :: eta              ! actual eta at current 2Theta
 REAL(KIND=PREC_DP)    :: dist_min  ! minimum  distance for clin/(r-rmin)
-INTEGER :: imax, i, j, ii  ! Dummy loop indices
+INTEGER :: imax, i, j, ii,jj  ! Dummy loop indices
 INTEGER :: i1, i2          ! Pseudo Voigt lookup indices
 REAL(kind=PREC_DP)    :: pseudo          ! scale factor for lookup table
 INTEGER :: max_ps 
@@ -154,7 +157,7 @@ imax = INT( (tthmax - tthmin) / dtth )
 !write(*,*) 'CONV ', tthmin, tthmax, dtth, imax
 sigmasq = sigma2!*SQRT(eightln2)
 sigmamin = sigmasq * 0.20D0
-sigmamin = sigmasq * 0.020D0
+!sigmamin = sigmasq * 0.050D0
 sigmaminsq = sqrt(sigmamin)
 dist_min = REAL(rcut, KIND=PREC_DP)
 !
@@ -185,9 +188,11 @@ dummy = 0.0   ! dummy(:)
 !fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, 0.00001))
 !write(*,*) ' FWHM FINAL ',tth, fwhm 
 !open(45,file='POWDER/new.pdf', status='unknown')
+!write(*,*) ' DISTMIN ', dist_min, tthmin, dtth
+!open(45,file='POWDER/fwhm.pdf', status='unknown')
 main_pts: DO i = 0, imax 
    tth = tthmin + i * dtth 
-   IF(tth<0.50) THEN
+   IF(tth<0.01) THEN
       dummy(i) = dat(i)
       cycle main_pts
    ENDIF
@@ -196,7 +201,6 @@ main_pts: DO i = 0, imax
    fwhm = sigmaminsq
    if(tth>dist_min) &
    fwhm = SQRT(MAX((sigmasq - corrlin/(tth-dist_min) -corrquad/(tth-dist_min)**2)*sqrt(eightln2), sigmamin))
-!write(45,'(f8.3,2x, g20.8e3)') tth, fwhm
 !
 !if(abs(tth-2.2)<0.005) then
 !  write(*,*) ' TTH FWHM ', tth-dist_min, corrquad/(tth-dist_min), fwhm, sqrt(sigmasq)
@@ -205,23 +209,33 @@ main_pts: DO i = 0, imax
 !
    max_ps = max(21,INT((pow_width * fwhm) / dtth ))
    pseudo =     dtth/fwhm*glp_npt  ! scale factor for look up table
+!
+   ii = max(i-1-max_ps+1,1)
+   jj = min(i+1+max_ps-1,imax, POW_MAXPKT)
+!  do j=ii,jj
+!     i1 = abs(j-i)
+!     dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm))
+!  enddo
+!     cycle main_pts
+!
    i1 = 0                               ! == 0 * dtth
    i2 = MIN(INT(2*i*pseudo), GLP_MAX)   ! == 2*i*dtth
+!write(45,'(f8.3,2x, g20.8e3, f5.1, f7.0)') tth, fwhm, 0.0, real(max_ps)
    dummy (i) = dat (i) * ( glp_pseud_indx(i1, eta, fwhm)  &
                           -glp_pseud_indx(i2, eta, fwhm))                             
 !
    ii = MAX (i - 1 - max_ps + 1, 1)
    first:DO j = ii, i - 1 
-      i1 = MIN(INT((i - j) * pseudo), GLP_MAX)  ! == tth1 = (i - j) * dtth
-      i2 = MIN(INT((i + j) * pseudo), GLP_MAX)  ! == tth2 = (i + j) * dtth
+      i1 = MIN(    INT((i - j) * pseudo)      , GLP_MAX)  ! == tth1 = (i - j) * dtth
+      i2 = MIN(max(INT((i + j) * pseudo),int((i1+1)*pseudo)), GLP_MAX)  ! == tth2 = (i + j) * dtth
       dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
                                      -glp_pseud_indx(i2, eta, fwhm))                    
    ENDDO first
 !
    ii = MIN(i + 1 + max_ps - 1, imax, POW_MAXPKT)
    secnd: DO j = i + 1, ii 
-      i1 = MIN(INT((j - i) * pseudo), GLP_MAX)  ! == tth1 = (j - i) * dtth
-      i2 = MIN(INT((j + i) * pseudo), GLP_MAX)  ! == tth1 = (j + i) * dtth
+      i1 = MIN(    INT((j - i) * pseudo)      , GLP_MAX)  ! == tth1 = (j - i) * dtth
+      i2 = MIN(max(INT((j + i) * pseudo),int((i1+1)*pseudo)), GLP_MAX)  ! == tth1 = (j + i) * dtth
       dummy(i) = dummy(i) + dat(j) *( glp_pseud_indx(i1, eta, fwhm)  &
                                      -glp_pseud_indx(i2, eta, fwhm))
    ENDDO secnd

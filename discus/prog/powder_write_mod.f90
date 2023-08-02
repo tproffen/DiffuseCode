@@ -100,8 +100,16 @@ REAL(KIND=PREC_DP) :: u2aver_scale = 2.00   ! Scale to multiply <u^2> if convers
 REAL(KIND=PREC_DP) :: rmin, rmax, rstep
 REAL(KIND=PREC_DP) :: rminf, rmaxf, rstepf
 INTEGER            :: npkt_pdf, npkt_pdff
+integer            :: npkt_back
+integer            :: npkt_ppdf
+real(kind=PREC_DP) :: qmin_back, qmax_back, qstp_back
+real(kind=PREC_DP) :: rmin_back, rmax_back, rstp_back
 REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: xfour
 REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: yfour
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: xback
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: yback
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: rr_back
+REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: gr_back
 !
 REAL(kind=PREC_DP) :: sigma   ! sigma for PDF Corrlin correction
 !
@@ -428,12 +436,19 @@ ELSEIF( cpow_form == 'q' .OR. cpow_form == 'r') THEN        ! axis is Q
 !        IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
 !            ((pow_four_type == POW_COMPL) .AND. value == val_pdf) .OR. &
 !             pow_four_type == POW_DEBYE              ) THEN ! DEBYE, always spline
-   qmin = pow_qmin
-   qmax = pow_qmax
-   deltaq = pow_deltaq
+!write(*,*) ' QLIMIT!?  ', pow_qmax
    IF(value == val_pdf) THEN                       ! Set limits for PDF
+      if(pdf_clin_a>0.0D0 .or. pdf_cquad_a>0.0) then
+         qmin   = xpl(0)
+         qmax   = xpl(npkt)
+         deltaq = (qmax-qmin)/real(npkt-1,kind=PREC_DP)
+      else
+      qmin = pow_qmin
+      qmax = pow_qmax
+      deltaq = pow_deltaq
 !     Dummy, will be done separately
       CONTINUE
+      endif
    ELSE                                            ! Set limits for powder pattern
       IF(out_user_limits) THEN                     ! User provided values
          qmin   = out_user_values(1)
@@ -452,6 +467,7 @@ ELSEIF( cpow_form == 'q' .OR. cpow_form == 'r') THEN        ! axis is Q
       npkt_u =     NINT((qmax-qmin)/deltaq) + 1             
    ENDIF
 !
+!write(*,*) ' QLIMIT *? ', qmax, xpl(npkt)
    IF(qmax > xpl(npkt) ) THEN                  ! User upper limit too high!
                qmax =            (INT( (         xpl(npkt))/deltaq) - 1)*deltaq
       npkt_u =     NINT((qmax-qmin)/deltaq) + 1             
@@ -554,19 +570,17 @@ ELSEIF(value==val_pdf) THEN  place_ywrt  ! Transform F(Q) into PDF
 !write(*,*) ' CORRQUAD ', pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0
    corr_if: IF(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) THEN
       IF(out_user_limits) THEN
-         rmin     = 0.50D0 ! out_user_values(1)
+         rmin     = 0.01D0 ! out_user_values(1)
          rmax     = out_user_values(2)*1.25D0
          rstep    = out_user_values(3)
-         npkt_pdf = NINT((out_user_values(2)*1.25D0-0.5000000000000000D0)/out_user_values(3)) + 1
-!        npkt_pdf = NINT((out_user_values(2)*1.25-out_user_values(1))/out_user_values(3)) + 1
       ELSE
          rmin     = pdf_rminu
          rmax     = pdf_rmaxu*1.25D0
          rstep    = pdf_deltaru
-         npkt_pdf = NINT((rmax-rmin)/pdf_deltaru) + 1
       ENDIF
-!write(*,*) ' PDF npkt', npkt_pdf, rmin, rmax, rstep
-      rstep = REAL((rmax-rmin)/(npkt_pdf-1), KIND=PREC_DP)
+      npkt_pdf = NINT((rmax-rmin)/rstep) + 1
+      rstep = (rmax-rmin)/REAL((npkt_pdf-1), KIND=PREC_DP)
+! write(*,*) ' PDF npkt', npkt_pdf, rmin, rmax, rstep
       ALLOCATE(xfour(0:npkt_pdf))
       ALLOCATE(yfour(0:npkt_pdf))
       zero_last1: DO ii = npkt_wrt,2,-1
@@ -579,6 +593,7 @@ ELSEIF(value==val_pdf) THEN  place_ywrt  ! Transform F(Q) into PDF
             ywrt(ii) = 0.0
          ENDIF
       ENDDO zero_last1
+         npkt_pdf = NINT((rmax-rmin)/pdf_deltaru) + 1
 !
 !open(77,file='POWDER/prae_corrlin.FQ',status='unknown')
 !DO ii=1,npkt_wrt
@@ -586,6 +601,8 @@ ELSEIF(value==val_pdf) THEN  place_ywrt  ! Transform F(Q) into PDF
 !enddo
 !close(77)
 !write(*,*) ' ABOUT TO DO 1st FFT INTO PDF ', npkt_fft, npkt_pdf
+!write(*,*) ' ABOUT TO DO 1st FFT INTO PDF ', rmin, rmax, rstep 
+!write(*,*) ' ABOUT TO DO 1st FFT INTO PDF ', npkt_wrt, ubound(xwrt)
       CALL fft_fq(npkt_wrt, xwrt, ywrt, qmin, qmax, deltaq, rmin, rmax, rstep, &
                   npkt_fft, npkt_pdf, xfour, yfour)
 !write(*,*) ' after       1st FFT INTO PDF ', npkt_pdf
@@ -604,6 +621,55 @@ ELSEIF(value==val_pdf) THEN  place_ywrt  ! Transform F(Q) into PDF
 !write(77,'(2(2x,G17.7E3))') xfour(ii), yfour(ii)
 !enddo
 !close(77)
+   qmin_back =  0.555D0
+   qmax_back = 20.000D0
+   qstp_back =  0.005D0
+   npkt_back = nint((qmax_back-qmin_back)/qstp_back) + 1
+   allocate(xback(0:npkt_back))
+   allocate(yback(0:npkt_back))
+      CALL fft_fq(npkt_pdf, xfour, yfour, rmin, rmax, rstep, qmin_back, qmax_back, qstp_back, &
+                  npkt_fft, npkt_back, xback, yback)
+xback(npkt_back) = xback(npkt_back-1) + qstp_back
+yback(npkt_back) = yback(npkt_back-1) 
+!open(77,file='POWDER/post_corrlin.FQ',status='unknown')
+!DO ii=1,npkt_back
+!write(77,'(2(2x,G17.7E3))') xback(ii), yback(ii)
+!enddo
+!close(77)
+!   rmin_back =   0.01D0
+!   rmax_back = 100.00D0
+!   rstp_back =   0.01D0
+      IF(out_user_limits) THEN
+         rmin_back     = 0.01D0 ! out_user_values(1)
+         rmax_back     = out_user_values(2)
+         rstp_back     = out_user_values(3)
+      ELSE
+         rmin_back     = pdf_rminu
+         rmax_back     = pdf_rmaxu
+         rstp_back     = pdf_deltaru
+      ENDIF
+   npkt_ppdf = nint((rmax_back-rmin_back)/rstp_back) + 1
+!write(*,*) 'FINAL POINTS', npkt_pdf, npkt_ppdf
+!write(*,*) ' RMIN       ', rmin_back, rmax_back
+!write(*,*) ' RSTEP      ', rstp_back
+   allocate(rr_back(0:npkt_ppdf))
+   allocate(gr_back(0:npkt_ppdf))
+   CALL fft_fq(npkt_back, xback, yback, qmin_back, qmax_back, qstp_back, rmin_back, rmax_back, rstp_back, &
+                  npkt_fft, npkt_ppdf, rr_back, gr_back)
+!open(77,file='POWDER/post_corrlin.PPDF',status='unknown')
+!DO ii=1,npkt_ppdf
+!write(77,'(2(2x,G17.7E3))') rr_back(ii), gr_back(ii)
+!enddo
+!close(77)
+   deallocate(xback)
+   deallocate(yback)
+   deallocate(xfour)
+   deallocate(yfour)
+   allocate(xfour(0:npkt_ppdf))
+   allocate(yfour(0:npkt_ppdf))
+   xfour = rr_back
+   yfour = gr_back
+   npkt_pdf = npkt_ppdf
 !
 !  The final limits to be written need to be adjusted, as corrlin convolution sets a 
 !  rmin at 0.5, respectively a rmax at rmax*1.25
