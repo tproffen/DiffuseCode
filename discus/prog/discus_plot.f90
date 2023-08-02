@@ -1988,6 +1988,7 @@ integer               :: i
 integer               :: ios
 integer, dimension(2) :: pl_pos
 logical, dimension(2) :: got_pos
+logical               :: lda      ! Flag for inquire file is present/absent
 real(kind=PREC_DP), dimension(2) :: werte
 !
 !
@@ -2031,6 +2032,34 @@ endif
 !
 tmp_file = tmp_dir(1:tmp_dir_l)//'/discus_jmol_pos.txt'
 jmol_hist = home_dir(1:home_dir_l)//'.jmol/history'
+inquire(file=jmol_hist, exist=lda)
+if(.not.lda) then
+   line ='mkdir -p ' // home_dir(1:home_dir_l) // '.jmol'
+   call execute_command_line(line(1:len_trim(line)), wait=.true.,         &
+        cmdstat=ier_cmd, cmdmsg=message, exitstat=exit_msg) 
+   open(unit=ird, file=jmol_hist, status='unknown')
+   write(ird,'(a)') '#'
+   write(ird,'(a)') '#'
+   write(ird,'(a)') 'Jmol.window.ScriptWindow.y=340'
+   write(ird,'(a)') 'Jmol.window.ScriptWindow.x=340'
+   write(ird,'(a)') 'Jmol.window.ScriptWindow.w=700'
+   write(ird,'(a)') 'Jmol.window.ScriptEditor.x=340'
+   write(ird,'(a)') 'Jmol.window.ScriptEditor.y=340'
+   write(ird,'(a)') 'Jmol.window.ScriptEditor.w=745'
+   write(ird,'(a)') 'Jmol.window.Jmol.x=70'
+   write(ird,'(a)') 'Jmol.window.Jmol.y=70'
+   write(ird,'(a)') 'Jmol.window.Jmol.w=548'
+   write(ird,'(a)') 'Jmol.window.ScriptWindow.h=400'
+   write(ird,'(a)') 'Jmol.window.ScriptEditor.h=400'
+   write(ird,'(a)') 'Jmol.window.ScriptEditor.visible=false'
+   write(ird,'(a)') 'Jmol.window.Jmol.h=617'
+   write(ird,'(a)') 'Jmol.window.Jmol.innerHeight=500'
+   write(ird,'(a)') 'Jmol.window.ScriptWindow.visible=false'
+   write(ird,'(a)') 'Jmol.window.Jmol.visible=true'
+   close(ird)
+   pl_pos = 70
+   return
+endif
 !
 open(unit=ird, file=jmol_hist, status='unknown')
 open(unit=iwr, file=tmp_file , status='unknown')
