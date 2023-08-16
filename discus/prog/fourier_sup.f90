@@ -1527,12 +1527,12 @@ IMPLICIT none
 REAL(kind=PREC_DP) :: q2, h (3) 
 INTEGER :: i, j, k, l 
 !                                                                       
-      IF (four_log) then 
-         WRITE (output_io, 1000) 
-      ENDIF 
+IF (four_log) then 
+   WRITE (output_io, 1000) 
+ENDIF 
 !                                                                       
-      DO l = 1, num (3) 
-      DO j = 1, num (2) 
+DO l = 1, num (3) 
+   DO j = 1, num (2) 
       DO i = 1, num (1) 
       DO k = 1, 3 
       h (k) = REAL(xm (k) + uin (k) * REAL(i - 1, KIND=KIND(0.0D0)) &
@@ -1540,13 +1540,13 @@ INTEGER :: i, j, k, l
                           + win (k) * REAL(l - 1, KIND=KIND(0.0D0)))
       ENDDO 
 !     q2 = quad (h, h, cr_rten) / 4.0 
-      q2 = skalpro (h, h, cr_rten) / 4.0 
+      q2 = skalpro (h, h, cr_rten) / 4.0D0
 !     k  = (i - 1) * num (2) + j 
       k  = (i - 1) * num (3)* num (2) + (j - 1) * num (3) + l 
 !RBN_3D
 !write(*,2000) i,j,l, k
 !2000 format( 'ijl:k ', 3i4,' : ', i6)
-      istl (k) = nint (sqrt (q2) * (1.0 / CFINC) ) 
+      istl (k) = nint (sqrt (q2) * (1.0D0 / CFINC) ) 
 !                                                                       
       IF (istl (k) .gt.CFPKT) then 
          ier_num = - 3 
@@ -1555,11 +1555,12 @@ INTEGER :: i, j, k, l
       ENDIF 
 !                                                                       
       ENDDO 
-      ENDDO 
-      ENDDO 
+   ENDDO 
+ENDDO 
 !                                                                       
  1000 FORMAT     (' Computing sin(theta)/lambda table ...') 
-      END SUBROUTINE four_stltab                    
+END SUBROUTINE four_stltab                    
+!
 !*****7*****************************************************************
 SUBROUTINE four_formtab
 !+                                                                      
@@ -1612,8 +1613,10 @@ ENDDO
 !                                                                       
  1000 FORMAT     (' Computing formfactor lookup table ...') 
 END SUBROUTINE four_formtab                   
+!
 !*****7*****************************************************************
-      SUBROUTINE four_qinfo 
+!
+SUBROUTINE four_qinfo 
 !+                                                                      
 !     Gives information about max/min values for diffuse and            
 !     Bragg scattering.                                                 
@@ -1696,33 +1699,35 @@ END SUBROUTINE four_formtab
  1010 FORMAT     (  ' Bragg scat.     : ',G13.6,'  -> ',G13.6) 
  1020 FORMAT     (  ' Diffuse scat.   : ',G13.6,'  -> ',G13.6) 
  1030 FORMAT     (  '      Average    : ',G13.6,'  +- ',G13.6) 
-      END SUBROUTINE four_qinfo                     
+END SUBROUTINE four_qinfo                     
+!
 !*****7*****************************************************************
-      REAL(kind=PREC_DP) FUNCTION form (ll, scat, lxray, h2, power) 
+!
+REAL(kind=PREC_DP) FUNCTION form (ll, scat, lxray, h2, power) 
 !+                                                                      
 !       calculates the form factor                                      
 !-                                                                      
-      USE discus_config_mod
-      USE element_data_mod
-      USE precision_mod
-      IMPLICIT none 
+USE discus_config_mod
+USE element_data_mod
+USE precision_mod
+IMPLICIT none 
 !                                                                       
-      INTEGER, INTENT(IN) :: ll
-      LOGICAL, INTENT(IN) :: lxray 
-      REAL(kind=PREC_DP)   , DIMENSION(11,0:MAXSCAT), INTENT(INOUT) :: scat ! (11, 0:maxscat) 
-      REAL(kind=PREC_DP)              , INTENT(IN)    :: h2
-      INTEGER, INTENT(IN) :: power
+INTEGER, INTENT(IN) :: ll
+LOGICAL, INTENT(IN) :: lxray 
+REAL(kind=PREC_DP)   , DIMENSION(11,0:MAXSCAT), INTENT(INOUT) :: scat ! (11, 0:maxscat) 
+REAL(kind=PREC_DP)              , INTENT(IN)    :: h2
+INTEGER, INTENT(IN) :: power
 !
-      INTEGER   :: i 
+INTEGER   :: i 
 !                                                                       
-      form = scat (1, ll) 
-      IF (lxray) then 
-         DO i = 1, power 
-         form = form + scat (2 * i, ll) * exp ( - scat (2 * i + 1, ll)  &
-         * h2)                                                          
-         ENDDO 
-      ENDIF 
-      END FUNCTION form                             
+form = scat (1, ll) 
+IF (lxray) then 
+   DO i = 1, power 
+      form = form + scat (2 * i, ll) * exp ( - scat (2 * i + 1, ll)   * h2)
+   ENDDO 
+ENDIF 
+!
+END FUNCTION form                             
 !
 !*****7*****************************************************************
 !
@@ -1897,7 +1902,8 @@ ENDIF any_element
 END SUBROUTINE dlink                          
 !
 !*****7*****************************************************************
-      SUBROUTINE calc_000 (rhkl) 
+!
+SUBROUTINE calc_000 (rhkl) 
 !-                                                                      
 !     Calculates the value of F(rh,rk,rl)                               
 !+                                                                      
@@ -1973,9 +1979,11 @@ END SUBROUTINE dlink
          ENDDO 
       ENDDO 
 !                                                                       
-      END SUBROUTINE calc_000                       
+END SUBROUTINE calc_000                       
 !
-      SUBROUTINE calc_hkl(infile,infile_l, calcfile, calcfile_l,scale,style)
+!*****7*****************************************************************
+!
+SUBROUTINE calc_hkl(infile,infile_l, calcfile, calcfile_l,scale,style)
 !
       USE crystal_mod 
       USE diffuse_mod 
@@ -2218,10 +2226,11 @@ main:    DO
 2000  FORMAT(3I4,F12.2,F12.2, F12.2)
       CLOSE(ird)
       CLOSE(iwr)
-      END SUBROUTINE calc_hkl
+END SUBROUTINE calc_hkl
 !
 !*****7*****************************************************************
-      SUBROUTINE four_strucf_aver (iscat, lform) 
+!
+SUBROUTINE four_strucf_aver (iscat, lform) 
 !+                                                                      
 !     Here the complex structure factor of 'nxat' identical atoms       
 !     from array 'xat' is computed.                                     
@@ -2304,7 +2313,7 @@ main:    DO
          END DO
       ENDIF 
 !                                                                       
-      END SUBROUTINE four_strucf_aver
+END SUBROUTINE four_strucf_aver
 !
 !
 !*******************************************************************************
