@@ -16,59 +16,62 @@ module lib_math_mod
 !*******************************************************************************
 !
 use precision_mod
+use lib_ik_mod
 !
-character(len=PREC_STRING)                         :: ik1_infile
-character(len=PREC_STRING)                         :: ik2_infile
-integer                                            :: ik1_node_number  ! Node in global data
-integer                                            :: ik2_node_number  ! Node in global data
-integer                                            :: ik1_nlayer       ! Current layer in display
-integer                                            :: ik2_nlayer       ! Current layer in display
-logical                                            :: ik1_is_direct   ! Data are on direct / reciprocal scale
-logical                                            :: ik2_is_direct   ! Data are on direct / reciprocal scale
-logical                                            :: ik1_is_grid     ! Data are on direct / reciprocal scale
-logical                                            :: ik2_is_grid     ! Data are on direct / reciprocal scale
-logical                                            :: ik1_has_dxyz    ! Data are on direct / reciprocal scale
-logical                                            :: ik2_has_dxyz    ! Data are on direct / reciprocal scale
-logical                                            :: ik1_has_dval    ! Data are on direct / reciprocal scale
-logical                                            :: ik2_has_dval    ! Data are on direct / reciprocal scale
-integer                                            :: ik1_ndims        ! Number of dimensions
-integer                                            :: ik2_ndims        ! Number of dimensions
-integer, dimension(3)                              :: ik1_dims         ! Dimensions global array
-integer, dimension(3)                              :: ik2_dims         ! Dimensions global array
-real(kind=PREC_DP), dimension(3)                   :: ik1_a0           ! Lower limits global array
-real(kind=PREC_DP), dimension(3)                   :: ik2_a0           ! Lower limits global array
-real(kind=PREC_DP), dimension(3)                   :: ik1_win          ! Lower limits global array
-real(kind=PREC_DP), dimension(3)                   :: ik2_win          ! Lower limits global array
-real(kind=PREC_DP), dimension(3)                   :: ik1_llims        ! Lower limits global array
-real(kind=PREC_DP), dimension(3)                   :: ik2_llims        ! Lower limits global array
-real(kind=PREC_DP), dimension(3,4)                 :: ik1_corners      ! Steps        global array
-real(kind=PREC_DP), dimension(3,4)                 :: ik2_corners      ! Steps        global array
-real(kind=PREC_DP), dimension(3,3)                 :: ik1_vectors      ! Steps        global array
-real(kind=PREC_DP), dimension(3,3)                 :: ik2_vectors      ! Steps        global array
-real(kind=PREC_DP), dimension(3)                   :: ik1_steps        ! Steps        global array
-real(kind=PREC_DP), dimension(3)                   :: ik2_steps        ! Steps        global array
-real(kind=PREC_DP), dimension(3,3)                 :: ik1_steps_full   ! Steps        global array
-real(kind=PREC_DP), dimension(3,3)                 :: ik2_steps_full   ! Steps        global array
-real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_x           ! Global data array for real
-real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_y           ! Global data array for real
-real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_z           ! Global data array for real
-real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_x           ! Global data array for real
-real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_y           ! Global data array for real
-real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_z           ! Global data array for real
-real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_dx          ! Global data array for real
-real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_dy          ! Global data array for real
-real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_dz          ! Global data array for real
-real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_dx          ! Global data array for real
-real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_dy          ! Global data array for real
-real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_dz          ! Global data array for real
-real(kind=PREC_DP), dimension(:,:,:), target, allocatable  :: ik1_data        ! Global data array for real
-real(kind=PREC_DP), dimension(:,:,:), allocatable  :: ik2_data        ! Global data array for real
-real(kind=PREC_DP), dimension(:,:,:), target, allocatable  :: ik1_sigma       ! Global data array for real
-real(kind=PREC_DP), dimension(:,:,:), allocatable  :: ik2_sigma       ! Global data array for real
-real(kind=PREC_DP), dimension(2)                   :: ik1_minmaxval    ! Steps        global array
-real(kind=PREC_DP), dimension(2)                   :: ik2_minmaxval    ! Steps        global array
-real(kind=PREC_DP), dimension(3,2)                 :: ik1_minmaxcoor   ! Steps        global array
-real(kind=PREC_DP), dimension(3,2)                 :: ik2_minmaxcoor   ! Steps        global array
+!character(len=PREC_STRING)                         :: ik1_infile
+!character(len=PREC_STRING)                         :: ik2_infile
+!integer                                            :: ik1_node_number  ! Node in global data
+!integer                                            :: ik2_node_number  ! Node in global data
+!integer                                            :: ik1_data_type    ! Data type 
+!integer                                            :: ik2_data_type    ! Data type
+!integer                                            :: ik1_nlayer       ! Current layer in display
+!integer                                            :: ik2_nlayer       ! Current layer in display
+!logical                                            :: ik1_is_direct   ! Data are on direct / reciprocal scale
+!logical                                            :: ik2_is_direct   ! Data are on direct / reciprocal scale
+!logical                                            :: ik1_is_grid     ! Data are on direct / reciprocal scale
+!logical                                            :: ik2_is_grid     ! Data are on direct / reciprocal scale
+!logical                                            :: ik1_has_dxyz    ! Data are on direct / reciprocal scale
+!logical                                            :: ik2_has_dxyz    ! Data are on direct / reciprocal scale
+!logical                                            :: ik1_has_dval    ! Data are on direct / reciprocal scale
+!logical                                            :: ik2_has_dval    ! Data are on direct / reciprocal scale
+!integer                                            :: ik1_ndims        ! Number of dimensions
+!integer                                            :: ik2_ndims        ! Number of dimensions
+!integer, dimension(3)                              :: ik1_dims         ! Dimensions global array
+!integer, dimension(3)                              :: ik2_dims         ! Dimensions global array
+!real(kind=PREC_DP), dimension(3)                   :: ik1_a0           ! Lower limits global array
+!real(kind=PREC_DP), dimension(3)                   :: ik2_a0           ! Lower limits global array
+!real(kind=PREC_DP), dimension(3)                   :: ik1_win          ! Lower limits global array
+!real(kind=PREC_DP), dimension(3)                   :: ik2_win          ! Lower limits global array
+!real(kind=PREC_DP), dimension(3)                   :: ik1_llims        ! Lower limits global array
+!real(kind=PREC_DP), dimension(3)                   :: ik2_llims        ! Lower limits global array
+!real(kind=PREC_DP), dimension(3,4)                 :: ik1_corners      ! Steps        global array
+!real(kind=PREC_DP), dimension(3,4)                 :: ik2_corners      ! Steps        global array
+!real(kind=PREC_DP), dimension(3,3)                 :: ik1_vectors      ! Steps        global array
+!real(kind=PREC_DP), dimension(3,3)                 :: ik2_vectors      ! Steps        global array
+!real(kind=PREC_DP), dimension(3)                   :: ik1_steps        ! Steps        global array
+!real(kind=PREC_DP), dimension(3)                   :: ik2_steps        ! Steps        global array
+!real(kind=PREC_DP), dimension(3,3)                 :: ik1_steps_full   ! Steps        global array
+!real(kind=PREC_DP), dimension(3,3)                 :: ik2_steps_full   ! Steps        global array
+!real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_x           ! Global data array for real
+!real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_y           ! Global data array for real
+!real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_z           ! Global data array for real
+!real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_x           ! Global data array for real
+!real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_y           ! Global data array for real
+!real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_z           ! Global data array for real
+!real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_dx          ! Global data array for real
+!real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_dy          ! Global data array for real
+!real(kind=PREC_DP), dimension(:)    , target, allocatable  :: ik1_dz          ! Global data array for real
+!real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_dx          ! Global data array for real
+!real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_dy          ! Global data array for real
+!real(kind=PREC_DP), dimension(:)    , allocatable  :: ik2_dz          ! Global data array for real
+!real(kind=PREC_DP), dimension(:,:,:), target, allocatable  :: ik1_data        ! Global data array for real
+!real(kind=PREC_DP), dimension(:,:,:), allocatable  :: ik2_data        ! Global data array for real
+!real(kind=PREC_DP), dimension(:,:,:), target, allocatable  :: ik1_sigma       ! Global data array for real
+!real(kind=PREC_DP), dimension(:,:,:), allocatable  :: ik2_sigma       ! Global data array for real
+!real(kind=PREC_DP), dimension(2)                   :: ik1_minmaxval    ! Steps        global array
+!real(kind=PREC_DP), dimension(2)                   :: ik2_minmaxval    ! Steps        global array
+!real(kind=PREC_DP), dimension(3,2)                 :: ik1_minmaxcoor   ! Steps        global array
+!real(kind=PREC_DP), dimension(3,2)                 :: ik2_minmaxcoor   ! Steps        global array
 !
 real(kind=PREC_DP), dimension(3)                   :: ft_steps        ! Steps after Fourier
 real(kind=PREC_DP), dimension(3)                   :: ft_start        ! Start after Fourier
@@ -117,8 +120,10 @@ real(kind=PREC_DP) :: factor, summand !, thresh
 real(kind=PREC_DP), dimension(:), pointer :: p2coord  ! Pointer to Coordinates to work on
 !
 call data2local(ik      , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+     ik1_data_type, &
      ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
-     ik1_has_dxyz, ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
+     ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,   &
+     ik1_vectors, ik1_a0, ik1_win,  &
      ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
      ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
 !
@@ -212,9 +217,9 @@ if(lcoord) then
    ik1_llims(jdim) = minval(p2coord)
 endif
 !
-call local2data(ik, ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_nlayer,  &
+call local2data(ik, ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_data_type, ik1_nlayer,  &
      ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid, ik1_has_dxyz,             &
-     ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
+     ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
      ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma, ik1_llims, ik1_steps,  &
      ik1_steps_full)
 !
@@ -249,8 +254,10 @@ real(kind=PREC_DP) :: factor, summand !, thresh
 real(kind=PREC_DP), dimension(:,:,:), pointer :: p2data  ! Pointer to data to work on
 !
 call data2local(ik      , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+     ik1_data_type, &
      ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
-     ik1_has_dxyz, ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
+     ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,   &
+     ik1_vectors, ik1_a0, ik1_win,  &
      ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
      ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
 !
@@ -303,9 +310,9 @@ else
 endif
 !
 if(ier_num==0) then
-call local2data(ik, ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_nlayer,  &
+call local2data(ik, ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_data_type, ik1_nlayer,  &
      ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid, ik1_has_dxyz,             &
-     ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
+     ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
      ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma, ik1_llims, ik1_steps,  &
      ik1_steps_full)
 endif
@@ -431,8 +438,10 @@ endif
 ! Get data field
 !
 call data2local(ik      , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+     ik1_data_type, &
      ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
-     ik1_has_dxyz, ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
+     ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,   &
+     ik1_vectors, ik1_a0, ik1_win,  &
      ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
      ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
 !
@@ -449,8 +458,10 @@ if(mask>0) then
 !  Get mask field
 !
    call data2local(mask    , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+        ik2_data_type, &
         ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-        ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+        ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+        ik2_vectors, ik2_a0, ik2_win,  &
         ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
         ik2_llims, ik2_steps, ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
    if(ik1_ndims/=ik2_ndims .or. any(ik1_dims/=ik2_dims)) then
@@ -520,9 +531,9 @@ cond_error: if(ier_num==0) then
       ik1_data = 0.0D0
    end where
 !
-   call local2data(ik , ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_nlayer,  &
+   call local2data(ik , ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_data_type, ik1_nlayer,  &
         ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid, ik1_has_dxyz,             &
-        ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
+        ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
         ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma, ik1_llims, ik1_steps,  &
         ik1_steps_full)
 endif cond_error
@@ -686,8 +697,10 @@ type(c_ptr) :: plan    ! FFWT3 plan
 !
 if(idata(1)>0) then                             !  User provided real par
    call data2local(idata(1), ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+        ik1_data_type, &
         ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
-        ik1_has_dxyz, ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
+        ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,   &
+        ik1_vectors, ik1_a0, ik1_win,  &
         ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
         ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
    length = ik1_dims(1)
@@ -701,8 +714,10 @@ if(idata(1)>0) then                             !  User provided real par
 endif
 if(idata(2)>0) then                             !  User provided imag part
    call data2local(idata(2), ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+        ik2_data_type, &
         ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-        ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+        ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+        ik2_vectors, ik2_a0, ik2_win,  &
         ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
         ik2_llims, ik2_steps, ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
    length = ik2_dims(1)
@@ -781,9 +796,9 @@ ik1_nlayer      = 1   ! Dummy layer number
 !
 ! Store real/imag pair into global storage
 !
-call fft2data(odata(1), ier_num, ier_typ, ik1_node_number, ik1_nlayer,          &
+call fft2data(odata(1), ier_num, ier_typ, ik1_node_number, ik1_data_type, ik1_nlayer,          &
      ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid, ik1_has_dxyz,             &
-     ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
+     ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
      ik1_z, ik1_dx, ik1_dy, ik1_dz, res_rl_data, ik1_sigma, ik1_llims, steps,   &
      ik1_steps_full, res_im_data, ik2_sigma)
 !
@@ -837,8 +852,10 @@ type(c_ptr) :: plan    ! FFWT3 plan
 !
 if(idata(1)>0) then                             !  User provided real part
    call data2local(idata(1), ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+        ik1_data_type, &
         ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
-        ik1_has_dxyz, ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
+        ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,   &
+        ik1_vectors, ik1_a0, ik1_win,  &
         ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
         ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
    kdat   = 1
@@ -851,8 +868,10 @@ if(idata(1)>0) then                             !  User provided real part
 endif
 if(idata(2)>0) then                             !  User provided imag part
    call data2local(idata(2), ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+        ik2_data_type, &
         ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-        ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+        ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+        ik2_vectors, ik2_a0, ik2_win,  &
         ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
         ik2_llims, ik2_steps, ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
    kdat   = 2
@@ -957,9 +976,9 @@ ik1_nlayer      = 1   ! Dummy layer number
 ! Store real/imag pair into global storage
 !
 ik1_node_number = 0
-call fft2data(odata(1), ier_num, ier_typ, ik1_node_number, ik1_nlayer,          &
+call fft2data(odata(1), ier_num, ier_typ, ik1_node_number, ik1_data_type, ik1_nlayer,          &
      ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid, ik1_has_dxyz,             &
-     ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
+     ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
      ik1_z, ik1_dx, ik1_dy, ik1_dz, res_rl_data, ik1_sigma, ik1_llims, steps,   &
      ik1_steps_full, res_im_data, ik2_sigma)
 !
@@ -1017,8 +1036,9 @@ type(c_ptr) :: plan    ! FFWT3 plan
 !
 if(idata(1)>0) then                             !  User provided real part
    call data2local(idata(1), ier_num, ier_typ, ik1_node_number, ik1_infile,     &
-        ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
-        ik1_has_dxyz, ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
+        ik1_data_type, ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
+        ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,   &
+        ik1_vectors, ik1_a0, ik1_win,  &
         ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
         ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
    kdat   = 1
@@ -1033,8 +1053,10 @@ if(idata(1)>0) then                             !  User provided real part
 endif
 if(idata(2)>0) then                             !  User provided imag part
    call data2local(idata(2), ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+        ik2_data_type, &
         ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-        ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+        ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+        ik2_vectors, ik2_a0, ik2_win,  &
         ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
         ik2_llims, ik2_steps, ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
    kdat   = 2
@@ -1179,9 +1201,9 @@ ELSE
   ik1_nlayer = (num(3)+1)/2
 ENDIF
 !                 ! Copy result into global storage
-call fft2data(odata(1), ier_num, ier_typ, ik1_node_number, ik1_nlayer,          &
+call fft2data(odata(1), ier_num, ier_typ, ik1_node_number, ik1_data_type, ik1_nlayer,          &
      ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid, ik1_has_dxyz,             &
-     ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
+     ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
      ik1_z, ik1_dx, ik1_dy, ik1_dz, res_rl_data, ik1_sigma, ik1_llims, steps,   &
      ik1_steps_full, res_im_data, ik2_sigma)
 !
@@ -1216,14 +1238,18 @@ integer         , intent(in) :: ik3
 real(kind=PREC_DP), dimension(:,:,:), allocatable  :: res_data        ! Global data array for real
 !
 call data2local(ik1     , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+     ik1_data_type, &
      ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
-     ik1_has_dxyz, ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
+     ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,   &
+     ik1_vectors, ik1_a0, ik1_win,  &
      ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
      ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
 !
 call data2local(ik2     , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+     ik2_data_type, &
      ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-     ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+     ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+     ik2_vectors, ik2_a0, ik2_win,  &
      ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
      ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
 !
@@ -1254,9 +1280,11 @@ elseif(oper=='DIV') then
 endif
 !
 ik1_node_number = 0
-call local2data(ik3, ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_nlayer,  &
+call local2data(ik3, ier_num, ier_typ, ik1_node_number, ik1_infile,             &
+     ik1_data_type, ik1_nlayer,  &
      ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid, ik1_has_dxyz,             &
-     ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
+     ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners, ik1_vectors,             &
+     ik1_a0, ik1_win, ik1_x, ik1_y,     &
      ik1_z, ik1_dx, ik1_dy, ik1_dz, res_data, ik1_sigma, ik1_llims, ik1_steps,  &
      ik1_steps_full)
 !
@@ -1267,13 +1295,14 @@ end subroutine kmath_h5_global
 !
 !*****7*****************************************************************
 !
-subroutine rvalue_h5_global(ik1, ik2, iweight, bck_k, rval, wrval)
+subroutine rvalue_h5_global(ik1, ik2, iweight, bck_k, rval, wrval, logfile)
 !-
 !  Perform R-value calculations
 !+
 !
 use errlist_mod
 use lib_data_struc_h5
+use lib_data_types_mod
 use lib_weights_mod
 use precision_mod
 !use prompt_mod
@@ -1286,6 +1315,7 @@ integer           , intent(in)  :: iweight
 real(kind=PREC_DP), intent(out) :: rval 
 real(kind=PREC_DP), intent(out) :: wrval 
 real(kind=PREC_DP), intent(in)  :: bck_k
+character(len=*)  , intent(in)  :: logfile
 !                                                                       
 integer :: ii,jj,kk
 real(kind=PREC_DP) :: sumrz, sumrn 
@@ -1295,16 +1325,28 @@ real(kind=PREC_DP) :: a_ik1, a_ik2
 
 !
 call data2local(ik1     , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+     ik1_data_type,    &
      ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
-     ik1_has_dxyz, ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
+     ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,   &
+     ik1_vectors, ik1_a0, ik1_win,  &
      ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
      ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
 !
-call data2local(ik2     , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+call data2local(ik2     , ier_num, ier_typ, ik2_node_number, ik2_infile,   &
+     ik2_data_type,    &
      ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-     ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+     ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+     ik2_vectors, ik2_a0, ik2_win,  &
      ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
      ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
+!
+sumrz  = 0.0D0
+sumrn  = 0.0D0
+sumwrz = 0.0D0
+sumwrn = 0.0D0
+if(ik1_data_type==H5_BRAGG_I) then
+   call rvalue_hklf4_global(iweight, bck_k, sumrz, sumrn, sumwrz, sumwrn, logfile)
+else
 !
 if(ik1_ndims/=ik2_ndims .or. any(ik1_dims/=ik2_dims)) then
    ier_num = -56
@@ -1312,11 +1354,6 @@ if(ik1_ndims/=ik2_ndims .or. any(ik1_dims/=ik2_dims)) then
    call math_clean
    return
 endif
-!
-sumrz  = 0.0D0
-sumrn  = 0.0D0
-sumwrz = 0.0D0
-sumwrn = 0.0D0
 !
 do kk=1,ik1_dims(3)
    do jj=1,ik1_dims(2)
@@ -1331,6 +1368,7 @@ do kk=1,ik1_dims(3)
       enddo
    enddo
 enddo
+endif
 !
 rval = sumrz / sumrn 
 wrval = sqrt (sumwrz / sumwrn) 
@@ -1338,6 +1376,101 @@ wrval = sqrt (sumwrz / sumwrn)
 call math_clean
 !
 end subroutine rvalue_h5_global
+!
+!*****7*****************************************************************
+!
+subroutine rvalue_hklf4_global(iweight, bck_k, sumrz, sumrn, sumwrz, sumwrn, logfile)
+!-
+!  Calculate the R-value for a Bragg reflection data set
+!+
+use lib_weights_mod
+use precision_mod
+!
+implicit none
+!
+integer           , intent(in)  :: iweight
+real(kind=PREC_DP), intent(in)  :: bck_k
+real(kind=PREC_DP), intent(inout) :: sumrz
+real(kind=PREC_DP), intent(inout) :: sumrn
+real(kind=PREC_DP), intent(inout) :: sumwrz
+real(kind=PREC_DP), intent(inout) :: sumwrn
+character(len=*)  , intent(in)  :: logfile
+!
+integer, parameter :: IWR = 99
+integer :: ii,jj,kk, l,m
+integer, dimension(3) :: offs
+logical            :: lout
+real(kind=PREC_DP) :: wght 
+real(kind=PREC_DP) :: a_ik1, a_ik2 
+real(kind=PREC_DP) :: s_ik1
+!
+sumrz  = 0.0D0
+sumrn  = 0.0D0
+sumwrz = 0.0D0
+sumwrn = 0.0D0
+!
+lout = .false.
+!
+offs = ik1_llims - ik2_llims
+!
+l = 0
+m = 0
+!write(*,*) ' IN RVALUE_SHELXL ', offs
+!write(*,*) ' llims 1 ', ik1_llims
+!write(*,*) ' llims 2 ', ik2_llims
+!write(*,*) ' IK1 IK2 ', ik1_data( 1,  1,  1), ik2_data( 1+offs(1),  1+offs(2),  1+offs(3)) 
+!write(*,*) ' SIGMAS  ', ik1_sigma( 1,  1,  1)!, ik2_sigma( 2,  3,  3)
+!write(*,*) ' HKL 1   ', ik1_x(1 ),         ik1_y( 1),         ik1_z( 1)
+!write(*,*) ' HKL 2   ', ik2_x(1+offs(1) ), ik2_y( 1+offs(2)), ik2_z( 1+offs(3))
+!write(*,*) ' ALLOCATED ', allocated(    ik1_data   ), allocated(    ik1_sigma), ik1_has_dval
+!write(*,*) ' ALLOCATED ', allocated(    ik2_data   ), allocated(    ik2_sigma), ik2_has_dval
+!write(*,*) ' INTENSITY ', minval(ik1_data), maxval(ik1_data)
+!write(*,*) ' INTENSITY ', minval(ik2_data), maxval(ik2_data)
+!write(*,*) ' SIGMA     ', minval(ik1_sigma), maxval(ik1_sigma)
+!!write(*,*) ' SIGMA     ', minval(ik2_sigma), maxval(ik2_sigma)
+!write(*,*) ' BOUND int1', lbound(ik1_data), ubound(ik1_data)
+!write(*,*) ' BOUND int2', lbound(ik2_data), ubound(ik2_data)
+!write(*,*) ' BOUND sig1', lbound(ik1_sigma), ubound(ik1_sigma)
+!!write(*,*) ' BOUND sig2', lbound(ik2_sigma), ubound(ik2_sigma)
+!write(*,*) ' X 1       ', ik1_x(1), ik1_x(ik1_dims(1))
+!write(*,*) ' y 1       ', ik1_y(1), ik1_y(ik1_dims(2))
+!write(*,*) ' z 1       ', ik1_z(1), ik1_z(ik1_dims(3))
+!write(*,*) ' X 2       ', ik2_x(1), ik1_x(ik1_dims(1))
+!write(*,*) ' y 2       ', ik2_y(1), ik1_y(ik1_dims(2))
+!write(*,*) ' z 2       ', ik2_z(1), ik1_z(ik1_dims(3))
+if(logfile/='NONE') then
+   open(unit=IWR,file=logfile, status='unknown')
+   lout = .true.
+endif
+do kk=1,ik1_dims(3)
+   do jj=1,ik1_dims(2)
+      do ii=1,ik1_dims(1)
+         if(ik1_sigma(ii,jj,kk)>0.0D0) then
+            a_ik1 = ik1_data(ii,jj,kk)
+            a_ik2 = ik2_data(ii+offs(1),jj+offs(2),kk+offs(3))
+            s_ik1 = ik1_sigma(ii,jj,kk)
+            sumrz = sumrz + abs (a_ik1 -a_ik2)
+            sumrn = sumrn + abs (a_ik1) 
+            wght = r_wichtung (a_ik1  , s_ik1, iweight, a_ik2, bck_k) 
+!write(*,'(6i4,2x,4f14.6, i4)') nint(ik1_x(ii)), nint(ik1_y(jj)), nint(ik1_z(kk)),   &
+!          nint(ik2_x(ii+offs(1))), nint(ik2_y(jj+offs(2))), nint(ik2_z(kk+offs(3))),   &
+!          ik1_data(ii        ,jj        ,kk        ), &
+!          ik2_data(ii+offs(1),jj+offs(2),kk+offs(3)), s_ik1, wght, iweight
+!
+            sumwrz = sumwrz + wght * (a_ik1   - a_ik2   ) **2 
+            sumwrn = sumwrn + wght * (a_ik1   ) **2 
+if(lout) write(IWR, fmt='(4(2x,g20.8e3))') a_ik1, a_ik2, 0.0, (a_ik1 - a_ik2)
+ l = l + 1
+         endif
+ m = m + 1
+      enddo
+   enddo
+enddo
+if(lout) close(IWR)
+!write(*,*) ' Reflections ', l, m
+!write(*,*) ' Zaehler     ', sumrz, sumwrz
+!write(*,*) ' Nenner      ', sumrn, sumwrn
+end subroutine rvalue_hklf4_global
 !
 !*****7*****************************************************************
 !
@@ -1443,8 +1576,10 @@ ENDIF
 ik = nint(werte(1)) 
 !
 call data2local(ik      , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+           ik1_data_type, &
      ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
-     ik1_has_dxyz, ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
+     ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,   &
+     ik1_vectors, ik1_a0, ik1_win,  &
      ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
      ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
 !
@@ -1458,8 +1593,10 @@ if(ik1_ndims==1) then                    ! 1-D data sets
    loop_valid_1d: do i = 1, ianz 
       ik = nint(werte(i))
       call data2local(ik      , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+           ik2_data_type, &
            ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-           ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+           ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+           ik2_vectors, ik2_a0, ik2_win,  &
            ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
            ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
       lvalid = lvalid .and. ik2_ndims==1
@@ -1501,8 +1638,10 @@ if(ik1_ndims==1) then                    ! 1-D data sets
    loop_merge_1d: do i=1, ianz    ! Merge values of all data
       ik = nint(werte(i))
       call data2local(ik      , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+           ik2_data_type, &
            ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-           ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+           ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+           ik2_vectors, ik2_a0, ik2_win,  &
            ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
            ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
       do ip = 1, ik2_dims(1)
@@ -1528,9 +1667,11 @@ if(ik1_ndims==1) then                    ! 1-D data sets
    ik1_infile  = 'merged.dat'
 !
    ik1_node_number = 0
-   call local2data(ik3, ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_nlayer,  &
+   call local2data(ik3, ier_num, ier_typ, ik1_node_number, ik1_infile,  &
+        ik1_data_type, ik1_nlayer,  &
         ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid, ik1_has_dxyz,             &
-        ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
+        ik1_has_dval, ik1_calc_coor, ik1_use_coor, &
+        ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
         ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma, ik1_llims, ik1_steps,  &
         ik1_steps_full)
 !
@@ -1549,8 +1690,10 @@ elseif(ik1_ndims==2) then                ! 2-D data sets
    loop_valid_2d: do i = 1, ianz 
       ik = nint(werte(i))
       call data2local(ik      , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+           ik2_data_type, &
            ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-           ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+           ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+           ik2_vectors, ik2_a0, ik2_win,  &
            ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
            ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
       lvalid = lvalid .and. ik2_ndims==2
@@ -1597,8 +1740,10 @@ elseif(ik1_ndims==2) then                ! 2-D data sets
    loop_merge_2d: do i=1, ianz    ! Merge values of all data
       ik = nint(werte(i))
       call data2local(ik      , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+           ik2_data_type, &
            ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-           ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+           ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+           ik2_vectors, ik2_a0, ik2_win,  &
            ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
            ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
       do iy = 1, ik2_dims(2)
@@ -1632,9 +1777,11 @@ elseif(ik1_ndims==2) then                ! 2-D data sets
    ik1_infile = 'merged.dat'
 !
    ik1_node_number = 0
-   call local2data(ik3, ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_nlayer,  &
+   call local2data(ik3, ier_num, ier_typ, ik1_node_number, ik1_infile,             &
+        ik1_data_type, ik1_nlayer,  &
         ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid, ik1_has_dxyz,             &
-        ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
+        ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners, ik1_vectors, &
+        ik1_a0, ik1_win, ik1_x, ik1_y,     &
         ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma, ik1_llims, ik1_steps,  &
         ik1_steps_full)
 !
@@ -1657,8 +1804,10 @@ elseif(ik1_ndims==3) then                ! 2-D data sets
    loop_valid_3d: do i = 1, ianz 
       ik = nint(werte(i))
       call data2local(ik      , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+           ik2_data_type, &
            ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-           ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+           ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+           ik2_vectors, ik2_a0, ik2_win,  &
            ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
            ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
       lvalid = lvalid .and. ik2_ndims==2
@@ -1708,8 +1857,10 @@ elseif(ik1_ndims==3) then                ! 2-D data sets
    loop_merge_3d: do i=1, ianz    ! Merge values of all data
       ik = nint(werte(i))
       call data2local(ik      , ier_num, ier_typ, ik2_node_number, ik2_infile,     &
+           ik2_data_type, &
            ik2_nlayer, ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid,            &
-           ik2_has_dxyz, ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win,  &
+           ik2_has_dxyz, ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners,   &
+           ik2_vectors, ik2_a0, ik2_win,  &
            ik2_x, ik2_y, ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma,       &
            ik2_llims, ik2_steps,  ik2_steps_full, ik2_minmaxval, ik2_minmaxcoor)
       do iz = 1, ik2_dims(3)
@@ -1751,9 +1902,11 @@ elseif(ik1_ndims==3) then                ! 2-D data sets
    ik1_infile = 'merged.dat'
 !
    ik1_node_number = 0
-   call local2data(ik3, ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_nlayer,  &
+   call local2data(ik3, ier_num, ier_typ, ik1_node_number, ik1_infile, &
+        ik1_data_type, ik1_nlayer,  &
         ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid, ik1_has_dxyz,             &
-        ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win, ik1_x, ik1_y,     &
+        ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners, ik1_vectors, &
+        ik1_a0, ik1_win, ik1_x, ik1_y,     &
         ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma, ik1_llims, ik1_steps,  &
         ik1_steps_full)
 !
@@ -1849,9 +2002,11 @@ real(kind=PREC_DP), dimension(:,:,:), allocatable :: outfield_3d
 !
 real(kind=prec_dp) :: ss
 !
-call data2local(ik      , ier_num, ier_typ, ik1_node_number, ik1_infile,     &
+call data2local(ik      , ier_num, ier_typ, ik1_node_number, &
+     ik1_infile, ik1_data_type, &
      ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
-     ik1_has_dxyz, ik1_has_dval, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
+     ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners,  &
+     ik1_vectors, ik1_a0, ik1_win,  &
      ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
      ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
 !
@@ -1979,20 +2134,24 @@ elseif(ik1_ndims==1) then            ! 1-D data sets
    ik2_minmaxcoor(1,1) = minval(ik2_x)
    ik2_minmaxcoor(1,2) = maxval(ik2_x)
 endif
+   ik2_data_type = ik1_data_type
    ik2_infile = 'smoothed.lanc'
    ik2_is_direct = ik1_is_direct
    ik2_ndims     = ik1_ndims
    ik2_is_grid   = ik1_is_grid
    ik2_has_dxyz  = .false.
    ik2_has_dval  = .false.
+   ik2_calc_coor = ik1_calc_coor
+   ik2_use_coor  = ik1_use_coor 
    ik2_corners   = ik1_corners
    ik2_a0        = ik1_a0
    ik2_win       = ik1_win
 !
    ik2_node_number = 0
-   call local2data(iz , ier_num, ier_typ, ik2_node_number, ik2_infile, ik2_nlayer,  &
+   call local2data(iz , ier_num, ier_typ, ik2_node_number, ik2_infile,             &
+        ik2_data_type, ik2_nlayer,  &
         ik2_is_direct, ik2_ndims, ik2_dims, ik2_is_grid, ik2_has_dxyz,             &
-        ik2_has_dval, ik2_corners, ik2_vectors, ik2_a0, ik2_win, ik2_x, ik2_y,     &
+        ik2_has_dval, ik2_calc_coor, ik2_use_coor, ik2_corners, ik2_vectors, ik2_a0, ik2_win, ik2_x, ik2_y,     &
         ik2_z, ik2_dx, ik2_dy, ik2_dz, ik2_data, ik2_sigma, ik2_llims, ik2_steps,  &
         ik2_steps_full)
 !
