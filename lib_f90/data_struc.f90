@@ -4,6 +4,7 @@ module lib_data_struc_h5
 !+
 use lib_hdf5_params_mod
 use lib_data_struc_type_mod
+use lib_data_types_mod
 !
 use hdf5_def_mod
 use precision_mod
@@ -143,7 +144,8 @@ call dgl5_find_node(old, ier_num, ier_typ)
 call dgl5_new_node
 h5_temp%infile     = h5_find%infile         ! input file
 h5_temp%layer      = h5_find%layer          ! Current layer in data set
-h5_temp%is_direct     = h5_find%is_direct         ! Direct space == TRUE
+h5_temp%data_type  = h5_find%data_type      ! Data type     in data set
+h5_temp%is_direct  = h5_find%is_direct      ! Direct space == TRUE
 h5_temp%ndims      = h5_find%ndims          ! Number of dimensions
 h5_temp%dims       = h5_find%dims           ! Actual dimensions
 h5_temp%is_grid    = h5_find%is_grid        ! Data are on periodic grid
@@ -175,7 +177,7 @@ end subroutine dgl5_copy_node
 !
 !*******************************************************************************
 !
-subroutine dgl5_set_node(l_infile, l_layer, l_direct, l_ndims, l_dims, &
+subroutine dgl5_set_node(l_infile, l_data_type, l_layer, l_direct, l_ndims, l_dims, &
                    l_is_grid,l_has_dxyz, l_has_dval, l_calc_coor, l_use_coor, &
                    l_corners, l_vectors, l_cr_a0, l_cr_win, &
                    l_x, l_y, l_z, l_dx, l_dy, l_dz,                 &
@@ -185,6 +187,7 @@ subroutine dgl5_set_node(l_infile, l_layer, l_direct, l_ndims, l_dims, &
 !  Place the temporary values into the current dgl5 node
 !+
 character(len=*)                        , intent(in) :: l_infile         ! Input file
+integer                                 , intent(in) :: l_data_type      ! Data type     in data set
 integer                                 , intent(in) :: l_layer          ! Current layer in data set
 LOGICAL                                 , intent(in) :: l_direct         ! Direct space == TRUE
 integer                                 , intent(in) :: l_ndims          ! Number of dimensions
@@ -204,13 +207,17 @@ real(kind=PREC_DP), dimension(:), allocatable, intent(in) :: l_z              !
 real(kind=PREC_DP), dimension(:), allocatable, intent(in) :: l_dx             ! 
 real(kind=PREC_DP), dimension(:), allocatable, intent(in) :: l_dy             ! 
 real(kind=PREC_DP), dimension(:), allocatable, intent(in) :: l_dz             ! 
-real(kind=PREC_DP), dimension(l_dims(1), l_dims(2), l_dims(3)), intent(in):: l_data           ! Actual diffraction data
-real(kind=PREC_DP), dimension(:, :, :), allocatable           , intent(in):: l_sigma          ! Actual diffraction data
+!real(kind=PREC_DP), dimension(l_dims(1), l_dims(2), l_dims(3)), intent(in):: l_data           ! Actual diffraction data
+!real(kind=PREC_DP), dimension(:, :, :), allocatable           , intent(in):: l_data           ! Actual diffraction data
+!real(kind=PREC_DP), dimension(:, :, :), allocatable           , intent(in):: l_sigma          ! Actual diffraction data
+real(kind=PREC_DP), dimension(:, :, :)                        , intent(in):: l_data           ! Actual diffraction data
+real(kind=PREC_DP), dimension(:, :, :)                        , intent(in):: l_sigma          ! Actual diffraction data
 real(kind=PREC_DP), dimension(3)        , intent(in) :: l_llims          ! Lower limits
 real(kind=PREC_DP), dimension(3)        , intent(in) :: l_steps          ! steps in H, K, L
 real(kind=PREC_DP), dimension(3,3)      , intent(in) :: l_steps_full     ! steps in H, K, L
 !
 h5_temp%infile   = l_infile         ! input file
+h5_temp%data_type= l_data_type      ! Data type
 h5_temp%layer    = l_layer          ! Current layer in data set
 h5_temp%is_direct   = l_direct         ! Direct space == TRUE
 h5_temp%ndims    = l_ndims          ! Number of dimensions
@@ -252,13 +259,25 @@ h5_temp%minmaxcoor(3,1) = minval(l_z)
 h5_temp%minmaxcoor(3,2) = maxval(l_z)
 !write(*,*) ' SET NODE NUM, NDIMS, DIMS ', h5_temp%data_num, h5_temp%ndims, h5_temp%dims
 !write(*,*) ' X in NODE ', minval(h5_temp%x), maxval(h5_temp%x)
+!write(*,*) ' SET_NODE '
+!write(*,*) ' ALLOCATED ', allocated(h5_temp%datamap), allocated(h5_temp%sigma)
+!write(*,*) ' BOUND inte', lbound(h5_temp%datamap ), ubound(h5_temp%datamap )
+!write(*,*) ' BOUND sig ', lbound(h5_temp%sigma)   , ubound(h5_temp%sigma)
+!write(*,*) ' BOUND x   ', lbound(h5_temp%x    )   , ubound(h5_temp%x    )
+!write(*,*) ' BOUND y   ', lbound(h5_temp%y    )   , ubound(h5_temp%y    )
+!write(*,*) ' BOUND z   ', lbound(h5_temp%z    )   , ubound(h5_temp%z    )
+!write(*,*) ' bound inte', lbound(l_data ), ubound(l_data )
+!write(*,*) ' bound sig ', lbound(l_sigma), ubound(l_sigma)
+!write(*,*) ' bound x   ', lbound(l_x    ), ubound(l_x    )
+!write(*,*) ' bound y   ', lbound(l_y    ), ubound(l_y    )
+!write(*,*) ' bound z   ', lbound(l_z    ), ubound(l_z    )
 
 !
 end subroutine dgl5_set_node
 !
 !*******************************************************************************
 !
-subroutine dgl5_get_node(l_infile, l_layer, l_direct, l_ndims, l_dims, &
+subroutine dgl5_get_node(l_infile, l_data_type, l_layer, l_direct, l_ndims, l_dims, &
                    l_is_grid,l_has_dxyz, l_has_dval, l_calc_coor, l_use_coor, &
                    l_corners, l_vectors, l_cr_a0, l_cr_win, &
                    l_x, l_y, l_z, l_dx, l_dy, l_dz,                 &
@@ -268,6 +287,7 @@ subroutine dgl5_get_node(l_infile, l_layer, l_direct, l_ndims, l_dims, &
 !  Place the temporary values into the current dgl5 node
 !+
 character(len=*)                             , intent(out) :: l_infile         ! Input file
+integer                                      , intent(out) :: l_data_type      ! Current layer in data set
 integer                                      , intent(out) :: l_layer          ! Current layer in data set
 LOGICAL                                      , intent(out) :: l_direct         ! Direct space == TRUE
 integer                                      , intent(out) :: l_ndims          ! Number of dimensions
@@ -296,6 +316,7 @@ real(kind=PREC_DP), dimension(2)             , intent(out) :: l_minmaxval       
 real(kind=PREC_DP), dimension(3,2)           , intent(out) :: l_minmaxcoor       ! steps in H, K, L
 !
 l_infile   = h5_temp%infile         ! input file
+l_data_type= h5_temp%data_type      ! input file
 l_layer    = h5_temp%layer          ! Current layer in data set
 l_direct   = h5_temp%is_direct         ! Direct space == TRUE
 l_ndims    = h5_temp%ndims          ! Number of dimensions
@@ -331,6 +352,19 @@ l_data     = h5_temp%datamap        ! Actual diffraction data
 if(h5_temp%has_dval) then
    l_sigma    = h5_temp%sigma          ! Actual diffraction data
 endif
+!write(*,*) ' GET_NODE '
+!write(*,*) ' ALLOCATED ', allocated(h5_temp%datamap), allocated(h5_temp%sigma)
+!write(*,*) ' ALLOCATED ', allocated(      l_data   ), allocated(      l_sigma)
+!write(*,*) ' BOUND inte', lbound(h5_temp%datamap ), ubound(h5_temp%datamap )
+!write(*,*) ' BOUND sig ', lbound(h5_temp%sigma)   , ubound(h5_temp%sigma)
+!write(*,*) ' BOUND x   ', lbound(h5_temp%x    )   , ubound(h5_temp%x    )
+!write(*,*) ' BOUND y   ', lbound(h5_temp%y    )   , ubound(h5_temp%y    )
+!write(*,*) ' BOUND z   ', lbound(h5_temp%y    )   , ubound(h5_temp%y    )
+!write(*,*) ' bound inte', lbound(l_data ), ubound(l_data )
+!write(*,*) ' bound sig ', lbound(l_sigma), ubound(l_sigma)
+!write(*,*) ' bound x   ', lbound(l_x    ), ubound(l_x    )
+!write(*,*) ' bound y   ', lbound(l_y    ), ubound(l_y    )
+!write(*,*) ' bound z   ', lbound(l_z    ), ubound(l_z    )
 l_llims        = h5_temp%llims          ! Lower limits
 l_steps        = h5_temp%steps          ! steps in H, K, L
 l_steps_full   = h5_temp%steps_full          ! steps in H, K, L
@@ -434,6 +468,16 @@ implicit none
 dgl5_get_layer = h5_temp%layer
 !
 end function dgl5_get_layer
+!
+!*******************************************************************************
+!
+integer function dgl5_get_data_type()
+!
+implicit none
+!
+dgl5_get_data_type = h5_temp%data_type
+!
+end function dgl5_get_data_type
 !
 !*******************************************************************************
 !
@@ -651,7 +695,7 @@ subroutine dgl5_get_y(dims, y)
 implicit none
 !
 integer,            dimension(3),       intent(in)  :: dims
-real(kind=PREC_DP), dimension(dims(1)), intent(out) :: y
+real(kind=PREC_DP), dimension(dims(2)), intent(out) :: y
 !
 y = h5_temp%y
 !
@@ -664,7 +708,7 @@ subroutine dgl5_get_z(dims, z)
 implicit none
 !
 integer,            dimension(3),       intent(in)  :: dims
-real(kind=PREC_DP), dimension(dims(1)), intent(out) :: z
+real(kind=PREC_DP), dimension(dims(3)), intent(out) :: z
 !
 z = h5_temp%z
 !
@@ -770,6 +814,18 @@ end subroutine dgl5_set_is_grid
 !
 !*******************************************************************************
 !
+subroutine dgl5_set_data_type(data_type)
+!
+implicit none
+!
+integer, intent(in) :: data_type
+!
+h5_temp%data_type = data_type
+!
+end subroutine dgl5_set_data_type
+!
+!*******************************************************************************
+!
 subroutine dgl5_set_ku_is_h5(izz,ku_is_h5)
 !
 implicit none
@@ -850,7 +906,7 @@ subroutine dgl5_set_y(dims, y)
 implicit none
 !
 integer,            dimension(3),       intent(in)  :: dims
-real(kind=PREC_DP), dimension(dims(1)), intent(in) :: y
+real(kind=PREC_DP), dimension(dims(2)), intent(in) :: y
 !
 h5_temp%y = y
 h5_temp%minmaxcoor(2,1) = minval(y)
@@ -865,7 +921,7 @@ subroutine dgl5_set_z(dims, z)
 implicit none
 !
 integer,            dimension(3),       intent(in)  :: dims
-real(kind=PREC_DP), dimension(dims(1)), intent(in) :: z
+real(kind=PREC_DP), dimension(dims(3)), intent(in) :: z
 !
 h5_temp%z = z
 h5_temp%minmaxcoor(3,1) = minval(z)
@@ -899,8 +955,8 @@ end subroutine dgl5_set_map
 !*******************************************************************************
 !
 subroutine data2local(ik, ier_num, ier_typ, node_number,                        &
-                      infile, layer, is_direct, ndims, dims,                    &
-                      is_grid, has_dxyz, has_dval, corners, vectors, a0, win,   &
+                      infile, data_type, layer, is_direct, ndims, dims,         &
+                      is_grid, has_dxyz, has_dval, calc_coor, use_coor, corners, vectors, a0, win,   &
                       x, y, z, dx, dy, dz,                                      &
                       odata, sigma, llims, steps,                               &
                       steps_full, minmaxval, minmaxcoor)
@@ -918,6 +974,7 @@ integer                                                 , intent(out)   :: ier_n
 integer                                                 , intent(out)   :: ier_typ     ! error type
 integer                                                 , intent(inout) :: node_number ! node in global array
 character(len=*)                                        , intent(out)    :: infile      ! File name
+integer                                                 , intent(  out) :: data_type   ! Current layer to display
 integer                                                 , intent(inout) :: layer       ! Current layer to display
 logical                                                 , intent(out)    :: is_direct   ! Direct or reciprocal pspace
 !integer                                                 , intent(inout) :: nlayer      ! Current layer to display
@@ -926,8 +983,8 @@ integer                  , dimension(3)                 , intent(out) :: dims   
 logical                                                 , intent(out)    :: is_grid     ! Data on periodic grid 
 logical                                                 , intent(out)    :: has_dxyz    ! Data on periodic grid 
 logical                                                 , intent(out)    :: has_dval    ! Data on periodic grid 
-logical                                                                  :: calc_coor ! Need to calculate coordinates
-integer                  , dimension(3)                                  :: use_coor  ! Use these axes for coordinates
+logical                                                 , intent(out)    :: calc_coor ! Need to calculate coordinates
+integer                  , dimension(3)                 , intent(out)    :: use_coor  ! Use these axes for coordinates
 real(kind=PREC_DP)       , dimension(3,4)               , intent(out)    :: corners    ! Lattice parameter
 real(kind=PREC_DP)       , dimension(3,3)               , intent(out)    :: vectors    ! Lattice parameter
 real(kind=PREC_DP)       , dimension(3)                 , intent(out)    :: a0          ! Lattice parameter
@@ -951,7 +1008,7 @@ call dgl5_set_pointer(ik, ier_num, ier_typ, node_number)
 layer = dgl5_get_layer()
 if(ier_num/=0) return
 !
-call dgl5_get_node(infile, layer, is_direct, ndims, dims,                    &
+call dgl5_get_node(infile, data_type, layer, is_direct, ndims, dims,            &
                       is_grid, has_dxyz, has_dval, calc_coor, use_coor,      &
                       corners, vectors, a0, win,   &
                       x, y, z, dx, dy, dz,                                      &
@@ -963,8 +1020,8 @@ end subroutine data2local
 !*******************************************************************************
 !
 subroutine local2data(ik, ier_num, ier_typ, node_number,                        &
-                      infile, layer, is_direct, ndims, dims,                    &
-                      is_grid, has_dxyz, has_dval, corners, vectors, a0, win,   &
+                      infile, data_type, layer, is_direct, ndims, dims,         &
+                      is_grid, has_dxyz, has_dval, calc_coor, use_coor, corners, vectors, a0, win,   &
                       x, y, z, dx, dy, dz,                                      &
                       odata, sigma, llims, steps,                               &
                       steps_full)
@@ -984,6 +1041,7 @@ integer                                                 , intent(out)   :: ier_n
 integer                                                 , intent(out)   :: ier_typ     ! error type
 integer                                                 , intent(inout) :: node_number ! node in global array
 character(len=*)                                        , intent(in)    :: infile      ! File name
+integer                                                 , intent(in)    :: data_type   ! Data type 
 integer                                                 , intent(inout) :: layer       ! Current layer to display
 logical                                                 , intent(in)    :: is_direct   ! Direct or reciprocal pspace
 !integer                                                 , intent(inout) :: nlayer      ! Current layer to display
@@ -992,8 +1050,8 @@ integer                  , dimension(3)                 , intent(in) :: dims    
 logical                                                 , intent(in)    :: is_grid     ! Data on periodic grid 
 logical                                                 , intent(in)    :: has_dxyz    ! Data on periodic grid 
 logical                                                 , intent(in)    :: has_dval    ! Data on periodic grid 
-logical                                                                 :: calc_coor ! Need to calculate coordinates
-integer                  , dimension(3)                                 :: use_coor  ! Use these axes for coordinates
+logical                                                 , intent(in)    :: calc_coor ! Need to calculate coordinates
+integer                  , dimension(3)                 , intent(in)    :: use_coor  ! Use these axes for coordinates
 real(kind=PREC_DP)       , dimension(3,4)               , intent(in)    :: corners    ! Lattice parameter
 real(kind=PREC_DP)       , dimension(3,3)               , intent(in)    :: vectors    ! Lattice parameter
 real(kind=PREC_DP)       , dimension(3)                 , intent(in)    :: a0          ! Lattice parameter
@@ -1004,7 +1062,7 @@ real(kind=PREC_DP)       , dimension(:), allocatable    , intent(inout) :: z    
 real(kind=PREC_DP)       , dimension(:), allocatable    , intent(inout) :: dx           ! Actual x coordinates
 real(kind=PREC_DP)       , dimension(:), allocatable    , intent(inout) :: dy           ! Actual x coordinates
 real(kind=PREC_DP)       , dimension(:), allocatable    , intent(inout) :: dz           ! Actual y coordinates
-real(kind=PREC_DP)       , dimension(dims(1),dims(1),dims(1)), intent(in) :: odata       ! Actual data
+real(kind=PREC_DP)       , dimension(dims(1),dims(2),dims(3)), intent(in) :: odata       ! Actual data
 real(kind=PREC_DP)       , dimension(:,:,:), allocatable, intent(in) :: sigma       ! Actual data
 real(kind=PREC_DP)       , dimension(3)                 , intent(in)    :: llims       ! Lower left coordinates
 real(kind=PREC_DP)       , dimension(3  )               , intent(in)    :: steps       ! Increments along axes
@@ -1054,7 +1112,7 @@ dz = 0.0D0
 !
 call dgl5_set_ku_is_h5(ik, node_number)
 call dgl5_set_h5_is_ku(node_number, ik)
-call dgl5_set_node(infile, layer, is_direct, ndims, dims, &
+call dgl5_set_node(infile, data_type, layer, is_direct, ndims, dims, &
                    is_grid, has_dxyz, has_dval, calc_coor, use_coor, &
                    corners, vectors,  &
                    a0, win, x, y, z, dx, dy, dz, &
@@ -1081,8 +1139,8 @@ end subroutine local2data
 !*******************************************************************************
 !
 subroutine   fft2data(ik, ier_num, ier_typ, node_number,                        &
-                              layer, is_direct, ndims, dims,                    &
-                      is_grid, has_dxyz, has_dval, corners, vectors, a0, win,   &
+                      data_type, layer, is_direct, ndims, dims,                 &
+                      is_grid, has_dxyz, has_dval, calc_coor, use_coor, corners, vectors, a0, win,   &
                       x, y, z, dx, dy, dz,                                      &
                       rl_data, rl_sigma, llims, steps,                          &
                       steps_full, im_data, im_sigma)
@@ -1092,6 +1150,7 @@ subroutine   fft2data(ik, ier_num, ier_typ, node_number,                        
 !
 !use lib_data_struc_h5
 !use lib_hdf5_params_mod
+use lib_data_types_mod
 use precision_mod
 !
 implicit none
@@ -1100,6 +1159,7 @@ integer                                                 , intent(in )   :: ik   
 integer                                                 , intent(out)   :: ier_num     ! Error number
 integer                                                 , intent(out)   :: ier_typ     ! error type
 integer                                                 , intent(inout) :: node_number ! node in global array
+integer                                                 , intent(inout) :: data_type   ! Current layer to display
 integer                                                 , intent(inout) :: layer       ! Current layer to display
 logical                                                 , intent(inout) :: is_direct   ! Direct or reciprocal pspace
 !integer                                                 , intent(inout) :: nlayer      ! Current layer to display
@@ -1108,6 +1168,8 @@ integer                  , dimension(3)                 , intent(in)    :: dims 
 logical                                                 , intent(inout) :: is_grid     ! Data on periodic grid 
 logical                                                 , intent(inout) :: has_dxyz    ! Data on periodic grid 
 logical                                                 , intent(inout) :: has_dval    ! Data on periodic grid 
+logical                                                 , intent(in)    :: calc_coor ! Need to calculate coordinates
+integer                  , dimension(3)                 , intent(in)    :: use_coor  ! Use these axes for coordinates
 real(kind=PREC_DP)       , dimension(3,4)               , intent(inout) :: corners     ! Corners ll, lr, ul, tl
 real(kind=PREC_DP)       , dimension(3,3)               , intent(inout) :: vectors     ! Increment vectors
 real(kind=PREC_DP)       , dimension(3)                 , intent(in)    :: a0          ! Lattice parameter
@@ -1118,12 +1180,12 @@ real(kind=PREC_DP)       , dimension(:), allocatable    , intent(inout) :: z    
 real(kind=PREC_DP)       , dimension(:), allocatable    , intent(inout) :: dx          ! Sigma  x coordinates
 real(kind=PREC_DP)       , dimension(:), allocatable    , intent(inout) :: dy          ! Sigma  x coordinates
 real(kind=PREC_DP)       , dimension(:), allocatable    , intent(inout) :: dz          ! Sigma  y coordinates
-real(kind=PREC_DP)       , dimension(dims(1),dims(1),dims(1)), intent(in   ) :: rl_data   ! Actual data real part
+real(kind=PREC_DP)       , dimension(dims(1),dims(2),dims(3)), intent(in   ) :: rl_data   ! Actual data real part
 real(kind=PREC_DP)       , dimension(:,:,:), allocatable     , intent(in   ) :: rl_sigma  ! Actual sigma real part
 real(kind=PREC_DP)       , dimension(3)                 , intent(in)    :: llims       ! Lower left coordinates
 real(kind=PREC_DP)       , dimension(3  )               , intent(in)    :: steps       ! Increments along axes
 real(kind=PREC_DP)       , dimension(3,3)               , intent(inout) :: steps_full  ! Increments along axes
-real(kind=PREC_DP)       , dimension(dims(1),dims(1),dims(1)), intent(in   ) :: im_data   ! Actual data imaginary part
+real(kind=PREC_DP)       , dimension(dims(1),dims(2),dims(3)), intent(in   ) :: im_data   ! Actual data imaginary part
 real(kind=PREC_DP)       , dimension(:,:,:), allocatable     , intent(in   ) :: im_sigma  ! Actual sigma imaginary part
 !
 character(len=PREC_STRING) :: rl_file
@@ -1134,6 +1196,24 @@ im = ik + 1
 rl_file = 'Fourier_real'
 im_file = 'Fourier_imag'
 is_direct = .not. is_direct  ! swap direct versus reciprocal space
+if(is_direct) then
+   if(ndims==3) then
+      data_type = H5_3D_DIRECT
+   elseif(ndims==2) then
+      data_type = H5_2D_DIRECT
+   elseif(ndims==1) then
+      data_type = H5_1D_DIRECT
+   endif
+else
+   if(ndims==3) then
+      data_type = H5_3D_RECI
+   elseif(ndims==2) then
+      data_type = H5_2D_RECI
+   elseif(ndims==1) then
+      data_type = H5_1D_RECI
+   endif
+endif
+!
 is_grid   = .true.
 has_dxyz  = .false.
 has_dval  = .false.
@@ -1152,16 +1232,16 @@ vectors(:,3)    = steps_full(:,3)
 !
 node_number = 0
 call local2data(ik, ier_num, ier_typ, node_number,                        &
-                     rl_file, layer, is_direct, ndims, dims,                    &
-                      is_grid, has_dxyz, has_dval, corners, vectors, a0, win,   &
+                     rl_file, data_type, layer, is_direct, ndims, dims,         &
+                      is_grid, has_dxyz, has_dval, calc_coor, use_coor, corners, vectors, a0, win,   &
                       x, y, z, dx, dy, dz,                                      &
                       rl_data, rl_sigma, llims, steps,                               &
                       steps_full)
 !
 node_number = 0
 call local2data(im, ier_num, ier_typ, node_number,                        &
-                      im_file, layer, is_direct, ndims, dims,                    &
-                      is_grid, has_dxyz, has_dval, corners, vectors, a0, win,   &
+                      im_file, data_type, layer, is_direct, ndims, dims,        &
+                      is_grid, has_dxyz, has_dval, calc_coor, use_coor, corners, vectors, a0, win,   &
                       x, y, z, dx, dy, dz,                                      &
                       im_data, im_sigma, llims, steps,                               &
                       steps_full)
