@@ -16,6 +16,7 @@ CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE :: h5_datasets       ! Nam
 INTEGER                                               :: ndims             ! Number of dimensions
 INTEGER                                               :: one_ndims         ! Number of dimensions
 INTEGER                                               :: H5_MAX_DATASETS   ! Current MAX data sets
+INTEGER                                               :: h5_data_type      ! Data type 
 INTEGER                                               :: h5_n_datasets     ! Current actual data sets
 INTEGER                                               :: h5_layer=1        ! Current layer in data set
 INTEGER(KIND=LIB_HSIZE_T), DIMENSION(3)               :: h5_dims           ! Actual dimensions
@@ -60,6 +61,7 @@ use iso_c_binding
 !
 use ber_params_mod
 use lib_trans_mod
+use lib_data_types_mod
 use lib_use_coor_mod
 use precision_mod
 !
@@ -108,6 +110,7 @@ TYPE(C_PTR), DIMENSION(:), ALLOCATABLE, TARGET :: rdata   ! READ buffer
 TYPE(C_PTR)         :: f_ptr        ! Pointer to data elements
 TYPE(C_PTR) :: ptr
 CHARACTER(LEN=1024, KIND=c_char),  POINTER ::  rstring
+INTEGER(KIND=2), PARAMETER :: SHORT_TWO = 2
 INTEGER(KIND=2), TARGET :: r_is_direct
 !INTEGER(KIND=2), DIMENSION(10), TARGET :: rstring
 !INTEGER(HSIZE_T) :: nummer
@@ -325,8 +328,8 @@ CALL H5Dget_space_f(dset_id, space_id, hdferr)
 f_ptr = C_LOC(r_is_direct)
 CALL H5Dread_F(dset_id, H5T_STD_I8BE , f_ptr, hdferr)
 CALL H5Dclose_f(dset_id, hdferr)
-h5_direct = 1 == (r_is_direct-8192)
-!write(*,*) ' H5 is_direct ', r_is_direct, (r_is_direct-8192), 1 == (r_is_direct-8192), h5_direct
+!h5_direct = 1 == (r_is_direct-8192)
+h5_direct = (abs(mod(r_is_direct,SHORT_TWO))==1)
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Get the unit cell
@@ -601,7 +604,24 @@ if(ier_num==0) then
    if(d5_dims(2)>1) nndims = nndims + 1
    if(d5_dims(1)>1) nndims = nndims + 1
    dims   = d5_dims
-   call dgl5_set_node(h5_infile, h5_layer, h5_direct, nndims, d5_dims ,         &
+   if(h5_direct) then
+      if(nndims==3) then
+         h5_data_type = H5_3D_DIRECT
+      elseif(nndims==2) then
+         h5_data_type = H5_2D_DIRECT
+      elseif(nndims==1) then
+         h5_data_type = H5_1D_DIRECT
+      endif
+   else
+      if(nndims==3) then
+         h5_data_type = H5_3D_RECI
+      elseif(nndims==2) then
+         h5_data_type = H5_2D_RECI
+      elseif(nndims==1) then
+         h5_data_type = H5_1D_RECI
+      endif
+   endif
+   call dgl5_set_node(h5_infile, h5_data_type, h5_layer, h5_direct, nndims, d5_dims ,         &
                    h5_is_grid, h5_has_dxyz, h5_has_dval, h5_calc_coor, h5_use_coor, &
                    h5_corners, h5_vectors,&
                    h5_unit(1:3), h5_unit(4:6), h5_x, h5_y, h5_z, h5_dx, h5_dy,  &
