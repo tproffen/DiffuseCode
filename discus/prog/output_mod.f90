@@ -29,5 +29,6 @@ LOGICAL                 ::  out_user_limits = .false.
 REAL(kind=PREC_DP), DIMENSION(3)   ::  out_user_values = (/1.0D0, 10.0D0, 0.01D0/) ! User Qmin, Qmax, Qstep
 INTEGER           , DIMENSION(3)   ::  out_user_inc ! Number of data points along dimension h,k,l or Q/Theta (2)
 integer                 ::  out_mode = 0       ! Output mode if KUPLOT 0;1;2 == new, old, add
+real(kind=PREC_DP)      :: out_scale = 1.0D0
 !
 END MODULE output_mod

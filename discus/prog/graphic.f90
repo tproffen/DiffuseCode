@@ -91,17 +91,18 @@ real(kind=PREC_DP)        , dimension(3,4)                :: new_eck       ! New
 real(kind=PREC_DP)        , dimension(3,3)                :: new_vi        ! New vectors    from transformed HDF5 data
 real(kind=PREC_DP)        , dimension(:,:,:), allocatable :: new_qvalues   ! New data       from transformed HDF5 data
 ! 
-INTEGER, PARAMETER :: NOPTIONAL = 10
-INTEGER, PARAMETER :: O_MAXVAL  = 1                  ! Current SCALE for maxvalue
-INTEGER, PARAMETER :: O_DSMAX   = 2                  ! Maximum d-star
-INTEGER, PARAMETER :: O_QMAX    = 3                  ! Maximum Q
-INTEGER, PARAMETER :: O_HKLMAX  = 4                  ! Maximum hkl vector
-INTEGER, PARAMETER :: O_PATT    = 5                  ! Optional Patteron overlay for Vesta
-INTEGER, PARAMETER :: O_SPATT   = 6                  ! Optional Patteron overlay for Vesta
-INTEGER, PARAMETER :: O_DPATT   = 7                  ! Optional Patteron overlay for Vesta
-INTEGER, PARAMETER :: O_MODE    = 8                  ! Mode if written into KUPLOT
-INTEGER, PARAMETER :: O_SHARP   = 9                  ! 3D-PDF type normal/sharpened
-INTEGER, PARAMETER :: O_TRANS   = 10                 ! Transform 3D data into different orientation
+INTEGER, PARAMETER :: NOPTIONAL = 11
+INTEGER, PARAMETER :: O_SCALE   = 1                  ! Scale factor for output values
+INTEGER, PARAMETER :: O_MAXVAL  = 2                  ! Current SCALE for maxvalue
+INTEGER, PARAMETER :: O_DSMAX   = 3                  ! Maximum d-star
+INTEGER, PARAMETER :: O_QMAX    = 4                  ! Maximum Q
+INTEGER, PARAMETER :: O_HKLMAX  = 5                  ! Maximum hkl vector
+INTEGER, PARAMETER :: O_PATT    = 6                  ! Optional Patteron overlay for Vesta
+INTEGER, PARAMETER :: O_SPATT   = 7                  ! Optional Patteron overlay for Vesta
+INTEGER, PARAMETER :: O_DPATT   = 8                  ! Optional Patteron overlay for Vesta
+INTEGER, PARAMETER :: O_MODE    = 9                  ! Mode if written into KUPLOT
+INTEGER, PARAMETER :: O_SHARP   =10                  ! 3D-PDF type normal/sharpened
+INTEGER, PARAMETER :: O_TRANS   = 11                 ! Transform 3D data into different orientation
 CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 character(len=8)                          :: cpatt   ! Optional patterson overlay
 character(len=PREC_STRING)                :: spatt   ! Atoms selected for Patterson overlay
@@ -111,12 +112,12 @@ INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate
 integer, parameter, dimension(3) :: nxyzstart = (/0,0,0/)
 !
 !                                                                       
-DATA oname  / 'maxval', 'dsmax ', 'qmax  ', 'hklmax', 'patt'  ,'sel', 'des', 'mode', 'type','trans' /
-DATA loname /  6      ,  5      ,  4      ,  6      ,  4      , 3   ,  3   ,  4    ,  4    , 5      /
+DATA oname  / 'scale', 'maxval', 'dsmax ', 'qmax  ', 'hklmax', 'patt'  ,'sel', 'des', 'mode', 'type','trans' /
+DATA loname /  5,       6      ,  5      ,  4      ,  6      ,  4      , 3   ,  3   ,  4    ,  4    , 5     /
 DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
                 'Portable Any Map', 'Powder Pattern', 'SHELX',          &
                 'SHELXL List 5', 'SHELXL List 5 real HKL' ,             &
@@ -132,9 +133,10 @@ DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnuplot', &
 DATA value / 1 / 
 DATA laver / .false. / 
 !
-opara  = (/'data  ', '0.00  ', '0.00  ', '0.00  ', 'none  ', 'all   ', 'none  ', 'new   ', 'normal' , 'no    '/)
-lopara = (/  4     ,  5      ,  4      ,  6      ,  6      ,  3      ,  4      ,  3      ,  6       ,  2      /)
-owerte = (/ -1.000 ,  0.000  ,  0.000  ,  0.000  ,  0.00   ,  0.000  ,  0.000  ,  0.00   ,  0.00    ,  0.0    /)
+opara  = (/'1.000 ', 'data  ', '0.000 ', '0.000 ', '0.000 ', 'none  ', 'all   ', 'none  ', 'new   ', 'normal' , 'no    '/)
+lopara = (/  5     ,  4      ,  5      ,  5      ,  5      ,  4      ,  3      ,  4      ,  3      ,  6       ,  2      /)
+owerte = (/  1.000 , -1.000  ,  0.000  ,  0.000  ,  0.000  ,  0.00   ,  0.000  ,  0.000  ,  0.00   ,  0.00    ,  0.0    /)
+out_scale = 1.0D0
 zmin = ps_low * diffumax 
 zmax = ps_high * diffumax 
 orig_prompt = prompt
@@ -349,6 +351,18 @@ main_if: IF (ier_num.eq.0) THEN
 !     ------Switch output type to HDF5  format   'hdf5'                
 !                                                                       
                ELSEIF (str_comp(cpara(1), 'hdf5', 4, lpara(1), 4) ) THEN                                        
+                  if(lpresent(O_SCALE)) then
+                     if(lpresent(O_MAXVAL)) then
+                        ier_num = -6
+                        ier_typ = ER_FORT
+                        ier_msg(1) = 'Only one of ''scale:'' and ''maxval'' is allowed'
+                        exit main_if
+                     else
+                        valmax =  -1.0D0
+                        out_scale = owerte(O_SCALE)
+                        ityp = 13 
+                     endif
+                  else
                   CALL form_optional(lpresent(O_MAXVAL), O_MAXVAL, NOPTIONAL, opara, &
                        lopara, werte)
                   IF(ier_num == 0) THEN
@@ -359,6 +373,7 @@ main_if: IF (ier_num.eq.0) THEN
                      endif
                      ityp = 13 
                   ENDIF
+                  endif
 !                                                                       
 !     ------Switch output type to XPLOR format   'xplor'                
 !                                                                       
@@ -568,6 +583,7 @@ endif
                      ENDDO
                   ENDDO
                ENDDO
+               qvalues = qvalues*out_scale
                CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
                IF (ier_num.eq.0) THEN 
                CALL get_optional(ianz, MAXP, cpara, lpara, NOPTIONAL,  ncalc, &
