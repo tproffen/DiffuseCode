@@ -151,6 +151,7 @@ use envir_mod
 use errlist_mod
 use lib_errlist_func
 use lib_data_struc_h5
+use lib_data_types_mod
 use lib_length
 use param_mod
 use precision_mod
@@ -209,6 +210,7 @@ integer(kind=PREC_INT_SHORT), dimension(:,:,:), allocatable :: short_map
 ! Variable for global storage
 !
 integer   :: nndims          ! Number of dimensions 
+integer                 :: mrc_data_type
 integer                 :: mrc_layer
 logical                 :: mrc_direct
 logical                 :: mrc_is_grid
@@ -419,7 +421,14 @@ rpara(500) = mrc_pixel_size
 mrc_calc_coor = .false.
 mrc_use_coor = (/ 1, 2, 3/)
 !write(*,*) ' MAKE GLOBAL STORAGE '
-call dgl5_set_node(filename , mrc_layer, mrc_direct, nndims,    dims ,         &
+if(nndims==3) then
+   mrc_data_type = H5_3D_RECI
+elseif(nndims==2) then
+   mrc_data_type = H5_2D_RECI
+elseif(nndims==1) then
+   mrc_data_type = H5_1D_RECI
+endif
+call dgl5_set_node(filename , mrc_data_type, mrc_layer, mrc_direct, nndims,    dims ,         &
                    mrc_is_grid, mrc_has_dxyz, mrc_has_dval, &
                    mrc_calc_coor, mrc_use_coor, mrc_corners, mrc_vectors,&
                    mrc_unit(1:3), mrc_unit(4:6), mrc_x, mrc_y, mrc_z, mrc_dx, mrc_dy,  &
