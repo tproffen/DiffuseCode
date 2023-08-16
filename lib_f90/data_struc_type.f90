@@ -8,6 +8,7 @@ public h5_data_struc
 type :: h5_data_struc
    integer                                               :: data_num       ! Current data set number
    character(len=PREC_STRING)                            :: infile         ! input file
+   integer                                               :: data_type      ! Descriptor for content
    integer                                               :: layer=1        ! Current layer in data set
    LOGICAL                                               :: is_direct      ! Direct space == TRUE
    integer                                               :: ndims          ! Number of dimensions
