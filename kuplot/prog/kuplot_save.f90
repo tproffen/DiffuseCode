@@ -1270,8 +1270,8 @@ integer, PARAMETER :: IWR = 43
 logical                              :: hh5_laver
 real(kind=PREC_DP)                   :: hh5_valmax
 integer                              :: hh5_value
-integer                              :: HH5_VAL_PDF
-integer                              :: HH5_VAL_3DPDF
+integer, parameter                   :: HH5_VAL_PDF   = 1
+integer, parameter                   :: HH5_VAL_3DPDF = 1
 real(kind=PREC_DP), dimension(:)    , allocatable :: c_x
 real(kind=PREC_DP), dimension(:)    , allocatable :: c_y
 real(kind=PREC_DP), dimension(:)    , allocatable :: c_z
@@ -1285,6 +1285,7 @@ integer :: i,j,k ! Dummy loop indices
 !
 character(len=PREC_STRING)                         :: infile
 integer                                            :: node_number  ! Node in global data
+integer                                            :: data_type    ! Node in global data
 integer                                            :: nlayer       ! Current layer (3-D only
 logical                                            :: is_direct    ! date in direct / reciprocal space
 integer                                            :: ndims        ! Number of dimensions
@@ -1294,6 +1295,8 @@ integer                                            :: ny_min, ny_max  ! min max 
 logical                                            :: is_grid      ! date in direct / reciprocal space
 logical                                            :: has_dxyz     ! date in direct / reciprocal space
 logical                                            :: has_dval     ! date in direct / reciprocal space
+logical                                            :: calc_coor    ! Need to calculate coordinates    
+integer, dimension(3)                              :: use_coor     ! Lookup sequence for coordinateLookup sequence for coordinates
 real(kind=PREC_DP)                                 :: wx_min, wy_min ! Lower corners for nipl files
 real(kind=PREC_DP)                                 :: wx_max, wy_max ! Upper corners for nipl files
 REAL(kind=PREC_DP)   , DIMENSION(3,4)              :: corners      ! steps along each axis
@@ -1306,8 +1309,8 @@ REAL(kind=PREC_DP)   , DIMENSION(3,3)              :: steps_full   ! steps along
 REAL(kind=PREC_DP)   , DIMENSION(2)                :: minmaxval    ! steps along each axis
 REAL(kind=PREC_DP)   , DIMENSION(3,2)              :: minmaxcoor   ! steps along each axis
 !
-call data2local(ik, ier_num, ier_typ, node_number, infile, nlayer, is_direct,   &
-                ndims, dims, is_grid, has_dxyz, has_dval, corners, vectors,     &
+call data2local(ik, ier_num, ier_typ, node_number, infile, data_type, nlayer, is_direct,   &
+                ndims, dims, is_grid, has_dxyz, has_dval, calc_coor, use_coor, corners, vectors,     &
                 a0, win, c_x, c_y, c_z, c_dx, c_dy,c_dz, qvalues, sigma, llims, &
                 steps, steps_full, minmaxval, minmaxcoor)
 !
@@ -1322,13 +1325,13 @@ cond_choices: if(form=='H5')then
 !
    if(is_direct) then
       hh5_value     = 1              ! Direct space data
-      HH5_VAL_PDF   = 1              ! Direct space data
-      HH5_VAL_3DPDF = 1              ! Direct space data
+!     HH5_VAL_PDF   = 1              ! Direct space data
+!     HH5_VAL_3DPDF = 1              ! Direct space data
       hh5_laver     = .false.        ! No averaged intensities
    else
       hh5_value     = 0              ! reciprocal data
-      HH5_VAL_PDF   = 0              ! reciprocal data
-      HH5_VAL_3DPDF = 0              ! reciprocal data
+!     HH5_VAL_PDF   = 1              ! reciprocal data
+!     HH5_VAL_3DPDF = 1              ! reciprocal data
       hh5_laver     = .false.        ! No averaged intensities
    endif
 !

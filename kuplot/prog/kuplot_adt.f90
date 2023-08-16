@@ -784,6 +784,7 @@ use kuplot_global
 use errlist_mod
 use lib_data_struc_type_mod
 use lib_data_struc_h5 , only:data2local, local2data, dgl5_set_h5_is_ku, dgl5_set_ku_is_h5
+use lib_use_coor_mod
 use matrix_mod        , only:matinv
 use support_mod       , only:oeffne
 !
@@ -826,8 +827,8 @@ logical :: lout = .true.
 ! Load the grid into a local data copy
 !
 call data2local(adt_ik  , ier_num, ier_typ, ik1%data_num   , ik1%infile,     &
-     ik1%layer, ik1%is_direct, ik1%ndims, ik1%dims, ik1%is_grid,            &
-     ik1%has_dxyz, ik1%has_dval, ik1%corners, ik1%vectors, ik1%cr_a0, ik1%cr_win,  &
+     ik1%data_type, ik1%layer, ik1%is_direct, ik1%ndims, ik1%dims, ik1%is_grid,            &
+     ik1%has_dxyz, ik1%has_dval, ik1%calc_coor, ik1%use_coor, ik1%corners, ik1%vectors, ik1%cr_a0, ik1%cr_win,  &
      ik1%x, ik1%y, ik1%z, ik1%dx, ik1%dy, ik1%dz, ik1%datamap, ik1%sigma,       &
      ik1%llims, ik1%steps,  ik1%steps_full, ik1%minmaxval, ik1%minmaxcoor)
 !
@@ -1020,6 +1021,8 @@ ik2%dims      = idims
 ik2%is_grid   = .true.
 ik2%has_dxyz  = .false.
 ik2%has_dval  = .false.
+ik2%calc_coor = .false.
+ik2%use_coor  = (/1, 2, 3/)
 ik2%corners(:,1) = -adt_limits         ! Lower Left
 ik2%corners(:,2) = -adt_limits         ! Lower right
 ik2%corners(1,2) = -ik2%corners(1,2)
@@ -1039,6 +1042,8 @@ ik2%steps(3)       = ik2%vectors(3,3)
 ik2%steps_full(:,1)= ik2%vectors(:,1)
 ik2%steps_full(:,2)= ik2%vectors(:,2)
 ik2%steps_full(:,3)= ik2%vectors(:,3)
+!
+call lib_get_use_coor(ik2%vectors, ik2%calc_coor, ik2%use_coor)
 !write(*,*) ' IK2  dims ', ik2%dims, ' <> ', idims
 !write(*,*) ' IK2 layer ', ik2%layer
 !write(*,*) ' IK2 ll    ', ik2%corners(:,1)
@@ -1059,9 +1064,9 @@ ik2%steps_full(:,3)= ik2%vectors(:,3)
 ik2%infile = 'extracted_rods'
 string = 'adt_rods.inte'
 !
-call local2data(ikk, ier_num, ier_typ, ik2%data_num, ik2%infile, ik2%layer,  &
+call local2data(ikk, ier_num, ier_typ, ik2%data_num, ik2%infile, ik2%data_type, ik2%layer,  &
      ik2%is_direct, ik2%ndims, ik2%dims, ik2%is_grid, ik2%has_dxyz,             &
-     ik2%has_dval, ik2%corners, ik2%vectors, ik2%cr_a0, ik2%cr_win, ik2%x, ik2%y,     &
+     ik2%has_dval, ik2%calc_coor, ik2%use_coor, ik2%corners, ik2%vectors, ik2%cr_a0, ik2%cr_win, ik2%x, ik2%y,     &
      ik2%z, ik2%dx, ik2%dy, ik2%dz, ik2%datamap, ik2%sigma, ik2%llims, ik2%steps,  &
      ik2%steps_full)
 call dgl5_set_h5_is_ku(iz, ik2%data_num)
@@ -1088,6 +1093,7 @@ use kuplot_global
 use errlist_mod
 use lib_data_struc_type_mod
 use lib_data_struc_h5 , only:data2local, local2data, dgl5_set_h5_is_ku, dgl5_set_ku_is_h5
+use lib_use_coor_mod
 use lib_metric_mod    , only:lib_d2r
 use matrix_mod        , only:matinv
 use support_mod       , only:oeffne
@@ -1135,8 +1141,8 @@ logical :: lout = .true.
 ! Load the grid into a local data copy
 !
 call data2local(adt_ik  , ier_num, ier_typ, ik1%data_num   , ik1%infile,     &
-     ik1%layer, ik1%is_direct, ik1%ndims, ik1%dims, ik1%is_grid,            &
-     ik1%has_dxyz, ik1%has_dval, ik1%corners, ik1%vectors, ik1%cr_a0, ik1%cr_win,  &
+     ik1%data_type, ik1%layer, ik1%is_direct, ik1%ndims, ik1%dims, ik1%is_grid,            &
+     ik1%has_dxyz, ik1%has_dval, ik1%calc_coor, ik1%use_coor, ik1%corners, ik1%vectors, ik1%cr_a0, ik1%cr_win,  &
      ik1%x, ik1%y, ik1%z, ik1%dx, ik1%dy, ik1%dz, ik1%datamap, ik1%sigma,       &
      ik1%llims, ik1%steps,  ik1%steps_full, ik1%minmaxval, ik1%minmaxcoor)
 !
@@ -1360,6 +1366,8 @@ ik2%dims      = idims
 ik2%is_grid   = .true.
 ik2%has_dxyz  = .false.
 ik2%has_dval  = .false.
+ik2%calc_coor = .false.
+ik2%use_coor  = (/1, 2, 3/)
 !
 !
 ! Lower Left
@@ -1394,6 +1402,8 @@ ik2%steps_full(:,1)= ik2%vectors(:,1)
 ik2%steps_full(:,2)= ik2%vectors(:,2)
 ik2%steps_full(:,3)= ik2%vectors(:,3)
 !
+call lib_get_use_coor(ik2%vectors, ik2%calc_coor, ik2%use_coor)
+!
 !write(*,*) ' IK2  dims ', ik2%dims, ' <> ', idims
 !write(*,*) ' IK2 layer ', ik2%layer
 !write(*,*) ' IK2 ll    ', ik2%corners(:,1)
@@ -1413,9 +1423,9 @@ ik2%steps_full(:,3)= ik2%vectors(:,3)
 !
 ik2%infile = 'extracted_planes'
 string = 'adt_planes.inte'
-call local2data(ikk, ier_num, ier_typ, ik2%data_num, ik2%infile, ik2%layer,  &
+call local2data(ikk, ier_num, ier_typ, ik2%data_num, ik2%infile, ik2%data_type, ik2%layer,  &
      ik2%is_direct, ik2%ndims, ik2%dims, ik2%is_grid, ik2%has_dxyz,             &
-     ik2%has_dval, ik2%corners, ik2%vectors, ik2%cr_a0, ik2%cr_win, ik2%x, ik2%y,     &
+     ik2%has_dval, ik2%calc_coor, ik2%use_coor, ik2%corners, ik2%vectors, ik2%cr_a0, ik2%cr_win, ik2%x, ik2%y,     &
      ik2%z, ik2%dx, ik2%dy, ik2%dz, ik2%datamap, ik2%sigma, ik2%llims, ik2%steps,  &
      ik2%steps_full)
 call dgl5_set_h5_is_ku(iz, ik2%data_num)
@@ -1442,6 +1452,7 @@ use kuplot_global
 use errlist_mod
 use lib_data_struc_type_mod
 use lib_data_struc_h5 , only:data2local, local2data, dgl5_set_h5_is_ku, dgl5_set_ku_is_h5
+use lib_use_coor_mod
 use support_mod       , only:oeffne
 !
 implicit none
@@ -1482,8 +1493,9 @@ logical :: lout = .true.
 ! Load the grid into a local data copy
 !
 call data2local(adt_ik  , ier_num, ier_typ, ik1%data_num   , ik1%infile,     &
+     ik1%data_type, &
      ik1%layer, ik1%is_direct, ik1%ndims, ik1%dims, ik1%is_grid,            &
-     ik1%has_dxyz, ik1%has_dval, ik1%corners, ik1%vectors, ik1%cr_a0, ik1%cr_win,  &
+     ik1%has_dxyz, ik1%has_dval, ik1%calc_coor, ik1%use_coor, ik1%corners, ik1%vectors, ik1%cr_a0, ik1%cr_win,  &
      ik1%x, ik1%y, ik1%z, ik1%dx, ik1%dy, ik1%dz, ik1%datamap, ik1%sigma,       &
      ik1%llims, ik1%steps,  ik1%steps_full, ik1%minmaxval, ik1%minmaxcoor)
 !
@@ -1666,6 +1678,8 @@ ik2%steps(3)       = ik2%vectors(3,3)
 ik2%steps_full(:,1)= ik2%vectors(:,1)
 ik2%steps_full(:,2)= ik2%vectors(:,2)
 ik2%steps_full(:,3)= ik2%vectors(:,3)
+!
+call lib_get_use_coor(ik2%vectors, ik2%calc_coor, ik2%use_coor)
 !write(*,*) ' IK2  dims ', ik2%dims, ' <> ', idims
 !write(*,*) ' IK2 layer ', ik2%layer
 !write(*,*) ' IK2 ll    ', ik2%corners(:,1)
@@ -1686,9 +1700,9 @@ ik2%steps_full(:,3)= ik2%vectors(:,3)
 ik2%infile = 'extracted_volume'
 string = 'adt_volume.inte'
 !
-call local2data(ikk, ier_num, ier_typ, ik2%data_num, ik2%infile, ik2%layer,  &
+call local2data(ikk, ier_num, ier_typ, ik2%data_num, ik2%infile, ik2%data_type, ik2%layer,  &
      ik2%is_direct, ik2%ndims, ik2%dims, ik2%is_grid, ik2%has_dxyz,             &
-     ik2%has_dval, ik2%corners, ik2%vectors, ik2%cr_a0, ik2%cr_win, ik2%x, ik2%y,     &
+     ik2%has_dval, ik2%calc_coor, ik2%use_coor, ik2%corners, ik2%vectors, ik2%cr_a0, ik2%cr_win, ik2%x, ik2%y,     &
      ik2%z, ik2%dx, ik2%dy, ik2%dz, ik2%datamap, ik2%sigma, ik2%llims, ik2%steps,  &
      ik2%steps_full)
 call dgl5_set_h5_is_ku(iz, ik2%data_num)
@@ -1714,7 +1728,7 @@ use kuplot_global
 !
 use errlist_mod
 use lib_data_struc_type_mod
-use lib_data_struc_h5 , only:data2local, local2data, dgl5_set_h5_is_ku, dgl5_set_ku_is_h5
+use lib_data_struc_h5 , only:data2local, dgl5_set_h5_is_ku, dgl5_set_ku_is_h5
 use support_mod       , only:oeffne
 !
 implicit none
@@ -1755,8 +1769,9 @@ real(kind=PREC_DP) :: weight
 ! Load the grid into a local data copy
 !
 call data2local(adt_ik  , ier_num, ier_typ, ik1%data_num   , ik1%infile,     &
+     ik1%data_type, &
      ik1%layer, ik1%is_direct, ik1%ndims, ik1%dims, ik1%is_grid,            &
-     ik1%has_dxyz, ik1%has_dval, ik1%corners, ik1%vectors, ik1%cr_a0, ik1%cr_win,  &
+     ik1%has_dxyz, ik1%has_dval, ik1%calc_coor, ik1%use_coor, ik1%corners, ik1%vectors, ik1%cr_a0, ik1%cr_win,  &
      ik1%x, ik1%y, ik1%z, ik1%dx, ik1%dy, ik1%dz, ik1%datamap, ik1%sigma,       &
      ik1%llims, ik1%steps,  ik1%steps_full, ik1%minmaxval, ik1%minmaxcoor)
 !

@@ -59,6 +59,7 @@ integer :: length
 !
 character(len=PREC_STRING)                         :: infile
 integer                                            :: node_number  ! Node in global data
+integer                                            :: data_type    ! Current layer (3-D only
 integer                                            :: nlayer       ! Current layer (3-D only
 logical                                            :: is_direct   ! Data are on direct / reciprocal scale
 integer                                            :: ndims        ! Number of dimensions
@@ -66,6 +67,8 @@ integer, dimension(3)                              :: dims         ! Dimensions 
 logical                                            :: is_grid     ! Data are on direct / reciprocal scale
 logical                                            :: has_dxyz    ! Data are on direct / reciprocal scale
 logical                                            :: has_dval    ! Data are on direct / reciprocal scale
+logical                                            :: calc_coor   ! Data are on direct / reciprocal scale
+integer, dimension(3)                              ::  use_coor   ! Data are on direct / reciprocal scale
 real(kind=PREC_DP), dimension(3,4)                 :: corners      ! Steps        global array
 real(kind=PREC_DP), dimension(3,3)                 :: vectors      ! Steps        global array
 real(kind=PREC_DP), dimension(3)                   :: a0              ! Lower limits global array
@@ -87,8 +90,8 @@ real(kind=PREC_DP), dimension(3,2)                 :: minmaxcoor   ! Lower limit
 call no_error
 !
 node_number = dgl5_get_h5_is_ku(ik)
-call data2local(ik, ier_num, ier_typ, node_number, infile, nlayer, is_direct,   &
-     ndims, dims, is_grid, has_dxyz, has_dval, corners, vectors, a0, win,       &
+call data2local(ik, ier_num, ier_typ, node_number, infile, data_type, nlayer, is_direct,   &
+     ndims, dims, is_grid, has_dxyz, has_dval, calc_coor, use_coor, corners, vectors, a0, win,       &
      g_x, g_y, g_z, g_dx, g_dy, g_dz, odata, sigma, llims, steps,               &
      steps_full, minmaxval, minmaxcoor)
 !
@@ -166,6 +169,7 @@ integer :: length
 !
 character(len=PREC_STRING)                         :: infile
 integer                                            :: node_number  ! Node in global data
+integer                                            :: data_type    ! Current layer (3-D only
 integer                                            :: nlayer       ! Current layer (3-D only
 logical                                            :: is_direct   ! Data are on direct / reciprocal scale
 integer                                            :: ndims        ! Number of dimensions
@@ -173,6 +177,8 @@ integer, dimension(3)                              :: dims         ! Dimensions 
 logical                                            :: is_grid     ! Data are on direct / reciprocal scale
 logical                                            :: has_dxyz    ! Data are on direct / reciprocal scale
 logical                                            :: has_dval    ! Data are on direct / reciprocal scale
+logical                                            :: calc_coor   ! Data are on direct / reciprocal scale
+integer, dimension(3)                              ::  use_coor   ! Data are on direct / reciprocal scale
 real(kind=PREC_DP), dimension(3,4)                 :: corners      ! Steps        global array
 real(kind=PREC_DP), dimension(3,3)                 :: vectors      ! Steps        global array
 real(kind=PREC_DP), dimension(3)                   :: a0              ! Lower limits global array
@@ -194,8 +200,8 @@ real(kind=PREC_DP), dimension(3,2)                 :: minmaxcoor   ! Lower limit
 call no_error
 node_number = dgl5_get_h5_is_ku(ik)
 !
-call data2local(ik, ier_num, ier_typ, node_number, infile, nlayer, is_direct,   &
-     ndims, dims, is_grid, has_dxyz, has_dval, corners, vectors, a0, win,       &
+call data2local(ik, ier_num, ier_typ, node_number, infile, data_type, nlayer, is_direct,   &
+     ndims, dims, is_grid, has_dxyz, has_dval, calc_coor, use_coor, corners, vectors, a0, win,       &
      g_x, g_y, g_z, g_dx, g_dy, g_dz, odata, sigma, llims, steps,               &
      steps_full, minmaxval, minmaxcoor)
 !
@@ -286,6 +292,7 @@ integer :: length
 !
 character(len=PREC_STRING)                         :: infile
 integer                                            :: node_number  ! Node in global data
+integer                                            :: data_type    ! Current layer (3-D only
 integer                                            :: nlayer       ! Current layer (3-D only
 logical                                            :: is_direct   ! Data are on direct / reciprocal scale
 integer                                            :: ndims        ! Number of dimensions
@@ -293,6 +300,8 @@ integer, dimension(3)                              :: dims         ! Dimensions 
 logical                                            :: is_grid     ! Data are on direct / reciprocal scale
 logical                                            :: has_dxyz    ! Data are on direct / reciprocal scale
 logical                                            :: has_dval    ! Data are on direct / reciprocal scale
+logical                                            :: calc_coor   ! Data are on direct / reciprocal scale
+integer, dimension(3)                              ::  use_coor   ! Data are on direct / reciprocal scale
 real(kind=PREC_DP), dimension(3,4)                 :: corners      ! Steps        global array
 real(kind=PREC_DP), dimension(3,3)                 :: vectors      ! Steps        global array
 real(kind=PREC_DP), dimension(3)                   :: a0              ! Lower limits global array
@@ -314,8 +323,8 @@ real(kind=PREC_DP), dimension(3,2)                 :: minmaxcoor   ! Lower limit
 call no_error
 !
 node_number = dgl5_get_h5_is_ku(ik)
-call data2local(ik, ier_num, ier_typ, node_number, infile, nlayer, is_direct,   &
-     ndims, dims, is_grid, has_dxyz, has_dval, corners, vectors, a0, win,       &
+call data2local(ik, ier_num, ier_typ, node_number, infile, data_type, nlayer, is_direct,   &
+     ndims, dims, is_grid, has_dxyz, has_dval, calc_coor, use_coor, corners, vectors, a0, win,       &
      g_x, g_y, g_z, g_dx, g_dy, g_dz, odata, sigma, llims, steps,               &
      steps_full, minmaxval, minmaxcoor)
 !
