@@ -34,8 +34,9 @@ use_coor(1) = 1      ! Default for regular coordinates
 use_coor(2) = 2
 use_coor(3) = 3
 !
-cond_need: if(abs(cosa(1)-0.95D0)>0.05D0 .or. abs(cosa(2)-0.95d0)>0.05 .or. &
-   abs(cosa(3)-0.95D0)>0.05D0     ) then    ! Need to signal coordinate calculation
+cond_need: if(abs(abs(cosa(1))-1.00D0)>0.05D0 .or. &
+              abs(abs(cosa(2))-1.00d0)>0.05D0 .or. &
+              abs(abs(cosa(3))-1.00D0)>0.05D0     ) then    ! Need to signal coordinate calculation
   calc_coor = .true.
   cosa(1) = vectors(1,1) / sqrt(vectors(1,1)**2 + vectors(2,1)**2 + vectors(3,1)**2)
   cosa(2) = vectors(2,1) / sqrt(vectors(1,1)**2 + vectors(2,1)**2 + vectors(3,1)**2)
