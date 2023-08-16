@@ -17,14 +17,18 @@ PUBLIC   gl_set_npara       ! Set number of refine parameters
 PUBLIC   gl_get_npara       ! Get number of refine parameters
 public   gl_get_maxdims     ! Get maximum dimensions in gl_data
 public   gl_set_x           ! Set x-coordinates
+public   gl_set_y           ! Set x-coordinates
+public   gl_set_z           ! Set x-coordinates
 public   gl_get_x           ! Set x-coordinates
+public   gl_get_y           ! Set x-coordinates
+public   gl_get_z           ! Set x-coordinates
 !
 INTERFACE gl_set_data
-   MODULE PROCEDURE gl_set_data_1d
+   MODULE PROCEDURE gl_set_data_1d, gl_set_data_2d, gl_set_data_3d
 END INTERFACE
 !
 INTERFACE gl_get_data
-   MODULE PROCEDURE gl_get_data_1d
+   MODULE PROCEDURE gl_get_data_1d, gl_get_data_2d, gl_get_data_3d
 END INTERFACE
 !
 PUBLIC gl_set_data
@@ -34,6 +38,7 @@ CHARACTER(LEN=1024), DIMENSION(:),       ALLOCATABLE :: gl_params
 REAL(KIND=PREC_DP),  DIMENSION(:,:,:,:), ALLOCATABLE :: gl_data ! data sets
 REAL(KIND=PREC_DP),  DIMENSION(:)      , ALLOCATABLE :: gl_x    ! data sets
 REAL(KIND=PREC_DP),  DIMENSION(:)      , ALLOCATABLE :: gl_y    ! data sets
+REAL(KIND=PREC_DP),  DIMENSION(:)      , ALLOCATABLE :: gl_z    ! data sets
 INTEGER           ,  DIMENSION(4)                    :: gl_dims =(/0,0,0,0/)  ! Dimensions
 LOGICAL           ,  DIMENSION(:),       ALLOCATABLE :: gl_lderiv
 LOGICAL                                              :: gl_use=.FALSE.        ! Use if allowed by refine
@@ -65,17 +70,20 @@ IF(ALLOCATED(gl_data))   DEALLOCATE(gl_data)
 IF(ALLOCATED(gl_lderiv)) DEALLOCATE(gl_lderiv)
 IF(ALLOCATED(gl_x     )) DEALLOCATE(gl_x)
 IF(ALLOCATED(gl_y     )) DEALLOCATE(gl_y)
+IF(ALLOCATED(gl_z     )) DEALLOCATE(gl_z)
 !
 ALLOCATE(gl_data(in_dims(1), in_dims(2), in_dims(3), -3:in_dims(4)))
 ALLOCATE(gl_lderiv(-1:in_dims(4)))
 allocate(gl_x(in_dims(1)))
 allocate(gl_y(in_dims(2)))
+allocate(gl_z(in_dims(3)))
 !
 gl_dims = in_dims
 gl_data = 0.0D0
 gl_lderiv = .FALSE.
 gl_x = 0.0D0
 gl_y = 0.0D0
+gl_z = 0.0D0
 !
 END SUBROUTINE gl_alloc
 !
@@ -147,7 +155,7 @@ INTEGER, INTENT(IN ) :: i
 !
 gl_is_der = .FALSE.
 if(allocated(gl_lderiv)) then
-   if(i>lbound(gl_lderiv,1) .and. i<ubound(gl_lderiv,1)) then
+   if(i>lbound(gl_lderiv,1) .and. i<=ubound(gl_lderiv,1)) then
       gl_is_der = gl_lderiv(i)
    else
       ier_num = -6
@@ -276,7 +284,7 @@ end subroutine gl_get_maxdims
 !
 !*******************************************************************************
 !
-SUBROUTINE gl_set_data_1d(idim, NPARA, ipara, ext_data)
+SUBROUTINE gl_set_data_1d(idim1, NPARA, ipara, ext_data)
 !
 ! popluate global data, 1D 
 USE errlist_mod
@@ -284,30 +292,61 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
-INTEGER                            , INTENT(IN) :: idim
+INTEGER                            , INTENT(IN) :: idim1
 INTEGER                            , INTENT(IN) :: NPARA
 INTEGER                            , INTENT(IN) :: ipara
-REAL(KIND=PREC_DP), DIMENSION(idim), INTENT(IN) :: ext_data
+REAL(KIND=PREC_DP), DIMENSION(idim1), INTENT(IN) :: ext_data
 !
 !
-!IF(.NOT.ALLOCATED(gl_data)) THEN
-!   dimen(1) = idim
-!   dimen(2) = 1
-!   dimen(3) = 1
-!   dimen(4) = NPARA
-!   CALL gl_alloc(dimen)
-!ENDIF
-!
-!IF(UBOUND(ext_data,1)<idim) THEN
-!   ier_num = -53
-!   ier_num = ER_FORT
-!   RETURN
-!ENDIF
-!
-gl_data(1:idim,1, 1, ipara) = ext_data(1:idim)
+gl_data(1:idim1,1, 1, ipara) = ext_data(1:idim1)
 if(ipara>=0) gl_lderiv(ipara) = .TRUE.
 !
 END SUBROUTINE gl_set_data_1d
+!
+!*******************************************************************************
+!
+SUBROUTINE gl_set_data_2d(idim1, idim2, NPARA, ipara, ext_data)
+!
+! popluate global data, 2D 
+USE errlist_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER                            , INTENT(IN) :: idim1
+INTEGER                            , INTENT(IN) :: idim2
+INTEGER                            , INTENT(IN) :: NPARA
+INTEGER                            , INTENT(IN) :: ipara
+REAL(KIND=PREC_DP), DIMENSION(idim1, idim2), INTENT(IN) :: ext_data
+!
+!
+gl_data(1:idim1,1:idim2, 1, ipara) = ext_data(1:idim1, 1:idim2)
+if(ipara>=0) gl_lderiv(ipara) = .TRUE.
+!
+END SUBROUTINE gl_set_data_2d
+!
+!*******************************************************************************
+!
+SUBROUTINE gl_set_data_3d(idim1, idim2, idim3, NPARA, ipara, ext_data)
+!
+! popluate global data, 3D 
+USE errlist_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER                            , INTENT(IN) :: idim1
+INTEGER                            , INTENT(IN) :: idim2
+INTEGER                            , INTENT(IN) :: idim3
+INTEGER                            , INTENT(IN) :: NPARA
+INTEGER                            , INTENT(IN) :: ipara
+REAL(KIND=PREC_DP), DIMENSION(idim1, idim2, idim3), INTENT(IN) :: ext_data
+!
+!
+gl_data(1:idim1,1:idim2, 1:idim3, ipara) = ext_data(1:idim1, 1:idim2, 1:idim3)
+if(ipara>=0) gl_lderiv(ipara) = .TRUE.
+!
+END SUBROUTINE gl_set_data_3d
 !
 !*******************************************************************************
 !
@@ -329,7 +368,43 @@ end subroutine gl_set_x
 !
 !*******************************************************************************
 !
-SUBROUTINE gl_get_data_1d(ipara, idim, ext_data)
+subroutine gl_set_y(idimen, ext_y)
+!-
+!  Set the x-values of the global data array
+!+
+!
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: idimen
+real(kind=PREC_DP), dimension(1:idimen), intent(in) :: ext_y
+!
+gl_y(1:idimen) = ext_y(1:idimen)
+!
+end subroutine gl_set_y
+!
+!*******************************************************************************
+!
+subroutine gl_set_z(idimen, ext_z)
+!-
+!  Set the x-values of the global data array
+!+
+!
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: idimen
+real(kind=PREC_DP), dimension(1:idimen), intent(in) :: ext_z
+!
+gl_z(1:idimen) = ext_z(1:idimen)
+!
+end subroutine gl_set_z
+!
+!*******************************************************************************
+!
+SUBROUTINE gl_get_data_1d(ipara, idim1, ext_data)
 !
 ! retrieve global data, 1D 
 USE errlist_mod
@@ -337,13 +412,52 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
-INTEGER                            , INTENT(IN)  :: ipara
-INTEGER                            , INTENT(IN)  :: idim
-REAL(KIND=PREC_DP), DIMENSION(idim), INTENT(OUT) :: ext_data
+INTEGER                             , INTENT(IN)  :: ipara
+INTEGER                             , INTENT(IN)  :: idim1
+REAL(KIND=PREC_DP), DIMENSION(idim1), INTENT(OUT) :: ext_data
 !
-ext_data(1:idim) = gl_data(1:idim,1, 1, ipara)
+ext_data(1:idim1) = gl_data(1:idim1,1, 1, ipara)
 !
 END SUBROUTINE gl_get_data_1d
+!
+!*******************************************************************************
+!
+SUBROUTINE gl_get_data_2d(ipara, idim1, idim2, ext_data)
+!
+! retrieve global data, 2D 
+USE errlist_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER                             , INTENT(IN)  :: ipara
+INTEGER                             , INTENT(IN)  :: idim1
+INTEGER                             , INTENT(IN)  :: idim2
+REAL(KIND=PREC_DP), DIMENSION(idim1,idim2), INTENT(OUT) :: ext_data
+!
+ext_data(1:idim1, 1:idim2) = gl_data(1:idim1,1:idim2, 1, ipara)
+!
+END SUBROUTINE gl_get_data_2d
+!
+!*******************************************************************************
+!
+SUBROUTINE gl_get_data_3d(ipara, idim1, idim2, idim3, ext_data)
+!
+! retrieve global data, 3D 
+USE errlist_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER                            , INTENT(IN)  :: ipara
+INTEGER                            , INTENT(IN)  :: idim1
+INTEGER                            , INTENT(IN)  :: idim2
+INTEGER                            , INTENT(IN)  :: idim3
+REAL(KIND=PREC_DP), DIMENSION(idim1, idim2, idim3), INTENT(OUT) :: ext_data
+!
+ext_data(1:idim1,1:idim2,1:idim3) = gl_data(1:idim1,1:idim2, 1:idim3, ipara)
+!
+END SUBROUTINE gl_get_data_3d
 !
 !*******************************************************************************
 !
@@ -362,6 +476,42 @@ real(kind=PREC_DP), dimension(1:idimen), intent(out) :: ext_x
 ext_x(1:idimen) = gl_x(1:idimen)
 !
 end subroutine gl_get_x
+!
+!*******************************************************************************
+!
+subroutine gl_get_y(idimen, ext_y)
+!-
+!  Set the x-values of the global data array
+!+
+!
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: idimen
+real(kind=PREC_DP), dimension(1:idimen), intent(out) :: ext_y
+!
+ext_y(1:idimen) = gl_y(1:idimen)
+!
+end subroutine gl_get_y
+!
+!*******************************************************************************
+!
+subroutine gl_get_z(idimen, ext_z)
+!-
+!  Set the z-values of the global data array
+!+
+!
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: idimen
+real(kind=PREC_DP), dimension(1:idimen), intent(out) :: ext_z
+!
+ext_z(1:idimen) = gl_z(1:idimen)
+!
+end subroutine gl_get_z
 !
 !*******************************************************************************
 !
