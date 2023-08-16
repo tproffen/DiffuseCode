@@ -124,6 +124,7 @@ nianz: IF (ianz.eq.1) then
          DO jj = 1, ny (iz) 
             y (offxy (iz - 1) + jj) = y (offxy (iref - 1) + jj)
          ENDDO
+         ku_ndims(iz) = 2
          fname (iz) = 'func.nipl' 
          fform (iz) = 'NI' 
          lni (iz) = .true. 
@@ -133,6 +134,7 @@ nianz: IF (ianz.eq.1) then
          offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
          iz = iz + 1 
       ELSE
+         ku_ndims(iz) = 1
          DO i = 1, ii 
             xx = x (offxy (iref - 1) + i) 
             CALL kupl_theory (xx, f, ddf, - i) 
@@ -156,6 +158,7 @@ nianz: IF (ianz.eq.1) then
 !                                                                       
    ELSE 
       IF(lni(iref)) THEN     ! 2d data set
+         ku_ndims(iz) = 2
          nx(iz) = nx(iref)
          ny(iz) = nx(iref)
          DO ii = 1, nx (iz) 
@@ -183,6 +186,7 @@ nianz: IF (ianz.eq.1) then
          offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
          iz = iz + 1 
       ELSE
+         ku_ndims(iz) = 1
          DO i = 1, ii 
             rpara (0) = x (offxy (iref - 1) + i) 
             cdummy = '('//cfkt (1:lcfkt) //')' 
@@ -214,6 +218,7 @@ ELSEIF (ianz.eq.3) THEN  nianz
          xdelta = werte (3) 
          ii = nint ( (xend-xstart) / xdelta) + 1 
          IF (ii.gt.0.and.ii.le.maxpkt) then 
+         ku_ndims(iz) = 1
 !                                                                       
 !------- -- KUPLOT fit function                                         
 !                                                                       
@@ -259,6 +264,7 @@ ELSEIF (ianz.eq.3) THEN  nianz
 !------ 2D data set                                                     
 !                                                                       
 ELSEIF (ianz.eq.6) THEN nianz
+         ku_ndims(iz) = 2
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          xstart = werte (1) 
          xend = werte (2) 
@@ -455,6 +461,11 @@ SUBROUTINE do_load (string, laenge, lecho)
 !                                                                       
 !     Load various file formats                                         
 !                                                                       
+USE kuplot_config 
+USE kuplot_mod 
+USE kuplot_load_h5
+use kuplot_load_shelx
+!
 USE ber_params_mod
 use blanks_mod
 USE build_name_mod
@@ -462,11 +473,9 @@ USE errlist_mod
 USE get_params_mod
 USE prompt_mod 
 USE times_mod 
-USE kuplot_config 
-USE kuplot_mod 
-USE kuplot_load_h5
 USE lib_errlist_func
 USE lib_length
+use lib_load_mod
 USE precision_mod
 USE take_param_mod
 USE str_comp_mod
@@ -486,10 +495,11 @@ LOGICAL          , INTENT(IN) :: lecho          ! Show extrema after load
 !
 CHARACTER(LEN=PREC_STRING), dimension(:), allocatable :: cpara !(maxw) 
 CHARACTER(LEN=PREC_STRING) :: wname, cdummy 
-CHARACTER(4) unter 
+CHARACTER(len=5) :: unter 
 REAL(KIND=PREC_DP) :: werte (maxw) 
 INTEGER lpara (maxw) 
 INTEGER ii, ll, ianz, istr, nfile 
+integer :: ik
 LOGICAL zz_mod 
 !                                                                       
 INTEGER ifiles
@@ -550,7 +560,7 @@ IF (ianz.ge.2) then
          return
       endif 
    endif
-   unter = cpara(1)(1:4) 
+   unter = cpara(1)(1:min(len(unter),len_trim(cpara(1))))
    CALL do_cap (unter) 
 !                                                                       
 !------- -build first filename                                          
@@ -584,6 +594,21 @@ IF (ianz.ge.2) then
 !XX!                       xmin, xmax, ymin, ymax, offxy, offz, lni, lh5, ku_ndims, lenc, &
             deallocate(cpara)
             RETURN
+         elseif(unter=='HKLF4') then
+            CALL shelx_read_kuplot(cpara(2),lpara(2), O_LAYER, O_TRANS, NOPTIONAL, opara,   &
+                           lopara, lpresent, owerte , iz, ku_ndims,               &
+                           ier_num, ier_typ, UBOUND(ier_msg,1), ier_msg, ER_APPL, &
+                           ER_IO, output_io)
+!           call gen_load_hklf4(cpara(2), lpara(2), node_number)
+!           call dgl5_set_h5_is_ku(iz, node_number)
+!           call dgl5_set_ku_is_h5(node_number, iz)
+!           ku_ndims(iz) = 3
+!           ik = iz
+!           call dgl5_set_ku_is_h5(iz, node_number)
+!           call dgl5_set_h5_is_ku(node_number, iz)
+!
+!           call data2kuplot(ik, cpara(2), .true.)
+            return
          elseif(unter=='MRC') then
             call mrc_read_kuplot(cpara(2),lpara(2), node_number, ii)
             return
@@ -1568,6 +1593,7 @@ logical, intent(in) :: pgm
       lenc(iz) = max (nx (iz), ny (iz) ) 
       offxy (iz) = offxy (iz - 1) + lenc(iz) 
       offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
+      ku_ndims(iz) = 2
       iz = iz + 1 
 !                                                                       
       CALL show_data (iz - 1) 
