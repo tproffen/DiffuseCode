@@ -1,10 +1,18 @@
 6.15.02  DRAFT
 GENERAL
   Windows10   BUG FIX update command crashed if WindowsTerminal was not installed
+  Macro       Macros that terminated in a (different) sub level would leave 
+              wrong prompt 
 DISCUS
   chem        Added an optional parameter "site:" to homo
   powder      Improved handling of corrlin and corrquad for a powder PDF
   plot        BUG FIX, Avoiding crash if jmol had never been used before
+KUPLOT
+  load        Added option to load SHELX:hklf4 files
+  rvalue      Added optional logfile output
+  kuplot2global  Full 3D, added option to define refine output by parameter name
+REFINE
+              Extensive changes, made full 3D ready
 6.15.01  RELEASE 2023_07_20
 
 GENERAL
