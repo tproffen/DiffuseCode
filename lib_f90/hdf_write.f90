@@ -58,7 +58,7 @@ integer                                :: ier_cmd
 LOGICAL                                :: isda            ! File foud yes/no
 INTEGER                                :: i,j,k,l         ! Dummy indices
 INTEGER                                :: hdferr          ! Error returned by HDF5
-INTEGER, TARGET                        :: is_direct       ! Data are 3DPDF or diffraction pattern
+INTEGER(kind=2), TARGET                        :: is_direct       ! Data are 3DPDF or diffraction pattern
 !
 INTEGER(KIND=HSIZE_T), DIMENSION(1)    :: str_dims = (/dim0 /)      ! "Dimensions of the string "DISCSU60" 
 INTEGER(KIND=HSIZE_T), DIMENSION(2)    :: data_dims = (/sdim,dim0/) ! "Dimensions of the string "Yell 1.0" 
