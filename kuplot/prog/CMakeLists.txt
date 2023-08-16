@@ -16,7 +16,7 @@ set (SOURCES_ALL kuplot_blk_appl.f90 calc.f90 color.f90 draw.f90
         kuplot_adt.f90 kuplot_kdo_common.f90
         kuplot_diffev_plot.f90 kuplot_draw_low.f90 kuplot_draw_tframe.f90
         kuplot_extrema.f90 kuplot_global.f90
-	kuplot_kdo.f90 koordinate_mod.f90 kuplot_loop.f90  kuplot_low.f90
+	kuplot_kdo.f90 koordinate_mod.f90 kuplot_load_shelx.f90 kuplot_loop.f90  kuplot_low.f90
 	kuplot_setup.f90 kuplot_setup_sub.f90 kuplot_branch.f90 load.f90 math.f90 para.f90 
         kuplot_place.f90 kuplot_plot_low.f90
 	kuplot_plot.f90 kuplot_save.f90 kuplot_show.f90 kuplot_upd_par.f90
