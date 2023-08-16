@@ -6,7 +6,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               calc_expr_mod.f90  calc_intr_mod.f90 cmdline_args_mod.f90
               constants_mod.f90
               get_params_mod.f90 count_col_mod.f90 
-              data_struc.f90 data_struc_type.f90
+              data_struc.f90 data_struc_type.f90 data_types.f90
               define_variable_mod.f90 dkdo.f90 do_echo_mod.f90 do_eval_mod.f90
               do_execute_mod.f90 do_read_number_mod.f90 do_replace_expr.f90
               do_show_mod.f90 do_set_mod.f90
@@ -20,7 +20,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               hdf5_def.f90 
               length_string_mod.f90 lib_f90_config.f90 lib_f90_fftw3.f90 
               lib_conv.f90 lib_functions.f90
-              lib_get_var_type.f90  lib_lanczos.f90
+              lib_get_var_type.f90  lib_ik.f90 lib_lanczos.f90 lib_load.f90
               lib_math.f90 lib_metric.f90 lib_f90_profile.f90 lib_trans.f90 
               lib_use_coor.f90 lib_weights.f90
               lib_write_debug.f90 lib_upd_mod.f90 
@@ -39,7 +39,8 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               search_string_mod.f90 sorting.f90 take_param_mod.f90
               sine_table.f90 spline_mod.f90 string_extract_mod.f90
               times_mod.f90 variable_mod.f90 wink_mod.f90 precision_mod.f90 
-              memory.f90 support_mod.f90 )
+              memory.f90 support_mod.f90 
+              refine_params.f90)
 #             sockets_mod.f90
 
 #set (CSOURCES FCreadline.c csocket.c csup.c)
