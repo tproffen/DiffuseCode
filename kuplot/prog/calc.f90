@@ -2087,6 +2087,7 @@ CHARACTER (LEN=*), INTENT(INOUT) :: zeile
 INTEGER          , INTENT(INOUT) :: lp
 LOGICAL          , INTENT(IN)    :: lout
 !
+CHARACTER(LEN=PREC_STRING) :: logfile
 CHARACTER(LEN=PREC_STRING) :: cpara (maxw) 
 REAL(KIND=PREC_DP)         :: werte (maxw) 
 INTEGER                    :: lpara (maxw)
@@ -2108,7 +2109,9 @@ integer, PARAMETER :: W_DAT = 7
 integer, PARAMETER :: W_BCK = 8 
 !                                                                       
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: NOPTIONAL = 2
+integer, parameter :: O_PARTIAL = 1
+integer, parameter :: O_LOG     = 2
 CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -2119,12 +2122,12 @@ INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to cal
 INTEGER :: irvalue
 INTEGER :: i
 !
-DATA oname  / 'partial'/
-DATA loname /  7        /
+DATA oname  / 'partial', 'logfile'/
+DATA loname /  7       ,  7       /
 !
-opara  =  (/ '0.0000'   /) ! Always provide fresh default values
-lopara =  (/  6         /)
-owerte =  (/  0.00      /)
+opara  =  (/ '0.0000000', '/dev/null'   /) ! Always provide fresh default values
+lopara =  (/  6         ,  9            /)
+owerte =  (/  0.00      ,  0.00         /)
 bck_k = 0.0
 !
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -2139,7 +2142,12 @@ ENDIF
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 IF (ier_num.ne.0) RETURN 
-irvalue = NINT(owerte(1))
+irvalue = NINT(owerte(O_PARTIAL))
+if(lpresent(O_LOG)) then
+   logfile = opara(O_LOG)(1:lopara(O_LOG))
+else
+   logfile ='NONE'
+endif
 !
 iianz = 2 
 CALL ber_params (iianz, cpara, lpara, werte, maxw) 
@@ -2183,7 +2191,13 @@ ENDIF
 !                                                                       
 IF (ik.gt.0.and.ik.lt.iz.and.il.gt.0.and.il.lt.iz) then       ! Data numbers are in range
    if_hdf5:if(lh5(ik) .and. lh5(il)) then                              ! Both data set are HDF5
-      call rvalue_h5_global(ik, il, iweight, bck_k, rval, wrval)
+      call rvalue_h5_global(ik, il, iweight, bck_k, rval, wrval, logfile)
+         res_para (0) = 2 
+         res_para (1) = rval 
+         res_para (2) = wrval 
+         rvalues  (1, irvalue) = rval 
+         rvalues  (2, irvalue) = wrval 
+         rvalue_yes   = .true.
    else  if_hdf5
    IF (lni (ik) .and.lni (il) ) then 
       IF (nx (ik) .eq.nx (il) .and.ny (ik) .eq.ny (il) ) then 
