@@ -889,12 +889,14 @@ integer         , intent(inout) :: lp
 !+                                                                      
 !     Command mark ..                                                   
 !-                                                                      
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE kuplot_config 
+USE kuplot_mod 
+!
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
 USE lib_errlist_func
+use param_mod
 USE precision_mod
 !                                                                       
       IMPLICIT none 
@@ -915,6 +917,7 @@ integer         , intent(inout) :: lp
 !                                                                       
       IF (ianz.eq.0) then 
          t (iwin, iframe, 1) = - 9999.0 
+         t (iwin, iframe, 2) = - 9999.0 
       ELSEIF (ianz.eq.1.or.ianz.eq.2.or.ianz.eq.4) then 
          IF (ianz.eq.4) write ( *, 1000) 
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -923,22 +926,36 @@ integer         , intent(inout) :: lp
          CALL no_error 
          IF (werte (1) .gt.0.0) then 
             t (iwin, iframe, 1) = werte (1) 
-            IF (ianz.eq.2) then 
-               IF (werte (2) .gt.0.0) then 
-                  t (iwin, iframe, 2) = werte (2) 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-            ENDIF 
+         elseif(abs(werte(1)+9999.000D0)<0.1) then
+            t (iwin, iframe, 1) = - 9999.0
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
+         ENDIF 
+         IF (ianz.eq.2) then 
+            IF (werte (2) .gt.0.0) then 
+                  t (iwin, iframe, 2) = werte (2) 
+            elseif(abs(werte(2)+9999.000D0)<0.1) then
+               t (iwin, iframe, 2) = - 9999.0
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
          ENDIF 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+!
+if(ier_num==0) then
+   if(ianz>0) then
+      res_para(1:ianz) = werte(1:ianz)
+      res_para(0)      = real(ianz,kind=PREC_DP)
+   else
+      res_para(1:2)    = t (iwin, iframe,1:2)
+      res_para(0)      = 2.0D0
+   endif
+endif
 !                                                                       
  1000 FORMAT    (1x,'****WARN**** Only first two parameters',           &
      &                     '  used (see help mark) !')                  
@@ -1372,12 +1389,12 @@ REAL(kind=PREC_DP) :: delta
 !------ set tick marks                                                  
 !                                                                       
       IF (t (iwin, iframe, 1) .eq. - 9999.) then 
-         t (iwin, iframe, 1) = (ex (iwin, iframe, 2) - ex (iwin, iframe,&
-         1) ) * 0.125                                                   
-         t (iwin, iframe, 2) = (ey (iwin, iframe, 2) - ey (iwin, iframe,&
-         1) ) * 0.125                                                   
+         t (iwin, iframe, 1) = (ex (iwin, iframe, 2) - ex (iwin, iframe, 1) ) * 0.125D0
          WRITE (ct, '(g8.1)') t (iwin, iframe, 1) 
          READ (ct, * ) t (iwin, iframe, 1) 
+      ENDIF 
+      IF (t (iwin, iframe, 2) .eq. - 9999.) then 
+         t (iwin, iframe, 2) = (ey (iwin, iframe, 2) - ey (iwin, iframe, 1) ) * 0.125D0
          WRITE (ct, '(g8.1)') t (iwin, iframe, 2) 
          READ (ct, * ) t (iwin, iframe, 2) 
       ENDIF 
