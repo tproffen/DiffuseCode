@@ -39,8 +39,7 @@ refine_eta        = .FALSE. ! eta    are refined=TRUE or fixed=FALSE
 refine_eta_ind    = HUGE(0)
 refine_par_n    = 0 ! number of parameters
 refine_fix_n    = 0 
-ref_dim(1)      = 1
-ref_dim(2)      = 1
+ref_dim         = 1
 !
 ! refine_fit_erg
 !
