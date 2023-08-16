@@ -1054,7 +1054,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                WRITE (output_io, * ) 
                WRITE (output_io, 3260) ( (rho_eck (i, j), i = 1, 3),    &
                j = 1, 3)                                                
-               WRITE (output_io, 3061) rho_inc 
+               WRITE (output_io, 3061) rho_inc (1:2)
                DO i = 1, 3 
                u (i) = rho_vi (i, 1) 
                v (i) = 0.0 
@@ -1251,7 +1251,7 @@ LOGICAL           , intent(in) ::  acentric
       PARAMETER (KUPL = 0, GNU = 3, SHELXL = 4, HKLF4 = 5) 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: line 
-      INTEGER i, j, ii, k, itic 
+      INTEGER i, j, ii, k, itic , lll
       INTEGER :: iostatus
       INTEGER extr_ima 
       INTEGER nx (2), ny (2) 
@@ -1267,16 +1267,26 @@ real(kind=PREC_DP), dimension(3) :: y
       REAL(kind=PREC_DP) :: e_f, dummy 
       REAL(kind=PREC_DP) :: dstar2 
       COMPLEX (KIND=KIND(0.0D0)) ::a_b 
+!real(kind=PREC_DP), dimension(2) :: a_b_minv, a_b_maxv
+!real(kind=PREC_DP) zzz_minv, zzz_maxv
 !                                                                       
+!write(*,*) ' FTYP    ', ftyp, ftyp.eq.SHELXL, patt_rsym
+!write(*,*) ' REC Symm', rec_n_sym
+!write(*,*) ' ACCU    ', patt_accu.eq.PATT_INIT
+!write(*,*) ' SCALE   ', patt_scale
+!a_b_minv = 0.0D0
+!a_b_maxv = 0.0D0
+!zzz_minv = 0.0D0
+!zzz_maxv = 0.0D0
 !                                                                       
-      zz1 = 0.0 
-      zz2 = 0.0 
-      zz3 = 0.0 
-      zz4 = 0.0 
+zz1 = 0.0 
+zz2 = 0.0 
+zz3 = 0.0 
+zz4 = 0.0 
 !                                                                       
-      IF (ftyp.eq.HKLF4) then 
-         CALL wilson_calc 
-      ENDIF 
+IF (ftyp.eq.HKLF4) then 
+   CALL wilson_calc 
+ENDIF 
 !                                                                       
       CALL oeffne (ifa, rho_file (1) , 'old') 
       IF (ier_num.ne.0) then 
@@ -1298,6 +1308,10 @@ real(kind=PREC_DP), dimension(3) :: y
          ENDDO 
          ENDDO 
       ENDIF 
+y = 0.0D0
+a_b = (0.0D0,0.0D0)
+!write(*,'(a,2f10.6,2x,3f5.1)') 'MINVALS ', minval(real(csf)), minval(imag(csf)), y
+!write(*,'(a,2f10.6,2x,3f5.1)') 'MAXVALS ', maxval(real(csf)), maxval(imag(csf)), a_b
 !                                                                       
       IF (ftyp.eq.SHELXL.and. (.not.patt_rsym) ) then 
    10    CONTINUE 
@@ -1311,9 +1325,10 @@ real(kind=PREC_DP), dimension(3) :: y
             READ (line, 1111, end = 20, err = 900) ihkl, zz1, zz2, zz3 
          ENDIF
  1111 FORMAT   (3I4,2F10.2,F7.2) 
-         y (1) = real (ihkl (1) ) 
-         y (2) = real (ihkl (2) ) 
-         y (3) = real (ihkl (3) ) 
+!        y (1) = real (ihkl (1) ) 
+!        y (2) = real (ihkl (2) ) 
+!        y (3) = real (ihkl (3) ) 
+         h = real(ihkl, kind=PREC_DP)
          zz4 = zz3 
 !                                                                       
 !     ------Calculate appropriate value, contribute to invers/Patterson 
@@ -1335,6 +1350,7 @@ real(kind=PREC_DP), dimension(3) :: y
          IF(iostatus /= 0) THEN
             READ (line, 1111, end = 25, err = 900) ihkl, zz1, zz2, zz3 
          ENDIF
+         h = real(ihkl, kind=PREC_DP)
 !                                                                       
 !     ----Apply reciprocal space symmetry operations                    
 !                                                                       
@@ -1372,6 +1388,11 @@ real(kind=PREC_DP), dimension(3) :: y
          GOTO 15 
    25    CONTINUE 
       ELSEIF (ftyp.eq.HKLF4.and.patt_rsym) then 
+!lll = 5
+!write(*,*) ' TYPE IS HKLF4 and patterson_symmetry'
+!write(*,*) ' REC Symm', rec_n_sym, acentric
+!write(*,*) ' PATT MOD', patt_mode.eq.PATT_NORMAL, patt_mode.eq.PATT_SHARP, patt_mode.eq.PATT_SUPER
+!write(*,*) ' PATT SUB', patt_origin.eq.PATT_SUBTRACT
    30    CONTINUE 
 !                                                                       
 !     ----read hkl,intensity,sigma(intensity)                           
@@ -1383,6 +1404,10 @@ real(kind=PREC_DP), dimension(3) :: y
          IF(iostatus /= 0) THEN
             READ (line, '(3I4,F8.2)', end = 40, err = 900) ihkl, zz1
          ENDIF
+         h = real(ihkl, kind=PREC_DP)
+!if(lll<=2) then
+!  write(*,*) ihkl, zz1
+!endif
 !                                                                       
 !     ----Calculate |F|**2, |EF| or |E|**2                              
 !         subtract sum(fj**2)                                           
@@ -1423,6 +1448,7 @@ real(kind=PREC_DP), dimension(3) :: y
             ENDIF 
             a_b = cmplx (dummy, 0.0) 
          ENDIF 
+         a_b = a_b * patt_scale * vr 
 !                                                                       
 !     ----Apply reciprocal space symmetry operations                    
 !                                                                       
@@ -1439,7 +1465,6 @@ real(kind=PREC_DP), dimension(3) :: y
 !                                                                       
 !     ------Calculate appropriate value, contribute to invers/Patterson 
 !                                                                       
-         a_b = a_b * patt_scale * vr 
          CALL calc_patters (a_b, y) 
 !                                                                       
 !     ------If the space group is acentric, apply -1 operation          
@@ -1453,7 +1478,19 @@ real(kind=PREC_DP), dimension(3) :: y
             a_b = a_b * patt_scale * vr 
             CALL calc_patters (a_b, y) 
          ENDIF 
+!zzz_minv    = min(zzz_minv, zz1)
+!zzz_maxv    = max(zzz_maxv, zz1)
+!a_b_minv(1) = min(a_b_minv(1), real(a_b))
+!a_b_minv(2) = min(a_b_minv(2), imag(a_b))
+!a_b_maxv(1) = max(a_b_maxv(1), real(a_b))
+!a_b_maxv(2) = max(a_b_maxv(2), imag(a_b))
+!write(*,'(a,2f10.6,2x,3f5.1)') 'MINVALS ', minval(real(csf)), minval(imag(csf)), y
+!write(*,'(a,2f10.6,2x,3f5.1)') 'MAXVALS ', maxval(real(csf)), maxval(imag(csf)), a_b
+!if(lll<=2) then
+!  write(*,*) ihkl, zz1, a_b, y
+!endif
          ENDDO 
+lll = lll + 1
          GOTO 30 
    40    CONTINUE 
       ELSEIF (ftyp.eq.HKLF4.and. (.not.patt_rsym) ) then 
@@ -1468,7 +1505,8 @@ real(kind=PREC_DP), dimension(3) :: y
          IF(iostatus /= 0) THEN
             READ (line, '(3I4,F8.2)', end = 60, err = 900) ihkl, zz1
          ENDIF
-         y(:) = REAL(ihkl(:), kind=PREC_DP)
+!        y(:) = REAL(ihkl(:), kind=PREC_DP)
+         y = real(ihkl, kind=PREC_DP)
 !1111 FORMAT   (3I4,2F10.2,F7.2) 
 !                                                                       
 !     ----Calculate |F|**2, |EF| or |E|**2                              
@@ -1516,6 +1554,14 @@ real(kind=PREC_DP), dimension(3) :: y
          ENDIF 
          a_b = cmplx (dummy, 0.0) * patt_scale * vr 
          CALL calc_patters (a_b, y) 
+!zzz_minv    = min(zzz_minv, zz1)
+!zzz_maxv    = max(zzz_maxv, zz1)
+!a_b_minv(1) = min(a_b_minv(1), real(a_b))
+!a_b_minv(2) = min(a_b_minv(2), imag(a_b))
+!a_b_maxv(1) = max(a_b_maxv(1), real(a_b))
+!a_b_maxv(2) = max(a_b_maxv(2), imag(a_b))
+!write(*,'(a,2f10.6,2x,3f5.1)') 'MINVALS ', minval(real(csf)), minval(imag(csf)), y
+!write(*,'(a,2f10.6,2x,3f5.1)') 'MAXVALS ', maxval(real(csf)), maxval(imag(csf)), a_b
          GOTO 50 
    60    CONTINUE 
       ELSE 
@@ -1655,6 +1701,12 @@ real(kind=PREC_DP), dimension(3) :: y
 !                                                                       
   900 CONTINUE 
 !                                                                       
+!write(*,*) 'MININTE ', zzz_minv
+!write(*,*) 'MAXINTE ', zzz_maxv
+!write(*,*) 'MINVALS ', a_b_minv
+!write(*,*) 'MAXVALS ', a_b_maxv
+!write(*,*) 'MINVALS ', minval(real(csf)), minval(imag(csf))
+!write(*,*) 'MAXVALS ', maxval(real(csf)), maxval(imag(csf))
       CLOSE (ifa) 
       IF (ltwo_files) then 
          CLOSE (ifb) 
@@ -1678,46 +1730,44 @@ real(kind=PREC_DP), dimension(3) :: y
 !                                                                       
        
 !                                                                       
-REAL(kind=PREC_DP), dimension(3) :: h (3) 
+COMPLEX (KIND=KIND(0.0D0))      , intent(in) :: a_b 
+REAL(kind=PREC_DP), dimension(3), intent(in) :: h (3) 
 !                                                                       
-      REAL(PREC_DP) xarg0, xincu, xincv 
+      REAL(kind=PREC_DP) :: xarg0, xincu, xincv 
       INTEGER (KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iincv, iadd 
-      INTEGER i, j, ii 
-      COMPLEX (KIND=KIND(0.0D0)) ::a_b 
+      INTEGER :: i, j, ii 
 !                                                                       
-      INTEGER ISHFT, IAND 
+      INTEGER :: ISHFT, IAND 
 !                                                                       
       CALL four_cexpt 
       ii = max (5, rho_inc (2) / 10) 
 !                                                                       
-      xarg0 = rho_eck (1, 1) * h (1) + rho_eck (2, 1) * h (2) + rho_eck &
-      (3, 1) * h (3)                                                    
-      xincu = rho_vi (1, 1) * h (1) + rho_vi (2, 1) * h (2) + rho_vi (3,&
-      1) * h (3)                                                        
-      xincv = rho_vi (1, 2) * h (1) + rho_vi (2, 2) * h (2) + rho_vi (3,&
-      2) * h (3)                                                        
+xarg0 = rho_eck(1, 1) * h (1) + rho_eck(2, 1) * h (2) + rho_eck(3, 1) * h (3)                                                    
+xincu = rho_vi (1, 1) * h (1) + rho_vi (2, 1) * h (2) + rho_vi (3, 1) * h (3)                                                        
+xincv = rho_vi (1, 2) * h (1) + rho_vi (2, 2) * h (2) + rho_vi (3, 2) * h (3)                                                        
 !                                                                       
-      iarg0 = nint (64 * I2PI * (xarg0 - int (xarg0) + 1.0d0) ) 
-      iincu = nint (64 * I2PI * (xincu - int (xincu) + 1.0d0) ) 
-      iincv = nint (64 * I2PI * (xincv - int (xincv) + 1.0d0) ) 
+iarg0 = nint (64 * I2PI * (xarg0 - int (xarg0) + 0.0d0) ) 
+iincu = nint (64 * I2PI * (xincu - int (xincu) + 0.0d0) ) 
+iincv = nint (64 * I2PI * (xincv - int (xincv) + 0.0d0) ) 
 !                                                                       
-      iarg0 = patt_sign * iarg0 
-      iarg = iarg0 
+iarg0 = patt_sign * iarg0 
+iarg = iarg0 
 !                                                                       
-      ii = 0 
+ii = 0 
 !                                                                       
-      DO j = 1, rho_inc (1) 
-      DO i = 1, rho_inc (2) 
+DO j = 1, rho_inc (1) 
+   DO i = 1, rho_inc (2) 
       iadd = ISHFT (iarg, - 6) 
       iadd = IAND (iadd, MASK) 
       ii = ii + 1 
       csf (ii) = csf (ii) + cex (iadd) * a_b 
       iarg = iarg + iincv * patt_sign 
-      ENDDO 
-      iarg = iarg0 + iincu * j * patt_sign 
-      ENDDO 
+   ENDDO 
+   iarg = iarg0 + iincu * j * patt_sign 
+ENDDO 
 !                                                                       
-      END SUBROUTINE calc_patters                   
+END SUBROUTINE calc_patters                   
+!
 !*****7*******1*********************************************************
       SUBROUTINE set_patt_value (a_b, inverse_type, rho_type, z1, z2, i,&
       patt_excl9999, patt_excl_val, l_incl)                             
