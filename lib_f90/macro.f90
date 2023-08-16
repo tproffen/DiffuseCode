@@ -797,7 +797,6 @@ ENDIF
 NULLIFY(macro_root)                      ! Clear pointer status
 NULLIFY(macro_temp)
 NULLIFY(mac_tree_tail)
-prompt = oprompt
 !
 END SUBROUTINE macro_close
 !
