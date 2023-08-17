@@ -376,7 +376,8 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
                CALL get_connectivity_list ( jatom, is1, ino, c_list, c_offs, natoms )
                k = natom(ncent)
 !write(*,*) ' JATOM ', jatom, natoms, ' :: ',ino, c_list(1:natoms)
-               DO j=1,natoms
+               loop_natoms:DO j=1,natoms
+                  if(c_list(j)==0) cycle loop_natoms
 !if(c_list(j)<1) THEN
 !write(*,*) ' BUG   ', j , natoms, ' >> ', j, c_list(1:natoms) , ' << ', c_list(j), ' >>'
 !   STOP
@@ -387,7 +388,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
                   patom(1,k+j,ncent) = cr_pos(1,c_list(j)) + REAL(c_offs(1,j))
                   patom(2,k+j,ncent) = cr_pos(2,c_list(j)) + REAL(c_offs(2,j))
                   patom(3,k+j,ncent) = cr_pos(3,c_list(j)) + REAL(c_offs(3,j))
-               ENDDO 
+               ENDDO  loop_natoms
                natom(ncent) = natom(ncent) + natoms
             ENDIF
          ENDDO 
