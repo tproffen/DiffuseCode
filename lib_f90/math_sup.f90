@@ -361,12 +361,16 @@ p = ( b(1,1)**2 + b(1,2)**2 + b(1,3)**2 +    &  ! p = SUM( (A - mI)_ij^2 )
       b(2,1)**2 + b(2,2)**2 + b(2,3)**2 +    &
       b(3,1)**2 + b(3,2)**2 + b(3,3)**2 )/6.0D0
 !
+!write(*,*)  ' MPQ       ', m, p, q, abs(q)<TOL
+!write(*,*)  ' p**3-q**2 ', p**3 - q**2
 if((p**3 -q**2)<0.0D0) then                     ! Negative root
+   if(abs(p**3 -q**2)>TOL) then
 !  write(output_io,*) ' p^3 - q^2 is negative', p**3 -q**2
    ier_num = -5
    ier_typ = ER_FORT
    ier_msg(1) = 'Eigenvalue is complex '
    return
+   endif
 endif
 !
 if(abs(q)<TOL       ) then                      ! q == Null phi = PI/6
@@ -379,14 +383,14 @@ else
    cphi = cos(phi)
    sphi = sin(phi)
 endif
-!write(*,*)  ' MPQ     ', m, p, q, abs(q)<TOL
-!write(*,*)  ' phi     ', phi, p**3 -q**2
-!write(*,*)  ' c s phi ', cphi, sphi, cos(phi), sin(phi)
+!write(*,*)  ' phi       ', phi
+!write(*,*)  ' c s phi   ', cphi, sphi, cos(phi), sin(phi)
 !
 eigen(1) = m + 2.0D0*sqrt(p) * dcos(phi)
 eigen(2) = m - sqrt(p)*(cphi + sqrt(3.0D0)*sphi)
 eigen(3) = m - sqrt(p)*(cphi - sqrt(3.0D0)*sphi)
 eigen_val = eigen
+!write(*,*) ' eigen    ', eigen
 !
 !  Determine if : all equal, two equal or all different
 !
@@ -457,10 +461,12 @@ enddo
 !  Special cases for equal eigenvalues
 !
 if(neigen==1) then                ! All eigenvalues are equal, use base vectors
+   eigen_vec      = 0.0D0
    eigen_vec(1,1) = 1.00D0
    eigen_vec(2,2) = 1.00D0
    eigen_vec(3,3) = 1.00D0
 elseif(neigen==2) then            ! Two eigenvalues are equal
+   eigen_vec      = 0.0D0
    do i = 1, 3                    ! Determine deviation of (angle (base, eigenvector)) from 90°
       ang(i) = abs(lib_bang(gten, eigen_vec(:,i), one_mat(:,i)) - 90.0D0)
    enddo
@@ -507,11 +513,14 @@ do i= 1, 3
    t(:,i) = matmul(a, eigen_vec(:,i))
 enddo
 do i=1, 3
-  write(output_io,'(a,i2,3f12.6)') ' Lambda i    ', i, eigen_val(i), &
+  write(output_io,'(a,i2,3(f12.6))') ' Lambda i    ', i, eigen_val(i), &
                               lib_blen(gten, t(:,i)) / lib_blen(gten, eigen_vec(:,i)) , &
                               lib_bang(gten, t(:,i),                  eigen_vec(:,i))
 enddo
 write(output_io,*) ' Det(eigenvectors ) ', det3(eigen_vec)
+write(output_io,'(a, 2x, 3(f12.6))') ' Eigenvector 1      ', eigen_vec(:,1)
+write(output_io,'(a, 2x, 3(f12.6))') ' Eigenvector 2      ', eigen_vec(:,2)
+write(output_io,'(a, 2x, 3(f12.6))') ' Eigenvector 3      ', eigen_vec(:,3)
 write(output_io,'(a,2x, f12.6)') ' angle 1, 2 ', lib_bang(gten,eigen_vec(:,1), eigen_vec(:,2))
 write(output_io,'(a,2x, f12.6)') ' angle 1, 3 ', lib_bang(gten,eigen_vec(:,1), eigen_vec(:,3))
 write(output_io,'(a,2x, f12.6)') ' angle 2, 3 ', lib_bang(gten,eigen_vec(:,2), eigen_vec(:,3))
