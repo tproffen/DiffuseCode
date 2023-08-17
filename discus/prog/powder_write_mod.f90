@@ -205,7 +205,6 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
 !  write(77,'(2(2x,G17.7E3))') xmin+(ii)*xdel,     ypl(ii)
 !enddo
 !close(77)
-!read(*,*) ii
 !
 !------ copy the powder pattern into output array, if necessary this will be put on
 !       equidistant scale
@@ -360,7 +359,7 @@ rmax     = out_user_values(2)
 !DBGCQUAD
 !open(77,file='POWDER/normalized.k12',status='unknown')
 !DO ii=0,npkt
-!!               q = ((ii-1)*xdel + xmin)
+!!!               q = ((ii-1)*xdel + xmin)
 !write(77,'(2(2x,G17.7E3))') xpl(ii)         , ypl(ii)
 !enddo
 !close(77)
@@ -436,7 +435,10 @@ ELSEIF( cpow_form == 'q' .OR. cpow_form == 'r') THEN        ! axis is Q
 !        IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
 !            ((pow_four_type == POW_COMPL) .AND. value == val_pdf) .OR. &
 !             pow_four_type == POW_DEBYE              ) THEN ! DEBYE, always spline
-!write(*,*) ' QLIMIT!?  ', pow_qmax
+!write(*,*) ' POWDER L  ', pow_qmin, pow_qmax, pow_deltaq
+!write(*,*) ' USER LIM  ', pow_qmin_u, pow_qmax_u, pow_deltaq_u
+!write(*,*) ' VALUE     ', value == val_pdf, value, out_user_limits
+!write(*,*) ' NPKT_u    ', npkt_u
    IF(value == val_pdf) THEN                       ! Set limits for PDF
       if(pdf_clin_a>0.0D0 .or. pdf_cquad_a>0.0) then
          qmin   = xpl(0)
@@ -459,7 +461,9 @@ ELSEIF( cpow_form == 'q' .OR. cpow_form == 'r') THEN        ! axis is Q
          qmax   = pow_qmax_u
          deltaq = pow_deltaq_u
       ELSE                                          ! Convert q limits
-         CONTINUE
+         qmin = pow_qmin
+         qmax = pow_qmax
+         deltaq = pow_deltaq
       ENDIF
    ENDIF
    IF(qmin < xpl(0) ) THEN                     ! User lower limit too low!
@@ -467,7 +471,8 @@ ELSEIF( cpow_form == 'q' .OR. cpow_form == 'r') THEN        ! axis is Q
       npkt_u =     NINT((qmax-qmin)/deltaq) + 1             
    ENDIF
 !
-!write(*,*) ' QLIMIT *? ', qmax, xpl(npkt)
+!write(*,*) ' QLIMIT *? ', qmax, xpl(npkt), npkt
+!write(*,*) ' QLIMIT *? ', qmin, qmax, deltaq , pow_deltaq_u
    IF(qmax > xpl(npkt) ) THEN                  ! User upper limit too high!
                qmax =            (INT( (         xpl(npkt))/deltaq) - 1)*deltaq
       npkt_u =     NINT((qmax-qmin)/deltaq) + 1             
@@ -507,7 +512,7 @@ ELSE                    ! cpow_form ==
    DEALLOCATE( lpv, stat = all_status)
    RETURN
 ENDIF                   ! cpow_form == 
-!write(*,*) ' AFTER EQUI ', npkt_u
+!write(*,*) ' AFTER EQUI ', npkt_u, npkt_equi
 !write(*,*) ' AFTER EQUI ', npkt_wrt, xwrt(0), xwrt(npkt_wrt-1), xwrt(npkt_wrt)
 npkt_wrt = npkt_u -1    ! xwrt is in range [0, npkt_u-1]
 !write(*,*) ' AFTER EQUI ', npkt_wrt, xwrt(0), xwrt(npkt_wrt-1), xwrt(npkt_wrt)
