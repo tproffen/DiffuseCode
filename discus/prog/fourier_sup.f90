@@ -278,7 +278,6 @@ iscales = 1                                               ! Default to scale 1
 scales(1) = abs(vi(1,1)*real(cr_icc(1), kind=PREC_DP))    ! Currently parallel a*!
 scales(2) = abs(vi(2,2)*real(cr_icc(2), kind=PREC_DP))    ! Currently parallel b*!
 scales(3) = abs(vi(3,3)*real(cr_icc(3), kind=PREC_DP))    ! Currently parallel c*!
-!write(*,*) ' SCALES ', scales
 do j=1,3
    if(scales(j)>MAXSCALE) then                            ! Scales must be < MAXSCALE
       iscales(j) = int((scales(j)+EPS)/MAXSCALE) + 1      ! Adapt iscales to smallest possible integer
@@ -295,14 +294,14 @@ enddo
 if(fave/=0.0D0) then
    do i=1, 3
       if(    abs(vi(i,i)*real(cr_icc(i), kind=PREC_DP))-                        &
-         int(abs(vi(i,i)*real(cr_icc(i), kind=PREC_DP)))>0.0D0) then
-        if(scales(i)-int(scales(i))>EPS) then
+         nint(abs(vi(i,i)*real(cr_icc(i), kind=PREC_DP)))>0.0D0) then
+        if(scales(i)-nint(scales(i))>EPS) then
            ier_num = -186
            ier_typ = ER_APPL
            ier_msg(1) = 'Increment vector along ' // c_axes(i)
            return
         endif
-         if(1.D0/vi(i,i)-int(1.D0/(vi(i,i)))>EPS ) then
+         if(1.D0/vi(i,i)-nint(1.D0/(vi(i,i)))>EPS ) then
             ier_num = -187
             ier_typ = ER_APPL
             ier_msg(1) = 'Increment vector along ' // c_axes(i)
