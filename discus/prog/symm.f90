@@ -896,216 +896,227 @@ ELSE
 ENDIF 
 !
 end subroutine symm_set_trans
+!
 !*****7*****************************************************************
-      SUBROUTINE symm_show 
+!
+subroutine symm_show 
 !-                                                                      
 !     Shows current symm settings                                       
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_show_menu
-      USE crystal_mod 
-      USE atom_name
-      USE molecule_mod 
-      USE symm_mod 
+use discus_config_mod 
+use discus_show_menu
+use crystal_mod 
+use atom_name
+use molecule_mod 
+use symm_mod 
 !                                                                       
-      USE prompt_mod 
-USE matrix_mod
+use prompt_mod 
+use matrix_mod
 use precision_mod
 use param_mod
 !
-      IMPLICIT none 
+implicit none 
 !                                                                       
-      CHARACTER(9) at_lis (0:maxscat+1)!, at_name 
-      INTEGER mol_lis (maxscat+1)
-      INTEGER i, j, k 
+character(len=9), dimension(0:maxscat+1)    :: at_lis ! (0:maxscat+1)!, at_name 
+integer,          dimension(:), allocatable :: mol_lis !(maxscat+1)
+integer :: i, j, k 
 real(kind=PREC_DP) :: deter
 real(KIND=PREC_DP), dimension(3,3) :: matr 
+!
+if(.not.sym_sel_atom) then
+   allocate(mol_lis(1:mole_num_type+1))
+endif
 !                                                                       
-   IF(sym_use==0) THEN
-      WRITE (output_io, 3000) sym_uvw 
-      WRITE (output_io, 3010) sym_hkl 
-      IF (sym_orig_mol) THEN 
-         WRITE (output_io, 3020) sym_orig, ' rel.to molecule' 
-      ELSE 
-         WRITE (output_io, 3020) sym_orig, ' rel. to crystal' 
-      ENDIF 
-      WRITE (output_io, 3030) sym_angle 
-      WRITE (output_io, 3040) sym_trans 
-      WRITE (output_io, 3045) sym_or_tr 
-      WRITE (output_io, 3046) sym_trans + sym_or_tr 
-      WRITE (output_io, 3050) ( (sym_mat (i, j), j = 1, 4), i = 1, 3) 
-matr = sym_mat(1:3,1:3)
-deter = det3(matr)
+cond_sym_use:IF(sym_use==0) THEN
+   WRITE (output_io, 3000) sym_uvw 
+   WRITE (output_io, 3010) sym_hkl 
+   IF (sym_orig_mol) THEN 
+      WRITE (output_io, 3020) sym_orig, ' rel.to molecule' 
+   ELSE 
+      WRITE (output_io, 3020) sym_orig, ' rel. to crystal' 
+   ENDIF 
+   WRITE (output_io, 3030) sym_angle 
+   WRITE (output_io, 3040) sym_trans 
+   WRITE (output_io, 3045) sym_or_tr 
+   WRITE (output_io, 3046) sym_trans + sym_or_tr 
+   WRITE (output_io, 3050) ( (sym_mat (i, j), j = 1, 4), i = 1, 3) 
+   matr = sym_mat(1:3,1:3)
+   deter = det3(matr)
 !write(*,*) 'Determinant is ', deter
-res_para(1:3) = sym_mat(1,1:3)
-res_para(4:6) = sym_mat(2,1:3)
-res_para(7:9) = sym_mat(3,1:3)
-res_para(10:12) = sym_rmat(1,1:3)
-res_para(13:15) = sym_rmat(2,1:3)
-res_para(16:18) = sym_rmat(3,1:3)
-res_para(0)   = 18
-      WRITE (output_io, 3060) ( (sym_rmat (i, j), j = 1, 3), i = 1, 3) 
-      WRITE (output_io, 3070) sym_power 
+   res_para(1:3) = sym_mat(1,1:3)
+   res_para(4:6) = sym_mat(2,1:3)
+   res_para(7:9) = sym_mat(3,1:3)
+   res_para(10:12) = sym_rmat(1,1:3)
+   res_para(13:15) = sym_rmat(2,1:3)
+   res_para(16:18) = sym_rmat(3,1:3)
+   res_para(0)   = 18
+   WRITE (output_io, 3060) ( (sym_rmat (i, j), j = 1, 3), i = 1, 3) 
+   WRITE (output_io, 3070) sym_power 
 !                                                                       
-      IF (sym_power_mult) THEN 
-         WRITE (output_io, 3080) 'Multiple copy of original' 
-      ELSE 
-         WRITE (output_io, 3080) 'Single copy of original' 
-      ENDIF 
+   IF (sym_power_mult) THEN 
+      WRITE (output_io, 3080) 'Multiple copy of original' 
+   ELSE 
+      WRITE (output_io, 3080) 'Single copy of original' 
+   ENDIF 
 !                                                                       
-      IF (sym_type) THEN 
-         WRITE (output_io, 3090) 'Proper rotation' 
-      ELSE 
-         WRITE (output_io, 3090) 'Improper rotation' 
-      ENDIF 
+   IF (sym_type) THEN 
+      WRITE (output_io, 3090) 'Proper rotation' 
+   ELSE 
+      WRITE (output_io, 3090) 'Improper rotation' 
+   ENDIF 
 !                                                                       
-      IF (sym_mode) THEN 
-         WRITE (output_io, 3100) 'Copy atom/molecule to new position' 
-      ELSE 
-         WRITE (output_io, 3100) 'Move atom/molecule to new position' 
-      ENDIF 
+   IF (sym_mode) THEN 
+      WRITE (output_io, 3100) 'Copy atom/molecule to new position' 
+   ELSE 
+      WRITE (output_io, 3100) 'Move atom/molecule to new position' 
+   ENDIF 
 !                                                                       
-      IF (sym_new.and..not.sym_sel_atom) THEN 
-         WRITE (output_io, 3110) 'Create new molecule type' 
-      ELSE 
-         WRITE (output_io, 3110) 'Keep molecule type' 
-      ENDIF 
+   IF (sym_new.and..not.sym_sel_atom) THEN 
+      WRITE (output_io, 3110) 'Create new molecule type' 
+   ELSE 
+      WRITE (output_io, 3110) 'Keep molecule type' 
+   ENDIF 
 !                                                                       
 !------ Working with atoms ...                                          
 !                                                                       
-      IF (sym_sel_atom) THEN 
+   IF (sym_sel_atom) THEN 
 !                                                                       
-         j = 0 
-         DO i = 0, cr_nscat 
+      j = 0 
+      DO i = 0, cr_nscat 
          IF (sym_latom (i) ) THEN 
             j = j + 1 
             at_lis (j) = at_name (i) 
          ENDIF 
-         ENDDO 
-         WRITE (output_io, 3210) (at_lis (i), i = 1, j) 
+      ENDDO 
+      WRITE (output_io, 3210) (at_lis (i), i = 1, j) 
 !                                                                       
-         IF (sym_incl.eq.'all ') THEN 
-            WRITE (output_io, 3220) 
-         ELSEIF (sym_incl.eq.'env ') THEN 
-            WRITE (output_io, 3225) 
-         ELSE 
-            WRITE (output_io, 3230) sym_start, sym_end 
-         ENDIF 
+      IF (sym_incl.eq.'all ') THEN 
+         WRITE (output_io, 3220) 
+      ELSEIF (sym_incl.eq.'env ') THEN 
+         WRITE (output_io, 3225) 
+      ELSE 
+         WRITE (output_io, 3230) sym_start, sym_end 
+      ENDIF 
 !                                                                       
 !------ Working with molecules                                          
 !                                                                       
+   ELSE 
+!                                                                       
+      IF (sym_orig_mol) THEN 
+         WRITE (output_io, 3250) 'Molecule' 
       ELSE 
+         WRITE (output_io, 3250) 'Crystal' 
+      ENDIF 
 !                                                                       
-         IF (sym_orig_mol) THEN 
-            WRITE (output_io, 3250) 'Molecule' 
-         ELSE 
-            WRITE (output_io, 3250) 'Crystal' 
-         ENDIF 
-!                                                                       
-         j = 0 
-         DO i = 0, mole_num_type 
+      j = 0 
+      DO i = 0, mole_num_type 
          IF (sym_latom (i) ) THEN 
             j = j + 1 
             mol_lis (j) = i 
          ENDIF 
-         ENDDO 
-         WRITE (output_io, 3300) (mol_lis (k), k = 1, j) 
+      ENDDO 
+      WRITE (output_io, 3300) (mol_lis (k), k = 1, j) 
 !                                                                       
-         IF (sym_end.eq. - 1) THEN 
-            WRITE (output_io, 3310) 
-         ELSE 
-            WRITE (output_io, 3320) sym_start, sym_end 
-         ENDIF 
-         IF (sym_sel_mode.eq.SYM_RUN_DOMAIN) THEN 
-            IF (sym_dom_mode_atom) THEN 
-               WRITE (output_io, 4100) 
-            ELSE 
-               WRITE (output_io, 4150) 
-            ENDIF 
-            IF (sym_dom_mode_shape) THEN 
-               WRITE (output_io, 4200) 
-            ELSE 
-               WRITE (output_io, 4250) 
-            ENDIF 
-         ENDIF 
-      ENDIF 
-   ELSE
-      WRITE(output_io,5000)
-      CALL do_show_symmetry_single(sym_use, 0)
-      WRITE (output_io, 3050) ( (sym_mat (i, j), j = 1, 4), i = 1, 3) 
-      WRITE (output_io, 3060) ( (sym_rmat (i, j), j = 1, 3), i = 1, 3) 
-      WRITE (output_io, 3070) sym_power 
-!                                                                       
-      IF (sym_power_mult) THEN 
-         WRITE (output_io, 3080) 'Multiple copy of original' 
+      IF (sym_end.eq. - 1) THEN 
+         WRITE (output_io, 3310) 
       ELSE 
-         WRITE (output_io, 3080) 'Single copy of original' 
+         WRITE (output_io, 3320) sym_start, sym_end 
       ENDIF 
-!                                                                       
-      IF (sym_mode) THEN 
-         WRITE (output_io, 3100) 'Copy atom/molecule to new position' 
-      ELSE 
-         WRITE (output_io, 3100) 'Move atom/molecule to new position' 
-      ENDIF 
-!                                                                       
-      IF (sym_new.and..not.sym_sel_atom) THEN 
-         WRITE (output_io, 3110) 'Create new molecule type' 
-      ELSE 
-         WRITE (output_io, 3110) 'Keep molecule type' 
-      ENDIF 
-!                                                                       
-!------ Working with atoms ...                                          
-!                                                                       
-      IF (sym_sel_atom) THEN 
-!                                                                       
-         j = 0 
-         DO i = 0, cr_nscat 
-         IF (sym_latom (i) ) THEN 
-            j = j + 1 
-            at_lis (j) = at_name (i) 
-         ENDIF 
-         ENDDO 
-         WRITE (output_io, 3210) (at_lis (i), i = 1, j) 
-!                                                                       
-         IF (sym_incl.eq.'all ') THEN 
-            WRITE (output_io, 3220) 
-         ELSEIF (sym_incl.eq.'env ') THEN 
-            WRITE (output_io, 3225) 
+      IF (sym_sel_mode.eq.SYM_RUN_DOMAIN) THEN 
+         IF (sym_dom_mode_atom) THEN 
+            WRITE (output_io, 4100) 
          ELSE 
-            WRITE (output_io, 3230) sym_start, sym_end 
+            WRITE (output_io, 4150) 
          ENDIF 
-      ELSE
-!                                                                       
-!------ Working with molecules                                          
-!                                                                       
-         j = 0 
-         DO i = 0, mole_num_type 
-         IF (sym_latom (i) ) THEN 
-            j = j + 1 
-            mol_lis (j) = i 
-         ENDIF 
-         ENDDO 
-         WRITE (output_io, 3300) (mol_lis (k), k = 1, j) 
-!                                                                       
-         IF (sym_end.eq. - 1) THEN 
-            WRITE (output_io, 3310) 
+         IF (sym_dom_mode_shape) THEN 
+            WRITE (output_io, 4200) 
          ELSE 
-            WRITE (output_io, 3320) sym_start, sym_end 
-         ENDIF 
-         IF (sym_sel_mode.eq.SYM_RUN_DOMAIN) THEN 
-            IF (sym_dom_mode_atom) THEN 
-               WRITE (output_io, 4100) 
-            ELSE 
-               WRITE (output_io, 4150) 
-            ENDIF 
-            IF (sym_dom_mode_shape) THEN 
-               WRITE (output_io, 4200) 
-            ELSE 
-               WRITE (output_io, 4250) 
-            ENDIF 
+            WRITE (output_io, 4250) 
          ENDIF 
       ENDIF 
    ENDIF 
+ELSE cond_sym_use
+   WRITE(output_io,5000)
+   CALL do_show_symmetry_single(sym_use, 0)
+   WRITE (output_io, 3050) ( (sym_mat (i, j), j = 1, 4), i = 1, 3) 
+   WRITE (output_io, 3060) ( (sym_rmat (i, j), j = 1, 3), i = 1, 3) 
+   WRITE (output_io, 3070) sym_power 
+!                                                                       
+   IF (sym_power_mult) THEN 
+      WRITE (output_io, 3080) 'Multiple copy of original' 
+   ELSE 
+      WRITE (output_io, 3080) 'Single copy of original' 
+   ENDIF 
+!                                                                       
+   IF (sym_mode) THEN 
+      WRITE (output_io, 3100) 'Copy atom/molecule to new position' 
+   ELSE 
+      WRITE (output_io, 3100) 'Move atom/molecule to new position' 
+   ENDIF 
+!                                                                       
+   IF (sym_new.and..not.sym_sel_atom) THEN 
+      WRITE (output_io, 3110) 'Create new molecule type' 
+   ELSE 
+      WRITE (output_io, 3110) 'Keep molecule type' 
+   ENDIF 
+!                                                                       
+!------ Working with atoms ...                                          
+!                                                                       
+   IF (sym_sel_atom) THEN 
+!                                                                       
+      j = 0 
+      DO i = 0, cr_nscat 
+         IF (sym_latom (i) ) THEN 
+            j = j + 1 
+            at_lis (j) = at_name (i) 
+         ENDIF 
+      ENDDO 
+      WRITE (output_io, 3210) (at_lis (i), i = 1, j) 
+!                                                                       
+      IF (sym_incl.eq.'all ') THEN 
+         WRITE (output_io, 3220) 
+      ELSEIF (sym_incl.eq.'env ') THEN 
+         WRITE (output_io, 3225) 
+      ELSE 
+         WRITE (output_io, 3230) sym_start, sym_end 
+      ENDIF 
+   ELSE
+!                                                                       
+!------ Working with molecules                                          
+!                                                                       
+         j = 0 
+      DO i = 0, mole_num_type 
+         IF (sym_latom (i) ) THEN 
+            j = j + 1 
+            mol_lis (j) = i 
+         ENDIF 
+      ENDDO 
+      WRITE (output_io, 3300) (mol_lis (k), k = 1, j) 
+!                                                                       
+      IF (sym_end.eq. - 1) THEN 
+         WRITE (output_io, 3310) 
+      ELSE 
+         WRITE (output_io, 3320) sym_start, sym_end 
+      ENDIF 
+      IF (sym_sel_mode.eq.SYM_RUN_DOMAIN) THEN 
+         IF (sym_dom_mode_atom) THEN 
+            WRITE (output_io, 4100) 
+         ELSE 
+            WRITE (output_io, 4150) 
+         ENDIF 
+         IF (sym_dom_mode_shape) THEN 
+            WRITE (output_io, 4200) 
+         ELSE 
+            WRITE (output_io, 4250) 
+         ENDIF 
+      ENDIF 
+   ENDIF 
+ENDIF  cond_sym_use
+!
+if(.not.sym_sel_atom) then
+   if(allocated(mol_lis)) deallocate(mol_lis)
+endif
+!
  5000 FORMAT    ( ' Space Group Symmetry Operation'/                    &
                   '                               ')              
 !
@@ -1140,6 +1151,8 @@ res_para(0)   = 18
  4200 FORMAT    ( '   Status of shape of domain :   rotated') 
  4250 FORMAT    ( '   Status of atoms in domain :   invariant') 
 !                                                                       
-      END SUBROUTINE symm_show                      
+END SUBROUTINE symm_show                      
+!
 !*****7*****************************************************************
+!
 END MODULE symm_menu
