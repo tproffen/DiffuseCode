@@ -216,6 +216,11 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
                uni_mask(1:3) = .true.
             elseif(str_comp(opara(O_UNIQUE), 'occ', 3, lopara(O_UNIQUE), 3)) then
                uni_mask(1:)  = .true.
+            else
+               ier_num = -6
+               ier_typ = ER_COMM
+               ier_msg(1) = 'Unknown value for ''unique:'''
+               return
             endif
          else
             uni_mask(0)   = .false.
@@ -632,6 +637,7 @@ SUBROUTINE do_readstru(MAXMASK, strucfile, l_site, uni_mask)
 USE crystal_mod 
 USE chem_mod 
 USE molecule_mod 
+use prep_anis_mod
 USE read_internal_mod
 !
 USE errlist_mod
@@ -673,6 +679,8 @@ ELSE internals
    IF (ier_num /= 0) THEN
       RETURN                 ! Jump to handle error messages, amd macro conditions
    ENDIF
+!
+   call prep_anis
 !
 ENDIF internals
 !
@@ -743,7 +751,8 @@ ENDIF
 !
 CALL readstru(NMAX, MAXSCAT, MAXMASK, strucfile, cr_name,        &
               cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_anis,   &
-              cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_prop, cr_dim, cr_magnetic, as_natoms, &
+              cr_at_lis, cr_pos, cr_mole, cr_surf, cr_magn, cr_iscat, cr_ianis, &
+              cr_prop, cr_dim, cr_magnetic, as_natoms, &
               as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
               sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, uni_mask)        
 IF(ier_num.ne.0) THEN 
@@ -1059,6 +1068,7 @@ INTEGER     :: iimole
 INTEGER                          :: n_mole 
 INTEGER                          :: n_type 
 INTEGER                          :: n_atom 
+integer               :: hdr_nscat                ! Atom types in header
 integer, dimension(3) :: n_cells
 LOGICAL          :: need_alloc = .false.
 LOGICAL          :: lcontent
@@ -1143,6 +1153,7 @@ IF (ier_num.ne.0) THEN
    CLOSE (ist)
    RETURN 
 ENDIF 
+hdr_nscat = cr_nscat
 CALL setup_lattice(cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
          cr_cartesian,                                                  &
@@ -1348,6 +1359,12 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                 ENDIF 
 !              ENDDO 
             else                          !lcell = .false. Use optional parameter
+!              TEST FOR ATOM NAMES in HEADER
+               nw_name = line(1:ibl)
+               j = atom_get_type(MAXSCAT, 0, hdr_nscat, MAXMASK,   &
+                                 cr_at_lis, cr_dw, cr_occ,        &
+                                 nw_name, dw1, occ1, local_mask)
+               if(j<0 ) THEN              ! Not found in header, 
                if(uni_mask(0)) then       ! Use unique mask, if requested
                   nw_name = line(1:ibl)
                   j = atom_get_type(MAXSCAT, 0, cr_nscat, MAXMASK,   &
@@ -1356,9 +1373,24 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                else
                   j = -1                  ! No unique mask, ==> New atom type
                endif
+               endif
                if(j>-1)  then              ! Old atom type
                   cr_iscat(i) = j
                   call symmetry
+               if(uni_mask(0) .and. .not.any(uni_mask(1:))) then   !unique:site is present
+                  do j=i+1, cr_natoms
+                     cr_nscat = cr_nscat + 1
+                     if(cr_nscat>MAXSCAT) then
+                        new_nmax = MAX(cr_natoms, NMAX)
+                        new_nscat= MAX( cr_nscat+10, MAXSCAT)
+                        CALL alloc_crystal(new_nscat, new_nmax)
+                     endif
+                     cr_iscat(j) = cr_nscat
+                     cr_at_lis (cr_nscat) = nw_name
+                     cr_dw (cr_nscat) = dw1
+                     cr_occ(cr_nscat) = occ1                    ! WORK OCC
+                  enddo
+               endif
                   goto 22
                endif
             ENDIF 
@@ -1385,6 +1417,20 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !              as_mole (as_natoms) = cr_mole (i) 
 !              as_prop (as_natoms) = cr_prop (i) 
                CALL symmetry 
+               if(uni_mask(0) .and. .not.any(uni_mask(1:))) then   !unique:site is present
+                  do j=i+1, cr_natoms
+                     cr_nscat = cr_nscat + 1
+                     if(cr_nscat>MAXSCAT) then
+                        new_nmax = MAX(cr_natoms, NMAX)
+                        new_nscat= MAX( cr_nscat+10, MAXSCAT)
+                        CALL alloc_crystal(new_nscat, new_nmax)
+                     endif
+                     cr_iscat(j) = cr_nscat
+                     cr_at_lis (cr_nscat) = nw_name
+                     cr_dw (cr_nscat) = dw1
+                     cr_occ(cr_nscat) = occ1                    ! WORK OCC
+                  enddo
+               endif
                IF (ier_num.ne.0) THEN 
                CLOSE(IST)
                RETURN 
@@ -1797,7 +1843,7 @@ END SUBROUTINE struc_mole_header
       cr_set,                                                           &
       cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_anis, cr_at_lis, cr_pos,     &
       cr_mole, cr_surf, cr_magn,                                        &
-      cr_iscat, cr_prop, cr_dim, cr_magnetic,                           &
+      cr_iscat, cr_ianis, cr_prop, cr_dim, cr_magnetic,                           &
       as_natoms, as_at_lis, as_dw, as_pos,   &
       as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,           &
       spcgr_ianz, spcgr_para, uni_mask)                                           
@@ -1830,6 +1876,7 @@ INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_mole
 INTEGER           , DIMENSION(0:3,1:NMAX), INTENT(out  ) :: cr_surf
 REAL(kind=PREC_DP), DIMENSION(0:3,1:NMAX), INTENT(out  ) :: cr_magn
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_iscat
+INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_ianis
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_prop
 REAL(kind=PREC_DP), dimension(3,2)       , intent(out  ) :: cr_dim ! (3, 2) 
 LOGICAL                                  , INTENT(INOUT) :: cr_magnetic
@@ -1878,7 +1925,7 @@ REAL(kind=PREC_DP), dimension(0:MAXSCAT) :: as_occ(0:MAXSCAT)
          IF (ier_num.eq.0) THEN 
 !                                                                       
             CALL struc_read_atoms (NMAX, MAXSCAT, MAXMASK, cr_natoms, cr_nscat,  &
-            cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, &
+            cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_ianis, cr_mole, cr_surf, &
             cr_magn, cr_prop, cr_dim, cr_magnetic, &
             as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop, &
             AT_MAXP, at_ianz, at_param, uni_mask)     
@@ -2456,7 +2503,7 @@ sym_add_n = 0
 !********************************************************************** 
 !
 subroutine struc_read_atoms (NMAX, MAXSCAT, MAXMASK, cr_natoms, cr_nscat,        &
-      cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf,     &
+      cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_ianis, cr_mole, cr_surf,     &
       cr_magn, cr_prop, cr_dim, cr_magnetic,                            &
       as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop,   &
       AT_MAXP, at_ianz, at_param, uni_mask)                      
@@ -2490,6 +2537,7 @@ REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_occ      ! (0:MA
 CHARACTER(LEN=4)  , DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_at_lis   ! (0:MAXSCAT) 
 REAL(kind=PREC_DP), DIMENSION(1:3,1:NMAX) , INTENT(INOUT) :: cr_pos
 INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_iscat
+INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_ianis
 INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_mole 
 INTEGER           , DIMENSION(0:3,1:NMAX) , INTENT(INOUT) :: cr_surf
 REAL(kind=PREC_DP), DIMENSION(0:3,1:NMAX) , INTENT(INOUT) :: cr_magn
@@ -2640,6 +2688,7 @@ loop_main: do          ! Loop to read all atom lines
          ENDIF 
          cr_nscat = cr_nscat + 1 
          cr_iscat (i) = cr_nscat 
+         cr_ianis (i) = cr_nscat 
          cr_at_lis (cr_nscat) = nw_name            ! Use "unique" atom name
          cr_dw (cr_nscat) = dw1 
          cr_occ(cr_nscat) = occ1    ! WORK OCC
@@ -2652,6 +2701,7 @@ loop_main: do          ! Loop to read all atom lines
          ENDIF 
       else
          cr_iscat(i) = j
+         cr_ianis(i) = j
       endif cond_new
 !
 !     --------If we are reading a molecule insert atom into current     
@@ -3130,7 +3180,7 @@ logical, dimension(0:MAXMASK) :: uni_mask
 LOGICAL :: lout = .FALSE.
 !
 !
-opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'bval  ' /)   ! Always provide fresh default values
+opara  =  (/ 'guest ', 'P1    ', 'discus', 'atom  ', 'biso  ' /)   ! Always provide fresh default values
 lopara =  (/  6,        6      ,  6      ,  6      ,  6       /)
 owerte =  (/  0.0,      0.0    ,  0.0    ,  0.0    ,  0.0     /)
 !                                                                       
@@ -3155,7 +3205,7 @@ if(lpresent(O_UNIQUE)) then
    elseif(str_comp(opara(O_UNIQUE), 'charge', 6, lopara(O_UNIQUE), 6)) then
       uni_mask(3:)  = .false.
       uni_mask(1:2) = .true.
-   elseif(str_comp(opara(O_UNIQUE), 'bval', 4, lopara(O_UNIQUE), 4)) then
+   elseif(str_comp(opara(O_UNIQUE), 'biso', 4, lopara(O_UNIQUE), 4)) then
       uni_mask(4:)  = .false.
       uni_mask(1:3) = .true.
    elseif(str_comp(opara(O_UNIQUE), 'occ', 3, lopara(O_UNIQUE), 3)) then
@@ -3975,6 +4025,7 @@ LOGICAL                             , INTENT(IN)    :: lperiod   ! Attempt to re
 !                                                                       
 INTEGER, PARAMETER    :: RMC_CSSR  = 0
 INTEGER, PARAMETER    :: RMC_RMCF6 = 1
+INTEGER, PARAMETER    :: RMC_RMCF7 = 2
 !                                                                       
 REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
 !                                                                       
@@ -4021,9 +4072,15 @@ IF(fileda) THEN
       infile(lpara(1)-5:lpara(1)) == '.RMC6F' ) THEN 
       style = RMC_RMCF6
       ofile  = cpara (1) (1:lpara (1)-6 ) //'.stru' 
+   ELSEIF(infile(lpara(1)-4:lpara(1)) == '.rmc7' .OR. &
+      infile(lpara(1)-4:lpara(1)) == '.RMC7' ) THEN 
+      style = RMC_RMCF6
+      ofile  = cpara (1) (1:lpara (1)-6 ) //'.stru' 
    ELSE
-      ier_num = -6
-      ier_typ = ER_COMM
+      ier_msg(1) = 'File should end in .cssr, .rmcf6, rmc7'
+      ier_msg(2) = 'or corresponding capital letters      '
+      ier_num = -30
+      ier_typ = ER_IO
       RETURN
    ENDIF
 ELSE
@@ -4033,27 +4090,43 @@ ELSE
       style = RMC_RMCF6
       ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
    ELSE
-      infile = cpara (1) (1:lpara (1) ) //'.rmc6f'
+      infile = cpara (1) (1:lpara (1) ) //'.RMC6F'
       INQUIRE(file=infile,exist=fileda)
       IF(fileda) THEN
          style = RMC_RMCF6
          ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
       ELSE
-         infile = cpara (1) (1:lpara (1) ) //'.cssr'
+         infile = cpara (1) (1:lpara (1) ) //'.rmc7'
          INQUIRE(file=infile,exist=fileda)
          IF(fileda) THEN
-            style = RMC_CSSR
+            style = RMC_RMCF7
             ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
          ELSE
-            infile = cpara (1) (1:lpara (1) ) //'.CSSR'
+            infile = cpara (1) (1:lpara (1) ) //'.RMC7'
             INQUIRE(file=infile,exist=fileda)
             IF(fileda) THEN
-               style = RMC_CSSR
+               style = RMC_RMCF7
                ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
             ELSE
-               ier_num = -6
-               ier_typ = ER_COMM
-               RETURN
+               infile = cpara (1) (1:lpara (1) ) //'.cssr'
+               INQUIRE(file=infile,exist=fileda)
+               IF(fileda) THEN
+                  style = RMC_CSSR
+                  ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
+               ELSE
+                  infile = cpara (1) (1:lpara (1) ) //'.CSSR'
+                  INQUIRE(file=infile,exist=fileda)
+                  IF(fileda) THEN
+                     style = RMC_CSSR
+                     ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
+                  ELSE
+                     ier_msg(1) = 'File should end in .cssr, .rmcf6, rmc7'
+                     ier_msg(2) = 'or corresponding capital letters      '
+                     ier_num = -30
+                     ier_typ = ER_IO
+                     RETURN
+                  endif
+               endif
             ENDIF
          ENDIF
       ENDIF
@@ -4077,6 +4150,8 @@ IF(style == RMC_CSSR) THEN
    CALL cssr2discus(ird, iwr)
 ELSEIF(style == RMC_RMCF6) THEN
    CALL rmcf62discus(ird, iwr, lperiod)
+ELSEIF(style == RMC_RMCF7) THEN
+   CALL rmcf72discus(ird, iwr, lperiod)
 ENDIF
 CLOSE(iwr)
 CLOSE(ird)
@@ -4192,7 +4267,7 @@ REAL(KIND=PREC_DP)   , DIMENSION(3) :: pos ! (6)
 !
 END SUBROUTINE cssr2discus
 !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!*******************************************************************************
 !
 SUBROUTINE rmcf62discus(ird, iwr, lperiod)
 !
@@ -4454,6 +4529,269 @@ DEALLOCATE(r6_cell   )
 2000 FORMAT(A4,3(2x, F10.6,','),'   0.1,    1')
 !
 END SUBROUTINE rmcf62discus
+!
+!*******************************************************************************
+!
+SUBROUTINE rmcf72discus(ird, iwr, lperiod)
+!
+USE blanks_mod
+USE errlist_mod
+USE get_params_mod
+use param_mod
+use precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: ird     ! Input file access number
+INTEGER, INTENT(IN) :: iwr     ! Output file access number
+LOGICAL, INTENT(IN) :: lperiod ! Attempt to rearrange periodically 
+!
+CHARACTER(LEN=256)     :: line   = ' '
+CHARACTER(LEN=256)     :: title  = ' '
+!
+CHARACTER(LEN= 4), DIMENSION(:)  , ALLOCATABLE :: r6_at_name
+REAL(KIND=PREC_DP)             , DIMENSION(:,:), ALLOCATABLE :: r6_pos
+INTEGER          , DIMENSION(:)  , ALLOCATABLE :: r6_site
+INTEGER          , DIMENSION(:,:), ALLOCATABLE :: r6_cell
+INTEGER, PARAMETER  :: MAXP = 11
+INTEGER                               :: ianz
+CHARACTER(LEN=1024),DIMENSION(1:MAXP) :: cpara
+INTEGER            ,DIMENSION(1:MAXP) :: lpara
+INTEGER                               :: length
+integer                :: col_num       ! Column with atom namem
+integer                :: col_name      ! Column with atom name
+integer                :: col_bracket   ! Column with [ ]
+integer                :: col_x         ! Column with x coordinate
+integer                :: col_y         ! Column with y coordinate
+integer                :: col_z         ! Column with z coordinate
+integer                :: col_site      ! Column with site number
+integer                :: col_c_x       ! Column with unit cell x
+integer                :: col_c_y       ! Column with unit cell y
+integer                :: col_c_z       ! Column with unit cell z
+logical                :: lsite         ! Site info is present
+!
+INTEGER                :: i, inumber ! Dummy index
+INTEGER                :: iostatus   ! Current line number for error reports
+INTEGER                :: nline      ! Current line number for error reports
+INTEGER                :: natoms     ! Current line number for error reports
+INTEGER                :: nsites     ! Numberr of sites in a unit cell
+INTEGER                :: success    !
+INTEGER, DIMENSION(3)  :: super      ! Super cell dimensions
+REAL(KIND=PREC_DP)                   :: density    ! Number density in Atoms / A^3
+REAL(KIND=PREC_DP)   , DIMENSION(6)  :: lattice    ! Unit  cell dimensions For large cell
+REAL(KIND=PREC_DP)  , DIMENSION(3,3):: orient     ! Unit  cell dimensions For large cell
+!
+nline   = 0
+natoms  = 0
+nsites  = 0
+success = 1
+header: DO
+   nline = nline + 1
+   READ(ird,'(a)',iostat=iostatus) line
+   IF ( IS_IOSTAT_END(iostatus )) THEN
+      WRITE(ier_msg(1),'(a,i8)') 'Error in line ', nline
+      ier_num = -6
+      ier_typ = ER_IO
+      RETURN
+   ENDIF
+   IF(line(1: 6) == 'Atoms:') EXIT header
+   IF(line(1:18) == 'Metadata material:') THEN
+      READ(line(19:LEN_TRIM(line)),'(a)') title
+      length = LEN_TRIM(title)
+      CALL rem_leading_bl(title, length)
+   ENDIF
+   IF(line(1:16) == 'Number of atoms:') THEN
+      READ(line(17:LEN_TRIM(line)),*,IOSTAT=iostatus) natoms
+   ENDIF
+   IF(line(1:21) == 'Supercell dimensions:') THEN
+      READ(line(22:LEN_TRIM(line)),*,IOSTAT=iostatus) super
+   ENDIF
+   IF(line(1:24) == 'Number density (Ang^-3):') THEN
+      READ(line(25:LEN_TRIM(line)),*,IOSTAT=iostatus) density
+   ENDIF
+   IF(line(1:15) == 'Cell (Ang/deg):') THEN
+      READ(line(16:LEN_TRIM(line)),*,IOSTAT=iostatus) lattice
+   ENDIF
+   IF(line(1:22) == 'Lattice vectors (Ang):') THEN
+      nline = nline + 1
+      READ(ird,'(a)',iostat=iostatus) line
+      READ(line(1:LEN_TRIM(line)),*,IOSTAT=iostatus) orient(1,:)
+      nline = nline + 1
+      READ(ird,'(a)',iostat=iostatus) line
+      READ(line(1:LEN_TRIM(line)),*,IOSTAT=iostatus) orient(2,:)
+      nline = nline + 1
+      READ(ird,'(a)',iostat=iostatus) line
+      READ(line(1:LEN_TRIM(line)),*,IOSTAT=iostatus) orient(3,:)
+   ENDIF
+ENDDO header
+!
+!
+ALLOCATE(r6_at_name(    1:natoms))
+ALLOCATE(r6_pos    (1:3,1:natoms))
+ALLOCATE(r6_site   (    1:natoms))
+ALLOCATE(r6_cell   (1:3,1:natoms))
+r6_at_name(  :) = ' '
+r6_pos    (:,:) = 0.0
+r6_site   (  :) = -1
+r6_cell   (:,:) = -1
+!
+! Read first atom line to determine rmc6f format details
+i = 1
+nline = nline + 1
+READ(ird,'(a)',iostat=iostatus) line
+length = LEN_TRIM(line)
+CALL get_params_blank (line, ianz, cpara, lpara, MAXP, length)
+IF ( IS_IOSTAT_END(iostatus )) THEN
+   WRITE(ier_msg(1),'(a,i8)') 'Error in line ', nline
+   ier_num = -6
+   ier_typ = ER_IO
+   RETURN
+ENDIF
+col_num     =  1
+col_name    =  2
+col_bracket =  3
+col_x       =  4
+col_y       =  5
+col_z       =  6
+col_site    =  7
+col_c_x     =  8
+col_c_y     =  9
+col_c_z     = 10
+lsite       = .TRUE.
+if(index(cpara(3), '[')/=0) then  ! column 3 is [ ]
+   col_bracket = 3
+   col_x       = 4
+   col_y       = 5
+   col_z       = 6
+   if(ianz==10) then
+      lsite = .TRUE.
+      col_site =  7
+      col_c_x  =  8
+      col_c_y  =  9
+      col_c_z  = 10
+   else
+      lsite = .FALSE.
+   endif
+else                              !column 3 is x-position
+   col_bracket = 11 
+   col_x       =  3
+   col_y       =  4
+   col_z       =  5
+   if(ianz== 9) then
+      lsite = .TRUE.
+      col_site =  6
+      col_c_x  =  7
+      col_c_y  =  8
+      col_c_z  =  9
+   else
+      lsite = .FALSE.
+   endif
+endif
+READ(cpara(col_num ) ,*) inumber
+READ(cpara(col_name), '(a)') r6_at_name(i)
+READ(cpara(col_x   ), *) r6_pos(1,i)
+READ(cpara(col_y   ), *) r6_pos(2,i)
+READ(cpara(col_z   ), *) r6_pos(3,i)
+if(lsite) then
+   READ(cpara(col_site), *) r6_site(i)
+   READ(cpara(col_c_x ), *) r6_cell(1,i)
+   READ(cpara(col_c_y ), *) r6_cell(2,i)
+   READ(cpara(col_c_z ), *) r6_cell(3,i)
+   nsites = MAX(nsites, r6_site(i))
+endif
+!
+atoms:DO i=2,natoms
+   nline = nline + 1
+   READ(ird,'(a)',iostat=iostatus) line
+   length = LEN_TRIM(line)
+   CALL get_params_blank (line, ianz, cpara, lpara, MAXP, length)
+   IF ( IS_IOSTAT_END(iostatus )) THEN
+      WRITE(ier_msg(1),'(a,i8)') 'Error in line ', nline
+      ier_num = -6
+      ier_typ = ER_IO
+      RETURN
+   ENDIF
+!  length = LEN_TRIM(line)
+!  CALL get_params_blank (line, ianz, cpara, lpara, MAXP, length)
+!  IF(ier_num/=0) then
+!     WRITE(ier_msg(1),'(a,i8)') 'Error in line ', nline
+!     RETURN
+!  ENDIF
+   READ(cpara(col_num ) ,*) inumber
+   READ(cpara(col_name), '(a)') r6_at_name(i)
+   READ(cpara(col_x   ), *) r6_pos(1,i)
+   READ(cpara(col_y   ), *) r6_pos(2,i)
+   READ(cpara(col_z   ), *) r6_pos(3,i)
+   if(lsite) then
+      READ(cpara(col_site), *) r6_site(i)
+      READ(cpara(col_c_x ), *) r6_cell(1,i)
+      READ(cpara(col_c_y ), *) r6_cell(2,i)
+      READ(cpara(col_c_z ), *) r6_cell(3,i)
+      nsites = MAX(nsites, r6_site(i))
+   endif
+ENDDO atoms
+!
+IF(lperiod .and. lsite) THEN
+   CALL rmc6f_period(natoms, nsites, lattice, super, r6_at_name, r6_pos, r6_site, r6_cell, lsite)
+else
+   nsites = natoms
+ENDIF
+WRITE(iwr, 1000) title(1:LEN_TRIM(title))
+WRITE(iwr, 1100)
+WRITE(iwr, 1200) lattice
+IF(lperiod .and. lsite) THEN
+   WRITE(iwr, 1250) super, nsites
+ELSE
+   WRITE(iwr, 1250) 1,1,1, natoms
+ENDIF
+WRITE(iwr, 1300)
+watoms: DO i=1,natoms
+   WRITE(iwr, 2000) r6_at_name(i), r6_pos(:,i)
+ENDDO watoms
+!
+if(ier_num==-146) then        ! Error in rmc6f_period
+   res_para(1)   = 0.0D0   ! Failure to perioditize
+   res_para(2:4) = super
+   res_para(5)   = natoms
+   res_para(6)   = natoms
+   res_para(0)   = 6
+else
+   if(lperiod) then              ! User instructed to perioditize
+      if(lsite) then             ! Site info was present, success
+         res_para(1)   = 1.0D0   ! Success
+            res_para(2:4) = super
+         res_para(5)   = nsites
+         res_para(6)   = natoms
+         res_para(0)   = 6
+      else
+         res_para(1)   = 0.0D0   ! Failure to perioditize
+         res_para(2:4) = super
+         res_para(5)   = natoms
+         res_para(6)   = natoms
+         res_para(0)   = 6
+      endif
+   else
+      res_para(1)   = -1.0D0     ! Success to import but no perioditize
+      res_para(2:4) = super
+      res_para(5)   = natoms
+      res_para(6)   = natoms
+      res_para(0)   = 6
+   endif
+endif
+!
+DEALLOCATE(r6_at_name)
+DEALLOCATE(r6_pos    )
+DEALLOCATE(r6_site   )
+DEALLOCATE(r6_cell   )
+!
+1000 FORMAT('title ',a)
+1100 FORMAT('spcgr P1')
+1200 FORMAT('cell ', 6(2x,F12.6:,', '))
+1250 FORMAT('ncell ',3(2x,I6,','),2x,I12)
+1300 FORMAT('atoms')     
+2000 FORMAT(A4,3(2x, F10.6,','),'   0.1,    1')
+!
+END SUBROUTINE rmcf72discus
 !
 !*******************************************************************************
 !
@@ -6043,7 +6381,6 @@ header: DO
          return
        endif
        anis(:,nint(owerte(O_TYPE))) = werte(1:6)
-write(*,'(a,i4, 2(6(f6.3,2x)))') ' GOT ANIS', nint(owerte(O_TYPE)), werte(1:ianz), anis(:,nint(owerte(O_TYPE)))
    ELSEIF (line(1:4) == 'CELL' ) THEN 
        CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
        IF (ier_num.eq.0 .AND. ianz == 6) THEN 
