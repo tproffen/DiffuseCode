@@ -627,6 +627,7 @@ INTEGER         , DIMENSION(:), ALLOCATABLE :: atom_number
 INTEGER                  :: iatom, iscat, is, i, j, ii, ll
 INTEGER                  :: ntypes      ! Actual atom types      to be written to file
 INTEGER                  :: natoms      ! Actual number of atoms to be written to file
+INTEGER                  :: nrealatoms      ! Actual number of real atoms to be written to file
 INTEGER, DIMENSION(3)    :: icell 
 integer, dimension(:,:,:), allocatable :: isites
 integer              , DIMENSION(3)    :: scalef
@@ -671,6 +672,7 @@ IF(rmcversion==6) THEN
       ENDIF
       IF(cr_at_lis(i)(1:2)=='H.') atom_names(i)='H   '
       IF(cr_at_lis(i)(1:2)=='D ') atom_names(i)='H   '
+      IF(cr_at_lis(i)(1:4)=='VOID') atom_names(i)(1:4)='Va  '
    ENDDO
 ELSE
    DO i=0,MAXSCAT
@@ -681,6 +683,7 @@ ELSE
       IF(cr_at_lis(i)(1:2)=='H.' ) atom_names(i)(1:4)='H   '
       IF(cr_at_lis(i)(1:2)=='D ' ) atom_names(i)(1:4)='2H  '
       IF(cr_at_lis(i)(1:3)=='D1-') atom_names(i)(1:4)='2H  '
+      IF(cr_at_lis(i)(1:4)=='VOID') atom_names(i)(1:4)='Va  '
       ii = 1
       DO j=0,i-1
          IF(atom_names(i)(1:4) == atom_names(j)(1:4)) THEN
@@ -698,21 +701,23 @@ ENDIF
 ! Count atoms that will be written to file
 !
 natoms = 0
+nrealatoms = 0
 ntypes = 0
 count: DO iatom=1,cr_natoms
-   IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
-      IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
-         natoms = natoms + 1
-         find_entry: DO j=1,MAXSCAT
-            IF(atom_names(cr_iscat(iatom))(1:4)==atom_names(j)(1:4)) THEN
-               atom_number(j) = atom_number(j) + 1
-               EXIT find_entry
-            ENDIF
-         ENDDO find_entry
-      ENDIF
+   IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
+      natoms = natoms + 1
+      IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
+            nrealatoms = nrealatoms + 1
+      endif
+      find_entry: DO j=0,MAXSCAT
+         IF(atom_names(cr_iscat(iatom))(1:4)==atom_names(j)(1:4)) THEN
+            atom_number(j) = atom_number(j) + 1
+            EXIT find_entry
+         ENDIF
+      ENDDO find_entry
    ENDIF
 ENDDO count
-DO i=1,MAXSCAT
+DO i=0,MAXSCAT
    IF(atom_number(i) > 0 ) ntypes = ntypes + 1
 ENDDO
 DO i=1,3
@@ -736,13 +741,13 @@ line   = 'Atom types present:         '
 string = 'Number of each atom type:   '
 ii     = 28
 ll     = 28
-DO i=1, MAXSCAT
-   IF(atom_number(i) > 0) THEN
+DO i=0, MAXSCAT
+!  IF(atom_number(i) > 0) THEN
       line = line(1:ii) // ' ' // atom_names(i)(1:4)
       ii = LEN_TRIM(line)
       WRITE(string(ll+1:ll+13),'(I12,1x)') atom_number(i)
       ll = ll + 13
-   ENDIF
+!  ENDIF
 ENDDO
 WRITE(IWR, '(a)')   line(1:LEN_TRIM(line))
 WRITE(IWR, '(a)')   string(1:LEN_TRIM(string))
@@ -751,7 +756,7 @@ WRITE(IWR, '(a)')   'Number of moves tried:                      0'
 WRITE(IWR, '(a)')   'Number of moves accepted:                   0'
 WRITE(IWR, '(a)')   'Number of prior configuration saves: 0'
 WRITE(IWR, 1200 )   natoms
-WRITE(IWR, 1300 )   REAL(natoms)/(REAL(cr_icc(1)*cr_icc(2)*cr_icc(3))*cr_v)
+WRITE(IWR, 1300 )   REAL(nrealatoms)/(REAL(cr_icc(1)*cr_icc(2)*cr_icc(3))*cr_v)
 WRITE(IWR, 1400 )   scalef(:)
 !WRITE(IWR, 1400 )   cr_icc(:)
 !WRITE(IWR, 1500 )   (cr_a0 (i)*REAL(cr_icc(i)),i=1,3), cr_win(:)
@@ -786,10 +791,10 @@ if(.not.chem_quick) then                                 ! Nonperiodic strucure
 endif
 shift(:) = REAL(NINT(cr_dim(:,1)))
 ii       = 0
-DO iscat=1,MAXSCAT
+DO iscat=0,MAXSCAT
    DO iatom=1,cr_natoms
       IF(cr_iscat(iatom)==iscat) THEN
-         IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
+!        IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
             IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
                ii = ii + 1                               ! increment atom number for RMCprofile sequence
                if(chem_quick) then                       ! Structure is periodic
@@ -809,7 +814,7 @@ DO iscat=1,MAXSCAT
                      is, icell(1)-1, icell(2)-1, icell(3)-1
                ENDIF
             ENDIF
-         ENDIF
+!        ENDIF
       ENDIF
    ENDDO
 ENDDO
