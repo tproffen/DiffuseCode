@@ -15,6 +15,7 @@ SUBROUTINE chem_disp_multi (ianz, cpara, lpara, werte, maxw, MAX_ATOM_ENV_L, lou
       USE crystal_mod 
       USE atom_name 
       USE chem_mod 
+use chem_neig_multi_mod
       USE get_iscat_mod
       USE metric_mod
       USE mc_mod 
@@ -107,7 +108,7 @@ INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
          DO i = 1, cr_natoms 
          IF (atom_allowed (i, werte, ianz, maxw) ) then 
             CALL chem_neighbour_multi (i, ic, atom, patom, tatom, natom, ncent,&
-            MAX_ATOM_ENV_L)                                                    
+            MAXW, MAX_ATOM_ENV_L)                                                    
             DO icent = 1, ncent 
             IF (natom (icent) .gt.0) then 
                IF (i.eq.atom (0, icent) ) then 
@@ -206,6 +207,7 @@ INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
       USE crystal_mod 
       USE atom_name 
       USE chem_mod 
+use chem_neig_multi_mod
       USE get_iscat_mod
       USE metric_mod
       USE mc_mod 
@@ -304,7 +306,7 @@ LOGICAL :: tatom (0:MAX_ATOM_ENV_L, MMC_MAX_CENT)
          DO i = 1, cr_natoms 
          IF (atom_allowed (i, werte, iianz, maxw) ) then 
             CALL chem_neighbour_multi (i, ic, atom, patom, tatom, natom, ncent,&
-            MAX_ATOM_ENV_L)                                                    
+            MAXW, MAX_ATOM_ENV_L)                                                    
             DO icent = 1, ncent 
             IF (natom (icent) .gt.1) then 
                DO k = 1, 3 
