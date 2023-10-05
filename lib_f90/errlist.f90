@@ -326,12 +326,13 @@ USE lib_length
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -29
+       INTEGER, PARAMETER :: iu = -30
        INTEGER, PARAMETER :: io =   0
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
-       DATA ERROR (-29:-21) /                       &
+       DATA ERROR (-30:-21) /                       &
+     &  'Unexpected file name  ',                   & ! -30 ! io
      &  'Number of data points exceeds limit',      & ! -29 ! io
      &  'Format number outside allowed range',      & ! -28 ! io
      &  'Not enough parameter for filename format ',& ! -27 ! io
