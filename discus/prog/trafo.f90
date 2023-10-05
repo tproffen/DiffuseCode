@@ -190,6 +190,10 @@ e1 = e1 / vv
 !write(*,'(a, 3(F12.6,2x) )') 'e (1,:): ', e1
 !write(*,'(a, 3(F12.6,2x) )') 'e (2,:): ', e2
 !write(*,'(a, 3(F12.6,2x) )') 'e (3,:): ', e3
+cr_emat(:,1) = e1
+cr_emat(:,2) = e2
+cr_emat(:,3) = e3
+call matinv(cr_emat, cr_eimat)
 !
 v(1) = 1.00D0
 v(2) = 0.00D0
@@ -217,6 +221,17 @@ cr_dmat(3,3) = skalpro(e3, v, cr_gten) * cr_ar(3)
 !read(*,*) i
 
 call matinv(cr_dmat, cr_dimat)
+!write(*,'(a, 3(F12.6,2x) )') 'DI(1,:): ', cr_dimat(1,:)
+!write(*,'(a, 3(F12.6,2x) )') 'DI(2,:): ', cr_dimat(2,:)
+!write(*,'(a, 3(F12.6,2x) )') 'DI(3,:): ', cr_dimat(3,:)
+!read(*,*) i
+!write(*,'(a, 3(F12.6,2x) )') 'E (1,:): ', cr_emat(1,:)
+!write(*,'(a, 3(F12.6,2x) )') 'E (2,:): ', cr_emat(2,:)
+!write(*,'(a, 3(F12.6,2x) )') 'E (3,:): ', cr_emat(3,:)
+!write(*,'(a, 3(F12.6,2x) )') 'EI(1,:): ', cr_eimat(1,:)
+!write(*,'(a, 3(F12.6,2x) )') 'EI(2,:): ', cr_eimat(2,:)
+!write(*,'(a, 3(F12.6,2x) )') 'EI(3,:): ', cr_eimat(3,:)
+
 !
 end subroutine build_dmat
 !
