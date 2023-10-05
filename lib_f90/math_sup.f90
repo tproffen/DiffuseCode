@@ -457,6 +457,16 @@ do i=1, 3
    length = sqrt(eigen_vec(1,i)**2 + eigen_vec(2,i)**2 + eigen_vec(3,i)**2)
    if(length>0.0D0) eigen_vec(:,i) = eigen_vec(:,i)/length  ! Normalize to one
 enddo
+!write(*,*) ' NEIGEN ', neigen
+!write(*,*) ' V EIG 1', eigen_vec(:,1)
+!write(*,*) ' V EIG 2', eigen_vec(:,2)
+!write(*,*) ' V EIG 3', eigen_vec(:,3)
+!write(*,*) ' GTEN   ', gten(:,1)
+!write(*,*) ' GTEN   ', gten(:,2)
+!write(*,*) ' GTEN   ', gten(:,3)
+!write(*,*) ' ONE    ', one_mat(:,1)
+!write(*,*) ' ONE    ', one_mat(:,2)
+!write(*,*) ' ONE    ', one_mat(:,3)
 !
 !  Special cases for equal eigenvalues
 !
@@ -466,7 +476,7 @@ if(neigen==1) then                ! All eigenvalues are equal, use base vectors
    eigen_vec(2,2) = 1.00D0
    eigen_vec(3,3) = 1.00D0
 elseif(neigen==2) then            ! Two eigenvalues are equal
-   eigen_vec      = 0.0D0
+!  eigen_vec      = 0.0D0
    do i = 1, 3                    ! Determine deviation of (angle (base, eigenvector)) from 90°
       ang(i) = abs(lib_bang(gten, eigen_vec(:,i), one_mat(:,i)) - 90.0D0)
    enddo
@@ -509,9 +519,13 @@ real(kind=PREC_DP), dimension(3,3), intent(in)  :: gten
 integer :: i
 real(kind=PREC_DP), dimension(3,3)  :: t       ! Trialvectors
 !
+!write(*,*) ' IN TEST_EIGEN ', eigen_val
 do i= 1, 3
    t(:,i) = matmul(a, eigen_vec(:,i))
 enddo
+!write(*,*) ' IN TEST_T    ', t(:,1)
+!write(*,*) ' IN TEST_T    ', t(:,2)
+!write(*,*) ' IN TEST_T     ', t(:,3)
 do i=1, 3
   write(output_io,'(a,i2,3(f12.6))') ' Lambda i    ', i, eigen_val(i), &
                               lib_blen(gten, t(:,i)) / lib_blen(gten, eigen_vec(:,i)) , &
