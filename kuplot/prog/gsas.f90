@@ -230,7 +230,7 @@ IMPLICIT REAL (a - h, o - z)
 !FUNCTION DEFINITIONS:                                                  
                                                                         
                                         !erfc(x)exp(u^2)                
-      REAL HFUNC 
+!     REAL HFUNC 
                                                                         
 !DATA STATEMENTS:                                                       
                                                                         
@@ -411,7 +411,7 @@ REAL :: TS, X, XYZ, Y, Z, ZP, ZQ, ZU, ZV
 !FUNCTION DEFINITIONS:                                                  
                                                                         
                             !Computes exp(-t*t/2s)exp(y*y)erfc(y)       
-      REAL HFUNC 
+!     REAL HFUNC 
                             !and derivs                                 
                                                                         
 !DATA STATEMENTS:                                                       
@@ -1713,7 +1713,7 @@ REAL :: EX, GNORM, SIG, SQ2PI, T
                                                                         
 !-----------------------------------------------------------------------
                                                                         
-      FUNCTION HFUNC (X, Y, IFLAG, DHDY) 
+      real FUNCTION HFUNC (X, Y, IFLAG, DHDY) 
                                                                         
 !PURPOSE: Compute exp(x)exp(y**2)erfc(y) and partial derivatives        
                                                                         
@@ -1730,7 +1730,7 @@ IMPLICIT REAL (a - h, o - z)
                                         !Partial derivative wrt y       
       REAL DHDY 
                                         !Value of function              
-      REAL HFUNC 
+!     REAL HFUNC 
                                                                         
 !INCLUDE STATEMENTS:                                                    
                                                                         
@@ -1742,7 +1742,7 @@ REAL :: T, T1, CONST, CONS2
 !FUNCTION DEFINITIONS:                                                  
                                                                         
                                         !Complementary error function   
-      REAL GERFC 
+!     REAL GERFC 
                                                                         
 !DATA STATEMENTS:                                                       
                                                                         
@@ -1777,7 +1777,7 @@ REAL :: T, T1, CONST, CONS2
                                                                         
 !-----------------------------------------------------------------------
                                                                         
-      FUNCTION GERFC (Y) 
+      real FUNCTION GERFC (Y) 
                                                                         
 !PURPOSE: This routine returns the Complementary ERROR Function         
 !         of a single precision variable (Y)                            
@@ -1787,7 +1787,7 @@ REAL :: T, T1, CONST, CONS2
                                         !                               
       REAL Y 
                                          !Result                        
-      REAL GERFC 
+!     REAL GERFC 
                                                                         
 !INCLUDE STATEMENTS:                                                    
                                                                         
