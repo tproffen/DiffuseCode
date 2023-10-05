@@ -43,7 +43,7 @@ end function lib_blen
 !
 !*******************************************************************************
 !
-pure function lib_bang(gten, u, v) result(bang)
+     function lib_bang(gten, u, v) result(bang)
 !-
 !  Calculate angle between vectors u, v
 !  direct     space: gten == metric tensor
