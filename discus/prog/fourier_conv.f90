@@ -341,6 +341,7 @@ DO k=1, num(3)
 ENDDO
 !
 ALLOCATE(profile_t(num(dsort(1)), num(dsort(2)), num(dsort(3))))    ! Allocate array for FFT
+ALLOCATE(temp     (num(dsort(1)), num(dsort(2)), num(dsort(3))))    ! Allocate array for FFT
 !
 DO k=1, num(3)
    ientry(dsort(3)) = k
@@ -356,6 +357,7 @@ ENDDO
 !profile_t = fft(profile_t) / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT profile
 plan_p = fftw_plan_dft_3d(num(dsort(3)), num(dsort(2)), num(dsort(1)), profile_t, temp, FFTW_FORWARD, FFTW_ESTIMATE)  ! Plan for PROFILE
 plan   = fftw_plan_dft_3d(num(dsort(3)), num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)  ! Plan for diffraction
+call   fftw_execute_dft(plan_p, profile_t, temp)
 temp = temp/sqrt(real(num(dsort(1))*num(dsort(2))*num(dsort(3)),kind=PREC_DP))
 !
 IF(ilots.eq.LOT_OFF) THEN
@@ -468,7 +470,6 @@ isdim = 3
 IF(inc(1)==1) isdim = isdim - 1
 IF(inc(2)==1) isdim = isdim - 1
 IF(inc(3)==1) isdim = isdim - 1
-!write(*,*) ' DIMENSION is ' , isdim, inc
 !
 CALL four_res_optional(lpresent(O_SIGABS), 1, MAXW, opara(O_SIGABS), &
        lopara(O_SIGABS), werte, iianz)
