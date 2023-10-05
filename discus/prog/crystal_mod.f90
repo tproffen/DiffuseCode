@@ -47,6 +47,10 @@ REAL(kind=PREC_DP), DIMENSION(3,3)          ::  cr_dmat     = &
    RESHAPE((/1.0D0,0.0D0,0.0D0, 0.0D0,1.0D0,0.0D0, 0.0D0,0.0D0,1.0D0/),SHAPE(cr_fmat))
 REAL(kind=PREC_DP), DIMENSION(3,3)          ::  cr_dimat     = &
    RESHAPE((/1.0D0,0.0D0,0.0D0, 0.0D0,1.0D0,0.0D0, 0.0D0,0.0D0,1.0D0/),SHAPE(cr_fmat))
+REAL(kind=PREC_DP), DIMENSION(3,3)          ::  cr_emat     = &
+   RESHAPE((/1.0D0,0.0D0,0.0D0, 0.0D0,1.0D0,0.0D0, 0.0D0,0.0D0,1.0D0/),SHAPE(cr_fmat))
+REAL(kind=PREC_DP), DIMENSION(3,3)          ::  cr_eimat     = &
+   RESHAPE((/1.0D0,0.0D0,0.0D0, 0.0D0,1.0D0,0.0D0, 0.0D0,0.0D0,1.0D0/),SHAPE(cr_fmat))
 REAL(kind=PREC_DP), DIMENSION(4,4)          ::  cr_tran_g   = 0.0D0
 REAL(kind=PREC_DP), DIMENSION(4,4)          ::  cr_tran_gi  = 0.0D0
 REAL(kind=PREC_DP), DIMENSION(4,4)          ::  cr_tran_f   = 0.0D0
@@ -59,6 +63,7 @@ REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE ::  cr_delfi_u! (  0:MAXSCAT)
 REAL(kind=PREC_DP), DIMENSION(3,2)          ::  cr_dim0     = &
    RESHAPE((/0.0D0,0.0D0,0.0D0, 1.0D0,1.0D0,1.0D0/),SHAPE(cr_dim0))
 !
+integer, dimension(  :), allocatable  ::  cr_ndiffer   ! (  0:MAXSCAT)   ! Number of different atoms of this type
 LOGICAL                               ::  cr_acentric = .true.
 LOGICAL, DIMENSION(  :), ALLOCATABLE  ::  cr_scat_int  ! (  0:MAXSCAT)
 LOGICAL, DIMENSION(  :), ALLOCATABLE  ::  cr_scat_equ  ! (  0:MAXSCAT)
@@ -76,11 +81,12 @@ CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_equ  ! (  0:MAXSCAT)
 CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  as_at_lis  ! (  0:MAXSCAT)
 !
 INTEGER                               ::  cr_nscat  = 0
+INTEGER                               ::  cr_nanis  = 0
 INTEGER                               ::  as_natoms = 0
 INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_iscat  ! (  1:MAXSCAT)
 INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_mole   ! (  1:MAXSCAT)
 INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_prop   ! (  1:MAXSCAT)
-INTEGER, DIMENSION(  :), ALLOCATABLE  ::  cr_niscat ! (  1:MAXSCAT)  Number of atoms ot type iscat
+INTEGER, DIMENSION(  :), ALLOCATABLE  ::  cr_niscat ! (  1:MAXSCAT)  Number of atoms of type iscat
 !
 LOGICAL                               :: cr_cartesian = .false.
 LOGICAL                               :: cr_magnetic  = .FALSE.   ! Cyrystal is magnetic YES / NO
@@ -108,6 +114,7 @@ REAL(kind=PREC_DP)                    :: cr_nreal  = 0.0D0 ! Real amount of atom
 INTEGER                              ::  cr_natoms       = 0
 INTEGER                              ::  cr_n_REAL_atoms = 0
 INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_iscat  ! (  1:NMAX)  !Atom type 0 to cr_nscat
+INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_ianis  ! (  1:NMAX)  !Atom type 0 to cr_nscat
 INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_prop   ! (  1:NMAX)  !Property flag
 INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_mole   ! (  1:NMAX)  !Atom is in this molecule
 INTEGER, DIMENSION(:,:), ALLOCATABLE ::  cr_surf   ! (  1:NMAX)  !Atom is on this surface 

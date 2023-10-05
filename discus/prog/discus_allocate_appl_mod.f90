@@ -971,6 +971,10 @@ end SUBROUTINE alloc_conn_vect
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
+      CALL alloc_arr ( cr_ianis      ,1,n_max ,  all_status, 0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      cry_size_of = cry_size_of + size_of
+!
       CALL alloc_arr ( cr_prop       ,1,n_max ,  all_status, 0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
@@ -1016,6 +1020,10 @@ end SUBROUTINE alloc_conn_vect
       cry_size_of = cry_size_of + size_of
 !
       CALL alloc_arr ( cr_at_equ,      0,n_scat,  all_status, ' ', size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      cry_size_of = cry_size_of + size_of
+!
+      CALL alloc_arr ( cr_ndiffer,     0,n_scat,  all_status, 1  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
