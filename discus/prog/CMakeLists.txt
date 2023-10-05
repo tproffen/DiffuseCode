@@ -129,7 +129,14 @@ else (CUDA_FOUND)
 endif (CUDA_FOUND)
 set (SOURCES_ALL ${SOURCES_ALL} "${DIFFUSE_SOURCE_DIR}/finufft/include/finufft_mod.f90")
 
-add_library (discus_all ${SOURCES_ALL} )
+if (DIFFUSE_SHARE_LIB)
+  add_library (discus_all SHARED ${SOURCES_ALL})
+elseif (DIFFUSE_SHARE_LIB)
+  add_library (discus_all ${SOURCES_ALL})
+else (DIFFUSE_SHARE_LIB)
+  add_library (discus_all ${SOURCES_ALL})
+endif (DIFFUSE_SHARE_LIB)
+
 add_dependencies (discus_all kuplot_all lib_f90 )
 
 set ( LIBS discus_all ${LIBS} discus_all ${LIBS_OPT} ) 

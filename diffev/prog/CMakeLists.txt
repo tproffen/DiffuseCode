@@ -34,7 +34,14 @@ else (MPI_Fortran_FOUND AND DIFFEV_MPI)
 
 endif (MPI_Fortran_FOUND AND DIFFEV_MPI)
 
-add_library (diffev_all ${SOURCES_ALL})
+if (DIFFUSE_SHARE_LIB)
+  add_library (diffev_all SHARED ${SOURCES_ALL})
+elseif (DIFFUSE_SHARE_LIB)
+  add_library (diffev_all ${SOURCES_ALL})
+else (DIFFUSE_SHARE_LIB)
+  add_library (diffev_all ${SOURCES_ALL})
+endif (DIFFUSE_SHARE_LIB)
+
 add_dependencies ( diffev_all lib_f90)
 
 set (LIBS diffev_all ${LIBS} diffev_all ${LIBS_OPT})

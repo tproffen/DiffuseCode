@@ -39,7 +39,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 6)
 set (DIFFUSE_VERSION_MINOR 15)
-set (DIFFUSE_VERSION_PATCH 01)
+set (DIFFUSE_VERSION_PATCH 01A)
 
 # Readline required for all programs
 
@@ -49,6 +49,8 @@ find_package(PNG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(FFTW REQUIRED)
 
+option(DIFFUSE_SHARE_LIB "If on build shared libraries" OFF)
+#
 option(DISCUS_OMP    "Switch for compiling DISCUS_SUITE with OpenMP" ON)
 if (DISCUS_OMP)
   if(APPLE)

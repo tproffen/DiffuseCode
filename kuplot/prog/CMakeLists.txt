@@ -1,4 +1,4 @@
-# KUPLOT Build
+#   KUPLOT Build
 
 find_package(PGPLOT REQUIRED)
 find_package(NEXUS)
@@ -37,7 +37,7 @@ set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY})
 ##64##   set (PGSERVER ${PGPLOT_DIR}/GrWnd.exe)
 ##64## 
 ##64## else (WIN32 OR CYGWIN) 
-  set (LIBS_GRAPHIC ${X11_X11_LIB} ${PGPLOT_PGPLOT_LIBRARY})
+  set (LIBS_GRAPHIC ${PGPLOT_PGPLOT_LIBRARY} ${X11_X11_LIB} )
   set (SOURCES_ALL ${SOURCES_ALL} init_x11.f90)
   set (PGSERVER ${PGPLOT_DIR}/pgxwin_server)
 ##64## endif (WIN32 OR CYGWIN) 
@@ -67,10 +67,18 @@ else (NEXUS_FOUND)
 
 endif (NEXUS_FOUND)
 
-add_library (kuplot_all ${SOURCES_ALL})
+if (DIFFUSE_SHARE_LIB)
+  add_library (kuplot_all SHARED ${SOURCES_ALL})
+elseif (DIFFUSE_SHARE_LIB)
+  add_library (kuplot_all ${SOURCES_ALL})
+else (DIFFUSE_SHARE_LIB)
+  add_library (kuplot_all ${SOURCES_ALL})
+endif (DIFFUSE_SHARE_LIB)
+
 add_dependencies (kuplot_all lib_f90)
 
-set (LIBS kuplot_all ${LIBS} kuplot_all ${LIBS_GRAPHIC} ${LIBS_OPT} )
+set (LIBS kuplot_all ${LIBS} ${LIBS_GRAPHIC} ${LIBS_OPT} )
+#set (LIBS kuplot_all ${LIBS} kuplot_all ${LIBS_GRAPHIC} ${LIBS_OPT} )
 
 #add_executable(kuplot ${SOURCE_MAIN})
 #target_link_libraries (kuplot ${LIBS})

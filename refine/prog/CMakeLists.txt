@@ -42,7 +42,14 @@ else (MPI_Fortran_FOUND AND DIFFEV_MPI)
 
 endif (MPI_Fortran_FOUND AND DIFFEV_MPI)
 
-add_library (refine_all ${SOURCES_ALL})
+if (DIFFUSE_SHARE_LIB)
+  add_library (refine_all SHARED ${SOURCES_ALL})
+elseif (DIFFUSE_SHARE_LIB)
+  add_library (refine_all ${SOURCES_ALL})
+else (DIFFUSE_SHARE_LIB)
+  add_library (refine_all ${SOURCES_ALL})
+endif (DIFFUSE_SHARE_LIB)
+
 add_dependencies ( refine_all lib_f90 diffev_all kuplot_all)
 
 set (LIBS refine_all ${LIBS} refine_all ${LIBS_OPT})
