@@ -32,5 +32,11 @@ set (CPPSOURCES src/finufft.cpp
 
 include_directories(include contrib ${FFTW_INCLUDE_DIRS})
 
-add_library (finufft_lib ${CPPSOURCES})
-#add_library (finufft_lib_s SHARED ${CPPSOURCES})
+
+if (DIFFUSE_SHARE_LIB)
+  add_library (finufft_lib SHARED ${CPPSOURCES})
+elseif (DIFFUSE_SHARE_LIB)
+  add_library (finufft_lib ${CPPSOURCES})
+else (DIFFUSE_SHARE_LIB)
+  add_library (finufft_lib ${CPPSOURCES})
+endif (DIFFUSE_SHARE_LIB)
