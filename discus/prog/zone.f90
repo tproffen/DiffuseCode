@@ -197,8 +197,7 @@ use matrix_mod
    INTEGER               :: i,j,l, ii, k,m
    INTEGER               :: length
    INTEGER               :: hmax, kmax, lmax
-   INTEGER              :: n_qxy    ! required size in reciprocal space this run
-   INTEGER              :: n_nscat  ! required no of atom types right now
+   INTEGER, dimension(3):: n_qxy    ! required size in reciprocal space this run
    INTEGER              :: n_natoms ! required no of atoms
 !
    REAL(kind=PREC_DP), DIMENSION(1:3)  :: rvec, rproj, rres
@@ -226,7 +225,7 @@ real(kind=PREC_DP), dimension(1:3) :: rdif
             rdif(3) = rvec(3) - zone_ewald(3)
             dstar   = sqrt(skalpro(rdif,rdif,cr_rten))   ! 
             IF(abs(dstar-1./rlambda) < zone_delta_d) THEN
-               layer(i,j) = layer(i,j) + dsi(ii)
+               layer(i,j) = layer(i,j) + dsi(i,j,l)
             ENDIF
          ENDDO
       ENDDO
@@ -277,13 +276,26 @@ real(kind=PREC_DP), dimension(1:3) :: rdif
    ilots    = LOT_OFF
    nlots    = 1
 !
-   IF (inc(1) * inc(2) *inc(3) .gt. MAXQXY  .OR.    &
+!  IF (inc(1) * inc(2) *inc(3) .gt. MAXQXY  .OR.    &
+   if(any(inc/=ubound(csf))) then
+      n_qxy = inc
+      call alloc_diffuse_four (n_qxy )
+      if(ier_num/=0) return
+   endif
+   if(cr_nscat/=ubound(cfact,2)) then
+      call alloc_diffuse_scat(cr_nscat)
+      if(ier_num/=0) return
+   endif
+!
+   if(inc(1)>MAXQXY(1) .or. inc(2)>MAXQXY(2) .or. inc(3)>MAXQXY(3) .or. &
        cr_natoms > DIF_MAXAT                .OR.    &
        cr_nscat>DIF_MAXSCAT              ) THEN
-      n_qxy    = MAX(n_qxy,inc(1)*inc(2)*inc(3),MAXQXY)
+!     n_qxy    = MAX(n_qxy,inc,MAXQXY)
       n_natoms = MAX(n_natoms,cr_natoms,DIF_MAXAT)
-      n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-      call alloc_diffuse (n_qxy, n_nscat, n_natoms)
+!     n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!     call alloc_diffuse_four (n_qxy)
+!     call alloc_diffuse_scat (n_nscat)
+      call alloc_diffuse_atom (n_natoms)
       IF (ier_num.ne.0) THEN
          RETURN
       ENDIF
@@ -319,7 +331,7 @@ real(kind=PREC_DP), dimension(1:3) :: rdif
                m = NINT(rres(2)+z_inc(2)/2.)
                IF(k>0 .and. k<z_inc(1) .and. &
                   m>0 .and. m<z_inc(2)       ) THEN
-                  layer(k,m) = layer(k,m) + dsi(ii)
+                  layer(k,m) = layer(k,m) + dsi(i,j,l)
                ENDIF
             ENDIF
          ENDDO
@@ -332,7 +344,7 @@ real(kind=PREC_DP), dimension(1:3) :: rdif
    DO i = 1, z_inc(1)
       DO j = 1, z_inc(2)
          ii = ii+1
-         dsi(ii) = layer(i,j)
+         dsi(i,j,l) = layer(i,j)
       ENDDO
    ENDDO
    DEALLOCATE(layer)
