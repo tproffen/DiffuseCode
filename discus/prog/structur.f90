@@ -4961,7 +4961,7 @@ END SUBROUTINE rmc6f_period
 use matrix_mod
 USE lib_length
 USE precision_mod
-      USE string_convert_mod
+USE string_convert_mod
 USE support_mod
 !
       IMPLICIT none 
@@ -4987,6 +4987,7 @@ USE support_mod
       CHARACTER(LEN=PREC_STRING)   :: wfile  = ' '
       CHARACTER(LEN=PREC_STRING)                              :: line
       CHARACTER(LEN=PREC_STRING)                              :: line_cap
+      CHARACTER(LEN=PREC_STRING)                              :: symm_op 
       CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: rawline
       CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: ccpara
       CHARACTER(LEN=PREC_STRING), DIMENSION(3)                :: cspara
@@ -5046,6 +5047,8 @@ USE support_mod
       LOGICAL               :: in_section
       LOGICAL               :: l_space_group
       LOGICAL               :: l_numbers
+      logical               :: l_symm_c     ! Space group is centrosymmetric; from symop
+      logical               :: l_origin_2   ! Space group has origin choice 2
       INTEGER               :: data_i
       REAL(KIND=PREC_DP)   , DIMENSION(6) :: latt! (6) 
       REAL(KIND=PREC_DP)   , DIMENSION(3) :: pos ! (6) 
@@ -5078,6 +5081,7 @@ USE support_mod
       is_loop = 0
       symm_n  = 0
       symm_1  = 0
+l_symm_c = .false.
 !                                                                       
 !     Create input / output file name
 !
@@ -5254,6 +5258,11 @@ main: DO
                IF(rawline(nline+i)(1:4)== 'loop') EXIT count_symm
                IF(rawline(nline+i)(1:1)== '_'  ) EXIT count_symm
                IF(rawline(nline+i)(1:1)== ';'  ) EXIT count_symm
+               symm_op = rawline(nline+i)
+               call do_low (symm_op)
+               k = len_trim(symm_op)
+               call rem_bl(symm_op,k)
+               if(symm_op(2:9)=='-x,-y,-z') l_symm_c = .true.
                i = i+1
             ENDDO count_symm
             symm_2 = nline + i - 1
@@ -5635,20 +5644,20 @@ find:       DO WHILE (ASSOCIATED(TEMP))
             ENDIF
          ELSE
             IF(length > 1) THEN
-               l_space_group = spcgr_test(spcgr ) ! Test for known space group
+               call spcgr_test(spcgr, l_space_group, l_origin_2 ) ! Test for known space group
                IF(.NOT. l_space_group) THEN
                   IF(spcgr(2:2)=='1' .AND. spcgr(length:length)=='1') THEN
                      spcgr = spcgr(1:1) // spcgr(3:length-1)
-                     l_space_group = spcgr_test(spcgr ) ! Test for known space group
+                     call spcgr_test(spcgr, l_space_group, l_origin_2 ) ! Test for known space group
                   ELSE
                      IF(ABS(latt(4)-90.0)<EPS .AND. ABS(latt(6)-90.0)<EPS.AND.  &
                         ABS(latt(5)-90.0)>EPS ) THEN  ! Unique b Try to augment to full H-M
                        spcgr = spcgr(1:1) //'1'// spcgr(2:length) // '1'
-                       l_space_group = spcgr_test(spcgr ) ! Test for known space group
+                       call spcgr_test(spcgr, l_space_group, l_origin_2 ) ! Test for known space group
                      ELSEIF(ABS(latt(4)-90.0)<EPS .AND. ABS(latt(5)-90.0)<EPS.AND.  &
                         ABS(latt(6)-90.0)>EPS ) THEN  ! Unique c Try to augment to full H-M
                        spcgr = spcgr(1:length) //'11'
-                       l_space_group = spcgr_test(spcgr ) ! Test for known space group
+                       call spcgr_test(spcgr, l_space_group, l_origin_2 ) ! Test for known space group
                      ENDIF
                   ENDIF
                ENDIF
@@ -5666,7 +5675,11 @@ find:       DO WHILE (ASSOCIATED(TEMP))
                ENDIF
             ENDIF
          ENDIF
-         WRITE(iwr, 1100) spcgr(1:LEN_TRIM(spcgr))
+         if(index(spcgr(1:LEN_TRIM(spcgr)),',')==0 .and. l_symm_c .and. l_origin_2) then
+            write(iwr, '(a,a,a)') 'spcgr ', spcgr(1:LEN_TRIM(spcgr)), ', 2'
+         else
+            WRITE(iwr, 1100) spcgr(1:LEN_TRIM(spcgr))
+         endif
       ELSE    ! spcgr is blank
          IF(symm_n == 0) THEN   ! no symmetry operations
             IF(spcgr_no /= 0) THEN
@@ -6165,7 +6178,6 @@ real(kind=PREC_DP), dimension(3,2)   :: ccdim     ! Crystal dimensions
 REAL(kind=PREC_DP)                   :: occ
 integer, dimension(9) :: ncell_val
 integer :: all_status
-integer :: size_of
 !
 LOGICAL           :: IS_IOSTAT_END
 !
@@ -6674,10 +6686,10 @@ main: DO
             ntypes = ntypes + 1
             if(ntypes==MAXSCAT) then
                MAXSCAT = MAXSCAT + 10
-               call alloc_arr(names, 1, MAXSCAT, all_status, ' ',   size_of)
-               call alloc_arr(bvals, 1, MAXSCAT, all_status, 0.5D0, size_of)
-               call alloc_arr(occs , 1, MAXSCAT, all_status, 1.0D0, size_of)
-               call alloc_arr(anis , 1,6, 1, MAXSCAT, all_status, 1.0D0, size_of)
+               call alloc_arr(names, 1, MAXSCAT, all_status, ' '   )
+               call alloc_arr(bvals, 1, MAXSCAT, all_status, 0.5D0 )
+               call alloc_arr(occs , 1, MAXSCAT, all_status, 1.0D0 )
+               call alloc_arr(anis , 1,6, 1, MAXSCAT, all_status, 1.0D0)
             endif
             names(ntypes) = line(1:lbef)
             bvals(ntypes) = bval
@@ -7040,26 +7052,30 @@ end subroutine read_to_internal
 !
 !*******************************************************************************
 !
-LOGICAL FUNCTION spcgr_test(spcgr)
+subroutine spcgr_test(spcgr, l_space_group, l_origin_2)
 !
-USE spcgr_mod
+use spcgr_mod
 !
-IMPLICIT NONE
+implicit none
 !
-CHARACTER(LEN=*), INTENT(IN) :: spcgr
+character(len=*), intent(in) :: spcgr
+logical         , intent(out) :: l_space_group
+logical         , intent(out) :: l_origin_2
 !
-INTEGER        :: i
+integer        :: i
 !
-spcgr_test = .FALSE.
-main: DO I=1, SPCGR_MAX
-   IF(spcgr == spcgr_name(i)) THEN
-      spcgr_test = .TRUE.
-      EXIT main
-   ENDIF
-ENDDO main
+l_space_group = .FALSE.
+l_origin_2    = .FALSE.
+main: do i=1, SPCGR_MAX
+   if(spcgr == spcgr_name(i)) then
+      l_space_group = .TRUE.
+      if(spcgr_num(i,2)/=0) l_origin_2 = .TRUE.   ! Has an origin choice 2
+      exit main
+   endif
+enddo main
 !
-END FUNCTION spcgr_test
+end subroutine spcgr_test
 !
 !*******************************************************************************
 !
-END MODULE structur
+end module structur
