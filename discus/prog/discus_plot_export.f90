@@ -378,7 +378,8 @@ DO i = 1, cr_natoms
             call rem_bl(atom_l,j)
             WRITE (iff, 1000) atom_l(1:len_trim(atom_l)), atom_i,    &
                 ( (v (j) - cr_dim (j, 1) ) / scalef (j), j = 1, 3),  &
-                 cr_dw ( cr_iscat (i) )/eightpisq
+                 cr_dw ( cr_iscat (i) )/eightpisq, ' Uiso ',         &
+                 cr_occ(cr_iscat(i))
          ENDIF 
       ENDIF 
    ENDIF 
@@ -404,8 +405,11 @@ ENDIF
      &        '_atom_site_fract_x',/                                    &
      &        '_atom_site_fract_y',/                                    &
      &        '_atom_site_fract_z',/                                    &
-     &        '_atom_site_u_iso_or_equiv')                              
- 1000 FORMAT (a,3x,a,3x,3(f11.6,1x),4x,f8.6) 
+     &        '_atom_site_u_iso_or_equiv',/                             &
+     &        '_atom_site_adp_type',      /                             &
+     &        '_atom_site_occupancy'      /                             &
+             )                              
+ 1000 FORMAT (a,3x,a,3x,3(f11.6,1x),4x,f8.6,a, f8.6) 
 !
 END SUBROUTINE plot_cif                       
 !
