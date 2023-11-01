@@ -72,6 +72,5 @@ CHARACTER(LEN=200), DIMENSION(:), ALLOCATABLE :: prog_entry
 !INTEGER           , DIMENSION(:), ALLOCATABLE :: socket_id
 INTEGER           , DIMENSION(:,:), ALLOCATABLE :: port_id
 !
-INTEGER                  :: progs_size_of = 0
 !
 END MODULE run_mpi_mod

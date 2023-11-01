@@ -198,19 +198,15 @@ USE str_comp_mod
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat = .TRUE.
-      constr_size_of = 0
 !
     
-      CALL alloc_arr ( constr_line  ,1,n_constr, all_status, ' ', size_of)
+      CALL alloc_arr ( constr_line  ,1,n_constr, all_status, ' ')
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      constr_size_of =  constr_size_of + size_of
 !
-      CALL alloc_arr ( constr_length,1,n_constr, all_status, 1, size_of)
+      CALL alloc_arr ( constr_length,1,n_constr, all_status, 1)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      constr_size_of =  constr_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          MAX_CONSTR    = n_constr
@@ -225,7 +221,6 @@ USE str_comp_mod
       ELSE                                    ! Failure
          MAX_CONSTR     =  0
          constr_number  =  0
-         constr_size_of =  0
          ier_num        = -3
          ier_typ        = ER_COMM
          ier_msg(1)     = 'Constraints'
@@ -252,115 +247,88 @@ USE str_comp_mod
       INTEGER              :: all_status
       INTEGER              :: nseeds
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat = .TRUE.
-      pop_size_of = 0
 !
-      CALL alloc_arr ( pop_name      ,0,n_dimx, all_status, 'PARA0000', size_of)
+      CALL alloc_arr ( pop_name      ,0,n_dimx, all_status, 'PARA0000')
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pop_name(0) = 'Rvalue'
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_type      ,1,n_dimx, all_status, POP_REAL, size_of)
+      CALL alloc_arr ( pop_type      ,1,n_dimx, all_status, POP_REAL)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_lname     ,1,n_dimx, all_status, 8, size_of)
+      CALL alloc_arr ( pop_lname     ,1,n_dimx, all_status, 8)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_refine    ,1,n_dimx, all_status, .false., size_of)
+      CALL alloc_arr ( pop_refine    ,1,n_dimx, all_status, .false.)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_ad_sigma  ,1,n_dimx, all_status, .true., size_of)
+      CALL alloc_arr ( pop_ad_sigma  ,1,n_dimx, all_status, .true.)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_ad_lsigma ,1,n_dimx, all_status, .true., size_of)
+      CALL alloc_arr ( pop_ad_lsigma ,1,n_dimx, all_status, .true.)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_para      ,1,n_dimx, all_status, 0.0D0, size_of)
+      CALL alloc_arr ( pop_para      ,1,n_dimx, all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_xmin      ,1,n_dimx, all_status, 0.0D0, size_of)
+      CALL alloc_arr ( pop_xmin      ,1,n_dimx, all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_xmax      ,1,n_dimx, all_status, 0.0D0, size_of)
+      CALL alloc_arr ( pop_xmax      ,1,n_dimx, all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_pmin      ,1,n_dimx, all_status, 0.0D0, size_of)
+      CALL alloc_arr ( pop_pmin      ,1,n_dimx, all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_pmax      ,1,n_dimx, all_status, 0.0D0, size_of)
+      CALL alloc_arr ( pop_pmax      ,1,n_dimx, all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_smin      ,1,n_dimx, all_status, 0.0D0, size_of)
+      CALL alloc_arr ( pop_smin      ,1,n_dimx, all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_smax      ,1,n_dimx, all_status, 0.0D0, size_of)
+      CALL alloc_arr ( pop_smax      ,1,n_dimx, all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_sigma     ,1,n_dimx, all_status, 1.0D0, size_of)
+      CALL alloc_arr ( pop_sigma     ,1,n_dimx, all_status, 1.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_lsig      ,1,n_dimx, all_status, 0.5D0, size_of)
+      CALL alloc_arr ( pop_lsig      ,1,n_dimx, all_status, 0.5D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_sig_ad    ,1,n_dimx, all_status, 0.5D0, size_of)
+      CALL alloc_arr ( pop_sig_ad    ,1,n_dimx, all_status, 0.5D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_lsig_ad   ,1,n_dimx, all_status, 0.05D0, size_of)
+      CALL alloc_arr ( pop_lsig_ad   ,1,n_dimx, all_status, 0.05D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
 !
-      CALL alloc_arr ( child_val     ,1,n_pop , 0,15,all_status, 0.0D0, size_of)
+      CALL alloc_arr ( child_val     ,1,n_pop , 0,15,all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( trial_val     ,1,n_pop , 0,15,all_status, 0.0D0, size_of)
+      CALL alloc_arr ( trial_val     ,1,n_pop , 0,15,all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( parent_val    ,1,n_pop , 0,15,all_status, 0.0D0, size_of)
+      CALL alloc_arr ( parent_val    ,1,n_pop , 0,15,all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
 !
-      CALL alloc_arr ( pop_x ,1,n_dimx, 1,n_pop , all_status, 0.0D0, size_of)
+      CALL alloc_arr ( pop_x ,1,n_dimx, 1,n_pop , all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_t ,1,n_dimx, 1,n_pop , all_status, 0.0D0, size_of)
+      CALL alloc_arr ( pop_t ,1,n_dimx, 1,n_pop , all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( child ,1,n_dimx, 1,n_pop , all_status, 0.0D0, size_of)
+      CALL alloc_arr ( child ,1,n_dimx, 1,n_pop , all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( trial ,1,n_dimx, 1,n_pop , all_status, 0.0D0, size_of)
+      CALL alloc_arr ( trial ,1,n_dimx, 1,n_pop , all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
       nseeds = random_nseeds()                ! too be improved for different compilers
 !     nseeds = 12
-      CALL alloc_arr ( pop_random ,0,nseeds, 1,n_pop , all_status, 0  , size_of)
+      CALL alloc_arr ( pop_random ,0,nseeds, 1,n_pop , all_status, 0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pop_size_of = pop_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          MAXDIMX       = n_dimx
@@ -385,7 +353,6 @@ USE str_comp_mod
          var_val(var_ref+1) = 0  ! Update global user variable
          var_val(var_ref+2) = 0  ! Update global user variable
          var_val(var_ref+3) = 0  ! Update global user variable
-         pop_size_of   =  0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Population'
@@ -408,27 +375,26 @@ USE str_comp_mod
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat = .TRUE.
 !
 !
-      CALL alloc_arr ( pop_back_fil  ,1,n_pop, all_status, ' ', size_of)
+      CALL alloc_arr ( pop_back_fil  ,1,n_pop, all_status, ' ')
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( pop_back_ext  ,1,n_pop, all_status, ' ', size_of)
+      CALL alloc_arr ( pop_back_ext  ,1,n_pop, all_status, ' ')
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( pop_back_trg  ,1,n_pop, all_status, ' ', size_of)
+      CALL alloc_arr ( pop_back_trg  ,1,n_pop, all_status, ' ')
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( pop_back_fil_l,1,n_pop, all_status, 1, size_of)
+      CALL alloc_arr ( pop_back_fil_l,1,n_pop, all_status, 1)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( pop_back_ext_l,1,n_pop, all_status, 1, size_of)
+      CALL alloc_arr ( pop_back_ext_l,1,n_pop, all_status, 1)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( pop_back_trg_l,1,n_pop, all_status, 1, size_of)
+      CALL alloc_arr ( pop_back_trg_l,1,n_pop, all_status, 1)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       IF( lstat ) THEN                        ! Success
@@ -467,22 +433,17 @@ USE str_comp_mod
 !!
 !      INTEGER              :: all_status
 !      LOGICAL              :: lstat
-!      INTEGER              :: size_of
 !!
 !      lstat = .TRUE.
-!      progs_size_of = 0
 !!
-!      CALL alloc_arr ( prog_entry ,1,nprog, all_status, ' ', size_of)
+!      CALL alloc_arr ( prog_entry ,1,nprog, all_status, ' ')
 !      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!      progs_size_of =   progs_size_of + size_of
 !!
-!      CALL alloc_arr ( socket_id ,1,nprog, all_status, 0  , size_of)
+!      CALL alloc_arr ( socket_id ,1,nprog, all_status, 0  )
 !      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!      progs_size_of =   progs_size_of + size_of
 !!
-!      CALL alloc_arr (   port_id ,1,nprog, 1, nproc, all_status, 0  , size_of)
+!      CALL alloc_arr (   port_id ,1,nprog, 1, nproc, all_status, 0  )
 !      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!      progs_size_of =   progs_size_of + size_of
 !!
 !      IF( lstat ) THEN                        ! Success
 !         RUN_MPI_MAXPROG = nprog
@@ -495,7 +456,6 @@ USE str_comp_mod
 !         ENDIF
 !      ELSE                                    ! Failure
 !         RUN_MPI_MAXPROG =  0
-!         progs_size_of =   0
 !         ier_num         = -3
 !         ier_typ         = ER_COMM
 !         ier_msg(1)      = 'Socket_programs'

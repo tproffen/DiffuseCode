@@ -89,6 +89,5 @@ INTEGER            ,DIMENSION(:)  , ALLOCATABLE :: pop_back_fil_l ! (MAXBACK)
 INTEGER            ,DIMENSION(:)  , ALLOCATABLE :: pop_back_ext_l ! (MAXBACK)
 INTEGER            ,DIMENSION(:)  , ALLOCATABLE :: pop_back_trg_l ! (MAXBACK)
 !
-INTEGER                 :: pop_size_of  ! Bytes allocated for population
 !
 END MODULE population
