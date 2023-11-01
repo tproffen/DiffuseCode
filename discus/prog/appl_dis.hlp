@@ -4790,6 +4790,7 @@
 !p neig    : Setting of the neighbor definitions
 !p output  : Setting of output during mmc run
 !p range   : Setting of the neighboring ranges
+!p style   : Set the style to atoms or molecules
 !p target  : Setting of correlations values to be achieved
 !p temp    : Setting of MMC simulation temperature
 !p valid   ! Sets maximum number of non_valid cycles
@@ -5066,6 +5067,13 @@
    set output, final:off
       Turn output off at the end of the run
 
+4  style
+!p set style, atom
+!p set style, molecule
+
+   Sets the type of objects that are moved/modified in the MMC cycles.
+   With "atom" individual atoms are modified,
+   With "molecule" entire molecules are modified.
 4  range
 !p set "range"
 
