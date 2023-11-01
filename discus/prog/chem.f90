@@ -4744,6 +4744,7 @@ USE precision_mod
       USE check_bound_mod
       USE chem_mod 
       USE celltoindex_mod
+use conn_sup_mod
       USE do_find_mod
       USE metric_mod
       USE modify_mod
@@ -4765,6 +4766,11 @@ REAL(KIND=PREC_DP) :: dummy(1)
       INTEGER jcell (3), icell (3), isite, jsite 
       INTEGER i, j, k, ii, iv, katom 
       LOGICAL lok 
+integer :: ino
+integer :: is1
+integer :: natoms
+INTEGER, DIMENSION(:), ALLOCATABLE :: c_list ! Result of connectivity search
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
 !                                                                       
       natom = 0 
       dummy = - 1 
@@ -4977,7 +4983,43 @@ REAL(KIND=PREC_DP) :: dummy(1)
             patom (3, natom) = cr_pos (3, jatom) 
          ENDIF 
          ENDDO 
-      ENDIF 
+elseif (chem_ctyp (ic) .eq.CHEM_CON  ) then 
+   do i = 1, chem_ncon (ic)
+      iv = chem_use_con (i, ic)
+      if(cr_iscat(jatom).eq.chem_ccon(1, iv) ) then ! Central has correct type
+         natom = 1
+         iatom(natom) = jatom
+         patom (1, natom) = cr_pos (1, jatom)
+         patom (2, natom) = cr_pos (2, jatom)
+         patom (3, natom) = cr_pos (3, jatom)
+         is1 = chem_ccon (1, iv)              ! central atom type
+         ino = chem_ccon (2, iv)              ! connectivity number
+         CALL get_connectivity_list ( jatom, is1, ino, c_list, c_offs, natoms )
+         loop_natoms:DO j=1,natoms
+            if(c_list(j)==0) cycle loop_natoms
+            natom = natom + 1
+            iatom(natom) = c_list(j)
+            patom(1,natom    ) = cr_pos(1,c_list(j)) + REAL(c_offs(1,j))
+            patom(2,natom    ) = cr_pos(2,c_list(j)) + REAL(c_offs(2,j))
+            patom(3,natom    ) = cr_pos(3,c_list(j)) + REAL(c_offs(3,j))
+         ENDDO  loop_natoms
+      endif
+   enddo
+elseif (chem_ctyp (ic) .eq.CHEM_ENVIR) then 
+   u = cr_pos(:,jatom)
+   iv = chem_use_env(1,ic)
+   CALL do_find_env(1, dummy, 1, u, chem_rmin_env(iv), chem_rmax_env(iv),  &
+        chem_quick, chem_period)                                  
+   do j=1, atom_env(0)
+      katom = atom_env(j)
+      call indextocell (katom, icell, isite)
+      natom = natom + 1 
+      iatom (natom) = katom 
+      patom (1, natom) = cr_pos (1, katom) + offset (1) 
+      patom (2, natom) = cr_pos (2, katom) + offset (2) 
+      patom (3, natom) = cr_pos (3, katom) + offset (3) 
+   enddo
+endif
 !                                                                       
       END SUBROUTINE chem_neighbour                 
 !*****7*****************************************************************
