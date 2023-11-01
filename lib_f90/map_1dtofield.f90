@@ -5,8 +5,8 @@ use iso_c_binding
 !  Contains routines to map a 1D line onto an N-dimensional field and reverse
 !
 INTERFACE maptofftfd
-  MODULE PROCEDURE maptofftfd_1D_R_C_DP   ! 2D real    => complex Double Precision
-  MODULE PROCEDURE maptofftfd_1D_C_C_DP   ! 2D complex => complex Double Precision
+  MODULE PROCEDURE maptofftfd_1D_R_C_DP   ! 1D real    => complex Double Precision
+  MODULE PROCEDURE maptofftfd_1D_C_C_DP   ! 1D complex => complex Double Precision
   MODULE PROCEDURE maptofftfd_2D_R_C_DP   ! 2D real    => complex Double Precision
   MODULE PROCEDURE maptofftfd_2D_C_C_DP   ! 2D complex => complex Double Precision
   MODULE PROCEDURE maptofftfd_22D_R_C_DP  ! 2D complex => complex Double Precision (input IxJ  )
@@ -18,8 +18,8 @@ INTERFACE maptofftfd
 END INTERFACE maptofftfd
 !
 INTERFACE mapfftfdtoline
-  MODULE PROCEDURE fftfdtoline_1D_C_R_DP  ! 2D complex => 1D REAL    Double Precision
-  MODULE PROCEDURE fftfdtoline_1D_C_C_DP  ! 2D complex => 1D COMPLEX Double Precision
+  MODULE PROCEDURE fftfdtoline_1D_C_R_DP  ! 1D complex => 1D REAL    Double Precision
+  MODULE PROCEDURE fftfdtoline_1D_C_C_DP  ! 1D complex => 1D COMPLEX Double Precision
   MODULE PROCEDURE fftfdtoline_2D_C_R_DP  ! 2D complex => 1D REAL    Double Precision
   MODULE PROCEDURE fftfdtoline_2D_C_C_DP  ! 2D complex => 1D COMPLEX Double Precision
   MODULE PROCEDURE fftfdtoline_22D_C_R_DP ! 3D complex => 3D REAL
@@ -92,7 +92,7 @@ END SUBROUTINE maptofftfd_1D_C_C_DP
 !
 SUBROUTINE maptofftfd_2D_R_C_DP(dimen, dsort, linear, fftfd)
 !-
-!   Map the 1D linear array onto a 2D complex array. 
+!   Map the 2D linear array onto a 2D complex array. 
 !   Shift the center to point (1,1,1)
 !+
 USE precision_mod
@@ -348,29 +348,26 @@ COMPLEX(KIND=KIND(0.0D0)), DIMENSION(1:dimen(dsort(1)),                         
                                      1:dimen(dsort(2)),                         &
                                      1:dimen(dsort(3))), INTENT(OUT) :: fftfd
 !
-INTEGER :: i,j,k, ii,jj, kk
+INTEGER :: i,j,k
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
-INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
+INTEGER, DIMENSION(3) :: ll             ! Target index for i,j
 !
 l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
 l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
 l(dsort(3)) = MOD(dimen(dsort(3))-1,2)
-!DO loop = 1, dimen(1)*dimen(2)*dimen(3)
-!   i = MOD((loop-1)/(dimen(2)*dimen(3)),dimen(1)) + 1            ! Indices: i == H
-!   j = MOD((loop-1)/(         dimen(3)),dimen(2)) + 1            ! Indices: j == K
-!   k = MOD((loop-1)                    ,dimen(3)) + 1            ! Indices: k == L
+l(1) = mod(dimen(1)-1,2)
+l(2) = mod(dimen(2)-1,2)
+l(3) = mod(dimen(3)-1,2)
+!
 DO i=1, dimen(1)
-DO j=1, dimen(2)
-DO k=1, dimen(3)
-   ientry(dsort(1)) = i                 ! i ==> goes into :dsort(1)
-   ientry(dsort(2)) = j                 ! j ==> goes into :dsort(2)
-   ientry(dsort(3)) = k                 ! k ==> goes into :dsort(3)
-   ii = MOD(ientry(1) + INT(dimen(dsort(1))/2) - l(dsort(1)), dimen(dsort(1))) + 1
-   jj = MOD(ientry(2) + INT(dimen(dsort(2))/2) - l(dsort(2)), dimen(dsort(2))) + 1
-   kk = MOD(ientry(3) + INT(dimen(dsort(3))/2) - l(dsort(3)), dimen(dsort(3))) + 1
-   fftfd(ii,jj, kk) = CMPLX(linear(i,j,k), 0.0D0)
-ENDDO
-ENDDO
+   DO j=1, dimen(2)
+      DO k=1, dimen(3)
+         ll(1) = mod(i + int(dimen(1)/2) - l(1), dimen(1)) + 1
+         ll(2) = mod(j + int(dimen(2)/2) - l(2), dimen(2)) + 1
+         ll(3) = mod(k + int(dimen(3)/2) - l(3), dimen(3)) + 1
+         fftfd(ll(dsort(1)),ll(dsort(2)), ll(dsort(3))) = cmplx(linear(i,j,k), 0.0D0)
+      ENDDO
+   ENDDO
 ENDDO
 !
 END SUBROUTINE maptofftfd_33D_R_C_DP
@@ -394,29 +391,22 @@ COMPLEX(KIND=KIND(0.0D0)), DIMENSION(1:dimen(dsort(1)),                         
                                      1:dimen(dsort(2)),                         &
                                      1:dimen(dsort(3))), INTENT(OUT) :: fftfd
 !
-INTEGER :: i,j,k, ii,jj, kk
+INTEGER :: i,j,k
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
-INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
+INTEGER, DIMENSION(3) :: ll             ! Target index for i,j
 !
-l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
-l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
-l(dsort(3)) = MOD(dimen(dsort(3))-1,2)
-!DO loop = 1, dimen(1)*dimen(2)*dimen(3)
-!   i = MOD((loop-1)/(dimen(2)*dimen(3)),dimen(1)) + 1            ! Indices: i == H
-!   j = MOD((loop-1)/(         dimen(3)),dimen(2)) + 1            ! Indices: j == K
-!   k = MOD((loop-1)                    ,dimen(3)) + 1            ! Indices: k == L
+l(1) = mod(dimen(1)-1,2)
+l(2) = mod(dimen(2)-1,2)
+l(3) = mod(dimen(3)-1,2)
 DO i=1, dimen(1)
-DO j=1, dimen(2)
-DO k=1, dimen(3)
-   ientry(dsort(1)) = i                 ! i ==> goes into :dsort(1)
-   ientry(dsort(2)) = j                 ! j ==> goes into :dsort(2)
-   ientry(dsort(3)) = k                 ! k ==> goes into :dsort(3)
-   ii = MOD(ientry(1) + INT(dimen(dsort(1))/2) - l(dsort(1)), dimen(dsort(1))) + 1
-   jj = MOD(ientry(2) + INT(dimen(dsort(2))/2) - l(dsort(2)), dimen(dsort(2))) + 1
-   kk = MOD(ientry(3) + INT(dimen(dsort(3))/2) - l(dsort(3)), dimen(dsort(3))) + 1
-   fftfd(ii,jj, kk) =       linear(i,j,k)
-ENDDO
-ENDDO
+   DO j=1, dimen(2)
+      DO k=1, dimen(3)
+         ll(1) = mod(i + int(dimen(1)/2) - l(1), dimen(1)) + 1
+         ll(2) = mod(j + int(dimen(2)/2) - l(2), dimen(2)) + 1
+         ll(3) = mod(k + int(dimen(3)/2) - l(3), dimen(3)) + 1
+         fftfd(ll(dsort(1)),ll(dsort(2)), ll(dsort(3))) =       linear(i,j,k)
+      ENDDO
+   ENDDO
 ENDDO
 !
 END SUBROUTINE maptofftfd_33D_C_C_DP
@@ -742,25 +732,25 @@ COMPLEX(KIND=PREC_DP), DIMENSION(1:dimen(dsort(1)),                             
                                  1:dimen(dsort(2)),                              &
                                  1:dimen(dsort(3)))  , INTENT(IN) :: fftfd
 !
-INTEGER :: i,j,k, ii,jj, kk
+INTEGER ::  ii,jj, kk
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
-INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
+INTEGER, DIMENSION(3) :: ll             ! Target index for i,j
+INTEGER, DIMENSION(3) :: fdimen         ! Dimensions of field fftfd
 !
-l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
-l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
-l(dsort(3)) = MOD(dimen(dsort(3))-1,2)
+fdimen(1) = ubound(fftfd,1)
+fdimen(2) = ubound(fftfd,2)
+fdimen(3) = ubound(fftfd,3)
+l(1) = MOD(fdimen(1)-1,2)
+l(2) = MOD(fdimen(2)-1,2)
+l(3) = MOD(fdimen(3)-1,2)
 !
 DO kk=1, dimen(dsort(3))
    DO jj=1, dimen(dsort(2))
       DO ii = 1, dimen(dsort(1))
-         ientry(1) = MOD(ii + INT(dimen(dsort(1))/2)- l(dsort(1)) - 1, dimen(dsort(1))) + 1
-         ientry(2) = MOD(jj + INT(dimen(dsort(2))/2) -l(dsort(2)) - 1, dimen(dsort(2))) + 1
-         ientry(3) = MOD(kk + INT(dimen(dsort(3))/2) -l(dsort(3)) - 1, dimen(dsort(3))) + 1
-         i = ientry(dsort(1))                  ! i ==> goes into :dsort(1)
-         j = ientry(dsort(2))                  ! j ==> goes into :dsort(2)
-         k = ientry(dsort(3))                  ! k ==> goes into :dsort(3)
-!         loop = (i-1)*dimen(2)*dimen(3) + (j-1)*dimen(3) + k
-         linear(i,j,k ) = REAL(fftfd(ii,jj, kk), KIND=PREC_DP)
+         ll(dsort(1)) = mod(ii + int(fdimen(1)/2) - l(1) -1, fdimen(1)) + 1
+         ll(dsort(2)) = mod(jj + int(fdimen(2)/2) - l(2) -1, fdimen(2)) + 1
+         ll(dsort(3)) = mod(kk + int(fdimen(3)/2) - l(3) -1, fdimen(3)) + 1
+         linear(ll((1)),ll((2)),ll((3)) ) = real(fftfd(ii,jj, kk), kind=prec_DP)
       ENDDO
    ENDDO
 ENDDO
@@ -782,25 +772,25 @@ COMPLEX(KIND=PREC_DP), DIMENSION(1:dimen(dsort(1)),                             
                                  1:dimen(dsort(2)),                              &
                                  1:dimen(dsort(3)))  , INTENT(IN) :: fftfd
 !
-INTEGER :: i,j,k, ii,jj, kk
+INTEGER ::  ii,jj, kk
 INTEGER, DIMENSION(3) :: l              ! Additional shift of 1 for even dimensions
-INTEGER, DIMENSION(3) :: ientry         ! Target index for i,j
+INTEGER, DIMENSION(3) :: ll             ! Target index for i,j
+INTEGER, DIMENSION(3) :: fdimen         ! Dimensions of field fftfd
 !
-l(dsort(1)) = MOD(dimen(dsort(1))-1,2)
-l(dsort(2)) = MOD(dimen(dsort(2))-1,2)
-l(dsort(3)) = MOD(dimen(dsort(3))-1,2)
+fdimen(1) = ubound(fftfd,1)
+fdimen(2) = ubound(fftfd,2)
+fdimen(3) = ubound(fftfd,3)
+l(1) = MOD(fdimen(1)-1,2)
+l(2) = MOD(fdimen(2)-1,2)
+l(3) = MOD(fdimen(3)-1,2)
 !
-DO kk=1, dimen(dsort(3))
-   DO jj=1, dimen(dsort(2))
-      DO ii = 1, dimen(dsort(1))
-         ientry(1) = MOD(ii + INT(dimen(dsort(1))/2)- l(dsort(1)) - 1, dimen(dsort(1))) + 1
-         ientry(2) = MOD(jj + INT(dimen(dsort(2))/2) -l(dsort(2)) - 1, dimen(dsort(2))) + 1
-         ientry(3) = MOD(kk + INT(dimen(dsort(3))/2) -l(dsort(3)) - 1, dimen(dsort(3))) + 1
-         i = ientry(dsort(1))                  ! i ==> goes into :dsort(1)
-         j = ientry(dsort(2))                  ! j ==> goes into :dsort(2)
-         k = ientry(dsort(3))                  ! k ==> goes into :dsort(3)
-!         loop = (i-1)*dimen(2)*dimen(3) + (j-1)*dimen(3) + k
-         linear(i,j,k ) =      fftfd(ii,jj, kk)
+DO kk=1, fdimen(3)
+   DO jj=1, fdimen(2)
+      DO ii = 1, fdimen(1)
+         ll(dsort(1)) = mod(ii + int(fdimen(1)/2) - l(1) -1, fdimen(1)) + 1
+         ll(dsort(2)) = mod(jj + int(fdimen(2)/2) - l(2) -1, fdimen(2)) + 1
+         ll(dsort(3)) = mod(kk + int(fdimen(3)/2) - l(3) -1, fdimen(3)) + 1
+         linear(ll((1)),ll((2)),ll((3)) ) = fftfd(ii,jj, kk)
       ENDDO
    ENDDO
 ENDDO
