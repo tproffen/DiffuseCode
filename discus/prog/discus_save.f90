@@ -1065,7 +1065,6 @@ END SUBROUTINE save_internal_node
       sav_t_ncell(:)= sav_ncell(:)
       sav_t_sel_prop(:)=  sav_sel_prop(:)
       sav_t_ncatoms = sav_ncatoms
-      sav_t_size_of = sav_size_of
 !
       END SUBROUTINE save_store_setting
 !
@@ -1122,7 +1121,6 @@ END SUBROUTINE save_internal_node
       sav_ncell(:)= sav_t_ncell(:)
       sav_sel_prop(:)=  sav_t_sel_prop(:)
       sav_ncatoms = sav_t_ncatoms
-      sav_size_of = sav_t_size_of
 !
       END SUBROUTINE save_restore_setting
 !
@@ -1181,7 +1179,6 @@ END SUBROUTINE save_internal_node
       sav_ncell(:)=  1
       sav_sel_prop(:)=  0
       sav_ncatoms =  1
-      sav_size_of = 1
 !
       END SUBROUTINE save_default_setting
 !

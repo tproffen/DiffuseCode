@@ -37,6 +37,5 @@ REAL(kind=PREC_DP)  ::  tran_fi  (4,4) = &
          RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(tran_fi))
 REAL(kind=PREC_DP)  ::  tran_deltahkl  = 0.001
 !
-INTEGER             ::  tran_size_of   = 0 ! Bytes alloacted for transformation
 !
 END MODULE transfrm_mod

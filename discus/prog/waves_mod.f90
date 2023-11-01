@@ -47,6 +47,5 @@ LOGICAL             ::  wv_sel_atom      = .true.
 LOGICAL             ::  wv_lacoust       = .true.
 LOGICAL             ::  wv_viceversa     = .false.
 !
-INTEGER             ::  wv_size_of  = 0 ! Bytes allocated for waves      
 !
 END MODULE waves_mod

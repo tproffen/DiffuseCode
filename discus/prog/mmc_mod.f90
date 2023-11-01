@@ -167,6 +167,5 @@ INTEGER ::  mmc_l_extend(3)
 INTEGER ::  mmc_l_lower
 INTEGER ::  mmc_l_upper
 INTEGER(KIND=PREC_INT_LARGE) ::  mmc_no_valid = 1000
-INTEGER ::  mmc_size_of = 0
 !
 END MODULE mmc_mod

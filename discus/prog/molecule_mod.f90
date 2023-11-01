@@ -53,6 +53,5 @@ REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE      ::  mole_clin             
 REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE      ::  mole_cqua                 ! (  0:MOLE_MAX_TYPE)
 REAL(kind=PREC_DP)   , DIMENSION(:), ALLOCATABLE      ::  mole_fuzzy                ! (  0:MOLE_MAX_MOLE)
 !
-INTEGER                                 :: mol_size_of = 0
 !
 END MODULE molecule_mod

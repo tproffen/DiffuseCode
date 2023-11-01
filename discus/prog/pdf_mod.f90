@@ -108,7 +108,6 @@ LOGICAL             ::  pdf_lweights  = .false.
 LOGICAL             ::  pdf_lrho0     = .true.
 LOGICAL             ::  pdf_lexact    = .false.
 LOGICAL             ::  pdf_lrho0_rel = .false.
-INTEGER             ::  pdf_size_of   = 0
 !
 LOGICAL               :: pdf_refine_scale   = .false.
 LOGICAL               :: pdf_refine_density = .false.

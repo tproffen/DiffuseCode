@@ -303,7 +303,6 @@ integer                   , dimension(MAXW), intent(inout)     :: lpara
 real(kind=PREC_DP)        , dimension(MAXW), intent(inout)     :: werte
 integer :: osite
 integer :: nsite
-integer :: size_of
 integer :: all_status
 !
 cpara(1) = '0'
@@ -325,8 +324,8 @@ if(pdt_nsite>=ubound(pdt_pos,2)) then
    osite = ubound(pdt_pos, 2)
    nsite = max(pdt_nsite, pdt_usite, pdt_asite) + 5
 !write(*,*) 'PRE REALLOC ', ubound(pdt_pos, 2), osite, nsite, pdt_usite
-   call alloc_arr(pdt_pos, 1, 3, 1, nsite, all_status, 0.0D0,  size_of)
-   call alloc_arr(pdt_lsite, 1, nsite, all_status, .false., size_of)
+   call alloc_arr(pdt_pos, 1, 3, 1, nsite, all_status, 0.0D0  )
+   call alloc_arr(pdt_lsite, 1, nsite, all_status, .false.)
 endif
 end subroutine perioditize_set_natoms
 !
@@ -376,7 +375,6 @@ integer :: length
 integer :: osite
 integer :: nsite
 integer :: ntype 
-integer :: size_of
 integer :: all_status
 integer :: istart
 integer :: ifinish
@@ -530,13 +528,13 @@ if(pdt_usite>=ubound(pdt_pos,2)) then
    osite = ubound(pdt_pos, 2)
    nsite = max(pdt_nsite, pdt_usite, pdt_asite) + 5
 !write(*,*) 'PRE REALLOC ', ubound(pdt_pos, 2), osite, nsite, pdt_usite
-   call alloc_arr(pdt_pos, 1, 3, 1, nsite, all_status, 0.0D0,  size_of)
-   call alloc_arr(pdt_lsite, 1, nsite, all_status, .false., size_of)
+   call alloc_arr(pdt_pos, 1, 3, 1, nsite, all_status, 0.0D0  )
+   call alloc_arr(pdt_lsite, 1, nsite, all_status, .false.)
 endif
 if(pdt_usite>=ubound(pdt_itype,2) .or. iianz>ubound(pdt_itype,1)) then
    nsite = ubound(pdt_pos, 2)
    ntype = max(iianz, ubound(pdt_itype,1))
-   call alloc_arr(pdt_itype, 0, ntype, 1, nsite, all_status, -2, size_of)
+   call alloc_arr(pdt_itype, 0, ntype, 1, nsite, all_status, -2)
 endif
 !
 pdt_pos(:,pdt_usite) = v_pos(1:3)

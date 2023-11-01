@@ -3648,7 +3648,6 @@ pdf_lweights  = .false.
 pdf_lrho0     = .true.
 pdf_lexact    = .false.
 pdf_lrho0_rel = .false.
-pdf_size_of   = 0
 !
 pdf_refine_scale   = .false.
 pdf_refine_density = .false.

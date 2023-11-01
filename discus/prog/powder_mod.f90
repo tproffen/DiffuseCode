@@ -160,6 +160,5 @@ real(kind=PREC_DP) :: pow_tof_x  = 4.326450    ! == gamma 2          + X * d**2
 real(kind=PREC_DP) :: pow_tof_siz= 10.00000    ! == size [mym]       + 1e-4*DIFC * d**2 / Size_parameter
 real(kind=PREC_DP) :: pow_tof_str= 1000.000    ! == strain           + 1e-6*DIFC * d    * Size_parameter
 !
-INTEGER                  :: pow_size_of  = 0 ! Bytes allocated for powder
 !
 END MODULE powder_mod

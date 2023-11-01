@@ -67,6 +67,5 @@ INTEGER                              :: st_natoms
 INTEGER                              :: st_spcgr_ianz
 INTEGER                              :: st_spcgr_para
 LOGICAL                              :: st_magnetic
-INTEGER                              :: st_cr_size_of
 !
 END MODULE stack_cr_mod

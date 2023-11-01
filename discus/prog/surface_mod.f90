@@ -29,6 +29,5 @@ REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE  ::  surf_in_dist   !(0:MAXSCAT)
 !
 LOGICAL             ::  surf_local_new = .TRUE.
 !
-INTEGER             ::  surf_size_of
 !
 END MODULE surface_mod

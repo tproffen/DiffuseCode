@@ -39,6 +39,5 @@ INTEGER               ::  sav_t_end     , sav_end      = -1
 INTEGER, DIMENSION(3) ::  sav_t_ncell   , sav_ncell    =  1
 INTEGER, DIMENSION(0:1):: sav_t_sel_prop, sav_sel_prop =  (/0,0/)
 INTEGER               ::  sav_t_ncatoms , sav_ncatoms  =  1
-INTEGER               ::  sav_t_size_of , sav_size_of  =  0 ! Bytes allocated for save
 !
 END MODULE discus_save_mod

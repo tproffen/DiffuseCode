@@ -48,7 +48,6 @@ INTEGER                               ::  clu_remove_mode = CLU_REMOVE_STRICT   
 INTEGER                               ::  clu_remove_end  = 1  ! Initial last atom to remove
 REAL(kind=PREC_DP)                    ::  clu_remove_dist = 0.0! Initial removal distance
 !
-INTEGER                               ::  clu_size_of! Bytes allocated for DOMAIN
 !
 
 CHARACTER(LEN=  4), DIMENSION(:), ALLOCATABLE  ::  clu_at_lis    ! Pseudo-atom names

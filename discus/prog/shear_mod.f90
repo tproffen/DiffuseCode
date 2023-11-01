@@ -52,6 +52,5 @@ REAL(kind=PREC_DP), DIMENSION(3,3) :: shear_eigent = &
          RESHAPE((/1.,(0.,0.,0.,1.,ik=1,2)/),SHAPE(shear_eigent ))
 REAL(kind=PREC_DP), DIMENSION(3)   :: shear_eigenw = 1.0
 !
-INTEGER                 :: shear_size_of  = 0 ! Bytes allocated for shear
 !
 END MODULE shear_mod

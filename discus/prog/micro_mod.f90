@@ -45,6 +45,5 @@ REAL(kind=PREC_DP)  ::  mk_sym_add(4,4,0:mk_SYM_ADD_MAX) = &
 !
 LOGICAL             :: mk_infile_internal = .FALSE.  ! File with domain atoms in stored internally
 INTEGER             :: mk_iatom           = 1        ! Current atom number in internal file
-INTEGER             :: mic_size_of        = 0
 !
 END MODULE micro_mod

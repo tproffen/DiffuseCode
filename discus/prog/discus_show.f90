@@ -698,11 +698,10 @@ USE precision_mod
 !                                                                       
       LOGICAL, DIMENSION(:),ALLOCATABLE :: latom ! (0:MAXSCAT) 
       INTEGER                           :: all_status
-      INTEGER                           :: size_of
 !
 !-----allocate local logical array
 !
-      CALL alloc_arr ( latom  ,0,MAXSCAT,  all_status, .false.  , size_of )
+      CALL alloc_arr ( latom  ,0,MAXSCAT,  all_status, .false. )
 !                                                                       
       DO i = 2, ianz 
       cpara (i - 1) = cpara (i) 
