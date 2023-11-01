@@ -164,37 +164,35 @@ INTEGER, INTENT(IN)  :: n_params
 !!
 INTEGER              :: all_status
 LOGICAL              :: lstat
-INTEGER              :: size_of
 !!
 lstat = .TRUE.
-!      constr_size_of = 0
 !!
 !    
-CALL alloc_arr ( refine_params  ,1,n_params, all_status, ' ', size_of)
+CALL alloc_arr ( refine_params  ,1,n_params, all_status, ' ')
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_fixed   ,1,n_params, all_status, ' ', size_of)
+CALL alloc_arr ( refine_fixed   ,1,n_params, all_status, ' ')
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_range   ,1,n_params, 1, 2, all_status, 1.00000D0, size_of)
+CALL alloc_arr ( refine_range   ,1,n_params, 1, 2, all_status, 1.00000D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_p       ,1,n_params, all_status, 1.00000D0, size_of)
+CALL alloc_arr ( refine_p       ,1,n_params, all_status, 1.00000D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000D0, size_of)
+CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_dp      ,1,n_params, all_status, 0.00000D0, size_of)
+CALL alloc_arr ( refine_dp      ,1,n_params, all_status, 0.00000D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_shift   ,1,n_params, all_status, 0.00500D0, size_of)
+CALL alloc_arr ( refine_shift   ,1,n_params, all_status, 0.00500D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_nderiv  ,1,n_params, all_status, 2      , size_of)
+CALL alloc_arr ( refine_nderiv  ,1,n_params, all_status, 2      )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_kderiv  ,1,n_params, all_status, 0      , size_of)
+CALL alloc_arr ( refine_kderiv  ,1,n_params, all_status, 0      )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
 IF( lstat ) THEN                        ! Success
@@ -210,7 +208,6 @@ IF( lstat ) THEN                        ! Success
 ELSE                                    ! Failure
    REF_MAXPARAM     =  0
 !         constr_number  =  0
-!         constr_size_of =  0
    ier_num        = -3
    ier_typ        = ER_COMM
    ier_msg(1)     = 'Paramters'
@@ -233,16 +230,14 @@ INTEGER, INTENT(IN)  :: n_params
 !!
 INTEGER              :: all_status
 LOGICAL              :: lstat
-INTEGER              :: size_of
 !!
 lstat = .TRUE.
-!      constr_size_of = 0
 !!
 !    
-CALL alloc_arr ( refine_fixed   ,1,n_params, all_status, ' ', size_of)
+CALL alloc_arr ( refine_fixed   ,1,n_params, all_status, ' ')
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
-CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000D0, size_of)
+CALL alloc_arr ( refine_f       ,1,n_params, all_status, 1.00000D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !!
 IF( lstat ) THEN                        ! Success
@@ -258,7 +253,6 @@ IF( lstat ) THEN                        ! Success
 ELSE                                    ! Failure
    REF_MAXPARAM_FIX =  0
 !         constr_number  =  0
-!         constr_size_of =  0
    ier_num        = -3
    ier_typ        = ER_COMM
    ier_msg(1)     = 'Paramters'
