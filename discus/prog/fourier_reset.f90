@@ -15,28 +15,35 @@ IMPLICIT NONE
 !-
 !USE precision_mod
 !
-CALL alloc_diffuse(1,1,1)
+CALL alloc_diffuse_four((/1,1,1/))
+CALL alloc_diffuse_scat(1)
+CALL alloc_diffuse_atom(1)
 !
 DIF_MAXAT   = 1 ! current size of array at
 DIF_MAXSCAT = 1 ! current size of array at
 IF(ALLOCATED(cfact))      cfact(:,:)      = (0.0D0,0.0D0)  ! (0:CFPKT, 1:MAXSCAT)
 IF(ALLOCATED(cfact_pure)) cfact_pure(:,:) = (0.0D0,0.0D0)  ! (0:CFPKT, 1:MAXSCAT)
-IF(ALLOCATED(csf))        csf(:)          = (0.0D0,0.0D0)  ! (1:MAXQXY)
-IF(ALLOCATED(tcsf))       tcsf(:)         = (0.0D0,0.0D0)  ! (1:MAXQXY)
-IF(ALLOCATED(acsf))       acsf(:)         = (0.0D0,0.0D0)  ! (1:MAXQXY)
+!IF(ALLOCATED(csf))        csf(:)          = (0.0D0,0.0D0)  ! (1:MAXQXY)                            ! Neder's original code
+!IF(ALLOCATED(tcsf))       tcsf(:)         = (0.0D0,0.0D0)  ! (1:MAXQXY)                            ! Neder's original code
+!IF(ALLOCATED(acsf))       acsf(:)         = (0.0D0,0.0D0)  ! (1:MAXQXY)                            ! Neder's original code
+!
+IF(ALLOCATED(csf))        csf(:,:,:)          = (0.0D0,0.0D0)                           
+IF(ALLOCATED(tcsf))       tcsf(:,:,:)         = (0.0D0,0.0D0)                                       ! My code                      
+IF(ALLOCATED(acsf))       acsf(:,:,:)         = (0.0D0,0.0D0)                            
+!
 IF(ALLOCATED(xat))        xat(:,:)        = 0.0            ! (1:NMAX, 1:3)
-IF(ALLOCATED(istl))       istl(:)         = 0              ! (1:MAXQXY)
-cex(:)    = (0.0D0,0.0D0)
-dsi(:)    = 0.0D0          ! (1:MAXQXY)
-xm(:)     = 0.0D0
-win(:)    = 0.0D0
-vin(:)    = 0.0D0
-uin(:)    = 0.0D0
+IF(ALLOCATED(istl))       istl(:,:,:)     = 0              ! (1:MAXQXY)
+cex       = (0.0D0,0.0D0)
+dsi       = 0.0D0          ! (1:MAXQXY)
+xm        = 0.0D0
+win       = 0.0D0
+vin       = 0.0D0
+uin       = 0.0D0
 fave      = 0.0
-num(:)    = 1
+num       = 1
 nlots     = 1
 ilots     = LOT_OFF
-ls_xyz(:) = 5
+ls_xyz    = 5
 nxat      = 1
 four_mode = INTERNAL
 lot_all   = .false.
@@ -58,8 +65,8 @@ zmax     = 0.0
 !
 lambda   = 'MOA1'
 four_exp = 0
-inc(:)   = (/ 121, 121,  1 /)
-lmn(:)   = 0
+inc      = (/ 121, 121,  1 /)
+lmn      = 0
 ano      = .false.
 ldbw     = .false.
 lxray    = .true.
@@ -78,7 +85,7 @@ rlambda  =  0.709260
 l_energy = .false.
 !
 l_zone = .false.
-zone_uvw(:)   = (/0.0, 0.0, 1.0/)
+zone_uvw      = (/0.0, 0.0, 1.0/)
 zone_ewald(:) = 0.0
 zone_res      = 0.0
 zone_delta_d  = 0.015

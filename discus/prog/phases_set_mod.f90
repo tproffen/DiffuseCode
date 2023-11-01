@@ -9,6 +9,7 @@ CONTAINS
 SUBROUTINE phases_set(zeile,  lcomm)
 !
 USE crystal_mod
+use diffuse_mod
 USE discus_allocate_appl_mod
 USE phases_mod
 !
@@ -65,9 +66,9 @@ err_para: IF (ier_num.eq.0) THEN
             pha_n     = 1
             pha_curr  = 1
             n_pha  = 1
-            n_pts  = 1
-            n_scat = 1
-            CALL alloc_phases(n_pha, n_pts, n_scat)
+            n_pts  = PHA_MAXPTS
+            n_scat = max(cr_nscat, MAXSCAT, PHA_MAXSCAT)
+            CALL alloc_phases(n_pha, (/n_pts,1,1/), n_scat)
             pha_frac(:)    = 0.0
             pha_frac(1)    = 0.0
             pha_nscat(1)   = 0.0
@@ -78,8 +79,8 @@ err_para: IF (ier_num.eq.0) THEN
                IF(pha_curr>PHA_MAXPHA) THEN
                   n_pha  = pha_curr
                   n_pts  = PHA_MAXPTS
-                  n_scat = PHA_MAXSCAT
-                  CALL alloc_phases(n_pha, n_pts, n_scat)
+                  n_scat = max(cr_nscat, MAXSCAT, PHA_MAXSCAT)
+                  CALL alloc_phases(n_pha, (/n_pts,1,1/), n_scat)
                ENDIF
                pha_frac(pha_curr) = owerte(O_WGHT)
                pha_nscat(pha_curr) = 0.0
@@ -103,9 +104,9 @@ err_para: IF (ier_num.eq.0) THEN
                pha_curr = NINT(owerte(O_CURRENT))
                IF(pha_curr>PHA_MAXPHA) THEN
                   n_pha  = pha_curr
-                  n_pts  = PHA_MAXPTS
+                  n_pts  = ubound(csf,1)  !PHA_MAXPTS
                   n_scat = PHA_MAXSCAT
-                  CALL alloc_phases(n_pha, n_pts, n_scat)
+                  CALL alloc_phases(n_pha, (/n_pts,1,1/), n_scat)
                ENDIF
                pha_frac(pha_curr) = owerte(O_WGHT)
                pha_nscat(pha_curr) = 0.0
@@ -1025,7 +1026,7 @@ USE phases_mod
 !
 IMPLICIT NONE
 !
-CALL alloc_phases(1, 1, 1)
+CALL alloc_phases(1, (/1,1,1/), 1)
 !
 pha_multi  = .FALSE.
 pha_n      = 1

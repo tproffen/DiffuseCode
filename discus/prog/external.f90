@@ -20,7 +20,7 @@ use precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER i, j, k, l, m, mm 
-      INTEGER ij 
+      INTEGER ii 
       INTEGER iscat 
       REAL(kind=PREC_DP) :: det 
 !                                                                       
@@ -34,12 +34,15 @@ use precision_mod
 !                                                                       
 !------ zero some arrays                                                
 !                                                                       
-      DO i = 1, num (1) * num (2) 
-      csf (i) = cmplx (0.0, 0.0, KIND=KIND(0.0D0)) 
-      acsf (i) = cmplx (0.0, 0.0, KIND=KIND(0.0D0)) 
-      dsi (i) = 0.0d0 
-      ENDDO 
-!                                                                       
+!      DO i = 1, num (1) * num (2) 
+!      csf (i) = cmplx (0.0, 0.0, KIND=KIND(0.0D0))                                               ! Neder's original code
+!      acsf (i) = cmplx (0.0, 0.0, KIND=KIND(0.0D0)) 
+!      dsi (i) = 0.0d0 
+!      ENDDO 
+! 
+      csf  = cmplx (0.0, 0.0, KIND=KIND(0.0D0))
+      acsf = cmplx (0.0, 0.0, KIND=KIND(0.0D0))
+      dsi  = 0.0D0                                      ! NEEDS WORK DSI3D
 !------ preset some tables,                                             
 !                                                                       
       CALL four_cexpt 
@@ -61,10 +64,10 @@ use precision_mod
 !DBG_RBN      THESE TWO LINES ARE NO LONGER NEEDED !?!?!                
 !DBG            mm = mole_cont(mole_off(l)+4+k)                         
 !DBG            exte_rot(j,k) = cr_pos(j,mm) - cr_pos(j,m)              
-      ENDDO 
+      ENDDO                                                                                           ! out of the k loop
       exte_mat (j, 4) = cr_pos (j, m) 
       exte_rmat (j, 4) = cr_pos (j, m) 
-      ENDDO 
+      ENDDO                                                                                           ! out of the j loop
       det = exte_mat (1, 1) * (exte_mat (2, 2) * exte_mat (3, 3)        &
       - exte_mat (2, 3) * exte_mat (3, 2) ) + exte_mat (2, 1) * (       &
       exte_mat (3, 2) * exte_mat (1, 3) - exte_mat (1, 2) * exte_mat (3,&
@@ -73,9 +76,12 @@ use precision_mod
 !DBG    write (*,3000) 'Direct space ',((exte_mat  (i,j),j=1,4),i=1,3)  
 !DBG    write (*,3000) 'Final Matrix ',((exte_rmat (i,j),j=1,4),i=1,3)  
 !WORK          call external_header(mole_type(l))                       
-      DO i = 1, num (1) * num (2) 
-      tcsf (i) = cmplx (0.0, 0.0, KIND=KIND(0.0D0)) 
-      ENDDO 
+!
+!      DO i = 1, num (1) * num (2) 
+!      tcsf (i) = cmplx (0.0, 0.0, KIND=KIND(0.0D0))                                                          ! Neder's original code
+!      ENDDO 
+!
+      tcsf = cmplx (0.0, 0.0, KIND=KIND(0.0D0))
 !                                                                       
 !     -- Call the specialised subroutines for standard shapes           
 !                                                                       
@@ -93,17 +99,37 @@ use precision_mod
 !                                                                       
       iscat = cr_iscat (m) 
       IF (iscat.gt.0) then 
-         DO i = 1, num (1) * num (2) 
-         csf (i) = csf (i) + tcsf (i) * cfact (istl (i), iscat) 
-         ENDDO 
+!
+!         DO i = 1, num (1) * num (2) 
+!         csf (i) = csf (i) + tcsf (i) * cfact (istl (i), iscat)                                               ! Neder's original code
+!         ENDDO
+!
+            DO i = 1, num (1)                                                                                 ! No problem in using i
+                  DO j = 1, num (2)                                                                           ! No problem in using j
+                  DO k = 1, num (3)                                                                           ! No problem in using j
+                     csf (i,j,k) = csf (i,j,k) + tcsf (i,j,k) * cfact (istl (i,j,k), iscat)                           ! My declaration ( Why only 2D ??, also discuss the istl(i*j) thing )
+                   enddo                                                                                      ! out of the j loop
+                   ENDDO                                                                                      ! out of the j loop
+            ENDDO                                                                                             ! out of the i loop
+!
       ENDIF 
-      ENDDO 
+      ENDDO                                                                                                   ! out of the l loop
 !                                                                       
 !     Finally calclutate DSI                                            
 !                                                                       
-      DO ij = 1, num (1) * num (2) 
-      dsi (ij) = real(csf (ij) * conjg (csf (ij) ), kind=PREC_DP ) 
-      ENDDO 
+!      DO ij = 1, num (1) * num (2) 
+!      dsi (ij) = real(csf (ij) * conjg (csf (ij) ), kind=PREC_DP )                                              ! Neder's original code
+!      ENDDO 
+!
+      ii = 0
+      DO i = 1, num (1)                                                                                         ! No problem in using i
+            DO j = 1, num (2)                                                                                   ! No problem in using j
+            DO k = 1, num (3)                                                                                   ! No problem in using j
+            ii = ii + 1
+                  dsi(i,j,k)    = real(csf (i,j,k) * conjg (csf (i,j,k) ), kind=PREC_DP )                          ! My declaration ( Why only 2D ??)
+            ENDDO                                                                                               ! out of the j loop
+            ENDDO                                                                                               ! out of the j loop
+      ENDDO                                                                                                     ! out of the i loop
 !                                                                       
 !DBG3000      format( a30,' : ',4(2x,f9.4)/                             
 !DBG     &                2( 30x,' : ',4(2x,f9.4)/))                    
@@ -132,7 +158,7 @@ use precision_mod
 !                                                                       
       INTEGER number 
       INTEGER i, j, k 
-      INTEGER ii, jj 
+      INTEGER ii, jj , kk
       INTEGER ij 
       REAL(KIND=PREC_DP) :: h (3), hh (3) 
       REAL(KIND=PREC_DP) :: det 
@@ -142,35 +168,38 @@ use precision_mod
 !      -- Loop over all points in reciprocal space                      
 !                                                                       
       sfstart = 8. * cr_v * abs (det) * mole_dens (number) 
-      ij = 0 
-      DO i = 1, num (1) 
-      DO j = 1, num (2) 
-      ij = ij + 1 
-      DO k = 1, 3 
-      h (k) = REAL(xm (k) + uin (k) * REAL(i - 1) + vin (k) * REAL(j - 1) )
-      ENDDO 
+      ij = 0                                                                                          ! ij initialization
+      DO i = 1, num (1)                                                                               ! i loop
+      DO j = 1, num (2)                                                                               ! j loop
+      DO k = 1, num (3)                                                                               ! j loop
+      ij = ij + 1                                                                                     ! ij increment
+      DO kk = 1, 3                                                                                     ! k loop
+      h (kk) = REAL(xm (kk) + uin (kk) * REAL(i - 1) + vin (kk) * REAL(j - 1) )
+      ENDDO                                                                                           ! out of the k loop
 !                                                                       
 !     ---- Transform vector                                             
 !                                                                       
       phase = 0.0 
-      DO ii = 1, 3 
+      DO ii = 1, 3                                                                                    ! ii loop
       hh (ii) = 0.0 
-      DO jj = 1, 3 
+      DO jj = 1, 3                                                                                    ! jj loop
       hh (ii) = hh (ii) + exte_rmat (ii, jj) * h (jj) 
-      ENDDO 
+      ENDDO                                                                                           ! out of the jj loop
       phase = phase+h (ii) * exte_rmat (ii, 4) 
-      ENDDO 
+      ENDDO                                                                                           ! out of the ii loop
       phase = phase * 360.0 
       sf = sfstart 
-      DO ii = 1, 3 
+      DO ii = 1, 3                                                                                    ! ii loop
       IF (hh (ii) .ne.0) then 
          sf = sf * sin (REAL(zpi) * hh (ii) ) / (REAL(zpi) * hh (ii) ) 
       ENDIF 
-      ENDDO 
-      tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind (     &
-      phase) )                                                          
-      ENDDO 
-      ENDDO 
+      ENDDO                                                                                           ! out of the ii loop
+      !tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind (     &                            ! Neder's original code
+      !phase) )                                                          
+      tcsf (i,j,k) = tcsf (i,j,k) + cmplx (sf * cosd (phase), sf * sind (phase))      ! My declaration ( i and j run already in the outer loop, so no need for ij  )
+      ENDDO                                                                                           ! out of the j loop
+      ENDDO                                                                                           ! out of the i loop
+      ENDDO                                                                                           ! out of the i loop
 !                                                                       
       END SUBROUTINE external_cube                  
 !*****7**************************************************************** 
@@ -194,7 +223,7 @@ use precision_mod
 !                                                                       
       INTEGER number 
       INTEGER i, j, k 
-      INTEGER ii, jj 
+      INTEGER ii, jj , kk
       INTEGER ij 
 REAL(kind=PREC_DP), dimension(3) ::  h (3), hh (3)
 real(kind=PREC_DP), dimension(3) :: r
@@ -212,26 +241,27 @@ real(kind=PREC_DP), dimension(3) :: z
 !      -- Loop over all points in reciprocal space                      
 !                                                                       
       sfstart = REAL(zpi) * cr_v * abs (det) * mole_dens (number) 
-      ij = 0 
-      DO i = 1, num (1) 
-      DO j = 1, num (2) 
-      ij = ij + 1 
-      DO k = 1, 3 
-      h (k) = REAL(xm (k) + uin (k) * REAL(i - 1) + vin (k) * REAL(j - 1) )
-      ENDDO 
+      ij = 0                                                                                          ! ij initialization  
+      DO i = 1, num (1)                                                                               ! i loop                                  
+      DO j = 1, num (2)                                                                               ! j loop
+      DO k = 1, num (3)                                                                               ! j loop
+      ij = ij + 1                                                                                     ! ij increment
+      DO kk = 1, 3                                                                                     ! k loop
+      h (kk) = REAL(xm (kk) + uin (kk) * REAL(i - 1) + vin (kk) * REAL(j - 1) )
+      ENDDO                                                                                           ! out of the k loop
 !                                                                       
 !     ---- Transform vector                                             
 !                                                                       
       phase = 0.0 
-      DO ii = 1, 3 
-      hh (ii) = 0.0 
-      DO jj = 1, 3 
+      DO ii = 1, 3                                                                                    ! ii loop
+      hh (ii) = 0.0                             
+      DO jj = 1, 3                                                                                    ! jj loop
       hh (ii) = hh (ii) + exte_rmat (ii, jj) * h (jj) 
-      ENDDO 
+      ENDDO                                                                                           ! out of the jj loop
       phase = phase+h (ii) * exte_rmat (ii, 4) 
       r (ii) = hh (ii) 
       z (ii) = hh (ii) 
-      ENDDO 
+      ENDDO                                                                                           ! out of the ii loop
       r (3) = 0.0 
       z (1) = 0.0 
       z (2) = 0.0 
@@ -248,10 +278,13 @@ real(kind=PREC_DP), dimension(3) :: z
       IF (dz.gt.2e-3) then 
          sf = sf * sin (qz) / qz 
       ENDIF 
-      tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind (     &
-      phase) )                                                          
-      ENDDO 
-      ENDDO 
+      !tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind (     &                            ! Neder's original code
+      !phase) )
+      tcsf (i,j,k) = tcsf (i,j,k) + cmplx (sf * cosd (phase), sf * sind (     &                           ! My declaration ( i and j run already in the outer loop, so no need for ij  )
+      phase) )                                                         
+      ENDDO                                                                                           ! out of the j loop
+      ENDDO                                                                                           ! out of the i loop
+      ENDDO                                                                                           ! out of the i loop
 !                                                                       
 !                                                                       
       END SUBROUTINE external_cylinder              
@@ -277,7 +310,7 @@ use precision_mod
 !                                                                       
       INTEGER number 
       INTEGER i, j, k 
-      INTEGER ii, jj 
+      INTEGER ii, jj , kk
       INTEGER ij 
       REAL(KIND=PREC_DP) :: h (3)
 real(kind=PREC_DP), dimension(3) :: hh
@@ -293,23 +326,24 @@ real(kind=PREC_DP), dimension(3) :: hh
 !      -- Loop over all points in reciprocal space                      
 !                                                                       
       sfstart = 4. / 3. * REAL(pi) * cr_v * abs (det) * mole_dens (number) 
-      ij = 0 
-      DO i = 1, num (1) 
-      DO j = 1, num (2) 
-      ij = ij + 1 
-      DO k = 1, 3 
-      h (k) = REAL(xm (k) + uin (k) * REAL(i - 1) + vin (k) * REAL(j - 1) )
-      ENDDO 
+      ij = 0                                                                                    ! ij initialization                 
+      DO i = 1, num (1)                                                                         ! i loop
+      DO j = 1, num (2)                                                                         ! j loop
+      DO k = 1, num (3)                                                                               ! j loop
+      ij = ij + 1                                                                               ! ij increment
+      DO kk = 1, 3                                                                               ! k loop
+      h (kk) = REAL(xm (kk) + uin (kk) * REAL(i - 1) + vin (kk) * REAL(j - 1) )
+      ENDDO                                                                                     ! out of the k loop
 !                                                                       
 !     ---- Transform vector                                             
       phase = 0.0 
-      DO ii = 1, 3 
-      hh (ii) = 0.0 
-      DO jj = 1, 3 
+      DO ii = 1, 3                                                                              ! ii loop
+      hh (ii) = 0.0                                   
+      DO jj = 1, 3                                                                              ! jj loop
       hh (ii) = hh (ii) + exte_rmat (ii, jj) * h (jj) 
-      ENDDO 
+      ENDDO                                                                                     ! out of the jj loop
       phase = phase+h (ii) * exte_rmat (ii, 4) 
-      ENDDO 
+      ENDDO                                                                                     ! out of the ii loop
       phase = phase * 360.0 
 !                                                                       
       ds = sqrt (skalpro (hh, hh, cartesian) ) 
@@ -318,10 +352,13 @@ real(kind=PREC_DP), dimension(3) :: hh
       IF (ds.gt.2e-3) then 
          sf = sfstart * 3 * (sin (qr) - qr * cos (qr) ) / (qr) **3 
       ENDIF 
-      tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind (     &
-      phase) )                                                          
-      ENDDO 
-      ENDDO 
+      !tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind (     &                      ! Neder's original code
+      !phase) )                                                          
+      tcsf (i,j,k) = tcsf (i,j,k) + cmplx (sf * cosd (phase), sf * sind (     &                     ! My declaration ( i and j run already in the outer loop, so no need for ij  )
+      phase) )
+      ENDDO                                                                                     ! out of the j loop
+      ENDDO                                                                                     ! out of the i loop
+      ENDDO                                                                                     ! out of the i loop
 !                                                                       
       END SUBROUTINE external_sphere                
 !*****7**************************************************************** 
@@ -346,7 +383,7 @@ use precision_mod
 !                                                                       
       INTEGER number 
       INTEGER i, j, k 
-      INTEGER ii, jj 
+      INTEGER ii, jj , kk
       INTEGER ij 
       REAL(KIND=PREC_DP) :: h (3), hh (3) 
       REAL(KIND=PREC_DP) :: det 
@@ -365,42 +402,43 @@ use precision_mod
 !                                                                       
 !-----      --- Find minimum h                                          
 !                                                                       
-      DO i = 1, 2 
-      ij = ij + 1 
-      DO k = 1, 3 
+      DO i = 1, 2                                                                   ! i loop 
+      ij = ij + 1                                                                   ! ij increment ( there is no initialization here ??? Weird !!! )
+      DO k = 1, 3                                                                   ! k loop
       h (k) = REAL(uin (k) * REAL(2 - i) + vin (k) * REAL( - 1 + i) )
-      ENDDO 
+      ENDDO                                                                         ! out of the k loop
 !                                                                       
 !     ---- Transform vector                                             
 !                                                                       
-      DO ii = 1, 3 
+      DO ii = 1, 3                                                                  ! ii loop
       hh (ii) = 0.0 
-      DO jj = 1, 3 
+      DO jj = 1, 3                                                                  ! jj loop
       hh (ii) = hh (ii) + exte_rmat (ii, jj) * h (jj) 
-      ENDDO 
+      ENDDO                                                                         ! out of the jj loop
       hmin (ii) = max (hmin (ii), abs (hh (ii) ) ) 
-      ENDDO 
-      ENDDO 
+      ENDDO                                                                         ! out of the ii loop
+      ENDDO                                                                         ! out of the i loop
       sfstart = 1.0 
-      ij = 0 
-      DO i = 1, num (1) 
-      DO j = 1, num (2) 
-      ij = ij + 1 
-      DO k = 1, 3 
-      h (k) = REAL(xm (k) + uin (k) * REAL(i - 1) + vin (k) * REAL(j - 1) )
-      ENDDO 
+      ij = 0                                                                        ! ij initialization
+      DO i = 1, num (1)                                                             ! i loop
+      DO j = 1, num (2)                                                             ! j loop                                                  
+      DO k = 1, num (3)                                                             ! j loop                                                  
+      ij = ij + 1                                                                   ! ij increment      
+      DO kk = 1, 3                                                                   ! k loop
+      h (kk) = REAL(xm (kk) + uin (kk) * REAL(i - 1) + vin (kk) * REAL(j - 1) )
+      ENDDO                                                                         ! out of the k loop
 !                                                                       
 !     ---- Transform vector                                             
 !                                                                       
       phase = 0.0 
-      DO ii = 1, 3 
+      DO ii = 1, 3                                                                  ! ii loop
       hh (ii) = 0.0 
-      DO jj = 1, 3 
+      DO jj = 1, 3                                                                  ! jj loop
       hh (ii) = hh (ii) + exte_rmat (ii, jj) * h (jj) 
-      ENDDO 
+      ENDDO                                                                         ! out of the jj loop
       phase = phase+h (ii) * exte_rmat (ii, 4) 
       hmin (ii) = min (hmin (ii), abs (hh (ii) ) ) 
-      ENDDO 
+      ENDDO                                                                         ! out of the ii loop
       phase = phase * 360.0 
       sf = sfstart 
       IF (abs (hh (1) ) .gt.hmin (1) * 3.5.or.abs (hh (2) ) .gt.hmin (2)&
@@ -409,19 +447,24 @@ use precision_mod
       ELSE 
          IF (abs (hh (3) ) .gt.hmin (3) * 1.5) then 
             sf = - sf / (REAL(zpi) * hh (3) ) 
-            tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase+90),        &
-            sf * sind (phase+90) )                                      
+            !tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase+90),        &          ! Neder's original code
+            !sf * sind (phase+90) )                 
+            tcsf (i,j,k) = tcsf (i,j,k) + cmplx (sf * cosd (phase+90),        &         ! My declaration ( i and j run already in the outer loop, so no need for ij  )
+            sf * sind (phase+90) )
             WRITE ( output_io, * ) ' calculating line' 
          ELSE 
             sf = - 0.5 * sf 
             sf = - 1.0 * sf 
             WRITE ( output_io, * ) ' Calculated hh=0' 
-            tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind &
-            (phase) )                                                   
+            !tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind &          ! Neder's original code
+            !(phase) )                                                   
+            tcsf (i,j,k) = tcsf (i,j,k) + cmplx (sf * cosd (phase), sf * sind &         ! My declaration ( i and j run already in the outer loop, so no need for ij  )
+            (phase) )
          ENDIF 
-      ENDIF 
-      ENDDO 
-      ENDDO 
+      ENDIF                                     
+      ENDDO                                                                         ! out of the j loop
+      ENDDO                                                                         ! out of the i loop
+      ENDDO                                                                         ! out of the i loop
 !DBG_RBN                                                                
 !     WRITE ( output_io , * ) 'hmin ', hmin (1) 
 !     WRITE ( output_io , * ) 'hmin ', hmin (2) 

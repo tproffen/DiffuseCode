@@ -9,7 +9,8 @@ INTEGER, DIMENSION(2) :: fft_dim      ! Size of fft_field
 INTEGER               :: fft_grid     ! No of grid points in a unit cell
 !
 CONTAINS
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
 !
 SUBROUTINE four_run 
 !+                                                                      
@@ -35,7 +36,7 @@ IMPLICIT none
 REAL(KIND=PREC_DP) :: ss!, seknds
 REAL(KIND=PREC_DP) :: dnorm
 INTEGER :: lbeg (3), csize (3) 
-INTEGER :: iscat, nlot, ncell, i 
+INTEGER :: iscat, nlot, ncell, i! ,j,k
 INTEGER :: ii          ! Dummy variable
 !                                                                       
 !ier_num = 0    ! STRANGE BUG on MacAir with M1 chip ??? 2022-May-11
@@ -49,13 +50,12 @@ ss = seknds (0.0)
 !                                                                       
 call four_layer 
 !                                                                       
-!------ zero some arrays                                                
-!                                                                       
-DO i = 1, num (1) * num (2) * num(3)
-   csf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
-   acsf(i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
-   dsi (i) = 0.0d0 
-ENDDO 
+!------ zero some arrays
+!                                                
+!
+csf (1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
+acsf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
+dsi (1:num(1),1:num(2),1:num(3)) = 0.0d0
 !                                                                       
 !------ preset some tables, calculate average structure                 
 !                                                                       
@@ -87,88 +87,72 @@ call four_aver (ilots, fave, csize)
 !                                                                       
 !------ loop over crystal regions (lots)                                
 !                                                                       
-      loop_lots: DO nlot = 1, nlots 
-         DO i = 1, num (1) * num (2) * num(3)
-            csf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
-         ENDDO 
+loop_lots: DO nlot = 1, nlots 
+!
+   csf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
 !                                                                       
-         IF(lot_all) THEN
-!           ii      = nlot - 1 
-!           lbeg(3) = (ii  )/(cr_icc(1)*cr_icc(2)) + 1
-!           ii      = (ii  ) - (lbeg(3)-1)*(cr_icc(1)*cr_icc(2))
-!           lbeg(2) = (ii  )/(cr_icc(1)) + 1
-!           ii      = (ii  ) - (lbeg(2)-1)*(cr_icc(1))
-!           lbeg(1) = MOD(ii,cr_icc(1)) + 1
-            ii      = nlot - 1 
-            lbeg(3) = (ii  )/(csize(1)*csize(2)) + 1
-            ii      = (ii  ) - (lbeg(3)-1)*(csize(1)*csize(2))
-            lbeg(2) = (ii  )/(csize(1)) + 1
-            ii      = (ii  ) - (lbeg(2)-1)*(csize(1))
-            lbeg(1) = MOD(ii,csize(1)) + 1
-         ELSE
-            call four_ranloc (csize, lbeg) 
-         ENDIF
-         IF (four_log) then 
-            IF (ilots.ne.LOT_OFF) then 
-               WRITE (output_io, 2000) nlot, nlots, (lbeg (i), i = 1, 3) 
-            ELSE 
-               WRITE (output_io, 2010) nlot, nlots 
-            ENDIF 
-         ENDIF 
+   IF(lot_all) THEN
+      ii      = nlot - 1 
+      lbeg(3) = (ii  )/(csize(1)*csize(2)) + 1
+      ii      = (ii  ) - (lbeg(3)-1)*(csize(1)*csize(2))
+      lbeg(2) = (ii  )/(csize(1)) + 1
+      ii      = (ii  ) - (lbeg(2)-1)*(csize(1))
+      lbeg(1) = MOD(ii,csize(1)) + 1
+   ELSE
+      call four_ranloc (csize, lbeg) 
+   ENDIF
+   IF (four_log) then 
+      IF (ilots.ne.LOT_OFF) then 
+         WRITE (output_io, 2000) nlot, nlots, (lbeg (i), i = 1, 3) 
+      ELSE 
+         WRITE (output_io, 2010) nlot, nlots 
+      ENDIF 
+   ENDIF 
 !                                                                       
 !------ - loop over all different atom types                            
 !                                                                       
-         loop_atoms: DO iscat = 1, cr_nscat 
-            call four_getatm (iscat, ilots, lbeg, ncell) 
-            call four_strucf (iscat, .true.) 
-!call four_strucf_fft(iscat, .TRUE., nlot)
+   loop_atoms: DO iscat = 1, cr_nscat 
+      call four_getatm (iscat, ilots, lbeg, ncell) 
+      call four_strucf (iscat, .true.) 
 !                                                                       
 !------ --- Add this part of the structur factor to the total           
-!                                                                       
-            DO i = 1, num (1) * num (2) *num (3)
-               csf (i) = csf (i) + tcsf (i) 
-            ENDDO 
-            IF (four_log) then 
-               WRITE (output_io, 3000) cr_at_lis (iscat), nxat 
-            ENDIF 
-            IF(ier_ctrlc) THEN
-               ier_num = -14
-               ier_typ = ER_COMM
-               RETURN
-            ENDIF
-            IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
-         ENDDO loop_atoms
+!                 
+      csf (1:num(1),1:num(2),1:num(3)) = csf (1:num(1),1:num(2),1:num(3)) + tcsf (1:num(1),1:num(2),1:num(3))
+!
+      IF (four_log) then 
+         WRITE (output_io, 3000) cr_at_lis (iscat), nxat 
+      ENDIF 
+      IF(ier_ctrlc) THEN
+         ier_num = -14
+         ier_typ = ER_COMM
+         RETURN
+      ENDIF
+      IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
+   ENDDO loop_atoms
 !                                                                       
 !------ - subtract average structure factor, add intensity              
-!                                                                       
-         DO i = 1, num (1) * num (2) *num (3)
-            csf (i) = csf (i) - acsf (i) !* fave_sca
-            dsi (i) = dsi (i) + DBLE (csf (i) * conjg (csf (i) ) ) 
-         ENDDO 
-         call four_apply_friedel
-      ENDDO loop_lots
-!DO i = 1, num (1) * num (2) *num (3)
-!dsi (i) = DBLE (acsf (i) * conjg (acsf (i) ) ) 
-!ENDDO 
+!
+   csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) - &
+                                    acsf(1:num(1),1:num(2),1:num(3)) 
+   dsi(1:num(1),1:num(2),1:num(3)) = dsi(1:num(1),1:num(2),1:num(3)) + &
+                          DBLE(      csf(1:num(1),1:num(2),1:num(3)) * &
+                               conjg(csf(1:num(1),1:num(2),1:num(3)) ) ) 
+!
+   call four_apply_friedel
+ENDDO loop_lots
 !
 !----- Reset for Friedels law, and reduce calculation time
 !
 call four_rese_friedel
 !                                                                       
 !------ if we had lots, normalise the intensities                       
-!                                                                       
-      IF (nlots.ne.1) then 
-         dnorm = DBLE (cr_icc (1) * cr_icc (2) * cr_icc (3) ) / &
-                 DBLE (ncell * nlots)                                                 
-!         dnorm = dnorm**2    Non-squared gives constant intensity for all sizes and numbers
-         DO i = 1, num (1) * num (2) *num (3)
-         dsi (i) = dnorm * dsi (i) 
-         ENDDO 
-      ENDIF 
+!****************************************************************************************************************************************************************************                                                                       
+IF (nlots.ne.1) then 
+   dnorm = DBLE(cr_icc(1) * cr_icc(2) * cr_icc(3) ) / &
+           DBLE(ncell * nlots)                                                 
+   dsi(1:num(1),1:num(2),1:num(3))  = dnorm * dsi(1:num(1),1:num(2),1:num(3))
+ENDIF 
 !
-!if(allocated(dsi3d)) deallocate(dsi3d)
-!allocate(dsi3d(1:ubound(dsi,1)))
-!dsi3d = dsi
 call four_conv           ! Convolute diffraction pattern
 !
 call four_accumulate
@@ -196,16 +180,16 @@ ENDIF
 !write(*,*) ' inc num', inc, num
 !write(*,*) ' lmn    ', lmn
 !
-!call four_fft_finalize
 !                                                                       
  2000 FORMAT     (/,' Lot # ',I4,'/',I4,' : starting at unit cell (',   &
      &                       3(I3,1X),')')                              
  2010 FORMAT     (/,' Lot # ',I4,'/',I4,' : complete crystal') 
  3000 FORMAT (  '                   Atom typ = ',A4,7X,'(# ',I9,' )') 
  4000 FORMAT     (/,' Elapsed time    : ',G13.6,' sec') 
-      END SUBROUTINE four_run                       
 !
-!*****7*****************************************************************
+END SUBROUTINE four_run
+!
+!**********************************************************************
 !
 subroutine four_run_nufft
 !-
@@ -233,20 +217,21 @@ real(kind=PREC_DP), parameter :: MAXSCALE=3.0D0      ! Maximum scale allowed by 
 integer               :: i, j, k  ! Dummy index
 integer               :: ii       ! Dummy index
 integer               :: iscat    ! Dummy scattering type
-integer               :: nat      ! Atom number
+integer, dimension(:), allocatable :: nat      ! Atom number
 integer               :: is_dim   ! Crystal is of this dimension
 integer, dimension(3) :: ncells   ! Number unit cells in relevant region
 integer, dimension(3) :: idims    ! Number of data points in FFT
-integer               :: NQXYZ    ! Actual data points in FFT array
+integer, dimension(3) :: NQXYZ    ! Actual data points in FFT array
 logical, dimension(3) :: ll_dim   ! This dimension is not flat
 !
 integer              , dimension(3)              :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
 real(kind=PREC_DP)   , dimension(3)              :: scales  ! Scaling if DELTA (hkl) /= 1/cr_icc
+real(kind=PREC_DP)   , dimension(3)              :: shift   ! Shift atom positions towards Center of mass
 real(KIND=PREC_DP) :: ss                                    ! Timing variable
-real(kind=PREC_DP)   , dimension(:), allocatable :: xpos    ! atom coordinates, fractional
-real(kind=PREC_DP)   , dimension(:), allocatable :: ypos    ! atom coordinates, fractional
-real(kind=PREC_DP)   , dimension(:), allocatable :: zpos    ! atom coordinates, fractional
-complex(kind=PREC_DP), dimension(:), allocatable :: fcsf    ! complex structure factor from FINUFFT
+real(kind=PREC_DP)   , dimension(:,:), allocatable :: xpos    ! atom coordinates, fractional
+real(kind=PREC_DP)   , dimension(:,:), allocatable :: ypos    ! atom coordinates, fractional
+real(kind=PREC_DP)   , dimension(:,:), allocatable :: zpos    ! atom coordinates, fractional
+complex(kind=PREC_DP), dimension(:,:,:), allocatable :: fcsf    ! complex structure factor from FINUFFT
 !
 real(kind=PREC_DP)   , dimension(:    ), allocatable :: infield_1d    ! input into LANCZOS
 real(kind=PREC_DP)   , dimension(:,:  ), allocatable :: infield_2d    ! input into LANCZOS
@@ -325,7 +310,7 @@ if(fave/=0.0D0) then
    enddo
 endif
 !
-NQXYZ   = inc(1)*inc(2)*inc(3)                            ! User size in reciprocal space
+NQXYZ   = inc
 !
 ! Calculate average structure factor
 !
@@ -333,9 +318,10 @@ if(fave > 0.0D0) then
    call four_aver_finufft(is_dim, ll_dim)
    if(ier_num/=0) return
 else
-   acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0))
+!
+   acsf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
 endif
-!                                                                       
+!                                                                                                                                              
 !------ preset some values                                              
 !                                                                       
 call four_layer                ! copy eck, vi
@@ -345,39 +331,53 @@ call four_formtab              ! Calculate atomic form factors
 !
 !  Clear Fourier arrays 
 !
-csf     = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0)) 
-dsi     = 0.0d0 
+csf(1:num(1),1:num(2),1:num(3))  = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
+dsi(1:num(1),1:num(2),1:num(3))  = 0.0d0
 !
+!------------------------------------------------------------------------------------------------------------------------------------------------------
+!q: What is the difference between num(1) and inc(1)?
+!a: num(1) is the number of data points in the reciprocal space    !!!!!! ASK NEDER !!!!!!
+!   inc(1) is the number of data points in the real space
+!   num(1) = inc(1) + 1
+!
+shift(1) = -real(int((cr_dim(1,2)+cr_dim(1,1))*0.5D0), kind=PREC_DP)
+shift(2) = -real(int((cr_dim(2,2)+cr_dim(2,1))*0.5D0), kind=PREC_DP)
+shift(3) = -real(int((cr_dim(3,2)+cr_dim(3,1))*0.5D0), kind=PREC_DP)
 cond_dim: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
-   allocate(fcsf(1:NQXYZ))
-   allocate(xpos(1:cr_natoms))
-   allocate(ypos(1:cr_natoms))
-   allocate(zpos(1:cr_natoms))
+!
+   allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
+!
+   allocate(nat (             0:cr_nscat))
+   allocate(xpos(1:cr_natoms, 0:cr_nscat))
+   allocate(ypos(1:cr_natoms, 0:cr_nscat))
+   allocate(zpos(1:cr_natoms, 0:cr_nscat))
    ncells = cr_icc
    xpos = 0.0D0
    ypos = 0.0D0
    zpos = 0.0D0
+   nat = 0
+   loop_atom3: do i=1, cr_natoms               ! Loop over all atoms
+      k = cr_iscat(i)
+      nat(k) = nat(k) + 1
+      xpos(nat(j),k) = cr_pos(1,i) + shift(1)
+      ypos(nat(j),k) = cr_pos(2,i) + shift(2)
+      zpos(nat(j),k) = cr_pos(3,i) + shift(3)
+   enddo loop_atom3
    loop_scat3:do iscat=1,cr_nscat                 ! Loop over all atom types
-      nat = 0
-      loop_atom3: do i=1, cr_natoms               ! Loop over all atoms
-         if(cr_iscat(i)==iscat) then              ! Found suitable atom
-            nat = nat + 1
-            xpos(nat) = cr_pos(1,i)
-            ypos(nat) = cr_pos(2,i)
-            zpos(nat) = cr_pos(3,i)
-         endif
-      enddo loop_atom3
 !
-      call four_strucf_3d(cr_natoms, nat, ncells, idims, NQXYZ, xpos, ypos,     &
-                         zpos, cr_occ(iscat),iscales, scales, fcsf)
+      call four_strucf_3d(cr_natoms, nat(iscat), ncells, idims, NQXYZ, &
+                         xpos(:,iscat), ypos(:,iscat),     &
+                         zpos(:,iscat), cr_occ(iscat),iscales, scales, fcsf)
       call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
-      csf = csf + fcsf                           ! Add to complex structure factor
+      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))                           ! Add to complex structure factor
    enddo loop_scat3
+   deallocate(nat)
    deallocate(xpos)
    deallocate(ypos)
    deallocate(zpos)
 elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 222222222222222222222222
-   allocate(fcsf(1:NQXYZ))
+   allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
+  ! 
    j = findloc(inc   , 1      , 1)      ! Find     flat dimension in reciprocal space
    if(j==3) then             ! 3 is flat, set dimension 3 to 1
       iscales(3) = 1
@@ -403,78 +403,86 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
    endif
    idims(3) = 1
    j = findloc(ll_dim, .false., 1)      ! Find     flat dimension in direct space
-   allocate(xpos(1:cr_natoms))
-   allocate(ypos(1:cr_natoms))
-   allocate(zpos(1:cr_natoms))
+   allocate(nat (             0:cr_nscat))
+   allocate(xpos(1:cr_natoms, 0:cr_nscat))
+   allocate(ypos(1:cr_natoms, 0:cr_nscat))
+   allocate(zpos(1:cr_natoms, 0:cr_nscat))
    xpos = 0.0D0
    ypos = 0.0D0
    zpos = 0.0D0
+   nat = 0
+   loop_atom2: do i=1, cr_natoms               ! Loop over all atoms
+      k = cr_iscat(i)
+      nat(k) = nat(k) + 1
+      xpos(nat(j),k) = cr_pos(1,i) + shift(1)
+      ypos(nat(j),k) = cr_pos(2,i) + shift(2)
+      zpos(nat(j),k) = cr_pos(3,i) + shift(3)
+   enddo loop_atom2
    loop_scat2:do iscat=1,cr_nscat                 ! Loop over all atom types
-      nat = 0
-      loop_atom2: do i=1, cr_natoms               ! Loop over all atoms
-         if(cr_iscat(i)==iscat) then              ! Found suitable atom
-            nat = nat + 1
-            xpos(nat) = cr_pos(1,i)
-            ypos(nat) = cr_pos(2,i)
-            zpos(nat) = cr_pos(3,i)
-         endif
-      enddo loop_atom2
+!
       fcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
+!
       if(j==3) then                               ! x-y crystal
          ncells(1) = cr_icc(1)
          ncells(2) = cr_icc(2)
          ncells(3) = 1
-         call four_strucf_2d(cr_natoms, nat, ncells(1:2), idims(1:2), NQXYZ,    &
-                             xpos, ypos, cr_occ(iscat),iscales(1:2), scales(1:2), fcsf)
+         call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
+                             xpos(:,iscat), ypos(:,iscat), cr_occ(iscat),iscales(1:2), scales(1:2), fcsf)
       elseif(j==2) then                           ! x-z crystal
          ncells(1) = cr_icc(1)
          ncells(2) = cr_icc(3)
          ncells(3) = 1
-         call four_strucf_2d(cr_natoms, nat, ncells(1:2), idims(1:2), NQXYZ,    &
-                             xpos, zpos, cr_occ(iscat),iscales(1:2), scales(1:2), fcsf)
+         call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
+                             xpos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), scales(1:2), fcsf)
       elseif(j==3) then                           ! y-z crystal
          ncells(1) = cr_icc(2)
          ncells(2) = cr_icc(3)
          ncells(3) = 1
-         call four_strucf_2d(cr_natoms, nat, ncells(1:2), idims(1:2), NQXYZ,    &
-                             ypos, zpos, cr_occ(iscat),iscales(1:2), scales(1:2), fcsf)
+         call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
+                             ypos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), scales(1:2), fcsf)
       endif
       call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
 !                                                ! Add to complex structure factor
-      csf(1:num(1)*num(2)*num(3)) = csf(1:num(1)*num(2)*num(3)) + fcsf(1:num(1)*num(2)*num(3)) 
+      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))
    enddo loop_scat2
 !
+   deallocate(nat)
    deallocate(xpos)
    deallocate(ypos)
    deallocate(zpos)
 !
 elseif(is_dim==1) then cond_dim                   ! 1-D crystal 11111111111111111111111
-   allocate(fcsf(1:NQXYZ))
-!
+   !
+   allocate(fcsf(1:inc(1),1:inc(2),1:inc(3))) 
    j = findloc(ll_dim, .true., 1)                 ! Find non-flat dimension
-   allocate(xpos(1:cr_natoms))
+   allocate(nat(0:cr_nscat))
+   allocate(xpos(1:cr_natoms, 0:cr_nscat))
 !
-   loop_scat1:do iscat=1,cr_nscat                 ! Loop over all atom types
       nat = 0
       xpos = 0.0D0
       loop_atom1: do i=1, cr_natoms               ! Loop over all atoms
-         if(cr_iscat(i)==iscat) then              ! Found suitable atom
-            nat = nat + 1                         ! Increment atom number
-            xpos(nat) = cr_pos(j,i)               ! Copy atoms
-         endif
+         k = cr_iscat(i)
+         nat(k) = nat(k) + 1                         ! Increment atom number
+         xpos(nat,k) = cr_pos(j,i) + shift(j)    ! Copy atoms
       enddo loop_atom1
+   loop_scat1:do iscat=1,cr_nscat                 ! Loop over all atom types
+      !
       fcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
-      call four_strucf_1d(cr_natoms, nat, cr_icc(j), idims(j), NQXYZ, xpos,     &
+      !
+      call four_strucf_1d(cr_natoms, nat(iscat), cr_icc(j), idims(j), NQXYZ, xpos(:,iscat),     &
                           cr_occ(iscat),iscales(j), scales(j), fcsf)
       call tcsf_form(iscat, .true., NQXYZ, fcsf)  ! Multiply with atomic form factor
 !                                                 ! Add to complex structure factor
-      csf(1:num(1)*num(2)*num(3)) = csf(1:num(1)*num(2)*num(3)) + fcsf(1:num(1)*num(2)*num(3)) 
+      !
+      csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))   ! And yet, here we go again to num(i).
+      !
    enddo loop_scat1
+   deallocate(nat)
    deallocate(xpos)
 !
 endif cond_dim
 !
-deallocate(fcsf)
+deallocate(fcsf)          
 !
 !
 ! Calculate average structure factor
@@ -486,8 +494,16 @@ deallocate(fcsf)
 !AV!else
 !AV!   acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0))
 !AV!endif
-csf = csf - acsf
-dsi = dble(csf * conjg(csf)) 
+csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) - acsf(1:num(1),1:num(2),1:num(3))
+ii = 0
+do i=1, num(1)
+do j=1, num(2)
+do k=1, num(3)
+   ii = ii + 1
+dsi(i,j,k) = dble(csf(i,j,k) * conjg(csf(i,j,k))) 
+enddo
+enddo
+enddo
 !
 if(four_filter==FOUR_FILTER_LANCZOS) then
    cond_dim_b: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
@@ -498,7 +514,7 @@ if(four_filter==FOUR_FILTER_LANCZOS) then
          do j=1, num(2)
             do k=1, num(3)
                ii = ii + 1
-               infield_3d(i,j,k) = dsi(ii)
+               infield_3d(i,j,k) = dsi(i,j,k)
             enddo
          enddo
       enddo
@@ -509,7 +525,7 @@ if(four_filter==FOUR_FILTER_LANCZOS) then
          do j=1, num(2)
             do k=1, num(2)
                ii = ii + 1
-               dsi(ii) = outfield_3d(i,j,k) 
+               dsi(i,j,k) = outfield_3d(i,j,k) 
             enddo
          enddo
       enddo
@@ -522,7 +538,7 @@ if(four_filter==FOUR_FILTER_LANCZOS) then
       do i=1, num(1)
          do j=1, num(2)
             ii = ii + 1
-            infield_2d(i,j) = dsi(ii)
+            infield_2d(i,j) = dsi(i,j,1)
          enddo
       enddo
       call do_lanczos(four_rscale, four_damp, four_width, num(1:2), infield_2d,   &
@@ -531,7 +547,7 @@ if(four_filter==FOUR_FILTER_LANCZOS) then
       do i=1, num(1)
          do j=1, num(2)
             ii = ii + 1
-            dsi(ii) = outfield_2d(i,j) 
+            dsi(i,j,1) = outfield_2d(i,j) 
          enddo
       enddo
       deallocate( infield_2d)
@@ -542,14 +558,14 @@ if(four_filter==FOUR_FILTER_LANCZOS) then
       ii = 0
       do i=1, num(1)
          ii = ii + 1
-         infield_1d(i) = dsi(ii)
+         infield_1d(i) = dsi(i,1,1)
       enddo
       call do_lanczos(four_rscale, four_damp, four_width, num(1), infield_1d,   &
                    num(1), outfield_1d, .true.)
       ii = 0
       do i=1, num(1)
          ii = ii + 1
-         dsi(ii) = outfield_1d(i) 
+         dsi(i,1,1) = outfield_1d(i) 
       enddo
       deallocate( infield_1d)
       deallocate(outfield_1d)
@@ -571,7 +587,8 @@ endif
 !
 end subroutine four_run_nufft
 !
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
 !
 subroutine four_aver_finufft(is_dim, ll_dim)
 !-
@@ -595,35 +612,51 @@ integer                         , intent(in) :: is_dim  ! Reciprocal dimension i
 logical           , dimension(3), intent(in) :: ll_dim  ! This dimension is not flat
 !
 real(kind=PREC_DP), parameter :: EPS = 1.0D-9
-integer :: i,j,   ii, jj
+integer :: i,j,   ii, jj, kk
+integer :: ih,ik,il
 integer :: h,k,l                              ! Bragg indices
-real(kind=PREC_DP)                 :: rjj     ! Real valued version of jj
+!real(kind=PREC_DP)                 :: rjj     ! Real valued version of jj
 real(kind=PREC_DP), dimension(3,3) :: vi_tmp  ! temporary vi, augmented to give a determinant /= 0
 real(kind=PREC_DP), dimension(3,3) :: vi_inv  ! inverse matrix to vi
 real(kind=PREC_DP), dimension(3)   :: hkl     ! Indices    hkl
 real(kind=PREC_DP), dimension(3)   :: vi_ijk  ! Indices of hkl
-complex(kind=PREC_DP), dimension(:), allocatable :: acsf_hkl   ! complex structure factor for Bragg
+complex(kind=PREC_DP), dimension(:,:,:), allocatable :: acsf_hkl   ! complex structure factor for Bragg
 !
+!write(*,*) ' IS_DIM, LL_DIM', is_dim, ll_dim
+!write(*,*) ' inc            ', inc
+!write(*,*) ' ecḱ ', eck(:,1)
+!write(*,*) ' ecḱ ', eck(:,2)
+!write(*,*) ' ecḱ ', eck(:,3)
+!write(*,*) ' ecḱ ', eck(:,4)
 if(is_dim==3) then             ! 3D-crystal  3333333333333333
    vi_tmp = vi                 ! No need for further action
+   if(inc(1)==1) vi_tmp(1,1) = 1.0D0
+   if(inc(2)==1) vi_tmp(2,2) = 1.0D0
+   if(inc(3)==1) vi_tmp(3,3) = 1.0D0
 elseif(is_dim==2) then         ! 2D-crystal  2222222222222222
    vi_tmp = vi                 ! Set most elements
+   if(inc(1)==1) vi_tmp(1,1) = 1.0D0
+   if(inc(2)==1) vi_tmp(2,2) = 1.0D0
    vi_tmp(3,3) = 1.0D0
 elseif(is_dim==1) then         ! 1D-crystal  1111111111111111
    vi_tmp = vi                 ! Set most elements
    vi_tmp(2,2) = 1.0D0
    vi_tmp(3,3) = 1.0D0
 endif
-call matinv(vi_tmp, vi_inv)
+!write(*,*) ' VI ', vi(:,1)
+!write(*,*) ' VI ', vi(:,2)
+!write(*,*) ' VI ', vi(:,3)
+call matinv(vi_tmp, vi_inv)    ! Inverse matrix to place integer hkl indices into full acsf
 if(ier_num/=0) then
    ier_msg(1) = 'Increment vectors cannot be inverted'
    ier_msg(2) = 'Are increment vectors parallel ?'
+   write(ier_msg(3),'(a,i1,a)') 'The crystal is ',is_dim,'D'
    return
 endif
 !
 do j = 1, 4
    do i =1, 3
-      diff_eck_hkl(i,j) = real(int(eck(i,j)),kind=PREC_DP)
+      diff_eck_hkl(i,j) = real(int(eck(i,j)),kind=PREC_DP)  ! HKL corners are integer positions
    enddo
 enddo
 diff_vi_hkl       =  0.0D0     ! can always be a unit matrix
@@ -634,43 +667,53 @@ diff_inc_hkl(1)   = nint(diff_eck_hkl(1,2)-diff_eck_hkl(1,1)) + 1
 diff_inc_hkl(2)   = nint(diff_eck_hkl(2,3)-diff_eck_hkl(2,1)) + 1
 diff_inc_hkl(3)   = nint(diff_eck_hkl(3,4)-diff_eck_hkl(3,1)) + 1
 !
-i = diff_inc_hkl(1)*diff_inc_hkl(2)*diff_inc_hkl(3)
-!
 call four_aver_hkl
-allocate(acsf_hkl(1:i))
-acsf_hkl(1:i) = acsf(1:i)
-acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0)) 
-
-ii = 0
-jj = 0
-do h = int(diff_eck_hkl(1,1)), int(diff_eck_hkl(1,2))
+!
+! Zero averace complex structure factor arrays, copy Bragg into  local acsf_hkl
+allocate(acsf_hkl(1:diff_inc_hkl(1),1:diff_inc_hkl(2),1:diff_inc_hkl(3)))    ! Always a 3D array 
+acsf_hkl(1:diff_inc_hkl(1),1:diff_inc_hkl(2),1:diff_inc_hkl(3)) &            ! Copy temporary acsf with Bragg into local acsf_hkl
+  = acsf(1:diff_inc_hkl(1),1:diff_inc_hkl(2),1:diff_inc_hkl(3))              ! sub-array size is for Bragg only
+acsf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))    ! Zero the full acsf array
+!
+!
+!  The triple loop runs over all Bragg reflections
+!  hkl contains the real valued vector from the left lower bottom corner to Bragg reflection HKL
+!  ih,ik,il are the indices of the Bragg reflection h,k,l in "acsf_hkl"
+!  vi_ij    are the coordinated of Bragg reflection h,k,l in "acsf"
+!  Only if these real valued indices are close enough to integer, the Bragg reflection is stored
+do h = nint(diff_eck_hkl(1,1)), nint(diff_eck_hkl(1,2))        ! Loop over H component all Bragg reflection
    hkl(1) = h - eck(1,1)
-!   if(abs(hkl(1)-int(hkl(1)))<EPS) then
-   do k = int(diff_eck_hkl(2,1)), int(diff_eck_hkl(2,3))
+   ih     = h - nint(diff_eck_hkl(1,1)) + 1                    ! Index of H in acsf_hkl
+   do k = nint(diff_eck_hkl(2,1)), nint(diff_eck_hkl(2,3))     ! Loop over K component all Bragg reflection
       hkl(2) = k - eck(2,1)
-      do l = int(diff_eck_hkl(3,1)), int(diff_eck_hkl(3,4))
+      ik     = k - nint(diff_eck_hkl(2,1)) + 1                 ! Index of K in acsf_hkl
+      do l = nint(diff_eck_hkl(3,1)), nint(diff_eck_hkl(3,4))  ! Loop over L component all Bragg reflection
          hkl(3) = l - eck(3,1)
-         vi_ijk = matmul(vi_inv, hkl) + 1
-         ii = ii + 1
-        rjj = abs((    (vi_ijk(1))-1)*inc(2)*inc(3) +  &
-                  (    (vi_ijk(2))-1)*inc(3)        +  &
-                  (    (vi_ijk(3))-1)               + 1)
-         jj = nint(rjj)
-         if(abs(rjj-jj)<EPS) then    ! place <F> only if at integer index
-            acsf(jj) = acsf_hkl(ii)
+         il     = l - nint(diff_eck_hkl(3,1)) + 1              ! Index of L in acsf_hkl
+!
+         vi_ijk = matmul(vi_inv, hkl) + 1                      ! Calculate coordinates of HKL in full acsf
+         ii = nint(vi_ijk(1))
+         jj = nint(vi_ijk(2))
+         kk = nint(vi_ijk(3))
+         if(abs(vi_ijk(1)-ii)<EPS .and. abs(vi_ijk(2)-jj)<EPS .and. abs(vi_ijk(3)-kk)<EPS) then
+            acsf(ii, jj, kk) = acsf_hkl(ih,ik,il)
          endif
       enddo
    enddo
-!   endif
 enddo
 !
 deallocate(acsf_hkl)
 !
 end subroutine four_aver_finufft
 !
-!*****7*****************************************************************
+!****************************************************************************************************
+!****************************************************************************************************
 !
-subroutine tcsf_form(iscat, lform, K, fcsf)
+!****************************************************************************************************
+! PENDING: Ask Neder about K, dimensions of fcsf, cfact, istl, iscatt, and the dimensions of the loops.
+!****************************************************************************************************
+!
+subroutine tcsf_form(iscat, lform, NQXY, fcsf)
 !-
 !------ Now we multiply with formfactor                                 
 !+
@@ -679,60 +722,65 @@ use diffuse_mod
 !
 implicit none
 !
-integer, intent(in) :: iscat        ! Current scattering type
-logical, intent(in) :: lform        ! Use form factor
-integer, intent(in) :: K            ! Current scattering type
-complex(kind=PREC_DP), dimension(K) :: fcsf  ! complex structure factor from FINUFFT
+integer,               intent(in) :: iscat  ! Current scattering type
+logical,               intent(in) :: lform  ! Use form factor
+integer, dimension(3), intent(in) :: NQXY   ! Dimensions in reciprocal space
+complex(kind=PREC_DP), dimension(NQXY(1), NQXY(2), NQXY(3)), intent(inout) :: fcsf  ! complex structure factor from FINUFFT
 !
-integer :: i   ! dummy loop index
 !
-if(lform) then 
-   do  i = 1, num (1) * num (2) * num(3)
-!  FORALL( i = 1: num (1) * num (2) * num(3))   !!! DO Loops seem to be faster!
-      fcsf(i) = fcsf(i) * cfact(istl(i), iscat) 
-!  END FORALL
-   enddo
+integer :: i,j,k   ! dummy loop index
+!
+if(lform) then
+   !
+!  ii = 0
+   do i = 1, num(1)
+      do j = 1, num(2)
+         do k = 1, num(3)
+!           ii = ii + 1
+            fcsf(i,j,k) = fcsf(i,j,k) * cfact(istl(i,j,k), iscat) 
+         enddo
+      enddo
+   enddo    
 endif
 !
 end subroutine tcsf_form
 !
-!*****7*****************************************************************
+!****************************************************************************************************
+!****************************************************************************************************
 !
-subroutine tcsf_form_3D(iscat, lform, idims, ffcsf)
-!-
-!------ Now we multiply with formfactor                                 
-!+
+!OBSOLETE subroutine tcsf_form_3D(iscat, lform, idims, ffcsf)
+!OBSOLETE !-
+!OBSOLETE !------ Now we multiply with formfactor                                 
+!OBSOLETE !+
+!OBSOLETE !
+!OBSOLETE use diffuse_mod
+!OBSOLETE !
+!OBSOLETE implicit none
+!OBSOLETE !
+!OBSOLETE integer, intent(in) :: iscat        ! Current scattering type
+!OBSOLETE logical, intent(in) :: lform        ! Use form factor
+!OBSOLETE integer, dimension(3), intent(in) :: idims            ! Current scattering type
+!OBSOLETE complex(kind=PREC_DP), dimension(idims(1), idims(2), idims(3)), intent(inout) :: ffcsf  ! complex structure factor from FINUFFT
+!OBSOLETE !
+!OBSOLETE integer :: i   ! dummy loop index
+!OBSOLETE integer :: h,k,l ! dummy loop index
+!OBSOLETE !
+!OBSOLETE if(lform) then 
+!OBSOLETE    i = 0
+!OBSOLETE    do h=1, inc(1)
+!OBSOLETE    do k=1, inc(2)
+!OBSOLETE    do l=1, inc(3)
+!OBSOLETE    i = i + 1
+!OBSOLETE       ffcsf(h,k,l) = ffcsf(h,k,l) * cfact(istl(i), iscat)                                ! Something similar to what I do is done here, maybe it works.
+!OBSOLETE    enddo
+!OBSOLETE    enddo
+!OBSOLETE    enddo
+!OBSOLETE endif
+!OBSOLETE !
+!OBSOLETE end subroutine tcsf_form_3D
 !
-use diffuse_mod
-!
-implicit none
-!
-integer, intent(in) :: iscat        ! Current scattering type
-logical, intent(in) :: lform        ! Use form factor
-integer, dimension(3), intent(in) :: idims            ! Current scattering type
-complex(kind=PREC_DP), dimension(idims(1), idims(2), idims(3)) :: ffcsf  ! complex structure factor from FINUFFT
-!
-integer :: i   ! dummy loop index
-integer :: h,k,l ! dummy loop index
-!
-if(lform) then 
-!   do  i = 1, num (1) * num (2) * num(3)
-   i = 0
-   do h=1, inc(1)
-   do k=1, inc(2)
-   do l=1, inc(3)
-   i = i + 1
-!  FORALL( i = 1: num (1) * num (2) * num(3))   !!! DO Loops seem to be faster!
-      ffcsf(h,k,l) = ffcsf(h,k,l) * cfact(istl(i), iscat) 
-!  END FORALL
-   enddo
-   enddo
-   enddo
-endif
-!
-end subroutine tcsf_form_3D
-!
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
 !
 SUBROUTINE four_aver (lots, ave, csize) 
 !+                                                                      
@@ -759,7 +807,7 @@ INTEGER, DIMENSION(3), INTENT(IN) :: csize
 !                                                                       
 REAL(KIND=PREC_DP) :: norm
 INTEGER :: isite, iatom, iscat, icell (3) 
-INTEGER :: scell, ncell, j, ii, jj, kk 
+INTEGER :: scell, ncell, i, j, k, ii, jj, kk 
 LOGICAL, DIMENSION(:,:,:), ALLOCATABLE :: sel_cell
 !                                                                       
       ave_is_zero: IF (ave.eq.0.0) then 
@@ -828,10 +876,24 @@ LOGICAL, DIMENSION(:,:,:), ALLOCATABLE :: sel_cell
          ENDDO cell_z
          ENDDO cell_y
          ENDDO cell_x
-               call four_strucf (iscat, .true.) 
-               DO j = 1, num (1) * num (2) *num (3)
-                  acsf (j) = acsf (j) + tcsf (j) 
-               ENDDO 
+               call four_strucf (iscat, .true.)
+               !
+               ! Neders original declaration
+               !
+               !DO j = 1, num (1) * num (2) *num (3)
+               !   acsf (j) = acsf (j) + tcsf (j) 
+               !ENDDO
+               !
+               ! My declaration
+               ! 
+               DO i = 1, num (1)
+                  DO j = 1, num (2)
+                     DO k = 1, num (3)
+                        acsf (i,j,k) = acsf (i,j,k) + tcsf (i,j,k)                                
+                     ENDDO
+                  ENDDO
+               ENDDO
+               !    
             ENDDO  loop_iscat
          ncell = ncell/cr_nscat
          DEALLOCATE(sel_cell)
@@ -850,10 +912,23 @@ LOGICAL, DIMENSION(:,:,:), ALLOCATABLE :: sel_cell
             ier_msg(1) = 'Does the crystal consist of just 1 unit cell?'
             ier_msg(2) = 'Increase the percentage for >set aver<'
          ENDIF
-         DO j = 1, num (1) * num (2) * num (3)
-            acsf (j) = acsf (j) * tcsf (j) * cmplx ( norm, 0.0D0, KIND=KIND(0.0D0))
-         ENDDO 
-!                                                                       
+         !
+         ! Neders original declaration
+         !
+         !DO j = 1, num (1) * num (2) * num (3)
+         !   acsf (j) = acsf (j) * tcsf (j) * cmplx ( norm, 0.0D0, KIND=KIND(0.0D0))
+         !ENDDO 
+!        !
+!        ! My declaration
+         !
+         DO i = 1, num (1)
+            DO j = 1, num (2)
+               DO k = 1, num (3)
+                  acsf (i,j,k) = acsf (i,j,k) * tcsf (i,j,k) * cmplx ( norm, 0.0D0, KIND=KIND(0.0D0))                              
+               ENDDO
+            ENDDO
+         ENDDO     
+         !                                                         
 !------ - write how much of the crystal we actually used                
 !                                                                       
          IF (four_log) then 
@@ -867,7 +942,8 @@ LOGICAL, DIMENSION(:,:,:), ALLOCATABLE :: sel_cell
  2000 FORMAT     (' Used ',F5.1,' % of the crystal to calculate <F> ...') 
       END SUBROUTINE four_aver                      
 !
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
 !
 subroutine four_aver_hkl
 !-
@@ -885,10 +961,13 @@ implicit none
 !
 integer :: iscat    ! Loop index scattering types
 integer :: iatom    ! Loop index scattering types
-integer :: k
 integer           , dimension(1:3)      ::  tmp_inc      ! Temporary storage to preserve user settings
 real(kind=PREC_DP), dimension(1:3, 1:4) ::  tmp_eck
 real(kind=PREC_DP), dimension(1:3, 1:3) ::  tmp_vi
+!OBSOLETE logical :: do_aver
+!
+!OBSOLETE do_aver = .false.
+!OBSOLETE !do_aver = .true.
 !
 tmp_inc = inc
 tmp_eck = eck
@@ -906,44 +985,46 @@ call four_formtab              ! Calculate atomic form factors
 !
 !  Clear Fourier arrays 
 !
-csf     = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0)) 
-acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0)) 
+acsf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(1.0D0))
+!
+! Using the varaged structure does not seem to subtract the Bragg reflections properly
+! the cond_aver construction is thus obsolete
+!OBSOLETE !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!OBSOLETE cond_aver: if(do_aver) then
+!OBSOLETE !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!OBSOLETE call chem_aver(.true., .false.)
+!OBSOLETE    loop_atoms2: do iatom = 1, cr_ncatoms
+!OBSOLETE       do k = 1, chem_ave_n(iatom)
+!OBSOLETE       nxat = 1
+!OBSOLETE       xat(nxat,:) = chem_ave_posit(:,iatom,k)
+!OBSOLETE       iscat = chem_ave_iscat(iatom, k)
+!OBSOLETE       call four_strucf(iscat, .true.)
+!OBSOLETE       acsf = acsf + tcsf * chem_ave_bese(iatom, k)
+!OBSOLETE       enddo
+!OBSOLETE    enddo loop_atoms2
+!OBSOLETE !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!OBSOLETE else cond_aver
+!OBSOLETE !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!
 !
 !------ ----- Loop over all atom types                                  
 !
-!allocate(xat(cr_natoms,3))
-call chem_aver(.false., .false.)
-!loop_iscat: do iscat = 1, cr_nscat 
-   loop_atoms2: do iatom = 1, cr_ncatoms
-      do k = 1, chem_ave_n(iatom)
-      nxat = 1
-!        if(chem_ave_iscat (iatom, k) == iscat) then
-            xat(nxat,:) = chem_ave_pos(:,iatom)
-!        endif
-      iscat = chem_ave_iscat(iatom, k)
-      call four_strucf(iscat, .true.)
-      acsf = acsf + tcsf * chem_ave_bese(iatom, k)
-      enddo
-   enddo loop_atoms2
-!acsf = acsf * cr_icc(1)*cr_icc(2)*cr_icc(3)
-k = (ubound(acsf,1)-1)/2
-!enddo loop_iscat
- csf     = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0)) 
-acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0)) 
-!
-loop_iscat: do iscat = 1, cr_nscat 
+loop_iscat: do iscat = 1, cr_nscat       ! Loop over all scattering types
    nxat = 0 
-   loop_atoms: do iatom = 1, cr_natoms
-      if(cr_iscat(iatom) == iscat) then 
+   loop_atoms: do iatom = 1, cr_natoms   ! Loop over all atoms in crystal
+     if(cr_iscat(iatom) == iscat) then   ! If correct type, copy into fourier position
          nxat = nxat + 1
          xat(nxat,:) = cr_pos(:, iatom) -floor(cr_pos(:, iatom)) ! - real(icell(:) - 1,kind=PREC_DP) - cr_dim0(:, 1)
-      endif
+     endif
    enddo loop_atoms
    call four_strucf(iscat, .true.) 
-   acsf = acsf + tcsf
+   acsf(1:num(1), 1:num(2), 1:num(3)) = acsf(1:num(1), 1:num(2), 1:num(3)) + &
+                                        tcsf(1:num(1), 1:num(2), 1:num(3))
 enddo loop_iscat
+!OBSOLETE !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!OBSOLETE endif cond_aver
+!OBSOLETE !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !
-!deallocate(xat)
 !
 inc = tmp_inc
 eck = tmp_eck
@@ -951,7 +1032,8 @@ vi  = tmp_vi
 !
 end subroutine four_aver_hkl                  
 !
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
 !
 subroutine four_weight
 !-
@@ -1140,7 +1222,7 @@ if_fave:if(fave == 0.000) then
 endif if_fave
 !
 if(allocated(dsi3d)) deallocate(dsi3d)
-allocate(dsi3d(1:ubound(dsi,1)))
+allocate(dsi3d(1:ubound(dsi,1),1:ubound(dsi,2),1:ubound(dsi,3)))
 if(fave==0.0 .and. abs(scalef-1.0)>1.0E-5) then
 !write(*,*) 'base1  ', bases(:,1)
 !write(*,*) 'base2  ', bases(:,2)
@@ -1159,7 +1241,7 @@ if(fave==0.0 .and. abs(scalef-1.0)>1.0E-5) then
             if(abs(hkl(1)-nint(hkl(1)))<1.0e-4 .and.                               &
                abs(hkl(2)-nint(hkl(2)))<1.0e-4 .and.                               &
                abs(hkl(3)-nint(hkl(3)))<1.0e-4       ) then
-               dsi3d(ii) = dsi(ii)/scalef
+               dsi3d(i+1,j+1,k+1) = dsi(i+1,j+1,k+1)/scalef
             endif
          enddo
       enddo
@@ -1170,7 +1252,8 @@ endif
 !
 end subroutine four_weight
 !
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
       SUBROUTINE four_getatm (iscat, lots, lbeg, ncell) 
 !+                                                                      
 !     This routine creates an atom list of atoms of type 'iscat'        
@@ -1333,7 +1416,8 @@ use precision_mod
       ENDIF 
 !                                                                       
       END SUBROUTINE four_getatm                    
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
       SUBROUTINE four_getav (lots) 
 !+                                                                      
 !     This routine computes the lattice inside the lot                  
@@ -1405,7 +1489,8 @@ use precision_mod
       ENDIF 
 !                                                                       
       END SUBROUTINE four_getav                     
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
       SUBROUTINE four_ranloc (csize, lbeg) 
 !+                                                                      
 !     Returns a random cell from within the simulated crystal           
@@ -1424,7 +1509,8 @@ USE lib_random_func
       lbeg (3) = int (ran1 (idum) * csize (3) ) + 1 
 !                                                                       
       END SUBROUTINE four_ranloc                    
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
       SUBROUTINE four_csize (cr_icc, csize, lperiod, ls_xyz) 
 !+                                                                      
 !     Limits crystal size in case of no periodic boundary               
@@ -1448,7 +1534,8 @@ USE lib_random_func
       ENDIF 
 !                                                                       
       END SUBROUTINE four_csize                     
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
       SUBROUTINE four_layer 
 !+                                                                      
 !     This routine writes the corners of the plane to be calculated     
@@ -1473,7 +1560,8 @@ USE lib_random_func
       ENDDO 
 !                                                                       
       END SUBROUTINE four_layer                     
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
       SUBROUTINE four_cexpt 
 !+                                                                      
 !     This routine initialises the complex exponent table and           
@@ -1506,7 +1594,8 @@ USE lib_random_func
  1000 FORMAT     (' Computing complex exponent table ...') 
       END SUBROUTINE four_cexpt                     
 !
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
 !
 SUBROUTINE four_stltab 
 !+                                                                      
@@ -1541,13 +1630,13 @@ DO l = 1, num (3)
 !     q2 = quad (h, h, cr_rten) / 4.0 
       q2 = skalpro (h, h, cr_rten) / 4.0D0
 !     k  = (i - 1) * num (2) + j 
-      k  = (i - 1) * num (3)* num (2) + (j - 1) * num (3) + l 
+!     k  = (i - 1) * num (3)* num (2) + (j - 1) * num (3) + l 
 !RBN_3D
 !write(*,2000) i,j,l, k
 !2000 format( 'ijl:k ', 3i4,' : ', i6)
-      istl (k) = nint (sqrt (q2) * (1.0D0 / CFINC) ) 
+      istl(i,j,l) = nint (sqrt (q2) * (1.0D0 / CFINC) ) 
 !                                                                       
-      IF (istl (k) .gt.CFPKT) then 
+      IF (istl (i,j,l) .gt.CFPKT) then 
          ier_num = - 3 
          ier_typ = ER_FOUR 
          RETURN 
@@ -1560,7 +1649,8 @@ ENDDO
  1000 FORMAT     (' Computing sin(theta)/lambda table ...') 
 END SUBROUTINE four_stltab                    
 !
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
 SUBROUTINE four_formtab
 !+                                                                      
 !     This routine sets up the complex formfactor lookup table          
@@ -1613,7 +1703,8 @@ ENDDO
  1000 FORMAT     (' Computing formfactor lookup table ...') 
 END SUBROUTINE four_formtab                   
 !
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
 !
 SUBROUTINE four_qinfo 
 !+                                                                      
@@ -1655,14 +1746,14 @@ SUBROUTINE four_qinfo
 !     k = (i - 1) * num (2) + j 
       k = (i - 1) * num (3) * num (2) + (j -1) * num(3) + l 
       IF (lbragg) then 
-         braggmax = max(braggmax, dsi(k) ) 
-         braggmin = min(braggmin, dsi(k) ) 
+         braggmax = max(braggmax, dsi(i,j,l) ) 
+         braggmin = min(braggmin, dsi(i,j,l) ) 
       ELSE 
-         diffumax = max(diffumax, dsi(k) ) 
-         diffumin = min(diffumin, dsi(k) ) 
+         diffumax = max(diffumax, dsi(i,j,l) ) 
+         diffumin = min(diffumin, dsi(i,j,l) ) 
 !                                                                       
-         dsum  = dsum  + dsi(k)
-         dsum2 = dsum2 + dsi(k)**2 
+         dsum  = dsum  + dsi(i,j,l)
+         dsum2 = dsum2 + dsi(i,j,l)**2 
          nd = nd+1 
       ENDIF 
       ENDDO 
@@ -1700,7 +1791,8 @@ SUBROUTINE four_qinfo
  1030 FORMAT     (  '      Average    : ',G13.6,'  +- ',G13.6) 
 END SUBROUTINE four_qinfo                     
 !
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
 !
 REAL(kind=PREC_DP) FUNCTION form (ll, scat, lxray, h2, power) 
 !+                                                                      
@@ -1728,7 +1820,8 @@ ENDIF
 !
 END FUNCTION form                             
 !
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
 !
 SUBROUTINE dlink (ano, lambda, rlambda, renergy, l_energy, &
                   diff_radiation, diff_table, diff_power) 
@@ -1900,334 +1993,687 @@ ENDIF any_element
 !                                                                       
 END SUBROUTINE dlink                          
 !
-!*****7*****************************************************************
+!************************************************************************************
+! Neder's original code
+!************************************************************************************
 !
+! SUBROUTINE calc_000 (rhkl) 
+! !-                                                                      
+! !     Calculates the value of F(rh,rk,rl)                               
+! !+                                                                      
+!       USE discus_config_mod 
+!       USE crystal_mod 
+!       USE diffuse_mod 
+! !
+!       USE param_mod 
+!       USE precision_mod
+! !
+!       IMPLICIT none 
+! !                                                                       
+       
+! !                                                                       
+!       REAL(kind=PREC_DP), DIMENSION(3), INTENT(IN) :: rhkl
+! !
+!       INTEGER i, j 
+!       INTEGER shel_inc (3) 
+!       REAL(kind=PREC_DP) :: shel_eck (3, 4) 
+!       REAL(kind=PREC_DP) :: shel_vi (3, 3) 
+!       COMPLEX (KIND=PREC_DP) :: shel_acsf                ! Not clear on the meaning of this lines (shel_acsf, shel_dsi, shel_tcsf)
+!       REAL    (KIND=PREC_DP) :: shel_dsi 
+!       COMPLEX (KIND=PREC_DP) :: shel_tcsf 
+! !                                                                       
+!       DO i = 1, 3 
+!          shel_inc (i) = inc (i) 
+!       ENDDO 
+! !
+!       DO i = 1, 3 
+!          DO j = 1, 4 
+!             shel_eck (i, j) = eck (i, j) 
+!          ENDDO 
+!          DO j = 1, 3 
+!             shel_vi (i, j) = vi (i, j) 
+!          ENDDO 
+!       ENDDO 
+! !
+!       shel_tcsf = csf (1)                              ! Relation between shel_tcsf and shel_acsf to csf and acsf is not clear.
+!       shel_acsf = acsf (1) 
+!       shel_dsi  = dsi (1) 
+!       inc (1) = 1 
+!       inc (2) = 1 
+!       inc (3) = 1 
+!       DO i = 1, 3 
+!          DO j = 1, 4 
+!             eck (i, j) = rhkl (i) 
+!          ENDDO 
+!          DO j = 1, 3 
+!             vi (i, j) = 0.0 
+!          ENDDO 
+!       ENDDO 
+! !
+!       four_log = .false. 
+!       call four_run 
+!       res_para (1) =      REAL(csf (1) , KIND=KIND(0.0D0) ) 
+!       res_para (2) = REAL(AIMAG(csf (1)), KIND=KIND(0.0D0) ) 
+!       res_para (3) = res_para (1) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
+!       res_para (4) = res_para (2) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
+!       res_para (0) = 4 
+!       csf (1) = shel_tcsf                             ! Relation between shel_tcsf and shel_acsf to csf and acsf is not clear.
+!       acsf(1) = shel_acsf 
+!       dsi (1) = shel_dsi 
+! !
+!       DO i = 1, 3 
+!          inc (i) = shel_inc (i) 
+!       ENDDO 
+!       DO i = 1, 3 
+!          DO j = 1, 4 
+!             eck (i, j) = shel_eck (i, j) 
+!          ENDDO 
+!          DO j = 1, 3 
+!             vi (i, j) = shel_vi (i, j) 
+!          ENDDO 
+!       ENDDO 
+! !                                                                       
+! END SUBROUTINE calc_000                       
+!
+!************************************************************************************
+! My code ( Copilot Generated )
+!************************************************************************************
+
 SUBROUTINE calc_000 (rhkl) 
 !-                                                                      
 !     Calculates the value of F(rh,rk,rl)                               
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE diffuse_mod 
+USE discus_config_mod 
+USE crystal_mod 
+USE diffuse_mod 
 !
-      USE param_mod 
-      USE precision_mod
+USE param_mod 
+USE precision_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      REAL(kind=PREC_DP), DIMENSION(3), INTENT(IN) :: rhkl
+REAL(kind=PREC_DP), DIMENSION(3), INTENT(IN) :: rhkl
 !
-      INTEGER i, j 
-      INTEGER shel_inc (3) 
-      REAL(kind=PREC_DP) :: shel_eck (3, 4) 
-      REAL(kind=PREC_DP) :: shel_vi (3, 3) 
-      COMPLEX (KIND=PREC_DP) :: shel_acsf 
-      REAL    (KIND=PREC_DP) :: shel_dsi 
-      COMPLEX (KIND=PREC_DP) :: shel_tcsf 
+INTEGER i, j 
+INTEGER shel_inc (3) 
+REAL(kind=PREC_DP) :: shel_eck (3, 4) 
+REAL(kind=PREC_DP) :: shel_vi (3, 3) 
+COMPLEX (KIND=PREC_DP) :: shel_acsf                ! treat acsf as 3D array
+REAL    (KIND=PREC_DP) :: shel_dsi                  ! treat dsi as 3D array
+COMPLEX (KIND=PREC_DP) :: shel_tcsf                 ! treat tcsf as 3D array
 !                                                                       
-      DO i = 1, 3 
-         shel_inc (i) = inc (i) 
-      ENDDO 
+DO i = 1, 3 
+   shel_inc (i) = inc (i) 
+ENDDO 
 !
-      DO i = 1, 3 
-         DO j = 1, 4 
-            shel_eck (i, j) = eck (i, j) 
-         ENDDO 
-         DO j = 1, 3 
-            shel_vi (i, j) = vi (i, j) 
-         ENDDO 
-      ENDDO 
+DO i = 1, 3 
+   DO j = 1, 4 
+      shel_eck (i, j) = eck (i, j) 
+   ENDDO 
+   DO j = 1, 3 
+      shel_vi (i, j) = vi (i, j) 
+   ENDDO 
+ENDDO 
 !
-      shel_tcsf = csf (1) 
-      shel_acsf = acsf (1) 
-      shel_dsi  = dsi (1) 
-      inc (1) = 1 
-      inc (2) = 1 
-      inc (3) = 1 
-      DO i = 1, 3 
-         DO j = 1, 4 
-            eck (i, j) = rhkl (i) 
-         ENDDO 
-         DO j = 1, 3 
-            vi (i, j) = 0.0 
-         ENDDO 
-      ENDDO 
+shel_tcsf = csf (1,1,1)
+shel_acsf = acsf(1,1,1) 
+shel_dsi  = dsi (1,1,1) 
+inc (1) = 1 
+inc (2) = 1 
+inc (3) = 1 
+DO i = 1, 3 
+   DO j = 1, 4 
+      eck (i, j) = rhkl (i) 
+   ENDDO 
+   DO j = 1, 3 
+      vi (i, j) = 0.0 
+   ENDDO 
+ENDDO 
 !
-      four_log = .false. 
-      call four_run 
-      res_para (1) =      REAL(csf (1) , KIND=KIND(0.0D0) ) 
-      res_para (2) = REAL(AIMAG(csf (1)), KIND=KIND(0.0D0) ) 
-      res_para (3) = res_para (1) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
-      res_para (4) = res_para (2) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
-      res_para (0) = 4 
-      csf (1) = shel_tcsf 
-      acsf(1) = shel_acsf 
-      dsi (1) = shel_dsi 
+four_log = .false. 
+call four_run 
+res_para (1) =      REAL(csf (1,1,1) , KIND=KIND(0.0D0) ) 
+res_para (2) = REAL(AIMAG(csf (1,1,1)), KIND=KIND(0.0D0) ) 
+res_para (3) = res_para (1) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
+res_para (4) = res_para (2) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
+res_para (0) = 4 
+csf (1,1,1) = shel_tcsf
+acsf(1,1,1) = shel_acsf
+dsi (1,1,1) = shel_dsi 
 !
-      DO i = 1, 3 
-         inc (i) = shel_inc (i) 
-      ENDDO 
-      DO i = 1, 3 
-         DO j = 1, 4 
-            eck (i, j) = shel_eck (i, j) 
-         ENDDO 
-         DO j = 1, 3 
-            vi (i, j) = shel_vi (i, j) 
-         ENDDO 
-      ENDDO 
+DO i = 1, 3 
+   inc (i) = shel_inc (i) 
+ENDDO 
+DO i = 1, 3 
+   DO j = 1, 4 
+      eck (i, j) = shel_eck (i, j) 
+   ENDDO 
+   DO j = 1, 3 
+      vi (i, j) = shel_vi (i, j) 
+   ENDDO 
+ENDDO 
 !                                                                       
-END SUBROUTINE calc_000                       
+END SUBROUTINE calc_000    
 !
-!*****7*****************************************************************
+!************************************************************************************
+!************************************************************************************
+! Neders original code
+! 
+! SUBROUTINE calc_hkl(infile,infile_l, calcfile, calcfile_l,scale,style)
+! !
+!       USE crystal_mod 
+!       USE diffuse_mod 
+!       USE discus_allocate_appl_mod
+!       USE get_params_mod
+!       USE param_mod
+! USE prompt_mod
+! USE precision_mod
+! USE support_mod
+! !
+!       IMPLICIT NONE
+! !
+!       CHARACTER(LEN=*), INTENT(IN) :: infile
+!       INTEGER         , INTENT(IN) :: infile_l
+!       CHARACTER(LEN=*), INTENT(IN) :: calcfile
+!       INTEGER         , INTENT(IN) :: calcfile_l
+!       REAL(KIND=PREC_DP),INTENT(IN) :: scale
+!       INTEGER         , INTENT(IN) :: style
+! !
+!       INTEGER, PARAMETER :: ird = 54
+!       INTEGER, PARAMETER :: iwr = 55
+!       INTEGER, PARAMETER :: HKLF4 = 4
+!       INTEGER, PARAMETER :: CIF   = 1
+! !
+!       CHARACTER(LEN=PREC_STRING) :: line
+!       CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: ccpara
+!       INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
+!       INTEGER            :: n_qxy, n_natoms,n_nscat
+!       INTEGER            :: iostatus
+!       INTEGER            :: ih,ik,il
+!       INTEGER            :: ih_min,ik_min,il_min
+!       INTEGER            :: ih_max,ik_max,il_max
+!       INTEGER            :: n_refl
+!       INTEGER            :: indx
+!       INTEGER            :: startline
+!       INTEGER            :: j
+!       INTEGER            :: nentries
+!       INTEGER            :: length, ianz
+!       INTEGER            ::   j_h      = 0
+!       INTEGER            ::   j_k      = 0
+!       INTEGER            ::   j_l      = 0
+!       INTEGER            ::   j_iobs   = 0
+!       INTEGER            ::   j_icalc  = 0
+!       INTEGER            ::   j_sigi   = 0
+!       INTEGER            ::   j_fobs   = 0
+!       INTEGER            ::   j_fcalc  = 0
+!       INTEGER            ::   j_sigf   = 0
+!       INTEGER            ::   j_flag   = 0
+!       REAL(kind=PREC_DP)               :: rint, sint, wert
+!       REAL(kind=PREC_DP), DIMENSION(7) :: values
+!       REAL(kind=PREC_DP), DIMENSION(3) :: rhkl
+! !
+!       n_qxy    = 1
+!       n_natoms = 1
+!       n_nscat  = 1
+! !
+!       call oeffne(ird, infile(1:infile_l),   'old') 
+!       call oeffne(iwr, calcfile(1:calcfile_l), 'unknown') 
+!       inc(:) = 1
+! !
+!       ih_min  = 0
+!       ih_max  = 0
+!       ik_min  = 0
+!       ik_max  = 0
+!       il_min  = 0
+!       il_max  = 0
+!       n_refl  = 0
+!       startline = 0
+!       IF(style==HKLF4) THEN
+!          startline = 1
+! check:   DO     ! First read, get size and extrema
+!             READ(ird,'(a)', IOSTAT=iostatus) line
+!             IF(IS_IOSTAT_END(iostatus)) EXIT check
+!             IF(line(1:1)=='#' .OR. line(1:1)=='!' .OR. line(1:1)=='d') THEN
+!                ier_num = -9999
+!                ier_typ = ER_APPL
+!                CLOSE(ird) 
+!                RETURN
+!             ENDIF
+!             READ(line,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
+!             ih_min = MIN(ih_min,ih)
+!             ih_max = MAX(ih_max,ih)
+!             ik_min = MIN(ik_min,ik)
+!             ik_max = MAX(ik_max,ik)
+!             il_min = MIN(il_min,il)
+!             il_max = MAX(il_max,il)
+!             n_refl = n_refl + 1
+!          ENDDO check
+!       ELSEIF(style==CIF) THEN
+! find:    DO
+!             READ(ird,'(a)', IOSTAT=iostatus) line
+!             IF(IS_IOSTAT_END(iostatus)) THEN
+!                ier_num = -9999
+!                ier_typ = ER_APPL
+!                CLOSE(ird) 
+!                RETURN
+!             ENDIF
+!             startline = startline + 1
+!             IF(line(1:14) == '_refln_index_h') EXIT find
+!          ENDDO find
+!          nentries = 0
+!          j_h      = 0
+!          j_k      = 0
+!          j_l      = 0
+!          j_iobs   = 0
+!          j_icalc  = 0
+!          j_sigi   = 0
+!          j_fobs   = 0
+!          j_fcalc  = 0
+!          j_sigf   = 0
+!          j_flag   = 0
+!          j = 1
+! entries: DO
+!             IF(line(1:1)=='#' .or. line == ' ') THEN
+!             startline = startline + 1
+!                CYCLE entries
+!             ENDIF
+!             IF(line(1:14) == '_refln_index_h')         j_h = j
+!             IF(line(1:14) == '_refln_index_k')         j_k = j
+!             IF(line(1:14) == '_refln_index_l')         j_l = j
+!             IF(line(1:21) == '_refln_F_squared_calc')  j_icalc = j
+!             IF(line(1:21) == '_refln_F_squared_meas')  j_iobs  = j
+!             IF(line(1:22) == '_refln_F_squared_sigma') j_sigi  = j
+!             IF(line(1:22) == '_refln_observed_status') j_flag  = j
+!             IF(line(1:7) /= '_refln_') EXIT entries
+!             nentries = nentries + 1
+!             READ(ird,'(a)', IOSTAT=iostatus) line
+!             IF(IS_IOSTAT_END(iostatus)) THEN
+!                ier_num = -9999
+!                ier_typ = ER_APPL
+!                CLOSE(ird) 
+!                RETURN
+!             ENDIF
+!             j = j + 1
+!             startline = startline + 1
+!          ENDDO entries
+!          ALLOCATE(ccpara(1:nentries))
+!          ccpara(:) = ' '
+!          ALLOCATE(llpara(1:nentries))
+!          length = LEN_TRIM(line)
+! check2:  DO
+!             call get_params_blank(line,ianz, ccpara,llpara, nentries, length)
+!             READ(ccpara(j_h)(1:llpara(j_h)),*) ih 
+!             READ(ccpara(j_k)(1:llpara(j_k)),*) ik 
+!             READ(ccpara(j_l)(1:llpara(j_l)),*) il 
+!             ih_min = MIN(ih_min,ih)
+!             ih_max = MAX(ih_max,ih)
+!             ik_min = MIN(ik_min,ik)
+!             ik_max = MAX(ik_max,ik)
+!             il_min = MIN(il_min,il)
+!             il_max = MAX(il_max,il)
+!             n_refl = n_refl + 1
+!             READ(ird,'(a)', IOSTAT=iostatus) line
+! !        READ(ird,*   , IOSTAT=iostatus) ih,ik,il, rint, sint
+!             IF(IS_IOSTAT_END(iostatus)) EXIT check2
+!             length = LEN_TRIM(line)
+!          ENDDO check2
+!       ELSE
+!          WRITE(output_io,*) ' WRONG STYLE ', style
+!          RETURN
+!       ENDIF
+!       vi(:,:) = 0
+!       vi(1,1) = 1.0
+!       vi(2,2) = 1.0
+!       vi(3,3) = 1.0
+!       inc(1)   = ih_max - ih_min             + 1
+!       inc(2)   = ik_max - ik_min             + 1
+!       inc(3)   = il_max - il_min             + 1
+!       eck(1,1) = ih_min             ! minimum H
+!       eck(2,1) = ik_min             ! minimum K
+!       eck(3,1) = il_min             ! minimum L
+!       eck(1,2) = ih_max             ! maximum H
+!       eck(2,2) = ik_min             ! minimum K
+!       eck(3,2) = il_min             ! minimum L
+!       eck(1,3) = ih_min             ! minimum H
+!       eck(2,3) = ik_max             ! maximum K
+!       eck(3,3) = il_min             ! minimum L
+!       eck(1,4) = ih_min             ! minimum H
+!       eck(2,4) = ik_min             ! minimum K
+!       eck(3,4) = il_max             ! maximum L
+! !
+!       IF (ier_num == 0) then 
+!          IF (inc(1) * inc(2) * inc(3) .gt. MAXQXY  .OR.   &
+!              cr_natoms > DIF_MAXAT                 .OR.   &
+!              cr_nscat>DIF_MAXSCAT              ) THEN
+!             n_qxy    = MAX(n_qxy,inc(1) * inc(2)*inc(3),MAXQXY)
+!             n_natoms = MAX(n_natoms,cr_natoms,DIF_MAXAT)
+!             n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!             call alloc_diffuse (n_qxy, n_nscat, n_natoms)
+!             IF (ier_num /= 0) THEN
+!                RETURN
+!             ENDIF
+!          ENDIF
+!          call dlink (ano, lambda, rlambda, renergy, l_energy, &
+!                      diff_radiation, diff_table, diff_power) 
+!          call four_run
+!          rhkl (1) =  0. 
+!          rhkl (2) =  0. 
+!          rhkl (3) =  0. 
+!          REWIND(ird)
+!          DO j=1,startline -1 
+!             READ(ird,'(a)') line
+!          ENDDO
+! main:    DO
+!             IF(style==HKLF4) THEN
+!                READ(ird,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
+!             ELSEIF(style==CIF) THEN
+!                READ(ird,'(a)',IOSTAT=iostatus) line
+!                length = LEN_TRIM(line)
+!                call get_params_blank(line,ianz, ccpara,llpara, nentries, length)
+!                DO j=1,nentries-1
+!                   READ(ccpara(j)(1:llpara(j)),*) values(j)
+!                ENDDO
+!                ih = NINT(values(1))
+!                ik = NINT(values(2))
+!                il = NINT(values(3))
+! !              READ(ird,*   , IOSTAT=iostatus) ih,ik,il, rint, sint
+!             ENDIF
+!             IF(IS_IOSTAT_END(iostatus)) EXIT main
+!             indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1       ! This entire portion looks complicated. The dimensions here are going to be tricky
+!             wert = REAL(csf(indx)*CONJG(csf(indx)),KIND=KIND(0.0D0))                       ! Discuss with Neder!!!!
+!             sint = SQRT(ABS(wert))
+!             IF(ih==0 .AND. ik==0 .AND. IL==0) THEN
+!                WRITE(iwr,1000) ih,ik,il, 0.00, 0.00
+!             ELSE
+!                IF(style==HKLF4) THEN
+!                   WRITE(iwr,1000) ih,ik,il, scale*wert, sqrt(scale)*sint 
+!                ELSEIF(style==CIF) THEN
+!                   IF(j_icalc/=0) THEN
+!                      values(j_icalc) = scale*wert
+!                   ENDIF
+!                   WRITE(iwr, 2000) ih,ik,il, (values(j),j=4, nentries-1)
+!                ENDIF
+!             ENDIF
+!          END DO main
+!       ENDIF 
+!       IF(ALLOCATED(ccpara))   DEALLOCATE(ccpara)
+!       IF(ALLOCATED(llpara))   DEALLOCATE(llpara)
+! 1000  FORMAT(3I4,F8.2,F8.2)
+! 2000  FORMAT(3I4,F12.2,F12.2, F12.2)
+!       CLOSE(ird)
+!       CLOSE(iwr)
+! END SUBROUTINE calc_hkl
 !
+!************************************************************************************
+! My code ( Copilot Generated )
+!************************************************************************************
 SUBROUTINE calc_hkl(infile,infile_l, calcfile, calcfile_l,scale,style)
 !
-      USE crystal_mod 
-      USE diffuse_mod 
-      USE discus_allocate_appl_mod
-      USE get_params_mod
-      USE param_mod
+USE crystal_mod 
+USE diffuse_mod 
+USE discus_allocate_appl_mod
+USE get_params_mod
+USE param_mod
 USE prompt_mod
 USE precision_mod
 USE support_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
-      CHARACTER(LEN=*), INTENT(IN) :: infile
-      INTEGER         , INTENT(IN) :: infile_l
-      CHARACTER(LEN=*), INTENT(IN) :: calcfile
-      INTEGER         , INTENT(IN) :: calcfile_l
-      REAL(KIND=PREC_DP),INTENT(IN) :: scale
-      INTEGER         , INTENT(IN) :: style
+CHARACTER(LEN=*), INTENT(IN) :: infile
+INTEGER         , INTENT(IN) :: infile_l
+CHARACTER(LEN=*), INTENT(IN) :: calcfile
+INTEGER         , INTENT(IN) :: calcfile_l
+REAL(KIND=PREC_DP),INTENT(IN) :: scale
+INTEGER         , INTENT(IN) :: style
 !
-      INTEGER, PARAMETER :: ird = 54
-      INTEGER, PARAMETER :: iwr = 55
-      INTEGER, PARAMETER :: HKLF4 = 4
-      INTEGER, PARAMETER :: CIF   = 1
+INTEGER, PARAMETER :: ird = 54
+INTEGER, PARAMETER :: iwr = 55
+INTEGER, PARAMETER :: HKLF4 = 4
+INTEGER, PARAMETER :: CIF   = 1
 !
-      CHARACTER(LEN=PREC_STRING) :: line
-      CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: ccpara
-      INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
-      INTEGER            :: n_qxy, n_natoms,n_nscat
-      INTEGER            :: iostatus
-      INTEGER            :: ih,ik,il
-      INTEGER            :: ih_min,ik_min,il_min
-      INTEGER            :: ih_max,ik_max,il_max
-      INTEGER            :: n_refl
-      INTEGER            :: indx
-      INTEGER            :: startline
-      INTEGER            :: j
-      INTEGER            :: nentries
-      INTEGER            :: length, ianz
-      INTEGER            ::   j_h      = 0
-      INTEGER            ::   j_k      = 0
-      INTEGER            ::   j_l      = 0
-      INTEGER            ::   j_iobs   = 0
-      INTEGER            ::   j_icalc  = 0
-      INTEGER            ::   j_sigi   = 0
-      INTEGER            ::   j_fobs   = 0
-      INTEGER            ::   j_fcalc  = 0
-      INTEGER            ::   j_sigf   = 0
-      INTEGER            ::   j_flag   = 0
-      REAL(kind=PREC_DP)               :: rint, sint, wert
-      REAL(kind=PREC_DP), DIMENSION(7) :: values
-      REAL(kind=PREC_DP), DIMENSION(3) :: rhkl
+CHARACTER(LEN=PREC_STRING) :: line
+CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: ccpara
+INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
+INTEGER, dimension(3) :: n_qxy
+INTEGER            :: n_natoms,n_nscat
+INTEGER            :: iostatus
+INTEGER            :: ih,ik,il
+INTEGER            :: ih_min,ik_min,il_min
+INTEGER            :: ih_max,ik_max,il_max
+INTEGER            :: n_refl
+INTEGER            :: indx
+INTEGER            :: startline
+INTEGER            :: j
+INTEGER            :: nentries
+INTEGER            :: length, ianz
+INTEGER            ::   j_h      = 0
+INTEGER            ::   j_k      = 0
+INTEGER            ::   j_l      = 0
+INTEGER            ::   j_iobs   = 0
+INTEGER            ::   j_icalc  = 0
+INTEGER            ::   j_sigi   = 0
+INTEGER            ::   j_fobs   = 0
+INTEGER            ::   j_fcalc  = 0
+INTEGER            ::   j_sigf   = 0
+INTEGER            ::   j_flag   = 0
+REAL(kind=PREC_DP)               :: rint, sint, wert
+REAL(kind=PREC_DP), DIMENSION(7) :: values
+REAL(kind=PREC_DP), DIMENSION(3) :: rhkl
 !
-      n_qxy    = 1
-      n_natoms = 1
-      n_nscat  = 1
+n_qxy    = 1
+n_natoms = 1
+n_nscat  = 1
 !
-      call oeffne(ird, infile(1:infile_l),   'old') 
-      call oeffne(iwr, calcfile(1:calcfile_l), 'unknown') 
-      inc(:) = 1
+call oeffne(ird, infile(1:infile_l),   'old') 
+call oeffne(iwr, calcfile(1:calcfile_l), 'unknown') 
+inc(:) = 1
 !
-      ih_min  = 0
-      ih_max  = 0
-      ik_min  = 0
-      ik_max  = 0
-      il_min  = 0
-      il_max  = 0
-      n_refl  = 0
-      startline = 0
-      IF(style==HKLF4) THEN
-         startline = 1
+ih_min  = 0
+ih_max  = 0
+ik_min  = 0
+ik_max  = 0
+il_min  = 0
+il_max  = 0
+n_refl  = 0
+startline = 0
+IF(style==HKLF4) THEN
+   startline = 1
 check:   DO     ! First read, get size and extrema
-            READ(ird,'(a)', IOSTAT=iostatus) line
-            IF(IS_IOSTAT_END(iostatus)) EXIT check
-            IF(line(1:1)=='#' .OR. line(1:1)=='!' .OR. line(1:1)=='d') THEN
-               ier_num = -9999
-               ier_typ = ER_APPL
-               CLOSE(ird) 
-               RETURN
-            ENDIF
-            READ(line,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
-            ih_min = MIN(ih_min,ih)
-            ih_max = MAX(ih_max,ih)
-            ik_min = MIN(ik_min,ik)
-            ik_max = MAX(ik_max,ik)
-            il_min = MIN(il_min,il)
-            il_max = MAX(il_max,il)
-            n_refl = n_refl + 1
-         ENDDO check
-      ELSEIF(style==CIF) THEN
-find:    DO
-            READ(ird,'(a)', IOSTAT=iostatus) line
-            IF(IS_IOSTAT_END(iostatus)) THEN
-               ier_num = -9999
-               ier_typ = ER_APPL
-               CLOSE(ird) 
-               RETURN
-            ENDIF
-            startline = startline + 1
-            IF(line(1:14) == '_refln_index_h') EXIT find
-         ENDDO find
-         nentries = 0
-         j_h      = 0
-         j_k      = 0
-         j_l      = 0
-         j_iobs   = 0
-         j_icalc  = 0
-         j_sigi   = 0
-         j_fobs   = 0
-         j_fcalc  = 0
-         j_sigf   = 0
-         j_flag   = 0
-         j = 1
-entries: DO
-            IF(line(1:1)=='#' .or. line == ' ') THEN
-            startline = startline + 1
-               CYCLE entries
-            ENDIF
-            IF(line(1:14) == '_refln_index_h')         j_h = j
-            IF(line(1:14) == '_refln_index_k')         j_k = j
-            IF(line(1:14) == '_refln_index_l')         j_l = j
-            IF(line(1:21) == '_refln_F_squared_calc')  j_icalc = j
-            IF(line(1:21) == '_refln_F_squared_meas')  j_iobs  = j
-            IF(line(1:22) == '_refln_F_squared_sigma') j_sigi  = j
-            IF(line(1:22) == '_refln_observed_status') j_flag  = j
-            IF(line(1:7) /= '_refln_') EXIT entries
-            nentries = nentries + 1
-            READ(ird,'(a)', IOSTAT=iostatus) line
-            IF(IS_IOSTAT_END(iostatus)) THEN
-               ier_num = -9999
-               ier_typ = ER_APPL
-               CLOSE(ird) 
-               RETURN
-            ENDIF
-            j = j + 1
-            startline = startline + 1
-         ENDDO entries
-         ALLOCATE(ccpara(1:nentries))
-         ccpara(:) = ' '
-         ALLOCATE(llpara(1:nentries))
-         length = LEN_TRIM(line)
-check2:  DO
-            call get_params_blank(line,ianz, ccpara,llpara, nentries, length)
-            READ(ccpara(j_h)(1:llpara(j_h)),*) ih 
-            READ(ccpara(j_k)(1:llpara(j_k)),*) ik 
-            READ(ccpara(j_l)(1:llpara(j_l)),*) il 
-            ih_min = MIN(ih_min,ih)
-            ih_max = MAX(ih_max,ih)
-            ik_min = MIN(ik_min,ik)
-            ik_max = MAX(ik_max,ik)
-            il_min = MIN(il_min,il)
-            il_max = MAX(il_max,il)
-            n_refl = n_refl + 1
-            READ(ird,'(a)', IOSTAT=iostatus) line
-!        READ(ird,*   , IOSTAT=iostatus) ih,ik,il, rint, sint
-            IF(IS_IOSTAT_END(iostatus)) EXIT check2
-            length = LEN_TRIM(line)
-         ENDDO check2
-      ELSE
-         WRITE(output_io,*) ' WRONG STYLE ', style
+      READ(ird,'(a)', IOSTAT=iostatus) line
+      IF(IS_IOSTAT_END(iostatus)) EXIT check
+      IF(line(1:1)=='#' .OR. line(1:1)=='!' .OR. line(1:1)=='d') THEN
+         ier_num = -9999
+         ier_typ = ER_APPL
+         CLOSE(ird) 
          RETURN
       ENDIF
-      vi(:,:) = 0
-      vi(1,1) = 1.0
-      vi(2,2) = 1.0
-      vi(3,3) = 1.0
-      inc(1)   = ih_max - ih_min             + 1
-      inc(2)   = ik_max - ik_min             + 1
-      inc(3)   = il_max - il_min             + 1
-      eck(1,1) = ih_min             ! minimum H
-      eck(2,1) = ik_min             ! minimum K
-      eck(3,1) = il_min             ! minimum L
-      eck(1,2) = ih_max             ! maximum H
-      eck(2,2) = ik_min             ! minimum K
-      eck(3,2) = il_min             ! minimum L
-      eck(1,3) = ih_min             ! minimum H
-      eck(2,3) = ik_max             ! maximum K
-      eck(3,3) = il_min             ! minimum L
-      eck(1,4) = ih_min             ! minimum H
-      eck(2,4) = ik_min             ! minimum K
-      eck(3,4) = il_max             ! maximum L
-!
-      IF (ier_num == 0) then 
-         IF (inc(1) * inc(2) * inc(3) .gt. MAXQXY  .OR.   &
-             cr_natoms > DIF_MAXAT                 .OR.   &
-             cr_nscat>DIF_MAXSCAT              ) THEN
-            n_qxy    = MAX(n_qxy,inc(1) * inc(2)*inc(3),MAXQXY)
-            n_natoms = MAX(n_natoms,cr_natoms,DIF_MAXAT)
-            n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-            call alloc_diffuse (n_qxy, n_nscat, n_natoms)
-            IF (ier_num /= 0) THEN
-               RETURN
-            ENDIF
-         ENDIF
-         call dlink (ano, lambda, rlambda, renergy, l_energy, &
-                     diff_radiation, diff_table, diff_power) 
-         call four_run
-         rhkl (1) =  0. 
-         rhkl (2) =  0. 
-         rhkl (3) =  0. 
-         REWIND(ird)
-         DO j=1,startline -1 
-            READ(ird,'(a)') line
+      READ(line,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
+      ih_min = MIN(ih_min,ih)
+      ih_max = MAX(ih_max,ih)
+      ik_min = MIN(ik_min,ik)
+      ik_max = MAX(ik_max,ik)
+      il_min = MIN(il_min,il)
+      il_max = MAX(il_max,il)
+      n_refl = n_refl + 1
+   ENDDO check
+ELSEIF(style==CIF) THEN
+find:    DO
+      READ(ird,'(a)', IOSTAT=iostatus) line
+      IF(IS_IOSTAT_END(iostatus)) THEN
+         ier_num = -9999
+         ier_typ = ER_APPL
+         CLOSE(ird) 
+         RETURN
+      ENDIF
+      startline = startline + 1
+      IF(line(1:14) == '_refln_index_h') EXIT find
+   ENDDO find
+   nentries = 0
+   j_h      = 0
+   j_k      = 0
+   j_l      = 0
+   j_iobs   = 0
+   j_icalc  = 0
+   j_sigi   = 0
+      j_fobs   = 0
+      j_fcalc  = 0
+      j_sigf   = 0
+      j_flag   = 0
+      j = 1
+   entries: DO
+      IF(line(1:1)=='#' .or. line == ' ') THEN
+            startline = startline + 1
+         CYCLE entries
+      ENDIF
+      IF(line(1:14) == '_refln_index_h')         j_h = j
+      IF(line(1:14) == '_refln_index_k')         j_k = j
+      IF(line(1:14) == '_refln_index_l')         j_l = j
+      IF(line(1:21) == '_refln_F_squared_calc')  j_icalc = j
+      IF(line(1:21) == '_refln_F_squared_meas')  j_iobs  = j
+      IF(line(1:22) == '_refln_F_squared_sigma') j_sigi  = j
+      IF(line(1:22) == '_refln_observed_status') j_flag  = j
+      IF(line(1:7) /= '_refln_') EXIT entries
+      nentries = nentries + 1
+      READ(ird,'(a)', IOSTAT=iostatus) line
+      IF(IS_IOSTAT_END(iostatus)) THEN
+         ier_num = -9999
+         ier_typ = ER_APPL
+         CLOSE(ird) 
+         RETURN
+      ENDIF
+      j = j + 1
+      startline = startline + 1
+   ENDDO entries
+   ALLOCATE(ccpara(1:nentries))
+   ccpara(:) = ' '
+   ALLOCATE(llpara(1:nentries))
+   length = LEN_TRIM(line)
+   check2:  DO
+      call get_params_blank(line,ianz, ccpara,llpara, nentries, length)
+      READ(ccpara(j_h)(1:llpara(j_h)),*) ih 
+      READ(ccpara(j_k)(1:llpara(j_k)),*) ik 
+      READ(ccpara(j_l)(1:llpara(j_l)),*) il 
+      ih_min = MIN(ih_min,ih)
+      ih_max = MAX(ih_max,ih)
+      ik_min = MIN(ik_min,ik)
+      ik_max = MAX(ik_max,ik)
+      il_min = MIN(il_min,il)
+      il_max = MAX(il_max,il)
+      n_refl = n_refl + 1
+      READ(ird,'(a)', IOSTAT=iostatus) line
+         !        READ(ird,*   , IOSTAT=iostatus) ih,ik,il, rint, sint
+      IF(IS_IOSTAT_END(iostatus)) EXIT check2
+      length = LEN_TRIM(line)
+   ENDDO check2
+ELSE
+   WRITE(output_io,*) ' WRONG STYLE ', style
+   RETURN
+ENDIF
+vi(:,:) = 0
+vi(1,1) = 1.0
+vi(2,2) = 1.0
+vi(3,3) = 1.0
+inc(1)   = ih_max - ih_min             + 1
+inc(2)   = ik_max - ik_min             + 1
+inc(3)   = il_max - il_min             + 1
+eck(1,1) = ih_min             ! minimum H
+eck(2,1) = ik_min             ! minimum K
+eck(3,1) = il_min             ! minimum L
+eck(1,2) = ih_max             ! maximum H
+eck(2,2) = ik_min             ! minimum K
+eck(3,2) = il_min             ! minimum L
+eck(1,3) = ih_min             ! minimum H
+eck(2,3) = ik_max             ! maximum K
+eck(3,3) = il_min             ! minimum L
+eck(1,4) = ih_min             ! minimum H
+eck(2,4) = ik_min             ! minimum K
+eck(3,4) = il_max             ! maximum L
+         !
+IF (ier_num == 0) then 
+!                 IF (inc(1) * inc(2) * inc(3) .gt. MAXQXY  .OR.   &
+   if(any(num/=ubound(csf))) then
+      n_qxy = num
+      call alloc_diffuse_four (n_qxy )
+      if(ier_num/=0) return
+   endif
+   if(cr_nscat/=ubound(cfact,2)) then
+      call alloc_diffuse_scat(cr_nscat)
+      if(ier_num/=0) return
+   endif
+   if(cr_natoms/=ubound(xat,1)) then
+      call alloc_diffuse_atom(cr_natoms)
+      if(ier_num/=0) return
+   endif
+!   if(inc(1)>MAXQXY(1) .or. inc(2)>MAXQXY(2) .or. inc(3)>MAXQXY(3) .or. &
+!      cr_natoms > DIF_MAXAT                 .OR.   &
+!      cr_nscat>DIF_MAXSCAT              ) THEN
+!!     n_qxy    = MAX(n_qxy,inc,MAXQXY)
+!      n_natoms = MAX(n_natoms,cr_natoms,DIF_MAXAT)
+!     n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!     call alloc_diffuse_four (n_qxy)
+!     call alloc_diffuse_scat (n_nscat)
+!      call alloc_diffuse_atom (n_natoms)
+!      IF (ier_num /= 0) THEN
+!         RETURN
+!      ENDIF
+!   ENDIF
+   call dlink (ano, lambda, rlambda, renergy, l_energy, &
+               diff_radiation, diff_table, diff_power) 
+   call four_run
+   rhkl (1) =  0. 
+   rhkl (2) =  0. 
+   rhkl (3) =  0. 
+   REWIND(ird)
+   DO j=1,startline -1 
+      READ(ird,'(a)') line
+   ENDDO
+   main:    DO
+      IF(style==HKLF4) THEN
+         READ(ird,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
+      ELSEIF(style==CIF) THEN
+         READ(ird,'(a)',IOSTAT=iostatus) line
+         length = LEN_TRIM(line)
+         call get_params_blank(line,ianz, ccpara,llpara, nentries, length)
+         DO j=1,nentries-1
+            READ(ccpara(j)(1:llpara(j)),*) values(j)
          ENDDO
-main:    DO
-            IF(style==HKLF4) THEN
-               READ(ird,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
-            ELSEIF(style==CIF) THEN
-               READ(ird,'(a)',IOSTAT=iostatus) line
-               length = LEN_TRIM(line)
-               call get_params_blank(line,ianz, ccpara,llpara, nentries, length)
-               DO j=1,nentries-1
-                  READ(ccpara(j)(1:llpara(j)),*) values(j)
-               ENDDO
-               ih = NINT(values(1))
-               ik = NINT(values(2))
-               il = NINT(values(3))
-!              READ(ird,*   , IOSTAT=iostatus) ih,ik,il, rint, sint
-            ENDIF
-            IF(IS_IOSTAT_END(iostatus)) EXIT main
-            indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1
-            wert = REAL(csf(indx)*CONJG(csf(indx)),KIND=KIND(0.0D0))
-            sint = SQRT(ABS(wert))
-            IF(ih==0 .AND. ik==0 .AND. IL==0) THEN
-               WRITE(iwr,1000) ih,ik,il, 0.00, 0.00
-            ELSE
-               IF(style==HKLF4) THEN
-                  WRITE(iwr,1000) ih,ik,il, scale*wert, sqrt(scale)*sint 
-               ELSEIF(style==CIF) THEN
-                  IF(j_icalc/=0) THEN
-                     values(j_icalc) = scale*wert
-                  ENDIF
-                  WRITE(iwr, 2000) ih,ik,il, (values(j),j=4, nentries-1)
-               ENDIF
-            ENDIF
-         END DO main
-      ENDIF 
-      IF(ALLOCATED(ccpara))   DEALLOCATE(ccpara)
-      IF(ALLOCATED(llpara))   DEALLOCATE(llpara)
+         ih = NINT(values(1))
+         ik = NINT(values(2))
+         il = NINT(values(3))
+         !              READ(ird,*   , IOSTAT=iostatus) ih,ik,il, rint, sint
+      ENDIF
+      IF(IS_IOSTAT_END(iostatus)) EXIT main
+      indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1       
+      wert = REAL(csf(ih,ik,il)*CONJG(csf(ih,ik,il)),KIND=KIND(0.0D0))                      
+      sint = SQRT(ABS(wert))
+      IF(ih==0 .AND. ik==0 .AND. IL==0) THEN
+         WRITE(iwr,1000) ih,ik,il, 0.00, 0.00
+      ELSE
+         IF(style==HKLF4) THEN
+           WRITE(iwr,1000) ih,ik,il, scale*wert, sqrt(scale)*sint 
+         ELSEIF(style==CIF) THEN
+           IF(j_icalc/=0) THEN
+             values(j_icalc) = scale*wert
+           ENDIF
+           WRITE(iwr, 2000) ih,ik,il, (values(j),j=4, nentries-1)
+         ENDIF
+      ENDIF
+   END DO main
+ENDIF 
+IF(ALLOCATED(ccpara))   DEALLOCATE(ccpara)
+IF(ALLOCATED(llpara))   DEALLOCATE(llpara)
 1000  FORMAT(3I4,F8.2,F8.2)
 2000  FORMAT(3I4,F12.2,F12.2, F12.2)
-      CLOSE(ird)
-      CLOSE(iwr)
+CLOSE(ird)
+CLOSE(iwr)
+!
 END SUBROUTINE calc_hkl
 !
-!*****7*****************************************************************
+!**********************************************************************
+!**********************************************************************
 !
 SUBROUTINE four_strucf_aver (iscat, lform) 
 !+                                                                      
@@ -2247,15 +2693,28 @@ SUBROUTINE four_strucf_aver (iscat, lform)
 !                                                                       
       REAL(PREC_DP)        ::        xincu, xincv , xincw
       REAL(PREC_DP)        ::        oincu, oincv , oincw
-      INTEGER (KIND=PREC_INT_LARGE)   :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw
+      INTEGER (KIND=PREC_INT_LARGE)   :: i, ii, j, k, l, iarg, iarg0, iincu, iincv, iincw
       INTEGER (KIND=PREC_INT_LARGE)   ::                              jincu, jincv, jincw
       INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
 !
       INTEGER IAND, ISHFT 
 !
 !------ zero fourier array                                              
-!                                                                       
-      tcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
+!     
+      ! Neder's original code
+      !                                                                  
+      !tcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
+      !
+      ! My declaration
+      !
+      DO i = 1, num (1)
+         DO j = 1, num (2)
+            DO k = 1, num (3)
+               tcsf(i,j,k) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))                                                                    ! I am using num(i) here.
+            ENDDO
+         ENDDO
+      ENDDO
+      !
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
@@ -2287,29 +2746,56 @@ SUBROUTINE four_strucf_aver (iscat, lform)
 !                 iadd      = IAND  (iadd, MASK) 
 !                 tcsf (ii) = tcsf (ii) + cex (iadd, MASK) )
 !                 iarg      = iarg + iincw
-!                                                                       
+!
+!*********************************************************************************
+! Neders original code
+!**********************************************************************************                                                                       
+!          ii = 0 
+! !                                                                       
+!           DO j = 0, num (1) - 1
+!              DO i = 0, num (2) - 1
+!                 iarg = iarg0 + iincu*j + iincv*i 
+!                 DO h = 1, num (3) 
+!                    ii       = ii + 1 
+!                    tcsf(ii) = tcsf (ii) + cex (IAND  (ISHFT(iarg, shift), MASK) )                           ! Treat cearfully, dimensions here are complicated, and run differently for each array. 
+!                    iarg     = iarg + iincw
+!                 ENDDO 
+!              ENDDO 
+!           ENDDO 
+!       ENDDO
+!**********************************************************************************
+! My code ( Copilot Generated )
+!**********************************************************************************
+
          ii = 0 
-!                                                                       
-          DO j = 0, num (1) - 1
-             DO i = 0, num (2) - 1
-                iarg = iarg0 + iincu*j + iincv*i 
-                DO h = 1, num (3) 
-                   ii       = ii + 1 
-                   tcsf(ii) = tcsf (ii) + cex (IAND  (ISHFT(iarg, shift), MASK) )
-                   iarg     = iarg + iincw
-                ENDDO 
-             ENDDO 
-          ENDDO 
+   !                                                                       
+         DO l = 1, num(3)
+            DO j = 1, num(2)
+               DO i = 1, num(1)
+                  iarg = iarg0 + iincu*(j-1) + iincv*(i-1) 
+                  tcsf(i,j,l) = tcsf(i,j,l) + cex(IAND(ISHFT(iarg, shift), MASK))
+                  iarg = iarg + iincw
+               ENDDO 
+            ENDDO 
+         ENDDO 
       ENDDO 
+!**********************************************************************************
 !
 !------ Now we multiply with formfactor                                 
 !                                                                       
       IF (lform) then 
-         DO  i = 1, num (1) * num (2) * num(3)
+         !DO  i = 1, num (1) * num (2) * num(3)
 !        FORALL( i = 1: num (1) * num (2) * num(3))   !!! DO Loops seem to be faster!
-            tcsf (i) = tcsf (i) * cfact (istl (i), iscat) 
+            !tcsf (i) = tcsf (i) * cfact (istl (i), iscat)                                                   ! Neders original code
+         DO i = 1, num (1)
+            DO j = 1, num (2)
+               DO l = 1, num (3)
+                  tcsf (i,j,l) = tcsf (i,j,l) * cfact (istl (i,j,l), iscat)          ! My declaration
+               ENDDO
+            ENDDO
+         ENDDO
 !        END FORALL
-         END DO
+         !END DO
       ENDIF 
 !                                                                       
 END SUBROUTINE four_strucf_aver
@@ -2396,7 +2882,32 @@ ENDIF
 END SUBROUTINE four_test_friedel
 !
 !*******************************************************************************
-!
+! Neders original code
+!*******************************************************************************
+
+! SUBROUTINE four_apply_friedel
+! !-
+! !  Applies Friedels law to the Fourier calculation
+! !+
+! USE diffuse_mod
+! !
+! IMPLICIT NONE
+! !
+! INTEGER :: i, j
+! !
+! IF(diff_l_friedel) THEN
+!    j = diff_inc_u(1)*diff_inc_u(2)*diff_inc_u(3) + 1                             ! This entire portion looks complicated. The dimensions here are going to be tricky. Who is j ??
+!    DO i = 1, num(1) * num(2) * num(3)
+!      acsf(j-i) = conjg(acsf(i))
+!       csf(j-i) = conjg( csf(i))
+!       dsi(j-i) =        dsi(i)
+!    ENDDO 
+! ENDIF
+! !
+! END SUBROUTINE four_apply_friedel
+!*******************************************************************************
+! My code ( Copilot Generated )
+!*******************************************************************************
 SUBROUTINE four_apply_friedel
 !-
 !  Applies Friedels law to the Fourier calculation
@@ -2405,21 +2916,25 @@ USE diffuse_mod
 !
 IMPLICIT NONE
 !
-INTEGER :: i, j
+INTEGER :: i, j, k !, jj
 !
 IF(diff_l_friedel) THEN
-   j = diff_inc_u(1)*diff_inc_u(2)*diff_inc_u(3) + 1
-   DO i = 1, num(1) * num(2) * num(3)
-     acsf(j-i) = conjg(acsf(i))
-      csf(j-i) = conjg( csf(i))
-      dsi(j-i) =        dsi(i)
-   ENDDO 
+!  jj = diff_inc_u(1)*diff_inc_u(2)*diff_inc_u(3) + 1                             ! This entire portion looks complicated. The dimensions here are going to be tricky. Who is j ??
+   DO i = 1, num(1)
+      DO j = 1, num(2)
+         DO k = 1, num(3)
+            acsf(num(1)+1-i,num(2)+1-j,num(3)+1-k) = conjg(acsf(i,j,k))
+             csf(num(1)+1-i,num(2)+1-j,num(3)+1-k) = conjg( csf(i,j,k))
+!           csf(j-i,k-j,i-k) = conjg(csf(i,j,k))
+!           dsi(j-i,k-j,i-k) = dsi(i,j,k)
+            dsi(num(1)+1-i,num(2)+1-j,num(3)+1-k) = dsi(i,j,k    )
+         ENDDO
+      ENDDO
+   ENDDO
 ENDIF
 !
 END SUBROUTINE four_apply_friedel
-!
 !*******************************************************************************
-!
 SUBROUTINE four_rese_friedel
 !
 ! Set the corners, increments back to user values
@@ -2512,11 +3027,13 @@ END SUBROUTINE four_rese_friedel
 !END SUBROUTINE four_fft_finalize
 !
 !*******************************************************************************
+!Pending !!!!!!! ( discuss csf_sum)
+!*******************************************************************************
 !
 SUBROUTINE four_accumulate
 !-
 !  Accumulates the structure factor / intensity 
-!+
+!+ 
 USE diffuse_mod
 !
 USE errlist_mod
@@ -2527,9 +3044,9 @@ IF(four_accum==FOUR_ACCUM_SINGLE) THEN
    IF(four_symm) THEN
       IF(ALLOCATED(csf_sum)) DEALLOCATE(csf_sum)
       IF(ALLOCATED(dsi_sum)) DEALLOCATE(dsi_sum)
-      ALLOCATE(csf_sum(LBOUND(csf,1):UBOUND(csf,1)))
+      ALLOCATE(csf_sum(LBOUND(csf,1):UBOUND(csf,1), LBOUND(csf,2):UBOUND(csf,2), LBOUND(csf,3):UBOUND(csf,3)))
       csf_sum = CMPLX(0.0D0, 0.0D0)
-      ALLOCATE(dsi_sum(LBOUND(dsi,1):UBOUND(dsi,1)))
+      ALLOCATE(dsi_sum(LBOUND(dsi,1):UBOUND(dsi,1), LBOUND(dsi,2):UBOUND(dsi,2), LBOUND(dsi,3):UBOUND(dsi,3)))                                                     ! Discuss with Neder this _sum arrays.
       dsi_sum = 0.0D0
       csf_sum = csf
       dsi_sum = dsi
@@ -2545,11 +3062,12 @@ ELSEIF(four_accum==FOUR_ACCUM_INIT) THEN          ! Initialization, clear *_sum 
    IF(ALLOCATED(dsi_sum)) DEALLOCATE(dsi_sum)
 ELSEIF(four_accum==FOUR_ACCUM_ACCUM) THEN         ! Accumulate into current sum
    IF(.NOT.ALLOCATED(csf_sum)) THEN
-      ALLOCATE(csf_sum(LBOUND(csf,1):UBOUND(csf,1)))
+      ALLOCATE(csf_sum(LBOUND(csf,1):UBOUND(csf,1), LBOUND(csf,2):UBOUND(csf,2), LBOUND(csf,3):UBOUND(csf,3)))
       csf_sum = CMPLX(0.0D0, 0.0D0)
    ENDIF
    IF(.NOT.ALLOCATED(dsi_sum)) THEN
-      ALLOCATE(dsi_sum(LBOUND(dsi,1):UBOUND(dsi,1)))
+!     ALLOCATE(dsi_sum(LBOUND(dsi,1):UBOUND(dsi,1)))
+      ALLOCATE(dsi_sum(LBOUND(dsi,1):UBOUND(dsi,1), LBOUND(dsi,2):UBOUND(dsi,2), LBOUND(dsi,3):UBOUND(dsi,3)))
       dsi_sum = 0.0D0
    ENDIF
    csf_sum = csf_sum + csf
@@ -2570,6 +3088,8 @@ ENDIF
 !
 END SUBROUTINE four_accumulate
 !
+!*******************************************************************************
+! This one is already 3D
 !*******************************************************************************
 !
 SUBROUTINE four_fill_csf
@@ -2605,8 +3125,8 @@ ii = 0
       DO h = 1, num (1) 
    DO k = 1, num (2) 
 DO l = 1, num (3) 
-         ii       = ii + 1 
-         csf_3d(h,k,l) = csf_sum(ii)
+!        ii       = ii + 1 
+         csf_3d(h,k,l) = csf_sum(h,k,l)
       ENDDO
    ENDDO
 ENDDO
@@ -2663,8 +3183,8 @@ ii = 0
       DO h = 1, num (1) 
    DO k = 1, num (2) 
 DO l = 1, num (3) 
-         ii       = ii + 1 
-         csf_sum(ii) = csf_3d(h,k,l)
+!        ii       = ii + 1 
+         csf_sum(h,k,l) = csf_3d(h,k,l)
       ENDDO
    ENDDO
 ENDDO
@@ -2708,7 +3228,7 @@ ii = 0
    DO k = 1, num (2) 
 DO l = 1, num (3) 
          ii       = ii + 1 
-         dsi_3d(h,k,l) = dsi_sum(ii)
+         dsi_3d(h,k,l) = dsi_sum(h,k,l)
       ENDDO
    ENDDO
 ENDDO
@@ -2765,7 +3285,7 @@ ii = 0
    DO k = 1, num (2) 
 DO l = 1, num (3) 
          ii       = ii + 1 
-         dsi_sum(ii) = dsi_3d(h,k,l)
+         dsi_sum(h,k,l) = dsi_3d(h,k,l)
       ENDDO
    ENDDO
 ENDDO
@@ -2774,6 +3294,8 @@ DEALLOCATE(dsi_3d)
 !
 END SUBROUTINE four_fill_dsi
 !
+!*******************************************************************************
+! Also already 3D
 !*******************************************************************************
 !
 SUBROUTINE four_symm_csf(num, csf_3d, eck, vi)

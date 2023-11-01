@@ -113,9 +113,10 @@ USE lib_length
       DO j = 1, out_inc(2)
          DO i = 1, out_inc(1)
             irec = irec + 1
-            sqq       =  qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
-                                (j - 1) * out_inc(3)             + l,     &
-                                value,  i, j, laver)
+!           sqq       =  qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+!                               (j - 1) * out_inc(3)             + l,     &
+!                               value,  i, j, laver)
+            sqq       = qval(i,j,l, value,  i, j, laver)
             WRITE(IMRC,rec=irec) sqq
          ENDDO
       ENDDO

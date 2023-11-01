@@ -64,12 +64,11 @@ CONTAINS
       REAL(kind=PREC_DP) :: q2 
       INTEGER i
       INTEGER     :: n_qxy   = 1 ! Maximum number of points in reciprocal space 
-      INTEGER     :: n_nscat = 1 ! Maximum Number of atom type
-      INTEGER     :: n_natom = 1 ! Maximum Number of atom type
       INTEGER     :: astatus ! Allocation status
 !
 !      n_qxy   = MAX(1,n_points)
-      n_qxy   = MAX(  n_points      , MAXQXY,MAXDQXY)
+       
+      n_qxy   = MAX(  n_points      , product(MAXQXY),MAXDQXY)
 !     n_nscat = 1
 !     n_natom = 1
 !                                                                       
@@ -77,23 +76,43 @@ CONTAINS
          WRITE (output_io, 1000) 
 !     ENDIF 
 !                                                                       
-      IF (n_points > MAX(MAXQXY, MAXDQXY)  .OR.          &
-          n_points > ubound(istl,1)        .or.          &
-          cr_nscat>DIF_MAXSCAT              ) THEN
-         n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-         n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
-         CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
-         IF (ier_num.ne.0) THEN
-            RETURN
-         ENDIF
-      ENDIF
+inc(1) = n_points
+inc(2:3) = 1
+if(any(inc/=ubound(csf))) then
+   call alloc_diffuse_four(inc )
+   if(ier_num/=0) return
+endif
+if(cr_nscat/=ubound(cfact,2)) then
+   call alloc_diffuse_scat(cr_nscat)
+   if(ier_num/=0) return
+endif
+if(cr_natoms/=ubound(xat,1)) then
+   call alloc_diffuse_atom(cr_natoms)
+   if(ier_num/=0) return
+endif
+!      IF (n_points > MAX(product(MAXQXY), MAXDQXY)  .OR.          &
+!          n_points > ubound(istl,1)        .or.          &
+!          cr_nscat>DIF_MAXSCAT              ) THEN
+!        n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!         n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+!        CALL alloc_diffuse_four ((/n_qxy,1,1/))
+!        CALL alloc_diffuse_scat (n_nscat)
+!         CALL alloc_diffuse_atom (n_natom )
+!         IF (ier_num.ne.0) THEN
+!            RETURN
+!         ENDIF
+!      ENDIF
       IF(ALLOCATED(powder_istl)) DEALLOCATE(powder_istl)
-      ALLOCATE(powder_istl(0:n_qxy), stat=astatus)
+      ALLOCATE(powder_istl(0:n_points), stat=astatus)
       powder_istl(:) = 0
 !
-      DO i = 0, n_points
+i=0
+q2 = ( (xstart + xdelta  * REAL(i,KIND=KIND(0.0D0)) ) **2) / 4.0D0
+powder_istl(0) = nint(sqrt(q2) * (1.0D0 / CFINC) )
+!
+      DO i = 1, n_points
          q2 = ( (xstart + xdelta  * REAL(i,KIND=KIND(0.0D0)) ) **2) / 4.0D0
-         istl (i) = nint(sqrt(q2) * (1.0D0 / CFINC) ) 
+         istl (i,1,1) = nint(sqrt(q2) * (1.0D0 / CFINC) ) 
 !DBG                                                                    
 !DBG      if(i.eq.150) then                                             
 !DBG        write(*,*) 'q2  ', q2                                       
@@ -101,14 +120,14 @@ CONTAINS
 !DBG        write(*,*) 'istl',istl(i)                                   
 !DBG      endif                                                         
 !                                                                       
-         IF (istl (i) .gt.CFPKT) then 
+         IF (istl (i,1,1) .gt.CFPKT) then 
             ier_num = - 3 
             ier_typ = ER_FOUR 
             RETURN 
          ENDIF 
 !                                                                       
       ENDDO 
-      powder_istl(:) = istl(:)
+      powder_istl(1:) = istl(1:,1,1)
 !                                                                       
  1000 FORMAT     (' Computing sin(theta)/lambda table ...') 
       END SUBROUTINE powder_stltab                  

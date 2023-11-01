@@ -240,7 +240,7 @@ INTEGER j, k, l
 INTEGER i, iscat, jscat 
 INTEGER                :: n_hist
 INTEGER                :: n_srch         ! Actual MAXHIST 
-INTEGER                :: n_qxy   = 1
+INTEGER, dimension(3)  :: n_qxy   = 1
 INTEGER                :: n_nscat = 1
 INTEGER                :: n_natom = 1
 INTEGER                :: n_pha   = 1
@@ -299,23 +299,39 @@ num(1) = nint ( (ss - xm (1) ) / uin (1) ) + 1
 !
 !    Allocate arrays
 !
-n_qxy    = num(1) + 1
+n_qxy    = 1
+n_qxy(1) = num(1) + 1
 distance = SQRT(udist(1)**2+udist(2)**2+udist(3)**2)
 n_hist   = NINT(distance/pow_del_hist) + 2
 n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
 n_natom  = MAX(n_natom,cr_natoms,DIF_MAXAT)
-IF (num(1) > MAXQXY  .OR.          &
-    num(1) > MAXDQXY .OR.          &
-    cr_nscat>DIF_MAXSCAT              ) THEN
-   CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
-ENDIF
-CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
+if(any(num/=ubound(csf))) then
+   n_qxy = num
+   call alloc_diffuse_four (n_qxy )
+   if(ier_num/=0) return
+endif
+if(cr_nscat/=ubound(cfact,2)) then
+   call alloc_diffuse_scat(cr_nscat)
+   if(ier_num/=0) return
+endif
+if(cr_natoms/=ubound(xat,1)) then
+   call alloc_diffuse_atom(cr_natoms)
+   if(ier_num/=0) return
+endif
+!IF (num(1) > MAXQXY(1)  .OR.          &
+!    num(1) > MAXDQXY    .OR.          &
+!    cr_nscat>DIF_MAXSCAT              ) THEN
+!  CALL alloc_diffuse_four (n_qxy)
+!   CALL alloc_diffuse_scat (n_nscat)
+!   CALL alloc_diffuse_atom (n_natom )
+!ENDIF
+CALL alloc_debye  (cr_nscat, n_hist, product(n_qxy), MASK )
 !
-CALL alloc_powder (n_qxy, n_nscat          )
+CALL alloc_powder (product(n_qxy), cr_nscat)
 !
-IF(n_qxy > PHA_MAXPTS .OR. cr_nscat> PHA_MAXSCAT) THEN 
+IF(product(n_qxy) > PHA_MAXPTS .OR. cr_nscat> PHA_MAXSCAT) THEN 
    n_pha   = PHA_MAXPHA
-   n_qxy   = MAX(PHA_MAXPTS,  n_qxy)
+   n_qxy(1)= MAX(PHA_MAXPTS,  n_qxy(1))
    n_nscat = MAX(PHA_MAXSCAT, cr_nscat)
    CALL alloc_phases(n_pha, n_qxy, n_nscat)
 ENDIF
@@ -324,6 +340,10 @@ ENDIF
 !                                                                       
 ALLOCATE(look(1:cr_nscat,1:cr_nscat))
 !ALLOCATE(ldo_partial(1:cr_nscat,1:cr_nscat))
+if(cr_nscat/=ubound(pow_do_partial,1)) then
+   call alloc_powder_partial(cr_nscat)
+   if(ier_num/=0) return
+endif
 pow_do_partial = .true.
 pow_l_partial = .false.
 !pow_l_partial = .true.
@@ -362,12 +382,12 @@ natom        = 0
 !                                                                       
 !------ preset some tables, calculate average structure                 
 !                                                                       
-pow_npkt = n_qxy    ! set actual number of powder data points
+pow_npkt = n_qxy(1)    ! set actual number of powder data points
 CALL powder_sinet 
 !
 xstart = pow_qmin  /zpi
 xdelta = pow_deltaq/zpi
-CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+CALL powder_stltab(product(n_qxy), xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
 !
 IF (ier_num /= 0) THEN
    DEALLOCATE(look   )
@@ -714,7 +734,7 @@ INTEGER :: n_pha
 INTEGER(KIND=PREC_INT_LARGE) :: iarg, iadd 
 INTEGER                :: n_hist
 INTEGER                :: n_srch         ! Actual MAXHIST 
-INTEGER                :: n_qxy   = 1
+INTEGER, dimension(3)  :: n_qxy   = 1
 INTEGER                :: n_nscat = 1
 INTEGER                :: n_natom = 1
 INTEGER                :: nmol_type = 0
@@ -825,21 +845,38 @@ ENDIF
 n_qxy    = num (1) * num (2) + 1
 distance = sqrt(udist(1)**2+udist(2)**2+udist(3)**2)
 n_hist   = nint(distance/pow_del_hist) + 2
-n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
+n_qxy   = MAX(n_qxy,num,MAXQXY,MAXDQXY)
 n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
 n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
-IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
-    num (1) * num (2) .gt. MAXDQXY .OR.          &
-    cr_nscat>DIF_MAXSCAT              ) THEN
-   CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
-ENDIF
-CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
+if(any(num/=ubound(csf))) then
+   n_qxy = num
+   call alloc_diffuse_four (n_qxy )
+   if(ier_num/=0) return
+endif
+if(cr_nscat/=ubound(cfact,2)) then
+   call alloc_diffuse_scat(cr_nscat)
+   if(ier_num/=0) return
+endif
+if(cr_natoms/=ubound(xat,1)) then
+   call alloc_diffuse_atom(cr_natoms)
+   if(ier_num/=0) return
+endif
+!IF (num (1)>MAXQXY(1)  .OR.          &
+!    num (2)>MAXQXY(2)  .OR.          &
+!    num (1)>MAXDQXY    .OR.          &
+!    num (2)>MAXDQXY    .OR.          &
+!    cr_nscat>DIF_MAXSCAT              ) THEN
+!  CALL alloc_diffuse_four (n_qxy)
+!  CALL alloc_diffuse_scat (n_nscat)
+!   CALL alloc_diffuse_atom (n_natom )
+!ENDIF
+CALL alloc_debye  (cr_nscat, n_hist, product(n_qxy), MASK )
 !
-CALL alloc_powder (n_qxy, n_nscat          )
+CALL alloc_powder (product(n_qxy), cr_nscat)
 !
-IF(n_qxy > PHA_MAXPTS .OR. cr_nscat> PHA_MAXSCAT) THEN 
+IF(product(n_qxy) > PHA_MAXPTS .OR. cr_nscat> PHA_MAXSCAT) THEN 
    n_pha   = PHA_MAXPHA
-   n_qxy   = MAX(PHA_MAXPTS,  n_qxy)
+   n_qxy(1)= MAX(PHA_MAXPTS,  n_qxy(1))
    n_nscat = MAX(PHA_MAXSCAT, cr_nscat)
    CALL alloc_phases(n_pha, n_qxy, n_nscat)
 ENDIF
@@ -883,12 +920,12 @@ ENDDO
 !                                                                       
 !------ preset some tables, calculate average structure                 
 !                                                                       
-pow_npkt = n_qxy    ! set actual number of powder data points
+pow_npkt = product(n_qxy)    ! set actual number of powder data points
 CALL powder_sinet 
 !IF(pow_axis == POW_AXIS_Q ) THEN
    xstart = pow_qmin  /zpi
    xdelta = pow_deltaq/zpi
-   CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+   CALL powder_stltab(product(n_qxy), xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
 !ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
 !   CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
 !ENDIF

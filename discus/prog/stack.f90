@@ -65,7 +65,7 @@ LOGICAL, SAVE :: linit    = .true.
 !
 INTEGER,SAVE  :: n_types  = 0 ! Current number of layer types
 INTEGER,SAVE  :: n_layers = 0 ! Current number of layers
-INTEGER,SAVE  :: n_qxy    = 0 ! Current number of points in reciprocal space
+INTEGER,dimension(3),SAVE  :: n_qxy    = 0 ! Current number of points in reciprocal space
 !                                                                       
 !                                                                       
 maxw = MIN_PARA
@@ -133,7 +133,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !--STACK specific commands
 !                                                                       
    IF(linit) then 
-      CALL alloc_stack ( st_layer_increment, 1, 1, st_rot_status)
+      CALL alloc_stack ( st_layer_increment, 1, st_rot_status)
       n_types  = ST_MAXTYPE
       n_layers = ST_MAXLAYER
       n_qxy    = ST_MAXQXY
@@ -234,7 +234,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                 If necessary allocate array sizes
 !
       IF ( st_nlayer >  ST_MAXLAYER ) THEN
-         CALL alloc_stack (ST_MAXTYPE, st_nlayer, ST_MAXQXY, st_rot_status )
+         CALL alloc_stack (ST_MAXTYPE, st_nlayer, st_rot_status )
       ENDIF
       st_new_form = .TRUE.
       CALL do_stack_create 
@@ -341,11 +341,13 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !                                                                       
    ELSEIF (str_comp (befehl, 'fourier', 1, lbef, 7) ) then 
       CALL four_resolution(zeile, lp)
-      four_log = .true. 
-      CALL st_fourier (.false.)
       if(ier_num==0) then
-         four_was_run = .true.
-         call four_conv           ! Convolute diffraction pattern
+         four_log = .true. 
+         CALL st_fourier (.false.)
+         if(ier_num==0) then
+            four_was_run = .true.
+            call four_conv           ! Convolute diffraction pattern
+         endif
       endif
 !                                                                       
 !     ----read the name of a new layer type                'layer'      
@@ -361,7 +363,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !
                IF ( st_ntypes >=  ST_MAXTYPE ) THEN
                   i       = ST_MAXTYPE + st_layer_increment
-                  CALL alloc_stack ( i, ST_MAXLAYER, ST_MAXQXY, st_rot_status )
+                  CALL alloc_stack ( i, ST_MAXLAYER, st_rot_status )
                   n_types = ST_MAXTYPE
                ENDIF
                IF (st_ntypes.lt.ST_MAXTYPE) then 
@@ -501,7 +503,7 @@ loop_main: DO while (.not.lend)                 ! Main stack loop
 !
 !        Allocate rotational stacking faults
 !
-         CALL alloc_stack ( ST_MAXTYPE, ST_MAXLAYER, ST_MAXQXY, .true. )
+         CALL alloc_stack ( ST_MAXTYPE, ST_MAXLAYER, .true. )
 !
          IF(str_comp(cpara(1), 'mode', 1, lpara(1), 4)) then
 !                                                                       
@@ -1175,7 +1177,7 @@ ELSEIF (st_distr.eq.ST_DIST_FILE.or.st_distr.eq.ST_DIST_LIST) THEN if_distr
    IF ( st_nlayer > ST_MAXLAYER .or.        &
         st_natoms > ST_MAXLAYER      ) THEN
       nlayers = MAX ( st_nlayer, st_natoms )
-      CALL alloc_stack (ST_MAXTYPE, nlayers, MAXQXY, st_rot_status )
+      CALL alloc_stack (ST_MAXTYPE, nlayers, st_rot_status )
    ENDIF
 !
 !        IF more molecules have been read than were allocated
@@ -2304,12 +2306,12 @@ LOGICAL, INTENT(IN) :: calc_f2aver
 !                                                                       
 integer, parameter :: MAXMASK = 4
 !
-      INTEGER i, j, l 
-      INTEGER iscat 
-      INTEGER lbeg (3)
-      INTEGER ncell 
+      INTEGER :: i, j, k, l
+      INTEGER :: iscat 
+      INTEGER :: lbeg (3)
+      INTEGER :: ncell 
       INTEGER         :: n_layers ! Number of layers for current layer type
-      INTEGER         :: n_qxy    = 1 ! Number of data points in reciprocal space
+      INTEGER, dimension(3)         :: n_qxy    = 1 ! Number of data points in reciprocal space
       INTEGER         :: n_nscat  = 1 ! Number of different atom types
       INTEGER         :: n_atoms  = 1 ! Number of atoms
       INTEGER         :: n_mole  ! number of molecules in input file
@@ -2347,37 +2349,69 @@ ENDIF
       CALL four_layer 
       CALL fourier_lmn(eck,vi,inc,lmn,off_shift)
 !
-!                 ALLOCATE the fourier part of stacking faults
+! ALLOCATE the fourier part of stacking faults
+!          To ensure compatibility with four_conv, csf, st_csf must be of 
+!          the exact size and shape of num
 !
-      IF ( num(1)*num(2)*num(3) .gt. ST_MAXQXY .or.            &
-           num(1)*num(2)*num(3) .gt.    MAXQXY      ) THEN
-         i = num(1)*num(2)*num(3)
-         CALL alloc_stack (ST_MAXTYPE, ST_MAXLAYER, i     , st_rot_status )
-      ENDIF
+if(any(num/=ubound(csf))) then
+   n_qxy = num
+   call alloc_diffuse_four (n_qxy )
+   if(ier_num/=0) return
+endif
+if(any(num/=ubound(st_csf))) then
+   n_qxy = num
+   call alloc_stack_four (n_qxy )
+   if(ier_num/=0) return
+endif
+if(cr_nscat/=ubound(cfact,2)) then
+   call alloc_diffuse_scat(cr_nscat)
+   if(ier_num/=0) return
+endif
+if(cr_natoms/=ubound(xat,1)) then
+   call alloc_diffuse_atom(cr_natoms)
+   if(ier_num/=0) return
+endif
+!if(ubound(csf,1)/=ubound(st_csf,1) .or. ubound(csf,1)/=ubound(st_csf,1) .or.  &
+!   ubound(csf,1)/=ubound(st_csf,1) .or.                                       &
+!   num(1)/=ST_MAXQXY(1) .or. num(2)/=ST_MAXQXY(2) .or. num(3)/=ST_MAXQXY(3) .or. &
+!   num(1)/=   MAXQXY(1) .or. num(2)/=   MAXQXY(2) .or. num(3)/=   MAXQXY(3) .or. &
+!   cr_nscat>DIF_MAXSCAT           .OR.                                        &
+!          MAX(cr_natoms,st_nlayer)>DIF_MAXAT                                   ) then
+!
+!  n_qxy = num
+!  CALL alloc_stack_four (n_qxy )
+!  n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!   n_atoms = MAX(cr_natoms,st_nlayer,DIF_MAXAT)
+!  CALL alloc_diffuse_four (n_qxy)
+!  CALL alloc_diffuse_scat (n_nscat)
+!   CALL alloc_diffuse_atom (n_atoms)
+!ENDIF
 !                                                                       
 !     Now start calculation if sufficient space                         
 !                                                                       
-      IF (num(1)*num(2)*num(3) .gt. MAXQXY  .OR.          &
-          cr_nscat>DIF_MAXSCAT           .OR.          &
-          MAX(cr_natoms,st_nlayer)>DIF_MAXAT   ) THEN
-        n_qxy   = MAX(n_qxy,num(1)*num(2)*num(3),MAXQXY)
-        n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-        n_atoms = MAX(cr_natoms,st_nlayer,DIF_MAXAT)
-        CALL alloc_diffuse (n_qxy, cr_nscat, n_atoms)
-        IF (ier_num.ne.0) THEN
-          RETURN
-        ENDIF
-      ENDIF
-      IF (num(1)*num(2)*num(3) .le.ST_MAXQXY) then 
+!     IF (num(1)*num(2)*num(3) .gt. MAXQXY  .OR.          &
+!if(num(1)>ST_MAXQXY(1) .or. num(2)>ST_MAXQXY(2) .or. num(3)>ST_MAXQXY(3) .or. &
+!          cr_nscat>DIF_MAXSCAT           .OR.          &
+!          MAX(cr_natoms,st_nlayer)>DIF_MAXAT   ) THEN
+!        n_qxy   = MAX(n_qxy,num,MAXQXY)
+!        n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!        n_atoms = MAX(cr_natoms,st_nlayer,DIF_MAXAT)
+!        CALL alloc_diffuse (n_qxy, cr_nscat, n_atoms)
+!        IF (ier_num.ne.0) THEN
+!          RETURN
+!        ENDIF
+!ENDIF
+!     IF (num(1)*num(2)*num(3) .le.ST_MAXQXY) then 
+if(num(1) >ST_MAXQXY(1) .or.  num(2) >ST_MAXQXY(2) .or.  num(3) >ST_MAXQXY(3)) then
+   ier_num = - 8 
+   ier_typ = ER_APPL 
+   return
+ENDIF 
 !                                                                       
 !------ --zero some arrays                                              
 !                                                                       
-         DO i = 1, num (1) * num (2) *num(3)
-!           st_csf(i) = cmplx(0.0d0,0.0d0)                                
-            csf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
-!           acsf(i) = cmplx(0.0d0,0.0d0)                                
-         ENDDO 
-!                                                                       
+csf(1:num(1),1:num(2), 1:num(3)) = cmplx(0.0D0, 0.0D0,KIND=KIND(0.0D0))
+!
 !     --read first layer to ensure that the metric tensors are set      
 !                                                                       
          CALL rese_cr 
@@ -2390,8 +2424,6 @@ ENDIF
             ier_msg(1) = 'Stacking faults should have been internal'
             ier_msg(2) = 'Stacking fault layer file error 05'
             return
-!INTER            CALL test_file ( st_layer(1), n_atoms, n_nscat, n_mole, n_type,&
-!INTER                             n_atom, n_cells, -1, .false. )
          ENDIF
          IF(n_atoms > NMAX .or. n_nscat > MAXSCAT .or. st_nlayer > NMAX) THEN
             n_atoms = MAX( n_atoms, st_nlayer, NMAX )
@@ -2463,9 +2495,18 @@ ENDIF
 !                                                                       
 !     ------copy structure factor to temporary place                    
 !                                                                       
-            DO i = 1, num(1)*num(2)*num(3)
-               acsf (i) = tcsf (i) 
-            ENDDO 
+            !DO i = 1, num(1)*num(2)*num(3)
+            !   acsf (i) = tcsf (i)                                                          ! Neder's original code
+            !ENDDO 
+!
+            DO i = 1, num (1)
+               DO j = 1, num (2)
+                  DO k = 1, num (3)
+                     acsf (i,j,k) = tcsf (i,j,k)                                                          ! My code
+                  ENDDO
+               ENDDO
+            ENDDO
+!
             n_layers = nxat
 !                                                                       
 !     ----read corresponding layer                                      
@@ -2531,16 +2572,26 @@ ENDIF
 !
 !           If necessary allocate diffuse
 !
-            IF ( cr_nscat>DIF_MAXSCAT           .OR.          &
-                 MAX(cr_natoms,st_nlayer)>DIF_MAXAT   ) THEN
-               n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY)
-               n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-               n_atoms = MAX(cr_natoms,st_nlayer,DIF_MAXAT)
-               CALL alloc_diffuse (n_qxy, cr_nscat, n_atoms)
-               IF (ier_num.ne.0) THEN
-                 RETURN
-               ENDIF
-            ENDIF
+            if(cr_nscat/=ubound(cfact,2)) then
+               call alloc_diffuse_scat(cr_nscat)
+               if(ier_num/=0) return
+            endif
+            if(cr_natoms/=ubound(xat,1)) then
+               call alloc_diffuse_atom(cr_natoms)
+               if(ier_num/=0) return
+            endif
+!           IF ( cr_nscat>DIF_MAXSCAT           .OR.          &
+!                MAX(cr_natoms,st_nlayer)>DIF_MAXAT   ) THEN
+!              n_qxy   = MAX(n_qxy,num,MAXQXY)
+!              n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!              n_atoms = MAX(cr_natoms,st_nlayer,DIF_MAXAT)
+!              CALL alloc_diffuse_four (n_qxy)                 ! Needs to be done only once at start
+!              CALL alloc_diffuse_scat (n_nscat)
+!              CALL alloc_diffuse_atom (n_atoms)
+!              IF (ier_num.ne.0) THEN
+!                RETURN
+!              ENDIF
+!           ENDIF
             CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                         diff_radiation, diff_table, diff_power) 
                                                                         
@@ -2554,10 +2605,18 @@ ENDIF
 !                                                                       
 !------ ------zero some arrays                                          
 !                                                                       
-            DO i = 1, num (1) * num (2) *num(3)
-               st_csf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
-            ENDDO 
+            !DO i = 1, num (1) * num (2) *num(3)
+            !   st_csf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0))                              ! Neder's original code
+            !ENDDO 
 !                                                                       
+            DO i = 1, num (1)
+               DO j = 1, num (2)
+                  DO k = 1, num (3)
+                     st_csf (i,j,k) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0))                              ! My code, Apparently these st_csf arrays are to be treated 3D as well.
+                  ENDDO
+               ENDDO
+            ENDDO
+!
 !------ ------loop over all different atom types                        
 !                                                                       
          DO iscat = 1, cr_nscat 
@@ -2566,9 +2625,18 @@ ENDIF
 !                                                                       
 !------ --------Add this part of the structur factor to the total       
 !                                                                       
-            DO i = 1, num (1) * num (2) *num(3)
-               st_csf (i) = st_csf (i) + tcsf (i) 
-            ENDDO 
+            !DO i = 1, num (1) * num (2) *num(3)
+            !   st_csf (i) = st_csf (i) + tcsf (i)                                                       ! Neder's original code 
+            !ENDDO 
+!
+            DO i = 1, num (1)
+               DO j = 1, num (2)
+                  DO k = 1, num (3)
+                     st_csf (i,j,k) = st_csf (i,j,k) + tcsf (i,j,k)                                                       ! My code
+                  ENDDO
+               ENDDO
+            ENDDO
+!
             IF (four_log) then 
               WRITE (output_io, 3000) cr_at_lis (iscat), nxat 
             ENDIF 
@@ -2603,30 +2671,56 @@ ENDIF
 !                                                                       
 !     ------Add product of acsf und st_csf to csf                       
 !                                                                       
-         DO i = 1, num (1) * num (2) *num(3)
-            csf (i) = csf (i) + st_csf (i) * acsf (i) 
-         ENDDO 
+         !DO i = 1, num (1) * num (2) *num(3)
+         !   csf (i) = csf (i) + st_csf (i) * acsf (i)                                                 ! Neder's original code
+         !ENDDO
+!
+         DO i = 1, num (1)
+            DO j = 1, num (2)
+               DO k = 1, num (3)
+                  csf (i,j,k) = csf (i,j,k) + st_csf (i,j,k) * acsf (i,j,k)                            ! My code
+               ENDDO
+            ENDDO
+         ENDDO
+!
       ENDIF 
    ENDDO  layers
 !                                                                       
 !     --Calculate average scattering and subtract                       
 !                                                                       
    CALL st_fourier_aver 
-   DO i = 1, num (1) * num (2) *num(3)
-      csf (i) = csf (i) - acsf (i) 
-   ENDDO 
-ELSE 
-   ier_num = - 8 
-   ier_typ = ER_APPL 
-ENDIF 
+   !DO i = 1, num (1) * num (2) *num(3)
+   !   csf (i) = csf (i) - acsf (i)                                                                    ! Neders original code
+   !ENDDO
+!
+   DO i = 1, num (1)
+      DO j = 1, num (2)
+         DO k = 1, num (3)
+            csf (i,j,k) = csf (i,j,k) - acsf (i,j,k)                                                   ! My code
+         ENDDO
+      ENDDO
+   ENDDO
+!
 st_new_form = .FALSE.                            ! Form factors have been written into phases
 !                                                                       
 !     Compute intensity                                                 
 !                                                                       
-DO i = 1, num (1) * num (2) *num(3)
-   dsi (i) = DBLE (csf (i) * conjg (csf (i) ) ) 
-ENDDO 
-!                                                                       
+!DO i = 1, num (1) * num (2) *num(3)
+!   dsi (i) = DBLE (csf (i) * conjg (csf (i) ) )                                                      ! Neder's original code
+!ENDDO 
+!
+!ii = 0
+!DO i = 1, num (1)
+!   DO j = 1, num (2)
+!      DO k = 1, num (3)
+!         ii = ii + 1
+!         dsi (i,j,k)    = DBLE (csf (i,j,k) * conjg (csf (i,j,k) ) )                                     ! My code
+!      ENDDO
+!   ENDDO
+!ENDDO
+dsi(1:num(1),1:num(2), 1:num(3)) = DBLE(csf(1:num(1),1:num(2), 1:num(3)) * &
+                                  conjg(csf(1:num(1),1:num(2), 1:num(3))))
+!
 IF (four_log) then 
    CALL four_qinfo 
    ss = seknds (ss) 
@@ -2662,12 +2756,12 @@ use precision_mod
        
 !                                                                       
 integer, parameter :: MAXMASK = 4
-      INTEGER i, j, l 
-      INTEGER iscat 
-      INTEGER lbeg (3)
-      INTEGER ncell 
-      LOGICAL lout 
-      INTEGER         :: n_qxy    = 1! Number of data points in reciprocal space
+      INTEGER :: i, j, k, l 
+      INTEGER :: iscat 
+      INTEGER :: lbeg (3)
+      INTEGER :: ncell 
+      LOGICAL :: lout 
+      INTEGER, dimension(3)         :: n_qxy    = 1! Number of data points in reciprocal space
       INTEGER         :: n_nscat  = 1! Number of different atom types
       INTEGER         :: n_natoms = 1! Number of atoms 
       INTEGER         :: n_mole  ! number of molecules in input file
@@ -2693,26 +2787,52 @@ uni_mask(4)   = .false.
 !                                                                       
 !     Now start calculation if sufficient space                         
 !                                                                       
-      IF (num (1) * num (2)*num(3) .gt. MAXQXY  .OR.          &
-          cr_nscat>DIF_MAXSCAT           .OR.          &
-          MAX(cr_natoms,st_nlayer) > DIF_MAXAT ) THEN
-        n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY)
-        n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-        n_natoms = MAX(cr_natoms,st_nlayer,DIF_MAXAT)
-        CALL alloc_diffuse (n_qxy,  n_nscat, n_natoms)
-        IF (ier_num.ne.0) THEN
-          RETURN
-        ENDIF
-      ENDIF
-      IF (num (1) * num (2)*num(3) .le.MAXQXY) then 
+if(any(num/=ubound(csf))) then
+   n_qxy = num
+   CALL alloc_diffuse_four (n_qxy )
+endif
+if(any(num/=ubound(st_csf))) then
+   n_qxy = num
+   CALL alloc_stack_four (n_qxy )
+endif
+if(cr_nscat/=ubound(cfact,2)) then
+   call alloc_diffuse_scat(cr_nscat)
+   if(ier_num/=0) return
+endif
+if(cr_natoms/=ubound(xat,1)) then
+   call alloc_diffuse_atom(cr_natoms)
+   if(ier_num/=0) return
+endif
+!     if(num(1)>   MAXQXY(1) .or. num(2)>   MAXQXY(2) .or. num(3)>   MAXQXY(3) .or. &
+!         cr_nscat>DIF_MAXSCAT           .OR.          &
+!         MAX(cr_natoms,st_nlayer) > DIF_MAXAT ) THEN
+!       n_qxy   = MAX(n_qxy,num,MAXQXY)
+!       n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!       n_natoms = MAX(cr_natoms,st_nlayer,DIF_MAXAT)
+!       CALL alloc_diffuse_four (n_qxy)
+!       CALL alloc_diffuse_scat (n_nscat)
+!       CALL alloc_diffuse_atom (n_natoms)
+!       IF (ier_num.ne.0) THEN
+!         RETURN
+!       ENDIF
+!     ENDIF
+      if(num(1)<=  MAXQXY(1) .and. num(2)<=  MAXQXY(2) .and. num(3)<=  MAXQXY(3)      ) then
 !                                                                       
 !------ --zero some arrays                                              
 !                                                                       
-         DO i = 1, num (1) * num (2)*num(3) 
+         !DO i = 1, num (1) * num (2)*num(3) 
 !         st_csf(i) = cmplx(0.0d0,0.0d0)                                
-         acsf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
-         ENDDO 
+         !acsf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0))                                               ! Neder's original code
+         !ENDDO 
 !                                                                       
+         DO i = 1, num (1)
+            DO j = 1, num (2)
+               DO k = 1, num (3)
+                  acsf (i,j,k) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0))                                   ! My code
+               ENDDO
+            ENDDO
+         ENDDO
+!
 !     --Calculation is only performed if average is needed              
 !                                                                       
          IF (st_aver.ne.0.0) then 
@@ -2835,19 +2955,35 @@ uni_mask(4)   = .false.
 !                                                                       
 !     ----copy structure factor to temporary place                      
 !                                                                       
-            DO i = 1, num (1) * num (2)*num(3) 
-            acsf (i) = tcsf (i) 
-            ENDDO 
+            !DO i = 1, num (1) * num (2)*num(3) 
+            !acsf (i) = tcsf (i)                                                                            ! Neders original code
+            !ENDDO 
 !                                                                       
+            DO i = 1, num (1)
+               DO j = 1, num (2)
+                  DO k = 1, num (3)
+                     acsf (i,j,k) = tcsf (i,j,k)                                                            ! My code
+                  ENDDO
+               ENDDO
+            ENDDO
+!
 !------ ----zero some arrays                                            
 !                                                                       
-            DO i = 1, num (1) * num (2)*num(3) 
-            st_csf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
-            ENDDO 
+            !DO i = 1, num (1) * num (2)*num(3) 
+            !st_csf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0))                                             ! Neders original code 
+            !ENDDO 
+!
+            DO i = 1, num (1)
+               DO j = 1, num (2)
+                  DO k = 1, num (3)
+                     st_csf (i,j,k) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0))                                 ! My code
+                  ENDDO
+               ENDDO
+            ENDDO
 !                                                                       
 !     ----Loop over all layer types                                     
-!                                                                       
-            DO l = 1, st_ntypes 
+!                                                                          
+            DO l = 1, st_ntypes                                                                             ! Loop over l
 !                                                                       
 !     ------read corresponding layer                                    
 !                                                                       
@@ -2905,11 +3041,11 @@ uni_mask(4)   = .false.
 !                                                                       
 !     ------Add average displacement to each atom                       
 !                                                                       
-            DO i = 1, cr_natoms 
-            DO j = 1, 3 
+            DO i = 1, cr_natoms                                                                 ! Loop over i
+            DO j = 1, 3                                                                         ! Loop over j
             cr_pos (j, i) = cr_pos (j, i) + st_disp (j, l) 
-            ENDDO 
-            ENDDO 
+            ENDDO                                                                               ! End of loop over j
+            ENDDO                                                                               ! End of loop over i
 !                                                                       
             ier_num = 0 
             ier_typ = ER_NONE 
@@ -2925,26 +3061,45 @@ uni_mask(4)   = .false.
 !                                                                       
 !------ ------loop over all different atom types                        
 !                                                                       
-            DO iscat = 1, cr_nscat 
+            DO iscat = 1, cr_nscat                                                                       ! Loop over iscat
             CALL four_getatm (iscat, ilots, lbeg, ncell) 
             CALL four_strucf (iscat, .true.) 
 !                                                                       
 !------ --------Add this part of the structur factor to the total       
 !             Wheighted by the relative amount of layers of this type   
 !                                                                       
-            DO i = 1, num (1) * num (2)*num(3) 
-            st_csf (i) = st_csf (i) + tcsf (i) * DBLE (st_number (l) ) &
-            / DBLE (st_nlayer)                                         
-            ENDDO 
+            !DO i = 1, num (1) * num (2)*num(3) 
+            !st_csf (i) = st_csf (i) + tcsf (i) * DBLE (st_number (l) ) &                                ! Neder's original code
+            !/ DBLE (st_nlayer)                                         
+            !ENDDO 
+!
+            DO i = 1, num (1)
+               DO j = 1, num (2)
+                  DO k = 1, num (3)
+                     st_csf (i,j,k) = st_csf (i,j,k) + tcsf (i,j,k) * DBLE (st_number (l) ) &           ! My code
+                     / DBLE (st_nlayer)                                         
+                  ENDDO
+               ENDDO
+            ENDDO
+!
             WRITE (output_io, 3000) cr_at_lis (iscat), nxat 
-            ENDDO 
-            ENDDO 
+            ENDDO                                                                                       ! End of loop over iscat
+            ENDDO                                                                                       ! End of loop over l
 !                                                                       
 !     ----Save product of acsf und st_csf to acsf                       
 !                                                                       
-            DO i = 1, num (1) * num (2)*num(3) 
-            acsf (i) = st_csf (i) * acsf (i) 
-            ENDDO 
+            !DO i = 1, num (1) * num (2)*num(3) 
+            !acsf (i) = st_csf (i) * acsf (i)                                                            ! Neder's original code
+            !ENDDO
+!
+            DO i = 1, num (1)
+               DO j = 1, num (2)
+                  DO k = 1, num (3)
+                     acsf (i,j,k) = st_csf (i,j,k) * acsf (i,j,k)                                        ! My code
+                  ENDDO
+               ENDDO
+            ENDDO
+!
          ENDIF 
       ELSE 
          ier_num = - 8 
@@ -3038,7 +3193,8 @@ USE stack_mod
 !
 IMPLICIT NONE
 !
-CALL alloc_stack(1, 1, 1, .TRUE.)
+CALL alloc_stack(1, 1, .TRUE.)
+CALL alloc_stack_four( (/1,1,1/) )
 CALL alloc_stack_crystal(1, 1)
 !
 ST_MAXQXY    = 1
@@ -3063,7 +3219,10 @@ IF(ALLOCATED(st_rot_ang_no)) st_rot_ang_no(:) = 0.0      ! (  ST_MAXLAYER)
 IF(ALLOCATED(st_rot_ang_m1)) st_rot_ang_m1(:) = 0.0      ! (  ST_MAXLAYER)
 IF(ALLOCATED(st_rot_ang_m2)) st_rot_ang_m2(:) = 0.0      ! (  ST_MAXLAYER)
 !
-IF(ALLOCATED(st_csf))        st_csf(:) = (0.0D0, 0.0D0)          ! (ST_MAXQXY)
+!IF(ALLOCATED(st_csf))        st_csf(:) = (0.0D0, 0.0D0)          ! (ST_MAXQXY)                                   ! Neders original code
+!
+IF(ALLOCATED(st_csf))        st_csf(:,:,:) = (0.0D0, 0.0D0)      ! (ST_MAXQXY,ST_MAXQXY,ST_MAXQXY)?????           ! My code, discuss with Neder about the dimensionality of st_csf ...
+!
 !
 st_infile        = ' '
 !

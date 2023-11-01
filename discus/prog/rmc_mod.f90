@@ -11,8 +11,8 @@ SAVE
 INTEGER                 :: RMC_MAX_PLANES    = 1
 INTEGER                 :: RMC_MAXSCAT       = 1
 INTEGER                 :: RMC_MAXSITE       = 1
-INTEGER                 :: RMC_MAX_Q         = 1
-INTEGER                 :: RMC_MAX_SQ        = 1
+INTEGER, dimension(3)   :: RMC_MAX_Q         = 1
+INTEGER, dimension(3)   :: RMC_MAX_SQ        = 1
 INTEGER                 :: RMC_MAX_LOTS      = 1
 INTEGER                 :: RMC_MAX_SYM       = 48  ! Maximum no of sym op in rec space
 INTEGER                 :: RMC_MAX_ATOM      = 24  ! Maximum number of selected atoms
@@ -80,13 +80,13 @@ COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:,:), ALLOCATABLE  :: rcfact         ! (
 REAL(kind=PREC_DP)   , DIMENSION(:,:)    , ALLOCATABLE          :: rmc_maxmove    ! (3,0:DEF_MAXSCAT)
 REAL(kind=PREC_DP)   , DIMENSION(:,:)    , ALLOCATABLE          :: rmc_mindist    ! (DEF_MAXSCAT,DEF_MAXSCAT)
 !
-COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:)  , ALLOCATABLE  :: rmc_csf       ! (RMC_MAX_SQ, RMC_MAX_LOTS)
-COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:)  , ALLOCATABLE  :: rmc_csf_new   ! (RMC_MAX_SQ, RMC_MAX_LOTS)
+COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:,:,:,:)  , ALLOCATABLE  :: rmc_csf       ! (RMC_MAX_SQ, RMC_MAX_LOTS)
+COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:,:,:,:)  , ALLOCATABLE  :: rmc_csf_new   ! (RMC_MAX_SQ, RMC_MAX_LOTS)
 INTEGER, DIMENSION(:)      , ALLOCATABLE           :: ristl         ! (RMC_MAX_SQ)
 INTEGER, DIMENSION(:,:)    , ALLOCATABLE           :: rmc_lots_orig ! (3,RMC_MAX_LOTS)
 !
-REAL(kind=PREC_DP)   , DIMENSION(:)      , ALLOCATABLE           :: rmc_int       ! (RMC_MAX_Q)
-REAL(kind=PREC_DP)   , DIMENSION(:)      , ALLOCATABLE           :: rmc_wic       ! (RMC_MAX_Q)
+REAL(kind=PREC_DP)   , DIMENSION(:,:,:)      , ALLOCATABLE           :: rmc_int       ! (RMC_MAX_Q)
+REAL(kind=PREC_DP)   , DIMENSION(:,:,:)      , ALLOCATABLE           :: rmc_wic       ! (RMC_MAX_Q)
 !
 !
 CHARACTER (LEN=80)                                 :: rmc_lname
@@ -109,9 +109,8 @@ LOGICAL                                            :: rmc_doskal,rmc_doback
 LOGICAL                                            :: rmc_calc_f,rmc_log,rmc_dosym,rmc_nosym
 LOGICAL                                            :: rmc_ranloc,rmc_sel_atom
 !
-INTEGER                                            :: rmc_size_of  ! Bytes allocates for rmc
 INTEGER                                            :: rmc_n_sym    ! Actual number of symmetry operations
-INTEGER                                            :: rmc_n_qxy    ! Size of RMC_MAX_Q arrays
+INTEGER, dimension(3)                              :: rmc_n_qxy    ! Size of RMC_MAX_Q arrays
 INTEGER                                            :: rmc_n_sq     ! Size of RMC_MAX_Q arrays* Number of Symmetry
 !     
 END MODULE rmc_mod

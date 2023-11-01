@@ -39,12 +39,32 @@ INTEGER (KIND=PREC_INT_LARGE)   :: h, i, ii, j, k, iarg, iarg0, jj
 INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
 INTEGER (KIND=PREC_INT_LARGE)   :: num23,num123, num123_1
 !
-INTEGER :: IAND, ISHFT 
-COMPLEX(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE, SAVE :: tcsfp     ! Partial structure factor from parallel OMP
+INTEGER :: IAND, ISHFT
+!
+! Neder's original code
+!
+!COMPLEX(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE, SAVE :: tcsfp     ! Partial structure factor from parallel OMP
+!
+! My declaration
+!
+COMPLEX(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE, SAVE :: tcsfp     ! Partial structure factor from parallel OMP
 !
 !------ zero fourier array                                              
+!
+! Neder's original code
 !                                                                       
-tcsf = CMPLX(0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
+!tcsf = CMPLX(0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
+!
+! My declaration
+!
+DO i = 1, num (1)
+   DO j = 1, num (2)
+      DO k = 1, num (3)
+         tcsf(i,j,k) = CMPLX(0.0D0, 0.0D0, KIND=KIND(0.0D0))
+      ENDDO
+   ENDDO
+ENDDO
+!
 num23    =        num(2)*num(3)
 num123   = num(1)*num(2)*num(3)
 num123_1 = num(1)*num(2)*num(3)-1
@@ -66,43 +86,93 @@ DO k = 1, nxat
    jincv(k) = NINT (64 * I2PI * (oincv(k) - INT (oincv(k)) + 0.0d0) ) 
    jincw(k) = NINT (64 * I2PI * (oincw(k) - INT (oincw(k)) + 0.0d0) ) 
 ENDDO
+!
+!*****************************************************************************************************************
+! Neders original code
+!*****************************************************************************************************************                                                                       
+!------ Loop over all atoms in 'xat'                                    
 !                                                                       
+   ! IF(ALLOCATED(tcsfp)) DEALLOCATE(tcsfp)
+   ! ALLOCATE (tcsfp (0:       num(2)*num(3)-1)) !,0:nthreads-1))
+   ! tcsfp = CMPLX(0.0d0, 0.0d0, KIND=KIND(0.0D0))
+   !    DO j = 0, num (1) - 1
+   !       jj = j*num(2)*num(3)
+   !       tcsfp = CMPLX(0.0d0, 0.0d0, KIND=KIND(0.0D0))
+   !       loop_k: DO k = 1, nxat 
+   !          iarg0 =  lmn(1)*iincu(k) + lmn(2)*iincv(k) + lmn(3)*iincw(k) + &
+   !                   lmn(4)*jincu(k) + lmn(5)*jincv(k) + lmn(6)*jincw(k) + &
+   !                   j*iincu(k)
+   !          ii = 0 
+   !          DO i = 0, num (2) - 1
+   !             iarg = iarg0 +              iincv(k)*i 
+   !             DO h = 1, num (3) 
+   !                tcsfp(ii)= tcsfp(ii) + cex (IAND  (ISHFT(iarg, shift), MASK) )
+   !                iarg     = iarg + iincw(k)
+   !                ii       = ii + 1 
+   !             ENDDO 
+   !          ENDDO 
+   !       ENDDO  loop_k
+   !       DO ii = 1,        num(2)*num(3)
+   !          tcsf(jj+ii) = tcsf(jj+ii) + tcsfp(ii-1)
+   !       ENDDO
+   !    ENDDO 
+   ! DEALLOCATE(tcsfp)
+!
+!*****************************************************************************************************************
+! My code (Copilot generated)
+!*****************************************************************************************************************                                                                       
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
    IF(ALLOCATED(tcsfp)) DEALLOCATE(tcsfp)
-   ALLOCATE (tcsfp (0:       num(2)*num(3)-1)) !,0:nthreads-1))
+   ALLOCATE(tcsfp(0:num(2)-1, 0:num(3)-1, 0:num(1)-1), STAT=alloc_stat)
+   IF (alloc_stat /= 0) THEN
+      WRITE(*,*) "Error: Unable to allocate memory for tcsfp"
+      STOP
+   ENDIF
    tcsfp = CMPLX(0.0d0, 0.0d0, KIND=KIND(0.0D0))
-      DO j = 0, num (1) - 1
-         jj = j*num(2)*num(3)
-         tcsfp = CMPLX(0.0d0, 0.0d0, KIND=KIND(0.0D0))
-         loop_k: DO k = 1, nxat 
-            iarg0 =  lmn(1)*iincu(k) + lmn(2)*iincv(k) + lmn(3)*iincw(k) + &
-                     lmn(4)*jincu(k) + lmn(5)*jincv(k) + lmn(6)*jincw(k) + &
-                     j*iincu(k)
-            ii = 0 
-            DO i = 0, num (2) - 1
-               iarg = iarg0 +              iincv(k)*i 
-               DO h = 1, num (3) 
-                  tcsfp(ii)= tcsfp(ii) + cex (IAND  (ISHFT(iarg, shift), MASK) )
-                  iarg     = iarg + iincw(k)
-                  ii       = ii + 1 
-               ENDDO 
-            ENDDO 
-         ENDDO  loop_k
-         DO ii = 1,        num(2)*num(3)
-            tcsf(jj+ii) = tcsf(jj+ii) + tcsfp(ii-1)
+   DO j = 1, num(1)
+      DO k = 1, num(2)
+         DO l = 1, num(3)
+            tcsfp(k-1, l-1, j-1) = CMPLX(0.0d0, 0.0d0, KIND=KIND(0.0D0))
          ENDDO
-      ENDDO 
+      ENDDO
+   ENDDO
+   DO j = 1, num(1)
+      DO k = 1, num(2)
+         DO l = 1, num(3)
+            DO m = 1, nxat
+               iarg0 = lmn(1)*iincu(m) + lmn(2)*iincv(m) + lmn(3)*iincw(m) + &
+                       lmn(4)*jincu(m) + lmn(5)*jincv(m) + lmn(6)*jincw(m) + &
+                       (j-1)*iincu(m)
+               iarg = iarg0 + (k-1)*iincv(m)
+               DO n = 1, num(3)
+                  tcsfp(k-1, l-1, j-1) = tcsfp(k-1, l-1, j-1) + cex(IAND(ISHFT(iarg, shift), MASK))
+                  iarg = iarg + iincw(m)
+               ENDDO
+            ENDDO
+            tcsf(j, k, l) = tcsf(j, k, l) + tcsfp(k-1, l-1, j-1)
+         ENDDO
+      ENDDO
+   ENDDO
    DEALLOCATE(tcsfp)
 !
+!*****************************************************************************************************************
+!*****************************************************************************************************************
 !------ Now we multiply with formfactor                                 
 !                                                                       
 IF (lform) then 
-   DO  i = 1, num (1) * num (2) * num(3)
+   !DO  i = 1, num (1) * num (2) * num(3)
 !  FORALL( i = 1: num (1) * num (2) * num(3))   !!! DO Loops seem to be faster!
-      tcsf (i) = tcsf (i) * cfact (istl (i), iscat) 
+      !tcsf (i) = tcsf (i) * cfact (istl (i), iscat)                                               ! Neder's original code
+   DO i = 1, num (1)
+      DO j = 1, num (2)
+         DO k = 1, num (3)
+            tcsf (i,j,k) = tcsf (i,j,k) * cfact (istl (i,j,k), iscat)          ! My declaration
+         ENDDO
+      ENDDO
+   ENDDO
 !  END FORALL
-   END DO
+   !END DO
 ENDIF 
 !                                                                       
 END SUBROUTINE four_strucf
@@ -135,12 +205,24 @@ INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
 INTEGER :: IAND, ISHFT 
 !
 !------ zero fourier array                                              
+!
+! Neder's original code
 !                                                                       
-tcsf = CMPLX(0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
+!tcsf = CMPLX(0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
+!
+! My declaration
+!
+DO i = 1, num (1)
+   DO j = 1, num (2)
+      DO k = 1, num (3)
+         tcsf(i,j,k) = CMPLX(0.0D0, 0.0D0, KIND=KIND(0.0D0))
+      ENDDO
+   ENDDO
+ENDDO
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
-DO k = 1, nxat 
+DO k = 1, nxat  ! start of k loop
 !        xarg0 = xm (1)        * xat(k, 1) + xm (2)         * xat(k, 2) + xm (3)         * xat(k, 3)
    xincu = uin(1)        * xat(k, 1) + uin(2)         * xat(k, 2) + uin(3)         * xat(k, 3)
    xincv = vin(1)        * xat(k, 1) + vin(2)         * xat(k, 2) + vin(3)         * xat(k, 3)
@@ -168,29 +250,57 @@ DO k = 1, nxat
 !                 iadd      = IAND  (iadd, MASK) 
 !                 tcsf (ii) = tcsf (ii) + cex (iadd, MASK) )
 !                 iarg      = iarg + iincw
-!                                                                       
+!
+!*****************************************************************************************************************
+! Neders original code
+! !*****************************************************************************************************************                          !                                         
+!    ii = 0 
+! !                                                                       
+!    DO j = 0, num (1) - 1
+!       DO i = 0, num (2) - 1
+!          iarg = iarg0 + iincu*j + iincv*i 
+!          DO h = 1, num (3) 
+!             ii       = ii + 1 
+!             tcsf(ii) = tcsf (ii) + cex (IAND  (ISHFT(iarg, shift), MASK) )
+!             iarg     = iarg + iincw
+!          ENDDO 
+!       ENDDO 
+!    ENDDO 
+! ENDDO 
+!*****************************************************************************************************************
+! My code (Copilot generated)
+!*****************************************************************************************************************                
    ii = 0 
 !                                                                       
-   DO j = 0, num (1) - 1
-      DO i = 0, num (2) - 1
+   DO j = 0, num(1) - 1
+      DO i = 0, num(2) - 1
          iarg = iarg0 + iincu*j + iincv*i 
-         DO h = 1, num (3) 
-            ii       = ii + 1 
-            tcsf(ii) = tcsf (ii) + cex (IAND  (ISHFT(iarg, shift), MASK) )
-            iarg     = iarg + iincw
+         DO h = 1, num(3) 
+            tcsf(j+1, i+1, h) = tcsf(j+1, i+1, h) + cex(IAND(ISHFT(iarg, shift), MASK))
+            iarg = iarg + iincw
          ENDDO 
       ENDDO 
-   ENDDO 
-ENDDO 
+   ENDDO
+! 
+ENDDO    ! end of k loop
+!*****************************************************************************************************************
+!*****************************************************************************************************************
 !
 !------ Now we multiply with formfactor                                 
 !                                                                       
 IF (lform) then 
-   DO  i = 1, num (1) * num (2) * num(3)
+   !DO  i = 1, num (1) * num (2) * num(3)
 !  FORALL( i = 1: num (1) * num (2) * num(3))   !!! DO Loops seem to be faster!
-      tcsf (i) = tcsf (i) * cfact (istl (i), iscat) 
+      !tcsf (i) = tcsf (i) * cfact (istl (i), iscat)                                   ! Neder's original code
+   DO i = 1, num (1)
+      DO j = 1, num (2)
+         DO k = 1, num (3)
+            tcsf (i,j,k) = tcsf (i,j,k) * cfact (istl (i,j,k), iscat)          ! My declaration
+         ENDDO
+      ENDDO
+   ENDDO
 !  END FORALL
-   END DO
+   !END DO
 ENDIF 
 !                                                                       
 END SUBROUTINE four_strucf_original                    

@@ -707,7 +707,7 @@ END SUBROUTINE rmc_set_mode
       REAL(kind=PREC_DP) :: sumd, sumo, tsumd, tsumo 
       REAL(kind=PREC_DP) :: cint, dint, oo, dd, r4 
       INTEGER :: isym (rmc_max_planes) 
-      INTEGER :: ip, is, iq 
+      INTEGER :: ip, is, iq , jq
 !                                                                       
       tsumd = 0.0 
       tsumo = 0.0 
@@ -726,15 +726,20 @@ END SUBROUTINE rmc_set_mode
       sumo = 0.0 
       sumd = 0.0 
       CALL rmc_inten (ip, is, .false.) 
-      DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-      cint = rmc_back (ip) + REAL(REAL(rmc_skal (ip),KIND=KIND(0.0D0)) * dsi (iq)) 
-      dint = rmc_int (offq (ip) + iq) - cint 
-      oo = rmc_wic (offq (ip) + iq) * rmc_int (offq (ip) + iq) **2 
-      dd = rmc_wic (offq (ip) + iq) * dint**2 
+      DO jq = 1, rmc_num (2, ip)
+      DO iq = 1, rmc_num (1, ip)
+      cint = rmc_back (ip) + REAL(REAL(rmc_skal (ip),KIND=KIND(0.0D0)) * dsi (iq,jq,1)) 
+!     dint = rmc_int (offq (ip) + iq) - cint 
+!     oo = rmc_wic (offq (ip) + iq) * rmc_int (offq (ip) + iq) **2 
+!     dd = rmc_wic (offq (ip) + iq) * dint**2 
+      dint = rmc_int (iq,jq, ip) - cint 
+      oo = rmc_wic(iq,jq, ip) * rmc_int(iq,jq, ip)**2 
+      dd = rmc_wic(iq,jq, ip) * dint**2 
       sumo = sumo + oo 
       sumd = sumd+dd 
       tsumo = tsumo + oo 
       tsumd = tsumd+dd 
+      ENDDO 
       ENDDO 
       r4 = 0.0 
       IF (sumo.ne.0.0) r4 = sqrt (sumd / sumo) 
@@ -1147,7 +1152,7 @@ USE support_mod
 !
       CHARACTER(LEN=PREC_STRING) :: message
       INTEGER             :: ios
-      INTEGER pgmmax, i, j 
+      INTEGER pgmmax, iq, jq, i,j,ii 
 !                                                                       
       pgmmax = 255 
 !                                                                       
@@ -1155,15 +1160,18 @@ USE support_mod
 !                                                                       
       CALL rmc_inten (ip, is, .false.) 
 !                                                                       
-      DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-      dsi (i) = rmc_back (ip) + rmc_skal (ip) * dsi (i) 
-      IF (rmc_wic (offq (ip) + i) .eq.0.0) then 
+      DO jq = 1, rmc_num (2, ip)
+      DO iq = 1, rmc_num (1, ip)
+          ii = iq*jq
+      dsi (iq,jq,ip) = rmc_back (ip) + rmc_skal (ip) * dsi (iq,jq,ip) 
+      IF (rmc_wic(iq,jq,ip) .eq.0.0) then 
          IF (rmc_data.eq.rmc_data_nipl) then 
-            dsi (i) = - 9999.0D0
+            dsi (iq,jq,ip) = - 9999.0D0
          ELSEIF (rmc_data.eq.rmc_data_pgm) then 
-            dsi (i) = 0.0D0 
+            dsi (iq,jq,ip) = 0.0D0 
          ENDIF 
       ENDIF 
+      ENDDO 
       ENDDO 
 !                                                                       
       OPEN (unit = 44, file = fname, status = 'unknown', &
@@ -1182,8 +1190,9 @@ USE support_mod
          WRITE (44, * ) (rmc_num (i, ip), i = 1, 2) 
          WRITE (44, * ) (rmc_xy (i, ip), i = 1, 4) 
          DO j = 1, rmc_num (2, ip) 
-         WRITE (44, * ) (dsi ( (i - 1) * rmc_num (2, ip) + j), i = 1,   &
-         rmc_num (1, ip) )                                              
+!        WRITE (44, * ) (dsi ( (i - 1) * rmc_num (2, ip) + j), i = 1,   &
+!        rmc_num (1, ip) )                                              
+         write(44,*) (dsi(i,j,ip),i=1, rmc_num(1,ip))
          ENDDO 
 !                                                                       
 !------ PGM file                                                        
@@ -1199,8 +1208,9 @@ USE support_mod
          WRITE (44, * ) (rmc_num (i, ip), i = 1, 2) 
          WRITE (44, * ) pgmmax 
          DO j = rmc_num (2, ip), 1, - 1 
-         WRITE (44, * ) (nint (dsi ( (i - 1) * rmc_num (2, ip) + j) ),  &
-         i = 1, rmc_num (1, ip) )                                       
+!        WRITE (44, * ) (nint (dsi ( (i - 1) * rmc_num (2, ip) + j) ),  &
+!        i = 1, rmc_num (1, ip) )                                       
+         write(44,*) (dsi(i,j,ip),i=1, rmc_num(1,ip))
          ENDDO 
       ENDIF 
 !                                                                       
@@ -1259,7 +1269,7 @@ REAL(kind=PREC_DP) :: d1, d2, d3, d4
       REAL(kind=PREC_DP) :: mat (4, 4, max_sym) 
 !
       INTEGER  :: n_planes=1 ! Number of planes
-      INTEGER  :: n_qxy   =1 ! Data points in reciprocal space
+      INTEGER, dimension(3)  :: n_qxy   =1 ! Data points in reciprocal space
       INTEGER  :: n_sq    =1 ! Data points in reciprocal space*planes
       INTEGER  :: n_natoms=1 ! Maximum number of atoms for DIFFUSE allocation
       INTEGER  :: n_nscat =1 ! Maximum number of atoms for DIFFUSE allocation
@@ -1412,10 +1422,11 @@ REAL(kind=PREC_DP) :: d1, d2, d3, d4
             ENDIF 
          ENDIF 
 !                                                                       
-         n_qxy  = MAX( n_qxy , rmc_n_qxy, RMC_MAX_Q , offq(ip)+nx*ny)
+         n_qxy  = MAX( n_qxy , rmc_n_qxy, RMC_MAX_Q)  ! NEEDS WORK , offq(ip)+nx*ny)
          CALL alloc_rmc_data ( n_qxy)
 !
-         IF (nx * ny.gt. (RMC_MAX_Q - offq (ip) ) ) then 
+!        IF (nx * ny.gt. (RMC_MAX_Q - offq (ip) ) ) then 
+         if(nx>RMC_MAX_Q(1) .or. ny>RMC_MAX_Q(2) .or. ip>RMC_MAX_Q(3)) then
             ier_num = - 2 
             ier_typ = ER_RMC 
          ENDIF 
@@ -1423,15 +1434,18 @@ REAL(kind=PREC_DP) :: d1, d2, d3, d4
          IF (ier_num.ne.0) goto 98 
 !
          DO j = 1, ny 
-         READ (17, *, end = 99, err = 999) (rmc_int (offq (ip) +        &
-         (i - 1) * ny + j), i = 1, nx)                                  
+!        READ (17, *, end = 99, err = 999) (rmc_int (offq (ip) +        &
+!        (i - 1) * ny + j), i = 1, nx)                                  
+         read(17, *, end=99, err=999) (rmc_int(i,j,ip), i=1, nx)
          IF (rmc_wic_typ (ip) .eq.rmc_wic_dat) then 
-            READ (18, *, end = 99, err = 999) (rmc_wic (offq (ip)       &
-            + (i - 1) * ny + j), i = 1, nx)                             
+!           READ (18, *, end = 99, err = 999) (rmc_wic (offq (ip)       &
+!           + (i - 1) * ny + j), i = 1, nx)                             
+           read(18, *, end=99, err=999) (rmc_wic(i,j,ip), i=1, nx)
          ELSE 
             DO i = 1, nx 
-            k = offq (ip) + (i - 1) * ny + j 
-            rmc_wic (k) = rmc_dowic (rmc_wic_typ (ip), rmc_int (k) ) 
+!           k = offq (ip) + (i - 1) * ny + j 
+!           rmc_wic (k) = rmc_dowic (rmc_wic_typ (ip), rmc_int (k) ) 
+            rmc_wic(i,j,ip) = rmc_dowic(rmc_wic_typ(ip), rmc_int(i,j,ip))
             ENDDO 
          ENDIF 
          ENDDO 
@@ -1439,39 +1453,39 @@ REAL(kind=PREC_DP) :: d1, d2, d3, d4
 !------ PGM file                                                        
 !                                                                       
       ELSEIF (rmc_data.eq.rmc_data_pgm) then 
-         CALL rmc_pgmheader (17, nx, ny, rmc_xy (1, ip), rmc_xy (2, ip),&
-         rmc_xy (3, ip), rmc_xy (4, ip) )                               
-         IF (rmc_wic_typ (ip) .eq.rmc_wic_dat) then 
-            CALL rmc_pgmheader (18, wx, wy, d1, d2, d3, d4) 
-            IF (wx.ne.nx.or.wy.ne.ny) then 
-               ier_num = - 17 
-               ier_typ = ER_RMC 
-            ENDIF 
-         ENDIF 
-!                                                                       
-         n_qxy  = MAX( n_qxy , rmc_n_qxy, RMC_MAX_Q , offq(ip)+nx*ny)
-         CALL alloc_rmc_data ( n_qxy)
-!
-         IF (nx * ny.gt. (RMC_MAX_Q - offq (ip) ) ) then 
-            ier_num = - 2 
-            ier_typ = ER_RMC 
-         ENDIF 
-!                                                                       
-         IF (ier_num.ne.0) goto 98 
-!                                                                       
-         DO j = ny, 1, - 1 
-         READ (17, *, end = 99, err = 999) (rmc_int (offq (ip) +        &
-         (i - 1) * ny + j), i = 1, nx)                                  
-         IF (rmc_wic_typ (ip) .eq.rmc_wic_dat) then 
-            READ (18, *, end = 99, err = 999) (rmc_wic (offq (ip)       &
-            + (i - 1) * ny + j), i = 1, nx)                             
-         ELSE 
-            DO i = 1, nx 
-            k = offq (ip) + (i - 1) * ny + j 
-            rmc_wic (k) = rmc_dowic (rmc_wic_typ (ip), rmc_int (k) ) 
-            ENDDO 
-         ENDIF 
-         ENDDO 
+!RMCPGM         CALL rmc_pgmheader (17, nx, ny, rmc_xy (1, ip), rmc_xy (2, ip),&
+!RMCPGM         rmc_xy (3, ip), rmc_xy (4, ip) )                               
+!RMCPGM         IF (rmc_wic_typ (ip) .eq.rmc_wic_dat) then 
+!RMCPGM            CALL rmc_pgmheader (18, wx, wy, d1, d2, d3, d4) 
+!RMCPGM            IF (wx.ne.nx.or.wy.ne.ny) then 
+!RMCPGM               ier_num = - 17 
+!RMCPGM               ier_typ = ER_RMC 
+!RMCPGM            ENDIF 
+!RMCPGM         ENDIF 
+!RMCPGM!                                                                       
+!RMCPGM         n_qxy  = MAX( n_qxy , rmc_n_qxy, RMC_MAX_Q , offq(ip)+nx*ny)
+!RMCPGM         CALL alloc_rmc_data ( n_qxy)
+!RMCPGM!
+!RMCPGM         IF (nx * ny.gt. (RMC_MAX_Q - offq (ip) ) ) then 
+!RMCPGM            ier_num = - 2 
+!RMCPGM            ier_typ = ER_RMC 
+!RMCPGM         ENDIF 
+!RMCPGM!                                                                       
+!RMCPGM         IF (ier_num.ne.0) goto 98 
+!RMCPGM!                                                                       
+!RMCPGM         DO j = ny, 1, - 1 
+!RMCPGM         READ (17, *, end = 99, err = 999) (rmc_int (offq (ip) +        &
+!RMCPGM         (i - 1) * ny + j), i = 1, nx)                                  
+!RMCPGM         IF (rmc_wic_typ (ip) .eq.rmc_wic_dat) then 
+!RMCPGM            READ (18, *, end = 99, err = 999) (rmc_wic (offq (ip)       &
+!RMCPGM            + (i - 1) * ny + j), i = 1, nx)                             
+!RMCPGM         ELSE 
+!RMCPGM            DO i = 1, nx 
+!RMCPGM            k = offq (ip) + (i - 1) * ny + j 
+!RMCPGM            rmc_wic (k) = rmc_dowic (rmc_wic_typ (ip), rmc_int (k) ) 
+!RMCPGM            ENDDO 
+!RMCPGM         ENDIF 
+!RMCPGM         ENDDO 
       ENDIF 
 !                                                                       
    98 CONTINUE 
@@ -1572,12 +1586,32 @@ REAL(kind=PREC_DP) :: d1, d2, d3, d4
 !------ Allocate initial Diffuse
 !
       rmc_n_qxy = MAX(nx*ny,RMC_MAX_Q)   ! Save RMC required size for allocation prior to 'run'
-      n_qxy     = MAX(n_qxy, nx*ny, RMC_MAX_Q, MAXQXY)
+!     n_qxy     = MAX(n_qxy, nx*ny, RMC_MAX_Q, MAXQXY)
+      n_qxy(1)  = max(n_qxy(1), nx, MAXQXY(1))    ! NEEDS WORK
+      n_qxy(2)  = max(n_qxy(2), ny, MAXQXY(2))    ! NEEDS WORK
+      n_qxy(1)  = nx                              ! NEEDS WORK
+      n_qxy(2)  = ny                              ! NEEDS WORK
+      n_qxy(3)  =  1                              ! NEEDS WORK
+      if(any(n_qxy/=ubound(csf))) then
+         call alloc_diffuse_four (n_qxy )
+         if(ier_num/=0) return
+      endif
+      if(cr_nscat/=ubound(cfact,2)) then
+         call alloc_diffuse_scat(cr_nscat)
+         if(ier_num/=0) return
+      endif
+      if(cr_natoms/=ubound(xat,1)) then
+         call alloc_diffuse_atom(cr_natoms)
+         if(ier_num/=0) return
+      endif
+
       n_natoms  = MAX(n_natoms, cr_natoms, DIF_MAXAT)
       n_nscat   = MAX(n_nscat, cr_nscat, DIF_MAXSCAT)
-      call alloc_diffuse (n_qxy, n_nscat, n_natoms)
+!     call alloc_diffuse_four (n_qxy)
+!     call alloc_diffuse_scat (n_nscat)
+!     call alloc_diffuse_atom (n_natoms)
       rmc_n_sym = MAX(rmc_n_sym, nsym)    ! Save RMC actual number of symmetry operations
-      n_sq      = n_qxy*rmc_n_sym
+      n_sq      = product(n_qxy)*rmc_n_sym
       rmc_n_sq  = n_sq                    ! Save RMC_actual number of data points * nsym
       CALL alloc_rmc_istl ( n_sq, n_nscat, rmc_nplane )
 !                                                                       
@@ -1754,14 +1788,15 @@ IMPLICIT none
       INTEGER imol (rmc_max_atom) 
       INTEGER isym (rmc_max_planes) 
       INTEGER zh, zm, zs 
-      INTEGER i, j, ip, iq, is, iii 
+      INTEGER i, j, ip, iq, is, ii, iii , jq
       INTEGER igen, itry, iacc_good, iacc_bad 
       LOGICAL loop, laccept 
       REAL(kind=PREC_DP)    ::   rmc_energy = 0.00D0
       LOGICAL :: l_rmc_energy = .false.
 !
 !      INTEGER  :: n_qxy   =1 ! Data points in reciprocal space
-      INTEGER  :: n_sq    =1 ! Data points in reciprocal space*planes
+!     INTEGER  :: n_sq    =1 ! Data points in reciprocal space*planes
+!     INTEGER  :: n_sym   =1 ! DANumber of RMC Lots for Fourier
       INTEGER  :: n_lots  =1 ! DANumber of RMC Lots for Fourier
 !      INTEGER  :: n_natoms=1 ! Maximum number of atoms for DIFFUSE allocation
 !      INTEGER  :: n_nscat =1 ! Maximum number of atoms for DIFFUSE allocation
@@ -1789,9 +1824,10 @@ IF (ier_num.ne.0) return
 !
 !------	Allocate arrays related to SQ, LOTS
 !
-      n_sq   = rmc_n_qxy*rmc_n_sym   ! Could like wise be = rmc_n_sq
+!     n_sq   = rmc_n_qxy*rmc_n_sym   ! Could like wise be = rmc_n_sq
+!     n_sym  = rmc_n_sym
       n_lots = MAX( n_lots, rmc_nlots, RMC_MAX_LOTS)
-      CALL alloc_rmc_q ( n_sq, n_lots)
+      CALL alloc_rmc_q ( rmc_n_qxy, rmc_n_sym, n_lots)
 !                                                                       
 !------ sym ?                                                           
 !                                                                       
@@ -1855,17 +1891,20 @@ IF (ier_num.ne.0) return
 !                                                                       
           call rmc_inten(ip,is,.false.) 
 !                                                                       
-          DO iq=1,rmc_num(1,ip)*rmc_num(2,ip) 
-            IF ((ristl(offsq(ip,1)+iq)*CFINC).ge.rmc_llim .and.         &
-     &          (ristl(offsq(ip,1)+iq)*CFINC).le.rmc_ulim    ) THEN
-               iii=offq(ip)+iq 
-               rmc_wtot(ip)=rmc_wtot(ip)+rmc_wic(iii) 
-               rmc_e (ip)=rmc_e (ip)+rmc_wic(iii)*rmc_int(iii) 
-               rmc_ee(ip)=rmc_ee(ip)+rmc_wic(iii)*rmc_int(iii)**2 
-               rmc_c =rmc_c +rmc_wic(iii)*dsi(iq) 
-               rmc_cc=rmc_cc+rmc_wic(iii)*dsi(iq)**2 
-               rmc_ce=rmc_ce+rmc_wic(iii)*dsi(iq)*rmc_int(iii) 
+          DO jq=1,rmc_num(2,ip)
+          DO iq=1,rmc_num(1,ip)
+            ii = iq*jq
+            IF ((ristl(offsq(ip,1)+ii)*CFINC).ge.rmc_llim .and.         &
+     &          (ristl(offsq(ip,1)+ii)*CFINC).le.rmc_ulim    ) THEN
+               iii=offq(ip)+ii 
+               rmc_wtot(ip)=rmc_wtot(ip)+rmc_wic(iq,jq,ip) 
+               rmc_e (ip)=rmc_e (ip)+rmc_wic(iq,jq,ip)*rmc_int(iq,jq,ip) 
+               rmc_ee(ip)=rmc_ee(ip)+rmc_wic(iq,jq,ip)*rmc_int(iq,jq,ip)**2 
+               rmc_c =rmc_c +rmc_wic(iq,jq,ip)*dsi(iq,jq,ip) 
+               rmc_cc=rmc_cc+rmc_wic(iq,jq,ip)*dsi(iq,jq,ip)**2 
+               rmc_ce=rmc_ce+rmc_wic(iq,jq,ip)*dsi(iq,jq,ip)*rmc_int(iq,jq,ip) 
             ENDIF 
+          ENDDO 
           ENDDO 
         ENDDO 
         IF (rmc_e(ip).gt.1E-06) THEN 
@@ -1938,14 +1977,17 @@ IF (ier_num.ne.0) return
             DO is=1,isym(ip) 
               call rmc_fcalc (ip,is,natoms,i_new,p_new,isel) 
               call rmc_inten (ip,is,.true.) 
-              DO iq=1,rmc_num(1,ip)*rmc_num(2,ip) 
+              DO jq=1,rmc_num(2,ip)
+              DO iq=1,rmc_num(1,ip)
+                ii = iq*jq
                 IF ((ristl(offsq(ip,is)+iq)*CFINC).ge.rmc_llim .and.    &
      &              (ristl(offsq(ip,is)+iq)*CFINC).le.rmc_ulim ) THEN
-                  iii=offq(ip)+iq 
-                  rmc_c =rmc_c +rmc_wic(iii)*dsi(iq) 
-                  rmc_cc=rmc_cc+rmc_wic(iii)*dsi(iq)**2 
-                  rmc_ce=rmc_ce+rmc_wic(iii)*dsi(iq)*rmc_int(iii) 
+                  iii=offq(ip)+ii 
+                  rmc_c =rmc_c +rmc_wic(iq,jq,ip)*dsi(iq,jq,ip) 
+                  rmc_cc=rmc_cc+rmc_wic(iq,jq,ip)*dsi(iq,jq,ip)**2 
+                  rmc_ce=rmc_ce+rmc_wic(iq,jq,ip)*dsi(iq,jq,ip)*rmc_int(iq,jq,ip) 
                 ENDIF 
+              ENDDO 
               ENDDO 
             ENDDO 
 !                                                                       
@@ -2076,13 +2118,13 @@ IF (ier_num.ne.0) return
 !                                                                       
       CALL update_cr_dim 
 !
-open(77,file='INTE/rmc.inte', status='unknown')
-write(77,'(2i8)')  51, 51
-write(77,'(4f8.2)') -4.,4., -4., 4.
-do i=1, 51
-  write(77,'(5g13.5e2)') (dsi(iq), iq=(i-1)*51+1, (i-1)*51+51)
-enddo
-close(77)
+!open(77,file='INTE/rmc.inte', status='unknown')
+!write(77,'(2i8)')  51, 51
+!write(77,'(4f8.2)') -4.,4., -4., 4.
+!do i=1, 51
+!  write(77,'(5g13.5e2)') (dsi(iq), iq=(i-1)*51+1, (i-1)*51+51)
+!enddo
+!close(77)
 !                                                                       
 !------ formats                                                         
 !                                                                       
@@ -2126,7 +2168,7 @@ USE support_mod
 !                                                                       
       INTEGER isym (rmc_max_planes) 
       INTEGER lbeg (3), ncell 
-      INTEGER ip, iscat, nlot, i, k, iii 
+      INTEGER ip, iscat, nlot, i,j, k, iii 
       REAL(kind=PREC_DP)    ::   rmc_energy = 0.00D0
       LOGICAL :: l_rmc_energy = .false.
 !
@@ -2155,7 +2197,7 @@ USE support_mod
 !                                                                       
 !------ Loop over all exp. data planes                                  
 !                                                                       
-loop_plane: DO ip = 1, rmc_nplane 
+loop_plane: DO ip = 1, rmc_nplane                                                               ! Loop over ip
          CALL dlink (rmc_ano (ip), rmc_lambda (ip),        &
                      rmc_rlambda (ip),  rmc_energy, l_rmc_energy, &
                      rmc_radiation(ip), RAD_WAAS, rmc_power(ip) )
@@ -2163,11 +2205,17 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
 !------ - Loop over all sym. equivalent planes                          
 !                                                                       
-         loop_sym: DO k = 1, isym (ip) 
-            DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-               acsf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
-            ENDDO 
-!                                                                       
+         loop_sym: DO k = 1, isym (ip)                                                          ! Loop over k
+            !DO i = 1, rmc_num (1, ip) * rmc_num (2, ip)                                         ! Loop over i
+            !   acsf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0))                                 ! Neder's original code
+            !ENDDO                                                                               ! End loop over i
+!           
+            DO i = 1, rmc_num (1, ip)
+               DO j = 1, rmc_num (2, ip)
+                  acsf (i,j,1) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0))                             ! My code.
+               ENDDO
+            ENDDO
+!
             CALL rmc_layer (k, ip) 
             CALL fourier_lmn(eck,vi,num,lmn,off_shift)
             CALL rmc_stltab (k, ip, .true.) 
@@ -2177,28 +2225,38 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
 !------ --- Loop over all 'lots'                                        
 !                                                                       
-            DO nlot = 1, rmc_nlots 
-               DO i = 1, 3 
+            DO nlot = 1, rmc_nlots                                                              ! Loop over nlot
+               DO i = 1, 3                                                                      ! Loop over i
                   lbeg (i) = rmc_lots_orig (i, nlot) 
-               ENDDO 
+               ENDDO                                                                            ! End loop over i
 !                                                                       
 !------ ----- Loop over all atom types                                  
 !                                                                       
-            DO iscat = 1, cr_nscat 
+            DO iscat = 1, cr_nscat                                                              ! Loop over iscat
                CALL four_getatm (iscat, rmc_ilots, lbeg, ncell) 
                CALL four_strucf (iscat, .true.) 
-               DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-                  rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) + tcsf (i) 
-               ENDDO 
-            ENDDO 
+!              DO i = 1, rmc_num (1, ip) * rmc_num (2, ip)                                      ! Loop over i
+!                 rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) + tcsf (i)                  ! Clarify who are these "rmc" arrays ...
+!              ENDDO                                                                            ! End loop over i
+               do j=1, rmc_num(1, ip)
+               do i=1, rmc_num(1, ip)
+                  rmc_csf(i,j,ip,k,nlot) = rmc_csf (i,j,ip,k,nlot) + tcsf(i,j,ip)
+               enddo
+               enddo
+            ENDDO                                                                               ! End loop over iscat
 !                                                                       
-            DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-               rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) - acsf (i) 
-            ENDDO 
-         ENDDO 
+!           DO i = 1, rmc_num (1, ip) * rmc_num (2, ip)                                         ! Loop over i
+!              rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) - acsf (i)                     ! Clarify who are these "rmc" arrays ...
+!           ENDDO                                                                               ! End loop over i
+            do j=1, rmc_num(1, ip)
+               do i=1, rmc_num(1, ip)
+                  rmc_csf(i,j,ip,k,nlot) = rmc_csf (i,j,ip,k,nlot) - acsf(i,j,ip)
+               enddo
+            enddo
+         ENDDO                                                                                  ! End loop over nlot
          WRITE (output_io, 1200) ip, k 
-         ENDDO  loop_sym
-      ENDDO loop_plane
+         ENDDO  loop_sym                                                                        ! End loop over k
+      ENDDO loop_plane                                                                          ! End loop over ip
 !                                                                       
 !------ we don not need to calculate the initial Fourier again          
 !                                                                       
@@ -2236,49 +2294,81 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER, INTENT(IN) :: is
       LOGICAL, INTENT(IN) :: lnew 
 !                                                                       
-      INTEGER iq, il 
+!     INTEGER iq, il 
+integer:: il   ! Index for lots
+integer:: iq   ! index along astar
+integer:: jq   ! index along bstar
 !------ We want to average rmc_csf_new ..                               
 !                                                                       
-      IF (lnew) then 
+IF (lnew) then 
 !                                                                       
 !------ - First copy lot 1 to dsi ..                                    
 !                                                                       
-         DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-         dsi (iq) = DBLE (rmc_csf_new (offsq (ip, is) + iq, 1) * conjg (&
-         rmc_csf_new (offsq (ip, is) + iq, 1) ) )                       
-         ENDDO 
+   do jq = 1, rmc_num(2, ip)
+      do iq = 1, rmc_num(1, ip)
+         dsi(iq,jq,ip) = DBLE (rmc_csf_new(iq,jq, ip,is,1) * conjg(rmc_csf_new(iq,jq, ip,is,1)))
+      enddo
+   enddo
+!        DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+!        dsi (iq) = DBLE (rmc_csf_new (offsq (ip, is) + iq, 1) * conjg (&                          ! Clarify who are these "rmc" arrays ...
+!        rmc_csf_new (offsq (ip, is) + iq, 1) ) )                       
+!        ENDDO 
 !                                                                       
 !------ - If there is more than 1 lot, add the rest ..                  
 !                                                                       
-         IF (rmc_nlots.gt.1) then 
-            DO il = 2, rmc_nlots 
-            DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-            dsi (iq) = dsi (iq) + DBLE (rmc_csf_new (offsq (ip, is)     &
-            + iq, il) * conjg (rmc_csf_new (offsq (ip, is) + iq, il) ) )
-            ENDDO 
-            ENDDO 
-         ENDIF 
+   IF (rmc_nlots.gt.1) then 
+      do il=1, rmc_nlots
+         do jq = 1, rmc_num(2, ip)
+            do iq = 1, rmc_num(1, ip)
+               dsi(iq,jq,ip) = dsi(iq,jq,ip) + DBLE (rmc_csf_new(iq,jq, ip,is,il) * conjg(rmc_csf_new(iq,jq, ip,is,il)))
+            enddo
+         enddo
+      enddo
+   endif
+!           DO il = 2, rmc_nlots 
+!           DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+!           dsi (iq) = dsi (iq) + DBLE (rmc_csf_new (offsq (ip, is)     &
+!           + iq, il) * conjg (rmc_csf_new (offsq (ip, is) + iq, il) ) )
+!           ENDDO 
+!           ENDDO 
+!        ENDIF 
 !                                                                       
 !------ We want to average rmc_csf                                      
 !                                                                       
-      ELSE 
+ELSE 
 !                                                                       
-         DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-         dsi (iq) = DBLE (rmc_csf (offsq (ip, is) + iq, 1) * conjg (    &
-         rmc_csf (offsq (ip, is) + iq, 1) ) )                           
-         ENDDO 
+   do jq = 1, rmc_num(2, ip)
+      do iq = 1, rmc_num(1, ip)
+         dsi(iq,jq,ip) = DBLE (rmc_csf(iq,jq, ip, is,1) * conjg(rmc_csf(iq,jq, ip, is,1)))
+      enddo
+   enddo
+   IF (rmc_nlots.gt.1) then 
+      do il=1, rmc_nlots
+         do jq = 1, rmc_num(2, ip)
+            do iq = 1, rmc_num(1, ip)
+               dsi(iq,jq,ip) = dsi(iq,jq,ip) + DBLE (rmc_csf(iq,jq, ip, is,il) * conjg(rmc_csf(iq,jq, ip, is,il)))
+           enddo
+        enddo
+     enddo
+   endif
+!
+!        DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip)                                        
+!        dsi (iq) = DBLE (rmc_csf (offsq (ip, is) + iq, 1) * conjg (    &                         ! Clarify who are these "rmc" arrays ...
+!        rmc_csf (offsq (ip, is) + iq, 1) ) )                           
+!        ENDDO 
 !                                                                       
-         IF (rmc_nlots.gt.1) then 
-            DO il = 2, rmc_nlots 
-            DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-            dsi (iq) = dsi (iq) + DBLE (rmc_csf (offsq (ip, is) + iq,   &
-            il) * conjg (rmc_csf (offsq (ip, is) + iq, il) ) )          
-            ENDDO 
-            ENDDO 
-         ENDIF 
+!        IF (rmc_nlots.gt.1) then 
+!           DO il = 2, rmc_nlots 
+!           DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+!           dsi (iq) = dsi (iq) + DBLE (rmc_csf (offsq (ip, is) + iq,   &
+!           il) * conjg (rmc_csf (offsq (ip, is) + iq, il) ) )          
+!           ENDDO 
+!           ENDDO 
+!        ENDIF 
 !                                                                       
-      ENDIF 
-      END SUBROUTINE rmc_inten                      
+ENDIF 
+!
+END SUBROUTINE rmc_inten                      
 !*****7*****************************************************************
       SUBROUTINE rmc_check_input 
 !+                                                                      
@@ -2464,22 +2554,31 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER , INTENT(IN) :: ip
       LOGICAL , INTENT(IN) :: lsave 
 !
-      INTEGER i 
+      INTEGER i ,j
+      integer :: k
 !                                                                       
 !------ Calculate sin(theta)/lambda table for plan 'ip' and             
 !------ symmetry peration 'is' and store it                             
 !                                                                       
       IF (lsave) then 
          CALL four_stltab 
+         k = 0
+         do j = 1,rmc_num (2, ip)
          DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-         ristl (offsq (ip, is) + i) = istl (i) 
+         k = k + 1
+         ristl (offsq (ip, is) + k) = istl (i,j,ip) 
+         ENDDO 
          ENDDO 
 !                                                                       
 !------ just restore sin(theta)/lambda table                            
 !                                                                       
       ELSE 
+         k = 0
+         do j = 1,rmc_num (2, ip)
          DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-         istl (i) = ristl (offsq (ip, is) + i) 
+         k = k + 1
+         istl (i,j,ip) = ristl (offsq (ip, is) + k) 
+         ENDDO 
          ENDDO 
       ENDIF 
 !                                                                       
@@ -2586,11 +2685,12 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       INTEGER ip, il 
 !                                                                       
-      DO ip = 1, rmc_max_sq 
-      DO il = 1, rmc_nlots 
-      rmc_csf (ip, il) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
-      ENDDO 
-      ENDDO 
+!     DO ip = 1, rmc_max_sq 
+!     DO il = 1, rmc_nlots 
+!     rmc_csf (ip, il) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0))                               ! Clarify who are these "rmc" arrays ... Notice that here they are already 2D!!!
+!     ENDDO 
+!     ENDDO 
+rmc_csf = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0))
 !                                                                       
       END SUBROUTINE rmc_zero                       
 !*****7*****************************************************************
@@ -2688,16 +2788,23 @@ use precision_mod
       REAL(kind=PREC_DP) :: p_old (3, rmc_max_atom) 
       REAL(kind=PREC_DP) :: off (3) 
       INTEGER i_old (rmc_max_atom) 
-      INTEGER i, il
+      INTEGER i, il, iq, jq
 !                                                                       
 !     LOGICAL rmc_inlot 
 !                                                                       
-      DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-      DO il = 1, rmc_nlots 
-      rmc_csf_new (offsq (ip, is) + i, il) = rmc_csf (offsq (ip, is)    &
-      + i, il)                                                          
-      ENDDO 
-      ENDDO 
+do jq = 1,rmc_num(2, ip)
+   do iq = 1,rmc_num(1, ip)
+      do il = 1, rmc_nlots
+         rmc_csf_new(iq,jq, ip, is,il) = rmc_csf(iq,jq, ip, is,il)
+      enddo
+   enddo
+enddo
+!      DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+!      DO il = 1, rmc_nlots 
+!      rmc_csf_new (offsq (ip, is) + i, il) = rmc_csf (offsq (ip, is)    &                                      ! Clarify who are these "rmc" arrays ... Notice that here they are already 2D!!!
+!      + i, il)                                                          
+!      ENDDO 
+!      ENDDO 
 !                                                                       
       DO i = 1, natoms 
       p_old (1, i) = cr_pos (1, isel (i) ) 
@@ -2743,7 +2850,7 @@ use precision_mod
       INTEGER, INTENT(IN) :: il
       LOGICAL, INTENT(IN) :: lplus 
 !                                                                       
-      INTEGER i 
+      INTEGER:: i, iq, jq 
 !                                                                       
       IF (iscat.eq.0) return 
 !                                                                       
@@ -2755,15 +2862,25 @@ use precision_mod
       CALL four_strucf (iscat, .true.) 
 !                                                                       
       IF (lplus) then 
-         DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-         rmc_csf_new (offsq (ip, is) + i, il) = rmc_csf_new (offsq (ip, &
-         is) + i, il) + tcsf (i)                                        
-         ENDDO 
+         do jq = 1,rmc_num (2, ip)
+         do iq = 1,rmc_num (1, ip)
+         rmc_csf_new(iq,jq,ip, is,1) = rmc_csf_new(iq,jq,ip, is,1) + tcsf(iq,jq,ip)
+         enddo
+         enddo
+!        DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+!        rmc_csf_new (offsq (ip, is) + i, il) = rmc_csf_new (offsq (ip, &                                ! Clarify who are these "rmc" arrays ... Notice that here they are already 2D!!!
+!        is) + i, il) + tcsf (i)                                        
+!        ENDDO 
       ELSE 
-         DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-         rmc_csf_new (offsq (ip, is) + i, il) = rmc_csf_new (offsq (ip, &
-         is) + i, il) - tcsf (i)                                        
-         ENDDO 
+         do jq = 1,rmc_num (2, ip)
+         do iq = 1,rmc_num (1, ip)
+         rmc_csf_new(iq,jq,ip, is,1) = rmc_csf_new(iq,jq,ip, is,1) - tcsf(iq,jq,ip)
+         enddo
+         enddo
+!        DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+!        rmc_csf_new (offsq (ip, is) + i, il) = rmc_csf_new (offsq (ip, &                                ! Clarify who are these "rmc" arrays ... Notice that here they are already 2D!!!
+!        is) + i, il) - tcsf (i)                                        
+!        ENDDO 
       ENDIF 
 !                                                                       
       END SUBROUTINE rmc_strucf                     
@@ -2890,14 +3007,17 @@ use precision_mod
       INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN) :: isel  !(rmc_max_atom) 
       INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN) :: imol  !(rmc_max_atom) 
 !                                                                       
-      INTEGER i, j, ip, iq, is, il 
+      INTEGER i, j, ip, iq, jq, is, il 
 !                                                                       
       DO ip = 1, rmc_nplane 
       DO is = 1, isym (ip) 
-      DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+      DO jq = 1, rmc_num (2, ip)
+      DO iq = 1, rmc_num (1, ip)
       DO il = 1, rmc_nlots 
-      rmc_csf (offsq (ip, is) + iq, il) = rmc_csf_new (offsq (ip, is)   &
-      + iq, il)                                                         
+         rmc_csf(iq,jq,ip,is,il) = rmc_csf_new(iq,jq,ip,is,il)
+!     rmc_csf (offsq (ip, is) + iq, il) = rmc_csf_new (offsq (ip, is)   &                                         ! Clarify who are these "rmc" arrays ... Notice that here they are already 2D!!!
+!     + iq, il)                                                         
+      ENDDO 
       ENDDO 
       ENDDO 
       ENDDO 

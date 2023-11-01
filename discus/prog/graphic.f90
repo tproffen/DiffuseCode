@@ -74,7 +74,7 @@ CHARACTER(LEN=PREC_STRING) :: zeile
 CHARACTER(LEN=PREC_STRING) :: line, cpara (maxp) 
 INTEGER, DIMENSION(MAXP) :: lpara  !(maxp) 
 INTEGER :: ix, iy, ianz, value, lp, length, lbef 
-integer :: i,j,k,l     ! Dummy indices
+integer :: i,j,k,l, ii     ! Dummy indices
 integer :: pdf3d_mode  !  3D-PDF mode "normal" / "sharp"
 INTEGER :: indxg 
 LOGICAL :: laver, lread
@@ -447,13 +447,16 @@ main_if: IF (ier_num.eq.0) THEN
                BACKSPACE (1) 
 !                                                                       
                DO iy = 1, out_inc (2) 
-               READ (1, * ) (dsi ( (ix - 1) * out_inc (2) + iy),  &
-               ix = 1, out_inc (1) )                              
-               DO ix = 1, out_inc (1) 
-                  zmax = max(zmax, REAL(dsi((ix - 1) * out_inc(2) + iy), kind=PREC_DP))
-                  zmin = min(zmin, REAL(dsi((ix - 1) * out_inc(2) + iy), kind=PREC_DP))
+!              READ (1, * ) (dsi ( (ix - 1) * out_inc (2) + iy),  &
+!              ix = 1, out_inc (1) )                              
+               read(1,*) (dsi(ix,iy,1), ix = 1, out_inc (1))
+!              DO ix = 1, out_inc (1) 
+!                 zmax = max(zmax, REAL(dsi((ix - 1) * out_inc(2) + iy), kind=PREC_DP))
+!                 zmin = min(zmin, REAL(dsi((ix - 1) * out_inc(2) + iy), kind=PREC_DP))
+!              ENDDO 
                ENDDO 
-               ENDDO 
+               zmax = max(zmax,maxval(dsi))
+               zmin = min(zmin,minval(dsi))
                WRITE (output_io, 1015, advance='no') zmin, zmax 
                READ ( *, *, end = 20) zmin, zmax 
    20                CONTINUE 
@@ -511,9 +514,9 @@ main_if: IF (ier_num.eq.0) THEN
                   do k=1,num(3)
                      do j=1,num(2)
                         do i=1,num(1)
-                           l =  (i - 1)*out_inc(3)*out_inc(2) +        &
-                                (j - 1)*out_inc(3)            + k
-                           dsi(l) = dsi(l)/qval(l,val_faver2,  i, j, laver)
+!                          l =  (i - 1)*out_inc(3)*out_inc(2) +        &
+!                               (j - 1)*out_inc(3)            + k
+                           dsi(i,j,k) = dsi(i,j,k)/qval(i,j,k,val_faver2,  i, j, laver)
                         enddo
                      enddo
                   enddo
@@ -521,7 +524,15 @@ main_if: IF (ier_num.eq.0) THEN
                CALL out_prep_3dpdf(laver, l_val_limited, dsmax)
                deallocate(dsi3d)
             elseif(value==val_3DBETA) then
-               dsi = real(acsf * conjg(acsf), kind=PREC_DP)
+               ii = 0
+                        do i=1,num(1)
+                     do j=1,num(2)
+                  do k=1,num(3)
+               ii = ii + 1
+               dsi(i,j,k) = real(acsf(i,j,k) * conjg(acsf(i,j,k)), kind=PREC_DP)
+                        enddo
+                     enddo
+                  enddo
                CALL out_prep_3dpdf(laver, l_val_limited, dsmax)
             ENDIF
             IF (ityp.eq.0) THEN 
@@ -563,7 +574,7 @@ endif
                   DO j = 1, out_inc(2)
                      DO k = 1, out_inc(3)
                         l = l + 1
-                        qvalues(i,j,k) = qval(l, value, i, j, laver)
+                        qvalues(i,j,k) = qval(i,j,k, value, i, j, laver)
                      ENDDO
                   ENDDO
                ENDDO
@@ -579,7 +590,7 @@ endif
                   DO j = 1, out_inc(2)
                      DO k = 1, out_inc(3)
                         l = l + 1
-                        qvalues(i,j,k) = qval(l, value, i, j, laver)
+                        qvalues(i,j,k) = qval(i,j,k, value, i, j, laver)
                      ENDDO
                   ENDDO
                ENDDO
@@ -614,6 +625,7 @@ endif
                ier_num = - 9 
                ier_typ = ER_APPL 
             ENDIF 
+            if(allocated(rpdf)) deallocate(rpdf)  !3DPDF is written, array no longer needed
          ELSE 
             ier_num = -118
             ier_typ = ER_APPL 
@@ -1144,78 +1156,87 @@ use precision_mod
 USE support_mod
 !
 IMPLICIT none 
+!
+integer, intent(in) :: value
+logical, intent(in) :: laver
+!
+ier_num = -6
+ier_typ = ER_COMM
+ier_msg(1) = "POSTSCRIPT output has been disabled. Please use KUPLOT"
+ier_msg(2) = "to display the data and write the image as POSTSCRIPT format"
 !                                                                       
-INTEGER maxcol 
-PARAMETER (maxcol = 256) 
 !                                                                       
-CHARACTER(len=6) :: cout (maxqxy) 
-CHARACTER(len=6) :: cfarb (maxcol) 
-INTEGER :: i, ix, iy, iqqq, k, value 
-LOGICAL :: lread, laver 
-REAL(kind=PREC_DP) :: qqq 
-!                                                                       
-!                                                                       
-!     Check whether data are 2-dimensional                              
-!                                                                       
-      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) THEN 
-         ier_num = - 50 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-!                                                                       
-!-------Farbtabelle einlesen                                            
-!                                                                       
-      lread = .true. 
-      CALL oeffne (2, colorfile, 'old') 
-      IF (ier_num.ne.0) return 
-      DO i = 1, 255 
-      READ (2, 100, end = 20) cfarb (i) 
-  100 FORMAT      (1x,a6) 
-      ENDDO 
-   20 CONTINUE 
-      CLOSE (2) 
-      cfarb (256) = 'ffffff' 
-!                                                                       
-      lread = .false. 
-      CALL oeffne (2, outfile, 'unknown') 
-      IF (ier_num.ne.0) return 
-!                                                                       
-      WRITE (2, 1111) '%!PS-Adobe-2.0' 
-      WRITE (2, 1111) '%%Creator: DISCUS, Version 3.0' 
-      WRITE (2, 1111) '50  150 translate' 
-      WRITE (2, 1111) '288 288 scale' 
-      WRITE (2, 2000) nint (3.0 * out_inc (1) ), out_inc (1), out_inc ( &
-      2), i, 8, out_inc (1), 0, 0, out_inc (2), 0, 0                    
-!                                                                       
-      DO iy = 1, out_inc (2) 
-      DO ix = 1, out_inc (1) 
-      k = (ix - 1) * out_inc (2) + iy 
-      qqq = qval (k, value, ix, iy, laver) 
-      IF (qqq.lt.zmin) THEN 
-         qqq = zmin 
-      ELSEIF (qqq.gt.zmax) THEN 
-         qqq = zmax 
-      ENDIF 
-      iqqq = nint ( (maxcol - 2) * (qqq - zmin) / (zmax - zmin) )       &
-      + 1                                                               
-      WRITE (cout (ix), 1111) cfarb (iqqq) 
-      DO i = 1, 6 
-      IF (cout (ix) (i:i) .eq.' '.or.cout (ix) (i:i) .eq.' ') cout (ix) &
-      (i:i) = '0'                                                       
-      ENDDO 
-      ENDDO 
-      WRITE (2, 5000) (cout (ix), ix = 1, out_inc (1) ) 
-      ENDDO 
-      WRITE (2, 1111) 'showpage' 
-!                                                                       
-      CLOSE (2) 
-!                                                                       
- 1111 FORMAT (a) 
- 2000 FORMAT ('/DataString ',I4,' string def'/3(I3,1X),                 &
-     &        ' [ ',6(I3,1X),']'/'{'/                                   &
-     &        '  currentfile DataString readhexstring pop'/             &
-     &        ' }  false 3 colorimage')                                 
- 5000 FORMAT (10A6) 
+!INTEGER maxcol 
+!PARAMETER (maxcol = 256) 
+!!                                                                       
+!CHARACTER(len=6) :: cout (maxqxy) 
+!CHARACTER(len=6) :: cfarb (maxcol) 
+!INTEGER :: i, ix, iy, iqqq, k, value 
+!LOGICAL :: lread, laver 
+!REAL(kind=PREC_DP) :: qqq 
+!!                                                                       
+!!                                                                       
+!!     Check whether data are 2-dimensional                              
+!!                                                                       
+!      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) THEN 
+!         ier_num = - 50 
+!         ier_typ = ER_APPL 
+!         RETURN 
+!      ENDIF 
+!!                                                                       
+!!-------Farbtabelle einlesen                                            
+!!                                                                       
+!      lread = .true. 
+!      CALL oeffne (2, colorfile, 'old') 
+!      IF (ier_num.ne.0) return 
+!      DO i = 1, 255 
+!      READ (2, 100, end = 20) cfarb (i) 
+!  100 FORMAT      (1x,a6) 
+!      ENDDO 
+!   20 CONTINUE 
+!      CLOSE (2) 
+!      cfarb (256) = 'ffffff' 
+!!                                                                       
+!      lread = .false. 
+!      CALL oeffne (2, outfile, 'unknown') 
+!      IF (ier_num.ne.0) return 
+!!                                                                       
+!      WRITE (2, 1111) '%!PS-Adobe-2.0' 
+!      WRITE (2, 1111) '%%Creator: DISCUS, Version 3.0' 
+!      WRITE (2, 1111) '50  150 translate' 
+!      WRITE (2, 1111) '288 288 scale' 
+!      WRITE (2, 2000) nint (3.0 * out_inc (1) ), out_inc (1), out_inc ( &
+!      2), i, 8, out_inc (1), 0, 0, out_inc (2), 0, 0                    
+!!                                                                       
+!      DO iy = 1, out_inc (2) 
+!      DO ix = 1, out_inc (1) 
+!      k = (ix - 1) * out_inc (2) + iy 
+!      qqq = qval (ix,iy,1, value, ix, iy, laver) 
+!      IF (qqq.lt.zmin) THEN 
+!         qqq = zmin 
+!      ELSEIF (qqq.gt.zmax) THEN 
+!         qqq = zmax 
+!      ENDIF 
+!      iqqq = nint ( (maxcol - 2) * (qqq - zmin) / (zmax - zmin) )       &
+!      + 1                                                               
+!      WRITE (cout (ix), 1111) cfarb (iqqq) 
+!      DO i = 1, 6 
+!      IF (cout (ix) (i:i) .eq.' '.or.cout (ix) (i:i) .eq.' ') cout (ix) &
+!      (i:i) = '0'                                                       
+!      ENDDO 
+!      ENDDO 
+!      WRITE (2, 5000) (cout (ix), ix = 1, out_inc (1) ) 
+!      ENDDO 
+!      WRITE (2, 1111) 'showpage' 
+!!                                                                       
+!      CLOSE (2) 
+!!                                                                       
+! 1111 FORMAT (a) 
+! 2000 FORMAT ('/DataString ',I4,' string def'/3(I3,1X),                 &
+!     &        ' [ ',6(I3,1X),']'/'{'/                                   &
+!     &        '  currentfile DataString readhexstring pop'/             &
+!     &        ' }  false 3 colorimage')                                 
+! 5000 FORMAT (10A6) 
 !                                                                       
       END SUBROUTINE do_post                        
 !
@@ -1235,51 +1256,59 @@ USE support_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
-INTEGER maxcol 
-PARAMETER (maxcol = 255) 
+integer, intent(in) :: value
+logical, intent(in) :: laver
+!
+ier_num = -6
+ier_typ = ER_COMM
+ier_msg(1) = "PGM output has been disabled. Please use KUPLOT"
+ier_msg(2) = "to display the data and write the image as PGM format"
 !                                                                       
-INTEGER :: iqqq (maxqxy), ncol, ix, iy, k, value 
-LOGICAL :: lread, laver 
-REAL(kind=PREC_DP) ::  qqq 
-!                                                                       
-!                                                                       
-!     Check whether data are 2-dimensional                              
-!                                                                       
-      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) THEN 
-         ier_num = - 50 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-!                                                                       
-      lread = .false. 
-      ncol = maxcol 
-!                                                                       
-      CALL oeffne (2, outfile, 'unknown') 
-      IF (ier_num.ne.0) return 
-!                                                                       
-      WRITE (2, 1111) 'P2' 
-      WRITE (2, 2000) out_inc (1), out_inc (2), ncol 
-!                                                                       
-      DO iy = out_inc (2), 1, - 1 
-      DO ix = 1, out_inc (1) 
-      k = (ix - 1) * out_inc (2) + iy 
-      qqq = qval (k, value, ix, iy, laver) 
-      IF (qqq.lt.zmin) THEN 
-         qqq = zmin 
-      ELSEIF (qqq.gt.zmax) THEN 
-         qqq = zmax 
-      ENDIF 
-      iqqq(ix) = nint(REAL(ncol - 1, kind=PREC_DP) * (qqq - zmin) / (zmax - zmin))
-      ENDDO 
-      WRITE (2, 5000) (iqqq (ix), ix = 1, out_inc (1) ) 
-      ENDDO 
-!                                                                       
-      CLOSE (2) 
-!                                                                       
- 1111 FORMAT     (a) 
- 2000 FORMAT    (2(1x,i4)/1x,i8) 
- 5000 FORMAT     (7i8) 
-!                                                                       
+!INTEGER maxcol 
+!PARAMETER (maxcol = 255) 
+!!                                                                       
+!INTEGER :: iqqq (maxqxy), ncol, ix, iy, k, value 
+!LOGICAL :: lread, laver 
+!REAL(kind=PREC_DP) ::  qqq 
+!!                                                                       
+!!                                                                       
+!!     Check whether data are 2-dimensional                              
+!!                                                                       
+!      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) THEN 
+!         ier_num = - 50 
+!         ier_typ = ER_APPL 
+!         RETURN 
+!      ENDIF 
+!!                                                                       
+!      lread = .false. 
+!      ncol = maxcol 
+!!                                                                       
+!      CALL oeffne (2, outfile, 'unknown') 
+!      IF (ier_num.ne.0) return 
+!!                                                                       
+!      WRITE (2, 1111) 'P2' 
+!      WRITE (2, 2000) out_inc (1), out_inc (2), ncol 
+!!                                                                       
+!      DO iy = out_inc (2), 1, - 1 
+!      DO ix = 1, out_inc (1) 
+!      k = (ix - 1) * out_inc (2) + iy 
+!      qqq = qval (ix,iy,1, value, ix, iy, laver) 
+!      IF (qqq.lt.zmin) THEN 
+!         qqq = zmin 
+!      ELSEIF (qqq.gt.zmax) THEN 
+!         qqq = zmax 
+!      ENDIF 
+!      iqqq(ix) = nint(REAL(ncol - 1, kind=PREC_DP) * (qqq - zmin) / (zmax - zmin))
+!      ENDDO 
+!      WRITE (2, 5000) (iqqq (ix), ix = 1, out_inc (1) ) 
+!      ENDDO 
+!!                                                                       
+!      CLOSE (2) 
+!!                                                                       
+! 1111 FORMAT     (a) 
+! 2000 FORMAT    (2(1x,i4)/1x,i8) 
+! 5000 FORMAT     (7i8) 
+!!                                                                       
       END SUBROUTINE do_pgm                         
 !
 !*****7*****************************************************************
@@ -1297,71 +1326,78 @@ USE errlist_mod
 USE support_mod
 IMPLICIT none 
 !                                                                       
-!                                                                       
-INTEGER maxcol 
-PARAMETER (maxcol = 255) 
-!                                                                       
-INTEGER :: iqqq (maxqxy), ncol, ix, iy, k, value 
-INTEGER :: icolor (maxcol, 3) 
-INTEGER :: i, j 
-LOGICAL :: lread, laver 
-REAL(kind=PREC_DP) :: qqq 
-!                                                                       
-      CHARACTER(6) cfarb (256) 
-!                                                                       
-!                                                                       
-!     Check whether data are 2-dimensional                              
-!                                                                       
-      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) THEN 
-         ier_num = - 50 
-         ier_typ = ER_APPL 
-         RETURN 
-      ENDIF 
-!                                                                       
-!-------Farbtabelle einlesen                                            
-!                                                                       
-      CALL set_colorfeld (cfarb) 
-      lread = .true. 
-      CALL oeffne (2, colorfile, 'old') 
-      IF (ier_num.ne.0) return 
-      DO i = 1, 255 
-      READ (2, 100, end = 20) (icolor (i, j), j = 1, 3) 
-  100 FORMAT      (1x,3z2) 
-      ENDDO 
-   20 CONTINUE 
-      CLOSE (2) 
-!                                                                       
-      icolor (255, 1) = 255 
-      icolor (255, 2) = 255 
-      icolor (255, 3) = 255 
-!                                                                       
-      lread = .false. 
-      CALL oeffne (2, outfile, 'unknown') 
-      IF (ier_num.ne.0) return 
-!                                                                       
-      ncol = maxcol 
-      WRITE (2, 1111) 'P3' 
-      WRITE (2, 2000) out_inc (1), out_inc (2), ncol 
-!                                                                       
-      DO iy = out_inc (2), 1, - 1 
-      DO ix = 1, out_inc (1) 
-      k = (ix - 1) * out_inc (2) + iy 
-      qqq = qval (k, value, ix, iy, laver) 
-      IF (qqq.lt.zmin) THEN 
-         qqq = zmin 
-      ELSEIF (qqq.gt.zmax) THEN 
-         qqq = zmax 
-      ENDIF 
-      iqqq (ix) = nint(REAL(ncol-1, kind=PREC_DP) * (qqq-zmin)/(zmax-zmin)) + 1
-      ENDDO 
-      WRITE(2, 5000) ((icolor(iqqq(ix), j), j=1, 3), ix=1, out_inc(1))
-      ENDDO 
-!                                                                       
-      CLOSE (2) 
-!                                                                       
- 1111 FORMAT     (a) 
- 2000 FORMAT    (1x,2i4/1x,i8) 
- 5000 FORMAT     (15i4) 
+integer, intent(in) :: value
+logical, intent(in) :: laver
+!
+ier_num = -6
+ier_typ = ER_COMM
+ier_msg(1) = "PPM output has been disabled. Please use KUPLOT"
+ier_msg(2) = "to display the data and write the image as PPM format"
+!!                                                                       
+!INTEGER maxcol 
+!PARAMETER (maxcol = 255) 
+!!                                                                       
+!INTEGER :: iqqq (maxqxy), ncol, ix, iy, k, value 
+!INTEGER :: icolor (maxcol, 3) 
+!INTEGER :: i, j 
+!LOGICAL :: lread, laver 
+!REAL(kind=PREC_DP) :: qqq 
+!!                                                                       
+!      CHARACTER(6) cfarb (256) 
+!!                                                                       
+!!                                                                       
+!!     Check whether data are 2-dimensional                              
+!!                                                                       
+!!      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) THEN 
+!         ier_num = - 50 
+!         ier_typ = ER_APPL 
+!!         RETURN 
+!      ENDIF 
+!!                                                                       
+!!-------Farbtabelle einlesen                                            
+!!                                                                       
+!      CALL set_colorfeld (cfarb) 
+!      lread = .true. 
+!      CALL oeffne (2, colorfile, 'old') 
+!      IF (ier_num.ne.0) return 
+!      DO i = 1, 255 
+!      READ (2, 100, end = 20) (icolor (i, j), j = 1, 3) 
+!!  100 FORMAT      (1x,3z2) 
+!      ENDDO 
+!   20 CONTINUE 
+!!      CLOSE (2) 
+!!                                                                       
+!      icolor (255, 1) = 255 
+!!      icolor (255, 2) = 255 
+!      icolor (255, 3) = 255 
+!!                                                                       
+!!      lread = .false. 
+!      CALL oeffne (2, outfile, 'unknown') 
+!!      IF (ier_num.ne.0) return 
+!!                                                                       
+!      ncol = maxcol 
+!      WRITE (2, 1111) 'P3' 
+!      WRITE (2, 2000) out_inc (1), out_inc (2), ncol 
+!!                                                                       
+!      DO iy = out_inc (2), 1, - 1 
+!      DO ix = 1, out_inc (1) 
+!      k = (ix - 1) * out_inc (2) + iy 
+!      qqq = qval (ix,iy,1, value, ix, iy, laver) 
+!      IF (qqq.lt.zmin) THEN 
+!         qqq = zmin 
+!      ELSEIF (qqq.gt.zmax) THEN 
+!         qqq = zmax 
+!      ENDIF 
+!      iqqq (ix) = nint(REAL(ncol-1, kind=PREC_DP) * (qqq-zmin)/(zmax-zmin)) + 1
+!      ENDDO 
+!      WRITE(2, 5000) ((icolor(iqqq(ix), j), j=1, 3), ix=1, out_inc(1))
+!      ENDDO 
+!!                                                                       
+!      CLOSE (2) 
+!!                                                                       
+! 1111 FORMAT     (a) 
+! 2000 FORMAT    (1x,2i4/1x,i8) 
+! 5000 FORMAT     (15i4) 
 !                                                                       
 END SUBROUTINE do_ppm                         
 !
@@ -1464,6 +1500,7 @@ USE lib_length
 use precision_mod
 USE prompt_mod 
 USE support_mod
+!
 IMPLICIT none 
 !                                                                       
 integer, intent(out) :: value       
@@ -1485,14 +1522,14 @@ REAL(kind=PREC_DP) ::  sq, qq, out_fac
 !                                                                       
 INTEGER shel_inc (3) 
 INTEGER shel_value 
-REAL(kind=PREC_DP) ::  shel_eck (3, 4) 
-REAL(kind=PREC_DP) ::  shel_vi (3, 3) 
-REAL(kind=PREC_DP) ::  shel_000 
-COMPLEX(kind=PREC_DP) ::  shel_csf 
-COMPLEX(kind=PREC_DP) ::  shel_acsf 
-REAL(kind=PREC_DP) ::  shel_dsi 
-COMPLEX(kind=PREC_DP) ::  shel_tcsf 
-REAL(kind=PREC_DP) ::  factor
+REAL   (kind=PREC_DP) ::  shel_eck (3, 4) 
+REAL   (kind=PREC_DP) ::  shel_vi (3, 3) 
+REAL   (kind=PREC_DP) ::  shel_000 
+COMPLEX(kind=PREC_DP) ::  shel_csf
+COMPLEX(kind=PREC_DP) ::  shel_acsf
+REAL   (kind=PREC_DP) ::  shel_dsi
+COMPLEX(kind=PREC_DP) ::  shel_tcsf
+REAL   (kind=PREC_DP) ::  factor
 !
 INTEGER                            :: npkt1      ! Points in 1D files standard file format
 INTEGER                            :: npkt2      ! Points in 2D files standard file format
@@ -1512,68 +1549,80 @@ CHARACTER (LEN=160), DIMENSION(:), ALLOCATABLE :: header_lines
 INTEGER :: nheader
 real(kind=PREC_DP) :: qqmax
 !                                                                       
-      factor = 0.0
-      npkt3  = 1
+factor = 0.0
+npkt3  = 1
 m = nint(valmax)
+write(*,*) ' m, valmax ', m, valmax
 out_fac = 1.0D0   ! Default to no scaling
 !                                                                       
 !     If output type is shelx, calculate qval(000) for scaling          
 !                                                                       
-IF (m==-1 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with 000
-         DO i = 1, 3 
-         shel_inc (i) = inc (i) 
-         ENDDO 
-         DO i = 1, 3 
-         DO j = 1, 4 
-         shel_eck (i, j) = eck (i, j) 
-         ENDDO 
-         DO j = 1, 3 
-         shel_vi (i, j) = vi (i, j) 
-         ENDDO 
-         ENDDO 
-         shel_tcsf = CMPLX(csf (1),KIND=KIND(0.0D0)) 
-         shel_acsf = CMPLX(acsf(1),KIND=KIND(0.0D0)) 
-         shel_dsi = dsi(1) 
-         inc (1) = 1 
-         inc (2) = 1 
-         inc (3) = 1 
-         DO i = 1, 3 
-         DO j = 1, 4 
-         eck (i, j) = 0.0 
-         ENDDO 
-         DO j = 1, 3 
-         vi (i, j) = 0.0 
-         ENDDO 
-         ENDDO 
-         IF (ityp.eq.HKLF4) THEN 
-            value = 1 
-         ELSEIF (ityp.eq.LIST5) THEN 
-            value = 2 
-         ENDIF 
-         CALL four_run 
-         shel_csf = CMPLX(csf (1), KIND=KIND(0.0D0))
-         shel_000 = qval (1, value, 1, 1, laver) 
-         qq = qval(1, value, 1, 1, laver) / cr_icc(1)/cr_icc(2)/cr_icc(3)
-         IF (ityp.eq.HKLF4) THEN 
-            factor = max (int (log (qq) / log (10.0D0) ) - 3, 0) 
-         ELSEIF (ityp.eq.LIST5) THEN 
-            factor = max (int (log (qq) / log (10.0D0) ) - 2, 0) 
-         ENDIF 
-         out_fac = 10** ( - factor) 
-         csf (1) = shel_tcsf 
-         acsf (1) = shel_acsf 
-         dsi (1) = shel_dsi 
-         DO i = 1, 3 
-         inc (i) = shel_inc (i) 
-         ENDDO 
-         DO i = 1, 3 
-         DO j = 1, 4 
-         eck (i, j) = shel_eck (i, j) 
-         ENDDO 
-         DO j = 1, 3 
-         vi (i, j) = shel_vi (i, j) 
-         ENDDO 
-         ENDDO 
+IF(m==-1 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with 000
+!        DO i = 1, 3 
+!        shel_inc (i) = inc (i) 
+!        ENDDO 
+!        DO i = 1, 3 
+!        DO j = 1, 4 
+!        shel_eck (i, j) = eck (i, j) 
+!        ENDDO 
+!        DO j = 1, 3 
+!        shel_vi (i, j) = vi (i, j) 
+!        ENDDO 
+!        ENDDO 
+   shel_inc = inc
+   shel_eck = eck
+   shel_vi  = vi 
+   shel_tcsf = CMPLX(csf (1,1,1),KIND=KIND(0.0D0))
+   shel_acsf = CMPLX(acsf(1,1,1),KIND=KIND(0.0D0))
+   shel_dsi = dsi(1,1,1)
+!        inc (1) = 1 
+!        inc (2) = 1 
+!        inc (3) = 1 
+!        DO i = 1, 3 
+!        DO j = 1, 4 
+!        eck (i, j) = 0.0 
+!        ENDDO 
+!        DO j = 1, 3 
+!        vi (i, j) = 0.0 
+!        ENDDO 
+!        ENDDO 
+   inc = 1
+   num = 1
+   eck = 0.0D0
+   vi  = 0.0D0
+   IF (ityp.eq.HKLF4) THEN 
+      value = 1 
+   ELSEIF (ityp.eq.LIST5) THEN 
+      value = 2 
+   ENDIF 
+   CALL four_run 
+   shel_csf = CMPLX(csf (1,1,1), KIND=KIND(0.0D0))
+   shel_000 = qval (1,1,1, value, 1, 1, laver) 
+   qq = qval(1,1,1, value, 1, 1, laver) / cr_icc(1)/cr_icc(2)/cr_icc(3)
+   IF (ityp.eq.HKLF4) THEN 
+      factor = max (int (log (qq) / log (10.0D0) ) - 3, 0) 
+   ELSEIF (ityp.eq.LIST5) THEN 
+      factor = max (int (log (qq) / log (10.0D0) ) - 2, 0) 
+   ENDIF 
+   out_fac = 10** ( - factor) 
+   csf (1,1,1) = shel_tcsf
+   acsf (1,1,1) = shel_acsf
+   dsi (1,1,1) = shel_dsi
+   inc = shel_inc
+   num = shel_inc
+   eck = shel_eck
+   vi  = shel_vi 
+!        DO i = 1, 3 
+!        inc (i) = shel_inc (i) 
+!        ENDDO 
+!        DO i = 1, 3 
+!        DO j = 1, 4 
+!        eck (i, j) = shel_eck (i, j) 
+!        ENDDO 
+!        DO j = 1, 3 
+!        vi (i, j) = shel_vi (i, j) 
+!        ENDDO 
+!        ENDDO 
 elseif(m==-2 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with largest BRAG /= 000
    qqmax = 0.0D0
    if(ityp==HKLF4) then
@@ -1592,7 +1641,7 @@ elseif(m==-2 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with larges
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
 !              k  = (i - 1) * out_inc (2) + j 
                k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
-               qq = qval (k, shel_value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
+               qq = qval (i,j,l, shel_value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
                qqmax = max(qqmax, qq)
             ENDIF
          ENDDO 
@@ -1604,9 +1653,10 @@ elseif(m==-2 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with larges
       factor =      int (log (qqmax) / log (10.0D0) ) - 3
    endif
    out_fac = 10** ( - factor) 
-elseif(m>  0 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with User value
+elseif(valmax>  0.0 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with User value
   out_fac = valmax
 ENDIF 
+write(*,*) ' m, valmax ', m, valmax
 !                                                                       
 extr_ima = 6 - out_extr_abs - out_extr_ord 
 !                                                                       
@@ -1677,7 +1727,7 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
                                  + out_vi(k,3) * REAL(loop(3)-1, kind=PREC_DP)  
          ENDDO 
          xwrt(i) = h(out_extr_abs)
-         ywrt(i) = qval (i, value, i, j, laver)
+         ywrt(i) = qval (i, 1, 1, value, i, j, laver)
       ENDDO 
       CALL output_save_file_1d(outfile, npkt1, xwrt, ywrt, out_mode)
       DEALLOCATE(xwrt)
@@ -1687,8 +1737,10 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
       l = 1
       DO j = 1, npkt2
          DO i=1,npkt1
-            zwrt(i,j) = (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
-                                (j - 1) * out_inc(3)             + l,     &
+!           zwrt(i,j) = (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+!                               (j - 1) * out_inc(3)             + l,     &
+!                        value,  i, j, laver))
+            zwrt(i,j) = (qval (i,j,1, & 
                          value,  i, j, laver))
          ENDDO 
       ENDDO 
@@ -1739,8 +1791,10 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
 7777 FORMAT(a,'.PART_',i4.4)
          DO j = 1, npkt2                        ! Loop over points in 2D
             DO i=1,npkt1                        ! and copy into intensity file
-               zwrt(i,j) = (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
-                                   (j - 1) * out_inc(3)             + l,     &
+!              zwrt(i,j) = (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+!                                  (j - 1) * out_inc(3)             + l,     &
+!                           value,  i, j, laver))
+               zwrt(i,j) = (qval (i,j,l, & 
                             value,  i, j, laver))
             ENDDO 
          ENDDO 
@@ -1785,9 +1839,10 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                                out_eck (out_extr_top, 1), out_eck (out_extr_top, 4)
                DO l=1, out_inc(3)
                   DO j = 1, out_inc (2) 
-                  WRITE (iff, 4) (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
-                                         (j - 1) * out_inc(3)             + l,     &
-                                         value,  i, j, laver), i = 1, out_inc (1) )
+!                 WRITE (iff, 4) (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+!                                        (j - 1) * out_inc(3)             + l,     &
+!                                        value,  i, j, laver), i = 1, out_inc (1) )
+                  WRITE (iff, 4) (qval (i,j,l, value,  i, j, laver), i = 1, out_inc (1) )
                   WRITE (iff, 100) 
                   ENDDO 
                   IF(out_inc(3) > 1) THEN
@@ -1804,9 +1859,9 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                                       + out_vi (k, 3) * REAL(l - 1)
                ENDDO 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
-!              k  = (i - 1) * out_inc (2) + j 
-               k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
+!              k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
+!              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
+               qq = qval (i,j,l, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
                sq = sqrt (qq) 
                WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), qq, sq
             ENDIF
@@ -1823,11 +1878,12 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                                       + out_vi (k, 3) * REAL(l - 1)
                ENDDO 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
-               k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
+!              k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
                shel_value = 2 
-               qq = qval (k, shel_value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
+!              qq = qval (k, shel_value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
+               qq = qval (i,j,l, shel_value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
                shel_value = 3 
-               sq = qval (k, shel_value, i, j, laver) 
+               sq = qval (i,j,l, shel_value, i, j, laver) 
                IF(sq < 0.0D0 ) sq = sq + 360.0D0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), qq, qq, sq
             ENDIF
@@ -1845,11 +1901,12 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                                       + out_vi (k, 3) * REAL(l - 1)
                ENDDO 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
-               k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
+!              k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
                shel_value = 2 
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
+!              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
+               qq = qval (i,j,l, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
                shel_value = 3 
-               sq = qval (k, shel_value, i, j, laver) 
+               sq = qval (i,j,l, shel_value, i, j, laver) 
                IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 9) h (1), h (2), h (3), qq, qq, sq 
             ENDIF
@@ -1865,7 +1922,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                ENDDO 
                k = (i - 1) * out_inc (2) + j 
                WRITE (iff, 5) h (out_extr_abs), h (out_extr_ord),       &
-               qval (k, value, i, j, laver), h (extr_ima)               
+               qval (i,j,1, value, i, j, laver), h (extr_ima)               
                ENDDO 
                WRITE (iff, 100) 
                ENDDO 
@@ -1878,33 +1935,36 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             h (k) = out_eck (k, 1) + out_vi (k, 1) * REAL(i - 1)      &
             + out_vi (k, 2) * REAL(j - 1)                             
             ENDDO 
-            k = (i - 1) * out_inc (2) + j 
+!           k = (i - 1) * out_inc (2) + j 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
             IF (ityp.eq.HKLF4) THEN                         ! SHELXS HKL INTENSITY
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
+!              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
+               qq = qval (1,j,1, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
                sq = sqrt (qq) 
                WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, sq                                                   
             ELSEIF (ityp.eq.LIST5) THEN                     ! SHELXS Fobs Fcalc
                shel_value = 2 
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
-               2) / cr_icc (3) * out_fac                                
+!              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
+!              2) / cr_icc (3) * out_fac                                
+               qq = qval (1,j,1, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3) * out_fac                                
                shel_value = 3 
 !              sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
 !              / cr_icc (2) / cr_icc (3) * out_fac                      
-               sq = qval (k, shel_value, i, j, laver) 
+               sq = qval (1,j,1, shel_value, i, j, laver) 
                IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, qq, sq                                               
             ELSEIF (ityp.eq.LIST9) THEN                     ! SHELXS
                shel_value = 2 
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
-               2) / cr_icc (3)                                          
+!              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
+!              2) / cr_icc (3)                                          
+               qq = qval (1,j,1, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
                shel_value = 3 
 !              sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
 !              / cr_icc (2) / cr_icc (3)                                
-               sq = qval (k, shel_value, i, j, laver) 
+               sq = qval (1,j,1, shel_value, i, j, laver) 
                IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 9) h (1), h (2), h (3), qq, qq, sq 
             ENDIF 
@@ -1917,10 +1977,12 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                      h(k) = out_eck(k,1) + out_vi(k,1) * REAL(i-1)    &
                                          + out_vi(k,2) * REAL(j-1)
                   ENDDO 
-                  k       = (i - 1) * out_inc (2) + j 
-                  WRITE(iff,6) h(out_extr_ord), qval(k,value,i,j,laver)
+!                 k       = (i - 1) * out_inc (2) + j 
+!                 WRITE(iff,6) h(out_extr_ord), qval(k,value,i,j,laver)
+                  WRITE(iff,6) h(out_extr_ord), qval(1,j,1,value,i,j,laver)
                   xwrt(i) = h(out_extr_ord)
-                  ywrt(i) = qval (k, value, i, j, laver)
+!                 ywrt(i) = qval (k, value, i, j, laver)
+                  ywrt(i) = qval (1,j,1, value, i, j, laver)
                ENDDO 
             ENDIF 
          ELSEIF (out_inc (2) .eq.1) THEN 
@@ -1931,33 +1993,34 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             h (k) = out_eck (k, 1) + out_vi (k, 1) * REAL(i - 1)      &
             + out_vi (k, 2) * REAL(j - 1)                             
             ENDDO 
-            k = (i - 1) * out_inc (2) + j 
+!           k = (i - 1) * out_inc (2) + j 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
             IF (ityp.eq.HKLF4) THEN                         ! SHELXS Intensity
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
-               2) / cr_icc (3) * out_fac                                
+!              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
+!              2) / cr_icc (3) * out_fac                                
+               qq = qval (i,1,1, value, i, j, laver) / cr_icc (1) / cr_icc ( 2) / cr_icc (3) * out_fac                                
                sq = sqrt (qq) 
-               WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), &
-               qq, sq                                                   
+               WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), qq, sq                                                   
             ELSEIF (ityp.eq.LIST5) THEN                     ! SHELS Fobs Fcalc
                shel_value = 2 
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
-               2) / cr_icc (3) * out_fac                                
-               shel_value = 3 
-!              sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
-!              / cr_icc (2) / cr_icc (3) * out_fac                      
-               sq = qval (k, shel_value, i, j, laver) 
+!              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
+!              2) / cr_icc (3) * out_fac                                
+               qq = qval (i,1,1, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3) * out_fac                                
+               shel_value = 3                               ! Phase angle
+               sq = qval (i,1,1, shel_value, i, j, laver) 
                IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, qq, sq                                               
             ELSEIF (ityp.eq.LIST9) THEN                     ! SHELS File
                shel_value = 2 
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
-               2) / cr_icc (3)                                          
+!              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
+!              2) / cr_icc (3)                                          
+               qq = qval (i,1,1, value, i, j, laver) / cr_icc (1) / cr_icc ( 2) / cr_icc (3)                                          
                shel_value = 3 
 !              sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
 !              / cr_icc (2) / cr_icc (3)                                
-               sq = qval (k, shel_value, i, j, laver) 
+!              sq = qval (k, shel_value, i, j, laver) 
+               sq = qval (i,1,1, shel_value, i, j, laver) 
                IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 9) h (1), h (2), h (3), qq, qq, sq 
             ENDIF 
@@ -2088,6 +2151,9 @@ IF(l_val_limited) THEN
    CALL output_limit(dsmax)
 ENDIF
 !
+if(allocated(rpdf)) deallocate(rpdf)
+allocate(rpdf(1:num(1), 1:num(2), 1:num(3)))
+!
 !  Determine sequence of array dimensions 
 !
 dsort(1)      = MAXLOC(num, 1)
@@ -2197,7 +2263,7 @@ type(c_ptr) :: plan    ! FFWT3 plan
 ALLOCATE(in_pattern(num(dsort(1))))
 ALLOCATE(out_pattern(num(dsort(1))))
 !
-CALL maptofftfd(num, dsort, dsi, in_pattern)
+CALL maptofftfd(num, dsort, dsi(1:num(1),1,1), in_pattern)
 !
 !pattern = fft(pattern) / SQRT(REAL(num(1)))
 !
@@ -2207,7 +2273,7 @@ call   fftw_destroy_plan(plan)
 !
 out_pattern = out_pattern / sqrt(real(num(1), kind=PREC_DP))  ! Normalize PDF
 !
-CALL mapfftfdtoline(num, dsort, rpdf, out_pattern)
+CALL mapfftfdtoline(num, dsort, rpdf(1:num(1),1,1), out_pattern)
 !
 DEALLOCATE( in_pattern)
 DEALLOCATE(out_pattern)
@@ -2242,7 +2308,7 @@ type(c_ptr) :: plan    ! FFWT3 plan
 ALLOCATE( in_pattern(num(dsort(1)) , num(dsort(2)) ))
 ALLOCATE( out_pattern(num(dsort(1)), num(dsort(2)) ))
 !
-CALL maptofftfd(num, dsort, dsi, in_pattern)
+CALL maptofftfd(num, dsort, dsi(1:num(1),1:num(2),1), in_pattern)
 !
 plan = fftw_plan_dft_2d(num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)
 call   fftw_execute_dft(plan, in_pattern, out_pattern)
@@ -2250,7 +2316,7 @@ call   fftw_destroy_plan(plan)
 !
 out_pattern = out_pattern / sqrt(real(num(dsort(2))*num(dsort(1)), kind=PREC_DP))  ! Normalize PDF
 !
-CALL mapfftfdtoline(num, dsort, rpdf, out_pattern)
+CALL mapfftfdtoline(num, dsort, rpdf(1:num(1),1:num(2),1), out_pattern)
 !
 DEALLOCATE(in_pattern)
 DEALLOCATE(out_pattern)
@@ -2368,9 +2434,9 @@ DO l = 1, inc(3)
             IF(do_blen(.FALSE., h, NULLV)> dsmax   ) THEN
                iii       =  (i - 1) * inc(3)*inc (2) +        &
                             (j - 1) * inc(3)             + l
-               acsf(iii) = CMPLX(0.0D0, 0.0D0)
-                csf(iii) = CMPLX(0.0D0, 0.0D0)
-                dsi(iii) = CMPLX(0.0D0, 0.0D0)
+               acsf(i,j,k) = CMPLX(0.0D0, 0.0D0)                     ! How does iii runs? How to rewrite this line for general dimensions?
+                csf(i,j,k) = CMPLX(0.0D0, 0.0D0)                     ! How does iii runs? How to rewrite this line for general dimensions?
+                dsi(i,j,k) = CMPLX(0.0D0, 0.0D0)                     ! How does iii runs? How to rewrite this line for general dimensions?
             ENDIF
          ENDDO
       ENDDO

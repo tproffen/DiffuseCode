@@ -23,7 +23,7 @@ SAVE
 !               table ranges from 0 to (CFPKT+1)*CFINC
 !
 !
-      INTEGER             ::   MAXQXY
+INTEGER, dimension(3) ::   MAXQXY
       INTEGER, PARAMETER  ::   CFPKT  = 4999
       REAL(KIND=KIND(0.0D0)), PARAMETER  ::   CFINC  =    0.001D0
 !

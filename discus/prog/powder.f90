@@ -1713,6 +1713,7 @@ USE prompt_mod
 USE precision_mod 
 USE trig_degree_mod
 USE support_mod
+use lib_write_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -1770,7 +1771,8 @@ ss = seknds (0.0D0)
 !                                                                       
 !     Set Fourier definitions                                           
 !                                                                       
-inc (2) = 1 
+inc(2) = 1 
+inc(3) = 1 
 DO i = 1, 3 
    vi (i, 1) = 0.0 
    vi (i, 2) = 0.0 
@@ -1781,8 +1783,8 @@ four_log = .false.
 !
 n_pkt = NINT((pow_qmax+pow_deltaq  -pow_qmin  )/pow_deltaq  ) + 2
 n_nscat = MAX(UBOUND(pow_f2,2), MAXSCAT, DIF_MAXSCAT)
-IF(n_pkt .gt. POW_MAXPKT .OR. n_nscat>POW_MAXSCAT) THEN
-   CALL alloc_powder ( n_pkt, n_nscat )
+IF(n_pkt /= ubound(pow_qsp,1) .or.cr_nscat/=ubound(pow_f2,2)) then
+   CALL alloc_powder ( n_pkt, cr_nscat )
 ENDIF
 !     reset powder diagramm                                             
 !                                                                       
@@ -1794,23 +1796,39 @@ pow_u2aver    = 0.0
 !     DO i = 1, POW_MAXPKT 
 !     pow_qsp (i) = 0.0 
 !     ENDDO 
-n_qxy   = MAX(n_qxy,inc(1) * inc(2),n_pkt,MAXQXY)
-n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
-IF (inc (1) * inc (2) .gt. MAXQXY  .OR.          &
-    n_pkt             .gt. MAXQXY  .OR.          &
-    cr_nscat>DIF_MAXSCAT              ) THEN
-  CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
-  IF (ier_num /= 0) THEN
-    RETURN
-  ENDIF
-ENDIF
+if(any(inc/=ubound(csf))) then
+!  n_qxy = inc
+   call alloc_diffuse_four (inc )
+   if(ier_num/=0) return
+endif
+if(cr_nscat/=ubound(cfact,2)) then
+   call alloc_diffuse_scat(cr_nscat)
+   if(ier_num/=0) return
+endif
+if(cr_natoms/=ubound(xat,1)) then
+   call alloc_diffuse_atom(cr_natoms)
+   if(ier_num/=0) return
+endif
 !
-IF(n_qxy > PHA_MAXPTS .OR. cr_nscat> PHA_MAXSCAT) THEN
+!n_qxy   = MAX(n_qxy,inc(1) * inc(2),n_pkt,PRODUCT(MAXQXY))
+!n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+!IF (inc (1) * inc (2) .gt. product(MAXQXY)  .OR.          &
+!    n_pkt             .gt. product(MAXQXY)  .OR.          &
+!    cr_nscat>DIF_MAXSCAT              ) THEN
+!  CALL alloc_diffuse_four ((/n_qxy,1,1/))
+!  CALL alloc_diffuse_scat (n_nscat)
+!  CALL alloc_diffuse_atom (n_natom )
+!  IF (ier_num /= 0) THEN
+!    RETURN
+!  ENDIF
+!ENDIF
+!
+IF(n_pkt > PHA_MAXPTS .OR. cr_nscat> PHA_MAXSCAT) THEN
    n_pha   = PHA_MAXPHA
    n_qxy   = MAX(PHA_MAXPTS,  n_qxy)
    n_nscat = MAX(PHA_MAXSCAT, cr_nscat)
-   CALL alloc_phases(n_pha, n_qxy, n_nscat)
+   CALL alloc_phases(n_pha ,(/n_pkt,1,1/), n_nscat)
 ENDIF
 !                                                                       
 !------ calculate complex exponent table, form factor table             
@@ -1822,7 +1840,7 @@ CALL four_formtab
 !
 xstart = pow_qmin  /zpi
 xdelta = pow_deltaq/zpi
-CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+CALL powder_stltab(n_pkt, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
 !
 CALL powder_getatoms 
 !                                                                       
@@ -2081,21 +2099,36 @@ loop_h: DO ih = h_start, h_end
 !DBGXXX      write(*,*) 'eck(3,*)        ',eck(3,1),eck(3,2),eck(3,3)   
 !DBGXXX      write(*,*) 'inc(1)          ',inc(1)                       
 !DBGXXX      endif                                                      
-            IF (inc (1) * inc (2) .gt. MAXQXY  .OR.          &
-                cr_nscat>DIF_MAXSCAT              ) THEN
-              n_qxy   = MAX(n_qxy,inc(1) * inc(2),MAXQXY)
-              n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-              n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
-              CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
-              IF (ier_num.ne.0) THEN
-                RETURN
-              ENDIF
-            ENDIF
-            IF (inc (1) .gt.MAXQXY) THEN 
+            if(any(inc/=ubound(csf))) then
+!              n_qxy = inc
+               call alloc_diffuse_four (inc )
+               if(ier_num/=0) return
+            endif
+            if(cr_nscat/=ubound(cfact,2)) then
+               call alloc_diffuse_scat(cr_nscat)
+               if(ier_num/=0) return
+            endif
+            if(cr_natoms/=ubound(xat,1)) then
+               call alloc_diffuse_atom(cr_natoms)
+               if(ier_num/=0) return
+            endif
+!           IF (inc (1) * inc (2) .gt. product(MAXQXY)  .OR.          &
+!               cr_nscat>DIF_MAXSCAT              ) THEN
+!             n_qxy   = MAX(n_qxy,inc(1) * inc(2),product(MAXQXY))
+!             n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!             n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+!             CALL alloc_diffuse_four ((/n_qxy,1,1/))
+!             CALL alloc_diffuse_scat (n_nscat)
+!             CALL alloc_diffuse_atom (n_natom )
+!             IF (ier_num.ne.0) THEN
+!               RETURN
+!             ENDIF
+!           ENDIF
+            IF (inc (1) .gt.product(MAXQXY)) THEN 
                ier_num = - 8 
                ier_typ = ER_APPL 
                WRITE (ier_msg (1), 8888) inc (1) 
-               WRITE (ier_msg (2), 8889) MAXQXY 
+               WRITE (ier_msg (2), 8889) product(MAXQXY) 
                ier_msg (3) = 'Increase dl or reduce TTHMAX' 
                RETURN 
             ENDIF 
@@ -2147,10 +2180,13 @@ loop_h: DO ih = h_start, h_end
 !                 ENDIF 
 !              ENDIF 
 !                 ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
+
+!****************************************************************************************************************************************************************************************
+!****************************************************************************************************************************************************************************************
                      q = (zpi) * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = nint( (q - pow_qmin) / pow_deltaq )
-                        inten = DBLE (csf (i) * conjg (csf (i) ) ) 
+                        inten = DBLE (csf (i,1,1) * conjg (csf (i,1,1) ) )                                    ! Complicated subrutine. The whole thing runs over i. Discuss with Neder.
                         IF (pow_pref) THEN 
                            inten = inten * DBLE(calc_preferred (hkl,         &
                            pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
@@ -2160,6 +2196,8 @@ loop_h: DO ih = h_start, h_end
                      ENDIF 
 !                 ENDIF 
             ENDIF 
+!****************************************************************************************************************************************************************************************
+!****************************************************************************************************************************************************************************************
 !DBG_RBN      write(13,4444) hkl,dstar,ttheta,csf(i),                   
 !DBG_RBN     &                 real(csf(i)*conjg(csf(i))),              
 !DBG_RBN     &               pow_l_all,l_hh_real,l_kk_real,l_ll_real,   
@@ -2186,21 +2224,36 @@ loop_h: DO ih = h_start, h_end
                eck (3, 3) = l_start * pow_hkl_del (3) 
                inc (1) = nint ( (eck (3, 2) - eck (3, 1) ) /            &
                pow_hkl_del (3) ) + 1                                    
-               IF (inc (1) * inc (2) .gt. MAXQXY  .OR.          &
-                   cr_nscat>DIF_MAXSCAT              ) THEN
-                 n_qxy   = MAX(n_qxy,inc(1) * inc(2),MAXQXY)
-                 n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-                 n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
-                 CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
-                 IF (ier_num.ne.0) THEN
-                   RETURN
-                 ENDIF
-               ENDIF
-               IF (inc (1) .gt.MAXQXY) THEN 
+               if(any(inc/=ubound(csf))) then
+!                 n_qxy = inc
+                  call alloc_diffuse_four (inc )
+                  if(ier_num/=0) return
+               endif
+               if(cr_nscat/=ubound(cfact,2)) then
+                  call alloc_diffuse_scat(cr_nscat)
+                  if(ier_num/=0) return
+               endif
+               if(cr_natoms/=ubound(xat,1)) then
+                  call alloc_diffuse_atom(cr_natoms)
+                  if(ier_num/=0) return
+               endif
+!              IF (inc (1) * inc (2) .gt. product(MAXQXY)  .OR.          &
+!                  cr_nscat>DIF_MAXSCAT              ) THEN
+!                n_qxy   = MAX(n_qxy,inc(1) * inc(2),product(MAXQXY))
+!                n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!                n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+!                CALL alloc_diffuse_four ((/n_qxy,1,1/))
+!                CALL alloc_diffuse_scat (n_nscat)
+!                CALL alloc_diffuse_atom (n_natom )
+!                IF (ier_num.ne.0) THEN
+!                  RETURN
+!                ENDIF
+!              ENDIF
+               IF (inc (1) .gt.product(MAXQXY)) THEN 
                   ier_num = - 8 
                   ier_typ = ER_APPL 
                   WRITE (ier_msg (1), 8888) inc (1) 
-                  WRITE (ier_msg (2), 8889) MAXQXY 
+                  WRITE (ier_msg (2), 8889) product(MAXQXY) 
                   ier_msg (3) = 'Increase dl or adjust TTHMIN / TTHMAX' 
                   RETURN 
                ENDIF 
@@ -2246,10 +2299,13 @@ loop_h: DO ih = h_start, h_end
 !                    ENDIF 
 !                 ENDIF 
 !                 ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
+
+!****************************************************************************************************************************************************************************************
+!****************************************************************************************************************************************************************************************
                      q = (zpi) * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = nint( (q - pow_qmin) / pow_deltaq )
-                        inten = DBLE (csf (i) * conjg (csf (i) ) ) 
+                        inten = DBLE (csf (i,1,1) * conjg (csf (i,1,1) ) )                                               ! Complicated subrutine. The whole thing runs over i. Discuss with Neder.
                         IF (pow_pref) THEN 
                            inten = inten * DBLE(calc_preferred (hkl,         &
                            pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
@@ -2259,6 +2315,9 @@ loop_h: DO ih = h_start, h_end
                      ENDIF 
 !                 ENDIF 
                ENDIF 
+!****************************************************************************************************************************************************************************************
+!****************************************************************************************************************************************************************************************
+
 !DBG_RBN      write(13,4444) hkl,dstar,ttheta,csf(i),                   
 !DBG_RBN     &        real(csf(i)*conjg(csf(i))),                       
 !DBG_RBN     &        pow_l_all,l_hh_real,l_kk_real,l_ll_real,          
@@ -2271,6 +2330,8 @@ loop_h: DO ih = h_start, h_end
       ENDIF 
 !
 ENDDO  loop_h
+i = ubound(pow_qsp,1)
+call tofile(i, 'POWDER/pow_qsp.dat', pow_qsp, 0.0D0, 0.001D0)
 !
 !     CALCULATE normalized average squared atomic form factor
 !
@@ -2308,79 +2369,7 @@ WRITE (output_io, 4000) ss
 !
 !*****7*****************************************************************
 !
-      SUBROUTINE powder_strucf (iscat, lform) 
-!+                                                                      
-!     Here the complex structure factor of 'nxat' identical atoms       
-!     from array 'xat' is computed.                                     
-!-                                                                      
-      USE discus_config_mod 
-      USE diffuse_mod 
-      USE precision_mod
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      REAL(kind=PREC_DP) xarg0, xincu, twopi 
-      INTEGER iscat 
-      INTEGER i, ii, j, k 
-      INTEGER(KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iadd 
-      LOGICAL lform 
-!                                                                       
-      INTEGER IAND, ISHFT 
-!                                                                       
-      twopi = 8.0d0 * datan (1.0d0) 
-!                                                                       
-!------ zero fourier array                                              
-!                                                                       
-      DO i = 1, num (1) * num (2) 
-         tcsf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
-      ENDDO 
-!                                                                       
-!------ Loop over all atoms in 'xat'                                    
-!                                                                       
-      DO k = 1, nxat 
-      xarg0 = xm (1) * xat (k, 1) + xm (2) * xat (k, 2) + xm (3)        &
-      * xat (k, 3)                                                      
-      xincu = uin (1) * xat (k, 1) + uin (2) * xat (k, 2) + uin (3)     &
-      * xat (k, 3)                                                      
-!DBG        xincv = vin(1)*xat(k,1)+vin(2)*xat(k,2)+vin(3)*xat(k,3)     
-!                                                                       
-      iarg0 = nint (64 * I2PI * (xarg0 - int (xarg0) + 1.0d0) ) 
-      iincu = nint (64 * I2PI * (xincu - int (xincu) + 1.0d0) ) 
-!DBG        iincv = nint( 64*I2PI*( xincv-int(xincv)+1.0d0))            
-      iarg = iarg0 
-!                                                                       
-!------ - Loop over all points in Q. 'iadd' is the address of the       
-!------ - complex exponent table. 'IADD' divides out the 64 and         
-!------ - ISHFT acts as MOD so that the argument stays in the table     
-!------ - boundaries.                                                   
-!                                                                       
-      ii = 0 
-!                                                                       
-      DO j = 1, num (1) 
-!DBG          do i=1,num(2)                                             
-      iadd = ISHFT (iarg, - 6) 
-      iadd = IAND (iadd, MASK) 
-      ii = ii + 1 
-      tcsf(ii) = tcsf(ii) + cex(iadd) / DBLE((xarg0 + REAL(j - 1, kind=PREC_DP) * xincu) * twopi)
-!DBG            iarg = iarg + iincv                                     
-!DBG          ENDDO                                                     
-      iarg = iarg0 + iincu * j 
-      ENDDO 
-      ENDDO 
-!                                                                       
-!------ Now we multiply with formfactor                                 
-!                                                                       
-      IF (lform) THEN 
-         DO i = 1, num (1) * num (2) 
-         tcsf (i) = tcsf (i) * cfact (istl (i), iscat) 
-         ENDDO 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE powder_strucf                  
-!
-!*****7*****************************************************************
-!
-      SUBROUTINE powder_cexpt 
+SUBROUTINE powder_cexpt 
 !+                                                                      
 !     This routine initialises the complex exponent table and           
 !     is called only at the first Powder run.                           
@@ -2411,7 +2400,8 @@ WRITE (output_io, 4000) ss
 !DBG      close(9)                                                      
 !                                                                       
  1000 FORMAT     (' Computing complex exponent table ...') 
-      END SUBROUTINE powder_cexpt                   
+END SUBROUTINE powder_cexpt                   
+!
 !*****7*****************************************************************
 !!      SUBROUTINE powder_sine_f (iscat, jscat) 
 !+                                                                      
@@ -2509,122 +2499,126 @@ use precision_mod
       ENDDO 
       END SUBROUTINE powder_getatm                  
 !*****7*****************************************************************
-      SUBROUTINE four_run_powder 
+!
+SUBROUTINE four_run_powder 
 !+                                                                      
-!     claculates the Fourier, complete mode                             
+!     calculates the Fourier, complete mode                             
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE diffuse_mod 
-      USE four_strucf_mod
-      USE fourier_sup
+USE discus_config_mod 
+USE crystal_mod 
+USE diffuse_mod 
+USE four_strucf_mod
+USE fourier_sup
 !                                                                       
-      USE prompt_mod 
-      IMPLICIT none 
+USE prompt_mod 
+IMPLICIT none 
        
 !                                                                       
-      INTEGER lbeg (3), csize (3) 
-      INTEGER iscat, i 
+INTEGER :: lbeg (3), csize (3) 
+INTEGER :: iscat, i 
 !                                                                       
-      ier_num = 0 
-      csize (1) = cr_icc (1) 
-      csize (2) = cr_icc (2) 
-      csize (3) = cr_icc (3) 
+ier_num = 0 
+csize (1) = cr_icc (1) 
+csize (2) = cr_icc (2) 
+csize (3) = cr_icc (3) 
 !                                                                       
 !------ preset some values                                              
 !                                                                       
-      CALL four_layer 
-!                                                                       
+CALL four_layer 
+!
 !------ zero some arrays                                                
 !                                                                       
-      DO i = 1, num (1) * num (2) 
-         csf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
-!DBG        acsf(i) = cmplx(0.0d0,0.0d0)                                
-!DBG         dsi(i) = 0.0d0                                             
-      ENDDO 
-!                                                                       
+csf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
+!                                                                      
 !------ preset some tables, calculate average structure                 
 !                                                                       
-      CALL four_stltab 
-      IF (ier_num.ne.0) return 
-      lbeg (1) = 1 
-      lbeg (2) = 1 
-      lbeg (3) = 1 
+CALL four_stltab 
+IF (ier_num.ne.0) return 
+lbeg (1) = 1 
+lbeg (2) = 1 
+lbeg (3) = 1 
 !                                                                       
 !------ - loop over all different atom types                            
 !                                                                       
-      DO iscat = 1, cr_nscat 
+DO iscat = 1, cr_nscat 
 !DBG        call four_getatm (iscat,ilots,lbeg,csize,ncell)             
 !DBG        call four_strucf (iscat,.true.)                             
-      CALL powder_strucfactor (iscat, .true.) 
+   CALL powder_strucfactor (iscat, .true.) 
 !                                                                       
 !------ --- Add this part of the structur factor to the total           
+!
+   DO i = 1, num (1)
+      csf (i,1,1) = csf (i,1,1) + tcsf (i,1,1)                                                ! My code
+   ENDDO
+!****************************************************************************************************************************************************************************************
+!
+ENDDO 
 !                                                                       
-      DO i = 1, num (1) * num (2) 
-      csf (i) = csf (i) + tcsf (i) 
-      ENDDO 
-      ENDDO 
-!                                                                       
-      END SUBROUTINE four_run_powder                
+END SUBROUTINE four_run_powder                
+!
 !*****7*****************************************************************
-      SUBROUTINE powder_getatoms 
+!
+SUBROUTINE powder_getatoms 
 !+                                                                      
 !     sorts all atoms by scattering type                                
 !                                                                       
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE powder_scat_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE powder_scat_mod 
+IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      INTEGER i, j 
-      INTEGER iscat 
+INTEGER i, j 
+INTEGER iscat 
 !
-      CALL alloc_powder_nmax(MAXSCAT, cr_natoms) ! will automatically be deallocated 
+CALL alloc_powder_nmax(MAXSCAT, cr_natoms) ! will automatically be deallocated 
 !
-      DO j = 1, cr_nscat 
-         pow_nscat (j) = 0 
-      ENDDO 
-      DO i = 1, cr_natoms 
-         iscat = cr_iscat (i) 
-         IF (iscat.gt.0) THEN 
-            pow_nscat (iscat) = pow_nscat (iscat) + 1 
-            pow_iatom (iscat, pow_nscat (iscat) ) = i 
-         ENDIF 
-      ENDDO 
+DO j = 1, cr_nscat 
+         pow_nscat(j) = 0 
+ENDDO 
+DO i = 1, cr_natoms 
+   iscat = cr_iscat (i) 
+   IF (iscat.gt.0) THEN 
+      pow_nscat(iscat) = pow_nscat (iscat) + 1 
+      pow_iatom(iscat, pow_nscat (iscat) ) = i 
+   ENDIF 
+ENDDO 
 !                                                                       
-      END SUBROUTINE powder_getatoms                
+END SUBROUTINE powder_getatoms                
+!
 !*****7*****************************************************************
-      SUBROUTINE powder_strucfactor (iscat, lform) 
+!
+SUBROUTINE powder_strucfactor (iscat, lform) 
 !+                                                                      
 !     Here the complex structure factor of 'nxat' identical atoms       
 !     from array 'xat' is computed.                                     
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE diffuse_mod 
-      USE powder_scat_mod 
-      USE precision_mod
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+USE diffuse_mod 
+USE powder_scat_mod 
+USE precision_mod
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      REAL(kind=PREC_DP) xarg0, xincu, xincv 
-      INTEGER iscat 
-      INTEGER i, ii, j, k
-      INTEGER(KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iincv, iadd 
-      LOGICAL lform 
+INTEGER, intent(in) :: iscat 
+LOGICAL, intent(in) :: lform 
+!
+REAL(kind=PREC_DP) :: xarg0, xincu, xincv 
+INTEGER :: i, ii, j, k
+INTEGER(KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iincv !, iadd 
 !                                                                       
-      INTEGER IAND, ISHFT 
+INTEGER IAND, ISHFT 
 !                                                                       
 !------ zero fourier array                                              
 !                                                                       
-!DBGXXX      do i=1,num(1)*num(2)                                       
-      DO i = 1, num (1) 
-         tcsf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
-      ENDDO 
+!DBGXXX      do i=1,num(1)*num(2)
+tcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))
+
+!****************************************************************************************************************************
+!****************************************************************************************************************************
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
@@ -2632,54 +2626,61 @@ use precision_mod
 !write(*,*) ' xm  ', xm(:), num(1)
 !write(*,*) ' uin ', uin(:)
 !write(*,*) ' vin ', vin(:)
-      DO k = 1, pow_nscat (iscat) 
-      xarg0 = xm (1) * cr_pos (1, pow_iatom (iscat, k) ) + xm (2)       &
-      * cr_pos (2, pow_iatom (iscat, k) ) + xm (3) * cr_pos (3,         &
-      pow_iatom (iscat, k) )                                            
-      xincu = uin (1) * cr_pos (1, pow_iatom (iscat, k) ) + uin (2)     &
-      * cr_pos (2, pow_iatom (iscat, k) ) + uin (3) * cr_pos (3,        &
-      pow_iatom (iscat, k) )                                            
-      xincv = vin (1) * cr_pos (1, pow_iatom (iscat, k) ) + vin (2)     &
-      * cr_pos (2, pow_iatom (iscat, k) ) + vin (3) * cr_pos (3,        &
-      pow_iatom (iscat, k) )                                            
+DO k = 1, pow_nscat (iscat)                                                            ! Loop over k
+   xarg0 = xm(1)  * cr_pos(1, pow_iatom(iscat, k) ) + &
+           xm(2)  * cr_pos(2, pow_iatom(iscat, k) ) + &
+           xm(3)  * cr_pos(3, pow_iatom(iscat, k) )                                            
+   xincu = uin(1) * cr_pos(1, pow_iatom(iscat, k) ) + &
+           uin(2) * cr_pos(2, pow_iatom(iscat, k) ) + &
+           uin(3) * cr_pos(3, pow_iatom(iscat, k) )                                            
+   xincv = vin(1) * cr_pos(1, pow_iatom(iscat, k) ) + &
+           vin(2) * cr_pos(2, pow_iatom(iscat, k) ) + &
+           vin(3) * cr_pos(3, pow_iatom(iscat, k) )                                            
 !                                                                       
-      iarg0 = nint (64 * I2PI * (xarg0 - int (xarg0) + 1.0d0) ) 
-      iincu = nint (64 * I2PI * (xincu - int (xincu) + 1.0d0) ) 
-      iincv = nint (64 * I2PI * (xincv - int (xincv) + 1.0d0) ) 
-      iarg = iarg0 
+   iarg0 = nint (64 * I2PI * (xarg0 - int (xarg0) + 1.0d0) ) 
+   iincu = nint (64 * I2PI * (xincu - int (xincu) + 1.0d0) ) 
+   iincv = nint (64 * I2PI * (xincv - int (xincv) + 1.0d0) ) 
+   iarg = iarg0 
 !                                                                       
 !------ - Loop over all points in Q. 'iadd' is the address of the       
 !------ - complex exponent table. 'IADD' divides out the 64 and         
 !------ - ISHFT acts as MOD so that the argument stays in the table     
 !------ - boundaries.                                                   
 !                                                                       
-      ii = 0 
-!                                                                       
-      DO j = 1, num (1) 
+   ii = 0 
+!
+!****************************************************************************************************************************
+! Neders original code. Same situation as before.
+!****************************************************************************************************************************
+   DO j = 1, num(1)                                                                  ! Loop over j
 !DBGXXX          do i=1,num(2)                                          
-      iadd = ISHFT (iarg, - 6) 
-      iadd = IAND (iadd, MASK) 
+!     iadd = ISHFT (iarg, - 6) 
+!     iadd = IAND (iadd, MASK) 
+!     iadd = IAND (ISHFT (iarg, - 6), MASK) 
       ii = ii + 1 
-      tcsf (ii) = tcsf (ii) + cex (iadd) 
-      iarg = iarg + iincv 
+!     tcsf (ii,1,1) = tcsf (ii,1,1) + cex(iadd) 
+      tcsf (ii,1,1) = tcsf (ii,1,1) + cex(IAND(ISHFT(iarg, -6), MASK))
+      iarg = iarg + iincv                                                                ! Wierd, this line is commented in the above ocurance of this same subrutine !!!!!!!
 !DBGXXX          ENDDO                                                  
       iarg = iarg0 + iincu * j 
-      ENDDO 
-      ENDDO 
+   ENDDO                                                                              ! End loop over j
+!******************************************************************************************************************************************************************
+ENDDO                                                                               ! End loop over k
 !                                                                       
 !------ Now we multiply with formfactor                                 
 !                                                                       
-      IF (lform) THEN 
-!DBGXXX        do i=1,num(1)*num(2)                                     
-         DO i = 1, num (1) 
-         tcsf (i) = tcsf (i) * cfact (istl (i), iscat) 
-!write(*,*) ' tcf  ', tcsf(i), cfact (istl (i), iscat)
-         ENDDO 
-      ENDIF 
+IF(lform) THEN 
+!DBGXXX        do i=1,num(1)*num(2)
+   DO i = 1, num (1) 
+      tcsf(i,1,1) = tcsf(i,1,1) * cfact(istl(i,1,1), iscat)                                    ! Neders original code
+   ENDDO 
+ENDIF 
 !                                                                       
-      END SUBROUTINE powder_strucfactor             
+END SUBROUTINE powder_strucfactor             
+!
 !*****7*****************************************************************
-      REAL(kind=PREC_DP) function calc_preferred (w, pow_pref_type, pow_pref_hkl,     &
+!
+REAL(kind=PREC_DP) function calc_preferred (w, pow_pref_type, pow_pref_hkl,     &
       pow_pref_g1, pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)          
 !+                                                                      
 !     Here the complex structure factor of 'nxat' identical atoms       
@@ -2907,6 +2908,7 @@ USE powder_mod
 USE powder_scat_mod
 !
 CALL alloc_powder(1, 1)
+CALL alloc_powder_partial(1)
 CALL alloc_powder_nmax(1, 1)
 !
 pow_axis       = POW_AXIS_Q

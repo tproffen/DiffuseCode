@@ -50,16 +50,18 @@ INTEGER                                 ::  DIF_MAXAT    ! current size of array
 INTEGER                                 ::  DIF_MAXSCAT  ! current size of array at
 COMPLEX (KIND=PREC_DP    ) , DIMENSION(:, :), ALLOCATABLE  ::  cfact        ! (0:CFPKT, 1:MAXSCAT)
 COMPLEX (KIND=PREC_DP    ) , DIMENSION(:, :), ALLOCATABLE  ::  cfact_pure   ! (0:CFPKT, 1:MAXSCAT)
-COMPLEX (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  csf          ! (1:MAXQXY)
-COMPLEX (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  tcsf         ! (1:MAXQXY)
-COMPLEX (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  acsf         ! (1:MAXQXY)
-REAL    (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  rpdf         ! (1:MAXQXY)
-COMPLEX (KIND=PREC_DP    ) , DIMENSION(0:MASK)             ::  cex       = (0.0D0,0.0D0)
-REAL    (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  dsi          ! (1:MAXQXY)
-REAL    (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  dsi3d        ! (1:MAXQXY)
 !
-COMPLEX (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  csf_sum      ! (1:MAXQXY)
-REAL    (KIND=PREC_DP    ) , DIMENSION(:)   , ALLOCATABLE  ::  dsi_sum      ! (1:MAXQXY)
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(:,:,:)   , ALLOCATABLE  ::  csf       ! (1:num(1),1:num(2),1:num(3))   
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(:,:,:)   , ALLOCATABLE  ::  tcsf      ! (1:num(1),1:num(2),1:num(3))
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(:,:,:)   , ALLOCATABLE  ::  acsf      ! (1:num(1),1:num(2),1:num(3))    
+!
+REAL    (KIND=PREC_DP    ) , DIMENSION(:,:,:)   , ALLOCATABLE  ::  rpdf         ! (1:MAXQXY)
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(0:MASK)             ::  cex       = (0.0D0,0.0D0)
+REAL    (KIND=PREC_DP    ) , DIMENSION(:,:,:)   , ALLOCATABLE  ::  dsi          ! (1:MAXQXY)
+REAL    (KIND=PREC_DP    ) , DIMENSION(:,:,:)   , ALLOCATABLE  ::  dsi3d        ! (1:MAXQXY)
+!
+COMPLEX (KIND=PREC_DP    ) , DIMENSION(:,:,:)   , ALLOCATABLE  ::  csf_sum      ! (1:MAXQXY)
+REAL    (KIND=PREC_DP    ) , DIMENSION(:,:,:)   , ALLOCATABLE  ::  dsi_sum      ! (1:MAXQXY)
 REAL    (KIND=PREC_DP    ) , DIMENSION(:, :), ALLOCATABLE  ::  xat          ! (1:NMAX, 1:3)
 REAL    (KIND=PREC_DP    ), DIMENSION(1:3)                ::  xm        = 0.0D0
 REAL    (KIND=PREC_DP    ), DIMENSION(1:3)                ::  win       = 0.0D0
@@ -67,7 +69,7 @@ REAL    (KIND=PREC_DP    ), DIMENSION(1:3)                ::  vin       = 0.0D0
 REAL    (KIND=PREC_DP    ), DIMENSION(1:3)                ::  uin       = 0.0D0
 REAL    (KIND=PREC_DP    )              ::  fave      = 0.0
 REAL    (KIND=PREC_DP    )              ::  fave_sca  = 1.0
-INTEGER , DIMENSION(:)   , ALLOCATABLE  ::  istl         ! (1:MAXQXY)
+INTEGER , DIMENSION(:,:,:), ALLOCATABLE ::  istl         ! (1:MAXQXY)   Sine(theta)/lambda
 INTEGER , DIMENSION(1:3)                ::  num       = 1
 INTEGER                                 ::  nlots     = 1
 INTEGER                                 ::  ilots     = LOT_OFF
@@ -124,7 +126,6 @@ LOGICAL                                 ::  l_energy = .false.
 REAL(kind=PREC_DP), DIMENSION(1:3,1:4)             ::  diff_eck_u  = 0.0   ! User supplied corners
 REAL(kind=PREC_DP), DIMENSION(1:3, 1:3)           ::  diff_vi_u   = 0.0
 INTEGER , DIMENSION(1:3)                ::  diff_inc_u  = 1
-INTEGER                                 ::  dif_size_of = 0.0
 !
 LOGICAL                                 ::  diff_l_friedel = .FALSE.     ! Use Fridels law to reduce calculation time
 LOGICAL, DIMENSION(0:3)                 ::  diff_l_even    = .FALSE.     ! User inc is even along dimension

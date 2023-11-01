@@ -42,7 +42,7 @@ IF(cr_nscat+pha_nscat(pha_curr) > PHA_MAXSCAT .OR.  &
    n_pha  = MAX(n_pha, pha_curr)
    n_pts  = MAX(n_pts, npkt , PHA_MAXPTS)
    n_scat = MAX(n_pha, cr_nscat + pha_nscat(pha_curr))
-   CALL alloc_phases(n_pha, n_pts, n_scat)
+   CALL alloc_phases(n_pha, (/n_pts,1,1/), n_scat)
 ENDIF
 !
 CALL crystal_calc_mass

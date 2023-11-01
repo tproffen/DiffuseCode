@@ -24,11 +24,18 @@ CONTAINS
 !------ Now we multiply with formfactor                                 
 !                                                                       
       IF (lform) then 
-         DO  i = 1, num (1) * num (2) * num(3)
+         !DO  i = 1, num (1) * num (2) * num(3)                                           
 !        FORALL( i = 1: num (1) * num (2) * num(3))   !!! DO Loops seem to be faster!
-            tcsf (i) = tcsf (i) * cfact (istl (i), iscat) 
+            !tcsf (i) = tcsf (i) * cfact (istl (i), iscat)                                            ! Neder's original code
+            DO i = 1, num (1)
+                  DO j = 1, num (2)
+                        DO k = 1, num (3)
+                              tcsf (i,j,k) = tcsf (i,j,k) * cfact (istl (i,j,k), iscat)          ! My declaration
+                        ENDDO
+                  ENDDO
+            ENDDO
 !        END FORALL
-         END DO
+         !END DO
       ENDIF 
 !                                                                       
       END SUBROUTINE four_strucf                    

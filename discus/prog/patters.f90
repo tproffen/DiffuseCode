@@ -63,9 +63,7 @@ USE str_comp_mod
       LOGICAL ltwo_files 
       INTEGER e_io 
       INTEGER i, j, ianz, lp, length 
-      INTEGER                  :: n_qxy    = 1 ! Number of data points in direct space
-      INTEGER                  :: n_nscat  = 1 ! Number of different atom types this run
-      INTEGER                  :: n_natom  = 1 ! Number of atoms this run
+      INTEGER, dimension(3)    :: n_qxy    = 1 ! Number of data points in direct space
       INTEGER indxg, lbef 
 REAL(kind=PREC_DP) :: divis (2) 
 REAL(kind=PREC_DP) :: rho_divis (2) 
@@ -664,18 +662,39 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ier_msg (1) = 'A proper unit cell must be defined' 
                   ier_msg (2) = 'for this command to operate       ' 
                ELSE 
-                 IF (inc(1)     * inc(2)     .gt. MAXQXY  .OR.          &
-                     rho_inc(1) * rho_inc(2) .gt. MAXQXY  .OR.          &
-                     cr_nscat>DIF_MAXSCAT              ) THEN
-                    n_qxy   = MAX(1, n_qxy,inc(1) * inc(2),rho_inc(1)*rho_inc(2),MAXQXY)
-                    n_nscat = MAX(1, n_nscat,cr_nscat,DIF_MAXSCAT)
-                    n_natom = MAX(1, n_natom,cr_natoms, NMAX, DIF_MAXAT)
-                    call alloc_diffuse (n_qxy,  n_nscat, n_natom )
-                    IF (ier_num.ne.0) THEN
-                      RETURN
-                    ENDIF
-                  ENDIF
-                  IF (rho_inc (1) * rho_inc (2) .le.MAXQXY) then 
+!                IF (inc(1)     * inc(2)     .gt. MAXQXY  .OR.          &
+                 if(any(rho_inc/=ubound(csf))) then
+                    n_qxy = rho_inc
+                    call alloc_diffuse_four (n_qxy )
+                    if(ier_num/=0) return
+                 endif
+                 if(cr_nscat/=ubound(cfact,2)) then
+                    call alloc_diffuse_scat(cr_nscat)
+                    if(ier_num/=0) return
+                 endif
+                 if(cr_natoms/=ubound(xat,1)) then
+                    call alloc_diffuse_atom(cr_natoms)
+                    if(ier_num/=0) return
+                 endif
+!                if(inc(1)>MAXQXY(1) .or. inc(2)>MAXQXY(2) .or. inc(3)>MAXQXY(3) .or. &
+!                    rho_inc(1)>MAXQXY(1) .or. rho_inc(2)>MAXQXY(2)  .OR.          &
+!                    cr_nscat>DIF_MAXSCAT              ) THEN
+!                   n_qxy   = MAX(1, n_qxy,inc MAXQXY)
+!                   n_qxy(3) = 1
+!                   n_qxy(1) = max(n_qxy(1), rho_inc(1))
+!                   n_qxy(2) = max(n_qxy(2), rho_inc(2))
+!                   n_qxy   = MAX(1, n_qxy,inc(1) * inc(2),rho_inc(1)*rho_inc(2),MAXQXY)
+!                   n_nscat = MAX(1, n_nscat,cr_nscat,DIF_MAXSCAT)
+!                   n_natom = MAX(1, n_natom,cr_natoms, NMAX, DIF_MAXAT)
+!                   call alloc_diffuse_four (n_qxy)
+!                   call alloc_diffuse_scat (n_nscat)
+!                   call alloc_diffuse_atom (n_natom )
+!                   IF (ier_num.ne.0) THEN
+!                     RETURN
+!                   ENDIF
+!                 ENDIF
+!                 IF (rho_inc (1) * rho_inc (2) .le.MAXQXY) then 
+                  if (rho_inc(1)<=MAXQXY(1) .and. rho_inc(2)<=MAXQXY(2)) then 
                      IF (rho_type (2) .eq.INTENSITY.or.rho_type (2)     &
                      .eq.AMPLITUDE.or.rho_type (2) .eq.REAL_PART) then  
                         line = ' ' 
@@ -1300,13 +1319,14 @@ ENDIF
       ENDIF 
 !                                                                       
       IF (patt_accu.eq.PATT_INIT) then 
-         ii = 0 
-         DO i = 1, rho_inc (1) 
-         DO j = 1, rho_inc (2) 
-         ii = ii + 1 
-         csf (ii) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
-         ENDDO 
-         ENDDO 
+         ii = 0                                                               ! Initialize the ii counter
+         DO i = 1, rho_inc (1)                                                ! Loop over the number of points in the first direction
+         DO j = 1, rho_inc (2)                                                ! Loop over the number of points in the second direction
+         ii = ii + 1                                                          ! Increase the counter
+         !csf (ii) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0))                   ! Neder's original code 
+         csf (i,j, 1) = cmplx (0.0D0, 0.0D0)                                  ! My declaration. Why only two dimensions again ? i and j are again running on the outer loop. 
+         ENDDO                                                                ! End of the loop over the second direction
+         ENDDO                                                                ! End of the loop over the first direction
       ENDIF 
 y = 0.0D0
 a_b = (0.0D0,0.0D0)
@@ -1753,18 +1773,19 @@ iincv = nint (64 * I2PI * (xincv - int (xincv) + 0.0d0) )
 iarg0 = patt_sign * iarg0 
 iarg = iarg0 
 !                                                                       
-ii = 0 
+ii = 0                                                                                 ! Initialize the ii counter 
 !                                                                       
-DO j = 1, rho_inc (1) 
-   DO i = 1, rho_inc (2) 
+DO j = 1, rho_inc (1)                                                                  ! Loop over the number of points in the first direction
+   DO i = 1, rho_inc (2)                                                               ! Loop over the number of points in the second direction
       iadd = ISHFT (iarg, - 6) 
       iadd = IAND (iadd, MASK) 
-      ii = ii + 1 
-      csf (ii) = csf (ii) + cex (iadd) * a_b 
+      ii = ii + 1                                                                      ! Increase the counter
+      !csf (ii) = csf (ii) + cex (iadd) * a_b                                          ! Neder's original code 
+      csf (j,i,1) = csf (j,i,1) + cex (iadd) * a_b                                         ! My declaration. Why only two dimensions again ? i and j are again running on the outer loop.
       iarg = iarg + iincv * patt_sign 
-   ENDDO 
+   ENDDO                                                                               ! End of the loop over the second direction
    iarg = iarg0 + iincu * j * patt_sign 
-ENDDO 
+ENDDO                                                                                  ! End of the loop over the first direction
 !                                                                       
 END SUBROUTINE calc_patters                   
 !

@@ -265,11 +265,11 @@ USE rmc_mod
 !
 IMPLICIT NONE
 !
-CALL alloc_rmc      ( 1,  1        )
-CALL alloc_rmc_data ( 1            )
-CALL alloc_rmc_istl ( 1,  1, 1     )
-CALL alloc_rmc_q    ( 1,  1        )
-CALL alloc_rmc_planes(1, 48        )
+CALL alloc_rmc      ( 1,  1            )
+CALL alloc_rmc_data ( (/1,1,1/)        )
+CALL alloc_rmc_istl ( 1,  1, 1         )
+CALL alloc_rmc_q    ( (/1,1,1/),  1, 1 )
+CALL alloc_rmc_planes(1, 48            )
 !
 rmc_allowed= .FALSE.
 rmc_lsite  = .TRUE.

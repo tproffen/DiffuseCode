@@ -202,29 +202,6 @@ USE str_comp_mod
 !
        WRITE (output_io, 7000) WV_MAXSCAT
 !
-       WRITE (output_io, 9935) deb_size_of
-       WRITE (output_io, 9940) dif_size_of
-       WRITE (output_io, 9941) clu_size_of
-       WRITE (output_io, 9945) pdf_size_of
-       WRITE (output_io, 9950) pl_size_of
-       WRITE (output_io, 9955) pow_size_of
-       WRITE (output_io, 9960) rmc_size_of
-       WRITE (output_io, 9965) sav_size_of
-       WRITE (output_io, 9970) shear_size_of
-       WRITE (output_io, 9975) surf_size_of
-       WRITE (output_io, 9980) sym_size_of
-       WRITE (output_io, 9985) tran_size_of
-       WRITE (output_io, 9990) wv_size_of
-!      POPULATION  TEMPLATE FOR DISCUS
-!
-!      IF ( ALLOCATED ( pop_x) ) THEN    ! There are many arrays, lets check just one
-!         write(output_io,1100) MAXPOP
-!         write(output_io,1200) MAXDIMX
-!         write(output_io,1300) pop_n
-!         write(output_io,1400) pop_dimx
-!      ELSE
-!         write(output_io,1500) 
-!      END IF
 !
  1000 FORMAT(' Current configuration of DISCUS : ')
  1005 FORMAT('   Maximum number of different atomtypes         : ',i8)
@@ -253,19 +230,6 @@ USE str_comp_mod
  6800 FORMAT('   Current number of atomtypes for symmetry      : ',i8)
  6900 FORMAT('   Current number of atomtypes for transform     : ',i8)
  7000 FORMAT('   Current number of atomtypes for waves         : ',i8)
- 9935 FORMAT('   Number of bytes allocated   for debye         : ',i8)
- 9940 FORMAT('   Number of bytes allocated   for diffuse       : ',i8)
- 9941 FORMAT('   Number of bytes allocated   for domain        : ',i8)
- 9945 FORMAT('   Number of bytes allocated   for pdf           : ',i8)
- 9950 FORMAT('   Number of bytes allocated   for plot          : ',i8)
- 9955 FORMAT('   Number of bytes allocated   for powder        : ',i8)
- 9960 FORMAT('   Number of bytes allocated   for rmc           : ',i8)
- 9965 FORMAT('   Number of bytes allocated   for save          : ',i8)
- 9970 FORMAT('   Number of bytes allocated   for shear         : ',i8)
- 9975 FORMAT('   Number of bytes allocated   for surface       : ',i8)
- 9980 FORMAT('   Number of bytes allocated   for symmetry      : ',i8)
- 9985 FORMAT('   Number of bytes allocated   for transform     : ',i8)
- 9990 FORMAT('   Number of bytes allocated   for waves         : ',i8)
 !
     END SUBROUTINE discus_show_config
 !
@@ -275,6 +239,9 @@ USE str_comp_mod
       USE precision_mod
       IMPLICIT NONE
       INTEGER(KIND=PREC_INT_LARGE), PARAMETER :: ONE=1
+      integer, dimension(3) :: n_qxy
+!
+      n_qxy = 1
 !
       CALL alloc_chem_correlation( 1     )
       CALL alloc_chem_ang ( 1,  1        )
@@ -294,7 +261,9 @@ USE str_comp_mod
       CALL alloc_deco     ( 1,  1,  4,  3,   3, 2 , 3)
       CALL alloc_debye    ( 1,  1,  1, ONE )
       CALL alloc_demol    ( 1,  1        ) 
-      CALL alloc_diffuse  ( 1,  1,  1    )
+      CALL alloc_diffuse_four  ( n_qxy)
+      CALL alloc_diffuse_scat  ( 1    )
+      CALL alloc_diffuse_atom  ( 1    )
       CALL alloc_domain   ( 1            )
       CALL alloc_micro    ( 1,  1        )
       CALL alloc_mmc      ( 1,  8,  1,  1)
@@ -303,19 +272,21 @@ USE str_comp_mod
       CALL alloc_mmc_lenn ( 1,  1        )
       CALL alloc_mmc_move ( 1,  1,  1    )
       CALL alloc_molecule ( 1,  1,  1,  1,  1)
-      CALL alloc_phases   ( 1,  1,  1        )
+      CALL alloc_phases   ( 1,  n_qxy,  1        )
       CALL alloc_pdf      ( 1,  1,  1,  1    )
       CALL alloc_plot     ( 1,  1,  1    )
       CALL alloc_powder   ( 1,  1        )
+      CALL alloc_powder_partial( 1       )
       CALL alloc_powder_nmax ( 1,1          )
       CALL alloc_rmc      ( 1,  1        )
-      CALL alloc_rmc_data ( 1            )
+      CALL alloc_rmc_data ( n_qxy        )
       CALL alloc_rmc_istl ( 1,  1, 1     )
-      CALL alloc_rmc_q    ( 1,  1        )
+      CALL alloc_rmc_q    ( (/1,1,1/),  1, 1        )
       CALL alloc_rmc_planes(1, 48        )
       CALL alloc_save     ( 1, 1         )
       CALL alloc_shear    ( 1,  1        )
-      CALL alloc_stack    ( 1,  1,  1,  .TRUE.)
+      CALL alloc_stack    ( 1,  1,  .TRUE.)
+      CALL alloc_stack_four(n_qxy )
       CALL alloc_stack_crystal    ( 1,  1        )
       CALL alloc_surf     ( MAXSCAT      )
       CALL alloc_symmetry ( 1,  1        )
@@ -335,12 +306,11 @@ IMPLICIT NONE
 INTEGER, INTENT(IN)  :: n_cor
 !
 INTEGER :: all_status
-INTEGER :: size_of
 !
-CALL alloc_arr(chem_ctyp , 1,n_cor,  all_status, 0, size_of)
-CALL alloc_arr(chem_nnei , 1,n_cor,  all_status, 0, size_of)
-CALL alloc_arr(chem_neig , 1,3,  1, 48,  1,n_cor,  all_status, 0.0D0, size_of)
-CALL alloc_arr(chem_ldall, 1,n_cor,  all_status, .TRUE., size_of)
+CALL alloc_arr(chem_ctyp , 1,n_cor,  all_status, 0)
+CALL alloc_arr(chem_nnei , 1,n_cor,  all_status, 0)
+CALL alloc_arr(chem_neig , 1,3,  1, 48,  1,n_cor,  all_status, 0.0D0)
+CALL alloc_arr(chem_ldall, 1,n_cor,  all_status, .TRUE.)
 !
 CHEM_MAX_COR = n_cor
 !
@@ -361,35 +331,28 @@ END SUBROUTINE alloc_chem_correlation
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat  = .TRUE.
-      chem_aver_size_of = 0
 !
       CALL alloc_arr ( chem_ave_n    ,1,n_atom_cell ,   &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_aver_size_of = chem_aver_size_of + size_of
 !
       CALL alloc_arr ( chem_ave_iscat,1,n_atom_cell , 1,n_max_atom  , &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_aver_size_of = chem_aver_size_of + size_of
 !
       CALL alloc_arr ( chem_ave_pos  ,1,3 , 1,n_atom_cell ,   &
-                       all_status, 0.0D0, size_of)
+                       all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_aver_size_of = chem_aver_size_of + size_of
 !
       CALL alloc_arr ( chem_ave_sig  ,1,3           ,  1,n_atom_cell , &
-                       all_status, 0.0D0, size_of)
+                       all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_aver_size_of = chem_aver_size_of + size_of
 !
       CALL alloc_arr ( chem_ave_bese ,1,n_atom_cell , 1,n_max_atom  , &
-                       all_status, 0.0D0, size_of)
+                       all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_aver_size_of = chem_aver_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -406,7 +369,6 @@ END SUBROUTINE alloc_chem_correlation
          CHEM_MAXAT_CELL   = n_atom_cell
          CHEM_MAX_AVE_ATOM = n_max_atom
          NMAX          =  1
-         chem_aver_size_of  =  0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
@@ -430,25 +392,20 @@ END SUBROUTINE alloc_chem_correlation
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat  = .TRUE.
-      chem_ang_size_of = 0
 !
       CALL alloc_arr ( chem_cwin     ,1,9, 1,n_ang,      &
-                       all_status, -9999, size_of)
+                       all_status, -9999)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ang_size_of = chem_ang_size_of + size_of
 !
       CALL alloc_arr ( chem_use_win  ,1,n_ang, 1,n_cor,  &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ang_size_of = chem_ang_size_of + size_of
 !
       CALL alloc_arr ( chem_nwin             , 1,n_cor,  &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ang_size_of = chem_ang_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -463,7 +420,6 @@ END SUBROUTINE alloc_chem_correlation
       ELSE                                    ! Failure
          CHEM_MAX_ANG  = n_ang
          NMAX          =  1
-         chem_ang_size_of  =  0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
@@ -487,22 +443,18 @@ END SUBROUTINE alloc_chem_correlation
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat  = .TRUE.
-      chem_disp_size_of = 0
 !
       CALL alloc_arr ( chem_disp_ave    ,1,n_cor ,   &
                        0, n_scat, 0, n_scat,         &
-                       all_status, 0.0D0, size_of)
+                       all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_disp_size_of = chem_disp_size_of + size_of
 !
       CALL alloc_arr ( chem_disp_sig    ,1,n_cor ,   &
                        0, n_scat, 0, n_scat,         &
-                       all_status, 0.0D0, size_of)
+                       all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_disp_size_of = chem_disp_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -514,7 +466,6 @@ END SUBROUTINE alloc_chem_correlation
             ier_msg(1)    = 'CHEMISTRY'
          ENDIF
       ELSE                                    ! Failure
-         chem_disp_size_of  =  0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
@@ -539,40 +490,32 @@ END SUBROUTINE alloc_chem_correlation
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat  = .TRUE.
-      chem_disp_size_of = 0
 !
       CALL alloc_arr ( chem_use_env     ,1,n_env  , 1, n_cor,  &
-                       all_status, -9999, size_of)
+                       all_status, -9999)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_env_size_of = chem_env_size_of + size_of
 !
       CALL alloc_arr ( chem_nenv                  , 1, n_cor,  &
-                       all_status, -9999, size_of)
+                       all_status, -9999)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_env_size_of = chem_env_size_of + size_of
 !
       CALL alloc_arr ( chem_cenv        ,0,n_atom , 1, n_env,  &
-                       all_status, -9999, size_of)
+                       all_status, -9999)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_env_size_of = chem_env_size_of + size_of
 !
       CALL alloc_arr ( chem_env_neig    ,1,n_env ,   &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_env_size_of = chem_env_size_of + size_of
 !
       CALL alloc_arr ( chem_rmax_env    ,1,n_env ,   &
-                       all_status, 3.5D0, size_of)
+                       all_status, 3.5D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_env_size_of = chem_env_size_of + size_of
 !
       CALL alloc_arr ( chem_rmin_env    ,1,n_env ,   &
-                       all_status, 0.1D0, size_of)
+                       all_status, 0.1D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_env_size_of = chem_env_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -585,7 +528,6 @@ END SUBROUTINE alloc_chem_correlation
             ier_msg(1)    = 'CHEMISTRY'
          ENDIF
       ELSE                                    ! Failure
-         chem_env_size_of  =  0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
@@ -610,82 +552,66 @@ END SUBROUTINE alloc_chem_correlation
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat  = .TRUE.
-      chem_ang_size_of = 0
 !
       CALL alloc_arr ( chem_use_ran  ,1,n_ran, 1,n_cor,      &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
 !
       CALL alloc_arr ( chem_nran     ,1,n_cor,      &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
 !
       CALL alloc_arr ( chem_cran_cent,0,n_max_atom, 1,n_ran, &
-                       all_status, -9999, size_of)
+                       all_status, -9999)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
  
       CALL alloc_arr ( chem_cran_neig,0,n_max_atom, 1,n_ran, &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
  
       CALL alloc_arr ( chem_cran_nuvw ,1,n_ran    ,          &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
  
       CALL alloc_arr ( chem_cran_nshort ,1,n_ran  ,          &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
 !
       CALL alloc_arr ( chem_cran_uvw ,1,3         , 1,48,    &
                                       1,n_ran     ,          &
-                       all_status, 0.0D0, size_of)
+                       all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
       chem_cran_uvw(1,1,CHEM_MAX_RAN+1:n_ran) = -9999
 !
       CALL alloc_arr ( chem_cran_sig  ,1,n_ran       ,      &
-                       all_status, 0.0D0, size_of)
+                       all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
 !
       CALL alloc_arr ( chem_cran_wsig ,1,n_ran       ,      &
-                       all_status, 0.0D0, size_of)
+                       all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
 !
       CALL alloc_arr ( chem_cran_rmax ,1,n_ran       ,      &
-                       all_status, 0.0D0, size_of)
+                       all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
 !
       CALL alloc_arr ( chem_cran_rmin ,1,n_ran       ,      &
-                       all_status, 0.0D0, size_of)
+                       all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
 !
       CALL alloc_arr ( chem_cran_cang ,1,n_ran       ,      &
-                       all_status, .false., size_of)
+                       all_status, .false.)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
 !
       CALL alloc_arr ( chem_cran_lsym ,1,n_ran       ,      &
-                       all_status, .false., size_of)
+                       all_status, .false.)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
 !
       CALL alloc_arr ( chem_cran_short,1,n_ran       ,      &
-                       all_status, .false., size_of)
+                       all_status, .false.)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_ran_size_of = chem_ran_size_of + size_of
 !
 !
 !
@@ -701,7 +627,6 @@ END SUBROUTINE alloc_chem_correlation
       ELSE                                    ! Failure
          CHEM_MAX_RAN  = n_ran
          NMAX          =  1
-         chem_ran_size_of  =  0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
@@ -725,26 +650,21 @@ END SUBROUTINE alloc_chem_correlation
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat  = .TRUE.
-      chem_vec_size_of = 0
 !
 !
       CALL alloc_arr ( chem_cvec     ,1,5,     1,n_vec,      &
-                       all_status, -9999, size_of)
+                       all_status, -9999)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_vec_size_of = chem_vec_size_of + size_of
 !
       CALL alloc_arr ( chem_use_vec  ,1,n_vec, 1,n_cor,      &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_vec_size_of = chem_vec_size_of + size_of
 !
       CALL alloc_arr ( chem_nvec     ,1,n_cor,      &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_vec_size_of = chem_vec_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -759,7 +679,6 @@ END SUBROUTINE alloc_chem_correlation
       ELSE                                    ! Failure
          CHEM_MAX_VEC  = n_vec
          NMAX          =  1
-         chem_vec_size_of  =  0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
@@ -783,36 +702,29 @@ END SUBROUTINE alloc_chem_correlation
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat  = .TRUE.
-      chem_con_size_of = 0
 !
 !
       CALL alloc_arr ( chem_ccon     ,1,2,     1,n_con,      &
-                       all_status, -9999, size_of)
+                       all_status, -9999)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_con_size_of = chem_con_size_of + size_of
 !
       CALL alloc_arr ( chem_cname    ,         1,n_con,      &
-                       all_status, ' '  , size_of)
+                       all_status, ' '  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_con_size_of = chem_con_size_of + size_of
 !
       CALL alloc_arr ( chem_cname_l  ,         1,n_con,      &
-                       all_status,     1, size_of)
+                       all_status,     1)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_con_size_of = chem_con_size_of + size_of
 !
       CALL alloc_arr ( chem_use_con  ,1,n_con, 1,n_cor,      &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_con_size_of = chem_con_size_of + size_of
 !
       CALL alloc_arr ( chem_ncon  ,1,n_cor,      &
-                       all_status, 0, size_of)
+                       all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      chem_con_size_of = chem_con_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -827,7 +739,6 @@ END SUBROUTINE alloc_chem_correlation
       ELSE                                    ! Failure
          CHEM_MAX_CON  = n_con
          NMAX          =  1
-         chem_con_size_of  =  0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
@@ -846,9 +757,8 @@ IMPLICIT NONE
 INTEGER, INTENT(IN)  :: n_cor
 !
 INTEGER :: all_status
-INTEGER :: size_of
 !
-CALL alloc_arr(chem_dir , 1, 3, 1,2,  1,n_cor,  all_status, 0.0D0, size_of)
+CALL alloc_arr(chem_dir , 1, 3, 1,2,  1,n_cor,  all_status, 0.0D0)
 !
 END SUBROUTINE alloc_chem_dir
 !
@@ -863,13 +773,12 @@ IMPLICIT NONE
 INTEGER, INTENT(IN)  :: n_cor
 !
 INTEGER :: all_status
-INTEGER :: size_of
 !
-CALL alloc_arr(chem_rmax       , 1,n_cor,  all_status, 0.0D0, size_of)
-CALL alloc_arr(chem_rmin       , 1,n_cor,  all_status, 0.0D0, size_of)
-CALL alloc_arr(chem_freq_sigma , 1,n_cor,  all_status, 0.0D0, size_of)
-CALL alloc_arr(chem_wink_sigma , 1,n_cor,  all_status, 0.0D0, size_of)
-CALL alloc_arr(chem_cang       , 1,n_cor,  all_status, .FALSE., size_of)
+CALL alloc_arr(chem_rmax       , 1,n_cor,  all_status, 0.0D0)
+CALL alloc_arr(chem_rmin       , 1,n_cor,  all_status, 0.0D0)
+CALL alloc_arr(chem_freq_sigma , 1,n_cor,  all_status, 0.0D0)
+CALL alloc_arr(chem_wink_sigma , 1,n_cor,  all_status, 0.0D0)
+CALL alloc_arr(chem_cang       , 1,n_cor,  all_status, .FALSE.)
 !
 END SUBROUTINE alloc_chem_dist
 !
@@ -884,9 +793,8 @@ IMPLICIT NONE
 INTEGER, INTENT(IN)  :: n_hist
 !
 INTEGER :: all_status
-INTEGER :: size_of
 !
-CALL alloc_arr(chem_hist       , 1,n_hist,  all_status, 0, size_of)
+CALL alloc_arr(chem_hist       , 1,n_hist,  all_status, 0)
 !
 CHEM_MAX_BIN = n_hist
 !
@@ -907,12 +815,11 @@ INTEGER, INTENT(IN)  :: n_vec
 !
 INTEGER              :: all_status
 LOGICAL              :: lstat
-INTEGER              :: size_of
 !
 lstat  = .TRUE.
 !
 !
-CALL alloc_arr(conn_vectors ,1,5, 1,n_vec, all_status, -9999, size_of)
+CALL alloc_arr(conn_vectors ,1,5, 1,n_vec, all_status, -9999)
 !
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
@@ -952,12 +859,10 @@ end SUBROUTINE alloc_conn_vect
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat  = .TRUE.
-      cry_size_of = 0
 !
-!     CALL alloc_arr ( cr_at_lis,      0,n_scat,  all_status, ' ', size_of)
+!     CALL alloc_arr ( cr_at_lis,      0,n_scat,  all_status, ' ')
 !     lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !write(*,*) ' lstat, all_status ', lstat, all_status
 !write(*,*) 'AT_LIS ', allocated(cr_at_lis)
@@ -965,133 +870,101 @@ end SUBROUTINE alloc_conn_vect
 !write(*,*) ' AT_LIS 1>',cr_at_lis(1),'<<'
 !write(*,*) ' AT_LIS 0>',cr_at_lis(0),'<<'
 !     cr_at_lis(0) = 'VOID'
-!     cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_iscat      ,1,n_max ,  all_status, 0, size_of)
+      CALL alloc_arr ( cr_iscat      ,1,n_max ,  all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_ianis      ,1,n_max ,  all_status, 0, size_of)
+      CALL alloc_arr ( cr_ianis      ,1,n_max ,  all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_prop       ,1,n_max ,  all_status, 0, size_of)
+      CALL alloc_arr ( cr_prop       ,1,n_max ,  all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_mole       ,1,n_max ,  all_status, 0, size_of)
+      CALL alloc_arr ( cr_mole       ,1,n_max ,  all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_pos,1,3,1,n_max ,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( cr_pos,1,3,1,n_max ,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_scat,1,11,0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( cr_scat,1,11,0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_delfr,       0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( cr_delfr,       0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_delfi,       0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( cr_delfi,       0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_delfr_u,     0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( cr_delfr_u,     0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_delfi_u,     0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( cr_delfi_u,     0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_scat_int,    0,n_scat,  all_status, .true., size_of)
+      CALL alloc_arr ( cr_scat_int,    0,n_scat,  all_status, .true.)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_scat_equ,    0,n_scat,  all_status, .false., size_of)
+      CALL alloc_arr ( cr_scat_equ,    0,n_scat,  all_status, .false.)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_delf_int,    0,n_scat,  all_status, .true., size_of)
+      CALL alloc_arr ( cr_delf_int,    0,n_scat,  all_status, .true.)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_at_equ,      0,n_scat,  all_status, ' ', size_of)
+      CALL alloc_arr ( cr_at_equ,      0,n_scat,  all_status, ' ')
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_ndiffer,     0,n_scat,  all_status, 1  , size_of)
+      CALL alloc_arr ( cr_ndiffer,     0,n_scat,  all_status, 1  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_at_lis,      0,n_scat,  all_status, ' ', size_of)
+      CALL alloc_arr ( cr_at_lis,      0,n_scat,  all_status, ' ')
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cr_at_lis(0) = 'VOID'
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( as_at_lis,      0,n_scat,  all_status, ' ', size_of)
+      CALL alloc_arr ( as_at_lis,      0,n_scat,  all_status, ' ')
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       as_at_lis(0) = 'VOID'
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( as_mole ,       0,n_scat,  all_status,  0 , size_of)
+      CALL alloc_arr ( as_mole ,       0,n_scat,  all_status,  0 )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( as_prop ,       0,n_scat,  all_status,  0 , size_of)
+      CALL alloc_arr ( as_prop ,       0,n_scat,  all_status,  0 )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_niscat,      0,n_scat,  all_status,  0 , size_of)
+      CALL alloc_arr ( cr_niscat,      0,n_scat,  all_status,  0 )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( as_iscat,       0,n_scat,  all_status,  0 , size_of)
+      CALL alloc_arr ( as_iscat,       0,n_scat,  all_status,  0 )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_dw,          0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( cr_dw,          0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_anis, 1, 6,  0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( cr_anis, 1, 6,  0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_occ,         0,n_scat,  all_status, 1.0D0, size_of)
+      CALL alloc_arr ( cr_occ,         0,n_scat,  all_status, 1.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( as_occ,         0,n_scat,  all_status, 1.0D0, size_of)
+      CALL alloc_arr ( as_occ,         0,n_scat,  all_status, 1.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( as_pos, 1,3,0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( as_pos, 1,3,0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( as_dw,          0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( as_dw,          0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-!     CALL alloc_arr ( as_occ,         0,n_scat,  all_status, 1.0D0, size_of)
+!     CALL alloc_arr ( as_occ,         0,n_scat,  all_status, 1.0D0)
 !     lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!     cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_amount,      0,n_scat,  all_status, 0  , size_of)
+      CALL alloc_arr ( cr_amount,      0,n_scat,  all_status, 0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_surf,0,3   ,1,n_max ,  all_status, 0, size_of)
+      CALL alloc_arr ( cr_surf,0,3   ,1,n_max ,  all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
-      CALL alloc_arr ( cr_magn,0,3   ,1,n_max ,  all_status, 1.0D0, size_of)
+      CALL alloc_arr ( cr_magn,0,3   ,1,n_max ,  all_status, 1.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cry_size_of = cry_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -1107,7 +980,6 @@ end SUBROUTINE alloc_conn_vect
       ELSE                                    ! Failure
          MAXSCAT       =  1
          NMAX          =  1
-         cry_size_of   =  0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Crystal'
@@ -1129,9 +1001,8 @@ implicit none
 integer, intent(in) :: n_atoms  ! Number atoms per unit cell
 !
 integer :: all_status
-integer :: size_of
 !
-call alloc_arr(cr_is_sym, 1, n_atoms, all_status, 0, size_of)
+call alloc_arr(cr_is_sym, 1, n_atoms, all_status, 0)
 !
 end subroutine alloc_unitcell
 !
@@ -1149,11 +1020,10 @@ implicit none
 integer, intent(in) :: n_atoms  ! Number atoms per unit cell
 !
 integer :: all_status
-integer :: size_of
 !
-call alloc_arr(cr_anis_full, 1, 6, 1, n_atoms, all_status, 1.0D0, size_of)
-call alloc_arr(cr_prin, 1, 3, 1, 3,  1, n_atoms, all_status, 1.0D0, size_of)
-call alloc_arr(cr_u2  , 1, 3, 1, n_atoms, all_status, 1.0D0, size_of)
+call alloc_arr(cr_anis_full, 1, 6, 1, n_atoms, all_status, 1.0D0)
+call alloc_arr(cr_prin, 1, 3, 1, 3,  1, n_atoms, all_status, 1.0D0)
+call alloc_arr(cr_u2  , 1, 3, 1, n_atoms, all_status, 1.0D0)
 !
 end subroutine alloc_anis
 !
@@ -1177,19 +1047,15 @@ end subroutine alloc_anis
       INTEGER              :: n_look
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       n_look = n_scat*(n_scat+1)/2
       lstat  = .TRUE.
-      deb_size_of = 0
 !
-      CALL alloc_arr ( rsf     ,1,n_qxy  ,  all_status, 0.0D0, size_of )
+      CALL alloc_arr ( rsf     ,1,n_qxy  ,  all_status, 0.0D0 )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      deb_size_of = deb_size_of + size_of
 !
-      CALL alloc_arr ( sinetab ,0,INT(MASK)   ,  all_status, 0.0D0, size_of )
+      CALL alloc_arr ( sinetab ,0,INT(MASK)   ,  all_status, 0.0D0 )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      deb_size_of = deb_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          MAXLOOK       = n_look
@@ -1210,7 +1076,6 @@ end subroutine alloc_anis
          MAXDSCAT      =  1
          MAXDQXY       = n_qxy
          DEB_MAXMASK   =  0
-         deb_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Debye'
@@ -1238,104 +1103,103 @@ end subroutine alloc_anis
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
 !
-       CALL alloc_arr ( dc_latom       ,0,n_scat  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( dc_latom       ,0,n_scat  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-       CALL alloc_arr ( dc_lsite       ,0,n_site  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( dc_lsite       ,0,n_site  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_name,1,n_deco ,  all_status, ' '  , size_of )
+      CALL alloc_arr ( dcc_name,1,n_deco ,  all_status, ' '   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_file,1,n_deco ,  all_status, ' '  , size_of )
+      CALL alloc_arr ( dcc_file,1,n_deco ,  all_status, ' '   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_natoms,1,n_deco, all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_natoms,1,n_deco, all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_atom_name,0,m_scat, 1,n_deco, all_status, ' '  , size_of )
+      CALL alloc_arr ( dcc_atom_name,0,m_scat, 1,n_deco, all_status, ' '   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_adp      ,0,m_scat, 1,n_deco, all_status, 0.0D0  , size_of )
+      CALL alloc_arr ( dcc_adp      ,0,m_scat, 1,n_deco, all_status, 0.0D0   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_biso,1,n_deco ,  all_status, 0.0D0  , size_of )
+      CALL alloc_arr ( dcc_biso,1,n_deco ,  all_status, 0.0D0   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_clin,1,n_deco ,  all_status, 0.0D0  , size_of )
+      CALL alloc_arr ( dcc_clin,1,n_deco ,  all_status, 0.0D0   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_cqua,1,n_deco ,  all_status, 0.0D0  , size_of )
+      CALL alloc_arr ( dcc_cqua,1,n_deco ,  all_status, 0.0D0   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_mole_type,1,n_deco ,  all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_mole_type,1,n_deco ,  all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_type,1,n_deco ,  all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_type,1,n_deco ,  all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_lname,1,n_deco ,  all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_lname,1,n_deco ,  all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_lfile,1,n_deco ,  all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_lfile,1,n_deco ,  all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_nanch ,1,2,         1,n_deco ,  all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_nanch ,1,2,         1,n_deco ,  all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_surf  ,0,2,0,n_anch,1,n_deco ,  all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_surf  ,0,2,0,n_anch,1,n_deco ,  all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_neig,0,2,           1,n_deco ,  all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_neig,0,2,           1,n_deco ,  all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_secnd,              1,n_deco ,  all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_secnd,              1,n_deco ,  all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_axis,0,2,           1,n_deco ,  all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_axis,0,2,           1,n_deco ,  all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_lrestrict,          1,n_deco ,  all_status, .FALSE., size_of )
+      CALL alloc_arr ( dcc_lrestrict,          1,n_deco ,  all_status, .FALSE. )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_spread,             1,n_deco ,  all_status, .TRUE. , size_of )
+      CALL alloc_arr ( dcc_spread,             1,n_deco ,  all_status, .TRUE.  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_lform,              1,n_deco ,  all_status, .FALSE., size_of )
+      CALL alloc_arr ( dcc_lform,              1,n_deco ,  all_status, .FALSE. )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_hkl ,1,3, 0,n_hkl,  1,n_deco ,  all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_hkl ,1,3, 0,n_hkl,  1,n_deco ,  all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_surfnew,0,n_new,    1,n_deco ,  all_status, 0    , size_of )
+      CALL alloc_arr ( dcc_surfnew,0,n_new,    1,n_deco ,  all_status, 0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_dens,               1,n_deco ,  all_status, 0.0D0  , size_of )
+      CALL alloc_arr ( dcc_dens,               1,n_deco ,  all_status, 0.0D0   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_dist,1,2,           1,n_deco ,  all_status, 0.0D0  , size_of )
+      CALL alloc_arr ( dcc_dist,1,2,           1,n_deco ,  all_status, 0.0D0   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_angle,              1,n_deco ,  all_status, 170.0D0, size_of )
+      CALL alloc_arr ( dcc_angle,              1,n_deco ,  all_status, 170.0D0 )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_tilt,               1,n_deco ,  all_status,   0.0D0, size_of )
+      CALL alloc_arr ( dcc_tilt,               1,n_deco ,  all_status,   0.0D0 )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_tilt_hkl, 1, 3,     1,n_deco ,  all_status,   0.0D0, size_of )
+      CALL alloc_arr ( dcc_tilt_hkl, 1, 3,     1,n_deco ,  all_status,   0.0D0 )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_tilt_atom, 1, 4,    1,n_deco ,  all_status,   0  , size_of )
+      CALL alloc_arr ( dcc_tilt_atom, 1, 4,    1,n_deco ,  all_status,   0   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_tilt_is_atom,       1,n_deco ,  all_status,.TRUE., size_of )
+      CALL alloc_arr ( dcc_tilt_is_atom,       1,n_deco ,  all_status,.TRUE. )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( dcc_tilt_is_auto,       1,n_deco ,  all_status,.TRUE., size_of )
+      CALL alloc_arr ( dcc_tilt_is_auto,       1,n_deco ,  all_status,.TRUE. )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       IF( lstat ) THEN                        ! Success
@@ -1374,15 +1238,14 @@ INTEGER, INTENT(IN)  :: n_atomtype
 INTEGER, INTENT(IN)  :: n_moletype
 !
 INTEGER              :: all_status
-INTEGER              :: size_of
 LOGICAL              :: lstat
 !
 lstat     = .TRUE.
 !
-CALL alloc_arr ( dem_latomtype   ,0,n_atomtype,  all_status, .FALSE., size_of )
+CALL alloc_arr ( dem_latomtype   ,0,n_atomtype,  all_status, .FALSE. )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr ( dem_lmoletype   ,1,n_moletype,  all_status, .FALSE., size_of )
+CALL alloc_arr ( dem_lmoletype   ,1,n_moletype,  all_status, .FALSE. )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 IF( lstat ) THEN                        ! Success
@@ -1406,89 +1269,154 @@ END IF
 !
 END SUBROUTINE alloc_demol
 !
-    SUBROUTINE alloc_diffuse ( n_qxy, n_scat, n_atoms )
+subroutine alloc_diffuse_four ( n_qxy )
 !-
-!     Allocate the arrays needed by DIFFUSE
+!  Allocate the arrays needed by DIFFUSE
+!  Arrays related to extend of reciprocal space
 !+
-      USE diffuse_mod
-      USE precision_mod
+use diffuse_mod
+use precision_mod
 !
-      IMPLICIT NONE
+implicit none
 !
 !      
-      INTEGER, INTENT(IN)  :: n_qxy
-      INTEGER, INTENT(IN)  :: n_scat
-      INTEGER, INTENT(IN)  :: n_atoms
+integer, dimension(3), intent(in)  :: n_qxy
 !
-      COMPLEX (KIND=KIND(0.0D0)) :: def_value
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
-      INTEGER              :: size_of
+complex (kind=kind(0.0D0)) :: def_value
+integer              :: all_status
+logical              :: lstat
 !
-      lstat     = .TRUE.
-      def_value = CMPLX(0.0D0,0.0D0,KIND=PREC_DP)
-      dif_size_of = 0
+lstat     = .TRUE.
+def_value = CMPLX(0.0D0,0.0D0,kind=PREC_DP)
 !
-       CALL alloc_arr ( csf     ,1,n_qxy  ,  all_status, def_value, size_of)
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       dif_size_of = dif_size_of + size_of
+call alloc_arr ( csf     ,1,n_qxy(1), 1,n_qxy(2), 1,n_qxy(3),  all_status, def_value)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-       CALL alloc_arr ( tcsf    ,1,n_qxy  ,  all_status, def_value, size_of)
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       dif_size_of = dif_size_of + size_of
+call alloc_arr ( tcsf    ,1,n_qxy(1), 1,n_qxy(2), 1,n_qxy(3), all_status, def_value)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-       CALL alloc_arr ( acsf    ,1,n_qxy  ,  all_status, def_value, size_of)
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       dif_size_of = dif_size_of + size_of
+call alloc_arr ( acsf    ,1,n_qxy(1), 1,n_qxy(2), 1,n_qxy(3), all_status, def_value)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-       CALL alloc_arr ( rpdf    ,1,n_qxy  ,  all_status, 0.0D0    , size_of)
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       dif_size_of = dif_size_of + size_of
+call alloc_arr ( istl    ,1,n_qxy(1), 1,n_qxy(2), 1,n_qxy(3),  all_status, 0        )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-       CALL alloc_arr ( istl    ,0,n_qxy  ,  all_status, 0        , size_of)
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       dif_size_of = dif_size_of + size_of
+call alloc_arr ( dsi     ,1,n_qxy(1), 1,n_qxy(2), 1,n_qxy(3),  all_status, 0.0D0    )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-       CALL alloc_arr ( dsi     ,1,n_qxy  ,  all_status, 0.0D0    , size_of)
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       dif_size_of = dif_size_of + size_of
 !
-       CALL alloc_arr ( xat     ,1,n_atoms,  1, 3, all_status, 0.0D0, size_of)
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       dif_size_of = dif_size_of + size_of
+if( lstat ) then                        ! Success
+   MAXQXY        = n_qxy
+   ier_typ       = 0
+   ier_num       = 0
+   if ( all_status == 1 ) then
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'Diffuse'
+   endif
+else                                    ! Failure
+   MAXQXY        =  1
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'Diffuse'
+   return
+end if
 !
-       CALL alloc_arr ( cfact   ,0,CFPKT  ,  1, n_scat, &
-                                 all_status, def_value, size_of)
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       dif_size_of = dif_size_of + size_of
+end subroutine alloc_diffuse_four
 !
-       CALL alloc_arr ( cfact_pure,0,CFPKT  ,  1, n_scat, &
-                                 all_status, def_value, size_of)
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       dif_size_of = dif_size_of + size_of
 !
-      IF( lstat ) THEN                        ! Success
-         MAXQXY        = n_qxy
-         DIF_MAXAT     = n_atoms
-         DIF_MAXSCAT   = n_scat
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'Diffuse'
-         ENDIF
-      ELSE                                    ! Failure
-         MAXQXY        =  1
-         DIF_MAXAT     =  1
-         DIF_MAXSCAT   = n_scat
-         dif_size_of   = 0
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'Diffuse'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_diffuse
+subroutine alloc_diffuse_scat (  n_scat )
+!-
+!  Allocate the arrays needed by DIFFUSE
+!  Arrays related to extend of reciprocal space
+!+
+use diffuse_mod
+use precision_mod
+!
+implicit none
+!
+!      
+integer, intent(in)  :: n_scat
+!
+complex (kind=kind(0.0D0)) :: def_value
+integer              :: all_status
+logical              :: lstat
+!
+lstat     = .TRUE.
+def_value = CMPLX(0.0D0,0.0D0,kind=PREC_DP)
+!
+!
+call alloc_arr ( cfact   ,0,CFPKT  ,  1, n_scat, &
+                                 all_status, def_value)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+call alloc_arr ( cfact_pure,0,CFPKT  ,  1, n_scat, &
+                                 all_status, def_value)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+if( lstat ) then                        ! Success
+   DIF_MAXSCAT   = n_scat
+   ier_typ       = 0
+   ier_num       = 0
+   if ( all_status == 1 ) then
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'Diffuse'
+   endif
+else                                    ! Failure
+   DIF_MAXSCAT   = n_scat
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'Diffuse'
+   return
+end if
+!
+end subroutine alloc_diffuse_scat
+!
+!
+subroutine alloc_diffuse_atom ( n_atoms )
+!-
+!  Allocate the arrays needed by DIFFUSE
+!  Arrays related to extend of reciprocal space
+!+
+use diffuse_mod
+use precision_mod
+!
+implicit none
+!
+!      
+integer, intent(in)  :: n_atoms
+!
+complex (kind=kind(0.0D0)) :: def_value
+integer              :: all_status
+logical              :: lstat
+!
+lstat     = .TRUE.
+def_value = CMPLX(0.0D0,0.0D0,kind=PREC_DP)
+!
+!
+call alloc_arr ( xat     ,1,n_atoms,  1, 3, all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+!
+if( lstat ) then                        ! Success
+   DIF_MAXAT     = n_atoms
+   ier_typ       = 0
+   ier_num       = 0
+   if ( all_status == 1 ) then
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'Diffuse'
+   endif
+else                                    ! Failure
+   DIF_MAXAT     =  1
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'Diffuse'
+   return
+end if
+!
+end subroutine alloc_diffuse_atom
 !
 !
     SUBROUTINE alloc_domain ( n_clu )
@@ -1506,46 +1434,35 @@ END SUBROUTINE alloc_demol
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      clu_size_of = 0
 !
-       CALL alloc_arr ( clu_content   ,1,n_clu,  all_status, ' ', size_of )
+       CALL alloc_arr ( clu_content   ,1,n_clu,  all_status, ' ' )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       clu_size_of =   clu_size_of + size_of
 !
-       CALL alloc_arr ( clu_name      ,1,n_clu,  all_status, ' ', size_of )
+       CALL alloc_arr ( clu_name      ,1,n_clu,  all_status, ' ' )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       clu_size_of =   clu_size_of + size_of
 !
-       CALL alloc_arr ( clu_use_expr ,1,n_clu, 1, 2,  all_status, .FALSE. , size_of )
+       CALL alloc_arr ( clu_use_expr ,1,n_clu, 1, 2,  all_status, .FALSE.  )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       clu_size_of =   clu_size_of + size_of
 !
-       CALL alloc_arr ( clu_character ,1,n_clu,  all_status, -4 , size_of )
+       CALL alloc_arr ( clu_character ,1,n_clu,  all_status, -4  )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       clu_size_of =   clu_size_of + size_of
 !
-       CALL alloc_arr ( clu_fuzzy     ,1,n_clu,  all_status,2.55D0, size_of )
+       CALL alloc_arr ( clu_fuzzy     ,1,n_clu,  all_status,2.55D0 )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       clu_size_of =   clu_size_of + size_of
 !
-       CALL alloc_arr ( clu_orient    ,1,n_clu, 1,3,1,4, all_status, 0.0D0, size_of )
+       CALL alloc_arr ( clu_orient    ,1,n_clu, 1,3,1,4, all_status, 0.0D0 )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       clu_size_of =   clu_size_of + size_of
 !
-       CALL alloc_arr ( clu_or_expr   ,1,n_clu, 1,3,1,4, all_status, ' ', size_of )
+       CALL alloc_arr ( clu_or_expr   ,1,n_clu, 1,3,1,4, all_status, ' ' )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       clu_size_of =   clu_size_of + size_of
 !
-       CALL alloc_arr ( clu_shape     ,1,n_clu, 1,3,1,4, all_status, 0.0D0, size_of )
+       CALL alloc_arr ( clu_shape     ,1,n_clu, 1,3,1,4, all_status, 0.0D0 )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       clu_size_of =   clu_size_of + size_of
 !
-       CALL alloc_arr ( clu_sigma     ,1,n_clu,    1,3,  all_status, 0.0D0, size_of )
+       CALL alloc_arr ( clu_sigma     ,1,n_clu,    1,3,  all_status, 0.0D0 )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       clu_size_of =   clu_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          CLU_MAX_TYPE  = n_clu
@@ -1558,7 +1475,6 @@ END SUBROUTINE alloc_demol
          ENDIF
       ELSE                                    ! Failure
          CLU_MAX_TYPE  = n_clu
-         clu_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'domain'
@@ -1582,26 +1498,20 @@ END SUBROUTINE alloc_demol
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      mic_size_of = 0
 !
-       CALL alloc_arr ( mk_at_lis    ,0,n_scat,  all_status, ' ', size_of )
+       CALL alloc_arr ( mk_at_lis    ,0,n_scat,  all_status, ' ' )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       mic_size_of =   mic_size_of + size_of
 !
-       CALL alloc_arr ( mk_dw         ,0,n_scat,  all_status, 0.0D0, size_of )
+       CALL alloc_arr ( mk_dw         ,0,n_scat,  all_status, 0.0D0 )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       mic_size_of =   mic_size_of + size_of
 !
-       CALL alloc_arr ( mk_anis, 1, 6 ,0,n_scat,  all_status, 0.0D0, size_of )
+       CALL alloc_arr ( mk_anis, 1, 6 ,0,n_scat,  all_status, 0.0D0 )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       mic_size_of =   mic_size_of + size_of
 !
-       CALL alloc_arr ( mk_occ        ,0,n_scat,  all_status, 1.00D0, size_of )
+       CALL alloc_arr ( mk_occ        ,0,n_scat,  all_status, 1.00D0 )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       mic_size_of =   mic_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -1617,7 +1527,6 @@ END SUBROUTINE alloc_demol
       ELSE                                    ! Failure
          MK_MAX_SCAT   = n_scat
          MK_MAX_ATOM   = n_atoms
-         mic_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'micro'
@@ -1644,145 +1553,125 @@ END SUBROUTINE alloc_demol
 integer :: i_scat
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
 !
       lstat       = .TRUE.
 !
 !
-       CALL alloc_arr ( mmc_latom     ,0,n_scat  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( mmc_latom     ,0,n_scat  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       mmc_size_of = mmc_size_of + size_of
 !
-       CALL alloc_arr ( mmc_lsite     ,0,n_site  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( mmc_lsite     ,0,n_site  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       mmc_size_of = mmc_size_of + size_of
 !
-      CALL alloc_arr ( mmc_allowed   ,0,n_scat  ,  all_status, .false.  , size_of )
+      CALL alloc_arr ( mmc_allowed   ,0,n_scat  ,  all_status, .false.   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_nvec    ,1,n_corr ,  &
                                     0,n_scat ,  &
                                     0,n_scat ,  &
-                                      all_status, 0    , size_of)
+                                      all_status, 0    )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_target_corr ,1,n_corr , &
                                         0,n_ener , &
                                         0,n_scat , &
                                         0,n_scat , &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_depth       ,1,n_corr , &
                                         0,n_ener , &
                                         0,n_scat , &
                                         0,n_scat , &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_depth_def   ,1,n_corr , &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_ach_corr    ,1,n_corr , &
                                         0,n_ener , &
                                        -1,n_scat , &
                                        -1,n_scat , &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_ini_corr    ,1,n_corr , &
                                         0,n_ener , &
                                        -1,n_scat , &
                                        -1,n_scat , &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_ach_sigm    ,1,n_corr ,  0,n_ener , &
                                        -1,n_scat , -1,n_scat , &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_ini_sigm    ,1,n_corr ,  0,n_ener , &
                                        -1,n_scat , -1,n_scat , &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 
 !     CALL alloc_arr ( mmc_vec         ,1,4, 1,12,  1,n_corr , &
 !                                      -1,n_scat , -1,n_scat , &
-!                                     all_status, 0.0  , size_of)
+!                                     all_status, 0.0  )
 !     lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!     mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_const       ,0,n_corr ,  &
                                         0,n_ener ,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_cfac        ,0,n_corr ,  &
                                         0,n_ener ,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       CALL alloc_arr ( mmc_lfeed       ,0,n_corr ,  &
                                         0,n_ener ,  &
-                                      all_status, .true.  , size_of)
+                                      all_status, .true.  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_pre_corr    ,1,n_corr , &
                                         0,n_ener , &
                                        -1,n_scat , &
                                        -1,n_scat , &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
  i_scat = max(3, n_scat)
       CALL alloc_arr ( mmc_pneig       ,0,i_scat , &
                                         0,i_scat , &
                                         1,n_corr , &
-                                      all_status, 0    , size_of)
+                                      all_status, 0    )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_cor_energy  ,0,n_corr ,  &
                                         0,n_ener ,  &
-                                      all_status,.false., size_of)
+                                      all_status,.false.)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_pair        ,1,n_corr , &
                                         0,n_ener , &
                                         0,n_scat , &
                                         0,n_scat , &
-                                      all_status, 0    , size_of)
+                                      all_status, 0    )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_left        ,1,n_corr , &
                                         0,n_ener , &
                                         0,n_scat , &
-                                      all_status, 0    , size_of)
+                                      all_status, 0    )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_right       ,1,n_corr , &
                                         0,n_ener , &
                                         0,n_scat , &
-                                      all_status, 0    , size_of)
+                                      all_status, 0    )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -1798,7 +1687,6 @@ integer :: i_scat
       ELSE                                    ! Failure
          MMC_MAX_CORR     = n_corr
          MMC_MAX_SCAT     = n_scat
-         mmc_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MMC'
@@ -1825,7 +1713,6 @@ INTEGER, INTENT(IN)  :: n_site
 !
 INTEGER              :: all_status
 LOGICAL              :: lstat
-INTEGER              :: size_of
 !
 lstat       = .TRUE.
 !
@@ -1834,21 +1721,21 @@ CALL alloc_arr ( mmc_pid_diff ,1,n_corr , &
                                0,n_ener , &
                               -1,n_scat , &
                               -1,n_scat , &
-                              all_status, 0.0D0  , size_of)
+                              all_status, 0.0D0  )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( mmc_pid_inte ,1,n_corr , &
                                0,n_ener , &
                               -1,n_scat , &
                               -1,n_scat , 0,2 ,&
-                              all_status, 0.0D0  , size_of)
+                              all_status, 0.0D0  )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( mmc_pid_deri ,1,n_corr , &
                                0,n_ener , &
                               -1,n_scat , &
                               -1,n_scat , 0,2, &
-                              all_status, 0.0D0  , size_of)
+                              all_status, 0.0D0  )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 end subroutine alloc_mmc_pid
@@ -1867,9 +1754,8 @@ IMPLICIT NONE
 INTEGER, INTENT(IN)  :: n_corr    ! Number of targets
 !
 INTEGER              :: all_status
-INTEGER              :: size_of
 !
-CALL alloc_arr(mo_ach_corr   ,1,n_corr                    ,  all_status, 0.0D0    , size_of )
+CALL alloc_arr(mo_ach_corr   ,1,n_corr                    ,  all_status, 0.0D0     )
 !
 END SUBROUTINE alloc_mo_ach
 !
@@ -1889,16 +1775,15 @@ INTEGER, INTENT(IN)  :: n_scat    ! Number of atom types
 INTEGER, INTENT(IN)  :: n_mole    ! Number of molecule types
 !
 INTEGER              :: all_status
-INTEGER              :: size_of
 !
-!CALL alloc_arr(mo_target_corr,1,n_corr                    ,  all_status, 0.0      , size_of )
-!CALL alloc_arr(mo_ach_corr   ,1,n_corr                    ,  all_status, 0.0      , size_of )
-!CALL alloc_arr(mo_const      ,0,n_corr                    ,  all_status, 0.0      , size_of )
-!CALL alloc_arr(mo_cfac       ,0,n_corr                    ,  all_status, 0.0      , size_of )
-!CALL alloc_arr(mo_disp       ,1,n_corr, 0,n_scat, 0,n_scat,  all_status, 0.0      , size_of )
-CALL alloc_arr(mo_maxmove     ,1,4     , 0,n_scat          ,  all_status, 0.0D0    , size_of )
-CALL alloc_arr(mo_maxmove_mole,1,4     , 0,n_mole          ,  all_status, 0.0D0    , size_of )
-CALL alloc_arr(mo_maxrota_mole,1,4     , 0,n_mole          ,  all_status, 0.0D0    , size_of )
+!CALL alloc_arr(mo_target_corr,1,n_corr                    ,  all_status, 0.0       )
+!CALL alloc_arr(mo_ach_corr   ,1,n_corr                    ,  all_status, 0.0       )
+!CALL alloc_arr(mo_const      ,0,n_corr                    ,  all_status, 0.0       )
+!CALL alloc_arr(mo_cfac       ,0,n_corr                    ,  all_status, 0.0       )
+!CALL alloc_arr(mo_disp       ,1,n_corr, 0,n_scat, 0,n_scat,  all_status, 0.0       )
+CALL alloc_arr(mo_maxmove     ,1,4     , 0,n_scat          ,  all_status, 0.0D0     )
+CALL alloc_arr(mo_maxmove_mole,1,4     , 0,n_mole          ,  all_status, 0.0D0     )
+CALL alloc_arr(mo_maxrota_mole,1,4     , 0,n_mole          ,  all_status, 0.0D0     )
 !
 END SUBROUTINE alloc_mmc_move
 !
@@ -1919,7 +1804,6 @@ END SUBROUTINE alloc_mmc_move
       INTEGER              :: n_old
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
 !
       n_size      = n_corr       * n_angle
@@ -1927,39 +1811,32 @@ END SUBROUTINE alloc_mmc_move
       lstat       = .TRUE.
 !
       CALL alloc_arr ( mmc_angles    ,1,n_size ,  &
-                                      all_status, 0    , size_of)
+                                      all_status, 0    )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_target_angl,1,n_size ,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_depth_angl,1,n_size ,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_ach_angl  ,1,n_size ,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_ang_sigm  ,1,n_size ,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_ini_angl  ,1,n_size ,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_ini_sang  ,1,n_size ,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -1973,7 +1850,6 @@ END SUBROUTINE alloc_mmc_move
          ENDIF
       ELSE                                    ! Failure
          MMC_MAX_ANGLES   = n_angle
-         mmc_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MMC_ANGLES'
@@ -1996,52 +1872,46 @@ END SUBROUTINE alloc_mmc_move
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat       = .TRUE.
 !
       CALL alloc_arr ( mmc_buck_a    ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       lstat       = .TRUE.
 !
       CALL alloc_arr ( mmc_buck_rho  ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       lstat       = .TRUE.
 !
       CALL alloc_arr ( mmc_buck_b    ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       lstat       = .TRUE.
 !
       CALL alloc_arr ( mmc_buck_rmin ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       lstat       = .TRUE.
 !
       CALL alloc_arr ( mmc_buck_atmin,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -2057,7 +1927,6 @@ END SUBROUTINE alloc_mmc_move
       ELSE                                    ! Failure
          MMC_BUCK_CORR    = n_corr
          MMC_BUCK_SCAT    = n_scat
-         mmc_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MMC_BUCKINGHAM'
@@ -2080,43 +1949,38 @@ END SUBROUTINE alloc_mmc_move
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat       = .TRUE.
 !
       CALL alloc_arr ( mmc_len_a     ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       lstat       = .TRUE.
 !
       CALL alloc_arr ( mmc_len_b     ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       lstat       = .TRUE.
 !
       CALL alloc_arr ( mmc_len_m     ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       lstat       = .TRUE.
 !
       CALL alloc_arr ( mmc_len_n     ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -2132,7 +1996,6 @@ END SUBROUTINE alloc_mmc_move
       ELSE                                    ! Failure
          MMC_LENN_CORR    = n_corr
          MMC_LENN_SCAT    = n_scat
-         mmc_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MMC_Lennard'
@@ -2155,40 +2018,34 @@ END SUBROUTINE alloc_mmc_move
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat       = .TRUE.
 !
       CALL alloc_arr ( mmc_rep_a     ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_rep_b     ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_rep_c     ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       CALL alloc_arr ( mmc_rep_m     ,0,n_corr,  &
                                       0,n_scat,  &
                                       0,n_scat,  &
-                                      all_status, 0.0D0  , size_of)
+                                      all_status, 0.0D0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mmc_size_of = mmc_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -2204,7 +2061,6 @@ END SUBROUTINE alloc_mmc_move
       ELSE                                    ! Failure
          MMC_REP_CORR    = n_corr
          MMC_REP_SCAT    = n_scat
-         mmc_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MMC_Repulsive'
@@ -2232,82 +2088,62 @@ END SUBROUTINE alloc_mmc_move
       INTEGER              :: i
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat       = .TRUE.
-      mol_size_of = 0
 !
-      CALL alloc_arr ( mole_gene_power,1,n_gene,  all_status, 1  , size_of)
+      CALL alloc_arr ( mole_gene_power,1,n_gene,  all_status, 1  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_gene,1,4, 1,4,1,n_gene,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( mole_gene,1,4, 1,4,1,n_gene,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_symm_power,1,n_symm,  all_status, 1  , size_of)
+      CALL alloc_arr ( mole_symm_power,1,n_symm,  all_status, 1  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_symm,1,4, 1,4,1,n_symm,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( mole_symm,1,4, 1,4,1,n_symm,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_len       ,0,n_mole,  all_status, 0  , size_of)
+      CALL alloc_arr ( mole_len       ,0,n_mole,  all_status, 0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_off       ,0,n_mole,  all_status, 0  , size_of)
+      CALL alloc_arr ( mole_off       ,0,n_mole,  all_status, 0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_type      ,0,n_mole,  all_status, 0  , size_of)
+      CALL alloc_arr ( mole_type      ,0,n_mole,  all_status, 0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_char      ,0,n_mole,  all_status, MOLE_ATOM  , size_of)
+      CALL alloc_arr ( mole_char      ,0,n_mole,  all_status, MOLE_ATOM  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_file      ,0,n_mole,  all_status, ' '  , size_of)
+      CALL alloc_arr ( mole_file      ,0,n_mole,  all_status, ' '  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_biso      ,0,n_type,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( mole_biso      ,0,n_type,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_clin      ,0,n_type,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( mole_clin      ,0,n_type,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_cqua      ,0,n_type,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( mole_cqua      ,0,n_type,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_dens      ,0,n_mole,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( mole_dens      ,0,n_mole,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_fuzzy     ,0,n_mole,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( mole_fuzzy     ,0,n_mole,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_cont      ,0,n_atom,  all_status, 0  , size_of)
+      CALL alloc_arr ( mole_cont      ,0,n_atom,  all_status, 0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( exte_names     ,1,n_type,  all_status, ' '  , size_of)
+      CALL alloc_arr ( exte_names     ,1,n_type,  all_status, ' '  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( exte_length    ,1,n_type,  all_status, 0    , size_of)
+      CALL alloc_arr ( exte_length    ,1,n_type,  all_status, 0    )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( exte_type      ,1,n_type,  all_status, 0    , size_of)
+      CALL alloc_arr ( exte_type      ,1,n_type,  all_status, 0    )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      mol_size_of = mol_size_of + size_of
 !
 !
       FORALL (i=1:4)
@@ -2334,7 +2170,6 @@ END SUBROUTINE alloc_mmc_move
          MOLE_MAX_MOLE    = n_mole
          MOLE_MAX_TYPE    = n_type
          MOLE_MAX_ATOM    = n_atom
-         mol_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MOLECULE'
@@ -2355,55 +2190,54 @@ IMPLICIT NONE
 !
 !      
 INTEGER, INTENT(IN)  :: n_pha    ! Number of phases
-INTEGER, INTENT(IN)  :: n_qxy    ! Number of point in powder pattern
+INTEGER, dimension(3), INTENT(IN)  :: n_qxy    ! Number of point in powder pattern
 INTEGER, INTENT(IN)  :: n_scat   ! Number of atom types
 !
 INTEGER              :: all_status
 LOGICAL              :: lstat
-INTEGER              :: size_of
 !
 lstat     = .TRUE.
 !
-CALL alloc_arr(pha_nscat           , 1,n_pha, all_status, 0        , size_of )
+CALL alloc_arr(pha_nscat           , 1,n_pha, all_status, 0         )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr(pha_calc            , 1,n_pha, all_status, 0        , size_of )
+CALL alloc_arr(pha_calc            , 1,n_pha, all_status, 0         )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr(pha_frac            , 1,n_pha, all_status, 0.0D0    , size_of )
+CALL alloc_arr(pha_frac            , 1,n_pha, all_status, 0.0D0     )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr(pha_occ   , 0,n_scat, 1,n_pha, all_status, 0.0D0    , size_of )
+CALL alloc_arr(pha_occ   , 0,n_scat, 1,n_pha, all_status, 0.0D0     )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr(pha_weight,           1,n_pha, all_status, 0.0D0    , size_of )
+CALL alloc_arr(pha_weight,           1,n_pha, all_status, 0.0D0     )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr(pha_nreal ,           1,n_pha, all_status, 0.0D0    , size_of )
+CALL alloc_arr(pha_nreal ,           1,n_pha, all_status, 0.0D0     )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr(pha_ncreal,           1,n_pha, all_status, 0.0D0    , size_of )
+CALL alloc_arr(pha_ncreal,           1,n_pha, all_status, 0.0D0     )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr(pha_powder, 0,n_qxy , 1,n_pha, all_status, 0.0D0    , size_of )
+CALL alloc_arr(pha_powder, 0,product(n_qxy) , 1,n_pha, all_status, 0.0D0     )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr(pha_form  , 0,n_qxy , 0, n_scat, 1,n_pha, all_status, 0.0D0    , size_of )
+CALL alloc_arr(pha_form  , 0,product(n_qxy) , 0, n_scat, 1,n_pha, all_status, 0.0D0     )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr(pha_adp   , 0,n_scat, 1,n_pha, all_status, 0.0D0    , size_of )
+CALL alloc_arr(pha_adp   , 0,n_scat, 1,n_pha, all_status, 0.0D0     )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr(pha_scale ,           1,n_pha, all_status, 0.0D0    , size_of )
+CALL alloc_arr(pha_scale ,           1,n_pha, all_status, 0.0D0     )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr(pha_niscat, 0,n_scat, 1,n_pha, all_status, 0        , size_of )
+CALL alloc_arr(pha_niscat, 0,n_scat, 1,n_pha, all_status, 0         )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
 IF( lstat ) THEN                        ! Success
    PHA_MAXPHA    = n_pha
-   PHA_MAXPTS    = n_qxy
+   PHA_MAXPTS    = product(n_qxy)
    PHA_MAXSCAT   = n_scat
    ier_typ       = 0
    ier_num       = 0
@@ -2414,7 +2248,7 @@ IF( lstat ) THEN                        ! Success
    ENDIF
 ELSE                                    ! Failure
    PHA_MAXPHA    = n_pha
-   PHA_MAXPTS    = n_qxy
+   PHA_MAXPTS    = product(n_qxy)
    PHA_MAXSCAT   = n_scat
    ier_num       = -3
    ier_typ       = ER_COMM
@@ -2443,87 +2277,67 @@ END SUBROUTINE alloc_phases
       INTEGER              :: all_status
       LOGICAL              :: lstat
       REAL(PREC_DP) , PARAMETER   :: def_dbl = 0.0D0
-      INTEGER              :: size_of
       INTEGER              :: n_dat2    !  Size rounded up to power of 2
 !
       lstat       = .TRUE.
-      pdf_size_of = 0
 !
       n_dat2 = 2**(INT(LOG(REAL(n_dat))/LOG(2.))+2)
-      CALL alloc_arr ( pdf_calc      ,1,n_dat2,  all_status, def_dbl  , size_of)
+      CALL alloc_arr ( pdf_calc      ,1,n_dat2,  all_status, def_dbl  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_ppp       ,1,n_dat2,  all_status, def_dbl  , size_of)
+      CALL alloc_arr ( pdf_ppp       ,1,n_dat2,  all_status, def_dbl  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_corr      ,1,n_dat,  all_status, def_dbl  , size_of)
+      CALL alloc_arr ( pdf_corr      ,1,n_dat,  all_status, def_dbl  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
       CALL alloc_arr ( pdf_temp      ,0,n_dat,0,n_scat, &
                                               0,n_scat, 0,0, &
-                                              all_status, 0      , size_of)
+                                              all_status, 0      )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
 !
-      CALL alloc_arr ( pdf_lsite_i   ,0,n_site,  all_status, .true.   , size_of)
+      CALL alloc_arr ( pdf_lsite_i   ,0,n_site,  all_status, .true.   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
       CALL alloc_arr ( pdf_weight    ,0,n_scat,                      &
-                                      0,n_scat, all_status, 0.0D0, size_of)
+                                      0,n_scat, all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_obs       ,1,n_dat,  all_status, 0.0D0      , size_of)
+      CALL alloc_arr ( pdf_obs       ,1,n_dat,  all_status, 0.0D0      )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_wic       ,1,n_dat,  all_status, 0.0D0      , size_of)
+      CALL alloc_arr ( pdf_wic       ,1,n_dat,  all_status, 0.0D0      )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
-!     CALL alloc_arr ( pdf_sinc      ,1,2*n_dat+1, all_status, def_dbl  , size_of)
+!     CALL alloc_arr ( pdf_sinc      ,1,2*n_dat+1, all_status, def_dbl  )
 !     lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!     pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_sincc     ,1,PDF_MAXSINCC, all_status, def_dbl  , size_of)
+      CALL alloc_arr ( pdf_sincc     ,1,PDF_MAXSINCC, all_status, def_dbl  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_exp       ,0,20000 ,  all_status, def_dbl  , size_of)
+      CALL alloc_arr ( pdf_exp       ,0,20000 ,  all_status, def_dbl  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_allowed_i ,0,n_scat,  all_status, .true.   , size_of)
+      CALL alloc_arr ( pdf_allowed_i ,0,n_scat,  all_status, .true.   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_allowed_j ,0,n_scat,  all_status, .true.   , size_of)
+      CALL alloc_arr ( pdf_allowed_j ,0,n_scat,  all_status, .true.   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_lsite_i   ,0,n_site,  all_status, .true.   , size_of)
+      CALL alloc_arr ( pdf_lsite_i   ,0,n_site,  all_status, .true.   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_lsite_j   ,0,n_site,  all_status, .true.   , size_of)
+      CALL alloc_arr ( pdf_lsite_j   ,0,n_site,  all_status, .true.   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_has_atom  ,0,n_scat,  all_status, 0        , size_of)
+      CALL alloc_arr ( pdf_has_atom  ,0,n_scat,  all_status, 0        )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
       CALL alloc_arr ( pdf_bnd       ,1,3, -n_bnd,2*n_bnd, &
-                                                              all_status, 0        , size_of)
+                                                              all_status, 0        )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          PDF_MAXSCAT      = n_scat
@@ -2544,7 +2358,6 @@ END SUBROUTINE alloc_phases
          PDF_MAXSITE   = n_site
          PDF_MAXDAT    = n_dat
          PDF_MAXBND    = n_bnd
-         pdf_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'PDF'
@@ -2572,72 +2385,57 @@ END SUBROUTINE alloc_phases
 
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      pl_size_of = 0
 !
-       CALL alloc_arr ( pl_siz       ,0,n_scat,  all_status, 1.0D0    , size_of )
+       CALL alloc_arr ( pl_siz       ,0,n_scat,  all_status, 1.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
 !
-       CALL alloc_arr ( pl_rgb       ,1,3,  0,n_scat,  all_status, 0.0D0    , size_of )
+       CALL alloc_arr ( pl_rgb       ,1,3,  0,n_scat,  all_status, 0.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
 !
        CALL alloc_arr ( pl_bond_len  ,1,2,  0, n_scat, &
-                                            0, n_scat, all_status, 0.0D0    , size_of )
+                                            0, n_scat, all_status, 0.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
 !
        CALL alloc_arr ( pl_bond_rad  ,           0, n_scat,  &
-                                                 0, n_scat,  all_status, 0.2D0    , size_of )
+                                                 0, n_scat,  all_status, 0.2D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
 !
        CALL alloc_arr ( pl_bond_col  ,1,3,  0, n_scat, &
-                                            0, n_scat, all_status, 0.8D0    , size_of )
+                                            0, n_scat, all_status, 0.8D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
 !
-       CALL alloc_arr ( pl_typ       ,0,n_scat,  all_status, 3        , size_of )
+       CALL alloc_arr ( pl_typ       ,0,n_scat,  all_status, 3         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
 !
-       CALL alloc_arr ( pl_color     ,0,n_scat,  all_status, 0        , size_of )
+       CALL alloc_arr ( pl_color     ,0,n_scat,  all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
 !
-       CALL alloc_arr ( pl_latom     ,0,n_scat,  all_status, .false.  , size_of )
+       CALL alloc_arr ( pl_latom     ,0,n_scat,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
 !
-       CALL alloc_arr ( pl_lsite     ,0,n_site,  all_status, .false.  , size_of )
+       CALL alloc_arr ( pl_lsite     ,0,n_site,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
 !
-       CALL alloc_arr ( pl_batom_a   ,0,n_scat,  all_status, .false.  , size_of )
+       CALL alloc_arr ( pl_batom_a   ,0,n_scat,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
 !
-       CALL alloc_arr ( pl_batom_e   ,0,n_scat,  all_status, .false.  , size_of )
+       CALL alloc_arr ( pl_batom_e   ,0,n_scat,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
 !
        CALL alloc_arr ( pl_bond      ,           0, n_scat,  &
-                                                 0, n_scat,  all_status, .false.  , size_of )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       pl_size_of = pl_size_of + size_of
-!
-       CALL alloc_arr ( pl_poly_c    ,          -1, n_scat,  all_status, .FALSE. , size_of )
+                                                 0, n_scat,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-       CALL alloc_arr ( pl_poly_o    ,          -1, n_scat,  all_status, .FALSE. , size_of )
+       CALL alloc_arr ( pl_poly_c    ,          -1, n_scat,  all_status, .FALSE.  )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-call alloc_arr ( pl_lines, 1,3, 1, 2, 1, n_line, all_status, 0.0D0, size_of)
+       CALL alloc_arr ( pl_poly_o    ,          -1, n_scat,  all_status, .FALSE.  )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+call alloc_arr ( pl_lines, 1,3, 1, 2, 1, n_line, all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-pl_size_of = pl_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          PL_MAXSCAT    = n_scat
@@ -2656,7 +2454,6 @@ pl_size_of = pl_size_of + size_of
          PL_MAXSCAT    = n_scat
          PL_MAXSITE    = n_site
          PL_MAXLINE    = n_line
-         pl_size_of    = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Plot'
@@ -2679,11 +2476,10 @@ INTEGER, INTENT(IN)  :: n_line
 !
 INTEGER              :: all_status
 LOGICAL              :: lstat
-INTEGER              :: size_of
 !
 lstat     = .TRUE.
 !
-call alloc_arr ( pl_lines, 1,3, 1, 2, 1, n_line, all_status, 0.0D0, size_of)
+call alloc_arr ( pl_lines, 1,3, 1, 2, 1, n_line, all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 IF( lstat ) THEN                        ! Success
@@ -2707,130 +2503,155 @@ end subroutine alloc_plot_line
 !
 !*******************************************************************************
 !
-    SUBROUTINE alloc_powder ( n_qxy, n_scat )
+SUBROUTINE alloc_powder ( n_qxy, n_scat )
 !-
 !     Allocate the arrays needed by POWDER
 !+
-      USE powder_mod
-      USE powder_scat_mod
+USE powder_mod
+USE powder_scat_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_qxy
-      INTEGER, INTENT(IN)  :: n_scat
+INTEGER, INTENT(IN)  :: n_qxy
+INTEGER, INTENT(IN)  :: n_scat
 !
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
-      INTEGER              :: size_of
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      lstat     = .TRUE.
-      pow_size_of = 0
+lstat     = .TRUE.
 !
-       CALL alloc_arr ( pow_qsp  ,0,n_qxy  ,  all_status, 0.0D0    , size_of )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pow_size_of = size_of
-!
-       CALL alloc_arr ( pow_f2aver  ,0,n_qxy  ,  all_status, 0.0D0    , size_of )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pow_size_of = pow_size_of + size_of
-!
-       CALL alloc_arr ( pow_faver2  ,0,n_qxy  ,  all_status, 0.0D0    , size_of )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pow_size_of = pow_size_of + size_of
-!
-       CALL alloc_arr ( pow_f2      ,0,n_qxy  ,  0, n_scat, all_status, 0.0D0    , size_of )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pow_size_of = pow_size_of + size_of
-!
-       CALL alloc_arr ( pow_fu      ,0,n_qxy  ,  all_status, 0.0D0    , size_of )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pow_size_of = pow_size_of + size_of
-!
-       CALL alloc_arr ( pow_conv    ,0,n_qxy  ,  all_status, 0.0D0    , size_of )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pow_size_of = pow_size_of + size_of
-!
-       CALL alloc_arr ( pow_sq      ,0,n_qxy  ,  all_status, 0.0D0    , size_of )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-call alloc_arr(pow_do_partial, 0, n_scat, 0, n_scat, all_status, .TRUE., size_of)
-lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-call alloc_arr(pow_nn_partial, 0, n_scat,            all_status, 0     , size_of)
+CALL alloc_arr ( pow_qsp  ,0,n_qxy  ,  all_status, 0.0D0     )
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      IF( lstat ) THEN                        ! Success
-         POW_MAXPKT    = n_qxy
-         POW_MAXSCAT   = n_scat
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'Powder'
-         ENDIF
-      ELSE                                    ! Failure
-         POW_MAXPKT    = n_qxy
-         POW_MAXSCAT   = n_scat
-         pow_size_of   = 0
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'Powder'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_powder
+CALL alloc_arr ( pow_f2aver  ,0,n_qxy  ,  all_status, 0.0D0     )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( pow_faver2  ,0,n_qxy  ,  all_status, 0.0D0     )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( pow_f2      ,0,n_qxy  ,  0, n_scat, all_status, 0.0D0     )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( pow_fu      ,0,n_qxy  ,  all_status, 0.0D0     )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( pow_conv    ,0,n_qxy  ,  all_status, 0.0D0     )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( pow_sq      ,0,n_qxy  ,  all_status, 0.0D0     )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+IF( lstat ) THEN                        ! Success
+   POW_MAXPKT    = n_qxy
+   POW_MAXSCAT   = n_scat
+   ier_typ       = 0
+   ier_num       = 0
+   IF ( all_status == 1 ) THEN
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'Powder'
+   ENDIF
+ELSE                                    ! Failure
+   POW_MAXPKT    = n_qxy
+   POW_MAXSCAT   = n_scat
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'Powder'
+   RETURN
+END IF
+!
+END SUBROUTINE alloc_powder
+!
+!*******************************************************************************
+!
+SUBROUTINE alloc_powder_partial ( n_scat )
+!-
+!     Allocate the arrays needed by POWDER
+!+
+USE powder_mod
+!USE powder_scat_mod
+!
+IMPLICIT NONE
+!
+!      
+INTEGER, INTENT(IN)  :: n_scat
+!
+INTEGER              :: all_status
+LOGICAL              :: lstat
+!
+lstat     = .TRUE.
 !
 !
-    SUBROUTINE alloc_powder_nmax ( n_scat, n_max )
+call alloc_arr(pow_do_partial, 0, n_scat, 0, n_scat, all_status, .TRUE.)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+call alloc_arr(pow_nn_partial, 0, n_scat,            all_status, 0     )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+IF( lstat ) THEN                        ! Success
+   ier_typ       = 0
+   ier_num       = 0
+   IF ( all_status == 1 ) THEN
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'Powder partial'
+   ENDIF
+ELSE                                    ! Failure
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'Powder partial'
+   RETURN
+END IF
+!
+END SUBROUTINE alloc_powder_partial
+!
+!*******************************************************************************
+!
+SUBROUTINE alloc_powder_nmax ( n_scat, n_max )
 !-
 !     Allocate the arrays needed by POWDER complete mode
 !+
-      USE powder_scat_mod
+USE powder_scat_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_scat
-      INTEGER, INTENT(IN)  :: n_max
+INTEGER, INTENT(IN)  :: n_scat
+INTEGER, INTENT(IN)  :: n_max
 !
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
-      INTEGER              :: size_of
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      lstat     = .TRUE.
-      pown_size_of = 0
+lstat     = .TRUE.
 !
-       CALL alloc_arr ( pow_nscat, 1,n_scat, all_status, 0 , size_of )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pown_size_of = size_of
+CALL alloc_arr ( pow_nscat, 1,n_scat, all_status, 0  )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-       CALL alloc_arr ( pow_iatom, 1,n_scat, &
-                                   0,n_max ,  all_status, 0 , size_of )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pown_size_of = size_of
+CALL alloc_arr ( pow_iatom, 1,n_scat, &
+                 0,n_max ,  all_status, 0  )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      IF( lstat ) THEN                        ! Success
-         POW_MAXSCAT   = n_scat
-         POW_NMAX      = n_max
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'Powder'
-         ENDIF
-      ELSE                                    ! Failure
-         POW_MAXSCAT   = n_scat
-         POW_NMAX      = n_max
-         pown_size_of  = 0
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'Powder'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_powder_nmax
+IF( lstat ) THEN                        ! Success
+   POW_MAXSCAT   = n_scat
+   POW_NMAX      = n_max
+   ier_typ       = 0
+   ier_num       = 0
+   IF ( all_status == 1 ) THEN
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'Powder'
+   ENDIF
+ELSE                                    ! Failure
+   POW_MAXSCAT   = n_scat
+   POW_NMAX      = n_max
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'Powder'
+   RETURN
+END IF
+END SUBROUTINE alloc_powder_nmax
 !
-!
+!*******************************************************************************
 !
     SUBROUTINE alloc_rmc ( n_scat, n_site )
 !-
@@ -2846,26 +2667,20 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      rmc_size_of = 0
 !
-       CALL alloc_arr ( rmc_allowed    ,0,n_scat  ,  all_status, .true.   , size_of )
+       CALL alloc_arr ( rmc_allowed    ,0,n_scat  ,  all_status, .true.    )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_lsite      ,0,n_site  ,  all_status, .true.   , size_of )
+       CALL alloc_arr ( rmc_lsite      ,0,n_site  ,  all_status, .true.    )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_maxmove,1,3,0,n_scat  ,  all_status, 0.2D0    , size_of )
+       CALL alloc_arr ( rmc_maxmove,1,3,0,n_scat  ,  all_status, 0.2D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_mindist,1,n_scat,1,n_scat,  all_status, 0.5D0 , size_of )
+       CALL alloc_arr ( rmc_mindist,1,n_scat,1,n_scat,  all_status, 0.5D0  )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          RMC_MAXSCAT   = n_scat
@@ -2880,7 +2695,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       ELSE                                    ! Failure
          RMC_MAXSCAT   = n_scat
          RMC_MAXSITE   = n_site
-         rmc_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'RMC'
@@ -2898,22 +2712,18 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_qxy
+      INTEGER, dimension(3), INTENT(IN)  :: n_qxy
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      rmc_size_of = 0
 !
-       CALL alloc_arr ( rmc_int        ,1,n_qxy   ,  all_status, 0.0D0    , size_of )
+       CALL alloc_arr ( rmc_int        ,1,n_qxy(1), 1,n_qxy(2), 1,n_qxy(3), all_status, 0.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_wic        ,1,n_qxy   ,  all_status, 0.0D0    , size_of )
+       CALL alloc_arr ( rmc_wic        ,1,n_qxy(1), 1,n_qxy(2), 1,n_qxy(3), all_status, 0.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -2927,7 +2737,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
          ENDIF
       ELSE                                    ! Failure
          RMC_MAX_Q     = n_qxy
-         rmc_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'RMC'
@@ -2952,21 +2761,17 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       COMPLEX (KIND=PREC_DP) :: def_value
 !
       def_value = CMPLX(0.0D0,0.0D0,KIND=PREC_DP)
       lstat     = .TRUE.
-      rmc_size_of = 0
 !
-       CALL alloc_arr ( ristl,             0,n_sq  , all_status, 0        , size_of )
+       CALL alloc_arr ( ristl,             0,n_sq  , all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rcfact, 0, CFPKT,1,n_scat,1, n_planes , all_status, def_value  , size_of )
+       CALL alloc_arr ( rcfact, 0, CFPKT,1,n_scat,1, n_planes , all_status, def_value   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -2980,7 +2785,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
          ENDIF
       ELSE                                    ! Failure
 !        RMC_MAXSCAT   = n_scat
-         rmc_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'RMC'
@@ -2989,7 +2793,7 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
     END SUBROUTINE alloc_rmc_istl
 !
 !
-    SUBROUTINE alloc_rmc_q ( n_sq, n_lots )
+    SUBROUTINE alloc_rmc_q ( n_sq, n_sym, n_lots )
 !-
 !     Allocate the arrays needed by RMC
 !+
@@ -2999,30 +2803,26 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_sq
+      INTEGER, dimension(3), INTENT(IN)  :: n_sq
+      INTEGER, INTENT(IN)  :: n_sym 
       INTEGER, INTENT(IN)  :: n_lots
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       COMPLEX (KIND=PREC_DP) :: def_value
 !
       def_value = CMPLX(0.0D0,0.0D0,KIND=PREC_DP)
       lstat     = .TRUE.
-      rmc_size_of = 0
 !
-       CALL alloc_arr ( rmc_lots_orig,1,3, 1,n_lots, all_status, 0        , size_of )
+       CALL alloc_arr ( rmc_lots_orig,1,3, 1,n_lots, all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_csf    , 1, n_sq, 1, n_lots, all_status, def_value, size_of )
+       CALL alloc_arr ( rmc_csf    , 1, n_sq(1), 1, n_sq(2), 1, n_sq(3), 1, n_sym, 1, n_lots, all_status, def_value )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_csf_new, 1, n_sq, 1, n_lots, all_status, def_value, size_of )
+       CALL alloc_arr ( rmc_csf_new, 1, n_sq(1), 1, n_sq(2), 1, n_sq(3), 1, n_sym, 1, n_lots, all_status, def_value )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -3039,7 +2839,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !        RMC_MAXSCAT   = n_scat
          RMC_MAX_SQ    = n_sq
          ier_typ       = 0
-         rmc_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'RMC'
@@ -3062,99 +2861,76 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
       INTEGER              :: i
 !
       lstat     = .TRUE.
-      rmc_size_of = 0
 !
-       CALL alloc_arr ( rmc_fname      ,1,n_planes  ,  all_status, ' '      , size_of )
+       CALL alloc_arr ( rmc_fname      ,1,n_planes  ,  all_status, ' '       )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_lambda     ,1,n_planes  ,  all_status, ' '      , size_of )
+       CALL alloc_arr ( rmc_lambda     ,1,n_planes  ,  all_status, ' '       )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_xy, 1,4    ,1,n_planes  ,  all_status, 0.0D0    , size_of )
+       CALL alloc_arr ( rmc_xy, 1,4    ,1,n_planes  ,  all_status, 0.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_rlambda    ,1,n_planes  ,  all_status, 0.0D0    , size_of )
+       CALL alloc_arr ( rmc_rlambda    ,1,n_planes  ,  all_status, 0.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_skal       ,1,n_planes  ,  all_status, 1.0D0    , size_of )
+       CALL alloc_arr ( rmc_skal       ,1,n_planes  ,  all_status, 1.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_back       ,1,n_planes  ,  all_status, 0.0D0    , size_of )
+       CALL alloc_arr ( rmc_back       ,1,n_planes  ,  all_status, 0.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_chi2       ,1,n_planes  ,  all_status, 0.0D00   , size_of )
+       CALL alloc_arr ( rmc_chi2       ,1,n_planes  ,  all_status, 0.0D00    )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_wtot       ,1,n_planes  ,  all_status, 0.0D0    , size_of )
+       CALL alloc_arr ( rmc_wtot       ,1,n_planes  ,  all_status, 0.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_wic_typ    ,1,n_planes  ,  all_status, RMC_WIC_EINS,size_of )
+       CALL alloc_arr ( rmc_wic_typ    ,1,n_planes  ,  all_status, RMC_WIC_EINS)
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_nsym       ,1,n_planes  ,  all_status, 0        , size_of )
+       CALL alloc_arr ( rmc_nsym       ,1,n_planes  ,  all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_constrain  ,1,n_planes  ,  all_status, 0        , size_of )
+       CALL alloc_arr ( rmc_constrain  ,1,n_planes  ,  all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
        DO i=1,n_planes
           rmc_constrain(i) = i
        ENDDO
 !
-       CALL alloc_arr ( rmc_num, 1,2   ,1,n_planes  ,  all_status, 0        , size_of )
+       CALL alloc_arr ( rmc_num, 1,2   ,1,n_planes  ,  all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_radiation  ,1,n_planes  ,  all_status, 0        , size_of )
+       CALL alloc_arr ( rmc_radiation  ,1,n_planes  ,  all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_power      ,1,n_planes  ,  all_status, 0        , size_of )
+       CALL alloc_arr ( rmc_power      ,1,n_planes  ,  all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr (     offq       ,1,n_planes+1,  all_status, 0        , size_of )
+       CALL alloc_arr (     offq       ,1,n_planes+1,  all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
 !
-       CALL alloc_arr ( rmc_lxray      ,1,n_planes  ,  all_status, .true.   , size_of )
+       CALL alloc_arr ( rmc_lxray      ,1,n_planes  ,  all_status, .true.    )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_ano        ,1,n_planes  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( rmc_ano        ,1,n_planes  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_ldbw       ,1,n_planes  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( rmc_ldbw       ,1,n_planes  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_eck, 1,3,1,3, 1, n_sym  ,1,n_planes  ,  all_status, 0.0D0    , size_of )
+       CALL alloc_arr ( rmc_eck, 1,3,1,3, 1, n_sym  ,1,n_planes  ,  all_status, 0.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr ( rmc_vi , 1,3,1,2, 1, n_sym  ,1,n_planes  ,  all_status, 0.0D0    , size_of )
+       CALL alloc_arr ( rmc_vi , 1,3,1,2, 1, n_sym  ,1,n_planes  ,  all_status, 0.0D0     )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
-       CALL alloc_arr (     offsq      ,1,n_planes+1, 1,n_sym,  all_status, 0        , size_of )
+       CALL alloc_arr (     offsq      ,1,n_planes+1, 1,n_sym,  all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       rmc_size_of = rmc_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          RMC_MAX_PLANES = n_planes
@@ -3167,7 +2943,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
          ENDIF
       ELSE                                    ! Failure
          RMC_MAX_PLANES = n_planes
-         rmc_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'RMC'
@@ -3190,22 +2965,17 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      sav_size_of   = 0
 !
-       CALL alloc_arr ( sav_latom      ,0,n_scat  ,  all_status, .true.  , size_of )
+       CALL alloc_arr ( sav_latom      ,0,n_scat  ,  all_status, .true.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       sav_size_of = sav_size_of + size_of
 !
-       CALL alloc_arr ( sav_t_latom    ,0,n_scat  ,  all_status, .true.  , size_of )
+       CALL alloc_arr ( sav_t_latom    ,0,n_scat  ,  all_status, .true.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       sav_size_of = sav_size_of + size_of
 !
-       CALL alloc_arr ( sav_lsite      ,0,n_site  ,  all_status, .true.  , size_of )
+       CALL alloc_arr ( sav_lsite      ,0,n_site  ,  all_status, .true.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       sav_size_of = sav_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          SAV_MAXSCAT   = n_scat
@@ -3220,7 +2990,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       ELSE                                    ! Failure
          SAV_MAXSCAT   = n_scat
          SAV_MAXSITE   = n_site
-         sav_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Save'
@@ -3243,18 +3012,14 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      shear_size_of = 0
 !
-       CALL alloc_arr ( shear_latom ,0,n_scat,  all_status, .false., size_of )
+       CALL alloc_arr ( shear_latom ,0,n_scat,  all_status, .false. )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       shear_size_of = shear_size_of + size_of
 !
-       CALL alloc_arr ( shear_lsite ,0,n_site,  all_status, .false., size_of )
+       CALL alloc_arr ( shear_lsite ,0,n_site,  all_status, .false. )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       shear_size_of = shear_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          SHEAR_MAXSCAT = n_scat
@@ -3269,7 +3034,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       ELSE                                    ! Failure
          SHEAR_MAXSCAT = n_scat
          SHEAR_MAXSITE = n_site
-         shear_size_of = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Shear'
@@ -3278,7 +3042,7 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
     END SUBROUTINE alloc_shear
 !
 !
-    SUBROUTINE alloc_stack ( n_types, n_layers, n_qxy, l_rot )
+    SUBROUTINE alloc_stack ( n_types, n_layers, l_rot )
 !-
 !     Allocate the arrays needed by POWDER
 !+
@@ -3290,119 +3054,135 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !      
       INTEGER, INTENT(IN)  :: n_types
       INTEGER, INTENT(IN)  :: n_layers
-      INTEGER, INTENT(IN)  :: n_qxy
       LOGICAL, INTENT(IN)  :: l_rot
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
       COMPLEX (KIND=PREC_DP) :: def_value
 !
       lstat      = .TRUE.
-      st_size_of = 0
       def_value  = CMPLX(0.0D0,0.0D0,KIND=PREC_DP)
 !
-      CALL alloc_arr (  st_layer    ,0,n_types  ,  all_status, ' '      , size_of )
+      CALL alloc_arr (  st_layer    ,0,n_types  ,  all_status, ' '       )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
-      CALL alloc_arr (  st_layer_c  ,0,n_types  ,  all_status, ' '      , size_of )
+      CALL alloc_arr (  st_layer_c  ,0,n_types  ,  all_status, ' '       )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
-      CALL alloc_arr (  st_llayer   ,0,n_types  ,  all_status, 0        , size_of )
+      CALL alloc_arr (  st_llayer   ,0,n_types  ,  all_status, 0         )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
-      CALL alloc_arr (  st_number   ,0,n_types  ,  all_status, 0        , size_of )
+      CALL alloc_arr (  st_number   ,0,n_types  ,  all_status, 0         )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
-      CALL alloc_arr (  st_ndisp    ,0,n_types  ,  all_status, 0        , size_of )
+      CALL alloc_arr (  st_ndisp    ,0,n_types  ,  all_status, 0         )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
-      CALL alloc_arr (  st_chem     ,0,n_types  ,  all_status, 0        , size_of )
+      CALL alloc_arr (  st_chem     ,0,n_types  ,  all_status, 0         )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
       CALL alloc_arr (  st_disp     ,1,3      ,                                           &
-                                     0,n_types  ,  all_status, 0.0D0    , size_of )
+                                     0,n_types  ,  all_status, 0.0D0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
       CALL alloc_arr (  st_corr     ,0,n_types  ,                                  &
-                                     0,n_types  ,  all_status, 0.0D0    , size_of )
+                                     0,n_types  ,  all_status, 0.0D0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
       CALL alloc_arr (  st_sigma    ,0,n_types  ,                                  &
                                      0,n_types  ,                                  &
-                                     1,3      , all_status, 0.0D0    , size_of )
+                                     1,3      , all_status, 0.0D0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
       CALL alloc_arr (  st_trans    ,0,n_types  , &
                                      0,n_types  , &
-                                     1,3      ,  all_status, 0.0D0     , size_of )
+                                     1,3      ,  all_status, 0.0D0      )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
-      CALL alloc_arr (  st_type     ,0,n_layers,  all_status, 0        , size_of )
+      CALL alloc_arr (  st_type     ,0,n_layers,  all_status, 0         )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
-      CALL alloc_arr (  st_internal ,0,n_types ,  all_status, .false.  , size_of )
+      CALL alloc_arr (  st_internal ,0,n_types ,  all_status, .false.   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
       CALL alloc_arr (  st_origin   ,1,3      ,                                          &
-                                     0,n_layers,  all_status, 0.0D0    , size_of )
+                                     0,n_layers,  all_status, 0.0D0     )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
       IF ( l_rot ) THEN   ! Allocate rotational stacking faults, this is rarely used
 !
-         CALL alloc_arr (  st_rot_ang_no, 0,n_layers,  all_status, 0.0D0, size_of )
+         CALL alloc_arr (  st_rot_ang_no, 0,n_layers,  all_status, 0.0D0 )
          lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-         st_size_of = size_of
 !
-         CALL alloc_arr (  st_rot_ang_m1, 0,n_layers,  all_status, 0.0D0, size_of )
+         CALL alloc_arr (  st_rot_ang_m1, 0,n_layers,  all_status, 0.0D0 )
          lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-         st_size_of = size_of
 !
-         CALL alloc_arr (  st_rot_ang_m2, 0,n_layers,  all_status, 0.0D0, size_of )
+         CALL alloc_arr (  st_rot_ang_m2, 0,n_layers,  all_status, 0.0D0 )
          lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-         st_size_of = size_of
 !
       ENDIF
-!
-      CALL alloc_arr (  st_csf, 0,n_qxy,  all_status, def_value, size_of )
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_size_of = size_of
 !
       IF( lstat ) THEN                        ! Success
          ST_MAXTYPE    = n_types
          ST_MAXLAYER   = n_layers
+         ier_typ       = 0
+         ier_num       = 0
+         IF ( all_status == 1 ) THEN
+            ier_typ       = 1
+            ier_num       = ER_COMM
+            ier_msg(1)    = 'Stack'
+         ENDIF
+      ELSE                                    ! Failure
+         ST_MAXTYPE    = n_types
+         ST_MAXLAYER   = n_layers
+         ier_num       = -3
+         ier_typ       = ER_COMM
+         ier_msg(1)    = 'Stack'
+         RETURN
+      END IF
+    END SUBROUTINE alloc_stack
+!
+!
+    SUBROUTINE alloc_stack_four ( n_qxy)
+!-
+!     Allocate the arrays needed by POWDER
+!+
+      USE stack_mod
+      USE precision_mod
+!
+      IMPLICIT NONE
+!
+!      
+      INTEGER, dimension(3), INTENT(IN)  :: n_qxy
+!
+      INTEGER              :: all_status
+      LOGICAL              :: lstat
+      COMPLEX (KIND=PREC_DP) :: def_value
+!
+      lstat      = .TRUE.
+      def_value  = CMPLX(0.0D0,0.0D0,KIND=PREC_DP)
+!
+!
+      CALL alloc_arr (  st_csf, 1,n_qxy(1), 1,n_qxy(2), 1,n_qxy(3),  all_status, def_value )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      IF( lstat ) THEN                        ! Success
          ST_MAXQXY     = n_qxy
          ier_typ       = 0
          ier_num       = 0
          IF ( all_status == 1 ) THEN
             ier_typ       = 1
             ier_num       = ER_COMM
-            ier_msg(1)    = 'Powder'
+            ier_msg(1)    = 'Stack_Fourier'
          ENDIF
       ELSE                                    ! Failure
-         ST_MAXTYPE    = n_types
-         ST_MAXLAYER   = n_layers
          ST_MAXQXY     = n_qxy
-         st_size_of    =  0
          ier_num       = -3
          ier_typ       = ER_COMM
-         ier_msg(1)    = 'Powder'
+         ier_msg(1)    = 'Stack_Fourier'
          RETURN
       END IF
-    END SUBROUTINE alloc_stack
+    END SUBROUTINE alloc_stack_four
 !
 !
     SUBROUTINE alloc_stack_crystal ( n_scat, n_max )
@@ -3419,86 +3199,65 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat  = .TRUE.
-      st_cr_size_of = 0
 !
-      CALL alloc_arr ( st_at_lis     ,0,n_scat,  all_status, ' ', size_of)
+      CALL alloc_arr ( st_at_lis     ,0,n_scat,  all_status, ' ')
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( sa_at_lis     ,0,n_scat,  all_status, ' ', size_of)
+      CALL alloc_arr ( sa_at_lis     ,0,n_scat,  all_status, ' ')
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_scat,1,11,0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( st_scat,1,11,0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_dw,          0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( st_dw,          0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( sa_dw,          0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( sa_dw,          0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_occ,         0,n_scat,  all_status, 1.00D0, size_of)
+      CALL alloc_arr ( st_occ,         0,n_scat,  all_status, 1.00D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( sa_occ,         0,n_scat,  all_status, 1.0D0, size_of)
+      CALL alloc_arr ( sa_occ,         0,n_scat,  all_status, 1.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_delfr       ,0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( st_delfr       ,0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_delfi       ,0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( st_delfi       ,0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_mole ,       1,n_max,   all_status, 0  , size_of)
+      CALL alloc_arr ( st_mole ,       1,n_max,   all_status, 0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_surf ,0, 3,  1,n_max ,  all_status, 0  , size_of)
+      CALL alloc_arr ( st_surf ,0, 3,  1,n_max ,  all_status, 0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_magn ,0, 3,  1,n_max ,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( st_magn ,0, 3,  1,n_max ,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( sa_iscat,       1,n_scat,  all_status, 0  , size_of)
+      CALL alloc_arr ( sa_iscat,       1,n_scat,  all_status, 0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( sa_prop,        1,n_scat,  all_status, 0  , size_of)
+      CALL alloc_arr ( sa_prop,        1,n_scat,  all_status, 0  )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_delfi       ,0,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( st_delfi       ,0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_iscat      ,1,n_max ,  all_status, 0, size_of)
+      CALL alloc_arr ( st_iscat      ,1,n_max ,  all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_prop       ,1,n_max ,  all_status, 0, size_of)
+      CALL alloc_arr ( st_prop       ,1,n_max ,  all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_pos,1,3,1,n_max ,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( st_pos,1,3,1,n_max ,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( sa_pos,1,3,1,n_scat,  all_status, 0.0D0, size_of)
+      CALL alloc_arr ( sa_pos,1,3,1,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
 !
 !
       IF( lstat ) THEN                        ! Success
@@ -3514,7 +3273,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       ELSE                                    ! Failure
          ST_MAX_SCAT   =  1
          ST_MMAX       =  1
-         st_cr_size_of =  0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Crystal'
@@ -3536,20 +3294,16 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      surf_size_of = 0
 !
        CALL alloc_arr ( surf_ex_dist    ,0,n_scat  , &
-                                      all_status, SURF_DIST_DEF, size_of )
+                                      all_status, SURF_DIST_DEF )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       surf_size_of = surf_size_of + size_of
 !
        CALL alloc_arr ( surf_in_dist    ,0,n_scat  ,  &
-                                     all_status, SURF_DIST_DEF, size_of )
+                                     all_status, SURF_DIST_DEF )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       surf_size_of = surf_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          SURF_MAXSCAT  = n_scat
@@ -3562,7 +3316,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
          ENDIF
       ELSE                                    ! Failure
          SURF_MAXSCAT  = n_scat
-         surf_size_of  = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Shear'
@@ -3584,18 +3337,14 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      sym_size_of   = 0
 !
-      CALL alloc_arr ( sym_latom      ,0,n_scat  ,  all_status, .false.  , size_of )
+      CALL alloc_arr ( sym_latom      ,0,n_scat  ,  all_status, .false.   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      sym_size_of = sym_size_of + size_of
 !
-      CALL alloc_arr ( sym_lsite      ,0,n_site  ,  all_status, .false.  , size_of )
+      CALL alloc_arr ( sym_lsite      ,0,n_site  ,  all_status, .false.   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      sym_size_of = sym_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          SYM_MAXSCAT   = n_scat
@@ -3610,7 +3359,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       ELSE                                    ! Failure
          SYM_MAXSCAT   = n_scat
          SYM_MAXSITE   = n_site
-         sym_size_of   = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Symmetry'
@@ -3632,18 +3380,14 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      tran_size_of = 0
 !
-       CALL alloc_arr ( tran_latom     ,0,n_scat  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( tran_latom     ,0,n_scat  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       tran_size_of = tran_size_of + size_of
 !
-       CALL alloc_arr ( tran_lsite     ,0,n_site  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( tran_lsite     ,0,n_site  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       tran_size_of = tran_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          TRAN_MAXSCAT  = n_scat
@@ -3658,7 +3402,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       ELSE                                    ! Failure
          TRAN_MAXSCAT  = n_scat
          TRAN_MAXSITE  = n_site
-         tran_size_of  = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Transform'
@@ -3681,26 +3424,20 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      wv_size_of = 0
 !
-       CALL alloc_arr ( wv_repl      ,0,n_scat  ,  all_status, 0        , size_of )
+       CALL alloc_arr ( wv_repl      ,0,n_scat  ,  all_status, 0         )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       wv_size_of = wv_size_of + size_of
 !
-       CALL alloc_arr ( wv_latom     ,0,n_scat  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( wv_latom     ,0,n_scat  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       wv_size_of = wv_size_of + size_of
 !
-       CALL alloc_arr ( wv_latom_rot ,0,n_scat  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( wv_latom_rot ,0,n_scat  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       wv_size_of = wv_size_of + size_of
 !
-       CALL alloc_arr ( wv_lsite     ,0,n_site  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( wv_lsite     ,0,n_site  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-       wv_size_of = wv_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          WV_MAXSCAT    = n_scat
@@ -3715,7 +3452,6 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       ELSE                                    ! Failure
          WV_MAXSCAT    = n_scat
          WV_MAXSITE    = n_site
-         wv_size_of    = 0
          ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Waves'
@@ -3774,7 +3510,9 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !+
       IMPLICIT NONE
 !
-      CALL alloc_diffuse ( 1, 1, 1)
+      CALL alloc_diffuse_four ( (/1,1,1/))
+      CALL alloc_diffuse_scat ( 1)
+      CALL alloc_diffuse_atom ( 1)
 !
     END SUBROUTINE dealloc_diffuse
 !
@@ -3840,7 +3578,7 @@ SUBROUTINE dealloc_phases
 !+
 IMPLICIT NONE
 !
-CALL alloc_phases ( 1, 1,  1    )
+CALL alloc_phases ( 1, (/1,1,1/),  1    )
 !
 END SUBROUTINE dealloc_phases
 !
@@ -3878,7 +3616,8 @@ END SUBROUTINE dealloc_phases
 !+
       IMPLICIT NONE
 !
-      CALL alloc_powder ( 1,  1 )
+      CALL alloc_powder ( 1, 1  )
+      CALL alloc_powder_partial ( 1     )
 !
     END SUBROUTINE dealloc_powder
 !
@@ -3926,8 +3665,9 @@ END SUBROUTINE dealloc_phases
 !+
       IMPLICIT NONE
 !
-      CALL alloc_stack    ( 1,  1,  1,  .TRUE.)
-      CALL alloc_stack_crystal    ( 1,  1        )
+      CALL alloc_stack         ( 1, 1, .TRUE.)
+      CALL alloc_stack_four    ( (/1,1,1/)  )
+      CALL alloc_stack_crystal ( 1,  1        )
 !
     END SUBROUTINE dealloc_stack
 !

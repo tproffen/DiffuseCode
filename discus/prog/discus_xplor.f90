@@ -123,9 +123,11 @@ ENDIF
 WRITE(IMRC,'(a5)') '  ZYX'
 DO l=start(3), fini(3)
    WRITE(IMRC,'(i8)') l-start(3) + 1
-   WRITE(IMRC,'(6e12.5)') ((qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
-                                   (j - 1) * out_inc(3)             + l,     &
-                                    value,  i, j, laver),                    &
+!   WRITE(IMRC,'(6e12.5)') ((qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+!                                   (j - 1) * out_inc(3)             + l,     &
+!                                    value,  i, j, laver),                    &
+!                            i=start(1), fini(1)), j = start(2), fini(2))
+   WRITE(IMRC,'(6e12.5)') ((qval(i,j,l, value,  i, j, laver),                &
                             i=start(1), fini(1)), j = start(2), fini(2))
 ENDDO
 WRITE(IMRC,'(i8)') -9999
@@ -292,15 +294,16 @@ end if
 write(IMRC,'(3i8)') fini(1)-start(1)+1, fini(2)-start(2)+1, fini(3)-start(3)+1
 !
 allocate(qvals(start(3): fini(3)))
-extrema = qval(1, value, 1, 1, laver)
+extrema = qval(1,1,1, value, 1, 1, laver)
 qvals = 0.0
 !
 do i=start(1), fini(1)
    do j=start(2), fini(2)
       do l=start(3), fini(3)
-         qvals(l) = qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
-                           (j - 1) * out_inc(3)             + l,     &
-                           value,  i, j, laver)
+!        qvals(l) = qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+!                          (j - 1) * out_inc(3)             + l,     &
+!                          value,  i, j, laver)
+         qvals(l) = qval(i,j,l, value,  i, j, laver)
       enddo
       extrema(1) = min(extrema(1), minval(qvals))
       extrema(2) = max(extrema(2), maxval(qvals))

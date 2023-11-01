@@ -33,12 +33,12 @@ integer                                   , intent(in)  :: MAXATOMS ! Dimension 
 integer                                   , intent(in)  :: nat      ! Actual atom number
 integer                                   , intent(in)  :: icell    ! Actual unit cell number
 integer                                   , intent(in)  :: inc      ! Number data points along axes
-integer                                   , intent(in)  :: MAXQXY   ! Actual atom number
+integer              , dimension(3)       , intent(in)  :: MAXQXY   ! Actual Reciprocal space dimensions
 real(kind=PREC_DP)   , dimension(MAXATOMS), intent(in)  :: xpos     ! Actual atom coordinates
 real(kind=PREC_DP)                        , intent(in)  :: occ      ! Atom occupancies
 integer                                   , intent(in)  :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
 real(kind=PREC_DP)                        , intent(in)  :: scales   ! Scaling
-complex(kind=PREC_DP), dimension(MAXQXY)  , intent(out) :: tcsf     ! Resulting structure factor
+complex(kind=PREC_DP), dimension(MAXQXY(1),1,1)  , intent(out) :: tcsf     ! Resulting structure factor
 !
 integer                     :: ier   = 0  ! Return error flag from finufft
 integer                     :: iflag = 1  ! Flag to FINUFFT sign of i
@@ -65,7 +65,7 @@ call finufft_default_opts(opts)                            ! Use default options
 call finufft1d1(M, xj, cj, iflag, tol, N, fk, opts, ier)   ! Do 1D NUFFT
 !
 if(ier==0) then
-   tcsf(1:MAXQXY) = fk(1:N:iscales)
+   tcsf(1:MAXQXY(1), 1, 1) = fk(1:N:iscales)
 endif
 !
 deallocate(xj)
@@ -91,19 +91,20 @@ integer                                   , intent(in)  :: MAXATOMS ! Dimension 
 integer                                   , intent(in)  :: nat      ! Actual atom number
 integer              , dimension(2)       , intent(in)  :: icell    ! Actual unit cell numbers
 integer              , dimension(2)       , intent(in)  :: inc      ! Number data points along axes
-integer                                   , intent(in)  :: MAXQXY   ! Total number in reciprocal space
+integer              , dimension(3)       , intent(in)  :: MAXQXY   ! Total number in reciprocal space
 real(kind=PREC_DP)   , dimension(MAXATOMS), intent(in)  :: xpos     ! Actual atom coordinates
 real(kind=PREC_DP)   , dimension(MAXATOMS), intent(in)  :: ypos     ! Actual atom coordinates
 real(kind=PREC_DP)                        , intent(in)  :: occ      ! Atom occupancies
 integer              , dimension(2)       , intent(in)  :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
 real(kind=PREC_DP)   , dimension(2)       , intent(in)  :: scales   ! Scaling
-complex(kind=PREC_DP), dimension(MAXQXY)  , intent(out) :: tcsf     ! Resulting structure factor
+complex(kind=PREC_DP), dimension(MAXQXY(1), MAXQXY(2), 1)  , intent(out) :: tcsf     ! Resulting structure factor
 !
 integer                     :: ier   = 0  ! Return error flag from finufft
 integer                     :: iflag = 1  ! Flag to FINUFFT sign of i
 integer(kind=PREC_INT_LONG) :: m          ! Number of non-uniform points == number atoms
 integer(kind=PREC_INT_LONG) :: ms, mt     ! Number of uniform points in Fourier space
 integer(kind=PREC_INT_LONG) :: h, k, i    ! Loop indices             in Fourier space
+integer(kind=PREC_INT_LONG) :: hh, kk     ! Loop indices             in Fourier space
 integer(kind=PREC_INT_LONG) :: nj         ! Number of uniform points in Fourier space
 real(kind=PREC_DP)                               :: tol ! Required tolerance
 real(kind=PREC_DP)   , dimension(:), allocatable :: xj  ! Coordinates
@@ -132,9 +133,12 @@ call finufft_default_opts(opts)
 call finufft2d1(M, xj, yj, cj, iflag, tol, ms, mt, fk, opts, ier)
 i = 0
 do h=1,ms, iscales(1)
+  hh = (h-1)/iscales(1) + 1
   do k=1, mt, iscales(2)
-    i = i+1
-    tcsf(i) = fk((k-1)*ms+h)
+    kk = (k-1)/iscales(2) + 1
+!   i = i+1
+!   tcsf(i) = fk((k-1)*ms+h)
+    tcsf(hh,kk,1) = fk((k-1)*ms+h)
   enddo
 enddo
 !
@@ -163,20 +167,21 @@ integer                                   , intent(in)  :: MAXATOMS ! Dimension 
 integer                                   , intent(in)  :: nat      ! Actual atom number
 integer              , dimension(3)       , intent(in)  :: icell    ! Actual unit cell numbers
 integer              , dimension(3)       , intent(in)  :: inc      ! Number data points along exes
-integer                                   , intent(in)  :: MAXQXY   ! Total data points reciprocal space
+integer              , dimension(3)       , intent(in)  :: MAXQXY   ! Total data points reciprocal space
 real(kind=PREC_DP)   , dimension(MAXATOMS), intent(in)  :: xpos     ! Actual atom coordinates
 real(kind=PREC_DP)   , dimension(MAXATOMS), intent(in)  :: ypos     ! Actual atom coordinates
 real(kind=PREC_DP)   , dimension(MAXATOMS), intent(in)  :: zpos     ! Actual atom coordinates
 real(kind=PREC_DP)                        , intent(in)  :: occ      ! Atom occupancies
 integer              , dimension(3)       , intent(in)  :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
 real   (kind=PREC_DP), dimension(3)       , intent(in)  :: scales   ! Scaleing
-complex(kind=PREC_DP), dimension(MAXQXY)  , intent(out) :: tcsf     ! Resulting structure factor
+complex(kind=PREC_DP), dimension(MAXQXY(1),MAXQXY(2),MAXQXY(3))  , intent(out) :: tcsf     ! Resulting structure factor
 !
 integer                     :: ier   = 0  ! Return error flag from finufft
 integer                     :: iflag = 1  ! Flag to FINUFFT sign of i
 integer(kind=PREC_INT_LONG) :: m          ! Number of non-uniform points == number atoms
 integer(kind=PREC_INT_LONG) :: ms, mt, mu ! Number of uniform points in Fourier space
 integer(kind=PREC_INT_LONG) :: h, k, l, i ! Loop indices             in Fourier space
+integer(kind=PREC_INT_LONG) :: hh,kk,ll   ! Loop indices             in Fourier space
 integer(kind=PREC_INT_LONG) :: nj         ! Number of uniform points in Fourier space
 real(kind=PREC_DP)                               :: tol ! Required tolerance
 real(kind=PREC_DP)   , dimension(:), allocatable :: xj  ! Coordinates
@@ -209,13 +214,18 @@ call finufft_default_opts(opts)
 call finufft3d1(M, xj, yj, zj, cj, iflag, tol, ms, mt, mu, fk, opts, ier)
 !
 i = 0
-do h=1,ms, iscales(1)
-  do k=1, mt, iscales(2)
-    do l=1, mu, iscales(3)
-       i = i+1
-       tcsf(i) = fk((l-1)*ms*mt+(k-1)*ms+h)
-     enddo
-  enddo
+do l=1, mu, iscales(3)
+   ll = (l-1)/iscales(3) + 1
+   do k=1, mt, iscales(2)
+      kk = (k-1)/iscales(2) + 1
+      do h=1,ms, iscales(1)
+         hh = (h-1)/iscales(1) + 1
+         i = i+1
+!      tcsf(i) = fk((l-1)*ms*mt+(k-1)*ms+h)
+!        tcsf(hh,kk,ll) = fk((l-1)*ms*mt+(k-1)*ms+h)
+         tcsf(hh,kk,ll) = fk(i)
+      enddo
+   enddo
 enddo
 !
 deallocate(xj)

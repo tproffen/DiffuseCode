@@ -149,38 +149,34 @@ INTEGER         , INTENT(INOUT) :: laenge
          ENDIF 
 !                                                                       
          IF (ier_num.eq.0) then 
-!                                                                       
+         !                                                                       
             IF (ftyp.eq.'ni') then 
                ier_num = - 3 
                ier_typ = ER_IO 
                READ (if2, *, err = 900) nx (1), ny (1) 
-               READ (if2, *, err = 900) xmin (1), xmax (1), ymin (1),   &
-               ymax (1)                                                 
+               READ (if2, *, err = 900) xmin (1), xmax (1), ymin (1), ymax (1) 
                READ (if3, *, err = 900) nx (2), ny (2) 
-               READ (if3, *, err = 900) xmin (2), xmax (2), ymin (2),   &
-               ymax (2)                                                 
+               READ (if3, *, err = 900) xmin (2), xmax (2), ymin (2), ymax (2) 
                ier_num = 0 
                ier_typ = ER_NONE 
-               IF (nx (1) .eq.nx (2) .and.ny (1) .eq.ny (2) .and.xmin ( &
-               1) .eq.xmin (2) .and.ymin (1) .eq.ymin (2) .and.xmax (1) &
-               .eq.xmax (2) .and.ymax (1) .eq.ymax (2) ) then           
+               IF (nx (1) .eq.nx (2) .and.ny (1) .eq.ny (2) .and.xmin (1) .eq.xmin (2) .and.ymin (1) .eq.ymin (2) .and.xmax (1) .eq.xmax (2) .and.ymax (1) .eq.ymax (2) ) then           
                   WRITE (if1, * ) nx (1), ny (1) 
                   WRITE (if1, * ) xmin (1), xmax (1), ymin (1), ymax (1) 
                   DO i = 1, ny (1) 
-                  ier_num = - 3 
-                  ier_typ = ER_IO 
-                  READ (if2, *, err = 900) (dsi (j), j = 1, nx (1) ) 
-                  DO j = 1, nx (1) 
-                  tcsf (j) = cmplx ( dsi (j), 0.0, KIND=KIND(0.0D0)) 
-                  ENDDO 
-                  READ (if3, *, err = 900) (dsi (j), j = 1, nx (1) ) 
-                  ier_num = 0 
-                  ier_typ = ER_NONE 
-                  DO j = 1, nx (1) 
-                  dsi (j) = real(tcsf (j), kind=PREC_DP ) + scale * dsi (j) 
-                  ENDDO 
-                  WRITE (if1, 3010) (dsi (j), j = 1, nx (1) ) 
-                  WRITE (if1, * ) 
+                     ier_num = - 3 
+                     ier_typ = ER_IO 
+                     READ (if2, *, err = 900) (dsi (j,i,1), j = 1, nx (1) ) 
+                     DO j = 1, nx (1) 
+                        tcsf (j,i,1) = cmplx ( dsi (j,i,1), 0.0, KIND=KIND(0.0D0)) 
+                     ENDDO 
+                     READ (if3, *, err = 900) (dsi (j,i,1), j = 1, nx (1) ) 
+                     ier_num = 0 
+                     ier_typ = ER_NONE 
+                     DO j = 1, nx (1) 
+                        dsi (j,i,1) = real(tcsf (j,i,1), kind=PREC_DP ) + scale * dsi (j,i,1) 
+                     ENDDO 
+                     WRITE (if1, 3010) (dsi (j,i,1), j = 1, nx (1) ) 
+                     WRITE (if1, * ) 
                   ENDDO 
                ELSE 
                   ier_num = - 22 
@@ -189,7 +185,7 @@ INTEGER         , INTENT(INOUT) :: laenge
             ELSEIF (ftyp.eq.'gnu') then 
                ier_num = - 3 
                ier_typ = ER_IO 
-   10          CONTINUE 
+               10 CONTINUE 
                line_no = line_no + 1 
                READ (if2, 1000, end = 800, err = 900) line 
                IF (line.eq.' '.or.line.eq.char (13) ) then 
@@ -216,7 +212,7 @@ INTEGER         , INTENT(INOUT) :: laenge
             ELSEIF (ftyp.eq.'1d') then 
                ier_num = - 3 
                ier_typ = ER_IO 
-   20          CONTINUE 
+               20 CONTINUE 
                line_no = line_no + 1 
                READ (if2, *, end = 800, err = 900) x1, y1 
                READ (if3, *, end = 900, err = 900) x2, y2 

@@ -77,7 +77,7 @@ IMPLICIT none
       INTEGER :: i, j=1, k, ianz, lp, length , lsymbol, iianz
       INTEGER indxg, lbef 
       INTEGER              :: infile_l, outfile_l
-      INTEGER              :: n_qxy    ! required size in reciprocal space this run
+      INTEGER, dimension(3):: n_qxy    ! required size in reciprocal space this run
       INTEGER              :: n_nscat  ! required no of atom types right now
       INTEGER              :: n_natoms ! required no of atoms
       INTEGER              :: four_dim ! Dimension of Fourier that was calculated
@@ -250,17 +250,33 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                         rhkl (1) = werte (1) 
                         rhkl (2) = werte (2) 
                         rhkl (3) = werte (3) 
-                        IF (inc(1) * inc(2) * inc(3) .gt. MAXQXY  .OR.   &
-                            cr_natoms > DIF_MAXAT                 .OR.   &
-                            cr_nscat>DIF_MAXSCAT              ) THEN
-                          n_qxy    = MAX(n_qxy,inc(1) * inc(2)*inc(3),MAXQXY)
-                          n_natoms = MAX(n_natoms,cr_natoms,DIF_MAXAT)
-                          n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-                          call alloc_diffuse (n_qxy, n_nscat, n_natoms)
-                          IF (ier_num.ne.0) THEN
-                            RETURN
-                          ENDIF
-                        ENDIF
+!                       IF (inc(1) * inc(2) * inc(3) .gt. MAXQXY  .OR.   &
+                        if(any(inc/=ubound(csf))) then
+                           n_qxy = inc
+                           call alloc_diffuse_four (n_qxy )
+                           if(ier_num/=0) return
+                        endif
+                        if(cr_nscat/=ubound(cfact,2)) then
+                           call alloc_diffuse_scat(cr_nscat)
+                           if(ier_num/=0) return
+                        endif
+                        if(cr_natoms/=ubound(xat,1)) then
+                           call alloc_diffuse_atom(cr_natoms)
+                           if(ier_num/=0) return
+                        endif
+!                       if(inc(1)>MAXQXY(1) .or. inc(2)>MAXQXY(2) .or. inc(3)>MAXQXY(3) .or.&
+!                           cr_natoms > DIF_MAXAT                 .OR.   &
+!                           cr_nscat>DIF_MAXSCAT              ) THEN
+!                         n_qxy    = MAX(n_qxy, inc, MAXQXY)
+!                         n_natoms = MAX(n_natoms,cr_natoms,DIF_MAXAT)
+!                         n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!                         call alloc_diffuse_four (n_qxy)
+!                         call alloc_diffuse_scat (n_nscat)
+!                         call alloc_diffuse_atom (n_natoms)
+!                         IF (ier_num.ne.0) THEN
+!                           RETURN
+!                         ENDIF
+!                       ENDIF
                         CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                                     diff_radiation, diff_table, diff_power) 
                         IF(ier_num==0) CALL calc_000 (rhkl) 
@@ -685,18 +701,35 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                      ier_msg(1) = 'Use ''show'' to check values'
                   endif
                ENDIF
-               IF (inc(1) * inc(2) *inc(3) .gt. MAXQXY  .OR.    &
-                   cr_natoms > DIF_MAXAT                .OR.    &
-                   cr_nscat>DIF_MAXSCAT              ) THEN
-                 n_qxy    = MAX(n_qxy,inc(1)*inc(2)*inc(3),MAXQXY)
-                 n_natoms = MAX(n_natoms,cr_natoms,DIF_MAXAT)
-                 n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-                 call alloc_diffuse (n_qxy, n_nscat, n_natoms)
-                 IF (ier_num.ne.0) THEN
-                   RETURN
-                 ENDIF
-               ENDIF
-               IF (inc (1) * inc (2) * inc(3) .le.MAXQXY) then 
+!              IF (inc(1) * inc(2) *inc(3) .gt. MAXQXY  .OR.    &
+               if(any(inc/=ubound(csf))) then
+                  n_qxy = inc
+                  CALL alloc_diffuse_four (n_qxy )
+                  if(ier_num/=0) return
+               endif
+               if(cr_nscat/=ubound(cfact,2)) then
+                  call alloc_diffuse_scat(cr_nscat)
+                  if(ier_num/=0) return
+               endif
+               if(cr_natoms/=ubound(xat,1)) then
+                  call alloc_diffuse_atom(cr_natoms)
+                  if(ier_num/=0) return
+               endif
+!              if(inc(1)>MAXQXY(1) .or. inc(2)>MAXQXY(2) .or. inc(3)>MAXQXY(3) .or.&
+!                  cr_natoms > DIF_MAXAT                .OR.    &
+!                  cr_nscat>DIF_MAXSCAT              ) THEN
+!                n_qxy    = MAX(n_qxy,inc,MAXQXY)
+!                n_natoms = MAX(n_natoms,cr_natoms,DIF_MAXAT)
+!                n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+!                call alloc_diffuse_four (n_qxy)
+!                call alloc_diffuse_scat (n_nscat)
+!                call alloc_diffuse_atom (n_natoms)
+!                IF (ier_num.ne.0) THEN
+!                  RETURN
+!                ENDIF
+!              ENDIF
+!              IF (inc (1) * inc (2) * inc(3) .le.MAXQXY) then 
+               if(inc(1)<=MAXQXY(1) .and. inc(2)<=MAXQXY(2) .and. inc(3)<=MAXQXY(3)) then
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_table, diff_power) 
                  IF (ier_num.ne.0) THEN

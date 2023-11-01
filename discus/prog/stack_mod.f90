@@ -29,7 +29,7 @@ INTEGER            ::  st_layer_increment  = 5
 !INTEGER       BL_ST_MAXLAYER3
 !PARAMETER    (BL_ST_MAXLAYER3 = ST_MAXLAYER*3)
 !
-INTEGER ::  ST_MAXQXY    = 1
+INTEGER, dimension(3) ::  ST_MAXQXY    = 1
 INTEGER ::  ST_MAXLAYER  = 1
 INTEGER ::  ST_MAXTYPE   = 1
 !
@@ -51,7 +51,8 @@ REAL(kind=PREC_DP) , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_no   ! (  ST_MA
 REAL(kind=PREC_DP) , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_m1   ! (  ST_MAXLAYER)
 REAL(kind=PREC_DP) , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_m2   ! (  ST_MAXLAYER)
 !
-COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:)    , ALLOCATABLE :: st_csf          ! (ST_MAXQXY)
+! COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:)    , ALLOCATABLE :: st_csf          ! (ST_MAXQXY)                                      ! Who is st_csf? Should it be 2D or 3D? ( Neder's original code )
+COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:,:), ALLOCATABLE :: st_csf            ! (ST_MAXQXY, ST_MAXTYPE, ST_MAXTYPE)              ! My code
 !
 CHARACTER (LEN=1024)                       :: st_infile        = ' '
 !
@@ -85,6 +86,5 @@ REAL(kind=PREC_DP)                         :: st_rot_si_no     = 0.0D0
 REAL(kind=PREC_DP)                         :: st_rot_si_m1     = 0.0D0
 REAL(kind=PREC_DP)                         :: st_rot_si_m2     = 0.0D0
 !
-INTEGER                                    :: st_size_of       = 0
 !
 END MODULE stack_mod

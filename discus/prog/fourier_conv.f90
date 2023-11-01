@@ -108,21 +108,21 @@ call   fftw_execute_dft(plan, profile, temp)          ! FFT profile
 temp = temp /                 (REAL(num(1),kind=PREC_DP))       ! Normalize Fourier of profile
 !
 IF(ilots.eq.LOT_OFF) THEN
-   CALL maptofftfd(num, dsort, csf, in_pattern)       ! Use complex structure factor
+   call maptofftfd(num, dsort, csf(1:num(1),1,1), in_pattern)       ! Use complex structure factor
    call   fftw_execute_dft(plan, in_pattern, out_pattern)
    out_pattern = temp     * out_pattern               ! Multiply the Fouriers
    call   fftw_execute_dft(plan, out_pattern,  in_pattern)
    in_pattern =  in_pattern/(real(num(1),kind=PREC_DP)) ! Scale for H 
-   CALL mapfftfdtoline(num, dsort, csf, in_pattern)
+   call mapfftfdtoline(num, dsort, csf(1:num(1),1,1), in_pattern)
 ENDIF
 !
 weight = sum(dsi)
-CALL maptofftfd(num, dsort, dsi, in_pattern)       ! Use intensities
+CALL maptofftfd(num, dsort, dsi(1:num(1),1,1), in_pattern)       ! Use intensities
 call   fftw_execute_dft(plan, in_pattern, out_pattern)
 out_pattern = temp  * out_pattern                 ! Multiply the Fouriers
 call   fftw_execute_dft(plan, out_pattern,  in_pattern)
 in_pattern =  in_pattern/(real(num(1),kind=PREC_DP)) ! Scale for H 
-CALL mapfftfdtoline(num, dsort, dsi, in_pattern)
+CALL mapfftfdtoline(num, dsort, dsi(1:num(1),1,1), in_pattern)
 !
 ! Scale resulting pattern to maintain integral value
 !
@@ -213,44 +213,35 @@ ENDIF
 !
 plan_p = fftw_plan_dft_2d(num(dsort(2)), num(dsort(1)), profile_t, temp, FFTW_FORWARD, FFTW_ESTIMATE)  ! Plan for PROFILE
 plan   = fftw_plan_dft_2d(num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)  ! Plan for diffraction
-!profile_t = fft(profile_t) / SQRT(REAL(num(1)*num(2)))    ! FFT profile
 call   fftw_execute_dft(plan_p, profile_t, temp)
 temp = temp/sqrt(real(num(dsort(1))*num(dsort(2)),kind=PREC_DP))
 !
 !
 IF(ilots.eq.LOT_OFF) THEN
-   CALL maptofftfd(num, dsort, csf, in_pattern)              ! Use complex structure factor
-!   pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
+   CALL maptofftfd(num, dsort, csf(1:num(1), 1:num(2),1), in_pattern)              ! Use complex structure factor
    call   fftw_execute_dft(plan, in_pattern, out_pattern)
    out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
-!   temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))   ! FFT multiplied pattern
    call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
    in_pattern = in_pattern / (REAL(num(1)*num(2)))
-   CALL mapfftfdtoline(num, dsort, csf, in_pattern)          ! Map back into complex structure factor
+   CALL mapfftfdtoline(num, dsort, csf(1:num(1), 1:num(2),1), in_pattern)          ! Map back into complex structure factor
 ENDIF
 !
 !
 weight = sum(dsi)
-CALL maptofftfd(num, dsort, dsi, in_pattern)              ! Use intensities
-!pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
-!temp      = profile_t*pattern                             ! Multiply the Fouriers
-!temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))    ! FFT multiplied pattern
+CALL maptofftfd(num, dsort, dsi(1:num(1), 1:num(2),1), in_pattern)              ! Use intensities
 call   fftw_execute_dft(plan, in_pattern, out_pattern)    ! FFT Diffraction pattern
 out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
 call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
 in_pattern = in_pattern / (REAL(num(1)*num(2)))
-CALL mapfftfdtoline(num, dsort, dsi, in_pattern)          ! Restore convoluted intensities
+CALL mapfftfdtoline(num, dsort, dsi(1:num(1), 1:num(2),1), in_pattern)          ! Restore convoluted intensities
 !
 !
-CALL maptofftfd(num, dsort, acsf, in_pattern)             ! Use average complex structure factor
-!pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)))    ! FFT pattern
-!temp      = profile_t*pattern                             ! Multiply the Fouriers
-!temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)))    ! FFT multiplied pattern
+CALL maptofftfd(num, dsort, acsf(1:num(1), 1:num(2),1), in_pattern)             ! Use average complex structure factor
 call   fftw_execute_dft(plan, in_pattern, out_pattern)    ! FFT Diffraction pattern
 out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
 call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
 in_pattern = in_pattern / (REAL(num(1)*num(2)))
-CALL mapfftfdtoline(num, dsort, acsf, in_pattern)         ! Restore convoluted average complex structure factor
+CALL mapfftfdtoline(num, dsort, acsf(1:num(1), 1:num(2),1), in_pattern)         ! Restore convoluted average complex structure factor
 !
 ! Scale resulting pattern to maintain integral value
 !
@@ -281,6 +272,7 @@ USE precision_mod
 !USE singleton
 USE wink_mod
 !
+use lib_write_mod
 use iso_c_binding
 !
 IMPLICIT NONE
@@ -340,21 +332,22 @@ DO k=1, num(3)
    ENDDO
 ENDDO
 !
+!call tofile(num(1:2), 'INTE/profile.init',real(profile(:,:,81),kind=PREC_DP), (/-4.0D0, -4.0d0/), (/0.05D0, 0.05d0/))
+!
 ALLOCATE(profile_t(num(dsort(1)), num(dsort(2)), num(dsort(3))))    ! Allocate array for FFT
 ALLOCATE(temp     (num(dsort(1)), num(dsort(2)), num(dsort(3))))    ! Allocate array for FFT
 !
 DO k=1, num(3)
-   ientry(dsort(3)) = k
+   ientry((3)) = k
    DO j=1, num(2)
-      ientry(dsort(2)) = j
+      ientry((2)) = j
       DO i=1, num(1)
-         ientry(dsort(1)) = i
-         profile_t(ientry(1), ientry(2), ientry(3)) = profile(i,j,k)
+         ientry((1)) = i
+         profile_t(ientry(dsort(1)), ientry(dsort(2)), ientry(dsort(3))) = profile(i,j,k)
       ENDDO
    ENDDO
 ENDDO
 !
-!profile_t = fft(profile_t) / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT profile
 plan_p = fftw_plan_dft_3d(num(dsort(3)), num(dsort(2)), num(dsort(1)), profile_t, temp, FFTW_FORWARD, FFTW_ESTIMATE)  ! Plan for PROFILE
 plan   = fftw_plan_dft_3d(num(dsort(3)), num(dsort(2)), num(dsort(1)), in_pattern, out_pattern, FFTW_FORWARD, FFTW_ESTIMATE)  ! Plan for diffraction
 call   fftw_execute_dft(plan_p, profile_t, temp)
@@ -362,9 +355,6 @@ temp = temp/sqrt(real(num(dsort(1))*num(dsort(2))*num(dsort(3)),kind=PREC_DP))
 !
 IF(ilots.eq.LOT_OFF) THEN
    CALL maptofftfd(num, dsort, csf, in_pattern)              ! Use complex structure factor
-!  pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT pattern
-!  temp      = profile_t*pattern                                    ! Multiply the Fouriers
-!  temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT multiplied pattern
    call   fftw_execute_dft(plan, in_pattern, out_pattern)
    out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
    call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
@@ -374,9 +364,6 @@ ENDIF
 !
 weight = sum(dsi)
 CALL maptofftfd(num, dsort, dsi, in_pattern)              ! Use intensities
-!pattern   = fft(pattern)   / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT pattern
-!temp      = profile_t*pattern                                    ! Multiply the Fouriers
-!temp      = fft(temp)      / SQRT(REAL(num(1)*num(2)*num(3)))    ! FFT multiplied pattern
 call   fftw_execute_dft(plan, in_pattern, out_pattern)    ! FFT pattern
 out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
 call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
@@ -471,6 +458,8 @@ IF(inc(1)==1) isdim = isdim - 1
 IF(inc(2)==1) isdim = isdim - 1
 IF(inc(3)==1) isdim = isdim - 1
 !
+! Check if user provided values
+!
 CALL four_res_optional(lpresent(O_SIGABS), 1, MAXW, opara(O_SIGABS), &
        lopara(O_SIGABS), werte, iianz)
 if(isdim>1) then
@@ -482,15 +471,111 @@ if(isdim==3) then
           lopara(O_SIGTOP), werte, iianz)
 endif
 !
+! Error checks, are any two present vectors parallel?, any lengths zero?
+!
+if(lpresent(O_SIGABS)) then     ! User provided abscissa
+   v1 = diff_res(2:4,1)
+   r = sqrt(skalpro(v1, v1, cr_rten))
+   if(r<EPS) then
+      ier_num = -193
+      ier_typ = ER_APPL
+      ier_msg(1) = "Resolution vector ABS has zero length"
+      ier_msg(2) = "Check ORD and TOP as well"
+      return
+   endif
+   if(diff_res(1,1)<EPS) then
+      ier_num = -194
+      ier_typ = ER_APPL
+      ier_msg(1) = "Resolution vector ABS has zero sigma"
+      ier_msg(2) = "Check ORD and TOP as well"
+      return
+   endif
+endif
+if(lpresent(O_SIGORD)) then     ! User provided abscissa
+   v1 = diff_res(2:4,2)
+   r = sqrt(skalpro(v1, v1, cr_rten))
+   if(r<EPS) then
+      ier_num = -193
+      ier_typ = ER_APPL
+      ier_msg(1) = "Resolution vector ORD has zero length"
+      ier_msg(2) = "Check ABS and TOP as well"
+      return
+   endif
+   if(diff_res(1,2)<EPS) then
+      ier_num = -194
+      ier_typ = ER_APPL
+      ier_msg(1) = "Resolution vector ORD has zero sigma"
+      ier_msg(2) = "Check ABS and TOP as well"
+      return
+   endif
+endif
+if(lpresent(O_SIGTOP)) then     ! User provided abscissa
+   v1 = diff_res(2:4,3)
+   r = sqrt(skalpro(v1, v1, cr_rten))
+   if(r<EPS) then
+      ier_num = -193
+      ier_typ = ER_APPL
+      ier_msg(1) = "Resolution vector TOP has zero length"
+      ier_msg(2) = "Check ABS and ORD as well"
+      return
+   endif
+   if(diff_res(1,3)<EPS) then
+      ier_num = -194
+      ier_typ = ER_APPL
+      ier_msg(1) = "Resolution vector TOP has zero sigma"
+      ier_msg(2) = "Check ABS and ORD as well"
+      return
+   endif
+endif
+if(lpresent(O_SIGABS)) then     ! User provided abscissa
+   v1 = diff_res(2:4,1)
+   if(lpresent(O_SIGORD)) then  ! User provided ordinate
+      v2 = diff_res(2:4,2)
+      r  = skalpro(v1, v2, cr_rten)/sqrt(skalpro(v1, v1, cr_rten)*skalpro(v2, v2, cr_rten))
+      if(1.0D0-r<EPS) then
+         ier_num = -192
+         ier_typ = ER_APPL
+         ier_msg(1) = "Resolution vectors ABS and ORD are parallel "
+         ier_msg(2) = "Top axis might also be parallel"
+         return
+      endif
+   endif
+   if(lpresent(O_SIGTOP)) then  ! User provided top axis
+      v2 = diff_res(2:4,3)
+      r  = skalpro(v1, v2, cr_rten)/sqrt(skalpro(v1, v1, cr_rten)*skalpro(v2, v2, cr_rten))
+      if(1.0D0-r<EPS) then
+         ier_num = -192
+         ier_typ = ER_APPL
+         ier_msg(1) = "Resolution vectors ABS and TOP are parallel "
+         return
+      endif
+   endif
+endif
+if(lpresent(O_SIGORD)) then  ! User provided ordinate
+   v1 = diff_res(2:4,2)
+   if(lpresent(O_SIGTOP)) then  ! User provided top axis
+      v2 = diff_res(2:4,3)
+      r  = skalpro(v1, v2, cr_rten)/sqrt(skalpro(v1, v1, cr_rten)*skalpro(v2, v2, cr_rten))
+      if(1.0D0-r<EPS) then
+         ier_num = -192
+         ier_typ = ER_APPL
+         ier_msg(1) = "Resolution vectors ORD and TOP are parallel "
+         return
+      endif
+   endif
+endif
+!
+!  End of error checks
+!
 ! Build simat
 !
 !
 u = diff_res(2:4,1)
 uu(1) = SQRT (skalpro (u, u, cr_rten) )
 IF(uu(1)< EPS) THEN
-diff_res(2:4,1) = vi(1:3,1)        ! User vector was NULL, use abscissa
-u = diff_res(2:4,1)
-uu(1) = SQRT (skalpro (u, u, cr_rten) )
+   diff_res(2:4,1) = vi(1:3,1)        ! User vector was NULL, use abscissa
+   u = diff_res(2:4,1)
+   uu(1) = SQRT (skalpro (u, u, cr_rten) )
 ENDIF
 !
 if(isdim==1) then                  ! 1D diffraction pattern ; generate ord and top
@@ -561,6 +646,14 @@ else
       diff_res(2:4,2) = vi(1:3,2)        ! User vector was NULL, use ordinate
       u = diff_res(2:4,2)
       uu(2) = SQRT (skalpro (u, u, cr_rten) )
+      v1 = diff_res(2:4,1)               ! Check if the first two vectors are parallel
+      v2 = diff_res(2:4,2)
+      r  = skalpro(v1, v2, cr_rten)/sqrt(skalpro(v1, v1, cr_rten)*skalpro(v2, v2, cr_rten))
+      if(1.0D0-r<EPS) then               ! Vectors seem parallel, use abscissa
+         diff_res(2:4,2) = vi(1:3,1)        ! User vector was NULL, use ordinate
+         u = diff_res(2:4,2)
+         uu(2) = SQRT (skalpro (u, u, cr_rten) )
+      endif
       diff_res(1  ,2) = 0.001
    ENDIF
 !
@@ -586,6 +679,7 @@ simat(1:3, 3) = diff_res(2:4,3) * diff_res(1,3) / uu(3)
 !write(*,*) ' SIMAT ', simat(:,3)
 !
 CALL matinv3(simat, siinv) 
+if(ier_num/=0) return
 !
 ! Build vimat
 !

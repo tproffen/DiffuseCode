@@ -35,7 +35,7 @@ DATA cvalue / 'undefined        ', 'Intensity        ', 'Amplitude        ',&
 CONTAINS
 !*****7*****************************************************************
 !
-REAL(kind=PREC_DP) FUNCTION qval (i, value, ix, iy, laver) 
+REAL(kind=PREC_DP) FUNCTION qval (i, j, k, value, ix, iy, laver)      ! We probably need to extend this function to 3D, so it recieves a vector of indices
 !-                                                                      
 !     transforms the real and imaginary part of the Fourier transform   
 !     into the desired output format                                    
@@ -55,13 +55,15 @@ IMPLICIT none
 REAL(kind=PREC_DP), PARAMETER :: DELTA = 0.000001d0
 !                                                                       
 !                                                                       
-INTEGER, INTENT(IN) :: i
+INTEGER, INTENT(IN) :: i          ! Index along a*
+INTEGER, INTENT(IN) :: j          ! Index along b*
+INTEGER, INTENT(IN) :: k          ! Index along c*
 INTEGER, INTENT(IN) :: value
 INTEGER, INTENT(IN) :: ix
 INTEGER, INTENT(IN) :: iy 
 LOGICAL, INTENT(IN) :: laver
 ! 
-INTEGER k 
+INTEGER l 
 !                                                                       
 COMPLEX(KIND=KIND(0.0D0)) :: f 
 REAL(kind=PREC_DP), dimension(3) :: h (3) 
@@ -77,9 +79,9 @@ REAL(kind=PREC_DP)      :: signum = 1.0
 !------ Get values of F or <F>                                          
 !                                                                       
       IF (laver) THEN 
-         f = acsf (i) 
+         f = acsf (i,j,k)                                                                       ! Who is i here ? I think is an argument of the function, but how to extend to 3D ?
       ELSE 
-         f = csf (i) 
+         f = csf (i,j,k)                                                                        ! Who is i here ? I think is an argument of the function, but how to extend to 3D ?
       ENDIF 
 !                                                                       
 !     Calculate intensity 'intensity'                                   
@@ -92,13 +94,13 @@ REAL(kind=PREC_DP)      :: signum = 1.0
          IF (laver) THEN 
             qval = REAL(f * CONJG (f) , KIND=KIND(1.0D0)) 
          ELSE 
-            qval = REAL(dsi (i),KIND=KIND(0.0D0)) 
+            qval = REAL(dsi (i,j,k),KIND=KIND(0.0D0)) 
          ENDIF 
 !
 !     Calculate 3DPDF
 !
       ELSEIF (value == val_3DPDF .or. value == val_3DBETA) THEN
-         qval = REAL(rpdf(i), KIND=KIND(0.0D0))
+         qval = REAL(rpdf(i,j,k), KIND=KIND(0.0D0))
 !                                                                       
 !     Calculate amplitude 'amplitude'                                   
 !                                                                       
@@ -127,9 +129,9 @@ REAL(kind=PREC_DP)      :: signum = 1.0
 !     Calculate phase 'phase', random, except for integer hkl           
 !                                                                       
       ELSEIF (value == val_ranph) THEN 
-         DO k = 1, 3 
-            h (k) = out_eck (k, 1) + out_vi (k, 1) * REAL(ix - 1)     &
-                                   + out_vi (k, 2) * REAL(iy - 1)
+         DO l = 1, 3 
+            h (l) = out_eck (l, 1) + out_vi (l, 1) * REAL(ix - 1)     &
+                                   + out_vi (l, 2) * REAL(iy - 1)
          ENDDO 
          IF (ABS (h (1) - NINT (h (1) ) ) .lt.DELTA.AND. &
              ABS (h (2) - NINT (h (2) ) ) .lt.DELTA.AND. &
@@ -149,19 +151,19 @@ REAL(kind=PREC_DP)      :: signum = 1.0
          IF (laver) THEN 
             qval = f * CONJG(f)
          ELSE 
-            qval = dsi(i)
+            qval = dsi(i,j,k)
          ENDIF 
-         DO k=1,cr_nscat
+         DO l=1,cr_nscat
             signum = 1.0
-            IF(REAL(cfact_pure(1,k), kind=PREC_DP)<0.0) signum = -1.0D0
-!           faver2 = faver2 + (REAL(cfact_pure(istl(i),k), KIND=KIND(0.0E0)))*cr_amount(k)
+            IF(REAL(cfact_pure(1,l), kind=PREC_DP)<0.0) signum = -1.0D0
+!           faver2 = faver2 + (REAL(cfact_pure(istl(i),l), KIND=KIND(0.0E0)))*cr_amount(l)
             faver2 = faver2 +                                    &
-                     SQRT(DBLE (       cfact_pure(istl(i), k)  * &
-                                conjg (cfact_pure(istl(i), k)))) &
-                     *cr_amount(k)*signum
+                     SQRT(DBLE (       cfact_pure(istl(i,1,1), l)  * &
+                                conjg (cfact_pure(istl(i,1,1), l)))) &
+                     *cr_amount(l)*signum
          ENDDO
          faver2 = faver2**2
-         q2   = REAL(zpi**2*(REAL(2*istl(i),KIND=KIND(0.0D0))*CFINC)**2)
+         q2   = REAL(zpi**2*(REAL(2*istl(i,1,1),KIND=KIND(0.0D0))*CFINC)**2)
          qval = qval /faver2/ cr_n_real_atoms &
                 +1.0 - EXP(-q2*cr_u2aver)
 !
@@ -171,33 +173,33 @@ REAL(kind=PREC_DP)      :: signum = 1.0
          IF (laver) THEN 
             qval = f * CONJG (f)
          ELSE 
-            qval = dsi (i)
+            qval = dsi (i,j,k)
          ENDIF 
          qval = qval        / cr_n_real_atoms 
 !
 !     Calculate average squared atomic form factor <f**2>
 !
       ELSEIF (value == val_f2aver) THEN
-         DO k=1,cr_nscat
-!           qval = qval + REAL(cfact_pure(istl(i),k)**2,KIND=KIND(0.0E0))*cr_amount(k)
+         DO l=1,cr_nscat
+!           qval = qval + REAL(cfact_pure(istl(i),l)**2,KIND=KIND(0.0E0))*cr_amount(l)
             qval = qval +                                     &
-                      DBLE (       cfact_pure(istl(i), k)  *  &
-                             conjg (cfact_pure(istl(i), k)))  &
-                   *cr_amount(k)
+                      DBLE (       cfact_pure(istl(i,1,1), l)  *  &
+                             conjg (cfact_pure(istl(i,1,1), l)))  &
+                   *cr_amount(l)
          ENDDO
          qval = qval / cr_n_real_atoms
 !
 !     Calculate average atomic form factor squared <f>**2
 !
       ELSEIF (value == val_faver2) THEN
-         DO k=1,cr_nscat
-!           qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
+         DO l=1,cr_nscat
+!           qval = qval + REAL(cfact_pure(istl(i),l),KIND=KIND(0.0E0))*cr_amount(l)
             signum = 1.0
-            IF(REAL(cfact_pure(1,k))<0.0) signum = -1.0
+            IF(REAL(cfact_pure(1,l))<0.0) signum = -1.0
             qval = qval +                                     &
-                  SQRT(DBLE (       cfact_pure(istl(i), k)  * &
-                             conjg (cfact_pure(istl(i), k)))) &
-                  * cr_amount(k) * signum
+                  SQRT(DBLE (       cfact_pure(istl(i,1,1), l)  * &
+                             conjg (cfact_pure(istl(i,1,1), l)))) &
+                  * cr_amount(l) * signum
          ENDDO
          qval = qval / cr_n_real_atoms
          qval = qval**2
@@ -205,38 +207,38 @@ REAL(kind=PREC_DP)      :: signum = 1.0
 !     Calculate average atomic form factor <f>
 !
       ELSEIF (value == val_faver) THEN
-         DO k=1,cr_nscat
-!           qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
+         DO l=1,cr_nscat
+!           qval = qval + REAL(cfact_pure(istl(i),l),KIND=KIND(0.0E0))*cr_amount(l)
             qval = qval +                                      &
-                   SQRT(DBLE (       cfact_pure(istl(i), k)  * &
-                              conjg (cfact_pure(istl(i), k)))) &
-                   * cr_amount(k) * signum
+                   SQRT(DBLE (       cfact_pure(istl(i,1,1), l)  * &
+                              conjg (cfact_pure(istl(i,1,1), l)))) &
+                   * cr_amount(l) * signum
          ENDDO
          qval = qval / cr_n_real_atoms
 !
 !     Calculate average squared atomic form factor <f**2>
 !
 ELSEIF (value == val_f2averb) THEN
-   DO k=1,cr_nscat
-!           qval = qval + REAL(cfact_pure(istl(i),k)**2,KIND=KIND(0.0E0))*cr_amount(k)
+   DO l=1,cr_nscat
+!           qval = qval + REAL(cfact_pure(istl(i),l)**2,KIND=KIND(0.0E0))*cr_amount(l)
       qval = qval +                                     &
-                DBLE (       cfact     (istl(i), k)  *  &
-                       conjg (cfact     (istl(i), k)))  &
-             *cr_amount(k)
+                DBLE (       cfact     (istl(i,1,1), l)  *  &
+                       conjg (cfact     (istl(i,1,1), l)))  &
+             *cr_amount(l)
    ENDDO
    qval = qval / cr_n_real_atoms
 !
 !     Calculate average atomic form factor squared <f>**2
 !
 ELSEIF (value == val_faver2b) THEN
-   DO k=1,cr_nscat
-!           qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
+   DO l=1,cr_nscat
+!           qval = qval + REAL(cfact_pure(istl(i),l),KIND=KIND(0.0E0))*cr_amount(l)
       signum = 1.0
-      IF(REAL(cfact_pure(1,k))<0.0) signum = -1.0
+      IF(REAL(cfact_pure(1,l))<0.0) signum = -1.0
       qval = qval +                                     &
-            SQRT(DBLE (       cfact     (istl(i), k)  * &
-                       conjg (cfact     (istl(i), k)))) &
-            * cr_amount(k) * signum
+            SQRT(DBLE (       cfact     (istl(i,1,1), l)  * &
+                       conjg (cfact     (istl(i,1,1), l)))) &
+            * cr_amount(l) * signum
    ENDDO
    qval = qval / cr_n_real_atoms
    qval = qval**2
@@ -244,12 +246,12 @@ ELSEIF (value == val_faver2b) THEN
 !     Calculate average atomic form factor <f>
 !
 ELSEIF (value == val_faverb) THEN
-   DO k=1,cr_nscat
-!           qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
+   DO l=1,cr_nscat
+!           qval = qval + REAL(cfact_pure(istl(i),l),KIND=KIND(0.0E0))*cr_amount(l)
       qval = qval +                                      &
-             SQRT(DBLE (       cfact     (istl(i), k)  * &
-                        conjg (cfact     (istl(i), k)))) &
-             * cr_amount(k) * signum
+             SQRT(DBLE (       cfact     (istl(i,1,1), l)  * &
+                        conjg (cfact     (istl(i,1,1), l)))) &
+             * cr_amount(l) * signum
    ENDDO
    qval = qval / cr_n_real_atoms
 ENDIF 
