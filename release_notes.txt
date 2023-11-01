@@ -4,7 +4,17 @@ GENERAL
   Macro       Macros that terminated in a (different) sub level would leave 
               wrong prompt 
 DISCUS
+  general     All fourier and related menues received a major internal update
+                  This corrected several bugs in reciprocal layers that are 
+                  not the standard HK0 layers.
+                  0KL layers might have an odd shift of pixels
+                  the convolution did not work properly for layers other than HK0
+                  side effects on stacking with non [001] stacking 
+                       direction were corrected 
   chem        Added an optional parameter "site:" to homo
+  export      Added occupancies to a CIF file export
+  import      CIF import: Added a check if a centrosymmetric structure
+                          uses origin choice 2 i.e. inversion center at 0,0,0
   powder      Improved handling of corrlin and corrquad for a powder PDF
   plot        BUG FIX, Avoiding crash if jmol had never been used before
 KUPLOT
