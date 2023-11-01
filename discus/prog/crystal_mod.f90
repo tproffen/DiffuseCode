@@ -122,6 +122,5 @@ REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE ::  cr_magn   ! (  1:NMAX)  !
 !
 REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE ::  cr_pos    ! (3,1:NMAX)  !Atom coordinates
 !
-INTEGER                               ::  cry_size_of = 0 ! Bytes allocated fo
 !
 END MODULE crystal_mod

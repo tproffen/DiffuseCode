@@ -114,12 +114,4 @@ LOGICAL, DIMENSION(:), ALLOCATABLE                     :: chem_cang        !  (C
 LOGICAL, DIMENSION(:), ALLOCATABLE                     :: chem_ldall       !  (CHEM_MAX_COR)
 !
 !
-INTEGER :: chem_aver_size_of = 0
-INTEGER :: chem_ang_size_of  = 0
-INTEGER :: chem_disp_size_of = 0
-INTEGER :: chem_env_size_of  = 0
-INTEGER :: chem_vec_size_of  = 0
-INTEGER :: chem_con_size_of  = 0
-INTEGER :: chem_ran_size_of  = 0
-!
 END MODULE chem_mod
