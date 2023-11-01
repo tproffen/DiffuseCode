@@ -670,7 +670,6 @@ use trig_degree_mod
 !
     INTEGER :: all_status ! allocation status
     INTEGER :: ndata      ! upper limit for allocation
-    INTEGER :: size_d     ! allocated size
  
     !
     ! Get type of the object and display its name and type.
@@ -699,7 +698,7 @@ use trig_degree_mod
 !      WRITE(*,*) "Dataset: ", name_string(1:length)
        IF(h5_n_datasets==H5_MAX_DATASETS) THEN
           ndata = H5_MAX_DATASETS + 10
-          CALL alloc_arr(h5_datasets, 1, ndata, all_status, ' ', size_d)
+          CALL alloc_arr(h5_datasets, 1, ndata, all_status, ' ' )
           H5_MAX_DATASETS = H5_MAX_DATASETS + 10
        ENDIF 
        h5_n_datasets = h5_n_datasets + 1
