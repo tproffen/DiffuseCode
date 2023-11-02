@@ -1353,7 +1353,7 @@ ENDDO
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-imax = int( (tthmax - tthmin) / dtth )
+imax = int( (tthmax - tthmin) / dtth ) - 1
 dummy = 0.0
 !write(*,*) ' IMAX ', imax, MINVAL(dat), maxval(dat)
 !write(*,*) ' TYPE ', pow_type, POW_COMPL, POW_DEBYE
@@ -1456,7 +1456,7 @@ INTEGER :: max_ps
 !------ Now convolute                                                   
 !                                                                       
 ddtth = 0.001D0
-imax = INT( (tthmax - tthmin) / dtth )
+imax = INT( (tthmax - tthmin) / dtth ) - 1
 !
 dummy = 0.0D0   ! dummy(:)
 
@@ -1641,7 +1641,7 @@ INTEGER :: max_ps
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-imax = INT( (tthmax - tthmin) / dtth )
+imax = INT( (tthmax - tthmin) / dtth ) - 1
 !
 dummy = 0.0D0   ! dummy(:)
 
