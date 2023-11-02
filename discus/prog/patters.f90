@@ -3003,8 +3003,10 @@ USE support_mod
       ENDDO 
 !                                                                       
       IF (ftyp.ne.HKLF4) then 
-         ier_num = - 999 
+         ier_num = -38 
          ier_typ = ER_APPL 
+         ier_msg(1) = 'Wilson statistics needs HKLf4 file format'
+         ier_msg(2) = 'Check the ==> ''format'' command'
          RETURN 
       ELSE 
          CALL oeffne (ifa, rho_file (1) , 'old') 
