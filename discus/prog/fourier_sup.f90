@@ -348,9 +348,9 @@ cond_dim: if(is_dim==3) then            ! 3-D crystal 33333333333333333333333333
    allocate(fcsf(1:inc(1),1:inc(2),1:inc(3)))
 !
    allocate(nat (             0:cr_nscat))
-   allocate(xpos(1:cr_natoms, 0:cr_nscat))
-   allocate(ypos(1:cr_natoms, 0:cr_nscat))
-   allocate(zpos(1:cr_natoms, 0:cr_nscat))
+   allocate(xpos(0:cr_natoms, 0:cr_nscat))
+   allocate(ypos(0:cr_natoms, 0:cr_nscat))
+   allocate(zpos(0:cr_natoms, 0:cr_nscat))
    ncells = cr_icc
    xpos = 0.0D0
    ypos = 0.0D0
@@ -404,9 +404,9 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
    idims(3) = 1
    j = findloc(ll_dim, .false., 1)      ! Find     flat dimension in direct space
    allocate(nat (             0:cr_nscat))
-   allocate(xpos(1:cr_natoms, 0:cr_nscat))
-   allocate(ypos(1:cr_natoms, 0:cr_nscat))
-   allocate(zpos(1:cr_natoms, 0:cr_nscat))
+   allocate(xpos(0:cr_natoms, 0:cr_nscat))
+   allocate(ypos(0:cr_natoms, 0:cr_nscat))
+   allocate(zpos(0:cr_natoms, 0:cr_nscat))
    xpos = 0.0D0
    ypos = 0.0D0
    zpos = 0.0D0
@@ -456,7 +456,7 @@ elseif(is_dim==1) then cond_dim                   ! 1-D crystal 1111111111111111
    allocate(fcsf(1:inc(1),1:inc(2),1:inc(3))) 
    j = findloc(ll_dim, .true., 1)                 ! Find non-flat dimension
    allocate(nat(0:cr_nscat))
-   allocate(xpos(1:cr_natoms, 0:cr_nscat))
+   allocate(xpos(0:cr_natoms, 0:cr_nscat))
 !
       nat = 0
       xpos = 0.0D0
