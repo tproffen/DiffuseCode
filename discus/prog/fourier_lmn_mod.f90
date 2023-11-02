@@ -1,7 +1,7 @@
 MODULE fourier_lmn_mod
 !
 CONTAINS
-SUBROUTINE fourier_lmn(eck,vi,inc,lmn,off)
+SUBROUTINE fourier_lmn(eck_in,vi_in,inc,lmn,off_in)
 !
 !   Calculate integer "phase" values for the lower left corner
 !   in reciprocal space, which are used in four_strucf.
@@ -19,29 +19,47 @@ USE random_mod
 !
 IMPLICIT NONE
 !
-REAL(kind=PREC_DP), DIMENSION(1:3, 1:4), INTENT(IN)  ::  eck   ! Corners in reciprocal space
-REAL(kind=PREC_DP), DIMENSION(1:3, 1:3), INTENT(IN)  ::  vi    ! increment vectors
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:4), INTENT(IN)  ::  eck_in  ! Corners in reciprocal space
+REAL(kind=PREC_DP), DIMENSION(1:3, 1:3), INTENT(IN)  ::  vi_in   ! increment vectors
 INTEGER           , DIMENSION(1:3)     , INTENT(IN)  ::  inc   ! Number data points
 INTEGER           , DIMENSION(1:6)     , INTENT(OUT) ::  lmn   ! eck(:,1) is at lmn*vi
-REAL(kind=PREC_DP), DIMENSION(1:3,1:3) , INTENT(OUT) :: off    ! Additional phase shift vector
+REAL(kind=PREC_DP), DIMENSION(1:3,1:3) , INTENT(OUT) :: off_in   ! Additional phase shift vector
 !
+REAL(kind=PREC_QP), DIMENSION(1:3, 1:4)              ::  eck   ! Corners in reciprocal space
+REAL(kind=PREC_QP), DIMENSION(1:3, 1:3)              ::  vi    ! increment vectors
+REAL(kind=PREC_QP), DIMENSION(1:3,1:3)               :: off    ! Additional phase shift vector
 !INTEGER, DIMENSION(1:3)     ::  opq
 INTEGER                     :: i,j, j1, j2
 INTEGER                     :: dimen   ! dimension spanned by vi vectors (1, 2, 3)
 INTEGER, DIMENSION(1:3)     :: direc   ! index of directions with inc > 1
 LOGICAL, DIMENSION(1:3)     :: nooff   ! offset vectors
-REAL(kind=PREC_DP)          :: dummy
-REAL(kind=PREC_DP)   , DIMENSION(1:3,1:3) :: mat_a
-REAL(kind=PREC_DP)   , DIMENSION(1:3)     :: vec_r
-!REAL(kind=PREC_DP)   , DIMENSION(1:3)     :: vec_s
-REAL(kind=PREC_DP)   , DIMENSION(1:3)     :: vec_t
-REAL(kind=PREC_DP)   , DIMENSION(1:3,1:3) :: mat_i
+REAL(kind=PREC_QP)          :: dummy
+REAL(kind=PREC_QP)   , DIMENSION(1:3,1:3) :: mat_a
+REAL(kind=PREC_QP)   , DIMENSION(1:3)     :: vec_r
+!REAL(kind=PREC_QP)   , DIMENSION(1:3)     :: vec_s
+REAL(kind=PREC_QP)   , DIMENSION(1:3)     :: vec_t
+REAL(kind=PREC_QP)   , DIMENSION(1:3,1:3) :: mat_i
 !
+eck = real(nint(eck_in*1.0D8)/1.0D8, kind=PREC_QP)
+vi  = real(nint( vi_in*1.0D10)/1.0D10, kind=PREC_QP)
+!write(*,*) ' vi     ',vi_in(:,1) , ' | ', 1.0D0
+!write(*,*) ' vi     ',vi_in(:,2) 
+!write(*,*) ' vi     ',vi_in(:,3) 
+!write(*,*) ' vi     ',real(nint(vi_in(:,1)*1.0D8)/1.0D8 , kind=PREC_DP)
+!write(*,*) ' vi     ',nint(vi_in(:,2)*1.0D8)
+!write(*,*) ' vi     ',nint(vi_in(:,3)*1.0D8) 
+!write(*,*) ' vi     ',vi   (:,1) 
+!write(*,*) ' vi     ',vi   (:,2) 
+!write(*,*) ' vi     ',vi   (:,3) 
+!write(*,*) ' vi     ',real(vi   (:,1) , kind=PREC_DP)
+!write(*,*) ' vi     ',real(vi   (:,2) , kind=PREC_DP)
+!write(*,*) ' vi     ',real(vi   (:,3) , kind=PREC_DP)
+
 mat_a(:,:) = 0.0d0
 mat_i(:,:) = 0.0d0
 dimen      = 0
 nooff(:)   = .false.
-off  (:,:) = 0.0
+off  (:,:) = 0.0D0
 direc(:)   = 0
 DO i=1,3
    IF(inc(i) > 1) THEN    ! reciprocal space has non_zero size along this increment
@@ -64,9 +82,9 @@ DO i=1,3
    ENDIF
 ENDDO
 IF(dimen==0) THEN       ! Single spot in reciprocal space
-   off(1,1) = 1.0
-   off(2,2) = 1.0
-   off(3,3) = 1.0
+   off(1,1) = 1.0D0
+   off(2,2) = 1.0D0
+   off(3,3) = 1.0D0
    mat_a = off
 ELSEIF(dimen==1) THEN   ! 1D line in reciprocal space
    j  = direc(1)
@@ -108,7 +126,7 @@ ELSEIF(dimen==2) THEN  ! 2D layer in reciprocal space
    off(2, j2) = vi(3,j)*vi(1,j1) - vi(1,j)*vi(3,j1)
    off(3, j2) = vi(1,j)*vi(2,j1) - vi(2,j)*vi(1,j1)
    dummy = SQRT(off(1,j2)**2+off(2,j2)**2+off(3,j2)**2)
-   off(:,j2) = off(:,j2)*0.001/dummy
+   off(:,j2) = off(:,j2)*0.001D0/dummy
    mat_a(:,j2) = off(:,j2)
 ENDIF
 !write(*,*) ' NUM , dimension ', inc, dimen
@@ -118,19 +136,33 @@ ENDIF
 !   (off(j,i),i=1,3)
 !enddo
 !
-call matinv(mat_a, mat_i)
+call matinv_q(mat_a, mat_i)
+!write(*,*) ' vi     ',vi   (:,1) 
+!write(*,*) ' vi     ',vi   (:,2) 
+!write(*,*) ' vi     ',vi   (:,3) 
+!write(*,*) ' mat  1 ',mat_a(1,:) 
+!write(*,*) ' mat  2 ',mat_a(2,:) 
+!write(*,*) ' mat  3 ',mat_a(3,:) 
+!write(*,*) ' mat_i1 ',mat_i(1,:) 
+!write(*,*) ' mat_i2 ',mat_i(2,:) 
+!write(*,*) ' mat_i3 ',mat_i(3,:) 
 !do j=1,3
 !   write(*,1000) (mat_a(j,i),i=1,3),'   ',(mat_i(j,i),i=1,3), vi(j,1), vi(j,2),vi(j,3), &
 !   (off(j,i),i=1,3)
 !enddo
-!1000 FORMAT(3(f9.5,1x),a,3(f9.2,1x),2(2x, 3(f9.5,1x)))
+1000 FORMAT(3(f9.5,1x),a,3(f9.5,1x),2(2x, 3(f9.5,1x)))
 !
 lmn(:) = 0
 vec_r = matmul(mat_i, eck(:,1))
+if(abs(vec_r(1)-real(nint(vec_r(1)),kind=PREC_QP))<1.0D-9) vec_r(1) = real(nint(vec_r(1)),kind=PREC_QP)
+if(abs(vec_r(2)-real(nint(vec_r(2)),kind=PREC_QP))<1.0D-9) vec_r(2) = real(nint(vec_r(2)),kind=PREC_QP)
+if(abs(vec_r(3)-real(nint(vec_r(3)),kind=PREC_QP))<1.0D-9) vec_r(3) = real(nint(vec_r(3)),kind=PREC_QP)
+!write(*,*) ' vec_r ', vec_r
 !lmn(1:3) = NINT(vec_r(1:3))
 !
 lmn(1:3) =  int(vec_r(1:3))        ! lmn(1:3) is integer part only, frac goes into off
 vec_t = matmul(mat_a, vec_r - int(vec_r))   ! Fractional part of vi's
+!write(*,*) ' vec_t ', vec_t
 !
 DO j=1,3
    IF(.NOT.nooff(j)) THEN     ! We need an offset vector
@@ -140,8 +172,15 @@ DO j=1,3
 !                             !  eck(:,1) is at non-integer multiple of vi's
       off(j,j) = off(j,j) + vec_t(j)
       lmn(3+j) = 1
+      if(abs(off(j,j))<1.0D-9) then
+         off(j,j) = 0.0D0
+         lmn(3+j) = 0
+      endif
    ENDIF
 ENDDO
+!write(*,*) ' OFF ', off(1,1)
+!write(*,*) ' OFF ', off(2,2)
+!write(*,*) ' OFF ', off(3,3)
 !write(*,*)
 !write(*,*) ' eck(j,1) =   vi(j,1) *  lambda +   vi(j,2) *      my +   vi(j,3) *      ny'
 !do j=1,3
