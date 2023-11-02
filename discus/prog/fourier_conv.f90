@@ -476,14 +476,14 @@ endif
 if(lpresent(O_SIGABS)) then     ! User provided abscissa
    v1 = diff_res(2:4,1)
    r = sqrt(skalpro(v1, v1, cr_rten))
-   if(r<EPS) then
+   if(r<EPS .and. inc(1)>1) then
       ier_num = -193
       ier_typ = ER_APPL
       ier_msg(1) = "Resolution vector ABS has zero length"
       ier_msg(2) = "Check ORD and TOP as well"
       return
    endif
-   if(diff_res(1,1)<EPS) then
+   if(diff_res(1,1)<EPS .and. inc(1)>1) then
       ier_num = -194
       ier_typ = ER_APPL
       ier_msg(1) = "Resolution vector ABS has zero sigma"
@@ -494,14 +494,14 @@ endif
 if(lpresent(O_SIGORD)) then     ! User provided abscissa
    v1 = diff_res(2:4,2)
    r = sqrt(skalpro(v1, v1, cr_rten))
-   if(r<EPS) then
+   if(r<EPS .and. inc(2)>1) then
       ier_num = -193
       ier_typ = ER_APPL
       ier_msg(1) = "Resolution vector ORD has zero length"
       ier_msg(2) = "Check ABS and TOP as well"
       return
    endif
-   if(diff_res(1,2)<EPS) then
+   if(diff_res(1,2)<EPS .and. inc(2)>1) then
       ier_num = -194
       ier_typ = ER_APPL
       ier_msg(1) = "Resolution vector ORD has zero sigma"
@@ -512,14 +512,14 @@ endif
 if(lpresent(O_SIGTOP)) then     ! User provided abscissa
    v1 = diff_res(2:4,3)
    r = sqrt(skalpro(v1, v1, cr_rten))
-   if(r<EPS) then
+   if(r<EPS .and. inc(3)>1) then
       ier_num = -193
       ier_typ = ER_APPL
       ier_msg(1) = "Resolution vector TOP has zero length"
       ier_msg(2) = "Check ABS and ORD as well"
       return
    endif
-   if(diff_res(1,3)<EPS) then
+   if(diff_res(1,3)<EPS .and. inc(3)>1) then
       ier_num = -194
       ier_typ = ER_APPL
       ier_msg(1) = "Resolution vector TOP has zero sigma"
