@@ -69,8 +69,6 @@ endif (NEXUS_FOUND)
 
 if (DIFFUSE_SHARE_LIB)
   add_library (kuplot_all SHARED ${SOURCES_ALL})
-elseif (DIFFUSE_SHARE_LIB)
-  add_library (kuplot_all ${SOURCES_ALL})
 else (DIFFUSE_SHARE_LIB)
   add_library (kuplot_all ${SOURCES_ALL})
 endif (DIFFUSE_SHARE_LIB)
