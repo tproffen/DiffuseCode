@@ -2476,7 +2476,15 @@ csf(1:num(1),1:num(2), 1:num(3)) = cmplx(0.0D0, 0.0D0,KIND=KIND(0.0D0))
 !                                                                       
 !     ----loop over all layers                                          
 !                                                                       
-         DO j = 1, st_nlayer 
+DO j = 1, st_nlayer 
+   if(st_nchem/=ubound(cfact,2)) then
+      call alloc_diffuse_scat(st_nchem)
+      if(ier_num/=0) return
+   endif
+   if(st_nlayer/=ubound(xat,1)) then
+      call alloc_diffuse_atom(st_nlayer)
+      if(ier_num/=0) return
+   endif
 !                                                                       
 !     ------insert stacking fault distribution as electrons into crystal
 !                                                                       
