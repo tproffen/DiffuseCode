@@ -104,8 +104,6 @@ set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 
 if (DIFFUSE_SHARE_LIB)
   add_library (discus_suite_all SHARED ${SOURCES_ALL})
-elseif (DIFFUSE_SHARE_LIB)
-  add_library (discus_suite_all ${SOURCES_ALL})
 else (DIFFUSE_SHARE_LIB)
   add_library (discus_suite_all ${SOURCES_ALL})
 endif (DIFFUSE_SHARE_LIB)
