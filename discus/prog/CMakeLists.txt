@@ -131,8 +131,6 @@ set (SOURCES_ALL ${SOURCES_ALL} "${DIFFUSE_SOURCE_DIR}/finufft/include/finufft_m
 
 if (DIFFUSE_SHARE_LIB)
   add_library (discus_all SHARED ${SOURCES_ALL})
-elseif (DIFFUSE_SHARE_LIB)
-  add_library (discus_all ${SOURCES_ALL})
 else (DIFFUSE_SHARE_LIB)
   add_library (discus_all ${SOURCES_ALL})
 endif (DIFFUSE_SHARE_LIB)
