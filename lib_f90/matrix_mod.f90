@@ -48,6 +48,19 @@ END FUNCTION det2
 !
 !*******************************************************************************
 !
+PURE FUNCTION det2_q(a) RESULT(det)
+!
+USE precision_mod
+REAL(KIND=PREC_QP), DIMENSION(2,2), INTENT(IN) :: a
+!
+REAL(KIND=PREC_QP)                             :: det
+!
+det = (A(1,1)*A(2,2) - A(1,2)*A(2,1))
+!
+END FUNCTION det2_q
+!
+!*******************************************************************************
+!
 !PURE FUNCTION det3(a) RESULT(det)
 PURE FUNCTION det3(a) RESULT(det)
 !
@@ -61,6 +74,22 @@ det  =   (A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2) &
         + A(1,3)*A(2,1)*A(3,2) - A(1,3)*A(2,2)*A(3,1))
 !
 END FUNCTION det3
+!
+!*******************************************************************************
+!
+!PURE FUNCTION det3(a) RESULT(det)
+PURE FUNCTION det3_q(a) RESULT(det)
+!
+USE precision_mod
+REAL(KIND=PREC_QP), DIMENSION(3,3), INTENT(IN) :: a
+!
+REAL(KIND=PREC_QP)                             :: det
+!
+det  =   (A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2) &
+        - A(1,2)*A(2,1)*A(3,3) + A(1,2)*A(2,3)*A(3,1) &
+        + A(1,3)*A(2,1)*A(3,2) - A(1,3)*A(2,2)*A(3,1))
+!
+END FUNCTION det3_q
 !
 !*******************************************************************************
 !
@@ -78,6 +107,23 @@ det = &
    - A(1,4)*(A(2,1)*(A(3,2)*A(4,3)-A(3,3)*A(4,2))+A(2,2)*(A(3,3)*A(4,1)-A(3,1)*A(4,3))+A(2,3)*(A(3,1)*A(4,2)-A(3,2)*A(4,1))))
 !
 END FUNCTION det4
+!
+!*******************************************************************************
+!
+PURE FUNCTION det4_q(a) RESULT(det)
+!
+USE precision_mod
+REAL(KIND=PREC_QP), DIMENSION(4,4), INTENT(IN) :: a
+!
+REAL(KIND=PREC_QP)                             :: det
+!
+det = &
+    (A(1,1)*(A(2,2)*(A(3,3)*A(4,4)-A(3,4)*A(4,3))+A(2,3)*(A(3,4)*A(4,2)-A(3,2)*A(4,4))+A(2,4)*(A(3,2)*A(4,3)-A(3,3)*A(4,2)))&
+   - A(1,2)*(A(2,1)*(A(3,3)*A(4,4)-A(3,4)*A(4,3))+A(2,3)*(A(3,4)*A(4,1)-A(3,1)*A(4,4))+A(2,4)*(A(3,1)*A(4,3)-A(3,3)*A(4,1)))&
+   + A(1,3)*(A(2,1)*(A(3,2)*A(4,4)-A(3,4)*A(4,2))+A(2,2)*(A(3,4)*A(4,1)-A(3,1)*A(4,4))+A(2,4)*(A(3,1)*A(4,2)-A(3,2)*A(4,1)))&
+   - A(1,4)*(A(2,1)*(A(3,2)*A(4,3)-A(3,3)*A(4,2))+A(2,2)*(A(3,3)*A(4,1)-A(3,1)*A(4,3))+A(2,3)*(A(3,1)*A(4,2)-A(3,2)*A(4,1))))
+!
+END FUNCTION det4_q
 !
 !*******************************************************************************
 !
@@ -107,6 +153,32 @@ end subroutine matinv
 !
 !*******************************************************************************
 !
+subroutine matinv_q(mat, imat)
+!-
+! Performs matrix inversion mat => imat
+! Generic interface to the 2x2, 3x2, 4x4 versions
+!+
+!
+use precision_mod
+!
+implicit none
+real(kind=PREC_QP), dimension(:,:), intent(in) :: mat      !! Matrix
+real(kind=PREC_QP), dimension(:,:), intent(out):: imat     !! Inverse matrix
+!
+imat = 0.0D0
+!
+if(    ubound(mat,1)==2) then
+  call  matinv2_q(mat, imat)
+elseif(ubound(mat,1)==3) then
+  call  matinv3_q(mat, imat)
+elseif(ubound(mat,1)==4) then
+  call  matinv4_q(mat, imat)
+endif
+!
+end subroutine matinv_q
+!
+!*******************************************************************************
+!
 SUBROUTINE matinv2(A, B)
     !! Performs a direct calculation of the inverse of a 2×2 matrix.
 USE precision_mod
@@ -132,6 +204,34 @@ ELSE
 ENDIF
 !
 END SUBROUTINE matinv2
+!
+!*******************************************************************************
+!
+SUBROUTINE matinv2_q(A, B)
+    !! Performs a direct calculation of the inverse of a 2×2 matrix.
+USE precision_mod
+REAL(KIND=PREC_QP), DIMENSION(2,2), INTENT(IN) :: A        !! Matrix
+REAL(KIND=PREC_QP), DIMENSION(2,2), INTENT(OUT):: B        !! Inverse matrix
+!
+REAL(KIND=PREC_QP)                        :: det, detinv
+!
+! Calculate the inverse determinant of the matrix
+det = det2_q(a)
+!
+IF(det/=0.0D0) THEN
+   detinv = 1./det
+
+    ! Calculate the inverse of the matrix
+    B(1,1) = +detinv * A(2,2)
+    B(2,1) = -detinv * A(2,1)
+    B(1,2) = -detinv * A(1,2)
+    B(2,2) = +detinv * A(1,1)
+ELSE
+   ier_num = -45
+   ier_typ = ER_FORT
+ENDIF
+!
+END SUBROUTINE matinv2_q
 !
 !*******************************************************************************
 !
@@ -165,6 +265,39 @@ ELSE
 ENDIF
 !
 END SUBROUTINE matinv3
+!
+!*******************************************************************************
+!
+SUBROUTINE matinv3_q(A, B)
+    !! Performs a direct calculation of the inverse of a 3×3 matrix.
+USE precision_mod
+REAL(KIND=PREC_QP), DIMENSION(3,3), INTENT(IN) :: A        !! Matrix
+REAL(KIND=PREC_QP), DIMENSION(3,3), INTENT(OUT):: B        !! Inverse matrix
+!
+REAL(KIND=PREC_QP)                             :: det, detinv
+!
+! Calculate the inverse determinant of the matrix
+det = det3_q(a)
+!
+IF(det/=0.0D0) THEN
+   detinv = 1./det
+!
+! Calculate the inverse of the matrix
+   B(1,1) = +detinv * (A(2,2)*A(3,3) - A(2,3)*A(3,2))
+   B(2,1) = -detinv * (A(2,1)*A(3,3) - A(2,3)*A(3,1))
+   B(3,1) = +detinv * (A(2,1)*A(3,2) - A(2,2)*A(3,1))
+   B(1,2) = -detinv * (A(1,2)*A(3,3) - A(1,3)*A(3,2))
+   B(2,2) = +detinv * (A(1,1)*A(3,3) - A(1,3)*A(3,1))
+   B(3,2) = -detinv * (A(1,1)*A(3,2) - A(1,2)*A(3,1))
+   B(1,3) = +detinv * (A(1,2)*A(2,3) - A(1,3)*A(2,2))
+   B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
+   B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
+ELSE
+   ier_num = -45
+   ier_typ = ER_FORT
+ENDIF
+!
+END SUBROUTINE matinv3_q
 !
 !*******************************************************************************
 !
@@ -205,6 +338,47 @@ ENDIF
 !
 END SUBROUTINE matinv4
 !
+!*******************************************************************************
+!
+SUBROUTINE matinv4_q(A, B)
+    !! Performs a direct calculation of the inverse of a 4×4 matrix.
+USE precision_mod
+REAL(KIND=PREC_QP), DIMENSION(4,4), INTENT(IN) :: A        !! Matrix
+REAL(KIND=PREC_QP), DIMENSION(4,4), INTENT(OUT):: B        !! Inverse matrix
+!
+REAL(KIND=PREC_QP)                             :: det, detinv
+!
+! Calculate the inverse determinant of the matrix
+det = det4_q(a)
+!
+IF(det/=0.0D0) THEN
+   detinv = 1./det
+    ! Calculate the inverse of the matrix
+   B(1,1) = detinv*(A(2,2)*(A(3,3)*A(4,4)-A(3,4)*A(4,3))+A(2,3)*(A(3,4)*A(4,2)-A(3,2)*A(4,4))+A(2,4)*(A(3,2)*A(4,3)-A(3,3)*A(4,2)))
+   B(2,1) = detinv*(A(2,1)*(A(3,4)*A(4,3)-A(3,3)*A(4,4))+A(2,3)*(A(3,1)*A(4,4)-A(3,4)*A(4,1))+A(2,4)*(A(3,3)*A(4,1)-A(3,1)*A(4,3)))
+   B(3,1) = detinv*(A(2,1)*(A(3,2)*A(4,4)-A(3,4)*A(4,2))+A(2,2)*(A(3,4)*A(4,1)-A(3,1)*A(4,4))+A(2,4)*(A(3,1)*A(4,2)-A(3,2)*A(4,1)))
+   B(4,1) = detinv*(A(2,1)*(A(3,3)*A(4,2)-A(3,2)*A(4,3))+A(2,2)*(A(3,1)*A(4,3)-A(3,3)*A(4,1))+A(2,3)*(A(3,2)*A(4,1)-A(3,1)*A(4,2)))
+   B(1,2) = detinv*(A(1,2)*(A(3,4)*A(4,3)-A(3,3)*A(4,4))+A(1,3)*(A(3,2)*A(4,4)-A(3,4)*A(4,2))+A(1,4)*(A(3,3)*A(4,2)-A(3,2)*A(4,3)))
+   B(2,2) = detinv*(A(1,1)*(A(3,3)*A(4,4)-A(3,4)*A(4,3))+A(1,3)*(A(3,4)*A(4,1)-A(3,1)*A(4,4))+A(1,4)*(A(3,1)*A(4,3)-A(3,3)*A(4,1)))
+   B(3,2) = detinv*(A(1,1)*(A(3,4)*A(4,2)-A(3,2)*A(4,4))+A(1,2)*(A(3,1)*A(4,4)-A(3,4)*A(4,1))+A(1,4)*(A(3,2)*A(4,1)-A(3,1)*A(4,2)))
+   B(4,2) = detinv*(A(1,1)*(A(3,2)*A(4,3)-A(3,3)*A(4,2))+A(1,2)*(A(3,3)*A(4,1)-A(3,1)*A(4,3))+A(1,3)*(A(3,1)*A(4,2)-A(3,2)*A(4,1)))
+   B(1,3) = detinv*(A(1,2)*(A(2,3)*A(4,4)-A(2,4)*A(4,3))+A(1,3)*(A(2,4)*A(4,2)-A(2,2)*A(4,4))+A(1,4)*(A(2,2)*A(4,3)-A(2,3)*A(4,2)))
+   B(2,3) = detinv*(A(1,1)*(A(2,4)*A(4,3)-A(2,3)*A(4,4))+A(1,3)*(A(2,1)*A(4,4)-A(2,4)*A(4,1))+A(1,4)*(A(2,3)*A(4,1)-A(2,1)*A(4,3)))
+   B(3,3) = detinv*(A(1,1)*(A(2,2)*A(4,4)-A(2,4)*A(4,2))+A(1,2)*(A(2,4)*A(4,1)-A(2,1)*A(4,4))+A(1,4)*(A(2,1)*A(4,2)-A(2,2)*A(4,1)))
+   B(4,3) = detinv*(A(1,1)*(A(2,3)*A(4,2)-A(2,2)*A(4,3))+A(1,2)*(A(2,1)*A(4,3)-A(2,3)*A(4,1))+A(1,3)*(A(2,2)*A(4,1)-A(2,1)*A(4,2)))
+   B(1,4) = detinv*(A(1,2)*(A(2,4)*A(3,3)-A(2,3)*A(3,4))+A(1,3)*(A(2,2)*A(3,4)-A(2,4)*A(3,2))+A(1,4)*(A(2,3)*A(3,2)-A(2,2)*A(3,3)))
+   B(2,4) = detinv*(A(1,1)*(A(2,3)*A(3,4)-A(2,4)*A(3,3))+A(1,3)*(A(2,4)*A(3,1)-A(2,1)*A(3,4))+A(1,4)*(A(2,1)*A(3,3)-A(2,3)*A(3,1)))
+   B(3,4) = detinv*(A(1,1)*(A(2,4)*A(3,2)-A(2,2)*A(3,4))+A(1,2)*(A(2,1)*A(3,4)-A(2,4)*A(3,1))+A(1,4)*(A(2,2)*A(3,1)-A(2,1)*A(3,2)))
+   B(4,4) = detinv*(A(1,1)*(A(2,2)*A(3,3)-A(2,3)*A(3,2))+A(1,2)*(A(2,3)*A(3,1)-A(2,1)*A(3,3))+A(1,3)*(A(2,1)*A(3,2)-A(2,2)*A(3,1)))
+ELSE
+   ier_num = -45
+   ier_typ = ER_FORT
+ENDIF
+!
+END SUBROUTINE matinv4_q
+!
+!*******************************************************************************
+!
 SUBROUTINE matinvn(a,c,n)
 !============================================================
 ! Inverse matrix
@@ -240,9 +414,9 @@ INTEGER :: i, j, k
 
 ! step 0: initialization for matrices L and U and b
 ! Fortran 90/95 aloows such operations on matrices
-L=0.0
-U=0.0
-b=0.0
+L=0.0D0
+U=0.0D0
+b=0.0D0
 
 ! step 1: forward elimination
 do k=1, n-1
@@ -259,7 +433,7 @@ end do
 ! L matrix is a matrix of the elimination coefficient
 ! + the diagonal elements are 1.0
 do i=1,n
-  L(i,i) = 1.0
+  L(i,i) = 1.0D0
 end do
 ! U matrix is the upper triangular part of A
 do j=1,n
@@ -270,7 +444,7 @@ end do
 
 ! Step 3: compute columns of the inverse matrix C
 do k=1,n
-  b(k)=1.0
+  b(k)=1.0D0
   d(1) = b(1)
 ! Step 3a: Solve Ld=b using the forward substitution
   do i=2,n
@@ -292,9 +466,102 @@ do k=1,n
   do i=1,n
     c(i,k) = x(i)
   end do
-  b(k)=0.0
+  b(k)=0.0D0
 end do
 end SUBROUTINE matinvn
+!
+!*******************************************************************************
+!
+SUBROUTINE matinvn_q(a,c,n)
+!============================================================
+! Inverse matrix
+! Method: Based on Doolittle LU factorization for Ax=b
+! Alex G. December 2009
+!-----------------------------------------------------------
+! input ...
+! a(n,n) - array of coefficients for matrix A
+! n      - dimension
+! output ...
+! c(n,n) - inverse matrix of A
+! comments ...
+! the original matrix a(n,n) will be destroyed 
+! during the calculation
+!===========================================================
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER                           , INTENT(IN)    :: n
+REAL(KIND=PREC_QP), DIMENSION(n,n), INTENT(INOUT) :: a
+REAL(KIND=PREC_QP), DIMENSION(n,n), INTENT(OUT)   :: c
+!double precision a(n,n), c(n,n)
+!double precision L(n,n), U(n,n), b(n), d(n), x(n)
+!double precision coeff
+REAL(KIND=PREC_QP), DIMENSION(n,n) :: L 
+REAL(KIND=PREC_QP), DIMENSION(n,n) :: U 
+REAL(KIND=PREC_QP), DIMENSION(n)   :: b 
+REAL(KIND=PREC_QP), DIMENSION(n)   :: d 
+REAL(KIND=PREC_QP), DIMENSION(n)   :: x 
+REAL(KIND=PREC_QP)                 :: coeff 
+INTEGER :: i, j, k
+
+! step 0: initialization for matrices L and U and b
+! Fortran 90/95 aloows such operations on matrices
+L=0.0D0
+U=0.0D0
+b=0.0D0
+
+! step 1: forward elimination
+do k=1, n-1
+   do i=k+1,n
+      coeff=a(i,k)/a(k,k)
+      L(i,k) = coeff
+      do j=k+1,n
+         a(i,j) = a(i,j)-coeff*a(k,j)
+      end do
+   end do
+end do
+
+! Step 2: prepare L and U matrices 
+! L matrix is a matrix of the elimination coefficient
+! + the diagonal elements are 1.0
+do i=1,n
+  L(i,i) = 1.0D0
+end do
+! U matrix is the upper triangular part of A
+do j=1,n
+  do i=1,j
+    U(i,j) = a(i,j)
+  end do
+end do
+
+! Step 3: compute columns of the inverse matrix C
+do k=1,n
+  b(k)=1.0D0
+  d(1) = b(1)
+! Step 3a: Solve Ld=b using the forward substitution
+  do i=2,n
+    d(i)=b(i)
+    do j=1,i-1
+      d(i) = d(i) - L(i,j)*d(j)
+    end do
+  end do
+! Step 3b: Solve Ux=d using the back substitution
+  x(n)=d(n)/U(n,n)
+  do i = n-1,1,-1
+    x(i) = d(i)
+    do j=n,i+1,-1
+      x(i)=x(i)-U(i,j)*x(j)
+    end do
+    x(i) = x(i)/u(i,i)
+  end do
+! Step 3c: fill the solutions x(n) into column k of C
+  do i=1,n
+    c(i,k) = x(i)
+  end do
+  b(k)=0.0D0
+end do
+end SUBROUTINE matinvn_q
 !
 !*******************************************************************************
 !
@@ -363,12 +630,12 @@ ELSE
    n1    = SQRT( (work(1,1)-ca)/(1.0D0-ca) )
 ENDIF
 IF(         ( (work(2,2)-ca)/(1.0D0-ca) )<0.0D0) THEN
-   n2 = 0.0
+   n2 = 0.0D0
 ELSE
    n2    = SQRT( (work(2,2)-ca)/(1.0D0-ca) )
 ENDIF
 IF(         ( (work(3,3)-ca)/(1.0D0-ca) )<0.0D0) THEN
-   n3 = 0.0
+   n3 = 0.0D0
 ELSE
    n3    = SQRT( (work(3,3)-ca)/(1.0D0-ca) )
 ENDIF
