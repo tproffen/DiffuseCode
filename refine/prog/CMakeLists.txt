@@ -44,8 +44,6 @@ endif (MPI_Fortran_FOUND AND DIFFEV_MPI)
 
 if (DIFFUSE_SHARE_LIB)
   add_library (refine_all SHARED ${SOURCES_ALL})
-elseif (DIFFUSE_SHARE_LIB)
-  add_library (refine_all ${SOURCES_ALL})
 else (DIFFUSE_SHARE_LIB)
   add_library (refine_all ${SOURCES_ALL})
 endif (DIFFUSE_SHARE_LIB)
