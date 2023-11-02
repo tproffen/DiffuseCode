@@ -102,11 +102,11 @@ set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 
 
 
-if (DIFFUSE_SHARE_LIB)
+if (DIFFUSE_SHARED_LIB)
   add_library (discus_suite_all SHARED ${SOURCES_ALL})
-else (DIFFUSE_SHARE_LIB)
+else (DIFFUSE_SHARED_LIB)
   add_library (discus_suite_all ${SOURCES_ALL})
-endif (DIFFUSE_SHARE_LIB)
+endif (DIFFUSE_SHARED_LIB)
 
 add_dependencies ( discus_suite_all diffev_all refine_all discus_all kuplot_all lib_f90 suitehlp)
 

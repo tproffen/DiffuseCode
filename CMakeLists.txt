@@ -49,7 +49,7 @@ find_package(PNG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(FFTW REQUIRED)
 
-option(DIFFUSE_SHARE_LIB "If on build shared libraries" OFF)
+option(DIFFUSE_SHARED_LIB "If on build shared libraries" OFF)
 #
 option(DISCUS_OMP    "Switch for compiling DISCUS_SUITE with OpenMP" ON)
 if (DISCUS_OMP)

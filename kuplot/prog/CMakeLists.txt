@@ -67,11 +67,11 @@ else (NEXUS_FOUND)
 
 endif (NEXUS_FOUND)
 
-if (DIFFUSE_SHARE_LIB)
+if (DIFFUSE_SHARED_LIB)
   add_library (kuplot_all SHARED ${SOURCES_ALL})
-else (DIFFUSE_SHARE_LIB)
+else (DIFFUSE_SHARED_LIB)
   add_library (kuplot_all ${SOURCES_ALL})
-endif (DIFFUSE_SHARE_LIB)
+endif (DIFFUSE_SHARED_LIB)
 
 add_dependencies (kuplot_all lib_f90)
 
