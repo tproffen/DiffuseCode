@@ -789,12 +789,12 @@ use precision_mod
 !
    ia = 0
    DO inum=1,cr_natoms
-!     IF(this%cr_sav_atom(cr_iscat(inum))) THEN
-      IF(check_select_status(inum,this%cr_sav_atom(cr_iscat(inum)),   &
+!     IF(this%cr_sav_atom(cr_iscat(inum,1))) THEN
+      IF(check_select_status(inum,this%cr_sav_atom(cr_iscat(inum,1)),   &
                                   cr_prop (inum),                &
                              this%cr_sav_sel_prop) ) THEN
          ia = ia + 1
-         itype = iscat_table(cr_iscat(inum))
+         itype = iscat_table(cr_iscat(inum,1))
          posit = cr_pos(:,inum)
          isurface(:) = cr_surf(:, inum)
          magn_mom(:) = cr_magn(:, inum)
@@ -929,7 +929,7 @@ use precision_mod
    LOGICAL             , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_delf_int  ! (  0:MAXSCAT)
 
    REAL(kind=PREC_DP)  , DIMENSION(3,rd_NMAX)   , INTENT(IN) :: rd_cr_pos
-   INTEGER             , DIMENSION(  rd_NMAX)   , INTENT(IN) :: rd_cr_iscat
+   INTEGER             , DIMENSION(  rd_NMAX,2)   , INTENT(IN) :: rd_cr_iscat
    INTEGER             , DIMENSION(  rd_NMAX)   , INTENT(IN) :: rd_cr_prop
    INTEGER             , DIMENSION(0:3,rd_NMAX) , INTENT(IN) :: rd_cr_surf
    REAL(kind=PREC_DP)  , DIMENSION(0:3,rd_NMAX) , INTENT(IN) :: rd_cr_magn
@@ -1105,12 +1105,12 @@ use precision_mod
 !
    ia = 0
    DO inum=1,rd_cr_natoms
-!     IF(this%cr_sav_atom(cr_iscat(inum))) THEN
-      IF(check_select_status(inum,this%cr_sav_atom(rd_cr_iscat(inum)),   &
+!     IF(this%cr_sav_atom(cr_iscat(inum,1))) THEN
+      IF(check_select_status(inum,this%cr_sav_atom(rd_cr_iscat(inum,1)),   &
                                   rd_cr_prop (inum),                &
                              this%cr_sav_sel_prop) ) THEN
          ia = ia + 1
-         itype = iscat_table(rd_cr_iscat(inum))
+         itype = iscat_table(rd_cr_iscat(inum,1))
          posit = rd_cr_pos(:,inum)
          isurface(:) = rd_cr_surf(:,inum)
          magn_mom(:) = rd_cr_magn(:,inum)
@@ -1463,7 +1463,7 @@ use precision_mod
    DO inum=1,this%cr_natoms
       CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
       ia = ia + 1
-      cr_iscat(ia) = itype
+      cr_iscat(ia,1) = itype
       cr_pos(:,ia) = posit
       cr_surf(:,ia) = isurface(:)
       cr_magn(:,ia) = magn_mom(:)
@@ -1484,7 +1484,7 @@ use precision_mod
 !
    INTEGER,                                      INTENT(IN)     :: RD_NMAX
    INTEGER,                                      INTENT(INOUT)  :: rd_cr_natoms
-   INTEGER           , DIMENSION(1:RD_NMAX),     INTENT(INOUT)  :: rd_cr_iscat
+   INTEGER           , DIMENSION(1:RD_NMAX,3),     INTENT(INOUT)  :: rd_cr_iscat
    INTEGER           , DIMENSION(1:RD_NMAX),     INTENT(INOUT)  :: rd_cr_prop
    REAL(kind=PREC_DP), DIMENSION(1:3,1:RD_NMAX), INTENT(INOUT)  :: rd_cr_pos
    INTEGER           , DIMENSION(0:3,1:RD_NMAX), INTENT(INOUT)  :: rd_cr_surf
@@ -1508,7 +1508,7 @@ use precision_mod
       CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
       IF ( this%cr_sav_atom(itype)) THEN
          ia = ia + 1
-         rd_cr_iscat(ia) = itype
+         rd_cr_iscat(ia,1) = itype
          rd_cr_pos(:,ia) = posit
          rd_cr_prop (ia) = iprop
          rd_cr_surf(:,ia)= isurface(:)

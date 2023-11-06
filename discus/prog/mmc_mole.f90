@@ -572,12 +572,12 @@ e_len = 0.0
 !
 loop_atoms: do ia = 1, mole_len(im)                     ! Loop over all atoms in the molecule
    jatom = mole_cont(mole_off(im)+ia)                    ! Actual atom number i crystal
-   is = cr_iscat(jatom)                                  ! Atom type at start atom
+   is = cr_iscat(jatom,1)                                  ! Atom type at start atom
    call chem_neighbour_multi(jatom, ic, iatom, patom, tatom, natom, &
                                  ncent, MAX_ATOM_ENV_L, MMC_MAX_CENT_L)
    u = cr_pos(:, jatom)
    loop_neig: do j = 1, natom(1)
-      js = cr_iscat(iatom(j,1))
+      js = cr_iscat(iatom(j,1),1)
       if(mmc_pair(ic, MC_LENNARD,is,js)/=0) then
          v = patom(:, j, 1)                                 ! patom contains offset
          d = do_blen (.TRUE., u, v)

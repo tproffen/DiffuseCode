@@ -3121,7 +3121,7 @@ use precision_mod
 !                                                                       
       fj2 = 0.0 
       DO j = 1, cr_ncatoms 
-      fj2 = fj2 + (form (cr_iscat (j), cr_scat, lxray, dstar2, diff_power) ) **2 
+      fj2 = fj2 + (form (cr_iscat (j,1), cr_scat, lxray, dstar2, diff_power) ) **2 
       ENDDO 
 !                                                                       
       END FUNCTION fj2                              

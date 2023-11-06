@@ -1460,7 +1460,8 @@ IF(nscats > MAXSCAT) THEN
    need_alloc = .true.
 ENDIF
 IF( need_alloc) THEN
-   CALL alloc_crystal (nscats, natoms)
+   CALL alloc_crystal_scat (nscats)
+   CALL alloc_crystal_nmax (natoms)
    IF ( ier_num /= 0 ) RETURN
 ENDIF
 cr_natoms = st_nlayer
@@ -1477,7 +1478,7 @@ DO i=1,st_ntypes
 ENDDO
 DO i=1,st_nlayer
    cr_pos  (:,i) = st_origin (:, i)
-   cr_iscat(  i) = st_type(i)
+   cr_iscat(  i,1) = st_type(i)
    cr_mole (  i) = 0
    cr_surf (:,i) = 0
    cr_magn (:,i) = 0
@@ -1776,7 +1777,8 @@ more1: IF (st_nlayer.ge.1) then
       need_alloc = .true.
    ENDIF
    IF( need_alloc) THEN
-      CALL alloc_crystal (nscats, natoms)
+      CALL alloc_crystal_scat (nscats)
+      CALL alloc_crystal_nmax (natoms)
       IF ( ier_num /= 0 ) then
          RETURN
       endif
@@ -1900,7 +1902,8 @@ more1: IF (st_nlayer.ge.1) then
             if(cr_nscat==MAXSCAT) then          ! Need to allocate
                nscat = max(cr_nscat+1, MAXSCAT)
                natom = max(cr_natoms+st_natoms, NMAX)
-               call alloc_crystal(nscat, nmax)
+               call alloc_crystal_scat(nscat)
+               call alloc_crystal_nmax(nmax)
                MAXSCAT = nscat
                NMAX    = nmax
             endif
@@ -2005,7 +2008,8 @@ more1: IF (st_nlayer.ge.1) then
             if(cr_nscat==MAXSCAT) then          ! Need to allocate
                nscat = max(cr_nscat+1, MAXSCAT)
                natom = max(cr_natoms+st_natoms, NMAX)
-               call alloc_crystal(nscat, nmax)
+               call alloc_crystal_scat(nscat)
+               call alloc_crystal_nmax(nmax)
                MAXSCAT = nscat
                NMAX    = nmax
             endif
@@ -2014,7 +2018,7 @@ more1: IF (st_nlayer.ge.1) then
             cr_at_lis(kk) = st_at_lis(st_iscat(j))             ! Set new atom type
             cr_dw    (kk) = st_dw(st_iscat(j) )                ! Set new ADP
          endif
-         cr_iscat(iatom-1+j) = kk 
+         cr_iscat(iatom-1+j,1) = kk 
          cr_prop (iatom-1+j) = st_prop(j)
          cr_surf (:,iatom-1+j) = 0                   ! Not on a surface
          cr_magn (:,iatom-1+j) = st_magn(:,j)
@@ -2123,13 +2127,13 @@ if(st_mod_sta .and. st_mod_atom/=ST_ATOM_OFF) then
          if(cr_pos(m,j) < st_dims(m,1)) then   ! Atom is too low shift upward
             cr_pos(m,j) = cr_pos(m,j) + st_adims(m)
             if(cr_pos(m,j)>=st_dims(m,2)) then ! Atom is outside flag to delete
-               cr_iscat(j) = -9
+               cr_iscat(j,1) = -9
                cycle loop_atom_mod
             endif
          elseif(cr_pos(m,j) >= st_dims(m,2) .and. st_idims(m)>0) then  ! Atom is too high
             cr_pos(m,j) = cr_pos(m,j) - st_adims(m)
             if(cr_pos(m,j) <st_dims(m,1)) then ! Atom is outside flag to delete
-               cr_iscat(j) = -9
+               cr_iscat(j,1) = -9
                cycle loop_atom_mod
             endif
          endif
@@ -2141,10 +2145,10 @@ if(st_mod_sta .and. st_mod_atom/=ST_ATOM_OFF) then
 !
    loop_atom_rem: do                          ! Loop to remove atoms
       loop_m:do                               ! Find next atoms with iscat == -9
-         if(cr_iscat(j+ndel)==-9) then        ! Found a candidate
+         if(cr_iscat(j+ndel,1)==-9) then        ! Found a candidate
             ndel = ndel + 1                   ! Need to remove another one
             if(j+ndel==cr_natoms) then        ! Last atom to delete is last in crystal
-               if(cr_iscat(j+ndel)==-9) then  !   and needs to be removed
+               if(cr_iscat(j+ndel,1)==-9) then  !   and needs to be removed
                   ndel = ndel + 1
                   exit loop_atom_rem
                else                           !   but is a good atom
@@ -2158,7 +2162,7 @@ if(st_mod_sta .and. st_mod_atom/=ST_ATOM_OFF) then
 !
       if(ndel>0) then                         ! We need to remove atoms within the list
          cr_pos  (:,j   ) = cr_pos  (:,j+ndel)
-         cr_iscat(  j   ) = cr_iscat(  j+ndel)
+         cr_iscat(  j,1   ) = cr_iscat(  j+ndel,1)
          cr_mole (  j   ) = cr_mole (  j+ndel)
          cr_surf (:,j   ) = cr_surf (:,j+ndel)
          cr_magn (:,j   ) = cr_magn (:,j+ndel)
@@ -2166,7 +2170,7 @@ if(st_mod_sta .and. st_mod_atom/=ST_ATOM_OFF) then
       endif
       j = j + 1                               ! Test next atom
       if(j     ==cr_natoms) then              ! We are at the crystals's end
-         if(cr_iscat(j)==-9) ndel = ndel + 1  !   But this one needs to be removed as well
+         if(cr_iscat(j,1)==-9) ndel = ndel + 1  !   But this one needs to be removed as well
          exit loop_atom_rem
       endif
    enddo loop_atom_rem
@@ -2428,7 +2432,8 @@ csf(1:num(1),1:num(2), 1:num(3)) = cmplx(0.0D0, 0.0D0,KIND=KIND(0.0D0))
          IF(n_atoms > NMAX .or. n_nscat > MAXSCAT .or. st_nlayer > NMAX) THEN
             n_atoms = MAX( n_atoms, st_nlayer, NMAX )
             n_nscat = MAX( n_nscat, MAXSCAT)
-            CALL alloc_crystal (n_nscat, n_atoms)
+            CALL alloc_crystal_scat (n_nscat)
+            CALL alloc_crystal_nmax (n_atoms)
             IF ( ier_num /= 0 ) RETURN
          ENDIF
 !
@@ -2537,7 +2542,8 @@ DO j = 1, st_nlayer
             IF(n_atoms > NMAX .or. n_nscat > MAXSCAT) THEN
                n_atoms = MAX( n_atoms, NMAX)
                n_nscat = MAX( n_nscat, MAXSCAT)
-               CALL alloc_crystal (n_nscat, n_atoms)
+               CALL alloc_crystal_scat (n_nscat)
+               CALL alloc_crystal_nmax (n_atoms)
                IF ( ier_num /= 0 ) RETURN
             ENDIF
 !
@@ -2865,7 +2871,8 @@ endif
          IF(n_natoms > NMAX .or. n_nscat > MAXSCAT) THEN
             n_natoms = MAX( n_natoms, NMAX)
             n_nscat  = MAX( n_nscat, MAXSCAT)
-            CALL alloc_crystal (n_nscat, n_natoms)
+            CALL alloc_crystal_scat (n_nscat)
+            CALL alloc_crystal_nmax (n_natoms)
             IF ( ier_num /= 0 ) RETURN
          ENDIF
 !
@@ -3013,7 +3020,8 @@ endif
          IF(n_natoms > NMAX .or. n_nscat > MAXSCAT) THEN
             n_natoms = MAX( n_natoms, NMAX )
             n_nscat  = MAX( n_nscat,  MAXSCAT)
-            CALL alloc_crystal (n_nscat, n_natoms)
+            CALL alloc_crystal_scat (n_nscat)
+            CALL alloc_crystal_nmax (n_natoms)
             IF ( ier_num /= 0 ) RETURN
          ENDIF
 !

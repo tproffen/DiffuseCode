@@ -326,7 +326,8 @@ if(.not. exp_comp_current) then     ! We cannot use current structure
         cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
    CALL get_symmetry_matrices
    occ = sum(exp_atocc(1:exp_natom))
-   call alloc_crystal(exp_natom, exp_natom)
+   call alloc_crystal_scat(exp_natom)
+   call alloc_crystal_nmax(exp_natom)
    cr_at_lis = ' '
    do i=1, exp_natom
       cr_pos(1,i) = REAL(i, kind=PREC_DP)
@@ -335,7 +336,7 @@ if(.not. exp_comp_current) then     ! We cannot use current structure
       cr_mole(i)    = 0
       cr_surf(:,i)  = 0
       cr_magn(:,i)  = 0.0
-      cr_iscat(i)   = i
+      cr_iscat(i,1)   = i
       cr_at_lis(i)(1:2)  = exp_atname(i)(1:2)
       cr_scat_equ (i) = .false.
       cr_dw(i)      = 0.0

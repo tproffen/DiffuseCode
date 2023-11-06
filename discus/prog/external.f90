@@ -97,7 +97,7 @@ use precision_mod
 !                                                                       
 !------ Now we multiply with formfactor                                 
 !                                                                       
-      iscat = cr_iscat (m) 
+      iscat = cr_iscat (m,1) 
       IF (iscat.gt.0) then 
 !
 !         DO i = 1, num (1) * num (2) 

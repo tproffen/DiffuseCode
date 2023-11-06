@@ -1622,7 +1622,7 @@ SUBROUTINE symmetry
 !-                                                                      
 !     Performs the space group symmetry on the current atom.            
 !     cr_natoms             the current atom number                     
-!     cr_iscat(cr_natoms)   its scattering type                         
+!     cr_iscat(cr_natoms,1)   its scattering type                         
 !                           and thus number of chemically identical     
 !                           yet symmetrically different atoms           
 !                                                                       
@@ -1746,7 +1746,7 @@ INTEGER,                       INTENT(IN)     ::  NMAX
 INTEGER,                       INTENT(INOUT)  :: cr_iset
 INTEGER,                       INTENT(INOUT)  :: cr_natoms
 REAL(kind=PREC_DP)   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
-INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
+INTEGER, DIMENSION(1:NMAX,3),    INTENT(INOUT)  :: cr_iscat
 INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
 INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
 REAL(kind=PREC_DP)   , DIMENSION(0:3,1:NMAX),INTENT(INOUT)  :: cr_magn
@@ -1877,7 +1877,7 @@ lp_gener: DO ipg = 1, generpower (igg)
             cr_pos (1, cr_natoms) = yy(1) 
             cr_pos (2, cr_natoms) = yy(2) 
             cr_pos (3, cr_natoms) = yy(3) 
-            cr_iscat (cr_natoms) = cr_iscat (ii) 
+            cr_iscat (cr_natoms,1) = cr_iscat (ii,1) 
             cr_mole (cr_natoms) = cr_mole (ii) 
             cr_prop (cr_natoms) = cr_prop (ii) 
             cr_magn(0, cr_natoms) = cr_magn(0, ii)

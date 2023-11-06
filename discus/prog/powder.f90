@@ -2350,7 +2350,7 @@ CALL dealloc_powder_nmax ! was allocated in powder_getatoms
 !
 !      natom = 0
 !      DO i=1,cr_natoms
-!         natom(cr_iscat(i)) = natom(cr_iscat(i)) + 1
+!         natom(cr_iscat(i,1)) = natom(cr_iscat(i,1)) + 1
 !      ENDDO
 !      pow_nreal = SUM(natom)  ! Add real atom numbers 
 !      CALL powder_f2aver ( cr_nscat , natom , cr_dw)
@@ -2487,7 +2487,7 @@ use precision_mod
       nxat = 0 
 !                                                                       
       DO i = i_start + 1, cr_natoms 
-      IF (cr_iscat (i) .eq.iscat) THEN 
+      IF (cr_iscat (i,1) .eq.iscat) THEN 
          nxat = nxat + 1 
          DO j = 1, 3 
          u (j) = cr_pos (j, i_start) 
@@ -2579,7 +2579,7 @@ DO j = 1, cr_nscat
          pow_nscat(j) = 0 
 ENDDO 
 DO i = 1, cr_natoms 
-   iscat = cr_iscat (i) 
+   iscat = cr_iscat (i,1) 
    IF (iscat.gt.0) THEN 
       pow_nscat(iscat) = pow_nscat (iscat) + 1 
       pow_iatom(iscat, pow_nscat (iscat) ) = i 

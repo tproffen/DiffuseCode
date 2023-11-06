@@ -107,7 +107,7 @@ IF(ier_num.eq.0) THEN
          c_name   = ' '
          c_name_l = 1
       ENDIF
-      CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
+      CALL get_connectivity_identity( cr_iscat(iatom,1), ino, c_name, c_name_l)
       CALL do_show_connectivity ( iatom, ino, c_name, long)
 !                                                                       
 !     ----Show the dimensions              'cdim'                       
@@ -409,16 +409,16 @@ IF(ier_num == 0) THEN
       ENDIF
       DO l = 1, atom_env(0) 
          i = atom_env(l) 
-         at_name_d = at_name(cr_iscat(i) ) 
+         at_name_d = at_name(cr_iscat(i,1) ) 
          CALL char_prop_1(c_property, cr_prop(i), length) 
          IF(cr_magn(0,i)>0.0) THEN
          WRITE(output_io, 5010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
-            cr_pos(3, i), cr_dw(cr_iscat(i)), i, cr_mole(i),         &
-            c_property(1:length), cr_occ(cr_iscat(i)), cr_magn(0:3,i)
+            cr_pos(3, i), cr_dw(cr_iscat(i,1)), i, cr_mole(i),         &
+            c_property(1:length), cr_occ(cr_iscat(i,1)), cr_magn(0:3,i)
          ELSE
          WRITE(output_io, 3010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
-            cr_pos(3, i), cr_dw(cr_iscat(i)), i, cr_mole(i),         &
-            c_property(1:length), cr_occ(cr_iscat(i))
+            cr_pos(3, i), cr_dw(cr_iscat(i,1)), i, cr_mole(i),         &
+            c_property(1:length), cr_occ(cr_iscat(i,1))
          ENDIF
          DO k=1,3
             ioffset(k) = NINT(atom_pos(k,l)-cr_pos(k,i))
@@ -443,19 +443,19 @@ IF(ier_num == 0) THEN
             WRITE(output_io, 3000) 
          ENDIF
          DO i = istart, iend 
-            at_name_d = at_name(cr_iscat(i)) 
+            at_name_d = at_name(cr_iscat(i,1)) 
             CALL char_prop_1(c_property, cr_prop(i), length) 
             IF(cr_magn(0,i)>0.0) THEN
             WRITE(output_io, 4010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
-               cr_pos(3, i), cr_dw(cr_iscat(i)), i, cr_mole(i),         &
-               c_property(1:length), cr_occ(cr_iscat(i)),               &
+               cr_pos(3, i), cr_dw(cr_iscat(i,1)), i, cr_mole(i),         &
+               c_property(1:length), cr_occ(cr_iscat(i,1)),               &
                c_surf(cr_surf(0,i)), cr_surf(1:3,i),                    &
                cr_magn(0:3,i)
             ELSE
                WRITE(output_io, 3010) at_name_d, cr_pos(1, i),     &
-               cr_pos(2, i), cr_pos(3, i), cr_dw(cr_iscat(i)),     &
+               cr_pos(2, i), cr_pos(3, i), cr_dw(cr_iscat(i,1)),     &
                i, cr_mole(i),                                      &
-               c_property(1:length), cr_occ(cr_iscat(i)),          &
+               c_property(1:length), cr_occ(cr_iscat(i,1)),          &
                c_surf(cr_surf(0,i)), cr_surf(1:3,i)
             ENDIF
          ENDDO 
@@ -589,9 +589,9 @@ USE str_comp_mod
             i) )                                                        
             DO j = 1, mole_len (i) 
             k = mole_cont (mole_off (i) + j) 
-            at_name_d = at_name (cr_iscat (k) ) 
+            at_name_d = at_name (cr_iscat (k,1) ) 
             WRITE (output_io, 3010) at_name_d, k, cr_pos (1, k),        &
-            cr_pos (2, k), cr_pos (3, k), cr_dw (cr_iscat (k) ), cr_occ(cr_iscat(k))  
+            cr_pos (2, k), cr_pos (3, k), cr_dw (cr_iscat (k,1) ), cr_occ(cr_iscat(k,1))  
             ENDDO 
             ENDDO 
             RETURN 
@@ -628,9 +628,9 @@ USE str_comp_mod
       ENDIF 
       DO j = 1, mole_len (i) 
       k = mole_cont (mole_off (i) + j) 
-      at_name_d = at_name (cr_iscat (k) ) 
+      at_name_d = at_name (cr_iscat (k,1) ) 
       WRITE (output_io, 3010) at_name_d, k, cr_pos (1, k), cr_pos (2, k)&
-      , cr_pos (3, k), cr_dw (cr_iscat (k) ), j                            !! WORK OCC
+      , cr_pos (3, k), cr_dw (cr_iscat (k,1) ), j                            !! WORK OCC
       ENDDO 
       ENDDO 
 !                                                                       

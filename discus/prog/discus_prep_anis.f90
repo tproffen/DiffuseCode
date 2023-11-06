@@ -60,13 +60,13 @@ cr_ndiffer = 0
 cr_nanis = 0
 if(maxval(abs(cr_anis(:,:)))<TOL) return
 do iatom=1,cr_ncatoms
-   l = cr_iscat(iatom)        ! Current atom type
+   l = cr_iscat(iatom,1)        ! Current atom type
    cr_ndiffer(l) = cr_ndiffer(l) + 1
 enddo
 !
 ! Step 1:  Determine Eigenvalues and Eigenvectors 
 do iatom=1,cr_ncatoms 
-   itype = cr_iscat(iatom)
+   itype = cr_iscat(iatom,1)
    cr_ianis(iatom) = iatom
 !  write(*,*)
 !  write(*,'(a,i3,2i3, 3f7.3, i4)') ' ATOM ', iatom, itype, cr_ianis(iatom), cr_pos(:,iatom), cr_is_sym(iatom)

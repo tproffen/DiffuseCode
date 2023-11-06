@@ -48,7 +48,7 @@ REAL(kind=PREC_DP)  , DIMENSION(:),   ALLOCATABLE :: rd_cr_delfi    ! (0:MAXSCAT
 REAL(kind=PREC_DP)  , DIMENSION(:),   ALLOCATABLE :: rd_cr_delfr    ! (0:MAXSCAT) 
 REAL(kind=PREC_DP)  , DIMENSION(:,:), ALLOCATABLE :: rd_cr_scat   ! (11,0_MAXSCAT)
 REAL(kind=PREC_DP)  , DIMENSION(:,:), ALLOCATABLE :: rd_cr_pos    ! (1:3,1:NMAX)
-INTEGER             , DIMENSION(:),   ALLOCATABLE :: rd_cr_iscat  ! (1:NMAX)
+INTEGER             , DIMENSION(:,:), ALLOCATABLE :: rd_cr_iscat  ! (1:NMAX)
 INTEGER             , DIMENSION(:),   ALLOCATABLE :: rd_cr_prop   ! (1:NMAX)
 INTEGER             , DIMENSION(:),   ALLOCATABLE :: rd_cr_mole   ! (1:NMAX)
 INTEGER             , DIMENSION(:,:), ALLOCATABLE :: rd_cr_surf   ! (1:NMAX)

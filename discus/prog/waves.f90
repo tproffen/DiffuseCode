@@ -943,7 +943,7 @@ is_density: IF (wv_iwave.eq.WV_DENS) then
 !                                                                       
 !------ - Check if atom is a valid selection                            
 !                                                                       
-      IF (wv_latom (cr_iscat (i) ) ) then 
+      IF (wv_latom (cr_iscat (i,1) ) ) then 
 !                                                                       
          DO j = 1, 3 
             uc (j) = cr_pos (j, i) 
@@ -958,12 +958,12 @@ is_density: IF (wv_iwave.eq.WV_DENS) then
          dis = wave_func (wv_amp, arg, wv_amp0) 
 !                                                                       
          IF (ran1 (idum) .gt.dis) then 
-            cr_iscat (i) = wv_repl (cr_iscat (i) ) 
+            cr_iscat (i,1) = wv_repl (cr_iscat (i,1) ) 
          ENDIF 
       ELSEIF(wv_viceversa) THEN       ! Is atom the target of repl command ?
          is_target = -1       
          find_target: DO j=0,cr_nscat
-            IF( cr_iscat(i) == wv_repl(j)) THEN
+            IF( cr_iscat(i,1) == wv_repl(j)) THEN
                is_target = j
                EXIT find_target
             ENDIF
@@ -982,7 +982,7 @@ is_density: IF (wv_iwave.eq.WV_DENS) then
             dis = 1.0 - wave_func (wv_amp, arg, wv_amp0) 
 !                                                                       
             IF (ran1 (idum) .gt.dis) then 
-               cr_iscat (i) = is_target
+               cr_iscat (i,1) = is_target
             ENDIF 
          ENDIF
       ENDIF
@@ -994,7 +994,7 @@ ELSE is_density
 !                                                                       
 !------ - Check if atom is a valid selection                            
 !                                                                       
-      IF (wv_latom (cr_iscat (i) ) ) then 
+      IF (wv_latom (cr_iscat (i,1) ) ) then 
 !                                                                       
          DO j = 1, 3 
             uc (j) = cr_pos (j, i) 
@@ -1016,7 +1016,7 @@ ELSE is_density
 !  write(*,*) ' UP, arg ', up, arg, dis
 !endif
 !                                                                       
-         IF (.not.wv_lacoust.and. (index (cr_at_lis (cr_iscat (i) ) ,&
+         IF (.not.wv_lacoust.and. (index (cr_at_lis (cr_iscat (i,1) ) ,&
             '-') .gt.0) ) then                                          
                dis = - dis 
          ENDIF 
@@ -1110,7 +1110,7 @@ find_source:   DO is_repl=1,mole_num_mole
             ELSE 
                mole_type (i) = 0 
                DO j = 1, mole_len (i) 
-                  cr_iscat (mole_cont (mole_off (i) + j) ) = 0 
+                  cr_iscat (mole_cont (mole_off (i) + j),1 ) = 0 
                   cr_prop (mole_cont (mole_off (i) + j) ) = ibclr (     &
                   cr_prop (mole_cont (mole_off (i) + j) ), PROP_NORMAL) 
                ENDDO 
@@ -1150,7 +1150,7 @@ find_src:   DO is_repl=1,mole_num_mole
             ELSE 
                mole_type (i) = 0 
                DO j = 1, mole_len (i) 
-                  cr_iscat (mole_cont (mole_off (i) + j) ) = 0 
+                  cr_iscat (mole_cont (mole_off (i) + j),1 ) = 0 
                   cr_prop (mole_cont (mole_off (i) + j) ) = ibclr (     &
                   cr_prop (mole_cont (mole_off (i) + j) ), PROP_NORMAL) 
                ENDDO 
@@ -1193,7 +1193,7 @@ ELSE wave_type
 !------- ---- Displacement wave                                         
 !                                                                       
          ELSE 
-            IF (.not.wv_lacoust.and. (index (cr_at_lis (cr_iscat (ia) ) &
+            IF (.not.wv_lacoust.and. (index (cr_at_lis (cr_iscat (ia,1) ) &
             , '-') .gt.0) ) then                                        
                dis = - dis 
             ENDIF 

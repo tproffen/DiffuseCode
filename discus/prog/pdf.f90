@@ -451,8 +451,8 @@ USE str_comp_mod
 !                                                                       
 !RBN  cr_n_real_atoms = 0 
 !RBN  DO ia = 1, cr_natoms 
-!RBN  IF (cr_at_lis (cr_iscat (ia) ) .ne.'VOID') then 
-!RBN     bave = bave+form (cr_iscat (ia), cr_scat, pdf_lxray, hh,  pdf_power) *cr_occ(cr_iscat(ia))
+!RBN  IF (cr_at_lis (cr_iscat (ia,1) ) .ne.'VOID') then 
+!RBN     bave = bave+form (cr_iscat (ia,1), cr_scat, pdf_lxray, hh,  pdf_power) *cr_occ(cr_iscat(ia,1))
 !RBN     cr_n_real_atoms = cr_n_real_atoms + 1 
 !RBN  ENDIF 
 !RBN  ENDDO 
@@ -461,8 +461,8 @@ USE str_comp_mod
       pdf_natoms(:) = 0
       cr_n_real_atoms = 0 
       DO ia = 1, cr_natoms
-         IF (cr_at_lis (cr_iscat (ia) ) .ne.'VOID') then 
-            pdf_natoms(cr_iscat(ia)) = pdf_natoms(cr_iscat(ia)) + 1
+         IF (cr_at_lis (cr_iscat (ia,1) ) .ne.'VOID') then 
+            pdf_natoms(cr_iscat(ia,1)) = pdf_natoms(cr_iscat(ia,1)) + 1
          ENDIF 
       ENDDO 
 !
@@ -497,8 +497,8 @@ USE str_comp_mod
 !                                                                       
          DO i = 1, cr_natoms 
          DO j = 1, cr_natoms 
-         is = cr_iscat (i) 
-         js = cr_iscat (j) 
+         is = cr_iscat (i,1) 
+         js = cr_iscat (j,1) 
          rtot = rtot + pdf_weight (is, js) 
          IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) .or.  &
               (pdf_allowed_j (is) .and.pdf_allowed_i (js) ) )     &
@@ -1894,7 +1894,7 @@ main: DO while (loop)
 !-------- - save old positions ...                                      
 !                                                                       
             DO i = 1, natoms 
-               i_old (i) = cr_iscat (isel (i) ) 
+               i_old (i) = cr_iscat (isel (i),1 ) 
                p_old (1, i) = cr_pos (1, isel (i) ) 
                p_old (2, i) = cr_pos (2, isel (i) ) 
                p_old (3, i) = cr_pos (3, isel (i) ) 
@@ -2330,7 +2330,7 @@ laccept = .false.
       INTEGER i, j, is 
 !                                                                       
       DO i = 1, natoms 
-         cr_iscat (isel (i) ) = i_new (i) 
+         cr_iscat (isel (i),1 ) = i_new (i) 
          DO j = 1, 3 
             cr_pos (j, isel (i) ) = p_new (j, i) 
          ENDDO 
@@ -2496,14 +2496,14 @@ use precision_mod
 !        pdf_temp preserved accross its cycles!!!!!!!!!!!!!
          pdf_has_atom(:) = 0
          DO i=1, cr_natoms
-            IF(pdf_allowed_i(cr_iscat(i)) .OR. pdf_allowed_j(cr_iscat(i)) ) THEN
-               pdf_has_atom(cr_iscat(i)) = pdf_has_atom(cr_iscat(i)) + 1
+            IF(pdf_allowed_i(cr_iscat(i,1)) .OR. pdf_allowed_j(cr_iscat(i,1)) ) THEN
+               pdf_has_atom(cr_iscat(i,1)) = pdf_has_atom(cr_iscat(i,1)) + 1
             ENDIF
          ENDDO
          DO i=1, cr_nscat
             IF(pdf_has_atom(i)>0) pdf_nscat = i
          ENDDO
-!      pdf_nscat = MAXVAL(cr_iscat(1:cr_natoms))
+!      pdf_nscat = MAXVAL(cr_iscat(1:cr_natoms,1))
 !     IF(npoint    > UBOUND(pdf_temp,1) .OR.       &
 !        pdf_nscat > UBOUND(pdf_temp,2) .OR.       &
 !        nlook     > UBOUND(pdf_temp,4)      ) THEN
@@ -2791,7 +2791,7 @@ use precision_mod
 !                                                                       
       fac = 1.0 / (2.0 * REAL(zpi)**2) 
 !                                                                       
-      is = cr_iscat (ia) 
+      is = cr_iscat (ia,1) 
       IF (pdf_allowed_i (is) .or.pdf_allowed_j (is) ) then 
          CALL indextocell (ia, iii, ks) 
          DO i = 1, 3 
@@ -2835,7 +2835,7 @@ use precision_mod
 !                                                                       
          DO ii = 1, cr_ncatoms 
          CALL celltoindex (cell, ii, iatom) 
-         js = cr_iscat (iatom) 
+         js = cr_iscat (iatom,1) 
          IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) .or. (      &
          pdf_allowed_j (is) .and.pdf_allowed_i (js) ) ) then            
             DO jj = 1, 3 
@@ -2948,7 +2948,7 @@ use precision_mod
 !
       ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
 !
-      is = cr_iscat (ia) 
+      is = cr_iscat (ia,1) 
       IF (pdf_allowed_i (is) .or.pdf_allowed_j (is) ) then 
          pdf_temp(0,is,is,0) = pdf_temp(0,is,is,0) + 1       ! Add self correlation peak
          CALL indextocell (ia, iii, ks) 
@@ -2995,7 +2995,7 @@ use precision_mod
 !                                                                       
          DO ii = 1, cr_ncatoms 
          CALL celltoindex (cell, ii, iatom) 
-         js = cr_iscat (iatom) 
+         js = cr_iscat (iatom,1) 
          IF ( (pdf_allowed_i (js) .and.pdf_allowed_j (js) ) )THEN
                IF(offzero==0 .AND. cr_mole(ia)==cr_mole(iatom)) THEN
                   islook = 0   ! Atoms are within the same molecule
@@ -3057,7 +3057,7 @@ use precision_mod
       REAL(kind=PREC_DP) dist, dist2 
       REAL(kind=PREC_DP) dd (3), d (3), offset (3) 
 !
-      is = cr_iscat (ia) 
+      is = cr_iscat (ia,1) 
       IF (pdf_allowed_i (is) .or.pdf_allowed_j (is) ) then 
          CALL indextocell (ia, iii, ks) 
          DO i = 1, 3 
@@ -3103,7 +3103,7 @@ use precision_mod
 !                                                                       
          DO ii = 1, cr_ncatoms 
          CALL celltoindex (cell, ii, iatom) 
-         js = cr_iscat (iatom) 
+         js = cr_iscat (iatom,1) 
          IF ( (pdf_allowed_i (js) .and.pdf_allowed_j (js) ) )THEN
                IF(offzero==0 .AND. cr_mole(ia)==cr_mole(iatom)) THEN
                   islook = 0   ! Atoms are within the same molecule
@@ -3164,7 +3164,7 @@ main: DO ia=1,cr_natoms    ! Outer loop over all atoms
             done = 100.0 * REAL(ia) / REAL(cr_natoms) 
             WRITE (output_io, 1000) done 
          ENDIF 
-         is = cr_iscat (ia) 
+         is = cr_iscat (ia,1) 
          IF (pdf_allowed_i (is) .or.pdf_allowed_j (is) ) THEN 
             pdf_temp (0, is, is,0) = pdf_temp (0, is, is,0) +1  ! Element is,is is 
 !                                                           ! excluded in the inner loop
@@ -3172,7 +3172,7 @@ main: DO ia=1,cr_natoms    ! Outer loop over all atoms
 !------ - Here starts the inner loop over all atoms                     
 !                                                                       
 inner:      DO iatom = ia+1, cr_natoms 
-               js = cr_iscat (iatom) 
+               js = cr_iscat (iatom,1) 
                IF(cr_mole(ia)==cr_mole(iatom)) THEN
                   islook = 0   ! Atoms are within the same molecule
                ELSE
@@ -3231,7 +3231,7 @@ main: DO ia=1,cr_natoms    ! Outer loop over all atoms
             done = 100.0 * REAL(ia) / REAL(cr_natoms) 
             WRITE (output_io, 1000) done 
          ENDIF 
-         is = cr_iscat (ia) 
+         is = cr_iscat (ia,1) 
          IF (is /= 0 ) THEN   ! disregard VOIDs
             pdf_temp (0, is, is,0) = pdf_temp (0, is, is,0) +1  ! Element is,is is 
 !                                                           ! excluded in the inner loop
@@ -3239,7 +3239,7 @@ main: DO ia=1,cr_natoms    ! Outer loop over all atoms
 !------ - Here starts the inner loop over all atoms                     
 !                                                                       
 inner:      DO iatom = ia+1, cr_natoms 
-               js = cr_iscat (iatom) 
+               js = cr_iscat (iatom,1) 
                IF ( js /= 0) THEN 
                   dd (1) = cr_pos (1, ia) - cr_pos (1, iatom) 
                   dd (2) = cr_pos (2, ia) - cr_pos (2, iatom) 
@@ -3306,7 +3306,7 @@ main: DO ia=1,cr_natoms    ! Outer loop over all atoms
             done = 100.0 * REAL(ia) / REAL(cr_natoms) 
             WRITE (output_io, 1000) done 
          ENDIF 
-         is = cr_iscat (ia) 
+         is = cr_iscat (ia,1) 
          IF (is /= 0 ) THEN   ! disregard VOIDs
 !           pdf_temp (0, is, is,0) = pdf_temp (0, is, is,0) +1  ! Element (is,is) is 
 !                                                           ! excluded in the inner loop
@@ -3315,7 +3315,7 @@ main: DO ia=1,cr_natoms    ! Outer loop over all atoms
 !                                                                       
 !inner:      DO iatom = ia+1, cr_natoms 
 inner:      DO iatom =    1, cr_natoms 
-               js = cr_iscat (iatom) 
+               js = cr_iscat (iatom,1) 
                IF ( js /= 0) THEN 
                   DO ix=-ncell(1),ncell(1)
                   DO iy=-ncell(2),ncell(2)
@@ -3384,7 +3384,7 @@ main: DO ia=1,cr_natoms    ! Outer loop over all atoms
             done = 100.0 * REAL(ia) / REAL(cr_natoms) 
             WRITE (output_io, 1000) done 
          ENDIF 
-         is = cr_iscat (ia) 
+         is = cr_iscat (ia,1) 
          IF (is /= 0 ) THEN   ! disregard VOIDs
             pdf_temp (0, is, is,0) = pdf_temp (0, is, is,0) +1  ! Element is,is is 
 !                                                           ! excluded in the inner loop
@@ -3392,7 +3392,7 @@ main: DO ia=1,cr_natoms    ! Outer loop over all atoms
 !------ - Here starts the inner loop over all atoms                     
 !                                                                       
 inner:      DO iatom = ia+1, cr_natoms 
-               js = cr_iscat (iatom) 
+               js = cr_iscat (iatom,1) 
                IF(cr_mole(ia)==cr_mole(iatom)) THEN
                   islook = 0   ! Atoms are within the same molecule
                ELSE

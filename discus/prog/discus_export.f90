@@ -422,9 +422,9 @@ shelx_n = 0
 loop_shelx: DO i=1,cr_natoms
    l = shelx_n
    DO j=l,1,-1
-      IF(cr_at_lis(cr_iscat(i))(1:2) == shelx_names(j)(1:2)) THEN
+      IF(cr_at_lis(cr_iscat(i,1))(1:2) == shelx_names(j)(1:2)) THEN
          shelx_n = shelx_n + 1
-         shelx_names(i)(1:2) = cr_at_lis(cr_iscat(i))(1:2)
+         shelx_names(i)(1:2) = cr_at_lis(cr_iscat(i,1))(1:2)
          shelx_names(i)(3:3) = shelx_names(j)(3:3)
          IF(shelx_names(j)(4:4) == 'Z') THEN
             IF(shelx_names(j)(3:3) == 'x') THEN
@@ -440,7 +440,7 @@ loop_shelx: DO i=1,cr_natoms
       ENDIF
    ENDDO
    shelx_n = shelx_n + 1
-   shelx_names(shelx_n)(1:2) = cr_at_lis(cr_iscat(i))(1:2)
+   shelx_names(shelx_n)(1:2) = cr_at_lis(cr_iscat(i,1))(1:2)
    shelx_names(shelx_n)(3:4) = 'xA'
 ENDDO loop_shelx
 !
@@ -573,15 +573,15 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: vec
 !
    stype = 0
    loop_stype: DO j=1,unique_n
-      IF(cr_at_lis(cr_iscat(i))(1:2) == unique_names(j)(1:2))  THEN
+      IF(cr_at_lis(cr_iscat(i,1))(1:2) == unique_names(j)(1:2))  THEN
          stype = j
          EXIT loop_stype
       ENDIF
    ENDDO loop_stype
    vec(:) = cr_pos(:,i)
    CALL get_wyckoff(vec,.FALSE.,1)
-   occup = 10.000 + REAL(res_para(1)/res_para(3))*cr_occ(cr_iscat(i))
-   biso = cr_dw(cr_iscat(i))/8./REAL(pi**2)
+   occup = 10.000 + REAL(res_para(1)/res_para(3))*cr_occ(cr_iscat(i,1))
+   biso = cr_dw(cr_iscat(i,1))/8./REAL(pi**2)
    WRITE(IWR,2500) shelx_names(i), stype, cr_pos(:,i), occup,biso
 !
 2500 FORMAT(a4,1x,i2,3(f12.6),f12.5,f11.5)
@@ -706,11 +706,11 @@ ntypes = 0
 count: DO iatom=1,cr_natoms
    IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
       natoms = natoms + 1
-      IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
+      IF(cr_at_lis(cr_iscat(iatom,1))/='VOID') THEN
             nrealatoms = nrealatoms + 1
       endif
       find_entry: DO j=0,MAXSCAT
-         IF(atom_names(cr_iscat(iatom))(1:4)==atom_names(j)(1:4)) THEN
+         IF(atom_names(cr_iscat(iatom,1))(1:4)==atom_names(j)(1:4)) THEN
             atom_number(j) = atom_number(j) + 1
             EXIT find_entry
          ENDIF
@@ -793,8 +793,8 @@ shift(:) = REAL(NINT(cr_dim(:,1)))
 ii       = 0
 DO iscat=0,MAXSCAT
    DO iatom=1,cr_natoms
-      IF(cr_iscat(iatom)==iscat) THEN
-!        IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
+      IF(cr_iscat(iatom,1)==iscat) THEN
+!        IF(cr_at_lis(cr_iscat(iatom,1))/='VOID') THEN
             IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
                ii = ii + 1                               ! increment atom number for RMCprofile sequence
                if(chem_quick) then                       ! Structure is periodic
@@ -805,11 +805,11 @@ DO iscat=0,MAXSCAT
                   is = isites(icell(1),icell(2),icell(3))
                endif
                IF(rmcversion==6) THEN
-                  WRITE(IWR, 1700) ii, atom_names(cr_iscat(iatom))(1:2),   &
+                  WRITE(IWR, 1700) ii, atom_names(cr_iscat(iatom,1))(1:2),   &
                      ((cr_pos(i,iatom)-shift(i))/REAL(scalef(i)),i=1,3),  &
                      is, icell(1)-1, icell(2)-1, icell(3)-1
                ELSE
-                  WRITE(IWR, 1800) ii, atom_names(cr_iscat(iatom))(1:9),   &
+                  WRITE(IWR, 1800) ii, atom_names(cr_iscat(iatom,1))(1:9),   &
                      ((cr_pos(i,iatom)-shift(i))/REAL(scalef(i)),i=1,3),  &
                      is, icell(1)-1, icell(2)-1, icell(3)-1
                ENDIF
@@ -917,11 +917,11 @@ atom_number(:) = 0
 natoms = 0
 ntypes = 0
 count: DO iatom=1,cr_natoms
-   IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
+   IF(cr_at_lis(cr_iscat(iatom,1))/='VOID') THEN
       IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
          natoms = natoms + 1
          find_entry: DO j=1,MAXSCAT
-            IF(atom_names(cr_iscat(iatom))(1:4)==atom_names(j)(1:4)) THEN
+            IF(atom_names(cr_iscat(iatom,1))(1:4)==atom_names(j)(1:4)) THEN
                atom_number(j) = atom_number(j) + 1
                EXIT find_entry
             ENDIF
@@ -969,8 +969,8 @@ WRITE(IWR, '(a)')   'Direct'
 shift(:) = REAL(NINT(cr_dim(:,1)))
 DO iscat=1,MAXSCAT
    DO iatom=1,cr_natoms
-      IF(cr_iscat(iatom)==iscat) THEN
-         IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
+      IF(cr_iscat(iatom,1)==iscat) THEN
+         IF(cr_at_lis(cr_iscat(iatom,1))/='VOID') THEN
             IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
                   WRITE(IWR, 1700) ((cr_pos(i,iatom)-shift(i))/REAL(cr_icc(i)),i=1,3)
             ENDIF
@@ -1077,7 +1077,7 @@ if(scatty_site==0) then                   !use average sites
 ! Write atom list
 !
    atoms: DO i=1, cr_natoms
-      at_name_i = cr_at_lis(cr_iscat(i))
+      at_name_i = cr_at_lis(cr_iscat(i,1))
       IF(at_name_i=='VOID') CYCLE atoms
       CALL do_cap(at_name_i(1:1))
       CALL do_low(at_name_i(2:4))
@@ -1098,7 +1098,7 @@ else                       ! Use all atom positions
    WRITE(IWR, '(a, 6(2x,f12.5))') 'CELL', cr_icc*cr_a0, cr_win
    WRITE(IWR, '(a, 3(3x,i6))')    'BOX ', 1,1,1
    loop_atoms3:DO i=1, cr_natoms
-      at_name_i = cr_at_lis(cr_iscat(i))
+      at_name_i = cr_at_lis(cr_iscat(i,1))
       IF(at_name_i=='VOID') CYCLE loop_atoms3
       vec = cr_pos(:,i) - real(int(cr_pos(:,i)),kind=PREC_DP)
       if(vec(1)<0.0D0) vec(1:) = vec(1) + 1.0D0
@@ -1109,7 +1109,7 @@ else                       ! Use all atom positions
    loop_atoms4: DO i=1, cr_natoms
       line = 'OCC '
       string = ' '
-      at_name_i = cr_at_lis(cr_iscat(i))
+      at_name_i = cr_at_lis(cr_iscat(i,1))
       IF(at_name_i=='VOID') CYCLE loop_atoms4
       CALL do_cap(at_name_i(1:1))
       CALL do_low(at_name_i(2:4))
@@ -1122,7 +1122,7 @@ else                       ! Use all atom positions
 !
    k = 0
    atoms2: DO i=1, cr_natoms
-      at_name_i = cr_at_lis(cr_iscat(i))
+      at_name_i = cr_at_lis(cr_iscat(i,1))
       IF(at_name_i=='VOID') CYCLE atoms2
       CALL do_cap(at_name_i(1:1))
       CALL do_low(at_name_i(2:4))

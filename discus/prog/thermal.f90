@@ -98,7 +98,7 @@ bfac = 1.0D0 / (8.0D0 * pi**2)
 cond_mol:      IF (flag_mol) THEN 
          DO i = 1, mole_num_mole 
             is = mole_cont (mole_off (i) + 1) 
-!           a = sqrt (bfac * cr_dw (cr_iscat (is) ) ) 
+!           a = sqrt (bfac * cr_dw (cr_iscat (is,1) ) ) 
             a = sqrt (bfac * mole_biso (mole_type (i) ) ) 
 !           CALL ther_vec(flag_all, a, uc, up)
             is = mole_type (i) 
@@ -127,13 +127,13 @@ cond_mol:      IF (flag_mol) THEN
 ELSE  cond_mol
 !do i=1, cr_ncatoms
 !  write(*,*)
-!  write(*,'(a,3f9.5,i8, i4)' ) ' Atom ', cr_pos(:,i), i, cr_iscat(i)
+!  write(*,'(a,3f9.5,i8, i4)' ) ' Atom ', cr_pos(:,i), i, cr_iscat(i,1)
 !  write(*,'(a,3f9.5,a, f9.5)') ' Eigen',cr_prin(1,1:3,i), ' val ', cr_prin(1,4,i) 
 !  write(*,'(a,3f9.5,a, f9.5)') ' Eigen',cr_prin(2,1:3,i), ' val ', cr_prin(2,4,i) 
 !  write(*,'(a,3f9.5,a, f9.5)') ' Eigen',cr_prin(3,1:3,i), ' val ', cr_prin(3,4,i) 
 !enddo
    loop_atom_disp:DO i = 1, cr_natoms 
-      is = cr_iscat (i) 
+      is = cr_iscat (i,1) 
       a  = sqrt (bfac * cr_dw (is) ) 
 !           CALL ther_vec(flag_all, a, uc, up)
       cond_anis:if(is<=0) then    ! FOR GE 
@@ -149,7 +149,7 @@ ELSE  cond_mol
       else cond_anis
          DO ii = 1, 3 
 sigma = a
-!if(cr_iscat(i)==1) then
+!if(cr_iscat(i,1)==1) then
 !  if(ii==1) sigma = a*1.15
 !  if(ii==2) sigma = a*1.00
 !  if(ii==3) sigma = a*1.00
@@ -169,7 +169,7 @@ sigma = a
 !write(*,'(a,3f8.4,2x, f8.4)') 'VECTOR uc ', uc
 !endif
       endif cond_anis
-!write(*,*) ' ATOM ', i, is, cr_iscat(i), uc, is<=9
+!write(*,*) ' ATOM ', i, is, cr_iscat(i,1), uc, is<=9
       DO j = 1, 3 
          cr_pos (j, i)  = cr_pos (j, i) + uc (j) 
          uc_max (j, is) = max (uc_max (j, is), abs (up (j) ) ) 

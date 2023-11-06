@@ -472,7 +472,8 @@ ENDIF internalcell
 !                                                                       
 iatom = cr_icc (1) * cr_icc (2) * cr_icc (3) * cr_natoms
 if(iatom.gt.nmax) then 
-   call alloc_crystal( MAXSCAT, INT(iatom * 1.1))
+   call alloc_crystal_scat( MAXSCAT)
+   call alloc_crystal_nmax( INT(iatom * 1.1))
    if(ier_num < 0 ) then
       ier_msg(2) = 'Error allocating number of atoms'
       ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
@@ -484,7 +485,7 @@ ce_natoms = cr_natoms
 cr_ncatoms = cr_natoms 
 cr_ncreal  = 0   ! Non void atoms in unit cell
 DO n=1,cr_natoms
-   IF(cr_at_lis(cr_iscat(n))/='VOID') cr_ncreal = cr_ncreal + 1
+   IF(cr_at_lis(cr_iscat(n,1))/='VOID') cr_ncreal = cr_ncreal + 1
 ENDDO
 IF(l_site) CALL differ_site(cr_nscat, cr_ncatoms, ONE)
 !
@@ -497,7 +498,7 @@ DO k = 1, cr_icc (3)
       DO i = 1, cr_icc (1) 
          DO n = 1, ce_natoms 
             cr_natoms = cr_natoms + 1 
-            cr_iscat (cr_natoms) = cr_iscat (n) 
+            cr_iscat (cr_natoms,1) = cr_iscat (n,1) 
             cr_pos (1, cr_natoms) = cr_pos (1, n) + REAL( i - 1)
             cr_pos (2, cr_natoms) = cr_pos (2, n) + REAL( j - 1)
             cr_pos (3, cr_natoms) = cr_pos (3, n) + REAL( k - 1)
@@ -516,10 +517,10 @@ IF(occupancy == 0) THEN     ! Clear occupancies on read cell
    cr_occ(:) = 1.0
 ELSEIF(occupancy==1) THEN   ! Apply occupancies
    DO i=1, cr_natoms
-      IF(cr_occ(cr_iscat(i))<1.0) THEN
+      IF(cr_occ(cr_iscat(i,1))<1.0) THEN
          CALL RANDOM_NUMBER(r)
-         IF(r > cr_occ(cr_iscat(i))) THEN
-            cr_iscat(i) = 0
+         IF(r > cr_occ(cr_iscat(i,1))) THEN
+            cr_iscat(i,1) = 0
             cr_prop (i)  = ibclr (cr_prop (i),  PROP_NORMAL)
          ENDIF
       ENDIF
@@ -733,7 +734,8 @@ ENDIF
 IF(natoms > NMAX .or. nscats > MAXSCAT) THEN
    natoms = MAX(INT(natoms * 1.1), natoms + 10,NMAX)
    nscats = MAX(INT(nscats * 1.1), nscats + 2, MAXSCAT)
-   CALL alloc_crystal (nscats, natoms)
+   CALL alloc_crystal_scat (nscats)
+   CALL alloc_crystal_nmax (natoms)
    IF ( ier_num /= 0 ) THEN
       RETURN                 ! Jump to handle error messages, amd macro conditions
    ENDIF
@@ -831,7 +833,7 @@ new_scat = 0
 cells: DO i=1, icc(1)*icc(2)*icc(3)
    sites: DO isite=1, n_ncatoms
       iat = (i-1)*n_ncatoms + isite
-      iscat = cr_iscat(iat)
+      iscat = cr_iscat(iat,1)
       DO k=0, n_on_site(isite)
          IF(cr_at_lis(iscat)==names(k,isite) .AND. cr_dw(iscat)==dbw(k,isite)) THEN
             CYCLE sites
@@ -865,10 +867,10 @@ new_scat = iscat    ! New maximum atom types
 cells_c: DO i=1, icc(1)*icc(2)*icc(3)
    sites_c: DO isite=1, n_ncatoms
       iat = (i-1)*n_ncatoms + isite
-      iscat = cr_iscat(iat)
+      iscat = cr_iscat(iat,1)
       DO k=0, n_on_site(isite)
          IF(iscat==old(k,isite)) THEN
-            cr_iscat(iat) = types(k,isite)
+            cr_iscat(iat,1) = types(k,isite)
             CYCLE sites_c
          ENDIF
       ENDDO
@@ -880,7 +882,8 @@ ENDDO cells_c
 IF(new_scat>MAXSCAT) THEN
    n_scat = new_scat
    n_max  = NMAX
-   CALL alloc_crystal(n_scat, n_max)
+   CALL alloc_crystal_scat(n_scat)
+   CALL alloc_crystal_nmax(n_max)
 ENDIF
 !
 DO isite=1,n_ncatoms
@@ -1099,7 +1102,8 @@ IF( NMAX    < new_nmax .or. &          ! Allocate sufficient atom numbers
     MAXSCAT < new_nscat     ) THEN     ! Allocate sufficient atom types
    new_nmax = MAX(new_nmax ,NMAX)
    new_nscat= MAX(new_nscat,MAXSCAT)
-   CALL alloc_crystal(new_nscat, new_nmax)
+   CALL alloc_crystal_scat(new_nscat)
+   CALL alloc_crystal_nmax(new_nmax)
    IF ( ier_num /= 0) THEN
       CLOSE (IST)
       RETURN
@@ -1176,7 +1180,8 @@ IF( NMAX < spc_n*new_nmax .or.  &      ! Allocate sufficient atom numbers
     MAXSCAT < new_nscat       ) THEN   ! Allocate sufficient scattering types
    new_nmax  = MAX(spc_n*new_nmax + 1, NMAX)
    new_nscat = MAX(new_nscat         , MAXSCAT)
-   CALL alloc_crystal(new_nscat, new_nmax)
+   CALL alloc_crystal_scat(new_nscat)
+   CALL alloc_crystal_nmax(new_nmax)
   IF ( ier_num /= 0) THEN
       CLOSE (IST)
       RETURN
@@ -1233,7 +1238,8 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
          need_alloc = .true.
       ENDIF
       IF( need_alloc ) THEN
-         CALL alloc_crystal(new_nscat, new_nmax)
+         CALL alloc_crystal_scat(new_nscat)
+         CALL alloc_crystal_nmax(new_nmax)
          IF ( ier_num /= 0) THEN
             CLOSE (IST)
             RETURN
@@ -1333,7 +1339,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                                  cr_at_lis, cr_dw, cr_occ,        &
                                  nw_name, dw1, occ1, uni_mask)
                if(j>-1) then              ! Old atom type
-                  cr_iscat(i) = j
+                  cr_iscat(i,1) = j
                   call symmetry
                   goto 22
                endif
@@ -1341,7 +1347,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                 IF (line (1:ibl)  == cr_at_lis (j)              &
 !                       .and.dw1 == cr_dw (j)                     &
 !                       .AND. occ1==cr_occ(j) ) THEN                    
-!                    cr_iscat (i) = j 
+!                    cr_iscat (i,1) = j 
 !                    CALL symmetry 
 !                    IF (ier_num.ne.0) THEN 
 !                       CLOSE (IST)
@@ -1349,7 +1355,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                    ENDIF 
 !                    GOTO 22 
 !                       ELSEIF(line(1:ibl)=='VOID' .AND. mole_l_on) THEN
-!                          cr_iscat (i) = 0 
+!                          cr_iscat (i,1) = 0 
 !                          CALL symmetry 
 !                          IF (ier_num.ne.0) THEN 
 !                             CLOSE (IST)
@@ -1375,7 +1381,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                endif
                endif
                if(j>-1)  then              ! Old atom type
-                  cr_iscat(i) = j
+                  cr_iscat(i,1) = j
                   call symmetry
                if(uni_mask(0) .and. .not.any(uni_mask(1:))) then   !unique:site is present
                   do j=i+1, cr_natoms
@@ -1383,9 +1389,10 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                      if(cr_nscat>MAXSCAT) then
                         new_nmax = MAX(cr_natoms, NMAX)
                         new_nscat= MAX( cr_nscat+10, MAXSCAT)
-                        CALL alloc_crystal(new_nscat, new_nmax)
+                        CALL alloc_crystal_scat(new_nscat)
+                        CALL alloc_crystal_nmax(new_nmax)
                      endif
-                     cr_iscat(j) = cr_nscat
+                     cr_iscat(j,1) = cr_nscat
                      cr_at_lis (cr_nscat) = nw_name
                      cr_dw (cr_nscat) = dw1
                      cr_occ(cr_nscat) = occ1                    ! WORK OCC
@@ -1400,14 +1407,14 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             IF (cr_nscat.lt.maxscat) THEN 
 !ATOM_LINE              as_natoms = as_natoms + 1 
                cr_nscat = cr_nscat + 1 
-               cr_iscat (i) = cr_nscat 
+               cr_iscat (i,1) = cr_nscat 
 !              cr_at_lis (cr_nscat) = line (1:ibl) 
                cr_at_lis (cr_nscat) = nw_name
                cr_dw (cr_nscat) = dw1 
                cr_occ(cr_nscat) = occ1                    ! WORK OCC
 !                                                                       
 !              as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
-!              as_iscat (as_natoms) = cr_iscat (i) 
+!              as_iscat (as_natoms) = cr_iscat (i,1) 
 !              as_dw (as_natoms) = cr_dw (cr_nscat) 
 !              as_occ(as_natoms) = cr_occ(cr_nscat) 
 !                       ENDIF
@@ -1423,9 +1430,10 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                      if(cr_nscat>MAXSCAT) then
                         new_nmax = MAX(cr_natoms, NMAX)
                         new_nscat= MAX( cr_nscat+10, MAXSCAT)
-                        CALL alloc_crystal(new_nscat, new_nmax)
+                        CALL alloc_crystal_scat(new_nscat)
+                        CALL alloc_crystal_nmax(new_nmax)
                      endif
-                     cr_iscat(j) = cr_nscat
+                     cr_iscat(j,1) = cr_nscat
                      cr_at_lis (cr_nscat) = nw_name
                      cr_dw (cr_nscat) = dw1
                      cr_occ(cr_nscat) = occ1                    ! WORK OCC
@@ -1875,7 +1883,7 @@ REAL(kind=PREC_DP), DIMENSION(1:3,1:NMAX), INTENT(out  ) :: cr_pos
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_mole
 INTEGER           , DIMENSION(0:3,1:NMAX), INTENT(out  ) :: cr_surf
 REAL(kind=PREC_DP), DIMENSION(0:3,1:NMAX), INTENT(out  ) :: cr_magn
-INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_iscat
+INTEGER           , DIMENSION(1:NMAX,3),     INTENT(out  ) :: cr_iscat
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_ianis
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_prop
 REAL(kind=PREC_DP), dimension(3,2)       , intent(out  ) :: cr_dim ! (3, 2) 
@@ -2536,7 +2544,7 @@ REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_dw       ! (0:MA
 REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_occ      ! (0:MAXSCAT) 
 CHARACTER(LEN=4)  , DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_at_lis   ! (0:MAXSCAT) 
 REAL(kind=PREC_DP), DIMENSION(1:3,1:NMAX) , INTENT(INOUT) :: cr_pos
-INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_iscat
+INTEGER           , DIMENSION(1:NMAX,3),      INTENT(INOUT) :: cr_iscat
 INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_ianis
 INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_mole 
 INTEGER           , DIMENSION(0:3,1:NMAX) , INTENT(INOUT) :: cr_surf
@@ -2687,7 +2695,7 @@ loop_main: do          ! Loop to read all atom lines
             RETURN
          ENDIF 
          cr_nscat = cr_nscat + 1 
-         cr_iscat (i) = cr_nscat 
+         cr_iscat (i,1) = cr_nscat 
          cr_ianis (i) = cr_nscat 
          cr_at_lis (cr_nscat) = nw_name            ! Use "unique" atom name
          cr_dw (cr_nscat) = dw1 
@@ -2700,7 +2708,7 @@ loop_main: do          ! Loop to read all atom lines
             as_natoms = as_natoms + 1 
          ENDIF 
       else
-         cr_iscat(i) = j
+         cr_iscat(i,1) = j
          cr_ianis(i) = j
       endif cond_new
 !
@@ -2948,7 +2956,8 @@ INTEGER             :: lp
 !                                                                       
       INTEGER i 
 !
-CALL alloc_crystal(1,1)                                                                       
+CALL alloc_crystal_scat(1)                                                                       
+CALL alloc_crystal_nmax(1)                                                                       
 call alloc_unitcell(1)
 !
       cr_natoms = 0 
@@ -2989,7 +2998,7 @@ cr_nreal  = 0.0
       as_pos(:,:)  = 0
       cr_pos(:,:)  = 0
       cr_prop(:)   = 0
-      cr_iscat(:)  = 0
+      cr_iscat(:,:)  = 0
       cr_niscat(:)  = 0
       cr_mole(:)   = 0
       cr_surf(:,:) = 0

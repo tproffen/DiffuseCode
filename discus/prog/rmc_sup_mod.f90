@@ -2810,7 +2810,7 @@ enddo
       p_old (1, i) = cr_pos (1, isel (i) ) 
       p_old (2, i) = cr_pos (2, isel (i) ) 
       p_old (3, i) = cr_pos (3, isel (i) ) 
-      i_old (i) = cr_iscat (isel (i) ) 
+      i_old (i) = cr_iscat (isel (i),1 ) 
       ENDDO 
 !                                                                       
       CALL rmc_formtab (ip, .false.) 
@@ -3024,7 +3024,7 @@ use precision_mod
       ENDDO 
 !                                                                       
       DO i = 1, natoms 
-      cr_iscat (isel (i) ) = i_new (i) 
+      cr_iscat (isel (i),1 ) = i_new (i) 
       DO j = 1, 3 
       cr_pos (j, isel (i) ) = p_new (j, i) 
       ENDDO 
@@ -3075,10 +3075,10 @@ REAL(KIND=PREC_DP) :: werte(1)
       CALL do_find_env (1, werte, 1, pos, 0.1D0, rmc_mindist_max,         &
       chem_quick, chem_period)                                          
       DO i = 1, atom_env (0) 
-      IF (cr_iscat (atom_env (i) ) .ne.0.and.laccept) then 
+      IF (cr_iscat (atom_env (i),1 ) .ne.0.and.laccept) then 
          IF(inumber /= atom_env(i)) THEN ! Do not check distance to original place!
          laccept = (res_para (i) .ge.rmc_mindist (i_new (iatom),        &
-         cr_iscat (atom_env (i) ) ) )                                   
+         cr_iscat (atom_env (i),1 ) ) )                                   
             ENDIF
       ENDIF 
       ENDDO 
@@ -3127,10 +3127,10 @@ REAL(kind=PREC_DP) :: r1
       isel (1) = int (r1          * cr_natoms) + 1 
 !     isel (1) = int (ran1 (idum) * cr_natoms) + 1 
       IF (isel (1) .gt.cr_natoms.or.isel (1) .lt.1) goto 10 
-      IF(.NOT.local_rmc_allowed(cr_iscat(isel(1)))) GOTO 10
+      IF(.NOT.local_rmc_allowed(cr_iscat(isel(1),1))) GOTO 10
 !
       IF (imode == rmc_local_conn) THEN   ! Choose second atom from connectivity
-         CALL get_connectivity_list(isel(1), cr_iscat(isel(1)), ino, c_list, c_offs, natoms)
+         CALL get_connectivity_list(isel(1), cr_iscat(isel(1),1), ino, c_list, c_offs, natoms)
          IF(natoms == 0) GOTO 10
          CALL RANDOM_NUMBER(r1)
          isel(2) = c_list(INT(r1        *natoms) + 1)
@@ -3249,12 +3249,12 @@ REAL(kind=PREC_DP) :: r1
          natoms = 2 
          CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2,  &
                           cr_nscat,RMC_MAX_ATOM,rmc_allowed) 
-         laccept = rmc_allowed (cr_iscat (isel (1) ) ) .and.rmc_allowed &
-         (cr_iscat (isel (2) ) ) .and.cr_iscat (isel (1) ) .ne.cr_iscat &
-         (isel (2) )                                                    
+         laccept = rmc_allowed (cr_iscat (isel (1),1 ) ) .and.rmc_allowed &
+         (cr_iscat (isel (2),1 ) ) .and.cr_iscat (isel (1),1 ) .ne.cr_iscat &
+         (isel (2),1 )                                                    
          IF (laccept) then 
-            i_new (1) = cr_iscat (isel (2) ) 
-            i_new (2) = cr_iscat (isel (1) ) 
+            i_new (1) = cr_iscat (isel (2),1 ) 
+            i_new (2) = cr_iscat (isel (1),1 ) 
             DO j = 1, 3 
             p_new (j, 1) = cr_pos (j, isel (1) ) 
             p_new (j, 2) = cr_pos (j, isel (2) ) 
@@ -3270,9 +3270,9 @@ REAL(kind=PREC_DP) :: r1
          isel (1) = int (r1          * cr_natoms) + 1 
 !        isel (1) = int (ran1 (idum) * cr_natoms) + 1 
          IF (isel (1) .gt.cr_natoms.or.isel (1) .lt.1) goto 10 
-         laccept = rmc_allowed (cr_iscat (isel (1) ) ) 
+         laccept = rmc_allowed (cr_iscat (isel (1),1 ) ) 
          IF (laccept) then 
-            i_new (1) = cr_iscat (isel (1) ) 
+            i_new (1) = cr_iscat (isel (1),1 ) 
             DO i = 1, 3 
             p_new (i, 1) = cr_pos (i, isel (1) ) + gasdev (DBLE(rmc_maxmove (&
             i, i_new (1) ) ))
@@ -3293,11 +3293,11 @@ REAL(kind=PREC_DP) :: r1
          natoms = 2 
          CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2, &
                           cr_nscat,RMC_MAX_ATOM,rmc_allowed) 
-         laccept = rmc_allowed (cr_iscat (isel (1) ) ) .and.rmc_allowed &
-         (cr_iscat (isel (2) ) )                                        
+         laccept = rmc_allowed (cr_iscat (isel (1),1 ) ) .and.rmc_allowed &
+         (cr_iscat (isel (2),1 ) )                                        
          IF (laccept) then 
-            i_new (1) = cr_iscat (isel (1) ) 
-            i_new (2) = cr_iscat (isel (2) ) 
+            i_new (1) = cr_iscat (isel (1),1 ) 
+            i_new (2) = cr_iscat (isel (2),1 ) 
             DO j = 1, 3 
             disp1 = cr_pos (j, isel (1) ) - chem_ave_pos (j, is1)       &
             - REAL(iz1 (j) - 1) - cr_dim0 (j, 1)                      
@@ -3339,7 +3339,7 @@ REAL(kind=PREC_DP) :: r1
       IF (laccept.and.dbg) then 
          DO j = 1, natoms 
          WRITE (output_io, 11) j, isel (j), cr_at_lis (cr_iscat (isel ( &
-         j) ) ), cr_iscat (isel (j) ), (cr_pos (i, isel (j) ), i = 1, 3)&
+         j),1 ) ), cr_iscat (isel (j),1 ), (cr_pos (i, isel (j) ), i = 1, 3)&
          , isel (j), cr_at_lis (i_new (j) ), i_new (j), (p_new (i, j),  &
          i = 1, 3), ( (p_new (i, j) - cr_pos (i, isel (j) ) ), i = 1, 3)
          ENDDO 
@@ -3430,8 +3430,8 @@ IF (rmc_mode.eq.rmc_mode_swchem) then
          j = i + mole_len(imol (1) ) 
          isel (i) = mole_cont (mole_off (imol (1) ) + i) 
          isel (j) = mole_cont (mole_off (imol (2) ) + i) 
-         i_new (i) = cr_iscat (isel (j) ) 
-         i_new (j) = cr_iscat (isel (i) ) 
+         i_new (i) = cr_iscat (isel (j),1 ) 
+         i_new (j) = cr_iscat (isel (i),1 ) 
          DO k = 1, 3 
             p_new(k, i) = cr_pos(k, isel(j)) - cr_pos(k, j0) + cr_pos (k, i0)
             p_new(k, j) = cr_pos(k, isel(i)) - cr_pos(k, i0) + cr_pos (k, j0)
@@ -3455,7 +3455,7 @@ ELSEIF (rmc_mode.eq.rmc_mode_shift) then
 !                                                                       
       DO i = 1, mole_len(imol(1)) 
          isel (i) = mole_cont(mole_off(imol(1)) + i) 
-         i_new (i) = cr_iscat(isel (i) ) 
+         i_new (i) = cr_iscat(isel (i),1 ) 
          DO j = 1, 3 
             p_new(j, i) = cr_pos(j, isel(i)) + disp1(j) 
          ENDDO 
@@ -3494,8 +3494,8 @@ ELSEIF (rmc_mode.eq.rmc_mode_swdisp) then
             j = i + mole_len (imol (1) ) 
             isel (i) = mole_cont (mole_off (imol (1) ) + i) 
             isel (j) = mole_cont (mole_off (imol (2) ) + i) 
-            i_new (i) = cr_iscat (isel (i) ) 
-            i_new (j) = cr_iscat (isel (j) ) 
+            i_new (i) = cr_iscat (isel (i),1 ) 
+            i_new (j) = cr_iscat (isel (j),1 ) 
             DO k = 1, 3 
             p_new (k, i) = cr_pos (k, isel (i) ) - disp1 (k) + disp2 (k) 
             p_new (k, j) = cr_pos (k, isel (j) ) - disp2 (k) + disp1 (k) 
@@ -3573,7 +3573,7 @@ ENDIF
          WRITE (output_io, 11) imol 
          DO j = 1, natoms 
          WRITE (output_io, 12) j, isel (j), cr_at_lis (cr_iscat (isel ( &
-         j) ) ), cr_iscat (isel (j) ), (cr_pos (i, isel (j) ), i = 1, 3)&
+         j),1 ) ), cr_iscat (isel (j),1 ), (cr_pos (i, isel (j) ), i = 1, 3)&
          , isel (j), cr_at_lis (i_new (j) ), i_new (j), (p_new (i, j),  &
          i = 1, 3), ( (p_new (i, j) - cr_pos (i, isel (j) ) ), i = 1, 3)
          ENDDO 

@@ -566,8 +566,8 @@ USE support_mod
          WRITE (ist, 33) cr_spcgr 
          WRITE (ist, 34) (cr_a0 (i), i = 1, 3), (cr_win (i), i = 1, 3) 
          DO i = 1, cr_natoms 
-         WRITE (ist, 4) cr_at_lis (cr_iscat (i) ), (cr_pos (j, i),      &
-         j = 1, 3), cr_dw (cr_iscat (i) )                               
+         WRITE (ist, 4) cr_at_lis (cr_iscat (i,1) ), (cr_pos (j, i),      &
+         j = 1, 3), cr_dw (cr_iscat (i,1) )                               
          ENDDO 
       ENDIF 
       CLOSE (ist) 
@@ -776,8 +776,8 @@ loop_atoms: DO i = i_start, i_end
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
-!     IF (sav_latom (cr_iscat (i) ) ) THEN 
-   IF (check_select_status (i, sav_latom (cr_iscat (i) ), cr_prop (i),   &
+!     IF (sav_latom (cr_iscat (i,1) ) ) THEN 
+   IF (check_select_status (i, sav_latom (cr_iscat (i,1) ), cr_prop (i),   &
                                sav_sel_prop)     ) THEN
 !        IF(lwrite(i)) THEN
       wr_prop = 1
@@ -821,10 +821,10 @@ loop_atoms: DO i = i_start, i_end
       ENDIF
       IF(sav_w_surf) wr_surf(0:3) = cr_surf(0:3,i)
       IF(sav_w_magn) wr_surf(0:3) = cr_magn(0:3,i)   ! MAGNETIC_WORK
-      WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
+      WRITE (ist, 4) cr_at_lis (cr_iscat (i,1) ),         &
                      (cr_pos (j, i),j = 1, 3),          &
-                     cr_dw (cr_iscat (i) ), wr_prop,    &
-                     wr_mole, wr_cont, cr_occ(cr_iscat(i)), &
+                     cr_dw (cr_iscat (i,1) ), wr_prop,    &
+                     wr_mole, wr_cont, cr_occ(cr_iscat(i,1)), &
                      c_surf(wr_surf(0  )), wr_surf(1:3  )
    ENDIF 
 ENDDO loop_atoms

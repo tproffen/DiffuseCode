@@ -228,7 +228,7 @@ atome: DO i = 1,cr_natoms                                ! Check all atoms in th
    x(2) = cr_pos(2,i)
    x(3) = cr_pos(3,i)
    ianz = 1
-   is   = cr_iscat(i)                                    ! Keep atom type
+   is   = cr_iscat(i,1)                                    ! Keep atom type
    allowed: IF ( ASSOCIATED(def_main(is)%def_liste )) THEN  ! def.s exist
       def_temp => def_main(is)%def_liste
       neighs: DO
@@ -306,7 +306,7 @@ atome: DO i = 1,cr_natoms                                ! Check all atoms in th
                ENDIF
                NULLIFY (hood_temp%next_neighborhood)        ! No further NEIGHBORHOODs
                hood_temp%central_number = i                 ! Just set central atom no.
-               hood_temp%central_type   = cr_iscat(i)
+               hood_temp%central_type   = cr_iscat(i,1)
                hood_temp%neigh_type     = def_temp%valid_id   ! Set definition type number
                hood_temp%conn_name      = def_temp%def_name   ! Set name from definition type
                hood_temp%conn_name_l    = def_temp%def_name_l ! Set name length from definition type
@@ -1354,7 +1354,7 @@ ELSE
             c_name   = ' '
             c_name_l = 1
          ENDIF
-         CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
+         CALL get_connectivity_identity( cr_iscat(iatom,1), ino, c_name, c_name_l)
          CALL do_show_connectivity ( iatom, ino, c_name, long)
       ELSE 
          ier_num = -105
@@ -1529,7 +1529,7 @@ REAL(kind=PREC_DP)   , DIMENSION(3)      :: u, v
 CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
 DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
 !
-      is1 = cr_iscat(iatom)
+      is1 = cr_iscat(iatom,1)
       u   = cr_pos(:,iatom)
       CALL get_connectivity_list (iatom, is1, idef, c_list, c_offs, natoms )
 !
@@ -1557,19 +1557,19 @@ DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
       IF(long) THEN
          WRITE(output_io,3000)
          i=iatom
-         at_name_d = at_name(cr_iscat(i))
+         at_name_d = at_name(cr_iscat(i,1))
             CALL char_prop_1 (c_property, cr_prop (i), length) 
             WRITE (output_io, 3010) at_name_d, cr_pos(:, i),              &
-            cr_dw (cr_iscat (i) ), i, cr_mole(i), c_property (1:length),  &
-            cr_occ(cr_iscat(i)), c_surf(cr_surf(0,i)), cr_surf(1:3,i)
+            cr_dw (cr_iscat (i,1) ), i, cr_mole(i), c_property (1:length),  &
+            cr_occ(cr_iscat(i,1)), c_surf(cr_surf(0,i)), cr_surf(1:3,i)
          WRITE(output_io,'(a)')
          DO j= 1,natoms
             i = c_list(j)
-            at_name_d = at_name(cr_iscat(i))
+            at_name_d = at_name(cr_iscat(i,1))
             CALL char_prop_1 (c_property, cr_prop (i), length) 
             WRITE (output_io, 3010) at_name_d, cr_pos(:, i),              &
-            cr_dw (cr_iscat (i) ), i, cr_mole(i), c_property (1:length),  &
-            cr_occ(cr_iscat(i)), c_surf(cr_surf(0,i)), cr_surf(1:3,i)
+            cr_dw (cr_iscat (i,1) ), i, cr_mole(i), c_property (1:length),  &
+            cr_occ(cr_iscat(i,1)), c_surf(cr_surf(0,i)), cr_surf(1:3,i)
             v(:) = cr_pos(:,i) + c_offs(:,j)
             distance = do_blen(.TRUE., u,v)
             WRITE (output_io, 3020) c_offs(:,j), distance
@@ -1636,7 +1636,7 @@ USE precision_mod
 !     No parameters, choose any atom, use connectivity number one
 !
       iatom  = INT(ran1(idum)*cr_natoms) + 1
-      iscat  = cr_iscat(iatom)
+      iscat  = cr_iscat(iatom,1)
       ino    = 1
       c_name = ' '
    ELSE
@@ -1656,7 +1656,7 @@ USE precision_mod
                natom = INT(ran1(idum)*cr_natoms*res_para(iscat+1))+1 ! random choice
                iatom = 0
 search:        DO i=1, cr_natoms               ! loop until we find the natoms atom
-                  IF(cr_iscat(i)==iscat) THEN  !      of type iscat
+                  IF(cr_iscat(i,1)==iscat) THEN  !      of type iscat
                      iatom = iatom + 1
                      IF(iatom==natom) THEN
                         iatom = i              ! Found, this is the abolute atom number
@@ -1685,7 +1685,7 @@ search:        DO i=1, cr_natoms               ! loop until we find the natoms a
                RETURN
             ENDIF
             iscat = NINT(werte(1))
-            IF(cr_iscat(iatom)/= iscat) THEN
+            IF(cr_iscat(iatom,1)/= iscat) THEN
                ier_num = -6
                ier_typ = ER_FORT
                ier_msg(1) = 'Atom type does not match selected atom'
@@ -2106,7 +2106,7 @@ ino = 0
 IF(.NOT.ALLOCATED(at_conn)) RETURN
 IF(UBOUND(at_conn,1)==0) RETURN
 IF(ASSOCIATED(at_conn(isel)%liste)) THEN     ! A connectivity list has been created
-   is = cr_iscat(isel) 
+   is = cr_iscat(isel,1) 
    is_range: IF(is <= UBOUND(def_main,1)) THEN  ! Atom type is in range
    IF(ASSOCIATED(def_main(is)%def_liste)) THEN  ! This type has a definition
       def_temp => def_main(is)%def_liste
@@ -2145,7 +2145,7 @@ search_defs:      DO WHILE (ASSOCIATED(def_temp))           ! There are definiti
 !  which other atoms have this listed as neighbor....
    DO iatom = 1, cr_natoms
       IF(ASSOCIATED(at_conn(iatom)%liste)) THEN     ! A connectivity list has been created
-         is = cr_iscat(iatom) 
+         is = cr_iscat(iatom,1) 
          is_range2: IF(is <= UBOUND(def_main,1)) THEN  ! Atom type is in range
          IF(ASSOCIATED(def_main(is)%def_liste)) THEN  ! This type has a definition
             def_temp => def_main(is)%def_liste

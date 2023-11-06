@@ -39,7 +39,7 @@ CONTAINS
 !  i   cr_nscat           : Number of different atom types              
 !                           Note: VOID is typ 0 !                       
 !  i   cr_icc(3)          : Number of unit cells in x,y,z direction     
-!  i   cr_iscat(atoms)    : Gives atom typ for atom 'iatom'             
+!  i   cr_iscat(atoms,1)    : Gives atom typ for atom 'iatom'             
 !                                                                       
 !  r   cr_a0(3)           : Contains lattice constants a,b,c            
 !  r   cr_win(3)          : Contains angles alfa,beta,gamma             
@@ -161,7 +161,7 @@ USE precision_mod
 !                                                                       
 !------ set new atom type number, here is is unchanged                  
 !                                                                       
-      i_new (1) = cr_iscat (isel (1) ) 
+      i_new (1) = cr_iscat (isel (1),1 ) 
 !                                                                       
 !------ Check if the selected atom is on the list of                    
 !------ selected atoms set by the command 'sele'                        

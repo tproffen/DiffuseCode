@@ -108,7 +108,7 @@ CALL no_error
          ELSEIF (string (ikl - 1:ikl - 1) .eq.'m') THEN 
             IF (ianz.eq.1) THEN 
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) THEN
-                  WRITE(zeile(ikl - 1:ikl + PREC_WIDTH-2), PREC_F_INTE) cr_iscat(kpara)
+                  WRITE(zeile(ikl - 1:ikl + PREC_WIDTH-2), PREC_F_INTE) cr_iscat(kpara,1)
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -359,7 +359,7 @@ CALL no_error
                (1:ikl - lcomm - 1)                                      
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
                THEN                                                     
-                  zeile(ikl-7:ikl+PREC_WIDTH-2) = ''''//cr_at_lis(cr_iscat(kpara))//''''                                                     
+                  zeile(ikl-7:ikl+PREC_WIDTH-2) = ''''//cr_at_lis(cr_iscat(kpara,1))//''''                                                     
                ELSE 
                   ier_num = - 105 
                   ier_typ = ER_APPL 
@@ -700,8 +700,8 @@ CALL no_error
             IF(0 < ww(1) .AND. ww(1) <= NMAX .AND. ww(1) <= cr_natoms) THEN                                         
                IF(0 <= INT(wert) .AND. INT(wert) <= MAXSCAT .AND. &
                   INT(wert) <= cr_nscat                             ) THEN                                 
-                  cr_iscat(ww (1) ) = INT(wert) 
-                  IF(cr_iscat(ww(1))>0) THEN
+                  cr_iscat(ww (1),1 ) = INT(wert) 
+                  IF(cr_iscat(ww(1),1)>0) THEN
                      cr_prop(ww(1)) = IBSET(cr_prop(ww(1)), PROP_NORMAL)
                   ENDIF 
                ELSE 

@@ -357,7 +357,7 @@ cond_dim: if(is_dim==3) then            ! 3-D crystal 33333333333333333333333333
    zpos = 0.0D0
    nat = 0
    loop_atom3: do i=1, cr_natoms               ! Loop over all atoms
-      k = cr_iscat(i)
+      k = cr_iscat(i,1)
       nat(k) = nat(k) + 1
       xpos(nat(j),k) = cr_pos(1,i) + shift(1)
       ypos(nat(j),k) = cr_pos(2,i) + shift(2)
@@ -412,7 +412,7 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
    zpos = 0.0D0
    nat = 0
    loop_atom2: do i=1, cr_natoms               ! Loop over all atoms
-      k = cr_iscat(i)
+      k = cr_iscat(i,1)
       nat(k) = nat(k) + 1
       xpos(nat(j),k) = cr_pos(1,i) + shift(1)
       ypos(nat(j),k) = cr_pos(2,i) + shift(2)
@@ -461,7 +461,7 @@ elseif(is_dim==1) then cond_dim                   ! 1-D crystal 1111111111111111
       nat = 0
       xpos = 0.0D0
       loop_atom1: do i=1, cr_natoms               ! Loop over all atoms
-         k = cr_iscat(i)
+         k = cr_iscat(i,1)
          nat(k) = nat(k) + 1                         ! Increment atom number
          xpos(nat,k) = cr_pos(j,i) + shift(j)    ! Copy atoms
       enddo loop_atom1
@@ -859,7 +859,7 @@ LOGICAL, DIMENSION(:,:,:), ALLOCATABLE :: sel_cell
 !                                                                       
                DO isite = 1, cr_ncatoms 
                   call celltoindex (icell, isite, iatom) 
-                  IF (cr_iscat (iatom) .eq.iscat) then 
+                  IF (cr_iscat (iatom,1) .eq.iscat) then 
                      nxat = nxat + 1 
                      DO j = 1, 3 
                      xat (nxat, j) = cr_pos (j, iatom) - REAL(icell (j)     &
@@ -1012,7 +1012,7 @@ acsf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(1.0D0))
 loop_iscat: do iscat = 1, cr_nscat       ! Loop over all scattering types
    nxat = 0 
    loop_atoms: do iatom = 1, cr_natoms   ! Loop over all atoms in crystal
-     if(cr_iscat(iatom) == iscat) then   ! If correct type, copy into fourier position
+     if(cr_iscat(iatom,1) == iscat) then   ! If correct type, copy into fourier position
          nxat = nxat + 1
          xat(nxat,:) = cr_pos(:, iatom) -floor(cr_pos(:, iatom)) ! - real(icell(:) - 1,kind=PREC_DP) - cr_dim0(:, 1)
      endif
@@ -1289,7 +1289,7 @@ use precision_mod
       IF (lots.eq.LOT_OFF) then 
          ncell = cr_icc (1) * cr_icc (2) * cr_icc (3) 
          DO i = 1, cr_natoms 
-         IF (cr_iscat (i) .eq.iscat) then 
+         IF (cr_iscat (i,1) .eq.iscat) then 
             nxat = nxat + 1 
             DO j = 1, 3 
             xat (nxat, j) = cr_pos (j, i) 
@@ -1325,7 +1325,7 @@ use precision_mod
          ncell = ncell + 1 
          DO is = 1, cr_ncatoms 
          call celltoindex (icell, is, ia) 
-         IF (cr_iscat (ia) .eq.iscat) then 
+         IF (cr_iscat (ia,1) .eq.iscat) then 
             nxat = nxat + 1 
             DO j = 1, 3 
             xat (nxat, j) = cr_pos (j, ia) - offset (j) 
@@ -1339,7 +1339,7 @@ use precision_mod
          ENDDO 
          IF (int (cr_pos (1, ir) ) .eq.jcell (1) .and.int (cr_pos (2,   &
          ir) ) .eq.jcell (2) .and.int (cr_pos (3, ir) ) .eq.jcell (3)   &
-         .and.cr_iscat (ir) .eq.iscat) then                             
+         .and.cr_iscat (ir,1) .eq.iscat) then                             
             nxat = nxat + 1 
             DO j = 1, 3 
             xat (nxat, j) = cr_pos (j, ir) - offset (j) 
@@ -1387,7 +1387,7 @@ use precision_mod
             ncell = ncell + 1 
             DO is = 1, cr_ncatoms 
             call celltoindex (icell, is, ia) 
-            IF (cr_iscat (ia) .eq.iscat) then 
+            IF (cr_iscat (ia,1) .eq.iscat) then 
                nxat = nxat + 1 
                DO j = 1, 3 
                xat (nxat, j) = cr_pos (j, ia) - offset (j) 
@@ -1401,7 +1401,7 @@ use precision_mod
             ENDDO 
             IF (int (cr_pos (1, ir) ) .eq.jcell (1) .and.int (cr_pos (2,&
             ir) ) .eq.jcell (2) .and.int (cr_pos (3, ir) ) .eq.jcell (3)&
-            .and.cr_iscat (ir) .eq.iscat) then                          
+            .and.cr_iscat (ir,1) .eq.iscat) then                          
                nxat = nxat + 1 
                DO j = 1, 3 
                xat (nxat, j) = cr_pos (j, ir) - offset (j) 

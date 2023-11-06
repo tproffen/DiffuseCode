@@ -43,7 +43,8 @@ USE str_comp_mod
              CALL del_params (1, ianz, cpara, lpara, maxw) 
              CALL ber_params (ianz, cpara, lpara, werte, maxw) 
              IF (ier_num.eq.0) then 
-               CALL alloc_crystal ( NINT (werte(1)), NINT (werte(2)) )
+               CALL alloc_crystal_scat ( NINT (werte(1)))
+               CALL alloc_crystal_nmax ( NINT (werte(2)))
              ELSE 
                 ier_num = - 6 
                 ier_typ = ER_COMM 
@@ -255,7 +256,8 @@ USE str_comp_mod
       CALL alloc_chem_dist( 1 )
       CALL alloc_chem_hist( 1            )
       CALL alloc_conn_vect( 1            )
-      CALL alloc_crystal  ( 1,  1        )
+      CALL alloc_crystal_scat( 1)
+      CALL alloc_crystal_nmax( 1)
       call alloc_unitcell ( 1 )
       call alloc_anis     ( 1 )
       CALL alloc_deco     ( 1,  1,  4,  3,   3, 2 , 3)
@@ -845,147 +847,177 @@ end SUBROUTINE alloc_conn_vect
 !
 !*******************************************************************************
 !
-    SUBROUTINE alloc_crystal ( n_scat, n_max )
+subroutine alloc_crystal_nmax ( n_max )
 !-
 !     Allocate the arrays needed by CRYSTAL
+!  Arrays related to number of atoms
 !+
-      USE crystal_mod
+USE crystal_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
 !      
-      INTEGER, INTENT(IN)  :: n_scat
-      INTEGER, INTENT(IN)  :: n_max
+INTEGER, INTENT(IN)  :: n_max
 !
-      INTEGER              :: all_status
-      LOGICAL              :: lstat
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      lstat  = .TRUE.
+lstat  = .TRUE.
 !
-!     CALL alloc_arr ( cr_at_lis,      0,n_scat,  all_status, ' ')
-!     lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!write(*,*) ' lstat, all_status ', lstat, all_status
-!write(*,*) 'AT_LIS ', allocated(cr_at_lis)
-!write(*,*) 'AT_LIS ', lbound(cr_at_lis),ubound(cr_at_lis)
-!write(*,*) ' AT_LIS 1>',cr_at_lis(1),'<<'
-!write(*,*) ' AT_LIS 0>',cr_at_lis(0),'<<'
-!     cr_at_lis(0) = 'VOID'
+CALL alloc_arr ( cr_iscat      ,1,n_max ,  1, 3, all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_iscat      ,1,n_max ,  all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_ianis      ,1,n_max ,  all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_ianis      ,1,n_max ,  all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_prop       ,1,n_max ,  all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_prop       ,1,n_max ,  all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_mole       ,1,n_max ,  all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_mole       ,1,n_max ,  all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_pos,1,3,1,n_max ,  all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_pos,1,3,1,n_max ,  all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_surf,0,3   ,1,n_max ,  all_status, 0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_scat,1,11,0,n_scat,  all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_magn,0,3   ,1,n_max ,  all_status, 1.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_delfr,       0,n_scat,  all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_delfi,       0,n_scat,  all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+IF( lstat ) THEN                        ! Success
+   NMAX          = n_max
+   ier_typ       = 0
+   ier_num       = 0
+   IF ( all_status == 1 ) THEN
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'Crystal'
+   ENDIF
+ELSE                                    ! Failure
+   NMAX          =  1
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'Crystal'
+   RETURN
+END IF
 !
-      CALL alloc_arr ( cr_delfr_u,     0,n_scat,  all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+end subroutine alloc_crystal_nmax
 !
-      CALL alloc_arr ( cr_delfi_u,     0,n_scat,  all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!*******************************************************************************
 !
-      CALL alloc_arr ( cr_scat_int,    0,n_scat,  all_status, .true.)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+subroutine alloc_crystal_scat ( n_scat)
+!-
+!     Allocate the arrays needed by CRYSTAL
+!  Arrays related to number of scattering types
+!+
+USE crystal_mod
 !
-      CALL alloc_arr ( cr_scat_equ,    0,n_scat,  all_status, .false.)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+IMPLICIT NONE
 !
-      CALL alloc_arr ( cr_delf_int,    0,n_scat,  all_status, .true.)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!      
+INTEGER, INTENT(IN)  :: n_scat
 !
-      CALL alloc_arr ( cr_at_equ,      0,n_scat,  all_status, ' ')
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+INTEGER              :: all_status
+LOGICAL              :: lstat
 !
-      CALL alloc_arr ( cr_ndiffer,     0,n_scat,  all_status, 1  )
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+lstat  = .TRUE.
 !
-      CALL alloc_arr ( cr_at_lis,      0,n_scat,  all_status, ' ')
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      cr_at_lis(0) = 'VOID'
 !
-      CALL alloc_arr ( as_at_lis,      0,n_scat,  all_status, ' ')
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      as_at_lis(0) = 'VOID'
+CALL alloc_arr ( cr_scat,1,11,0,n_scat,  all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( as_mole ,       0,n_scat,  all_status,  0 )
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_delfr,       0,n_scat,  all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( as_prop ,       0,n_scat,  all_status,  0 )
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_delfi,       0,n_scat,  all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_niscat,      0,n_scat,  all_status,  0 )
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_delfr_u,     0,n_scat,  all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( as_iscat,       0,n_scat,  all_status,  0 )
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_delfi_u,     0,n_scat,  all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_dw,          0,n_scat,  all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_scat_int,    0,n_scat,  all_status, .true.)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_anis, 1, 6,  0,n_scat,  all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_scat_equ,    0,n_scat,  all_status, .false.)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_occ,         0,n_scat,  all_status, 1.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_delf_int,    0,n_scat,  all_status, .true.)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( as_occ,         0,n_scat,  all_status, 1.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_at_equ,      0,n_scat,  all_status, ' ')
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( as_pos, 1,3,0,n_scat,  all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_ndiffer,     0,n_scat,  all_status, 1  )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( as_dw,          0,n_scat,  all_status, 0.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_at_lis,      0,n_scat,  all_status, ' ')
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+cr_at_lis(0) = 'VOID'
+!
+CALL alloc_arr ( as_at_lis,      0,n_scat,  all_status, ' ')
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+as_at_lis(0) = 'VOID'
+!
+CALL alloc_arr ( as_mole ,       0,n_scat,  all_status,  0 )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( as_prop ,       0,n_scat,  all_status,  0 )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( cr_niscat,      0,n_scat,  all_status,  0 )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( as_iscat,       0,n_scat,  all_status,  0 )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( cr_dw,          0,n_scat,  all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( cr_anis, 1, 6,  0,n_scat,  all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( cr_occ,         0,n_scat,  all_status, 1.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( as_occ,         0,n_scat,  all_status, 1.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( as_pos, 1,3,0,n_scat,  all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+CALL alloc_arr ( as_dw,          0,n_scat,  all_status, 0.0D0)
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !     CALL alloc_arr ( as_occ,         0,n_scat,  all_status, 1.0D0)
 !     lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( cr_amount,      0,n_scat,  all_status, 0  )
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-      CALL alloc_arr ( cr_surf,0,3   ,1,n_max ,  all_status, 0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-!
-      CALL alloc_arr ( cr_magn,0,3   ,1,n_max ,  all_status, 1.0D0)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+CALL alloc_arr ( cr_amount,      0,n_scat,  all_status, 0  )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
-      IF( lstat ) THEN                        ! Success
-         MAXSCAT       = n_scat
-         NMAX          = n_max
-         ier_typ       = 0
-         ier_num       = 0
-         IF ( all_status == 1 ) THEN
-            ier_typ       = 1
-            ier_num       = ER_COMM
-            ier_msg(1)    = 'Crystal'
-         ENDIF
-      ELSE                                    ! Failure
-         MAXSCAT       =  1
-         NMAX          =  1
-         ier_num       = -3
-         ier_typ       = ER_COMM
-         ier_msg(1)    = 'Crystal'
-         RETURN
-      END IF
-    END SUBROUTINE alloc_crystal
+IF( lstat ) THEN                        ! Success
+   MAXSCAT       = n_scat
+   ier_typ       = 0
+   ier_num       = 0
+   IF ( all_status == 1 ) THEN
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'Crystal'
+   ENDIF
+ELSE                                    ! Failure
+   MAXSCAT       =  1
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'Crystal'
+   RETURN
+END IF
+!
+end subroutine alloc_crystal_scat
 !
 !*******************************************************************************
 !
@@ -3484,7 +3516,8 @@ END SUBROUTINE alloc_powder_nmax
 !+
       IMPLICIT NONE
 !
-      CALL alloc_crystal ( 1, 1 )
+      CALL alloc_crystal_scat( 1)
+      CALL alloc_crystal_nmax( 1)
 !
     END SUBROUTINE dealloc_crystal
 !

@@ -1056,7 +1056,7 @@ use precision_mod
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
-      IF (tran_latom (cr_iscat (i) ) ) THEN 
+      IF (tran_latom (cr_iscat (i,1) ) ) THEN 
 !                                                                       
 !     ----Copy atom to temporary place                                  
 !                                                                       

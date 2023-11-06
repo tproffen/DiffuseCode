@@ -39,7 +39,7 @@ ELSE
    ELSE 
       ltype = .FALSE. 
       DO j = 1, ianz 
-         ltype = ltype .OR. cr_iscat(i)  == NINT(werte(j) ) 
+         ltype = ltype .OR. cr_iscat(i,1)  == NINT(werte(j) ) 
       ENDDO 
    ENDIF 
 ENDIF 
@@ -144,14 +144,14 @@ END FUNCTION check_select_status
 !check: DO i=1,prop_user_no
 !   test = .TRUE.
 !   IF(prop_user(i)%act/=0) THEN                               ! NOT ignore
-!      test = test .AND. cr_iscat(iatom) == prop_user(i)%at_type  ! same atom type
+!      test = test .AND. cr_iscat(iatom,1) == prop_user(i)%at_type  ! same atom type
 !      ino  = prop_user(i)%conn_no
 !      c_name   = prop_user(i)%conn_name
 !      c_name_l = LEN_TRIM(c_name)
 !      ll       = c_name_l
-!      CALL get_connectivity_identity(cr_iscat(iatom), ino, c_name, c_name_l)
+!      CALL get_connectivity_identity(cr_iscat(iatom,1), ino, c_name, c_name_l)
 !      test = test .AND. prop_user(i)%conn_name(1:ll)==c_name(1:c_name_l)
-!      CALL get_connectivity_list (iatom, cr_iscat(iatom), ino, c_list, c_offs, natoms )
+!      CALL get_connectivity_list (iatom, cr_iscat(iatom,1), ino, c_list, c_offs, natoms )
 !      test = test .AND. prop_user(i)%n_min<=natoms     &         ! Correct number of neighbors
 !                  .AND.                     natoms<=prop_user(i)%n_max
 !      test = test .AND. .NOT. (prop_user(i)%e_min<=natoms       &       ! Correct number of neighbors

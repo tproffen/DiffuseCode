@@ -1060,7 +1060,7 @@ use precision_mod
 !            a specific microdomain type has been selected     or       
 !            microdomains are deselected and atom is outside            
 !                                                                       
-      IF (shear_latom (cr_iscat (i) ) ) then 
+      IF (shear_latom (cr_iscat (i,1) ) ) then 
 !                                                                       
 !     ----Subtract origin                                               
 !                                                                       

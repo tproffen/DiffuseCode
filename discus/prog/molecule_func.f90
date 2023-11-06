@@ -366,7 +366,7 @@ logical   :: liscat
 !
 liscat = .FALSE.
 loop_iscat: do i=1, MAXSCAT
-   if(cen_ino(cr_iscat(iatoms(1)))) then
+   if(cen_ino(cr_iscat(iatoms(1),1))) then
       liscat = .TRUE.
       exit loop_iscat
    endif
@@ -377,7 +377,7 @@ if(.NOT. liscat) return
 jatom   = iatoms(1)                        ! Set central atom number
 IF(.NOT. btest(cr_prop(jatom),1)) THEN      ! Atom is not yet inside a molecule
 !
-!  ktype = cr_iscat(iatoms(1))
+!  ktype = cr_iscat(iatoms(1),1)
 !  ino_max = get_connectivity_numbers(ktype)  ! Get number of connectivity definitions
 !
    ALLOCATE(t_list(1:cr_natoms))              ! Make temporary list of atoms already in the molecule
@@ -566,7 +566,7 @@ integer, dimension(1), parameter :: loc_ino   = (/-1/)  ! use all connectivities
 !
 !  Accumulate all neighbors of the current atom into temp_neig
 !
-ktype = cr_iscat(katom)
+ktype = cr_iscat(katom,1)
 ino_max = get_connectivity_numbers(ktype)  ! Get number of connectivity definitions
 loop_ino: DO ino = 1, ino_max                        ! Loop over all connectivity types
    inoo = -1
@@ -626,7 +626,7 @@ INTEGER :: i, j
 !
 !  Accumulate all neighbors of the current atom into temp_neig
 !
-ktype = cr_iscat(katom)
+ktype = cr_iscat(katom,1)
 ino_max = get_connectivity_numbers(ktype)  ! Get number of connectivity definitions
 DO ino = 1, ino_max                        ! Loop over all connectivity types
    inoo = ino

@@ -100,7 +100,8 @@ ENDIF
 IF(natoms > NMAX .or. nscat > MAXSCAT ) THEN
    natoms = MAX(natoms, NMAX)
    nscat  = MAX(nscat , MAXSCAT)
-   CALL alloc_crystal (nscat, natoms)
+   CALL alloc_crystal_scat (nscat)
+   CALL alloc_crystal_nmax (natoms)
    IF ( ier_num /= 0 ) THEN
       ier_num = -114
       ier_typ = ER_APPL
@@ -263,7 +264,8 @@ IF( new_type .and. natoms > new_nscat ) THEN     ! Each atom is a new scattering
    need_alloc = .true.
 ENDIF
 IF ( need_alloc ) THEN
-   call alloc_crystal(new_nscat, new_nmax)
+   call alloc_crystal_scat(new_nscat)
+   call alloc_crystal_nmax(new_nmax)
    IF ( ier_num /= 0 ) THEN
       ier_msg(1) = 'Could not allocate space for actual crystal'
       RETURN
@@ -459,7 +461,7 @@ main: do ia = 1, natoms
    DO j=1,3
       cr_pos(j,cr_natoms) = werte(j)           ! strore in actual crystal
    ENDDO
-   cr_iscat(cr_natoms) = itype                 ! set the atom type
+   cr_iscat(cr_natoms,1) = itype                 ! set the atom type
    if(mole_l_on) then
       mole_num_curr = temp_look(ia)
    endif
@@ -592,7 +594,7 @@ use precision_mod
    INTEGER                                      , INTENT(IN   ) :: rd_NMAX 
    INTEGER                                      , INTENT(INOUT) :: rd_cr_natoms
    REAL(kind=PREC_DP)  , DIMENSION(3,1:RD_NMAX) , INTENT(INOUT) :: rd_cr_pos
-   INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_iscat
+   INTEGER             , DIMENSION(  1:RD_NMAX,3) , INTENT(INOUT) :: rd_cr_iscat
    INTEGER             , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT) :: rd_cr_surf
    REAL(kind=PREC_DP)  , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT) :: rd_cr_magn
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_prop
@@ -626,7 +628,7 @@ use precision_mod
       rd_cr_pos(1,rd_cr_natoms) = posit(1)
       rd_cr_pos(2,rd_cr_natoms) = posit(2)
       rd_cr_pos(3,rd_cr_natoms) = posit(3)
-      rd_cr_iscat(rd_cr_natoms) = itype
+      rd_cr_iscat(rd_cr_natoms,1) = itype
       rd_cr_prop (rd_cr_natoms) = iprop 
       rd_cr_magn(:,rd_cr_natoms) = magn_mom
       rd_cr_mole (rd_cr_natoms) = iin_mole(1) 

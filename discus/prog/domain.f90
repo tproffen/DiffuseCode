@@ -520,7 +520,8 @@ DATA char_type / 'irreg    ', 'fuzzy    ', 'sphere   ', 'cylinder ',            
 !                                                                       
       IF (cr_nscat == MAXSCAT) then 
          new_nscat = MAX(MAXSCAT + 5, INT ( MAXSCAT * 1.025 ))
-         CALL alloc_crystal(new_nscat, NMAX)
+         CALL alloc_crystal_scat(new_nscat)
+         CALL alloc_crystal_nmax(NMAX)
          CALL alloc_surf   (new_nscat)
       ENDIF 
       IF (MAXSCAT  > ubound(surf_in_dist,1)) THEN
@@ -907,7 +908,8 @@ n_atom = max(n_atom, maxdim(5))
       MK_MAX_SCAT = nscats
    ENDIF
 !
-CALL alloc_crystal (nscats, natoms)
+CALL alloc_crystal_scat (nscats)
+CALL alloc_crystal_nmax (natoms)
 !
 !
 clu_remove_end = cr_natoms    ! Initially remove only atoms in original crystal
@@ -1259,11 +1261,11 @@ do i=1, 1
 enddo
 !
 loop_atoms: do iatom = 1, cr_natoms
-   if(cr_iscat(iatom)==0) cycle loop_atoms ! NEEDS WORK 
+   if(cr_iscat(iatom,1)==0) cycle loop_atoms ! NEEDS WORK 
 !   if(btest(cr_prop(iatom), PROP_TEMP)) cycle loop_atoms   ! Temp property is set already, skip
 !                              ! Determine cluster type for current pseudo atom
 !                              ! Copy shape and orientation matrix
-   line = cr_at_lis(cr_iscat(iatom))
+   line = cr_at_lis(cr_iscat(iatom,1))
    call do_cap(line(1:4))
    ii = 0 
    loop_types: DO i = 1, clu_number       ! Determine pseudo atom type
@@ -1362,11 +1364,11 @@ fp(3) = chem_period(3)
 fq = chem_quick
 !
 do i=1, cr_natoms
-  is1 = cr_iscat(i)
+  is1 = cr_iscat(i,1)
   ino = 1
   call get_connectivity_list(i, is1, ino, c_list, c_offs, natoms )
   if(natoms <=2) then
-!write(*,*) ' AT ATOM ', i, is1, (' | ',c_list(k), cr_iscat(c_list(k)),k=1,natoms)
+!write(*,*) ' AT ATOM ', i, is1, (' | ',c_list(k), cr_iscat(c_list(k,1)),k=1,natoms)
      nscats = 0
      ianz     = 1             ! Just one atom type
      werte(1) = -1            ! Find all atom types
@@ -1375,12 +1377,12 @@ do i=1, cr_natoms
      pos = cr_pos(:, i)
      call do_find_env(ianz, werte, MAXSCAT, pos, rmin, rmax, fq, fp)
      do k=1, atom_env(0)
-        nscats(cr_iscat(atom_env(k))) = nscats(cr_iscat(atom_env(k))) + 1
-!write(*,*) ' ENV ', i, k, atom_env(k), cr_iscat(atom_env(k))
+        nscats(cr_iscat(atom_env(k),1)) = nscats(cr_iscat(atom_env(k),1)) + 1
+!write(*,*) ' ENV ', i, k, atom_env(k), cr_iscat(atom_env(k),1)
      enddo
-!write(*,*) ' replace ', i, cr_iscat(i), MAXLOC(nscats, 1)-1, '|', nscats
+!write(*,*) ' replace ', i, cr_iscat(i,1), MAXLOC(nscats, 1)-1, '|', nscats
      iscat = MAXLOC(nscats, 1)-1
-     cr_iscat(i) = iscat
+     cr_iscat(i,1) = iscat
 !read(*,*) k
   endif
 enddo
@@ -1434,11 +1436,11 @@ real(kind=PREC_DP)               :: dmin    ! minimum distance
 real(kind=PREC_DP), dimension(3) :: com     ! Center of mass for domain
 real(kind=PREC_DP), dimension(3) :: uu      ! Dummy vector
 !
-if(cr_iscat(iatom)==0) return           ! Ignore VOIDS  NEEDS WORK ==> FLAG
+if(cr_iscat(iatom,1)==0) return           ! Ignore VOIDS  NEEDS WORK ==> FLAG
 !
 !**** Get connectivity of this first atom in the new pseudo atom group
 !
-is1 = cr_iscat(iatom)
+is1 = cr_iscat(iatom,1)
 ino = 1
 call get_connectivity_list(iatom, is1, ino, c_list, c_offs, natoms )
 !
@@ -1469,7 +1471,7 @@ loop_neig: do
    lfound = .FALSE.
    loop_list: do j=1, nprior         ! Go through list to find new neighbors
       if(list(j)<0) then                ! This is a new neighbor
-         is1 = cr_iscat((j))
+         is1 = cr_iscat(j,1)
          ino = 1
          call get_connectivity_list(j, is1, ino, c_list, c_offs, natoms )
          if(natoms==0) cycle loop_list  ! This one does not have a connectivity
@@ -1534,7 +1536,7 @@ loop_mgroup: do                        ! Loop over group until all atoms are rep
    enddo loop_icent
 !
 !!write(*,*)
-!write(*,*) ' group size ', ngroup, mgroup, ' ISCAT : ', cr_iscat(iatom)
+!write(*,*) ' group size ', ngroup, mgroup, ' ISCAT : ', cr_iscat(iatom,1)
 !write(*,*) ' COM        ', com, icent
 !
 !                             ! Determine origin, coordinates of group elements
@@ -1590,7 +1592,7 @@ loop_mgroup: do                        ! Loop over group until all atoms are rep
 !  write(*,'(a,4f9.6,1x)') 'MC ',mc_matrix(4,:)
 !end if
 !!!!!!!!!!!!!!!!!!!!!!!!!!
-!write(*,*) ' PSEUDO ATOM ', iatom, cr_iscat(iatom), cr_at_lis(cr_iscat(iatom)), iclu, infile(1:len_trim(infile))
+!write(*,*) ' PSEUDO ATOM ', iatom, cr_iscat(iatom,1), cr_at_lis(cr_iscat(iatom,1)), iclu, infile(1:len_trim(infile))
 !                                         ! Now replace atoms
    mc_type = MD_DOMAIN_IRREG
 !
@@ -1617,9 +1619,9 @@ i = cr_natoms
    endif
    do i=1,mgroup
       if(btest(cr_prop(short(i)), PROP_TEMP)) then
-         cr_iscat(short(i)) = 0
+         cr_iscat(short(i),1) = 0
 !  cr_prop(short(i)) = ibset(cr_prop(short(i)), PROP_TEMP)
-!   write(*,*) ' PROP ', i, short(i), cr_iscat(short(i)), cr_prop(short(i))
+!   write(*,*) ' PROP ', i, short(i), cr_iscat(short(i),1), cr_prop(short(i))
       endif
    enddo
 !read(*,*) i
@@ -1963,14 +1965,14 @@ use precision_mod
       IF (mc_type  .eq.MD_DOMAIN_SPHERE) then 
          d = do_blen (lspace, v, NULLV) 
          IF (d.lt.radius (2) ) then 
-            cr_iscat (i) = 0 
+            cr_iscat (i,1) = 0 
             cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
             cr_prop (i) = IBSET (cr_prop (i), PROP_DOMAIN) 
          ENDIF 
       ELSEIF (mc_type  .eq.MD_DOMAIN_CUBE) then 
          IF (abs (v (1) ) .le.1.and.abs (v (2) ) .le.1.and.abs (v (3) ) &
          .le.1) then                                                    
-            cr_iscat (i) = 0 
+            cr_iscat (i,1) = 0 
             cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
             cr_prop (i) = IBSET (cr_prop (i), PROP_DOMAIN) 
          ENDIF 
@@ -1979,7 +1981,7 @@ use precision_mod
             v (3) = 0.0 
             d = do_blen (lspace, v, NULLV) 
             IF (d.lt.radius (2) ) then 
-               cr_iscat (i) = 0 
+               cr_iscat (i,1) = 0 
                cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
                cr_prop (i) = IBSET (cr_prop (i), PROP_DOMAIN) 
             ENDIF 
@@ -2302,7 +2304,8 @@ inside:     IF (linside) then
 !write(*,*) ' INSIDE ', v
                IF (cr_natoms.eq.nmax) then 
                   new_nmax = MAX(nmax + 100, int( nmax*1.1 ))
-                  CALL alloc_crystal(MAXSCAT, new_nmax)
+                  CALL alloc_crystal_scat(MAXSCAT)
+                  CALL alloc_crystal_nmax(new_nmax)
                ENDIF
                IF (cr_natoms >  nmax) then 
 !                                                                       
@@ -2326,7 +2329,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
                   DO j = 0, cr_nscat 
                   IF (line (1:ibl) .eq.cr_at_lis (j) .and.dw1.eq.cr_dw (&
                   j) ) then                                             
-                     cr_iscat (i) = j 
+                     cr_iscat (i,1) = j 
                      cr_prop (i) = 0 
                      cr_prop (i) = ibset (cr_prop (i), PROP_NORMAL) 
                      cr_prop (i) = ibset (cr_prop (i), PROP_DOMAIN) 
@@ -2338,7 +2341,8 @@ noblank:      IF (line (1:4) .ne.'    ') then
                   ENDDO 
                   IF (cr_nscat == MAXSCAT) then 
                      new_nscat = MAX(MAXSCAT + 5, INT ( MAXSCAT * 1.025 ))
-                     CALL alloc_crystal(new_nscat, NMAX)
+                     CALL alloc_crystal_scat(new_nscat)
+                     CALL alloc_crystal_nmax(NMAX)
                      CALL alloc_surf   (new_nscat)
                   ENDIF 
                   IF (MAXSCAT  > ubound(surf_in_dist,1)) THEN
@@ -2354,7 +2358,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
                      RETURN 
                   ENDIF 
                   cr_nscat = cr_nscat + 1 
-                  cr_iscat (i) = cr_nscat 
+                  cr_iscat (i,1) = cr_nscat 
                   cr_prop (i) = 0 
                   cr_prop (i) = ibset (cr_prop (i), PROP_NORMAL) 
                   cr_prop (i) = ibset (cr_prop (i), PROP_DOMAIN) 
@@ -2371,7 +2375,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
                   .lt.1) then                                           
                      as_natoms = as_natoms + 1 
                      as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
-                     as_iscat (as_natoms) = cr_iscat (i) 
+                     as_iscat (as_natoms) = cr_iscat (i,1) 
                      as_prop (as_natoms) = cr_prop (i) 
                      as_dw (as_natoms) = cr_dw (cr_nscat) 
                      as_occ(as_natoms) = cr_occ(cr_nscat) 
@@ -2734,7 +2738,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
       type_fuzzy: IF(mc_type.eq.MD_DOMAIN_FUZZY) THEN  !This is a fuzzy domain do fast loop
          fuzzy_main: DO i = 1, natoms_old 
             separation = 1.0e03 
-            fuzzy_is_void: IF (cr_iscat (i) .ne.0) then 
+            fuzzy_is_void: IF (cr_iscat (i,1) .ne.0) then 
                DO k = 1, 3 
                   u (k) = cr_pos (k, i) 
                ENDDO 
@@ -2747,7 +2751,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
 !                                                                       
 !     ----------Atom is too close to microdomain atom, remove.          
 !                                                                       
-               cr_iscat (i) = 0 
+               cr_iscat (i,1) = 0 
                cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
                cr_prop (i) = IBSET (cr_prop (i), PROP_DOMAIN) 
                shortest = distance 
@@ -2758,7 +2762,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
                ENDDO fuzzy_inner
             ENDIF fuzzy_is_void
          ENDDO fuzzy_main
-         IF (separation.lt.surf_in_dist (cr_iscat (i) ) ) then 
+         IF (separation.lt.surf_in_dist (cr_iscat (i,1) ) ) then 
             IF (BTEST (cr_prop (i), PROP_NORMAL) ) then 
                cr_prop (i) = IBSET (cr_prop (i), PROP_SURFACE_INT) 
             ENDIF 
@@ -2777,7 +2781,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
 !                                                                       
       DO i = 1, natoms_old 
       separation = 1.0e03 
-      IF (cr_iscat (i) .ne.0) then 
+      IF (cr_iscat (i,1) .ne.0) then 
 !                                                                       
 !     ----Check if the atom is inside a domain or object,               
 !         keep atom if inside a domain or object                        
@@ -2808,7 +2812,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
 !                                                                       
 !     ----------Atom is too close to microdomain atom, remove.          
 !                                                                       
-               cr_iscat (i) = 0 
+               cr_iscat (i,1) = 0 
                cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
                cr_prop (i) = IBSET (cr_prop (i), PROP_DOMAIN) 
                shortest = distance 
@@ -2820,7 +2824,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
          ENDIF 
       ENDIF 
   999 CONTINUE 
-      IF (separation.lt.surf_in_dist (cr_iscat (i) ) ) then 
+      IF (separation.lt.surf_in_dist (cr_iscat (i,1) ) ) then 
          IF (BTEST (cr_prop (i), PROP_NORMAL) ) then 
             cr_prop (i) = IBSET (cr_prop (i), PROP_SURFACE_INT) 
          ENDIF 
@@ -2835,7 +2839,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
 !     ENDDO 
 !     separation = 1.0e03 
 !     DO i = 1, natoms_old 
-!     IF (cr_iscat (i) .ne.0) then 
+!     IF (cr_iscat (i,1) .ne.0) then 
 !        IF (mk_dim (1, 1) + w (1) - a.le.cr_pos (1, i) .and.cr_pos (1, &
 !        i) .le.mk_dim (1, 2) + w (1) + a.and.mk_dim (2, 1) + w (2)     &
 !        - b.le.cr_pos (2, i) .and.cr_pos (2, i) .le.mk_dim (2, 2)      &
@@ -2849,7 +2853,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
 !        ENDIF 
 !     ENDIF 
 !     ENDDO 
-!     IF (separation.lt.surf_in_dist (cr_iscat (j) ) ) then 
+!     IF (separation.lt.surf_in_dist (cr_iscat (j,1) ) ) then 
 !        IF (BTEST (cr_prop (j), PROP_NORMAL) ) then 
 !           cr_prop (j) = IBSET (cr_prop (j), PROP_SURFACE_INT) 
 !        ENDIF 

@@ -164,7 +164,7 @@ loop_main: do slow=1, cr_natoms
    vector = direcs(:, ity)
    other  = second(:, ity)
    loop_inner: do i=1, length
-      cr_iscat(iat) = ity
+      cr_iscat(iat,1) = ity
       pos = cr_pos(:,iat) + vector
       do j=1,3
          if(pos(j) > cr_dim(j,2)) pos(j) = pos(j) - cr_icc(j)
@@ -184,7 +184,7 @@ loop_main: do slow=1, cr_natoms
       rmin = 0.0
       rmax = 0.5
       call do_find_env(ianz, werte, MAXSCAT, pos, rmin, rmax, fq, fp)
-      cr_iscat(atom_env(1)) = ity
+      cr_iscat(atom_env(1),1) = ity
   end do loop_inner
 end do loop_main
 end do 

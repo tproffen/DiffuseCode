@@ -113,7 +113,7 @@ REAL(kind=PREC_DP)                    :: cr_nreal  = 0.0D0 ! Real amount of atom
 !
 INTEGER                              ::  cr_natoms       = 0
 INTEGER                              ::  cr_n_REAL_atoms = 0
-INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_iscat  ! (  1:NMAX)  !Atom type 0 to cr_nscat
+INTEGER, DIMENSION(:,:), ALLOCATABLE ::  cr_iscat  ! (  1:NMAX)  !Atom type 0 to cr_nscat
 INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_ianis  ! (  1:NMAX)  !Atom type 0 to cr_nscat
 INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_prop   ! (  1:NMAX)  !Property flag
 INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_mole   ! (  1:NMAX)  !Atom is in this molecule

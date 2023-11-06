@@ -291,14 +291,14 @@ USE str_comp_mod
          ENDIF
          IF(set_clr) THEN
             DO i=1, cr_natoms
-               IF(latom(cr_iscat(i))) THEN
+               IF(latom(cr_iscat(i,1))) THEN
                   IF(ibit_nr==PROP_SURFACE_EXT) CALL surf_set_local(i,i)
                   cr_prop(i) = IBSET(cr_prop(i),ibit_nr)
                ENDIF
             ENDDO
          ELSE
             DO i=1, cr_natoms
-               IF(latom(cr_iscat(i))) THEN
+               IF(latom(cr_iscat(i,1))) THEN
                   cr_prop(i) = IBCLR(cr_prop(i),ibit_nr)
                   IF(ibit_nr==PROP_SURFACE_EXT) cr_surf(:,i) = 0
                ENDIF

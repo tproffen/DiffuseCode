@@ -1054,7 +1054,8 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
       IF(cr_nscat+dc_temp_surf(0) > MAXSCAT) THEN                   ! Number of scattering types increased
          n_scat = MAX(cr_nscat+MAX(5,dc_temp_surf(0)), MAXSCAT)     ! Allow for several anchor types
          natoms = MAX(cr_natoms, NMAX)
-         CALL alloc_crystal(n_scat,natoms)
+         CALL alloc_crystal_scat(n_scat)
+         CALL alloc_crystal_nmax(natoms)
       ENDIF
       DO k = 1, dc_temp_surf(0)
          n_anch = n_anch + 1
@@ -1072,7 +1073,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
          DO ia = 1, cr_natoms                        ! Loop to replace
             l_correct = .FALSE.
             find_surf: DO j=1,dc_temp_surf(0)
-               IF(cr_iscat(ia) == dc_temp_surf(j)) THEN
+               IF(cr_iscat(ia,1) == dc_temp_surf(j)) THEN
                   l_correct = .TRUE.
                   j_surf = j
                   EXIT find_surf
@@ -1080,7 +1081,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
             ENDDO find_surf
             IF(l_correct                    ) THEN   ! Got a surface atom of correct type
                IF(ran1(idum) < prob) THEN            ! Randomly pick a fraction
-                  cr_iscat(ia) = nscat_tmp + j_surf  ! Replace by standard Anchor type
+                  cr_iscat(ia,1) = nscat_tmp + j_surf  ! Replace by standard Anchor type
                   cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)    ! FLAG THIS ATOM AS SURFACE ANCHOR
                   n_repl       = n_repl  + 1         ! Increment replaced atoms, grand total
                   i_repl       = i_repl  + 1         ! Increment replaced atoms, local count
@@ -1095,7 +1096,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
    n_surf = 0
    DO ia = 1, cr_natoms                        ! Determine surface atoms that remained after replacement
       find_surf2: DO j=1,dc_temp_surf(0)
-         IF(cr_iscat(ia) == dc_temp_surf(j)) THEN
+         IF(cr_iscat(ia,1) == dc_temp_surf(j)) THEN
             n_surf = n_surf+1
          ENDIF
       ENDDO find_surf2
@@ -1140,7 +1141,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
       ALLOCATE(anchor_num(1:cr_nscat-nscat_old))
       anchor_num(:) = 0
       DO k=1, cr_natoms
-         j= cr_iscat(k)-nscat_old
+         j= cr_iscat(k,1)-nscat_old
          IF(j>0) anchor_num(j) = anchor_num(j)+1 
       ENDDO
       j=MAXVAL(anchor_num)
@@ -1346,8 +1347,8 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
          j = 0
          DO ia = 1, cr_natoms
             DO k=1, n_anch
-               IF(cr_iscat(ia)==nscat_old + k     ) THEN
-                  cr_iscat(ia) = anch_id(k,2)
+               IF(cr_iscat(ia,1)==nscat_old + k     ) THEN
+                  cr_iscat(ia,1) = anch_id(k,2)
                   j = j + 1
                   temp_iscat(j) = anch_id(k,2)
                   temp_pos(:,j) = cr_pos(:, ia)
@@ -1401,7 +1402,7 @@ loop_anchor: DO j=1,n_repl
       IF(ABS(temp_pos(1,j)-cr_pos(1,ia))<EPS .AND. &
          ABS(temp_pos(2,j)-cr_pos(2,ia))<EPS .AND. &
          ABS(temp_pos(3,j)-cr_pos(3,ia))<EPS      ) THEN  ! Found correct position
-         cr_iscat(ia) = temp_iscat(j)  ! Set to correct chemistry
+         cr_iscat(ia,1) = temp_iscat(j)  ! Set to correct chemistry
          cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)    ! FLAG THIS ATOM AS SURFACE ANCHOR
          temp_iatom(j) = ia                                  ! Store atom number for this anchor
          i=i+1
@@ -2251,7 +2252,7 @@ surf_normal = matmul(cr_rten, surf_normal_r)
          cr_surf(:,cr_natoms) = 0
          cr_magn(:,cr_natoms) = magn_mom
          CALL check_symm
-         sym_latom(cr_iscat(cr_natoms)) = .true.       ! Select atom type for rotation
+         sym_latom(cr_iscat(cr_natoms,1)) = .true.       ! Select atom type for rotation
       ENDDO atoms
 !
       IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
@@ -2289,7 +2290,7 @@ surf_normal = matmul(cr_rten, surf_normal_r)
                      tilt_is_auto,                                    &
                      surf_normal, mole_natoms, 0, 0)
       IF(ABS(dist) < EPS ) THEN                        ! Remove surface atom
-         cr_iscat(ia) = 0
+         cr_iscat(ia,1) = 0
          cr_prop (ia) = ibclr (cr_prop (ia), PROP_NORMAL)
       ENDIF
 !
@@ -2573,7 +2574,7 @@ DO im=1,mole_natoms                           ! Insert all atoms
    cr_surf(:,cr_natoms) = 0
    cr_magn(:,cr_natoms) = magn_mom
    CALL check_symm
-   sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
+   sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atopm type for rotation
 ENDDO
 IF(cr_natoms==nold) GOTO 9999
 !
@@ -2788,7 +2789,7 @@ insert: DO im=1,mole_natoms                   ! Insert all atoms
       cr_surf(:,cr_natoms) = 0
       cr_magn(:,cr_natoms) = magn_mom
       CALL check_symm
-      sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
+      sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atopm type for rotation
 ENDDO insert
 !
 chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
@@ -3109,7 +3110,7 @@ DO im=1,mole_natoms                           ! Insert all atoms
    cr_surf(:,cr_natoms) = 0
    cr_magn(:,cr_natoms) = magn_mom
    CALL check_symm
-   sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
+   sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atom type for rotation
 ENDDO
 n1 = nold + neig(1)                           ! Atom number for 1st
 n2 = nold + neig(2)                           ! and 2nd bonded ligand atoms
@@ -3419,7 +3420,7 @@ insert: DO im=1,mole_natoms                   ! Insert all atoms
    cr_surf(:,cr_natoms) = 0
    cr_magn(:,cr_natoms) = magn_mom
    CALL check_symm
-   sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
+   sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atom type for rotation
 ENDDO insert
 !
 chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
@@ -3764,7 +3765,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
       cr_surf(:,cr_natoms) = 0
       cr_magn(:,cr_natoms) = magn_mom
       CALL check_symm
-      sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
+      sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atom type for rotation
    ENDDO atoms
 !
 !           Rotate ligand to achieve Hydrogen bond angle: ANGLE_A_H_D
@@ -4048,7 +4049,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
       cr_surf(:,cr_natoms) = 0
       cr_magn(:,cr_natoms) = magn_mom
       CALL check_symm
-      sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
+      sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atom type for rotation
    ENDDO atoms
 !
 !  Rotate ligand to achieve Hydrogen bond angle: ANGLE_A_H_D

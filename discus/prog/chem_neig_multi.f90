@@ -345,8 +345,8 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
       ENDIF 
    ENDDO 
 !do i=1, natom(ncent)
-!write(*,'(a,i3,2(a3,i8,i2, 3f6.1),1x,l1, a,10 i8)') 'CORR ',ic, ' c', jatom, cr_iscat(jatom), patom(1:3, 0, ncent),  &
-!                                      ' n', katom, cr_iscat(katom), patom(1:3, i, ncent), &
+!write(*,'(a,i3,2(a3,i8,i2, 3f6.1),1x,l1, a,10 i8)') 'CORR ',ic, ' c', jatom, cr_iscat(jatom,1), patom(1:3, 0, ncent),  &
+!                                      ' n', katom, cr_iscat(katom,1), patom(1:3, i, ncent), &
 !                                       tatom(i, ncent), &
 ! ' : ', natom(ncent), iatom(0:natom(ncent), ncent)
 !enddo
@@ -370,7 +370,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
             patom (2, 0, ncent) = cr_pos (2, jatom) 
             patom (3, 0, ncent) = cr_pos (3, jatom) 
             iv = chem_use_con (i, ic)               ! Use connectivity no iv
-            IF (cr_iscat(jatom).eq.chem_ccon (1, iv) ) then ! Central has correct type
+            IF (cr_iscat(jatom,1).eq.chem_ccon (1, iv) ) then ! Central has correct type
                is1 = chem_ccon (1, iv)              ! central atom type
                ino = chem_ccon (2, iv)              ! connectivity number
                CALL get_connectivity_list ( jatom, is1, ino, c_list, c_offs, natoms )
@@ -560,7 +560,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
 !----------The selected atom is the central atom of environment         
 !          definition                                                   
 !                                                                       
-         IF (cr_iscat (jatom) .eq.chem_cenv (0, chem_use_env (i, ic) )  &
+         IF (cr_iscat (jatom,1) .eq.chem_cenv (0, chem_use_env (i, ic) )  &
          .or. - 1.eq.chem_cenv (0, chem_use_env (i, ic) ) ) then        
             DO j = 1, chem_env_neig (chem_use_env (i, ic) ) 
             werte (j) = chem_cenv (j, chem_use_env (i, ic) ) 
@@ -602,7 +602,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
 !                                                                       
 !c           lis_neig = .false.                                         
 !c           do j=1,chem_env_neig(chem_use_env(i,ic))                   
-!c             if(cr_iscat(jatom).eq.                                   
+!c             if(cr_iscat(jatom,1).eq.                                   
 !C     &                      chem_cenv(j,chem_use_env(i,ic))) then     
 !c               lis_neig = .true.                                      
 !c             endif                                                    
