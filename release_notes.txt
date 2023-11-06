@@ -5,8 +5,8 @@ GENERAL
               wrong prompt 
 DISCUS
   general     All fourier and related menues received a major internal update
-                  This corrected several bugs in reciprocal layers that are 
-                  not the standard HK0 layers.
+                  As a side effect, this corrected several bugs in reciprocali
+                  layers that are not the standard HK0 layers.
                   0KL layers might have an odd shift of pixels
                   the convolution did not work properly for layers other than HK0
                   side effects on stacking with non [001] stacking 
