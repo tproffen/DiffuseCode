@@ -23,6 +23,7 @@ use precision_mod
       INTEGER ii 
       INTEGER iscat 
       REAL(kind=PREC_DP) :: det 
+logical :: four_is_new  ! The reciprocal space dimensions have changed
 !                                                                       
 !DBG                                                                    
       exte_orig (1) = 0 
@@ -30,7 +31,7 @@ use precision_mod
       exte_orig (3) = 0 
       exte_scale = 0.01 
 !                                                                       
-      CALL four_layer 
+      CALL four_layer (four_is_new)
 !                                                                       
 !------ zero some arrays                                                
 !                                                                       

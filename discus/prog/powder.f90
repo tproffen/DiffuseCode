@@ -2516,6 +2516,7 @@ IMPLICIT none
 !                                                                       
 INTEGER :: lbeg (3), csize (3) 
 INTEGER :: iscat, i 
+logical :: four_is_new  ! The reciprocal space dimensions have changed
 !                                                                       
 ier_num = 0 
 csize (1) = cr_icc (1) 
@@ -2524,7 +2525,7 @@ csize (3) = cr_icc (3)
 !                                                                       
 !------ preset some values                                              
 !                                                                       
-CALL four_layer 
+CALL four_layer(four_is_new)
 !
 !------ zero some arrays                                                
 !                                                                       

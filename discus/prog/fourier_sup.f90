@@ -38,6 +38,7 @@ REAL(KIND=PREC_DP) :: dnorm
 INTEGER :: lbeg (3), csize (3) 
 INTEGER :: iscat, nlot, ncell, i! ,j,k
 INTEGER :: ii          ! Dummy variable
+logical :: four_is_new  ! The reciprocal space dimensions have changed
 !                                                                       
 !ier_num = 0    ! STRANGE BUG on MacAir with M1 chip ??? 2022-May-11
 !                                                                       
@@ -48,7 +49,7 @@ ss = seknds (0.0)
 !                                                                       
 !------ preset some values                                              
 !                                                                       
-call four_layer 
+call four_layer (four_is_new)
 !                                                                       
 !------ zero some arrays
 !                                                
@@ -209,6 +210,7 @@ use param_mod
 use precision_mod
 use prompt_mod
 use support_mod
+use lib_write_mod
 !
 implicit none
 !
@@ -223,6 +225,7 @@ integer, dimension(3) :: ncells   ! Number unit cells in relevant region
 integer, dimension(3) :: idims    ! Number of data points in FFT
 integer, dimension(3) :: NQXYZ    ! Actual data points in FFT array
 logical, dimension(3) :: ll_dim   ! This dimension is not flat
+logical               :: four_is_new  ! The reciprocal space dimensions have changed
 !
 integer              , dimension(3)              :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
 real(kind=PREC_DP)   , dimension(3)              :: scales  ! Scaling if DELTA (hkl) /= 1/cr_icc
@@ -324,7 +327,7 @@ endif
 !                                                                                                                                              
 !------ preset some values                                              
 !                                                                       
-call four_layer                ! copy eck, vi
+call four_layer(four_is_new)   ! copy eck, vi
 call fourier_lmn(eck,vi,inc,lmn,off_shift)
 call four_stltab               ! set up sin(theta)/lambda table
 call four_formtab              ! Calculate atomic form factors
@@ -359,9 +362,9 @@ cond_dim: if(is_dim==3) then            ! 3-D crystal 33333333333333333333333333
    loop_atom3: do i=1, cr_natoms               ! Loop over all atoms
       k = cr_iscat(i,1)
       nat(k) = nat(k) + 1
-      xpos(nat(j),k) = cr_pos(1,i) + shift(1)
-      ypos(nat(j),k) = cr_pos(2,i) + shift(2)
-      zpos(nat(j),k) = cr_pos(3,i) + shift(3)
+      xpos(nat(k),k) = cr_pos(1,i) + shift(1)
+      ypos(nat(k),k) = cr_pos(2,i) + shift(2)
+      zpos(nat(k),k) = cr_pos(3,i) + shift(3)
    enddo loop_atom3
    loop_scat3:do iscat=1,cr_nscat                 ! Loop over all atom types
 !
@@ -414,9 +417,9 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
    loop_atom2: do i=1, cr_natoms               ! Loop over all atoms
       k = cr_iscat(i,1)
       nat(k) = nat(k) + 1
-      xpos(nat(j),k) = cr_pos(1,i) + shift(1)
-      ypos(nat(j),k) = cr_pos(2,i) + shift(2)
-      zpos(nat(j),k) = cr_pos(3,i) + shift(3)
+      xpos(nat(k),k) = cr_pos(1,i) + shift(1)
+      ypos(nat(k),k) = cr_pos(2,i) + shift(2)
+      zpos(nat(k),k) = cr_pos(3,i) + shift(3)
    enddo loop_atom2
    loop_scat2:do iscat=1,cr_nscat                 ! Loop over all atom types
 !
@@ -441,6 +444,7 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
          call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
                              ypos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), scales(1:2), fcsf)
       endif
+call tofile((/num(1),num(2)/),'nufft_2d.dat',real(fcsf(:,:,1),kind=PREC_DP),(/-4.0D0, -4.0D0/),(/-0.1D0, -0.1D0/))
       call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
 !                                                ! Add to complex structure factor
       csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))
@@ -463,7 +467,7 @@ elseif(is_dim==1) then cond_dim                   ! 1-D crystal 1111111111111111
       loop_atom1: do i=1, cr_natoms               ! Loop over all atoms
          k = cr_iscat(i,1)
          nat(k) = nat(k) + 1                         ! Increment atom number
-         xpos(nat,k) = cr_pos(j,i) + shift(j)    ! Copy atoms
+         xpos(nat(k),k) = cr_pos(j,i) + shift(j)    ! Copy atoms
       enddo loop_atom1
    loop_scat1:do iscat=1,cr_nscat                 ! Loop over all atom types
       !
@@ -495,14 +499,12 @@ deallocate(fcsf)
 !AV!   acsf    = cmplx(0.0D0, 0.0D0, kind=kind(1.0D0))
 !AV!endif
 csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) - acsf(1:num(1),1:num(2),1:num(3))
-ii = 0
 do i=1, num(1)
-do j=1, num(2)
-do k=1, num(3)
-   ii = ii + 1
-dsi(i,j,k) = dble(csf(i,j,k) * conjg(csf(i,j,k))) 
-enddo
-enddo
+   do j=1, num(2)
+      do k=1, num(3)
+         dsi(i,j,k) = dble(csf(i,j,k) * conjg(csf(i,j,k)))
+      enddo
+   enddo
 enddo
 !
 if(four_filter==FOUR_FILTER_LANCZOS) then
@@ -964,6 +966,7 @@ integer :: iatom    ! Loop index scattering types
 integer           , dimension(1:3)      ::  tmp_inc      ! Temporary storage to preserve user settings
 real(kind=PREC_DP), dimension(1:3, 1:4) ::  tmp_eck
 real(kind=PREC_DP), dimension(1:3, 1:3) ::  tmp_vi
+logical :: four_is_new  ! The reciprocal space dimensions have changed
 !OBSOLETE logical :: do_aver
 !
 !OBSOLETE do_aver = .false.
@@ -978,7 +981,7 @@ vi      = diff_vi_hkl
 !                                                                       
 !------ preset some values                                              
 !                                                                       
-call four_layer                ! copy eck, vi
+call four_layer(four_is_new)   ! copy eck, vi
 call fourier_lmn(eck,vi,inc,lmn,off_shift)
 call four_stltab               ! set up sin(theta)/lambda table
 call four_formtab              ! Calculate atomic form factors
@@ -987,7 +990,7 @@ call four_formtab              ! Calculate atomic form factors
 !
 acsf(1:num(1),1:num(2),1:num(3)) = cmplx (0.0D0, 0.0D0, KIND=KIND(1.0D0))
 !
-! Using the varaged structure does not seem to subtract the Bragg reflections properly
+! Using the averaged structure does not seem to subtract the Bragg reflections properly
 ! the cond_aver construction is thus obsolete
 !OBSOLETE !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !OBSOLETE cond_aver: if(do_aver) then
@@ -1014,7 +1017,7 @@ loop_iscat: do iscat = 1, cr_nscat       ! Loop over all scattering types
    loop_atoms: do iatom = 1, cr_natoms   ! Loop over all atoms in crystal
      if(cr_iscat(iatom,1) == iscat) then   ! If correct type, copy into fourier position
          nxat = nxat + 1
-         xat(nxat,:) = cr_pos(:, iatom) -floor(cr_pos(:, iatom)) ! - real(icell(:) - 1,kind=PREC_DP) - cr_dim0(:, 1)
+         xat(nxat,:) = cr_pos(:, iatom) !-floor(cr_pos(:, iatom)) ! - real(icell(:) - 1,kind=PREC_DP) - cr_dim0(:, 1)
      endif
    enddo loop_atoms
    call four_strucf(iscat, .true.) 
@@ -1536,30 +1539,45 @@ USE lib_random_func
       END SUBROUTINE four_csize                     
 !**********************************************************************
 !**********************************************************************
-      SUBROUTINE four_layer 
+!
+SUBROUTINE four_layer (four_is_new)
 !+                                                                      
 !     This routine writes the corners of the plane to be calculated     
 !     in the 'diffuse_mod.f90' variables.                                   
 !-                                                                      
-      USE discus_config_mod 
-      USE diffuse_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE diffuse_mod 
+!
+IMPLICIT none 
 !                                                                       
+logical, intent(out) :: four_is_new
+!
+real(kind=PREC_DP), parameter :: EPS = 1.0D-6
+real(kind=PREC_DP), dimension(1:3, 1:4), save :: prev_eck = 0.0D0
+real(kind=PREC_DP), dimension(1:3, 1:3), save :: prev_vi  = 0.0D0
+integer           , dimension(1:3)     , save :: prev_inc = 1
 !                                                                       
-      INTEGER i 
+INTEGER :: i 
+!
+if(any(abs(prev_eck-eck)>EPS) .or. any(abs(prev_vi-vi)>EPS) .or. any(prev_inc/=inc)) then
+   four_is_new = .true.
+else
+   four_is_new = .false.
+endif
 !                                                                       
-      DO i = 1, 3 
-         xm  (i) = eck (i, 1) 
-         uin (i) = vi  (i, 1) 
-         vin (i) = vi  (i, 2) 
-         win (i) = vi  (i, 3) 
-      ENDDO 
+DO i = 1, 3 
+   xm  (i) = eck (i, 1) 
+   uin (i) = vi  (i, 1) 
+   vin (i) = vi  (i, 2) 
+   win (i) = vi  (i, 3) 
+ENDDO 
 !                                                                       
-      DO i = 1, 3 
-         num (i) = inc (i) 
-      ENDDO 
+DO i = 1, 3 
+   num (i) = inc (i) 
+ENDDO 
 !                                                                       
-      END SUBROUTINE four_layer                     
+END SUBROUTINE four_layer                     
+!
 !**********************************************************************
 !**********************************************************************
       SUBROUTINE four_cexpt 

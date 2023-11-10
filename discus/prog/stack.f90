@@ -2323,6 +2323,7 @@ integer, parameter :: MAXMASK = 4
       INTEGER         :: n_atom  ! number of molecule atoms in input file
 logical,dimension(0:MAXMASK) :: uni_mask
 !integer, dimension(3) :: n_cells
+logical :: four_is_new  ! The reciprocal space dimensions have changed
 !
       LOGICAL :: lout 
 !                                                                       
@@ -2350,7 +2351,7 @@ ENDIF
       ncell = 0 
       lout = .false. 
       ss = seknds (0.0) 
-      CALL four_layer 
+      CALL four_layer (four_is_new)
       CALL fourier_lmn(eck,vi,inc,lmn,off_shift)
 !
 ! ALLOCATE the fourier part of stacking faults
