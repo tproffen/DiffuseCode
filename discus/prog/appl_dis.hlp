@@ -3752,9 +3752,12 @@
    The "nufft" technique uses the Non-Uniform FFT. It is about two 
    orders of magnitude faster than the "turbo" technique. Currently the
    technique is restricted to a Fourier volume/plane/line that is parallel
-   to the three reciprocal base vectors. Correspondingly the original 
-   crystal must consist of a block terminated by the {100}; {010} and {001}
-   facets. 
+   to the three reciprocal base vectors:
+      abscicca parallel a*; ordinate parallel b*, top axis parallel c*.
+   Correspondingly the original crystal must consist of a block terminated
+   by the {100}; {010} and {001} facets. If the diffraction pattern should 
+   be calculated in a different orientation, use the transformation option
+   at the ==> 'output' menu or while reading the data in KUPLOT.
    The "turbo" mode in combination with the ==> 'lots' option relies on the
    crystal to consist of a block shaped crystal with identical atom numbers 
    per unit cell. 
