@@ -41,10 +41,11 @@ REAL(kind=PREC_QP)   , DIMENSION(1:3)     :: vec_t
 REAL(kind=PREC_QP)   , DIMENSION(1:3,1:3) :: mat_i
 !
 eck = real(nint(eck_in*1.0D8)/1.0D8, kind=PREC_QP)
-vi  = real(nint( vi_in*1.0D10)/1.0D10, kind=PREC_QP)
-!write(*,*) ' vi     ',vi_in(:,1) , ' | ', 1.0D0
-!write(*,*) ' vi     ',vi_in(:,2) 
-!write(*,*) ' vi     ',vi_in(:,3) 
+vi  = real(nint( vi_in*1.0D8)/1.0D8, kind=PREC_QP)
+!write(*,*) ' LMN CALCULATION '
+!write(*,*) ' vi in1 ',vi_in(:,1) , ' | ', 1.0D0
+!write(*,*) ' vi in2 ',vi_in(:,2) 
+!write(*,*) ' vi in3 ',vi_in(:,3) 
 !write(*,*) ' vi     ',real(nint(vi_in(:,1)*1.0D8)/1.0D8 , kind=PREC_DP)
 !write(*,*) ' vi     ',nint(vi_in(:,2)*1.0D8)
 !write(*,*) ' vi     ',nint(vi_in(:,3)*1.0D8) 
@@ -54,7 +55,7 @@ vi  = real(nint( vi_in*1.0D10)/1.0D10, kind=PREC_QP)
 !write(*,*) ' vi     ',real(vi   (:,1) , kind=PREC_DP)
 !write(*,*) ' vi     ',real(vi   (:,2) , kind=PREC_DP)
 !write(*,*) ' vi     ',real(vi   (:,3) , kind=PREC_DP)
-
+!
 mat_a(:,:) = 0.0d0
 mat_i(:,:) = 0.0d0
 dimen      = 0
@@ -150,7 +151,7 @@ call matinv_q(mat_a, mat_i)
 !   write(*,1000) (mat_a(j,i),i=1,3),'   ',(mat_i(j,i),i=1,3), vi(j,1), vi(j,2),vi(j,3), &
 !   (off(j,i),i=1,3)
 !enddo
-1000 FORMAT(3(f9.5,1x),a,3(f9.5,1x),2(2x, 3(f9.5,1x)))
+!1000 FORMAT(3(f9.5,1x),a,3(f9.5,1x),2(2x, 3(f9.5,1x)))
 !
 lmn(:) = 0
 vec_r = matmul(mat_i, eck(:,1))
@@ -189,8 +190,8 @@ ENDDO
 !do j=1,3
 !   write(*,3000)          off(j,1), lmn(4),off(j,2), lmn(5),off(j,3), lmn(6)
 !enddo
-2000 FORMAT('(',f9.5,')=(',f9.5,')*',i8,' +(',f9.5,')*',i8,' +(',f9.5,')*',i8)
-3000 FORMAT(12x,       '(',f9.5,')*',i8,' +(',f9.5,')*',i8,' +(',f9.5,')*',i8)
+!2000 FORMAT('(',f9.5,')=(',f9.5,')*',i8,' +(',f9.5,')*',i8,' +(',f9.5,')*',i8)
+!3000 FORMAT(12x,       '(',f9.5,')*',i8,' +(',f9.5,')*',i8,' +(',f9.5,')*',i8)
 !
 END SUBROUTINE fourier_lmn
 END MODULE fourier_lmn_mod
