@@ -153,7 +153,7 @@ npkt = NINT((xmax+xdel-xmin)/xdel) + 0            ! Use automatic maximum for wr
 !write(*,*) ' INITIAL x  ', npkt, xmin, xmax, xdel
 !write(*,*) ' initial u  ', npkt_u, out_user_values(1:3), out_user_inc(1)
 !
-POW_WR_MAXPKT = MAX(npkt, npkt_u, POW_MAXPKT)
+POW_WR_MAXPKT = MAX(npkt, npkt_u, out_user_inc(1), POW_MAXPKT)
 !
 ALLOCATE(xpl(0:POW_WR_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
 ALLOCATE(ypl(0:POW_WR_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
