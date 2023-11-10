@@ -1552,7 +1552,6 @@ real(kind=PREC_DP) :: qqmax
 factor = 0.0
 npkt3  = 1
 m = nint(valmax)
-write(*,*) ' m, valmax ', m, valmax
 out_fac = 1.0D0   ! Default to no scaling
 !                                                                       
 !     If output type is shelx, calculate qval(000) for scaling          
@@ -1656,7 +1655,6 @@ elseif(m==-2 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with larges
 elseif(valmax>  0.0 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with User value
   out_fac = valmax
 ENDIF 
-write(*,*) ' m, valmax ', m, valmax
 !                                                                       
 extr_ima = 6 - out_extr_abs - out_extr_ord 
 !                                                                       

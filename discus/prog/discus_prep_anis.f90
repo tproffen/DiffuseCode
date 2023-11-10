@@ -162,7 +162,6 @@ enddo
 !
 cr_nanis = cr_ncatoms
 !
-write(*,*) ' CR_NANIS ', cr_nanis
 !
 end subroutine prep_anis
 !
