@@ -40,6 +40,8 @@ INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
 INTEGER (KIND=PREC_INT_LARGE)   :: num23,num123, num123_1
 !
 INTEGER :: IAND, ISHFT
+INTEGER :: ALLOC_STAT
+INTERGER :: L, M, N
 !
 ! Neder's original code
 !
