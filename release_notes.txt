@@ -1,4 +1,5 @@
-6.15.02  DRAFT
+6.16.01  DRAFT
+6.16.00  RELEASE 2023_11_1
 GENERAL
   Windows10   BUG FIX update command crashed if WindowsTerminal was not installed
   Macro       Macros that terminated in a (different) sub level would leave 
