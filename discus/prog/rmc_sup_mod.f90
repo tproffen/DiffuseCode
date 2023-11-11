@@ -1421,6 +1421,9 @@ REAL(kind=PREC_DP) :: d1, d2, d3, d4
                ier_typ = ER_RMC 
             ENDIF 
          ENDIF 
+         n_qxy(1) = nx
+         n_qxy(2) = ny
+         n_qxy(3) = ip
 !                                                                       
          n_qxy  = MAX( n_qxy , rmc_n_qxy, RMC_MAX_Q)  ! NEEDS WORK , offq(ip)+nx*ny)
          CALL alloc_rmc_data ( n_qxy)
@@ -1585,7 +1588,8 @@ REAL(kind=PREC_DP) :: d1, d2, d3, d4
 !
 !------ Allocate initial Diffuse
 !
-      rmc_n_qxy = MAX(nx*ny,RMC_MAX_Q)   ! Save RMC required size for allocation prior to 'run'
+      rmc_n_qxy = (/nx, ny, ip/)
+      rmc_n_qxy = MAX(nx,ny,RMC_MAX_Q)   ! Save RMC required size for allocation prior to 'run'
 !     n_qxy     = MAX(n_qxy, nx*ny, RMC_MAX_Q, MAXQXY)
       n_qxy(1)  = max(n_qxy(1), nx, MAXQXY(1))    ! NEEDS WORK
       n_qxy(2)  = max(n_qxy(2), ny, MAXQXY(2))    ! NEEDS WORK
@@ -1817,9 +1821,7 @@ pn = 0.0
 !                                                                       
 !------ check consistency of input data                                 
 !                                                                       
-!write(*,*) 'RMC CHECK INPUT '
 CALL rmc_check_input 
-!write(*,*) 'RMC CHECK INPUT done'
 IF (ier_num.ne.0) return 
 !
 !------	Allocate arrays related to SQ, LOTS
@@ -1941,7 +1943,6 @@ IF (ier_num.ne.0) return
 !                                                                       
       sig2 = rmc_sigma**2/2.0 
 !                                                                       
-!write(*,*) 'RMC MAIN LOOP STARTED '
       DO while (loop) 
         IF(ier_ctrlc) THEN
            ier_num = -14
@@ -2135,10 +2136,10 @@ IF (ier_num.ne.0) return
  1150 FORMAT (/,' Using old scattering amplitudes ...',/                &
      &          ' (Use command rese to force recalculation)'/)          
  1250 FORMAT (/,' ---- Final configuration ---- ') 
- 1300 FORMAT (/,' Gen: ',I6,' try: ',I6,' acc: (good/bad): ',I6,        &
+ 1300 FORMAT (/,' Gen: ',I9,' try: ',I9,' acc: (good/bad): ',I6,        &
      &          ' / ',I6,' s2x2: ',G15.8)                               
  1400 FORMAT ('   Plane ',I2,': scal: ',G11.4,' / back: ',G11.4,        &
-     &          ' / s2x2: ',G22.8)                                      
+     &          4x,' /        s2x2: ',G15.8)                                      
  2000 FORMAT (/,' Starting main RMC loop ...',/,                        &
      &          ' (',A,') ',/)                                          
  3000 FORMAT (/,' Delta Chi    : ave: ',G15.4,' sig: ',G15.4,           &
@@ -2564,7 +2565,7 @@ END SUBROUTINE rmc_inten
          CALL four_stltab 
          k = 0
          do j = 1,rmc_num (2, ip)
-         DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+         DO i = 1, rmc_num (1, ip)! * rmc_num (2, ip) 
          k = k + 1
          ristl (offsq (ip, is) + k) = istl (i,j,ip) 
          ENDDO 
@@ -2575,7 +2576,7 @@ END SUBROUTINE rmc_inten
       ELSE 
          k = 0
          do j = 1,rmc_num (2, ip)
-         DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+         DO i = 1, rmc_num (1, ip)! * rmc_num (2, ip) 
          k = k + 1
          istl (i,j,ip) = ristl (offsq (ip, is) + k) 
          ENDDO 
