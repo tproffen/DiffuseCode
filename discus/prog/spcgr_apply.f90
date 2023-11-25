@@ -1878,6 +1878,7 @@ lp_gener: DO ipg = 1, generpower (igg)
             cr_pos (2, cr_natoms) = yy(2) 
             cr_pos (3, cr_natoms) = yy(3) 
             cr_iscat (cr_natoms,1) = cr_iscat (ii,1) 
+            cr_iscat (cr_natoms,2:) = 1
             cr_mole (cr_natoms) = cr_mole (ii) 
             cr_prop (cr_natoms) = cr_prop (ii) 
             cr_magn(0, cr_natoms) = cr_magn(0, ii)
