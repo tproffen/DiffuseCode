@@ -1013,22 +1013,25 @@ tran_det = a(1, 1) * (a(2, 2) * a(3, 3) - a(2, 3) * a(3, 2) ) &
 !                                                                       
 END SUBROUTINE tran_setup                     
 !*****7*****************************************************************
-      SUBROUTINE tran_op 
+!
+SUBROUTINE tran_op 
 !-                                                                      
 !     Performs the actual transformation operation.                     
 !     All atoms of the structure, all symmetry elements are transformed 
 !     into the new cell.                                                
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE metric_mod
-      USE spcgr_apply, ONLY: setup_lattice
-      USE update_cr_dim_mod
-      USE transfrm_mod 
-      USE errlist_mod 
+USE discus_config_mod 
+use chem_mod
+USE crystal_mod 
+USE metric_mod
+USE spcgr_apply, ONLY: setup_lattice
+USE update_cr_dim_mod
+USE transfrm_mod 
+!
+USE errlist_mod 
 use precision_mod
-      IMPLICIT none 
 !                                                                       
+IMPLICIT none 
        
 !                                                                       
       INTEGER i, j 
@@ -1114,10 +1117,17 @@ use precision_mod
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
          cr_cartesian, cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
          CALL update_cr_dim 
-      ENDIF 
+!
+   chem_period = .false.     ! Expect periodic boundary conditions
+   chem_quick = .false.      ! and fast lookup mode to be wrong
+   cr_icc = 1
+!
+ENDIF 
 !                                                                       
-      END SUBROUTINE tran_op                        
+END SUBROUTINE tran_op                        
+!
 !*****7*****************************************************************
+!
       SUBROUTINE tran_sym 
 !-                                                                      
 !     Transforms the symmetry operations                                
