@@ -463,29 +463,37 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
       prompt = orig_prompt
       END SUBROUTINE chem                           
 !*****7*****************************************************************
-      SUBROUTINE chem_show (cmd) 
+!
+subroutine chem_show(cmd)
 !+                                                                      
 !     show current parameters                                           
 !-                                                                      
-      USE discus_config_mod 
-      USE chem_mod 
-      USE diffuse_mod 
-      USE errlist_mod 
-      USE prompt_mod 
-      USE string_convert_mod
-      IMPLICIT none 
+use discus_config_mod 
+use chem_mod 
+use crystal_mod
+use diffuse_mod
+! 
+use errlist_mod 
+use prompt_mod 
+use string_convert_mod
 !                                                                       
+implicit none 
 !                                                                       
-      CHARACTER ( * ) cmd 
-      INTEGER i, j, ic 
-      LOGICAL lnone 
+character(len=*), intent(inout) :: cmd 
+!
+integer :: i, j, ic 
+logical :: lnone 
 !                                                                       
-      CALL do_cap (cmd) 
+call do_cap(cmd)
 !                                                                       
 !------ General settings                                                
 !                                                                       
       IF (cmd (1:2) .eq.'AL'.or.cmd (1:2) .eq.'GE') then 
          WRITE (output_io, 1000) chem_quick, chem_period 
+         write(output_io, '(a, 3i4)')      '    Crystal consists of unit cells: ', cr_icc
+         write(output_io, '(a, 2(f10.5))') '    Crystal dimensions x min/max  : ', cr_dim(1,1), cr_dim(1,2)
+         write(output_io, '(a, 2(f10.5))') '    Crystal dimensions y min/max  : ', cr_dim(2,1), cr_dim(2,2)
+         write(output_io, '(a, 2(f10.5))') '    Crystal dimensions z min/max  : ', cr_dim(3,1), cr_dim(3,2)
          IF (chem_sel_atom) then 
             WRITE (output_io, 1050) 'atoms' 
          ELSE 
