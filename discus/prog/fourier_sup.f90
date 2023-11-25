@@ -444,7 +444,7 @@ elseif(is_dim==2) then  cond_dim                 ! 2-D crystal 22222222222222222
          call four_strucf_2d(cr_natoms, nat(iscat), ncells(1:2), idims(1:2), NQXYZ,    &
                              ypos(:,iscat), zpos(:,iscat), cr_occ(iscat),iscales(1:2), scales(1:2), fcsf)
       endif
-call tofile((/num(1),num(2)/),'nufft_2d.dat',real(fcsf(:,:,1),kind=PREC_DP),(/-4.0D0, -4.0D0/),(/-0.1D0, -0.1D0/))
+!call tofile((/num(1),num(2)/),'nufft_2d.dat',real(fcsf(:,:,1),kind=PREC_DP),(/-4.0D0, -4.0D0/),(/-0.1D0, -0.1D0/))
       call tcsf_form(iscat, .true., NQXYZ, fcsf) ! Multiply with atomic form factor
 !                                                ! Add to complex structure factor
       csf(1:num(1),1:num(2),1:num(3)) = csf(1:num(1),1:num(2),1:num(3)) + fcsf(1:num(1),1:num(2),1:num(3))
@@ -1722,6 +1722,47 @@ ENDDO
 END SUBROUTINE four_formtab                   
 !
 !**********************************************************************
+!
+subroutine four_dbtab
+!-
+!  Set up Debye-Waller table for all elements and all points in reciprocal space
+!+
+!
+use crystal_mod
+use diffuse_mod 
+!
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer :: i,j,k,l  ! Dummy indices
+integer :: iscat
+real(kind=PREC_DP), dimension(3) :: h     ! Reciprocal space vector
+real(kind=PREC_DP)               :: arg   ! Dummy argument
+!
+if(four_log) then 
+   write(output_io, '(a)') ' Computing DebeyWaller lookup table ...' 
+endif 
+!
+do k=1, num(3)
+   do j=1, num(2)
+      do i=1, num(1)
+         h(l) = eck(l, 1) + vi(l, 1) * REAL(i - 1,kind=PREC_DP) + &
+                            vi(l, 2) * REAL(j - 1,kind=PREC_DP) + &
+                            vi(l, 3) * REAL(k - 1,kind=PREC_DP)
+         arg = (h(1)*cr_anis_full(1,iscat)) * (h(1)*cr_anis_full(1,iscat)) *   &
+               (h(2)*cr_anis_full(2,iscat)) * (h(2)*cr_anis_full(2,iscat)) *   &
+               (h(3)*cr_anis_full(3,iscat)) * (h(3)*cr_anis_full(3,iscat)) *   &
+               (h(2)*cr_anis_full(4,iscat)) * (h(3)*cr_anis_full(4,iscat)) * 2.0D0 * &
+               (h(1)*cr_anis_full(5,iscat)) * (h(3)*cr_anis_full(5,iscat)) * 2.0D0 * &
+               (h(1)*cr_anis_full(6,iscat)) * (h(2)*cr_anis_full(6,iscat)) * 2.0D0
+!        four_dbw(i,j,k,iscat) = exp(-arg)
+      enddo
+   enddo
+enddo
+!
+end subroutine four_dbtab
 !**********************************************************************
 !
 SUBROUTINE four_qinfo 
