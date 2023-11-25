@@ -825,7 +825,8 @@ loop_atoms: DO i = i_start, i_end
                      (cr_pos (j, i),j = 1, 3),          &
                      cr_dw (cr_iscat (i,1) ), wr_prop,    &
                      wr_mole, wr_cont, cr_occ(cr_iscat(i,1)), &
-                     c_surf(wr_surf(0  )), wr_surf(1:3  )
+                     c_surf(wr_surf(0  )), wr_surf(1:3  )!, &
+!                    cr_anis_full(:,i)
    ENDIF 
 ENDDO loop_atoms
 !
@@ -854,6 +855,9 @@ DEALLOCATE(lwrite)
  3220 FORMAT    (('occ   ', f9.6,6(',',5x,f9.6))) 
  3221 FORMAT    (('occ   ', f9.6)) 
  3800 format    ('format numbers,XYZBPMMOS')
+!3900 FORMAT    ('atoms      x,',14x,'y,',14x,'z,',13x,'Biso,', 4x,'Property,', &
+!                2x,'MoleNo,  MoleAt,   Occ,     St,  Sh,  Sk,  Sl',            &
+!                ',  U11,       U22,       U33,       U23,       U13,       U12')
  3900 FORMAT    ('atoms      x,',14x,'y,',14x,'z,',13x,'Biso,', 4x,'Property,', &
                  2x,'MoleNo,  MoleAt,   Occ,     St,  Sh,  Sk,  Sl')
  4000 FORMAT    (a) 
@@ -867,7 +871,7 @@ DEALLOCATE(lwrite)
  4700 FORMAT    (a,' cqua     ,',f12.8)
  4900 FORMAT    (a,' end') 
     4 FORMAT (a4,3(1x,f14.6,','),4x,f10.6,',',i8, ',', I8, ',', &
-              I8,', ', F10.6,', ',A1,3(', ',I3)) 
+              I8,', ', F10.6,', ',A1,3(', ',I3),6(',',f10.6)) 
  7010 FORMAT    ('(''scat  '', a4  ,',i1,'('','',5x,a4  ))') 
  7020 FORMAT    ('(''adp   '', f9.6,',i1,'('','',5x,f9.6))') 
  7030 FORMAT    ('(''occ   '', f9.6,',i1,'('','',5x,f9.6))') 
