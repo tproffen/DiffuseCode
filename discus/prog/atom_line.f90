@@ -17,6 +17,7 @@ public  AT_XYZ
 public  AT_XYZB
 public  AT_XYZBP
 public  AT_XYZBPMMOS
+public  AT_XYZBPMMOSU
 public  atom_line_inter
 public  atom_get_size
 public  atom_line_get_style
@@ -27,15 +28,17 @@ public   get_atom_werte
 public  atom_verify_param
 public  atom_get_type
 !
-integer, parameter :: AT_MAXP = 16
+integer, parameter :: AT_MAXP = 22
 !
-character(len=8), dimension(16), PARAMETER :: at_cnam = (/ &
+character(len=8), dimension(22), PARAMETER :: at_cnam = (/ &
                'X       ', 'Y       ', 'Z       ', 'BISO    ', 'PROPERTY',  &
                'MOLENO  ', 'MOLEAT  ', 'OCC     ', 'ST      ', 'SH      ',  &
-               'SK      ', 'SL      ', 'MM      ', 'MV      ', 'MU      ',  &
-               'MW      '                                                   &
+               'SK      ', 'SL      ',                                      &
+               'U11     ', 'U22     ', 'U33     ', 'U23     ', 'U13     ',  &
+               'U12     ',                                                  &
+               'MM      ', 'MV      ', 'MU      ', 'MW      '               &
              /)
-character(len=8), dimension(16)      :: at_param
+character(len=8), dimension(22)      :: at_param
 integer         , dimension(AT_MAXP) :: at_look  ! at_param(i) uses at_cnam(at_look(i))
 integer         , dimension(AT_MAXP) :: at_kool  ! at_cnam(j) is used by at_param(at_kool(j))
 logical         , dimension(0:AT_MAXP) :: at_user  ! User provided parameters on atom line
@@ -49,6 +52,7 @@ integer, parameter :: AT_XYZ       =  2          ! Just coordinates as pure numb
 integer, parameter :: AT_XYZB      =  3          ! Just coordinates, Biso   numbers, no comma
 integer, parameter :: AT_XYZBP     =  4          ! Just coordinates, Biso, Property, no comma
 integer, parameter :: AT_XYZBPMMOS =  5          ! All the way to Surface in DISCUS sequence
+integer, parameter :: AT_XYZBPMMOSU=  6          ! All the way to Uij   e in DISCUS sequence
 !
 integer, parameter :: COL_X        =  1
 integer, parameter :: COL_Y        =  2
@@ -62,10 +66,16 @@ integer, parameter :: COL_SURFT    =  9
 integer, parameter :: COL_SURFH    = 10
 integer, parameter :: COL_SURFK    = 11
 integer, parameter :: COL_SURFL    = 12
-integer, parameter :: COL_MM       = 13
-integer, parameter :: COL_MU       = 14
-integer, parameter :: COL_MV       = 15
-integer, parameter :: COL_MW       = 16
+integer, parameter :: COL_U11      = 13
+integer, parameter :: COL_U22      = 14
+integer, parameter :: COL_U33      = 15
+integer, parameter :: COL_U23      = 16
+integer, parameter :: COL_U13      = 17
+integer, parameter :: COL_U12      = 18
+integer, parameter :: COL_MM       = 19
+integer, parameter :: COL_MU       = 20
+integer, parameter :: COL_MV       = 21
+integer, parameter :: COL_MW       = 22
 !
 character(len=4)  , dimension(:  ), allocatable :: at_names   ! All atom names
 real(kind=PREC_DP), dimension(:,:), allocatable :: at_values  ! All atom coordinates etc
@@ -147,7 +157,9 @@ else
 !         at_kool(j)     = inew
 !         at_param(inew) = at_cnam(j)
 !         at_user(j) = .FALSE.   ! User did not provide atom parameter J
-  if(line=='     x,              y,              z,             Biso,    Property,  MoleNo,  MoleAt,   Occ,     St,  Sh,  Sk,  Sl') then
+  if(    line=='     x,              y,              z,             Biso,    Property,  MoleNo,  MoleAt,   Occ,     St,  Sh,  Sk,  Sl,  U11,       U22,       U33,       U23,       U13,       U12') then
+    at_vals = AT_XYZBPMMOSU
+  elseif(line=='     x,              y,              z,             Biso,    Property,  MoleNo,  MoleAt,   Occ,     St,  Sh,  Sk,  Sl') then
     at_vals = AT_XYZBPMMOS
   elseif(line=='     x,              y,              z,             Biso,    Property') then
     at_vals = AT_XYZBP
@@ -346,7 +358,40 @@ werte(5) = 1.0D0
 werte(8) = 1.0D0
 !
 if_number: if(at_number) then                                ! Numbers only in DISCUS format
-   if(at_vals==AT_XYZBPMMOS) then                           ! Line with X,y,Z,B,Prop, Mole, mole, Occ, Surface
+   if(at_vals==AT_XYZBPMMOSU) then                           ! Line with X,y,Z,B,Prop, Mole, mole, Occ, Surface
+      read(line(5:length), 44445, &
+      iostat=ios) werte(1:4), iwerte(1:3), werte(8), csurf, iwerte(4:6), werte(13:18)
+44445 FORMAT(3(1x,f14.6,1x ),4x,f10.6,1x ,i8, 1x , I8, 1x , I8,2x  , F10.6,2x  ,A1,3(2x  ,I3),6(1x,f10.6))
+      if(ios/=0) then
+         ier_num = -49 ! 
+         ier_typ = ER_APPL
+         ier_msg(1) = 'File format specified as numbers only'
+         ier_msg(2) = 'Check atom line starting with '
+         ier_msg(3)(1:40) = line(1:40)
+         return
+      endif
+      werte( 5: 7) = real(iwerte(1:3),kind=PREC_DP)
+      select case(csurf)
+         case('_')
+            werte(9) = 0.0D0
+         case('P')
+            werte(9) = 1.0D0
+         case('S')
+            werte(9) = 2.0D0
+         case('Y')
+            werte(9) = 3.0D0
+         case('E')
+            werte(9) = 4.0D0
+         case('C')
+            werte(9) = 5.0D0
+         case('L')
+            werte(9) = 6.0D0
+         case('T')
+            werte(9) = 7.0D0
+         case default
+      end select
+      werte(10:12) = real(iwerte(4:6),kind=PREC_DP)
+   elseif(at_vals==AT_XYZBPMMOS) then                           ! Line with X,y,Z,B,Prop, Mole, mole, Occ, Surface
       read(line(5:length), 44444, &
       iostat=ios) werte(1:4), iwerte(1:3), werte(8), csurf, iwerte(4:6)
 44444 FORMAT(3(1x,f14.6,1x ),4x,f10.6,1x ,i8, 1x , I8, 1x , I8,2x  , F10.6,2x  ,A1,3(2x  ,I3))
