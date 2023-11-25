@@ -58,14 +58,17 @@ cr_prin      = 0.0D0
 j = 0
 cr_ndiffer = 0
 cr_nanis = 0
-if(maxval(abs(cr_anis(:,:)))<TOL) return
+if(maxval(abs(cr_anis(:,:)))<TOL) then
+   cr_iscat(1:cr_ncatoms,3) = 1
+   return
+endif
 do iatom=1,cr_ncatoms
    l = cr_iscat(iatom,1)        ! Current atom type
    cr_ndiffer(l) = cr_ndiffer(l) + 1
 enddo
 !
 ! Step 1:  Determine Eigenvalues and Eigenvectors 
-do iatom=1,cr_ncatoms 
+loop_atoms:do iatom=1,cr_ncatoms 
    itype = cr_iscat(iatom,1)
    cr_ianis(iatom) = iatom
 !  write(*,*)
@@ -81,12 +84,14 @@ do iatom=1,cr_ncatoms
       uij(3,1) = cr_anis(5, itype)
       uij(1,2) = cr_anis(6, itype)
       uij(2,1) = cr_anis(6, itype)
+      cr_iscat(iatom, 3) = cr_is_sym(iatom)
    else
       ucij      = 0.0D0
       ucij(1,1) = cr_dw(itype)/8.0D0/pi**2
       ucij(2,2) = cr_dw(itype)/8.0D0/pi**2
       ucij(3,3) = cr_dw(itype)/8.0D0/pi**2
       uij = matmul((cr_dimat), matmul(ucij, transpose(cr_dimat)))
+      cr_iscat(iatom, 3) = 1
 !    write(*,*) 
 !    write(*,'(a,2(2x,3(2x,f9.6)))') 'UC_ij ', uij(1,:), ucij(1,:)
 !    write(*,'(a,2(2x,3(2x,f9.6)))') 'UC_ij ', uij(2,:), ucij(2,:)
@@ -103,6 +108,18 @@ do iatom=1,cr_ncatoms
       uij = uijs
    endif 
 !
+   do j=1, cr_nanis
+      if(abs(cr_anis_full(1,j)-uij(1,1))<TOL .and.  &
+         abs(cr_anis_full(2,j)-uij(2,2))<TOL .and.  &
+         abs(cr_anis_full(3,j)-uij(3,3))<TOL .and.  &
+         abs(cr_anis_full(4,j)-uij(3,2))<TOL .and.  &
+         abs(cr_anis_full(5,j)-uij(3,1))<TOL .and.  &
+         abs(cr_anis_full(6,j)-uij(2,1))<TOL ) then  
+!WORK         cr_iscat(iatom,3) = j            ! Assign ADP type
+!WORK         cycle loop_atoms
+      endif
+   enddo
+   cr_nanis = cr_nanis + 1
    cr_anis_full(1,iatom) = uij(1,1)
    cr_anis_full(2,iatom) = uij(2,2)
    cr_anis_full(3,iatom) = uij(3,3)
@@ -158,7 +175,8 @@ w = matmul((cr_emat), vector)
 !write(*,'(a, f9.5)') ' Ang u,w    ', lib_bang(cr_gten, u,w)
 !write(*,'(a, f9.5)') ' Ang v,w    ', lib_bang(cr_gten, v,w)
 !     call test_eigen_value(uij, eigen_val, eigen_cry, cr_gten )
-enddo
+!write(*,'(a,i4, 6f8.3)') ' ANIS ', iatom, cr_anis_full(1:6,iatom)
+enddo loop_atoms
 !
 cr_nanis = cr_ncatoms
 !
