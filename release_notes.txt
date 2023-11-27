@@ -3,7 +3,8 @@
 
 DISCUS
   chem        Added output on crystal dimensions/number of unit cells
-  export      BUG FIX corrected output into RMCprofile format
+  export      BUG FIX corrected output into RMCprofile format; 
+                 atom coordinates are mapped into [1,1]; 1 exclusive
               
 6.16.00  RELEASE 2023_11_01
 GENERAL
