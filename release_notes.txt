@@ -1,12 +1,18 @@
-6.16.01  DRAFT
-6.16.00  RELEASE 2023_11_1
+6.16.02  DRAFT
+6.16.01  RELEASE 2023_11_27
+
+DISCUS
+  chem        Added output on crystal dimensions/number of unit cells
+  export      BUG FIX corrected output into RMCprofile format
+              
+6.16.00  RELEASE 2023_11_01
 GENERAL
   Windows10   BUG FIX update command crashed if WindowsTerminal was not installed
   Macro       Macros that terminated in a (different) sub level would leave 
               wrong prompt 
 DISCUS
   general     All fourier and related menues received a major internal update
-                  As a side effect, this corrected several bugs in reciprocali
+                  As a side effect, this corrected several bugs in reciprocal
                   layers that are not the standard HK0 layers.
                   0KL layers might have an odd shift of pixels
                   the convolution did not work properly for layers other than HK0
