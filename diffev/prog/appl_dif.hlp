@@ -903,7 +903,7 @@
 2  newparam
 !p newparam <name>, <xmin>, <xmax>,<smin>, <smax>  
             [,init:{"keep"|"initialize"}
-            [,real:{"real"|"integer"}
+            [,type:{"real"|"integer"}
 
    This command defines a new parameter name or changes the setting for 
    an existing parameter name. 
