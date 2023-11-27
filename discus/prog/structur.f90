@@ -498,7 +498,8 @@ DO k = 1, cr_icc (3)
       DO i = 1, cr_icc (1) 
          DO n = 1, ce_natoms 
             cr_natoms = cr_natoms + 1 
-            cr_iscat (cr_natoms,1) = cr_iscat (n,1) 
+            cr_iscat (cr_natoms,:) = cr_iscat (n,:) 
+            cr_iscat(cr_natoms,2) = cr_is_sym(n)
             cr_pos (1, cr_natoms) = cr_pos (1, n) + REAL( i - 1)
             cr_pos (2, cr_natoms) = cr_pos (2, n) + REAL( j - 1)
             cr_pos (3, cr_natoms) = cr_pos (3, n) + REAL( k - 1)
@@ -510,6 +511,9 @@ DO k = 1, cr_icc (3)
       ENDDO 
    ENDDO 
 ENDDO 
+!write(*,*) 'TYPE', cr_iscat(:,1)
+!write(*,*) 'SYM ', cr_iscat(:,2)
+!write(*,*) 'RXXX', cr_iscat(:,3)
 !
 !     ---------- Apply occupancy
 !
@@ -521,6 +525,7 @@ ELSEIF(occupancy==1) THEN   ! Apply occupancies
          CALL RANDOM_NUMBER(r)
          IF(r > cr_occ(cr_iscat(i,1))) THEN
             cr_iscat(i,1) = 0
+            cr_iscat(i,2:) = 1
             cr_prop (i)  = ibclr (cr_prop (i),  PROP_NORMAL)
          ENDIF
       ENDIF
@@ -691,6 +696,8 @@ CALL test_mole_gap
 IF(chem_quick .AND. l_site) THEN
    CALL differ_site(cr_nscat, cr_ncatoms, cr_icc )
 ENDIF
+!
+cr_is_sym = 1
 !
 END SUBROUTINE do_readstru
 !
@@ -871,6 +878,7 @@ cells_c: DO i=1, icc(1)*icc(2)*icc(3)
       DO k=0, n_on_site(isite)
          IF(iscat==old(k,isite)) THEN
             cr_iscat(iat,1) = types(k,isite)
+            cr_iscat(iat,2:) = 1
             CYCLE sites_c
          ENDIF
       ENDDO
@@ -1054,7 +1062,7 @@ logical, dimension(0:MAXMASK), intent(in) :: uni_mask
 character(len=4)           :: nw_name
 CHARACTER(len=10)          :: befehl 
 CHARACTER(LEN=PREC_STRING) :: line, zeile 
-INTEGER, PARAMETER                   :: AT_MAXP = 16
+INTEGER, PARAMETER                   :: AT_MAXP = 22
 INTEGER, PARAMETER                   :: ist     = 7
 INTEGER, PARAMETER                   :: MAXW = MAX(AT_MAXP,7)
 !
@@ -1281,7 +1289,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
          ENDDO 
          werte (5) = 1.0 
          cr_surf(:,cr_natoms+1) = 0
-         cr_magn(:,cr_natoms+1) = 0.0
+         cr_magn(:,cr_natoms+1) = 0.0D0
          as_natoms = as_natoms + 1 
          call get_atom_werte(as_natoms, MAXW, werte)
 !                  CALL read_atom_line (line, ibl, lline, as_natoms, MAXW, werte, &
@@ -1312,7 +1320,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             cr_pos (j, i) = werte (j) 
          ENDDO 
          cr_surf(0:3,i) = NINT(werte(9:12))
-         cr_magn(0:3,i) = 0.0 ! (werte(9:12)) MAGNETIC_WORK
+         cr_magn(0:3,i) = 0.0D0 ! (werte(19:12)) MAGNETIC_WORK
          dw1 = werte (4) 
          occ1 = werte(8)                       ! WORK OCC
          IF(mole_l_on) THEN
@@ -1322,7 +1330,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
          ENDIF
          cr_prop (i) = NINT(werte(5) ) 
          cr_surf(:,i) = 0                      ! Currently no save nor read for surface
-         cr_magn(:,i) = werte(13:16)           ! Read for MAGNETIC_WORK
+         cr_magn(:,i) = 0.0D0 !werte(19:22)           ! Read for MAGNETIC_WORK
          IF(MAXVAL(ABS(werte(13:16)))> 0.0) cr_magnetic = .TRUE.  ! Crystal has magnetic atoms
 !                                                                       
          if_blk: IF(line(1:ibl) .ne.'    ') THEN 
@@ -1340,6 +1348,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                                  nw_name, dw1, occ1, uni_mask)
                if(j>-1) then              ! Old atom type
                   cr_iscat(i,1) = j
+                  cr_iscat(i,2:) = 1
                   call symmetry
                   goto 22
                endif
@@ -1382,6 +1391,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                endif
                if(j>-1)  then              ! Old atom type
                   cr_iscat(i,1) = j
+                  cr_iscat(i,2:) = 1
                   call symmetry
                if(uni_mask(0) .and. .not.any(uni_mask(1:))) then   !unique:site is present
                   do j=i+1, cr_natoms
@@ -1393,6 +1403,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                         CALL alloc_crystal_nmax(new_nmax)
                      endif
                      cr_iscat(j,1) = cr_nscat
+                     cr_iscat(j,2:) = 1
                      cr_at_lis (cr_nscat) = nw_name
                      cr_dw (cr_nscat) = dw1
                      cr_occ(cr_nscat) = occ1                    ! WORK OCC
@@ -1408,6 +1419,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !ATOM_LINE              as_natoms = as_natoms + 1 
                cr_nscat = cr_nscat + 1 
                cr_iscat (i,1) = cr_nscat 
+               cr_iscat (i,2:) = 1 
 !              cr_at_lis (cr_nscat) = line (1:ibl) 
                cr_at_lis (cr_nscat) = nw_name
                cr_dw (cr_nscat) = dw1 
@@ -1434,6 +1446,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                         CALL alloc_crystal_nmax(new_nmax)
                      endif
                      cr_iscat(j,1) = cr_nscat
+                     cr_iscat(j,2:) = 1
                      cr_at_lis (cr_nscat) = nw_name
                      cr_dw (cr_nscat) = dw1
                      cr_occ(cr_nscat) = occ1                    ! WORK OCC
@@ -1903,7 +1916,7 @@ logical           , dimension(0:MAXMASK)   , intent(in)    :: uni_mask
 !
 !                                                                       
 INTEGER, PARAMETER                   :: ist = 7 
-INTEGER, PARAMETER                   :: AT_MAXP = 16
+INTEGER, PARAMETER                   :: AT_MAXP = 22
 !
 INTEGER :: i 
 INTEGER                              :: at_ianz
@@ -1995,8 +2008,7 @@ INTEGER                                  , INTENT(OUT) :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !                                                                       
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 13) 
+INTEGER,  PARAMETER :: maxw = 22 
 !                                                                       
       CHARACTER(LEN=PREC_STRING) :: line, cpara (maxw) 
       CHARACTER(LEN=PREC_STRING) :: zeile 
@@ -2420,7 +2432,9 @@ sym_add_n = 0
          elseif(cpara(1) == 'VARIABLES') then
             at_number = .false.
          endif
-         if(cpara(2) == 'XYZBPMMOS') then
+         if(cpara(2) == 'XYZBPMMOSU') then
+            at_vals = AT_XYZBPMMOSU
+         elseif(cpara(2) == 'XYZBPMMOS') then
             at_vals = AT_XYZBPMMOS
          elseif(cpara(2) == 'XYZBP') then
             at_vals = AT_XYZBP
@@ -2565,7 +2579,7 @@ CHARACTER(LEN=8)  , DIMENSION(AT_MAXP)    , INTENT(IN )   :: at_param
 logical           , dimension(0:MAXMASK)    , intent(in)    :: uni_mask
 !                                                                       
 INTEGER , PARAMETER :: ist  = 7
-INTEGER , PARAMETER :: maxw = 16! SHOULD READ : MAX(7, AT_MAXP)
+INTEGER , PARAMETER :: maxw = 22! SHOULD READ : MAX(7, AT_MAXP)
 !                                                                       
 character(len=4)    :: nw_name     ! temporary atom name
 CHARACTER(LEN=10)   :: befehl 
@@ -2653,7 +2667,7 @@ loop_main: do          ! Loop to read all atom lines
       ENDIF
       cr_natoms = cr_natoms + 1 
       cr_surf(:,cr_natoms) = 0
-      cr_magn(:,cr_natoms) = 0.0
+      cr_magn(:,cr_natoms) = 0.0D0
       call get_atom_werte(cr_natoms, MAXW, werte)
       IF (ier_num.ne.0.and.ier_num.ne. - 49) THEN 
          exit loop_main
@@ -2675,7 +2689,8 @@ loop_main: do          ! Loop to read all atom lines
       dw1 = werte (4) 
       occ1 = werte(8)                             ! WORK OCC
       cr_surf(0:3,i) = NINT(werte(9:12))          ! copy surface
-      cr_magn(0:3,i) = werte(13:16)               ! MAGNETIC_WORK
+!     cr_anis_full(:,i) = werte(13:18)            ! Copy Uij
+      cr_magn(0:3,i) = 0.0D0! werte(19:22)               ! MAGNETIC_WORK
       IF(MAXVAL(ABS(werte(13:16)))>0.0) cr_magnetic = .TRUE.
       cr_prop (i) = nint (werte (5) ) 
 !
@@ -2696,6 +2711,7 @@ loop_main: do          ! Loop to read all atom lines
          ENDIF 
          cr_nscat = cr_nscat + 1 
          cr_iscat (i,1) = cr_nscat 
+         cr_iscat (i,2:) = 1 
          cr_ianis (i) = cr_nscat 
          cr_at_lis (cr_nscat) = nw_name            ! Use "unique" atom name
          cr_dw (cr_nscat) = dw1 
@@ -2709,6 +2725,7 @@ loop_main: do          ! Loop to read all atom lines
          ENDIF 
       else
          cr_iscat(i,1) = j
+         cr_iscat(i,2:) = 1
          cr_ianis(i) = j
       endif cond_new
 !
@@ -3093,7 +3110,10 @@ ELSEIF(strufile(length-3:length) == '.txt' .OR. strufile(length-3:length) == '.T
    IF(ier_num == 0) THEN
       outfile = strufile(1:length-3) // 'stru'
    ENDIF
-ELSEIF(strufile(length-4:length) == '.cssr' .OR. strufile(length-4:length) == '.CSSR') THEN
+ELSEIF(strufile(length-4:length) == '.cssr'  .OR. strufile(length-4:length) == '.CSSR'  .or. &
+       strufile(length-5:length) == '.rmc6f' .OR. strufile(length-5:length) == '.RMC6f' .or. &
+       strufile(length-4:length) == '.rmc7'  .OR. strufile(length-4:length) == '.RMC7'       &
+      ) THEN
    IF(mode==MD_STRU ) THEN
       line = 'rmc, '//strufile
       laenge = 5 + length
@@ -4083,8 +4103,8 @@ IF(fileda) THEN
       ofile  = cpara (1) (1:lpara (1)-6 ) //'.stru' 
    ELSEIF(infile(lpara(1)-4:lpara(1)) == '.rmc7' .OR. &
       infile(lpara(1)-4:lpara(1)) == '.RMC7' ) THEN 
-      style = RMC_RMCF6
-      ofile  = cpara (1) (1:lpara (1)-6 ) //'.stru' 
+      style = RMC_RMCF7
+      ofile  = cpara (1) (1:lpara (1)-5 ) //'.stru' 
    ELSE
       ier_msg(1) = 'File should end in .cssr, .rmcf6, rmc7'
       ier_msg(2) = 'or corresponding capital letters      '
@@ -4820,7 +4840,7 @@ INTEGER           , DIMENSION(  natoms), INTENT(INOUT) :: r6_site
 INTEGER           , DIMENSION(3,natoms), INTENT(INOUT) :: r6_cell
 logical                                , intent(in)    :: lsite      ! Site /unit cell info is present
 !
-REAL(KIND=PREC_DP), PARAMETER :: EPS = 1.E-6
+REAL(KIND=PREC_DP), PARAMETER :: EPS = 1.E-5
 !
 REAL(KIND=PREC_DP)             , DIMENSION(3,2)          :: xyz
 REAL(KIND=PREC_DP)             , DIMENSION(3,    nsites) :: shift
@@ -4904,24 +4924,23 @@ DO i=1,nsites
       si_pos(:,2,i) = si_pos(:,2,i)/nav_pos(i)
    ENDIF
    DO j=1,3
-      IF(si_pos(j,1,i) < si_pos(j,2,i)) THEN
+      IF(abs(si_pos(j,1,i) -  si_pos(j,2,i))<0.001) THEN
          ave_pos(j,i) = av_pos(j,1,i)
          sig_pos(j,i) = si_pos(j,1,i)
-         shift(j,i)   = 0.0
+         shift(j,i)   = 0.0D0
       ELSE
-         ave_pos(j,i) = av_pos(j,2,i) -0.5
+         ave_pos(j,i) = av_pos(j,2,i) -0.5D0
          sig_pos(j,i) = si_pos(j,2,i)
-         shift(j,i)   = 0.5
+         shift(j,i)   = 0.5D0
       ENDIF
    ENDDO
-!write(*,'(a,i2,2x,6(f6.3,2x),i6, 3(f6.3:,2x))') 'Average ',i, ave_pos(:,i), sig_pos(:,i),nav_pos(i),shift(:,i)
 ENDDO
 ! Copy atoms into DISCUS sequence
 !
 DO i=1,natoms
    DO j=1,3
       k(j) =  INT(r6_pos(j,i)*super(1) + shift(j,r6_site(i))) + 1
-      wrap(j) = 0.0
+      wrap(j) = 0.0D0
       IF(k(j)<1) THEN
          wrap(j) = super(j)
          k(j)    = k(j) + super(j)
@@ -4956,520 +4975,527 @@ lattice(1:3) = lattice(1:3)/REAL(super(1:3))
 !
 END SUBROUTINE rmc6f_period
 !
+!*******************************************************************************
 !
-      SUBROUTINE cif2discus (ianz, cpara, lpara, MAXW, ofile) 
+SUBROUTINE cif2discus (ianz, cpara, lpara, MAXW, ofile) 
 !-                                                                      
 !     converts a CIF file to DISCUS                   
 !+                                                                      
 !                                                                       
-      USE build_name_mod
-      USE wink_mod
-      USE ber_params_mod
-      USE blanks_mod
-      USE get_params_mod
+USE build_name_mod
+USE wink_mod
+USE ber_params_mod
+USE blanks_mod
+USE get_params_mod
 use matrix_mod
 USE lib_length
 USE precision_mod
 USE string_convert_mod
 USE support_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER          , INTENT(INOUT)                 :: ianz 
-      INTEGER          , INTENT(IN)                    :: MAXW 
-      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
-      INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
-      CHARACTER(LEN=*)                 , INTENT(OUT)   :: ofile 
+INTEGER          , INTENT(INOUT)                 :: ianz 
+INTEGER          , INTENT(IN)                    :: MAXW 
+CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
+INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
+CHARACTER(LEN=*)                 , INTENT(OUT)   :: ofile 
 !                                                                       
-      REAL(KIND=PREC_DP), PARAMETER :: eightpi2 = 8.D0*3.1415926535897932384626433832795028841971693993751D0**2
-      REAL(KIND=PREC_DP), PARAMETER :: EPS = 0.00001
+REAL(KIND=PREC_DP), PARAMETER :: eightpi2 = 8.D0*3.1415926535897932384626433832795028841971693993751D0**2
+REAL(KIND=PREC_DP), PARAMETER :: EPS = 0.00001
 !                                                                       
-      REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
 !                                                                       
-      CHARACTER(LEN= 1)     :: bravais= ' '
-      CHARACTER(LEN=80)     :: title  = ' '
-      CHARACTER(LEN=80)     :: newtitle  = ' '
-      CHARACTER(LEN=80)     :: spcgr  = ' '
-      CHARACTER(LEN=80)     :: aniso_label  = ' '
-      CHARACTER(LEN=80)     :: aniso_symb   = ' '
-      CHARACTER(LEN=PREC_STRING)   :: infile = ' '
-      CHARACTER(LEN=PREC_STRING)   :: wfile  = ' '
-      CHARACTER(LEN=PREC_STRING)                              :: line
-      CHARACTER(LEN=PREC_STRING)                              :: line_cap
-      CHARACTER(LEN=PREC_STRING)                              :: symm_op 
-      CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: rawline
-      CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: ccpara
-      CHARACTER(LEN=PREC_STRING), DIMENSION(3)                :: cspara
-      INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
-      INTEGER            , DIMENSION(3)                :: lspara
-      REAL(KIND=PREC_DP) , DIMENSION(3)                :: wwerte
-      INTEGER               :: MAXLINES 
-      INTEGER               :: ird, iwr 
-      INTEGER               :: iianz = 3
-      INTEGER               :: i, j, k
-      INTEGER               :: iblank
-      INTEGER               :: iostatus
-      LOGICAL, DIMENSION(7) :: header_done = .false.
-      INTEGER               :: line_no, line_sig, data_no
-      INTEGER               :: length, length_cap, length_b
-      INTEGER               :: is_cell
-      INTEGER               :: is_loop
-      INTEGER               :: is_spcgr
-      INTEGER               :: is_spcgr_no
-      INTEGER               :: is_symm
-      INTEGER               :: is_atom
-      INTEGER               :: is_anis
-      INTEGER               :: is_paren
-      INTEGER               :: j_atom  = 0
-      INTEGER               :: j_anis  = 0
-      INTEGER               :: j_symb  = 0
-      INTEGER               :: j_label = 0
-      INTEGER               :: j_uiso  = 0
-      INTEGER               :: j_biso  = 0
-      INTEGER               :: j_occ   = 0
-      INTEGER               :: j_x     = 0
-      INTEGER               :: j_y     = 0
-      INTEGER               :: j_z     = 0
-      INTEGER               :: j_aniso_symb  = 0
-      INTEGER               :: j_aniso_label = 0
-      INTEGER               :: j_aniso_11    = 0
-      INTEGER               :: j_aniso_22    = 0
-      INTEGER               :: j_aniso_33    = 0
-      INTEGER               :: j_aniso_12    = 0
-      INTEGER               :: j_aniso_13    = 0
-      INTEGER               :: j_aniso_23    = 0
-      INTEGER               :: j_aniso_B11   = 0
-      INTEGER               :: j_aniso_B22   = 0
-      INTEGER               :: j_aniso_B33   = 0
-      INTEGER               :: j_aniso_B12   = 0
-      INTEGER               :: j_aniso_B13   = 0
-      INTEGER               :: j_aniso_B23   = 0
-      INTEGER               :: symm_1, symm_2, symm_n
-      INTEGER               :: ix,iy,iz
-      INTEGER               :: nentries
-      INTEGER               :: spcgr_no
-      INTEGER               :: iquote1
-      INTEGER               :: iquote2
-      INTEGER               :: spcgr_l
-      INTEGER               :: nline
-      INTEGER               :: nblank
-      LOGICAL               :: in_section
-      LOGICAL               :: l_space_group
-      LOGICAL               :: l_numbers
-      logical               :: l_symm_c     ! Space group is centrosymmetric; from symop
-      logical               :: l_origin_2   ! Space group has origin choice 2
-      INTEGER               :: data_i
-      REAL(KIND=PREC_DP)   , DIMENSION(6) :: latt! (6) 
-      REAL(KIND=PREC_DP)   , DIMENSION(3) :: pos ! (6) 
-      REAL(KIND=PREC_DP)   , DIMENSION(3) :: rlatt    ! (6) 
-      REAL(KIND=PREC_DP)   , DIMENSION(3,3) :: uij ! (6) 
-      REAL(KIND=PREC_DP)   , DIMENSION(3,3) :: bij ! (6) 
-      REAL(kind=PREC_DP)   , DIMENSION(3,3) :: gten ! (6) 
-      REAL(kind=PREC_DP)   , DIMENSION(3,3) :: rten ! (6) 
-      REAL(KIND=PREC_DP)   , DIMENSION(4,4) :: symm_mat ! (6) 
-      REAL(KIND=PREC_DP)                  :: uiso
-      REAL(KIND=PREC_DP)                  :: biso
-      REAL(KIND=PREC_DP)                  :: occ
+CHARACTER(LEN= 1)     :: bravais= ' '
+CHARACTER(LEN=80)     :: title  = ' '
+CHARACTER(LEN=80)     :: newtitle  = ' '
+CHARACTER(LEN=80)     :: spcgr  = ' '
+CHARACTER(LEN=80)     :: aniso_label  = ' '
+CHARACTER(LEN=80)     :: aniso_symb   = ' '
+CHARACTER(LEN=PREC_STRING)   :: infile = ' '
+CHARACTER(LEN=PREC_STRING)   :: wfile  = ' '
+CHARACTER(LEN=PREC_STRING)                              :: line
+CHARACTER(LEN=PREC_STRING)                              :: line_cap
+CHARACTER(LEN=PREC_STRING)                              :: symm_op 
+CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: rawline
+CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: ccpara
+CHARACTER(LEN=PREC_STRING), DIMENSION(3)                :: cspara
+INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
+INTEGER            , DIMENSION(3)                :: lspara
+REAL(KIND=PREC_DP) , DIMENSION(3)                :: wwerte
+INTEGER               :: MAXLINES 
+INTEGER               :: ird, iwr 
+INTEGER               :: iianz = 3
+INTEGER               :: i, j, k
+INTEGER               :: iblank
+INTEGER               :: iostatus
+LOGICAL, DIMENSION(7) :: header_done = .false.
+INTEGER               :: line_no, line_sig, data_no
+INTEGER               :: length, length_cap, length_b
+INTEGER               :: is_cell
+INTEGER               :: is_loop
+INTEGER               :: is_spcgr
+INTEGER               :: is_spcgr_no
+INTEGER               :: is_symm
+INTEGER               :: is_atom
+INTEGER               :: is_anis
+INTEGER               :: is_paren
+INTEGER               :: j_atom  = 0
+INTEGER               :: j_anis  = 0
+INTEGER               :: j_symb  = 0
+INTEGER               :: j_label = 0
+INTEGER               :: j_uiso  = 0
+INTEGER               :: j_biso  = 0
+INTEGER               :: j_occ   = 0
+INTEGER               :: j_x     = 0
+INTEGER               :: j_y     = 0
+INTEGER               :: j_z     = 0
+INTEGER               :: j_aniso_symb  = 0
+INTEGER               :: j_aniso_label = 0
+INTEGER               :: j_aniso_11    = 0
+INTEGER               :: j_aniso_22    = 0
+INTEGER               :: j_aniso_33    = 0
+INTEGER               :: j_aniso_12    = 0
+INTEGER               :: j_aniso_13    = 0
+INTEGER               :: j_aniso_23    = 0
+INTEGER               :: j_aniso_B11   = 0
+INTEGER               :: j_aniso_B22   = 0
+INTEGER               :: j_aniso_B33   = 0
+INTEGER               :: j_aniso_B12   = 0
+INTEGER               :: j_aniso_B13   = 0
+INTEGER               :: j_aniso_B23   = 0
+INTEGER               :: symm_1, symm_2, symm_n
+INTEGER               :: ix,iy,iz
+INTEGER               :: nentries
+INTEGER               :: spcgr_no
+INTEGER               :: iquote1
+INTEGER               :: iquote2
+INTEGER               :: spcgr_l
+INTEGER               :: nline
+INTEGER               :: nblank
+LOGICAL               :: in_section
+LOGICAL               :: l_space_group
+LOGICAL               :: l_numbers
+logical               :: l_symm_c     ! Space group is centrosymmetric; from symop
+logical               :: l_origin_2   ! Space group has origin choice 2
+INTEGER               :: data_i
+REAL(KIND=PREC_DP)   , DIMENSION(6) :: latt! (6) 
+REAL(KIND=PREC_DP)   , DIMENSION(3) :: pos ! (6) 
+REAL(KIND=PREC_DP)   , DIMENSION(3) :: rlatt    ! (6) 
+REAL(KIND=PREC_DP)   , DIMENSION(3,3) :: uij ! (6) 
+REAL(KIND=PREC_DP)   , DIMENSION(3,3) :: bij ! (6) 
+REAL(kind=PREC_DP)   , DIMENSION(3,3) :: gten ! (6) 
+REAL(kind=PREC_DP)   , DIMENSION(3,3) :: rten ! (6) 
+REAL(KIND=PREC_DP)   , DIMENSION(4,4) :: symm_mat ! (6) 
+REAL(KIND=PREC_DP)                  :: uiso
+REAL(KIND=PREC_DP)                  :: biso
+REAL(KIND=PREC_DP)                  :: occ
 !
-      TYPE :: atom_list
-         CHARACTER (LEN=80) :: label  
-         CHARACTER (LEN=80) :: symbol  
-         CHARACTER (LEN=4)  :: at_name
-         REAL(KIND=PREC_DP),DIMENSION(3)  :: at_pos
-         REAL(KIND=PREC_DP),DIMENSION(6)  :: at_uanis
-         REAL(KIND=PREC_DP)               :: at_bvalue
-         REAL(KIND=PREC_DP)               :: at_occ
-         TYPE(atom_list), POINTER   :: next
-      END TYPE atom_list
+TYPE :: atom_list
+   CHARACTER (LEN=80) :: label  
+   CHARACTER (LEN=80) :: symbol  
+   CHARACTER (LEN=4)  :: at_name
+   REAL(KIND=PREC_DP),DIMENSION(3)  :: at_pos
+   REAL(KIND=PREC_DP),DIMENSION(6)  :: at_uanis
+   REAL(KIND=PREC_DP)               :: at_bvalue
+   REAL(KIND=PREC_DP)               :: at_occ
+   TYPE(atom_list), POINTER   :: next
+END TYPE atom_list
 !
-      TYPE(atom_list), POINTER :: head
-      TYPE(atom_list), POINTER :: tail
-      TYPE(atom_list), POINTER :: temp
+TYPE(atom_list), POINTER :: head
+TYPE(atom_list), POINTER :: tail
+TYPE(atom_list), POINTER :: temp
 !
 !
-      is_loop = 0
-      symm_n  = 0
-      symm_1  = 0
+is_loop = 0
+symm_n  = 0
+symm_1  = 0
 l_symm_c = .false.
 !                                                                       
 !     Create input / output file name
 !
-      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-      IF (ier_num.ne.0) THEN 
-         RETURN 
-      ENDIF 
-      infile = cpara (1) 
-      i = index (infile, '.',.true.)                  ! find last occurence of '.'
-      IF (i.eq.0) THEN 
-         infile = cpara (1) (1:lpara (1) ) //'.cif' 
-         ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
-      ELSE 
-         IF(    cpara(1)(lpara(1)-3:lpara(1)) == '.cif') THEN
-            ofile  = cpara (1) (1:lpara(1)-3) //'stru' 
-         ELSEIF(cpara(1)(lpara(1)-3:lpara(1)) == '.CIF') THEN
-            ofile  = cpara (1) (1:lpara(1)-3) //'stru' 
-         ELSE
-            ofile  = cpara (1) (1:i) //'stru'
-         ENDIF
-      ENDIF 
-      ird = 34 
-      iwr = 35 
-      CALL oeffne (ird, infile, 'old') 
-      IF (ier_num.ne.0) THEN 
-         RETURN 
-      ENDIF 
+CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+IF (ier_num.ne.0) THEN 
+   RETURN 
+ENDIF 
+infile = cpara (1) 
+i = index (infile, '.',.true.)                  ! find last occurence of '.'
+IF (i.eq.0) THEN 
+   infile = cpara (1) (1:lpara (1) ) //'.cif' 
+   ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
+ELSE 
+   IF(    cpara(1)(lpara(1)-3:lpara(1)) == '.cif') THEN
+      ofile  = cpara (1) (1:lpara(1)-3) //'stru' 
+   ELSEIF(cpara(1)(lpara(1)-3:lpara(1)) == '.CIF') THEN
+      ofile  = cpara (1) (1:lpara(1)-3) //'stru' 
+   ELSE
+      ofile  = cpara (1) (1:i) //'stru'
+   ENDIF
+ENDIF 
+ird = 34 
+iwr = 35 
+CALL oeffne (ird, infile, 'old') 
+IF (ier_num.ne.0) THEN 
+   RETURN 
+ENDIF 
 !
-      NULLIFY(head)
-      NULLIFY(tail)
-      NULLIFY(temp)
+NULLIFY(head)
+NULLIFY(tail)
+NULLIFY(temp)
 !
 ! As we do not know the length of the input file, lets read it once
 !
-      line_sig= 0
-      line_no = 0
-      data_no = 0      ! Counter for individual "data_" sections
-countline: DO
-         READ(ird, '(a)', IOSTAT=iostatus) line
-         IF ( IS_IOSTAT_END(iostatus )) EXIT countline
-         line_no = line_no + 1
-         length  = len_str(line)
-         IF(length > 0 ) THEN
-            line_sig = line_no
-            CALL rem_leading_bl(line,length)
-            CALL do_cap(line)
-            IF(line(1:5) == 'DATA_') data_no = data_no + 1
-         ENDIF
-      ENDDO countline
-      MAXLINES = line_sig
-      ALLOCATE(rawline(1:MAXLINES))
-      rawline = ' '
-      line_no = 0
-      REWIND(ird)
-getline: DO
-         READ(ird, '(a)', IOSTAT=iostatus) rawline(line_no+1)
-         IF ( IS_IOSTAT_END(iostatus )) EXIT getline
-         line_no = line_no + 1
-         length  = len_str(rawline(line_no))
-         CALL rem_leading_bl(rawline(line_no),length)
-         CALL tab2blank(rawline(line_no), length)
-         IF(line_no == line_sig) EXIT getline
-      ENDDO getline
-      CLOSE(ird)
+line_sig= 0
+line_no = 0
+data_no = 0      ! Counter for individual "data_" sections
 !
-      nline     = 0
-      in_section = .false.
+countline: DO
+   READ(ird, '(a)', IOSTAT=iostatus) line
+   IF ( IS_IOSTAT_END(iostatus )) EXIT countline
+   line_no = line_no + 1
+   length  = len_str(line)
+   IF(length > 0 ) THEN
+      line_sig = line_no
+      CALL rem_leading_bl(line,length)
+      CALL do_cap(line)
+      IF(line(1:5) == 'DATA_') data_no = data_no + 1
+   ENDIF
+ENDDO countline
+!
+MAXLINES = line_sig
+ALLOCATE(rawline(1:MAXLINES))
+rawline = ' '
+line_no = 0
+REWIND(ird)
+getline: DO
+   READ(ird, '(a)', IOSTAT=iostatus) rawline(line_no+1)
+   IF ( IS_IOSTAT_END(iostatus )) EXIT getline
+   line_no = line_no + 1
+   length  = len_str(rawline(line_no))
+   CALL rem_leading_bl(rawline(line_no),length)
+   CALL tab2blank(rawline(line_no), length)
+   IF(line_no == line_sig) EXIT getline
+ENDDO getline
+CLOSE(ird)
+!
+nline     = 0
+in_section = .false.
 !
 !   Loop over all observed "data_" sections, write to separate files
-      data_i = 0
+data_i = 0
 data_entries: DO WHILE(data_i < data_no)
 !
 !   Run an loop over all input lines
 !
-main: DO 
-         nline = nline + 1
-         IF(nline==line_no) EXIT main   ! End of input
-         line = rawline(nline)
-         length = len_str(line)
-         length_cap = length
-         line_cap = line
-         CALL do_cap(line_cap)
-         IF(length   == 0 ) CYCLE main
-         IF(line(1:1)=='#') CYCLE main
+   main: DO 
+      nline = nline + 1
+      IF(nline==line_no) EXIT main   ! End of input
+      line = rawline(nline)
+      length = len_str(line)
+      length_cap = length
+      line_cap = line
+      CALL do_cap(line_cap)
+      IF(length   == 0 ) CYCLE main
+      IF(line(1:1)=='#') CYCLE main
 !
 !  Data statement
 !
-         IF(INDEX(line_cap(1:5),'DATA_')/=0) THEN        ! Found a "data_" line
-                  IF(length > 5) THEN
-                     newtitle = line(6:length)
-                  ENDIF
-            IF(in_section) THEN           ! invalid until we find first "data_" line
-               IF(data_i < data_no) THEN  ! For all but last branch out to write previous section
-                  EXIT main               ! End of previous "data_" section, write file
-               ELSE
-                  CONTINUE                ! Never reached, as last section has its "data_" read previously
-               ENDIF
-            ELSE                          ! At the first "data_" line
-               title = newtitle           ! immediately save title for write
-               in_section = .TRUE.        ! We are now in a "data_" section
-            ENDIF
+      IF(INDEX(line_cap(1:5),'DATA_')/=0) THEN        ! Found a "data_" line
+         IF(length > 5) THEN
+            newtitle = line(6:length)
          ENDIF
+         IF(in_section) THEN           ! invalid until we find first "data_" line
+            IF(data_i < data_no) THEN  ! For all but last branch out to write previous section
+               EXIT main               ! End of previous "data_" section, write file
+            ELSE
+               CONTINUE                ! Never reached, as last section has its "data_" read previously
+            ENDIF
+         ELSE                          ! At the first "data_" line
+            title = newtitle           ! immediately save title for write
+            in_section = .TRUE.        ! We are now in a "data_" section
+         ENDIF
+      ENDIF
 !
 !  Loop statement
 !
-         IF(INDEX(line_cap,'LOOP_')/=0) THEN
-            is_loop = nline                     ! Store line number of loop start
-         ENDIF
+      IF(INDEX(line_cap,'LOOP_')/=0) THEN
+         is_loop = nline                     ! Store line number of loop start
+      ENDIF
 !
 !  Space group name                    ! Find '_H-M' or '_H-M_alt' or similar
 !
-         is_spcgr = INDEX(line,'_space_group')
-         IF(is_spcgr/=0) THEN                   ! Got a symmetry info
+      is_spcgr = INDEX(line_cap,'_SPACE_GROUP')
+      IF(is_spcgr/=0) THEN                   ! Got a symmetry info
 !
 !           IF(INDEX(line,'_symmetry_space_group_name_H-M')/=0) THEN
-            is_spcgr = INDEX(line,'_H-M')
-            IF(is_spcgr/=0) THEN                       ! Found H-M symbol
+         is_spcgr = INDEX(line,'_H-M')
+         IF(is_spcgr/=0) THEN                       ! Found H-M symbol
                
-               iblank = INDEX(line(is_spcgr:length), ' ')    !Find blank after H-M
+            iblank = INDEX(line(is_spcgr:length), ' ')    !Find blank after H-M
                   
-               iquote1 = INDEX(line(is_spcgr+iblank:length),'''')
-               IF(iquote1>0) THEN
-                  iquote2 = INDEX(line(is_spcgr+iblank+iquote1:length),'''')
-                  iquote1 = is_spcgr+iblank+iquote1
-                  iquote2 =             iquote1+iquote2 - 2
-               ELSE
-                  iquote1 = INDEX(line(is_spcgr+iblank:length),'"')
-                  iquote2 = INDEX(line(is_spcgr+iblank+iquote1:length),'"')
-                  iquote1 = is_spcgr+iblank+iquote1
-                  iquote2 =             iquote1+iquote2 - 2
-               ENDIF
-               IF(iquote2> iquote1 .and. iquote1>0 .and. iquote2>0 ) THEN
-                  spcgr   = line(iquote1:iquote2)
-                  spcgr_l = iquote2 - iquote1 + 1
-               ELSE                     ! Space group is not enclosed in quotation marks
-                  spcgr = line(is_spcgr+iblank:length)
-                  spcgr_l = length - (is_spcgr+iblank) + 1
-               ENDIF
-               CALL rem_bl(spcgr,spcgr_l)
-               bravais = spcgr(1:1)
-               CALL do_low(spcgr)        ! Make lower case
-               CALL do_cap(bravais)      ! Upper case lattice type
-               spcgr(1:1) = bravais
-               IF(spcgr(3:3)=='3' .AND. spcgr(2:2)/='-'  &
-                                  .AND. spcgr(2:2)/='6') THEN
-                  spcgr = spcgr(1:2)//'-'//spcgr(3:spcgr_l)
-                  spcgr_l = spcgr_l + 1
-               ENDIF
-               IF(spcgr(spcgr_l-1:spcgr_l-1)==':') THEN
-                  spcgr(spcgr_l-1:spcgr_l-1) =','
-               ENDIF
-               header_done(1) = .true.
+            iquote1 = INDEX(line(is_spcgr+iblank:length),'''')
+            IF(iquote1>0) THEN
+               iquote2 = INDEX(line(is_spcgr+iblank+iquote1:length),'''')
+               iquote1 = is_spcgr+iblank+iquote1
+               iquote2 =             iquote1+iquote2 - 2
+            ELSE
+               iquote1 = INDEX(line(is_spcgr+iblank:length),'"')
+               iquote2 = INDEX(line(is_spcgr+iblank+iquote1:length),'"')
+               iquote1 = is_spcgr+iblank+iquote1
+               iquote2 =             iquote1+iquote2 - 2
             ENDIF
+            IF(iquote2> iquote1 .and. iquote1>0 .and. iquote2>0 ) THEN
+               spcgr   = line(iquote1:iquote2)
+               spcgr_l = iquote2 - iquote1 + 1
+            ELSE                     ! Space group is not enclosed in quotation marks
+               spcgr = line(is_spcgr+iblank:length)
+               spcgr_l = length - (is_spcgr+iblank) + 1
+            ENDIF
+            CALL rem_bl(spcgr,spcgr_l)
+            bravais = spcgr(1:1)
+            CALL do_low(spcgr)        ! Make lower case
+            CALL do_cap(bravais)      ! Upper case lattice type
+            spcgr(1:1) = bravais
+            IF(spcgr(3:3)=='3' .AND. spcgr(2:2)/='-'  &
+                               .AND. spcgr(2:2)/='6') THEN
+               spcgr = spcgr(1:2)//'-'//spcgr(3:spcgr_l)
+               spcgr_l = spcgr_l + 1
+            ENDIF
+            IF(spcgr(spcgr_l-1:spcgr_l-1)==':') THEN
+               spcgr(spcgr_l-1:spcgr_l-1) =','
+            ENDIF
+            header_done(1) = .true.
          ENDIF
+      ENDIF
 !
 !  space group number
 !
-         is_spcgr_no = INDEX(line,'_space_group_IT_number')
-         IF(is_spcgr_no/=0) THEN
-               READ(line(is_spcgr_no+23:length),*,IOSTAT=iostatus) spcgr_no
-               header_done(1) = .true.
-         ENDIF
+      is_spcgr_no = INDEX(line_cap,'_SPACE_GROUP_IT_NUMBER')
+      IF(is_spcgr_no/=0) THEN
+            READ(line(is_spcgr_no+23:length),*,IOSTAT=iostatus) spcgr_no
+            header_done(1) = .true.
+      ENDIF
 !
 !  Symmetry operators 
 !
-         is_symm  = MAX(INDEX(line,'_symmetry_equiv_pos_as_xyz'),       &
-                        INDEX(line,'_space_group_symop_operation_xyz'))
-         IF(is_symm/=0) THEN                   ! Got a symmetry info
-            symm_1 = nline + 1
-            symm_2 = nline
-            i = 1
-            count_symm: DO
-               IF(rawline(nline+i)== ' ') EXIT count_symm
-               IF(rawline(nline+i)(1:4)== 'loop') EXIT count_symm
-               IF(rawline(nline+i)(1:1)== '_'  ) EXIT count_symm
-               IF(rawline(nline+i)(1:1)== ';'  ) EXIT count_symm
-               symm_op = rawline(nline+i)
-               call do_low (symm_op)
-               k = len_trim(symm_op)
-               call rem_bl(symm_op,k)
-               if(symm_op(2:9)=='-x,-y,-z') l_symm_c = .true.
-               i = i+1
-            ENDDO count_symm
-            symm_2 = nline + i - 1
-            symm_n = symm_2-symm_1+1
-         ENDIF
+      is_symm  = MAX(INDEX(line_cap,'_SYMMETRY_EQUIV_POS_AS_XYZ'),       &
+                     INDEX(line_cap,'_SPACE_GROUP_SYMOP_OPERATION_XYZ'))
+      IF(is_symm/=0) THEN                   ! Got a symmetry info
+         symm_1 = nline + 1
+         symm_2 = nline
+         i = 1
+         count_symm: DO
+            IF(rawline(nline+i)== ' ') EXIT count_symm
+            IF(rawline(nline+i)(1:4)== 'loop') EXIT count_symm
+            IF(rawline(nline+i)(1:1)== '_'  ) EXIT count_symm
+            IF(rawline(nline+i)(1:1)== ';'  ) EXIT count_symm
+            symm_op = rawline(nline+i)
+            call do_low (symm_op)
+            k = len_trim(symm_op)
+            call rem_bl(symm_op,k)
+            if(symm_op(2:9)=='-x,-y,-z') l_symm_c = .true.
+            i = i+1
+         ENDDO count_symm
+         symm_2 = nline + i - 1
+         symm_n = symm_2-symm_1+1
+      ENDIF
 !
 !
 !  Unit cell dimensions
 !
-         is_cell = INDEX(line,'_cell_')         ! got a cell info
-         IF(is_cell/=0) THEN
-            is_paren = INDEX(line,'(')
-            IF(is_paren > 0 ) THEN
-               length = is_paren-1
-            ENDIF
-            IF(INDEX(line,'_cell_length_a')/=0) THEN
-               READ(line(is_cell+14:length),*,IOSTAT=iostatus) latt(1)
-               header_done(2) = .true.
-            ELSEIF(INDEX(line,'_cell_length_b')/=0) THEN
-               READ(line(is_cell+14:length),*,IOSTAT=iostatus) latt(2)
-               header_done(3) = .true.
-            ELSEIF(INDEX(line,'_cell_length_c')/=0) THEN
-               READ(line(is_cell+14:length),*,IOSTAT=iostatus) latt(3)
-               header_done(4) = .true.
-            ELSEIF(INDEX(line,'_cell_angle_alpha')/=0) THEN
-               READ(line(is_cell+17:length),*,IOSTAT=iostatus) latt(4)
-               header_done(5) = .true.
-            ELSEIF(INDEX(line,'_cell_angle_beta')/=0) THEN
-               READ(line(is_cell+16:length),*,IOSTAT=iostatus) latt(5)
-               header_done(6) = .true.
-            ELSEIF(INDEX(line,'_cell_angle_gamma')/=0) THEN
-               READ(line(is_cell+17:length),*,IOSTAT=iostatus) latt(6)
-               header_done(7) = .true.
-            ENDIF
+      is_cell = INDEX(line_cap,'_CELL_')         ! got a cell info
+      IF(is_cell/=0) THEN
+         is_paren = INDEX(line,'(')
+         IF(is_paren > 0 ) THEN
+            length = is_paren-1
          ENDIF
+         IF(INDEX(line_cap,'_CELL_LENGTH_A')/=0) THEN
+            READ(line(is_cell+14:length),*,IOSTAT=iostatus) latt(1)
+            header_done(2) = .true.
+         ELSEIF(INDEX(line_cap,'_CELL_LENGTH_B')/=0) THEN
+            READ(line(is_cell+14:length),*,IOSTAT=iostatus) latt(2)
+            header_done(3) = .true.
+         ELSEIF(INDEX(line_cap,'_CELL_LENGTH_C')/=0) THEN
+            READ(line(is_cell+14:length),*,IOSTAT=iostatus) latt(3)
+            header_done(4) = .true.
+         ELSEIF(INDEX(line_cap,'_CELL_ANGLE_ALPHA')/=0) THEN
+            READ(line(is_cell+17:length),*,IOSTAT=iostatus) latt(4)
+            header_done(5) = .true.
+         ELSEIF(INDEX(line_cap,'_CELL_ANGLE_BETA')/=0) THEN
+            READ(line(is_cell+16:length),*,IOSTAT=iostatus) latt(5)
+            header_done(6) = .true.
+         ELSEIF(INDEX(line_cap,'_CELL_ANGLE_GAMMA')/=0) THEN
+            READ(line(is_cell+17:length),*,IOSTAT=iostatus) latt(6)
+            header_done(7) = .true.
+         ENDIF
+      ENDIF
 !
 !  atom coordinates
 !
-         is_atom = INDEX(line,'_atom_site_fract_x')
-         IF(is_atom /= 0) THEN               ! found the loop with atom coordinates
-            j_atom = is_loop                 ! start in line after 'loop_'
-            nentries = 0
-            j_label = 0
-            j_symb  = 0
-            j_uiso  = 0
-            j_biso  = 0
-            j_occ   = 0
-            j_x     = 0
-            j_y     = 0
-            j_z     = 0
+      is_atom = INDEX(line_cap,'_ATOM_SITE_FRACT_X')
+      IF(is_atom /= 0) THEN               ! found the loop with atom coordinates
+         j_atom = is_loop                 ! start in line after 'loop_'
+         nentries = 0
+         j_label = 0
+         j_symb  = 0
+         j_uiso  = 0
+         j_biso  = 0
+         j_occ   = 0
+         j_x     = 0
+         j_y     = 0
+         j_z     = 0
 analyze_atom: DO
-               j_atom = j_atom + 1
-               line = rawline(j_atom)
-               length = len_str(line)
-               IF(line(1:1)=='#' .or. line == ' ') CYCLE analyze_atom
-               IF(line(1:10)/='_atom_site' .or. j_atom>line_no) THEN
-                  IF(j_atom < nline) THEN      ! wrong line prior to '_atom_site_frac_x'
-                     EXIT main
-                  ENDIF
-                  nline = j_atom             ! We are now in line j_atom
-                  EXIT analyze_atom
+            j_atom = j_atom + 1
+            line = rawline(j_atom)
+            length = len_str(line)
+            length = len_str(line)
+            length_cap = length
+            line_cap = line
+            CALL do_cap(line_cap)
+            IF(line(1:1)=='#' .or. line == ' ') CYCLE analyze_atom
+            IF(line_cap(1:10)/='_ATOM_SITE' .or. j_atom>line_no) THEN
+               IF(j_atom < nline) THEN      ! wrong line prior to '_atom_site_frac_x'
+                  EXIT main
                ENDIF
-               nentries = nentries + 1
-               IF(line(1:16)=='_atom_site_label')           j_label = nentries
-               IF(line(1:22)=='_atom_site_type_symbol')     j_symb  = nentries
-               IF(line(1:25)=='_atom_site_U_iso_or_equiv')  j_uiso  = nentries
-               IF(line(1:25)=='_atom_site_B_iso_or_equiv')  j_biso  = nentries
-               IF(line(1:20)=='_atom_site_occupancy')       j_occ   = nentries
-               IF(line(1:18)=='_atom_site_fract_x')         j_x     = nentries
-               IF(line(1:18)=='_atom_site_fract_y')         j_y     = nentries
-               IF(line(1:18)=='_atom_site_fract_z')         j_z     = nentries
-            ENDDO analyze_atom
-            IF(.NOT. ALLOCATED(CCPARA)) ALLOCATE(ccpara(nentries))
-            IF(.NOT. ALLOCATED(LLPARA)) ALLOCATE(llpara(nentries))
-            ccpara = ' '
-            nblank = 0
-atoms:      DO                                 ! Get all atoms information
-               IF(line(1:4)=='loop') THEN 
-                  is_loop = nline
-                  EXIT atoms
-               ENDIF
-               IF(line(1:1)/='#' .and. line /= ' ') THEN
-                  CALL get_params_blank(line,ianz, ccpara,llpara, nentries, length)
+               nline = j_atom             ! We are now in line j_atom
+               EXIT analyze_atom
+            ENDIF
+            nentries = nentries + 1
+            IF(line_cap(1:16)=='_ATOM_SITE_LABEL')           j_label = nentries
+            IF(line_cap(1:22)=='_ATOM_SITE_TYPE_SYMBOL')     j_symb  = nentries
+            IF(line_cap(1:25)=='_ATOM_SITE_U_ISO_OR_EQUIV')  j_uiso  = nentries
+            IF(line_cap(1:25)=='_ATOM_SITE_B_ISO_OR_EQUIV')  j_biso  = nentries
+            IF(line_cap(1:20)=='_ATOM_SITE_OCCUPANCY')       j_occ   = nentries
+            IF(line_cap(1:18)=='_ATOM_SITE_FRACT_X')         j_x     = nentries
+            IF(line_cap(1:18)=='_ATOM_SITE_FRACT_Y')         j_y     = nentries
+            IF(line_cap(1:18)=='_ATOM_SITE_FRACT_Z')         j_z     = nentries
+         ENDDO analyze_atom
+         IF(.NOT. ALLOCATED(CCPARA)) ALLOCATE(ccpara(nentries))
+         IF(.NOT. ALLOCATED(LLPARA)) ALLOCATE(llpara(nentries))
+         ccpara = ' '
+         nblank = 0
+atoms:   DO                                 ! Get all atoms information
+            IF(line_cap(1:4)=='LOOP') THEN 
+               is_loop = nline
+               EXIT atoms
+            ENDIF
+            IF(line(1:1)/='#' .and. line /= ' ') THEN
+               CALL get_params_blank(line,ianz, ccpara,llpara, nentries, length)
 !
 !   If there are a different number of parameters, the line does not appear to be 
 !   another atom line
 !
-                  IF(nentries/=ianz) THEN         ! no more atom lines
-                     nline = j_atom
-                     IF(line(1:4)=='loop') THEN 
-                        is_loop = nline
-                     ENDIF
-                     EXIT atoms
+               IF(nentries/=ianz) THEN         ! no more atom lines
+                  nline = j_atom
+                  IF(line_cap(1:4)=='LOOP') THEN 
+                     is_loop = nline
                   ENDIF
-                  DO i=1,ianz                     ! Replace all '.' by '0.0'
-                     IF(ccpara(i) == '.') THEN
-                        ccpara(i) = '0.0'
-                        llpara(i) = 3
-                     ENDIF
-                  ENDDO
-                  IF(INDEX(ccpara(j_x),'(')>0) llpara(j_x) = INDEX(ccpara(j_x),'(') - 1
-                  IF(INDEX(ccpara(j_y),'(')>0) llpara(j_y) = INDEX(ccpara(j_y),'(') - 1
-                  IF(INDEX(ccpara(j_z),'(')>0) llpara(j_z) = INDEX(ccpara(j_z),'(') - 1
-                  READ(ccpara(j_x)(1:llpara(j_x)),*) pos(1)
-                  READ(ccpara(j_y)(1:llpara(j_y)),*) pos(2)
-                  READ(ccpara(j_z)(1:llpara(j_z)),*) pos(3)
-                  uiso = 0.0
-                  biso = 0.0
-                  occ  = 1.0
-                  IF(j_uiso > 0) THEN
-                     IF(ccpara(j_uiso)(1:1)=='?') THEN
-                       biso = 0.000
-                     ELSE
-                        IF(ccpara(j_uiso)(1:llpara(j_uiso))=='.') THEN
-                           biso = 0.0
-                        ELSE
-                           IF(INDEX(ccpara(j_uiso),'(')>0) llpara(j_uiso) = INDEX(ccpara(j_uiso),'(') - 1
-                           READ(ccpara(j_uiso)(1:llpara(j_uiso)),*) uiso
-                           biso = uiso * eightpi2
-                        ENDIF
-                     ENDIF
-                  ELSEIF(j_biso > 0) THEN
-                     IF(ccpara(j_biso)(1:1)=='?') THEN
-                       biso = 0.000
-                     ELSE
-                        IF(ccpara(j_biso)(1:llpara(j_biso))=='.') THEN
-                           biso = 0.0
-                        ELSE
-                           IF(INDEX(ccpara(j_biso),'(')>0) llpara(j_biso) = INDEX(ccpara(j_biso),'(') - 1
-                           READ(ccpara(j_biso)(1:llpara(j_biso)),*) biso
-                        ENDIF
-                     ENDIF
+                  EXIT atoms
+               ENDIF
+               DO i=1,ianz                     ! Replace all '.' by '0.0'
+                  IF(ccpara(i) == '.') THEN
+                     ccpara(i) = '0.0'
+                     llpara(i) = 3
                   ENDIF
-                  IF(j_occ  > 0) THEN
-                     IF(ccpara(j_occ )(1:1)=='?') THEN
-                       occ  = 1.000
-                     ELSE
-                        IF(INDEX(ccpara(j_occ ),'(')>0) llpara(j_occ ) = INDEX(ccpara(j_occ ),'(') - 1
-                        READ(ccpara(j_occ )(1:llpara(j_occ )),*) occ 
-                     ENDIF
-                  ENDIF
-                  ALLOCATE(TEMP)
-                  TEMP%at_name   = ' '
-                  TEMP%at_bvalue = 0.0
-                  TEMP%at_occ    = 0.0
-                  TEMP%at_pos    = 0.0
-                  IF(j_symb > 0) THEN  ! I prefer the atom symbol to its label
-                     TEMP%label     = ccpara(j_label)(1:      llpara(j_label) )
-                     TEMP%symbol    = ccpara(j_symb )(1:      llpara(j_symb ) )
-                     TEMP%at_name   = ccpara(j_symb )(1:MIN(4,llpara(j_symb )))
-                     CALL test_atom_name(.TRUE.,TEMP%at_name)
+               ENDDO
+               IF(INDEX(ccpara(j_x),'(')>0) llpara(j_x) = INDEX(ccpara(j_x),'(') - 1
+               IF(INDEX(ccpara(j_y),'(')>0) llpara(j_y) = INDEX(ccpara(j_y),'(') - 1
+               IF(INDEX(ccpara(j_z),'(')>0) llpara(j_z) = INDEX(ccpara(j_z),'(') - 1
+               READ(ccpara(j_x)(1:llpara(j_x)),*) pos(1)
+               READ(ccpara(j_y)(1:llpara(j_y)),*) pos(2)
+               READ(ccpara(j_z)(1:llpara(j_z)),*) pos(3)
+               uiso = 0.0
+               biso = 0.0
+               occ  = 1.0
+               IF(j_uiso > 0) THEN
+                  IF(ccpara(j_uiso)(1:1)=='?') THEN
+                    biso = 0.000
                   ELSE
-                     TEMP%label     = ccpara(j_label)(1:      llpara(j_label) )
-                     TEMP%symbol    = ' '
-                     TEMP%at_name   = ccpara(j_label)(1:MIN(4,llpara(j_label)))
-                     CALL test_atom_name(.FALSE.,TEMP%at_name)
+                     IF(ccpara(j_uiso)(1:llpara(j_uiso))=='.') THEN
+                        biso = 0.0
+                     ELSE
+                        IF(INDEX(ccpara(j_uiso),'(')>0) llpara(j_uiso) = INDEX(ccpara(j_uiso),'(') - 1
+                        READ(ccpara(j_uiso)(1:llpara(j_uiso)),*) uiso
+                        biso = uiso * eightpi2
+                     ENDIF
                   ENDIF
-                  TEMP%at_pos(1) = pos(1)
-                  TEMP%at_pos(2) = pos(2)
-                  TEMP%at_pos(3) = pos(3)
-                  TEMP%at_bvalue = biso
-                  TEMP%at_occ    = occ
-                  TEMP%at_uanis  = 0.0
-                  NULLIFY(temp%next)
+               ELSEIF(j_biso > 0) THEN
+                  IF(ccpara(j_biso)(1:1)=='?') THEN
+                    biso = 0.000
+                  ELSE
+                     IF(ccpara(j_biso)(1:llpara(j_biso))=='.') THEN
+                        biso = 0.0
+                     ELSE
+                        IF(INDEX(ccpara(j_biso),'(')>0) llpara(j_biso) = INDEX(ccpara(j_biso),'(') - 1
+                        READ(ccpara(j_biso)(1:llpara(j_biso)),*) biso
+                     ENDIF
+                  ENDIF
+               ENDIF
+               IF(j_occ  > 0) THEN
+                  IF(ccpara(j_occ )(1:1)=='?') THEN
+                    occ  = 1.000
+                  ELSE
+                     IF(INDEX(ccpara(j_occ ),'(')>0) llpara(j_occ ) = INDEX(ccpara(j_occ ),'(') - 1
+                     READ(ccpara(j_occ )(1:llpara(j_occ )),*) occ 
+                  ENDIF
+               ENDIF
+               ALLOCATE(TEMP)
+               TEMP%at_name   = ' '
+               TEMP%at_bvalue = 0.0
+               TEMP%at_occ    = 0.0
+               TEMP%at_pos    = 0.0
+               IF(j_symb > 0) THEN  ! I prefer the atom symbol to its label
+                  TEMP%label     = ccpara(j_label)(1:      llpara(j_label) )
+                  TEMP%symbol    = ccpara(j_symb )(1:      llpara(j_symb ) )
+                  TEMP%at_name   = ccpara(j_symb )(1:MIN(4,llpara(j_symb )))
+                  CALL test_atom_name(.TRUE.,TEMP%at_name)
+               ELSE
+                  TEMP%label     = ccpara(j_label)(1:      llpara(j_label) )
+                  TEMP%symbol    = ' '
+                  TEMP%at_name   = ccpara(j_label)(1:MIN(4,llpara(j_label)))
+                  CALL test_atom_name(.FALSE.,TEMP%at_name)
+               ENDIF
+               TEMP%at_pos(1) = pos(1)
+               TEMP%at_pos(2) = pos(2)
+               TEMP%at_pos(3) = pos(3)
+               TEMP%at_bvalue = biso
+               TEMP%at_occ    = occ
+               TEMP%at_uanis  = 0.0
+               NULLIFY(temp%next)
 !
-                  IF(ASSOCIATED(TAIL)) THEN
-                     TAIL%NEXT => TEMP
-                     TAIL      => TAIL%NEXT
-                  ELSE
-                     TAIL      => TEMP
-                     HEAD      => TEMP
-                  ENDIF
-                  j_atom = j_atom + 1
-               ELSE    ! Comment or empty line
+               IF(ASSOCIATED(TAIL)) THEN
+                  TAIL%NEXT => TEMP
+                  TAIL      => TAIL%NEXT
+               ELSE
+                  TAIL      => TEMP
+                  HEAD      => TEMP
+               ENDIF
+               j_atom = j_atom + 1
+            ELSE    ! Comment or empty line
                   nblank = nblank + 1
                ENDIF   ! end no comment
 !
-               IF(j_atom+nblank > line_no) THEN
-                  nline = j_atom + nblank            ! We are now in line j_atom
-                  IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
-                  IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
-                  EXIT main
-               ENDIF
-               line   = rawline(j_atom + nblank)
-               length = len_str(line)
+            IF(j_atom+nblank > line_no) THEN
                nline = j_atom + nblank            ! We are now in line j_atom
-            ENDDO atoms
-            IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
-            IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
-         ENDIF
+               IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
+               IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
+               EXIT main
+            ENDIF
+            line   = rawline(j_atom + nblank)
+            length = len_str(line)
+            nline = j_atom + nblank            ! We are now in line j_atom
+         ENDDO atoms
+         IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
+         IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
+      ENDIF
 !
 !  anisotropic displacement parameters
 !
-         is_anis = INDEX(line,'_atom_site_aniso')
-         IF(is_anis /= 0) THEN               ! found the loop with aniso ADP's
-            j_anis = is_loop                 ! start in line after 'loop_'
-         ENDIF
-      ENDDO main
+      is_anis = INDEX(line_cap,'_ATOM_SITE_ANISO')
+      IF(is_anis /= 0) THEN               ! found the loop with aniso ADP's
+         j_anis = is_loop                 ! start in line after 'loop_'
+      ENDIF
+   ENDDO main
 !
 !  The main atom list did not contain isotropic U/B values, 
 !  obtain equivalent values from the anisotropic ADP's
@@ -5481,25 +5507,28 @@ analyze_anis: DO
             nline = nline + 1
             line = rawline(nline)
             length = len_str(line)
+            length_cap = length
+            line_cap = line
+            CALL do_cap(line_cap)
             IF(line(1:1)/='#')  THEN
-               IF(line(1:16)/='_atom_site_aniso' .or. nline>line_no) THEN
+               IF(line_cap(1:16)/='_ATOM_SITE_ANISO' .or. nline>line_no) THEN
                   EXIT analyze_anis
                ENDIF
                nentries = nentries + 1
-               IF(line(1:22)=='_atom_site_aniso_label')           j_aniso_label = nentries
-               IF(line(1:28)=='_atom_site_aniso_type_symbol')     j_aniso_symb  = nentries
-               IF(line(1:21)=='_atom_site_aniso_U_11')            j_aniso_11    = nentries
-               IF(line(1:21)=='_atom_site_aniso_U_22')            j_aniso_22    = nentries
-               IF(line(1:21)=='_atom_site_aniso_U_33')            j_aniso_33    = nentries
-               IF(line(1:21)=='_atom_site_aniso_U_12')            j_aniso_12    = nentries
-               IF(line(1:21)=='_atom_site_aniso_U_13')            j_aniso_13    = nentries
-               IF(line(1:21)=='_atom_site_aniso_U_23')            j_aniso_23    = nentries
-               IF(line(1:21)=='_atom_site_aniso_B_11')            j_aniso_B11   = nentries
-               IF(line(1:21)=='_atom_site_aniso_B_22')            j_aniso_B22   = nentries
-               IF(line(1:21)=='_atom_site_aniso_B_33')            j_aniso_B33   = nentries
-               IF(line(1:21)=='_atom_site_aniso_B_12')            j_aniso_B12   = nentries
-               IF(line(1:21)=='_atom_site_aniso_B_13')            j_aniso_B13   = nentries
-               IF(line(1:21)=='_atom_site_aniso_B_23')            j_aniso_B23   = nentries
+               IF(line_cap(1:22)=='_ATOM_SITE_ANISO_LABEL')           j_aniso_label = nentries
+               IF(line_cap(1:28)=='_ATOM_SITE_ANISO_TYPE_SYMBOL')     j_aniso_symb  = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_U_11')            j_aniso_11    = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_U_22')            j_aniso_22    = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_U_33')            j_aniso_33    = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_U_12')            j_aniso_12    = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_U_13')            j_aniso_13    = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_U_23')            j_aniso_23    = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_B_11')            j_aniso_B11   = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_B_22')            j_aniso_B22   = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_B_33')            j_aniso_B33   = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_B_12')            j_aniso_B12   = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_B_13')            j_aniso_B13   = nentries
+               IF(line_cap(1:21)=='_ATOM_SITE_ANISO_B_23')            j_aniso_B23   = nentries
             ENDIF
          ENDDO analyze_anis
 !
@@ -5591,8 +5620,8 @@ anis:    DO                                 ! Get all anisotropic information
                ENDDO
                biso = biso / 3.
             ENDIF
-            TEMP => HEAD
-find:       DO WHILE (ASSOCIATED(TEMP))
+           TEMP => HEAD
+find:      DO WHILE (ASSOCIATED(TEMP))
                IF(j_label > 0 .AND. j_aniso_label > 0) THEN
                   IF(TEMP%label == aniso_label) THEN
                      TEMP%at_bvalue = biso
@@ -5604,19 +5633,19 @@ find:       DO WHILE (ASSOCIATED(TEMP))
                ENDIF
                TEMP => TEMP%next
             ENDDO find
-            ENDIF   ! no comment
-!
-            nline = nline + 1
-            IF(nline>line_no) THEN
-               EXIT anis
-            ENDIF
-            line   = rawline(nline)
-            length = len_str(line)
+         ENDIF   ! no comment
+
+         nline = nline + 1
+         IF(nline>line_no) THEN
+            EXIT anis
+         ENDIF
+         line   = rawline(nline)
+         length = len_str(line)
          ENDDO anis   
-         ENDIF zero_entries
-         IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
-         IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
-      ENDIF
+      ENDIF zero_entries
+      IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
+      IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
+   ENDIF
 !
 !  Finally, write the structure to file
 !
@@ -5826,20 +5855,20 @@ find:       DO WHILE (ASSOCIATED(TEMP))
 !           WRITE(iwr, 1190) 1.,0.,0.,2./3., 0.,1.,0.,1./3., 0.,0.,1.,2./3., 1
 !           WRITE(iwr, 1190) 1.,0.,0.,1./3., 0.,1.,0.,2./3., 0.,0.,1.,1./3., 1
 !        ENDIF
-      ENDIF
-      WRITE(iwr, 1200) latt
-      WRITE(iwr, 1300)
-      TAIL => HEAD
-      TEMP => HEAD
-      DO WHILE (ASSOCIATED(TAIL))
-         WRITE(iwr,1400) TAIL%at_name,TAIL%at_pos,TAIL%at_bvalue, TAIL%at_occ 
-         TAIL => TAIL%next
-         DEALLOCATE(TEMP)       ! Clean up the memory structure
-         TEMP => TAIL
-      ENDDO
-      NULLIFY(HEAD)
-      NULLIFY(TEMP)
-      NULLIFY(TAIL)
+   ENDIF
+   WRITE(iwr, 1200) latt
+   WRITE(iwr, 1300)
+   TAIL => HEAD
+   TEMP => HEAD
+   DO WHILE (ASSOCIATED(TAIL))
+      WRITE(iwr,1400) TAIL%at_name,TAIL%at_pos,TAIL%at_bvalue, TAIL%at_occ 
+      TAIL => TAIL%next
+      DEALLOCATE(TEMP)       ! Clean up the memory structure
+      TEMP => TAIL
+   ENDDO
+   NULLIFY(HEAD)
+   NULLIFY(TEMP)
+   NULLIFY(TAIL)
 1000 FORMAT('title ',a)
 1100 FORMAT('spcgr ',a)
 1150 FORMAT('spcgr ',i5)
@@ -5851,17 +5880,17 @@ find:       DO WHILE (ASSOCIATED(TEMP))
                  2x,'MoleNo,  MoleAt, Occ')
 1400 FORMAT(a4, 4(F12.8,', '),'1,      0,       0,      ',F8.6  )
 !
-      CLOSE(iwr)
+   CLOSE(iwr)
 !
-         data_i = data_i + 1      ! We wrote a data section, increment counter
-         title = newtitle         ! title will be written to the next file
-      ENDDO data_entries
+   data_i = data_i + 1      ! We wrote a data section, increment counter
+   title = newtitle         ! title will be written to the next file
+ENDDO data_entries
 !
 ! clean up arrays
 !
-      DEALLOCATE(rawline)
+DEALLOCATE(rawline)
 !
-      END SUBROUTINE cif2discus
+END SUBROUTINE cif2discus
 !
 !*******************************************************************************
 !
@@ -6147,7 +6176,7 @@ LOGICAL              , INTENT(IN)    :: l_cell         ! If true this is a 'cell
 integer              , intent(in)    :: MAXMASK
 logical, dimension(0:MAXMASK), intent(in)    :: uni_mask      !  User mask test (name, charge, b, occ)
 !
-INTEGER, PARAMETER                    :: MAXW = 16 
+INTEGER, PARAMETER                    :: MAXW = 22 
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW)  :: cpara (MAXW) 
 INTEGER            , DIMENSION(MAXW)  :: lpara (MAXW) 
 REAL(KIND=PREC_DP) , DIMENSION(MAXW)  :: werte (MAXW) 
@@ -6497,7 +6526,9 @@ header: DO
          elseif(cpara(1) == 'VARIABLES') then
             at_number = .false.
          endif
-         if(cpara(2) == 'XYZBPMMOS') then
+         if(cpara(2) == 'XYZBPMMOSU') then
+            at_vals = AT_XYZBPMMOSU
+         elseif(cpara(2) == 'XYZBPMMOS') then
             at_vals = AT_XYZBPMMOS
          elseif(cpara(2) == 'XYZBP') then
             at_vals = AT_XYZBP
@@ -6618,6 +6649,7 @@ main: DO
       ios = 0
       CALL read_atom_line (line_low, lbef+1, laenge, natoms, MAXW, werte)! , &
 !                           AT_MAXP, at_ianz, at_param, at_init)                                          
+!write(*,*) ' READ ATOM line ', ier_num, ier_typ
       if(ier_num/=0) then
          close(99)
          if(allocated(names)) deallocate(names)
