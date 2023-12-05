@@ -75,7 +75,7 @@ INTEGER          ::   occupancy= 0          ! Apply occupancy upon read cell   ?
 LOGICAL          :: l_identical= .FALSE.    ! Are atoms allowed to be identical?
 LOGICAL          :: l_site     = .FALSE.    ! Treat atoms on different sites as different types?
 logical, dimension(0:MAXMASK) :: uni_mask           ! Mask for unique atom types
-REAL(KIND=PREC_DP) :: r_identical = 1.0E-5
+REAL(KIND=PREC_DP) :: r_identical = 0.00001_PREC_DP
 INTEGER, PARAMETER :: NOPTIONAL = 6
 integer, parameter :: O_OCC     = 2
 INTEGER, PARAMETER :: O_SETTING = 4
@@ -186,7 +186,7 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
 !
          opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '   , 'abc   ' , 'equal ', 'biso  ' /)   ! Always provide fresh default values
          lopara =  (/  6        ,  6         ,  6         ,  6       ,  6      ,  4       /)
-         owerte =  (/  1.0E-5   ,  0.0       ,  0.0       ,  0.0     ,  0.0    ,  0.0     /)
+         owerte =  (/  1.0D-5   ,  0.0D0     ,  0.0D0     ,  0.0D0   ,  0.0D0  ,  0.0D0   /)
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, lpresent, owerte)
          IF(ier_num/=0) GOTO 8888              ! Jump to handle error messages, amd macro conditions
@@ -196,8 +196,8 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
          DO i = 1, 3 
          DO j = 1, 3 
          DO k = 1, 3 
-         cr_eps (i, j, k) = 0.0 
-         cr_reps (i, j, k) = 0.0 
+         cr_eps (i, j, k) = 0.0_PREC_DP
+         cr_reps (i, j, k) = 0.0_PREC_DP
          ENDDO 
          ENDDO 
          ENDDO 
@@ -258,7 +258,7 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
             endif
             CALL do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, &
                              l_identical, r_identical, occupancy,  &
-                             l_site, MAXMASK, uni_mask)
+                             lpresent(O_OCC), l_site, MAXMASK, uni_mask)
 !                                                                       
 !     Free style editing of a structure 'free'                          
 !                                                                       
@@ -366,7 +366,7 @@ END SUBROUTINE read_struc
 !*******************************************************************************
 !
 SUBROUTINE do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, l_identical, &
-                       r_identical, occupancy, l_site, MAXMASK, uni_mask)
+                       r_identical, occupancy, l_occ, l_site, MAXMASK, uni_mask)
 !
 USE discus_allocate_appl_mod
 USE chem_mod 
@@ -382,6 +382,7 @@ USE update_cr_dim_mod
 !
 USE ber_params_mod
 USE errlist_mod
+use lib_errlist_func
 USE precision_mod
 USE str_comp_mod
 !
@@ -396,6 +397,7 @@ INTEGER         , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 LOGICAL         ,                  INTENT(IN) :: l_identical
 REAL(KIND=PREC_DP),                INTENT(IN) :: r_identical
 INTEGER         ,                  INTENT(IN) :: occupancy
+logical         ,                  intent(in) :: l_occ
 LOGICAL         ,                  INTENT(IN) :: l_site
 integer                          , intent(in) :: MAXMASK
 logical, dimension(0:MAXMASK)    , intent(in) :: uni_mask           ! Mask for unique atom types
@@ -518,6 +520,12 @@ ENDDO
 !     ---------- Apply occupancy
 !
 IF(occupancy == 0) THEN     ! Clear occupancies on read cell
+   if(any(cr_occ<1.0_PREC_DP)) then
+      ier_num = 8
+      ier_typ = ER_APPL
+      ier_msg(1) = 'By default occupancies have ben set to 1'
+      call errlist
+   endif
    cr_occ(:) = 1.0
 ELSEIF(occupancy==1) THEN   ! Apply occupancies
    DO i=1, cr_natoms
@@ -1289,7 +1297,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
          ENDDO 
          werte (5) = 1.0 
          cr_surf(:,cr_natoms+1) = 0
-         cr_magn(:,cr_natoms+1) = 0.0D0
+         cr_magn(:,cr_natoms+1) = 0.0_PREC_DP
          as_natoms = as_natoms + 1 
          call get_atom_werte(as_natoms, MAXW, werte)
 !                  CALL read_atom_line (line, ibl, lline, as_natoms, MAXW, werte, &
@@ -1320,7 +1328,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             cr_pos (j, i) = werte (j) 
          ENDDO 
          cr_surf(0:3,i) = NINT(werte(9:12))
-         cr_magn(0:3,i) = 0.0D0 ! (werte(19:12)) MAGNETIC_WORK
+         cr_magn(0:3,i) = 0.0_PREC_DP ! (werte(19:12)) MAGNETIC_WORK
          dw1 = werte (4) 
          occ1 = werte(8)                       ! WORK OCC
          IF(mole_l_on) THEN
@@ -1330,7 +1338,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
          ENDIF
          cr_prop (i) = NINT(werte(5) ) 
          cr_surf(:,i) = 0                      ! Currently no save nor read for surface
-         cr_magn(:,i) = 0.0D0 !werte(19:22)           ! Read for MAGNETIC_WORK
+         cr_magn(:,i) = 0.0_PREC_DP !werte(19:22)           ! Read for MAGNETIC_WORK
          IF(MAXVAL(ABS(werte(13:16)))> 0.0) cr_magnetic = .TRUE.  ! Crystal has magnetic atoms
 !                                                                       
          if_blk: IF(line(1:ibl) .ne.'    ') THEN 
@@ -2041,11 +2049,11 @@ INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to cal
 DATA oname  / 'type   ', 'value  ','setting' /
 DATA loname /  4       ,  5       , 7        /
 !
-opara  =  (/ '0.00', '0.00', 'abc ' /)   ! Always provide fresh default values
-lopara =  (/  4    ,  4    ,  3     /)
-owerte =  (/  0.00D0, 0.00D0, 0.0D0 /)
+opara  =  (/ '0.00'       , '0.00'       , 'abc ' /)   ! Always provide fresh default values
+lopara =  (/  4           ,  4           ,  3     /)
+owerte =  (/  0.00_PREC_DP, 0.00_PREC_DP, 0.0_PREC_DP /)
 !
-cr_occ(:) = 1.0D0  !! WORK OCC
+cr_occ(:) = 1.0_PREC_DP  !! WORK OCC
       xx_nscat = 0 
       xx_nadp = 0 
       xx_nocc = 0 
@@ -2667,7 +2675,7 @@ loop_main: do          ! Loop to read all atom lines
       ENDIF
       cr_natoms = cr_natoms + 1 
       cr_surf(:,cr_natoms) = 0
-      cr_magn(:,cr_natoms) = 0.0D0
+      cr_magn(:,cr_natoms) = 0.0_PREC_DP
       call get_atom_werte(cr_natoms, MAXW, werte)
       IF (ier_num.ne.0.and.ier_num.ne. - 49) THEN 
          exit loop_main
@@ -2690,7 +2698,7 @@ loop_main: do          ! Loop to read all atom lines
       occ1 = werte(8)                             ! WORK OCC
       cr_surf(0:3,i) = NINT(werte(9:12))          ! copy surface
 !     cr_anis_full(:,i) = werte(13:18)            ! Copy Uij
-      cr_magn(0:3,i) = 0.0D0! werte(19:22)               ! MAGNETIC_WORK
+      cr_magn(0:3,i) = 0.0_PREC_DP! werte(19:22)               ! MAGNETIC_WORK
       IF(MAXVAL(ABS(werte(13:16)))>0.0) cr_magnetic = .TRUE.
       cr_prop (i) = nint (werte (5) ) 
 !
@@ -2998,18 +3006,19 @@ cr_magnetic  = .FALSE.
       cr_delf_int (i) = .true. 
       cr_scat_equ (i) = .false. 
       ENDDO 
-      cr_dw(:)     = 0.0
-      cr_occ(:)    = 1.0
-      as_dw(:)     = 0.0
-      as_occ(:)    = 1.0
+      cr_dw(:)     = 0.0_PREC_DP
+      cr_occ(:)    = 1.0_PREC_DP
+      as_dw(:)     = 0.0_PREC_DP
+      as_occ(:)    = 1.0_PREC_DP
 !
-      DO i = 1, 3 
-      cr_dim (i, 1) = 0.0D0 
-      cr_dim (i, 2) = 0.0D0
-      ENDDO 
+!     DO i = 1, 3 
+!     cr_dim (i, 1) = 0.0D0 
+!     cr_dim (i, 2) = 0.0D0
+!     ENDDO 
+cr_dim = 0.0_PREC_DP
 !
 cr_amount = 0
-cr_u2aver = 0.0E0
+cr_u2aver = 0.0_PREC_DP
 cr_mass   = 0   ! Crystal mass in u
 cr_nreal  = 0.0
       as_pos(:,:)  = 0
@@ -3028,13 +3037,13 @@ cr_nreal  = 0.0
       mole_char(:) = 0 
       mole_file(:) = ' '
       mole_cont(:) = 0 
-      mole_dens(:) = 0.0
-      mole_biso(:) = 0.0
-      mole_clin(:) = 0.0
-      mole_cqua(:) = 0.0
-      mole_fuzzy(:) = 0.0
-      mole_gene (:,:,:) = 0.0
-      mole_symm (:,:,:) = 0.0
+      mole_dens(:) = 0.0_PREC_DP
+      mole_biso(:) = 0.0_PREC_DP
+      mole_clin(:) = 0.0_PREC_DP
+      mole_cqua(:) = 0.0_PREC_DP
+      mole_fuzzy(:) = 0.0_PREC_DP
+      mole_gene (:,:,:) = 0.0_PREC_DP
+      mole_symm (:,:,:) = 0.0_PREC_DP
 !     ENDDO 
       mole_l_on = .false. 
       mole_num_mole = 0 
@@ -3055,8 +3064,8 @@ cr_nreal  = 0.0
       pl_poly_n = 0
       pl_poly_c(:) = .FALSE.
       pl_poly_o(:) = .FALSE.
-      pl_poly_dmin = 0.0
-      pl_poly_dmax = 0.0
+      pl_poly_dmin = 0.0_PREC_DP
+      pl_poly_dmax = 0.0_PREC_DP
       pl_poly_nmin = 0
       pl_poly_dmax = 0
       pl_poly_face = .TRUE.
@@ -4516,7 +4525,7 @@ watoms: DO i=1,natoms
 ENDDO watoms
 !
 if(ier_num==-146) then        ! Error in rmc6f_period
-   res_para(1)   = 0.0D0   ! Failure to perioditize
+   res_para(1)   = 0._PREC_DP   ! Failure to perioditize
    res_para(2:4) = super
    res_para(5)   = natoms
    res_para(6)   = natoms
@@ -4524,20 +4533,20 @@ if(ier_num==-146) then        ! Error in rmc6f_period
 else
    if(lperiod) then              ! User instructed to perioditize
       if(lsite) then             ! Site info was present, success
-         res_para(1)   = 1.0D0   ! Success
+         res_para(1)   = 1.0_PREC_DP   ! Success
             res_para(2:4) = super
          res_para(5)   = nsites
          res_para(6)   = natoms
          res_para(0)   = 6
       else
-         res_para(1)   = 0.0D0   ! Failure to perioditize
+         res_para(1)   = 0.0_PREC_DP   ! Failure to perioditize
          res_para(2:4) = super
          res_para(5)   = natoms
          res_para(6)   = natoms
          res_para(0)   = 6
       endif
    else
-      res_para(1)   = -1.0D0     ! Success to import but no perioditize
+      res_para(1)   = -1.0_PREC_DP     ! Success to import but no perioditize
       res_para(2:4) = super
       res_para(5)   = natoms
       res_para(6)   = natoms
@@ -4779,7 +4788,7 @@ watoms: DO i=1,natoms
 ENDDO watoms
 !
 if(ier_num==-146) then        ! Error in rmc6f_period
-   res_para(1)   = 0.0D0   ! Failure to perioditize
+   res_para(1)   = 0.0_PREC_DP   ! Failure to perioditize
    res_para(2:4) = super
    res_para(5)   = natoms
    res_para(6)   = natoms
@@ -4787,20 +4796,20 @@ if(ier_num==-146) then        ! Error in rmc6f_period
 else
    if(lperiod) then              ! User instructed to perioditize
       if(lsite) then             ! Site info was present, success
-         res_para(1)   = 1.0D0   ! Success
+         res_para(1)   = 1.0_PREC_DP   ! Success
             res_para(2:4) = super
          res_para(5)   = nsites
          res_para(6)   = natoms
          res_para(0)   = 6
       else
-         res_para(1)   = 0.0D0   ! Failure to perioditize
+         res_para(1)   = 0.0_PREC_DP   ! Failure to perioditize
          res_para(2:4) = super
          res_para(5)   = natoms
          res_para(6)   = natoms
          res_para(0)   = 6
       endif
    else
-      res_para(1)   = -1.0D0     ! Success to import but no perioditize
+      res_para(1)   = -1.0_PREC_DP     ! Success to import but no perioditize
       res_para(2:4) = super
       res_para(5)   = natoms
       res_para(6)   = natoms
@@ -4927,11 +4936,11 @@ DO i=1,nsites
       IF(abs(si_pos(j,1,i) -  si_pos(j,2,i))<0.001) THEN
          ave_pos(j,i) = av_pos(j,1,i)
          sig_pos(j,i) = si_pos(j,1,i)
-         shift(j,i)   = 0.0D0
+         shift(j,i)   = 0.0_PREC_DP
       ELSE
          ave_pos(j,i) = av_pos(j,2,i) -0.5D0
          sig_pos(j,i) = si_pos(j,2,i)
-         shift(j,i)   = 0.5D0
+         shift(j,i)   = 0.5_PREC_DP
       ENDIF
    ENDDO
 ENDDO
@@ -4940,7 +4949,7 @@ ENDDO
 DO i=1,natoms
    DO j=1,3
       k(j) =  INT(r6_pos(j,i)*super(1) + shift(j,r6_site(i))) + 1
-      wrap(j) = 0.0D0
+      wrap(j) = 0.0_PREC_DP
       IF(k(j)<1) THEN
          wrap(j) = super(j)
          k(j)    = k(j) + super(j)
@@ -5949,7 +5958,7 @@ integer          , dimension(:), allocatable :: latom   !Lenght opt. para name r
 !                                                                       
 !     Create input / output file name
 !
-werte = 0.0D0
+werte = 0.0_PREC_DP
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
 IF (ier_num.ne.0) THEN 
    RETURN 
@@ -6002,10 +6011,10 @@ header: do
             read(ird,'(a)', iostat=ios) line
             read(line,*) zlo_bound, zhi_bound, yz
 !
-            xyz_lh(1,1) = xlo_bound - min(0.0D0,xy,xz,xy+xz)
-            xyz_lh(1,2) = xhi_bound - max(0.0D0,xy,xz,xy+xz)
-            xyz_lh(2,1) = ylo_bound - min(0.0D0,yz)
-            xyz_lh(2,2) = yhi_bound - max(0.0D0,yz)
+            xyz_lh(1,1) = xlo_bound - min(0.0_PREC_DP,xy,xz,xy+xz)
+            xyz_lh(1,2) = xhi_bound - max(0.0_PREC_DP,xy,xz,xy+xz)
+            xyz_lh(2,1) = ylo_bound - min(0.0_PREC_DP,yz)
+            xyz_lh(2,2) = yhi_bound - max(0.0_PREC_DP,yz)
             xyz_lh(3,1) = zlo_bound
             xyz_lh(3,2) = zhi_bound
             lx = xyz_lh(1,2) - xyz_lh(1,1)
@@ -6235,7 +6244,7 @@ DATA loname /  4       ,  5    /
 !
 opara  =  (/ '0.0000' , '0.0000' /)   ! Always provide fresh default values
 lopara =  (/  6       ,  6       /)
-owerte =  (/  0.0D0   ,  0.0D0   /)
+owerte =  (/  0.0_PREC_DP   ,  0.0_PREC_DP   /)
 !
 ncell_val  = 0
 natoms     = 0
@@ -6251,7 +6260,7 @@ IF ( init == -1 ) THEN
    if(allocated(bvals)) deallocate(bvals)
    if(allocated(occs )) deallocate(occs )
    if(allocated(anis )) deallocate(anis )
-   MAXSCAT = 50
+   MAXSCAT = 550
    allocate(names(MAXSCAT))
    allocate(bvals(MAXSCAT))
    allocate(occs (MAXSCAT))
@@ -6728,9 +6737,9 @@ main: DO
             if(ntypes==MAXSCAT) then
                MAXSCAT = MAXSCAT + 10
                call alloc_arr(names, 1, MAXSCAT, all_status, ' '   )
-               call alloc_arr(bvals, 1, MAXSCAT, all_status, 0.5D0 )
-               call alloc_arr(occs , 1, MAXSCAT, all_status, 1.0D0 )
-               call alloc_arr(anis , 1,6, 1, MAXSCAT, all_status, 1.0D0)
+               call alloc_arr(bvals, 1, MAXSCAT, all_status, 0.5_PREC_DP )
+               call alloc_arr(occs , 1, MAXSCAT, all_status, 1.0_PREC_DP )
+               call alloc_arr(anis , 1,6, 1, MAXSCAT, all_status, 1.0_PREC_DP)
             endif
             names(ntypes) = line(1:lbef)
             bvals(ntypes) = bval
@@ -6755,6 +6764,7 @@ main: DO
 ENDDO main
 !
 CLOSE (99)
+!
 !
 IF(n_mole>0) THEN
    n_type = MAX(n_type,1)  ! Ensure values are NOT zero
@@ -6791,7 +6801,8 @@ REAL(KIND=PREC_DP)    :: eps
 REAL(kind=PREC_DP), DIMENSION(3) :: u,v
 INTEGER :: i, j
 !
-eps = 1.0E-5
+!eps = 1.0E-5
+eps = 0.00001_PREC_DP
 IF(l_identical) eps = r_identical
 !
 main: DO i=1, cr_natoms-1
