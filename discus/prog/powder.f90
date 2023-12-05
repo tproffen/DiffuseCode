@@ -2330,8 +2330,8 @@ loop_h: DO ih = h_start, h_end
       ENDIF 
 !
 ENDDO  loop_h
-i = ubound(pow_qsp,1)
-call tofile(i, 'POWDER/pow_qsp.dat', pow_qsp, 0.0D0, 0.001D0)
+!i = ubound(pow_qsp,1)
+!call tofile(i, 'POWDER/pow_qsp.dat', pow_qsp, 0.0D0, 0.001D0)
 !
 !     CALCULATE normalized average squared atomic form factor
 !
