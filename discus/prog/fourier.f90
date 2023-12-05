@@ -89,11 +89,12 @@ logical              :: ltop_n = .false. ! the top left corner point number has 
       REAL(kind=PREC_DP)   , DIMENSION(3)::  divis
       REAL(kind=PREC_DP)   , DIMENSION(3)::  rhkl
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 4
+INTEGER, PARAMETER :: NOPTIONAL = 5
 !INTEGER, PARAMETER :: O_MODE    = 1   ! used in subroutines
 !INTEGER, PARAMETER :: O_SYMM    = 2   ! used in subroutines
 INTEGER, PARAMETER :: O_TABLE   = 3
 !INTEGER, PARAMETER :: O_TECHN   = 4   ! used in subroutines
+INTEGER, PARAMETER :: O_FILE    = 5
 CHARACTER(LEN=   9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=PREC_STRING), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -102,11 +103,12 @@ LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
-DATA oname  / 'mode', 'symm'  , 'table', 'technique'/
-DATA loname /  4    ,  4      ,  5     ,  9         /
-opara  =  (/ '0.0000', '0.0000', 'waas  ', 'turbo ' /)   ! Always provide fresh default values
-lopara =  (/  6      ,  6      ,  4      ,  5       /)
-owerte =  (/  0.0    ,  0.0    ,  0.0    ,  0.0     /)
+DATA oname  / 'mode', 'symm'  , 'table', 'technique', 'file'/
+DATA loname /  4    ,  4      ,  5     ,  9         ,  4    /
+opara  =  (/ '0.0000    ', '0.0000    ', 'waas      ', 'turbo     ' , &
+             'discus.tsc'/) ! Always provide fresh default values
+lopara =  (/  6      ,  6      ,  4      ,  5       ,  10         /)
+owerte =  (/  0.0D0  ,  0.0D0  ,  0.0D0  ,  0.0D0   ,  0.0D0      /)
 !
 !
 !
@@ -977,7 +979,15 @@ ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then
                CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                     oname, loname, opara, lopara, lpresent, owerte)
                endif
-               if(opara(O_TABLE)=='waas') diff_table= RAD_WAAS
+               if(opara(O_TABLE)(1:5)=='inter') then
+                  diff_table     = RAD_INTER
+               elseif(opara(O_TABLE)(1:4)=='waas') then
+                  diff_table= RAD_WAAS
+               elseif(opara(O_TABLE)(1:4)=='disc') then
+                  diff_table= RAD_DISC
+                  diff_file = opara(O_FILE)
+                  write(*,*) ' table', diff_table, ' ', diff_file(1:len_trim(diff_file))
+               endif
 !                                                                       
 !     set a zone axis pattern calculation
 !                                                                       
