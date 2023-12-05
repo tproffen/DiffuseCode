@@ -25,6 +25,7 @@ INTEGER , PARAMETER  :: RAD_NEUT = 2
 INTEGER , PARAMETER  :: RAD_ELEC = 3
 INTEGER , PARAMETER  :: RAD_INTER= 0
 INTEGER , PARAMETER  :: RAD_WAAS = 1
+INTEGER , PARAMETER  :: RAD_DISC = 2
 !
 INTEGER , PARAMETER  :: FOUR_ZL  = -4  ! Zone Axis with lots
 INTEGER , PARAMETER  :: FOUR_3L  = -3  ! 3D Fourier with lots
@@ -105,6 +106,7 @@ LOGICAL                                 ::  diff_lsingle  = .true.
 INTEGER                                 ::  diff_radiation = RAD_XRAY
 INTEGER                                 ::  diff_table     = RAD_INTER
 INTEGER                                 ::  diff_power     = 4
+character(len=PREC_STRING)              ::  diff_file      = ' '
 REAL(kind=PREC_DP), DIMENSION(1:3, 1:4) ::  eck      = reshape((/ 0.0, 0.0,  0.0, &    ! (hkl, corner_number)
                                                                   5.0, 0.0,  0.0, &
                                                                   0.0, 5.0,  0.0, &
