@@ -1913,6 +1913,7 @@ INTEGER, PARAMETER :: RAD_XRAY = 1
 INTEGER, PARAMETER :: RAD_NEUT = 2
 INTEGER, PARAMETER :: RAD_ELEC = 3
 INTEGER, PARAMETER :: RAD_INTER = 0
+INTEGER, PARAMETER :: RAD_WAAS  = 1
 LOGICAL, PARAMETER :: LOUT = .FALSE.
 !
 CHARACTER (LEN = 4 ) :: element 
@@ -1975,7 +1976,7 @@ any_element: IF (cr_nscat.gt.0) THEN
                   IF ( j /= 0 ) THEN 
                      if(diff_table==RAD_INTER) then
                         call get_scat_xray ( j, temp_scat )
-                     else
+                     elseif(diff_table==RAD_WAAS) then
                         call get_scat_xray_waas(j, temp_scat)
                      endif
                      cr_scat(:,i) = 0.0
