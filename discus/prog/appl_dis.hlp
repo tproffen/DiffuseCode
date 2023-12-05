@@ -2634,7 +2634,7 @@
    found near qobs.
 2  export
 !p export "cif",<file{".cif"]> [, {["spcgr:original"] | ["spcgr:"<spacegroup>]}
-!p export "shelx",<file{".ins"]>
+!p export "shelx",<file{".ins"]> [, "cycle:"<number>]
 !p export "rmcprofile",<file{".rmc6f"]>  [version:{"6"|"7"}]
 !p export "vasp",<file]>
 !p export "poscar",<file]>
@@ -2652,6 +2652,8 @@
 
    shelx
    Exports the atoms of the current structure as a SHELXL instruction file
+   The optional parameter "cycle:" allows to set the number of 
+   leas-squares cycles to be written as "L.S." instruction.
 
    rmcprofile
    Exports the atoms of the current structure as a RMCprofile 
@@ -7880,6 +7882,7 @@
    interpret the values found in the input file. The default is
    "clear" All occupancies are reset to 1.0 and DISCUS behaves
            as prior to 5.16.0
+           A warning message is issued, but a macro will continue.
    "apply" During the expansion of the asymmetric unit to the 
            full crystal the actual atoms are in part replaced
            by "voids" to achieve (at least approximately) the
