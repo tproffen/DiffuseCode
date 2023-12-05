@@ -23,28 +23,30 @@ INTEGER, PARAMETER :: MAXW = 5
 CHARACTER(LEN=    PREC_STRING           ), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER  :: ianz
-INTEGER, PARAMETER :: NOPTIONAL = 3
+integer  :: ncycle
+INTEGER, PARAMETER :: NOPTIONAL = 4
 INTEGER, PARAMETER :: O_RMCVS   = 1
-INTEGER, PARAMETER :: O_SPCGR   = 2
-INTEGER, PARAMETER :: O_SITE    = 3
+INTEGER, PARAMETER :: O_CYCLE   = 2
+INTEGER, PARAMETER :: O_SPCGR   = 3
+INTEGER, PARAMETER :: O_SITE    = 4
 CHARACTER(LEN=   7), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=    PREC_STRING           ), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate 
 !
 INTEGER  :: rmcversion
 integer  :: scatty_site
 !
 !
-DATA oname  / 'version', 'spcgr  ', 'site   ' /
-DATA loname /  7       ,  5       ,  4        /
+DATA oname  / 'version', 'cycle  ', 'spcgr  ', 'site   ' /
+DATA loname /  7       ,  5       ,  5       ,  4        /
 !
-opara  =  (/ '6.00000', 'P1     ', 'average' /)   ! Always provide fresh default values
-lopara =  (/  7       ,  7      ,  7        /)
-owerte =  (/  6.0D0   ,  0.0D0  ,  0.0D0 /)
+opara  =  (/ '6.00000', '20     ','P1     ', 'average' /)   ! Always provide fresh default values
+lopara =  (/  7       ,  2       ,  7      ,  7        /)
+owerte =  (/  6.0D0   ,  20.0D0  ,  0.0D0  ,  0.0D0 /)
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, lp)
 IF (ier_num.ne.0) THEN
@@ -71,10 +73,15 @@ IF (ianz.ge.1) THEN
          ier_typ = ER_COMM
       ENDIF
    ELSEIF (str_comp (cpara (1) , 'shelx', 2, lpara (1) , 5) ) THEN
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, lpresent, owerte)
+      IF(ier_num/=0) RETURN
+!
       IF (ianz >= 2) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) RETURN
-         CALL discus2ins (ianz, cpara, lpara, MAXW)
+         ncycle = NINT(owerte(O_CYCLE))
+         CALL discus2ins (ianz, cpara, lpara, MAXW, ncycle)
       ELSE
          ier_num = - 6
          ier_typ = ER_COMM
@@ -220,7 +227,7 @@ END SUBROUTINE discus2cif
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-SUBROUTINE discus2ins (ianz, cpara, lpara, MAXW)
+SUBROUTINE discus2ins (ianz, cpara, lpara, MAXW, ncycle)
 !
 USE chem_aver_mod
 USE class_internal
@@ -248,6 +255,7 @@ INTEGER            ,                  INTENT(IN)    :: MAXW
 INTEGER            ,                  INTENT(INOUT) :: ianz
 CHARACTER(LEN=*   ), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+integer            ,                  intent(in)    :: ncycle
 !
 INTEGER, PARAMETER :: IWR = 35
 integer, parameter :: MAXMASK = 4
@@ -264,10 +272,11 @@ INTEGER                  :: lbef
 INTEGER                  :: lattice = 1
 INTEGER                  :: unique_n
 INTEGER                  :: shelx_n
-INTEGER, DIMENSION(:,:), ALLOCATABLE :: n_atoms 
+real(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: true_occ
+real(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: n_atoms 
 CHARACTER (LEN=2), DIMENSION(:), ALLOCATABLE :: unique_names
 CHARACTER (LEN=4), DIMENSION(:), ALLOCATABLE :: shelx_names
-INTEGER          , DIMENSION(:), ALLOCATABLE :: unique_n_atoms 
+real(kind=PREC_DP),DIMENSION(:), ALLOCATABLE :: unique_n_atoms 
 LOGICAL                  :: orig_OK =.FALSE.
 logical, dimension(0:MAXMASK) :: uni_mask
 REAL(KIND=PREC_DP)       :: z_unit
@@ -349,9 +358,11 @@ length     = 11
 CALL property_select(line, length, sav_sel_prop)
 CALL save_internal(origfile)
 ALLOCATE(n_atoms(2,1:cr_nscat))
+allocate(true_occ(1:ubound(cr_occ,1)))
+true_occ(1:cr_nscat) = cr_occ(1:cr_nscat)
 CALL chem_elem(.FALSE.)
 DO i=1, cr_nscat
-   n_atoms(1,i) = NINT(res_para(i+1)*cr_natoms)
+   n_atoms(1,i) = (res_para(i+1)*cr_natoms)*cr_occ(i)
 ENDDO
 !
 ! Read structure as unit cell file and expand to full crystal
@@ -360,15 +371,16 @@ befehl = 'lcell'
 lbef   = 5
 cpara(1) = origfile
 lpara(1) = 19
-CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0D-5, 0, .FALSE., MAXMASK, uni_mask)
+CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0D-5, 0, .TRUE., .FALSE., MAXMASK, uni_mask)
 CALL chem_elem(.FALSE.)
 z_unit = 192.0
 DO i=1, cr_nscat
-   n_atoms(2,i) = NINT(res_para(i+1)*cr_natoms)
+   n_atoms(2,i) = (res_para(i+1)*cr_natoms*true_occ(i))
    IF(n_atoms(1,i)>0 .AND. n_atoms(2,i)>0) THEN
       z_unit = MIN(z_unit, REAL(n_atoms(2,i)/n_atoms(1,i), kind=PREC_DP))
    ENDIF
 ENDDO
+deallocate(true_occ)
 !
 ! Restore original structure
 !
@@ -409,9 +421,9 @@ DO i=1,unique_n                                ! Prepare SFAC / UNIT statement
    i1 = (i-1) * 3 + 1
    i2 = (i  ) * 3
    names(i1:i2) = unique_names(i)(1:2)
-   i1 = (i-1) * 6 + 1
-   i2 = (i  ) * 6
-   WRITE(units(i1:i2),'(1x,i5)') unique_n_atoms(i)
+   i1 = (i-1) * 9 + 1
+   i2 = (i  ) * 9
+   WRITE(units(i1:i2),'(1x,f8.2)') unique_n_atoms(i)
 ENDDO
 !
 ! Create unique Shelx names
@@ -490,7 +502,7 @@ ENDDO
 !
 WRITE(IWR, 1500) names(1:LEN_TRIM(names)) ! SFAC
 WRITE(IWR, 1600) units(1:LEN_TRIM(units)) ! UNIT
-WRITE(IWR, 1700)             ! L.S.
+WRITE(IWR, 1700) ncycle      ! L.S.
 WRITE(IWR, 1800)             ! BOND
 WRITE(IWR, 1900)             ! BOND $H
 WRITE(IWR, 2000)             ! FMAP 2
@@ -535,7 +547,7 @@ CLOSE(IWR)
 1400 FORMAT('SYMM ', a )
 1500 FORMAT('SFAC ', a )
 1600 FORMAT('UNIT ', a )
-1700 FORMAT('L.S. 100' )
+1700 FORMAT('L.S. ', i6)
 1800 FORMAT('BOND '    )
 1900 FORMAT('BOND $H ' )
 2000 FORMAT('FMAP 2'   )
