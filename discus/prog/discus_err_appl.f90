@@ -13,7 +13,7 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-194,IO=7)
+      PARAMETER    (IU=-194,IO=8)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
@@ -240,7 +240,8 @@ USE lib_errlist_func
      &  'Monte Carlo level is obsolete >help mmc',       & ! ! +4  ! discus
      &  'Element charge was dropped',                    & ! ! +5  ! discus
      &  'Element name is unknown',                       & ! ! +6  ! discus
-     &  'Last cent and keep will be used'                & ! ! +7  ! discus
+     &  'Last cent and keep will be used',               & ! ! +7  ! discus
+     &  'Occupancies in input file are ignored!'         & ! ! +8  ! discus
      &           /
 !
       if (ier_typ.eq.ER_RMC) then
