@@ -56,10 +56,12 @@ IF(ier_num.eq.0) THEN
 !                                                                       
 !     --Interprete first parameter as command                           
 !                                                                       
+if(str_comp(cpara(1), 'adp', 2, lpara(1), 3)) then
+   call show_adp 
 !                                                                       
 !     ----Show composition of asymmetric unit 'asym'                    
 !                                                                       
-   IF(str_comp(cpara(1), 'asym', 2, lpara(1), 4)) THEN
+elseif(str_comp(cpara(1), 'asym', 2, lpara(1), 4)) THEN
       CALL show_asym 
 !                                                                       
 !     ----Show an atom                     'atom'                       
@@ -187,7 +189,43 @@ ENDIF
      &                  '  Z ',2(2x,f12.4))                             
 !                                                                       
       END SUBROUTINE discus_do_show                        
+!
 !*****7*****************************************************************
+!
+subroutine show_adp
+!
+use crystal_mod
+!
+use precision_mod
+use prompt_mod
+use wink_mod
+!
+implicit none
+!
+real(kind=PREC_DP), parameter :: TOL = 0.0001_PREC_DP
+integer :: j   ! Dummy index
+real(kind=PREC_DP) :: ueqv
+real(kind=PREC_DP) :: biso
+!
+write(output_io,'(a)')' Type     U11      U22      U33      U23      U13      U12      Ueqv    Biso'
+do j=1, cr_nanis
+   ueqv = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP
+   biso = ueqv *8.0_PREC_DP*pi*pi
+   if(abs(cr_anis_full(1,j)-cr_anis_full(2,j))>TOL .or.    &
+      abs(cr_anis_full(1,j)-cr_anis_full(3,j))>TOL .or.    &
+      abs(cr_anis_full(4,j))>TOL .or.                      &
+      abs(cr_anis_full(5,j))>TOL .or.                      &
+      abs(cr_anis_full(6,j))>TOL                        ) then
+      write(output_io,'(i4,2x, 8f9.5)') j, cr_anis_full(:,j) , ueqv, biso
+   else
+      write(output_io,'(i4,2x, f9.5, 54x, f9.5)') j, cr_anis_full(1,j), biso
+   endif
+enddo
+!
+end subroutine show_adp
+!
+!*****7*****************************************************************
+!
       SUBROUTINE show_asym 
 !-                                                                      
 !     This subroutine shows the content of the asymmetric unit          
