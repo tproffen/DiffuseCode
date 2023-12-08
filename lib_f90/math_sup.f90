@@ -294,7 +294,7 @@ end subroutine math_linear
 !
 !*******************************************************************************
 !
-subroutine eigen_value(a, eigen_val, eigen_vec, gten, neigen)
+subroutine eigen_value(a_in, eigen_val, eigen_vec, gten, neigen)
 !
 use errlist_mod
 use lib_metric_mod
@@ -305,18 +305,20 @@ use wink_mod
 !
 implicit none
 !
-real(kind=PREC_DP), dimension(3,3), intent(in)  :: a          ! The matrix
+real(kind=PREC_DP), dimension(3,3), intent(in)  :: a_in       ! The matrix
 real(kind=PREC_DP), dimension(3)  , intent(out) :: eigen_val  ! Eigenvalues
 real(kind=PREC_DP), dimension(3,3), intent(out) :: eigen_vec  ! Eigenvectors
 real(kind=PREC_DP), dimension(3,3), intent(in)  :: gten
 integer                           , intent(out) :: neigen     ! Number distinct Eigenvalues
 !integer                           , intent(out) :: ier_num    ! Error message 0 == success
 !
-real(kind=PREC_DP), parameter :: TOL = 1.0D-10
+real(kind=PREC_DP), parameter :: TOL    = 1.0D-13
+real(kind=PREC_DP), parameter :: TOL_PQ = 1.0D-15
 real(kind=PREC_DP), parameter :: EQL = 1.0D-5     ! Akzept values as equal if difference is smaller
 integer :: i
 integer :: j
 integer :: k
+real(kind=PREC_DP), dimension(3,3)  :: a       ! The matrix
 real(kind=PREC_DP), dimension(3,3)  :: b       ! a -  m*I
 real(kind=PREC_DP), dimension(3,3)  :: t       ! Trialvectors
 real(kind=PREC_DP), dimension(3,3)  :: one_mat ! Trialvectors
@@ -329,12 +331,15 @@ real(kind=PREC_DP), dimension(3  )  :: ang     ! Angles of eigenvector 1 to base
 real(kind=PREC_DP) :: phi                      ! Angle in 
 real(kind=PREC_DP) :: p                        ! 6p = SUM(b(i,j)^2)
 real(kind=PREC_DP) :: q                        ! 2q = DET(a - mI)
+real(kind=PREC_DP) :: p_q                      ! p**3 -q**2
 real(kind=PREC_DP) :: m                        !  m = Tr(a)
 real(kind=PREC_DP) :: det                      ! a determinant
 real(kind=PREC_DP) :: length                   ! a vector length
 real(kind=PREC_DP) :: cphi                     ! cos(phi) length
 real(kind=PREC_DP) :: sphi                     ! sin(phi) length
+real(kind=PREC_QP),parameter :: big=10000000.0_PREC_QP
 !
+a = real(nint(a_in*big)/big, kind=PREC_DP)
 ier_num = 0
 eigen_val = 0.0D0
 eigen_vec = 0.0D0
@@ -360,16 +365,20 @@ q = det3(b)/2.0D0                               ! q = determinant(1) / 2
 p = ( b(1,1)**2 + b(1,2)**2 + b(1,3)**2 +    &  ! p = SUM( (A - mI)_ij^2 )
       b(2,1)**2 + b(2,2)**2 + b(2,3)**2 +    &
       b(3,1)**2 + b(3,2)**2 + b(3,3)**2 )/6.0D0
+p_q = p**3 - q**2
 !
 !write(*,*)  ' MPQ       ', m, p, q, abs(q)<TOL
 !write(*,*)  ' p**3-q**2 ', p**3 - q**2
 if((p**3 -q**2)<0.0D0) then                     ! Negative root
-   if(abs(p**3 -q**2)>TOL) then
+!  if(abs(p**3 -q**2)>TOL) then
+   if(abs(p_q       )>TOL_PQ) then
 !  write(output_io,*) ' p^3 - q^2 is negative', p**3 -q**2
    ier_num = -5
    ier_typ = ER_FORT
    ier_msg(1) = 'Eigenvalue is complex '
    return
+   else 
+      p_q = 0.0_PREC_DP
    endif
 endif
 !
@@ -378,7 +387,8 @@ if(abs(q)<TOL       ) then                      ! q == Null phi = PI/6
    cphi = sqrt(3.0D0)*0.5D0
    sphi = 0.50D0
 else
-   phi = datan(sqrt(p**3 -q**2)/q)/3.
+!  phi = datan(sqrt(p**3 -q**2)/q)/3.
+   phi = datan(sqrt(p_q       )/q)/3.
    if(phi<0) phi=phi + pi
    cphi = cos(phi)
    sphi = sin(phi)
@@ -481,6 +491,15 @@ elseif(neigen==2) then            ! Two eigenvalues are equal
       ang(i) = abs(lib_bang(gten, eigen_vec(:,i), one_mat(:,i)) - 90.0D0)
    enddo
    j = minloc(ang,1)              ! This base vector is closest to 90° off 1st eigenvector
+   if(j==1) then 
+      ang = -1.0_PREC_DP
+      search_base: do i = 1, 3    ! Determine (angle (base, eigenvector_1)) from 90°
+         ang(i) = abs(lib_bang(gten, eigen_vec(:,1), one_mat(:,i)) )
+         if(abs(ang(i))<1.0_PREC_DP .or. abs(ang(i)-180.0_PREC_DP)<1.0_PREC_DP) exit search_base
+      enddo search_base
+      j = i
+      j = mod(j,3) + 1            ! Found 1st Eigenvector again, create a new one
+   endif
    u = eigen_vec(:,1)             ! Vector product of 1st Eigenvector and this base vector
    v = one_mat(:,j)               ! Will create 2nd Eigenvector
    eigen_vec(1, 2) = u(2)*v(3) - u(3)*v(2)
