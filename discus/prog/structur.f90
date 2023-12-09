@@ -519,7 +519,7 @@ ENDDO
 !
 !     ---------- Apply occupancy
 !
-IF(occupancy == 0) THEN     ! Clear occupancies on read cell
+IF(occupancy == 0 .and. .NOT.l_occ) THEN     ! Clear occupancies on read cell
    if(any(cr_occ<1.0_PREC_DP)) then
       ier_num = 8
       ier_typ = ER_APPL
