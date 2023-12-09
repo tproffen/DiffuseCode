@@ -1,4 +1,10 @@
-6.16.02  DRAFT
+6.16.03  DRAFT
+6.16.02  RELEASE 2023_12_09
+
+DISCUS
+  fourier     BUG FIX for icalculations starting with large negative 
+              lower left corners, point in reciprocal space were 
+              often shifted a pixel or so.
 6.16.01  RELEASE 2023_11_27
 
 DISCUS
