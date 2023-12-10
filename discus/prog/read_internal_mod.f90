@@ -19,7 +19,7 @@ CONTAINS
 !*******************************************************************************
 !
    SUBROUTINE readstru_size_int(strucfile, natoms, & 
-              nscat, n_mole, n_type, n_atom)
+              nscat, nanis, n_mole, n_type, n_atom)
 !
 !  Reads the header section of a structure from an internal cystal. 
 !
@@ -31,6 +31,7 @@ CONTAINS
 !
    INTEGER       , INTENT(INOUT) :: natoms
    INTEGER       , INTENT(INOUT) :: nscat
+   INTEGER       , INTENT(INOUT) :: nanis
    INTEGER       , INTENT(INOUT) :: n_mole
    INTEGER       , INTENT(INOUT) :: n_type
    INTEGER       , INTENT(INOUT) :: n_atom
@@ -53,6 +54,7 @@ integer ier
 !
    natoms = read_temp%crystal%get_natoms()
    nscat  = read_temp%crystal%get_nscat ()
+   nanis  = read_temp%crystal%get_nanis ()
    n_mole = read_temp%crystal%get_n_mole()
    n_type = read_temp%crystal%get_n_type()
    n_atom = read_temp%crystal%get_n_atom()
@@ -82,16 +84,17 @@ CHARACTER (LEN=*), INTENT(IN) :: strucfile
 logical,dimension(0:MAXMASK), intent(in) :: uni_mask   ! Unique atom type mask
 !
 !
-INTEGER                       :: natoms
-INTEGER                       :: nscat
+INTEGER                       :: natoms   ! Number of atoms in the structure
+INTEGER                       :: nscat    ! Number of different atom types
+INTEGER                       :: nanis    ! Number of ADPs
 INTEGER                       :: n_mole
 INTEGER                       :: n_type
 INTEGER                       :: n_atom
 INTEGER                       :: i,j
 INTEGER                       :: iatom
 !
-CALL readstru_size_int(strucfile, natoms, & 
-                nscat, n_mole, n_type, n_atom)
+CALL readstru_size_int(strucfile, natoms, nscat, nanis, &
+                                  n_mole, n_type, n_atom)
 IF ( ier_num /= 0) THEN                        ! Could not find the internal storage file
    RETURN
 ENDIF
@@ -179,6 +182,7 @@ INTEGER                       :: i,j,k        ! Dummy
 INTEGER                       :: ia         ! Dummy; atoms in internal crystal
 INTEGER                       :: natoms
 INTEGER                       :: nscat
+INTEGER                       :: nanis
 INTEGER                       :: n_mole
 INTEGER                       :: n_type
 INTEGER                       :: n_atom
@@ -235,7 +239,7 @@ rd_icc = cr_icc               ! Save crystal dimensions
 new_type = cr_newtype         ! Was defined via the 'cell' or 'lcell' command
 !
 CALL readstru_size_int(strucfile, natoms, &     ! Get the sizes of the internal crystal
-                   nscat, n_mole, n_type, n_atom)
+                   nscat, nanis, n_mole, n_type, n_atom)
 IF ( ier_num /= 0) THEN
    ier_typ = ER_APPL
    ier_msg(1) = 'Could not get size of stored crystal'
@@ -603,6 +607,7 @@ use precision_mod
    INTEGER                       :: i
    INTEGER                       :: natoms
    INTEGER                       :: nscat
+   INTEGER                       :: nanis
    INTEGER                       :: n_mole
    INTEGER                       :: n_type
    INTEGER                       :: n_atom
@@ -621,7 +626,7 @@ use precision_mod
       RETURN
    ENDIF
    CALL readstru_size_int(strucfile, natoms, &           ! Get the number of atoms
-              nscat, n_mole, n_type, n_atom)
+              nscat, nanis, n_mole, n_type, n_atom)
    DO i=1,natoms
       CALL read_temp%crystal%get_cryst_atom(i, itype, posit, iprop, isurface, magn_mom, iin_mole)
       rd_cr_natoms = rd_cr_natoms + 1
@@ -660,6 +665,7 @@ use precision_mod
    INTEGER                       :: i
    INTEGER                       :: natoms
    INTEGER                       :: nscat
+   INTEGER                       :: nanis
    INTEGER                       :: n_mole
    INTEGER                       :: n_type
    INTEGER                       :: n_atom
@@ -673,7 +679,7 @@ use precision_mod
       RETURN
    ENDIF
    CALL readstru_size_int(strucfile, natoms, &           ! Get the number of atoms
-              nscat, n_mole, n_type, n_atom)
+              nscat, nanis, n_mole, n_type, n_atom)
    IF ( iatom <= natoms ) THEN
       i = iatom
       CALL read_temp%crystal%get_cryst_atom(i, rd_cr_iscat, rd_cr_pos, &
@@ -726,6 +732,7 @@ IMPLICIT NONE
 !
    INTEGER                       :: natoms
    INTEGER                       :: nscat
+   INTEGER                       :: nanis
 !
 !  ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
 !  IF ( istatus /= 0) THEN
@@ -734,7 +741,7 @@ IMPLICIT NONE
 !     RETURN
 !  ENDIF
    CALL readstru_size_int(strucfile, natoms, & 
-                   nscat, mole_num_mole, mole_num_type, mole_num_atom)
+                   nscat, nanis, mole_num_mole, mole_num_type, mole_num_atom)
    IF ( ier_num /= 0) THEN                        ! Could not find the internal storage file
       RETURN
    ENDIF
@@ -765,6 +772,7 @@ IMPLICIT NONE
 !
    INTEGER, INTENT(INOUT)        :: natoms
    INTEGER, INTENT(INOUT)        :: nscat
+   INTEGER                       :: nanis
    INTEGER, INTENT(INOUT)        :: n_mole
    INTEGER, INTENT(INOUT)        :: n_type
    INTEGER, INTENT(INOUT)        :: n_atom
@@ -776,7 +784,7 @@ IMPLICIT NONE
 !     RETURN
 !  ENDIF
    CALL readstru_size_int(strucfile, natoms, & 
-                   nscat, n_mole, n_type, n_atom)
+                   nscat, nanis, n_mole, n_type, n_atom)
 !
 !  DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
 !

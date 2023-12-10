@@ -92,9 +92,12 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
 !
    INTEGER                                          ::  cr_natoms  !the number of atoms
    INTEGER                                          ::  cr_nscat   !the number of atom types
+   INTEGER                                          ::  cr_nanis   !the number of atom types
    INTEGER                                          ::  cr_n_REAL_atoms = 0
 
    REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE  ::  cr_dw      ! (  0:MAXSCAT)
+   REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE  ::  cr_anis    ! (  0:MAXSCAT) User supplied Uij
+   integer           , DIMENSION(  :), ALLOCATABLE  ::  cr_is_sym  ! (  0:NCATOMS) Site was created by this sym.op.
    REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE  ::  cr_occ     ! (  0:MAXSCAT)
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_lis  ! (  0:MAXSCAT)
    TYPE(cl_atom)     , DIMENSION(:)  , POINTER      ::  atoms            !the actual atoms
@@ -124,6 +127,7 @@ CONTAINS
    PROCEDURE, PUBLIC, PASS :: alloc_arrays         ! allocate a set of atoms
    PROCEDURE, PUBLIC, PASS :: get_natoms           ! Return number of atoms in this crystal
    PROCEDURE, PUBLIC, PASS :: get_nscat            ! Return number of atom types in this crystal
+   PROCEDURE, PUBLIC, PASS :: get_nanis            ! Return number of atom types in this crystal
    PROCEDURE, PUBLIC, PASS :: get_n_mole           ! Return number of molecules types in this crystal
    PROCEDURE, PUBLIC, PASS :: get_n_type           ! Return number of molecule types in this crystal
    PROCEDURE, PUBLIC, PASS :: get_n_atom           ! Return number of molecule atoms in this crystal
@@ -155,7 +159,7 @@ END TYPE cl_cryst
 CONTAINS
 !
 !******************************************************************************
-   SUBROUTINE alloc_arrays   ( this, natoms, nscat, n_mole, n_type, n_atom)
+   SUBROUTINE alloc_arrays   ( this, natoms, nscat, ncatoms, nanis, n_mole, n_type, n_atom)
 !
 !  Allocate the arrays for "this" crystal 
 !  Initialize all variables
@@ -165,6 +169,8 @@ CONTAINS
    CLASS (cl_cryst)                 :: this        ! Work on "this" crystal
    INTEGER,              INTENT(IN) :: natoms      ! Number of atoms for this crystal
    INTEGER,              INTENT(IN) :: nscat       ! Number of atom types for this crystal
+   INTEGER,              INTENT(IN) :: ncatoms     ! Number of atoms per unit cell
+   INTEGER,              INTENT(IN) :: nanis       ! Number of ADP  types for this crystal
    INTEGER,              INTENT(IN) :: n_mole      ! Number of molecules  for this crystal
    INTEGER,              INTENT(IN) :: n_type      ! Number of molecule types  for this crystal
    INTEGER,              INTENT(IN) :: n_atom      ! Number of atoms in molecules for this crystal
@@ -184,6 +190,8 @@ CONTAINS
       DEALLOCATE ( this%cr_sav_atom, STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_at_lis  , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_dw      , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_anis    , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_is_sym  , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_occ     , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%atoms      , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_mole_len  , STAT=istatus ) ! Always deallocate molecules
@@ -210,7 +218,9 @@ CONTAINS
    ALLOCATE ( this%cr_sav_atom(  0:nscat), STAT=istatus ) ! Allocate equivalent atom names
    ALLOCATE ( this%cr_at_lis  (  0:nscat), STAT=istatus ) ! Allocate atom names
    ALLOCATE ( this%cr_dw      (  0:nscat), STAT=istatus ) ! Allocate Debye Waller terms
-   ALLOCATE ( this%cr_occ     (  0:nscat), STAT=istatus ) ! Allocate Debye Waller terms
+   ALLOCATE ( this%cr_anis    (6,0:nscat), STAT=istatus ) ! Allocate User supplied Uij
+   ALLOCATE ( this%cr_is_sym  (  1:ncatoms), STAT=istatus ) ! Allocate Atom was created by this sym.op.
+   ALLOCATE ( this%cr_occ     (  0:nscat), STAT=istatus ) ! Allocate Occupancies
    ALLOCATE ( this%atoms      (natoms   ), STAT=istatus ) ! Allocate list of atoms
    ALLOCATE ( this%cr_mole_len  (0:n_mole), STAT=istatus ) ! Allocate molecules
    ALLOCATE ( this%cr_mole_off  (0:n_mole), STAT=istatus ) ! Allocate molecules
@@ -224,19 +234,21 @@ CONTAINS
    ALLOCATE ( this%cr_mole_cqua (0:n_type), STAT=istatus ) ! Allocate molecules
    ALLOCATE ( this%cr_mole_fuzzy(0:n_mole), STAT=istatus ) ! Allocate molecules
 !
-   this%cr_gen_add (4,4,0:192) = 0.0
-   this%cr_sym_add (4,4,0:192) = 0.0
-   this%cr_scat    (11,0:nscat) = 0.0
-   this%cr_delfr   (  0:nscat) = 0.0
-   this%cr_delfi   (  0:nscat) = 0.0
+   this%cr_gen_add (4,4,0:192)  = 0.0_PREC_DP
+   this%cr_sym_add (4,4,0:192)  = 0.0_PREC_DP
+   this%cr_scat    (11,0:nscat) = 0.0_PREC_DP
+   this%cr_delfr   (  0:nscat)  = 0.0_PREC_DP
+   this%cr_delfi   (  0:nscat)  = 0.0_PREC_DP
    this%cr_scat_int(  0:nscat) = .TRUE.
    this%cr_scat_equ(  0:nscat) = .FALSE.
    this%cr_delf_int(  0:nscat) = .FALSE.
    this%cr_at_equ  (  0:nscat) = ' '
    this%cr_sav_atom(  0:nscat) = .TRUE.
    this%cr_at_lis  (  0:nscat) = ' '
-   this%cr_dw      (  0:nscat) = 0.0
-   this%cr_occ     (  0:nscat) = 0.0
+   this%cr_dw      (  0:nscat) = 0.0_PREC_DP
+   this%cr_anis    (:,0:nscat) = 0.0_PREC_DP
+   this%cr_is_sym  (  1:ncatoms) = 0
+   this%cr_occ     (  0:nscat) = 0.0_PREC_DP
 !  this%atoms      (natoms   )
    this%cr_mole_len  (0:n_mole) = 0
    this%cr_mole_off  (0:n_mole) = 0
@@ -244,11 +256,11 @@ CONTAINS
    this%cr_mole_char (0:n_mole) = 0
    this%cr_mole_file (0:n_mole) = ' '
    this%cr_mole_cont (0:n_atom) = 0
-   this%cr_mole_dens (0:n_mole) = 0.0
-   this%cr_mole_biso (0:n_type) = 0.0
-   this%cr_mole_clin (0:n_type) = 0.0
-   this%cr_mole_cqua (0:n_type) = 0.0
-   this%cr_mole_fuzzy(0:n_mole) = 0.0
+   this%cr_mole_dens (0:n_mole) = 0.0_PREC_DP
+   this%cr_mole_biso (0:n_type) = 0.0_PREC_DP
+   this%cr_mole_clin (0:n_type) = 0.0_PREC_DP
+   this%cr_mole_cqua (0:n_type) = 0.0_PREC_DP
+   this%cr_mole_fuzzy(0:n_mole) = 0.0_PREC_DP
 !
    this%cr_natoms = natoms                            ! Store number of atoms
    this%cr_nscat  = nscat                             ! Store number of atom types
@@ -279,6 +291,18 @@ CONTAINS
    get_nscat = this%cr_nscat
 !
    END FUNCTION get_nscat
+!******************************************************************************
+   INTEGER FUNCTION get_nanis (this )
+!
+!  Return the number of ADPs in "this" crystal
+!
+   IMPLICIT none
+!
+   CLASS (cl_cryst) :: this
+!
+   get_nanis = this%cr_nanis
+!
+   END FUNCTION get_nanis
 !******************************************************************************
    INTEGER FUNCTION get_n_mole (this )
 !
@@ -710,6 +734,10 @@ use precision_mod
          ENDIF
       ENDDO
    ENDIF
+!
+   this%cr_anis(1:6,1:cr_nscat) = cr_anis(1:6,1:cr_nscat)
+   this%cr_is_sym(1:cr_ncatoms) = cr_is_sym(1:cr_ncatoms)
+!
 !  save Occupancy values 
 !
    ia =  0
@@ -839,10 +867,11 @@ use precision_mod
 !******************************************************************************
    SUBROUTINE set_crystal_from_local   ( this, strucfile, &
             rd_NMAX, rd_MAXSCAT, rd_n_mole, rd_n_mole_type, rd_n_atom, rd_cr_name,       &
-            rd_cr_natoms, rd_cr_ncatoms, rd_cr_n_REAL_atoms, rd_cr_spcgrno, rd_cr_syst, &
+            rd_cr_natoms, rd_cr_ncatoms, rd_cr_nanis, rd_cr_n_REAL_atoms, rd_cr_spcgrno,&
+            rd_cr_syst, &
             rd_cr_spcgr, rd_cr_spcgr_set, rd_cr_set, rd_cr_iset,                        &
             rd_cr_spc_n, rd_cr_at_lis, rd_cr_at_equ, rd_cr_as_lis,         &
-            rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win,                      &
+            rd_cr_nscat, rd_cr_dw, rd_cr_anis, rd_cr_is_sym, rd_cr_occ, rd_cr_a0, rd_cr_win,                      &
             rd_cr_ar, rd_cr_wrez, rd_cr_v, rd_cr_vr, rd_cr_dim, rd_cr_dim0, rd_cr_icc,  &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_cr_tran_g, rd_cr_tran_gi, rd_cr_tran_f, rd_cr_tran_fi, rd_cr_gmat, rd_cr_fmat, &
@@ -875,7 +904,8 @@ use precision_mod
 !
    CHARACTER (LEN=  80)                         , INTENT(IN) :: rd_cr_name 
    INTEGER                                      , INTENT(IN) :: rd_cr_natoms 
-   INTEGER                                      , INTENT(IN) :: rd_cr_ncatoms 
+   INTEGER                                      , INTENT(IN) :: rd_cr_ncatoms  ! Number of atoms per unit cell
+   INTEGER                                      , INTENT(IN) :: rd_cr_nanis    ! Number of ADPs
    INTEGER                                      , INTENT(IN) :: rd_n_mole      ! Molecule number in this crystal
    INTEGER                                      , INTENT(IN) :: rd_n_mole_type ! Molecule number in this crystal
    INTEGER                                      , INTENT(IN) :: rd_n_atom      ! Atoms in molecule in this crystal 
@@ -898,6 +928,8 @@ use precision_mod
    INTEGER             , DIMENSION(3)           , INTENT(IN) :: rd_cr_icc
    INTEGER                                      , INTENT(IN) :: rd_cr_nscat 
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_dw     ! (0:MAXSCAT) 
+   REAL(kind=PREC_DP)  , DIMENSION(1:6,0:rd_MAXSCAT), INTENT(IN) :: rd_cr_anis   ! (0:MAXSCAT) 
+   integer             , DIMENSION(  :)         , intent(in) ::  rd_cr_is_sym  ! (  0:NCATOMS) Site was created by this sym.op.
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_occ    ! (0:MAXSCAT)   !! WORK OCC
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_at_lis ! (0:MAXSCAT) 
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_at_equ ! (0:MAXSCAT) 
@@ -1070,6 +1102,8 @@ use precision_mod
          ENDIF
       ENDDO
    ENDIF
+   this%cr_anis(1:6,1:rd_cr_nscat) = rd_cr_anis(1:6,1:rd_cr_nscat)
+   this%cr_is_sym(1:rd_cr_ncatoms) = rd_cr_is_sym(1:rd_cr_ncatoms)
    this%cr_nscat = ia
 !
 !  save occupancy values 
@@ -1612,6 +1646,8 @@ use precision_mod
       DEALLOCATE ( this%cr_sav_atom, STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_at_lis  , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_dw      , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_anis    , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_is_sym  , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_occ     , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%atoms      , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_mole_len  , STAT=istatus ) ! Always deallocate molecules

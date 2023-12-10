@@ -54,6 +54,7 @@ REAL(kind=PREC_DP)  ::  st_sym_add(4,4,0:st_sym_ADD_MAX)
 !
 INTEGER                              :: sa_natoms
 INTEGER                              :: st_nscat
+INTEGER                              :: st_nanis  ! Number of ADPs
 INTEGER                              :: sa_nscat
 INTEGER , DIMENSION(:), ALLOCATABLE  :: st_iscat  ! (1:ST_MMAX)
 INTEGER , DIMENSION(:), ALLOCATABLE  :: st_mole   ! (1:ST_MMAX)

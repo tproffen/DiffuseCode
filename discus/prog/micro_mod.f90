@@ -27,6 +27,7 @@ REAL(kind=PREC_DP)  :: mk_dim(3,2) = 0.0D0
 INTEGER             :: ik,il
 INTEGER             :: mk_nscat    = 0
 INTEGER             :: mk_natoms   = 0
+INTEGER             :: mk_nanis    = 0   ! Number of ADPs
 !
 INTEGER             :: mk_spcgr_ianz = 1,mk_spcgr_para = 0
 INTEGER             :: mk_spcgr_no = 1

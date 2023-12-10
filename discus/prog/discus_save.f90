@@ -990,7 +990,7 @@ CHARACTER ( LEN=80 ) :: ier_msg_local
 !
 !     Allocate sufficient space, even for all headers, and atom type, if they are omitted
 !
-      CALL ptr%crystal%alloc_arrays(cr_natoms,MAXSCAT, &
+      CALL ptr%crystal%alloc_arrays(cr_natoms, MAXSCAT, cr_ncatoms, cr_nanis, &
            mole_max_mole, mole_max_type, mole_max_atom ) ! Allocate the crystal arrays
 !
 !     An internal crystal has ALL headers saved, logical flags are used to indicate
