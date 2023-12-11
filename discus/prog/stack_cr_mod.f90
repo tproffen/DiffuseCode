@@ -23,7 +23,10 @@ integer :: st_iset
 !
 REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: st_scat  ! (9,0:ST_MAX_SCAT)
 REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: st_dw    ! (  0:ST_MAX_SCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: st_anis  ! (  0:ST_MAX_SCAT)
 REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: st_occ   ! (  0:ST_MAX_SCAT)
+REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE  ::  st_anis_full! U(ij) ADP anis  ! 0: number of atoms per unit cell
+REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE  ::  st_prin ! Eigenvectors    ! 0: number of atoms per unit cell
 REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: sa_dw    ! (  0:ST_MAX_SCAT)
 REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: sa_occ   ! (  0:ST_MAX_SCAT)
 REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: st_delfr ! (  0:ST_MAX_SCAT)
