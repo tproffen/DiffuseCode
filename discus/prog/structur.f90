@@ -648,6 +648,7 @@ SUBROUTINE do_readstru(MAXMASK, strucfile, l_site, uni_mask)
 !
 ! Do the full job for a 'read stru ' command
 !
+use discus_allocate_appl_mod
 USE crystal_mod 
 USE chem_mod 
 USE molecule_mod 
@@ -694,6 +695,8 @@ ELSE internals
       RETURN                 ! Jump to handle error messages, amd macro conditions
    ENDIF
 !
+   call alloc_unitcell(cr_ncatoms)
+   cr_is_sym = 1
    call prep_anis
 !
 ENDIF internals
@@ -3007,6 +3010,9 @@ cr_magnetic  = .FALSE.
       cr_scat_equ (i) = .false. 
       ENDDO 
       cr_dw(:)     = 0.0_PREC_DP
+cr_anis = 0.0_PREC_DP
+cr_anis_full = 0.0_PREC_DP
+cr_prin      = 0.0_PREC_DP
       cr_occ(:)    = 1.0_PREC_DP
       as_dw(:)     = 0.0_PREC_DP
       as_occ(:)    = 1.0_PREC_DP
