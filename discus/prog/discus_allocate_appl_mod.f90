@@ -3246,6 +3246,9 @@ END SUBROUTINE alloc_powder_nmax
       CALL alloc_arr ( st_dw,          0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+      CALL alloc_arr ( st_anis,    1,6,0,n_scat,  all_status, 0.0D0)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
       CALL alloc_arr ( sa_dw,          0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
