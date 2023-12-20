@@ -986,7 +986,6 @@ ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then
                elseif(opara(O_TABLE)(1:4)=='disc') then
                   diff_table= RAD_DISC
                   diff_file = opara(O_FILE)
-                  write(*,*) ' table', diff_table, ' ', diff_file(1:len_trim(diff_file))
                endif
 !                                                                       
 !     set a zone axis pattern calculation
@@ -1262,6 +1261,8 @@ CHARACTER(len=8) :: radiation
 CHARACTER (LEN=8), DIMENSION(3), PARAMETER :: c_rad = (/ &
  'X-ray   ', 'neutron ', 'electron' /)
 CHARACTER(LEN=1), DIMENSION(0:3)           ::  extr_achs (0:3) 
+character(len=27), dimension(0:2), parameter :: ctable = (/ &
+ 'International Tables Vol. C', 'Waasmeier & Kirfel         ', 'Discamb                    '/)
 REAL(kind=PREC_DP)                         ::  angle_vh
 REAL(kind=PREC_DP)                         ::  ratio_vh
 REAL(kind=PREC_DP)                         ::   aver_vh
@@ -1290,7 +1291,7 @@ WRITE (output_io, 1025) fave * 100.0
 ENDIF 
 endif
 IF (four_mode.eq.INTERNAL) then 
- WRITE (output_io, 1030) 'atom form factors' 
+ WRITE (output_io, 1030) 'atom form factors taken from: ' , ctable(diff_table)
 ELSEIF (four_mode.eq.EXTERNAL) then 
  WRITE (output_io, 1030) 'object form factors' 
 ENDIF 
@@ -1332,6 +1333,11 @@ IF (ano) then
 ELSE 
  WRITE (output_io, 1310) 'ignored' 
 ENDIF 
+if(four_filter==FOUR_FILTER_OFF) then
+  write(output_io, 1320) 
+elseif(four_filter==FOUR_FILTER_LANCZOS) then
+   write(output_io, 1321) four_width, four_damp, four_rscale
+endif
 !
 IF(l_zone) THEN
  WRITE( output_io, 1500) zone_uvw(:)
@@ -1408,7 +1414,7 @@ ENDIF
 &          ' (based on ',F5.1,'% of cryst.)')                      
 1025 FORMAT (  ' Fourier technique    : Non-uniform FFT Fourier, minus <F>',     &
 &          ' (based on ',F5.1,'% of cryst.)')                      
-1030 FORMAT (  ' Fourier calculated by: ',a) 
+1030 FORMAT (  ' Fourier calculated by: ',a,a) 
 1100 FORMAT (  '   Fourier volume     : complete crystal') 
 1110 FORMAT (  '   Fourier volume     : ',I4,' box shaped lots') 
 1120 FORMAT (  '   Fourier volume     : ',I4,' ellipsoid shaped lots') 
@@ -1424,6 +1430,8 @@ ENDIF
 &          ' = ',F7.4,' A')                                        
 1300 FORMAT (  '   Temp. factors      : ',A) 
 1310 FORMAT (  '   Anomalous scat.    : ',A) 
+1320 FORMAT (  '   Filter function    : Not applied ')
+1321 FORMAT (  '   Filter function    : Lanczos:  Width:', i5,' Damping:', f7.2, ' Scale:',f7.2) 
 1400 FORMAT (/,' Reciprocal layer     : ',/                            &
 &          '   lower left  corner : ',3(2x,f9.4),/                 &
 &          '   lower right corner : ',3(2x,f9.4),/                 &
