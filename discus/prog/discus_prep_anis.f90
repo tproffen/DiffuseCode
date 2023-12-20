@@ -86,7 +86,7 @@ loop_atoms:do iatom=1,cr_ncatoms
 !  write(*,*)
 !  write(*,'(a,i3,2i3, 3f7.3, i4)') ' ATOM ', iatom, itype, cr_iscat(iatom,3), cr_pos(:,iatom), cr_is_sym(iatom)
 !  write(*,'(a,        6f7.3    )') ' UANI ', cr_anis(:,itype)
-   if(maxval(abs(cr_anis(:,itype)))> 0.0D0) then
+   if(maxval(abs(cr_anis(2:,itype)))> 0.0D0) then     ! Elements 1 to 6 are given
       uij(1,1) = cr_anis(1, itype)
       uij(2,2) = cr_anis(2, itype)
       uij(3,3) = cr_anis(3, itype)
@@ -99,14 +99,18 @@ loop_atoms:do iatom=1,cr_ncatoms
       cr_iscat(iatom, 3) = cr_is_sym(iatom)
    else
       ucij      = 0.0D0
-      if(cr_dw(itype)>0.0_PREC_DP) then
-      ucij(1,1) = cr_dw(itype)/8.0D0/pi**2    ! WORK !?!??!
-      ucij(2,2) = cr_dw(itype)/8.0D0/pi**2
-      ucij(3,3) = cr_dw(itype)/8.0D0/pi**2
-      else
-      ucij(1,1) = 1.0/8.0D0/pi**2
-      ucij(2,2) = 1.0/8.0D0/pi**2
-      ucij(3,3) = 1.0/8.0D0/pi**2
+      if(cr_anis(1,itype)> 0.0D0) then                ! Element U11 is the only one take as Uiso
+         ucij(1,1) = cr_anis(1,itype)
+         ucij(2,2) = cr_anis(1,itype)
+         ucij(3,3) = cr_anis(1,itype)
+      elseif(cr_dw(itype)>0.0_PREC_DP) then
+         ucij(1,1) = cr_dw(itype)/8.0D0/pi**2    ! WORK !?!??!
+         ucij(2,2) = cr_dw(itype)/8.0D0/pi**2
+         ucij(3,3) = cr_dw(itype)/8.0D0/pi**2
+      else                                       ! Default, make sure ADP parameters are not zero
+         ucij(1,1) = 1.0/8.0D0/pi**2
+         ucij(2,2) = 1.0/8.0D0/pi**2
+         ucij(3,3) = 1.0/8.0D0/pi**2
       endif
       uij = matmul((cr_dimat), matmul(ucij, transpose(cr_dimat)))
 !      uij       = 0.0_PREC_DP
