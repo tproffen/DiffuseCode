@@ -1040,24 +1040,45 @@ end subroutine alloc_unitcell
 !
 !*******************************************************************************
 !
-subroutine alloc_anis(n_atoms)
+subroutine alloc_anis(nanis)
 !-
-!  Allocate arrays specific fo a single unit cell
+!  Allocate arrays for ADPs, actual crystal
 !+
 use crystal_mod
 use precision_mod
 !
 implicit none
 !
-integer, intent(in) :: n_atoms  ! Number atoms per unit cell
+integer, intent(in) :: nanis  ! Number different ADP types
+!
+call alloc_anis_generic(nanis, cr_anis_full, cr_prin)
+!call alloc_arr(cr_anis_full, 1, 6, 1, n_atoms, all_status, 1.0D0)
+!call alloc_arr(cr_prin, 1, 3, 1, 3,  1, n_atoms, all_status, 1.0D0)
+!call alloc_arr(cr_u2  , 1, 3, 1, n_atoms, all_status, 1.0D0)
+!
+end subroutine alloc_anis
+!
+!*******************************************************************************
+!
+subroutine alloc_anis_generic(nanis, anis_full, prin)
+!-
+!  Allocate arrays specific fo a single unit cell
+!+
+use precision_mod
+!
+implicit none
+!
+integer, intent(in) :: nanis  ! Number atoms per unit cell
+real(kind=PREC_DP), dimension(:,:)  , allocatable, intent(inout) :: anis_full
+real(kind=PREC_DP), dimension(:,:,:), allocatable, intent(inout) :: prin
 !
 integer :: all_status
 !
-call alloc_arr(cr_anis_full, 1, 6, 1, n_atoms, all_status, 1.0D0)
-call alloc_arr(cr_prin, 1, 3, 1, 3,  1, n_atoms, all_status, 1.0D0)
-call alloc_arr(cr_u2  , 1, 3, 1, n_atoms, all_status, 1.0D0)
+call alloc_arr(anis_full, 1, 6, 1, nanis, all_status, 1.0D0)
+call alloc_arr(prin, 1, 3, 1, 4,  1, nanis, all_status, 1.0D0)
+!call alloc_arr(cr_u2  , 1, 3, 1, nanis, all_status, 1.0D0)
 !
-end subroutine alloc_anis
+end subroutine alloc_anis_generic
 !
 !*******************************************************************************
 !
@@ -3282,7 +3303,7 @@ END SUBROUTINE alloc_powder_nmax
       CALL alloc_arr ( st_delfi       ,0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( st_iscat      ,1,n_max ,  all_status, 0)
+      CALL alloc_arr ( st_iscat      ,1,n_max, 1, 3 ,  all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       CALL alloc_arr ( st_prop       ,1,n_max ,  all_status, 0)
