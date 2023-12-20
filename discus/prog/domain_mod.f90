@@ -69,7 +69,7 @@ REAL(kind=PREC_DP),DIMENSION(:), allocatable :: clu_mole_cqua
 REAL(kind=PREC_DP),DIMENSION(:), allocatable :: clu_mole_fuzzy
 INTEGER,           DIMENSION(:), allocatable :: clu_mole_cont
 REAL(kind=PREC_DP)  , DIMENSION(3)  :: clu_cr_pos
-INTEGER                             :: clu_cr_iscat
+INTEGER             , dimensioN(3)  :: clu_cr_iscat
 INTEGER                             :: clu_cr_prop
 INTEGER             , DIMENSION(0:3):: clu_cr_surf
 REAL(kind=PREC_DP)  , DIMENSION(0:3):: clu_cr_magn

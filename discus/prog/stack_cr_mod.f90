@@ -25,6 +25,7 @@ REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: st_scat  ! (9,0:ST_MAX_SCAT)
 REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: st_dw    ! (  0:ST_MAX_SCAT)
 REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: st_anis  ! (  0:ST_MAX_SCAT)
 REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: st_occ   ! (  0:ST_MAX_SCAT)
+integer           , DIMENSION(  :), ALLOCATABLE :: st_is_sym! (  0:ST_MAX_SCAT)
 REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE  ::  st_anis_full! U(ij) ADP anis  ! 0: number of atoms per unit cell
 REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE  ::  st_prin ! Eigenvectors    ! 0: number of atoms per unit cell
 REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE :: sa_dw    ! (  0:ST_MAX_SCAT)
@@ -59,7 +60,7 @@ INTEGER                              :: sa_natoms
 INTEGER                              :: st_nscat
 INTEGER                              :: st_nanis  ! Number of ADPs
 INTEGER                              :: sa_nscat
-INTEGER , DIMENSION(:), ALLOCATABLE  :: st_iscat  ! (1:ST_MMAX)
+INTEGER , DIMENSION(:,:), ALLOCATABLE  :: st_iscat  ! (1:ST_MMAX)
 INTEGER , DIMENSION(:), ALLOCATABLE  :: st_mole   ! (1:ST_MMAX)
 INTEGER , DIMENSION(:,:), ALLOCATABLE:: st_surf   ! (1:ST_MMAX)
 REAL(kind=PREC_DP)    , DIMENSION(:,:), ALLOCATABLE:: st_magn   ! (1:ST_MMAX)
@@ -68,6 +69,7 @@ INTEGER , DIMENSION(:), ALLOCATABLE  :: sa_iscat  ! (1:ST_MAX_SCAT)
 INTEGER , DIMENSION(:), ALLOCATABLE  :: sa_prop   ! (1:ST_MAX_SCAT)
 INTEGER                              :: st_ndel
 INTEGER                              :: st_natoms
+INTEGER                              :: st_ncatoms
 INTEGER                              :: st_spcgr_ianz
 INTEGER                              :: st_spcgr_para
 LOGICAL                              :: st_magnetic

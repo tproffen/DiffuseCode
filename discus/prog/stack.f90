@@ -1154,7 +1154,7 @@ ELSEIF (st_distr.eq.ST_DIST_FILE.or.st_distr.eq.ST_DIST_LIST) THEN if_distr
 !     --Stacking fault origins are read from file                       
 !                                                                       
    IF(st_infile(1:8)=='internal') THEN
-            CALL testfile_internal (st_infile,st_natoms, &        ! Get size of internal structure
+            CALL testfile_internal (st_infile,st_natoms, st_ncatoms, &        ! Get size of internal structure
              st_nscat, n_mole, n_type, n_atom)
    ELSE
       ier_num = -182
@@ -1199,14 +1199,14 @@ ELSEIF (st_distr.eq.ST_DIST_FILE.or.st_distr.eq.ST_DIST_LIST) THEN if_distr
 !        st_spcgr, st_a0, st_win, st_natoms, st_nscat, st_dw, st_at_lis,&
 !        st_pos, st_iscat, st_dim, sa_natoms, sa_at_lis, sa_dw, sa_pos, &
 !        sa_iscat)                                                      
-   st_type (1) = st_iscat (1) 
-   st_nlayer = st_natoms 
+   st_type(1) = st_iscat(1,1) 
+   st_nlayer  = st_natoms 
                                                                     
 !DBG                                                                    
 !DBG      write (output_io,*) 'st_natoms ', st_natoms                   
    IF (st_distr.eq.ST_DIST_LIST) then 
       DO i = 1, st_natoms 
-         st_type (i) = st_iscat (i) 
+         st_type(i) = st_iscat(i,1) 
          st_number (st_type (i) ) = st_number (st_type (i) ) + 1 
          DO j = 1, 3 
             st_origin (j, i) = st_pos (j, i) 
@@ -1312,7 +1312,7 @@ loop_layer: DO i = 2, st_nlayer
 !     --Stacking fault types are read from file                         
 !                                                                       
       lprev = .true. 
-      st_type (i) = st_iscat (i) 
+      st_type(i) = st_iscat(i,1) 
    ENDIF 
 !                                                                       
 !     --Determine current translation vector                            
@@ -1448,6 +1448,7 @@ st_ncunit =nint( &
 !
 !     Save the list of origins as internal file
 !
+st_nanis = 0
 CALL save_internal(tempfile)        ! temporarily save current structure
 !
 natoms = st_nlayer
@@ -1466,6 +1467,7 @@ IF( need_alloc) THEN
 ENDIF
 cr_natoms = st_nlayer
 cr_nscat  = st_ntypes
+cr_nanis  = 0
 cr_dw      (:) = 0.1
 cr_scat_int(:) = .FALSE.
 cr_scat_equ(:) = .FALSE.
@@ -1662,6 +1664,7 @@ real(kind=PREC_DP), parameter        :: TOL=1.0D-5
 character(len=PREC_STRING) :: strucfile
 !                                                                       
 integer          :: natom = 0
+integer          :: ncatoms = 0
 integer          :: nscat = 0
 INTEGER          :: natoms=0, max_natoms=0
 INTEGER          :: nscats=0, max_nscats=0
@@ -1742,7 +1745,7 @@ more1: IF (st_nlayer.ge.1) then
 !        enddo
    DO i = 1, st_ntypes
       IF(st_internal(i) ) THEN
-         CALL testfile_internal ( st_layer (i ), natoms, nscats, n_mole, &
+         CALL testfile_internal ( st_layer (i ), natoms, ncatoms, nscats, n_mole, &
                           n_type, n_atom)
       ELSE
          ier_num = -182
@@ -1841,6 +1844,14 @@ more1: IF (st_nlayer.ge.1) then
          cr_pos (k, j) = cr_pos (k, j) + st_origin (k, i) 
       ENDDO 
    ENDDO 
+!
+!do j=1, cr_natoms
+!write(*,'(a,i4,3f9.5,3i4, 6f8.4)') cr_at_lis(cr_iscat(j,1)), j, cr_pos(:,j), cr_iscat(j,:), cr_anis_full(:,cr_iscat(j,3))
+!enddo 
+!write(*,*) ' cr_nanis', cr_nanis
+!do j=1,cr_nanis
+!write(*,'(a,6f8.4)') j, cr_anis_full(:,j)
+!enddo
 !                                                                       
 !     --Initialise rotation disorder                                    
 !                                                                       
@@ -1881,10 +1892,19 @@ more1: IF (st_nlayer.ge.1) then
 !
 !write(*,*) ' READING LAYER TYPES 1: ', st_ntypes, st_nscat
 !read(*,*) i
-   do i=1, st_ntypes
+loop_st_ntypes: do i=1, st_ntypes
+      call readstru_size_int(st_layer(i), st_natoms, sav_ncatoms, &
+              st_nscat, st_nanis, n_mole, n_type, n_atom)
+      if(allocated(st_is_sym)) deallocate(st_is_sym)
+      allocate(st_is_sym(1:sav_ncatoms))
+      st_is_sym = 1
+      st_nanis=max(1, st_nanis)
+      call alloc_anis_generic(st_nanis, st_anis_full, st_prin)
          CALL stru_readheader_internal (st_layer(        i ), MAXSCAT, st_name, &
                st_spcgr, st_spcgr_set, st_set, st_iset,                         &
-               st_at_lis, st_nscat, st_dw, st_occ, st_a0, st_win,               &
+               st_at_lis, st_nscat, st_dw, st_occ, st_anis, st_is_sym,          &
+               st_nanis, st_anis_full, st_prin,                                 &
+               st_a0, st_win,                                                   &
                sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para,     &
                GEN_ADD_MAX, gen_add_n, gen_add_power, gen_add,                  &
                SYM_ADD_MAX, sym_add_n, sym_add_power, sym_add)
@@ -1913,7 +1933,7 @@ more1: IF (st_nlayer.ge.1) then
             cr_dw    (kk) = st_dw(j )                ! Set new ADP
          endif
       enddo
-   enddo
+   enddo loop_st_ntypes
 !                                                                       
 !     --Loop over all layers in crystal                                 
 !                                                                       
@@ -1926,9 +1946,18 @@ more1: IF (st_nlayer.ge.1) then
 !                                                                       
          gen_add_n = 0 
          sym_add_n = 0 
+         call readstru_size_int(st_layer(st_type(i)), st_natoms, sav_ncatoms, &
+                 st_nscat, st_nanis, n_mole, n_type, n_atom)
+         if(allocated(st_is_sym)) deallocate(st_is_sym)
+         allocate(st_is_sym(1:sav_ncatoms))
+         st_is_sym = 1
+         st_nanis=max(1, st_nanis)
+         call alloc_anis_generic(st_nanis, st_anis_full, st_prin)
          CALL stru_readheader_internal (st_layer(st_type(i)), MAXSCAT, st_name, &
                st_spcgr, st_spcgr_set, st_set, st_iset,                         &
-               st_at_lis, st_nscat, st_dw, st_occ, st_a0, st_win,               &
+               st_at_lis, st_nscat, st_dw, st_occ, st_anis, st_is_sym,          &
+               st_nanis, st_anis_full, st_prin,                                 &
+               st_a0, st_win,                                                   &
                sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para,     &
                GEN_ADD_MAX, gen_add_n, gen_add_power, gen_add,                  &
                SYM_ADD_MAX, sym_add_n, sym_add_power, sym_add)
@@ -1999,7 +2028,7 @@ more1: IF (st_nlayer.ge.1) then
       DO j = 1    , st_natoms 
          kk = -1
          loop_type: do k=1,cr_nscat
-            if(cr_at_lis(k)==st_at_lis(st_iscat(j)) .and. abs(cr_dw(k)-st_dw(st_iscat(j)))<TOL) then
+            if(cr_at_lis(k)==st_at_lis(st_iscat(j,1)) .and. abs(cr_dw(k)-st_dw(st_iscat(j,1)))<TOL) then
                kk = k
                exit loop_type
             endif
@@ -2015,8 +2044,8 @@ more1: IF (st_nlayer.ge.1) then
             endif
             kk       = cr_nscat + 1
             cr_nscat = cr_nscat + 1                  ! Increment atom types
-            cr_at_lis(kk) = st_at_lis(st_iscat(j))             ! Set new atom type
-            cr_dw    (kk) = st_dw(st_iscat(j) )                ! Set new ADP
+            cr_at_lis(kk) = st_at_lis(st_iscat(j,1))             ! Set new atom type
+            cr_dw    (kk) = st_dw(st_iscat(j,1) )                ! Set new ADP
          endif
          cr_iscat(iatom-1+j,1) = kk 
          cr_prop (iatom-1+j) = st_prop(j)
@@ -2318,6 +2347,7 @@ integer, parameter :: MAXMASK = 4
       INTEGER, dimension(3)         :: n_qxy    = 1 ! Number of data points in reciprocal space
       INTEGER         :: n_nscat  = 1 ! Number of different atom types
       INTEGER         :: n_atoms  = 1 ! Number of atoms
+      INTEGER         :: ncatoms  = 1 ! Number of atoms
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
@@ -2421,7 +2451,7 @@ csf(1:num(1),1:num(2), 1:num(3)) = cmplx(0.0D0, 0.0D0,KIND=KIND(0.0D0))
 !                                                                       
          CALL rese_cr 
          IF(st_layer(1)(1:8)=='internal') THEN
-            CALL testfile_internal (st_layer(1), n_atoms, &        ! Get size of internal structure
+            CALL testfile_internal (st_layer(1), n_atoms, ncatoms, &        ! Get size of internal structure
               n_nscat, n_mole, n_type, n_atom)
          ELSE
             ier_num = -182
@@ -2527,7 +2557,7 @@ DO j = 1, st_nlayer
 !                                                                       
             CALL rese_cr 
             IF(st_layer(l)(1:8)=='internal') THEN
-               CALL testfile_internal (st_layer(l), n_atoms, &        ! Get size of internal structure
+               CALL testfile_internal (st_layer(l), n_atoms, ncatoms, &        ! Get size of internal structure
                  n_nscat, n_mole, n_type, n_atom)
             ELSE
                ier_num = -182
@@ -2779,6 +2809,7 @@ integer, parameter :: MAXMASK = 4
       INTEGER, dimension(3)         :: n_qxy    = 1! Number of data points in reciprocal space
       INTEGER         :: n_nscat  = 1! Number of different atom types
       INTEGER         :: n_natoms = 1! Number of atoms 
+      INTEGER         :: ncatoms = 1! Number of atoms 
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
@@ -2856,7 +2887,7 @@ endif
 !                                                                       
             CALL rese_cr 
             IF(st_layer(1)(1:8)=='internal') THEN
-               CALL testfile_internal (st_layer(1), n_natoms, &        ! Get size of internal structure
+               CALL testfile_internal (st_layer(1), n_natoms, ncatoms, &        ! Get size of internal structure
                  n_nscat, n_mole, n_type, n_atom)
             ELSE
                ier_num = -182
@@ -3005,7 +3036,7 @@ endif
 !                                                                       
             CALL rese_cr 
             IF(st_layer(l)(1:8)=='internal') THEN
-               CALL testfile_internal (st_layer(l), n_natoms, &        ! Get size of internal structure
+               CALL testfile_internal (st_layer(l), n_natoms, ncatoms, &        ! Get size of internal structure
                  n_nscat, n_mole, n_type, n_atom)
             ELSE
                ier_num = -182
@@ -3138,6 +3169,7 @@ SUBROUTINE stack_dist_file ()
 !     origins of the stacking faults.                                   
 !+                                                                      
 USE discus_config_mod 
+use discus_allocate_appl_mod
 USE read_internal_mod
 USE stack_mod 
 USE stack_cr_mod
@@ -3150,6 +3182,9 @@ IMPLICIT none
 !                                                                       
 INTEGER, DIMENSION(3)   :: sav_ncell (3) 
 INTEGER                 :: sav_ncatoms 
+integer                 :: n_mole
+integer                 :: n_type
+integer                 :: n_atom
 LOGICAL                 :: sav_r_ncell 
 !                                                                       
 !     Initialize counters for Atom numbers                              
@@ -3164,12 +3199,24 @@ st_at_lis     = ' '  ! i=1,ST_MAX_SCAT (i) = ' '
 !     Now read the pseudo microdomain structure                         
 !
 IF(st_infile(1:8)=='internal') THEN
+   call readstru_size_int(st_infile, st_natoms, sav_ncatoms, &
+              st_nscat, st_nanis, n_mole, n_type, n_atom)
+st_natoms     = 0 
+st_nscat      = 0 
+sa_natoms     = 0 
+   if(allocated(st_is_sym)) deallocate(st_is_sym)
+   allocate(st_is_sym(1:sav_ncatoms))
+   st_is_sym = 1
 !         CALL readstru_internal (st_infile)
-   call stru_readheader_internal (st_infile, st_MAX_SCAT, st_name,   &
-            st_spcgr, st_spcgr_set, st_set, st_iset,                &
-            st_at_lis, st_nscat, st_dw, st_occ, st_a0, st_win, &
-            sav_ncell, sav_r_ncell, sav_ncatoms, st_spcgr_ianz, st_spcgr_para,   &
-            st_GEN_ADD_MAX, st_gen_add_n, st_gen_add_power, st_gen_add,                 &
+   st_nanis=max(1, st_nanis)
+   call alloc_anis_generic(st_nanis, st_anis_full, st_prin)
+   call stru_readheader_internal (st_infile, st_MAX_SCAT, st_name,             &
+            st_spcgr, st_spcgr_set, st_set, st_iset,                           &
+            st_at_lis, st_nscat, st_dw, st_occ, st_anis, st_is_sym,            &
+               st_nanis, st_anis_full, st_prin,                                &
+               st_a0, st_win,                                                  &
+            sav_ncell, sav_r_ncell, sav_ncatoms, st_spcgr_ianz, st_spcgr_para, &
+            st_GEN_ADD_MAX, st_gen_add_n, st_gen_add_power, st_gen_add,        &
             st_SYM_ADD_MAX, st_sym_add_n, st_sym_add_power, st_sym_add )
    call struc_read_atoms_internal(st_infile, st_MMAX, &
             st_natoms, st_pos, st_iscat, st_prop, &

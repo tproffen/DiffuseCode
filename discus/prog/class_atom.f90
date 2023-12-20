@@ -16,7 +16,7 @@ PUBLIC cl_atom
 !
 TYPE :: cl_atom                        ! the basic type definition
    PRIVATE
-   INTEGER                :: iscat     ! the scattering type
+   INTEGER              , dimension(3)  :: iscat     ! the scattering type
    REAL(kind=PREC_DP)   , DIMENSION(3)  :: pos       ! fractional coordinates
    INTEGER                :: prop      ! a property flag
    INTEGER, DIMENSION(0:3):: surf      ! surface charcteristics
@@ -45,14 +45,14 @@ CONTAINS
    IMPLICIT none
 !
    CLASS (cl_atom)                  :: this  ! work on "this" atoms
-   INTEGER,              INTENT(IN) :: itype ! atom type
-   REAL(kind=PREC_DP)   , DIMENSION(3),INTENT(IN) :: posit ! atom position
-   INTEGER,              INTENT(IN) :: iprop ! atom property
-   INTEGER, DIMENSION(0:3),INTENT(IN) :: isurface ! atom surface
-   REAL(kind=PREC_DP)   , DIMENSION(0:3),INTENT(IN) :: magn_mom ! atom surface
-   INTEGER, DIMENSION(1:2),INTENT(IN) :: iin_mole   ! In which molecule are we
+   INTEGER           , dimension(3)  , INTENT(IN) :: itype ! atom type
+   REAL(kind=PREC_DP), DIMENSION(3)  , INTENT(IN) :: posit ! atom position
+   INTEGER                           , INTENT(IN) :: iprop ! atom property
+   INTEGER           , DIMENSION(0:3), INTENT(IN) :: isurface ! atom surface
+   REAL(kind=PREC_DP), DIMENSION(0:3), INTENT(IN) :: magn_mom ! atom surface
+   INTEGER           , DIMENSION(1:2), INTENT(IN) :: iin_mole   ! In which molecule are we
 !
-   this%iscat   = itype
+   this%iscat(:)   = itype(:)
    this%pos(:)  = posit(:)
    this%prop    = iprop
    this%surf(:) = isurface(:)
@@ -68,12 +68,12 @@ CONTAINS
    IMPLICIT none
 !
    CLASS (cl_atom)                   :: this
-   INTEGER,              INTENT(OUT) :: itype
-   REAL(kind=PREC_DP)   , DIMENSION(3),INTENT(OUT) :: posit
-   INTEGER,              INTENT(OUT) :: iprop
-   INTEGER, DIMENSION(0:3),INTENT(OUT) :: isurface ! atom surface
-   REAL(kind=PREC_DP)   , DIMENSION(0:3),INTENT(OUT) :: magn_mom ! atom surface
-   INTEGER, DIMENSION(1:2),INTENT(OUT) :: iin_mole   ! In which molecule are we
+   INTEGER           , dimension(3)  , INTENT(OUT) :: itype
+   REAL(kind=PREC_DP), DIMENSION(3)  , INTENT(OUT) :: posit
+   INTEGER                           , INTENT(OUT) :: iprop
+   INTEGER           , DIMENSION(0:3), INTENT(OUT) :: isurface ! atom surface
+   REAL(kind=PREC_DP), DIMENSION(0:3), INTENT(OUT) :: magn_mom ! atom surface
+   INTEGER           , DIMENSION(1:2), INTENT(OUT) :: iin_mole   ! In which molecule are we
 !
    itype       = this%iscat
    posit(:)    = this%pos(:)

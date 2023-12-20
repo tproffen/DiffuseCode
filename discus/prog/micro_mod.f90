@@ -18,8 +18,11 @@ INTEGER            :: mk_iset  =  1
 CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE ::  mk_at_lis  ! (0:MK_MAX_SCAT)
 !
 REAL(kind=PREC_DP)            , DIMENSION(:), ALLOCATABLE ::  mk_dw      ! (0:MK_MAX_SCAT)
+integer                       , DIMENSION(:), ALLOCATABLE ::  mk_is_sym  ! (0:ncatoms)
 REAL(kind=PREC_DP)            , DIMENSION(:), ALLOCATABLE ::  mk_occ     ! (0:MK_MAX_SCAT)
 REAL(kind=PREC_DP)            , DIMENSION(:,:), ALLOCATABLE ::  mk_anis    ! (0:MK_MAX_SCAT)
+REAL(kind=PREC_DP)            , DIMENSION(:,:), ALLOCATABLE   :: mk_anis_full    ! (0:MK_MAX_SCAT)
+REAL(kind=PREC_DP)            , DIMENSION(:,:,:), ALLOCATABLE :: mk_prin    ! (0:MK_MAX_SCAT)
 REAL(kind=PREC_DP)  :: mk_a0(3)    = (/1.0D0, 1.0D0, 1.0D0/)
 REAL(kind=PREC_DP)  :: mk_win(3)   = (/90.0D0, 90.0D0, 90.0D0/)
 REAL(kind=PREC_DP)  :: mk_dim(3,2) = 0.0D0

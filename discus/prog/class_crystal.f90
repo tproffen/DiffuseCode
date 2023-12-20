@@ -97,6 +97,8 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
 
    REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE  ::  cr_dw      ! (  0:MAXSCAT)
    REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE  ::  cr_anis    ! (  0:MAXSCAT) User supplied Uij
+   REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE  ::  cr_anis_full    ! (  0:MAXSCAT) User supplied Uij
+   REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE  ::  cr_prin    ! (  0:MAXSCAT) User supplied Uij
    integer           , DIMENSION(  :), ALLOCATABLE  ::  cr_is_sym  ! (  0:NCATOMS) Site was created by this sym.op.
    REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE  ::  cr_occ     ! (  0:MAXSCAT)
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_lis  ! (  0:MAXSCAT)
@@ -127,6 +129,7 @@ CONTAINS
    PROCEDURE, PUBLIC, PASS :: alloc_arrays         ! allocate a set of atoms
    PROCEDURE, PUBLIC, PASS :: get_natoms           ! Return number of atoms in this crystal
    PROCEDURE, PUBLIC, PASS :: get_nscat            ! Return number of atom types in this crystal
+   PROCEDURE, PUBLIC, PASS :: get_ncatoms          ! Return number of atoms in this crystal in a unit cell
    PROCEDURE, PUBLIC, PASS :: get_nanis            ! Return number of atom types in this crystal
    PROCEDURE, PUBLIC, PASS :: get_n_mole           ! Return number of molecules types in this crystal
    PROCEDURE, PUBLIC, PASS :: get_n_type           ! Return number of molecule types in this crystal
@@ -176,6 +179,9 @@ CONTAINS
    INTEGER,              INTENT(IN) :: n_atom      ! Number of atoms in molecules for this crystal
 !
    INTEGER  :: istatus
+integer :: lanis
+!
+lanis = max(nanis, 1)   ! Make array at least one entry long
 !
    IF(this%latom) THEN                             ! Crystal was allocated 
       DEALLOCATE ( this%cr_gen_add , STAT=istatus ) ! Allocate equivalent atom names
@@ -191,9 +197,11 @@ CONTAINS
       DEALLOCATE ( this%cr_at_lis  , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_dw      , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_anis    , STAT=istatus ) ! Always deallocate
-      DEALLOCATE ( this%cr_is_sym  , STAT=istatus ) ! Always deallocate
-      DEALLOCATE ( this%cr_occ     , STAT=istatus ) ! Always deallocate
-      DEALLOCATE ( this%atoms      , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_anis_full , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_prin      , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_is_sym    , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_occ       , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%atoms        , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_mole_len  , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_off  , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_type , STAT=istatus ) ! Always deallocate molecules
@@ -218,7 +226,9 @@ CONTAINS
    ALLOCATE ( this%cr_sav_atom(  0:nscat), STAT=istatus ) ! Allocate equivalent atom names
    ALLOCATE ( this%cr_at_lis  (  0:nscat), STAT=istatus ) ! Allocate atom names
    ALLOCATE ( this%cr_dw      (  0:nscat), STAT=istatus ) ! Allocate Debye Waller terms
-   ALLOCATE ( this%cr_anis    (6,0:nscat), STAT=istatus ) ! Allocate User supplied Uij
+   ALLOCATE ( this%cr_anis     (6,0:nscat), STAT=istatus ) ! Allocate User supplied Uij
+   ALLOCATE ( this%cr_anis_full(6,1:lanis), STAT=istatus ) ! Allocate User supplied Uij
+   ALLOCATE ( this%cr_prin   (3,4,1:lanis), STAT=istatus ) ! Allocate User supplied Uij
    ALLOCATE ( this%cr_is_sym  (  1:ncatoms), STAT=istatus ) ! Allocate Atom was created by this sym.op.
    ALLOCATE ( this%cr_occ     (  0:nscat), STAT=istatus ) ! Allocate Occupancies
    ALLOCATE ( this%atoms      (natoms   ), STAT=istatus ) ! Allocate list of atoms
@@ -247,6 +257,8 @@ CONTAINS
    this%cr_at_lis  (  0:nscat) = ' '
    this%cr_dw      (  0:nscat) = 0.0_PREC_DP
    this%cr_anis    (:,0:nscat) = 0.0_PREC_DP
+   this%cr_anis_full(6,1:lanis) = 0.0_PREC_DP
+   this%cr_prin   (3,4,1:lanis) = 0.0_PREC_DP
    this%cr_is_sym  (  1:ncatoms) = 0
    this%cr_occ     (  0:nscat) = 0.0_PREC_DP
 !  this%atoms      (natoms   )
@@ -264,6 +276,7 @@ CONTAINS
 !
    this%cr_natoms = natoms                            ! Store number of atoms
    this%cr_nscat  = nscat                             ! Store number of atom types
+   this%cr_nanis  = nanis                             ! Store number of ADP  types
    this%latom  = .true.                            ! Flag that crystal is allocated
 !
    END SUBROUTINE alloc_arrays
@@ -291,6 +304,18 @@ CONTAINS
    get_nscat = this%cr_nscat
 !
    END FUNCTION get_nscat
+!******************************************************************************
+   INTEGER FUNCTION get_ncatoms (this )
+!
+!  Return the number of ADPs in "this" crystal
+!
+   IMPLICIT none
+!
+   CLASS (cl_cryst) :: this
+!
+   get_ncatoms = this%cr_ncatoms
+!
+   END FUNCTION get_ncatoms
 !******************************************************************************
    INTEGER FUNCTION get_nanis (this )
 !
@@ -408,7 +433,7 @@ CONTAINS
 !
    CLASS (cl_cryst)                 :: this
    INTEGER,                           INTENT(IN) :: inum
-   INTEGER,                           INTENT(IN) :: itype
+   INTEGER           , dimension(3),  INTENT(IN) :: itype
    REAL(kind=PREC_DP), DIMENSION(3),  INTENT(IN) :: posit
    INTEGER,                           INTENT(IN) :: iprop
    INTEGER           , DIMENSION(0:3),INTENT(IN) :: isurface
@@ -499,22 +524,22 @@ use precision_mod
    IMPLICIT none
 !
    CLASS (cl_cryst)                  :: this
-   INTEGER,              INTENT(IN)  :: inum
-   INTEGER,              INTENT(OUT) :: itype
-   CHARACTER (LEN=4),    INTENT(OUT) :: at_name
-   REAL(kind=PREC_DP),   INTENT(OUT) :: dw1
-   REAL(kind=PREC_DP),   INTENT(OUT) :: occ1   !!WORK OCC
+   INTEGER                          , INTENT(IN)  :: inum
+   INTEGER           , dimension(3) , INTENT(OUT) :: itype
+   CHARACTER (LEN=4)                , INTENT(OUT) :: at_name
+   REAL(kind=PREC_DP)               , INTENT(OUT) :: dw1
+   REAL(kind=PREC_DP)               , INTENT(OUT) :: occ1   !!WORK OCC
 !
-   REAL(kind=PREC_DP)   , DIMENSION(3)             :: posit
-   INTEGER                           :: iprop
-   INTEGER, DIMENSION(0:3)           :: isurface
-   REAL(kind=PREC_DP)   , DIMENSION(0:3)           :: magn_mom
-   INTEGER, DIMENSION(1:2)           :: iin_mole
+   REAL(kind=PREC_DP), DIMENSION(3)   :: posit
+   INTEGER                            :: iprop
+   INTEGER           , DIMENSION(0:3) :: isurface
+   REAL(kind=PREC_DP), DIMENSION(0:3) :: magn_mom
+   INTEGER           , DIMENSION(1:2) :: iin_mole
 !
    CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
-   at_name = this%cr_at_lis(itype)
-   dw1     = this%cr_dw    (itype)
-   occ1    = this%cr_occ   (itype)   !!WORK OCC
+   at_name = this%cr_at_lis(itype(1))
+   dw1     = this%cr_dw    (itype(1))
+   occ1    = this%cr_occ   (itype(1))   !!WORK OCC
 !
    END SUBROUTINE get_cryst_scat 
 !******************************************************************************
@@ -526,7 +551,7 @@ use precision_mod
 !
    CLASS (cl_cryst)                  :: this
    INTEGER,                            INTENT(IN ) :: inum
-   INTEGER,                            INTENT(OUT) :: itype
+   INTEGER           , dimension(3)  , INTENT(OUT) :: itype
    REAL(kind=PREC_DP), DIMENSION(3)  , INTENT(OUT) :: posit
    INTEGER,                            INTENT(OUT) :: iprop
    INTEGER           , DIMENSION(0:3), INTENT(OUT) :: isurface
@@ -602,7 +627,7 @@ use precision_mod
    INTEGER, DIMENSION(:), ALLOCATABLE :: iscat_table
    INTEGER               :: istatus
    INTEGER               :: inum
-   INTEGER               :: itype
+   INTEGER           , dimension(3)    :: itype
    REAL(kind=PREC_DP)   , DIMENSION(3) :: posit
    INTEGER, DIMENSION(0:3) :: isurface
    INTEGER, DIMENSION(1:2) :: iin_mole
@@ -610,7 +635,7 @@ use precision_mod
    INTEGER               :: iprop
    INTEGER               :: i,j
    INTEGER               :: ia
-   
+!
 !
    this%cr_file         = strucfile
    this%cr_name         = cr_name
@@ -622,8 +647,8 @@ use precision_mod
    this%cr_spc_n        = spc_n
    this%cr_syst         = cr_syst
    this%cr_acentric     = cr_acentric
+   this%cr_ncatoms      = cr_ncatoms
    IF(this%cr_sav_ncell) THEN
-      this%cr_ncatoms      = cr_ncatoms
       this%cr_icc          = cr_icc
    ENDIF
 !
@@ -736,6 +761,13 @@ use precision_mod
    ENDIF
 !
    this%cr_anis(1:6,1:cr_nscat) = cr_anis(1:6,1:cr_nscat)
+   if(cr_nanis>0) then
+      this%cr_anis_full(1:6,1:cr_nanis) = cr_anis_full(1:6,1:cr_nanis)
+      this%cr_prin     (:,:,1:cr_nanis) = cr_prin     (:,:,1:cr_nanis)
+   else
+      this%cr_anis_full                 = 0.0_PREC_DP
+      this%cr_prin                      = 0.0_PREC_DP
+   endif
    this%cr_is_sym(1:cr_ncatoms) = cr_is_sym(1:cr_ncatoms)
 !
 !  save Occupancy values 
@@ -822,7 +854,8 @@ use precision_mod
                                   cr_prop (inum),                &
                              this%cr_sav_sel_prop) ) THEN
          ia = ia + 1
-         itype = iscat_table(cr_iscat(inum,1))
+         itype(1) = iscat_table(cr_iscat(inum,1))
+         itype(2:3) = cr_iscat(inum,2:3)
          posit = cr_pos(:,inum)
          isurface(:) = cr_surf(:, inum)
          magn_mom(:) = cr_magn(:, inum)
@@ -866,12 +899,13 @@ use precision_mod
    END SUBROUTINE set_crystal_from_standard
 !******************************************************************************
    SUBROUTINE set_crystal_from_local   ( this, strucfile, &
-            rd_NMAX, rd_MAXSCAT, rd_n_mole, rd_n_mole_type, rd_n_atom, rd_cr_name,       &
+            rd_NMAX, rd_MAXSCAT, rd_MAXANIS, rd_n_mole, rd_n_mole_type, rd_n_atom, rd_cr_name,       &
             rd_cr_natoms, rd_cr_ncatoms, rd_cr_nanis, rd_cr_n_REAL_atoms, rd_cr_spcgrno,&
             rd_cr_syst, &
             rd_cr_spcgr, rd_cr_spcgr_set, rd_cr_set, rd_cr_iset,                        &
             rd_cr_spc_n, rd_cr_at_lis, rd_cr_at_equ, rd_cr_as_lis,         &
-            rd_cr_nscat, rd_cr_dw, rd_cr_anis, rd_cr_is_sym, rd_cr_occ, rd_cr_a0, rd_cr_win,                      &
+            rd_cr_nscat, rd_cr_dw, rd_cr_anis, rd_cr_anis_full, rd_cr_prin, rd_cr_is_sym, &
+            rd_cr_occ, rd_cr_a0, rd_cr_win,                      &
             rd_cr_ar, rd_cr_wrez, rd_cr_v, rd_cr_vr, rd_cr_dim, rd_cr_dim0, rd_cr_icc,  &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_cr_tran_g, rd_cr_tran_gi, rd_cr_tran_f, rd_cr_tran_fi, rd_cr_gmat, rd_cr_fmat, &
@@ -901,6 +935,7 @@ use precision_mod
 !
    INTEGER                                      , INTENT(IN) :: rd_NMAX
    INTEGER                                      , INTENT(IN) :: rd_MAXSCAT 
+   INTEGER                                      , INTENT(IN) :: rd_MAXANIS 
 !
    CHARACTER (LEN=  80)                         , INTENT(IN) :: rd_cr_name 
    INTEGER                                      , INTENT(IN) :: rd_cr_natoms 
@@ -929,6 +964,8 @@ use precision_mod
    INTEGER                                      , INTENT(IN) :: rd_cr_nscat 
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_dw     ! (0:MAXSCAT) 
    REAL(kind=PREC_DP)  , DIMENSION(1:6,0:rd_MAXSCAT), INTENT(IN) :: rd_cr_anis   ! (0:MAXSCAT) 
+   REAL(kind=PREC_DP)  , DIMENSION(1:6,1:rd_MAXANIS), INTENT(IN) :: rd_cr_anis_full   ! (0:MAXSCAT) 
+   REAL(kind=PREC_DP)  , DIMENSION(3,4,1:rd_MAXANIS), INTENT(IN) :: rd_cr_prin        ! (0:MAXSCAT) 
    integer             , DIMENSION(  :)         , intent(in) ::  rd_cr_is_sym  ! (  0:NCATOMS) Site was created by this sym.op.
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_occ    ! (0:MAXSCAT)   !! WORK OCC
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_at_lis ! (0:MAXSCAT) 
@@ -961,7 +998,7 @@ use precision_mod
    LOGICAL             , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_delf_int  ! (  0:MAXSCAT)
 
    REAL(kind=PREC_DP)  , DIMENSION(3,rd_NMAX)   , INTENT(IN) :: rd_cr_pos
-   INTEGER             , DIMENSION(  rd_NMAX,2)   , INTENT(IN) :: rd_cr_iscat
+   INTEGER             , DIMENSION(  rd_NMAX,3)   , INTENT(IN) :: rd_cr_iscat
    INTEGER             , DIMENSION(  rd_NMAX)   , INTENT(IN) :: rd_cr_prop
    INTEGER             , DIMENSION(0:3,rd_NMAX) , INTENT(IN) :: rd_cr_surf
    REAL(kind=PREC_DP)  , DIMENSION(0:3,rd_NMAX) , INTENT(IN) :: rd_cr_magn
@@ -970,7 +1007,7 @@ use precision_mod
    INTEGER, DIMENSION(:), ALLOCATABLE :: iscat_table
    INTEGER               :: istatus
    INTEGER               :: inum
-   INTEGER               :: itype
+   INTEGER           , dimension(3)    :: itype
    REAL(kind=PREC_DP)   , DIMENSION(3) :: posit
    INTEGER, DIMENSION(0:3) :: isurface
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom
@@ -990,8 +1027,8 @@ use precision_mod
    this%cr_spc_n        = rd_cr_spc_n
    this%cr_syst         = rd_cr_syst
    this%cr_acentric     = rd_cr_acentric
+   this%cr_ncatoms      = rd_cr_ncatoms
    IF(this%cr_sav_ncell) THEN
-      this%cr_ncatoms      = rd_cr_ncatoms
       this%cr_icc          = rd_cr_icc
    ENDIF
 !
@@ -1102,7 +1139,16 @@ use precision_mod
          ENDIF
       ENDDO
    ENDIF
+!
    this%cr_anis(1:6,1:rd_cr_nscat) = rd_cr_anis(1:6,1:rd_cr_nscat)
+!
+   if(rd_cr_nanis>0) then
+      this%cr_anis_full(1:6,1:rd_cr_nanis) = rd_cr_anis_full(1:6,1:rd_cr_nanis)
+      this%cr_prin     (3,4,1:rd_cr_nanis) = rd_cr_prin     (3,4,1:rd_cr_nanis)
+   else
+      this%cr_anis_full                 = 0.0_PREC_DP
+      this%cr_prin                      = 0.0_PREC_DP
+   endif
    this%cr_is_sym(1:rd_cr_ncatoms) = rd_cr_is_sym(1:rd_cr_ncatoms)
    this%cr_nscat = ia
 !
@@ -1144,7 +1190,8 @@ use precision_mod
                                   rd_cr_prop (inum),                &
                              this%cr_sav_sel_prop) ) THEN
          ia = ia + 1
-         itype = iscat_table(rd_cr_iscat(inum,1))
+         itype(1) = iscat_table(rd_cr_iscat(inum,1))
+         itype(2:3) = rd_cr_iscat(inum,2:3)
          posit = rd_cr_pos(:,inum)
          isurface(:) = rd_cr_surf(:,inum)
          magn_mom(:) = rd_cr_magn(:,inum)
@@ -1316,8 +1363,8 @@ use precision_mod
 !
    cr_natoms       = this%cr_natoms
 !
+   cr_ncatoms   = this%cr_ncatoms
    IF ( this%cr_sav_ncell ) THEN
-      cr_ncatoms   = this%cr_ncatoms
       cr_icc       = this%cr_icc
    ELSE
 !                                                                       
@@ -1332,6 +1379,8 @@ use precision_mod
       cr_ncatoms = cr_natoms / (cr_icc (1) * cr_icc (2) *   &
                                 cr_icc (3) )
    ENDIF
+!
+   cr_is_sym = this%cr_is_sym
 !
    IF ( this%cr_sav_gene ) THEN
       gen_add_n    = this%cr_gen_add_n
@@ -1366,8 +1415,19 @@ use precision_mod
       cr_at_equ(i)    = this%cr_at_equ(i)
       cr_at_lis(i)    = this%cr_at_lis(i)
       cr_dw(i)        = this%cr_dw(i)
+      cr_anis(:,i)    = this%cr_anis(:,i)
       cr_occ(i)       = this%cr_occ(i)
    END FORALL
+!
+   if(this%cr_nanis>0) then
+      cr_nanis        = this%cr_nanis 
+      cr_anis_full(:,1:this%cr_nanis) = this%cr_anis_full(:,1:this%cr_nanis)
+      cr_prin   (:,:,1:this%cr_nanis) = this%cr_prin   (:,:,1:this%cr_nanis)
+   else
+      cr_nanis        = 1
+      cr_anis_full(:,1:cr_nanis) = 0.0_PREC_DP
+      cr_prin   (:,:,1:cr_nanis) = 0.0_PREC_DP
+   endif
 !
    cr_newtype      = this%cr_newtype
    cr_cartesian    = this%cr_cartesian
@@ -1379,7 +1439,8 @@ use precision_mod
 !******************************************************************************
    SUBROUTINE get_header_to_local (this, rd_MAXSCAT, rd_cr_name,      &
             rd_cr_spcgr, rd_cr_spcgr_set, rd_cr_set, rd_cr_iset,      &
-            rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win,      &
+            rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_anis, rd_cr_occ, &
+            rd_cr_is_sym, rd_nanis, rd_cr_anis_full, rd_cr_prin, rd_cr_a0, rd_cr_win,      &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
@@ -1389,6 +1450,7 @@ use precision_mod
    IMPLICIT NONE
 !
    INTEGER                                      , INTENT(INOUT) :: rd_MAXSCAT 
+   INTEGER                                      , INTENT(INOUT) :: rd_sav_ncatoms 
 !
    CHARACTER (LEN=  80)                         , INTENT(INOUT) :: rd_cr_name 
    CHARACTER (LEN=  16)                         , INTENT(INOUT) :: rd_cr_spcgr 
@@ -1399,11 +1461,15 @@ use precision_mod
    REAL(kind=PREC_DP)  , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_win
    INTEGER                                      , INTENT(INOUT) :: rd_cr_nscat 
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_dw     ! (0:MAXSCAT) 
+   REAL(kind=PREC_DP), DIMENSION(6,0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_anis   ! (0:MAXSCAT) 
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_occ    ! (0:MAXSCAT)   !! WORK OCC
+   integer             , dimension(rd_sav_ncatoms), intent(out) :: rd_cr_is_sym
+   integer                                      , intent(in   ) :: rd_nanis
+   real(kind=prec_DP), dimension(6,1:rd_nanis)  , intent(  out) :: rd_cr_anis_full   ! (0:MAXSCAT) 
+   real(kind=prec_DP), dimension(3,4,1:rd_nanis), intent(  out) :: rd_cr_prin
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_at_lis ! (0:MAXSCAT) 
    INTEGER             , DIMENSION(3)           , INTENT(INOUT) :: rd_sav_ncell ! (3) 
    LOGICAL                                      , INTENT(INOUT) :: rd_sav_r_ncell 
-   INTEGER                                      , INTENT(INOUT) :: rd_sav_ncatoms 
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_ianz 
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_para 
 !
@@ -1443,8 +1509,12 @@ use precision_mod
    FORALL (i=0:this%cr_nscat)
       rd_cr_at_lis(i)    = this%cr_at_lis(i)
       rd_cr_dw(i)        = this%cr_dw(i)
+      rd_cr_anis(:,i)    = this%cr_anis(:,i)
       rd_cr_occ(i)       = this%cr_occ(i)  !! WORK OCC
    END FORALL
+!
+   rd_cr_anis_full(:,1:rd_nanis) = this%cr_anis_full(:,1:rd_nanis)
+   rd_cr_prin  (:, :,1:rd_nanis) = this%cr_prin  (:, :,1:rd_nanis)
 !
    rd_cr_nscat        = MAX(rd_cr_nscat,this%cr_nscat)
 !
@@ -1485,7 +1555,7 @@ use precision_mod
    CLASS (cl_cryst)                 :: this        ! Work on "this" crystal
 !
    INTEGER               :: inum
-   INTEGER               :: itype
+   INTEGER           , dimension(3)    :: itype
    REAL(kind=PREC_DP)   , DIMENSION(3) :: posit
    INTEGER, DIMENSION(0:3) :: isurface
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom
@@ -1497,7 +1567,7 @@ use precision_mod
    DO inum=1,this%cr_natoms
       CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
       ia = ia + 1
-      cr_iscat(ia,1) = itype
+      cr_iscat(ia,:) = itype
       cr_pos(:,ia) = posit
       cr_surf(:,ia) = isurface(:)
       cr_magn(:,ia) = magn_mom(:)
@@ -1529,7 +1599,7 @@ use precision_mod
    CLASS (cl_cryst)                 :: this        ! Work on "this" crystal
 !
    INTEGER               :: inum
-   INTEGER               :: itype
+   INTEGER           , dimension(3)    :: itype
    REAL(kind=PREC_DP)   , DIMENSION(3) :: posit
    INTEGER, DIMENSION(0:3) :: isurface
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom
@@ -1540,9 +1610,9 @@ use precision_mod
    ia = 0
    DO inum=1,this%cr_natoms
       CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
-      IF ( this%cr_sav_atom(itype)) THEN
+      IF ( this%cr_sav_atom(itype(1))) THEN
          ia = ia + 1
-         rd_cr_iscat(ia,1) = itype
+         rd_cr_iscat(ia,:) = itype
          rd_cr_pos(:,ia) = posit
          rd_cr_prop (ia) = iprop
          rd_cr_surf(:,ia)= isurface(:)
@@ -1647,9 +1717,11 @@ use precision_mod
       DEALLOCATE ( this%cr_at_lis  , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_dw      , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_anis    , STAT=istatus ) ! Always deallocate
-      DEALLOCATE ( this%cr_is_sym  , STAT=istatus ) ! Always deallocate
-      DEALLOCATE ( this%cr_occ     , STAT=istatus ) ! Always deallocate
-      DEALLOCATE ( this%atoms      , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_anis_full , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_prin      , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_is_sym    , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_occ       , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%atoms        , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_mole_len  , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_off  , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_type , STAT=istatus ) ! Always deallocate molecules

@@ -654,6 +654,7 @@ INTEGER               :: i, j, k, l
 integer               :: length
 INTEGER, DIMENSION(5) :: maxdim = 0
 INTEGER  :: natoms  ! Number of atoms in the input file
+INTEGER  :: ncatoms  ! Number of atoms per unit cell in the input file
 INTEGER  :: nscats  ! NUmber of atom types in the input file
 INTEGER  :: n_gene  ! Number of generators for molecules in the input file
 INTEGER  :: n_symm  ! Number of symm. ops. for molecules in the input file
@@ -669,6 +670,7 @@ REAL(PREC_DP) :: sgrand  ! grand time
 !
 nscats = 0
 natoms = 0
+ncatoms = 0
 n_mole = 0
 n_type = 0
 n_atom = 0
@@ -778,7 +780,7 @@ clu_moles(2,0) = mole_num_type
 DO i=1, clu_number
    infile = clu_content(i)
    IF(clu_content(i)(1:8)=='internal')THEN
-         CALL testfile_internal(  infile , natoms, &
+         CALL testfile_internal(  infile , natoms, ncatoms, &
               nscats, n_mole, n_type, n_atom)
       clu_moles(1,i) = n_mole
       clu_moles(2,i) = n_type
@@ -800,9 +802,16 @@ DO i=1, clu_number
          maxdim(3) = MAX(n_mole, MOLE_MAX_MOLE)
          maxdim(4) = MAX(n_type, MOLE_MAX_TYPE)
          maxdim(5) = MAX(n_atom, MOLE_MAX_ATOM)
+     if(allocated(mk_is_sym)) deallocate(mk_is_sym)
+     allocate(mk_is_sym(1:sav_ncatoms))
+     mk_is_sym = 1
+     mk_nanis=max(1, mk_nanis)
+     call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin)
          CALL stru_readheader_internal (infile, MK_MAX_SCAT, mk_name,   &
          mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                       &
-         mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,       &
+         mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_is_sym, &
+         mk_nanis, mk_anis_full, mk_prin, &
+         mk_a0, mk_win,       &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -917,9 +926,18 @@ clu_remove_end = cr_natoms    ! Initially remove only atoms in original crystal
 lread = .true. 
 IF ( clu_infile_internal ) THEN
 !write(*,*) ' CLU_INFILE AAA ', clu_infile(1:len_trim(clu_infile))
+   call readstru_size_int(clu_infile, mk_natoms, sav_ncatoms, &
+                 mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+   if(allocated(mk_is_sym)) deallocate(mk_is_sym)
+   allocate(mk_is_sym(1:sav_ncatoms))
+   mk_is_sym = 1
+   mk_nanis=max(1, mk_nanis)
+   call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin)
    CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name,   &
    mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                           &
-   mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,       &
+   mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_is_sym, &
+         mk_nanis, mk_anis_full, mk_prin, &
+         mk_a0, mk_win,       &
    sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
    mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
    mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -1028,9 +1046,18 @@ IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
          ENDIF
 !
          IF ( clu_infile_internal ) THEN
+            call readstru_size_int(clu_infile, mk_natoms, sav_ncatoms, &
+                          mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+            if(allocated(mk_is_sym)) deallocate(mk_is_sym)
+            allocate(mk_is_sym(1:sav_ncatoms))
+            mk_is_sym = 1
+            mk_nanis=max(1, mk_nanis)
+            call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin)
             CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name, &
             mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                         &
-            mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,     &
+            mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_is_sym, &
+         mk_nanis, mk_anis_full, mk_prin, &
+         mk_a0, mk_win,     &
             sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
             mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
             mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -1076,9 +1103,18 @@ elseif(clu_mode == CLU_IN_IRREG ) then               ! IRREGULAR domain mode
    close(imd)
    call domain_irregular !(imd, lend, infile, mc_dimen, mc_idimen, mc_matrix)
 ELSE 
+   call readstru_size_int(clu_infile, mk_natoms, sav_ncatoms, &
+                 mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+   if(allocated(mk_is_sym)) deallocate(mk_is_sym)
+   allocate(mk_is_sym(1:sav_ncatoms))
+   mk_is_sym = 1
+   mk_nanis=max(1, mk_nanis)
+   call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin)
     CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name, &
             mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                         &
-            mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,     &
+            mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_is_sym, &
+         mk_nanis, mk_anis_full, mk_prin, &
+         mk_a0, mk_win,     &
             sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
             mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
             mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -1109,21 +1145,21 @@ ELSE
          call struc_read_one_atom_internal(clu_infile, k,  &
               clu_cr_pos, clu_cr_iscat, clu_cr_prop, clu_cr_surf, &
               clu_cr_magn, clu_cr_mole, clu_cr_moleatom )
-         if(clu_at_lis(clu_cr_iscat)=='POSI') THEN
+         if(clu_at_lis(clu_cr_iscat(1))=='POSI') THEN
             mc_matrix(1:3,4) = clu_cr_pos(1:3)
-         elseif(clu_at_lis(clu_cr_iscat)=='XAXI') THEN
+         elseif(clu_at_lis(clu_cr_iscat(1))=='XAXI') THEN
             mc_matrix(1,1:3) = clu_cr_pos(1:3)
-         elseif(clu_at_lis(clu_cr_iscat)=='YAXI') THEN
+         elseif(clu_at_lis(clu_cr_iscat(1))=='YAXI') THEN
             mc_matrix(2,1:3) = clu_cr_pos(1:3)
-         elseif(clu_at_lis(clu_cr_iscat)=='ZAXI') THEN
+         elseif(clu_at_lis(clu_cr_iscat(1))=='ZAXI') THEN
             mc_matrix(3,1:3) = clu_cr_pos(1:3)
-         elseif(clu_at_lis(clu_cr_iscat)=='CENT') THEN
+         elseif(clu_at_lis(clu_cr_iscat(1))=='CENT') THEN
             mc_dimen (1:3,4) = clu_cr_pos(1:3)
-         elseif(clu_at_lis(clu_cr_iscat)=='XDIM') THEN
+         elseif(clu_at_lis(clu_cr_iscat(1))=='XDIM') THEN
             mc_dimen (1,1:3) = clu_cr_pos(1:3)
-         elseif(clu_at_lis(clu_cr_iscat)=='YDIM') THEN
+         elseif(clu_at_lis(clu_cr_iscat(1))=='YDIM') THEN
             mc_dimen (2,1:3) = clu_cr_pos(1:3)
-         elseif(clu_at_lis(clu_cr_iscat)=='ZDIM') THEN
+         elseif(clu_at_lis(clu_cr_iscat(1))=='ZDIM') THEN
             mc_dimen (3,1:3) = clu_cr_pos(1:3)
          endif
       enddo
@@ -1833,6 +1869,7 @@ SUBROUTINE micro_read_atoms (infile, mc_idimen, mc_matrix)
 !+
 !
 USE discus_config_mod 
+USE discus_allocate_appl_mod
 USE crystal_mod 
 USE metric_mod
 USE micro_mod 
@@ -1854,15 +1891,27 @@ INTEGER, PARAMETER  :: ist = 46
 !                                                                       
 INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
+integer                              :: n_mole
+integer                              :: n_type
+integer                              :: n_atom
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 LOGICAL  :: lread 
 !                                                                       
 lread = .true. 
 IF(infile(1:8)=='internal') THEN
    mk_infile_internal = .true.
+   call readstru_size_int(infile, mk_natoms, sav_ncatoms, &
+                 mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+   if(allocated(mk_is_sym)) deallocate(mk_is_sym)
+   allocate(mk_is_sym(1:sav_ncatoms))
+   mk_is_sym = 1
+   mk_nanis=max(1, mk_nanis)
+   call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin)
    CALL stru_readheader_internal (infile, MK_MAX_SCAT, mk_name,   &
          mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                       &
-         mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,   &
+         mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_is_sym, &
+         mk_nanis, mk_anis_full, mk_prin, &
+         mk_a0, mk_win,   &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -2057,13 +2106,14 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN)  :: at_param
       REAL(kind=PREC_DP) ::  NULLV (3) 
       REAL(kind=PREC_DP) :: shortest 
       REAL(kind=PREC_DP), DIMENSION(3)  :: xyz ! Atom position
-      INTEGER             :: dummy_iscat ! Atom type
+      INTEGER, dimension(3) :: dummy_iscat ! Atom type
       INTEGER             :: dummy_prop ! Atom property
       INTEGER             :: dummy_mole ! Atom is in this molecule
       INTEGER             :: dummy_moleatom ! Atom is in this molecul at number
       INTEGER, DIMENSION(0:3)  :: dummy_surf
       REAL(kind=PREC_DP)   , DIMENSION(0:3)  :: dummy_magn
       INTEGER             :: natoms ! Number of molecules
+      INTEGER             :: ncatoms
       INTEGER             :: nscat  ! Number of molecule types
       INTEGER             :: TEMP_MAX_MOLE ! Number of molecules
       INTEGER             :: TEMP_MAX_TYPE ! Number of molecule types
@@ -2192,11 +2242,11 @@ is_mole_type = 1
          ENDIF
          dummy_mole = 0      ! Internal molecule atoms are set further down
          dummy_moleatom = 0  ! Internal molecule atoms are set further down
-         WRITE(line, 3000) mk_at_lis(dummy_iscat), xyz, mk_dw(dummy_iscat), &
+         WRITE(line, 3000) mk_at_lis(dummy_iscat(1)), xyz, mk_dw(dummy_iscat(1)), &
                            dummy_prop, dummy_mole, dummy_moleatom, 1.0 ! copy into line
 !write(*,*) 'READING ATOMS ', mk_iatom,'>',line(1:len_trim(line))
          werte(1:3) = xyz
-         werte(4)   = mk_dw(dummy_iscat)
+         werte(4)   = mk_dw(dummy_iscat(1))
       ELSE
          READ (ist, 2000, END = 2, ERR = 999) line 
       ENDIF
@@ -2416,7 +2466,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
 !   If the file was read from internal storage, we need to assign the molecules
 !
 mole_int: IF(mk_infile_internal) THEN
-       CALL testfile_internal (infile, natoms, &        ! Get size of internal structure
+       CALL testfile_internal (infile, natoms, ncatoms, &        ! Get size of internal structure
               nscat, TEMP_MAX_MOLE, TEMP_MAX_TYPE, TEMP_MAX_ATOM)
        temp_num_mole = TEMP_MAX_MOLE
        temp_num_type = max(TEMP_MAX_TYPE, maxval(clu_mole_tab))
@@ -2603,7 +2653,7 @@ CHARACTER(LEN=PREC_STRING) :: line
 INTEGER  :: i, j, ii 
 REAL(kind=PREC_DP), dimension(3)     :: xyz (3) 
 REAL(kind=PREC_DP) :: size_sigma
-INTEGER  :: dummy_iscat
+INTEGER, dimension(3)  :: dummy_iscat
 INTEGER  :: dummy_prop
 INTEGER  :: dummy_mole
 INTEGER  :: dummy_moleatom
@@ -2624,7 +2674,7 @@ IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
       ier_typ = ER_NONE
       RETURN
    ENDIF
-   WRITE(line, 1000) mk_at_lis(dummy_iscat), xyz ! copy into line
+   WRITE(line, 1000) mk_at_lis(dummy_iscat(1)), xyz ! copy into line
 !if(clu_infile=='internal/STRU/cubo.0002.0001.pt') goto 1234
 ELSE
   READ (imd, '(a)', end = 999) line 

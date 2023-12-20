@@ -933,6 +933,7 @@ uni_mask(4)   = .false.
    CALL property_select(line, length,  cr_sel_prop)
 !
    corefile   = 'internal.decorate'             ! internal user files always start with 'internal'
+   call alloc_unitcell(cr_ncatoms)
    CALL save_internal(corefile)        !     thus this file name is unique
 !
    shellfile  = 'internal.decoshell'   
@@ -1028,6 +1029,7 @@ CALL readstru_internal(MAXMASK, shellfile, uni_mask)   ! Read shell file
 !
 cr_icc(:) = 1                       ! The shell is not periodic, 
 cr_ncatoms = cr_natoms              ! place all atoms into one "unit" cell
+call alloc_unitcell(cr_ncatoms)
 nscat_old = cr_nscat                ! Save old scattering curve number
 chem_period(:) = .FALSE.
 chem_quick     = .FALSE.
@@ -2182,7 +2184,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    REAL(KIND=PREC_DP)      :: normal_l        ! local normal
 
    REAL(kind=PREC_DP), DIMENSION(3)   :: posit           ! Atom coordinates for read internal
-   INTEGER                 :: itype           ! Atom type for read internal
+   INTEGER, dimension(3)   :: itype           ! Atom type for read internal
    INTEGER                 :: iprop           ! Atom property for read internal
    INTEGER, DIMENSION(0:3) :: isurface        ! Atom surface for read internal
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom        ! Atom magnetic moment for read internal
@@ -2244,7 +2246,7 @@ surf_normal = matmul(cr_rten, surf_normal_r)
       atoms: DO im=1,mole_natoms                       ! Load all atoms from the molecule
          CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
          posit(:) = posit(:) + origin(:)
-         WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
+         WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
          laenge = 60
          CALL do_ins(line, laenge)                     ! Insert into crystal
          cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
@@ -2403,7 +2405,7 @@ INTEGER                                 :: ianz
 INTEGER                                 :: i,j, im, laenge
 INTEGER                                 :: l
 INTEGER                                 :: iprop
-INTEGER                                 :: itype
+INTEGER  , dimension(3)                 :: itype
 INTEGER  , DIMENSION(0:3)               :: isurface
 REAL(kind=PREC_DP)     , DIMENSION(0:3)               :: magn_mom        ! Atom magnetic moment for read internal
 INTEGER                                 :: nold   ! atom number previous to current molecule
@@ -2565,7 +2567,7 @@ sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 DO im=1,mole_natoms                           ! Insert all atoms
    CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
    posit(:) = posit(:) + origin(:)
-   WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
+   WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
    laenge = 60
    zeile = line
    CALL do_ins(line, laenge)
@@ -2707,7 +2709,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER                                 :: ianz
    INTEGER                                 :: i,j, l,im, laenge
    INTEGER                                 :: iprop
-   INTEGER                                 :: itype
+   INTEGER, dimension(3)                   :: itype
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom       ! Atom surface
    INTEGER                                 :: n_atoms_orig   ! Number of atoms prior to insertion
@@ -2781,7 +2783,7 @@ sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 insert: DO im=1,mole_natoms                   ! Insert all atoms
       CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
       posit(:) = posit(:) + origin(:)
-      WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
+      WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
       laenge = 60
       CALL do_ins(line, laenge)
       cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
@@ -3050,7 +3052,7 @@ REAL(KIND=PREC_DP), PARAMETER :: EPS = 1.0E-6
 CHARACTER (LEN=PREC_STRING)                    :: line
 INTEGER                                 :: j, im, laenge
 INTEGER                                 :: iprop
-INTEGER                                 :: itype
+INTEGER, dimension(3)                   :: itype
 INTEGER, DIMENSION(0:3)                 :: isurface
 REAL(kind=PREC_DP)   , DIMENSION(0:3)                 :: magn_mom
 INTEGER                                 :: nold   ! atom number previous to current molecule
@@ -3102,7 +3104,7 @@ sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 DO im=1,mole_natoms                           ! Insert all atoms
    CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
    posit(:) = posit(:) + origin(:)
-   WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
+   WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
    laenge = 60
    CALL do_ins(line, laenge)
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
@@ -3341,7 +3343,7 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    INTEGER                                 :: ianz
    INTEGER                                 :: i,j, l,im, laenge
    INTEGER                                 :: iprop
-   INTEGER                                 :: itype
+   INTEGER, dimension(3)                   :: itype
    INTEGER, DIMENSION(0:3)                 :: isurface       ! Atom surface
    REAL(kind=PREC_DP)   , DIMENSION(0:3)                 :: magn_mom       ! Atom magnetic moment
    INTEGER                                 :: n_atoms_orig   ! Number of atoms prior to insertion
@@ -3412,7 +3414,7 @@ sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 insert: DO im=1,mole_natoms                   ! Insert all atoms
    CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
    posit(:) = posit(:) + origin(:)
-   WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
+   WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
    laenge = 60
    CALL do_ins(line, laenge)
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
@@ -3692,7 +3694,8 @@ INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior
    CHARACTER (LEN=PREC_STRING)    :: line
    INTEGER                 ::    j, im, laenge  ! Dummy index
    INTEGER                 :: n1, n2         ! Atoms that define molecule axis
-   INTEGER                 :: itype, iprop   ! Atom types, properties
+   INTEGER, dimension(3)   :: itype   ! Atom types, properties
+   INTEGER                 :: iprop   ! Atom types, properties
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom       ! Atom magnetic moment
    INTEGER                 :: nold           ! atom number previous to current molecule
@@ -3757,7 +3760,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    atoms: DO im=1,mole_natoms                    ! Load all atoms from the molecule
       CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
       posit(:) = posit(:) + origin(:)
-      WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
+      WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
       laenge = 60
       CALL do_ins(line, laenge)                  ! Insert into crystal
       cr_prop  (cr_natoms) = IBSET (cr_prop (cr_natoms), PROP_LIGAND)
@@ -3969,7 +3972,8 @@ REAL(KIND=PREC_DP), PARAMETER         :: EPS = 1.0E-7
    INTEGER                 :: ianz
    INTEGER                 ::    j, im, laenge  ! Dummy index
    INTEGER                 :: n1, n2         ! Atom that define teh molecule axis
-   INTEGER                 :: itype, iprop   ! Atom types, properties
+   INTEGER, dimension(3)   :: itype          ! Atom types, properties
+   INTEGER                 ::        iprop   ! Atom types, properties
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
    REAL(kind=PREC_DP)   , DIMENSION(0:3) :: magn_mom       ! Atom magnetic moment
    INTEGER                 :: nold           ! atom number previous to current molecule
@@ -4041,7 +4045,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    atoms: DO im=1,mole_natoms                    ! Load all atoms from the molecule
       CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface, magn_mom, in_mole,in_moleatom)
       posit(:) = posit(:) + origin(:)
-      WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
+      WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
       laenge = 60
       CALL do_ins(line, laenge)                  ! Insert into crystal
       cr_prop  (cr_natoms) = IBSET (cr_prop (cr_natoms), PROP_LIGAND)
