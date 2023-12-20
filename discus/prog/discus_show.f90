@@ -16,14 +16,15 @@ USE conn_sup_mod
 use update_cr_dim_mod
 !                                                                       
 USE ber_params_mod
-USE errlist_mod 
 USE do_show_mod
+USE errlist_mod 
 USE get_params_mod
 USE lib_errlist_func
 USE param_mod 
 USE precision_mod
 USE prompt_mod 
 USE str_comp_mod
+use take_param_mod
 !       
 IMPLICIT none 
 !
@@ -39,25 +40,45 @@ INTEGER, PARAMETER :: SYMBOL = 1
 INTEGER, PARAMETER :: XYZ    = 2
 INTEGER, PARAMETER :: MATRIX = 3
 !                                                                       
-      CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) cpara (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER ianz , iianz
-      INTEGER i, j 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      CHARACTER (LEN=256)  :: c_name   ! Connectivity name
-      INTEGER              :: c_name_l ! connectivity name length
-      INTEGER              :: ino      ! connectivity no
-      INTEGER              :: iatom    ! atoms no for show
-      LOGICAL              :: long
+CHARACTER(LEN=MAX(PREC_STRING,LEN(line))) cpara (maxw) 
+INTEGER, dimension(maxw) :: lpara
+INTEGER :: ianz , iianz
+INTEGER :: i, j 
+REAL(KIND=PREC_DP) :: werte (maxw) 
+CHARACTER (LEN=256)  :: c_name   ! Connectivity name
+INTEGER              :: c_name_l ! connectivity name length
+INTEGER              :: ino      ! connectivity no
+INTEGER              :: iatom    ! atoms no for show
+LOGICAL              :: long
 !                                                                       
-!                                                                       
+integer, parameter :: NOPTIONAL = 1
+integer, parameter :: O_ADP     = 1
+character(len=   4), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(len=PREC_STRING),dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
+!
+data oname  / 'adp '   /
+data loname /  2       /
+opara  =  (/ 'uij   '  /)   ! Always provide fresh default values
+lopara =  (/  3        /)
+owerte =  (/  0.0      /)
+!
 CALL get_params(line, ianz, cpara, lpara, maxw, laenge) 
+!
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+!                                                                       
 IF(ier_num.eq.0) THEN 
 !                                                                       
 !     --Interprete first parameter as command                           
 !                                                                       
-if(str_comp(cpara(1), 'adp', 2, lpara(1), 3)) then
-   call show_adp 
+if(lpresent(O_ADP)) then
+!if(str_comp(cpara(1), 'adp', 2, lpara(1), 3)) then
+   call show_adp (opara(O_ADP), lopara(O_ADP))
 !                                                                       
 !     ----Show composition of asymmetric unit 'asym'                    
 !                                                                       
@@ -188,39 +209,62 @@ ENDIF
      &                  '  Y ',2(2x,f12.4)/                             &
      &                  '  Z ',2(2x,f12.4))                             
 !                                                                       
-      END SUBROUTINE discus_do_show                        
+END SUBROUTINE discus_do_show                        
 !
 !*****7*****************************************************************
 !
-subroutine show_adp
-!
+subroutine show_adp(opara, length)
+!-
+!  Write ADP, either 
+!  adp:uij  == just the Uij 
+!  adp:prin == the principal vectors and the mean square displacements
+!+
 use crystal_mod
 !
 use precision_mod
 use prompt_mod
+use str_comp_mod
 use wink_mod
 !
 implicit none
+!
+character(len=*), intent(in) :: opara
+integer         , intent(in) :: length
 !
 real(kind=PREC_DP), parameter :: TOL = 0.0001_PREC_DP
 integer :: j   ! Dummy index
 real(kind=PREC_DP) :: ueqv
 real(kind=PREC_DP) :: biso
 !
-write(output_io,'(a)')' Type     U11      U22      U33      U23      U13      U12      Ueqv    Biso'
-do j=1, cr_nanis
-   ueqv = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP
-   biso = ueqv *8.0_PREC_DP*pi*pi
-   if(abs(cr_anis_full(1,j)-cr_anis_full(2,j))>TOL .or.    &
-      abs(cr_anis_full(1,j)-cr_anis_full(3,j))>TOL .or.    &
-      abs(cr_anis_full(4,j))>TOL .or.                      &
-      abs(cr_anis_full(5,j))>TOL .or.                      &
-      abs(cr_anis_full(6,j))>TOL                        ) then
-      write(output_io,'(i4,2x, 8f9.5)') j, cr_anis_full(:,j) , ueqv, biso
-   else
-      write(output_io,'(i4,2x, f9.5, 54x, f9.5)') j, cr_anis_full(1,j), biso
-   endif
-enddo
+if(str_comp(opara, 'uij', 2, length  , 3) .or. str_comp(opara, 'all', 2, length  , 3)) then
+   write(output_io,*)
+   write(output_io,'(a)')' Type     U11       U22       U33       U23       U13       U12       Ueqv     Biso'
+   do j=1, cr_nanis
+      ueqv = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP
+      biso = ueqv *8.0_PREC_DP*pi*pi
+      if(abs(cr_prin(1,4,j    )-cr_prin(2,4,j   ))>TOL  .or.  &
+         abs(cr_prin(1,4,j    )-cr_prin(3,4,j   ))>TOL      ) then
+         write(output_io,'(i5,2x, 8f10.5)') j, cr_anis_full(:,j) , ueqv, biso
+      else
+         write(output_io,'(i5,2x, f10.5, 60x, f10.5)') j, cr_anis_full(1,j), biso
+      endif
+   enddo
+   write(output_io,*)
+endif
+if(str_comp(opara, 'prin', 2, length  , 4) .or. str_comp(opara, 'all', 2, length  , 3)) then
+   write(output_io,'(a)')' Type               Eigenvectors                            <u^2>'
+   do j=1, cr_nanis
+      if(abs(cr_prin(1,4,j    )-cr_prin(2,4,j   ))>TOL  .or.  &
+         abs(cr_prin(1,4,j    )-cr_prin(3,4,j   ))>TOL      ) then
+         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '1st', cr_prin(1,:,j)
+         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '2nd', cr_prin(2,:,j)
+         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '3rd', cr_prin(3,:,j)
+      else
+         write(output_io,'(i5, 52x, f10.5)') j, cr_prin(1,4,j)
+      endif
+   enddo
+   write(output_io,*)
+endif
 !
 end subroutine show_adp
 !
