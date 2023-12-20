@@ -245,7 +245,6 @@ REAL(kind=PREC_DP)                                                 , INTENT(OUT)
 REAL(kind=PREC_DP), DIMENSION(NPARA)                 , INTENT(OUT) :: df      ! Function derivatives at (ix,iy)
 LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
 !
-character(len=PREC_STRING) :: line
 !
 INTEGER              :: i,k, iix, iiy, iiz, l, j2, j3 ! Dummy loop variable
 INTEGER              :: nder          ! Numper of points for derivative

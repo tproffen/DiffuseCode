@@ -129,12 +129,6 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
            ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
    cond_data3: if(LDATA) then                      ! This is the data set
 !
-write(*,*) ' IK1         ', ik1_dims
-write(*,*) ' bound lower ', lbound(ik1_data)
-write(*,*) ' bound up    ', ubound(ik1_data)
-write(*,*) ' x           ', ik1_x(1), ik1_x(ik1_dims(1))
-write(*,*) ' y           ', ik1_y(1), ik1_y(ik1_dims(2))
-write(*,*) ' z           ', ik1_z(1), ik1_z(ik1_dims(3))
       if(ik1_data_type==H5_BRAGG_I) then
 !
          ref_dim(1) = 2*(max(abs(nint(ik1_x(1))),abs(nint(ik1_x(ik1_dims(1)))))) + 1
@@ -153,7 +147,6 @@ write(*,*) ' z           ', ik1_z(1), ik1_z(ik1_dims(3))
          i2 = i1 + ik1_dims(1) - 1
          j2 = j1 + ik1_dims(2) - 1
          k2 = k1 + ik1_dims(3) - 1
-write(*,*) ' data in  x  ', i1, i2, ' y ', j1, j2, ' z ', k1, k2
          ref_data (i1:i2, j1:j2, k1:k2) = ik1_data
          ref_sigma(i1:i2, j1:j2, k1:k2) = ik1_sigma
          where(ref_sigma<=0.0D0) 
@@ -188,17 +181,6 @@ write(*,*) ' data in  x  ', i1, i2, ' y ', j1, j2, ' z ', k1, k2
          ref_z = ik1_z
       endif
       ref_type = ik1_data_type
-write(*,*) ' REFINE      ', ref_dim
-write(*,*) ' bound lower ', lbound(ref_data)
-write(*,*) ' bound up    ', ubound(ref_data)
-write(*,*) ' ref_x       ', ref_x(1), ref_x(ref_dim(1)), ref_x( (ref_dim(1)+1)/2)
-write(*,*) ' ref_y       ', ref_y(1), ref_y(ref_dim(2)), ref_y( (ref_dim(2)+1)/2)
-write(*,*) ' ref_z       ', ref_z(1), ref_z(ref_dim(3)), ref_z( (ref_dim(3)+1)/2)
-write(*,*) ' VALS        ', minval(ref_data), maxval(ref_data),  &
-  ref_data( (ref_dim(1)+1)/2, (ref_dim(2)+1)/2, (ref_dim(3)+1)/2)
-write(*,*) ' SIGMAS      ', minval(ref_sigma), maxval(ref_sigma),  &
-  ref_sigma((ref_dim(1)+1)/2, (ref_dim(2)+1)/2, (ref_dim(3)+1)/2)
-write(*,*) ' TYPE        ', ref_type
       CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
       CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)
       CALL def_set_variable('real', 'F_YMIN', ref_y(1),          IS_DIFFEV)
