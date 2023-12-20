@@ -499,7 +499,6 @@ CHARACTER(len=5) :: unter
 REAL(KIND=PREC_DP) :: werte (maxw) 
 INTEGER lpara (maxw) 
 INTEGER ii, ll, ianz, istr, nfile 
-integer :: ik
 LOGICAL zz_mod 
 !                                                                       
 INTEGER ifiles

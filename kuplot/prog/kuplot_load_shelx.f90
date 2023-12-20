@@ -58,9 +58,7 @@ INTEGER, INTENT(IN)    :: output_io   ! KUPLOT array size
 CHARACTER(LEN=14)   :: dataname    ! Dummy name for HDF5 datasets
 !
 integer               :: node_number = 0
-integer               :: ndims = 0
 integer               :: ik
-integer, dimension(3) :: dims  = 1
 logical               :: lout = .TRUE.
 !
 dataname = ' '
