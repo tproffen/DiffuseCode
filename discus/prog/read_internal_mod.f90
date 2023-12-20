@@ -18,48 +18,50 @@ CONTAINS
 !
 !*******************************************************************************
 !
-   SUBROUTINE readstru_size_int(strucfile, natoms, & 
-              nscat, nanis, n_mole, n_type, n_atom)
+SUBROUTINE readstru_size_int(strucfile, natoms, ncatoms, & 
+           nscat, nanis, n_mole, n_type, n_atom)
 !
 !  Reads the header section of a structure from an internal cystal. 
 !
-   USE discus_allocate_appl_mod
-   IMPLICIT NONE
+USE discus_allocate_appl_mod
+IMPLICIT NONE
 !
 !
-   CHARACTER (LEN=*), INTENT(IN) :: strucfile
+CHARACTER (LEN=*), INTENT(IN) :: strucfile
 !
-   INTEGER       , INTENT(INOUT) :: natoms
-   INTEGER       , INTENT(INOUT) :: nscat
-   INTEGER       , INTENT(INOUT) :: nanis
-   INTEGER       , INTENT(INOUT) :: n_mole
-   INTEGER       , INTENT(INOUT) :: n_type
-   INTEGER       , INTENT(INOUT) :: n_atom
+INTEGER       , INTENT(INOUT) :: natoms     ! Total number of atoms 
+INTEGER       , intent(  out) :: ncatoms    ! Number of atoms per uni cell
+INTEGER       , INTENT(INOUT) :: nscat      ! Number of chemical species
+INTEGER       , INTENT(INOUT) :: nanis      ! Number of ADPs
+INTEGER       , INTENT(INOUT) :: n_mole     ! Number of molecules
+INTEGER       , INTENT(INOUT) :: n_type     ! Number of molecule types
+INTEGER       , INTENT(INOUT) :: n_atom     ! Total number of atoms in molecules
 !
 integer ier
 !
-   NULLIFY(read_from)
-   NULLIFY(read_parent)
-   IF(.NOT.ASSOCIATED(store_root)) THEN
-      ier_num = -113
-      ier_typ = ER_APPL
-      RETURN
-   ENDIF
-   CALL store_find_node(store_root, read_from, strucfile, read_temp, read_parent, ier ) ! Find the proper node
-   IF ( ier /= 0 .OR. .NOT.ASSOCIATED(read_temp)) THEN
-      ier_num = -113
-      ier_typ = ER_APPL
-      RETURN
-   ENDIF
+NULLIFY(read_from)
+NULLIFY(read_parent)
+IF(.NOT.ASSOCIATED(store_root)) THEN
+   ier_num = -113
+   ier_typ = ER_APPL
+   RETURN
+ENDIF
+CALL store_find_node(store_root, read_from, strucfile, read_temp, read_parent, ier ) ! Find the proper node
+IF ( ier /= 0 .OR. .NOT.ASSOCIATED(read_temp)) THEN
+   ier_num = -113
+   ier_typ = ER_APPL
+   RETURN
+ENDIF
 !
-   natoms = read_temp%crystal%get_natoms()
-   nscat  = read_temp%crystal%get_nscat ()
-   nanis  = read_temp%crystal%get_nanis ()
-   n_mole = read_temp%crystal%get_n_mole()
-   n_type = read_temp%crystal%get_n_type()
-   n_atom = read_temp%crystal%get_n_atom()
+natoms = read_temp%crystal%get_natoms()
+ncatoms = read_temp%crystal%get_ncatoms()
+nscat  = read_temp%crystal%get_nscat ()
+nanis  = read_temp%crystal%get_nanis ()
+n_mole = read_temp%crystal%get_n_mole()
+n_type = read_temp%crystal%get_n_type()
+n_atom = read_temp%crystal%get_n_atom()
 !
-   END SUBROUTINE readstru_size_int
+END SUBROUTINE readstru_size_int
 !
 !*******************************************************************************
 !
@@ -85,6 +87,7 @@ logical,dimension(0:MAXMASK), intent(in) :: uni_mask   ! Unique atom type mask
 !
 !
 INTEGER                       :: natoms   ! Number of atoms in the structure
+INTEGER                       :: ncatoms  ! Number of atoms per unit call in the structure
 INTEGER                       :: nscat    ! Number of different atom types
 INTEGER                       :: nanis    ! Number of ADPs
 INTEGER                       :: n_mole
@@ -93,7 +96,7 @@ INTEGER                       :: n_atom
 INTEGER                       :: i,j
 INTEGER                       :: iatom
 !
-CALL readstru_size_int(strucfile, natoms, nscat, nanis, &
+CALL readstru_size_int(strucfile, natoms, ncatoms, nscat, nanis, &
                                   n_mole, n_type, n_atom)
 IF ( ier_num /= 0) THEN                        ! Could not find the internal storage file
    RETURN
@@ -113,6 +116,8 @@ IF(natoms > NMAX .or. nscat > MAXSCAT ) THEN
       RETURN
    ENDIF
 ENDIF
+call alloc_unitcell(ncatoms)
+call alloc_anis(nanis)
 IF ( n_mole > MOLE_MAX_MOLE .or. n_type > MOLE_MAX_TYPE .or. &
      n_atom > MOLE_MAX_MOLE                                ) THEN  ! If molecules were present in internal file
    n_mole = MAX(n_mole, MOLE_MAX_MOLE)
@@ -127,6 +132,9 @@ IF ( n_mole > MOLE_MAX_MOLE .or. n_type > MOLE_MAX_TYPE .or. &
       RETURN
    ENDIF
 ENDIF
+cr_nscat = nscat
+cr_nanis = nanis
+cr_ncatoms = ncatoms
 !
 !  Now copy from crystal to standard
 !
@@ -181,6 +189,7 @@ logical, dimension(0:MAXMASK) :: uni_mask
 INTEGER                       :: i,j,k        ! Dummy
 INTEGER                       :: ia         ! Dummy; atoms in internal crystal
 INTEGER                       :: natoms
+INTEGER                       :: ncatoms
 INTEGER                       :: nscat
 INTEGER                       :: nanis
 INTEGER                       :: n_mole
@@ -190,7 +199,7 @@ INTEGER                       :: new_mole
 INTEGER                       :: new_nmax
 INTEGER                       :: new_nscat
 INTEGER, DIMENSION(3)         :: rd_icc     ! Crystal size on 'cell' command line
-INTEGER                       :: itype      ! type of current atom
+INTEGER           , dimension(3)         :: itype      ! type of current atom
 REAL(kind=PREC_DP), dimension(3)         :: posit      ! position of current atom
 INTEGER, DIMENSION(0:3)       :: isurface   ! surface  of current atom
 REAL(kind=PREC_DP), DIMENSION(0:3)       :: magn_mom   ! Magnetic moment
@@ -238,7 +247,7 @@ rd_icc = cr_icc               ! Save crystal dimensions
 !
 new_type = cr_newtype         ! Was defined via the 'cell' or 'lcell' command
 !
-CALL readstru_size_int(strucfile, natoms, &     ! Get the sizes of the internal crystal
+CALL readstru_size_int(strucfile, natoms, ncatoms, &     ! Get the sizes of the internal crystal
                    nscat, nanis, n_mole, n_type, n_atom)
 IF ( ier_num /= 0) THEN
    ier_typ = ER_APPL
@@ -275,6 +284,7 @@ IF ( need_alloc ) THEN
       RETURN
    ENDIF
 ENDIF
+call alloc_unitcell(ncatoms)
 !  Allocate space for molecules
 found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
    need_alloc = .false.
@@ -416,27 +426,30 @@ main: do ia = 1, natoms
    scat_dw: IF ( new_type ) THEN                     ! force each atom to be a new type 
       nw_name = at_name
       if(uni_mask(0)) then       ! Use unique mask
-               itype = atom_get_type(MAXSCAT, 0, cr_nscat, MAXMASK,   &
+               itype(1) = atom_get_type(MAXSCAT, 0, cr_nscat, MAXMASK,   &
                                  cr_at_lis, cr_dw, cr_occ,        &
                                  nw_name, dw1, occ1, uni_mask)
       else
-         itype = -1                  ! No unique mask, ==> New atom type
+         itype(1) = -1                  ! No unique mask, ==> New atom type
+         itype(2:3)          = 1
       endif
-      IF ( itype == -1 ) THEN
+      IF ( itype(1) == -1 ) THEN
       cr_nscat = cr_nscat + 1
       cr_at_lis(cr_nscat) = nw_name
       cr_dw    (cr_nscat) = dw1
       cr_occ   (cr_nscat) = occ1
-      itype               = cr_nscat
+      itype(1)            = cr_nscat
+      itype(2:3)          = 1
       endif
    ELSE scat_dw                                ! check for previous atom types
       nw_name = at_name
       if(uni_mask(0)) then       ! Use unique mask
-               itype = atom_get_type(MAXSCAT, 0, cr_nscat, MAXMASK,   &
+               itype(1) = atom_get_type(MAXSCAT, 0, cr_nscat, MAXMASK,   &
                                  cr_at_lis, cr_dw, cr_occ,        &
                                  nw_name, dw1, occ1, uni_mask)
       else
-         itype = -1                  ! No unique mask, ==> New atom type
+         itype(1) = -1                  ! No unique mask, ==> New atom type
+         itype(2:3)          = 1
       endif
 !     itype = -1
 !     do_scat_dw: DO k = 1,cr_nscat
@@ -447,12 +460,13 @@ main: do ia = 1, natoms
 !           EXIT do_scat_dw
 !        ENDIF
 !     ENDDO do_scat_dw
-      IF ( itype == -1 ) THEN
+      IF ( itype(1) == -1 ) THEN
          cr_nscat = cr_nscat + 1               ! Atom type does not exist, create a new one
          cr_at_lis(cr_nscat) = at_name
          cr_dw    (cr_nscat) = dw1
          cr_occ   (cr_nscat) = occ1
-         itype               = cr_nscat
+         itype(1)               = cr_nscat
+         itype(2:3)          = 1
       ENDIF
    ENDIF scat_dw                               ! End check for atom type
 !
@@ -465,7 +479,7 @@ main: do ia = 1, natoms
    DO j=1,3
       cr_pos(j,cr_natoms) = werte(j)           ! strore in actual crystal
    ENDDO
-   cr_iscat(cr_natoms,1) = itype                 ! set the atom type
+   cr_iscat(cr_natoms,:) = itype(:)                 ! set the atom type
    if(mole_l_on) then
       mole_num_curr = temp_look(ia)
    endif
@@ -523,7 +537,9 @@ END SUBROUTINE readcell_internal
 !*******************************************************************************
    SUBROUTINE stru_readheader_internal (rd_strucfile, rd_MAXSCAT, rd_cr_name,   &
             rd_cr_spcgr, rd_cr_spcgr_set, rd_cr_set, rd_cr_iset,                &
-            rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win, &
+            rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_anis, rd_cr_is_sym,      &
+            rd_nanis, rd_cr_anis_full, rd_cr_prin, &
+            rd_cr_a0, rd_cr_win, &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para,   &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
@@ -536,6 +552,7 @@ use precision_mod
 !
    CHARACTER (LEN=  * )                         , INTENT(IN   ) :: rd_strucfile 
    INTEGER                                      , INTENT(INOUT) :: rd_MAXSCAT 
+   INTEGER                                      , INTENT(INOUT) :: rd_sav_ncatoms 
 !
    CHARACTER (LEN=  80)                         , INTENT(INOUT) :: rd_cr_name 
    CHARACTER (LEN=  16)                         , INTENT(INOUT) :: rd_cr_spcgr 
@@ -546,11 +563,15 @@ use precision_mod
    REAL(kind=PREC_DP)  , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_win
    INTEGER                                      , INTENT(INOUT) :: rd_cr_nscat 
    REAL(kind=prec_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_dw     ! (0:MAXSCAT) 
+   REAL(kind=prec_DP), DIMENSION(6,0:rd_MAXSCAT), intent(inout) :: rd_cr_anis   ! (0:MAXSCAT) 
+   integer             ,dimension(rd_sav_ncatoms),intent(inout) :: rd_cr_is_sym
+   integer                                      , intent(in)    :: rd_nanis
+   real(kind=prec_DP), dimension(6,1:rd_nanis)     , intent(inout) :: rd_cr_anis_full   ! (0:MAXSCAT) 
+   real(kind=prec_DP), dimension(3,4,1:rd_nanis)   , intent(inout) :: rd_cr_prin        ! (0:MAXSCAT) 
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_occ    ! (0:MAXSCAT) 
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_at_lis ! (0:MAXSCAT) 
    INTEGER             , DIMENSION(3)           , INTENT(INOUT) :: rd_sav_ncell ! (3) 
    LOGICAL                                      , INTENT(INOUT) :: rd_sav_r_ncell 
-   INTEGER                                      , INTENT(INOUT) :: rd_sav_ncatoms 
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_ianz 
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_para 
 !
@@ -563,6 +584,7 @@ use precision_mod
    INTEGER             ::  rd_sym_add_n
    INTEGER             ::  rd_sym_add_power(rd_SYM_ADD_MAX)
    REAL(kind=PREC_DP)  ::  rd_sym_add(4,4,0:rd_SYM_ADD_MAX)
+integer ::i
 !
    NULLIFY(read_from)
    NULLIFY(read_parent)
@@ -574,7 +596,8 @@ use precision_mod
 !
    CALL read_temp%crystal%get_header_to_local (rd_MAXSCAT, rd_cr_name,      &
             rd_cr_spcgr, rd_cr_spcgr_set, rd_cr_set, rd_cr_iset,            &
-            rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win, &
+            rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_anis, rd_cr_occ, &
+            rd_cr_is_sym, rd_nanis, rd_cr_anis_full, rd_cr_prin, rd_cr_a0, rd_cr_win, &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
@@ -606,12 +629,13 @@ use precision_mod
 !
    INTEGER                       :: i
    INTEGER                       :: natoms
+   INTEGER                       :: ncatoms
    INTEGER                       :: nscat
    INTEGER                       :: nanis
    INTEGER                       :: n_mole
    INTEGER                       :: n_type
    INTEGER                       :: n_atom
-   INTEGER                       :: itype
+   INTEGER           , dimension(3) :: itype
    REAL(kind=PREC_DP), DIMENSION(3)         :: posit
    INTEGER, DIMENSION(0:3)       :: isurface
    REAL(kind=PREC_DP)   , DIMENSION(0:3)       :: magn_mom
@@ -625,7 +649,7 @@ use precision_mod
       ier_typ = ER_APPL
       RETURN
    ENDIF
-   CALL readstru_size_int(strucfile, natoms, &           ! Get the number of atoms
+   CALL readstru_size_int(strucfile, natoms, ncatoms, &           ! Get the number of atoms
               nscat, nanis, n_mole, n_type, n_atom)
    DO i=1,natoms
       CALL read_temp%crystal%get_cryst_atom(i, itype, posit, iprop, isurface, magn_mom, iin_mole)
@@ -633,7 +657,7 @@ use precision_mod
       rd_cr_pos(1,rd_cr_natoms) = posit(1)
       rd_cr_pos(2,rd_cr_natoms) = posit(2)
       rd_cr_pos(3,rd_cr_natoms) = posit(3)
-      rd_cr_iscat(rd_cr_natoms,1) = itype
+      rd_cr_iscat(rd_cr_natoms,:) = itype(:)
       rd_cr_prop (rd_cr_natoms) = iprop 
       rd_cr_magn(:,rd_cr_natoms) = magn_mom
       rd_cr_mole (rd_cr_natoms) = iin_mole(1) 
@@ -655,7 +679,7 @@ use precision_mod
    CHARACTER (LEN=  * )               , INTENT(IN   ) :: strucfile 
    INTEGER                            , INTENT(IN   ) :: iatom
    REAL(kind=PREC_DP)  , DIMENSION(3) , INTENT(INOUT) :: rd_cr_pos
-   INTEGER                            , INTENT(INOUT) :: rd_cr_iscat
+   INTEGER             , dimension(3) , INTENT(INOUT) :: rd_cr_iscat
    INTEGER                            , INTENT(INOUT) :: rd_cr_prop
    INTEGER             , DIMENSION(0:3),INTENT(INOUT) :: rd_cr_surf
    REAL(kind=PREC_DP)  , DIMENSION(0:3),INTENT(INOUT) :: rd_cr_magn
@@ -664,6 +688,7 @@ use precision_mod
 !
    INTEGER                       :: i
    INTEGER                       :: natoms
+   INTEGER                       :: ncatoms
    INTEGER                       :: nscat
    INTEGER                       :: nanis
    INTEGER                       :: n_mole
@@ -678,7 +703,7 @@ use precision_mod
       ier_typ = ER_APPL
       RETURN
    ENDIF
-   CALL readstru_size_int(strucfile, natoms, &           ! Get the number of atoms
+   CALL readstru_size_int(strucfile, natoms, ncatoms, &           ! Get the number of atoms
               nscat, nanis, n_mole, n_type, n_atom)
    IF ( iatom <= natoms ) THEN
       i = iatom
@@ -731,6 +756,7 @@ IMPLICIT NONE
    INTEGER,           DIMENSION(0:MOLE_MAX_ATOM), INTENT(OUT) :: mole_cont
 !
    INTEGER                       :: natoms
+   INTEGER                       :: ncatoms
    INTEGER                       :: nscat
    INTEGER                       :: nanis
 !
@@ -740,7 +766,7 @@ IMPLICIT NONE
 !     ier_typ = ER_APPL
 !     RETURN
 !  ENDIF
-   CALL readstru_size_int(strucfile, natoms, & 
+   CALL readstru_size_int(strucfile, natoms, ncatoms, & 
                    nscat, nanis, mole_num_mole, mole_num_type, mole_num_atom)
    IF ( ier_num /= 0) THEN                        ! Could not find the internal storage file
       RETURN
@@ -759,7 +785,7 @@ IMPLICIT NONE
 !
    END SUBROUTINE stru_internal_molecules
 !*******************************************************************************
-   SUBROUTINE testfile_internal(strucfile , natoms, & 
+   SUBROUTINE testfile_internal(strucfile , natoms, ncatoms, & 
               nscat, n_mole, n_type, n_atom)
 !
 !  Reads the header section of an internal file and determines 
@@ -771,6 +797,7 @@ IMPLICIT NONE
    CHARACTER (LEN=*), INTENT(IN) :: strucfile
 !
    INTEGER, INTENT(INOUT)        :: natoms
+   INTEGER, INTENT(INOUT)        :: ncatoms
    INTEGER, INTENT(INOUT)        :: nscat
    INTEGER                       :: nanis
    INTEGER, INTENT(INOUT)        :: n_mole
@@ -783,7 +810,7 @@ IMPLICIT NONE
 !     ier_typ = ER_APPL
 !     RETURN
 !  ENDIF
-   CALL readstru_size_int(strucfile, natoms, & 
+   CALL readstru_size_int(strucfile, natoms, ncatoms, & 
                    nscat, nanis, n_mole, n_type, n_atom)
 !
 !  DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
