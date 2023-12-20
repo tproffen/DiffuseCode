@@ -578,6 +578,7 @@ CHARACTER(LEN=*), DIMENSION(unique_n), INTENT(IN) :: unique_names
 INTEGER                              , INTENT(IN) :: natoms
 CHARACTER(LEN=*), DIMENSION(natoms  ), INTENT(IN) :: shelx_names
 !
+real(kind=PREC_DP), parameter :: TOL = 2.0D-5
 INTEGER :: stype
 INTEGER :: j
 REAL(KIND=PREC_DP) :: occup,biso
@@ -594,9 +595,17 @@ REAL(KIND=PREC_DP), DIMENSION(3) :: vec
    CALL get_wyckoff(vec,.FALSE.,1)
    occup = 10.000 + REAL(res_para(1)/res_para(3))*cr_occ(cr_iscat(i,1))
    biso = cr_dw(cr_iscat(i,1))/8./REAL(pi**2)
+if(abs(cr_prin(1,4,cr_iscat(i,3))-cr_prin(2,4,cr_iscat(i,3)))>TOL  .or.  &
+   abs(cr_prin(1,4,cr_iscat(i,3))-cr_prin(3,4,cr_iscat(i,3)))>TOL      ) then
+   write(IWR, 2510) shelx_names(i), stype, cr_pos(:,i), occup, cr_anis_full(1:2,cr_iscat(i,3))
+   write(IWR, 2511) cr_anis_full(3:6,cr_iscat(i,3))
+else
    WRITE(IWR,2500) shelx_names(i), stype, cr_pos(:,i), occup,biso
+endif
 !
 2500 FORMAT(a4,1x,i2,3(f12.6),f12.5,f11.5)
+2510 FORMAT(a4,1x,i2,3(f12.6),f12.5,2f11.5,' =')
+2511 format(5x,4f11.5)
 !
 END SUBROUTINE shelx_write_atom
 !
