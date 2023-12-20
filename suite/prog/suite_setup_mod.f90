@@ -44,7 +44,6 @@ SUBROUTINE setup_suite
 !
 USE appl_env_mod
 use charact_mod
-USE cmdline_args_mod
 USE gen_mpi_mod
 USE prompt_mod
 USE lib_f90_default_mod
@@ -135,7 +134,6 @@ ENDIF
 !                                                                       
 !     Check for command line parameters                                 
 !                                                                       
-CALL cmdline_args(gen_mpi_myid)
 !                                                                       
 lsetup_done = .true.
 !

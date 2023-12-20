@@ -17,6 +17,7 @@ USE diffev_mpi_mod
 USE refine_setup_mod
 !
 USE appl_env_mod
+USE cmdline_args_mod
 USE envir_mod
 USE errlist_mod
 use lib_errlist_func
@@ -114,6 +115,7 @@ ELSE
    IF(.NOT.gen_mpi_active) THEN
       CALL suite_set_sub_cost ()
    ENDIF
+   CALL cmdline_args(gen_mpi_myid)
    CALL suite_loop      ! Perform the normal main loop
 ENDIF
 !                                                                       
