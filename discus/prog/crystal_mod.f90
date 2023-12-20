@@ -103,7 +103,7 @@ integer              , dimension(  :), allocatable  ::  cr_is_sym ! Site was cre
 REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE  ::  cr_anis! U(ij) ADP anis  ! 0: MAXSCAT
 REAL(kind=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE  ::  cr_anis_full! U(ij) ADP anis  ! 0: number of atoms per unit cell
 REAL(kind=PREC_DP)   , DIMENSION(:,:,:), ALLOCATABLE  ::  cr_prin ! Eigenvectors    ! 0: number of atoms per unit cell
-REAL(kind=PREC_DP)   , DIMENSION(:,  :), ALLOCATABLE  ::  cr_u2   ! <u^2> Anisotrop ! 0: number of atoms per unit cell
+!REAL(kind=PREC_DP)   , DIMENSION(:,  :), ALLOCATABLE  ::  cr_u2   ! <u^2> Anisotrop ! 0: number of atoms per unit cell
 !
 INTEGER, DIMENSION(  :), ALLOCATABLE  ::  cr_amount ! (  0:MAXSCAT)
 REAL(kind=PREC_DP)                    ::  cr_u2aver
