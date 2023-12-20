@@ -602,6 +602,7 @@ IMPLICIT none
 !
 CHARACTER(LEN=*), INTENT(IN) :: strucfile 
 !
+real(kind=PREC_DP), parameter :: TOL = 2.0D-5
 INTEGER, PARAMETER :: ist = 67
 CHARACTER(LEN=31) :: fform 
 CHARACTER(LEN=15), DIMENSION(-4:4) :: C_MOLE !( - 4:4) 
@@ -697,6 +698,14 @@ IF (sav_w_adp) THEN
       WRITE (fform, 7020) cr_nscat - j * 7 - 1 
       WRITE (ist, fform) (cr_dw (i), i = j * 7 + 1, cr_nscat) 
    ENDIF 
+   do j= 1, cr_nanis
+      if(abs(cr_prin(1,4,cr_iscat(j,3))-cr_prin(2,4,cr_iscat(j,3)))>TOL  .or.  &
+         abs(cr_prin(1,4,cr_iscat(j,3))-cr_prin(3,4,cr_iscat(j,3)))>TOL      ) then
+         write(ist, '(a,i2.2,a,5(f10.6,'',''),f10.6,a)') 'anis type:', j, ', value:[', cr_anis_full(:,j),']'
+      else
+         write(ist, '(a,i2.2,a,f10.6,a)'), 'anis type:', j, ', value:[', cr_prin(1,4,j),']'
+      endif
+   enddo
 ENDIF 
 !
 IF (sav_w_occ) THEN 
