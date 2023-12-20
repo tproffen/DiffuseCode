@@ -2324,7 +2324,8 @@ sym_add_n = 0
                      if(lpresent(O_TYPE) .and. lpresent(O_VALUES)) then
                         i = nint(owerte(O_TYPE))
                         if(i>=0 .and. i<=HD_MAXSCAT) then
-                           cr_anis(:,i) = werte(1:ianz)
+                           cr_anis(:,i) = 0.0_PREC_DP
+                           cr_anis(1:ianz,i) = werte(1:ianz)
                         endif
                      endif
                   endif
