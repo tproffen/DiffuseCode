@@ -132,12 +132,23 @@ ELSE  cond_mol
 !  write(*,'(a,3f9.5,a, f9.5)') ' Eigen',cr_prin(2,1:3,i), ' val ', cr_prin(2,4,i) 
 !  write(*,'(a,3f9.5,a, f9.5)') ' Eigen',cr_prin(3,1:3,i), ' val ', cr_prin(3,4,i) 
 !enddo
+!write(*,*) ' THERMAL ', cr_nanis
+!do i=1, cr_nanis
+!write(*,'(a,3f9.5,a,f9.5,a,f9.5)') 'E(1,0,0) => ', cr_prin(1,1:3,i),  ' VAL ', cr_prin(1,4,i)
+!write(*,'(a,3f9.5,a,f9.5,a,f9.5)') 'E(0,1,0) => ', cr_prin(2,1:3,i),  ' VAL ', cr_prin(2,4,i)
+!write(*,'(a,3f9.5,a,f9.5,a,f9.5)') 'E(0,0,1) => ', cr_prin(3,1:3,i),  ' VAL ', cr_prin(3,4,i)
+!write(*,*)
+!enddo
+!do i=1, 8
+!write(*,*) ' ATOM ', i, cr_iscat(i,:)
+!enddo
    loop_atom_disp:DO i = 1, cr_natoms 
       is = cr_iscat (i,1) 
       a  = sqrt (bfac * cr_dw (is) ) 
 !           CALL ther_vec(flag_all, a, uc, up)
-      cond_anis:if(is<=0) then    ! FOR GE 
+      cond_anis:if(is>=0) then    ! FOR GE 
          ii = cr_ianis(i)
+         ii = cr_iscat(i,3)
          call ther_anis(cr_prin(:,:,ii),uc, up, i)
 !if(is==2) then 
 !   write(*,'(a,i4, i4, i4    )') 'THRMAL ANISO', i, is, ii
