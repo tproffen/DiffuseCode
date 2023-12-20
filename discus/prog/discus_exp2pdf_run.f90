@@ -467,10 +467,20 @@ use set_sub_generic_mod
 !
 implicit none
 !
+real(kind=PREC_DP), parameter :: TOL = 1.0D-5
 character(len=PREC_STRING) :: string
 integer :: length     ! Dummy index
 integer :: ik         ! Data set number in KUPLOT
+logical :: w_data     ! Use weight from data
 !
+if(minval(exp_temp_dy)<TOL .and. maxval(exp_temp_dy)<TOL) then
+  exp_temp_dy = 1.0_PREC_DP
+else
+  where(exp_temp_dy<TOL)
+     exp_temp_dy=9999.0
+  end where
+endif
+
 exp_temp_y  = exp_temp_y /exp_faver2            ! Divide by <f>^2
 exp_temp_dy = exp_temp_dy/exp_faver2            ! Divide by <f>^2
 exp_temp_y  = exp_temp_y *exp_temp_x            ! Multiply by Q 
@@ -572,6 +582,7 @@ implicit none
 integer, parameter :: MAXMAX =  20
 !
 character(len=PREC_STRING) :: string
+character(len=PREC_STRING), dimension(4) :: cvalue
 integer :: i          ! Dummy index
 integer :: ii         ! Dummy index
 integer :: j          ! Dummy index
@@ -585,6 +596,7 @@ integer :: nstep      ! Limit for "zero" search
 integer :: ik         ! Data set number in KUPLOT
 integer :: npkt_wrt   ! Number of data points in F(Q)
 integer   :: npkt_fft    ! number of points in powder pattern for Fast Fourier
+integer :: ncols      ! Number of output columns
 logical            :: lsuccess
 real(kind=PREC_DP) :: qmax   ! User supplied Qmax
 real(kind=PREC_DP) :: qmin   ! qmin into FFT
@@ -820,8 +832,12 @@ call fft_fq(npkt_wrt, x_wrt, y_wrt, qmin, qmax, exp_qstep, exp_rmin, exp_rmax, e
 !enddo
 !close(77)
 !
+cvalue = ' '
 if(exp_outgr_l) then
-   call exp2pdf_header(exp_outgr, 'G(r)', exp_load, exp_cback, exp_csigma, &
+   cvalue(1) = 'r[Angstroem]'
+   cvalue(2) = 'G(r)[Angstroem^-2]'
+   ncols     = 2
+   call exp2pdf_header(exp_outgr, ncols, cvalue, exp_load, exp_cback, exp_csigma, &
                 exp_bscale, &
                 exp_radiation, exp_rlambda, exp_renergy, &
                 exp_natom, exp_atname, exp_atocc,  &
@@ -1492,7 +1508,7 @@ end subroutine exp2pdf_plot_qscale
 !
 !*******************************************************************************
 !
-subroutine exp2pdf_header(exp_outgr, cvalue, exp_load, exp_cback, exp_csigma, &
+subroutine exp2pdf_header(exp_outgr, ncols, cvalue, exp_load, exp_cback, exp_csigma, &
            exp_bscale, &
            exp_radiation, exp_rlambda, exp_renergy ,  &
            exp_natom, exp_atname, exp_atocc,  &
@@ -1510,8 +1526,10 @@ use support_mod
 implicit none
 !
 integer, parameter :: LCOMP = 11
+!
 character(len=*), intent(in) :: exp_outgr
-character(len=*), intent(in) :: cvalue
+integer         , intent(in) :: ncols
+character(len=*),dimension(4), intent(in) :: cvalue
 character(len=*), intent(in) :: exp_load
 character(len=*), intent(in) :: exp_cback
 character(len=*), intent(in) :: exp_csigma
@@ -1539,7 +1557,14 @@ integer, parameter :: IWR = 77
 character(len=PREC_STRING) :: outfile
 character(len=PREC_STRING) :: composition
 integer :: i,j
+integer, dimension(0:5) :: lsection
 !
+lsection(0) =  6  ! HEADER
+lsection(1) =  5  ! DATA
+lsection(2) =  4  ! EXPERr
+lsection(3) =  2  ! SAMPLE
+lsection(4) =  5  ! CORREC
+lsection(5) =  6  ! OUTPUT
 outfile = exp_outgr(1:len_trim(exp_outgr))
 call oeffne(IWR, outfile, 'unknown')
 composition = ' '
@@ -1550,31 +1575,34 @@ enddo
 i = LCOMP*exp_natom
 call rem_bl(composition,i)
 !
-write(IWR, '(a)')            '# HEADER : lines, sec  ;2I::     27,    5 '
+write(IWR, '(a,i6,a,i6)')    '# HEADER : lines, sec  ;2I::', sum(lsection),',',ubound(lsection)
 write(IWR, '(a)')            '# HEADER : section     ;1C:: DATA'
 write(IWR, '(a)')            '# HEADER : section     ;1C:: EXPER'
 write(IWR, '(a)')            '# HEADER : section     ;1C:: SAMPLE'
 write(IWR, '(a)')            '# HEADER : section     ;1C:: CORREC'
 write(IWR, '(a)')            '# HEADER : section     ;1C:: OUTPUT'
-write(IWR, '(a)'  )          '# DATA   : lines       ;2I::      5'
+write(IWR, '(a)'  )          '# DATA   : lines       ;1I::      5'
 write(IWR, '(a,a)')          '# DATA   : type, data  ;2C:: ',exp_load(1:len_trim(exp_load))
 write(IWR, '(a,a)')          '# DATA   : type, back  ;2C:: ',exp_cback(1:len_trim(exp_cback))
 write(IWR, '(a,f9.3)')       '# DATA   : back scale  ;1R:: ',exp_bscale
 write(IWR, '(a,a)')          '# DATA   : type, sigma ;2C:: ',exp_csigma(1:len_trim(exp_csigma))
-write(IWR, '(a)'  )          '# EXPER  : lines       ;2I::      4'
+write(IWR, '(a)'  )          '# EXPER  : lines       ;1I::      4'
 write(IWR, '(a,a)')          '# EXPER  : radiation   ;1C:: ',exp_radiation(1:len_trim(exp_radiation))
 write(IWR, '(a,f15.7)')      '# EXPER  : lambda      ;1R:: ',exp_rlambda
 write(IWR, '(a,f15.7)')      '# EXPER  : energy      ;1R:: ',exp_renergy
-write(IWR, '(a)'  )          '# SAMPLE : lines       ;2I::      2'
+write(IWR, '(a)'  )          '# SAMPLE : lines       ;1I::      2'
 write(IWR, '(a,a)')          '# SAMPLE : composition ;1C:: ',composition(1:len_trim(composition))
-write(IWR, '(a)'  )          '# CORREC : lines       ;2I::      5'
+write(IWR, '(a)'  )          '# CORREC : lines       ;1I::      5'
 write(IWR, '(a,i4)')         '# CORREC : npoly       ;1I:: ',exp_npoly
-write(IWR, '(a,2(2x,f9.3))') '# CORREC : lim_instr.  ;2R:: ',exp_qmin_i, exp_qmax_u
-write(IWR, '(a,2(2x,f9.3))') '# CORREC : lim_four_usr;2R:: ',exp_qmin_f, exp_qmax_f
-write(IWR, '(a,2(2x,f9.3))') '# CORREC : lim_four_app;2R:: ',exp_qmin  , exp_qmax  
-write(IWR, '(a)'  )          '# OUTPUT : lines       ;2I::      5'
+write(IWR, '(a,2(2x,f9.3:,a))') '# CORREC : lim_instr.  ;2R:: ',exp_qmin_i, ',',exp_qmax_u
+write(IWR, '(a,2(2x,f9.3:,a))') '# CORREC : lim_four_usr;2R:: ',exp_qmin_f, ',',exp_qmax_f
+write(IWR, '(a,2(2x,f9.3:,a))') '# CORREC : lim_four_app;2R:: ',exp_qmin  , ',',exp_qmax  
+write(IWR, '(a)'  )          '# OUTPUT : lines       ;1I::      7'
 write(IWR, '(a,a)')          '# OUTPUT : file        ;1C:: ',exp_outgr(1:len_trim(exp_outgr))
-write(IWR, '(a,a)')          '# OUTPUT : value       ;1C:: ',cvalue(1:len_trim(cvalue))
+write(IWR, '(a,a)')          '# OUTPUT : columns     ;1I::      2'
+write(IWR, '(a,a)')          '# OUTPUT : separator   ;1C::  blank'
+write(IWR, '(a,a,a,a)')      '# OUTPUT : value       ;2C:: ',cvalue(1)(1:len_trim(cvalue(1))), ',',&
+                                                             cvalue(2)(1:len_trim(cvalue(2)))
 write(IWR, '(a,i8   )')      '# OUTPUT : n_points    ;1I:: ',out_np
 write(IWR, '(a,3f11.5)')     '# OUTPUT : min,max,step;3R:: ',out_min  , out_max  , out_step
 close (IWR)

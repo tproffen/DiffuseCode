@@ -196,9 +196,11 @@ endif
 if(lpresent(O_LAMBDA) .and. .not.lpresent(O_ENERGY)) then
    exp_is_rad = 1
    exp_rlambda = owerte(O_LAMBDA)
+   exp_renergy = 12.39842/exp_rlambda
 elseif(.not.lpresent(O_LAMBDA) .and. lpresent(O_ENERGY)) then
    exp_is_rad = 2
    exp_renergy = owerte(O_ENERGY)
+   exp_rlambda = 12.39842/exp_renergy
 elseif(lpresent(O_LAMBDA) .and. lpresent(O_ENERGY)) then
    ier_num = -6
    ier_typ = ER_COMM
