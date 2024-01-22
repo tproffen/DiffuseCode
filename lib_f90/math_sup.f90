@@ -307,7 +307,7 @@ implicit none
 !
 real(kind=PREC_DP), dimension(3,3), intent(in)  :: a_in       ! The matrix
 real(kind=PREC_DP), dimension(3)  , intent(out) :: eigen_val  ! Eigenvalues
-real(kind=PREC_DP), dimension(3,3), intent(out) :: eigen_vec  ! Eigenvectors
+real(kind=PREC_DP), dimension(3,3), intent(out) :: eigen_vec  ! Eigenvectors, stored as rows
 real(kind=PREC_DP), dimension(3,3), intent(in)  :: gten
 integer                           , intent(out) :: neigen     ! Number distinct Eigenvalues
 !integer                           , intent(out) :: ier_num    ! Error message 0 == success
@@ -318,6 +318,8 @@ real(kind=PREC_DP), parameter :: EQL = 1.0D-5     ! Akzept values as equal if di
 integer :: i
 integer :: j
 integer :: k
+integer :: l
+real(kind=PREC_DP), dimension(3,3)  :: imat    ! Unit matrix
 real(kind=PREC_DP), dimension(3,3)  :: a       ! The matrix
 real(kind=PREC_DP), dimension(3,3)  :: b       ! a -  m*I
 real(kind=PREC_DP), dimension(3,3)  :: t       ! Trialvectors
@@ -327,19 +329,23 @@ real(kind=PREC_DP), dimension(3  )  :: v       ! Vectors, whose vecotor product 
 real(kind=PREC_DP), dimension(3  )  :: t_len   ! Length of trial vectors
 real(kind=PREC_DP), dimension(3  )  :: eigen   ! Eigenvalues prior to sorting
 real(kind=PREC_DP), dimension(3  )  :: ang     ! Angles of eigenvector 1 to base vectors
+real(kind=PREC_DP), dimension(2,2)  :: aa      ! Dummy matrix
+real(kind=PREC_DP), dimension(3  )  :: adet    ! Determinants of pairs 1,2; 1,3, 2,3
 
+real(kind=PREC_DP) :: aaa                      ! Angle in 
 real(kind=PREC_DP) :: phi                      ! Angle in 
 real(kind=PREC_DP) :: p                        ! 6p = SUM(b(i,j)^2)
 real(kind=PREC_DP) :: q                        ! 2q = DET(a - mI)
 real(kind=PREC_DP) :: p_q                      ! p**3 -q**2
 real(kind=PREC_DP) :: m                        !  m = Tr(a)
 real(kind=PREC_DP) :: det                      ! a determinant
-real(kind=PREC_DP) :: length                   ! a vector length
+real(kind=PREC_DP), dimension(3) :: length     ! a vector length
 real(kind=PREC_DP) :: cphi                     ! cos(phi) length
 real(kind=PREC_DP) :: sphi                     ! sin(phi) length
 real(kind=PREC_QP),parameter :: big=10000000.0_PREC_QP
+data imat / 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0/
 !
-a = real(nint(a_in*big)/big, kind=PREC_DP)
+a = real(nint(a_in*big)/big, kind=PREC_DP)     ! Ensure that lower precision bits are zeros
 ier_num = 0
 eigen_val = 0.0D0
 eigen_vec = 0.0D0
@@ -432,6 +438,7 @@ else                                          ! All eigenvalues differ
       eigen(j) = -huge(1.0D0)
    enddo
 endif
+!write(*,*) ' NEIGEN ', neigen
 !
 !  Calculate eigenvectors
 !  Based on stackexchange answer for three distinct eigenvalues
@@ -439,7 +446,7 @@ endif
 !  If two eigenvalues are equal, the first eigenvector is OK, as
 !  I take the vector product of the two non-zero test vectors
 !
-do i=1, 3
+do i=1, 2
    t(1,1) = a(1,1) - eigen_val(i)
    t(2,1) = a(1,2)
    t(3,1) = a(1,3) 
@@ -455,22 +462,88 @@ do i=1, 3
    t_len(2) = sqrt(t(1,2)**2 + t(2,2)**2 + t(3,2)**2)
    t_len(3) = sqrt(t(1,3)**2 + t(2,3)**2 + t(3,3)**2)
 !  Determine the two longest vectors
-   j = maxloc(t_len,1)
-   v = t(:,j)
-   t_len(j) = -1.0d0
-   k = maxloc(t_len,1)
-   u = t(:,k)
+!write(*,*) t(:,1), t_len(1)
+!write(*,*) t(:,2), t_len(2)
+!write(*,*) t(:,3), t_len(3)
+   aa = t(1:2,1:2)
+   adet(1) = determinant(aa)
+   aa = t(1:3:2,1:3:2)
+   adet(2) = determinant(aa)
+   aa = t(2:3,2:3)
+   adet(3) = determinant(aa)
+!   j = maxloc(t_len,1)
+!   v = t(:,j)
+!   t_len(j) = -1.0d0
+!   k = maxloc(t_len,1)
+!write(*,*) ' ADET ', adet, j,k,j+k -2
+!   if(abs(adet(j+k-2))>0.0_PREC_DP) then
+!      u = t(:,k)
+!   else
+!      t_len(k) = -1.0d0
+!      k = maxloc(t_len,1)
+!      u = t(:,k)
+!   endif
+!
+   l = maxloc(abs(adet),1)
+   if(l==1) then
+     j = 1
+     k = 2
+   elseif(l==2) then
+     j = 1
+     k = 3
+   elseif(l==3) then
+     j = 2
+     k = 3
+   endif
+   u = t(:,j)
+   v = t(:,k)
+!write(*,*) ' ADET ', adet, l, j, k
+      
 !  Eigenvector is vector product of test vectors
    eigen_vec(1, i) = u(2)*v(3) - u(3)*v(2)
    eigen_vec(2, i) = u(3)*v(1) - u(1)*v(3)
    eigen_vec(3, i) = u(1)*v(2) - u(2)*v(1)
-   length = sqrt(eigen_vec(1,i)**2 + eigen_vec(2,i)**2 + eigen_vec(3,i)**2)
-   if(length>0.0D0) eigen_vec(:,i) = eigen_vec(:,i)/length  ! Normalize to one
+   length(i) = sqrt(eigen_vec(1,i)**2 + eigen_vec(2,i)**2 + eigen_vec(3,i)**2)
+   if(length(i)>0.0D0) eigen_vec(:,i) = eigen_vec(:,i)/length(i)  ! Normalize to one
+   if(i>1 ) then   ! Test that eigenvectors are not parallel
+      aaa = (eigen_vec(1, 1)*eigen_vec(1, i) + eigen_vec(2, 1)*eigen_vec(2, i) + &
+             eigen_vec(3, 1)*eigen_vec(3, i))/length(1)/length(i) 
+!write(*,*) ' EIGENV 1 ', eigen_vec(:,1)
+!write(*,*) ' EIGENV 2 ', eigen_vec(:,2)
+!write(*,*) ' ANGLE    ', aaa
+      if(aaa<0.1) then
+         adet(l) =  0.0_PREC_DP
+   if(l==1) then
+     j = 1
+     k = 2
+   elseif(l==2) then
+     j = 1
+     k = 3
+   elseif(l==3) then
+     j = 2
+     k = 3
+   endif
+   u = t(:,j)
+   v = t(:,k)
+!write(*,*) ' ADET ', adet, l, j, k
+      
+!  Eigenvector is vector product of test vectors
+   eigen_vec(1, i) = u(2)*v(3) - u(3)*v(2)
+   eigen_vec(2, i) = u(3)*v(1) - u(1)*v(3)
+   eigen_vec(3, i) = u(1)*v(2) - u(2)*v(1)
+   length(i) = sqrt(eigen_vec(1,i)**2 + eigen_vec(2,i)**2 + eigen_vec(3,i)**2)
+   if(length(i)>0.0D0) eigen_vec(:,i) = eigen_vec(:,i)/length(i)  ! Normalize to one
+      endif
+   endif
 enddo
+eigen_vec(1, 3) = eigen_vec(2,1)*eigen_vec(3,2) - eigen_vec(3,1)*eigen_vec(2,2)
+eigen_vec(2, 3) = eigen_vec(3,1)*eigen_vec(1,2) - eigen_vec(1,1)*eigen_vec(3,2)
+eigen_vec(3, 3) = eigen_vec(1,1)*eigen_vec(2,2) - eigen_vec(2,1)*eigen_vec(1,2)
 !write(*,*) ' NEIGEN ', neigen
 !write(*,*) ' V EIG 1', eigen_vec(:,1)
 !write(*,*) ' V EIG 2', eigen_vec(:,2)
 !write(*,*) ' V EIG 3', eigen_vec(:,3)
+!read(*,*) i
 !write(*,*) ' GTEN   ', gten(:,1)
 !write(*,*) ' GTEN   ', gten(:,2)
 !write(*,*) ' GTEN   ', gten(:,3)
@@ -491,6 +564,7 @@ elseif(neigen==2) then            ! Two eigenvalues are equal
       ang(i) = abs(lib_bang(gten, eigen_vec(:,i), one_mat(:,i)) - 90.0D0)
    enddo
    j = minloc(ang,1)              ! This base vector is closest to 90° off 1st eigenvector
+!write(*,*) ' ANGLES ', ang, j
    if(j==1) then 
       ang = -1.0_PREC_DP
       search_base: do i = 1, 3    ! Determine (angle (base, eigenvector_1)) from 90°
@@ -513,6 +587,12 @@ elseif(neigen==2) then            ! Two eigenvalues are equal
 endif
 !
 if(det3(eigen_vec)<0.0D0) eigen_vec(:,3) = -eigen_vec(:,3)  ! Ensure righthandedness
+!write(*,*) ' NEIGEN ', neigen
+!write(*,*) ' V EIG 1', eigen_vec(:,1)
+!write(*,*) ' V EIG 2', eigen_vec(:,2)
+!write(*,*) ' V EIG 3', eigen_vec(:,3)
+!call test_eigen_value(a, eigen_val, eigen_vec, gten)
+!read(*,*) i
 !
 end subroutine eigen_value
 !
@@ -530,8 +610,8 @@ use wink_mod
 implicit none
 !
 real(kind=PREC_DP), dimension(3,3), intent(in)  :: a          ! The matrix
-real(kind=PREC_DP), dimension(3)  , intent(out) :: eigen_val  ! Eigenvalues
-real(kind=PREC_DP), dimension(3,3), intent(out) :: eigen_vec  ! Eigenvectors
+real(kind=PREC_DP), dimension(3)  , intent(in)  :: eigen_val  ! Eigenvalues
+real(kind=PREC_DP), dimension(3,3), intent(in)  :: eigen_vec  ! Eigenvectors
 real(kind=PREC_DP), dimension(3,3), intent(in)  :: gten
 !integer                           , intent(out) :: ier_num    ! Error message 0 == success
 !
@@ -539,11 +619,17 @@ integer :: i
 real(kind=PREC_DP), dimension(3,3)  :: t       ! Trialvectors
 !
 !write(*,*) ' IN TEST_EIGEN ', eigen_val
-do i= 1, 3
-   t(:,i) = matmul(a, eigen_vec(:,i))
-enddo
-!write(*,*) ' IN TEST_T    ', t(:,1)
-!write(*,*) ' IN TEST_T    ', t(:,2)
+!write(*,*) ' A             ', a(1,:)
+!write(*,*) ' A             ', a(2,:)
+!write(*,*) ' A             ', a(3,:)
+!write(*,*) ' GTEN          ', gten(1,:)
+!write(*,*) ' GTEN          ', gten(2,:)
+!write(*,*) ' GTEN          ', gten(3,:)
+!do i= 1, 3
+!   t(:,i) = matmul(a, eigen_vec(:,i))
+!enddo
+!write(*,*) ' IN TEST_T     ', t(:,1)
+!write(*,*) ' IN TEST_T     ', t(:,2)
 !write(*,*) ' IN TEST_T     ', t(:,3)
 do i=1, 3
   write(output_io,'(a,i2,3(f12.6))') ' Lambda i    ', i, eigen_val(i), &
