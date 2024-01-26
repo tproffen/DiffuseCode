@@ -124,7 +124,7 @@ elseif( DISCUS_OMP)
 else (CUDA_FOUND)
 
   message (status " building DISCUS serial ")
-  set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
+  set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
 
 endif (CUDA_FOUND)
 set (SOURCES_ALL ${SOURCES_ALL} "${DIFFUSE_SOURCE_DIR}/finufft/include/finufft_mod.f90")

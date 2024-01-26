@@ -4,7 +4,7 @@ CONTAINS
 !
 !*****7*****************************************************************
 !
-SUBROUTINE four_strucf (iscat, lform) 
+SUBROUTINE four_strucf (iscat, lform, is_anis, ientry, fnum) 
 !+                                                                      
 !     Here the complex structure factor of 'nxat' identical atoms       
 !     from array 'xat' is computed.                                     
@@ -30,6 +30,9 @@ IMPLICIT none
 !                                                                       
 INTEGER, INTENT(IN) :: iscat 
 LOGICAL, INTENT(IN) :: lform 
+LOGICAL, INTENT(IN) :: is_anis   ! Crystal has anisotropic ADPs
+INTEGER, INTENT(IN) :: ientry    ! Current anisotropic ADP
+integer, dimension(3), intent(in) :: fnum    ! Number data points (reduced by Friedel)
 !                                                                       
 REAL(KIND=PREC_DP)           , DIMENSION(nxat) ::        xincu, xincv , xincw
 REAL(KIND=PREC_DP)           , DIMENSION(nxat) ::        oincu, oincv , oincw
