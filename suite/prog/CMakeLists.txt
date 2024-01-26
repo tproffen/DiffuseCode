@@ -1,4 +1,4 @@
-# DISCUS_SUITE Build
+
 
 find_package(MPI)
 find_package(NEXUS)
