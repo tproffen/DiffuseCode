@@ -472,9 +472,9 @@ if(allocated(h5_sigma)) then
 endif
 h5_vectors      = h5_steps_full
 h5_corners(:,1) = h5_llims                                          ! Lower left
-h5_corners(:,2) = h5_corners(:,1) + (h5_dims(1)-1)* h5_vectors(:,1)   ! Lower right
-h5_corners(:,3) = h5_corners(:,1) + (h5_dims(2)-1)* h5_vectors(:,2)   ! Upper left
-h5_corners(:,4) = h5_corners(:,1) + (h5_dims(3)-1)* h5_vectors(:,3)   ! Top left
+h5_corners(:,2) = h5_corners(:,1) + (d5_dims(1)-1)* h5_vectors(:,1)   ! Lower right
+h5_corners(:,3) = h5_corners(:,1) + (d5_dims(2)-1)* h5_vectors(:,2)   ! Upper left
+h5_corners(:,4) = h5_corners(:,1) + (d5_dims(3)-1)* h5_vectors(:,3)   ! Top left
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! If requested transform into new orientation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
