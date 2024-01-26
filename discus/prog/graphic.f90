@@ -1492,14 +1492,17 @@ USE discus_nipl_header
 USE discus_fft_mod
 use discus_output_save_mod
 USE fourier_sup
+use metric_mod
 USE output_mod 
 USE qval_mod
+!
 USE envir_mod 
 USE errlist_mod 
 USE lib_length
 use precision_mod
 USE prompt_mod 
 USE support_mod
+use trig_degree_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -1510,6 +1513,7 @@ real(kind=PREC_DP), intent(in) :: valmax
 !                                                                       
 INTEGER iff 
 PARAMETER (iff = 2) 
+real(kind=PREC_DP),  dimension(3), parameter :: NULLV =(/0.0_PREC_DP, 0.0_PREC_DP, 0.0_PREC_DP/)
 !                                                                       
 CHARACTER(LEN=2024) dummy_file
 INTEGER HKLF4, LIST5, LIST9 , ASCII3D
@@ -1548,6 +1552,7 @@ INTEGER :: nnew1, nnew2
 CHARACTER (LEN=160), DIMENSION(:), ALLOCATABLE :: header_lines
 INTEGER :: nheader
 real(kind=PREC_DP) :: qqmax
+real(kind=PREC_DP) :: ext_cor
 !                                                                       
 factor = 0.0
 npkt3  = 1
@@ -1857,9 +1862,17 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                                       + out_vi (k, 3) * REAL(l - 1)
                ENDDO 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
+               qq = qval (i,j,l, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
+               ext_cor = (1.0_PREC_DP/(1.0_PREC_DP + 0.001_PREC_DP * diff_exti * qq*rlambda**3/ &
+                         sind(2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., h, NULLV))))**0.25_PREC_DP)**2.0_PREC_DP
+!if(nint(h(1))==0 .and. nint(h(2))==0 .and. nint(h(3)) == 1) then
+!write(*,*) h, qq, ext_cor, 2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., h, NULLV))
+!write(*,*) cr_icc, ' | ', value, qval (i,j,l, value, i, j, laver), qval (i,j,l, 2, i, j, laver)/ cr_icc (1) / cr_icc (2) / cr_icc (3)
+!endif
 !              k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
 !              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
-               qq = qval (i,j,l, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
+!              qq = qval (i,j,l, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
+               qq = qq * ext_cor * out_fac
                sq = sqrt (qq) 
                WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), qq, sq
             ENDIF
