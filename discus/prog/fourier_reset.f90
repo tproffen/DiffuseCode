@@ -94,6 +94,7 @@ four_last = FOUR_NN  ! No Fourier calculated yet
 !
 four_accum = 0
 four_symm  = .FALSE.
+four_friedel = .true.
 four_tech = FOUR_TURBO
 four_filter = FOUR_FILTER_OFF
 four_nscale = 1
