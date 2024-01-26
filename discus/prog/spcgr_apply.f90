@@ -1622,7 +1622,7 @@ SUBROUTINE symmetry
 !-                                                                      
 !     Performs the space group symmetry on the current atom.            
 !     cr_natoms             the current atom number                     
-!     cr_iscat(cr_natoms,1)   its scattering type                         
+!     cr_iscat(1,cr_natoms)   its scattering type                         
 !                           and thus number of chemically identical     
 !                           yet symmetrically different atoms           
 !                                                                       
@@ -1746,7 +1746,7 @@ INTEGER,                       INTENT(IN)     ::  NMAX
 INTEGER,                       INTENT(INOUT)  :: cr_iset
 INTEGER,                       INTENT(INOUT)  :: cr_natoms
 REAL(kind=PREC_DP)   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
-INTEGER, DIMENSION(1:NMAX,3),    INTENT(INOUT)  :: cr_iscat
+INTEGER, DIMENSION(3,1:NMAX),    INTENT(INOUT)  :: cr_iscat
 INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
 INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
 REAL(kind=PREC_DP)   , DIMENSION(0:3,1:NMAX),INTENT(INOUT)  :: cr_magn
@@ -1877,8 +1877,8 @@ lp_gener: DO ipg = 1, generpower (igg)
             cr_pos (1, cr_natoms) = yy(1) 
             cr_pos (2, cr_natoms) = yy(2) 
             cr_pos (3, cr_natoms) = yy(3) 
-            cr_iscat (cr_natoms,1) = cr_iscat (ii,1) 
-            cr_iscat (cr_natoms,2:) = 1
+            cr_iscat (1,cr_natoms) = cr_iscat (1,ii) 
+            cr_iscat (2:,cr_natoms) = 1
             cr_mole (cr_natoms) = cr_mole (ii) 
             cr_prop (cr_natoms) = cr_prop (ii) 
             cr_magn(0, cr_natoms) = cr_magn(0, ii)
@@ -3044,13 +3044,13 @@ loop_main: do                    ! Loop over all atoms in first unit cell
    call firstcell(v, 4) 
    loop_cen:do i=2, spc_n     ! Loop over all centering symmetry elements
       if(spc_center(i)) then
-      vec = matmul(spc_mat(:,:, i), v)
+      vec = matmul(spc_mat(:,:, i), u)
       call firstcell(vec, 4) 
       lsame = .true.
       do j=1, 3
           lsame = lsame .and.                              &
-               (    abs(u(j) - vec(j) )        .lt.TOL .OR.  & 
-                abs(abs(u(j) - vec(j) )-1.0D0) .lt.TOL       )
+               (    abs(v(j) - vec(j) )        .lt.TOL .OR.  & 
+                abs(abs(v(j) - vec(j) )-1.0D0) .lt.TOL       )
       enddo
       if(lsame) then
          cr_is_sym(iatom) = i
@@ -3059,31 +3059,31 @@ loop_main: do                    ! Loop over all atoms in first unit cell
       endif
    enddo loop_cen
 !
-   loop_gen:do i=2, spc_n     ! Loop over all generating elements
-      if(spc_gen(i)>0) then
-      vec = matmul(spc_mat(:,:, i), v)
-      call firstcell(vec, 4) 
-      lsame = .true.
-      do j=1, 3
-          lsame = lsame .and.                              &
-               (    abs(u(j) - vec(j) )        .lt.TOL .OR.  & 
-                abs(abs(u(j) - vec(j) )-1.0D0) .lt.TOL       )
-      enddo
-      if(lsame) then
-         cr_is_sym(iatom) = i
-         cycle loop_main
-      endif
-      endif
-   enddo loop_gen
+!  loop_gen:do i=2, spc_n     ! Loop over all generating elements
+!     if(spc_gen(i)>0) then
+!     vec = matmul(spc_mat(:,:, i), u)
+!     call firstcell(vec, 4) 
+!     lsame = .true.
+!     do j=1, 3
+!         lsame = lsame .and.                              &
+!              (    abs(v(j) - vec(j) )        .lt.TOL .OR.  & 
+!               abs(abs(v(j) - vec(j) )-1.0D0) .lt.TOL       )
+!     enddo
+!     if(lsame) then
+!        cr_is_sym(iatom) = i
+!        cycle loop_main
+!     endif
+!     endif
+!  enddo loop_gen
 !
    loop_sym:do i=2, spc_n     ! Loop over all symmetry elements
-      vec = matmul(spc_mat(:,:, i), v)
+      vec = matmul(spc_mat(:,:, i), u)
       call firstcell(vec, 4) 
       lsame = .true.
       do j=1, 3
           lsame = lsame .and.                              &
-               (    abs(u(j) - vec(j) )        .lt.TOL .OR.  & 
-                abs(abs(u(j) - vec(j) )-1.0D0) .lt.TOL       )
+               (    abs(v(j) - vec(j) )        .lt.TOL .OR.  & 
+                abs(abs(v(j) - vec(j) )-1.0D0) .lt.TOL       )
       enddo
       if(lsame) then
          cr_is_sym(iatom) = i
