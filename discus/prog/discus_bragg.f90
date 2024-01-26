@@ -71,7 +71,7 @@ integer, parameter                        :: ncalc = 6 ! Number of values to cal
 !
 data oname  / 'dstar ', 'dval  ',  'q     ',  'energy', 'theta', 'twotheta', 'lambda', 'radiation', 'output   '   /
 data loname /  5,        4,         1,         6      ,  5     ,  6        ,  8      ,  9         ,  6            /
-opara  =  (/ '1.000000', '1.000000', '6.283185',  '17.39700', '23.80030', '47.60050',  '0.709260', 'xray    ', 'none    ' /) ! Always provide fresh default values
+opara  =  (/ '1.000000', '1.000000', '6.283185',  '17.39700', '23.80030', '47.60050',  '0.709260', 'xray    ', 'screen  ' /) ! Always provide fresh default values
 lopara =  (/  8,          8,          8        ,   8        ,  8        ,  8        ,   8         , 8        ,  8         /)
 owerte =  (/  1.0,        1.0,        6.283185 ,   17.397   ,  23.8003  ,  47.6005  ,   0.709260  , 1.0E0    ,  0.000     /)
 !
