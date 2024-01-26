@@ -1665,8 +1665,8 @@
 !p        radiation:neutron
 !p        radiation:electron
 
-!p        output:none          ! default
-!p        output:screen        ! Short summary on screen
+!p        output:none          ! 
+!p        output:screen        ! Short summary on screen, default
 
    Performs calculations of Braggs law:
          lambda = 2 d sin(theta)
