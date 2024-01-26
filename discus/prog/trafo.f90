@@ -168,7 +168,6 @@ real(kind=PREC_DP), dimension(3) :: e3   ! Cartesian e_3
 real(kind=PREC_DP), dimension(3) :: v    ! Dummy vector
 !real(kind=PREC_DP), dimension(3,3) :: cr_dmat    ! Dummy vector
 real(kind=PREC_DP) :: vv  ! dummy number
-!integer :: i
 !
 !  Cartesian e2 is parallel b
 e2(1) = 0.0D0
@@ -231,6 +230,7 @@ call matinv(cr_dmat, cr_dimat)
 !write(*,'(a, 3(F12.6,2x) )') 'EI(1,:): ', cr_eimat(1,:)
 !write(*,'(a, 3(F12.6,2x) )') 'EI(2,:): ', cr_eimat(2,:)
 !write(*,'(a, 3(F12.6,2x) )') 'EI(3,:): ', cr_eimat(3,:)
+!read(*,*) i
 
 !
 end subroutine build_dmat
