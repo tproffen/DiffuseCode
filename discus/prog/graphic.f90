@@ -1038,6 +1038,8 @@ ianz = ientry
 IF(lpresent) THEN
    IF(str_comp(opara(ientry), 'auto', 4, lopara(ientry), 4) ) THEN
       werte(ientry) = -2.0D0
+   elseif(str_comp(opara(ientry), 'bragg', 5, lopara(ientry), 5) ) THEN
+      werte(ientry) = -2.0D0
    ELSEIF(str_comp(opara(ientry), 'data', 4, lopara(ientry), 4) ) THEN
       werte(ientry) = -1.0D0
    ELSE
@@ -1558,6 +1560,7 @@ factor = 0.0
 npkt3  = 1
 m = nint(valmax)
 out_fac = 1.0D0   ! Default to no scaling
+qqmax = 0.0_PREC_DP
 !                                                                       
 !     If output type is shelx, calculate qval(000) for scaling          
 !                                                                       
@@ -1595,14 +1598,14 @@ IF(m==-1 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with 000
    eck = 0.0D0
    vi  = 0.0D0
    IF (ityp.eq.HKLF4) THEN 
-      value = 1 
+      value = 2 
    ELSEIF (ityp.eq.LIST5) THEN 
       value = 2 
    ENDIF 
    CALL four_run 
    shel_csf = CMPLX(csf (1,1,1), KIND=KIND(0.0D0))
    shel_000 = qval (1,1,1, value, 1, 1, laver) 
-   qq = qval(1,1,1, value, 1, 1, laver) / cr_icc(1)/cr_icc(2)/cr_icc(3)
+   qq = (qval(1,1,1, value, 1, 1, laver) / cr_icc(1)/cr_icc(2)/cr_icc(3))**2
    IF (ityp.eq.HKLF4) THEN 
       factor = max (int (log (qq) / log (10.0D0) ) - 3, 0) 
    ELSEIF (ityp.eq.LIST5) THEN 
@@ -1630,7 +1633,8 @@ IF(m==-1 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with 000
 elseif(m==-2 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with largest BRAG /= 000
    qqmax = 0.0D0
    if(ityp==HKLF4) then
-      shel_value = value 
+!     shel_value = value 
+      shel_value = 2 
    elseif(ityp==LIST5) then
       shel_value = 2 
    endif
@@ -1645,7 +1649,7 @@ elseif(m==-2 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with larges
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
 !              k  = (i - 1) * out_inc (2) + j 
                k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
-               qq = qval (i,j,l, shel_value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
+               qq = (qval(i,j,l, shel_value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3))**2
                qqmax = max(qqmax, qq)
             ENDIF
          ENDDO 
@@ -1660,6 +1664,7 @@ elseif(m==-2 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with larges
 elseif(valmax>  0.0 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with User value
   out_fac = valmax
 ENDIF 
+!write(*,*) ' OUT_FAC ', out_fac, factor, qqmax, vect
 !                                                                       
 extr_ima = 6 - out_extr_abs - out_extr_ord 
 !                                                                       
@@ -1862,17 +1867,18 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                                       + out_vi (k, 3) * REAL(l - 1)
                ENDDO 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
-               qq = qval (i,j,l, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
-               ext_cor = (1.0_PREC_DP/(1.0_PREC_DP + 0.001_PREC_DP * diff_exti * qq*rlambda**3/ &
-                         sind(2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., h, NULLV))))**0.25_PREC_DP)**2.0_PREC_DP
-!if(nint(h(1))==0 .and. nint(h(2))==0 .and. nint(h(3)) == 1) then
+!
+! Extinction correction is calculated using Amplitude, which has been scaled to one unit cell
+! Intensity written as (Amplitude*extinction)**2 * scale_factor
+               qq = qval(i,j,l, 2    , i, j, laver) / cr_icc(1) / cr_icc(2) / cr_icc(3)
+               ext_cor = (1.0_PREC_DP/(1.0_PREC_DP + 0.001_PREC_DP * diff_exti * qq**2*rlambda**3/ &
+                         sind(2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., h, NULLV))))**0.25_PREC_DP)!**2.0_PREC_DP
+!if(nint(h(1))==0 .and. nint(h(2))==0 .and. nint(h(3)) ==-1) then
 !write(*,*) h, qq, ext_cor, 2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., h, NULLV))
 !write(*,*) cr_icc, ' | ', value, qval (i,j,l, value, i, j, laver), qval (i,j,l, 2, i, j, laver)/ cr_icc (1) / cr_icc (2) / cr_icc (3)
+!write(*,*) 'WRITE ', (qq * ext_cor)**2 * out_fac, ' | ', qq, out_fac
 !endif
-!              k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
-!              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
-!              qq = qval (i,j,l, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
-               qq = qq * ext_cor * out_fac
+               qq = (qq * ext_cor)**2 * out_fac
                sq = sqrt (qq) 
                WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), qq, sq
             ENDIF
@@ -1889,12 +1895,14 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                                       + out_vi (k, 3) * REAL(l - 1)
                ENDDO 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
-!              k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
-               shel_value = 2 
-!              qq = qval (k, shel_value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
-               qq = qval (i,j,l, shel_value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)*out_fac
-               shel_value = 3 
-               sq = qval (i,j,l, shel_value, i, j, laver) 
+!
+               shel_value = 2                         ! Calculate amplitude
+               qq = qval(i,j,l, shel_value, i, j, laver) / cr_icc(1) / cr_icc(2) / cr_icc(3) ! Ampltude normalized to one unit cell
+               ext_cor = (1.0_PREC_DP/(1.0_PREC_DP + 0.001_PREC_DP * diff_exti * qq**2*rlambda**3/ &
+                         sind(2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., h, NULLV))))**0.25_PREC_DP)!**2.0_PREC_DP
+               qq = (qq * ext_cor) * out_fac          ! Amplitude * Extrinction * scale
+               shel_value = 3                         ! Calculate phase angle
+               sq = qval(i,j,l, shel_value, i, j, laver) 
                IF(sq < 0.0D0 ) sq = sq + 360.0D0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), qq, qq, sq
             ENDIF
@@ -1915,7 +1923,12 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !              k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
                shel_value = 2 
 !              qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
-               qq = qval (i,j,l, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
+!              qq = qval (i,j,l, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
+               shel_value = 2                         ! Calculate amplitude
+               qq = qval(i,j,l, shel_value, i, j, laver) / cr_icc(1) / cr_icc(2) / cr_icc(3) ! Ampltude normalized to one unit cell
+               ext_cor = (1.0_PREC_DP/(1.0_PREC_DP + 0.001_PREC_DP * diff_exti * qq**2*rlambda**3/ &
+                         sind(2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., h, NULLV))))**0.25_PREC_DP)!**2.0_PREC_DP
+               qq = (qq * ext_cor) * out_fac          ! Amplitude * Extrinction * scale
                shel_value = 3 
                sq = qval (i,j,l, shel_value, i, j, laver) 
                IF(sq < 0.0 ) sq = sq + 360.0
