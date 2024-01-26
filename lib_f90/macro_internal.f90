@@ -84,7 +84,7 @@ ELSEIF ( new_node%macrofile  ==   ptr%macrofile) THEN ! New "macrofile" is = old
    new_node%after  => ptr%after                       !        and after 
    temp => ptr                                        ! Retain address to node
    ptr => new_node                                    ! Place new node instead of old
-   DEALLOCATE(temp)                                   ! delete old node
+   if(associated(temp)) DEALLOCATE(temp)                                   ! delete old node
 !     new_node => ptr                                    ! new node points to old
 ELSEIF ( LGT(new_node%macrofile, ptr%macrofile)) THEN ! New "macrofile" is > old
    IF ( ASSOCIATED(ptr%after) ) THEN                  ! after node exists
@@ -169,8 +169,8 @@ IF(ASSOCIATED(ptr) ) THEN
    ENDIF
 !
    IF(ASSOCIATED(ptr%macros)) CALL ptr%macros%finalize_macro
-   DEALLOCATE(ptr%macros)
-   DEALLOCATE(ptr)
+   if(associated(ptr%macros)) DEALLOCATE(ptr%macros)
+   if(associated(ptr))        DEALLOCATE(ptr)
    NULLIFY(ptr) !DEALLOCATE(ptr)
 ENDIF
 !
@@ -192,7 +192,7 @@ IF(ASSOCIATED(ptr) ) THEN
       CALL macro_rem_tree( ptr%sib)
    ENDIF
 !
-   DEALLOCATE(ptr)
+   if(associated(ptr)) DEALLOCATE(ptr)
    NULLIFY(ptr) !DEALLOCATE(ptr)
 ENDIF
 !
