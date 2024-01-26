@@ -51,9 +51,10 @@ INTEGER              :: ino      ! connectivity no
 INTEGER              :: iatom    ! atoms no for show
 LOGICAL              :: long
 !                                                                       
-integer, parameter :: NOPTIONAL = 1
+integer, parameter :: NOPTIONAL = 2
 integer, parameter :: O_ADP     = 1
-character(len=   4), dimension(NOPTIONAL) :: oname   !Optional parameter names
+integer, parameter :: O_STYLE   = 2
+character(len=   5), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(len=PREC_STRING),dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -61,11 +62,11 @@ logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
 integer, parameter                        :: ncalc = 0 ! Number of values to calculate 
 !
-data oname  / 'adp '   /
-data loname /  2       /
-opara  =  (/ 'uij   '  /)   ! Always provide fresh default values
-lopara =  (/  3        /)
-owerte =  (/  0.0      /)
+data oname  / 'adp '  ,'style'/
+data loname /  3      , 5     /
+opara  =  (/ 'uij   ', 'short '  /)   ! Always provide fresh default values
+lopara =  (/  3      , 5         /)
+owerte =  (/  0.0    , 0.0       /)
 !
 CALL get_params(line, ianz, cpara, lpara, maxw, laenge) 
 !
@@ -88,7 +89,7 @@ elseif(str_comp(cpara(1), 'asym', 2, lpara(1), 4)) THEN
 !     ----Show an atom                     'atom'                       
 !                                                                       
    ELSEIF(str_comp(cpara(1), 'atom', 2, lpara(1), 4) ) THEN 
-      CALL do_show_atom (ianz, cpara, lpara, werte, maxw) 
+      CALL do_show_atom (ianz, cpara, lpara, werte, maxw, opara(O_STYLE), lopara(O_STYLE)) 
 !                                                                       
 !     ----Show bond valence parameters     'bval'                       
 !                                                                       
@@ -130,7 +131,7 @@ elseif(str_comp(cpara(1), 'asym', 2, lpara(1), 4)) THEN
          c_name   = ' '
          c_name_l = 1
       ENDIF
-      CALL get_connectivity_identity( cr_iscat(iatom,1), ino, c_name, c_name_l)
+      CALL get_connectivity_identity( cr_iscat(1,iatom), ino, c_name, c_name_l)
       CALL do_show_connectivity ( iatom, ino, c_name, long)
 !                                                                       
 !     ----Show the dimensions              'cdim'                       
@@ -150,7 +151,9 @@ elseif(str_comp(cpara(1), 'asym', 2, lpara(1), 4)) THEN
       CALL do_show_env 
       cpara (2) = 'envi' 
       lpara (2) = 4 
-      CALL do_show_atom (ianz, cpara, lpara, werte, maxw) 
+      opara(O_STYLE)  = 'short'
+      lopara(O_STYLE) = 5
+      CALL do_show_atom (ianz, cpara, lpara, werte, maxw, opara(O_STYLE), lopara(O_STYLE)) 
 !                                                                       
 !     ----Show the molecular environment        'menvi'                 
 !                                                                       
@@ -237,16 +240,17 @@ real(kind=PREC_DP) :: ueqv
 real(kind=PREC_DP) :: biso
 !
 if(str_comp(opara, 'uij', 2, length  , 3) .or. str_comp(opara, 'all', 2, length  , 3)) then
-   write(output_io,*)
+   write(output_io,*) ' ADPS', cr_nanis
    write(output_io,'(a)')' Type     U11       U22       U33       U23       U13       U12       Ueqv     Biso'
    do j=1, cr_nanis
       ueqv = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP
       biso = ueqv *8.0_PREC_DP*pi*pi
-      if(abs(cr_prin(1,4,j    )-cr_prin(2,4,j   ))>TOL  .or.  &
-         abs(cr_prin(1,4,j    )-cr_prin(3,4,j   ))>TOL      ) then
+      if(abs(cr_prin(4,1,j    )-cr_prin(4,2,j   ))>TOL  .or.  &
+         abs(cr_prin(4,1,j    )-cr_prin(4,3,j   ))>TOL      ) then
          write(output_io,'(i5,2x, 8f10.5)') j, cr_anis_full(:,j) , ueqv, biso
       else
          write(output_io,'(i5,2x, f10.5, 60x, f10.5)') j, cr_anis_full(1,j), biso
+!        write(output_io,'(i5,2x, 8f10.5)') j, cr_anis_full(:,j) , ueqv, biso
       endif
    enddo
    write(output_io,*)
@@ -254,13 +258,13 @@ endif
 if(str_comp(opara, 'prin', 2, length  , 4) .or. str_comp(opara, 'all', 2, length  , 3)) then
    write(output_io,'(a)')' Type               Eigenvectors                            <u^2>'
    do j=1, cr_nanis
-      if(abs(cr_prin(1,4,j    )-cr_prin(2,4,j   ))>TOL  .or.  &
-         abs(cr_prin(1,4,j    )-cr_prin(3,4,j   ))>TOL      ) then
-         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '1st', cr_prin(1,:,j)
-         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '2nd', cr_prin(2,:,j)
-         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '3rd', cr_prin(3,:,j)
+      if(abs(cr_prin(4,1,j    )-cr_prin(4,2,j   ))>TOL  .or.  &
+         abs(cr_prin(4,1,j    )-cr_prin(4,3,j   ))>TOL      ) then
+         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '1st', cr_prin(:,1,j)
+         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '2nd', cr_prin(:,2,j)
+         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '3rd', cr_prin(:,3,j)
       else
-         write(output_io,'(i5, 52x, f10.5)') j, cr_prin(1,4,j)
+         write(output_io,'(i5, 52x, f10.5)') j, cr_prin(4,1,j)
       endif
    enddo
    write(output_io,*)
@@ -426,7 +430,7 @@ end subroutine show_adp
  2001 FORMAT    (5(2x,i13)) 
       END SUBROUTINE do_show_menv                   
 !*****7*****************************************************************
-SUBROUTINE do_show_atom (ianz, cpara, lpara, werte, maxw) 
+SUBROUTINE do_show_atom (ianz, cpara, lpara, werte, maxw, opara, lopara) 
 !-                                                                      
 !     Shows information about an atom.                                  
 !+                                                                      
@@ -451,6 +455,8 @@ INTEGER                           , INTENT(IN)    :: MAXW
 CHARACTER(LEN=*) , DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 REAL(KIND=PREC_DP),DIMENSION(MAXW), INTENT(INOUT) :: werte
+CHARACTER(LEN=*)                  , INTENT(INOUT) :: opara
+INTEGER                           , INTENT(INOUT) :: lopara
 !
 !
 CHARACTER(LEN=32)       :: c_property 
@@ -459,6 +465,7 @@ INTEGER, DIMENSION(1:3) :: ioffset
 INTEGER                 :: length 
 !
 CHARACTER(LEN=9)                            :: at_name_d 
+CHARACTER(LEN=15)                           :: at_name_l 
 CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
 !
 !
@@ -491,16 +498,16 @@ IF(ier_num == 0) THEN
       ENDIF
       DO l = 1, atom_env(0) 
          i = atom_env(l) 
-         at_name_d = at_name(cr_iscat(i,1) ) 
+         at_name_d = at_name(cr_iscat(1,i) ) 
          CALL char_prop_1(c_property, cr_prop(i), length) 
          IF(cr_magn(0,i)>0.0) THEN
          WRITE(output_io, 5010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
-            cr_pos(3, i), cr_dw(cr_iscat(i,1)), i, cr_mole(i),         &
-            c_property(1:length), cr_occ(cr_iscat(i,1)), cr_magn(0:3,i)
+            cr_pos(3, i), cr_dw(cr_iscat(1,i)), i, cr_mole(i),         &
+            c_property(1:length), cr_occ(cr_iscat(1,i)), cr_magn(0:3,i)
          ELSE
          WRITE(output_io, 3010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
-            cr_pos(3, i), cr_dw(cr_iscat(i,1)), i, cr_mole(i),         &
-            c_property(1:length), cr_occ(cr_iscat(i,1))
+            cr_pos(3, i), cr_dw(cr_iscat(1,i)), i, cr_mole(i),         &
+            c_property(1:length), cr_occ(cr_iscat(1,i))
          ENDIF
          DO k=1,3
             ioffset(k) = NINT(atom_pos(k,l)-cr_pos(k,i))
@@ -519,28 +526,56 @@ IF(ier_num == 0) THEN
             iend = NINT(werte(3)) 
          ENDIF 
          iend = MIN(iend, cr_natoms) 
+         if(opara=='short') then
          IF(cr_magnetic) THEN
             WRITE(output_io, 4000) 
          ELSE
             WRITE(output_io, 3000) 
          ENDIF
-         DO i = istart, iend 
-            at_name_d = at_name(cr_iscat(i,1)) 
-            CALL char_prop_1(c_property, cr_prop(i), length) 
-            IF(cr_magn(0,i)>0.0) THEN
-            WRITE(output_io, 4010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
-               cr_pos(3, i), cr_dw(cr_iscat(i,1)), i, cr_mole(i),         &
-               c_property(1:length), cr_occ(cr_iscat(i,1)),               &
-               c_surf(cr_surf(0,i)), cr_surf(1:3,i),                    &
-               cr_magn(0:3,i)
-            ELSE
-               WRITE(output_io, 3010) at_name_d, cr_pos(1, i),     &
-               cr_pos(2, i), cr_pos(3, i), cr_dw(cr_iscat(i,1)),     &
-               i, cr_mole(i),                                      &
-               c_property(1:length), cr_occ(cr_iscat(i,1)),          &
-               c_surf(cr_surf(0,i)), cr_surf(1:3,i)
-            ENDIF
-         ENDDO 
+         elseif(opara=='long') then
+         IF(cr_magnetic) THEN
+            WRITE(output_io, 4001) 
+         ELSE
+            WRITE(output_io, 3001) 
+         ENDIF
+         endif
+         if(opara=='short') then
+            DO i = istart, iend 
+               at_name_d = at_name(cr_iscat(1,i)) 
+               CALL char_prop_1(c_property, cr_prop(i), length) 
+               IF(cr_magn(0,i)>0.0) THEN
+               WRITE(output_io, 4010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
+                  cr_pos(3, i), cr_dw(cr_iscat(1,i)), i, cr_mole(i),         &
+                  c_property(1:length), cr_occ(cr_iscat(1,i)),               &
+                  c_surf(cr_surf(0,i)), cr_surf(1:3,i),                    &
+                  cr_magn(0:3,i)
+               ELSE
+                  WRITE(output_io, 3010) at_name_d, cr_pos(1, i),     &
+                  cr_pos(2, i), cr_pos(3, i), cr_dw(cr_iscat(1,i)),     &
+                  i, cr_mole(i),                                      &
+                  c_property(1:length), cr_occ(cr_iscat(1,i)),          &
+                  c_surf(cr_surf(0,i)), cr_surf(1:3,i)
+               ENDIF
+            ENDDO 
+         elseif(opara=='long') then
+            DO i = istart, iend 
+               at_name_l = at_name_long(cr_iscat(1,i)) 
+               CALL char_prop_1(c_property, cr_prop(i), length) 
+               IF(cr_magn(0,i)>0.0) THEN
+               WRITE(output_io, 4015) at_name_d, cr_pos(1,i), cr_pos(2,i), &
+                  cr_pos(3, i), cr_dw(cr_iscat(1,i)), i, cr_mole(i),         &
+                  c_property(1:length), cr_occ(cr_iscat(1,i)),               &
+                  c_surf(cr_surf(0,i)), cr_surf(1:3,i),                    &
+                  cr_magn(0:3,i)
+               ELSE
+                  WRITE(output_io, 3015) at_name_l, cr_pos(1, i),     &
+                  cr_pos(2, i), cr_pos(3, i), cr_dw(cr_iscat(1,i)),     &
+                  i, cr_mole(i),                                      &
+                  c_property(1:length), cr_occ(cr_iscat(1,i)),          &
+                  c_surf(cr_surf(0,i)), cr_surf(1:3,i)
+               ENDIF
+            ENDDO 
+         endif
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -550,10 +585,16 @@ ENDIF
 !                                                                       
  3000 FORMAT    (' Name',11x,'x',13x,'y',13x,'z',13x,'B',12x,'Number',&
                  3x,'Molecule Property  Occupancy Surf(Type,HKL)') 
+ 3001 FORMAT    (' Name',17x,'x',13x,'y',13x,'z',13x,'B',12x,'Number',&
+                 3x,'Molecule Property  Occupancy Surf(Type,HKL)') 
  3010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6, 2x, A1,3(1x,I3 ))
+ 3015 FORMAT    (1x,a15,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6, 2x, A1,3(1x,I3 ))
  4000 FORMAT    (' Name',11x,'x',13x,'y',13x,'z',13x,'B',12x,'Number',&
                  3x,'Molecule Property  Occupancy Surf(Type,HKL) Magn(Mom,UVW)') 
+ 4001 FORMAT    (' Name',17x,'x',13x,'y',13x,'z',13x,'B',12x,'Number',&
+                 3x,'Molecule Property  Occupancy Surf(Type,HKL) Magn(Mom,UVW)') 
  4010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6, 2x, A1,3(1x,I3 ), 1x, 4(1x,f5.2))
+ 4015 FORMAT    (1x,a15,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6, 2x, A1,3(1x,I3 ), 1x, 4(1x,f5.2))
  5010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6, 2x, 13x         , 1x, 4(1x,f5.2))
  3020 FORMAT    ( 3x  ,3(8x,i6   ),4x,f10.6     ) 
 !
@@ -671,9 +712,9 @@ USE str_comp_mod
             i) )                                                        
             DO j = 1, mole_len (i) 
             k = mole_cont (mole_off (i) + j) 
-            at_name_d = at_name (cr_iscat (k,1) ) 
+            at_name_d = at_name (cr_iscat (1,k) ) 
             WRITE (output_io, 3010) at_name_d, k, cr_pos (1, k),        &
-            cr_pos (2, k), cr_pos (3, k), cr_dw (cr_iscat (k,1) ), cr_occ(cr_iscat(k,1))  
+            cr_pos (2, k), cr_pos (3, k), cr_dw (cr_iscat (1,k) ), cr_occ(cr_iscat(1,k))  
             ENDDO 
             ENDDO 
             RETURN 
@@ -710,9 +751,9 @@ USE str_comp_mod
       ENDIF 
       DO j = 1, mole_len (i) 
       k = mole_cont (mole_off (i) + j) 
-      at_name_d = at_name (cr_iscat (k,1) ) 
+      at_name_d = at_name (cr_iscat (1,k) ) 
       WRITE (output_io, 3010) at_name_d, k, cr_pos (1, k), cr_pos (2, k)&
-      , cr_pos (3, k), cr_dw (cr_iscat (k,1) ), j                            !! WORK OCC
+      , cr_pos (3, k), cr_dw (cr_iscat (1,k) ), j                            !! WORK OCC
       ENDDO 
       ENDDO 
 !                                                                       

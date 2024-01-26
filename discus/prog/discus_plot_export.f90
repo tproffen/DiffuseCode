@@ -60,7 +60,7 @@ pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (i, pl_latom (cr_iscat (i,1) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (1,i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -92,9 +92,9 @@ pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !     ------Write atom position in desired sequence of coordinates      
 !                                                                       
                latom = .true. 
-               WRITE (iff, 1000) cr_at_lis (cr_iscat (i,1) ),          &
-                 cr_iscat (i,1), (v (j) / cr_icc (j), j = 1, 3),       &
-                 fac * cr_dw (cr_iscat (i,1) ), 0.0, 0.0, 0.0, 0.0, 0.0                            
+               WRITE (iff, 1000) cr_at_lis (cr_iscat (1,i) ),          &
+                 cr_iscat (1,i), (v (j) / cr_icc (j), j = 1, 3),       &
+                 fac * cr_dw (cr_iscat (1,i) ), 0.0, 0.0, 0.0, 0.0, 0.0                            
             ENDIF 
          ENDIF 
       ENDIF 
@@ -178,7 +178,7 @@ pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (i, pl_latom (cr_iscat (i,1) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (1,i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -210,12 +210,12 @@ pl_uvw_local = real(pl_uvw, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !     ------Write atom position in desired sequence of coordinates      
 !                                                                       
                latom = .true. 
-               WRITE (iff, 1001) cr_at_lis (cr_iscat (i,1) ),   &
-                                 cr_iscat(i,1),(v(j)/cr_icc (j), j = 1, 3)
-               WRITE (iff, 1002) cr_at_lis (cr_iscat (i,1) ),      &
-                     cr_iscat (i,1),fac * cr_dw (cr_iscat (i,1) ),   &
-                     fac * cr_dw (cr_iscat (i,1) ),                &
-                     fac * cr_dw (cr_iscat (i,1) ), 0.0, 0.0, 0.0, &
+               WRITE (iff, 1001) cr_at_lis (cr_iscat (1,i) ),   &
+                                 cr_iscat(1,i),(v(j)/cr_icc (j), j = 1, 3)
+               WRITE (iff, 1002) cr_at_lis (cr_iscat (1,i) ),      &
+                     cr_iscat (1,i),fac * cr_dw (cr_iscat (1,i) ),   &
+                     fac * cr_dw (cr_iscat (1,i) ),                &
+                     fac * cr_dw (cr_iscat (1,i) ), 0.0, 0.0, 0.0, &
                      povcolor ( pl_color (i) )
 !     &                          pl_rgb(1,i),pl_rgb(2,i),pl_rgb(3,i);   
             ENDIF 
@@ -340,7 +340,7 @@ DO i = 1, cr_natoms
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-   IF(check_select_status(i, pl_latom(cr_iscat(i,1)), cr_prop(i), pl_sel_prop) ) THEN
+   IF(check_select_status(i, pl_latom(cr_iscat(1,i)), cr_prop(i), pl_sel_prop) ) THEN
 !                                                                       
 !     --Check dimensions of plotting space                              
 !                                                                       
@@ -371,15 +371,15 @@ DO i = 1, cr_natoms
 !     ------Write atom position in desired sequence of coordinates      
 !                                                                       
             latom = .true. 
-            atom_i = cr_at_lis(cr_iscat(i,1))
+            atom_i = cr_at_lis(cr_iscat(1,i))
             call do_str(atom_i)               ! Remove non-character 
             write(atom_l,'(a,i8)') atom_i(1:len_trim(atom_i)), i
             j = len_trim(atom_l)
             call rem_bl(atom_l,j)
             WRITE (iff, 1000) atom_l(1:len_trim(atom_l)), atom_i,    &
                 ( (v (j) - cr_dim (j, 1) ) / scalef (j), j = 1, 3),  &
-                 cr_dw ( cr_iscat (i,1) )/eightpisq, ' Uiso ',         &
-                 cr_occ(cr_iscat(i,1))
+                 cr_dw ( cr_iscat (1,i) )/eightpisq, ' Uiso ',         &
+                 cr_occ(cr_iscat(1,i))
          ENDIF 
       ENDIF 
    ENDIF 
@@ -471,7 +471,7 @@ pl_inv_local = real(pl_inv, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (i, pl_latom (cr_iscat (i,1) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (1,i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -511,9 +511,9 @@ pl_inv_local = real(pl_inv, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !     ------Write atom position in desired sequence of coordinates      
 !                                                                       
                latom = .true. 
-               pt = pl_typ (cr_iscat (i,1) ) 
-               pc = pl_color (cr_iscat (i,1) ) 
-               ps = pl_siz (cr_iscat (i,1) ) 
+               pt = pl_typ (cr_iscat (1,i) ) 
+               pc = pl_color (cr_iscat (1,i) ) 
+               ps = pl_siz (cr_iscat (1,i) ) 
 !                                                                       
                IF (pl_col.eq.'xyz') then 
                   CALL write_atom (lkupl, iff, i, v (1), v (2), v (3),  &
@@ -799,7 +799,7 @@ pl_abs_local = real(pl_abs, kind=PREC_DP)     ! Prioir to compete migratin to DP
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (i, pl_latom (cr_iscat (i,1) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (1,i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -823,7 +823,7 @@ pl_abs_local = real(pl_abs, kind=PREC_DP)     ! Prioir to compete migratin to DP
             xmin (j) = min (xmin (j), uvw (j) ) 
             xmax (j) = max (xmax (j), uvw (j) ) 
             ENDDO 
-            WRITE (iff, 2100) cr_at_lis(cr_iscat(i,1)),(uvw(j), j = 1, 3)
+            WRITE (iff, 2100) cr_at_lis(cr_iscat(1,i)),(uvw(j), j = 1, 3)
          ENDIF 
       ENDIF 
       ENDDO 
@@ -1001,7 +1001,7 @@ REAL(kind=PREC_DP)               :: xx
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (i, pl_latom (cr_iscat (i,1) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (1,i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -1077,7 +1077,7 @@ REAL(kind=PREC_DP), dimension(4) ::  uvw (4)
 !
       natoms = 0
       DO i = 1, cr_natoms 
-         IF (check_select_status(i, pl_latom(cr_iscat(i,1)), cr_prop (i),pl_sel_prop) ) THEN
+         IF (check_select_status(i, pl_latom(cr_iscat(1,i)), cr_prop (i),pl_sel_prop) ) THEN
             natoms = natoms + 1
          ENDIF
       ENDDO
@@ -1099,7 +1099,7 @@ REAL(kind=PREC_DP), dimension(4) ::  uvw (4)
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (i, pl_latom (cr_iscat (i,1) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (1,i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -1118,7 +1118,7 @@ REAL(kind=PREC_DP), dimension(4) ::  uvw (4)
             uvw (j) = cr_pos (j, i) 
             ENDDO 
             CALL tran_ca (uvw, pl_tran_f, lscreen) 
-            WRITE (iff, 2100) cr_at_lis (cr_iscat (i,1) ),  &
+            WRITE (iff, 2100) cr_at_lis (cr_iscat (1,i) ),  &
                               (uvw (j), j = 1, 3)
          ENDIF 
       ENDIF 

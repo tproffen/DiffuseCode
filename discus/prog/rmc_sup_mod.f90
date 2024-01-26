@@ -2172,6 +2172,8 @@ USE support_mod
       INTEGER ip, iscat, nlot, i,j, k, iii 
       REAL(kind=PREC_DP)    ::   rmc_energy = 0.00D0
       LOGICAL :: l_rmc_energy = .false.
+integer, dimension(3) :: fnum  ! Number of increments (reduced by Friedel)
+logical :: ldiscamb   ! Aspherical atomic form factors
 !
       CALL four_cexpt 
       CALL rmc_zero 
@@ -2195,6 +2197,7 @@ USE support_mod
          ENDDO 
          CLOSE (57) 
       ENDIF 
+ldiscamb = .false.
 !                                                                       
 !------ Loop over all exp. data planes                                  
 !                                                                       
@@ -2219,8 +2222,9 @@ loop_plane: DO ip = 1, rmc_nplane                                               
 !
             CALL rmc_layer (k, ip) 
             CALL fourier_lmn(eck,vi,num,lmn,off_shift)
+            fnum = num   ! Number of increments (reduced by Friedel)
             CALL rmc_stltab (k, ip, .true.) 
-            CALL four_aver (rmc_ilots, rmc_ave, cr_icc) 
+            CALL four_aver (rmc_ilots, rmc_ave, cr_icc, fnum, ldiscamb) 
 !                                                                       
             iii = offsq (ip, k) 
 !                                                                       
@@ -2235,7 +2239,7 @@ loop_plane: DO ip = 1, rmc_nplane                                               
 !                                                                       
             DO iscat = 1, cr_nscat                                                              ! Loop over iscat
                CALL four_getatm (iscat, rmc_ilots, lbeg, ncell) 
-               CALL four_strucf (iscat, .true.) 
+               CALL four_strucf (iscat, .true., .false., .false., 1, 1, fnum) 
 !              DO i = 1, rmc_num (1, ip) * rmc_num (2, ip)                                      ! Loop over i
 !                 rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) + tcsf (i)                  ! Clarify who are these "rmc" arrays ...
 !              ENDDO                                                                            ! End loop over i
@@ -2784,6 +2788,7 @@ use precision_mod
       REAL(kind=PREC_DP)   , DIMENSION(3, RMC_MAX_ATOM), INTENT(IN) :: p_new !(3, rmc_max_atom) 
       INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(IN) :: i_new !(rmc_max_atom) 
       INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(IN) :: isel  !(rmc_max_atom) 
+integer, dimension(3) :: fnum ! number increments (reduced by Friedel)
        
 !                                                                       
       REAL(kind=PREC_DP) :: p_old (3, rmc_max_atom) 
@@ -2811,25 +2816,26 @@ enddo
       p_old (1, i) = cr_pos (1, isel (i) ) 
       p_old (2, i) = cr_pos (2, isel (i) ) 
       p_old (3, i) = cr_pos (3, isel (i) ) 
-      i_old (i) = cr_iscat (isel (i),1 ) 
+      i_old (i) = cr_iscat (1,isel (i) ) 
       ENDDO 
 !                                                                       
       CALL rmc_formtab (ip, .false.) 
       CALL rmc_layer (is, ip) 
       CALL rmc_stltab (is, ip, .false.) 
+   fnum = num
 !                                                                       
       DO il = 1, rmc_nlots 
       DO i = 1, natoms 
       IF (rmc_inlot (isel (i), il, off) ) then 
-         CALL rmc_strucf (i_old (i), p_old, i, is, ip, il, off, .false.) 
-         CALL rmc_strucf (i_new (i), p_new, i, is, ip, il, off, .true.) 
+         CALL rmc_strucf (i_old (i), p_old, i, is, ip, il, off, .false., fnum) 
+         CALL rmc_strucf (i_new (i), p_new, i, is, ip, il, off, .true., fnum) 
       ENDIF 
       ENDDO 
       ENDDO 
 !                                                                       
       END SUBROUTINE rmc_fcalc                      
 !*****7*****************************************************************
-      SUBROUTINE rmc_strucf (iscat, pos, isite, is, ip, il, off, lplus) 
+      SUBROUTINE rmc_strucf (iscat, pos, isite, is, ip, il, off, lplus, fnum) 
 !+                                                                      
 !     Here is the real calculation :-)                                  
 !-                                                                      
@@ -2850,6 +2856,7 @@ use precision_mod
       INTEGER, INTENT(IN) :: ip
       INTEGER, INTENT(IN) :: il
       LOGICAL, INTENT(IN) :: lplus 
+integer, dimension(3), intent(in) :: fnum ! Number increments (reduced by Friedel)
 !                                                                       
       INTEGER:: i, iq, jq 
 !                                                                       
@@ -2860,7 +2867,7 @@ use precision_mod
       xat (nxat, 2) = pos (2, isite) - off (2) 
       xat (nxat, 3) = pos (3, isite) - off (3) 
 !                                                                       
-      CALL four_strucf (iscat, .true.) 
+      CALL four_strucf (iscat, .true., .false., .false., 1, 1, fnum) 
 !                                                                       
       IF (lplus) then 
          do jq = 1,rmc_num (2, ip)
@@ -3025,7 +3032,7 @@ use precision_mod
       ENDDO 
 !                                                                       
       DO i = 1, natoms 
-      cr_iscat (isel (i),1 ) = i_new (i) 
+      cr_iscat (1,isel (i) ) = i_new (i) 
       DO j = 1, 3 
       cr_pos (j, isel (i) ) = p_new (j, i) 
       ENDDO 
@@ -3076,10 +3083,10 @@ REAL(KIND=PREC_DP) :: werte(1)
       CALL do_find_env (1, werte, 1, pos, 0.1D0, rmc_mindist_max,         &
       chem_quick, chem_period)                                          
       DO i = 1, atom_env (0) 
-      IF (cr_iscat (atom_env (i),1 ) .ne.0.and.laccept) then 
+      IF (cr_iscat (1,atom_env (i) ) .ne.0.and.laccept) then 
          IF(inumber /= atom_env(i)) THEN ! Do not check distance to original place!
          laccept = (res_para (i) .ge.rmc_mindist (i_new (iatom),        &
-         cr_iscat (atom_env (i),1 ) ) )                                   
+         cr_iscat (1,atom_env (i) ) ) )                                   
             ENDIF
       ENDIF 
       ENDDO 
@@ -3128,10 +3135,10 @@ REAL(kind=PREC_DP) :: r1
       isel (1) = int (r1          * cr_natoms) + 1 
 !     isel (1) = int (ran1 (idum) * cr_natoms) + 1 
       IF (isel (1) .gt.cr_natoms.or.isel (1) .lt.1) goto 10 
-      IF(.NOT.local_rmc_allowed(cr_iscat(isel(1),1))) GOTO 10
+      IF(.NOT.local_rmc_allowed(cr_iscat(1,isel(1)))) GOTO 10
 !
       IF (imode == rmc_local_conn) THEN   ! Choose second atom from connectivity
-         CALL get_connectivity_list(isel(1), cr_iscat(isel(1),1), ino, c_list, c_offs, natoms)
+         CALL get_connectivity_list(isel(1), cr_iscat(1,isel(1)), ino, c_list, c_offs, natoms)
          IF(natoms == 0) GOTO 10
          CALL RANDOM_NUMBER(r1)
          isel(2) = c_list(INT(r1        *natoms) + 1)
@@ -3250,12 +3257,12 @@ REAL(kind=PREC_DP) :: r1
          natoms = 2 
          CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2,  &
                           cr_nscat,RMC_MAX_ATOM,rmc_allowed) 
-         laccept = rmc_allowed (cr_iscat (isel (1),1 ) ) .and.rmc_allowed &
-         (cr_iscat (isel (2),1 ) ) .and.cr_iscat (isel (1),1 ) .ne.cr_iscat &
-         (isel (2),1 )                                                    
+         laccept = rmc_allowed (cr_iscat (1,isel (1) ) ) .and.rmc_allowed &
+         (cr_iscat (1,isel (2) ) ) .and.cr_iscat (1,isel (1) ) .ne.cr_iscat &
+         (1,isel (2) )                                                    
          IF (laccept) then 
-            i_new (1) = cr_iscat (isel (2),1 ) 
-            i_new (2) = cr_iscat (isel (1),1 ) 
+            i_new (1) = cr_iscat (1,isel (2) ) 
+            i_new (2) = cr_iscat (1,isel (1) ) 
             DO j = 1, 3 
             p_new (j, 1) = cr_pos (j, isel (1) ) 
             p_new (j, 2) = cr_pos (j, isel (2) ) 
@@ -3271,9 +3278,9 @@ REAL(kind=PREC_DP) :: r1
          isel (1) = int (r1          * cr_natoms) + 1 
 !        isel (1) = int (ran1 (idum) * cr_natoms) + 1 
          IF (isel (1) .gt.cr_natoms.or.isel (1) .lt.1) goto 10 
-         laccept = rmc_allowed (cr_iscat (isel (1),1 ) ) 
+         laccept = rmc_allowed (cr_iscat (1,isel (1) ) ) 
          IF (laccept) then 
-            i_new (1) = cr_iscat (isel (1),1 ) 
+            i_new (1) = cr_iscat (1,isel (1) ) 
             DO i = 1, 3 
             p_new (i, 1) = cr_pos (i, isel (1) ) + gasdev (DBLE(rmc_maxmove (&
             i, i_new (1) ) ))
@@ -3294,11 +3301,11 @@ REAL(kind=PREC_DP) :: r1
          natoms = 2 
          CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2, &
                           cr_nscat,RMC_MAX_ATOM,rmc_allowed) 
-         laccept = rmc_allowed (cr_iscat (isel (1),1 ) ) .and.rmc_allowed &
-         (cr_iscat (isel (2),1 ) )                                        
+         laccept = rmc_allowed (cr_iscat (1,isel (1) ) ) .and.rmc_allowed &
+         (cr_iscat (1,isel (2) ) )                                        
          IF (laccept) then 
-            i_new (1) = cr_iscat (isel (1),1 ) 
-            i_new (2) = cr_iscat (isel (2),1 ) 
+            i_new (1) = cr_iscat (1,isel (1) ) 
+            i_new (2) = cr_iscat (1,isel (2) ) 
             DO j = 1, 3 
             disp1 = cr_pos (j, isel (1) ) - chem_ave_pos (j, is1)       &
             - REAL(iz1 (j) - 1) - cr_dim0 (j, 1)                      
@@ -3339,8 +3346,8 @@ REAL(kind=PREC_DP) :: r1
 !                                                                       
       IF (laccept.and.dbg) then 
          DO j = 1, natoms 
-         WRITE (output_io, 11) j, isel (j), cr_at_lis (cr_iscat (isel ( &
-         j),1 ) ), cr_iscat (isel (j),1 ), (cr_pos (i, isel (j) ), i = 1, 3)&
+         WRITE (output_io, 11) j, isel (j), cr_at_lis (cr_iscat (1,isel ( &
+         j) ) ), cr_iscat (1,isel (j) ), (cr_pos (i, isel (j) ), i = 1, 3)&
          , isel (j), cr_at_lis (i_new (j) ), i_new (j), (p_new (i, j),  &
          i = 1, 3), ( (p_new (i, j) - cr_pos (i, isel (j) ) ), i = 1, 3)
          ENDDO 
@@ -3431,8 +3438,8 @@ IF (rmc_mode.eq.rmc_mode_swchem) then
          j = i + mole_len(imol (1) ) 
          isel (i) = mole_cont (mole_off (imol (1) ) + i) 
          isel (j) = mole_cont (mole_off (imol (2) ) + i) 
-         i_new (i) = cr_iscat (isel (j),1 ) 
-         i_new (j) = cr_iscat (isel (i),1 ) 
+         i_new (i) = cr_iscat (1, isel (j) ) 
+         i_new (j) = cr_iscat (1, isel (i) ) 
          DO k = 1, 3 
             p_new(k, i) = cr_pos(k, isel(j)) - cr_pos(k, j0) + cr_pos (k, i0)
             p_new(k, j) = cr_pos(k, isel(i)) - cr_pos(k, i0) + cr_pos (k, j0)
@@ -3456,7 +3463,7 @@ ELSEIF (rmc_mode.eq.rmc_mode_shift) then
 !                                                                       
       DO i = 1, mole_len(imol(1)) 
          isel (i) = mole_cont(mole_off(imol(1)) + i) 
-         i_new (i) = cr_iscat(isel (i),1 ) 
+         i_new (i) = cr_iscat(1,isel (i) ) 
          DO j = 1, 3 
             p_new(j, i) = cr_pos(j, isel(i)) + disp1(j) 
          ENDDO 
@@ -3495,8 +3502,8 @@ ELSEIF (rmc_mode.eq.rmc_mode_swdisp) then
             j = i + mole_len (imol (1) ) 
             isel (i) = mole_cont (mole_off (imol (1) ) + i) 
             isel (j) = mole_cont (mole_off (imol (2) ) + i) 
-            i_new (i) = cr_iscat (isel (i),1 ) 
-            i_new (j) = cr_iscat (isel (j),1 ) 
+            i_new (i) = cr_iscat (1,isel (i) ) 
+            i_new (j) = cr_iscat (1,isel (j) ) 
             DO k = 1, 3 
             p_new (k, i) = cr_pos (k, isel (i) ) - disp1 (k) + disp2 (k) 
             p_new (k, j) = cr_pos (k, isel (j) ) - disp2 (k) + disp1 (k) 
@@ -3573,8 +3580,8 @@ ENDIF
       IF (laccept.and.dbg) then 
          WRITE (output_io, 11) imol 
          DO j = 1, natoms 
-         WRITE (output_io, 12) j, isel (j), cr_at_lis (cr_iscat (isel ( &
-         j),1 ) ), cr_iscat (isel (j),1 ), (cr_pos (i, isel (j) ), i = 1, 3)&
+         WRITE (output_io, 12) j, isel (j), cr_at_lis (cr_iscat (1,isel ( &
+         j) ) ), cr_iscat (1,isel (j) ), (cr_pos (i, isel (j) ), i = 1, 3)&
          , isel (j), cr_at_lis (i_new (j) ), i_new (j), (p_new (i, j),  &
          i = 1, 3), ( (p_new (i, j) - cr_pos (i, isel (j) ) ), i = 1, 3)
          ENDDO 

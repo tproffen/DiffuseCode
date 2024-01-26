@@ -615,13 +615,15 @@ USE domain_mod
 USE domaindis_mod 
 USE micro_mod 
 USE molecule_mod
+use prep_anis_mod
 use prop_para_func
 use prop_para_mod
 USE read_internal_mod
 USE discus_save_mod 
-USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc, save_show
+USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_full_setting, save_struc, save_show
 USE structur, ONLY: stru_readheader, test_file, read_to_internal
 !
+use allocate_generic
 USE errlist_mod 
 use matrix_mod
 USE precision_mod
@@ -651,11 +653,20 @@ REAL(PREC_DP), DIMENSION(4,4) :: mc_idimen
 REAL(PREC_DP), DIMENSION(4,4) :: mc_matrix
 INTEGER :: natoms_old
 INTEGER               :: i, j, k, l
+integer               :: kk   ! Dummy index
 integer               :: length
 INTEGER, DIMENSION(5) :: maxdim = 0
+integer :: dim_natoms  ! Internal array size
+integer :: dim_ncatoms  ! Internal array size
+integer :: dim_nscat  ! Internal array size
+integer :: dim_nanis  ! Internal array size
+integer :: dim_n_mole  ! Internal array size
+integer :: dim_n_type  ! Internal array size
+integer :: dim_n_atom  ! Internal array size
 INTEGER  :: natoms  ! Number of atoms in the input file
 INTEGER  :: ncatoms  ! Number of atoms per unit cell in the input file
 INTEGER  :: nscats  ! NUmber of atom types in the input file
+integer  :: nanis   ! Number of different ADP parameters
 INTEGER  :: n_gene  ! Number of generators for molecules in the input file
 INTEGER  :: n_symm  ! Number of symm. ops. for molecules in the input file
 INTEGER  :: n_mole  ! Number of molecules in the input file
@@ -667,7 +678,16 @@ logical, dimension(0:MAXMASK) :: uni_mask
 REAL(PREC_DP)               :: shortest
 REAL(PREC_DP), DIMENSION(3) :: vv
 REAL(PREC_DP) :: sgrand  ! grand time
+integer :: max_nanis ! Maximum number different ADP
+integer :: temp_nanis ! temporary number different ADP
+real(kind=PREC_DP), dimension(:,:)  , allocatable :: temp_anis_full   ! Temporary storage for full anis
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: temp_prin        ! Temporary storage for principal axes
+integer           , dimension(:,:)  , allocatable :: adp_look         ! Lookup table for st_iscat(3,*) to get correct ADP's
+integer                                      :: clu_type   ! 
+logical  :: lsuccess  
+integer  :: ier  ! Allocation error
 !
+clu_type = 1
 nscats = 0
 natoms = 0
 ncatoms = 0
@@ -686,7 +706,7 @@ uni_mask(4)   = .false.
 ! --- Temporarily save current structure into internal
 !
 call save_store_setting             ! Backup user "save" setting
-call save_default_setting           ! Default to full saving
+call save_full_setting           ! Default to full saving
 !
 line       = 'ignore, all'          ! Ignore all properties
 length     = 11 
@@ -702,10 +722,17 @@ maxdim(3) = MAX(maxdim(3), n_mole, MOLE_MAX_MOLE)
 maxdim(4) = MAX(maxdim(4), n_type, MOLE_MAX_TYPE)
 maxdim(5) = MAX(maxdim(5), n_atom, MOLE_MAX_ATOM)
 !
+! Temporary storage for ADPs
+i = cr_nanis + clu_number*5
+call alloc_anis_generic(i, temp_anis_full, temp_prin, ier)
+temp_nanis = cr_nanis
+max_nanis  = cr_nanis
+temp_anis_full(1:6,1:cr_nanis) = cr_anis_full(1:6,1:cr_nanis)
+temp_prin (1:4,1:3,1:cr_nanis) = cr_prin (1:4,1:3,1:cr_nanis)
+!
 ! -- Store list file internally
 !
 strucfile = clu_infile
-!write(*,*) ' CLU_INFILE ', clu_infile(1:len_trim(clu_infile))
 call read_to_internal(strucfile, 'internal_domain_list.')
 if(ier_num/=0) return
 !write(*,*) ' infile : ier_num, ier_typ ', ier_num, ier_typ
@@ -748,6 +775,11 @@ loop_read: do i=1, clu_number
    if(clu_content(i)(1:8)/='internal') then    ! not yet an internal file
       strucfile = clu_content(i)
       call read_to_internal(strucfile, 'internal_domain_guest.')
+!write(*,'(a, a,4i6)') ' READ ',strucfile(1:len_trim(strucfile)), cr_natoms, cr_nscat, cr_ncatoms, cr_nanis
+!do j=1, cr_nanis
+!write(*,'(a, 6f10.5)') j, cr_anis_full(:,j)
+!      call lookup_anis(temp_nanis, temp_anis_full, temp_prin, cr_anis_full(:,j), k, lsuccess)
+!enddo
       if(ier_num/=0) then
          j = ier_num
          call readstru_internal(MAXMASK, host_file, uni_mask)
@@ -758,14 +790,55 @@ loop_read: do i=1, clu_number
          return
       endif
       clu_content(i) = 'internal_domain_guest.' // clu_content(i)(1:len_trim(clu_content(i)))
+      max_nanis = max(max_nanis, cr_nanis, temp_nanis)
    endif
 enddo loop_read
-!write(*,*) ' FINISHED  GUEST FILES '
+!write(*,*) ' TEMP_NANIS', temp_nanis
+!do j=1, temp_nanis
+!write(*,'(a, 6f10.5)') j, temp_anis_full(:,j)
+!enddo
+!write(*,*)
+!
+! Allocate lookup table
+allocate(adp_look(clu_number, max_nanis))
+adp_look = 0
+!
+loop_anis: do i=1, clu_number      ! Build ADP lookup table
+   call readstru_size_int(clu_content(i), dim_natoms, dim_ncatoms, dim_nscat, dim_nanis, &
+        dim_n_mole, dim_n_type, dim_n_atom, mk_natoms,  mk_ncatoms, &
+                          mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+   mk_nanis=max(1, mk_nanis)
+   call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin, ier)
+   if(allocated(mk_is_sym)) deallocate(mk_is_sym)
+   allocate(mk_is_sym(mk_ncatoms))
+   call stru_get_anis(clu_content(i), dim_nanis, mk_nanis, mk_anis_full, mk_prin)
+!     Build ADP Lookup table
+   if(mk_nanis>ubound(adp_look,2)) then
+      kk= ubound(adp_look,1)
+      j = mk_nanis
+      call alloc_arr(adp_look, 1, kk, 1, j, k, 0)
+   endif
+   do j=1, mk_nanis
+      call lookup_anis(temp_nanis, temp_anis_full, temp_prin, mk_anis_full(1:6,j), mk_prin(:,:,j), kk, lsuccess)
+      adp_look(i,j) = kk
+   enddo
+enddo loop_anis
+!do i=1, clu_number
+!write(*,*) 'LOOKUP ', adp_look(i,:)
+!enddo
+!
 !
 call readstru_internal(MAXMASK, host_file, uni_mask)   ! Restore original host file
 if(ier_num/=0) return
 call save_restore_setting           ! Restore user "save" settings
 if(ier_num/=0) return
+!
+! Number of anisotropic parameters might have changes, replace by temp_*
+call alloc_anis(temp_nanis)
+cr_anis_full(:,1:temp_nanis) = temp_anis_full(:,1:temp_nanis)
+cr_prin  (:,:, 1:temp_nanis) = temp_prin   (:,:,1:temp_nanis)
+cr_nanis = temp_nanis
+!return
 !-------------------------------------------------------------------------------
 !
 !     TEST FILESIZE OF ALL internal CONTENT FILES
@@ -781,7 +854,7 @@ DO i=1, clu_number
    infile = clu_content(i)
    IF(clu_content(i)(1:8)=='internal')THEN
          CALL testfile_internal(  infile , natoms, ncatoms, &
-              nscats, n_mole, n_type, n_atom)
+              nscats, nanis, n_mole, n_type, n_atom)
       clu_moles(1,i) = n_mole
       clu_moles(2,i) = n_type
       MK_MAX_SCAT = MAX(MK_MAX_SCAT, MAXSCAT, nscats)
@@ -806,8 +879,9 @@ DO i=1, clu_number
      allocate(mk_is_sym(1:sav_ncatoms))
      mk_is_sym = 1
      mk_nanis=max(1, mk_nanis)
-     call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin)
-         CALL stru_readheader_internal (infile, MK_MAX_SCAT, mk_name,   &
+     call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin, ier)
+         CALL stru_readheader_internal (infile, MK_MAX_SCAT, ncatoms, mk_nanis, &
+         mk_name,   &
          mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                       &
          mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_is_sym, &
          mk_nanis, mk_anis_full, mk_prin, &
@@ -926,14 +1000,18 @@ clu_remove_end = cr_natoms    ! Initially remove only atoms in original crystal
 lread = .true. 
 IF ( clu_infile_internal ) THEN
 !write(*,*) ' CLU_INFILE AAA ', clu_infile(1:len_trim(clu_infile))
-   call readstru_size_int(clu_infile, mk_natoms, sav_ncatoms, &
-                 mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+   call readstru_size_int(clu_infile, dim_natoms, dim_ncatoms, dim_nscat, dim_nanis, &
+        dim_n_mole, dim_n_type, dim_n_atom, mk_natoms,  mk_ncatoms, &
+                          mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+!  call readstru_size_int(clu_infile, mk_natoms, sav_ncatoms, &
+!                mk_nscat, mk_nanis, n_mole, n_type, n_atom)
    if(allocated(mk_is_sym)) deallocate(mk_is_sym)
    allocate(mk_is_sym(1:sav_ncatoms))
    mk_is_sym = 1
    mk_nanis=max(1, mk_nanis)
-   call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin)
-   CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name,   &
+   call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin, ier)
+   CALL stru_readheader_internal (clu_infile, dim_nscat, dim_ncatoms, dim_nanis, &
+   mk_name,   &
    mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                           &
    mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_is_sym, &
          mk_nanis, mk_anis_full, mk_prin, &
@@ -1033,27 +1111,38 @@ IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
       if(allocated(clu_moles)) deallocate(clu_moles)
       RETURN
    ENDIF
+   clu_type = clu_current
 !                                                                       
+!write(*,*) ' FILLING ', infile(1:len_trim(infile))
    read_domains: DO WHILE (.NOT.lend)
       pseudo_ok:  IF(l_ok) THEN
          IF(mc_type .lt.0) then 
-            CALL micro_read_atoms(infile, mc_idimen, mc_matrix)
+            CALL micro_read_atoms(infile, mc_idimen, mc_matrix, &
+                 clu_number, max_nanis, adp_look, clu_type      &
+                )  ! Read actual atoms 
          ENDIF 
          IF (ier_num.ne.0) THEN 
             CLOSE(imd)
-      if(allocated(clu_moles)) deallocate(clu_moles)
+            if(allocated(clu_moles)) deallocate(clu_moles)
+            if(allocated(adp_look)) deallocate(adp_look)
+            if(allocated(temp_anis_full)) deallocate(temp_anis_full)
+            if(allocated(temp_prin)) deallocate(temp_prin)
             RETURN
          ENDIF
 !
          IF ( clu_infile_internal ) THEN
-            call readstru_size_int(clu_infile, mk_natoms, sav_ncatoms, &
+            call readstru_size_int(clu_infile, dim_natoms, dim_ncatoms, dim_nscat, dim_nanis, &
+                 dim_n_mole, dim_n_type, dim_n_atom, mk_natoms,  mk_ncatoms, &
                           mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+!           call readstru_size_int(clu_infile, mk_natoms, sav_ncatoms, &
+!                         mk_nscat, mk_nanis, n_mole, n_type, n_atom)
             if(allocated(mk_is_sym)) deallocate(mk_is_sym)
             allocate(mk_is_sym(1:sav_ncatoms))
             mk_is_sym = 1
             mk_nanis=max(1, mk_nanis)
-            call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin)
-            CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name, &
+            call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin, ier)
+            CALL stru_readheader_internal (clu_infile, dim_nscat, dim_ncatoms, dim_nanis, &
+   mk_name, &
             mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                         &
             mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_is_sym, &
          mk_nanis, mk_anis_full, mk_prin, &
@@ -1066,9 +1155,13 @@ IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
       ENDIF  pseudo_ok
       CALL micro_read_simple (imd, lend, l_ok, infile, mc_dimen, mc_idimen,&
             mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
+      clu_type = clu_current
       IF(ier_ctrlc) THEN
          CLOSE(imd)
-      if(allocated(clu_moles)) deallocate(clu_moles)
+         if(allocated(clu_moles)) deallocate(clu_moles)
+         if(allocated(adp_look)) deallocate(adp_look)
+         if(allocated(temp_anis_full)) deallocate(temp_anis_full)
+         if(allocated(temp_prin)) deallocate(temp_prin)
          ier_num = -14
          ier_typ = ER_COMM
          RETURN
@@ -1076,6 +1169,9 @@ IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
       IF (ier_num.ne.0) THEN 
          CLOSE(imd)
       if(allocated(clu_moles)) deallocate(clu_moles)
+            if(allocated(adp_look)) deallocate(adp_look)
+            if(allocated(temp_anis_full)) deallocate(temp_anis_full)
+            if(allocated(temp_prin)) deallocate(temp_prin)
          RETURN
       ENDIF
    ENDDO  read_domains 
@@ -1101,16 +1197,20 @@ IF (clu_mode.eq.CLU_IN_PSEUDO) then               ! Pseudo atom mode
 !                                                                       
 elseif(clu_mode == CLU_IN_IRREG ) then               ! IRREGULAR domain mode
    close(imd)
-   call domain_irregular !(imd, lend, infile, mc_dimen, mc_idimen, mc_matrix)
+   call domain_irregular(clu_number, max_nanis, adp_look, clu_type)  ! Read actual atoms 
 ELSE 
-   call readstru_size_int(clu_infile, mk_natoms, sav_ncatoms, &
-                 mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+   call readstru_size_int(clu_infile, dim_natoms, dim_ncatoms, dim_nscat, dim_nanis, &
+        dim_n_mole, dim_n_type, dim_n_atom, mk_natoms,  mk_ncatoms, &
+                          mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+!  call readstru_size_int(clu_infile, mk_natoms, sav_ncatoms, &
+!                mk_nscat, mk_nanis, n_mole, n_type, n_atom)
    if(allocated(mk_is_sym)) deallocate(mk_is_sym)
    allocate(mk_is_sym(1:sav_ncatoms))
    mk_is_sym = 1
    mk_nanis=max(1, mk_nanis)
-   call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin)
-    CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name, &
+   call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin, ier)
+    CALL stru_readheader_internal (clu_infile, dim_nscat, dim_ncatoms, dim_nanis, &
+   mk_name, &
             mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                         &
             mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_is_sym, &
          mk_nanis, mk_anis_full, mk_prin, &
@@ -1177,7 +1277,10 @@ ELSE
       infile = 'internal_domain_guest.' // clu_mole_file(i)(1:len_trim(clu_mole_file(i)))
       mc_type    = clu_mole_char(i)              ! Set character for this cluster
       md_sep_fuz = clu_mole_fuzzy(i)             ! Set fuzzy distance
-      CALL micro_read_atoms(infile, mc_idimen, mc_matrix)                                                  
+!     clu_type = i                               ! BUG WRONG TYPE ?
+      clu_type = clu_mole_type(i)
+      CALL micro_read_atoms(infile, mc_idimen, mc_matrix, &
+                            clu_number, max_nanis, adp_look, clu_type)                                                  
    enddo loop_micro_atoms
 !
    deallocate(clu_at_lis)
@@ -1220,12 +1323,16 @@ do i=1, clu_number
       if(ier_num==-113) ier_num = 0   ! File with equal name lreaned up prior
    endif
 enddo
+!
+if(allocated(adp_look)) deallocate(adp_look)
+if(allocated(temp_anis_full)) deallocate(temp_anis_full)
+if(allocated(temp_prin)) deallocate(temp_prin)
 !                                                                       
 END SUBROUTINE micro_filereading              
 !
 !*****7*****************************************************************
 !
-subroutine domain_irregular 
+subroutine domain_irregular(n_clu_number, max_nanis, adp_look, clu_type)
 !-
 !  Replace a contiguous irregularly shaped microdomain by the structure contained 
 !  inside the cluster file
@@ -1247,6 +1354,10 @@ use string_convert_mod
 !
 implicit none
 !
+integer                                    , intent(in) :: n_clu_number
+integer                                    , intent(in) :: max_nanis
+integer, dimension(n_clu_number, max_nanis), intent(in) :: adp_look
+integer                                    , intent(in) :: clu_type   ! 
 !
 integer, parameter :: MAXMASK = 4
 character(len=4) :: line   ! dummy line
@@ -1297,11 +1408,11 @@ do i=1, 1
 enddo
 !
 loop_atoms: do iatom = 1, cr_natoms
-   if(cr_iscat(iatom,1)==0) cycle loop_atoms ! NEEDS WORK 
+   if(cr_iscat(1,iatom)==0) cycle loop_atoms ! NEEDS WORK 
 !   if(btest(cr_prop(iatom), PROP_TEMP)) cycle loop_atoms   ! Temp property is set already, skip
 !                              ! Determine cluster type for current pseudo atom
 !                              ! Copy shape and orientation matrix
-   line = cr_at_lis(cr_iscat(iatom,1))
+   line = cr_at_lis(cr_iscat(1,iatom))
    call do_cap(line(1:4))
    ii = 0 
    loop_types: DO i = 1, clu_number       ! Determine pseudo atom type
@@ -1318,7 +1429,8 @@ loop_atoms: do iatom = 1, cr_natoms
    end if
 !
 !
-   call domain_irreg_find(iatom, nprior, ii)  ! Replace the domain by guest
+   call domain_irreg_find(iatom, nprior, ii, &! Replace the domain by guest
+        n_clu_number, max_nanis, adp_look, clu_type)
    if(ier_num/=0)  return                     ! Error like evaluating the "EXPR" 
 end do loop_atoms
 !
@@ -1400,7 +1512,7 @@ fp(3) = chem_period(3)
 fq = chem_quick
 !
 do i=1, cr_natoms
-  is1 = cr_iscat(i,1)
+  is1 = cr_iscat(1,i)
   ino = 1
   call get_connectivity_list(i, is1, ino, c_list, c_offs, natoms )
   if(natoms <=2) then
@@ -1413,12 +1525,12 @@ do i=1, cr_natoms
      pos = cr_pos(:, i)
      call do_find_env(ianz, werte, MAXSCAT, pos, rmin, rmax, fq, fp)
      do k=1, atom_env(0)
-        nscats(cr_iscat(atom_env(k),1)) = nscats(cr_iscat(atom_env(k),1)) + 1
-!write(*,*) ' ENV ', i, k, atom_env(k), cr_iscat(atom_env(k),1)
+        nscats(cr_iscat(1,atom_env(k))) = nscats(cr_iscat(1,atom_env(k))) + 1
+!write(*,*) ' ENV ', i, k, atom_env(k), cr_iscat(1,atom_env(k))
      enddo
-!write(*,*) ' replace ', i, cr_iscat(i,1), MAXLOC(nscats, 1)-1, '|', nscats
+!write(*,*) ' replace ', i, cr_iscat(1,i), MAXLOC(nscats, 1)-1, '|', nscats
      iscat = MAXLOC(nscats, 1)-1
-     cr_iscat(i,1) = iscat
+     cr_iscat(1,i) = iscat
 !read(*,*) k
   endif
 enddo
@@ -1428,7 +1540,8 @@ end subroutine domain_clean_conn
 !
 !*****7*****************************************************************
 !
-subroutine domain_irreg_find(iatom, nprior, iclu) !, infile, mc_dimen, mc_idimen, mc_matrix)
+subroutine domain_irreg_find(iatom, nprior, iclu, & !, infile, mc_dimen, mc_idimen, mc_matrix)
+            n_clu_number, max_nanis, adp_look, clu_type)
 !-
 !  Find all neighbors of starting atom
 !  Replace this volume by guest
@@ -1450,6 +1563,10 @@ implicit none
 integer,           intent(in) :: iatom            ! starting atom to work on
 integer,           intent(in) :: nprior           ! Atom number in original pseudo atom list
 integer,           intent(in) :: iclu             ! Cluster type
+integer                                    , intent(in) :: n_clu_number
+integer                                    , intent(in) :: max_nanis
+integer, dimension(n_clu_number, max_nanis), intent(in) :: adp_look
+integer                                    , intent(in) :: clu_type   ! 
 !
 logical, parameter :: LSPACE=.TRUE.
 !
@@ -1472,11 +1589,11 @@ real(kind=PREC_DP)               :: dmin    ! minimum distance
 real(kind=PREC_DP), dimension(3) :: com     ! Center of mass for domain
 real(kind=PREC_DP), dimension(3) :: uu      ! Dummy vector
 !
-if(cr_iscat(iatom,1)==0) return           ! Ignore VOIDS  NEEDS WORK ==> FLAG
+if(cr_iscat(1,iatom)==0) return           ! Ignore VOIDS  NEEDS WORK ==> FLAG
 !
 !**** Get connectivity of this first atom in the new pseudo atom group
 !
-is1 = cr_iscat(iatom,1)
+is1 = cr_iscat(1,iatom)
 ino = 1
 call get_connectivity_list(iatom, is1, ino, c_list, c_offs, natoms )
 !
@@ -1507,7 +1624,7 @@ loop_neig: do
    lfound = .FALSE.
    loop_list: do j=1, nprior         ! Go through list to find new neighbors
       if(list(j)<0) then                ! This is a new neighbor
-         is1 = cr_iscat(j,1)
+         is1 = cr_iscat(1,j)
          ino = 1
          call get_connectivity_list(j, is1, ino, c_list, c_offs, natoms )
          if(natoms==0) cycle loop_list  ! This one does not have a connectivity
@@ -1572,7 +1689,7 @@ loop_mgroup: do                        ! Loop over group until all atoms are rep
    enddo loop_icent
 !
 !!write(*,*)
-!write(*,*) ' group size ', ngroup, mgroup, ' ISCAT : ', cr_iscat(iatom,1)
+!write(*,*) ' group size ', ngroup, mgroup, ' ISCAT : ', cr_iscat(1,iatom)
 !write(*,*) ' COM        ', com, icent
 !
 !                             ! Determine origin, coordinates of group elements
@@ -1628,13 +1745,14 @@ loop_mgroup: do                        ! Loop over group until all atoms are rep
 !  write(*,'(a,4f9.6,1x)') 'MC ',mc_matrix(4,:)
 !end if
 !!!!!!!!!!!!!!!!!!!!!!!!!!
-!write(*,*) ' PSEUDO ATOM ', iatom, cr_iscat(iatom,1), cr_at_lis(cr_iscat(iatom,1)), iclu, infile(1:len_trim(infile))
+!write(*,*) ' PSEUDO ATOM ', iatom, cr_iscat(1,iatom), cr_at_lis(cr_iscat(1,iatom)), iclu, infile(1:len_trim(infile))
 !                                         ! Now replace atoms
    mc_type = MD_DOMAIN_IRREG
 !
 !write(*,*) ' GROUP PRIOR REPLACE ', iatom, cr_natoms
 i = cr_natoms
-   call micro_read_atoms(infile, mc_idimen, mc_matrix) !
+   call micro_read_atoms(infile, mc_idimen, mc_matrix, &
+            n_clu_number, max_nanis, adp_look, clu_type ) !
 !write(*,*) ' GROUP AFTER REPLACE ', iatom, cr_natoms
 !read(*,*) i
    if(i==cr_natoms) then                  ! No atoms were replaced, adapt modifier
@@ -1655,9 +1773,9 @@ i = cr_natoms
    endif
    do i=1,mgroup
       if(btest(cr_prop(short(i)), PROP_TEMP)) then
-         cr_iscat(short(i),1) = 0
+         cr_iscat(1,short(i)) = 0
 !  cr_prop(short(i)) = ibset(cr_prop(short(i)), PROP_TEMP)
-!   write(*,*) ' PROP ', i, short(i), cr_iscat(short(i),1), cr_prop(short(i))
+!   write(*,*) ' PROP ', i, short(i), cr_iscat(1,short(i)), cr_prop(short(i))
       endif
    enddo
 !read(*,*) i
@@ -1863,7 +1981,8 @@ end subroutine domain_set_matrix
 !
 !*****7*****************************************************************
 !
-SUBROUTINE micro_read_atoms (infile, mc_idimen, mc_matrix)
+SUBROUTINE micro_read_atoms (infile, mc_idimen, mc_matrix, &
+           n_clu_number, max_nanis, adp_look, clu_type)
 !-
 ! Read the guest atoms and insert into host structure
 !+
@@ -1886,28 +2005,44 @@ IMPLICIT none
 CHARACTER(len=*)     , intent(in) :: infile 
 REAL(kind=PREC_DP) , dimension(4,4), intent(in) :: mc_idimen
 REAL(kind=PREC_DP) , dimension(4,4), intent(in) :: mc_matrix
+integer                                    , intent(in) :: n_clu_number
+integer                                    , intent(in) :: max_nanis
+integer, dimension(n_clu_number, max_nanis), intent(in) :: adp_look
+integer                                    , intent(in) :: clu_type   ! 
 !                                                                       
 INTEGER, PARAMETER  :: ist = 46
 !                                                                       
 INTEGER, PARAMETER                   :: AT_MAXP = 16
 INTEGER                              :: at_ianz
+integer :: dim_natoms  ! Internal array size
+integer :: dim_ncatoms  ! Internal array size
+integer :: dim_nscat  ! Internal array size
+integer :: dim_nanis  ! Internal array size
+integer :: dim_n_mole  ! Internal array size
+integer :: dim_n_type  ! Internal array size
+integer :: dim_n_atom  ! Internal array size
 integer                              :: n_mole
 integer                              :: n_type
 integer                              :: n_atom
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 LOGICAL  :: lread 
+integer  :: ier  ! Allocation error
 !                                                                       
 lread = .true. 
 IF(infile(1:8)=='internal') THEN
    mk_infile_internal = .true.
-   call readstru_size_int(infile, mk_natoms, sav_ncatoms, &
-                 mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+   call readstru_size_int(infile, dim_natoms, dim_ncatoms, dim_nscat, dim_nanis, &
+        dim_n_mole, dim_n_type, dim_n_atom, mk_natoms, sav_ncatoms, &
+                          mk_nscat, mk_nanis, n_mole, n_type, n_atom)
+!  call readstru_size_int(infile, mk_natoms, sav_ncatoms, &
+!                mk_nscat, mk_nanis, n_mole, n_type, n_atom)
    if(allocated(mk_is_sym)) deallocate(mk_is_sym)
    allocate(mk_is_sym(1:sav_ncatoms))
    mk_is_sym = 1
    mk_nanis=max(1, mk_nanis)
-   call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin)
-   CALL stru_readheader_internal (infile, MK_MAX_SCAT, mk_name,   &
+   call alloc_anis_generic(mk_nanis, mk_anis_full, mk_prin, ier)
+   CALL stru_readheader_internal (infile, dim_nscat, dim_ncatoms, dim_nanis, &
+   mk_name,   &
          mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                       &
          mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_anis, mk_is_sym, &
          mk_nanis, mk_anis_full, mk_prin, &
@@ -1943,8 +2078,11 @@ ELSE
          ENDIF
 ENDIF
 !                                                                       
+!write(*,*) ' READING ATOMS ', infile(1:len_trim(infile))
 CALL micro_read_atom(ist, infile, mc_idimen, mc_matrix, &
-                     AT_MAXP, at_ianz, at_param) 
+                     AT_MAXP, at_ianz, at_param, &
+                     n_clu_number, max_nanis, adp_look, clu_type)
+!
 IF(.not.(infile(1:8)=='internal')) THEN
    CLOSE (ist) 
 ENDIF
@@ -2014,14 +2152,14 @@ use precision_mod
       IF (mc_type  .eq.MD_DOMAIN_SPHERE) then 
          d = do_blen (lspace, v, NULLV) 
          IF (d.lt.radius (2) ) then 
-            cr_iscat (i,1) = 0 
+            cr_iscat (1,i) = 0 
             cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
             cr_prop (i) = IBSET (cr_prop (i), PROP_DOMAIN) 
          ENDIF 
       ELSEIF (mc_type  .eq.MD_DOMAIN_CUBE) then 
          IF (abs (v (1) ) .le.1.and.abs (v (2) ) .le.1.and.abs (v (3) ) &
          .le.1) then                                                    
-            cr_iscat (i,1) = 0 
+            cr_iscat (1,i) = 0 
             cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
             cr_prop (i) = IBSET (cr_prop (i), PROP_DOMAIN) 
          ENDIF 
@@ -2030,7 +2168,7 @@ use precision_mod
             v (3) = 0.0 
             d = do_blen (lspace, v, NULLV) 
             IF (d.lt.radius (2) ) then 
-               cr_iscat (i,1) = 0 
+               cr_iscat (1,i) = 0 
                cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
                cr_prop (i) = IBSET (cr_prop (i), PROP_DOMAIN) 
             ENDIF 
@@ -2043,7 +2181,8 @@ use precision_mod
 !*****7*****************************************************************
 !
 SUBROUTINE micro_read_atom(ist, infile, mc_idimen, mc_matrix, &
-                            AT_MAXP, at_ianz, at_param) 
+                           AT_MAXP, at_ianz, at_param,        &
+                           n_clu_number, max_nanis, adp_look, clu_type)
 !-
 !  Reads the atoms of the current cluster type 
 !+
@@ -2080,6 +2219,10 @@ REAL(kind=PREC_DP) , INTENT(IN) :: mc_matrix (4, 4)
 INTEGER                                  , INTENT(IN)  :: AT_MAXP
 INTEGER                                  , INTENT(IN)  :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN)  :: at_param
+integer                                    , intent(in) :: n_clu_number
+integer                                    , intent(in) :: max_nanis
+integer, dimension(n_clu_number, max_nanis), intent(in) :: adp_look
+integer                                    , intent(in) :: clu_type   ! 
 !
 !                                                                       
 !     INTEGER idim4 
@@ -2138,6 +2281,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(IN)  :: at_param
       INTEGER, DIMENSION(:), ALLOCATABLE :: temp_in_mole
       INTEGER             :: n_mole
       INTEGER             :: n_type
+      integer             :: nanis
       INTEGER             :: n_atom
       INTEGER             :: n_read_atoms
       INTEGER             :: n_mole_old = 0    ! previous number of molecules in structure
@@ -2150,6 +2294,7 @@ integer :: is_mole_type  ! Molecule type provided on the 'molecule type line'
 REAL(kind=PREC_DP) :: d100, d010, d001
 !                                                                       
       DATA NULLV / 0.0D0, 0.0D0, 0.0D0 / 
+!
 !
 !     Define distances to domain surfaces
 !
@@ -2244,7 +2389,6 @@ is_mole_type = 1
          dummy_moleatom = 0  ! Internal molecule atoms are set further down
          WRITE(line, 3000) mk_at_lis(dummy_iscat(1)), xyz, mk_dw(dummy_iscat(1)), &
                            dummy_prop, dummy_mole, dummy_moleatom, 1.0 ! copy into line
-!write(*,*) 'READING ATOMS ', mk_iatom,'>',line(1:len_trim(line))
          werte(1:3) = xyz
          werte(4)   = mk_dw(dummy_iscat(1))
       ELSE
@@ -2319,12 +2463,16 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
                linside = ABS(vv(1)) <= 1. .AND. ABS(vv(2)) <= 1. .AND.   &
                          ABS(vv(3)) <= 1.                            
                IF(linside) THEN
-                 linternal = (ABS(-1.-vv(1)) <= d100 ) .OR. &
-                             (ABS( 1.-vv(1)) <= d100 ) .OR. &
-                             (ABS(-1.-vv(2)) <= d010 ) .OR. &
-                             (ABS( 1.-vv(2)) <= d010 ) .OR. &
-                             (ABS(-1.-vv(3)) <= d001 ) .OR. &
-                             (ABS( 1.-vv(3)) <= d001 )
+                 linternal = .false.
+                 if(cr_icc(1)>1) linternal = linternal .or.      &
+                                 (ABS(-1.-vv(1)) <= d100 )  .OR. &
+                                 (ABS( 1.-vv(1)) <= d100 )
+                 if(cr_icc(2)>1) linternal = linternal .or.      &
+                                 (ABS(-1.-vv(2)) <= d010 )  .OR. &
+                                 (ABS( 1.-vv(2)) <= d010 )
+                 if(cr_icc(3)>1) linternal = linternal .or.      &
+                                 (ABS(-1.-vv(3)) <= d001 )  .OR. &
+                                 (ABS( 1.-vv(3)) <= d001 )
                ENDIF
             ELSEIF (mc_type  .eq.MD_DOMAIN_CYLINDER) then 
                linside = .false. 
@@ -2379,7 +2527,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
                   DO j = 0, cr_nscat 
                   IF (line (1:ibl) .eq.cr_at_lis (j) .and.dw1.eq.cr_dw (&
                   j) ) then                                             
-                     cr_iscat (i,1) = j 
+                     cr_iscat (1,i) = j 
                      cr_prop (i) = 0 
                      cr_prop (i) = ibset (cr_prop (i), PROP_NORMAL) 
                      cr_prop (i) = ibset (cr_prop (i), PROP_DOMAIN) 
@@ -2408,7 +2556,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
                      RETURN 
                   ENDIF 
                   cr_nscat = cr_nscat + 1 
-                  cr_iscat (i,1) = cr_nscat 
+                  cr_iscat (1,i) = cr_nscat 
                   cr_prop (i) = 0 
                   cr_prop (i) = ibset (cr_prop (i), PROP_NORMAL) 
                   cr_prop (i) = ibset (cr_prop (i), PROP_DOMAIN) 
@@ -2425,7 +2573,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
                   .lt.1) then                                           
                      as_natoms = as_natoms + 1 
                      as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
-                     as_iscat (as_natoms) = cr_iscat (i,1) 
+                     as_iscat (as_natoms) = cr_iscat (1,i) 
                      as_prop (as_natoms) = cr_prop (i) 
                      as_dw (as_natoms) = cr_dw (cr_nscat) 
                      as_occ(as_natoms) = cr_occ(cr_nscat) 
@@ -2434,6 +2582,11 @@ noblank:      IF (line (1:4) .ne.'    ') then
                      ENDDO 
                   ENDIF 
    11             CONTINUE 
+!!        Assign correct ADP from loop up table
+                  cr_iscat(3,i) = adp_look(clu_type, dummy_iscat(3))
+!                 cr_iscat(3,i) = adp_look(clu_type, dummy_iscat(3))
+                  cr_iscat(2,i) = 1
+!write(*,*) ' CR_ISCAT ', cr_iscat(:,i), ' | ', adp_look(clu_type, dummy_iscat(3)), ' | ', dummy_iscat(3)
                   IF(mk_infile_internal) THEN
                      temp_present   (mk_iatom) = .true.
                      temp_in_crystal(mk_iatom) = i
@@ -2467,7 +2620,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
 !
 mole_int: IF(mk_infile_internal) THEN
        CALL testfile_internal (infile, natoms, ncatoms, &        ! Get size of internal structure
-              nscat, TEMP_MAX_MOLE, TEMP_MAX_TYPE, TEMP_MAX_ATOM)
+              nscat, nanis, TEMP_MAX_MOLE, TEMP_MAX_TYPE, TEMP_MAX_ATOM)
        temp_num_mole = TEMP_MAX_MOLE
        temp_num_type = max(TEMP_MAX_TYPE, maxval(clu_mole_tab))
        temp_num_atom = TEMP_MAX_ATOM
@@ -2788,7 +2941,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
       type_fuzzy: IF(mc_type.eq.MD_DOMAIN_FUZZY) THEN  !This is a fuzzy domain do fast loop
          fuzzy_main: DO i = 1, natoms_old 
             separation = 1.0e03 
-            fuzzy_is_void: IF (cr_iscat (i,1) .ne.0) then 
+            fuzzy_is_void: IF (cr_iscat (1,i) .ne.0) then 
                DO k = 1, 3 
                   u (k) = cr_pos (k, i) 
                ENDDO 
@@ -2801,7 +2954,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
 !                                                                       
 !     ----------Atom is too close to microdomain atom, remove.          
 !                                                                       
-               cr_iscat (i,1) = 0 
+               cr_iscat (1,i) = 0 
                cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
                cr_prop (i) = IBSET (cr_prop (i), PROP_DOMAIN) 
                shortest = distance 
@@ -2812,7 +2965,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
                ENDDO fuzzy_inner
             ENDIF fuzzy_is_void
          ENDDO fuzzy_main
-         IF (separation.lt.surf_in_dist (cr_iscat (i,1) ) ) then 
+         IF (separation.lt.surf_in_dist (cr_iscat (1,i) ) ) then 
             IF (BTEST (cr_prop (i), PROP_NORMAL) ) then 
                cr_prop (i) = IBSET (cr_prop (i), PROP_SURFACE_INT) 
             ENDIF 
@@ -2831,7 +2984,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
 !                                                                       
       DO i = 1, natoms_old 
       separation = 1.0e03 
-      IF (cr_iscat (i,1) .ne.0) then 
+      IF (cr_iscat (1,i) .ne.0) then 
 !                                                                       
 !     ----Check if the atom is inside a domain or object,               
 !         keep atom if inside a domain or object                        
@@ -2862,7 +3015,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
 !                                                                       
 !     ----------Atom is too close to microdomain atom, remove.          
 !                                                                       
-               cr_iscat (i,1) = 0 
+               cr_iscat (1,i) = 0 
                cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
                cr_prop (i) = IBSET (cr_prop (i), PROP_DOMAIN) 
                shortest = distance 
@@ -2874,7 +3027,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
          ENDIF 
       ENDIF 
   999 CONTINUE 
-      IF (separation.lt.surf_in_dist (cr_iscat (i,1) ) ) then 
+      IF (separation.lt.surf_in_dist (cr_iscat (1,i) ) ) then 
          IF (BTEST (cr_prop (i), PROP_NORMAL) ) then 
             cr_prop (i) = IBSET (cr_prop (i), PROP_SURFACE_INT) 
          ENDIF 
@@ -2889,7 +3042,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
 !     ENDDO 
 !     separation = 1.0e03 
 !     DO i = 1, natoms_old 
-!     IF (cr_iscat (i,1) .ne.0) then 
+!     IF (cr_iscat (1,i) .ne.0) then 
 !        IF (mk_dim (1, 1) + w (1) - a.le.cr_pos (1, i) .and.cr_pos (1, &
 !        i) .le.mk_dim (1, 2) + w (1) + a.and.mk_dim (2, 1) + w (2)     &
 !        - b.le.cr_pos (2, i) .and.cr_pos (2, i) .le.mk_dim (2, 2)      &
@@ -2903,7 +3056,7 @@ REAL(kind=PREC_DP), dimension(3) :: u (3), v (3)
 !        ENDIF 
 !     ENDIF 
 !     ENDDO 
-!     IF (separation.lt.surf_in_dist (cr_iscat (j,1) ) ) then 
+!     IF (separation.lt.surf_in_dist (cr_iscat (1,j) ) ) then 
 !        IF (BTEST (cr_prop (j), PROP_NORMAL) ) then 
 !           cr_prop (j) = IBSET (cr_prop (j), PROP_SURFACE_INT) 
 !        ENDIF 

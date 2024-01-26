@@ -2594,7 +2594,7 @@ pow_nreal        = 0
 ALLOCATE(natom(0:cr_nscat))
 natom = 0
 DO i=1,cr_natoms
-   natom(cr_iscat(i,1)) = natom(cr_iscat(i,1)) + 1
+   natom(cr_iscat(1,i)) = natom(cr_iscat(1,i)) + 1
 ENDDO
 pow_nreal = SUM(NINT(natom(1:cr_nscat)*cr_occ(1:cr_nscat)))  ! Add real atom numbers 
 IF(chem_quick) THEN

@@ -370,7 +370,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
             patom (2, 0, ncent) = cr_pos (2, jatom) 
             patom (3, 0, ncent) = cr_pos (3, jatom) 
             iv = chem_use_con (i, ic)               ! Use connectivity no iv
-            IF (cr_iscat(jatom,1).eq.chem_ccon (1, iv) ) then ! Central has correct type
+            IF (cr_iscat(1,jatom).eq.chem_ccon (1, iv) ) then ! Central has correct type
                is1 = chem_ccon (1, iv)              ! central atom type
                ino = chem_ccon (2, iv)              ! connectivity number
                CALL get_connectivity_list ( jatom, is1, ino, c_list, c_offs, natoms )

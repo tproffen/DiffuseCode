@@ -419,7 +419,7 @@ IF(par_omp_use .and. cr_natoms > 10*par_omp_logi) THEN  ! USE OMP for parallel a
 !
    !$OMP DO SCHEDULE(DYNAMIC, max(10,cr_natoms/32))
    main_loop: DO j = 1, cr_natoms
-      jscat = cr_iscat(j,1) 
+      jscat = cr_iscat(1,j) 
       IF(jscat > 0) THEN 
          u(1) = cr_pos(1, j) 
          u(2) = cr_pos(2, j) 
@@ -432,7 +432,7 @@ IF(par_omp_use .and. cr_natoms > 10*par_omp_logi) THEN  ! USE OMP for parallel a
 !------ --- loop over all different atom types                          
 !                                                                       
          DO l = j + 1, cr_natoms 
-            iscat = cr_iscat(l,1) 
+            iscat = cr_iscat(1,l) 
             IF(iscat > 0) THEN 
                ibin =   INT((SQRT((cr_pos(1, l) - u(1))*(cr_pos(1, l) - u(1)) + &
                                   (cr_pos(2, l) - u(2))*(cr_pos(2, l) - u(2)) + &
@@ -461,7 +461,7 @@ IF(par_omp_use .and. cr_natoms > 10*par_omp_logi) THEN  ! USE OMP for parallel a
    !$OMP END PARALLEL
 ELSE                                                ! Serial accumulation
    seri_loop: DO j = 1, cr_natoms ! - 1
-      jscat = cr_iscat(j,1) 
+      jscat = cr_iscat(1,j) 
       IF(jscat > 0) THEN 
          u(1) = cr_pos(1, j) 
          u(2) = cr_pos(2, j) 
@@ -474,7 +474,7 @@ ELSE                                                ! Serial accumulation
 !------ --- loop over all different atom types                          
 !                                                                       
          DO l = j + 1, cr_natoms 
-            iscat = cr_iscat(l,1) 
+            iscat = cr_iscat(1,l) 
             IF(iscat > 0) THEN 
                ibin =   INT((SQRT((cr_pos(1, l) - u(1))*(cr_pos(1, l) - u(1)) + &
                                   (cr_pos(2, l) - u(2))*(cr_pos(2, l) - u(2)) + &
@@ -982,7 +982,7 @@ IF(par_omp_use) THEN
 !
    !$OMP DO SCHEDULE(DYNAMIC, cr_natoms/32)
    main_loop:DO j = 1, cr_natoms - 1
-      jscat = cr_iscat(j,1) 
+      jscat = cr_iscat(1,j) 
       IF (jscat.gt.0) THEN 
          u(1) = cr_pos(1,j) 
          u(2) = cr_pos(2,j) 
@@ -995,7 +995,7 @@ IF(par_omp_use) THEN
 !------ --- loop over all different atom types                          
 !                                                                       
          DO l = j + 1, cr_natoms 
-            iscat = cr_iscat (l,1) 
+            iscat = cr_iscat (1,l) 
             IF (iscat.gt.0) THEN 
               IF(cr_mole(j )==cr_mole(l)) THEN
                  islook = 0   ! Atoms are within the same molecule
@@ -1031,7 +1031,7 @@ IF(par_omp_use) THEN
    !$OMP END PARALLEL
 ELSE    ! Serial compilation
    seri_loop:DO j = 1, cr_natoms - 1
-      jscat = cr_iscat(j,1) 
+      jscat = cr_iscat(1,j) 
       IF (jscat.gt.0) THEN 
          u(1) = cr_pos(1,j) 
          u(2) = cr_pos(2,j) 
@@ -1044,7 +1044,7 @@ ELSE    ! Serial compilation
 !------ --- loop over all different atom types                          
 !                                                                       
          DO l = j + 1, cr_natoms 
-            iscat = cr_iscat (l,1) 
+            iscat = cr_iscat (1,l) 
             IF (iscat.gt.0) THEN 
               IF(cr_mole(j )==cr_mole(l)) THEN
                  islook = 0   ! Atoms are within the same molecule

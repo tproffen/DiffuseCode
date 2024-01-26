@@ -901,7 +901,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                      ENDDO 
                   ENDIF 
                   IF (j.gt.cr_nscat) then 
-                     cr_iscat (cr_natoms + k,1) = cr_nscat + 1 
+                     cr_iscat (1,cr_natoms + k) = cr_nscat + 1 
                      IF (k.eq.1) then 
                         cr_dw (cr_nscat + 1) = ins_adp 
                      ELSE 
@@ -911,7 +911,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                      cr_at_lis (cr_nscat + 1) = cname (k) 
                      cr_nscat = cr_nscat + 1 
                   ELSE 
-                     cr_iscat (cr_natoms + k,1) = j 
+                     cr_iscat (1,cr_natoms + k) = j 
                   ENDIF 
                   ENDDO 
                ELSE 
@@ -920,7 +920,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
 !                                                                       
                   DO j = 1, 4 
                   ii = mole_cont (mole_off (kk) + j) 
-                  cr_iscat (cr_natoms + j,1) = cr_iscat (ii,1) 
+                  cr_iscat (1,cr_natoms + j) = cr_iscat (1,ii) 
                   ENDDO 
                ENDIF 
                ii = mole_off (mole_num_mole) + mole_len (mole_num_mole) 
@@ -1124,7 +1124,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                         ENDDO 
                      ENDIF 
                      IF (j.gt.cr_nscat) then 
-                        cr_iscat (cr_natoms + k,1) = cr_nscat + 1 
+                        cr_iscat (1,cr_natoms + k) = cr_nscat + 1 
                         IF (k.eq.1) then 
                            cr_dw (cr_nscat + 1) = ins_adp 
                         ELSE 
@@ -1134,7 +1134,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                         cr_at_lis (cr_nscat + 1) = cname (k) 
                         cr_nscat = cr_nscat + 1 
                      ELSE 
-                        cr_iscat (cr_natoms + k,1) = j 
+                        cr_iscat (1,cr_natoms + k) = j 
                      ENDIF 
                   ENDDO 
                ELSE set_atom
@@ -1143,7 +1143,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
 !                                                                       
                   DO j = 1, 8 
                      ii = mole_cont (mole_off (kk) + j) 
-                     cr_iscat (cr_natoms + j,1) = cr_iscat (ii,1) 
+                     cr_iscat (1,cr_natoms + j) = cr_iscat (1,ii) 
                   ENDDO 
                ENDIF set_atom
                ii = mole_off (mole_num_mole) + mole_len (mole_num_mole) 

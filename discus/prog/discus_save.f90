@@ -566,8 +566,8 @@ USE support_mod
          WRITE (ist, 33) cr_spcgr 
          WRITE (ist, 34) (cr_a0 (i), i = 1, 3), (cr_win (i), i = 1, 3) 
          DO i = 1, cr_natoms 
-         WRITE (ist, 4) cr_at_lis (cr_iscat (i,1) ), (cr_pos (j, i),      &
-         j = 1, 3), cr_dw (cr_iscat (i,1) )                               
+         WRITE (ist, 4) cr_at_lis (cr_iscat (1,i) ), (cr_pos (j, i),      &
+         j = 1, 3), cr_dw (cr_iscat (1,i) )                               
          ENDDO 
       ENDIF 
       CLOSE (ist) 
@@ -699,11 +699,11 @@ IF (sav_w_adp) THEN
       WRITE (ist, fform) (cr_dw (i), i = j * 7 + 1, cr_nscat) 
    ENDIF 
    do j= 1, cr_nanis
-      if(abs(cr_prin(1,4,cr_iscat(j,3))-cr_prin(2,4,cr_iscat(j,3)))>TOL  .or.  &
-         abs(cr_prin(1,4,cr_iscat(j,3))-cr_prin(3,4,cr_iscat(j,3)))>TOL      ) then
+      if(abs(cr_prin(4,1,cr_iscat(3,j))-cr_prin(4,2,cr_iscat(3,j)))>TOL  .or.  &
+         abs(cr_prin(4,1,cr_iscat(3,j))-cr_prin(4,3,cr_iscat(3,j)))>TOL      ) then
          write(ist, '(a,i2.2,a,5(f10.6,'',''),f10.6,a)') 'anis type:', j, ', value:[', cr_anis_full(:,j),']'
       else
-         write(ist, '(a,i2.2,a,f10.6,a)'), 'anis type:', j, ', value:[', cr_prin(1,4,j),']'
+         write(ist, '(a,i2.2,a,f10.6,a)')  'anis type:', j, ', value:[', cr_prin(4,1,j),']'
       endif
    enddo
 ENDIF 
@@ -785,8 +785,8 @@ loop_atoms: DO i = i_start, i_end
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
-!     IF (sav_latom (cr_iscat (i,1) ) ) THEN 
-   IF (check_select_status (i, sav_latom (cr_iscat (i,1) ), cr_prop (i),   &
+!     IF (sav_latom (cr_iscat (1,i) ) ) THEN 
+   IF (check_select_status (i, sav_latom (cr_iscat (1,i) ), cr_prop (i),   &
                                sav_sel_prop)     ) THEN
 !        IF(lwrite(i)) THEN
       wr_prop = 1
@@ -830,10 +830,10 @@ loop_atoms: DO i = i_start, i_end
       ENDIF
       IF(sav_w_surf) wr_surf(0:3) = cr_surf(0:3,i)
       IF(sav_w_magn) wr_surf(0:3) = cr_magn(0:3,i)   ! MAGNETIC_WORK
-      WRITE (ist, 4) cr_at_lis (cr_iscat (i,1) ),         &
+      WRITE (ist, 4) cr_at_lis (cr_iscat (1,i) ),         &
                      (cr_pos (j, i),j = 1, 3),          &
-                     cr_dw (cr_iscat (i,1) ), wr_prop,    &
-                     wr_mole, wr_cont, cr_occ(cr_iscat(i,1)), &
+                     cr_dw (cr_iscat (1,i) ), wr_prop,    &
+                     wr_mole, wr_cont, cr_occ(cr_iscat(1,i)), &
                      c_surf(wr_surf(0  )), wr_surf(1:3  )!, &
 !                    cr_anis_full(:,i)
    ENDIF 
@@ -980,53 +980,54 @@ ENDIF
 !
 !*******************************************************************************
 !
-SUBROUTINE save_internal_node(ptr, strucfile)
+subroutine save_internal_node(ptr, strucfile)
 !
-      USE discus_config_mod 
-      USE crystal_mod 
-!     USE gen_add_mod 
-      USE class_internal
-      USE molecule_mod 
-!     USE sym_add_mod 
-      USE discus_save_mod 
-      USE errlist_mod
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+USE class_internal
+USE molecule_mod 
+USE discus_save_mod 
+USE errlist_mod
+!
+IMPLICIT none 
 !
 TYPE(internal_storage), POINTER :: ptr
-CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
+CHARACTER(LEN=*), INTENT(IN)    :: strucfile 
 !
-CHARACTER ( LEN=80 ) :: ier_msg_local 
+CHARACTER(LEN=80) :: ier_msg_local 
 !
 !     Allocate sufficient space, even for all headers, and atom type, if they are omitted
 !
-      CALL ptr%crystal%alloc_arrays(cr_natoms, MAXSCAT, cr_ncatoms, cr_nanis, &
-           mole_max_mole, mole_max_type, mole_max_atom ) ! Allocate the crystal arrays
+call ptr%crystal%alloc_arrays(cr_natoms, cr_nscat, cr_ncatoms, cr_nanis, &
+     mole_num_mole, mole_num_type, mole_num_atom ) ! Allocate the crystal arrays
+!    mole_max_mole, mole_max_type, mole_max_atom ) ! Allocate the crystal arrays
 !
 !     An internal crystal has ALL headers saved, logical flags are used to indicate
 !     whether they were supposed to be saved or not.
 !     n_latom = UBOUND(sav_latom,1)     ! Make sure we send correct array size
-      CALL ptr%crystal%set_crystal_save_flags (sav_w_scat, & 
-           sav_w_adp, sav_w_occ, sav_w_gene, sav_w_symm,                &
-           sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole, sav_w_prop, &
-           sav_sel_prop,MAXSCAT,sav_latom)
+call ptr%crystal%set_crystal_save_flags (sav_w_scat, & 
+     sav_w_adp, sav_w_occ, sav_w_gene, sav_w_symm,                &
+     sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole, sav_w_prop, &
+     sav_sel_prop,cr_nscat,sav_latom)
+!          sav_sel_prop,MAXSCAT,sav_latom)
 !
-      CALL ptr%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
+call ptr%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
 !
-      IF(ier_num == -157) THEN
-         ier_msg_local = ier_msg(1)
-         CALL store_remove_single( strucfile, ier_num)
-         ier_num = -157
-         ier_typ = ER_APPL
-         ier_msg(1) = ier_msg_local
-         ier_msg(2) = 'Atom is deseclected but part of a molecule'
-         ier_msg(3) = 'Remove this atom type and purge prior to save '
-      ENDIF
+IF(ier_num == -157) THEN
+   ier_msg_local = ier_msg(1)
+   CALL store_remove_single( strucfile, ier_num)
+   ier_num = -157
+   ier_typ = ER_APPL
+   ier_msg(1) = ier_msg_local
+   ier_msg(2) = 'Atom is deseclected but part of a molecule'
+   ier_msg(3) = 'Remove this atom type and purge prior to save '
+ENDIF
 !
 !     CALL store_write_node(store_root)
 !
 !     NULLIFY(store_temp)
 !
-END SUBROUTINE save_internal_node
+end subroutine save_internal_node
 !
 !*******************************************************************************
 !
@@ -1139,61 +1140,119 @@ END SUBROUTINE save_internal_node
 !
 !*******************************************************************************
 !
-      SUBROUTINE save_default_setting
+SUBROUTINE save_default_setting
 !
-      USE discus_config_mod
-      USE crystal_mod 
-      USE discus_allocate_appl_mod
-      USE discus_save_mod 
-      IMPLICIT NONE
+USE discus_config_mod
+USE crystal_mod 
+USE discus_allocate_appl_mod
+USE discus_save_mod 
+IMPLICIT NONE
 !
-      INTEGER, PARAMETER :: MIN_PARA = 20
-      INTEGER            :: maxw
-      INTEGER            :: n_nscat
-      INTEGER            :: n_nsite
+INTEGER, PARAMETER :: MIN_PARA = 20
+INTEGER            :: maxw
+INTEGER            :: n_nscat
+INTEGER            :: n_nsite
 !                                                                       
-      maxw = MAX(MIN_PARA,MAXSCAT+1)
-      IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
-         n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
-         n_nsite = MAX(cr_ncatoms, SAV_MAXSCAT, MAXSCAT) 
-         CALL alloc_save (  n_nscat, n_nsite )
-         IF ( ier_num < 0 ) THEN
-            RETURN
-         ENDIF
-      ENDIF
+maxw = MAX(MIN_PARA,MAXSCAT+1)
+IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
+   n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
+   n_nsite = MAX(cr_ncatoms, SAV_MAXSCAT, MAXSCAT) 
+   CALL alloc_save (  n_nscat, n_nsite )
+   IF ( ier_num < 0 ) THEN
+      RETURN
+   ENDIF
+ENDIF
 !
-      SAV_MAXSCAT  = MAXSCAT
-      SAV_MAXSITE  = UBOUND(sav_lsite,1)
-      sav_latom(:) = .true.
-      sav_lsite(:) = .TRUE.
+SAV_MAXSCAT  = MAXSCAT
+SAV_MAXSITE  = UBOUND(sav_lsite,1)
+sav_latom(:) = .true.
+sav_lsite(:) = .TRUE.
 !
-      sav_sel_atom = .true.
+sav_sel_atom = .true.
 !
-      sav_file    = 'crystal.stru'
+sav_file    = 'crystal.stru'
 !
-      sav_keyword = .true.
+sav_keyword = .true.
 !
-      sav_w_scat  = .false.
-      sav_w_adp   = .false.
-      sav_w_occ   = .false.
-      sav_w_surf  = .false.
-      sav_w_magn  = .FALSE.
-      sav_r_ncell = .true.
-      sav_w_ncell = .true.
-      sav_w_gene  = .true.
-      sav_w_symm  = .true.
-      sav_w_mole  = .true.
-      sav_w_obje  = .true.
-      sav_w_doma  = .true.
-      sav_w_prop  = .true.
+sav_w_scat  = .false.
+sav_w_adp   = .false.
+sav_w_occ   = .false.
+sav_w_surf  = .false.
+sav_w_magn  = .FALSE.
+sav_r_ncell = .true.
+sav_w_ncell = .true.
+sav_w_gene  = .true.
+sav_w_symm  = .true.
+sav_w_mole  = .true.
+sav_w_obje  = .true.
+sav_w_doma  = .true.
+sav_w_prop  = .true.
 !
-      sav_start   =  1
-      sav_end     = -1
-      sav_ncell(:)=  1
-      sav_sel_prop(:)=  0
-      sav_ncatoms =  1
+sav_start   =  1
+sav_end     = -1
+sav_ncell(:)=  1
+sav_sel_prop(:)=  0
+sav_ncatoms =  1
 !
-      END SUBROUTINE save_default_setting
+END SUBROUTINE save_default_setting
+!
+!*******************************************************************************
+!
+SUBROUTINE save_full_setting
+!
+USE discus_config_mod
+USE crystal_mod 
+USE discus_allocate_appl_mod
+USE discus_save_mod 
+IMPLICIT NONE
+!
+INTEGER, PARAMETER :: MIN_PARA = 20
+INTEGER            :: maxw
+INTEGER            :: n_nscat
+INTEGER            :: n_nsite
+!                                                                       
+maxw = MAX(MIN_PARA,MAXSCAT+1)
+IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
+   n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
+   n_nsite = MAX(cr_ncatoms, SAV_MAXSCAT, MAXSCAT) 
+   CALL alloc_save (  n_nscat, n_nsite )
+   IF ( ier_num < 0 ) THEN
+      RETURN
+   ENDIF
+ENDIF
+!
+SAV_MAXSCAT  = MAXSCAT
+SAV_MAXSITE  = UBOUND(sav_lsite,1)
+sav_latom(:) = .true.
+sav_lsite(:) = .TRUE.
+!
+sav_sel_atom = .true.
+!
+sav_file    = 'crystal.stru'
+!
+sav_keyword = .true.
+!
+sav_w_scat  = .true.
+sav_w_adp   = .true.
+sav_w_occ   = .true.
+sav_w_surf  = .true.
+sav_w_magn  = .true.
+sav_r_ncell = .true.
+sav_w_ncell = .true.
+sav_w_gene  = .true.
+sav_w_symm  = .true.
+sav_w_mole  = .true.
+sav_w_obje  = .true.
+sav_w_doma  = .true.
+sav_w_prop  = .true.
+!
+sav_start   =  1
+sav_end     = -1
+sav_ncell(:)=  1
+sav_sel_prop(:)=  0
+sav_ncatoms =  1
+!
+END SUBROUTINE save_full_setting
 !
 !*******************************************************************************
 !

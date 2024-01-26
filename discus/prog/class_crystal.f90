@@ -21,6 +21,13 @@ IMPLICIT none
 TYPE :: cl_cryst        ! Define a type "cl_cryst"
    PRIVATE              ! hide local variables from outside; access through procedures only
 !
+   integer                                          ::  dim_natoms  = 1  ! Dimension arrays number of atoms
+   integer                                          ::  dim_nscat   = 1  ! Dimension arrays number of scattering types
+   integer                                          ::  dim_ncatoms = 1  ! Dimension arrays number of atoms per unit cell
+   integer                                          ::  dim_nanis   = 1  ! Dimension arrays number of ADPs 
+   integer                                          ::  dim_n_mole  = 1  ! Dimension arrays number of molecules
+   integer                                          ::  dim_n_type  = 1  ! Dimension arrays number of molecule types
+   integer                                          ::  dim_n_atom  = 1  ! Dimension arrays number of atoms in all molecules
    CHARACTER (LEN=200)                              ::  cr_file     = 'crystal.stru' ! Crystal file name
    CHARACTER (LEN=80)                               ::  cr_name     = 'crystal' ! Crystal name
    CHARACTER (LEN=16)                               ::  cr_spcgr    = 'P1'      ! Space group symbol
@@ -127,6 +134,7 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
 CONTAINS
 !
    PROCEDURE, PUBLIC, PASS :: alloc_arrays         ! allocate a set of atoms
+   PROCEDURE, PUBLIC, PASS :: get_dimensions       ! Get array dimensions
    PROCEDURE, PUBLIC, PASS :: get_natoms           ! Return number of atoms in this crystal
    PROCEDURE, PUBLIC, PASS :: get_nscat            ! Return number of atom types in this crystal
    PROCEDURE, PUBLIC, PASS :: get_ncatoms          ! Return number of atoms in this crystal in a unit cell
@@ -149,6 +157,7 @@ CONTAINS
    PROCEDURE, PUBLIC, PASS :: set_crystal_from_local    ! Copy from local copy      into a crystal type
    PROCEDURE, PUBLIC, PASS :: set_crystal_save_flags    ! Set the "save" flags in the crystal type
    PROCEDURE, PUBLIC, PASS :: get_header_from_crystal   ! Copy from a crystal type into DISCUS standard
+   procedure, public, pass :: get_anis                  ! Copy ADP arrays from crystal type to local
    PROCEDURE, PUBLIC, PASS :: get_header_to_local       ! Copy from a crystal type into a local copy
    PROCEDURE, PUBLIC, PASS :: get_cr_dim_from_crystal ! Copy from a crystal type into DISCUS standard
    PROCEDURE, PUBLIC, PASS :: get_atoms_from_crystal    ! Copy from a crystal type into DISCUS standard
@@ -162,6 +171,7 @@ END TYPE cl_cryst
 CONTAINS
 !
 !******************************************************************************
+!
    SUBROUTINE alloc_arrays   ( this, natoms, nscat, ncatoms, nanis, n_mole, n_type, n_atom)
 !
 !  Allocate the arrays for "this" crystal 
@@ -179,9 +189,21 @@ CONTAINS
    INTEGER,              INTENT(IN) :: n_atom      ! Number of atoms in molecules for this crystal
 !
    INTEGER  :: istatus
-integer :: lanis
+integer :: l_natoms
+integer :: l_nscat
+integer :: l_ncatoms
+integer :: l_nanis
+integer :: l_n_mole
+integer :: l_n_type
+integer :: l_n_atom
 !
-lanis = max(nanis, 1)   ! Make array at least one entry long
+l_natoms  = max(natoms, 1)    ! Make array at least one entry long
+l_nscat   = max(nscat, 1)     ! Make array at least one entry long
+l_ncatoms = max(ncatoms, 1)   ! Make array at least one entry long
+l_nanis   = max(nanis, 1)     ! Make array at least one entry long
+l_n_mole  = max(n_mole, 1)    ! Make array at least one entry long
+l_n_type  = max(n_type, 1)    ! Make array at least one entry long
+l_n_atom  = max(n_atom, 1)    ! Make array at least one entry long
 !
    IF(this%latom) THEN                             ! Crystal was allocated 
       DEALLOCATE ( this%cr_gen_add , STAT=istatus ) ! Allocate equivalent atom names
@@ -201,7 +223,7 @@ lanis = max(nanis, 1)   ! Make array at least one entry long
       DEALLOCATE ( this%cr_prin      , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_is_sym    , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_occ       , STAT=istatus ) ! Always deallocate
-      DEALLOCATE ( this%atoms        , STAT=istatus ) ! Always deallocate
+      if(associated(this%atoms)) DEALLOCATE ( this%atoms        , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_mole_len  , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_off  , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_type , STAT=istatus ) ! Always deallocate molecules
@@ -227,8 +249,8 @@ lanis = max(nanis, 1)   ! Make array at least one entry long
    ALLOCATE ( this%cr_at_lis  (  0:nscat), STAT=istatus ) ! Allocate atom names
    ALLOCATE ( this%cr_dw      (  0:nscat), STAT=istatus ) ! Allocate Debye Waller terms
    ALLOCATE ( this%cr_anis     (6,0:nscat), STAT=istatus ) ! Allocate User supplied Uij
-   ALLOCATE ( this%cr_anis_full(6,1:lanis), STAT=istatus ) ! Allocate User supplied Uij
-   ALLOCATE ( this%cr_prin   (3,4,1:lanis), STAT=istatus ) ! Allocate User supplied Uij
+   ALLOCATE ( this%cr_anis_full(6,1:l_nanis), STAT=istatus ) ! Allocate User supplied Uij
+   ALLOCATE ( this%cr_prin   (4,3,1:l_nanis), STAT=istatus ) ! Allocate User supplied Uij
    ALLOCATE ( this%cr_is_sym  (  1:ncatoms), STAT=istatus ) ! Allocate Atom was created by this sym.op.
    ALLOCATE ( this%cr_occ     (  0:nscat), STAT=istatus ) ! Allocate Occupancies
    ALLOCATE ( this%atoms      (natoms   ), STAT=istatus ) ! Allocate list of atoms
@@ -257,8 +279,8 @@ lanis = max(nanis, 1)   ! Make array at least one entry long
    this%cr_at_lis  (  0:nscat) = ' '
    this%cr_dw      (  0:nscat) = 0.0_PREC_DP
    this%cr_anis    (:,0:nscat) = 0.0_PREC_DP
-   this%cr_anis_full(6,1:lanis) = 0.0_PREC_DP
-   this%cr_prin   (3,4,1:lanis) = 0.0_PREC_DP
+   this%cr_anis_full(6,1:l_nanis) = 0.0_PREC_DP
+   this%cr_prin   (4,3,1:l_nanis) = 0.0_PREC_DP
    this%cr_is_sym  (  1:ncatoms) = 0
    this%cr_occ     (  0:nscat) = 0.0_PREC_DP
 !  this%atoms      (natoms   )
@@ -276,11 +298,52 @@ lanis = max(nanis, 1)   ! Make array at least one entry long
 !
    this%cr_natoms = natoms                            ! Store number of atoms
    this%cr_nscat  = nscat                             ! Store number of atom types
-   this%cr_nanis  = nanis                             ! Store number of ADP  types
+   this%cr_nanis  = l_nanis                           ! Store number of ADP  types
+   this%cr_num_mole = n_mole
+   this%cr_num_type = n_type
+   this%cr_num_atom = n_atom
    this%latom  = .true.                            ! Flag that crystal is allocated
 !
-   END SUBROUTINE alloc_arrays
+this%dim_natoms  = l_natoms      ! Store dimension of arrays for number of atoms
+this%dim_nscat   = l_nscat       ! Store dimension of arrays for number of scattering types
+this%dim_ncatoms = l_ncatoms     ! Store dimension of arrays for number of atoms per unit cell
+this%dim_nanis   = l_nanis       ! Store dimension of arrays for number of ADPs
+this%dim_n_mole  = l_n_mole      ! Store dimension of arrays for number of molecules
+this%dim_n_type  = l_n_type      ! Store dimension of arrays for number of molecule types
+this%dim_n_atom  = l_n_atom      ! Store dimension of arrays for number of atoms in all molecules
+!
+END SUBROUTINE alloc_arrays
+!
 !******************************************************************************
+!
+subroutine get_dimensions(this, dim_natoms, dim_nscat, dim_ncatoms, dim_nanis, &
+                                dim_n_mole, dim_n_type, dim_n_atom)
+!-
+!  Get the array dimensions
+!+
+implicit none
+!
+class(cl_cryst) :: this
+integer, intent(out) :: dim_natoms
+integer,intent(out) :: dim_nscat
+integer,intent(out) :: dim_ncatoms
+integer,intent(out) :: dim_nanis
+integer,intent(out) :: dim_n_mole
+integer,intent(out) :: dim_n_type
+integer,intent(out) :: dim_n_atom
+!
+dim_natoms  = this%dim_natoms
+dim_nscat   = this%dim_nscat 
+dim_ncatoms = this%dim_ncatoms
+dim_nanis   = this%dim_nanis 
+dim_n_mole  = this%dim_n_mole
+dim_n_type  = this%dim_n_type
+dim_n_atom  = this%dim_n_atom
+!
+end subroutine get_dimensions
+!
+!******************************************************************************
+!
    INTEGER FUNCTION get_natoms (this )
 !
 !  Return the number of atoms in "this" crystal
@@ -292,6 +355,7 @@ lanis = max(nanis, 1)   ! Make array at least one entry long
    get_natoms = this%cr_natoms
 !
    END FUNCTION get_natoms
+!
 !******************************************************************************
    INTEGER FUNCTION get_nscat (this )
 !
@@ -457,9 +521,15 @@ lanis = max(nanis, 1)   ! Make array at least one entry long
 !
    INTEGER :: i
 !
+if(inum<=ubound(this%cr_at_lis,1)) then
    DO i=0, inum
       this%cr_at_lis(i) = cr_at_lis(i)
    ENDDO
+!else
+!  write(*,*) ' ERROR set_cryst_at_lis'
+!  write(*,*) ' ERROR INUM > DIM_NSCAT', MAXSCAT, inum, ubound(this%cr_at_lis,1), this%dim_nscat
+!  stop
+endif
 !
    END SUBROUTINE set_cryst_at_lis 
 !******************************************************************************
@@ -607,7 +677,8 @@ use precision_mod
 !
    END SUBROUTINE get_cryst_mole 
 !******************************************************************************
-   SUBROUTINE set_crystal_from_standard   ( this, strucfile)
+!
+SUBROUTINE set_crystal_from_standard   ( this, strucfile)
 !
 !  Set all values for the crystal to those of the main DISCUS crystal
 !
@@ -696,7 +767,8 @@ use precision_mod
 !
 !  Save scattering curves and names if "WRITE" flag was set
 !
-   ALLOCATE(iscat_table(0:MAXSCAT), STAT = istatus)
+!  ALLOCATE(iscat_table(0:MAXSCAT), STAT = istatus)
+   ALLOCATE(iscat_table(0:cr_nscat), STAT = istatus)
    iscat_table = 0
    IF(this%cr_sav_scat) THEN
       ia = -1
@@ -848,55 +920,63 @@ use precision_mod
 !  Save atoms, if selected
 !
    ia = 0
-   DO inum=1,cr_natoms
-!     IF(this%cr_sav_atom(cr_iscat(inum,1))) THEN
-      IF(check_select_status(inum,this%cr_sav_atom(cr_iscat(inum,1)),   &
-                                  cr_prop (inum),                &
-                             this%cr_sav_sel_prop) ) THEN
-         ia = ia + 1
-         itype(1) = iscat_table(cr_iscat(inum,1))
-         itype(2:3) = cr_iscat(inum,2:3)
-         posit = cr_pos(:,inum)
-         isurface(:) = cr_surf(:, inum)
-         magn_mom(:) = cr_magn(:, inum)
-         IF(this%cr_sav_prop) THEN
-            iprop = cr_prop (inum)
-         ELSE
-            iprop = 1
-         ENDIF
-         iin_mole(:) = 0
-         IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
-            IF(cr_mole(inum)/=0) THEN
-               iin_mole(1) = cr_mole(inum)
-               check_mole: DO j = 1, mole_len (cr_mole(inum))
-                  IF(mole_cont (mole_off(cr_mole(inum))+j) == inum) THEN
-                     iin_mole(2) = j
-                     this%cr_mole_cont (mole_off(cr_mole(inum))+j) = ia
-                     EXIT check_mole
-                  ENDIF
-               ENDDO check_mole
-            ELSE
-               iin_mole(:) = 0
-            ENDIF
-         ENDIF
-         CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
+DO inum=1,cr_natoms
+!     IF(this%cr_sav_atom(cr_iscat(1,inum))) THEN
+   IF(check_select_status(inum,this%cr_sav_atom(cr_iscat(1,inum)),   &
+                          cr_prop (inum),                &
+                          this%cr_sav_sel_prop) ) THEN
+      ia = ia + 1
+      itype(1)    = iscat_table(cr_iscat(1,inum))
+      itype(2:3)  = cr_iscat(2:3,inum)
+      posit       = cr_pos(:,inum)
+      isurface(:) = cr_surf(:, inum)
+      magn_mom(:) = cr_magn(:, inum)
+      IF(this%cr_sav_prop) THEN
+         iprop = cr_prop (inum)
       ELSE
-         IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
-            IF(cr_mole(inum)/=0) THEN
-               ier_num = -157
-               ier_typ = ER_APPL
-               WRITE(ier_msg(1), '(a,i7)') 'Atom number ',inum
-               ier_msg(2) = 'The atom is deseclected but part of a molecule'
-               ier_msg(3) = 'Remove this atom type and purge prior to save '
-            ENDIF
+         iprop = 1
+      ENDIF
+      iin_mole(:) = 0
+      IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
+         IF(cr_mole(inum)/=0) THEN
+            iin_mole(1) = cr_mole(inum)
+            check_mole: DO j = 1, mole_len (cr_mole(inum))
+               IF(mole_cont (mole_off(cr_mole(inum))+j) == inum) THEN
+                  iin_mole(2) = j
+                  this%cr_mole_cont (mole_off(cr_mole(inum))+j) = ia
+                  EXIT check_mole
+               ENDIF
+            ENDDO check_mole
+         ELSE
+            iin_mole(:) = 0
          ENDIF
       ENDIF
-   ENDDO
-   this%cr_natoms = MIN(cr_natoms,ia)
-   DEALLOCATE(iscat_table, STAT=istatus)
-
+!        if(.not.associated(this%atoms(ia))) allocate(this%atoms(ia))
+      CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
+   ELSE
+      IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
+         IF(cr_mole(inum)/=0) THEN
+            ier_num = -157
+            ier_typ = ER_APPL
+            WRITE(ier_msg(1), '(a,i7)') 'Atom number ',inum
+            ier_msg(2) = 'The atom is deseclected but part of a molecule'
+            ier_msg(3) = 'Remove this atom type and purge prior to save '
+         ENDIF
+      ENDIF
+   ENDIF
+ENDDO
+this%cr_natoms = MIN(cr_natoms,ia)
+this%cr_nanis  = cr_nanis
+!write(*,*) ' SET  ', this%dim_natoms, this%dim_nscat, this%dim_ncatoms, this%dim_nanis,&
+!this%dim_n_mole, this%dim_n_type, this%dim_n_atom
+!write(*,*) ' Set  ', ubound(this%atoms,1), ubound(this%cr_scat,2), ubound(this%cr_is_sym,1), ubound(this%cr_anis_full,2), &
+!          ubound(this%cr_mole_len,1), ubound(this%cr_mole_biso,1), ubound(this%cr_mole_cont,1)
+!write(*,*) ' set  ', this%cr_natoms, this%cr_nscat, this%cr_ncatoms, this%cr_nanis,&
+!this%cr_num_mole, this%cr_num_type, this%cr_num_atom
+DEALLOCATE(iscat_table, STAT=istatus)
 !
-   END SUBROUTINE set_crystal_from_standard
+END SUBROUTINE set_crystal_from_standard
+!
 !******************************************************************************
    SUBROUTINE set_crystal_from_local   ( this, strucfile, &
             rd_NMAX, rd_MAXSCAT, rd_MAXANIS, rd_n_mole, rd_n_mole_type, rd_n_atom, rd_cr_name,       &
@@ -965,7 +1045,7 @@ use precision_mod
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_dw     ! (0:MAXSCAT) 
    REAL(kind=PREC_DP)  , DIMENSION(1:6,0:rd_MAXSCAT), INTENT(IN) :: rd_cr_anis   ! (0:MAXSCAT) 
    REAL(kind=PREC_DP)  , DIMENSION(1:6,1:rd_MAXANIS), INTENT(IN) :: rd_cr_anis_full   ! (0:MAXSCAT) 
-   REAL(kind=PREC_DP)  , DIMENSION(3,4,1:rd_MAXANIS), INTENT(IN) :: rd_cr_prin        ! (0:MAXSCAT) 
+   REAL(kind=PREC_DP)  , DIMENSION(4,3,1:rd_MAXANIS), INTENT(IN) :: rd_cr_prin        ! (0:MAXSCAT) 
    integer             , DIMENSION(  :)         , intent(in) ::  rd_cr_is_sym  ! (  0:NCATOMS) Site was created by this sym.op.
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_occ    ! (0:MAXSCAT)   !! WORK OCC
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_at_lis ! (0:MAXSCAT) 
@@ -998,7 +1078,7 @@ use precision_mod
    LOGICAL             , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_delf_int  ! (  0:MAXSCAT)
 
    REAL(kind=PREC_DP)  , DIMENSION(3,rd_NMAX)   , INTENT(IN) :: rd_cr_pos
-   INTEGER             , DIMENSION(  rd_NMAX,3)   , INTENT(IN) :: rd_cr_iscat
+   INTEGER             , DIMENSION(3,rd_NMAX)   , INTENT(IN) :: rd_cr_iscat
    INTEGER             , DIMENSION(  rd_NMAX)   , INTENT(IN) :: rd_cr_prop
    INTEGER             , DIMENSION(0:3,rd_NMAX) , INTENT(IN) :: rd_cr_surf
    REAL(kind=PREC_DP)  , DIMENSION(0:3,rd_NMAX) , INTENT(IN) :: rd_cr_magn
@@ -1144,7 +1224,7 @@ use precision_mod
 !
    if(rd_cr_nanis>0) then
       this%cr_anis_full(1:6,1:rd_cr_nanis) = rd_cr_anis_full(1:6,1:rd_cr_nanis)
-      this%cr_prin     (3,4,1:rd_cr_nanis) = rd_cr_prin     (3,4,1:rd_cr_nanis)
+      this%cr_prin     (4,3,1:rd_cr_nanis) = rd_cr_prin     (4,3,1:rd_cr_nanis)
    else
       this%cr_anis_full                 = 0.0_PREC_DP
       this%cr_prin                      = 0.0_PREC_DP
@@ -1185,13 +1265,13 @@ use precision_mod
 !
    ia = 0
    DO inum=1,rd_cr_natoms
-!     IF(this%cr_sav_atom(cr_iscat(inum,1))) THEN
-      IF(check_select_status(inum,this%cr_sav_atom(rd_cr_iscat(inum,1)),   &
+!     IF(this%cr_sav_atom(cr_iscat(1,inum))) THEN
+      IF(check_select_status(inum,this%cr_sav_atom(rd_cr_iscat(1,inum)),   &
                                   rd_cr_prop (inum),                &
                              this%cr_sav_sel_prop) ) THEN
          ia = ia + 1
-         itype(1) = iscat_table(rd_cr_iscat(inum,1))
-         itype(2:3) = rd_cr_iscat(inum,2:3)
+         itype(1) = iscat_table(rd_cr_iscat(1,inum))
+         itype(2:3) = rd_cr_iscat(2:3,inum)
          posit = rd_cr_pos(:,inum)
          isurface(:) = rd_cr_surf(:,inum)
          magn_mom(:) = rd_cr_magn(:,inum)
@@ -1436,8 +1516,40 @@ use precision_mod
    cr_n_REAL_atoms = this%cr_n_REAL_atoms
 !
    END SUBROUTINE get_header_from_crystal
+!
 !******************************************************************************
-   SUBROUTINE get_header_to_local (this, rd_MAXSCAT, rd_cr_name,      &
+!
+subroutine get_anis(this, dim_nanis, nanis, anis_full, prin)
+!-
+! Get the arrays for ADPs
+!+
+use precision_mod
+!
+implicit none
+!
+integer                                       , intent(in)  :: dim_nanis
+integer                                       , intent(out) :: nanis
+real(kind=prec_DP), dimension(6,1:dim_nanis)  , intent(out) :: anis_full
+real(kind=prec_DP), dimension(4,3,1:dim_nanis), intent(out) :: prin
+!
+class(cl_cryst)                 :: this        ! Work on "this" crystal
+!
+if(this%cr_nanis>0) then
+   nanis       = this%cr_nanis 
+   anis_full(:,1:this%cr_nanis) = this%cr_anis_full(:,1:this%cr_nanis)
+   prin   (:,:,1:this%cr_nanis) = this%cr_prin   (:,:,1:this%cr_nanis)
+else
+   nanis        = 1
+   anis_full(:,1:nanis) = 0.0_PREC_DP
+   prin   (:,:,1:nanis) = 0.0_PREC_DP
+endif
+!
+end subroutine get_anis
+!
+!******************************************************************************
+!
+   SUBROUTINE get_header_to_local (this, rd_MAXSCAT, DIM_NCATOMS, DIM_NANIS,    &
+   rd_cr_name,      &
             rd_cr_spcgr, rd_cr_spcgr_set, rd_cr_set, rd_cr_iset,      &
             rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_anis, rd_cr_occ, &
             rd_cr_is_sym, rd_nanis, rd_cr_anis_full, rd_cr_prin, rd_cr_a0, rd_cr_win,      &
@@ -1450,6 +1562,8 @@ use precision_mod
    IMPLICIT NONE
 !
    INTEGER                                      , INTENT(INOUT) :: rd_MAXSCAT 
+   INTEGER                                      , INTENT(INOUT) :: DIM_NCATOMS 
+   INTEGER                                      , INTENT(INOUT) :: DIM_NANIS 
    INTEGER                                      , INTENT(INOUT) :: rd_sav_ncatoms 
 !
    CHARACTER (LEN=  80)                         , INTENT(INOUT) :: rd_cr_name 
@@ -1463,10 +1577,10 @@ use precision_mod
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_dw     ! (0:MAXSCAT) 
    REAL(kind=PREC_DP), DIMENSION(6,0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_anis   ! (0:MAXSCAT) 
    REAL(kind=PREC_DP)  , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_occ    ! (0:MAXSCAT)   !! WORK OCC
-   integer             , dimension(rd_sav_ncatoms), intent(out) :: rd_cr_is_sym
+   integer             , dimension(DIM_NCATOMS) , intent(out)   :: rd_cr_is_sym
    integer                                      , intent(in   ) :: rd_nanis
-   real(kind=prec_DP), dimension(6,1:rd_nanis)  , intent(  out) :: rd_cr_anis_full   ! (0:MAXSCAT) 
-   real(kind=prec_DP), dimension(3,4,1:rd_nanis), intent(  out) :: rd_cr_prin
+   real(kind=prec_DP), dimension(6,1:DIM_NANIS)  , intent(  out) :: rd_cr_anis_full   ! (0:MAXSCAT) 
+   real(kind=prec_DP), dimension(4,3,1:DIM_NANIS), intent(  out) :: rd_cr_prin
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_at_lis ! (0:MAXSCAT) 
    INTEGER             , DIMENSION(3)           , INTENT(INOUT) :: rd_sav_ncell ! (3) 
    LOGICAL                                      , INTENT(INOUT) :: rd_sav_r_ncell 
@@ -1567,7 +1681,7 @@ use precision_mod
    DO inum=1,this%cr_natoms
       CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
       ia = ia + 1
-      cr_iscat(ia,:) = itype
+      cr_iscat(:,ia) = itype
       cr_pos(:,ia) = posit
       cr_surf(:,ia) = isurface(:)
       cr_magn(:,ia) = magn_mom(:)
@@ -1588,7 +1702,7 @@ use precision_mod
 !
    INTEGER,                                      INTENT(IN)     :: RD_NMAX
    INTEGER,                                      INTENT(INOUT)  :: rd_cr_natoms
-   INTEGER           , DIMENSION(1:RD_NMAX,3),     INTENT(INOUT)  :: rd_cr_iscat
+   INTEGER           , DIMENSION(3,1:RD_NMAX),   INTENT(INOUT)  :: rd_cr_iscat
    INTEGER           , DIMENSION(1:RD_NMAX),     INTENT(INOUT)  :: rd_cr_prop
    REAL(kind=PREC_DP), DIMENSION(1:3,1:RD_NMAX), INTENT(INOUT)  :: rd_cr_pos
    INTEGER           , DIMENSION(0:3,1:RD_NMAX), INTENT(INOUT)  :: rd_cr_surf
@@ -1612,7 +1726,7 @@ use precision_mod
       CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface, magn_mom, iin_mole )
       IF ( this%cr_sav_atom(itype(1))) THEN
          ia = ia + 1
-         rd_cr_iscat(ia,:) = itype
+         rd_cr_iscat(:,ia) = itype
          rd_cr_pos(:,ia) = posit
          rd_cr_prop (ia) = iprop
          rd_cr_surf(:,ia)= isurface(:)
@@ -1721,7 +1835,7 @@ use precision_mod
       DEALLOCATE ( this%cr_prin      , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_is_sym    , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_occ       , STAT=istatus ) ! Always deallocate
-      DEALLOCATE ( this%atoms        , STAT=istatus ) ! Always deallocate
+      if(associated(this%atoms)) DEALLOCATE ( this%atoms        , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_mole_len  , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_off  , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_type , STAT=istatus ) ! Always deallocate molecules

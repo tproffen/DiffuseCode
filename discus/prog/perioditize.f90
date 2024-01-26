@@ -856,12 +856,12 @@ soften: do l=1,2
       dist = 1.0E12
       v = tmp_pos(:,i)
       loop_old:do m=1, nprior
-         if( cr_iscat(m,1) <0) cycle loop_old          ! Already transfered
+         if( cr_iscat(1,m) <0) cycle loop_old          ! Already transfered
          u = cr_pos(:, m)
          dist = do_blen(lspace, u, v)                ! Calculate distance
 !if(            m==1713) then !abs(cr_pos(1,m)+9.2)<0.1 .and. abs(cr_pos(2,m)+10.0)<0.1) then
-!  write(*,*) ' ATOM ', cr_pos(:,m), cr_iscat(m,1), dist, dmin
-!  write(*,*) ' ATOM ', cr_pos(:,m)+20, cr_iscat(m,1), dist, dmin
+!  write(*,*) ' ATOM ', cr_pos(:,m), cr_iscat(1,m), dist, dmin
+!  write(*,*) ' ATOM ', cr_pos(:,m)+20, cr_iscat(1,m), dist, dmin
 !endif
          if(dist < dmin) then                 ! Found new shortest distance
             dmin = dist
@@ -883,13 +883,13 @@ soften: do l=1,2
          endif
       enddo loop_old
       if(dmin < EPS) then                     ! Found close atom
-         tmp_iscat(   i) = cr_iscat(   k,1)
+         tmp_iscat(   i) = cr_iscat(1, k)
          tmp_prop (   i) = cr_prop (   k)
          tmp_mole (   i) = cr_mole (   k)
          tmp_surf (:, i) = cr_surf (:, k)
          tmp_magn (:, i) = cr_magn (:, k)
          tmp_pos  (:, i) = cr_pos  (:, k)
-         cr_iscat(k,1) = -1                     ! Flag as done
+         cr_iscat(1,k) = -1                     ! Flag as done
            n = n + 1
          do j=mole_off(cr_mole(k)), mole_off(cr_mole(k))+mole_len(cr_mole(k))
             if(mole_cont(j) == k) then
@@ -908,7 +908,7 @@ cr_mole  = 0
 cr_surf  = 0
 cr_magn  = 0.0
 cr_pos   = 0.0
-cr_iscat(  1:natoms,1) = tmp_iscat(  1:natoms)
+cr_iscat(1,1:natoms) = tmp_iscat(  1:natoms)
 cr_prop (  1:natoms) = tmp_prop (  1:natoms)
 cr_mole (  1:natoms) = tmp_mole (  1:natoms)
 cr_surf (:,1:natoms) = tmp_surf (:,1:natoms)
@@ -939,8 +939,8 @@ if(n /= nprior) then
    endif
 ! 
    do i=1, nprior
-      if(cr_iscat(i,1)<0) then
-         cr_iscat(i,1) = ifail
+      if(cr_iscat(1,i)<0) then
+         cr_iscat(1,i) = ifail
       endif
    enddo
    cr_at_lis(ifail) = 'FAIL'
@@ -948,8 +948,8 @@ endif
 !
 if(natoms>nprior) then
    do i=1, natoms
-      if(cr_iscat(i,1)<0)  then
-         cr_iscat(i,1)  = 0
+      if(cr_iscat(1,i)<0)  then
+         cr_iscat(1,i)  = 0
          cr_prop(i)   = 0
          cr_mole(i)   = 0
          cr_surf(:,i) = 0

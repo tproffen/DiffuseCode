@@ -487,12 +487,15 @@ ce_natoms = cr_natoms
 cr_ncatoms = cr_natoms 
 cr_ncreal  = 0   ! Non void atoms in unit cell
 DO n=1,cr_natoms
-   IF(cr_at_lis(cr_iscat(n,1))/='VOID') cr_ncreal = cr_ncreal + 1
+   IF(cr_at_lis(cr_iscat(1,n))/='VOID') cr_ncreal = cr_ncreal + 1
 ENDDO
 IF(l_site) CALL differ_site(cr_nscat, cr_ncatoms, ONE)
 !
 call get_is_sym         ! Determine the symmetry operation that created an atom
-call prep_anis          ! Prepare anisotropic U's 
+do n=1,cr_natoms
+   cr_iscat(2,n) = cr_is_sym(n)
+enddo
+call prep_anis(cr_ncatoms)          ! Prepare anisotropic U's 
 !
 cr_natoms = 0 
 DO k = 1, cr_icc (3) 
@@ -500,8 +503,8 @@ DO k = 1, cr_icc (3)
       DO i = 1, cr_icc (1) 
          DO n = 1, ce_natoms 
             cr_natoms = cr_natoms + 1 
-            cr_iscat (cr_natoms,:) = cr_iscat (n,:) 
-            cr_iscat(cr_natoms,2) = cr_is_sym(n)
+            cr_iscat (:,cr_natoms) = cr_iscat (:,n) 
+            cr_iscat(2,cr_natoms) = cr_is_sym(n)
             cr_pos (1, cr_natoms) = cr_pos (1, n) + REAL( i - 1)
             cr_pos (2, cr_natoms) = cr_pos (2, n) + REAL( j - 1)
             cr_pos (3, cr_natoms) = cr_pos (3, n) + REAL( k - 1)
@@ -513,9 +516,9 @@ DO k = 1, cr_icc (3)
       ENDDO 
    ENDDO 
 ENDDO 
-!write(*,*) 'TYPE', cr_iscat(:,1)
-!write(*,*) 'SYM ', cr_iscat(:,2)
-!write(*,*) 'RXXX', cr_iscat(:,3)
+!write(*,*) 'TYPE', cr_iscat(1,:)
+!write(*,*) 'SYM ', cr_iscat(2,:)
+!write(*,*) 'RXXX', cr_iscat(3,:)
 !
 !     ---------- Apply occupancy
 !
@@ -529,11 +532,11 @@ IF(occupancy == 0 .and. .NOT.l_occ) THEN     ! Clear occupancies on read cell
    cr_occ(:) = 1.0
 ELSEIF(occupancy==1) THEN   ! Apply occupancies
    DO i=1, cr_natoms
-      IF(cr_occ(cr_iscat(i,1))<1.0) THEN
+      IF(cr_occ(cr_iscat(1,i))<1.0) THEN
          CALL RANDOM_NUMBER(r)
-         IF(r > cr_occ(cr_iscat(i,1))) THEN
-            cr_iscat(i,1) = 0
-            cr_iscat(i,2:) = 1
+         IF(r > cr_occ(cr_iscat(1,i))) THEN
+            cr_iscat(1,i) = 0
+            cr_iscat(2:,i) = 1
             cr_prop (i)  = ibclr (cr_prop (i),  PROP_NORMAL)
          ENDIF
       ENDIF
@@ -697,7 +700,7 @@ ELSE internals
 !
    call alloc_unitcell(cr_ncatoms)
    cr_is_sym = 1
-   call prep_anis
+   call prep_anis(cr_natoms)
 !
 ENDIF internals
 !
@@ -851,7 +854,7 @@ new_scat = 0
 cells: DO i=1, icc(1)*icc(2)*icc(3)
    sites: DO isite=1, n_ncatoms
       iat = (i-1)*n_ncatoms + isite
-      iscat = cr_iscat(iat,1)
+      iscat = cr_iscat(1,iat)
       DO k=0, n_on_site(isite)
          IF(cr_at_lis(iscat)==names(k,isite) .AND. cr_dw(iscat)==dbw(k,isite)) THEN
             CYCLE sites
@@ -885,11 +888,11 @@ new_scat = iscat    ! New maximum atom types
 cells_c: DO i=1, icc(1)*icc(2)*icc(3)
    sites_c: DO isite=1, n_ncatoms
       iat = (i-1)*n_ncatoms + isite
-      iscat = cr_iscat(iat,1)
+      iscat = cr_iscat(1,iat)
       DO k=0, n_on_site(isite)
          IF(iscat==old(k,isite)) THEN
-            cr_iscat(iat,1) = types(k,isite)
-            cr_iscat(iat,2:) = 1
+            cr_iscat(1,iat) = types(k,isite)
+            cr_iscat(2:,iat) = 1
             CYCLE sites_c
          ENDIF
       ENDDO
@@ -1358,8 +1361,8 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                                  cr_at_lis, cr_dw, cr_occ,        &
                                  nw_name, dw1, occ1, uni_mask)
                if(j>-1) then              ! Old atom type
-                  cr_iscat(i,1) = j
-                  cr_iscat(i,2:) = 1
+                  cr_iscat(1,i) = j
+                  cr_iscat(2:,i) = 1
                   call symmetry
                   goto 22
                endif
@@ -1367,7 +1370,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                 IF (line (1:ibl)  == cr_at_lis (j)              &
 !                       .and.dw1 == cr_dw (j)                     &
 !                       .AND. occ1==cr_occ(j) ) THEN                    
-!                    cr_iscat (i,1) = j 
+!                    cr_iscat (1,i) = j 
 !                    CALL symmetry 
 !                    IF (ier_num.ne.0) THEN 
 !                       CLOSE (IST)
@@ -1375,7 +1378,7 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                    ENDIF 
 !                    GOTO 22 
 !                       ELSEIF(line(1:ibl)=='VOID' .AND. mole_l_on) THEN
-!                          cr_iscat (i,1) = 0 
+!                          cr_iscat (1,i) = 0 
 !                          CALL symmetry 
 !                          IF (ier_num.ne.0) THEN 
 !                             CLOSE (IST)
@@ -1401,8 +1404,8 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                endif
                endif
                if(j>-1)  then              ! Old atom type
-                  cr_iscat(i,1) = j
-                  cr_iscat(i,2:) = 1
+                  cr_iscat(1,i) = j
+                  cr_iscat(2:,i) = 1
                   call symmetry
                if(uni_mask(0) .and. .not.any(uni_mask(1:))) then   !unique:site is present
                   do j=i+1, cr_natoms
@@ -1413,8 +1416,8 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                         CALL alloc_crystal_scat(new_nscat)
                         CALL alloc_crystal_nmax(new_nmax)
                      endif
-                     cr_iscat(j,1) = cr_nscat
-                     cr_iscat(j,2:) = 1
+                     cr_iscat(1,j) = cr_nscat
+                     cr_iscat(2:,j) = 1
                      cr_at_lis (cr_nscat) = nw_name
                      cr_dw (cr_nscat) = dw1
                      cr_occ(cr_nscat) = occ1                    ! WORK OCC
@@ -1429,15 +1432,15 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             IF (cr_nscat.lt.maxscat) THEN 
 !ATOM_LINE              as_natoms = as_natoms + 1 
                cr_nscat = cr_nscat + 1 
-               cr_iscat (i,1) = cr_nscat 
-               cr_iscat (i,2:) = 1 
+               cr_iscat (1,i) = cr_nscat 
+               cr_iscat (2:,i) = 1 
 !              cr_at_lis (cr_nscat) = line (1:ibl) 
                cr_at_lis (cr_nscat) = nw_name
                cr_dw (cr_nscat) = dw1 
                cr_occ(cr_nscat) = occ1                    ! WORK OCC
 !                                                                       
 !              as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
-!              as_iscat (as_natoms) = cr_iscat (i,1) 
+!              as_iscat (as_natoms) = cr_iscat (1,i) 
 !              as_dw (as_natoms) = cr_dw (cr_nscat) 
 !              as_occ(as_natoms) = cr_occ(cr_nscat) 
 !                       ENDIF
@@ -1456,8 +1459,8 @@ typus:IF(str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                         CALL alloc_crystal_scat(new_nscat)
                         CALL alloc_crystal_nmax(new_nmax)
                      endif
-                     cr_iscat(j,1) = cr_nscat
-                     cr_iscat(j,2:) = 1
+                     cr_iscat(1,j) = cr_nscat
+                     cr_iscat(2:,j) = 1
                      cr_at_lis (cr_nscat) = nw_name
                      cr_dw (cr_nscat) = dw1
                      cr_occ(cr_nscat) = occ1                    ! WORK OCC
@@ -1907,7 +1910,7 @@ REAL(kind=PREC_DP), DIMENSION(1:3,1:NMAX), INTENT(out  ) :: cr_pos
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_mole
 INTEGER           , DIMENSION(0:3,1:NMAX), INTENT(out  ) :: cr_surf
 REAL(kind=PREC_DP), DIMENSION(0:3,1:NMAX), INTENT(out  ) :: cr_magn
-INTEGER           , DIMENSION(1:NMAX,3),     INTENT(out  ) :: cr_iscat
+INTEGER           , DIMENSION(3,1:NMAX),     INTENT(out  ) :: cr_iscat
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_ianis
 INTEGER           , DIMENSION(1:NMAX),     INTENT(out  ) :: cr_prop
 REAL(kind=PREC_DP), dimension(3,2)       , intent(out  ) :: cr_dim ! (3, 2) 
@@ -2570,7 +2573,7 @@ REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_dw       ! (0:MA
 REAL(kind=PREC_DP), DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_occ      ! (0:MAXSCAT) 
 CHARACTER(LEN=4)  , DIMENSION(0:MAXSCAT)  , INTENT(INOUT) :: cr_at_lis   ! (0:MAXSCAT) 
 REAL(kind=PREC_DP), DIMENSION(1:3,1:NMAX) , INTENT(INOUT) :: cr_pos
-INTEGER           , DIMENSION(1:NMAX,3),      INTENT(INOUT) :: cr_iscat
+INTEGER           , DIMENSION(3,1:NMAX),      INTENT(INOUT) :: cr_iscat
 INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_ianis
 INTEGER           , DIMENSION(1:NMAX),      INTENT(INOUT) :: cr_mole 
 INTEGER           , DIMENSION(0:3,1:NMAX) , INTENT(INOUT) :: cr_surf
@@ -2722,8 +2725,8 @@ loop_main: do          ! Loop to read all atom lines
             RETURN
          ENDIF 
          cr_nscat = cr_nscat + 1 
-         cr_iscat (i,1) = cr_nscat 
-         cr_iscat (i,2:) = 1 
+         cr_iscat (1,i) = cr_nscat 
+         cr_iscat (2:,i) = 1 
          cr_ianis (i) = cr_nscat 
          cr_at_lis (cr_nscat) = nw_name            ! Use "unique" atom name
          cr_dw (cr_nscat) = dw1 
@@ -2736,8 +2739,8 @@ loop_main: do          ! Loop to read all atom lines
             as_natoms = as_natoms + 1 
          ENDIF 
       else
-         cr_iscat(i,1) = j
-         cr_iscat(i,2:) = 1
+         cr_iscat(1,i) = j
+         cr_iscat(2:,i) = 1
          cr_ianis(i) = j
       endif cond_new
 !
@@ -2786,7 +2789,7 @@ enddo loop_main
 !     cr_surf(:,:) = 0    ! Currently no surface save nor read
 !
       CLOSE (ist) 
-!
+!cr_iscat  STOP
 end subroutine struc_read_atoms               
 !
 !********************************************************************** 
@@ -6159,7 +6162,7 @@ USE lib_errlist_func
 !
 !*******************************************************************************
 !
-SUBROUTINE test_file ( strucfile, natoms, ntypes, n_mole, n_type, &
+SUBROUTINE test_file( strucfile, natoms, ntypes, n_mole, n_type, &
                        n_atom, n_cells, init, l_cell, MAXMASK, uni_mask)
 !
 !     Determines the number of atoms and atom types in strucfile
@@ -6604,6 +6607,7 @@ if(ncell_val(5) > 0) then
    n_type = 0
    n_atom = 0
 endif
+! SUMMARIZE HEADER
 !
 l_type = .FALSE.
 main: DO
@@ -7057,7 +7061,7 @@ use crystal_mod
 use discus_save_mod
 use prop_para_func
 use prop_para_mod
-use save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc, save_show
+use save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_full_setting, save_struc, save_show
 !
 use precision_mod
 !
@@ -7086,7 +7090,7 @@ if(ier_num/=0) return
 call save_store_setting             ! Backup user "save" setting
 if(ier_num/=0) return
 !
-call save_default_setting           ! Default to full saving
+call save_full_setting           ! Default to full saving
 if(ier_num/=0) return
 !
 line       = 'ignore, all'          ! Ignore all properties

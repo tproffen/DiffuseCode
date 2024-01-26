@@ -182,11 +182,11 @@ ELSE
             CALL indextocell (ja, jcell, jsite) 
          ENDIF 
          DO i = 1, iianz 
-            IF( cr_iscat (ja,1) .eq.nint(uerte(i)) .and. &
+            IF( cr_iscat (1,ja) .eq.nint(uerte(i)) .and. &
                (jsite.eq.isite.or.isite.eq. - 1) .and. & 
                 ran1 (idum) .le.prob                   )  then                                                        
                IF (check_select_status (ja, .true., cr_prop (ja),  cr_sel_prop) ) THEN
-                  cr_iscat (ja,1) = nint (verte (i) ) 
+                  cr_iscat (1,ja) = nint (verte (i) ) 
                   IF (nint (verte (i) ) .gt.0) then 
                      cr_prop (ja) = IBSET (cr_prop (ja), PROP_NORMAL) 
                   ELSE 
@@ -199,14 +199,14 @@ ELSE
          999       CONTINUE 
          lrepl = .false. 
 !           do i=1,iianz                                                
-!             lrepl = lrepl .or. cr_iscat(ja,1).eq.nint(uerte(i))         
+!             lrepl = lrepl .or. cr_iscat(1,ja).eq.nint(uerte(i))         
 !     &                     .and. (jsite.eq.isite .or. isite.eq.-1)     
 !           ENDDO                                                       
-!           if (cr_iscat(ja,1).eq.is1               .and.                 
+!           if (cr_iscat(1,ja).eq.is1               .and.                 
 !     &                     (jsite.eq.isite .or. isite.eq.-1) .and.     
 !           if (lrepl .and.                                             
 !     &         ran1(idum).le.prob                     ) then           
-!             cr_iscat(ja,1) = is2                                        
+!             cr_iscat(1,ja) = is2                                        
 !           endif                                                       
       ENDDO 
 !
@@ -294,8 +294,8 @@ ELSE
       ENDIF 
       IF (ier_num.ne.0) return 
 !                                                                       
-      cr_iscat (ja,1) = is1 
-      IF (cr_iscat (ja,1) .gt.0) then 
+      cr_iscat (1,ja) = is1 
+      IF (cr_iscat (1,ja) .gt.0) then 
          cr_prop (ja) = IBSET (cr_prop (ja), PROP_NORMAL) 
       ELSE 
          cr_prop (ja) = IBCLR (cr_prop (ja), PROP_NORMAL) 
@@ -360,8 +360,8 @@ use precision_mod
       DO k = 1, mole_len (idest) 
       ii = mole_cont (mole_off (idest) + k) 
       jj = mole_cont (mole_off (isource) + k) 
-      is = cr_iscat (ii,1) 
-      js = cr_iscat (jj,1) 
+      is = cr_iscat (1,ii) 
+      js = cr_iscat (1,jj) 
       im = cr_mole (ii) 
       jm = cr_mole (jj) 
       iis(:) = cr_surf (:,ii)
@@ -371,7 +371,7 @@ use precision_mod
       ip = cr_prop (ii) 
       jp = cr_prop (jj) 
 !                                                                       
-      cr_iscat (ii,1) = js 
+      cr_iscat (1,ii) = js 
 !     cr_mole (ii) = jm 
       cr_surf(:,ii)= jjs(:)
       cr_magn(:,ii)= rjs(:)
@@ -382,7 +382,7 @@ use precision_mod
       ENDDO 
 !                                                                       
       IF (lswap) then 
-         cr_iscat (jj,1) = is 
+         cr_iscat (1,jj) = is 
 !        cr_mole (jj) = im 
          cr_surf(:,jj)= iis(:)
          cr_magn(:,jj)= ris(:)
@@ -628,7 +628,7 @@ REAL(kind=PREC_DP), dimension(3) :: w (3), v (3)
                         v (3) = werte (4) 
                         IF (do_blen (lspace, w, v) .lt. - werte (8) )   &
                         then                                            
-                           cr_iscat (i,1) = 0 
+                           cr_iscat (1,i) = 0 
       cr_prop (i)  = ibclr (cr_prop (i),  PROP_NORMAL) 
                         ENDIF 
                         ENDDO 
@@ -638,7 +638,7 @@ REAL(kind=PREC_DP), dimension(3) :: w (3), v (3)
 !                            atom is too close. Vacancies are ignored.  
 !                                                                       
                         DO i = j, k 
-                        IF (cr_at_lis (cr_iscat (i,1) ) .ne.'VOID') then 
+                        IF (cr_at_lis (cr_iscat (1,i) ) .ne.'VOID') then 
                            w (1) = cr_pos (1, i) 
                            w (2) = cr_pos (2, i) 
                            w (3) = cr_pos (3, i) 
@@ -670,7 +670,7 @@ REAL(kind=PREC_DP), dimension(3) :: w (3), v (3)
 !                   cr_pos (1,i)=0.0                                    
 !                   cr_pos (2,i)=0.0                                    
 !                   cr_pos (3,i)=0.0                                    
-                           cr_iscat (i,1) = 0 
+                           cr_iscat (1,i) = 0 
       cr_prop (i)  = ibclr (cr_prop (i),  PROP_NORMAL) 
                         ENDIF 
                         ENDDO 
@@ -680,7 +680,7 @@ REAL(kind=PREC_DP), dimension(3) :: w (3), v (3)
 !                         atom is too close. Vacancies are ignored.     
 !                                                                       
                         DO i = j, k 
-                        IF (cr_at_lis (cr_iscat (i,1) ) .ne.'VOID') then 
+                        IF (cr_at_lis (cr_iscat (1,i) ) .ne.'VOID') then 
                            IF (abs (cr_pos (1, i) - werte (2) )         &
                            .lt.werte (8) .and.abs (cr_pos (2, i)        &
                            - werte (3) ) .lt.werte (9) .and.abs (cr_pos &
@@ -718,111 +718,127 @@ REAL(kind=PREC_DP), dimension(3) :: w (3), v (3)
       ENDIF 
    10 CONTINUE 
       END SUBROUTINE do_app                         
+!
 !****7******************************************************************
-      SUBROUTINE do_ins_atom (name, maxw, werte) 
+!
+SUBROUTINE do_ins_atom(name, maxw, werte) 
 !-                                                                      
 !     Inserts the atom given by name and position in werte into the     
 !     structure.                                                        
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE chem_mod
-      USE crystal_mod 
-      USE prop_para_mod 
-      USE errlist_mod 
-USE precision_mod
-      USE string_convert_mod
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      INTEGER, INTENT(IN)     :: maxw
-!                                                                       
-      CHARACTER (LEN=* )    , INTENT(INOUT) :: name 
-      REAL(KIND=PREC_DP) , DIMENSION(maxw), INTENT(IN) :: werte (maxw) 
+use discus_config_mod 
+use discus_allocate_appl_mod
+use chem_mod
+use crystal_mod 
+use prep_anis_mod
+use prop_para_mod 
+use errlist_mod 
 !
-      INTEGER                :: i, l
-      INTEGER                :: new_nmax   = 1
-      INTEGER                :: new_nscat  = 1
-      LOGICAL                :: need_alloc = .false.
-      LOGICAL                :: lda 
+use precision_mod
+use string_convert_mod
+!                                                                       
+IMPLICIT none 
+!                                                                       
+INTEGER, INTENT(IN)     :: maxw
+!                                                                       
+CHARACTER (LEN=* )    , INTENT(INOUT) :: name 
+REAL(KIND=PREC_DP) , DIMENSION(maxw), INTENT(IN) :: werte (maxw) 
+!
+real(kind=PREC_DP), PARAMETER :: TOL = 1.0D-7
+INTEGER                :: i, l
+INTEGER                :: new_nmax   = 1
+INTEGER                :: new_nscat  = 1
+LOGICAL                :: need_alloc = .false.
+LOGICAL                :: lda 
+logical :: lsuccess
 !                                                                       
 !
 !     While developing, increment crystal if needed, but keep the check
 !
-      need_alloc = .false.
-      new_nmax   = NMAX
-      new_nscat  = MAXSCAT
-      IF ( NMAX <= cr_natoms ) then 
-         new_nmax  = max(NMAX+1   , INT(NMAX    * 1.25))
-         need_alloc = .true.
-      ENDIF
-      IF ( MAXSCAT <= cr_nscat ) then 
-         new_nscat = max(MAXSCAT+1, INT(MAXSCAT * 1.25))
-         need_alloc = .true.
-      ENDIF
-      IF ( need_alloc ) THEN
-         call alloc_crystal_scat(new_nscat)
-         call alloc_crystal_nmax(new_nmax)
-         IF ( ier_num /= 0) RETURN
-      ENDIF
-      IF (cr_natoms.lt.NMAX) then 
-         CALL do_cap (name) 
-         i = 0 
-         IF (name.eq.'YYYY') then 
-            i = nint (werte (1) ) 
-            IF (0.le.i.and.i.le.cr_nscat) then 
-               ier_num = 0 
-               ier_typ = ER_NONE 
-               cr_natoms = cr_natoms + 1 
-               cr_iscat (cr_natoms,1) = i 
-            ELSE 
-               ier_num = - 27 
-               ier_typ = ER_APPL 
-            ENDIF 
-         ELSE 
-            lda = name.eq.cr_at_lis (i) .and.ABS(werte(5)- DBLE(cr_dw(i)))<1.D-5
-            DO while (.not.lda.and.i.lt.cr_nscat) 
-            i = i + 1 
-            lda = name.eq.cr_at_lis (i) .and.ABS(werte(5) - DBLE(cr_dw(i))) < 1.D-5
-            ENDDO 
-            IF (lda) then 
-               cr_natoms = cr_natoms + 1 
-               cr_iscat (cr_natoms,1) = i 
-            ELSE 
-               IF (cr_nscat + 1.le.maxscat) then 
-                  cr_natoms = cr_natoms + 1 
-                  cr_nscat = cr_nscat + 1 
-                  cr_iscat (cr_natoms,1) = cr_nscat 
-                  cr_at_lis (cr_nscat) = name 
-                  cr_dw (cr_nscat) = werte(5) 
-                  cr_occ(cr_nscat) = 1.0D0
-               ELSE 
-                  ier_num = - 26 
-                  ier_typ = ER_APPL 
-               ENDIF 
-            ENDIF 
-         ENDIF 
-         IF (ier_num.eq.0) then 
-            cr_pos (1, cr_natoms) = werte (2) 
-            cr_pos (2, cr_natoms) = werte (3) 
-            cr_pos (3, cr_natoms) = werte (4) 
-            cr_mole (cr_natoms) = 0 
-            cr_surf (:,cr_natoms) = 0
-            cr_magn (:,cr_natoms) = 0.0
-            cr_prop (cr_natoms) = 0 
-            cr_prop (cr_natoms)  = ibset (cr_prop (cr_natoms),  PROP_NORMAL) 
-            DO l = 1, 3 
-               cr_dim(l,1) = min(cr_dim(l,1), cr_pos(l,cr_natoms))                                                           
-               cr_dim(l,2) = max(cr_dim(l,2), cr_pos(l,cr_natoms))                                                           
-            ENDDO 
-            chem_period(:) = .FALSE.    ! Turn off periodic boundary
-            chem_quick     = .FALSE.    ! Turn off quick search mode
-         ENDIF 
+need_alloc = .false.
+new_nmax   = NMAX
+new_nscat  = MAXSCAT
+IF ( NMAX <= cr_natoms ) then 
+   new_nmax  = max(NMAX+1   , INT(NMAX    * 1.25))
+   need_alloc = .true.
+ENDIF
+IF ( MAXSCAT <= cr_nscat ) then 
+   new_nscat = max(MAXSCAT+1, INT(MAXSCAT * 1.25))
+   need_alloc = .true.
+ENDIF
+IF ( need_alloc ) THEN
+   call alloc_crystal_scat(new_nscat)
+   call alloc_crystal_nmax(new_nmax)
+   IF ( ier_num /= 0) RETURN
+ENDIF
+IF (cr_natoms.lt.NMAX) then 
+   CALL do_cap (name) 
+   i = 0 
+   IF (name.eq.'YYYY') then 
+      i = nint (werte (1) ) 
+      IF (0.le.i.and.i.le.cr_nscat) then 
+         ier_num = 0 
+         ier_typ = ER_NONE 
+         cr_natoms = cr_natoms + 1 
+         cr_iscat (1,cr_natoms) = i 
+         cr_iscat (2,cr_natoms) = 1      ! Atom is generated by symmetry 1
       ELSE 
-         ier_num = - 10 
+         ier_num = - 27 
          ier_typ = ER_APPL 
       ENDIF 
-      END SUBROUTINE do_ins_atom                    
+   ELSE 
+      lda = name.eq.cr_at_lis (i) .and.ABS(werte(5)- DBLE(cr_dw(i)))<1.D-5
+      DO while (.not.lda.and.i.lt.cr_nscat) 
+      i = i + 1 
+      lda = name.eq.cr_at_lis (i) .and.ABS(werte(5) - DBLE(cr_dw(i))) < 1.D-5
+      ENDDO 
+      IF (lda) then 
+         cr_natoms = cr_natoms + 1 
+         cr_iscat (1,cr_natoms) = i 
+         cr_iscat (2,cr_natoms) = 1      ! Atom is generated by symmetry 1
+      ELSE 
+         IF (cr_nscat + 1.le.maxscat) then 
+            cr_natoms = cr_natoms + 1 
+            cr_nscat = cr_nscat + 1 
+            cr_iscat (1,cr_natoms) = cr_nscat 
+            cr_iscat (2,cr_natoms) = 1      ! Atom is generated by symmetry 1
+            cr_at_lis (cr_nscat) = name 
+            cr_dw (cr_nscat) = werte(5) 
+            cr_occ(cr_nscat) = 1.0D0
+         ELSE 
+            ier_num = - 26 
+            ier_typ = ER_APPL 
+         ENDIF 
+      ENDIF 
+   ENDIF 
+   IF (ier_num.eq.0) then 
+      if(cr_dw(cr_iscat(1,cr_natoms))>TOL) then
+      call lookup_anis(cr_nanis, cr_anis_full, cr_prin, cr_dw(cr_iscat(1,cr_natoms)), &
+           cr_emat, cr_ar, i, lsuccess)
+      endif
+      cr_iscat(3,cr_natoms) = i
+      cr_pos (1, cr_natoms) = werte (2) 
+      cr_pos (2, cr_natoms) = werte (3) 
+      cr_pos (3, cr_natoms) = werte (4) 
+      cr_mole (cr_natoms) = 0 
+      cr_surf (:,cr_natoms) = 0
+      cr_magn (:,cr_natoms) = 0.0
+      cr_prop (cr_natoms) = 0 
+      cr_prop (cr_natoms)  = ibset (cr_prop (cr_natoms),  PROP_NORMAL) 
+      DO l = 1, 3 
+         cr_dim(l,1) = min(cr_dim(l,1), cr_pos(l,cr_natoms))                                                           
+         cr_dim(l,2) = max(cr_dim(l,2), cr_pos(l,cr_natoms))                                                           
+      ENDDO 
+      chem_period(:) = .FALSE.    ! Turn off periodic boundary
+      chem_quick     = .FALSE.    ! Turn off quick search mode
+   ENDIF 
+ELSE 
+   ier_num = - 10 
+   ier_typ = ER_APPL 
+ENDIF 
+!
+END SUBROUTINE do_ins_atom                    
+!
 !*****7*****************************************************************
 SUBROUTINE do_remove (line, ll) 
 !-                                                                      
@@ -978,7 +994,7 @@ IF(ier_num.eq.0) THEN
                      mole_type (i) = 0 
                      mole_char (i) = 0 
                      DO j = 1, mole_len (i) 
-                        cr_iscat(mole_cont (mole_off (i) + j),1 ) = 0                                             
+                        cr_iscat(1,mole_cont (mole_off (i) + j) ) = 0                                             
 !                       cr_mole (mole_cont (mole_off (i) + j) ) = 0
 !                       cr_surf (:,mole_cont (mole_off (i) + j) ) = 0
                         cr_prop (mole_cont (mole_off (i) + j) ) =  &
@@ -1001,7 +1017,7 @@ IF(ier_num.eq.0) THEN
 !                                                                       
          IF(0.lt.istart .AND. istart.le.iend .AND. iend.le.cr_natoms) THEN
             DO i = istart, iend 
-               cr_iscat (i,1) = 0 
+               cr_iscat (1,i) = 0 
                cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
             ENDDO 
          ELSE 
@@ -1128,14 +1144,14 @@ END SUBROUTINE do_purge
       IF (ndel.ne.0) then 
          idel = 0 
          DO i = 1, cr_natoms - ndel 
-         DO while (i + idel.le.cr_natoms.and.cr_iscat (i + idel,1) .eq.0) 
+         DO while (i + idel.le.cr_natoms.and.cr_iscat (1,i + idel) .eq.0) 
          idel = idel + 1 
          ENDDO 
          ii = i + idel 
          cr_pos (1, i) = cr_pos (1, ii) 
          cr_pos (2, i) = cr_pos (2, ii) 
          cr_pos (3, i) = cr_pos (3, ii) 
-         cr_iscat (i,1) = cr_iscat (ii,1) 
+         cr_iscat (1,i) = cr_iscat (1,ii) 
          cr_mole (i) = cr_mole (ii) 
          cr_surf(:,i)= cr_surf(:,ii) 
          cr_magn(:,i)= cr_magn(:,ii) 
@@ -1360,7 +1376,7 @@ use precision_mod
          idel = 0 
          i = 1 
          DO while (i.le.cr_natoms - ndel) 
-         IF (cr_iscat (i,1) .eq.0) then 
+         IF (cr_iscat (1,i) .eq.0) then 
 !                                                                       
 !     ------we have a deleted atom, check for its presence in a         
 !     ------ molecule. If found, set reference to atom no to zero.      
@@ -1388,7 +1404,7 @@ use precision_mod
             cr_pos (1, ii) = cr_pos (1, ii + 1) 
             cr_pos (2, ii) = cr_pos (2, ii + 1) 
             cr_pos (3, ii) = cr_pos (3, ii + 1) 
-            cr_iscat (ii,1) = cr_iscat (ii + 1,1) 
+            cr_iscat (1,ii) = cr_iscat (1,ii + 1) 
             cr_mole (ii) = cr_mole (ii + 1) 
             cr_surf(:,ii)= cr_surf (:,ii + 1) 
             cr_magn(:,ii)= cr_magn (:,ii + 1) 
@@ -1481,7 +1497,7 @@ n_atom_type(:) = 0
 !  Accumulate number of atoms per type 
 !
 DO i=1, cr_natoms
-   j = cr_iscat(i,1)
+   j = cr_iscat(1,i)
    n_atom_type(j) = n_atom_type(j) + 1
 ENDDO
 !
@@ -1499,7 +1515,7 @@ ENDDO
 !
 IF(ndel>0) THEN
    DO i=1, cr_natoms
-      cr_iscat(i,1) = new_type(cr_iscat(i,1))
+      cr_iscat(1,i) = new_type(cr_iscat(1,i))
    ENDDO
    DO i=1, cr_nscat
       IF(new_type(i) /= 0) THEN
@@ -1581,14 +1597,14 @@ USE precision_mod
          ind = int (werte (2) ) 
          IF (0.lt.ind.and.ind.le.cr_natoms.and.ind.le.NMAX) then 
             zeile = ' ' 
-            zeile (1:4) = cr_at_lis (cr_iscat (ind,1) ) 
+            zeile (1:4) = cr_at_lis (cr_iscat (1,ind) ) 
             zeile (5:5) = ',' 
             IF (mode            ==  'a') then 
-               WRITE(zeile(7:58), 3000) (werte(i), i=3,5), cr_dw(cr_iscat(ind,1))
+               WRITE(zeile(7:58), 3000) (werte(i), i=3,5), cr_dw(cr_iscat(1,ind))
                lp = 58 
             ELSEIF (mode            ==  'r') then 
                WRITE(zeile(7:58), 3000) (werte(i) + cr_pos(i-2, ind), i = 3, 5), &
-                    cr_dw(cr_iscat(ind,1))                 
+                    cr_dw(cr_iscat(1,ind))                 
                lp = 58 
             ELSE 
                ier_num = - 6 
@@ -1667,9 +1683,9 @@ USE str_comp_mod
          j = nint (werte (2) ) 
          IF (0.lt.i.and.i.le.cr_natoms.and.0.lt.j.and.j.le.cr_natoms)   &
          then                                                           
-            is           = cr_iscat (i,1) 
-            cr_iscat (i,1) = cr_iscat (j,1) 
-            cr_iscat (j,1) = is 
+            is           = cr_iscat (1,i) 
+            cr_iscat (1,i) = cr_iscat (1,j) 
+            cr_iscat (1,j) = is 
             is           = cr_prop (i) 
             cr_prop (i)  = cr_prop (j) 
             cr_prop (j)  = is 

@@ -2182,13 +2182,13 @@ USE str_comp_mod
          WRITE (output_io, 1000) chem_quick, chem_period 
          WRITE (output_io, 1100) (pos (i), i = 1, 3), radius 
          IF (latom) then 
-            at_name_i = at_name (cr_iscat (iatom,1) ) 
+            at_name_i = at_name (cr_iscat (1,iatom) ) 
             WRITE (output_io, 1200) (icell (i), i = 1, 3), isite, iatom,&
             at_name_i                                                   
          ENDIF 
          WRITE (output_io, 1300) 
          DO ianz = 1, atom_env (0) 
-         at_name_i = at_name (cr_iscat (atom_env (ianz),1) ) 
+         at_name_i = at_name (cr_iscat (1,atom_env (ianz)) ) 
          CALL indextocell (atom_env (ianz), icell, isite) 
          WRITE (output_io, 1400) ianz, atom_env (ianz), at_name_i,      &
          atom_dis (ianz), (cr_pos (i, atom_env (ianz) ), i = 1, 3),     &
@@ -2321,7 +2321,7 @@ USE str_comp_mod
       ier_num = - 75 
       ier_typ = ER_APPL 
       ie_1    = 0
-      el_name = cr_at_lis (cr_iscat (iatom,1))
+      el_name = cr_at_lis (cr_iscat (1,iatom))
       CALL symbf ( el_name, ie_1)
       IF (ier_num.ne.0) return 
 !                                                                       
@@ -2336,7 +2336,7 @@ USE str_comp_mod
             ier_num = - 75 
             ier_typ = ER_APPL 
             ie_2    = 0
-            el_name = cr_at_lis (cr_iscat (iatom,1))
+            el_name = cr_at_lis (cr_iscat (1,iatom))
             CALL symbf ( el_name, ie_2)
             CALL bv_lookup ( ie_1, ie_2, ilook )
             IF (ie_2 == 0 .or. ilook == 0 ) THEN
@@ -2351,7 +2351,7 @@ USE str_comp_mod
          ENDDO 
          res_para (0) = 1 
          res_para (1) = bval 
-         at_name_i = at_name (cr_iscat (iatom,1) ) 
+         at_name_i = at_name (cr_iscat (1,iatom) ) 
          WRITE (output_io, 1000) at_name_i, bval 
       ELSE 
          ier_num = - 8 
@@ -2475,12 +2475,12 @@ USE precision_mod
             CALL chem_neighbour (iatom, ic, ind, pos, n, MAX_ATOM_ENV) 
 !                                                                       
             IF (n.gt.0) then 
-               at_name_i = at_name (cr_iscat (iatom,1) ) 
+               at_name_i = at_name (cr_iscat (1,iatom) ) 
                WRITE (output_io, 1000) at_name_i, (cr_pos (i, iatom),   &
                i = 1, 3), iatom, ic                                     
                WRITE (output_io, 1100) 
                DO i = 1, n 
-               at_name_i = at_name (cr_iscat (ind (i),1 ) ) 
+               at_name_i = at_name (cr_iscat (1,ind (i)) ) 
                WRITE (output_io, 1200) i, at_name_i, ind (i), (cr_pos ( &
                j, ind (i) ), j = 1, 3)                                  
                ENDDO 
@@ -3532,8 +3532,8 @@ USE support_mod
                d (k) = v (k) - u (k) 
                ENDDO 
                di = do_blen (.true., u, v) 
-               is = cr_iscat (i,1) 
-               js = cr_iscat (atom (j),1 ) 
+               is = cr_iscat (1,i) 
+               js = cr_iscat (1,atom (j) ) 
                IF (lfile) WRITE (37, 3000) d, is, js 
                bl_sum (is, js) = bl_sum (is, js) + di 
                bl_s2 (is, js) = bl_s2 (is, js) + di**2 
@@ -3857,8 +3857,8 @@ USE support_mod
                         w (k) = patom (k, j + 1) 
                         ENDDO 
                         wi = do_bang (.true., v, u, w) 
-                        is = cr_iscat (atom (j),1 ) 
-                        js = cr_iscat (atom (j + 1),1 ) 
+                        is = cr_iscat (1,atom (j)) 
+                        js = cr_iscat (1,atom (j + 1)) 
                         IF (lfile) WRITE (37, 3000) u, is, js 
                         ba_sum (is, js) = ba_sum (is, js) + wi 
                         ba_s2 (is, js) = ba_s2 (is, js) + wi**2 
@@ -4087,7 +4087,7 @@ corr_loop: DO ic = 1, chem_ncor
             ENDIF 
 !                                                                       
             DO j = 1, natom 
-               lauto = lauto .AND. cr_iscat(i,1)==cr_iscat(atom(j),1)
+               lauto = lauto .AND. cr_iscat(1,i)==cr_iscat(1,atom(j))
             IF (atom_allowed (atom (j), wwerte, jjanz, maxww) ) then 
                CALL indextocell (atom (j), jcc, js) 
                DO ii = 1, 3 
@@ -4994,7 +4994,7 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
 elseif (chem_ctyp (ic) .eq.CHEM_CON  ) then 
    do i = 1, chem_ncon (ic)
       iv = chem_use_con (i, ic)
-      if(cr_iscat(jatom,1).eq.chem_ccon(1, iv) ) then ! Central has correct type
+      if(cr_iscat(1,jatom).eq.chem_ccon(1, iv) ) then ! Central has correct type
          natom = 1
          iatom(natom) = jatom
          patom (1, natom) = cr_pos (1, jatom)
@@ -5175,8 +5175,8 @@ loop_atoms: DO i = 1, cr_natoms
                        chem_blen_cut (2), chem_quick, chem_period)
       IF(ier_num.ne.0) return 
       DO k = 1, atom_env(0) 
-         is = cr_iscat(i,1) 
-         js = cr_iscat(atom_env (k),1 ) 
+         is = cr_iscat(1,i) 
+         js = cr_iscat(1,atom_env (k)) 
          bl_sum(is, js) = bl_sum(is, js) + res_para(k) 
          bl_s2 (is, js) = bl_s2 (is, js) + res_para(k) **2 
          bl_anz(is, js) = bl_anz(is, js) + 1 
@@ -5484,7 +5484,7 @@ USE precision_mod
 !                                                                       
          DO k = 1, ba_env (0) 
          IF (ba_env (k) .ne.i) then 
-            is = cr_iscat (ba_env (k),1 ) 
+            is = cr_iscat (1,ba_env (k) ) 
             DO j = 1, 3 
             v (j) = ba_pos (j, k) 
             ENDDO 
@@ -5495,7 +5495,7 @@ USE precision_mod
             DO l = 1, atom_env (0) 
             IF (atom_env (l) .ne.i.and.atom_env (l) .ne.ba_env (k) )    &
             then                                                        
-               js = cr_iscat (atom_env (l),1 ) 
+               js = cr_iscat (1,atom_env (l) ) 
                DO j = 1, 3 
                w (j) = atom_pos (j, l) 
                ENDDO 

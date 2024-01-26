@@ -265,6 +265,7 @@ USE str_comp_mod
       CALL alloc_demol    ( 1,  1        ) 
       CALL alloc_diffuse_four  ( n_qxy)
       CALL alloc_diffuse_scat  ( 1    )
+      call alloc_diffuse_dbw   ( n_qxy, 1)
       CALL alloc_diffuse_atom  ( 1    )
       CALL alloc_domain   ( 1            )
       CALL alloc_micro    ( 1,  1        )
@@ -864,7 +865,7 @@ LOGICAL              :: lstat
 !
 lstat  = .TRUE.
 !
-CALL alloc_arr ( cr_iscat      ,1,n_max ,  1, 3, all_status, 0)
+CALL alloc_arr ( cr_iscat      , 1, 3 , 1,n_max , all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 CALL alloc_arr ( cr_ianis      ,1,n_max ,  all_status, 0)
@@ -882,12 +883,13 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 CALL alloc_arr ( cr_surf,0,3   ,1,n_max ,  all_status, 0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-CALL alloc_arr ( cr_magn,0,3   ,1,n_max ,  all_status, 1.0D0)
+CALL alloc_arr ( cr_magn,0,3   ,1,n_max ,  all_status, 0.0D0)
 lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 !
 IF( lstat ) THEN                        ! Success
    NMAX          = n_max
+   cr_dim_natoms = n_max                ! Array dimension
    ier_typ       = 0
    ier_num       = 0
    IF ( all_status == 1 ) THEN
@@ -897,6 +899,7 @@ IF( lstat ) THEN                        ! Success
    ENDIF
 ELSE                                    ! Failure
    NMAX          =  1
+   cr_dim_natoms =  1                   ! Array dimension
    ier_num       = -3
    ier_typ       = ER_COMM
    ier_msg(1)    = 'Crystal'
@@ -1002,6 +1005,7 @@ lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
 IF( lstat ) THEN                        ! Success
    MAXSCAT       = n_scat
+   cr_dim_nscat  = n_scat               ! Array dimension
    ier_typ       = 0
    ier_num       = 0
    IF ( all_status == 1 ) THEN
@@ -1011,6 +1015,7 @@ IF( lstat ) THEN                        ! Success
    ENDIF
 ELSE                                    ! Failure
    MAXSCAT       =  1
+   cr_dim_nscat  =  1                   ! Array dimension
    ier_num       = -3
    ier_typ       = ER_COMM
    ier_msg(1)    = 'Crystal'
@@ -1036,6 +1041,12 @@ integer :: all_status
 !
 call alloc_arr(cr_is_sym, 1, n_atoms, all_status, 0)
 !
+if(all_status==0) then
+  cr_dim_ncatoms = n_atoms
+else
+  cr_dim_ncatoms =  1
+endif
+!
 end subroutine alloc_unitcell
 !
 !*******************************************************************************
@@ -1051,16 +1062,21 @@ implicit none
 !
 integer, intent(in) :: nanis  ! Number different ADP types
 !
-call alloc_anis_generic(nanis, cr_anis_full, cr_prin)
-!call alloc_arr(cr_anis_full, 1, 6, 1, n_atoms, all_status, 1.0D0)
-!call alloc_arr(cr_prin, 1, 3, 1, 3,  1, n_atoms, all_status, 1.0D0)
-!call alloc_arr(cr_u2  , 1, 3, 1, n_atoms, all_status, 1.0D0)
+integer :: all_status
+!
+call alloc_anis_generic(nanis, cr_anis_full, cr_prin, all_status)
+!
+if(all_status==0) then
+  cr_dim_ncatoms = nanis
+else
+  cr_dim_ncatoms =  1
+endif
 !
 end subroutine alloc_anis
 !
 !*******************************************************************************
 !
-subroutine alloc_anis_generic(nanis, anis_full, prin)
+subroutine alloc_anis_generic(nanis, anis_full, prin, all_status)
 !-
 !  Allocate arrays specific fo a single unit cell
 !+
@@ -1072,10 +1088,10 @@ integer, intent(in) :: nanis  ! Number atoms per unit cell
 real(kind=PREC_DP), dimension(:,:)  , allocatable, intent(inout) :: anis_full
 real(kind=PREC_DP), dimension(:,:,:), allocatable, intent(inout) :: prin
 !
-integer :: all_status
+integer, intent(out) :: all_status
 !
 call alloc_arr(anis_full, 1, 6, 1, nanis, all_status, 1.0D0)
-call alloc_arr(prin, 1, 3, 1, 4,  1, nanis, all_status, 1.0D0)
+call alloc_arr(prin, 1, 4, 1, 3,  1, nanis, all_status, 1.0D0)
 !call alloc_arr(cr_u2  , 1, 3, 1, nanis, all_status, 1.0D0)
 !
 end subroutine alloc_anis_generic
@@ -1425,6 +1441,31 @@ else                                    ! Failure
 end if
 !
 end subroutine alloc_diffuse_scat
+!
+!
+subroutine alloc_diffuse_dbw(n_qxy, n_anis)
+!-
+!  Allocate Dbewy-Waller Map
+!+
+!
+use diffuse_mod
+!
+use precision_mod
+!      
+integer, dimension(3), intent(in)  :: n_qxy
+integer              , intent(in)  :: n_anis
+!
+real(kind=PREC_DP)   :: def_value
+integer              :: all_status
+logical              :: lstat
+!
+lstat     = .TRUE.
+def_value = 0.0D0
+!
+call alloc_arr(four_dbw, 1,n_qxy(1), 1,n_qxy(2), 1,n_qxy(3), 1,n_anis, &
+                                 all_status, def_value)
+!
+end subroutine alloc_diffuse_dbw
 !
 !
 subroutine alloc_diffuse_atom ( n_atoms )
@@ -3303,7 +3344,7 @@ END SUBROUTINE alloc_powder_nmax
       CALL alloc_arr ( st_delfi       ,0,n_scat,  all_status, 0.0D0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-      CALL alloc_arr ( st_iscat      ,1,n_max, 1, 3 ,  all_status, 0)
+      CALL alloc_arr ( st_iscat,1,3  ,1,n_max,         all_status, 0)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       CALL alloc_arr ( st_prop       ,1,n_max ,  all_status, 0)
@@ -3569,6 +3610,7 @@ END SUBROUTINE alloc_powder_nmax
 !
       CALL alloc_diffuse_four ( (/1,1,1/))
       CALL alloc_diffuse_scat ( 1)
+      call alloc_diffuse_dbw  ( (/1,1,1/), 1)
       CALL alloc_diffuse_atom ( 1)
 !
     END SUBROUTINE dealloc_diffuse

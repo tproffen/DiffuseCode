@@ -1081,6 +1081,7 @@ CHARACTER(LEN=25), PARAMETER :: stacksimple='internal.stacksimple.list'
 character(len=PREC_STRING) :: strucfile
 INTEGER i, j, k 
 INTEGER         :: nlayers
+integer         :: nanis   ! Number of different ADP
 INTEGER         :: n_mole  ! number of molecules in input file
 INTEGER         :: n_type  ! number of molecule types in input file
 INTEGER         :: n_atom  ! number of molecule atoms in input file
@@ -1155,7 +1156,7 @@ ELSEIF (st_distr.eq.ST_DIST_FILE.or.st_distr.eq.ST_DIST_LIST) THEN if_distr
 !                                                                       
    IF(st_infile(1:8)=='internal') THEN
             CALL testfile_internal (st_infile,st_natoms, st_ncatoms, &        ! Get size of internal structure
-             st_nscat, n_mole, n_type, n_atom)
+             st_nscat, nanis, n_mole, n_type, n_atom)
    ELSE
       ier_num = -182
       ier_typ = ER_APPL
@@ -1206,7 +1207,7 @@ ELSEIF (st_distr.eq.ST_DIST_FILE.or.st_distr.eq.ST_DIST_LIST) THEN if_distr
 !DBG      write (output_io,*) 'st_natoms ', st_natoms                   
    IF (st_distr.eq.ST_DIST_LIST) then 
       DO i = 1, st_natoms 
-         st_type(i) = st_iscat(i,1) 
+         st_type(i) = st_iscat(1,i) 
          st_number (st_type (i) ) = st_number (st_type (i) ) + 1 
          DO j = 1, 3 
             st_origin (j, i) = st_pos (j, i) 
@@ -1312,7 +1313,7 @@ loop_layer: DO i = 2, st_nlayer
 !     --Stacking fault types are read from file                         
 !                                                                       
       lprev = .true. 
-      st_type(i) = st_iscat(i,1) 
+      st_type(i) = st_iscat(1,i) 
    ENDIF 
 !                                                                       
 !     --Determine current translation vector                            
@@ -1480,7 +1481,7 @@ DO i=1,st_ntypes
 ENDDO
 DO i=1,st_nlayer
    cr_pos  (:,i) = st_origin (:, i)
-   cr_iscat(  i,1) = st_type(i)
+   cr_iscat(1,i) = st_type(i)
    cr_mole (  i) = 0
    cr_surf (:,i) = 0
    cr_magn (:,i) = 0
@@ -1643,6 +1644,7 @@ USE read_internal_mod
 USE discus_save_mod 
 use dis_estimate_mod, ONLY : estimate_ncells
 !use save_menu       , only: save_store_setting, save_default_setting, save_restore_setting, save_internal
+use prep_anis_mod
 USE stack_mod  
 use stack_cr_mod
 USE structur  
@@ -1663,11 +1665,21 @@ real(kind=PREC_DP), parameter        :: TOL=1.0D-5
 !                                                                       
 character(len=PREC_STRING) :: strucfile
 !                                                                       
+integer :: dim_natoms  ! Internal array size
+integer :: dim_ncatoms  ! Internal array size
+integer :: dim_nscat  ! Internal array size
+integer :: dim_nanis  ! Internal array size
+integer :: dim_n_mole  ! Internal array size
+integer :: dim_n_type  ! Internal array size
+integer :: dim_n_atom  ! Internal array size
 integer          :: natom = 0
 integer          :: ncatoms = 0
 integer          :: nscat = 0
+integer          :: nanis = 0
+integer          :: max_nanis = 0
 INTEGER          :: natoms=0, max_natoms=0
 INTEGER          :: nscats=0, max_nscats=0
+integer          :: max_ncatoms = 0
 INTEGER          ::         max_n_mole=0
 INTEGER          ::         max_n_type=0
 INTEGER          ::         max_n_atom=0
@@ -1678,8 +1690,11 @@ INTEGER         :: n_type=0  ! number of molecule types in input file
 INTEGER         :: n_atom=0  ! number of molecule atoms in input file
 integer, dimension(3) :: n_cells
 LOGICAL         :: lread, lout 
-LOGICAL           :: need_alloc = .false. 
+!LOGICAL           :: need_alloc = .false. 
+logical         :: lsuccess   ! Found old ADP entry
 logical,dimension(0:MAXMASK) :: uni_mask
+!
+integer, dimension(:,:), allocatable :: adp_look  ! Lookup table for st_iscat(3,:) to get correct ADP's
 !
 ! needed for estimate_ncells
 real(kind=PREC_DP), dimension(3, 2):: pdt_dims
@@ -1690,6 +1705,7 @@ integer                            :: pdt_ncells    ! Number of cells in periodi
 real(kind=PREC_DP), dimension(3,2) :: st_dims       ! Crystal dimensions to restrict if module(atom) is active
 integer           , dimension(3)   :: st_idims
 real(kind=PREC_DP), dimension(3)   :: st_adims
+integer :: ier ! allocation error
 !                                                                       
 !                                                                       
 !     ----read corresponding layer                                      
@@ -1714,6 +1730,10 @@ st_dims(:,1) = -huge(1.0D0)
 st_dims(:,2) =  huge(1.0D0)
 st_nscat = 0
 st_natoms = 0
+!
+nanis = 0
+max_nanis = 0
+!
 if(st_mod_atom/=ST_ATOM_OFF) then          ! Atom modulo function is active
    do i=1,st_ntypes                        ! Get layer dimensions
      call stru_internal_get_cr_dim(st_layer(i), cr_dim)
@@ -1745,8 +1765,8 @@ more1: IF (st_nlayer.ge.1) then
 !        enddo
    DO i = 1, st_ntypes
       IF(st_internal(i) ) THEN
-         CALL testfile_internal ( st_layer (i ), natoms, ncatoms, nscats, n_mole, &
-                          n_type, n_atom)
+         CALL testfile_internal(st_layer (i ), natoms, ncatoms, nscats, nanis, &
+                                n_mole, n_type, n_atom)
       ELSE
          ier_num = -182
          ier_typ = ER_APPL
@@ -1760,6 +1780,8 @@ more1: IF (st_nlayer.ge.1) then
 !
       max_natoms = MAX(max_natoms, natoms)
       max_nscats = MAX(max_nscats, nscats)
+      max_ncatoms = MAX(max_ncatoms, nscats)
+      max_nanis  = max(max_nanis, nanis)
       max_n_mole = MAX(max_n_mole, n_mole)
       max_n_type = MAX(max_n_type, n_type)
       max_n_atom = MAX(max_n_atom, n_atom)
@@ -1770,22 +1792,29 @@ more1: IF (st_nlayer.ge.1) then
 !
    natoms = st_nlayer * max_natoms
    nscats = max_nscats
-   need_alloc = .false.
-   IF(natoms >= NMAX ) THEN
-      natoms = MAX(NINT(natoms*1.05),natoms+10,NMAX)
-      need_alloc = .true.
-   ENDIF
-   IF(nscats >= MAXSCAT) THEN
-      nscats = MAX(NINT(nscats*1.05),nscats+ 5,MAXSCAT)
-      need_alloc = .true.
-   ENDIF
-   IF( need_alloc) THEN
-      CALL alloc_crystal_scat (nscats)
-      CALL alloc_crystal_nmax (natoms)
-      IF ( ier_num /= 0 ) then
-         RETURN
-      endif
-   ENDIF
+!  need_alloc = .false.
+!  IF(natoms >= NMAX ) THEN
+!     natoms = MAX(NINT(natoms*1.05),natoms+10,NMAX)
+!     need_alloc = .true.
+!  ENDIF
+!  IF(nscats >= MAXSCAT) THEN
+!     nscats = MAX(NINT(nscats*1.05),nscats+ 5,MAXSCAT)
+!     need_alloc = .true.
+!  ENDIF
+!  IF( need_alloc) THEN
+!     CALL alloc_crystal_scat (nscats)
+!     CALL alloc_crystal_nmax (natoms)
+!     IF ( ier_num /= 0 ) then
+!        RETURN
+!     endif
+!  ENDIF
+!  call alloc_crystal_nmax(st_nlayer*max_natoms)
+!  call alloc_crystal_scat(max_nscats)
+!   call alloc_unitcell(MAX_ncatoms)
+!  call alloc_anis(MAX_nanis)
+!  Allocate lookup table
+   allocate(adp_look(st_ntypes, max_nanis))
+   adp_look = 0
 !
 !        IF more molecules have been read than were allocated
 !
@@ -1846,12 +1875,20 @@ more1: IF (st_nlayer.ge.1) then
    ENDDO 
 !
 !do j=1, cr_natoms
-!write(*,'(a,i4,3f9.5,3i4, 6f8.4)') cr_at_lis(cr_iscat(j,1)), j, cr_pos(:,j), cr_iscat(j,:), cr_anis_full(:,cr_iscat(j,3))
+!write(*,'(a,i4,3f9.5,3i4, 6f8.4)') cr_at_lis(cr_iscat(1,j)), j, cr_pos(:,j), cr_iscat(:,j), cr_anis_full(:,cr_iscat(3,j))
 !enddo 
 !write(*,*) ' cr_nanis', cr_nanis
 !do j=1,cr_nanis
-!write(*,'(a,6f8.4)') j, cr_anis_full(:,j)
+!write(*,'(i3,6f8.4)') j, cr_anis_full(:,j)
+!write(*,'(i3,6f8.4)') 1, cr_prin(:,1,j)
+!write(*,'(i3,6f8.4)') 2, cr_prin(:,2,j)
+!write(*,'(i3,6f8.4)') 3, cr_prin(:,3,j)
 !enddo
+!  First layer allocates its own size only, increase to full need
+   call alloc_crystal_nmax(st_nlayer*max_natoms)
+   call alloc_crystal_scat(max_nscats)
+   call alloc_unitcell(MAX_ncatoms)
+   call alloc_anis(MAX_nanis)
 !                                                                       
 !     --Initialise rotation disorder                                    
 !                                                                       
@@ -1892,15 +1929,16 @@ more1: IF (st_nlayer.ge.1) then
 !
 !write(*,*) ' READING LAYER TYPES 1: ', st_ntypes, st_nscat
 !read(*,*) i
-loop_st_ntypes: do i=1, st_ntypes
-      call readstru_size_int(st_layer(i), st_natoms, sav_ncatoms, &
-              st_nscat, st_nanis, n_mole, n_type, n_atom)
+   loop_st_ntypes: do i=1, st_ntypes
+      call readstru_size_int(st_layer(i),  dim_natoms, dim_ncatoms, &
+              dim_nscat, dim_nanis, dim_n_mole, dim_n_type, dim_n_atom, &
+              st_natoms, sav_ncatoms, st_nscat, st_nanis, n_mole, n_type, n_atom)
       if(allocated(st_is_sym)) deallocate(st_is_sym)
       allocate(st_is_sym(1:sav_ncatoms))
       st_is_sym = 1
       st_nanis=max(1, st_nanis)
-      call alloc_anis_generic(st_nanis, st_anis_full, st_prin)
-         CALL stru_readheader_internal (st_layer(        i ), MAXSCAT, st_name, &
+      call alloc_anis_generic(st_nanis, st_anis_full, st_prin, ier)
+      CALL stru_readheader_internal(st_layer(i), DIM_NSCAT, DIM_NCATOMS, DIM_NANIS, st_name, &
                st_spcgr, st_spcgr_set, st_set, st_iset,                         &
                st_at_lis, st_nscat, st_dw, st_occ, st_anis, st_is_sym,          &
                st_nanis, st_anis_full, st_prin,                                 &
@@ -1933,7 +1971,21 @@ loop_st_ntypes: do i=1, st_ntypes
             cr_dw    (kk) = st_dw(j )                ! Set new ADP
          endif
       enddo
+!
+!     Build ADP Lookup table
+      do j=1, st_nanis
+         call lookup_anis(cr_nanis, cr_anis_full, cr_prin, st_anis_full(1:6,j), st_prin(:,:,j), kk, lsuccess)
+         adp_look(i,j) = kk
+      enddo
+!
    enddo loop_st_ntypes
+!write(*,*) ' CR_NANIS', cr_nanis
+!do j=1,cr_nanis
+!write(*,'(i3,6f8.4)') j, cr_anis_full(:,j)
+!write(*,'(i3,6f8.4)') 1, cr_prin(:,1,j)
+!write(*,'(i3,6f8.4)') 2, cr_prin(:,2,j)
+!write(*,'(i3,6f8.4)') 3, cr_prin(:,3,j)
+!enddo
 !                                                                       
 !     --Loop over all layers in crystal                                 
 !                                                                       
@@ -1946,14 +1998,17 @@ loop_st_ntypes: do i=1, st_ntypes
 !                                                                       
          gen_add_n = 0 
          sym_add_n = 0 
-         call readstru_size_int(st_layer(st_type(i)), st_natoms, sav_ncatoms, &
-                 st_nscat, st_nanis, n_mole, n_type, n_atom)
+         call readstru_size_int(st_layer(st_type(i)),  dim_natoms, dim_ncatoms, &
+              dim_nscat, dim_nanis, dim_n_mole, dim_n_type, dim_n_atom, &
+              st_natoms, sav_ncatoms, st_nscat, st_nanis, n_mole, n_type, n_atom)
+!        call readstru_size_int(st_layer(st_type(i)), st_natoms, sav_ncatoms, &
+!                st_nscat, st_nanis, n_mole, n_type, n_atom)
          if(allocated(st_is_sym)) deallocate(st_is_sym)
          allocate(st_is_sym(1:sav_ncatoms))
          st_is_sym = 1
          st_nanis=max(1, st_nanis)
-         call alloc_anis_generic(st_nanis, st_anis_full, st_prin)
-         CALL stru_readheader_internal (st_layer(st_type(i)), MAXSCAT, st_name, &
+         call alloc_anis_generic(st_nanis, st_anis_full, st_prin, ier)
+         CALL stru_readheader_internal (st_layer(st_type(i)), MAXSCAT, DIM_NCATOMS, DIM_NANIS, st_name, &
                st_spcgr, st_spcgr_set, st_set, st_iset,                         &
                st_at_lis, st_nscat, st_dw, st_occ, st_anis, st_is_sym,          &
                st_nanis, st_anis_full, st_prin,                                 &
@@ -1972,8 +2027,9 @@ loop_st_ntypes: do i=1, st_ntypes
          ier_num = 0 
          ier_typ = ER_NONE 
 !                                                                       
+         j = st_natoms    ! Use value from header for array size
          st_natoms = 0
-         CALL struc_read_atoms_internal (st_layer(st_type(i)),NMAX,&
+         CALL struc_read_atoms_internal (st_layer(st_type(i)),j,&
                      st_natoms, st_pos, st_iscat, st_prop, st_surf, st_magn, st_mole)
          CLOSE (ist) 
          IF (ier_num.ne.0) then 
@@ -2028,7 +2084,7 @@ loop_st_ntypes: do i=1, st_ntypes
       DO j = 1    , st_natoms 
          kk = -1
          loop_type: do k=1,cr_nscat
-            if(cr_at_lis(k)==st_at_lis(st_iscat(j,1)) .and. abs(cr_dw(k)-st_dw(st_iscat(j,1)))<TOL) then
+            if(cr_at_lis(k)==st_at_lis(st_iscat(1,j)) .and. abs(cr_dw(k)-st_dw(st_iscat(1,j)))<TOL) then
                kk = k
                exit loop_type
             endif
@@ -2044,10 +2100,10 @@ loop_st_ntypes: do i=1, st_ntypes
             endif
             kk       = cr_nscat + 1
             cr_nscat = cr_nscat + 1                  ! Increment atom types
-            cr_at_lis(kk) = st_at_lis(st_iscat(j,1))             ! Set new atom type
-            cr_dw    (kk) = st_dw(st_iscat(j,1) )                ! Set new ADP
+            cr_at_lis(kk) = st_at_lis(st_iscat(1,j))             ! Set new atom type
+            cr_dw    (kk) = st_dw(st_iscat(1,j) )                ! Set new ADP
          endif
-         cr_iscat(iatom-1+j,1) = kk 
+         cr_iscat(1,iatom-1+j) = kk 
          cr_prop (iatom-1+j) = st_prop(j)
          cr_surf (:,iatom-1+j) = 0                   ! Not on a surface
          cr_magn (:,iatom-1+j) = st_magn(:,j)
@@ -2055,6 +2111,8 @@ loop_st_ntypes: do i=1, st_ntypes
          DO k = 1, 3 
             cr_pos (k, iatom-1+j) = st_pos (k, j) + st_origin (k, i) 
          ENDDO 
+!        Assign correct ADP from loop up table
+         cr_iscat(3,iatom-1+j) = adp_look(st_type(i), st_iscat(3,j))
       ENDDO 
       cr_natoms = cr_natoms + st_natoms
 !                                                                       
@@ -2125,6 +2183,7 @@ if(ier_num==0) then           ! No errors occured
    enddo loop_clean
 endif
 !
+deallocate(adp_look)
 !                                                                       
 END SUBROUTINE do_stack_fill                  
 !
@@ -2156,13 +2215,13 @@ if(st_mod_sta .and. st_mod_atom/=ST_ATOM_OFF) then
          if(cr_pos(m,j) < st_dims(m,1)) then   ! Atom is too low shift upward
             cr_pos(m,j) = cr_pos(m,j) + st_adims(m)
             if(cr_pos(m,j)>=st_dims(m,2)) then ! Atom is outside flag to delete
-               cr_iscat(j,1) = -9
+               cr_iscat(1,j) = -9
                cycle loop_atom_mod
             endif
          elseif(cr_pos(m,j) >= st_dims(m,2) .and. st_idims(m)>0) then  ! Atom is too high
             cr_pos(m,j) = cr_pos(m,j) - st_adims(m)
             if(cr_pos(m,j) <st_dims(m,1)) then ! Atom is outside flag to delete
-               cr_iscat(j,1) = -9
+               cr_iscat(1,j) = -9
                cycle loop_atom_mod
             endif
          endif
@@ -2174,10 +2233,10 @@ if(st_mod_sta .and. st_mod_atom/=ST_ATOM_OFF) then
 !
    loop_atom_rem: do                          ! Loop to remove atoms
       loop_m:do                               ! Find next atoms with iscat == -9
-         if(cr_iscat(j+ndel,1)==-9) then        ! Found a candidate
+         if(cr_iscat(1,j+ndel)==-9) then        ! Found a candidate
             ndel = ndel + 1                   ! Need to remove another one
             if(j+ndel==cr_natoms) then        ! Last atom to delete is last in crystal
-               if(cr_iscat(j+ndel,1)==-9) then  !   and needs to be removed
+               if(cr_iscat(1,j+ndel)==-9) then  !   and needs to be removed
                   ndel = ndel + 1
                   exit loop_atom_rem
                else                           !   but is a good atom
@@ -2191,7 +2250,7 @@ if(st_mod_sta .and. st_mod_atom/=ST_ATOM_OFF) then
 !
       if(ndel>0) then                         ! We need to remove atoms within the list
          cr_pos  (:,j   ) = cr_pos  (:,j+ndel)
-         cr_iscat(  j,1   ) = cr_iscat(  j+ndel,1)
+         cr_iscat(1,j   ) = cr_iscat(1,j+ndel)
          cr_mole (  j   ) = cr_mole (  j+ndel)
          cr_surf (:,j   ) = cr_surf (:,j+ndel)
          cr_magn (:,j   ) = cr_magn (:,j+ndel)
@@ -2199,7 +2258,7 @@ if(st_mod_sta .and. st_mod_atom/=ST_ATOM_OFF) then
       endif
       j = j + 1                               ! Test next atom
       if(j     ==cr_natoms) then              ! We are at the crystals's end
-         if(cr_iscat(j,1)==-9) ndel = ndel + 1  !   But this one needs to be removed as well
+         if(cr_iscat(1,j)==-9) ndel = ndel + 1  !   But this one needs to be removed as well
          exit loop_atom_rem
       endif
    enddo loop_atom_rem
@@ -2347,10 +2406,12 @@ integer, parameter :: MAXMASK = 4
       INTEGER, dimension(3)         :: n_qxy    = 1 ! Number of data points in reciprocal space
       INTEGER         :: n_nscat  = 1 ! Number of different atom types
       INTEGER         :: n_atoms  = 1 ! Number of atoms
+integer     :: nanis ! Number of different ADP's
       INTEGER         :: ncatoms  = 1 ! Number of atoms
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
+integer, dimension(3) :: fnum   ! Number of increments (reduced by Friedel)
 logical,dimension(0:MAXMASK) :: uni_mask
 !integer, dimension(3) :: n_cells
 logical :: four_is_new  ! The reciprocal space dimensions have changed
@@ -2377,12 +2438,13 @@ ENDIF
 !                                                                       
 !------ preset some values                                              
 !                                                                       
-      ilots = LOT_OFF 
-      ncell = 0 
-      lout = .false. 
-      ss = seknds (0.0) 
-      CALL four_layer (four_is_new)
-      CALL fourier_lmn(eck,vi,inc,lmn,off_shift)
+ilots = LOT_OFF 
+ncell = 0 
+lout = .false. 
+ss = seknds (0.0) 
+CALL four_layer (four_is_new)
+CALL fourier_lmn(eck,vi,inc,lmn,off_shift)
+fnum = num    ! Prior to TEST_FRIEDEL WORK
 !
 ! ALLOCATE the fourier part of stacking faults
 !          To ensure compatibility with four_conv, csf, st_csf must be of 
@@ -2452,7 +2514,7 @@ csf(1:num(1),1:num(2), 1:num(3)) = cmplx(0.0D0, 0.0D0,KIND=KIND(0.0D0))
          CALL rese_cr 
          IF(st_layer(1)(1:8)=='internal') THEN
             CALL testfile_internal (st_layer(1), n_atoms, ncatoms, &        ! Get size of internal structure
-              n_nscat, n_mole, n_type, n_atom)
+              n_nscat, nanis, n_mole, n_type, n_atom)
          ELSE
             ier_num = -182
             ier_typ = ER_APPL
@@ -2535,7 +2597,7 @@ DO j = 1, st_nlayer
 !                                                                       
 !     ------calculate structure factor of distribution                  
 !                                                                       
-            CALL four_strucf (0, .false.) 
+            CALL four_strucf (0, .false., .false., .false., 1, 1, fnum) 
 !                                                                       
 !     ------copy structure factor to temporary place                    
 !                                                                       
@@ -2558,7 +2620,7 @@ DO j = 1, st_nlayer
             CALL rese_cr 
             IF(st_layer(l)(1:8)=='internal') THEN
                CALL testfile_internal (st_layer(l), n_atoms, ncatoms, &        ! Get size of internal structure
-                 n_nscat, n_mole, n_type, n_atom)
+                 n_nscat, nanis, n_mole, n_type, n_atom)
             ELSE
                ier_num = -182
                ier_typ = ER_APPL
@@ -2666,7 +2728,7 @@ DO j = 1, st_nlayer
 !                                                                       
          DO iscat = 1, cr_nscat 
             CALL four_getatm (iscat, ilots, lbeg, ncell) 
-            CALL four_strucf (iscat, .true.) 
+            CALL four_strucf (iscat, .true., .false., .false., 1, 1, fnum) 
 !                                                                       
 !------ --------Add this part of the structur factor to the total       
 !                                                                       
@@ -2733,7 +2795,7 @@ DO j = 1, st_nlayer
 !                                                                       
 !     --Calculate average scattering and subtract                       
 !                                                                       
-   CALL st_fourier_aver 
+   CALL st_fourier_aver (fnum)
    !DO i = 1, num (1) * num (2) *num(3)
    !   csf (i) = csf (i) - acsf (i)                                                                    ! Neders original code
    !ENDDO
@@ -2777,7 +2839,7 @@ ENDIF
 !                                                                       
       END SUBROUTINE st_fourier                     
 !*****7*****************************************************************
-      SUBROUTINE st_fourier_aver 
+      SUBROUTINE st_fourier_aver(fnum) 
 !-                                                                      
 !     Calculates the Fourier transform of the average lattice.          
 !+                                                                      
@@ -2798,7 +2860,7 @@ use precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-       
+integer, dimension(3), intent(in) :: fnum ! Number increments (reduced by Friedel)       
 !                                                                       
 integer, parameter :: MAXMASK = 4
       INTEGER :: i, j, k, l 
@@ -2810,6 +2872,7 @@ integer, parameter :: MAXMASK = 4
       INTEGER         :: n_nscat  = 1! Number of different atom types
       INTEGER         :: n_natoms = 1! Number of atoms 
       INTEGER         :: ncatoms = 1! Number of atoms 
+integer     :: nanis ! Number of different ADP's
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
@@ -2888,7 +2951,7 @@ endif
             CALL rese_cr 
             IF(st_layer(1)(1:8)=='internal') THEN
                CALL testfile_internal (st_layer(1), n_natoms, ncatoms, &        ! Get size of internal structure
-                 n_nscat, n_mole, n_type, n_atom)
+                 n_nscat, nanis, n_mole, n_type, n_atom)
             ELSE
                ier_num = -182
                ier_typ = ER_APPL
@@ -2998,7 +3061,7 @@ endif
 !                                                                       
 !     ----calculate structure factor of distribution                    
 !                                                                       
-            CALL four_strucf (0, .false.) 
+            CALL four_strucf (0, .false., .false., .false., 1, 1, fnum) 
 !                                                                       
 !     ----copy structure factor to temporary place                      
 !                                                                       
@@ -3037,7 +3100,7 @@ endif
             CALL rese_cr 
             IF(st_layer(l)(1:8)=='internal') THEN
                CALL testfile_internal (st_layer(l), n_natoms, ncatoms, &        ! Get size of internal structure
-                 n_nscat, n_mole, n_type, n_atom)
+                 n_nscat, nanis, n_mole, n_type, n_atom)
             ELSE
                ier_num = -182
                ier_typ = ER_APPL
@@ -3111,7 +3174,7 @@ endif
 !                                                                       
             DO iscat = 1, cr_nscat                                                                       ! Loop over iscat
             CALL four_getatm (iscat, ilots, lbeg, ncell) 
-            CALL four_strucf (iscat, .true.) 
+            CALL four_strucf (iscat, .true., .false., .false., 1, 1, fnum) 
 !                                                                       
 !------ --------Add this part of the structur factor to the total       
 !             Wheighted by the relative amount of layers of this type   
@@ -3180,12 +3243,20 @@ USE prompt_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
+integer :: dim_natoms  ! Internal array size
+integer :: dim_ncatoms  ! Internal array size
+integer :: dim_nscat  ! Internal array size
+integer :: dim_nanis  ! Internal array size
+integer :: dim_n_mole  ! Internal array size
+integer :: dim_n_type  ! Internal array size
+integer :: dim_n_atom  ! Internal array size
 INTEGER, DIMENSION(3)   :: sav_ncell (3) 
 INTEGER                 :: sav_ncatoms 
 integer                 :: n_mole
 integer                 :: n_type
 integer                 :: n_atom
 LOGICAL                 :: sav_r_ncell 
+integer                 :: ier ! Allocation error
 !                                                                       
 !     Initialize counters for Atom numbers                              
 !                                                                       
@@ -3199,8 +3270,11 @@ st_at_lis     = ' '  ! i=1,ST_MAX_SCAT (i) = ' '
 !     Now read the pseudo microdomain structure                         
 !
 IF(st_infile(1:8)=='internal') THEN
-   call readstru_size_int(st_infile, st_natoms, sav_ncatoms, &
-              st_nscat, st_nanis, n_mole, n_type, n_atom)
+   call readstru_size_int(st_infile,  dim_natoms, dim_ncatoms, &
+              dim_nscat, dim_nanis, dim_n_mole, dim_n_type, dim_n_atom, &
+              st_natoms, sav_ncatoms, st_nscat, st_nanis, n_mole, n_type, n_atom)
+!  call readstru_size_int(st_infile, st_natoms, sav_ncatoms, &
+!             st_nscat, st_nanis, n_mole, n_type, n_atom)
 st_natoms     = 0 
 st_nscat      = 0 
 sa_natoms     = 0 
@@ -3209,8 +3283,8 @@ sa_natoms     = 0
    st_is_sym = 1
 !         CALL readstru_internal (st_infile)
    st_nanis=max(1, st_nanis)
-   call alloc_anis_generic(st_nanis, st_anis_full, st_prin)
-   call stru_readheader_internal (st_infile, st_MAX_SCAT, st_name,             &
+   call alloc_anis_generic(st_nanis, st_anis_full, st_prin, ier)
+   call stru_readheader_internal (st_infile, st_MAX_SCAT, DIM_NCATOMS, DIM_NANIS, st_name,             &
             st_spcgr, st_spcgr_set, st_set, st_iset,                           &
             st_at_lis, st_nscat, st_dw, st_occ, st_anis, st_is_sym,            &
                st_nanis, st_anis_full, st_prin,                                &

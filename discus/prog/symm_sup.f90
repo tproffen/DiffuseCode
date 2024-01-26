@@ -302,7 +302,7 @@ loop_atoms: DO l = i_start, i_end
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
-      IF (sym_latom (cr_iscat (i,1) ) ) then 
+      IF (sym_latom (cr_iscat (1,i) ) ) then 
         IF (sym_incl.eq.'env ') THEN 
            i = atom_env (l) 
            offset(1:3) = atom_pos(1:3,l) - cr_pos(1:3,i)
@@ -339,8 +339,8 @@ loop_pow:DO k = 1, sym_power
 !     ----Insert copy of atom or replace original atom by its image     
 !                                                                       
          IF (sym_mode) then 
-            name = cr_at_lis (cr_iscat (i,1) ) 
-            werte (5) = cr_dw (cr_iscat (i,1) ) 
+            name = cr_at_lis (cr_iscat (1,i) ) 
+            werte (5) = cr_dw (cr_iscat (1,i) ) 
             CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
@@ -410,7 +410,7 @@ loop_atoms: DO l = i_start, i_end
 !       type has been selected                                          
 !                                                                       
       if(btest(cr_prop(i), PROP_TEMP)) cycle loop_atoms    ! 
-        IF (sym_latom (cr_iscat (i,1) ) ) then 
+        IF (sym_latom (cr_iscat (1,i) ) ) then 
           IF (sym_incl.eq.'env ') THEN 
              i = atom_env (l) 
              offset(1:3) = atom_pos(1:3,l) - cr_pos(1:3,i)
@@ -445,8 +445,8 @@ loop_atoms: DO l = i_start, i_end
 !     ----Insert copy of atom or replace original atom by its image     
 !                                                                       
          IF (sym_mode) then 
-            name = cr_at_lis (cr_iscat (i,1) ) 
-            werte (5) = cr_dw (cr_iscat (i,1) ) 
+            name = cr_at_lis (cr_iscat (1,i) ) 
+            werte (5) = cr_dw (cr_iscat (1,i) ) 
             CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
@@ -624,8 +624,8 @@ USE precision_mod
 !     ------- Insert copy of atom or replace original atom by its image 
 !                                                                       
          IF (sym_mode) then 
-            name = cr_at_lis (cr_iscat (i,1) ) 
-            werte (5) = cr_dw (cr_iscat (i,1) ) 
+            name = cr_at_lis (cr_iscat (1,i) ) 
+            werte (5) = cr_dw (cr_iscat (1,i) ) 
             CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
@@ -833,8 +833,8 @@ USE precision_mod
 !     ----- Insert copy of atom or replace original atom by its image   
 !                                                                       
          IF (sym_mode) then 
-            name = cr_at_lis (cr_iscat (i,1) ) 
-            werte (5) = cr_dw (cr_iscat (i,1) ) 
+            name = cr_at_lis (cr_iscat (1,i) ) 
+            werte (5) = cr_dw (cr_iscat (1,i) ) 
             CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
@@ -1064,8 +1064,8 @@ USE precision_mod
 !     ------- Insert copy of atom or replace original atom by its image 
 !                                                                       
          IF (sym_mode) then 
-            name = cr_at_lis (cr_iscat (i,1) ) 
-            werte (5) = cr_dw (cr_iscat (i,1) ) 
+            name = cr_at_lis (cr_iscat (1,i) ) 
+            werte (5) = cr_dw (cr_iscat (1,i) ) 
             CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
@@ -1287,8 +1287,8 @@ USE precision_mod
          werte (j + 1) = elements (j, ii) 
          ENDDO 
          IF (sym_mode) then 
-            name = cr_at_lis (cr_iscat (i,1) ) 
-            werte (5) = cr_dw (cr_iscat (i,1) ) 
+            name = cr_at_lis (cr_iscat (1,i) ) 
+            werte (5) = cr_dw (cr_iscat (1,i) ) 
             CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
@@ -1560,7 +1560,7 @@ cr_sel_prop(0) = ibclr(cr_sel_prop(0), PROP_TEMP)  ! Set temporary property as '
 cr_sel_prop(1) = ibclr(cr_sel_prop(1), PROP_TEMP)  ! Set temporary property as 'present'
 !
 loop_incl: do i=r_start, r_end                     ! Loop over all atoms included
-   if(.not. sym_latom(cr_iscat(i,1))) cycle loop_incl      ! Only for selected atoms
+   if(.not. sym_latom(cr_iscat(1,i))) cycle loop_incl      ! Only for selected atoms
    if(btest(cr_prop(i), PROP_TEMP)) cycle loop_incl
    ianz = 1
    werte(1) = real(i)

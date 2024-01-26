@@ -437,7 +437,7 @@ main_corr: DO ic = 1, chem_ncor
 !     -- Loop over all atoms                                            
 !                                                                       
 main_atoms: DO i = 1, cr_natoms 
-      is = cr_iscat (i,1) 
+      is = cr_iscat (1,i) 
       ncentral(is) = ncentral(is) + 1
       CALL chem_neighbour_multi (i, ic, iatom, patom, tatom, natom, ncent, MAX_ATOM_ENV, MMC_MAX_CENT)
       IF (ier_num /= 0) THEN
@@ -492,7 +492,7 @@ is_energy:  IF (mmc_cor_energy (ic, MC_OCC)        .OR. &
 !                                                                       
 loop_neig:  DO j = 1, natom (icent) 
                IF(.NOT.tatom(j,icent)) CYCLE loop_neig        ! Current atom is neighbour to this 'neighbor'
-               js = cr_iscat (iatom (j, icent),1 ) 
+               js = cr_iscat (1,iatom (j, icent) ) 
                DO k = 1, 3 
                   u (k) = patom (k, 0, icent) 
                ENDDO 
@@ -578,7 +578,7 @@ loop_neig:  DO j = 1, natom (icent)
 !write(*,*) ' should add for atom pair is,js', i,is,js
 !endif
                   dist = do_blen (.TRUE., u, v) 
-                  js   = cr_iscat (iatom (j, icent),1 ) 
+                  js   = cr_iscat (1,iatom (j, icent) ) 
                   bl_sum (is, js) = bl_sum (is, js) + dist 
                   bl_s2  (is, js) = bl_s2 (is, js) + dist**2 
                   bl_anz (is, js) = bl_anz (is, js) + 1 
@@ -603,7 +603,7 @@ loop_neig:  DO j = 1, natom (icent)
 !                                                                       
 !     ---------- Angular Correlations                                   
 !                                                                       
-            is = cr_iscat (i,1) 
+            is = cr_iscat (1,i) 
             DO k = 1, 3 
                u (k) = patom (k, 0, icent) 
             ENDDO 
@@ -611,12 +611,12 @@ loop_neig:  DO j = 1, natom (icent)
 !     ---------- Double loop over all neighbours                        
 !                                                                       
             DO j = 1, natom (icent) - 1 
-               js = cr_iscat (iatom (j, icent),1 ) 
+               js = cr_iscat (1,iatom (j, icent) ) 
                DO k = 1, 3 
                   v (k) = patom (k, j, icent) 
                ENDDO 
                DO l = j + 1, natom (icent) 
-                  ls = cr_iscat (iatom (l, icent),1 ) 
+                  ls = cr_iscat (1,iatom (l, icent) ) 
 !                                                                       
 !     -------------- Find proper entry in correlation table             
 !                                                                       

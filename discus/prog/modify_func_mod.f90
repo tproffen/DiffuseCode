@@ -39,7 +39,7 @@ ELSE
    ELSE 
       ltype = .FALSE. 
       DO j = 1, ianz 
-         ltype = ltype .OR. cr_iscat(i,1)  == NINT(werte(j) ) 
+         ltype = ltype .OR. cr_iscat(1,i)  == NINT(werte(j) ) 
       ENDDO 
    ENDIF 
 ENDIF 

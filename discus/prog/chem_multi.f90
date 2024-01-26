@@ -120,7 +120,7 @@ INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
                   DO k = 1, 3 
                   u (k) = patom (k, 0, icent) 
                   ENDDO 
-                  is = cr_iscat (i,1) 
+                  is = cr_iscat (1,i) 
                ELSE 
 !                                                                       
 !     --------- The selected atom is a neighbour, check central         
@@ -131,7 +131,7 @@ INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
                   DO k = 1, 3 
                   u (k) = cr_pos (k, i) 
                   ENDDO 
-                  is = cr_iscat (i,1) 
+                  is = cr_iscat (1,i) 
                ENDIF 
                DO j = ja, je 
                IF (atom_allowed (atom (j, icent), werte, ianz, maxw) )  &
@@ -141,7 +141,7 @@ INTEGER, INTENT(IN) :: MAX_ATOM_ENV_L
                   d (k) = v (k) - u (k) 
                   ENDDO 
                   di = do_blen (.true., u, v) 
-                  js = cr_iscat (atom (j, icent),1 ) 
+                  js = cr_iscat (1,atom (j, icent) ) 
                   IF (lfile) WRITE (37, 3000) d, is, js 
                   bl_sum (is, js) = bl_sum (is, js) + di 
                   bl_s2 (is, js) = bl_s2 (is, js) + di**2 
@@ -326,8 +326,8 @@ LOGICAL :: tatom (0:MAX_ATOM_ENV_L, MMC_MAX_CENT)
                   w (k) = patom (k, jj, icent) 
                   ENDDO 
                   wi = do_bang (.true., v, u, w) 
-                  is = cr_iscat (atom (j, icent),1 ) 
-                  js = cr_iscat (atom (jj, icent),1 ) 
+                  is = cr_iscat (1,atom (j, icent)) 
+                  js = cr_iscat (1,atom (jj, icent)) 
                   wis = mmc_target_corr (ic, MC_ANGLE, is, js) 
 !DBG                                                                    
 !DBG      if(cr_iscat(i,1).eq.11 .or.                                     

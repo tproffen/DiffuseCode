@@ -57,9 +57,9 @@ nscat = 0
 nscat_start = lb
 !
 do i=1, cr_natoms
-   nw_name = cr_at_lis(cr_iscat(i,1))         ! Use present atom name
-   nw_dw   = cr_dw(cr_iscat(i,1))             ! use present ADP
-   nw_occ  = cr_occ(cr_iscat(i,1))            ! use present ADP
+   nw_name = cr_at_lis(cr_iscat(1,i))         ! Use present atom name
+   nw_dw   = cr_dw(cr_iscat(1,i))             ! use present ADP
+   nw_occ  = cr_occ(cr_iscat(1,i))            ! use present ADP
    is_type = atom_get_type(MAXSCAT, nscat_start, nscat, MAXMASK,      &
                        at_lis, at_dw, at_occ,        &
                        nw_name, nw_dw, nw_occ, uni_mask)
@@ -70,7 +70,7 @@ do i=1, cr_natoms
       at_occ(nscat) = nw_occ
       is_type = nscat
    endif
-   cr_iscat(i,1) = is_type
+   cr_iscat(1,i) = is_type
 enddo
 !
 cr_nscat = nscat

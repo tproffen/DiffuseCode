@@ -98,7 +98,7 @@ logical :: four_is_new  ! The reciprocal space dimensions have changed
 !                                                                       
 !------ Now we multiply with formfactor                                 
 !                                                                       
-      iscat = cr_iscat (m,1) 
+      iscat = cr_iscat (1,m) 
       IF (iscat.gt.0) then 
 !
 !         DO i = 1, num (1) * num (2) 

@@ -1148,10 +1148,10 @@ form_loop:     DO i = 1, cr_natoms
                    thick   = MAX(thick, ABS(accum_hkl(4,j)))
                 ENDIF
              ELSE
-                IF(ABS(d)<surf_ex_dist(cr_iscat(i,1) ) ) THEN 
+                IF(ABS(d)<surf_ex_dist(cr_iscat(1,i) ) ) THEN 
                    nplanes = nplanes + 1
                    iplane  = j
-                   thick   = MAX(thick,surf_ex_dist(cr_iscat(i,1)))
+                   thick   = MAX(thick,surf_ex_dist(cr_iscat(1,i)))
                 ENDIF
              ENDIF
              dshort = MIN(dshort, d)
@@ -1239,7 +1239,7 @@ cyl_loop:      DO i = 1, cr_natoms
             + 2 * v(2) * v(3) * cr_gten(2, 3)    )
          lrem = d > 0.0        ! Cylinder wall indicates removal
          wall(:) = v(:)
-         IF(ABS(d)<surf_ex_dist(cr_iscat(i,1) ) ) THEN 
+         IF(ABS(d)<surf_ex_dist(cr_iscat(1,i) ) ) THEN 
             lwall = .TRUE.               ! Atom is close to wall
          ENDIF
          dshort = MIN(dshort, ABS(d))
@@ -1255,7 +1255,7 @@ cyl_loop:      DO i = 1, cr_natoms
             + 2 * v(2) * v(3) * cr_gten(2, 3)    )
          lrem = lrem .AND. d > 0.0   ! Cylinder wall  and top indicates removal
          top(:) = v(:)
-         IF(ABS(d)<surf_ex_dist(cr_iscat(i,1) ) ) THEN 
+         IF(ABS(d)<surf_ex_dist(cr_iscat(1,i) ) ) THEN 
             ltop  = .TRUE.               ! Atom is close to wall
          ENDIF
          dshort = MIN(dshort, ABS(d))
@@ -1386,16 +1386,16 @@ l_normal(3) = NINT(10.*normal(3)/r)
 !
 IF((     linside.AND.distance <  0) .OR.  &
    (.not.linside.AND.distance >  0)      ) THEN                            
-   cr_iscat (iatom,1) = 0 
+   cr_iscat (1,iatom) = 0 
    cr_prop (iatom) = ibclr (cr_prop (iatom), PROP_NORMAL) 
    cr_prop (iatom) = ibset (cr_prop (iatom), PROP_OUTSIDE) 
-   IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (iatom,1) )) .OR. &
+   IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (1,iatom) )) .OR. &
        (thick>0 .AND. ABS(distance) <     thick                          )) then 
       cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
    ENDIF 
    cr_surf (:,iatom) = 0
 ELSE 
-   IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (iatom,1) )) .OR. &
+   IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (1,iatom) )) .OR. &
        (thick>0 .AND. ABS(distance) < thick                              )) THEN 
       cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
       IF(cr_surf(0, iatom) == SURF_NONE) THEN  ! Atom was not yet at a surface
@@ -2016,7 +2016,7 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
       DO i=1, atom_env(0)               ! Pick out surface atom types only
          IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
             IBITS(cr_prop(atom_env(i)),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
-            IF(.NOT.equal .OR. (equal .AND. cr_iscat(atom_env(i),1)==cr_iscat(iatom,1)) ) THEN
+            IF(.NOT.equal .OR. (equal .AND. cr_iscat(1,atom_env(i))==cr_iscat(1,iatom)) ) THEN
                neigsurf = neigsurf + 1
                neigh(neigsurf) = atom_env(i)
             ENDIF

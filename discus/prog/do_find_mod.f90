@@ -365,7 +365,7 @@ integer :: itype   ! Atom type for iatom
 atom_env(0) = 0
 !
 iatom = nint(werte(1))
-itype = cr_iscat(iatom,1)
+itype = cr_iscat(1,iatom)
 nconn = get_connectivity_numbers(itype)           ! Determine number of connectivities
 if(nconn == 0) return                             ! No connectivities, nothing to do
 allocate(list(1:nconn))                           ! List of connectivities to search
@@ -448,7 +448,7 @@ integer :: itype   ! Atom type for iatom
 atom_env(0) = 0
 !
 iatom = nint(werte(1))
-itype = cr_iscat(iatom,1)
+itype = cr_iscat(1,iatom)
 nconn = get_connectivity_numbers(itype)           ! Determine number of connectivities
 if(nconn == 0) return                             ! No connectivities, nothing to do
 !
@@ -502,7 +502,7 @@ integer :: ino                ! Current   connectivity   this atom
 integer :: j, i, k
 !
 grand(iatom)= 1                   ! Mark this atom as done
-itype = cr_iscat(iatom,1)
+itype = cr_iscat(1,iatom)
 nconn = get_connectivity_numbers(itype)           ! Determine number of connectivities
 if(nconn==0) return                               ! No connectivity, we are done
 !

@@ -120,12 +120,12 @@ loopk: DO k = 1, cr_icc (3)
 !                                                                       
             occup: IF (chem_ave_n (ii) .eq.0) then 
                chem_ave_n (ii) = 1 
-               chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (ia,1) 
+               chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (1, ia) 
                is = 1 
             ELSE  occup
                flag = .true. 
                DO kk = 1, chem_ave_n (ii) 
-                  IF (cr_iscat (ia,1) .eq.chem_ave_iscat (ii, kk) ) then 
+                  IF (cr_iscat (1,ia) .eq.chem_ave_iscat (ii, kk) ) then 
                      is = kk 
                      flag = .false. 
                   ENDIF 
@@ -138,7 +138,7 @@ loopk: DO k = 1, cr_icc (3)
                      ier_num = - 5 
                      RETURN 
                   ENDIF 
-                  chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (ia,1) 
+                  chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (1,ia) 
                ENDIF 
             ENDIF occup
             IF(.not. lsite) THEN   ! Accumulate individual positions for different atoms
@@ -192,7 +192,7 @@ sloopk: DO k = 1, cr_icc (3)
             ELSE
                is = 1
                s_site:DO kk = 1, chem_ave_n (ii) 
-                  IF (cr_iscat (ia,1) .eq.chem_ave_iscat (ii, kk) ) then 
+                  IF (cr_iscat (1,ia) .eq.chem_ave_iscat (ii, kk) ) then 
                      is = kk 
                      EXIT s_site
                   ENDIF
@@ -412,7 +412,7 @@ cr_u2aver       = 0.0
 !------ get size of model crystal, rel. amount of elements              
 !                                                                       
 DO i = 1, cr_natoms 
-   cr_amount (cr_iscat (i,1) ) = cr_amount (cr_iscat (i,1) ) + 1 
+   cr_amount (cr_iscat (1,i) ) = cr_amount (cr_iscat (1,i) ) + 1 
 ENDDO 
 !                                                                       
 !------ write output                                                    
@@ -427,7 +427,7 @@ ENDIF
 res_para (0) = REAL(cr_nscat) + 1 
 DO i = 0, cr_nscat 
    cr_u2aver = cr_u2aver + cr_dw(i) * cr_amount (i)
-!   IF (cr_at_lis(cr_iscat (i,1)) /= 'VOID') then
+!   IF (cr_at_lis(cr_iscat (1,i)) /= 'VOID') then
    IF (cr_at_lis(          i ) /= 'VOID') then
       cr_n_real_atoms = cr_n_real_atoms + cr_amount(i)
    ENDIF
@@ -590,7 +590,7 @@ IF(lsite) THEN
 ELSE
    kk = -1
    find_type: DO k=1,chem_ave_n(isite)
-      IF(cr_iscat(iatom,1)==chem_ave_iscat(isite,k)) THEN
+      IF(cr_iscat(1,iatom)==chem_ave_iscat(isite,k)) THEN
          kk = k
          EXIT find_type
       ENDIF
@@ -607,7 +607,7 @@ ELSE
 ENDIF
 res_para(0) = 3
 IF(opara(O_ECHO)=='yes') THEN
-   at_name_d = at_name (cr_iscat (iatom,1) )
+   at_name_d = at_name (cr_iscat (1,iatom) )
    WRITE(output_io, 1000) iatom, at_name_d, res_para(1:3)
 1000 FORMAT(i8,1x,a9,3(2x,f12.7))
 ENDIF

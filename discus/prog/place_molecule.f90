@@ -161,6 +161,7 @@ main_loop: DO
                   if(ier_num == 0) ladd = .true.   ! allow new add command
               ELSE    ! macro, reset or all other commands
 !
+                  lalloc =.false.
 !---------------- All other commands
                   IF(MAXSCAT > UBOUND(dc_latom,1)) THEN
                      lalloc = .TRUE.
@@ -893,6 +894,13 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    REAL(KIND=PREC_DP)   , DIMENSION(4,4) :: host_tran_fi
 integer, parameter :: MAXMASK=4
 logical, dimension(0:MAXMASK) :: uni_mask
+integer :: nn_num    ! Number of decoration types
+integer :: max_nanis ! Maximum number different ADP
+integer :: temp_nanis ! temporary number different ADP
+real(kind=PREC_DP), dimension(:,:)  , allocatable :: temp_anis_full   ! Temporary storage for full anis
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: temp_prin
+integer, dimension(:,:), allocatable :: adp_look  ! Lookup table for **_iscat(3,:) to get correct ADP's
+integer :: ier ! Allocation error
 !
    IF(MAXVAL(cr_surf(0,:)) == 0 .AND. MINVAL(cr_surf(0,:)) == 0) THEN
       ier_num = -130
@@ -914,6 +922,25 @@ logical, dimension(0:MAXMASK) :: uni_mask
    anch_id(:,:) = 0
 !  ALLOCATE(anch_id(1:dc_temp_id*dc_temp_maxsurf,1:2))   ! make lookup for anchors
    temp_grand = 1.0
+!
+!
+! Temporary storage for ADPs
+!write(*,*) ' CR_NANIS ', cr_nanis
+!write(*,*) ' ANIS_FULL ', ubound(cr_anis_full)
+!write(*,*) ' PRIN      ', ubound(cr_prin)
+nn_num = cr_nanis + dcc_num*5
+call alloc_anis_generic(nn_num, temp_anis_full, temp_prin, ier)
+!write(*,*) ' i        ', cr_nanis + dcc_num*5
+!write(*,*) ' ANIS_FULL ', ubound(temp_anis_full)
+!write(*,*) ' PRIN      ', ubound(temp_prin)
+temp_nanis = cr_nanis
+max_nanis  = cr_nanis
+temp_anis_full(1:6,1:cr_nanis) = cr_anis_full(1:6,1:cr_nanis)
+temp_prin (1:4,1:3,1:cr_nanis) = cr_prin(1:4,1:3,1:cr_nanis)
+!
+! Allocate lookup table
+allocate(adp_look(dcc_num, max_nanis))
+adp_look = 0
 !
 uni_mask(0)   = .false.
 uni_mask(1:3) = .true.
@@ -994,7 +1021,9 @@ uni_mask(4)   = .false.
    host_a0 (:) = cr_a0(:)
    host_win(:) = cr_win(:)
    host_tran_fi(:,:) = cr_tran_fi(:,:)
-   CALL deco_get_molecules(host_a0,host_win, host_tran_fi)
+!i = dcc_num
+CALL deco_get_molecules(host_a0,host_win, host_tran_fi, temp_nanis, max_nanis, &
+     nn_num, temp_anis_full, temp_prin, adp_look)
    IF(ier_num /=0) THEN
       CALL errlist_save                   ! Keep error status 
 
@@ -1075,7 +1104,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
          DO ia = 1, cr_natoms                        ! Loop to replace
             l_correct = .FALSE.
             find_surf: DO j=1,dc_temp_surf(0)
-               IF(cr_iscat(ia,1) == dc_temp_surf(j)) THEN
+               IF(cr_iscat(1,ia) == dc_temp_surf(j)) THEN
                   l_correct = .TRUE.
                   j_surf = j
                   EXIT find_surf
@@ -1083,7 +1112,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
             ENDDO find_surf
             IF(l_correct                    ) THEN   ! Got a surface atom of correct type
                IF(ran1(idum) < prob) THEN            ! Randomly pick a fraction
-                  cr_iscat(ia,1) = nscat_tmp + j_surf  ! Replace by standard Anchor type
+                  cr_iscat(1,ia) = nscat_tmp + j_surf  ! Replace by standard Anchor type
                   cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)    ! FLAG THIS ATOM AS SURFACE ANCHOR
                   n_repl       = n_repl  + 1         ! Increment replaced atoms, grand total
                   i_repl       = i_repl  + 1         ! Increment replaced atoms, local count
@@ -1098,7 +1127,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
    n_surf = 0
    DO ia = 1, cr_natoms                        ! Determine surface atoms that remained after replacement
       find_surf2: DO j=1,dc_temp_surf(0)
-         IF(cr_iscat(ia,1) == dc_temp_surf(j)) THEN
+         IF(cr_iscat(1,ia) == dc_temp_surf(j)) THEN
             n_surf = n_surf+1
          ENDIF
       ENDDO find_surf2
@@ -1143,7 +1172,7 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
       ALLOCATE(anchor_num(1:cr_nscat-nscat_old))
       anchor_num(:) = 0
       DO k=1, cr_natoms
-         j= cr_iscat(k,1)-nscat_old
+         j= cr_iscat(1,k)-nscat_old
          IF(j>0) anchor_num(j) = anchor_num(j)+1 
       ENDDO
       j=MAXVAL(anchor_num)
@@ -1349,8 +1378,8 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
          j = 0
          DO ia = 1, cr_natoms
             DO k=1, n_anch
-               IF(cr_iscat(ia,1)==nscat_old + k     ) THEN
-                  cr_iscat(ia,1) = anch_id(k,2)
+               IF(cr_iscat(1,ia)==nscat_old + k     ) THEN
+                  cr_iscat(1,ia) = anch_id(k,2)
                   j = j + 1
                   temp_iscat(j) = anch_id(k,2)
                   temp_pos(:,j) = cr_pos(:, ia)
@@ -1404,7 +1433,7 @@ loop_anchor: DO j=1,n_repl
       IF(ABS(temp_pos(1,j)-cr_pos(1,ia))<EPS .AND. &
          ABS(temp_pos(2,j)-cr_pos(2,ia))<EPS .AND. &
          ABS(temp_pos(3,j)-cr_pos(3,ia))<EPS      ) THEN  ! Found correct position
-         cr_iscat(ia,1) = temp_iscat(j)  ! Set to correct chemistry
+         cr_iscat(1,ia) = temp_iscat(j)  ! Set to correct chemistry
          cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)    ! FLAG THIS ATOM AS SURFACE ANCHOR
          temp_iatom(j) = ia                                  ! Store atom number for this anchor
          i=i+1
@@ -1485,7 +1514,8 @@ anchor(:,:) = 0
                                   dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
                                   dcc_tilt_atom(1:4,dc_temp_id),                     &
                                   dcc_tilt_is_atom(dc_temp_id),                      &
-                                  dcc_tilt_is_auto(dc_temp_id), natoms_prior      )
+                                  dcc_tilt_is_auto(dc_temp_id), natoms_prior,        &
+                                  nn_num, max_nanis, adp_look      )
                              ELSE
                                 ier_num = -158
                                 ier_msg(1) = 'The normal connection requires one bond'
@@ -1512,7 +1542,8 @@ anchor(:,:) = 0
                                   dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
                                   dcc_tilt_atom(1:4,dc_temp_id),                     &
                                   dcc_tilt_is_atom(dc_temp_id) ,                     &
-                                  dcc_tilt_is_auto(dc_temp_id), natoms_prior      )
+                                  dcc_tilt_is_auto(dc_temp_id), natoms_prior,        &
+                                  nn_num, max_nanis, adp_look      )
                              ELSE
                                 ier_num = -158
                                 ier_msg(1) = 'The bridge connection requires two bonds'
@@ -1538,7 +1569,8 @@ anchor(:,:) = 0
                                   dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
                                   dcc_tilt_atom(1:4,dc_temp_id),                     &
                                   dcc_tilt_is_atom(dc_temp_id) ,                     &
-                                  dcc_tilt_is_auto(dc_temp_id), natoms_prior      )
+                                  dcc_tilt_is_auto(dc_temp_id), natoms_prior,        &
+                                  nn_num, max_nanis, adp_look      )
 CYCLE main_loop
                              ELSE
                                 ier_num = -158
@@ -1565,7 +1597,8 @@ CYCLE main_loop
                                   dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
                                   dcc_tilt_atom(1:4,dc_temp_id),                     &
                                   dcc_tilt_is_atom(dc_temp_id) ,                     &
-                                  dcc_tilt_is_auto(dc_temp_id) , natoms_prior     )
+                                  dcc_tilt_is_auto(dc_temp_id) , natoms_prior,       &
+                                  nn_num, max_nanis, adp_look      )
 CYCLE main_loop
                              ELSE
                                 ier_num = -158
@@ -1587,7 +1620,8 @@ CYCLE main_loop
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
                                   dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
-                                  temp_angle, natoms_prior)
+                                  temp_angle, natoms_prior,                          &
+                                  nn_num, max_nanis, adp_look      )
                              ELSE
                                 ier_num = -158
                                 ier_msg(1) = 'The acceptor connection requires one bond'
@@ -1608,7 +1642,8 @@ CYCLE main_loop
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
                                   dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
-                                  temp_angle, natoms_prior)
+                                  temp_angle, natoms_prior,                          &
+                                  nn_num, max_nanis, adp_look      )
                              ELSE
                                 ier_num = -158
                                 ier_msg(1) = 'The donor connection requires one bond'
@@ -1634,7 +1669,8 @@ CYCLE main_loop
                                   dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
                                   dcc_tilt_atom(1:4,dc_temp_id),                     &
                                   dcc_tilt_is_atom(dc_temp_id) ,                     &
-                                  dcc_tilt_is_auto(dc_temp_id) , natoms_prior     )
+                                  dcc_tilt_is_auto(dc_temp_id) , natoms_prior,       &
+                                  nn_num, max_nanis, adp_look      )
                                   IF(ier_num/=0) EXIT main_loop
                                   CYCLE main_loop
                              ELSE
@@ -1772,7 +1808,8 @@ END SUBROUTINE deco_run
 !
 !######################################################################
 !
-SUBROUTINE deco_get_molecules(host_a0, host_win, host_tran_fi)
+SUBROUTINE deco_get_molecules(host_a0, host_win, host_tran_fi, temp_nanis, &
+     max_nanis, n_dcc_num, temp_anis_full, temp_prin, adp_look)
 !
 !  Loops over all the environments that are defined. 
 !  For each the corresponding molecule is loaded and the first
@@ -1781,26 +1818,33 @@ SUBROUTINE deco_get_molecules(host_a0, host_win, host_tran_fi)
 !  neighbor is at (0,0,0)
 !  The molecules are stored in the internal storage
 !
-USE crystal_mod
-USE deco_mod
-USE discus_allocate_appl_mod
-USE metric_mod
-!USE modify_mod
-USE molecule_mod
-USE prop_para_func
-USE spcgr_apply
-USE save_menu, ONLY: save_internal
-USE discus_save_mod
-USE structur, ONLY: do_readstru, rese_cr
+use crystal_mod
+use deco_mod
+use discus_allocate_appl_mod
+use metric_mod
+!use modify_mod
+use molecule_mod
+use prep_anis_mod
+use prop_para_func
+use spcgr_apply
+use save_menu, ONLY: save_internal
+use discus_save_mod
+use structur, ONLY: do_readstru, rese_cr
 !
 use read_internal_mod
-USE precision_mod
+use precision_mod
 !
 IMPLICIT none
 !
 REAL(KIND=PREC_DP), DIMENSION(1:3), INTENT(IN) :: host_a0
 REAL(KIND=PREC_DP), DIMENSION(1:3), INTENT(IN) :: host_win
 REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(IN) :: host_tran_fi
+integer                                          , intent(inout) :: temp_nanis
+integer                                          , intent(inout) ::  max_nanis
+integer                                          , intent(inout) ::  n_dcc_num
+real(kind=PREC_DP), dimension(:,:)  , allocatable, intent(inout) :: temp_anis_full   ! Temporary storage for full anis
+real(kind=PREC_DP), dimension(:,:,:), allocatable, intent(inout) :: temp_prin
+integer           , dimension(:,:)  , allocatable, intent(inout) :: adp_look  ! Lookup table for **_iscat(3,:) to get correct ADP's
 !
 integer, parameter :: MAXMASK = 4
 !
@@ -1811,6 +1855,8 @@ CHARACTER (LEN=PREC_STRING)                :: line
 !
    INTEGER  :: mole_length      ! Molecule name length
    INTEGER  :: i,j              ! dummy index
+integer :: kk ! Dummy index
+logical :: lsuccess ! Logical dummy
    INTEGER  :: length           ! dummy index
    REAL(kind=PREC_DP), DIMENSION(4) :: posit4 ! atom position
    REAL(kind=PREC_DP), DIMENSION(4) :: uvw4   ! atom position
@@ -1819,6 +1865,7 @@ logical, dimension(0:MAXMASK) :: uni_mask
    INTEGER, DIMENSION(1:2) :: temp_axis
    INTEGER                 :: temp_neig
    REAL(KIND=PREC_DP)      :: temp_dist
+real(kind=PREC_DP), dimension(3) :: ar_inv   ! (1/a*, 1/b*, 1/c*)
 !
 INTEGER               :: n_mscat     ! temporary number of molecule scattering types
 INTEGER               :: lll         ! Dummy index
@@ -1940,6 +1987,19 @@ main: DO i=1, dcc_num
       cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
       cr_cartesian,                                                  &
            cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+!
+!  Make all atoms isotropic
+!
+   ar_inv(1) = 1.0_PREC_DP/cr_ar(1)
+   ar_inv(3) = 1.0_PREC_DP/cr_ar(2)
+   ar_inv(3) = 1.0_PREC_DP/cr_ar(3)
+   do j= 1, cr_nanis
+      call anis2iso(cr_nanis, ubound(cr_anis_full,2), cr_anis_full, cr_prin, j, cr_emat, ar_inv)
+   enddo
+   do j=1, cr_nanis
+      call lookup_anis(temp_nanis, temp_anis_full, temp_prin, cr_anis_full(1:6,j), cr_prin(:,:,j), kk, lsuccess)
+      adp_look(i,j) = kk
+   enddo
 !
 ! save as file internal_nnnn_originalname
    line       = 'ignore, all'          ! Ignore all properties
@@ -2114,7 +2174,7 @@ END SUBROUTINE deco_reset
                             neig, dist, istart, iend, &
                             lrestrict, nhkl, rhkl   , &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-                            tilt_is_auto, natoms_prior)
+                            tilt_is_auto, natoms_prior, nn_num, max_nanis,adp_look)
 !
 USE crystal_mod
    USE chem_mod
@@ -2163,6 +2223,9 @@ INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane 
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
 INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
+integer                                         , intent(in) :: nn_num
+integer                                         , intent(in) :: max_nanis
+integer           , dimension(nn_num,max_nanis) , intent(in) :: adp_look  ! Lookup table for **_iscat(3,:) to get correct ADP's
 !
    REAL(KIND=PREC_DP)   , PARAMETER      :: EPS = 1.0E-6
 !
@@ -2249,12 +2312,13 @@ surf_normal = matmul(cr_rten, surf_normal_r)
          WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
          laenge = 60
          CALL do_ins(line, laenge)                     ! Insert into crystal
+         cr_iscat(2:3,cr_natoms) = itype(2:3)
          cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
          cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
          cr_surf(:,cr_natoms) = 0
          cr_magn(:,cr_natoms) = magn_mom
          CALL check_symm
-         sym_latom(cr_iscat(cr_natoms,1)) = .true.       ! Select atom type for rotation
+         sym_latom(cr_iscat(1,cr_natoms)) = .true.       ! Select atom type for rotation
       ENDDO atoms
 !
       IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
@@ -2292,7 +2356,7 @@ surf_normal = matmul(cr_rten, surf_normal_r)
                      tilt_is_auto,                                    &
                      surf_normal, mole_natoms, 0, 0)
       IF(ABS(dist) < EPS ) THEN                        ! Remove surface atom
-         cr_iscat(ia,1) = 0
+         cr_iscat(1,ia) = 0
          cr_prop (ia) = ibclr (cr_prop (ia), PROP_NORMAL)
       ENDIF
 !
@@ -2315,6 +2379,9 @@ surf_normal = matmul(cr_rten, surf_normal_r)
          ENDIF
       ENDDO flagsurf
    ENDIF
+do j=nold+1, cr_natoms
+   cr_iscat(3,j) = adp_look(temp_id, cr_iscat(3,j))
+enddo
 !
    chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
    chem_quick     = .false.                         ! turn of quick search
@@ -2322,7 +2389,7 @@ surf_normal = matmul(cr_rten, surf_normal_r)
    cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
    1000 FORMAT(a4,4(2x,',',F12.6))
 !
-   END SUBROUTINE deco_place_normal
+END SUBROUTINE deco_place_normal
 !
 !*******************************************************************************
 !
@@ -2335,7 +2402,7 @@ SUBROUTINE deco_place_bridge(temp_id, ia,                                       
                          nanch, anchor,                                         &
                          neig, dist, ncon, istart, iend, lrestrict, nhkl, rhkl, &
                          tilt, tilt_hkl, tilt_atom, tilt_is_atom,               &
-                         tilt_is_auto, natoms_prior)
+                         tilt_is_auto, natoms_prior, nn_num, max_nanis,adp_look)
 !
 USE crystal_mod
 USE atom_env_mod
@@ -2386,6 +2453,9 @@ INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane 
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
 INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
+integer                                         , intent(in) :: nn_num
+integer                                         , intent(in) :: max_nanis
+integer           , dimension(nn_num,max_nanis) , intent(in) :: adp_look  ! Lookup table for **_iscat(3,:) to get correct ADP's
 !
 INTEGER                                 :: surf_char      ! Surface character, plane, edge, corner, ...
 INTEGER, DIMENSION(3,6)                 :: surface_normal ! Set of local normals (:,1) is main normal
@@ -2571,12 +2641,13 @@ DO im=1,mole_natoms                           ! Insert all atoms
    laenge = 60
    zeile = line
    CALL do_ins(line, laenge)
+   cr_iscat(2:3,cr_natoms) = itype(2:3)
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
    cr_surf(:,cr_natoms) = 0
    cr_magn(:,cr_natoms) = magn_mom
    CALL check_symm
-   sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atopm type for rotation
+   sym_latom(cr_iscat(1,cr_natoms)) = .true.    ! Select atopm type for rotation
 ENDDO
 IF(cr_natoms==nold) GOTO 9999
 !
@@ -2597,6 +2668,11 @@ IF(deco_collision(natoms_prior, nold))  THEN
    DEALLOCATE(all_surface)
    RETURN
 ENDIF
+!
+do j=nold+1, cr_natoms
+   cr_iscat(3,j) = adp_look(temp_id, cr_iscat(3,j))
+enddo
+!
 m_type_new = m_type_old  + temp_id
 !
 CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
@@ -2638,7 +2714,7 @@ END SUBROUTINE deco_place_bridge
                             nanch,anchor, neig, dist,ncon, &
                             istart, iend, lrestrict, nhkl, rhkl,   &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-                            tilt_is_auto, natoms_prior)
+                            tilt_is_auto, natoms_prior, nn_num, max_nanis,adp_look)
 !
 !  The molecule is bound by two of its atoms to two different surfae atoms.
 !  The molecule is placed such that:
@@ -2699,6 +2775,9 @@ INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane 
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
 INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
+integer                                         , intent(in) :: nn_num
+integer                                         , intent(in) :: max_nanis
+integer           , dimension(nn_num,max_nanis) , intent(in) :: adp_look  ! Lookup table for **_iscat(3,:) to get correct ADP's
 !
    INTEGER, PARAMETER                      :: MINPARA = 2
    INTEGER                                 :: MAXW = MINPARA
@@ -2786,12 +2865,13 @@ insert: DO im=1,mole_natoms                   ! Insert all atoms
       WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
       laenge = 60
       CALL do_ins(line, laenge)
+      cr_iscat(2:3,cr_natoms) = itype(2:3)
       cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
       cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
       cr_surf(:,cr_natoms) = 0
       cr_magn(:,cr_natoms) = magn_mom
       CALL check_symm
-      sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atopm type for rotation
+      sym_latom(cr_iscat(1,cr_natoms)) = .true.    ! Select atopm type for rotation
 ENDDO insert
 !
 chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
@@ -2955,6 +3035,11 @@ success = 0
 IF(success /=0) THEN                          ! An error occurred, reset crystal
    cr_natoms = n_atoms_orig
 ENDIF
+!
+do j=nold+1, cr_natoms
+   cr_iscat(3,j) = adp_look(temp_id, cr_iscat(3,j))
+enddo
+!
 IF(nold<cr_natoms) THEN                          ! We did insert a molecule
    chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
    chem_quick     = .false.                         ! turn of quick search
@@ -2982,7 +3067,7 @@ SUBROUTINE deco_place_chelate(temp_id, ia, &
                             nanch, anchor, &
                             neig, dist, ncon,istart, iend, lrestrict, nhkl, rhkl, &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-                            tilt_is_auto, natoms_prior)
+                            tilt_is_auto, natoms_prior, nn_num, max_nanis,adp_look)
 !
 ! Place the ligand in a "chelate" bond. 
 ! The two connecting ligand atoms are placed along a line normal to the local surface normal.
@@ -3038,6 +3123,9 @@ INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane 
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
 INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
+integer                                         , intent(in) :: nn_num
+integer                                         , intent(in) :: max_nanis
+integer           , dimension(nn_num,max_nanis) , intent(in) :: adp_look  ! Lookup table for **_iscat(3,:) to get correct ADP's
 !
 INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
 INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
@@ -3107,12 +3195,13 @@ DO im=1,mole_natoms                           ! Insert all atoms
    WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
    laenge = 60
    CALL do_ins(line, laenge)
+   cr_iscat(2:3,cr_natoms) = itype(2:3)
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
    cr_surf(:,cr_natoms) = 0
    cr_magn(:,cr_natoms) = magn_mom
    CALL check_symm
-   sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atom type for rotation
+   sym_latom(cr_iscat(1,cr_natoms)) = .true.    ! Select atom type for rotation
 ENDDO
 n1 = nold + neig(1)                           ! Atom number for 1st
 n2 = nold + neig(2)                           ! and 2nd bonded ligand atoms
@@ -3232,6 +3321,10 @@ IF(deco_collision(natoms_prior, nold))  THEN
    RETURN
 ENDIF
 !
+do j=nold+1, cr_natoms
+   cr_iscat(3,j) = adp_look(temp_id, cr_iscat(3,j))
+enddo
+!
 m_type_new = m_type_old  + temp_id
 !
 CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
@@ -3269,7 +3362,7 @@ END SUBROUTINE deco_place_chelate
                             nsites,                                               &
                             neig, dist,ncon, istart, iend, lrestrict, nhkl, rhkl, &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-                            tilt_is_auto, natoms_prior)
+                            tilt_is_auto, natoms_prior, nn_num, max_nanis,adp_look)
 !
 !  Places a molecule that has multiple bonds to the surface.
 !  The first bond should be the one that carries multiple connections to
@@ -3330,6 +3423,9 @@ INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane 
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
 INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
+integer                                         , intent(in) :: nn_num
+integer                                         , intent(in) :: max_nanis
+integer           , dimension(nn_num,max_nanis) , intent(in) :: adp_look  ! Lookup table for **_iscat(3,:) to get correct ADP's
 !
    INTEGER, PARAMETER                      :: MINPARA = 2
    INTEGER                                 :: MAXW = MINPARA
@@ -3417,12 +3513,13 @@ insert: DO im=1,mole_natoms                   ! Insert all atoms
    WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
    laenge = 60
    CALL do_ins(line, laenge)
+   cr_iscat(2:3,cr_natoms) = itype(2:3)
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
    cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
    cr_surf(:,cr_natoms) = 0
    cr_magn(:,cr_natoms) = magn_mom
    CALL check_symm
-   sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atom type for rotation
+   sym_latom(cr_iscat(1,cr_natoms)) = .true.    ! Select atom type for rotation
 ENDDO insert
 !
 chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
@@ -3617,6 +3714,10 @@ flagsurf: DO j=1,20
    ENDIF
 ENDDO flagsurf
 !
+do j=nold+1, cr_natoms
+   cr_iscat(3,j) = adp_look(temp_id, cr_iscat(3,j))
+enddo
+!
 m_type_new = m_type_old  + temp_id
 CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
 success = 0                                   ! Clear error flag
@@ -3635,12 +3736,13 @@ ELSE
 !
 !******************************************************************************
 !
-   SUBROUTINE deco_place_acceptor(temp_id, ia, &
-                            mole_axis, mole_surfnew,          &
-                            m_type_old, mole_name, mole_natoms, &
-                            mole_nscat, mole_atom_name, &
-                            mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
-                            neig, dist, temp_secnd, istart, iend, lrestrict, nhkl, rhkl, dha_angle, natoms_prior)
+SUBROUTINE deco_place_acceptor(temp_id, ia, &
+                         mole_axis, mole_surfnew,          &
+                         m_type_old, mole_name, mole_natoms, &
+                         mole_nscat, mole_atom_name, &
+                         mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
+                         neig, dist, temp_secnd, istart, iend, lrestrict, &
+                         nhkl, rhkl, dha_angle, natoms_prior, nn_num, max_nanis,adp_look)
 !
 !  Place molecules via a hydrogen bond onto the surface acceptor atom
 !
@@ -3687,6 +3789,9 @@ REAL(KIND=PREC_DP),                    INTENT(IN) :: r_m_cqua        ! Molecular
    INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl         ! actual faces for the restriction
    REAL(KIND=PREC_DP)   ,                 INTENT(IN) :: dha_angle       ! hydrogen-Bond angle in Hydrogen atom
 INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
+integer                                         , intent(in) :: nn_num
+integer                                         , intent(in) :: max_nanis
+integer           , dimension(nn_num,max_nanis) , intent(in) :: adp_look  ! Lookup table for **_iscat(3,:) to get correct ADP's
 !
    REAL(KIND=PREC_DP), PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
    REAL(kind=PREC_DP), DIMENSION(3), PARAMETER :: VNULL = (/ 0.0D0, 0.0D0, 0.0D0 /) 
@@ -3763,12 +3868,13 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
       WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
       laenge = 60
       CALL do_ins(line, laenge)                  ! Insert into crystal
+      cr_iscat(2:3,cr_natoms) = itype(2:3)
       cr_prop  (cr_natoms) = IBSET (cr_prop (cr_natoms), PROP_LIGAND)
       cr_prop  (cr_natoms) = IBCLR (cr_prop (cr_natoms), PROP_SURFACE_EXT)
       cr_surf(:,cr_natoms) = 0
       cr_magn(:,cr_natoms) = magn_mom
       CALL check_symm
-      sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atom type for rotation
+      sym_latom(cr_iscat(1,cr_natoms)) = .true.    ! Select atom type for rotation
    ENDDO atoms
 !
 !           Rotate ligand to achieve Hydrogen bond angle: ANGLE_A_H_D
@@ -3883,6 +3989,10 @@ IF(deco_collision(natoms_prior, nold))  THEN
    RETURN
 ENDIF
 !
+do j=nold+1, cr_natoms
+   cr_iscat(3,j) = adp_look(temp_id, cr_iscat(3,j))
+enddo
+!
    CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
    flagsurf: DO j=1,20
       IF(mole_surfnew(j)>0) THEN
@@ -3912,7 +4022,8 @@ SUBROUTINE deco_place_donor(temp_id, ia, &
                             m_type_old, mole_name, mole_natoms, &
                             mole_nscat, mole_atom_name, &
                             mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
-                            neig, dist, istart, iend, lrestrict, nhkl, rhkl, dha_angle, natoms_prior)
+                            neig, dist, istart, iend, lrestrict, nhkl, rhkl, &
+                            dha_angle, natoms_prior, nn_num, max_nanis,adp_look)
 !
 !  Place molecules via a hydrogn bond onto the surface donor atom
 !
@@ -3963,6 +4074,9 @@ INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the
 INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl         ! actual faces for the restriction
 REAL(KIND=PREC_DP)   ,                 INTENT(IN) :: dha_angle       ! hydrogen-Bond angle in Hydrogen atom
 INTEGER                   , INTENT(IN) :: natoms_prior    ! Number of atom prior to decoration run
+integer                                         , intent(in) :: nn_num
+integer                                         , intent(in) :: max_nanis
+integer           , dimension(nn_num,max_nanis) , intent(in) :: adp_look  ! Lookup table for **_iscat(3,:) to get correct ADP's
 !
 INTEGER, PARAMETER      :: MAXW = 2
 REAL(KIND=PREC_DP), PARAMETER         :: EPS = 1.0E-7
@@ -4048,12 +4162,13 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
       WRITE(line, 1000) mole_atom_name(itype(1)), posit, mole_dw(itype(1))
       laenge = 60
       CALL do_ins(line, laenge)                  ! Insert into crystal
+      cr_iscat(2:3,cr_natoms) = itype(2:3)
       cr_prop  (cr_natoms) = IBSET (cr_prop (cr_natoms), PROP_LIGAND)
       cr_prop  (cr_natoms) = IBCLR (cr_prop (cr_natoms), PROP_SURFACE_EXT)
       cr_surf(:,cr_natoms) = 0
       cr_magn(:,cr_natoms) = magn_mom
       CALL check_symm
-      sym_latom(cr_iscat(cr_natoms,1)) = .true.    ! Select atom type for rotation
+      sym_latom(cr_iscat(1,cr_natoms)) = .true.    ! Select atom type for rotation
    ENDDO atoms
 !
 !  Rotate ligand to achieve Hydrogen bond angle: ANGLE_A_H_D
@@ -4167,6 +4282,11 @@ IF(deco_collision(natoms_prior, nold))  THEN
    cr_natoms = nold
    RETURN
 ENDIF
+!
+do j=nold+1, cr_natoms
+   cr_iscat(3,j) = adp_look(temp_id, cr_iscat(3,j))
+enddo
+!
 !  Group molecule
    m_type_new = m_type_old  + temp_id
    CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)

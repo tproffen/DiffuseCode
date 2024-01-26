@@ -3116,14 +3116,14 @@ ENDIF
 !                                                                       
 !write(*,*) ' ISEL ', isel(1), ' : ', isel(2)
 !if(mod(isel(1),2)==1) then
-!write(*,*) ' First Atom at site 1 ' , isel(1), isel(1)+1, ' ISCAT ', cr_iscat(isel(1),1), cr_iscat(isel(1)+1,1) 
+!write(*,*) ' First Atom at site 1 ' , isel(1), isel(1)+1, ' ISCAT ', cr_iscat(1,isel(1)), cr_iscat(1,isel(1)+1) 
 !else
-!write(*,*) ' First Atom at site 2 ' , isel(1)-1, isel(1), ' ISCAT ', cr_iscat(isel(1)-1,1), cr_iscat(isel(1),1) 
+!write(*,*) ' First Atom at site 2 ' , isel(1)-1, isel(1), ' ISCAT ', cr_iscat(1,isel(1)-1), cr_iscat(1,isel(1)) 
 !endif
 !if(mod(isel(2),2)==1) then
-!write(*,*) ' Scnd  Atom at site 1 ' , isel(2), isel(2)+1, ' ISCAT ', cr_iscat(isel(2),1), cr_iscat(isel(2)+1,1) 
+!write(*,*) ' Scnd  Atom at site 1 ' , isel(2), isel(2)+1, ' ISCAT ', cr_iscat(1,isel(2)), cr_iscat(1,isel(2)+1) 
 !else
-!write(*,*) ' Scnd  Atom at site 2 ' , isel(2)-1, isel(2), ' ISCAT ', cr_iscat(isel(2)-1,1), cr_iscat(isel(2),1) 
+!write(*,*) ' Scnd  Atom at site 2 ' , isel(2)-1, isel(2), ' ISCAT ', cr_iscat(1,isel(2)-1), cr_iscat(1,isel(2)) 
 !endif
 !write(*,*) ' iscat', cr_iscat(isel(1),1),cr_iscat(isel(2),1)
 !read(*,*) i
@@ -3398,13 +3398,13 @@ iatom_l(:,:,2) = iatom                         ! Copy neighbors of isel(1)
 natom_l(  :,2) = natom
 ncent_l(    2) = ncent
 iposit    = isel
-iorig(1)  = cr_iscat(isel(1),1)
-iorig(2)  = cr_iscat(isel(2),1)
+iorig(1)  = cr_iscat(1,isel(1))
+iorig(2)  = cr_iscat(1,isel(2))
 !write(*,*) ' OLD ic ', wic
 !write(*,*) ' CHOICE ', isel(1), isel(2)
 !write(*,*) ' Type   ', iorig
 !write(*,*) ' Neig   ',          iatom_l(1:natom_l(1,1),1,1) , '|',         iatom_l(1:natom_l(1,2),1,2)
-!write(*,*) ' Ntypes ', cr_iscat(iatom_l(1:natom_l(1,1),1,1),1), '|',cr_iscat(iatom_l(1:natom_l(1,2),1,2),1)
+!write(*,*) ' Ntypes ', cr_iscat(1,iatom_l(1:natom_l(1,1),1,1)), '|',cr_iscat(1,iatom_l(1:natom_l(1,2),1,2))
 !write(*,*) ' corr   ', cold, ' : ', SUM(cold)
 !
 !                                              CALCULATE OLD ENERGY
@@ -3414,7 +3414,7 @@ cold = 0.0
 !WRITE(*,*) ' '
 !WRITE(*,*) ' OLD STATUS', chem_ncor
 !write(*,*) ' CHOICE   ',          isel(1) , '|',          isel(2)
-!write(*,*) ' Type     ', cr_iscat(isel(1),1), '|', cr_iscat(isel(2),1)
+!write(*,*) ' Type     ', cr_iscat(1,isel(1)), '|', cr_iscat(1,isel(2))
 DO ic=1,chem_ncor                              ! Loop over all targets
    IF(mmc_cor_energy(ic,wie)) THEN
 i = 1
@@ -3439,7 +3439,7 @@ isnei(1) = iatom(0, 1)
 isnei(2) = iatom(2, 1)
 !write(*,*) ' latom', latom - iinc
 !write(*,*) ' ATOM ', isel(i),          ' : ',          isnei(0:2)          
-!write(*,*) ' TYPES', cr_iscat(isel(i),1),' : ', cr_iscat(isnei(0:2),1          ), cnew(i)
+!write(*,*) ' TYPES', cr_iscat(1,isel(i)),' : ', cr_iscat(1,isnei(0:2)          ), cnew(i)
 i = 2
 !write(*,*) ' CALLING CORRELATION FOR ISEL(2) '
 CALL chem_neighbour_multi(isel(i) , ic, iatom, patom, tatom, natom, &
@@ -3457,20 +3457,20 @@ ELSEIF(mmc_cor_energy ( ic, MC_UNI)) THEN
    cold(i)=cold(i) + en_old(i,ic)
 ENDIF
 !write(*,*) ' Neig     ',          iatom_l(1:natom_l(1,1),1,1) , '|',         iatom_l(1:natom_l(1,2),1,2)
-!write(*,*) ' Ntypes   ', cr_iscat(iatom_l(1:natom_l(1,1),1,1),1), '|',cr_iscat(iatom_l(1:natom_l(1,2),1,2),1)
+!write(*,*) ' Ntypes   ', cr_iscat(1,iatom_l(1:natom_l(1,1),1,1)), '|',cr_iscat(1,iatom_l(1:natom_l(1,2),1,2))
 !write(*,*) ' ic, corr ', ic, en_old(i,ic), '| ', cold, ' : ', SUM(cold)
    ENDIF
 ENDDO
 !
-cr_iscat(isel(1),1) = iorig(2)              ! Swap chemistry
-cr_iscat(isel(2),1) = iorig(1)
+cr_iscat(1,isel(1)) = iorig(2)              ! Swap chemistry
+cr_iscat(1,isel(2)) = iorig(1)
 !
 ccnew = 0.0
 en_new = 0.0
 cnew = 0.0
 !WRITE(*,*) ' NEW STATUS'
 !write(*,*) ' CHOICE   ',          isel(1) , '|',          isel(2)
-!write(*,*) ' Type     ', cr_iscat(isel(1),1), '|', cr_iscat(isel(2),1)
+!write(*,*) ' Type     ', cr_iscat(1,isel(1)), '|', cr_iscat(1,isel(2))
 DO ic=1,chem_ncor                              ! Loop over all targets
    IF(mmc_cor_energy(ic,wie)) THEN
 i = 1
@@ -3495,7 +3495,7 @@ isnei(1) = iatom(0, 1)
 isnei(2) = iatom(2, 1)
 !write(*,*) ' latom', latom - iinc
 !write(*,*) ' ATOM ', isel(i),          ' : ',          isnei(0:2)          
-!write(*,*) ' TYPES', cr_iscat(isel(i),1),' : ', cr_iscat(isnei(0:2),1          ), cnew(i)
+!write(*,*) ' TYPES', cr_iscat(1,isel(i)),' : ', cr_iscat(1,isnei(0:2)          ), cnew(i)
 i = 2
 !write(*,*) ' CALLING CORRELATION FOR ISEL(2) '
 CALL chem_neighbour_multi(isel(i) , ic, iatom, patom, tatom, natom, &
@@ -3513,7 +3513,7 @@ ELSEIF(mmc_cor_energy (wic, MC_UNI)) THEN
    cnew(i)=cnew(i) + en_new(i,ic)
 ENDIF
 !write(*,*) ' Neig     ',          iatom_l(1:natom_l(1,1),1,1) , '|',         iatom_l(1:natom_l(1,2),1,2)
-!write(*,*) ' Ntypes   ', cr_iscat(iatom_l(1:natom_l(1,1),1,1),1), '|',cr_iscat(iatom_l(1:natom_l(1,2),1,2),1)
+!write(*,*) ' Ntypes   ', cr_iscat(1,iatom_l(1:natom_l(1,1),1,1)), '|',cr_iscat(1, iatom_l(1:natom_l(1,2),1,2))
 !write(*,*) ' ic, corr ', ic, en_new(i,ic), '| ', cnew, ' : ', SUM(cnew)
    ENDIF
 ENDDO
@@ -3522,12 +3522,12 @@ isnei(0) = iatom(1, 1)
 isnei(1) = iatom(0, 1)
 isnei(2) = iatom(2, 1)
 !write(*,*) ' ATOM ', isel(i),          ' : ',          isnei(0:1)          
-!write(*,*) ' TYPES', cr_iscat(isel(i),1),' : ', cr_iscat(isnei(0:1),1          ), cnew(i)
+!write(*,*) ' TYPES', cr_iscat(1,isel(i)),' : ', cr_iscat(1,isnei(0:1)          ), cnew(i)
 !write(*,*) ' NEW ic ', wic
 !write(*,*) ' CHOICE ', isel(1), isel(2)
-!write(*,*) ' Type   ', cr_iscat(isel(1),1), cr_iscat(isel(2),1)
+!write(*,*) ' Type   ', cr_iscat(1,isel(1)), cr_iscat(1,isel(2))
 !write(*,*) ' Neig   ',          iatom_l(1:natom_l(1,1),1,1) , '|',         iatom_l(1:natom_l(1,2),1,2)
-!write(*,*) ' Ntypes ', cr_iscat(iatom_l(1:natom_l(1,1),1,1),1), '|',cr_iscat(iatom_l(1:natom_l(1,2),1,2),1)
+!write(*,*) ' Ntypes ', cr_iscat(1,iatom_l(1:natom_l(1,1),1,1)), '|',cr_iscat(1,iatom_l(1:natom_l(1,2),1,2))
 !write(*,*) ' corr   ', cnew, ' : ', SUM(cnew)
 !
 laccept = .FALSE.
@@ -3631,10 +3631,10 @@ IF(laccept) THEN                                ! Move accepted update correlati
 !P!write(*,*) ' k=1 ncent ', ncent_l(1), '|', natom_l(:,1), ' IC ', ic
 !P!write(*,*) ' k=2 ncent ', ncent_l(2), '|', natom_l(:,2), ' IC ', ic
 !P!   DO k=1, 2
-!P!      js = cr_iscat(isel(k),1)
+!P!      js = cr_iscat(1,isel(k))
 !P!      DO i=1, ncent_l(k)
 !P!         DO j=1, natom_l(i,k)
-!P!            ks = cr_iscat(iatom_l(j,i,k),1)
+!P!            ks = cr_iscat(1,iatom_l(j,i,k))
 !P!write(*,*) 'k, i, ks ', k,i,ks, ' iorig(k), js, ks ',iorig(k), js, ks, 'O ', mmc_pneig(iorig(k),ks, ic), mmc_pneig(js      ,ks, ic)
 !P!!           IF(mmc_pair(wic, wie, iorig(k),ks)/=0) mmc_pneig(iorig(k),ks, wic) = mmc_pneig(iorig(k),ks, wic) - 1
 !P!!           IF(mmc_pair(wic, wie, js      ,ks)/=0) mmc_pneig(js      ,ks, wic) = mmc_pneig(js      ,ks, wic) + 1
@@ -3678,11 +3678,11 @@ IF(laccept) THEN                                ! Move accepted update correlati
 !P!read(*,*) js
 !P!ENDIF
 ELSE                                            ! Move not accepted restore atom types
-   cr_iscat(isel(1),1) = iorig(1)
-   cr_iscat(isel(2),1) = iorig(2)
+   cr_iscat(1,isel(1)) = iorig(1)
+   cr_iscat(1,isel(2)) = iorig(2)
 !write(*,*) ' NOT   ACCEPTED      ; CNEW ? COLD ', SUM(cnew), SUM(cold)
 !write(*,*) ' CHOICE ', isel(1), isel(2)
-!write(*,*) ' Type   ', cr_iscat(isel(1),1), cr_iscat(isel(2),1)
+!write(*,*) ' Type   ', cr_iscat(1,isel(1)), cr_iscat(1,isel(2))
 ENDIF
 !                                                                       
 !------ --- Test and accept/reject move                                 
@@ -3692,14 +3692,14 @@ ENDIF
 !         CALL mmc_test_multi (iacc_good, iacc_neut, iacc_bad,  &
 !              e_new, e_old,  laccept)                                                 
 !IF(.NOT.laccept) THEN
-!   cr_iscat(iposit(1),1) = iorig(1)
-!   cr_iscat(iposit(2),1) = iorig(2)
+!   cr_iscat(1,iposit(1)) = iorig(1)
+!   cr_iscat(1,iposit(2)) = iorig(2)
 !ENDIF
 !write(*,*) ' FINAL    ', SUM(e_old), sum(e_new), laccept, iacc_good, iacc_neut, iacc_bad
 !write(*,*) ' Atoms pos 1', iposit(1)-1          , iposit(1)          , iposit(1)+1 
-!write(*,*) ' Types pos 1', cr_iscat(iposit(1)-1,1), cr_iscat(iposit(1),1), cr_iscat(iposit(1)+1,1)
+!write(*,*) ' Types pos 1', cr_iscat(1,iposit(1)-1), cr_iscat(1,iposit(1)), cr_iscat(1,iposit(1)+1)
 !write(*,*) ' Atoms pos 2', iposit(2)-1          , iposit(2)          , iposit(2)+1 
-!write(*,*) ' Types pos 2', cr_iscat(iposit(2)-1,1), cr_iscat(iposit(2),1), cr_iscat(iposit(2)+1,1)
+!write(*,*) ' Types pos 2', cr_iscat(1,iposit(2)-1), cr_iscat(1,iposit(2)), cr_iscat(1,iposit(2)+1)
 !write(*,*)
 !
 !DEALLOCATE(energies_old)                    ! Should probably be done in main mmc_run
@@ -3845,7 +3845,7 @@ ncent_l(    1) = ncent
 !write(*,*) ' CHOICE ', isel(1), isel(2)
 !write(*,*) ' Type   ', iorig
 !write(*,*) ' Neig   ',          iatom_l(1:natom_l(1,1),1,1) , '|',         iatom_l(1:natom_l(1,2),1,2)
-!write(*,*) ' Ntypes ', cr_iscat(iatom_l(1:natom_l(1,1),1,1),1), '|',cr_iscat(iatom_l(1:natom_l(1,2),1,2),1)
+!write(*,*) ' Ntypes ', cr_iscat(1,iatom_l(1:natom_l(1,1),1,1)), '|',cr_iscat(1,iatom_l(1:natom_l(1,2),1,2))
 !write(*,*) ' corr   ', cold, ' : ', SUM(cold)
 !write(*,*) ' ENTER NUMBER '
 !read(*,*) ic
@@ -4082,7 +4082,7 @@ search_ini: DO                            ! Loop until we find an atom that coul
    IF(icounter==inumber) THEN
       EXIT search_ini   
    ENDIF
-   IF(cr_iscat(isel(ichoose),1)==wjks(ichoose)) THEN          ! Found atom of proper type
+   IF(cr_iscat(1,isel(ichoose))==wjks(ichoose)) THEN          ! Found atom of proper type
       CALL chem_neighbour_multi(isel(ichoose) ,wic, iatom, patom, tatom, natom, &
                                 ncent, MAX_ATOM_ENV_L, MMC_MAX_CENT_L)
       ia = ichoose
@@ -4101,7 +4101,7 @@ search_ini: DO                            ! Loop until we find an atom that coul
       isnei(2) = iatom(1, 1)
 !write(*,*) ' latom', latom - iinc
 !write(*,*) ' ATOM ', isel(ichoose),          ' : ',          isnei(0:2)          
-!write(*,*) ' TYPES', cr_iscat(isel(ichoose),1),' : ', cr_iscat(isnei(0:2),1          ), cold(ichoose)
+!write(*,*) ' TYPES', cr_iscat(1,isel(ichoose)),' : ', cr_iscat(1,isnei(0:2)          ), cold(ichoose)
 !write(*,*) ' Targ, ach, diff ', mmc_target_corr(wic, wie, wjks(1), wjks(2)), &
 !mmc_ach_corr   (wic, wie, wjks(1), wjks(2)), &
 !mmc_target_corr(wic, wie, wjks(1), wjks(2))-mmc_ach_corr (wic, wie, wjks(1), wjks(2)) , ' T ? A '
@@ -4280,7 +4280,7 @@ search_ini: DO                            ! Loop until we find an atom that coul
    IF(icounter==inumber) THEN
       EXIT search_ini   
    ENDIF
-   IF(cr_iscat(isel(ichoose),1)==wjks(ichoose)) THEN          ! Found atom of proper type
+   IF(cr_iscat(1,isel(ichoose))==wjks(ichoose)) THEN          ! Found atom of proper type
       CALL chem_neighbour_multi(isel(ichoose) , ic, iatom, patom, tatom, natom, &
                                 ncent, MAX_ATOM_ENV_L, MMC_MAX_CENT_L)
       ia = ichoose
@@ -4299,7 +4299,7 @@ search_ini: DO                            ! Loop until we find an atom that coul
       isnei(2) = iatom(1, 1)
 !write(*,*) ' latom', latom - iinc
 !write(*,*) ' ATOM ', isel(ichoose),          ' : ',          isnei(0:2)          
-!write(*,*) ' TYPES', cr_iscat(isel(ichoose),1),' : ', cr_iscat(isnei(0:2),1          ), cold(ichoose)
+!write(*,*) ' TYPES', cr_iscat(1,isel(ichoose)),' : ', cr_iscat(1,isnei(0:2)          ), cold(ichoose)
 !write(*,*) ' Targ, ach, diff ', mmc_target_corr(wic, wie, wjks(1), wjks(2)), &
 !mmc_ach_corr   (wic, wie, wjks(1), wjks(2)), &
 !mmc_target_corr(wic, wie, wjks(1), wjks(2))-mmc_ach_corr (wic, wie, wjks(1), wjks(2)) , ' T ? A '
@@ -4436,7 +4436,7 @@ main: DO
          isel(1) = MAX(1,MIN(isel(1),cr_natoms))
          iselz = isel (1) 
 !         IF (isel (1)  > cr_natoms.OR.isel (1)  < 1) CYCLE inner
-            laccept = mmc_allowed(cr_iscat(isel(1),1 ) ) .AND. &
+            laccept = mmc_allowed(cr_iscat(1,isel(1) ) ) .AND. &
                       check_select_status(isel(1), .TRUE., cr_prop (isel (1) ),  cr_sel_prop)                  
          IF (cr_ncatoms > 0) THEN 
             CALL indextocell (isel (1), iz1, is (1) ) 
@@ -4478,8 +4478,8 @@ main: DO
             u(i) = cr_pos(i, isel( 2)) - chem_ave_pos(i, is( 2) ) &
                    -REAL(iz( 2, i) - 1) - cr_dim0(i, 1)
          ENDDO 
-         laccept = mmc_allowed(cr_iscat(isel(1),1 ) ) .AND.&
-                   mmc_allowed(cr_iscat(isel(2),1 ) ) .AND.&
+         laccept = mmc_allowed(cr_iscat(1,isel(1) ) ) .AND.&
+                   mmc_allowed(cr_iscat(1,isel(2) ) ) .AND.&
                    check_select_status(isel(1),.TRUE., cr_prop(isel(1) ), cr_sel_prop) .AND.&
                    check_select_status(isel(2),.TRUE., cr_prop(isel(2) ), cr_sel_prop) .AND.&
                    skalpro(u, v, cr_gten) < 0.0
@@ -4507,9 +4507,9 @@ main: DO
          iz (1, i) = iz1 (i) 
          iz (2, i) = iz2 (i) 
          ENDDO 
-         laccept = cr_iscat (isel (1),1 )  /= cr_iscat (isel (2),1 ) .AND.                  &
-                 ( mmc_allowed (cr_iscat (isel (1),1 ) ) .AND.                            &
-                   mmc_allowed (cr_iscat (isel (2),1 ) )      )    .AND.                  &
+         laccept = cr_iscat (1,isel (1))  /= cr_iscat (1,isel (2) ) .AND.                  &
+                 ( mmc_allowed (cr_iscat (1,isel (1) ) ) .AND.                            &
+                   mmc_allowed (cr_iscat (1,isel (2) ) )      )    .AND.                  &
                    check_select_status (isel(1), .TRUE., cr_prop (isel (1) ), cr_sel_prop) .AND. &
                    check_select_status (isel(2), .TRUE., cr_prop (isel (2) ), cr_sel_prop)                              
       ENDIF 
@@ -4521,7 +4521,7 @@ main: DO
       ENDIF 
       IF(laccept) EXIT main
 ENDDO main
-!write(*,'(a, 2i7, a, 2i3, a, 2i7)') ' SELECTED PAIR ', isel(1:2), ' | ', cr_iscat(isel(1:2),1), ' || ', isel(3:4)
+!write(*,'(a, 2i7, a, 2i3, a, 2i7)') ' SELECTED PAIR ', isel(1:2), ' | ', cr_iscat(1,isel(1:2)), ' || ', isel(3:4)
 !
 END SUBROUTINE mmc_select_atoms
 !
@@ -4575,7 +4575,7 @@ REAL(kind=PREC_DP), DIMENSION(3) :: v
 REAL(kind=PREC_DP), DIMENSION(3) :: idir, jdir
 LOGICAL            :: valid_e
 !
-!write(*,'(a, 2i7, 3x,2i3, a, i3)') ' MMC_ENERGIES  ', isel(1:2), cr_iscat(isel(1:2),1), ' | ', natoms
+!write(*,'(a, 2i7, 3x,2i3, a, i3)') ' MMC_ENERGIES  ', isel(1:2), cr_iscat(1,isel(1:2)), ' | ', natoms
 !                                                                       
 !     ----Loop over all modified atoms                                  
 !                                                                       
@@ -4589,12 +4589,12 @@ loop_natoms:DO ia = 1, natoms
 !                                                                       
 !     ------Loop over all defined neighbour interactions                
 !                                                                       
-!write(*,*) ' OLD ENERGIES', e_cur(MC_OCC), isel(1:2), ' SCAT: ',cr_iscat(isel(1),1), cr_iscat(isel(2),1)
+!write(*,*) ' OLD ENERGIES', e_cur(MC_OCC), isel(1:2), ' SCAT: ',cr_iscat(1,isel(1)), cr_iscat(1,isel(2))
    loop_corr: DO ic = 1, chem_ncor 
       CALL chem_neighbour_multi(isel(ia), ic, iatom, patom, tatom, natom, &
                                 ncent, MAX_ATOM_ENV_L, MMC_MAX_CENT_L)                                                
-!write(*,*) ' central ', isel(ia), cr_iscat(isel(ia),1), ic, 'NATOM : ', natom(1)
-!write(*,*) ' neigb   ', iatom(0:natom(1),1), ' : ',cr_iscat(iatom(0:natom(1),1),1), ' ::', ncent
+!write(*,*) ' central ', isel(ia), cr_iscat(1,isel(ia)), ic, 'NATOM : ', natom(1)
+!write(*,*) ' neigb   ', iatom(0:natom(1),1), ' : ',cr_iscat(1,iatom(0:natom(1),1)), ' ::', ncent
 !write(*,*) ' type is ', tatom(0:natom(1),1)
 
       loop_cent: DO icent = 1, ncent 
@@ -4611,7 +4611,7 @@ loop_natoms:DO ia = 1, natoms
 !     ------- and the move is switch chemistry                          
 !                                                                       
                IF (mmc_move == MC_MOVE_SWCHEM) THEN 
-!                 IF (cr_iscat (isel (1),1 )  /= cr_iscat (isel (2),1 ) ) THEN
+!                 IF (cr_iscat (1,isel (1) )  /= cr_iscat (1,isel (2) ) ) THEN
                      e_cur (MC_OCC) = e_cur (MC_OCC) + mmc_energy_occ ( &
                      isel, ia, ic, iatom, tatom, icent, natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L) 
                      valid_all = valid_all.OR.valid_e 
@@ -4626,7 +4626,7 @@ loop_natoms:DO ia = 1, natoms
 !write(*,*) ' TEST FOR UNI ', mmc_cor_energy (ic, MC_UNI), mmc_move == MC_MOVE_SWCHEM
             IF (mmc_cor_energy (ic, MC_UNI) ) THEN 
                IF (mmc_move == MC_MOVE_SWCHEM) THEN 
-!                 IF (cr_iscat (isel (1),1 )  /= cr_iscat (isel (2),1 ) ) THEN                                                  
+!                 IF (cr_iscat (1,isel (1) )  /= cr_iscat (1,isel (2) ) ) THEN                                                  
                      e_cur (MC_UNI) = e_cur (MC_UNI) + mmc_energy_uni ( &
                      isel, ia, ic, iatom, tatom, icent, natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L) 
                      valid_all = valid_all.OR.valid_e 
@@ -4639,7 +4639,7 @@ loop_natoms:DO ia = 1, natoms
             IF(mmc_cor_energy(ic, MC_GROUP) ) THEN 
 !                                                                       
                IF(mmc_move == MC_MOVE_SWCHEM) THEN 
-!                 IF (cr_iscat (isel (1),1 )  /= cr_iscat (isel (2),1 ) ) THEN
+!                 IF (cr_iscat (1,isel (1) )  /= cr_iscat (1,isel (2) ) ) THEN
                      e_cur (MC_GROUP) = e_cur (MC_GROUP) + mmc_energy_group ( &
                      isel, ia, ic, iatom, tatom, icent, natom, valid_e, MAX_ATOM_ENV_L, MMC_MAX_CENT_L, MMC_MAX_ATOM_L) 
                      valid_all = valid_all.OR.valid_e 
@@ -4797,17 +4797,17 @@ IF (mmc_move == MC_MOVE_DISP) THEN
 !                                                                       
 !     ------Modify the central atom                                     
 !                                                                       
-   IF(mo_maxmove(4, cr_iscat(isel(1),1))==0.0) THEN
+   IF(mo_maxmove(4, cr_iscat(1,isel(1)))==0.0) THEN
       DO i = 1, 3 
-         disp(i, 0, 1)      = gasdev(DBLE(mo_maxmove(i, cr_iscat(isel(1),1) )))
+         disp(i, 0, 1)      = gasdev(DBLE(mo_maxmove(i, cr_iscat(1,isel(1)) )))
          posz(i)            = cr_pos(i,isel(1)) 
          cr_pos(i, isel(1)) = cr_pos(i, isel(1)) + disp(i, 0, 1) 
       ENDDO 
    ELSE
 !     -- Move along a vector direction
-      rrrr = gasdev(DBLE(mo_maxmove(4, cr_iscat(isel(1),1) )))
+      rrrr = gasdev(DBLE(mo_maxmove(4, cr_iscat(1,isel(1)) )))
       DO i = 1, 3 
-         disp(i, 0, 1) = rrrr* (mo_maxmove(i, cr_iscat(isel(1),1) ))
+         disp(i, 0, 1) = rrrr* (mo_maxmove(i, cr_iscat(1,isel(1)) ))
          posz (i) = cr_pos (i, isel(1)) 
          cr_pos (i, isel(1)) = cr_pos (i, isel(1)) + disp (i, 0, 1) 
       ENDDO 
@@ -4849,9 +4849,9 @@ ELSEIF (mmc_move == MC_MOVE_SWCHEM) THEN
 !                                                                       
 !     ------Switch the Chemistry of two selected atoms                  
 !                                                                       
-   iscat             = cr_iscat(isel(2),1) 
-   cr_iscat(isel(2),1) = cr_iscat(isel(1),1) 
-   cr_iscat(isel(1),1) = iscat 
+   iscat             = cr_iscat(1,isel(2)) 
+   cr_iscat(1,isel(2)) = cr_iscat(1,isel(1)) 
+   cr_iscat(1,isel(1)) = iscat 
    iscat            = cr_prop(isel(2)) 
    cr_prop(isel(2)) = cr_prop(isel(1)) 
    cr_prop(isel(1)) = iscat 
@@ -4860,15 +4860,15 @@ ELSEIF (mmc_move == MC_MOVE_SWNEIG) THEN
 !     ------Switch the Chemistry of two selected neighbor atoms                  
 !                                                                       
 !write(*,'(a,4i7)') '   modify PRIOR MOVE ', isel(1:4)
-!write(*,'(a,4i7)') '          atom types ', cr_iscat(isel(1:4),1)
-   iscat             = cr_iscat(isel(4),1) 
-   cr_iscat(isel(4),1) = cr_iscat(isel(3),1) 
-   cr_iscat(isel(3),1) = iscat 
+!write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
+   iscat             = cr_iscat(1,isel(4)) 
+   cr_iscat(1,isel(4)) = cr_iscat(1,isel(3)) 
+   cr_iscat(1,isel(3)) = iscat 
    iscat            = cr_prop(isel(4)) 
    cr_prop(isel(4)) = cr_prop(isel(3)) 
    cr_prop(isel(3)) = iscat 
 !write(*,'(a,4i7)') '   modify POST  MOVE ', isel(1:4)
-!write(*,'(a,4i7)') '          atom types ', cr_iscat(isel(1:4),1)
+!write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
 !                                                                       
 !--End of Modification of atoms according to different moves
 !                                                                       
@@ -4924,9 +4924,9 @@ ELSEIF (mmc_move == MC_MOVE_SWCHEM) THEN
 !                                                                       
 !     ------Switch the Chemistry of two selected atoms                  
 !                                                                       
-   iscat             = cr_iscat(isel(2),1) 
-   cr_iscat(isel(2),1) = cr_iscat(isel(1),1) 
-   cr_iscat(isel(1),1) = iscat 
+   iscat             = cr_iscat(1,isel(2)) 
+   cr_iscat(1,isel(2)) = cr_iscat(1,isel(1)) 
+   cr_iscat(1,isel(1)) = iscat 
    iscat            = cr_prop(isel(2)) 
    cr_prop(isel(2)) = cr_prop(isel(1)) 
    cr_prop(isel(1)) = iscat 
@@ -4935,15 +4935,15 @@ ELSEIF (mmc_move == MC_MOVE_SWNEIG) THEN
 !     ------Switch the Chemistry of two selected atoms                  
 !                                                                       
 !write(*,'(a,4i7)') ' UNMODIFY PRIOR MOVE ', isel(1:4)
-!write(*,'(a,4i7)') '          atom types ', cr_iscat(isel(1:4),1)
-   iscat             = cr_iscat(isel(4),1) 
-   cr_iscat(isel(4),1) = cr_iscat(isel(3),1) 
-   cr_iscat(isel(3),1) = iscat 
+!write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
+   iscat             = cr_iscat(1,isel(4)) 
+   cr_iscat(1,isel(4)) = cr_iscat(1,isel(3)) 
+   cr_iscat(1,isel(3)) = iscat 
    iscat            = cr_prop(isel(4)) 
    cr_prop(isel(4)) = cr_prop(isel(3)) 
    cr_prop(isel(3)) = iscat 
 !write(*,'(a,4i7)') ' UNMODIFY POST  MOVE ', isel(1:4)
-!write(*,'(a,4i7)') '          atom types ', cr_iscat(isel(1:4),1)
+!write(*,'(a,4i7)') '          atom types ', cr_iscat(1,isel(1:4))
 !                                                                       
 !--End of Modification of atoms according to different moves
 !                                                                       
@@ -5004,15 +5004,15 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
 !                                                                       
          in_a = 1 
          in_e = natom (icent) 
-         is = cr_iscat (iatom (0, icent),1 ) 
+         is = cr_iscat (1,iatom (0, icent) ) 
          DO ind = in_a, in_e 
-               js = cr_iscat (iatom (ind, icent),1 ) 
+               js = cr_iscat (1,iatom (ind, icent) ) 
             IF(mmc_pair(ic, MC_OCC,is,js)/=0) THEN
             IF(check_select_status(iatom (ind, icent),  &
                                      .TRUE., cr_prop (iatom (ind,  &
                                      icent) ), cr_sel_prop) ) THEN                         
                ival1 = 0 
-               js = cr_iscat (iatom (ind, icent),1 ) 
+               js = cr_iscat (1, iatom (ind, icent) ) 
                ival1 = SIGN(1,mmc_pair(ic, MC_OCC,is,js))
                mmc_occ_correl = mmc_occ_correl + ival1
             ENDIF 
@@ -5026,15 +5026,15 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
 !                                                                       
          in_a = 0 
          in_e = 0 
-         is = cr_iscat (isel (ia),1 ) 
+         is = cr_iscat (1,isel (ia) ) 
          ind = 0
-            js = cr_iscat (iatom (ind, icent),1 ) 
+            js = cr_iscat (1,iatom (ind, icent) ) 
             IF(mmc_pair(ic, MC_OCC,is,js)/=0) THEN
          IF (check_select_status (iatom (ind, icent),  &
                                   .TRUE., cr_prop (iatom (ind,  &
                                   icent) ), cr_sel_prop) ) THEN                         
             ival1 = 0 
-            js = cr_iscat (iatom (ind, icent),1 ) 
+            js = cr_iscat (1,iatom (ind, icent) ) 
             ival1 = SIGN(1,mmc_pair(ic, MC_OCC,is,js))
             mmc_occ_correl = mmc_occ_correl + ival1
          ENDIF 
@@ -5087,8 +5087,8 @@ INTEGER :: ival1
 mmc_uni_correl = 0.0 
 ncalc = 0 
 valid_e = .FALSE. 
-is = cr_iscat(iatom(0,icent),1)
-js = cr_iscat(iatom(1,icent),1)
+is = cr_iscat(1,iatom(0,icent))
+js = cr_iscat(1,iatom(1,icent))
 !write(*,*) ' IN MMC_CORREL_UNI         ', iatom(0:natom(icent),icent), is, js
 !                                                                       
 IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
@@ -5104,12 +5104,12 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
 !                                                                       
          in_a = 1 
          in_e = natom (icent) 
-         is = cr_iscat (iatom (0, icent),1 ) 
+         is = cr_iscat (1,iatom (0, icent) ) 
          IF(ABS(mmc_pair(ic, MC_UNI,is,is))==1) THEN               ! "is" is of "left==starting" atom type
 !write(*,*) ' Selected is central atom type ic, ia, is            ', &
-! ic, ia, isel(ia), cr_iscat(isel(ia),1) 
+! ic, ia, isel(ia), cr_iscat(1,isel(ia)) 
          DO ind = in_a, in_e 
-            js = cr_iscat (iatom (ind, icent),1 ) 
+            js = cr_iscat (1,iatom (ind, icent) ) 
             IF(ABS(mmc_pair(ic, MC_UNI,is,js))==1) THEN            ! "is,is" or "is,js"  with js=="ending"
             IF(check_select_status(iatom (ind, icent),  &
                                      .TRUE., cr_prop (iatom (ind,  &
@@ -5127,25 +5127,25 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
          ENDDO 
          ELSE
 !write(*,*) ' Selected is NOT central atom type                   ', &
-! ic, ia, isel(ia), cr_iscat(isel(ia),1)
+! ic, ia, isel(ia), cr_iscat(1,isel(ia))
 !write(*,*) ' PAIR is of type  OTHER                              ', 0.0 
          ENDIF
       ELSE 
 !                                                                       
 !     The selected atom is a neighbour, use this atom only              
 !                                                                       
-!write(*,*) ' Selected is neigh   atom type ', ic, ia, cr_iscat(ia,1)
+!write(*,*) ' Selected is neigh   atom type ', ic, ia, cr_iscat(1,ia)
          in_a = 0 
          in_e = 0 
-         is = cr_iscat (isel (ia),1 ) 
+         is = cr_iscat (1,isel (ia) ) 
          ind = 0
-            js = cr_iscat (iatom (ind, icent),1 ) 
+            js = cr_iscat (1,iatom (ind, icent) ) 
             IF(mmc_pair(ic, MC_UNI,is,js)/=0) THEN
          IF (check_select_status (iatom (ind, icent),  &
                                   .TRUE., cr_prop (iatom (ind,  &
                                   icent) ), cr_sel_prop) ) THEN                         
             ival1 = 0 
-            js = cr_iscat (iatom (ind, icent),1 ) 
+            js = cr_iscat (1,iatom (ind, icent) ) 
             ival1 = SIGN(1,mmc_pair(ic, MC_UNI,is,js))
             mmc_uni_correl = mmc_uni_correl + ival1
          ENDIF 
@@ -5211,13 +5211,13 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
       in_e = natom (icent) 
       DO ind = in_a, in_e 
          IF(tatom(ind, icent)) THEN  ! Selected atom is central
-            is = cr_iscat (iatom (0, icent),1 )
-            js = cr_iscat (iatom (ind, icent),1 ) 
+            is = cr_iscat (1,iatom (0, icent) )
+            js = cr_iscat (1,iatom (ind, icent) ) 
 !              ival1 = 0 
 !           ival1 = sign(1,mmc_pair(ic, MC_OCC,is,js))
          ELSE                        ! Selected atom is a neighbor
-            js = cr_iscat (iatom (0, icent),1 )
-            is = cr_iscat (iatom (ind, icent),1 ) 
+            js = cr_iscat (1, iatom (0, icent) )
+            is = cr_iscat (1, iatom (ind, icent) ) 
 !           ival1 = mmc_pair(ic, MC_OCC,is,js)
          ENDIF
 !write(*,*) 'OCC ', tatom(ind, icent), is, js, mmc_depth(ic,MC_OCC, is, js)
@@ -5249,9 +5249,9 @@ ENDIF
 !!!                                                                       
 !!         in_a = 1 
 !!         in_e = natom (icent) 
-!!         is = cr_iscat (iatom (0, icent),1 ) 
+!!         is = cr_iscat (1,iatom (0, icent) ) 
 !!         DO ind = in_a, in_e 
-!!            js = cr_iscat (iatom (ind, icent),1 ) 
+!!            js = cr_iscat (1,iatom (ind, icent) ) 
 !!            IF(mmc_pair(ic, MC_OCC,is,js)/=0) THEN
 !!            IF (check_select_status (iatom (ind, icent),  &
 !!                                     .TRUE., cr_prop (iatom (ind,  &
@@ -5271,9 +5271,9 @@ ENDIF
 !!!                                                                       
 !!         in_a = 0 
 !!         in_e = 0 
-!!         is = cr_iscat (isel (ia),1 ) 
+!!         is = cr_iscat (1,isel (ia) ) 
 !!         ind = 0
-!!            js = cr_iscat (iatom (ind, icent),1 ) 
+!!            js = cr_iscat (1,iatom (ind, icent) ) 
 !!            IF(mmc_pair(ic, MC_OCC,is,js)/=0) THEN
 !!         IF (check_select_status (iatom (ind, icent),  &
 !!                                  .TRUE., cr_prop (iatom (ind,  &
@@ -5346,13 +5346,13 @@ valid_e = .FALSE.
 !Q      in_e = natom (icent) 
 !Q      DO ind = in_a, in_e 
 !Q         IF(tatom(ind, icent)) THEN  ! Selected atom is central
-!Q            is = cr_iscat (iatom (0, icent),1 )
-!Q            js = cr_iscat (iatom (ind, icent),1 ) 
+!Q            is = cr_iscat (1,iatom (0, icent) )
+!Q            js = cr_iscat (1,iatom (ind, icent) ) 
 !Q!              ival1 = 0 
 !Q!           ival1 = sign(1,mmc_pair(ic, MC_UNI,is,js))
 !Q         ELSE                        ! Selected atom is a neighbor
-!Q            js = cr_iscat (iatom (0, icent),1 )
-!Q            is = cr_iscat (iatom (ind, icent),1 ) 
+!Q            js = cr_iscat (1,iatom (0, icent) )
+!Q            is = cr_iscat (1,iatom (ind, icent) ) 
 !Q!           ival1 = mmc_pair(ic, MC_UNI,is,js)
 !Q         ENDIF
 !Q         IF(mmc_pair(ic, MC_UNI,is,js)/=0) THEN
@@ -5380,8 +5380,8 @@ valid_e = .FALSE.
 !QRETURN
 !
 ind = 1
-is = cr_iscat(iatom(0,   icent),1 )
-js = cr_iscat(iatom(ind, icent),1 )
+is = cr_iscat(1,iatom(0,   icent) )
+js = cr_iscat(1,iatom(ind, icent) )
 !write(*,'(a, 6i5,a,3i5)') ' IN ENERGY UNI   ', ic,iatom (0, icent), iatom (ind, icent), &
 !is,js, mmc_pair(ic, MC_UNI, is,js), ' : ',isel(ia), ia, natom(icent)
 !                                                                       
@@ -5397,8 +5397,8 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
       in_e = natom (icent) 
       DO ind = in_a, in_e 
          IF(tatom(ind, icent)) THEN  ! Selected atom is central
-            is = cr_iscat (iatom (0, icent),1 )
-            js = cr_iscat (iatom (ind, icent),1 ) 
+            is = cr_iscat (1,iatom (0, icent) )
+            js = cr_iscat (1,iatom (ind, icent) ) 
 !write(*,'(a,4i5)') 'CENTRAL        ', is, js,    (mmc_pair(ic, MC_UNI,is,is)),  &
 !                                                 (mmc_pair(ic, MC_UNI,is,js))
             IF(is/=js                            ) THEN               ! Different atom types
@@ -5441,8 +5441,8 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
 !' '
             ENDIF
          ELSE                        ! Selected atom is a neighbor
-            js = cr_iscat (iatom (0, icent),1 )                         ! Scattering type at end of vector
-            is = cr_iscat (iatom (ind, icent),1 )                       ! Scattering type at start of vector
+            js = cr_iscat (1,iatom (0, icent) )                         ! Scattering type at end of vector
+            is = cr_iscat (1,iatom (ind, icent) )                       ! Scattering type at start of vector
 !write(*,'(a,4i5)') 'Neighb  ', is, js, ABS(mmc_pair(ic, MC_UNI,js,js)),  &
 !                                       ABS(mmc_pair(ic, MC_UNI,js,is))
             IF(is/=js                            ) THEN               ! Different atom types
@@ -5510,11 +5510,11 @@ ENDIF
 !!!!                                                                       
 !!!         in_a = 1 
 !!!         in_e = natom (icent) 
-!!!         is = cr_iscat (iatom (0, icent),1 ) 
+!!!         is = cr_iscat (1,iatom (0, icent) ) 
 !!!         IF(ABS(mmc_pair(ic, MC_UNI,is,is))==1) THEN               ! "is" is of "left==starting" atom type
 !!!!write(*,*) ' Selected is central atom type '
 !!!         DO in = in_a, in_e 
-!!!            js = cr_iscat (iatom (in, icent),1 ) 
+!!!            js = cr_iscat (1,iatom (in, icent) ) 
 !!!            IF(ABS(mmc_pair(ic, MC_UNI,is,js))==1) THEN            ! "is,is" or "is,js"  with js=="ending"
 !!!               IF (check_select_status (iatom (in, icent),  &
 !!!                                        .TRUE., cr_prop (iatom (in,  &
@@ -5541,15 +5541,15 @@ ENDIF
 !!!!                                                                       
 !!!         in_a = 0 
 !!!         in_e = 0 
-!!!         is = cr_iscat (isel (ia),1 ) 
+!!!         is = cr_iscat (1,isel (ia) ) 
 !!!         in = 0
-!!!                  js = cr_iscat (iatom (in, icent),1 ) 
+!!!                  js = cr_iscat (1,iatom (in, icent) ) 
 !!!            IF(mmc_pair(ic, MC_UNI,is,js)/=0) THEN
 !!!            IF (check_select_status (iatom (in, icent),  &
 !!!                                     .TRUE., cr_prop (iatom (in,  &
 !!!                                     icent) ), cr_sel_prop) ) THEN                         
 !!!                  ival1 = 0 
-!!!                  js = cr_iscat (iatom (in, icent),1 ) 
+!!!                  js = cr_iscat (1,iatom (in, icent) ) 
 !!!               IF(mmc_pair(ic, MC_UNI,js,is) /= 0) THEN
 !!!                  ival1 = mmc_pair(ic, MC_UNI,js,is)
 !!!                  mmc_energy_uni = mmc_energy_uni +                  &
@@ -5628,11 +5628,11 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
       in_e = natom (icent) 
       DO ind = in_a, in_e 
          IF(tatom(ind, icent)) THEN  ! Selected atom is central
-            is = cr_iscat (iatom (0, icent),1 )
-            js = cr_iscat (iatom (ind, icent),1 ) 
+            is = cr_iscat (1,iatom (0, icent) )
+            js = cr_iscat (1,iatom (ind, icent) ) 
          ELSE                        ! Selected atom is a neighbor
-            js = cr_iscat (iatom (0, icent),1 )
-            is = cr_iscat (iatom (ind, icent),1 ) 
+            js = cr_iscat (1,iatom (0, icent) )
+            is = cr_iscat (1,iatom (ind, icent) ) 
          ENDIF
          IF(mmc_left(ic, MC_GROUP,is)/=0) THEN          ! starting atom is in left  group
             IF(mmc_right(ic, MC_GROUP,js)/=0) THEN      ! ending   atom is in right group (A) => (B)
@@ -5772,12 +5772,12 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
 !                                                                       
          in_a = 1 
          in_e = natom(icent) 
-         is   = cr_iscat(iatom (0, icent),1 ) 
+         is   = cr_iscat(1,iatom (0, icent) ) 
          js   = -1                            ! Flag negative to indicate no neighbor
          DO in = in_a, in_e 
             IF(check_select_status(iatom(in, icent),  .TRUE.,          &
                                    cr_prop (iatom (in, icent)), cr_sel_prop)) THEN
-               js    = cr_iscat(iatom (in, icent),1 ) 
+               js    = cr_iscat(1,iatom (in, icent) ) 
                IF(mmc_pair(ic, MC_COORDNUM, is, js)==-1) THEN
                   n_neig(js) = n_neig(js) + 1
                ENDIF
@@ -5796,13 +5796,13 @@ IF (chem_ctyp(ic) == CHEM_VEC    .OR. &
 !                                                                       
 !        in_a = 0 
 !        in_e = 0 
-!        is = cr_iscat (isel (ia),1 ) 
+!        is = cr_iscat (1,isel (ia) ) 
 !        in = 0
 !        IF (check_select_status (iatom (in, icent),  &
 !                                 .TRUE., cr_prop (iatom (in,  &
 !                                 icent) ), cr_sel_prop) ) THEN                         
 !           ival1 = 0 
-!           js = cr_iscat (iatom (in, icent),1 ) 
+!           js = cr_iscat (1,iatom (in, icent) ) 
 !           ival1 = mmc_pair(ic, MC_OCC,is,js)
 !           mmc_energy_cn = mmc_energy_cn +                  &
 !                            mmc_depth (ic,MC_OCC, 0, 0) * ival1
@@ -5814,7 +5814,7 @@ ENDIF
 valid_e = .TRUE. 
 !write(*,'(a, i3, i6, i3, i3, a, 7i7,a,5i2, f10.2)') &
 !' energy_cn   ', ia, isel(ia), icent, natom(icent), ' | ', &
-! cr_iscat(iatom(0:6, icent),1),  ' > ', n_neig(0:4), mmc_energy_cn
+! cr_iscat(1,iatom(0:6, icent)),  ' > ', n_neig(0:4), mmc_energy_cn
 DEALLOCATE(n_neig)
 !                                                                       
 END FUNCTION mmc_energy_cn                   
@@ -5878,11 +5878,11 @@ valid_e = .FALSE.
 !                                                                       
                in_a = 1 
                in_e = natom (icent) 
-               is = cr_iscat (iatom (0, icent),1 ) 
+               is = cr_iscat (1,iatom (0, icent) ) 
                DO jjs = 0, cr_nscat 
                IF (mmc_pair (ic, MC_DISP, is, jjs) == -1 ) THEN 
                   DO in = in_a, in_e 
-                  js = cr_iscat (iatom (in, icent),1 ) 
+                  js = cr_iscat (1,iatom (in, icent) ) 
                   IF (is == js.OR.mmc_pair (ic, MC_DISP, is, js) == -1 ) THEN 
                      IF (check_select_status (iatom (in, icent),  &
                                            .TRUE., cr_prop (iatom (  &
@@ -5909,11 +5909,11 @@ valid_e = .FALSE.
 !                                                                       
                in_a = 0 
                in_e = 0 
-               is = cr_iscat (isel (ia),1 ) 
+               is = cr_iscat (1,isel (ia) ) 
                DO jjs = 0, cr_nscat 
                IF (mmc_pair (ic, MC_DISP, is, jjs) == -1 ) THEN 
                   in = 0 
-                  js = cr_iscat (iatom (in, icent),1 ) 
+                  js = cr_iscat (1, iatom (in, icent) ) 
                   IF (is == js.OR.mmc_pair (ic, MC_DISP, is, js) == -1 ) THEN 
                      IF (check_select_status (iatom (in, icent),  &
                                            .TRUE., cr_prop (iatom (  &
@@ -5998,7 +5998,7 @@ REAL(kind=PREC_DP)    :: d, u (3), v (3)
                ENDDO 
                in_a = 1 
                in_e = natom (icent) 
-               is = cr_iscat (iatom (0, icent),1 ) 
+               is = cr_iscat (1,iatom (0, icent) ) 
             ELSE 
 !                                                                       
 !     The selcted atom is a neighbour, use this atom only               
@@ -6008,10 +6008,10 @@ REAL(kind=PREC_DP)    :: d, u (3), v (3)
                ENDDO 
                in_a = 0 
                in_e = 0 
-               is = cr_iscat (isel (ia),1 ) 
+               is = cr_iscat (1,isel (ia) ) 
             ENDIF 
             DO in = in_a, in_e 
-            js = cr_iscat (iatom (in, icent),1 ) 
+            js = cr_iscat (1,iatom (in, icent) ) 
             IF (mmc_target_corr (ic, MC_SPRING, is, js)  /= 0.0) THEN 
                IF (check_select_status (iatom (in, icent),  &
                                            .TRUE., cr_prop (iatom (in,     &
@@ -6190,7 +6190,7 @@ LOGICAL, INTENT(OUT) :: valid_e
                ENDDO 
                in_a = 1 
                in_e = natom (icent) 
-               is = cr_iscat (iatom (0, icent),1 ) 
+               is = cr_iscat (1,iatom (0, icent) ) 
             ELSE 
 !                                                                       
 !     The selcted atom is a neighbour, use this atom only               
@@ -6200,10 +6200,10 @@ LOGICAL, INTENT(OUT) :: valid_e
                ENDDO 
                in_a = 0 
                in_e = 0 
-               is = cr_iscat (isel (ia),1 ) 
+               is = cr_iscat (1,isel (ia) ) 
             ENDIF 
             DO in = in_a, in_e 
-            js = cr_iscat (iatom (in, icent),1 ) 
+            js = cr_iscat (1,iatom (in, icent) ) 
             IF (mmc_target_corr (ic, MC_LENNARD, is, js)  /= 0.0) THEN 
                IF (check_select_status (iatom (in, icent),  &
                                            .TRUE., cr_prop (iatom (in,     &
@@ -6298,8 +6298,8 @@ REAL(kind=PREC_DP)  :: d, u (3), v (3)
                ENDDO 
                in_a = 1 
                in_e = natom (icent) 
-               is = cr_iscat (iatom (0, icent),1 ) 
-!!write(*,*) 'CENT ', isel(ia), cr_iscat(isel(ia),1), (cr_iscat(iatom(i, icent),1),i=1, natom(icent))
+               is = cr_iscat (1,iatom (0, icent) ) 
+!!write(*,*) 'CENT ', isel(ia), cr_iscat(1,isel(ia)), (cr_iscat(1,iatom(i, icent)),i=1, natom(icent))
             ELSE 
 !                                                                       
 !     The selcted atom is a neighbour, use this atom only               
@@ -6309,10 +6309,10 @@ REAL(kind=PREC_DP)  :: d, u (3), v (3)
                ENDDO 
                in_a = 0 
                in_e = 0 
-               is = cr_iscat (isel (ia),1 ) 
+               is = cr_iscat (1,isel (ia) ) 
             ENDIF 
             DO in = in_a, in_e 
-            js = cr_iscat (iatom (in, icent),1 ) 
+            js = cr_iscat (1,iatom (in, icent) ) 
             IF (mmc_target_corr (ic, MC_REPULSIVE, is, js)  /= 0.0) THEN 
                IF (check_select_status (iatom (in, icent),  &
                                            .TRUE., cr_prop (iatom (in,     &
@@ -6413,7 +6413,7 @@ REAL(kind=PREC_DP) :: d, u (3), v (3)
                ENDDO 
                in_a = 1 
                in_e = natom (icent) 
-               is = cr_iscat (iatom (0, icent),1 ) 
+               is = cr_iscat (1,iatom (0, icent) ) 
             ELSE 
 !                                                                       
 !     The selcted atom is a neighbour, use this atom only               
@@ -6423,10 +6423,10 @@ REAL(kind=PREC_DP) :: d, u (3), v (3)
                ENDDO 
                in_a = 0 
                in_e = 0 
-               is = cr_iscat (isel (ia),1 ) 
+               is = cr_iscat (1,isel (ia) ) 
             ENDIF 
             DO in = in_a, in_e 
-            js = cr_iscat (iatom (in, icent),1 ) 
+            js = cr_iscat (1,iatom (in, icent) ) 
             IF (mmc_target_corr (ic, MC_BUCKING, is, js)  /= 0.0) THEN 
                IF (check_select_status (iatom (in, icent),  &
                                            .TRUE., cr_prop (iatom (in,     &
@@ -6514,8 +6514,8 @@ REAL(kind=PREC_DP) :: a, b, u (3), v (3), w (3)
             DO ii = 1, natom (icent) - 1 
             DO jj = ii + 1, natom (icent) 
             lnoneig = .FALSE. 
-            is = cr_iscat (iatom (ii, icent),1 ) 
-            js = cr_iscat (iatom (jj, icent),1 ) 
+            is = cr_iscat (1,iatom (ii, icent) ) 
+            js = cr_iscat (1,iatom (jj, icent) ) 
             IF (mmc_target_corr (ic, MC_ANGLE, is, js)  /= 0.0) THEN 
                IF (check_select_status (iatom (ii, icent),  &
                                            .TRUE., cr_prop (iatom (ii,     &
@@ -6616,7 +6616,7 @@ REAL(kind=PREC_DP) :: a, b, u (3), v (3), w (3)
 !DBG                                                                    
 !        IF (dbg) THEN 
 !           WRITE ( * , * ) ' selected atom,typ ', isel (ia) , cr_iscat &
-!           (isel (ia),1 )                                                
+!           (1,isel (ia) )                                                
 !     WRITE ( * ,  * ) ' selected pos      ',  (cr_pos (i, isel (ia) ) ,&
 !    & i = 1, 3)                                                        
 !     WRITE ( * ,  * ) ' icent,natom       ', icent, natom (icent) 
@@ -6640,7 +6640,7 @@ REAL(kind=PREC_DP) :: a, b, u (3), v (3), w (3)
 !              ENDDO 
 !              in_a = 1 
 !              in_e = natom (icent) 
-!              is = cr_iscat (iatom (0, icent),1 ) 
+!              is = cr_iscat (1,iatom (0, icent) ) 
 !           ELSE 
 !                                                                       
 !     The selcted atom is a neighbour, use this atom only               
@@ -6653,7 +6653,7 @@ REAL(kind=PREC_DP) :: a, b, u (3), v (3), w (3)
 !              ENDDO 
 !              in_a = 0 
 !              in_e = 0 
-!              is = cr_iscat (isel (ia),1 ) 
+!              is = cr_iscat (1,isel (ia) ) 
 !           ENDIF 
 !           IF (dbg) THEN 
 !     WRITE ( * ,  * ) ' central           ', u 
@@ -6662,7 +6662,7 @@ REAL(kind=PREC_DP) :: a, b, u (3), v (3), w (3)
 !           IF (dbg) THEN 
 !     WRITE ( * ,  * ) '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^' 
 !           ENDIF 
-!           js = cr_iscat (iatom (in, icent),1 ) 
+!           js = cr_iscat (1,iatom (in, icent) ) 
 !           DO nv = 1, mmc_nvec (ic, is, js) 
 !           IF (dbg) THEN 
 !     WRITE ( * ,  * ) ' is,js ,mmc_vec    ', is, js,  (mmc_vec (i, nv, &
@@ -7048,7 +7048,7 @@ DO i=1, mo_cyc
    CALL do_find_env (ianz, werte, MAXW, x, rmin, rmax, chem_quick, chem_period)
    nneig = 0
    DO j=1,atom_env(0)                   ! Loop over all neighbors
-      nneig(cr_iscat(atom_env(j),1)) = nneig(cr_iscat(atom_env(j),1)) + 1
+      nneig(cr_iscat(1,atom_env(j))) = nneig(cr_iscat(1,atom_env(j))) + 1
    ENDDO
    is_max = 0
    nn_max = 0
@@ -7062,7 +7062,7 @@ DO i=1, mo_cyc
          is_max = k
       ENDIF
    ENDDO
-   cr_iscat(iatom,1) = is_max
+   cr_iscat(1,iatom) = is_max
    IF(MOD(INT(i,PREC_INT_LARGE), mo_feed)==0) THEN
       CALL mmc_correlations (lout_feed, rel_cycl, done, .FALSE., .TRUE., maxdev)
    ENDIF

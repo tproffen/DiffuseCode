@@ -634,7 +634,7 @@ IF(istart>=1    .AND. istart <= mole_num_mole .AND. &      ! Test include range
             IF(dem_latomtype(l)) THEN                      ! This atom type is required
                DO j=1, mole_len(i)                               ! Loop over all atoms in molecule
                   k = mole_cont(mole_off(i)+j)                ! Absolute atom number
-                  IF(cr_iscat(mole_cont(mole_off(i)+j),1)==l) CYCLE atomtypes  ! correct atom type
+                  IF(cr_iscat(1,mole_cont(mole_off(i)+j))==l) CYCLE atomtypes  ! correct atom type
                ENDDO
                latomtypes=.FALSE.                          ! End of molecule without atom type
                EXIT atomtypes                              ! no need for further search

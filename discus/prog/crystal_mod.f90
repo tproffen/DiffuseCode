@@ -26,6 +26,15 @@ INTEGER                          ::  cr_ncatoms = 1  ! NUmber of atoms in Unit c
 INTEGER                          ::  cr_ncreal  = 1  ! NUmber of non-void atoms in Unit cell
 INTEGER, DIMENSION(3)            ::  cr_icc     = 1  ! Number of unit cells
 !
+integer                          ::  cr_dim_natoms  = 1  ! Dimension arrays number of atoms
+integer                          ::  cr_dim_nscat   = 1  ! Dimension arrays number of scattering types
+integer                          ::  cr_dim_ncatoms = 1  ! Dimension arrays number of atoms per unit cell
+integer                          ::  cr_dim_nanis   = 1  ! Dimension arrays number of ADPs 
+integer                          ::  cr_dim_n_mole  = 1  ! Dimension arrays number of molecules
+integer                          ::  cr_dim_n_type  = 1  ! Dimension arrays number of molecule types
+integer                          ::  cr_dim_n_atom  = 1  ! Dimension arrays number of atoms in all molecules
+
+!
 INTEGER                          ::  spcgr_ianz  = 0
 INTEGER                          ::  spcgr_para  = 0
 INTEGER, DIMENSION(0:1)          ::  cr_sel_prop = 0
@@ -90,6 +99,7 @@ INTEGER, DIMENSION(  :), ALLOCATABLE  ::  cr_niscat ! (  1:MAXSCAT)  Number of a
 !
 LOGICAL                               :: cr_cartesian = .false.
 LOGICAL                               :: cr_magnetic  = .FALSE.   ! Cyrystal is magnetic YES / NO
+logical                               :: cr_is_anis   = .FALSE.   ! Cyrystal has anisotropic ADPs 
 !
 REAL(kind=PREC_DP)   , DIMENSION(3)                 ::  cr_a0  = 1.0D0
 REAL(kind=PREC_DP)   , DIMENSION(3)                 ::  cr_win = 90.0D0

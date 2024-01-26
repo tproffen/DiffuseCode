@@ -92,21 +92,21 @@ INTEGER,                           INTENT(IN) :: spin
 INTEGER  :: i,j,k    ! dummy loop variables
 !
 DO i = 1, natoms 
-   ref_move_success_n (cr_iscat(isel(i),1)) =   &
-   MOD(ref_move_success_n (cr_iscat(isel(i),1)) + 1, REF_MV_INT)
-   j = ref_move_success_n (cr_iscat(isel(i),1))
-   ref_move_success(j,cr_iscat(isel(i),1)) = spin
-!write(*,*) ' ADAP ', j, ref_move_success(j,cr_iscat(isel(i),1)), rmc_maxmove(1,j)
+   ref_move_success_n (cr_iscat(1,isel(i))) =   &
+   MOD(ref_move_success_n (cr_iscat(1,isel(i))) + 1, REF_MV_INT)
+   j = ref_move_success_n (cr_iscat(1,isel(i)))
+   ref_move_success(j,cr_iscat(1,isel(i))) = spin
+!write(*,*) ' ADAP ', j, ref_move_success(j,cr_iscat(1,isel(i))), rmc_maxmove(1,j)
    IF(MOD(j, REF_MV_INT/10)==REF_MV_INT/10-1) THEN
       isuccess = 0
       DO k=0,REF_MV_INT-1
-         isuccess = isuccess + ref_move_success(k,cr_iscat(isel(i),1))
+         isuccess = isuccess + ref_move_success(k,cr_iscat(1,isel(i)))
       ENDDO
 !write(*,*) ' IN ADAPTATION +', isuccess, REF_MV_INT/5
       IF(isuccess < REF_MV_INT/5) THEN
-         rmc_maxmove(:,cr_iscat(isel(i),1)) = rmc_maxmove(:,cr_iscat(isel(i),1)) * 0.85
+         rmc_maxmove(:,cr_iscat(1,isel(i))) = rmc_maxmove(:,cr_iscat(1,isel(i))) * 0.85
       ELSEIF(isuccess > REF_MV_INT/5) THEN
-         rmc_maxmove(:,cr_iscat(isel(i),1)) = rmc_maxmove(:,cr_iscat(isel(i),1)) / 0.85
+         rmc_maxmove(:,cr_iscat(1,isel(i))) = rmc_maxmove(:,cr_iscat(1,isel(i))) / 0.85
       ENDIF
    ENDIF
 ENDDO

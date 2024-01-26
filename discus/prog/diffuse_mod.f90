@@ -107,6 +107,7 @@ INTEGER                                 ::  diff_radiation = RAD_XRAY
 INTEGER                                 ::  diff_table     = RAD_INTER
 INTEGER                                 ::  diff_power     = 4
 character(len=PREC_STRING)              ::  diff_file      = ' '
+real(kind=prec_dp)                      ::  diff_exti = 0.0
 REAL(kind=PREC_DP), DIMENSION(1:3, 1:4) ::  eck      = reshape((/ 0.0, 0.0,  0.0, &    ! (hkl, corner_number)
                                                                   5.0, 0.0,  0.0, &
                                                                   0.0, 5.0,  0.0, &
@@ -142,6 +143,7 @@ REAL(kind=PREC_DP)                      ::  zone_delta_d = 0.015
 !
 REAL(KIND=PREC_DP), DIMENSION(4,3)      ::  diff_res             ! Resolution sigma and vectors
 REAL(KIND=PREC_DP), DIMENSION(3,3)      ::  diff_tr              ! Resolution transformation matrix
+real(kind=PREC_DP), dimension(:,:,:,:), allocatable :: four_dbw  ! Debye-Waller map
 !
 INTEGER                                 ::  four_last = FOUR_NN  ! No Fourier calculated yet
 !
@@ -150,7 +152,8 @@ INTEGER, PARAMETER :: FOUR_ACCUM_SINGLE   =  0
 INTEGER, PARAMETER :: FOUR_ACCUM_ACCUM    =  1
 INTEGER, PARAMETER :: FOUR_ACCUM_FINISHED =  2
 INTEGER                                 :: four_accum = 0        ! Run a single Fourier (-1==init, 0==single, 1==add, 2==finished)
-LOGICAL                                 :: four_symm  = .FALSE.  ! Run a single Fourier (-1==init, 0==single, 1==add, 2==finished)
+LOGICAL                                 :: four_symm  = .FALSE.  ! Apply reciprocal space symmetry averaging
+logical                                 :: four_friedel = .true. ! Reduce computation time via Friedel, if possible
 !
 ! Filter parameter
 !
