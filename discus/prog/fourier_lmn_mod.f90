@@ -163,8 +163,8 @@ lmn(:) = 0
 !vec_r(1) = mat_i(1,1)*eck(1,1) + mat_i(1,2)*eck(2,1) + mat_i(1,3)*eck(3,1)
 !vec_r(2) = mat_i(2,1)*eck(1,1) + mat_i(3,2)*eck(2,1) + mat_i(2,3)*eck(3,1)
 !vec_r(3) = mat_i(3,1)*eck(1,1) + mat_i(2,2)*eck(2,1) + mat_i(3,3)*eck(3,1)
-!write(*,*) ' vec_r ', vec_r
 vec_r = matmul(mat_i, eck(:,1))
+!write(*,*) ' vec_r ', vec_r
 if(abs(vec_r(1)-real(nint(vec_r(1)),kind=PREC_QP))<1.0D-9) vec_r(1) = real(nint(vec_r(1)),kind=PREC_QP)
 if(abs(vec_r(2)-real(nint(vec_r(2)),kind=PREC_QP))<1.0D-9) vec_r(2) = real(nint(vec_r(2)),kind=PREC_QP)
 if(abs(vec_r(3)-real(nint(vec_r(3)),kind=PREC_QP))<1.0D-9) vec_r(3) = real(nint(vec_r(3)),kind=PREC_QP)
@@ -203,6 +203,7 @@ ENDDO
 !2000 FORMAT('(',f9.5,')=(',f9.5,')*',i8,' +(',f9.5,')*',i8,' +(',f9.5,')*',i8)
 !3000 FORMAT(12x,       '(',f9.5,')*',i8,' +(',f9.5,')*',i8,' +(',f9.5,')*',i8)
 !read(*,'(a)') cdummy
+off_in = real(off, kind=PREC_DP)
 
 END SUBROUTINE fourier_lmn
 END MODULE fourier_lmn_mod
