@@ -37,21 +37,20 @@ use wink_mod
       INTEGER lpara (maxw) 
       INTEGER i, j, k, is, ii, ianz 
       INTEGER uc_n (0:maxscat) 
-      REAL(kind=PREC_DP) :: uc (3), up (3) 
+      REAL(kind=PREC_DP) :: uc (3), up (3) , vv(3)
       REAL(kind=PREC_DP) :: uc_max (3, 0:maxscat) 
       REAL(kind=PREC_DP) :: uc_su2 (3, 0:maxscat) 
-      REAL(kind=PREC_DP) :: pi2, bfac, a 
+      REAL(kind=PREC_DP) :: bfac, a 
       LOGICAL flag_all, flag_mol 
 real(kind=prec_dp) :: sigma
-real(kind=PREC_DP), dimension(3,4) :: prin     ! Principal axes and sigma
 !
 !prin = 0.0D0
 !prin(1,1) = 1.0D0     ! Simple a-axis
 !prin(2,2) = 1.0D0     ! Simple b-axis
 !prin(3,3) = 1.0D0     ! Simple c-axis
-!prin(1,4) =     (1.30/8.0/PI**2)
-!prin(2,4) =     (0.90/8.0/PI**2)
-!prin(3,4) =     (0.90/8.0/PI**2)
+!prin(4,1) =     (1.30/8.0/PI**2)
+!prin(4,2) =     (0.90/8.0/PI**2)
+!prin(4,3) =     (0.90/8.0/PI**2)
 !
       flag_all=.true.
       flag_mol=.false.
@@ -98,7 +97,7 @@ bfac = 1.0D0 / (8.0D0 * pi**2)
 cond_mol:      IF (flag_mol) THEN 
          DO i = 1, mole_num_mole 
             is = mole_cont (mole_off (i) + 1) 
-!           a = sqrt (bfac * cr_dw (cr_iscat (is,1) ) ) 
+!           a = sqrt (bfac * cr_dw (cr_iscat (1,is) ) ) 
             a = sqrt (bfac * mole_biso (mole_type (i) ) ) 
 !           CALL ther_vec(flag_all, a, uc, up)
             is = mole_type (i) 
@@ -127,40 +126,54 @@ cond_mol:      IF (flag_mol) THEN
 ELSE  cond_mol
 !do i=1, cr_ncatoms
 !  write(*,*)
-!  write(*,'(a,3f9.5,i8, i4)' ) ' Atom ', cr_pos(:,i), i, cr_iscat(i,1)
-!  write(*,'(a,3f9.5,a, f9.5)') ' Eigen',cr_prin(1,1:3,i), ' val ', cr_prin(1,4,i) 
-!  write(*,'(a,3f9.5,a, f9.5)') ' Eigen',cr_prin(2,1:3,i), ' val ', cr_prin(2,4,i) 
-!  write(*,'(a,3f9.5,a, f9.5)') ' Eigen',cr_prin(3,1:3,i), ' val ', cr_prin(3,4,i) 
+!  write(*,'(a,3f9.5,i8, i4)' ) ' Atom ', cr_pos(:,i), i, cr_iscat(1,i)
+!  write(*,'(a,3f9.5,a, f9.5)') ' Eigen',cr_prin(1:3,1,i), ' val ', cr_prin(4,1,i) 
+!  write(*,'(a,3f9.5,a, f9.5)') ' Eigen',cr_prin(1:3,2,i), ' val ', cr_prin(4,2,i) 
+!  write(*,'(a,3f9.5,a, f9.5)') ' Eigen',cr_prin(1:3,3,i), ' val ', cr_prin(4,3,i) 
 !enddo
 !write(*,*) ' THERMAL ', cr_nanis
 !do i=1, cr_nanis
-!write(*,'(a,3f9.5,a,f9.5,a,f9.5)') 'E(1,0,0) => ', cr_prin(1,1:3,i),  ' VAL ', cr_prin(1,4,i)
-!write(*,'(a,3f9.5,a,f9.5,a,f9.5)') 'E(0,1,0) => ', cr_prin(2,1:3,i),  ' VAL ', cr_prin(2,4,i)
-!write(*,'(a,3f9.5,a,f9.5,a,f9.5)') 'E(0,0,1) => ', cr_prin(3,1:3,i),  ' VAL ', cr_prin(3,4,i)
+!write(*,'(a,3f9.5,a,f9.5,a,3f9.5)') 'E(1,0,0) => ', cr_prin(1:3,1,i),  ' VAL ', cr_prin(4,1,i), ' HEX ',matmul(cr_emat,cr_prin(1:3,1,i))
+!write(*,'(a,3f9.5,a,f9.5,a,3f9.5)') 'E(0,1,0) => ', cr_prin(1:3,2,i),  ' VAL ', cr_prin(4,2,i), ' HEX ',matmul(cr_emat,cr_prin(1:3,2,i))
+!write(*,'(a,3f9.5,a,f9.5,a,3f9.5)') 'E(0,0,1) => ', cr_prin(1:3,3,i),  ' VAL ', cr_prin(4,3,i), ' HEX ',matmul(cr_emat,cr_prin(1:3,3,i))
 !write(*,*)
+!uc = matmul(cr_gmat, up)
 !enddo
-!do i=1, 8
-!write(*,*) ' ATOM ', i, cr_iscat(i,:)
+!do i=1, cr_ncatoms
+!write(*,*) ' ATOM ', i, cr_iscat(:,i)
 !enddo
    loop_atom_disp:DO i = 1, cr_natoms 
-      is = cr_iscat (i,1) 
+      is = cr_iscat (1,i) 
       a  = sqrt (bfac * cr_dw (is) ) 
 !           CALL ther_vec(flag_all, a, uc, up)
       cond_anis:if(is>=0) then    ! FOR GE 
          ii = cr_ianis(i)
-         ii = cr_iscat(i,3)
+         ii = cr_iscat(3,i)
          call ther_anis(cr_prin(:,:,ii),uc, up, i)
-!if(is==2) then 
+!if(i<=cr_ncatoms) then 
 !   write(*,'(a,i4, i4, i4    )') 'THRMAL ANISO', i, is, ii
-!   write(*,'(a,4f8.4,2x, f8.4)') 'PRIN 1    ', cr_prin(1,:,ii), sqrt(cr_prin(1,4,ii))
-!   write(*,'(a,4f8.4,2x, f8.4)') 'PRIN 2    ', cr_prin(2,:,ii), sqrt(cr_prin(2,4,ii))
-!   write(*,'(a,4f8.4,2x, f8.4)') 'PRIN 3    ', cr_prin(3,:,ii), sqrt(cr_prin(3,4,ii))
+!   write(*,'(a,4f8.4,2x, f8.4)') 'PRIN 1    ', cr_prin(:,1,ii), sqrt(cr_prin(4,1,ii))
+!   write(*,'(a,4f8.4,2x, f8.4)') 'PRIN 2    ', cr_prin(:,2,ii), sqrt(cr_prin(4,2,ii))
+!   write(*,'(a,4f8.4,2x, f8.4)') 'PRIN 3    ', cr_prin(:,3,ii), sqrt(cr_prin(4,3,ii))
 !   write(*,'(a,3f8.4,2x, f8.4)') 'VECTOR uc ', uc
+!   write(*,'(a,3f8.4,2x, f8.4)') 'VECTOR up ', up
+!vv(1) = 1.0D0
+!vv(2) = 0.0D0
+!vv(3) = 0.0D0
+!   write(*,'(a,2(3f8.4,2x, f8.4))') '100       ', vv, matmul(cr_emat, vv)
+!vv(1) = 0.0D0
+!vv(2) = 1.0D0
+!vv(3) = 0.0D0
+!   write(*,'(a,2(3f8.4,2x, f8.4))') '010       ', vv, matmul(cr_emat, vv)
+!vv(1) = 0.0D0
+!vv(2) = 0.0D0
+!vv(3) = 1.0D0
+!   write(*,'(a,2(3f8.4,2x, f8.4))') '001       ', vv, matmul(cr_emat, vv)
 !endif
       else cond_anis
          DO ii = 1, 3 
 sigma = a
-!if(cr_iscat(i,1)==1) then
+!if(cr_iscat(1,i)==1) then
 !  if(ii==1) sigma = a*1.15
 !  if(ii==2) sigma = a*1.00
 !  if(ii==3) sigma = a*1.00
@@ -180,7 +193,7 @@ sigma = a
 !write(*,'(a,3f8.4,2x, f8.4)') 'VECTOR uc ', uc
 !endif
       endif cond_anis
-!write(*,*) ' ATOM ', i, is, cr_iscat(i,1), uc, is<=9
+!write(*,*) ' ATOM ', i, is, cr_iscat(1,i), uc, is<=9
       DO j = 1, 3 
          cr_pos (j, i)  = cr_pos (j, i) + uc (j) 
          uc_max (j, is) = max (uc_max (j, is), abs (up (j) ) ) 
@@ -197,14 +210,13 @@ ENDIF  cond_mol
 !------ print statistics of 'therm' command                             
 !                                                                       
 cond_pr_mol: IF (flag_mol) THEN 
-         WRITE (output_io, 1000) 'Molecule' 
-         DO i = 1, mole_num_type 
-            IF (uc_n (i) .ne.0) THEN 
-            WRITE (output_io, 1050) i, cr_dw (i), (bfac * cr_dw (i) ),  &
-            ( (uc_su2 (j, i) / uc_n (i) ), j = 1, 3), (uc_max (j, i),   &
-            j = 1, 3)                                                   
-            ENDIF 
-         ENDDO 
+   WRITE (output_io, 1000) 'Molecule' 
+   DO i = 1, mole_num_type 
+      IF (uc_n (i) .ne.0) THEN 
+         WRITE(output_io, 1050) i, cr_dw(i), (bfac * cr_dw (i) ),  &
+            ((uc_su2(j, i) / uc_n(i)), j = 1, 3), (uc_max(j, i), j = 1, 3)                                                   
+      ENDIF 
+   ENDDO 
 ELSE cond_pr_mol
 !  write(*,*) ' uc_n   ', uc_n(1:2)
 !  write(*,*) ' uc_max 1 ', uc_max(1:3, 1), uc_su2(1:3,1)
@@ -287,15 +299,13 @@ use precision_mod
 use lib_random_func
 use wink_mod
 !
-real(kind=PREC_DP), dimension(3, 4), intent(in)  :: prin  ! prin(i,1:3) vectors, prin(i,4) <u>**2
-real(kind=PREC_DP), dimension(3)   , intent(out) :: uc
-real(kind=PREC_DP), dimension(3)   , intent(out) :: up
+real(kind=PREC_DP), dimension(4, 3), intent(in)  :: prin  ! prin(i,1:3) vectors, prin(i,4) <u>**2
+real(kind=PREC_DP), dimension(3)   , intent(out) :: uc    ! Crystal space
+real(kind=PREC_DP), dimension(3)   , intent(out) :: up    ! "plot" space == cartesian
 integer :: jj
 !
 integer                            :: i     ! Loop index
 real(kind=PREC_DP), dimension(3,3) :: ud    ! Displacement vector along prinipal axis
-!real(kind=PREC_DP), dimension(3  ) :: up    ! Displacement vector  in Angstroem
-real(kind=PREC_DP)                 :: length  ! length of principal vector ( WILL BE DONE UPSTREAMS)
 real(kind=prec_dp) :: sigma                 ! Sigma for Gaussian
 real(kind=prec_dp) :: disp                  ! actual displacement
 !
@@ -309,21 +319,21 @@ up = 0.0D0
 !endif
 !
 do i=1, 3
-   ud(i,:) = prin(i,1:3)    ! Copy principal vector
+   ud(:,i) = prin(1:3,i)    ! Copy principal vector
 !  length = sqrt(dot_product(u, matmul(gten, u)))
 !  ud(i,:) = ud(i,:) / length         ! Normalize to unit length
 !
-   sigma = sqrt(prin(i,4))
+   sigma = sqrt(prin(4,i))
    disp  = gasdev(sigma)
-   ud(i,:) = ud(i,:) * disp
+   ud(:,i) = ud(:,i) * disp
 !if(jj<=2) then
-!write(*,'(a,4f8.4,2x, f8.4)') ' DISP ', prin(i,4), sigma, disp
-!write(*,'(a,4f8.4,2x, f8.4)') ' vect ', ud(i,:)
+!write(*,'(a,4f8.4,2x, f8.4)') ' DISP ', prin(4,i), sigma, disp
+!write(*,'(a,4f8.4,2x, f8.4)') ' vect ', ud(:,i)
 !endif
-   up = up + ud(i,:)
+   up = up + ud(:,i)
 enddo
 !
-uc = matmul(cr_gmat, up)
+uc = matmul(cr_emat, up)
 !if(jj<=2) then
 !write(*,'(a,4f8.4,2x, f8.4)') ' UP   ', up(:)
 !write(*,'(a,4f8.4,2x, f8.4)') ' UC   ', uc(:)
