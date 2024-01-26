@@ -1107,15 +1107,16 @@ real(kind=PREC_DP)        , dimension(MAXW) :: werte
 !
 integer :: ianz
 !                                                                       
-integer, parameter :: NOPTIONAL = 8
+integer, parameter :: NOPTIONAL = 9
 integer, parameter :: O_SCALE   = 1
 integer, parameter :: O_DAMP    = 2
-integer, parameter :: O_WIDTH   = 3
-integer, parameter :: O_FILTER  = 4
-integer, parameter :: O_MODE    = 5
-integer, parameter :: O_SYMM    = 6
-!integer, parameter :: O_TABLE   = 7     ! Used in subroutine
-integer, parameter :: O_TECHN   = 8
+integer, parameter :: O_EXTI    = 3
+integer, parameter :: O_WIDTH   = 4
+integer, parameter :: O_FILTER  = 5
+integer, parameter :: O_MODE    = 6
+integer, parameter :: O_SYMM    = 7
+!integer, parameter :: O_TABLE   = 8     ! Used in subroutine
+integer, parameter :: O_TECHN   = 9
 character(len=   9), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(len=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -1124,11 +1125,11 @@ logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
 integer, parameter                        :: ncalc = 3 ! Number of values to calculate 
 !
-data oname  / 'scale', 'damp', 'width ',  'filter', 'mode', 'symm'  , 'table', 'technique'/
-data loname /  5     ,  4    ,  5      ,   6      ,  4    ,  4      ,  5     ,  9         /
-opara  =  (/ '1.0000', '0.5000', '4.0000', 'off   ', '0.0000', '0.0000', 'waas  ', 'turbo ' /)   ! Always provide fresh default values
-lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,  4      ,  5       /)
-owerte =  (/  0.0,      0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0     /)
+data oname  / 'scale', 'damp', 'exti', 'width ',  'filter', 'mode', 'symm'  , 'table', 'technique'/
+data loname /  5     ,  4    ,  4    ,  5      ,   6      ,  4    ,  4      ,  5     ,  9         /
+opara  =  (/ '1.0000', '0.5000', '0.0000', '4.0000', 'off   ', '0.0000', '0.0000', 'waas  ', 'turbo ' /)   ! Always provide fresh default values
+lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6      ,  6      ,  4      ,  5       /)
+owerte =  (/  0.0,      0.0,      0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0    ,  0.0     /)
 
 call get_params (zeile, ianz, cpara, lpara, maxw, lp) 
 if(ier_num/=  0) return
@@ -1138,103 +1139,119 @@ if(ier_num/=  0) return
 !
 !four_symm = .FALSE.
 IF(lpresent(O_SYMM)) then       ! set mode: 
-IF(opara(O_symm)=='apply') then
-four_symm = .TRUE.
-else
-four_symm = .FALSE.
-endif
+   IF(opara(O_symm)=='apply') then
+      four_symm    = .TRUE.        ! Apply reciprocal space symmetry average
+      four_friedel = .true.        ! Reduce computation time via Friedel
+   elseif(opara(O_symm)=='friedel') then
+      four_symm    = .FALSE.
+      four_friedel = .true.        ! Reduce computation time via Friedel
+   elseif(opara(O_symm)=='ignore') then
+      four_symm    = .FALSE.
+      four_friedel = .false.       ! Reduce computation time via Friedel
+   else
+      four_symm    = .FALSE.
+      four_friedel = .true.        ! Reduce computation time via Friedel
+      ier_num = -6
+      ier_typ = ER_COMM
+      ier_msg(1) = 'Symmetry paramter must be ''apply'', ''friedel'' or ''ignore'''
+   endif
 endif
 !
 if(lpresent(O_TECHN)) then
-if(opara(O_TECHN)=='turbo') then
-four_tech = FOUR_TURBO
-elseif(opara(O_TECHN)=='nufft') then
-four_tech = FOUR_NUFFT
-else
-ier_num = -6
-ier_typ = ER_COMM
-ier_msg(1) = 'Fourier technique must be ''turbo'' or ''nufft'''
-endif
+   if(opara(O_TECHN)=='turbo') then
+      four_tech = FOUR_TURBO
+   elseif(opara(O_TECHN)=='nufft') then
+      four_tech = FOUR_NUFFT
+   else
+      ier_num = -6
+      ier_typ = ER_COMM
+      ier_msg(1) = 'Fourier technique must be ''turbo'' or ''nufft'''
+   endif
 endif
 !
 if(lpresent(O_FILTER)) then
-if(opara(O_FILTER)=='lanczos') then
-four_filter = FOUR_FILTER_LANCZOS
-else
-four_filter = FOUR_FILTER_OFF
-endif
+   if(opara(O_FILTER)=='lanczos') then
+      four_filter = FOUR_FILTER_LANCZOS
+   else
+      four_filter = FOUR_FILTER_OFF
+   endif
 endif
 !
+if(lpresent(O_EXTI)) then
+   diff_exti   = owerte(O_EXTI)
+endif
+!
+!
 if(lpresent(O_SCALE)) then
-four_nscale = nint(owerte(O_SCALE))
-four_rscale =      owerte(O_SCALE) 
+   four_nscale = nint(owerte(O_SCALE))
+   four_rscale =      owerte(O_SCALE) 
 endif
 !
 if(lpresent(O_DAMP )) then
-four_damp   =      owerte(O_DAMP ) 
+   four_damp   =      owerte(O_DAMP ) 
 endif
 !
 if(lpresent(O_WIDTH)) then
-four_width  = nint(owerte(O_WIDTH))
+   four_width  = nint(owerte(O_WIDTH))
 endif
 !
 if(lpresent(O_MODE)) then       ! set mode: 
-if(opara(O_MODE)=='single') then
-four_accum = 0
+   if(opara(O_MODE)=='single') then
+      four_accum = 0
 !                   IF(four_symm) call four_accumulate  ! Call to apply symmetry
-elseif(opara(O_MODE)=='init') then
-four_accum = -1
-call four_accumulate      ! Call to clear arrays
-four_accum =  1           ! Toggle to accumulate
-elseif(opara(O_MODE)=='accumulate') then
-if(four_accum==0) then    ! First accumulate, initialize
- four_accum = -1
- call four_accumulate      ! Call to clear arrays
-endif
-four_accum =  1           ! Toggle to accumulate
-elseif(opara(O_MODE)=='finish') then
-four_accum =  2
-call four_accumulate      ! Call to clear arrays
-four_accum = 0
-endif
+   elseif(opara(O_MODE)=='init') then
+      four_accum = -1
+      call four_accumulate      ! Call to clear arrays
+      four_accum =  1           ! Toggle to accumulate
+   elseif(opara(O_MODE)=='accumulate') then
+      if(four_accum==0) then    ! First accumulate, initialize
+         four_accum = -1
+         call four_accumulate      ! Call to clear arrays
+      endif
+      four_accum =  1           ! Toggle to accumulate
+   elseif(opara(O_MODE)=='finish') then
+      four_accum =  2
+      call four_accumulate      ! Call to clear arrays
+      four_accum = 0
+   endif
 else                            ! No 'set mode:' parameter present
-if(lpresent(O_SYMM)) then       ! set mode: 
-four_accum = 0
+   if(lpresent(O_SYMM)) then       ! set mode: 
+      four_accum = 0
 !                   IF(four_symm) call four_accumulate  ! Call to apply symmetry
-endif
+   endif
 endif
 !
 if(any(lpresent) .and. ianz==0) then
-CONTINUE
+   CONTINUE
 else
-if(ianz>=1 .and. ianz <= 2) then 
-if(str_comp(cpara(1), 'aver', 1, lpara(1), 4)) then
- if(ianz == 1) then 
-    fave = 0.0 
- else 
-    call del_params (1, ianz, cpara, lpara, maxw) 
-    call ber_params(ianz, cpara, lpara, werte, maxw)
-    if (ier_num.eq.0) then 
-        if(werte(1) .ge.0.0D0 .AND. werte(1).le.100.0D0) then                           
-           fave = werte (1) * 0.01 
-        else 
-           ier_num = -1 
-           ier_typ = ER_FOUR 
-        endif 
-     endif 
-  endif 
-elseif(str_comp(cpara(1), 'external', 1, lpara(1), 8) ) then
-  four_mode = EXTERNAL 
-elseif(str_comp(cpara(1), 'internal', 1, lpara(1), 8) ) then
- four_mode = INTERNAL 
-else 
- ier_num = - 1 
- ier_typ = ER_FOUR 
-endif 
-else 
-ier_num = - 6 
-ier_typ = ER_COMM 
-endif 
+   if(ianz>=1 .and. ianz <= 2) then 
+      if(str_comp(cpara(1), 'aver', 1, lpara(1), 4)) then
+         if(ianz == 1) then 
+            fave = 0.0 
+         else 
+            call del_params (1, ianz, cpara, lpara, maxw) 
+            call ber_params(ianz, cpara, lpara, werte, maxw)
+            if (ier_num.eq.0) then 
+               if(werte(1) .ge.0.0D0 .AND. werte(1).le.100.0D0) then                           
+                  fave = werte (1) * 0.01 
+               else 
+                  ier_num = -1 
+                  ier_typ = ER_FOUR 
+               endif 
+            endif 
+         endif 
+      elseif(str_comp(cpara(1), 'external', 1, lpara(1), 8) ) then
+         four_mode = EXTERNAL 
+      elseif(str_comp(cpara(1), 'internal', 1, lpara(1), 8) ) then
+         four_mode = INTERNAL 
+      else 
+         ier_num = - 1 
+         ier_typ = ER_FOUR 
+      endif 
+   else 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   endif 
 endif 
 !
 end subroutine fourier_set
@@ -1333,6 +1350,11 @@ IF (ano) then
 ELSE 
  WRITE (output_io, 1310) 'ignored' 
 ENDIF 
+if(diff_exti>0.00_PREC_DP) then
+   write(output_io, '(a,f6.4)') '   Exctinction Param. : ' , diff_exti
+else
+   write(output_io, '(2a)')     '   Exctinction Param. :' , ' No extinction correction applied'
+endif
 if(four_filter==FOUR_FILTER_OFF) then
   write(output_io, 1320) 
 elseif(four_filter==FOUR_FILTER_LANCZOS) then
