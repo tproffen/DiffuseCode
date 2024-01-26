@@ -1551,6 +1551,7 @@ REAL(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: ywrt  ! 'x' - values for standa
 REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: zwrt  ! 'z' - values for standard 2D files
 INTEGER :: nnew1, nnew2
 !
+logical :: four_log_user   ! Store user setting for Fourier log
 CHARACTER (LEN=160), DIMENSION(:), ALLOCATABLE :: header_lines
 INTEGER :: nheader
 real(kind=PREC_DP) :: qqmax
@@ -1564,6 +1565,7 @@ qqmax = 0.0_PREC_DP
 !                                                                       
 !     If output type is shelx, calculate qval(000) for scaling          
 !                                                                       
+four_log_user = four_log
 IF(m==-1 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with 000
 !        DO i = 1, 3 
 !        shel_inc (i) = inc (i) 
@@ -1602,7 +1604,9 @@ IF(m==-1 .and. (ityp.eq.HKLF4.or.ityp.eq.LIST5)) THEN    ! Scale with 000
    ELSEIF (ityp.eq.LIST5) THEN 
       value = 2 
    ENDIF 
+   four_log = .false.    ! Turn Fourier log off
    CALL four_run 
+   four_log = four_log_user  ! Turn Fourier log back to user setting
    shel_csf = CMPLX(csf (1,1,1), KIND=KIND(0.0D0))
    shel_000 = qval (1,1,1, value, 1, 1, laver) 
    qq = (qval(1,1,1, value, 1, 1, laver) / cr_icc(1)/cr_icc(2)/cr_icc(3))**2
