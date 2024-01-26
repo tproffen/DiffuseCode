@@ -3686,10 +3686,11 @@
 3  set
 !p set "aver" [, <per>]
 !p set {"external"|"internal"}
-!p     {"mode:single" | "mode:init" | "mode:accumulate" | "mode:finish"}
-!p     {"symm:apply" | "symm:friedel" | "symm:ignore" }
-!p     {"technique:turbo" | "technique:nufft"}
-!p     {"filter:lanczos", "damp:"<r>, "width:"<npoints>, "scale:"<factoor>yy}
+!p set {"exti:"|<par>}
+!p set {"mode:single" | "mode:init" | "mode:accumulate" | "mode:finish"}
+!p set {"symm:apply" | "symm:friedel" | "symm:ignore" }
+!p set {"technique:turbo" | "technique:nufft"}
+!p set {"filter:lanczos", "damp:"<r>, "width:"<npoints>, "scale:"<factoor>yy}
 
 !p set "aver" [, <per>]
 
@@ -3707,7 +3708,7 @@
    atoms are not listed in the DISCUS order the average structure will
    not be calculated correctly !
 
-!p     {"mode:single" | "mode:init" | "mode:accumulate" | "mode:finish"}
+!p set {"mode:single" | "mode:init" | "mode:accumulate" | "mode:finish"}
 
    As default mode, DISCUS will calculate a single Fourier transform 
    that can be written to an output file. 
@@ -3758,6 +3759,15 @@
    using the appropriate analytical expression. In order to activate
    this state, you must set the Fourier to "external".
 
+!p set "exti:"<par>
+
+   Set an extinction correction parameter. 
+   The amplitudes are multiplied by
+      [ 1.0 + 0.001 * <par> * ampl**2 * lambda**3 / sin(2Theta) ] ** (-0.25)
+   This equation is taken from SHELXL.
+
+   Development note, currently the extinction correction is applied only
+   to output format "hklf4" and "list5"
 !p set {"technique:turbo"}
 !p set {"technique:nufft"}
 
@@ -5440,7 +5450,7 @@
 !p       "pdf" [,"r" [,<min>,<max>,<step>] ] 
 !p     | "post" | "stan" | "nexus" |
 !p       "vtk" | "mrc" | "vesta" | "xplor" 
-!p     | {"shel"|"hklf4"@"list5"} [,"maxval:"{"auto"|"data"|<value>"]" }
+!p     | {"shel"|"hklf4"@"list5"} [,"maxval:"{"auto"|"bragg"|<value>"]" }
 !p     | "hdf5" [,"maxval:"{"auto"|"data"|<value>"]" }
 
    Defines the output format that will be used. 
