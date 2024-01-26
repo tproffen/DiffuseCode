@@ -24,7 +24,7 @@ IMPLICIT NONE
 !
    INTEGER, PARAMETER :: PER_MAXELEMENT = 225
    INTEGER, PARAMETER :: PER_MAX_WAVE   =  50
-   INTEGER, DIMENSION(1:3,0:1), PARAMETER :: PER_RAD_POWER = reshape((/ 4, 0, 5 , 5, 0, 5/), (/3,2/))
+   INTEGER, DIMENSION(1:3,0:2), PARAMETER :: PER_RAD_POWER = reshape((/ 4, 0, 5 , 5, 0, 5, 0,0,0/), (/3,3/))
 !
    integer           , dimension(1:PER_MAXELEMENT), parameter :: per_ordi = (/ &
         0     ,1     ,1     ,1     ,1     ,1     ,2     ,3     ,3     ,4     ,4     ,5     ,6     ,6     ,&
