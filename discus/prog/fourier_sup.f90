@@ -2593,7 +2593,10 @@ SUBROUTINE calc_hkl(infile,infile_l, calcfile, calcfile_l,scale,style)
 USE crystal_mod 
 USE diffuse_mod 
 USE discus_allocate_appl_mod
+use metric_mod
+!
 USE get_params_mod
+use lib_length
 USE param_mod
 USE prompt_mod
 USE precision_mod
@@ -2612,6 +2615,7 @@ INTEGER, PARAMETER :: ird = 54
 INTEGER, PARAMETER :: iwr = 55
 INTEGER, PARAMETER :: HKLF4 = 4
 INTEGER, PARAMETER :: CIF   = 1
+real(kind=PREC_DP),  dimension(3), parameter :: NULLV =(/0.0_PREC_DP, 0.0_PREC_DP, 0.0_PREC_DP/)
 !
 CHARACTER(LEN=PREC_STRING) :: line
 CHARACTER(LEN=PREC_STRING), DIMENSION(:), ALLOCATABLE   :: ccpara
@@ -2620,6 +2624,7 @@ INTEGER, dimension(3) :: n_qxy
 INTEGER            :: n_natoms,n_nscat
 INTEGER            :: iostatus
 INTEGER            :: ih,ik,il
+INTEGER            :: hh,kk,ll
 INTEGER            :: ih_min,ik_min,il_min
 INTEGER            :: ih_max,ik_max,il_max
 INTEGER            :: n_refl
@@ -2638,9 +2643,10 @@ INTEGER            ::   j_fobs   = 0
 INTEGER            ::   j_fcalc  = 0
 INTEGER            ::   j_sigf   = 0
 INTEGER            ::   j_flag   = 0
-REAL(kind=PREC_DP)               :: rint, sint, wert
+REAL(kind=PREC_DP)               :: rint, sint, qq
 REAL(kind=PREC_DP), DIMENSION(7) :: values
 REAL(kind=PREC_DP), DIMENSION(3) :: rhkl
+REAL(kind=PREC_DP)               :: ext_cor
 !
 n_qxy    = 1
 n_natoms = 1
@@ -2812,6 +2818,9 @@ IF (ier_num == 0) then
    main:    DO
       IF(style==HKLF4) THEN
          READ(ird,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
+         values(1) = real(ih,kind=PREC_DP)
+         values(2) = real(ik,kind=PREC_DP)
+         values(3) = real(il,kind=PREC_DP)
       ELSEIF(style==CIF) THEN
          READ(ird,'(a)',IOSTAT=iostatus) line
          length = LEN_TRIM(line)
@@ -2825,17 +2834,24 @@ IF (ier_num == 0) then
          !              READ(ird,*   , IOSTAT=iostatus) ih,ik,il, rint, sint
       ENDIF
       IF(IS_IOSTAT_END(iostatus)) EXIT main
-      indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1       
-      wert = REAL(csf(ih,ik,il)*CONJG(csf(ih,ik,il)),KIND=KIND(0.0D0))                      
-      sint = SQRT(ABS(wert))
-      IF(ih==0 .AND. ik==0 .AND. IL==0) THEN
-         WRITE(iwr,1000) ih,ik,il, 0.00, 0.00
+      hh = ih - ih_min + 1
+      kk = ik - ik_min + 1
+      ll = il - il_min + 1
+!     indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1       
+      qq   = sqrt(REAL(csf(hh,kk,ll)*CONJG(csf(hh,kk,ll)),KIND=KIND(0.0D0))) &  ! Amplitude
+                 / cr_icc(1) / cr_icc(2) / cr_icc(3)
+      ext_cor = (1.0_PREC_DP/(1.0_PREC_DP + 0.001_PREC_DP * diff_exti * qq**2*rlambda**3/ &
+                         sind(2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., values(1:3), NULLV))))**0.25_PREC_DP)
+      qq = (qq * ext_cor)**2 * scale
+      sint = SQRT(ABS(qq))
+      IF(hh==0 .AND. kk==0 .AND. ll==0) THEN
+         WRITE(iwr,1000) hh,kk,ll, 0.00_PREC_DP, 0.00_PREC_DP
       ELSE
          IF(style==HKLF4) THEN
-           WRITE(iwr,1000) ih,ik,il, scale*wert, sqrt(scale)*sint 
+           WRITE(iwr,1000) ih,ik,il, qq, sint
          ELSEIF(style==CIF) THEN
            IF(j_icalc/=0) THEN
-             values(j_icalc) = scale*wert
+             values(j_icalc) = qq
            ENDIF
            WRITE(iwr, 2000) ih,ik,il, (values(j),j=4, nentries-1)
          ENDIF
@@ -2844,7 +2860,7 @@ IF (ier_num == 0) then
 ENDIF 
 IF(ALLOCATED(ccpara))   DEALLOCATE(ccpara)
 IF(ALLOCATED(llpara))   DEALLOCATE(llpara)
-1000  FORMAT(3I4,F8.2,F8.2)
+1000  FORMAT(3I4,2F8.2)
 2000  FORMAT(3I4,F12.2,F12.2, F12.2)
 CLOSE(ird)
 CLOSE(iwr)

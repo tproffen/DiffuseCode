@@ -396,40 +396,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
 !     calculate at a SHELXL list of reciprocal points 'hkl'                     
 !                                                                       
             ELSEIF (str_comp (befehl, 'hkl', 2, lbef, 3) ) then 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz >= 4) then 
-                     CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
-                     infile   = cpara(1)
-                     infile_l = lpara(1)
-                     CALL del_params (1, ianz, cpara, lpara, maxw) 
-                     CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
-                     calcfile   = cpara(1)
-                     outfile_l = lpara(1)
-                     CALL del_params (1, ianz, cpara, lpara, maxw) 
-                     IF(ianz == 2 ) THEN   ! Style is given
-                        IF(str_comp (cpara(ianz), 'hklf4', 5, lpara(ianz), 5)) THEN
-                           istyle = HKLF4
-                           ianz   = ianz - 1
-                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                        ELSEIF(str_comp (cpara(ianz), 'cif', 3, lpara(ianz), 3)) THEN
-                           istyle = CIF
-                           ianz   = ianz - 1
-                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                        ELSE
-                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                           istyle = NINT(werte(2))
-                        ENDIF
-                     ELSE
-                        istyle = HKLF4
-                        CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     ENDIF
-                     CALL calc_hkl(infile,infile_l, calcfile, outfile_l, werte(1),istyle )
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+               call four_set_hkl(zeile, lp)
 !                                                                       
 !     define the whole layer 'laye'                                     
 !                                                                       
@@ -1255,6 +1222,92 @@ else
 endif 
 !
 end subroutine fourier_set
+!
+!*****7*****************************************************************
+!
+subroutine four_set_hkl(zeile, lp)
+!-
+!  process 'hkl' command
+!-
+!
+use fourier_sup
+!
+use ber_params_mod
+use build_name_mod
+use errlist_mod
+use get_params_mod
+use precision_mod
+use str_comp_mod
+use take_param_mod
+!
+implicit none
+!
+character(len=*), intent(inout) :: zeile   ! Command line string
+integer         , intent(inout) :: lp      ! Length: Command line string
+!
+integer, parameter :: HKLF4 = 4
+integer, parameter :: CIF   = 1
+integer, parameter :: MAXW = 10
+!
+character(len=PREC_STRING)                  :: infile
+character(len=PREC_STRING)                  :: calcfile
+integer                                     :: calcfile_l
+integer                                     :: infile_l
+integer                                     :: ianz
+integer                                     :: istyle    ! Computation hklf4 or cif
+character(len=PREC_STRING), dimension(MAXW) :: cpara
+integer                   , dimension(MAXW) :: lpara
+!real(kind=PREC_DP)        , dimension(MAXW) :: werte
+real(kind=PREC_DP)                          :: scalef
+!                                                                       
+integer, parameter :: NOPTIONAL = 4
+integer, parameter :: O_SCALE   = 1   ! used in subroutines
+integer, parameter :: O_IN      = 2   ! used in subroutines
+integer, parameter :: O_OUT     = 3
+integer, parameter :: O_STYLE   = 4   ! used in subroutines
+character(LEN=  10), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 1 ! Number of values to calculate 
+!
+data oname  / 'scale', 'in'  , 'out', 'style' /
+data loname /  5    ,   2    ,  3   ,  5      /
+opara  =  (/ '1.0000    ', 'discus.hkl', 'result.hkl', 'hklf4     '/) ! Always provide fresh default values
+lopara =  (/  6          ,  10         ,  10         ,  5          /)
+owerte =  (/  1.0D0      ,  0.0D0      ,  0.0D0      ,  0.0D0      /)
+!
+call get_params (zeile, ianz, cpara, lpara, MAXw, lp)             ! Get all user parameters
+if(ier_num /= 0) return
+!
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &  ! Get and evaluate optional parameters
+     oname, loname, opara, lopara, lpresent, owerte)
+if(ier_num /= 0) return
+!
+infile     = opara(O_IN)(1:lopara(O_IN))   ! Input file, must be present
+infile_l   = lopara(O_IN)
+!
+calcfile   = opara(O_OUT)(1:lopara(O_OUT)) ! Output file must be present
+calcfile_l = lopara(O_OUT)
+!
+if(opara(O_STYLE)=='hklf4') then           ! Style is HKLF4 by default
+  istyle = HKLF4
+elseif(opara(O_STYLE)=='cif') then
+   istyle = CIF
+else
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'Style parameter must be ''hklf4'' or ''cif'''
+   return
+endif
+!
+scalef = owerte(O_SCALE)                  ! Scalefactor is 1.0 by default
+!
+call calc_hkl(infile,infile_l, calcfile, calcfile_l, scalef  ,istyle )
+!
+end subroutine four_set_hkl
 !
 !*****7*****************************************************************
 !

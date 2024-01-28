@@ -1884,7 +1884,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !endif
                qq = (qq * ext_cor)**2 * out_fac
                sq = sqrt (qq) 
-               WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), qq, sq
+               WRITE (iff, '(3i4,2f8.2)') int(h(1)), int(h(2)), int(h(3)), qq, sq
             ENDIF
                ENDDO 
                ENDDO 
