@@ -3513,7 +3513,7 @@
 !p calc <h>,<k>,<l>
    Calculates the structure factor at a single point h,k,l.
    The real value is stored in res[1], the imaginary value in res[2].
-   The corresponding value normalized to one unit cell are stored in
+   The corresponding values normalized to one unit cell are stored in
    res[3] and res[4], respectively. res[0] is set to 4 to indicate 
    that 4 values may be found in res.
 3  delf
@@ -3556,7 +3556,8 @@
    For X-rays and electrons the value is to be given in units of keV,
    for neutrons in units of meV.
 3  hkl
-!p  hkl <infile>, <outputfile>, <scale>, "4"
+!p  hkl "in:"<infile>, "out:<outputfile>, "scale:"<scale>, style:"hklf4"
+!p  hkl "in:"<infile>, "out:<outputfile>, "scale:"<scale>, style:"cif"
 
    This command reads the SHELX HKLF4 file <infile> and calculates
    the intensity using the current structure. The data are written 
