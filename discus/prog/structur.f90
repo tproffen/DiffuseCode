@@ -3435,8 +3435,483 @@ IF(ier_num==0) THEN
 ENDIF
 !                                                                       
 END SUBROUTINE do_import                      
+!
 !*****7**************************************************************** 
+!
 SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW, ofile) 
+!-                                                                      
+!     converts a SHELXL "ins" or "res" file to DISCUS                   
+!+                                                                      
+USE ber_params_mod
+USE blanks_mod
+USE build_name_mod
+USE get_params_mod
+USE lib_length
+use string_convert_mod
+USE wink_mod
+USE precision_mod
+USE support_mod
+!
+IMPLICIT none 
+!                                                                       
+!                                                                       
+INTEGER                             , INTENT(INOUT) :: ianz 
+INTEGER                             , INTENT(IN)    :: MAXW 
+CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara ! (MAXW) 
+INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara ! (MAXW) 
+CHARACTER(LEN=*)                    , INTENT(OUT)   :: ofile 
+!                                                                       
+real(kind=PREC_DP), parameter :: TOL = 0.00005_PREC_DP
+INTEGER, PARAMETER :: NFV = 50 
+integer, parameter :: IRD = 34
+integer, parameter :: IWR = 35
+!                                                                       
+REAL(KIND=PREC_DP), dimension(MAXW) :: werte
+!                                                                       
+INTEGER, PARAMETER :: shelx_num = 61       ! Number of SHELX commands to ignore 
+CHARACTER(len=4), dimension(shelx_num) :: shelx_ign ! (1:shelx_num) 
+CHARACTER(len=2), dimension(20)        :: c_atom    ! Atom types 
+!      CHARACTER(4) command 
+!CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE :: eadp_names
+CHARACTER(len=80)  :: line1 
+CHARACTER(len=80)  :: line2 
+CHARACTER(len=160) :: line 
+CHARACTER(LEN=MAX(PREC_STRING,LEN(ofile))) :: infile          ! Input file name
+character(len=160), dimension(:), allocatable :: content      ! Complete content of Shelx file
+character(len=256), dimension(:), allocatable :: structure    ! Complete DISCUS result
+integer :: lcontent   ! Number of lines in content
+integer :: ios        ! I/O status
+integer :: ifvar      ! Line number of 'FVAR'
+integer :: ihklf      ! Line number of 'HKLF'
+integer :: is         ! last line in structure 
+integer :: jc         ! Current content line 
+integer :: nvar       ! Actual number free variables
+integer :: natoms     ! Atoms in main part of the input file
+!integer :: itype      ! Current atom type
+integer, dimension(:), allocatable :: nanis   ! Number of ADP's for give chemical element
+integer :: iscat      ! Current chemical element
+!integer :: ianis      ! Current ADP
+integer :: iatom      ! Current atom
+!
+real(kind=PREC_DP), dimension(:,:)  , allocatable :: posit   ! List of all Atom positions
+real(kind=PREC_DP), dimension(6)                  :: uij_at  ! Current uij
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: uij_l   ! List of all Uij
+!
+INTEGER i, j, k, jj , l
+INTEGER ix, iy, iz, idot 
+INTEGER ntyp , ntyp_prev
+INTEGER length, lp 
+INTEGER icont 
+INTEGER centering 
+!     INTEGER ityp 
+INTEGER ifv 
+!INTEGER   :: MAX_EADP
+!INTEGER   :: n_eadp
+LOGICAL :: lmole     ! If true we are reading a molecule
+REAL(KIND=PREC_DP)                 :: z
+REAL(KIND=PREC_DP), dimension(6)   :: latt      !Lattice parameters in input file
+REAL(KIND=PREC_DP), dimension(3,4) :: gen       ! Generator matrices constructed from 'SYMM' commands
+REAL(KIND=PREC_DP), dimension(NFV) :: fv        ! SHELX free variables
+!REAL(KIND=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: eadp_values
+!
+INTEGER                               :: iianz      ! Dummy number of parameters
+INTEGER, PARAMETER                    :: MAXP  = 11 ! Dummy number of parameters
+CHARACTER (LEN=MAX(PREC_STRING,LEN(cpara))), DIMENSION(MAXP) :: ccpara     ! Parameter needed for SFAC analysis
+INTEGER             , DIMENSION(MAXP) :: llpara
+REAL(KIND=PREC_DP)  , DIMENSION(MAXP) :: wwerte
+!                                                                       
+!                                                                       
+DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
+'BOND', 'BUMP', 'CGLS', 'CHIV', 'CONF', 'CONN', 'DAMP', 'DANG',   &
+'DEFS', 'DELU', 'DFIX', 'DISP',         'EQIV', 'EXTI', 'EXYZ',   &
+'FEND', 'FLAT', 'FMAP', 'FRAG', 'FREE', 'GRID', 'HFIX', 'HOPE',   &
+'HTAB', 'ISOR', 'L.S.', 'LAUE', 'LIST', 'MERG', 'MORE', 'MOVE',   &
+'MPLA', 'NCSY', 'OMIT', 'PART', 'PLAN', 'REM ', 'RESI', 'RTAB',   &
+'SADI', 'SAME', 'SHEL', 'SIMU', 'SIZE', 'SPEC', 'SUMP', 'STIR',   &
+'SWAT', 'TEMP', 'TIME', 'TWIN', 'UNIT', 'WGHT', 'WPDB', 'ZERR' /  
+!
+fv = 0.0_PREC_DP
+!                                                                       
+lmole    = .false. 
+!
+ntyp      = 0
+ntyp_prev = 0
+!                                                                       
+CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)  ! Contruct file name
+IF (ier_num.ne.0) THEN 
+   RETURN
+ENDIF 
+infile = cpara (1) 
+i = index (infile, '.', .TRUE.) 
+IF (i.eq.0) THEN 
+   infile = cpara (1) (1:lpara (1) ) //'.ins' 
+   ofile = cpara (1) (1:lpara (1) ) //'.cell'            ! Construct output file name
+ELSE 
+   ofile = cpara (1) (1:i) //'cell' 
+ENDIF 
+CALL oeffne(IRD, infile, 'old') 
+IF (ier_num /= 0) THEN 
+   RETURN
+ENDIF 
+CALL oeffne(IWR, ofile, 'unknown') 
+IF (ier_num /= 0) THEN 
+   close(IRD)
+   RETURN
+ENDIF 
+!
+! Read file once to determine line numbers
+!
+lcontent = 0
+loop_count: do
+   read(IRD, '(a)', iostat=ios) line
+   if(is_iostat_end(ios)) exit loop_count
+   lcontent = lcontent + 1
+enddo loop_count
+close(ird)
+open(unit=IRD, file=infile, status='old')  ! Simplified open as we know file exists
+allocate(content(lcontent))
+j = 0
+loop_read: do
+   read(IRD, '(a)', iostat=ios) line1      ! Read a short line
+   if(is_iostat_end(ios)) exit loop_read
+   if(line==' ')  cycle loop_read          ! Empty line, skip
+   if(line(1:3) == 'REM') cycle loop_read  ! Remark == comment, ignore
+   icont = index (line1, '=')
+   if(icont>0) then
+      read(IRD, '(a)', iostat=ios) line2   ! Read a short line
+      if(is_iostat_end(ios)) then
+          close(IRD)
+          close(iWR)
+          goto 900      ! Serious error, continuation line missing, abort
+      endif
+      line = line1(1:icont -1) // ' ' // line2(1:len_trim(line2))
+   else
+      line = line1
+   endif
+   do i=1, shelx_num                       ! Test for command that we ignore
+      if(line(1:4) == shelx_ign(i)) cycle loop_read
+   enddo
+   j=j+1
+   content(j) = line
+   if(content(j)(1:4) == 'FVAR') ifvar = j
+   if(content(j)(1:4) == 'HKLF') ihklf = j
+enddo loop_read
+lcontent = j
+allocate(structure(2*lcontent))            ! DISCUS result
+structure = ' '
+!
+close(ird)
+!
+!  Interprete content
+!
+is = 0
+loop_header: do jc=1, ifvar
+  if(content(jc)(1:4) == 'TITL') then              ! TITL
+     structure(1) = 'title ' // content(jc)(6:len_trim(content(jc)))
+     structure(2) = 'spcgr P1'
+     is = 2
+  elseif(content(jc)(1:4) == 'CELL') then          ! CELL
+     read(content(jc)(6:len_trim(content(jc))),*) z, latt
+     is = is + 1
+     write(structure(is), '(a,6(2x,f12.5:,'',''))') 'cell ', latt
+  elseif(content(jc)(1:4) == 'LATT') then          ! LATT
+     read(content(jc)(6:len_trim(content(jc))),*) centering
+     is = is + 1
+     IF(abs(centering) .eq.1) THEN 
+        continue 
+     elseif(abs(centering)  == 2) THEN 
+        write(structure(is), 2320) 
+     elseif(abs(centering)  == 3) THEN 
+        write(structure(is), 2330) 
+     elseif(abs(centering)  == 4) THEN 
+        write(structure(is), 2340) 
+        is = is + 1
+        write(structure(is), 2341) 
+     elseif(abs(centering)  == 5) THEN 
+        write(structure(is), 2350) 
+     elseif(abs(centering)  == 6) THEN 
+        write(structure(is), 2360) 
+     elseif(abs(centering)  == 7) THEN 
+        write(structure(is), 2370) 
+     endif 
+     IF(centering >  0) THEN 
+        is = is + 1
+        write(structure(is), 2400) 
+     endif 
+  elseif(content(jc)(1:4) == 'SYMM') then          ! SYMM
+     line = content(jc)(6:len_trim(content(jc)))
+     call do_cap(line)
+     length = len_trim(line)
+     lp = length! - 5 
+     CALL get_params (line (1:length), ianz, cpara, lpara, maxw, lp) 
+     IF (ianz.eq.3) THEN 
+        DO i = 1, 3 
+           DO jj = 1, 4 
+              gen (i, jj) = 0.0 
+           ENDDO 
+           ix = index (cpara (i) , 'X') 
+           IF (ix.gt.0) THEN 
+              gen (i, 1) = 1.0 
+              IF (ix.gt.1) THEN
+                 IF(cpara (i) (ix - 1:ix - 1) .eq.'-') THEN 
+                    gen (i, 1) = - 1.0 
+                    cpara (i) (ix - 1:ix - 1) = ' ' 
+                 ELSEIF (cpara (i) (ix - 1:ix - 1) .eq.'+') THEN                                                     
+                    gen (i, 1) = 1.0 
+                    cpara (i) (ix - 1:ix - 1) = ' ' 
+                 ENDIF 
+              ENDIF 
+              cpara (i) (ix:ix) = ' ' 
+           ENDIF 
+           iy = index (cpara (i) , 'Y') 
+           IF (iy.gt.0) THEN 
+              gen (i, 2) = 1.0 
+              IF (iy.gt.1) THEN
+                 IF(cpara (i) (iy - 1:iy - 1) .eq.'-') THEN 
+                    gen (i, 2) = - 1.0 
+                    cpara (i) (iy - 1:iy - 1) = ' ' 
+                 ELSEIF (cpara (i) (iy - 1:iy - 1) .eq.'+') THEN                                                     
+                    gen (i, 2) = 1.0 
+                    cpara (i) (iy - 1:iy - 1) = ' ' 
+                 ENDIF 
+              ENDIF 
+              cpara (i) (iy:iy) = ' ' 
+           ENDIF 
+           iz = index (cpara (i) , 'Z') 
+           IF (iz.gt.0) THEN 
+              gen (i, 3) = 1.0 
+              IF (iz.gt.1) THEN
+                 IF(cpara (i) (iz - 1:iz - 1) .eq.'-') THEN 
+                    gen (i, 3) = - 1.0 
+                    cpara (i) (iz - 1:iz - 1) = ' ' 
+                 ELSEIF (cpara (i) (iz - 1:iz - 1) .eq.'+') THEN                                                     
+                    gen (i, 3) = 1.0 
+                    cpara (i) (iz - 1:iz - 1) = ' ' 
+                 ENDIF 
+              ENDIF 
+              cpara (i) (iz:iz) = ' ' 
+           ENDIF 
+        ENDDO 
+        DO i = 1, 3 
+           idot = index (cpara (i) , '.') 
+           IF (idot.eq.0) THEN 
+              cpara (i) (lpara (i) + 1:lpara (i) + 1) = '.' 
+              cpara (i) (lpara (i) + 2:lpara (i) + 2) = '0' 
+              lpara (i) = lpara (i) + 2 
+           ENDIF 
+           CALL rem_bl (cpara (i), lpara (i) ) 
+        ENDDO 
+        CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+        gen (1, 4) = werte (1) 
+        gen (2, 4) = werte (2) 
+        gen (3, 4) = werte (3) 
+        is = is + 1
+        WRITE (structure(is), 2600) ( (gen (i, j), j = 1, 4), i = 1, 3) 
+     ENDIF 
+  elseif(content(jc)(1:4) == 'SFAC') then          ! SFAC
+     line = content(jc)(6:len_trim(content(jc)))
+     call do_cap(line)
+     length = len_trim(line)
+     j = 0 
+     atom_search1: DO while (j.lt.length) 
+        j = j + 1 
+        DO while (j.lt.length.and.line (j:j) .eq.' ') 
+           j = j + 1 
+        ENDDO 
+        IF (j.le.length) THEN 
+           ntyp = ntyp + 1 
+           c_atom (ntyp) = ' ' 
+           i = 0 
+           DO while (j.le.length.and.line (j:j) .ne.' ') 
+              i = i + 1 
+              c_atom (ntyp) (i:i) = line (j:j) 
+              j = j + 1 
+           ENDDO 
+           IF(ntyp == ntyp_prev + 2) THEN
+!
+!             This is the second parameter, test if this is a numerical
+!             value. If so only the first parameter is an atom name rest is
+!             the numerical form factor, which we ignore
+              ccpara(1) = c_atom(ntyp)
+              llpara(1) = i
+              iianz     = 1
+              CALL ber_params (iianz, ccpara, llpara, wwerte, MAXP) 
+              IF(ier_num==0) THEN
+                 ntyp = ntyp - 1
+                 EXIT atom_search1
+              ENDIF
+              ier_num = 0
+              ier_typ = ER_NONE
+           ENDIF
+        ENDIF 
+     ENDDO atom_search1
+  elseif(content(jc)(1:4) == 'FVAR') then          ! FVAR
+     line = content(jc)(6:len_trim(content(jc)))
+     call do_cap(line)
+     length = len_trim(line)
+     read(line,*,end=777, err=777) (fv (i), i = 1, NFV)
+777  continue
+     loop_nfv: do i=1, NFV
+        if(fv(i)==0.0_PREC_DP) then
+           nvar = i-1
+           exit loop_nfv
+        endif
+     enddo loop_nfv
+     exit loop_header
+  endif
+enddo loop_header
+!
+! Initial loop over atoms, establish the number of different ADPs for each chemical atom type
+!
+natoms = ihklf - ifvar - 1   ! We have at most this many atoms == lines from FVAR to HKLF
+allocate(uij_l(6,ntyp, natoms))
+allocate(posit(3,      natoms))
+allocate(nanis(ntyp))
+nanis = 0
+uij_l = 0.0_PREC_DP
+posit = 0.0_PREC_DP
+iatom = 0
+loop_atoms: do jc=ifvar +1, ihklf-1
+   if(content(jc)(1:4) == 'MOLE') cycle loop_atoms
+   line = content(jc)(5:len_trim(content(jc)))
+   call do_cap(line)
+   length = len_trim(line)
+   call get_params_blank(line, iianz, ccpara, llpara, MAXP, length)
+   call ber_params(iianz, ccpara, llpara, wwerte, MAXP) 
+   iscat = nint(wwerte(1))
+   do j=2,11                     ! Check Free variables
+      ifv = nint(wwerte(i)/10._PREC_DP)
+      IF(ifv.gt.1) THEN
+               wwerte(i) = (wwerte(i) - ifv * 10) * fv (ifv)
+      ELSEIF (ifv.lt. - 1) THEN
+               wwerte(i) = (abs (wwerte(i)) + ifv * 10) * (1. - fv(IABS(ifv)))
+      ENDIF
+   enddo
+   iatom = iatom + 1
+   posit(:,iatom) = wwerte(2:4)
+   uij_at = wwerte(6:11)          ! Copy current Uij
+   loop_anis: do j=1,nanis(iscat)    ! Compare to all previous ADP for this scattering type
+      if(all(abs(uij_at-uij_l(:,iscat,j))<TOL)) cycle loop_atoms    ! Found old ADP
+   enddo loop_anis
+   nanis(iscat) = nanis(iscat) + 1
+   uij_l(:,iscat, nanis(iscat)) = uij_at    ! Store new Uij
+enddo loop_atoms
+!
+i = 5
+is = is + 1
+jj = 0
+structure(is  )(1:4) = 'scat'
+structure(is+1)(1:4) = 'occ '
+structure(is+2)(1:4) = 'adp '
+do iscat=1, ntyp
+   do j=1,nanis(iscat)
+      jj= jj + 1
+      structure(is+2+jj)(1:4) = 'anis'
+      structure(is)(i+1:i+4) = c_atom(iscat)
+      structure(is)(i+5:i+5) = ','
+      structure(is+1)(i+1:i+5) = '1.00,'
+      write(structure(is+2)(i+1:i+5),'(f4.2,'','')') real(0.1_PREC_DP*(i/5), kind=PREC_DP)
+      write(structure(is+2+jj)(6:22),'(a5,i3,a9)') 'type:',jj,', value:['
+      if(any(uij_l(2:6,iscat,j)>TOL)) then
+         l = 6
+      else
+         l = 1
+      endif
+      loop_anis1:do k=1,l
+         write(structure(is+2+jj)(  23+(k-1)*10:  23+k*10),'(f9.6,a1)') uij_l(k,iscat, j), ','
+      enddo loop_anis1
+      k = len_trim(structure(is+2+jj))
+      structure(is+2+jj)(k:k) = ']'
+      i = i + 5
+   enddo
+enddo
+i=len_trim(structure(is))
+if(structure(is  )(i:i)==',') structure(is  )(i:i)=' '
+if(structure(is+1)(i:i)==',') structure(is+1)(i:i)=' '
+if(structure(is+2)(i:i)==',') structure(is+2)(i:i)=' '
+is = is + 3 + jj                    ! Set index to last line
+structure(is) = 'format numbers,XYZB'
+is = is + 1
+structure(is) = 'atoms   X, Y, Z, BISO'
+!
+!  Second loop over atoms, add coordinates to structure, add molecule info
+lmole = .false.                     ! We are not inside a molecule
+iatom = 0
+loop_atoms_set: do jc=ifvar +1, ihklf-1
+   if(content(jc)(1:4) == 'MOLE') then  ! Start of a (new) molecule
+      if(lmole) then                    ! We were inside a molecule
+         is= is + 1
+         structure(is) = 'molecule end'
+         is= is + 1
+         structure(is) = 'molecule'
+      endif
+      cycle loop_atoms_set
+   endif
+   iatom = iatom + 1
+   line = content(jc)(5:len_trim(content(jc)))
+   call do_cap(line)
+   length = len_trim(line)
+   call get_params_blank(line, iianz, ccpara, llpara, MAXP, length)
+   call ber_params(iianz, ccpara, llpara, wwerte, MAXP) 
+   iscat = nint(wwerte(1))
+   is = is + 1
+   write(structure(is),'(a2,2x, 3(f10.6,'',''), f6.3)') c_atom(iscat), posit(:,iatom), 1.0_PREC_DP
+enddo loop_atoms_set
+loop_write: do j=1, 2*lcontent
+   if(structure(j) /= ' ') then
+      write(iwr,'(a)') structure(j)(1:len_trim(structure(j)))
+   endif
+enddo loop_write
+close(IWR)
+!
+!===============================================================================
+900 continue                       ! Target for serious errors
+deallocate(content)
+deallocate(structure)
+deallocate(posit)
+deallocate(uij_l)
+deallocate(nanis)
+!                                                                       
+ 1000 FORMAT    (a) 
+ 2000 FORMAT    ('title ',a) 
+ 2100 FORMAT    ('spcgr P1') 
+ 2200 FORMAT    ('cell ',5(2x,f9.4,','),2x,f9.4) 
+ 2320 FORMAT    ('gener  1.0, 0.0, 0.0, 0.5,',                          &
+     &                     '    0.0, 1.0, 0.0, 0.5,',                   &
+     &                     '    0.0, 0.0, 1.0, 0.5,  1')                
+ 2330 FORMAT    ('gener  1.0, 0.0, 0.0, 0.66666667,',                   &
+     &                     '    0.0, 1.0, 0.0, 0.33333333,',            &
+     &                     '    0.0, 0.0, 1.0, 0.33333333,   2')        
+ 2340 FORMAT    ('gener  1.0, 0.0, 0.0, 0.0,',                          &
+     &                     '    0.0, 1.0, 0.0, 0.5,',                   &
+     &                     '    0.0, 0.0, 1.0, 0.5,   1')               
+ 2341 FORMAT    ('gener  1.0, 0.0, 0.0, 0.5,',                          &
+     &                     '    0.0, 1.0, 0.0, 0.0,',                   &
+     &                     '    0.0, 0.0, 1.0, 0.5,   1')               
+ 2350 FORMAT    ('gener  1.0, 0.0, 0.0, 0.0,',                          &
+     &                     '    0.0, 1.0, 0.0, 0.5,',                   &
+     &                     '    0.0, 0.0, 1.0, 0.5,   1')               
+ 2360 FORMAT    ('gener  1.0, 0.0, 0.0, 0.5,',                          &
+     &                     '    0.0, 1.0, 0.0, 0.0,',                   &
+     &                     '    0.0, 0.0, 1.0, 0.5,   1')               
+ 2370 FORMAT    ('gener  1.0, 0.0, 0.0, 0.5,',                          &
+     &                     '    0.0, 1.0, 0.0, 0.5,',                   &
+     &                     '    0.0, 0.0, 1.0, 0.0,  1')                
+ 2400 FORMAT    ('gener -1.0, 0.0, 0.0, 0.0,',                          &
+     &                     '    0.0,-1.0, 0.0, 0.0,',                   &
+     &                     '    0.0, 0.0,-1.0, 0.0,  1')                
+ 2600 FORMAT    ('gener',3(2X,4(1x,f12.8,',')),' 1.') 
+!                                                                       
+ 3000 FORMAT    ('atoms') 
+ 3100 FORMAT    (a2,2x,4(2x,f9.5)) 
+!                                                                       
+ 4000 FORMAT    (a) 
+!                                                                       
+END SUBROUTINE ins2discus                     
+!
+!*****7**************************************************************** 
+!
+SUBROUTINE ins2discus_old (ianz, cpara, lpara, MAXW, ofile) 
 !-                                                                      
 !     converts a SHELXL "ins" or "res" file to DISCUS                   
 !+                                                                      
@@ -3473,6 +3948,9 @@ CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE :: eadp_names
       CHARACTER(80) line2 
       CHARACTER(160) line 
       CHARACTER(LEN=MAX(PREC_STRING,LEN(ofile))) :: infile 
+character(len=160), dimension(:), allocatable :: content      ! Complete content of Shelx file
+integer :: lcontent   ! Number of lines in content
+integer :: ios        ! I/O status
       INTEGER ird, iwr 
       INTEGER i, j, jj 
       INTEGER ix, iy, iz, idot 
@@ -3541,6 +4019,41 @@ REAL(KIND=PREC_DP)   , DIMENSION(:), ALLOCATABLE :: eadp_values
       IF (ier_num.ne.0) THEN 
          RETURN
       ENDIF 
+!
+! Read file once to determine line numbers
+!
+lcontent = 0
+loop_count: do
+   read(IRD, '(a)', iostat=ios) line
+   if(is_iostat_end(ios)) exit loop_count
+   lcontent = lcontent + 1
+enddo loop_count
+close(ird)
+open(unit=IRD, file=infile, status='old')  ! Simplified open as we know file exists
+allocate(content(lcontent))
+j = 0
+write(*,*) ' START READING CONTENT'
+loop_read: do
+   read(IRD, '(a)', iostat=ios) line1      ! Read a short line
+   if(is_iostat_end(ios)) exit loop_read
+   if(line==' ')  cycle loop_read          ! Empty line, skip
+   icont = index (line1, '=')
+   if(icont>0) then
+      read(IRD, '(a)', iostat=ios) line2   ! Read a short line
+      if(is_iostat_end(ios)) goto 900      ! Serious error, continuation line missing, abort
+      line = line1(1:icont -1) // ' ' // line2(1:len_trim(line2))
+   else
+      line = line1
+   endif
+   j=j+1
+   content(j) = line
+write(*,'(a)') content(j)(1:len_trim(content(j)))
+enddo loop_read
+write(*,*) ' DONE  READING CONTENT'
+lcontent = j
+!
+close(ird)
+open(unit=IRD, file=infile, status='old')  ! Simplified open as we know file exists
 !
 !   Allocate and initialize the EADP array
 !
@@ -3866,6 +4379,7 @@ eadp_values(:) = 0.0
       CLOSE (iwr) 
 DEALLOCATE(eadp_names)
 DEALLOCATE(eadp_values)
+deallocate(content)
 !                                                                       
  1000 FORMAT    (a) 
  2000 FORMAT    ('title ',a) 
@@ -3902,7 +4416,7 @@ DEALLOCATE(eadp_values)
 !                                                                       
  4000 FORMAT    (a) 
 !                                                                       
-      END SUBROUTINE ins2discus                     
+      END SUBROUTINE ins2discus_old
 !*****7**************************************************************** 
       SUBROUTINE cmaker2discus (ianz, cpara, lpara, MAXW, ofile) 
 !-                                                                      
