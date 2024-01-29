@@ -3490,11 +3490,11 @@ integer :: natoms     ! Atoms in main part of the input file
 !integer :: itype      ! Current atom type
 integer, dimension(:), allocatable :: nanis   ! Number of ADP's for give chemical element
 integer :: iscat      ! Current chemical element
-!integer :: ianis      ! Current ADP
+integer :: ianis      ! Current ADP
 integer :: iatom      ! Current atom
 !
 real(kind=PREC_DP), dimension(:,:)  , allocatable :: posit   ! List of all Atom positions
-real(kind=PREC_DP), dimension(6)                  :: uij_at  ! Current uij
+real(kind=PREC_DP), dimension(:,:)  , allocatable :: uij_at  ! Current uij, list as per atom
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: uij_l   ! List of all Uij
 !
 INTEGER i, j, k, jj , l
@@ -3765,6 +3765,7 @@ enddo loop_header
 !
 natoms = ihklf - ifvar - 1   ! We have at most this many atoms == lines from FVAR to HKLF
 allocate(uij_l(6,ntyp, natoms))
+allocate(uij_at(6    , natoms))
 allocate(posit(3,      natoms))
 allocate(nanis(ntyp))
 nanis = 0
@@ -3789,12 +3790,12 @@ loop_atoms: do jc=ifvar +1, ihklf-1
    enddo
    iatom = iatom + 1
    posit(:,iatom) = wwerte(2:4)
-   uij_at = wwerte(6:11)          ! Copy current Uij
+   uij_at(:,iatom) = wwerte(6:11)          ! Copy current Uij
    loop_anis: do j=1,nanis(iscat)    ! Compare to all previous ADP for this scattering type
-      if(all(abs(uij_at-uij_l(:,iscat,j))<TOL)) cycle loop_atoms    ! Found old ADP
+      if(all(abs(uij_at(:,iatom)-uij_l(:,iscat,j))<TOL)) cycle loop_atoms    ! Found old ADP
    enddo loop_anis
    nanis(iscat) = nanis(iscat) + 1
-   uij_l(:,iscat, nanis(iscat)) = uij_at    ! Store new Uij
+   uij_l(:,iscat, nanis(iscat)) = uij_at(:,iatom)    ! Store new Uij
 enddo loop_atoms
 !
 i = 5
@@ -3810,7 +3811,7 @@ do iscat=1, ntyp
       structure(is)(i+1:i+4) = c_atom(iscat)
       structure(is)(i+5:i+5) = ','
       structure(is+1)(i+1:i+5) = '1.00,'
-      write(structure(is+2)(i+1:i+5),'(f4.2,'','')') real(0.1_PREC_DP*(i/5), kind=PREC_DP)
+      write(structure(is+2)(i+1:i+5),'(f4.2,'','')') real(iscat + 0.01_PREC_DP*(j), kind=PREC_DP)
       write(structure(is+2+jj)(6:22),'(a5,i3,a9)') 'type:',jj,', value:['
       if(any(uij_l(2:6,iscat,j)>TOL)) then
          l = 6
@@ -3830,9 +3831,10 @@ if(structure(is  )(i:i)==',') structure(is  )(i:i)=' '
 if(structure(is+1)(i:i)==',') structure(is+1)(i:i)=' '
 if(structure(is+2)(i:i)==',') structure(is+2)(i:i)=' '
 is = is + 3 + jj                    ! Set index to last line
-structure(is) = 'format numbers,XYZB'
+structure(is) = 'format numbers,XYZBPMMOS'
 is = is + 1
-structure(is) = 'atoms   X, Y, Z, BISO'
+structure(is)(  1:63) = 'atoms      X,              Y,              Z,             BISO,'
+structure(is)(64:123) = '    Property,  MoleNo,  MoleAt,   Occ,     St,  Sh,  Sk,  Sl'
 !
 !  Second loop over atoms, add coordinates to structure, add molecule info
 lmole = .false.                     ! We are not inside a molecule
@@ -3855,7 +3857,17 @@ loop_atoms_set: do jc=ifvar +1, ihklf-1
    call ber_params(iianz, ccpara, llpara, wwerte, MAXP) 
    iscat = nint(wwerte(1))
    is = is + 1
-   write(structure(is),'(a2,2x, 3(f10.6,'',''), f6.3)') c_atom(iscat), posit(:,iatom), 1.0_PREC_DP
+   ianis = 1    ! Default to 1st ADP
+   loop_anis_set: do j=1,nanis(iscat)    ! Compare to all previous ADP for this scattering type
+      if(all(abs(uij_at(:,iatom)-uij_l(:,iscat,j))<TOL)) then ! Found old ADP
+         ianis = j
+         exit loop_anis_set    ! Found old ADP
+      endif
+   enddo loop_anis_set
+!  form_string = '3(1x,f14.6,'','')'
+   write(structure(is),'(a2,2x, 3(1x,f14.6,'',''),f14.6)') c_atom(iscat), posit(:,iatom), &
+         real(iscat + 0.01_PREC_DP*ianis, kind=PREC_DP)
+   structure(is)(67:123) = ',       1,       0,       0,   1.000000, _,   0,   0,   0'
 enddo loop_atoms_set
 loop_write: do j=1, 2*lcontent
    if(structure(j) /= ' ') then
@@ -3870,6 +3882,7 @@ deallocate(content)
 deallocate(structure)
 deallocate(posit)
 deallocate(uij_l)
+deallocate(uij_at)
 deallocate(nanis)
 !                                                                       
  1000 FORMAT    (a) 
