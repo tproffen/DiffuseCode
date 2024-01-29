@@ -9095,7 +9095,20 @@
    model crystal, DISCUS settings etc.
 
    Valid subcommands are :
+3  adp
+!p show adp:all
+!p show adp:uij
+!p show adp:prin
 
+   Show the atomic displacment parameters. 
+   With option "all" both the Uij and the principal displacemnt vectors
+   are shown, the other two options reduce output to the specified value.
+
+   For Uij that correspond to an isotropic displacemnt, the output is
+   reduced, full output is available with the optional parameter:
+!p show adp:all, "style:long"
+   The optional parameter can be used for any of the three "adp:" versions
+   Default is "style:short".
 3  asym
 !p show "asym"
 
