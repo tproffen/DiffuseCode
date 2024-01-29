@@ -495,8 +495,8 @@ ENDDO
 !
 WRITE(IWR, 1500) names(1:LEN_TRIM(names)) ! SFAC
 do i=1, unique_n
-   write(IWR,'(a6,a2,1x,2f9.5)') 'DISP $',unique_names(i)(1:2), &
-   cr_delfr(shelx_types(i)), cr_delfi(shelx_types(i))
+   write(IWR,'(a6,a2,1x,3f9.5)') 'DISP $',unique_names(i)(1:2), &
+   cr_delfr(shelx_types(i)), cr_delfi(shelx_types(i)), 0.0_PREC_DP
 enddo
 WRITE(IWR, 1600) units(1:LEN_TRIM(units)) ! UNIT
 WRITE(IWR, 1700) ncycle      ! L.S.
