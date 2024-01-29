@@ -57,37 +57,31 @@ IMPLICIT none
 !                                                                       
        
 !                                                                       
-      INTEGER, PARAMETER :: MIN_PARA = 21  ! A command requires at least these no of parameters
-      INTEGER, PARAMETER :: HKLF4 = 4
-      INTEGER, PARAMETER :: CIF   = 1
-      INTEGER maxw 
-      LOGICAL lold 
-      PARAMETER (lold = .false.) 
+INTEGER, PARAMETER :: MIN_PARA = 21  ! A command requires at least these no of parameters
+INTEGER :: maxw 
+LOGICAL, PARAMETER :: lold = .false. 
 !                                                                       
-      CHARACTER (LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: cpara ! (MIN(10,MAXSCAT)) 
-      INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: lpara ! (MIN(10,MAXSCAT))
-      INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: jj    ! (MAXSCAT) 
-      REAL(KIND=PREC_DP)  , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: werte ! (MAXSCAT)
-      CHARACTER(len=10) :: befehl 
-      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(LEN=PREC_STRING) :: zeile
-      CHARACTER(LEN=PREC_STRING) :: line 
-      CHARACTER(LEN=PREC_STRING)  :: infile, calcfile
-      CHARACTER(LEN=PREC_STRING)  :: symbol
-      INTEGER :: i, j=1, k, ianz, lp, length , lsymbol, iianz
-      INTEGER indxg, lbef 
-      INTEGER              :: infile_l, outfile_l
-      INTEGER, dimension(3):: n_qxy    ! required size in reciprocal space this run
-      INTEGER              :: n_nscat  ! required no of atom types right now
-      INTEGER              :: n_natoms ! required no of atoms
-      INTEGER              :: four_dim ! Dimension of Fourier that was calculated
-      INTEGER              :: istyle   ! Type of hkl file at 'hkl'
-      INTEGER, DIMENSION(3):: csize
-      LOGICAL              :: ldim 
+CHARACTER (LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: cpara ! (MIN(10,MAXSCAT)) 
+INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: lpara ! (MIN(10,MAXSCAT))
+INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: jj    ! (MAXSCAT) 
+REAL(KIND=PREC_DP)  , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: werte ! (MAXSCAT)
+CHARACTER(len=10) :: befehl 
+CHARACTER(LEN=LEN(prompt)) :: orig_prompt
+CHARACTER(LEN=PREC_STRING) :: zeile
+CHARACTER(LEN=PREC_STRING) :: line 
+CHARACTER(LEN=PREC_STRING)  :: symbol
+INTEGER :: i, j=1, k, ianz, lp, length , lsymbol, iianz
+INTEGER :: indxg, lbef 
+INTEGER, dimension(3):: n_qxy    ! required size in reciprocal space this run
+INTEGER              :: n_nscat  ! required no of atom types right now
+INTEGER              :: n_natoms ! required no of atoms
+INTEGER              :: four_dim ! Dimension of Fourier that was calculated
+INTEGER, DIMENSION(3):: csize
+LOGICAL              :: ldim 
 logical              :: ltop_c = .false. ! the top left corner coordinates have been defined
 logical              :: ltop_n = .false. ! the top left corner point number has been defined
-      REAL(kind=PREC_DP)   , DIMENSION(3)::  divis
-      REAL(kind=PREC_DP)   , DIMENSION(3)::  rhkl
+REAL(kind=PREC_DP)   , DIMENSION(3)::  divis
+REAL(kind=PREC_DP)   , DIMENSION(3)::  rhkl
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 5
 !INTEGER, PARAMETER :: O_MODE    = 1   ! used in subroutines
