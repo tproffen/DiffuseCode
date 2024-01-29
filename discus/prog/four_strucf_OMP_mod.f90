@@ -99,7 +99,6 @@ INTEGER (KIND=PREC_INT_LARGE), DIMENSION(nxat) ::               jincu, jincv, ji
 INTEGER (KIND=PREC_INT_LARGE)   :: h, i, ii, j, k, iarg, iarg0, jj
 INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
 INTEGER (KIND=PREC_INT_LARGE)   :: num23,num123, num123_1
-real(kind=PREC_DP), dimension(3) :: q
 !
 INTEGER :: IAND, ISHFT 
 COMPLEX(KIND=PREC_DP), DIMENSION(  :,:), ALLOCATABLE, SAVE :: tcsfp   ! Partial structure factor from parallel OMP
