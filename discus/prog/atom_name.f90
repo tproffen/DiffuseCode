@@ -45,7 +45,7 @@ END FUNCTION at_name
 !
 !*****7***************************************************************  
 !
-CHARACTER(len=17) function at_name_long(iscat) 
+CHARACTER(len=19) function at_name_long(iscat) 
 !+                                                                      
 !     This function builds the atom name as XX(iscat) to be             
 !     able to distinguish between different atom types with             
@@ -62,7 +62,7 @@ IMPLICIT none
 !                                                                       
 integer, dimension(3), intent(in) :: iscat
 CHARACTER(len=PREC_STRING) :: istr 
-INTEGER   :: i, il, is 
+INTEGER   :: il, is 
 !                                                                       
 !                                                                       
 if(iscat(1)==-1) then
