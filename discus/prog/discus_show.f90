@@ -79,7 +79,7 @@ IF(ier_num.eq.0) THEN
 !                                                                       
 if(lpresent(O_ADP)) then
 !if(str_comp(cpara(1), 'adp', 2, lpara(1), 3)) then
-   call show_adp (opara(O_ADP), lopara(O_ADP))
+   call show_adp (NOPTIONAL, opara, lopara, O_ADP , O_STYLE)
 !                                                                       
 !     ----Show composition of asymmetric unit 'asym'                    
 !                                                                       
@@ -216,14 +216,16 @@ END SUBROUTINE discus_do_show
 !
 !*****7*****************************************************************
 !
-subroutine show_adp(opara, length)
+subroutine show_adp(NOPTIONAL, opara, length, O_ADP, O_STYLE)
 !-
 !  Write ADP, either 
 !  adp:uij  == just the Uij 
 !  adp:prin == the principal vectors and the mean square displacements
+!  adp:all  == both
 !+
 use crystal_mod
 !
+use errlist_mod
 use precision_mod
 use prompt_mod
 use str_comp_mod
@@ -231,22 +233,34 @@ use wink_mod
 !
 implicit none
 !
-character(len=*), intent(in) :: opara
-integer         , intent(in) :: length
+integer         , intent(in) :: NOPTIONAL
+character(len=*), dimension(NOPTIONAL), intent(in) :: opara
+integer         , dimension(NOPTIONAL), intent(in) :: length
+integer         , intent(in) :: O_ADP
+integer         , intent(in) :: O_STYLE
 !
 real(kind=PREC_DP), parameter :: TOL = 0.0001_PREC_DP
 integer :: j   ! Dummy index
 real(kind=PREC_DP) :: ueqv
 real(kind=PREC_DP) :: biso
 !
-if(str_comp(opara, 'uij', 2, length  , 3) .or. str_comp(opara, 'all', 2, length  , 3)) then
+if(.not.((opara(O_ADP)=='uij' .or. opara(O_ADP)=='prin' .or. opara(O_ADP)=='all') .and.  &
+        (opara(O_STYLE)=='long' .or.opara(O_STYLE)=='short')))                         then
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'adp must be either ''uij'', ''prin'' or ''long'''
+   ier_msg(2) = 'style must be either ''short'', ''long'' '
+   return
+endif
+!
+if(str_comp(opara(O_ADP), 'uij', 2, length(O_ADP)  , 3) .or. str_comp(opara(O_ADP), 'all', 2, length(O_ADP)  , 3)) then
    write(output_io,*) ' ADPS', cr_nanis
    write(output_io,'(a)')' Type     U11       U22       U33       U23       U13       U12       Ueqv     Biso'
    do j=1, cr_nanis
       ueqv = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP
       biso = ueqv *8.0_PREC_DP*pi*pi
-      if(abs(cr_prin(4,1,j    )-cr_prin(4,2,j   ))>TOL  .or.  &
-         abs(cr_prin(4,1,j    )-cr_prin(4,3,j   ))>TOL      ) then
+      if((abs(cr_prin(4,1,j    )-cr_prin(4,2,j   ))>TOL  .or.  &
+          abs(cr_prin(4,1,j    )-cr_prin(4,3,j   ))>TOL      ) .or. opara(O_STYLE)=='long') then
          write(output_io,'(i5,2x, 8f10.5)') j, cr_anis_full(:,j) , ueqv, biso
       else
          write(output_io,'(i5,2x, f10.5, 60x, f10.5)') j, cr_anis_full(1,j), biso
@@ -255,11 +269,11 @@ if(str_comp(opara, 'uij', 2, length  , 3) .or. str_comp(opara, 'all', 2, length 
    enddo
    write(output_io,*)
 endif
-if(str_comp(opara, 'prin', 2, length  , 4) .or. str_comp(opara, 'all', 2, length  , 3)) then
+if(str_comp(opara(O_ADP), 'prin', 2, length(O_ADP)  , 4) .or. str_comp(opara(O_ADP), 'all', 2, length(O_ADP)  , 3)) then
    write(output_io,'(a)')' Type               Eigenvectors                            <u^2>'
    do j=1, cr_nanis
-      if(abs(cr_prin(4,1,j    )-cr_prin(4,2,j   ))>TOL  .or.  &
-         abs(cr_prin(4,1,j    )-cr_prin(4,3,j   ))>TOL      ) then
+      if((abs(cr_prin(4,1,j    )-cr_prin(4,2,j   ))>TOL  .or.  &
+          abs(cr_prin(4,1,j    )-cr_prin(4,3,j   ))>TOL      ) .or. opara(O_STYLE)=='long') then
          write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '1st', cr_prin(:,1,j)
          write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '2nd', cr_prin(:,2,j)
          write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '3rd', cr_prin(:,3,j)
@@ -465,7 +479,7 @@ INTEGER, DIMENSION(1:3) :: ioffset
 INTEGER                 :: length 
 !
 CHARACTER(LEN=9)                            :: at_name_d 
-CHARACTER(LEN=15)                           :: at_name_l 
+CHARACTER(LEN=19)                           :: at_name_l 
 CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
 !
 !
@@ -562,7 +576,7 @@ IF(ier_num == 0) THEN
                at_name_l = at_name_long(cr_iscat(1,i)) 
                CALL char_prop_1(c_property, cr_prop(i), length) 
                IF(cr_magn(0,i)>0.0) THEN
-               WRITE(output_io, 4015) at_name_d, cr_pos(1,i), cr_pos(2,i), &
+               WRITE(output_io, 4015) at_name_l, cr_pos(1,i), cr_pos(2,i), &
                   cr_pos(3, i), cr_dw(cr_iscat(1,i)), i, cr_mole(i),         &
                   c_property(1:length), cr_occ(cr_iscat(1,i)),               &
                   c_surf(cr_surf(0,i)), cr_surf(1:3,i),                    &
