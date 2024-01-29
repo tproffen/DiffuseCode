@@ -2628,7 +2628,6 @@ INTEGER            :: hh,kk,ll
 INTEGER            :: ih_min,ik_min,il_min
 INTEGER            :: ih_max,ik_max,il_max
 INTEGER            :: n_refl
-INTEGER            :: indx
 INTEGER            :: startline
 INTEGER            :: j
 INTEGER            :: nentries
