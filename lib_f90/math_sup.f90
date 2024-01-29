@@ -485,6 +485,8 @@ do i=1, 2
 !   endif
 !
    l = maxloc(abs(adet),1)
+   j = 1
+   k = 2
    if(l==1) then
      j = 1
      k = 2
