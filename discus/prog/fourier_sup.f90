@@ -2775,35 +2775,18 @@ eck(3,3) = il_min             ! minimum L
 eck(1,4) = ih_min             ! minimum H
 eck(2,4) = ik_min             ! minimum K
 eck(3,4) = il_max             ! maximum L
-         !
-IF (ier_num == 0) then 
-!                 IF (inc(1) * inc(2) * inc(3) .gt. MAXQXY  .OR.   &
-   if(any(num/=ubound(csf))) then
-      n_qxy = num
-      call alloc_diffuse_four (n_qxy )
-      if(ier_num/=0) return
-   endif
-   if(cr_nscat/=ubound(cfact,2)) then
-      call alloc_diffuse_scat(cr_nscat)
-      if(ier_num/=0) return
-   endif
-   if(cr_natoms/=ubound(xat,1)) then
-      call alloc_diffuse_atom(cr_natoms)
-      if(ier_num/=0) return
-   endif
-!   if(inc(1)>MAXQXY(1) .or. inc(2)>MAXQXY(2) .or. inc(3)>MAXQXY(3) .or. &
-!      cr_natoms > DIF_MAXAT                 .OR.   &
-!      cr_nscat>DIF_MAXSCAT              ) THEN
-!!     n_qxy    = MAX(n_qxy,inc,MAXQXY)
-!      n_natoms = MAX(n_natoms,cr_natoms,DIF_MAXAT)
-!     n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-!     call alloc_diffuse_four (n_qxy)
-!     call alloc_diffuse_scat (n_nscat)
-!      call alloc_diffuse_atom (n_natoms)
-!      IF (ier_num /= 0) THEN
-!         RETURN
-!      ENDIF
-!   ENDIF
+num = inc
+!
+! Do basic allocation
+!
+n_qxy = num
+call alloc_diffuse_four (n_qxy )
+if(ier_num/=0) return
+call alloc_diffuse_scat(cr_nscat)
+if(ier_num/=0) return
+call alloc_diffuse_atom(cr_natoms)
+if(ier_num/=0) return
+!
    call dlink (ano, lambda, rlambda, renergy, l_energy, &
                diff_radiation, diff_table, diff_power) 
    call four_run
@@ -2856,7 +2839,7 @@ IF (ier_num == 0) then
          ENDIF
       ENDIF
    END DO main
-ENDIF 
+!
 IF(ALLOCATED(ccpara))   DEALLOCATE(ccpara)
 IF(ALLOCATED(llpara))   DEALLOCATE(llpara)
 1000  FORMAT(3I4,2F8.2)
