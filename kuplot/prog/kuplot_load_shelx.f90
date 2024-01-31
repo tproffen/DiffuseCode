@@ -63,15 +63,13 @@ logical               :: lout = .TRUE.
 !
 dataname = ' '
 !
-            call gen_load_hklf4(infile, node_number, lout)
-            call dgl5_set_h5_is_ku(iz, node_number)
-            call dgl5_set_ku_is_h5(node_number, iz)
-            ku_ndims(iz) = 3
-            ik = iz
-            call dgl5_set_ku_is_h5(iz, node_number)
-            call dgl5_set_h5_is_ku(node_number, iz)
+call gen_load_hklf4(infile, node_number, lout)
+call dgl5_set_h5_is_ku(iz, node_number)
+call dgl5_set_ku_is_h5(node_number, iz)
+ku_ndims(iz) = 3
+ik = iz
 !
-            call data2kuplot(ik, infile  , lout  )
+call data2kuplot(ik, infile  , lout  )
 !
 END SUBROUTINE shelx_read_kuplot
 !
