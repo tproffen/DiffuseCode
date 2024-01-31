@@ -1882,8 +1882,8 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !write(*,*) cr_icc, ' | ', value, qval (i,j,l, value, i, j, laver), qval (i,j,l, 2, i, j, laver)/ cr_icc (1) / cr_icc (2) / cr_icc (3)
 !write(*,*) 'WRITE ', (qq * ext_cor)**2 * out_fac, ' | ', qq, out_fac
 !endif
+               sq = max(qq * sqrt (ext_cor) * out_fac *0.10_PREC_DP, 0.01_PREC_DP)
                qq = (qq * ext_cor)**2 * out_fac
-               sq = sqrt (qq) 
                WRITE (iff, '(3i4,2f8.2)') int(h(1)), int(h(2)), int(h(3)), qq, sq
             ENDIF
                ENDDO 
@@ -1904,7 +1904,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                qq = qval(i,j,l, shel_value, i, j, laver) / cr_icc(1) / cr_icc(2) / cr_icc(3) ! Ampltude normalized to one unit cell
                ext_cor = (1.0_PREC_DP/(1.0_PREC_DP + 0.001_PREC_DP * diff_exti * qq**2*rlambda**3/ &
                          sind(2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., h, NULLV))))**0.25_PREC_DP)!**2.0_PREC_DP
-               qq = (qq * ext_cor) * out_fac          ! Amplitude * Extrinction * scale
+               qq = (qq * ext_cor) * out_fac          ! Amplitude * Extinction * scale
                shel_value = 3                         ! Calculate phase angle
                sq = qval(i,j,l, shel_value, i, j, laver) 
                IF(sq < 0.0D0 ) sq = sq + 360.0D0
