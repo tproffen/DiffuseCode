@@ -8,6 +8,7 @@ private
 public prep_anis
 public anis2iso
 public lookup_anis
+public do_anis
 !public calc_prin
 !
 interface lookup_anis
@@ -65,6 +66,9 @@ allocate(cr_anis_full(6,    cr_ncatoms))
 allocate(cr_prin     (4, 3, cr_ncatoms))
 cr_anis_full = 0.0D0
 cr_prin      = 0.0D0
+uij          = 0.0D0
+ucij         = 0.0D0
+xx           = 0.0D0
 !
 ! Step 0:  Determine number of different atoms for a given scattering type
 !
@@ -79,6 +83,10 @@ do iatom=1,natom
    l = cr_iscat(1,iatom)        ! Current atom type
    cr_ndiffer(l) = cr_ndiffer(l) + 1
 enddo
+!write(*,*) ' PR 0'
+!do j=1, cr_nanis
+!write(*,'(a, 6f9.6)') 'PR 1 ', cr_anis_full(1:6,j)
+!enddo
 !
 ! Step 1:  Determine Eigenvalues and Eigenvectors 
 loop_atoms:do iatom=1,natom 
@@ -164,6 +172,9 @@ loop_atoms:do iatom=1,natom
 !write(*,'(a,i3, a,6f10.5)') ' PRIN', 2, ' | ', cr_prin(:,2,cr_nanis)
 !write(*,'(a,i3, a,6f10.5)') ' PRIN', 3, ' | ', cr_prin(:,3,cr_nanis)
 enddo loop_atoms
+!do j=1, cr_nanis
+!write(*,'(a, 6f9.6)') 'PR 2 ', cr_anis_full(1:6,j)
+!enddo
 !
 !cr_nanis = cr_ncatoms
 !write(*,*) ' cr_anis_full ', ubound(cr_anis_full)
@@ -660,6 +671,110 @@ anis_full(5,nanis+1) = uij(1,3)
 anis_full(6,nanis+1) = uij(1,2)
 !
 end subroutine anis_symm
+!
+!*******************************************************************************
+!
+subroutine do_anis(line, length)
+!-
+!  Set anisotropic parameters from command line
+!+
+!
+use crystal_mod
+!
+use errlist_mod
+use get_params_mod
+use precision_mod
+use take_param_mod
+!
+character(len=*), intent(inout) :: line
+integer         , intent(inout) :: length
+!
+integer, parameter :: MAXW  = 2
+integer, parameter :: MAXWW = 6
+character(len=PREC_STRING), dimension(2) :: cpara
+integer                   , dimension(2) :: lpara
+integer                                  :: ianz
+character(len=PREC_STRING)               :: ccpara
+integer                                  :: llpara
+real(kind=PREC_DP) , dimension(6)        :: wwerte   ! Calculated values
+!
+integer :: ianis
+real(kind=PREC_DP), dimension(3)   :: ar_inv  ! ( 1/a*, 1/b*, 1/c*)
+real(kind=PREC_DP), dimension(3,3) :: uij   ! U_ij as in SHELX, reference to ((a*).a, (b*).b, (c*))c
+real(kind=PREC_DP), dimension(3,3) :: xx    ! Displacement tensor <DELTAx^i . DELTAx^j> refers to standard basis
+real(kind=PREC_DP), dimension(3,3) :: ucij  ! Displacement tensor <DELTAx^i . DELTAx^j> at cartesian coordinates
+!
+integer, parameter :: NOPTIONAL = 2
+integer, parameter :: O_TYPE    = 1
+integer, parameter :: O_VALUES  = 2
+character(LEN=   6), dimension(NOPTIONAL) :: oname   !Optional parameter names
+character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
+integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
+integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
+real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
+integer, parameter                        :: ncalc = 1 ! Number of values to calculate 
+!
+data oname  / 'type', 'values'   /
+data loname /  4,      6         /
+opara  =  (/ '1.0000', '[0.01]' /)   ! Always provide fresh default values
+lopara =  (/  6,        6       /)
+owerte =  (/  0.0,      0.0     /)
+!
+call get_params (line, ianz, cpara, lpara, MAXW, length)
+if(ier_num /= 0) return
+!
+call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+if(ier_num /= 0) return
+!
+ccpara =  opara(O_VALUES)
+llpara = lopara(O_VALUES)
+call get_optional_multi(MAXWW, ccpara, llpara, wwerte, ianz)
+if(ier_num /= 0) return
+!
+uij  = 0.0_PREC_DP
+ucij = 0.0_PREC_DP
+!
+if(ianz==6) then     ! All six values, ANISOTROPIC
+   uij(1,1) = wwerte(1)
+   uij(2,2) = wwerte(2)
+   uij(3,3) = wwerte(3)
+   uij(3,2) = wwerte(4)
+   uij(2,3) = wwerte(4)
+   uij(1,3) = wwerte(5)
+   uij(3,1) = wwerte(5)
+   uij(1,2) = wwerte(6)
+   uij(2,1) = wwerte(6)
+   call uij_to_xx(uij, cr_ar, xx)      ! Transform Uij to XX tensor
+   call xx_to_cart(xx, cr_eimat, ucij) ! Transform XX to cartesian basis
+elseif(ianz==1) then       ! One parameter ISOTROPIC
+!
+   ar_inv(1) = 1./cr_ar(1)
+   ar_inv(2) = 1./cr_ar(2)
+   ar_inv(3) = 1./cr_ar(3)
+   ucij(1,1) = wwerte(1)                ! Set the caresian diagonal values
+   ucij(2,2) = wwerte(1)
+   ucij(3,3) = wwerte(1)
+   call xx_to_cart(ucij, cr_emat, xx)   ! Transform XX from cartesian basis
+   call uij_to_xx(xx, ar_inv, uij)      ! Transform Uij from XX tensor
+else
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = '''value:'' needs 1 or 6 parameters'
+endif
+!
+ianis = nint(owerte(O_TYPE))
+cr_anis(:,ianis) = wwerte(1:6)   ! WORK  
+call calc_prin_3x3(ianis, cr_nanis, ucij, ubound(cr_prin,3), cr_prin)
+cr_anis_full(1, ianis) = uij(1,1)
+cr_anis_full(2, ianis) = uij(2,2)
+cr_anis_full(3, ianis) = uij(3,3)
+cr_anis_full(4, ianis) = uij(2,3)
+cr_anis_full(5, ianis) = uij(1,3)
+cr_anis_full(6, ianis) = uij(1,2)
+!
+end subroutine do_anis
 !
 !*******************************************************************************
 !

@@ -200,7 +200,7 @@ integer :: l_n_atom
 l_natoms  = max(natoms, 1)    ! Make array at least one entry long
 l_nscat   = max(nscat, 1)     ! Make array at least one entry long
 l_ncatoms = max(ncatoms, 1)   ! Make array at least one entry long
-l_nanis   = max(nanis, 1)     ! Make array at least one entry long
+l_nanis   = max(nanis, l_nscat, 1)     ! Make array at least one entry long
 l_n_mole  = max(n_mole, 1)    ! Make array at least one entry long
 l_n_type  = max(n_type, 1)    ! Make array at least one entry long
 l_n_atom  = max(n_atom, 1)    ! Make array at least one entry long
@@ -248,7 +248,7 @@ l_n_atom  = max(n_atom, 1)    ! Make array at least one entry long
    ALLOCATE ( this%cr_sav_atom(  0:nscat), STAT=istatus ) ! Allocate equivalent atom names
    ALLOCATE ( this%cr_at_lis  (  0:nscat), STAT=istatus ) ! Allocate atom names
    ALLOCATE ( this%cr_dw      (  0:nscat), STAT=istatus ) ! Allocate Debye Waller terms
-   ALLOCATE ( this%cr_anis     (6,0:nscat), STAT=istatus ) ! Allocate User supplied Uij
+   ALLOCATE ( this%cr_anis     (6,0:l_nanis), STAT=istatus ) ! Allocate User supplied Uij
    ALLOCATE ( this%cr_anis_full(6,1:l_nanis), STAT=istatus ) ! Allocate User supplied Uij
    ALLOCATE ( this%cr_prin   (4,3,1:l_nanis), STAT=istatus ) ! Allocate User supplied Uij
    ALLOCATE ( this%cr_is_sym  (  1:ncatoms), STAT=istatus ) ! Allocate Atom was created by this sym.op.
@@ -278,7 +278,7 @@ l_n_atom  = max(n_atom, 1)    ! Make array at least one entry long
    this%cr_sav_atom(  0:nscat) = .TRUE.
    this%cr_at_lis  (  0:nscat) = ' '
    this%cr_dw      (  0:nscat) = 0.0_PREC_DP
-   this%cr_anis    (:,0:nscat) = 0.0_PREC_DP
+   this%cr_anis    (:,0:l_nanis) = 0.0_PREC_DP
    this%cr_anis_full(6,1:l_nanis) = 0.0_PREC_DP
    this%cr_prin   (4,3,1:l_nanis) = 0.0_PREC_DP
    this%cr_is_sym  (  1:ncatoms) = 0
@@ -832,7 +832,9 @@ SUBROUTINE set_crystal_from_standard   ( this, strucfile)
       ENDDO
    ENDIF
 !
-   this%cr_anis(1:6,1:cr_nscat) = cr_anis(1:6,1:cr_nscat)
+   i = min(max(cr_nscat, cr_nanis),ubound(this%cr_anis,2))
+   this%cr_anis(1:6,1:i       ) = cr_anis(1:6,1:i       )
+!  this%cr_anis(1:6,1:cr_nscat) = cr_anis(1:6,1:cr_nscat)
    if(cr_nanis>0) then
       this%cr_anis_full(1:6,1:cr_nanis) = cr_anis_full(1:6,1:cr_nanis)
       this%cr_prin     (:,:,1:cr_nanis) = cr_prin     (:,:,1:cr_nanis)
@@ -840,6 +842,9 @@ SUBROUTINE set_crystal_from_standard   ( this, strucfile)
       this%cr_anis_full                 = 0.0_PREC_DP
       this%cr_prin                      = 0.0_PREC_DP
    endif
+!do i=1, cr_nanis
+!write(*,'(a, 6f9.6)') ' UIJ ', this%cr_anis_full(1:6,i)
+!enddo
    this%cr_is_sym(1:cr_ncatoms) = cr_is_sym(1:cr_ncatoms)
 !
 !  save Occupancy values 
@@ -1220,7 +1225,9 @@ END SUBROUTINE set_crystal_from_standard
       ENDDO
    ENDIF
 !
-   this%cr_anis(1:6,1:rd_cr_nscat) = rd_cr_anis(1:6,1:rd_cr_nscat)
+   i = min(max(rd_cr_nscat, rd_cr_nanis),ubound(this%cr_anis,2))
+   this%cr_anis(1:6,1:i          ) = rd_cr_anis(1:6,1:i          )
+!  this%cr_anis(1:6,1:rd_cr_nscat) = rd_cr_anis(1:6,1:rd_cr_nscat)
 !
    if(rd_cr_nanis>0) then
       this%cr_anis_full(1:6,1:rd_cr_nanis) = rd_cr_anis_full(1:6,1:rd_cr_nanis)

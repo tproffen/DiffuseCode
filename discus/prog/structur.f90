@@ -446,6 +446,9 @@ local_icc(:) = cr_icc(:)
 !     cond_ier: IF (ier_num.eq.0) THEN 
 internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
    CALL readcell_internal(MAXMASK, strucfile, uni_mask)
+!do i=1, cr_nanis
+!write(*,'(a, 6f9.6)') ' UIJ ', cr_anis_full(1:6,i)
+!enddo
 ELSE internalcell
 !
    inquire(file=strucfile, exist=lda)
@@ -495,7 +498,13 @@ call get_is_sym         ! Determine the symmetry operation that created an atom
 do n=1,cr_natoms
    cr_iscat(2,n) = cr_is_sym(n)
 enddo
+!do i=1, cr_nanis
+!write(*,'(a, 6f9.6)') ' Uij ', cr_anis_full(1:6,i)
+!enddo
 call prep_anis(cr_ncatoms)          ! Prepare anisotropic U's 
+!do i=1, cr_nanis
+!write(*,'(a, 6f9.6)') ' uij ', cr_anis_full(1:6,i)
+!enddo
 !
 cr_natoms = 0 
 DO k = 1, cr_icc (3) 
@@ -2987,6 +2996,7 @@ CHARACTER(LEN=PREC_STRING) :: zeile
 INTEGER             :: lp
 !                                                                       
       INTEGER i 
+!write(*,*) ' *********************   CR_RESE **************************'
 !
 CALL alloc_crystal_scat(1)                                                                       
 CALL alloc_crystal_nmax(1)                                                                       

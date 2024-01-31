@@ -35,6 +35,7 @@ USE output_menu
 USE patters_menu
 use perioditize_mod
 USE pdf_menu
+use prep_anis_mod
 USE discus_plot_menu
 USE powder_top_mod
 USE prop_para_func
@@ -162,6 +163,11 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )       &
 !                                                                       
          ELSEIF (str_comp (befehl, 'addfile', 2, lbef, 7) ) THEN 
             CALL do_addfile (zeile, lcomm) 
+!                                                                       
+!     Set anisotropic APD 'anis'                                        
+!                                                                       
+         ELSEIF(str_comp(befehl, 'anis', 3, lbef, 4) ) THEN 
+            CALL do_anis(zeile, lcomm) 
 !                                                                       
 !     append a new atom 'appe'                                          
 !                                                                       

@@ -620,6 +620,7 @@ REAL(KIND=PREC_DP)   , DIMENSION(0:3) :: wr_magn
 LOGICAL lread 
 LOGICAL                            :: lsave
 LOGICAL, DIMENSION(:), ALLOCATABLE :: lwrite ! flag if atom needs write
+integer, dimension(:), allocatable :: look_anis   ! atoms with unit cell have this ANIS ADP
 !                                                                       
 !                                                                       
 !                                                                       
@@ -698,12 +699,20 @@ IF (sav_w_adp) THEN
       WRITE (fform, 7020) cr_nscat - j * 7 - 1 
       WRITE (ist, fform) (cr_dw (i), i = j * 7 + 1, cr_nscat) 
    ENDIF 
-   do j= 1, cr_nanis
-      if(abs(cr_prin(4,1,cr_iscat(3,j))-cr_prin(4,2,cr_iscat(3,j)))>TOL  .or.  &
-         abs(cr_prin(4,1,cr_iscat(3,j))-cr_prin(4,3,cr_iscat(3,j)))>TOL      ) then
-         write(ist, '(a,i2.2,a,5(f10.6,'',''),f10.6,a)') 'anis type:', j, ', value:[', cr_anis_full(:,j),']'
+   allocate(look_anis(cr_nscat))
+   look_anis = 1
+   do j=1, cr_ncatoms    ! loop over atoms in a unit cell
+      look_anis(cr_iscat(1,j)) = cr_iscat(3,j)
+   enddo
+!  do j= 1, cr_nanis
+!     if(abs(cr_prin(4,1,cr_iscat(3,j))-cr_prin(4,2,cr_iscat(3,j)))>TOL  .or.  &
+!        abs(cr_prin(4,1,cr_iscat(3,j))-cr_prin(4,3,cr_iscat(3,j)))>TOL      ) then
+   do j= 1, cr_nscat
+      if(abs(cr_prin(4,1,look_anis(j) )-cr_prin(4,2,look_anis(j) ))>TOL  .or.  &
+         abs(cr_prin(4,1,look_anis(j) )-cr_prin(4,3,look_anis(j) ))>TOL      ) then
+         write(ist, '(a,i2.2,a,5(f10.6,'',''),f10.6,a)') 'anis type:', j, ', values:[', cr_anis_full(:,look_anis(j)),']'
       else
-         write(ist, '(a,i2.2,a,f10.6,a)')  'anis type:', j, ', value:[', cr_prin(4,1,j),']'
+         write(ist, '(a,i2.2,a,f10.6,a)')  'anis type:', j, ', values:[', cr_prin(4,1,look_anis(j)),']'
       endif
    enddo
 ENDIF 
