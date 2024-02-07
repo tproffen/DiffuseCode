@@ -594,6 +594,7 @@ USE sym_add_mod
 USE discus_save_mod 
 USE surface_mod
 !
+use allocate_generic
 USE errlist_mod 
 USE lib_length
 USE support_mod
@@ -604,11 +605,14 @@ CHARACTER(LEN=*), INTENT(IN) :: strucfile
 !
 real(kind=PREC_DP), parameter :: TOL = 2.0D-5
 INTEGER, PARAMETER :: ist = 67
-CHARACTER(LEN=31) :: fform 
 CHARACTER(LEN=15), DIMENSION(-4:4) :: C_MOLE !( - 4:4) 
 CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
+character(len=PREC_STRING) :: scat_string
 INTEGER :: i, j, k
 INTEGER :: i_start, i_end 
+integer :: iscat
+integer :: ianis
+integer :: itype
 INTEGER :: is, ie 
 INTEGER :: wr_prop = 1
 INTEGER :: wr_mole = 0
@@ -620,7 +624,7 @@ REAL(KIND=PREC_DP)   , DIMENSION(0:3) :: wr_magn
 LOGICAL lread 
 LOGICAL                            :: lsave
 LOGICAL, DIMENSION(:), ALLOCATABLE :: lwrite ! flag if atom needs write
-integer, dimension(:), allocatable :: look_anis   ! atoms with unit cell have this ANIS ADP
+integer, dimension(:,:), allocatable :: look_anis   ! atoms with unit cell have this ANIS ADP
 !                                                                       
 !                                                                       
 !                                                                       
@@ -671,65 +675,152 @@ ELSEIF (spcgr_ianz.eq.1) THEN
    WRITE (ist, 3011) cr_spcgr, spcgr_para, cr_set
 ENDIF 
 WRITE (ist, 3020) (cr_a0 (i), i = 1, 3), (cr_win (i), i = 1, 3) 
+!
+!   Construct ADP lookup table
+!
+allocate(look_anis(1:cr_nscat, 0:max(cr_ncatoms,cr_nanis)))    ! For all atom types , all ADPs
+look_anis = 0
+loop_makelook: do j=1, cr_natoms                  ! Find all adps for atom types
+   iscat = cr_iscat(1, j)
+   ianis = cr_iscat(3, j)
+   do i=1, look_anis(iscat,0)                  ! Loop over all previous entries
+      if(look_anis(iscat,i)==ianis) cycle loop_makelook
+   enddo
+   look_anis(iscat,0) = look_anis(iscat,0) + 1
+   if(look_anis(iscat,0)> ubound(look_anis,2)) then
+      k = ubound(look_anis,2) + 10
+      call alloc_arr(look_anis, 1, cr_nscat, 0, k, i, 0  )
+   endif
+   look_anis(iscat,look_anis(iscat,0)) = ianis
+enddo loop_makelook
+!
+!   Write Atom names 
+!
 IF (sav_w_scat) THEN 
-   j = (cr_nscat - 1) / 7 
-   DO i = 1, j 
-      is = (i - 1) * 7 + 1 
-      ie = is + 6 
-      WRITE (ist, 3110) (cr_at_lis (k), k = is, ie) 
-   ENDDO 
-   IF (cr_nscat - j * 7.eq.1) THEN 
-      WRITE (ist, 3111) cr_at_lis (cr_nscat) 
-   ELSEIF (cr_nscat - j * 7.gt.1) THEN 
-      WRITE (fform, 7010) cr_nscat - j * 7 - 1 
-      WRITE (ist, fform) (cr_at_lis (i), i = j * 7 + 1, cr_nscat) 
-   ENDIF 
+   scat_string    = 'scat  '                   ! Construct "SCAT" line
+   itype = 0
+   do j=1, cr_nscat
+      do i=1,look_anis(j,0)
+         itype = itype + 1
+         ianis = look_anis(j,i)
+         is = 7 + (itype-1)*7
+         ie = is + 6
+         scat_string(is:ie) = cr_at_lis(j)//',  '
+         if(itype==7) then
+            write(ist, '(a)') scat_string(1:len_trim(scat_string)-1)
+            scat_string    = 'scat '
+            itype = 0
+         endif
+      enddo
+   enddo
+   if(itype> 0) then
+      write(ist, '(a)') scat_string(1:len_trim(scat_string)-1)
+   endif
+!  j = (cr_nscat - 1) / 7 
+!  DO i = 1, j 
+!     is = (i - 1) * 7 + 1 
+!     ie = is + 6 
+!     WRITE (ist, 3110) (cr_at_lis (k), k = is, ie) 
+!  ENDDO 
+!  IF (cr_nscat - j * 7.eq.1) THEN 
+!     WRITE (ist, 3111) cr_at_lis (cr_nscat) 
+!  ELSEIF (cr_nscat - j * 7.gt.1) THEN 
+!     WRITE (fform, 7010) cr_nscat - j * 7 - 1 
+!     WRITE (ist, fform) (cr_at_lis (i), i = j * 7 + 1, cr_nscat) 
+!  ENDIF 
 ENDIF 
 !
 IF (sav_w_adp) THEN 
-   j = (cr_nscat - 1) / 7 
-   DO i = 1, j 
-      is = (i - 1) * 7 + 1 
-      ie = is + 6 
-      WRITE (ist, 3120) (cr_dw (k), k = is, ie) 
-   ENDDO 
-   IF (cr_nscat - j * 7.eq.1) THEN 
-      WRITE (ist, 3121) cr_dw (cr_nscat) 
-   ELSEIF (cr_nscat - j * 7.gt.1) THEN 
-      WRITE (fform, 7020) cr_nscat - j * 7 - 1 
-      WRITE (ist, fform) (cr_dw (i), i = j * 7 + 1, cr_nscat) 
-   ENDIF 
-   allocate(look_anis(cr_nscat))
-   look_anis = 1
-   do j=1, cr_ncatoms    ! loop over atoms in a unit cell
-      look_anis(cr_iscat(1,j)) = cr_iscat(3,j)
+   scat_string    = 'adp   '                   ! Construct "ADP" line
+   itype = 0
+   do j=1, cr_nscat
+      do i=1,look_anis(j,0)
+         itype = itype + 1
+         ianis = look_anis(j,i)
+         is = 6 + (itype-1)*15
+         ie = is + 15
+         write(scat_string(is:ie),'(f10.6,a1)') cr_dw(j),','
+         if(itype==7) then
+            write(ist, '(a)') scat_string(1:len_trim(scat_string)-1)
+            scat_string    = 'adp  '
+            itype = 0
+         endif
+      enddo
    enddo
+   if(itype> 0) then
+      write(ist, '(a)') scat_string(1:len_trim(scat_string)-1)
+   endif
+!
+!  j = (cr_nscat - 1) / 7 
+!  DO i = 1, j 
+!     is = (i - 1) * 7 + 1 
+!     ie = is + 6 
+!     WRITE (ist, 3120) (cr_dw (k), k = is, ie) 
+!  ENDDO 
+!  IF (cr_nscat - j * 7.eq.1) THEN 
+!     WRITE (ist, 3121) cr_dw (cr_nscat) 
+!  ELSEIF (cr_nscat - j * 7.gt.1) THEN 
+!     WRITE (fform, 7020) cr_nscat - j * 7 - 1 
+!     WRITE (ist, fform) (cr_dw (i), i = j * 7 + 1, cr_nscat) 
+!  ENDIF 
+!  allocate(look_anis(cr_ncatoms))
+!  look_anis = 1
+!  do j=1, cr_ncatoms    ! loop over atoms in a unit cell
+!     look_anis(cr_iscat(1,j)) = cr_iscat(3,j)
+!  enddo
 !  do j= 1, cr_nanis
+   itype = 0
+   do j=1, cr_nscat
+      do i=1,look_anis(j,0)
+         itype = itype + 1
+         ianis = look_anis(j,i)
 !     if(abs(cr_prin(4,1,cr_iscat(3,j))-cr_prin(4,2,cr_iscat(3,j)))>TOL  .or.  &
 !        abs(cr_prin(4,1,cr_iscat(3,j))-cr_prin(4,3,cr_iscat(3,j)))>TOL      ) then
-   do j= 1, cr_nscat
-      if(abs(cr_prin(4,1,look_anis(j) )-cr_prin(4,2,look_anis(j) ))>TOL  .or.  &
-         abs(cr_prin(4,1,look_anis(j) )-cr_prin(4,3,look_anis(j) ))>TOL      ) then
-         write(ist, '(a,i2.2,a,5(f10.6,'',''),f10.6,a)') 'anis type:', j, ', values:[', cr_anis_full(:,look_anis(j)),']'
-      else
-         write(ist, '(a,i2.2,a,f10.6,a)')  'anis type:', j, ', values:[', cr_prin(4,1,look_anis(j)),']'
-      endif
+!   do j= 1, cr_ncatoms
+!      if(abs(cr_prin(4,1,look_anis(j,ianis) )-cr_prin(4,2,look_anis(j,ianis) ))>TOL  .or.  &
+!         abs(cr_prin(4,1,look_anis(j,ianis) )-cr_prin(4,3,look_anis(j,ianis) ))>TOL      ) then
+       if(abs(cr_prin(4,1,ianis              )-cr_prin(4,2,ianis              ))>TOL  .or.  &
+          abs(cr_prin(4,1,ianis              )-cr_prin(4,3,ianis              ))>TOL      ) then
+          write(ist, '(a,i2.2,a,5(f10.6,'',''),f10.6,a)') 'anis type:', itype, ', values:[', cr_anis_full(:,ianis),']'
+       else
+          write(ist, '(a,i2.2,a,f10.6,a)')  'anis type:', itype, ', values:[', cr_prin(4,1,    ianis         ),']'
+       endif
+      enddo
    enddo
 ENDIF 
 !
 IF (sav_w_occ) THEN 
-   j = (cr_nscat - 1) / 7 
-   DO i = 1, j 
-      is = (i - 1) * 7 + 1 
-      ie = is + 6 
-      WRITE (ist, 3220) (cr_occ(k), k = is, ie) 
-   ENDDO 
-   IF (cr_nscat - j * 7.eq.1) THEN 
-      WRITE (ist, 3221) cr_occ(cr_nscat) 
-   ELSEIF (cr_nscat - j * 7.gt.1) THEN 
-      WRITE (fform, 7030) cr_nscat - j * 7 - 1 
-      WRITE (ist, fform) (cr_occ(i), i = j * 7 + 1, cr_nscat) 
-   ENDIF 
+   scat_string    = 'occ   '                   ! Construct "ADP" line
+   itype = 0
+   do j=1, cr_nscat
+      do i=1,look_anis(j,0)
+         itype = itype + 1
+         ianis = look_anis(j,i)
+         is = 6 + (itype-1)*15
+         ie = is + 15
+         write(scat_string(is:ie),'(f10.6,a1)') cr_occ(j),','
+         if(itype==7) then
+            write(ist, '(a)') scat_string(1:len_trim(scat_string)-1)
+            scat_string    = 'occ  '
+            itype = 0
+         endif
+      enddo
+   enddo
+   if(itype> 0) then
+      write(ist, '(a)') scat_string(1:len_trim(scat_string)-1)
+   endif
+!  j = (cr_nscat - 1) / 7 
+!  DO i = 1, j 
+!     is = (i - 1) * 7 + 1 
+!     ie = is + 6 
+!     WRITE (ist, 3220) (cr_occ(k), k = is, ie) 
+!  ENDDO 
+!  IF (cr_nscat - j * 7.eq.1) THEN 
+!     WRITE (ist, 3221) cr_occ(cr_nscat) 
+!  ELSEIF (cr_nscat - j * 7.gt.1) THEN 
+!     WRITE (fform, 7030) cr_nscat - j * 7 - 1 
+!     WRITE (ist, fform) (cr_occ(i), i = j * 7 + 1, cr_nscat) 
+!  ENDIF 
 ENDIF 
 !
 IF (sav_w_gene) THEN 
@@ -1183,9 +1274,9 @@ sav_file    = 'crystal.stru'
 !
 sav_keyword = .true.
 !
-sav_w_scat  = .false.
-sav_w_adp   = .false.
-sav_w_occ   = .false.
+sav_w_scat  = .true.
+sav_w_adp   = .true.
+sav_w_occ   = .true.
 sav_w_surf  = .false.
 sav_w_magn  = .FALSE.
 sav_r_ncell = .true.
