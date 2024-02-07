@@ -1917,6 +1917,7 @@ main: DO i=1, dcc_num
               strufile(1:MIN(LEN(ier_msg),LEN_TRIM(strufile)))
       RETURN
    ENDIF
+   call prep_anis(cr_natoms)
 !
    dcc_natoms(i) = cr_natoms         ! Store number of atoms in this molecule
    IF(cr_nscat > DCC_MAXMSCAT .OR. cr_nscat > UBOUND(dcc_atom_name,1)) THEN
