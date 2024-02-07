@@ -832,7 +832,7 @@ SUBROUTINE set_crystal_from_standard   ( this, strucfile)
       ENDDO
    ENDIF
 !
-   i = min(max(cr_nscat, cr_nanis),ubound(this%cr_anis,2))
+   i = min(max(cr_nscat, cr_nanis),ubound(this%cr_anis,2), ubound(cr_anis,2))
    this%cr_anis(1:6,1:i       ) = cr_anis(1:6,1:i       )
 !  this%cr_anis(1:6,1:cr_nscat) = cr_anis(1:6,1:cr_nscat)
    if(cr_nanis>0) then
