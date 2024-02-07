@@ -18,6 +18,11 @@ public lib_tensor          ! Build metric tensors
 public lib_eps             ! Nuild epsilon tensor
 public lib_angles          ! Calculate angles aver for KUPLOT/FOURIER
 !
+interface lib_vector_product
+   module procedure lib_vector_product_crystal,  &
+                    lib_vector_product_cartesian
+end interface lib_vector_product
+!
 contains
 !
 !*******************************************************************************
@@ -88,7 +93,7 @@ end function lib_bang
 !
 !*****7*****************************************************************
 !
-subroutine lib_vector_product(u, v, ww, eps, rten) 
+subroutine lib_vector_product_crystal(u, v, ww, eps, rten) 
 !-                                                                      
 !     calculates the VECTORPRODUCT in general triclinic space           
 !     with  EPS and RTEN in direct space                                
@@ -117,7 +122,29 @@ do i = 1, 3
    enddo 
 enddo 
 !                                                                       
-end subroutine lib_vector_product             
+end subroutine lib_vector_product_crystal             
+!
+!*****7*****************************************************************
+!
+subroutine lib_vector_product_cartesian(u, v, ww) 
+!-                                                                      
+!     calculates the VECTORPRODUCT in general triclinic space           
+!     with  EPS and RTEN in direct space                                
+!     with REPS and GTEN in reciprocal space                            
+!+                                                                      
+use precision_mod
+!
+implicit none 
+!                                                                       
+real(kind=PREC_DP), dimension(3),     intent(in)  :: u
+real(kind=PREC_DP), dimension(3),     intent(in)  :: v
+real(kind=PREC_DP), dimension(3),     intent(out) :: ww
+!
+ww(1) = u(2)*v(3) - u(3)*v(2)
+ww(2) = u(3)*v(1) - u(1)*v(3)
+ww(3) = u(1)*v(2) - u(2)*v(1)
+!                                                                       
+end subroutine lib_vector_product_cartesian             
 !
 !*****7*****************************************************************
 !
