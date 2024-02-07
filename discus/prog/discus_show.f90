@@ -243,6 +243,7 @@ real(kind=PREC_DP), parameter :: TOL = 0.0001_PREC_DP
 integer :: j   ! Dummy index
 real(kind=PREC_DP) :: ueqv
 real(kind=PREC_DP) :: biso
+real(kind=PREC_DP), dimension(3) :: v
 !
 if(.not.((opara(O_ADP)=='uij' .or. opara(O_ADP)=='prin' .or. opara(O_ADP)=='all') .and.  &
         (opara(O_STYLE)=='long' .or.opara(O_STYLE)=='short')))                         then
@@ -270,19 +271,24 @@ if(str_comp(opara(O_ADP), 'uij', 2, length(O_ADP)  , 3) .or. str_comp(opara(O_AD
    write(output_io,*)
 endif
 if(str_comp(opara(O_ADP), 'prin', 2, length(O_ADP)  , 4) .or. str_comp(opara(O_ADP), 'all', 2, length(O_ADP)  , 3)) then
-   write(output_io,'(a)')' Type               Eigenvectors                            <u^2>'
+   write(output_io,'(2a)')' Type               Eigenvectors (cartesian)                <u^2>', &
+                         '       Eigenvectors (crystal)'
    do j=1, cr_nanis
       if((abs(cr_prin(4,1,j    )-cr_prin(4,2,j   ))>TOL  .or.  &
           abs(cr_prin(4,1,j    )-cr_prin(4,3,j   ))>TOL      ) .or. opara(O_STYLE)=='long') then
-         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '1st', cr_prin(:,1,j)
-         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '2nd', cr_prin(:,2,j)
-         write(output_io,'(i5, 9x, a3, 3f10.5 ,10x, f10.5 )') j, '3rd', cr_prin(:,3,j)
+         v = matmul(cr_emat, cr_prin(1:3, 1, j))
+         write(output_io,1000                             ) j, '1st', cr_prin(:,1,j), v
+         v = matmul(cr_emat, cr_prin(1:3, 2, j))
+         write(output_io,1000                             ) j, '2nd', cr_prin(:,2,j), v
+         v = matmul(cr_emat, cr_prin(1:3, 3, j))
+         write(output_io,1000                             ) j, '3rd', cr_prin(:,3,j), v
       else
          write(output_io,'(i5, 52x, f10.5)') j, cr_prin(4,1,j)
       endif
    enddo
    write(output_io,*)
 endif
+1000 format(i5, 9x, a3, 3f10.5 ,10x, f10.5,2x, 3f10.5 )
 !
 end subroutine show_adp
 !
