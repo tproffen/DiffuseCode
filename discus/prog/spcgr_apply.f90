@@ -65,7 +65,7 @@ spc_gen(1) = 1
       spc_spur (spc_n) = 3 
       spc_det (spc_n) = 1 
       CALL get_symmetry_type (SPC_MAX, spc_n, spc_mat, spc_spur,        &
-      spc_det, spc_char, spc_xyz)
+      spc_det, spc_char, spc_xyz, spc_axis)
 !                                                                       
 !     Loop over all generators                                          
 !                                                                       
@@ -76,7 +76,7 @@ spc_gen(1) = 1
          igg = generspcgr_center (igs, cr_spcgrno) 
       ENDIF 
       CALL make_symmetry_matrix (SPC_MAX, spc_n, spc_mat, spc_det,      &
-      spc_spur, spc_char, spc_xyz, igg, NG, generators, generpower)     
+      spc_spur, spc_char, spc_xyz, spc_axis, igg, NG, generators, generpower)     
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
@@ -107,7 +107,7 @@ enddo loop_isgen
 !                                                                       
       DO igs = 1, gen_add_n 
       CALL make_symmetry_matrix (SPC_MAX, spc_n, spc_mat, spc_det,      &
-      spc_spur, spc_char, spc_xyz, igs, GEN_ADD_MAX, gen_add,           &
+      spc_spur, spc_char, spc_xyz, spc_axis, igs, GEN_ADD_MAX, gen_add,           &
       gen_add_power)                                                    
       IF (ier_num.ne.0) then 
          RETURN 
@@ -146,7 +146,7 @@ enddo loop_isgen
       spc_mat (3, 2, spc_n) - spc_mat (3, 1, spc_n) * spc_mat (2, 2,    &
       spc_n) )                                                          
       CALL get_symmetry_type (SPC_MAX, spc_n, spc_mat, spc_spur,        &
-      spc_det, spc_char, spc_xyz)
+      spc_det, spc_char, spc_xyz, spc_axis)
       ENDDO 
 !-----      End of loop over additional symmetry matices                
 !                                                                       
@@ -169,7 +169,7 @@ END SUBROUTINE get_symmetry_matrices
 !*****7*****************+***********************************************
 !
 SUBROUTINE make_symmetry_matrix (SPC_MAX, spc_n, spc_mat, spc_det,&
-      spc_spur, spc_char, spc_xyz, igg, NG, generators, generpower)     
+      spc_spur, spc_char, spc_xyz, spc_axis, igg, NG, generators, generpower)     
 !-                                                                      
 !     Applies the current generator to all existing symmetry matrices   
 !+                                                                      
@@ -188,6 +188,7 @@ real(kind=PREC_DP), dimension(1:SPC_MAX)      , intent(out) :: spc_spur ! (1:SPC
 !
 CHARACTER(len=65), dimension(1:SPC_MAX)       , intent(out) :: spc_char ! (1:SPC_MAX) 
 CHARACTER(len=87), dimension(1:SPC_MAX)       , intent(out) :: spc_xyz  ! (1:SPC_MAX) 
+real(kind=PREC_DP),dimension(3, 1:SPC_MAX)    , intent(out) :: spc_axis ! (1:SPC_MAX) 
 INTEGER                                       , intent(in) :: igg 
 INTEGER                                       , intent(in) :: NG 
 REAL(kind=PREC_DP)                            , intent(in) :: generators (4, 4, 0:NG) 
@@ -288,7 +289,7 @@ CALL spcgr_setting(generator, cr_iset)
                ENDIF
             ENDDO is_exist
             CALL get_symmetry_type (SPC_MAX, spc_n, spc_mat, spc_spur,        &
-            spc_det, spc_char, spc_xyz)
+            spc_det, spc_char, spc_xyz, spc_axis)
          ENDDO generate
 !                                                                       
 !     --Set power of Generator                                          
@@ -448,7 +449,7 @@ END SUBROUTINE spcgr_setting
 !********************************************************************** 
 !
 SUBROUTINE get_symmetry_type(SPC_MAX, spc_n, spc_mat, spc_spur,  &
-      spc_det, spc_char, spc_xyz)
+      spc_det, spc_char, spc_xyz, spc_axis)
 !-                                                                      
 !     Determines the xyz triplet, and the letter that describes the     
 !     symmetry operation                                                
@@ -465,6 +466,7 @@ REAL(kind=PREC_DP), dimension(     1:SPC_MAX), intent(in)  :: spc_spur ! (1:SPC_
 REAL(kind=PREC_DP), dimension(     1:SPC_MAX), intent(in)  :: spc_det  ! (1:SPC_MAX) 
 CHARACTER(len=65),  dimension(     1:SPC_MAX), intent(out) :: spc_char ! (1:SPC_MAX) 
 CHARACTER(len=87),  dimension(     1:SPC_MAX), intent(out) :: spc_xyz  ! (1:SPC_MAX) 
+REAL(kind=PREC_DP), dimension(3,   1:SPC_MAX), intent(out) :: spc_axis ! (1:SPC_MAX) 
 !                                                                       
 INTEGER :: i, j, ii, ja, je 
 INTEGER, dimension( - 3:3, - 1:1) :: pwr  ! ( - 3:3, - 1:1) 
@@ -589,6 +591,7 @@ REAL(kind=PREC_DP):: fact
       ENDDO 
       CALL get_detail (work, add, spc_char (spc_n), power, axis, &
       screw, posit, hkl)                                                
+      spc_axis(:, spc_n) = axis
 !                                                                       
 4000  FORMAT(   '     -',A1)
 4100  FORMAT(   '       ')
@@ -1483,13 +1486,15 @@ USE discus_config_mod
 USE crystal_mod 
 USE wyckoff_mod 
 USE unitcell_mod 
+!
+use matrix_mod
 USE prompt_mod
 USE param_mod
 USE precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-REAL(KIND=PREC_DP), intent(inout) ::  vec (3) 
+REAL(KIND=PREC_DP), intent(inout) ::  vec(3) 
 LOGICAL           , intent(in) :: loutput 
 INTEGER           , intent(in) :: mode 
 !                                                                       
@@ -1505,100 +1510,127 @@ INTEGER :: n_center
 INTEGER :: igroup 
 INTEGER :: block = 1
 LOGICAL :: lident 
+REAL(KIND=PREC_DP), dimension(4) :: trans! (4) 
 REAL(KIND=PREC_DP), dimension(4) :: orig ! (4) 
 REAL(KIND=PREC_DP), dimension(4) :: copy ! (4) 
+REAL(kind=PREC_DP), dimension(3,3):: tmp_mat  ! 
 REAL(kind=PREC_DP) :: eps 
+!
+!integer, parameter :: WYC_MAX = 1
+!REAL(kind=PREC_DP), dimension(4,4, 1:WYC_MAX)  :: wyc_mat  ! (4, 4, 1:SPC_MAX) 
+!REAL(kind=PREC_DP), dimension(     1:WYC_MAX)  :: wyc_spur ! (1:SPC_MAX) 
+!REAL(kind=PREC_DP), dimension(     1:WYC_MAX)  :: wyc_det  ! (1:SPC_MAX) 
+!CHARACTER(len=65),  dimension(     1:WYC_MAX)  :: wyc_char ! (1:SPC_MAX) 
+!CHARACTER(len=87),  dimension(     1:WYC_MAX)  :: wyc_xyz  ! (1:SPC_MAX) 
+!REAL(kind=PREC_DP), dimension(3,   1:WYC_MAX)  :: wyc_axis ! (4, 4, 1:SPC_MAX) 
 !                                                                       
-DATA eps / 0.00001 / 
+DATA eps / 0.00001_PREC_DP/
 !                                                                       
-      n_center = 1 
-      IF (cr_spcgr (1:1) .eq.'P') then 
-         n_center = 1 
-      ELSEIF (cr_spcgr (1:1) .eq.'A') then   ! Normal space group can be used
-         n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'B') then   ! as n_center is identical for
-         n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'C') then   ! A B and C, orthorhombic alternative setting
-         n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'I') then 
-         n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'F') then 
-         n_center = 4 
-      ELSEIF (cr_spcgr (1:1) .eq.'R'.and.cr_syst.eq.6) then 
-         n_center = 3 
-      ENDIF 
-      IF (gen_sta.eq.GEN_SYMM) then 
-         block = spc_n / n_center 
-      ELSEIF (gen_sta.eq.GEN_CENTER) then 
-         block = n_center 
-      ENDIF 
-      IF (loutput) then 
-         WRITE (output_io, 900) vec 
-      ENDIF 
+n_center = 1 
+IF (cr_spcgr (1:1) .eq.'P') then 
+   n_center = 1 
+ELSEIF (cr_spcgr (1:1) .eq.'A') then   ! Normal space group can be used
+   n_center = 2 
+ELSEIF (cr_spcgr (1:1) .eq.'B') then   ! as n_center is identical for
+   n_center = 2 
+ELSEIF (cr_spcgr (1:1) .eq.'C') then   ! A B and C, orthorhombic alternative setting
+   n_center = 2 
+ELSEIF (cr_spcgr (1:1) .eq.'I') then 
+   n_center = 2 
+ELSEIF (cr_spcgr (1:1) .eq.'F') then 
+   n_center = 4 
+ELSEIF (cr_spcgr (1:1) .eq.'R'.and.cr_syst.eq.6) then 
+   n_center = 3 
+ENDIF 
+IF (gen_sta.eq.GEN_SYMM) then 
+   block = spc_n / n_center 
+ELSEIF (gen_sta.eq.GEN_CENTER) then 
+   block = n_center 
+ENDIF 
+IF (loutput) then 
+   WRITE (output_io, 900) vec 
+ENDIF 
 !                                                                       
-      wyc_n = 0 
+wyc_n = 0 
 !                                                                       
 !     move position into first unit cell,ia                             
 !                                                                       
-      CALL firstcell (vec, 3) 
-      DO i = 1, 3 
-      orig (i) = vec (i) 
-      ENDDO 
-      orig (4) = 1.0 
+CALL firstcell(vec, 3) 
+!     DO i = 1, 3 
+!     orig (i) = vec (i) 
+!     ENDDO 
+orig(1:3) = vec(1:3)
+orig(4) = 1.0_PREC_DP
 !                                                                       
 !     apply all symmetry operations to original position                
 !                                                                       
-      res_para(0) = 3    ! 3 fixed output data, symm matrix no's in 4, ...
-      DO is = 1, spc_n 
-      IF (gen_sta.eq.GEN_SYMM) then 
-         igroup = mod (is - 1, block) + 1 
-      ELSEIF (gen_sta.eq.GEN_CENTER) then 
-         igroup = (is - 1) / block + 1 
-      ENDIF 
-      DO i = 1, 4 
-      copy (i) = 0.0 
-      DO j = 1, 4 
-      copy (i) = copy (i) + spc_mat (i, j, is) * orig (j) 
-      ENDDO 
-      ENDDO 
-      CALL firstcell (copy, 4) 
-      lident = .true. 
-      DO i = 1, 3 
+res_para(0) = 3    ! 3 fixed output data, symm matrix no's in 4, ...
+DO is = 1, spc_n 
+   IF (gen_sta.eq.GEN_SYMM) then 
+      igroup = mod (is - 1, block) + 1 
+   ELSEIF (gen_sta.eq.GEN_CENTER) then 
+      igroup = (is - 1) / block + 1 
+   ENDIF 
+!  DO i = 1, 4 
+!     copy (i) = 0.0 
+!     DO j = 1, 4 
+!        copy (i) = copy (i) + spc_mat (i, j, is) * orig (j) 
+!     ENDDO 
+!  ENDDO 
+!  wyc_mat(:,:,1) = spc_mat(:,:, is)
+   copy = matmul(spc_mat(:,:,is), orig)
+!  CALL firstcell (copy, 4) 
+   lident = .true. 
+   trans = 0.0_PREC_DP
+   DO i = 1, 3 
       lident = lident.and.                        &
-         (     abs (orig (i) - copy (i) )      .lt.eps .OR.   &
-           ABS(abs (orig (i) - copy (i) )-1.0) .lt.eps)
-      ENDDO 
-      IF (lident) then 
-         wyc_n = wyc_n + 1 
-         wyc_list (wyc_n) = is 
-         IF (loutput) then 
-            IF (mode.eq.FULL) then 
-               WRITE (output_io, 1000) is, igroup 
-               WRITE (output_io, 1100) (spc_mat (1, j, is), j = 1, 4),  &
-               spc_char (is), (spc_mat (2, j, is), j = 1, 4), (spc_mat (&
-               3, j, is), j = 1, 4), spc_xyz (is)                       
-            ELSEIF (mode.eq.SYMBOL) then 
-               WRITE (output_io, 3200) is, igroup, spc_char (is) 
-            ELSEIF (mode.eq.XYZ) then 
-               WRITE (output_io, 4200) is, igroup, spc_xyz (is) 
-            ELSEIF (mode.eq.MATRIX) then 
-               WRITE (output_io, 5200) is, igroup, (spc_mat (1, j, is), &
-               j = 1, 4), (spc_mat (2, j, is), j = 1, 4), (spc_mat (3,  &
-               j, is), j = 1, 4)                                        
-            ENDIF 
-         ENDIF 
-         res_para(0) = REAL(NINT(res_para(0)+1), kind=PREC_DP)
-         res_para(NINT(res_para(0))) = REAL(is, kind=PREC_DP)
-      ENDIF 
-!                                                                       
-      ENDDO 
-!                                                                       
+         (     abs(orig(i) - copy(i) )      .lt.eps .OR.   &
+           abs(abs(orig(i) - copy(i) )-1.0) .lt.eps)
+      trans(i) = orig(i) - copy(i)
+   ENDDO 
+   IF (lident) then 
+      wyc_n = wyc_n + 1 
+      wyc_list(wyc_n) = is 
+      wyc_mat(:,:, wyc_n) = spc_mat(:,:, is)
+      wyc_mat(:,4, wyc_n) = wyc_mat(:,4, wyc_n) + trans
+      wyc_spur(wyc_n) = wyc_mat(1,1,wyc_n) + wyc_mat(2,2,wyc_n) + wyc_mat(3,3,wyc_n)
+      tmp_mat = wyc_mat(1:3,1:3,wyc_n)
+      wyc_det(wyc_n)  = determinant(tmp_mat)
+      CALL get_symmetry_type (WYC_MAX, wyc_n    , wyc_mat, wyc_spur,        &
+      wyc_det, wyc_char, wyc_xyz, wyc_axis)
       IF (loutput) then 
-         WRITE (output_io, 6000) spc_n / wyc_n, wyc_n, spc_n 
+!        IF (mode.eq.FULL) then 
+!           WRITE (output_io, 1000) is, igroup 
+!           WRITE (output_io, 1100) (spc_mat (1, j, is), j = 1, 4),  &
+!           spc_char (is), (spc_mat (2, j, is), j = 1, 4), (spc_mat (&
+!           3, j, is), j = 1, 4), spc_xyz (is)                       
+         IF (mode.eq.FULL) then 
+            WRITE(output_io, 1000) is, igroup 
+            WRITE(output_io, 1100) (wyc_mat(1, j, wyc_n), j = 1, 4),  &
+               wyc_char(wyc_n), (wyc_mat(2, j, wyc_n), j = 1, 4),         &
+              (wyc_mat(3, j, wyc_n), j = 1, 4), wyc_xyz(wyc_n)                       
+         ELSEIF (mode.eq.SYMBOL) then 
+            WRITE(output_io, 3200) is, igroup, wyc_char(wyc_n) 
+         ELSEIF (mode.eq.XYZ) then 
+            WRITE(output_io, 4200) is, igroup, wyc_xyz(wyc_n) 
+         ELSEIF (mode.eq.MATRIX) then 
+            WRITE(output_io, 5200) is, igroup, (wyc_mat(1, j, wyc_n), j = 1, 4), &
+               (wyc_mat(2, j, wyc_n), j = 1, 4), (wyc_mat(3, j, wyc_n), j = 1, 4)                                        
+         ENDIF 
+!write(*,'(a,3(2x,f10.4))') ' WYC AXIS ', wyc_axis(:,wyc_n)
       ENDIF 
-      res_para(1) = REAL(spc_n / wyc_n, kind=PREC_DP)
-      res_para(2) = REAL(        wyc_n, kind=PREC_DP)
-      res_para(3) = REAL(spc_n        , kind=PREC_DP)
+      res_para(0) = REAL(NINT(res_para(0)+1), kind=PREC_DP)
+      res_para(NINT(res_para(0))) = REAL(is, kind=PREC_DP)
+   ENDIF 
+!                                                                       
+ENDDO 
+!                                                                       
+IF (loutput) then 
+   WRITE (output_io, 6000) spc_n / wyc_n, wyc_n, spc_n 
+ENDIF 
+res_para(1) = REAL(spc_n / wyc_n, kind=PREC_DP)
+res_para(2) = REAL(        wyc_n, kind=PREC_DP)
+res_para(3) = REAL(spc_n        , kind=PREC_DP)
 !                                                                       
   900 FORMAT    (/,' Wyckoff symmetry for position ',3f12.6,/) 
  1000 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')') 
