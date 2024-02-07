@@ -31,6 +31,7 @@ USE molecule_mod
 USE prop_para_mod 
 USE read_internal_mod
 USE discus_save_mod 
+use prep_anis_mod
 USE spcgr_apply
 USE spcgr_mod 
 USE stack_rese_mod
@@ -318,6 +319,7 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
             IF (.not. (str_comp (befehl, 'cell',  1, lbef, 4) .or.      &
                        str_comp (befehl, 'lcell', 1, lbef, 5)     ) ) THEN
                CALL get_symmetry_matrices 
+               call prep_anis(cr_natoms)
             ENDIF
          ELSE 
             CALL errlist 
@@ -664,7 +666,6 @@ use discus_allocate_appl_mod
 USE crystal_mod 
 USE chem_mod 
 USE molecule_mod 
-use prep_anis_mod
 USE read_internal_mod
 !
 USE errlist_mod
@@ -709,7 +710,7 @@ ELSE internals
 !
    call alloc_unitcell(cr_ncatoms)
    cr_is_sym = 1
-   call prep_anis(cr_natoms)
+!  call prep_anis(cr_natoms)
 !
 ENDIF internals
 !
@@ -4055,7 +4056,6 @@ close(ird)
 open(unit=IRD, file=infile, status='old')  ! Simplified open as we know file exists
 allocate(content(lcontent))
 j = 0
-write(*,*) ' START READING CONTENT'
 loop_read: do
    read(IRD, '(a)', iostat=ios) line1      ! Read a short line
    if(is_iostat_end(ios)) exit loop_read
@@ -4070,9 +4070,7 @@ loop_read: do
    endif
    j=j+1
    content(j) = line
-write(*,'(a)') content(j)(1:len_trim(content(j)))
 enddo loop_read
-write(*,*) ' DONE  READING CONTENT'
 lcontent = j
 !
 close(ird)
@@ -7442,6 +7440,7 @@ IF(ianz>=1) THEN                   ! At least one parameter
    gen_add_n = 0     ! No additional generators
    sym_add_n = 0     ! No additional symmetry operations
    CALL get_symmetry_matrices
+   call recip_symm
    IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
       ier_num = -160
       ier_typ = ER_APPL
