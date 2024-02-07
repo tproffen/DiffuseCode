@@ -47,6 +47,8 @@ integer :: iref     ! Reference atom, symmetrically equivalent atoms take this a
 integer :: j, l     ! Dummy loop indices
 logical :: lanis       ! This atom has anisotropic ADP
 logical :: lsuccess    ! Success in subroutines
+logical :: is_invar    ! xx tensor is invariant under local Wyckoff point group
+real(kind=PREC_DP), dimension(3)   :: vec     ! Dummy vector
 real(kind=PREC_DP), dimension(3)   :: ar_inv  ! ( 1/a*, 1/b*, 1/c*)
 real(kind=PREC_DP), dimension(3,3) :: imat  ! Unit matrix
 real(kind=PREC_DP), dimension(3,3) :: uij   ! U_ij as in SHELX, reference to ((a*).a, (b*).b, (c*))c
@@ -94,6 +96,7 @@ loop_atoms:do iatom=1,natom
    lsuccess= .false.
    itype = cr_iscat(1,iatom)
    cr_ianis(iatom) = iatom
+   vec = cr_pos(:, iatom)
 !  write(*,*) ' NANIS ', cr_nanis
 !  write(*,'(a,i3,2i3, 3f7.3, i4)') ' ATOM ', iatom, itype, cr_iscat(3,iatom), cr_pos(:,iatom), cr_is_sym(iatom)
 !  write(*,'(a,        6f7.3    )') ' UANI ', cr_anis(:,itype)
@@ -133,6 +136,24 @@ loop_atoms:do iatom=1,natom
       call xx_to_cart(ucij, cr_emat, xx)   ! Transform XX from cartesian basis
       call uij_to_xx(xx, ar_inv, uij)      ! Transform Uij from XX tensor
    endif
+!write(*,'(a, 3f10.6)') ' Uij 1: ', uij(1, 1:3)
+!write(*,'(a, 3f10.6)') ' Uij 2: ', uij(2, 1:3)
+!write(*,'(a, 3f10.6)') ' Uij 3: ', uij(3, 1:3)
+!write(*,*) 
+!write(*,'(a, 3f10.6)') ' XX   1: ', xx(1, 1:3)
+!write(*,'(a, 3f10.6)') ' XX   2: ', xx(2, 1:3)
+!write(*,'(a, 3f10.6)') ' XX   3: ', xx(3, 1:3)
+!write(*,*) 
+!write(*,'(a, 3f10.6)') ' UCij 1: ', ucij(1, 1:3)
+!write(*,'(a, 3f10.6)') ' UCij 2: ', ucij(2, 1:3)
+!write(*,'(a, 3f10.6)') ' UCij 3: ', ucij(3, 1:3)
+!write(*,*)
+   if(cr_iscat(2,iatom)==1) then            ! Symmetrically first atom
+      call test_symm(vec, xx, is_invar)            ! Test if xx is invariant under Wyckoff symmetry
+      if(ier_num /= 0) then
+         return
+      endif
+   endif
 !
 !  if(cr_is_sym(iatom)>1) then             ! Symmetrically equivalent atom
 !if(cr_iscat(2,iatom)==1) then
@@ -142,17 +163,20 @@ loop_atoms:do iatom=1,natom
       if(lanis) then                       ! Anisotropic ADP, apply symmetry to obtain new ADP, principal vectors
 !        symm_mat = spc_mat(1:3,1:3, cr_is_sym(iatom))
          symm_mat = spc_mat(1:3,1:3, cr_iscat(2,iatom))
-!write(*,'(i3)') cr_is_sym(iatom)
-!write(*,'(3f7.2)') spc_mat(1,1:3, cr_is_sym(iatom))
-!write(*,'(3f7.2)') spc_mat(2,1:3, cr_is_sym(iatom))
-!write(*,'(3f7.2)') spc_mat(3,1:3, cr_is_sym(iatom))
          call anis_symm(cr_ncatoms, cr_nanis, iref , symm_mat, ubound(cr_anis_full,2), &
               cr_anis_full, cr_prin, xx, uij, cr_emat, cr_eimat, ar_inv)
+         if(ier_num/=0) then
+            return
+         endif
 !write(*,'(a,i3, a,6f10.5)') ' uij ', cr_iscat(2,iatom), ' | ', uij(1,1), uij(2,2), uij(3,3), uij(2,3), uij(1,3), uij(1,2)
          call lookup_anis(cr_nanis, cr_anis_full, cr_prin, uij, ucij, .FALSE., j, lsuccess)   ! Check if old ADPs are reproduced
 !write(*,'(a,i3, a,4f10.5,3i6)') ' prin', 1, ' | ', cr_prin(:,1,j), j, cr_nanis, ubound(cr_prin,3)
 !write(*,'(a,i3, a,6f10.5)') ' prin', 2, ' | ', cr_prin(:,2,j)
 !write(*,'(a,i3, a,6f10.5)') ' prin', 3, ' | ', cr_prin(:,3,j)
+!        call test_symm(vec, xx, is_invar)            ! Test if xx is invariant under Wyckoff symmetry
+         if(ier_num /= 0) then
+            return
+         endif
          cr_iscat(3,iatom) = j            ! Assign ADP type
          cycle loop_atoms
       endif 
@@ -161,6 +185,9 @@ loop_atoms:do iatom=1,natom
    endif 
 !
    call lookup_anis(cr_nanis, cr_anis_full, cr_prin, uij, ucij, .FALSE., j, lsuccess) ! Check if previous ADPs exist with identical uij
+   if(ier_num/=0) then
+      return
+   endif
    cr_iscat(3,iatom) = j            ! Assign ADP type
    iref = j           ! Reference atom for ADP values
    if(lsuccess) then
@@ -168,6 +195,9 @@ loop_atoms:do iatom=1,natom
    endif
 !  This atom has new UIJ, we need to calculate the principal vectors and Eigenvalues
    call calc_prin(cr_iscat(3,iatom), cr_nanis, ucij, ubound(cr_prin,3), cr_prin)
+   if(ier_num/=0) then
+      return
+   endif
 !write(*,'(a,i3, a,4f10.5,i6)') ' PRIN', 1, ' | ', cr_prin(:,1,cr_nanis), iref
 !write(*,'(a,i3, a,6f10.5)') ' PRIN', 2, ' | ', cr_prin(:,2,cr_nanis)
 !write(*,'(a,i3, a,6f10.5)') ' PRIN', 3, ' | ', cr_prin(:,3,cr_nanis)
@@ -372,8 +402,8 @@ ucij(2,2) = cr_dw/8.0D0/pi**2
 ucij(3,3) = cr_dw/8.0D0/pi**2
 !cr_iscat(3,iatom ) = 1
 !
-call xx_to_cart(ucij, cr_emat, xx)   ! Transform to XX from cartesian basis
-call uij_to_xx(xx, ar_inv, uij)      ! Transform to Uij from XX tensor
+call xx_to_cart(ucij, cr_emat, xx)   ! Transform UCij to XX (cartesian => crystal)
+call uij_to_xx(xx, ar_inv, uij)      ! Transform xx tensor into Uij
 !
 lcopy = .true.
 !
@@ -527,6 +557,11 @@ real(kind=PREC_DP), DIMENSION(3,3)          ::      imat     = &
    reshape((/1.0D0,0.0D0,0.0D0, 0.0D0,1.0D0,0.0D0, 0.0D0,0.0D0,1.0D0/),SHAPE(imat))
 !
 call eigen_value(ucij, eigen_val, eigen_car, imat, neigen)
+if(ier_num /=0 ) then
+   ier_msg(1) = 'Cartesian UCij matrix has zero det.'
+   ier_msg(2) = 'Check anisotropic ADP values '
+   return
+endif
 prin  (1:3,1, ientry) = (eigen_car(:,1))
 prin  (1:3,2, ientry) = (eigen_car(:,2))
 prin  (1:3,3, ientry) = (eigen_car(:,3))
@@ -590,21 +625,24 @@ end subroutine uij_to_xx
 !
 !*******************************************************************************
 !
-subroutine xx_to_cart(xx, emat, ucij) ! Transform XX to cartesian basis
+subroutine xx_to_cart(xx, eimat, ucij) ! Transform XX to cartesian basis
 !-
 ! A simple 1 line routine that transforms XX to cartesian space or back
+!  call xx_to_cart(xx, eimat, ucij)
 !  ucij = matmul((eimat), matmul(xx,   transpose(eimat)))  ! With eimat into cartesian
+!
+!  call xx_to_cart(ucij, emat, xx)
 !  xx   = matmul((emat) , matmul(ucij, transpose(emat)))   ! With emat into crystal space
 !+
 !
 use precision_mod
 !implicit none
 !
-real(kind=PREC_DP), dimension(3,3), intent(in)  :: xx   ! Input matrix
-real(kind=PREC_DP), dimension(3,3), intent(in)  :: emat ! transformation matrix
-real(kind=PREC_DP), dimension(3,3), intent(out) :: ucij ! Result matrix
+real(kind=PREC_DP), dimension(3,3), intent(in)  :: xx    ! Input matrix
+real(kind=PREC_DP), dimension(3,3), intent(in)  :: eimat ! transformation matrix
+real(kind=PREC_DP), dimension(3,3), intent(out) :: ucij  ! Result matrix
 !
-ucij = matmul((emat), matmul(xx, transpose(emat)))
+ucij = matmul((eimat), matmul(xx, transpose(eimat)))
 !
 end subroutine xx_to_cart
 !
@@ -631,18 +669,23 @@ integer                                    , intent(in)    :: idim1     ! Refere
 real(kind=PREC_DP), dimension(6,   idim1  ), intent(inout) :: anis_full ! List of UIJ
 real(kind=PREC_DP), dimension(4,3, idim1  ), intent(inout) :: prin      ! Principal vectors cartesian
 real(kind=PREC_DP), dimension(3,3)         , intent(inout) :: uij       ! Full UIJ matrix
-real(kind=PREC_DP), dimension(3,3)         , intent(in)    :: xx        ! Displacement tensor crystal space
+real(kind=PREC_DP), dimension(3,3)         , intent(inout) :: xx        ! Displacement tensor crystal space
 real(kind=PREC_DP), dimension(3,3)         , intent(in)    :: emat      ! Transformation basis to Cartesian
 real(kind=PREC_DP), dimension(3,3)         , intent(in)    :: eimat     ! Transformation basis to crystal
 real(kind=PREC_DP), dimension(3)           , intent(in)    :: ar_inv    ! Reciprocal lattice parameters
 !
 integer                          :: j
 real(kind=PREC_DP), dimension(3) :: v,w  ! Dummy vector
-real(kind=PREC_DP), dimension(3,3) :: xx_new       ! Displacemetn tensor after symmetry operation
+real(kind=PREC_DP), dimension(3,3) :: xx_new       ! Displacement tensor after symmetry operation
 !real(kind=PREC_DP), dimension(3,3) :: uij          ! UIJ in (a*.a, b*.b, c*.c) space
 real(kind=PREC_DP), dimension(3,3) :: symm_imat    ! Inverse Symmetry matrix
 !
+symm_imat = 0.0_PREC_DP
 call matinv(symm_mat, symm_imat)
+if(ier_num/=0) then
+   ier_msg(1) = 'Could not invert symmetry operation'
+   return
+endif
 !
 !write(*,*) ' SYMMETRY ', ncatoms, nanis, iref
 !write(*,'(a,4f10.6)') ' OLD  1', prin(:,1,iref )
@@ -661,8 +704,10 @@ enddo
 ! write(*,'(a,4f10.6)') ' pRIN 2', prin(:,2,nanis+1)
 ! write(*,'(a,4f10.6)') ' pRIN 3', prin(:,3,nanis+1)
 !
-xx_new = matmul(symm_mat, matmul(xx, transpose(symm_mat)))
+ xx_new = matmul(symm_mat, matmul(xx, transpose(symm_mat)))
+!xx_new = matmul(transpose(symm_mat), matmul(xx,          (symm_mat)))
 call uij_to_xx(xx_new, ar_inv, uij)
+xx = xx_new
 anis_full(1,nanis+1) = uij(1,1)
 anis_full(2,nanis+1) = uij(2,2)
 anis_full(3,nanis+1) = uij(3,3)
@@ -671,6 +716,58 @@ anis_full(5,nanis+1) = uij(1,3)
 anis_full(6,nanis+1) = uij(1,2)
 !
 end subroutine anis_symm
+!
+!*******************************************************************************
+!
+subroutine test_symm(vec, xx, is_invar)
+!-
+!  Test if xx is invariant under local Wycoff symmetry at position vec
+!+
+!
+use errlist_mod
+use wyckoff_mod
+use spcgr_apply, only:get_wyckoff
+!
+use precision_mod
+!implicit none
+!
+real(kind=PREC_DP), dimension(3)  , intent(inout) :: vec   ! Atom position
+real(kind=PREC_DP), dimension(3,3), intent(in)    :: xx    ! Displacement tensor <DELTAx^i . DELTAx^j> refers to standard basis
+logical                           , intent(out)   :: is_invar
+!
+real(kind=PREC_DP), parameter :: TOL=0.00002_PREC_DP
+!
+integer :: i
+real(kind=PREC_DP), dimension(3,3) :: mat   ! Wyckoff symmetry without translation
+real(kind=PREC_DP), dimension(3,3) :: new   ! Transformed xx
+!
+call get_wyckoff(vec, .FALSE., 0)
+!
+is_invar = .TRUE.
+!write(*,*) ' POSIT    ', vec, is_invar
+loop_wyc: do i=2, wyc_n                     ! Loop over all Wyckoff symmetries no. 2 and up (1 is identity)
+   mat = wyc_mat(1:3,1:3, i)
+   new = matmul(mat, matmul(xx, transpose(mat)))
+!  new = matmul(transpose(mat), matmul(xx,          (mat)))
+!write(*,'(2(a, 3(2x,f9.6)),l4)') ' XX ', xx(1,:), ' new ', new(1,:), all(abs(xx-new)<TOL)
+!write(*,'(2(a, 3(2x,f9.6)))') ' XX ', xx(2,:), ' new ', new(2,:)
+!write(*,'(2(a, 3(2x,f9.6)))') ' XX ', xx(3,:), ' new ', new(3,:)
+   is_invar = is_invar .and. all(abs(xx-new)<TOL)
+!  if(.not. is_invar) exit loop_wyc
+enddo loop_wyc
+!s_invar = .true.
+if(.not. is_invar) then
+   ier_num = -195
+   ier_typ = ER_APPL
+   write(ier_msg(1),'(a,3f10.6)') 'at atom pos: ',vec
+   ier_msg(2) = ' Uij do not comply with Wyckoff symmetry'
+!write(*,*) ' POSIT    ', vec, is_invar
+!write(*,'(2(a, 3(2x,f9.6)))') ' XX ', xx(1,:), ' new ', new(1,:)
+!write(*,'(2(a, 3(2x,f9.6)))') ' XX ', xx(2,:), ' new ', new(2,:)
+!write(*,'(2(a, 3(2x,f9.6)))') ' XX ', xx(3,:), ' new ', new(3,:)
+endif
+!
+end subroutine test_symm
 !
 !*******************************************************************************
 !
@@ -689,25 +786,32 @@ use take_param_mod
 character(len=*), intent(inout) :: line
 integer         , intent(inout) :: length
 !
-integer, parameter :: MAXW  = 2
+integer, parameter :: MAXW  = 6
 integer, parameter :: MAXWW = 6
-character(len=PREC_STRING), dimension(2) :: cpara
-integer                   , dimension(2) :: lpara
+character(len=PREC_STRING), dimension(MAXW) :: cpara
+integer                   , dimension(MAXW) :: lpara
 integer                                  :: ianz
 character(len=PREC_STRING)               :: ccpara
 integer                                  :: llpara
 real(kind=PREC_DP) , dimension(6)        :: wwerte   ! Calculated values
 !
-integer :: ianis
+logical                                  :: loutput  ! Output to screen ?
+!
+integer :: ianis, j
+real(kind=PREC_DP)                 :: rlen    ! Vector length
 real(kind=PREC_DP), dimension(3)   :: ar_inv  ! ( 1/a*, 1/b*, 1/c*)
+real(kind=PREC_DP), dimension(3)   :: vec     ! a vector
 real(kind=PREC_DP), dimension(3,3) :: uij   ! U_ij as in SHELX, reference to ((a*).a, (b*).b, (c*))c
 real(kind=PREC_DP), dimension(3,3) :: xx    ! Displacement tensor <DELTAx^i . DELTAx^j> refers to standard basis
 real(kind=PREC_DP), dimension(3,3) :: ucij  ! Displacement tensor <DELTAx^i . DELTAx^j> at cartesian coordinates
 !
-integer, parameter :: NOPTIONAL = 2
+integer, parameter :: NOPTIONAL = 5
 integer, parameter :: O_TYPE    = 1
 integer, parameter :: O_VALUES  = 2
-character(LEN=   6), dimension(NOPTIONAL) :: oname   !Optional parameter names
+integer, parameter :: O_WYCKOFF = 3
+integer, parameter :: O_OUTPUT  = 4
+integer, parameter :: O_PRIN    = 5
+character(LEN=   7), dimension(NOPTIONAL) :: oname   !Optional parameter names
 character(LEN=PREC_STRING), dimension(NOPTIONAL) :: opara   !Optional parameter strings returned
 integer            , dimension(NOPTIONAL) :: loname  !Lenght opt. para name
 integer            , dimension(NOPTIONAL) :: lopara  !Lenght opt. para name returned
@@ -715,11 +819,11 @@ logical            , dimension(NOPTIONAL) :: lpresent!opt. para is present
 real(kind=PREC_DP) , dimension(NOPTIONAL) :: owerte   ! Calculated values
 integer, parameter                        :: ncalc = 1 ! Number of values to calculate 
 !
-data oname  / 'type', 'values'   /
-data loname /  4,      6         /
-opara  =  (/ '1.0000', '[0.01]' /)   ! Always provide fresh default values
-lopara =  (/  6,        6       /)
-owerte =  (/  0.0,      0.0     /)
+data oname  / 'type', 'values', 'wyckoff', 'output' , 'prin'  /
+data loname /  4,      6      ,  7       ,  6       ,  4      /
+opara  =  (/ '1.0000       ', '[0.01]       ', '[0.0,0.0,0.0]', 'screen       ', '[0.0,0.0,0.0]' /)   ! Always provide fresh default values
+lopara =  (/  6,                6            ,  13            ,  6             ,  13             /)
+owerte =  (/  0.0           ,   0.0          ,  0.0           ,  0.0           ,  0.0            /)
 !
 call get_params (line, ianz, cpara, lpara, MAXW, length)
 if(ier_num /= 0) return
@@ -727,6 +831,30 @@ if(ier_num /= 0) return
 call get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 if(ier_num /= 0) return
+loutput = opara(O_OUTPUT) == 'screen'
+!
+if(lpresent(O_WYCKOFF)) then
+   ccpara =  opara(O_WYCKOFF)
+   llpara = lopara(O_WYCKOFF)
+   call get_optional_multi(MAXWW, ccpara, llpara, wwerte, ianz)
+   if(ier_num /= 0) return
+!
+   call do_anis_wyc(MAXWW, wwerte, ianz, loutput)
+   return
+elseif(lpresent(O_PRIN)) then
+   ccpara =  opara(O_PRIN)
+   llpara = lopara(O_PRIN)
+   call get_optional_multi(MAXWW, ccpara, llpara, wwerte, ianz)
+   if(ier_num /= 0) return
+!
+   j     = nint(wwerte(1))
+   ianis = nint(wwerte(2))
+   vec                   = matmul(cr_eimat, wwerte(3:5))  ! Direct space to cartesian
+   rlen                  = sqrt(vec(1)**2 + vec(2)**2 + vec(3)**2)
+   cr_prin(1:3,j, ianis) = vec/rlen       ! Normalize to length 1
+   cr_prin(4  ,j, ianis) = wwerte(6)
+   return
+endif
 !
 ccpara =  opara(O_VALUES)
 llpara = lopara(O_VALUES)
@@ -753,7 +881,7 @@ elseif(ianz==1) then       ! One parameter ISOTROPIC
    ar_inv(1) = 1./cr_ar(1)
    ar_inv(2) = 1./cr_ar(2)
    ar_inv(3) = 1./cr_ar(3)
-   ucij(1,1) = wwerte(1)                ! Set the caresian diagonal values
+   ucij(1,1) = wwerte(1)                ! Set the cartesian diagonal values
    ucij(2,2) = wwerte(1)
    ucij(3,3) = wwerte(1)
    call xx_to_cart(ucij, cr_emat, xx)   ! Transform XX from cartesian basis
@@ -775,6 +903,704 @@ cr_anis_full(5, ianis) = uij(1,3)
 cr_anis_full(6, ianis) = uij(1,2)
 !
 end subroutine do_anis
+!
+!*******************************************************************************
+!
+subroutine do_anis_wyc(MAXWW, wwerte, ianz, loutput)
+!-
+!  Construct UIJ that  comply with Wyckoff symmetry at position wwerte(1:3)
+!+
+!
+use crystal_mod
+use wyckoff_mod
+use spcgr_apply, only:get_wyckoff
+!
+use precision_mod
+use errlist_mod
+use lib_metric_mod
+use matrix_mod
+use param_mod
+use prompt_mod
+!
+integer                             , intent(in) :: MAXWW   ! Array dimension
+real(kind=PREC_DP), dimension(MAXWW), intent(in) :: wwerte  ! Position vector
+integer                             , intent(in) :: ianz    ! dimension should be 3
+logical                             , intent(in) :: loutput ! Output to screen?
+!
+character(len=PREC_STRING), dimension(2)  :: line
+character(len=PREC_STRING), dimension(10) :: rules
+integer                   , dimension(10) :: irule
+integer                          :: i,j     ! Dummy indices
+real(kind=PREC_DP), dimension(3) :: vec     ! Position vector
+real(kind=PREC_DP), dimension(3) :: w,u     ! Position vector
+real(kind=PREC_DP)               :: vvv     ! Position vector, length
+integer           , dimension(-6:6) :: nsym    ! Number or axes with this symmetry ( -6, _, -4, -3, -2, -1, 0, 1, 2, 3, 4, m, 6 )
+real(kind=PREC_DP), dimension(4,3) :: prin   ! Principal vectors
+real(kind=PREC_DP), dimension(3,3) :: mat    ! Symmetry     matrix cartesian
+real(kind=PREC_DP), dimension(3,3) :: matt   ! Symmetry^T   matrix 
+real(kind=PREC_DP), dimension(3,3) :: ucij   ! Displacement matrix cartesian
+real(kind=PREC_DP), dimension(3,3) :: uij    ! Displacement matrix a.a* base
+real(kind=PREC_DP), dimension(3,3) :: xx     ! Displacement matrix crystal space
+real(kind=PREC_DP), dimension(3,3) :: xxp    ! Displacement matrix crystal space
+real(kind=PREC_DP), dimension(3,3) :: temp   ! Displacement matrix crystal space
+real(kind=PREC_DP), dimension(3)   :: ar_inv  ! ( 1/a*, 1/b*, 1/c*)
+!
+temp = 0.0D0
+temp(1,1) = -1.0D0
+temp(2,2) = -1.0D0
+temp(3,3) = -1.0D0
+if(ianz /= 3) then
+   ier_num = -6
+   ier_typ =ER_COMM
+   ier_msg(1) = 'Wyckoff parameter requires 3 coordinates'
+   return
+endif 
+!
+ar_inv(1) = 1./cr_ar(1)
+ar_inv(2) = 1./cr_ar(2)
+ar_inv(3) = 1./cr_ar(3)
+!
+vec = wwerte(1:3)
+prin = 0.0_PREC_DP
+call get_wyckoff (vec, .false., 0)
+!
+! Build a "random" displacement matrix
+xxp     = 0.0000000_PREC_DP
+ucij = 0.0D0
+vec = (/ 0.95D0, 0.10D0, -0.05d0 /)
+vvv = sqrt(vec(1)**2 + vec(2)**2 + vec(3)**2)
+vec = vec/vvv
+ucij(1,:) = vec * 0.0062000D0
+w   = (/ 0.10D0, 0.53D0,  0.77D0 /)
+call lib_vector_product(vec, w, u)
+vvv = sqrt(  u(1)**2 +   u(2)**2 +   u(3)**2)
+u   = u/vvv
+ucij(2,:) =  -u * 0.0050000D0
+call lib_vector_product(vec, u, w)
+vvv = sqrt(  w(1)**2 +   w(2)**2 +   w(3)**2)
+w   = w/vvv
+ucij(3,:) =  -w * 0.0070000D0
+!
+call xx_to_cart(ucij, cr_emat, xx)   ! Transform cartesian UCij to crystal base xx 
+!
+nsym = 0
+!
+do j=1, 2
+   do i=1, wyc_n
+      mat = wyc_mat(1:3,1:3,i)
+      matt = transpose(mat)
+      xxp = matmul(mat,matmul(xx,matt))
+      xx = (xx + xxp)*0.5000_PREC_DP
+      vvv = (xx(1,2) + xx(2,1))*0.5000_PREC_DP
+      xx(1,2) = vvv
+      xx(2,1) = vvv
+      vvv = (xx(1,3) + xx(3,1))*0.5000_PREC_DP
+      xx(1,3) = vvv
+      xx(3,1) = vvv
+      vvv = (xx(2,3) + xx(3,2))*0.5000_PREC_DP
+      xx(2,3) = vvv
+      xx(3,2) = vvv
+   if(j==1) then
+!      write( *,'(a,3f7.3,2x, ''>'',a3,''<'')') ' Wyckoff Prin ', wyc_axis(:, i), wyc_char(i)(1:3)
+      if(index(wyc_char(i)(1:3),' 6P') >0) nsym( 6) = nsym( 6) + 1
+      if(index(wyc_char(i)(1:3),'-6P') >0) nsym(-6) = nsym(-6) + 1
+      if(index(wyc_char(i)(1:3),' 4P') >0) nsym( 4) = nsym( 4) + 1
+      if(index(wyc_char(i)(1:3),'-4P') >0) nsym(-4) = nsym(-4) + 1
+      if(index(wyc_char(i)(1:3),' 3P') >0) nsym( 3) = nsym( 3) + 1
+      if(index(wyc_char(i)(1:3),'-3P') >0) nsym(-3) = nsym(-3) + 1
+      if(index(wyc_char(i)(1:3),' 2 ') >0) nsym( 2) = nsym( 2) + 1
+      if(index(wyc_char(i)(1:3),' m ') >0) nsym( 5) = nsym( 5) + 1
+      if(index(wyc_char(i)(1:3),' 1 ') >0) nsym( 1) = nsym( 1) + 1
+      if(index(wyc_char(i)(1:3),'-1 ') >0) nsym(-1) = nsym(-1) + 1
+   endif
+   enddo
+enddo
+!
+line = ' '
+rules = ' '
+if(loutput) write(output_io,'(a)') ' '
+   if(    nsym(6) >  0) then  ! Hexagonal  6..
+      call do_anis_wyc_6 (nsym, loutput, xx, line)
+   elseif(nsym(4) >  2 .or. nsym(-4) >  2) then  ! Cubic      4..
+      call do_anis_wyc_4c(nsym, loutput, xx, line)
+   elseif(nsym(4) == 1 .or. nsym(-4) == 1) then  ! tetragonal 4..
+      call do_anis_wyc_4t(nsym, loutput, xx, line)
+   elseif(nsym(3) >  2 .or. nsym(-3) >  2) then  ! Cubic      .3.
+      call do_anis_wyc_3c(nsym, loutput, xx, line)
+   elseif(nsym(3) == 1 .or. nsym(-3) == 1) then  ! trigonal   3. 
+      call do_anis_wyc_3t(nsym, loutput, xx, line)
+   elseif(nsym(2) == 1 .and. nsym(5) == 0) then  ! monoclinic 2.. 
+      call do_anis_wyc_mmm(nsym, loutput, xx, line)
+   elseif(nsym(2) == 0 .and. nsym(5) == 1) then  ! monoclinic m.. 
+      call do_anis_wyc_mmm(nsym, loutput, xx, line)
+   elseif(nsym(2) == 1 .and. nsym(5) == 1) then  ! monoclinic m.. 
+      call do_anis_wyc_mmm(nsym, loutput, xx, line)
+   elseif((nsym(2)+nsym(5)) >= 3) then           ! orthorhombic mmm or 2mm or 222
+      call do_anis_wyc_mmm(nsym, loutput, xx, line)
+   elseif(nsym(1) == 1 .or. nsym(-1) == 1) then  ! triclinic
+      call do_anis_wyc_1(nsym, loutput, xx, line)
+   else                                          ! Undetected ???
+      write(output_io,'(a)') ' Unknown point group '
+   endif
+!endif
+call xx_to_cart(xx, cr_eimat, ucij)  ! Transform XX to cartesian basis
+call uij_to_xx(xx, ar_inv, uij)      ! Transform Uij from XX tensor
+call calc_prin_3x3(1    , 1       , ucij, 1, prin)
+call build_rules(uij, line, rules, irule)
+!
+write(output_io,'(  a)')      line(1)(1:len_trim(line(1)))
+write(output_io,'(a,a)')  ' Constraints:  ',line(2)(1:len_trim(line(2)))
+write(output_io,'(a)') ' Example:'
+write(output_io,'(5x,a)') 'U11       U22       U33       U23       U13       U12'
+write(output_io,'(a, 6f10.6)') '  ', uij(1,1), uij(2,2), uij(3,3), uij(2,3), uij(1,3), uij(1,2)
+res_para(0) = 16
+res_para(1) = uij(1,1)
+res_para(2) = uij(2,2)
+res_para(3) = uij(3,3)
+res_para(4) = uij(2,3)
+res_para(5) = uij(1,3)
+res_para(6) = uij(1,2)
+do i=1, 10
+   res_para(6+i) = real(irule(i), kind=PREC_DP)
+enddo
+!
+end subroutine do_anis_wyc
+!
+!*******************************************************************************
+!
+subroutine do_anis_wyc_6 (nsym, loutput, xx, line)
+!-
+!  Determine Eigenvectors and possible Eigenvalues for a 6.. point group
+!-
+!
+use crystal_mod
+!
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer           , dimension(-6:6), intent(in)  :: nsym   ! Number or axes with this symmetry ( 1, 2, 3, 4, m, 6 )
+logical                            , intent(in) :: loutput ! Output to screen?
+real(kind=PREC_DP), dimension(3,3) , intent(out) :: xx     ! Principal vectors
+character(len=PREC_STRING), dimension(2) , intent(inout) :: line
+!
+real(kind=PREC_DP), dimension(3,3) :: mat    ! Principal vectors
+real(kind=PREC_DP)                 :: xaver  ! 
+!
+mat = 0.0D0
+mat(1,1) =  1.0D0
+mat(2,2) =  1.0D0
+mat(3,3) = -1.0D0
+call do_anis_wyc_sym(mat, xx)
+!
+xaver = (abs(xx(1,1)) + abs(xx(2,2)) )/2.0_PREC_DP
+xx(1,1) = sign(xaver,xx(1,1))
+xx(2,2) = xx(1,1)
+xx(1,2) = 0.5_PREC_DP*xx(1,1)
+xx(2,1) = 0.5_PREC_DP*xx(1,1)
+xx(1,3) = 0.0_PREC_DP
+xx(3,1) = 0.0_PREC_DP
+xx(3,2) = 0.0_PREC_DP
+xx(2,3) = 0.0_PREC_DP
+!
+line(1) =               ' Hexagonal point group 6..'
+!
+end subroutine do_anis_wyc_6
+!
+!*******************************************************************************
+!
+subroutine do_anis_wyc_4c(nsym, loutput, xx, line)
+!-
+!  Determine Eigenvectors and possible Eigenvalues for a 4.. cubic point group
+!-
+!
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer           , dimension(-6:6), intent(in)  :: nsym   ! Number or axes with this symmetry ( 1, 2, 3, 4, m, 6 )
+logical                            , intent(in) :: loutput ! Output to screen?
+real(kind=PREC_DP), dimension(3,3) , intent(out) :: xx     ! Principal vectors
+character(len=PREC_STRING), dimension(2) , intent(inout) :: line
+!
+real(kind=PREC_DP) :: xaver
+!
+xaver = (abs(xx(1,1)) + abs(xx(2,2)) + abs(xx(3,3)))/3.0_PREC_DP
+xx(1,1) = sign(xaver,xx(1,1))
+xx(2,2) = sign(xaver,xx(2,2))
+xx(3,3) = sign(xaver,xx(3,3))
+xx(1,2) = 0.0_PREC_DP
+xx(2,1) = 0.0_PREC_DP
+xx(1,3) = 0.0_PREC_DP
+xx(3,1) = 0.0_PREC_DP
+xx(3,2) = 0.0_PREC_DP
+xx(2,3) = 0.0_PREC_DP
+!
+line(1) =               ' Cubic point group 4.. => isotropic'
+!
+end subroutine do_anis_wyc_4c
+!
+!*******************************************************************************
+!
+subroutine do_anis_wyc_3c(nsym, loutput, xx, line)
+!-
+!  Determine Eigenvectors and possible Eigenvalues for a .3. cubic point group
+!  Fine tune displacement tensor to adhere to local symmetry
+!-
+!
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer           , dimension(-6:6), intent(in)  :: nsym   ! Number or axes with this symmetry ( 1, 2, 3, 4, m, 6 )
+logical                            , intent(in)  :: loutput ! Output to screen?
+real(kind=PREC_DP), dimension(3,3) , intent(out) :: xx     ! Displacement tensor 
+character(len=PREC_STRING), dimension(2) , intent(inout) :: line
+!
+real(kind=PREC_DP) :: xaver
+!
+xaver = (abs(xx(1,1)) + abs(xx(2,2)) + abs(xx(3,3)))/3.0_PREC_DP
+xx(1,1) = sign(xaver,xx(1,1))
+xx(2,2) = sign(xaver,xx(2,2))
+xx(3,3) = sign(xaver,xx(3,3))
+!
+xx(1,1) = 0.0_PREC_DP
+xx(2,2) = 0.0_PREC_DP
+xx(3,3) = 0.0_PREC_DP
+!
+line(1) =               ' Cubic point group .3. => isotropic'
+!
+end subroutine do_anis_wyc_3c
+!
+!*******************************************************************************
+!
+subroutine do_anis_wyc_4t(nsym, loutput, xx, line  )
+!-
+!  Determine Eigenvectors and possible Eigenvalues for a 4.. point group
+!  Needs to consider tetragonal and cubic cases
+!-
+use crystal_mod
+use wyckoff_mod
+!
+use lib_metric_mod
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer           , dimension(-6:6), intent(in)  :: nsym   ! Number or axes with this symmetry ( 1, 2, 3, 4, m, 6 )
+logical                            , intent(in) :: loutput ! Output to screen?
+real(kind=PREC_DP), dimension(3,3) , intent(out) :: xx     ! Principal vectors
+character(len=PREC_STRING), dimension(2) , intent(inout) :: line
+!
+integer :: i  ! Dummy index
+real(kind=PREC_DP)               :: xaver
+!
+loop_search: do i=1, wyc_n
+   if(index(wyc_char(i)(1:3),'4') >0) exit loop_search
+enddo loop_search
+!
+xx(2,3) = 0.0_PREC_DP
+xx(3,2) = 0.0_PREC_DP
+xx(1,3) = 0.0_PREC_DP
+xx(3,1) = 0.0_PREC_DP
+xx(1,2) = 0.0_PREC_DP
+xx(2,1) = 0.0_PREC_DP
+!
+if(abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 0.0_PREC_DP, 0.0_PREC_DP, 1.0_PREC_DP /))) <   5.0_PREC_DP .or. &
+   abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 0.0_PREC_DP, 0.0_PREC_DP, 1.0_PREC_DP /))) > 175.0_PREC_DP ) then    ! parallel [0 0 1] 
+   xaver = (abs(xx(1,1)) + abs(xx(2,2)) )/3.0_PREC_DP
+   xx(1,1) = xaver
+   xx(2,2) = xaver
+   line(1) =               ' Tetragonal point group 4.. parallel [ 0 0 1 ]'
+elseif(abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 0.0_PREC_DP, 1.0_PREC_DP, 0.0_PREC_DP /))) <   5.0_PREC_DP .or. &
+       abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 0.0_PREC_DP, 1.0_PREC_DP, 0.0_PREC_DP /))) > 175.0_PREC_DP ) then    ! parallel [0 0 1] 
+   xaver = (abs(xx(1,1)) + abs(xx(3,3)) )/3.0_PREC_DP
+   xx(1,1) = xaver
+   xx(3,3) = xaver
+   line(1) =               ' Tetragonal point group 4.. parallel [ 0 1 0 ]'
+elseif(abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 1.0_PREC_DP, 0.0_PREC_DP, 0.0_PREC_DP /))) <   5.0_PREC_DP .or. &
+       abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 1.0_PREC_DP, 0.0_PREC_DP, 0.0_PREC_DP /))) > 175.0_PREC_DP ) then    ! parallel [1 0 0] 
+   xaver = (abs(xx(2,2)) + abs(xx(3,3)) )/3.0_PREC_DP
+   xx(2,2) = xaver
+   xx(3,3) = xaver
+   line(1) =               ' Tetragonal point group 4.. parallel [ 1 0 0 ]'
+endif
+!
+end subroutine do_anis_wyc_4t
+!
+!*******************************************************************************
+!
+subroutine do_anis_wyc_3t(nsym, loutput, xx, line)
+!-
+!  Fine tune xx for a 3.. point group
+!  Needs to consider trigonal [001]   and cubic <111> cases
+!-
+use crystal_mod
+use wyckoff_mod
+!
+use lib_metric_mod
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer           , dimension(-6:6), intent(in)  :: nsym   ! Number or axes with this symmetry ( 1, 2, 3, 4, m, 6 )
+logical                            , intent(in) :: loutput ! Output to screen?
+real(kind=PREC_DP), dimension(3,3) , intent(out) :: xx   ! Principal vectors
+character(len=PREC_STRING), dimension(2) , intent(inout) :: line
+!
+integer :: i   ! Dummy index
+real(kind=PREC_DP), dimension(3,3) :: mat    ! Principal vectors
+real(kind=PREC_DP)               :: xaver
+!
+!
+loop_search: do i=1, wyc_n
+   if(index(wyc_char(i)(1:3),'3') >0) exit loop_search
+enddo loop_search
+!
+! TRIGONAL case
+!
+if(abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 0.0_PREC_DP, 0.0_PREC_DP, 1.0_PREC_DP /))) <   5.0_PREC_DP .or. &
+   abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 0.0_PREC_DP, 0.0_PREC_DP, 1.0_PREC_DP /))) > 175.0_PREC_DP ) then    ! parallel [0 0 1] TRIGONAL
+!
+   mat = 0.0D0
+   mat(1,1) =  1.0D0
+   mat(2,2) =  1.0D0
+   mat(3,3) = -1.0D0     ! Mirror normal to c
+   call do_anis_wyc_sym(mat, xx)
+!
+!
+   mat = 0.0D0
+   mat(1,1) = -1.0D0     ! 2-fold around c
+   mat(2,2) = -1.0D0
+   mat(3,3) =  1.0D0
+   call do_anis_wyc_sym(mat, xx)
+!
+   line(1) =               ' Trigonal point group 3.'
+!
+!  CUBIC case
+!
+else                     ! Cubic case
+   xaver = (abs(xx(1,1)) + abs(xx(2,2)) + abs(xx(3,3)))/3.0_PREC_DP
+   xx(1,1) = xaver
+   xx(2,2) = xaver
+   xx(3,3) = xaver
+   if(abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 1.0_PREC_DP, 1.0_PREC_DP, 1.0_PREC_DP /))) <   5.0_PREC_DP .or. &
+      abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 1.0_PREC_DP, 1.0_PREC_DP, 1.0_PREC_DP /))) > 175.0_PREC_DP ) then    ! parallel [1 1 1] TRIGONAL
+      xaver = (abs(xx(2,3)) + abs(xx(3,2)) +                &
+               abs(xx(1,3)) + abs(xx(3,1)) +                &
+               abs(xx(1,2)) + abs(xx(2,1))   )/3.0_PREC_DP
+      xx(2,3) = xaver
+      xx(3,2) = xaver
+      xx(1,3) = xaver
+      xx(3,1) = xaver
+      xx(1,2) = xaver
+      xx(2,1) = xaver
+!
+      line(1) =               ' Cubic point group .3. parallel [  1  1  1 ]'
+   elseif(abs(lib_bang(cr_gten, wyc_axis(:,i), (/-1.0_PREC_DP, 1.0_PREC_DP, 1.0_PREC_DP /))) <   5.0_PREC_DP .or. &
+          abs(lib_bang(cr_gten, wyc_axis(:,i), (/-1.0_PREC_DP, 1.0_PREC_DP, 1.0_PREC_DP /))) > 175.0_PREC_DP ) then ! parallel [-1 1 1] TRIGONAL
+      xaver = (abs(xx(2,3)) + abs(xx(3,2)) +                &
+               abs(xx(1,3)) + abs(xx(3,1)) +                &
+               abs(xx(1,2)) + abs(xx(2,1))   )/3.0_PREC_DP
+      xx(2,3) = sign(xaver, xx(2,3))
+      xx(3,2) = sign(xaver, xx(2,3))
+      xx(1,3) = sign(xaver, xx(1,3))
+      xx(3,1) = sign(xaver, xx(1,3))
+      xx(1,2) = sign(xaver, xx(1,2))
+      xx(2,1) = sign(xaver, xx(1,2))
+!
+      line(1) =               ' Cubic point group .3. parallel [ -1  1  1 ]'
+   elseif(abs(lib_bang(cr_gten, wyc_axis(:,i), (/-1.0_PREC_DP,-1.0_PREC_DP, 1.0_PREC_DP /))) <   5.0_PREC_DP .or. &
+          abs(lib_bang(cr_gten, wyc_axis(:,i), (/-1.0_PREC_DP,-1.0_PREC_DP, 1.0_PREC_DP /))) > 175.0_PREC_DP ) then ! parallel [-1 -1 1] TRIGONAL
+      xaver = (abs(xx(2,3)) + abs(xx(3,2)) +                &
+               abs(xx(1,3)) + abs(xx(3,1)) +                &
+               abs(xx(1,2)) + abs(xx(2,1))   )/3.0_PREC_DP
+      xx(2,3) = sign(xaver, xx(2,3))
+      xx(3,2) = sign(xaver, xx(2,3))
+      xx(1,3) = sign(xaver, xx(1,3))
+      xx(3,1) = sign(xaver, xx(1,3))
+      xx(1,2) = sign(xaver, xx(1,2))
+      xx(2,1) = sign(xaver, xx(1,2))
+!
+      line(1) =               ' Cubic point group .3. parallel [ -1 -1  1 ]'
+   elseif(abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 1.0_PREC_DP,-1.0_PREC_DP, 1.0_PREC_DP /))) <   5.0_PREC_DP .or. &
+          abs(lib_bang(cr_gten, wyc_axis(:,i), (/ 1.0_PREC_DP,-1.0_PREC_DP, 1.0_PREC_DP /))) > 175.0_PREC_DP ) then ! parallel [-1 1 1] TRIGONAL
+      xaver = (abs(xx(2,3)) + abs(xx(3,2)) +                &
+               abs(xx(1,3)) + abs(xx(3,1)) +                &
+               abs(xx(1,2)) + abs(xx(2,1))   )/3.0_PREC_DP
+      xx(2,3) = sign(xaver, xx(2,3))
+      xx(3,2) = sign(xaver, xx(2,3))
+      xx(1,3) = sign(xaver, xx(1,3))
+      xx(3,1) = sign(xaver, xx(1,3))
+      xx(1,2) = sign(xaver, xx(1,2))
+      xx(2,1) = sign(xaver, xx(1,2))
+!
+      line(1) =               ' Cubic point group .3. parallel [  1 -1  1 ]'
+   endif
+endif
+!
+end subroutine do_anis_wyc_3t
+!
+!*******************************************************************************
+!
+subroutine do_anis_wyc_mmm(nsym, loutput, xx, line)
+!-
+!  Determine Eigenvectors and possible Eigenvalues for a mmm point group
+!  Needs to consider tetragonal and cubic cases
+!-
+use crystal_mod
+use wyckoff_mod
+!
+use blanks_mod
+use lib_metric_mod
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer           , dimension(-6:6), intent(in)  :: nsym   ! Number or axes with this symmetry ( 1, 2, 3, 4, m, 6 )
+logical                            , intent(in) :: loutput ! Output to screen?
+real(kind=PREC_DP), dimension(3,3) , intent(out) :: xx   ! Principal vectors
+character(len=PREC_STRING), dimension(2) , intent(inout) :: line
+!character(len=PREC_STRING), dimension(10), intent(inout) :: rules
+!
+character(len=12), dimension(9)  :: system_name
+data system_name / 'Triclinic   ', 'Monoclinic B', 'Monoclinic C', 'Orthorhombic',  &
+                   'Tetragonal  ', 'Rhombohedral', 'Trigonal    ', 'Hexagonal   ',  &
+                   'Cubic       '/
+!
+!loop_search: do i=1, wyc_n
+!   if(index(wyc_char(i)(1:3),'2') > 0 .or. index(wyc_char(i)(1:3),'m') > 0) exit loop_search
+!enddo loop_search
+!
+if(cr_syst==cr_monoclinicB) then        ! Monoclinic, unique [ 0 1 0 ]
+   xx(3,2) = 0.0_PREC_DP
+   xx(2,3) = 0.0_PREC_DP
+   xx(1,2) = 0.0_PREC_DP
+   xx(2,1) = 0.0_PREC_DP
+   line(1) = ' Monoclinic point group .2., .2/m.      '
+elseif(cr_syst==cr_monoclinicC) then        ! Monoclinic, unique [ 0 0 1 ]
+   xx(1,2) = 0.0_PREC_DP
+   xx(2,1) = 0.0_PREC_DP
+   xx(1,3) = 0.0_PREC_DP
+   xx(3,1) = 0.0_PREC_DP
+   line(1) = ' Monoclinic point group ..2, ..2/m      '
+elseif(cr_syst==cr_ortho      ) then        ! orthorhombic
+   if(sum(nsym(2:5))==1) then
+      if(nint(abs(wyc_axis(1,1)))==1) then  !  [ 1 0 0 ]
+         xx(1,2) = 0.0_PREC_DP
+         xx(2,1) = 0.0_PREC_DP
+         xx(1,3) = 0.0_PREC_DP
+         xx(3,1) = 0.0_PREC_DP
+         line(1) = ' Orthorhombic point group m.., 2.., or 2/m..'
+      elseif(nint(abs(wyc_axis(2,1)))==1) then  !  [ 0 1 0 ]
+         xx(1,2) = 0.0_PREC_DP
+         xx(2,1) = 0.0_PREC_DP
+         xx(2,3) = 0.0_PREC_DP
+         xx(3,2) = 0.0_PREC_DP
+         line(1) = ' Orthorhombic point group .m., .2., or .2/m.'
+      elseif(nint(abs(wyc_axis(3,1)))==1) then  !  [ 0 0 1 ]
+         xx(1,3) = 0.0_PREC_DP
+         xx(3,1) = 0.0_PREC_DP
+         xx(2,3) = 0.0_PREC_DP
+         xx(3,2) = 0.0_PREC_DP
+         line(1) = ' Orthorhombic point group ..m, ..2, or ..2/m'
+      endif
+   elseif(sum(nsym(2:5))>1) then
+      xx(2,3) = 0.0_PREC_DP
+      xx(3,2) = 0.0_PREC_DP
+      xx(1,2) = 0.0_PREC_DP
+      xx(2,1) = 0.0_PREC_DP
+      xx(1,3) = 0.0_PREC_DP
+      xx(3,1) = 0.0_PREC_DP
+      line(1) = ' Orthorhombic point group mmm, 222, or 2mm'  
+   endif
+elseif(cr_syst==cr_tetragonal .or. cr_syst==cr_cubic) then        ! tetragonal / cubic
+   line = ' '
+   if(nsym(2)==3 .and. nsym(5)==3) then     !  mmm
+      line(1) = system_name(cr_syst)(1:len_trim(system_name(cr_syst))) // ' ' // &
+                'point group mmm, 222, or 2mm'
+   elseif(nsym(2)==1 .and. nsym(5)==2) then     !  2mm
+      line(1) = system_name(cr_syst)(1:len_trim(system_name(cr_syst))) // ' ' // &
+                'point group 2mm'
+   elseif(nsym(2)==1 .and. nsym(5)==1) then     !  2/m
+      line(1) = system_name(cr_syst)(1:len_trim(system_name(cr_syst))) // ' ' // &
+                'point group 2/m'
+   elseif(nsym(2)==1 .and. nsym(5)==0) then     !  2..
+      line(1) = system_name(cr_syst)(1:len_trim(system_name(cr_syst))) // ' ' // &
+                'point group 2..'
+   elseif(nsym(2)==0 .and. nsym(5)==2) then     !  m..
+      line(1) = system_name(cr_syst)(1:len_trim(system_name(cr_syst))) // ' ' // &
+                'point group m..'
+   endif
+endif
+!
+!
+end subroutine do_anis_wyc_mmm
+!
+!*******************************************************************************
+!
+subroutine do_anis_wyc_1 (nsym, loutput, xx, line)
+!-
+!  Determine Eigenvectors and possible Eigenvalues for a 1.. point group
+!-
+!
+use lib_metric_mod
+use precision_mod
+use prompt_mod
+!
+implicit none
+!
+integer           , dimension(-6:6), intent(in)  :: nsym   ! Number or axes with this symmetry ( 1, 2, 3, 4, m, 6 )
+logical                            , intent(in) :: loutput ! Output to screen?
+real(kind=PREC_DP), dimension(3,3) , intent(out) :: xx   ! Principal vectors
+character(len=PREC_STRING), dimension(2) , intent(inout) :: line
+!
+!
+line(1) = ' Triclinic point group 1..'
+!
+end subroutine do_anis_wyc_1
+!
+!*******************************************************************************
+!
+subroutine do_anis_wyc_sym(mat, xx)
+!-
+!   Apply a symmetry operation to the Displacement tensor xxx, 
+!   ensure matrix is symmetric
+!+
+use precision_mod
+!
+implicit none
+!
+real(kind=PREC_DP), dimension(3,3) , intent(out) :: xx   ! Principal vectors
+!
+real(kind=PREC_DP), dimension(3,3) :: mat    ! Principal vectors
+real(kind=PREC_DP), dimension(3,3) :: xxp    ! Principal vectors
+real(kind=PREC_DP)                 :: vvv
+!
+xxp = matmul(mat,matmul(xx,mat))
+xx = (xx + xxp)*0.5000_PREC_DP
+vvv = (xx(1,2) + xx(2,1))*0.5000_PREC_DP
+xx(1,2) = vvv
+xx(2,1) = vvv
+vvv = (xx(1,3) + xx(3,1))*0.5000_PREC_DP
+xx(1,3) = vvv
+xx(3,1) = vvv
+vvv = (xx(2,3) + xx(3,2))*0.5000_PREC_DP
+xx(2,3) = vvv
+xx(3,2) = vvv
+!
+end subroutine do_anis_wyc_sym
+!
+!*******************************************************************************
+!
+subroutine build_rules(uij, line, rules, irule)
+!-
+!  Build Rules for Uij
+!+
+use crystal_mod
+!
+use blanks_mod
+use precision_mod
+!
+implicit none
+!
+real(kind=PREC_DP), dimension(3,3), intent(inout) :: uij
+character(len=*), dimension(2) , intent(inout) :: line
+character(len=*), dimension(10), intent(out)   :: rules
+integer         , dimension(10), intent(out)   :: irule
+!
+real(kind=PREC_DP), parameter :: TOL = 1.0D-7
+real(kind=PREC_DP), parameter :: TOLH= 1.0D-2
+integer :: i
+!
+rules = ' '
+irule = 10
+!  Rules   U11 == U22
+if    (abs(abs(uij(1,1))-abs(uij(2,2)))<TOL) then   !  U11 == U22
+   rules(1) = 'U11 = U22'
+   irule(1) =  1
+elseif(abs(abs(uij(1,1))+abs(uij(2,2)))<TOL) then   !  U11 == -U22
+   rules(1) = 'U11 = -U22'
+   irule(1) = -1
+endif
+!  Rules   U11 == U33
+if    (abs(abs(uij(1,1))-abs(uij(3,3)))<TOL) then   !  U11 == U22
+   rules(2) = 'U11 = U33'
+   irule(2) =  1
+elseif(abs(abs(uij(1,1))+abs(uij(3,3)))<TOL) then   !  U11 == -U22
+   rules(2) = 'U11 = -U33'
+   irule(2) = -1
+endif
+!  Rules   U22 == U33
+if    (abs(abs(uij(2,2))-abs(uij(3,3)))<TOL) then   !  U11 == U22
+   rules(3) = 'U22 = U33'
+   irule(3) =  1
+elseif(abs(abs(uij(1,1))+abs(uij(3,3)))<TOL) then   !  U11 == -U22
+   rules(3) = 'U22 = -U33'
+   irule(3) = -1
+endif
+!  Rule  U23 == 0
+if    (abs(uij(2,3))<TOL) then                     ! U23 == 0
+   rules(4) = 'U23 = 0'
+   irule(4) =  0
+endif
+!  Rule  U13 == 0
+if    (abs(uij(1,3))<TOL) then                     ! U13 == 0
+   rules(5) = 'U13 = 0'
+   irule(5) =  0
+endif
+!  Rule  U12 == 0
+if    (abs(uij(1,2))<TOL) then                     ! U12 == 0
+   rules(6) = 'U12 = 0'
+   irule(6) =  0
+endif
+!  Rules   U23 == U13
+if    (abs(abs(uij(2,3))-abs(uij(1,3)))<TOL) then   !  U23 == U13
+   rules(7) = 'U23 = U13'
+   irule(7) =  1
+elseif(abs(abs(uij(2,3))+abs(uij(1,3)))<TOL) then   !  U23 == -U13
+   rules(7) = 'U23 = -U13'
+   irule(7) = -1
+endif
+!  Rules   U23 == U12
+if    (abs(abs(uij(2,3))-abs(uij(1,2)))<TOL) then   !  U23 == U12
+   rules(8) = 'U23 = U12'
+   irule(8) =  1
+elseif(abs(abs(uij(2,3))+abs(uij(1,2)))<TOL) then   !  U23 == -U12
+   rules(8) = 'U23 = -U12'
+   irule(8) = -1
+endif
+!  Rules   U13 == U12
+if    (abs(abs(uij(1,3))-abs(uij(1,2)))<TOL) then   !  U13 == U12
+   rules(9) = 'U13 = U12'
+   irule(9) =  1
+elseif(abs(abs(uij(1,3))+abs(uij(1,2)))<TOL) then   !  U13 == -U12
+   rules(9) = 'U13 = -U12'
+   irule(9) = -1
+endif
+!
+if(cr_syst==cr_trigonal .or. cr_syst==cr_hexagonal) then
+   if(abs(abs(uij(1,1))-2.0_PREC_DP*abs(uij(1,2)))<TOLH) then   ! U11 = 2.*U12
+      uij(1,2) = sign(0.50_PREC_DP*uij(1,1), uij(1,2))
+      uij(2,1) = uij(1,2)
+      rules(10) = 'U11 = 2.*U12'
+      irule(10) =  2
+   endif
+endif
+!
+   do i=1, 10
+      line(2) = line(2)(1:len_trim(line(2))) //'    ' // rules(i)(1:len_trim(rules(i)))
+   enddo
+   i = len_trim(line(2))
+call rem_leading_bl(line(2),i)
+!
+end subroutine build_rules
 !
 !*******************************************************************************
 !
