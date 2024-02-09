@@ -2652,14 +2652,22 @@ mole_int: IF(mk_infile_internal) THEN
               temp_mole_char,                                              &
               temp_mole_file, temp_mole_dens, temp_mole_biso,              &
               temp_mole_clin, temp_mole_cqua, temp_mole_fuzzy, temp_mole_cont)
-       IF(MOLE_MAX_MOLE < mole_num_mole + temp_num_mole .or.  &    ! If necessary increase
-          MOLE_MAX_TYPE < mole_num_type + temp_num_type .or.  &    ! size of crystal molecule
-          MOLE_MAX_ATOM < mole_num_atom + temp_num_atom     ) THEN ! arrays
+!      IF(MOLE_MAX_MOLE < mole_num_mole + temp_num_mole .or.  &    ! If necessary increase
+!         MOLE_MAX_TYPE < mole_num_type + temp_num_type .or.  &    ! size of crystal molecule
+!         MOLE_MAX_ATOM < mole_num_atom + temp_num_atom     ) THEN ! arrays
           n_mole = MAX(MOLE_MAX_MOLE , mole_num_mole + temp_num_mole)
-          n_type = MAX(MOLE_MAX_TYPE , mole_num_type + temp_num_type)
+          n_type = MAX(MOLE_MAX_TYPE , mole_num_type + temp_num_type, &
+                       maxval(clu_mole_tab))
           n_atom = MAX(MOLE_MAX_ATOM , mole_num_atom + temp_num_atom)
+!write(*,*) 'MOLE MOL ', MOLE_MAX_MOLE, MOLE_MAX_TYPE, MOLE_MAX_ATOM
+!write(*,*) 'MOLE TMP ', TEMP_MAX_MOLE, TEMP_MAX_TYPE, TEMP_MAX_ATOM
+!write(*,*) 'MOLE cur ', mole_num_mole , mole_num_type, mole_num_atom
+!write(*,*) 'MOLE tct3', temp_num_mole , temp_num_type, temp_num_atom, maxval(temp_mole_type),  &
+!maxval(clu_mole_tab)
+!write(*,*) 'MOLECULE ', n_mole, n_type, n_atom
           call alloc_molecule( MOLE_MAX_GENE, MOLE_MAX_SYMM, n_mole, n_type, n_atom )
-       ENDIF
+!write(*,*) 'MOLE ALL ', MOLE_MAX_MOLE, MOLE_MAX_TYPE, MOLE_MAX_ATOM
+!      ENDIF
        DO i=1, temp_num_mole ! Create a lookup table, atom is in molecule
           temp_mole_type(i) = clu_mole_tab(temp_mole_type(i), clu_current)  ! Replace by look up table
           DO j=1, temp_mole_len(i)
@@ -2667,14 +2675,20 @@ mole_int: IF(mk_infile_internal) THEN
              temp_in_mole(k) = i
           ENDDO
        ENDDO
+!write(*,*) 'P        ',mole_off(mole_num_mole) , mole_len(mole_num_mole), mole_num_mole ! Offset of next molecule
+!write(*,*) ' length  ', mole_len(1:min(8, ubound(mole_len,1)))
+       mole_off(max(1,min(ubound(mole_off,1), mole_num_mole+1)):) = 0
+       mole_len(max(1,min(ubound(mole_len,1), mole_num_mole+1)):) = 0
        DO i=1, temp_num_mole ! Create content of all molecules
           k  = mole_off(mole_num_mole) + mole_len(mole_num_mole) ! Offset of next molecule
           ii = 0
+!write(*,*) 'Current ',mole_off(mole_num_mole) , mole_len(mole_num_mole), mole_num_mole, mole_len(mole_num_mole)! Offset of next molecule
           DO j=1,mk_iatom    ! test all domain atoms
              IF(temp_present(j)) THEN  ! Domain atom is within the crystal
                 IF(temp_in_mole(j)==i) THEN ! Domain atom is inside this molecule
                    ii = ii + 1         ! Increment no of atoms in this molecule
                    mole_len  (mole_num_mole+1) = mole_len  (mole_num_mole+1) + 1    ! Adjust length
+!write(*,*) ' k       ', k, mole_len  (mole_num_mole+1) 
                    mole_cont (k + mole_len  (mole_num_mole+1)) = temp_in_crystal(j) ! Set content
                    cr_prop (temp_in_crystal(j)) = IBSET (cr_prop (temp_in_crystal(j)), PROP_MOLECULE) 
                    cr_mole(temp_in_crystal(j)) = mole_num_mole+1
@@ -2683,6 +2697,7 @@ mole_int: IF(mk_infile_internal) THEN
           ENDDO
           IF(ii> 0) THEN ! If any atom is inside current molecule, then set all parameters
              mole_num_mole             = mole_num_mole + 1
+!write(*,*) ' TYPE    ', mole_num_type, temp_mole_type(i)
              mole_num_type             = MAX(mole_num_type,temp_mole_type(i))
              mole_off  (mole_num_mole) = k
              mole_type (mole_num_mole) = temp_mole_type (i)
@@ -2695,6 +2710,8 @@ mole_int: IF(mk_infile_internal) THEN
              mole_fuzzy(mole_num_mole) = temp_mole_fuzzy(i)
           ENDIF
        ENDDO
+!write(*,*) ' NUMBER  ', mole_num_atom, mole_off(mole_num_mole), mole_len(mole_num_mole), &
+!mole_off(mole_num_mole) + mole_len(mole_num_mole)
        mole_num_atom = mole_off(mole_num_mole) + mole_len(mole_num_mole) ! set total no of atoms in the molecules
 !
 !      Deallocate temporary arrays
