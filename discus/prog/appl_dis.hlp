@@ -4976,16 +4976,32 @@
 !p "shift"    : The selected atoms are displaced by a random move. The
 !p              maximum size of a move can be specified via "set move .."
 !p              command.
+!p              Example:
+!p set mode, 1.0, shift, Cu, Au
+!p set mode, 1.0, shift, all     ! shift all atom types
+!p
 !p "swchem"   : Here two atoms are selected at random and their chemistry
 !p              is switched (if the atoms are selected via "sel" command).
 !p              If your structure consists of only ONE atom type this mode
 !p              will just waste computer time :-)
+!p              Example:
+!p set mode, 1.0, swchem, Cu, Au
+!p
 !p "swneig"   : Two central atoms are selected. During the modification
 !p              two of their neighbors are exchanged.
+!p              Example:
+!p set mode, 1.0, swneig, Cu, Au
+!p set mode, 1.0, swneig, Cu, Au, site:[5, 7]
+!p              The optional "site:" parameter allows to select further
+!p              sites in the unit cell that might not be included in the
+!p              list of neighbors around the central atoms.
 !p "swdisp"   : Here the displacement from the average structure of two
 !p              selected atoms of the SAME type are switched. The mode
 !p              can only properly work, if there are initial displacements
 !p              generated e.g. by the "therm" command.
+!p              Example:
+!p set mode, 1.0, swdisp, Cu, Au
+!p
 !p "external" : The modification of the structure for each RMC move is done
 !p              using an user supplied external subroutine. Check the
 !p              source file 'extrmc.f90' for details how to supply such a
