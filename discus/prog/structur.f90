@@ -3002,6 +3002,7 @@ INTEGER             :: lp
 CALL alloc_crystal_scat(1)                                                                       
 CALL alloc_crystal_nmax(1)                                                                       
 call alloc_unitcell(1)
+call alloc_anis(1)
 !
       cr_natoms = 0 
       as_natoms = 0 
@@ -7493,6 +7494,7 @@ SUBROUTINE readcell_mole(strucfile, l_identical, r_identical)
 USE crystal_mod
 USE discus_save_mod
 USE molecule_mod
+use prep_anis_mod
 USE prop_para_func
 USE read_internal_mod
 USE spcgr_apply
@@ -7540,6 +7542,7 @@ CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
             cr_fmat, cr_cartesian,                                      &
             cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 CALL get_symmetry_matrices 
+call prep_anis(cr_natoms)
 !
 ! Shift molecules such that the first atom has coordinates [0:1[
 !
@@ -7595,9 +7598,11 @@ subroutine read_to_internal(infile, prefix)
 !
 use crystal_mod
 use discus_save_mod
+use prep_anis_mod
 use prop_para_func
 use prop_para_mod
 use save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_full_setting, save_struc, save_show
+USE spcgr_apply
 !
 use precision_mod
 !
@@ -7607,6 +7612,8 @@ character(len=*), intent(in) :: infile
 character(len=*), intent(in) :: prefix
 !
 integer, parameter :: MAXMASK = 4
+logical, parameter :: lout=.FALSE.
+!
 character(len=PREC_STRING) :: line
 character(len=PREC_STRING) :: getfile
 integer :: length
@@ -7622,6 +7629,12 @@ uni_mask(4)   = .false.
 getfile = infile                    ! Just a local copy
 call do_readstru(MAXMASK, getfile, l_site, uni_mask)   ! Read actual file
 if(ier_num/=0) return
+CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
+            cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
+            cr_fmat, cr_cartesian,                                      &
+            cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+CALL get_symmetry_matrices 
+call prep_anis(cr_natoms)
 !
 call save_store_setting             ! Backup user "save" setting
 if(ier_num/=0) return
