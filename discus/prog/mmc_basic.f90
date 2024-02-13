@@ -235,7 +235,7 @@ SUBROUTINE mmc_correlations (lout, rel_cycl, done, lfinished, lfeed, maxdev)
 !+                                                                      
 USE crystal_mod 
 USE chem_mod 
-USE chem_menu
+!USE chem_menu
 USE chem_aver_mod
 USE chem_neig_multi_mod
 USE atom_env_mod
@@ -247,6 +247,7 @@ USE mmc_mod
 USE debug_mod 
 USE errlist_mod 
 use precision_mod
+use param_mod
 USE prompt_mod 
 !
 IMPLICIT none 
@@ -268,7 +269,7 @@ INTEGER :: i, j, k, l
 INTEGER :: icent 
 !
 LOGICAL :: searching 
-!LOGICAL   :: lfirst = .TRUE.  ! Flag to write output only at first instance
+LOGICAL   :: lfirst = .TRUE.  ! Flag to write output only at first instance
 !                                                                       
 INTEGER :: ncent 
 REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: patom ! (3, 0:MAX_ATOM_ENV, MMC_MAX_CENT) 
@@ -1201,6 +1202,51 @@ maxdev(2) = conv_val(2)
       ENDIF
    ENDIF
 ENDIF
+!! PRINT FOR res_para
+if(lfinished) THEN
+res_para(0) = 0
+loop_cor: DO ic = 1, CHEM_MAX_COR 
+   loop_ener: DO je = 1, MC_N_ENERGY 
+      cond_ener: if(mmc_cor_energy (ic, je)) then   ! This energy is set
+         lfirst = .true.
+         loop_is: DO is =  -1, MAXSCAT 
+            loop_js: DO js  =  -1, MAXSCAT 
+               cond_pair: if(mmc_pair(ic, je, is, js)>-3 .and. mmc_pair(ic, je, is, js)<0 ) then
+                  if((je==MC_OCC      .and. js> is  .and. is>=0  .and. lfirst   ) .or. & ! 1 Chemical correlation
+                     (je==MC_DISP     .and. js>=is  .and. is>=0                 ) .or. & ! 2 Displacement correlation
+                     (je==MC_SPRING   .and. mmc_ach_corr(ic, je, is, js)/=0.0D0 ) .or. & ! 3 Hooke
+                     (je==MC_LENNARD  .and. mmc_ach_corr(ic, je, is, js)/=0.0D0 ) .or. & ! 7 Lennard Jones
+                     (je==MC_BUCKING  .and. mmc_ach_corr(ic, je, is, js)/=0.0D0 ) .or. & ! 8 Buckingham
+                     (je==MC_REPULSIVE.and. mmc_ach_corr(ic, je, is, js)/=0.0D0 ) .or. & ! 9 Repulsive
+                     (je==MC_COORDNUM .and. js> is  .and. is>=0  .and. lfirst   ) .or. & !10 Coordination number
+                     (je==MC_UNI      .and. js> is  .and. is>=0  .and. lfirst   ) .or. & !11 Unidirectional 
+                     (je==MC_GROUP    .and. is/=js .and. is>0 .and. js>0 .and.         & !12 Group correlations
+                                            mmc_cor_energy(0, MC_GROUP)   .and.        &
+                                            mmc_ach_corr(ic, je, is, js)/=0.0D0 .and.  & 
+                                            mmc_target_corr(ic, je, is, js)/=0.0D0)    & !12 Group Correlations
+                    )  then 
+!
+! write(*,'(4i5, f10.4, i5)') ic, je,    (is),    (js), mmc_ach_corr (ic, je, is, js), &
+!mmc_pair(ic, je, is, js)
+                    res_para(0) = res_para(0) + 1
+                    res_para(nint(res_para(0))) = mmc_ach_corr(ic, je, is, js)
+                    lfirst = .false.
+!
+                  endif
+               endif cond_pair
+            ENDDO loop_js
+         ENDDO loop_is
+         cond_angl: if(je==MC_ANGLE) then                                               ! 4 Angular correlation
+                     do k = 1, mmc_n_angles
+!write(*,'(4i5, f10.4, i9)') ic, je, 0,0, mmc_ach_angl(k), mmc_pair(ic, je, -1, -1)
+               res_para(0) = res_para(0) + 1
+               res_para(nint(res_para(0))) = mmc_ach_angl(k)
+            enddo
+         endif cond_angl
+      endif cond_ener
+   ENDDO loop_ener
+ENDDO loop_cor
+endif
 !                                                                       
   410 FORMAT ( 45x,'Correlations/',/                                    &
      &   ' Neig.- Energy-',7x,'Atoms',11x,'Target',2x,'Distance/',4x,   &
@@ -1643,10 +1689,10 @@ cond_ener: IF(mmc_cor_energy (ic, je) ) THEN
          divisor = 1.0
       ENDIF
       WRITE (output_io, 3400) ic, cr_at_lis (iis),  cr_at_lis (jjs), &
-         cr_at_lis (lls),  mmc_target_angl (k),  mmc_ini_angl (k),   &
+         cr_at_lis (lls),  mmc_target_angl (k),  mmc_ach_angl (k),   &
          mmc_ini_sang (k),                                           &
-         mmc_target_angl (k)  - mmc_ini_angl (k),                    &
-         (mmc_target_angl (k)  - mmc_ini_angl (k))/divisor
+         mmc_target_angl (k)  - mmc_ach_angl (k),                    &
+         (mmc_target_angl (k)  - mmc_ach_angl (k))/divisor
    enddo
 endif cond_ener
 !
