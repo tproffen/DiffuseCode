@@ -683,6 +683,7 @@ look_anis = 0
 loop_makelook: do j=1, cr_natoms                  ! Find all adps for atom types
    iscat = cr_iscat(1, j)
    ianis = cr_iscat(3, j)
+   if(iscat==0) cycle loop_makelook            ! Ignore VOID
    do i=1, look_anis(iscat,0)                  ! Loop over all previous entries
       if(look_anis(iscat,i)==ianis) cycle loop_makelook
    enddo
