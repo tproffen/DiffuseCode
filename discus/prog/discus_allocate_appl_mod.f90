@@ -1655,8 +1655,8 @@ integer :: i_scat
        CALL alloc_arr ( mmc_latom     ,0,n_scat  ,  all_status, .false.   )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
-       CALL alloc_arr ( mmc_lsite     ,0,n_site  ,  all_status, .false.   )
-       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!      CALL alloc_arr ( mmc_lsite     ,0,n_site  ,  all_status, .false.   )
+!      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
       CALL alloc_arr ( mmc_allowed   ,0,n_scat  ,  all_status, .false.   )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -1750,8 +1750,8 @@ integer :: i_scat
 !
       CALL alloc_arr ( mmc_pair        ,1,n_corr , &
                                         0,n_ener , &
-                                        0,n_scat , &
-                                        0,n_scat , &
+                                       -1,n_scat , &
+                                       -1,n_scat , &
                                       all_status, 0    )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
