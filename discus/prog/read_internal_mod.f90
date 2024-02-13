@@ -250,6 +250,7 @@ INTEGER, DIMENSION(1,2)              :: iin_mole
 LOGICAL                       :: need_alloc ! we need to allocate something
 LOGICAL                       :: new_type   ! Each atom is a new type
 !
+!
 rd_icc = cr_icc               ! Save crystal dimensions
 !
 new_type = cr_newtype         ! Was defined via the 'cell' or 'lcell' command
@@ -265,13 +266,12 @@ IF ( ier_num /= 0) THEN
    ier_msg(1) = 'Could not get size of stored crystal'
    RETURN
 ENDIF
-!write(*,*) 'ICELL ', dim_natoms, dim_nscat, dim_ncatoms, dim_nanis,&
-!dim_n_mole, dim_n_type, dim_n_atom
-!write(*,*) 'ICell ', natoms, nscat, ncatoms, nanis,&
-!n_mole, n_type, n_atom
 !
 !  Get number of symmetry operations for propper allocations
 spc_n = read_temp%crystal%get_spc_n()
+!
+dim_n_mole, dim_n_type, dim_n_atom
+n_mole, n_type, n_atom
 !
 !  Allocate enough space for one unit cell
 new_nmax  = spc_n*natoms + 1
@@ -456,6 +456,10 @@ main: do ia = 1, natoms
       endif
       IF ( itype(1) == -1 ) THEN
       cr_nscat = cr_nscat + 1
+      if(cr_nscat>ubound(cr_at_lis,1)) then
+         new_nscat =  cr_nscat
+         call alloc_crystal_scat(new_nscat)
+      endif
       cr_at_lis(cr_nscat) = nw_name
       cr_dw    (cr_nscat) = dw1
       cr_occ   (cr_nscat) = occ1
