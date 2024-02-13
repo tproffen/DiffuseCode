@@ -12,36 +12,38 @@ SUBROUTINE chem
 !     Note: Some variables are used in the MC section as well           
 !           and settings might be overwritten.                          
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE chem_mod 
-      USE chem_aver_mod
-      USE chem_symm_mod
-      USE celltoindex_mod
-      USE get_iscat_mod
-      USE modify_mod
+USE discus_config_mod 
+USE crystal_mod 
+USE chem_mod 
+USE chem_aver_mod
+USE chem_symm_mod
+USE celltoindex_mod
+USE get_iscat_mod
+use mmc_basic_mod
+USE modify_mod
 !
-      USE build_name_mod
-      USE calc_expr_mod
-      USE doact_mod 
-      USe do_eval_mod
-      USE do_wait_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE learn_mod 
-      USE class_macro_internal 
+USE build_name_mod
+USE calc_expr_mod
+USE doact_mod 
+USe do_eval_mod
+USE do_wait_mod
+USE errlist_mod 
+USE get_params_mod
+USE learn_mod 
+USE class_macro_internal 
 USE lib_do_operating_mod
 USE lib_echo
 USE lib_errlist_func
 USE lib_help
 USE lib_length
 USE lib_macro_func
-      USE param_mod 
+USE param_mod 
 USE precision_mod
-      USE prompt_mod 
+USE prompt_mod 
 USE str_comp_mod
-      USE string_convert_mod
-      USE sup_mod
+USE string_convert_mod
+USE sup_mod
+!
       IMPLICIT none 
 !                                                                       
        
@@ -59,6 +61,13 @@ CHARACTER(len=13) :: befehl
       INTEGER indxg, ianz, lbef, iianz, jjanz 
       INTEGER kkanz 
       LOGICAL lout , lsite
+!
+!         ! Dummy variables for mmc calc correlations
+logical :: lfeed         ! Dummy variables for mmc calc correlations
+logical :: lfinished
+logical :: done
+real(kind=PREC_DP), dimension(2)                    :: maxdev =(/0.0, 0.0/)
+real(kind=PREC_DP) :: rel_cycl
 !                                                                       
 !                                                                       
       CALL no_error 
@@ -210,6 +219,22 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
 !                                                                       
          ELSEIF (str_comp (befehl, 'bval', 2, lbef, 4) ) then 
             CALL chem_bval (zeile, lp) 
+!                                                                       
+!------ command 'calc'                                                  
+!                                                                       
+         ELSEIF(str_comp(befehl, 'calc', 2, lbef, 4)) THEN
+            if(zeile== ' ' .or.                    & ! No parameter
+               str_comp(zeile, 'corr', 4, lp, 4)) then
+               lout      = .false.
+               rel_cycl  = 1.0D0
+               done      = .true.
+               lfinished = .true.
+               CALL mmc_correlations(lout, rel_cycl, done, lfinished, lfeed, maxdev)
+            else
+               ier_num = -6
+               ier_typ = -6
+               ier_msg(1) = 'Parameter must be ''corr'' or absent '
+            endif
 !                                                                       
 !     continues a macro 'continue'                                      
 !                                                                       
