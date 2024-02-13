@@ -1297,7 +1297,9 @@ shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of
          werte(1) = 1.000
          cpara(3) = ' '
          lpara(3) = 1
-         CALL  mmc_set_mode(ianz, cpara, lpara, werte, maxw)  ! Set mode 'set mode,swchem, 1.0, all'
+         line = ' '
+         length = 1
+         CALL  mmc_set_mode(ianz, cpara, lpara, werte, maxw, line, length)  ! Set mode 'set mode,swchem, 1.0, all'
 !
          IF(1 > MMC_REP_CORR .or.  1 > CHEM_MAX_COR  .or. &   ! Allocate Repulsive
             MAXSCAT > MMC_REP_SCAT                         ) THEN
