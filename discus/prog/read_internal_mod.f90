@@ -270,9 +270,6 @@ ENDIF
 !  Get number of symmetry operations for propper allocations
 spc_n = read_temp%crystal%get_spc_n()
 !
-dim_n_mole, dim_n_type, dim_n_atom
-n_mole, n_type, n_atom
-!
 !  Allocate enough space for one unit cell
 new_nmax  = spc_n*natoms + 1
 new_nscat =     nscat
