@@ -244,6 +244,7 @@ USE save_menu !, ONLY: save_internal
 USE wyckoff_mod
 !
 USE build_name_mod
+use charact_mod
 USE errlist_mod
 USE param_mod
 USE precision_mod
@@ -274,6 +275,7 @@ INTEGER                  :: unique_n
 INTEGER                  :: shelx_n
 real(kind=PREC_DP), DIMENSION(:), ALLOCATABLE :: true_occ
 real(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: n_atoms 
+character(len=4)                             :: atom_name
 CHARACTER (LEN=2), DIMENSION(:), ALLOCATABLE :: unique_names
 CHARACTER (LEN=4), DIMENSION(:), ALLOCATABLE :: shelx_names
 integer           ,DIMENSION(:), ALLOCATABLE :: shelx_types 
@@ -402,17 +404,27 @@ ENDIF
 ALLOCATE(unique_n_atoms(1:cr_nscat))
 ALLOCATE(unique_names(1:cr_nscat))
 unique_n = 1
-unique_names(1)   = cr_at_lis(1)(1:2)
+atom_name= cr_at_lis(1)(1:2)
+i1 = iachar(  atom_name(2:2))
+if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
+unique_names(1)   = atom_name(1:2)
+!unique_names(1)   = cr_at_lis(1)(1:2)
 unique_n_atoms(1) = n_atoms(2,1)
 loop_types: DO i=2, cr_nscat
    DO j=1,unique_n
-      IF(unique_names(j) == cr_at_lis(i)(1:2)) THEN  ! Previous name
+      atom_name= cr_at_lis(i)(1:2)
+      i1 = iachar(  atom_name(2:2))
+      if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
+      IF(unique_names(j) == atom_name(1:2)) THEN  ! Previous name
          unique_n_atoms(j) = unique_n_atoms(j) + n_atoms(2,i)
          CYCLE loop_types
       ENDIF
    ENDDO
+   atom_name= cr_at_lis(i)(1:2)
+   i1 = iachar(  atom_name(2:2))
+   if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
    unique_n = unique_n + 1
-   unique_names(unique_n) = cr_at_lis(i)(1:2)
+   unique_names(unique_n) = atom_name(1:2)
    unique_n_atoms(unique_n) = n_atoms(2,i)
 ENDDO loop_types
 !
@@ -437,10 +449,17 @@ shelx_n = 0
 loop_shelx: DO i=1,cr_natoms
    l = shelx_n
    DO j=l,1,-1
-      IF(cr_at_lis(cr_iscat(1,i))(1:2) == shelx_names(j)(1:2)) THEN
+      atom_name= cr_at_lis(cr_iscat(1,i))(1:2)
+      i1 = iachar(  atom_name(2:2))
+      if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
+!     IF(cr_at_lis(cr_iscat(1,i))(1:2) == shelx_names(j)(1:2)) THEN
+      IF(atom_name               (1:2) == shelx_names(j)(1:2)) THEN
          shelx_n = shelx_n + 1
-         shelx_names(i)(1:2) = cr_at_lis(cr_iscat(1,i))(1:2)
+!        shelx_names(i)(1:2) = cr_at_lis(cr_iscat(1,i))(1:2)
+         shelx_names(i)(1:2) = atom_name(1:2)
          shelx_names(i)(3:3) = shelx_names(j)(3:3)
+         i1 = iachar(shelx_names(i)(2:2))
+         if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))  shelx_names(i)(2:2) = '0'
          shelx_types(shelx_n)      = cr_iscat(1,i)
          read(shelx_names(j)(3:4),'(i2)') k
          write(shelx_names(i)(3:4),'(i2.2)') k + 1
@@ -449,8 +468,9 @@ loop_shelx: DO i=1,cr_natoms
    ENDDO
    shelx_n = shelx_n + 1
    shelx_names(shelx_n)(1:2) = cr_at_lis(cr_iscat(1,i))(1:2)
-   shelx_names(shelx_n)(3:4) = 'xA'
    shelx_names(shelx_n)(3:4) = '01'
+   i1 = iachar(shelx_names(shelx_n)(2:2))
+   if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))  shelx_names(shelx_n)(2:2) = '0'
    shelx_types(shelx_n)      = cr_iscat(1,i)
 ENDDO loop_shelx
 !
@@ -568,6 +588,8 @@ SUBROUTINE shelx_write_atom(IWR, i, unique_n, unique_names, natoms, shelx_names)
 USE crystal_mod
 USE param_mod
 USE spcgr_apply, ONLY: get_wyckoff
+!
+use charact_mod
 USE wink_mod
 !
 IMPLICIT NONE
@@ -579,15 +601,20 @@ CHARACTER(LEN=*), DIMENSION(unique_n), INTENT(IN) :: unique_names
 INTEGER                              , INTENT(IN) :: natoms
 CHARACTER(LEN=*), DIMENSION(natoms  ), INTENT(IN) :: shelx_names
 !
+character(len=4) :: atom_name
 real(kind=PREC_DP), parameter :: TOL = 2.0D-5
 INTEGER :: stype
-INTEGER :: j
+INTEGER :: j, i1
 REAL(KIND=PREC_DP) :: occup,biso
 REAL(KIND=PREC_DP), DIMENSION(3) :: vec
 !
    stype = 0
    loop_stype: DO j=1,unique_n
-      IF(cr_at_lis(cr_iscat(1,i))(1:2) == unique_names(j)(1:2))  THEN
+      atom_name = cr_at_lis(cr_iscat(1,i))(1:2)
+      i1 = iachar(  atom_name(2:2))
+      if(.not. ( (a<=i1 .and. i1<=z) .or. (aa<=i1 .and. i1<=zz)))   atom_name(2:2) = ' '
+      IF(atom_name               (1:2) == unique_names(j)(1:2))  THEN
+!     IF(cr_at_lis(cr_iscat(1,i))(1:2) == unique_names(j)(1:2))  THEN
          stype = j
          EXIT loop_stype
       ENDIF
