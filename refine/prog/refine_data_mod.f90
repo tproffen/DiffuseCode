@@ -4,6 +4,8 @@ USE precision_mod
 !
 IMPLICIT NONE
 !
+CHARACTER(LEN=PREC_STRING)                                :: ref_load_u  = ' '  ! Load string data
+CHARACTER(LEN=PREC_STRING)                                :: ref_csigma_u = ' ' ! Load string Sigma's
 CHARACTER(LEN=PREC_STRING)                                :: ref_load  = ' '  ! Load string data
 CHARACTER(LEN=PREC_STRING)                                :: ref_csigma = ' ' ! Load string Sigma's
 INTEGER                                                   :: ref_kload = 0    ! Data set within KUPLOT

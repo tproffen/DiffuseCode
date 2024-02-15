@@ -29,6 +29,7 @@ INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: MAXW = 20
 !
+character(len=PREC_STRING) :: string
 CHARACTER(LEN=MAX(PREC_STRING,LEN(line))), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
@@ -36,6 +37,7 @@ REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 INTEGER                              :: ndata 
 !
+string = line
 !
 IF(line(1:6) == 'kuplot') THEN
    CALL get_params(line, ianz, cpara, lpara, MAXW, length)
@@ -48,17 +50,21 @@ IF(line(1:6) == 'kuplot') THEN
    IF(LDATA) THEN             ! Data loaded from KUPLOT
       ref_load = ' '
       ref_kload = ndata
+      ref_load_u = string
    ELSE
       ref_csigma = ' '        ! Sigma loaded from KUPLOT
       ref_ksigma = ndata
+      ref_csigma_u = string
    ENDIF
 ELSE                               ! Presume a "data xy, filename "
    IF(LDATA) THEN
       ref_load = line
       ref_kload = 0
+      ref_load_u = string
    ELSE
       ref_csigma = line
       ref_ksigma = 0
+      ref_csigma_u = string
    ENDIF
    CALL do_load(line, length,.TRUE.)
    IF(ier_num/= 0) RETURN

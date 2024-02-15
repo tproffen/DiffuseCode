@@ -134,10 +134,30 @@ IF(IANZ>=1) THEN
                      oname, loname, opara, lopara, lpresent, owerte)
    IF(ier_num/=0) RETURN
    if(lpresent(O_STATUS)) conv_status   = str_comp(opara(O_STATUS), 'on', 2, lopara(1), 2)
-   if(lpresent(O_DCHI))   conv_dchi2    = owerte(O_DCHI)
-   if(lpresent(O_PSHIFT)) conv_dp_sig   = owerte(O_PSHIFT)
-   if(lpresent(O_CONF))   conv_conf     = owerte(O_CONF)
-   if(lpresent(O_CHI))    conv_chi2     = owerte(O_CHI)
+   if(lpresent(O_DCHI))   then
+      conv_dchi2   = owerte(O_DCHI)
+      conv_dchi2_u = .TRUE.
+   else
+      conv_dchi2_u = .FALSE.
+   endif
+   if(lpresent(O_PSHIFT)) then
+      conv_dp_sig   = owerte(O_PSHIFT)
+      conv_dp_sig_u = .TRUE.
+   else
+      conv_dp_sig_u = .FALSE.
+   endif
+   if(lpresent(O_CONF))   then
+      conv_conf   = owerte(O_CONF)
+      conv_conf_u = .TRUE.
+   else
+      conv_conf_u = .FALSE.
+   endif
+   if(lpresent(O_CHI))    then
+      conv_chi2   = owerte(O_CHI)
+      conv_chi2_u = .TRUE.
+   else
+      conv_chi2_u = .FALSE.
+   endif
 ELSE
    ier_num = -6
    ier_typ = ER_FORT
@@ -198,9 +218,14 @@ IF(IANZ>=1) THEN
    CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                      oname, loname, opara, lopara, lpresent, owerte)
    IF(ier_num/=0) RETURN
-   refine_lamda_s = owerte(O_START)
-   refine_lamda_u = owerte(O_FAIL)
-   refine_lamda_d = owerte(O_SUCCESS)
+   refine_lamda_s   = owerte(O_START)
+   refine_lamda_s_u = lpresent(O_START)
+!
+   refine_lamda_u   = owerte(O_FAIL)
+   refine_lamda_u_u = lpresent(O_FAIL)
+!
+   refine_lamda_d   = owerte(O_SUCCESS)
+   refine_lamda_d_u = lpresent(O_SUCCESS)
 ELSE
    ier_num = -6
    ier_typ = ER_FORT

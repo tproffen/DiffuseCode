@@ -70,6 +70,7 @@ opara  =  (/ '        ', 'no      '  /)
 lopara =  (/ 8         ,  8          /)
 owerte =  (/  0.000000 ,   0.0000000 /)
 !
+ref_run_u = line
 CALL get_params(line, ianz, cpara, lpara, MAXW, length)
 IF(ianz<1) THEN                   ! Macro file name is needed
    ier_num = -6
@@ -1459,6 +1460,7 @@ end subroutine refine_rvalue_hkl
 !
 SUBROUTINE refine_best(rval)
 !
+use refine_control_mod
 USE refine_params_mod
 USE refine_data_mod
 !
@@ -1473,8 +1475,10 @@ IMPLICIT NONE
 REAL(kind=PREC_DP), INTENT(IN) :: rval   ! Current R-value
 !
 INTEGER, PARAMETER :: IWR=11
+real(kind=PREC_DP), parameter :: TOL=0.0005D0
 !
 CHARACTER(LEN=15), PARAMETER :: ofile='refine_best.mac'
+CHARACTER(LEN=15), PARAMETER :: nfile='refine_new.res '
 INTEGER             :: i
 !
 INTEGER :: MAXW
@@ -1611,6 +1615,121 @@ WRITE(IWR, '(a)') '#'
 WRITE(IWR, '(a)') 'exit'
 !
 CLOSE(UNIT=IWR)
+DEALLOCATE(cpara)
+DEALLOCATE(lpara)
+DEALLOCATE(werte)
+!
+! Write a 'refine_new.res' macro
+!
+
+OPEN(UNIT=IWR, FILE=nfile, STATUS='unknown')
+write(IWR, '(a)') 'refine'
+write(IWR, '(a)') 'reset'
+write(IWR, '(a)') '#'
+if(ref_load_u /= ' ') then
+   write(IWR, '(2a)') 'data ', ref_load_u(1:len_trim(ref_load_u))
+endif
+if(ref_csigma_u /= ' ') then
+   write(IWR, '(2a)') 'data ', ref_csigma_u(1:len_trim(ref_csigma_u))
+endif
+write(IWR, '(a)') '#'
+!
+!  Set free parameters
+!
+do i=1, refine_par_n            ! Write values for all refined parameters
+      string = ' '
+   if(refine_range(i,1)>refine_range(i,2)) then    ! No range parameter
+      string = ' '
+   elseif(refine_range(i,1) > -0.5*HUGE(0.0) .and. refine_range(i,2) < 0.5*HUGE(0.0)) then  ! [low, high]
+      write(string,'(a,g20.8e3,a,g20.8e3,a)') ' , range:[', refine_range(i,1), ',', refine_range(i,2), ']'
+   elseif(refine_range(i,1) < -0.5*HUGE(0.0) .and. refine_range(i,2) < 0.5*HUGE(0.0)) then  ! [   , high]
+      write(string,'(a,g20.8e3,a)') ' , range:[,', refine_range(i,2), ']'
+   elseif(refine_range(i,1) > -0.5*HUGE(0.0) .and. refine_range(i,2) > 0.5*HUGE(0.0)) then  ! [low,     ]
+      write(string,'(a,g20.8e3,a)') ' , range:[', refine_range(i,1), ',]'
+   else
+      write(string,'(a,g20.8e3,a,g20.8e3,a)') ' , range:[', refine_range(i,1), ',', refine_range(i,2), ']'
+   endif
+   write(IWR, '(3a,G20.8E3,(a,i1),(a,g15.8e3),a,a)') 'newpara ', refine_params(i)(1:len_trim(refine_params(i))), ' , value:',refine_p(i), &
+   ' , points:', refine_nderiv(i), ' , shift:',abs(refine_shift(i)), ' , status:free', string(1:len_trim(string))
+enddo
+!
+! Set fixed parameter values
+!
+MAXW = refine_fix_n
+ALLOCATE(cpara(MAXW))
+ALLOCATE(lpara(MAXW))
+ALLOCATE(werte(MAXW))
+DO i = 1, refine_fix_n                  ! Copy parameter names to prepare calculation
+   cpara(i) = refine_fixed(i)
+   lpara(i) = LEN_TRIM(refine_fixed(i))
+ENDDO
+ianz = refine_fix_n
+CALL ber_params(ianz, cpara, lpara, werte, MAXW)
+DO i=1, refine_fix_n            ! Make sure each parameter is defined as a variable
+   WRITE(IWR,'(3a,G20.8E3,(a,i1),(a,g15.8e3),a)') 'newpara ', refine_fixed(i)(1:len_trim(refine_fixed(i))), ' , value:', werte(i),  &
+   ' , points:', refine_nderiv(i), ' , shift:',abs(refine_shift(i)), ' , status:fixed'
+ENDDO
+!
+write(IWR, '(a)') '#'
+write(IWR, '(a, i10)') 'set cycle, ', refine_cycles
+if(conv_status) then
+  string = 'set conver, status:on'
+else
+  string = 'set conver, status:off'
+endif
+length = len_trim(string)
+!
+if(conv_dchi2_u) then          ! User provided dchi:
+   write(string(length+1:),'(a,g20.8e3)') ', dchi:', conv_dchi2
+   length = len_trim(string)
+endif
+!
+if(conv_dp_sig_u) then          ! User provided pshift:
+   write(string(length+1:),'(a,g20.8e3)') ', pshift:', conv_dp_sig
+   length = len_trim(string)
+endif
+!
+if(conv_conf_u) then          ! User provided conf:
+   write(string(length+1:),'(a,g20.8e3)') ', conf:', conv_conf
+   length = len_trim(string)
+endif
+!
+if(conv_chi2_u) then          ! User provided pshift:
+   write(string(length+1:),'(a,g20.8e3)') ', chisq:', conv_chi2
+   length = len_trim(string)
+endif
+!
+length = len_trim(string)
+write(IWR, '(a)') string(1:length)
+!
+if(refine_lamda_s_u .or. refine_lamda_u_u .or. refine_lamda_d_u) then  ! 'relax'
+   string = 'set relax  '
+   length = len_trim(string)
+!
+   if(refine_lamda_s_u) then      ! start:
+      write(string(length+1:),'(a,g20.8e3)') ', start:', refine_lamda_s
+      length = len_trim(string)
+   endif
+!
+   if(refine_lamda_u_u) then      ! fail:
+      write(string(length+1:),'(a,g20.8e3)') ', fail:', refine_lamda_u
+      length = len_trim(string)
+   endif
+!
+   if(refine_lamda_d_u) then      ! success:
+      write(string(length+1:),'(a,g20.8e3)') ', success:', refine_lamda_d
+      length = len_trim(string)
+   endif
+!
+   length = len_trim(string)
+   write(IWR, '(a)') string(1:length)
+endif
+write(IWR, '(a)') '#'
+write(IWR, '(a,a)') 'run ', ref_run_u(1:len_trim(ref_run_u))
+write(IWR, '(a)') '#'
+write(IWR, '(a)') 'exit'
+
+close(IWR)
 !
 DEALLOCATE(cpara)
 DEALLOCATE(lpara)

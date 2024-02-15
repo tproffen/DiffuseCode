@@ -66,11 +66,24 @@ refine_init     = .TRUE.  ! Initialize MRQ
 !
 ! refine_data_mod
 !
+ref_load_u  = ' '  ! Load string data
+ref_csigma_u= ' '  ! Load string Sigma's
 ref_load    = ' '  ! Load string data
 ref_csigma  = ' '  ! Load string Sigma's
 ref_kload   = 0    ! Data set within KUPLOT
 ref_ksigma  = 0    ! Sigma set within KUPLOT
 ref_kupl    = 0    ! Data set within KUPLOT that needs to be kept
+!
+ref_run_u   = ' '
+conv_dp_sig_u  = .FALSE. ! Maximum DeltaP/sigma for convergence; user defined
+conv_dchi2_u   = .FALSE. ! Maximum Chi^2 change for convergence; user defined
+conv_chi2_u    = .FALSE. ! Minimum Chi^2 value  for convergence; user defined
+conv_conf_u    = .FALSE. ! Minimum confidence level; user defined
+!
+refine_lamda_s_u = .FALSE.!MRQ lamda start
+refine_lamda_u_u = .FALSE.!MRQ lamda Increase (up)
+refine_lamda_d_u = .FALSE.!MRQ lamda Decrease (down)
+
 !
 END SUBROUTINE refine_do_reset
 !
