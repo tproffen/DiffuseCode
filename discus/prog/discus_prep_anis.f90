@@ -41,6 +41,7 @@ implicit none
 !
 integer, intent(in) :: natom  ! Number of atoms to cycle 
 !
+real(kind=PREC_DP), parameter :: TOL = 1.0D-6
 integer :: itype    ! Loop index atom types
 integer :: iatom    ! Loop index atoms
 integer :: iref     ! Reference atom, symmetrically equivalent atoms take this atom as model
@@ -79,6 +80,7 @@ lsuccess= .false.
 cr_ndiffer = 0
 cr_nanis = 0
 cr_is_anis = .false.
+cr_is_anis = .true.
 iref = 1
 !
 do iatom=1,natom
@@ -99,8 +101,10 @@ loop_atoms:do iatom=1,natom
    vec = cr_pos(:, iatom)
 !  write(*,*) ' NANIS ', cr_nanis
 !  write(*,'(a,i3,2i3, 3f7.3, i4)') ' ATOM ', iatom, itype, cr_iscat(3,iatom), cr_pos(:,iatom), cr_is_sym(iatom)
-!  write(*,'(a,        6f7.3    )') ' UANI ', cr_anis(:,itype)
-   if(maxval(abs(cr_anis(2:,itype)))> 0.0D0) then     ! Elements 1 to 6 are given Anisotropic atom type
+!  write(*,'(a,        6f20.16  )') ' UANI ', cr_anis(:,itype)
+!  write(*,*                      ) ' UANI ', cr_anis(:,itype)
+   if(maxval(abs(cr_anis(2:,itype)))> TOL  ) then     ! Elements 1 to 6 are given Anisotropic atom type
+!write(*,*) ' ANISOTROPIC VALUES '
       lanis =.true.
       uij(1,1) = cr_anis(1, itype)
       uij(2,2) = cr_anis(2, itype)
@@ -117,6 +121,7 @@ loop_atoms:do iatom=1,natom
       call xx_to_cart(xx, cr_eimat, ucij) ! Transform XX to cartesian basis
       cr_is_anis = .true.
    else                       ! Isotropic atom set cartesian UCij and transform back to UIJ
+!write(*,*) '   ISOTROPIC VALUES ', cr_anis(1,itype), cr_dw(itype)
       lanis =.false.
       ucij      = 0.0D0
       if(cr_anis(1,itype)> 0.0D0) then                ! Element U11 is the only one take as Uiso
@@ -191,10 +196,12 @@ loop_atoms:do iatom=1,natom
    cr_iscat(3,iatom) = j            ! Assign ADP type
    iref = j           ! Reference atom for ADP values
    if(lsuccess) then
+      cr_dw(itype) = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
       cycle loop_atoms
    endif
 !  This atom has new UIJ, we need to calculate the principal vectors and Eigenvalues
    call calc_prin(cr_iscat(3,iatom), cr_nanis, ucij, ubound(cr_prin,3), cr_prin)
+   cr_dw(itype) = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
    if(ier_num/=0) then
       return
    endif
@@ -203,7 +210,7 @@ loop_atoms:do iatom=1,natom
 !write(*,'(a,i3, a,6f10.5)') ' PRIN', 3, ' | ', cr_prin(:,3,cr_nanis)
 enddo loop_atoms
 !do j=1, cr_nanis
-!write(*,'(a, 6f9.6)') 'PR 2 ', cr_anis_full(1:6,j)
+!write(*,'(a, 6f20.16)') 'PR 2 ', cr_anis_full(1:6,j)
 !enddo
 !
 !cr_nanis = cr_ncatoms
@@ -479,6 +486,12 @@ if(ientry==-1) then   ! new entry
    cr_anis_full(4,ientry) = uij(3,2)
    cr_anis_full(5,ientry) = uij(3,1)
    cr_anis_full(6,ientry) = uij(2,1)
+   do j=1, 6
+!write(*,*) abs(cr_anis_full(j,ientry)), abs(cr_anis_full(j,ientry))<TOL
+      if(abs(cr_anis_full(j,ientry))<TOL) then
+         cr_anis_full(j,ientry) = 0.0D0
+      endif
+   enddo
    if(lcopy) then    ! Need to calculate new principal vectors and copy into global storage
       idim1 = cr_nanis
       call calc_prin_3x3(ientry, cr_nanis, ucij, idim1, cr_prin)
@@ -757,6 +770,7 @@ loop_wyc: do i=2, wyc_n                     ! Loop over all Wyckoff symmetries n
 enddo loop_wyc
 !s_invar = .true.
 if(.not. is_invar) then
+!write(*,*) ' XX ', xx
    ier_num = -195
    ier_typ = ER_APPL
    write(ier_msg(1),'(a,3f10.6)') 'at atom pos: ',vec
@@ -788,6 +802,8 @@ integer         , intent(inout) :: length
 !
 integer, parameter :: MAXW  = 6
 integer, parameter :: MAXWW = 6
+real(kind=PREC_DP), parameter :: TOL=0.00002_PREC_DP
+!
 character(len=PREC_STRING), dimension(MAXW) :: cpara
 integer                   , dimension(MAXW) :: lpara
 integer                                  :: ianz
@@ -853,6 +869,7 @@ elseif(lpresent(O_PRIN)) then
    rlen                  = sqrt(vec(1)**2 + vec(2)**2 + vec(3)**2)
    cr_prin(1:3,j, ianis) = vec/rlen       ! Normalize to length 1
    cr_prin(4  ,j, ianis) = wwerte(6)
+!  cr_dw(itype) = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
    return
 endif
 !
@@ -901,6 +918,12 @@ cr_anis_full(3, ianis) = uij(3,3)
 cr_anis_full(4, ianis) = uij(2,3)
 cr_anis_full(5, ianis) = uij(1,3)
 cr_anis_full(6, ianis) = uij(1,2)
+   do j=1, 6
+!write(*,*) abs(cr_anis_full(j,ianis)), abs(cr_anis_full(j,ianis))<TOL
+      if(abs(cr_anis_full(j,ianis))<TOL) then
+         cr_anis_full(j,ianis) = 0.0D0
+      endif
+   enddo
 !
 end subroutine do_anis
 !

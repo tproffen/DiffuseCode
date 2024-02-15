@@ -833,7 +833,7 @@ SUBROUTINE set_crystal_from_standard   ( this, strucfile)
    ENDIF
 !
    i = min(max(cr_nscat, cr_nanis),ubound(this%cr_anis,2), ubound(cr_anis,2))
-   this%cr_anis(1:6,1:i       ) = cr_anis(1:6,1:i       )
+   this%cr_anis(1:6,1:i       ) = cr_anis_full(1:6,1:i       )
 !  this%cr_anis(1:6,1:cr_nscat) = cr_anis(1:6,1:cr_nscat)
    if(cr_nanis>0) then
       this%cr_anis_full(1:6,1:cr_nanis) = cr_anis_full(1:6,1:cr_nanis)
@@ -843,7 +843,8 @@ SUBROUTINE set_crystal_from_standard   ( this, strucfile)
       this%cr_prin                      = 0.0_PREC_DP
    endif
 !do i=1, cr_nanis
-!write(*,'(a, 6f9.6)') ' UIJ ', this%cr_anis_full(1:6,i)
+!write(*,'(a, 6f20.16)') ' FULL', this%cr_anis_full(1:6,i)
+!write(*,'(a, 6f20.16)') ' anis', this%cr_anis     (1:6,i)
 !enddo
    this%cr_is_sym(1:cr_ncatoms) = cr_is_sym(1:cr_ncatoms)
 !
@@ -1521,6 +1522,9 @@ END SUBROUTINE set_crystal_from_standard
 !
    cr_nscat        = this%cr_nscat
    cr_n_REAL_atoms = this%cr_n_REAL_atoms
+!do i=1, cr_nanis
+!write(*,'(a, 6f20.16)') ' UIJ ', this%cr_anis_full(1:6,i)
+!enddo
 !
    END SUBROUTINE get_header_from_crystal
 !
