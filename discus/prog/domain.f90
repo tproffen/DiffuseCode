@@ -767,7 +767,6 @@ if_clu:if(clu_mode==CLU_IN_CLUSTER) THEN          ! Cluster mode, read content f
       clu_content(clu_number) = mole_file(i)
    enddo loop_clu_mole
 endif if_clu
-!write(*,*) ' READING GUEST FILES '
 !
 ! --- Now read all content files from disk 
 !
