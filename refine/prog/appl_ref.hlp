@@ -186,6 +186,10 @@
 !p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>] 
 !p            [,"success:"<lamda_g>]
 !p
+
+   Several basic settings to fine tune the refinement. These can be
+   typed separately or combined on a single command line.
+
 3  cycle
 !p set cycle,<maxc>
    Sets the maximum number of refinement cycles
@@ -194,6 +198,8 @@
 !p set conver [,"dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
 !p            [,"chi2:"<level>] [,"status:on" | "status:off"]
 
+   REFINE will test three convergence criteria after each cycle and
+   will stop if any of these criterial is met. 
    Allows the user to define convergence criteria.
 
    If the status is set to "on", the convergence criteria are used.
@@ -218,30 +224,56 @@
      Defaults to 0.500
 
    Convergence is reached, if:
-   Either one of the three conditions:
+   Either one of the three conditions are met. 
+   Criterion 1: 
       (dchi AND pshift AND conf) 
-   or
+      Largest parameter shift divided by the corresponding sigma is 
+      less than pshift:<max>                           AND
+
+      The confidence level is larger than conf:<level> AND
+
+      The change in Chi^2 is less than dchi:<delta>
+
+   Criterion 2:
       (dchi AND pshift>0)
-   or 
+      The change in Chi^2 is less than dchi:<delta>    AND
+
+      Any parameter changed significantly
+
+   Criterion 3:
       chi2
-   are met. 
+      Chi^2 is less than chisq:<value>
+
 
 3  relax
 !p set relax  ["start:"<lamda_s>] [,"fail:"<lamda_f>] 
 !p            [,"success:"<lamda_g>]
 
-   Allows to fine tune the relaxation behavior. 
-   The initial Levenberg-Marquardt lamda parameter is defined
-   with ["start:"<lamda_s>]. Default is 0.001 
+   At each refinement cycle REFINE will change the parameter values 
+   in order to move towards the minimum of Chi^2. 
+   As long as the refinement is far from the optimum values, 
+   large parameter steps ensure a faster convergence.
+   Close to the optimum values, smaller steps will ensure that 
+   the optimum values are reached without accidentally stepping
+   beyond. An internal value "lambda" fine tunes this behavior,
+   a larger value of "lambda" corresponds to smaller parameter changes
+   and vice versa. REFINE will adjust these values automatically
+   and usually you can rely on the default values. In rare cases
+   you might have to fine tune.
 
-   If a cycle was successful, the value of lamda is multiplied 
-   by <lamda_g>, default is 0.5.
+   "start:"<lamda_s> Defines the initial "lambda" value, 
+        Default is 0.001
 
-   If a cycle was not successful, the value of lamda is multiplied 
-   by <lamda_f>, default is 4.0.
+   "success:"<lamda_g> If the last refinement cycle improved Chi^2,
+        "lambda" is multiplied by lamda_g, which should be less than
+        1 to take larger parameter steps in the next cycle. 
+        Default is 0.5
 
-   A larger value of lambda implies smaller steps for the 
-   refinement parameters.
+   "fail:"<lamda_f> If the last cycle did not improve Chi^2, the 
+        parameter step were probably too large, and REFINE steped
+        beyond the Chi^2 minimum. With lamda_f > 1 the lambda value
+        is increased to take smaller steps.
+        Default is 4.0
 2  sigma
 !p sigma "kuplot", <number> 
 !p sigma <type>,<infile>
