@@ -103,7 +103,6 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    INTEGER                                          ::  cr_n_REAL_atoms = 0
 
    REAL(kind=PREC_DP), DIMENSION(  :), ALLOCATABLE  ::  cr_dw      ! (  0:MAXSCAT)
-   REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE  ::  cr_anis    ! (  0:MAXSCAT) User supplied Uij
    REAL(kind=PREC_DP), DIMENSION(:,:), ALLOCATABLE  ::  cr_anis_full    ! (  0:MAXSCAT) User supplied Uij
    REAL(kind=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE  ::  cr_prin    ! (  0:MAXSCAT) User supplied Uij
    integer           , DIMENSION(  :), ALLOCATABLE  ::  cr_is_sym  ! (  0:NCATOMS) Site was created by this sym.op.
@@ -218,7 +217,6 @@ l_n_atom  = max(n_atom, 1)    ! Make array at least one entry long
       DEALLOCATE ( this%cr_sav_atom, STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_at_lis  , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_dw      , STAT=istatus ) ! Always deallocate
-      DEALLOCATE ( this%cr_anis    , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_anis_full , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_prin      , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_is_sym    , STAT=istatus ) ! Always deallocate
@@ -248,7 +246,6 @@ l_n_atom  = max(n_atom, 1)    ! Make array at least one entry long
    ALLOCATE ( this%cr_sav_atom(  0:nscat), STAT=istatus ) ! Allocate equivalent atom names
    ALLOCATE ( this%cr_at_lis  (  0:nscat), STAT=istatus ) ! Allocate atom names
    ALLOCATE ( this%cr_dw      (  0:nscat), STAT=istatus ) ! Allocate Debye Waller terms
-   ALLOCATE ( this%cr_anis     (6,0:l_nanis), STAT=istatus ) ! Allocate User supplied Uij
    ALLOCATE ( this%cr_anis_full(6,1:l_nanis), STAT=istatus ) ! Allocate User supplied Uij
    ALLOCATE ( this%cr_prin   (4,3,1:l_nanis), STAT=istatus ) ! Allocate User supplied Uij
    ALLOCATE ( this%cr_is_sym  (  1:ncatoms), STAT=istatus ) ! Allocate Atom was created by this sym.op.
@@ -278,7 +275,6 @@ l_n_atom  = max(n_atom, 1)    ! Make array at least one entry long
    this%cr_sav_atom(  0:nscat) = .TRUE.
    this%cr_at_lis  (  0:nscat) = ' '
    this%cr_dw      (  0:nscat) = 0.0_PREC_DP
-   this%cr_anis    (:,0:l_nanis) = 0.0_PREC_DP
    this%cr_anis_full(6,1:l_nanis) = 0.0_PREC_DP
    this%cr_prin   (4,3,1:l_nanis) = 0.0_PREC_DP
    this%cr_is_sym  (  1:ncatoms) = 0
@@ -832,9 +828,6 @@ SUBROUTINE set_crystal_from_standard   ( this, strucfile)
       ENDDO
    ENDIF
 !
-   i = min(max(cr_nscat, cr_nanis),ubound(this%cr_anis,2), ubound(cr_anis,2))
-   this%cr_anis(1:6,1:i       ) = cr_anis_full(1:6,1:i       )
-!  this%cr_anis(1:6,1:cr_nscat) = cr_anis(1:6,1:cr_nscat)
    if(cr_nanis>0) then
       this%cr_anis_full(1:6,1:cr_nanis) = cr_anis_full(1:6,1:cr_nanis)
       this%cr_prin     (:,:,1:cr_nanis) = cr_prin     (:,:,1:cr_nanis)
@@ -842,10 +835,6 @@ SUBROUTINE set_crystal_from_standard   ( this, strucfile)
       this%cr_anis_full                 = 0.0_PREC_DP
       this%cr_prin                      = 0.0_PREC_DP
    endif
-!do i=1, cr_nanis
-!write(*,'(a, 6f20.16)') ' FULL', this%cr_anis_full(1:6,i)
-!write(*,'(a, 6f20.16)') ' anis', this%cr_anis     (1:6,i)
-!enddo
    this%cr_is_sym(1:cr_ncatoms) = cr_is_sym(1:cr_ncatoms)
 !
 !  save Occupancy values 
@@ -1226,9 +1215,6 @@ END SUBROUTINE set_crystal_from_standard
       ENDDO
    ENDIF
 !
-   i = min(max(rd_cr_nscat, rd_cr_nanis),ubound(this%cr_anis,2))
-   this%cr_anis(1:6,1:i          ) = rd_cr_anis(1:6,1:i          )
-!  this%cr_anis(1:6,1:rd_cr_nscat) = rd_cr_anis(1:6,1:rd_cr_nscat)
 !
    if(rd_cr_nanis>0) then
       this%cr_anis_full(1:6,1:rd_cr_nanis) = rd_cr_anis_full(1:6,1:rd_cr_nanis)
@@ -1503,7 +1489,6 @@ END SUBROUTINE set_crystal_from_standard
       cr_at_equ(i)    = this%cr_at_equ(i)
       cr_at_lis(i)    = this%cr_at_lis(i)
       cr_dw(i)        = this%cr_dw(i)
-      cr_anis(:,i)    = this%cr_anis(:,i)
       cr_occ(i)       = this%cr_occ(i)
    END FORALL
 !
@@ -1522,9 +1507,6 @@ END SUBROUTINE set_crystal_from_standard
 !
    cr_nscat        = this%cr_nscat
    cr_n_REAL_atoms = this%cr_n_REAL_atoms
-!do i=1, cr_nanis
-!write(*,'(a, 6f20.16)') ' UIJ ', this%cr_anis_full(1:6,i)
-!enddo
 !
    END SUBROUTINE get_header_from_crystal
 !
@@ -1634,7 +1616,6 @@ end subroutine get_anis
    FORALL (i=0:this%cr_nscat)
       rd_cr_at_lis(i)    = this%cr_at_lis(i)
       rd_cr_dw(i)        = this%cr_dw(i)
-      rd_cr_anis(:,i)    = this%cr_anis(:,i)
       rd_cr_occ(i)       = this%cr_occ(i)  !! WORK OCC
    END FORALL
 !
@@ -1841,7 +1822,6 @@ end subroutine get_anis
       DEALLOCATE ( this%cr_sav_atom, STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_at_lis  , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_dw      , STAT=istatus ) ! Always deallocate
-      DEALLOCATE ( this%cr_anis    , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_anis_full , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_prin      , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_is_sym    , STAT=istatus ) ! Always deallocate
