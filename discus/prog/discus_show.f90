@@ -258,7 +258,7 @@ if(str_comp(opara(O_ADP), 'uij', 2, length(O_ADP)  , 3) .or. str_comp(opara(O_AD
    write(output_io,*) ' ADPS', cr_nanis
    write(output_io,'(a)')' Type     U11       U22       U33       U23       U13       U12       Ueqv     Biso'
    do j=1, cr_nanis
-      ueqv = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP
+      ueqv = (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP
       biso = ueqv *8.0_PREC_DP*pi*pi
       if((abs(cr_prin(4,1,j    )-cr_prin(4,2,j   ))>TOL  .or.  &
           abs(cr_prin(4,1,j    )-cr_prin(4,3,j   ))>TOL      ) .or. opara(O_STYLE)=='long') then
