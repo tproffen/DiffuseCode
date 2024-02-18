@@ -25,7 +25,7 @@ contains
 !
 !*******************************************************************************
 !
-subroutine prep_anis(natom)
+subroutine prep_anis(natom, l_not_full)
 !
 use crystal_mod
 use wyckoff_mod
@@ -36,10 +36,12 @@ use matrix_mod
 use math_sup, only:eigen_value, test_eigen_value
 use precision_mod
 use wink_mod
+use support_mod
 !
 implicit none
 !
 integer, intent(in) :: natom  ! Number of atoms to cycle 
+logical, intent(in) :: l_not_full  ! Do not use old cr_anis_full (from internal)
 !
 real(kind=PREC_DP), parameter :: TOL = 1.0D-6
 integer :: itype    ! Loop index atom types
@@ -49,6 +51,7 @@ integer :: j, l     ! Dummy loop indices
 logical :: lanis       ! This atom has anisotropic ADP
 logical :: lsuccess    ! Success in subroutines
 logical :: is_invar    ! xx tensor is invariant under local Wyckoff point group
+real(kind=PREC_DP), dimension(6)   :: cr_anis_use ! copy of cr_anis or cr_anis_full
 real(kind=PREC_DP), dimension(3)   :: vec     ! Dummy vector
 real(kind=PREC_DP), dimension(3)   :: ar_inv  ! ( 1/a*, 1/b*, 1/c*)
 real(kind=PREC_DP), dimension(3,3) :: imat  ! Unit matrix
@@ -56,19 +59,33 @@ real(kind=PREC_DP), dimension(3,3) :: uij   ! U_ij as in SHELX, reference to ((a
 real(kind=PREC_DP), dimension(3,3) :: xx    ! Displacement tensor <DELTAx^i . DELTAx^j> refers to standard basis
 real(kind=PREC_DP), dimension(3,3) :: ucij  ! Displacement tensor <DELTAx^i . DELTAx^j> at cartesian coordinates
 real(kind=PREC_DP), dimension(3,3) :: symm_mat    ! Symmetry matrix
+real(kind=PREC_DP), dimension(4,3) :: prin_new ! Symmetrical principal vectors
+real(kind=PREC_DP) :: ss
+real(kind=PREC_DP), dimension(0:5) :: zeit
 !
 data imat / 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0/
 !
+!write(*,*) ' PREP ', cr_iscat(1,1: natom)
 ar_inv(1) = 1./cr_ar(1)
 ar_inv(2) = 1./cr_ar(2)
 ar_inv(3) = 1./cr_ar(3)
 !
-if(allocated(cr_anis_full)) deallocate(cr_anis_full)
-if(allocated(cr_prin     )) deallocate(cr_prin     )
-allocate(cr_anis_full(6,    cr_ncatoms))
-allocate(cr_prin     (4, 3, cr_ncatoms))
-cr_anis_full = 0.0D0
-cr_prin      = 0.0D0
+if(l_not_full) then         ! Use cr_anis (read from disk)
+   if(allocated(cr_anis_full)) deallocate(cr_anis_full)
+   if(allocated(cr_prin     )) deallocate(cr_prin     )
+   allocate(cr_anis_full(6,    cr_ncatoms))
+   allocate(cr_prin     (4, 3, cr_ncatoms))
+   cr_anis_full = 0.0D0
+   cr_prin      = 0.0D0
+   cr_nanis = 0
+   cr_is_anis = .false.
+!write(*,*) ' USING CR_ANIS     ', ubound(cr_anis_full,2), natom
+!else
+!write(*,*) ' USING CR_ANIS_FULL', ubound(cr_anis_full,2), natom
+!do j=1, ubound(cr_anis_full,2)
+!   write(*,'(a,6f10.6)') 'OLD UIJ ', cr_anis_full(:,j)
+!enddo
+endif
 uij          = 0.0D0
 ucij         = 0.0D0
 xx           = 0.0D0
@@ -78,9 +95,7 @@ xx           = 0.0D0
 j = 0
 lsuccess= .false.
 cr_ndiffer = 0
-cr_nanis = 0
-cr_is_anis = .false.
-cr_is_anis = .true.
+!cr_is_anis = .true.
 iref = 1
 !
 do iatom=1,natom
@@ -93,41 +108,52 @@ enddo
 !enddo
 !
 ! Step 1:  Determine Eigenvalues and Eigenvectors 
+ss = seknds (0.0)
+zeit = 0.0D0
 loop_atoms:do iatom=1,natom 
+!ss = seknds (ss )
    j = 0
    lsuccess= .false.
    itype = cr_iscat(1,iatom)
    cr_ianis(iatom) = iatom
    vec = cr_pos(:, iatom)
-!  write(*,*) ' NANIS ', cr_nanis
-!  write(*,'(a,i3,2i3, 3f7.3, i4)') ' ATOM ', iatom, itype, cr_iscat(3,iatom), cr_pos(:,iatom), cr_is_sym(iatom)
-!  write(*,'(a,        6f20.16  )') ' UANI ', cr_anis(:,itype)
-!  write(*,*                      ) ' UANI ', cr_anis(:,itype)
-   if(maxval(abs(cr_anis(2:,itype)))> TOL  ) then     ! Elements 1 to 6 are given Anisotropic atom type
+   if(l_not_full) then        ! Use cr_anis
+      cr_anis_use = cr_anis(:, itype)
+   else                       ! Use (old) cr_anis_full
+      itype = cr_iscat(3,iatom)
+      cr_anis_use = cr_anis_full(:, itype)
+   endif
+!   write(*,*) ' NANIS ', cr_nanis, iatom
+!   write(*,'(a,   5i3, 3f7.3, i4)') ' ATOM ', iatom, itype, cr_iscat(:,iatom), cr_pos(:,iatom), cr_iscat(2, iatom)
+!   write(*,'(a,        6f20.16  )') ' UANI ', cr_anis_use !(:,itype)
+!   write(*,*                      ) ' UANI ', cr_anis(:,itype)
+!  if((l_not_full .and. maxval(abs(cr_anis(2:,itype)))> TOL) .or.  &            ! Elements 1 to 6 are given, Anisotropic atom type
+!     (.not. l_not_full .and. maxval(abs(cr_anis_full(2:,itype)))> TOL)  ) then ! Elements 1 to 6 are given, Anisotropic atom type
+   if(maxval(abs(cr_anis_use(2:)))>TOL) then   ! Elements 1 to 6 are given, Anisotropic atom type
 !write(*,*) ' ANISOTROPIC VALUES '
       lanis =.true.
-      uij(1,1) = cr_anis(1, itype)
-      uij(2,2) = cr_anis(2, itype)
-      uij(3,3) = cr_anis(3, itype)
-      uij(2,3) = cr_anis(4, itype)
-      uij(3,2) = cr_anis(4, itype)
-      uij(1,3) = cr_anis(5, itype)
-      uij(3,1) = cr_anis(5, itype)
-      uij(1,2) = cr_anis(6, itype)
-      uij(2,1) = cr_anis(6, itype)
+      uij(1,1) = cr_anis_use(1) !, itype)
+      uij(2,2) = cr_anis_use(2) !, itype)
+      uij(3,3) = cr_anis_use(3) !, itype)
+      uij(2,3) = cr_anis_use(4) !, itype)
+      uij(3,2) = cr_anis_use(4) !, itype)
+      uij(1,3) = cr_anis_use(5) !, itype)
+      uij(3,1) = cr_anis_use(5) !, itype)
+      uij(1,2) = cr_anis_use(6) !, itype)
+      uij(2,1) = cr_anis_use(6) !, itype)
 !     cr_iscat(3,iatom) = cr_is_sym(iatom)
       cr_iscat(3,iatom) = cr_iscat(2,iatom)
       call uij_to_xx(uij, cr_ar, xx)      ! Transform Uij to XX tensor
       call xx_to_cart(xx, cr_eimat, ucij) ! Transform XX to cartesian basis
       cr_is_anis = .true.
    else                       ! Isotropic atom set cartesian UCij and transform back to UIJ
-!write(*,*) '   ISOTROPIC VALUES ', cr_anis(1,itype), cr_dw(itype)
+!write(*,*) '   ISOTROPIC VALUES ', cr_anis_use     , cr_dw(itype)
       lanis =.false.
       ucij      = 0.0D0
-      if(cr_anis(1,itype)> 0.0D0) then                ! Element U11 is the only one take as Uiso
-         ucij(1,1) = cr_anis(1,itype)
-         ucij(2,2) = cr_anis(1,itype)
-         ucij(3,3) = cr_anis(1,itype)
+      if(cr_anis_use(1)> 0.0D0) then                ! Element U11 is the only one take as Uiso
+         ucij(1,1) = cr_anis_use(1) !,itype)
+         ucij(2,2) = cr_anis_use(1) !,itype)
+         ucij(3,3) = cr_anis_use(1) !,itype)
       elseif(cr_dw(itype)>0.0_PREC_DP) then
          ucij(1,1) = cr_dw(itype)/8.0D0/pi**2    ! WORK !?!??!
          ucij(2,2) = cr_dw(itype)/8.0D0/pi**2
@@ -141,6 +167,8 @@ loop_atoms:do iatom=1,natom
       call xx_to_cart(ucij, cr_emat, xx)   ! Transform XX from cartesian basis
       call uij_to_xx(xx, ar_inv, uij)      ! Transform Uij from XX tensor
    endif
+!ss = seknds (ss )
+!zeit(0) = zeit(0) + ss
 !write(*,'(a, 3f10.6)') ' Uij 1: ', uij(1, 1:3)
 !write(*,'(a, 3f10.6)') ' Uij 2: ', uij(2, 1:3)
 !write(*,'(a, 3f10.6)') ' Uij 3: ', uij(3, 1:3)
@@ -153,29 +181,50 @@ loop_atoms:do iatom=1,natom
 !write(*,'(a, 3f10.6)') ' UCij 2: ', ucij(2, 1:3)
 !write(*,'(a, 3f10.6)') ' UCij 3: ', ucij(3, 1:3)
 !write(*,*)
+!ss = seknds (0.0)
    if(cr_iscat(2,iatom)==1) then            ! Symmetrically first atom
+!write(*,*) ' XX ', xx
       call test_symm(vec, xx, is_invar)            ! Test if xx is invariant under Wyckoff symmetry
+!write(*,*) ' TESTE SYMM ', ier_num, ier_typ
       if(ier_num /= 0) then
          return
       endif
    endif
+!ss = seknds (ss )
+!zeit(1) = zeit(1) + ss
 !
 !  if(cr_is_sym(iatom)>1) then             ! Symmetrically equivalent atom
 !if(cr_iscat(2,iatom)==1) then
 !write(*,'(a,i3, a,6f10.5, 3i4, l2)') ' UIJ ', 1, ' | ', cr_anis(:,itype), cr_iscat(:, iatom), lanis
 !endif
    if(cr_iscat(2,iatom)>1) then            ! Symmetrically equivalent atom
+!write(*,'(a,i3, a,6f10.5, 3i4, l2)') ' UIJ ', 1, ' | ', cr_anis(:,itype), cr_iscat(:, iatom), lanis
       if(lanis) then                       ! Anisotropic ADP, apply symmetry to obtain new ADP, principal vectors
 !        symm_mat = spc_mat(1:3,1:3, cr_is_sym(iatom))
          symm_mat = spc_mat(1:3,1:3, cr_iscat(2,iatom))
-         call anis_symm(cr_ncatoms, cr_nanis, iref , symm_mat, ubound(cr_anis_full,2), &
-              cr_anis_full, cr_prin, xx, uij, cr_emat, cr_eimat, ar_inv)
+!        call anis_symm(cr_ncatoms, cr_nanis, iref , symm_mat, ubound(cr_anis_full,2), &
+!             cr_anis_full, cr_prin, xx, uij, cr_emat, cr_eimat, ar_inv)
+!ss = seknds (ss )
+         call anis_symm(symm_mat, xx, cr_prin(:,:,iref), cr_emat, cr_eimat, ar_inv, uij, prin_new)
+!ss = seknds (ss )
+!zeit(2) = zeit(2) + ss
+!             anis_full_new, prin_new, xx_new, uij_new)
+!real(kind=PREC_DP), dimension(6) :: anis_full_new
          if(ier_num/=0) then
             return
          endif
+!write(*,'(a, 3f5.1)') 'sym ', symm_mat(1,:)
+!write(*,'(a, 3f5.1)') 'sym ', symm_mat(2,:)
+!write(*,'(a, 3f5.1)') 'sym ', symm_mat(3,:)
 !write(*,'(a,i3, a,6f10.5)') ' uij ', cr_iscat(2,iatom), ' | ', uij(1,1), uij(2,2), uij(3,3), uij(2,3), uij(1,3), uij(1,2)
+!ss = seknds (ss )
          call lookup_anis(cr_nanis, cr_anis_full, cr_prin, uij, ucij, .FALSE., j, lsuccess)   ! Check if old ADPs are reproduced
-!write(*,'(a,i3, a,4f10.5,3i6)') ' prin', 1, ' | ', cr_prin(:,1,j), j, cr_nanis, ubound(cr_prin,3)
+         if(.not.lsuccess) then
+            cr_prin(:,:, j) = prin_new
+         endif
+!ss = seknds (ss )
+!zeit(3) = zeit(3) + ss
+!write(*,'(a,i3, a,4f10.5,3i6, l3)') ' prin', 1, ' | ', cr_prin(:,1,j), j, cr_nanis, ubound(cr_prin,3), lsuccess
 !write(*,'(a,i3, a,6f10.5)') ' prin', 2, ' | ', cr_prin(:,2,j)
 !write(*,'(a,i3, a,6f10.5)') ' prin', 3, ' | ', cr_prin(:,3,j)
 !        call test_symm(vec, xx, is_invar)            ! Test if xx is invariant under Wyckoff symmetry
@@ -189,19 +238,27 @@ loop_atoms:do iatom=1,natom
 !     iref = iatom    ! Reference atom for ADP values 
    endif 
 !
+!ss = seknds (ss )
    call lookup_anis(cr_nanis, cr_anis_full, cr_prin, uij, ucij, .FALSE., j, lsuccess) ! Check if previous ADPs exist with identical uij
+!ss = seknds (ss )
+!zeit(4) = zeit(4) + ss
    if(ier_num/=0) then
       return
    endif
    cr_iscat(3,iatom) = j            ! Assign ADP type
    iref = j           ! Reference atom for ADP values
    if(lsuccess) then
-      cr_dw(itype) = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
+!     cr_dw(itype) = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
+      cr_dw(cr_iscat(1,iatom)) = (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
       cycle loop_atoms
    endif
 !  This atom has new UIJ, we need to calculate the principal vectors and Eigenvalues
+!ss = seknds (ss )
    call calc_prin(cr_iscat(3,iatom), cr_nanis, ucij, ubound(cr_prin,3), cr_prin)
-   cr_dw(itype) = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
+!ss = seknds (ss )
+!zeit(4) = zeit(4) + ss
+!  cr_dw(itype) = (cr_anis_full(1,j) + cr_anis_full(2,j) + cr_anis_full(3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
+   cr_dw(cr_iscat(1,iatom)) = (cr_prin(4,   1,j) + cr_prin(4,   2,j) + cr_prin(4,   3,j))/3.0_PREC_DP*8.0_PREC_DP*pi*pi
    if(ier_num/=0) then
       return
    endif
@@ -209,9 +266,14 @@ loop_atoms:do iatom=1,natom
 !write(*,'(a,i3, a,6f10.5)') ' PRIN', 2, ' | ', cr_prin(:,2,cr_nanis)
 !write(*,'(a,i3, a,6f10.5)') ' PRIN', 3, ' | ', cr_prin(:,3,cr_nanis)
 enddo loop_atoms
-!do j=1, cr_nanis
+cr_is_anis = .FALSE.     ! Assume isotropic
+do j=1, cr_nanis
+   if((abs(cr_prin(4,1,j    )-cr_prin(4,2,j   ))>TOL  .or.  &
+       abs(cr_prin(4,1,j    )-cr_prin(4,3,j   ))>TOL      )) then
+      cr_is_anis =.TRUE.
+   endif
 !write(*,'(a, 6f20.16)') 'PR 2 ', cr_anis_full(1:6,j)
-!enddo
+enddo
 !
 !cr_nanis = cr_ncatoms
 !write(*,*) ' cr_anis_full ', ubound(cr_anis_full)
@@ -226,6 +288,9 @@ enddo loop_atoms
 !write(*,'(a,3f9.5,a,f9.5,a,f9.5)') 'E(0,0,1) => ', cr_prin(1:3,3,j),  ' VAL ', cr_prin(4,3,j)
 !write(*,*)
 !enddo
+!write(*,*) ' DONE PREP_ANIS ', cr_is_anis
+!write(*,*) ' ZEIT ', zeit
+!read(*,*) j
 !
 !
 end subroutine prep_anis
@@ -476,7 +541,7 @@ enddo loop_nanis
 if(ientry==-1) then   ! new entry
    cr_nanis = cr_nanis + 1
    ientry   = cr_nanis
-   if(cr_nanis>=ubound(cr_anis_full,2)) then
+   if(cr_nanis>ubound(cr_anis_full,2)) then
       call alloc_arr(cr_anis_full, 1,6, 1, cr_nanis, all_status, 0.0D0      )
       call alloc_arr(cr_prin, 1, 4,1,3, 1, cr_nanis, all_status, 0.0D0      )
    endif
@@ -661,7 +726,75 @@ end subroutine xx_to_cart
 !
 !*******************************************************************************
 !
-subroutine anis_symm(ncatoms, nanis, iref, symm_mat, idim1, anis_full, &
+!subroutine anis_symm(ncatoms, symm_mat, prin_in, xx_in, emat, eimat, ar_inv, &
+!           anis_full_new, prin_new, xx_new, uij_new)
+subroutine anis_symm(symm_mat, xx_in, prin_in, emat, eimat, ar_inv, uij_new, prin_new)
+!-
+!  Apply the symmetry matrix symm_mat to the current displacement tensor XX and the 
+!  principal vectors
+!+
+!
+use matrix_mod
+use precision_mod
+!
+implicit none
+!
+!integer                           , intent(in)  :: ncatoms   ! Number of atoms in unit cell, 
+real(kind=PREC_DP), dimension(3,3), intent(in)  :: symm_mat  ! Symmetry matrix
+real(kind=PREC_DP), dimension(4,3)  , intent(in)  :: prin_in      ! Principal vectors cartesian
+real(kind=PREC_DP), dimension(3,3), intent(in)  :: xx_in        ! Displacement tensor crystal space
+real(kind=PREC_DP), dimension(3,3), intent(in)  :: emat      ! Transformation basis to Cartesian
+real(kind=PREC_DP), dimension(3,3), intent(in)  :: eimat     ! Transformation basis to crystal
+real(kind=PREC_DP), dimension(3)  , intent(in)  :: ar_inv    ! Reciprocal lattice parameters
+!real(kind=PREC_DP), dimension(6)  , intent(out) :: anis_full_new ! List of UIJ
+!real(kind=PREC_DP), dimension(4)  , intent(out) :: prin_new     ! Principal vectors cartesian
+!real(kind=PREC_DP), dimension(3,3), intent(out) :: xx_new       ! Displacement tensor crystal space
+real(kind=PREC_DP), dimension(3,3), intent(out) :: uij_new       ! Full UIJ matrix
+real(kind=PREC_DP), dimension(4,3), intent(out) :: prin_new ! Symmetrical principal vectors
+!
+integer                            :: j
+real(kind=PREC_DP), dimension(3)   :: v,w  ! Dummy vector
+real(kind=PREC_DP), dimension(3,3) :: xx_new       ! Displacement tensor after symmetry operation
+real(kind=PREC_DP), dimension(3,3) :: symm_imat    ! Inverse Symmetry matrix
+!
+symm_imat = 0.0_PREC_DP
+call matinv(symm_mat, symm_imat)
+if(ier_num/=0) then
+   ier_msg(1) = 'Could not invert symmetry operation'
+   return
+endif
+!
+!write(*,*) ' SYMMETRY ', ncatoms, nanis, iref
+!write(*,'(a,4f10.6)') ' OLD  1', prin(:,1,iref )
+!write(*,'(a,4f10.6)') ' OLD  2', prin(:,2,iref )
+!write(*,'(a,4f10.6)') ' OLD  3', prin(:,3,iref )
+do j=1, 3  ! loop over three principal vectors
+   v = matmul(emat, prin_in(1:3,j))    ! Transform principal vector to crystal space
+   w = matmul(symm_mat,v)            ! Apply symmetry matrix
+!write(*,'(a,i1,2(3f10.6,4x))') ' crys ',j, v, w
+   v = matmul(eimat, w)              ! Transform back to cartesian space
+   prin_new(1:3,j) = v
+   prin_new(4  ,j) = prin_in(4,j)
+enddo
+! write(*,'(a,4f10.6)') ' pRIN 1', prin(:,1,nanis+1)
+! write(*,'(a,4f10.6)') ' pRIN 2', prin(:,2,nanis+1)
+! write(*,'(a,4f10.6)') ' pRIN 3', prin(:,3,nanis+1)
+!
+ xx_new = matmul(symm_mat, matmul(xx_in, transpose(symm_mat)))
+call uij_to_xx(xx_new, ar_inv, uij_new)
+!xx = xx_new
+!anis_full_new(1,nanis+1) = uij_new(1,1)
+!anis_full_new(2,nanis+1) = uij_new(2,2)
+!anis_full_new(3,nanis+1) = uij_new(3,3)
+!anis_full_new(4,nanis+1) = uij_new(2,3)
+!anis_full_new(5,nanis+1) = uij_new(1,3)
+!anis_full_new(6,nanis+1) = uij_new(1,2)
+!
+end subroutine anis_symm
+!
+!*******************************************************************************
+!
+subroutine old_anis_symm(ncatoms, nanis, iref, symm_mat, idim1, anis_full, &
    prin, xx, uij, emat, eimat, ar_inv)
 !-
 !  Apply the symmetry matrix symm_mat to the current displacement tensor XX and the 
@@ -728,7 +861,7 @@ anis_full(4,nanis+1) = uij(2,3)
 anis_full(5,nanis+1) = uij(1,3)
 anis_full(6,nanis+1) = uij(1,2)
 !
-end subroutine anis_symm
+end subroutine old_anis_symm
 !
 !*******************************************************************************
 !

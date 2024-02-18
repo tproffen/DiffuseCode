@@ -1872,6 +1872,7 @@ real(kind=PREC_DP), dimension(3) :: ar_inv   ! (1/a*, 1/b*, 1/c*)
 INTEGER               :: n_mscat     ! temporary number of molecule scattering types
 INTEGER               :: lll         ! Dummy index
 LOGICAL, PARAMETER    :: lout = .FALSE.
+logical               :: l_not_full = .true.
 REAL(kind=PREC_DP)    :: dist
 REAL(kind=PREC_DP)    :: shortest
 REAL(kind=PREC_DP)    :: longest
@@ -1894,7 +1895,7 @@ main: DO i=1, dcc_num
    strufile     = mole_name
    success = .FALSE.
    CALL rese_cr
-   CALL do_readstru(MAXMASK, strufile, .FALSE., uni_mask)
+   CALL do_readstru(MAXMASK, strufile, .FALSE., uni_mask, l_not_full)
    IF(ier_num /= 0) RETURN
    CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
@@ -1919,7 +1920,8 @@ main: DO i=1, dcc_num
               strufile(1:MIN(LEN(ier_msg),LEN_TRIM(strufile)))
       RETURN
    ENDIF
-   call prep_anis(cr_natoms)
+   l_not_full = .true.
+   call prep_anis(cr_natoms, l_not_full)
 !
    dcc_natoms(i) = cr_natoms         ! Store number of atoms in this molecule
    IF(cr_nscat > DCC_MAXMSCAT .OR. cr_nscat > UBOUND(dcc_atom_name,1)) THEN

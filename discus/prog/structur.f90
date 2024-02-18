@@ -64,6 +64,7 @@ INTEGER , PARAMETER :: MAXMASK =  4
 !                                                                       
 CHARACTER(LEN=PREC_STRING)        :: line, zeile, cpara (maxw) 
 CHARACTER(LEN=PREC_STRING)        :: strucfile 
+!
 CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=9)           :: befehl 
 INTEGER, DIMENSION(MAXW)   :: lpara
@@ -71,6 +72,7 @@ INTEGER          :: lp, length
 INTEGER          :: lstr, i, j, k
 INTEGER          :: ianz, lbef
 LOGICAL          :: lout 
+logical          :: l_not_full
 REAL(KIND=PREC_DP)   , DIMENSION(maxw) ::  werte!, wwerte
 INTEGER          ::   occupancy= 0          ! Apply occupancy upon read cell   ?
 LOGICAL          :: l_identical= .FALSE.    ! Are atoms allowed to be identical?
@@ -277,7 +279,7 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
                strucfile = cpara (1)(1:lpara(1))
                l_site = opara(O_SITE) == 'differ'
                uni_mask(0) = .true.                   ! Always apply unique mask
-               CALL do_readstru(MAXMASK, strucfile, l_site, uni_mask)
+               CALL do_readstru(MAXMASK, strucfile, l_site, uni_mask, l_not_full)
                IF(ier_num /= 0) THEN
                   IF(ier_msg(3) == ' ') THEN
                      ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
@@ -319,7 +321,7 @@ prompt = prompt (1:len_str (prompt) ) //'/read'
             IF (.not. (str_comp (befehl, 'cell',  1, lbef, 4) .or.      &
                        str_comp (befehl, 'lcell', 1, lbef, 5)     ) ) THEN
                CALL get_symmetry_matrices 
-               call prep_anis(cr_natoms)
+               call prep_anis(cr_natoms, l_not_full)
             ENDIF
          ELSE 
             CALL errlist 
@@ -381,6 +383,7 @@ USE read_internal_mod
 USE stack_rese_mod
 use spcgr_apply, only:get_is_sym
 USE update_cr_dim_mod
+use discus_show_menu
 !
 USE ber_params_mod
 USE errlist_mod
@@ -404,8 +407,10 @@ LOGICAL         ,                  INTENT(IN) :: l_site
 integer                          , intent(in) :: MAXMASK
 logical, dimension(0:MAXMASK)    , intent(in) :: uni_mask           ! Mask for unique atom types
 !
+character(len=PREC_STRING) :: string
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: strucfile
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: outfile
+logical             :: l_not_full      ! Do not use old cr_anis_full
 LOGICAL             :: need_alloc
 INTEGER             :: i, j, k, l, n
 INTEGER             :: iatom
@@ -446,8 +451,10 @@ IF (ianz.gt.1) THEN
 ENDIF 
 local_icc(:) = cr_icc(:)
 !     cond_ier: IF (ier_num.eq.0) THEN 
+l_not_full = .TRUE.         ! Default use cr_anis
 internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
    CALL readcell_internal(MAXMASK, strucfile, uni_mask)
+   l_not_full = .FALSE.        ! Use cr_anis_full
 !do i=1, cr_nanis
 !write(*,'(a, 6f9.6)') ' UIJ ', cr_anis_full(1:6,i)
 !enddo
@@ -469,6 +476,7 @@ ELSE internalcell
    strucfile = outfile
    CALL readcell (strucfile, l_identical, r_identical, MAXMASK, uni_mask) 
    cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
+   l_not_full = .TRUE.        ! Default use cr_anis
 ENDIF internalcell
 !
 !
@@ -500,10 +508,14 @@ call get_is_sym         ! Determine the symmetry operation that created an atom
 do n=1,cr_natoms
    cr_iscat(2,n) = cr_is_sym(n)
 enddo
+!string = 'atom, all, style:long'
+!i=len_trim(string)
+!write(*,*) cr_iscat(1,1:cr_ncatoms)
+!call discus_do_show(string, i)
 !do i=1, cr_nanis
 !write(*,'(a, 6f9.6)') ' Uij ', cr_anis_full(1:6,i)
 !enddo
-call prep_anis(cr_ncatoms)          ! Prepare anisotropic U's 
+call prep_anis(cr_ncatoms, l_not_full)          ! Prepare anisotropic U's 
 !do i=1, cr_nanis
 !write(*,'(a, 6f9.6)') ' uij ', cr_anis_full(1:6,i)
 !enddo
@@ -658,7 +670,7 @@ end subroutine do_readcell
 !
 !*******************************************************************************
 !
-SUBROUTINE do_readstru(MAXMASK, strucfile, l_site, uni_mask)
+SUBROUTINE do_readstru(MAXMASK, strucfile, l_site, uni_mask, l_not_full)
 !
 ! Do the full job for a 'read stru ' command
 !
@@ -674,17 +686,20 @@ USE str_comp_mod
 !
 IMPLICIT NONE
 !
-integer                    , intent(in)    :: MAXMASK    ! Dimension uni_mask
-CHARACTER(LEN=*), INTENT(INOUT) :: strucfile
-LOGICAL         , INTENT(IN)    :: l_site     ! Differ atoms on sites?
-logical, dimension(0:MAXMASK), intent(in) :: uni_mask
+integer                      , intent(in)    :: MAXMASK    ! Dimension uni_mask
+CHARACTER(LEN=*)             , INTENT(INOUT) :: strucfile
+LOGICAL                      , INTENT(IN)    :: l_site     ! Differ atoms on sites?
+logical, dimension(0:MAXMASK), intent(in)    :: uni_mask
+logical                      , intent(out)   :: l_not_full
 !
 CHARACTER(LEN=MAX(PREC_STRING,LEN(strucfile))) :: outfile 
 logical :: lda
 !
 CALL rese_cr
+l_not_full = .TRUE.
 internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
    CALL readstru_internal(MAXMASK, strucfile, uni_mask) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
+   l_not_full = .FALSE.
 !                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
    IF(ier_num/=0) RETURN
 ELSE internals
@@ -703,6 +718,7 @@ ELSE internals
       RETURN
    ENDIF
    CALL do_readstru_disk(MAXMASK, strucfile, l_site, uni_mask)
+   l_not_full = .TRUE.
 !
    IF (ier_num /= 0) THEN
       RETURN                 ! Jump to handle error messages, amd macro conditions
@@ -3174,6 +3190,7 @@ SUBROUTINE do_import(zeile, lp)
 USE crystal_mod
 USE prop_para_func
 USE discus_save_mod
+use prep_anis_mod
 USE read_internal_mod
 USE save_menu, ONLY: save_internal, save_store_setting, &
                      save_restore_setting, save_default_setting, &
@@ -3236,6 +3253,7 @@ REAL(KIND=PREC_DP), DIMENSION(4)   :: uvw4   ! atom position
 INTEGER              :: j
 LOGICAL              :: lperiod
 logical, dimension(0:MAXMASK) :: uni_mask
+logical                       :: l_not_full = .true.
 !
 LOGICAL :: lout = .FALSE.
 !
@@ -3392,6 +3410,8 @@ IF(ier_num==0) THEN
         cr_fmat, cr_cartesian,                                 &
         cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
    CALL get_symmetry_matrices 
+   l_not_full = .true.
+   call prep_anis(cr_natoms, l_not_full)
 !
 ! Transform molecule geometry into host geometry
    DO j=1, cr_natoms
@@ -3424,8 +3444,8 @@ IF(ier_num==0) THEN
    CALL save_default_setting           ! Default to full saving
    sav_latom(0:cr_nscat) = .TRUE.
    sav_w_scat  = .TRUE.
-   sav_w_adp   = .FALSE.
-   sav_w_occ   = .FALSE.
+   sav_w_adp   = .TRUE.
+   sav_w_occ   = .TRUE.
    sav_w_surf  = .TRUE.
    sav_w_magn  = .FALSE.  ! MAGNETIC_WORK
    sav_r_ncell = .FALSE.
@@ -7517,6 +7537,7 @@ INTEGER :: length
 INTEGER :: im, j, iat
 LOGICAL :: lout
 logical, dimension(0:MAXMASK) :: uni_mask
+logical                       :: l_not_full
 INTEGER, DIMENSION(3) :: n_unit_cells  ! local copy to survive readstru 
 REAL(KIND=PREC_DP), DIMENSION(3) :: vec     ! position of first atom in a molecule
 REAL(KIND=PREC_DP), DIMENSION(3) :: fract   ! shift into first unit cell
@@ -7528,7 +7549,7 @@ uni_mask(0)   = .true.
 uni_mask(1:3) = .true.
 uni_mask(4)   = .false.
 !
-CALL do_readstru(MAXMASK, strucfile, .FALSE., uni_mask)
+CALL do_readstru(MAXMASK, strucfile, .FALSE., uni_mask, l_not_full)
 IF(ier_num/=0) THEN
    IF(ier_num /= 0) THEN
       IF(ier_msg(3) == ' ') THEN
@@ -7542,7 +7563,7 @@ CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
             cr_fmat, cr_cartesian,                                      &
             cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 CALL get_symmetry_matrices 
-call prep_anis(cr_natoms)
+call prep_anis(cr_natoms, l_not_full)
 !
 ! Shift molecules such that the first atom has coordinates [0:1[
 !
@@ -7619,6 +7640,7 @@ character(len=PREC_STRING) :: getfile
 integer :: length
 logical :: l_site
 logical, dimension(0:MAXMASK) :: uni_mask
+logical                       :: l_not_full
 !
 call rese_cr
 l_site = .false.
@@ -7627,14 +7649,14 @@ uni_mask(1:3) = .true.
 uni_mask(4)   = .false.
 !
 getfile = infile                    ! Just a local copy
-call do_readstru(MAXMASK, getfile, l_site, uni_mask)   ! Read actual file
+call do_readstru(MAXMASK, getfile, l_site, uni_mask, l_not_full)   ! Read actual file
 if(ier_num/=0) return
 CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
             cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
             cr_fmat, cr_cartesian,                                      &
             cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 CALL get_symmetry_matrices 
-call prep_anis(cr_natoms)
+call prep_anis(cr_natoms, l_not_full)
 !
 call save_store_setting             ! Backup user "save" setting
 if(ier_num/=0) return

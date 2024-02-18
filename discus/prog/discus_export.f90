@@ -237,8 +237,10 @@ USE diffuse_mod
 USE discus_save_mod
 USE molecule_mod
 !USE modify_mod
+use prep_anis_mod
 USE prop_para_func
 USE prop_para_mod
+use spcgr_apply,  only:setup_lattice, get_symmetry_matrices
 USE structur
 USE save_menu !, ONLY: save_internal
 USE wyckoff_mod
@@ -280,6 +282,8 @@ CHARACTER (LEN=2), DIMENSION(:), ALLOCATABLE :: unique_names
 CHARACTER (LEN=4), DIMENSION(:), ALLOCATABLE :: shelx_names
 integer           ,DIMENSION(:), ALLOCATABLE :: shelx_types 
 real(kind=PREC_DP),DIMENSION(:), ALLOCATABLE :: unique_n_atoms 
+logical                  :: lout = .FALSE.
+logical                  :: l_not_full = .TRUE.
 LOGICAL                  :: orig_OK =.FALSE.
 logical, dimension(0:MAXMASK) :: uni_mask
 REAL(KIND=PREC_DP)       :: z_unit
@@ -387,7 +391,16 @@ deallocate(true_occ)
 !
 ! Restore original structure
 !
-CALL do_readstru(MAXMASK, origfile, .FALSE., uni_mask)
+CALL do_readstru(MAXMASK, origfile, .FALSE., uni_mask, l_not_full)
+lout = .false.
+CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
+     cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
+     cr_fmat, cr_cartesian,                                      &
+     cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+CALL get_symmetry_matrices 
+l_not_full = .false.
+call prep_anis(cr_natoms, l_not_full)
+!
 call save_restore_setting
 CALL store_remove_single(origfile, ier_num)
 IF(ier_num/=0) THEN
