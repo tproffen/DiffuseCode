@@ -2099,8 +2099,7 @@ DO iscat = 1, cr_nscat
       cfact_pure(iq, iscat) = cmplx (     (sf + sfp),      sfpp, KIND=KIND(0.0D0)) 
    ENDDO 
 ENDDO 
-!if(cr_is_anis) call four_dbwtab
-               call four_dbwtab
+if(cr_is_anis) call four_dbwtab
 !                                                                       
  1000 FORMAT     (' Computing formfactor lookup table ...') 
 END SUBROUTINE four_formtab                   

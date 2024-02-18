@@ -178,11 +178,11 @@ ENDDO
 if(ldiscamb) then 
    call tcsf_form_discamb(iscat, isym, ientry, fnum)
 elseif(lform) then 
-!  if(is_anis) then
+   if(is_anis) then
       call tcsf_form_aniso(iscat, ientry, fnum)
-!  else
-!     call tcsf_form_iso(iscat, fnum)
-!  endif
+   else
+      call tcsf_form_iso(iscat, fnum)
+   endif
 endif 
 !                                                                       
 END SUBROUTINE four_strucf_omp
@@ -287,11 +287,11 @@ ENDDO
 if(ldiscamb) then 
    call tcsf_form_discamb(iscat, isym, ientry, fnum)
 elseif(lform) then 
-!  if(is_anis) then
+   if(is_anis) then
       call tcsf_form_aniso(iscat, ientry, fnum)
-!  else
-!     call tcsf_form_iso(iscat, fnum)
-!  endif
+   else
+      call tcsf_form_iso(iscat, fnum)
+   endif
 endif 
 !                                                                       
 END SUBROUTINE four_strucf_serial
