@@ -3799,7 +3799,7 @@
    This will often give rise to high frequency oscillations that arise from
    correlations between atoms at large distances. These distances are in 
    most cases beyond the intended correlation length achieved for example  
-   in the ==> 'mmc' menu. To avoid these oscillations a Langzos filter can
+   in the ==> 'mmc' menu. To avoid these oscillations a Lanczos filter can
    be used. 
    The parameter "damp:" defines the dampening of points at larger distance.
    A smaller value will reduce the influence of points further away.
