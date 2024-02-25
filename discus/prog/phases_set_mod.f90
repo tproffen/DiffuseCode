@@ -160,7 +160,7 @@ integer :: i,j
 INTEGER :: k,iscat
 INTEGER :: npkt
 REAL( KIND=PREC_DP)            :: signum
-character(len=1024) :: ofile
+!character(len=1024) :: ofile
 !
 npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
 stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking fault mode
