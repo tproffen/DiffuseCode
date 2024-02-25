@@ -403,6 +403,8 @@ if(fave/=0.0D0) then
 endif
 !
 NQXYZ   = inc
+call four_layer(four_is_new)   ! copy eck, vi
+call fourier_lmn(eck,vi,inc,lmn,off_shift)
 !
 ! Calculate average structure factor
 !
@@ -1057,6 +1059,7 @@ loop_iscat: do iscat = 1, cr_nscat       ! Loop over all scattering types
 enddo loop_iscat
 !
 inc = tmp_inc
+num = inc
 eck = tmp_eck
 vi  = tmp_vi
 !
