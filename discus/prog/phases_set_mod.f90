@@ -160,7 +160,7 @@ integer :: i,j
 INTEGER :: k,iscat
 INTEGER :: npkt
 REAL( KIND=PREC_DP)            :: signum
-!character(len=1024) :: ofile
+character(len=1024) :: ofile
 !
 npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
 stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking fault mode
@@ -170,6 +170,7 @@ stack: IF(pow_four_mode==POW_FOURIER) THEN     ! Standard Fourier, not Stacking 
 !write(*,*) ' powder ', lbound(pha_powder), ubound(pha_powder), num(1)*num(2)
 !write(*,*) ' adp    ', lbound(pha_adp   ), ubound(pha_adp   ), cr_nscat
    CALL crystal_calc_mass
+!write(*,*) ' CRYSTAL MASS REGULAR ', cr_mass
 !write(*,*) ' pha_frac   ', lbound(pha_frac), ubound(pha_frac), pha_frac
 !write(*,*) ' pha_weight ', lbound(pha_weight), ubound(pha_weight), pha_weight
    pha_weight(pha_curr) = cr_mass            ! Mass in multiples of u for this phase
@@ -220,7 +221,9 @@ ENDIF stack
 !
 ! Place powder pattern into appropriate phase entry
 !
+!write(*,*) ' FOUR_MODE ', pow_four_type, pow_four_type.eq.POW_COMPL
 IF (pow_four_type.eq.POW_COMPL) THEN                 ! Complete powder patterm, normalizer is 1
+!write(*,*) ' WRITE COMPL INTO PHA_POWDER ', pha_curr, pha_nreal(pha_curr), pha_ncreal(pha_curr), cr_v
 !write(*,*) ' COPY ', npkt
 !open(66, file='phases.place', status='unknown')
    DO k=0, npkt
@@ -237,6 +240,7 @@ IF (pow_four_type.eq.POW_COMPL) THEN                 ! Complete powder patterm, 
    ENDDO
 !close(66)
 ELSE                                                 ! Complete powder patterm, normalizer is nreal
+!write(*,*) ' WRITE DEBYE INTO PHA_POWDER ', pha_curr, pha_nreal(pha_curr), pha_ncreal(pha_curr), cr_v
 !write(*,*) ' COPY ', npkt, num(1)*num(2), num(1:2)
 !open(66, file='phases.place', status='unknown')
    DO k=0, npkt
@@ -245,6 +249,7 @@ ELSE                                                 ! Complete powder patterm, 
    ENDDO
 !close(66)
 ENDIF
+!write(*,*) 'PLACED INTO PHA_POWDER ', pha_curr
 !write(ofile,'(a,i1.1)') 'POWDER/phases.place',pha_curr
 !open(66, file=ofile, status='unknown')
 !   DO k=0, npkt
@@ -303,7 +308,6 @@ REAL(KIND=PREC_DP) :: ttheta                ! 2Theta
 real(kind=PREC_DP) :: sq_scale
 real(kind=PREC_DP) :: arg
 !
-
 pow_f2aver(:)    = 0.0D0
 pow_faver2(:)    = 0.0D0
 pow_fu    (:)    = 0.0D0
@@ -330,6 +334,15 @@ ENDIF
 !
 ! Scale = (intended fraction)/(current weight fraction) / number of phases
 pha_scale = pha_frac * weight / pha_weight / (pha_n-empty)  
+!write(*,*) ' AVERAGING PHASES ', weight, fractions, pha_scale, pha_n
+!open(77, file='POWDER/pha_powder.dat', status='unknown')
+!i=1
+!DO k=0, npkt
+!    q = (k*xdel + xmin)
+!  write(77, '(2g20.8e3)') q, pha_powder(k,i)
+!enddo
+!close(77)
+!read(*,*) i
 !
 ! Add all form factors into pow_faver2
 !
