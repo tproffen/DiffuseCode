@@ -46,8 +46,9 @@ IF(cr_nscat+pha_nscat(pha_curr) > PHA_MAXSCAT .OR.  &
 ENDIF
 !
 CALL crystal_calc_mass
+!write(*,*) ' CRYSTAL MASS ', cr_mass
 !
-pha_weight(pha_curr) = pha_weight(pha_curr) + cr_mass   ! accumulate masses of layer types
+pha_weight(pha_curr) = pha_weight(pha_curr) + cr_mass*st_nlayer   ! accumulate masses of layer types
 pha_calc (pha_curr)  = pow_four_type      ! Fourier type Complete / Debye
 !
 !write(*,*) ' cfact_pure ', allocated(cfact_pure) 
@@ -83,6 +84,7 @@ pha_nreal(pha_curr)  = pha_nreal(pha_curr) + REAL(cr_nreal, kind=PREC_DP)*REAL(n
 !write(*,*) 'NCATOMS      ', cr_ncatoms, cr_ncreal, pha_ncreal(pha_curr)
 !write(*,*) 'NREAL        ', cr_nreal, pha_nreal(pha_curr), pha_ncreal(pha_curr)
 !write(*,*) 'CALC NCREAL  ', cr_ncreal, n_layers, st_nlayer, st_ncunit
+!write(*,*) 'Nlayer, stncu', n_layers, st_nlayer, st_ncunit
 !                                                           ! atoms pere unit cell
 !
 END SUBROUTINE phases_place_stack_form
