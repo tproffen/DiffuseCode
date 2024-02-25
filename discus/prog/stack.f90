@@ -1441,11 +1441,52 @@ DO i = 1, st_ntypes
 ENDDO
 res_para(0) = st_ntypes
 ! Estimate number of layers per unit cell
-st_ncunit =nint( &
+! Determine growth direction as set by 'aver' command
+if(    abs(st_t_aver(1))<EPS .and. abs(st_t_aver(2))<EPS) then
+   i = 1
+   j = 3
+elseif(abs(st_t_aver(1))<EPS .and. abs(st_t_aver(3))<EPS) then
+   i = 1
+   j = 2
+elseif(abs(st_t_aver(2))<EPS .and. abs(st_t_aver(3))<EPS) then
+   i = 1
+   j = 1
+elseif(abs(st_t_aver(1))<EPS) then
+   i = 2
+   j = 1
+elseif(abs(st_t_aver(2))<EPS) then
+   i = 2
+   j = 2
+elseif(abs(st_t_aver(3))<EPS) then
+   i = 2
+   j = 3
+else
+   i = 3
+   j = 0
+endif
+if(i==1) then            ! Single growth component
+   st_ncunit =nint(st_nlayer/(abs(maxval(st_origin(j,:))-minval(st_origin(j,:)))))
+elseif(i==2) then        ! Double growth direction
+   if(j==1) then         ! yz
+      st_ncunit =nint( &
+                st_nlayer/( max(abs(maxval(st_origin(2,:))-minval(st_origin(2,:))),  &
+                                abs(maxval(st_origin(3,:))-minval(st_origin(3,:))))))
+   elseif(j==2) then
+      st_ncunit =nint( &
+                st_nlayer/( max(abs(maxval(st_origin(1,:))-minval(st_origin(1,:))),  &
+                                abs(maxval(st_origin(3,:))-minval(st_origin(3,:))))))
+   elseif(j==3) then
+      st_ncunit =nint( &
+                st_nlayer/( max(abs(maxval(st_origin(1,:))-minval(st_origin(1,:))),  &
+                                abs(maxval(st_origin(2,:))-minval(st_origin(2,:))))))
+   endif
+else
+   st_ncunit =nint( &
                 st_nlayer/( max(abs(maxval(st_origin(1,:))-minval(st_origin(1,:))),  &
                                 abs(maxval(st_origin(2,:))-minval(st_origin(2,:))),  &
                                 abs(maxval(st_origin(3,:))-minval(st_origin(3,:))))  &
                ))
+endif
 !
 !     Save the list of origins as internal file
 !
