@@ -178,7 +178,7 @@ IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
             endif
 !                                                                       
 !------ command 'save'                                                  
-!                                                                       
+!
 !        ELSEIF (str_comp (befehl, 'save', 2, lbef, 4) ) THEN 
 !           CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
 !           CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
