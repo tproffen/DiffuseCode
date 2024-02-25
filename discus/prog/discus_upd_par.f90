@@ -717,19 +717,19 @@ CALL no_error
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'b') THEN 
-         IF (ianz.eq.1) THEN 
-            IF (0.lt.ww (1) .and.ww (1) .le.cr_nscat) THEN 
-               cr_dw (ww (1) ) = wert 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
+ELSEIF(ctype == 'b') THEN 
+   IF(ianz == 1) THEN 
+      IF(0 < ww(1) .and. ww(1) <= cr_nscat) THEN 
+         cr_dw(ww(1)) = wert 
+      ELSE 
+         ier_num = - 8 
+         ier_typ = ER_FORT 
+      ENDIF 
+   ELSE 
+      ier_num = - 13 
+      ier_typ = ER_FORT 
+      RETURN 
+   ENDIF 
 !                                                                       
 !------ Setting lat[n]                                                  
 !                                                                       
