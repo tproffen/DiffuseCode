@@ -159,7 +159,7 @@ IMPLICIT NONE
 integer :: i,j
 INTEGER :: k,iscat
 INTEGER :: npkt
-REAL( KIND=PREC_DP)            :: signum
+REAL( KIND=PREC_DP)            :: signum, q
 !character(len=1024) :: ofile
 !
 npkt = NINT((pow_qmax-pow_qmin)/pow_deltaq) + 1
@@ -225,7 +225,7 @@ ENDIF stack
 IF (pow_four_type.eq.POW_COMPL) THEN                 ! Complete powder patterm, normalizer is 1
 !write(*,*) ' WRITE COMPL INTO PHA_POWDER ', pha_curr, pha_nreal(pha_curr), pha_ncreal(pha_curr), cr_v
 !write(*,*) ' COPY ', npkt
-!open(66, file='phases.place', status='unknown')
+!open(66, file='POWDER/phases.place', status='unknown')
    DO k=0, npkt
       pha_powder(k,pha_curr) = pow_conv(k)                          &
                     /(pha_nreal(pha_curr) )**2 * &
@@ -348,6 +348,7 @@ pha_scale = pha_frac * weight / pha_weight / (pha_n-empty)
 !
 !write(*,*) ' PHA_AVERAGE scale ', pha_scale
 !write(*,*) ' PHA_AVERAGE ', pha_n, pha_nscat(1), pha_niscat(:,1), pha_nreal(1)
+!write(*,*) ' PHA_AVERAGE ', pha_n, pha_nscat(2), pha_niscat(:,2), pha_nreal(2)
 !write(*,*) ' xmin, xdel, npkt', xmin, xdel, npkt
 !
 DO i=1,pha_n                                ! Sum over all phases
@@ -378,7 +379,7 @@ pow_u2aver    = pow_u2aver /8./(PI)**2
 !open(77,file='POWDER/phases_average.faver',status='unknown')
 !DO k =1,npkt
 !      q = (k-1)*pow_deltaq + pow_qmin
-!write(77,'(2(2x,G17.7E3))') q, pow_faver2(k), pow_f2aver(k), pow_fu(k)
+!write(77,'(4(2x,G17.7E3))') q, pow_faver2(k), pow_f2aver(k), pow_fu(k)
 !enddo
 !close(77)
 !write(*,*) ' U2aver ', pow_u2aver, pow_u2aver*8*PI**2
@@ -405,13 +406,14 @@ pow_sq   = 0.0
 !open(87,file='POWDER/multi_average.conv0', status='unknown')
 !do k= 0, ubound(pow_conv,1) !npkt
 !q = ((k)*xdel + xmin)
-!write(87,'(4(f16.6,2x))') q,      pha_powder(k,1), pow_conv(k), pow_sq(k) 
+!write(87,'(5(f16.6,2x))') q,      pha_powder(k,1), pha_powder(k,2), pow_conv(k), pow_sq(k) 
 !enddo
 l_all_complete = .TRUE.
 l_all_debye    = .TRUE.
 !write(*,*) 'INTEGRAL ', sum(pha_powder(:,1)), sum(pow_faver2),  &
 !                        sum(pha_powder(:,1))/ sum(pow_faver2)
 !IF(pha_calc(1) == POW_COMPL) open(87,file='POWDER/lp.dat', status='unknown')
+!write(*,*) ' ADDING UP ', pha_n, pha_nreal(:), pha_calc(:), '; ', POW_COMPL
 DO i=1,pha_n
    IF(pha_nreal(i)>0.0) THEN
    IF(pha_calc(i) == POW_COMPL) THEN           ! Complete calculation mode
@@ -432,6 +434,7 @@ DO i=1,pha_n
 !
 !     Prepare S(Q)      output
 !
+!write(*,*) ' LOOP SQ phase: ',i 
       loop_sq: DO k=0, npkt
          q = (k*xdel + xmin)
          arg = (q / 2.D0 /(zpi) *rlambda )
@@ -441,7 +444,7 @@ DO i=1,pha_n
                                     * lorentz(ttheta, q, pow_bangle, 0)!  &
 !                                   * polarisation(ttheta)
       ENDDO loop_sq
-      pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_fu    ))    ! Scale S(Q) onto absolute scale
+!     pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_fu    ))    ! Scale S(Q) onto absolute scale
 !
    ELSEIF(pha_calc(i) == POW_DEBYE) THEN           ! Complete calculation mode
       l_all_complete = .false.
@@ -493,8 +496,8 @@ if(l_all_complete) then                       ! Complete data calculation
                     (+ 1.0 - exp(-q**2*pow_u2aver))*pow_faver2(k)
    ENDDO
 !  pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_faver2))    ! Correct intensity effect of LP Correction
-!  pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_fu    ))    ! Scale S(Q) onto absolute scale
-!write(*,*) 'INTEGRAL ', sum(pow_sq         ), sum(pow_faver2),  &
+   pow_sq = pow_sq /( sum(pow_sq)/ sum(pow_fu    ))    ! Scale S(Q) onto absolute scale
+!write(*,*) 'INTEGRA!L ', sum(pow_sq         ), sum(pow_faver2),  &
 !                        sum(pow_sq         )/ sum(pow_faver2)
    do k=0, npkt
       q = ((k)*xdel + xmin)
