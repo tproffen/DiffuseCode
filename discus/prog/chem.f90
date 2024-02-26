@@ -8,8 +8,8 @@ SUBROUTINE chem
 !     This sublevel contains all routines to analyse a structure        
 !     line calculation of bondlength distributions, the average         
 !     structure and correlations.                                       
-!                                                                       
-!     Note: Some variables are used in the MC section as well           
+!
+!     Note: Some variables are used in the MC section as well                                                                       
 !           and settings might be overwritten.                          
 !+                                                                      
 USE discus_config_mod 
@@ -713,7 +713,7 @@ call do_cap(cmd)
  4620 FORMAT (   37x,'neighbours   : ',15I4,/) 
  4700 FORMAT (/,'    Defined correlation ranges: ',/) 
  4710 FORMAT ('       Correlation range ',i3,': ',                      &
-     &        3(F7.3,2x),'+-',F7.3,' A  +-',F7.3,'ø')                   
+     &        3(F7.3,2x),'+-',F7.3,' A  +-',F7.3,'A')                   
  4720 FORMAT ('            central atom    ',' ALL') 
  4730 FORMAT ('            central atom    ',50I4) 
  4740 FORMAT ('            neigh.  atom    ',' ALL') 
@@ -745,9 +745,7 @@ USE discus_allocate_appl_mod
 USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
-!                                                                       
-       
-!                                                                       
+!
       INTEGER maxw 
       PARAMETER (maxw = 200) 
 !                                                                       
