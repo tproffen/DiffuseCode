@@ -4055,7 +4055,7 @@
    The command is identical to the ==> 'trans' command in the
    chemistry menu.
 2  insert
-!p ins <name>, <x>,<y>,<z> [,<t>]
+!p insert <name>, <x>,<y>,<z> [,<t>]
 !p insert {"domain"|"object"|"molecule"}
 
    If an atom name or atome type number is given, it will insert
