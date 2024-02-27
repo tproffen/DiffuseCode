@@ -41,7 +41,7 @@
 !p find       ! Find atoms around a given point
 !p four       ! Enter FOURIER transform level
 !p import     ! Imports other formats into DISCUS cells
-!p ins        ! Insert atom or molecule into the crystal
+!p inser      ! Insert atoms or enter INSERT level
 !p inverse    ! Enter inverse Fourier transform level
 !p kick       ! Insert atom/molecule and possibly remove old atom/mole.
 !p mmc        ! Enter MONTE-CARLO simulations level
@@ -4054,19 +4054,18 @@
 
    The command is identical to the ==> 'trans' command in the
    chemistry menu.
-2  ins
-!p ins <name>, <x>,<y>,<z> [,t>]
-
-   Inserts an atom of type <name> at the position <x,y,z>
-   in crystal space. Optionally the temperature coefficient may be
-   given.
-
-   This command will automatically turn off the periodic boundary
-   conditions.
 2  insert
+!p ins <name>, <x>,<y>,<z> [,<t>]
 !p insert {"domain"|"object"|"molecule"}
 
-   Opens the menu to insert objects or molecules.
+   If an atom name or atome type number is given, it will insert
+   an atom of type <name> at the position <x,y,z> in crystal space. 
+   Optionally the temperature coefficient may be given. This will 
+   automatically turn off the periodic boundary conditions.
+
+   If one of the keywords "domain", "object" or "molecule" is
+   given as second parameter, the menu to insert domains, objects 
+   or molecules opens.
 
    Objects are special molecules, that represent extended objects.
    DISCUS treats these objects as uniformly and continuously filled 
