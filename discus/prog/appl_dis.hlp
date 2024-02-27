@@ -8583,6 +8583,8 @@
 !p outfile <filename>
 
    Sets the name of the output file to which the structure is written.
+   If the filename starts with the string 'internal', the file is not
+   written to disk but stored internally.
 3  prop
 !p prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
 
@@ -8699,12 +8701,6 @@
    "object"     Although the crystal contains objects their type and 
                 content is not written to the end of the structure file.
                 WARNING: All information about objects is lost!
-3  outf
-!p outf <filename>
-
-   Defines the output file name.
-   If the filename starts with the string 'internal', the file is not
-   written to disk but stored internally.
 3  reset
 
    Resets the save menu to program start conditions.
