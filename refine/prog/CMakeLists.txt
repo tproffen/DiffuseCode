@@ -63,6 +63,9 @@ add_dependencies(refine_all refinehlp)
 
 #install (TARGETS refine DESTINATION bin)
 #install (FILES ${DIFFUSE_BINARY_DIR}/refine/prog/refine.hlp DESTINATION share)
+if (DIFFUSE_SHARED_LIB)
+  install (TARGETS refine_all DESTINATION lib)
+endif (DIFFUSE_SHARED_LIB)
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/refine/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION share/refine)
 

@@ -975,7 +975,7 @@ SUBROUTINE discus_calc_powder(line)
 !  suite.fourier( python_string )
 !  where python string is any Powder command.
 !
-USE powder
+USE powder_mod
 USE prompt_mod
 IMPLICIT NONE
 !

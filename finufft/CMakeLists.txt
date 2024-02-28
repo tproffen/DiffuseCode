@@ -38,3 +38,7 @@ else (DIFFUSE_SHARED_LIB)
   add_library (finufft_lib ${CPPSOURCES})
 endif (DIFFUSE_SHARED_LIB)
 #add_library (finufft_lib_s SHARED ${CPPSOURCES})
+
+if (DIFFUSE_SHARED_LIB)
+  install (TARGETS finufft_lib DESTINATION lib)
+endif (DIFFUSE_SHARED_LIB)

@@ -9,13 +9,14 @@ find_package(PGPLOT REQUIRED)
 set (SOURCES suite_python_support.f90 suite_python.f90)
 
 # Libraries we need
-		
-set (F2PY_LIBS ${F2PY_LIBS} -L${DIFFUSE_BINARY_DIR}/kuplot/prog/ -lkuplot_all -L/usr/local/pgplot -lpgplot -lpng -lX11)
+	
+set (F2PY_LIBS ${F2PY_LIBS} -L${DIFFUSE_BINARY_DIR}/lib_f90/ -llib_f90 -llib_f90c -lreadline)
+set (F2PY_LIBS ${F2PY_LIBS} -L${DIFFUSE_BINARY_DIR}/kuplot/prog/ -lkuplot_all -lpgplot -lpng -lX11)
 set (F2PY_LIBS ${F2PY_LIBS} -L${DIFFUSE_BINARY_DIR}/diffev/prog/ -ldiffev_all)
 set (F2PY_LIBS ${F2PY_LIBS} -L${DIFFUSE_BINARY_DIR}/discus/prog/ -ldiscus_all)
 set (F2PY_LIBS ${F2PY_LIBS} -L${DIFFUSE_BINARY_DIR}/suite/prog/ -ldiscus_suite_full)
-set (F2PY_LIBS ${F2PY_LIBS} -L${DIFFUSE_BINARY_DIR}/lib_f90/ -llib_f90 -llib_f90c -lreadline)
 
+message(${F2PY_LIBS})
 
 include_directories(${DIFFUSE_BINARY_DIR}/suite/prog/)
 include_directories(${DIFFUSE_BINARY_DIR}/diffev/prog/)

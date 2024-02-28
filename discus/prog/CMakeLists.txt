@@ -155,6 +155,9 @@ add_custom_target(discushlp
 
 #install (TARGETS discus DESTINATION bin)
 #install (FILES ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp DESTINATION share)
+if (DIFFUSE_SHARED_LIB)
+  install (TARGETS discus_all DESTINATION lib)
+endif (DIFFUSE_SHARED_LIB)
 install (FILES ${DIFFUSE_SOURCE_DIR}/discus/prog/color.map DESTINATION share)
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/discus/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION share/discus)

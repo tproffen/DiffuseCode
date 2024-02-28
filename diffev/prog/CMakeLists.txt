@@ -58,6 +58,9 @@ add_custom_target(diffevhlp
 
 #install (TARGETS diffev DESTINATION bin)
 #install (FILES ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp DESTINATION share)
+if (DIFFUSE_SHARED_LIB)
+  install (TARGETS diffev_all DESTINATION lib)
+endif (DIFFUSE_SHARED_LIB)
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/diffev/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION share/diffev)
 

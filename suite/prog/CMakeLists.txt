@@ -144,6 +144,10 @@ add_custom_target(suitehlp
                ${DIFFUSE_BINARY_DIR}/suite/prog/suite.hlp)
 
 install (TARGETS discus_suite DESTINATION bin)
+if (DIFFUSE_SHARED_LIB)
+  install (TARGETS discus_suite_all DESTINATION lib)
+endif (DIFFUSE_SHARED_LIB)
+
 install (FILES ${DIFFUSE_BINARY_DIR}/suite/prog/suite.hlp DESTINATION share)
 #install (FILES ${DIFFUSE_BINARY_DIR}/suite/prog/discus_suite DESTINATION bin 
 #         PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE )

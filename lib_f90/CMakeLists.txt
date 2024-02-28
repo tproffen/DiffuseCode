@@ -140,3 +140,6 @@ else (DIFFUSE_SHARED_LIB)
   add_library (lib_f90c ${CSOURCES})
 endif (DIFFUSE_SHARED_LIB) 
 #
+if (DIFFUSE_SHARED_LIB)
+  install (TARGETS lib_f90 lib_f90c DESTINATION lib)
+endif (DIFFUSE_SHARED_LIB)

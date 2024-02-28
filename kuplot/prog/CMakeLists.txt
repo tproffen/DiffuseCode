@@ -92,6 +92,9 @@ add_custom_target(kuplothlp
 
 #install (TARGETS kuplot DESTINATION bin)
 #install (FILES ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp DESTINATION share)
+if (DIFFUSE_SHARED_LIB)
+  install (TARGETS kuplot_all DESTINATION lib)
+endif (DIFFUSE_SHARED_LIB)
 install (FILES ${PGPLOT_DIR}/grfont.dat DESTINATION share)
 install (PROGRAMS ${PGSERVER} DESTINATION bin)
 
