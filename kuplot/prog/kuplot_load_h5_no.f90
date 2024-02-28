@@ -16,7 +16,7 @@ CONTAINS
 !
 !*******************************************************************************
 !
-SUBROUTINE hdf5_read_kuplot(infile, length, O_LAYER, NOPTIONAL, opara, lopara,         &
+SUBROUTINE hdf5_read_kuplot(infile, length, O_LAYER, O_TRANS, NOPTIONAL, opara, lopara,         &
                      lpresent, owerte, iz, ku_ndims,     &
                      ier_num, ier_typ, idims, ier_msg, ER_APPL, ER_IO, output_io)
 !
@@ -35,6 +35,7 @@ IMPLICIT NONE
 CHARACTER(LEN=1024), INTENT(IN) :: infile
 INTEGER            , INTENT(IN) :: length
 INTEGER            , INTENT(IN) :: O_LAYER
+INTEGER            , INTENT(IN) :: O_TRANS
 INTEGER            , INTENT(IN) :: NOPTIONAL
 CHARACTER(LEN=*)   , DIMENSION(NOPTIONAL), INTENT(IN) :: opara
 INTEGER            , DIMENSION(NOPTIONAL), INTENT(IN) :: lopara
