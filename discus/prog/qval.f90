@@ -158,8 +158,8 @@ REAL(kind=PREC_DP)      :: signum = 1.0
             IF(REAL(cfact_pure(1,l), kind=PREC_DP)<0.0) signum = -1.0D0
 !           faver2 = faver2 + (REAL(cfact_pure(istl(i),l), KIND=KIND(0.0E0)))*cr_amount(l)
             faver2 = faver2 +                                    &
-                     SQRT(DBLE (       cfact_pure(istl(i,1,1), l)  * &
-                                conjg (cfact_pure(istl(i,1,1), l)))) &
+                     SQRT(DBLE (       cfact_pure(istl(i,j,1), l)  * &
+                                conjg (cfact_pure(istl(i,j,1), l)))) &
                      *cr_amount(l)*signum
          ENDDO
          faver2 = faver2**2
@@ -183,8 +183,8 @@ REAL(kind=PREC_DP)      :: signum = 1.0
          DO l=1,cr_nscat
 !           qval = qval + REAL(cfact_pure(istl(i),l)**2,KIND=KIND(0.0E0))*cr_amount(l)
             qval = qval +                                     &
-                      DBLE (       cfact_pure(istl(i,1,1), l)  *  &
-                             conjg (cfact_pure(istl(i,1,1), l)))  &
+                      DBLE (       cfact_pure(istl(i,j,1), l)  *  &
+                             conjg (cfact_pure(istl(i,j,1), l)))  &
                    *cr_amount(l)
          ENDDO
          qval = qval / cr_n_real_atoms
@@ -197,8 +197,8 @@ REAL(kind=PREC_DP)      :: signum = 1.0
             signum = 1.0
             IF(REAL(cfact_pure(1,l))<0.0) signum = -1.0
             qval = qval +                                     &
-                  SQRT(DBLE (       cfact_pure(istl(i,1,1), l)  * &
-                             conjg (cfact_pure(istl(i,1,1), l)))) &
+                  SQRT(DBLE (       cfact_pure(istl(i,j,1), l)  * &
+                             conjg (cfact_pure(istl(i,j,1), l)))) &
                   * cr_amount(l) * signum
          ENDDO
          qval = qval / cr_n_real_atoms
@@ -210,8 +210,8 @@ REAL(kind=PREC_DP)      :: signum = 1.0
          DO l=1,cr_nscat
 !           qval = qval + REAL(cfact_pure(istl(i),l),KIND=KIND(0.0E0))*cr_amount(l)
             qval = qval +                                      &
-                   SQRT(DBLE (       cfact_pure(istl(i,1,1), l)  * &
-                              conjg (cfact_pure(istl(i,1,1), l)))) &
+                   SQRT(DBLE (       cfact_pure(istl(i,j,1), l)  * &
+                              conjg (cfact_pure(istl(i,j,1), l)))) &
                    * cr_amount(l) * signum
          ENDDO
          qval = qval / cr_n_real_atoms
@@ -222,8 +222,8 @@ ELSEIF (value == val_f2averb) THEN
    DO l=1,cr_nscat
 !           qval = qval + REAL(cfact_pure(istl(i),l)**2,KIND=KIND(0.0E0))*cr_amount(l)
       qval = qval +                                     &
-                DBLE (       cfact     (istl(i,1,1), l)  *  &
-                       conjg (cfact     (istl(i,1,1), l)))  &
+                DBLE (       cfact     (istl(i,j,1), l)  *  &
+                       conjg (cfact     (istl(i,j,1), l)))  &
              *cr_amount(l)
    ENDDO
    qval = qval / cr_n_real_atoms
@@ -236,8 +236,8 @@ ELSEIF (value == val_faver2b) THEN
       signum = 1.0
       IF(REAL(cfact_pure(1,l))<0.0) signum = -1.0
       qval = qval +                                     &
-            SQRT(DBLE (       cfact     (istl(i,1,1), l)  * &
-                       conjg (cfact     (istl(i,1,1), l)))) &
+            SQRT(DBLE (       cfact     (istl(i,j,1), l)  * &
+                       conjg (cfact     (istl(i,j,1), l)))) &
             * cr_amount(l) * signum
    ENDDO
    qval = qval / cr_n_real_atoms
@@ -249,8 +249,8 @@ ELSEIF (value == val_faverb) THEN
    DO l=1,cr_nscat
 !           qval = qval + REAL(cfact_pure(istl(i),l),KIND=KIND(0.0E0))*cr_amount(l)
       qval = qval +                                      &
-             SQRT(DBLE (       cfact     (istl(i,1,1), l)  * &
-                        conjg (cfact     (istl(i,1,1), l)))) &
+             SQRT(DBLE (       cfact     (istl(i,j,1), l)  * &
+                        conjg (cfact     (istl(i,j,1), l)))) &
              * cr_amount(l) * signum
    ENDDO
    qval = qval / cr_n_real_atoms
