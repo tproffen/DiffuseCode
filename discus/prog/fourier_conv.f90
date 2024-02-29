@@ -129,6 +129,17 @@ CALL mapfftfdtoline(num, dsort, dsi(1:num(1),1,1), in_pattern)
 weight2 = sum(dsi)
 csf = csf*weight/weight2
 dsi = dsi*weight/weight2
+if(fave==0.0D0) then
+   weight = sum(dsi3d)
+   CALL maptofftfd(num, dsort, dsi3d(1:num(1),1,1), in_pattern)       ! Use intensities
+   call   fftw_execute_dft(plan, in_pattern, out_pattern)
+   out_pattern = temp  * out_pattern                 ! Multiply the Fouriers
+   call   fftw_execute_dft(plan, out_pattern,  in_pattern)
+   in_pattern =  in_pattern/(real(num(1),kind=PREC_DP)) ! Scale for H 
+   CALL mapfftfdtoline(num, dsort, dsi3d(1:num(1),1,1), in_pattern)
+   weight2 = sum(dsi3d)
+   dsi3d = dsi3d*weight/weight2
+endif
 !
 call   fftw_destroy_plan(plan)
 !
@@ -249,6 +260,18 @@ weight2 = sum(dsi)
 acsf=acsf*weight/weight2
 csf = csf*weight/weight2
 dsi = dsi*weight/weight2
+if(fave==0.0D0) then
+   weight = sum(dsi3d)
+   CALL maptofftfd(num, dsort, dsi3d(1:num(1), 1:num(2),1), in_pattern)              ! Use intensities
+   call   fftw_execute_dft(plan, in_pattern, out_pattern)    ! FFT Diffraction pattern
+   out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
+   call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
+   in_pattern = in_pattern / (REAL(num(1)*num(2)))
+   CALL mapfftfdtoline(num, dsort, dsi3d(1:num(1), 1:num(2),1), in_pattern)          ! Restore convoluted intensities
+   weight2 = sum(dsi3d)
+   dsi3d = dsi3d*weight/weight2
+endif
+!
 !
 DEALLOCATE(in_pattern)
 DEALLOCATE(out_pattern)
@@ -376,6 +399,18 @@ weight2 = sum(dsi)
 acsf=acsf*weight/weight2
 csf = csf*weight/weight2
 dsi = dsi*weight/weight2
+!
+if(fave==0.0D0) then
+   weight = sum(dsi3d)
+   CALL maptofftfd(num, dsort, dsi3d, in_pattern)              ! Use intensities
+   call   fftw_execute_dft(plan, in_pattern, out_pattern)    ! FFT pattern
+   out_pattern      = temp*out_pattern                       ! Multiply the Fouriers
+   call   fftw_execute_dft(plan, out_pattern, in_pattern)    ! FFT multiplied pattern
+   in_pattern = in_pattern / (REAL(num(1)*num(2)*num(3)))
+   CALL mapfftfdtoline(num, dsort, dsi3d, in_pattern)
+   weight2 = sum(dsi3d)
+   dsi3d = dsi3d*weight/weight2
+endif
 !
 DEALLOCATE( in_pattern)
 DEALLOCATE(out_pattern)
