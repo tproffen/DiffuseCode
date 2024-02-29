@@ -2,6 +2,34 @@ MODULE suite_python_support
 !
 !  Generic support routines for the python / discus_suite interface
 !
+USE suite_setup_mod
+USE suite_set_sub_mod
+USE suite_loop_mod
+USE suite_init_mod
+!
+USE discus_setup_mod
+USE discus_setup_sub_mod
+!
+USE kuplot_setup_mod
+USE kuplot_setup_sub_mod
+!
+USE diffev_setup_mod
+USE diffev_setup_sub_mod
+USE diffev_loop_mod
+USE diffev_mpi_mod
+!
+USE refine_setup_mod
+USE refine_setup_sub_mod
+!
+USE appl_env_mod
+USE cmdline_args_mod
+USE envir_mod
+USE errlist_mod
+use lib_errlist_func
+USE gen_mpi_mod
+USE prompt_mod
+USE variable_mod
+#
 CONTAINS 
 !
 !
@@ -100,6 +128,7 @@ USE suite_setup_mod
 USE suite_init_mod
 USE suite_set_sub_mod
 USE diffev_setup_mod
+USE diffev_setup_sub_mod
 USE prompt_mod
 USE appl_env_mod
 IMPLICIT NONE
