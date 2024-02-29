@@ -34,6 +34,7 @@ USE support_mod
 !
 IMPLICIT none 
 !                                                                       
+real(kind=PREC_DP), parameter :: EPS=1.0D-8
 REAL(KIND=PREC_DP) :: ss!, seknds
 REAL(KIND=PREC_DP) :: dnorm
 INTEGER :: lbeg (3), csize (3) 
@@ -47,6 +48,8 @@ logical :: ldiscamb     ! Aspherical atomic form factor is used
 logical :: lform        ! Analytic form factors and multiplication is needed
 logical :: is_anis      ! Use anisotropic(=T) or isotropic(=F) ADPs
 integer, dimension(:,:), allocatable :: four_list
+integer :: is_dim
+logical, dimension(3) :: ll_dim
 !                                                                       
 !ier_num = 0    ! STRANGE BUG on MacAir with M1 chip ??? 2022-May-11
 !                                                                       
@@ -54,6 +57,15 @@ integer, dimension(:,:), allocatable :: four_list
 !                                                                       
 ss = seknds (0.0) 
 !
+!
+is_dim = 0           ! Assume zero dimensional crystal
+ll_dim = .false.     ! Assume all dimensions to be flat
+do i=1,3
+   if(cr_dim(i,2)-cr_dim(i,1)>eps  ) then
+      is_dim = is_dim + 1                    ! Found a non-flat dimension
+      ll_dim(i) = .true.                     ! dimension i is non-flat
+   endif
+enddo
 !                                                                       
 !------ preset some values                                              
 !                                                                       
@@ -243,10 +255,16 @@ IF (nlots.ne.1) then
    dsi(1:num(1),1:num(2),1:num(3))  = dnorm * dsi(1:num(1),1:num(2),1:num(3))
 ENDIF 
 !
+call four_weight               ! Correct the relative weight of Bragg and diffuse
+call do_four_filter(num, is_dim, four_rscale, four_damp, four_width, &
+                    four_filter, FOUR_FILTER_LANCZOS, dsi)
 call four_conv           ! Convolute diffraction pattern
+if(fave==0.0D0) then
+   call do_four_filter(num, is_dim, four_rscale, four_damp, four_width, &
+                       four_filter, FOUR_FILTER_LANCZOS, dsi3d)
+endif
 !
 call four_accumulate
-call four_weight               ! Correct the relative weight of Bragg and diffuse
 !                                                                       
 call four_qinfo 
 ss = seknds (ss) 
@@ -594,76 +612,82 @@ do i=1, num(1)
    enddo
 enddo
 !
-if(four_filter==FOUR_FILTER_LANCZOS) then
-   cond_dim_b: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
-      allocate( infield_3d(num(1), num(2), num(3)))
-      allocate(outfield_3d(num(1), num(2), num(3)))
-      ii = 0
-      do i=1, num(1)
-         do j=1, num(2)
-            do k=1, num(3)
-               ii = ii + 1
-               infield_3d(i,j,k) = dsi(i,j,k)
-            enddo
-         enddo
-      enddo
-      call do_lanczos(four_rscale, four_damp, four_width, num, infield_3d,   &
-                   num, outfield_3d, .true.)
-      ii = 0
-      do i=1, num(1)
-         do j=1, num(2)
-            do k=1, num(2)
-               ii = ii + 1
-               dsi(i,j,k) = outfield_3d(i,j,k) 
-            enddo
-         enddo
-      enddo
-      deallocate( infield_3d)
-      deallocate(outfield_3d)
-   elseif(is_dim==2) then  cond_dim_b
-      allocate( infield_2d(num(1), num(2)))
-      allocate(outfield_2d(num(1), num(2)))
-      ii = 0
-      do i=1, num(1)
-         do j=1, num(2)
-            ii = ii + 1
-            infield_2d(i,j) = dsi(i,j,1)
-         enddo
-      enddo
-      call do_lanczos(four_rscale, four_damp, four_width, num(1:2), infield_2d,   &
-                   num(1:2), outfield_2d, .true.)
-      ii = 0
-      do i=1, num(1)
-         do j=1, num(2)
-            ii = ii + 1
-            dsi(i,j,1) = outfield_2d(i,j) 
-         enddo
-      enddo
-      deallocate( infield_2d)
-      deallocate(outfield_2d)
-   elseif(is_dim==1) then  cond_dim_b
-      allocate( infield_1d(num(1)))
-      allocate(outfield_1d(num(1)))
-      ii = 0
-      do i=1, num(1)
-         ii = ii + 1
-         infield_1d(i) = dsi(i,1,1)
-      enddo
-      call do_lanczos(four_rscale, four_damp, four_width, num(1), infield_1d,   &
-                   num(1), outfield_1d, .true.)
-      ii = 0
-      do i=1, num(1)
-         ii = ii + 1
-         dsi(i,1,1) = outfield_1d(i) 
-      enddo
-      deallocate( infield_1d)
-      deallocate(outfield_1d)
-   endif cond_dim_b
+call four_weight               ! Correct the relative weight of Bragg and diffuse
+call do_four_filter(num, is_dim, four_rscale, four_damp, four_width, &
+                    four_filter, FOUR_FILTER_LANCZOS, dsi)
+if(fave==0.0D0) then
+   call do_four_filter(num, is_dim, four_rscale, four_damp, four_width, &
+                       four_filter, FOUR_FILTER_LANCZOS, dsi3d)
 endif
+!if(four_filter==FOUR_FILTER_LANCZOS) then
+!   cond_dim_b: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
+!      allocate( infield_3d(num(1), num(2), num(3)))
+!      allocate(outfield_3d(num(1), num(2), num(3)))
+!      ii = 0
+!      do i=1, num(1)
+!         do j=1, num(2)
+!            do k=1, num(3)
+!               ii = ii + 1
+!               infield_3d(i,j,k) = dsi(i,j,k)
+!            enddo
+!         enddo
+!      enddo
+!      call do_lanczos(four_rscale, four_damp, four_width, num, infield_3d,   &
+!                   num, outfield_3d, .true.)
+!      ii = 0
+!      do i=1, num(1)
+!         do j=1, num(2)
+!            do k=1, num(2)
+!               ii = ii + 1
+!               dsi(i,j,k) = outfield_3d(i,j,k) 
+!            enddo
+!         enddo
+!      enddo
+!      deallocate( infield_3d)
+!      deallocate(outfield_3d)
+!   elseif(is_dim==2) then  cond_dim_b
+!      allocate( infield_2d(num(1), num(2)))
+!      allocate(outfield_2d(num(1), num(2)))
+!      ii = 0
+!      do i=1, num(1)
+!         do j=1, num(2)
+!            ii = ii + 1
+!            infield_2d(i,j) = dsi(i,j,1)
+!         enddo
+!      enddo
+!      call do_lanczos(four_rscale, four_damp, four_width, num(1:2), infield_2d,   &
+!                   num(1:2), outfield_2d, .true.)
+!      ii = 0
+!      do i=1, num(1)
+!         do j=1, num(2)
+!            ii = ii + 1
+!            dsi(i,j,1) = outfield_2d(i,j) 
+!         enddo
+!      enddo
+!      deallocate( infield_2d)
+!      deallocate(outfield_2d)
+!   elseif(is_dim==1) then  cond_dim_b
+!      allocate( infield_1d(num(1)))
+!      allocate(outfield_1d(num(1)))
+!      ii = 0
+!      do i=1, num(1)
+!         ii = ii + 1
+!         infield_1d(i) = dsi(i,1,1)
+!      enddo
+!      call do_lanczos(four_rscale, four_damp, four_width, num(1), infield_1d,   &
+!                   num(1), outfield_1d, .true.)
+!      ii = 0
+!      do i=1, num(1)
+!         ii = ii + 1
+!         dsi(i,1,1) = outfield_1d(i) 
+!      enddo
+!      deallocate( infield_1d)
+!      deallocate(outfield_1d)
+!   endif cond_dim_b
+!endif
 !
 call four_conv           ! Convolute diffraction pattern
 call four_accumulate
-call four_weight               ! Correct the relative weight of Bragg and diffuse
 !
 ss = seknds (ss) 
 if(four_log) then 
@@ -1286,6 +1310,101 @@ endif
 end subroutine four_weight
 !
 !**********************************************************************
+subroutine do_four_filter(num, is_dim, four_rscale, four_damp, four_width, &
+           four_filter, FOUR_FILTER_LANCZOS, dsi)
+!-
+! Perform Lanczos filter procedure on dsi
+!
+use do_lanczos_mod
+use precision_mod
+!
+implicit none
+!
+integer, dimension(3), intent(in) :: num
+integer              , intent(in) :: is_dim
+real(kind=PREC_DP)   , intent(in)  :: four_rscale
+real(kind=PREC_DP)   , intent(in)  :: four_damp
+integer              , intent(in)  :: four_width
+integer              , intent(in)  :: four_filter
+integer              , intent(in)  :: FOUR_FILTER_LANCZOS
+real(kind=PREC_DP), dimension(1:num(1), 1:num(2), 1:num(3)), intent(inout) :: dsi
+!
+integer :: i,j,k
+real(kind=PREC_DP), dimension(:,:,:), allocatable :: infield_3d
+real(kind=PREC_DP), dimension(:,:,:), allocatable ::outfield_3d
+real(kind=PREC_DP), dimension(:,:)  , allocatable :: infield_2d
+real(kind=PREC_DP), dimension(:,:)  , allocatable ::outfield_2d
+real(kind=PREC_DP), dimension(:)    , allocatable :: infield_1d
+real(kind=PREC_DP), dimension(:)    , allocatable ::outfield_1d
+!
+if(four_filter==FOUR_FILTER_LANCZOS) then
+   cond_dim_b: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
+      allocate( infield_3d(num(1), num(2), num(3)))
+      allocate(outfield_3d(num(1), num(2), num(3)))
+!     ii = 0
+      do i=1, num(1)
+         do j=1, num(2)
+            do k=1, num(3)
+!              ii = ii + 1
+               infield_3d(i,j,k) = dsi(i,j,k)
+            enddo
+         enddo
+      enddo
+      call do_lanczos(four_rscale, four_damp, four_width, num, infield_3d,   &
+                   num, outfield_3d, .true.)
+!     ii = 0
+      do i=1, num(1)
+         do j=1, num(2)
+            do k=1, num(2)
+!              ii = ii + 1
+               dsi(i,j,k) = outfield_3d(i,j,k) 
+            enddo
+         enddo
+      enddo
+      deallocate( infield_3d)
+      deallocate(outfield_3d)
+   elseif(is_dim==2) then  cond_dim_b
+      allocate( infield_2d(num(1), num(2)))
+      allocate(outfield_2d(num(1), num(2)))
+!     ii = 0
+      do i=1, num(1)
+         do j=1, num(2)
+!           ii = ii + 1
+            infield_2d(i,j) = dsi(i,j,1)
+         enddo
+      enddo
+      call do_lanczos(four_rscale, four_damp, four_width, num(1:2), infield_2d,   &
+                   num(1:2), outfield_2d, .true.)
+!     ii = 0
+      do i=1, num(1)
+         do j=1, num(2)
+!           ii = ii + 1
+            dsi(i,j,1) = outfield_2d(i,j) 
+         enddo
+      enddo
+      deallocate( infield_2d)
+      deallocate(outfield_2d)
+   elseif(is_dim==1) then  cond_dim_b
+      allocate( infield_1d(num(1)))
+      allocate(outfield_1d(num(1)))
+!     ii = 0
+      do i=1, num(1)
+!        ii = ii + 1
+         infield_1d(i) = dsi(i,1,1)
+      enddo
+      call do_lanczos(four_rscale, four_damp, four_width, num(1), infield_1d,   &
+                   num(1), outfield_1d, .true.)
+!     ii = 0
+      do i=1, num(1)
+!        ii = ii + 1
+         dsi(i,1,1) = outfield_1d(i) 
+      enddo
+      deallocate( infield_1d)
+      deallocate(outfield_1d)
+   endif cond_dim_b
+endif
+!
+end subroutine do_four_filter
 !**********************************************************************
 !
 subroutine four_getatm (iscat, lots, lbeg, ncell) 

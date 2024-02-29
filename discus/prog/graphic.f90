@@ -510,13 +510,15 @@ main_if: IF (ier_num.eq.0) THEN
                   return
                endif
                dsi = dsi3d
+               dsi3d = 0.0D0
                if(opara(O_SHARP)(1:5)=='sharp') then
                   do k=1,num(3)
                      do j=1,num(2)
                         do i=1,num(1)
 !                          l =  (i - 1)*out_inc(3)*out_inc(2) +        &
 !                               (j - 1)*out_inc(3)            + k
-                           dsi(i,j,k) = dsi(i,j,k)/qval(i,j,k,val_faver2,  i, j, laver)
+                           dsi(i,j,k) = dsi(i,j,k)/qval(i,j,k,10,  i, j, laver)
+                           dsi3d(i,j,k) =          qval(i,j,k,10,  i, j, laver)
                         enddo
                      enddo
                   enddo
