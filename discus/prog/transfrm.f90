@@ -1059,7 +1059,7 @@ IMPLICIT none
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
-      IF (tran_latom (cr_iscat (i,1) ) ) THEN 
+      IF (tran_latom (cr_iscat(1,i) ) ) THEN 
 !                                                                       
 !     ----Copy atom to temporary place                                  
 !                                                                       
