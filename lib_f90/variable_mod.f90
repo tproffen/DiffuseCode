@@ -148,7 +148,7 @@ CONTAINS
    var_l    ( i) = 6
    var_type ( i) = IS_INTE
    var_diff ( i) = .FALSE.
-   var_val  ( i) = 2
+   var_val  ( i) = 3
 !
    i = VAR_KUPLOT
    var_name ( i) = 'KUPLOT'         ! A PROGRAM is 'SUITE', 'DISCUS', 'KUPLOT', 'DIFFEV'
@@ -156,7 +156,7 @@ CONTAINS
    var_l    ( i) = 6
    var_type ( i) = IS_INTE
    var_diff ( i) = .FALSE.
-   var_val  ( i) = 3
+   var_val  ( i) = 4
 !
    i = VAR_REFINE
    var_name ( i) = 'REFINE'         ! A PROGRAM is 'SUITE', 'DISCUS', 'KUPLOT', 'DIFFEV'
@@ -164,7 +164,7 @@ CONTAINS
    var_l    ( i) = 6
    var_type ( i) = IS_INTE
    var_diff ( i) = .FALSE.
-   var_val  ( i) = 4
+   var_val  ( i) = 5
 !
    i = VAR_MPI_OFF
    var_name ( i) = 'MPI_OFF'         ! A PROGRAM is 'SUITE', 'DISCUS', 'KUPLOT', 'DIFFEV'
