@@ -11,6 +11,7 @@ include_directories(${DIFFUSE_SOURCE_DIR}/diffev/prog)
 include_directories(${DIFFUSE_SOURCE_DIR}/refine/prog)
 include_directories(${DIFFUSE_SOURCE_DIR}/kuplot/prog)
 include_directories(${DIFFUSE_SOURCE_DIR}/discus/prog)
+include_directories(${DIFFUSE_SOURCE_DIR}/experi/prog)
 include_directories(${DIFFUSE_BINARY_DIR}/finufft)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/suite/prog)
@@ -18,9 +19,11 @@ include_directories(${DIFFUSE_BINARY_DIR}/diffev/prog)
 include_directories(${DIFFUSE_BINARY_DIR}/refine/prog)
 include_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 include_directories(${DIFFUSE_BINARY_DIR}/discus/prog)
+include_directories(${DIFFUSE_BINARY_DIR}/experi/prog)
 
 link_directories(${DIFFUSE_BINARY_DIR}/finufft)
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
+link_directories(${DIFFUSE_BINARY_DIR}/experi/prog)
 link_directories(${DIFFUSE_BINARY_DIR}/discus/prog)
 link_directories(${DIFFUSE_BINARY_DIR}/diffev/prog)
 link_directories(${DIFFUSE_BINARY_DIR}/refine/prog)
@@ -36,7 +39,7 @@ set (SOURCES_ALL suite_setup_mod.f90 suite_branch.f90 suite_loop.f90
         suite_parallel.f90 suite_upd_par.f90 suite_top.f90 )
 #set( SOURCES_LOCAL suite_out_file.f90 suite_pdf_file.f90 suite_powder_file.f90)
 
-set (LIBS diffev_all refine_all discus_all kuplot_all lib_f90 lib_f90c finufft_lib ${DIFFUSE_LIBS} ${PGPLOT_PGPLOT_LIBRARY} ${X11_X11_LIB} ${PNG_LIBRARY} )
+set (LIBS diffev_all refine_all experi_all discus_all kuplot_all lib_f90 lib_f90c finufft_lib ${DIFFUSE_LIBS} ${PGPLOT_PGPLOT_LIBRARY} ${X11_X11_LIB} ${PNG_LIBRARY} )
 
 if( DISCUS_OMP)
   message (status " building SUITE with openmp")
@@ -108,9 +111,9 @@ else (DIFFUSE_SHARED_LIB)
   add_library (discus_suite_all ${SOURCES_ALL})
 endif (DIFFUSE_SHARED_LIB)
 
-add_dependencies ( discus_suite_all diffev_all refine_all discus_all kuplot_all lib_f90 suitehlp)
+add_dependencies ( discus_suite_all diffev_all refine_all experi_all discus_all kuplot_all lib_f90 suitehlp)
 
-set (LIBS ${LIBS} discus_suite_all diffev_all refine_all discus_all kuplot_all ${LIBS_GRAPHIC} ${LIBS} ${LIBS_OPT} discus_suite_all )
+set (LIBS ${LIBS} discus_suite_all diffev_all refine_all experi_all discus_all kuplot_all ${LIBS_GRAPHIC} ${LIBS} ${LIBS_OPT} discus_suite_all )
 
 #add_library (discus_suite_full ${SOURCES_ALL} ${SOURCES_LOCAL})
 if (DIFFUSE_SHARE_LIB)
@@ -121,7 +124,7 @@ else (DIFFUSE_SHARE_LIB)
   add_library (discus_suite_full ${SOURCES_ALL})
 endif (DIFFUSE_SHARE_LIB)
 
-add_dependencies ( discus_suite_full  discus_suite_all diffev_all refine_all discus_all kuplot_all lib_f90  suitehlp)
+add_dependencies ( discus_suite_full  discus_suite_all diffev_all refine_all experi_all discus_all kuplot_all lib_f90  suitehlp)
 
 #add_executable(discus_suite ${SOURCE_MAIN} ${SOURCES_LOCAL} )
 add_executable(discus_suite ${SOURCE_MAIN})
@@ -129,6 +132,7 @@ target_link_libraries (discus_suite ${LIBS} ${LINK_LIBS})
 
 add_custom_target(suitehlp 
   DEPENDS      ${DIFFUSE_SOURCE_DIR}/suite/prog/appl_suite.hlp
+               ${DIFFUSE_SOURCE_DIR}/experi/prog/appl_exp.hlp
                ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp
                ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
                ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp
@@ -138,6 +142,7 @@ add_custom_target(suitehlp
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp   
                ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
                ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp
+               ${DIFFUSE_SOURCE_DIR}/experi/prog/appl_exp.hlp
                ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp
                ${DIFFUSE_SOURCE_DIR}/refine/prog/appl_ref.hlp
                >

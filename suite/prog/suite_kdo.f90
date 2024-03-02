@@ -21,6 +21,10 @@ USE discus_setup_sub_mod
 USE discus_loop_mod
 USE discus_reset_all_mod
 !
+use experi_setup_mod
+use experi_setup_sub_mod
+use experi_loop_mod
+!
 USE kuplot_setup_mod
 USE kuplot_setup_sub_mod
 USE kuplot_loop_mod
@@ -205,6 +209,40 @@ ELSE
           CALL program_files ()
        ENDIF
 !                                                                 
+!     -- branch to EXPERI
+!
+   ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'experi', 3, lbef, 6) ) then
+       IF(suite_experi_init) then
+          pname     = 'experi'
+          pname_cap = 'EXPERI'
+          prompt    = pname
+          oprompt   = pname
+          CALL program_files ()
+       ELSE
+         CALL experi_setup
+         suite_refine_init = .TRUE.
+       ENDIF
+       var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
+       var_val(VAR_PROGRAM) = var_val(VAR_EXPERI)
+       CALL experi_set_sub ()
+       CALL suite_set_sub_branch
+       CALL experi_loop    ()
+       lend      = .false.
+       pname     = 'suite'
+       pname_cap = 'SUITE'
+       prompt    = pname
+       oprompt   = pname
+       var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
+       var_val(VAR_PROGRAM) = var_val(VAR_SUITE)
+       CALL suite_set_sub
+       IF(ier_num == -9 .AND. ier_typ == 1) THEN
+          CALL program_files ()
+          ier_num = -9
+          ier_typ = ER_COMM
+       ELSE
+          CALL program_files ()
+       ENDIF
+!                                                                 
 !     -- branch to KUPLOT
 !
    ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'kuplot', 3, lbef, 6) ) then
@@ -253,7 +291,7 @@ ELSE
          suite_refine_init = .TRUE.
        ENDIF
        var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
-       var_val(VAR_PROGRAM) = var_val(VAR_DIFFEV)
+       var_val(VAR_PROGRAM) = var_val(VAR_REFINE)
        CALL refine_set_sub ()
        CALL suite_set_sub_branch
        CALL refine_loop    ()

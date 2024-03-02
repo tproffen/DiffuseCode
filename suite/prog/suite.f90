@@ -7,6 +7,8 @@ USE suite_init_mod
 !
 USE discus_setup_mod
 !
+use experi_setup_mod
+!
 USE kuplot_setup_mod
 !
 USE diffev_setup_mod
@@ -70,8 +72,10 @@ call start_pgxwin
 IF(gen_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    CALL program_files ()
    CALL discus_setup   (lstandalone)
+   call experi_setup
    CALL kuplot_setup   (lstandalone)
    CALL diffev_setup   (lstandalone)
+   suite_experi_init = .TRUE.
    suite_discus_init = .TRUE.
    suite_kuplot_init = .TRUE.
    suite_diffev_init = .TRUE.
@@ -92,10 +96,12 @@ IF(gen_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
 ELSE
    CALL lib_f90_init_updates
    CALL program_files ()
+   call experi_setup
    CALL discus_setup(lstandalone)
    CALL kuplot_setup(lstandalone)
    CALL diffev_setup(lstandalone)
    CALL refine_setup(lstandalone)
+   suite_experi_init = .TRUE.
    suite_discus_init = .TRUE.
    suite_kuplot_init = .TRUE.
    suite_diffev_init = .TRUE.
