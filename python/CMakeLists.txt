@@ -5,7 +5,7 @@ find_package(F2PY REQUIRED)
 
 message(STATUS "F2PY included from: ${F2PY_INCLUDE_DIR}")
 
-set(PYLINK_LIBS discus_suite_all diffev_all refine_all discus_all kuplot_all)
+set(PYLINK_LIBS discus_suite_all diffev_all refine_all discus_all kuplot_all experi_all)
 set(PYLINK_LIBS ${PYLINK_LIBS} lib_f90 lib_f90c finufft_lib)
 set(PYLINK_LIBS ${PYLINK_LIBS} ${DIFFUSE_LIBS} ${MPI_Fortran_LIBRARIES})
 set(PYLINK_LIBS ${PYLINK_LIBS} ${PGPLOT_PGPLOT_LIBRARY} ${X11_X11_LIB} ${PNG_LIBRARY} ${HDF5_LIBRARIES})
@@ -15,13 +15,14 @@ include_directories(${DIFFUSE_BINARY_DIR}/diffev/prog/)
 include_directories(${DIFFUSE_BINARY_DIR}/discus/prog/)
 include_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog/)
 include_directories(${DIFFUSE_BINARY_DIR}/refine/prog/)
+include_directories(${DIFFUSE_BINARY_DIR}/experi/prog/)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90/)
 include_directories(${DIFFUSE_BINARY_DIR}/finufft/)
 include_directories(${MPI_Fortran_INCLUDE_PATH})
 
 set(f2py_module_name "suite_python")
-set(fortran_src_file "${CMAKE_SOURCE_DIR}/python/suite_python.f90" 
-	             "${CMAKE_SOURCE_DIR}/python/suite_python_support.f90")
+set(fortran_src_file "${CMAKE_SOURCE_DIR}/python/suite_python.f90")
+	#	             "${CMAKE_SOURCE_DIR}/python/suite_python_support.f90")
 
 set(generated_module_file ${f2py_module_name}${PYTHON_EXTENSION_MODULE_SUFFIX})
 
