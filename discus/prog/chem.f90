@@ -5208,6 +5208,7 @@ loop_atoms: DO i = 1, cr_natoms
                                                                         
          ibin = int((res_para(k) - chem_blen_cut(1)) * chem_bin /               &
                     (chem_blen_cut(2) - chem_blen_cut(1)))        + 1                 
+         if(ibin<=ubound(chem_hist,1)) &
          chem_hist (ibin) = chem_hist(ibin) + 1 
       ENDDO 
    ENDIF 
