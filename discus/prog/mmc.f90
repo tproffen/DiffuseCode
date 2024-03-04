@@ -3022,6 +3022,7 @@ CALL mmc_correlations (lout_feed, rel_cycl, done, lfinished, lfeed, maxdev)
 !                                                                       
 IF(lout_feed) WRITE ( output_io, 5000) 
 DO i = 1, MC_N_ENERGY 
+   if(n_e_av_p(i)>0 .or. n_e_av_z(i)>0 .or. n_e_av_m(i)>0) then
    IF(n_e_av_p(i) > 0) THEN 
       e_aver_p(i) = e_aver_p(i) / REAL(n_e_av_p(i) ) 
    ENDIF 
@@ -3037,6 +3038,7 @@ DO i = 1, MC_N_ENERGY
    n_e_av_z (i) = 0 
    e_aver_p (i) = 0.0 
    e_aver_m (i) = 0.0 
+endif
 ENDDO 
 !                                                                       
 !------ Write timing results                                            

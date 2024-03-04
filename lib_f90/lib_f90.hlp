@@ -200,10 +200,12 @@
    to all other options. The first command line argument after  the 
    '-macro' option it the macro name, all further optional command 
    line arguments are taken as macro parameters. These have to be 
-   seperated by one or more spaces. 
+   seperated by one or more spaces or comma. 
    Parameters that need to contain spaces must be enclosed in single 
    or double quotation marks.
    -macro test.mac 1 2 3
+   This is the same as @test.mac 1,2,3
+   -macro test.mac 1, 2 , 3
    This is the same as @test.mac 1,2,3
 
    -macro test1.mac '1 + 2 + 3'

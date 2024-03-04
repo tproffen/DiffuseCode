@@ -176,6 +176,7 @@ SUBROUTINE make_symmetry_matrix (SPC_MAX, spc_n, spc_mat, spc_det,&
 USE discus_config_mod 
 USE crystal_mod 
 !
+use errlist_mod
 use precision_mod
 !                                                                       
 IMPLICIT none 
@@ -247,6 +248,13 @@ CALL spcgr_setting(generator, cr_iset)
 !
          generate: DO imat = 1, nmat 
             spc_n = spc_n + 1 
+if(spc_n>SPC_MAX) then
+   ier_num = -196
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Check ''gene'' power in structure file'
+   ier_msg(2) = 'Check ''symm'' power in structure file'
+   exit loop_power
+endif
             spc_det (spc_n) = 0 
             spc_spur (spc_n) = 0 
             spc_mat(:,:,spc_n) = 0
@@ -538,6 +546,9 @@ REAL(kind=PREC_DP):: fact
 !                                                                       
       spc_char (spc_n) = ' ' 
       spc_xyz (spc_n) = ' ' 
+if(abs(spc_spur(spc_n))>3 .or. abs(spc_det(spc_n))>1) then
+   return
+endif
 !                                                                       
       spc_char (spc_n) = typ (NINT(spc_spur (spc_n)), NINT(spc_det (spc_n)) ) 
       power = pwr (NINT(spc_spur (spc_n)), NINT(spc_det (spc_n)) ) 

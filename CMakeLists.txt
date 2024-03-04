@@ -39,7 +39,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 6)
 set (DIFFUSE_VERSION_MINOR 16)
-set (DIFFUSE_VERSION_PATCH 02)
+set (DIFFUSE_VERSION_PATCH 02b)
 
 # Readline required for all programs
 
@@ -143,6 +143,7 @@ add_subdirectory(kuplot/prog)
 add_subdirectory(diffev/prog)
 add_subdirectory(refine/prog)
 add_subdirectory(discus/prog)
+add_subdirectory(experi/prog)
 add_subdirectory(suite/prog)
 
 # Add Python directory if Python option is selected

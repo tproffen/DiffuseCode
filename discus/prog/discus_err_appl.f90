@@ -13,11 +13,12 @@ USE lib_errlist_func
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-195,IO=8)
+      PARAMETER    (IU=-196,IO=8)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -181) /                          &
+     &  'More than 192 symmetry elements              ', & !-196 ! discus
      &  'Invalid anisotropic ADPs                     ', & !-195 ! discus
      &  'Resolution vector has a sigma of zero        ', & !-194 ! discus
      &  'Resolution vector of length zero             ', & !-193 ! discus
