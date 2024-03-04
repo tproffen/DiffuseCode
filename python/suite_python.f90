@@ -27,6 +27,7 @@ USE terminal_mod
 PRIVATE
 PUBLIC initialize_suite    ! Initialize the discus_suite as if started directly
 PUBLIC execute_macro       ! Execute macro
+!PUBLIC get_data            ! Gets data from DISCUS
 !
 CONTAINS
 !
@@ -70,6 +71,16 @@ linteractive = .false.
 !
 END SUBROUTINE initialize_suite
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!FUNCTION get_data() RESULT (xdata)
+!
+!  Return data from DISCUS output command
+!
+!USE suite_python_mod
+!
+!END FUNCTION get_data
+!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 SUBROUTINE execute_macro(line)
