@@ -15,6 +15,7 @@ USE suite_set_sub_mod
 USE discus_setup_mod
 USE kuplot_setup_mod
 USE diffev_setup_mod
+USE experi_setup_mod
 USE diffev_mpi_mod
 USE run_mpi_mod
 USE gen_mpi_mod
