@@ -27,6 +27,7 @@ USE terminal_mod
 PRIVATE
 PUBLIC initialize_suite    ! Initialize the discus_suite as if started directly
 PUBLIC execute_macro       ! Execute macro
+PUBLIC save_python_1d      
 !PUBLIC get_data            ! Gets data from DISCUS
 !
 CONTAINS
@@ -73,16 +74,16 @@ END SUBROUTINE initialize_suite
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-!FUNCTION get_data() RESULT (xdata)
+!FUNCTION get_data() 
 !
 !  Return data from DISCUS output command
 !
-!USE suite_python_mod
+!USE kuplot_mod
 !
 !END FUNCTION get_data
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!
+! 
 SUBROUTINE execute_macro(line)
 !
 !  Execute the macro given on line for the section defined by prog

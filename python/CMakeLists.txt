@@ -21,8 +21,7 @@ include_directories(${DIFFUSE_BINARY_DIR}/finufft/)
 include_directories(${MPI_Fortran_INCLUDE_PATH})
 
 set(f2py_module_name "suite_python")
-set(fortran_src_file "${CMAKE_SOURCE_DIR}/python/suite_python.f90"
-	             "${CMAKE_SOURCE_DIR}/python/suite_python_mod.f90")
+set(fortran_src_file "${CMAKE_SOURCE_DIR}/python/suite_python.f90")
 
 set(generated_module_file ${f2py_module_name}${PYTHON_EXTENSION_MODULE_SUFFIX})
 
