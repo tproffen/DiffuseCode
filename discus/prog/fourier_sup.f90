@@ -61,7 +61,7 @@ ss = seknds (0.0)
 is_dim = 0           ! Assume zero dimensional crystal
 ll_dim = .false.     ! Assume all dimensions to be flat
 do i=1,3
-   if(cr_dim(i,2)-cr_dim(i,1)>eps  ) then
+   if(cr_dim(i,2)-cr_dim(i,1)>eps .and. cr_icc(i)>1 ) then
       is_dim = is_dim + 1                    ! Found a non-flat dimension
       ll_dim(i) = .true.                     ! dimension i is non-flat
    endif
@@ -362,7 +362,7 @@ call four_cexpt
 is_dim = 0           ! Assume zero dimensional crystal
 ll_dim = .false.     ! Assume all dimensions to be flat
 do i=1,3
-   if(cr_dim(i,2)-cr_dim(i,1)>eps  ) then
+   if(cr_dim(i,2)-cr_dim(i,1)>eps .and. cr_icc(i)>1 ) then
       is_dim = is_dim + 1                    ! Found a non-flat dimension
       ll_dim(i) = .true.                     ! dimension i is non-flat
    endif
