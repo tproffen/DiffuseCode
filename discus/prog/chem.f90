@@ -759,21 +759,27 @@ USE precision_mod
       INTEGER indxx, indxy, indxz 
 INTEGER :: n_bin ! Dummy for histogramm allocation
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.eq.0) then 
-         IF (ianz.ge.2) then 
-            CALL do_cap (cpara (1) ) 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+!
+IF(ier_num/=  0) return
+IF(ianz<   2) then 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   return
+ENDIF 
+!
+CALL do_cap(cpara (1) ) 
 !                                                                       
 !------ --- 'set neig': setting correlation determination method        
 !                                                                       
-            IF (cpara (1) (1:2) .eq.'NE') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               CALL chem_set_neig (ianz, cpara, lpara, werte, maxw) 
+IF (cpara (1) (1:2) .eq.'NE') then 
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+   CALL chem_set_neig (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !------ --- 'set cryst': setting crystal dimensions                     
 !                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'CR') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
+ELSEIF (cpara (1) (1:2) .eq.'CR') then 
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.4) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -790,7 +796,7 @@ INTEGER :: n_bin ! Dummy for histogramm allocation
 !                                                                       
 !     --- 'set lots': sample volume (lots)                              
 !                                                                       
-            ELSEIF (cpara (1) (1:3) .eq.'LOT') then 
+ELSEIF (cpara (1) (1:3) .eq.'LOT') then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
                IF (ianz.eq.1) then 
@@ -832,7 +838,7 @@ INTEGER :: n_bin ! Dummy for histogramm allocation
 !                                                                       
 !------ --- set mode: set calculation mode to quick/exact               
 !                                                                       
-     ELSEIF(cpara(1)(1:2) == 'MO') THEN 
+ELSEIF(cpara(1)(1:2) == 'MO') THEN 
         CALL do_cap (cpara (2) ) 
         IF(chem_purge .AND. (cpara(2)(1:3) ==  'QUI' .OR. &
                              cpara(3)(1:3) ==  'PER'     )) THEN
@@ -874,7 +880,7 @@ INTEGER :: n_bin ! Dummy for histogramm allocation
 !                                                                       
 !------ --- set bin: set number of points for histogramm binning        
 !                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'BI') then 
+ELSEIF (cpara (1) (1:2) .eq.'BI') then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.ne.0) return 
@@ -896,7 +902,7 @@ INTEGER :: n_bin ! Dummy for histogramm allocation
 !                                                                       
 !------ --- set blen: set allowed range for bond-length histogramm      
 !                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'BL') then 
+ELSEIF (cpara (1) (1:2) .eq.'BL') then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.ne.0) return 
@@ -916,7 +922,7 @@ INTEGER :: n_bin ! Dummy for histogramm allocation
 !                                                                       
 !------ --- set bang: set allowed range for bond-angle histogramm       
 !                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'BA') then 
+ELSEIF (cpara (1) (1:2) .eq.'BA') then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.ne.0) return 
@@ -936,35 +942,31 @@ INTEGER :: n_bin ! Dummy for histogramm allocation
 !                                                                       
 !------ --- set ang: sets correlation angles                            
 !                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'AN') then 
+ELSEIF (cpara (1) (1:2) .eq.'AN') then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL chem_set_angle (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !------ --- set vec: sets correlation vectors                           
 !                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'VE') then 
+ELSEIF (cpara (1) (1:2) .eq.'VE') then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL chem_set_vec (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !------ --- set env: sets correlation environment                       
 !                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'EN') then 
-               CALL del_params (1, ianz, cpara, lpara, maxw) 
-               CALL chem_set_envir (ianz, cpara, lpara, werte, maxw) 
+ELSEIF (cpara (1) (1:2) .eq.'EN') then 
+   CALL del_params(1, ianz, cpara, lpara, maxw) 
+   CALL chem_set_envir(ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !------ --- unknown subcommand entered                                  
 !                                                                       
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-         ENDIF 
-      ENDIF 
+ELSE 
+   ier_num = -6 
+   ier_typ = ER_COMM 
+ENDIF 
+!ELSE 
 !                                                                       
-      END SUBROUTINE chem_set                       
+END SUBROUTINE chem_set                       
 !*****7*****************************************************************
 SUBROUTINE chem_set_vec (ianz, cpara, lpara, werte, maxw) 
 !+                                                                      
@@ -1531,43 +1533,47 @@ ENDIF
 chem_ndef(CHEM_ANG) = max(chem_ndef(CHEM_ANG), iv)
 !                                                                       
       END SUBROUTINE chem_set_angle                 
+!
 !*****7*****************************************************************
-      SUBROUTINE chem_set_envir (ianz, cpara, lpara, werte, maxw) 
+!
+SUBROUTINE chem_set_envir (ianz, cpara, lpara, werte, maxw) 
 !+                                                                      
 !     'set environment' is processed here                               
 !-                                                                      
-      USE discus_allocate_appl_mod 
-      USE discus_config_mod 
+USE discus_allocate_appl_mod 
+USE discus_config_mod 
 USE atom_env_mod
-      USE crystal_mod 
-      USE chem_mod 
-      USE get_iscat_mod
-      USE modify_mod
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
+USE crystal_mod 
+USE chem_mod 
+USE get_iscat_mod
+USE modify_mod
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
 USE precision_mod
 USE str_comp_mod
-      IMPLICIT none 
 !                                                                       
-       
+IMPLICIT none 
+
 !                                                                       
-      INTEGER maxw 
+INTEGER                            , intent(in)    :: maxw 
+CHARACTER(len=*)  , dimension(MAXW), intent(inout) :: cpara !(maxw) 
+INTEGER           , dimension(MAXW), intent(inout) :: lpara !(maxw) 
+REAL(KIND=PREC_DP), dimension(MAXW), intent(inout) :: werte !(maxw) 
+!
+INTEGER :: ianz, janz, iv, i, j
+INTEGER :: n_atom
+INTEGER :: n_env
+INTEGER :: n_cor
 !                                                                       
-      CHARACTER ( * ) cpara (maxw) 
-      REAL(KIND=PREC_DP) :: werte (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER ianz, janz, iv, i, j
-      INTEGER            :: n_atom
-      INTEGER            :: n_env
-      INTEGER            :: n_cor
 !                                                                       
-!                                                                       
-      IF (str_comp (cpara (1) , 'reset', 2, lpara (1) , 5) ) then 
-        chem_cenv           =     0 ! all elements (i,j)
-        chem_cvec    (1, :) = -9999 ! column (1,*)
-        chem_use_env        =     1 ! all elements (i,j)
-        chem_env_neig       =     0 ! all elements (i)
+IF(str_comp (cpara (1) , 'reset', 2, lpara (1) , 5) ) then 
+   chem_cenv           =     0 ! all elements (i,j)
+   chem_cenv(0,:)      = -9999 ! all elements (i,j)
+!  chem_cvec    (1, :) = -9999 ! column (1,*)
+   chem_use_env        =     1 ! all elements (i,j)
+   chem_env_neig       =     0 ! all elements (i)
+   chem_ndef(CHEM_ENVIR) =   0
 !        DO i = 1, CHEM_MAX_ENV 
 !        chem_cenv (0, i) = - 9999 
 !        DO j = 1, MAX_ATOM_ENV 
@@ -1578,8 +1584,8 @@ USE str_comp_mod
 !        chem_env_neig (j) = 0 
 !        ENDDO 
 !        ENDDO 
-         RETURN 
-      ENDIF 
+   RETURN 
+ENDIF 
 !                                                                       
 !                                                                       
       janz = 3 
@@ -1619,7 +1625,8 @@ USE str_comp_mod
 !
 chem_ndef(CHEM_ENVIR) = max(chem_ndef(CHEM_ENVIR), iv)
 !                                                                       
-      END SUBROUTINE chem_set_envir                 
+END SUBROUTINE chem_set_envir                 
+!
 !*****7*****************************************************************
 !
 SUBROUTINE chem_set_neig (ianz, cpara, lpara, werte, maxw) 

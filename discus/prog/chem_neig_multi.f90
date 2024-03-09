@@ -72,7 +72,7 @@ tatom(0, ncent) = .TRUE.
 !------ Mode distance                                                   
 !------ ------------------------------------------------------          
 !                                                                       
-      IF (chem_ctyp (ic) .eq.CHEM_DIST) then 
+IF (chem_ctyp (ic) .eq.CHEM_DIST) then 
          ncent = 1 
          natom (ncent) = 0 
          DO j = 1, 3 
@@ -138,7 +138,7 @@ tatom(0, ncent) = .TRUE.
 !------ Mode distance-range (New mode for mmc)                          
 !------ ------------------------------------------------------          
 !                                                                       
-      ELSEIF (chem_ctyp (ic) .eq.CHEM_RANGE) then 
+ELSEIF (chem_ctyp (ic) .eq.CHEM_RANGE) then 
          i = 1 
          iv = chem_use_ran (i, ic) 
 !                                                                       
@@ -360,7 +360,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
 !------ Mode connectivity                                                     
 !------ ------------------------------------------------------          
 !                                                                       
-      ELSEIF (chem_ctyp (ic) .eq.CHEM_CON) then 
+ELSEIF (chem_ctyp (ic) .eq.CHEM_CON) then 
          ncent = 1 
          natom (ncent) = 0 
 !        CALL indextocell (jatom, jcell, jsite) 
@@ -401,7 +401,7 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
 !------ Mode angular neighbours                                         
 !------ ------------------------------------------------------          
 !                                                                       
-      ELSEIF (chem_ctyp (ic) .eq.CHEM_ANG) then 
+ELSEIF (chem_ctyp (ic) .eq.CHEM_ANG) then 
          ncent = 0 
          natom (ncent) = 0 
          CALL indextocell (jatom, jcell, jsite) 
@@ -544,37 +544,38 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
 !------ Mode environment                                                
 !------ ------------------------------------------------------          
 !                                                                       
-      ELSEIF (chem_ctyp (ic) .eq.CHEM_ENVIR) then 
-         ncent = 0 
-         natom (1) = 0 
-         DO j = 1, 3 
-         u (j) = cr_pos (j, jatom) 
-         w (j) = 0.0 
-         ENDDO 
+ELSEIF (chem_ctyp (ic) .eq.CHEM_ENVIR) then 
+!write(*,'(a,4i5)') ' FIND ENV ', MAXW, MMC_MAX_CENT, ic, chem_nenv(ic)
+   ncent = 0 
+   natom (1) = 0 
+   DO j = 1, 3 
+      u(j) = cr_pos(j, jatom) 
+      w(j) = 0.0 
+   ENDDO 
 !                                                                       
 !--------Loop over all environment definitions used by current          
 !        neighbor definition                                            
 !                                                                       
-         DO i = 1, chem_nenv (ic) 
+   DO i = 1, chem_nenv(ic) 
 !                                                                       
 !----------The selected atom is the central atom of environment         
 !          definition                                                   
 !                                                                       
-         IF (cr_iscat (jatom,1) .eq.chem_cenv (0, chem_use_env (i, ic) )  &
-         .or. - 1.eq.chem_cenv (0, chem_use_env (i, ic) ) ) then        
-            DO j = 1, chem_env_neig (chem_use_env (i, ic) ) 
-            werte (j) = chem_cenv (j, chem_use_env (i, ic) ) 
-            ENDDO 
-            ianz = chem_env_neig (chem_use_env (i, ic) ) 
-            CALL do_find_env (ianz, werte, maxw, u, chem_rmin_env (ic), &
-            chem_rmax_env (ic), chem_quick, chem_period)                
-            IF (atom_env (0) .ne.0) then 
+      IF(cr_iscat(1,jatom) == chem_cenv(0, chem_use_env(i, ic) )  &
+         .or.           -1 == chem_cenv(0, chem_use_env(i, ic) ) ) then        
+         DO j = 1, chem_env_neig(chem_use_env(i, ic) ) 
+            werte(j) = chem_cenv(j, chem_use_env(i, ic) ) 
+         ENDDO 
+         ianz = chem_env_neig (chem_use_env (i, ic) ) 
+         CALL do_find_env(ianz, werte, maxw, u, chem_rmin_env (ic), &
+            chem_rmax_env(ic), chem_quick, chem_period)                
+         IF (atom_env(0) .ne.0) then 
 !                                                                       
 !     --------Neighbours were found, add to list of atoms               
 !                                                                       
-               ncent = ncent + 1 
-               ncent = 1 
-               DO j = 1, atom_env (0) 
+            ncent = ncent + 1 
+            ncent = 1 
+            DO j = 1, atom_env (0) 
                IF (natom (ncent) .lt.maxw) then 
                   natom (ncent) = natom (ncent) + 1 
                   iatom (natom (ncent), ncent) = atom_env (j) 
@@ -589,13 +590,26 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
                   ier_typ = ER_CHEM 
                   RETURN 
                ENDIF 
-               ENDDO 
-               iatom (0, ncent) = jatom 
-               patom (1, 0, ncent) = cr_pos (1, jatom) 
-               patom (2, 0, ncent) = cr_pos (2, jatom) 
-               patom (3, 0, ncent) = cr_pos (3, jatom) 
-            ENDIF 
-         ELSE 
+            ENDDO 
+!if(jatom==106) then
+!write(*,'(i5, 3f12.6)') natom(ncent), chem_rmin_env (ic), chem_rmax_env(ic)
+!write(*,'(i5, 3f12.6)') jatom, cr_pos(:, jatom)
+!do j=1, natom(ncent)
+!u= cr_pos(:, jatom)- patom(:, j, ncent)
+!dummy(1) = sqrt(u(1)**2+u(2)**2+u(3)**3)*2.5
+!!write(*,*)  u, ' :: ', dummy(1)
+!
+!write(*,'(2(i5, 3f12.6), f12.6)') iatom(j,ncent), patom(:, j, ncent), iatom(j,ncent), cr_pos(:, iatom(j, ncent)), dummy(1)
+!enddo
+!endif
+
+!write(*,'(a,5i5)') ' Found neigh', atom_env(0), natom(ncent)
+            iatom (0, ncent) = jatom 
+            patom (1, 0, ncent) = cr_pos (1, jatom) 
+            patom (2, 0, ncent) = cr_pos (2, jatom) 
+            patom (3, 0, ncent) = cr_pos (3, jatom) 
+         ENDIF 
+      ELSE 
 !                                                                       
 !     ----The selected atom is a neighbour atom of environment          
 !           definition                                                  
@@ -659,10 +673,10 @@ ELSEIF(chem_ctyp(ic) ==  CHEM_VEC) THEN
 !c               endif                                                  
 !c             ENDDO                                                    
 !c           endif                                                      
-         ENDIF 
-         ENDDO 
       ENDIF 
-      ldbg = .false. 
+   ENDDO 
+ENDIF 
+ldbg = .false. 
 !                                                                       
 END SUBROUTINE chem_neighbour_multi           
 !
