@@ -614,6 +614,7 @@ SUBROUTINE discus_upd_para (ctype, ww, maxw, wert, ianz, cstring, substr)
 !+                                                                      
 USE discus_config_mod 
 USE crystal_mod 
+use prep_anis_mod
 USE atom_env_mod 
 USE molecule_mod 
 USE do_molecule_alloc
@@ -721,6 +722,7 @@ ELSEIF(ctype == 'b') THEN
    IF(ianz == 1) THEN 
       IF(0 < ww(1) .and. ww(1) <= cr_nscat) THEN 
          cr_dw(ww(1)) = wert 
+         call update_biso(ww(1), wert)
       ELSE 
          ier_num = - 8 
          ier_typ = ER_FORT 

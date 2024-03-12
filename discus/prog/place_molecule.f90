@@ -2002,7 +2002,7 @@ main: DO i=1, dcc_num
       call anis2iso(cr_nanis, ubound(cr_anis_full,2), cr_anis_full, cr_prin, j, cr_emat, ar_inv)
    enddo
    do j=1, cr_nanis
-      call lookup_anis(temp_nanis, temp_anis_full, temp_prin, cr_anis_full(1:6,j), cr_prin(:,:,j), kk, lsuccess)
+      call lookup_anis(.TRUE., temp_nanis, temp_anis_full, temp_prin, cr_anis_full(1:6,j), cr_prin(:,:,j), kk, lsuccess)
       adp_look(i,j) = kk
    enddo
 !

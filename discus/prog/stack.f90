@@ -2015,7 +2015,7 @@ more1: IF (st_nlayer.ge.1) then
 !
 !     Build ADP Lookup table
       do j=1, st_nanis
-         call lookup_anis(cr_nanis, cr_anis_full, cr_prin, st_anis_full(1:6,j), st_prin(:,:,j), kk, lsuccess)
+         call lookup_anis(.TRUE., cr_nanis, cr_anis_full, cr_prin, st_anis_full(1:6,j), st_prin(:,:,j), kk, lsuccess)
          adp_look(i,j) = kk
       enddo
 !

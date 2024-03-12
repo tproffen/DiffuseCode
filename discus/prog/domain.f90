@@ -777,7 +777,7 @@ loop_read: do i=1, clu_number
 !write(*,'(a, a,4i6)') ' READ ',strucfile(1:len_trim(strucfile)), cr_natoms, cr_nscat, cr_ncatoms, cr_nanis
 !do j=1, cr_nanis
 !write(*,'(a, 6f10.5)') j, cr_anis_full(:,j)
-!      call lookup_anis(temp_nanis, temp_anis_full, temp_prin, cr_anis_full(:,j), k, lsuccess)
+!      call lookup_anis(.true., temp_nanis, temp_anis_full, temp_prin, cr_anis_full(:,j), k, lsuccess)
 !enddo
       if(ier_num/=0) then
          j = ier_num
@@ -818,7 +818,7 @@ loop_anis: do i=1, clu_number      ! Build ADP lookup table
       call alloc_arr(adp_look, 1, kk, 1, j, k, 0)
    endif
    do j=1, mk_nanis
-      call lookup_anis(temp_nanis, temp_anis_full, temp_prin, mk_anis_full(1:6,j), mk_prin(:,:,j), kk, lsuccess)
+      call lookup_anis(.true., temp_nanis, temp_anis_full, temp_prin, mk_anis_full(1:6,j), mk_prin(:,:,j), kk, lsuccess)
       adp_look(i,j) = kk
    enddo
 enddo loop_anis

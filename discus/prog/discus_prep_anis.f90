@@ -9,11 +9,15 @@ public prep_anis
 public anis2iso
 public lookup_anis
 public do_anis
+public update_biso
+!
 !public calc_prin
 !
 interface lookup_anis
-   module procedure lookup_anis_6, lookup_anis_3x3, lookup_anis_6_prin,         &
-                    lookup_anis_1
+   module procedure lookup_anis_6,      & !  (U11, U22,U33, U23, U13, U12)
+                    lookup_anis_3x3,    & !  (U_ij)
+                    lookup_anis_6_prin, & !  !U11, U22,U33, U23, U13, U12), principal vectors
+                    lookup_anis_1         !  Single Biso
 end interface lookup_anis
 !
 interface calc_prin
@@ -48,6 +52,7 @@ integer :: itype    ! Loop index atom types
 integer :: iatom    ! Loop index atoms
 integer :: iref     ! Reference atom, symmetrically equivalent atoms take this atom as model
 integer :: j, l     ! Dummy loop indices
+logical :: lold        ! RLookup previous ADPs
 logical :: lanis       ! This atom has anisotropic ADP
 logical :: lsuccess    ! Success in subroutines
 logical :: is_invar    ! xx tensor is invariant under local Wyckoff point group
@@ -69,6 +74,8 @@ data imat / 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0/
 ar_inv(1) = 1./cr_ar(1)
 ar_inv(2) = 1./cr_ar(2)
 ar_inv(3) = 1./cr_ar(3)
+!
+lold = .TRUE.
 !
 if(l_not_full) then         ! Use cr_anis (read from disk)
    if(allocated(cr_anis_full)) deallocate(cr_anis_full)
@@ -218,7 +225,7 @@ loop_atoms:do iatom=1,natom
 !write(*,'(a, 3f5.1)') 'sym ', symm_mat(3,:)
 !write(*,'(a,i3, a,6f10.5)') ' uij ', cr_iscat(2,iatom), ' | ', uij(1,1), uij(2,2), uij(3,3), uij(2,3), uij(1,3), uij(1,2)
 !ss = seknds (ss )
-         call lookup_anis(cr_nanis, cr_anis_full, cr_prin, uij, ucij, .FALSE., j, lsuccess)   ! Check if old ADPs are reproduced
+         call lookup_anis(lold, cr_nanis, cr_anis_full, cr_prin, uij, ucij, .FALSE., j, lsuccess)   ! Check if old ADPs are reproduced
          if(.not.lsuccess) then
             cr_prin(:,:, j) = prin_new
          endif
@@ -239,7 +246,7 @@ loop_atoms:do iatom=1,natom
    endif 
 !
 !ss = seknds (ss )
-   call lookup_anis(cr_nanis, cr_anis_full, cr_prin, uij, ucij, .FALSE., j, lsuccess) ! Check if previous ADPs exist with identical uij
+   call lookup_anis(lold, cr_nanis, cr_anis_full, cr_prin, uij, ucij, .FALSE., j, lsuccess) ! Check if previous ADPs exist with identical uij
 !ss = seknds (ss )
 !zeit(4) = zeit(4) + ss
    if(ier_num/=0) then
@@ -341,7 +348,66 @@ end subroutine anis2iso
 !
 !*******************************************************************************
 !
-subroutine lookup_anis_6_prin(cr_nanis, cr_anis_full, cr_prin, uij_6, prin, ientry, lsuccess)
+subroutine update_biso(itype, biso)
+!-
+!  Update the ADP parameters for all atoms of type "itype" to use isotropic biso
+!-
+!
+use crystal_mod
+!
+use precision_mod
+!
+implicit none
+!
+integer           , intent(in) :: itype
+real(kind=PREC_DP), intent(in) :: biso
+!
+integer :: i
+logical, dimension(:), allocatable :: is_uses_adp
+logical, dimension(:), allocatable :: adp_used_is
+integer                            :: new_adp
+integer                            :: ientry
+logical                            :: lsuccess
+!
+allocate(is_uses_adp(cr_nanis))     ! itype uses these ADPs
+allocate(adp_used_is(0:cr_nscat))   ! This adp is used by these atom types
+is_uses_adp = .FALSE.
+adp_used_is = .FALSE.
+loop_atoms1: do i=1, cr_natoms
+   cond_iscat1: if(cr_iscat(1,i)==itype) then
+      is_uses_adp(cr_iscat(3,i)) = .TRUE.
+   endif cond_iscat1
+enddo loop_atoms1
+!
+loop_atoms2: do i=1, cr_natoms
+   if(cr_iscat(1,i)==itype) cycle loop_atoms2
+   cond_iscat2: if(is_uses_adp(cr_iscat(3,i))) then
+      adp_used_is(cr_iscat(1,i)) = .TRUE.
+   endif cond_iscat2
+enddo loop_atoms2
+!
+new_adp = cr_nanis + 1
+cond_new: if(any(adp_used_is)) then
+   new_adp = cr_nanis + 1
+else cond_new
+   do i=1, cr_nanis
+      if(is_uses_adp(i)) then
+         new_adp = i
+         exit cond_new
+      endif
+   enddo
+endif cond_new
+call lookup_anis_1(.FALSE., cr_nanis, cr_anis_full, cr_prin, biso , cr_emat, cr_ar, &
+                         ientry, lsuccess)
+!
+deallocate(is_uses_adp)
+deallocate(adp_used_is)
+!
+end subroutine update_biso
+!
+!*******************************************************************************
+!
+subroutine lookup_anis_6_prin(lold, cr_nanis, cr_anis_full, cr_prin, uij_6, prin, ientry, lsuccess)
 !-
 !  Check if Uij are different from any cr_anis_full entry, if so set new entry
 !  Version for Uij in SHELX style, Principal axes are provided
@@ -353,6 +419,7 @@ use precision_mod
 !
 implicit none
 !
+logical                                          , intent(in)    :: lold         ! Try to find old values
 integer                                          , intent(inout) :: cr_nanis
 real(kind=PREC_DP), dimension(:,:)  , allocatable, intent(inout) :: cr_anis_full
 real(kind=PREC_DP), dimension(:,:,:), allocatable, intent(inout) :: cr_prin
@@ -379,14 +446,14 @@ ucij = 0.0_PREC_DP   ! Dummy cartesian matrix
 !
 lcopy = .false.
 !
-call lookup_anis_3x3(cr_nanis, cr_anis_full, cr_prin, uij, ucij, lcopy, ientry, lsuccess)
+call lookup_anis_3x3(lold, cr_nanis, cr_anis_full, cr_prin, uij, ucij, lcopy, ientry, lsuccess)
 cr_prin(:,:,ientry) = prin(:,:)
 !
 end subroutine lookup_anis_6_prin
 !
 !*******************************************************************************
 !
-subroutine lookup_anis_6(cr_nanis, cr_anis_full, cr_prin, uij_6, cr_eimat, cr_ar, &
+subroutine lookup_anis_6(lold, cr_nanis, cr_anis_full, cr_prin, uij_6, cr_eimat, cr_ar, &
            ientry, lsuccess)
 !-
 !  Check if Uij are different from any cr_anis_full entry, if so set new entry
@@ -399,6 +466,7 @@ use precision_mod
 !
 implicit none
 !
+logical                                          , intent(in)    :: lold         ! Try to find old values
 integer                                          , intent(inout) :: cr_nanis
 real(kind=PREC_DP), dimension(:,:)  , allocatable, intent(inout) :: cr_anis_full
 real(kind=PREC_DP), dimension(:,:,:), allocatable, intent(inout) :: cr_prin
@@ -428,13 +496,13 @@ call xx_to_cart(xx, cr_eimat, ucij) ! Transform XX to cartesian basis
 !
 lcopy = .true.
 !
-call lookup_anis_3x3(cr_nanis, cr_anis_full, cr_prin, uij, ucij, lcopy, ientry, lsuccess)
+call lookup_anis_3x3(lold, cr_nanis, cr_anis_full, cr_prin, uij, ucij, lcopy, ientry, lsuccess)
 !
 end subroutine lookup_anis_6
 !
 !*******************************************************************************
 !
-subroutine lookup_anis_1(cr_nanis, cr_anis_full, cr_prin, cr_dw, cr_emat, cr_ar, &
+subroutine lookup_anis_1(lold, cr_nanis, cr_anis_full, cr_prin, cr_dw, cr_emat, cr_ar, &
                          ientry, lsuccess)
 !-
 !  Check if Uij are different from any cr_anis_full entry, if so set new entry
@@ -449,6 +517,7 @@ use wink_mod
 !
 implicit none
 !
+logical                                          , intent(in)    :: lold         ! Try to find old values
 integer                                          , intent(inout) :: cr_nanis
 real(kind=PREC_DP), dimension(:,:)  , allocatable, intent(inout) :: cr_anis_full
 real(kind=PREC_DP), dimension(:,:,:), allocatable, intent(inout) :: cr_prin
@@ -479,13 +548,13 @@ call uij_to_xx(xx, ar_inv, uij)      ! Transform xx tensor into Uij
 !
 lcopy = .true.
 !
-call lookup_anis_3x3(cr_nanis, cr_anis_full,  cr_prin, uij, ucij, lcopy, ientry, lsuccess)
+call lookup_anis_3x3(lold, cr_nanis, cr_anis_full,  cr_prin, uij, ucij, lcopy, ientry, lsuccess)
 !
 end subroutine lookup_anis_1
 !
 !*******************************************************************************
 !
-subroutine lookup_anis_3x3(cr_nanis, cr_anis_full,  cr_prin, uij, ucij, lcopy, ientry, lsuccess)
+subroutine lookup_anis_3x3(lold, cr_nanis, cr_anis_full,  cr_prin, uij, ucij, lcopy, ientry, lsuccess)
 !-
 !  Check if Uij are different from any cr_anis_full entry, if so set new entry
 !  Version for Uij in as 3x3 matrix
@@ -497,6 +566,7 @@ use precision_mod
 !
 implicit none
 !
+logical                                          , intent(in)    :: lold         ! Try to find old values
 integer                                          , intent(inout) :: cr_nanis
 real(kind=PREC_DP), dimension(:,:)  , allocatable, intent(inout) :: cr_anis_full
 real(kind=PREC_DP), dimension(:,:,:), allocatable, intent(inout) :: cr_prin
@@ -515,6 +585,7 @@ integer :: all_status
 ientry = -1
 lsuccess = .FALSE.
 !
+if(lold) then
 loop_nanis: do j=1, cr_nanis
    if(&
      (abs(cr_anis_full(1,j)-uij(1,1))<TOL .and.  &
@@ -536,6 +607,7 @@ loop_nanis: do j=1, cr_nanis
       exit loop_nanis
    endif
 enddo loop_nanis
+endif
 !
 !write(*,*) ' SUCCESS ', lsuccess, cr_nanis, lcopy
 if(ientry==-1) then   ! new entry

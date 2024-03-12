@@ -813,7 +813,7 @@ IF (cr_natoms.lt.NMAX) then
    ENDIF 
    IF (ier_num.eq.0) then 
       if(cr_dw(cr_iscat(1,cr_natoms))>TOL) then
-      call lookup_anis(cr_nanis, cr_anis_full, cr_prin, cr_dw(cr_iscat(1,cr_natoms)), &
+      call lookup_anis(.TRUE., cr_nanis, cr_anis_full, cr_prin, cr_dw(cr_iscat(1,cr_natoms)), &
            cr_emat, cr_ar, i, lsuccess)
       endif
       cr_iscat(3,cr_natoms) = i
