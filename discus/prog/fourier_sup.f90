@@ -49,7 +49,9 @@ logical :: lform        ! Analytic form factors and multiplication is needed
 logical :: is_anis      ! Use anisotropic(=T) or isotropic(=F) ADPs
 integer, dimension(:,:), allocatable :: four_list
 integer :: is_dim
+integer :: is_dim_rec                 ! Reciprocal psace has this dimension
 logical, dimension(3) :: ll_dim
+logical, dimension(3) :: ll_dim_rec   ! This reciprocal dimension is not flat
 !                                                                       
 !ier_num = 0    ! STRANGE BUG on MacAir with M1 chip ??? 2022-May-11
 !                                                                       
@@ -96,6 +98,14 @@ call four_stltab
 !write(*,*) ' OFF  z ', off_shift(:,3)
 !write(*,*) ' inc num', inc, num
 !write(*,*) ' lmn    ', lmn
+is_dim_rec = 0           ! Assume zero dimensional cwreciprocal spacecrystal
+ll_dim_rec = .false.     ! Assume all dimensions to be flat
+do i=1,3
+   if(num(i)>1) then
+      is_dim_rec = is_dim_rec + 1                    ! Found a non-flat dimension
+      ll_dim_rec(i) = .true.                     ! dimension i is non-flat
+   endif
+enddo
 IF (ier_num.ne.0) return 
 !
 if(diff_table==RAD_DISC) then
@@ -256,11 +266,11 @@ IF (nlots.ne.1) then
 ENDIF 
 !
 call four_weight               ! Correct the relative weight of Bragg and diffuse
-call do_four_filter(num, is_dim, four_rscale, four_damp, four_width, &
+call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
                     four_filter, FOUR_FILTER_LANCZOS, dsi)
 call four_conv           ! Convolute diffraction pattern
 if(fave==0.0D0) then
-   call do_four_filter(num, is_dim, four_rscale, four_damp, four_width, &
+   call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
                        four_filter, FOUR_FILTER_LANCZOS, dsi3d)
 endif
 !
@@ -328,10 +338,12 @@ integer               :: ii       ! Dummy index
 integer               :: iscat    ! Dummy scattering type
 integer, dimension(:), allocatable :: nat      ! Atom number
 integer               :: is_dim   ! Crystal is of this dimension
+integer               :: is_dim_rec   ! Diffraction pattern is of this dimension
 integer, dimension(3) :: ncells   ! Number unit cells in relevant region
 integer, dimension(3) :: idims    ! Number of data points in FFT
 integer, dimension(3) :: NQXYZ    ! Actual data points in FFT array
 logical, dimension(3) :: ll_dim   ! This dimension is not flat
+logical, dimension(3) :: ll_dim_rec   ! This reciprocal dimension is not flat
 logical               :: four_is_new  ! The reciprocal space dimensions have changed
 !
 integer              , dimension(3)              :: iscales  ! Scaling if DELTA (hkl) /= 1/cr_icc
@@ -423,6 +435,14 @@ endif
 NQXYZ   = inc
 call four_layer(four_is_new)   ! copy eck, vi
 call fourier_lmn(eck,vi,inc,lmn,off_shift)
+is_dim_rec = 0           ! Assume zero dimensional cwreciprocal spacecrystal
+ll_dim_rec = .false.     ! Assume all dimensions to be flat
+do i=1,3
+   if(num(i)>1) then
+      is_dim_rec = is_dim_rec + 1                    ! Found a non-flat dimension
+      ll_dim_rec(i) = .true.                     ! dimension i is non-flat
+   endif
+enddo
 !
 ! Calculate average structure factor
 !
@@ -613,10 +633,10 @@ do i=1, num(1)
 enddo
 !
 call four_weight               ! Correct the relative weight of Bragg and diffuse
-call do_four_filter(num, is_dim, four_rscale, four_damp, four_width, &
+call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
                     four_filter, FOUR_FILTER_LANCZOS, dsi)
 if(fave==0.0D0) then
-   call do_four_filter(num, is_dim, four_rscale, four_damp, four_width, &
+   call do_four_filter(num, is_dim, is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
                        four_filter, FOUR_FILTER_LANCZOS, dsi3d)
 endif
 !if(four_filter==FOUR_FILTER_LANCZOS) then
@@ -1310,7 +1330,7 @@ endif
 end subroutine four_weight
 !
 !**********************************************************************
-subroutine do_four_filter(num, is_dim, four_rscale, four_damp, four_width, &
+subroutine do_four_filter(num, is_dim,  is_dim_rec, ll_dim_rec, four_rscale, four_damp, four_width, &
            four_filter, FOUR_FILTER_LANCZOS, dsi)
 !-
 ! Perform Lanczos filter procedure on dsi
@@ -1322,6 +1342,8 @@ implicit none
 !
 integer, dimension(3), intent(in) :: num
 integer              , intent(in) :: is_dim
+integer              , intent(in) :: is_dim_rec
+logical, dimensioN(3), intent(in) :: ll_dim_rec
 real(kind=PREC_DP)   , intent(in)  :: four_rscale
 real(kind=PREC_DP)   , intent(in)  :: four_damp
 integer              , intent(in)  :: four_width
@@ -1338,7 +1360,7 @@ real(kind=PREC_DP), dimension(:)    , allocatable :: infield_1d
 real(kind=PREC_DP), dimension(:)    , allocatable ::outfield_1d
 !
 if(four_filter==FOUR_FILTER_LANCZOS) then
-   cond_dim_b: if(is_dim==3) then            ! 3-D crystal 3333333333333333333333333333
+   cond_dim_b: if(is_dim_rec==3) then            ! 3-D crystal 3333333333333333333333333333
       allocate( infield_3d(num(1), num(2), num(3)))
       allocate(outfield_3d(num(1), num(2), num(3)))
 !     ii = 0
@@ -1363,7 +1385,7 @@ if(four_filter==FOUR_FILTER_LANCZOS) then
       enddo
       deallocate( infield_3d)
       deallocate(outfield_3d)
-   elseif(is_dim==2) then  cond_dim_b
+   elseif(is_dim_rec==2) then  cond_dim_b
       allocate( infield_2d(num(1), num(2)))
       allocate(outfield_2d(num(1), num(2)))
 !     ii = 0
@@ -1384,7 +1406,7 @@ if(four_filter==FOUR_FILTER_LANCZOS) then
       enddo
       deallocate( infield_2d)
       deallocate(outfield_2d)
-   elseif(is_dim==1) then  cond_dim_b
+   elseif(is_dim_rec==1) then  cond_dim_b
       allocate( infield_1d(num(1)))
       allocate(outfield_1d(num(1)))
 !     ii = 0
