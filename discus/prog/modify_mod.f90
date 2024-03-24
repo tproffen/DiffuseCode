@@ -815,8 +815,10 @@ IF (cr_natoms.lt.NMAX) then
       if(cr_dw(cr_iscat(1,cr_natoms))>TOL) then
       call lookup_anis(.TRUE., cr_nanis, cr_anis_full, cr_prin, cr_dw(cr_iscat(1,cr_natoms)), &
            cr_emat, cr_ar, i, lsuccess)
+         cr_iscat(3,cr_natoms) = i
+      else
+         cr_iscat(3,cr_natoms) = 1
       endif
-      cr_iscat(3,cr_natoms) = i
       cr_pos (1, cr_natoms) = werte (2) 
       cr_pos (2, cr_natoms) = werte (3) 
       cr_pos (3, cr_natoms) = werte (4) 
