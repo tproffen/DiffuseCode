@@ -948,26 +948,30 @@ ELSEIF (str_comp (cpara(1), 'ka21', 4, lpara(1), 4) ) THEN
 !     set the periodic radius 'period' 
 !                                                                       
 ELSEIF(str_comp(cpara(1), 'period', 4, lpara(1), 6)) THEN 
-            IF(ianz.eq.2) THEN 
-               cpara(1) = '0' 
-               lpara(1) = 1 
-               IF(str_comp(cpara(2), 'off', 3, lpara(2), 3)) THEN
-                  pow_period  = 0.00
-                  pow_lperiod = .FALSE.
-               ELSE
-                  CALL ber_params(ianz, cpara, lpara, werte, maxw) 
-                  IF(ier_num == 0) THEN
-                     pow_period  = werte(2) 
-                     pow_lperiod = .TRUE.
-                  ELSE 
-                     ier_num = -6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
-            ELSE 
-               ier_num = -6 
-               ier_typ = ER_COMM 
-            ENDIF 
+   IF(ianz.eq.2) THEN 
+      cpara(1) = '0' 
+      lpara(1) = 1 
+      IF(str_comp(cpara(2), 'off', 3, lpara(2), 3)) THEN
+         pow_period  = 0.00D0
+         pow_lperiod = .FALSE.
+      ELSE
+         CALL ber_params(ianz, cpara, lpara, werte, maxw) 
+         IF(ier_num == 0) THEN
+            if(werte(2) == 0.0D0) then
+               pow_lperiod = .FALSE.
+            else
+               pow_period  = werte(2) 
+               pow_lperiod = .TRUE.
+            endif
+         ELSE 
+            ier_num = -6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+   ELSE 
+      ier_num = -6 
+      ier_typ = ER_COMM 
+   ENDIF 
 !
 ELSEIF (str_comp (cpara (1) , 'preferred', 2, lpara (1) , 9) ) THEN 
             IF (ianz.ge.2) THEN 
