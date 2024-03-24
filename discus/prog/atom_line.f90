@@ -581,7 +581,8 @@ integer :: is_type
 character(len=4) :: local_name
 character(len=4) :: local_full
 integer :: i   ! Loop index
-integer :: j   ! Loop index
+integer :: j   ! New atom name length
+integer :: k   ! old atom name length
 !
 is_type = -1
 !
@@ -595,6 +596,8 @@ call do_cap(local_name)       ! Capitalized, pure atom name
 call do_cap(local_full)       ! Capitalized, full atom name
 !
 do_search: do i=nscat_start, nscat
+   k = len_trim(at_lis(i))
+   if(at_lis(i)(k:k)=='+' .or. at_lis(i)(k:k)=='-')  k = k - 2 ! Shorten name
    if(mask(4)) then           ! name, charge, Bval and occ are required
       if(at_lis(i)==local_full .and. abs(at_dw(i)-nw_dw)<TOL .and. abs(at_occ(i)-nw_occ)<TOL) then
          is_type = i
@@ -617,7 +620,7 @@ do_search: do i=nscat_start, nscat
          cycle do_search
       endif
    elseif(mask(1)) then       ! name
-      if(at_lis(i)(1:j)==local_name(1:j)) then
+      if(at_lis(i)(1:k)==local_name(1:j)) then
          is_type = i
          nw_name = local_name
          exit do_search
