@@ -954,7 +954,9 @@ REAL(KIND=PREC_DP) :: pow_uuu_sum
 !
 REAL(KIND=PREC_DP)           :: ss       ! time
 !
+if(pow_profile==0) then
 WRITE (output_io, * ) ' Starting convolution'!, pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w
+endif
 ss = seknds (0.0)
 !
 xmin  = 0.0 
@@ -1011,11 +1013,12 @@ IF (pow_four_type.ne.POW_COMPL) THEN
 ELSE
    pow_conv(:) = 2.0D0*(pow_qsp(:))   ! Double precision no longer needed, Correct for half space
 ENDIF 
-!open(77,file='POWDER/prae_conv.FQ',status='unknown')
+!open(77,file='POWDER/prae_conv.inte',status='unknown')
 !DO j=0,npkt
 !  write(77,'(2(2x,G17.7E3))')     xmin+j *xdel, pow_conv(j)
 !enddo
 !close(77)
+if(pow_profile==0) return
 !                                                              
 !- -Does the powder pattern have to be convoluted by a profile function?
 !                                                              
@@ -1045,6 +1048,7 @@ ELSEIF (pow_profile == POW_PROFILE_PSVGT) THEN
       xxmax = xmax + xdel
 !     IF(pow_asym(1,1)/=0.0 .OR. pow_asym(2,1)/=0.0 .OR.                 &
 !        pow_asym(3,1)/=0.0 .OR. pow_asym(3,1)/=0.0            ) THEN       
+   if(pow_u/=0.0 .or. pow_v/=0.0 .or. pow_w/=0.0) then
       if(maxval(pow_asym)>0.0 .or. minval(pow_asym)<0.0) then
          CALL powder_conv_psvgt_uvw_asym(pow_conv, xmin,xxmax, xdel,   &
          pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_asym,  &
@@ -1054,6 +1058,7 @@ ELSEIF (pow_profile == POW_PROFILE_PSVGT) THEN
          pow_eta, pow_eta_l, pow_eta_q, pow_u, pow_v, pow_w, pow_width,  &
          POW_MAXPKT, pow_four_type, pow_axis, rlambda, pow_pr_fwhm)
       ENDIF
+   endif
 !   ELSE 
 !write(*,*) ' powder_conv_psvgt_fix'
 !      xxmax = xmax + xdel
