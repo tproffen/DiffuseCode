@@ -11,7 +11,8 @@ link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 link_directories(${DIFFUSE_BINARY_DIR}/discus/prog)
 link_directories(${DIFFUSE_BINARY_DIR}/kuplot/prog)
 
-set (SOURCES_ALL  experi_kdo.f90 experi_loop.f90 experi_setup.f90 experi_setup_sub.f90
+set (SOURCES_ALL  experi_kdo.f90 experi_loop.f90 experi_reset.f90
+                  experi_setup.f90 experi_setup_sub.f90
     )
 
 set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
