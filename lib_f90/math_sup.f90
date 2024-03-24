@@ -342,6 +342,7 @@ real(kind=PREC_DP) :: det                      ! a determinant
 real(kind=PREC_DP), dimension(3) :: length     ! a vector length
 real(kind=PREC_DP) :: cphi                     ! cos(phi) length
 real(kind=PREC_DP) :: sphi                     ! sin(phi) length
+real(kind=PREC_DP) :: scalef                   ! Scalefactor for small values matrix
 real(kind=PREC_QP),parameter :: big=10000000.0_PREC_QP
 data imat / 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0/
 !
@@ -355,6 +356,11 @@ one_mat(1,1) = 1.0D0
 one_mat(2,2) = 1.0D0
 one_mat(3,3) = 1.0D0
 !
+scalef = 1.0_PREC_DP
+if(maxval(abs(a))<0.001_PREC_DP) then ! .and. minval(abs(a))>0.0000001_PREC_DP) then
+   scalef=1000.0_PREC_DP
+   a = a*scalef
+endif
 det = det3(a)
 if(abs(det)<TOL) then        ! Determinant(A) is zero
    ier_num = -4 
@@ -405,6 +411,8 @@ endif
 eigen(1) = m + 2.0D0*sqrt(p) * dcos(phi)
 eigen(2) = m - sqrt(p)*(cphi + sqrt(3.0D0)*sphi)
 eigen(3) = m - sqrt(p)*(cphi - sqrt(3.0D0)*sphi)
+eigen = eigen/scalef
+a = a/scalef
 eigen_val = eigen
 !write(*,*) ' eigen    ', eigen
 !
