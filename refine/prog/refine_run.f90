@@ -350,6 +350,7 @@ initial: IF(inx==1 .AND. iny==1 .and. inz==1) THEN   ! Initial point, call user 
             ELSEIF(p_nderiv(k)==5) THEN     ! Five point derivative
                dvec(-2) = p(k) - 2.0D0*delta
                dvec(-1) = p(k) - 1.0D0*delta
+               dvec( 0) = p(k)
                dvec( 1) = p(k) + 1.0D0*delta
                dvec( 2) = p(k) + 2.0D0*delta
                lvec(-2) = .TRUE.
@@ -480,6 +481,7 @@ initial: IF(inx==1 .AND. iny==1 .and. inz==1) THEN   ! Initial point, call user 
 !
 !        ENDIF
 !        ENDIF
+call refine_rvalue_tttt(data_dim, refine_tttt, dvec)
          CALL refine_set_param(NPARA, par_names(k), k, p(k))  ! Return to original value
 !
          IF(nder==5) THEN             ! Got all five  points for derivative
@@ -1439,6 +1441,79 @@ ELSE
 ENDIF
 !
 END SUBROUTINE refine_rvalue
+!
+!*******************************************************************************
+!
+SUBROUTINE refine_rvalue_tttt(dims, refine_tttt, dvec)
+!
+USE refine_data_mod
+!
+use lib_data_types_mod
+use precision_mod
+!
+IMPLICIT NONE
+!
+integer, dimension(3), intent(in) :: dims
+real(kind=prec_DP), dimension(dims(1), dims(2), dims(3),-2:2), intent(in) :: refine_tttt
+real(kind=prec_DP), dimension(                          -2:2), intent(in) :: dvec
+REAL(kind=PREC_DP)                 :: rval
+REAL(kind=PREC_DP)                 :: rexp
+!INTEGER              , INTENT(IN)  :: npar
+!
+integer :: j
+INTEGER :: iix, iiy, iiz
+REAL(kind=PREC_DP) :: sumz
+REAL(kind=PREC_DP) :: sumn
+REAL(kind=PREC_DP) :: wght
+!
+sumz = 0.0
+sumn = 0.0
+!write(*,*) ' DATA_TYPE ', ref_type
+!write(*,*) ' BOUND DAT ', lbound(ref_data), ubound(ref_data)
+!write(*,*) ' BOUND CAL ', lbound(refine_calc), ubound(refine_calc)
+!write(*,*) ' X         ', ref_x(1), ref_x(ref_dim(1))
+!write(*,*) ' y         ', ref_y(1), ref_y(ref_dim(2))
+!write(*,*) ' z         ', ref_z(1), ref_z(ref_dim(3))
+!write(*,*) ' VALS        ', minval(ref_data), maxval(ref_data)
+!write(*,*) ' CALC        ', minval(refine_calc), maxval(refine_calc)
+!write(*,*) ' SIGMAS      ', minval(ref_sigma), maxval(ref_sigma)
+!cond_type: if(ref_type==H5_BRAGG_I) then      ! Rvalue for Bragg reflection list
+!
+!  call refine_rvalue_hkl(sumz, sumn)
+!
+!else cond_type                     ! All other data sets
+!
+!
+do j=-2, 2
+DO iiz = 1, ref_dim(3)
+DO iiy = 1, ref_dim(2)
+   DO iix = 1, ref_dim(1)
+      IF(ref_sigma(iix,iiy,iiz)> 0.0) THEN
+         wght = 1./(ref_sigma(iix,iiy,iiz))**2
+      ELSE
+         wght = 1.0
+      ENDIF
+if(j==0) then
+      sumz = sumz + wght*(ref_data(iix,iiy, iiz)-refine_calc(iix,iiy, iiz))**2
+else
+      sumz = sumz + wght*(ref_data(iix,iiy, iiz)-refine_tttt(iix,iiy, iiz,j))**2
+endif
+      sumn = sumn + wght*(ref_data(iix,iiy, iiz)                     )**2
+   ENDDO
+ENDDO
+ENDDO
+!endif cond_type
+IF(sumn/=0.0) THEN
+   rval = SQRT(sumz/sumn)
+!  rexp = SQRT((ref_dim(1)*ref_dim(2)*ref_dim(3)-npar)/sumn)
+ELSE
+   rval = -1.0
+   rexp = -1.0
+ENDIF
+!write(*,'(a, i3, 2f15.6)') 'RVALUE AT DERIV ', j, rval, dvec(j)
+enddo
+!
+END SUBROUTINE refine_rvalue_tttt
 !
 !*******************************************************************************
 !
