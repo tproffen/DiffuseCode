@@ -120,6 +120,8 @@ USE str_comp_mod
                CALL dealloc_save    
             ELSE IF (str_comp (cpara (1) , 'shear'     , 3, lpara (1) , 5) )  THEN
                CALL dealloc_shear
+            ELSE IF (str_comp (cpara (1) , 'super'     , 3, lpara (1) , 5) )  THEN
+               CALL dealloc_super
             ELSE IF (str_comp (cpara (1) , 'surface'   , 3, lpara (1) , 7) )  THEN
                CALL dealloc_surf
             ELSE IF (str_comp (cpara (1) , 'symmetry'  , 3, lpara (1) , 8) )  THEN
@@ -292,6 +294,7 @@ USE str_comp_mod
       CALL alloc_stack_four(n_qxy )
       CALL alloc_stack_crystal    ( 1,  1        )
       CALL alloc_surf     ( MAXSCAT      )
+      CALL alloc_super    ( MAXSCAT      )
       CALL alloc_symmetry ( 1,  1        )
       CALL alloc_transfrm ( 1,  1        )
       CALL alloc_waves    ( 1,  1        )
@@ -3377,6 +3380,32 @@ END SUBROUTINE alloc_powder_nmax
       END IF
     END SUBROUTINE alloc_stack_crystal
 !
+!*******************************************************************************
+!
+subroutine alloc_super(n_site )
+!-
+!  Allocate super space
+!+
+use superspace_mod
+!
+implicit none
+!
+integer, intent(in) :: n_site
+!
+integer             :: all_status
+!
+call alloc_arr(sup_atom,       1, n_site, all_status, ' '   )
+call alloc_arr(sup_repl,       1, n_site, all_status, 'VOID')
+call alloc_arr(sup_irepl,      1, n_site, all_status, 0     )
+call alloc_arr(sup_char,       1, n_site, all_status, 0     )
+call alloc_arr(sup_func,       1, n_site, all_status, 0     )
+call alloc_arr(sup_ampl, 1, 4, 1, n_site, all_status, 0.0D0)
+call alloc_arr(sup_phase,      1, n_site, all_status, 0.0D0)
+call alloc_arr(sup_prob, 1, 3, 1, n_site, all_status, 0.0D0)
+!
+end subroutine alloc_super
+!
+!*******************************************************************************
 !
     SUBROUTINE alloc_surf ( n_scat )
 !-
@@ -3769,6 +3798,22 @@ END SUBROUTINE dealloc_phases
       CALL alloc_stack_crystal ( 1,  1        )
 !
     END SUBROUTINE dealloc_stack
+!
+!*******************************************************************************
+!
+SUBROUTINE dealloc_super
+!-
+!     Deallocate the arrays for SUPER SPACE
+!     To avoid possible pitfals with old code, the arrays are simply
+!     reallocated to a size of 1.
+!+
+      IMPLICIT NONE
+!
+      CALL alloc_super ( 1 )
+!
+END SUBROUTINE dealloc_super
+!
+!*******************************************************************************
 !
     SUBROUTINE dealloc_surf
 !-

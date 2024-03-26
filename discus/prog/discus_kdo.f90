@@ -42,6 +42,7 @@ USE prop_para_func
 USE rmc_menu
 USE save_menu
 USE discus_show_menu
+use superspace_func_mod
 USE stack_menu
 USE symm_menu
 USE shear
@@ -447,6 +448,11 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )       &
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'surface', 2, lbef, 8) ) THEN 
             CALL surface_menu 
+!
+!     Go to superspace menu
+!
+         elseif((linteractive.OR.lblock.OR.lmakro) .and. str_comp(befehl, 'super', 3, lbef, 5)) then
+            call super_menu
 !                                                                       
 !     switch two atoms 'swit'                                           
 !                                                                       
