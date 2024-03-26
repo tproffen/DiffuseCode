@@ -16,6 +16,7 @@ SUBROUTINE get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
 !  (Al, Be, Cs)
 !+                                                                      
 USE discus_config_mod 
+use discus_allocate_appl_mod
 USE crystal_mod 
 !
 USE charact_mod
@@ -43,6 +44,7 @@ INTEGER :: omask
 !                                                                       
 INTEGER :: length
 INTEGER :: ianz1
+integer :: nscat   ! Dummy number of scatterers
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAXW) :: cpara1(maxw) 
 INTEGER                   , DIMENSION(MAXW) :: lpara1(maxw) 
 !
@@ -113,10 +115,14 @@ DO WHILE(j <= ianz.AND.ier_num == 0)
       ENDDO place
       IF(lnew) THEN 
          IF(j >  1) THEN 
+            if(cr_nscat==ubound(cr_at_lis,1)) then   ! Allocate more atoms
+               nscat = cr_nscat + 1
+               call alloc_crystal_scat(nscat)
+            endif
             IF(cr_nscat < MAXSCAT) THEN 
                cr_nscat = cr_nscat + 1 
                cr_at_lis(cr_nscat) = cpara(j) 
-               cr_dw(cr_nscat) = 0.0 
+               cr_dw(cr_nscat) = cr_dw(1)
                werte(jj) = cr_nscat 
                ier_num = 0 
                ier_typ = ER_NONE 
