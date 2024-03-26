@@ -52,6 +52,7 @@ integer :: itype    ! Loop index atom types
 integer :: iatom    ! Loop index atoms
 integer :: iref     ! Reference atom, symmetrically equivalent atoms take this atom as model
 integer :: j, l     ! Dummy loop indices
+integer :: ncheck   ! Number of atoms to check
 logical :: lold        ! RLookup previous ADPs
 logical :: lanis       ! This atom has anisotropic ADP
 logical :: lsuccess    ! Success in subroutines
@@ -117,7 +118,8 @@ enddo
 ! Step 1:  Determine Eigenvalues and Eigenvectors 
 ss = seknds (0.0)
 zeit = 0.0D0
-loop_atoms:do iatom=1,natom 
+ncheck = min(5*cr_ncatoms, natom)
+loop_atoms:do iatom=1,ncheck 
 !ss = seknds (ss )
    j = 0
    lsuccess= .false.
