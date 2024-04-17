@@ -2774,6 +2774,7 @@ INTEGER            :: ih_max,ik_max,il_max
 INTEGER            :: n_refl
 INTEGER            :: startline
 INTEGER            :: j
+integer :: iii
 INTEGER            :: nentries
 INTEGER            :: length, ianz
 INTEGER            ::   j_h      = 0
@@ -2963,6 +2964,11 @@ if(ier_num/=0) return
       hh = ih - ih_min + 1
       kk = ik - ik_min + 1
       ll = il - il_min + 1
+      IF(hh==0 .AND. kk==0 .AND. ll==0) THEN
+         WRITE(iwr,1000) hh,kk,ll, 0.00_PREC_DP, 0.00_PREC_DP
+      elseIF(ih==0 .AND. ik==0 .AND. il==0) THEN
+         WRITE(iwr,1000) ih,ik,il, 0.00_PREC_DP, 0.00_PREC_DP
+      ELSE
 !     indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1       
       qq   = sqrt(REAL(csf(hh,kk,ll)*CONJG(csf(hh,kk,ll)),KIND=KIND(0.0D0))) &  ! Amplitude
                  / cr_icc(1) / cr_icc(2) / cr_icc(3)
@@ -2970,9 +2976,6 @@ if(ier_num/=0) return
                          sind(2.0*asind(0.5_PREC_DP*rlambda*do_blen(.false., values(1:3), NULLV))))**0.25_PREC_DP)
       qq = (qq * ext_cor)**2 * scale
       sint = SQRT(ABS(qq))
-      IF(hh==0 .AND. kk==0 .AND. ll==0) THEN
-         WRITE(iwr,1000) hh,kk,ll, 0.00_PREC_DP, 0.00_PREC_DP
-      ELSE
          IF(style==HKLF4) THEN
            WRITE(iwr,1000) ih,ik,il, qq, sint
          ELSEIF(style==CIF) THEN
