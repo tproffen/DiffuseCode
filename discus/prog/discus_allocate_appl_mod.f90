@@ -3394,14 +3394,14 @@ integer, intent(in) :: n_site
 !
 integer             :: all_status
 !
-call alloc_arr(sup_atom,       1, n_site, all_status, ' '   )
-call alloc_arr(sup_repl,       1, n_site, all_status, 'VOID')
-call alloc_arr(sup_irepl,      1, n_site, all_status, 0     )
-call alloc_arr(sup_char,       1, n_site, all_status, 0     )
-call alloc_arr(sup_func,       1, n_site, all_status, 0     )
-call alloc_arr(sup_ampl, 1, 4, 1, n_site, all_status, 0.0D0)
-call alloc_arr(sup_phase,      1, n_site, all_status, 0.0D0)
-call alloc_arr(sup_prob, 1, 3, 1, n_site, all_status, 0.0D0)
+call alloc_arr(sup_atom, 1, 2,      1, n_site, all_status, ' '   )
+call alloc_arr(sup_repl,            1, n_site, all_status, 'VOID')
+call alloc_arr(sup_irepl,           1, n_site, all_status, 0     )
+call alloc_arr(sup_char,            1, n_site, all_status, 0     )
+call alloc_arr(sup_func,            1, n_site, all_status, 0     )
+call alloc_arr(sup_ampl, 1, 4, 1,3, 1, n_site, all_status, 0.0D0)
+call alloc_arr(sup_phase,      1,3, 1, n_site, all_status, 0.0D0)
+call alloc_arr(sup_prob, 1, 3,      1, n_site, all_status, 0.0D0)
 !
 end subroutine alloc_super
 !
