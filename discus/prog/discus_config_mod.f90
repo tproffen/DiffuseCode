@@ -24,7 +24,7 @@ SAVE
 !
 !
 INTEGER, dimension(3) ::   MAXQXY
-      INTEGER, PARAMETER  ::   CFPKT  = 4999
+      INTEGER, PARAMETER  ::   CFPKT  = 9999
       REAL(KIND=KIND(0.0D0)), PARAMETER  ::   CFINC  =    0.001D0
 !
 !#######################################################################
