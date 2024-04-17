@@ -108,6 +108,8 @@ IF(ianz==1) THEN
       ENDIF
       refine_fix_n = refine_fix_n + 1
       refine_fixed(refine_fix_n)   = refine_params(i)
+      refine_nderiv_fix(refine_fix_n)  = refine_nderiv(i)
+      refine_shift_fix(refine_fix_n)  = refine_shift(i)
    ENDIF
 !
          DO j=i+1, refine_par_n

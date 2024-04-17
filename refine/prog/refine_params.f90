@@ -30,7 +30,9 @@ REAL(kind=PREC_DP),DIMENSION(:,:), ALLOCATABLE :: refine_cl           ! Correlat
 REAL(kind=PREC_DP),DIMENSION(:,:), ALLOCATABLE :: refine_alpha        ! temporary Correlation matrix
 REAL(kind=PREC_DP),DIMENSION(:  ), ALLOCATABLE :: refine_beta         ! temporary parameter shift
 REAL(kind=PREC_DP),DIMENSION(:)  , ALLOCATABLE :: refine_shift        ! P*shift gives shift to calc derivative
+REAL(kind=PREC_DP),DIMENSION(:)  , ALLOCATABLE :: refine_shift_fix    ! P*shift gives shift to calc derivative, fixed param
 INTEGER          , DIMENSION(:)  , ALLOCATABLE :: refine_nderiv       ! Number of p+n*DELTA to calc derivative
+INTEGER          , DIMENSION(:)  , ALLOCATABLE :: refine_nderiv_fix   ! Number of p+n*DELTA to calc derivative, fixed param
 INTEGER          , DIMENSION(:)  , ALLOCATABLE :: refine_kderiv       ! KUPLOT data set that has derivative
 !
 data refine_spc_name  /   &

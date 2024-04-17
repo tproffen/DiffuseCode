@@ -135,11 +135,13 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
            ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
    cond_data3: if(LDATA) then                      ! This is the data set
 !
+!write(*,*) ' LOADED DATA ', ik1_data_type==H5_BRAGG_I
       if(ik1_data_type==H5_BRAGG_I) then
 !
          ref_dim(1) = 2*(max(abs(nint(ik1_x(1))),abs(nint(ik1_x(ik1_dims(1)))))) + 1
          ref_dim(2) = 2*(max(abs(nint(ik1_y(1))),abs(nint(ik1_y(ik1_dims(2)))))) + 1
          ref_dim(3) = 2*(max(abs(nint(ik1_z(1))),abs(nint(ik1_z(ik1_dims(3)))))) + 1
+         ref_dim    = ik1_dims
          ALLOCATE(ref_data  (ref_dim(1),ref_dim(2),ref_dim(3)))
          ALLOCATE(ref_sigma (ref_dim(1),ref_dim(2),ref_dim(3)))
          ALLOCATE(ref_x     (ref_dim(1)))
@@ -153,20 +155,25 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
          i2 = i1 + ik1_dims(1) - 1
          j2 = j1 + ik1_dims(2) - 1
          k2 = k1 + ik1_dims(3) - 1
-         ref_data (i1:i2, j1:j2, k1:k2) = ik1_data
-         ref_sigma(i1:i2, j1:j2, k1:k2) = ik1_sigma
+!        ref_data (i1:i2, j1:j2, k1:k2) = ik1_data
+!        ref_sigma(i1:i2, j1:j2, k1:k2) = ik1_sigma
+         ref_data                       = ik1_data
+         ref_sigma                      = ik1_sigma
          where(ref_sigma<=0.0D0) 
             ref_sigma = 9D19
          end where
-         do iix=1,ref_dim(1)
-            ref_x(iix) = -(ref_dim(1)-1)/2 + iix - 1
-         enddo
-         do iix=1,ref_dim(2)
-            ref_y(iix) = -(ref_dim(2)-1)/2 + iix - 1
-         enddo
-         do iix=1,ref_dim(3)
-            ref_z(iix) = -(ref_dim(3)-1)/2 + iix - 1
-         enddo
+!        do iix=1,ref_dim(1)
+!           ref_x(iix) = -(ref_dim(1)-1)/2 + iix - 1
+!        enddo
+!        do iix=1,ref_dim(2)
+!           ref_y(iix) = -(ref_dim(2)-1)/2 + iix - 1
+!        enddo
+!        do iix=1,ref_dim(3)
+!           ref_z(iix) = -(ref_dim(3)-1)/2 + iix - 1
+!        enddo
+         ref_x = ik1_x
+         ref_y = ik1_y
+         ref_z = ik1_z
 !
       else
 !
@@ -224,6 +231,13 @@ IF(ku_ndims(ndata)==3) THEN             ! 3D data set
       if(ier_num/=0) return
 !
    endif cond_data3
+!write(*,*) ' REF_DIM ', ref_dim
+!write(*,*) ' bound x ', lbound(ref_x), ubound(ref_x)
+!write(*,*) ' bound y ', lbound(ref_y), ubound(ref_y)
+!write(*,*) ' bound z ', lbound(ref_z), ubound(ref_z)
+!write(*,*) ' X       ', ref_x(lbound(ref_x)), ref_x(ubound(ref_x))
+!write(*,*) ' Y       ', ref_y(lbound(ref_y)), ref_y(ubound(ref_y))
+!write(*,*) ' Z       ', ref_z(lbound(ref_z)), ref_z(ubound(ref_z))
 !
 elseif(ku_ndims(ndata)==2) THEN         ! 2D data set
    IF(LDATA) THEN                      ! This is the data set

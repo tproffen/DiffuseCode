@@ -825,11 +825,16 @@ ndata = iz-1                           ! Always last data set in KUPLOT
 if(ku_ndims(ndata)==3) then            ! 3D data set
    continue
 !
+!write(*,*) ' DIMEN', dimen
    call data2local(ndata   , ier_num, ier_typ, ik1_node_number, ik1_infile, ik1_data_type,    &
         ik1_nlayer, ik1_is_direct, ik1_ndims, ik1_dims, ik1_is_grid,            &
         ik1_has_dxyz, ik1_has_dval, ik1_calc_coor, ik1_use_coor, ik1_corners, ik1_vectors, ik1_a0, ik1_win,  &
         ik1_x, ik1_y, ik1_z, ik1_dx, ik1_dy, ik1_dz, ik1_data, ik1_sigma,       &
         ik1_llims, ik1_steps,  ik1_steps_full, ik1_minmaxval, ik1_minmaxcoor)
+!write(*,*) ' IK1_DIM ', ik1_dims
+!write(*,*) ' ik1_x   ', ik1_x(lbound(ik1_x)), ik1_x(ubound(ik1_x))
+!write(*,*) ' ik1_y   ', ik1_y(lbound(ik1_y)), ik1_y(ubound(ik1_y))
+!write(*,*) ' ik1_z   ', ik1_z(lbound(ik1_z)), ik1_z(ubound(ik1_z))
    array = ik1_data
    deallocate(ik1_data)
    if(allocated(ik1_sigma)) deallocate(ik1_sigma)
@@ -1742,7 +1747,7 @@ ianz = refine_fix_n
 CALL ber_params(ianz, cpara, lpara, werte, MAXW)
 DO i=1, refine_fix_n            ! Make sure each parameter is defined as a variable
    WRITE(IWR,'(3a,G20.8E3,(a,i1),(a,g15.8e3),a)') 'newpara ', refine_fixed(i)(1:len_trim(refine_fixed(i))), ' , value:', werte(i),  &
-   ' , points:', refine_nderiv(i), ' , shift:',abs(refine_shift(i)), ' , status:fixed'
+   ' , points:', refine_nderiv_fix(i), ' , shift:',abs(refine_shift_fix(i)), ' , status:fixed'
 ENDDO
 !
 write(IWR, '(a)') '#'
