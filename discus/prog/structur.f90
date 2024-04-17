@@ -3605,9 +3605,10 @@ allocate(content(lcontent))
 j = 0
 loop_read: do
    read(IRD, '(a)', iostat=ios) line1      ! Read a short line
-   if(is_iostat_end(ios)) exit loop_read
-   if(line==' ')  cycle loop_read          ! Empty line, skip
-   if(line(1:3) == 'REM') cycle loop_read  ! Remark == comment, ignore
+   if(is_iostat_end(ios))  exit loop_read
+   if(line1==' ')          cycle loop_read  ! Empty line, skip
+   if(line1(1:4) == ' ')   cycle loop_read  ! Empty line, skip
+   if(line1(1:3) == 'REM') cycle loop_read  ! Remark == comment, ignore
    icont = index (line1, '=')
    if(icont>0) then
       read(IRD, '(a)', iostat=ios) line2   ! Read a short line
