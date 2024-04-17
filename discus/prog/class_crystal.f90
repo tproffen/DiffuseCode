@@ -146,6 +146,7 @@ CONTAINS
    PROCEDURE, PUBLIC, PASS :: get_spc_n            ! Return space group name         in this crystal
    PROCEDURE, PUBLIC, PASS :: set_cryst_atom       ! Set iscat, posit, property
    PROCEDURE, PUBLIC, PASS :: set_cryst_at_lis     ! Set cr_at_lis
+   PROCEDURE, PUBLIC, PASS :: get_cryst_at_lis     ! Get cr_at_lis
    PROCEDURE, PUBLIC, PASS :: set_cryst_dw         ! Set cr_dw
    PROCEDURE, PUBLIC, PASS :: get_cryst_tran_f     ! Get transformation matrix
    PROCEDURE, PUBLIC, PASS :: get_cryst_atom       ! Get iscat, posit, property
@@ -528,6 +529,32 @@ if(inum<=ubound(this%cr_at_lis,1)) then
 endif
 !
    END SUBROUTINE set_cryst_at_lis 
+!******************************************************************************
+!
+SUBROUTINE get_cryst_at_lis ( this, MAXSCAT, cr_at_lis)
+!
+!  Set the atom name array for "this" crystal
+!
+IMPLICIT none
+!
+CLASS (cl_cryst)                 :: this
+INTEGER,                                INTENT(IN) :: MAXSCAT
+CHARACTER (LEN=4),DIMENSION(0:MAXSCAT), INTENT(out) :: cr_at_lis
+!
+INTEGER :: i
+!
+if(MAXSCAT<=ubound(this%cr_at_lis,1)) then
+   DO i=0, MAXSCAT
+      cr_at_lis(i) = this%cr_at_lis(i)
+   ENDDO
+!else
+!  write(*,*) ' ERROR set_cryst_at_lis'
+!  write(*,*) ' ERROR INUM > DIM_NSCAT', MAXSCAT, inum, ubound(this%cr_at_lis,1), this%dim_nscat
+!  stop
+endif
+!
+END SUBROUTINE get_cryst_at_lis 
+!
 !******************************************************************************
    SUBROUTINE set_cryst_dw ( this, MAXSCAT, inum, cr_dw)
 !
