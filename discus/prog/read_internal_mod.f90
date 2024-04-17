@@ -678,6 +678,33 @@ end subroutine stru_get_anis
 !
 !*******************************************************************************
 !
+subroutine stru_get_atlis(rd_strucfile, rd_nscat, rd_at_lis)
+!-
+!  Get the list of atom names
+!+
+use errlist_mod
+use precision_mod
+!
+implicit none
+!
+character(len=*)                       , intent(in)  :: rd_strucfile
+integer                                , intent(in)  :: rd_nscat
+character(len=4), dimension(0:rd_nscat), intent(out) :: rd_at_lis
+!
+nullify(read_from)
+nullify(read_parent)
+call store_find_node(store_root, read_from, rd_strucfile, read_temp, read_parent, ier_num ) ! Find the proper node
+if(ier_num /= 0) THEN
+   ier_typ = ER_APPL
+   return
+endif
+!
+call read_temp%crystal%get_cryst_at_lis(rd_nscat, rd_at_lis)
+!
+end subroutine stru_get_atlis
+!
+!*******************************************************************************
+!
    SUBROUTINE struc_read_atoms_internal(strucfile, RD_NMAX, &
               rd_cr_natoms, rd_cr_pos, rd_cr_iscat, rd_cr_prop, &
               rd_cr_surf, rd_cr_magn, rd_cr_mole )
