@@ -553,6 +553,8 @@ if(pow_lperiod .and. value==VAL_PDF) then
 endif
                if(cpow_form == 'tof') then
                   call powder_out_tof(value, .false.)
+               elseif(cpow_form == 'r') then
+                  call powder_out_pdf(value, .false.)
                else
                   CALL powder_out (value, .false.)
                endif
