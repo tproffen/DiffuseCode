@@ -329,7 +329,9 @@ else
 endif
 pow_qmax = pow_qmax + min(5.0D0,2.0D0*pow_width*fwhm + 2*abs(pow_qzero))
 !write(*,*) ' POWDER_RUN ', pdf_clin_a, pdf_cquad_a, pow_qmax
-if(pdf_clin_a>0.0D0 .or. pdf_cquad_a>0.0D0) pow_qmax = pow_qmax*2.0
+if(pdf_clin_a>0.0D0 .or. pdf_cquad_a>0.0D0)  then
+   pow_qmax = pow_qmax*2.0
+endif
 !write(*,*) ' POWDER_RUN ', pdf_clin_a, pdf_cquad_a, pow_qmax
 pow_qmax = min(pow_qmax, 2.*zpi/rlambda-0.0001)
 !write(*,*) ' POWDER_RUN ', pdf_clin_a, pdf_cquad_a, pow_qmax
@@ -410,6 +412,7 @@ USE discus_config_mod
 USE crystal_mod 
 USE diffuse_mod 
 USE metric_mod
+use pdf_mod
 USE powder_mod 
 USE trig_degree_mod
 USE wink_mod
@@ -612,6 +615,7 @@ CALL pow_conv_limits
             WRITE(output_io,'(A)' ) '   Create finite   powder/PDF '
          ENDIF 
       ENDIF 
+      write(output_io, 1470) pdf_clin_a, pdf_cquad_a, pdf_rcut
       IF (pow_lp.eq.POW_LP_NONE) THEN 
          WRITE (output_io, 1500) 
       ELSEIF (pow_lp.eq.POW_LP_BRAGG) THEN 
@@ -666,6 +670,8 @@ endif
  1450 FORMAT    ( '       Bragg Reflections   : ','included') 
  1455 FORMAT    ( '       Bragg Reflections   : ','excluded') 
  1460 FORMAT    ( '   Radius for periodicity  : ', F10.5, 'A')
+ 1470 format    ( '   PDF corrlin corrquad    : ', 2f10.5,/             &
+                  '       Minimum distance    : ', f10.5, 'A' )
  1500 FORMAT    ( '   Powder diffractometer   : ','none specified',     &
      &                   ' no Lorentz/Polarisation effect calculated')  
  1510 FORMAT    ( '   Powder diffractometer   : ','Bragg-Brentano',/    &

@@ -156,7 +156,7 @@ INTEGER :: max_ps
 imax = INT( (tthmax - tthmin) / dtth )
 !write(*,*) 'CONV ', tthmin, tthmax, dtth, imax
 sigmasq = sigma2!*SQRT(eightln2)
-sigmamin = sigmasq * 0.20D0
+sigmamin = sigmasq * 0.10D0
 !sigmamin = sigmasq * 0.050D0
 sigmaminsq = sqrt(sigmamin)
 dist_min = REAL(rcut, KIND=PREC_DP)
@@ -178,15 +178,21 @@ dummy = 0.0   ! dummy(:)
 !tth = 10.000
 !fwhm = SQRT(MAX(sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin))
 !write(*,7777) ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/(tth-dist_min) - corrquad/(tth-dist_min)**2, sigmamin
+!write(*,'(4f10.5)') sigmasq, sigmamin, sqrt(sigmasq*sqrt(eightln2)), sqrt(sigmamin*sqrt(eightln2)) 
+!write(*,'(4f10.5)') corrlin, corrquad
+
 !tth = 2.320
-!fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, 0.00001))
-!write(*,*) ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/tth - corrquad/tth**2
+!fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, sigmamin))
+!write(*,'(a, 4f10.5)') ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/tth - corrquad/tth**2
 !tth = 4.8000
-!fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, 0.00001))
-!write(*,*) ' FWHM 2.500 ',tth, fwhm 
+!fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, sigmamin))
+!write(*,'(a, 4f10.5)') ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/tth - corrquad/tth**2
+!tth = 10.000
+!fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, sigmamin))
+!write(*,'(a, 4f10.5)') ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/tth - corrquad/tth**2
 !tth = tthmax
-!fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, 0.00001))
-!write(*,*) ' FWHM FINAL ',tth, fwhm 
+!fwhm = SQRT(MAX(sigmasq - corrlin/tth - corrquad/tth**2, sigmamin))
+!write(*,'(a, 4f10.5)') ' FWHM ',tth, fwhm , sigmasq, sigmasq - corrlin/tth - corrquad/tth**2
 !open(45,file='POWDER/new.pdf', status='unknown')
 !write(*,*) ' DISTMIN ', dist_min, tthmin, dtth
 !open(45,file='POWDER/fwhm.pdf', status='unknown')
@@ -203,8 +209,11 @@ main_pts: DO i = 0, imax
    fwhm = SQRT(MAX((sigmasq - corrlin/(tth-dist_min) -corrquad/(tth-dist_min)**2)*sqrt(eightln2), sigmamin))
 !
 !if(abs(tth-2.2)<0.005) then
-!  write(*,*) ' TTH FWHM ', tth-dist_min, corrquad/(tth-dist_min), fwhm, sqrt(sigmasq)
-!read(*,*) max_ps
+!if( abs(tth-nint(tth))<0.005 .and. tth < 30.) then
+!  write(*,'(a,7f10.5)') ' TTH FWHM ', tth, tth-dist_min, sigmasq, corrquad/(tth-dist_min), &
+!  corrlin/(tth-dist_min), &
+!  fwhm, sqrt(sigmasq*sqrt(eightln2))
+!!read(*,*) max_ps
 !endif
 !
    max_ps = max(21,INT((pow_width * fwhm) / dtth ))
