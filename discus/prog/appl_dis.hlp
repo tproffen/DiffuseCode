@@ -21,7 +21,6 @@
 2  Summary
 
 !p News       ! Summary of recent changes
-!p addf       ! Add two files together
 !p append     ! Append atom to model crystal
 !p asym       ! Show the contents of the asymmetric unit
 !p boundary   ! Cuts off atoms along an hkl plane
@@ -1584,23 +1583,6 @@
 !p   5.0 5.0 5.0 90. 90. 90.
 !p NA1+  0.0 0.0 0.0 0.1
 
-2  addf
-!p addf <resultfile> , <inputfile1> , <scale> , <inputfile2> [, <type>]
-
-   Adds two files. The intensity of the second inputfile is multiplied
-   by the scale and added to the intensity read from inputfile 1.
-   Optionally the type of the input files can be given. It defaults
-   to "ni" for files in the standard format. The <type> should be "gnu" for
-   gnuplot files and "1d" for one-dimensional files.
-
-   For standard files, the respective headers are compared for consistency.
-   for gnuplot and one dimensional files the h,k,l are compared line by
-   line. If an error is detected, the procedure stops. Thus it is possible
-   for the result files to be incomplete. They are not deleted to allow
-   comparison with the input files.
-
-   Any one of the two input files may be identical to the result file,
-   while the two input files must be different files.
 2  append
 !p appe <name>, <x>,<y>,<z> ,<t>, <na>,<ne>, <delx> [,<dely> [,<delz>]]
 !p appe <name>, <x>,<y>,<z> ,<t>, <na>,<ne>, -<bondlength>
@@ -1642,6 +1624,33 @@
    atoms are not affected. Since i[0] remains fixed within the loop,
    each new Al atom affects all Al atoms previously inserted within
    this loop.
+2  anis
+!p anis type:<number>, values:[<U11>,<U22>,<U33>,<U32>,<U31>,<U21>]
+!p anis type:<number>, values:[<Uiso]
+!p anis type:<number>, prin:[<u>, <v>, <w>, <value>]
+!p anis wyckoff:[<x>, <y>, <z>]
+
+   This command set anisotropic displacement parameters of the atom type 
+   defined by the number on the "type:" parameter. The command takes 
+   either all six U_ij or a single isotropic displacement parameter.
+
+   The "wyckoff:" version checks the site symmetry for x,y,z and  
+   prints possible U_ij values and the constraints that apply to this
+   Wyckoff site. Result values 1 to 6 are possible U_ij, result values
+   7 to 16 encode the 10 possible constraints that apply:
+   Rule number  Constraint  Values
+   1            U11 = U22    1; -1   Equal; opposite sign
+   2            U11 = U33    1; -1   Equal; opposite sign
+   3            U22 = U33    1; -1   Equal; opposite sign
+   4            U23          0       Must be zero
+   5            U13          0       Must be zero
+   6            U12          0       Must be zero
+   7            U23 = U13    1; -1   Equal; opposite sign
+   8            U23 = U12    1; -1   Equal; opposite sign
+   9            U13 = U12    1; -1   Equal; opposite sign
+   10           U11 = 2*U12  2       U11 is twice U12
+   If a rule does not apply, the result value for this rule is set to 10.
+
 2  asym
 !p asym
 
