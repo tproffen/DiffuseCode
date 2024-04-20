@@ -162,8 +162,8 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo',   2, lbef, 4) )       &
 !                                                                       
 !-------add two files 'addf'                                            
 !                                                                       
-         ELSEIF (str_comp (befehl, 'addfile', 2, lbef, 7) ) THEN 
-            CALL do_addfile (zeile, lcomm) 
+!        ELSEIF (str_comp (befehl, 'addfile', 2, lbef, 7) ) THEN 
+!           CALL do_addfile (zeile, lcomm) 
 !                                                                       
 !     Set anisotropic APD 'anis'                                        
 !                                                                       
