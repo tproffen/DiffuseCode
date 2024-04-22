@@ -1,4 +1,25 @@
 6.16.03  DRAFT
+GENERAL
+  general     The welcome screen shoew more clearly if an "autorun.mac" 
+              Macro is used
+DISCUS
+              Many updates are going on for major new release this summer,
+              hopefully no effect on user yet.
+  chem        BUG FIX env command 
+  fourier     Added "extinction" correction as in SHELXL
+              Added caclulation mode for single crystal HKL intensity files
+  mmc         Added option to suppress output, streamlined final output
+              Added option to calculate all correlations outside a run
+  powder      BUG FIX related to PDF correlated motion correction and
+                      multi phase PDFs
+  read        BUG FIX "unique:name" parameter mistook similar atom names like "Ni, N"
+  show        Added long and short output options for "show atom"
+  stack       BUG FIX corrected weight for multi phase powder pattern
+  structure   Added better check for unusual "generators" in input file
+REFINE
+  refine      Bug fixes related to hkl input files
+              Added a "refine_new.res" macro as output of current status
+
 6.16.02  RELEASE 2023_12_09
 
 DISCUS
