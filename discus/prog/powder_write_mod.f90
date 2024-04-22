@@ -838,12 +838,10 @@ npkt_wrt = npkt_equi
 if(pdf_clin_a>0.0 .OR. pdf_cquad_a>0.0) then
 !
 !  Dampen last 10 A^-1
-   qqq = 10.0_PREC_DP
-   qqq = (qmax -pow_qmax_u) * 0.806
-   sigma_damp = qqq /deltaq*0.0625
+   qqq = (qmax -pow_qmax_u) * 0.800
    sigma_damp = qqq /deltaq*0.1250
-   sigma_damp = qqq /deltaq*0.250
    j = npkt_wrt-nint(qqq /deltaq)
+!write(*,'(a, 3i8)')    ' DAMP FQ ', j, npkt_wrt, npkt_wrt-j
 !write(*, '(a,5f12.5)') ' RANGE ', qqq, qmax, pow_qmax_u, sigma_damp, xwrt(j)
 !   do ii= npkt_wrt-nint(qqq/deltaq), npkt_wrt
    do ii= j                        , npkt_wrt
