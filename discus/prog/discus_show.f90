@@ -831,8 +831,8 @@ USE precision_mod
       INTEGER lpara (maxw) 
       REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
-      LOGICAL lold 
-      PARAMETER (lold = .false.) 
+      LOGICAL lnew 
+      PARAMETER (lnew = .false.) 
 !                                                                       
       INTEGER i, j 
 !                                                                       
@@ -866,7 +866,7 @@ USE precision_mod
       DO i = 0, cr_nscat 
       latom (i) = .false.   
       ENDDO 
-      CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
+      CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew) 
       IF (ier_num.eq.0) THEN 
          IF(NINT(werte(1))  ==  -1) THEN 
             DO i = 0, cr_nscat 

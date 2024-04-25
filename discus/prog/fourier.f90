@@ -59,7 +59,7 @@ IMPLICIT none
 !                                                                       
 INTEGER, PARAMETER :: MIN_PARA = 21  ! A command requires at least these no of parameters
 INTEGER :: maxw 
-LOGICAL, PARAMETER :: lold = .false. 
+LOGICAL, PARAMETER :: lnew = .false. 
 !                                                                       
 CHARACTER (LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: cpara ! (MIN(10,MAXSCAT)) 
 INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: lpara ! (MIN(10,MAXSCAT))
@@ -296,7 +296,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.3) then 
                   i = 1 
-                  CALL get_iscat (i, cpara, lpara, werte, maxw, lold) 
+                  CALL get_iscat (i, cpara, lpara, werte, maxw, lnew) 
                   IF (ier_num.eq.0) then 
                      IF(werte(1) .gt. 0.0D0) then 
                         DO k = 1, i 
@@ -322,7 +322,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                   IF (str_comp (cpara (2) , 'internal', 2, lpara (2) ,  &
                   8) ) then                                             
                      i = 1 
-                     CALL get_iscat (i, cpara, lpara, werte, maxw, lold) 
+                     CALL get_iscat (i, cpara, lpara, werte, maxw, lnew) 
                      IF (ier_num.eq.0) then 
                         i = nint (werte (1) ) 
                         IF (i.gt.0) then 
@@ -738,7 +738,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.10. .or. ianz==12) then 
                   i = 1 
-                  CALL get_iscat (i, cpara, lpara, werte, maxw, lold) 
+                  CALL get_iscat (i, cpara, lpara, werte, maxw, lnew) 
                   IF (ier_num.eq.0) then 
                      IF (werte (1) .gt.0.0D0) then 
                         DO k = 1, i 
@@ -763,7 +763,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo',   2, lbef, 4) ) &
                   ENDIF 
                ELSEIF (ianz.eq.2) then 
                   i = 1 
-                  CALL get_iscat (i, cpara, lpara, werte, maxw, lold) 
+                  CALL get_iscat (i, cpara, lpara, werte, maxw, lnew) 
                   IF (ier_num.eq.0) then 
                      IF(str_comp(cpara(2), 'internal', 2, lpara(2), 8)) then
                         IF (werte (1) .gt.0.0D0) then 

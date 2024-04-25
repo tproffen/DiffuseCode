@@ -51,8 +51,8 @@ IMPLICIT none
 !                                                                       
 INTEGER, PARAMETER :: MIN_PARA = 20  ! A command requires at leaset these no of parameters
 INTEGER maxw 
-LOGICAL lold 
-PARAMETER (lold = .false.) 
+LOGICAL lnew 
+PARAMETER (lnew = .false.) 
 !                                                                       
 CHARACTER(LEN=PREC_STRING), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAX(10,MAXSCAT)) 
 REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAX(10,MAXSCAT)) 
@@ -320,7 +320,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                   CALL atom_select (zeile, lp, 0, PL_MAXSCAT, pl_latom, &
                   pl_lsite, 0, PL_MAXSITE, &
-                  pl_sel_atom, lold,        &
+                  pl_sel_atom, lnew,        &
                   str_comp (befehl, 'select', 3, lbef, 6) )               
 !                                                                       
 !------ --selecting/deselecting of molecules                            
@@ -375,11 +375,11 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      zeile = cpara (1) (1:lpara (1) ) 
                      CALL atom_select (zeile, lp, 0, MAXSCAT, pl_batom_a, &
                      pl_lsite, 0, PL_MAXSITE, &
-                     pl_sel_atom, lold,  .true.)
+                     pl_sel_atom, lnew,  .true.)
                      zeile = cpara (2) (1:lpara (2) ) 
                      CALL atom_select (zeile, lp, 0, MAXSCAT, pl_batom_e, &
                      pl_lsite, 0, PL_MAXSITE, &
-                     pl_sel_atom, lold, .true.)
+                     pl_sel_atom, lnew, .true.)
                      CALL del_params (2, ianz, cpara, lpara, maxw) 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      IF (ier_num.eq.0) then 
@@ -539,7 +539,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         zeile = cpara(1)(1:lpara(1))
                      ENDIF
                      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                     CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold)                               
+                     CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)                               
                      IF (ier_num.eq.0) then 
                         IF(NINT(werte(1))==-1) THEN
                            pl_poly_c(:) = .TRUE.
@@ -557,7 +557,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            zeile = line(1:i)
                         ENDIF
                         CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                        CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold)                               
+                        CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)                               
                         IF (ier_num.eq.0) then 
                            IF(NINT(werte(1))==-1) THEN
                               pl_poly_o(:) = .TRUE.
@@ -667,7 +667,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                               lpara (1) = lp 
                               ianz = 1 
                               CALL get_iscat (ianz, cpara, lpara, werte,&
-                              maxw, lold)                               
+                              maxw, lnew)                               
                               IF (nint (werte (1) ) .eq. - 1) then 
                                  DO is = 1, cr_nscat 
                                  pl_typ (is) = it 

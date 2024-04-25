@@ -258,13 +258,13 @@ INTEGER                            , intent(in)    :: iflag
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: string 
 INTEGER :: laenge 
 INTEGER :: i 
-LOGICAL :: lold 
+LOGICAL :: lnew 
 LOGICAL :: linternal = .true.
 LOGICAL :: lexternal = .false.
 REAL(kind=PREC_DP) ::  distance 
 !                                                                       
 !                                                                       
-lold = .false. 
+lnew = .false. 
 !                                                                       
 IF (ianz.eq.1) then 
    ier_num = - 6 
@@ -334,7 +334,7 @@ ENDIF
             distance = berechne (string, laenge) 
             IF (ier_num.ne.0) return 
             ianz = ianz - 1 
-            CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
+            CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew) 
             IF (ier_num.ne.0) return 
             IF(NINT(werte(1)) == -1) then 
                DO i = 0, cr_nscat 

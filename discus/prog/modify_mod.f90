@@ -1747,7 +1747,7 @@ USE precision_mod
 !
 SUBROUTINE atom_select (zeile, lp, lu, lo, latom, &
                         lsite, lus, los,          &
-                        sel_atom, lold, lselect,  &
+                        sel_atom, lnew, lselect,  &
                         ival, repl)                             
 !+                                                                      
 !     This routine executes the select command                          
@@ -1773,7 +1773,7 @@ INTEGER,                   INTENT(IN)    :: lus
 INTEGER,                   INTENT(IN)    :: los
 LOGICAL, DIMENSION(lus:los), INTENT(OUT) :: lsite
 LOGICAL,                   INTENT(INOUT) :: sel_atom
-LOGICAL,                   INTENT(IN)    :: lold
+LOGICAL,                   INTENT(IN)    :: lnew
 LOGICAL,                   INTENT(IN)    :: lselect 
 INTEGER,                   OPTIONAL,  INTENT(IN)    :: ival
 INTEGER, DIMENSION(lu:lo), OPTIONAL,  INTENT(OUT)   :: repl (lu:lo)
@@ -1822,7 +1822,7 @@ sel_atom = .true.
 !                                                                       
 !------ Select/deselect atoms                                           
 !                                                                       
-CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
+CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew) 
 IF (ier_num.ne.0) RETURN 
 !                                                                       
 IF(NINT(werte(1)) == -1) THEN   ! all atoms are selected

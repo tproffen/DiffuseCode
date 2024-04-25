@@ -40,6 +40,7 @@ LOGICAL                            , INTENT(IN)    :: lnew    ! Make a new atom 
 CHARACTER(LEN=MAX(PREC_STRING,LEN(cpara))) :: zeile 
 INTEGER i, j, l, jj, jp 
 LOGICAL  , DIMENSION(MAX(PREC_STRING,LEN(cpara)),0:1) :: lmask
+logical :: lfound   ! did find old atom type
 INTEGER :: omask
 !                                                                       
 INTEGER :: length
@@ -95,10 +96,12 @@ DO WHILE(j <= ianz.AND.ier_num == 0)
    ELSEIF(((a <= i .AND. i <= z) .OR. (aa <= i .AND. i <= zz) ) .AND.         &
           (index (cpara (j) , '[')  == 0)                             ) THEN                            
       CALL do_cap(cpara(j)) 
-      ier_num = - 27 
+      ier_num = -27 
       ier_typ = ER_APPL 
+      lfound = .false.
       place: DO i = 0, cr_nscat 
          IF (cpara(j)(1:lpara(j))  == cr_at_lis(i) ) THEN 
+            lfound = .true.
             DO l=1,jj-1
                IF(NINT(werte(l)) == i) THEN
                   ier_num = 0 
@@ -113,13 +116,13 @@ DO WHILE(j <= ianz.AND.ier_num == 0)
             ier_typ = ER_NONE 
          ENDIF 
       ENDDO place
-      IF(lnew) THEN 
-         IF(j >  1) THEN 
+      IF(lnew .and. .not.lfound) THEN 
+!        IF(j >  1) THEN 
             if(cr_nscat==ubound(cr_at_lis,1)) then   ! Allocate more atoms
                nscat = cr_nscat + 1
                call alloc_crystal_scat(nscat)
             endif
-            IF(cr_nscat < MAXSCAT) THEN 
+            IF(cr_nscat < ubound(cr_at_lis,1)) THEN 
                cr_nscat = cr_nscat + 1 
                cr_at_lis(cr_nscat) = cpara(j) 
                cr_dw(cr_nscat) = cr_dw(1)
@@ -130,7 +133,7 @@ DO WHILE(j <= ianz.AND.ier_num == 0)
                ier_num = - 26 
                ier_typ = ER_APPL 
             ENDIF 
-         ENDIF 
+!        ENDIF 
       ENDIF 
    ELSE 
       zeile = ' ' 

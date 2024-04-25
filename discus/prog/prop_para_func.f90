@@ -225,7 +225,7 @@ USE str_comp_mod
       INTEGER, PARAMETER                   :: TYPES = 0
       INTEGER, PARAMETER                   :: ATOMS = 1
       INTEGER, PARAMETER                   :: MAXW = 200 
-      LOGICAL, PARAMETER                   :: LOLD = .true.
+      LOGICAL, PARAMETER                   :: LNEW = .false.
       CHARACTER(LEN=MAX(PREC_STRING,LEN(zeile))), DIMENSION(MAXW) :: cpara
       INTEGER            , DIMENSION(MAXW) :: lpara
       REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
@@ -273,7 +273,7 @@ USE str_comp_mod
       ALLOCATE(latom(0:MAXSCAT))
       latom(:) =.FALSE.
       typesel: IF(sel_mode == TYPES) THEN
-         CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
+         CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew) 
          IF (ier_num.ne.0) return 
          IF(NINT(werte(1))==-1) THEN
             latom = .true.

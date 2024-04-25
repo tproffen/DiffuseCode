@@ -1088,10 +1088,10 @@ USE str_comp_mod
    INTEGER     :: j_con  ! Number of connectivities for an atom type
    INTEGER     :: n_con  ! Dummy for allocations
    INTEGER     :: n_cor  ! Dummy for allocations
-   LOGICAL     :: lold   ! Atom types have to be present
+   LOGICAL     :: lnew   ! Atom types have to be present
 !                                                                       
 !                                                                       
-   lold = .true.
+   lnew = .false.
    IF (str_comp (cpara (1) , 'reset', 2, lpara (1) , 5) ) then 
       chem_ccon           =     0 ! all elements (i,j)
       chem_ccon    (1, :) = -9999 ! column (1,*)
@@ -1131,7 +1131,7 @@ USE str_comp_mod
       CALL del_params (1, ianz, cpara, lpara, maxw)      ! Remove Para 1
       CALL ber_params (iianz, cpara, lpara, werte, maxw) ! try to calc atom type
       IF (ier_num.ne.0) THEN                             ! Error must be atom name
-         CALL get_iscat (iianz, cpara, lpara, werte, maxw, lold) 
+         CALL get_iscat (iianz, cpara, lpara, werte, maxw, lnew) 
          is1 = nint (werte (1) ) 
          CALL no_error
       ELSE                                               ! Success set to value
@@ -1220,7 +1220,7 @@ INTEGER             :: iv, i, j
 INTEGER             :: janz 
 INTEGER             :: n_ran  ! Dummy for allocations
 INTEGER             :: n_cor  ! Dummy for allocations
-LOGICAL,PARAMETER   :: lold = .true.
+LOGICAL,PARAMETER   :: lnew = .false.
 LOGICAL             :: lacentric 
 !                                                                       
 REAL(KIND=PREC_DP) :: u (3), v (3) 
@@ -1346,7 +1346,7 @@ ELSE main
                ENDIF
             ENDIF
             CALL del_params (1, ianz, cpara, lpara, maxw) 
-            CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
+            CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew) 
             IF (ier_num.ne.0) return 
             IF (NINT(werte(1)) ==  -1) then 
                chem_cran_cent (0, iv) = - 1 
@@ -1382,7 +1382,7 @@ ELSE main
                ENDIF
             ENDIF
             CALL del_params (1, ianz, cpara, lpara, maxw) 
-            CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
+            CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew) 
             IF(ier_num.ne.0) return 
             IF(NINT(werte(1))  ==  -1) then 
                chem_cran_neig (0, iv) = - 1 
