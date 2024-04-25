@@ -623,7 +623,6 @@ loop_main: do iatom=1, dim_natoms
    loop_cell: do jj=1, istep
       jatom = (iatom-1)*istep + jj
       call indextocell(jatom, ic, is)
-      cond_old: if(sup_old(cr_iscat(1,jatom),is)) then   ! Proper old atom type
          v = cr_pos(:,jatom) !- cr_dim0(:,1)
          phase = 0.0_PREC_DP
          if(sup_atom(1,is)==rd_at_lis(rd_cr_iscat(1))) then
@@ -639,7 +638,7 @@ loop_main: do iatom=1, dim_natoms
 ! write(*,'(3i5,12f8.3)') iatom, jatom, is, arg(1), sup_phase(1,is), sin(arg(1)), sup_ampl(2:3, 1,is), &
 ! arg(2), sup_phase(2,is), sin(arg(2)), sup_ampl(2:3, 2,is), v(1:2)
 !endif
-!if(iatom<=4) then
+!if(iatom<=12) then
 !write(*,'(a,i7,3f8.2, i3,2a, i3, 2a6)') ' PSEUDO ',iatom, rd_cr_pos, rd_cr_iscat(1), rd_at_lis(rd_cr_iscat(1)),&
 !  ' HOST ', jatom, sup_atom(:,is)
 !write(*,'(a,i7, 2l3,3f10.4)')      ' sup_at ', is, sup_atom(1,is)==rd_at_lis(rd_cr_iscat(1)), &
@@ -651,14 +650,15 @@ loop_main: do iatom=1, dim_natoms
                cr_pos(:,jatom) = cr_pos(:,jatom) + vector
             enddo
          elseif(sup_char(is)==SUP_DENS) then
+      cond_old: if(sup_old(cr_iscat(1,jatom),is)) then   ! Proper old atom type
             prob = rep_ampl(1,is) + rep_ampl(2,is)*sin(arg(1))
             call random_number(r1)
             if(r1>prob) then
                call random_number(r1)
                cr_iscat(1,jatom) = sup_new(int(r1)*sup_irepl(is),is)
             endif
-         endif
       endif cond_old
+         endif
    enddo loop_cell
 enddo loop_main
 !
