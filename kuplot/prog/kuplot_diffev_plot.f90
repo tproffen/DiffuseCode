@@ -423,6 +423,7 @@ use kuplot_load_mod
 use kuplot_para_mod
 use kuplot_reset_mod
 use kuplot_show_mod
+use kuplot_extrema_mod
 !
 USE ber_params_mod
 USE errlist_mod
@@ -454,6 +455,8 @@ LOGICAL              :: lname
 LOGICAL              :: lexist
 REAL                 :: rvalue_min
 REAL(KIND=PREC_DP)   , DIMENSION(1:MAXW) :: werte
+real(kind=PREC_DP) :: xxmin
+real(kind=PREC_DP) :: yymin
 !
 success = -1
 lname   = .FALSE.
@@ -653,6 +656,41 @@ IF(ier_num/=0) RETURN
 x(offxy(4-1)+1) = x(offxy(3-1) + rvalue_ind)
 y(offxy(4-1)+1) = y(offxy(3-1) + rvalue_ind)
 !
+call get_extrema
+!
+! In case of narrow parameter distribution, rescale
+if(abs(xmax(3)-xmin(3))<2.0D-4) then     ! Very narrow parameter value distribution
+   xxmin = real(int(xmin(3)*1.D4), kind=PREC_DP)
+   do i=1,lenc(3)
+      x(offxy(3-1)+i) = x(offxy (3-1)+i) * 1.D4 - xxmin
+   enddo
+   xmin(3) = xmin(3) * 1.D4 - xxmin
+   xmax(3) = xmin(3) * 1.D4 - xxmin
+   do i=1,lenc(4)
+      x(offxy(4-1)+i) = x(offxy (4-1)+i) * 1.D4 - xxmin
+   enddo
+   xmin(4) = xmin(4) * 1.D4 - xxmin
+   xmax(4) = xmin(4) * 1.D4 - xxmin
+else
+   xxmin = 0.0D0
+endif
+if(abs(ymax(3)-ymin(3))<2.0D-4) then     ! Very narrow parameter value distribution
+   yymin = real(int(ymin(3)*1.D4), kind=PREC_DP)
+   do i=1,lenc(3)
+      y(offxy(3-1)+i) = y(offxy (3-1)+i) * 1.D4 - yymin
+   enddo
+   ymin(3) = ymin(3) * 1.D4 - yymin
+   ymax(3) = ymin(3) * 1.D4 - yymin
+   do i=1,lenc(4)
+      y(offxy(4-1)+i) = y(offxy (4-1)+i) * 1.D4 - yymin
+   enddo
+   ymin(4) = ymin(4) * 1.D4 - yymin
+   ymax(4) = ymin(4) * 1.D4 - yymin
+else
+   yymin = 0.0D0
+endif
+!
+call get_extrema
 !
 bef = 'mtyp'
 length = 4
@@ -738,9 +776,19 @@ ELSE
    string = k_diff_name(ipar1)
 ENDIF
 length = LEN_TRIM(string)
+if(xxmin> 0.0D0) then
+   write(string(length+3:),'(a3,G12.5,a)') ' = ', xxmin*1.0D-4, ' + x-tic*10\u-4\d'
+   length = LEN_TRIM(string)
+endif
 CALL para_set_achse (string, length, achse (iwin, iframe, 1), lachse(iwin, iframe, 1) )
 string = k_diff_name(ipar2)
 length = LEN_TRIM(string)
+!
+if(yymin> 0.0D0) then
+   write(string(length+3:),'(a3,G12.5,a)') ' = ', yymin*1.0D-4, ' + y-tic*10\u-4\d'
+   length = LEN_TRIM(string)
+endif
+!
 CALL para_set_achse (string, length, achse (iwin, iframe, 2), lachse(iwin, iframe, 2) )
 !
 ifname (iwin, iframe) = .FALSE.
@@ -749,6 +797,7 @@ CALL do_plot (.false.)
 string = 'data,4'
 length = 6
 CALL kuplot_do_show (string, length)
+write(*,*) ' delta x ', xmax(3)-xmin(3)
 !
 END SUBROUTINE kpar_par
 !
