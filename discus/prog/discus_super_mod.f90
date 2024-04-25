@@ -13,10 +13,12 @@ integer, parameter :: SUP_USER = 1
 !
 character(len=PREC_STRING)                        :: sup_file   ! Input file
 character(len=4)  , dimension(:,:)  , allocatable :: sup_atom   ! "Atom" name
-character(len=4)  , dimension(:)    , allocatable :: sup_repl   ! Replace site by this atom type
-integer           , dimension(:)    , allocatable :: sup_irepl  ! Replace site by this atom type
+!haracter(len=4)  , dimension(:)    , allocatable :: sup_repl   ! Replace site by this atom type
+integer           , dimension(:)    , allocatable :: sup_irepl  ! Replace site by this many different atom types
 integer           , dimension(:)    , allocatable :: sup_char   ! Character DISPLACEMENT / DENSITY
 integer           , dimension(:)    , allocatable :: sup_func   ! Function  : sine, user
+logical           , dimension(:,:)  , allocatable :: sup_old    ! Density: old atom types
+integer           , dimension(:,:)  , allocatable :: sup_new    ! Density: new atom types
 real(kind=PREC_DP), dimension(:,:,:), allocatable :: sup_ampl   ! Displacement amplitude vector
 real(kind=PREC_DP), dimension(  :,:), allocatable :: sup_phase  ! Phase in range [0,1]
 real(kind=PREC_DP), dimension(:,:)  , allocatable :: sup_prob   ! Density propabilities [min,max]
