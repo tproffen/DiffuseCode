@@ -1,14 +1,19 @@
 6.16.04  DRAFT
+GENERAL
+DISCUS
+KUPLOT
+  kpar_par    Extremely narrow parameter distribution messed up x/y scales. 
+
 6.16.03  RELEASE 2024_04_22
 GENERAL
-  general     The welcome screen shoew more clearly if an "autorun.mac" 
+  general     The welcome screen shows more clearly if an "autorun.mac" 
               Macro is used
 DISCUS
               Many updates are going on for major new release this summer,
               hopefully no effect on user yet.
   chem        BUG FIX env command 
   fourier     Added "extinction" correction as in SHELXL
-              Added caclulation mode for single crystal HKL intensity files
+              Added calculation mode for single crystal HKL intensity files
   mmc         Added option to suppress output, streamlined final output
               Added option to calculate all correlations outside a run
   powder      BUG FIX related to PDF correlated motion correction and
